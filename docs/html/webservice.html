@@ -1,0 +1,157 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webservice — Remote Framework Access via HTTP &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="3. Server Side API" href="server_side_api.html" />
+    <link rel="next" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="prev" title="profile — Profile" href="profile.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="server_side_internals.html" title="Server Side Internals"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="profile.html" title="profile — Profile"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" accesskey="U">3. Server Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">webservice</span></tt> &#8212; Remote Framework Access via HTTP</a><ul>
+<li><a class="reference external" href="#framework-server-class">Framework Server Class</a></li>
+<li><a class="reference external" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="profile.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">profile</span></tt> &#8212; Profile</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="server_side_internals.html"
+                                  title="next chapter">Server Side Internals</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/webservice.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-webservice">
+<h1><tt class="xref docutils literal"><span class="pre">webservice</span></tt> &#8212; Remote Framework Access via HTTP<a class="headerlink" href="#module-webservice" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="framework-server-class">
+<h2>Framework Server Class<a class="headerlink" href="#framework-server-class" title="Permalink to this headline">¶</a></h2>
+<p>..class:: FrameworkServer(remote_host, path, user=&#8217;&#8216;, password=&#8217;&#8216;, account=&#8217;&#8216;, cookies={}, opts={}, https = 0)</p>
+<blockquote>
+<p>Connect to a remote server via HTTP (webservice).</p>
+<ul class="simple">
+<li><cite>remote_host</cite> is the the address of the remote server</li>
+<li><cite>path</cite> is the path of the Framework (excluding index.cgi)</li>
+</ul>
+<dl class="method">
+<dt id="webservice.http_get_response">
+<tt class="descclassname">webservice.</tt><tt class="descname">http_get_response</tt><big>(</big><em>method</em>, <em>args</em><big>)</big><a class="headerlink" href="#webservice.http_get_response" title="Permalink to this definition">¶</a></dt>
+<dd>Run a method on the remote server, with the given arguments</dd></dl>
+
+<dl class="method">
+<dt id="webservice.runserverobj">
+<tt class="descclassname">webservice.</tt><tt class="descname">runserverobj</tt><big>(</big><em>doctype</em>, <em>docname</em>, <em>method</em>, <em>arg=''</em><big>)</big><a class="headerlink" href="#webservice.runserverobj" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the response of a remote method called on a system object specified by <cite>doctype</cite> and <cite>docname</cite></dd></dl>
+
+</blockquote>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Connect to a remote server a run a method <cite>update_login</cite> on <cite>Login Control</cite> on a remote server:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># connect to a remote server</span>
+<span class="n">remote</span> <span class="o">=</span> <span class="n">FrameworkServer</span><span class="p">(</span><span class="s">&#39;s2.iwebnote.com&#39;</span><span class="p">,</span> <span class="s">&#39;/v170&#39;</span><span class="p">,</span> <span class="s">&#39;testuser&#39;</span><span class="p">,</span> <span class="s">&#39;testpwd&#39;</span><span class="p">,</span> <span class="s">&#39;testaccount&#39;</span><span class="p">)</span>
+
+<span class="c"># update the login on a remote server</span>
+<span class="n">response</span> <span class="o">=</span> <span class="n">remote</span><span class="o">.</span><span class="n">runserverobj</span><span class="p">(</span><span class="s">&#39;Login Control&#39;</span><span class="p">,</span> <span class="s">&#39;Login Control&#39;</span><span class="p">,</span> <span class="s">&#39;update_login&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">])</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="server_side_internals.html" title="Server Side Internals"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="profile.html" title="profile — Profile"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

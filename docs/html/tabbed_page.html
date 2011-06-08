@@ -1,0 +1,176 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tabbed Page &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="Autosuggest" href="autosuggest.html" />
+    <link rel="prev" title="Tree" href="tree.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="autosuggest.html" title="Autosuggest"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tree.html" title="Tree"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Tabbed Page</a><ul>
+<li><a class="reference external" href="#tabbedpage-class">TabbedPage Class</a></li>
+<li><a class="reference external" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="tree.html"
+                                  title="previous chapter">Tree</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="autosuggest.html"
+                                  title="next chapter">Autosuggest</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/tabbed_page.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tabbed-page">
+<h1>Tabbed Page<a class="headerlink" href="#tabbed-page" title="Permalink to this headline">¶</a></h1>
+<p>The TabbedPage class defines a simple tabbing system</p>
+<div class="section" id="tabbedpage-class">
+<h2>TabbedPage Class<a class="headerlink" href="#tabbedpage-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="TabbedPage">
+<em class="property">class </em><tt class="descname">TabbedPage</tt><big>(</big><em>parent</em>, <em>only_labels</em><big>)</big><a class="headerlink" href="#TabbedPage" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a new TabbedPage in <cite>parent</cite>. If <cite>only_labels</cite> is set, do not create the page bodies only create
+labels</p>
+<dl class="attribute">
+<dt id="TabbedPage.tabs">
+<tt class="descname">tabs</tt><a class="headerlink" href="#TabbedPage.tabs" title="Permalink to this definition">¶</a></dt>
+<dd>A dictionary containing the tab labels. the key is the label name</dd></dl>
+
+<dl class="attribute">
+<dt id="TabbedPage.cur_tab">
+<tt class="descname">cur_tab</tt><a class="headerlink" href="#TabbedPage.cur_tab" title="Permalink to this definition">¶</a></dt>
+<dd>A reference to the current tab</dd></dl>
+
+<dl class="method">
+<dt id="TabbedPage.add_tab">
+<tt class="descname">add_tab</tt><big>(</big><em>n</em>, <em>onshow</em><big>)</big><a class="headerlink" href="#TabbedPage.add_tab" title="Permalink to this definition">¶</a></dt>
+<dd><p>Will create a new Tab with label n. Call <cite>onshow</cite> when the tab is displayed. The tab has an
+element <cite>tab_body</cite> that is the Element in which the content of the tab is added.</p>
+<p>The tab can be accessed by <cite>tabs</cite> dictionary</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="TabbedPage.disable_tab">
+<tt class="descname">disable_tab</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#TabbedPage.disable_tab" title="Permalink to this definition">¶</a></dt>
+<dd>Disable tab with label n</dd></dl>
+
+<dl class="method">
+<dt id="TabbedPage.enable_tab">
+<tt class="descname">enable_tab</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#TabbedPage.enable_tab" title="Permalink to this definition">¶</a></dt>
+<dd>Enable tab with label n</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Example using TabbedPage:</p>
+<div class="highlight-python"><pre>var mytabs = new TabbedPage(parent);
+mytabs.add_tab('Tab 1', function() { refresh_list1(); })
+mytabs.add_tab('Tab 2', function() { refresh_list1(); })
+mytabs.add_tab('Tab 3', function() { refresh_list1(); })
+
+// add pages
+mytabs.tabs['Tab 1'].tab_body.innerHTML = "Some content in Tab 1"</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="autosuggest.html" title="Autosuggest"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tree.html" title="Tree"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,378 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Client Side Cookbook &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Writing Scripts" href="writing_scripts.html" />
+    <link rel="next" title="Report Cookbook" href="report_cookbook.html" />
+    <link rel="prev" title="Server Side Cookbook" href="server_side_cookbook.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="report_cookbook.html" title="Report Cookbook"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="server_side_cookbook.html" title="Server Side Cookbook"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" accesskey="U">Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Client Side Cookbook</a><ul>
+<li><a class="reference external" href="#fetch-customer-cell-no-and-email-id-based-on-name">Fetch customer cell no and email id based on name</a></li>
+<li><a class="reference external" href="#form-events-triggers">Form Events (Triggers)</a></li>
+<li><a class="reference external" href="#accessing-updating-field-objects">Accessing / Updating Field Objects</a></li>
+<li><a class="reference external" href="#field-events-triggers">Field Events (Triggers)</a></li>
+<li><a class="reference external" href="#overloading-link-field-queries">Overloading Link Field queries</a></li>
+<li><a class="reference external" href="#setting-contextutal-help-tips">Setting contextutal help (Tips)</a></li>
+<li><a class="reference external" href="#custom-ui-using-the-html-field">Custom UI using the HTML Field</a></li>
+<li><a class="reference external" href="#useful-api-methods">Useful API Methods</a></li>
+<li><a class="reference external" href="#using-templates">Using Templates</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="server_side_cookbook.html"
+                                  title="previous chapter">Server Side Cookbook</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="report_cookbook.html"
+                                  title="next chapter">Report Cookbook</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/client_side_cookbook.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="client-side-cookbook">
+<h1>Client Side Cookbook<a class="headerlink" href="#client-side-cookbook" title="Permalink to this headline">¶</a></h1>
+<p>Standard Patterns for Client Side Scripts</p>
+<div class="section" id="fetch-customer-cell-no-and-email-id-based-on-name">
+<h2>Fetch customer cell no and email id based on name<a class="headerlink" href="#fetch-customer-cell-no-and-email-id-based-on-name" title="Permalink to this headline">¶</a></h2>
+<p>This can be implemented using the standard fetch pattern:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">cur_frm</span><span class="o">.</span><span class="n">add_fetch</span><span class="p">(</span><span class="s">&#39;customer&#39;</span><span class="p">,</span> <span class="s">&#39;email_id&#39;</span><span class="p">,</span> <span class="s">&#39;customer_email&#39;</span><span class="p">);</span>
+<span class="n">cur_frm</span><span class="o">.</span><span class="n">add_fetch</span><span class="p">(</span><span class="s">&#39;customer&#39;</span><span class="p">,</span> <span class="s">&#39;cell_no&#39;</span><span class="p">,</span> <span class="s">&#39;customer_cell_no&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="form-events-triggers">
+<h2>Form Events (Triggers)<a class="headerlink" href="#form-events-triggers" title="Permalink to this headline">¶</a></h2>
+<p>Standard Form-level Triggers are</p>
+<ul class="simple">
+<li>refresh - This is called whenever a new record is loaded, or a record is opened, or when a record is saved</li>
+<li>onload - This is called the first time a record is loaded</li>
+<li>setup - This is called the first time a Form is loaded</li>
+</ul>
+<p>Some Examples:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.refresh = function(doc, dt, dn) {
+   // set contextual help
+
+   cur_frm.clear_tip();
+   if(doc.city &amp;&amp; !doc.location) cur_frm.set_tip("Its always a good idea to add location to the city");
+}</pre>
+</div>
+</div>
+<div class="section" id="accessing-updating-field-objects">
+<h2>Accessing / Updating Field Objects<a class="headerlink" href="#accessing-updating-field-objects" title="Permalink to this headline">¶</a></h2>
+<p>Every input / field in the Form is an instance of the <a title="_f.Field" class="reference external" href="form_widget.html#_f.Field"><tt class="xref docutils literal"><span class="pre">_f.Field</span></tt></a>. The reference to the field object
+can be got using <cite>cur_frm.fields_dict</cite> property. This is a dictionary that contains reference to all field
+objects by name or label (in case there is no name).</p>
+<p>Properties of the field can be set by setting the <cite>df</cite> dictionary (which represents the <cite>DocField</cite>). Example:</p>
+<div class="highlight-python"><pre>var f = cur_frm.fields_dict['first_name']
+f.df.hidden = 1;
+f.refresh();</pre>
+</div>
+</div>
+<div class="section" id="field-events-triggers">
+<h2>Field Events (Triggers)<a class="headerlink" href="#field-events-triggers" title="Permalink to this headline">¶</a></h2>
+<p>Field <cite>onchange</cite> triggers can be set by declaring a function in the <cite>cur_frm.cscript</cite> object (namespace). The
+function will be called when the onchange event will be triggered. The function will be passed 3 parameters</p>
+<ul class="simple">
+<li>doc - reference to the current main record</li>
+<li>dt - reference to the DocType (this will be different to <cite>doc.doctype</cite> in case of a child (table) trigger)</li>
+<li>dn - reference to the DocType (this will be different to <cite>doc.name</cite> in case of a child (table) trigger)</li>
+</ul>
+<p>Example:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.first_name(doc, dt, dn) {
+      if(doc.first_name.length &lt; 3) {
+         msgprint("First Name should atleast be 3 characters long.")
+      }
+}</pre>
+</div>
+</div>
+<div class="section" id="overloading-link-field-queries">
+<h2>Overloading Link Field queries<a class="headerlink" href="#overloading-link-field-queries" title="Permalink to this headline">¶</a></h2>
+<p>If a filter is to be added to validate values that can be set by <cite>Link</cite> fields, it is necessary to
+overload the exiting query method. This can be done by setting the <cite>get_query</cite> method on
+the <cite>Field</cite> object. Example:</p>
+<div class="highlight-python"><pre>// standard field
+cur_frm.fields_dict['test_link'].get_query = function(doc,dt,dn) {
+   return "SELECT tabDocType.name FROM tabDocType WHERE IFNULL(tabDocType.issingle,0)=0 AND tabDocType.name LIKE '%s'"
+}
+
+// field in a grid
+cur_frm.fields_dict['test_grid'].grid.get_field('my_link').get_query = function(doc,dt,dn) {
+   return "SELECT tabDocType.name FROM tabDocType WHERE IFNULL(tabDocType.issingle,0)=0 AND tabDocType.name LIKE '%s'"
+}</pre>
+</div>
+</div>
+<div class="section" id="setting-contextutal-help-tips">
+<h2>Setting contextutal help (Tips)<a class="headerlink" href="#setting-contextutal-help-tips" title="Permalink to this headline">¶</a></h2>
+<p>Contextual help can be set using the <a title="_f.Frm.set_tip" class="reference external" href="form_widget.html#_f.Frm.set_tip"><tt class="xref docutils literal"><span class="pre">_f.Frm.set_tip()</span></tt></a>, <a title="_f.Frm.append_tip" class="reference external" href="form_widget.html#_f.Frm.append_tip"><tt class="xref docutils literal"><span class="pre">_f.Frm.append_tip()</span></tt></a>, <a title="_f.Frm.clear_tip" class="reference external" href="form_widget.html#_f.Frm.clear_tip"><tt class="xref docutils literal"><span class="pre">_f.Frm.clear_tip()</span></tt></a>
+methods. See Examples:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.refresh = function(doc, doctype, docname) {
+      cur_frm.clear_tip("")
+  if(doc.status="Draft") {
+    cur_frm.set_tip("This is a Draft, to publish, please check on 'Published' before saving")
+  }
+  if(doc.is_popular="Yes") {
+    cur_frm.append_tip("This post is popular!")
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="custom-ui-using-the-html-field">
+<h2>Custom UI using the HTML Field<a class="headerlink" href="#custom-ui-using-the-html-field" title="Permalink to this headline">¶</a></h2>
+<p>Custom UI Objects can be added to forms by using the HTML field. The object can be added in the form wrapper
+and reset with latest values on the <cite>refresh</cite> event. Example:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.refresh = function(doc, dt, dn) {
+   var cs = cur_frm.cscript;
+   if(!cs.my_object) {
+
+      // lets add a listing
+      cs.my_object = new Listing();
+      ..
+      ..
+   }
+
+   cs.my_object.refresh();
+}</pre>
+</div>
+</div>
+<div class="section" id="useful-api-methods">
+<h2>Useful API Methods<a class="headerlink" href="#useful-api-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="get_children">
+<tt class="descname">get_children</tt><big>(</big><em>child_dt</em>, <em>parent</em>, <em>parentfield</em>, <em>parenttype</em><big>)</big><a class="headerlink" href="#get_children" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get list of child records for the given parent record where:</p>
+<ul class="simple">
+<li>child_dt is the DocType of the child type</li>
+<li>parent is ths name of the parent record</li>
+<li>parentfield is the fieldname of the child table in the parent DocType</li>
+<li>parenttype is the type of the Parent <cite>DocType</cite></li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="get_field">
+<tt class="descname">get_field</tt><big>(</big><em>doctype</em>, <em>fieldname</em>, <em>docname</em><big>)</big><a class="headerlink" href="#get_field" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the field metadata (<cite>DocField</cite> format) for the given field and given record.</p>
+<p><strong>Note:</strong> Separate metadata is maintained for each field of each record. This is because metadata
+can be changed by a script only for one record. For example, a field may be hidden in record A but
+visible in record B. Hence same metadata cannot be referenced for the two records. Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">f</span> <span class="o">=</span> <span class="n">get_field</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="s">&#39;first_name&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">);</span>
+<span class="n">f</span><span class="o">.</span><span class="n">hidden</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+<span class="n">refresh_field</span><span class="p">(</span><span class="s">&#39;first_name&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="get_server_fields">
+<tt class="descname">get_server_fields</tt><big>(</big><em>method</em>, <em>arg</em>, <em>table_field</em>, <em>doc</em>, <em>dt</em>, <em>dn</em>, <em>allow_edit</em>, <em>call_back</em><big>)</big><a class="headerlink" href="#get_server_fields" title="Permalink to this definition">¶</a></dt>
+<dd><p>Update the values in the current record by calling a remote method. Example Client Side:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.contact_person = function(doc, cdt, cdn) {
+  if(doc.contact_person) {
+    var arg = {'customer':doc.customer_name,'contact_person':doc.contact_person};
+    get_server_fields('get_contact_details',docstring(arg),'',doc, cdt, cdn, 1);
+  }
+}</pre>
+</div>
+<p>Server side version:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">get_contact_details</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+  <span class="n">arg</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+  <span class="n">contact</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select contact_no, email_id from `tabContact` where contact_name = &#39;</span><span class="si">%s</span><span class="s">&#39; and customer_name = &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span><span class="p">(</span><span class="n">arg</span><span class="p">[</span><span class="s">&#39;contact_person&#39;</span><span class="p">],</span><span class="n">arg</span><span class="p">[</span><span class="s">&#39;customer&#39;</span><span class="p">]),</span> <span class="n">as_dict</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+  <span class="n">ret</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s">&#39;contact_no&#39;</span>       <span class="p">:</span>    <span class="n">contact</span> <span class="ow">and</span> <span class="n">contact</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;contact_no&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">,</span>
+    <span class="s">&#39;email_id&#39;</span>         <span class="p">:</span>    <span class="n">contact</span> <span class="ow">and</span> <span class="n">contact</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="s">&#39;email_id&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+  <span class="p">}</span>
+  <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$c_get_values(args, doc, dt, dn, user_callback)</tt></dt>
+<dd><p>Similar to get_server_fields, but no serverside required:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.item_code = function(doc, dt, dn) {
+  var d = locals[dt][dn];
+
+  $c_get_values({
+    fields:'description,uom'       // fields to be updated
+    ,table_field:'sales_bom_items'           // [optional] if the fields are in a table
+    ,select:'description,stock_uom' // values to be returned
+    ,from:'tabItem'
+    ,where:'name="'+d.item_code+'"'
+  }, doc, dt, dn);
+}</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="set_multiple">
+<tt class="descname">set_multiple</tt><big>(</big><em>dt</em>, <em>dn</em>, <em>dict</em>, <em>table_field</em><big>)</big><a class="headerlink" href="#set_multiple" title="Permalink to this definition">¶</a></dt>
+<dd>Set mutliple values from a dictionary to a record. In case of Table, pass <cite>tablefield</cite></dd></dl>
+
+<dl class="function">
+<dt id="refresh_many">
+<tt class="descname">refresh_many</tt><big>(</big><em>flist</em>, <em>dn</em>, <em>table_field</em><big>)</big><a class="headerlink" href="#refresh_many" title="Permalink to this definition">¶</a></dt>
+<dd>Refresh multiple fields. In case of Table, pass <cite>tablefield</cite></dd></dl>
+
+<dl class="function">
+<dt id="refresh_field">
+<tt class="descname">refresh_field</tt><big>(</big><em>n</em>, <em>docname</em>, <em>table_field</em><big>)</big><a class="headerlink" href="#refresh_field" title="Permalink to this definition">¶</a></dt>
+<dd>Refresh a field widget. In case of a table record, mention the <cite>table_field</cite> and row ID <cite>docname</cite></dd></dl>
+
+<dl class="function">
+<dt id="set_field_tip">
+<tt class="descname">set_field_tip</tt><big>(</big><em>fieldname</em>, <em>txt</em><big>)</big><a class="headerlink" href="#set_field_tip" title="Permalink to this definition">¶</a></dt>
+<dd>Set <cite>txt</cite> comment on a field</dd></dl>
+
+<dl class="function">
+<dt id="set_field_options">
+<tt class="descname">set_field_options</tt><big>(</big><em>n</em>, <em>options</em><big>)</big><a class="headerlink" href="#set_field_options" title="Permalink to this definition">¶</a></dt>
+<dd>Set <cite>options</cite> of a field and <cite>refresh</cite></dd></dl>
+
+<dl class="function">
+<dt id="set_field_permlevel">
+<tt class="descname">set_field_permlevel</tt><big>(</big><em>n</em>, <em>permlevel</em><big>)</big><a class="headerlink" href="#set_field_permlevel" title="Permalink to this definition">¶</a></dt>
+<dd>Set <cite>permlevel</cite> of a field and <cite>refresh</cite></dd></dl>
+
+<dl class="function">
+<dt id="hide_field">
+<tt class="descname">hide_field</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#hide_field" title="Permalink to this definition">¶</a></dt>
+<dd>Hide a field of fieldname <cite>n</cite> or a list of fields <cite>n</cite></dd></dl>
+
+<dl class="function">
+<dt id="unhide_field">
+<tt class="descname">unhide_field</tt><big>(</big><em>n</em><big>)</big><a class="headerlink" href="#unhide_field" title="Permalink to this definition">¶</a></dt>
+<dd>Unhide a field of fieldname <cite>n</cite> or a list of fields <cite>n</cite></dd></dl>
+
+</div>
+<div class="section" id="using-templates">
+<h2>Using Templates<a class="headerlink" href="#using-templates" title="Permalink to this headline">¶</a></h2>
+<p>The standard Form UI Engine can be overridden using the templates. The <cite>template</cite> is HTML code and can be
+set in the <cite>template</cite> field of the DocType. To render fields in the template, Element IDs must be set in a
+specific pattern. The pattern is</p>
+<ul class="simple">
+<li>frm_[DocType]_[fieldname]</li>
+</ul>
+<p>See Example:</p>
+<div class="highlight-python"><pre>&lt;h1&gt;Contact Form&lt;/h1&gt;
+&lt;table&gt;
+  &lt;tr&gt;
+    &lt;td&gt;First Name&lt;/td&gt;
+    &lt;td id="frm_Contact_first_name"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Last Name&lt;/td&gt;
+    &lt;td id="frm_Contact_last_name"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;Email ID&lt;/td&gt;
+    &lt;td id="frm_Contact_email"&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+  &lt;tr&gt;
+    &lt;td&gt;&lt;/td&gt;
+    &lt;td&gt;&lt;button onclick="cur_frm.save('Save', function() { loadpage('Thank You'); })"&gt;Save&lt;/button&gt;&lt;/td&gt;
+  &lt;/tr&gt;
+&lt;/table&gt;</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="report_cookbook.html" title="Report Cookbook"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="server_side_cookbook.html" title="Server Side Cookbook"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" >Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

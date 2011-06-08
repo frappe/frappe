@@ -1,0 +1,154 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>page — Page Module &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="next" title="menus_server — Menus Serverside Module" href="menus_server.html" />
+    <link rel="prev" title="form — Form Module" href="form_server.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="menus_server.html" title="menus_server — Menus Serverside Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="form_server.html" title="form — Form Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" accesskey="U">Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">page</span></tt> &#8212; Page Module</a><ul>
+<li><a class="reference external" href="#internal-methods">Internal Methods</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="form_server.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">form</span></tt> &#8212; Form Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="menus_server.html"
+                                  title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">menus_server</span></tt> &#8212; Menus Serverside Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/page_server.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-page">
+<h1><tt class="xref docutils literal"><span class="pre">page</span></tt> &#8212; Page Module<a class="headerlink" href="#module-page" title="Permalink to this headline">¶</a></h1>
+<dl class="class">
+<dt id="page.Page">
+<em class="property">class </em><tt class="descclassname">page.</tt><tt class="descname">Page</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#page.Page" title="Permalink to this definition">¶</a></dt>
+<dd><p>A page class helps in loading a Page in the system. On loading</p>
+<ul class="simple">
+<li>Page will import Client Script from other pages where specified by <cite>$import(page_name)</cite></li>
+<li>Execute dynamic HTML if the <cite>content</cite> starts with <cite>#python</cite></li>
+</ul>
+<dl class="method">
+<dt id="page.Page.load">
+<tt class="descname">load</tt><big>(</big><big>)</big><a class="headerlink" href="#page.Page.load" title="Permalink to this definition">¶</a></dt>
+<dd>Returns <a class="reference external" href="glossary.html#term-doclist"><em class="xref">doclist</em></a> of the <cite>Page</cite></dd></dl>
+
+</dd></dl>
+
+<div class="section" id="internal-methods">
+<h2>Internal Methods<a class="headerlink" href="#internal-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="page.get">
+<tt class="descclassname">page.</tt><tt class="descname">get</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#page.get" title="Permalink to this definition">¶</a></dt>
+<dd>Return the <a class="reference external" href="glossary.html#term-doclist"><em class="xref">doclist</em></a> of the <cite>Page</cite> specified by <cite>name</cite></dd></dl>
+
+<dl class="method">
+<dt id="page.getpage">
+<tt class="descclassname">page.</tt><tt class="descname">getpage</tt><big>(</big><big>)</big><a class="headerlink" href="#page.getpage" title="Permalink to this definition">¶</a></dt>
+<dd>Load the page from <cite>webnotes.form</cite> and send it via <cite>webnotes.response</cite></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="menus_server.html" title="menus_server — Menus Serverside Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="form_server.html" title="form — Form Module"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" >Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

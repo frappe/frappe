@@ -1,0 +1,200 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Glossary &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="prev" title="5. Generating Sitemaps" href="sitemap.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="sitemap.html" title="5. Generating Sitemaps"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="sitemap.html"
+                                  title="previous chapter">5. Generating Sitemaps</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/glossary.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="glossary">
+<span id="id1"></span><h1>Glossary<a class="headerlink" href="#glossary" title="Permalink to this headline">¶</a></h1>
+<dl class="glossary docutils">
+<dt id="term-doctype">DocType</dt>
+<dd><p class="first">The basic building block of the Web Notes Framework. A DocType represents multiple things</p>
+<ul>
+<li><dl class="first docutils">
+<dt>A table in the database (if <cite>is_single</cite> is <cite>False</cite>)</dt>
+<dd><p class="first last">A table is named as <cite>tab</cite> + the name of the Doctype
+Example: The table of doctype Content would be <cite>tabContent</cite></p>
+</dd>
+</dl>
+</li>
+<li><p class="first">A class</p>
+</li>
+<li><p class="first">A form</p>
+</li>
+<li><p class="first">An agent to perform certain actions</p>
+</li>
+</ul>
+<p class="last">A <cite>DocType</cite> has <em class="xref">Fields</em>, <a class="reference internal" href="#term-permissions"><em class="xref">Permissions</em></a> and <em class="xref">Code</em></p>
+</dd>
+<dt id="term-single-type">Single Type</dt>
+<dd><p class="first">A DocType with property <cite>is_single</cite> as True.</p>
+<ul class="last simple">
+<li>No table is created for such a DocType</li>
+<li>All field values are stored in the table <cite>tabSingles</cite></li>
+<li>Mostly used to write Control objects</li>
+</ul>
+</dd>
+<dt id="term-document">Document</dt>
+<dd>A single record wrapped by an object-relational mapper.
+The document object&#8217;s properties can be set or accessed using the simple object notation. For example <cite>doc.owner</cite></dd>
+<dt id="term-doclist">doclist</dt>
+<dd>A list of <a class="reference internal" href="#term-document"><em class="xref">Document</em></a> records representing a single record (along with all its child records). The first
+element in the list <cite>doclist[0]</cite> is the main record, the rest, if any, are child records.</dd>
+<dt id="term-permissions">Permissions</dt>
+<dd><p class="first">Role-based permissions are maintained in the DocType. Permissions can also be set on individual fields.
+This is done by defining levels. The default level is 0 for all fields.</p>
+<p>Permissions can also be set based on certain properties of the user or the role and this is called <cite>match</cite></p>
+<p>If a property is set in <cite>match</cite> column of the permission, then that permission will only apply if</p>
+<ul class="simple">
+<li>The user / role has that property (as defined in User Defaults)</li>
+<li>The corresponding DocType has that property</li>
+<li>The value of the property is same, i.e. matches</li>
+</ul>
+<p class="last">Example: if the match is on field <cite>department</cite>, then the permission will only apply if the user
+is of the same department as the transaction. This can be used to allow group wise access that cannot
+be fulfilled by roles.</p>
+</dd>
+<dt id="term-page">Page</dt>
+<dd><p class="first">A Page represpents a simple Page in the application. A page has:</p>
+<ul class="simple">
+<li>Static HTML content</li>
+<li>Javascript code, event code</li>
+<li>CSS</li>
+</ul>
+<p class="last">Pages can be used to create any type of UI and workflows</p>
+</dd>
+<dt id="term-testing-mode">Testing Mode</dt>
+<dd><p class="first">A global flag indicates if the system is in testing mode.</p>
+<ul class="simple">
+<li>When the Testing Mode is setup, a copy of all tables is made and stored as <cite>test</cite> + the DocType</li>
+<li>All sql queries are scrubbed so that <cite>tab</cite> + DocType becomes <cite>test</cite> + DocType</li>
+<li>Example: tabContact becomes testContact</li>
+</ul>
+<p class="last">The <cite>Testing Mode</cite> is designed to be seamless to the developer and separate series are also mainted for
+records created in the testing mode.</p>
+</dd>
+<dt id="term-error-console">Error Console</dt>
+<dd>A Dialog box showing exceptions from the current request. Can be seen by click on Tools -&gt; Error Console
+on the <a class="reference internal" href="#term-web-notes-toolbar"><em class="xref">Web Notes Toolbar</em></a></dd>
+<dt id="term-web-notes-toolbar">Web Notes Toolbar</dt>
+<dd>A toolbar that is shown by default to the Administrator. To turn this off, set a default property
+<cite>hide_webnotes_toolbar</cite> = 1, or set it in the <a class="reference internal" href="#term-control-panel"><em class="xref">Control Panel</em></a></dd>
+<dt id="term-control-panel">Control Panel</dt>
+<dd>A <a class="reference internal" href="#term-single-type"><em class="xref">Single Type</em></a> containing global defaults. The can be accessed from the <a class="reference internal" href="#term-web-notes-toolbar"><em class="xref">Web Notes Toolbar</em></a> by
+going to Options -&gt; Control Panel when logged in as Administrator</dd>
+<dt id="term-report-builder">Report Builder</dt>
+<dd>This can be accessed from the <a class="reference internal" href="#term-web-notes-toolbar"><em class="xref">Web Notes Toolbar</em></a>. The Report Builder provides a way to generate
+tabular reports from DocType. You can select the columns of the report as well as filter the report
+on columns that have the <cite>in_filter</cite> property set</dd>
+<dt id="term-search-criteria">Search Criteria</dt>
+<dd>Saved settings of the <cite>Report Builder</cite>. This can be used for &#8220;one-click&#8221; reports. Scripting and other
+settings can also be done in the Search Criteria</dd>
+<dt id="term-locals">Locals</dt>
+<dd>A local dictionary (object) in the browser that maintains all records (or metadata) loaded from the server. The format is
+locals[<cite>DocType</cite>][<cite>name</cite>]. If an object is loaded in the current session, then it will be present in the
+locals object (dictionary)</dd>
+<dt id="term-standard-query">Standard Query</dt>
+<dd><p class="first">A standardized way to write a SQL query for the query_builder. This will automatically add conditions
+relating to <cite>match</cite> permissions.</p>
+<p>For a standard query,</p>
+<ul class="last simple">
+<li>All SQL keywords must be capitalized</li>
+<li>All columms must be written as <cite>tablename</cite>.`colname`</li>
+</ul>
+</dd>
+</dl>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sitemap.html" title="5. Generating Sitemaps"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

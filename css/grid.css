@@ -1,0 +1,122 @@
+
+
+/* Grid */
+
+
+/* --- Simple --- */
+.grid_wrapper_simple {
+	width: 100%;
+	margin-bottom: 8px;
+	border: 1px solid #AA9;
+}
+
+.grid_head_wrapper_simple {
+	padding: 0px;
+	border-bottom: 2px solid #AAA;
+}
+
+.grid_head_wrapper_simple td {
+	border-right: 1px solid #AA9;
+}
+
+.grid_head_wrapper_simple td div {
+	padding: 2px;
+}
+
+.grid_tab_wrapper_simple {
+}
+
+.grid_cell_simple {
+	padding: 2px;
+	background-color: #fff;
+	border-right: 1px solid #AA9;
+}
+
+
+/* --- Normal --- */
+.grid_wrapper {
+	position: relative;
+	overflow: auto;
+	border: 1px solid #AAA;
+	width: 100%;
+	margin-bottom: 8px;
+	background-color: #fff;	
+}
+
+.grid_tab_wrapper {
+	position: absolute;
+	top: 30px;
+	border-bottom: 1px solid #DDD;
+}
+
+.grid_table, .grid_head_table  {
+	table-layout: fixed;
+	border-collapse: collapse;
+	/*width: 100%;*/
+}
+
+.grid_cell {
+	border-right: 1px solid #ddd;
+	padding: 0px;
+	background-color: #fff;
+}
+
+.grid_head_wrapper {
+	position: absolute;
+	z-index: 1;
+	height: 30px;
+	padding: 0px;
+	overflow: hidden;
+	/*background-color: #fff;*/
+}
+
+.grid_head_table td {
+	background-color: #EEE;
+	border-right: 1px solid #AAA;
+	border-bottom: 1px solid #AAA;
+	height: 30px;
+	padding: 0px;
+}
+
+.grid_head_table td div {
+	color: #222;
+	font-weight: bold;
+	overflow: hidden;
+	padding: 2px 0px;
+	text-align: center;	
+}
+
+.grid_selector {
+	padding: 1px;
+	border-right: 1px solid #DDD;
+	width: 20px;
+	background-color: #fff;
+}
+
+.grid_cell_div {
+	padding: 2px;
+	cursor: pointer;
+	overflow: hidden;
+	border: 2px solid #FFF;
+}
+
+.grid_cell_div_selected {
+	border: 2px solid #88f;
+}
+
+.grid_cell_div input, .grid_cell_div select, .grid_cell_div div input {
+	margin: 0px;
+	border: 0px;
+	width: 100%;
+ 	margin: 0px;
+ }
+
+.grid_cell_div textarea {
+	border: 3px solid #abf;
+	height:200px;
+	width: 300px;
+	z-index: 10;
+	position:absolute;
+}
+
+.gridDivSelected option { border: 0px; }

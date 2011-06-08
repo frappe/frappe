@@ -1,0 +1,204 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Client Side Scripts &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Writing Scripts" href="writing_scripts.html" />
+    <link rel="next" title="Creating Pages" href="creating_pages.html" />
+    <link rel="prev" title="Server Side Scripts" href="server_side_script.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="creating_pages.html" title="Creating Pages"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="server_side_script.html" title="Server Side Scripts"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" accesskey="U">Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Client Side Scripts</a><ul>
+<li><a class="reference external" href="#introduction">Introduction</a></li>
+<li><a class="reference external" href="#cur-frm-object">cur_frm Object</a></li>
+<li><a class="reference external" href="#onload-event">onload event</a></li>
+<li><a class="reference external" href="#refersh-event">refersh event</a></li>
+<li><a class="reference external" href="#server-calls">Server Calls</a></li>
+<li><a class="reference external" href="#field-level-triggers">Field Level Triggers</a></li>
+<li><a class="reference external" href="#fetch-pattern">Fetch Pattern</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="server_side_script.html"
+                                  title="previous chapter">Server Side Scripts</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="creating_pages.html"
+                                  title="next chapter">Creating Pages</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/client_side_script.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="client-side-scripts">
+<h1>Client Side Scripts<a class="headerlink" href="#client-side-scripts" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="introduction">
+<h2>Introduction<a class="headerlink" href="#introduction" title="Permalink to this headline">¶</a></h2>
+<p>Client side scripts are written in javascript and they are used to execute function on event triggers.
+These scripts can be used to:</p>
+<ul class="simple">
+<li>Manipulate views</li>
+<li>Do server calls (AJAX)</li>
+<li>Validate entries</li>
+<li>Do calculations</li>
+</ul>
+<p>Client scripts can be written inside of DocType in the &#8220;Client Script&#8221; tab</p>
+</div>
+<div class="section" id="cur-frm-object">
+<h2>cur_frm Object<a class="headerlink" href="#cur-frm-object" title="Permalink to this headline">¶</a></h2>
+<p>All client script functions are attached to the cur_frm.cscript object. This object holds the functions
+relating to a DocType (form)</p>
+</div>
+<div class="section" id="onload-event">
+<h2>onload event<a class="headerlink" href="#onload-event" title="Permalink to this headline">¶</a></h2>
+<p>onload is called when the a record is loaded for the first time. Example:</p>
+<div class="highlight-python"><pre>cur_frm.cscript.onload = function(doc, doctype, docname) {
+  if(!doc.from) {
+    doc.from_user = user;
+    refresh_field('user')
+  }
+}</pre>
+</div>
+</div>
+<div class="section" id="refersh-event">
+<h2>refersh event<a class="headerlink" href="#refersh-event" title="Permalink to this headline">¶</a></h2>
+<p>refresh event is similar to the onload event. Except that it is also called each time the page is refreshed
+either via a user refresh, save or otherwise.</p>
+</div>
+<div class="section" id="server-calls">
+<h2>Server Calls<a class="headerlink" href="#server-calls" title="Permalink to this headline">¶</a></h2>
+<p>A typical use is to get/set data at server side. To do this, the framework has built-in AJAX interface using
+the $c_obj (call server object) function. The typical pattern is as follows:</p>
+<div class="highlight-python"><pre>// function will be called when the server responds
+var callback = function(response, responseInText) {
+      // set the new value
+
+      // re-assign the doc record because you are inside the callback
+      var doc = locals[doc.doctype][doc.docname]
+
+      doc.new_value = response.message
+      refresh_field('new_value');
+}
+
+// call this object on the server
+$c_obj([doc], 'get_my_value', doc.based_on, callback);</pre>
+</div>
+</div>
+<div class="section" id="field-level-triggers">
+<h2>Field Level Triggers<a class="headerlink" href="#field-level-triggers" title="Permalink to this headline">¶</a></h2>
+<p>You can set functions to be called when values are changed in the form, at the &#8220;onchange&#8221; event.</p>
+<p>To set a trigger, in the Field table, set the value of the Trigger column to &#8220;Client&#8221;.</p>
+<p>Declare a function to be called by its fieldname:</p>
+<div class="highlight-python"><pre>// attach a trigger on the "my_value" field
+cur_frm.cscript.my_value = function(doc, doctype, docname) {
+      msgrint("My value has been changed")
+      // do something
+}</pre>
+</div>
+</div>
+<div class="section" id="fetch-pattern">
+<h2>Fetch Pattern<a class="headerlink" href="#fetch-pattern" title="Permalink to this headline">¶</a></h2>
+<p>Another typical pattern is to get values based on other values, like when you select a Customer, its type and
+contact info should come automatically, to do this, you can use the standard fetch pattern on link fields:</p>
+<div class="highlight-python"><pre>// add_fetch(link, source_field_name, target_field_name)</pre>
+</div>
+<p>add_fetch(&#8216;customer&#8217;, &#8216;contact_details&#8217;, &#8216;contact_details&#8217;)</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="creating_pages.html" title="Creating Pages"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="server_side_script.html" title="Server Side Scripts"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" >Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

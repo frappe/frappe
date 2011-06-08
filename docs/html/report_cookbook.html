@@ -1,0 +1,236 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Report Cookbook &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Writing Scripts" href="writing_scripts.html" />
+    <link rel="next" title="3. Server Side API" href="server_side_api.html" />
+    <link rel="prev" title="Client Side Cookbook" href="client_side_cookbook.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="server_side_api.html" title="3. Server Side API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="client_side_cookbook.html" title="Client Side Cookbook"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" accesskey="U">Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Report Cookbook</a><ul>
+<li><a class="reference external" href="#modify-report-filters-client">Modify Report Filters (Client)</a></li>
+<li><a class="reference external" href="#setting-single-select">Setting Single Select</a></li>
+<li><a class="reference external" href="#remove-paging-for-a-report-client">Remove Paging for a Report (Client)</a></li>
+<li><a class="reference external" href="#hide-column-picker-client">Hide Column Picker (Client)</a></li>
+<li><a class="reference external" href="#validate-fitler-values-server">Validate fitler values (Server)</a></li>
+<li><a class="reference external" href="#append-a-column-to-the-report-server">Append a column to the report (Server)</a></li>
+<li><a class="reference external" href="#add-data-to-a-column-server">Add data to a column (Server)</a></li>
+<li><a class="reference external" href="#append-rows-to-the-report-server">Append rows to the report (Server)</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="client_side_cookbook.html"
+                                  title="previous chapter">Client Side Cookbook</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="server_side_api.html"
+                                  title="next chapter">3. Server Side API</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/report_cookbook.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="report-cookbook">
+<h1>Report Cookbook<a class="headerlink" href="#report-cookbook" title="Permalink to this headline">¶</a></h1>
+<p>Standard patterns used to customize reports</p>
+<div class="section" id="modify-report-filters-client">
+<h2>Modify Report Filters (Client)<a class="headerlink" href="#modify-report-filters-client" title="Permalink to this headline">¶</a></h2>
+<p>Filters can be modified declaring the customize_filters method:</p>
+<div class="highlight-python"><pre>report.customize_filters = function() {
+  this.hide_all_filters();
+
+  // show filters only and add defaults
+  this.set_filter_properties('GL Entry', 'From Posting Date', {filter_hide:0, report_default: sys_defaults.year_start_date});
+  this.set_filter_properties('GL Entry', 'To Posting Date', {filter_hide:0, report_default: dateutil.obj_to_str(new Date()) });
+  this.set_filter_properties('GL Entry', 'Account', {filter_hide:0, report_default: sys_defaults.company});
+
+  // add new filters
+  this.add_filter({fieldname:'aging_based_on', label:'Aging Based On', fieldtype:'Select', options:NEWLINE+'Transaction Date'+NEWLINE+'Aging Date'+NEWLINE+'Due Date',ignore : 1, parent:'Receivable Voucher', report_default:'Aging Date'});
+  this.add_filter({fieldname:'range_1', label:'Range 1', fieldtype:'Data', ignore : 1, parent:'GL Entry'});
+
+}</pre>
+</div>
+</div>
+<div class="section" id="setting-single-select">
+<h2>Setting Single Select<a class="headerlink" href="#setting-single-select" title="Permalink to this headline">¶</a></h2>
+<p>Select fields are defaulted to multiple select, if you want to change this to single select, there are
+two options, while adding a new filter set the property single_select = 1, or for an existing filter, call
+set_as_single method on the filter:</p>
+<div class="highlight-python"><pre>report.customize_filters = function() {
+  // set exiting field as single
+  this.get_filter('Receivable Voucher', 'Type').set_as_single();
+
+  // add new single select field
+  this.add_filter({single_select:1, fieldname:'aging_based_on', label:'Aging Based On', fieldtype:'Select', options:NEWLINE+'Transaction Date'+NEWLINE+'Aging Date'+NEWLINE+'Due Date',ignore : 1, parent:'Receivable Voucher', report_default:'Aging Date'});
+}</pre>
+</div>
+</div>
+<div class="section" id="remove-paging-for-a-report-client">
+<h2>Remove Paging for a Report (Client)<a class="headerlink" href="#remove-paging-for-a-report-client" title="Permalink to this headline">¶</a></h2>
+<p>If you want the report to skip paging and show all records then you can define as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">report</span><span class="o">.</span><span class="n">dt</span><span class="o">.</span><span class="n">set_no_limit</span><span class="p">(</span><span class="mi">1</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="hide-column-picker-client">
+<h2>Hide Column Picker (Client)<a class="headerlink" href="#hide-column-picker-client" title="Permalink to this headline">¶</a></h2>
+<p>If you want the user to only view the set columns and hide the column picker set as follows:</p>
+<div class="highlight-python"><pre>$dh(this.mytabs.tabs['Select Columns'])</pre>
+</div>
+</div>
+<div class="section" id="validate-fitler-values-server">
+<h2>Validate fitler values (Server)<a class="headerlink" href="#validate-fitler-values-server" title="Permalink to this headline">¶</a></h2>
+<p>Check if user has set valid data for the filters. This code is in the Server Side:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Check mandatory filters</span>
+<span class="c">#------------------------------</span>
+
+<span class="k">if</span> <span class="ow">not</span> <span class="n">filter_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;posting_date&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">filter_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;posting_date1&#39;</span><span class="p">):</span>
+  <span class="n">msgprint</span><span class="p">(</span><span class="s">&quot;Please select From Posting Date and To Posting Date in &#39;Set Filters&#39; section&quot;</span><span class="p">)</span>
+  <span class="k">raise</span> <span class="ne">Exception</span>
+<span class="k">else</span><span class="p">:</span>
+  <span class="n">from_date</span> <span class="o">=</span> <span class="n">filter_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;posting_date&#39;</span><span class="p">)</span>
+  <span class="n">to_date</span> <span class="o">=</span> <span class="n">filter_values</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;posting_date1&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="append-a-column-to-the-report-server">
+<h2>Append a column to the report (Server)<a class="headerlink" href="#append-a-column-to-the-report-server" title="Permalink to this headline">¶</a></h2>
+<p>Column structure is defined in the colnames, coltypes, colwidths and coloptions lists.
+You can modify or append to its values:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Total&#39;</span><span class="p">)</span>
+<span class="n">coltypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Currency&#39;</span><span class="p">)</span>
+<span class="n">colwidths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;200px&#39;</span><span class="p">)</span>
+<span class="n">coloptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="n">col_idx</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="add-data-to-a-column-server">
+<h2>Add data to a column (Server)<a class="headerlink" href="#add-data-to-a-column-server" title="Permalink to this headline">¶</a></h2>
+<p>The result is set to the list &#8220;res&#8221;. You can maniupate res on the server site, before it is sent
+to the client</p>
+<p>Values of columns can be found by label using the dictionary col_idx:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+  <span class="c"># customer cost center</span>
+  <span class="n">terr</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;select t1.territory from `tabCustomer` t1, `tabAccount` t2</span>
+<span class="s">      where t1.name = t2.master_name and t2.name = &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">r</span><span class="p">[</span><span class="n">col_idx</span><span class="p">[</span><span class="s">&#39;Account&#39;</span><span class="p">]])</span>
+  <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">terr</span> <span class="ow">and</span> <span class="n">terr</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+  <span class="c"># get due date</span>
+  <span class="n">due_date</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;select due_date from `tabReceivable Voucher`</span>
+<span class="s">      where name = &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">r</span><span class="p">[</span><span class="n">col_idx</span><span class="p">[</span><span class="s">&#39;Against Voucher&#39;</span><span class="p">]])</span>
+  <span class="n">r</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">due_date</span> <span class="ow">and</span> <span class="n">cstr</span><span class="p">(</span><span class="n">due_date</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="append-rows-to-the-report-server">
+<h2>Append rows to the report (Server)<a class="headerlink" href="#append-rows-to-the-report-server" title="Permalink to this headline">¶</a></h2>
+<p>This example adds an extra row to the data on the server side:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Append Extra rows to RES</span>
+<span class="n">t_row</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">colnames</span><span class="p">))]</span>
+<span class="n">t_row</span><span class="p">[</span><span class="n">col_idx</span><span class="p">[</span><span class="s">&#39;Voucher No&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="s">&#39;Total&#39;</span>
+<span class="n">t_row</span><span class="p">[</span><span class="n">col_idx</span><span class="p">[</span><span class="s">&#39;Opening Amt&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">total_opening_amt</span>
+<span class="n">t_row</span><span class="p">[</span><span class="n">col_idx</span><span class="p">[</span><span class="s">&#39;Outstanding Amt&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">total_outstanding_amt</span>
+<span class="n">out</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">t_row</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="server_side_api.html" title="3. Server Side API"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="client_side_cookbook.html" title="Client Side Cookbook"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" >Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

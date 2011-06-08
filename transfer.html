@@ -1,0 +1,253 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01//EN" "http://www.w3.org/TR/html4/strict.dtd">
+<html style='overflow: auto;'>
+<head>
+<!-- Transfer.Html Copyright 2007, by the author, RMEHTA AT GMAIL -->
+  <title>Account Transfer</title>
+  <link type="text/css" rel="stylesheet" href="css/default.css">
+   <script type="text/javascript" src="js/shadedborder.js"></script>
+   <script language="JavaScript" src="js/app2.js"></script>
+   <script language="JavaScript" src="js/transfer.js"></script>
+
+<style>
+table.dt_table {
+	width: 100%;
+}
+table.dt_table td {
+	padding: 3px;
+}
+table.act_main_tab {
+	width: 100%;
+}
+
+table.act_main_tab td {
+	border: 1px solid #AAA;
+}
+
+div.act_section {
+	background-color: #EEF;
+	margin: 4px;
+	padding: 4px;
+}
+
+div.act_section, div.act_section td, div.act_section div, div.act_section span, div.act_section input, div.act_section select, div.act_section button, div.act_section textarea {
+	font-size: 11px;
+}
+
+</style>
+
+</head>
+<body>
+<div style="position: absolute; height: 90%; width: 100%;">
+<img src='images/ui/loading.gif' id='loadingImage' style="padding: 2px; visibility: hidden;">
+<div id="dialog_back"></div>
+<div id="dialogs">
+	<div id="dialog_message"></div>
+</div>
+
+<div style="height: 60px; border-bottom: 1px solid #AAA; padding: 5px;">
+<div style="font-size: 18px; font-family: Lucida Grande; padding: 2px 0px;"><b style="color: #F60">Web</b><b style="color: #039">Notes</b></div>
+<div>Data Transfer Utility (Version 1.6.2)</div>
+</div>
+
+<div style="padding: 5px; background-color: #358;">
+<div style="position: relative;">
+
+<table style="width: 100%" cellspacing = 8px>
+ <tr>
+  <td style="width: 30%">
+   <div style="border: 1px solid #AAA; padding: 3px; background-color: #FFF;">
+   <!-- Header -->
+   <div style="font-weight: bold; text-align: center; font-size: 14px; margin-bottom: 8px;">Source Account</div>
+   <div class="act_section">
+     <table style="width: 100%">
+      <tr>
+      	<td style="width: 30%">Server:</td><td id="src_server"></td>
+      </tr>
+      <tr>
+      	<td>Account:</td><td id="src_account"></td>
+      </tr>
+      <tr>
+      	<td>Status:</td><td id="src_status"></td>
+      </tr>
+      <tr>
+      	<td><div class="link_type" onclick="set_source()">Settings</div></td>
+      	<td></td>
+      </tr>
+     </table>
+   </div>
+
+   <!-- Toolbar area -->
+   <div class="act_section" id="src_tools_area" style="display: none; padding: 4px;">
+	<button onclick="get_core()">Get Core Documents</button>
+   </div>
+
+   <!-- Select area -->
+   <div class="act_section" id="src_select_area" style="display: none;">
+     <table style="width: 100%">
+      <tr>
+      	<td style="width: 30%">Type:</td><td><select style="width: 80px" id="src_dtlist"></select></td>
+      </tr>
+      <tr>
+      	<td>Filter By:</td><td><input id="src_filter" type='text' value='' /></td>
+      </tr>
+      <tr>
+      	<td></td><td><button onclick="show_dtlist('src')">Go</button></td>
+      </tr>
+     </table>    
+   </div>
+
+   <!-- SET BTN -->
+   <div class="act_section" id="src_dt_btn" style="display: none;">
+    <button onclick="select_all()">Select All</button>
+    <button onclick="set_for_transfer()">Set for Transfer</button>
+   </div>
+
+   <!-- DT LIST -->
+   <div class="act_section">
+   	<table class='dt_table' id="src_dt_list"></table>
+   </div>
+   
+   </div>
+  </td>
+  <td style="width: 40%">
+
+   <!-- Transfer -->
+  
+     <div style="border: 1px solid #AAA; padding: 3px; display: none; background-color: #FFF;" id="transfer_wrapper">
+       <div style="font-weight: bold; text-align: center; font-size: 14px; margin-bottom: 8px;">For Transfer</div>
+
+	  <!-- Type -->
+       <div class="act_section">
+        <table style="width: 100%" cellspacing = '4px'>
+         <tr>
+         	<td style="width: 30%">Transfer Type:</td><td><select id="trans_type"></select></td>
+         </tr>
+        </table>
+       </div>
+
+	  <!-- Settings -->
+       <div class="act_section">
+        <b>Settings</b><br>
+        <table style="width: 100%" cellspacing = '4px'>
+         <tr>
+         	<td style="width: 30%">Ignore Missing Fields:</td><td><input id="trans_ignore" type='checkbox' value='' checked /></td>
+         </tr>
+         <tr>
+         	<td>Overwrite:</td><td><input id="trans_ovr" type='checkbox' checked /></td>
+         </tr>
+         <tr>
+         	<td>Run onupdate:</td><td><input id="trans_onupdate" type='checkbox' checked /></td>
+         </tr>
+         </table>
+        </div>
+
+	  <!-- Query -->
+       <div class="act_section" id='query_section' style="display: none;">
+        <table style="width: 100%" cellspacing = '4px'>
+         <tr>
+         	<td style="width: 30%"><b>Enter Query:</b><br>Query should return list of (DocType, name) for transfer</td>
+         	<td><textarea id="trans_query"></textarea></td>
+         </tr>
+        </table>
+        </div>
+
+	  <!-- Module -->
+       <div class="act_section" id='module_section' style="display: none;">
+        <table style="width: 100%" cellspacing = '4px'>
+         <tr>
+         	<td style="width: 30%">Module Def:</td><td><select id="trans_moduledef"></select></td>
+         </tr>
+        </table>
+        </div>
+
+	  <!-- Select  -->
+	   <div class="act_section" id="select_section">
+	     <b>Selected Documents:</b><br>
+	     <table class='dt_table' id='trans_list'></table>
+	   </div>
+
+	  <!-- Go -->
+       <div class="act_section">
+         	<button id='go_btn' onclick="do_transfer()">Go</button>
+       </div>
+
+	  <!-- Messages -->
+	   <div class="act_section">
+	   	 <div id='trans_msg'></div>
+	   </div>
+	   
+
+       <!-- Clear Btn -->
+       <div id="clear_btn" style='display: none;' class="act_section">
+        <button onclick="clear_transfer()">Clear All</button>
+       </div>
+
+     </div>
+
+  </td>
+
+  <!-- TARGET -->
+
+  <!-- Header -->
+  <td style="width: 30%">
+   <div style="border: 1px solid #AAA; padding: 3px; display: none; background-color: #FFF;" id="target_wrapper">
+
+    <div style="font-weight: bold; text-align: center; font-size: 14px; margin-bottom: 8px;">Target Account</div>
+
+	<div class="act_section">
+     <table style="width: 100%">
+      <tr>
+      	<td style="width: 30%">Server:</td><td id="tar_server"></td>
+      </tr>
+      <tr>
+      	<td>Account:</td><td id="tar_account"></td>
+      </tr>
+      <tr>
+      	<td>Status:</td><td id="tar_status"></td>
+      </tr>
+      <tr>
+      	<td><div class="link_type" onclick="set_target()">Settings</div></td>
+      	<td></td>
+      </tr>
+     </table>
+    </div>
+
+   <!-- Toolbar area -->
+   <div class="act_section" id="tar_tools_area" style="display: none; padding: 4px;">
+	<button onclick="clear_recycle_bin('tar')">Clear Recycle Bin</button>
+   </div>
+
+   <!-- Select area -->
+   <div class="act_section" id="tar_select_area" style="display: none;">
+     <table style="width: 100%">
+      <tr>
+      	<td style="width: 30%">Type:</td><td><select style="width: 80px" id="tar_dtlist"></select></td>
+      </tr>
+      <tr>
+      	<td>Filter By:</td><td><input id="tar_filter" type='text' value='' /></td>
+      </tr>
+      <tr>
+      	<td></td><td><button onclick="show_dtlist('tar')">Go</button></td>
+      </tr>
+     </table>    
+   </div>
+
+
+   <!-- DT LIST -->
+   <div class="act_section">
+   	<table class='dt_table' id="tar_dt_list"></table>
+   </div>
+
+   </div>
+
+
+  </td>
+ </tr>
+</table> 
+</div>
+
+</div>
+</div>
+
+</body>
+</html>

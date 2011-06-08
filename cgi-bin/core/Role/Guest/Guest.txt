@@ -1,0 +1,47 @@
+[
+	{
+		'creation': '2010-08-08 17:08:51',
+		'docstatus': 0,
+		'doctype': 'Role',
+		'idx': None,
+		'modified': '2011-06-03 10:08:51',
+		'modified_by': 'Administrator',
+		'module': 'Core',
+		'name': 'Guest',
+		'owner': 'Administrator',
+		'parent': None,
+		'parentfield': None,
+		'parenttype': None,
+		'role_name': 'Guest'
+	},
+	{
+		'creation': '2010-08-08 17:08:51',
+		'defkey': 'hide_webnotes_toolbar',
+		'defvalue': '1',
+		'docstatus': 0,
+		'doctype': 'DefaultValue',
+		'idx': 1,
+		'modified': '2011-06-03 10:08:51',
+		'modified_by': 'Administrator',
+		'name': 'DEF000004',
+		'owner': 'Administrator',
+		'parent': 'Guest',
+		'parentfield': 'defaults',
+		'parenttype': 'Role'
+	},
+	{
+		'creation': '2010-08-08 17:08:51',
+		'defkey': 'hide_sidebars',
+		'defvalue': '1',
+		'docstatus': 0,
+		'doctype': 'DefaultValue',
+		'idx': 2,
+		'modified': '2011-06-03 10:08:51',
+		'modified_by': 'Administrator',
+		'name': 'DEF000005',
+		'owner': 'Administrator',
+		'parent': 'Guest',
+		'parentfield': 'defaults',
+		'parenttype': 'Role'
+	}
+]

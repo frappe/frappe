@@ -1,0 +1,21 @@
+#!/usr/bin/python
+
+import sys, os, cgi
+	
+sys.path.append(os.getcwd()+'/cgi-bin')
+
+import webnotes
+import webnotes.db
+import webnotes.utils.sitemap
+
+# connect to the default db
+webnotes.conn = webnotes.db.Database()
+
+# get the server prefix
+prefix = webnotes.conn.get_global('sitemap_url')
+
+print "Content-Type: text/xml"
+print
+
+# get the xml
+print webnotes.utils.sitemap.generate_xml(webnotes.conn, prefix)

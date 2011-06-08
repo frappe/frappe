@@ -1,0 +1,235 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Page Structure and Navigation &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="5. Generating Sitemaps" href="sitemap.html" />
+    <link rel="prev" title="Javascript Utilities" href="javascript_utils.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="sitemap.html" title="5. Generating Sitemaps"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="javascript_utils.html" title="Javascript Utilities"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Page Structure and Navigation</a><ul>
+<li><a class="reference external" href="#page-structure">Page Structure</a></li>
+<li><a class="reference external" href="#opening-existing-resources-pages-forms-etc">Opening existing resources (Pages, Forms etc)</a></li>
+<li><a class="reference external" href="#history">History</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="javascript_utils.html"
+                                  title="previous chapter">Javascript Utilities</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="sitemap.html"
+                                  title="next chapter">5. Generating Sitemaps</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/navigation.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="page-structure-and-navigation">
+<h1>Page Structure and Navigation<a class="headerlink" href="#page-structure-and-navigation" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="page-structure">
+<h2>Page Structure<a class="headerlink" href="#page-structure" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="page_body">
+<tt class="descname">page_body</tt><a class="headerlink" href="#page_body" title="Permalink to this definition">¶</a></dt>
+<dd>global reference to the <a title="Body" class="reference internal" href="#Body"><tt class="xref docutils literal"><span class="pre">Body</span></tt></a></dd></dl>
+
+<dl class="class">
+<dt id="Body">
+<em class="property">class </em><tt class="descname">Body</tt><a class="headerlink" href="#Body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Created by app.js</p>
+<dl class="attribute">
+<dt id="Body.header">
+<tt class="descname">header</tt><a class="headerlink" href="#Body.header" title="Permalink to this definition">¶</a></dt>
+<dd>Head element</dd></dl>
+
+<dl class="attribute">
+<dt id="Body.footer">
+<tt class="descname">footer</tt><a class="headerlink" href="#Body.footer" title="Permalink to this definition">¶</a></dt>
+<dd>Footer element</dd></dl>
+
+<dl class="attribute">
+<dt id="Body.left_side_bar">
+<tt class="descname">left_side_bar</tt><a class="headerlink" href="#Body.left_side_bar" title="Permalink to this definition">¶</a></dt>
+<dd>Left Sidebar Element</dd></dl>
+
+<dl class="attribute">
+<dt id="Body.right_side_bar">
+<tt class="descname">right_side_bar</tt><a class="headerlink" href="#Body.right_side_bar" title="Permalink to this definition">¶</a></dt>
+<dd>Right Sidebar Element</dd></dl>
+
+<dl class="attribute">
+<dt id="Body.center">
+<tt class="descname">center</tt><a class="headerlink" href="#Body.center" title="Permalink to this definition">¶</a></dt>
+<dd>Center content Element</dd></dl>
+
+<dl class="attribute">
+<dt id="Body.pages">
+<tt class="descname">pages</tt><a class="headerlink" href="#Body.pages" title="Permalink to this definition">¶</a></dt>
+<dd>Dictionary of pages by label</dd></dl>
+
+<dl class="attribute">
+<dt id="Body.cur_page">
+<tt class="descname">cur_page</tt><a class="headerlink" href="#Body.cur_page" title="Permalink to this definition">¶</a></dt>
+<dd>Current page</dd></dl>
+
+<dl class="method">
+<dt id="Body.add_page">
+<tt class="descname">add_page</tt><big>(</big><em>label</em>, <em>onshow</em><big>)</big><a class="headerlink" href="#Body.add_page" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a new page (DIV) with label. Optionally <cite>onshow</cite> function will be called when the page is shown</dd></dl>
+
+<dl class="method">
+<dt id="Body.change_to">
+<tt class="descname">change_to</tt><big>(</big><em>page_name</em><big>)</big><a class="headerlink" href="#Body.change_to" title="Permalink to this definition">¶</a></dt>
+<dd>Switch to the given page</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="opening-existing-resources-pages-forms-etc">
+<h2>Opening existing resources (Pages, Forms etc)<a class="headerlink" href="#opening-existing-resources-pages-forms-etc" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="loaddoc">
+<tt class="descname">loaddoc</tt><big>(</big><em>doctype</em>, <em>name</em>, <em>onload</em>, <em>menuitem</em><big>)</big><a class="headerlink" href="#loaddoc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Open an exiting record (<cite>doctype</cite>, <cite>name</cite>) from the server or <a class="reference external" href="glossary.html#term-locals"><em class="xref">Locals</em></a></p>
+<p>Optionally you can specify onload method and menuitem. If menuitem is specified, it will show the menuitem
+as selected whenever the record is reloaded.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="new_doc">
+<tt class="descname">new_doc</tt><big>(</big><em>doctype</em>, <em>onload</em><big>)</big><a class="headerlink" href="#new_doc" title="Permalink to this definition">¶</a></dt>
+<dd>Open a new record of type <cite>doctype</cite></dd></dl>
+
+<dl class="function">
+<dt id="loadpage">
+<tt class="descname">loadpage</tt><big>(</big><em>page_name</em>, <em>call_back</em>, <em>menuitem</em><big>)</big><a class="headerlink" href="#loadpage" title="Permalink to this definition">¶</a></dt>
+<dd>Open the page specified by <cite>page_name</cite>. If menuitem is specified, it will show the menuitem
+as selected whenever the page is reloaded.</dd></dl>
+
+<dl class="function">
+<dt id="loadreport">
+<tt class="descname">loadreport</tt><big>(</big><em>doctype</em>, <em>rep_name</em>, <em>onload</em>, <em>menuitem</em>, <em>reset_report</em><big>)</big><a class="headerlink" href="#loadreport" title="Permalink to this definition">¶</a></dt>
+<dd>Open the report builder of the given <cite>doctype</cite>. Optionally if <cite>rep_name</cite> is specified, it will
+open the corresponding <a class="reference external" href="glossary.html#term-search-criteria"><em class="xref">Search Criteria</em></a> identified by <cite>criteria_name</cite></dd></dl>
+
+</div>
+<div class="section" id="history">
+<h2>History<a class="headerlink" href="#history" title="Permalink to this headline">¶</a></h2>
+<p>History is maintained by framgments using the Really Simple History (rsh) library</p>
+<dl class="data">
+<dt id="nav_obj">
+<tt class="descname">nav_obj</tt><a class="headerlink" href="#nav_obj" title="Permalink to this definition">¶</a></dt>
+<dd>global reference to the history object</dd></dl>
+
+<dl class="function">
+<dt id="nav_obj.open_notify">
+<tt class="descclassname">nav_obj.</tt><tt class="descname">open_notify</tt><big>(</big><em>type</em>, <em>p1</em>, <em>p2</em><big>)</big><a class="headerlink" href="#nav_obj.open_notify" title="Permalink to this definition">¶</a></dt>
+<dd>Notify of a new page opening. Add to history
+* <cite>type</cite> is either - Form, Report or Page
+* <cite>p1</cite> is DocType in case of Form or Report and page name in case of Page
+* <cite>p2</cite> is record name in case of DocType, criteria_name in case of Report</dd></dl>
+
+<dl class="function">
+<dt id="nav_obj.show_last_open">
+<tt class="descclassname">nav_obj.</tt><tt class="descname">show_last_open</tt><big>(</big><big>)</big><a class="headerlink" href="#nav_obj.show_last_open" title="Permalink to this definition">¶</a></dt>
+<dd>Execute <cite>Back</cite> button</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="sitemap.html" title="5. Generating Sitemaps"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="javascript_utils.html" title="Javascript Utilities"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,191 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>doctype — DocType &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="next" title="code — Code Execution Module" href="code.html" />
+    <link rel="prev" title="doclist — Doclist Module" href="doclist.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="code — Code Execution Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="doclist.html" title="doclist — Doclist Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" accesskey="U">Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">doctype</span></tt> &#8212; DocType</a><ul>
+<li><a class="reference external" href="#doctype-object">_DocType object</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="doclist.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">doclist</span></tt> &#8212; Doclist Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="code.html"
+                                  title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">code</span></tt> &#8212; Code Execution Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/doctype.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-doctype">
+<h1><tt class="xref docutils literal"><span class="pre">doctype</span></tt> &#8212; DocType<a class="headerlink" href="#module-doctype" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="doctype-object">
+<h2>_DocType object<a class="headerlink" href="#doctype-object" title="Permalink to this headline">¶</a></h2>
+<dl class="method">
+<dt id="doctype.get">
+<tt class="descclassname">doctype.</tt><tt class="descname">get</tt><big>(</big><em>dt</em><big>)</big><a class="headerlink" href="#doctype.get" title="Permalink to this definition">¶</a></dt>
+<dd>returns a <a class="reference external" href="glossary.html#term-doclist"><em class="xref">doclist</em></a> of <a class="reference external" href="glossary.html#term-doctype"><em class="xref">DocType</em></a>, <cite>dt</cite></dd></dl>
+
+<dl class="class">
+<dt id="doctype._DocType">
+<em class="property">class </em><tt class="descclassname">doctype.</tt><tt class="descname">_DocType</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#doctype._DocType" title="Permalink to this definition">¶</a></dt>
+<dd><p>The _DocType object is created internally using the module&#8217;s <cite>get</cite> method.</p>
+<dl class="attribute">
+<dt id="doctype._DocType.name">
+<tt class="descname">name</tt><a class="headerlink" href="#doctype._DocType.name" title="Permalink to this definition">¶</a></dt>
+<dd>name of the doctype</dd></dl>
+
+<dl class="method">
+<dt id="doctype._DocType.is_modified">
+<tt class="descname">is_modified</tt><big>(</big><big>)</big><a class="headerlink" href="#doctype._DocType.is_modified" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns 3 objects:</p>
+<ul class="simple">
+<li>last modified date of the <cite>DocType</cite></li>
+<li>whether the doctypes is modified after it was cached</li>
+<li>last modified date of the <cite>DocType</cite> from the cache</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="doctype._DocType.get_parent_dt">
+<tt class="descname">get_parent_dt</tt><big>(</big><big>)</big><a class="headerlink" href="#doctype._DocType.get_parent_dt" title="Permalink to this definition">¶</a></dt>
+<dd>return the <strong>first</strong> parent DocType of the current doctype</dd></dl>
+
+<dl class="method">
+<dt id="doctype._DocType.make_doclist">
+<tt class="descname">make_doclist</tt><big>(</big><big>)</big><a class="headerlink" href="#doctype._DocType.make_doclist" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns the <a class="reference external" href="glossary.html#term-doclist"><em class="xref">doclist</em></a> for consumption by the client</p>
+<ul class="simple">
+<li>it cleans up the server code</li>
+<li>executes all <cite>$import</cite> tags in client code</li>
+<li>replaces <cite>link:</cite> in the <cite>Select</cite> fields</li>
+<li>loads all related <cite>Search Criteria</cite></li>
+<li>updates the cache</li>
+</ul>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="method">
+<dt>
+<tt class="descclassname">doctype.</tt><tt class="descname">get</tt><big>(</big><big>)</big></dt>
+<dd>execute <cite>Request</cite> to load a <cite>DocType</cite></dd></dl>
+
+<dl class="method">
+<dt id="doctype.update_doctype">
+<tt class="descclassname">doctype.</tt><tt class="descname">update_doctype</tt><big>(</big><em>doclist</em><big>)</big><a class="headerlink" href="#doctype.update_doctype" title="Permalink to this definition">¶</a></dt>
+<dd><p>method to be called to update the DocType</p>
+<ul class="simple">
+<li>creates field names from labels</li>
+<li>updates schema</li>
+<li>saves compiled code</li>
+<li>marks cache for clearing</li>
+</ul>
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="code.html" title="code — Code Execution Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="doclist.html" title="doclist — Doclist Module"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" >Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,44 @@
+div.psidebar-wrapper {
+	margin: 0px 8px;
+}
+
+div.psidebar-head {
+	font-size: 14px;
+	font-weight: bold;
+	color: #555;
+	margin-bottom: 12px;
+}
+
+div.psidebar-section {
+	background-color: #f7f7f5;
+	border: 2px solid #b2b2b7;
+	margin-bottom: 11px;
+}
+
+div.psidebar-section-head {
+	font-weight: bold;
+	font-size: 13px;
+	color: #222;
+	background-color: #d8d8d4;
+	margin-bottom: 7px;	
+	padding: 3px 11px;
+}
+
+div.psidebar-section-body {
+	margin: 7px 11px 11px 11px;
+}
+
+div.psidebar-section-item {
+	margin-bottom: 7px;
+}
+
+.psidebar-section-link {
+	font-size: 11px;
+	color: #666;
+}
+
+div.follower-list {
+	color: #666;
+	margin-top: 7px;
+	font-size: 11px;
+}

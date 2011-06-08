@@ -1,0 +1,187 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Autosuggest &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="Javascript Utilities" href="javascript_utils.html" />
+    <link rel="prev" title="Tabbed Page" href="tabbed_page.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="javascript_utils.html" title="Javascript Utilities"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="tabbed_page.html" title="Tabbed Page"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Autosuggest</a><ul>
+<li><a class="reference external" href="#overriding-the-default-call">Overriding the default call</a></li>
+<li><a class="reference external" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="tabbed_page.html"
+                                  title="previous chapter">Tabbed Page</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="javascript_utils.html"
+                                  title="next chapter">Javascript Utilities</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/autosuggest.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="autosuggest">
+<h1>Autosuggest<a class="headerlink" href="#autosuggest" title="Permalink to this headline">¶</a></h1>
+<p>Adapted from: Timothy Groves - <a class="reference external" href="http://www.brandspankingnew.net">http://www.brandspankingnew.net</a></p>
+<dl class="data">
+<dt id="cur_autosug">
+<tt class="descname">cur_autosug</tt><a class="headerlink" href="#cur_autosug" title="Permalink to this definition">¶</a></dt>
+<dd>Live Autosuggest object</dd></dl>
+
+<dl class="function">
+<dt id="hide_autosuggest">
+<tt class="descname">hide_autosuggest</tt><big>(</big><big>)</big><a class="headerlink" href="#hide_autosuggest" title="Permalink to this definition">¶</a></dt>
+<dd>Hide the Live Autosuggest (if exists)</dd></dl>
+
+<dl class="class">
+<dt id="AutoSuggest">
+<em class="property">class </em><tt class="descname">AutoSuggest</tt><big>(</big><em>id</em>, <em>param</em><big>)</big><a class="headerlink" href="#AutoSuggest" title="Permalink to this definition">¶</a></dt>
+<dd>Create a new autosuggest object</dd></dl>
+
+<div class="section" id="overriding-the-default-call">
+<h2>Overriding the default call<a class="headerlink" href="#overriding-the-default-call" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>To override the default server call, override the method <cite>doAjaxRequest</cite></li>
+<li>To override updation in the INPUT element, override the method <cite>custom_select</cite></li>
+</ul>
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Example where email id is to be retrieved:</p>
+<div class="highlight-python"><pre>// ---- add auto suggest ----
+var opts = { script: '', json: true, maxresults: 10 };
+
+var as = new AutoSuggest(d.widgets['To'], opts);
+as.custom_select = function(txt, sel) {
+  // ---- add to the last comma ----
+  var r = '';
+  var tl = txt.split(',');
+  for(var i=0;i&lt;tl.length-1;i++) r=r+tl[i]+',';
+  r = r+(r?' ':'')+sel;
+  if(r[r.length-1]==NEWLINE) r=substr(0,r.length-1);
+  return r;
+}
+
+// ---- override server call ----
+as.doAjaxRequest = function(txt) {
+  var pointer = as; var q = '';
+
+  // ---- get last few letters typed ----
+  var last_txt = txt.split(',');
+  last_txt = last_txt[last_txt.length-1];
+
+  // ---- show options ----
+  var call_back = function(r,rt) {
+    as.aSug = [];
+    if(!r.cl) return;
+    for (var i=0;i&lt;r.cl.length;i++) {
+      as.aSug.push({'id':r.cl[i], 'value':r.cl[i], 'info':''});
+    }
+    as.createList(as.aSug);
+  }
+  $c('get_contact_list',{'select':_e.email_as_field, 'from':_e.email_as_dt, 'where':_e.email_as_in, 'txt':(last_txt ? strip(last_txt) : '%')},call_back);
+  return;
+}</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="javascript_utils.html" title="Javascript Utilities"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="tabbed_page.html" title="Tabbed Page"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

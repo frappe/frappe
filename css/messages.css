@@ -1,0 +1,59 @@
+
+/* FLOATING MESSAGE */
+
+.btn-img { cursor: pointer; }
+
+div.fetching { color: #888; text-align:right; }
+
+div.notice {
+	postion: absolute;
+	background-color: #000;
+	-moz-border-radius: 5px; -webkit-border-radius: 5px;
+	opacity: 0.6;
+	right: 0;
+	top: 0;
+	margin-top: 8px;
+	z-index: -1;
+	padding: 8px;
+}
+
+/** help **/
+
+.info-box {
+	background-color:#eeeef2;
+	font-size: 12px;
+	line-height: 1.6em;
+	color: #335;
+	padding: 7px;
+	margin: 11px 0px;
+	border: 1px solid #c2c2cc;	
+}
+
+.help_box, .help-box {
+	background-color:#FFC;
+	font-size: 13px;
+	line-height: 1.6em;
+	color: #864;
+	padding: 7px;
+	margin: 11px 0px;
+	border: 1px solid #EEB;
+}
+
+.help_box {
+	background-color:#FFC;
+	font-size: 13px;
+	color: #864;
+	padding: 7px;
+	margin: 11px 0px;
+	border: 1px solid #EEB;
+}
+
+.help_box_big {
+	background-color:#FFC;
+	color: #864;
+	padding: 7px;
+	margin: 7px 0px;
+	border: 1px solid #EEB;
+	text-align: center;
+	font-size: 14px;
+}

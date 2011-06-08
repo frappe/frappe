@@ -1,0 +1,473 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Creating A Form (DocType) &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="2. Building an Application" href="build_app.html" />
+    <link rel="next" title="Save-Submit-Cancel Pattern" href="save_submit.html" />
+    <link rel="prev" title="Using the Administrator Interface" href="apps_intro.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="save_submit.html" title="Save-Submit-Cancel Pattern"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="apps_intro.html" title="Using the Administrator Interface"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" accesskey="U">2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Creating A Form (DocType)</a><ul>
+<li><a class="reference external" href="#database-table">Database Table</a></li>
+<li><a class="reference external" href="#naming-doctypes">Naming DocTypes</a></li>
+<li><a class="reference external" href="#giving-permissions">Giving Permissions</a></li>
+<li><a class="reference external" href="#setting-fields">Setting Fields</a></li>
+<li><a class="reference external" href="#adding-tables-to-the-form">Adding Tables to the form</a></li>
+<li><a class="reference external" href="#single-doctypes-singleton-pattern">Single DocTypes (Singleton pattern)</a></li>
+<li><a class="reference external" href="#adding-attachments">Adding Attachments</a></li>
+<li><a class="reference external" href="#other-properties">Other Properties</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="apps_intro.html"
+                                  title="previous chapter">Using the Administrator Interface</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="save_submit.html"
+                                  title="next chapter">Save-Submit-Cancel Pattern</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/creating_doctypes.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="creating-a-form-doctype">
+<h1>Creating A Form (DocType)<a class="headerlink" href="#creating-a-form-doctype" title="Permalink to this headline">¶</a></h1>
+<p>In wnframework, a Form is a <a class="reference external" href="glossary.html#term-doctype"><em class="xref">DocType</em></a>. A DocType represents the description of a form with its
+fields, permissions and associated logic. Every entity in the system that has to be saved is a DocType.
+DocTypes can be created and maintained like any other entity in the system via the front end.</p>
+<p>Let us assume we want to create a Form (DocType) for a Contact table with name, address, phone and email.</p>
+<blockquote>
+<ol class="arabic simple">
+<li>Create a new DocType via &#8220;New&#8221; on the top toolbar</li>
+<li>In the &#8220;Permissions&#8221; tab, add a row. Enter the role (for example &#8220;All&#8221;) in the roles cell and
+check the columns for &#8220;Read&#8221;, &#8220;Write&#8221; and &#8220;Create&#8221;</li>
+<li>In the &#8220;Field&#8221; tab, add fields in each row. For each row enter the field &#8220;Label&#8221; and the &#8220;Type&#8221;
+For discussion on field types, see</li>
+<li>&#8220;Save&#8221; the DocType, it will ask you for a name, for our example, you can call it &#8220;Contact&#8221;</li>
+<li>To check how your form looks, you can click on &#8220;Tools&#8221; -&gt; &#8220;Clear Cache&#8221; and refresh the page (or open in a new tab)
+Click on &#8220;New&#8221; and you should find your newly created DocType in the list if you have given it correct
+permissions.</li>
+<li>Give it a naming system. See discussion below on what options are there to name DocTypes</li>
+</ol>
+</blockquote>
+<div class="section" id="database-table">
+<h2>Database Table<a class="headerlink" href="#database-table" title="Permalink to this headline">¶</a></h2>
+<p>When you save a DocType, a correspoinding table gets created in your database, this table has a name
+&#8220;tab&#8221; + the name of the DocType. This means that if you create a Contact DocType, it becomes
+tabContact.</p>
+</div>
+<div class="section" id="naming-doctypes">
+<span id="naming"></span><h2>Naming DocTypes<a class="headerlink" href="#naming-doctypes" title="Permalink to this headline">¶</a></h2>
+<p>DocTypes can be named in 3 ways</p>
+<blockquote>
+<ol class="arabic">
+<li><p class="first">By a field. To name a DocType by a field, just set &#8220;field:&#8221; + the field name in the <em>Autoname</em> field
+For Example, you can use <strong>field:email</strong> if you want to keep the name (ID) of that record as the email id</p>
+</li>
+<li><p class="first">By a numbering series. Add the prefix in the <em>Autoname</em> field followed by hashes (#) for the number
+of digits. For example <strong>CID.#####</strong> will name your records as CID00001, CID00002 and so on.
+See the rules below:</p>
+<blockquote>
+<p><strong>Numbering rules:</strong></p>
+<blockquote>
+<ul class="simple">
+<li>The key is separated by &#8216;.&#8217;</li>
+<li>&#8216;####&#8217; represents a series. The string before this part becomes the prefix:
+Example: ABC.#### creates a series ABC0001, ABC0002 etc</li>
+<li>&#8216;MM&#8217; represents the current month</li>
+<li>&#8216;YY&#8217; and &#8216;YYYY&#8217; represent the current year</li>
+</ul>
+</blockquote>
+<p><em>Example:</em></p>
+<blockquote>
+<ul class="simple">
+<li>DE/./.YY./.MM./.##### will create a series like
+DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series</li>
+</ul>
+</blockquote>
+</blockquote>
+</li>
+<li><p class="first">By declaring the &#8220;autoname&#8221; method in the server code, you can set any naming scheme you like.</p>
+</li>
+</ol>
+</blockquote>
+</div>
+<div class="section" id="giving-permissions">
+<h2>Giving Permissions<a class="headerlink" href="#giving-permissions" title="Permalink to this headline">¶</a></h2>
+<p>Permissions can be set by defining them in the Permissions tab. There are 6 types of permissions</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="81%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Permission</th>
+<th class="head">Meaning</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Read</td>
+<td>Allows the role to read the record</td>
+</tr>
+<tr><td>Write</td>
+<td>Allows the role to edit the record</td>
+</tr>
+<tr><td>Create</td>
+<td>Allows the role to create a new record of the
+DocType</td>
+</tr>
+<tr><td>Submit</td>
+<td>Allows the role to submit a saved record so that it
+becomes permanant (read about Save-Submit)</td>
+</tr>
+<tr><td>Cancel</td>
+<td>Allows the role to cancel a submitted record</td>
+</tr>
+<tr><td>Amend</td>
+<td>Allows the role to amend a cancelled record</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>You can add multiple permission rules by adding to the table.</p>
+<p><strong>Using match</strong></p>
+<p>You can add an additional key to the permissions by setting the &#8220;match&#8221; property.</p>
+<p>Suppose your users are divided into four groups, and you want to restrict each user to only read records
+belonging to that group. To do this:</p>
+<blockquote>
+<ol class="arabic simple">
+<li>In your record you must have a &#8220;group&#8221; (or any such) field to identify which group
+this record belongs.</li>
+<li>In your Profile, or Role default table, you must add a row with key &#8220;group&#8221; (or the field name)
+and a value for that field.</li>
+</ol>
+</blockquote>
+<p>So when the property of the record <strong>matches</strong> the default of the user, the permission rule kicks in.</p>
+</div>
+<div class="section" id="setting-fields">
+<h2>Setting Fields<a class="headerlink" href="#setting-fields" title="Permalink to this headline">¶</a></h2>
+<p>You can add properties to the DocType by adding them in the field table. The field table has two major
+classes, data fields and UI fields.</p>
+<p>Data fields hold data have corresponding columns in the database, UI fields are place holders or identify
+Section / Column breaks.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>You must only specify the &#8220;Label&#8221;. the Field Name is automatically generated by making all letters
+lowercase and replacing a space ( ) by underscore (_)</p>
+<p class="last">The Fieldname value is used in the code and is the column name in the database</p>
+</div>
+<p>List of data field types:</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="19%" />
+<col width="59%" />
+<col width="22%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Field type</th>
+<th class="head">Meaning</th>
+<th class="head">Length</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Data</td>
+<td>Simple input box</td>
+<td>255</td>
+</tr>
+<tr><td>Int</td>
+<td>Integer</td>
+<td>11</td>
+</tr>
+<tr><td>Float</td>
+<td>Float</td>
+<td>14,6</td>
+</tr>
+<tr><td>Currency</td>
+<td>Foat with 2 decimals</td>
+<td>14,2</td>
+</tr>
+<tr><td>Select</td>
+<td>Drop-down</td>
+<td>255</td>
+</tr>
+<tr><td>Link</td>
+<td>Foreign key (link to another record)</td>
+<td>255</td>
+</tr>
+<tr><td>Check</td>
+<td>Checkbox</td>
+<td>1</td>
+</tr>
+<tr><td>Text</td>
+<td>Multi-line text box</td>
+<td>Text</td>
+</tr>
+<tr><td>Small Text</td>
+<td>Small multi-line text box</td>
+<td>Text</td>
+</tr>
+<tr><td>Code</td>
+<td>Multi-line text box
+(with fixed-width font)</td>
+<td>Text</td>
+</tr>
+<tr><td>Text Editor</td>
+<td>Multi-line text box
+(with WYSIWYG editor)</td>
+<td>Text</td>
+</tr>
+<tr><td>Blob</td>
+<td>Binary Object</td>
+<td>BLOB</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>List of UI field types:</p>
+<blockquote>
+<table border="1" class="docutils">
+<colgroup>
+<col width="24%" />
+<col width="56%" />
+<col width="21%" />
+</colgroup>
+<thead valign="bottom">
+<tr><th class="head">Field type</th>
+<th class="head">Meaning</th>
+<th class="head">Length</th>
+</tr>
+</thead>
+<tbody valign="top">
+<tr><td>Section Break</td>
+<td>Section Break</td>
+<td>NA</td>
+</tr>
+<tr><td>Column Break</td>
+<td>Column Break</td>
+<td>NA</td>
+</tr>
+<tr><td>HTML</td>
+<td>Place holder where you can add any
+custom HTML</td>
+<td>NA</td>
+</tr>
+<tr><td>Image</td>
+<td>Displays the first attachment</td>
+<td>NA</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<p>Along with the Field Label and Type, there are also many other properties that can be set</p>
+<blockquote>
+<ol class="arabic">
+<li><dl class="first docutils">
+<dt><strong>Options:</strong> Options has different meaning for different field types:</dt>
+<dd><ul class="first last">
+<li><p class="first"><em>Link:</em> It represents a foriegn key (DocType)</p>
+</li>
+<li><p class="first"><em>Select:</em> List of options (each on a new line).
+or &#8220;link:&#8221; + DocType - if you want populate the list from a DocType</p>
+<p>For example: If you have a table &#8220;Country&#8221; and want the user to select one of already
+create Countries, set &#8220;link:Country&#8221; in the Options</p>
+</li>
+<li><p class="first"><em>HTML:</em> For HTML fields, you can put the HTML code in there that will be displayed near
+the field</p>
+</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li><p class="first"><strong>Perm Level:</strong> (Integer) permission level. Use this same id to filter permissions while setting
+permission rules. You can use same permlevel for many fields. Default is 0.</p>
+</li>
+<li><p class="first"><strong>Width:</strong> Width of the field in px (e.g. 200px). For Column Breaks this is in % (e.g. 50%)</p>
+</li>
+<li><p class="first"><strong>Reqd:</strong> Check if the field is mandatory</p>
+</li>
+<li><p class="first"><strong>Index:</strong> Check if you want to index the database column (Text and BLOB type fields cannot be indexed)</p>
+</li>
+<li><p class="first"><strong>Hidden:</strong> Check if the field is hidden</p>
+</li>
+<li><p class="first"><strong>Print Hide:</strong> Check if you want to hide the field in Print</p>
+</li>
+<li><p class="first"><strong>Description:</strong> Description of the field (a &#8220;?&#8221; sign will appear next to the label to see the field)</p>
+</li>
+<li><p class="first"><strong>Trigger:</strong> If you want to trigger a client function at the &#8220;onchange&#8221; event, set it to &#8220;Client&#8221;</p>
+</li>
+<li><p class="first"><strong>Default:</strong> Set default value of the field. For user id use &#8220;__user&#8221;, for today&#8217;s date, use &#8220;__today&#8221;</p>
+</li>
+</ol>
+</blockquote>
+</div>
+<div class="section" id="adding-tables-to-the-form">
+<h2>Adding Tables to the form<a class="headerlink" href="#adding-tables-to-the-form" title="Permalink to this headline">¶</a></h2>
+<p>You can add a &#8220;grid&#8221; to a form (DocType). This pattern is useful for many standard applications where you have
+a many to many relationship. For example in an Invoice, you have a many-to-many relationship between
+an &#8220;Item&#8221; and &#8220;Invoice&#8221; (like one Invoice can have multiple Items and one Item can be in multiple Invoices)</p>
+<p>The Grid pattern is also useful as it makes for a very intuitive form layout.</p>
+<blockquote>
+<ol class="arabic simple">
+<li>To add a table to a form, create another DocType for the table record. In our earlier example,
+you can create an Invoice DocType and an &#8220;Invoice Detail&#8221; DocType.</li>
+<li>In the <strong>child</strong> DocType (Invoice Detail), check the &#8220;Is Table&#8221; property in the first tab of the DocType</li>
+<li>In the <strong>parent</strong> DocType (Invoice), add a field of type &#8220;Table&#8221; and in the Options, set the child DocType.</li>
+</ol>
+</blockquote>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p><strong>Note 1: How is the parent identified</strong></p>
+<p>For all child DocTypes, there are extra (hidden) properties set. These help identify the &#8220;parent&#8221; of the
+record. These values are:</p>
+<blockquote class="last">
+<ul class="simple">
+<li><strong>parent</strong>: ID (name) of the parent record</li>
+<li><strong>parenttype</strong>: DocType of the parent</li>
+<li><strong>parentfield</strong>: Field name in the parent that defines the link to the record</li>
+</ul>
+</blockquote>
+</div>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p><strong>Note 2: How is the sequence maintained</strong></p>
+<p class="last">This sequence of the child records under a parent is maintained by another hidden property called &#8220;idx&#8221;</p>
+</div>
+</div>
+<div class="section" id="single-doctypes-singleton-pattern">
+<span id="singleton"></span><h2>Single DocTypes (Singleton pattern)<a class="headerlink" href="#single-doctypes-singleton-pattern" title="Permalink to this headline">¶</a></h2>
+<blockquote>
+<ul class="simple">
+<li>Single DocTypes help you maintain a library of user classes and global variables.</li>
+<li>There is no table associated with Single DocTypes</li>
+<li>All values of of the Single record are maintained in one table &#8220;tabSingles&#8221;</li>
+</ul>
+</blockquote>
+<p>&#8220;Control Panel&#8221; is an example of a Single DocType</p>
+</div>
+<div class="section" id="adding-attachments">
+<span id="attachments"></span><h2>Adding Attachments<a class="headerlink" href="#adding-attachments" title="Permalink to this headline">¶</a></h2>
+<p>You can allow attachments to be added to records. All attachments are stored in a separate table called &#8220;File Data&#8221;</p>
+<p>To setup attachments</p>
+<blockquote>
+<ol class="arabic simple">
+<li>Check Allow Attach</li>
+<li>Create a hidden field called &#8220;file_list&#8221; of type Text (this is where a log of all attachment is maintained)</li>
+</ol>
+</blockquote>
+<p><strong>Note: Attachments are always addded at the end of the form, irrespective of where you add the file_list field</strong></p>
+</div>
+<div class="section" id="other-properties">
+<h2>Other Properties<a class="headerlink" href="#other-properties" title="Permalink to this headline">¶</a></h2>
+<p>There are many other properties you can set in a DocType. These are</p>
+<blockquote>
+<ol class="arabic simple">
+<li>Autoname: Naming pattern of the record. See <a class="reference internal" href="#naming"><em>Naming DocTypes</em></a></li>
+<li>Namecase: Set if you want the ID to be in a particular case (UPPER, lower or Title)</li>
+<li>Is Table: Check if the DocType represents a table (you do not need to set autoname then)</li>
+<li>In Dialog: Form opens in a Dialog (overlay)</li>
+<li>Is Single: Singleton pattern See <a class="reference internal" href="#singleton"><em>Single DocTypes (Singleton pattern)</em></a></li>
+<li>Show Print First: Show a simple &#8220;Print&#8221; layout first</li>
+<li>Hide Options: Various hide options to hide Heading, Copy, Email, Toolbar etc</li>
+<li>Allow Attach: Allow user to add attachments. See <a class="reference internal" href="#attachments"><em>Adding Attachments</em></a></li>
+</ol>
+</blockquote>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="save_submit.html" title="Save-Submit-Cancel Pattern"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="apps_intro.html" title="Using the Administrator Interface"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

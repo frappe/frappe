@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Dialog Boxes &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="Listing" href="listing.html" />
+    <link rel="prev" title="Report Builder" href="report_builder.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="listing.html" title="Listing"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="report_builder.html" title="Report Builder"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Dialog Boxes</a><ul>
+<li><a class="reference external" href="#dialog-class">Dialog Class</a></li>
+<li><a class="reference external" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="report_builder.html"
+                                  title="previous chapter">Report Builder</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="listing.html"
+                                  title="next chapter">Listing</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/dialog.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="dialog-boxes">
+<h1>Dialog Boxes<a class="headerlink" href="#dialog-boxes" title="Permalink to this headline">¶</a></h1>
+<p>This document outlines the basic API of the Dialog widget. Dialog boxes are DIV Elements with a border
+and are placed at a higher z-index. There is also a basic Form API within the Dialog boxes</p>
+<div class="section" id="dialog-class">
+<h2>Dialog Class<a class="headerlink" href="#dialog-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Dialog">
+<em class="property">class </em><tt class="descname">Dialog</tt><big>(</big><em>w</em>, <em>h</em>, <em>title</em>, <em>content</em><big>)</big><a class="headerlink" href="#Dialog" title="Permalink to this definition">¶</a></dt>
+<dd><p>To create a basic Dialog box, specify its width, height and title. Optionally, <cite>content</cite> is a list of
+form input widgets. For more info, see <cite>make_body</cite></p>
+<dl class="attribute">
+<dt id="Dialog.wrapper">
+<tt class="descname">wrapper</tt><a class="headerlink" href="#Dialog.wrapper" title="Permalink to this definition">¶</a></dt>
+<dd>Enclosing outer DIV element</dd></dl>
+
+<dl class="attribute">
+<dt id="Dialog.head">
+<tt class="descname">head</tt><a class="headerlink" href="#Dialog.head" title="Permalink to this definition">¶</a></dt>
+<dd>Element containing the head of the Dialog which contains the title and close btn</dd></dl>
+
+<dl class="attribute">
+<dt id="Dialog.body">
+<tt class="descname">body</tt><a class="headerlink" href="#Dialog.body" title="Permalink to this definition">¶</a></dt>
+<dd>Element containing the body of the Dialog</dd></dl>
+
+<dl class="attribute">
+<dt id="Dialog.widgets">
+<tt class="descname">widgets</tt><a class="headerlink" href="#Dialog.widgets" title="Permalink to this definition">¶</a></dt>
+<dd>Dictionary containing the form widgets. These can be accessed by their labels</dd></dl>
+
+<dl class="method">
+<dt id="Dialog.make_body">
+<tt class="descname">make_body</tt><big>(</big><em>content</em><big>)</big><a class="headerlink" href="#Dialog.make_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>content is the list of form input widgets that are to be created. The structure of the <cite>content</cite>
+list is a list-in-a-list.</p>
+<p>Field widget types are:</p>
+<ul class="simple">
+<li>HTML</li>
+<li>Check</li>
+<li>Data</li>
+<li>Select</li>
+<li>Password</li>
+<li>Text</li>
+<li>Button</li>
+</ul>
+<p>The widgets are declared as [<cite>type</cite>, <cite>label</cite>, <cite>comment or HTML content</cite>]</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="Dialog.show">
+<tt class="descname">show</tt><big>(</big><big>)</big><a class="headerlink" href="#Dialog.show" title="Permalink to this definition">¶</a></dt>
+<dd>Show the Dialog</dd></dl>
+
+<dl class="method">
+<dt id="Dialog.hide">
+<tt class="descname">hide</tt><big>(</big><big>)</big><a class="headerlink" href="#Dialog.hide" title="Permalink to this definition">¶</a></dt>
+<dd>Hide the Dialog</dd></dl>
+
+<dl class="method">
+<dt id="Dialog.set_title">
+<tt class="descname">set_title</tt><big>(</big><em>t</em><big>)</big><a class="headerlink" href="#Dialog.set_title" title="Permalink to this definition">¶</a></dt>
+<dd>Set the Dialog title</dd></dl>
+
+<dl class="method">
+<dt id="Dialog.no_cancel">
+<tt class="descname">no_cancel</tt><big>(</big><big>)</big><a class="headerlink" href="#Dialog.no_cancel" title="Permalink to this definition">¶</a></dt>
+<dd>Stop the user from cancelling the Dialog. (The closing of this Dialog must be scripted)</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Example showing creation of a Email Dialog:</p>
+<div class="highlight-python"><pre>var d = new Dialog(440, 440, "Send Email");
+
+d.make_body([
+  ['Data','To','Example: abc@hotmail.com, xyz@yahoo.com']
+  ,['Select','Format']
+  ,['Data','Subject']
+  ,['Data','From','Optional']
+  ,['Check','Send With Attachments','Will send all attached documents (if any)']
+  ,['Text','Message']
+  ,['Button','Send',email_go]]
+);
+
+// Reference to a form widget
+var emailfrom = d.widgets['From'].value;
+
+// show the dialog
+d.show()</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="listing.html" title="Listing"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="report_builder.html" title="Report Builder"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+Administrator Login
+===================
+
+An application is built via the browser front end. To have the right access to build applications, you must
+login as an Administrator.
+
+If you are in a new system that does not have any application, your first login as "Administrator" is the
+Administrator login.
+
+   

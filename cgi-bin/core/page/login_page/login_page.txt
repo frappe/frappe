@@ -1,0 +1,33 @@
+[
+	{
+		'content': None,
+		'creation': '2010-01-20 11:10:18',
+		'docstatus': 0,
+		'doctype': 'Page',
+		'icon': None,
+		'idx': None,
+		'keywords': None,
+		'menu_index': None,
+		'modified': '2011-02-17 13:01:57',
+		'modified_by': 'Administrator',
+		'module': 'Core',
+		'name': 'Login Page',
+		'owner': 'Administrator',
+		'page_name': 'Login Page',
+		'page_title': None,
+		'parent': None,
+		'parent_node': None,
+		'parentfield': None,
+		'parenttype': None,
+		'publish': None,
+		'script': None,
+		'show_in_menu': None,
+		'site_description': None,
+		'standard': 'Yes',
+		'static_content': None,
+		'style': None,
+		'stylesheet': None,
+		'template': None,
+		'write_content': 1
+	}
+]

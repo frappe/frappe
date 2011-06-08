@@ -1,0 +1,217 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Server Side Cookbook &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Writing Scripts" href="writing_scripts.html" />
+    <link rel="next" title="Client Side Cookbook" href="client_side_cookbook.html" />
+    <link rel="prev" title="Client Side Scripts" href="client_side_script.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="client_side_cookbook.html" title="Client Side Cookbook"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="client_side_script.html" title="Client Side Scripts"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" accesskey="U">Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Server Side Cookbook</a><ul>
+<li><a class="reference external" href="#create-a-name-by-using-a-prefix-selected-by-the-user">Create a name by using a prefix selected by the user</a></li>
+<li><a class="reference external" href="#stop-duplicate-entries-in-a-child-table-based-on-a-key">Stop duplicate entries in a child table based on a key</a></li>
+<li><a class="reference external" href="#add-an-event-to-the-calendar">Add an event to the calendar</a></li>
+<li><a class="reference external" href="#send-html-email-based-on-certain-condition">Send HTML Email based on certain condition</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="client_side_script.html"
+                                  title="previous chapter">Client Side Scripts</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="client_side_cookbook.html"
+                                  title="next chapter">Client Side Cookbook</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/server_side_cookbook.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="server-side-cookbook">
+<h1>Server Side Cookbook<a class="headerlink" href="#server-side-cookbook" title="Permalink to this headline">¶</a></h1>
+<p>Standard Patterns for server side scripts</p>
+<div class="section" id="create-a-name-by-using-a-prefix-selected-by-the-user">
+<h2>Create a name by using a prefix selected by the user<a class="headerlink" href="#create-a-name-by-using-a-prefix-selected-by-the-user" title="Permalink to this headline">¶</a></h2>
+<p>You can create a field &#8220;naming_series&#8221; of type Select and give Options. Then you can write the autoname function
+as follows:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Autoname</span>
+<span class="k">def</span> <span class="nf">autoname</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+  <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">make_autoname</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">naming_series</span><span class="o">+</span><span class="s">&#39;.#####&#39;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="stop-duplicate-entries-in-a-child-table-based-on-a-key">
+<h2>Stop duplicate entries in a child table based on a key<a class="headerlink" href="#stop-duplicate-entries-in-a-child-table-based-on-a-key" title="Permalink to this headline">¶</a></h2>
+<p>For example, your key is item_code. Call this method from the validate method:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Does not allow same item code to be entered twice</span>
+<span class="k">def</span> <span class="nf">validate_for_items</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+  <span class="n">check_list</span><span class="o">=</span><span class="p">[]</span>
+  <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">getlist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doclist</span><span class="p">,</span><span class="s">&#39;quotation_details&#39;</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">item_code</span> <span class="ow">in</span> <span class="n">check_list</span><span class="p">:</span>
+      <span class="n">msgprint</span><span class="p">(</span><span class="s">&quot;Oops! Item </span><span class="si">%s</span><span class="s"> has been entered twice.&quot;</span> <span class="o">%</span> <span class="n">d</span><span class="o">.</span><span class="n">item_code</span><span class="p">)</span>
+      <span class="k">raise</span> <span class="ne">Exception</span>
+    <span class="k">else</span><span class="p">:</span>
+      <span class="n">check_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cstr</span><span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">item_code</span><span class="p">))</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="add-an-event-to-the-calendar">
+<h2>Add an event to the calendar<a class="headerlink" href="#add-an-event-to-the-calendar" title="Permalink to this headline">¶</a></h2>
+<p>Add an event to the calendar on saving:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># Add to Calendar</span>
+<span class="k">def</span> <span class="nf">add_calendar_event</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+  <span class="n">ev</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s">&#39;Event&#39;</span><span class="p">)</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">description</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">description</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">event_date</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_date</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">event_hour</span> <span class="o">=</span> <span class="s">&#39;10:00&#39;</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">event_type</span> <span class="o">=</span> <span class="s">&#39;Private&#39;</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">ref_type</span> <span class="o">=</span> <span class="s">&#39;Enquiry&#39;</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">ref_name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">name</span>
+  <span class="n">ev</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+  <span class="c"># invite users (Sales People) to the event</span>
+  <span class="n">user_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">owner</span><span class="p">)</span>
+
+  <span class="n">chk</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select t1.name from `tabProfile` t1, `tabSales Person` t2 where t2.email_id = t1.name and t2.name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_by</span><span class="p">)</span>
+  <span class="k">if</span> <span class="n">chk</span><span class="p">:</span>
+    <span class="n">user_lst</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">chk</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+  <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">user_lst</span><span class="p">:</span>
+    <span class="n">ch</span> <span class="o">=</span> <span class="n">addchild</span><span class="p">(</span><span class="n">ev</span><span class="p">,</span> <span class="s">&#39;event_individuals&#39;</span><span class="p">,</span> <span class="s">&#39;Event User&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+    <span class="n">ch</span><span class="o">.</span><span class="n">person</span> <span class="o">=</span> <span class="n">d</span>
+    <span class="n">ch</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<span class="c"># on_udpate method</span>
+<span class="k">def</span> <span class="nf">on_update</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+  <span class="c"># Add to calendar</span>
+  <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_date</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_date_ref</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_date</span><span class="p">:</span>
+    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_by</span><span class="p">:</span>
+      <span class="bp">self</span><span class="o">.</span><span class="n">add_calendar_event</span><span class="p">()</span>
+    <span class="nb">set</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span> <span class="s">&#39;contact_date_ref&#39;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">contact_date</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="send-html-email-based-on-certain-condition">
+<h2>Send HTML Email based on certain condition<a class="headerlink" href="#send-html-email-based-on-certain-condition" title="Permalink to this headline">¶</a></h2>
+<p>Email can be sent using the sendmail method. In this message, we send an email when the
+quantity of a certain item falls below the minimum inventory level:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="k">def</span> <span class="nf">check_min_inventory_level</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+  <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">minimum_inventory_level</span><span class="p">:</span>
+    <span class="n">total_qty</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select sum(projected_qty) from tabBin where item_code = </span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">flt</span><span class="p">(</span><span class="n">total_qty</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">flt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">minimum_inventory_level</span><span class="p">):</span>
+      <span class="n">msgprint</span><span class="p">(</span><span class="s">&quot;Minimum inventory level for item </span><span class="si">%s</span><span class="s"> is reached&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+      <span class="n">send_to</span> <span class="o">=</span> <span class="p">[]</span>
+      <span class="n">send</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select t1.email from `tabProfile` t1,`tabUserRole` t2 where t2.role IN (&#39;Material Master Manager&#39;,&#39;Purchase Manager&#39;) and t2.parent = t1.name&quot;</span><span class="p">)</span>
+      <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">send</span><span class="p">:</span>
+        <span class="n">send_to</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+      <span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;Minimum Inventory Level Reached</span>
+
+<span class="s">      Item Code: </span><span class="si">%s</span><span class="s"></span>
+<span class="s">      Item Name: </span><span class="si">%s</span><span class="s"></span>
+<span class="s">      Minimum Inventory Level: </span><span class="si">%s</span><span class="s"></span>
+<span class="s">      Total Available Qty: </span><span class="si">%s</span><span class="s"></span>
+
+<span class="s">      &#39;&#39;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">item_code</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">item_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">minimum_inventory_level</span><span class="p">,</span> <span class="n">total_qty</span><span class="p">)</span>
+
+      <span class="n">sendmail</span><span class="p">(</span><span class="n">send_to</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="s">&#39;automail@webnotestech.com&#39;</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="s">&#39;Minimum Inventory Level Reached&#39;</span><span class="p">,</span> <span class="n">parts</span><span class="o">=</span><span class="p">[[</span><span class="s">&#39;text/plain&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="p">]])</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="client_side_cookbook.html" title="Client Side Cookbook"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="client_side_script.html" title="Client Side Scripts"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li>
+          <li><a href="writing_scripts.html" >Writing Scripts</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

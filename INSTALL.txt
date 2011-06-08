@@ -1,0 +1,81 @@
+INSTALL.txt
+===========
+
+Web Notes Framework Installation guide
+
+Web Notes Framework (WNF) is a meta-data driven web app framework. After install, you build
+and configure your application from the web browser.
+
+WNF requires the following applications
+
+1. Python
+2. MySQL
+3. MySQL-Python (connector)  
+4. simplejson (for Python 2.4 or lower)
+5. email (for Python 2.4 or lower)
+6. pytz (easy_install pytz)
+7. Apache
+8. PIL (optional - for image processing (thumbnails etc) 
+	- yum install libjpeg-devel
+	- yum install python-imaging
+	)
+
+------------------------------------------------------------------------
+1. Create a databse instance for your application
+
+   Call the install script with the following options. For more options use -h
+   
+   python [folder]/cgi-bin/webnotes/install_lib/install.py MYSQL_ROOT_LOGIN MYSQL_ROOT_PASSWORD DBNAME
+
+------------------------------------------------------------------------
+2. Setup defs.py
+
+   The framework picks up the database details from cgi-bin/webnotes/defs.py
+   
+   You need to edit this file and set your database name and other options
+   
+------------------------------------------------------------------------
+3. Configuring Apache
+
+a. You must set Apache to execute index.cgi file, one way to do this is to add cgi handler
+   and add ExecCGI in the options directive.
+
+b. You can also add couple of lines below to block Apache from rendering .py files
+
+   RewriteEngine on
+   RewriteRule \.py - [F]
+
+c. Add "index.cgi" to DirectoryIndex
+
+	
+------------------------------------------------------------------------
+4. Login to application
+
+Start Apache, go to your web-browser and point to the folder where you installed the framework
+
+The default logins are:
+
+login: Administrator
+password: admin
+
+------------------------------------------------------------------------
+
+Step by step instructions on CentOS/Fedora:
+	0.Check out the source code.
+	1. Modify the v170/cgi-bin/webnotes/defs file to your required settings and rename it to defs.py 
+	2. yum install mysql
+	3. yum install httpd
+	4. yum install MySQL-python
+	5. yum install python-setuptools
+	6. easy_install pytz
+	7. easy_install email
+	8. easy_install simplejson suds
+	9. easy_install pygeoip (optional for geo ip)
+	9. yum install libjpeg-devel (optional)
+	10.yum install python-imaging (optional)
+
+	11. Edit /etc/httpd/conf/httpd.conf and add the options as mentioned above.	
+	12. from the trunk/v170/cgi-bin folder run python webnotes/install_lib/install.py install
+
+
+

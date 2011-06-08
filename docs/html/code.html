@@ -1,0 +1,198 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>code — Code Execution Module &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="next" title="db_schema — Database Schema Management Module" href="db_schema.html" />
+    <link rel="prev" title="doctype — DocType" href="doctype.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="db_schema.html" title="db_schema — Database Schema Management Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="doctype.html" title="doctype — DocType"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" accesskey="U">Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">code</span></tt> &#8212; Code Execution Module</a><ul>
+<li><a class="reference external" href="#global-properties-methods-generally-used-in-server-side-scripts">Global Properties / Methods (generally) used in server side scripts</a></li>
+<li><a class="reference external" href="#module-methods">Module Methods</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="doctype.html"
+                                  title="previous chapter"><tt class="docutils literal"><span class="pre">doctype</span></tt> &#8212; DocType</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="db_schema.html"
+                                  title="next chapter"><tt class="docutils literal"><span class="pre">db_schema</span></tt> &#8212; Database Schema Management Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/code.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-code">
+<h1><tt class="xref docutils literal"><span class="pre">code</span></tt> &#8212; Code Execution Module<a class="headerlink" href="#module-code" title="Permalink to this headline">¶</a></h1>
+<p>This is where all the plug-in code is executed. The standard method for DocTypes is declaration of a
+standardized <cite>DocType</cite> class that has the methods of any DocType. When an object is instantiated using the
+<cite>get_obj</cite> method, it creates an instance of the <cite>DocType</cite> class of that particular DocType and sets the
+<cite>doc</cite> and <cite>doclist</cite> attributes that represent the fields (properties) of that record.</p>
+<p>methods in following modules are imported for backward compatibility</p>
+<blockquote>
+<ul class="simple">
+<li>webnotes.*</li>
+<li>webnotes.utils.*</li>
+<li>webnotes.model.doc.*</li>
+<li>webnotes.model.doclist.*</li>
+</ul>
+</blockquote>
+<div class="section" id="global-properties-methods-generally-used-in-server-side-scripts">
+<h2>Global Properties / Methods (generally) used in server side scripts<a class="headerlink" href="#global-properties-methods-generally-used-in-server-side-scripts" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="code.version">
+<tt class="descclassname">code.</tt><tt class="descname">version</tt><a class="headerlink" href="#code.version" title="Permalink to this definition">¶</a></dt>
+<dd>&#8220;v170&#8221;</dd></dl>
+
+<dl class="data">
+<dt id="code.NEWLINE">
+<tt class="descclassname">code.</tt><tt class="descname">NEWLINE</tt><a class="headerlink" href="#code.NEWLINE" title="Permalink to this definition">¶</a></dt>
+<dd>&#8220;\n&#8221; - used in plug in scripts</dd></dl>
+
+<dl class="function">
+<dt id="code.set">
+<tt class="descclassname">code.</tt><tt class="descname">set</tt><big>(</big><big>)</big><a class="headerlink" href="#code.set" title="Permalink to this definition">¶</a></dt>
+<dd>Same as <cite>webnotes.conn.set</cite>
+Sets a value</dd></dl>
+
+<dl class="function">
+<dt id="code.sql">
+<tt class="descclassname">code.</tt><tt class="descname">sql</tt><big>(</big><em>query</em>, <em>values=()</em>, <em>as_dict = 0</em>, <em>as_list = 0</em>, <em>allow_testing = 1</em><big>)</big><a class="headerlink" href="#code.sql" title="Permalink to this definition">¶</a></dt>
+<dd>Same as <cite>webnotes.conn.sql</cite></dd></dl>
+
+<dl class="function">
+<dt id="code.get_value">
+<tt class="descclassname">code.</tt><tt class="descname">get_value</tt><big>(</big><big>)</big><a class="headerlink" href="#code.get_value" title="Permalink to this definition">¶</a></dt>
+<dd>Sames as <cite>webnotes.conn.get_value</cite></dd></dl>
+
+<dl class="function">
+<dt id="code.convert_to_lists">
+<tt class="descclassname">code.</tt><tt class="descname">convert_to_lists</tt><big>(</big><big>)</big><a class="headerlink" href="#code.convert_to_lists" title="Permalink to this definition">¶</a></dt>
+<dd>Same as <cite>webnotes.conn.convert_to_lists</cite></dd></dl>
+
+</div>
+<div class="section" id="module-methods">
+<h2>Module Methods<a class="headerlink" href="#module-methods" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="code.execute">
+<tt class="descclassname">code.</tt><tt class="descname">execute</tt><big>(</big><em>code</em>, <em>doc=None</em>, <em>doclist=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#code.execute" title="Permalink to this definition">¶</a></dt>
+<dd>Execute the code, if doc is given, then return the instance of the <cite>DocType</cite> class created</dd></dl>
+
+<dl class="function">
+<dt id="code.get_server_obj">
+<tt class="descclassname">code.</tt><tt class="descname">get_server_obj</tt><big>(</big><em>doc</em>, <em>doclist =</em><span class="optional">[</span><span class="optional">]</span>, <em>basedoctype = ''</em><big>)</big><a class="headerlink" href="#code.get_server_obj" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the instantiated <cite>DocType</cite> object. Will also manage caching &amp; compiling</dd></dl>
+
+<dl class="function">
+<dt id="code.get_obj">
+<tt class="descclassname">code.</tt><tt class="descname">get_obj</tt><big>(</big><em>dt = None</em>, <em>dn = None</em>, <em>doc=None</em>, <em>doclist=</em><span class="optional">[</span><span class="optional">]</span>, <em>with_children = 0</em><big>)</big><a class="headerlink" href="#code.get_obj" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the instantiated <cite>DocType</cite> object. Here you can pass the DocType and name (ID) to get the object.
+If with_children is true, then all child records will be laoded and added in the doclist.</dd></dl>
+
+<dl class="function">
+<dt id="code.run_server_obj">
+<tt class="descclassname">code.</tt><tt class="descname">run_server_obj</tt><big>(</big><em>server_obj</em>, <em>method_name</em>, <em>arg=None</em><big>)</big><a class="headerlink" href="#code.run_server_obj" title="Permalink to this definition">¶</a></dt>
+<dd>Executes a method (<cite>method_name</cite>) from the given object (<cite>server_obj</cite>)</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="db_schema.html" title="db_schema — Database Schema Management Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="doctype.html" title="doctype — DocType"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" >Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

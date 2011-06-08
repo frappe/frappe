@@ -1,0 +1,146 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Creating Pages &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="2. Building an Application" href="build_app.html" />
+    <link rel="next" title="Creating Reports" href="creating_reports.html" />
+    <link rel="prev" title="Client Side Scripts" href="client_side_script.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="creating_reports.html" title="Creating Reports"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="client_side_script.html" title="Client Side Scripts"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" accesskey="U">2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Creating Pages</a><ul>
+<li><a class="reference external" href="#page-elements">Page Elements</a></li>
+<li><a class="reference external" href="#scripting-pages">Scripting Pages</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="client_side_script.html"
+                                  title="previous chapter">Client Side Scripts</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="creating_reports.html"
+                                  title="next chapter">Creating Reports</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/creating_pages.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="creating-pages">
+<h1>Creating Pages<a class="headerlink" href="#creating-pages" title="Permalink to this headline">¶</a></h1>
+<p>Pages can be used to make custom interfaces. A Page is a container where you can add custom HTML.</p>
+<p>A Page has full access to the Client APIs and you can build very rich interfaces using Pages</p>
+<div class="section" id="page-elements">
+<h2>Page Elements<a class="headerlink" href="#page-elements" title="Permalink to this headline">¶</a></h2>
+<p>A page is where you can add</p>
+<ul class="simple">
+<li>Content - that goes in the container div</li>
+<li>Client Script - functions, events</li>
+<li>CSS - style</li>
+<li>Static Content - content for search engines</li>
+<li>Roles - roles that are allowed to view the page</li>
+</ul>
+</div>
+<div class="section" id="scripting-pages">
+<h2>Scripting Pages<a class="headerlink" href="#scripting-pages" title="Permalink to this headline">¶</a></h2>
+<p>User defined page functions can be added to the &#8220;pscript&#8221; namespace.</p>
+<p>When a page is loaded, the function &#8220;<a href="#id1"><span class="problematic" id="id2">pscript.onload_</span></a>&#8221; + the page name is called if it is declared. On refresh,
+the function &#8220;<a href="#id3"><span class="problematic" id="id4">pscript.refresh_</span></a>&#8221; + the page name is called.</p>
+<p>For example for a page called &#8220;MyHome&#8221;, the function called onload is pscript.onload_MyHome();</p>
+<p>For more ideas, see the cookbook</p>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="creating_reports.html" title="Creating Reports"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="client_side_script.html" title="Client Side Scripts"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

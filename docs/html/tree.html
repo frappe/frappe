@@ -1,0 +1,298 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Tree &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="Tabbed Page" href="tabbed_page.html" />
+    <link rel="prev" title="Listing" href="listing.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="tabbed_page.html" title="Tabbed Page"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="listing.html" title="Listing"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Tree</a><ul>
+<li><a class="reference external" href="#tree-treenode-classes">Tree &amp; TreeNode Classes</a></li>
+<li><a class="reference external" href="#example">Example</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="listing.html"
+                                  title="previous chapter">Listing</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="tabbed_page.html"
+                                  title="next chapter">Tabbed Page</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/tree.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="tree">
+<h1>Tree<a class="headerlink" href="#tree" title="Permalink to this headline">¶</a></h1>
+<p>Tree widget renders a hierarchical tree where child nodes can be queried on demand. It can be useful to show
+folder like structures, hierarchical menus etc.</p>
+<div class="section" id="tree-treenode-classes">
+<h2>Tree &amp; TreeNode Classes<a class="headerlink" href="#tree-treenode-classes" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Tree">
+<em class="property">class </em><tt class="descname">Tree</tt><big>(</big><em>parent</em>, <em>width</em>, <em>do_animate</em><big>)</big><a class="headerlink" href="#Tree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates a new tree widget in the <cite>parent</cite>.
+if <cite>do_animate</cite> is set, it will animate the expansion and closing of the tree</p>
+<dl class="attribute">
+<dt id="Tree.nodes">
+<tt class="descname">nodes</tt><a class="headerlink" href="#Tree.nodes" title="Permalink to this definition">¶</a></dt>
+<dd>dictionary of root nodes</dd></dl>
+
+<dl class="attribute">
+<dt id="Tree.allnodes">
+<tt class="descname">allnodes</tt><a class="headerlink" href="#Tree.allnodes" title="Permalink to this definition">¶</a></dt>
+<dd>dictionary of all nodes in the tree</dd></dl>
+
+<dl class="method">
+<dt id="Tree.addNode">
+<tt class="descname">addNode</tt><big>(</big><em>parent</em>, <em>id</em>, <em>imagesrc</em>, <em>onclick</em>, <em>onexpand</em>, <em>opts</em>, <em>label</em><big>)</big><a class="headerlink" href="#Tree.addNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>create a new TreeNode</p>
+<ul class="simple">
+<li><cite>parent</cite> - parent TreeNode which the node is to be created. <cite>null</cite> for root node</li>
+<li><cite>id</cite> - label (if not separately specified) of the new node</li>
+<li><cite>imagesrc</cite> - icon of the node</li>
+<li><cite>onclick</cite> - event to be called when node is clicked (selected)</li>
+<li><cite>onexpand</cite> - event to ba called when node is expanded</li>
+<li><cite>opts</cite> - node style options</li>
+<li><cite>label</cite> - if label is separate from id</li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="Tree.collapse_all">
+<tt class="descname">collapse_all</tt><big>(</big><big>)</big><a class="headerlink" href="#Tree.collapse_all" title="Permalink to this definition">¶</a></dt>
+<dd>Collapse all nodes</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="TreeNode">
+<em class="property">class </em><tt class="descname">TreeNode</tt><big>(</big><em>tree</em>, <em>parent</em>, <em>id</em>, <em>imagesrc</em>, <em>onclick</em>, <em>onexpand</em>, <em>opts</em>, <em>label</em><big>)</big><a class="headerlink" href="#TreeNode" title="Permalink to this definition">¶</a></dt>
+<dd><p>This class is instantiated by <a title="Tree.addNode" class="reference internal" href="#Tree.addNode"><tt class="xref docutils literal"><span class="pre">Tree.addNode()</span></tt></a></p>
+<dl class="attribute">
+<dt id="TreeNode.parent">
+<tt class="descname">parent</tt><a class="headerlink" href="#TreeNode.parent" title="Permalink to this definition">¶</a></dt>
+<dd>Parent node or the Tree (in case of root node)</dd></dl>
+
+<dl class="attribute">
+<dt id="TreeNode.nodes">
+<tt class="descname">nodes</tt><a class="headerlink" href="#TreeNode.nodes" title="Permalink to this definition">¶</a></dt>
+<dd>Dictionary of child nodes by id</dd></dl>
+
+<dl class="attribute">
+<dt id="TreeNode.opts">
+<tt class="descname">opts</tt><a class="headerlink" href="#TreeNode.opts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Style of the node. Default <cite>opts</cite> is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">opts</span> <span class="o">=</span> <span class="p">{</span>
+   <span class="n">show_exp_img</span><span class="p">:</span><span class="mi">1</span>
+   <span class="p">,</span><span class="n">show_icon</span><span class="p">:</span><span class="mi">1</span>
+   <span class="p">,</span><span class="n">label_style</span><span class="p">:{</span><span class="n">padding</span><span class="p">:</span><span class="s">&#39;2px&#39;</span><span class="p">,</span> <span class="n">cursor</span><span class="p">:</span> <span class="s">&#39;pointer&#39;</span><span class="p">,</span> <span class="n">fontSize</span><span class="p">:</span><span class="s">&#39;11px&#39;</span><span class="p">}</span>
+   <span class="p">,</span><span class="n">onselect_style</span><span class="p">:{</span><span class="n">fontWeight</span><span class="p">:</span> <span class="s">&#39;bold&#39;</span><span class="p">}</span>
+   <span class="p">,</span><span class="n">ondeselect_style</span><span class="p">:{</span><span class="n">fontWeight</span><span class="p">:</span> <span class="s">&#39;normal&#39;</span><span class="p">}</span>
+<span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="method">
+<dt id="TreeNode.select">
+<tt class="descname">select</tt><big>(</big><big>)</big><a class="headerlink" href="#TreeNode.select" title="Permalink to this definition">¶</a></dt>
+<dd>Select the node</dd></dl>
+
+<dl class="method">
+<dt id="TreeNode.deselect">
+<tt class="descname">deselect</tt><big>(</big><big>)</big><a class="headerlink" href="#TreeNode.deselect" title="Permalink to this definition">¶</a></dt>
+<dd>Deselect the node</dd></dl>
+
+<dl class="method">
+<dt id="TreeNode.show_selected">
+<tt class="descname">show_selected</tt><big>(</big><big>)</big><a class="headerlink" href="#TreeNode.show_selected" title="Permalink to this definition">¶</a></dt>
+<dd>Show the style as selected</dd></dl>
+
+<dl class="method">
+<dt id="TreeNode.setlabel">
+<tt class="descname">setlabel</tt><big>(</big><em>t</em><big>)</big><a class="headerlink" href="#TreeNode.setlabel" title="Permalink to this definition">¶</a></dt>
+<dd>Set the label of the node</dd></dl>
+
+<dl class="method">
+<dt id="TreeNode.setcolor">
+<tt class="descname">setcolor</tt><big>(</big><em>c</em><big>)</big><a class="headerlink" href="#TreeNode.setcolor" title="Permalink to this definition">¶</a></dt>
+<dd>Set background color of the node</dd></dl>
+
+<dl class="method">
+<dt id="TreeNode.clear_child_nodes">
+<tt class="descname">clear_child_nodes</tt><big>(</big><big>)</big><a class="headerlink" href="#TreeNode.clear_child_nodes" title="Permalink to this definition">¶</a></dt>
+<dd>Remove all child nodes</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="example">
+<h2>Example<a class="headerlink" href="#example" title="Permalink to this headline">¶</a></h2>
+<p>Example showing a tree in which the child nodes are queried from the server <cite>onexpand</cite>:</p>
+<div class="highlight-python"><pre>// Tree
+// ----------
+
+pscript.load_cat_tree = function(){
+//create category tree
+  if(!pscript.cat_tree){
+    pscript.make_cat_tree();
+  }
+  pscript.get_parent_category();
+}
+
+pscript.get_parent_category = function(){
+  if (pscript.cat_tree){
+    pscript.cat_tree.innerHTML = '';
+  }
+  var callback1 = function(r,rt){
+    cl = r.message;
+    var has_children = true; var imgsrc = 'images/icons/page.gif';
+    for(i=0; i&lt;cl.length;i++){
+      var n = pscript.cat_tree.addNode(null, cl[i][1],imgsrc, pscript.cat_tree.std_onclick, has_children ? pscript.cat_tree.std_onexp : null, null, cl[i][0]);
+      n.rec = cl[i]; n.rec.name = cl[i][0]; n.rec.label = cl[i][1];
+      n.rec.parent_category = '';
+    }
+  }
+  $c_obj('Ticket Control','get_root_category','',callback1);
+}
+
+pscript.make_cat_tree = function() {
+   var tree = new Tree(pscript.faq_cat_tree, '100%');
+   pscript.cat_tree = tree;
+
+   // on click
+   pscript.cat_tree.std_onclick = function(node) {
+      pscript.cur_node = node;
+      pscript.cur_node_val = node.rec.name;
+      //make faq list
+        pscript.make_faq_lst('frm_node');
+   }
+
+   // on expand
+   pscript.cat_tree.std_onexp = function(node) {
+
+      if(node.expanded_once)return;
+      $ds(node.loading_div);
+
+      var callback = function(r,rt) {
+         $dh(node.loading_div);
+         var n = pscript.cat_tree.allnodes[r.message.parent_category];
+         var cl = r.message.category;
+
+         for(var i=0;i&lt;cl.length;i++) {
+            var imgsrc='images/icons/page.gif';
+            var has_children = true;
+            var t = pscript.cat_tree.addNode(n, cl[i].name, imgsrc, pscript.cat_tree.std_onclick, has_children ? pscript.cat_tree.std_onexp : null, null, cl[i].category_name);
+            t.rec = cl[i];
+            t.rec.name = cl[i].name;
+            t.rec.label = cl[i].category_name;
+            t.parent_category = r.message.parent_category; //alert(t)
+         }
+      }
+      var arg = {}
+      arg['category'] = node.rec.name;
+      $c_obj('Ticket Control','get_categories',docstring(arg),callback);
+   }
+}</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tabbed_page.html" title="Tabbed Page"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="listing.html" title="Listing"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

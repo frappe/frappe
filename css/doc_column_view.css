@@ -1,0 +1,62 @@
+/******** Listing2 ***********/
+table.dcv-tab {
+	table-layout: fixed;
+	border-collapse: collapse;
+}
+
+table.dcv-tab td {
+	border: 1px solid #DDD;
+}
+
+table.dcv-tab td td {
+	border: 0px solid #BBB;
+}
+
+div.list2-head {
+	padding: 3px 6px;
+	font-size: 14px;
+	color: #555;
+}
+
+div.list2-new {
+	padding: 4px;
+}
+
+div.list2-message {
+	padding: 8px;
+	color: #888;
+	background-color: #FFD;
+}
+
+div.list2-search {
+	padding: 4px;
+}
+
+div.list2-list-area {
+	padding: 4px;
+}
+
+div.list2-item-div {
+	border-bottom: 1px solid #AAA;
+	padding: 4px;
+	cursor: pointer;
+}
+
+span.list2-edit-link {
+	font-weight: normal;
+	font-size: 11px;
+	margin-left: 7px;
+}
+
+div.list2-item-title {
+	font-weight: bold;
+}
+
+div.list2-item-selected {
+	background-color: #CCF;
+}
+
+div.list2-item-more-info {
+	color: #888;
+	margin-top: 4px;
+}

@@ -1,0 +1,181 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>doclist — Doclist Module &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="next" title="doctype — DocType" href="doctype.html" />
+    <link rel="prev" title="webnotes — Webnotes Module" href="webnotes.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="doctype.html" title="doctype — DocType"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="webnotes.html" title="webnotes — Webnotes Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" accesskey="U">Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">doclist</span></tt> &#8212; Doclist Module</a><ul>
+<li><a class="reference external" href="#functions-for-internal-use">functions for internal use</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="webnotes.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">webnotes</span></tt> &#8212; Webnotes Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="doctype.html"
+                                  title="next chapter"><tt class="docutils literal docutils literal"><span class="pre">doctype</span></tt> &#8212; DocType</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/doclist.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-doclist">
+<h1><tt class="xref docutils literal"><span class="pre">doclist</span></tt> &#8212; Doclist Module<a class="headerlink" href="#module-doclist" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="doclist.getlist">
+<tt class="descclassname">doclist.</tt><tt class="descname">getlist</tt><big>(</big><em>doclist</em>, <em>field</em><big>)</big><a class="headerlink" href="#doclist.getlist" title="Permalink to this definition">¶</a></dt>
+<dd><p>Filter a list of records for a specific field from the full doclist</p>
+<p>Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="c"># find all phone call details</span>
+<span class="n">dl</span> <span class="o">=</span> <span class="n">getlist</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doclist</span><span class="p">,</span> <span class="s">&#39;contact_updates&#39;</span><span class="p">)</span>
+<span class="n">pl</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dl</span><span class="p">:</span>
+  <span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">type</span><span class="o">==</span><span class="s">&#39;Phone&#39;</span><span class="p">:</span>
+    <span class="n">pl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="doclist.copy">
+<tt class="descclassname">doclist.</tt><tt class="descname">copy</tt><big>(</big><em>doclist</em>, <em>no_copy =</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="headerlink" href="#doclist.copy" title="Permalink to this definition">¶</a></dt>
+<dd>Save &amp; return a copy of the given doclist
+Pass fields that are not to be copied in <cite>no_copy</cite></dd></dl>
+
+<dl class="function">
+<dt id="doclist.to_html">
+<tt class="descclassname">doclist.</tt><tt class="descname">to_html</tt><big>(</big><em>doclist</em><big>)</big><a class="headerlink" href="#doclist.to_html" title="Permalink to this definition">¶</a></dt>
+<dd>Return a simple HTML format of the doclist</dd></dl>
+
+<div class="section" id="functions-for-internal-use">
+<h2>functions for internal use<a class="headerlink" href="#functions-for-internal-use" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="doclist.expand">
+<tt class="descclassname">doclist.</tt><tt class="descname">expand</tt><big>(</big><em>docs</em><big>)</big><a class="headerlink" href="#doclist.expand" title="Permalink to this definition">¶</a></dt>
+<dd>Expand a doclist sent from the client side. (Internally used by the request handler)</dd></dl>
+
+<dl class="function">
+<dt id="doclist.compress">
+<tt class="descclassname">doclist.</tt><tt class="descname">compress</tt><big>(</big><em>doclist</em><big>)</big><a class="headerlink" href="#doclist.compress" title="Permalink to this definition">¶</a></dt>
+<dd>Compress a doclist before sending it to the client side. (Internally used by the request handler)</dd></dl>
+
+<dl class="function">
+<dt id="doclist.validate_links_doclist">
+<tt class="descclassname">doclist.</tt><tt class="descname">validate_links_doclist</tt><big>(</big><em>doclist</em><big>)</big><a class="headerlink" href="#doclist.validate_links_doclist" title="Permalink to this definition">¶</a></dt>
+<dd>Validate link fields and return link fields that are not correct.
+Calls the <cite>validate_links</cite> function on the Document object</dd></dl>
+
+<dl class="function">
+<dt id="doclist.getvaluelist">
+<tt class="descclassname">doclist.</tt><tt class="descname">getvaluelist</tt><big>(</big><em>doclist</em>, <em>fieldname</em><big>)</big><a class="headerlink" href="#doclist.getvaluelist" title="Permalink to this definition">¶</a></dt>
+<dd>Returns a list of values of a particualr fieldname from all Document object in a doclist</dd></dl>
+
+<dl class="function">
+<dt id="doclist.getchildren">
+<tt class="descclassname">doclist.</tt><tt class="descname">getchildren</tt><big>(</big><em>name</em>, <em>childtype</em>, <em>field=''</em>, <em>parenttype=''</em><big>)</big><a class="headerlink" href="#doclist.getchildren" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the list of all child records of a particular record (used internally)</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="doctype.html" title="doctype — DocType"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="webnotes.html" title="webnotes — Webnotes Module"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" >Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

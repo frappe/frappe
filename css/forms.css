@@ -1,0 +1,222 @@
+/* FORMS */
+
+
+div.frm_print_wrapper {
+	background-color:#FFF;
+	border:1px solid #444;
+	padding: 40px;
+
+	box-shadow:1px 1px 8px #229;
+	-moz-box-shadow: 1px 1px 8px #229;
+	-webkit-box-shadow: 1px 1px 8px #229;
+}
+
+div.page_break {
+	margin: 24px 0px;
+	border-top: 1px dashed #888;
+}
+
+div.grid_tbarlinks {
+	border-bottom: 0px;
+	background-color: #CCC;
+	padding: 4px 4px 2px 4px;
+	width: 180px;
+	float: right;
+
+	-moz-border-radius-topleft: 5px; -moz-border-radius-topright: 5px;
+	-webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;
+}
+
+
+div.frm_tip_box {
+	margin: 0px;
+	padding: 8px;
+	background-color: #FFC;
+	display: none;
+	font-size: 11px;
+	border: 1px solid #FFB;
+}
+
+div.frm_tip_box table {
+	border-collapse: collapse;
+	vertical-align: top;
+}
+
+td.frm_tray_area {
+	width: 122px;
+}
+
+div.dialog_frm {
+	position: relative;
+	margin: 10px;
+}
+
+
+
+/*------------------*/
+
+.top_cell {
+	height: 50px;
+}
+
+div.attach_area {
+	padding: 8px;
+	margin: 8px;
+	background-color: #EEE;
+}
+
+div.attach_area table {
+	width: 100%;
+}
+
+.tablabel_normal {
+	margin: 0 4px 0 0;
+	padding: 3px 5px;
+	line-height: 1.3em;
+	display: inline;
+	cursor: pointer;
+}
+
+.tablabel_selected {
+	margin: 0 4px 0 0;
+	padding: 3px 5px;
+	line-height: 1.3em;
+	font-weight: bold;
+	display: inline;
+	cursor: pointer;
+	color: #000;
+}
+
+.scrollhead_wrapper {
+	position: absolute;
+	z-index: 1;
+	height: 30px;
+}
+
+.treeimg {
+	cursor: pointer;
+	margin-right: 3px;
+}
+
+
+.sectionCell {
+	padding: 5px;
+	vertical-align: top;
+}
+
+.code_area {
+	width: 80%;
+	margin: 8px;
+	padding: 4px;
+	background-color: #F8F8F8;
+	border: 1px solid #CCC;
+	overflow-x: auto;
+}
+
+.code_text {
+	width: 100%;
+	height: 360px;
+	margin-top: 3px;
+	font-family: Courier, Fixed;
+	font-size: 12px;
+}
+
+div.time_field select{
+	display: inline;
+	margin: 2px;
+	width: 45px;
+}
+
+/* Documents */
+
+.frm_field_table {
+        width: 100%;
+        border-collapse: collapse;
+}
+
+.datalabelcell { 
+        padding: 2px 0px; 
+        width: 160px; 
+        vertical-align: top; 
+}
+.datainputcell { padding: 2px 0px; }
+
+
+.field_description {
+	margin: 3px 0px 11px 0px;
+	color: #888;
+	font-size: 12px;
+	font-style: italic;
+}
+
+.field_description_top {
+	margin-bottom: 3px;
+}
+
+.field_label {
+	font-size:11px;
+}
+.input_area input, select, textarea { 
+	font-size: 14px;
+	padding: 2px;
+}
+
+.input_area input { 
+	width: 80%; 
+	margin: 0px; 
+}
+.input_area select { 
+	width: 80%; 
+}
+.input_area textarea { 
+	width: 90%; 
+}
+
+.disp_area { 
+	width: 80%; 
+	padding: 2px 0px; 
+	font-size: 12px; 
+}
+.disp_area_no_val { 
+	height: 14px; 
+}
+
+.no_img {
+	padding: 40px;
+	width: 100px;
+	height: 20px;
+	color: #888;
+	text-align: center;
+	border: 1px solid #AAA;
+}
+
+.input-mandatory {
+	font-size: 14px !important;
+	font-weight: bold;
+}
+
+.field-to-update {
+	background-color:#FEE;
+}
+
+/* sidebar */
+
+div.sidebar-comment-wrapper input {
+	width: 50%;
+}
+div.sidebar-comment-message {
+	margin-top: 8px;
+	font-size: 11px;
+	color: #777;
+}
+
+div.sidebar-comment-text {
+	font-size: 12px;
+	font-weight: bold;
+	margin-top: 8px;
+	color: #444;
+}
+div.sidebar-comment-info {
+	font-size: 10px;
+	color: #777;
+}

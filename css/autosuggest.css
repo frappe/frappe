@@ -1,0 +1,91 @@
+/* 
+================================================
+autosuggest, inquisitor style
+================================================
+*/
+
+div.autosuggest
+{
+	position: absolute; 
+	margin-top: 3px; 
+	border: 1px solid #222;
+}
+
+div.autosuggest ul
+{
+	list-style: none;
+	margin: 0px;
+	padding: 2px;
+	overflow: hidden;
+	background-color: #FFF;
+}
+
+div.autosuggest ul li
+{
+	color: #444;
+	padding: 0;
+	margin: 0;
+	text-align: left;
+}
+
+div.autosuggest ul li a
+{
+	color: #444;
+	display: block;
+	text-decoration: none;
+	position: relative;
+	padding: 0;
+	width: 100%;
+}
+div.autosuggest ul li a:hover
+{
+
+}
+div.autosuggest ul li.as_highlight a:hover
+{
+	background-color: #45A;
+	color: #FFF;
+}
+
+div.autosuggest ul li a span
+{
+	display: block;
+	padding: 3px 6px;
+	color: #444;
+	border-bottom:1px solid #DDD;
+}
+
+div.autosuggest ul li a span small
+{
+	display: block;
+	font-weight: normal;
+	color: #444;
+}
+
+div.autosuggest ul li.as_highlight a span small
+{
+	color: #FFF;
+}
+
+div.autosuggest ul li.as_highlight a span {
+	color: #FFF;	
+}
+
+div.autosuggest ul li.as_highlight a
+{
+	color: #FFF;
+	background-color: #45A;
+	cursor: pointer;
+}
+
+div.autosuggest ul li.as_warning
+{
+	font-weight: bold;
+	text-align: center;
+}
+
+div.autosuggest ul em
+{
+	font-style: normal;
+	font-weight: bold;
+}

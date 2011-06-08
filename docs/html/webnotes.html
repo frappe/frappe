@@ -1,0 +1,197 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes — Webnotes Module &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="next" title="doclist — Doclist Module" href="doclist.html" />
+    <link rel="prev" title="auth — Authentication" href="auth.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="doclist.html" title="doclist — Doclist Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="auth.html" title="auth — Authentication"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" accesskey="U">Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href=""><tt class="docutils literal"><span class="pre">webnotes</span></tt> &#8212; Webnotes Module</a><ul>
+<li><a class="reference external" href="#global-attributes">Global Attributes</a></li>
+<li><a class="reference external" href="#global-functions">Global Functions</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="auth.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">auth</span></tt> &#8212; Authentication</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="doclist.html"
+                                  title="next chapter"><tt class="docutils literal docutils literal docutils literal"><span class="pre">doclist</span></tt> &#8212; Doclist Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/webnotes.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-webnotes">
+<h1><tt class="xref docutils literal"><span class="pre">webnotes</span></tt> &#8212; Webnotes Module<a class="headerlink" href="#module-webnotes" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="global-attributes">
+<h2>Global Attributes<a class="headerlink" href="#global-attributes" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="webnotes.version">
+<tt class="descclassname">webnotes.</tt><tt class="descname">version</tt><a class="headerlink" href="#webnotes.version" title="Permalink to this definition">¶</a></dt>
+<dd>&#8216;v170&#8217;</dd></dl>
+
+<dl class="data">
+<dt id="webnotes.conn">
+<tt class="descclassname">webnotes.</tt><tt class="descname">conn</tt><a class="headerlink" href="#webnotes.conn" title="Permalink to this definition">¶</a></dt>
+<dd>The database connection <tt class="xref docutils literal"><span class="pre">webnotes.db.Database</span></tt> setup by <a title="Authentication module" class="reference external" href="auth.html#module-auth"><tt class="xref docutils literal"><span class="pre">auth</span></tt></a></dd></dl>
+
+<dl class="data">
+<dt id="webnotes.form">
+<tt class="descclassname">webnotes.</tt><tt class="descname">form</tt><a class="headerlink" href="#webnotes.form" title="Permalink to this definition">¶</a></dt>
+<dd>The cgi.FieldStorage() object (Dictionary representing the formdata from the URL)</dd></dl>
+
+<dl class="data">
+<dt id="webnotes.session">
+<tt class="descclassname">webnotes.</tt><tt class="descname">session</tt><a class="headerlink" href="#webnotes.session" title="Permalink to this definition">¶</a></dt>
+<dd><p>Global session dictionary.</p>
+<ul class="simple">
+<li>session[&#8216;user&#8217;] - Current user</li>
+<li>session[&#8216;data&#8217;] - Returns a dictionary of the session cache</li>
+</ul>
+</dd></dl>
+
+<dl class="data">
+<dt id="webnotes.is_testing">
+<tt class="descclassname">webnotes.</tt><tt class="descname">is_testing</tt><a class="headerlink" href="#webnotes.is_testing" title="Permalink to this definition">¶</a></dt>
+<dd>Flag to identify if system is in <a class="reference external" href="glossary.html#term-testing-mode"><em class="xref">Testing Mode</em></a></dd></dl>
+
+<dl class="data">
+<dt id="webnotes.add_cookies">
+<tt class="descclassname">webnotes.</tt><tt class="descname">add_cookies</tt><a class="headerlink" href="#webnotes.add_cookies" title="Permalink to this definition">¶</a></dt>
+<dd>Dictionary of additional cookies appended by custom code</dd></dl>
+
+<dl class="data">
+<dt id="webnotes.response">
+<tt class="descclassname">webnotes.</tt><tt class="descname">response</tt><a class="headerlink" href="#webnotes.response" title="Permalink to this definition">¶</a></dt>
+<dd><p>The JSON response object. Default is:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="p">{</span><span class="s">&#39;message&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;exc&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">}</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="data">
+<dt id="webnotes.debug_log">
+<tt class="descclassname">webnotes.</tt><tt class="descname">debug_log</tt><a class="headerlink" href="#webnotes.debug_log" title="Permalink to this definition">¶</a></dt>
+<dd>List of exceptions to be shown in the <a class="reference external" href="glossary.html#term-error-console"><em class="xref">Error Console</em></a></dd></dl>
+
+<dl class="data">
+<dt id="webnotes.message_log">
+<tt class="descclassname">webnotes.</tt><tt class="descname">message_log</tt><a class="headerlink" href="#webnotes.message_log" title="Permalink to this definition">¶</a></dt>
+<dd>List of messages to be shown to the user in a popup box at the end of the request</dd></dl>
+
+</div>
+<div class="section" id="global-functions">
+<h2>Global Functions<a class="headerlink" href="#global-functions" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="webnotes.errprint">
+<tt class="descclassname">webnotes.</tt><tt class="descname">errprint</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#webnotes.errprint" title="Permalink to this definition">¶</a></dt>
+<dd>Append to the <tt class="xref docutils literal"><span class="pre">debug</span> <span class="pre">log</span></tt></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.msgprint">
+<tt class="descclassname">webnotes.</tt><tt class="descname">msgprint</tt><big>(</big><em>msg</em><big>)</big><a class="headerlink" href="#webnotes.msgprint" title="Permalink to this definition">¶</a></dt>
+<dd>Append to the <a title="webnotes.message_log" class="reference internal" href="#webnotes.message_log"><tt class="xref docutils literal"><span class="pre">message_log</span></tt></a></dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="doclist.html" title="doclist — Doclist Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="auth.html" title="auth — Authentication"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" >Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

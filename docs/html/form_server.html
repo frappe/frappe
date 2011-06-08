@@ -1,0 +1,153 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>form — Form Module &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="Server Side Internals" href="server_side_internals.html" />
+    <link rel="next" title="page — Page Module" href="page_server.html" />
+    <link rel="prev" title="page_body — Page Body Serverside Module" href="page_body.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="page_server.html" title="page — Page Module"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="page_body.html" title="page_body — Page Body Serverside Module"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" accesskey="U">Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="page_body.html"
+                                  title="previous chapter"><tt class="docutils literal docutils literal"><span class="pre">page_body</span></tt> &#8212; Page Body Serverside Module</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="page_server.html"
+                                  title="next chapter"><tt class="docutils literal"><span class="pre">page</span></tt> &#8212; Page Module</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/form_server.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="module-form">
+<h1><tt class="xref docutils literal"><span class="pre">form</span></tt> &#8212; Form Module<a class="headerlink" href="#module-form" title="Permalink to this headline">¶</a></h1>
+<dl class="method">
+<dt id="form.getdoc">
+<tt class="descclassname">form.</tt><tt class="descname">getdoc</tt><big>(</big><big>)</big><a class="headerlink" href="#form.getdoc" title="Permalink to this definition">¶</a></dt>
+<dd>Reads <cite>doctype</cite> and <cite>name</cite> from the incoming request (webnotes.form) and adds a <cite>doclist</cite> to the response
+(webnotes.response)</dd></dl>
+
+<dl class="method">
+<dt id="form.getdoctype">
+<tt class="descclassname">form.</tt><tt class="descname">getdoctype</tt><big>(</big><big>)</big><a class="headerlink" href="#form.getdoctype" title="Permalink to this definition">¶</a></dt>
+<dd>Reads <cite>doctype</cite> from the incoming request and returns a doclist of the DocType
+If <cite>with_parent</cite> is set in webnotes.form then, it returns with the first parent doctype incase of a child
+type (used in report builder)</dd></dl>
+
+<dl class="method">
+<dt id="form.runserverobj">
+<tt class="descclassname">form.</tt><tt class="descname">runserverobj</tt><big>(</big><big>)</big><a class="headerlink" href="#form.runserverobj" title="Permalink to this definition">¶</a></dt>
+<dd><p>runserverobj method called by the <cite>$c</cite> (AJAX Call) function on client side</p>
+<ul class="simple">
+<li>reads the incoming doclist</li>
+<li>creates the object using <a title="code.get_server_obj" class="reference external" href="code.html#code.get_server_obj"><tt class="xref docutils literal"><span class="pre">code.get_server_obj()</span></tt></a></li>
+<li>executes the <cite>method</cite> using <a title="code.run_server_obj" class="reference external" href="code.html#code.run_server_obj"><tt class="xref docutils literal"><span class="pre">code.run_server_obj()</span></tt></a></li>
+</ul>
+</dd></dl>
+
+<dl class="method">
+<dt id="form.savedocs">
+<tt class="descclassname">form.</tt><tt class="descname">savedocs</tt><big>(</big><big>)</big><a class="headerlink" href="#form.savedocs" title="Permalink to this definition">¶</a></dt>
+<dd><p>Saves the doc and all child records sent by the form when the &#8220;Save&#8221; button is clicked or <cite>savedocs</cite>
+is called from the client side.</p>
+<p>Also:
+* Checks for integrity - Latest record is being saved
+* Validates Links
+* Runs <cite>validate</cite>, <cite>on_update</cite>, <cite>on_submit</cite>, <cite>on_cancel</cite></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="page_server.html" title="page — Page Module"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="page_body.html" title="page_body — Page Body Serverside Module"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="server_side_api.html" >3. Server Side API</a> &raquo;</li>
+          <li><a href="server_side_internals.html" >Server Side Internals</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

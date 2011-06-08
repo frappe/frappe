@@ -1,0 +1,336 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Listing &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="Tree" href="tree.html" />
+    <link rel="prev" title="Dialog Boxes" href="dialog.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="tree.html" title="Tree"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="dialog.html" title="Dialog Boxes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Listing</a><ul>
+<li><a class="reference external" href="#listing-options">Listing Options</a></li>
+<li><a class="reference external" href="#listing-class">Listing Class</a></li>
+<li><a class="reference external" href="#creating-a-listing">Creating a Listing</a></li>
+<li><a class="reference external" href="#examples">Examples</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="dialog.html"
+                                  title="previous chapter">Dialog Boxes</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="tree.html"
+                                  title="next chapter">Tree</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/listing.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="listing">
+<h1>Listing<a class="headerlink" href="#listing" title="Permalink to this headline">¶</a></h1>
+<p>The listing widget is used to show a list of values from the server. It is a widget that is completely
+scripted and gets the list from a plug-in SQL query. It also has many viewing and customizing options
+and manages paging of results.</p>
+<div class="section" id="listing-options">
+<h2>Listing Options<a class="headerlink" href="#listing-options" title="Permalink to this headline">¶</a></h2>
+<p>Features of a Listing widget can be controlled by setting the <cite>opts</cite> properties before calling the
+<cite>make</cite> function. The default Listing options are:</p>
+<div class="highlight-python"><pre>list_opts = {
+   cell_style : {padding:'3px 2px'},
+
+   // style for alternate row
+   alt_cell_style : {backgroundColor:'#F2F2FF'},
+
+   // style for header
+   head_style : {height:'20px',overflow:'hidden',verticalAlign:'middle',textAlign:'center',fontWeight:'bold',padding:'1px',fontSize:'13px'}
+   head_main_style : {padding:'0px'},
+
+   // buttons
+   hide_export : 0,
+   hide_print : 0,
+   hide_refresh : 0,
+   hide_rec_label: 0,
+   show_calc: 1,
+
+   // clear tab on "refresh"
+   show_empty_tab : 1,
+   show_bottom_paging: 1,
+   no_border: 0
+};</pre>
+</div>
+</div>
+<div class="section" id="listing-class">
+<h2>Listing Class<a class="headerlink" href="#listing-class" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="Listing">
+<em class="property">class </em><tt class="descname">Listing</tt><big>(</big><em>head_text</em>, <em>no_index</em>, <em>no_loading</em><big>)</big><a class="headerlink" href="#Listing" title="Permalink to this definition">¶</a></dt>
+<dd><blockquote>
+<p><cite>head_text</cite> is the header of the widget, <cite>no_index</cite> means that the &#8220;Serial No&#8221; is not to be shown and
+<cite>no_loading</cite> means the &#8220;Loading...&#8221; spinner is to be hidden while the query is executed.</p>
+<dl class="attribute">
+<dt id="Listing.page_len">
+<tt class="descname">page_len</tt><a class="headerlink" href="#Listing.page_len" title="Permalink to this definition">¶</a></dt>
+<dd>Length of one page output. Default 20</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.paging_len">
+<tt class="descname">paging_len</tt><a class="headerlink" href="#Listing.paging_len" title="Permalink to this definition">¶</a></dt>
+<dd>Number of page pointers to be shown. Default 5</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.head_text">
+<tt class="descname">head_text</tt><a class="headerlink" href="#Listing.head_text" title="Permalink to this definition">¶</a></dt>
+<dd>Text to be shown at the heading. Default &#8220;Results&#8221;</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.keyword">
+<tt class="descname">keyword</tt><a class="headerlink" href="#Listing.keyword" title="Permalink to this definition">¶</a></dt>
+<dd>Keyword for each record. Default &#8220;records&#8221;</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.colnames">
+<tt class="descname">colnames</tt><a class="headerlink" href="#Listing.colnames" title="Permalink to this definition">¶</a></dt>
+<dd>List of column labels</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.coltypes">
+<tt class="descname">coltypes</tt><a class="headerlink" href="#Listing.coltypes" title="Permalink to this definition">¶</a></dt>
+<dd>List of column types</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.colwidths">
+<tt class="descname">colwidths</tt><a class="headerlink" href="#Listing.colwidths" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of column widths.</p>
+<p><strong>The listing only shows as many columns as specified in the `colwidths`</strong></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.coloptions">
+<tt class="descname">coloptions</tt><a class="headerlink" href="#Listing.coloptions" title="Permalink to this definition">¶</a></dt>
+<dd>List of column options. (Useful in case type is <cite>Link</cite>)</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.filters">
+<tt class="descname">filters</tt><a class="headerlink" href="#Listing.filters" title="Permalink to this definition">¶</a></dt>
+<dd>Dictionary of filter objects</dd></dl>
+
+<dl class="attribute">
+<dt id="Listing.is_std_query">
+<tt class="descname">is_std_query</tt><a class="headerlink" href="#Listing.is_std_query" title="Permalink to this definition">¶</a></dt>
+<dd>If this is true, it will add <cite>match</cite> permissions automatically. The query must be in <a class="reference external" href="glossary.html#term-standard-query"><em class="xref">Standard Query</em></a>
+format.</dd></dl>
+
+</blockquote>
+<dl class="method">
+<dt id="Listing.make">
+<tt class="descname">make</tt><big>(</big><em>parent</em><big>)</big><a class="headerlink" href="#Listing.make" title="Permalink to this definition">¶</a></dt>
+<dd>Create the UI in the given <cite>parent</cite> Element. All filters must be added before this method is called</dd></dl>
+
+<dl class="method">
+<dt id="Listing.add_filter">
+<tt class="descname">add_filter</tt><big>(</big><em>label</em>, <em>ftype</em>, <em>options</em>, <em>tname</em>, <em>fname</em>, <em>cond</em><big>)</big><a class="headerlink" href="#Listing.add_filter" title="Permalink to this definition">¶</a></dt>
+<dd>Add a filter input widget to the listing. See example</dd></dl>
+
+<dl class="method">
+<dt id="Listing.remove_filter">
+<tt class="descname">remove_filter</tt><big>(</big><em>label</em><big>)</big><a class="headerlink" href="#Listing.remove_filter" title="Permalink to this definition">¶</a></dt>
+<dd>Remove a filter</dd></dl>
+
+<dl class="method">
+<dt id="Listing.remove_all_filters">
+<tt class="descname">remove_all_filters</tt><big>(</big><big>)</big><a class="headerlink" href="#Listing.remove_all_filters" title="Permalink to this definition">¶</a></dt>
+<dd>Remove all filters</dd></dl>
+
+<dl class="method">
+<dt id="Listing.add_sort">
+<tt class="descname">add_sort</tt><big>(</big><em>column_index</em>, <em>fname</em><big>)</big><a class="headerlink" href="#Listing.add_sort" title="Permalink to this definition">¶</a></dt>
+<dd>Add a sorting feature to a particular column</dd></dl>
+
+<dl class="method">
+<dt id="Listing.set_default_sort">
+<tt class="descname">set_default_sort</tt><big>(</big><em>fname</em>, <em>sort_order</em><big>)</big><a class="headerlink" href="#Listing.set_default_sort" title="Permalink to this definition">¶</a></dt>
+<dd>Set the default sort property</dd></dl>
+
+<dl class="method">
+<dt id="Listing.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="headerlink" href="#Listing.run" title="Permalink to this definition">¶</a></dt>
+<dd>Execute the query</dd></dl>
+
+<dl class="method">
+<dt id="Listing.std_cell">
+<tt class="descname">std_cell</tt><big>(</big><em>d</em>, <em>ri</em>, <em>ci</em><big>)</big><a class="headerlink" href="#Listing.std_cell" title="Permalink to this definition">¶</a></dt>
+<dd>Render the standard output in the cell, <cite>d</cite> is the resultset, <cite>ri</cite> and <cite>ci</cite> are row index and
+column index</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="creating-a-listing">
+<h2>Creating a Listing<a class="headerlink" href="#creating-a-listing" title="Permalink to this headline">¶</a></h2>
+<p>To create a listing,</p>
+<ul class="simple">
+<li>Restrict the number of columns generated by specifying the <cite>colwidths</cite></li>
+<li>Optionally declare <cite>colnames</cite>, <cite>coltypes</cite> and <cite>coloptions</cite></li>
+<li>Declare the <cite>get_query</cite> method that will declare 2 queries
+* <cite>query</cite>
+* <cite>query_max</cite></li>
+<li>To customize the output, declare the <cite>show_cell(cell, ri, ci, d)</cite> method to render the cell content.</li>
+</ul>
+<p>See examples below</p>
+</div>
+<div class="section" id="examples">
+<h2>Examples<a class="headerlink" href="#examples" title="Permalink to this headline">¶</a></h2>
+<p>Example of a customized listing:</p>
+<div class="highlight-python"><pre>// create a new listing
+var lst = new Listing();
+
+// define the columns etc
+lst.colwidths = ['5%','30%','15%','15%','20%','5%','10%'];
+lst.colnames = ['Sr.','Email','Status','','','',''];
+lst.coltypes = ['Data','Data','','','','',''];
+lst.coloptions = ['','','','','','',''];
+
+// define options
+var opts = {};
+
+opts.head_main_style = {};
+opts.cell_style = { padding:'3px 2px', borderRight : '0px', borderBottom : '1px solid #AAA'}
+opts.head_style = { padding:'3px 2px', borderBottom : '1px solid #AAA'}
+opts.alt_cell_style = {};
+opts.hide_print = 1;
+opts.no_border = 1;
+
+lst.opts = opts;
+
+// define the query
+lst.get_query = function(){
+
+   // write your own query here
+   this.query = repl("select name, enabled from ... where ... ");
+   this.query_max = repl("select count(*) from ... where ...");
+}
+
+//show cell - customize output
+lst.show_cell = function(cell,ri,ci,d){
+   if (ci==1){
+      if (d[ri][ci]==1){
+         var hl=$a(cell,'span','Data');
+         hl.innerHTML = 'Enabled';
+         $y(hl,{color:'GREEN'});
+
+      }
+      else if (d[ri][ci]==0){
+         var hl=$a(cell,'span','Data');
+         hl.innerHTML = 'Disabled';
+      }
+   } else{
+
+     // show standard output
+     lst.std_cell(d,ri,ci);
+   }
+}
+
+// add filters
+lst.add_filter('Type', 'Select', ['','Old','New'].join(NEWLINE), 'Profile', 'user_type', '=');
+
+// generate
+lst.make(parent);</pre>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="tree.html" title="Tree"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="dialog.html" title="Dialog Boxes"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

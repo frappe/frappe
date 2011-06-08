@@ -1,0 +1,4 @@
+Page Cookbook
+=============
+
+Standard patterns used to build pages

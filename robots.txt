@@ -1,0 +1,5 @@
+User-agent: *
+
+Disallow: /cgi-bin/ # Code files
+Disallow: /backups/ # Backups
+Disallow: /data/

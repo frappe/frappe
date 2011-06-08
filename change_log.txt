@@ -1,0 +1,143 @@
+# Framework change log
+
+# TODO
+# -------
+
+- renaming on first save - change to observer style
+- table border issue in FF
+- defaults in single?
+
+# LOG
+# --------
+
+15-Feb-08:
+
+- Rechanged structure to make it cleaner / CMS Friendly
+- to make cgi run from anywhere
+
+23-Feb-08
+
+- to start a new server
+
+	- Concept: every server must have a base account called 'accounts'
+	- All different accounts on the server are logged in 'accounts'
+	
+	- make accounts database
+	- set accounts details in defs.py
+	- execute setup.cgi
+	- make "Account" doctype in the first database
+		- ac_name, db_name, db_login
+		- Autoname- field:ac_name
+
+	- make account "accounts" with related db_name
+	
+5-March-08
+
+- added __account in each server call to avoid multiple login account
+	- exceptions : login and initdata (refresh)
+- added __modified in savedocs to match if document has not been saved in between
+  and is the current copy in the database
+- added hide for tablefield
+- updated get_status in field
+- added remove child function
+- added print functionality to datatable
+- added msgprint and errprint
+- added freeze and unfreezing
+
+11-March-08
+
+- added ip address blocking
+	- add ip_address in Profile to block
+- client side triggers using "cscript" property
+- activate / deactivate field in table (no triggers)
+
+14-March-08
+
+- app2: onload function passed to copy_doc
+- app2: allow_on_submit now works in Cancel
+- app2: IE7 main heading bug fixed - was happening due to click->hide calendar???
+	- change: create calendar first time on show.
+- changed messaging logic
+	- all msgprints will be printed
+	- r.message is now r.server_messages
+
+15-16-March-08
+
+- created Report API
+	- see test report
+	
+
+17-March-08
+
+- activation logic changed for new rows in grids, 
+	- make_newrow is called from add_template if there is no docname
+- changes in report for page breaks
+
+21-March-08
+
+- added trigger on section break
+- multiple columns on link
+- no print until submitted
+- docstatus of submitted and cancelled documents changed for child elements
+
+26-March-08
+
+- complete drill down
+	- added feature to have function executed
+	- added feature to have custom result
+	
+
+10-Apr-08
+
+- Amendment added to Frm / Permissions
+
+14-Apr-08
+
+- Finder 2.0
+
+6-May-08
+
+- Included AutoSuggest
+
+19-Dec-08
+
+PIL --- Installation
+
+1. Donwload + unzip
+2. python setup.py -build_ext -i
+3. python selftest.py
+4. python setup.py install
+
+To install jpeg library.. Download jpeg-6b
+
+1. ./configure --enable-shared --enable-static
+2. make
+3. make install
+
+09-July-09
+
+- to start a new server
+	
+	- set server_prefix in defs.py
+	- open python shell,
+	- import server
+	- server.import_db('Framework')
+
+	- set appropriate details in defs.py
+
+
+31-July-09
+
+mysqldump('s2u019','../data/')
+create_account('xx','s2u019.sql')
+
+18-Sep-09
+
+matplotlib - numpy, 
+
+
+------- Updates in httpd.conf
+
+RewriteEngine On
+RewriteRule ^/uploads/(.*)$ /cgi-bin/getfile.cgi?name=$1
+RewriteRule \.py - [F]

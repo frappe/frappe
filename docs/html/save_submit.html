@@ -1,0 +1,128 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Save-Submit-Cancel Pattern &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="2. Building an Application" href="build_app.html" />
+    <link rel="next" title="Writing Scripts" href="writing_scripts.html" />
+    <link rel="prev" title="Creating A Form (DocType)" href="creating_doctypes.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="writing_scripts.html" title="Writing Scripts"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="creating_doctypes.html" title="Creating A Form (DocType)"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" accesskey="U">2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="creating_doctypes.html"
+                                  title="previous chapter">Creating A Form (DocType)</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="writing_scripts.html"
+                                  title="next chapter">Writing Scripts</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/save_submit.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="save-submit-cancel-pattern">
+<span id="save-submit"></span><h1>Save-Submit-Cancel Pattern<a class="headerlink" href="#save-submit-cancel-pattern" title="Permalink to this headline">¶</a></h1>
+<p>The framwork has an built-in pattern to &#8220;freeze&#8221; a record. This is typically useful in accounting type
+of applications where a transaction cannot be altered once a subsequent transaction has been made and a
+&#8220;posting&#8221; is completed.</p>
+<p>In the framework, a record has 3 stages as defined by the property &#8220;docstatus&#8221;</p>
+<ul class="simple">
+<li>0 - Saved</li>
+<li>1 - Submitted (frozen)</li>
+<li>2 - Cancelled (or deleted)</li>
+</ul>
+<p>After cancelling, you can also define an &#8220;Amend&#8221; permission. If the user is allowed to &#8220;Amend&#8221; a
+record, a new record is created against the cancelled record with a version number attached.
+For example: Invoice IN003 becaomes IN003-1</p>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="writing_scripts.html" title="Writing Scripts"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="creating_doctypes.html" title="Creating A Form (DocType)"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

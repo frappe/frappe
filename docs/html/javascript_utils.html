@@ -1,0 +1,571 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Javascript Utilities &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="4. Client Side API" href="client_side_widgets.html" />
+    <link rel="next" title="Page Structure and Navigation" href="navigation.html" />
+    <link rel="prev" title="Autosuggest" href="autosuggest.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="navigation.html" title="Page Structure and Navigation"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="autosuggest.html" title="Autosuggest"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" accesskey="U">4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Javascript Utilities</a><ul>
+<li><a class="reference external" href="#ajax-server-calls">AJAX - Server Calls</a></li>
+<li><a class="reference external" href="#title">Title</a></li>
+<li><a class="reference external" href="#events">Events</a></li>
+<li><a class="reference external" href="#string">String</a></li>
+<li><a class="reference external" href="#lists">Lists</a></li>
+<li><a class="reference external" href="#dictionaries">Dictionaries</a></li>
+<li><a class="reference external" href="#datatype-conversion">Datatype Conversion</a></li>
+<li><a class="reference external" href="#dom-manipulation">DOM Manipulation</a></li>
+<li><a class="reference external" href="#style">Style</a></li>
+<li><a class="reference external" href="#tables">Tables</a></li>
+<li><a class="reference external" href="#select-element">Select Element</a></li>
+<li><a class="reference external" href="#positioning">Positioning</a></li>
+<li><a class="reference external" href="#url">URL</a></li>
+<li><a class="reference external" href="#user-image">User Image</a></li>
+<li><a class="reference external" href="#miscelleanous">Miscelleanous</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="autosuggest.html"
+                                  title="previous chapter">Autosuggest</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="navigation.html"
+                                  title="next chapter">Page Structure and Navigation</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/javascript_utils.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="javascript-utilities">
+<h1>Javascript Utilities<a class="headerlink" href="#javascript-utilities" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="ajax-server-calls">
+<h2>AJAX - Server Calls<a class="headerlink" href="#ajax-server-calls" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<tt class="descname">$c(command, args, call_back, on_timeout, no_spinner, freeze_msg)</tt></dt>
+<dd><p>call a function on the server, where</p>
+<ul class="simple">
+<li><cite>cmd</cite> is the command to the handler</li>
+<li><cite>args</cite> dictionary of arguments (form data)</li>
+<li><cite>call_back</cite> - function to be called on complete</li>
+<li><cite>on_timeout</cite> - function to be called on timeout</li>
+<li><cite>no_spinner</cite> - do not show the &#8220;Loading...&#8221; spinner</li>
+<li><cite>freeze_msg</cite> - freeze the user page while showing with the given message</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$c_obj(doclist, method, arg, call_back, no_spinner, freeze_msg)</tt></dt>
+<dd><p>call an object on the server, where:</p>
+<ul class="simple">
+<li><cite>doclist</cite> - the doclist of the calling doc or a string with the name of a Control Doctype</li>
+<li><cite>method</cite> - method to be called</li>
+<li><cite>arg</cite> - string argument</li>
+<li><cite>call_back</cite> - function to be called on completion</li>
+<li><cite>no_spinner</cite> - do not show the &#8220;Loading...&#8221; spinner</li>
+<li><cite>freeze_msg</cite> - freeze the user page while showing with the given message</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$c_obj_csv(doclist, method, arg, call_back, no_spinner, freeze_msg)</tt></dt>
+<dd><p>call an object on the server and return the output as CSV.</p>
+<p><em>Note:</em> There will be no callback. The output must be a list-in-a-list</p>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$c_js(path, callback)</tt></dt>
+<dd>Load a Javascript library. Path must be relative to the js folder. For example: <cite>widgets/calendar.js</cite></dd></dl>
+
+</div>
+<div class="section" id="title">
+<h2>Title<a class="headerlink" href="#title" title="Permalink to this headline">¶</a></h2>
+<dl class="data">
+<dt id="title_prefix">
+<tt class="descname">title_prefix</tt><a class="headerlink" href="#title_prefix" title="Permalink to this definition">¶</a></dt>
+<dd>Standard prefix to the title</dd></dl>
+
+<dl class="function">
+<dt id="set_title">
+<tt class="descname">set_title</tt><big>(</big><em>t</em><big>)</big><a class="headerlink" href="#set_title" title="Permalink to this definition">¶</a></dt>
+<dd>set Page <cite>title</cite>, if <cite>title_prefix</cite> is set, then appends it to the prefix</dd></dl>
+
+</div>
+<div class="section" id="events">
+<h2>Events<a class="headerlink" href="#events" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<tt class="descname">addEvent(ev, fn) {</tt></dt>
+<dd><p>Add a listener to the given event. Example:</p>
+<div class="highlight-python"><pre>addEvent('click', function(e, target) { .. });</pre>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="string">
+<h2>String<a class="headerlink" href="#string" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="clean_smart_quotes">
+<tt class="descname">clean_smart_quotes</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#clean_smart_quotes" title="Permalink to this definition">¶</a></dt>
+<dd>Returns string with MS Word &#8220;Smart&#8221; quotes removed</dd></dl>
+
+<dl class="function">
+<dt id="replace_newlines">
+<tt class="descname">replace_newlines</tt><big>(</big><em>t</em><big>)</big><a class="headerlink" href="#replace_newlines" title="Permalink to this definition">¶</a></dt>
+<dd>Replaces newline charcter \n with &#8216;&lt;br&gt;&#8217;</dd></dl>
+
+<dl class="function">
+<dt id="esc_quotes">
+<tt class="descname">esc_quotes</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#esc_quotes" title="Permalink to this definition">¶</a></dt>
+<dd>Returns string with single quote &#8216; escaped</dd></dl>
+
+<dl class="function">
+<dt id="strip">
+<tt class="descname">strip</tt><big>(</big><em>s</em>, <em>chars</em><big>)</big><a class="headerlink" href="#strip" title="Permalink to this definition">¶</a></dt>
+<dd>Python-like function returns string with leading and lagging characters from <cite>chars</cite> removed.
+If <cite>chars</cite> is null, removes whitespace.</dd></dl>
+
+<dl class="function">
+<dt id="lstrip">
+<tt class="descname">lstrip</tt><big>(</big><em>s</em>, <em>chars</em><big>)</big><a class="headerlink" href="#lstrip" title="Permalink to this definition">¶</a></dt>
+<dd>Strips <cite>chars</cite> from left side</dd></dl>
+
+<dl class="function">
+<dt id="rstrip">
+<tt class="descname">rstrip</tt><big>(</big><em>s</em>, <em>chars</em><big>)</big><a class="headerlink" href="#rstrip" title="Permalink to this definition">¶</a></dt>
+<dd>Strips <cite>chars</cite> from right side</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">repl_all(s, s1, s2) {</tt></dt>
+<dd>Replaces all <cite>s1</cite> to <cite>s2</cite> in <cite>s</cite></dd></dl>
+
+<dl class="function">
+<dt id="repl">
+<tt class="descname">repl</tt><big>(</big><em>s</em>, <em>dict</em><big>)</big><a class="headerlink" href="#repl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Python-like string replacement. Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">repl</span><span class="p">(</span><span class="s">&quot;Hello </span><span class="si">%(name)s</span><span class="s">, welcome to </span><span class="si">%(location)s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="s">&#39;ABC&#39;</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span><span class="s">&#39;Mumbai&#39;</span><span class="p">});</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">esc_quotes</tt><big>(</big><em>s</em><big>)</big></dt>
+<dd>Returns string with single quote &#8216; escaped</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">strip</tt><big>(</big><em>s</em>, <em>chars</em><big>)</big></dt>
+<dd>Python-like function returns string with leading and lagging characters from <cite>chars</cite> removed.
+If <cite>chars</cite> is null, removes whitespace.</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">lstrip</tt><big>(</big><em>s</em>, <em>chars</em><big>)</big></dt>
+<dd>Strips <cite>chars</cite> from left side</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">rstrip</tt><big>(</big><em>s</em>, <em>chars</em><big>)</big></dt>
+<dd>Strips <cite>chars</cite> from right side</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">repl_all(s, s1, s2) {</tt></dt>
+<dd>Replaces all <cite>s1</cite> to <cite>s2</cite> in <cite>s</cite></dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">repl</tt><big>(</big><em>s</em>, <em>dict</em><big>)</big></dt>
+<dd><p>Python-like string replacement. Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="n">repl</span><span class="p">(</span><span class="s">&quot;Hello </span><span class="si">%(name)s</span><span class="s">, welcome to </span><span class="si">%(location)s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span><span class="s">&#39;ABC&#39;</span><span class="p">,</span> <span class="n">location</span><span class="p">:</span><span class="s">&#39;Mumbai&#39;</span><span class="p">});</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="lists">
+<h2>Lists<a class="headerlink" href="#lists" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="in_list">
+<tt class="descname">in_list</tt><big>(</big><em>list</em>, <em>item</em><big>)</big><a class="headerlink" href="#in_list" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true if <cite>item</cite> is in <cite>list</cite></dd></dl>
+
+<dl class="function">
+<dt id="inList">
+<tt class="descname">inList</tt><big>(</big><em>list</em>, <em>item</em><big>)</big><a class="headerlink" href="#inList" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true if <cite>item</cite> is in <cite>list</cite>. Same as <cite>in_list</cite></dd></dl>
+
+<dl class="function">
+<dt id="has_common">
+<tt class="descname">has_common</tt><big>(</big><em>list1</em>, <em>list2</em><big>)</big><a class="headerlink" href="#has_common" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true if <cite>list1</cite> and <cite>list2</cite> has common items</dd></dl>
+
+</div>
+<div class="section" id="dictionaries">
+<h2>Dictionaries<a class="headerlink" href="#dictionaries" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="keys">
+<tt class="descname">keys</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#keys" title="Permalink to this definition">¶</a></dt>
+<dd>Python-like function returns keys of a dictionary</dd></dl>
+
+<dl class="function">
+<dt id="values">
+<tt class="descname">values</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#values" title="Permalink to this definition">¶</a></dt>
+<dd>Python-like function returns values of a dictionary</dd></dl>
+
+<dl class="function">
+<dt id="copy_dict">
+<tt class="descname">copy_dict</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#copy_dict" title="Permalink to this definition">¶</a></dt>
+<dd>Makes a copy of the dictionary</dd></dl>
+
+</div>
+<div class="section" id="datatype-conversion">
+<h2>Datatype Conversion<a class="headerlink" href="#datatype-conversion" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="cint">
+<tt class="descname">cint</tt><big>(</big><em>v</em>, <em>def</em><big>)</big><a class="headerlink" href="#cint" title="Permalink to this definition">¶</a></dt>
+<dd>Convert a value to integer, if NaN, then return <cite>def</cite></dd></dl>
+
+<dl class="function">
+<dt id="cstr">
+<tt class="descname">cstr</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#cstr" title="Permalink to this definition">¶</a></dt>
+<dd>Convet to string</dd></dl>
+
+<dl class="function">
+<dt id="flt">
+<tt class="descname">flt</tt><big>(</big><em>v</em>, <em>decimals</em><big>)</big><a class="headerlink" href="#flt" title="Permalink to this definition">¶</a></dt>
+<dd>Convert to float, with <cite>decimal</cite> places</dd></dl>
+
+<dl class="function">
+<dt id="fmt_money">
+<tt class="descname">fmt_money</tt><big>(</big><em>v</em><big>)</big><a class="headerlink" href="#fmt_money" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert number to string with commas for thousands, millions etc and 2 decimals. Example:</p>
+<div class="highlight-python"><pre>fmt_money(2324); // equals '2,324.00'</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="is_null">
+<tt class="descname">is_null</tt><big>(</big><em>v</em><big>)</big><a class="headerlink" href="#is_null" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true if value is null or empty string.
+Returns false is value is 0</dd></dl>
+
+<dl class="function">
+<dt id="d2h">
+<tt class="descname">d2h</tt><big>(</big><em>d</em><big>)</big><a class="headerlink" href="#d2h" title="Permalink to this definition">¶</a></dt>
+<dd>Convert decimal to hex</dd></dl>
+
+<dl class="function">
+<dt id="h2d">
+<tt class="descname">h2d</tt><big>(</big><em>h</em><big>)</big><a class="headerlink" href="#h2d" title="Permalink to this definition">¶</a></dt>
+<dd>Convert hex to decimal</dd></dl>
+
+</div>
+<div class="section" id="dom-manipulation">
+<h2>DOM Manipulation<a class="headerlink" href="#dom-manipulation" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<tt class="descname">$i(id)</tt></dt>
+<dd>Shortcut for document.getElementById(id). Returns the element of the given ID</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$a(parent, newtag, className, style)</tt></dt>
+<dd><p>Add element to the given <cite>parent</cite>. Example:</p>
+<div class="highlight-python"><pre>div = $a(body, 'div', '', {padding: '2px'});</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$a_input(parent, in_type, attributes, style)</tt></dt>
+<dd><p>Add and INPUT element to the given parent, with given attributes (Fix for IE6 since it does not accept
+<cite>type</cite>). Example:</p>
+<div class="highlight-python"><pre>chk = $a_input(body, 'checkbox', null, {border: '0px'});</pre>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="style">
+<h2>Style<a class="headerlink" href="#style" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<tt class="descname">$y(ele, s)</tt></dt>
+<dd><p>Set Element style. Example:</p>
+<div class="highlight-python"><pre>$y(div,{height:'4px'});</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$dh(d)</tt></dt>
+<dd>Hide element, set <cite>display</cite> = &#8216;none&#8217;</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$ds(d)</tt></dt>
+<dd>set <cite>display</cite> = &#8216;block&#8217; (Show element)</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$di(d)</tt></dt>
+<dd>set <cite>display</cite> = &#8216;inline&#8217; (Show element)</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$op(e,w)</tt></dt>
+<dd>Same as <a title="set_opacity" class="reference internal" href="#set_opacity"><tt class="xref docutils literal"><span class="pre">set_opacity()</span></tt></a></dd></dl>
+
+<dl class="function">
+<dt id="set_style">
+<tt class="descname">set_style</tt><big>(</big><em>txt</em><big>)</big><a class="headerlink" href="#set_style" title="Permalink to this definition">¶</a></dt>
+<dd><p>Declare css classes in txt. Example:</p>
+<div class="highlight-python"><div class="highlight"><pre><span class="n">set_style</span><span class="p">(</span><span class="s">&#39;div.myclass { width: 400px }&#39;</span><span class="p">);</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="set_opacity">
+<tt class="descname">set_opacity</tt><big>(</big><em>ele</em>, <em>opacity</em><big>)</big><a class="headerlink" href="#set_opacity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set the opacity property of the element
+opacity between 0 and 100</p>
+<p>Same As: $op(e,w)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="animate">
+<tt class="descname">animate</tt><big>(</big><em>ele</em>, <em>style_key</em>, <em>from</em>, <em>to</em>, <em>callback</em><big>)</big><a class="headerlink" href="#animate" title="Permalink to this definition">¶</a></dt>
+<dd>Animate transition of style property</dd></dl>
+
+<dl class="function">
+<dt id="get_darker_shade">
+<tt class="descname">get_darker_shade</tt><big>(</big><em>col</em>, <em>factor</em><big>)</big><a class="headerlink" href="#get_darker_shade" title="Permalink to this definition">¶</a></dt>
+<dd>Get a darker shade of the given colour, <cite>col</cite> in HEX, <cite>factor</cite> between 0 and 1</dd></dl>
+
+</div>
+<div class="section" id="tables">
+<h2>Tables<a class="headerlink" href="#tables" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="make_table">
+<tt class="descname">make_table</tt><big>(</big><em>parent</em>, <em>nr</em>, <em>nc</em>, <em>table_width</em>, <em>widths</em>, <em>cell_style</em><big>)</big><a class="headerlink" href="#make_table" title="Permalink to this definition">¶</a></dt>
+<dd><p>Make a new table in parent with</p>
+<ul class="simple">
+<li>rows <cite>nr</cite></li>
+<li>columns <cite>nc</cite></li>
+<li>with columns with widths <cite>widths</cite></li>
+<li>cell with default style <cite>cell_style</cite></li>
+</ul>
+<p>Example:</p>
+<div class="highlight-python"><pre>var t = make_table(div, 5, 2, '400px', ['100px', '300px'], {padding: '2px'})</pre>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="append_row">
+<tt class="descname">append_row</tt><big>(</big><em>t</em><big>)</big><a class="headerlink" href="#append_row" title="Permalink to this definition">¶</a></dt>
+<dd>Append a new row to the table with same number of columns as the first row</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$td(t,r,c)</tt></dt>
+<dd>Returns table cell. Shortcut for t.rows[r].cells[c]</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$sum(t, cidx) {</tt></dt>
+<dd>Returns sum of values in a table column</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">$yt(tab, r, c, s)</tt></dt>
+<dd><p>Set style on tables with wildcards, Examples:</p>
+<div class="highlight-python"><pre>// hilight row 3
+$yt(t, 3, '*', {backgroundColor:'#EEE'})
+
+// border to all cells
+$yt(t, '*', '*', {border:'1px solid #000'})</pre>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="select-element">
+<h2>Select Element<a class="headerlink" href="#select-element" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="empty_select">
+<tt class="descname">empty_select</tt><big>(</big><em>s</em><big>)</big><a class="headerlink" href="#empty_select" title="Permalink to this definition">¶</a></dt>
+<dd>Empty all OPTIONs of the SELECT (or SelectWidget) element</dd></dl>
+
+<dl class="function">
+<dt id="sel_val">
+<tt class="descname">sel_val</tt><big>(</big><em>sel</em><big>)</big><a class="headerlink" href="#sel_val" title="Permalink to this definition">¶</a></dt>
+<dd>Returns the selected value of the given SELECT (or SelectWidget) element</dd></dl>
+
+<dl class="function">
+<dt id="add_sel_options">
+<tt class="descname">add_sel_options</tt><big>(</big><em>s</em>, <em>list</em>, <em>sel_val</em>, <em>o_style</em><big>)</big><a class="headerlink" href="#add_sel_options" title="Permalink to this definition">¶</a></dt>
+<dd>Adds options to the SELECT (or SelectWidget) element s, where sel_val is the default selected value</dd></dl>
+
+</div>
+<div class="section" id="positioning">
+<h2>Positioning<a class="headerlink" href="#positioning" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="objpos">
+<tt class="descname">objpos</tt><big>(</big><em>obj</em><big>)</big><a class="headerlink" href="#objpos" title="Permalink to this definition">¶</a></dt>
+<dd>Returns {x: <cite>x-cord</cite>, y:<cite>y-cord</cite>}
+co-ordinates of the given object (for absolute positioning)</dd></dl>
+
+<dl class="function">
+<dt>
+<tt class="descname">get_screen_dims() {</tt></dt>
+<dd>Returns {w: <cite>width</cite>, h:<cite>height</cite>} of the screen</dd></dl>
+
+</div>
+<div class="section" id="url">
+<h2>URL<a class="headerlink" href="#url" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="get_url_arg">
+<tt class="descname">get_url_arg</tt><big>(</big><em>name</em><big>)</big><a class="headerlink" href="#get_url_arg" title="Permalink to this definition">¶</a></dt>
+<dd>Return the value of the argument <cite>name</cite> from the URL</dd></dl>
+
+</div>
+<div class="section" id="user-image">
+<h2>User Image<a class="headerlink" href="#user-image" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="set_user_img">
+<tt class="descname">set_user_img</tt><big>(</big><em>img</em>, <em>username</em><big>)</big><a class="headerlink" href="#set_user_img" title="Permalink to this definition">¶</a></dt>
+<dd>Sets the user image or No Image tag to the given <cite>img</cite></dd></dl>
+
+</div>
+<div class="section" id="miscelleanous">
+<h2>Miscelleanous<a class="headerlink" href="#miscelleanous" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt>
+<tt class="descname">$s(ele, v, ftype, fopt)</tt></dt>
+<dd><p>Add the value to the Element <cite>ele</cite> based on <cite>fieldtype</cite> and <cite>fieldoptions</cite></p>
+<ul class="simple">
+<li>Covnerts <cite>Link</cite> type to hyperlink</li>
+<li>Converts <cite>Date</cite> in user format</li>
+<li>Converts <cite>Check</cite> to image with check</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="validate_email">
+<tt class="descname">validate_email</tt><big>(</big><em>id</em><big>)</big><a class="headerlink" href="#validate_email" title="Permalink to this definition">¶</a></dt>
+<dd>Returns true for a valid email</dd></dl>
+
+<dl class="function">
+<dt id="DocLink">
+<tt class="descname">DocLink</tt><big>(</big><em>p</em>, <em>doctype</em>, <em>name</em>, <em>onload</em><big>)</big><a class="headerlink" href="#DocLink" title="Permalink to this definition">¶</a></dt>
+<dd>Creates a hyperlink to load the record (<cite>doctype</cite>, <cite>name</cite>)</dd></dl>
+
+<dl class="function">
+<dt id="doc_link">
+<tt class="descname">doc_link</tt><big>(</big><em>p</em>, <em>doctype</em>, <em>name</em>, <em>onload</em><big>)</big><a class="headerlink" href="#doc_link" title="Permalink to this definition">¶</a></dt>
+<dd>Creates a hyperlink to load the record (<cite>doctype</cite>, <cite>name</cite>). Same as DocLink</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="navigation.html" title="Page Structure and Navigation"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="autosuggest.html" title="Autosuggest"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="client_side_widgets.html" >4. Client Side API</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>

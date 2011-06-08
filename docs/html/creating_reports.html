@@ -1,0 +1,185 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Creating Reports &mdash; Documentation</title>
+    <link rel="stylesheet" href="_static/sphinxdoc.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="Documentation" href="index.html" />
+    <link rel="up" title="2. Building an Application" href="build_app.html" />
+    <link rel="next" title="3. Server Side API" href="server_side_api.html" />
+    <link rel="prev" title="Creating Pages" href="creating_pages.html" /> 
+  </head>
+  <body>
+    <div style="background-color: #FFF; text-align: left; padding: 8px 0px"><img src="_static/banner300910.gif"></div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             accesskey="M">modules</a> |</li>
+        <li class="right" >
+          <a href="server_side_api.html" title="3. Server Side API"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="creating_pages.html" title="Creating Pages"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" accesskey="U">2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="index.html">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">Creating Reports</a><ul>
+<li><a class="reference external" href="#filters">Filters</a></li>
+<li><a class="reference external" href="#saving-a-report">Saving a Report</a></li>
+<li><a class="reference external" href="#seeing-the-query">Seeing the Query</a></li>
+<li><a class="reference external" href="#adding-joins">Adding Joins</a></li>
+<li><a class="reference external" href="#over-riding-the-query">Over-riding the query</a></li>
+<li><a class="reference external" href="#adding-scripts">Adding Scripts</a></li>
+</ul>
+</li>
+</ul>
+
+            <h4>Previous topic</h4>
+            <p class="topless"><a href="creating_pages.html"
+                                  title="previous chapter">Creating Pages</a></p>
+            <h4>Next topic</h4>
+            <p class="topless"><a href="server_side_api.html"
+                                  title="next chapter">3. Server Side API</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/creating_reports.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="creating-reports">
+<h1>Creating Reports<a class="headerlink" href="#creating-reports" title="Permalink to this headline">¶</a></h1>
+<p>Reports can be created and saved using the Report Builder. A report is saved in a record of type
+&#8220;Search Criteria&#8221;</p>
+<p>A Report is a SQL query that runs on the server side. The report builder builds the SQL query:</p>
+<ul class="simple">
+<li>Column selector</li>
+<li>Filters</li>
+<li>Sorting</li>
+</ul>
+<p>Using the Search Criteria you can customize this query by adding</p>
+<ul class="simple">
+<li>more tables</li>
+<li>more conditions</li>
+<li>post-processing server side code</li>
+<li>styling the report with HTML by setting color etc.</li>
+</ul>
+<div class="section" id="filters">
+<h2>Filters<a class="headerlink" href="#filters" title="Permalink to this headline">¶</a></h2>
+<p>Filters appear in the report on fields where &#8220;In Filter&#8221; is checked in DocType</p>
+</div>
+<div class="section" id="saving-a-report">
+<h2>Saving a Report<a class="headerlink" href="#saving-a-report" title="Permalink to this headline">¶</a></h2>
+<p>Once you have selected the columns, you can save the report by the &#8220;Save&#8221; button on the toolbar. After saving
+you can open the &#8220;Search Criteria&#8221; record by the &#8220;Advanced&#8221; button.</p>
+<p>In the Search Criteria, you can customize various parts of the report by setting the fields</p>
+</div>
+<div class="section" id="seeing-the-query">
+<h2>Seeing the Query<a class="headerlink" href="#seeing-the-query" title="Permalink to this headline">¶</a></h2>
+<p>To see the query that has been generated, check the &#8220;Show Query&#8221; check box at the bottom of the &#8220;Result&#8221;
+section.</p>
+</div>
+<div class="section" id="adding-joins">
+<h2>Adding Joins<a class="headerlink" href="#adding-joins" title="Permalink to this headline">¶</a></h2>
+<p>If you want to join the selected table with another table, then you can add the table in the &#8220;Additional
+Tables&#8221; field. Note all tables in the database are named as &#8220;tab&#8221; + DocType name</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Whenever you add tables, conditions, use the standard way of naming the fields as <cite>tablename</cite>.`fieldname`</p>
+</div>
+</div>
+<div class="section" id="over-riding-the-query">
+<h2>Over-riding the query<a class="headerlink" href="#over-riding-the-query" title="Permalink to this headline">¶</a></h2>
+<p>You can completely customize a query using the Override field. Note, when you write a query it has to be in
+the <a class="reference external" href="glossary.html#term-standard-query"><em class="xref">Standard Query</em></a> format.</p>
+</div>
+<div class="section" id="adding-scripts">
+<h2>Adding Scripts<a class="headerlink" href="#adding-scripts" title="Permalink to this headline">¶</a></h2>
+<p>Using scripts, you can:</p>
+<ol class="arabic simple">
+<li>Add / remove filters</li>
+<li>Add columns (for example row totals)</li>
+<li>Add rows (for example column totals)</li>
+<li>Modify values</li>
+<li>Get values from other tables etc</li>
+<li>Add color to the values (from client side)</li>
+</ol>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="modindex.html" title="Global Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="server_side_api.html" title="3. Server Side API"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="creating_pages.html" title="Creating Pages"
+             >previous</a> |</li>
+        <li><a href="index.html">Documentation</a> &raquo;</li>
+          <li><a href="build_app.html" >2. Building an Application</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2010, Rushabh Mehta.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.3.
+    </div>
+  </body>
+</html>
