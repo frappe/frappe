@@ -5,9 +5,8 @@ form = webnotes.form
 
 from webnotes.utils.email_lib import get_footer
 from webnotes.utils.email_lib.send import EMail
-import threading
 
-class FormEmail():
+class FormEmail:
 	"""
 		Represents an email sent from a Form
 	"""
@@ -21,8 +20,6 @@ class FormEmail():
 		if self.sendto:
 			self.recipients = self.sendto.replace(';', ',')
 			self.recipients = self.recipients.split(',')
-
-
 
 	def update_contacts(self):
 		"""
@@ -159,4 +156,5 @@ class FormEmail():
 		if self.cc:
 			self.email.cc = [self.cc]
 		
-		self.email.start()
+		self.email.send(send_now=1)
+		webnotes.msgprint('Sent')

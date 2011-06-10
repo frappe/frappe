@@ -1,32 +1,25 @@
-"""
-Install wnframwork and packages
-
-Call from command line:
-
-python path/to/install.py dbroot dbrootpassword dbname -p package_path
-
-"""
-
 import os,sys
 
 cgi_bin_path = os.path.sep.join(__file__.split(os.path.sep)[:-3])
+
 sys.path.append(cgi_bin_path)
 
+
 		
+#
+# make a copy of defs.py (if not exists)
+#		
 def copy_defs():
-	"""
-		Makes a copy of defs.py if it does not exist
-	"""
 	global cgi_bin_path
 	if not os.path.exists(os.path.join(cgi_bin_path, 'webnotes', 'defs.py')):
 		ret = os.system('cp '+ os.path.join(cgi_bin_path, 'webnotes', 'defs_template.py')+\
 			' '+os.path.join(cgi_bin_path, 'webnotes', 'defs.py'))
 		print 'Made copy of defs.py'
 
+#
+# Main Installer Class
+#
 class Installer:
-	"""
-		Installs wnframework and imports "core" module
-	"""
 	def __init__(self, root_login, root_password):
 	
 		self.root_password = root_password
@@ -95,6 +88,9 @@ class Installer:
 
 		webnotes.conn.commit()
 
+	#
+	# main script to create a database from
+	#
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
@@ -194,7 +190,6 @@ def get_parser():
 	parser = OptionParser(usage="usage: %prog [options] ROOT_LOGIN ROOT_PASSWORD DBNAME")
 	parser.add_option("-x", "--database-password", dest="password", default="admin", help="Optional: New password for the Framework Administrator, default 'admin'")	
 	parser.add_option("-s", "--source", dest="source_path", default=None, help="Optional: Path of the sql file from which you want to import the instance, default 'data/Framework.sql'")
-	parser.add_option("-p", "--package", dest="modules_path", default=None, help="Optional: Path of the packages to be imported into the database")
 	
 	return parser
 
