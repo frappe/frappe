@@ -8,7 +8,7 @@ import webnotes.defs
 from webnotes import msgprint
 import email
 
-class EMail:
+class EMail():
 	"""
 	Wrapper on the email module. Email object represents emails to be sent to the client. 
 	Also provides a clean way to add binary `FileData` attachments
@@ -30,6 +30,7 @@ class EMail:
 		self.msg_multipart = MIMEMultipart('alternative')
 		self.msg_root.attach(self.msg_multipart)
 		self.cc = []
+		
 	
 	def set_text(self, message):
 		"""
@@ -206,14 +207,11 @@ class EMail:
 			raise Exception
 		
 		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
-		
+		webnotes.msgprint('sent the mail')
 		try:
 			sess.quit()
 		except:
 			pass
-			
-
-
 
 # ===========================================
 # Email Queue

@@ -275,7 +275,6 @@ def _get_doclist(clientlist):
 def _do_action(doc, doclist, so, method_name, docstatus=0):
 
 	from webnotes.model.code import run_server_obj
-	set = webnotes.conn.set
 
 	if so and hasattr(so, method_name):
 		errmethod = method_name
@@ -291,7 +290,7 @@ def _do_action(doc, doclist, so, method_name, docstatus=0):
 	if docstatus:
 		for d in [doc] + doclist:
 			if int(d.docstatus or 0) != 2:
-				set(d, 'docstatus', docstatus)
+				webnotes.conn.set(d, 'docstatus', docstatus)
 
 def check_integrity(doc):
 	import webnotes

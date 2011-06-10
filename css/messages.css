@@ -5,16 +5,22 @@
 
 div.fetching { color: #888; text-align:right; }
 
-div.notice {
+div.notify_area {
+	position: fixed;
+	bottom: 8px;
+	right: 8px;
+	width: 320px;
+	z-index:10;
+}
+
+div.notify {
 	postion: absolute;
-	background-color: #000;
-	-moz-border-radius: 5px; -webkit-border-radius: 5px;
-	opacity: 0.6;
+	background-color: #FFC;
 	right: 0;
 	top: 0;
-	margin-top: 8px;
+	margin-top: 7px;
 	z-index: -1;
-	padding: 8px;
+	padding: 7px;
 }
 
 /** help **/

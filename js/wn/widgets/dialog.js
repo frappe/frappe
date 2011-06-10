@@ -1,75 +1,29 @@
-// opts { width, height, title, fields (like docfields) }
+/* 
 
-wn.widgets.FieldGroup = function() {
-	
-	this.make_fields = function(body, fl) {
-		$y(this.body, {padding:'11px'});
-		this.fields_dict = {}; // reset
-		for(var i=0; i<fl.length; i++) {
-			var df = fl[i];
-			var div = $a(body, 'div', '', {margin:'6px 0px'})
-			f = make_field(df, null, div, null);
-			f.not_in_form = 1;
-			this.fields_dict[df.fieldname] = f
-			f.refresh();
-		}
-	}
-	
-	/* get values */
-	this.get_values = function() {
-		var ret = {};
-		var errors = [];
-		for(var key in this.fields_dict) {
-			var f = this.fields_dict[key];
-			var v = f.get_value ? f.get_value() : null;
-
-			if(f.df.reqd && !v) 
-				errors.push(f.df.label + ' is mandatory');
-
-			if(v) ret[f.df.fieldname] = v;
-		}
-		if(errors.length) {
-			msgprint('<b>Please check the following Errors</b>\n' + errors.join('\n'));
-			return null;
-		}
-		return ret;
-	}
-	
-	/* set field value */
-	this.set_value = function(key, val){
-		var f = this.fields_dict[key];
-		if(f) {
-			f.set_input(val);
-			f.refresh_mandatory();
-		}		
-	}
-
-	/* set values from a dict */
-	this.set_values = function(dict) {	
-		for(var key in dict) {
-			if(this.fields_dict[key]) {
-				this.set_value(key, dict[key]);
-			}
-		}
-	}
-}
+standard dialog class
+	options:
+		title
+		width
+		fields (docfields)
+*/	
 
 wn.widgets.Dialog = function(opts) {
 	
-	this.opts = opts;
+	$.extend(this, opts)
 	this.display = false;
 	
 	this.make = function(opts) {
-		if(opts) this.opts = opts;
+		if(opts) $.extend(this, opts);
+		
 		this.wrapper = $a(popup_cont, 'div', 'dialog_wrapper');
 
-		if(this.opts.width)
-			$w(this.wrapper, this.opts.width + 'px');
+		if(this.width)
+			$w(this.wrapper, this.width + 'px');
 
 		this.make_head();
 		this.body = $a(this.wrapper, 'div', 'dialog_body');	
-		if(this.opts.fields)
-			this.make_fields(this.body, this.opts.fields);
+		if(this.fields)
+			this.make_fields(this.body, this.fields);
 	}
 	
 	this.make_head = function() {
@@ -85,7 +39,7 @@ wn.widgets.Dialog = function(opts) {
 		img.src='images/icons/close.gif';
 
 		this.title_text = $td(t,0,0);
-		this.set_title(this.opts.title);
+		this.set_title(this.title);
 
 		img.onclick = function() { if(me.oncancel)me.oncancel(); me.hide(); }
 		this.cancel_img = img;		

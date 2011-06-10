@@ -47,7 +47,8 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 	for a in attach:
 		email.attach(a)
 
-	email.send(send_now)
+	# fire email in a new thread
+	email.start()
 
 
 def get_footer():
@@ -68,6 +69,7 @@ def send_form():
 	
 	from webnotes.utils.email_lib.form_email import FormEmail
 	FormEmail().send()
+	webnotes.msgprint('Sent')
 
 
 def get_contact_list():
