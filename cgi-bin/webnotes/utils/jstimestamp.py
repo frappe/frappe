@@ -5,6 +5,7 @@ class generateTimestamp:
 		nono = ['./tiny_mce','./jquery']
 		oldcwd = os.getcwd()
 		os.chdir(jsdir)
+		# TODO Sanitize the loop below
 		for root, subfolders, files in os.walk('.'):
 			if self.is_allowed(nono,root):
 				for filename in files:
@@ -36,7 +37,6 @@ class generateTimestamp:
 			filename = filename.lstrip('./')
 			filename = filename.rstrip('.js')
 			filename = filename.replace('/','.')
-			print filename
 			tsdict[filename] = ts
 		os.chdir(oldcwd)
 		return tsdict
