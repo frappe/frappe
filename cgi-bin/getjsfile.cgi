@@ -9,6 +9,7 @@ try:
 	form = cgi.FieldStorage()
 	out = ''
 	out_buf, str_out = '', ''
+	jsdir='../js'
 	jsonout= {}
 
 	# Traceback
@@ -25,10 +26,11 @@ try:
 	def load_js_from_file(module_name):
 		global out
 		global jsonout
-		filename = module_name # TODO replace . by /
+		import webnotes.utils.jsnamespace as jsn
+		filename = jsn.jsNamespace.modname_to_filename(module_name,jsdir)
 		import os
 		try:
-			f = open(os.path.join('../js/', filename))
+			f = open(os.path.join(filename)
 			try:
 				out = f.read()
 			finally:
@@ -45,7 +47,9 @@ try:
 			load_js_from_file(module_name)
 	
 	def get_dependencies(module_name):
-		return []
+		import webnotes.utils.jsdependency as jsd
+		ret = jsd.jsDependencyBuilder.build_dependency(module_name)
+		return ret
 
 
 	def compress_string(buf):

@@ -1,16 +1,15 @@
 class wnJSCompiler:
-	def concate_files_in_subdirs(self,path,dest):
+	@staticmethod
+	def concate_files_in_dir(self,path,dest):
 		"""
-		Concatenates all files in a subdir (recursive)
+		Concatenates all files in a directory 
 		"""
 		import os
 		allfiles = []
-		for root, subdir, files in os.walk(path):
-			for filename in files:
-				allfiles.append(os.path.join(root,filename))
-		print path
-		print allfiles
-		print '----'
+		l = os.listdir(path)
+		for i in l:
+			if os.path.isfile(os.path.join(dirname,i)):
+				allfiles.append(os.path.join(dirname,i))
 		fout = open(dest,'w')
 		for filename in allfiles:
 			f = open(filename)
@@ -19,6 +18,7 @@ class wnJSCompiler:
 		fout.close
 		
 	
+	@staticmethod
 	def getsubs(self,path):
 		"""
 		gets all the sub directories of a directory (recursive)
@@ -29,33 +29,30 @@ class wnJSCompiler:
 			for i in subd:
 				subs.append(os.path.join(root,i))
 		return subs
+	@staticmethod
 	def compilejs(self,path):
 		"""
 		Compiles the js tree for ondemand import
 		"""
 		import os
+		import webnotes.utils.jsnamespace as jsn
 		subs = self.getsubs(path)
 		for subdir in subs:
-			modname = self.getmodname(subdir)
-			self.concate_files_in_subdirs(subdir,os.path.join(subdir, modname))
+			modname = jsn.jsNamespace.getmodname(subdir)
+			self.concate_files_in_dir(subdir,os.path.join(subdir, modname))
 			self.minifyjs(os.path.join(subdir, modname))
 
+	@staticmethod
 	def minifyjs(self,modpath):
 		"""
 		Stub to minify js
 		"""
 		pass
 	
-	def getmodname(self,modpath,ext='.js'):
-		"""
-		returns filename for the stiched file		
-		"""
-		import os
-		b = modpath.split(os.sep)
-		modname = b[-1] + ext
-		return modname
 
 
+
+	@staticmethod
 	def gentsfile(self,spath,dpath):
 		"""
 		function to generate timestamps of all files in spath
