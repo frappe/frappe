@@ -1,11 +1,12 @@
 class wnJSCompiler:
 	@staticmethod
-	def concate_files_in_dir(self,path,dest):
+	def concate_files_in_dir(path,dest):
 		"""
 		Concatenates all files in a directory 
 		"""
 		import os
 		allfiles = []
+		dirname = path
 		l = os.listdir(path)
 		for i in l:
 			if os.path.isfile(os.path.join(dirname,i)):
@@ -19,7 +20,7 @@ class wnJSCompiler:
 		
 	
 	@staticmethod
-	def getsubs(self,path):
+	def getsubs(path):
 		"""
 		gets all the sub directories of a directory (recursive)
 		"""
@@ -30,42 +31,43 @@ class wnJSCompiler:
 				subs.append(os.path.join(root,i))
 		return subs
 	@staticmethod
-	def compilejs(self,path):
+	def compilejs(path):
 		"""
 		Compiles the js tree for ondemand import
 		"""
+		if not wnJSCompiler.is_changed(path):
+			return
+
 		import os
 		import webnotes.utils.jsnamespace as jsn
-		subs = self.getsubs(path)
+		subs = wnJSCompiler.getsubs(path)
 		for subdir in subs:
 			modname = jsn.jsNamespace.getmodname(subdir)
-			self.concate_files_in_dir(subdir,os.path.join(subdir, modname))
-			self.minifyjs(os.path.join(subdir, modname))
+			wnJSCompiler.concate_files_in_dir(subdir,os.path.join(subdir, modname))
+			wnJSCompiler.minifyjs(os.path.join(subdir, modname))
 
 	@staticmethod
-	def minifyjs(self,modpath):
+	def is_changed(path):
+		#compare new timestamps with the ones stored in file
+		from webnotes.utils import jstimestamp
+		try:
+			frm_file = jstimestamp.generateTimestamp.read_ts_from_file(path)
+			newts = jstimestamp.generateTimestamp.gents(path)
+		except IOError:
+			return True
+		if frm_file == newts:
+			return False
+		else:
+			return True
+
+
+	@staticmethod
+	def minifyjs(modpath):
 		"""
 		Stub to minify js
 		"""
 		pass
-	
 
-
-
-	@staticmethod
-	def gentsfile(self,spath,dpath):
-		"""
-		function to generate timestamps of all files in spath
-		dpath is the file in which the timestamps JSON is stored
-		"""
-		import webnotes.utils.jstimestamp as jst
-		import json
-		a = jst.generateTimestamp()
-		f = open(dpath,'w')
-		f.write('wn = {}\n')
-		f.write('wn.timestamp = ')
-		f.write(json.dumps(a.gents(spath)))
-		f.close()
 if __name__=="__main__":
 	a = wnJSCompiler()
 	print a.compilejs('../js/wntest')
