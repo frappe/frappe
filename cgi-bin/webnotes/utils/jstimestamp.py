@@ -41,11 +41,29 @@ class generateTimestamp:
 			filename = filename.lstrip('./')
 			filename = filename.rstrip('.js')
 			filename = filename.replace('/','.')
-			#TODO Remove _packagename from the end if file is a package
+			if generateTimestamp.is_package(filename):
+				# Whoa its a package
+				# Remove _packagename from the end if file is a package
+				filename = generateTimestamp.convert_to_packagename(filename)
 			tsdict[filename] = ts
 		os.chdir(oldcwd)
 		return tsdict
-	
+	@staticmethod
+	def is_package(filename):
+		from webnotes.utils import jsnamespace
+		p = jsnamespace.jsNamespace.package_prefix
+		return filename.split('.')[-1].startswith() 
+
+	@staticmethod
+	def convert_to_packagename(filename):
+		t = []
+		for i in filename.split('.')[:-1]:
+			t.append(i)
+			t.append('.')
+		del t[-1]
+		filename = ''.join(t)
+		return filename
+
 	@staticmethod
 	def read_ts_from_file(jsdir):
 		import json
