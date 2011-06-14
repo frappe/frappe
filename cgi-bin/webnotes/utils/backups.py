@@ -112,8 +112,9 @@ def get_backup():
 	"""
 	#if verbose: print webnotes.conn.cur_db_name + " " + webnotes.defs.db_password
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						 webnotes.defs.db_password)
+						  webnotes.defs.db_password)
 	odb.get_backup()
+	delete_temp_backups()
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly.""")
 
