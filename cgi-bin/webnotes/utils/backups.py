@@ -84,7 +84,7 @@ class BackupGenerator:
 		
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 		sendmail(recipients=recipient_list, msg=msg, subject=subject)
-		
+		return recipient_list
 		
 		
 	def get_backup(self):
@@ -103,7 +103,9 @@ class BackupGenerator:
 		backup_file = self.copy_to_backup_link()		
 
 		#Email Link
-		self.send_email(backup_file)
+		recipient_list = self.send_email(backup_file)
+		
+		return recipient_list
 		
 #-------------------------------------------------------------------------------
 def get_backup():
@@ -114,10 +116,11 @@ def get_backup():
 	#if verbose: print webnotes.conn.cur_db_name + " " + webnotes.defs.db_password
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.defs.db_password)
-	odb.get_backup()
+	recipient_list = odb.get_backup()
 	delete_temp_backups()
 	webnotes.msgprint("""A download link to your backup will be emailed \
-	to you shortly.""")
+	to you shortly on the following email address:
+	%s""" % (str(recipient_list),))
 
 
 def delete_temp_backups():
