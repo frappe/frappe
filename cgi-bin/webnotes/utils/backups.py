@@ -10,6 +10,7 @@ from datetime import datetime
 from webnotes.defs import backup_path, backup_link_path, backup_url
 verbose = 0
 
+#-------------------------------------------------------------------------------
 class BackupGenerator:
 	"""
 		This class contains methods to perform On Demand Backup
@@ -104,7 +105,7 @@ class BackupGenerator:
 		#Email Link
 		self.send_email(backup_file)
 		
-
+#-------------------------------------------------------------------------------
 def get_backup():
 	"""
 		This function is executed when the user clicks on 
@@ -153,7 +154,7 @@ def is_file_old(db_file_name, older_than=24):
 			if verbose: print "File does not exist"
 			return True		
 
-
+#-------------------------------------------------------------------------------
 		
 if __name__ == "__main__":
 	"""
