@@ -70,4 +70,4 @@ class wnJSCompiler:
 
 if __name__=="__main__":
 	a = wnJSCompiler()
-	print a.compilejs('../js/wntest')
+	print a.compilejs('../js/wn')

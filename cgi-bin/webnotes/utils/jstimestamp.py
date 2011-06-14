@@ -1,5 +1,5 @@
 class generateTimestamp:
-	ts_filename = 'timestamp.json'
+	ts_filename = 'timestamp.js'
 	@staticmethod
 	def list_js_files(jsdir,ext='js'):
 		import os
@@ -13,7 +13,7 @@ class generateTimestamp:
 				for filename in files:
 					if filename.endswith(ext):
 						all_files.append(os.path.join(root,filename))
-
+		
 		os.chdir(oldcwd)
 		for i in nono:
 			for j in all_files:
@@ -41,6 +41,7 @@ class generateTimestamp:
 			filename = filename.lstrip('./')
 			filename = filename.rstrip('.js')
 			filename = filename.replace('/','.')
+			#TODO Remove _packagename from the end if file is a package
 			tsdict[filename] = ts
 		os.chdir(oldcwd)
 		return tsdict
@@ -69,6 +70,8 @@ class generateTimestamp:
 		import json
 		import os
 		tsdict = generateTimestamp.gents(jsdir)
-		f = open(os.path.join(jsdir,generateTimestamp.ts_filename),'w')
+		f = open(os.path.join(jsdir,'wn',generateTimestamp.ts_filename),'w') #FIXME Hard coded!
+		f.write('wn={}\n')
+		f.write('wn.timestamp=')
 		f.write(json.dumps(tsdict))
 		f.close()

@@ -28,7 +28,6 @@ try:
 		global jsonout
 		import webnotes.utils.jsnamespace as jsn
 		filename = jsn.jsNamespace.modname_to_filename(module_name,jsdir)
-		print 'filename is ' + filename
 		import os
 		try:
 			f = open(os.path.join(filename))
@@ -41,6 +40,7 @@ try:
 		jsonout[module_name]=out
 	
 	def load_js_module(module_name):
+		global jsonout
 		from webnotes import defs
 		devmode = getattr(defs,'developer_mode')
 		if devmode:
@@ -49,12 +49,11 @@ try:
 		if module_name not in jsonout:
 			dependent_mods = get_dependencies(module_name)
 			for module in dependent_mods:
-				load_js_module(module)
-			load_js_from_file(module_name)
+				load_js_from_file(module)
+		load_js_from_file(module_name)
 	
 	def get_dependencies(module_name):
 		import webnotes.utils.jsdependency as jsd
-		print 'module_name is ' + module_name
 		ret = jsd.jsDependencyBuilder.build_dependency(jsdir,module_name)
 		return ret
 
@@ -74,7 +73,8 @@ try:
 	except:
 		pass
 	
-	load_js_module('wntest.a.s')
+	load_js_module(form.getvalue('module'))
+	#load_js_module('wn.modules')
 		
 	if compress and len(out)>512:
 		out_buf = compress_string(str_out)
