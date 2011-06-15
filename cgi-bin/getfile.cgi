@@ -26,12 +26,8 @@ try:
 	sys.path.append(webnotes.defs.modules_path)	
 	
 	form = cgi.FieldStorage()
-	webnotes.form_dict = {}
 	
-	for each in form.keys():
-		webnotes.form_dict[each] = form.getvalue(each)	
-	
-	n = form.getvalue('name')
+	n = form.get('name')
 
 	# authenticate
 	webnotes.auth.HTTPRequest()
@@ -45,8 +41,8 @@ try:
 	else: 
 		fcontent = res[1]
 
-	if form.getvalue('thumbnail'):
-		tn = webnotes.utils.cint(form.getvalue('thumbnail'))
+	if form.get('thumbnail'):
+		tn = webnotes.utils.cint(form.get('thumbnail'))
 		try:
 			from PIL import Image
 			import cStringIO

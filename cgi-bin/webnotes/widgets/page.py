@@ -53,7 +53,7 @@ class Page:
 	def load_stylesheet(self, stylesheet):
 		import webnotes
 		# load stylesheet
-		loaded = eval(webnotes.form_dict.get('stylesheets') or '[]')
+		loaded = eval(webnotes.form.get('stylesheets') or '[]')
 		if not stylesheet in loaded:
 			import webnotes.model.doc
 			from webnotes.model.code import get_code
@@ -80,7 +80,7 @@ def getpage():
 	"""
 	   Load the page from `webnotes.form` and send it via `webnotes.response`
 	"""
-	doclist = get(webnotes.form.getvalue('name'))
+	doclist = get(webnotes.form.get('name'))
 		
 	# send
 	webnotes.response['docs'] = doclist

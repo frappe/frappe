@@ -23,7 +23,7 @@ try:
 		
 	def load_js_file():
 		global out
-		filename = form.getvalue('filename')
+		filename = form.get('filename')
 		import os
 		try:
 			f = open(os.path.join('../js/', filename))

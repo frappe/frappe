@@ -423,7 +423,7 @@ class Document:
 		# check for access key
 		if webnotes.form and webnotes.form.has_key('akey'):
 			import webnotes.utils.encrypt
-			if webnotes.utils.encrypt.decrypt(webnotes.form.getvalue('akey')) == self.name:
+			if webnotes.utils.encrypt.decrypt(webnotes.form.get('akey')) == self.name:
 				has_perm = 1
 				webnotes.response['print_access'] = 1
 				

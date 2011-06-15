@@ -4,11 +4,11 @@ import webnotes
 # this is called when a new doctype is setup for search - to set the filters
 def getsearchfields():
 
-	sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form.getvalue("doctype"))
+	sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form.get("doctype"))
 	sf = sf and sf[0][0] or ''
 	sf = [s.strip() for s in sf.split(',')]
 	if sf and sf[0]:
-		res =  webnotes.conn.sql("select fieldname, label, fieldtype, options from tabDocField where parent='%s' and fieldname in (%s)" % (webnotes.form.getvalue("doctype","_NA"), '"'+'","'.join(sf)+'"'))
+		res =  webnotes.conn.sql("select fieldname, label, fieldtype, options from tabDocField where parent='%s' and fieldname in (%s)" % (webnotes.form.get("doctype","_NA"), '"'+'","'.join(sf)+'"'))
 	else:
 		res = []
 
@@ -71,9 +71,9 @@ def scrub_custom_query(query, key, txt):
 def search_link():
 	import webnotes.widgets.query_builder
 
-	txt = webnotes.form.getvalue('txt')
-	dt = webnotes.form.getvalue('dt')
-	query = webnotes.form.getvalue('query')
+	txt = webnotes.form.get('txt')
+	dt = webnotes.form.get('dt')
+	query = webnotes.form.get('query')
 	
 	if query:
 		res = webnotes.conn.sql(scrub_custom_query(query, 'name', txt))
@@ -88,14 +88,14 @@ def search_link():
 def search_widget():
 	import webnotes.widgets.query_builder
 
-	dt = webnotes.form.getvalue('doctype')
-	txt = webnotes.form.getvalue('txt') or ''
-	key = webnotes.form.getvalue('searchfield') or 'name' # key field
-	user_query = webnotes.form.getvalue('query') or ''
+	dt = webnotes.form.get('doctype')
+	txt = webnotes.form.get('txt') or ''
+	key = webnotes.form.get('searchfield') or 'name' # key field
+	user_query = webnotes.form.get('query') or ''
 
 	if user_query:
 		query = scrub_custom_query(user_query, key, txt)
 	else:
-		query = make_query(', '.join(get_std_fields_list(dt, key)), dt, key, txt, webnotes.form.getvalue('start') or 0, webnotes.form.getvalue('page_len') or 50)
+		query = make_query(', '.join(get_std_fields_list(dt, key)), dt, key, txt, webnotes.form.get('start') or 0, webnotes.form.get('page_len') or 50)
 	
 	webnotes.widgets.query_builder.runquery(query)

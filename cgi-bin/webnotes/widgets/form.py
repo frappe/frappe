@@ -17,7 +17,7 @@ def getdoc():
 	import webnotes
 	from webnotes.utils import cint
 	
-	form = webnotes.form_dict
+	form = webnotes.form
 	doctype, docname = form.get('doctype'), form.get('name')
 	prefix = cint(form.get('from_archive')) and 'arc' or 'tab'
 
@@ -45,7 +45,7 @@ def get_comments(doctype=None, docname=None, limit=5):
 	nc, cl = 0, []
 
 	if not doctype:
-		doctype, docname, limit = webnotes.form_dict.get('dt'), webnotes.form_dict.get('dn'), webnotes.form_dict.get('limit')
+		doctype, docname, limit = webnotes.form.get('dt'), webnotes.form.get('dn'), webnotes.form.get('limit')
 		
 	try:
 		nc = int(webnotes.conn.sql("select count(*) from `tabComment Widget Record` where comment_doctype=%s and comment_docname=%s", (doctype, docname))[0][0])
@@ -75,7 +75,7 @@ def make_comment_table():
 
 def add_comment():
 	import time
-	args = webnotes.form_dict
+	args = webnotes.form
 
 	if args.get('comment'):
 		from webnotes.model.doc import Document
@@ -91,7 +91,7 @@ def add_comment():
 #===========================================================================================
 
 def remove_comment():
-	args = webnotes.form_dict
+	args = webnotes.form
 	webnotes.conn.sql("delete from `tabComment Widget Record` where name=%s",args.get('id'))
 
 	try:
@@ -106,8 +106,8 @@ def getdoctype():
 	
 	form, doclist = webnotes.form, []
 	
-	dt = form.getvalue('doctype')
-	with_parent = form.getvalue('with_parent')
+	dt = form.get('doctype')
+	with_parent = form.get('with_parent')
 
 	# with parent (called from report builder)
 	if with_parent:
@@ -181,18 +181,18 @@ def runserverobj():
 	form = webnotes.form
 
 
-	method = form.getvalue('method')
+	method = form.get('method')
 	doclist, clientlist = [], []
-	arg = form.getvalue('arg')
-	dt = form.getvalue('doctype')
-	dn = form.getvalue('docname')
+	arg = form.get('arg')
+	dt = form.get('doctype')
+	dn = form.get('docname')
 		
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		clientlist = webnotes.model.doclist.expand(form.getvalue('docs'))
+		clientlist = webnotes.model.doclist.expand(form.get('docs'))
 
 		# find main doc
 		for d in clientlist:
@@ -224,7 +224,7 @@ def runserverobj():
 				pass
 			
 			#build output as csv
-			if cint(webnotes.form.getvalue('as_csv')):
+			if cint(webnotes.form.get('as_csv')):
 				make_csv_output(r, so.doc.doctype)
 			else:
 				webnotes.response['message'] = r
@@ -263,7 +263,7 @@ def _get_doclist(clientlist):
 
 	midx = 0
 	for i in range(len(clientlist)):
-		if clientlist[i]['name'] == form.getvalue('docname'):
+		if clientlist[i]['name'] == form.get('docname'):
 			main_doc = Document(fielddata = clientlist[i])
 			midx = i
 		else:
@@ -320,10 +320,10 @@ def savedocs():
 	form = webnotes.form
 
 	# action
-	action = form.getvalue('action')
+	action = form.get('action')
 	
 	# get docs	
-	doc, doclist = _get_doclist(webnotes.model.doclist.expand(form.getvalue('docs')))
+	doc, doclist = _get_doclist(webnotes.model.doclist.expand(form.get('docs')))
 
 	# get server object	
 	server_obj = get_server_obj(doc, doclist)
@@ -354,7 +354,7 @@ def savedocs():
 		# set owner and modified times
 		is_new = cint(doc.fields.get('__islocal'))
 		if is_new and not doc.owner:
-			doc.owner = form.getvalue('user')
+			doc.owner = form.get('user')
 		
 		doc.modified, doc.modified_by = webnotes.utils.now(), webnotes.session['user']
 		
@@ -432,7 +432,7 @@ def get_print_format():
 	import re
 	import webnotes
 
-	html = webnotes.model.meta.get_print_format_html(webnotes.form.getvalue('name'))
+	html = webnotes.model.meta.get_print_format_html(webnotes.form.get('name'))
 
 	p = re.compile('\$import\( (?P<name> [^)]*) \)', re.VERBOSE)
 	out_html = ''
@@ -448,7 +448,7 @@ def remove_attach():
 	import webnotes
 	import webnotes.utils.file_manager
 	
-	fid = webnotes.form.getvalue('fid')
+	fid = webnotes.form.get('fid')
 	webnotes.utils.file_manager.delete_file(fid, verbose=1)
 
 # Get Fields - Counterpart to $c_get_fields
@@ -457,13 +457,13 @@ def get_fields():
 	import webnotes
 	r = {}
 	args = {
-		'select':webnotes.form.getvalue('select')
-		,'from':webnotes.form.getvalue('from')
-		,'where':webnotes.form.getvalue('where')
+		'select':webnotes.form.get('select')
+		,'from':webnotes.form.get('from')
+		,'where':webnotes.form.get('where')
 	}
 	ret = webnotes.conn.sql("select %(select)s from `%(from)s` where %(where)s limit 1" % args)
 	if ret:
-		fl, i = webnotes.form.getvalue('fields').split(','), 0
+		fl, i = webnotes.form.get('fields').split(','), 0
 		for f in fl:
 			r[f], i = ret[0][i], i+1
 	webnotes.response['message']=r
@@ -474,7 +474,7 @@ def validate_link():
 	import webnotes
 	import webnotes.utils
 	
-	value, options, fetch = webnotes.form.getvalue('value'), webnotes.form.getvalue('options'), webnotes.form.getvalue('fetch')
+	value, options, fetch = webnotes.form.get('value'), webnotes.form.get('options'), webnotes.form.get('fetch')
 
 	# no options, don't validate
 	if not options or options=='null' or options=='undefined':
