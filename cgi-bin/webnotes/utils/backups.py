@@ -56,11 +56,12 @@ class BackupGenerator:
 		"""
 			Get recepient's email address
 		"""
-		import webnotes.db
-		webnotes.conn = webnotes.db.Database(use_default = 1)
-		recipient_list = webnotes.conn.sql("""SELECT parent FROM tabUserRole
-							 WHERE role='System Manager'
-							 AND parent!='Administrator'""")
+		recipient_list = webnotes.conn.sql(\
+				   """SELECT parent FROM tabUserRole 
+					  WHERE role='System Manager' 
+					  AND parent!='Administrator' 
+					  AND parent IN 
+							 (SELECT email FROM tabProfile WHERE enabled=1)""")
 		return [i[0] for i in recipient_list]
 		
 		
