@@ -49,6 +49,8 @@ class CGIFieldDictWrapper(cgi.FieldStorage):
 			return cgiFieldValue[list_indices]
 		else:
 			return cgiFieldValue
+	def has_key(self,key):
+		return self.cgiField.has_key(key)
 
 
 
