@@ -248,7 +248,7 @@ class Database:
 	def set_value(self, dt, dn, field, val):
 		from webnotes.utils import now
 		if dn and dt!=dn:
-			self.sql("update `tab"+dt+"` set `"+field+"`=%s, modified=%s where name=%s", (val, dn, now()))
+			self.sql("update `tab"+dt+"` set `"+field+"`=%s, modified=%s where name=%s", (val, now(), dn))
 		else:
 			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
 				self.sql("update tabSingles set value=%s where field=%s and doctype=%s", (val, field, dt))
