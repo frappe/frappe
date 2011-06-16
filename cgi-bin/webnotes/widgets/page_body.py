@@ -170,7 +170,7 @@ def load_properties():
 	import webnotes.widgets.page
 	import urllib
 
-	page_url = webnotes.form_dict.get('_escaped_fragment_', webnotes.form_dict.get('page', ''))
+	page_url = webnotes.form.get('_escaped_fragment_', webnotes.form.get('page', ''))
 	
 	if page_url:
 		if page_url.startswith('Page/'): 
@@ -199,7 +199,7 @@ def get():
 	   Gets `keywords` and `site_description` from the `Control Panel`
 	"""
 	import webnotes
-	no_startup = webnotes.form.getvalue('no_startup') or None
+	no_startup = webnotes.form.get('no_startup') or None
 
 	global index_template, redirect_template
 	import webnotes.session_cache
@@ -208,10 +208,10 @@ def get():
 	except: # python 2.4
 		import simplejson as json
 	
-	page = webnotes.form_dict.get('page', '')
+	page = webnotes.form.get('page', '')
 	# sid in public display
 	# ---------------------
-	if webnotes.form_dict.get('sid'): 
+	if webnotes.form.get('sid'): 
 		return redirect_template % ('Redirecting...', ('index.cgi' + (page and ('?page='+page) or '')))
 	
 	if '%(content)s' in index_template:

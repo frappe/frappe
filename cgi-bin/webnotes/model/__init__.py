@@ -40,8 +40,8 @@ def delete_doc(doctype=None, name=None, doclist = None):
 
 	# get from form
 	if not doctype:
-		doctype = webnotes.form_dict.get('dt')
-		name = webnotes.form_dict.get('dn')
+		doctype = webnotes.form.get('dt')
+		name = webnotes.form.get('dn')
 	
 	if not doctype:
 		webnotes.msgprint('Nothing to delete!', raise_exception =1)

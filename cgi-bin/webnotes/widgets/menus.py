@@ -41,7 +41,7 @@ def get_menu_items():
 	
 # --------------------------------------------------------------
 def has_result():
-	return sql("select name from `tab%s` limit 1" % webnotes.form_dict.get('dt')) and 'Yes' or 'No'
+	return sql("select name from `tab%s` limit 1" % webnotes.form.get('dt')) and 'Yes' or 'No'
 
 # --------------------------------------------------------------
 
@@ -97,8 +97,8 @@ def get_dt_details():
 		the filters, columns, subject and tag_fields
 		also if the doctype is of type "submittable"
 	"""
-	fl = eval(webnotes.form_dict.get('fl'))
-	dt = webnotes.form_dict.get('dt')
+	fl = eval(webnotes.form.get('fl'))
+	dt = webnotes.form.get('dt')
 	tag_fields, description = webnotes.conn.get_value('DocType', dt, ['tag_fields', 'description'])
 
 	submittable = is_submittable(dt) and 1 or 0
@@ -151,7 +151,7 @@ def get_dt_details():
 # --------------------------------------------------------------
 
 def get_trend():
-	return {'trend': get_dt_trend(webnotes.form_dict.get('dt'))}
+	return {'trend': get_dt_trend(webnotes.form.get('dt'))}
 
 
 
@@ -161,7 +161,7 @@ def get_trend():
 # delete and archive in docbrowser
 #
 def delete_items():
-	il = eval(webnotes.form_dict.get('items'))
+	il = eval(webnotes.form.get('items'))
 	from webnotes.model import delete_doc
 	from webnotes.model.code import get_obj
 	
@@ -174,8 +174,8 @@ def delete_items():
 # --------------------------------------------------------------
 
 def archive_items():
-	il = eval(webnotes.form_dict.get('items'))
+	il = eval(webnotes.form.get('items'))
 	
 	from webnotes.utils.archive import archive_doc
 	for d in il:
-		archive_doc(d[0], d[1], webnotes.form_dict.get('action')=='Restore' and 1 or 0)
+		archive_doc(d[0], d[1], webnotes.form.get('action')=='Restore' and 1 or 0)

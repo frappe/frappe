@@ -42,11 +42,11 @@ class HTTPRequest:
 		webnotes.tenant_id = webnotes.session.get('tenant_id', 0)
 
 		# write out cookies if sid is supplied (this is a pre-logged in redirect)
-		if webnotes.form_dict.get('sid'):
+		if webnotes.form.get('sid'):
 			webnotes.cookie_manager.set_cookies()
 
 		# run login triggers
-		if webnotes.form_dict.get('cmd')=='login':
+		if webnotes.form.get('cmd')=='login':
 			webnotes.login_manager.run_trigger('on_login_post_session')
 			
 		# load profile
@@ -73,12 +73,12 @@ class HTTPRequest:
 
 	def get_ac_name(self):
 		# login
-		if webnotes.form_dict.get('acx'):
-			return webnotes.form_dict.get('acx')
+		if webnotes.form.get('acx'):
+			return webnotes.form.get('acx')
 		
 		# in form
-		elif webnotes.form_dict.get('ac_name'):
-			return webnotes.form_dict.get('ac_name')
+		elif webnotes.form.get('ac_name'):
+			return webnotes.form.get('ac_name')
 			
 		# in cookie
 		elif webnotes.incoming_cookies.get('ac_name'):
@@ -114,10 +114,10 @@ class HTTPRequest:
 class LoginManager:
 	def __init__(self):
 		self.cp = None
-		if webnotes.form_dict.get('cmd')=='login':
+		if webnotes.form.get('cmd')=='login':
 			# clear cache
 			from webnotes.session_cache import clear_cache
-			clear_cache(webnotes.form_dict.get('usr'))				
+			clear_cache(webnotes.form.get('usr'))				
 
 			self.authenticate()
 			self.post_login()
@@ -135,7 +135,7 @@ class LoginManager:
 	
 	def authenticate(self, user=None, pwd=None):
 		if not (user and pwd):	
-			user, pwd = webnotes.form_dict.get('usr'), webnotes.form_dict.get('pwd')
+			user, pwd = webnotes.form.get('usr'), webnotes.form.get('pwd')
 
 		if not (user and pwd):
 			webnotes.msgprint('Incomplete Login Details', raise_exception=1)
@@ -266,7 +266,7 @@ class CookieManager:
 	# ---------------
 
 	def set_remember_me(self):
-		if webnotes.utils.cint(webnotes.form_dict.get('remember_me')):
+		if webnotes.utils.cint(webnotes.form.get('remember_me')):
 			remember_days = webnotes.conn.get_value('Control Panel',None,'remember_for_days') or 7
 			webnotes.cookies['remember_me'] = 1
 
@@ -283,10 +283,10 @@ class CookieManager:
 class Session:
 	def __init__(self, user=None):
 		self.user = user
-		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid')
+		self.sid = webnotes.form.get('sid') or webnotes.incoming_cookies.get('sid')
 		self.data = {'user':user,'data':{}}
 
-		if webnotes.form_dict.get('cmd')=='login':
+		if webnotes.form.get('cmd')=='login':
 			self.start()
 			return
 			
@@ -310,8 +310,8 @@ class Session:
 			r=r[0]
 			
 			# ExipredSession
-			if r[2]=='Expired' and (webnotes.form_dict.get('cmd')!='resume_session'):
-				if r[0]=='Guest' or (not webnotes.form_dict.get('cmd')) or webnotes.form_dict.get('cmd')=='logout':
+			if r[2]=='Expired' and (webnotes.form.get('cmd')!='resume_session'):
+				if r[0]=='Guest' or (not webnotes.form.get('cmd')) or webnotes.form.get('cmd')=='logout':
 					webnotes.login_manager.login_as_guest()
 					self.start()
 				else:
@@ -321,7 +321,7 @@ class Session:
 				webnotes.login_manager.login_as_guest()
 				self.start()
 				# allow refresh or logout
-				if webnotes.form_dict.get('cmd') and webnotes.form_dict.get('cmd')!='logout':
+				if webnotes.form.get('cmd') and webnotes.form.get('cmd')!='logout':
 					webnotes.response['session_status'] = 'Logged Out'
 					raise Exception, 'Logged Out'
 			else:
@@ -342,7 +342,7 @@ class Session:
 		self.data['user'] = webnotes.login_manager.user
 		self.data['sid'] = webnotes.utils.generate_hash()
 		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR');
-		self.data['data']['tenant_id'] = webnotes.form_dict.get('tenant_id', 0)
+		self.data['data']['tenant_id'] = webnotes.form.get('tenant_id', 0)
 
 		# get ipinfo
 		if webnotes.conn.get_global('get_ip_info'):
@@ -369,7 +369,7 @@ class Session:
 	# resume session
 	# --------------
 	def resume(self):
-		pwd = webnotes.form_dict.get('pwd')
+		pwd = webnotes.form.get('pwd')
 		webnotes.login_manager.authenticate(self.data['user'], pwd)
 		webnotes.conn.sql("update tabSessions set status='Active' where sid=%s", self.data['sid'])
 		return 'Logged In'

@@ -40,8 +40,8 @@ def load_month_events():
 	
 	form = webnotes.form
 
-	mm = form.getvalue('month')
-	yy = form.getvalue('year')
+	mm = form.get('month')
+	yy = form.get('year')
 	m_st = str(yy) + '-%.2i' % cint(mm) + '-01'
 	m_end = str(yy) + '-%.2i' % cint(mm) + '-31'
 

@@ -36,7 +36,7 @@ def check_user_tags(dt):
 def add_tag():
 	"adds a new tag to a record, and creates the Tag master"
 	
-	f = webnotes.form_dict
+	f = webnotes.form
 	tag, color = f.get('tag'), f.get('color')
 	dt, dn = f.get('dt'), f.get('dn')
 	
@@ -49,7 +49,7 @@ def add_tag():
 #
 def remove_tag():
 	"removes tag from the record"
-	f = webnotes.form_dict
+	f = webnotes.form
 	tag, dt, dn = f.get('tag'), f.get('dt'), f.get('dn')
 	
 	DocTags(dt).remove(dn, tag)
@@ -233,12 +233,12 @@ def get_top_field_tags(dt):
 def get_top_tags(args=''):
 	"returns the top 10 tags for the doctype from fields (7) and users (3)"
 	tl = None
-	dt = webnotes.form_dict['doctype']
+	dt = webnotes.form['doctype']
 	
 	from webnotes.utils.cache import get_item
 	
 	# if not reload, try and load from cache
-	if not cint(webnotes.form_dict.get('refresh')):
+	if not cint(webnotes.form.get('refresh')):
 		tl = get_item('tags-' + dt).get()
 	
 	if tl:

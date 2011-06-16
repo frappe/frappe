@@ -76,10 +76,10 @@ def get_contact_list():
 	"""
 	import webnotes
 
-	cond = ['`%s` like "%s%%"' % (f, webnotes.form.getvalue('txt')) for f in webnotes.form.getvalue('where').split(',')]
+	cond = ['`%s` like "%s%%"' % (f, webnotes.form.get('txt')) for f in webnotes.form.get('where').split(',')]
 	cl = webnotes.conn.sql("select `%s` from `tab%s` where %s" % (
-  			 webnotes.form.getvalue('select')
-			,webnotes.form.getvalue('from')
+  			 webnotes.form.get('select')
+			,webnotes.form.get('from')
 			,' OR '.join(cond)
 		)
 	)

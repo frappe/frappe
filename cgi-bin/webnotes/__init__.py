@@ -28,13 +28,32 @@ code_fields_dict = {
 #
 #: "v170" 
 version = 'v170'
-form_dict = {}
 auth_obj = None
 
 #: The database connection :class:`webnotes.db.Database` setup by :mod:`auth`
 conn = None
 
 #: The cgi.FieldStorage() object (Dictionary representing the formdata from the URL)
+import cgi  # Should really do the proper if not defined  import
+class CGIFieldDictWrapper(cgi.FieldStorage):
+	def __init__(self,field_storage):
+		self.cgiField = field_storage
+	def get(self,key,list_indices = None):
+		"""
+		key: 		The key variable to be retrieved
+		list_indices:	If the value is expected to be list/dict the index/key values
+		"""
+
+		cgiFieldValue = self.cgiField.getvalue(key)
+		if isinstance(cgiFieldValue,(dict,list)) and (not isinstance(list_indices,list)):
+			return cgiFieldValue[list_indices]
+		else:
+			return cgiFieldValue
+	def has_key(self,key):
+		return self.cgiField.has_key(key)
+
+
+
 form = None
 
 session = None

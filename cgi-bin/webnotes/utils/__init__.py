@@ -529,7 +529,7 @@ def send_error_report():
 		%s <br>
 		Comment: %s
 		Err Msg : %s
-	''' % (m, form.getvalue('msg') or '', form.getvalue('err_msg'))
+	''' % (m, form.get('msg') or '', form.get('err_msg'))
 	sendmail([webnotes.conn.get_value('Control Panel',None,'support_email_id') or 'support@iwebnotes.com'], sender=webnotes.session['user'], msg=err_msg, subject='Error Report '+m)
 
 # pretty print a dict

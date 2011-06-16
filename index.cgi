@@ -15,10 +15,8 @@ try:
 	import webnotes
 	import webnotes.defs
 
-	webnotes.form = cgi.FieldStorage()
-	for each in webnotes.form.keys():
-		webnotes.form_dict[each] = webnotes.form.getvalue(each)
-	if webnotes.form.getvalue('cmd'):
+	webnotes.form = webnotes.CGIFieldDictWrapper(cgi.FieldStorage())
+	if webnotes.form.get('cmd'):
 		# AJAX Call
 		import webnotes.handler
 	else:

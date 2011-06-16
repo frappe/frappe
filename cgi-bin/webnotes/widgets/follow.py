@@ -3,7 +3,7 @@ Server side methods for the follower pattern (Follow button used in forms)
 """
 
 import webnotes
-form = webnotes.form_dict
+form = webnotes.form
 
 #
 # Follow

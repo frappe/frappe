@@ -3,9 +3,9 @@ def upload():
 	form = webnotes.form
 
 	# get record details
-	dt = form.getvalue('doctype')
-	dn = form.getvalue('docname')
-	at_id = form.getvalue('at_id')
+	dt = form.get('doctype')
+	dn = form.get('docname')
+	at_id = form.get('at_id')
 
 	# save
 	fid, fname = save_uploaded()
@@ -52,7 +52,7 @@ def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js
 			fname, content = i.filename, i.file.read()
 	
 			# thumbnail
-			if webnotes.form_dict.get('thumbnail'):
+			if webnotes.form.get('thumbnail'):
 				try:
 					content = make_thumbnail(content, int(form.get('thumbnail')))
 					# change extension to jpg

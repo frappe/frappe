@@ -4,7 +4,6 @@ import webnotes.defs
 import webnotes.utils
 
 form = webnotes.form
-form_dict = webnotes.form_dict
 
 sql = None
 session = None
@@ -49,13 +48,13 @@ def dt_map():
 	from webnotes.model.code import get_obj
 	from webnotes.model.doc import Document
 	
-	form_dict = webnotes.form_dict
+	form = webnotes.form
 	
-	dt_list = webnotes.model.doclist.expand(form_dict.get('docs'))
-	from_doctype = form_dict.get('from_doctype')
-	to_doctype = form_dict.get('to_doctype')
-	from_docname = form_dict.get('from_docname')
-	from_to_list = form_dict.get('from_to_list')
+	dt_list = webnotes.model.doclist.expand(form.get('docs'))
+	from_doctype = form.get('from_doctype')
+	to_doctype = form.get('to_doctype')
+	from_docname = form.get('from_docname')
+	from_to_list = form.get('from_to_list')
 	
 	dm = get_obj('DocType Mapper', from_doctype +'-' + to_doctype)
 	doclist = dm.dt_map(from_doctype, to_doctype, from_docname, Document(fielddata = dt_list[0]), [], from_to_list)
@@ -69,8 +68,8 @@ def load_month_events():
 	import webnotes
 	form = webnotes.form
 
-	mm = form.getvalue('month')
-	yy = form.getvalue('year')
+	mm = form.get('month')
+	yy = form.get('year')
 	m_st = str(yy) + '-' + str(mm) + '-01'
 	m_end = str(yy) + '-' + str(mm) + '-31'
 
@@ -86,7 +85,7 @@ def import_csv():
 	from webnotes.utils import cint
 	
 	i = webnotes.model.import_docs.CSVImport()
-	r = i.import_csv(form.getvalue('csv_file'), form.getvalue('dateformat'), form_dict.get('overwrite', 0) and 1)
+	r = i.import_csv(form.get('csv_file'), form.get('dateformat'), form.get('overwrite', 0) and 1)
 	
 	webnotes.response['type']='iframe'
 	rhead = '''<style>body, html {font-family: Arial; font-size: 12px;}</style>'''
@@ -102,20 +101,20 @@ def get_template():
 
 def uploadfile():
 	import webnotes.utils.file_manager
-	if webnotes.form_dict.get('from_form'):
+	if webnotes.form.get('from_form'):
 		webnotes.utils.file_manager.upload()
 	else:
 		# save the file
 		fid, fname = webnotes.utils.file_manager.save_uploaded()
 		
 		# do something with the uploaded file
-		if fid and webnotes.form_dict.get('server_obj'):
+		if fid and webnotes.form.get('server_obj'):
 			from webnotes.model.code import get_obj
-			getattr(get_obj(webnotes.form_dict.get('server_obj')), webnotes.form_dict.get('method'))(fid, fname)
+			getattr(get_obj(webnotes.form.get('server_obj')), webnotes.form.get('method'))(fid, fname)
 			
 		# return the upload
 		if fid:
-			webnotes.response['result'] = '<script>window.parent.upload_callback("'+webnotes.form_dict.get('uploader_id')+'", "'+fid+'")</script>'
+			webnotes.response['result'] = '<script>window.parent.upload_callback("'+webnotes.form.get('uploader_id')+'", "'+fid+'")</script>'
 	
 # File upload (from scripts)
 # ------------------------------------------------------------------------------------
@@ -141,7 +140,7 @@ def upload_many():
 def get_file():
 	import webnotes.utils.file_manager
 
-	res = webnotes.utils.file_manager.get_file(form.getvalue('fname'))
+	res = webnotes.utils.file_manager.get_file(form.get('fname'))
 	if res:
 		webnotes.response['type'] = 'download'
 		webnotes.response['filename'] = res[0]
@@ -162,8 +161,8 @@ def get_graph():
 	f = StringIO.StringIO()
 
 	# call the object
-	obj = server.get_obj(form_dict.get('dt'))
-	plt = server.run_server_obj(obj, form_dict.get('method'), form_dict.get('arg'))
+	obj = server.get_obj(form.get('dt'))
+	plt = server.run_server_obj(obj, form.get('method'), form.get('arg'))
 	plt.savefig(f)
 
 	# stream out
@@ -175,10 +174,10 @@ def get_graph():
 # ------------------------------------------------------------------------------------
 
 def reset_password():
-	form_dict = webnotes.form_dict
+	form = webnotes.form
 	
-	act = form_dict.get('account', '')
-	user = form_dict.get('user', '')
+	act = form.get('account', '')
+	user = form.get('user', '')
 	if act:
 		webnotes.conn.set_db(act)
 
@@ -199,8 +198,8 @@ def resume_session():
 # Create Backup
 # -------------
 
-def backupdb(form_dict, session):
-	db_name = server.decrypt(form_dict.get('db_name'))
+def backupdb(form, session):
+	db_name = server.decrypt(form.get('db_name'))
 
 	server.backup_db(db_name)
 
@@ -230,7 +229,7 @@ import webnotes.db
 # reset password
 # ---------------------------------------------------------------------
 
-if form_dict.has_key('cmd') and (form_dict.get('cmd')=='reset_password'):
+if form.has_key('cmd') and (form.get('cmd')=='reset_password'):
 	webnotes.conn = webnotes.db.Database(use_default = 1)
 	sql = webnotes.conn.sql
 	sql("START TRANSACTION")
@@ -244,7 +243,7 @@ if form_dict.has_key('cmd') and (form_dict.get('cmd')=='reset_password'):
 # pre-login access - for registration etc.
 # ---------------------------------------------------------------------
 
-elif form_dict.has_key('cmd') and (form_dict.get('cmd')=='prelogin'):
+elif form.has_key('cmd') and (form.get('cmd')=='prelogin'):
 	webnotes.conn = webnotes.db.Database(use_default = 1)
 	sql = webnotes.conn.sql
 	webnotes.session = {'user':'Administrator'}
@@ -253,7 +252,7 @@ elif form_dict.has_key('cmd') and (form_dict.get('cmd')=='prelogin'):
 	
 	sql("START TRANSACTION")
 	try:
-		webnotes.response['message'] = webnotes.model.code.get_obj('Profile Control').prelogin(form_dict) or ''
+		webnotes.response['message'] = webnotes.model.code.get_obj('Profile Control').prelogin(form) or ''
 		sql("COMMIT")
 	except:
 		webnotes.errprint(webnotes.utils.getTraceback())
@@ -267,7 +266,7 @@ else:
 	try:
 		webnotes.request = webnotes.auth.HTTPRequest()
 	
-		if form_dict.get('cmd') != 'login' and webnotes.conn:
+		if form.get('cmd') != 'login' and webnotes.conn:
 			sql = webnotes.conn.sql
 		
 			# NOTE:
@@ -276,8 +275,8 @@ else:
 			# runserverobj (if Guest access)
 		
 			# get command cmd
-			cmd = form_dict.has_key('cmd') and form_dict.get('cmd') or ''
-			read_only = form_dict.has_key('_read_only') and form_dict.get('_read_only') or None
+			cmd = form.has_key('cmd') and form.get('cmd') or ''
+			read_only = form.has_key('_read_only') and form.get('_read_only') or None
 
 			validate_cmd(cmd)
 
@@ -294,9 +293,9 @@ else:
 				if (not webnotes.conn.in_transaction) and (not read_only):
 					webnotes.conn.begin()
 				
-				if webnotes.form_dict.get('arg'):
+				if webnotes.form.get('arg'):
 					# direct method call
-					ret = locals()[cmd](webnotes.form_dict.get('arg'))
+					ret = locals()[cmd](webnotes.form.get('arg'))
 				else:
 					ret = locals()[cmd]()
 				

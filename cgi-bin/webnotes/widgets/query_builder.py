@@ -12,7 +12,7 @@ def get_search_criteria_list(dt):
 	return [list(s) for s in sc_list]
 
 def load_report_list():
-	webnotes.response['rep_list'] = get_search_criteria_list(form.getvalue('dt'))
+	webnotes.response['rep_list'] = get_search_criteria_list(form.get('dt'))
 
 	
 # Get, scrub metadata
@@ -214,16 +214,16 @@ def build_description_standard(meta, tl):
 def runquery(q='', ret=0, from_export=0):
 	import webnotes.utils
 
-	formatted = cint(form.getvalue('formatted'))	
+	formatted = cint(form.get('formatted'))	
 	
 	# CASE A: Simple Query
 	# --------------------
-	if form.getvalue('simple_query') or form.getvalue('is_simple'):
-		q = form.getvalue('simple_query') or form.getvalue('query')
+	if form.get('simple_query') or form.get('is_simple'):
+		q = form.get('simple_query') or form.get('query')
 		if q.split()[0].lower() != 'select':
 			raise Exception, 'Query must be a SELECT'
 		
-		as_dict = cint(form.getvalue('as_dict'))
+		as_dict = cint(form.get('as_dict'))
 		res = sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
 		
 		# build colnames etc from metadata
@@ -232,7 +232,7 @@ def runquery(q='', ret=0, from_export=0):
 	# CASE B: Standard Query
 	# -----------------------
 	else:
-		if not q: q = form.getvalue('query')
+		if not q: q = form.get('query')
 
 		tl = get_sql_tables(q)
 		meta = get_sql_meta(tl)
@@ -250,8 +250,8 @@ def runquery(q='', ret=0, from_export=0):
 	# run server script
 	# -----------------
 	style, header_html, footer_html, page_template = '', '', '', ''
-	if form.has_key('sc_id') and form.getvalue('sc_id'):
-		sc_id = form.getvalue('sc_id')
+	if form.has_key('sc_id') and form.get('sc_id'):
+		sc_id = form.get('sc_id')
 		from webnotes.model.code import get_code
 		sc_details = webnotes.conn.sql("select module, standard, server_script from `tabSearch Criteria` where name=%s", sc_id)[0]
 		if sc_details[1]!='No':	
@@ -260,7 +260,7 @@ def runquery(q='', ret=0, from_export=0):
 			code = sc_details[2]
 			
 		if code:
-			filter_values = form.has_key('filter_values') and eval(form.getvalue('filter_values','')) or {}
+			filter_values = form.has_key('filter_values') and eval(form.get('filter_values','')) or {}
 			res, style, header_html, footer_html, page_template = exec_report(code, res, colnames, colwidths, coltypes, coloptions, filter_values, q, from_export)
 		
 	out['colnames'] = colnames
@@ -281,7 +281,7 @@ def runquery(q='', ret=0, from_export=0):
 	out['values'] = res
 
 	# return num of entries 
-	qm = form.has_key('query_max') and form.getvalue('query_max') or ''
+	qm = form.has_key('query_max') and form.get('query_max') or ''
 	if qm and qm.strip():
 		if qm.split()[0].lower() != 'select':
 			raise Exception, 'Query (Max) must be a SELECT'
@@ -299,9 +299,9 @@ def runquery_csv():
 	# run query
 	res = runquery(from_export = 1)
 	
-	q = form.getvalue('query')
+	q = form.get('query')
 	
-	rep_name = form.getvalue('report_name')
+	rep_name = form.get('report_name')
 	if not form.has_key('simple_query'):
 
 		# Report Name
@@ -315,7 +315,7 @@ def runquery_csv():
 	for h in out['colnames']:
 		heads.append(getCSVelement(h))
 	if form.has_key('colnames'):
-		for h in form.getvalue('colnames').split(','):
+		for h in form.get('colnames').split(','):
 			heads.append(getCSVelement(h))
 
 	# Output dataset
