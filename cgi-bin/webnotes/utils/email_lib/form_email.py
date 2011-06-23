@@ -148,9 +148,11 @@ class FormEmail:
 		self.email.add_attachment(self.dn.replace(' ','').replace('/','-') + '.html', self.body)
 
 		# attachments
+		# self.with_attachments comes from http form variables
+		# i.e. with_attachments=1
 		if cint(self.with_attachments):
 			for a in self.set_attachments():
-				a and self.email.attach(a.split(',')[0])
+				a and self.email.attach_file(a.split(',')[0])
 
 		# cc
 		if self.cc:

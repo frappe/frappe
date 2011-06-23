@@ -95,6 +95,9 @@ class Installer:
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
 		"""
+		#Storing passed source path
+		passed_source_path = source_path
+		
 		
 		# get the path of the sql file to import
 		if not source_path:
@@ -125,7 +128,9 @@ class Installer:
 		self.dbman.restore_database(target, source_path, self.root_password)
 		if verbose: print "Imported from database %s" % source_path
 
-		self.import_core_module()
+		#If source path is passed 
+		#i.e. importing from master sql, dont import core modules
+		if not passed_source_path: self.import_core_module()
 
 		# framework cleanups
 		self.framework_cleanups(target)

@@ -38,11 +38,17 @@ def delete_doc(doctype=None, name=None, doclist = None):
 	import webnotes.model.meta
 	sql = webnotes.conn.sql
 
+	# get from form
 	if not doctype:
 		doctype = webnotes.form_dict.get('dt')
 		name = webnotes.form_dict.get('dn')
-		if not doctype:
-			webnotes.msgprint('Nothing to delete!', raise_exception =1)
+	
+	if not doctype:
+		webnotes.msgprint('Nothing to delete!', raise_exception =1)
+
+	# already deleted..?
+	if not webnotes.conn.exists(doctype, name):
+		return
 
 	tablefields = webnotes.model.meta.get_table_fields(doctype)
 	
