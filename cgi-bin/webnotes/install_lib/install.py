@@ -24,6 +24,7 @@ class Installer:
 
 		import webnotes
 		import webnotes.db
+		import webnotes.defs
 	
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
@@ -32,7 +33,7 @@ class Installer:
 		webnotes.conn=self.conn
 		webnotes.session= {'user':'Administrator'}
 		self.dbman = DbManager(self.conn)
-		self.mysql_path = hasattr(defs, 'mysql_path') and webnotes.defs.mysql_path or ''
+		self.mysql_path = hasattr(webnotes.defs, 'mysql_path') and webnotes.defs.mysql_path or ''
 
 	#
 	# run framework related cleanups
@@ -101,6 +102,7 @@ class Installer:
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
 		"""
+		import webnotes.defs
 		#Storing passed source path
 		passed_source_path = source_path
 		
@@ -113,7 +115,7 @@ class Installer:
 		self.dbman.delete_user(target)
 
 		# create user and db
-		self.dbman.create_user(target,getattr(defs,'db_password',None))
+		self.dbman.create_user(target,getattr(webnotes.defs,'db_password',None))
 		if verbose: print "Created user %s" % target
 	
 		# create a database
@@ -159,7 +161,7 @@ def make_scheduler(root_login, root_password, verbose):
 	dbman.delete_user('master_scheduler')
 
 	# create user and db
-	dbman.create_user('master_scheduler', getattr(defs,'db_password',None))
+	dbman.create_user('master_scheduler', getattr(webnotes.defs,'db_password',None))
 	if verbose: print "Created user master_scheduler"
 
 	# create a database
@@ -215,14 +217,14 @@ if __name__=='__main__':
 	
 	try:
 	
-		from webnotes import defs
 		import webnotes
 		import webnotes.db
+		import webnotes.defs
 	except ImportError:
 		copy_defs()
-		from webnotes import defs
 		import webnotes
 		import webnotes.db
+		import webnotes.defs
 
 	if len(args)==3:
 		
