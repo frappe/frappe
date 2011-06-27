@@ -26,6 +26,9 @@ class DocType:
 			doctype_module = sql("select module from tabDocType where name = '%s'" % (self.doc.doc_type))
 			webnotes.conn.set(self.doc,'module',doctype_module and doctype_module[0][0] or 'NULL')
 
+	def validate(self):
+		sql("select name from `tabSearch Criteria` where criteria_name=%s and name!=%s", (self.doc.criteria_name, self.doc.name))
+
 	def on_update(self):
 		self.set_module()
 		self.export_doc()

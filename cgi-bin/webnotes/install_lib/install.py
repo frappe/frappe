@@ -57,6 +57,10 @@ class Installer:
 
 		import_module('core')
 		
+	def create_users(self):
+		"""
+			Create Administrator / Guest
+		"""
 		webnotes.conn.begin()
 		
 		from webnotes.model.doc import Document
@@ -96,10 +100,6 @@ class Installer:
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
 		"""
 		
-		# get the path of the sql file to import
-		if not source_path:
-			source_path = os.path.join(os.path.sep.join(os.path.abspath(webnotes.__file__).split(os.path.sep)[:-3]), 'data', 'Framework.sql')
-
 		# delete user (if exists)
 		self.dbman.delete_user(target)
 
@@ -122,10 +122,20 @@ class Installer:
 		
 		# import in target
 		if verbose: print "Starting database import..."
+
+		# get the path of the sql file to import
+		source_given = True
+		if not source_path:
+			source_given = False
+			source_path = os.path.join(os.path.sep.join(os.path.abspath(webnotes.__file__).split(os.path.sep)[:-3]), 'data', 'Framework.sql')
+
 		self.dbman.restore_database(target, source_path, self.root_password)
 		if verbose: print "Imported from database %s" % source_path
 
-		self.import_core_module()
+		if not source_given:
+			if verbose: print "Importing core module..."
+			self.import_core_module()
+			self.create_users()
 
 		# framework cleanups
 		self.framework_cleanups(target)
