@@ -21,6 +21,9 @@ def copy_defs():
 #
 class Installer:
 	def __init__(self, root_login, root_password):
+
+		import webnotes
+		import webnotes.db
 	
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
@@ -35,6 +38,8 @@ class Installer:
 	# run framework related cleanups
 	#
 	def framework_cleanups(self, target):
+
+		import webnotes
 		self.dbman.drop_table('__DocTypeCache')
 		webnotes.conn.sql("create table `__DocTypeCache` (name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)")
 
@@ -48,6 +53,7 @@ class Installer:
 			Imports the "Core" module from .txt file and creates
 			Creates profile Administrator
 		"""
+		import webnotes
 		from webnotes.modules.import_module import import_module
 		from webnotes.modules.module_manager import reload_doc
 
