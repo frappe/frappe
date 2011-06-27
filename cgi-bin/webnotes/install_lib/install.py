@@ -133,7 +133,7 @@ class Installer:
 		
 		# import in target
 		if verbose: print "Starting database import..."
-		self.dbman.restore_database(target, source_path, self.root_password)
+		self.dbman.restore_database(target, source_path, self.root_password.replace(' ','\ '))
 		if verbose: print "Imported from database %s" % source_path
 
 		#If source path is passed 
