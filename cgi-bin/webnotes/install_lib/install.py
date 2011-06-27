@@ -21,6 +21,10 @@ def copy_defs():
 #
 class Installer:
 	def __init__(self, root_login, root_password):
+
+		import webnotes
+		import webnotes.db
+		import webnotes.defs
 	
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
@@ -29,12 +33,14 @@ class Installer:
 		webnotes.conn=self.conn
 		webnotes.session= {'user':'Administrator'}
 		self.dbman = DbManager(self.conn)
-		self.mysql_path = hasattr(defs, 'mysql_path') and webnotes.defs.mysql_path or ''
+		self.mysql_path = hasattr(webnotes.defs, 'mysql_path') and webnotes.defs.mysql_path or ''
 
 	#
 	# run framework related cleanups
 	#
 	def framework_cleanups(self, target):
+
+		import webnotes
 		self.dbman.drop_table('__DocTypeCache')
 		webnotes.conn.sql("create table `__DocTypeCache` (name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)")
 
@@ -48,6 +54,7 @@ class Installer:
 			Imports the "Core" module from .txt file and creates
 			Creates profile Administrator
 		"""
+		import webnotes
 		from webnotes.modules.import_module import import_module
 		from webnotes.modules.module_manager import reload_doc
 
@@ -99,12 +106,13 @@ class Installer:
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
 		"""
+		import webnotes.defs		
 		
 		# delete user (if exists)
 		self.dbman.delete_user(target)
 
 		# create user and db
-		self.dbman.create_user(target,getattr(defs,'db_password',None))
+		self.dbman.create_user(target,getattr(webnotes.defs,'db_password',None))
 		if verbose: print "Created user %s" % target
 	
 		# create a database
@@ -158,7 +166,7 @@ def make_scheduler(root_login, root_password, verbose):
 	dbman.delete_user('master_scheduler')
 
 	# create user and db
-	dbman.create_user('master_scheduler', getattr(defs,'db_password',None))
+	dbman.create_user('master_scheduler', getattr(webnotes.defs,'db_password',None))
 	if verbose: print "Created user master_scheduler"
 
 	# create a database
@@ -214,14 +222,14 @@ if __name__=='__main__':
 	
 	try:
 	
-		from webnotes import defs
 		import webnotes
 		import webnotes.db
+		import webnotes.defs
 	except ImportError:
 		copy_defs()
-		from webnotes import defs
 		import webnotes
 		import webnotes.db
+		import webnotes.defs
 
 	if len(args)==3:
 		
