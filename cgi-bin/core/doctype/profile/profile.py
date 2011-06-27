@@ -25,7 +25,8 @@ class DocType:
 			if not validate_email_add(self.doc.email):
 				msgprint("%s is not a valid email id" % self.doc.email)
 				raise Exception
-				self.doc.name = self.doc.email
+		
+		self.doc.name = self.doc.email
 	
 	def on_update(self):
 		# owner is always name
