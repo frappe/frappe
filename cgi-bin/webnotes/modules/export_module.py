@@ -1,18 +1,23 @@
 from webnotes.modules import scrub, get_module_path
 
 def export_to_files(record_list=[], record_module=None, verbose=0):
+	"""
+		Export record_list to files. record_list is a list of lists ([doctype],[docname] )  ,
+	"""
+	import webnotes.model.doc
 	module_doclist =[]
 	if record_list:
 		for record in record_list:
 			doclist = [d.fields for d in webnotes.model.doc.get(record[0], record[1])]
 			write_document_file(doclist, record_module)
 
-	return out
-
 def create_init_py(modules_path, module, dt, dn):
+	"""
+		Creates __init__.py in the module directory structure
+	"""
 	import os
 	from webnotes.modules import scrub
-	
+
 	def create_if_not_exists(path):
 		initpy = os.path.join(path, '__init__.py')
 		if not os.path.exists(initpy):
@@ -23,6 +28,9 @@ def create_init_py(modules_path, module, dt, dn):
 	create_if_not_exists(os.path.join(modules_path, module, dt, dn))
 	
 def create_folder(module, dt, dn):
+	"""
+		Creates directories for module and their __init__.py
+	"""
 	import webnotes, os
 	
 	# get module path by importing the module
@@ -42,6 +50,9 @@ def create_folder(module, dt, dn):
 	return folder
 
 def get_module_name(doclist, record_module=None):
+	"""
+		Returns the module-name of a doclist
+	"""
 	# module name
 	if doclist[0]['doctype'] == 'Module Def':
 		module = doclist[0]['name']
@@ -55,10 +66,13 @@ def get_module_name(doclist, record_module=None):
 	return module
 	
 def write_document_file(doclist, record_module=None):
+	"""
+		Write a doclist to file, can optionally specify module name
+	"""
 	import os
 	from webnotes.utils import pprint_dict
 
-	module = get_module_name()
+	module = get_module_name(doclist, record_module)
 
 	# create the folder
 	code_type = doclist[0]['doctype'] in ['DocType','Page','Search Criteria']
@@ -78,6 +92,9 @@ def write_document_file(doclist, record_module=None):
 	txtfile.close()
 
 def clear_code_fields(doclist, folder, code_type):
+	"""
+		Removes code from the doc
+	"""
 	
 	import os
 	import webnotes
@@ -88,4 +105,3 @@ def clear_code_fields(doclist, folder, code_type):
 		if doclist[0].get(code_field[0]):
 
 			doclist[0][code_field[0]] = None
-		

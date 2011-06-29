@@ -535,7 +535,15 @@ def send_error_report():
 # pretty print a dict
 # ==============================================================================
 
-def pprint_dict(d, level=1):
+def pprint_dict(d, level=1, no_blanks=True):
+	if no_blanks:
+		empty_keys = []
+		for key in d:
+			if d[key]=='' or d[key]==None:
+				# del d[key] raises runtime exception, using a workaround
+				empty_keys.append(key)
+		for key in empty_keys:
+			del d[key]
 	indent = ''
 	for i in range(0,level):
 		indent += '\t'
