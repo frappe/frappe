@@ -1,0 +1,209 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.webservice &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.utils" href="../utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" accesskey="U">webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.webservice</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+<span class="kn">import</span> <span class="nn">webnotes.utils</span>
+
+<div class="viewcode-block" id="FrameworkServer"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.webservice.FrameworkServer">[docs]</a><span class="k">class</span> <span class="nc">FrameworkServer</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   Connect to a remote server via HTTP (webservice).</span>
+<span class="sd">	   </span>
+<span class="sd">	   * `remote_host` is the the address of the remote server</span>
+<span class="sd">	   * `path` is the path of the Framework (excluding index.cgi)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">remote_host</span><span class="p">,</span> <span class="n">path</span><span class="p">,</span> <span class="n">user</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">account</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">cookies</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">opts</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">https</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+		<span class="c"># validate</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">remote_host</span> <span class="ow">and</span> <span class="n">path</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&quot;Server address and path necessary&quot;</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">user</span> <span class="ow">and</span> <span class="n">password</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">cookies</span><span class="p">)):</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&quot;Either cookies or user/password necessary&quot;</span>
+	
+		<span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span> <span class="o">=</span> <span class="n">remote_host</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="n">path</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">cookies</span> <span class="o">=</span> <span class="n">cookies</span> <span class="ow">or</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">webservice_method</span><span class="o">=</span><span class="s">&#39;POST&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">account</span> <span class="o">=</span> <span class="n">account</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">account_id</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">https</span> <span class="o">=</span> <span class="n">https</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+
+		<span class="c"># login</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">cookies</span><span class="p">:</span>
+			<span class="n">args</span> <span class="o">=</span> <span class="p">{</span> <span class="s">&#39;usr&#39;</span><span class="p">:</span> <span class="n">user</span><span class="p">,</span> <span class="s">&#39;pwd&#39;</span><span class="p">:</span> <span class="n">password</span><span class="p">,</span> <span class="s">&#39;acx&#39;</span><span class="p">:</span> <span class="n">account</span> <span class="p">}</span>
+			
+			<span class="k">if</span> <span class="n">opts</span><span class="p">:</span>
+				<span class="n">args</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">opts</span><span class="p">)</span>
+			
+			<span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_get_response</span><span class="p">(</span><span class="s">&#39;login&#39;</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		
+			<span class="n">ret</span> <span class="o">=</span> <span class="n">res</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">ret</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="n">ret</span><span class="p">)</span>
+				<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span>
+				
+			<span class="k">if</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">)</span><span class="o">!=</span><span class="s">&#39;Logged In&#39;</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;message&#39;</span><span class="p">)</span>
+				
+			<span class="k">if</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exc&#39;</span><span class="p">):</span>
+				<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exc&#39;</span><span class="p">)</span>
+				
+			<span class="bp">self</span><span class="o">.</span><span class="n">_extract_cookies</span><span class="p">(</span><span class="n">res</span><span class="p">)</span>
+
+			<span class="bp">self</span><span class="o">.</span><span class="n">account_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;account_id&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">sid</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sid&#39;</span><span class="p">)</span>
+			
+			<span class="bp">self</span><span class="o">.</span><span class="n">login_response</span> <span class="o">=</span> <span class="n">res</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">login_return</span> <span class="o">=</span> <span class="n">ret</span>
+
+	<span class="c"># -----------------------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="FrameworkServer.http_get_response"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.webservice.FrameworkServer.http_get_response">[docs]</a>	<span class="k">def</span> <span class="nf">http_get_response</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Run a method on the remote server, with the given arguments</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="c"># get response from remote server</span>
+	
+		<span class="kn">import</span> <span class="nn">urllib</span><span class="o">,</span> <span class="nn">urllib2</span><span class="o">,</span> <span class="nn">os</span>
+
+		<span class="n">args</span><span class="p">[</span><span class="s">&#39;cmd&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">method</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+				
+		<span class="n">protocol</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">https</span> <span class="ow">and</span> <span class="s">&#39;https://&#39;</span> <span class="ow">or</span> <span class="s">&#39;http://&#39;</span>
+		<span class="n">req</span> <span class="o">=</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">Request</span><span class="p">(</span><span class="n">protocol</span> <span class="o">+</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">remote_host</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">path</span><span class="p">,</span> <span class="s">&#39;index.cgi&#39;</span><span class="p">),</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlencode</span><span class="p">(</span><span class="n">args</span><span class="p">))</span>
+		<span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">:</span>
+			<span class="n">req</span><span class="o">.</span><span class="n">add_header</span><span class="p">(</span><span class="s">&#39;cookie&#39;</span><span class="p">,</span> <span class="s">&#39;; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="n">key</span><span class="p">])</span> <span class="k">for</span> <span class="n">key</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">]))</span>
+		<span class="k">return</span> <span class="n">urllib2</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">req</span><span class="p">)</span>
+
+	<span class="c"># -----------------------------------------------------------------------------------------</span>
+	</div>
+	<span class="k">def</span> <span class="nf">_extract_cookies</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">res</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">Cookie</span>
+		<span class="n">cookies</span> <span class="o">=</span> <span class="n">Cookie</span><span class="o">.</span><span class="n">SimpleCookie</span><span class="p">()</span>
+		<span class="n">cookies</span><span class="o">.</span><span class="n">load</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">headers</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;set-cookie&#39;</span><span class="p">))</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cookies</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">cookies</span><span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">value</span><span class="o">.</span><span class="n">rstrip</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+
+	<span class="c"># -----------------------------------------------------------------------------------------</span>
+
+
+<div class="viewcode-block" id="FrameworkServer.runserverobj"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.webservice.FrameworkServer.runserverobj">[docs]</a>	<span class="k">def</span> <span class="nf">runserverobj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doctype</span><span class="p">,</span> <span class="n">docname</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">arg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns the response of a remote method called on a system object specified by `doctype` and `docname`</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_get_response</span><span class="p">(</span><span class="s">&#39;runserverobj&#39;</span><span class="p">,</span> <span class="n">args</span> <span class="o">=</span> <span class="p">{</span>
+			<span class="s">&#39;doctype&#39;</span><span class="p">:</span><span class="n">doctype</span>
+			<span class="p">,</span><span class="s">&#39;docname&#39;</span><span class="p">:</span><span class="n">docname</span>
+			<span class="p">,</span><span class="s">&#39;method&#39;</span><span class="p">:</span><span class="n">method</span>
+			<span class="p">,</span><span class="s">&#39;arg&#39;</span><span class="p">:</span><span class="n">arg</span>
+		<span class="p">})</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+		<span class="k">if</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exc&#39;</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exc&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ret</span>
+	
+	<span class="c"># -----------------------------------------------------------------------------------------</span>
+			</div>
+<div class="viewcode-block" id="FrameworkServer.run_method"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.webservice.FrameworkServer.run_method">[docs]</a>	<span class="k">def</span> <span class="nf">run_method</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">method</span><span class="p">,</span> <span class="n">args</span><span class="p">):</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">http_get_response</span><span class="p">(</span><span class="n">method</span><span class="p">,</span> <span class="n">args</span><span class="p">)</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">read</span><span class="p">())</span>
+		<span class="k">if</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exc&#39;</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">ret</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;exc&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ret</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" >webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

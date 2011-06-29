@@ -1,0 +1,185 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.email_lib &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.utils" href="../utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" accesskey="U">webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.email_lib</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<div class="viewcode-block" id="sendmail_html"><a class="viewcode-back" href="../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.sendmail_html">[docs]</a><span class="k">def</span> <span class="nf">sendmail_html</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">recipients</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="n">text</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">send_now</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">reply_to</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Send an html mail with alternative text and using Page Templates</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">sendmail</span><span class="p">(</span><span class="n">recipients</span><span class="p">,</span> <span class="n">sender</span><span class="p">,</span> <span class="n">html</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">send_now</span> <span class="o">=</span> <span class="n">send_now</span><span class="p">,</span> <span class="n">reply_to</span> <span class="o">=</span> <span class="n">reply_to</span><span class="p">,</span> <span class="n">template</span> <span class="o">=</span> <span class="n">template</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="make_html_body"><a class="viewcode-back" href="../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.make_html_body">[docs]</a><span class="k">def</span> <span class="nf">make_html_body</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="n">template</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Generate html content from a Page Template object</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">template_html</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%(content)s</span><span class="s">&#39;</span>
+
+	<span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">webnotes.model.code</span> <span class="kn">import</span> <span class="n">get_code</span>
+		<span class="n">template_html</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Page Template&#39;</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="s">&#39;module&#39;</span><span class="p">),</span> <span class="s">&#39;Page Template&#39;</span><span class="p">,</span> <span class="n">template</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">,</span> <span class="n">fieldname</span><span class="o">=</span><span class="s">&#39;template&#39;</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">template_html</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;content&#39;</span><span class="p">:</span> <span class="n">content</span><span class="p">}</span>
+
+</div>
+<div class="viewcode-block" id="sendmail"><a class="viewcode-back" href="../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.sendmail">[docs]</a><span class="k">def</span> <span class="nf">sendmail</span><span class="p">(</span><span class="n">recipients</span><span class="p">,</span> <span class="n">sender</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">msg</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">subject</span><span class="o">=</span><span class="s">&#39;[No Subject]&#39;</span><span class="p">,</span> <span class="n">parts</span><span class="o">=</span><span class="p">[],</span> <span class="n">cc</span><span class="o">=</span><span class="p">[],</span> <span class="n">attach</span><span class="o">=</span><span class="p">[],</span> <span class="n">send_now</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">reply_to</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">template</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		send an html email as multipart with attachments and all</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="kn">from</span> <span class="nn">webnotes.utils.email_lib.html2text</span> <span class="kn">import</span> <span class="n">html2text</span>
+	<span class="kn">from</span> <span class="nn">webnotes.utils.email_lib.send</span> <span class="kn">import</span> <span class="n">EMail</span>
+		
+	<span class="n">email</span> <span class="o">=</span> <span class="n">EMail</span><span class="p">(</span><span class="n">sender</span><span class="p">,</span> <span class="n">recipients</span><span class="p">,</span> <span class="n">subject</span><span class="p">,</span> <span class="n">reply_to</span><span class="o">=</span><span class="n">reply_to</span><span class="p">)</span>
+	<span class="n">email</span><span class="o">.</span><span class="n">cc</span> <span class="o">=</span> <span class="n">cc</span>
+		
+	<span class="k">if</span> <span class="n">msg</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">template</span><span class="p">:</span>
+			<span class="n">msg</span> <span class="o">=</span> <span class="n">make_html_body</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">template</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c"># if not html, then lets put some whitespace</span>
+			<span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="s">&#39;&lt;br&gt;&#39;</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="s">&#39;&lt;p&gt;&#39;</span> <span class="ow">in</span> <span class="n">msg</span><span class="p">):</span>
+				<span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;&lt;br&gt;&#39;</span><span class="p">)</span>
+			
+		<span class="n">footer</span> <span class="o">=</span> <span class="n">get_footer</span><span class="p">()</span>
+		<span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span> <span class="o">+</span> <span class="p">(</span><span class="n">footer</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+		<span class="n">email</span><span class="o">.</span><span class="n">set_text</span><span class="p">(</span><span class="n">html2text</span><span class="p">(</span><span class="n">msg</span><span class="p">))</span>
+		<span class="n">email</span><span class="o">.</span><span class="n">set_html</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parts</span><span class="p">:</span>
+		<span class="n">email</span><span class="o">.</span><span class="n">set_message</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+	<span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">attach</span><span class="p">:</span>
+		<span class="n">email</span><span class="o">.</span><span class="n">attach</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+
+	<span class="n">email</span><span class="o">.</span><span class="n">send</span><span class="p">(</span><span class="n">send_now</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="get_footer"><a class="viewcode-back" href="../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.get_footer">[docs]</a><span class="k">def</span> <span class="nf">get_footer</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns combination of footer from globals and Control Panel</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+
+	<span class="n">footer</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Control Panel&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="s">&#39;mail_footer&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+	<span class="n">footer</span> <span class="o">+=</span> <span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_global</span><span class="p">(</span><span class="s">&#39;global_mail_footer&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">footer</span>
+
+</div>
+<div class="viewcode-block" id="send_form"><a class="viewcode-back" href="../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.send_form">[docs]</a><span class="k">def</span> <span class="nf">send_form</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Emails a print format (form)</span>
+<span class="sd">		Called from form UI</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="kn">from</span> <span class="nn">webnotes.utils.email_lib.form_email</span> <span class="kn">import</span> <span class="n">FormEmail</span>
+	<span class="n">FormEmail</span><span class="p">()</span><span class="o">.</span><span class="n">send</span><span class="p">()</span>
+
+</div>
+<div class="viewcode-block" id="get_contact_list"><a class="viewcode-back" href="../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.get_contact_list">[docs]</a><span class="k">def</span> <span class="nf">get_contact_list</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns contacts (from autosuggest)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+
+	<span class="n">cond</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;`</span><span class="si">%s</span><span class="s">` like &quot;</span><span class="si">%s%%</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;txt&#39;</span><span class="p">))</span> <span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;where&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)]</span>
+	<span class="n">cl</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select `</span><span class="si">%s</span><span class="s">` from `tab</span><span class="si">%s</span><span class="s">` where </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span>
+  			 <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;select&#39;</span><span class="p">)</span>
+			<span class="p">,</span><span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;from&#39;</span><span class="p">)</span>
+			<span class="p">,</span><span class="s">&#39; OR &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+		<span class="p">)</span>
+	<span class="p">)</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;cl&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">filter</span><span class="p">(</span><span class="bp">None</span><span class="p">,</span> <span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cl</span><span class="p">])</span>
+	
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" >webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

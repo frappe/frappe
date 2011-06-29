@@ -1,0 +1,124 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.model.modules &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.model" href="../model.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" accesskey="U">webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.model.modules</h1><div class="highlight"><pre>
+<span class="c"># Modules</span>
+<span class="c"># -----------</span>
+
+<div class="viewcode-block" id="get_module_items"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.modules.get_module_items">[docs]</a><span class="k">def</span> <span class="nf">get_module_items</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">only_dt</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="n">dl</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">if</span> <span class="n">only_dt</span><span class="p">:</span>
+		<span class="n">transfer_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;DocType&#39;</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">transfer_types</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Role&#39;</span><span class="p">,</span> <span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="s">&#39;DocType&#39;</span><span class="p">,</span> <span class="s">&#39;DocType Mapper&#39;</span><span class="p">,</span> <span class="s">&#39;Search Criteria&#39;</span><span class="p">]</span>
+		<span class="n">dl</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Module Def,&#39;</span><span class="o">+</span><span class="n">mod</span><span class="p">]</span>
+	
+	<span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">transfer_types</span><span class="p">:</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">dl2</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&#39;select name from `tab</span><span class="si">%s</span><span class="s">` where module=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span><span class="n">mod</span><span class="p">))</span>
+			<span class="n">dl</span> <span class="o">+=</span> <span class="p">[(</span><span class="n">dt</span><span class="o">+</span><span class="s">&#39;,&#39;</span><span class="o">+</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dl2</span><span class="p">]</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="k">pass</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">only_dt</span><span class="p">:</span>
+		<span class="n">dl1</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&#39;select doctype_list from `tabModule Def` where name=</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">mod</span><span class="p">)</span>
+		<span class="n">dl</span> <span class="o">+=</span> <span class="n">dl1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+	
+	<span class="c"># build finally</span>
+	<span class="n">dl</span> <span class="o">=</span> <span class="p">[</span><span class="n">e</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dl</span><span class="p">]</span>
+	<span class="n">dl</span> <span class="o">=</span> <span class="p">[[</span><span class="n">e</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(),</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()]</span> <span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">dl</span><span class="p">]</span> <span class="c"># remove blanks</span>
+	<span class="k">return</span> <span class="n">dl</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" >webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

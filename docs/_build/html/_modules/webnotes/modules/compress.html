@@ -1,0 +1,440 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.modules.compress &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.modules" href="../modules.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../modules.html" accesskey="U">webnotes.modules</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.modules.compress</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Load compressed .js page scripts</span>
+
+<span class="sd">Will also replace $import(page) or $import(module.page) with the relevant js files</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<span class="c"># load &quot;compressed&quot; js code from modules</span>
+<span class="c">#==============================================================================</span>
+
+<div class="viewcode-block" id="get_js_code"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.get_js_code">[docs]</a><span class="k">def</span> <span class="nf">get_js_code</span><span class="p">(</span><span class="n">fn</span><span class="p">,</span> <span class="n">extn</span><span class="o">=</span><span class="s">&#39;js&#39;</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get js code from a file (uncompressed)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="kn">from</span> <span class="nn">webnotes.modules</span> <span class="kn">import</span> <span class="n">scrub</span><span class="p">,</span> <span class="n">get_file_timestamp</span>
+
+	<span class="n">src_file_name</span> <span class="o">=</span> <span class="n">fn</span> <span class="o">+</span> <span class="s">&#39;.&#39;</span> <span class="o">+</span> <span class="n">extn</span>
+
+	<span class="c"># src_timestamp = get_file_timestamp(src_file_name)</span>
+	
+	<span class="c"># if no source, return</span>
+	<span class="c">#if not src_timestamp:</span>
+	<span class="c">#	return &#39;&#39;</span>
+		
+	<span class="c"># if timestamps are not same, compress</span>
+	<span class="c">#if src_timestamp != get_file_timestamp(comp_file_name):</span>
+	<span class="c">#	compress(src_file_name, comp_file_name)</span>
+		
+	<span class="c"># get the code</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">src_file_name</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">IOError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s">&#39;&#39;</span>
+		
+	<span class="n">code</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	<span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	
+	<span class="c"># return</span>
+	<span class="k">return</span> <span class="n">code</span>
+
+<span class="c"># get doctype client</span>
+<span class="c">#==============================================================================</span>
+</div>
+<div class="viewcode-block" id="sub_get_doctype_js"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.sub_get_doctype_js">[docs]</a><span class="k">def</span> <span class="nf">sub_get_doctype_js</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+	<span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="n">get_doctype_js</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="get_doctype_js"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.get_doctype_js">[docs]</a><span class="k">def</span> <span class="nf">get_doctype_js</span><span class="p">(</span><span class="n">dt</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns the client-side (js) code of the DocType.</span>
+<span class="sd">		Adds custom script</span>
+<span class="sd">		and replaces $import(dt) with the code of that DocType</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span><span class="o">,</span> <span class="nn">os</span>
+	<span class="kn">from</span> <span class="nn">webnotes.modules</span> <span class="kn">import</span> <span class="n">scrub</span><span class="p">,</span> <span class="n">get_module_path</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.code</span> <span class="kn">import</span> <span class="n">get_custom_script</span>
+	
+	<span class="n">module</span> <span class="o">=</span> <span class="n">scrub</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="n">dt</span><span class="p">,</span><span class="s">&#39;module&#39;</span><span class="p">))</span>
+
+	<span class="n">code</span> <span class="o">=</span> <span class="n">get_js_code</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">get_module_path</span><span class="p">(</span><span class="n">scrub</span><span class="p">(</span><span class="n">module</span><span class="p">)),</span> <span class="s">&#39;doctype&#39;</span><span class="p">,</span> <span class="n">scrub</span><span class="p">(</span><span class="n">dt</span><span class="p">),</span> <span class="n">scrub</span><span class="p">(</span><span class="n">dt</span><span class="p">)))</span> \
+		<span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">get_custom_script</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="s">&#39;Client&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+		
+	<span class="c"># compile for import</span>
+	<span class="k">if</span> <span class="n">code</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+		<span class="kn">import</span> <span class="nn">re</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\$import\( (?P&lt;name&gt; [^)]*) \)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+	
+		<span class="n">code</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">sub_get_doctype_js</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">code</span>
+
+<span class="c"># get page client</span>
+<span class="c">#==============================================================================</span>
+</div>
+<div class="viewcode-block" id="sub_get_page_js"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.sub_get_page_js">[docs]</a><span class="k">def</span> <span class="nf">sub_get_page_js</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="n">Document</span>
+	
+	<span class="n">name</span> <span class="o">=</span> <span class="n">match</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">name</span><span class="p">:</span>
+		<span class="n">name</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">get_page_js</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	
+	<span class="k">return</span> <span class="n">get_page_js</span><span class="p">(</span><span class="n">Document</span><span class="p">(</span><span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="n">name</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="get_page_js"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.get_page_js">[docs]</a><span class="k">def</span> <span class="nf">get_page_js</span><span class="p">(</span><span class="n">page</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Returns the js code of a page. Will replace $import (page) or $import(module.page)</span>
+<span class="sd">	with the code from the file</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span><span class="o">,</span> <span class="nn">os</span>
+	<span class="kn">from</span> <span class="nn">webnotes.modules</span> <span class="kn">import</span> <span class="n">scrub</span><span class="p">,</span> <span class="n">get_module_path</span>
+
+	<span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="o">==</span><span class="nb">str</span><span class="p">:</span>
+		<span class="n">page_name</span> <span class="o">=</span> <span class="n">page</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">page_name</span><span class="p">,</span> <span class="n">module</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">page</span><span class="o">.</span><span class="n">module</span>
+
+	<span class="n">code</span> <span class="o">=</span> <span class="n">get_js_code</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">get_module_path</span><span class="p">(</span><span class="n">module</span><span class="p">),</span> <span class="s">&#39;page&#39;</span><span class="p">,</span> <span class="n">scrub</span><span class="p">(</span><span class="n">page_name</span><span class="p">),</span> <span class="n">scrub</span><span class="p">(</span><span class="n">page_name</span><span class="p">)))</span>
+		
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">code</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">page</span><span class="p">)</span><span class="o">!=</span><span class="nb">str</span><span class="p">:</span>
+		<span class="n">code</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">script</span>
+	
+	<span class="c"># compile for import</span>
+	<span class="k">if</span> <span class="n">code</span> <span class="ow">and</span> <span class="n">code</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+		<span class="kn">import</span> <span class="nn">re</span>
+		<span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;\$import\( (?P&lt;name&gt; [^)]*) \)&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+	
+		<span class="n">code</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">sub_get_page_js</span><span class="p">,</span> <span class="n">code</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">code</span>
+
+
+<span class="c"># compress</span>
+<span class="c">#==============================================================================</span>
+</div>
+<div class="viewcode-block" id="compress"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.compress">[docs]</a><span class="k">def</span> <span class="nf">compress</span><span class="p">(</span><span class="n">src</span><span class="p">,</span> <span class="n">comp</span><span class="p">):</span>
+	<span class="n">out</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">comp</span><span class="p">,</span> <span class="s">&#39;w&#39;</span><span class="p">)</span>
+	
+	<span class="n">jsm</span> <span class="o">=</span> <span class="n">JavascriptMinify</span><span class="p">()</span>
+	<span class="n">jsm</span><span class="o">.</span><span class="n">minify</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="n">src</span><span class="p">,</span><span class="s">&#39;r&#39;</span><span class="p">),</span> <span class="n">out</span><span class="p">)</span>
+	
+	<span class="n">out</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+
+
+
+<span class="c">#==============================================================================</span>
+<span class="c">#==============================================================================</span>
+<span class="c">#</span>
+<span class="c"># This code is original from jsmin by Douglas Crockford, it was translated to</span>
+<span class="c"># Python by Baruch Even. The original code had the following copyright and</span>
+<span class="c"># license.</span>
+<span class="c">#</span>
+<span class="c"># /* jsmin.c</span>
+<span class="c">#	2007-05-22</span>
+<span class="c">#</span>
+<span class="c"># Copyright (c) 2002 Douglas Crockford  (www.crockford.com)</span>
+<span class="c">#</span>
+<span class="c"># Permission is hereby granted, free of charge, to any person obtaining a copy of</span>
+<span class="c"># this software and associated documentation files (the &quot;Software&quot;), to deal in</span>
+<span class="c"># the Software without restriction, including without limitation the rights to</span>
+<span class="c"># use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies</span>
+<span class="c"># of the Software, and to permit persons to whom the Software is furnished to do</span>
+<span class="c"># so, subject to the following conditions:</span>
+<span class="c">#</span>
+<span class="c"># The above copyright notice and this permission notice shall be included in all</span>
+<span class="c"># copies or substantial portions of the Software.</span>
+<span class="c">#</span>
+<span class="c"># The Software shall be used for Good, not Evil.</span>
+<span class="c">#</span>
+<span class="c"># THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR</span>
+<span class="c"># IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,</span>
+<span class="c"># FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE</span>
+<span class="c"># AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER</span>
+<span class="c"># LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,</span>
+<span class="c"># OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE</span>
+<span class="c"># SOFTWARE.</span>
+<span class="c"># */</span>
+</div>
+<span class="kn">from</span> <span class="nn">StringIO</span> <span class="kn">import</span> <span class="n">StringIO</span>
+
+<div class="viewcode-block" id="jsmin"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.jsmin">[docs]</a><span class="k">def</span> <span class="nf">jsmin</span><span class="p">(</span><span class="n">js</span><span class="p">):</span>
+	<span class="n">ins</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="n">js</span><span class="p">)</span>
+	<span class="n">outs</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">()</span>
+	<span class="n">JavascriptMinify</span><span class="p">()</span><span class="o">.</span><span class="n">minify</span><span class="p">(</span><span class="n">ins</span><span class="p">,</span> <span class="n">outs</span><span class="p">)</span>
+	<span class="nb">str</span> <span class="o">=</span> <span class="n">outs</span><span class="o">.</span><span class="n">getvalue</span><span class="p">()</span>
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">str</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="ow">and</span> <span class="nb">str</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+		<span class="nb">str</span> <span class="o">=</span> <span class="nb">str</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+	<span class="k">return</span> <span class="nb">str</span>
+</div>
+<div class="viewcode-block" id="isAlphanum"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.isAlphanum">[docs]</a><span class="k">def</span> <span class="nf">isAlphanum</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;return true if the character is a letter, digit, underscore,</span>
+<span class="sd">		   dollar sign, or non-ASCII character.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="p">((</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39;a&#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s">&#39;z&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39;0&#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s">&#39;9&#39;</span><span class="p">)</span> <span class="ow">or</span>
+			<span class="p">(</span><span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39;A&#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="o">&lt;=</span> <span class="s">&#39;Z&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;_&#39;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;$&#39;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span> <span class="ow">or</span> <span class="p">(</span><span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span> <span class="ow">and</span> <span class="nb">ord</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">126</span><span class="p">));</span>
+</div>
+<div class="viewcode-block" id="UnterminatedComment"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.UnterminatedComment">[docs]</a><span class="k">class</span> <span class="nc">UnterminatedComment</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="UnterminatedStringLiteral"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.UnterminatedStringLiteral">[docs]</a><span class="k">class</span> <span class="nc">UnterminatedStringLiteral</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="UnterminatedRegularExpression"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.UnterminatedRegularExpression">[docs]</a><span class="k">class</span> <span class="nc">UnterminatedRegularExpression</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span>
+</div>
+<div class="viewcode-block" id="JavascriptMinify"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.JavascriptMinify">[docs]</a><span class="k">class</span> <span class="nc">JavascriptMinify</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+
+	<span class="k">def</span> <span class="nf">_outA</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">outstream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theA</span><span class="p">)</span>
+	<span class="k">def</span> <span class="nf">_outB</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">outstream</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theB</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;return the next character from stdin. Watch out for lookahead. If</span>
+<span class="sd">		   the character is a control character, translate it to a space or</span>
+<span class="sd">		   linefeed.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theLookahead</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">theLookahead</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">instream</span><span class="o">.</span><span class="n">read</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="o">&gt;=</span> <span class="s">&#39; &#39;</span> <span class="ow">or</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">c</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;&#39;</span><span class="p">:</span> <span class="c"># EOF</span>
+			<span class="k">return</span> <span class="s">&#39;</span><span class="se">\000</span><span class="s">&#39;</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\r</span><span class="s">&#39;</span><span class="p">:</span>
+			<span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+		<span class="k">return</span> <span class="s">&#39; &#39;</span>
+
+	<span class="k">def</span> <span class="nf">_peek</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">theLookahead</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">theLookahead</span>
+
+	<span class="k">def</span> <span class="nf">_next</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;get the next character, excluding comments. peek() is used to see</span>
+<span class="sd">		   if an unescaped &#39;/&#39; is followed by a &#39;/&#39; or &#39;*&#39;.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">!=</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">:</span>
+			<span class="n">p</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peek</span><span class="p">()</span>
+			<span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span><span class="p">:</span>
+				<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+				<span class="k">while</span> <span class="n">c</span> <span class="o">&gt;</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+					<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+				<span class="k">return</span> <span class="n">c</span>
+			<span class="k">if</span> <span class="n">p</span> <span class="o">==</span> <span class="s">&#39;*&#39;</span><span class="p">:</span>
+				<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+				<span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+					<span class="n">c</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+					<span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;*&#39;</span><span class="p">:</span>
+						<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_peek</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span><span class="p">:</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+							<span class="k">return</span> <span class="s">&#39; &#39;</span>
+					<span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\000</span><span class="s">&#39;</span><span class="p">:</span>
+						<span class="k">raise</span> <span class="n">UnterminatedComment</span><span class="p">()</span>
+
+		<span class="k">return</span> <span class="n">c</span>
+
+	<span class="k">def</span> <span class="nf">_action</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">action</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;do something! What you do is determined by the argument:</span>
+<span class="sd">		   1   Output A. Copy B to A. Get the next B.</span>
+<span class="sd">		   2   Copy B to A. Get the next B. (Delete A).</span>
+<span class="sd">		   3   Get the next B. (Delete B).</span>
+<span class="sd">		   action treats a string as a single character. Wow!</span>
+<span class="sd">		   action recognizes a regular expression if it is preceded by ( or , or =.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="n">action</span> <span class="o">&lt;=</span> <span class="mi">1</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">()</span>
+
+		<span class="k">if</span> <span class="n">action</span> <span class="o">&lt;=</span> <span class="mi">2</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&quot;&#39;&quot;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;&quot;&#39;</span><span class="p">:</span>
+				<span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">()</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+					<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span><span class="p">:</span>
+						<span class="k">break</span>
+					<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">&lt;=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+						<span class="k">raise</span> <span class="n">UnterminatedStringLiteral</span><span class="p">()</span>
+					<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">()</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+
+
+		<span class="k">if</span> <span class="n">action</span> <span class="o">&lt;=</span> <span class="mi">3</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;(&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;,&#39;</span> <span class="ow">or</span>
+									 <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;=&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;:&#39;</span> <span class="ow">or</span>
+									 <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;[&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;?&#39;</span> <span class="ow">or</span>
+									 <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;!&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;&amp;&#39;</span> <span class="ow">or</span>
+									 <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;|&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;;&#39;</span> <span class="ow">or</span>
+									 <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;{&#39;</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;}&#39;</span> <span class="ow">or</span>
+									 <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_outB</span><span class="p">()</span>
+				<span class="k">while</span> <span class="mi">1</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+					<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;/&#39;</span><span class="p">:</span>
+						<span class="k">break</span>
+					<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">()</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get</span><span class="p">()</span>
+					<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">&lt;=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+						<span class="k">raise</span> <span class="n">UnterminatedRegularExpression</span><span class="p">()</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_outA</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_next</span><span class="p">()</span>
+
+
+	<span class="k">def</span> <span class="nf">_jsmin</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;Copy the input to the output, deleting the characters which are</span>
+<span class="sd">		   insignificant to JavaScript. Comments will be removed. Tabs will be</span>
+<span class="sd">		   replaced with spaces. Carriage returns will be replaced with linefeeds.</span>
+<span class="sd">		   Most spaces and linefeeds will be removed.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+
+		<span class="k">while</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">!=</span> <span class="s">&#39;</span><span class="se">\000</span><span class="s">&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">isAlphanum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theB</span><span class="p">):</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;{&#39;</span><span class="p">,</span> <span class="s">&#39;[&#39;</span><span class="p">,</span> <span class="s">&#39;(&#39;</span><span class="p">,</span> <span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">]:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+				<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="k">if</span> <span class="n">isAlphanum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theB</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+					<span class="k">if</span> <span class="n">isAlphanum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theA</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+				<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">:</span>
+					<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;}&#39;</span><span class="p">,</span> <span class="s">&#39;]&#39;</span><span class="p">,</span> <span class="s">&#39;)&#39;</span><span class="p">,</span> <span class="s">&#39;+&#39;</span><span class="p">,</span> <span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">]:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="k">if</span> <span class="n">isAlphanum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">theA</span><span class="p">):</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+						<span class="k">else</span><span class="p">:</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">3</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">_action</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+
+<div class="viewcode-block" id="JavascriptMinify.minify"><a class="viewcode-back" href="../../../webnotes.modules.html#webnotes.modules.compress.JavascriptMinify.minify">[docs]</a>	<span class="k">def</span> <span class="nf">minify</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instream</span><span class="p">,</span> <span class="n">outstream</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">instream</span> <span class="o">=</span> <span class="n">instream</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">outstream</span> <span class="o">=</span> <span class="n">outstream</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">theA</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">theB</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">theLookahead</span> <span class="o">=</span> <span class="bp">None</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">_jsmin</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">instream</span><span class="o">.</span><span class="n">close</span><span class="p">()</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../modules.html" >webnotes.modules</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

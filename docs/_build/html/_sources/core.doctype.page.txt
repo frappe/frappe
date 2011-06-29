@@ -1,0 +1,11 @@
+page Package
+============
+
+:mod:`page` Module
+------------------
+
+.. automodule:: core.doctype.page.page
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

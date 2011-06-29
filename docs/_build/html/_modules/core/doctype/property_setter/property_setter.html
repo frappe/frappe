@@ -1,0 +1,123 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>core.doctype.property_setter.property_setter &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../../index.html" />
+    <link rel="up" title="Module code" href="../../../index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for core.doctype.property_setter.property_setter</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<div class="viewcode-block" id="DocType"><a class="viewcode-back" href="../../../../core.doctype.property_setter.html#core.doctype.property_setter.property_setter.DocType">[docs]</a><span class="k">class</span> <span class="nc">DocType</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">dl</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doclist</span> <span class="o">=</span> <span class="n">d</span><span class="p">,</span> <span class="n">dl</span>
+	
+<div class="viewcode-block" id="DocType.get_property_list"><a class="viewcode-back" href="../../../../core.doctype.property_setter.html#core.doctype.property_setter.property_setter.DocType.get_property_list">[docs]</a>	<span class="k">def</span> <span class="nf">get_property_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;select fieldname, label, fieldtype </span>
+<span class="s">		from tabDocField</span>
+<span class="s">		where parent=</span><span class="si">%s</span><span class="s"></span>
+<span class="s">		and fieldtype not in (&#39;Section Break&#39;, &#39;Column Break&#39;, &#39;HTML&#39;, &#39;Read Only&#39;, &#39;Table&#39;) </span>
+<span class="s">		and ifnull(fieldname, &#39;&#39;) != &#39;&#39;</span>
+<span class="s">		order by label asc&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+		</div>
+<div class="viewcode-block" id="DocType.get_setup_data"><a class="viewcode-back" href="../../../../core.doctype.property_setter.html#core.doctype.property_setter.property_setter.DocType.get_setup_data">[docs]</a>	<span class="k">def</span> <span class="nf">get_setup_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="p">{</span>
+			<span class="s">&#39;doctypes&#39;</span><span class="p">:</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from tabDocType&quot;</span><span class="p">)],</span>
+			<span class="s">&#39;dt_properties&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_property_list</span><span class="p">(</span><span class="s">&#39;DocType&#39;</span><span class="p">),</span>
+			<span class="s">&#39;df_properties&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_property_list</span><span class="p">(</span><span class="s">&#39;DocField&#39;</span><span class="p">)</span>
+		<span class="p">}</span>
+		</div>
+<div class="viewcode-block" id="DocType.get_field_ids"><a class="viewcode-back" href="../../../../core.doctype.property_setter.html#core.doctype.property_setter.property_setter.DocType.get_field_ids">[docs]</a>	<span class="k">def</span> <span class="nf">get_field_ids</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name, fieldtype, label, fieldname from tabDocField where parent=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">doc_type</span><span class="p">,</span> <span class="n">as_dict</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="DocType.get_defaults"><a class="viewcode-back" href="../../../../core.doctype.property_setter.html#core.doctype.property_setter.property_setter.DocType.get_defaults">[docs]</a>	<span class="k">def</span> <span class="nf">get_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">doc_type</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">doc_name</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select * from `tabDocType` where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">doc_name</span><span class="p">,</span> <span class="n">as_dict</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select * from `tabDocField` where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">doc_name</span><span class="p">,</span> <span class="n">as_dict</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span></div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,591 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.email_lib.html2text &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../../index.html" />
+    <link rel="up" title="webnotes.utils.email_lib" href="../email_lib.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../../utils.html" >webnotes.utils</a> &raquo;</li>
+          <li><a href="../email_lib.html" accesskey="U">webnotes.utils.email_lib</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.email_lib.html2text</h1><div class="highlight"><pre>
+<span class="c">#!/usr/bin/env python</span>
+<span class="sd">&quot;&quot;&quot;html2text: Turn HTML into equivalent Markdown-structured text.&quot;&quot;&quot;</span>
+<span class="n">__version__</span> <span class="o">=</span> <span class="s">&quot;3.02&quot;</span>
+<span class="n">__author__</span> <span class="o">=</span> <span class="s">&quot;Aaron Swartz (me@aaronsw.com)&quot;</span>
+<span class="n">__copyright__</span> <span class="o">=</span> <span class="s">&quot;(C) 2004-2008 Aaron Swartz. GNU GPL 3.&quot;</span>
+<span class="n">__contributors__</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;Martin &#39;Joey&#39; Schulze&quot;</span><span class="p">,</span> <span class="s">&quot;Ricardo Reyes&quot;</span><span class="p">,</span> <span class="s">&quot;Kevin Jay North&quot;</span><span class="p">]</span>
+
+<span class="c"># TODO:</span>
+<span class="c">#   Support decoded entities with unifiable.</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="bp">True</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">__builtins__</span><span class="p">,</span> <span class="s">&#39;True&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="nb">setattr</span><span class="p">(</span><span class="n">__builtins__</span><span class="p">,</span> <span class="s">&#39;False&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+
+<div class="viewcode-block" id="has_key"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.has_key">[docs]</a><span class="k">def</span> <span class="nf">has_key</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="s">&#39;has_key&#39;</span><span class="p">):</span> <span class="k">return</span> <span class="n">x</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">y</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">y</span> <span class="ow">in</span> <span class="n">x</span>
+</div>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">htmlentitydefs</span>
+    <span class="kn">import</span> <span class="nn">urlparse</span>
+    <span class="kn">import</span> <span class="nn">HTMLParser</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span> <span class="c">#Python3</span>
+    <span class="kn">import</span> <span class="nn">html.entities</span> <span class="kn">as</span> <span class="nn">htmlentitydefs</span>
+    <span class="kn">import</span> <span class="nn">urllib.parse</span> <span class="kn">as</span> <span class="nn">urlparse</span>
+    <span class="kn">import</span> <span class="nn">html.parser</span> <span class="kn">as</span> <span class="nn">HTMLParser</span>
+<span class="k">try</span><span class="p">:</span> <span class="c">#Python3</span>
+    <span class="kn">import</span> <span class="nn">urllib.request</span> <span class="kn">as</span> <span class="nn">urllib</span>
+<span class="k">except</span><span class="p">:</span>
+    <span class="kn">import</span> <span class="nn">urllib</span>
+<span class="kn">import</span> <span class="nn">optparse</span><span class="o">,</span> <span class="nn">re</span><span class="o">,</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">codecs</span><span class="o">,</span> <span class="nn">types</span>
+
+<span class="k">try</span><span class="p">:</span> <span class="kn">from</span> <span class="nn">textwrap</span> <span class="kn">import</span> <span class="n">wrap</span>
+<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+
+<span class="c"># Use Unicode characters instead of their ascii psuedo-replacements</span>
+<span class="n">UNICODE_SNOB</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c"># Put the links after each paragraph instead of at the end.</span>
+<span class="n">LINKS_EACH_PARAGRAPH</span> <span class="o">=</span> <span class="mi">0</span>
+
+<span class="c"># Wrap long lines at position. 0 for no wrapping. (Requires Python 2.3.)</span>
+<span class="n">BODY_WIDTH</span> <span class="o">=</span> <span class="mi">78</span>
+
+<span class="c"># Don&#39;t show internal links (href=&quot;#local-anchor&quot;) -- corresponding link targets</span>
+<span class="c"># won&#39;t be visible in the plain text file anyway.</span>
+<span class="n">SKIP_INTERNAL_LINKS</span> <span class="o">=</span> <span class="bp">False</span>
+
+<span class="c">### Entity Nonsense ###</span>
+
+<div class="viewcode-block" id="name2cp"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.name2cp">[docs]</a><span class="k">def</span> <span class="nf">name2cp</span><span class="p">(</span><span class="n">k</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">k</span> <span class="o">==</span> <span class="s">&#39;apos&#39;</span><span class="p">:</span> <span class="k">return</span> <span class="nb">ord</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">htmlentitydefs</span><span class="p">,</span> <span class="s">&quot;name2codepoint&quot;</span><span class="p">):</span> <span class="c"># requires Python 2.3</span>
+        <span class="k">return</span> <span class="n">htmlentitydefs</span><span class="o">.</span><span class="n">name2codepoint</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">k</span> <span class="o">=</span> <span class="n">htmlentitydefs</span><span class="o">.</span><span class="n">entitydefs</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">k</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&quot;&amp;#&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">k</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s">&quot;;&quot;</span><span class="p">):</span> <span class="k">return</span> <span class="nb">int</span><span class="p">(</span><span class="n">k</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c"># not in latin-1</span>
+        <span class="k">return</span> <span class="nb">ord</span><span class="p">(</span><span class="n">codecs</span><span class="o">.</span><span class="n">latin_1_decode</span><span class="p">(</span><span class="n">k</span><span class="p">)[</span><span class="mi">0</span><span class="p">])</span>
+</div>
+<span class="n">unifiable</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;rsquo&#39;</span><span class="p">:</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&#39;lsquo&#39;</span><span class="p">:</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&#39;rdquo&#39;</span><span class="p">:</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;ldquo&#39;</span><span class="p">:</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> 
+<span class="s">&#39;copy&#39;</span><span class="p">:</span><span class="s">&#39;(C)&#39;</span><span class="p">,</span> <span class="s">&#39;mdash&#39;</span><span class="p">:</span><span class="s">&#39;--&#39;</span><span class="p">,</span> <span class="s">&#39;nbsp&#39;</span><span class="p">:</span><span class="s">&#39; &#39;</span><span class="p">,</span> <span class="s">&#39;rarr&#39;</span><span class="p">:</span><span class="s">&#39;-&gt;&#39;</span><span class="p">,</span> <span class="s">&#39;larr&#39;</span><span class="p">:</span><span class="s">&#39;&lt;-&#39;</span><span class="p">,</span> <span class="s">&#39;middot&#39;</span><span class="p">:</span><span class="s">&#39;*&#39;</span><span class="p">,</span>
+<span class="s">&#39;ndash&#39;</span><span class="p">:</span><span class="s">&#39;-&#39;</span><span class="p">,</span> <span class="s">&#39;oelig&#39;</span><span class="p">:</span><span class="s">&#39;oe&#39;</span><span class="p">,</span> <span class="s">&#39;aelig&#39;</span><span class="p">:</span><span class="s">&#39;ae&#39;</span><span class="p">,</span>
+<span class="s">&#39;agrave&#39;</span><span class="p">:</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;aacute&#39;</span><span class="p">:</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;acirc&#39;</span><span class="p">:</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;atilde&#39;</span><span class="p">:</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;auml&#39;</span><span class="p">:</span><span class="s">&#39;a&#39;</span><span class="p">,</span> <span class="s">&#39;aring&#39;</span><span class="p">:</span><span class="s">&#39;a&#39;</span><span class="p">,</span> 
+<span class="s">&#39;egrave&#39;</span><span class="p">:</span><span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;eacute&#39;</span><span class="p">:</span><span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;ecirc&#39;</span><span class="p">:</span><span class="s">&#39;e&#39;</span><span class="p">,</span> <span class="s">&#39;euml&#39;</span><span class="p">:</span><span class="s">&#39;e&#39;</span><span class="p">,</span> 
+<span class="s">&#39;igrave&#39;</span><span class="p">:</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;iacute&#39;</span><span class="p">:</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;icirc&#39;</span><span class="p">:</span><span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;iuml&#39;</span><span class="p">:</span><span class="s">&#39;i&#39;</span><span class="p">,</span>
+<span class="s">&#39;ograve&#39;</span><span class="p">:</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="s">&#39;oacute&#39;</span><span class="p">:</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="s">&#39;ocirc&#39;</span><span class="p">:</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="s">&#39;otilde&#39;</span><span class="p">:</span><span class="s">&#39;o&#39;</span><span class="p">,</span> <span class="s">&#39;ouml&#39;</span><span class="p">:</span><span class="s">&#39;o&#39;</span><span class="p">,</span> 
+<span class="s">&#39;ugrave&#39;</span><span class="p">:</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;uacute&#39;</span><span class="p">:</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;ucirc&#39;</span><span class="p">:</span><span class="s">&#39;u&#39;</span><span class="p">,</span> <span class="s">&#39;uuml&#39;</span><span class="p">:</span><span class="s">&#39;u&#39;</span><span class="p">}</span>
+
+<span class="n">unifiable_n</span> <span class="o">=</span> <span class="p">{}</span>
+
+<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">unifiable</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+    <span class="n">unifiable_n</span><span class="p">[</span><span class="n">name2cp</span><span class="p">(</span><span class="n">k</span><span class="p">)]</span> <span class="o">=</span> <span class="n">unifiable</span><span class="p">[</span><span class="n">k</span><span class="p">]</span>
+
+<div class="viewcode-block" id="charref"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.charref">[docs]</a><span class="k">def</span> <span class="nf">charref</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">name</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;x&#39;</span><span class="p">,</span><span class="s">&#39;X&#39;</span><span class="p">]:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="mi">16</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">c</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">name</span><span class="p">)</span>
+    
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">UNICODE_SNOB</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">unifiable_n</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">unifiable_n</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span> <span class="c">#Python3</span>
+            <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="entityref"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.entityref">[docs]</a><span class="k">def</span> <span class="nf">entityref</span><span class="p">(</span><span class="n">c</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">UNICODE_SNOB</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">unifiable</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">return</span> <span class="n">unifiable</span><span class="p">[</span><span class="n">c</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span> <span class="n">name2cp</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span> <span class="k">return</span> <span class="s">&quot;&amp;&quot;</span> <span class="o">+</span> <span class="n">c</span> <span class="o">+</span> <span class="s">&#39;;&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">unichr</span><span class="p">(</span><span class="n">name2cp</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span> <span class="c">#Python3</span>
+                <span class="k">return</span> <span class="nb">chr</span><span class="p">(</span><span class="n">name2cp</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="replaceEntities"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.replaceEntities">[docs]</a><span class="k">def</span> <span class="nf">replaceEntities</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="n">s</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">group</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">s</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;#&quot;</span><span class="p">:</span> 
+        <span class="k">return</span> <span class="n">charref</span><span class="p">(</span><span class="n">s</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+    <span class="k">else</span><span class="p">:</span> <span class="k">return</span> <span class="n">entityref</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+</div>
+<span class="n">r_unescape</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">r&quot;&amp;(#?[xX]?(?:[0-9a-fA-F]+|\w{1,8}));&quot;</span><span class="p">)</span>
+<div class="viewcode-block" id="unescape"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.unescape">[docs]</a><span class="k">def</span> <span class="nf">unescape</span><span class="p">(</span><span class="n">s</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">r_unescape</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">replaceEntities</span><span class="p">,</span> <span class="n">s</span><span class="p">)</span>
+
+<span class="c">### End Entity Nonsense ###</span>
+</div>
+<div class="viewcode-block" id="onlywhite"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.onlywhite">[docs]</a><span class="k">def</span> <span class="nf">onlywhite</span><span class="p">(</span><span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return true if the line does only consist of whitespace characters.&quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s">&#39; &#39;</span> <span class="ow">and</span> <span class="n">c</span> <span class="ow">is</span> <span class="ow">not</span> <span class="s">&#39;  &#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">c</span> <span class="ow">is</span> <span class="s">&#39; &#39;</span>
+    <span class="k">return</span> <span class="n">line</span>
+</div>
+<div class="viewcode-block" id="optwrap"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.optwrap">[docs]</a><span class="k">def</span> <span class="nf">optwrap</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Wrap all paragraphs in the provided text.&quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">BODY_WIDTH</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">text</span>
+    
+    <span class="k">assert</span> <span class="n">wrap</span><span class="p">,</span> <span class="s">&quot;Requires Python 2.3.&quot;</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+    <span class="n">newlines</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">para</span> <span class="ow">in</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">para</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">para</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39; &#39;</span> <span class="ow">and</span> <span class="n">para</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;-&#39;</span> <span class="ow">and</span> <span class="n">para</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;*&#39;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">wrap</span><span class="p">(</span><span class="n">para</span><span class="p">,</span> <span class="n">BODY_WIDTH</span><span class="p">):</span>
+                    <span class="n">result</span> <span class="o">+=</span> <span class="n">line</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">newlines</span> <span class="o">=</span> <span class="mi">2</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">onlywhite</span><span class="p">(</span><span class="n">para</span><span class="p">):</span>
+                    <span class="n">result</span> <span class="o">+=</span> <span class="n">para</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                    <span class="n">newlines</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">newlines</span> <span class="o">&lt;</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+                <span class="n">newlines</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">return</span> <span class="n">result</span>
+</div>
+<div class="viewcode-block" id="hn"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.hn">[docs]</a><span class="k">def</span> <span class="nf">hn</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">tag</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;h&#39;</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">n</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">tag</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="k">if</span> <span class="n">n</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">10</span><span class="p">):</span> <span class="k">return</span> <span class="n">n</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span> <span class="k">return</span> <span class="mi">0</span>
+</div>
+<span class="k">class</span> <span class="nc">_html2text</span><span class="p">(</span><span class="n">HTMLParser</span><span class="o">.</span><span class="n">HTMLParser</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">baseurl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+        <span class="n">HTMLParser</span><span class="o">.</span><span class="n">HTMLParser</span><span class="o">.</span><span class="n">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">out</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outtextf</span>
+        <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span> <span class="o">=</span> <span class="n">out</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outtext</span> <span class="o">=</span> <span class="nb">unicode</span><span class="p">()</span>
+        <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span> <span class="c"># Python3</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outtext</span> <span class="o">=</span> <span class="nb">str</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">outcount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">astack</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">acount</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">list</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">blockquote</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pre</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">startpre</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">lastWasNL</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abbr_title</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># current abbreviation definition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abbr_data</span> <span class="o">=</span> <span class="bp">None</span> <span class="c"># last inner HTML (for abbr being defined)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">abbr_list</span> <span class="o">=</span> <span class="p">{}</span> <span class="c"># stack of abbreviations to write later</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">baseurl</span> <span class="o">=</span> <span class="n">baseurl</span>
+    
+    <span class="k">def</span> <span class="nf">outtextf</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">s</span><span class="p">):</span> 
+        <span class="bp">self</span><span class="o">.</span><span class="n">outtext</span> <span class="o">+=</span> <span class="n">s</span>
+    
+    <span class="k">def</span> <span class="nf">close</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">HTMLParser</span><span class="o">.</span><span class="n">HTMLParser</span><span class="o">.</span><span class="n">close</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        
+        <span class="bp">self</span><span class="o">.</span><span class="n">pbr</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s">&#39;end&#39;</span><span class="p">)</span>
+        
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">outtext</span>
+        
+    <span class="k">def</span> <span class="nf">handle_charref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="n">charref</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">handle_entityref</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">c</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="n">entityref</span><span class="p">(</span><span class="n">c</span><span class="p">))</span>
+            
+    <span class="k">def</span> <span class="nf">handle_starttag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">handle_endtag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">handle_tag</span><span class="p">(</span><span class="n">tag</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        
+    <span class="k">def</span> <span class="nf">previousIndex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">attrs</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot; returns the index of certain set of attributes (of a link) in the</span>
+<span class="sd">            self.a list</span>
+<span class="sd"> </span>
+<span class="sd">            If the set of attributes is not found, returns None</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">has_key</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="s">&#39;href&#39;</span><span class="p">):</span> <span class="k">return</span> <span class="bp">None</span>
+        
+        <span class="n">i</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">:</span>
+            <span class="n">i</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="n">match</span> <span class="o">=</span> <span class="mi">0</span>
+            
+            <span class="k">if</span> <span class="n">has_key</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s">&#39;href&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">a</span><span class="p">[</span><span class="s">&#39;href&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;href&#39;</span><span class="p">]:</span>
+                <span class="k">if</span> <span class="n">has_key</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">has_key</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="p">(</span><span class="n">has_key</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">has_key</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">)</span> <span class="ow">and</span>
+                            <span class="n">a</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]):</span>
+                            <span class="n">match</span> <span class="o">=</span> <span class="bp">True</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">match</span> <span class="o">=</span> <span class="bp">True</span>
+
+            <span class="k">if</span> <span class="n">match</span><span class="p">:</span> <span class="k">return</span> <span class="n">i</span>
+
+    <span class="k">def</span> <span class="nf">handle_tag</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tag</span><span class="p">,</span> <span class="n">attrs</span><span class="p">,</span> <span class="n">start</span><span class="p">):</span>
+        <span class="c">#attrs = fixattrs(attrs)</span>
+    
+        <span class="k">if</span> <span class="n">hn</span><span class="p">(</span><span class="n">tag</span><span class="p">):</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="n">hn</span><span class="p">(</span><span class="n">tag</span><span class="p">)</span><span class="o">*</span><span class="s">&quot;#&quot;</span> <span class="o">+</span> <span class="s">&#39; &#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;p&#39;</span><span class="p">,</span> <span class="s">&#39;div&#39;</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;br&quot;</span> <span class="ow">and</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;  </span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;hr&quot;</span> <span class="ow">and</span> <span class="n">start</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;* * *&quot;</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;head&quot;</span><span class="p">,</span> <span class="s">&quot;style&quot;</span><span class="p">,</span> <span class="s">&#39;script&#39;</span><span class="p">]:</span> 
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">-=</span> <span class="mi">1</span>
+
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;body&quot;</span><span class="p">]:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">=</span> <span class="mi">0</span> <span class="c"># sites like 9rules.com never close &lt;head&gt;</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;blockquote&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span> 
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">();</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&#39;&gt; &#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">);</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">blockquote</span> <span class="o">+=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">blockquote</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;em&#39;</span><span class="p">,</span> <span class="s">&#39;i&#39;</span><span class="p">,</span> <span class="s">&#39;u&#39;</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;_&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;strong&#39;</span><span class="p">,</span> <span class="s">&#39;b&#39;</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;**&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;code&quot;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&#39;`&#39;</span><span class="p">)</span> <span class="c">#TODO: `` `this` ``</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;abbr&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
+                <span class="n">attrsD</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span> <span class="n">attrsD</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+                <span class="n">attrs</span> <span class="o">=</span> <span class="n">attrsD</span>
+                
+                <span class="bp">self</span><span class="o">.</span><span class="n">abbr_title</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">abbr_data</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+                <span class="k">if</span> <span class="n">has_key</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">):</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">abbr_title</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbr_title</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">abbr_list</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">abbr_data</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbr_title</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">abbr_title</span> <span class="o">=</span> <span class="bp">None</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">abbr_data</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;a&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
+                <span class="n">attrsD</span> <span class="o">=</span> <span class="p">{}</span>
+                <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span> <span class="n">attrsD</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+                <span class="n">attrs</span> <span class="o">=</span> <span class="n">attrsD</span>
+                <span class="k">if</span> <span class="n">has_key</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="s">&#39;href&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">SKIP_INTERNAL_LINKS</span> <span class="ow">and</span> <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;href&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">)):</span> 
+                    <span class="bp">self</span><span class="o">.</span><span class="n">astack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;[&quot;</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">astack</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">None</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">astack</span><span class="p">:</span>
+                    <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">astack</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                    <span class="k">if</span> <span class="n">a</span><span class="p">:</span>
+                        <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">previousIndex</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                            <span class="n">a</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">acount</span> <span class="o">+=</span> <span class="mi">1</span>
+                            <span class="n">a</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acount</span>
+                            <span class="n">a</span><span class="p">[</span><span class="s">&#39;outcount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outcount</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">a</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;][&quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">a</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">])</span> <span class="o">+</span> <span class="s">&quot;]&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;img&quot;</span> <span class="ow">and</span> <span class="n">start</span><span class="p">:</span>
+            <span class="n">attrsD</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="ow">in</span> <span class="n">attrs</span><span class="p">:</span> <span class="n">attrsD</span><span class="p">[</span><span class="n">x</span><span class="p">]</span> <span class="o">=</span> <span class="n">y</span>
+            <span class="n">attrs</span> <span class="o">=</span> <span class="n">attrsD</span>
+            <span class="k">if</span> <span class="n">has_key</span><span class="p">(</span><span class="n">attrs</span><span class="p">,</span> <span class="s">&#39;src&#39;</span><span class="p">):</span>
+                <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;href&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;src&#39;</span><span class="p">]</span>
+                <span class="n">alt</span> <span class="o">=</span> <span class="n">attrs</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;alt&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+                <span class="n">i</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">previousIndex</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">i</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
+                    <span class="n">attrs</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">acount</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">acount</span>
+                    <span class="n">attrs</span><span class="p">[</span><span class="s">&#39;outcount&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">outcount</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">attrs</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;![&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="n">alt</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;][&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">attrs</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">])</span> <span class="o">+</span><span class="s">&quot;]&quot;</span><span class="p">)</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&#39;dl&#39;</span> <span class="ow">and</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&#39;dt&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pbr</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&#39;dd&#39;</span> <span class="ow">and</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&#39;    &#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&#39;dd&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pbr</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;ol&quot;</span><span class="p">,</span> <span class="s">&quot;ul&quot;</span><span class="p">]:</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">append</span><span class="p">({</span><span class="s">&#39;name&#39;</span><span class="p">:</span><span class="n">tag</span><span class="p">,</span> <span class="s">&#39;num&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">})</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&#39;li&#39;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pbr</span><span class="p">()</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">:</span> <span class="n">li</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span> <span class="n">li</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span><span class="s">&#39;ul&#39;</span><span class="p">,</span> <span class="s">&#39;num&#39;</span><span class="p">:</span><span class="mi">0</span><span class="p">}</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;  &quot;</span><span class="o">*</span><span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">list</span><span class="p">))</span> <span class="c">#TODO: line up &lt;ol&gt;&lt;li&gt;s &gt; 9 correctly.</span>
+                <span class="k">if</span> <span class="n">li</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;ul&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="s">&quot;* &quot;</span><span class="p">)</span>
+                <span class="k">elif</span> <span class="n">li</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;ol&quot;</span><span class="p">:</span>
+                    <span class="n">li</span><span class="p">[</span><span class="s">&#39;num&#39;</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">li</span><span class="p">[</span><span class="s">&#39;num&#39;</span><span class="p">])</span><span class="o">+</span><span class="s">&quot;. &quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pbr</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&quot;table&quot;</span><span class="p">,</span> <span class="s">&quot;tr&quot;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">start</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&#39;td&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">pbr</span><span class="p">()</span>
+        
+        <span class="k">if</span> <span class="n">tag</span> <span class="o">==</span> <span class="s">&quot;pre&quot;</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">start</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">startpre</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pre</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">pre</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">()</span>
+            
+    <span class="k">def</span> <span class="nf">pbr</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">p</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">=</span> <span class="mi">2</span>
+    
+    <span class="k">def</span> <span class="nf">o</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">puredata</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">force</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbr_data</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbr_data</span> <span class="o">+=</span> <span class="n">data</span>
+        
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span> 
+            <span class="k">if</span> <span class="n">puredata</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre</span><span class="p">:</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="s">&#39;\s+&#39;</span><span class="p">,</span> <span class="s">&#39; &#39;</span><span class="p">,</span> <span class="n">data</span><span class="p">)</span>
+                <span class="k">if</span> <span class="n">data</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39; &#39;</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">data</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">force</span><span class="p">:</span> <span class="k">return</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">startpre</span><span class="p">:</span>
+                <span class="c">#self.out(&quot; :&quot;) #TODO: not output when already one there</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">startpre</span> <span class="o">=</span> <span class="mi">0</span>
+            
+            <span class="n">bq</span> <span class="o">=</span> <span class="p">(</span><span class="s">&quot;&gt;&quot;</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">blockquote</span><span class="p">)</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">force</span> <span class="ow">and</span> <span class="n">data</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s">&quot;&gt;&quot;</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">blockquote</span><span class="p">:</span> <span class="n">bq</span> <span class="o">+=</span> <span class="s">&quot; &quot;</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">pre</span><span class="p">:</span>
+                <span class="n">bq</span> <span class="o">+=</span> <span class="s">&quot;    &quot;</span>
+                <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="o">+</span><span class="n">bq</span><span class="p">)</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">start</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">start</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="n">force</span> <span class="o">==</span> <span class="s">&#39;end&#39;</span><span class="p">:</span>
+                <span class="c"># It&#39;s the end.</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">=</span> <span class="mi">0</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">((</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">+</span><span class="n">bq</span><span class="p">)</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">p_p</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="mi">0</span>
+                
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">space</span><span class="p">:</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">lastWasNL</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">)</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">space</span> <span class="o">=</span> <span class="mi">0</span>
+
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="ow">and</span> <span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">LINKS_EACH_PARAGRAPH</span><span class="p">)</span> <span class="ow">or</span> <span class="n">force</span> <span class="o">==</span> <span class="s">&quot;end&quot;</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">force</span> <span class="o">==</span> <span class="s">&quot;end&quot;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+                <span class="n">newa</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="k">for</span> <span class="n">link</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">outcount</span> <span class="o">&gt;</span> <span class="n">link</span><span class="p">[</span><span class="s">&#39;outcount&#39;</span><span class="p">]:</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot;   [&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">link</span><span class="p">[</span><span class="s">&#39;count&#39;</span><span class="p">])</span> <span class="o">+</span><span class="s">&quot;]: &quot;</span> <span class="o">+</span> <span class="n">urlparse</span><span class="o">.</span><span class="n">urljoin</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">baseurl</span><span class="p">,</span> <span class="n">link</span><span class="p">[</span><span class="s">&#39;href&#39;</span><span class="p">]))</span> 
+                        <span class="k">if</span> <span class="n">has_key</span><span class="p">(</span><span class="n">link</span><span class="p">,</span> <span class="s">&#39;title&#39;</span><span class="p">):</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot; (&quot;</span><span class="o">+</span><span class="n">link</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span><span class="o">+</span><span class="s">&quot;)&quot;</span><span class="p">)</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="n">newa</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">link</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">!=</span> <span class="n">newa</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span> <span class="c"># Don&#39;t need an extra line when nothing was done.</span>
+
+                <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">newa</span>
+            
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbr_list</span> <span class="ow">and</span> <span class="n">force</span> <span class="o">==</span> <span class="s">&quot;end&quot;</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">abbr</span><span class="p">,</span> <span class="n">definition</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">abbr_list</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="s">&quot;  *[&quot;</span> <span class="o">+</span> <span class="n">abbr</span> <span class="o">+</span> <span class="s">&quot;]: &quot;</span> <span class="o">+</span> <span class="n">definition</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span><span class="p">)</span>
+
+            <span class="bp">self</span><span class="o">.</span><span class="n">p_p</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">out</span><span class="p">(</span><span class="n">data</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">lastWasNL</span> <span class="o">=</span> <span class="n">data</span> <span class="ow">and</span> <span class="n">data</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">outcount</span> <span class="o">+=</span> <span class="mi">1</span>
+
+    <span class="k">def</span> <span class="nf">handle_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s">r&#39;\/script&gt;&#39;</span> <span class="ow">in</span> <span class="n">data</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span> <span class="o">-=</span> <span class="mi">1</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">o</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    
+    <span class="k">def</span> <span class="nf">unknown_decl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">):</span> <span class="k">pass</span>
+
+<div class="viewcode-block" id="wrapwrite"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.wrapwrite">[docs]</a><span class="k">def</span> <span class="nf">wrapwrite</span><span class="p">(</span><span class="n">text</span><span class="p">):</span>
+    <span class="n">text</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">)</span>
+    <span class="k">try</span><span class="p">:</span> <span class="c">#Python3</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">buffer</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+        <span class="n">sys</span><span class="o">.</span><span class="n">stdout</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="html2text_file"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.html2text_file">[docs]</a><span class="k">def</span> <span class="nf">html2text_file</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">out</span><span class="o">=</span><span class="n">wrapwrite</span><span class="p">,</span> <span class="n">baseurl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="n">h</span> <span class="o">=</span> <span class="n">_html2text</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="n">baseurl</span><span class="p">)</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="n">html</span><span class="p">)</span>
+    <span class="n">h</span><span class="o">.</span><span class="n">feed</span><span class="p">(</span><span class="s">&quot;&quot;</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">h</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="html2text"><a class="viewcode-back" href="../../../../webnotes.utils.email_lib.html#webnotes.utils.email_lib.html2text.html2text">[docs]</a><span class="k">def</span> <span class="nf">html2text</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="n">baseurl</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+    <span class="k">return</span> <span class="n">optwrap</span><span class="p">(</span><span class="n">html2text_file</span><span class="p">(</span><span class="n">html</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="n">baseurl</span><span class="p">))</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span> <span class="o">==</span> <span class="s">&quot;__main__&quot;</span><span class="p">:</span>
+    <span class="n">baseurl</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+    <span class="n">p</span> <span class="o">=</span> <span class="n">optparse</span><span class="o">.</span><span class="n">OptionParser</span><span class="p">(</span><span class="s">&#39;%prog [(filename|url) [encoding]]&#39;</span><span class="p">,</span>
+                              <span class="n">version</span><span class="o">=</span><span class="s">&#39;%prog &#39;</span> <span class="o">+</span> <span class="n">__version__</span><span class="p">)</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">parse_args</span><span class="p">()[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">file_</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">encoding</span> <span class="o">=</span> <span class="bp">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">encoding</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">p</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s">&#39;Too many arguments&#39;</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">file_</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;http://&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">file_</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;https://&#39;</span><span class="p">):</span>
+            <span class="n">baseurl</span> <span class="o">=</span> <span class="n">file_</span>
+            <span class="n">j</span> <span class="o">=</span> <span class="n">urllib</span><span class="o">.</span><span class="n">urlopen</span><span class="p">(</span><span class="n">baseurl</span><span class="p">)</span>
+            <span class="n">text</span> <span class="o">=</span> <span class="n">j</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">encoding</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">feedparser</span> <span class="kn">import</span> <span class="n">_getCharacterEncoding</span> <span class="k">as</span> <span class="n">enc</span>
+                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                    <span class="n">enc</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="p">(</span><span class="s">&#39;utf-8&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                <span class="n">encoding</span> <span class="o">=</span> <span class="n">enc</span><span class="p">(</span><span class="n">j</span><span class="o">.</span><span class="n">headers</span><span class="p">,</span> <span class="n">text</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">encoding</span> <span class="o">==</span> <span class="s">&#39;us-ascii&#39;</span><span class="p">:</span>
+                    <span class="n">encoding</span> <span class="o">=</span> <span class="s">&#39;utf-8&#39;</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_</span><span class="p">,</span> <span class="s">&#39;rb&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+            <span class="k">if</span> <span class="n">encoding</span> <span class="ow">is</span> <span class="bp">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="kn">from</span> <span class="nn">chardet</span> <span class="kn">import</span> <span class="n">detect</span>
+                <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                    <span class="n">detect</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="p">{</span><span class="s">&#39;encoding&#39;</span><span class="p">:</span> <span class="s">&#39;utf-8&#39;</span><span class="p">}</span>
+                <span class="n">encoding</span> <span class="o">=</span> <span class="n">detect</span><span class="p">(</span><span class="n">data</span><span class="p">)[</span><span class="s">&#39;encoding&#39;</span><span class="p">]</span>
+            <span class="n">data</span> <span class="o">=</span> <span class="n">data</span><span class="o">.</span><span class="n">decode</span><span class="p">(</span><span class="n">encoding</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">data</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">stdin</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">wrapwrite</span><span class="p">(</span><span class="n">html2text</span><span class="p">(</span><span class="n">data</span><span class="p">,</span> <span class="n">baseurl</span><span class="p">))</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../../index.html">
+              <img class="logo" src="../../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../../utils.html" >webnotes.utils</a> &raquo;</li>
+          <li><a href="../email_lib.html" >webnotes.utils.email_lib</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
