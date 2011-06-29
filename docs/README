@@ -4,8 +4,7 @@ Documentation Help:
 1. To rebuild documentation
 ---------------------------
 
-(set webnotes path in conf.py in this folder)
-make html 
+make html
 
 2. Install
 -----------
