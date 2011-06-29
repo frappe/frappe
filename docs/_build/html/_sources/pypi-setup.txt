@@ -1,0 +1,10 @@
+pypi-setup Module
+=================
+
+:mod:`pypi-setup` Module
+------------------------
+
+.. automodule:: pypi-setup
+    :members:
+    :undoc-members:
+    :show-inheritance:

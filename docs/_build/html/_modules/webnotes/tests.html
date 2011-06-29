@@ -1,0 +1,160 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.tests &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../index.html" />
+    <link rel="up" title="webnotes" href="../webnotes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../webnotes.html" accesskey="U">webnotes</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.tests</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Run tests from modules. Sets up database connection, modules path and session before running test</span>
+
+<span class="sd">Usage: from shell, run</span>
+
+<span class="sd">python tests.py [test modules]</span>
+
+<span class="sd">Options:</span>
+<span class="sd">	test modules: list of modules separated by space</span>
+<span class="sd">	</span>
+<span class="sd">if no modules are specified, it will run all &quot;tests.py&quot; files from all modules</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sys</span><span class="o">,</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">unittest</span>
+
+<span class="c"># webnotes path</span>
+<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">__file__</span><span class="p">),</span> <span class="s">&#39;..&#39;</span><span class="p">)))</span>
+
+<span class="c"># modules path</span>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+<span class="kn">import</span> <span class="nn">webnotes.defs</span>
+
+<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;modules_path&#39;</span><span class="p">):</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">modules_path</span><span class="p">)</span>
+
+<div class="viewcode-block" id="get_tests"><a class="viewcode-back" href="../../webnotes.html#webnotes.tests.get_tests">[docs]</a><span class="k">def</span> <span class="nf">get_tests</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Returns list of test modules identified by &quot;tests.py&quot;</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">walk_tuple</span> <span class="ow">in</span> <span class="n">os</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">modules_path</span><span class="p">):</span>
+		<span class="k">if</span> <span class="s">&#39;tests.py&#39;</span> <span class="ow">in</span> <span class="n">walk_tuple</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+			<span class="n">dir_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">relpath</span><span class="p">(</span><span class="n">walk_tuple</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">modules_path</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">dir_path</span><span class="o">==</span><span class="s">&#39;.&#39;</span><span class="p">:</span>
+				<span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;tests&#39;</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dir_path</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span> <span class="s">&#39;.&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;.tests&#39;</span><span class="p">)</span>
+			
+	<span class="k">return</span> <span class="n">ret</span>
+</div>
+<div class="viewcode-block" id="setup"><a class="viewcode-back" href="../../webnotes.html#webnotes.tests.setup">[docs]</a><span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Sets up connection and session</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">webnotes.db</span> <span class="kn">import</span> <span class="n">Database</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">Database</span><span class="p">()</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span><span class="s">&#39;Administrator&#39;</span><span class="p">}</span>
+</div>
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="n">setup</span><span class="p">()</span>
+		
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+		<span class="n">tests_list</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+		
+		<span class="c"># for unittest.main</span>
+		<span class="n">sys</span><span class="o">.</span><span class="n">argv</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">argv</span><span class="p">[:</span><span class="mi">1</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">tests_list</span> <span class="o">=</span> <span class="n">get_tests</span><span class="p">()</span>
+	
+	<span class="k">for</span> <span class="n">tests</span> <span class="ow">in</span> <span class="n">tests_list</span><span class="p">:</span>
+		<span class="k">exec</span> <span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import *&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">tests</span><span class="p">)</span>
+
+	<span class="n">unittest</span><span class="o">.</span><span class="n">main</span><span class="p">()</span>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../index.html">
+              <img class="logo" src="../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../webnotes.html" >webnotes</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,11 @@
+profile Package
+===============
+
+:mod:`profile` Module
+---------------------
+
+.. automodule:: core.doctype.profile.profile
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

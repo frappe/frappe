@@ -1,0 +1,155 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.cache &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.utils" href="../utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" accesskey="U">webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.cache</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Simple Caching:</span>
+
+<span class="sd">Stores key-value pairs in database and enables simple caching</span>
+
+<span class="sd">get_item(key).get() returns the cached value if not expired (else returns null)</span>
+<span class="sd">get_item(key).set(interval = 60000) sets a value to cache, expiring after x seconds</span>
+<span class="sd">get_item(key).clear() clears an old value</span>
+<span class="sd">setup() sets up cache</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<div class="viewcode-block" id="CacheItem"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.cache.CacheItem">[docs]</a><span class="k">class</span> <span class="nc">CacheItem</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;create a new cache&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">key</span> <span class="o">=</span> <span class="n">key</span>
+	
+<div class="viewcode-block" id="CacheItem.get"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.cache.CacheItem.get">[docs]</a>	<span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;get value&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select `value` from __CacheItem where `key`=</span><span class="si">%s</span><span class="s"> and expires_on &gt; NOW()&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+			<span class="k">return</span> <span class="bp">None</span>
+	</div>
+<div class="viewcode-block" id="CacheItem.set"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.cache.CacheItem.set">[docs]</a>	<span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">6000</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;set a new value, with interval&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;INSERT INTO </span>
+<span class="s">					__CacheItem (`key`, `value`, expires_on) </span>
+<span class="s">				VALUES </span>
+<span class="s">					(</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, addtime(now(), sec_to_time(</span><span class="si">%s</span><span class="s">)))</span>
+<span class="s">				&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">value</span><span class="p">),</span> <span class="n">interval</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1146</span><span class="p">:</span> 
+				<span class="n">setup</span><span class="p">()</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">interval</span><span class="p">)</span>
+			<span class="k">else</span><span class="p">:</span> <span class="k">raise</span> <span class="n">e</span>
+	</div>
+<div class="viewcode-block" id="CacheItem.clear"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.cache.CacheItem.clear">[docs]</a>	<span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;clear the item&quot;&quot;&quot;</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;delete from __CacheItem where `key`=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">key</span><span class="p">)</span>
+</div></div>
+<div class="viewcode-block" id="setup"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.cache.setup">[docs]</a><span class="k">def</span> <span class="nf">setup</span><span class="p">():</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;create table __CacheItem(</span>
+<span class="s">		`key` VARCHAR(180) NOT NULL PRIMARY KEY,</span>
+<span class="s">		`value` TEXT,</span>
+<span class="s">		`expires_on` TIMESTAMP</span>
+<span class="s">		)&quot;&quot;&quot;</span><span class="p">)</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="get_item"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.cache.get_item">[docs]</a><span class="k">def</span> <span class="nf">get_item</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;returns get CacheItem object&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">CacheItem</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+	<span class="k">pass</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" >webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

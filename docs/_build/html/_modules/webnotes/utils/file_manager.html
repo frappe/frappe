@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.file_manager &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.utils" href="../utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" accesskey="U">webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.file_manager</h1><div class="highlight"><pre>
+<div class="viewcode-block" id="upload"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.upload">[docs]</a><span class="k">def</span> <span class="nf">upload</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="n">form</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span>
+
+	<span class="c"># get record details</span>
+	<span class="n">dt</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;doctype&#39;</span><span class="p">)</span>
+	<span class="n">dn</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;docname&#39;</span><span class="p">)</span>
+	<span class="n">at_id</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;at_id&#39;</span><span class="p">)</span>
+
+	<span class="c"># save</span>
+	<span class="n">fid</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">save_uploaded</span><span class="p">()</span>
+	
+	<span class="k">if</span> <span class="n">fid</span><span class="p">:</span>
+		<span class="c"># refesh the form!</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span>
+<span class="s">&lt;script type=&#39;text/javascript&#39;&gt;</span>
+<span class="s">window.parent.wn.widgets.form.file_upload_done(&#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;);</span>
+<span class="s">window.parent.frms[&#39;</span><span class="si">%s</span><span class="s">&#39;].show_doc(&#39;</span><span class="si">%s</span><span class="s">&#39;);</span>
+<span class="s">&lt;/script&gt;</span>
+<span class="s">			&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">,</span> <span class="n">fid</span><span class="p">,</span> <span class="n">fname</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&quot;</span><span class="se">\\</span><span class="s">&#39;&quot;</span><span class="p">),</span> <span class="n">at_id</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">)</span>
+
+<span class="c"># -------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="make_thumbnail"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.make_thumbnail">[docs]</a><span class="k">def</span> <span class="nf">make_thumbnail</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="n">size</span><span class="p">):</span>
+	<span class="kn">from</span> <span class="nn">PIL</span> <span class="kn">import</span> <span class="n">Image</span>
+	<span class="kn">import</span> <span class="nn">cStringIO</span>
+				
+	<span class="n">fobj</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">(</span><span class="n">blob</span><span class="p">)</span>
+	<span class="n">image</span> <span class="o">=</span> <span class="n">Image</span><span class="o">.</span><span class="n">open</span><span class="p">(</span><span class="n">fobj</span><span class="p">)</span>
+	<span class="n">image</span><span class="o">.</span><span class="n">thumbnail</span><span class="p">((</span><span class="n">tn</span><span class="p">,</span><span class="n">tn</span><span class="o">*</span><span class="mi">2</span><span class="p">),</span> <span class="n">Image</span><span class="o">.</span><span class="n">ANTIALIAS</span><span class="p">)</span>
+	<span class="n">outfile</span> <span class="o">=</span> <span class="n">cStringIO</span><span class="o">.</span><span class="n">StringIO</span><span class="p">()</span>
+	<span class="n">image</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">outfile</span><span class="p">,</span> <span class="s">&#39;JPEG&#39;</span><span class="p">)</span>
+	<span class="n">outfile</span><span class="o">.</span><span class="n">seek</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+	<span class="n">fcontent</span> <span class="o">=</span> <span class="n">outfile</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	
+	<span class="k">return</span> <span class="n">fcontent</span>
+
+</div>
+<div class="viewcode-block" id="save_uploaded"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.save_uploaded">[docs]</a><span class="k">def</span> <span class="nf">save_uploaded</span><span class="p">(</span><span class="n">js_okay</span><span class="o">=</span><span class="s">&#39;window.parent.msgprint(&quot;File Upload Successful&quot;)&#39;</span><span class="p">,</span> <span class="n">js_fail</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="kn">import</span> <span class="nn">webnotes.utils</span>
+	
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;iframe&#39;</span>
+
+	<span class="n">form</span><span class="p">,</span> <span class="n">fid</span><span class="p">,</span> <span class="n">fname</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="bp">None</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="c"># has attachment?</span>
+		<span class="k">if</span> <span class="s">&#39;filedata&#39;</span> <span class="ow">in</span> <span class="n">form</span><span class="p">:</span>
+			<span class="n">i</span> <span class="o">=</span> <span class="n">form</span><span class="p">[</span><span class="s">&#39;filedata&#39;</span><span class="p">]</span>
+	
+			<span class="n">fname</span><span class="p">,</span> <span class="n">content</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	
+			<span class="c"># thumbnail</span>
+			<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;thumbnail&#39;</span><span class="p">):</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">content</span> <span class="o">=</span> <span class="n">make_thumbnail</span><span class="p">(</span><span class="n">content</span><span class="p">,</span> <span class="nb">int</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;thumbnail&#39;</span><span class="p">)))</span>
+					<span class="c"># change extension to jpg</span>
+					<span class="n">fname</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">fname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">+</span><span class="s">&#39;.jpg&#39;</span>
+				<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+					<span class="k">pass</span>
+		
+			<span class="c"># get the file id</span>
+			<span class="n">fid</span> <span class="o">=</span> <span class="n">save_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+			
+			<span class="c"># okay</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;&lt;script type=&#39;text/javascript&#39;&gt;</span><span class="si">%s</span><span class="s">&lt;/script&gt;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">js_okay</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;&lt;script type=&#39;text/javascript&#39;&gt;window.parent.msgprint(&quot;No file&quot;); </span><span class="si">%s</span><span class="s">&lt;/script&gt;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="n">js_fail</span>
+			
+	<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;&lt;script type=&#39;text/javascript&#39;&gt;window.parent.msgprint(&quot;</span><span class="si">%s</span><span class="s">&quot;); window.parent.errprint(&quot;</span><span class="si">%s</span><span class="s">&quot;); </span><span class="si">%s</span><span class="s">&lt;/script&gt;&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">),</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">()</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span><span class="s">&#39;&lt;br&gt;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&quot;&#39;</span><span class="p">),</span> <span class="n">js_fail</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">fid</span><span class="p">,</span> <span class="n">fname</span>
+
+<span class="c"># -------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="save_file"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.save_file">[docs]</a><span class="k">def</span> <span class="nf">save_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">content</span><span class="p">,</span> <span class="n">module</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="n">Document</span>
+
+	<span class="c"># some browsers return the full path</span>
+	<span class="k">if</span> <span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\\</span><span class="s">&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+	<span class="k">if</span> <span class="s">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">fname</span><span class="p">:</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="c"># generate the ID (?)</span>
+	<span class="n">f</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s">&#39;File Data&#39;</span><span class="p">)</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">file_name</span> <span class="o">=</span> <span class="n">fname</span>
+	<span class="k">if</span> <span class="n">module</span><span class="p">:</span>
+		<span class="n">f</span><span class="o">.</span><span class="n">module</span> <span class="o">=</span> <span class="n">module</span>
+	<span class="n">f</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+	
+	<span class="n">write_file</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">f</span><span class="o">.</span><span class="n">name</span>
+
+<span class="c"># -------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="write_file"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.write_file">[docs]</a><span class="k">def</span> <span class="nf">write_file</span><span class="p">(</span><span class="n">fid</span><span class="p">,</span> <span class="n">content</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span><span class="o">,</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">webnotes.defs</span>
+
+	<span class="c"># test size</span>
+	<span class="n">max_file_size</span> <span class="o">=</span> <span class="mi">1000000</span>
+	<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="p">,</span> <span class="s">&#39;max_file_size&#39;</span><span class="p">):</span>
+		<span class="n">max_file_size</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">max_file_size</span>
+
+	<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">content</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">max_file_size</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Maximum File Limit (</span><span class="si">%s</span><span class="s"> MB) Crossed&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">max_file_size</span> <span class="o">/</span> <span class="mi">1000000</span><span class="p">))</span>
+
+	<span class="c"># no slashes</span>
+	<span class="n">fid</span> <span class="o">=</span> <span class="n">fid</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+
+	<span class="c"># save to a folder (not accessible to public)</span>
+	<span class="n">folder</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">get_files_path</span><span class="p">()</span>
+		
+	<span class="c"># create account folder (if not exists)</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">create_folder</span><span class="p">(</span><span class="n">folder</span><span class="p">)</span>
+
+	<span class="c"># write the file</span>
+	<span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">folder</span><span class="p">,</span> <span class="n">fid</span><span class="p">),</span><span class="s">&#39;w+&#39;</span><span class="p">)</span>
+	<span class="nb">file</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">content</span><span class="p">)</span>
+	<span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+		
+
+<span class="c"># -------------------------------------------------------</span></div>
+<div class="viewcode-block" id="get_file_system_name"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.get_file_system_name">[docs]</a><span class="k">def</span> <span class="nf">get_file_system_name</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+	<span class="c"># get system name from File Data table</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name, file_name from `tabFile Data` where name=</span><span class="si">%s</span><span class="s"> or file_name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">fname</span><span class="p">))</span>
+
+<span class="c"># -------------------------------------------------------</span></div>
+<div class="viewcode-block" id="delete_file"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.delete_file">[docs]</a><span class="k">def</span> <span class="nf">delete_file</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span><span class="o">,</span> <span class="nn">os</span>
+		
+	<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">get_file_system_name</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;delete from `tabFile Data` where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+	
+		<span class="c"># delete file</span>
+		<span class="n">file_id</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">os</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">get_files_path</span><span class="p">(),</span> <span class="n">file_id</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">OSError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">!=</span><span class="mi">2</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">e</span>
+		
+		<span class="k">if</span> <span class="n">verbose</span><span class="p">:</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="s">&#39;File Deleted&#39;</span><span class="p">)</span>
+
+<span class="c"># Get File</span>
+<span class="c"># -------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="get_file"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.get_file">[docs]</a><span class="k">def</span> <span class="nf">get_file</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="n">in_fname</span> <span class="o">=</span> <span class="n">fname</span>
+	
+	<span class="c"># from the &quot;File&quot; table</span>
+	<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="s">&#39;File&#39;</span><span class="p">,</span><span class="n">fname</span><span class="p">):</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select file_list from tabFile where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">fname</span><span class="p">)</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span> <span class="ow">and</span> <span class="n">fname</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+		<span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span>
+
+
+	<span class="k">if</span> <span class="n">get_file_system_name</span><span class="p">(</span><span class="n">fname</span><span class="p">):</span>
+		<span class="n">f</span> <span class="o">=</span> <span class="n">get_file_system_name</span><span class="p">(</span><span class="n">fname</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">f</span> <span class="o">=</span> <span class="bp">None</span>
+
+		
+	<span class="c"># read the file</span>
+	<span class="kn">import</span> <span class="nn">os</span>
+		
+	<span class="n">file_id</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">,</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+	<span class="nb">file</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">get_files_path</span><span class="p">(),</span> <span class="n">file_id</span><span class="p">),</span> <span class="s">&#39;r&#39;</span><span class="p">)</span>
+	<span class="n">content</span> <span class="o">=</span> <span class="nb">file</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+	<span class="nb">file</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+	<span class="k">return</span> <span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">content</span><span class="p">]</span>
+
+<span class="c"># Conversion Patch</span>
+<span class="c"># -------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="convert_to_files"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.file_manager.convert_to_files">[docs]</a><span class="k">def</span> <span class="nf">convert_to_files</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	
+	<span class="c"># nfiles</span>
+	<span class="n">fl</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from `tabFile Data`&quot;</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fl</span><span class="p">:</span>
+		<span class="c"># get the blob</span>
+		<span class="n">blob</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select blob_content from `tabFile Data` where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+		
+		<span class="k">if</span> <span class="n">blob</span><span class="p">:</span>
+
+			<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">blob</span><span class="p">,</span> <span class="s">&#39;tostring&#39;</span><span class="p">):</span>
+				<span class="n">blob</span> <span class="o">=</span> <span class="n">blob</span><span class="o">.</span><span class="n">tostring</span><span class="p">()</span>
+
+			<span class="c"># write the file</span>
+			<span class="n">write_file</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">blob</span><span class="p">)</span>
+						
+			<span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> updated&#39;</span> <span class="o">%</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c"># -------------------------------------------------------</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" >webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

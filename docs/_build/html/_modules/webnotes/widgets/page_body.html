@@ -1,0 +1,336 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.widgets.page_body &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes" href="../../webnotes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" accesskey="U">webnotes</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.widgets.page_body</h1><div class="highlight"><pre>
+<span class="c">#:    HTML Template of index.cgi</span>
+<span class="n">index_template</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.01//EN&quot; &quot;http://www.w3.org/TR/html4/strict.dtd&quot;&gt;</span>
+<span class="s">&lt;html&gt;</span>
+<span class="s">&lt;head id=&quot;head&quot;&gt;</span>
+<span class="s">&lt;!-- Web Notes Framework : www.webnotesframework.org --&gt;</span>
+
+<span class="s">  &lt;meta http-equiv=&quot;Content-Type&quot; content=&quot;text/html; charset=UTF-8&quot;&gt;</span>
+<span class="s">  &lt;meta name=&quot;robots&quot; content=&quot;index, follow&quot; /&gt;</span>
+<span class="s">  &lt;meta name=&quot;keywords&quot; content=&quot;</span><span class="si">%(keywords)s</span><span class="s">&quot; /&gt;</span>
+<span class="s">  &lt;meta name=&quot;description&quot; content=&quot;</span><span class="si">%(site_description)s</span><span class="s">&quot; /&gt;</span>
+<span class="s">  &lt;meta name=&quot;generator&quot; content=&quot;Web Notes Framework Version v170 - Open Source Web Application Framework&quot; /&gt;  </span>
+<span class="s">  </span>
+<span class="s">  &lt;title&gt;</span><span class="si">%(title)s</span><span class="s">&lt;/title&gt;</span>
+<span class="s">  &lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;css/jquery-ui.css&quot;&gt;</span>
+<span class="s">  &lt;link type=&quot;text/css&quot; rel=&quot;stylesheet&quot; href=&quot;css/default.css&quot;&gt;</span>
+<span class="s">  &lt;link rel=&quot;Shortcut Icon&quot; href=&quot;/favicon.ico&quot;&gt;</span>
+<span class="s">  </span>
+<span class="s">  &lt;script language=&quot;JavaScript&quot; src=&quot;js/jquery/jquery.min.js&quot;&gt;&lt;/script&gt;</span>
+<span class="s">  &lt;script language=&quot;JavaScript&quot; src=&quot;js/jquery/jquery-ui.min.js&quot;&gt;&lt;/script&gt;</span>
+<span class="s">  &lt;script type=&quot;text/javascript&quot; src=&quot;js/tiny_mce_33/jquery.tinymce.js&quot;&gt;&lt;/script&gt;</span>
+<span class="s">  &lt;script language=&quot;JavaScript&quot; src=&quot;js/wnf.compressed.js&quot;&gt;&lt;/script&gt;</span>
+<span class="s">  </span><span class="si">%(import_form)s</span><span class="s"></span>
+<span class="s">  &lt;script language=&quot;JavaScript&quot;&gt;var _startup_data = </span><span class="si">%(startup_data)s</span><span class="s">;&lt;/script&gt;</span>
+<span class="s">  &lt;!--[if IE]&gt;&lt;script language=&quot;javascript&quot; type=&quot;text/javascript&quot; src=&quot;js/jquery/excanvas.min.js&quot;&gt;&lt;/script&gt;&lt;![endif]--&gt;</span>
+<span class="s">  </span><span class="si">%(add_in_head)s</span><span class="s"></span>
+<span class="s">  </span>
+<span class="s">  &lt;script type=&quot;text/javascript&quot;&gt;</span>
+<span class="s">    window.dhtmlHistory.create({ debugMode: false });</span>
+<span class="s">  &lt;/script&gt;</span>
+<span class="s">&lt;/head&gt;</span>
+<span class="s">&lt;body&gt;</span>
+
+<span class="s">&lt;div id=&quot;dialog_back&quot;&gt;&lt;/div&gt;</span>
+
+<span class="s">&lt;div id=&quot;startup_div&quot; style=&quot;padding: 8px; font-size: 14px;&quot;&gt;&lt;/div&gt;</span>
+
+<span class="s">&lt;!-- Main Starts --&gt;</span>
+<span class="s">&lt;div id=&quot;body_div&quot;&gt; </span>
+
+<span class="s">	&lt;!--static (no script) content--&gt;</span>
+<span class="s">	&lt;div class=&quot;no_script&quot;&gt;</span>
+<span class="s">		</span><span class="si">%(content)s</span><span class="s"></span>
+<span class="s">	&lt;/div&gt;</span>
+
+<span class="s">&lt;/div&gt;</span>
+
+<span class="si">%(add_in_body)s</span><span class="s"></span>
+<span class="s">&lt;/body&gt;</span>
+<span class="s">&lt;/html&gt;</span>
+<span class="s">&#39;&#39;&#39;</span>
+
+<span class="n">redirect_template</span> <span class="o">=</span> <span class="s">&#39;&#39;&#39;&lt;!DOCTYPE HTML PUBLIC &quot;-//W3C//DTD HTML 4.0 Transitional//EN&quot;&gt;</span>
+<span class="s">&lt;html&gt;</span>
+<span class="s">&lt;head&gt;</span>
+<span class="s">&lt;title&gt;</span><span class="si">%s</span><span class="s">&lt;/title&gt;</span>
+<span class="s">&lt;meta http-equiv=&quot;REFRESH&quot; content=&quot;0; url=</span><span class="si">%s</span><span class="s">&quot;&gt;&lt;/HEAD&gt;</span>
+<span class="s">&lt;BODY style=&quot;font-family: Arial; padding: 8px; font-size: 14px; margin: 0px;&quot;&gt;</span>
+<span class="s">Redirecting...</span>
+<span class="s">&lt;/BODY&gt;</span>
+<span class="s">&lt;/HTML&gt;&#39;&#39;&#39;</span>
+
+<span class="n">page_properties</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="s">&#39;add_in_head&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+	<span class="s">&#39;add_in_body&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+	<span class="s">&#39;keywords&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+	<span class="s">&#39;site_description&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+	<span class="s">&#39;title&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+	<span class="s">&#39;content&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span>
+	<span class="s">&#39;startup_data&#39;</span><span class="p">:</span><span class="s">&#39;{}&#39;</span><span class="p">,</span>
+	<span class="s">&#39;import_form&#39;</span><span class="p">:</span><span class="s">&#39;&lt;script language=&quot;JavaScript&quot; src=&quot;js/form.compressed.js&quot;&gt;&lt;/script&gt;&#39;</span>
+<span class="p">}</span>
+
+
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<span class="c"># remove &#39;id&#39; attributes so they don&#39;t conflict</span>
+<span class="c"># ---------------------------------------------</span>
+<div class="viewcode-block" id="replace_id"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.replace_id">[docs]</a><span class="k">def</span> <span class="nf">replace_id</span><span class="p">(</span><span class="n">match</span><span class="p">):</span>
+	<span class="c">#webnotes.msgprint(match.group(&#39;name&#39;))</span>
+	<span class="k">return</span> <span class="s">&#39;&#39;</span>
+	</div>
+<div class="viewcode-block" id="scrub_ids"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.scrub_ids">[docs]</a><span class="k">def</span> <span class="nf">scrub_ids</span><span class="p">(</span><span class="n">content</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">re</span>
+	
+	<span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;id=</span><span class="se">\&quot;</span><span class="s">(?P&lt;name&gt; [^</span><span class="se">\&quot;</span><span class="s">]*)</span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+	<span class="n">content</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">replace_id</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+
+	<span class="n">p</span> <span class="o">=</span> <span class="n">re</span><span class="o">.</span><span class="n">compile</span><span class="p">(</span><span class="s">&#39;id=</span><span class="se">\&#39;</span><span class="s">(?P&lt;name&gt; [^</span><span class="se">\&#39;</span><span class="s">]*)</span><span class="se">\&#39;</span><span class="s">&#39;</span><span class="p">,</span> <span class="n">re</span><span class="o">.</span><span class="n">VERBOSE</span><span class="p">)</span>
+	<span class="n">content</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="n">replace_id</span><span class="p">,</span> <span class="n">content</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">content</span>
+
+<span class="c">#</span>
+<span class="c"># load the page content and meta tags</span>
+<span class="c">#</span></div>
+<div class="viewcode-block" id="get_page_content"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.get_page_content">[docs]</a><span class="k">def</span> <span class="nf">get_page_content</span><span class="p">(</span><span class="n">page</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   Gets the HTML content from `static_content` or `content` property of a `Page`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.code</span> <span class="kn">import</span> <span class="n">get_code</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="n">Document</span>
+	<span class="k">global</span> <span class="n">page_properties</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">page</span><span class="p">:</span> <span class="k">return</span>
+	<span class="k">if</span> <span class="s">&#39;/&#39;</span> <span class="ow">in</span> <span class="n">page</span><span class="p">:</span> <span class="n">page</span> <span class="o">=</span> <span class="n">page</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+	<span class="k">if</span> <span class="n">page</span><span class="o">==</span><span class="s">&#39;Form&#39;</span><span class="p">:</span> <span class="k">return</span>
+	
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="n">page</span><span class="p">)</span>
+	
+		<span class="n">load_page_metatags</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+	
+		<span class="n">template</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%(content)s</span><span class="s">&#39;</span>
+		<span class="c"># content</span>
+		<span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">template</span><span class="p">:</span>
+			<span class="n">template</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Page Template&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="s">&#39;module&#39;</span><span class="p">),</span> <span class="s">&#39;Page Template&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">template</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">,</span> <span class="n">fieldname</span><span class="o">=</span><span class="s">&#39;template&#39;</span><span class="p">)</span>
+	
+		<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;page&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">,</span> <span class="n">fieldname</span><span class="o">=</span><span class="s">&#39;content&#39;</span><span class="p">)</span>
+				
+		<span class="c"># dynamic (scripted) content</span>
+		<span class="k">if</span> <span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#!python&#39;</span><span class="p">):</span>
+			<span class="n">page_properties</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">]))</span>
+	
+		<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scrub_ids</span><span class="p">(</span><span class="n">template</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;content&#39;</span><span class="p">:</span><span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;content&#39;</span><span class="p">]})</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="k">pass</span>
+
+<span class="c">#</span>
+<span class="c"># load metatags</span>
+<span class="c">#</span></div>
+<div class="viewcode-block" id="load_page_metatags"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.load_page_metatags">[docs]</a><span class="k">def</span> <span class="nf">load_page_metatags</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+	<span class="k">global</span> <span class="n">page_properties</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">startup</span>
+	<span class="k">except</span><span class="p">:</span>
+		<span class="n">startup</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+
+	<span class="c"># page meta-tags</span>
+	<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;title&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">page_title</span> <span class="ow">or</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span>
+	<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;keywords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">keywords</span> <span class="ow">or</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Control Panel&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="s">&#39;keywords&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+	<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;site_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">doc</span><span class="o">.</span><span class="n">site_description</span> <span class="ow">or</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Control Panel&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="s">&#39;site_description&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+	<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;add_in_head&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">startup</span><span class="p">,</span> <span class="s">&#39;add_in_head&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;add_in_body&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">startup</span><span class="p">,</span> <span class="s">&#39;add_in_body&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+
+<span class="c">#</span>
+<span class="c"># load the form as page (deprecated)</span>
+<span class="c">#</span></div>
+<div class="viewcode-block" id="get_doc_content"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.get_doc_content">[docs]</a><span class="k">def</span> <span class="nf">get_doc_content</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   Gets the HTML content of a document record by using the overridden or standard :method: `doclist.to_html`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes.model.code</span>
+	
+	<span class="k">if</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_read_list</span><span class="p">():</span>
+		<span class="c"># generate HTML</span>
+		<span class="n">do</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">,</span> <span class="n">with_children</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">do</span><span class="p">,</span> <span class="s">&#39;to_html&#39;</span><span class="p">):</span>
+			<span class="k">return</span> <span class="n">dn</span><span class="p">,</span> <span class="n">do</span><span class="o">.</span><span class="n">to_html</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="kn">import</span> <span class="nn">webnotes.model.doclist</span>
+			<span class="k">return</span> <span class="n">dn</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">doclist</span><span class="o">.</span><span class="n">to_html</span><span class="p">(</span><span class="n">do</span><span class="o">.</span><span class="n">doclist</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s">&#39;Forbidden - 404&#39;</span><span class="p">,</span> <span class="s">&#39;&lt;h1&gt;Forbidden - 404&lt;/h1&gt;&#39;</span>
+
+<span class="c"># find the page to load as static</span>
+<span class="c"># -------------------------------</span>
+</div>
+<div class="viewcode-block" id="load_properties"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.load_properties">[docs]</a><span class="k">def</span> <span class="nf">load_properties</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">webnotes.widgets.page</span>
+	<span class="kn">import</span> <span class="nn">urllib</span>
+
+	<span class="n">page_url</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;_escaped_fragment_&#39;</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;page&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+	
+	<span class="k">if</span> <span class="n">page_url</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">page_url</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;Page/&#39;</span><span class="p">):</span> 
+			<span class="n">page_url</span> <span class="o">=</span> <span class="n">page_url</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+		<span class="n">page_url</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="n">urllib</span><span class="o">.</span><span class="n">unquote</span><span class="p">(</span><span class="n">page_url</span><span class="p">)]</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">page_url</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_home_page</span><span class="p">()]</span>
+		
+	<span class="c"># load content</span>
+	<span class="c"># -----------------	</span>
+	<span class="n">get_page_content</span><span class="p">(</span><span class="n">page_url</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+
+<span class="c"># generate the page</span>
+<span class="c"># -----------------</span></div>
+<div class="viewcode-block" id="load_default_properties"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.load_default_properties">[docs]</a><span class="k">def</span> <span class="nf">load_default_properties</span><span class="p">():</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">page_properites</span><span class="p">[</span><span class="s">&#39;keywords&#39;</span><span class="p">]:</span>
+		<span class="n">page_properites</span><span class="p">[</span><span class="s">&#39;keywords&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Control Panel&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="s">&#39;keywords&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">page_properites</span><span class="p">[</span><span class="s">&#39;site_description&#39;</span><span class="p">]:</span>
+		<span class="n">page_properites</span><span class="p">[</span><span class="s">&#39;site_description&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span><span class="p">(</span><span class="s">&#39;Control Panel&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">,</span><span class="s">&#39;site_description&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+
+<span class="c"># generate the page</span>
+<span class="c"># -----------------</span></div>
+<div class="viewcode-block" id="get"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.page_body.get">[docs]</a><span class="k">def</span> <span class="nf">get</span><span class="p">():</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   returns the full rendered index.cgi</span>
+<span class="sd">	   Gets `keywords` and `site_description` from the `Control Panel`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="n">no_startup</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;no_startup&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="bp">None</span>
+
+	<span class="k">global</span> <span class="n">index_template</span><span class="p">,</span> <span class="n">redirect_template</span>
+	<span class="kn">import</span> <span class="nn">webnotes.session_cache</span>
+	<span class="k">try</span><span class="p">:</span>
+		<span class="kn">import</span> <span class="nn">json</span>
+	<span class="k">except</span><span class="p">:</span> <span class="c"># python 2.4</span>
+		<span class="kn">import</span> <span class="nn">simplejson</span> <span class="kn">as</span> <span class="nn">json</span>
+	
+	<span class="n">page</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;page&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="c"># sid in public display</span>
+	<span class="c"># ---------------------</span>
+	<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;sid&#39;</span><span class="p">):</span> 
+		<span class="k">return</span> <span class="n">redirect_template</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;Redirecting...&#39;</span><span class="p">,</span> <span class="p">(</span><span class="s">&#39;index.cgi&#39;</span> <span class="o">+</span> <span class="p">(</span><span class="n">page</span> <span class="ow">and</span> <span class="p">(</span><span class="s">&#39;?page=&#39;</span><span class="o">+</span><span class="n">page</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)))</span>
+	
+	<span class="k">if</span> <span class="s">&#39;</span><span class="si">%(content)s</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">index_template</span><span class="p">:</span>
+		<span class="n">load_properties</span><span class="p">()</span>
+		
+		<span class="c"># load the session data</span>
+		<span class="c"># ---------------------</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">sd</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session_cache</span><span class="o">.</span><span class="n">get</span><span class="p">()</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="kn">import</span> <span class="nn">webnotes.utils</span>
+			<span class="n">sd</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;exc&#39;</span><span class="p">:</span><span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">()}</span>
+		
+		<span class="c"># add debug messages</span>
+
+		<span class="n">sd</span><span class="p">[</span><span class="s">&#39;server_messages&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">--------------</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">message_log</span><span class="p">)</span>
+		
+		<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;startup_data&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">no_startup</span> <span class="ow">and</span> <span class="s">&#39;{}&#39;</span> <span class="ow">or</span> <span class="n">json</span><span class="o">.</span><span class="n">dumps</span><span class="p">(</span><span class="n">sd</span><span class="p">)</span>
+		
+		<span class="c"># no form api required for guests</span>
+		<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;Guest&#39;</span><span class="p">:</span>
+			<span class="n">page_properties</span><span class="p">[</span><span class="s">&#39;import_form&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		
+		<span class="n">index_template</span> <span class="o">=</span> <span class="n">index_template</span> <span class="o">%</span> <span class="n">page_properties</span>
+		
+	<span class="k">return</span> <span class="n">index_template</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -1,0 +1,325 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../_static/jquery.js"></script>
+    <script type="text/javascript" src="../_static/underscore.js"></script>
+    <script type="text/javascript" src="../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../index.html" />
+    <link rel="up" title="Module code" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="index.html" accesskey="U">Module code</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes</h1><div class="highlight"><pre>
+<span class="c">#</span>
+<span class="c"># import modules path</span>
+<span class="c"># </span>
+<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span> <span class="nn">sys</span>
+
+<span class="k">try</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">webnotes.defs</span>
+	<span class="n">m</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="p">,</span><span class="s">&#39;modules_path&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">)</span>
+	<span class="n">m</span> <span class="ow">and</span> <span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
+<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+	<span class="k">raise</span> <span class="n">e</span>
+
+<span class="c">#</span>
+<span class="c"># map for identifying which field values come from files</span>
+<span class="c">#</span>
+<span class="n">code_fields_dict</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="s">&#39;Page&#39;</span><span class="p">:[(</span><span class="s">&#39;script&#39;</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;content&#39;</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;style&#39;</span><span class="p">,</span> <span class="s">&#39;css&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;static_content&#39;</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;server_code&#39;</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">)],</span>
+	<span class="s">&#39;DocType&#39;</span><span class="p">:[(</span><span class="s">&#39;server_code_core&#39;</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;client_script_core&#39;</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">)],</span>
+	<span class="s">&#39;Search Criteria&#39;</span><span class="p">:[(</span><span class="s">&#39;report_script&#39;</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;server_script&#39;</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;custom_query&#39;</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">)],</span>
+	<span class="s">&#39;Patch&#39;</span><span class="p">:[(</span><span class="s">&#39;patch_code&#39;</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">)],</span>
+	<span class="s">&#39;Stylesheet&#39;</span><span class="p">:[</span><span class="s">&#39;stylesheet&#39;</span><span class="p">,</span> <span class="s">&#39;css&#39;</span><span class="p">],</span>
+	<span class="s">&#39;Page Template&#39;</span><span class="p">:[</span><span class="s">&#39;template&#39;</span><span class="p">,</span> <span class="s">&#39;html&#39;</span><span class="p">],</span>
+	<span class="s">&#39;Control Panel&#39;</span><span class="p">:[(</span><span class="s">&#39;startup_code&#39;</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s">&#39;startup_css&#39;</span><span class="p">,</span> <span class="s">&#39;css&#39;</span><span class="p">)]</span>
+<span class="p">}</span>
+
+<span class="c">#</span>
+<span class="c"># globals</span>
+<span class="c">#</span>
+<span class="c">#: &quot;v170&quot; </span>
+<span class="n">version</span> <span class="o">=</span> <span class="s">&#39;v170&#39;</span>
+<span class="n">form_dict</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">auth_obj</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c">#: The database connection :class:`webnotes.db.Database` setup by :mod:`auth`</span>
+<span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c">#: The cgi.FieldStorage() object (Dictionary representing the formdata from the URL)</span>
+<span class="n">form</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="n">session</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Global session dictionary.</span>
+
+<span class="sd">   * session[&#39;user&#39;] - Current user   </span>
+<span class="sd">   * session[&#39;data&#39;] - Returns a dictionary of the session cache</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="n">user</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="n">is_testing</span> <span class="o">=</span> <span class="bp">None</span>
+<span class="sd">&quot;&quot;&quot;    Flag to identify if system is in :term:`Testing Mode` &quot;&quot;&quot;</span>
+
+<span class="n">incoming_cookies</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">add_cookies</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="sd">&quot;&quot;&quot;    Dictionary of additional cookies appended by custom code &quot;&quot;&quot;</span>
+
+<span class="n">cookies</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">auto_masters</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">tenant_id</span> <span class="o">=</span> <span class="bp">None</span>
+
+<span class="c">#</span>
+<span class="c"># Custom Class (no traceback)</span>
+<span class="c">#</span>
+<div class="viewcode-block" id="ValidationError"><a class="viewcode-back" href="../webnotes.html#webnotes.ValidationError">[docs]</a><span class="k">class</span> <span class="nc">ValidationError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+	<span class="k">pass</span>
+
+<span class="c">#</span>
+<span class="c"># HTTP standard response</span>
+<span class="c">#</span></div>
+<span class="n">response</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;message&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;exc&#39;</span><span class="p">:</span><span class="s">&#39;&#39;</span><span class="p">}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   The JSON response object. Default is::</span>
+<span class="sd">   </span>
+<span class="sd">   {&#39;message&#39;:&#39;&#39;, &#39;exc&#39;:&#39;&#39;}</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="c">#</span>
+<span class="c"># the logs</span>
+<span class="c">#</span>
+<span class="n">debug_log</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="sd">&quot;&quot;&quot;    List of exceptions to be shown in the :term:`Error Console` &quot;&quot;&quot;</span>
+
+<span class="n">message_log</span> <span class="o">=</span> <span class="p">[]</span>
+<span class="sd">&quot;&quot;&quot;    List of messages to be shown to the user in a popup box at the end of the request &quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="getTraceback"><a class="viewcode-back" href="../webnotes.html#webnotes.getTraceback">[docs]</a><span class="k">def</span> <span class="nf">getTraceback</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">webnotes.utils</span>
+	<span class="k">return</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="errprint"><a class="viewcode-back" href="../webnotes.html#webnotes.errprint">[docs]</a><span class="k">def</span> <span class="nf">errprint</span><span class="p">(</span><span class="n">msg</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   Append to the :data:`debug log`</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">debug_log</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">msg</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="msgprint"><a class="viewcode-back" href="../webnotes.html#webnotes.msgprint">[docs]</a><span class="k">def</span> <span class="nf">msgprint</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">small</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">raise_exception</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   Append to the :data:`message_log`</span>
+<span class="sd">	&quot;&quot;&quot;</span>	
+	<span class="n">message_log</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">small</span> <span class="ow">and</span> <span class="s">&#39;__small:&#39;</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">msg</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+	<span class="k">if</span> <span class="n">raise_exception</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="n">ValidationError</span>
+</div>
+<div class="viewcode-block" id="is_apache_user"><a class="viewcode-back" href="../webnotes.html#webnotes.is_apache_user">[docs]</a><span class="k">def</span> <span class="nf">is_apache_user</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">os</span>
+	<span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;USER&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s">&#39;apache&#39;</span><span class="p">:</span>
+		<span class="k">return</span> <span class="bp">True</span> 
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="p">(</span><span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;USER&#39;</span><span class="p">))</span>
+		<span class="c"># os.environ does not have user, so allows a security vulnerability,fixed now. </span>
+</div>
+<div class="viewcode-block" id="get_index_path"><a class="viewcode-back" href="../webnotes.html#webnotes.get_index_path">[docs]</a><span class="k">def</span> <span class="nf">get_index_path</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">os</span>
+	<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">dirname</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">__file__</span><span class="p">))</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">)[:</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+</div>
+<div class="viewcode-block" id="get_files_path"><a class="viewcode-back" href="../webnotes.html#webnotes.get_files_path">[docs]</a><span class="k">def</span> <span class="nf">get_files_path</span><span class="p">():</span>
+	<span class="k">global</span> <span class="n">conn</span>
+	<span class="kn">import</span> <span class="nn">defs</span><span class="o">,</span> <span class="nn">os</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">conn</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;You must login first&#39;</span>
+
+	<span class="k">if</span> <span class="n">defs</span><span class="o">.</span><span class="n">files_path</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">defs</span><span class="o">.</span><span class="n">files_path</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">get_index_path</span><span class="p">(),</span> <span class="s">&#39;user_files&#39;</span><span class="p">,</span> <span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="create_folder"><a class="viewcode-back" href="../webnotes.html#webnotes.create_folder">[docs]</a><span class="k">def</span> <span class="nf">create_folder</span><span class="p">(</span><span class="n">path</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Wrapper function for os.makedirs (does not throw exception if directory exists)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">os</span>
+	
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">os</span><span class="o">.</span><span class="n">makedirs</span><span class="p">(</span><span class="n">path</span><span class="p">)</span>
+	<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">17</span><span class="p">:</span> 
+			<span class="k">pass</span>
+		<span class="k">else</span><span class="p">:</span> 
+			<span class="k">raise</span> <span class="n">e</span>
+
+
+<span class="c">###############################################################################</span>
+<span class="c">#	BEGIN: TENTATIVE CODE FEELS LIKE A CLASS/TEMPLATE IS A BETTER IDEA FOR THESE VARIABLES.</span>
+<span class="c">#	Bad idea combining/using one function to set conn,user,session variables.</span>
+<span class="c">#	Need to split up.</span>
+<span class="c">###############################################################################</span>
+</div>
+<div class="viewcode-block" id="set_as_account_master"><a class="viewcode-back" href="../webnotes.html#webnotes.set_as_account_master">[docs]</a><span class="k">def</span> <span class="nf">set_as_account_master</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">webnotes.db</span>
+	<span class="k">global</span> <span class="n">conn</span>
+	<span class="n">conn</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">use_default</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="set_as_administrator"><a class="viewcode-back" href="../webnotes.html#webnotes.set_as_administrator">[docs]</a><span class="k">def</span> <span class="nf">set_as_administrator</span><span class="p">():</span>
+	
+	<span class="k">global</span> <span class="n">user</span>
+	
+	<span class="k">if</span> <span class="n">is_apache_user</span><span class="p">():</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Not for web users!&#39;</span>
+
+	<span class="kn">import</span> <span class="nn">webnotes.profile</span>
+	<span class="n">user</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="s">&#39;Administrator&#39;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="set_as_admin_session"><a class="viewcode-back" href="../webnotes.html#webnotes.set_as_admin_session">[docs]</a><span class="k">def</span> <span class="nf">set_as_admin_session</span><span class="p">():</span>
+	<span class="k">global</span> <span class="n">session</span>
+	<span class="n">session</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span><span class="s">&#39;Administrator&#39;</span><span class="p">}</span>
+
+<span class="c">###############################################################################</span>
+<span class="c">#END  </span>
+<span class="c">###############################################################################</span>
+
+</div>
+<div class="viewcode-block" id="set_as_admin"><a class="viewcode-back" href="../webnotes.html#webnotes.set_as_admin">[docs]</a><span class="k">def</span> <span class="nf">set_as_admin</span><span class="p">(</span><span class="n">db_name</span><span class="o">=</span><span class="bp">None</span><span class="p">,</span> <span class="n">ac_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+
+	<span class="kn">import</span> <span class="nn">os</span>
+	<span class="k">if</span> <span class="n">is_apache_user</span><span class="p">():</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Not for web users!&#39;</span>
+
+	<span class="k">global</span> <span class="n">conn</span>
+	<span class="k">global</span> <span class="n">session</span>
+	<span class="k">global</span> <span class="n">user</span>
+	
+	<span class="kn">import</span> <span class="nn">webnotes.db</span>
+	<span class="k">if</span> <span class="n">ac_name</span><span class="p">:</span>
+		<span class="n">conn</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">ac_name</span> <span class="o">=</span> <span class="n">ac_name</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">set_as_account_master</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">db_name</span><span class="p">:</span>
+			<span class="n">conn</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">db_name</span><span class="p">)</span>
+		
+	<span class="n">session</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span><span class="s">&#39;Administrator&#39;</span><span class="p">}</span>
+	<span class="kn">import</span> <span class="nn">webnotes.profile</span>
+	<span class="n">user</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">profile</span><span class="o">.</span><span class="n">Profile</span><span class="p">(</span><span class="s">&#39;Administrator&#39;</span><span class="p">)</span>
+
+
+<span class="c"># Environment Variables</span>
+<span class="c">#-----------------------------------------------------------</span></div>
+<div class="viewcode-block" id="get_env_vars"><a class="viewcode-back" href="../webnotes.html#webnotes.get_env_vars">[docs]</a><span class="k">def</span> <span class="nf">get_env_vars</span><span class="p">(</span><span class="n">env_var</span><span class="p">):</span>
+	<span class="k">return</span> <span class="n">os</span><span class="o">.</span><span class="n">environ</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">env_var</span><span class="p">,</span><span class="s">&#39;None&#39;</span><span class="p">)</span>
+</div>
+<span class="n">remote_ip</span> <span class="o">=</span> <span class="n">get_env_vars</span><span class="p">(</span><span class="s">&#39;REMOTE_ADDR&#39;</span><span class="p">)</span>		<span class="c">#Required for login from python shell</span>
+
+<span class="c"># Logging</span>
+<span class="c"># -----------------------------------------------------------</span>
+
+<span class="n">logger</span> <span class="o">=</span> <span class="bp">None</span>
+
+
+<div class="viewcode-block" id="setup_logging"><a class="viewcode-back" href="../webnotes.html#webnotes.setup_logging">[docs]</a><span class="k">def</span> <span class="nf">setup_logging</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">logging</span>
+	<span class="kn">import</span> <span class="nn">logging.handlers</span>
+	<span class="c"># Also please set umask for apache to 002.</span>
+	<span class="k">global</span> <span class="n">logger</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="s">&#39;WNLogger&#39;</span><span class="p">)</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">setLevel</span><span class="p">(</span><span class="nb">eval</span><span class="p">(</span><span class="n">defs</span><span class="o">.</span><span class="n">log_level</span><span class="p">))</span>
+
+		<span class="n">log_handler</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">handlers</span><span class="o">.</span><span class="n">RotatingFileHandler</span><span class="p">(</span><span class="n">defs</span><span class="o">.</span><span class="n">log_file_name</span><span class="p">,</span> <span class="n">maxBytes</span> <span class="o">=</span> <span class="n">defs</span><span class="o">.</span><span class="n">log_file_size</span><span class="p">,</span> <span class="n">backupCount</span> <span class="o">=</span> <span class="n">defs</span><span class="o">.</span><span class="n">log_file_backup_count</span><span class="p">)</span>	
+		<span class="n">formatter</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">Formatter</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%(name)s</span><span class="s"> - </span><span class="si">%(asctime)s</span><span class="s"> - </span><span class="si">%(levelname)s</span><span class="se">\n</span><span class="si">%(message)s</span><span class="se">\n</span><span class="s">-------------------&#39;</span><span class="p">)</span>
+	
+		<span class="n">log_handler</span><span class="o">.</span><span class="n">setFormatter</span><span class="p">(</span><span class="n">formatter</span><span class="p">)</span>
+		<span class="n">logger</span><span class="o">.</span><span class="n">addHandler</span><span class="p">(</span><span class="n">log_handler</span><span class="p">)</span>
+	
+	<span class="k">except</span> <span class="ne">IOError</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span> <span class="o">==</span> <span class="mi">13</span><span class="p">:</span>
+			<span class="nb">open</span><span class="p">(</span><span class="n">defs</span><span class="o">.</span><span class="n">log_file_name</span><span class="p">)</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+
+</div>
+<span class="k">if</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">defs</span><span class="p">,</span> <span class="s">&#39;log_file_name&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">):</span>
+	<span class="n">setup_logging</span><span class="p">()</span>
+	
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../index.html">
+              <img class="logo" src="../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="index.html" >Module code</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
