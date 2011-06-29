@@ -125,6 +125,9 @@ def get_files_path():
 		return os.path.join(get_index_path(), 'user_files', conn.cur_db_name)
 	
 def create_folder(path):
+	"""
+	Wrapper function for os.makedirs (does not throw exception if directory exists)
+	"""
 	import os
 	
 	try:

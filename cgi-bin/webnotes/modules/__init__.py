@@ -63,3 +63,27 @@ def get_module_path(module):
 		modules_path = os.path.join(webnotes.defs.modules_path, scrub(module))
 		
 	return modules_path
+	
+def switch_module(dt, dn, to, frm=None, export=None):
+	"""
+		Change the module of the given doctype, if export is true, then also export txt and copy
+		code files from src
+	"""
+	import os
+	webnotes.conn.sql("update `tab"+dt+"` set module=%s where name=%s", (to, dn))
+
+	if export:
+		export_doc(dt, dn)
+
+		# copy code files
+		if dt in ('DocType', 'Page', 'Search Criteria'):
+			from_path = os.path.join(get_module_path(frm), scrub(dt), scrub(dn), scrub(dn))
+			to_path = os.path.join(get_module_path(to), scrub(dt), scrub(dn), scrub(dn))
+
+			# make dire if exists
+			os.system('mkdir -p %s' % os.path.join(get_module_path(to), scrub(dt), scrub(dn)))
+
+			for ext in ('py','js','html','css'):
+				os.system('cp %s %s')
+
+
