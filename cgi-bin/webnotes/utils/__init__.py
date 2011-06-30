@@ -532,78 +532,89 @@ def send_error_report():
 	''' % (m, form.getvalue('msg') or '', form.getvalue('err_msg'))
 	sendmail([webnotes.conn.get_value('Control Panel',None,'support_email_id') or 'support@iwebnotes.com'], sender=webnotes.session['user'], msg=err_msg, subject='Error Report '+m)
 
-# pretty print a dict
+# Dictionary utils
 # ==============================================================================
 
+def remove_blanks(d):
+	"""
+		Returns d with empty ('' or None) values stripped
+	"""
+	empty_keys = []
+	for key in d:
+		if d[key]=='' or d[key]==None:
+			# del d[key] raises runtime exception, using a workaround
+			empty_keys.append(key)
+	for key in empty_keys:
+		del d[key]
+		
+	return d
+		
 def pprint_dict(d, level=1, no_blanks=True):
+	"""
+		Pretty print a dictionary with indents
+	"""
 	if no_blanks:
-		empty_keys = []
-		for key in d:
-			if d[key]=='' or d[key]==None:
-				# del d[key] raises runtime exception, using a workaround
-				empty_keys.append(key)
-		for key in empty_keys:
-			del d[key]
-	indent = ''
-	for i in range(0,level):
-		indent += '\t'
-	lines = []
+		remove_blanks(d)
+		
+	# make indent
+	indent, ret = '', ''
+	for i in range(0,level): indent += '\t'
+	
+	# add lines
+	comment, lines = '', []
 	kl = d.keys()
 	kl.sort()
+		
+	# make lines
 	for key in kl:
-		tmp = {key: d[key]}
-		lines.append(indent + str(tmp)[1:-1] )
-	return indent + '{\n' \
-			+ indent + ',\n\t'.join(lines) \
-			+ '\n' + indent + '}'
+		if key != '##comment':
+			tmp = {key: d[key]}
+			lines.append(indent + str(tmp)[1:-1] )
+	
+	# add comment string
+	if '##comment' in kl:
+		ret = ('\n' + indent) + '# ' + d['##comment'] + '\n'
 
+	# open
+	ret += indent + '{\n'
+	
+	# lines
+	ret += indent + ',\n\t'.join(lines)
+	
+	# close
+	ret += '\n' + indent + '}'
+	
+	return ret
+				
 def get_common(d1,d2):
 	"""
 		returns (list of keys) the common part of two dicts
 	"""
 	return [p for p in d1 if p in d2 and d1[p]==d2[p]]
 
-def min_lod(listt):
+def get_common_dict(d1, d2):
 	"""
-		minimized a list of dictionaries using '_from_prev'
+		return common dictionary of d1 and d2
 	"""
-	import copy
-	l = copy.deepcopy(listt)
-	prev = {}
-	for dic in l:
-		common = get_common(prev,dic)
-		prev = dic
-		for i in common : del dic[i]
-		if not common==[] : dic['_from_prev']= ','.join(str(p) for p in common)
-	return l
+	ret = {}
+	for key in d1:
+		if key in d2 and d2[key]==d1[key]:
+			ret[key] = d1[key]
+	return ret
 
-def max_lod(listt):
+def get_diff_dict(d1, d2):
 	"""
-		maximizes a list of dictionaries using '_from_prev'
+		return common dictionary of d1 and d2
 	"""
-	import copy
-	l = copy.deepcopy(listt)
-	prev = {}
-	for dic in l:
-		if '_from_prev' in dic:
-			prevs = dic['_from_prev'].split(',')
-			for p in prevs : dic[p] = prev[p]
-			del dic['_from_prev']
-		prev = dic
-	return l
+	diff_keys = set(d2.keys()).difference(set(d1.keys()))
+	
+	ret = {}
+	for d in diff_keys: ret[d] = d2[d]
+	return ret
 
-def pprint_lod(l, level=1, no_blanks=True):
-	"""
-		returns pretty print string for list of dictionaries
-	"""
-	l = min_lod(l)
-	dictlist = [pprint_dict(d) for d in l]
-	return '[\n' + ',\n'.join(dictlist) + '\n]'
 
-def peval_lod(string):
-	"""
-		pretty eval a pretty printed list of dictionaries (using )
-	"""
-	strdict = eval(string)
-	strdict = max_lod(strdict)
-	return strdict
+
+
+
+	
+

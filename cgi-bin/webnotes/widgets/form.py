@@ -195,7 +195,7 @@ def runserverobj():
 
 	else:
 		doclist = DocList()
-		doclist.from_compressed(form.getvalue('docs'), form.getvalue('docname'))
+		doclist.from_compressed(form.getvalue('docs'), dn)
 		so = doclist.make_obj()
 		
 	check_guest_access(so.doc)

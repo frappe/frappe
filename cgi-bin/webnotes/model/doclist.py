@@ -32,19 +32,23 @@ class DocList:
 		self.docs = expand(data)
 		self.objectify(docname)
 	
-	def objectify(self, docname):
+	def objectify(self, docname=None):
 		"""
 		Converts self.docs from a list of dicts to list of Documents
 		"""
 		from webnotes.model.doc import Document
 		
 		self.docs = [Document(fielddata=d) for d in self.docs]
-		self.children = []
-		for d in self.docs:
-			if d.name == docname:
-				self.doc = d
-			else:
-				self.children.append(d)
+		if not docname:
+			self.doc, self.children = self.docs[0], self.docs[1:]
+
+		else:
+			self.children = []
+			for d in self.docs:
+				if d.name == docname:
+					self.doc = d
+				else:
+					self.children.append(d)
 	
 	def make_obj(self):
 		"""
