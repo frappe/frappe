@@ -1,27 +1,3 @@
-#==============================================================================
-# script to change the module name in the database & update svn
-#==============================================================================
-
-def change_module(dt, dn, from_module, to_module):
-	import os, webnotes.defs
-	from webnotes.modules import scrub
-	
-	# change in db
-	webnotes.conn.sql("update `tab%s` set module=%s where name=%s" % (dt, '%s', '%s'), (to_module, dn))
-	
-	# export files
-	from webnotes.modules.export_module import export_to_files
-	export_to_files(record_list = [[dt, dn]])
-	
-	if dt in ['DocType','Page','Search Criteria']:
-		dt, dn = scrub(dt), scrub(dn)
-		
-	# svn add
-	webnotes.msgprint(os.popen("svn add %s" % os.path.join(webnotes.defs.modules_path, scrub(to_module), dt, dn)).read())
-
-	# svn remove
-	webnotes.msgprint(os.popen("svn remove %s" % os.path.join(webnotes.defs.modules_path, scrub(from_module), dt, dn)).read())
-
 
 
 #==============================================================================

@@ -5,7 +5,7 @@ _f.FrmContainer = function() {
 	// create hidden
 	$dh(this.wrapper);
 
-	this.body = $a(this.wrapper,'div');
+	this.body = $a(this.wrapper,'div','frm_container');
 		
 	// make by twin
 	_f.frm_dialog = new _f.FrmDialog();
