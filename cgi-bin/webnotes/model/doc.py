@@ -446,9 +446,9 @@ class Document:
 		"""
 		Clears the child records from the given `doclist` for a particular `tablefield`
 		"""
-		import webnotes.model.doclist
+		from webnotes.model.utils import getlist
 		
-		for d in webnotes.model.doclist.getlist(doclist, tablefield):
+		for d in getlist(doclist, tablefield):
 			d.fields['__oldparent'] = d.parent
 			d.parent = 'old_parent:' + d.parent # for client to send it back while saving
 			d.docstatus = 2
