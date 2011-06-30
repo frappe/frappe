@@ -556,3 +556,54 @@ def pprint_dict(d, level=1, no_blanks=True):
 	return indent + '{\n' \
 			+ indent + ',\n\t'.join(lines) \
 			+ '\n' + indent + '}'
+
+def get_common(d1,d2):
+	"""
+		returns (list of keys) the common part of two dicts
+	"""
+	return [p for p in d1 if p in d2 and d1[p]==d2[p]]
+
+def min_lod(listt):
+	"""
+		minimized a list of dictionaries using '_from_prev'
+	"""
+	import copy
+	l = copy.deepcopy(listt)
+	prev = {}
+	for dic in l:
+		common = get_common(prev,dic)
+		prev = dic
+		for i in common : del dic[i]
+		if not common==[] : dic['_from_prev']= ','.join(str(p) for p in common)
+	return l
+
+def max_lod(listt):
+	"""
+		maximizes a list of dictionaries using '_from_prev'
+	"""
+	import copy
+	l = copy.deepcopy(listt)
+	prev = {}
+	for dic in l:
+		if '_from_prev' in dic:
+			prevs = dic['_from_prev'].split(',')
+			for p in prevs : dic[p] = prev[p]
+			del dic['_from_prev']
+		prev = dic
+	return l
+
+def pprint_lod(l, level=1, no_blanks=True):
+	"""
+		returns pretty print string for list of dictionaries
+	"""
+	l = min_lod(l)
+	dictlist = [pprint_dict(d) for d in l]
+	return '[\n' + ',\n'.join(dictlist) + '\n]'
+
+def peval_lod(string):
+	"""
+		pretty eval a pretty printed list of dictionaries (using )
+	"""
+	strdict = eval(string)
+	strdict = max_lod(strdict)
+	return strdict

@@ -105,3 +105,9 @@ def clear_code_fields(doclist, folder, code_type):
 		if doclist[0].get(code_field[0]):
 
 			doclist[0][code_field[0]] = None
+
+def to_sandbox(record_list=[], record_module='Sandbox'):
+	"""
+		Export record_list to Sandbox. record_list is a list of lists ([doctype],[docname] )  ,
+	"""
+	pass
