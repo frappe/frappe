@@ -1,0 +1,44 @@
+doctype Package
+===============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    core.doctype.comment_widget_record
+    core.doctype.control_panel
+    core.doctype.custom_field
+    core.doctype.custom_script
+    core.doctype.default_home_page
+    core.doctype.defaultvalue
+    core.doctype.docfield
+    core.doctype.docformat
+    core.doctype.docperm
+    core.doctype.doctrigger
+    core.doctype.doctype
+    core.doctype.doctype_label
+    core.doctype.doctype_mapper
+    core.doctype.event
+    core.doctype.event_role
+    core.doctype.event_user
+    core.doctype.field_mapper_detail
+    core.doctype.file_data
+    core.doctype.letter_head
+    core.doctype.module_def
+    core.doctype.module_def_item
+    core.doctype.module_def_role
+    core.doctype.page
+    core.doctype.page_role
+    core.doctype.page_template
+    core.doctype.print_format
+    core.doctype.profile
+    core.doctype.property_setter
+    core.doctype.role
+    core.doctype.search_criteria
+    core.doctype.stylesheet
+    core.doctype.system_console
+    core.doctype.table_mapper_detail
+    core.doctype.tag
+    core.doctype.userrole
+

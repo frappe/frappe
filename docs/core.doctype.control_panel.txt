@@ -1,0 +1,11 @@
+control_panel Package
+=====================
+
+:mod:`control_panel` Module
+---------------------------
+
+.. automodule:: core.doctype.control_panel.control_panel
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

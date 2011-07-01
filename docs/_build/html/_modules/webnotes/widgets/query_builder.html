@@ -1,0 +1,429 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.widgets.query_builder &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes" href="../../webnotes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" accesskey="U">webnotes</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.widgets.query_builder</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<span class="n">form</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span>
+<span class="n">session</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span>
+<span class="n">sql</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span>
+<span class="n">out</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">response</span>
+
+<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="n">cint</span>
+
+<div class="viewcode-block" id="get_search_criteria_list"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.get_search_criteria_list">[docs]</a><span class="k">def</span> <span class="nf">get_search_criteria_list</span><span class="p">(</span><span class="n">dt</span><span class="p">):</span>
+	<span class="n">sc_list</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select criteria_name, doc_type from `tabSearch Criteria` where doc_type = &#39;</span><span class="si">%s</span><span class="s">&#39; or parent_doc_type = &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dt</span><span class="p">))</span>
+	<span class="k">return</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">s</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">sc_list</span><span class="p">]</span>
+</div>
+<div class="viewcode-block" id="load_report_list"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.load_report_list">[docs]</a><span class="k">def</span> <span class="nf">load_report_list</span><span class="p">():</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;rep_list&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">get_search_criteria_list</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;dt&#39;</span><span class="p">))</span>
+
+	
+<span class="c"># Get, scrub metadata</span>
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="get_sql_tables"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.get_sql_tables">[docs]</a><span class="k">def</span> <span class="nf">get_sql_tables</span><span class="p">(</span><span class="n">q</span><span class="p">):</span>
+	<span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;WHERE&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+		<span class="n">tl</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;FROM&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;WHERE&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+	<span class="k">elif</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;GROUP BY&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+		<span class="n">tl</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;FROM&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;GROUP BY&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">tl</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;FROM&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;ORDER BY&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">)</span>
+	<span class="k">return</span> <span class="p">[</span><span class="n">t</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s">&#39;`&#39;</span><span class="p">)[</span><span class="mi">3</span><span class="p">:]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tl</span><span class="p">]</span>
+
+</div>
+<div class="viewcode-block" id="get_parent_dt"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.get_parent_dt">[docs]</a><span class="k">def</span> <span class="nf">get_parent_dt</span><span class="p">(</span><span class="n">dt</span><span class="p">):</span>
+	<span class="n">pdt</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+	<span class="k">if</span> <span class="n">sql</span><span class="p">(</span><span class="s">&#39;select name from `tabDocType` where istable=1 and name=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">):</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&#39;select parent from `tabDocField` where fieldtype=&quot;Table&quot; and options=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">res</span><span class="p">:</span> <span class="n">pdt</span> <span class="o">=</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+	<span class="k">return</span> <span class="n">pdt</span>
+</div>
+<div class="viewcode-block" id="get_sql_meta"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.get_sql_meta">[docs]</a><span class="k">def</span> <span class="nf">get_sql_meta</span><span class="p">(</span><span class="n">tl</span><span class="p">):</span>
+	<span class="n">std_columns</span> <span class="o">=</span> <span class="p">{</span>
+		<span class="s">&#39;owner&#39;</span><span class="p">:(</span><span class="s">&#39;Owner&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;100&#39;</span><span class="p">),</span> 
+		<span class="s">&#39;creation&#39;</span><span class="p">:(</span><span class="s">&#39;Created on&#39;</span><span class="p">,</span> <span class="s">&#39;Date&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;100&#39;</span><span class="p">),</span> 
+		<span class="s">&#39;modified&#39;</span><span class="p">:(</span><span class="s">&#39;Last modified on&#39;</span><span class="p">,</span> <span class="s">&#39;Date&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;100&#39;</span><span class="p">),</span> 
+		<span class="s">&#39;modified_by&#39;</span><span class="p">:(</span><span class="s">&#39;Modified By&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;100&#39;</span><span class="p">)</span>
+	<span class="p">}</span>
+	
+	<span class="n">meta</span> <span class="o">=</span> <span class="p">{}</span>
+	
+	<span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">tl</span><span class="p">:</span>
+		<span class="n">meta</span><span class="p">[</span><span class="n">dt</span><span class="p">]</span> <span class="o">=</span> <span class="n">std_columns</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+
+		<span class="c"># for table doctype, the ID is the parent id</span>
+		<span class="n">pdt</span> <span class="o">=</span> <span class="n">get_parent_dt</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">pdt</span><span class="p">:</span> 
+			<span class="n">meta</span><span class="p">[</span><span class="n">dt</span><span class="p">][</span><span class="s">&#39;parent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;ID&#39;</span><span class="p">,</span> <span class="s">&#39;Link&#39;</span><span class="p">,</span> <span class="n">pdt</span><span class="p">,</span> <span class="s">&#39;200&#39;</span><span class="p">)</span>
+
+		<span class="c"># get the field properties from DocField</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname, label, fieldtype, options, width from tabDocField where parent=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+				<span class="n">meta</span><span class="p">[</span><span class="n">dt</span><span class="p">][</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="n">r</span><span class="p">[</span><span class="mi">4</span><span class="p">]);</span>
+				
+		<span class="c"># name</span>
+		<span class="n">meta</span><span class="p">[</span><span class="n">dt</span><span class="p">][</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;ID&#39;</span><span class="p">,</span> <span class="s">&#39;Link&#39;</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="s">&#39;200&#39;</span><span class="p">)</span>
+			
+	<span class="k">return</span> <span class="n">meta</span>
+
+<span class="c"># Additional conditions to fulfill match permission rules</span>
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="getmatchcondition"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.getmatchcondition">[docs]</a><span class="k">def</span> <span class="nf">getmatchcondition</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">ud</span><span class="p">,</span> <span class="n">ur</span><span class="p">):</span>
+	<span class="n">res</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;SELECT `role`, `match` FROM tabDocPerm WHERE parent = &#39;</span><span class="si">%s</span><span class="s">&#39; AND (`read`=1) AND permlevel = 0&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+	<span class="n">cond</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="n">ur</span><span class="p">:</span> <span class="c"># role applicable to user</span>
+			<span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+				<span class="n">defvalues</span> <span class="o">=</span> <span class="n">ud</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],[</span><span class="s">&#39;_NA&#39;</span><span class="p">])</span>
+				<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">defvalues</span><span class="p">:</span>
+					<span class="n">cond</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;`tab</span><span class="si">%s</span><span class="s">`.`</span><span class="si">%s</span><span class="s">`=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">d</span><span class="p">))</span>
+			<span class="k">else</span><span class="p">:</span> <span class="c"># nomatch i.e. full read rights</span>
+				<span class="k">return</span> <span class="s">&#39;&#39;</span>
+
+	<span class="k">return</span> <span class="s">&#39; OR &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+	</div>
+<div class="viewcode-block" id="add_match_conditions"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.add_match_conditions">[docs]</a><span class="k">def</span> <span class="nf">add_match_conditions</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">tl</span><span class="p">,</span> <span class="n">ur</span><span class="p">,</span> <span class="n">ud</span><span class="p">):</span>
+	<span class="n">sl</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">tl</span><span class="p">:</span>
+		<span class="n">s</span> <span class="o">=</span> <span class="n">getmatchcondition</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">ud</span><span class="p">,</span> <span class="n">ur</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">s</span><span class="p">:</span> 
+			<span class="n">sl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+
+	<span class="c"># insert the conditions</span>
+	<span class="k">if</span> <span class="n">sl</span><span class="p">:</span>
+		<span class="n">condition_st</span>  <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;WHERE&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span> <span class="ow">and</span> <span class="s">&#39; AND &#39;</span> <span class="ow">or</span> <span class="s">&#39; WHERE &#39;</span>
+
+		<span class="n">condition_end</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;ORDER BY&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span> <span class="ow">and</span> <span class="s">&#39;ORDER BY&#39;</span> <span class="ow">or</span> <span class="s">&#39;LIMIT&#39;</span>
+		<span class="n">condition_end</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;GROUP BY&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span> <span class="ow">and</span> <span class="s">&#39;GROUP BY&#39;</span> <span class="ow">or</span> <span class="n">condition_end</span>
+		
+		<span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;ORDER BY&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;LIMIT&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span> <span class="ow">or</span> <span class="n">q</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;GROUP BY&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span><span class="p">:</span> <span class="c"># if query continues beyond conditions</span>
+			<span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">condition_end</span><span class="p">)</span>
+			<span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">condition_st</span> <span class="o">+</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="s">&#39; OR &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sl</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;) &#39;</span> <span class="o">+</span> <span class="n">condition_end</span> <span class="o">+</span> <span class="n">q</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">q</span> <span class="o">=</span> <span class="n">q</span> <span class="o">+</span> <span class="n">condition_st</span> <span class="o">+</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="s">&#39; OR &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">sl</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+			
+	<span class="k">return</span> <span class="n">q</span>
+
+<span class="c"># execute server-side script from Search Criteria</span>
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="exec_report"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.exec_report">[docs]</a><span class="k">def</span> <span class="nf">exec_report</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">colnames</span><span class="o">=</span><span class="p">[],</span> <span class="n">colwidths</span><span class="o">=</span><span class="p">[],</span> <span class="n">coltypes</span><span class="o">=</span><span class="p">[],</span> <span class="n">coloptions</span><span class="o">=</span><span class="p">[],</span> <span class="n">filter_values</span><span class="o">=</span><span class="p">{},</span> <span class="n">query</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">from_export</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="n">col_idx</span><span class="p">,</span> <span class="n">i</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">header_html</span><span class="p">,</span> <span class="n">footer_html</span><span class="p">,</span> <span class="n">page_template</span> <span class="o">=</span> <span class="p">{},</span> <span class="mi">0</span><span class="p">,</span> <span class="bp">None</span><span class="p">,</span> <span class="p">[],</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span>
+	<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">colnames</span><span class="p">:</span>
+		<span class="n">col_idx</span><span class="p">[</span><span class="n">c</span><span class="p">]</span> <span class="o">=</span> <span class="n">i</span>
+		<span class="n">i</span><span class="o">+=</span><span class="mi">1</span>
+	
+	<span class="c"># load globals (api)</span>
+	<span class="kn">from</span> <span class="nn">webnotes</span> <span class="kn">import</span> <span class="o">*</span>
+	<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="o">*</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="o">*</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.doclist</span> <span class="kn">import</span> <span class="n">getlist</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.db_schema</span> <span class="kn">import</span> <span class="n">updatedb</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.code</span> <span class="kn">import</span> <span class="n">get_obj</span>
+
+	<span class="nb">set</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">set</span>
+	<span class="n">sql</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span>
+	<span class="n">get_value</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_value</span>
+	<span class="n">convert_to_lists</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">convert_to_lists</span>
+	<span class="n">NEWLINE</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span>
+
+	<span class="k">exec</span> <span class="nb">str</span><span class="p">(</span><span class="n">code</span><span class="p">)</span>
+	
+	<span class="k">if</span> <span class="n">out</span><span class="o">!=</span><span class="bp">None</span><span class="p">:</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">out</span>
+
+	<span class="k">return</span> <span class="n">res</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">header_html</span><span class="p">,</span> <span class="n">footer_html</span><span class="p">,</span> <span class="n">page_template</span>
+	
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="guess_type"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.guess_type">[docs]</a><span class="k">def</span> <span class="nf">guess_type</span><span class="p">(</span><span class="n">m</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Returns fieldtype depending on the MySQLdb Description</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">MySQLdb</span>
+	<span class="k">if</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">NUMBER</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s">&#39;Currency&#39;</span>
+	<span class="k">elif</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">MySQLdb</span><span class="o">.</span><span class="n">DATE</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s">&#39;Date&#39;</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">return</span> <span class="s">&#39;Data&#39;</span>
+		</div>
+<div class="viewcode-block" id="build_description_simple"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.build_description_simple">[docs]</a><span class="k">def</span> <span class="nf">build_description_simple</span><span class="p">():</span>
+	<span class="n">colnames</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">colwidths</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+	<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_description</span><span class="p">():</span>
+		<span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">coltypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">guess_type</span><span class="p">[</span><span class="n">m</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+		<span class="n">coloptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+		<span class="n">colwidths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;100&#39;</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">colwidths</span>
+
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="build_description_standard"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.build_description_standard">[docs]</a><span class="k">def</span> <span class="nf">build_description_standard</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">tl</span><span class="p">):</span>
+
+	<span class="n">desc</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span>
+
+	<span class="n">colnames</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">colwidths</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+
+	<span class="c"># merged metadata - used if we are unable to</span>
+	<span class="c"># get both the table name and field name from</span>
+	<span class="c"># the description - in case of joins</span>
+	<span class="n">merged_meta</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">meta</span><span class="p">:</span>
+		<span class="n">merged_meta</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">meta</span><span class="p">[</span><span class="n">d</span><span class="p">])</span>
+
+	<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">desc</span><span class="p">:</span>
+		<span class="n">fn</span><span class="p">,</span> <span class="n">dt</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&#39;&#39;</span>
+		<span class="k">if</span> <span class="s">&#39;.&#39;</span> <span class="ow">in</span> <span class="n">fn</span><span class="p">:</span>
+			<span class="n">dt</span><span class="p">,</span> <span class="n">fn</span> <span class="o">=</span> <span class="n">fn</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">dt</span><span class="p">)</span> <span class="ow">and</span> <span class="n">merged_meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+			<span class="c"># no &quot;AS&quot; given, find type from merged description</span>
+			
+			<span class="n">desc</span> <span class="o">=</span> <span class="n">merged_meta</span><span class="p">[</span><span class="n">fn</span><span class="p">]</span>
+			<span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">fn</span><span class="p">)</span>
+			<span class="n">coltypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+			<span class="n">coloptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+			<span class="n">colwidths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;100&#39;</span><span class="p">)</span>
+			
+		<span class="k">elif</span> <span class="n">meta</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dt</span><span class="p">,{})</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">fn</span><span class="p">):</span>
+			<span class="c"># type specified for a multi-table join</span>
+			<span class="c"># usually from Report Builder</span>
+			
+			<span class="n">desc</span> <span class="o">=</span> <span class="n">meta</span><span class="p">[</span><span class="n">dt</span><span class="p">][</span><span class="n">fn</span><span class="p">]</span>
+			<span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="n">fn</span><span class="p">)</span>
+			<span class="n">coltypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+			<span class="n">coloptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+			<span class="n">colwidths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">desc</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;100&#39;</span><span class="p">)</span>
+			
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c"># nothing found</span>
+			<span class="c"># guess</span>
+			
+			<span class="n">colnames</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">fn</span><span class="p">)</span>
+			<span class="n">coltypes</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">guess_type</span><span class="p">(</span><span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+			<span class="n">coloptions</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+			<span class="n">colwidths</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;100&#39;</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">colwidths</span>
+
+<span class="c"># Entry Point - Run the query</span>
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="runquery"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.runquery">[docs]</a><span class="k">def</span> <span class="nf">runquery</span><span class="p">(</span><span class="n">q</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">ret</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">from_export</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes.utils</span>
+
+	<span class="n">formatted</span> <span class="o">=</span> <span class="n">cint</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;formatted&#39;</span><span class="p">))</span>	
+	
+	<span class="c"># CASE A: Simple Query</span>
+	<span class="c"># --------------------</span>
+	<span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;simple_query&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;is_simple&#39;</span><span class="p">):</span>
+		<span class="n">q</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;simple_query&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;query&#39;</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">q</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s">&#39;select&#39;</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Query must be a SELECT&#39;</span>
+		
+		<span class="n">as_dict</span> <span class="o">=</span> <span class="n">cint</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;as_dict&#39;</span><span class="p">))</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">as_dict</span> <span class="o">=</span> <span class="n">as_dict</span><span class="p">,</span> <span class="n">as_list</span> <span class="o">=</span> <span class="ow">not</span> <span class="n">as_dict</span><span class="p">,</span> <span class="n">formatted</span><span class="o">=</span><span class="n">formatted</span><span class="p">)</span>
+		
+		<span class="c"># build colnames etc from metadata</span>
+		<span class="n">colnames</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">colwidths</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[],</span> <span class="p">[]</span>
+		
+	<span class="c"># CASE B: Standard Query</span>
+	<span class="c"># -----------------------</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">q</span><span class="p">:</span> <span class="n">q</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;query&#39;</span><span class="p">)</span>
+
+		<span class="n">tl</span> <span class="o">=</span> <span class="n">get_sql_tables</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+		<span class="n">meta</span> <span class="o">=</span> <span class="n">get_sql_meta</span><span class="p">(</span><span class="n">tl</span><span class="p">)</span>
+			
+		<span class="n">q</span> <span class="o">=</span> <span class="n">add_match_conditions</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">tl</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">roles</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_defaults</span><span class="p">())</span>
+		
+		<span class="c"># replace special variables</span>
+		<span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;__user&#39;</span><span class="p">,</span> <span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">])</span>
+		<span class="n">q</span> <span class="o">=</span> <span class="n">q</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;__today&#39;</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">nowdate</span><span class="p">())</span>
+		
+		<span class="n">res</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="n">q</span><span class="p">,</span> <span class="n">as_list</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">formatted</span><span class="o">=</span><span class="n">formatted</span><span class="p">)</span>
+
+		<span class="n">colnames</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">colwidths</span> <span class="o">=</span> <span class="n">build_description_standard</span><span class="p">(</span><span class="n">meta</span><span class="p">,</span> <span class="n">tl</span><span class="p">)</span>
+		
+	<span class="c"># run server script</span>
+	<span class="c"># -----------------</span>
+	<span class="n">style</span><span class="p">,</span> <span class="n">header_html</span><span class="p">,</span> <span class="n">footer_html</span><span class="p">,</span> <span class="n">page_template</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span>
+	<span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;sc_id&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;sc_id&#39;</span><span class="p">):</span>
+		<span class="n">sc_id</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;sc_id&#39;</span><span class="p">)</span>
+		<span class="kn">from</span> <span class="nn">webnotes.model.code</span> <span class="kn">import</span> <span class="n">get_code</span>
+		<span class="n">sc_details</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select module, standard, server_script from `tabSearch Criteria` where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">sc_id</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">sc_details</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">!=</span><span class="s">&#39;No&#39;</span><span class="p">:</span>	
+			<span class="n">code</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">sc_details</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&#39;Search Criteria&#39;</span><span class="p">,</span> <span class="n">sc_id</span><span class="p">,</span> <span class="s">&#39;py&#39;</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">code</span> <span class="o">=</span> <span class="n">sc_details</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+			
+		<span class="k">if</span> <span class="n">code</span><span class="p">:</span>
+			<span class="n">filter_values</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;filter_values&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">eval</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;filter_values&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">{}</span>
+			<span class="n">res</span><span class="p">,</span> <span class="n">style</span><span class="p">,</span> <span class="n">header_html</span><span class="p">,</span> <span class="n">footer_html</span><span class="p">,</span> <span class="n">page_template</span> <span class="o">=</span> <span class="n">exec_report</span><span class="p">(</span><span class="n">code</span><span class="p">,</span> <span class="n">res</span><span class="p">,</span> <span class="n">colnames</span><span class="p">,</span> <span class="n">colwidths</span><span class="p">,</span> <span class="n">coltypes</span><span class="p">,</span> <span class="n">coloptions</span><span class="p">,</span> <span class="n">filter_values</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="n">from_export</span><span class="p">)</span>
+		
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;colnames&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colnames</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;coltypes&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coltypes</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;coloptions&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">coloptions</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;colwidths&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">colwidths</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;header_html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">header_html</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;footer_html&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">footer_html</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;page_template&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">page_template</span>
+	
+	<span class="k">if</span> <span class="n">style</span><span class="p">:</span>
+		<span class="n">out</span><span class="p">[</span><span class="s">&#39;style&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">style</span>
+	
+	<span class="c"># just the data - return</span>
+	<span class="k">if</span> <span class="n">ret</span><span class="o">==</span><span class="mi">1</span><span class="p">:</span>
+		<span class="k">return</span> <span class="n">res</span>	
+
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">res</span>
+
+	<span class="c"># return num of entries </span>
+	<span class="n">qm</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;query_max&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;query_max&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+	<span class="k">if</span> <span class="n">qm</span> <span class="ow">and</span> <span class="n">qm</span><span class="o">.</span><span class="n">strip</span><span class="p">():</span>
+		<span class="k">if</span> <span class="n">qm</span><span class="o">.</span><span class="n">split</span><span class="p">()[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">!=</span> <span class="s">&#39;select&#39;</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Query (Max) must be a SELECT&#39;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;simple_query&#39;</span><span class="p">):</span>
+			<span class="n">qm</span> <span class="o">=</span> <span class="n">add_match_conditions</span><span class="p">(</span><span class="n">qm</span><span class="p">,</span> <span class="n">tl</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">roles</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">defaults</span><span class="p">)</span>
+
+		<span class="n">out</span><span class="p">[</span><span class="s">&#39;n_values&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">cint</span><span class="p">(</span><span class="n">sql</span><span class="p">(</span><span class="n">qm</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>
+
+<span class="c"># Export to CSV</span>
+<span class="c"># ====================================================================</span>
+</div>
+<div class="viewcode-block" id="runquery_csv"><a class="viewcode-back" href="../../../webnotes.widgets.html#webnotes.widgets.query_builder.runquery_csv">[docs]</a><span class="k">def</span> <span class="nf">runquery_csv</span><span class="p">():</span>
+	<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="n">getCSVelement</span>
+
+	<span class="c"># run query</span>
+	<span class="n">res</span> <span class="o">=</span> <span class="n">runquery</span><span class="p">(</span><span class="n">from_export</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+	
+	<span class="n">q</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;query&#39;</span><span class="p">)</span>
+	
+	<span class="n">rep_name</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;report_name&#39;</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;simple_query&#39;</span><span class="p">):</span>
+
+		<span class="c"># Report Name</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">rep_name</span><span class="p">:</span>
+			<span class="n">rep_name</span> <span class="o">=</span> <span class="n">get_sql_tables</span><span class="p">(</span><span class="n">q</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">rep_name</span><span class="p">:</span> <span class="n">rep_name</span> <span class="o">=</span> <span class="s">&#39;DataExport&#39;</span>
+	
+	<span class="c"># Headings</span>
+	<span class="n">heads</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="s">&#39;colnames&#39;</span><span class="p">]:</span>
+		<span class="n">heads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+	<span class="k">if</span> <span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;colnames&#39;</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">h</span> <span class="ow">in</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;colnames&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="p">):</span>
+			<span class="n">heads</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">h</span><span class="p">))</span>
+
+	<span class="c"># Output dataset</span>
+	<span class="n">dset</span> <span class="o">=</span> <span class="p">[</span><span class="n">rep_name</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">]</span>
+	<span class="k">if</span> <span class="n">heads</span><span class="p">:</span>
+		<span class="n">dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">heads</span><span class="p">))</span>
+	
+	<span class="c"># Data</span>
+	<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">out</span><span class="p">[</span><span class="s">&#39;values&#39;</span><span class="p">]:</span>
+		<span class="n">dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">r</span><span class="p">]))</span>
+		
+	<span class="n">txt</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dset</span><span class="p">)</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">txt</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;csv&#39;</span>
+	<span class="n">out</span><span class="p">[</span><span class="s">&#39;doctype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">rep_name</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

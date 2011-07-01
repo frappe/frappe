@@ -37,12 +37,14 @@ def import_module(module, verbose=0):
 def get_doclist(path, doctype, docname):
 	"returns a doclist (list of dictionaries) of multiple records for the given parameters"
 	import os
+	from webnotes.utils import peval_doclist
+	
 	do_not_import = ('control_panel')
 	
 	fname = os.path.join(path,doctype,docname,docname+'.txt')
 	if os.path.exists(fname) and (doctype not in do_not_import):
 		f = open(fname,'r')
-		dl = eval(f.read())
+		dl = peval_doclist(f.read())
 		f.close()
 		return dl
 	else:

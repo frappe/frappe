@@ -1,0 +1,11 @@
+core Package
+============
+
+Subpackages
+-----------
+
+.. toctree::
+
+    core.doctype
+    core.page
+

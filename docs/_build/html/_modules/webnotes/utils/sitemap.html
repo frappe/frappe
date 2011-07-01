@@ -1,0 +1,132 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.sitemap &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.utils" href="../utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" accesskey="U">webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.sitemap</h1><div class="highlight"><pre>
+<span class="c"># to generate sitemaps</span>
+
+<span class="n">frame_xml</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;</span>
+<span class="s">&lt;urlset xmlns=&quot;http://www.sitemaps.org/schemas/sitemap/0.9&quot;&gt;</span><span class="si">%s</span><span class="s"></span>
+<span class="s">&lt;/urlset&gt;&quot;&quot;&quot;</span>
+
+<span class="n">link_xml</span> <span class="o">=</span> <span class="s">&quot;&quot;&quot;</span><span class="se">\n</span><span class="s">&lt;url&gt;&lt;loc&gt;</span><span class="si">%s</span><span class="s">&lt;/loc&gt;&lt;lastmod&gt;</span><span class="si">%s</span><span class="s">&lt;/lastmod&gt;&lt;/url&gt;&quot;&quot;&quot;</span>
+
+<span class="c"># generate the sitemap XML</span>
+<div class="viewcode-block" id="generate_xml"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.sitemap.generate_xml">[docs]</a><span class="k">def</span> <span class="nf">generate_xml</span><span class="p">(</span><span class="n">conn</span><span class="p">,</span> <span class="n">site_prefix</span><span class="p">):</span>
+	<span class="k">global</span> <span class="n">frame_xml</span><span class="p">,</span> <span class="n">link_xml</span>
+	<span class="kn">import</span> <span class="nn">urllib</span>
+
+	<span class="c"># settings</span>
+	<span class="n">max_doctypes</span> <span class="o">=</span> <span class="mi">10</span>
+	<span class="n">max_items</span> <span class="o">=</span> <span class="mi">1000</span>
+	
+	<span class="n">site_map</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+	
+	<span class="k">if</span> <span class="n">site_prefix</span><span class="p">:</span>
+		<span class="c"># list of all Guest pages (static content)</span>
+		<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SELECT name, modified FROM tabPage WHERE ifnull(publish,0)=1 ORDER BY modified DESC&quot;</span><span class="p">):</span>
+			<span class="n">page_url</span> <span class="o">=</span> <span class="n">site_prefix</span> <span class="o">+</span> <span class="s">&#39;#!&#39;</span> <span class="o">+</span> <span class="n">urllib</span><span class="o">.</span><span class="n">quote</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="n">site_map</span> <span class="o">+=</span> <span class="n">link_xml</span> <span class="o">%</span> <span class="p">(</span><span class="n">page_url</span><span class="p">,</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y-%m-</span><span class="si">%d</span><span class="s">&#39;</span><span class="p">))</span>
+		
+		<span class="c"># list of all Records that are viewable by guests (Blogs, Articles etc)</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="kn">from</span> <span class="nn">event_handlers</span> <span class="kn">import</span> <span class="n">get_sitemap_items</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">get_sitemap_items</span><span class="p">(</span><span class="n">site_prefix</span><span class="p">):</span>
+				<span class="n">site_map</span> <span class="o">+=</span> <span class="n">link_xml</span> <span class="o">%</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+		<span class="k">except</span> <span class="ne">ImportError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">pass</span>
+
+	<span class="k">return</span> <span class="n">frame_xml</span> <span class="o">%</span> <span class="n">site_map</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" >webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

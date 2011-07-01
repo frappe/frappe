@@ -103,7 +103,7 @@ class FrameworkServer:
 	
 	# -----------------------------------------------------------------------------------------
 			
-	def run_method(self, method, args):
+	def run_method(self, method, args={}):
 		res = self.http_get_response(method, args)
 		ret = eval(res.read())
 		if ret.get('exc'):

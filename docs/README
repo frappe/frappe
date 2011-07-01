@@ -1,0 +1,33 @@
+Documentation Help:
+===================
+
+1. To rebuild documentation
+---------------------------
+
+make html
+
+2. Install
+-----------
+
+easy_install sphinx
+
+3. Build modules again (if you have added new modules)
+----------------------
+
+python generate_modules.py ../cgi-bin -d . -f
+
+help:
+
+NOTE: if you do this, all existing changes to the source files will be lost
+python generate_modules.py [source] -d [destination] [-f to rebuild]
+
+4. General Sphinx Help
+----------------------
+
+1. install sphinx
+2. create a docs folder
+3. in the docs folder, do sphinx-quickstart (say yes to autodocs and viewcode)
+4. generate module .txt files using generate_modules.py script by Thomas Waldmann
+5. add cool css and icons in _static folder
+6. update conf.py and add sys.path.append - change .rst to .txt
+7. run "make html"

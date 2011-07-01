@@ -85,5 +85,3 @@ def switch_module(dt, dn, to, frm=None, export=None):
 
 			for ext in ('py','js','html','css'):
 				os.system('cp %s %s')
-
-

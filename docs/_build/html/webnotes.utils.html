@@ -1,0 +1,916 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>utils Package &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="index.html" />
+    <link rel="up" title="webnotes Package" href="webnotes.html" />
+    <link rel="next" title="email_lib Package" href="webnotes.utils.email_lib.html" />
+    <link rel="prev" title="multi_tenant Package" href="webnotes.multi_tenant.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="webnotes.utils.email_lib.html" title="email_lib Package"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="webnotes.multi_tenant.html" title="multi_tenant Package"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="webnotes.html" accesskey="U">webnotes Package</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="utils-package">
+<h1>utils Package<a class="headerlink" href="#utils-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">utils</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-webnotes.utils"></span><dl class="function">
+<dt id="webnotes.utils.add_days">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">add_days</tt><big>(</big><em>date</em>, <em>days</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#add_days"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.add_days" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds <cite>days</cite> to the given <cite>string_date</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.add_months">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">add_months</tt><big>(</big><em>string_date</em>, <em>months</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#add_months"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.add_months" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.add_years">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">add_years</tt><big>(</big><em>string_date</em>, <em>years</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#add_years"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.add_years" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.cint">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">cint</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#cint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cint" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to integer</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.clear_recycle_bin">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">clear_recycle_bin</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#clear_recycle_bin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.clear_recycle_bin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.cstr">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">cstr</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#cstr"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cstr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to string</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.date_diff">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">date_diff</tt><big>(</big><em>string_ed_date</em>, <em>string_st_date=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#date_diff"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.date_diff" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.db_exists">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">db_exists</tt><big>(</big><em>dt</em>, <em>dn</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#db_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.db_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.dict_to_str">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">dict_to_str</tt><big>(</big><em>args</em>, <em>sep='&amp;'</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#dict_to_str"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.dict_to_str" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts a dictionary to URL</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.flt">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">flt</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#flt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.flt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to float (ignore commas)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.fmt_money">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">fmt_money</tt><big>(</big><em>amount</em>, <em>fmt='%.2f'</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#fmt_money"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.fmt_money" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert to string with commas for thousands, millions etc</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.formatdate">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">formatdate</tt><big>(</big><em>string_date</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#formatdate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.formatdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convers the given string date to <a class="reference internal" href="#webnotes.utils.user_format" title="webnotes.utils.user_format"><tt class="xref py py-data docutils literal"><span class="pre">user_format</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.generate_hash">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">generate_hash</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#generate_hash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.generate_hash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates reandom hash for session id</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.getCSVelement">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">getCSVelement</tt><big>(</big><em>v</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#getCSVelement"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.getCSVelement" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the CSV value of <cite>v</cite>, For example:</p>
+<ul class="simple">
+<li>apple becomes &#8220;apple&#8221;</li>
+<li>hi&#8221;there becomes &#8220;hi&#8221;&#8220;there&#8221;</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.getTraceback">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">getTraceback</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#getTraceback"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.getTraceback" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the traceback of the Exception</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.get_defaults">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">get_defaults</tt><big>(</big><em>key=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#get_defaults"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.get_defaults" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get dictionary of default values from the <em class="xref std std-term">Control Panel</em>, or a value if key is passed</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.get_first_day">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">get_first_day</tt><big>(</big><em>dt</em>, <em>d_years=0</em>, <em>d_months=0</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#get_first_day"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.get_first_day" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the first day of the month for the date specified by date object
+Also adds <cite>d_years</cite> and <cite>d_months</cite> if specified</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.get_last_day">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">get_last_day</tt><big>(</big><em>dt</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#get_last_day"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.get_last_day" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns last day of the month using:
+<cite>get_first_day(dt, 0, 1) + datetime.timedelta(-1)</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.getdate">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">getdate</tt><big>(</big><em>string_date</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#getdate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.getdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Coverts string date (yyyy-mm-dd) to datetime.date object</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.global_date_format">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">global_date_format</tt><big>(</big><em>date</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#global_date_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.global_date_format" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.has_common">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">has_common</tt><big>(</big><em>l1</em>, <em>l2</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#has_common"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.has_common" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if there are common elements in lists l1 and l2</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.in_words">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">in_words</tt><big>(</big><em>integer</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#in_words"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.in_words" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns string in words for the given integer.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.isNull">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">isNull</tt><big>(</big><em>v</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#isNull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.isNull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if v=&#8217;&#8217; or v is <cite>None</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.load_json">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">load_json</tt><big>(</big><em>arg</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#load_json"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.load_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.log">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">log</tt><big>(</big><em>event</em>, <em>details</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.log" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.money_in_words">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">money_in_words</tt><big>(</big><em>number</em>, <em>main_currency=None</em>, <em>fraction_currency=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#money_in_words"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.money_in_words" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns string in words with currency and fraction currency.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.now">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">now</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#now"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.now" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns <cite>time.strftime(&#8216;%Y-%m-%d %H:%M:%S&#8217;)</cite></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.now_datetime">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">now_datetime</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#now_datetime"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.now_datetime" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.nowdate">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">nowdate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#nowdate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.nowdate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns time.strftime(&#8216;%Y-%m-%d&#8217;)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.parse_val">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">parse_val</tt><big>(</big><em>v</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#parse_val"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.parse_val" title="Permalink to this definition">¶</a></dt>
+<dd><p>Converts to simple datatypes from SQL query results</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.pprint_dict">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">pprint_dict</tt><big>(</big><em>d</em>, <em>level=1</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#pprint_dict"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.pprint_dict" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.replace_newlines">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">replace_newlines</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#replace_newlines"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.replace_newlines" title="Permalink to this definition">¶</a></dt>
+<dd><p>Replace newlines by &#8216;&lt;br&gt;&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.send_error_report">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">send_error_report</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#send_error_report"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.send_error_report" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.sendmail">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">sendmail</tt><big>(</big><em>recipients</em>, <em>sender=''</em>, <em>msg=''</em>, <em>subject='[No Subject]'</em>, <em>parts=</em><span class="optional">[</span><span class="optional">]</span>, <em>cc=</em><span class="optional">[</span><span class="optional">]</span>, <em>attach=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#sendmail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.sendmail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an email. For more details see <a class="reference internal" href="webnotes.utils.email_lib.html#webnotes.utils.email_lib.sendmail" title="webnotes.utils.email_lib.sendmail"><tt class="xref py py-func docutils literal"><span class="pre">email_lib.sendmail()</span></tt></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.set_default">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">set_default</tt><big>(</big><em>key</em>, <em>val</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#set_default"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.set_default" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set / add a default value to <em class="xref std std-term">Control Panel</em></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.str_esc_quote">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">str_esc_quote</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#str_esc_quote"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.str_esc_quote" title="Permalink to this definition">¶</a></dt>
+<dd><p>Escape quotes</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.timestamps_equal">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">timestamps_equal</tt><big>(</big><em>t1</em>, <em>t2</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#timestamps_equal"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.timestamps_equal" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns true if same the two string timestamps are same</p>
+</dd></dl>
+
+<dl class="data">
+<dt id="webnotes.utils.user_format">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">user_format</tt><a class="headerlink" href="#webnotes.utils.user_format" title="Permalink to this definition">¶</a></dt>
+<dd><p>User format specified in <em class="xref std std-term">Control Panel</em></p>
+<p>Examples:</p>
+<ul class="simple">
+<li>dd-mm-yyyy</li>
+<li>mm-dd-yyyy</li>
+<li>dd/mm/yyyy</li>
+</ul>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.validate_email_add">
+<tt class="descclassname">webnotes.utils.</tt><tt class="descname">validate_email_add</tt><big>(</big><em>email_str</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils.html#validate_email_add"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.validate_email_add" title="Permalink to this definition">¶</a></dt>
+<dd><p>Validates the email string</p>
+</dd></dl>
+
+</div>
+<div class="section" id="archive-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">archive</span></tt> Module<a class="headerlink" href="#archive-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="backups-module">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">backups</span></tt> Module<a class="headerlink" href="#backups-module" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-webnotes.utils.cache">
+<span id="cache-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">cache</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.cache" title="Permalink to this headline">¶</a></h2>
+<p>Simple Caching:</p>
+<p>Stores key-value pairs in database and enables simple caching</p>
+<p>get_item(key).get() returns the cached value if not expired (else returns null)
+get_item(key).set(interval = 60000) sets a value to cache, expiring after x seconds
+get_item(key).clear() clears an old value
+setup() sets up cache</p>
+<dl class="class">
+<dt id="webnotes.utils.cache.CacheItem">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.cache.</tt><tt class="descname">CacheItem</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/cache.html#CacheItem"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cache.CacheItem" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="webnotes.utils.cache.CacheItem.clear">
+<tt class="descname">clear</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/cache.html#CacheItem.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cache.CacheItem.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>clear the item</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.cache.CacheItem.get">
+<tt class="descname">get</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/cache.html#CacheItem.get"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cache.CacheItem.get" title="Permalink to this definition">¶</a></dt>
+<dd><p>get value</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.cache.CacheItem.set">
+<tt class="descname">set</tt><big>(</big><em>value</em>, <em>interval=6000</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/cache.html#CacheItem.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cache.CacheItem.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>set a new value, with interval</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.cache.get_item">
+<tt class="descclassname">webnotes.utils.cache.</tt><tt class="descname">get_item</tt><big>(</big><em>key</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/cache.html#get_item"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cache.get_item" title="Permalink to this definition">¶</a></dt>
+<dd><p>returns get CacheItem object</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.cache.setup">
+<tt class="descclassname">webnotes.utils.cache.</tt><tt class="descname">setup</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/cache.html#setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.cache.setup" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.encrypt">
+<span id="encrypt-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">encrypt</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.encrypt" title="Permalink to this headline">¶</a></h2>
+<p>XTEA Block Encryption Algorithm
+Author: Paul Chakravarti (paul_dot_chakravarti_at_gmail_dot_com)
+License: Public Domain</p>
+<dl class="function">
+<dt id="webnotes.utils.encrypt.crypt">
+<tt class="descclassname">webnotes.utils.encrypt.</tt><tt class="descname">crypt</tt><big>(</big><em>key</em>, <em>data</em>, <em>iv='\x00\x00\x00\x00\x00\x00\x00\x00'</em>, <em>n=32</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/encrypt.html#crypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.encrypt.crypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.encrypt.decrypt">
+<tt class="descclassname">webnotes.utils.encrypt.</tt><tt class="descname">decrypt</tt><big>(</big><em>data</em>, <em>encryption_key=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/encrypt.html#decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.encrypt.decrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.encrypt.encrypt">
+<tt class="descclassname">webnotes.utils.encrypt.</tt><tt class="descname">encrypt</tt><big>(</big><em>data</em>, <em>encryption_key=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/encrypt.html#encrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.encrypt.encrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.encrypt.get_key">
+<tt class="descclassname">webnotes.utils.encrypt.</tt><tt class="descname">get_key</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/encrypt.html#get_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.encrypt.get_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.encrypt.xtea_decrypt">
+<tt class="descclassname">webnotes.utils.encrypt.</tt><tt class="descname">xtea_decrypt</tt><big>(</big><em>key</em>, <em>block</em>, <em>n=32</em>, <em>endian='!'</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/encrypt.html#xtea_decrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.encrypt.xtea_decrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.encrypt.xtea_encrypt">
+<tt class="descclassname">webnotes.utils.encrypt.</tt><tt class="descname">xtea_encrypt</tt><big>(</big><em>key</em>, <em>block</em>, <em>n=32</em>, <em>endian='!'</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/encrypt.html#xtea_encrypt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.encrypt.xtea_encrypt" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.file_manager">
+<span id="file-manager-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">file_manager</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.file_manager" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="webnotes.utils.file_manager.convert_to_files">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">convert_to_files</tt><big>(</big><em>verbose=0</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#convert_to_files"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.convert_to_files" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.delete_file">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">delete_file</tt><big>(</big><em>fname</em>, <em>verbose=0</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#delete_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.delete_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.get_file">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">get_file</tt><big>(</big><em>fname</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#get_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.get_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.get_file_system_name">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">get_file_system_name</tt><big>(</big><em>fname</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#get_file_system_name"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.get_file_system_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.make_thumbnail">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">make_thumbnail</tt><big>(</big><em>blob</em>, <em>size</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#make_thumbnail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.make_thumbnail" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.save_file">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">save_file</tt><big>(</big><em>fname</em>, <em>content</em>, <em>module=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#save_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.save_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.save_uploaded">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">save_uploaded</tt><big>(</big><em>js_okay='window.parent.msgprint(&quot;File Upload Successful&quot;)'</em>, <em>js_fail=''</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#save_uploaded"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.save_uploaded" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.upload">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">upload</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#upload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.upload" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.file_manager.write_file">
+<tt class="descclassname">webnotes.utils.file_manager.</tt><tt class="descname">write_file</tt><big>(</big><em>fid</em>, <em>content</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/file_manager.html#write_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.file_manager.write_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.jsmin">
+<span id="jsmin-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">jsmin</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.jsmin" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="webnotes.utils.jsmin.JavascriptMinify">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.jsmin.</tt><tt class="descname">JavascriptMinify</tt><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#JavascriptMinify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.JavascriptMinify" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">object</span></tt></p>
+<dl class="method">
+<dt id="webnotes.utils.jsmin.JavascriptMinify.minify">
+<tt class="descname">minify</tt><big>(</big><em>instream</em>, <em>outstream</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#JavascriptMinify.minify"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.JavascriptMinify.minify" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="webnotes.utils.jsmin.UnterminatedComment">
+<em class="property">exception </em><tt class="descclassname">webnotes.utils.jsmin.</tt><tt class="descname">UnterminatedComment</tt><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#UnterminatedComment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.UnterminatedComment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="webnotes.utils.jsmin.UnterminatedRegularExpression">
+<em class="property">exception </em><tt class="descclassname">webnotes.utils.jsmin.</tt><tt class="descname">UnterminatedRegularExpression</tt><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#UnterminatedRegularExpression"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.UnterminatedRegularExpression" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="webnotes.utils.jsmin.UnterminatedStringLiteral">
+<em class="property">exception </em><tt class="descclassname">webnotes.utils.jsmin.</tt><tt class="descname">UnterminatedStringLiteral</tt><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#UnterminatedStringLiteral"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.UnterminatedStringLiteral" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <tt class="xref py py-class docutils literal"><span class="pre">exceptions.Exception</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.jsmin.isAlphanum">
+<tt class="descclassname">webnotes.utils.jsmin.</tt><tt class="descname">isAlphanum</tt><big>(</big><em>c</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#isAlphanum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.isAlphanum" title="Permalink to this definition">¶</a></dt>
+<dd><p>return true if the character is a letter, digit, underscore,
+dollar sign, or non-ASCII character.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.jsmin.jsmin">
+<tt class="descclassname">webnotes.utils.jsmin.</tt><tt class="descname">jsmin</tt><big>(</big><em>js</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/jsmin.html#jsmin"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.jsmin.jsmin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.nestedset">
+<span id="nestedset-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">nestedset</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.nestedset" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="webnotes.utils.nestedset.rebuild_node">
+<tt class="descclassname">webnotes.utils.nestedset.</tt><tt class="descname">rebuild_node</tt><big>(</big><em>doctype</em>, <em>parent</em>, <em>left</em>, <em>parent_field</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/nestedset.html#rebuild_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.nestedset.rebuild_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.nestedset.rebuild_tree">
+<tt class="descclassname">webnotes.utils.nestedset.</tt><tt class="descname">rebuild_tree</tt><big>(</big><em>doctype</em>, <em>parent_field</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/nestedset.html#rebuild_tree"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.nestedset.rebuild_tree" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.nestedset.update_add_node">
+<tt class="descclassname">webnotes.utils.nestedset.</tt><tt class="descname">update_add_node</tt><big>(</big><em>doctype</em>, <em>name</em>, <em>parent</em>, <em>parent_field</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/nestedset.html#update_add_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.nestedset.update_add_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.nestedset.update_nsm">
+<tt class="descclassname">webnotes.utils.nestedset.</tt><tt class="descname">update_nsm</tt><big>(</big><em>doc_obj</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/nestedset.html#update_nsm"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.nestedset.update_nsm" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.nestedset.update_remove_node">
+<tt class="descclassname">webnotes.utils.nestedset.</tt><tt class="descname">update_remove_node</tt><big>(</big><em>doctype</em>, <em>name</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/nestedset.html#update_remove_node"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.nestedset.update_remove_node" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.scheduler">
+<span id="scheduler-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">scheduler</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.scheduler" title="Permalink to this headline">¶</a></h2>
+<p>Simple Scheduler</p>
+<p>This scheduler is used to fire events across multiple databases. A database
+master_scheduler is maintained with one event and one log table</p>
+<p>Events are added by different databases in the master scheduler using the
+<cite>set_event</cite> method and they are executed by the cron.</p>
+<p>__main__ will call run</p>
+<div class="section" id="to-install">
+<h3>To install:<a class="headerlink" href="#to-install" title="Permalink to this headline">¶</a></h3>
+<p>python install_lib.py [root] [password] master_scheduler</p>
+</div>
+<div class="section" id="in-cron">
+<h3>In cron:<a class="headerlink" href="#in-cron" title="Permalink to this headline">¶</a></h3>
+<p>python [path]webnotes/utils/scheduler.py</p>
+<dl class="class">
+<dt id="webnotes.utils.scheduler.Scheduler">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.scheduler.</tt><tt class="descname">Scheduler</tt><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.clear">
+<tt class="descname">clear</tt><big>(</big><em>db_name</em>, <em>event</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.clear"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.clear" title="Permalink to this definition">¶</a></dt>
+<dd><p>Clears the event</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.connect" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.execute">
+<tt class="descname">execute</tt><big>(</big><em>db_name</em>, <em>event</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.execute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.execute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes event in the specifed db</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.get_events">
+<tt class="descname">get_events</tt><big>(</big><em>db_name=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.get_events"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.get_events" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns list of upcoming events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.get_log">
+<tt class="descname">get_log</tt><big>(</big><em>db_name=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.get_log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.get_log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns log of events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.log">
+<tt class="descname">log</tt><big>(</big><em>db_name</em>, <em>event</em>, <em>traceback</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.log"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.log" title="Permalink to this definition">¶</a></dt>
+<dd><p>Log an event error</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.run">
+<tt class="descname">run</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.run"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.run" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run scheduled (due) events and reset time for recurring events</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.scheduler.Scheduler.set">
+<tt class="descname">set</tt><big>(</big><em>event</em>, <em>interval</em>, <em>recurring</em>, <em>db_name=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#Scheduler.set"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.Scheduler.set" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add an event to the Event table in the master scheduler</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.scheduler.cancel_event">
+<tt class="descclassname">webnotes.utils.scheduler.</tt><tt class="descname">cancel_event</tt><big>(</big><em>event</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#cancel_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.cancel_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Cancels an event</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.scheduler.set_event">
+<tt class="descclassname">webnotes.utils.scheduler.</tt><tt class="descname">set_event</tt><big>(</big><em>event</em>, <em>interval=86400</em>, <em>recurring=1</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/scheduler.html#set_event"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.scheduler.set_event" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds an event to the master scheduler</p>
+</dd></dl>
+
+</div>
+</div>
+<div class="section" id="module-webnotes.utils.sitemap">
+<span id="sitemap-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">sitemap</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.sitemap" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="webnotes.utils.sitemap.generate_xml">
+<tt class="descclassname">webnotes.utils.sitemap.</tt><tt class="descname">generate_xml</tt><big>(</big><em>conn</em>, <em>site_prefix</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/sitemap.html#generate_xml"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.sitemap.generate_xml" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.transfer">
+<span id="transfer-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">transfer</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.transfer" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="webnotes.utils.transfer.UpdateDocType">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.transfer.</tt><tt class="descname">UpdateDocType</tt><big>(</big><em>in_doclist</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webnotes.utils.transfer.UpdateDocumentMerge" title="webnotes.utils.transfer.UpdateDocumentMerge"><tt class="xref py py-class docutils literal"><span class="pre">webnotes.utils.transfer.UpdateDocumentMerge</span></tt></a></p>
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.add_section_breaks_and_renum">
+<tt class="descname">add_section_breaks_and_renum</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.add_section_breaks_and_renum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.add_section_breaks_and_renum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.child_exists">
+<tt class="descname">child_exists</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.child_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.child_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.clear_section_breaks">
+<tt class="descname">clear_section_breaks</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.clear_section_breaks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.clear_section_breaks" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.fix_extra_fields">
+<tt class="descname">fix_extra_fields</tt><big>(</big><em>extra</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.fix_extra_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.fix_extra_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.get_extra_fields">
+<tt class="descname">get_extra_fields</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.get_extra_fields"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.get_extra_fields" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.get_id">
+<tt class="descname">get_id</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.get_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.get_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.get_orignal_values">
+<tt class="descname">get_orignal_values</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.get_orignal_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.get_orignal_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.on_save">
+<tt class="descname">on_save</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.on_save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.on_save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.renum">
+<tt class="descname">renum</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.renum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.renum" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocType.to_udpate">
+<tt class="descname">to_udpate</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocType.to_udpate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocType.to_udpate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webnotes.utils.transfer.UpdateDocTypeMapper">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.transfer.</tt><tt class="descname">UpdateDocTypeMapper</tt><big>(</big><em>in_doclist</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocTypeMapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocTypeMapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webnotes.utils.transfer.UpdateDocumentMerge" title="webnotes.utils.transfer.UpdateDocumentMerge"><tt class="xref py py-class docutils literal"><span class="pre">webnotes.utils.transfer.UpdateDocumentMerge</span></tt></a></p>
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocTypeMapper.get_id">
+<tt class="descname">get_id</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocTypeMapper.get_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocTypeMapper.get_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocTypeMapper.get_orignal_values">
+<tt class="descname">get_orignal_values</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocTypeMapper.get_orignal_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocTypeMapper.get_orignal_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webnotes.utils.transfer.UpdateDocument">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.transfer.</tt><tt class="descname">UpdateDocument</tt><big>(</big><em>in_doclist=</em><span class="optional">[</span><span class="optional">]</span><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.delete_existing">
+<tt class="descname">delete_existing</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.delete_existing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.delete_existing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.is_modified">
+<tt class="descname">is_modified</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.is_modified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.is_modified" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.run_on_update">
+<tt class="descname">run_on_update</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.run_on_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.run_on_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.save">
+<tt class="descname">save</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.save_children">
+<tt class="descname">save_children</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.save_children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.save_children" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.save_one_doc">
+<tt class="descname">save_one_doc</tt><big>(</big><em>df</em>, <em>as_new=1</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.save_one_doc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.save_one_doc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.sync">
+<tt class="descname">sync</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.sync"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.sync" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocument.update_modified">
+<tt class="descname">update_modified</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocument.update_modified"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocument.update_modified" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.transfer.</tt><tt class="descname">UpdateDocumentMerge</tt><big>(</big><em>in_doclist</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webnotes.utils.transfer.UpdateDocument" title="webnotes.utils.transfer.UpdateDocument"><tt class="xref py py-class docutils literal"><span class="pre">webnotes.utils.transfer.UpdateDocument</span></tt></a></p>
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.child_exists">
+<tt class="descname">child_exists</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.child_exists"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.child_exists" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.delete_existing">
+<tt class="descname">delete_existing</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.delete_existing"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.delete_existing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.get_id">
+<tt class="descname">get_id</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.get_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.get_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.keep_values">
+<tt class="descname">keep_values</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.keep_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.keep_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.on_save">
+<tt class="descname">on_save</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.on_save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.on_save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.save">
+<tt class="descname">save</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.save"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.save" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.save_children">
+<tt class="descname">save_children</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.save_children"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.save_children" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateDocumentMerge.to_update">
+<tt class="descname">to_update</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateDocumentMerge.to_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateDocumentMerge.to_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webnotes.utils.transfer.UpdateModuleDef">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.transfer.</tt><tt class="descname">UpdateModuleDef</tt><big>(</big><em>in_doclist</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateModuleDef"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateModuleDef" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#webnotes.utils.transfer.UpdateDocumentMerge" title="webnotes.utils.transfer.UpdateDocumentMerge"><tt class="xref py py-class docutils literal"><span class="pre">webnotes.utils.transfer.UpdateDocumentMerge</span></tt></a></p>
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateModuleDef.get_id">
+<tt class="descname">get_id</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateModuleDef.get_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateModuleDef.get_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateModuleDef.get_orignal_values">
+<tt class="descname">get_orignal_values</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateModuleDef.get_orignal_values"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateModuleDef.get_orignal_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.transfer.UpdateModuleDef.to_update">
+<tt class="descname">to_update</tt><big>(</big><em>d</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#UpdateModuleDef.to_update"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.UpdateModuleDef.to_update" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.transfer.set_doc">
+<tt class="descclassname">webnotes.utils.transfer.</tt><tt class="descname">set_doc</tt><big>(</big><em>doclist</em>, <em>ovr=0</em>, <em>ignore=1</em>, <em>onupdate=1</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/transfer.html#set_doc"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.transfer.set_doc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.webservice">
+<span id="webservice-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">webservice</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.webservice" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="webnotes.utils.webservice.FrameworkServer">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.webservice.</tt><tt class="descname">FrameworkServer</tt><big>(</big><em>remote_host</em>, <em>path</em>, <em>user=''</em>, <em>password=''</em>, <em>account=''</em>, <em>cookies=None</em>, <em>opts=None</em>, <em>https=0</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/webservice.html#FrameworkServer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.webservice.FrameworkServer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connect to a remote server via HTTP (webservice).</p>
+<ul class="simple">
+<li><cite>remote_host</cite> is the the address of the remote server</li>
+<li><cite>path</cite> is the path of the Framework (excluding index.cgi)</li>
+</ul>
+<dl class="method">
+<dt id="webnotes.utils.webservice.FrameworkServer.http_get_response">
+<tt class="descname">http_get_response</tt><big>(</big><em>method</em>, <em>args</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/webservice.html#FrameworkServer.http_get_response"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.webservice.FrameworkServer.http_get_response" title="Permalink to this definition">¶</a></dt>
+<dd><p>Run a method on the remote server, with the given arguments</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.webservice.FrameworkServer.run_method">
+<tt class="descname">run_method</tt><big>(</big><em>method</em>, <em>args</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/webservice.html#FrameworkServer.run_method"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.webservice.FrameworkServer.run_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.webservice.FrameworkServer.runserverobj">
+<tt class="descname">runserverobj</tt><big>(</big><em>doctype</em>, <em>docname</em>, <em>method</em>, <em>arg=''</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/webservice.html#FrameworkServer.runserverobj"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.webservice.FrameworkServer.runserverobj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the response of a remote method called on a system object specified by <cite>doctype</cite> and <cite>docname</cite></p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="webnotes.utils.email_lib.html">email_lib Package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="webnotes.utils.email_lib.html#id1"><tt class="docutils literal"><span class="pre">email_lib</span></tt> Package</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webnotes.utils.email_lib.html#module-webnotes.utils.email_lib.form_email"><tt class="docutils literal"><span class="pre">form_email</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webnotes.utils.email_lib.html#module-webnotes.utils.email_lib.html2text"><tt class="docutils literal"><span class="pre">html2text</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webnotes.utils.email_lib.html#module-webnotes.utils.email_lib.receive"><tt class="docutils literal"><span class="pre">receive</span></tt> Module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="webnotes.utils.email_lib.html#module-webnotes.utils.email_lib.send"><tt class="docutils literal"><span class="pre">send</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">utils Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">utils</span></tt> Package</a></li>
+<li><a class="reference internal" href="#archive-module"><tt class="docutils literal"><span class="pre">archive</span></tt> Module</a></li>
+<li><a class="reference internal" href="#backups-module"><tt class="docutils literal"><span class="pre">backups</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.cache"><tt class="docutils literal"><span class="pre">cache</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.encrypt"><tt class="docutils literal"><span class="pre">encrypt</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.file_manager"><tt class="docutils literal"><span class="pre">file_manager</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.jsmin"><tt class="docutils literal"><span class="pre">jsmin</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.nestedset"><tt class="docutils literal"><span class="pre">nestedset</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.scheduler"><tt class="docutils literal"><span class="pre">scheduler</span></tt> Module</a><ul>
+<li><a class="reference internal" href="#to-install">To install:</a></li>
+<li><a class="reference internal" href="#in-cron">In cron:</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#module-webnotes.utils.sitemap"><tt class="docutils literal"><span class="pre">sitemap</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.transfer"><tt class="docutils literal"><span class="pre">transfer</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.webservice"><tt class="docutils literal"><span class="pre">webservice</span></tt> Module</a></li>
+<li><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="webnotes.multi_tenant.html"
+                        title="previous chapter">multi_tenant Package</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="webnotes.utils.email_lib.html"
+                        title="next chapter">email_lib Package</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/webnotes.utils.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li class="right" >
+          <a href="webnotes.utils.email_lib.html" title="email_lib Package"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="webnotes.multi_tenant.html" title="multi_tenant Package"
+             >previous</a> |</li>
+        <li><a href="index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="webnotes.html" >webnotes Package</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

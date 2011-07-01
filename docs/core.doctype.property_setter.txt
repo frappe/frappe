@@ -1,0 +1,11 @@
+property_setter Package
+=======================
+
+:mod:`property_setter` Module
+-----------------------------
+
+.. automodule:: core.doctype.property_setter.property_setter
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

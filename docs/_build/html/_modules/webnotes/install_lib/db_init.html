@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.install_lib.db_init &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes" href="../../webnotes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" accesskey="U">webnotes</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.install_lib.db_init</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Create a database from scratch (wip)</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<div class="viewcode-block" id="DatabaseInstance"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance">[docs]</a><span class="k">class</span> <span class="nc">DatabaseInstance</span><span class="p">:</span>
+
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conn</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span><span class="n">db_name</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">conn</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">db_name</span> <span class="o">=</span> <span class="n">db_name</span>
+		
+		
+<span class="c">#	def setup(self):</span>
+<span class="c">#		self.create_db_and_user()</span>
+<span class="c">#		self.create_base_tables()</span>
+<span class="c">#		self.import_system_module()</span>
+<span class="c">#		self.setup_users()</span>
+		
+<div class="viewcode-block" id="DatabaseInstance.create_db_and_user"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_db_and_user">[docs]</a>	<span class="k">def</span> <span class="nf">create_db_and_user</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">webnotes.defs</span>
+		
+		<span class="c"># create user and db</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;CREATE USER &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">db_password</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;CREATE DATABASE IF NOT EXISTS `</span><span class="si">%s</span><span class="s">` ;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;GRANT ALL PRIVILEGES ON `</span><span class="si">%s</span><span class="s">` . * TO &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39;;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;FLUSH PRIVILEGES&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SET GLOBAL TRANSACTION ISOLATION LEVEL READ COMMITTED;&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;USE </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span>
+		
+		
+	
+		
+	</div>
+<div class="viewcode-block" id="DatabaseInstance.create_base_tables"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_base_tables">[docs]</a>	<span class="k">def</span> <span class="nf">create_base_tables</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_singles</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_sessions</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_doctypecache</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_role</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_docfield</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_docperm</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_docformat</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">create_doctype</span><span class="p">()</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.import_system_module"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.import_system_module">[docs]</a>	<span class="k">def</span> <span class="nf">import_system_module</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">docs</span> <span class="o">=</span> <span class="p">[</span>
+			<span class="p">[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;Role&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;Role&#39;</span><span class="p">,</span><span class="s">&#39;Administrator&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;Role&#39;</span><span class="p">,</span><span class="s">&#39;Guest&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;Role&#39;</span><span class="p">,</span><span class="s">&#39;All&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;DocPerm&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;DocFormat&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;DocField&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;DocType&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;DefaultValue&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;Profile&#39;</span><span class="p">]</span>
+			<span class="p">,[</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span><span class="s">&#39;UserRole&#39;</span><span class="p">]</span>
+		<span class="p">]</span>
+		
+		<span class="c"># import in sequence</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
+			<span class="n">import_module</span><span class="o">.</span><span class="n">import_from_files</span><span class="p">(</span><span class="n">record_list</span><span class="o">=</span><span class="p">[[</span><span class="s">&#39;System&#39;</span><span class="p">,</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span><span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]]])</span>
+		
+		<span class="c"># import all</span>
+		<span class="n">import_module</span><span class="o">.</span><span class="n">import_from_files</span><span class="p">([[</span><span class="s">&#39;System&#39;</span><span class="p">]])</span>
+			
+
+	<span class="c"># singles</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_singles"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_singles">[docs]</a>	<span class="k">def</span> <span class="nf">create_singles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabSingles`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabSingles` (</span>
+<span class="s">		  `doctype` varchar(40) default NULL,</span>
+<span class="s">		  `field` varchar(40) default NULL,</span>
+<span class="s">		  `value` text,</span>
+<span class="s">		  KEY `doctype` (`doctype`)</span>
+<span class="s">		) ENGINE=InnoDB DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+	
+	<span class="c"># sessions</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_sessions"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_sessions">[docs]</a>	<span class="k">def</span> <span class="nf">create_sessions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabSessions`;&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabSessions` (</span>
+<span class="s">		  `user` varchar(40) default NULL,</span>
+<span class="s">		  `sid` varchar(120) default NULL,</span>
+<span class="s">		  `sessiondata` longtext,</span>
+<span class="s">		  `ipaddress` varchar(16) default NULL,</span>
+<span class="s">		  `lastupdate` datetime default NULL</span>
+<span class="s">		) ENGINE=MyISAM DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+
+	<span class="c"># doc type cache</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_doctypecache"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_doctypecache">[docs]</a>	<span class="k">def</span> <span class="nf">create_doctypecache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `__DocTypeCache`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;create table `__DocTypeCache` (name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)&quot;</span><span class="p">)</span>
+		
+		
+		
+
+	<span class="c"># Role</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_role"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_role">[docs]</a>	<span class="k">def</span> <span class="nf">create_role</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabRole`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabRole` (</span>
+<span class="s">		  `name` varchar(120) NOT NULL,</span>
+<span class="s">		  `creation` datetime default NULL,</span>
+<span class="s">		  `modified` datetime default NULL,</span>
+<span class="s">		  `modified_by` varchar(40) default NULL,</span>
+<span class="s">		  `owner` varchar(40) default NULL,</span>
+<span class="s">		  `docstatus` int(1) default &#39;0&#39;,</span>
+<span class="s">		  `parent` varchar(120) default NULL,</span>
+<span class="s">		  `parentfield` varchar(120) default NULL,</span>
+<span class="s">		  `parenttype` varchar(120) default NULL,</span>
+<span class="s">		  `idx` int(8) default NULL,</span>
+<span class="s">		  `role_name` varchar(180) default NULL,</span>
+<span class="s">		  `module` varchar(180) default NULL,</span>
+<span class="s">		  PRIMARY KEY  (`name`),</span>
+<span class="s">		  KEY `parent` (`parent`)</span>
+<span class="s">		) ENGINE=InnoDB DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+
+	<span class="c"># DocField</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_docfield"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_docfield">[docs]</a>	<span class="k">def</span> <span class="nf">create_docfield</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabDocField`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabDocField` (</span>
+<span class="s">		  `name` varchar(120) NOT NULL,</span>
+<span class="s">		  `creation` datetime default NULL,</span>
+<span class="s">		  `modified` datetime default NULL,</span>
+<span class="s">		  `modified_by` varchar(40) default NULL,</span>
+<span class="s">		  `owner` varchar(40) default NULL,</span>
+<span class="s">		  `docstatus` int(1) default &#39;0&#39;,</span>
+<span class="s">		  `parent` varchar(120) default NULL,</span>
+<span class="s">		  `parentfield` varchar(120) default NULL,</span>
+<span class="s">		  `parenttype` varchar(120) default NULL,</span>
+<span class="s">		  `idx` int(8) default NULL,</span>
+<span class="s">		  `fieldname` varchar(180) default NULL,</span>
+<span class="s">		  `label` varchar(180) default NULL,</span>
+<span class="s">		  `oldfieldname` varchar(180) default NULL,</span>
+<span class="s">		  `fieldtype` varchar(180) default NULL,</span>
+<span class="s">		  `oldfieldtype` varchar(180) default NULL,</span>
+<span class="s">		  `options` text,</span>
+<span class="s">		  `search_index` int(3) default NULL,</span>
+<span class="s">		  `hidden` int(3) default NULL,</span>
+<span class="s">		  `print_hide` int(3) default NULL,</span>
+<span class="s">		  `report_hide` int(3) default NULL,</span>
+<span class="s">		  `reqd` int(3) default NULL,</span>
+<span class="s">		  `no_copy` int(3) default NULL,</span>
+<span class="s">		  `allow_on_submit` int(3) default NULL,</span>
+<span class="s">		  `trigger` varchar(180) default NULL,</span>
+<span class="s">		  `depends_on` varchar(180) default NULL,</span>
+<span class="s">		  `permlevel` int(3) default NULL,</span>
+<span class="s">		  `width` varchar(180) default NULL,</span>
+<span class="s">		  `default` text,</span>
+<span class="s">		  `description` text,</span>
+<span class="s">		  `colour` varchar(180) default NULL,</span>
+<span class="s">		  `icon` varchar(180) default NULL,</span>
+<span class="s">		  `in_filter` int(3) default NULL,</span>
+<span class="s">		  PRIMARY KEY  (`name`),</span>
+<span class="s">		  KEY `parent` (`parent`),</span>
+<span class="s">		  KEY `label` (`label`),</span>
+<span class="s">		  KEY `fieldtype` (`fieldtype`),</span>
+<span class="s">		  KEY `fieldname` (`fieldname`)</span>
+<span class="s">		) ENGINE=InnoDB DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+
+	<span class="c"># DocPerm</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_docperm"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_docperm">[docs]</a>	<span class="k">def</span> <span class="nf">create_docperm</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabDocPerm`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabDocPerm` (</span>
+<span class="s">		  `name` varchar(120) NOT NULL,</span>
+<span class="s">		  `creation` datetime default NULL,</span>
+<span class="s">		  `modified` datetime default NULL,</span>
+<span class="s">		  `modified_by` varchar(40) default NULL,</span>
+<span class="s">		  `owner` varchar(40) default NULL,</span>
+<span class="s">		  `docstatus` int(1) default &#39;0&#39;,</span>
+<span class="s">		  `parent` varchar(120) default NULL,</span>
+<span class="s">		  `parentfield` varchar(120) default NULL,</span>
+<span class="s">		  `parenttype` varchar(120) default NULL,</span>
+<span class="s">		  `idx` int(8) default NULL,</span>
+<span class="s">		  `permlevel` int(11) default NULL,</span>
+<span class="s">		  `role` varchar(180) default NULL,</span>
+<span class="s">		  `match` varchar(180) default NULL,</span>
+<span class="s">		  `read` int(3) default NULL,</span>
+<span class="s">		  `write` int(3) default NULL,</span>
+<span class="s">		  `create` int(3) default NULL,</span>
+<span class="s">		  `submit` int(3) default NULL,</span>
+<span class="s">		  `cancel` int(3) default NULL,</span>
+<span class="s">		  `amend` int(3) default NULL,</span>
+<span class="s">		  `execute` int(3) default NULL,</span>
+<span class="s">		  PRIMARY KEY  (`name`),</span>
+<span class="s">		  KEY `parent` (`parent`)</span>
+<span class="s">		) ENGINE=InnoDB DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+		
+	<span class="c"># DocFormat</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_docformat"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_docformat">[docs]</a>	<span class="k">def</span> <span class="nf">create_docformat</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabDocFormat`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabDocFormat` (</span>
+<span class="s">		  `name` varchar(120) NOT NULL,</span>
+<span class="s">		  `creation` datetime default NULL,</span>
+<span class="s">		  `modified` datetime default NULL,</span>
+<span class="s">		  `modified_by` varchar(40) default NULL,</span>
+<span class="s">		  `owner` varchar(40) default NULL,</span>
+<span class="s">		  `docstatus` int(1) default &#39;0&#39;,</span>
+<span class="s">		  `parent` varchar(120) default NULL,</span>
+<span class="s">		  `parentfield` varchar(120) default NULL,</span>
+<span class="s">		  `parenttype` varchar(120) default NULL,</span>
+<span class="s">		  `idx` int(8) default NULL,</span>
+<span class="s">		  `format` varchar(180) default NULL,</span>
+<span class="s">		  PRIMARY KEY  (`name`),</span>
+<span class="s">		  KEY `parent` (`parent`)</span>
+<span class="s">		) ENGINE=InnoDB DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+
+	<span class="c"># DocType</span>
+	<span class="c"># ------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="DatabaseInstance.create_doctype"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_doctype">[docs]</a>	<span class="k">def</span> <span class="nf">create_doctype</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabDocType`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;CREATE TABLE `tabDocType` (</span>
+<span class="s">		  `name` varchar(180) NOT NULL default &#39;&#39;,</span>
+<span class="s">		  `creation` datetime default NULL,</span>
+<span class="s">		  `modified` datetime default NULL,</span>
+<span class="s">		  `modified_by` varchar(40) default NULL,</span>
+<span class="s">		  `owner` varchar(180) default NULL,</span>
+<span class="s">		  `docstatus` int(1) default &#39;0&#39;,</span>
+<span class="s">		  `parent` varchar(120) default NULL,</span>
+<span class="s">		  `parentfield` varchar(120) default NULL,</span>
+<span class="s">		  `parenttype` varchar(120) default NULL,</span>
+<span class="s">		  `idx` int(8) default NULL,</span>
+<span class="s">		  `search_fields` varchar(180) default NULL,</span>
+<span class="s">		  `issingle` int(1) default NULL,</span>
+<span class="s">		  `istable` int(1) default NULL,</span>
+<span class="s">		  `version` int(11) default NULL,</span>
+<span class="s">		  `module` varchar(180) default NULL,</span>
+<span class="s">		  `autoname` varchar(180) default NULL,</span>
+<span class="s">		  `name_case` varchar(180) default NULL,</span>
+<span class="s">		  `description` text,</span>
+<span class="s">		  `colour` varchar(180) default NULL,</span>
+<span class="s">		  `read_only` int(1) default NULL,</span>
+<span class="s">		  `in_create` int(1) default NULL,</span>
+<span class="s">		  `show_in_menu` int(3) default NULL,</span>
+<span class="s">		  `menu_index` int(11) default NULL,</span>
+<span class="s">		  `parent_node` varchar(180) default NULL,</span>
+<span class="s">		  `smallicon` varchar(180) default NULL,</span>
+<span class="s">		  `allow_print` int(1) default NULL,</span>
+<span class="s">		  `allow_email` int(1) default NULL,</span>
+<span class="s">		  `allow_copy` int(1) default NULL,</span>
+<span class="s">		  `allow_rename` int(1) default NULL,</span>
+<span class="s">		  `hide_toolbar` int(1) default NULL,</span>
+<span class="s">		  `hide_heading` int(1) default NULL,</span>
+<span class="s">		  `allow_attach` int(1) default NULL,</span>
+<span class="s">		  `use_template` int(1) default NULL,</span>
+<span class="s">		  `max_attachments` int(11) default NULL,</span>
+<span class="s">		  `section_style` varchar(180) default NULL,</span>
+<span class="s">		  `client_script` text,</span>
+<span class="s">		  `client_script_core` text,</span>
+<span class="s">		  `server_code` text,</span>
+<span class="s">		  `server_code_core` text,</span>
+<span class="s">		  `server_code_compiled` text,</span>
+<span class="s">		  `client_string` text,</span>
+<span class="s">		  `server_code_error` varchar(180) default NULL,</span>
+<span class="s">		  `print_outline` varchar(180) default NULL,</span>
+<span class="s">		  `dt_template` text,</span>
+<span class="s">		  `is_transaction_doc` int(1) default NULL,</span>
+<span class="s">		  `change_log` text,</span>
+<span class="s">		  `read_only_onload` int(1) default NULL,</span>
+<span class="s">		  PRIMARY KEY  (`name`),</span>
+<span class="s">		  KEY `parent` (`parent`)</span>
+<span class="s">		) ENGINE=InnoDB DEFAULT CHARSET=latin1;&quot;&quot;&quot;</span><span class="p">)</span>
+		</div>
+<div class="viewcode-block" id="DatabaseInstance.create_module_def"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.create_module_def">[docs]</a>	<span class="k">def</span> <span class="nf">create_module_def</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS `tabModule Def`&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;CREATE TABLE `tabModule Def` (`name` varchar(120) NOT NULL, `creation` datetime default NULL, `modified` datetime 					default NULL,`modified_by` varchar(40) default NULL,`owner` varchar(40) default NULL,`docstatus` int(1) default &#39;0&#39;,  					`parent` varchar(120) default NULL,`parentfield` varchar(120) default NULL, `parenttype` varchar(120) default NULL,				`idx` int(8) default NULL,`module_name` varchar(180) default NULL,`doctype_list` text,				 PRIMARY KEY  (`name`), KEY `parent` (`parent`)) ENGINE=InnoDB&quot;</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="DatabaseInstance.post_cleanup"><a class="viewcode-back" href="../../../webnotes.install_lib.html#webnotes.install_lib.db_init.DatabaseInstance.post_cleanup">[docs]</a>	<span class="k">def</span> <span class="nf">post_cleanup</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;use </span><span class="si">%s</span><span class="s">;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">db_name</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update tabProfile set password = password(&#39;admin&#39;) where name=&#39;Administrator&#39;&quot;</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update tabDocType set server_code_compiled = NULL&quot;</span><span class="p">)</span>	</div></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

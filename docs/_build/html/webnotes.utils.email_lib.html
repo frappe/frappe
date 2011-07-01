@@ -1,0 +1,442 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>email_lib Package &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="index.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">WNFramework v1.8 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="email-lib-package">
+<h1>email_lib Package<a class="headerlink" href="#email-lib-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="id1">
+<h2><tt class="xref py py-mod docutils literal"><span class="pre">email_lib</span></tt> Package<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
+<span class="target" id="module-webnotes.utils.email_lib"></span><dl class="function">
+<dt id="webnotes.utils.email_lib.get_contact_list">
+<tt class="descclassname">webnotes.utils.email_lib.</tt><tt class="descname">get_contact_list</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib.html#get_contact_list"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.get_contact_list" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns contacts (from autosuggest)</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.get_footer">
+<tt class="descclassname">webnotes.utils.email_lib.</tt><tt class="descname">get_footer</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib.html#get_footer"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.get_footer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns combination of footer from globals and Control Panel</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.make_html_body">
+<tt class="descclassname">webnotes.utils.email_lib.</tt><tt class="descname">make_html_body</tt><big>(</big><em>content</em>, <em>template=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib.html#make_html_body"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.make_html_body" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate html content from a Page Template object</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.send_form">
+<tt class="descclassname">webnotes.utils.email_lib.</tt><tt class="descname">send_form</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib.html#send_form"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send_form" title="Permalink to this definition">¶</a></dt>
+<dd><p>Emails a print format (form)
+Called from form UI</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.sendmail">
+<tt class="descclassname">webnotes.utils.email_lib.</tt><tt class="descname">sendmail</tt><big>(</big><em>recipients</em>, <em>sender=''</em>, <em>msg=''</em>, <em>subject='[No Subject]'</em>, <em>parts=</em><span class="optional">[</span><span class="optional">]</span>, <em>cc=</em><span class="optional">[</span><span class="optional">]</span>, <em>attach=</em><span class="optional">[</span><span class="optional">]</span>, <em>send_now=1</em>, <em>reply_to=None</em>, <em>template=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib.html#sendmail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.sendmail" title="Permalink to this definition">¶</a></dt>
+<dd><p>send an html email as multipart with attachments and all</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.sendmail_html">
+<tt class="descclassname">webnotes.utils.email_lib.</tt><tt class="descname">sendmail_html</tt><big>(</big><em>sender</em>, <em>recipients</em>, <em>subject</em>, <em>html</em>, <em>text=None</em>, <em>template=None</em>, <em>send_now=1</em>, <em>reply_to=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib.html#sendmail_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.sendmail_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send an html mail with alternative text and using Page Templates</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.email_lib.form_email">
+<span id="form-email-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">form_email</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.email_lib.form_email" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.email_lib.form_email.</tt><tt class="descname">FormEmail</tt><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Represents an email sent from a Form</p>
+<dl class="method">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail.build_message">
+<tt class="descname">build_message</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail.build_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail.build_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Builds the message object</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail.get_form_link">
+<tt class="descname">get_form_link</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail.get_form_link"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail.get_form_link" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns publicly accessible form link</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail.make_full_links">
+<tt class="descname">make_full_links</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail.make_full_links"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail.make_full_links" title="Permalink to this definition">¶</a></dt>
+<dd><p>Adds server name the relative links, so that images etc can be seen correctly</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail.send">
+<tt class="descname">send</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>Send the form with html attachment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail.set_attachments">
+<tt class="descname">set_attachments</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail.set_attachments"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail.set_attachments" title="Permalink to this definition">¶</a></dt>
+<dd><p>Set attachments to the email from the form</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.form_email.FormEmail.update_contacts">
+<tt class="descname">update_contacts</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/form_email.html#FormEmail.update_contacts"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.form_email.FormEmail.update_contacts" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new email contact to database</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.email_lib.html2text">
+<span id="html2text-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">html2text</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.email_lib.html2text" title="Permalink to this headline">¶</a></h2>
+<p>html2text: Turn HTML into equivalent Markdown-structured text.</p>
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.charref">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">charref</tt><big>(</big><em>name</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#charref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.charref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.entityref">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">entityref</tt><big>(</big><em>c</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#entityref"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.entityref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.has_key">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">has_key</tt><big>(</big><em>x</em>, <em>y</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#has_key"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.has_key" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.hn">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">hn</tt><big>(</big><em>tag</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#hn"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.hn" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.html2text">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">html2text</tt><big>(</big><em>html</em>, <em>baseurl=''</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#html2text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.html2text" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.html2text_file">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">html2text_file</tt><big>(</big><em>html</em>, <em>out=&lt;function wrapwrite at 0x38ff030&gt;</em>, <em>baseurl=''</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#html2text_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.html2text_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.name2cp">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">name2cp</tt><big>(</big><em>k</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#name2cp"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.name2cp" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.onlywhite">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">onlywhite</tt><big>(</big><em>line</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#onlywhite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.onlywhite" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return true if the line does only consist of whitespace characters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.optwrap">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">optwrap</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#optwrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.optwrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrap all paragraphs in the provided text.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.replaceEntities">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">replaceEntities</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#replaceEntities"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.replaceEntities" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.unescape">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">unescape</tt><big>(</big><em>s</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#unescape"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.unescape" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="webnotes.utils.email_lib.html2text.wrapwrite">
+<tt class="descclassname">webnotes.utils.email_lib.html2text.</tt><tt class="descname">wrapwrite</tt><big>(</big><em>text</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/html2text.html#wrapwrite"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.html2text.wrapwrite" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.email_lib.receive">
+<span id="receive-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">receive</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.email_lib.receive" title="Permalink to this headline">¶</a></h2>
+<p>This module contains classes for managing incoming emails</p>
+<dl class="class">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.email_lib.receive.</tt><tt class="descname">IncomingMail</tt><big>(</big><em>content</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Single incoming email object. Extracts, text / html and attachments from the email</p>
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.get_attachment">
+<tt class="descname">get_attachment</tt><big>(</big><em>part</em>, <em>charset</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.get_attachment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.get_attachment" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts an attachment</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.get_charset">
+<tt class="descname">get_charset</tt><big>(</big><em>part</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.get_charset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.get_charset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Guesses character set</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.get_payload">
+<tt class="descname">get_payload</tt><big>(</big><em>part</em>, <em>charset</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.get_payload"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.get_payload" title="Permalink to this definition">¶</a></dt>
+<dd><p>get utf-8 encoded part content</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.get_text_content">
+<tt class="descname">get_text_content</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.get_text_content"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.get_text_content" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the text parts of the email. If None, then HTML parts</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.get_thread_id">
+<tt class="descname">get_thread_id</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.get_thread_id"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.get_thread_id" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts thread id of the message between first [] 
+from the subject</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.parse">
+<tt class="descname">parse</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.parse"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.parse" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extracts text, html and attachments from the mail</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.IncomingMail.process_part">
+<tt class="descname">process_part</tt><big>(</big><em>part</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#IncomingMail.process_part"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.IncomingMail.process_part" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process a single part of an email</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webnotes.utils.email_lib.receive.POP3Mailbox">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.email_lib.receive.</tt><tt class="descname">POP3Mailbox</tt><big>(</big><em>settings_doc</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#POP3Mailbox"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.POP3Mailbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>A simple pop3 mailbox, abstracts connection and mail extraction
+To use, subclass it and override method process_message(from, subject, text, thread_id)</p>
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.POP3Mailbox.check_mails">
+<tt class="descname">check_mails</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#POP3Mailbox.check_mails"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.POP3Mailbox.check_mails" title="Permalink to this definition">¶</a></dt>
+<dd><p>To be overridden
+If mailbox is to be scanned, returns true</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.POP3Mailbox.connect">
+<tt class="descname">connect</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#POP3Mailbox.connect"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.POP3Mailbox.connect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Connects to the mailbox</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.POP3Mailbox.get_messages">
+<tt class="descname">get_messages</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#POP3Mailbox.get_messages"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.POP3Mailbox.get_messages" title="Permalink to this definition">¶</a></dt>
+<dd><p>Loads messages from the mailbox and calls
+process_message for each message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.receive.POP3Mailbox.process_message">
+<tt class="descname">process_message</tt><big>(</big><em>mail</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/receive.html#POP3Mailbox.process_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.receive.POP3Mailbox.process_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>To be overriden</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-webnotes.utils.email_lib.send">
+<span id="send-module"></span><h2><tt class="xref py py-mod docutils literal"><span class="pre">send</span></tt> Module<a class="headerlink" href="#module-webnotes.utils.email_lib.send" title="Permalink to this headline">¶</a></h2>
+<p>Sends email via outgoing server specified in &#8220;Control Panel&#8221;
+Allows easy adding of Attachments of &#8220;File&#8221; objects</p>
+<dl class="class">
+<dt id="webnotes.utils.email_lib.send.EMail">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.email_lib.send.</tt><tt class="descname">EMail</tt><big>(</big><em>sender=''</em>, <em>recipients=</em><span class="optional">[</span><span class="optional">]</span>, <em>subject=''</em>, <em>from_defs=0</em>, <em>alternative=0</em>, <em>reply_to=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail" title="Permalink to this definition">¶</a></dt>
+<dd><p>Wrapper on the email module. Email object represents emails to be sent to the client. 
+Also provides a clean way to add binary <cite>FileData</cite> attachments
+Also sets all messages as multipart/alternative for cleaner reading in text-only clients</p>
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.add_attachment">
+<tt class="descname">add_attachment</tt><big>(</big><em>fname</em>, <em>fcontent</em>, <em>content_type=None</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.add_attachment"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.add_attachment" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.add_to_queue">
+<tt class="descname">add_to_queue</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.add_to_queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.add_to_queue" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.attach_file">
+<tt class="descname">attach_file</tt><big>(</big><em>n</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.attach_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.attach_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>attach a file from the <cite>FileData</cite> table</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.make_msg">
+<tt class="descname">make_msg</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.make_msg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.make_msg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.send">
+<tt class="descname">send</tt><big>(</big><em>send_now=0</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.send"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.send" title="Permalink to this definition">¶</a></dt>
+<dd><p>send the message</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.set_html">
+<tt class="descname">set_html</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.set_html"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.set_html" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attach message in the html portion of multipart/alternative</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.set_message">
+<tt class="descname">set_message</tt><big>(</big><em>message</em>, <em>mime_type='text/html'</em>, <em>as_attachment=0</em>, <em>filename='attachment.html'</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.set_message"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.set_message" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append the message with MIME content to the root node (as attachment)</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.set_text">
+<tt class="descname">set_text</tt><big>(</big><em>message</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.set_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.set_text" title="Permalink to this definition">¶</a></dt>
+<dd><p>Attach message in the text portion of multipart/alternative</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.setup">
+<tt class="descname">setup</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.setup"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.setup" title="Permalink to this definition">¶</a></dt>
+<dd><p>setup the SMTP (outgoing) server from <cite>Control Panel</cite> or defs.py</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EMail.validate">
+<tt class="descname">validate</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EMail.validate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EMail.validate" title="Permalink to this definition">¶</a></dt>
+<dd><p>validate the email ids</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="webnotes.utils.email_lib.send.EmailQueue">
+<em class="property">class </em><tt class="descclassname">webnotes.utils.email_lib.send.</tt><tt class="descname">EmailQueue</tt><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EmailQueue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EmailQueue" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="method">
+<dt id="webnotes.utils.email_lib.send.EmailQueue.close">
+<tt class="descname">close</tt><big>(</big><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EmailQueue.close"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EmailQueue.close" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EmailQueue.flush">
+<tt class="descname">flush</tt><big>(</big><em>qty=100</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EmailQueue.flush"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EmailQueue.flush" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EmailQueue.get_smtp_session">
+<tt class="descname">get_smtp_session</tt><big>(</big><em>e</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EmailQueue.get_smtp_session"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EmailQueue.get_smtp_session" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="webnotes.utils.email_lib.send.EmailQueue.push">
+<tt class="descname">push</tt><big>(</big><em>email</em><big>)</big><a class="reference internal" href="_modules/webnotes/utils/email_lib/send.html#EmailQueue.push"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#webnotes.utils.email_lib.send.EmailQueue.push" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="index.html">
+              <img class="logo" src="_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">email_lib Package</a><ul>
+<li><a class="reference internal" href="#id1"><tt class="docutils literal"><span class="pre">email_lib</span></tt> Package</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.email_lib.form_email"><tt class="docutils literal"><span class="pre">form_email</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.email_lib.html2text"><tt class="docutils literal"><span class="pre">html2text</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.email_lib.receive"><tt class="docutils literal"><span class="pre">receive</span></tt> Module</a></li>
+<li><a class="reference internal" href="#module-webnotes.utils.email_lib.send"><tt class="docutils literal"><span class="pre">send</span></tt> Module</a></li>
+</ul>
+</li>
+</ul>
+
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/webnotes.utils.email_lib.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="index.html">WNFramework v1.8 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

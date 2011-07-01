@@ -1,0 +1,264 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.utils.scheduler &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.utils" href="../utils.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" accesskey="U">webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.utils.scheduler</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Simple Scheduler</span>
+
+<span class="sd">This scheduler is used to fire events across multiple databases. A database</span>
+<span class="sd">master_scheduler is maintained with one event and one log table</span>
+
+<span class="sd">Events are added by different databases in the master scheduler using the</span>
+<span class="sd">`set_event` method and they are executed by the cron.</span>
+
+<span class="sd">__main__ will call run</span>
+
+<span class="sd">To install:</span>
+<span class="sd">-----------</span>
+
+<span class="sd">python install_lib.py [root] [password] master_scheduler</span>
+
+<span class="sd">In cron:</span>
+<span class="sd">--------</span>
+
+<span class="sd">python [path]webnotes/utils/scheduler.py</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+
+<div class="viewcode-block" id="Scheduler"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler">[docs]</a><span class="k">class</span> <span class="nc">Scheduler</span><span class="p">:</span>
+<div class="viewcode-block" id="Scheduler.connect"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.connect">[docs]</a>	<span class="k">def</span> <span class="nf">connect</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="s">&#39;conn&#39;</span><span class="p">):</span> <span class="k">return</span>
+		
+		<span class="kn">import</span> <span class="nn">webnotes.defs</span><span class="o">,</span> <span class="nn">webnotes.db</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="s">&#39;master_scheduler&#39;</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">db_password</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">setup</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+		</div>
+<div class="viewcode-block" id="Scheduler.set"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.set">[docs]</a>	<span class="k">def</span> <span class="nf">set</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">recurring</span><span class="p">,</span> <span class="n">db_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Add an event to the Event table in the master scheduler</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">db_name</span><span class="p">:</span>
+			<span class="kn">import</span> <span class="nn">webnotes</span>
+			<span class="n">db_name</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span>
+
+		<span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;insert into </span>
+<span class="s">			Event (`db_name`, `event`, `interval`, next_execution, recurring) </span>
+<span class="s">			values  (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, ADDTIME(NOW(), SEC_TO_TIME(</span><span class="si">%s</span><span class="s">)), </span><span class="si">%s</span><span class="s">)</span>
+<span class="s">			&quot;&quot;&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">recurring</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Scheduler.get_events"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.get_events">[docs]</a>	<span class="k">def</span> <span class="nf">get_events</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Returns list of upcoming events</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">db_name</span><span class="p">:</span>
+			<span class="kn">import</span> <span class="nn">webnotes</span>
+			<span class="n">db_name</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span>
+			
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select * from Event where db_name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="Scheduler.get_log"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.get_log">[docs]</a>	<span class="k">def</span> <span class="nf">get_log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Returns log of events</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">db_name</span><span class="p">:</span>
+			<span class="kn">import</span> <span class="nn">webnotes</span>
+			<span class="n">db_name</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span>
+
+		<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select * from EventLog where db_name=</span><span class="si">%s</span><span class="s"> limit 50&quot;</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scheduler.clear"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.clear">[docs]</a>	<span class="k">def</span> <span class="nf">clear</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Clears the event</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;delete from Event where `event`=</span><span class="si">%s</span><span class="s"> and db_name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">db_name</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="Scheduler.execute"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.execute">[docs]</a>	<span class="k">def</span> <span class="nf">execute</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Executes event in the specifed db</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="kn">import</span> <span class="nn">webnotes</span><span class="o">,</span> <span class="nn">webnotes.defs</span><span class="o">,</span> <span class="nn">webnotes.db</span>
+
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">db</span><span class="o">.</span><span class="n">Database</span><span class="p">(</span><span class="n">user</span><span class="o">=</span><span class="n">db_name</span><span class="p">,</span> <span class="n">password</span><span class="o">=</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="o">.</span><span class="n">db_password</span><span class="p">)</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">session</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;user&#39;</span><span class="p">:</span><span class="s">&#39;Administrator&#39;</span><span class="p">}</span>
+
+			<span class="n">module</span> <span class="o">=</span> <span class="s">&#39;.&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">event</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+			<span class="n">method</span> <span class="o">=</span> <span class="n">event</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+		
+			<span class="k">exec</span> <span class="s">&#39;from </span><span class="si">%s</span><span class="s"> import </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">module</span><span class="p">,</span> <span class="n">method</span><span class="p">)</span>
+		
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="nb">locals</span><span class="p">()[</span><span class="n">method</span><span class="p">]()</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">close</span><span class="p">()</span>
+			
+			<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">ret</span> <span class="ow">or</span> <span class="s">&#39;Ok&#39;</span><span class="p">)</span>
+			
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">())</span>
+</div>
+<div class="viewcode-block" id="Scheduler.log"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.log">[docs]</a>	<span class="k">def</span> <span class="nf">log</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">traceback</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Log an event error</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;insert into `EventLog`(db_name, event, log, executed_on) values (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, now())&quot;</span><span class="p">,</span> \
+			<span class="p">(</span><span class="n">db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">,</span> <span class="n">traceback</span><span class="p">))</span>
+			
+		<span class="c"># delete old logs</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;delete from EventLog where executed_on &lt; subdate(curdate(), interval 30 day)&quot;</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="Scheduler.run"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.Scheduler.run">[docs]</a>	<span class="k">def</span> <span class="nf">run</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Run scheduled (due) events and reset time for recurring events</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">el</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;select `db_name`, `event`, `recurring`, `interval`</span>
+<span class="s">			from `Event` </span>
+<span class="s">			where next_execution &lt; NOW()&quot;&quot;&quot;</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+		
+		<span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">el</span><span class="p">:</span>
+			<span class="c"># execute the event</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">execute</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;db_name&#39;</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="s">&#39;event&#39;</span><span class="p">])</span>
+			
+			<span class="c"># if recurring, update next_execution</span>
+			<span class="k">if</span> <span class="n">e</span><span class="p">[</span><span class="s">&#39;recurring&#39;</span><span class="p">]:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update Event set next_execution = addtime(now(), sec_to_time(</span><span class="si">%s</span><span class="s">))&quot;</span><span class="p">,</span> <span class="n">e</span><span class="p">[</span><span class="s">&#39;interval&#39;</span><span class="p">])</span>
+			
+			<span class="c"># else clear</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">e</span><span class="p">[</span><span class="s">&#39;db_name&#39;</span><span class="p">],</span> <span class="n">e</span><span class="p">[</span><span class="s">&#39;event&#39;</span><span class="p">])</span>
+</div></div>
+<div class="viewcode-block" id="set_event"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.set_event">[docs]</a><span class="k">def</span> <span class="nf">set_event</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">interval</span><span class="o">=</span><span class="mi">60</span><span class="o">*</span><span class="mi">60</span><span class="o">*</span><span class="mi">24</span><span class="p">,</span> <span class="n">recurring</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Adds an event to the master scheduler</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">Scheduler</span><span class="p">()</span><span class="o">.</span><span class="n">set</span><span class="p">(</span><span class="n">event</span><span class="p">,</span> <span class="n">interval</span><span class="p">,</span> <span class="n">recurring</span><span class="p">)</span>
+
+</div>
+<div class="viewcode-block" id="cancel_event"><a class="viewcode-back" href="../../../webnotes.utils.html#webnotes.utils.scheduler.cancel_event">[docs]</a><span class="k">def</span> <span class="nf">cancel_event</span><span class="p">(</span><span class="n">event</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Cancels an event</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="k">return</span> <span class="n">Scheduler</span><span class="p">()</span><span class="o">.</span><span class="n">clear</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span><span class="p">,</span> <span class="n">event</span><span class="p">)</span>
+
+<span class="c"># to be called from cron</span></div>
+<span class="k">if</span> <span class="n">__name__</span><span class="o">==</span><span class="s">&#39;__main__&#39;</span><span class="p">:</span>
+	<span class="kn">import</span> <span class="nn">os</span><span class="o">,</span><span class="nn">sys</span>
+
+	<span class="n">cgi_bin_path</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">__file__</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">sep</span><span class="p">)[:</span><span class="o">-</span><span class="mi">3</span><span class="p">])</span>
+
+	<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cgi_bin_path</span><span class="p">)</span>
+
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	<span class="kn">import</span> <span class="nn">webnotes.defs</span>
+	<span class="n">sys</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="p">,</span><span class="s">&#39;modules_path&#39;</span><span class="p">,</span><span class="bp">None</span><span class="p">))</span>
+
+	<span class="n">sch</span> <span class="o">=</span> <span class="n">Scheduler</span><span class="p">()</span>
+	<span class="n">sch</span><span class="o">.</span><span class="n">connect</span><span class="p">()</span>
+	<span class="n">sch</span><span class="o">.</span><span class="n">run</span><span class="p">()</span>
+	
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../utils.html" >webnotes.utils</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

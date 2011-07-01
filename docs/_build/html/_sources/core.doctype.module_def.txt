@@ -1,0 +1,11 @@
+module_def Package
+==================
+
+:mod:`module_def` Module
+------------------------
+
+.. automodule:: core.doctype.module_def.module_def
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

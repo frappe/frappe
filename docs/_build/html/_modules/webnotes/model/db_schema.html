@@ -1,0 +1,528 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.model.db_schema &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.model" href="../model.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" accesskey="U">webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.model.db_schema</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Syncs a database table to the `DocType` (metadata)</span>
+
+<span class="sd">.. note:: This module is only used internally</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<span class="n">type_map</span> <span class="o">=</span> <span class="p">{</span>
+	<span class="s">&#39;currency&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;decimal&#39;</span><span class="p">,</span> <span class="s">&#39;14,2&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;int&#39;</span><span class="p">:</span>			<span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;11&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;float&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;decimal&#39;</span><span class="p">,</span> <span class="s">&#39;14,6&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;check&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;int&#39;</span><span class="p">,</span> <span class="s">&#39;1&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;small text&#39;</span><span class="p">:</span>	<span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;long text&#39;</span><span class="p">:</span>	<span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;code&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;text editor&#39;</span><span class="p">:</span>	<span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;date&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;date&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;time&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;time&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;text&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;data&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;varchar&#39;</span><span class="p">,</span> <span class="s">&#39;180&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;link&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;varchar&#39;</span><span class="p">,</span> <span class="s">&#39;180&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;password&#39;</span><span class="p">:</span>	<span class="p">(</span><span class="s">&#39;varchar&#39;</span><span class="p">,</span> <span class="s">&#39;180&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;select&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;varchar&#39;</span><span class="p">,</span> <span class="s">&#39;180&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;read only&#39;</span><span class="p">:</span>	<span class="p">(</span><span class="s">&#39;varchar&#39;</span><span class="p">,</span> <span class="s">&#39;180&#39;</span><span class="p">)</span>
+	<span class="p">,</span><span class="s">&#39;blob&#39;</span><span class="p">:</span>		<span class="p">(</span><span class="s">&#39;longblob&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+<span class="p">}</span>
+
+<span class="n">default_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;creation&#39;</span><span class="p">,</span> <span class="s">&#39;modified&#39;</span><span class="p">,</span> <span class="s">&#39;modified_by&#39;</span><span class="p">,</span> <span class="s">&#39;owner&#39;</span><span class="p">,</span> <span class="s">&#39;docstatus&#39;</span><span class="p">,</span> <span class="s">&#39;parent&#39;</span><span class="p">,</span>\
+	 <span class="s">&#39;parentfield&#39;</span><span class="p">,</span> <span class="s">&#39;parenttype&#39;</span><span class="p">,</span> <span class="s">&#39;idx&#39;</span><span class="p">]</span>
+
+<span class="n">default_shortcuts</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;_Login&#39;</span><span class="p">,</span> <span class="s">&#39;__user&#39;</span><span class="p">,</span> <span class="s">&#39;_Full Name&#39;</span><span class="p">,</span> <span class="s">&#39;Today&#39;</span><span class="p">,</span> <span class="s">&#39;__today&#39;</span><span class="p">]</span>
+
+
+<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="n">cint</span>
+
+<span class="c"># -------------------------------------------------</span>
+<span class="c"># Class database table</span>
+<span class="c"># -------------------------------------------------</span>
+
+<div class="viewcode-block" id="DbTable"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable">[docs]</a><span class="k">class</span> <span class="nc">DbTable</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doctype</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;tab&#39;</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">doctype</span> <span class="o">=</span> <span class="n">doctype</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">prefix</span> <span class="o">+</span> <span class="n">doctype</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">columns</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">current_columns</span> <span class="o">=</span> <span class="p">{}</span>
+		
+		<span class="c"># lists for change</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">add_column</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">change_type</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">add_index</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">drop_index</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_default</span> <span class="o">=</span> <span class="p">[]</span>
+		
+		<span class="c"># load</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">get_columns_from_docfields</span><span class="p">()</span>
+
+<div class="viewcode-block" id="DbTable.create"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.create">[docs]</a>	<span class="k">def</span> <span class="nf">create</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">add_text</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		
+		<span class="c"># columns</span>
+		<span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_column_definitions</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">t</span><span class="p">:</span> <span class="n">add_text</span> <span class="o">+=</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_column_definitions</span><span class="p">())</span> <span class="o">+</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span>
+		
+		<span class="c"># index</span>
+		<span class="n">t</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_index_definitions</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">t</span><span class="p">:</span> <span class="n">add_text</span> <span class="o">+=</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">get_index_definitions</span><span class="p">())</span> <span class="o">+</span> <span class="s">&#39;,</span><span class="se">\n</span><span class="s">&#39;</span>
+	
+		<span class="c"># create table</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;create table `</span><span class="si">%s</span><span class="s">` (</span>
+<span class="s">			name varchar(120) not null primary key, </span>
+<span class="s">			creation datetime,</span>
+<span class="s">			modified datetime,</span>
+<span class="s">			modified_by varchar(40), </span>
+<span class="s">			owner varchar(40),</span>
+<span class="s">			docstatus int(1) default &#39;0&#39;, </span>
+<span class="s">			parent varchar(120),</span>
+<span class="s">			parentfield varchar(120), </span>
+<span class="s">			parenttype varchar(120), </span>
+<span class="s">			idx int(8),</span>
+<span class="s">			</span><span class="si">%s</span><span class="s">index parent(parent)) ENGINE=InnoDB&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">add_text</span><span class="p">))</span>
+</div>
+<div class="viewcode-block" id="DbTable.get_columns_from_docfields"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.get_columns_from_docfields">[docs]</a>	<span class="k">def</span> <span class="nf">get_columns_from_docfields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">fl</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SELECT * FROM tabDocField WHERE parent = &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">as_dict</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fl</span><span class="p">:</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;no_column&#39;</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="s">&#39;fieldname&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">DbColumn</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;fieldname&#39;</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;fieldtype&#39;</span><span class="p">],</span> <span class="n">f</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;length&#39;</span><span class="p">),</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;search_index&#39;</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;options&#39;</span><span class="p">])</span>
+	</div>
+<div class="viewcode-block" id="DbTable.get_columns_from_db"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.get_columns_from_db">[docs]</a>	<span class="k">def</span> <span class="nf">get_columns_from_db</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">show_columns</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;desc `</span><span class="si">%s</span><span class="s">`&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">show_columns</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">current_columns</span><span class="p">[</span><span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">{</span><span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="n">c</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="s">&#39;type&#39;</span><span class="p">:</span><span class="n">c</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="s">&#39;index&#39;</span><span class="p">:</span><span class="n">c</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="s">&#39;default&#39;</span><span class="p">:</span><span class="n">c</span><span class="p">[</span><span class="mi">4</span><span class="p">]}</span>
+	</div>
+<div class="viewcode-block" id="DbTable.get_column_definitions"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.get_column_definitions">[docs]</a>	<span class="k">def</span> <span class="nf">get_column_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">column_list</span> <span class="o">=</span> <span class="p">[]</span> <span class="o">+</span> <span class="n">default_columns</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">column_list</span><span class="p">:</span>
+				<span class="n">d</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">get_definition</span><span class="p">()</span>
+				<span class="k">if</span> <span class="n">d</span><span class="p">:</span>
+					<span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;`&#39;</span><span class="o">+</span> <span class="n">k</span><span class="o">+</span> <span class="s">&#39;` &#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">)</span>
+					<span class="n">column_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ret</span>
+	</div>
+<div class="viewcode-block" id="DbTable.get_index_definitions"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.get_index_definitions">[docs]</a>	<span class="k">def</span> <span class="nf">get_index_definitions</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">ret</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="k">if</span> <span class="n">type_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">fieldtype</span><span class="p">)</span> <span class="ow">and</span> <span class="n">type_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="p">[</span><span class="n">k</span><span class="p">]</span><span class="o">.</span><span class="n">fieldtype</span><span class="o">.</span><span class="n">lower</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;text&#39;</span><span class="p">,</span> <span class="s">&#39;blob&#39;</span><span class="p">):</span>
+				<span class="n">ret</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;index `&#39;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s">&#39;`(`&#39;</span> <span class="o">+</span> <span class="n">k</span> <span class="o">+</span> <span class="s">&#39;`)&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">ret</span>
+
+
+	<span class="c"># GET foreign keys</span></div>
+<div class="viewcode-block" id="DbTable.get_foreign_keys"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.get_foreign_keys">[docs]</a>	<span class="k">def</span> <span class="nf">get_foreign_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">fk_list</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="n">txt</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;show create table `</span><span class="si">%s</span><span class="s">`&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">txt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">):</span>
+			<span class="k">if</span> <span class="n">line</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;CONSTRAINT&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="n">line</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="s">&#39;FOREIGN&#39;</span><span class="p">)</span><span class="o">!=-</span><span class="mi">1</span><span class="p">:</span>
+				<span class="k">try</span><span class="p">:</span>
+					<span class="n">fk_list</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;`&#39;</span><span class="p">)[</span><span class="mi">3</span><span class="p">],</span> <span class="n">line</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;`&#39;</span><span class="p">)[</span><span class="mi">1</span><span class="p">]))</span>
+				<span class="k">except</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+					<span class="k">pass</span>
+
+		<span class="k">return</span> <span class="n">fk_list</span>
+
+	<span class="c"># Drop foreign keys</span></div>
+<div class="viewcode-block" id="DbTable.drop_foreign_keys"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.drop_foreign_keys">[docs]</a>	<span class="k">def</span> <span class="nf">drop_foreign_keys</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_foreign_key</span><span class="p">:</span>
+			<span class="k">return</span>
+
+		<span class="n">fk_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_foreign_keys</span><span class="p">()</span>
+		
+		<span class="c"># make dictionary of constraint names</span>
+		<span class="n">fk_dict</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fk_list</span><span class="p">:</span>
+			<span class="n">fk_dict</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+			
+		<span class="c"># drop</span>
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_foreign_key</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;set foreign_key_checks=0&quot;</span><span class="p">)</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `</span><span class="si">%s</span><span class="s">` drop foreign key `</span><span class="si">%s</span><span class="s">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">fk_dict</span><span class="p">[</span><span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">]))</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;set foreign_key_checks=1&quot;</span><span class="p">)</span>
+		</div>
+<div class="viewcode-block" id="DbTable.sync"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.sync">[docs]</a>	<span class="k">def</span> <span class="nf">sync</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">DbManager</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="p">)</span><span class="o">.</span><span class="n">get_tables_list</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">cur_db_name</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">create</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">alter</span><span class="p">()</span>
+	</div>
+<div class="viewcode-block" id="DbTable.alter"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbTable.alter">[docs]</a>	<span class="k">def</span> <span class="nf">alter</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">get_columns_from_db</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">columns</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+			<span class="n">col</span><span class="o">.</span><span class="n">check</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">current_columns</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">,</span> <span class="bp">None</span><span class="p">))</span>
+
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_column</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `</span><span class="si">%s</span><span class="s">` add column `</span><span class="si">%s</span><span class="s">` </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">get_definition</span><span class="p">()))</span>
+
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">change_type</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `</span><span class="si">%s</span><span class="s">` change `</span><span class="si">%s</span><span class="s">` `</span><span class="si">%s</span><span class="s">` </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">get_definition</span><span class="p">()))</span>
+
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">add_index</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `</span><span class="si">%s</span><span class="s">` add index `</span><span class="si">%s</span><span class="s">`(`</span><span class="si">%s</span><span class="s">`)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">))</span>
+
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">drop_index</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span> <span class="o">!=</span> <span class="s">&#39;name&#39;</span><span class="p">:</span> <span class="c"># primary key</span>
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `</span><span class="si">%s</span><span class="s">` drop index `</span><span class="si">%s</span><span class="s">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">))</span>
+
+
+		<span class="k">for</span> <span class="n">col</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_default</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `</span><span class="si">%s</span><span class="s">` alter column `</span><span class="si">%s</span><span class="s">` set default </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">col</span><span class="o">.</span><span class="n">fieldname</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> <span class="n">col</span><span class="o">.</span><span class="n">default</span><span class="p">)</span>
+
+
+<span class="c"># -------------------------------------------------</span>
+<span class="c"># Class database column</span>
+<span class="c"># -------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="DbColumn"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbColumn">[docs]</a><span class="k">class</span> <span class="nc">DbColumn</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">table</span><span class="p">,</span> <span class="n">fieldname</span><span class="p">,</span> <span class="n">fieldtype</span><span class="p">,</span> <span class="n">length</span><span class="p">,</span> <span class="n">default</span><span class="p">,</span> <span class="n">set_index</span><span class="p">,</span> <span class="n">options</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">table</span> <span class="o">=</span> <span class="n">table</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fieldname</span> <span class="o">=</span> <span class="n">fieldname</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fieldtype</span> <span class="o">=</span> <span class="n">fieldtype</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">length</span> <span class="o">=</span> <span class="n">length</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">set_index</span> <span class="o">=</span> <span class="n">set_index</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="o">=</span> <span class="n">default</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="n">options</span>
+
+<div class="viewcode-block" id="DbColumn.get_definition"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbColumn.get_definition">[docs]</a>	<span class="k">def</span> <span class="nf">get_definition</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">with_default</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="n">type_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldtype</span><span class="o">.</span><span class="n">lower</span><span class="p">())</span>
+
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">d</span><span class="p">:</span>
+			<span class="k">return</span>
+			
+		<span class="n">ret</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+			<span class="n">ret</span> <span class="o">+=</span> <span class="s">&#39;(&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;)&#39;</span>
+		<span class="k">if</span> <span class="n">with_default</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_shortcuts</span><span class="p">):</span>
+			<span class="n">ret</span> <span class="o">+=</span> <span class="s">&#39; default &quot;&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&quot;&#39;</span>
+		<span class="k">return</span> <span class="n">ret</span>
+		</div>
+<div class="viewcode-block" id="DbColumn.check"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbColumn.check">[docs]</a>	<span class="k">def</span> <span class="nf">check</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">current_def</span><span class="p">):</span>
+		<span class="n">column_def</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_definition</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+
+		<span class="c"># no columns</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">column_def</span><span class="p">:</span>
+			<span class="k">return</span>
+		
+		<span class="c"># to add?</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">current_def</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fieldname</span> <span class="o">=</span> <span class="n">validate_column_name</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fieldname</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">add_column</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+			<span class="k">return</span>
+
+		<span class="c"># type</span>
+		<span class="k">if</span> <span class="n">current_def</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">column_def</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">change_type</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		
+		<span class="c"># index</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">if</span> <span class="p">(</span><span class="n">current_def</span><span class="p">[</span><span class="s">&#39;index&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_index</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">drop_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+			
+			<span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="n">current_def</span><span class="p">[</span><span class="s">&#39;index&#39;</span><span class="p">]</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">set_index</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">column_def</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">,</span><span class="s">&#39;blob&#39;</span><span class="p">])):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">add_index</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+		
+		<span class="c"># default</span>
+		<span class="k">if</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">and</span> <span class="p">(</span><span class="n">current_def</span><span class="p">[</span><span class="s">&#39;default&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="bp">self</span><span class="o">.</span><span class="n">default</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">default</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_shortcuts</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="p">(</span><span class="n">column_def</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;text&#39;</span><span class="p">,</span><span class="s">&#39;blob&#39;</span><span class="p">])):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">table</span><span class="o">.</span><span class="n">set_default</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+
+</div></div>
+<div class="viewcode-block" id="DbManager"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager">[docs]</a><span class="k">class</span> <span class="nc">DbManager</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Basically, a wrapper for oft-used mysql commands. like show tables,databases, variables etc... </span>
+
+<span class="sd">	#TODO:</span>
+<span class="sd">		0.  Simplify / create settings for the restore database source folder </span>
+<span class="sd">		0a. Merge restore database and extract_sql(from webnotes_server_tools).</span>
+<span class="sd">		1. Setter and getter for different mysql variables.</span>
+<span class="sd">		2. Setter and getter for mysql variables at global level??</span>
+<span class="sd">	&quot;&quot;&quot;</span>	
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">conn</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Pass root_conn here for access to all databases.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+ 		<span class="k">if</span> <span class="n">conn</span><span class="p">:</span>
+ 			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span> <span class="o">=</span> <span class="n">conn</span>
+		
+
+<div class="viewcode-block" id="DbManager.get_variables"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.get_variables">[docs]</a>	<span class="k">def</span> <span class="nf">get_variables</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">regex</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Get variables that match the passed pattern regex</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SHOW VARIABLES LIKE &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span><span class="o">%</span><span class="n">regex</span><span class="p">))</span>
+
+</div>
+<div class="viewcode-block" id="DbManager.drop_all_databases"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.drop_all_databases">[docs]</a>	<span class="k">def</span> <span class="nf">drop_all_databases</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Danger: will delete all databases except test,mysql.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">db_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_database_list</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">db_list</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">drop_database</span><span class="p">(</span><span class="n">db</span><span class="p">)</span>
+			</div>
+<div class="viewcode-block" id="DbManager.get_table_schema"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.get_table_schema">[docs]</a>	<span class="k">def</span> <span class="nf">get_table_schema</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">table</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Just returns the output of Desc tables.</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">return</span> <span class="nb">list</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DESC </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="n">table</span><span class="p">))</span>
+		
+			</div>
+<div class="viewcode-block" id="DbManager.get_tables_list"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.get_tables_list">[docs]</a>	<span class="k">def</span> <span class="nf">get_tables_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">target</span><span class="p">):</span>	
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="n">target</span><span class="p">)</span>
+			<span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SHOW TABLES;&quot;</span><span class="p">)</span>
+			<span class="n">table_list</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">for</span> <span class="n">table</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+				<span class="n">table_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">table</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="k">return</span> <span class="n">table_list</span>
+
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.create_user"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.create_user">[docs]</a>	<span class="k">def</span> <span class="nf">create_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">user</span><span class="p">,</span><span class="n">password</span><span class="p">):</span>
+		<span class="c">#Create user if it doesn&#39;t exist.</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">password</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;CREATE USER &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39; IDENTIFIED BY &#39;</span><span class="si">%s</span><span class="s">&#39;;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">user</span><span class="p">[:</span><span class="mi">16</span><span class="p">],</span> <span class="n">password</span><span class="p">))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;CREATE USER &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39;;&quot;</span><span class="o">%</span><span class="n">user</span><span class="p">[:</span><span class="mi">16</span><span class="p">])</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+
+</div>
+<div class="viewcode-block" id="DbManager.delete_user"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.delete_user">[docs]</a>	<span class="k">def</span> <span class="nf">delete_user</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">target</span><span class="p">):</span>
+	<span class="c"># delete user if exists</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP USER &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39;;&quot;</span> <span class="o">%</span> <span class="n">target</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1396</span><span class="p">:</span>
+				<span class="k">pass</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.create_database"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.create_database">[docs]</a>	<span class="k">def</span> <span class="nf">create_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">target</span><span class="p">):</span>
+		
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;CREATE DATABASE IF NOT EXISTS `</span><span class="si">%s</span><span class="s">` ;&quot;</span> <span class="o">%</span> <span class="n">target</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+
+</div>
+<div class="viewcode-block" id="DbManager.drop_database"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.drop_database">[docs]</a>	<span class="k">def</span> <span class="nf">drop_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">target</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP DATABASE IF EXISTS `</span><span class="si">%s</span><span class="s">`;&quot;</span><span class="o">%</span><span class="n">target</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.grant_all_privileges"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.grant_all_privileges">[docs]</a>	<span class="k">def</span> <span class="nf">grant_all_privileges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">target</span><span class="p">,</span><span class="n">user</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;GRANT ALL PRIVILEGES ON `</span><span class="si">%s</span><span class="s">` . * TO &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39;;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">target</span><span class="p">,</span> <span class="n">user</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.grant_select_privilges"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.grant_select_privilges">[docs]</a>	<span class="k">def</span> <span class="nf">grant_select_privilges</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">db</span><span class="p">,</span><span class="n">table</span><span class="p">,</span><span class="n">user</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">table</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;GRANT SELECT ON </span><span class="si">%s</span><span class="s">.</span><span class="si">%s</span><span class="s"> to &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39;;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db</span><span class="p">,</span><span class="n">table</span><span class="p">,</span><span class="n">user</span><span class="p">))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;GRANT SELECT ON </span><span class="si">%s</span><span class="s">.* to &#39;</span><span class="si">%s</span><span class="s">&#39;@&#39;localhost&#39;;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">db</span><span class="p">,</span><span class="n">user</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.flush_privileges"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.flush_privileges">[docs]</a>	<span class="k">def</span> <span class="nf">flush_privileges</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;FLUSH PRIVILEGES&quot;</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+
+</div>
+<div class="viewcode-block" id="DbManager.get_database_list"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.get_database_list">[docs]</a>	<span class="k">def</span> <span class="nf">get_database_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">db_list</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="n">ret_db_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SHOW DATABASES&quot;</span><span class="p">)</span>
+			<span class="k">for</span> <span class="n">db</span> <span class="ow">in</span> <span class="n">ret_db_list</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">db</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s">&#39;information_schema&#39;</span><span class="p">,</span> <span class="s">&#39;mysql&#39;</span><span class="p">,</span> <span class="s">&#39;test&#39;</span><span class="p">,</span> <span class="s">&#39;accounts&#39;</span><span class="p">]:</span>
+					<span class="n">db_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">db</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="k">return</span> <span class="n">db_list</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.restore_database"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.restore_database">[docs]</a>	<span class="k">def</span> <span class="nf">restore_database</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">target</span><span class="p">,</span><span class="n">source</span><span class="p">,</span><span class="n">root_password</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">webnotes.defs</span>
+		<span class="n">mysql_path</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">defs</span><span class="p">,</span> <span class="s">&#39;mysql_path&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span>
+		<span class="n">mysql</span> <span class="o">=</span> <span class="n">mysql_path</span> <span class="ow">and</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">mysql_path</span><span class="p">,</span> <span class="s">&#39;mysql&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;mysql&#39;</span>
+		
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">ret</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">system</span><span class="p">(</span><span class="s">&quot;</span><span class="si">%s</span><span class="s"> -u root -p</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> &lt; </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">mysql</span><span class="p">,</span> <span class="n">root_password</span><span class="p">,</span> <span class="n">target</span><span class="p">,</span> <span class="n">source</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+</div>
+<div class="viewcode-block" id="DbManager.drop_table"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.drop_table">[docs]</a>	<span class="k">def</span> <span class="nf">drop_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">table_name</span><span class="p">):</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;DROP TABLE IF EXISTS </span><span class="si">%s</span><span class="s"> &quot;</span><span class="o">%</span><span class="p">(</span><span class="n">table_name</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>	
+</div>
+<div class="viewcode-block" id="DbManager.set_transaction_isolation_level"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.DbManager.set_transaction_isolation_level">[docs]</a>	<span class="k">def</span> <span class="nf">set_transaction_isolation_level</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">scope</span><span class="o">=</span><span class="s">&#39;SESSION&#39;</span><span class="p">,</span><span class="n">level</span><span class="o">=</span><span class="s">&#39;READ COMMITTED&#39;</span><span class="p">):</span>
+		<span class="c">#Sets the transaction isolation level. scope = global/session</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SET </span><span class="si">%s</span><span class="s"> TRANSACTION ISOLATION LEVEL </span><span class="si">%s</span><span class="s">&quot;</span><span class="o">%</span><span class="p">(</span><span class="n">scope</span><span class="p">,</span><span class="n">level</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span><span class="n">e</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+
+
+
+<span class="c"># -------------------------------------------------</span>
+<span class="c"># validate column name to be code-friendly</span>
+<span class="c"># -------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="validate_column_name"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.validate_column_name">[docs]</a><span class="k">def</span> <span class="nf">validate_column_name</span><span class="p">(</span><span class="n">n</span><span class="p">):</span>
+	<span class="n">n</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39; &#39;</span><span class="p">,</span><span class="s">&#39;_&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span>
+	<span class="kn">import</span> <span class="nn">re</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">re</span><span class="o">.</span><span class="n">match</span><span class="p">(</span><span class="s">&quot;[a-zA-Z_][a-zA-Z0-9_]*$&quot;</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="s">&#39;err:</span><span class="si">%s</span><span class="s"> is not a valid fieldname.&lt;br&gt;A valid name must contain letters / numbers / spaces.&lt;br&gt;&lt;b&gt;Tip: &lt;/b&gt;You can change the Label after the fieldname has been set&#39;</span> <span class="o">%</span> <span class="n">n</span><span class="p">)</span>
+		<span class="k">raise</span> <span class="ne">Exception</span>
+	<span class="k">return</span> <span class="n">n</span>
+
+<span class="c"># -------------------------------------------------</span>
+<span class="c"># sync table - called from form.py</span>
+<span class="c"># -------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="updatedb"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.updatedb">[docs]</a><span class="k">def</span> <span class="nf">updatedb</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">archive</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Syncs a `DocType` to the table</span>
+<span class="sd">	   * creates if required</span>
+<span class="sd">	   * updates columns</span>
+<span class="sd">	   * updates indices</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">res</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select ifnull(issingle, 0) from tabDocType where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">dt</span><span class="p">)</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">:</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Wrong doctype &quot;</span><span class="si">%s</span><span class="s">&quot; in updatedb&#39;</span> <span class="o">%</span> <span class="n">dt</span>
+	
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+		<span class="n">tab</span> <span class="o">=</span> <span class="n">DbTable</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">archive</span> <span class="ow">and</span> <span class="s">&#39;arc&#39;</span> <span class="ow">or</span> <span class="s">&#39;tab&#39;</span><span class="p">)</span>
+		<span class="n">tab</span><span class="o">.</span><span class="n">sync</span><span class="p">()</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
+
+<span class="c"># patch to remove foreign keys</span>
+<span class="c"># ----------------------------</span>
+</div>
+<div class="viewcode-block" id="remove_all_foreign_keys"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.db_schema.remove_all_foreign_keys">[docs]</a><span class="k">def</span> <span class="nf">remove_all_foreign_keys</span><span class="p">():</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;set foreign_key_checks = 0&quot;</span><span class="p">)</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+	<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from tabDocType where ifnull(issingle,0)=0&quot;</span><span class="p">):</span>
+		<span class="n">dbtab</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">db_schema</span><span class="o">.</span><span class="n">DbTable</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">fklist</span> <span class="o">=</span> <span class="n">dbtab</span><span class="o">.</span><span class="n">get_foreign_keys</span><span class="p">()</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1146</span><span class="p">:</span>
+				<span class="n">fklist</span> <span class="o">=</span> <span class="p">[]</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="n">e</span>
+				
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">fklist</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `tab</span><span class="si">%s</span><span class="s">` drop foreign key `</span><span class="si">%s</span><span class="s">`&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" >webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>
