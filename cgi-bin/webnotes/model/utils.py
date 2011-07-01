@@ -168,7 +168,7 @@ def to_html(doclist):
 		
 	return out
 
-def commonify_doclist(doclist):
+def commonify_doclist(doclist, with_comments=1):
 	"""
 		Makes a doclist more readable by extracting common properties.
 		This is used for printing Documents in files
@@ -239,7 +239,7 @@ def uncommonify_doclist(dl):
 	final = []
 
 	for d in dl[1:]:
-		if d['name']=='__common__':
+		if 'name' in d and d['name']=='__common__':
 			del d['name']
 			common_dict[d['doctype']] = d
 		else:

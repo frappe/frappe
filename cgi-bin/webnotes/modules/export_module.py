@@ -69,7 +69,7 @@ def write_document_file(doclist, record_module=None):
 		Write a doclist to file, can optionally specify module name
 	"""
 	import os
-	from webnotes.utils import pprint_doclist
+	from webnotes.model.utils import pprint_doclist
 
 	module = get_module_name(doclist, record_module)
 
