@@ -43,10 +43,10 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 	
 def generate_hash():
 	"""
-		 Generates reandom hash for session id
+		 Generates random hash for session id
 	"""
-	import sha, time
-	return sha.new(str(time.time())).hexdigest()
+	import hashlib, time
+	return hashlib.sha224(str(time.time())).hexdigest()
 
 def db_exists(dt, dn):
 	return webnotes.conn.sql('select name from `tab%s` where name="%s"' % (dt, dn))
