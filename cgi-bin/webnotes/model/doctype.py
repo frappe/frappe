@@ -140,7 +140,7 @@ class _DocType:
 		fields = {}
 		for d in doclist:
 			if d['doctype']=='DocField':
-				if d['fieldname'] or d['label']:
+				if d.get('fieldname') or d.get('label'):
 					fields[d['fieldname'] or d['label']] = d
 		return fields
 		
