@@ -141,7 +141,7 @@ class _DocType:
 		for d in doclist:
 			if d['doctype']=='DocField':
 				if d.get('fieldname') or d.get('label'):
-					fields[d['fieldname'] or d['label']] = d
+					fields[d.get('fieldname') or d('label')] = d
 		return fields
 		
 	def _update_field_properties(self, doclist):
