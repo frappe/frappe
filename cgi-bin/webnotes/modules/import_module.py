@@ -44,13 +44,7 @@ def get_doclist(path, doctype, docname):
 	fname = os.path.join(path,doctype,docname,docname+'.txt')
 	if os.path.exists(fname) and (doctype not in do_not_import):
 		f = open(fname,'r')
-		txt = f.read()
-		
-		# if exported using pprint_doclist, then file starts with a comment
-		if txt.startswith('#'):
-			dl = peval_doclist(txt)
-		else:
-			dl = eval(txt)
+		dl = peval_doclist(f.read())		
 		f.close()
 		return dl
 	else:
