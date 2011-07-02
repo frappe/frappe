@@ -64,7 +64,7 @@ wn.widgets.Dialog = function(opts) {
 		this.wrapper = $a(popup_cont, 'div', 'dialog_wrapper');
 
 		if(this.opts.width)
-			$w(this.wrapper, this.opts.width + 'px');
+			this.wrapper.style.width = this.opts.width + 'px';
 
 		this.make_head();
 		this.body = $a(this.wrapper, 'div', 'dialog_body');	
