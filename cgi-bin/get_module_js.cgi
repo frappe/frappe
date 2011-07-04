@@ -9,6 +9,8 @@ try:
 	form = cgi.FieldStorage()
 	out = ''
 	out_buf, str_out = '', ''
+	jsdir='../js'
+	jsonout= {}
 
 	# Traceback
 	# ---------
@@ -21,18 +23,40 @@ try:
 		body = body + "%-20s %s" % (string.join(list[:-1], ""), list[-1])
 		return body
 		
-	def load_js_file():
+	def load_js_from_file(module_name):
 		global out
-		filename = form.getvalue('filename')
+		global jsonout
+		import webnotes.utils.jsnamespace as jsn
+		filename = jsn.jsNamespace.modname_to_filename(module_name,jsdir)
 		import os
 		try:
-			f = open(os.path.join('../js/', filename))
+			f = open(os.path.join(filename))
 			try:
 				out = f.read()
 			finally:
 				f.close()
 		except IOError,e:
 			out = "Not Found: %s" % filename
+		jsonout[module_name]=out
+	
+	def load_js_module(module_name):
+		global jsonout
+		from webnotes import defs
+		devmode = getattr(defs,'developer_mode')
+		if devmode:
+			import compilejs
+			compilejs.wnJSCompiler.compilejs(jsdir)
+		if module_name not in jsonout:
+			dependent_mods = get_dependencies(module_name)
+			for module in dependent_mods:
+				load_js_from_file(module)
+		load_js_from_file(module_name)
+	
+	def get_dependencies(module_name):
+		import webnotes.utils.jsdependency as jsd
+		ret = jsd.jsDependencyBuilder.build_dependency(jsdir,module_name)
+		return ret
+
 
 	def compress_string(buf):
 		import gzip, cStringIO
@@ -49,7 +73,8 @@ try:
 	except:
 		pass
 	
-	load_js_file()
+	load_js_module(form.getvalue('module'))
+	#load_js_module('wn.modules')
 		
 	if compress and len(out)>512:
 		out_buf = compress_string(str_out)
@@ -64,9 +89,10 @@ try:
 	if out_buf:
 		sys.stdout.write(out_buf)
 	elif out:
-		print out
+		import json
+		print json.dumps(jsonout)
 
 except Exception, e:
 	print "Content-Type: text/javascript"
 	print
-	print getTraceback().replace('\n','<br>')
+	print getTraceback()#.replace('\n','<br>')
