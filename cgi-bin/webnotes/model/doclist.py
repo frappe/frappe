@@ -223,7 +223,15 @@ class DocList:
 # for bc
 def getlist(doclist, parentfield):
 	"""
-	Return child records of a particular type
+		Return child records of a particular type
 	"""
 	import webnotes.model.utils
 	return webnotes.model.utils.getlist(doclist, parentfield)
+	
+def copy_doclist(doclist, no_copy = []):
+	"""
+		Make a copy of the doclist
+	"""
+	import webnotes.model.utils
+	return webnotes.model.utils.copy_doclist(doclist, no_copy)
+	
