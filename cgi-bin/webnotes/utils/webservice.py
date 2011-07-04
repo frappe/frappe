@@ -41,8 +41,8 @@ class FrameworkServer:
 				webnotes.msgprint(ret)
 				raise Exception, e
 				
-			if ret.get('message') and ret.get('message')!='Logged In':
-				raise Exception, ret.get('message')
+			if 'message' in ret and ret['message']!='Logged In':
+				webnotes.msgprint(ret.get('server_messages'), raise_exception=1)
 				
 			if ret.get('exc'):
 				raise Exception, ret.get('exc')
@@ -90,13 +90,14 @@ class FrameworkServer:
 		"""
 		Returns the response of a remote method called on a system object specified by `doctype` and `docname`
 		"""
+		import json
 		res = self.http_get_response('runserverobj', args = {
 			'doctype':doctype
 			,'docname':docname
 			,'method':method
 			,'arg':arg
 		})
-		ret = eval(res.read())
+		ret = json.loads(res.read())
 		if ret.get('exc'):
 			raise Exception, ret.get('exc')
 		return ret
@@ -104,8 +105,15 @@ class FrameworkServer:
 	# -----------------------------------------------------------------------------------------
 			
 	def run_method(self, method, args={}):
-		res = self.http_get_response(method, args)
-		ret = eval(res.read())
+		"""
+			Run a method on the remote server
+		"""
+		res = self.http_get_response(method, args).read()
+		import json
+		try:
+			ret = json.loads(res)
+		except Exception, e:
+			webnotes.msgprint('Bad Response: ' + res, raise_exception=1)
 		if ret.get('exc'):
 			raise Exception, ret.get('exc')
 		return ret
