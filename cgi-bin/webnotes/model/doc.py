@@ -236,9 +236,6 @@ class Document:
 	# ---------------------------------------------------------------------------
 	
 	def _makenew(self, autoname, istable, case='', make_autoname=1):
-		# set owner
-		if not self.owner: self.owner = webnotes.session['user']
-		
 		# set name
 		if make_autoname:
 			self._set_name(autoname, istable)
@@ -247,7 +244,10 @@ class Document:
 		self._validate_name(case)
 				
 		# insert!
-		webnotes.conn.sql("""insert into `tab%s` (name, owner, creation, modified, modified_by) values ('%s', '%s', '%s', '%s', '%s')""" % (self.doctype, self.name, webnotes.session['user'], now(), now(), webnotes.session['user']))
+		self.owner = self.modified_by = webnotes.session['user']
+		self.creation = self.modified = now()
+		webnotes.conn.sql("""insert into `tab%(doctype)s` (name, owner, creation, modified, modified_by) 
+		values ('%(name)s', '%(owner)s', '%(creation)s', '%(modified)s', '%(modified_by)s')""" % self.fields)
 
 
 	# Update Values
