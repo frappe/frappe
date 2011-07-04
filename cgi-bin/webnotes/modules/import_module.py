@@ -12,7 +12,7 @@ def import_module(module, verbose=0):
 	from webnotes.modules import get_module_path
 	import os
 	
-	not_module = ('startup', 'event_handlers', 'files', 'patches')
+	not_module = ('startup', 'files', 'patches')
 	if module in not_module: 
 		if verbose: webnotes.msgprint('%s is not a module' % module)
 		return
