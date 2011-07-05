@@ -1,0 +1,11 @@
+doctype Package
+===============
+
+:mod:`doctype` Module
+---------------------
+
+.. automodule:: core.doctype.doctype.doctype
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

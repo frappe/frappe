@@ -30,7 +30,15 @@ def set_fieldname(field_id, fieldname):
 #=================================================================================
 
 def get_link_fields(doctype):
-	return webnotes.conn.sql("SELECT fieldname, options, label FROM tabDocField WHERE parent='%s' and (fieldtype='Link' or (fieldtype='Select' and `options` like 'link:%%'))" % (doctype))
+	"""
+		Returns list of link fields for a doctype in tuple (fieldname, options, label)
+	"""
+	return webnotes.conn.sql("""
+		SELECT fieldname, options, label 
+		FROM tabDocField 
+		WHERE parent='%s' 
+		and (fieldtype='Link' or (fieldtype='Select' and `options` like 'link:%%')) 
+		and fieldname!='owner'""" % (doctype))
 
 #=================================================================================
 

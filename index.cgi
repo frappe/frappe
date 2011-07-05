@@ -10,7 +10,7 @@ try:
 
 	import sys, os, cgi
 
-	sys.path.append(os.getcwd()+'/cgi-bin')
+	sys.path.append(os.path.join(os.path.dirname(__file__), 'cgi-bin'))
 
 	import webnotes
 	import webnotes.defs

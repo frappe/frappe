@@ -1,0 +1,91 @@
+widgets Package
+===============
+
+:mod:`auto_master` Module
+-------------------------
+
+.. automodule:: webnotes.widgets.auto_master
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`event` Module
+-------------------
+
+.. automodule:: webnotes.widgets.event
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`follow` Module
+--------------------
+
+.. automodule:: webnotes.widgets.follow
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`form` Module
+------------------
+
+.. automodule:: webnotes.widgets.form
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`menus` Module
+-------------------
+
+.. automodule:: webnotes.widgets.menus
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`page` Module
+------------------
+
+.. automodule:: webnotes.widgets.page
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`page_body` Module
+-----------------------
+
+.. automodule:: webnotes.widgets.page_body
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`query_builder` Module
+---------------------------
+
+.. automodule:: webnotes.widgets.query_builder
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`search` Module
+--------------------
+
+.. automodule:: webnotes.widgets.search
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`tags` Module
+------------------
+
+.. automodule:: webnotes.widgets.tags
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`todo` Module
+------------------
+
+.. automodule:: webnotes.widgets.todo
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

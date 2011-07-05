@@ -25,7 +25,7 @@ def generate_xml(conn, site_prefix):
 		
 		# list of all Records that are viewable by guests (Blogs, Articles etc)
 		try:
-			from event_handlers import get_sitemap_items
+			from startup.event_handlers import get_sitemap_items
 			for i in get_sitemap_items(site_prefix):
 				site_map += link_xml % (i[0], i[1])
 		except ImportError, e:

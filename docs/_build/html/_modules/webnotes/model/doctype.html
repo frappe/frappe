@@ -1,0 +1,380 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.model.doctype &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.model" href="../model.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" accesskey="U">webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.model.doctype</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd"> DocType module</span>
+<span class="sd"> ==============</span>
+<span class="sd"> </span>
+<span class="sd"> This module has the DocType class that represents a &quot;DocType&quot; as metadata.</span>
+<span class="sd"> This is usually called by the form builder or report builder.</span>
+
+<span class="sd"> Key functions:</span>
+<span class="sd">	* manage cache - read / write</span>
+<span class="sd">	* merge client-side scripts</span>
+<span class="sd">	* update properties from the modules .txt files</span>
+
+<span class="sd"> Cache management:</span>
+<span class="sd">	* Cache is stored in __DocTypeCache</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">webnotes</span>
+<span class="kn">import</span> <span class="nn">webnotes.model</span>
+<span class="kn">import</span> <span class="nn">webnotes.model.doclist</span>
+<span class="kn">import</span> <span class="nn">webnotes.model.doc</span>
+
+<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="n">cstr</span>
+
+<span class="k">class</span> <span class="nc">_DocType</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   The _DocType object is created internally using the module&#39;s `get` method.</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+	
+	<span class="c"># is cache modified ?</span>
+	<span class="c"># =================================================================</span>
+	
+	<span class="k">def</span> <span class="nf">is_modified</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Returns true if modified</span>
+<span class="sd">		&quot;&quot;&quot;</span>		
+		<span class="k">try</span><span class="p">:</span>
+			<span class="c"># doctype modified</span>
+			<span class="n">modified</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select modified from tabDocType where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+	
+			<span class="c"># cache modified</span>
+			<span class="n">cache_modified</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SELECT modified from `__DocTypeCache` where name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+			
+		<span class="k">except</span> <span class="ne">IndexError</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">return</span> <span class="mi">1</span>
+
+		<span class="k">return</span> <span class="n">cache_modified</span> <span class="o">!=</span> <span class="n">modified</span>
+
+	<span class="c"># write to cache</span>
+	<span class="c"># =================================================================</span>
+
+	<span class="k">def</span> <span class="nf">_update_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doclist</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">zlib</span>
+
+		<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SELECT name FROM __DocTypeCache WHERE name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;UPDATE `__DocTypeCache` SET `modified`=</span><span class="si">%s</span><span class="s">, `content`=</span><span class="si">%s</span><span class="s"> WHERE name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">modified</span><span class="p">,</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">fields</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">]),</span><span class="mi">2</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;INSERT INTO `__DocTypeCache` (`name`, `modified`, `content`) VALUES (</span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">, </span><span class="si">%s</span><span class="s">)&quot;</span> <span class="p">,</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">modified</span><span class="p">,</span> <span class="n">zlib</span><span class="o">.</span><span class="n">compress</span><span class="p">(</span><span class="nb">str</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">fields</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">]))))</span>
+
+	<span class="c"># read from cache</span>
+	<span class="c"># =================================================================</span>
+
+	<span class="k">def</span> <span class="nf">_load_from_cache</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">zlib</span>
+	
+		<span class="n">doclist</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">zlib</span><span class="o">.</span><span class="n">decompress</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;SELECT content from `__DocTypeCache` where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]))</span>
+		<span class="k">return</span> <span class="p">[</span><span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">Document</span><span class="p">(</span><span class="n">fielddata</span> <span class="o">=</span> <span class="n">d</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">]</span>
+
+
+	<span class="c"># load options for &quot;link:&quot; type &#39;Select&#39; fields</span>
+	<span class="c"># =================================================================</span>
+			
+	<span class="k">def</span> <span class="nf">_load_select_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doclist</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">doctype</span><span class="o">==</span><span class="s">&#39;DocField&#39;</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">fieldtype</span><span class="o">==</span><span class="s">&#39;Select&#39;</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">options</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">options</span><span class="p">[:</span><span class="mi">5</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">==</span><span class="s">&#39;link:&#39;</span><span class="p">:</span>
+				<span class="n">op</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">options</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">op</span><span class="p">)</span><span class="o">&gt;</span><span class="mi">1</span> <span class="ow">and</span> <span class="n">op</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="o">==</span> <span class="s">&#39;sql:&#39;</span><span class="p">:</span>
+					<span class="n">ol</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="n">op</span><span class="p">[</span><span class="mi">1</span><span class="p">][</span><span class="mi">4</span><span class="p">:]</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;__user&#39;</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]))</span>	
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">t</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">5</span><span class="p">:]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+					<span class="n">op</span> <span class="o">=</span> <span class="n">op</span><span class="p">[</span><span class="mi">1</span><span class="p">:]</span>
+					<span class="n">op</span> <span class="o">=</span> <span class="p">[</span><span class="n">oc</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;__user&#39;</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">])</span> <span class="k">for</span> <span class="n">oc</span> <span class="ow">in</span> <span class="n">op</span><span class="p">]</span>
+					
+					<span class="k">try</span><span class="p">:</span>
+						<span class="c"># select options will always come from the user db</span>
+						<span class="n">ol</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from `tab</span><span class="si">%s</span><span class="s">` where </span><span class="si">%s</span><span class="s"> docstatus!=2 order by name asc&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">op</span> <span class="ow">and</span> <span class="p">(</span><span class="s">&#39; AND &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">op</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; AND &#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">))</span>
+					<span class="k">except</span><span class="p">:</span>
+						<span class="n">ol</span> <span class="o">=</span> <span class="p">[]</span>
+				<span class="n">ol</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;&#39;</span><span class="p">]</span> <span class="o">+</span> <span class="p">[</span><span class="n">o</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span> <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">ol</span><span class="p">]</span>
+				<span class="n">d</span><span class="o">.</span><span class="n">options</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ol</span><span class="p">)</span>
+
+	<span class="c"># clear un-necessary code from going to the client side</span>
+	<span class="c"># =================================================================</span>
+
+	<span class="k">def</span> <span class="nf">_clear_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doclist</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="s">&#39;DocType&#39;</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">server_code</span><span class="p">:</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">server_code</span> <span class="o">=</span> <span class="bp">None</span>
+			<span class="k">if</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">server_code_core</span><span class="p">:</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">server_code_core</span> <span class="o">=</span> <span class="bp">None</span>
+			<span class="k">if</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">client_script</span><span class="p">:</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">client_script</span> <span class="o">=</span> <span class="bp">None</span>
+			<span class="k">if</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">client_script_core</span><span class="p">:</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">client_script_core</span> <span class="o">=</span> <span class="bp">None</span>
+			<span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">server_code_compiled</span> <span class="o">=</span> <span class="bp">None</span>
+
+	<span class="c"># build a list of all the records required for the DocType</span>
+	<span class="c"># =================================================================</span>
+	
+	<span class="k">def</span> <span class="nf">_get_last_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Returns last update timestamp</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">last_update</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select _last_update from tabDocType where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">dt</span><span class="p">)[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1054</span><span class="p">:</span> 
+				<span class="bp">self</span><span class="o">.</span><span class="n">_setup_last_update</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+				<span class="n">last_update</span> <span class="o">=</span> <span class="bp">None</span>
+		
+		<span class="k">return</span> <span class="n">last_update</span>
+
+	<span class="k">def</span> <span class="nf">_setup_last_update</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doctype</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Adds _last_update column to tabDocType</span>
+
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">commit</span><span class="p">()</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;alter table `tabDocType` add column _last_update varchar(32)&quot;</span><span class="p">)</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">begin</span><span class="p">()</span>
+		
+	<span class="k">def</span> <span class="nf">_get_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">file_name</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Returns a dictionary of DocFields by fieldname or label</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="n">doclist</span> <span class="o">=</span> <span class="nb">open</span><span class="p">(</span><span class="n">file_name</span><span class="p">,</span> <span class="s">&#39;r&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+		<span class="k">except</span><span class="p">:</span>
+			<span class="k">return</span>
+		<span class="n">doclist</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">doclist</span><span class="p">)</span>
+		<span class="n">fields</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;doctype&#39;</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;DocField&#39;</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;fieldname&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]:</span>
+					<span class="n">fields</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="s">&#39;fieldname&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="n">d</span><span class="p">[</span><span class="s">&#39;label&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">d</span>
+		<span class="k">return</span> <span class="n">fields</span>
+		
+	<span class="k">def</span> <span class="nf">_update_field_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doclist</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Updates properties like description, depends on from the database based on the timestamp</span>
+<span class="sd">			of the .txt file. Adds a column _last_updated if not exists in the database and uses</span>
+<span class="sd">			it to update the file..</span>
+<span class="sd">			</span>
+<span class="sd">			This feature is built because description is changed / updated quite often and is tedious to</span>
+<span class="sd">			write a patch every time. Can be extended to cover more updates</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		
+		<span class="n">update_fields</span> <span class="o">=</span> <span class="p">(</span><span class="s">&#39;description&#39;</span><span class="p">,</span> <span class="s">&#39;depends_on&#39;</span><span class="p">)</span>
+
+		<span class="kn">from</span> <span class="nn">webnotes.modules</span> <span class="kn">import</span> <span class="n">get_file_timestamp</span><span class="p">,</span> <span class="n">get_item_file</span>
+
+		<span class="n">doc</span> <span class="o">=</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="c"># main doc</span>
+		<span class="n">file_name</span> <span class="o">=</span> <span class="n">get_item_file</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;DocType&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		<span class="n">time_stamp</span> <span class="o">=</span> <span class="n">get_file_timestamp</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+		<span class="n">last_update</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_last_update</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		
+		<span class="c"># this is confusing because we are updating the fields of fields</span>
+		
+		<span class="k">if</span> <span class="n">last_update</span> <span class="o">!=</span> <span class="n">time_stamp</span><span class="p">:</span>
+
+			<span class="c"># there are updates!</span>
+			<span class="n">fields</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_fields</span><span class="p">(</span><span class="n">file_name</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">fields</span><span class="p">:</span>
+				<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">:</span>
+				
+					<span class="c"># for each field in teh outgoing doclist</span>
+					<span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">doctype</span><span class="o">==</span><span class="s">&#39;DocField&#39;</span><span class="p">:</span>
+						<span class="n">key</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">fieldname</span> <span class="ow">or</span> <span class="n">d</span><span class="o">.</span><span class="n">label</span>
+					
+						<span class="c"># if it has a fieldname or label</span>
+						<span class="k">if</span> <span class="n">key</span> <span class="ow">and</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">fields</span><span class="p">:</span>
+						
+							<span class="c"># update the values</span>
+							<span class="k">for</span> <span class="n">field_to_update</span> <span class="ow">in</span> <span class="n">update_fields</span><span class="p">:</span>
+								<span class="n">new_value</span> <span class="o">=</span> <span class="n">fields</span><span class="p">[</span><span class="n">key</span><span class="p">][</span><span class="n">field_to_update</span><span class="p">]</span>
+							
+								<span class="c"># in doclist</span>
+								<span class="n">d</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">field_to_update</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_value</span>
+							
+								<span class="c"># in database</span>
+								<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update tabDocField set `</span><span class="si">%s</span><span class="s">` = </span><span class="si">%s</span><span class="s"> where parent=</span><span class="si">%s</span><span class="s"> and `</span><span class="si">%s</span><span class="s">`=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> \
+									<span class="p">(</span><span class="n">field_to_update</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="p">(</span><span class="n">d</span><span class="o">.</span><span class="n">fieldname</span> <span class="ow">and</span> <span class="s">&#39;fieldname&#39;</span> <span class="ow">or</span> <span class="s">&#39;label&#39;</span><span class="p">),</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> \
+									<span class="p">(</span><span class="n">new_value</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">key</span><span class="p">))</span>
+					
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update tabDocType set _last_update=</span><span class="si">%s</span><span class="s"> where name=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="p">(</span><span class="n">time_stamp</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+	
+	<span class="k">def</span> <span class="nf">_override_field_properties</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doclist</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">			Override field properties that are updated by &quot;Property Setter&quot;</span>
+<span class="sd">			The term &quot;property&quot; is used to define a fieldname of a field to avoid confusing</span>
+<span class="sd">			terminology</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="c"># load field properties and add them to a dictionary</span>
+		<span class="n">property_dict</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="n">dt</span> <span class="o">=</span> <span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">name</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select doc_name, property, property_type, value from `tabProperty Setter` where doc_type=</span><span class="si">%s</span><span class="s">&quot;</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">f</span><span class="p">[</span><span class="s">&#39;doc_name&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">property_dict</span><span class="p">:</span>
+					<span class="n">property_dict</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="s">&#39;doc_name&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="p">[]</span>
+				<span class="n">property_dict</span><span class="p">[</span><span class="n">f</span><span class="p">[</span><span class="s">&#39;doc_name&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1146</span><span class="p">:</span>
+				<span class="c"># no override table</span>
+				<span class="k">pass</span>
+			<span class="k">else</span><span class="p">:</span> 
+				<span class="k">raise</span> <span class="n">e</span>
+
+		<span class="c"># loop over fields and override property</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">doclist</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">d</span><span class="o">.</span><span class="n">doctype</span><span class="o">==</span><span class="s">&#39;DocField&#39;</span> <span class="ow">and</span> <span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="ow">in</span> <span class="n">property_dict</span><span class="p">:</span>
+				<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">property_dict</span><span class="p">[</span><span class="n">d</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
+					<span class="k">if</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;property_type&#39;</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;Check&#39;</span><span class="p">:</span>
+						<span class="n">d</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;property&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">])</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">d</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;property&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+					
+		<span class="c"># override properties in the main doctype</span>
+		<span class="k">if</span> <span class="n">dt</span> <span class="ow">in</span> <span class="n">property_dict</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">property_dict</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">]:</span>
+				<span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">p</span><span class="p">[</span><span class="s">&#39;property&#39;</span><span class="p">]]</span> <span class="o">=</span> <span class="n">p</span><span class="p">[</span><span class="s">&#39;value&#39;</span><span class="p">]</span>
+				
+
+	<span class="k">def</span> <span class="nf">make_doclist</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		      returns the :term:`doclist` for consumption by the client</span>
+<span class="sd">		      </span>
+<span class="sd">		      * it cleans up the server code</span>
+<span class="sd">		      * executes all `$import` tags in client code</span>
+<span class="sd">		      * replaces `link:` in the `Select` fields</span>
+<span class="sd">		      * loads all related `Search Criteria`</span>
+<span class="sd">		      * updates the cache</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="kn">from</span> <span class="nn">webnotes.modules</span> <span class="kn">import</span> <span class="n">compress</span>
+		
+		<span class="n">tablefields</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get_table_fields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_modified</span><span class="p">():</span>
+			<span class="c"># yes</span>
+			<span class="n">doclist</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+			
+			<span class="bp">self</span><span class="o">.</span><span class="n">_update_field_properties</span><span class="p">(</span><span class="n">doclist</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_override_field_properties</span><span class="p">(</span><span class="n">doclist</span><span class="p">)</span>
+			
+			<span class="c"># table doctypes</span>
+			<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tablefields</span><span class="p">:</span> 
+				<span class="n">table_doclist</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">doc</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="mi">1</span><span class="p">)</span>
+				
+				<span class="bp">self</span><span class="o">.</span><span class="n">_override_field_properties</span><span class="p">(</span><span class="n">table_doclist</span><span class="p">)</span>
+				<span class="n">doclist</span> <span class="o">+=</span> <span class="n">table_doclist</span>
+
+			<span class="c"># don&#39;t save compiled server code</span>
+
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">doclist</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_load_from_cache</span><span class="p">()</span>
+			
+		<span class="n">doclist</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;__client_script&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">compress</span><span class="o">.</span><span class="n">get_doctype_js</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_load_select_options</span><span class="p">(</span><span class="n">doclist</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_clear_code</span><span class="p">(</span><span class="n">doclist</span><span class="p">)</span>
+
+		<span class="k">return</span> <span class="n">doclist</span>
+
+<div class="viewcode-block" id="clear_cache"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doctype.clear_cache">[docs]</a><span class="k">def</span> <span class="nf">clear_cache</span><span class="p">():</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;delete from __DocTypeCache&quot;</span><span class="p">)</span>
+	
+<span class="c"># Load &quot;DocType&quot; - called by form builder, report buider and from code.py (when there is no cache)</span>
+<span class="c">#=================================================================================================</span>
+</div>
+<div class="viewcode-block" id="get"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doctype.get">[docs]</a><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">dt</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Load &quot;DocType&quot; - called by form builder, report buider and from code.py (when there is no cache)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">doclist</span> <span class="o">=</span> <span class="n">_DocType</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span><span class="o">.</span><span class="n">make_doclist</span><span class="p">()</span>
+		
+	<span class="k">return</span> <span class="n">doclist</span>
+	 </div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" >webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

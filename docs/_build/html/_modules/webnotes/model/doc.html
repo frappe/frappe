@@ -1,0 +1,769 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.model.doc &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.model" href="../model.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" accesskey="U">webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.model.doc</h1><div class="highlight"><pre>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Contains the Document class representing an object / record</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">webnotes</span>
+<span class="kn">import</span> <span class="nn">webnotes.model.meta</span>
+
+<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="o">*</span>
+
+<span class="c"># actually should be &quot;BaseDocType&quot; - deprecated. Only for v160</span>
+<div class="viewcode-block" id="SuperDocType"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.SuperDocType">[docs]</a><span class="k">class</span> <span class="nc">SuperDocType</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">pass</span>
+		
+	<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">super</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">super</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+			<span class="k">return</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">super</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">,</span> <span class="s">&#39;BaseDocType Attribute Error&#39;</span>
+</div>
+<div class="viewcode-block" id="Document"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document">[docs]</a><span class="k">class</span> <span class="nc">Document</span><span class="p">:</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   The wn(meta-data)framework equivalent of a Database Record.</span>
+<span class="sd">	   Stores,Retrieves,Updates the record in the corresponding table.</span>
+<span class="sd">	   Runs the triggers required.</span>
+
+<span class="sd">	   The `Document` class represents the basic Object-Relational Mapper (ORM). The object type is defined by</span>
+<span class="sd">	   `DocType` and the object ID is represented by `name`:: </span>
+<span class="sd">	   </span>
+<span class="sd">	      Please note the anamoly in the Web Notes Framework that `ID` is always called as `name`</span>
+
+<span class="sd">	   If both `doctype` and `name` are specified in the constructor, then the object is loaded from the database.</span>
+<span class="sd">	   If only `doctype` is given, then the object is not loaded</span>
+<span class="sd">	   If `fielddata` is specfied, then the object is created from the given dictionary.</span>
+<span class="sd">	       </span>
+<span class="sd">	      **Note 1:**</span>
+<span class="sd">	      </span>
+<span class="sd">		 The getter and setter of the object are overloaded to map to the fields of the object that</span>
+<span class="sd">		 are loaded when it is instantiated.</span>
+<span class="sd">	       </span>
+<span class="sd">		 For example: doc.name will be the `name` field and doc.owner will be the `owner` field</span>
+
+<span class="sd">	      **Note 2 - Standard Fields:**</span>
+<span class="sd">	      </span>
+<span class="sd">		 * `name`: ID / primary key</span>
+<span class="sd">		 * `owner`: creator of the record</span>
+<span class="sd">		 * `creation`: datetime of creation</span>
+<span class="sd">		 * `modified`: datetime of last modification</span>
+<span class="sd">		 * `modified_by` : last updating user</span>
+<span class="sd">		 * `docstatus` : Status 0 - Saved, 1 - Submitted, 2- Cancelled</span>
+<span class="sd">		 * `parent` : if child (table) record, this represents the parent record</span>
+<span class="sd">		 * `parenttype` : type of parent record (if any)</span>
+<span class="sd">		 * `parentfield` : table fieldname of parent record (if any)</span>
+<span class="sd">		 * `idx` : Index (sequence) of the child record	</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doctype</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">fielddata</span> <span class="o">=</span> <span class="p">{},</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;tab&#39;</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_roles</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_perms</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_user_defaults</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span> <span class="o">=</span> <span class="n">prefix</span>
+		
+		<span class="k">if</span> <span class="n">fielddata</span><span class="p">:</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="n">fielddata</span>
+		<span class="k">else</span><span class="p">:</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">{}</span>
+		
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;&#39;</span> <span class="c"># required on save</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;doctype&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;doctype&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;&#39;</span> <span class="c"># required on save			</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;owner&#39;</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;owner&#39;</span><span class="p">]</span><span class="o">=</span><span class="s">&#39;&#39;</span> <span class="c"># required on save			</span>
+
+		<span class="k">if</span> <span class="n">doctype</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;doctype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">doctype</span>
+		<span class="k">if</span> <span class="n">name</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">__initialized</span> <span class="o">=</span> <span class="mi">1</span>
+
+		<span class="k">if</span> <span class="p">(</span><span class="n">doctype</span> <span class="ow">and</span> <span class="n">name</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_loadfromdb</span><span class="p">(</span><span class="n">doctype</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">__nonzero__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="bp">True</span>
+
+	<span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">)</span>
+
+	<span class="c"># Load Document</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+	<span class="k">def</span> <span class="nf">_loadfromdb</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doctype</span> <span class="o">=</span> <span class="bp">None</span><span class="p">,</span> <span class="n">name</span> <span class="o">=</span> <span class="bp">None</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">name</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
+		<span class="k">if</span> <span class="n">doctype</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span> <span class="o">=</span> <span class="n">doctype</span>
+				
+		<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">is_single</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_loadsingle</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">dataset</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&#39;select * from `</span><span class="si">%s%s</span><span class="s">` where name=&quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prefix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="se">\&quot;</span><span class="s">&#39;</span><span class="p">)))</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">dataset</span><span class="p">:</span>
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> does not exist&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="mi">1</span><span class="p">)</span>
+				<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;[WNF] </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s"> does not exist&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_load_values</span><span class="p">(</span><span class="n">dataset</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_description</span><span class="p">())</span>
+
+	<span class="c"># Load Fields from dataset</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+	<span class="k">def</span> <span class="nf">_load_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">description</span><span class="p">)):</span>
+			<span class="n">v</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">description</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">convert_to_simple_type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_merge_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">data</span><span class="p">,</span> <span class="n">description</span><span class="p">):</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">description</span><span class="p">)):</span>
+			<span class="n">v</span> <span class="o">=</span> <span class="n">data</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">v</span><span class="p">:</span> <span class="c"># only if value, over-write</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">description</span><span class="p">[</span><span class="n">i</span><span class="p">][</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">convert_to_simple_type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span>
+			
+	<span class="c"># Load Single Type</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+	<span class="k">def</span> <span class="nf">_loadsingle</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span>
+		<span class="n">dataset</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select field, value from tabSingles where doctype=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="c"># Setter</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+			
+	<span class="k">def</span> <span class="nf">__setattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+		<span class="c"># normal attribute</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;_Document__initialized&#39;</span><span class="p">):</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="c"># field attribute</span>
+			<span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="s">&#39;fields&#39;</span><span class="p">]</span>
+			<span class="n">f</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+	<span class="c"># Getter</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+	<span class="k">def</span> <span class="nf">__getattr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">__dict__</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">name</span><span class="p">):</span>
+			<span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>	
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">return</span> <span class="s">&#39;&#39;</span>
+
+	<span class="c"># Get Amendement number</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+	
+	<span class="k">def</span> <span class="nf">_get_amended_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">am_id</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="n">am_prefix</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">amended_from</span>
+		<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&#39;select amended_from from `tab</span><span class="si">%s</span><span class="s">` where name = &quot;</span><span class="si">%s</span><span class="s">&quot;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">amended_from</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">:</span>
+			<span class="n">am_id</span> <span class="o">=</span> <span class="n">cint</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amended_from</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="mi">1</span>
+			<span class="n">am_prefix</span> <span class="o">=</span> <span class="s">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">amended_from</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="c"># except the last hyphen</span>
+			
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">am_prefix</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">am_id</span><span class="p">)</span>
+
+	<span class="c"># Set Name</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+	<span class="k">def</span> <span class="nf">_set_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autoname</span><span class="p">,</span> <span class="n">istable</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">localname</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+
+		<span class="c"># get my object</span>
+		<span class="kn">import</span> <span class="nn">webnotes.model.code</span>
+		<span class="n">so</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">get_server_obj</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="p">[])</span>
+
+		<span class="c"># amendments</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">amended_from</span><span class="p">:</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">_get_amended_name</span><span class="p">()</span>
+
+		<span class="c"># by method</span>
+		<span class="k">elif</span> <span class="n">so</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">so</span><span class="p">,</span> <span class="s">&#39;autoname&#39;</span><span class="p">):</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">run_server_obj</span><span class="p">(</span><span class="n">so</span><span class="p">,</span> <span class="s">&#39;autoname&#39;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">r</span><span class="p">:</span> <span class="k">return</span> <span class="n">r</span>
+			
+		<span class="c"># based on a field</span>
+		<span class="k">elif</span> <span class="n">autoname</span> <span class="ow">and</span> <span class="n">autoname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;field:&#39;</span><span class="p">):</span>
+			<span class="n">n</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">autoname</span><span class="p">[</span><span class="mi">6</span><span class="p">:]]</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="n">n</span><span class="p">:</span>
+				<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;Name is required&#39;</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">n</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+		
+		<span class="c"># based on expression</span>
+		<span class="k">elif</span> <span class="n">autoname</span> <span class="ow">and</span> <span class="n">autoname</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;eval:&#39;</span><span class="p">):</span>
+			<span class="n">doc</span> <span class="o">=</span> <span class="bp">self</span> <span class="c"># for setting</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="nb">eval</span><span class="p">(</span><span class="n">autoname</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span>
+		
+		<span class="c"># call the method!</span>
+		<span class="k">elif</span> <span class="n">autoname</span> <span class="ow">and</span> <span class="n">autoname</span><span class="o">!=</span><span class="s">&#39;Prompt&#39;</span><span class="p">:</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">make_autoname</span><span class="p">(</span><span class="n">autoname</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+				
+		<span class="c"># given</span>
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;__newname&#39;</span><span class="p">,</span><span class="s">&#39;&#39;</span><span class="p">):</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;__newname&#39;</span><span class="p">]</span>
+
+		<span class="c"># default name for table</span>
+		<span class="k">elif</span> <span class="n">istable</span><span class="p">:</span> 
+			<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">make_autoname</span><span class="p">(</span><span class="s">&#39;#########&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+					
+	<span class="c"># Validate Name</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+	
+	<span class="k">def</span> <span class="nf">_validate_name</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">case</span><span class="p">):</span>
+
+		<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&#39;select name from `tab</span><span class="si">%s</span><span class="s">` where name=</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span><span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+			<span class="k">raise</span> <span class="ne">NameError</span><span class="p">,</span> <span class="s">&#39;Name </span><span class="si">%s</span><span class="s"> already exists&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+		
+		<span class="c"># no name</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="k">return</span> <span class="s">&#39;No Name Specified for </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span>
+		
+		<span class="c"># new..</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;New &#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">):</span>
+			<span class="k">return</span> <span class="s">&#39;There were some errors setting the name, please contact the administrator&#39;</span>
+		
+		<span class="k">if</span> <span class="n">case</span><span class="o">==</span><span class="s">&#39;Title Case&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">title</span><span class="p">()</span>
+		<span class="k">if</span> <span class="n">case</span><span class="o">==</span><span class="s">&#39;UPPER CASE&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+		
+		<span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="c"># no leading and trailing blanks</span>
+
+		<span class="n">forbidden</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;%&#39;</span><span class="p">,</span> <span class="s">&quot;&#39;&quot;</span><span class="p">,</span> <span class="s">&#39;&quot;&#39;</span><span class="p">,</span> <span class="s">&#39;#&#39;</span><span class="p">,</span> <span class="s">&#39;*&#39;</span><span class="p">,</span> <span class="s">&#39;?&#39;</span><span class="p">,</span> <span class="s">&#39;`&#39;</span><span class="p">]</span>
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">forbidden</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="s">&#39;</span><span class="si">%s</span><span class="s"> not allowed in ID (name)&#39;</span> <span class="o">%</span> <span class="n">f</span><span class="p">,</span> <span class="n">raise_exception</span> <span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+
+	<span class="c"># Insert</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+	
+	<span class="k">def</span> <span class="nf">_makenew</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">autoname</span><span class="p">,</span> <span class="n">istable</span><span class="p">,</span> <span class="n">case</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">make_autoname</span><span class="o">=</span><span class="mi">1</span><span class="p">):</span>
+		<span class="c"># set owner</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">owner</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
+		
+		<span class="c"># set name</span>
+		<span class="k">if</span> <span class="n">make_autoname</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_set_name</span><span class="p">(</span><span class="n">autoname</span><span class="p">,</span> <span class="n">istable</span><span class="p">)</span>
+		
+		<span class="c"># validate name</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_validate_name</span><span class="p">(</span><span class="n">case</span><span class="p">)</span>
+				
+		<span class="c"># insert!</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;insert into `tab</span><span class="si">%s</span><span class="s">` (name, owner, creation, modified, modified_by) values (&#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;, &#39;</span><span class="si">%s</span><span class="s">&#39;)&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">],</span> <span class="n">now</span><span class="p">(),</span> <span class="n">now</span><span class="p">(),</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]))</span>
+
+
+	<span class="c"># Update Values</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+	
+	<span class="k">def</span> <span class="nf">_update_single</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">link_list</span><span class="p">):</span>
+		<span class="n">update_str</span> <span class="o">=</span> <span class="p">[</span><span class="s">&quot;(</span><span class="si">%s</span><span class="s">, &#39;modified&#39;, </span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">,]</span>
+		<span class="n">values</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">now</span><span class="p">()]</span>
+		
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;delete from tabSingles where doctype=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;modified&#39;</span><span class="p">,</span> <span class="s">&#39;doctype&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;perm&#39;</span><span class="p">,</span> <span class="s">&#39;localname&#39;</span><span class="p">,</span> <span class="s">&#39;creation&#39;</span><span class="p">))</span>\
+				<span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;__&#39;</span><span class="p">)):</span> <span class="c"># fields not saved</span>
+
+				<span class="c"># validate links</span>
+				<span class="k">if</span> <span class="n">link_list</span> <span class="ow">and</span> <span class="n">link_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_link</span><span class="p">(</span><span class="n">link_list</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">==</span><span class="bp">None</span><span class="p">:</span>
+					<span class="n">update_str</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;(</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,NULL)&quot;</span><span class="p">)</span>
+					<span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+					<span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">update_str</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;(</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">)&quot;</span><span class="p">)</span>
+					<span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+					<span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+					<span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;insert into tabSingles(doctype, field, value) values </span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">update_str</span><span class="p">)),</span> <span class="n">values</span><span class="p">)</span>
+
+	<span class="c"># Validate Links</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Document.validate_links"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document.validate_links">[docs]</a>	<span class="k">def</span> <span class="nf">validate_links</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">link_list</span><span class="p">):</span>
+		<span class="n">err_list</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+			<span class="c"># validate links</span>
+			<span class="n">old_val</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+			<span class="k">if</span> <span class="n">link_list</span> <span class="ow">and</span> <span class="n">link_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_link</span><span class="p">(</span><span class="n">link_list</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+
+			<span class="k">if</span> <span class="n">old_val</span> <span class="ow">and</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]:</span>
+				<span class="n">s</span> <span class="o">=</span> <span class="n">link_list</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;: &#39;</span> <span class="o">+</span> <span class="n">old_val</span>
+				<span class="n">err_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+				
+		<span class="k">return</span> <span class="n">err_list</span>
+</div>
+<div class="viewcode-block" id="Document.make_link_list"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document.make_link_list">[docs]</a>	<span class="k">def</span> <span class="nf">make_link_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get_link_fields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+
+		<span class="n">link_list</span> <span class="o">=</span> <span class="p">{}</span>
+		<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span> <span class="n">link_list</span><span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">=</span> <span class="p">(</span><span class="n">i</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">i</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span> <span class="c"># options, label</span>
+		<span class="k">return</span> <span class="n">link_list</span>
+	</div>
+	<span class="k">def</span> <span class="nf">_validate_link</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">dt</span><span class="p">:</span> <span class="k">return</span> <span class="n">dn</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">dn</span><span class="p">:</span> <span class="k">return</span> <span class="bp">None</span>
+		<span class="k">if</span> <span class="n">dt</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;link:&#39;</span><span class="p">):</span>
+			<span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span>
+		<span class="k">if</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span> <span class="ow">in</span> <span class="n">dt</span><span class="p">:</span>
+			<span class="n">dt</span> <span class="o">=</span> <span class="n">dt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+		<span class="n">tmp</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;&quot;&quot;SELECT name FROM `tab</span><span class="si">%s</span><span class="s">` WHERE name = </span><span class="si">%s</span><span class="s">&quot;&quot;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> <span class="n">dn</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">tmp</span> <span class="ow">and</span> <span class="n">tmp</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="c"># match case</span>
+
+	<span class="c"># Update query</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+		
+	<span class="k">def</span> <span class="nf">_update_values</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">issingle</span><span class="p">,</span> <span class="n">link_list</span><span class="p">,</span> <span class="n">ignore_fields</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">issingle</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_update_single</span><span class="p">(</span><span class="n">link_list</span><span class="p">)</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">update_str</span><span class="p">,</span> <span class="n">values</span> <span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+			<span class="c"># set modified timestamp</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">modified</span> <span class="o">=</span> <span class="n">now</span><span class="p">()</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">modified_by</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
+			<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+				<span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="p">(</span><span class="n">f</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;doctype&#39;</span><span class="p">,</span> <span class="s">&#39;name&#39;</span><span class="p">,</span> <span class="s">&#39;perm&#39;</span><span class="p">,</span> <span class="s">&#39;localname&#39;</span><span class="p">,</span> <span class="s">&#39;creation&#39;</span><span class="p">,</span><span class="s">&#39;_user_tags&#39;</span><span class="p">)))</span> \
+					<span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;__&#39;</span><span class="p">)):</span> <span class="c"># fields not saved</span>
+					
+					<span class="c"># validate links</span>
+					<span class="k">if</span> <span class="n">link_list</span> <span class="ow">and</span> <span class="n">link_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_validate_link</span><span class="p">(</span><span class="n">link_list</span><span class="p">[</span><span class="n">f</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+
+					<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">==</span><span class="bp">None</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;&#39;</span><span class="p">:</span>
+						<span class="n">update_str</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;`</span><span class="si">%s</span><span class="s">`=NULL&quot;</span> <span class="o">%</span> <span class="n">f</span><span class="p">)</span>
+						<span class="k">if</span> <span class="n">ignore_fields</span><span class="p">:</span>
+							<span class="k">try</span><span class="p">:</span> <span class="n">r</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update `tab</span><span class="si">%s</span><span class="s">` set `</span><span class="si">%s</span><span class="s">`=NULL where name=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+							<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+					<span class="k">else</span><span class="p">:</span>
+						<span class="n">values</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">])</span>
+						<span class="n">update_str</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&quot;`</span><span class="si">%s</span><span class="s">`=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">))</span>
+						<span class="k">if</span> <span class="n">ignore_fields</span><span class="p">:</span>
+							<span class="k">try</span><span class="p">:</span> <span class="n">r</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update `tab</span><span class="si">%s</span><span class="s">` set `</span><span class="si">%s</span><span class="s">`=</span><span class="si">%s</span><span class="s"> where name=</span><span class="si">%s</span><span class="s">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span><span class="p">),</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+							<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>
+			<span class="k">if</span> <span class="n">values</span><span class="p">:</span>
+				<span class="k">if</span> <span class="ow">not</span> <span class="n">ignore_fields</span><span class="p">:</span>
+					<span class="c"># update all in one query</span>
+					<span class="n">r</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update `tab</span><span class="si">%s</span><span class="s">` set </span><span class="si">%s</span><span class="s"> where name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="s">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">update_str</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="n">values</span><span class="p">)</span>
+
+	<span class="c"># Save values</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+	
+<div class="viewcode-block" id="Document.save"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document.save">[docs]</a>	<span class="k">def</span> <span class="nf">save</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">new</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">check_links</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">ignore_fields</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">make_autoname</span> <span class="o">=</span> <span class="mi">1</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	      Saves the current record in the database. If new = 1, creates a new instance of the record.</span>
+<span class="sd">	      Also clears temperory fields starting with `__`</span>
+<span class="sd">	      </span>
+<span class="sd">	      * if check_links is set, it validates all `Link` fields</span>
+<span class="sd">	      * if ignore_fields is sets, it does not throw an exception for any field that does not exist in the </span>
+<span class="sd">		database table</span>
+<span class="sd">		&quot;&quot;&quot;</span>	
+		<span class="n">res</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get_dt_values</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="s">&#39;autoname, issingle, istable, name_case&#39;</span><span class="p">,</span> <span class="n">as_dict</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="n">res</span> <span class="ow">and</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="p">{}</span>
+
+		<span class="c"># if required, make new</span>
+		<span class="k">if</span> <span class="n">new</span> <span class="ow">or</span> <span class="p">(</span><span class="ow">not</span> <span class="n">new</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;__islocal&#39;</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="ow">not</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;issingle&#39;</span><span class="p">)):</span>
+			<span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_makenew</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;autoname&#39;</span><span class="p">),</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;istable&#39;</span><span class="p">),</span> <span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;name_case&#39;</span><span class="p">),</span> <span class="n">make_autoname</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">r</span><span class="p">:</span> 
+				<span class="k">return</span> <span class="n">r</span>
+				
+		<span class="c"># save the values</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_update_values</span><span class="p">(</span><span class="n">res</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;issingle&#39;</span><span class="p">),</span> <span class="n">check_links</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">make_link_list</span><span class="p">()</span> <span class="ow">or</span> <span class="p">{},</span> <span class="n">ignore_fields</span><span class="p">)</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_clear_temp_fields</span><span class="p">()</span>
+
+	<span class="c"># check permissions</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+</div>
+	<span class="k">def</span> <span class="nf">_get_perms</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_perms</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_perms</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select role, `match` from tabDocPerm where parent=</span><span class="si">%s</span><span class="s"> and ifnull(`read`,0) = 1 and ifnull(permlevel,0)=0&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">)</span>
+
+	<span class="k">def</span> <span class="nf">_get_roles</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c"># check if roles match/</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roles</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_roles</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_roles</span><span class="p">()</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">_roles</span> <span class="o">=</span> <span class="p">[</span><span class="s">&#39;Guest&#39;</span><span class="p">]</span>
+
+	<span class="k">def</span> <span class="nf">_get_user_defaults</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_defaults</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">_user_defaults</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">user</span><span class="o">.</span><span class="n">get_defaults</span><span class="p">()</span>
+
+<div class="viewcode-block" id="Document.check_perm"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document.check_perm">[docs]</a>	<span class="k">def</span> <span class="nf">check_perm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">webnotes</span>
+		
+		<span class="c"># find roles with read access for this record at 0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_get_perms</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_get_roles</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">_get_user_defaults</span><span class="p">()</span>
+	
+		<span class="n">has_perm</span><span class="p">,</span> <span class="n">match</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[]</span>
+		
+		<span class="c"># loop through everything to find if there is a match</span>
+		<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_perms</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_roles</span><span class="p">:</span>
+				<span class="n">has_perm</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="k">if</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">and</span> <span class="n">match</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+					<span class="n">match</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="c"># add to match check</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">match</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span> <span class="c"># has permission and no match, so match not required!</span>
+		
+		<span class="k">if</span> <span class="n">has_perm</span> <span class="ow">and</span> <span class="n">match</span> <span class="ow">and</span> <span class="n">match</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+			<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">match</span><span class="p">:</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&#39;no value&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">_user_defaults</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&#39;no default&#39;</span><span class="p">):</span>
+					<span class="n">has_perm</span> <span class="o">=</span> <span class="mi">1</span>
+					<span class="k">break</span> <span class="c"># permission found! break</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="n">has_perm</span> <span class="o">=</span> <span class="mi">0</span>
+					<span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+						<span class="n">webnotes</span><span class="o">.</span><span class="n">msgprint</span><span class="p">(</span><span class="s">&quot;Value not allowed: &#39;</span><span class="si">%s</span><span class="s">&#39; for &#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="s">&#39;no value&#39;</span><span class="p">),</span> <span class="n">m</span><span class="p">))</span>
+					
+	
+		<span class="c"># check for access key</span>
+		<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span> <span class="ow">and</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="s">&#39;akey&#39;</span><span class="p">):</span>
+			<span class="kn">import</span> <span class="nn">webnotes.utils.encrypt</span>
+			<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">encrypt</span><span class="o">.</span><span class="n">decrypt</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;akey&#39;</span><span class="p">))</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">:</span>
+				<span class="n">has_perm</span> <span class="o">=</span> <span class="mi">1</span>
+				<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;print_access&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+				
+		<span class="k">return</span> <span class="n">has_perm</span>
+
+	<span class="c"># Cleanup</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+		</div>
+	<span class="k">def</span> <span class="nf">_clear_temp_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c"># clear temp stuff</span>
+		<span class="n">keys</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+		<span class="k">for</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">keys</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">f</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;__&#39;</span><span class="p">):</span> 
+				<span class="k">del</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">f</span><span class="p">]</span>
+
+	<span class="c"># Table methods</span>
+	<span class="c"># ---------------------------------------------------------------------------</span>
+
+<div class="viewcode-block" id="Document.clear_table"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document.clear_table">[docs]</a>	<span class="k">def</span> <span class="nf">clear_table</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">doclist</span><span class="p">,</span> <span class="n">tablefield</span><span class="p">,</span> <span class="n">save</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">		Clears the child records from the given `doclist` for a particular `tablefield`</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="kn">import</span> <span class="nn">webnotes.model.doclist</span>
+		
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">doclist</span><span class="o">.</span><span class="n">getlist</span><span class="p">(</span><span class="n">doclist</span><span class="p">,</span> <span class="n">tablefield</span><span class="p">):</span>
+			<span class="n">d</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;__oldparent&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">parent</span>
+			<span class="n">d</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="s">&#39;old_parent:&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">parent</span> <span class="c"># for client to send it back while saving</span>
+			<span class="n">d</span><span class="o">.</span><span class="n">docstatus</span> <span class="o">=</span> <span class="mi">2</span>
+			<span class="k">if</span> <span class="n">save</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">d</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;__islocal&#39;</span><span class="p">):</span>
+				<span class="n">d</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;__unsaved&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="Document.addchild"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.Document.addchild">[docs]</a>	<span class="k">def</span> <span class="nf">addchild</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fieldname</span><span class="p">,</span> <span class="n">childtype</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">doclist</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+		<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	      Returns a child record of the give `childtype`.</span>
+<span class="sd">	      </span>
+<span class="sd">	      * if local is set, it does not save the record</span>
+<span class="sd">	      * if doclist is passed, it append the record to the doclist</span>
+<span class="sd">		&quot;&quot;&quot;</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">childtype</span><span class="p">:</span>
+			<span class="n">childtype</span> <span class="o">=</span> <span class="n">db_getchildtype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">fieldname</span><span class="p">)</span>
+	
+		<span class="n">d</span> <span class="o">=</span> <span class="n">Document</span><span class="p">()</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">parenttype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">doctype</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">parentfield</span> <span class="o">=</span> <span class="n">fieldname</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">doctype</span> <span class="o">=</span> <span class="n">childtype</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">docstatus</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">owner</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span>
+		
+		<span class="k">if</span> <span class="n">local</span><span class="p">:</span>
+			<span class="n">d</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="s">&#39;__islocal&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;1&#39;</span> <span class="c"># for Client to identify unsaved doc</span>
+		<span class="k">else</span><span class="p">:</span> 
+			<span class="n">d</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="n">new</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+	
+		<span class="k">if</span> <span class="n">doclist</span> <span class="o">!=</span> <span class="bp">None</span><span class="p">:</span>
+			<span class="n">doclist</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+	
+		<span class="k">return</span> <span class="n">d</span>
+</div></div>
+<div class="viewcode-block" id="addchild"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.addchild">[docs]</a><span class="k">def</span> <span class="nf">addchild</span><span class="p">(</span><span class="n">parent</span><span class="p">,</span> <span class="n">fieldname</span><span class="p">,</span> <span class="n">childtype</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">local</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">doclist</span><span class="o">=</span><span class="bp">None</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	</span>
+<span class="sd">   Create a child record to the parent doc.</span>
+<span class="sd">   </span>
+<span class="sd">   Example::</span>
+<span class="sd">   </span>
+<span class="sd">     c = Document(&#39;Contact&#39;,&#39;ABC&#39;)</span>
+<span class="sd">     d = addchild(c, &#39;contact_updates&#39;, &#39;Contact Update&#39;, local = 1)</span>
+<span class="sd">     d.last_updated = &#39;Phone call&#39;</span>
+<span class="sd">     d.save(1)</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">return</span> <span class="n">parent</span><span class="o">.</span><span class="n">addchild</span><span class="p">(</span><span class="n">fieldname</span><span class="p">,</span> <span class="n">childtype</span><span class="p">,</span> <span class="n">local</span><span class="p">,</span> <span class="n">doclist</span><span class="p">)</span>
+
+<span class="c"># Remove Child</span>
+<span class="c"># ------------</span>
+</div>
+<div class="viewcode-block" id="removechild"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.removechild">[docs]</a><span class="k">def</span> <span class="nf">removechild</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">is_local</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	   Sets the docstatus of the object d to 2 (deleted) and appends an &#39;old_parent:&#39; to the parent name</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">is_local</span><span class="p">:</span>
+		<span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s">&#39;docstatus&#39;</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+		<span class="nb">set</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s">&#39;parent&#39;</span><span class="p">,</span> <span class="s">&#39;old_parent:&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">parent</span> <span class="o">=</span> <span class="s">&#39;old_parent:&#39;</span> <span class="o">+</span> <span class="n">d</span><span class="o">.</span><span class="n">parent</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">docstatus</span> <span class="o">=</span> <span class="mi">2</span>
+			
+<span class="c"># Naming</span>
+<span class="c"># ------</span></div>
+<div class="viewcode-block" id="make_autoname"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.make_autoname">[docs]</a><span class="k">def</span> <span class="nf">make_autoname</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">doctype</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">   Creates an autoname from the given key:</span>
+<span class="sd">   </span>
+<span class="sd">   **Autoname rules:**</span>
+<span class="sd">      </span>
+<span class="sd">         * The key is separated by &#39;.&#39;</span>
+<span class="sd">         * &#39;####&#39; represents a series. The string before this part becomes the prefix:</span>
+<span class="sd">            Example: ABC.#### creates a series ABC0001, ABC0002 etc</span>
+<span class="sd">         * &#39;MM&#39; represents the current month</span>
+<span class="sd">         * &#39;YY&#39; and &#39;YYYY&#39; represent the current year</span>
+
+<span class="sd">   </span>
+<span class="sd">   *Example:*</span>
+<span class="sd">   </span>
+<span class="sd">         * DE/./.YY./.MM./.##### will create a series like</span>
+<span class="sd">           DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series</span>
+<span class="sd">	&quot;&quot;&quot;</span>
+	<span class="n">n</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+	<span class="n">l</span> <span class="o">=</span> <span class="n">key</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;.&#39;</span><span class="p">)</span>
+	<span class="k">for</span> <span class="n">e</span> <span class="ow">in</span> <span class="n">l</span><span class="p">:</span>
+		<span class="n">en</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		<span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s">&#39;#&#39;</span><span class="p">):</span>
+			<span class="n">digits</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">e</span><span class="p">)</span>
+			<span class="n">en</span> <span class="o">=</span> <span class="n">getseries</span><span class="p">(</span><span class="n">n</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">doctype</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">e</span><span class="o">==</span><span class="s">&#39;YY&#39;</span><span class="p">:</span> 
+			<span class="kn">import</span> <span class="nn">time</span>
+			<span class="n">en</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%y&#39;</span><span class="p">)</span>
+		<span class="k">elif</span> <span class="n">e</span><span class="o">==</span><span class="s">&#39;MM&#39;</span><span class="p">:</span> 
+			<span class="kn">import</span> <span class="nn">time</span>
+			<span class="n">en</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%m&#39;</span><span class="p">)</span>		
+		<span class="k">elif</span> <span class="n">e</span><span class="o">==</span><span class="s">&#39;YYYY&#39;</span><span class="p">:</span> 
+			<span class="kn">import</span> <span class="nn">time</span>
+			<span class="n">en</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s">&#39;%Y&#39;</span><span class="p">)</span>		
+		<span class="k">else</span><span class="p">:</span> <span class="n">en</span> <span class="o">=</span> <span class="n">e</span>
+		<span class="n">n</span><span class="o">+=</span><span class="n">en</span>
+	<span class="k">return</span> <span class="n">n</span>
+
+<span class="c"># Get Series for Autoname</span>
+<span class="c"># -----------------------</span></div>
+<div class="viewcode-block" id="getseries"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.getseries">[docs]</a><span class="k">def</span> <span class="nf">getseries</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">digits</span><span class="p">,</span> <span class="n">doctype</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">):</span>
+	<span class="c"># series created ?</span>
+	<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from tabSeries where name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">):</span>
+
+		<span class="c"># yes, update it</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;update tabSeries set current = current+1 where name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+
+		<span class="c"># find the series counter</span>
+		<span class="n">r</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select current from tabSeries where name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+		<span class="n">n</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+	<span class="k">else</span><span class="p">:</span>
+	
+		<span class="c"># no, create it</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;insert into tabSeries (name, current) values (&#39;</span><span class="si">%s</span><span class="s">&#39;, 1)&quot;</span> <span class="o">%</span> <span class="n">key</span><span class="p">)</span>
+		<span class="n">n</span> <span class="o">=</span> <span class="mi">1</span>
+	<span class="k">return</span> <span class="p">(</span><span class="s">&#39;%0&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">digits</span><span class="p">)</span><span class="o">+</span><span class="s">&#39;d&#39;</span><span class="p">)</span> <span class="o">%</span> <span class="n">n</span>
+
+
+<span class="c"># Get Children</span>
+<span class="c"># ------------</span>
+</div>
+<div class="viewcode-block" id="getchildren"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.getchildren">[docs]</a><span class="k">def</span> <span class="nf">getchildren</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">childtype</span><span class="p">,</span> <span class="n">field</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">parenttype</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">from_doctype</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="s">&#39;tab&#39;</span><span class="p">):</span>
+	<span class="kn">import</span> <span class="nn">webnotes</span>
+	
+	<span class="n">tmp</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+	
+	<span class="k">if</span> <span class="n">field</span><span class="p">:</span> 
+		<span class="n">tmp</span> <span class="o">=</span> <span class="s">&#39; and parentfield=&quot;</span><span class="si">%s</span><span class="s">&quot; &#39;</span> <span class="o">%</span> <span class="n">field</span>
+	<span class="k">if</span> <span class="n">parenttype</span><span class="p">:</span> 
+		<span class="n">tmp</span> <span class="o">=</span> <span class="s">&#39; and parenttype=&quot;</span><span class="si">%s</span><span class="s">&quot; &#39;</span> <span class="o">%</span> <span class="n">parenttype</span>
+
+	<span class="k">try</span><span class="p">:</span>
+		<span class="n">dataset</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select * from `</span><span class="si">%s%s</span><span class="s">` where parent=&#39;</span><span class="si">%s</span><span class="s">&#39; </span><span class="si">%s</span><span class="s"> order by idx&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">prefix</span><span class="p">,</span> <span class="n">childtype</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">tmp</span><span class="p">))</span>
+		<span class="n">desc</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">get_description</span><span class="p">()</span>
+	<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">prefix</span><span class="o">==</span><span class="s">&#39;arc&#39;</span> <span class="ow">and</span> <span class="n">e</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">==</span><span class="mi">1146</span><span class="p">:</span>
+			<span class="k">return</span> <span class="p">[]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="k">raise</span> <span class="n">e</span>
+
+	<span class="n">l</span> <span class="o">=</span> <span class="p">[]</span>
+	
+	<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dataset</span><span class="p">:</span>
+		<span class="n">d</span> <span class="o">=</span> <span class="n">Document</span><span class="p">()</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">doctype</span> <span class="o">=</span> <span class="n">childtype</span>
+		<span class="n">d</span><span class="o">.</span><span class="n">_load_values</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">desc</span><span class="p">)</span>
+		<span class="n">l</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">d</span><span class="p">)</span>
+	
+	<span class="k">return</span> <span class="n">l</span>
+
+<span class="c"># Check if &quot;Guest&quot; is allowed to view this page</span>
+<span class="c"># ---------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="check_page_perm"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.check_page_perm">[docs]</a><span class="k">def</span> <span class="nf">check_page_perm</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+	<span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="o">==</span><span class="s">&#39;Login Page&#39;</span><span class="p">:</span>
+		<span class="k">return</span>
+	<span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">publish</span><span class="p">:</span>
+		<span class="k">return</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from `tabPage Role` where parent=</span><span class="si">%s</span><span class="s"> and role=&#39;Guest&#39;&quot;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+		<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;exc_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;PermissionError&#39;</span>
+		<span class="k">raise</span> <span class="ne">Exception</span><span class="p">,</span> <span class="s">&#39;[WNF] No read permission for </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="get_report_builder_code"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.get_report_builder_code">[docs]</a><span class="k">def</span> <span class="nf">get_report_builder_code</span><span class="p">(</span><span class="n">doc</span><span class="p">):</span>
+	<span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">doctype</span><span class="o">==</span><span class="s">&#39;Search Criteria&#39;</span><span class="p">:</span>
+		<span class="kn">from</span> <span class="nn">webnotes.model.code</span> <span class="kn">import</span> <span class="n">get_code</span>
+		
+		<span class="k">if</span> <span class="n">doc</span><span class="o">.</span><span class="n">standard</span> <span class="o">!=</span> <span class="s">&#39;No&#39;</span><span class="p">:</span>
+			<span class="n">doc</span><span class="o">.</span><span class="n">report_script</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;Search Criteria&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;js&#39;</span><span class="p">)</span>
+			<span class="n">doc</span><span class="o">.</span><span class="n">custom_query</span> <span class="o">=</span> <span class="n">get_code</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">module</span><span class="p">,</span> <span class="s">&#39;Search Criteria&#39;</span><span class="p">,</span> <span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="s">&#39;sql&#39;</span><span class="p">)</span>
+
+	
+<span class="c"># called from everywhere</span>
+<span class="c"># load a record and its child records and bundle it in a list - doclist</span>
+<span class="c"># ---------------------------------------------------------------------</span>
+</div>
+<div class="viewcode-block" id="get"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.doc.get">[docs]</a><span class="k">def</span> <span class="nf">get</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="o">=</span><span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">with_children</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">from_get_obj</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="n">prefix</span> <span class="o">=</span> <span class="s">&#39;tab&#39;</span><span class="p">):</span>
+	<span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">	Returns a doclist containing the main record and all child records</span>
+<span class="sd">	&quot;&quot;&quot;</span>	
+	<span class="kn">import</span> <span class="nn">webnotes</span> 
+	<span class="kn">import</span> <span class="nn">webnotes.model</span>
+	<span class="kn">import</span> <span class="nn">webnotes.defs</span>
+
+	<span class="n">dn</span> <span class="o">=</span> <span class="n">dn</span> <span class="ow">or</span> <span class="n">dt</span>
+
+	<span class="c"># load the main doc</span>
+	<span class="n">doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+
+	<span class="c"># check permission - for doctypes, pages</span>
+	<span class="k">if</span> <span class="p">(</span><span class="n">dt</span> <span class="ow">in</span> <span class="p">(</span><span class="s">&#39;DocType&#39;</span><span class="p">,</span> <span class="s">&#39;Page&#39;</span><span class="p">,</span> <span class="s">&#39;Control Panel&#39;</span><span class="p">,</span> <span class="s">&#39;Search Criteria&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">from_get_obj</span> <span class="ow">and</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s">&#39;user&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="s">&#39;Guest&#39;</span><span class="p">):</span>
+		<span class="k">if</span> <span class="n">dt</span><span class="o">==</span><span class="s">&#39;Page&#39;</span> <span class="ow">and</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">session</span><span class="p">[</span><span class="s">&#39;user&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s">&#39;Guest&#39;</span><span class="p">:</span>
+			<span class="n">check_page_perm</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">doc</span><span class="o">.</span><span class="n">check_perm</span><span class="p">():</span>
+			<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;exc_type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;PermissionError&#39;</span>
+			<span class="k">raise</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">ValidationError</span><span class="p">,</span> <span class="s">&#39;[WNF] No read permission for </span><span class="si">%s</span><span class="s"> </span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">dt</span><span class="p">,</span> <span class="n">dn</span><span class="p">)</span>
+
+	<span class="c"># import report_builder code</span>
+	<span class="n">get_report_builder_code</span><span class="p">(</span><span class="n">doc</span><span class="p">)</span>
+
+	<span class="k">if</span> <span class="ow">not</span> <span class="n">with_children</span><span class="p">:</span>
+		<span class="c"># done</span>
+		<span class="k">return</span> <span class="p">[</span><span class="n">doc</span><span class="p">,]</span>
+	
+	<span class="c"># get all children types</span>
+	<span class="n">tablefields</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">meta</span><span class="o">.</span><span class="n">get_table_fields</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+
+	<span class="c"># load chilren</span>
+	<span class="n">doclist</span> <span class="o">=</span> <span class="p">[</span><span class="n">doc</span><span class="p">,]</span>
+	<span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">tablefields</span><span class="p">:</span>
+		<span class="n">doclist</span> <span class="o">+=</span> <span class="n">getchildren</span><span class="p">(</span><span class="n">doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">t</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dt</span><span class="p">,</span> <span class="n">prefix</span><span class="o">=</span><span class="n">prefix</span><span class="p">)</span>
+
+	<span class="k">return</span> <span class="n">doclist</span></div>
+</pre></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" >webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

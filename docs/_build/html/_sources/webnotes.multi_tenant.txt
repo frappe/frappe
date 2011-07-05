@@ -1,0 +1,27 @@
+multi_tenant Package
+====================
+
+:mod:`multi_tenant` Package
+---------------------------
+
+.. automodule:: webnotes.multi_tenant
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`query_parser` Module
+--------------------------
+
+.. automodule:: webnotes.multi_tenant.query_parser
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`setup` Module
+-------------------
+
+.. automodule:: webnotes.multi_tenant.setup
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

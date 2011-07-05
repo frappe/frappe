@@ -70,4 +70,3 @@ except Exception, e:
 	print "Content-Type: text/javascript"
 	print
 	print getTraceback().replace('\n','<br>')
-	

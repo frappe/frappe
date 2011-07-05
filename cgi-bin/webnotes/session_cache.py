@@ -87,10 +87,10 @@ def make_cache_table():
 
 def dump(sd, country):
 	import webnotes
-	import webnotes.model.doclist
+	import webnotes.model.utils
 
 	if sd.get('docs'):
-		sd['docs'] = webnotes.model.doclist.compress(sd['docs'])
+		sd['docs'] = webnotes.model.utils.compress(sd['docs'])
 
 	# delete earlier (?)
 	webnotes.conn.sql("delete from __SessionCache where user=%s and country=%s", (webnotes.session['user'], country))

@@ -174,15 +174,17 @@ def check_guest_access(doc):
 #===========================================================================================
 
 def runserverobj():
+	"""
+		Run server objects
+	"""
 	import webnotes.model.code
-	import webnotes.model.doclist
+	from webnotes.model.doclist import DocList
 	from webnotes.utils import cint
 
 	form = webnotes.form
 
-
+	doclist = None
 	method = form.getvalue('method')
-	doclist, clientlist = [], []
 	arg = form.getvalue('arg')
 	dt = form.getvalue('doctype')
 	dn = form.getvalue('docname')
@@ -192,46 +194,23 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		clientlist = webnotes.model.doclist.expand(form.getvalue('docs'))
-
-		# find main doc
-		for d in clientlist:
-			if cint(d.get('docstatus')) != 2 and not d.get('parent'):
-				main_doc = webnotes.model.doc.Document(fielddata = d)
-	
-		# find child docs
-		for d in clientlist:
-			doc = webnotes.model.doc.Document(fielddata = d)
-			if doc.fields.get('parent'):
-				doclist.append(doc)	
-	
-		so = webnotes.model.code.get_server_obj(main_doc, doclist)
-
-	# check integrity
-	if not check_integrity(so.doc):
-		return
+		doclist = DocList()
+		doclist.from_compressed(form.getvalue('docs'), dn)
+		so = doclist.make_obj()
 		
 	check_guest_access(so.doc)
 				
 	if so:
 		r = webnotes.model.code.run_server_obj(so, method, arg)
-		doclist = so.doclist # reference back [in case of null]
-		if r:
-			try:
-				if r['doclist']:
-					clientlist += r['doclist']
-			except:
-				pass
-			
+		if r:			
 			#build output as csv
 			if cint(webnotes.form.getvalue('as_csv')):
 				make_csv_output(r, so.doc.doctype)
 			else:
 				webnotes.response['message'] = r
 		
-		if clientlist:
-			doclist.append(main_doc)
-			webnotes.response['docs'] = doclist
+		if doclist:
+			webnotes.response['docs'] = doclist.docs
 
 def make_csv_output(res, dt):
 	import webnotes
@@ -252,169 +231,29 @@ def make_csv_output(res, dt):
 	webnotes.response['doctype'] = dt.replace(' ','')						
 
 
-# Document Save
-#===========================================================================================
-
-def _get_doclist(clientlist):
-	# converts doc dictionaries into Document objects
-
-	from webnotes.model.doc import Document
-	form = webnotes.form
-
-	midx = 0
-	for i in range(len(clientlist)):
-		if clientlist[i]['name'] == form.getvalue('docname'):
-			main_doc = Document(fielddata = clientlist[i])
-			midx = i
-		else:
-			clientlist[i] = Document(fielddata = clientlist[i])
-
-	del clientlist[midx]
-	return main_doc, clientlist
-
-def _do_action(doc, doclist, so, method_name, docstatus=0):
-
-	from webnotes.model.code import run_server_obj
-	set = webnotes.conn.set
-
-	if so and hasattr(so, method_name):
-		errmethod = method_name
-		run_server_obj(so, method_name)
-		if hasattr(so, 'custom_'+method_name):
-			run_server_obj(so, 'custom_'+method_name)
-		errmethod = ''
-
-	# fire triggers observers (if any)
-	fire_event(doc, method_name)
-
-	# set docstatus for all children records
-	if docstatus:
-		for d in [doc] + doclist:
-			if int(d.docstatus or 0) != 2:
-				set(d, 'docstatus', docstatus)
-
-def check_integrity(doc):
-	import webnotes
-		
-	if (not webnotes.model.meta.is_single(doc.doctype)) and (not doc.fields.get('__islocal')):
-		tmp = webnotes.conn.sql('SELECT modified FROM `tab%s` WHERE name="%s" for update' % (doc.doctype, doc.name))
-		if tmp and str(tmp[0][0]) != str(doc.modified):
-			webnotes.msgprint('Document has been modified after you have opened it. To maintain the integrity of the data, you will not be able to save your changes. Please refresh this document. [%s/%s]' % (tmp[0][0], doc.modified))
-			return 0
-			
-	return 1
-
-#===========================================================================================
-
 def savedocs():
-	import webnotes.model.doclist
-
-	from webnotes.model.code import get_server_obj
-	from webnotes.model.code import run_server_obj
-	import webnotes.utils
-	from webnotes.widgets.auto_master import update_auto_masters
-
-	from webnotes.utils import cint
-
-	sql = webnotes.conn.sql
-	form = webnotes.form
-
-	# action
-	action = form.getvalue('action')
-	
-	# get docs	
-	doc, doclist = _get_doclist(webnotes.model.doclist.expand(form.getvalue('docs')))
-
-	# get server object	
-	server_obj = get_server_obj(doc, doclist)
-
-	# check integrity
-	if not check_integrity(doc):
-		return
-	
-	if not doc.check_perm(verbose=1):
-		webnotes.msgprint("Not enough permission to save %s" % doc.doctype)
-		return
-	
-	# validate links
-	ret = webnotes.model.doclist.validate_links_doclist([doc] + doclist)
-	if ret:
-		webnotes.msgprint("[Link Validation] Could not find the following values: %s. Please correct and resave. Document Not Saved." % ret)
-		return
-
-	# saving & post-saving
 	try:
-		# validate befor saving and submitting
-		if action in ('Save', 'Submit') and server_obj:
-			if hasattr(server_obj, 'validate'):	
-				t = run_server_obj(server_obj, 'validate')
-			if hasattr(server_obj, 'custom_validate'):
-				t = run_server_obj(server_obj, 'custom_validate')
-				
-		# set owner and modified times
-		is_new = cint(doc.fields.get('__islocal'))
-		if is_new and not doc.owner:
-			doc.owner = form.getvalue('user')
-		
-		doc.modified, doc.modified_by = webnotes.utils.now(), webnotes.session['user']
-		
-		# save main doc
-		try:
-			t = doc.save(is_new)
-			update_auto_masters(doc)
-		except NameError, e:
-			webnotes.msgprint('%s "%s" already exists' % (doc.doctype, doc.name))
-			if webnotes.conn.sql("select docstatus from `tab%s` where name=%s" % (doc.doctype, '%s'), doc.name)[0][0]==2:
-				webnotes.msgprint('[%s "%s" has been cancelled]' % (doc.doctype, doc.name))
-			webnotes.errprint(webnotes.utils.getTraceback())
-			raise e
-		
-		# save child docs
-		for d in doclist:
-			deleted, local = d.fields.get('__deleted',0), d.fields.get('__islocal',0)
-	
-			if cint(local) and cint(deleted):
-				pass
-			elif d.fields.has_key('parent'):
-				if d.parent and (not d.parent.startswith('old_parent:')):
-					d.parent = doc.name # rename if reqd
-					d.parenttype = doc.doctype
-				d.modified, d.modified_by = webnotes.utils.now(), webnotes.session['user']
-				d.save(new = cint(local))
-				update_auto_masters(d)
-	
-		# on_update
-		if action in ('Save','Submit') and server_obj:
-			if hasattr(server_obj, 'on_update'):
-				t = run_server_obj(server_obj, 'on_update')
-				if t: webnotes.msgprint(t)
-	
-			if hasattr(server_obj, 'custom_on_update'):
-				t = run_server_obj(server_obj, 'custom_on_update')
-				if t: webnotes.msgprint(t)
+		from webnotes.model.doclist import DocList
+		form = webnotes.form_dict
 
-			fire_event(doc, 'on_update')
-				
-		# on_submit
-		if action == 'Submit':
-			_do_action(doc, doclist, server_obj, 'on_submit', 1)
+		doclist = DocList()
+		doclist.from_compressed(form.get('docs'), form.get('docname'))
 
-		# for allow_on_submit type
-		if action == 'Update':
-			_do_action(doc, doclist, server_obj, 'on_update_after_submit', 0)
-				
-		# on_cancel
-		if action == 'Cancel':
-			_do_action(doc, doclist, server_obj, 'on_cancel', 2)
+		# action
+		action = form.get('action')
+
+		if action=='Update': action='update_after_submit'
+
+		getattr(doclist, action.lower())()
 
 		# update recent documents
-		webnotes.user.update_recent(doc.doctype, doc.name)
+		webnotes.user.update_recent(doclist.doc.doctype, doclist.doc.name)
 
 		# send updated docs
 		webnotes.response['saved'] = '1'
-		webnotes.response['main_doc_name'] = doc.name
-		webnotes.response['docname'] = doc.name
-		webnotes.response['docs'] = [doc] + doclist
+		webnotes.response['main_doc_name'] = doclist.doc.name
+		webnotes.response['docname'] = doclist.doc.name
+		webnotes.response['docs'] = [doclist.doc] + doclist.children
 
 	except Exception, e:
 		webnotes.msgprint('Did not save')

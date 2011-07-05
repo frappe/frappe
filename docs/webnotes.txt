@@ -1,0 +1,87 @@
+webnotes Package
+================
+
+:mod:`webnotes` Package
+-----------------------
+
+.. automodule:: webnotes
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`auth` Module
+------------------
+
+.. automodule:: webnotes.auth
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`db` Module
+----------------
+
+.. automodule:: webnotes.db
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`defs` Module
+------------------
+
+.. automodule:: webnotes.defs
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`defs_template` Module
+---------------------------
+
+.. automodule:: webnotes.defs_template
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`handler` Module
+---------------------
+
+.. automodule:: webnotes.handler
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`profile` Module
+---------------------
+
+.. automodule:: webnotes.profile
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`session_cache` Module
+---------------------------
+
+.. automodule:: webnotes.session_cache
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+:mod:`tests` Module
+-------------------
+
+.. automodule:: webnotes.tests
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+Subpackages
+-----------
+
+.. toctree::
+
+    webnotes.install_lib
+    webnotes.model
+    webnotes.modules
+    webnotes.multi_tenant
+    webnotes.utils
+    webnotes.widgets
+

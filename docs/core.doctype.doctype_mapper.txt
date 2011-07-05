@@ -1,0 +1,11 @@
+doctype_mapper Package
+======================
+
+:mod:`doctype_mapper` Module
+----------------------------
+
+.. automodule:: core.doctype.doctype_mapper.doctype_mapper
+    :members:
+    :undoc-members:
+    :show-inheritance:
+

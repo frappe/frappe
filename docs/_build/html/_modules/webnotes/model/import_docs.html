@@ -1,0 +1,512 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>webnotes.model.import_docs &mdash; WNFramework v1.8 documentation</title>
+    <link rel="stylesheet" href="../../../_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '../../../',
+        VERSION:     '1.8',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="../../../_static/jquery.js"></script>
+    <script type="text/javascript" src="../../../_static/underscore.js"></script>
+    <script type="text/javascript" src="../../../_static/doctools.js"></script>
+    <link rel="top" title="WNFramework v1.8 documentation" href="../../../index.html" />
+    <link rel="up" title="webnotes.model" href="../model.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" accesskey="U">webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <h1>Source code for webnotes.model.import_docs</h1><div class="highlight"><pre>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+
+<div class="viewcode-block" id="import_docs"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.import_docs">[docs]</a><span class="k">def</span> <span class="nf">import_docs</span><span class="p">(</span><span class="n">docs</span> <span class="o">=</span> <span class="p">[]):</span>
+	<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="n">Document</span>
+	<span class="kn">import</span> <span class="nn">webnotes.model.code</span>
+
+	<span class="n">doc_list</span> <span class="o">=</span> <span class="p">{}</span>
+	<span class="n">created_docs</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="n">already_exists</span> <span class="o">=</span> <span class="p">[]</span>
+
+	<span class="n">out</span><span class="p">,</span> <span class="n">tmp</span> <span class="o">=</span><span class="s">&quot;&quot;</span><span class="p">,</span> <span class="s">&quot;&quot;</span>
+
+	<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">docs</span><span class="p">:</span>
+		<span class="n">cur_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="n">fielddata</span> <span class="o">=</span> <span class="n">d</span><span class="p">)</span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span> <span class="ow">in</span> <span class="n">already_exists</span><span class="p">:</span> <span class="c"># parent should not exist</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="n">cur_doc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+				<span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;Created: &quot;</span> <span class="o">+</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+				<span class="n">created_docs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_doc</span><span class="p">)</span>
+
+				<span class="c"># make in groups</span>
+				<span class="k">if</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="n">doc_list</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">):</span>
+						<span class="n">doc_list</span><span class="p">[</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
+					<span class="n">doc_list</span><span class="p">[</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_doc</span><span class="p">)</span>
+
+			<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+				<span class="n">out</span> <span class="o">+=</span> <span class="s">&quot;Creation Warning/Error: &quot;</span> <span class="o">+</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s">&quot; :&quot;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">e</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+				<span class="n">already_exists</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+	<span class="c"># Run scripts for main docs</span>
+	<span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">created_docs</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">doc_list</span><span class="o">.</span><span class="n">has_key</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+			<span class="n">tmp</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">run_server_obj</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">get_server_obj</span><span class="p">(</span><span class="n">m</span><span class="p">,</span> <span class="n">doc_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">[])),</span><span class="s">&#39;on_update&#39;</span><span class="p">)</span>
+
+			<span class="c"># update database (in case of DocType)</span>
+			<span class="k">if</span> <span class="n">m</span><span class="o">.</span><span class="n">doctype</span><span class="o">==</span><span class="s">&#39;DocType&#39;</span><span class="p">:</span>
+				<span class="kn">import</span> <span class="nn">webnotes.model.doctype</span>
+				<span class="k">try</span><span class="p">:</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">doctype</span><span class="o">.</span><span class="n">update_doctype</span><span class="p">(</span><span class="n">doc_list</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="p">[]))</span>
+				<span class="k">except</span><span class="p">:</span> <span class="k">pass</span>			
+			<span class="n">out</span> <span class="o">+=</span> <span class="s">&#39;Executed: &#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;, Err:&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tmp</span><span class="p">)</span> <span class="o">+</span> <span class="s">&quot;</span><span class="se">\n</span><span class="s">&quot;</span>
+
+	<span class="k">return</span> <span class="n">out</span>
+
+<span class="c">#======================================================================================================================================</span>
+</div>
+<span class="kn">import</span> <span class="nn">webnotes</span>
+<span class="kn">import</span> <span class="nn">webnotes.utils</span>
+<span class="n">sql</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span>
+<span class="n">flt</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">flt</span>
+<span class="n">cint</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">cint</span>
+<span class="n">cstr</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">cstr</span>
+
+<div class="viewcode-block" id="CSVImport"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport">[docs]</a><span class="k">class</span> <span class="nc">CSVImport</span><span class="p">:</span>
+	<span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">csv_data</span> <span class="o">=</span> <span class="bp">None</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span> <span class="o">=</span> <span class="bp">None</span>
+
+<div class="viewcode-block" id="CSVImport.validate_doctype"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.validate_doctype">[docs]</a>	<span class="k">def</span> <span class="nf">validate_doctype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dt_list</span><span class="p">):</span>
+		<span class="n">cl</span><span class="p">,</span> <span class="n">tables</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">prompt_autoname_flag</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="p">[</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;show tables&quot;</span><span class="p">)],</span> <span class="p">[],</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;&lt;b&gt;Identifying Documents&lt;/b&gt;&lt;/p&gt;&#39;</span><span class="p">)</span>
+		<span class="n">dtd</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name, istable, autoname from `tabDocType` where name = &#39;</span><span class="si">%s</span><span class="s">&#39; &quot;</span> <span class="o">%</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="k">if</span> <span class="n">dtd</span> <span class="ow">and</span> <span class="n">dtd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: GREEN&quot;&gt;Identified Document: &#39;</span> <span class="o">+</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;&lt;/div&gt;&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="k">if</span> <span class="n">dtd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]</span> <span class="ow">and</span> <span class="s">&#39;Prompt&#39;</span> <span class="ow">in</span> <span class="n">dtd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">]:</span> <span class="bp">self</span><span class="o">.</span><span class="n">prompt_autoname_flag</span> <span class="o">=</span> <span class="mi">1</span>
+			<span class="k">if</span> <span class="n">flt</span><span class="p">(</span><span class="n">dtd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]):</span>
+				<span class="n">res1</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select parent, fieldname from tabDocField where options=&#39;</span><span class="si">%s</span><span class="s">&#39; and fieldtype=&#39;Table&#39; and docstatus!=2&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+				<span class="k">if</span> <span class="n">res1</span> <span class="ow">and</span> <span class="n">res1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: GREEN&quot;&gt;Identified Document: &#39;</span> <span class="o">+</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;&lt;/div&gt;&#39;</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+				<span class="k">else</span> <span class="p">:</span> 
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color:RED&quot;&gt; Error: At Row 1, Column 2 =&gt; </span><span class="si">%s</span><span class="s"> is not a valid Document &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+
+				<span class="k">if</span> <span class="n">res1</span> <span class="ow">and</span> <span class="n">res1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: GREEN&quot; &gt;Identified Document Fieldname: &#39;</span> <span class="o">+</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;&lt;/div&gt;&#39;</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+				<span class="k">else</span> <span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color:RED&quot;&gt; Error: At Row 1, Column 3 =&gt; </span><span class="si">%s</span><span class="s"> is not a valid Fieldname &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">elif</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color:RED&quot;&gt; Error: At Row 1, Column 1 =&gt; </span><span class="si">%s</span><span class="s"> is not a Table.	&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color:RED&quot;&gt; Error: At Row 1, Column 1 =&gt; </span><span class="si">%s</span><span class="s"> is not a valid Document &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+
+</div>
+<div class="viewcode-block" id="CSVImport.validate_fields"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.validate_fields">[docs]</a>	<span class="k">def</span> <span class="nf">validate_fields</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">lb_list</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;&lt;b&gt;Checking fieldnames for </span><span class="si">%s</span><span class="s">&lt;/b&gt;&lt;/p&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color:RED&quot;&gt; Error: Overwrite is not possible for Document </span><span class="si">%s</span><span class="s"> &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">return</span>
+		
+		<span class="k">elif</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span> <span class="ow">and</span> <span class="s">&#39;Name&#39;</span> <span class="o">!=</span> <span class="n">lb_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color:RED&quot;&gt; Error : At Row 4 and Column 1: To Overwrite fieldname should be Name &lt;/div&gt;&#39;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">return</span>
+		<span class="c"># labelnames</span>
+		<span class="n">res</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="ow">and</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select label from tabDocField where parent=&#39;</span><span class="si">%s</span><span class="s">&#39; and docstatus!=2 and ifnull(hidden,&#39;&#39;) in (&#39;&#39;,0)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="ow">or</span> <span class="p">[]</span>
+
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;parent&#39;</span><span class="p">)</span>
+			<span class="n">lb_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">lb_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]))</span>
+
+		<span class="n">dtd</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select autoname from `tabDocType` where name = &#39;</span><span class="si">%s</span><span class="s">&#39; &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prompt_autoname_flag</span> <span class="ow">or</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+			<span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">)</span>
+			<span class="n">lb_list</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">lb_list</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s">&#39;Name&#39;</span><span class="p">))</span>
+
+		<span class="n">cl</span> <span class="o">=</span> <span class="mi">1</span>
+		<span class="k">for</span> <span class="n">l</span> <span class="ow">in</span> <span class="n">lb_list</span><span class="p">:</span>
+			<span class="k">try</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">l</span><span class="p">:</span>
+					<span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">l</span> <span class="ow">in</span> <span class="n">res</span><span class="p">):</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt;Error : At Row 4 and Column </span><span class="si">%s</span><span class="s"> Field </span><span class="si">%s</span><span class="s"> is not present in </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">cl</span><span class="p">,</span> <span class="n">l</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+						<span class="c"># this condition is for child doctype</span>
+				
+					<span class="k">else</span><span class="p">:</span>	<span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname from tabDocField where parent =&#39;</span><span class="si">%s</span><span class="s">&#39; and label = &#39;</span><span class="si">%s</span><span class="s">&#39; and ifnull(fieldname,&#39;&#39;) !=&#39;&#39; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">l</span><span class="p">))[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">)</span>
+			<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; At Row 4 and Column </span><span class="si">%s</span><span class="s"> : =&gt;ERROR: </span><span class="si">%s</span><span class="s"> &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span> <span class="n">cl</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="n">cl</span> <span class="o">=</span> <span class="n">cl</span> <span class="o">+</span> <span class="mi">1</span>
+	
+		<span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+			<span class="c"># get_reqd_fields</span>
+			<span class="n">reqd_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select label from `tabDocField` where parent = &#39;</span><span class="si">%s</span><span class="s">&#39; and ifnull(reqd,&#39;&#39;) not in (&#39;&#39;, 0)  and docstatus !=2&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>	<span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">lb_list</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[]</span>
+		
+			<span class="c"># Check if Reqd field not present in self.fields</span>
+			<span class="k">if</span> <span class="n">reqd_list</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; Error : At Row 4 Mandatory Fields </span><span class="si">%s</span><span class="s"> of Document </span><span class="si">%s</span><span class="s"> are Required. &lt;/div&gt;&#39;</span> <span class="o">%</span><span class="p">(</span><span class="n">reqd_list</span> <span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: GREEN&quot;&gt;Fields OK for </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+					</div>
+<div class="viewcode-block" id="CSVImport.validate_headers"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.validate_headers">[docs]</a>	<span class="k">def</span> <span class="nf">validate_headers</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">validate_doctype</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">doctype_data</span><span class="p">)</span>
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_fields</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">)</span>
+
+	<span class="c"># Date parsing</span>
+	<span class="c"># --------------------------------------------------------------------</span></div>
+<div class="viewcode-block" id="CSVImport.parse_date"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.parse_date">[docs]</a>	<span class="k">def</span> <span class="nf">parse_date</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">d</span><span class="p">):</span>
+		<span class="n">out</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="o">==</span><span class="s">&#39;yyyy-mm-dd&#39;</span><span class="p">:</span>
+				<span class="n">tmpd</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+			
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+					<span class="n">out</span> <span class="o">=</span> <span class="n">tmpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="s">&#39;-&#39;</span> <span class="o">+</span> <span class="n">tmpd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span>
+		
+			<span class="k">elif</span> <span class="n">d</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="o">==</span><span class="s">&#39;dd-mm-yyyy&#39;</span><span class="p">:</span>
+				<span class="n">tmpd</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+					
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+					<span class="n">out</span> <span class="o">=</span> <span class="n">tmpd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+			
+			<span class="k">elif</span> <span class="n">d</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="o">==</span><span class="s">&#39;mm/dd/yyyy&#39;</span><span class="p">:</span>
+				<span class="n">tmpd</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+			
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+					<span class="n">out</span> <span class="o">=</span> <span class="n">tmpd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+				
+			<span class="k">elif</span> <span class="n">d</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="o">==</span><span class="s">&#39;mm/dd/yy&#39;</span><span class="p">:</span>
+				<span class="n">tmpd</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+			
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+					<span class="n">out</span> <span class="o">=</span> <span class="s">&#39;20&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+		
+			<span class="k">elif</span> <span class="n">d</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="o">==</span><span class="s">&#39;dd/mm/yyyy&#39;</span><span class="p">:</span>
+				<span class="n">tmpd</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+					<span class="n">out</span> <span class="o">=</span> <span class="n">tmpd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+			<span class="k">elif</span> <span class="n">d</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="o">==</span><span class="s">&#39;dd/mm/yy&#39;</span><span class="p">:</span>
+				<span class="n">tmpd</span> <span class="o">=</span> <span class="n">d</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;/&#39;</span><span class="p">)</span>
+				<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span><span class="o">==</span><span class="mi">3</span><span class="p">:</span>
+					<span class="n">out</span> <span class="o">=</span> <span class="s">&#39;20&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">+</span><span class="s">&#39;-&#39;</span><span class="o">+</span><span class="n">tmpd</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+
+			<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tmpd</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">3</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; At Row </span><span class="si">%s</span><span class="s"> and Column </span><span class="si">%s</span><span class="s"> : =&gt; Date Format selected as </span><span class="si">%s</span><span class="s"> does not match with Date Format in File&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="p">)))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+			<span class="k">else</span><span class="p">:</span>
+			
+				<span class="kn">import</span> <span class="nn">datetime</span>
+				<span class="n">dt</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;-&#39;</span><span class="p">)</span>
+				<span class="n">datetime</span><span class="o">.</span><span class="n">date</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span><span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="mi">1</span><span class="p">]),</span> <span class="nb">int</span><span class="p">(</span><span class="n">dt</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; At Row </span><span class="si">%s</span><span class="s"> and Column </span><span class="si">%s</span><span class="s"> : =&gt;ERROR: </span><span class="si">%s</span><span class="s"> &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">e</span><span class="p">))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">out</span><span class="p">)</span>
+		<span class="k">return</span> <span class="n">out</span>
+</div>
+<div class="viewcode-block" id="CSVImport.check_select_link_data"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.check_select_link_data">[docs]</a>	<span class="k">def</span> <span class="nf">check_select_link_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">r</span><span class="p">,</span> <span class="n">c</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">,</span> <span class="n">s</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="n">l</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">):</span>
+		<span class="n">options</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">d</span> <span class="ow">and</span> <span class="n">f</span><span class="p">:</span>
+				<span class="n">dt</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select options, label from `tabDocField` where fieldname =&#39;</span><span class="si">%s</span><span class="s">&#39; and parent = &#39;</span><span class="si">%s</span><span class="s">&#39; &quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
+				<span class="n">dt</span><span class="p">,</span> <span class="n">lbl</span> <span class="o">=</span> <span class="p">(</span><span class="n">dt</span> <span class="ow">and</span> <span class="n">dt</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span> <span class="ow">and</span> <span class="n">dt</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="ow">or</span> <span class="bp">None</span><span class="p">),</span> <span class="n">dt</span> <span class="ow">and</span> <span class="n">dt</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+				<span class="k">if</span> <span class="n">dt</span><span class="p">:</span>
+					<span class="n">options</span> <span class="o">=</span> <span class="n">l</span> <span class="ow">and</span> <span class="n">dt</span> <span class="ow">and</span> <span class="p">[</span><span class="n">n</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">n</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select name from `tab</span><span class="si">%s</span><span class="s">` &quot;</span> <span class="o">%</span> <span class="p">((</span><span class="s">&#39;link:&#39;</span> <span class="ow">in</span> <span class="n">dt</span> <span class="ow">and</span> <span class="n">dt</span><span class="p">[</span><span class="mi">5</span><span class="p">:])</span> <span class="ow">or</span> <span class="n">dt</span><span class="p">))]</span> <span class="ow">or</span> <span class="n">s</span> <span class="ow">and</span> <span class="n">dt</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+					<span class="k">if</span> <span class="n">options</span> <span class="ow">and</span> <span class="n">d</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">options</span> <span class="p">:</span>
+						<span class="n">msg</span> <span class="o">=</span> <span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt;At Row &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">r</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39; and Column &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">+</span> <span class="s">&#39; : =&gt; Data &quot;&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">)</span> <span class="o">+</span> <span class="s">&#39;&quot; in field [&#39;</span><span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">lbl</span><span class="p">)</span> <span class="o">+</span><span class="s">&#39;] Not Found in &#39;</span>
+						<span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">__add__</span><span class="p">(</span> <span class="n">s</span> <span class="ow">and</span>  <span class="nb">str</span><span class="p">(</span> <span class="s">&#39;Select Options [&#39;</span> <span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">dt</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="s">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span><span class="s">&#39;]&#39;</span> <span class="p">)</span> <span class="ow">or</span> <span class="nb">str</span><span class="p">(</span><span class="s">&#39;Master &#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="s">&#39;link:&#39;</span> <span class="ow">in</span> <span class="n">dt</span> <span class="ow">and</span> <span class="n">dt</span><span class="p">[</span><span class="mi">5</span><span class="p">:]</span> <span class="ow">or</span> <span class="n">dt</span><span class="p">)))</span>
+						<span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">__add__</span><span class="p">(</span><span class="s">&#39;&lt;/div&gt;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">)</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">msg</span><span class="p">)</span>
+
+						<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">,</span> <span class="n">e</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; ERROR: </span><span class="si">%s</span><span class="s"> &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">())))</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+		<span class="k">return</span> <span class="n">d</span>
+
+</div>
+<div class="viewcode-block" id="CSVImport.get_field_type_list"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.get_field_type_list">[docs]</a>	<span class="k">def</span> <span class="nf">get_field_type_list</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="c"># get_date_fields</span>
+		<span class="n">date_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname from `tabDocField` where parent = &#39;</span><span class="si">%s</span><span class="s">&#39; and fieldtype=&#39;Date&#39; and docstatus !=2&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+
+		<span class="c"># get_link_fields</span>
+		<span class="n">link_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname from `tabDocField` where parent = &#39;</span><span class="si">%s</span><span class="s">&#39; and ((fieldtype=&#39;Link&#39; and ifnull(options,&#39;&#39;) != &#39;&#39;) or (fieldtype=&#39;Select&#39; and ifnull(options,&#39;&#39;) like &#39;</span><span class="si">%%</span><span class="s">link:</span><span class="si">%%</span><span class="s">&#39;)) and docstatus !=2 &quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+
+		<span class="c"># get_select_fileds</span>
+		<span class="n">select_list</span> <span class="o">=</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname from `tabDocField` where parent = &#39;</span><span class="si">%s</span><span class="s">&#39; and fieldtype=&#39;Select&#39; and ifnull(options,&#39;&#39;) not like &#39;</span><span class="si">%%</span><span class="s">link:</span><span class="si">%%</span><span class="s">&#39; and docstatus !=2&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+		
+		<span class="c"># get_reqd_fields</span>
+		<span class="n">reqd_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span> <span class="ow">and</span> <span class="p">[</span><span class="s">&#39;name&#39;</span><span class="p">]</span> <span class="ow">or</span> <span class="p">[</span><span class="n">d</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname from `tabDocField` where parent = &#39;</span><span class="si">%s</span><span class="s">&#39; and ifnull(reqd,&#39;&#39;) not in (&#39;&#39;, 0)  and docstatus !=2&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">)</span><span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="s">&#39;parent&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reqd_list</span><span class="p">:</span> <span class="n">reqd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;parent&#39;</span><span class="p">)</span>
+
+		<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">prompt_autoname_flag</span> <span class="ow">and</span> <span class="s">&#39;name&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">reqd_list</span><span class="p">:</span> <span class="n">reqd_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;name&#39;</span><span class="p">)</span>
+			 
+		<span class="k">return</span> <span class="n">date_list</span><span class="p">,</span> <span class="n">link_list</span><span class="p">,</span> <span class="n">select_list</span><span class="p">,</span> <span class="n">reqd_list</span>
+
+</div>
+<div class="viewcode-block" id="CSVImport.validate_data"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.validate_data">[docs]</a>	<span class="k">def</span> <span class="nf">validate_data</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;&lt;b&gt;Checking Data for </span><span class="si">%s</span><span class="s">&lt;/b&gt;&lt;/p&gt;&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+		<span class="n">date_list</span><span class="p">,</span> <span class="n">link_list</span><span class="p">,</span> <span class="n">select_list</span><span class="p">,</span> <span class="n">reqd_list</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_field_type_list</span><span class="p">()</span>
+
+		
+		<span class="c"># load data</span>
+		<span class="n">row</span> <span class="o">=</span> <span class="mi">5</span>
+		<span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">col</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="p">{},</span> <span class="mi">1</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;&lt;b&gt;Checking Row </span><span class="si">%s</span><span class="s"> &lt;/b&gt;&lt;/p&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">))</span>
+			<span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">d</span><span class="p">)):</span>
+				<span class="k">if</span> <span class="n">i</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">):</span>
+					<span class="n">f</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">fields</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+					<span class="k">try</span><span class="p">:</span>
+						<span class="c"># Check Reqd Fields</span>
+						<span class="k">if</span> <span class="p">(</span><span class="n">f</span> <span class="ow">in</span> <span class="n">reqd_list</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt;Error: At Row </span><span class="si">%s</span><span class="s"> and Column </span><span class="si">%s</span><span class="s">, Field </span><span class="si">%s</span><span class="s"> is Mandatory.&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">f</span><span class="p">))</span>
+							<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+					
+						<span class="c"># Check Date Fields</span>
+						<span class="k">if</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">date_list</span> <span class="p">:</span> <span class="n">fd</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parse_date</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+	
+						<span class="c"># Check Link Fields</span>
+						<span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">link_list</span><span class="p">:</span>
+							<span class="n">fd</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_select_link_data</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">l</span><span class="o">=</span><span class="s">&#39;Link&#39;</span><span class="p">)</span>
+						
+						<span class="c"># Check Select Fields</span>
+						<span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="ow">and</span> <span class="n">f</span> <span class="ow">in</span> <span class="n">select_list</span><span class="p">:</span>
+							<span class="n">fd</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">check_select_link_data</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">col</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">s</span><span class="o">=</span> <span class="s">&#39;Select&#39;</span><span class="p">)</span>
+												
+						<span class="c"># Need To Perform Check For Other Data Type Too	</span>
+						<span class="k">else</span><span class="p">:</span>	<span class="n">fd</span><span class="p">[</span><span class="n">f</span><span class="p">]</span> <span class="o">=</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+
+					<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; ERROR: </span><span class="si">%s</span><span class="s">Data:</span><span class="si">%s</span><span class="s"> and </span><span class="si">%s</span><span class="s"> and </span><span class="si">%s</span><span class="s"> and </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">())</span> <span class="o">+</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">d</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">f</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">date_list</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">link_list</span><span class="p">)))</span>
+						<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+				<span class="k">elif</span> <span class="n">d</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span> <span class="o">=</span> <span class="mi">0</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt;At Row </span><span class="si">%s</span><span class="s"> and Column </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">))</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: ORANGE&quot;&gt;Ignored&lt;/div&gt;&#39;</span><span class="p">)</span>
+				<span class="n">col</span> <span class="o">=</span> <span class="n">col</span> <span class="o">+</span> <span class="mi">1</span> 
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: GREEN&quot;&gt;At Row </span><span class="si">%s</span><span class="s"> and Column </span><span class="si">%s</span><span class="s">, Data Verification Completed &lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span><span class="n">col</span><span class="p">))</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">update_data</span><span class="p">(</span><span class="n">fd</span><span class="p">,</span><span class="n">row</span><span class="p">)</span>
+			<span class="n">row</span> <span class="o">=</span> <span class="n">row</span> <span class="o">+</span> <span class="mi">1</span>
+</div>
+<div class="viewcode-block" id="CSVImport.update_data"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.update_data">[docs]</a>	<span class="k">def</span> <span class="nf">update_data</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">row</span><span class="p">):</span>
+		<span class="c"># load metadata</span>
+		<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="n">Document</span>
+		<span class="n">cur_doc</span> <span class="o">=</span> <span class="n">Document</span><span class="p">(</span><span class="n">fielddata</span> <span class="o">=</span> <span class="n">fd</span><span class="p">)</span>
+		<span class="n">cur_doc</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parenttype</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parentfield</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="ow">or</span> <span class="s">&#39;&#39;</span>
+		<span class="n">obj</span> <span class="o">=</span> <span class="s">&#39;&#39;</span>
+		<span class="c"># save the document</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">in_transaction</span><span class="p">:</span>
+				<span class="n">sql</span><span class="p">(</span><span class="s">&quot;COMMIT&quot;</span><span class="p">)</span>
+			<span class="n">sql</span><span class="p">(</span><span class="s">&quot;START TRANSACTION&quot;</span><span class="p">)</span>
+			<span class="k">if</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span> <span class="ow">and</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">dt_list</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+				<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span><span class="p">:</span>
+					<span class="n">cur_doc</span><span class="o">.</span><span class="n">save</span><span class="p">()</span>
+					<span class="n">obj</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span> <span class="ow">and</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent_type</span> <span class="ow">or</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span> <span class="ow">or</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">with_children</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: ORANGE&quot;&gt;Row </span><span class="si">%s</span><span class="s"> =&gt; Over-written: </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+				<span class="k">else</span><span class="p">:</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: ORANGE&quot;&gt;Row </span><span class="si">%s</span><span class="s"> =&gt; Ignored: </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+			<span class="k">else</span><span class="p">:</span>
+				<span class="k">if</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span> <span class="ow">and</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">parenttype</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">)</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">:</span>
+					<span class="n">cur_doc</span><span class="o">.</span><span class="n">save</span><span class="p">(</span><span class="mi">1</span><span class="p">)</span>
+					<span class="n">obj</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">code</span><span class="o">.</span><span class="n">get_obj</span><span class="p">(</span><span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span> <span class="ow">and</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parenttype</span> <span class="ow">or</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">doctype</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span> <span class="ow">or</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">with_children</span> <span class="o">=</span> <span class="mi">1</span><span class="p">)</span>
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: GREEN&quot;&gt;Row </span><span class="si">%s</span><span class="s"> =&gt; Created: </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+				<span class="k">else</span><span class="p">:</span> 
+					<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt;Row </span><span class="si">%s</span><span class="s"> =&gt; Invalid </span><span class="si">%s</span><span class="s"> : </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parenttype</span><span class="p">,</span> <span class="n">cur_doc</span><span class="o">.</span><span class="n">parent</span><span class="p">))</span>
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; Validation: </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">utils</span><span class="o">.</span><span class="n">getTraceback</span><span class="p">()))</span>
+		<span class="k">try</span><span class="p">:</span>
+			<span class="k">if</span> <span class="n">obj</span><span class="p">:</span>
+				<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;validate&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">validate</span><span class="p">()</span>
+				<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;on_update&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">on_update</span><span class="p">()</span>
+				<span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="s">&#39;on_submit&#39;</span><span class="p">)</span> <span class="p">:</span> <span class="n">obj</span><span class="o">.</span><span class="n">on_submit</span><span class="p">()</span>
+			<span class="n">sql</span><span class="p">(</span><span class="s">&quot;COMMIT&quot;</span><span class="p">)</span>
+
+		<span class="k">except</span> <span class="ne">Exception</span><span class="p">:</span>
+			<span class="n">sql</span><span class="p">(</span><span class="s">&quot;ROLLBACK&quot;</span><span class="p">)</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;div style=&quot;color: RED&quot;&gt; Validation: </span><span class="si">%s</span><span class="s">&lt;/div&gt;&#39;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">webnotes</span><span class="o">.</span><span class="n">message_log</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:]))</span>
+			
+	<span class="c"># do import</span>
+	<span class="c"># --------------------------------------------------------------------</span></div>
+<div class="viewcode-block" id="CSVImport.import_csv"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.import_csv">[docs]</a>	<span class="k">def</span> <span class="nf">import_csv</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">csv_data</span><span class="p">,</span> <span class="n">import_date_format</span> <span class="o">=</span> <span class="s">&#39;yyyy-mm-dd&#39;</span><span class="p">,</span> <span class="n">overwrite</span> <span class="o">=</span> <span class="mi">0</span><span class="p">):</span>
+		<span class="kn">import</span> <span class="nn">csv</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">csv_data</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">convert_csv_data_into_list</span><span class="p">(</span><span class="n">csv</span><span class="o">.</span><span class="n">reader</span><span class="p">(</span><span class="n">csv_data</span><span class="o">.</span><span class="n">splitlines</span><span class="p">()))</span>
+		<span class="bp">self</span><span class="o">.</span><span class="n">import_date_format</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">overwrite</span> <span class="o">=</span> <span class="n">import_date_format</span><span class="p">,</span> <span class="n">overwrite</span>
+		<span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">csv_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+			
+			<span class="bp">self</span><span class="o">.</span><span class="n">doctype_data</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">labels</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">data</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">csv_data</span><span class="p">[</span><span class="mi">0</span><span class="p">][:</span><span class="mi">4</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">csv_data</span><span class="p">[</span><span class="mi">3</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">csv_data</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">fields</span> <span class="o">=</span> <span class="p">[]</span>
+		
+			<span class="kn">import</span> <span class="nn">webnotes.model.code</span>
+			<span class="kn">from</span> <span class="nn">webnotes.model.doc</span> <span class="kn">import</span> <span class="n">Document</span>
+			<span class="n">sql</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span>
+	        
+			<span class="bp">self</span><span class="o">.</span><span class="n">validate_headers</span><span class="p">()</span>
+			<span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">validate_success</span><span class="p">:</span>
+				<span class="bp">self</span><span class="o">.</span><span class="n">validate_data</span><span class="p">()</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&lt;p&gt;&lt;b&gt;No data entered in file.&lt;/b&gt;&lt;/p&gt;&#39;</span><span class="p">)</span>
+		<span class="k">return</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">msg</span><span class="p">)</span>
+</div>
+<div class="viewcode-block" id="CSVImport.convert_csv_data_into_list"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.CSVImport.convert_csv_data_into_list">[docs]</a>	<span class="k">def</span> <span class="nf">convert_csv_data_into_list</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span><span class="n">csv_data</span><span class="p">):</span>
+		<span class="n">st_list</span> <span class="o">=</span> <span class="p">[]</span>
+		<span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">csv_data</span><span class="p">:</span>
+			<span class="n">st_list</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">d</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">s</span><span class="p">])</span>
+		<span class="k">return</span> <span class="n">st_list</span>
+
+<span class="c"># Get Template method</span>
+<span class="c"># -----------------------------------------------------------------</span>
+</div></div>
+<div class="viewcode-block" id="get_template"><a class="viewcode-back" href="../../../webnotes.model.html#webnotes.model.import_docs.get_template">[docs]</a><span class="k">def</span> <span class="nf">get_template</span><span class="p">():</span>
+	<span class="kn">import</span> <span class="nn">webnotes.model</span>
+
+	<span class="kn">from</span> <span class="nn">webnotes.utils</span> <span class="kn">import</span> <span class="n">getCSVelement</span>
+	
+	<span class="n">form</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">form</span>
+	<span class="n">sql</span> <span class="o">=</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">conn</span><span class="o">.</span><span class="n">sql</span>
+	<span class="c"># get form values</span>
+	<span class="n">dt</span> <span class="o">=</span> <span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;dt&#39;</span><span class="p">)</span>
+	<span class="n">overwrite</span> <span class="o">=</span> <span class="n">cint</span><span class="p">(</span><span class="n">form</span><span class="o">.</span><span class="n">getvalue</span><span class="p">(</span><span class="s">&#39;overwrite&#39;</span><span class="p">))</span> <span class="ow">or</span> <span class="mi">0</span>
+
+	<span class="n">pt</span><span class="p">,</span> <span class="n">pf</span> <span class="o">=</span> <span class="s">&#39;&#39;</span><span class="p">,</span> <span class="s">&#39;&#39;</span>
+	<span class="n">tmp_lbl</span><span class="p">,</span> <span class="n">tmp_ml</span> <span class="o">=</span> <span class="p">[],[]</span>
+	
+	<span class="c"># is table?</span>
+	<span class="n">dtd</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select istable, autoname from tabDocType where name=&#39;</span><span class="si">%s</span><span class="s">&#39;&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+	<span class="k">if</span> <span class="n">dtd</span> <span class="ow">and</span> <span class="n">dtd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]:</span>
+		<span class="n">res1</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select parent, fieldname from tabDocField where options=&#39;</span><span class="si">%s</span><span class="s">&#39; and fieldtype=&#39;Table&#39; and docstatus!=2&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+		<span class="k">if</span> <span class="n">res1</span><span class="p">:</span>
+			<span class="n">pt</span><span class="p">,</span> <span class="n">pf</span> <span class="o">=</span> <span class="n">res1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">],</span> <span class="n">res1</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+	<span class="c"># line 1</span>
+	<span class="n">dset</span> <span class="o">=</span> <span class="p">[]</span>
+	<span class="k">if</span> <span class="n">pt</span> <span class="ow">and</span> <span class="n">pf</span><span class="p">:</span>
+		<span class="n">lbl</span><span class="p">,</span> <span class="n">ml</span> <span class="o">=</span> <span class="p">[</span><span class="n">pt</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;[Mandatory]&#39;</span><span class="p">]</span>
+		<span class="n">line1</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">,</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">dt</span><span class="p">),</span> <span class="n">getCSVelement</span><span class="p">(</span><span class="n">pt</span><span class="p">),</span> <span class="n">getCSVelement</span><span class="p">(</span><span class="n">pf</span><span class="p">))</span>
+		<span class="n">line2</span> <span class="o">=</span> <span class="s">&#39;,,,,,,Please fill valid </span><span class="si">%(p)s</span><span class="s"> No in </span><span class="si">%(p)s</span><span class="s"> column.&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;p&#39;</span><span class="p">:</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">pt</span><span class="p">)}</span>
+	<span class="k">else</span><span class="p">:</span>
+		<span class="k">if</span> <span class="n">dtd</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span><span class="o">==</span><span class="s">&#39;Prompt&#39;</span> <span class="ow">or</span> <span class="n">overwrite</span><span class="p">:</span>
+			<span class="n">lbl</span><span class="p">,</span> <span class="n">ml</span><span class="o">=</span> <span class="p">[</span><span class="s">&#39;Name&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s">&#39;[Mandatory][Special Characters are not allowed]&#39;</span><span class="p">]</span>
+		<span class="k">else</span><span class="p">:</span>
+			<span class="n">lbl</span><span class="p">,</span> <span class="n">ml</span><span class="o">=</span> <span class="p">[],</span> <span class="p">[]</span>
+		<span class="n">line1</span> <span class="o">=</span> <span class="s">&#39;</span><span class="si">%s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="n">getCSVelement</span><span class="p">(</span><span class="n">dt</span><span class="p">)</span>
+		<span class="n">line2</span> <span class="o">=</span> <span class="p">(</span><span class="n">overwrite</span> <span class="ow">and</span> <span class="s">&#39;,,,,,,Please fill valid </span><span class="si">%(d)s</span><span class="s"> No in </span><span class="si">%(n)s</span><span class="s">&#39;</span> <span class="o">%</span> <span class="p">{</span><span class="s">&#39;d&#39;</span><span class="p">:</span><span class="n">dt</span><span class="p">,</span><span class="s">&#39;n&#39;</span><span class="p">:</span> <span class="s">&#39;Name&#39;</span><span class="p">})</span> <span class="ow">or</span> <span class="s">&#39;,,&#39;</span>
+
+	<span class="c"># Help on Line </span>
+	<span class="n">line1</span> <span class="o">=</span> <span class="n">line1</span> <span class="o">+</span> <span class="s">&#39;,,,Please fill columns which are Mandatory., Please do not modify the structure&#39;</span>
+	
+	<span class="c"># fieldnames</span>
+	<span class="n">res</span> <span class="o">=</span> <span class="n">sql</span><span class="p">(</span><span class="s">&quot;select fieldname, fieldtype, label, reqd, hidden from tabDocField where parent=&#39;</span><span class="si">%s</span><span class="s">&#39; and docstatus!=2&quot;</span> <span class="o">%</span> <span class="n">dt</span><span class="p">)</span>
+
+	<span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">res</span><span class="p">:</span>
+		<span class="c"># restrict trash_reason field, hidden and required fields </span>
+		<span class="k">if</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">no_value_fields</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;trash_reason&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+			<span class="n">tmp_lbl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+			<span class="n">tmp_ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;&#39;</span><span class="p">)</span>
+		<span class="c"># restrict trash_reason field and hidden fields and add Mandatory indicator for required fields</span>
+		<span class="k">elif</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="ow">in</span> <span class="n">webnotes</span><span class="o">.</span><span class="n">model</span><span class="o">.</span><span class="n">no_value_fields</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="s">&#39;trash_reason&#39;</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">r</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span> <span class="ow">and</span> <span class="n">r</span><span class="p">[</span><span class="mi">3</span><span class="p">]:</span>
+			<span class="n">lbl</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">getCSVelement</span><span class="p">(</span><span class="n">r</span><span class="p">[</span><span class="mi">2</span><span class="p">]))</span>
+			<span class="n">ml</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">getCSVelement</span><span class="p">(</span><span class="s">&#39;[Mandatory]&#39;</span><span class="p">))</span>
+	
+	<span class="n">dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line1</span><span class="p">)</span>
+	<span class="n">dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line2</span><span class="p">)</span>
+	<span class="n">dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ml</span> <span class="o">+</span> <span class="n">tmp_ml</span><span class="p">))</span>
+	<span class="n">dset</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">lbl</span> <span class="o">+</span> <span class="n">tmp_lbl</span><span class="p">))</span>
+	
+	<span class="n">txt</span> <span class="o">=</span> <span class="s">&#39;</span><span class="se">\n</span><span class="s">&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">dset</span><span class="p">)</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;result&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">txt</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;type&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s">&#39;csv&#39;</span>
+	<span class="n">webnotes</span><span class="o">.</span><span class="n">response</span><span class="p">[</span><span class="s">&#39;doctype&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">dt</span>
+</pre></div></div>
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <p class="logo"><a href="../../../index.html">
+              <img class="logo" src="../../../_static/wnflogo200.gif" alt="Logo"/>
+            </a></p>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="../../../search.html" method="get">
+      <input type="text" name="q" size="18" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="../../../genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="../../../py-modindex.html" title="Python Module Index"
+             >modules</a> |</li>
+        <li><a href="../../../index.html">WNFramework v1.8 documentation</a> &raquo;</li>
+          <li><a href="../../index.html" >Module code</a> &raquo;</li>
+          <li><a href="../../webnotes.html" >webnotes</a> &raquo;</li>
+          <li><a href="../model.html" >webnotes.model</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2011, Rushabh Mehta, Web Notes Technologies.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.0.7.
+    </div>
+  </body>
+</html>

@@ -26,17 +26,16 @@ if webnotes.defs.__dict__.get('modules_path'):
 
 def get_tests():
 	"""
-	Returns list of test modules identified by "tests.py"
+	Returns list of test modules identified by "test*.py"
 	"""
 	ret = []
 	for walk_tuple in os.walk(webnotes.defs.modules_path):
-		if 'tests.py' in walk_tuple[2]:
+		for test_file in filter(lambda x: x.startswith('test') and x.endswith('.py'), walk_tuple[2]):
 			dir_path = os.path.relpath(walk_tuple[0], webnotes.defs.modules_path)
 			if dir_path=='.':
-				ret.append('tests')
+				ret.append(test_file[:-3])
 			else:
-				ret.append(dir_path.replace('/', '.') + '.tests')
-			
+				ret.append(dir_path.replace('/', '.') + '.' + test_file[:-3])			
 	return ret
 
 def setup():

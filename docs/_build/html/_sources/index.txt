@@ -1,0 +1,23 @@
+.. WNFramework documentation master file, created by
+   sphinx-quickstart on Wed Jun 29 14:22:33 2011.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
+
+Welcome to WNFramework documentation!
+=====================================
+
+Contents:
+
+.. toctree::
+   :maxdepth: 8
+
+   core
+   webnotes
+
+Indices and tables
+==================
+
+* :ref:`genindex`
+* :ref:`modindex`
+* :ref:`search`
+
