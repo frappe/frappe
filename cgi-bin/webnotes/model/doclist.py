@@ -206,6 +206,7 @@ class DocList:
 			Cancel - set docstatus 2, run "on_cancel"
 		"""
 		self.to_docstatus = 2
+		self.prepare_for_save(1)
 		self.save_main()
 		self.save_children()
 		self.run_method('on_cancel')
