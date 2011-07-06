@@ -202,7 +202,7 @@ def runserverobj():
 	
 	if so:
 		r = webnotes.model.code.run_server_obj(so, method, arg)
-		if r:			
+		if r:
 			#build output as csv
 			if cint(webnotes.form.getvalue('as_csv')):
 				make_csv_output(r, so.doc.doctype)
@@ -210,7 +210,8 @@ def runserverobj():
 				webnotes.response['message'] = r
 		
 		if doclist:
-			webnotes.response['docs'] = doclist.docs
+			# if new docs are added...
+			webnotes.response['docs'] = so.doclist
 
 def make_csv_output(res, dt):
 	import webnotes
