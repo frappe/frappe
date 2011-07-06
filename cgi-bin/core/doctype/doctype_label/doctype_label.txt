@@ -1,148 +1,85 @@
+# DocType, DocType Label
 [
+
+	# These values are common in all dictionaries
 	{
-		'allow_attach': None,
-		'allow_copy': None,
-		'allow_email': None,
-		'allow_print': None,
-		'allow_rename': None,
-		'allow_trash': None,
-		'autoname': 'field:dt',
-		'change_log': None,
-		'client_script': None,
-		'client_script_core': '',
-		'client_string': None,
-		'colour': 'White:FFF',
-		'creation': '2010-11-30 17:30:00',
-		'description': None,
+		'creation': '2010-08-08 17:08:59',
 		'docstatus': 0,
-		'doctype': 'DocType',
-		'document_type': None,
-		'dt_template': None,
-		'hide_heading': None,
-		'hide_toolbar': None,
-		'idx': None,
-		'in_create': None,
-		'in_dialog': None,
-		'is_transaction_doc': None,
-		'issingle': None,
-		'istable': None,
-		'max_attachments': None,
-		'menu_index': None,
 		'modified': '2010-09-20 14:06:57',
 		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307624201',
+		'autoname': 'field:dt',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
 		'module': 'Core',
-		'name': 'DocType Label',
-		'name_case': '',
-		'owner': 'Administrator',
-		'parent': None,
-		'parent_node': None,
-		'parentfield': None,
-		'parenttype': None,
-		'print_outline': '',
-		'read_only': None,
-		'read_only_onload': None,
-		'search_fields': None,
+		'name': '__common__',
 		'section_style': 'Simple',
-		'server_code': None,
-		'server_code_compiled': None,
-		'server_code_core': '',
 		'server_code_error': ' ',
-		'show_in_menu': None,
-		'smallicon': None,
-		'use_template': None,
 		'version': 2
 	},
+
+	# These values are common for all DocField
 	{
-		'amend': None,
-		'cancel': None,
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'DocType Label',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'reqd': 1
+	},
+
+	# These values are common for all DocPerm
+	{
 		'create': 1,
-		'creation': '2010-11-30 17:30:00',
-		'docstatus': 0,
 		'doctype': 'DocPerm',
-		'execute': None,
 		'idx': 1,
-		'match': None,
-		'modified': '2010-11-30 17:30:00',
-		'modified_by': 'Administrator',
-		'name': '_PERM00045',
-		'owner': 'Administrator',
+		'name': '__common__',
 		'parent': 'DocType Label',
 		'parentfield': 'permissions',
 		'parenttype': 'DocType',
 		'permlevel': 0,
 		'read': 1,
 		'role': 'Administrator',
-		'submit': None,
 		'write': 1
 	},
+
+	# DocType, DocType Label
 	{
-		'allow_on_submit': None,
-		'colour': None,
-		'creation': '2010-11-30 17:30:00',
-		'default': None,
-		'depends_on': None,
-		'description': None,
-		'docstatus': 0,
+		'doctype': 'DocType',
+		'name': 'DocType Label'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
 		'doctype': 'DocField',
 		'fieldname': 'dt',
 		'fieldtype': 'Select',
-		'hidden': None,
-		'icon': None,
 		'idx': 1,
-		'in_filter': None,
 		'label': 'Select DocType',
-		'modified': '2010-11-30 17:30:00',
-		'modified_by': 'Administrator',
-		'name': '_FL00494',
-		'no_copy': None,
 		'oldfieldname': 'dt',
 		'oldfieldtype': 'Select',
-		'options': 'link:DocType',
-		'owner': 'Administrator',
-		'parent': 'DocType Label',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
-		'permlevel': 0,
-		'print_hide': None,
-		'report_hide': None,
-		'reqd': 1,
-		'search_index': None,
-		'trigger': None,
-		'width': None
+		'options': 'link:DocType'
 	},
+
+	# DocField
 	{
-		'allow_on_submit': None,
-		'colour': None,
-		'creation': '2010-11-30 17:30:00',
-		'default': None,
-		'depends_on': None,
-		'description': None,
-		'docstatus': 0,
 		'doctype': 'DocField',
 		'fieldname': 'dt_label',
 		'fieldtype': 'Data',
-		'hidden': None,
-		'icon': None,
 		'idx': 2,
-		'in_filter': None,
 		'label': 'DocType Label',
-		'modified': '2010-11-30 17:30:00',
-		'modified_by': 'Administrator',
-		'name': '_FL00495',
-		'no_copy': None,
 		'oldfieldname': 'dt_label',
-		'oldfieldtype': 'Data',
-		'options': None,
-		'owner': 'Administrator',
-		'parent': 'DocType Label',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
-		'permlevel': 0,
-		'print_hide': None,
-		'report_hide': None,
-		'reqd': 1,
-		'search_index': None,
-		'trigger': None,
-		'width': None
+		'oldfieldtype': 'Data'
 	}
 ]

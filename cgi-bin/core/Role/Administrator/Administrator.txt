@@ -1,17 +1,27 @@
+# Role, Administrator
 [
+
+	# These values are common in all dictionaries
 	{
 		'creation': '2010-08-08 17:08:51',
 		'docstatus': 0,
+		'modified': '2009-03-12 12:01:57',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all Role
+	{
 		'doctype': 'Role',
 		'idx': 0,
-		'modified': '2011-06-03 10:08:30',
-		'modified_by': 'Administrator',
 		'module': 'Core',
-		'name': 'Administrator',
-		'owner': 'Administrator',
-		'parent': None,
-		'parentfield': None,
-		'parenttype': None,
+		'name': '__common__',
 		'role_name': 'Administrator'
+	},
+
+	# Role, Administrator
+	{
+		'doctype': 'Role',
+		'name': 'Administrator'
 	}
 ]

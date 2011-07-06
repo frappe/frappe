@@ -1,47 +1,50 @@
+# Role, Guest
 [
+
+	# These values are common in all dictionaries
 	{
 		'creation': '2010-08-08 17:08:51',
 		'docstatus': 0,
-		'doctype': 'Role',
-		'idx': None,
-		'modified': '2011-06-03 10:08:51',
+		'modified': '2010-01-13 16:45:40',
 		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DefaultValue
+	{
+		'defvalue': '1',
+		'doctype': 'DefaultValue',
+		'name': '__common__',
+		'parent': 'Guest',
+		'parentfield': 'defaults',
+		'parenttype': 'Role'
+	},
+
+	# These values are common for all Role
+	{
+		'doctype': 'Role',
 		'module': 'Core',
-		'name': 'Guest',
-		'owner': 'Administrator',
-		'parent': None,
-		'parentfield': None,
-		'parenttype': None,
+		'name': '__common__',
 		'role_name': 'Guest'
 	},
+
+	# Role, Guest
 	{
-		'creation': '2010-08-08 17:08:51',
-		'defkey': 'hide_webnotes_toolbar',
-		'defvalue': '1',
-		'docstatus': 0,
-		'doctype': 'DefaultValue',
-		'idx': 1,
-		'modified': '2011-06-03 10:08:51',
-		'modified_by': 'Administrator',
-		'name': 'DEF000004',
-		'owner': 'Administrator',
-		'parent': 'Guest',
-		'parentfield': 'defaults',
-		'parenttype': 'Role'
+		'doctype': 'Role',
+		'name': 'Guest'
 	},
+
+	# DefaultValue
 	{
-		'creation': '2010-08-08 17:08:51',
-		'defkey': 'hide_sidebars',
-		'defvalue': '1',
-		'docstatus': 0,
+		'defkey': 'hide_webnotes_toolbar',
 		'doctype': 'DefaultValue',
-		'idx': 2,
-		'modified': '2011-06-03 10:08:51',
-		'modified_by': 'Administrator',
-		'name': 'DEF000005',
-		'owner': 'Administrator',
-		'parent': 'Guest',
-		'parentfield': 'defaults',
-		'parenttype': 'Role'
+		'idx': 1
+	},
+
+	# DefaultValue
+	{
+		'defkey': 'hide_sidebars',
+		'doctype': 'DefaultValue',
+		'idx': 2
 	}
 ]

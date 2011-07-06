@@ -170,6 +170,7 @@ def run_server_obj(server_obj, method_name, arg=None):
 	"""
 	   Executes a method (`method_name`) from the given object (`server_obj`)
 	"""
+
 	if server_obj and hasattr(server_obj, method_name):
 		if arg:
 			return getattr(server_obj, method_name)(arg)
