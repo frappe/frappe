@@ -209,9 +209,7 @@ def runserverobj():
 			else:
 				webnotes.response['message'] = r
 		
-		if doclist:
-			# if new docs are added...
-			webnotes.response['docs'] = so.doclist
+		webnotes.response['docs'] = so.doclist
 
 def make_csv_output(res, dt):
 	import webnotes
