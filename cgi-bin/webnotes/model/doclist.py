@@ -197,6 +197,8 @@ class DocList:
 		"""
 			Save & Submit - set docstatus = 1, run "on_submit"
 		"""
+		if self.doc.docstatus != 0:
+			msgprint("Only draft can be submitted", raise_exception=1)
 		self.to_docstatus = 1
 		self.save()
 		self.run_method('on_submit')
@@ -205,6 +207,8 @@ class DocList:
 		"""
 			Cancel - set docstatus 2, run "on_cancel"
 		"""
+		if self.doc.docstatus != 1:
+			msgprint("Only submitted can be cancelled", raise_exception=1)
 		self.to_docstatus = 2
 		self.prepare_for_save(1)
 		self.save_main()
