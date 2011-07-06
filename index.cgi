@@ -10,17 +10,16 @@
 	If "cmd" is a form (url) variable, then it passes over control to `handler.py`
 	If there no "cmd", it returns the HTML for a full page load
 """
-
 def getTraceback():
 	"""
 		Returns traceback
 	"""
 	import sys, traceback, string
-		type, value, tb = sys.exc_info()
-		body = "Traceback (innermost last):\n"
-		list = traceback.format_tb(tb, None) + traceback.format_exception_only(type, value)
-		body = body + "%-20s %s" % (string.join(list[:-1], ""), list[-1])
-		return body
+	type, value, tb = sys.exc_info()
+	body = "Traceback (innermost last):\n"
+	list = traceback.format_tb(tb, None) + traceback.format_exception_only(type, value)
+	body = body + "%-20s %s" % (string.join(list[:-1], ""), list[-1])
+	return body
 		
 def set_path():
 	"""
@@ -29,33 +28,48 @@ def set_path():
 		the framework on the same server
 	"""
 	import sys, os
-	sys.path.append(os.path.join(os.getcwd(), '..', 'server'))
+	sys.path.append(os.path.join(os.getcwd(), 'cgi-bin'))
+
+def print_cookies():
+	if webnotes.cookies or webnotes.add_cookies:
+		for c in webnotes.add_cookies.keys():
+			webnotes.cookies[c] = webnotes.add_cookies[c]
+			print webnotes.cookies
+
 
 # execution
 try:
 
 	set_path()
 	
-	from chai.handler import handle
+	from webnotes.handler import handle
+	import webnotes
+	import cgi
+	webnotes.form = cgi.FieldStorage()
+	for each in webnotes.form.keys():
+		webnotes.form_dict[each] = webnotes.form.getvalue(each)
 
 	if webnotes.form.getvalue('cmd'):
 		# Function handled by handler
-		import webnotes.handler
+		print "Content-Type: text/html"
+		import webnotes.handlerold
 	else:
 		# Page Call
 
 		# authenticate
 		import webnotes.auth
 		webnotes.auth.HTTPRequest()
-
-		print_header()
+		
+		print "Content-Type: text/html"
+		print_cookies()
 
 		# print html
 		import webnotes.widgets.page_body
-		print webnotes.widgets.page_body.get_html()
+		print
+		print webnotes.widgets.page_body.get()
 
 except Exception, e:
 	print "Content-Type: text/html"
 	print
-	print getTraceback().replace('\n','<br>')
+	print getTraceback()#.replace('\n','<br>')
    	print e	

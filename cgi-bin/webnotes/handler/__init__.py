@@ -7,20 +7,20 @@ def handle():
 	"""
 	Handle client requests
 	"""
-	from chai.handler.request import HTTPRequest
-	from chai.handler.response import HTTPResponse
-	from chai.handler.session import Session
+	from webnotes.handler.request import HTTPRequest
+	from webnotes.handler.response import HTTPResponse
+	from webnotes.handler.session import Session
 
-	chai.request = HTTPRequest()
-	chai.session = Session()
-	chai.response = HTTPResponse()
+	webnotes.request = HTTPRequest()
+	webnotes.session = Session()
+	webnotes.response = HTTPResponse()
 	
 	# there are two types of request - one for a full page
 	# and other for ajax via the "action" property
-	if chai.request.form.get('action'):
-		chai.request.execute()
+	if webnotes.request.form.get('action'):
+		webnotes.request.execute()
 	else:
-		from chai.handler import index
+		from webnotes.handler import index
 		index.build()
 
-	print chai.response.to_string()
+	print webnotes.response.to_string()
