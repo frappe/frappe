@@ -35,8 +35,7 @@ def get_tests():
 			if dir_path=='.':
 				ret.append(test_file[:-3])
 			else:
-				ret.append(dir_path.replace('/', '.') + '.' + test_file[:-3])
-			
+				ret.append(dir_path.replace('/', '.') + '.' + test_file[:-3])			
 	return ret
 
 def setup():
