@@ -158,11 +158,11 @@ class DocList:
 		try:
 			self.doc.save(cint(self.doc.__islocal))
 		except NameError, e:
-			webnotes.msgprint('%s "%s" already exists' % (doc.doctype, doc.name))
+			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 			
 			# prompt if cancelled
 			if webnotes.conn.get_value(doc.doctype, doc.name, 'docstatus')==2:
-				webnotes.msgprint('[%s "%s" has been cancelled]' % (doc.doctype, doc.name))
+				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
 			webnotes.errprint(webnotes.utils.getTraceback())
 			raise e
 
