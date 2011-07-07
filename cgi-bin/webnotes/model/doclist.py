@@ -161,7 +161,7 @@ class DocList:
 			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 			
 			# prompt if cancelled
-			if webnotes.conn.get_value(doc.doctype, doc.name, 'docstatus')==2:
+			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
 				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
 			webnotes.errprint(webnotes.utils.getTraceback())
 			raise e
