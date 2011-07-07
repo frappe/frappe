@@ -55,7 +55,7 @@ def fire_event(doc, event_name):
 	for t in tl:
 		module, method = '.'.join(t[0].split('.')[:-1]), t[0].split('.')[-1]
 		exec 'from %s import %s' % (module, method) in locals()
-		locals()[method](doc, method)
+		locals()[method](doc, event_name)
 #
 # setup
 #
