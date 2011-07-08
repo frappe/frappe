@@ -358,7 +358,7 @@ class DbManager:
 		mysql = mysql_path and os.path.join(mysql_path, 'mysql') or 'mysql'
 		
 		try:
-			ret = os.system("%s -u root -p%s %s < %s"%(mysql, root_password, target, source))
+			ret = os.system("%s -u root -p%s %s < %s"%(mysql, "\ ".join(root_password.split(" ")), target, source))
 		except Exception,e:
 			raise e
 
