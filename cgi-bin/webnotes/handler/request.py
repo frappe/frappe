@@ -2,7 +2,12 @@
 # (c) 2011 Web Notes Technologies
 # Chai Project may be freely distributed under MIT license
 # Authors: Rushabh Mehta (@rushabh_mehta)
-
+import webnotes.auth
+import webnotes
+import webnotes.db
+import webnotes.utils
+import webnotes.profile
+import webnotes.defs
 class HTTPRequest:
 	"""
 	Wrapper around HTTPRequest
@@ -15,47 +20,92 @@ class HTTPRequest:
 	def __init__(self):
 		self.action = None
 		self.database = None
-		
+		self.set_env_variables()
+		self.form = {}		
 		self.set_cookies()
 		self.connect_db()
+		self.check_status()
+
+		##FIXME  : The line below
+		webnotes.conn.begin()
+
+		# login
+		webnotes.login_manager = webnotes.auth.LoginManager()
+
 		self.load_session()
+
+		# write out cookies if sid is supplied (this is a pre-logged in redirect)
+		if self.form.get('sid'):
+			webnotes.cookie_manager.set_cookies()
+
+		# run login triggers
+		if self.form.get('cmd')=='login':
+			webnotes.login_manager.run_trigger('on_login_post_session')
+			
+		# load profile
+		self.setup_profile()
+
+		webnotes.conn.commit()
 	
+	def setup_profile(self):
+		"""
+			Setup Profile
+		"""
+		webnotes.user = webnotes.profile.Profile()
+		# load the profile data
+		if webnotes.session['data'].get('profile'):
+			webnotes.user.load_from_session(webnotes.session['data']['profile'])
+		else:
+			webnotes.user.load_profile()	
+
+
+	# get account name
+	# ------------------
+
+	def get_ac_name(self):
+		# login
+		if webnotes.form_dict.get('acx'):
+			return webnotes.form_dict.get('acx')
+		
+		# in form
+		elif webnotes.form_dict.get('ac_name'):
+			return webnotes.form_dict.get('ac_name')
+			
+		# in cookie
+		elif webnotes.incoming_cookies.get('ac_name'):
+			return webnotes.incoming_cookies.get('ac_name')
+			
 	def set_cookies(self):
 		"""
 		Builds cookies dictionary
 		"""
-		def get_incoming_cookies(self):
-			import os
-			import Cookie
-
-			cookies = Cookie.SimpleCookie()
-			self.cookies = {}
-			
-			if 'HTTP_COOKIE' in os.environ:
-				c = os.environ['HTTP_COOKIE']
-				cookies.load(c)
-				
-				for c in cookies.values():
-					self.cookies[c.key] = c.value
-
+		webnotes.cookie_manager = webnotes.auth.CookieManager()
+		
 	def connect_db(self):
 		"""
 		Selects db
 		"""
-		if self.cookies.get('db'):
-			config.db_name = self.cookies['db']
-		
-		from sqlachemy import create_engine, sessionmaker
-		
-		chai.db_engine = create_engine('mysql://%(db_user)s:%(db_password)s@localhost/%(db_name)s', config.__dict__)
-		chai.db_session = sessionmaker(bind = chai.db_engine)()
+		# select based on subdomain
+		if getattr(webnotes.defs,'domain_name_map', {}).get(self.domain):
+			db_name = webnotes.defs.domain_name_map[self.domain]
+
+		# select based on ac_name
+		else:
+			ac_name = self.get_ac_name()
+			if ac_name:
+				db_name = getattr(webnotes.defs,'db_name_map',{}).\
+					get(ac_name, ac_name)
+			else:
+				db_name = getattr(webnotes.defs,'default_db_name','')
+	
+		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password',''))
+		webnotes.ac_name = ac_name
 		
 	def execute(self):
 		"""
 		Executes the request specified in "action". Action must be a direct
 		method call and should be "whitelisted" in the module
 		"""
-
 		module = ''
 		action = self.form.get('action')
 		if '.' in action:
@@ -67,4 +117,20 @@ class HTTPRequest:
 				locals().get(action)()
 			else:
 				chai.msg('Unpermitted action')
-				
+
+	def set_env_variables(self):
+	
+		self.domain = webnotes.get_env_vars('HTTP_HOST')
+		if self.domain and self.domain.startswith('www.'):
+			self.domain = self.domain[4:]
+
+		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
+	
+	def check_status(self):
+		if webnotes.conn.get_global("__session_status")=='stop':
+			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
+			raise Exception
+	def load_session(self):
+		webnotes.session_obj = webnotes.auth.Session()
+		webnotes.session = webnotes.session_obj.data
+		webnotes.tenant_id = webnotes.session.get('tenant_id', 0)

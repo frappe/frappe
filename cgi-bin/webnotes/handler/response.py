@@ -7,7 +7,7 @@ class HTTPResponse:
 	"""
 	Reponse object that goes to the client
 	"""
-	self __init__(self):
+	def __init__(self):
 		self.headers = {
 			'Content-Type':'text/plain'
 			'Content-Encoding': None,

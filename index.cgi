@@ -45,11 +45,12 @@ try:
 	from webnotes.handler import handle
 	import webnotes
 	import cgi
-	webnotes.form = cgi.FieldStorage()
-	for each in webnotes.form.keys():
-		webnotes.form_dict[each] = webnotes.form.getvalue(each)
+	form = cgi.FieldStorage()
+	webnotes.handler.handle()
+	for each in form.keys():
+		webnotes.request.form[each] = form.getvalue(each)
 
-	if webnotes.form.getvalue('cmd'):
+	if webnotes.request.form.get('cmd'):
 		# Function handled by handler
 		print "Content-Type: text/html"
 		import webnotes.handlerold
