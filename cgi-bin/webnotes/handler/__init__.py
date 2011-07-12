@@ -18,7 +18,14 @@ def handle():
 	# there are two types of request - one for a full page
 	# and other for ajax via the "action" property
 	if webnotes.request.form.get('cmd'):
-		webnotes.request.execute()
+		try:
+			webnotes.request.execute()
+		except webnotes.ValidationError:
+			webnotes.conn.rollback()
+		except:
+			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.conn and webnotes.conn.rollback()
+
 #else:
 #		from webnotes.handler import index
 #		index.build()

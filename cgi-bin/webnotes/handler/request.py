@@ -18,7 +18,7 @@ class HTTPRequest:
 
 	"""
 	def __init__(self):
-		self.action = None
+		self.cmd = None
 		self.database = None
 		self.set_env_variables()
 		self.form = {}		
@@ -58,17 +58,16 @@ class HTTPRequest:
 		else:
 			webnotes.user.load_profile()	
 
-
-	# get account name
-	# ------------------
-
 	def get_ac_name(self):
+		"""
+			try to hunt the account name from various places
+		"""
 		# login
 		if webnotes.form_dict.get('acx'):
 			return webnotes.form_dict.get('acx')
 		
 		# in form
-		elif webnotes.form_dict.get('ac_name'):
+		elif webnotes.request.form.get('ac_name'):
 			return webnotes.form_dict.get('ac_name')
 			
 		# in cookie
@@ -103,8 +102,8 @@ class HTTPRequest:
 		
 	def execute(self):
 		"""
-		Executes the request specified in "action". Action must be a direct
-		method call and should be "whitelisted" in the module
+			Executes the request specified in "action". Action must be a direct
+			method call and should be "whitelisted" in the module
 		"""
 		module = ''
 		action = self.form.get('action')
@@ -116,21 +115,28 @@ class HTTPRequest:
 			if action in locals().get('whitelist'):
 				locals().get(action)()
 			else:
-				chai.msg('Unpermitted action')
+				webnotes.msgprint('Unpermitted action')
 
 	def set_env_variables(self):
-	
+		"""
+			Set environment variables like domain name and ip address
+		"""
 		self.domain = webnotes.get_env_vars('HTTP_HOST')
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
-
 		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
 	
 	def check_status(self):
+		"""
+			Check session status
+		"""
 		if webnotes.conn.get_global("__session_status")=='stop':
 			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
 			raise Exception
 	def load_session(self):
+		"""
+			Load the session object
+		"""
 		webnotes.session_obj = webnotes.auth.Session()
 		webnotes.session = webnotes.session_obj.data
 		webnotes.tenant_id = webnotes.session.get('tenant_id', 0)

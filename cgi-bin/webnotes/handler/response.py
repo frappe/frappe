@@ -16,9 +16,10 @@ class HTTPResponse:
 		self.content_charset = 'Charset: ISO-8859-1'
 		self.content = None
 		self.cookies = None
-		self.messages = []
+		# NOTE wnframework has 'message' (singular) 
+		self.message = ''
 		self.notifications = []
-		self.exc = []
+		self.exc = ''
 		self.data = {}
 		self.out = []
 		self.compressed = False
@@ -94,7 +95,7 @@ class HTTPResponse:
 		if not self.file_name:
 			import json
 			self.content = json.dumps({
-				'messages': self.messages,
+				'messages': self.message,
 				'notifications': self.notifications,
 				'exc': self.exc,
 				'data': data
