@@ -69,7 +69,7 @@ def write_document_file(doclist, record_module=None):
 		Write a doclist to file, can optionally specify module name
 	"""
 	import os
-	from webnotes.utils import pprint_dict
+	from webnotes.model.utils import pprint_doclist
 
 	module = get_module_name(doclist, record_module)
 
@@ -84,10 +84,11 @@ def write_document_file(doclist, record_module=None):
 		
 	# write the data file	
 	fname = (code_type and scrub(doclist[0]['name'])) or doclist[0]['name']
-	dict_list = [pprint_dict(d) for d in doclist]	
 	
-	txtfile = open(os.path.join(folder, fname +'.txt'),'w+')	
-	txtfile.write('[\n' + ',\n'.join(dict_list) + '\n]')
+	txtfile = open(os.path.join(folder, fname +'.txt'),'w+')
+	txtfile.write(pprint_doclist(doclist))
+	#dict_list = [pprint_dict(d) for d in doclist]	
+	#txtfile.write('[\n' + ',\n'.join(dict_list) + '\n]')
 	txtfile.close()
 
 def clear_code_fields(doclist, folder, code_type):

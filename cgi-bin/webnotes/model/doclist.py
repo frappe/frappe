@@ -32,19 +32,23 @@ class DocList:
 		self.docs = expand(data)
 		self.objectify(docname)
 	
-	def objectify(self, docname):
+	def objectify(self, docname=None):
 		"""
 		Converts self.docs from a list of dicts to list of Documents
 		"""
 		from webnotes.model.doc import Document
 		
 		self.docs = [Document(fielddata=d) for d in self.docs]
-		self.children = []
-		for d in self.docs:
-			if d.name == docname:
-				self.doc = d
-			else:
-				self.children.append(d)
+		if not docname:
+			self.doc, self.children = self.docs[0], self.docs[1:]
+
+		else:
+			self.children = []
+			for d in self.docs:
+				if d.name == docname:
+					self.doc = d
+				else:
+					self.children.append(d)
 	
 	def make_obj(self):
 		"""
@@ -154,11 +158,11 @@ class DocList:
 		try:
 			self.doc.save(cint(self.doc.__islocal))
 		except NameError, e:
-			webnotes.msgprint('%s "%s" already exists' % (doc.doctype, doc.name))
+			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 			
 			# prompt if cancelled
-			if webnotes.conn.get_value(doc.doctype, doc.name, 'docstatus')==2:
-				webnotes.msgprint('[%s "%s" has been cancelled]' % (doc.doctype, doc.name))
+			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
+				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
 			webnotes.errprint(webnotes.utils.getTraceback())
 			raise e
 
@@ -193,6 +197,8 @@ class DocList:
 		"""
 			Save & Submit - set docstatus = 1, run "on_submit"
 		"""
+		if self.doc.docstatus != 0:
+			msgprint("Only draft can be submitted", raise_exception=1)
 		self.to_docstatus = 1
 		self.save()
 		self.run_method('on_submit')
@@ -201,7 +207,10 @@ class DocList:
 		"""
 			Cancel - set docstatus 2, run "on_cancel"
 		"""
+		if self.doc.docstatus != 1:
+			msgprint("Only submitted can be cancelled", raise_exception=1)
 		self.to_docstatus = 2
+		self.prepare_for_save(1)
 		self.save_main()
 		self.save_children()
 		self.run_method('on_cancel')
@@ -219,7 +228,15 @@ class DocList:
 # for bc
 def getlist(doclist, parentfield):
 	"""
-	Return child records of a particular type
+		Return child records of a particular type
 	"""
 	import webnotes.model.utils
 	return webnotes.model.utils.getlist(doclist, parentfield)
+	
+def copy_doclist(doclist, no_copy = []):
+	"""
+		Make a copy of the doclist
+	"""
+	import webnotes.model.utils
+	return webnotes.model.utils.copy_doclist(doclist, no_copy)
+	

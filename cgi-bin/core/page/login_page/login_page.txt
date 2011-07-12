@@ -1,33 +1,27 @@
+# Page, Login Page
 [
+
+	# These values are common in all dictionaries
 	{
-		'content': None,
-		'creation': '2010-01-20 11:10:18',
+		'creation': '2010-12-14 10:23:15',
 		'docstatus': 0,
-		'doctype': 'Page',
-		'icon': None,
-		'idx': None,
-		'keywords': None,
-		'menu_index': None,
-		'modified': '2011-02-17 13:01:57',
+		'modified': '2010-12-24 13:59:56',
 		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all Page
+	{
+		'doctype': 'Page',
 		'module': 'Core',
-		'name': 'Login Page',
-		'owner': 'Administrator',
+		'name': '__common__',
 		'page_name': 'Login Page',
-		'page_title': None,
-		'parent': None,
-		'parent_node': None,
-		'parentfield': None,
-		'parenttype': None,
-		'publish': None,
-		'script': None,
-		'show_in_menu': None,
-		'site_description': None,
-		'standard': 'Yes',
-		'static_content': None,
-		'style': None,
-		'stylesheet': None,
-		'template': None,
-		'write_content': 1
+		'standard': 'Yes'
+	},
+
+	# Page, Login Page
+	{
+		'doctype': 'Page',
+		'name': 'Login Page'
 	}
 ]

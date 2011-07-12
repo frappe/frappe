@@ -188,29 +188,28 @@ def runserverobj():
 	arg = form.getvalue('arg')
 	dt = form.getvalue('doctype')
 	dn = form.getvalue('docname')
-		
+
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
 		doclist = DocList()
-		doclist.from_compressed(form.getvalue('docs'), form.getvalue('docname'))
+		doclist.from_compressed(form.getvalue('docs'), dn)
 		so = doclist.make_obj()
 		
 	check_guest_access(so.doc)
-				
+	
 	if so:
 		r = webnotes.model.code.run_server_obj(so, method, arg)
-		if r:			
+		if r:
 			#build output as csv
 			if cint(webnotes.form.getvalue('as_csv')):
 				make_csv_output(r, so.doc.doctype)
 			else:
 				webnotes.response['message'] = r
 		
-		if doclist:
-			webnotes.response['docs'] = doclist.docs
+		webnotes.response['docs'] =[so.doc] + so.doclist
 
 def make_csv_output(res, dt):
 	import webnotes

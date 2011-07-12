@@ -167,3 +167,106 @@ def to_html(doclist):
 		out += _make_html(d, link_lists[d.doctype])
 		
 	return out
+
+def commonify_doclist(doclist, with_comments=1):
+	"""
+		Makes a doclist more readable by extracting common properties.
+		This is used for printing Documents in files
+	"""
+	from webnotes.utils import get_common_dict, get_diff_dict
+
+	def make_common(doclist):
+		c = {}
+		if with_comments:
+			c['##comment'] = 'These values are common in all dictionaries'
+		for k in common_keys:
+			c[k] = doclist[0][k]
+		return c
+
+	def strip_common(d):
+		for k in common_keys: 
+			if k in d: del d[k]
+		return d
+
+	def make_common_dicts(doclist):
+		
+		common_dict = {} # one per doctype
+	
+		# make common dicts for all records
+		for d in doclist:
+			if not d['doctype'] in common_dict:
+				d1 = d.copy()
+				del d1['name']
+				common_dict[d['doctype']] = d1
+			else:
+				common_dict[d['doctype']] = get_common_dict(common_dict[d['doctype']], d)
+		return common_dict
+
+	common_keys = ['owner','docstatus','creation','modified','modified_by']
+	common_dict = make_common_dicts(doclist)
+
+	# make docs
+	final = []	
+	for d in doclist:
+		f = strip_common(get_diff_dict(common_dict[d['doctype']], d))
+		f['doctype'] = d['doctype'] # keep doctype!
+		
+		# strip name for child records (only an auto generated number!)
+		if f['doctype'] != doclist[0]['doctype']:
+			del f['name']
+		
+		if with_comments:
+			f['##comment'] = d['doctype'] + ('name' in f and (', ' + f['name']) or '')
+		final.append(f)
+
+	# add commons
+	commons = []
+	for d in common_dict.values():
+		d['name']='__common__'
+		if with_comments:
+			d['##comment'] = 'These values are common for all ' + d['doctype']
+		commons.append(strip_common(d))
+	
+	common_values = make_common(doclist)
+	return [common_values]+commons+final
+	
+def uncommonify_doclist(dl):
+	"""
+		Expands an commonified doclist
+	"""
+	common_values = dl[0]
+	common_dict = {}
+	final = []
+
+	for d in dl[1:]:
+		if 'name' in d and d['name']=='__common__':
+			del d['name']
+			common_dict[d['doctype']] = d
+		else:
+			d1 = common_values.copy()
+			d1.update(common_dict[d['doctype']])
+			d1.update(d)
+			final.append(d1)
+
+	return final
+	
+def pprint_doclist(doclist, with_comments = 1):
+	"""
+		Pretty Prints a doclist with common keys separated and comments
+	"""
+	from webnotes.utils import pprint_dict
+	
+	dictlist =[pprint_dict(d) for d in commonify_doclist(doclist, with_comments)]
+	title = '# '+doclist[0]['doctype']+', '+doclist[0]['name']
+	return title + '\n[\n' + ',\n'.join(dictlist) + '\n]'
+
+def peval_doclist(txt):
+	"""
+		Restore a pretty printed doclist
+	"""
+	if txt.startswith('#'):
+		return uncommonify_doclist(eval(txt))
+	else:
+		return eval(txt)
+	
+	return uncommonify_doclist(eval(txt))

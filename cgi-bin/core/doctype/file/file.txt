@@ -1,0 +1,191 @@
+# DocType, File
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-06-04 10:49:33',
+		'docstatus': 0,
+		'modified': '2010-12-27 11:10:20',
+		'modified_by': 'umair@iwebnotes.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'allow_attach': 1,
+		'autoname': 'field:file_name',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'max_attachments': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'search_fields': 'type, file_group',
+		'section_style': 'Simple',
+		'server_code': 'class DocType:\n  def __init__(self, d, dl):\n    self.doc, self.doclist = d,dl\n\n  def validate(self):\n    # check for extension\n    if not \'.\' in self.doc.file_name:\n      msgprint("Extension required in file name")\n      raise Exception\n\n    # set mime type\n    if not self.doc.mime_type:\n      import mimetypes\n      self.doc.mime_type = mimetypes.guess_type(self.doc.file_name)[0] or \'application/unknown\'',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 7
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'File',
+		'parentfield': 'fields',
+		'parenttype': 'DocType'
+	},
+
+	# These values are common for all DocPerm
+	{
+		'doctype': 'DocPerm',
+		'name': '__common__',
+		'parent': 'File',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'read': 1,
+		'role': 'All'
+	},
+
+	# DocType, File
+	{
+		'doctype': 'DocType',
+		'name': 'File'
+	},
+
+	# DocPerm
+	{
+		'amend': 0,
+		'create': 1,
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'match': 'owner',
+		'permlevel': 0,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'idx': 2,
+		'permlevel': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'file_name',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'File Name',
+		'oldfieldname': 'file_name',
+		'oldfieldtype': 'Data',
+		'permlevel': 0,
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'description',
+		'fieldtype': 'Text',
+		'idx': 2,
+		'label': 'Description',
+		'oldfieldname': 'description',
+		'oldfieldtype': 'Text',
+		'permlevel': 0,
+		'reqd': 1,
+		'width': '300px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'mime_type',
+		'fieldtype': 'Data',
+		'idx': 3,
+		'label': 'MIME Type',
+		'oldfieldname': 'mime_type',
+		'oldfieldtype': 'Data',
+		'permlevel': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'type',
+		'fieldtype': 'Select',
+		'idx': 4,
+		'label': 'Type',
+		'oldfieldname': 'type',
+		'oldfieldtype': 'Select',
+		'options': '\nImage\nDocument\nSpreadsheet\nPresentation\nOther',
+		'permlevel': 0,
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'file_group',
+		'fieldtype': 'Link',
+		'idx': 5,
+		'label': 'File Group',
+		'oldfieldname': 'file_group',
+		'oldfieldtype': 'Link',
+		'options': 'File Group',
+		'permlevel': 0,
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'file_list',
+		'fieldtype': 'Text',
+		'idx': 6,
+		'label': 'File List',
+		'oldfieldname': 'file_list',
+		'oldfieldtype': 'Text',
+		'permlevel': 2
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'shared_with',
+		'fieldtype': 'Text',
+		'hidden': 1,
+		'idx': 7,
+		'label': 'Shared With',
+		'oldfieldname': 'shared_with',
+		'oldfieldtype': 'Text',
+		'permlevel': 0,
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'can_edit',
+		'fieldtype': 'Text',
+		'idx': 8,
+		'label': 'Can Edit',
+		'oldfieldname': 'can_edit',
+		'oldfieldtype': 'Text',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'can_view',
+		'fieldtype': 'Text',
+		'idx': 9,
+		'label': 'Can View',
+		'oldfieldname': 'can_view',
+		'oldfieldtype': 'Text',
+		'permlevel': 0
+	}
+]

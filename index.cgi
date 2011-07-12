@@ -70,7 +70,8 @@ try:
 		print webnotes.widgets.page_body.get()
 
 except Exception, e:
+	d = {'exc':getTraceback()}
+	import json
 	print "Content-Type: text/html"
 	print
-	print getTraceback()#.replace('\n','<br>')
-   	print e	
+	print json.dumps(d)

@@ -131,15 +131,17 @@ class _DocType:
 			Returns a dictionary of DocFields by fieldname or label
 		"""
 		try:
-			doclist = open(file_name, 'r').read()
+			txt = open(file_name, 'r').read()
 		except:
 			return
-		doclist = eval(doclist)
+		from webnotes.model.utils import peval_doclist
+
+		doclist = peval_doclist(txt)
 		fields = {}
 		for d in doclist:
 			if d['doctype']=='DocField':
-				if d['fieldname'] or d['label']:
-					fields[d['fieldname'] or d['label']] = d
+				if d.get('fieldname') or d.get('label'):
+					fields[d.get('fieldname') or d.get('label')] = d
 		return fields
 		
 	def _update_field_properties(self, doclist):
@@ -179,15 +181,16 @@ class _DocType:
 						
 							# update the values
 							for field_to_update in update_fields:
-								new_value = fields[key][field_to_update]
+								if field_to_update in fields[key] and fields[key][field_to_update] != d.fields[field_to_update]:
+									new_value = fields[key][field_to_update]
 							
-								# in doclist
-								d.fields[field_to_update] = new_value
-							
-								# in database
-								webnotes.conn.sql("update tabDocField set `%s` = %s where parent=%s and `%s`=%s" % \
-									(field_to_update, '%s', '%s', (d.fieldname and 'fieldname' or 'label'), '%s'), \
-									(new_value, doc.name, key))
+									# in doclist
+									d.fields[field_to_update] = new_value
+						
+									# in database
+									webnotes.conn.sql("update tabDocField set `%s` = %s where parent=%s and `%s`=%s" % \
+										(field_to_update, '%s', '%s', (d.fieldname and 'fieldname' or 'label'), '%s'), \
+										(new_value, doc.name, key))
 					
 				webnotes.conn.sql("update tabDocType set _last_update=%s where name=%s", (time_stamp, doc.name))
 	

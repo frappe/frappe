@@ -12,7 +12,7 @@ def import_module(module, verbose=0):
 	from webnotes.modules import get_module_path
 	import os
 	
-	not_module = ('startup', 'event_handlers', 'files', 'patches')
+	not_module = ('startup', 'files', 'patches')
 	if module in not_module: 
 		if verbose: webnotes.msgprint('%s is not a module' % module)
 		return
@@ -37,12 +37,14 @@ def import_module(module, verbose=0):
 def get_doclist(path, doctype, docname):
 	"returns a doclist (list of dictionaries) of multiple records for the given parameters"
 	import os
+	from webnotes.model.utils import peval_doclist
+	
 	do_not_import = ('control_panel')
 	
 	fname = os.path.join(path,doctype,docname,docname+'.txt')
 	if os.path.exists(fname) and (doctype not in do_not_import):
 		f = open(fname,'r')
-		dl = eval(f.read())
+		dl = peval_doclist(f.read())		
 		f.close()
 		return dl
 	else:

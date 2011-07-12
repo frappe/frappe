@@ -1,3 +1,4 @@
 *.pyc
 *.comp.js
 *.DS_Store
+defs.py

@@ -1,0 +1,144 @@
+# DocType, File Group
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-06-04 11:14:44',
+		'docstatus': 0,
+		'modified': '2010-09-20 14:06:57',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': 'field:group_name',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'document_type': 'Master',
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 2
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'File Group',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'File Group',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'Administrator',
+		'write': 1
+	},
+
+	# DocType, File Group
+	{
+		'doctype': 'DocType',
+		'name': 'File Group'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'group_name',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'Group Name',
+		'oldfieldname': 'group_name',
+		'oldfieldtype': 'Data',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'parent_group',
+		'fieldtype': 'Link',
+		'idx': 2,
+		'label': 'Parent Group',
+		'oldfieldname': 'parent_group',
+		'oldfieldtype': 'Link',
+		'options': 'File Group'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'description',
+		'fieldtype': 'Text',
+		'idx': 3,
+		'label': 'Description',
+		'oldfieldname': 'description',
+		'oldfieldtype': 'Text',
+		'width': '300px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'is_parent',
+		'fieldtype': 'Check',
+		'hidden': 1,
+		'idx': 4,
+		'label': 'Is Parent',
+		'oldfieldname': 'is_parent',
+		'oldfieldtype': 'Check'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'shared_with',
+		'fieldtype': 'Text',
+		'hidden': 1,
+		'idx': 5,
+		'label': 'Shared With',
+		'oldfieldname': 'shared_with',
+		'oldfieldtype': 'Text'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'can_edit',
+		'fieldtype': 'Text',
+		'idx': 6,
+		'label': 'Can Edit',
+		'oldfieldname': 'can_edit',
+		'oldfieldtype': 'Text'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'can_view',
+		'fieldtype': 'Text',
+		'idx': 7,
+		'label': 'Can View',
+		'oldfieldname': 'can_view',
+		'oldfieldtype': 'Text'
+	}
+]
