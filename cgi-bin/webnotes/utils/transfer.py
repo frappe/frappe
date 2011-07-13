@@ -163,10 +163,10 @@ class UpdateDocumentMerge(UpdateDocument):
 
 
 
-#
-# Class to sync incoming doctype
-#
 class UpdateDocType(UpdateDocumentMerge):
+	"""
+		Import a doctype from txt to database
+	"""
 	def __init__(self, in_doclist):
 		UpdateDocumentMerge.__init__(self, in_doclist)
 		self.to_update_doctype = ['DocType', 'DocField']
@@ -255,7 +255,11 @@ class UpdateDocType(UpdateDocumentMerge):
 				webnotes.conn.sql("update tabDocField set idx=%s where %s=%s and parent=%s" % \
 					('%s', e[0] and 'fieldname' or 'label', '%s', '%s'), (idx+1, e[0] or e[1], self.doc.name))
 
-
+	def run_on_update(self):
+		from webnotes.model.code import get_server_obj
+		so = get_server_obj(self.doc, self.doclist)
+		if hasattr(so, 'on_update'):
+			so.on_update(from_import=1)
 
 
 #
