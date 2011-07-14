@@ -14,14 +14,15 @@ class HTTPRequest:
 
 	- selects database
 	- manages session
-	- calls "action"
+	- calls "cmd"
 
 	"""
 	def __init__(self):
 		self.cmd = None
 		self.database = None
 		self.set_env_variables()
-		self.form = {}		
+		self.set_form()
+		#TODO use webnotes.handler.Session here
 		self.set_cookies()
 		self.connect_db()
 		self.check_status()
@@ -67,7 +68,7 @@ class HTTPRequest:
 			return webnotes.form_dict.get('acx')
 		
 		# in form
-		elif webnotes.request.form.get('ac_name'):
+		elif self.form.get('ac_name'):
 			return webnotes.form_dict.get('ac_name')
 			
 		# in cookie
@@ -102,21 +103,24 @@ class HTTPRequest:
 		
 	def execute(self):
 		"""
-			Executes the request specified in "action". Action must be a direct
+			Executes the request specified in "cmd". Action must be a direct
 			method call and should be "whitelisted" in the module
 		"""
-		module = ''
-		action = self.form.get('action')
-		if '.' in action:
-			module = '.'.join(action.split('.')[:-1])
-			action = action.split('.')[-1]
+		try:
+			module = ''
+			cmd = self.form.get('cmd')
+			if '.' in cmd:
+				module = '.'.join(cmd.split('.')[:-1])
+				cmd = cmd.split('.')[-1]
+				exec 'from %s import %s' % (module, cmd) in locals()
+				ret = locals().get(cmd)()
+				webnotes.response['message']=ret
 
-			exec 'from %s import %s, whitelist' % (module, cmd) in locals()
-			if action in locals().get('whitelist'):
-				locals().get(action)()
-			else:
-				webnotes.msgprint('Unpermitted action')
-
+		except webnotes.ValidationError:
+			webnotes.conn.rollback()
+		except:
+			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.conn and webnotes.conn.rollback()
 	def set_env_variables(self):
 		"""
 			Set environment variables like domain name and ip address
@@ -125,7 +129,7 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
-	
+		
 	def check_status(self):
 		"""
 			Check session status
@@ -140,3 +144,6 @@ class HTTPRequest:
 		webnotes.session_obj = webnotes.auth.Session()
 		webnotes.session = webnotes.session_obj.data
 		webnotes.tenant_id = webnotes.session.get('tenant_id', 0)
+
+	def set_form(self):
+		self.form = webnotes.requestform

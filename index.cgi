@@ -42,19 +42,17 @@ try:
 
 	set_path()
 	
-	from webnotes.handler import handle
 	import webnotes
 	import cgi
 	form = cgi.FieldStorage()
+	#catch22 problem
+	webnotes.requestform = {}
+	for key in form.keys():
+		webnotes.requestform[key]=form.getvalue(key)
+#	raise Exception, webnotes.requestform
+	import webnotes.handler
 	webnotes.handler.handle()
-	for each in form.keys():
-		webnotes.request.form[each] = form.getvalue(each)
-
-	if webnotes.request.form.get('cmd'):
-		# Function handled by handler
-		print "Content-Type: text/html"
-		import webnotes.handlerold
-	else:
+	if(0):
 		# Page Call
 
 		# authenticate
@@ -70,7 +68,7 @@ try:
 		print webnotes.widgets.page_body.get()
 
 except Exception, e:
-	d = {'exc':getTraceback()}
+	d = {'exc':getTraceback().replace('\n','<br>')}
 	import json
 	print "Content-Type: text/html"
 	print
