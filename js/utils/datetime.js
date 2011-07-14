@@ -50,13 +50,26 @@ wn.datetime = {
 		d.setTime(d.getTime()+(days*24*60*60*1000)); return d
 	},
 	
+	add_months: function(d, months) {
+		dt = dateutil.str_to_obj(d)
+		new_dt = new Date(dt.getFullYear(), dt.getMonth()+months, dt.getDate())
+		if(new_dt.getDate() != dt.getDate()) {
+			// month has changed, go the last date of prev month
+			return dateutil.month_end(new Date(dt.getFullYear(), dt.getMonth()+months, 1))
+		}
+		return dateutil.obj_to_str(new_dt);
+	},
+	
 	month_start: function() { 
 		var d = new Date();
 		return d.getFullYear() + '-' + int_to_str(d.getMonth()+1,2) + '-01';
 	},
 	
-	month_end: function() { 
-		var d = new Date(); var m = d.getMonth() + 1; var y = d.getFullYear();
+	month_end: function(d) { 
+		if(!d)var d = new Date(); 
+		var m = d.getMonth() + 1; 
+		var y = d.getFullYear();
+		
 		last_date = month_last[m];
 		if(m==2 && (y % 4)==0 && ((y % 100)!=0 || (y % 400)==0)) // leap year test
 			last_date = 29;
