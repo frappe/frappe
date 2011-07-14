@@ -35,6 +35,9 @@ function flt(v,decimals){if(v==null||v=='')return 0;v=(v+'').replace(/,/g,'');v=
 v=0;if(decimals!=null)
 return v.toFixed(decimals);return v;}
 function esc_quotes(s){if(s==null)s='';return s.replace(/'/,"\'");}
+var crop=function(s,len){if(s.length>len)
+return s.substr(0,len-3)+'...';else
+return s;}
 var strip=function(s,chars){var s=lstrip(s,chars)
 s=rstrip(s,chars);return s;}
 var lstrip=function(s,chars){if(!chars)chars=['\n','\t',' '];var first_char=s.substr(0,1);while(in_list(chars,first_char)){var s=s.substr(1);first_char=s.substr(0,1);}

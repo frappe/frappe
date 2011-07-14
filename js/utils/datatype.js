@@ -143,6 +143,13 @@ function flt(v,decimals) {
 
 function esc_quotes(s) { if(s==null)s=''; return s.replace(/'/, "\'");}
 
+var crop = function(s, len) {
+	if(s.length>len)
+		return s.substr(0, len-3) + '...';
+	else 
+		return s;
+}
+
 var strip = function(s, chars) {
 	var s= lstrip(s, chars)
 	s = rstrip(s, chars);
