@@ -23,7 +23,8 @@ class HTTPResponse:
 		self.data = {}
 		self.out = []
 		self.compressed = False
-		self.attachment = True
+		# Setting self.attachment to False,  pitfall?
+		self.attachment = False
 		self.file_name = None
 	
 	def __setitem__(self,key,value):
@@ -63,7 +64,7 @@ class HTTPResponse:
 				self.out.append(key + ': ' + self.headers[key])
 		
 		if not self.attachment:
-			self.out.append(self.cookies)
+			self.cookies and self.out.append(self.cookies)
 		
 
 		self.out.append('')
@@ -120,11 +121,10 @@ class HTTPResponse:
 		if not self.attachment:
 			self.build_content()
 
-		self.build_content()
 		self.make_header()
 		if self.content:
 			self.out.append(self.content)
 			pass
 		
 		return '\n'.join(self.out)
-#		raise Exception,str(self.message)
+#		raise Exception,str(self.out)
