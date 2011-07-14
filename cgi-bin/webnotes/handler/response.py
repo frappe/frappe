@@ -53,9 +53,9 @@ class HTTPResponse:
 		# set the charset
 		if self.content_charset:
 			self.headers['Content-Type'] += '; ' + self.content_charset
-		#if self.content:
-		#	self.headers['Content-Length'] = len(self.content) 
-		#else:
+		if self.content:
+			self.headers['Content-Length'] = str(len(self.content))
+		else:
 			self.headers['Content-Length'] = 0
 		# headers
 		for key in self.headers:
