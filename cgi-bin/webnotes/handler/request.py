@@ -2,7 +2,7 @@
 # (c) 2011 Web Notes Technologies
 # Chai Project may be freely distributed under MIT license
 # Authors: Rushabh Mehta (@rushabh_mehta)
-import webnotes.auth
+import webnotes.handler.session
 import webnotes
 import webnotes.db
 import webnotes.utils
@@ -31,7 +31,7 @@ class HTTPRequest:
 		webnotes.conn.begin()
 
 		# login
-		webnotes.login_manager = webnotes.auth.LoginManager()
+		webnotes.login_manager = webnotes.handler.session.LoginManager()
 
 		self.load_session()
 
@@ -79,7 +79,7 @@ class HTTPRequest:
 		"""
 		Builds cookies dictionary
 		"""
-		webnotes.cookie_manager = webnotes.auth.CookieManager()
+		webnotes.cookie_manager = webnotes.handler.session.CookieManager()
 		
 	def connect_db(self):
 		"""
@@ -141,7 +141,7 @@ class HTTPRequest:
 		"""
 			Load the session object
 		"""
-		webnotes.session_obj = webnotes.auth.Session()
+		webnotes.session_obj = webnotes.handler.session.Session()
 		webnotes.session = webnotes.session_obj.data
 		webnotes.tenant_id = webnotes.session.get('tenant_id', 0)
 
