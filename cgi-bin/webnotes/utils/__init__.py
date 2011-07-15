@@ -462,7 +462,7 @@ def get_defaults(key=None):
 	Get dictionary of default values from the :term:`Control Panel`, or a value if key is passed
 	"""
 	if key:
-		res = webnotes.conn.sql('select defvalue from `tabDefaultValue` where parent = "Control Panel" where defkey=%s', key)
+		res = webnotes.conn.sql('select defvalue from `tabDefaultValue` where parent = "Control Panel" and defkey=%s', key)
 		return res and res[0][0] or None
 	else:
 		res = webnotes.conn.sql('select defkey, defvalue from `tabDefaultValue` where parent = "Control Panel"')
