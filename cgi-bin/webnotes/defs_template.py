@@ -48,6 +48,7 @@ modules_path = ''
 # saved to the modules folder
 #
 developer_mode = 0
+auto_cache_clear = 0
 
 #
 # Time Zone: Useful if your users are across timezones

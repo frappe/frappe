@@ -27,11 +27,8 @@ class Scheduler:
 		if hasattr(self,'conn'): return
 		
 		import webnotes.defs, webnotes.db
-		try:
-			self.conn = webnotes.db.Database(user='master_scheduler', password=webnotes.defs.db_password)
-		except Exception, e:
-			self.setup()
-			self.connect()
+		self.conn = webnotes.db.Database(user='master_scheduler', 
+			password= webnotes.defs.__dict__.get('scheduler_password', webnotes.defs.db_password)
 		
 	def set(self, event, interval, recurring, db_name=None):
 		"""
