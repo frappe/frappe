@@ -93,9 +93,13 @@ class POP3Mailbox:
 		"""
 			settings_doc must contain
 			is_ssl, host, username, password
+			(by name or object)
 		"""
-		from webnotes.model.doc import Document
-		self.settings = Document(settings_doc, settings_doc)
+		if type(settings_doc)==str:
+			from webnotes.model.doc import Document
+			self.settings = Document(settings_doc, settings_doc)
+		else:
+			self.settings = settings_doc
 
 	def connect(self):
 		"""
@@ -133,7 +137,7 @@ class POP3Mailbox:
 			To be overridden
 			If mailbox is to be scanned, returns true
 		"""
-		return true
+		return True
 	
 	def process_message(self, mail):
 		"""
