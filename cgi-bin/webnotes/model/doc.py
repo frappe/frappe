@@ -244,7 +244,8 @@ class Document:
 		self._validate_name(case)
 				
 		# insert!
-		self.owner = self.modified_by = webnotes.session['user']
+		if not self.owner: self.owner = webnotes.session['user']
+		self.modified_by = webnotes.session['user']
 		self.creation = self.modified = now()
 		webnotes.conn.sql("""insert into `tab%(doctype)s` (name, owner, creation, modified, modified_by) 
 		values ('%(name)s', '%(owner)s', '%(creation)s', '%(modified)s', '%(modified_by)s')""" % self.fields)
