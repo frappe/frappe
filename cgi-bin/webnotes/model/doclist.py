@@ -145,7 +145,8 @@ class DocList:
 			
 			d.modified_by = user
 			d.modified = ts
-			d.docstatus = self.to_docstatus
+			if d.docstatus != 2: # don't update deleted
+				d.docstatus = self.to_docstatus
 		
 	def prepare_for_save(self, check_links):
 		"""
