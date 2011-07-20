@@ -45,8 +45,8 @@ try:
 	import webnotes
 	import cgi
 	form = cgi.FieldStorage()
-	#catch22 problem
 	requestflds = {}
+	#FIXME Stuff below is not Pythonic
 	for key in form.keys():
 		requestflds[key]=form.getvalue(key)
 #	raise Exception, webnotes.requestform
