@@ -8,6 +8,7 @@ in_files_main = [
 	,'utils/handler.js'
 	,'utils/msgprint.js'
 	,'utils/json.js'
+	,'utils/shortcut.js'
 	,'utils/printElement.js'
 	,'wn/widgets/dialog.js'
 	,'widgets/dialog.js'

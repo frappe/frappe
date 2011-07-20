@@ -15,6 +15,9 @@ function Page(page_name, content) {
 		try {
 			if(pscript['onshow_'+me.name]) pscript['onshow_'+me.name](); // onload
 		} catch(e) { submit_error(e); }
+		
+		// clear cur_frm
+		cur_frm = null;
 	}
 
 	this.wrapper = page_body.add_page(page_name, this.onshow);

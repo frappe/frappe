@@ -208,3 +208,22 @@ get_window_height = function() {
 	ht = ht - bannerh - toolbarh - footerh;
 	return ht;
 }
+
+setup_shortcuts = function() {
+	$(document).bind('keydown', 'ctrl+s', function() {
+			if(cur_frm && cur_frm.doc && cur_frm.doc.docstatus==0) 
+				cur_frm.save("Save")
+		}
+	);
+	$(document).bind('keydown', 'ctrl+n', function() {
+			if(cur_frm) new_doc(cur_frm.doctype);
+			else if(page_body.wntoolbar) page_body.wntoolbar.show_new();
+		}
+	);
+	$(document).bind('keydown', 'ctrl+p', function() {
+			if(cur_frm) cur_frm.print_doc();
+		}
+	);
+}
+
+startup_list.push(setup_shortcuts);

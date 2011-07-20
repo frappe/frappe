@@ -175,7 +175,7 @@ class LoginManager:
 				getattr(event_handlers, method)(self)
 			return
 		except ImportError, e:
-			pass
+			webnotes.errprint(str(e))
 	
 		# deprecated
 		self.load_control_panel()
