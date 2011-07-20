@@ -46,12 +46,12 @@ try:
 	import cgi
 	form = cgi.FieldStorage()
 	#catch22 problem
-	webnotes.requestform = {}
+	requestflds = {}
 	for key in form.keys():
-		webnotes.requestform[key]=form.getvalue(key)
+		requestflds[key]=form.getvalue(key)
 #	raise Exception, webnotes.requestform
 	import webnotes.handler
-	webnotes.handler.handle()
+	webnotes.handler.handle(requestflds)
 	if(0):
 		# Page Call
 

@@ -17,35 +17,17 @@ class HTTPRequest:
 	- calls "cmd"
 
 	"""
-	def __init__(self):
+	def __init__(self,reqflds):
 		self.cmd = None
 		self.database = None
 		self.set_env_variables()
-		self.set_form()
-		#TODO use webnotes.handler.Session here
-		self.set_cookies()
+		#TODO get rid of self.form, the members of form should be memebers of request itself
+		self.form = reqflds
 		self.connect_db()
-		self.check_status()
-
-		##FIXME  : The line below
-		webnotes.conn.begin()
-
-		# login
-		webnotes.login_manager = webnotes.handler.session.LoginManager()
-
-		self.load_session()
-
 		# write out cookies if sid is supplied (this is a pre-logged in redirect)
-		if self.form.get('sid'):
-			webnotes.cookie_manager.set_cookies()
-
 		# run login triggers
-		if self.form.get('cmd')=='login':
-			webnotes.login_manager.run_trigger('on_login_post_session')
-			
-		# load profile
-		self.setup_profile()
-
+		#if self.form.get('cmd')=='login':
+		#	webnotes.login_manager.run_trigger('on_login_post_session')
 		webnotes.conn.commit()
 	
 	def setup_profile(self):
