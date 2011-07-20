@@ -33,11 +33,11 @@ class generateTimestamp:
 	def get_timestamp_dict(jsdir,filelist):
 		tsdict={}
 		import os
-		import webnotes.modules as webmod
+		from webnotes.utils import get_file_timestamp
 		oldcwd = os.getcwd()
 		os.chdir(jsdir)
 		for filename in generateTimestamp.list_js_files('.'):
-			ts = webmod.get_file_timestamp(filename)
+			ts = get_file_timestamp(filename)
 			filename = filename.lstrip('./')
 			filename = filename.rstrip('.js')
 			filename = filename.replace('/','.')

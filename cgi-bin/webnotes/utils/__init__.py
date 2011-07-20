@@ -620,7 +620,20 @@ def get_diff_dict(d1, d2):
 	return ret
 
 
-
+def get_file_timestamp(fn):
+	"""
+		Returns timestamp of the given file
+	"""
+	import os
+	from webnotes.utils import cint
+	
+	try:
+		return str(cint(os.stat(fn).st_mtime))
+	except OSError, e:
+		if e.args[0]!=2:
+			raise e
+		else:
+			return None
 
 
 	

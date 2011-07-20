@@ -389,7 +389,10 @@ class Document:
 
 	def _get_user_defaults(self):
 		if not self._user_defaults:
-			self._user_defaults = webnotes.user.get_defaults()
+			if webnotes.user:
+				self._user_defaults = webnotes.user.get_defaults()
+			else:
+				self.defaults = {}
 
 	def check_perm(self, verbose=0):
 		import webnotes

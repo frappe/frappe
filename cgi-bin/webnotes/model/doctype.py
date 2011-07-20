@@ -156,7 +156,8 @@ class _DocType:
 		
 		update_fields = ('description', 'depends_on')
 
-		from webnotes.modules import get_file_timestamp, get_item_file
+		from webnotes.modules import get_item_file
+		from webnotes.utils import get_file_timestamp
 
 		doc = doclist[0] # main doc
 		file_name = get_item_file(doc.module, 'DocType', doc.name)

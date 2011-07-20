@@ -13,7 +13,8 @@ def get_js_code(fn, extn='js'):
 		Get js code from a file (uncompressed)
 	"""
 	import webnotes
-	from webnotes.modules import scrub, get_file_timestamp
+	from webnotes.modules import scrub
+	from webnotes.utils import get_file_timestamp
 
 	src_file_name = fn + '.' + extn
 
