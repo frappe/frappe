@@ -29,6 +29,9 @@ class DocType:
 		from webnotes.modules import get_module_path, scrub
 		
 		# load content
+		if not self.doc.module:
+			return
+			
 		try:
 			file = open(os.path.join(get_module_path(self.doc.module), 'page', scrub(self.doc.name) + '.html'), 'r')
 			self.doc.content = file.read() or ''
