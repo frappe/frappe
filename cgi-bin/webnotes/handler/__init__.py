@@ -14,15 +14,15 @@ def handle(reqflds):
 	from webnotes.handler.session import Session
 
 	webnotes.request = HTTPRequest(reqflds)
+	webnotes.response = HTTPResponse()
 #	webnotes.session = Session()
-#	webnotes.login_manager = webnotes.handler.session.LoginManager()
+#	webnotes.login_manager = webnotes.handler.session.LoginManager(webnotes.request,webnotes.response)
 #	load_session()
 #	webnotes.cookie_manager = webnotes.handler.session.CookieManager()
 	check_status()
 #	if webnotes.request.form.get('sid'):
 #		webnotes.cookie_manager.set_cookies()
 #	setup_profile()
-	webnotes.response = HTTPResponse()
 	
 	# there are two types of request - one for a full page
 	# and other for ajax via the "action" property

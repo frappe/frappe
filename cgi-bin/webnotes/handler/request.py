@@ -12,7 +12,7 @@ class HTTPRequest:
 	"""
 	Wrapper around HTTPRequest
 
-	- selects database
+	- selects database , Does that mean that it has to connect to it too?
 	- manages session
 	- calls "cmd"
 
