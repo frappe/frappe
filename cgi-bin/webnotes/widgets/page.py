@@ -14,25 +14,39 @@ class Page:
 	def __init__(self, name):
 		self.name = name
 
-	def load(self):	
+	def get_from_files(self, doc):
 		"""
-		Returns :term:`doclist` of the `Page`
+			Loads page info from files in module
 		"""
 		from webnotes.modules import compress
+		from webnotes.model.code import get_code
+
+		# load js
+		doc.fields['__script'] = compress.get_page_js(doc)
+		doc.script = None
+
+		# load css
+		css = get_code(doc.module, 'page', doc.name, 'css')
+		if css: doc.style = css
+		
+		# html
+		doc.content = get_code(doc.module, 'page', doc.name, 'html') or doc.content
+		
+	def load(self):	
+		"""
+			Returns :term:`doclist` of the `Page`
+		"""
 		from webnotes.model.code import get_code
 		
 		doclist = webnotes.model.doc.get('Page', self.name)
 		doc = doclist[0]
 
-		doc.fields['__script'] = compress.get_page_js(doc)
-		doc.script = None
+		if doc.module: self.get_from_files(doc)
 
 		template = '%(content)s'
 		# load code from template
 		if doc.template:
 			template = get_code(webnotes.conn.get_value('Page Template', doc.template, 'module'), 'Page Template', doc.template, 'html', fieldname='template')
-
-		doc.content = get_code(doc.module, 'page', doc.name, 'html') or doc.content
 				
 		# execute content
 		if doc.content and doc.content.startswith('#!python'):
@@ -40,10 +54,6 @@ class Page:
 		else:
 			doc.__content = template % {'content': doc.content or ''}
 
-		# local stylesheet
-		css = get_code(doc.module, 'page', doc.name, 'css')
-		if css: doc.style = css
-			
 		# add stylesheet
 		if doc.stylesheet:
 			doclist += self.load_stylesheet(doc.stylesheet)

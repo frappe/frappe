@@ -24,14 +24,17 @@ python [path]webnotes/utils/scheduler.py
 
 class Scheduler:
 	def connect(self):
+		"""
+			Connect to the 'master_schduler' database
+		"""
 		if hasattr(self,'conn'): return
 		
 		import webnotes.defs, webnotes.db
-		try:
-			self.conn = webnotes.db.Database(user='master_scheduler', password=webnotes.defs.db_password)
-		except Exception, e:
-			self.setup()
-			self.connect()
+		
+		pwd = webnotes.defs.__dict__.get('scheduler_password')
+		if pwd==None: pwd = webnotes.defs.db_password
+		
+		self.conn = webnotes.db.Database(user='master_scheduler',password=pwd)
 		
 	def set(self, event, interval, recurring, db_name=None):
 		"""
@@ -79,7 +82,7 @@ class Scheduler:
 		self.connect()
 		self.conn.sql("delete from Event where `event`=%s and db_name=%s", (event, db_name))
 
-	def execute(self, db_name, event):
+	def execute(self, db_name, event, now):
 		"""
 			Executes event in the specifed db
 		"""
@@ -102,7 +105,10 @@ class Scheduler:
 			self.log(db_name, event, ret or 'Ok')
 			
 		except Exception, e:
-			self.log(db_name, event, webnotes.getTraceback())
+			if now:
+				print webnotes.getTraceback()
+			else:
+				self.log(db_name, event, webnotes.getTraceback())
 
 	def log(self, db_name, event, traceback):
 		"""
@@ -114,17 +120,21 @@ class Scheduler:
 		# delete old logs
 		self.conn.sql("delete from EventLog where executed_on < subdate(curdate(), interval 30 day)")
 
-	def run(self):
+	def run(self, now=0):
 		"""
 			Run scheduled (due) events and reset time for recurring events
 		"""
+		cond = ''
+		if not now:
+			cond = 'where next_execution < NOW()'
+		
 		el = self.conn.sql("""select `db_name`, `event`, `recurring`, `interval`
 			from `Event` 
-			where next_execution < NOW()""", as_dict=1)
+			%s""" % cond, as_dict=1)
 		
 		for e in el:
 			# execute the event
-			self.execute(e['db_name'], e['event'])
+			self.execute(e['db_name'], e['event'], now)
 			
 			# if recurring, update next_execution
 			if e['recurring']:
@@ -162,5 +172,9 @@ if __name__=='__main__':
 
 	sch = Scheduler()
 	sch.connect()
-	sch.run()
+	
+	if len(sys.argv) > 1 and sys.argv[1]=='run':
+		sch.run(now=1)
+	else:
+		sch.run()
 	

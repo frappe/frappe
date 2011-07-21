@@ -332,7 +332,15 @@ return reviver.call(holder,key,value);}
 cx.lastIndex=0;if(cx.test(text)){text=text.replace(cx,function(a){return'\\u'+
 ('0000'+a.charCodeAt(0).toString(16)).slice(-4);});}
 if(/^[\],:{}\s]*$/.test(text.replace(/\\(?:["\\\/bfnrt]|u[0-9a-fA-F]{4})/g,'@').replace(/"[^"\\\n\r]*"|true|false|null|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g,']').replace(/(?:^|:|,)(?:\s*\[)+/g,''))){j=eval('('+text+')');return typeof reviver==='function'?walk({'':j},''):j;}
-throw new SyntaxError('JSON.parse');};}}());;(function(window,undefined){var document=window["document"];var $=window["jQuery"];$.fn["printElement"]=function(options){var mainOptions=$.extend({},$.fn["printElement"]["defaults"],options);if(mainOptions["printMode"]=='iframe'){if($.browser.opera||(/chrome/.test(navigator.userAgent.toLowerCase())))
+throw new SyntaxError('JSON.parse');};}}());(function(jQuery){jQuery.hotkeys={version:"0.8",specialKeys:{8:"backspace",9:"tab",13:"return",16:"shift",17:"ctrl",18:"alt",19:"pause",20:"capslock",27:"esc",32:"space",33:"pageup",34:"pagedown",35:"end",36:"home",37:"left",38:"up",39:"right",40:"down",45:"insert",46:"del",96:"0",97:"1",98:"2",99:"3",100:"4",101:"5",102:"6",103:"7",104:"8",105:"9",106:"*",107:"+",109:"-",110:".",111:"/",112:"f1",113:"f2",114:"f3",115:"f4",116:"f5",117:"f6",118:"f7",119:"f8",120:"f9",121:"f10",122:"f11",123:"f12",144:"numlock",145:"scroll",191:"/",224:"meta"},shiftNums:{"`":"~","1":"!","2":"@","3":"#","4":"$","5":"%","6":"^","7":"&","8":"*","9":"(","0":")","-":"_","=":"+",";":": ","'":"\"",",":"<",".":">","/":"?","\\":"|"}};function keyHandler(handleObj){if(typeof handleObj.data!=="string"){return;}
+var origHandler=handleObj.handler,keys=handleObj.data.toLowerCase().split(" ");handleObj.handler=function(event){if(this!==event.target&&(/textarea|select/i.test(event.target.nodeName)||event.target.type==="text")){return;}
+var special=event.type!=="keypress"&&jQuery.hotkeys.specialKeys[event.which],character=String.fromCharCode(event.which).toLowerCase(),key,modif="",possible={};if(event.altKey&&special!=="alt"){modif+="alt+";}
+if(event.ctrlKey&&special!=="ctrl"){modif+="ctrl+";}
+if(event.metaKey&&!event.ctrlKey&&special!=="meta"){modif+="meta+";}
+if(event.shiftKey&&special!=="shift"){modif+="shift+";}
+if(special){possible[modif+special]=true;}else{possible[modif+character]=true;possible[modif+jQuery.hotkeys.shiftNums[character]]=true;if(modif==="shift+"){possible[jQuery.hotkeys.shiftNums[character]]=true;}}
+for(var i=0,l=keys.length;i<l;i++){if(possible[keys[i]]){return origHandler.apply(this,arguments);}}};}
+jQuery.each(["keydown","keyup","keypress"],function(){jQuery.event.special[this]={add:keyHandler};});})(jQuery);;(function(window,undefined){var document=window["document"];var $=window["jQuery"];$.fn["printElement"]=function(options){var mainOptions=$.extend({},$.fn["printElement"]["defaults"],options);if(mainOptions["printMode"]=='iframe'){if($.browser.opera||(/chrome/.test(navigator.userAgent.toLowerCase())))
 mainOptions["printMode"]='popup';}
 $("[id^='printElement_']").remove();return this.each(function(){var opts=$.meta?$.extend({},mainOptions,$(this).data()):mainOptions;_printElement($(this),opts);});};$.fn["printElement"]["defaults"]={"printMode":'iframe',"pageTitle":'',"overrideElementCSS":null,"printBodyOptions":{"styleToAdd":'padding:10px;margin:10px;',"classNameToAdd":''},"leaveOpen":false,"iframeElementOptions":{"styleToAdd":'border:none;position:absolute;width:0px;height:0px;bottom:0px;left:0px;',"classNameToAdd":''}};$.fn["printElement"]["cssElement"]={"href":'',"media":''};function _printElement(element,opts){var html=_getMarkup(element,opts);var popupOrIframe=null;var documentToWriteTo=null;if(opts["printMode"].toLowerCase()=='popup'){popupOrIframe=window.open('about:blank','printElementWindow','width=650,height=440,scrollbars=yes');documentToWriteTo=popupOrIframe.document;}
 else{var printElementID="printElement_"+(Math.round(Math.random()*99999)).toString();var iframe=document.createElement('IFRAME');$(iframe).attr({style:opts["iframeElementOptions"]["styleToAdd"],id:printElementID,className:opts["iframeElementOptions"]["classNameToAdd"],frameBorder:0,scrolling:'no',src:'about:blank'});document.body.appendChild(iframe);documentToWriteTo=(iframe.contentWindow||iframe.contentDocument);if(documentToWriteTo.document)
@@ -1107,7 +1115,8 @@ inp.onmouseup=function(){$wid_active(inp);}
 for(var key in args){var inp=$a_input($a(ul_form,'span'),'hidden',{name:key});inp.value=args[key];}
 uploaders[id]=this;}
 function upload_callback(id,fid){uploaders[id].callback(fid);}
-var pages=[];var stylesheets=[];function Page(page_name,content){var me=this;this.name=page_name;this.onshow=function(){set_title(me.doc.page_title?me.doc.page_title:me.name);try{if(pscript['onshow_'+me.name])pscript['onshow_'+me.name]();}catch(e){submit_error(e);}}
+var pages=[];var stylesheets=[];function Page(page_name,content){var me=this;this.name=page_name;this.onshow=function(){set_title(me.doc.page_title?me.doc.page_title:me.name);try{if(pscript['onshow_'+me.name])pscript['onshow_'+me.name]();}catch(e){submit_error(e);}
+cur_frm=null;}
 this.wrapper=page_body.add_page(page_name,this.onshow);this.cont=this.wrapper
 if(content)
 this.wrapper.innerHTML=content;if(page_name==home_page)
@@ -1374,7 +1383,9 @@ get_window_height=function(){var ht=window.innerHeight?window.innerHeight:docume
 var bannerh=page_body.banner_area?page_body.banner_area.offsetHeight:0
 var footerh=page_body.footer?page_body.footer.offsetHeight:0
 ht=ht-bannerh-toolbarh-footerh;return ht;}
-Calendar=function(){this.views=[];this.events={};this.has_event={};this.weekdays=new Array("Sun","Mon","Tue","Wed","Thu","Fri","Sat");}
+setup_shortcuts=function(){$(document).bind('keydown','ctrl+s',function(){if(cur_frm&&cur_frm.doc&&cur_frm.doc.docstatus==0)
+cur_frm.save("Save")});$(document).bind('keydown','ctrl+n',function(){if(cur_frm)new_doc(cur_frm.doctype);else if(page_body.wntoolbar)page_body.wntoolbar.show_new();});$(document).bind('keydown','ctrl+p',function(){if(cur_frm)cur_frm.print_doc();});}
+startup_list.push(setup_shortcuts);Calendar=function(){this.views=[];this.events={};this.has_event={};this.weekdays=new Array("Sun","Mon","Tue","Wed","Thu","Fri","Sat");}
 Calendar.prototype.init=function(parent){this.wrapper=$a(parent,'div','cal_wrapper');this.page_head=new PageHeader(this.wrapper,'Calendar')
 this.body=$a(this.wrapper,'div','cal_body');this.make_head_buttons();this.make_header();this.todays_date=new Date();this.selected_date=this.todays_date;this.selected_hour=8;this.views['Month']=new Calendar.MonthView(this);this.views['Week']=new Calendar.WeekView(this);this.views['Day']=new Calendar.DayView(this);this.cur_view=this.views['Day'];this.views['Day'].show();setTimeout(_c.set_height,100);set_resize_observer(_c.set_height);}
 Calendar.prototype.rename_notify=function(dt,old_name,new_name){if(dt='Event'&&this.has_event[old_name])

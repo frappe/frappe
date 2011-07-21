@@ -16,17 +16,36 @@ class DocList:
 		self.docs = []
 		self.obj = None
 		self.to_docstatus = 0
+		if dt and dn:
+			self.load_from_db(dt, dn)
 	
+	def load_from_db(self, dt, dn):
+		"""
+			Load doclist from dt
+		"""
+		from webnotes.model.doc import Document, getchildren
+
+		doc = Document(dt, dn, prefix=prefix)
+
+		# get all children types
+		tablefields = webnotes.model.meta.get_table_fields(dt)
+
+		# load chilren
+		doclist = [doc,]
+		for t in tablefields:
+			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
+		
+		self.docs = docs
 	
 	def __iter__(self):
 		"""
-		Make this iterable
+			Make this iterable
 		"""
 		return self.docs.__iter__()
 	
 	def from_compressed(self, data, docname):
 		"""
-		Expand called from client
+			Expand called from client
 		"""
 		from webnotes.model.utils import expand
 		self.docs = expand(data)
@@ -34,7 +53,7 @@ class DocList:
 	
 	def objectify(self, docname=None):
 		"""
-		Converts self.docs from a list of dicts to list of Documents
+			Converts self.docs from a list of dicts to list of Documents
 		"""
 		from webnotes.model.doc import Document
 		
@@ -52,7 +71,7 @@ class DocList:
 	
 	def make_obj(self):
 		"""
-		Create a DocType object
+			Create a DocType object
 		"""
 		if self.obj: return self.obj
 		
@@ -62,13 +81,13 @@ class DocList:
 		
 	def next(self):
 		"""
-		Next doc
+			Next doc
 		"""
 		return self.docs.next()
 
 	def to_dict(self):
 		"""
-		return as a list of dictionaries
+			return as a list of dictionaries
 		"""
 		return [d.fields for d in self.docs]
 
@@ -126,7 +145,8 @@ class DocList:
 			
 			d.modified_by = user
 			d.modified = ts
-			d.docstatus = self.to_docstatus
+			if d.docstatus != 2: # don't update deleted
+				d.docstatus = self.to_docstatus
 		
 	def prepare_for_save(self, check_links):
 		"""

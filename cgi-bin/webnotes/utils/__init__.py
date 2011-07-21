@@ -22,14 +22,21 @@ def getCSVelement(v):
 		return '"'+v+'"'
 	else: return v or ''
 
-def validate_email_add(email_str):
+def extract_email_id(s):
 	"""
-	Validates the email string
+		Extract email id from email header format
 	"""
-	s = email_str
 	if '<' in s:
 		s = s.split('<')[1].split('>')[0]
-	if s: s = s.strip().lower()
+	if s: 
+		s = s.strip().lower()
+	return s
+	
+def validate_email_add(email_str):
+	"""
+		Validates the email string
+	"""
+	s = extract_email_id(email_str)
 	import re
 	#return re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", email_str)
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", s)
@@ -462,7 +469,7 @@ def get_defaults(key=None):
 	Get dictionary of default values from the :term:`Control Panel`, or a value if key is passed
 	"""
 	if key:
-		res = webnotes.conn.sql('select defvalue from `tabDefaultValue` where parent = "Control Panel" where defkey=%s', key)
+		res = webnotes.conn.sql('select defvalue from `tabDefaultValue` where parent = "Control Panel" and defkey=%s', key)
 		return res and res[0][0] or None
 	else:
 		res = webnotes.conn.sql('select defkey, defvalue from `tabDefaultValue` where parent = "Control Panel"')

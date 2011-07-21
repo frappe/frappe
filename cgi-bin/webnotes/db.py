@@ -11,10 +11,12 @@ class Database:
 	   login details from `defs.py`. This is called by the request handler and is accessible using
 	   the `conn` global variable. the `sql` method is also global to run queries
 	"""
-	def __init__(self, host='', user='', password='', ac_name = '', use_default = 0):
+	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or 'localhost'
 		self.user = user or getattr(defs, 'default_db_name', '')
-		self.password = password or getattr(defs, 'db_password', '')
+
+		# password can be empty string
+		self.password = password==None and getattr(defs, 'db_password', '') or password
 
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or defs.default_db_name

@@ -12,7 +12,6 @@ class LoginManager:
 			self.authenticate()
 			self.post_login()
 			self.response['message'] = 'Logged In'
-			#raise Exception, self.response.__dict__
 
 	
 	def post_login(self):
