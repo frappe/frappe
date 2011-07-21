@@ -148,7 +148,7 @@ def load_properties():
 
 	page_url = webnotes.form_dict.get('_escaped_fragment_', webnotes.form_dict.get('page', ''))
 
-	if pag_url and page_url.lower().startswith('page/'): 
+	if page_url and page_url.lower().startswith('page/'): 
 		page_url = page_url[5:]
 	
 	if page_url:
