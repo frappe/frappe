@@ -14,45 +14,68 @@ class Page:
 	def __init__(self, name):
 		self.name = name
 
-	def get_from_files(self, doc):
+	def get_from_files(self, doc, module):
 		"""
 			Loads page info from files in module
 		"""
-		from webnotes.modules import compress
-		from webnotes.model.code import get_code
-
 		# load js
-		doc.fields['__script'] = compress.get_page_js(doc)
+		doc.fields['__script'] = module.get_doc_file('page',doc.name,'.js').read()
 		doc.script = None
 
 		# load css
-		css = get_code(doc.module, 'page', doc.name, 'css')
+		css = module.get_doc_file('page',doc.name,'.css').read()
 		if css: doc.style = css
 		
 		# html
-		doc.content = get_code(doc.module, 'page', doc.name, 'html') or doc.content
+		doc.content = module.get_doc_file('page',doc.name,'.html').read() or doc.content
+	
+	def get_template(self, template):
+		"""
+			Returns the page template content
+		"""
+		ret = '%(content)s'
+		# load code from template
+		if template:
+			from webnotes.modules import Module
+			ret = Module(webnotes.conn.get_value('Page Template', template, 'module'))\
+				.get_doc_file('Page Template', template, '.html').read()
+			if not ret:
+				ret = webnotes.conn.get_value('Page Template', template, 'template')
 		
+		return ret
+					
+	def process_content(self, doc):
+		"""
+			Put in template and generate dynamic if starts with #!python
+		"""
+		template = self.get_template(doc.template)
+		content = ''
+		
+		# eval content
+		if doc.content and doc.content.startswith('#!python'):
+			from webnotes.model.code import execute
+			content = template % {'content': execute(doc.content).get('content')}
+		else:
+			content = template % {'content': doc.content or ''}				
+
+		doc.__content = content
+			
 	def load(self):	
 		"""
 			Returns :term:`doclist` of the `Page`
 		"""
-		from webnotes.model.code import get_code
+		from webnotes.modules import Module
 		
 		doclist = webnotes.model.doc.get('Page', self.name)
 		doc = doclist[0]
 
-		if doc.module: self.get_from_files(doc)
+		# load from module
+		if doc.module: 
+			module = Module(doc.module)
+			self.get_from_files(doc, module)
 
-		template = '%(content)s'
-		# load code from template
-		if doc.template:
-			template = get_code(webnotes.conn.get_value('Page Template', doc.template, 'module'), 'Page Template', doc.template, 'html', fieldname='template')
-				
-		# execute content
-		if doc.content and doc.content.startswith('#!python'):
-			doc.__content = template % {'content': webnotes.model.code.execute(doc.content).get('content')}
-		else:
-			doc.__content = template % {'content': doc.content or ''}
+		# process
+		self.process_content(doc)
 
 		# add stylesheet
 		if doc.stylesheet:
@@ -66,16 +89,15 @@ class Page:
 		loaded = eval(webnotes.form_dict.get('stylesheets') or '[]')
 		if not stylesheet in loaded:
 			import webnotes.model.doc
-			from webnotes.model.code import get_code
+			from webnotes.modules import Module
 			
 			# doclist
 			sslist = webnotes.model.doc.get('Stylesheet', stylesheet)
 			
 			# stylesheet from file
-			css = get_code(sslist[0].module, 'Stylesheet', stylesheet, 'css')
+			css = Module(sslist[0].module).get_doc_file('Stylesheet', stylesheet, '.css').read()
 			
-			if css: sslist[0].stylesheet = css
-			
+			if css: sslist[0].stylesheet = css			
 			return sslist
 		else:
 			return []

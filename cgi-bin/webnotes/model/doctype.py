@@ -240,9 +240,7 @@ class _DocType:
 		      * replaces `link:` in the `Select` fields
 		      * loads all related `Search Criteria`
 		      * updates the cache
-		"""
-		from webnotes.modules import compress
-		
+		"""		
 		tablefields = webnotes.model.meta.get_table_fields(self.name)
 
 		if self.is_modified():
@@ -263,8 +261,10 @@ class _DocType:
 
 		else:
 			doclist = self._load_from_cache()
-			
-		doclist[0].fields['__client_script'] = compress.get_doctype_js(self.name)
+		
+		from webnotes.modules import Module
+		doc = doclist[0]
+		doc.fields['__client_script'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read()
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
 

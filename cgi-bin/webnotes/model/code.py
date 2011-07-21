@@ -54,25 +54,16 @@ def execute(code, doc=None, doclist=[]):
 
 	import webnotes
 
-	set = webnotes.conn.set
 	sql = webnotes.conn.sql
 	get_value = webnotes.conn.get_value
-	in_transaction = webnotes.conn.in_transaction
 	convert_to_lists = webnotes.conn.convert_to_lists
 	
 	if webnotes.user:
 		get_roles = webnotes.user.get_roles
 	locals().update({'get_obj':get_obj, 'get_server_obj':get_server_obj, 'run_server_obj':run_server_obj, 'updatedb':updatedb, 'check_syntax':check_syntax})
-	version = 'v170'
-	NEWLINE = '\n'
-	BACKSLASH = '\\'
 
-	# execute it
-	# -----------------
 	exec code in locals()
 	
-	# if doc
-	# -----------------
 	if doc:
 		d = DocType(doc, doclist)
 		return d

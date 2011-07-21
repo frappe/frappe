@@ -1,3 +1,7 @@
+"""
+	Export files to modules
+"""
+
 from webnotes.modules import scrub, get_module_path
 
 def export_to_files(record_list=[], record_module=None, verbose=0):
@@ -106,8 +110,3 @@ def clear_code_fields(doclist, folder, code_type):
 
 			doclist[0][code_field[0]] = None
 
-def to_sandbox(record_list=[], record_module='Sandbox'):
-	"""
-		Export record_list to Sandbox. record_list is a list of lists ([doctype],[docname] )  ,
-	"""
-	pass
