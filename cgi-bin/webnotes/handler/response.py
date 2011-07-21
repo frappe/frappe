@@ -2,7 +2,7 @@
 # (c) 2011 Web Notes Technologies
 # Chai Project may be freely distributed under MIT license
 # Authors: Rushabh Mehta (rmehta at gmail)
-
+import webnotes
 class HTTPResponse:
 	"""
 	Reponse object that goes to the client
@@ -64,7 +64,7 @@ class HTTPResponse:
 				self.out.append(key + ': ' + self.headers[key])
 		
 		if not self.attachment:
-			self.cookies and self.out.append(self.cookies)
+			self.cookies and self.out.append(self.cookies.output())
 		
 
 		self.out.append('')
@@ -117,7 +117,8 @@ class HTTPResponse:
 		"""
 		Return the response as string
 		"""
-
+		#Any better way of getting the cookies?
+		self.cookies = webnotes.cookie_manager.cookies
 		if not self.attachment:
 			self.build_content()
 
