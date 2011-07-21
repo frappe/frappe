@@ -12,13 +12,15 @@ def handle(reqflds):
 	from webnotes.handler.request import HTTPRequest
 	from webnotes.handler.response import HTTPResponse
 	from webnotes.handler.session import Session
+	from webnotes.handler.login import LoginManager
+	from webnotes.handler.cookie import CookieManager
 
 	webnotes.request = HTTPRequest(reqflds)
 	webnotes.response = HTTPResponse()
 #	webnotes.session = Session()
-#	webnotes.login_manager = webnotes.handler.session.LoginManager(webnotes.request,webnotes.response)
-#	load_session()
-#	webnotes.cookie_manager = webnotes.handler.session.CookieManager()
+	webnotes.login_manager = LoginManager(webnotes.request,webnotes.response)
+	load_session()
+	webnotes.cookie_manager = CookieManager()
 	check_status()
 #	if webnotes.request.form.get('sid'):
 #		webnotes.cookie_manager.set_cookies()
@@ -44,7 +46,7 @@ def load_session():
 	"""
 		Load the session object
 	"""
-	webnotes.session_obj = webnotes.handler.session.Session()
+	webnotes.session_obj = session.Session()
 	webnotes.session = webnotes.session_obj.data
 	webnotes.tenant_id = webnotes.session.get('tenant_id', 0)
 def check_status():

@@ -15,8 +15,13 @@ class HTTPRequest:
 	- selects database , Does that mean that it has to connect to it too?
 	- manages session
 	- calls "cmd"
-
 	"""
+	def __getattr__(self,name):
+		if name in self.__dict__:
+			return self.__dict__[name]
+		else
+			return None
+
 	def __init__(self,reqflds):
 		self.cmd = None
 		self.database = None
