@@ -5,13 +5,13 @@ import webnotes.profile
 import webnotes.defs
 #TODO Put Docsrtings here
 class Session:
-	def __init__(self, request, user=None):
+	def __init__(self, user=None):
 		self.user = user
-		self.request = request
-		self.sid = request.sid or webnotes.incoming_cookies.get('sid')
+		self.request = webnotes.request
+		self.sid = self.request.sid or webnotes.incoming_cookies.get('sid')
 		self.data = {'user':user,'data':{}}
-
-		if request.cmd='login':
+		
+		if self.request.cmd=='login':
 			self.start()
 			return
 			
@@ -36,7 +36,7 @@ class Session:
 			
 			# ExipredSession
 			if r[2]=='Expired' and (self.request.cmd=='resume_session'):
-				if r[0]=='Guest' or (not self.request.cmd or self.request.cmd=='logout':
+				if r[0]=='Guest' or (not self.request.cmd or self.request.cmd=='logout'):
 					webnotes.login_manager.login_as_guest()
 					self.start()
 				else:

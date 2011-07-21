@@ -4,20 +4,21 @@ class LoginManager:
 		self.cp = None
 		self.request = webnotes.request
 		self.response = webnotes.response
-		if self.request.cmd = 'login':
+		if self.request.cmd == 'login':
 			# clear cache
 			from webnotes.session_cache import clear_cache
-			clear_cache(request.usr)				
+			clear_cache(self.request.usr)				
 
 			self.authenticate()
 			self.post_login()
 			self.response['message'] = 'Logged In'
+			#raise Exception, self.response.__dict__
 
 	
 	def post_login(self):
-	"""
-	run triggers, write cookies
-	"""
+		"""
+		run triggers, write cookies
+		"""
 		self.validate_ip_address()
 		self.run_trigger()
 	

@@ -1,10 +1,10 @@
 import webnotes
 class CookieManager:
-	def __init__(self,request):
+	def __init__(self):
 		import Cookie
 		self.cookies = Cookie.SimpleCookie()
 		self.get_incoming_cookies()
-		self.request = request
+		self.request = webnotes.request
 
 	def get_incoming_cookies(self):
 		import os

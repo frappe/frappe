@@ -19,7 +19,7 @@ class HTTPRequest:
 	def __getattr__(self,name):
 		if name in self.__dict__:
 			return self.__dict__[name]
-		else
+		else:
 			return None
 
 	def __init__(self,reqflds):

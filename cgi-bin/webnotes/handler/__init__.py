@@ -4,6 +4,7 @@
 # Authors: Rushabh Mehta (@rushabh_mehta)
 # Handler design goal, no class should set webnotes.*
 # We want biryani not speghatti
+#TODO cleanup commented code that is not required
 import webnotes
 def handle(reqflds):
 	"""
@@ -18,10 +19,11 @@ def handle(reqflds):
 	webnotes.request = HTTPRequest(reqflds)
 	webnotes.response = HTTPResponse()
 #	webnotes.session = Session()
-	webnotes.login_manager = LoginManager(webnotes.request,webnotes.response)
-	load_session()
+	webnotes.login_manager = LoginManager()
 	webnotes.cookie_manager = CookieManager()
+	load_session()
 	check_status()
+#	raise Exception, webnotes.session
 #	if webnotes.request.form.get('sid'):
 #		webnotes.cookie_manager.set_cookies()
 #	setup_profile()
@@ -29,7 +31,7 @@ def handle(reqflds):
 	# there are two types of request - one for a full page
 	# and other for ajax via the "action" property
 	#raise Exception, str(webnotes.request.form.get('cmd'))
-	if hasattr(webnotes.request,'cmd') or 1:
+	if webnotes.request.cmd and webnotes.request.cmd!='login' :
 		try:
 			webnotes.response['message']=webnotes.request.execute()
 		except webnotes.ValidationError:
