@@ -273,8 +273,18 @@ class _DocType:
 def clear_cache():
 	webnotes.conn.sql("delete from __DocTypeCache")
 	
-# Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
-#=================================================================================================
+def get_property(dt, property):
+	"""
+		get a doctype property, override it from property setter if specified
+	"""
+	prop = webnotes.conn.sql("""
+		select value 
+		from `tabProperty Setter` 
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property), as_dict=1):
+	if prop: 
+		return prop[0][0]
+	else:
+		return webnotes.conn.get_value('DocType', dt, property)
 
 def get(dt):
 	"""
