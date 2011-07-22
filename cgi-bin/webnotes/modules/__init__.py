@@ -1,6 +1,7 @@
 """
 	Utilities for using modules
 """
+import webnotes
 
 transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper','GL Mapper','Search Criteria', 'Patch']
 
@@ -168,7 +169,6 @@ class ModuleFile:
 		"""
 		import webnotes.utils
 		self.timestamp = webnotes.utils.get_file_timestamp(self.path)
-		
 		if self.timestamp != self.get_db_timestamp():
 			return True
 		
@@ -177,11 +177,11 @@ class ModuleFile:
 			Returns the timestamp of the file
 		"""
 		try:
-			ts = webnotes.conn.sql("select tstamp from __file_timestamp where file_name=%s", fn)
+			ts = webnotes.conn.sql("select tstamp from __file_timestamp where file_name=%s", self.path)
 			if ts:
 				return ts[0][0]
 		except Exception, e:
-			if e.args[0]==1147:
+			if e.args[0]==1146:
 				# create the table
 				webnotes.conn.commit()
 				webnotes.conn.sql("""
@@ -199,7 +199,7 @@ class ModuleFile:
 		"""
 		webnotes.conn.sql("""
 			insert into __file_timestamp(file_name, tstamp) 
-			values (%s, %s) on duplicate key update""", (self.path, self.timestamp))
+			values (%s, %s) on duplicate key update tstamp=%s""", (self.path, self.timestamp, self.timestamp))
 
 	def load_content(self):
 		"""
@@ -244,8 +244,12 @@ class TxtModuleFile(ModuleFile):
 		
 			from webnotes.model.utils import peval_doclist
 			doclist = peval_doclist(self.read())
-
 			if doclist:
+				# since there is a new timestamp on the file, update timestamp in
+				# the record
+				webnotes.conn.sql("update `tab%s` set modified=now() where name=%s" \
+					% (doclist[0]['doctype'], '%s'), doclist[0]['name'])
+					
 				from webnotes.utils.transfer import set_doc
 				set_doc(doclist, 1, 1, 1)
 		
@@ -260,13 +264,12 @@ class SqlModuleFile(ModuleFile):
 			execute the sql if new
 		"""
 		if self.is_new():
-			content = mf.read()
-			
+			content = self.read()
 			# execute everything but selects
-			if content.strip().split()[0].lower()!='select':
-				webnotes.conn.sql(mf.read())
+			if content.strip().split()[0].lower() in ('insert','update','delete','create','alter','drop'):
+				webnotes.conn.sql(self.read())
 				
-			mf.update()
+			self.update()
 			
 class JsModuleFile(ModuleFile):
 	"""
@@ -285,13 +288,14 @@ class JsModuleFile(ModuleFile):
 		name = match.group('name')
 		import webnotes.defs, os
 		
-		if '/' in name:
-			path = os.path.join(webnotes.defs.modules_path, name)
+		if os.path.sep in name:
+			module = name.split(os.path.sep)[0]
+			path = os.path.join(Module(module).get_path(), os.path.sep.join(name.split(os.path.sep)[1:]))
 		else:
 			# its a doctype
 			path = os.path.join(get_doc_path('DocType', name), name + '.js')
 		
-		return JSModuleFile(path).read()
+		return JsModuleFile(path).read()
 			
 	def read(self):
 		"""

@@ -1,0 +1,108 @@
+# DocType, Sandbox
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 12:08:57',
+		'docstatus': 0,
+		'modified': '2011-07-22 12:09:36',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': '_SD.####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'version': 2
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Sandbox',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'amend': 1,
+		'cancel': 1,
+		'create': 1,
+		'doctype': 'DocPerm',
+		'execute': 1,
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'Sandbox',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'Administrator',
+		'submit': 1,
+		'write': 1
+	},
+
+	# DocType, Sandbox
+	{
+		'doctype': 'DocType',
+		'name': 'Sandbox'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_data',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'Test Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_link',
+		'fieldtype': 'Link',
+		'idx': 2,
+		'label': 'Test Link'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_text',
+		'fieldtype': 'Text',
+		'idx': 3,
+		'label': 'Test Text'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_date',
+		'fieldtype': 'Date',
+		'idx': 4,
+		'label': 'Test Date'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'to_be_dropped',
+		'fieldtype': 'Data',
+		'idx': 5,
+		'label': 'to be dropped'
+	}
+]

@@ -101,7 +101,7 @@ class Database:
 
 	# ======================================================================================
 	
-	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0):
+	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0, ignore_ddl=0):
 		"""
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
@@ -114,13 +114,20 @@ class Database:
 			query = self.add_multi_tenant_condition(query)
 			
 		# execute
-		if values!=():
-			self._cursor.execute(query, values)
-			if debug: webnotes.msgprint(query % values)
+		try:
+			if values!=():
+				self._cursor.execute(query, values)
+				if debug: webnotes.msgprint(query % values)
 				
-		else:
-			self._cursor.execute(query)	
-			if debug: webnotes.msgprint(query)
+			else:
+				self._cursor.execute(query)	
+				if debug: webnotes.msgprint(query)
+		except Exception, e:
+			# ignore data definition errors
+			if ignore_ddl and e.args[0] in (1146,1054,1091):
+				pass
+			else:
+				raise e
 
 		# scrub output if required
 		if as_dict:
