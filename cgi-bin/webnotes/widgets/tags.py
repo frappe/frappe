@@ -207,7 +207,7 @@ class TagCounter:
 def get_top_field_tags(dt):
 	from webnotes.model.doctype import get_property
 	tf = get_property(dt, 'tag_fields')
-	
+
 	if not tf: return []
 	
 	# restrict to only 2 fields

@@ -280,12 +280,12 @@ def get_property(dt, property):
 	prop = webnotes.conn.sql("""
 		select value 
 		from `tabProperty Setter` 
-		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property), as_dict=1):
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property))
 	if prop: 
 		return prop[0][0]
 	else:
 		return webnotes.conn.get_value('DocType', dt, property)
-	
+
 def get(dt):
 	"""
 	Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
