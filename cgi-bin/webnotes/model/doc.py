@@ -206,6 +206,10 @@ class Document:
 		# default name for table
 		elif istable: 
 			self.name = make_autoname('#########', self.doctype)
+			
+		# unable to determine a name, use a serial number!
+		if not self.name:
+			self.name = make_autoname('#########', self.doctype)
 					
 	# Validate Name
 	# ---------------------------------------------------------------------------
@@ -396,6 +400,10 @@ class Document:
 
 	def check_perm(self, verbose=0):
 		import webnotes
+		
+		# Admin has all permissions
+		if webnotes.session['user']=='Administrator':
+			return 1
 		
 		# find roles with read access for this record at 0
 		self._get_perms()

@@ -71,6 +71,7 @@ class ModuleTest(unittest.TestCase):
 		"""
 			Test sync all (rerun the sql file test calling sync_all)
 		"""
+		
 		webnotes.conn.rollback()
 		webnotes.conn.sql("drop trigger if exists sandbox_trigger")
 		self.update_timestamp('doctype/sandbox/my_trigger.sql')

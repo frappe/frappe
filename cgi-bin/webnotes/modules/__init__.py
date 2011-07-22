@@ -142,16 +142,28 @@ class Module:
 		dt, dn = scrub_dt_dn(dt, dn)
 		self.get_file(dt, dn, dn + '.txt').sync()
 		
-	def sync_all(self):
+	def sync_all_of_type(self, extn, verbose=0):
 		"""
-			Walk through all the files in the modules and sync all files
+			Walk through all the files in the modules and sync all files of
+			a particular type
 		"""
 		import os
 		ret = []
 		for walk_tuple in os.walk(self.get_path()):
 			for f in walk_tuple[2]:
-				if f.split('.')[-1] in self.sync_types:
-					self.get_file(os.path.join(walk_tuple[0], f)).sync()
+				if f.split('.')[-1] == extn:
+					path = os.path.relpath(os.path.join(walk_tuple[0], f), self.get_path())
+					self.get_file(path).sync()
+					if verbose:
+						print 'complete: ' + path
+
+	def sync_all(self, verbose=0):
+		"""
+			Walk through all the files in the modules and sync all files
+		"""
+		import os
+		self.sync_all_of_type('txt', verbose)
+		self.sync_all_of_type('sql', verbose)
 	
 class ModuleFile:
 	"""
@@ -187,7 +199,7 @@ class ModuleFile:
 				webnotes.conn.sql("""
 					create table __file_timestamp (
 						file_name varchar(180) primary key, 
-						tstamp varchar(40))""")
+						tstamp varchar(40)) engine=InnoDB""")
 				webnotes.conn.begin()
 			else:
 				raise e
@@ -241,7 +253,6 @@ class TxtModuleFile(ModuleFile):
 			import the doclist if new
 		"""
 		if self.is_new():
-		
 			from webnotes.model.utils import peval_doclist
 			doclist = peval_doclist(self.read())
 			if doclist:
@@ -262,13 +273,21 @@ class SqlModuleFile(ModuleFile):
 	def sync(self):
 		"""
 			execute the sql if new
+			The caller must either commit or rollback an open transaction
 		"""
 		if self.is_new():
 			content = self.read()
+			
 			# execute everything but selects
+			# theses are ddl statements, should either earlier
+			# changes must be committed or rollbacked
+			# by the caller
 			if content.strip().split()[0].lower() in ('insert','update','delete','create','alter','drop'):
 				webnotes.conn.sql(self.read())
-				
+
+			# start a new transaction, as we have to update
+			# the timestamp table
+			webnotes.conn.begin()
 			self.update()
 			
 class JsModuleFile(ModuleFile):

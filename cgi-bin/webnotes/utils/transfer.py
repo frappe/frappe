@@ -85,7 +85,7 @@ class UpdateDocument:
 	# delete existing
 	def delete_existing(self):
 		from webnotes.model import delete_doc
-		delete_doc(self.doc.doctype, self.doc.namem, force=1)
+		delete_doc(self.doc.doctype, self.doc.name, force=1)
 
 	# update modified timestamp
 	def update_modified(self):
@@ -293,11 +293,8 @@ class UpdateModuleDef(UpdateDocumentMerge):
 			return webnotes.conn.sql("select module_seq, disabled, is_hidden from `tabModule Def` where name=%s", d.name, as_dict = 1)[0]
 
 	def run_on_update(self):
-		from webnotes.model.code import get_server_obj
-		so = get_server_obj(self.doc, self.doclist)
-		print str(dir(so))
-		if hasattr(so, 'on_update'):
-			so.on_update(from_update=1)
+		# no scripts for Module Def
+		pass
 
 
 class UpdateDocTypeMapper(UpdateDocumentMerge):

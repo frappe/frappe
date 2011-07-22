@@ -55,14 +55,13 @@ class Installer:
 			Creates profile Administrator
 		"""
 		import webnotes
-		from webnotes.modules.import_module import import_module
-		from webnotes.modules.module_manager import reload_doc
+		from webnotes.modules import Module
+		core = Module('core')
 
-		reload_doc('core','doctype','doctype')
-		reload_doc('core','doctype','docfield')
-		reload_doc('core','doctype','docperm')
-
-		import_module('core')
+		core.reload('doctype','doctype')
+		core.reload('doctype','docfield')
+		core.reload('doctype','docperm')
+		core.sync_all(verbose=1)
 		
 	def create_users(self):
 		"""
