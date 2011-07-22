@@ -3,17 +3,16 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2010-10-13 16:33:29',
+		'creation': '2011-07-22 15:56:01',
 		'docstatus': 0,
-		'modified': '2011-01-04 14:39:15',
-		'modified_by': 'umair@iwebnotes.com',
+		'modified': '2011-07-22 15:56:01',
+		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
 		'_last_update': '1305789385',
-		'allow_trash': 1,
 		'autoname': 'CustomField.####',
 		'colour': 'White:FFF',
 		'description': 'Adds a custom field to a DocType',

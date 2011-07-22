@@ -1,7 +1,23 @@
+"""
+	Merges (syncs) incoming doclist into the database 
+	Called when: 
+		importing .txt files
+		importing bulk records from .csv files
+		
+	For regular types, deletes the record and recreates it
+	for special types: `DocType`, `Module Def`, `DocType Mapper` there are subclasses
+	
+	To use::
+		set_doc(doclist, ovr=1, ingore=1, noupdate=1)
+"""
+
 import webnotes
 from webnotes.model.doc import Document
 
 def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
+	"""
+		Wrapper function to sync a record
+	"""
 	dt = doclist[0]['doctype']
 	
 	if webnotes.conn.exists(doclist[0]['doctype'], doclist[0]['name']):	
@@ -69,9 +85,7 @@ class UpdateDocument:
 	# delete existing
 	def delete_existing(self):
 		from webnotes.model import delete_doc
-		webnotes.conn.sql("set foreign_key_checks=0")
-		delete_doc(self.doc.doctype, self.doc.name)
-		webnotes.conn.sql("set foreign_key_checks=1")
+		delete_doc(self.doc.doctype, self.doc.namem, force=1)
 
 	# update modified timestamp
 	def update_modified(self):
@@ -99,10 +113,6 @@ class UpdateDocument:
 			so.on_update()
 
 
-
-#
-# "Merge incoming doctype"
-#
 class UpdateDocumentMerge(UpdateDocument):
 	def __init__(self, in_doclist):
 		self.to_update_doctype = []
@@ -262,10 +272,10 @@ class UpdateDocType(UpdateDocumentMerge):
 			so.on_update(from_import=1)
 
 
-#
-# update module def
-#
 class UpdateModuleDef(UpdateDocumentMerge):
+	"""
+		Merge `Module Def`
+	"""
 	def __init__(self, in_doclist):
 		UpdateDocumentMerge.__init__(self, in_doclist)
 		self.to_update_doctype = ['Module Def', 'Module Def Item']
@@ -282,12 +292,18 @@ class UpdateModuleDef(UpdateDocumentMerge):
 		if d.doctype=='Module Def':
 			return webnotes.conn.sql("select module_seq, disabled, is_hidden from `tabModule Def` where name=%s", d.name, as_dict = 1)[0]
 
+	def run_on_update(self):
+		from webnotes.model.code import get_server_obj
+		so = get_server_obj(self.doc, self.doclist)
+		print str(dir(so))
+		if hasattr(so, 'on_update'):
+			so.on_update(from_update=1)
 
 
-#
-# update module def
-#
 class UpdateDocTypeMapper(UpdateDocumentMerge):
+	"""
+		Merge `DocType Mapper`
+	"""
 	def __init__(self, in_doclist):
 		UpdateDocumentMerge.__init__(self, in_doclist)
 		self.to_update_doctype = ['Field Mapper Detail', 'Table Mapper Detail']

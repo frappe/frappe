@@ -64,9 +64,19 @@ class ModuleTest(unittest.TestCase):
 		webnotes.conn.rollback()
 		webnotes.conn.sql("drop trigger if exists sandbox_trigger")
 		self.update_timestamp('doctype/sandbox/my_trigger.sql')
-		data = Module('core').get_file('doctype','sandbox','my_trigger.sql').sync()
+		Module('core').get_file('doctype','sandbox','my_trigger.sql').sync()
 		self.assertTrue(webnotes.conn.sql("show triggers like 'tabSandbox'")[0][0]=='sandbox_trigger')
 	
+	def test_sync_all(self):
+		"""
+			Test sync all (rerun the sql file test calling sync_all)
+		"""
+		webnotes.conn.rollback()
+		webnotes.conn.sql("drop trigger if exists sandbox_trigger")
+		self.update_timestamp('doctype/sandbox/my_trigger.sql')
+		Module('core').sync_all()
+		self.assertTrue(webnotes.conn.sql("show triggers like 'tabSandbox'")[0][0]=='sandbox_trigger')
+		
 	def tearDown(self):
 		if webnotes.conn.in_transaction:
 			webnotes.conn.rollback()
