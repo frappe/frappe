@@ -44,7 +44,9 @@ class DocType:
 
 	def on_update(self, from_update=0):
 		import webnotes.defs
-		if (not from_update) and hasattr(webnotes.defs, 'developer_mode') and webnotes.defs.developer_mode:
+		from webnotes.utils.transfer import in_transfer
+		
+		if (not in_transfer) and getattr(defs,'developer_mode', 0):
 			from webnotes.modules.export_module import export_to_files
 			export_to_files(record_list=[[self.doc.doctype, self.doc.name]])
 			

@@ -14,10 +14,15 @@
 import webnotes
 from webnotes.model.doc import Document
 
+# this variable is a flag that transfer process is on, to the on_update
+# method so that if there are other processes on import, it can do so
+in_transfer = 0
+
 def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 	"""
 		Wrapper function to sync a record
 	"""
+	global in_transfer
 	dt = doclist[0]['doctype']
 	
 	if webnotes.conn.exists(doclist[0]['doctype'], doclist[0]['name']):	
@@ -33,8 +38,10 @@ def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 			ud = UpdateDocument(doclist)
 	else:
 		ud = UpdateDocument(doclist)
-		
+	
+	in_transfer = 1
 	ud.sync()
+	in_transfer = 0
 	return '\n'.join(ud.log)
 
 
@@ -269,7 +276,7 @@ class UpdateDocType(UpdateDocumentMerge):
 		from webnotes.model.code import get_server_obj
 		so = get_server_obj(self.doc, self.doclist)
 		if hasattr(so, 'on_update'):
-			so.on_update(from_import=1)
+			so.on_update()
 
 
 class UpdateModuleDef(UpdateDocumentMerge):

@@ -73,7 +73,7 @@ class DocType:
 		self.validate_fields()
 		self.set_version()
 
-	def on_update(self, from_import=None):
+	def on_update(self):
 		# make schma changes
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
@@ -81,7 +81,9 @@ class DocType:
 		self.change_modified_of_parent()
 		
 		import webnotes.defs
-		if (not from_import) and hasattr(webnotes.defs, 'developer_mode') and webnotes.defs.developer_mode:
+		from webnotes.utils.transfer import in_transfer
+
+		if (not in_transfer) and getattr(defs,'developer_mode', 0):
 			self.export_doc()
 		sql("delete from __DocTypeCache")
 		
