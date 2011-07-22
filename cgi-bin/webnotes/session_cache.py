@@ -125,8 +125,8 @@ def load_startup(cp):
 	
 	import os
 
-	cp.startup_code = ModuleFile(os.path.join(modules_path, 'startup', 'startup.js')).get_content()
-	cp.startup_css = ModuleFile(os.path.join(modules_path, 'startup', 'startup.css')).get_content()
+	cp.startup_code = ModuleFile(os.path.join(modules_path, 'startup', 'startup.js')).load_content()
+	cp.startup_css = ModuleFile(os.path.join(modules_path, 'startup', 'startup.css')).load_content()
 
 # build it
 # ==================================================
