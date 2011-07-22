@@ -280,7 +280,7 @@ def get_property(dt, property):
 	prop = webnotes.conn.sql("""
 		select value 
 		from `tabProperty Setter` 
-		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property), as_dict=1):
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property))
 	if prop: 
 		return prop[0][0]
 	else:
