@@ -3,7 +3,7 @@
 # Chai Project may be freely distributed under MIT license
 # Authors: Rushabh Mehta (@rushabh_mehta)
 
-import chai
+import webnotes
 
 class HTMLPage:
 	"""
@@ -27,11 +27,16 @@ class HTMLPage:
 		self.templates = {
 			# test version
 			'Standard': {
-				'css': [],
+				'css': [
+					'css/jquery-ui.css',
+					'css/default.css'
+				],
 				'js': [
-					'wn/lib/json2-min.js',
-					'wn/lib/jquery-min.js',
-					'wn/modules.js'
+				'js/jquery/jquery.min.js',
+				'js/jquery/jquery-ui.min.js',
+				'js/tiny_mce_33/jquery.tinymce.js',
+				'js/wnf.compressed.js',
+				'js/form.compressed.js'
 				]
 			}
 		}
@@ -41,7 +46,7 @@ class HTMLPage:
 			Return the [doctype, name] of object to render
 		"""
 		
-		page_url = chai.request.form.get('_escaped_fragment_', chai.request.form.get('page', ''))
+		page_url = webnotes.request._escaped_fragment_ or  webnotes.request.page or ''
 
 		if page_url:
 			import urllib
@@ -126,7 +131,7 @@ class HTMLPage:
 		# add debug messages
 		sd['server_messages'] = '\n--------------\n'.join(webnotes.message_log)
 		
-		self.boot_js = chai.form.get('no_startup') and '{}' or json.dumps(sd)
+		self.boot_js = webnotes.request.no_startup and '{}' or json.dumps(sd)
 
 	def ele(self, tag_name, attributes, content):
 		"""
@@ -225,7 +230,7 @@ def redirect():
 	"""
 		Redirect to self (to hide session id "sid" from the url)
 	"""
-	page = chai.form.get('page', '')
+	page = webnotes.request.page or ''
 	return '''<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.0 Transitional//EN">
 	<html>
 	<head>
@@ -243,11 +248,9 @@ def build(template = 'Standard'):
 		the sid remains hidden to the user
 	"""
 	
-	chai.response.header['Content-Type'] = 'text/html'
+	webnotes.response.headers['Content-Type'] = 'text/html'
 
-	if chai.form.get('sid'): 
-		chai.response.content = redirect()
+	if webnotes.request.sid: 
+		webnotes.response.content = redirect()
 		return
-
-	chai.response.content = HTMLPage(template).render()
-
+	webnotes.response.pagehtml= HTMLPage(template).render()

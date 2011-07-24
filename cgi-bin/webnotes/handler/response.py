@@ -23,6 +23,7 @@ class HTTPResponse:
 		self.data = {}
 		self.out = []
 		self.compressed = False
+		self.pagehtml = None
 		# Setting self.attachment to False,  pitfall?
 		self.attachment = False
 		self.file_name = None
@@ -74,8 +75,8 @@ class HTTPResponse:
 		Returns True if client accepts gzip
 		"""
 		import os, string
-		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
-			return True
+		return False
+		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:pass
 			
 	def gzip_content(self):
 		"""
@@ -100,12 +101,15 @@ class HTTPResponse:
 		"""
 		if not self.file_name:
 			import json
-			self.content = json.dumps({
-				'message': self.message,
-				'notifications': self.notifications,
-				'exc': self.exc,
-				'data': self.data
-			})
+			if self.pagehtml:
+				self.content = self.pagehtml
+			else:
+				self.content = json.dumps({
+					'message': self.message,
+					'notifications': self.notifications,
+					'exc': self.exc,
+					'data': self.data,
+				})
 			
 			# compress
 			if not self.compressed:
@@ -126,6 +130,5 @@ class HTTPResponse:
 		if self.content:
 			self.out.append(self.content)
 			pass
-		
 		return '\n'.join(self.out)
 #		raise Exception,str(self.out)

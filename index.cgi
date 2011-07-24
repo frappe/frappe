@@ -49,7 +49,6 @@ try:
 	#FIXME Stuff below is not Pythonic
 	for key in form.keys():
 		requestflds[key]=form.getvalue(key)
-#	raise Exception, webnotes.requestform
 	import webnotes.handler
 	webnotes.handler.handle(requestflds)
 	if(0):

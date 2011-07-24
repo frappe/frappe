@@ -26,7 +26,7 @@ def handle(reqflds):
 #	raise Exception, webnotes.session
 #	if webnotes.request.form.get('sid'):
 #		webnotes.cookie_manager.set_cookies()
-#	setup_profile()
+	setup_profile()
 	
 	# there are two types of request - one for a full page
 	# and other for ajax via the "action" property
@@ -34,16 +34,17 @@ def handle(reqflds):
 	if webnotes.request.cmd and webnotes.request.cmd!='login' :
 		try:
 			webnotes.response['message']=webnotes.request.execute()
+			print webnotes.response.to_string()
 		except webnotes.ValidationError:
 			webnotes.conn.rollback()
 		except:
 			webnotes.errprint(webnotes.utils.getTraceback())
 			webnotes.conn and webnotes.conn.rollback()
-
-#else:
-#		from webnotes.handler import index
-#		index.build()
-	print webnotes.response.to_string()
+	else:
+		from webnotes.handler import index
+		index.build()
+		print webnotes.response.to_string()
+	#	print webnotes.response.pagehtml
 def load_session():
 	"""
 		Load the session object
