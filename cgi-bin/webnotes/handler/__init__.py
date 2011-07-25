@@ -40,6 +40,7 @@ def handle(reqflds):
 		except:
 			webnotes.errprint(webnotes.utils.getTraceback())
 			webnotes.conn and webnotes.conn.rollback()
+#		raise Exception, webnotes.response.to_string()
 	else:
 		from webnotes.handler import index
 		index.build()
@@ -58,7 +59,6 @@ def check_status():
 	"""
 	if webnotes.conn.get_global("__session_status")=='stop':
 		webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
-		raise Exception
 def setup_profile():
 	"""
 		Setup Profile

@@ -27,6 +27,7 @@ class HTTPResponse:
 		# Setting self.attachment to False,  pitfall?
 		self.attachment = False
 		self.file_name = None
+		self.resflds = {}
 	
 	def __setitem__(self,key,value):
 		self.__dict__[key]=value
@@ -104,18 +105,18 @@ class HTTPResponse:
 			if self.pagehtml:
 				self.content = self.pagehtml
 			else:
-				self.content = json.dumps({
-					'message': self.message,
-					'notifications': self.notifications,
-					'exc': self.exc,
-					'data': self.data,
-				})
-			
+				cont = {}
+				for key in self.get_response_headers():
+					cont[key] = self.__dict__[key]
+				self.content = json.dumps(cont)
 			# compress
 			if not self.compressed:
 				self.gzip_content()
 				
-	
+	def get_response_headers(self):
+		not_to_send = ( 'attachment', 'content', 'pagehtml', 'compressed', 'cookies', 'content_charset', 'headers' )
+		empty = (None, [], {}, '')
+		return [x for x in self.__dict__ if x not in not_to_send and self.__dict__[x] not in empty]
 				
 	def to_string(self):
 		"""
