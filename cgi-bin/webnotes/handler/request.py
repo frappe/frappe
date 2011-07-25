@@ -88,9 +88,9 @@ class HTTPRequest:
 
 		except webnotes.ValidationError:
 			webnotes.conn.rollback()
-		except:
-			webnotes.errprint(webnotes.utils.getTraceback())
+		except Exception, e:
 			webnotes.conn and webnotes.conn.rollback()
+			raise Exception, webnotes.utils.getTraceback()
 	def set_env_variables(self):
 		"""
 			Set environment variables like domain name and ip address

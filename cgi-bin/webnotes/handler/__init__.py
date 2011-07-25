@@ -32,15 +32,8 @@ def handle(reqflds):
 	# and other for ajax via the "action" property
 	#raise Exception, str(webnotes.request.form.get('cmd'))
 	if webnotes.request.cmd and webnotes.request.cmd!='login' :
-		try:
-			webnotes.response['message']=webnotes.request.execute()
-			print webnotes.response.to_string()
-		except webnotes.ValidationError:
-			webnotes.conn.rollback()
-		except:
-			webnotes.errprint(webnotes.utils.getTraceback())
-			webnotes.conn and webnotes.conn.rollback()
-#		raise Exception, webnotes.response.to_string()
+		webnotes.response['message']=webnotes.request.execute()
+		print webnotes.response.to_string()
 	else:
 		from webnotes.handler import index
 		index.build()
