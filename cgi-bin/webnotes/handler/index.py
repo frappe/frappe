@@ -142,10 +142,9 @@ class HTMLPage:
 		for key in attributes:
 			al.append('%s="%s"' % (key, attributes[key]))
 		out = '<%s %s>' % (tag_name, ' '.join(al))
-		if content != None:
-			return out + content + ('</%s>' % tag_name)
-		else:
-			return out[:-1] + ' />'
+		if content == None:
+			content = ''
+		return out + content + ('</%s>' % tag_name)
 		
 	def render(self):
 		"""
@@ -211,7 +210,7 @@ class HTMLPage:
 		scripts = self.templates[self.template].get('js')
 		sl = []
 		for i in scripts:
-			sl.append(self.ele('script', {'language':'Javascript', 'type':'text/js', 'src':i}, ''))
+			sl.append(self.ele('script', {'language':'Javascript', 'type':'text/javascript', 'src':i}, ''))
 
 		if self.boot_js:
 			sl.append('\n<!-- bootstrap -->')
@@ -223,8 +222,15 @@ class HTMLPage:
 		"""
 			Get <body>
 		"""
-		return "\n<body>\n%s\n</body>" % self.content
-
+		return "\n<body>\n%s%s\n</body>" % (self.get_boot_eles() , self.content)
+	
+	def get_boot_eles(self):
+		eles = []
+		eles.append(self.ele('div', {'id' : 'dialog_back'}, None))
+		eles.append(self.ele('div', { 'id' : 'startup_div'}, None))
+		eles.append(self.ele('div', { 'id' : 'body_div'},
+			'\n' + self.ele('div',{'class' : 'no_script'}, None)))
+		return '\n'.join(eles)
 
 def redirect():
 	"""
