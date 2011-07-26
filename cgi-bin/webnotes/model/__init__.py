@@ -36,7 +36,7 @@ def check_if_doc_is_linked(dt, dn):
 				webnotes.msgprint("Cannot delete %s <b>%s</b> because it is linked in %s <b>%s</b>" % (dt, dn, link_dt, item[0][0]), raise_exception=1)
 
 
-def delete_doc(doctype=None, name=None, doclist = None):
+def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -74,7 +74,8 @@ def delete_doc(doctype=None, name=None, doclist = None):
 		obj.on_trash()
 	
 	# check if links exist
-	check_if_doc_is_linked(doctype, name)
+	if not force:
+		check_if_doc_is_linked(doctype, name)
 	
 	try:
 		webnotes.conn.sql("delete from `tab%s` where name='%s' limit 1" % (doctype, name))

@@ -61,8 +61,8 @@ class DocType:
 			it will write out a .html file
 		"""
 		from webnotes import defs
-		
-		if getattr(defs,'developer_mode', 0):
+		from webnotes.utils.transfer import in_transfer
+		if not in_transfer and getattr(defs,'developer_mode', 0):
 			from webnotes.modules.export_module import export_to_files
 			from webnotes.modules import get_module_path, scrub
 			import os

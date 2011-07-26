@@ -20,13 +20,13 @@ class DocType:
 		import re
 		from webnotes.utils import validate_email_add
 
-		self.doc.email = self.doc.email.strip()
 		if self.doc.name not in ('Guest','Administrator'):
+			self.doc.email = self.doc.email.strip()
 			if not validate_email_add(self.doc.email):
 				msgprint("%s is not a valid email id" % self.doc.email)
 				raise Exception
 		
-		self.doc.name = self.doc.email
+			self.doc.name = self.doc.email
 	
 	def on_update(self):
 		# owner is always name

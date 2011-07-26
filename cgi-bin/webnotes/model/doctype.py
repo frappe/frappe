@@ -156,7 +156,8 @@ class _DocType:
 		
 		update_fields = ('description', 'depends_on')
 
-		from webnotes.modules import get_file_timestamp, get_item_file
+		from webnotes.modules import get_item_file
+		from webnotes.utils import get_file_timestamp
 
 		doc = doclist[0] # main doc
 		file_name = get_item_file(doc.module, 'DocType', doc.name)
@@ -239,9 +240,7 @@ class _DocType:
 		      * replaces `link:` in the `Select` fields
 		      * loads all related `Search Criteria`
 		      * updates the cache
-		"""
-		from webnotes.modules import compress
-		
+		"""		
 		tablefields = webnotes.model.meta.get_table_fields(self.name)
 
 		if self.is_modified():
@@ -262,8 +261,10 @@ class _DocType:
 
 		else:
 			doclist = self._load_from_cache()
-			
-		doclist[0].fields['__client_script'] = compress.get_doctype_js(self.name)
+		
+		from webnotes.modules import Module
+		doc = doclist[0]
+		doc.fields['__client_script'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read()
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
 
@@ -272,8 +273,18 @@ class _DocType:
 def clear_cache():
 	webnotes.conn.sql("delete from __DocTypeCache")
 	
-# Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
-#=================================================================================================
+def get_property(dt, property):
+	"""
+		get a doctype property, override it from property setter if specified
+	"""
+	prop = webnotes.conn.sql("""
+		select value 
+		from `tabProperty Setter` 
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property))
+	if prop: 
+		return prop[0][0]
+	else:
+		return webnotes.conn.get_value('DocType', dt, property)
 
 def get(dt):
 	"""

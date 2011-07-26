@@ -107,7 +107,7 @@ class Profile:
 					return h[1]
 		except:
 			pass
-		return webnotes.conn.get_value('Control Panel',None,'home_page')
+		return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'
 
 	def get_defaults(self):
 		"""

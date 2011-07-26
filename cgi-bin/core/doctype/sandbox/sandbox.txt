@@ -1,25 +1,23 @@
-# DocType, DocType Label
+# DocType, Sandbox
 [
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 15:58:56',
+		'creation': '2011-07-22 12:08:57',
 		'docstatus': 0,
-		'modified': '2011-07-22 15:58:56',
+		'modified': '2011-07-22 12:09:36',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
-		'autoname': 'field:dt',
+		'autoname': '_SD.####',
 		'colour': 'White:FFF',
 		'doctype': 'DocType',
 		'module': 'Core',
 		'name': '__common__',
 		'section_style': 'Simple',
-		'server_code_error': ' ',
 		'version': 2
 	},
 
@@ -27,32 +25,35 @@
 	{
 		'doctype': 'DocField',
 		'name': '__common__',
-		'parent': 'DocType Label',
+		'parent': 'Sandbox',
 		'parentfield': 'fields',
 		'parenttype': 'DocType',
-		'permlevel': 0,
-		'reqd': 1
+		'permlevel': 0
 	},
 
 	# These values are common for all DocPerm
 	{
+		'amend': 1,
+		'cancel': 1,
 		'create': 1,
 		'doctype': 'DocPerm',
+		'execute': 1,
 		'idx': 1,
 		'name': '__common__',
-		'parent': 'DocType Label',
+		'parent': 'Sandbox',
 		'parentfield': 'permissions',
 		'parenttype': 'DocType',
 		'permlevel': 0,
 		'read': 1,
 		'role': 'Administrator',
+		'submit': 1,
 		'write': 1
 	},
 
-	# DocType, DocType Label
+	# DocType, Sandbox
 	{
 		'doctype': 'DocType',
-		'name': 'DocType Label'
+		'name': 'Sandbox'
 	},
 
 	# DocPerm
@@ -63,23 +64,45 @@
 	# DocField
 	{
 		'doctype': 'DocField',
-		'fieldname': 'dt',
-		'fieldtype': 'Select',
+		'fieldname': 'test_data',
+		'fieldtype': 'Data',
 		'idx': 1,
-		'label': 'Select DocType',
-		'oldfieldname': 'dt',
-		'oldfieldtype': 'Select',
-		'options': 'link:DocType'
+		'label': 'Test Data'
 	},
 
 	# DocField
 	{
 		'doctype': 'DocField',
-		'fieldname': 'dt_label',
-		'fieldtype': 'Data',
+		'fieldname': 'test_link',
+		'fieldtype': 'Link',
 		'idx': 2,
-		'label': 'DocType Label',
-		'oldfieldname': 'dt_label',
-		'oldfieldtype': 'Data'
+		'label': 'Test Link'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_text',
+		'fieldtype': 'Text',
+		'idx': 3,
+		'label': 'Test Text'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_date',
+		'fieldtype': 'Date',
+		'idx': 4,
+		'label': 'Test Date'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'to_be_dropped',
+		'fieldtype': 'Data',
+		'idx': 5,
+		'label': 'to be dropped'
 	}
 ]

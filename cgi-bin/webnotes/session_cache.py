@@ -118,21 +118,15 @@ def get_letter_heads():
 # load startup.js and startup.css from the modules/startup folder
 
 def load_startup(cp):
-	from webnotes.modules import compress
+	from webnotes.modules import ModuleFile
 	
 	try: from webnotes.defs import modules_path
 	except ImportError: return
 	
 	import os
 
-	try:
-		cp.startup_code = compress.get_js_code(os.path.join(modules_path, 'startup', 'startup'))
-		startup_css = open(os.path.join(modules_path, 'startup', 'startup.css'), 'r')
-		cp.startup_css = startup_css.read()
-		startup_css.close()
-	except IOError, e:
-		if e.args[0]!=2: # no startup module!
-			raise e
+	cp.startup_code = ModuleFile(os.path.join(modules_path, 'startup', 'startup.js')).load_content()
+	cp.startup_css = ModuleFile(os.path.join(modules_path, 'startup', 'startup.css')).load_content()
 
 # build it
 # ==================================================

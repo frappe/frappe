@@ -90,12 +90,10 @@ def scrub_ids(content):
 	
 	return content
 
-#
-# load the page content and meta tags
-#
 def get_page_content(page):
 	"""
-	   Gets the HTML content from `static_content` or `content` property of a `Page`
+		Gets the HTML content from `static_content` or `content` property of a `Page`
+		and loads it in global `page_properties`
 	"""
 	from webnotes.model.code import get_code
 	from webnotes.model.doc import Document
@@ -125,9 +123,6 @@ def get_page_content(page):
 	except:
 		pass
 
-#
-# load metatags
-#
 def load_page_metatags(doc):
 	global page_properties
 
@@ -143,25 +138,6 @@ def load_page_metatags(doc):
 	page_properties['add_in_head'] = getattr(startup, 'add_in_head', '')
 	page_properties['add_in_body'] = getattr(startup, 'add_in_body', '')
 
-#
-# load the form as page (deprecated)
-#
-def get_doc_content(dt, dn):
-	"""
-	   Gets the HTML content of a document record by using the overridden or standard :method: `doclist.to_html`
-	"""
-	import webnotes.model.code
-	
-	if dt in webnotes.user.get_read_list():
-		# generate HTML
-		do = webnotes.model.code.get_obj(dt, dn, with_children = 1)
-		if hasattr(do, 'to_html'):
-			return dn, do.to_html()
-		else:
-			import webnotes.model.doclist
-			return dn, webnotes.model.doclist.to_html(do.doclist)
-	else:
-		return 'Forbidden - 404', '<h1>Forbidden - 404</h1>'
 
 # find the page to load as static
 # -------------------------------
@@ -171,17 +147,14 @@ def load_properties():
 	import urllib
 
 	page_url = webnotes.form_dict.get('_escaped_fragment_', webnotes.form_dict.get('page', ''))
+
+	if page_url and page_url.lower().startswith('page/'): 
+		page_url = page_url[5:]
 	
 	if page_url:
-		if page_url.startswith('Page/'): 
-			page_url = page_url[5:]
-		page_url = ['Page', urllib.unquote(page_url)]
+		get_page_content(urllib.unquote(page_url))
 	else:
-		page_url = ['Page', webnotes.user.get_home_page()]
-		
-	# load content
-	# -----------------	
-	get_page_content(page_url[1])
+		get_page_content(webnotes.user.get_home_page())
 
 # generate the page
 # -----------------
