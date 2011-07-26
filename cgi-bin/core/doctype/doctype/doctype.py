@@ -81,6 +81,7 @@ class DocType:
 		self.change_modified_of_parent()
 		
 		import webnotes.defs
+		defs = webnotes.defs
 		from webnotes.utils.transfer import in_transfer
 
 		if (not in_transfer) and getattr(defs,'developer_mode', 0):
