@@ -102,9 +102,12 @@ class HTTPResponse:
 		"""
 		if not self.file_name:
 			import json
+			import webnotes.model.utils
 			if self.pagehtml:
 				self.content = self.pagehtml
 			else:
+				if hasattr(self,'docs'):
+					self.docs = webnotes.model.utils.compress(self.docs)
 				cont = {}
 				for key in self.get_response_headers():
 					cont[key] = self.__dict__[key]
