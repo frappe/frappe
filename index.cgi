@@ -49,6 +49,9 @@ try:
 	#FIXME Stuff below is not Pythonic
 	for key in form.keys():
 		requestflds[key]=form.getvalue(key)
+	# webnotes.form_dict and webnotes.form are deprecated, below is for bc
+	webnotes.form_dict = requestflds
+	webnotes.form = form
 	import webnotes.handler
 	webnotes.handler.handle(requestflds)
 	if(0):

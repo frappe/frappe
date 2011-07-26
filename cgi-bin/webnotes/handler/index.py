@@ -113,7 +113,7 @@ class HTMLPage:
 		self.site_description = doc.site_description
 		self.title = doc.title
 
-		self.get_page_content()
+		self.get_page_content(doc)
 
 	def load_session(self):
 		"""
@@ -260,3 +260,17 @@ def build(template = 'Standard'):
 		webnotes.response.content = redirect()
 		return
 	webnotes.response.pagehtml= HTMLPage(template).render()
+
+def scrub_ids(content):
+	import re
+	
+	p = re.compile('id=\"(?P<name> [^\"]*)\"', re.VERBOSE)
+	content = p.sub(replace_id, content)
+
+	p = re.compile('id=\'(?P<name> [^\']*)\'', re.VERBOSE)
+	content = p.sub(replace_id, content)
+	
+	return content
+def replace_id(match):
+	#webnotes.msgprint(match.group('name'))
+	return ''
