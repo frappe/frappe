@@ -139,57 +139,23 @@ def create_folder(path):
 			raise e
 
 
-###############################################################################
-#	BEGIN: TENTATIVE CODE FEELS LIKE A CLASS/TEMPLATE IS A BETTER IDEA FOR THESE VARIABLES.
-#	Bad idea combining/using one function to set conn,user,session variables.
-#	Need to split up.
-###############################################################################
-
-def set_as_account_master():
-	import webnotes.db
-	global conn
-	conn = webnotes.db.Database(use_default = 1)
-
-def set_as_administrator():
-	
-	global user
-	
+def connect(db_name):
+	"""
+		Connect to this db (or db), if called from command prompt
+	"""
 	if is_apache_user():
 		raise Exception, 'Not for web users!'
 
-	import webnotes.profile
-	user = webnotes.profile.Profile('Administrator')
-
-def set_as_admin_session():
-	global session
-	session = {'user':'Administrator'}
-
-###############################################################################
-#END  
-###############################################################################
-
-
-def set_as_admin(db_name=None, ac_name=None):
-
-	import os
-	if is_apache_user():
-		raise Exception, 'Not for web users!'
-
-	global conn
-	global session
-	global user
-	
 	import webnotes.db
-	if ac_name:
-		conn = webnotes.db.Database(ac_name = ac_name)
-	else:
-		set_as_account_master()
-		if db_name:
-			conn.use(db_name)
-		
+	global conn
+	conn = webnotes.db.Database(db_name=db_name)
+	
+	global session
 	session = {'user':'Administrator'}
+	
 	import webnotes.profile
-	user = webnotes.profile.Profile('Administrator')
+	global user
+	user = webnotes.profile.Profile('Administrator')	
 
 
 # Environment Variables

@@ -312,7 +312,7 @@ class JsModuleFile(ModuleFile):
 			path = os.path.join(Module(module).get_path(), os.path.sep.join(name.split(os.path.sep)[1:]))
 		else:
 			# its a doctype
-			path = os.path.join(get_doc_path('DocType', name), name + '.js')
+			path = os.path.join(get_doc_path('DocType', name), scrub(name) + '.js')
 		
 		return JsModuleFile(path).read()
 			
