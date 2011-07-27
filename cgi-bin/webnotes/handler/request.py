@@ -85,6 +85,9 @@ class HTTPRequest:
 				exec 'from %s import %s' % (module, cmd) in locals()
 				ret = locals().get(cmd)()
 				return ret
+			else:
+				exec 'from webnotes.handler.handlerbc import %s' % cmd in locals()
+				locals().get(cmd)()
 
 		except webnotes.ValidationError:
 			webnotes.conn.rollback()
