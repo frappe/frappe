@@ -264,7 +264,8 @@ class _DocType:
 		
 		from webnotes.modules import Module
 		doc = doclist[0]
-		doc.fields['__client_script'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read()
+		doc.fields['__js'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read()
+		doc.fields['__css'] = Module(doc.module).get_doc_file('doctype', doc.name, '.css').read()
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
 
