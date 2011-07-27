@@ -85,7 +85,15 @@ class HTTPRequest:
 			else:
 				module = 'webnotes.handler.handlerbc'
 			exec 'from %s import %s' % (module, cmd) in locals()
-			ret = locals().get(cmd)()
+			try:
+				exec 'from %s import whitelist' % module in locals()
+				if cmd in whitelist:
+					ret = locals().get(cmd)()
+				else:
+					webnotes.msgprint(cmd + ' is not permitted')
+					ret = ''
+			except ImportError:
+				ret = locals().get(cmd)()
 			return ret
 
 		except webnotes.ValidationError:
