@@ -82,12 +82,11 @@ class HTTPRequest:
 			if '.' in cmd:
 				module = '.'.join(cmd.split('.')[:-1])
 				cmd = cmd.split('.')[-1]
-				exec 'from %s import %s' % (module, cmd) in locals()
-				ret = locals().get(cmd)()
-				return ret
 			else:
-				exec 'from webnotes.handler.handlerbc import %s' % cmd in locals()
-				locals().get(cmd)()
+				module = 'webnotes.handler.handlerbc'
+			exec 'from %s import %s' % (module, cmd) in locals()
+			ret = locals().get(cmd)()
+			return ret
 
 		except webnotes.ValidationError:
 			webnotes.conn.rollback()
