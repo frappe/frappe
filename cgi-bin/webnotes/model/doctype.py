@@ -266,7 +266,7 @@ class _DocType:
 
 		# add custom script if present
 		from webnotes.model.code import get_custom_script
-		custom = get_custom_script(dt, 'Client') or ''
+		custom = get_custom_script(doc.name, 'Client') or ''
 		
 		doc = doclist[0]
 		doc.fields['__client_script'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() + custom

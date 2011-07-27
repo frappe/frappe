@@ -318,7 +318,7 @@ class JsModuleFile(ModuleFile):
 	
 			# add custom script if present
 			from webnotes.model.code import get_custom_script
-			custom = get_custom_script(dt, 'Client') or ''
+			custom = get_custom_script(name, 'Client') or ''
 			
 		return JsModuleFile(path).read() + custom
 			
