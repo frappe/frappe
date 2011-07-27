@@ -1,5 +1,10 @@
 """
-	This module handles the On Demand Backup utility	
+	This module handles the On Demand Backup utility
+	
+	To setup in defs set: 
+		backup_path: path where backups will be taken (for eg /backups)
+		backup_link_path: download link for backups (eg /var/www/wnframework/backups)
+		backup_url: base url of the backup folder (eg http://mysite.com/backups)
 """
 #Imports
 import os, webnotes
@@ -23,7 +28,7 @@ class BackupGenerator:
 		self.user = user
 		self.password = password
 		self.db_file_name = db_file_name and db_file_name \
-							or (backup_path + db_name + ".sql.gz")
+							or (os.path.join(backup_path, db_name + ".sql.gz"))
 
 	def take_dump(self):
 		"""
@@ -47,7 +52,7 @@ class BackupGenerator:
 		
 		os.system("""cp -f %(src_file)s %(dest_file)s""" % \
 					{"src_file":self.db_file_name,
-					 "dest_file":(backup_link_path + random_name)})
+					 "dest_file":os.path.join(backup_link_path, random_name)})
 		if verbose: print "file copied"
 		return random_name
 	
@@ -71,7 +76,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		file_url = backup_url + backup_file
+		file_url = os.path.join(backup_url, backup_file)
 		from webnotes.utils.email_lib import sendmail
 		
 		recipient_list = self.get_recipients()
@@ -123,7 +128,7 @@ def get_backup():
 	delete_temp_backups()
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly on the following email address:
-	%s""" % (str(recipient_list),))
+	%s""" % (', '.join(recipient_list)))
 
 
 def delete_temp_backups():
@@ -132,7 +137,7 @@ def delete_temp_backups():
 	"""
 	file_list = os.listdir(backup_link_path)
 	for this_file in file_list:
-		this_file_path = backup_link_path + this_file
+		this_file_path = os.path.join(backup_link_path, this_file)
 		if is_file_old(this_file_path):
 			os.remove(this_file_path)
 
