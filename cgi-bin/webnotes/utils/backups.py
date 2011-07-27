@@ -128,7 +128,7 @@ def get_backup():
 	delete_temp_backups()
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly on the following email address:
-	%s""" % (str(recipient_list),))
+	%s""" % (', '.join(recipient_list)))
 
 
 def delete_temp_backups():
