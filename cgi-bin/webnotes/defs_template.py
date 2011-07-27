@@ -84,4 +84,17 @@ log_level = 'logging.INFO'
 log_file_size = 5000
 log_file_backup_count = 5
 
+#
+# Backup Settings
+#
 
+# where the dumps will be stored
+backup_path = '/backups'
+
+# where the latest dump will show up so that it can be
+# downloaded from the web
+backup_link_path = '/var/www/wnframework/backups'
+
+# url to be emailed to the "System Manager" Role to download
+# the backup
+backup_url = 'http://localhost/backups'
