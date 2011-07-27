@@ -137,7 +137,7 @@ def delete_temp_backups():
 	"""
 	file_list = os.listdir(backup_link_path)
 	for this_file in file_list:
-		this_file_path = backup_link_path + this_file
+		this_file_path = os.path.join(backup_link_path, this_file)
 		if is_file_old(this_file_path):
 			os.remove(this_file_path)
 
