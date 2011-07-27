@@ -263,8 +263,13 @@ class _DocType:
 			doclist = self._load_from_cache()
 		
 		from webnotes.modules import Module
+		
+		# add custom script if present
+		from webnotes.model.code import get_custom_script
+		custom = get_custom_script(dt, 'Client') or ''
+		
 		doc = doclist[0]
-		doc.fields['__js'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read()
+		doc.fields['__js'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() + custom
 		doc.fields['__css'] = Module(doc.module).get_doc_file('doctype', doc.name, '.css').read()
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
