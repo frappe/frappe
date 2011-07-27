@@ -33,11 +33,11 @@ def handle(reqflds):
 	#raise Exception, str(webnotes.request.form.get('cmd'))
 	if webnotes.request.cmd and webnotes.request.cmd!='login' :
 		webnotes.response['msg']=webnotes.request.execute()
-		print webnotes.response.to_string()
 	else:
 		from webnotes.handler import index
 		index.build()
-		print webnotes.response.to_string()
+	putmsg()
+	print webnotes.response.to_string()
 	#	print webnotes.response.pagehtml
 def load_session():
 	"""
@@ -62,3 +62,6 @@ def setup_profile():
 		webnotes.user.load_from_session(webnotes.session['data']['profile'])
 	else:
 		webnotes.user.load_profile()	
+def putmsg():
+	if webnotes.message_log:
+		webnotes.response.server_messages = '\n'.join(webnotes.message_log)
