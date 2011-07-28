@@ -107,6 +107,41 @@ div.std-footer-item {
 	margin: 0px 13px 13px 0px;
 }
 
+.shadow {
+	-moz-box-shadow: 0px 2px 2px #888;
+	-webkit-box-shadow: 0px 2px 2px #888;
+ 	box-shadow: 0px 2px 2px #888;
+}
+
+.round {
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;	
+}
+.gradient {
+	background: #ededed; /* Old browsers */
+	background: -moz-linear-gradient(top, #ededed 0%, #d1d1d1 47%, #b7b7b7 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ededed), color-stop(47%,#d1d1d1), color-stop(100%,#b7b7b7)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #ededed 0%,#d1d1d1 47%,#b7b7b7 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #ededed 0%,#d1d1d1 47%,#b7b7b7 100%); /* Opera11.10+ */
+	background: -ms-linear-gradient(top, #ededed 0%,#d1d1d1 47%,#b7b7b7 100%); /* IE10+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#ededed', endColorstr='#b7b7b7',GradientType=0 ); /* IE6-9 */
+	background: linear-gradient(top, #ededed 0%,#d1d1d1 47%,#b7b7b7 100%); /* W3C */	
+}
+
+.header-gradient {
+	background: #84827c; /* Old browsers */
+	background: -moz-linear-gradient(top, #84827c 0%, #27211c 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#84827c), color-stop(100%,#27211c)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #84827c 0%,#27211c 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #84827c 0%,#27211c 100%); /* Opera11.10+ */
+	background: -ms-linear-gradient(top, #84827c 0%,#27211c 100%); /* IE10+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#84827c', endColorstr='#27211c',GradientType=0 ); /* IE6-9 */
+	background: linear-gradient(top, #84827c 0%,#27211c 100%); /* W3C */
+	color: #FFF;
+}
+
+
 /******** Menus - menu.js ************/
 
 ul.menu_toolbar {
@@ -1770,4 +1805,446 @@ div.list2-item-selected {
 div.list2-item-more-info {
 	color: #888;
 	margin-top: 4px;
+}
+/* ------------------------------------------
+CSS3 GITHUB BUTTONS (Nicolas Gallagher)
+Licensed under Unlicense 
+http://github.com/necolas/css3-github-buttons
+------------------------------------------ */
+
+
+/* ------------------------------------------------------------------------------------------------------------- BUTTON */
+
+.button { 
+    position: relative; 
+    overflow: visible; 
+    display: inline-block; 
+    padding: 0.3em 1em; 
+    border: 1px solid #aaa; 
+    margin: 0;
+    text-decoration: none; 
+    text-shadow: 1px 1px 0 #fff; 
+    font-size:11px; 
+    color: #333; 
+    white-space: nowrap; 
+    cursor: pointer; 
+    outline: none; 
+    background-color: #ececec;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#f4f4f4), to(#ececec));
+    background-image: -moz-linear-gradient(#f4f4f4, #ececec);
+    background-image: -o-linear-gradient(#f4f4f4, #ececec);
+    background-image: linear-gradient(#f4f4f4, #ececec);
+    -webkit-background-clip: padding;
+    -moz-background-clip: padding;
+    -o-background-clip: padding-box; 
+    /*background-clip: padding-box;*/ /* commented out due to Opera 11.10 bug */
+    -webkit-border-radius: 0.2em; 
+    -moz-border-radius: 0.2em; 
+    border-radius: 0.2em; 
+    /* IE hacks */
+    zoom: 1; 
+    *display: inline; 
+}
+
+.button:hover,
+.button:focus,
+.button:active,
+.button.active {
+    border-color: #3072b3;
+    border-bottom-color: #2a65a0;
+    text-decoration: none; 
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.3); 
+    color: #fff; 
+    background-color: #3C8DDE;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#599bdc), to(#3072b3));
+    background-image: -moz-linear-gradient(#599bdc, #3072b3);
+    background-image: -o-linear-gradient(#599bdc, #3072b3);
+    background-image: linear-gradient(#599bdc, #3072b3);
+}
+
+.button:active,
+.button.active {
+    border-color: #2a65a0;
+    border-bottom-color: #3884CF;
+    background-color: #3072b3;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#3072b3), to(#599bdc));
+    background-image: -moz-linear-gradient(#3072b3, #599bdc);
+    background-image: -o-linear-gradient(#3072b3, #599bdc);
+    background-image: linear-gradient(#3072b3, #599bdc);
+}
+
+/* overrides extra padding on button elements in Firefox */
+.button::-moz-focus-inner {
+    padding: 0;
+    border: 0;
+}
+
+/* ............................................................................................................. Icons */
+
+.button.icon:before {
+    content: "";
+    position: relative; 
+    top: 1px; 
+    float:left;
+    width: 12px; 
+    height: 12px; 
+    margin: 0 0.75em 0 -0.25em; 
+    background: url(images/ui/gh-icons.png) 0 99px no-repeat;
+}
+
+.button.arrowup.icon:before { background-position: 0 0; }
+.button.arrowup.icon:hover:before,
+.button.arrowup.icon:focus:before,
+.button.arrowup.icon:active:before { background-position: -12px 0; }
+
+.button.arrowdown.icon:before { background-position: 0 -12px; }
+.button.arrowdown.icon:hover:before,
+.button.arrowdown.icon:focus:before,
+.button.arrowdown.icon:active:before { background-position: -12px -12px; }
+
+.button.arrowleft.icon:before { background-position: 0 -24px; }
+.button.arrowleft.icon:hover:before,
+.button.arrowleft.icon:focus:before,
+.button.arrowleft.icon:active:before { background-position: -12px -24px; }
+
+.button.arrowright.icon:before { float:right; margin: 0 -0.25em 0 0.5em; background-position: 0 -36px; }
+.button.arrowright.icon:hover:before,
+.button.arrowright.icon:focus:before,
+.button.arrowright.icon:active:before { background-position: -12px -36px; }
+
+.button.approve.icon:before { background-position: 0 -48px; }
+.button.approve.icon:hover:before,
+.button.approve.icon:focus:before,
+.button.approve.icon:active:before { background-position: -12px -48px; }
+
+.button.add.icon:before { background-position: 0 -288px; }
+.button.add.icon:hover:before,
+.button.add.icon:focus:before,
+.button.add.icon:active:before { background-position: -12px -288px; }
+
+.button.remove.icon:before { background-position: 0 -60px; }
+.button.remove.icon:hover:before,
+.button.remove.icon:focus:before,
+.button.remove.icon:active:before { background-position: -12px -60px; }
+
+.button.log.icon:before { background-position: 0 -72px; }
+.button.log.icon:hover:before,
+.button.log.icon:focus:before,
+.button.log.icon:active:before { background-position: -12px -72px; }
+
+.button.calendar.icon:before { background-position: 0 -84px; }
+.button.calendar.icon:hover:before,
+.button.calendar.icon:focus:before,
+.button.calendar.icon:active:before { background-position: -12px -84px; }
+
+.button.chat.icon:before { background-position: 0 -96px; }
+.button.chat.icon:hover:before,
+.button.chat.icon:focus:before,
+.button.chat.icon:active:before { background-position: -12px -96px; }
+
+.button.clock.icon:before { background-position: 0 -108px; }
+.button.clock.icon:hover:before,
+.button.clock.icon:focus:before,
+.button.clock.icon:active:before { background-position: -12px -108px; }
+
+.button.settings.icon:before { background-position: 0 -120px; }
+.button.settings.icon:hover:before,
+.button.settings.icon:focus:before,
+.button.settings.icon:active:before { background-position: -12px -120px; }
+
+.button.comment.icon:before { background-position: 0 -132px; }
+.button.comment.icon:hover:before,
+.button.comment.icon:focus:before,
+.button.comment.icon:active:before { background-position: -12px -132px; }
+
+.button.fork.icon:before { background-position: 0 -144px; }
+.button.fork.icon:hover:before,
+.button.fork.icon:focus:before,
+.button.fork.icon:active:before { background-position: -12px -144px; }
+
+.button.like.icon:before { background-position: 0 -156px; }
+.button.like.icon:hover:before,
+.button.like.icon:focus:before,
+.button.like.icon:active:before { background-position: -12px -156px; }
+
+.button.favorite.icon:before { background-position: 0 -348px; }
+.button.favorite.icon:hover:before,
+.button.favorite.icon:focus:before,
+.button.favorite.icon:active:before { background-position: -12px -348px; }
+
+.button.home.icon:before { background-position: 0 -168px; }
+.button.home.icon:hover:before,
+.button.home.icon:focus:before,
+.button.home.icon:active:before { background-position: -12px -168px; }
+
+.button.key.icon:before { background-position: 0 -180px; }
+.button.key.icon:hover:before,
+.button.key.icon:focus:before,
+.button.key.icon:active:before { background-position: -12px -180px; }
+
+.button.lock.icon:before { background-position: 0 -192px; }
+.button.lock.icon:hover:before,
+.button.lock.icon:focus:before,
+.button.lock.icon:active:before { background-position: -12px -192px; }
+
+.button.unlock.icon:before { background-position: 0 -204px; }
+.button.unlock.icon:hover:before,
+.button.unlock.icon:focus:before,
+.button.unlock.icon:active:before { background-position: -12px -204px; }
+
+.button.loop.icon:before { background-position: 0 -216px; }
+.button.loop.icon:hover:before,
+.button.loop.icon:focus:before,
+.button.loop.icon:active:before { background-position: -12px -216px; }
+
+.button.search.icon:before { background-position: 0 -228px; }
+.button.search.icon:hover:before,
+.button.search.icon:focus:before,
+.button.search.icon:active:before { background-position: -12px -228px; }
+
+.button.mail.icon:before { background-position: 0 -240px; }
+.button.mail.icon:hover:before,
+.button.mail.icon:focus:before,
+.button.mail.icon:active:before { background-position: -12px -240px; }
+
+.button.move.icon:before { background-position: 0 -252px; }
+.button.move.icon:hover:before,
+.button.move.icon:focus:before,
+.button.move.icon:active:before { background-position: -12px -252px; }
+
+.button.edit.icon:before { background-position: 0 -264px; }
+.button.edit.icon:hover:before,
+.button.edit.icon:focus:before,
+.button.edit.icon:active:before { background-position: -12px -264px; }
+
+.button.pin.icon:before { background-position: 0 -276px; }
+.button.pin.icon:hover:before,
+.button.pin.icon:focus:before,
+.button.pin.icon:active:before { background-position: -12px -276px; }
+
+.button.reload.icon:before { background-position: 0 -300px; }
+.button.reload.icon:hover:before,
+.button.reload.icon:focus:before,
+.button.reload.icon:active:before { background-position: -12px -300px; }
+
+.button.rss.icon:before { background-position: 0 -312px; }
+.button.rss.icon:hover:before,
+.button.rss.icon:focus:before,
+.button.rss.icon:active:before { background-position: -12px -312px; }
+
+.button.tag.icon:before { background-position: 0 -324px; }
+.button.tag.icon:hover:before,
+.button.tag.icon:focus:before,
+.button.tag.icon:active:before { background-position: -12px -324px; }
+
+.button.trash.icon:before { background-position: 0 -336px; }
+.button.trash.icon:hover:before,
+.button.trash.icon:focus:before,
+.button.trash.icon:active:before { background-position: -12px -336px; }
+
+.button.user.icon:before { background-position: 0 -360px; }
+.button.user.icon:hover:before,
+.button.user.icon:focus:before,
+.button.user.icon:active:before { background-position: -12px -360px; }
+
+
+/* ------------------------------------------------------------------------------------------------------------- BUTTON EXTENSIONS */
+
+/* ............................................................................................................. Primary */
+
+.button.primary {
+    font-weight: bold;
+}
+
+/* ............................................................................................................. Danger */
+
+.button.green {
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.3); 
+	color: #fff;
+	border-color: #217C2C;
+	background: #60c97c; /* Old browsers */
+	background: -moz-linear-gradient(top, #60c97c 0%, #299b3b 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#60c97c), color-stop(100%,#299b3b)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #60c97c 0%,#299b3b 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #60c97c 0%,#299b3b 100%); /* Opera11.10+ */
+	background: -ms-linear-gradient(top, #60c97c 0%,#299b3b 100%); /* IE10+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#60c97c', endColorstr='#299b3b',GradientType=0 ); /* IE6-9 */
+	background: linear-gradient(top, #60c97c 0%,#299b3b 100%); /* W3C */	
+}
+
+.button.green:hover,
+.button.green:focus,
+.button.green:active,
+.button.green.active {
+	border-color: #217C2C;
+    text-decoration: none; 
+    text-shadow: -1px -1px 0 rgba(0,0,0,0.3); 
+    color: #fff; 
+	background: #4fa566; /* Old browsers */
+	background: -moz-linear-gradient(top, #4fa566 0%, #1a632a 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#4fa566), color-stop(100%,#1a632a)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #4fa566 0%,#1a632a 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #4fa566 0%,#1a632a 100%); /* Opera11.10+ */
+	background: -ms-linear-gradient(top, #4fa566 0%,#1a632a 100%); /* IE10+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4fa566', endColorstr='#1a632a',GradientType=0 ); /* IE6-9 */
+	background: linear-gradient(top, #4fa566 0%,#1a632a 100%); /* W3C */
+}
+
+.button.green:active,
+.button.green.active {
+	border-color: #217C2C;
+
+	background: #1a632a; /* Old browsers */
+	background: -moz-linear-gradient(top, #1a632a 0%, #4fa566 100%); /* FF3.6+ */
+	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#1a632a), color-stop(100%,#4fa566)); /* Chrome,Safari4+ */
+	background: -webkit-linear-gradient(top, #1a632a 0%,#4fa566 100%); /* Chrome10+,Safari5.1+ */
+	background: -o-linear-gradient(top, #1a632a 0%,#4fa566 100%); /* Opera11.10+ */
+	background: -ms-linear-gradient(top, #1a632a 0%,#4fa566 100%); /* IE10+ */
+	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#1a632a', endColorstr='#4fa566',GradientType=0 ); /* IE6-9 */
+	background: linear-gradient(top, #1a632a 0%,#4fa566 100%); /* W3C */
+}
+
+/* ............................................................................................................. Danger */
+
+.button.danger {
+    color: #900;
+}
+
+.button.danger:hover,
+.button.danger:focus,
+.button.danger:active {     
+    border-color: #b53f3a;
+    border-bottom-color: #a0302a;
+    color: #fff; 
+    background-color: #dc5f59;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#dc5f59), to(#b33630));
+    background-image: -moz-linear-gradient(#dc5f59, #b33630);
+    background-image: -o-linear-gradient(#dc5f59, #b33630);
+    background-image: linear-gradient(#dc5f59, #b33630);
+}
+
+.button.danger:active,
+.button.danger.active {   
+    border-color: #a0302a;
+    border-bottom-color: #bf4843;
+    background-color: #b33630;
+    background-image: -webkit-gradient(linear, 0 0, 0 100%, from(#b33630), to(#dc5f59));
+    background-image: -moz-linear-gradient(#b33630, #dc5f59);
+    background-image: -o-linear-gradient(#b33630, #dc5f59);
+    background-image: linear-gradient(#b33630, #dc5f59);
+}
+
+/* ............................................................................................................. Pill */
+
+.button.pill {
+    -webkit-border-radius: 50em; 
+    -moz-border-radius: 50em; 
+    border-radius: 50em; 
+}
+
+/* ............................................................................................................. Disable */
+
+.button.disable {
+    opacity: 0.5;
+}
+
+/* ............................................................................................................. Big */
+
+.button.big {
+    font-size: 14px; 
+}
+
+.button.big.icon:before { top: 0; }
+
+
+/* ------------------------------------------------------------------------------------------------------------- BUTTON GROUPS */
+
+/* ............................................................................................................. Standard */
+
+.button-group {
+    display: inline-block;
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    /* IE hacks */
+    zoom: 1; 
+    *display: inline; 
+}
+
+.button + .button,
+.button + .button-group,
+.button-group + .button,
+.button-group + .button-group {
+    margin-left: 15px;
+}
+
+.button-group li {
+    float: left;
+    padding: 0;
+    margin: 0;
+}
+
+.button-group .button {
+    float: left;
+    margin-left: -1px; 
+}
+
+.button-group > .button:not(:first-child):not(:last-child),
+.button-group li:not(:first-child):not(:last-child) .button { 
+    -webkit-border-radius: 0; 
+    -moz-border-radius: 0; 
+    border-radius: 0; 
+}
+
+.button-group > .button:first-child,
+.button-group li:first-child .button { 
+    margin-left: 0; 
+    -webkit-border-top-right-radius: 0; 
+    -webkit-border-bottom-right-radius: 0; 
+    -moz-border-radius-topright: 0; 
+    -moz-border-radius-bottomright: 0; 
+    border-top-right-radius: 0; 
+    border-bottom-right-radius: 0; 
+}
+
+.button-group > .button:last-child,
+.button-group li:last-child > .button { 
+    -webkit-border-top-left-radius: 0; 
+    -webkit-border-bottom-left-radius: 0; 
+    -moz-border-radius-topleft: 0; 
+    -moz-border-radius-bottomleft: 0; 
+    border-top-left-radius: 0; 
+    border-bottom-left-radius: 0; 
+}
+
+/* ............................................................................................................. Minor */
+
+.button-group.minor-group .button {
+    border: 1px solid #d4d4d4; 
+    text-shadow: none;
+    background-image: none;
+    background-color: #fff;
+}
+
+.button-group.minor-group .button:hover,
+.button-group.minor-group .button:focus,
+.button-group.minor-group .button:active {
+    background-color: #599bdc;
+}
+
+.button-group.minor-group .button:active,
+.button-group.minor-group .button.active {
+    background-color: #3072b3;
+}
+
+.button-group.minor-group .button.icon:before {
+    opacity: 0.8;
+}
+
+/* ------------------------------------------------------------------------------------------------------------- BUTTON CONTAINER */
+/* For mixing buttons and button groups, e.g., in a navigation bar */
+
+.button-container .button,
+.button-container .button-group {
+    vertical-align: top;
 }

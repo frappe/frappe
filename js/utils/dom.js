@@ -72,33 +72,26 @@ wn.ele = {
 	},
 
 	button: function(args) {
-		var btn = $a(args.parent, 'button');
+		var css = 'button';
+		if(args.color) css += ' ' + args.color;
+		
+		var btn = $a(args.parent, 'button', css);
+		
 		btn.loading_img = $a(args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
 		btn.loading_img.src= 'images/ui/button-load.gif';
-		$wid_make(btn,color);
 		if(args.is_ajax) $y(btn,{marginRight:'24px'});
 
 		// click
 		btn.innerHTML = args.label;
 		btn.user_onclick = args.onclick; 
-		btn.color = args.color;
 		btn.onclick = function() { if(!this.disabled) this.user_onclick(this); }
-
-		// color
-		$(btn).hover(
-			function() { $wid_active(this); },
-			function() { $wid_normal(this); }
-		)
-		btn.onmousedown = function() { $wid_pressed(this); }
-		btn.onmouseup = function() { $wid_active(this); }
 
 		// disabled
 		btn.set_disabled = function() {
-			$wid_disabled(this);
+			this.disabled = 1
 		}
 		btn.set_enabled = function() {
 			this.disabled = 0;
-			$wid_normal(this);
 		}
 
 		// working
@@ -123,7 +116,7 @@ function $ln(parent, label, onclick, style) {
 }
 
 function $btn(parent, label, onclick, style, color, is_ajax) {
-	return wn.ele.button({parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax})
+	return wn.ele.button({parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, color:color})
 }
 
 
@@ -138,66 +131,6 @@ function addEvent(ev, fn) {
 	}
 }
 
-// widget styles
-// ====================================
-
-// normal
-// --------------------
-
-$wid_normal = function(ele) {
-	if(ele.disabled) return;
-	$y(ele, {border:'1px solid #AAC', color:'#446'}); $gr(ele,'#FFF','#D8D8E2');
-	if(ele.no_left_border) $y(ele, {borderLeft:'0px'})
-	if(ele.wid_color=='green') {
-		$y(ele, {color:'#FFF', border:'1px solid #4B4'}); $gr(ele,'#9C9','#4A4');
-	}
-}
-
-$wid_make = function(ele,color) { 
-	if(ele.disabled) return;
-	fsize = ele.style.fontSize ? ele.style.fontSize : '11px';
-	
-	$y(ele, {padding:'2px 8px', cursor:'pointer',fontSize:fsize}); 
-	$br(ele,'2px'); 
-	$bs(ele, '0.5px 0.5px 2px #EEE');
-	
-	ele.wid_color = color ? color : 'normal';
-
-	$wid_normal(ele);
-}
-
-// disabled
-// --------------------
-
-$wid_disabled = function(ele) { 
-	ele.disabled = 1;
-	$y(ele, {border:'1px solid #AAA'}); $bg(ele,'#E8E8EA'); $fg(ele,'#AAA');
-}
-
-
-
-// active (mouseover)
-// --------------------
-
-$wid_active = function(ele) {
-	if(ele.disabled) return;
-	$y(ele, {border:'1px solid #446', color:'#446'}); $gr(ele,'#FFF','#EEF');
-	if(ele.no_left_border) $y(ele, {borderLeft:'0px'})
-	if(ele.wid_color=='green') {
-		$y(ele, {color:'#FFF', border:'1px solid #292'}); $gr(ele,'#AFA','#7C7');
-	}
-}
-
-// pressed
-// --------------------
-
-$wid_pressed = function(ele) {
-	if(ele.disabled) return;
-	$y(ele, {border:'1px solid #444'}); $gr(ele,'#EEF','#DDF');
-	if(ele.wid_color=='green') {
-		$y(ele, {color:'#FFF', border:'1px solid #292'}); $gr(ele,'#7C7','#2A2');
-	}
-}
 
 // item (for tabs and triggers)
 // ====================================
@@ -244,18 +177,6 @@ function set_opacity(ele, ieop) {
 }
 
 
-// join buttons
-// ------------------------------------
-
-function $btn_join(btn1, btn2) {
-	$br(btn1, '0px', [0,1,1,0]);
-	$br(btn2, '0px', [1,0,0,1]);
-	$y(btn1, {marginRight:'0px'});
-	$y(btn2, {marginLeft:'0px', borderLeft:'0px'});
-	btn2.no_left_border = 1;
-}
-
-
 // set gradient
 // ====================================
 
@@ -294,76 +215,9 @@ $br = function(ele, r, corners) {
 		$(ele).css('-moz-border-radius',r).css('-webkit-border-radius',r).css('border-radius',r); 
 	}
 }
-$bs = function(ele, r) { $(ele).css('-moz-box-shadow',r).css('-webkit-box-shadow',r).css('box-shadow',r); }
-
-// Button
-// ====================================
-
-function $btn(parent, label, onclick, style, color, ajax) {
-	var btn = $a(parent, 'button');
-	btn.loading_img = $a(parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
-	btn.loading_img.src= 'images/ui/button-load.gif';
-	$wid_make(btn,color);
-	if(ajax) $y(btn,{marginRight:'24px'});
-	
-	// click
-	btn.innerHTML = label;
-	btn.user_onclick = onclick; btn.color = color;
-	btn.onclick = function() { if(!this.disabled) this.user_onclick(this); }
-
-	// color
-	$(btn).hover(
-		function() { $wid_active(this); },
-		function() { $wid_normal(this); }
-	)
-	btn.onmousedown = function() { $wid_pressed(this); }
-	btn.onmouseup = function() { $wid_active(this); }
-
-	// disabled
-	btn.set_disabled = function() {
-		$wid_disabled(this);
-	}
-	btn.set_enabled = function() {
-		this.disabled = 0;
-		$wid_normal(this);
-	}
-
-	// working
-	btn.set_working = function() {
-		this.set_disabled();
-		$di(this.loading_img);
-		if(ajax) $y(btn,{marginRight:'0px'});
-	}
-	btn.done_working = function() {
-		this.set_enabled();
-		$dh(this.loading_img);
-		if(ajax) $y(btn,{marginRight:'24px'});
-	}
-	
-	if(style) $y(btn, style);
-	return btn;
+$bs = function(ele, r) { 
+	$(ele).css('-moz-box-shadow',r).css('-webkit-box-shadow',r).css('box-shadow',r); 
 }
-
-
-// standard input pattern
-// has a standard text that clears on change
-// and if onchange the value is empty, shows the text
-
-(function($) {
-	$.fn.add_default_text = function(txt) {
-		return this.each(function() {
-			$(this).attr('default_text', txt).bind('focus', function() {
-				if(this.value==$(this).attr('default_text')) {
-					$(this).val('').css('color', '#000');
-				}
-			}).bind('blur', function() {
-				if(!this.value) {
-					$(this).val($(this).attr('default_text')).css('color', '#888');
-				}
-			}).blur();
-		});
-	};
-})(jQuery);
 
 // Select
 // ====================================

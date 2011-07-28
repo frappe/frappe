@@ -136,6 +136,7 @@ in_files_css = [
 	'css/bw-icons.css',
 	'css/sidebar.css',
 	'css/doc_column_view.css',
+	'css/gh-buttons.css'
 ]
 
 out_file_css = 'css/default.css'
