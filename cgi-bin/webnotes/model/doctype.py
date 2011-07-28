@@ -270,7 +270,9 @@ class _DocType:
 		from webnotes.model.code import get_custom_script
 		custom = get_custom_script(doc.name, 'Client') or ''
 		
-		doc.fields['__client_script'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() + custom
+		doc.fields['__client_script'] = \
+			Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() \
+			+ '\n' + custom
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
 

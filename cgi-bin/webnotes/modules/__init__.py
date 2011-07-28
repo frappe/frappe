@@ -320,7 +320,7 @@ class JsModuleFile(ModuleFile):
 			from webnotes.model.code import get_custom_script
 			custom = get_custom_script(name, 'Client') or ''
 			
-		return JsModuleFile(path).read() + custom
+		return JsModuleFile(path).read() + '\n' + custom
 			
 	def read(self):
 		"""
