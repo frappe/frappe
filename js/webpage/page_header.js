@@ -37,6 +37,7 @@ function PageHeader(parent, main_text, sub_text) {
 	// close btn
 	$y($td(this.t1, 0, 1),{textAlign:'right', padding:'3px'});
 	this.close_btn = $btn($td(this.t1, 0, 1), 'Close',function() { nav_obj.show_last_open(); },0);
+	this.close_btn.className = 'button icon remove';
 
 	if(main_text) this.main_head.innerHTML = main_text;
 	if(sub_text) this.sub_head.innerHTML = sub_text;

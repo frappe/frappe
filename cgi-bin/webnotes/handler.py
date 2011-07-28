@@ -104,6 +104,10 @@ def uploadfile():
 	import webnotes.utils.file_manager
 	if webnotes.form_dict.get('from_form'):
 		webnotes.utils.file_manager.upload()
+		
+	# pass on upload to a handler funciton and pass file_name, file_content
+	elif webnotes.form_dict.get('upload_handler'):
+		pass
 	else:
 		# save the file
 		fid, fname = webnotes.utils.file_manager.save_uploaded()
