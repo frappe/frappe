@@ -1,0 +1,29 @@
+# Page, import
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-28 11:09:42',
+		'docstatus': 0,
+		'modified': '2011-07-28 11:09:42',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all Page
+	{
+		'category': 'Standard',
+		'doctype': 'Page',
+		'module': 'Core',
+		'name': '__common__',
+		'page_name': 'Import',
+		'page_title': 'Import Data',
+		'standard': 'Yes'
+	},
+
+	# Page, import
+	{
+		'doctype': 'Page',
+		'name': 'import'
+	}
+]

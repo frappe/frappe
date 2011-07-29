@@ -1,0 +1,10 @@
+#data_importer .box {
+	margin: 17px 37px;
+	padding: 13px;
+	background-color: #ddd;
+}
+
+#data_importer ol li {
+	margin-left: 0px;
+	padding-left: 0px;
+}
