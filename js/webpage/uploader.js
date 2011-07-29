@@ -6,12 +6,18 @@ var upload_frame_count = 0;
 // args - additional hidden arguments
 // callback - callback function to be called after upload with file id
 //
-Uploader = function(parent, args, callback) {
+Uploader = function(parent, args, callback, debug) {
 	var id = 'frame'+upload_frame_count; upload_frame_count++;
 	this.callback = callback;
 	
 	var div = $a(parent, 'div');
-	div.innerHTML = '<iframe id="'+id+'" name="'+id+'" src="blank1.html" style="width:0px; height:0px; border:0px"></iframe>';
+	if(debug) {
+		var dims = {width:'400px',height:'200px'}
+	} else {
+		var dims = {width:'0px',height:'0px'}
+	}
+	div.innerHTML = repl('<iframe id="'+id+'" name="'+id+'" src="blank1.html" \
+	style="width:%(width)s; height:%(height)s; border:0px"></iframe>', dims);
 
 	// upload form
 	var div = $a(parent,'div');
@@ -23,21 +29,29 @@ Uploader = function(parent, args, callback) {
 	// file data
 	var inp_fdata = $a_input($a(ul_form,'span'),'file',{name:'filedata'},{marginLeft:'7px'});
 
-	var inp = $a_input($a(ul_form,'span'),'hidden',{name:'cmd'}); inp.value = 'uploadfile';
+	// set the cmd 
+	// either the default uploadfile
+	// or can be set via args
+	var inp = $a_input($a(ul_form,'span'),'hidden',{name:'cmd'}); 
+	inp.value = args.cmd || 'uploadfile';
+	
+	// uploader id to identify the
+	// callback
 	var inp = $a_input($a(ul_form,'span'),'hidden',{name:'uploader_id'}); inp.value = id;
-	var inp = $a_input($a(ul_form,'span'),'submit',null,{marginLeft:'7px'}); inp.value = 'Upload';
+	
+	// submit button
+	var inp = $a_input($a(ul_form,'span'),'submit',null,{marginLeft:'7px'}); 
+	inp.className = 'button';
+	inp.value = 'Upload';
 	
 	$y(inp,{width:'80px'});
-	$wid_normal(inp);
-
-	inp.onmouseover = function() { $wid_active(this); }
-	inp.onmouseout = function() { $wid_normal(this); }
-	inp.onmousedown = function() { $wid_pressed(this); }
-	inp.onmouseup = function() { $wid_active(inp); }
 	
 	// dt, dn to show
 	for(var key in args) {
-		var inp = $a_input($a(ul_form,'span'),'hidden',{name:key}); inp.value = args[key];	
+		if(key!='cmd') { 
+			var inp = $a_input($a(ul_form,'span'),'hidden',{name:key}); 
+			inp.value = args[key];	
+		}
 	}
 	
 	uploaders[id] = this;

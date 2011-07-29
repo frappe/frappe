@@ -20,15 +20,15 @@ class UploadHandler:
 		"""
 			Extract file from request form
 		"""
-		if 'filedata' in form:
-			i = webnotes.form_dict['filedata']
+		if 'filedata' in webnotes.form:
+			i = webnotes.form['filedata']
 	
 			self.file_name = self.scrub_file_name(i.filename)
 			self.content = i.file.read()
 		else:
 			self.set_callback('window.parent.msgprint("No file")')
 	
-	def scrub_file_name(self):
+	def scrub_file_name(self, fname):
 		"""
 			Strips out path from the filename (if present)
 		"""
@@ -37,11 +37,13 @@ class UploadHandler:
 			fname = fname.split('\\')[-1]
 		if '/' in fname:
 			fname = fname.split('/')[-1]
-			
+		return fname
+		
 	def set_callback(self, callback):
 		"""
-			Get response to be sent back to the browser IFRAME
+			Set response to be sent back to the browser IFRAME
 		"""
+		webnotes.response['type'] = 'iframe'
 		webnotes.response['result'] = '''
 		<script type='text/javascript'>
 		%s

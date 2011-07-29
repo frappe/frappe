@@ -1,5 +1,6 @@
+import webnotes
+
 def save_as_attachment():
-	import webnotes
 	form = webnotes.form
 
 	# get record details
@@ -19,8 +20,7 @@ def save_as_attachment():
 	uh.set_callback('''
 		window.parent.wn.widgets.form.file_upload_done('%s', '%s', '%s', '%s', '%s');
 		window.parent.frms['%s'].show_doc('%s');
-		''' % (dt, dn, fid, fname.replace("'", "\\'"), at_id, dt, dn))
-		
+		''' % (dt, dn, fid, uh.file_name.replace("'", "\\'"), at_id, dt, dn))
 
 def make_thumbnail(blob, size):
 	"""
@@ -43,7 +43,6 @@ def make_thumbnail(blob, size):
 # -------------------------------------------------------
 
 def save_file(fname, content, module=None):
-	import webnotes
 	from webnotes.model.doc import Document
 
 	# some browsers return the full path
@@ -66,7 +65,7 @@ def save_file(fname, content, module=None):
 # -------------------------------------------------------
 
 def write_file(fid, content):
-	import webnotes, os, webnotes.defs
+	import os, webnotes.defs
 
 	# test size
 	max_file_size = 1000000
@@ -93,13 +92,14 @@ def write_file(fid, content):
 
 # -------------------------------------------------------
 def get_file_system_name(fname):
-	# get system name from File Data table
-	import webnotes
+	"""
+		Get filesystem name by id or name
+	"""
 	return webnotes.conn.sql("select name, file_name from `tabFile Data` where name=%s or file_name=%s", (fname, fname))
 
 # -------------------------------------------------------
 def delete_file(fname, verbose=0):
-	import webnotes, os
+	import os
 		
 	for f in get_file_system_name(fname):
 		webnotes.conn.sql("delete from `tabFile Data` where name=%s", f[0])
@@ -118,7 +118,6 @@ def delete_file(fname, verbose=0):
 # -------------------------------------------------------
 
 def get_file(fname):
-	import webnotes
 	in_fname = fname
 	
 	# from the "File" table
@@ -132,23 +131,25 @@ def get_file(fname):
 		f = get_file_system_name(fname)[0]
 	else:
 		f = None
+	return [f[1], get_file_content(f[0])]
 
-		
+def get_file_content(fid):
+	"""
+		Return file content by id
+	"""
 	# read the file
 	import os
 		
-	file_id = f[0].replace('/','-')
+	file_id = fid.replace('/','-')
 	file = open(os.path.join(webnotes.get_files_path(), file_id), 'r')
 	content = file.read()
 	file.close()
-	return [f[1], content]
+	return content
 
 def convert_to_files(verbose=0):
 	"""
 		Deprecated: marked for deletion
-	"""
-	import webnotes
-	
+	"""	
 	# nfiles
 	fl = webnotes.conn.sql("select name from `tabFile Data`")
 	for f in fl:
@@ -166,3 +167,63 @@ def convert_to_files(verbose=0):
 			if verbose:
 				webnotes.msgprint('%s updated' % f[0])
 
+"""
+	Get / set file attachments on a document.
+	
+	Example to reset the user profile image::
+
+		from webnotes.model.file_manager import FileAttachments
+	
+		fa = FileAttachments('Profile', session['user'])
+		fa.delete_all()
+		fa.add(uh.file_name, uh.content)
+		fa.save()
+		
+"""
+class FileAttachments:
+	def __init__(self, dt, dn):
+		self.dt, self.dn = dt, dn
+		self.al = webnotes.conn.get_value(dt, dn, 'file_list')
+		self.al = self.al and self.al.split('\n') or []
+	
+	def get_fid(self, idx):
+		"""
+			return file id for index
+		"""
+		return self.al[idx].split(',')[1]
+
+	def get_file(self, idx):
+		"""
+			Return the attachment
+		"""
+		return get_file_content(self.get_fid(idx))
+		
+	def delete_file(self, idx):
+		"""
+			Delete an attachment
+		"""
+		delete_file(self.get_fid(idx))
+	
+	def delete_all(self):
+		"""
+			delete all attachments
+		"""
+		for i in range(len(self.al)):
+			self.delete_file(i)
+		self.al = []
+		
+	def add(self, fname, content=None, fid=None):
+		"""
+			Add a new attachment and update
+		"""
+		if content:
+			# save the file
+			fid = save_file(fname, content)
+
+		self.al.append(fname+','+fid)
+		
+	def save(self):
+		"""
+			Save attachment to the doc
+		"""
+		webnotes.conn.set_value(self.dt, self.dn, 'file_list', '\n'.join(self.al))
