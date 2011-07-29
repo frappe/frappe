@@ -1,11 +1,11 @@
-# Page, import
+# Page, data-import
 [
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-28 11:09:42',
+		'creation': '2011-07-29 14:46:49',
 		'docstatus': 0,
-		'modified': '2011-07-28 11:09:42',
+		'modified': '2011-07-29 14:46:49',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
@@ -16,14 +16,14 @@
 		'doctype': 'Page',
 		'module': 'Core',
 		'name': '__common__',
-		'page_name': 'Import',
-		'page_title': 'Import Data',
+		'page_name': 'Data Import',
+		'page_title': 'Data Import',
 		'standard': 'Yes'
 	},
 
-	# Page, import
+	# Page, data-import
 	{
 		'doctype': 'Page',
-		'name': 'import'
+		'name': 'data-import'
 	}
 ]

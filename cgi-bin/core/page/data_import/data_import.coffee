@@ -15,6 +15,8 @@ class Uploader extends ImportSection
 		<li>If you using a spreadsheet, select "Save As" CSV to 
 		generate the csv file.</ol>')
 		
+		new Uploader @body, cmd: core.page.import.import.upload, pscript.check_upload
+		
 class TableSelector
 	
 class ColumnSelector
@@ -26,3 +28,6 @@ class Output
 pscript.onload_import = ->
 	new PageHeader($('#data_importer .head').get(0), 'Import Data')
 	new Uploader()
+	
+pscript.check_upload = ->
+	
