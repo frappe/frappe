@@ -214,3 +214,31 @@ def get_code(module, dt, dn, extn, is_static=None, fieldname=None):
 			code = webnotes.conn.get_value(dt, dn, fieldname)
 
 	return code
+	
+def run_method(self, method, arg=None):
+	"""
+		call a method by string
+		@pdvyas: Please refactor (or use this) this in the new oo handler
+		Note: this should be a generic function so that it can be called
+		from un attached events like file upload
+	"""
+	# import the method
+	module = ''
+	if '.' in method:
+		module = '.'.join(method.split('.')[:-1])
+		method = method.split('.')[-1]
+
+		exec 'from %s import %s' % (module, method) in locals()			
+
+	# execute
+	if method in locals():
+		if not arg:
+			arg = webnotes.form_dict.get('arg')
+		if arg:
+			ret = locals()[method](arg)
+		else:
+			ret = locals()[method]()	
+
+	# returns with a message
+	if ret:
+		webnotes.response['message'] = ret

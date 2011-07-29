@@ -101,44 +101,12 @@ def get_template():
 # ------------------------------------------------------------------------------------
 
 def uploadfile():
-	import webnotes.utils.file_manager
-	if webnotes.form_dict.get('from_form'):
-		webnotes.utils.file_manager.upload()
-		
-	# pass on upload to a handler funciton and pass file_name, file_content
-	elif webnotes.form_dict.get('upload_handler'):
-		pass
-	else:
-		# save the file
-		fid, fname = webnotes.utils.file_manager.save_uploaded()
-		
-		# do something with the uploaded file
-		if fid and webnotes.form_dict.get('server_obj'):
-			from webnotes.model.code import get_obj
-			getattr(get_obj(webnotes.form_dict.get('server_obj')), webnotes.form_dict.get('method'))(fid, fname)
-			
-		# return the upload
-		if fid:
-			webnotes.response['result'] = '<script>window.parent.upload_callback("'+webnotes.form_dict.get('uploader_id')+'", "'+fid+'")</script>'
+	"""
+		Save file as attachment
+	"""
+	from webnotes.utils.file_manager import save_as_attachment
+	save_as_attachment()
 	
-# File upload (from scripts)
-# ------------------------------------------------------------------------------------
-
-def upload_many():
-	from webnotes.model.code import get_obj
-
-	# pass it on to upload_many method in Control Panel
-	cp = get_obj('Control Panel')
-	cp.upload_many(webnotes.form)
-	
-	webnotes.response['result'] = """
-<script type='text/javascript'>
-%s
-</script>
-%s
-%s""" % (cp.upload_callback(webnotes.form), '\n----\n'.join(webnotes.message_log).replace("'", "\'"), '\n----\n'.join(webnotes.debug_log).replace("'", "\'").replace("\n","<br>"))
-	webnotes.response['type'] = 'iframe'
-
 
 # File download
 # ------------------------------------------------------------------------------------

@@ -1,4 +1,4 @@
-def upload():
+def save_as_attachment():
 	import webnotes
 	form = webnotes.form
 
@@ -7,21 +7,25 @@ def upload():
 	dn = form.getvalue('docname')
 	at_id = form.getvalue('at_id')
 
+	# extract file from the upload handler
+	from webnotes.utils.upload_handler import UploadHandler
+	uh = UploadHandler()
+	if not uh.file_name:
+		# something went wrong, quit
+		return
 	# save
-	fid, fname = save_uploaded()
+	fid = save_file(uh.file_name, uh.content)
 	
-	if fid:
-		# refesh the form!
-		webnotes.response['result'] = """
-<script type='text/javascript'>
-window.parent.wn.widgets.form.file_upload_done('%s', '%s', '%s', '%s', '%s');
-window.parent.frms['%s'].show_doc('%s');
-</script>
-			""" % (dt, dn, fid, fname.replace("'", "\\'"), at_id, dt, dn)
-
-# -------------------------------------------------------
+	uh.set_callback('''
+		window.parent.wn.widgets.form.file_upload_done('%s', '%s', '%s', '%s', '%s');
+		window.parent.frms['%s'].show_doc('%s');
+		''' % (dt, dn, fid, fname.replace("'", "\\'"), at_id, dt, dn))
+		
 
 def make_thumbnail(blob, size):
+	"""
+		Use PIL to res-size incoming image
+	"""
 	from PIL import Image
 	import cStringIO
 				
@@ -35,43 +39,6 @@ def make_thumbnail(blob, size):
 	
 	return fcontent
 
-
-def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js_fail=''):
-	import webnotes
-	import webnotes.utils
-	
-	webnotes.response['type'] = 'iframe'
-
-	form, fid, fname = webnotes.form, None, None
-
-	try:
-		# has attachment?
-		if 'filedata' in form:
-			i = form['filedata']
-	
-			fname, content = i.filename, i.file.read()
-	
-			# thumbnail
-			if webnotes.form_dict.get('thumbnail'):
-				try:
-					content = make_thumbnail(content, int(form.get('thumbnail')))
-					# change extension to jpg
-					fname = '.'.join(fname.split('.')[:-1])+'.jpg'
-				except Exception, e:
-					pass
-		
-			# get the file id
-			fid = save_file(fname, content)
-			
-			# okay
-			webnotes.response['result'] = """<script type='text/javascript'>%s</script>""" % js_okay
-		else:
-			webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("No file"); %s</script>""" % js_fail
-			
-	except Exception, e:
-		webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("%s"); window.parent.errprint("%s"); %s</script>""" % (str(e), webnotes.utils.getTraceback().replace('\n','<br>').replace('"', '\\"'), js_fail)
-	
-	return fid, fname
 
 # -------------------------------------------------------
 
@@ -176,10 +143,10 @@ def get_file(fname):
 	file.close()
 	return [f[1], content]
 
-# Conversion Patch
-# -------------------------------------------------------
-
 def convert_to_files(verbose=0):
+	"""
+		Deprecated: marked for deletion
+	"""
 	import webnotes
 	
 	# nfiles
@@ -199,4 +166,3 @@ def convert_to_files(verbose=0):
 			if verbose:
 				webnotes.msgprint('%s updated' % f[0])
 
-# -------------------------------------------------------
