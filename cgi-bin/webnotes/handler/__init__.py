@@ -32,7 +32,12 @@ def handle(reqflds):
 	# and other for ajax via the "action" property
 	#raise Exception, str(webnotes.request.form.get('cmd'))
 	if webnotes.request.cmd and webnotes.request.cmd!='login' :
-		webnotes.response['msg']=webnotes.request.execute()
+		webnotes.conn.begin()
+		ret=webnotes.request.execute()
+		if ret:
+			webnotes.response.message=r;et
+		if webnotes.conn.in_transaction:
+			webnotes.conn.commit()
 	else:
 		from webnotes.handler import index
 		index.build()
