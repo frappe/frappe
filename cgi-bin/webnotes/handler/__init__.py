@@ -35,7 +35,7 @@ def handle(reqflds):
 		webnotes.conn.begin()
 		ret=webnotes.request.execute()
 		if ret:
-			webnotes.response.message=r;et
+			webnotes.response.message=ret
 		if webnotes.conn.in_transaction:
 			webnotes.conn.commit()
 	else:
