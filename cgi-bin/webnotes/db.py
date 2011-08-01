@@ -16,7 +16,9 @@ class Database:
 		self.user = user or getattr(defs, 'default_db_name', '')
 
 		# password can be empty string
-		self.password = password==None and getattr(defs, 'db_password', '') or password
+		self.password = password
+		if password==None:
+			self.password = getattr(defs, 'db_password', '')
 
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or defs.default_db_name

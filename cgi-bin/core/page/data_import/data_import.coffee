@@ -1,33 +1,42 @@
-class ImportSection
-	render: (label, description, hidden) ->
-		@wrapper = $a $('#data_importer .body').get(0), 'div', 'box round'
-		@head = $a @wrapper, 'h3', 'head', null, label
-		$a @wrapper, 'div', 'comment', null, description 
-		@body = $a @wrapper, 'div'
-		if hidden
-			$dh @wrapper
-
-class Uploader extends ImportSection
+# File importer
+class DataImport
 	constructor: ->
-		@render('Step 1: Upload A File', 'Upload a file in ".csv" format. <ol>
-		<li>The first row should be headings.
-		<li>Please do not enter blank rows.
-		<li>If you using a spreadsheet, select "Save As" CSV to 
-		generate the csv file.</ol>')
+		new PageHeader $('#data_importer .head').get(0), 'Import Data'
+		new Uploader $('#upload_form').get(0),  {cmd: 'core.page.data_import.data_import.upload'}, 
+			pscript.check_upload
+
+	upload_done: (@first_row) =>
+		@show_table_select
 		
-		new Uploader @body, cmd: core.page.import.import.upload, pscript.check_upload
+	show_table_select: () ->
+		# show the table selector
+		$ds $('#data_importer .box').get(1)
 		
-class TableSelector
+		# set select options
+		s = $i 'import_table_select'
+		add_sel_options s, add_lists([''], session.can_read)
+		$(s).change ->
+			@load_doctype sel_val(s)
 	
-class ColumnSelector
-	
+	# load doctype and make column selectors
+	load_doctype: () ->
+		
+		
+
+# Uploader Object
 class ColumnSelect
 	
-class Output
+pscript['onload_data-import'] = ->
+	pscript.data_import = new DataImport()
 	
-pscript.onload_import = ->
-	new PageHeader($('#data_importer .head').get(0), 'Import Data')
-	new Uploader()
+pscript.upload_done = (first_row) ->
+	$ds $('#data_importer .box').get(1)
 	
-pscript.check_upload = ->
+	# load table slect
+	s = $i 'import_table_select'
+	add_sel_options s, add_lists([''], session.can_read)
+	$(s).change ->
+		
+	
+	msgprint first_row
 	

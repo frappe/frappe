@@ -162,55 +162,13 @@ def rename(dt, old, new, is_doctype = 0):
 #=================================================================================
 
 def clear_recycle_bin():
-	"""
-		Clears temporary records that have been deleted
-	"""
-	sql = webnotes.conn.sql
-
-	tl = sql('show tables')
-	total_deleted = 0
-	for t in tl:
-		fl = [i[0] for i in sql('desc `%s`' % t[0])]
-		
-		if 'name' in fl:
-			total_deleted += sql("select count(*) from `%s` where name like '__overwritten:%%'" % t[0])[0][0]
-			sql("delete from `%s` where name like '__overwritten:%%'" % t[0])
-
-		if 'parent' in fl:	
-			total_deleted += sql("select count(*) from `%s` where parent like '__oldparent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like '__oldparent:%%'" % t[0])
-	
-			total_deleted += sql("select count(*) from `%s` where parent like 'oldparent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like 'oldparent:%%'" % t[0])
-
-			total_deleted += sql("select count(*) from `%s` where parent like 'old_parent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like 'old_parent:%%'" % t[0])
-
-	webnotes.msgprint("%s records deleted" % str(int(total_deleted)))
+	from webnotes.model.utils import clear_recycle_bin
+	clear_recycle_bin()
 	
 	
-# Make Table Copy
-#=================================================================================
-
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
-	import webnotes.model.doc
-
-	if not tarfields: 
-		tarfields = srcfields
-	l = []
-	data = webnotes.model.doc.getchildren(src.name, srctype, srcfield)
-	for d in data:
-		newrow = webnotes.model.doc.addchild(tar, tarfield, tartype, local = 1)
-		newrow.idx = d.idx
-	
-		for i in range(len(srcfields)):
-			newrow.fields[tarfields[i]] = d.fields[srcfields[i]]
-			
-		l.append(newrow)
-	return l
-
-# DB Exists
-#=================================================================================
+	from webnotes.model.utils import copy_children
+	copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields)
 
 def db_exists(dt, dn):
 	import webnotes

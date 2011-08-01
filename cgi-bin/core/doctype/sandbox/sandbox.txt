@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 12:08:57',
+		'creation': '2011-08-01 11:56:15',
 		'docstatus': 0,
-		'modified': '2011-07-22 12:09:36',
+		'modified': '2011-08-01 15:33:10',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
@@ -18,7 +18,8 @@
 		'module': 'Core',
 		'name': '__common__',
 		'section_style': 'Simple',
-		'version': 2
+		'show_in_menu': 0,
+		'version': 5
 	},
 
 	# These values are common for all DocField
@@ -76,7 +77,8 @@
 		'fieldname': 'test_link',
 		'fieldtype': 'Link',
 		'idx': 2,
-		'label': 'Test Link'
+		'label': 'Test Link',
+		'options': 'Profile'
 	},
 
 	# DocField
@@ -91,9 +93,19 @@
 	# DocField
 	{
 		'doctype': 'DocField',
+		'fieldname': 'test_select',
+		'fieldtype': 'Select',
+		'idx': 4,
+		'label': 'Test Select',
+		'options': 'A\nB\nC\nD'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
 		'fieldname': 'test_date',
 		'fieldtype': 'Date',
-		'idx': 4,
+		'idx': 5,
 		'label': 'Test Date'
 	},
 
@@ -102,7 +114,7 @@
 		'doctype': 'DocField',
 		'fieldname': 'to_be_dropped',
 		'fieldtype': 'Data',
-		'idx': 5,
+		'idx': 6,
 		'label': 'to be dropped'
 	}
 ]

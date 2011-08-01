@@ -1,4 +1,7 @@
 """
+Deprecated: Old style class, please use pythonic classes 
+- will be removed in future versions
+
 This is where all the plug-in code is executed. The standard method for DocTypes is declaration of a 
 standardized `DocType` class that has the methods of any DocType. When an object is instantiated using the
 `get_obj` method, it creates an instance of the `DocType` class of that particular DocType and sets the 

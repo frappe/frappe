@@ -335,6 +335,7 @@ class Document:
 					if link_list and link_list.get(f):
 						self.fields[f] = self._validate_link(link_list[f][0], self.fields[f])
 
+					# set nulls
 					if self.fields[f]==None or self.fields[f]=='':
 						update_str.append("`%s`=NULL" % f)
 						if ignore_fields:

@@ -1,3 +1,7 @@
+"""
+	Deprecated
+"""
+
 import webnotes
 
 def import_docs(docs = []):

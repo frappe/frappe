@@ -12,12 +12,14 @@ class DocList:
 	"""
 	Collection of Documents with one parent and multiple children
 	"""
-	def __init__(self, dt=None, dn=None):
-		self.docs = []
+	def __init__(self, dt=None, dn=None, docs = []):
+		self.docs = docs
 		self.obj = None
 		self.to_docstatus = 0
 		if dt and dn:
 			self.load_from_db(dt, dn)
+		if docs:
+			self.objectify()
 	
 	def load_from_db(self, dt, dn):
 		"""
@@ -128,7 +130,14 @@ class DocList:
 	
 		if err_list:
 			webnotes.msgprint("""[Link Validation] Could not find the following values: %s. 
-			Please correct and resave. Document Not Saved.""" % ', '.join(err_list), raise_exception=1)
+			Please correct and resave. Document Not Saved.""" % ', '.join(err_list))
+			raise webnotes.LinkValidationError
+	
+	def check_options(self):
+		"""
+			Checks if options are specified
+		"""
+		
 	
 	def update_timestamps(self):
 		"""

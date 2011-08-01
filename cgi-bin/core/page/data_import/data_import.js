@@ -1,55 +1,42 @@
 (function() {
-  var ColumnSelect, ColumnSelector, ImportSection, Output, TableSelector, Uploader;
-  var __hasProp = Object.prototype.hasOwnProperty, __extends = function(child, parent) {
-    for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; }
-    function ctor() { this.constructor = child; }
-    ctor.prototype = parent.prototype;
-    child.prototype = new ctor;
-    child.__super__ = parent.prototype;
-    return child;
-  };
-  ImportSection = (function() {
-    function ImportSection() {}
-    ImportSection.prototype.render = function(label, description, hidden) {
-      this.wrapper = $a($('#data_importer .body').get(0), 'div', 'box round');
-      this.head = $a(this.wrapper, 'h3', 'head', null, label);
-      $a(this.wrapper, 'div', 'comment', null, description);
-      this.body = $a(this.wrapper, 'div');
-      if (hidden) {
-        return $dh(this.wrapper);
-      }
-    };
-    return ImportSection;
-  })();
-  Uploader = (function() {
-    __extends(Uploader, ImportSection);
-    function Uploader() {
-      this.render('Step 1: Upload A File', 'Upload a file in ".csv" format. <ol>\
-		<li>The first row should be headings.\
-		<li>Please do not enter blank rows.\
-		<li>If you using a spreadsheet, select "Save As" CSV to \
-		generate the csv file.</ol>');
+  var ColumnSelect, DataImport;
+  var __bind = function(fn, me){ return function(){ return fn.apply(me, arguments); }; };
+  DataImport = (function() {
+    function DataImport() {
+      this.upload_done = __bind(this.upload_done, this);      new PageHeader($('#data_importer .head').get(0), 'Import Data');
+      new Uploader($('#upload_form').get(0), {
+        cmd: 'core.page.data_import.data_import.upload'
+      }, pscript.check_upload);
     }
-    return Uploader;
-  })();
-  TableSelector = (function() {
-    function TableSelector() {}
-    return TableSelector;
-  })();
-  ColumnSelector = (function() {
-    function ColumnSelector() {}
-    return ColumnSelector;
+    DataImport.prototype.upload_done = function(first_row) {
+      this.first_row = first_row;
+      return this.show_table_select;
+    };
+    DataImport.prototype.show_table_select = function() {
+      var s;
+      $ds($('#data_importer .box').get(1));
+      s = $i('import_table_select');
+      add_sel_options(s, add_lists([''], session.can_read));
+      return $(s).change(function() {
+        return this.load_doctype(sel_val(s));
+      });
+    };
+    DataImport.prototype.load_doctype = function() {};
+    return DataImport;
   })();
   ColumnSelect = (function() {
     function ColumnSelect() {}
     return ColumnSelect;
   })();
-  Output = (function() {
-    function Output() {}
-    return Output;
-  })();
-  pscript.onload_import = function() {
-    new PageHeader($('#data_importer .head').get(0), 'Import Data');
-    return new Uploader();
+  pscript['onload_data-import'] = function() {
+    return pscript.data_import = new DataImport();
+  };
+  pscript.upload_done = function(first_row) {
+    var s;
+    $ds($('#data_importer .box').get(1));
+    s = $i('import_table_select');
+    add_sel_options(s, add_lists([''], session.can_read));
+    $(s).change(function() {});
+    return msgprint(first_row);
   };
 }).call(this);
