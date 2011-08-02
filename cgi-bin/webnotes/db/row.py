@@ -81,12 +81,32 @@ class DatabaseRow:
 		"""
 		pass
 		
-class SingleRecord:
+class Single:
 	def __init__(self, doctype, record):
 		self.doctype = doctype
 		self.record = record
-		
+
+	def clear(self):
+		"""
+			Clear single
+		"""
+		# clear
+		webnotes.conn.sql("delete from tabSingles where doctype='%s'" % self.doctype)
+
 	def update(self):
 		"""
 			Insert / Update a single record
 		"""
+		self.clear()
+		values = []
+		
+		# build list of values
+		for key in self.record:
+			values += [self.doctype, key, self.record[key]]
+		
+		# build the query
+		query = 'insert into tabSingles(doctype, field, value) values %s' %\
+		 	(', '.join(['(%s, %s, %s)'] * len(self.record.keys())))
+		
+		# insert
+		webnotes.conn.sql(query, values)

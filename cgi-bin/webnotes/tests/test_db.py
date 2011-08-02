@@ -8,7 +8,7 @@ import unittest
 import webnotes
 
 from webnotes.db import Database
-from webnotes.db.row import DatabaseRow
+from webnotes.db.row import DatabaseRow, Single
 
 class DbTest(unittest.TestCase):
 	def setUp(self):
@@ -29,6 +29,12 @@ class DbTest(unittest.TestCase):
 			'test_data':'aaa'
 		}).insert()
 		self.assertEquals(webnotes.conn.get_value('Sandbox','xSB002','test_data'), 'aaa')
+	
+	def test_single(self):
+		Single('New Single', {
+			'test': 'test1'
+		}).update()
+		self.assertEquals(webnotes.conn.get_value('New Single',None,'test'), 'test1')
 	
 	def test_update(self):
 		DatabaseRow('tabSandbox', {
