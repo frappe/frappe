@@ -187,8 +187,8 @@ def validate_cmd(cmd):
 	if cmd.startswith('webnotes.model.code'):
 		raise Exception, 'Cannot call any methods from webnotes.model.code directly from the handler'
 
-	if cmd.startswith('webnotes.model.db_schema'):
-		raise Exception, 'Cannot call any methods from webnotes.model.db_schema directly from the handler'
+	if cmd.startswith('webnotes.db'):
+		raise Exception, 'Cannot call any methods from webnotes.db directly from the handler'
 
 	if cmd.startswith('webnotes.conn'):
 		raise Exception, 'Cannot call database connection method directly from the handler'

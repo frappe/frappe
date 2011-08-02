@@ -75,7 +75,7 @@ class DocType:
 
 	def on_update(self):
 		# make schma changes
-		from webnotes.model.db_schema import updatedb
+		from webnotes.db.utils import updatedb
 		updatedb(self.doc.name)
 
 		self.change_modified_of_parent()

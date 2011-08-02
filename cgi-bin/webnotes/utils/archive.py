@@ -70,7 +70,7 @@ def insert_record(doctype, tar_tab, name):
 	except Exception, e:
 		if e.args[0]==1146: 
 			# missing table - create it
-			from webnotes.model.db_schema import updatedb
+			from webnotes.db.utils import updatedb
 			updatedb(doctype, 1)
 			
 			# again

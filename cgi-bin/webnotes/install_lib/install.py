@@ -27,7 +27,7 @@ class Installer:
 		import webnotes.defs
 	
 		self.root_password = root_password
-		from webnotes.model.db_schema import DbManager
+		from webnotes.db.manager import DbManager
 		
 		self.conn = webnotes.db.Database(user=root_login, password=root_password)			
 		webnotes.conn=self.conn
@@ -157,7 +157,7 @@ def make_scheduler(root_login, root_password, verbose):
 	"""
 	conn = webnotes.db.Database(user=root_login, password=root_password)			
 
-	from webnotes.model.db_schema import DbManager
+	from webnotes.db.manager import DbManager
 
 	dbman = DbManager(conn)
 	

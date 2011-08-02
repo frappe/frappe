@@ -82,7 +82,7 @@ class DocType:
 		self.add_field()
 		
 		# update the schema
-		from webnotes.model.db_schema import updatedb
+		from webnotes.db.utils import updatedb
 		updatedb(self.doc.dt)
 
 	# Trash
