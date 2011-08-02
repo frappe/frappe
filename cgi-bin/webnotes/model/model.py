@@ -11,13 +11,15 @@ class Model:
 			modified_by
 			modified_on
 	"""
+	_def = None
+	
 	def __init__(self, doctype = None, name = None, attributes = {}):
 		self.doctype = doctype
 		self.name = name
 		if attributes:
 			self.__dict__.update(attributes)
 		if doctype and name:
-			self._read()
+			self.read()
 			
 	def __getattr__(self, name):
 		"""
@@ -25,14 +27,23 @@ class Model:
 		"""
 		return self.__dict__.get(name, None)
 	
-	def _load_model_metadata(self):
+	def _load_model_def(self):
 		"""
 			Load the model meta data from file
 		"""
-		from webnotes.model.meta import Meta
-		self._meta = Meta(doctype)
+		from webnotes.model.model_def import ModelDef
+		self._def = ModelDef(doctype)
 	
-	def _read(self):
+	def get_properties(self):
+		"""
+			return properties
+		"""
+		if not self._def:
+			self._load_model_def()
+			
+		return filter(lambda x: x.doctype=='DocField', self._def.children)
+		
+	def read(self):
 		"""
 			Read
 		"""
@@ -40,35 +51,59 @@ class Model:
 			select * from `%s` where _id=%s
 		""", (self._type, self.name), as_dict=1)[0])
 	
-	def _set_name(self):
+	def set_name(self):
 		"""
 			Set name (id) for this record
 		"""
 		from webnotes.model.naming import NamingControl
 		NamingControl(self, self._meta)
 	
-	def _insert(self):
+	def insert(self):
 		"""
 			Create
 		"""
 		self._validate()
 		if not self.name:
-			self._set_name()
+			self.set_name()
 
-		DatabaseRow('tab' + self.doctype, self._get_values()).insert()
+		DatabaseRow('tab' + self.doctype, self.get_values()).insert()
+		
+	def _validate_select(self, prop, value):
+		"""
+			Raise validation exception
+		"""
+		if prop.options.startswith('link:'):
+			if not webnotes.conn.exists(prop.options[5:], value):
+				raise webnotes.InvalidOptionError
+			
+		elif not value in prop.options.split('\n'):
+			raise webnotes.InvalidOptionError
+		
 
 	def _validate(self):
 		"""
 			Check data integrity before saving
 		"""
 		self._load_model_metadata()
-		self._validate_links()
-		self._validate_options()
-		self._validate_mandatory()
-		if hasattr(self, 'validate'):
-			self.validate()
+
+		for prop in self.get_properties:
+			value = self.__dict__.get(prop.fieldname)
+			
+			# link
+			if prop.fieldtype == 'Link' and prop.options:
+				if not webnotes.conn.exists(prop.options, value):
+					raise webnotes.InvalidLinkError
+				
+			# select	
+			elif prop.fieldtype == 'Select' and prop.options: 
+				self._validate_select(prop, value)
+			
+			# mandatory
+			if prop.reqd:
+				if value in (None, ''):
+					raise webnotes.MandatoryAttributeError
 	
-	def _get_values(self):
+	def get_values(self):
 		"""
 			Returns dict of attributes except: 
 			* starting with underscore (_)
@@ -82,27 +117,30 @@ class Model:
 		del tmp['doctype']
 		return tmp
 	
-	def _update(self):
+	def update(self):
 		"""
 			Update
 		"""
 		self._validate()
 		from webnotes.db.row import DatabaseRow, Single
-		DatabaseRow('tab' + self.doctype, self._get_values()).update()
+		DatabaseRow('tab' + self.doctype, self.get_values()).update()
 				
-	def _delete(self):
+	def delete(self):
 		"""
 			Delete
 		"""
 		self._has_live_links()
 		self._db_delete()
 		
-	def _rename(self, new_name):
+	def rename(self, new_name):
 		"""
 			Rename model
 		"""
 		pass
-	
+
+
+
+
 class SingleModel(Model):
 	"""
 		Static / Singleton Model
@@ -110,7 +148,7 @@ class SingleModel(Model):
 	def __init__(self, doctype = None, name = None, attributes = {}):
 		Model.__init__(self, doctype, name, attributes)
 		
-	def _read(self):
+	def read(self):
 		"""
 			Read
 		"""
@@ -118,18 +156,26 @@ class SingleModel(Model):
 		for t in tmp:
 			self.__dict__[t[0]] = t[1]
 	
-	def _insert(self):
+	def insert(self):
 		"""
 			Insert
 		"""
 		self._validate()
 		from webnotes.db.row import Single		
-		Single(self.doctype, self._get_values()).update()
+		Single(self.doctype, self.get_values()).update()
 
-	def _update(self):
+	def update(self):
 		"""
 			Update
 		"""
 		self._validate()
 		from webnotes.db.row import Single		
-		Single(self.doctype, self._get_values()).update()
+		Single(self.doctype, self.get_values()).update()
+
+	def delete(self):
+		"""
+			Delete
+		"""
+		from webnotes.db.row import Single		
+		Single(self.doctype, {}).clear()
+		

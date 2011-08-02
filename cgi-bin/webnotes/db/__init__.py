@@ -1,5 +1,10 @@
 import webnotes
 
+# stanard error codes
+
+NO_TABLE = 1146
+NO_COLUMN = 1054
+
 class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the

@@ -25,7 +25,6 @@ class Collection:
 		"""
 		return self.models.__iter__()
 
-
 	def next(self):
 		"""
 			Next doc
@@ -83,6 +82,9 @@ class Collection:
 					self.doc = d
 				else:
 					self.children.append(d)
+
+		# new style called model
+		self.model = self.doc
 	
 	def make_obj(self):
 		"""
@@ -121,43 +123,9 @@ class Collection:
 		"""
 			Raises exception if permission is not valid
 		"""
-		if not self.doc.check_perm(verbose=1):
+		from webnotes.model.permissions import PermissionChecker
+		if not PermissionChecker(self.parent).has_perm(verbose=1):
 			webnotes.msgprint("Not enough permission to save %s" % self.doc.doctype, raise_exception=1)
-	
-	def check_links(self):
-		"""
-			Checks integrity of links (throws exception if links are invalid)
-		"""
-		ref, err_list = {}, []
-		for d in self.models:
-			if not ref.get(d.doctype):
-				ref[d.doctype] = d.make_link_list()
-
-			err_list += d.validate_links(ref[d.doctype])
-	
-		if err_list:
-			webnotes.msgprint("""[Link Validation] Could not find the following values: %s. 
-			Please correct and resave. Document Not Saved.""" % ', '.join(err_list))
-			raise webnotes.LinkValidationError
-	
-
-	def update_timestamps(self):
-		"""
-			Update owner, creation, modified_by, modified, docstatus
-		"""
-		from webnotes.utils import now
-		ts = now()
-		user = webnotes.__dict__.get('session', {}).get('user') or 'Administrator'
-		
-		for d in self.models:
-			if self.doc.__islocal:
-				d.owner = user
-				d.creation = ts
-			
-			d.modified_by = user
-			d.modified = ts
-			if d.docstatus != 2: # don't update deleted
-				d.docstatus = self.to_docstatus
 		
 	def prepare_for_save(self, check_links):
 		"""
@@ -165,9 +133,6 @@ class Collection:
 		"""
 		self.check_if_latest()
 		self.check_permission()
-		if check_links:
-			self.check_links()
-		self.update_timestamps()
 
 	def run_method(self, method):
 		"""

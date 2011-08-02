@@ -15,7 +15,9 @@ TODO:
 
 * validate before delete
 * naming series
-* 
+
+* custom property patch
+
 """
 
 import unittest

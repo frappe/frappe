@@ -61,9 +61,11 @@ tenant_id = None
 # Custom Class (no traceback)
 #
 class ValidationError(Exception): pass
-class LinkValidationError(Exception): pass
-class OptionsError(Exception): pass
-class MandatoryError(Exception): pass
+
+# validation exceptions
+class InvalidLinkError(ValidationError): pass
+class InvalidOptionError(ValidationError): pass
+class MandatoryAttributeError(ValidationError): pass
 
 #
 # HTTP standard response
