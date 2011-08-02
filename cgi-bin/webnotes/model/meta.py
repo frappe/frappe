@@ -1,7 +1,34 @@
 # metadata
 
 import webnotes
-	
+from webnotes.model.model import Model
+
+class Meta(Collection):
+	"""
+		Class for Meta Model (DocType)
+	"""
+	def __init__(self, module, name):
+		"""
+			Load the model (from file)
+		"""
+		self.module = module
+		self.name = name
+		self.doctype = 'DocType'
+		
+		self.from_files(self.module)
+		self.add_custom_fields()
+		self.overload_custom_properties()
+
+	def add_custom_fields(self):
+		"""
+			Add custom fields to the collection
+		"""
+
+
+
+
+
+
 #=================================================================================
 
 def get_dt_values(doctype, fields, as_dict = 0):

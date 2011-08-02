@@ -178,7 +178,7 @@ def runserverobj():
 		Run server objects
 	"""
 	import webnotes.model.code
-	from webnotes.model.doclist import DocList
+	from webnotes.model.collection import Collection
 	from webnotes.utils import cint
 
 	form = webnotes.form
@@ -194,7 +194,7 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		doclist = DocList()
+		doclist = Collection()
 		doclist.from_compressed(form.getvalue('docs'), dn)
 		so = doclist.make_obj()
 		
@@ -232,10 +232,10 @@ def make_csv_output(res, dt):
 
 def savedocs():
 	try:
-		from webnotes.model.doclist import DocList
+		from webnotes.model.collection import Collection
 		form = webnotes.form_dict
 
-		doclist = DocList()
+		doclist = Collection()
 		doclist.from_compressed(form.get('docs'), form.get('docname'))
 
 		# action

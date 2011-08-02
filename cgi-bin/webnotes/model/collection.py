@@ -1,31 +1,42 @@
 """
-Transactions are defined as collection of classes, a DocList represents collection of Document
+Transactions are defined as collection of classes, a Collection represents collection of Document
 objects for a transaction with main and children.
 
-Group actions like save, etc are performed on doclists
+Group actions like save, etc are performed on collections
 """
 
 import webnotes
 from webnotes.utils import cint
 
-class DocList:
+class Collection:
 	"""
 	Collection of Documents with one parent and multiple children
 	"""
-	def __init__(self, dt=None, dn=None, docs = []):
-		self.docs = docs
+	def __init__(self, dt=None, dn=None, models = []):
+		self.models = models
 		self.obj = None
 		self.to_docstatus = 0
-		if dt and dn:
-			self.load_from_db(dt, dn)
-		if docs:
+		if models:
 			self.objectify()
-	
-	def load_from_db(self, dt, dn):
+
+	def __iter__(self):
 		"""
-			Load doclist from dt
+			Make this iterable
 		"""
-		from webnotes.model.doc import Document, getchildren
+		return self.models.__iter__()
+
+
+	def next(self):
+		"""
+			Next doc
+		"""
+		return self.models.next()
+
+	def from_db(self, dt, dn):
+		"""
+			Load from database
+		"""
+		from webnotes.model import Document, getchildren
 
 		doc = Document(dt, dn, prefix=prefix)
 
@@ -37,35 +48,37 @@ class DocList:
 		for t in tablefields:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 		
-		self.docs = docs
-	
-	def __iter__(self):
-		"""
-			Make this iterable
-		"""
-		return self.docs.__iter__()
-	
+		self.models = docs
+
 	def from_compressed(self, data, docname):
 		"""
 			Expand called from client
 		"""
 		from webnotes.model.utils import expand
-		self.docs = expand(data)
+		self.models = expand(data)
 		self.objectify(docname)
+	
+	def from_files(self, module):
+		"""
+			Load collection from files
+		"""
+		from webnotes.modules import Module
+		self.models = Module(module).get_doc_file(self.dt, self.dn).get_collection()
+		self.objectify()
 	
 	def objectify(self, docname=None):
 		"""
-			Converts self.docs from a list of dicts to list of Documents
+			Converts self.models from a list of dicts to list of Documents
 		"""
-		from webnotes.model.doc import Document
+		from webnotes.model import get_model
 		
-		self.docs = [Document(fielddata=d) for d in self.docs]
+		self.models = [get_model(attributes=d) for d in self.models]
 		if not docname:
-			self.doc, self.children = self.docs[0], self.docs[1:]
+			self.doc, self.children = self.models[0], self.models[1:]
 
 		else:
 			self.children = []
-			for d in self.docs:
+			for d in self.models:
 				if d.name == docname:
 					self.doc = d
 				else:
@@ -80,18 +93,12 @@ class DocList:
 		from webnotes.model.code import get_obj
 		self.obj = get_obj(doc=self.doc, doclist=self.children)
 		return self.obj
-		
-	def next(self):
-		"""
-			Next doc
-		"""
-		return self.docs.next()
 
 	def to_dict(self):
 		"""
 			return as a list of dictionaries
 		"""
-		return [d.fields for d in self.docs]
+		return [d.fields for d in self.models]
 
 	def check_if_latest(self):
 		"""
@@ -122,7 +129,7 @@ class DocList:
 			Checks integrity of links (throws exception if links are invalid)
 		"""
 		ref, err_list = {}, []
-		for d in self.docs:
+		for d in self.models:
 			if not ref.get(d.doctype):
 				ref[d.doctype] = d.make_link_list()
 
@@ -133,12 +140,7 @@ class DocList:
 			Please correct and resave. Document Not Saved.""" % ', '.join(err_list))
 			raise webnotes.LinkValidationError
 	
-	def check_options(self):
-		"""
-			Checks if options are specified
-		"""
-		
-	
+
 	def update_timestamps(self):
 		"""
 			Update owner, creation, modified_by, modified, docstatus
@@ -147,7 +149,7 @@ class DocList:
 		ts = now()
 		user = webnotes.__dict__.get('session', {}).get('user') or 'Administrator'
 		
-		for d in self.docs:
+		for d in self.models:
 			if self.doc.__islocal:
 				d.owner = user
 				d.creation = ts

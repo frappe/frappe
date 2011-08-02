@@ -36,7 +36,7 @@ class TestModel(unittest.TestCase):
 			'test_data': 'value',
 			'test_date': '2011-01-22'
 		})
-		m.save()
-		self.assertTrue(get_model('Sandbox',m.name).test_data = 'value')
+		m.insert()
+		self.assertEquals(get_model('Sandbox',m.name).test_data, 'value')
 		
 	

@@ -58,7 +58,7 @@ class ImportCSV:
 			Import the records into table
 			Uses webnotes.model.doclist
 		"""
-		from webnotes.model.doclist import DocList
+		from webnotes.model.collection import Collection
 		for d in self.data[1:]:
 			tmp = {}
 			for i in range(len(self.mapper)):
@@ -78,7 +78,7 @@ class ImportCSV:
 
 				tmp['doctype'] = self.doctype
 				
-				doclist = DocList(docs=[tmp])
+				doclist = Collection(docs=[tmp])
 				doclist.save()
 				
 				

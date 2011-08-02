@@ -248,13 +248,19 @@ class TxtModuleFile(ModuleFile):
 	def __init__(self, path):
 		ModuleFile.__init__(self, path)
 	
+	def get_collection(self):
+		"""
+			Returns the raw model collection from the file
+		"""
+		from webnotes.model.utils import peval_doclist
+		return peval_doclist(self.read())
+	
 	def sync(self):
 		"""
 			import the doclist if new
 		"""
 		if self.is_new():
-			from webnotes.model.utils import peval_doclist
-			doclist = peval_doclist(self.read())
+			doclist = get_collection()
 			if doclist:
 				# since there is a new timestamp on the file, update timestamp in
 				# the record

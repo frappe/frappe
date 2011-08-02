@@ -4,10 +4,10 @@ class Model:
 		This will contain methods for save update
 		
 		Standard attributes:
-			_type
+			doctype
 			name
-			created_by
-			created_on
+			owner
+			creation
 			modified_by
 			modified_on
 	"""
@@ -16,22 +16,21 @@ class Model:
 		self.name = name
 		if attributes:
 			self.__dict__.update(attributes)
-		self._meta = Meta(doctype)
+		if doctype and name:
+			self._read()
 			
 	def __getattr__(self, name):
 		"""
 			Getter is overridden so that it does not throw an exception
 		"""
-		if name in self.__dict__:
-			return self.__dict__[name]
-		else:
-			return None
+		return self.__dict__.get(name, None)
 	
 	def _load_model_metadata(self):
 		"""
 			Load the model meta data from file
 		"""
-		pass
+		from webnotes.model.meta import Meta
+		self._meta = Meta(doctype)
 	
 	def _read(self):
 		"""
@@ -55,7 +54,8 @@ class Model:
 		self._validate()
 		if not self.name:
 			self._set_name()
-		self._db_insert()
+
+		DatabaseRow('tab' + self.doctype, self._get_values()).insert()
 
 	def _validate(self):
 		"""
@@ -68,13 +68,28 @@ class Model:
 		if hasattr(self, 'validate'):
 			self.validate()
 	
+	def _get_values(self):
+		"""
+			Returns dict of attributes except: 
+			* starting with underscore (_)
+			* functions
+			* attribute "doctype"
+		"""
+		tmp = {}
+		for key in __dict__:
+			if not key.startswith('_') and type(self.__dict__[key]).__name__ != 'function':
+				tmp[key] = self.__dict__[key]
+		del tmp['doctype']
+		return tmp
+	
 	def _update(self):
 		"""
 			Update
 		"""
 		self._validate()
-		self._db_update()
-		
+		from webnotes.db.row import DatabaseRow, Single
+		DatabaseRow('tab' + self.doctype, self._get_values()).update()
+				
 	def _delete(self):
 		"""
 			Delete
@@ -88,3 +103,33 @@ class Model:
 		"""
 		pass
 	
+class SingleModel(Model):
+	"""
+		Static / Singleton Model
+	"""
+	def __init__(self, doctype = None, name = None, attributes = {}):
+		Model.__init__(self, doctype, name, attributes)
+		
+	def _read(self):
+		"""
+			Read
+		"""
+		tmp = webnotes.conn.sql("select field, value from tabSingles where doctype=%s", self.doctype)
+		for t in tmp:
+			self.__dict__[t[0]] = t[1]
+	
+	def _insert(self):
+		"""
+			Insert
+		"""
+		self._validate()
+		from webnotes.db.row import Single		
+		Single(self.doctype, self._get_values()).update()
+
+	def _update(self):
+		"""
+			Update
+		"""
+		self._validate()
+		from webnotes.db.row import Single		
+		Single(self.doctype, self._get_values()).update()
