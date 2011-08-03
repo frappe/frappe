@@ -22,7 +22,6 @@ class ModelDef(FileCollection):
 		self.name = name
 		self.doctype = 'DocType'
 		
-		
 		self.read()
 		
 		from core.doctype.property_setter.override_properties import PropertyOverrider

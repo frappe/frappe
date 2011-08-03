@@ -5,6 +5,7 @@
 		NamingControl(model, meta).set_name()
 	
 """
+import webnotes
 
 class NamingControl:
 	"""
@@ -23,12 +24,12 @@ class NamingControl:
 			4. by numbering
 		"""
 		self.model = self.collection.parent
-		autoname = self.collection._def.parent.autoname
+		autoname = self.collection.parent._def.parent.autoname
 		
 		self.model.localname = self.model.name
 		
 		# clear localname
-		if self.model.name.startswith('New '):
+		if self.model.name and self.model.name.startswith('New '):
 			self.model.name = None
 
 		if self.model.amended_from: 
@@ -44,7 +45,7 @@ class NamingControl:
 			return self.by_eval()
 		
 		if autoname and autoname!='Prompt': 
-			self.model.name = process_from_key(autoname, self.model.doctype)
+			self.model.name = process_from_key(autoname)
 			return
 				
 		if self.model.__dict__.get('__newname',''): 
@@ -53,7 +54,7 @@ class NamingControl:
 
 		# unable to determine a name, use a serial number!
 		if not self.model.name:
-			self.model.name = process_from_key('#########', self.model.doctype)
+			self.model.name = self.process_from_key('#########')
 	
 	def by_method(self):
 		"name by function"
@@ -87,7 +88,7 @@ class NamingControl:
 			
 		self.model.name = am_prefix + '-' + str(am_id)
 	
-	def process_from_key(self):
+	def process_from_key(self, exp):
 		"""
 			return processed name from `autname` property
 
@@ -106,7 +107,7 @@ class NamingControl:
 					  DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 		"""
 		n = ''
-		l = self.exp.split('.')
+		l = exp.split('.')
 		for e in l:
 			en = ''
 			if e.startswith('#'):
@@ -133,22 +134,23 @@ class NumberingSeries:
 	"""
 	def __init__(self, prefix, digits=6):
 		self.prefix = prefix
+		self.digits = digits
 	
 	def next(self):
 		"""
 			return next value
 		"""
 		# series created ?
-		if webnotes.conn.sql("select name from tabSeries where name='%s'" % key):
+		if webnotes.conn.sql("select name from tabSeries where name='%s'" % self.prefix):
 
 			# yes, update it
-			webnotes.conn.sql("update tabSeries set current = current+1 where name='%s'" % key)
+			webnotes.conn.sql("update tabSeries set current = current+1 where name='%s'" % self.prefix)
 
 			# find the series counter
-			r = webnotes.conn.sql("select current from tabSeries where name='%s'" % key)
+			r = webnotes.conn.sql("select current from tabSeries where name='%s'" % self.prefix)
 			n = r[0][0]
 		else:
 			# no, create it
-			webnotes.conn.sql("insert into tabSeries (name, current) values ('%s', 1)" % key)
+			webnotes.conn.sql("insert into tabSeries (name, current) values ('%s', 1)" % self.prefix)
 			n = 1
-		return ('%0'+str(digits)+'d') % n
+		return ('%0'+str(self.digits)+'d') % n

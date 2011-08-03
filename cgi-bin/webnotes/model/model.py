@@ -33,7 +33,7 @@ class Model:
 		"""
 		return self.__dict__.get(name, None)
 	
-	def _load_model_def(self):
+	def load_def(self):
 		"""
 			Load the model meta data from file
 		"""
@@ -45,7 +45,7 @@ class Model:
 		"""
 			return properties
 		"""
-		self._load_model_def()
+		self.load_def()
 		
 		fl = filter(lambda x: x.doctype=='DocField', self._def.children)
 
@@ -112,6 +112,8 @@ class DatabaseModel(Model):
 	"""
 	def __init__(self, doctype = None, name = None, attributes = {}):
 		Model.__init__(self, doctype, name, attributes)
+		if doctype and name and not attributes:
+			self.read()
 		
 	def read(self):
 		"""
@@ -133,6 +135,8 @@ class DatabaseModel(Model):
 			Update
 		"""
 		self._validate()
+		if not self.name:
+			raise webnotes.NoNameError
 		from webnotes.db.row import DatabaseRow, Single
 		DatabaseRow('tab' + self.doctype, self.get_values()).update()
 				
@@ -150,6 +154,8 @@ class SingleModel(Model):
 	"""
 	def __init__(self, doctype = None, name = None, attributes = {}):
 		Model.__init__(self, doctype, name, attributes)
+		if doctype and name and not attributes:
+			self.read()
 		
 	def read(self):
 		"""

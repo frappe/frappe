@@ -66,6 +66,8 @@ class ValidationError(Exception): pass
 class InvalidLinkError(ValidationError): pass
 class InvalidOptionError(ValidationError): pass
 class MandatoryAttributeError(ValidationError): pass
+class NoNameError(ValidationError): pass
+class DuplicateNameError(ValidationError): pass
 
 #
 # HTTP standard response

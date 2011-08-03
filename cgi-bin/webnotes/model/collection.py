@@ -43,7 +43,6 @@ class Collection:
 		"""
 		from webnotes.model.utils import expand
 		self.models = expand(data)
-		# set as models
 		
 	def set_models(self, models, docname=None):
 		"""
@@ -71,7 +70,7 @@ class Collection:
 		"""
 
 		from webnotes.model.naming import NamingControl
-		self.parent._load_model_def()
+		self.parent.load_def()
 		NamingControl(self).set_name()
 		self.rename_parent_in_children()
 	
@@ -181,6 +180,11 @@ class Collection:
 		"""
 		self.run_method('on_update')
 
+	def save(self):
+		if self.parent.__islocal:
+			self.insert()
+		else:
+			self.update()
 
 	def submit(self):
 		"""
@@ -217,6 +221,10 @@ class DatabaseCollection(Collection):
 	"""
 	def __init__(self, doctype, name, models=None):
 		Collection.__init__(self, doctype, name, models)
+
+		# autoread
+		if doctype and name and not models:
+			self.read()
 
 	def read(self):
 		"""
@@ -260,15 +268,16 @@ class DatabaseCollection(Collection):
 			c.update()
 		self.post_update()
 
-
-
 class FileCollection(Collection):
 	"""
 		Collection stored in files
 	"""
-	def __init__(self, module, doctype, name):
+	def __init__(self, module, doctype, name, models=[]):
 		self.module = module
-		Collection.__init__(self, doctype, name)
+		Collection.__init__(self, doctype, name, models)
+		# autoread
+		if module and doctype and name and not models:
+			self.read()
 		
 	def read(self):
 		"""
@@ -298,6 +307,10 @@ class FileCollection(Collection):
 			Delete file
 		"""
 		pass
+
+
+
+
 
 # for bc
 def getlist(doclist, parentfield):
