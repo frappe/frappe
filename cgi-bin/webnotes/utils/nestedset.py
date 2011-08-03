@@ -65,7 +65,11 @@ def update_add_node(doctype, name, parent, parent_field):
 	webnotes.conn.sql("update `tab%s` set rgt = rgt+2 where rgt >= %s" %(doctype,right))
 	webnotes.conn.sql("update `tab%s` set lft = lft+2 where lft >= %s" %(doctype,right))
 	
-	#$ update index of new node
+	# update index of new node
+	if webnotes.conn.sql("select * from `tab%s` where lft=%s or rgt=%s"% (doctype, right, right+1)):
+		webnotes.msgprint("Nested set error. Please send mail to support")
+		raise Exception
+
 	webnotes.conn.sql("update `tab%s` set lft=%s, rgt=%s where name='%s'" % (doctype,right,right+1,name))
 	return right
 
