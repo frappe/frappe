@@ -60,9 +60,6 @@ class Collection:
 					self.parent = d
 				else:
 					self.children.append(d)
-
-		# bc this will be deprecated
-		self.doc = self.parent
 		
 	def set_name(self):
 		"""
@@ -82,16 +79,6 @@ class Collection:
 			if c.parent and (not c.parent.startswith('old_parent:')):
 				c.parent = self.parent.name
 				c.parenttype = self.parent.doctype
-			
-	def make_obj(self):
-		"""
-			Create a DocType object
-		"""
-		if self.obj: return self.obj
-		
-		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.children)
-		return self.obj
 
 	def to_dict(self):
 		"""
@@ -135,18 +122,31 @@ class Collection:
 			if cint(c.__islocal) and cint(c.__deleted):
 				del self.children[i]
 
+	def load_controller(self):
+		"""
+			Add the controller object
+		"""
+		if hasattr(self, 'controller'):
+			return
+			
+		from webnotes.model.controller import set_controller
+		set_controller(self)
+
 	def run_method(self, method):
 		"""
-		Run a method and custom_method
+			Run a method and fire triggers
 		"""
-		self.make_obj()
-		if hasattr(self.obj, method):
-			getattr(self.obj, method)()
-		if hasattr(self.obj, 'custom_' + method):
-			getattr(self.obj, 'custom_' + method)()
-
+		self.load_controller()
+		
+		ret = None
+		if hasattr(self, 'controller'):
+			if hasattr(self.controller, method): 
+				ret = getattr(self.controller, method)()
+				
 		from webnotes.model.triggers import fire_event
-		fire_event(self.doc, method)
+		fire_event(self.parent, method)
+		
+		return ret
 	
 	def pre_insert(self):
 		"""
@@ -219,12 +219,17 @@ class DatabaseCollection(Collection):
 	"""
 		Collection stored in files
 	"""
-	def __init__(self, doctype, name, models=None):
+	def __init__(self, doctype, name=None, models=[]):
 		Collection.__init__(self, doctype, name, models)
 
 		# autoread
 		if doctype and name and not models:
 			self.read()
+			
+		# only doctype supplied, set as new
+		elif doctype and not name and not models:
+			from webnotes.model.model import DatabaseModel
+			self.parent = DatabaseModel(doctype)
 
 	def read(self):
 		"""

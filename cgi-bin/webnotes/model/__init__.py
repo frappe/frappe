@@ -1,6 +1,30 @@
 # model __init__.py
 import webnotes
 
+def get_coll(doctype, name=None, module=None, models=[]):
+	"""
+		wrapper for webnotes.model.collection_factory.get
+	"""
+	from webnotes.model.collection_factory import get
+	return get(doctype, name, module, models)
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']
 default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
 

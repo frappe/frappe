@@ -46,12 +46,9 @@ session = None
 """
 
 user = None
-is_testing = None
-"""    Flag to identify if system is in :term:`Testing Mode` """
 
 incoming_cookies = {}
 add_cookies = {}
-"""    Dictionary of additional cookies appended by custom code """
 
 cookies = {}
 auto_masters = {}

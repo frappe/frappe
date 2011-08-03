@@ -89,8 +89,7 @@ class TestModel(unittest.TestCase):
 		self.assertTrue(f.parent.name=='Sandbox')
 		
 	def test_insert_db_collection(self):
-
-		dc = DatabaseCollection('Sanbox', None, models=[self.get_test_model()])
+		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.insert()
 		
 		dc2 = DatabaseCollection('Sandbox', dc.parent.name)
@@ -98,7 +97,7 @@ class TestModel(unittest.TestCase):
 		
 	def test_update_db_collection(self):
 
-		dc = DatabaseCollection('Sandbox', None, models=[self.get_test_model()])
+		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.insert()
 		
 		dc2 = DatabaseCollection('Sandbox', dc.parent.name)
@@ -108,17 +107,17 @@ class TestModel(unittest.TestCase):
 		self.assertTrue(webnotes.conn.get_value('Sandbox', dc.parent.name, 'test_data')=='new_value')
 		
 	def test_validate_bad_link(self):
-		dc = DatabaseCollection('Sandbox', None, models=[self.get_test_model()])
+		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.parent.test_link = 'xxx'
 		self.assertRaises(webnotes.InvalidLinkError, dc.insert)
 
 	def test_validate_bad_options(self):
-		dc = DatabaseCollection('Sandbox', None, models=[self.get_test_model()])
+		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.parent.test_select = 'xxx'
 		self.assertRaises(webnotes.InvalidOptionError, dc.insert)
 
 	def test_validate_mandatory(self):
-		dc = DatabaseCollection('Sandbox', None, models=[self.get_test_model()])
+		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.parent.load_def()
 		# make mandatory
 		dc.parent.get_properties(fieldname='test_data')[0].reqd = 1

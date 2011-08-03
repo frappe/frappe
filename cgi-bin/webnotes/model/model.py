@@ -106,6 +106,12 @@ class Model:
 		del tmp['doctype']
 		return tmp
 
+	def save(self, new=0):
+		if new or not self.name:
+			self.insert()
+		else:
+			self.update()
+
 class DatabaseModel(Model):
 	"""
 		Model that is saved in database

@@ -45,7 +45,7 @@ class NamingControl:
 			return self.by_eval()
 		
 		if autoname and autoname!='Prompt': 
-			self.model.name = process_from_key(autoname)
+			self.model.name = self.process_from_key(autoname)
 			return
 				
 		if self.model.__dict__.get('__newname',''): 

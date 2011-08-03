@@ -11,23 +11,40 @@ Options:
 if no modules are specified, it will run all "tests.py" files from all modules
 """
 
-import sys, os
+import os
 import unittest
 
-# webnotes path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-# modules path
-import webnotes
-import webnotes.defs
+class TestCase(unittest.TestCase):
+	def setUp(self):
+		import webnotes
+		webnotes.conn.begin()
+		webnotes.debug_log = []
 
-if webnotes.defs.__dict__.get('modules_path'):
-	sys.path.append(webnotes.defs.modules_path)
+	def tearDown(self):
+		import webnotes
+		webnotes.conn.rollback()
+		if webnotes.debug_log:
+			print '\n----',join(webnotes.debug_log)
+
+
+def set_paths():
+	import sys
+	# webnotes path
+	sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+
+	import webnotes.defs
+
+	if webnotes.defs.__dict__.get('modules_path'):
+		sys.path.append(webnotes.defs.modules_path)
 
 def get_tests():
 	"""
 	Returns list of test modules identified by "test*.py"
 	"""
+	import webnotes
+	import webnotes.defs
+	
 	ret = []
 	for walk_tuple in os.walk(webnotes.defs.modules_path):
 		for test_file in filter(lambda x: x.startswith('test') and x.endswith('.py'), walk_tuple[2]):
@@ -42,11 +59,15 @@ def setup():
 	"""
 	Sets up connection and session
 	"""
+	set_paths()
+	import webnotes
+	
 	from webnotes.db import Database
 	webnotes.conn = Database()
 	webnotes.session = {'user':'Administrator'}
 
 if __name__=='__main__':
+	import sys
 	setup()
 		
 	if len(sys.argv) > 1:
