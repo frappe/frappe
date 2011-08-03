@@ -4,6 +4,8 @@
 	terminology
 """
 
+from webnotes.db import NO_TABLE
+import webnotes
 
 class PropertyOverrider:
 	def __init__(self, model_def):
@@ -49,7 +51,6 @@ class PropertyOverrider:
 				pass
 			else: 
 				raise e
-		return property_dict
 
 	def override_in_children(self):
 		"""

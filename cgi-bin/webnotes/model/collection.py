@@ -12,12 +12,17 @@ class Collection:
 	"""
 	Collection of Documents with one parent and multiple children
 	"""
-	def __init__(self, dt=None, dn=None, models = []):
-		self.models = models
-		self.obj = None
-		self.to_docstatus = 0
+	models = []
+	children = []
+	to_docstatus = 0
+	obj = None
+	
+	def __init__(self, doctype=None, name=None, models = []):
+		self.doctype = doctype
+		self.name = name
 		if models:
-			self.objectify()
+			self.models = self.set_models(models)
+		
 
 	def __iter__(self):
 		"""
@@ -31,23 +36,6 @@ class Collection:
 		"""
 		return self.models.next()
 
-	def from_db(self, dt, dn):
-		"""
-			Load from database
-		"""
-		from webnotes.model import Document, getchildren
-
-		doc = Document(dt, dn, prefix=prefix)
-
-		# get all children types
-		tablefields = webnotes.model.meta.get_table_fields(dt)
-
-		# load chilren
-		doclist = [doc,]
-		for t in tablefields:
-			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
-		
-		self.models = docs
 
 	def from_compressed(self, data, docname):
 		"""
@@ -55,37 +43,47 @@ class Collection:
 		"""
 		from webnotes.model.utils import expand
 		self.models = expand(data)
-		self.objectify(docname)
-	
-	def from_files(self, module):
-		"""
-			Load collection from files
-		"""
-		from webnotes.modules import Module
-		self.models = Module(module).get_doc_file(self.dt, self.dn).get_collection()
-		self.objectify()
-	
-	def objectify(self, docname=None):
-		"""
-			Converts self.models from a list of dicts to list of Documents
-		"""
-		from webnotes.model import get_model
+		# set as models
 		
-		self.models = [get_model(attributes=d) for d in self.models]
+	def set_models(self, models, docname=None):
+		"""
+			Split models into parent and children
+		"""
+		self.models = models
 		if not docname:
-			self.doc, self.children = self.models[0], self.models[1:]
+			self.parent = self.models[0]
+			self.children = self.models[1:]
 
 		else:
 			self.children = []
 			for d in self.models:
 				if d.name == docname:
-					self.doc = d
+					self.parent = d
 				else:
 					self.children.append(d)
 
-		# new style called model
-		self.model = self.doc
+		# bc this will be deprecated
+		self.doc = self.parent
+		
+	def set_name(self):
+		"""
+			Set name (id) for this record
+		"""
+
+		from webnotes.model.naming import NamingControl
+		self.parent._load_model_def()
+		NamingControl(self).set_name()
+		self.rename_parent_in_children()
 	
+	def rename_parent_in_children(self):
+		"""
+			parent may have a new name after insert
+		"""
+		for c in self.children:
+			if c.parent and (not c.parent.startswith('old_parent:')):
+				c.parent = self.parent.name
+				c.parenttype = self.parent.doctype
+			
 	def make_obj(self):
 		"""
 			Create a DocType object
@@ -100,24 +98,19 @@ class Collection:
 		"""
 			return as a list of dictionaries
 		"""
-		return [d.fields for d in self.models]
+		return [d.get_values() for d in self.models]
 
 	def check_if_latest(self):
 		"""
 			Raises exception if the modified time is not the same as in the database
 		"""
-		from webnotes.model.meta import is_single
+		tmp = webnotes.conn.get_value(self.parent.doctype, self.parent.name, 'modified')
 
-		if (not is_single(self.doc.doctype)) and (not self.doc.fields.get('__islocal')):
-			tmp = webnotes.conn.sql("""
-				SELECT modified FROM `tab%s` WHERE name="%s" for update""" 
-				% (self.doc.doctype, self.doc.name))
-
-			if tmp and str(tmp[0][0]) != str(self.doc.modified):
-				webnotes.msgprint("""
-				Document has been modified after you have opened it. 
-				To maintain the integrity of the data, you will not be able to save your changes. 
-				Please refresh this document. [%s/%s]""" % (tmp[0][0], self.doc.modified), raise_exception=1)
+		if str(tmp) != str(self.parent.modified):
+			webnotes.msgprint("""
+			This Document has been modified after you have opened it. 
+			To maintain the integrity of the data, you will not be able to save your changes. 
+			Please refresh this document. [%s/%s]""" % (tmp, self.parent.modified), raise_exception=1)
 
 	def check_permission(self):
 		"""
@@ -126,13 +119,22 @@ class Collection:
 		from webnotes.model.permissions import PermissionChecker
 		if not PermissionChecker(self.parent).has_perm(verbose=1):
 			webnotes.msgprint("Not enough permission to save %s" % self.doc.doctype, raise_exception=1)
-		
-	def prepare_for_save(self, check_links):
+	
+	def update_docstatus(self):
 		"""
-			Set owner, modified etc before saving
+			Update docstatus before update
 		"""
-		self.check_if_latest()
-		self.check_permission()
+		for m in self.models:
+			if m.docstatus != 2: m.docstatus = self.to_docstatus
+
+	def remove_local_and_deleted(self):
+		"""
+			remove local and deleted children
+		"""
+		for i in range(len(self.children)):
+			c = self.children[i]
+			if cint(c.__islocal) and cint(c.__deleted):
+				del self.children[i]
 
 	def run_method(self, method):
 		"""
@@ -146,49 +148,40 @@ class Collection:
 
 		from webnotes.model.triggers import fire_event
 		fire_event(self.doc, method)
-				
-	def save_main(self):
-		"""
-			Save the main doc
-		"""
-		try:
-			self.doc.save(cint(self.doc.__islocal))
-		except NameError, e:
-			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
-			
-			# prompt if cancelled
-			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
-				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
-			webnotes.errprint(webnotes.utils.getTraceback())
-			raise e
-
-	def save_children(self):
-		"""
-			Save Children, with the new parent name
-		"""
-		for d in self.children:
-			deleted, local = d.fields.get('__deleted',0), d.fields.get('__islocal',0)
 	
-			if cint(local) and cint(deleted):
-				pass
-
-			elif d.fields.has_key('parent'):
-				if d.parent and (not d.parent.startswith('old_parent:')):
-					d.parent = self.doc.name # rename if reqd
-					d.parenttype = self.doc.doctype
-
-				d.save(new = cint(local))		
-
-	def save(self, check_links=1):
+	def pre_insert(self):
 		"""
-			Save the list
+			Check permission
 		"""
-		self.prepare_for_save(check_links)
+		if not self.parent.name:
+			self.set_name()
+		self.check_permission()
 		self.run_method('validate')
-		self.save_main()
-		self.save_children()
+		self.remove_local_and_deleted()
+
+	def post_insert(self):
+		"""
+			Run on_update after insert
+		"""
 		self.run_method('on_update')
-		
+
+	def pre_update(self):
+		"""
+			Run update
+		"""
+		self.check_if_latest()
+		self.check_permission()
+		self.run_method('validate')
+		self.update_docstatus()
+		self.remove_local_and_deleted()
+
+	def post_update(self):
+		"""
+			Run on_udpate
+		"""
+		self.run_method('on_update')
+
+
 	def submit(self):
 		"""
 			Save & Submit - set docstatus = 1, run "on_submit"
@@ -196,7 +189,7 @@ class Collection:
 		if self.doc.docstatus != 0:
 			msgprint("Only draft can be submitted", raise_exception=1)
 		self.to_docstatus = 1
-		self.save()
+		self.update()
 		self.run_method('on_submit')
 		
 	def cancel(self):
@@ -206,9 +199,7 @@ class Collection:
 		if self.doc.docstatus != 1:
 			msgprint("Only submitted can be cancelled", raise_exception=1)
 		self.to_docstatus = 2
-		self.prepare_for_save(1)
-		self.save_main()
-		self.save_children()
+		self.update()
 		self.run_method('on_cancel')
 		
 	def update_after_submit(self):
@@ -216,10 +207,97 @@ class Collection:
 			Update after submit - some values changed after submit
 		"""
 		self.to_docstatus = 1
-		self.save_main()
-		self.save_children()
+		self.update()
 		self.run_method('on_update_after_submit')
 
+
+class DatabaseCollection(Collection):
+	"""
+		Collection stored in files
+	"""
+	def __init__(self, doctype, name, models=None):
+		Collection.__init__(self, doctype, name, models)
+
+	def read(self):
+		"""
+			Read from db
+		"""
+		from webnotes.model.model import DatabaseModel
+		
+		# read parent
+		parent = DatabaseModel(self.doctype, self.name)
+		parent.read()
+		models = [parent]
+
+		# read children
+		tables = parent.get_properties(fieldtype='Table')
+
+		for t in tables:
+			data = webnotes.conn.sql("select * from `tab%s` where parent=%s and parenttype=%s and parentfield=%s" \
+				% (t.options, '%s', '%s', '%s'), (parent.name, parent.doctype, t.fieldname), as_dict=1)
+			for d in data:
+				models.append(DatabaseModel(t.options, d.name, attributes=d))
+		
+		self.set_models(models)
+		
+	def insert(self):
+		"""
+			Insert collection
+		"""
+		self.pre_insert()
+		self.parent.insert()
+		for c in self.children:
+			c.insert()
+		self.post_insert()
+
+	def update(self):
+		"""
+			Insert collection
+		"""
+		self.pre_update()
+		self.parent.update()
+		for c in self.children:
+			c.update()
+		self.post_update()
+
+
+
+class FileCollection(Collection):
+	"""
+		Collection stored in files
+	"""
+	def __init__(self, module, doctype, name):
+		self.module = module
+		Collection.__init__(self, doctype, name)
+		
+	def read(self):
+		"""
+			Load collection from files
+		"""
+		from webnotes.modules import Module
+		from webnotes.model.model import Model
+		
+		ml = Module(self.module).get_doc_file(self.doctype, self.name).get_collection()
+		self.set_models([Model(attributes=m) for m in ml])
+		
+	def insert(self):
+		"""
+			Export the file collection
+		"""
+		from webnotes.modules.export_module import write_collection_file
+		write_collection_file(self.model_dicts, self.module)
+		
+	def update(self):
+		"""
+			Export to file collection
+		"""
+		self.insert()
+		
+	def delete(self):
+		"""
+			Delete file
+		"""
+		pass
 
 # for bc
 def getlist(doclist, parentfield):

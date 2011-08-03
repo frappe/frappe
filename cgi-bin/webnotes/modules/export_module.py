@@ -13,7 +13,7 @@ def export_to_files(record_list=[], record_module=None, verbose=0):
 	if record_list:
 		for record in record_list:
 			doclist = [d.fields for d in webnotes.model.doc.get(record[0], record[1])]
-			write_document_file(doclist, record_module)
+			write_collection_file(doclist, record_module)
 
 def create_init_py(modules_path, dt, dn):
 	"""
@@ -68,7 +68,7 @@ def get_module_name(doclist, record_module=None):
 
 	return module
 	
-def write_document_file(doclist, record_module=None):
+def write_collection_file(doclist, record_module=None):
 	"""
 		Write a doclist to file, can optionally specify module name
 	"""

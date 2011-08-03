@@ -74,11 +74,20 @@ class Database:
 		from webnotes.db.query import DatabaseQuery
 		query = DatabaseQuery(self, query)
 		
+		self.last_query = query
+		
 		query.execute(values, debug, ignore_ddl)
 		if as_dict:
 			return query.fetch_as_dict(formatted)
 		else:
 			return query.fetch_as_list(formatted)
+
+	def get_description(self):
+		"""
+			Return query metadata
+		"""
+		if self.last_query:
+			return self.last_query.get_description()
 
 	def get_value(self, doctype, docname, fieldname):
 		"""

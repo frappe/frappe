@@ -1,3 +1,6 @@
+import webnotes
+reserved = ['fields']
+
 class Model:
 	"""
 		New style models will be inherited from this base model class
@@ -10,6 +13,8 @@ class Model:
 			creation
 			modified_by
 			modified_on
+			
+		Model persistence will be in subclasses
 	"""
 	_def = None
 	
@@ -18,8 +23,9 @@ class Model:
 		self.name = name
 		if attributes:
 			self.__dict__.update(attributes)
-		if doctype and name:
-			self.read()
+		
+		# for bc
+		self.fields = self.__dict__
 			
 	def __getattr__(self, name):
 		"""
@@ -31,43 +37,25 @@ class Model:
 		"""
 			Load the model meta data from file
 		"""
-		from webnotes.model.model_def import ModelDef
-		self._def = ModelDef(doctype)
+		if not self._def:
+			from webnotes.model.model_def import ModelDef
+			self._def = ModelDef(self.doctype)
 	
-	def get_properties(self):
+	def get_properties(self, **args):
 		"""
 			return properties
 		"""
-		if not self._def:
-			self._load_model_def()
-			
-		return filter(lambda x: x.doctype=='DocField', self._def.children)
+		self._load_model_def()
 		
-	def read(self):
-		"""
-			Read
-		"""
-		self.__dict__.update(webnotes.conn.sql("""
-			select * from `%s` where _id=%s
-		""", (self._type, self.name), as_dict=1)[0])
-	
-	def set_name(self):
-		"""
-			Set name (id) for this record
-		"""
-		from webnotes.model.naming import NamingControl
-		NamingControl(self, self._meta)
-	
-	def insert(self):
-		"""
-			Create
-		"""
-		self._validate()
-		if not self.name:
-			self.set_name()
+		fl = filter(lambda x: x.doctype=='DocField', self._def.children)
 
-		DatabaseRow('tab' + self.doctype, self.get_values()).insert()
+		# filter additional keywords
+		if args:
+			for key in args:
+				fl = filter(lambda x: x.__dict__[key]==args[key], fl)
 		
+		return fl
+	
 	def _validate_select(self, prop, value):
 		"""
 			Raise validation exception
@@ -84,13 +72,11 @@ class Model:
 		"""
 			Check data integrity before saving
 		"""
-		self._load_model_metadata()
-
-		for prop in self.get_properties:
+		for prop in self.get_properties():
 			value = self.__dict__.get(prop.fieldname)
 			
 			# link
-			if prop.fieldtype == 'Link' and prop.options:
+			if prop.fieldtype == 'Link' and prop.options and value:
 				if not webnotes.conn.exists(prop.options, value):
 					raise webnotes.InvalidLinkError
 				
@@ -111,12 +97,37 @@ class Model:
 			* attribute "doctype"
 		"""
 		tmp = {}
-		for key in __dict__:
-			if not key.startswith('_') and type(self.__dict__[key]).__name__ != 'function':
+		for key in self.__dict__:
+			if not key.startswith('_') \
+				and type(self.__dict__[key]).__name__ != 'function' \
+				and key not in reserved:
+			
 				tmp[key] = self.__dict__[key]
 		del tmp['doctype']
 		return tmp
-	
+
+class DatabaseModel(Model):
+	"""
+		Model that is saved in database
+	"""
+	def __init__(self, doctype = None, name = None, attributes = {}):
+		Model.__init__(self, doctype, name, attributes)
+		
+	def read(self):
+		"""
+			Read
+		"""
+		from webnotes.db.row import DatabaseRow
+		self.__dict__.update(DatabaseRow('tab' + self.doctype).read(name=self.name))
+		
+	def insert(self):
+		"""
+			Create
+		"""
+		from webnotes.db.row import DatabaseRow
+		self._validate()
+		DatabaseRow('tab' + self.doctype, self.get_values()).insert()
+			
 	def update(self):
 		"""
 			Update
@@ -131,19 +142,11 @@ class Model:
 		"""
 		self._has_live_links()
 		self._db_delete()
-		
-	def rename(self, new_name):
-		"""
-			Rename model
-		"""
-		pass
-
-
 
 
 class SingleModel(Model):
 	"""
-		Static / Singleton Model
+		Static / Singleton Model (always in databases)
 	"""
 	def __init__(self, doctype = None, name = None, attributes = {}):
 		Model.__init__(self, doctype, name, attributes)

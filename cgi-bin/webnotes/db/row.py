@@ -8,9 +8,33 @@ class DatabaseRow:
 	"""
 		Represents a database record
 	"""
-	def __init__(self, table, record):
+	def __init__(self, table, record=None):
 		self.record = record
 		self.table = table
+
+	def get_conditions(self, columns):
+		"""
+			Converts arguments to db conditions
+		"""
+		return ' AND '.join(['`%s`=%s' % (c, '%s') for c in columns])
+
+	def read(self, **args):
+		"""
+			Read the record based on arguments
+		"""
+		self.record = webnotes.conn.sql("select * from `%s` where %s" % \
+			(self.table, self.get_conditions(args.keys())), args.values(), as_dict=1)[0]
+		return self.record
+
+	def get_clean(self):
+		"""
+			Returns record dict with only validcolumns
+		"""
+		columns = [d[0] for d in webnotes.conn.get_table_metadata(self.table)]
+		tmp = {}
+		for c in columns:
+			tmp[c] = self.record.get(c, None)
+		return tmp
 	
 	def prepare_insert(self):
 		"""
@@ -24,27 +48,6 @@ class DatabaseRow:
 			'creation': n,
 			'modified_on': n
 		})
-	
-	def prepare_update(self):
-		"""
-			Prepare for update
-		"""
-		from webnotes.utils import now
-		n = now()
-		self.record.update({
-			'modified_by': webnotes.session['user'],
-			'modified_on': n
-		})
-	
-	def get_clean(self):
-		"""
-			Returns record dict with only validcolumns
-		"""
-		columns = [d[0] for d in webnotes.conn.get_table_metadata(self.table)]
-		tmp = {}
-		for c in columns:
-			tmp[c] = self.record.get(c, None)
-		return tmp
 
 	def insert(self):
 		"""
@@ -59,6 +62,17 @@ class DatabaseRow:
 		
 		webnotes.conn.sql(query, tmp.values())
 
+	def prepare_update(self):
+		"""
+			Prepare for update
+		"""
+		from webnotes.utils import now
+		n = now()
+		self.record.update({
+			'modified_by': webnotes.session['user'],
+			'modified_on': n
+		})
+		
 	def update(self):
 		"""
 			Build an update query and execute it

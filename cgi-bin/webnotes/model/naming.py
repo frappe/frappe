@@ -11,13 +11,8 @@ class NamingControl:
 	Creates an autoname from the given key:
 	"""
 
-	def __init__(self, model, meta=None):
-		self.model = model
-		if not meta:
-			from webnotes.model.model import Model
-			model = Model('DocType', self.model.doctype)
-
-		self.meta = meta
+	def __init__(self, collection):
+		self.collection = collection
 	
 	def set_name(self):
 		"""
@@ -27,14 +22,19 @@ class NamingControl:
 			3. by eval
 			4. by numbering
 		"""
-		autoname = self.meta.autoname
+		self.model = self.collection.parent
+		autoname = self.collection._def.parent.autoname
 		
 		self.model.localname = self.model.name
+		
+		# clear localname
+		if self.model.name.startswith('New '):
+			self.model.name = None
 
 		if self.model.amended_from: 
 			return self.by_amendment()
 
-		if hasattr(self.model, 'autoname'):
+		if hasattr(self.collection, 'autoname'):
 			return self.by_method()
 			
 		if autoname and autoname.startswith('field:'):
@@ -55,9 +55,9 @@ class NamingControl:
 		if not self.model.name:
 			self.model.name = process_from_key('#########', self.model.doctype)
 	
-	def by_function(self):
+	def by_method(self):
 		"name by function"
-		r = self.model.autoname()
+		r = self.collection.autoname()
 		if r:
 			self.model.name = r
 	

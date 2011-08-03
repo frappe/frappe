@@ -94,7 +94,9 @@ def get_custom_script(doctype, script_type):
 		else: raise e
 			
 	if custom_script and custom_script[0][0]:
-		return custom_script[0][0]
+		return custom_script[0][0] + '\n'
+	else:
+		return ''
 		
 def get_server_obj(doc, doclist = [], basedoctype = ''):
 	"""
