@@ -294,6 +294,24 @@ def get_property(dt, property):
 	else:
 		return webnotes.conn.get_value('DocType', dt, property)
 
+def get_field_property(dt, fieldname, property):
+	"""
+		get a field property, override it from property setter if specified
+	"""
+	field = webnotes.conn.sql("""
+		select name, `%s` 
+		from tabDocField 
+		where parent=%s and fieldname=%s""" % (property, '%s', '%s'), (dt, fieldname))
+		
+	prop = webnotes.conn.sql("""
+		select value 
+		from `tabProperty Setter` 
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, field[0][0], property))
+	if prop: 
+		return prop[0][0]
+	else:
+		return field[0][1]
+
 def get(dt):
 	"""
 	Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
