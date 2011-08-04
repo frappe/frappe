@@ -28,7 +28,7 @@ class DocType:
 
 	def validate(self):
 		if sql("select name from `tabSearch Criteria` where criteria_name=%s and name!=%s", (self.doc.criteria_name, self.doc.name)):
-			webnots.msgprint("Criteria Name '%s' already used, please use another name" % self.doc.criteria_name, raise_exception = 1)
+			webnotes.msgprint("Criteria Name '%s' already used, please use another name" % self.doc.criteria_name, raise_exception = 1)
 
 	def on_update(self):
 		self.set_module()

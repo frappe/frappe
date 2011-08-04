@@ -305,6 +305,8 @@ class JsModuleFile(ModuleFile):
 			
 		"""
 		name = match.group('name')
+		custom = ''
+		
 		import webnotes.defs, os
 		
 		if os.path.sep in name:
@@ -313,8 +315,12 @@ class JsModuleFile(ModuleFile):
 		else:
 			# its a doctype
 			path = os.path.join(get_doc_path('DocType', name), scrub(name) + '.js')
-		
-		return JsModuleFile(path).read()
+	
+			# add custom script if present
+			from webnotes.model.code import get_custom_script
+			custom = get_custom_script(name, 'Client') or ''
+			
+		return JsModuleFile(path).read() + '\n' + custom
 			
 	def read(self):
 		"""
