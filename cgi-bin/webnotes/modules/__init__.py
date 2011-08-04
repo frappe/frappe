@@ -179,4 +179,3 @@ class Module:
 		import os
 		self.sync_all_of_type('txt', verbose)
 		self.sync_all_of_type('sql', verbose)
-	
