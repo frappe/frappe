@@ -2,3 +2,6 @@
 *.comp.js
 *.DS_Store
 defs.py
+images/user/
+backups/
+user_files/
