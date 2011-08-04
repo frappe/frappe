@@ -39,7 +39,7 @@ files_path = 'user_files'
 
 #
 # Modules path: This is where the module files are stored
-# If this is blank, your modules files will be saved in the 'cgi-bin' forder
+# If this is blank, your modules files will be saved in the 'app' forder
 #
 modules_path = ''
 
