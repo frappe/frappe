@@ -129,8 +129,8 @@ class Collection:
 		if hasattr(self, 'controller'):
 			return
 			
-		from webnotes.model.controller import set_controller
-		set_controller(self)
+		from webnotes.model.controller import ControllerFactory
+		ControllerFactory(self).set()
 
 	def run_method(self, method):
 		"""

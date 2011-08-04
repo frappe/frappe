@@ -2,62 +2,97 @@
 	Returns the controller object defined in the model folder
 """
 
-def set_controller(collection):
-	"""
-		Return instance of controller object
-	"""
-	import webnotes
-	from webnotes.modules import get_module_name, scrub
+import webnotes
 
-	if not getattr(collection, 'module', None):
-		# load module from table
-		collection.module = get_module_name(collection.doctype)
-	
-	# the module for the controller
-	# is the ".py" file of the doctype
-	# name inside the modules folders (packages)
-	_module, _doctype = scrub(collection.module), scrub(collection.doctype)
-	m = '%s.doctype.%s.%s' % (_module, _doctype, _doctype)
-	try:
+class ControllerFactory:
+	def __init__(self, collection):
+		self.collection = collection
 		
-		# import the module
-		exec 'import %s' % m in locals()
+	def get_module_obj(self, mname):
+		"""
+			Imports a module and returns the package using getattr::
+				
+				get_module_obj('core.models.sandbox.sandbox')
+				
+			returns last sandbox module
+		"""
+		try:
+			# import the module
+			exec 'import %s' % mname in locals()
+			mlist = mname.split('.')
+			obj = locals()[mlist[0]]
+			
+			# dig deeper and get the last leaf using getattr
+			for m in mlist[1:]:
+				obj = getattr(obj, m)
+			
+			return obj
+			
+		except ImportError, e:
+			webnotes.errprint(webnotes.getTraceback())
+			return None
+			
+	def set_module_in_collection(self):
+		"""
+			get the path of the parent package
+		"""
+		from webnotes.modules import scrub, get_module_name
+
+		if not getattr(self.collection, 'module', None):
+			# load module from table
+			self.collection.module = get_module_name(self.collection.doctype)
+			
+		self._module = scrub(self.collection.module)
+		self._doctype = scrub(self.collection.doctype)
+
+	def import_model_package(self):
+		"""
+			import the package of the parent of the collection
+		"""
+		self.set_module_in_collection()
+		return self.get_module_obj('%s.doctype.%s' % (self._module, self._doctype))
+			
+	def get_class_obj(self, package):
+		"""
+			Returns the class name from object
+		"""
+		package = self.import_model_package()
+
+		if hasattr(package, 'controller_key'):
+			try:
+				class_name = package.controllers[self.collection.parent.get(package.controller_key)]
+				module_obj = self.get_module_obj('.'.join(class_name.split('.')[:-1]))
+				return getattr(module_obj, class_name.split('.')[-1])
+			except KeyError, e:
+				webnotes.errprint("Bad controller definition, taking default")
+				pass
 		
-	except ImportError, e:
+		# did not find controller by definition, take a new one
+		return self.get_std_controller_class()
 		
-		# there were errors on import
-		# safe exit by returning a vanilla
-		# collection
-		webnotes.errprint("Error while importing %s" % m)
-		webnotes.errprint(webnotes.getTraceback())
-		collection.controller = None
+	def get_std_controller_class(self):
+		"""
+			returns the std controller object
+		"""	
+		module_obj = self.get_module_obj('%s.doctype.%s.%s' \
+			% (self._module, self._doctype, self._doctype))
+			
+		std_class_name = self.collection.doctype.replace(' ','') + 'Controller'
+				
+		if hasattr(module_obj, 'DocType'):
+			return module_obj.DocType
+		
+		elif hasattr(module_obj, std_class_name):
+			return getattr(module_obj, std_class_name)
+			
+	def set(self):
+		"""
+			Set the controller
+		"""
+		package = self.import_model_package()
+		if package:
+			self.collection.controller \
+				= self.get_class_obj(package)(self.collection.parent, self.collection.models)
+		else:
+			self.collection.controller = None
 		return
-
-	# extract the module object from
-	# the local namespace using multiple
-	# getattr
-	module_obj = getattr(getattr(getattr(locals()[_module], 'doctype'), _doctype), _doctype)
-	
-	class_obj = get_class(module_obj, collection.doctype)
-	
-	if class_obj:
-		collection.controller = class_obj(collection.parent, collection.models)
-	else:
-		collection.controller = None
-		
-def get_class(module_obj, doctype):
-	"""
-		Return the class object, and type `controller` or `collection` based on naming
-	"""
-	class_name = doctype.replace(' ','')
-	class_obj = None
-	
-	if hasattr(module_obj, 'DocType'):
-		class_obj = getattr(module_obj, 'DocType')
-		class_type = 'controller'
-
-	elif hasattr(module_obj, class_name + 'Controller'):
-		class_obj = getattr(module_obj, class_name + 'Controller')
-		class_type = 'controller'
-		
-	return class_obj

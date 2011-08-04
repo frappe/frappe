@@ -32,7 +32,13 @@ class Model:
 			Getter is overridden so that it does not throw an exception
 		"""
 		return self.__dict__.get(name, None)
-	
+		
+	def get(self, name):
+		"""
+			Getter
+		"""
+		return self.__dict__.get(name, None)
+		
 	def load_def(self):
 		"""
 			Load the model meta data from file

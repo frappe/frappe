@@ -25,7 +25,7 @@ class TestCase(unittest.TestCase):
 		import webnotes
 		webnotes.conn.rollback()
 		if webnotes.debug_log:
-			print '\n----',join(webnotes.debug_log)
+			print '\n----'.join(webnotes.debug_log)
 
 
 def set_paths():
