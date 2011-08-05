@@ -14,7 +14,8 @@ For more features see
 
 ### Running Tests
 
-This version is currently under development, to run tests, 
+This version is currently under development, to run tests,
+
 1. Import the database in app/webnotes/test/sandbox.sql.gz,
 2. Set your pointers in defs.py
 3. > python app/webnotes/run_tests.py
