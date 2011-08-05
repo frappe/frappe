@@ -82,7 +82,7 @@ class NamingControl:
 		
 		# more than one
 		if webnotes.conn.sql('select amended_from from `tab%s` where name = "%s"' \
-			% (self.model.doctype, self.model.amended_from))[0][0] or '':
+			% (self.model.type, self.model.amended_from))[0][0] or '':
 			am_id = cint(self.model.amended_from.split('-')[-1]) + 1
 			am_prefix = '-'.join(self.model.amended_from.split('-')[:-1]) # except the last hyphen
 			

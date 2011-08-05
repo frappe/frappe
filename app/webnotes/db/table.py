@@ -3,13 +3,20 @@ import webnotes
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',\
 	 'parentfield', 'parenttype', 'idx']
 
-
 class DatabaseTable:
-	def __init__(self, doctype, prefix = 'tab'):
+	def __init__(self, doctype=None, prefix = 'tab', model_def = None):
 		self.doctype = doctype
-		self.name = prefix + doctype
+		
+		if model_def:
+			self.model_def = model_def
+			self.doctype = model_def.parent.name
+
+		self.name = prefix + self.doctype
+		
 		self.columns = {}
 		self.current_columns = {}
+
+		self.foreign_keys = {}
 		
 		# lists for change
 		self.add_column = []
@@ -18,8 +25,6 @@ class DatabaseTable:
 		self.drop_index = []
 		self.set_default = []
 		
-		# load
-		self.get_columns_from_docfields()
 
 	def create(self):
 		add_text = ''
@@ -46,18 +51,6 @@ class DatabaseTable:
 			idx int(8),
 			%sindex parent(parent)) ENGINE=InnoDB""" % (self.name, add_text))
 
-	def get_columns_from_docfields(self):
-		fl = webnotes.conn.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
-
-		for f in fl:
-			if not f.get('no_column'):
-				self.columns[f['fieldname']] = DatabaseColumn(self, f['fieldname'], f['fieldtype'], f.get('length'), f['default'], f['search_index'], f['options'])
-	
-	def get_columns_from_db(self):
-		self.show_columns = webnotes.conn.sql("desc `%s`" % self.name)
-		for c in self.show_columns:
-			self.current_columns[c[0]] = {'name': c[0], 'type':c[1], 'index':c[3], 'default':c[4]}
-	
 	def get_column_definitions(self):
 		column_list = [] + default_columns
 		ret = []
@@ -75,6 +68,28 @@ class DatabaseTable:
 			if self.columns[k].has_index():
 				ret.append(self.columns[k].get_index())
 		return ret
+
+	def get_columns_from_docfields(self):
+		for f in self.model_def.children:
+			if f.doctype=='DocField' and not f.no_column:
+				self.columns[f.fieldname] = DatabaseColumn(self, f.fieldname, f.fieldtype, f.length, f.default, f.search_index, f.options)
+	
+	def get_columns_from_db(self):
+		self.show_columns = webnotes.conn.sql("desc `%s`" % self.name)
+		for c in self.show_columns:
+			self.current_columns[c[0]] = {'name': c[0], 'type':c[1], 'index':c[3], 'default':c[4]}
+	
+	# SET foreign keys
+	def set_foreign_keys(self):
+		if self.add_foreign_key:
+			tab_list = DbManager(webnotes.conn).get_tables_list(webnotes.conn.cur_db_name)
+			webnotes.conn.sql("set foreign_key_checks=0")
+			for col in self.add_foreign_key:
+				if col.options:
+					tab_name = "tab" + col.options
+					if tab_name in tab_list:
+						webnotes.conn.sql("alter table `%s` add foreign key (`%s`) references `%s`(name) on update cascade" % (self.name, col.fieldname, tab_name))
+			webnotes.conn.sql("set foreign_key_checks=1")
 
 
 	# GET foreign keys
@@ -116,14 +131,19 @@ class DatabaseTable:
 	
 	def alter(self):
 		self.get_columns_from_db()
+		
+		# diff the columns (get the difference)
 		for col in self.columns.values():
-			col.check(self.current_columns.get(col.fieldname, None))
+			col.diff(self.current_columns.get(col.fieldname, None))
 
 		for col in self.add_column:
 			webnotes.conn.sql("alter table `%s` add column `%s` %s" % (self.name, col.fieldname, col.get_definition()))
 
 		for col in self.change_type:
 			webnotes.conn.sql("alter table `%s` change `%s` `%s` %s" % (self.name, col.fieldname, col.fieldname, col.get_definition()))
+
+		self.set_foreign_keys()
+		self.drop_foreign_keys()
 
 		for col in self.add_index:
 			webnotes.conn.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
@@ -132,6 +152,8 @@ class DatabaseTable:
 			if col.fieldname != 'name': # primary key
 				webnotes.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
 
-
 		for col in self.set_default:
 			webnotes.conn.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), col.default)
+
+
+		

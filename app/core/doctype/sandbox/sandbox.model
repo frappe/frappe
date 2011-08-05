@@ -1,49 +1,48 @@
-# DocType, Sandbox
+# type, Sandbox
 [
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-08-01 11:56:15',
+		'creation': '2011-07-22 12:08:57',
 		'docstatus': 0,
-		'modified': '2011-08-01 15:33:10',
+		'modified': '2011-07-22 12:09:36',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
-	# These values are common for all DocType
+	# These values are common for all type
 	{
 		'autoname': '_SD.####',
 		'colour': 'White:FFF',
-		'doctype': 'DocType',
+		'type': 'ModelDef',
 		'module': 'Core',
 		'name': '__common__',
 		'section_style': 'Simple',
-		'show_in_menu': 0,
-		'version': 5
+		'version': 2
 	},
 
-	# These values are common for all DocField
+	# These values are common for all ModelProperty
 	{
-		'doctype': 'DocField',
+		'type': 'ModelProperty',
 		'name': '__common__',
 		'parent': 'Sandbox',
 		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parenttype': 'type',
 		'permlevel': 0
 	},
 
-	# These values are common for all DocPerm
+	# These values are common for all ModelPerm
 	{
 		'amend': 1,
 		'cancel': 1,
 		'create': 1,
-		'doctype': 'DocPerm',
+		'type': 'ModelPerm',
 		'execute': 1,
 		'idx': 1,
 		'name': '__common__',
 		'parent': 'Sandbox',
 		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parenttype': 'type',
 		'permlevel': 0,
 		'read': 1,
 		'role': 'Administrator',
@@ -51,29 +50,29 @@
 		'write': 1
 	},
 
-	# DocType, Sandbox
+	# type, Sandbox
 	{
-		'doctype': 'DocType',
+		'type': 'type',
 		'name': 'Sandbox'
 	},
 
-	# DocPerm
+	# ModelPerm
 	{
-		'doctype': 'DocPerm'
+		'type': 'ModelPerm'
 	},
 
-	# DocField
+	# ModelProperty
 	{
-		'doctype': 'DocField',
+		'type': 'ModelProperty',
 		'fieldname': 'test_data',
 		'fieldtype': 'Data',
 		'idx': 1,
 		'label': 'Test Data'
 	},
 
-	# DocField
+	# ModelProperty
 	{
-		'doctype': 'DocField',
+		'type': 'ModelProperty',
 		'fieldname': 'test_link',
 		'fieldtype': 'Link',
 		'idx': 2,
@@ -81,40 +80,40 @@
 		'options': 'Profile'
 	},
 
-	# DocField
+	# ModelProperty
 	{
-		'doctype': 'DocField',
+		'type': 'ModelProperty',
+		'fieldname': 'test_select',
+		'fieldtype': 'Select',
+		'idx': 2,
+		'label': 'Test Select',
+		'options': 'A\nB\nC'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
 		'fieldname': 'test_text',
 		'fieldtype': 'Text',
 		'idx': 3,
 		'label': 'Test Text'
 	},
 
-	# DocField
+	# ModelProperty
 	{
-		'doctype': 'DocField',
-		'fieldname': 'test_select',
-		'fieldtype': 'Select',
-		'idx': 4,
-		'label': 'Test Select',
-		'options': 'A\nB\nC\nD'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
+		'type': 'ModelProperty',
 		'fieldname': 'test_date',
 		'fieldtype': 'Date',
-		'idx': 5,
+		'idx': 4,
 		'label': 'Test Date'
 	},
 
-	# DocField
+	# ModelProperty
 	{
-		'doctype': 'DocField',
+		'type': 'ModelProperty',
 		'fieldname': 'to_be_dropped',
 		'fieldtype': 'Data',
-		'idx': 6,
+		'idx': 5,
 		'label': 'to be dropped'
 	}
 ]

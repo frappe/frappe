@@ -7,7 +7,7 @@ class Model:
 		This will contain methods for save update
 		
 		Standard attributes:
-			doctype
+			type
 			name
 			owner
 			creation
@@ -18,8 +18,8 @@ class Model:
 	"""
 	_def = None
 	
-	def __init__(self, doctype = None, name = None, attributes = {}):
-		self.doctype = doctype
+	def __init__(self, ttype = None, name = None, attributes = {}):
+		self.type = ttype
 		self.name = name
 		if attributes:
 			self.__dict__.update(attributes)
@@ -45,7 +45,7 @@ class Model:
 		"""
 		if not self._def:
 			from webnotes.model.model_def import ModelDef
-			self._def = ModelDef(self.doctype)
+			self._def = ModelDef(self.type)
 	
 	def get_properties(self, **args):
 		"""
@@ -53,7 +53,7 @@ class Model:
 		"""
 		self.load_def()
 		
-		fl = filter(lambda x: x.doctype=='DocField', self._def.children)
+		fl = filter(lambda x: x.type=='DocField', self._def.children)
 
 		# filter additional keywords
 		if args:
@@ -89,18 +89,13 @@ class Model:
 			# select	
 			if prop.fieldtype == 'Select' and prop.options: 
 				self._validate_select(prop, value)
-			
-			# mandatory
-			if prop.reqd:
-				if value in (None, ''):
-					raise webnotes.MandatoryAttributeError
 	
 	def get_values(self):
 		"""
 			Returns dict of attributes except: 
 			* starting with underscore (_)
 			* functions
-			* attribute "doctype"
+			* attribute "type"
 		"""
 		tmp = {}
 		for key in self.__dict__:
@@ -109,7 +104,7 @@ class Model:
 				and key not in reserved:
 			
 				tmp[key] = self.__dict__[key]
-		del tmp['doctype']
+		del tmp['type']
 		return tmp
 
 	def save(self, new=0):
@@ -122,9 +117,9 @@ class DatabaseModel(Model):
 	"""
 		Model that is saved in database
 	"""
-	def __init__(self, doctype = None, name = None, attributes = {}):
-		Model.__init__(self, doctype, name, attributes)
-		if doctype and name and not attributes:
+	def __init__(self, ttype = None, name = None, attributes = {}):
+		Model.__init__(self, ttype, name, attributes)
+		if ttype and name and not attributes:
 			self.read()
 		
 	def read(self):
@@ -132,7 +127,7 @@ class DatabaseModel(Model):
 			Read
 		"""
 		from webnotes.db.row import DatabaseRow
-		self.__dict__.update(DatabaseRow('tab' + self.doctype).read(name=self.name))
+		self.__dict__.update(DatabaseRow('tab' + self.type).read(name=self.name))
 		
 	def insert(self):
 		"""
@@ -140,7 +135,7 @@ class DatabaseModel(Model):
 		"""
 		from webnotes.db.row import DatabaseRow
 		self._validate()
-		DatabaseRow('tab' + self.doctype, self.get_values()).insert()
+		DatabaseRow('tab' + self.type, self.get_values()).insert()
 			
 	def update(self):
 		"""
@@ -150,7 +145,7 @@ class DatabaseModel(Model):
 		if not self.name:
 			raise webnotes.NoNameError
 		from webnotes.db.row import DatabaseRow, Single
-		DatabaseRow('tab' + self.doctype, self.get_values()).update()
+		DatabaseRow('tab' + self.type, self.get_values()).update()
 				
 	def delete(self):
 		"""
@@ -164,16 +159,16 @@ class SingleModel(Model):
 	"""
 		Static / Singleton Model (always in databases)
 	"""
-	def __init__(self, doctype = None, name = None, attributes = {}):
-		Model.__init__(self, doctype, name, attributes)
-		if doctype and name and not attributes:
+	def __init__(self, ttype = None, name = None, attributes = {}):
+		Model.__init__(self, ttype, name, attributes)
+		if ttype and name and not attributes:
 			self.read()
 		
 	def read(self):
 		"""
 			Read
 		"""
-		tmp = webnotes.conn.sql("select field, value from tabSingles where doctype=%s", self.doctype)
+		tmp = webnotes.conn.sql("select field, value from tabSingles where type=%s", self.type)
 		for t in tmp:
 			self.__dict__[t[0]] = t[1]
 	
@@ -183,7 +178,7 @@ class SingleModel(Model):
 		"""
 		self._validate()
 		from webnotes.db.row import Single		
-		Single(self.doctype, self.get_values()).update()
+		Single(self.type, self.get_values()).update()
 
 	def update(self):
 		"""
@@ -191,12 +186,12 @@ class SingleModel(Model):
 		"""
 		self._validate()
 		from webnotes.db.row import Single		
-		Single(self.doctype, self.get_values()).update()
+		Single(self.type, self.get_values()).update()
 
 	def delete(self):
 		"""
 			Delete
 		"""
 		from webnotes.db.row import Single		
-		Single(self.doctype, {}).clear()
+		Single(self.type, {}).clear()
 		

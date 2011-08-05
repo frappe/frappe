@@ -17,15 +17,14 @@ class Collection:
 	to_docstatus = 0
 	obj = None
 	
-	def __init__(self, doctype=None, name=None, models = [], raw_models=[]):
-		self.doctype = doctype
+	def __init__(self, ttype=None, name=None, models = [], raw_models=[]):
+		self.type = ttype
 		self.name = name
 		if models:
-			self.models = self.set_models(models)
+			self.set_models(models)
 		if raw_models:
 			from webnotes.model.model import DatabaseModel
-			self.models = [DatabaseModel(attributes=d) for d in raw_models]
-		
+			self.set_models([DatabaseModel(attributes=d) for d in raw_models])
 
 	def __iter__(self):
 		"""
@@ -81,7 +80,7 @@ class Collection:
 		for c in self.children:
 			if c.parent and (not c.parent.startswith('old_parent:')):
 				c.parent = self.parent.name
-				c.parenttype = self.parent.doctype
+				c.parenttype = self.parent.type
 
 	def to_dict(self):
 		"""
@@ -93,7 +92,7 @@ class Collection:
 		"""
 			Raises exception if the modified time is not the same as in the database
 		"""
-		tmp = webnotes.conn.get_value(self.parent.doctype, self.parent.name, 'modified')
+		tmp = webnotes.conn.get_value(self.parent.type, self.parent.name, 'modified')
 
 		if str(tmp) != str(self.parent.modified):
 			webnotes.msgprint("""
@@ -107,7 +106,7 @@ class Collection:
 		"""
 		from webnotes.model.permissions import PermissionChecker
 		if not PermissionChecker(self.parent).has_perm(verbose=1):
-			webnotes.msgprint("Not enough permission to save %s" % self.doc.doctype, raise_exception=1)
+			webnotes.msgprint("Not enough permission to save %s" % self.parent.type, raise_exception=1)
 	
 	def update_docstatus(self):
 		"""
@@ -222,17 +221,17 @@ class DatabaseCollection(Collection):
 	"""
 		Collection stored in files
 	"""
-	def __init__(self, doctype, name=None, models=[]):
-		Collection.__init__(self, doctype, name, models)
+	def __init__(self, ttype, name=None, models=[]):
+		Collection.__init__(self, ttype, name, models)
 
 		# autoread
-		if doctype and name and not models:
+		if ttype and name and not models:
 			self.read()
 			
-		# only doctype supplied, set as new
-		elif doctype and not name and not models:
+		# only ttype supplied, set as new
+		elif ttype and not name and not models:
 			from webnotes.model.model import DatabaseModel
-			self.parent = DatabaseModel(doctype)
+			self.parent = DatabaseModel(ttype)
 
 	def read(self):
 		"""
@@ -241,7 +240,7 @@ class DatabaseCollection(Collection):
 		from webnotes.model.model import DatabaseModel
 		
 		# read parent
-		parent = DatabaseModel(self.doctype, self.name)
+		parent = DatabaseModel(self.type, self.name)
 		parent.read()
 		models = [parent]
 
@@ -250,7 +249,7 @@ class DatabaseCollection(Collection):
 
 		for t in tables:
 			data = webnotes.conn.sql("select * from `tab%s` where parent=%s and parenttype=%s and parentfield=%s" \
-				% (t.options, '%s', '%s', '%s'), (parent.name, parent.doctype, t.fieldname), as_dict=1)
+				% (t.options, '%s', '%s', '%s'), (parent.name, parent.type, t.fieldname), as_dict=1)
 			for d in data:
 				models.append(DatabaseModel(t.options, d.name, attributes=d))
 		
@@ -280,29 +279,34 @@ class FileCollection(Collection):
 	"""
 		Collection stored in files
 	"""
-	def __init__(self, module, doctype, name, models=[]):
-		self.module = module
-		Collection.__init__(self, doctype, name, models)
+	def __init__(self, path, ttype=None, name=None, models=[]):
+		self.path = path
+		Collection.__init__(self, ttype, name, models)
+
 		# autoread
-		if module and doctype and name and not models:
+		if path:
 			self.read()
 		
 	def read(self):
 		"""
 			Load collection from files
 		"""
-		from webnotes.modules import Module
 		from webnotes.model.model import Model
+		from webnotes.model.utils import peval_collection
 		
-		ml = Module(self.module).get_doc_file(self.doctype, self.name).get_collection()
-		self.set_models([Model(attributes=m) for m in ml])
+		if path:
+			f = file(self.path, 'r')
+			self.set_models([Model(attributes=m) for m in peval_collection(f.read())])
+			f.close()
 		
 	def insert(self):
 		"""
 			Export the file collection
 		"""
-		from webnotes.modules.export_module import write_collection_file
-		write_collection_file(self.model_dicts, self.module)
+		from webnotes.model.utils import pprint_collection
+		f = file(self.path, 'w')
+		f.write(pprint_collection(self.to_dict()))
+		f.close()
 		
 	def update(self):
 		"""
@@ -314,24 +318,6 @@ class FileCollection(Collection):
 		"""
 			Delete file
 		"""
-		pass
+		import os
+		os.remove(self.path)
 
-
-
-
-
-# for bc
-def getlist(doclist, parentfield):
-	"""
-		Return child records of a particular type
-	"""
-	import webnotes.model.utils
-	return webnotes.model.utils.getlist(doclist, parentfield)
-	
-def copy_doclist(doclist, no_copy = []):
-	"""
-		Make a copy of the doclist
-	"""
-	import webnotes.model.utils
-	return webnotes.model.utils.copy_doclist(doclist, no_copy)
-	

@@ -9,18 +9,15 @@ class ModelDef(FileCollection):
 	"""
 		Class for Meta Model (DocType)
 	"""
-	def __init__(self, name, module=''):
+	def __init__(self, name):
 		"""
 			Load the model (from file)
 		"""
-		if not module:
-			# load module from table
-			from webnotes.modules import get_module_name
-			module = get_module_name(name)
+		from webnotes.model.model_index import get_model_path
+		path = get_model_path(name)
 
-		self.module = module
 		self.name = name
-		self.doctype = 'DocType'
+		self.type = 'ModelDef'
 		
 		self.read()
 		

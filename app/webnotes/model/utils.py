@@ -250,7 +250,7 @@ def uncommonify_doclist(dl):
 
 	return final
 	
-def pprint_doclist(doclist, with_comments = 1):
+def pprint_collection(doclist, with_comments = 1):
 	"""
 		Pretty Prints a doclist with common keys separated and comments
 	"""
@@ -260,7 +260,7 @@ def pprint_doclist(doclist, with_comments = 1):
 	title = '# '+doclist[0]['doctype']+', '+doclist[0]['name']
 	return title + '\n[\n' + ',\n'.join(dictlist) + '\n]'
 
-def peval_doclist(txt):
+def peval_collection(txt):
 	"""
 		Restore a pretty printed doclist
 	"""

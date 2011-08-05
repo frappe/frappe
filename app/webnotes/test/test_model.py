@@ -86,7 +86,7 @@ class TestModel(unittest.TestCase):
 
 	def test_read_file_collection(self):
 		from webnotes.model.collection import FileCollection
-		f = FileCollection('Core', 'DocType', 'Sandbox')
+		f = FileCollection('core/doctype/sandbox')
 		self.assertTrue(f.parent.name=='Sandbox')
 		
 	def test_insert_db_collection(self):
@@ -112,9 +112,12 @@ class TestModel(unittest.TestCase):
 		dc.parent.test_link = 'xxx'
 		try:
 			dc.insert()
-			self.assertFalse(1) # should never come here
 		except Exception, e:
 			self.assertTrue(e.args[0]==FOREIGN_KEY_INSERT_ERROR)
+			return
+			
+		self.assertFalse(1) # should never come here
+
 			
 	def test_validate_bad_options(self):
 		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])

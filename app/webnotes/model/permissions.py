@@ -11,7 +11,7 @@ class PermissionChecker:
 				select role, `match` from tabDocPerm 
 				where parent=%s 
 				and ifnull(`read`,0) = 1 
-				and ifnull(permlevel,0)=0""", self.model.doctype)
+				and ifnull(permlevel,0)=0""", self.model.type)
 
 	def load_roles(self):
 		"""

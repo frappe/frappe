@@ -39,6 +39,9 @@ test_model = DatabaseModel(attributes = {
 from webnotes.db.table import DatabaseTable
 
 class TestDbTable(TestCase):
+	def setUp(self):
+		pass
+		
 	def test_creation(self):
 		tab = DatabaseTable(model_def = test_model_def)
 		tab.create()

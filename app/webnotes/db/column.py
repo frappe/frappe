@@ -27,16 +27,11 @@ class DatabaseColumn:
 	"""
 		Class for Database Column
 	"""
-	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options):
+	def __init__(self, table, property_def):
 		self.table = table
-		self.fieldname = fieldname
-		self.fieldtype = fieldtype
-		self.length = length
-		self.set_index = set_index
-		self.default = default
-		self.options = options
-
-	def get_definition(self, with_default=1):
+		self.__dict__.update(property_def.get_values())
+		
+	def get_definition(self):
 		d = type_map.get(self.fieldtype.lower())
 
 		if not d:
@@ -47,6 +42,8 @@ class DatabaseColumn:
 			ret += '(' + d[1] + ')'
 		if with_default and self.default and (self.default not in default_shortcuts):
 			ret += ' default "' + self.default.replace('"', '\"') + '"'
+		if self.reqd:
+			ret += ' not null'
 		return ret
 	
 	def has_index(self):
@@ -63,12 +60,13 @@ class DatabaseColumn:
 		"""
 		return 'index `' + self.fieldname + '`(`' + self.fieldname + '`)'
 		
-	def check(self, current_def):
+	def diff(self, current_def):
 		"""
 			Updates table if there is any difference between current and main
 		"""
 		column_def = self.get_definition(0)
-
+		fk_list = [f[0] for f in self.table.get_foreign_keys()]
+		
 		# no columns
 		if not column_def:
 			return
@@ -90,7 +88,16 @@ class DatabaseColumn:
 			
 			if (not current_def['index'] and self.set_index and not (column_def in ['text','blob'])):
 				self.table.add_index.append(self)
-		
+
+		# foreign key
+		if self.fieldtype=='Link':
+			if not self.fieldname in fk_list:
+				self.table.add_foreign_key.append(self)
+
+		# drop foreign key
+		if self.fieldtype!='Link' and (self.fieldname in fk_list):
+			self.table.drop_foreign_key.append(self)
+
 		# default
 		if (self.default and (current_def['default'] != self.default) and (self.default not in default_shortcuts) and not (column_def in ['text','blob'])):
 			self.table.set_default.append(self)

@@ -1,5 +1,7 @@
 """
-	Returns the controller object defined in the model folder
+	Returns the controller object defined in the model
+	The controller object will either be in the same folder as the model
+	or will be defined in __init__.py
 """
 
 import webnotes
@@ -32,25 +34,13 @@ class ControllerFactory:
 			webnotes.errprint(webnotes.getTraceback())
 			return None
 			
-	def set_module_in_collection(self):
-		"""
-			get the path of the parent package
-		"""
-		from webnotes.modules import scrub, get_module_name
-
-		if not getattr(self.collection, 'module', None):
-			# load module from table
-			self.collection.module = get_module_name(self.collection.doctype)
-			
-		self._module = scrub(self.collection.module)
-		self._doctype = scrub(self.collection.doctype)
-
 	def import_model_package(self):
 		"""
 			import the package of the parent of the collection
 		"""
-		self.set_module_in_collection()
-		return self.get_module_obj('%s.doctype.%s' % (self._module, self._doctype))
+		import os
+		model_path = os.path.dirname(self.collection.parent._def.path).replace(os.path.sep, '.')
+		return self.get_module_obj(model_path)
 			
 	def get_class_obj(self, package):
 		"""
@@ -74,15 +64,12 @@ class ControllerFactory:
 		"""
 			returns the std controller object
 		"""	
-		module_obj = self.get_module_obj('%s.doctype.%s.%s' \
-			% (self._module, self._doctype, self._doctype))
+		model_path = self.collection.parent._def.path.replace('.model','').replace(os.path.sep, '.')
+		module_obj = self.get_module_obj(model_path)
 			
-		std_class_name = self.collection.doctype.replace(' ','') + 'Controller'
+		std_class_name = self.collection.parent.type.replace(' ','') + 'Controller'
 				
-		if hasattr(module_obj, 'DocType'):
-			return module_obj.DocType
-		
-		elif hasattr(module_obj, std_class_name):
+		if hasattr(module_obj, std_class_name):
 			return getattr(module_obj, std_class_name)
 			
 	def set(self):
