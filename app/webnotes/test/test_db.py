@@ -47,5 +47,10 @@ class DbTest(unittest.TestCase):
 		}).update()
 		self.assertEquals(webnotes.conn.get_value('Sandbox','xSB002','test_data'), 'bbb')
 
+	def test_create(self):
+		from webnotes.db.table import DatabaseTable
+		DatabaseTable('Sandbox')
+
+
 	def tearDown(self):
 		webnotes.conn.rollback()

@@ -27,7 +27,6 @@ class ModuleFileJs(ModuleFile):
 		else:
 			# its a doctype
 			path = os.path.join(get_doc_path('DocType', name), scrub(name) + '.js')
-			print path
 			
 			# add custom script if present
 			from webnotes.model.code import get_custom_script

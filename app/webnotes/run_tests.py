@@ -33,22 +33,16 @@ def set_paths():
 	# webnotes path
 	sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 
-	import webnotes.defs
-
-	if webnotes.defs.__dict__.get('modules_path'):
-		sys.path.append(webnotes.defs.modules_path)
-
 def get_tests():
 	"""
 	Returns list of test modules identified by "test*.py"
 	"""
 	import webnotes
-	import webnotes.defs
 	
 	ret = []
-	for walk_tuple in os.walk(webnotes.defs.modules_path):
+	for walk_tuple in os.walk(webnotes.app_path):
 		for test_file in filter(lambda x: x.startswith('test') and x.endswith('.py'), walk_tuple[2]):
-			dir_path = os.path.relpath(walk_tuple[0], webnotes.defs.modules_path)
+			dir_path = os.path.relpath(walk_tuple[0], webnotes.app_path)
 			if dir_path=='.':
 				ret.append(test_file[:-3])
 			else:

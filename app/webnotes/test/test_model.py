@@ -47,6 +47,7 @@ import webnotes
 
 from webnotes.model.collection import DatabaseCollection
 from webnotes.model.model import DatabaseModel
+from webnotes.db.errors import *
 
 class TestModel(unittest.TestCase):
 	def setUp(self):
@@ -109,8 +110,12 @@ class TestModel(unittest.TestCase):
 	def test_validate_bad_link(self):
 		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.parent.test_link = 'xxx'
-		self.assertRaises(webnotes.InvalidLinkError, dc.insert)
-
+		try:
+			dc.insert()
+			self.assertFalse(1) # should never come here
+		except Exception, e:
+			self.assertTrue(e.args[0]==FOREIGN_KEY_INSERT_ERROR)
+			
 	def test_validate_bad_options(self):
 		dc = DatabaseCollection('Sandbox', models=[self.get_test_model()])
 		dc.parent.test_select = 'xxx'

@@ -3,12 +3,10 @@
 # 
 import os, sys
 
-try:
-	import webnotes.defs
-	m = getattr(webnotes.defs,'modules_path',None)
-	m and sys.path.append(m)
-except Exception,e:
-	raise e
+app_path = os.path.abspath(os.path.join(os.path.dirname(__file__), '..'))
+sys.path.append(app_path)
+
+import defs
 
 #
 # map for identifying which field values come from files
@@ -65,6 +63,7 @@ class InvalidOptionError(ValidationError): pass
 class MandatoryAttributeError(ValidationError): pass
 class NoNameError(ValidationError): pass
 class DuplicateNameError(ValidationError): pass
+class ForeignKeyError(ValidationError): pass
 
 #
 # HTTP standard response

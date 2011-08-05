@@ -81,13 +81,13 @@ class Model:
 		for prop in self.get_properties():
 			value = self.__dict__.get(prop.fieldname)
 			
-			# link
-			if prop.fieldtype == 'Link' and prop.options and value:
-				if not webnotes.conn.exists(prop.options, value):
-					raise webnotes.InvalidLinkError
+			# link - this must be raised by the d
+			# if prop.fieldtype == 'Link' and prop.options and value:
+			#	if not webnotes.conn.exists(prop.options, value):
+			#		raise webnotes.InvalidLinkError
 				
 			# select	
-			elif prop.fieldtype == 'Select' and prop.options: 
+			if prop.fieldtype == 'Select' and prop.options: 
 				self._validate_select(prop, value)
 			
 			# mandatory

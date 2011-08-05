@@ -5,21 +5,20 @@ class FrameworkServer:
 	"""
 	   Connect to a remote server via HTTP (webservice).
 	   
-	   * `remote_host` is the the address of the remote server
+	   * `host` is the the address of the remote server
 	   * `path` is the path of the Framework (excluding index.cgi)
 	"""
-	def __init__(self, remote_host, path, user='', password='', account='', cookies=None, opts=None, https = 0):
+	def __init__(self, host, path, user='', password='', account='', cookies=None, opts=None, https = 0):
 		# validate
-		if not (remote_host and path):
+		if not (host and path):
 			raise Exception, "Server address and path necessary"
 
 		if not ((user and password) or (cookies)):
 			raise Exception, "Either cookies or user/password necessary"
 	
-		self.remote_host = remote_host
-		self.path = path
+		self.host = host
+		self.base_path = path
 		self.cookies = cookies or {}
-		self.webservice_method='POST'
 		self.account = account
 		self.account_id = None
 		self.https = https
@@ -32,23 +31,11 @@ class FrameworkServer:
 			if opts:
 				args.update(opts)
 			
-			res = self.http_get_response('login', args)
-		
-			ret = res.read()
-			try:
-				ret = eval(ret)
-			except Exception, e:
-				webnotes.msgprint(ret)
-				raise Exception, e
-				
+			res = self.get_response('POST', 'login', args)
+						
 			if 'message' in ret and ret['message']!='Logged In':
 				webnotes.msgprint(ret.get('server_messages'), raise_exception=1)
-				
-			if ret.get('exc'):
-				raise Exception, ret.get('exc')
-				
-			self._extract_cookies(res)
-
+								
 			self.account_id = self.cookies.get('account_id')
 			self.sid = self.cookies.get('sid')
 			
@@ -57,63 +44,43 @@ class FrameworkServer:
 
 	# -----------------------------------------------------------------------------------------
 
-	def http_get_response(self, method, args):
+	def make_request(self, method, path, args={}):
+		import urllib, urllib2, os
+
+		# base_path not to be from root
+		if self.base_path.startswith('/'): self.base_path = self.base_path[1:]
+		
+		protocol = self.https and 'https://' or 'http://'
+		
+		# set path equal to base path + relative path
+		path = os.path.join(self.base_path, path)
+		
+		# make the request
+		req = urllib2.Request(protocol + os.path.join(self.host, path, 'index.cgi'), urllib.urlencode(args))
+
+		# add cookies to the request
+		for key in self.cookies:
+			req.add_header('cookie', '; '.join(['%s=%s' % (key, self.cookies[key]) for key in self.cookies]))
+
+		# override the get_method to return user asked method
+		req.get_method = lambda: method
+		
+	def get_response(self, method, path, args):
 		"""
 		Run a method on the remote server, with the given arguments
 		"""
 		# get response from remote server
 	
-		import urllib, urllib2, os
+		import urllib2
+		request = make_request(method, path, args)
 
-		args['cmd'] = method
-		if self.path.startswith('/'): self.path = self.path[1:]
-				
-		protocol = self.https and 'https://' or 'http://'
-		req = urllib2.Request(protocol + os.path.join(self.remote_host, self.path, 'index.cgi'), urllib.urlencode(args))
-		for key in self.cookies:
-			req.add_header('cookie', '; '.join(['%s=%s' % (key, self.cookies[key]) for key in self.cookies]))
-		return urllib2.urlopen(req)
+		res = urllib2.urlopen(req)
+		# extract cookies
+		self._extract_cookies(res)
 
-	# -----------------------------------------------------------------------------------------
-	
-	def _extract_cookies(self, res):
-		import Cookie
-		cookies = Cookie.SimpleCookie()
-		cookies.load(res.headers.get('set-cookie'))
-		for c in cookies.values():
-			self.cookies[c.key] = c.value.rstrip(',')
-
-	# -----------------------------------------------------------------------------------------
-
-
-	def runserverobj(self, doctype, docname, method, arg=''):
-		"""
-		Returns the response of a remote method called on a system object specified by `doctype` and `docname`
-		"""
-		import json
-		res = self.http_get_response('runserverobj', args = {
-			'doctype':doctype
-			,'docname':docname
-			,'method':method
-			,'arg':arg
-		})
-		ret = json.loads(res.read())
-		if ret.get('exc'):
-			raise Exception, ret.get('exc')
-		return ret
-	
-	# -----------------------------------------------------------------------------------------
+		ret_json = json.loads(req.read())
+		
+		if ret_json['exc']:
+			raise Exception, 'Host Exception:\n' + ret_json['exc']
 			
-	def run_method(self, method, args={}):
-		"""
-			Run a method on the remote server
-		"""
-		res = self.http_get_response(method, args).read()
-		import json
-		try:
-			ret = json.loads(res)
-		except Exception, e:
-			webnotes.msgprint('Bad Response: ' + res, raise_exception=1)
-		if ret.get('exc'):
-			raise Exception, ret.get('exc')
-		return ret
+		return ret_json

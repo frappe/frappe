@@ -17,11 +17,14 @@ class Collection:
 	to_docstatus = 0
 	obj = None
 	
-	def __init__(self, doctype=None, name=None, models = []):
+	def __init__(self, doctype=None, name=None, models = [], raw_models=[]):
 		self.doctype = doctype
 		self.name = name
 		if models:
 			self.models = self.set_models(models)
+		if raw_models:
+			from webnotes.model.model import DatabaseModel
+			self.models = [DatabaseModel(attributes=d) for d in raw_models]
 		
 
 	def __iter__(self):
