@@ -138,7 +138,7 @@ class Scheduler:
 			
 			# if recurring, update next_execution
 			if e['recurring']:
-				self.conn.sql("update Event set next_execution = addtime(now(), sec_to_time(%s)) where event=%s", (e['interval'], e['event'])
+				self.conn.sql("update Event set next_execution = addtime(now(), sec_to_time(%s)) where event=%s", (e['interval'], e['event']))
 			
 			# else clear
 			else:
