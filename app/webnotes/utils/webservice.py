@@ -65,6 +65,8 @@ class FrameworkServer:
 		# override the get_method to return user asked method
 		req.get_method = lambda: method
 		
+		return req
+		
 	def get_response(self, method, path, args):
 		"""
 		Run a method on the remote server, with the given arguments
@@ -72,13 +74,13 @@ class FrameworkServer:
 		# get response from remote server
 	
 		import urllib2
-		request = make_request(method, path, args)
+		request = self.make_request(method, path, args)
 
-		res = urllib2.urlopen(req)
+		response = urllib2.urlopen(request)
 		# extract cookies
-		self._extract_cookies(res)
+		self._extract_cookies(response)
 
-		ret_json = json.loads(req.read())
+		ret_json = json.loads(response.read())
 		
 		if ret_json['exc']:
 			raise Exception, 'Host Exception:\n' + ret_json['exc']

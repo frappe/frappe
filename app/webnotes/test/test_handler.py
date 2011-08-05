@@ -7,7 +7,7 @@
 from webnotes.run_tests import TestCase
 import webnotes
 
-from webnotes.utils import FrameworkServer
+from webnotes.utils.webservice import FrameworkServer
 
 test_record = {
 	'name': 'SB000x',
