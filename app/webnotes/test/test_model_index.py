@@ -44,4 +44,4 @@ class TestModelIndex(TestCase):
 		test_model_def.delete()
 		
 	def test_update_model(self):
-	
+		pass	
