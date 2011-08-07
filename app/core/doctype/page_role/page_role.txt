@@ -1,0 +1,62 @@
+# DocType, Page Role
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-09-20 14:06:57',
+		'modified_by': 'yogesh@webnotestech.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'allow_copy': 0,
+		'allow_email': 0,
+		'allow_print': 0,
+		'autoname': 'PR.######',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'hide_heading': 0,
+		'hide_toolbar': 0,
+		'idx': 0,
+		'issingle': 0,
+		'istable': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 0,
+		'server_code_error': ' '
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'role',
+		'fieldtype': 'Link',
+		'hidden': 0,
+		'idx': 1,
+		'label': 'Role',
+		'name': '__common__',
+		'oldfieldname': 'role',
+		'oldfieldtype': 'Link',
+		'options': 'Role',
+		'parent': 'Page Role',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocType, Page Role
+	{
+		'doctype': 'DocType',
+		'name': 'Page Role'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField'
+	}
+]

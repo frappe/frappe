@@ -1,0 +1,119 @@
+# type, Sandbox
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 12:08:57',
+		'docstatus': 0,
+		'modified': '2011-07-22 12:09:36',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all type
+	{
+		'autoname': '_SD.####',
+		'colour': 'White:FFF',
+		'type': 'ModelDef',
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'version': 2
+	},
+
+	# These values are common for all ModelProperty
+	{
+		'type': 'ModelProperty',
+		'name': '__common__',
+		'parent': 'Sandbox',
+		'parentfield': 'fields',
+		'parenttype': 'type',
+		'permlevel': 0
+	},
+
+	# These values are common for all ModelPerm
+	{
+		'amend': 1,
+		'cancel': 1,
+		'create': 1,
+		'type': 'ModelPerm',
+		'execute': 1,
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'Sandbox',
+		'parentfield': 'permissions',
+		'parenttype': 'type',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'Administrator',
+		'submit': 1,
+		'write': 1
+	},
+
+	# type, Sandbox
+	{
+		'type': 'type',
+		'name': 'Sandbox'
+	},
+
+	# ModelPerm
+	{
+		'type': 'ModelPerm'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
+		'fieldname': 'test_data',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'Test Data'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
+		'fieldname': 'test_link',
+		'fieldtype': 'Link',
+		'idx': 2,
+		'label': 'Test Link',
+		'options': 'Profile'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
+		'fieldname': 'test_select',
+		'fieldtype': 'Select',
+		'idx': 2,
+		'label': 'Test Select',
+		'options': 'A\nB\nC'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
+		'fieldname': 'test_text',
+		'fieldtype': 'Text',
+		'idx': 3,
+		'label': 'Test Text'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
+		'fieldname': 'test_date',
+		'fieldtype': 'Date',
+		'idx': 4,
+		'label': 'Test Date'
+	},
+
+	# ModelProperty
+	{
+		'type': 'ModelProperty',
+		'fieldname': 'to_be_dropped',
+		'fieldtype': 'Data',
+		'idx': 5,
+		'label': 'to be dropped'
+	}
+]

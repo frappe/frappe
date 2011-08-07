@@ -1,0 +1,74 @@
+# DocType, File Data
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-12-01 13:35:53',
+		'modified_by': 'umair@iwebnotes.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': 'FileData/.#####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 0,
+		'section_style': 'Simple',
+		'server_code_error': ' '
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'File Data',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# DocType, File Data
+	{
+		'doctype': 'DocType',
+		'name': 'File Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'file_name',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'File Name',
+		'oldfieldname': 'file_name',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'module',
+		'fieldtype': 'Link',
+		'idx': 2,
+		'label': 'Module',
+		'oldfieldname': 'module',
+		'oldfieldtype': 'Link',
+		'options': 'Module Def'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'blob_content',
+		'fieldtype': 'Blob',
+		'idx': 3,
+		'label': 'Blob Content',
+		'oldfieldname': 'blob_content',
+		'oldfieldtype': 'Blob'
+	}
+]

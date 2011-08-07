@@ -1,0 +1,115 @@
+# DocType, Print Format
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-12-20 22:42:13',
+		'modified_by': 'yogesh@webnotestech.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307624201',
+		'allow_copy': 0,
+		'allow_email': 0,
+		'allow_print': 0,
+		'autoname': 'Prompt',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'hide_heading': 0,
+		'hide_toolbar': 0,
+		'idx': 0,
+		'issingle': 0,
+		'istable': 0,
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 0,
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 3
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Print Format',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'cancel': 0,
+		'create': 1,
+		'doctype': 'DocPerm',
+		'execute': 0,
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'Print Format',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'Administrator',
+		'submit': 0,
+		'write': 1
+	},
+
+	# DocType, Print Format
+	{
+		'doctype': 'DocType',
+		'name': 'Print Format'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'module',
+		'fieldtype': 'Select',
+		'idx': 1,
+		'label': 'Module',
+		'oldfieldname': 'module',
+		'oldfieldtype': 'Select',
+		'options': 'link:Module Def',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'html',
+		'fieldtype': 'Code',
+		'hidden': 0,
+		'idx': 2,
+		'label': 'HTML',
+		'oldfieldname': 'html',
+		'oldfieldtype': 'Text Editor',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'standard',
+		'fieldtype': 'Select',
+		'idx': 3,
+		'label': 'Standard',
+		'oldfieldname': 'standard',
+		'oldfieldtype': 'Select',
+		'options': '\nYes\nNo',
+		'reqd': 1,
+		'search_index': 1
+	}
+]

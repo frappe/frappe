@@ -1,0 +1,144 @@
+# DocType, Letter Head
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 15:58:58',
+		'docstatus': 0,
+		'modified': '2011-07-22 15:58:58',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307340319',
+		'allow_attach': 1,
+		'autoname': 'field:letter_head_name',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'max_attachments': 3,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'version': 2
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Letter Head',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'Letter Head',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'System Manager',
+		'write': 1
+	},
+
+	# DocType, Letter Head
+	{
+		'doctype': 'DocType',
+		'name': 'Letter Head'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'letter_head_name',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'in_filter': 0,
+		'label': 'Letter Head Name',
+		'oldfieldname': 'letter_head_name',
+		'oldfieldtype': 'Data',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'disabled',
+		'fieldtype': 'Check',
+		'idx': 2,
+		'label': 'Disabled',
+		'oldfieldname': 'disabled',
+		'oldfieldtype': 'Check'
+	},
+
+	# DocField
+	{
+		'description': 'Check this to make this the default letter head in all prints',
+		'doctype': 'DocField',
+		'fieldname': 'is_default',
+		'fieldtype': 'Check',
+		'idx': 3,
+		'label': 'Is Default',
+		'oldfieldname': 'is_default',
+		'oldfieldtype': 'Check'
+	},
+
+	# DocField
+	{
+		'description': 'To update your HTML from attachment, click here',
+		'doctype': 'DocField',
+		'fieldname': 'set_from_image',
+		'fieldtype': 'Button',
+		'idx': 4,
+		'label': 'Set From Image',
+		'trigger': 'Client'
+	},
+
+	# DocField
+	{
+		'description': 'Your letter head content in HTML.',
+		'doctype': 'DocField',
+		'fieldname': 'content',
+		'fieldtype': 'Code',
+		'idx': 5,
+		'label': 'Content',
+		'oldfieldname': 'content',
+		'oldfieldtype': 'Text Editor'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'url',
+		'fieldtype': 'Data',
+		'hidden': 1,
+		'idx': 6,
+		'label': 'URL'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'file_list',
+		'fieldtype': 'Text',
+		'hidden': 1,
+		'idx': 7,
+		'label': 'File LIst',
+		'oldfieldname': 'file_list',
+		'oldfieldtype': 'Text'
+	}
+]

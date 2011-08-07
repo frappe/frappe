@@ -1,0 +1,105 @@
+# DocType, Field Mapper Detail
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 15:58:57',
+		'docstatus': 0,
+		'modified': '2011-07-22 15:58:58',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': 'FMD/.#####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'istable': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Tray',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 10
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Field Mapper Detail',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# DocType, Field Mapper Detail
+	{
+		'doctype': 'DocType',
+		'name': 'Field Mapper Detail'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'from_field',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'From Field',
+		'oldfieldname': 'from_field',
+		'oldfieldtype': 'Data',
+		'width': '180px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'to_field',
+		'fieldtype': 'Data',
+		'idx': 2,
+		'label': 'To Field',
+		'oldfieldname': 'to_field',
+		'oldfieldtype': 'Data',
+		'width': '180px'
+	},
+
+	# DocField
+	{
+		'default': '0',
+		'doctype': 'DocField',
+		'fieldname': 'match_id',
+		'fieldtype': 'Int',
+		'idx': 3,
+		'label': 'Match Id',
+		'oldfieldname': 'match_id',
+		'oldfieldtype': 'Int',
+		'width': '50px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'map',
+		'fieldtype': 'Select',
+		'idx': 4,
+		'label': 'Map',
+		'oldfieldname': 'map',
+		'oldfieldtype': 'Select',
+		'options': 'Yes\nNo',
+		'width': '50px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'checking_operator',
+		'fieldtype': 'Select',
+		'idx': 5,
+		'label': 'Checking Operator (To Fld, Operator, From Fld)',
+		'oldfieldname': 'checking_operator',
+		'oldfieldtype': 'Select',
+		'options': '\n=\n>\n>=\n<\n<=',
+		'width': '180px'
+	}
+]

@@ -1,0 +1,76 @@
+# DocType, DefaultValue
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-09-20 14:06:57',
+		'modified_by': 'nabin@webnotestech.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'allow_copy': 0,
+		'allow_email': 0,
+		'allow_print': 0,
+		'autoname': 'DEF.######',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'hide_heading': 0,
+		'hide_toolbar': 0,
+		'idx': 0,
+		'issingle': 0,
+		'istable': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 0,
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'hidden': 0,
+		'name': '__common__',
+		'parent': 'DefaultValue',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'search_index': 0,
+		'width': '200px'
+	},
+
+	# DocType, DefaultValue
+	{
+		'doctype': 'DocType',
+		'name': 'DefaultValue'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'defkey',
+		'fieldtype': 'Data',
+		'idx': 1,
+		'label': 'Key',
+		'oldfieldname': 'defkey',
+		'oldfieldtype': 'Data',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'defvalue',
+		'fieldtype': 'Text',
+		'idx': 2,
+		'label': 'Value',
+		'oldfieldname': 'defvalue',
+		'oldfieldtype': 'Text',
+		'reqd': 0
+	}
+]

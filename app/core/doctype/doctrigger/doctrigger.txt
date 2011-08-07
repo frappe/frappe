@@ -1,0 +1,77 @@
+# DocType, DocTrigger
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-04-08 10:50:39',
+		'docstatus': 0,
+		'modified': '2011-03-31 15:23:46',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': '_TRIGGER.######',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'in_create': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 1,
+		'section_style': 'Simple',
+		'show_in_menu': 0,
+		'version': 2
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Data',
+		'name': '__common__',
+		'parent': 'DocTrigger',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# DocType, DocTrigger
+	{
+		'doctype': 'DocType',
+		'name': 'DocTrigger'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'doc_type',
+		'idx': 1,
+		'label': 'Doc Type',
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'doc_name',
+		'idx': 2,
+		'label': 'Doc Name',
+		'search_index': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'event_name',
+		'idx': 3,
+		'label': 'Event Name'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'method',
+		'idx': 4,
+		'label': 'Method'
+	}
+]

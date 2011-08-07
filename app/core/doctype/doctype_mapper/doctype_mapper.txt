@@ -1,0 +1,144 @@
+# DocType, DocType Mapper
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 15:58:57',
+		'docstatus': 0,
+		'modified': '2011-07-22 15:58:57',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307624201',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'issingle': 0,
+		'menu_index': 12,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 9
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'DocType Mapper',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'doctype': 'DocPerm',
+		'name': '__common__',
+		'parent': 'DocType Mapper',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'read': 1,
+		'role': 'Administrator'
+	},
+
+	# DocType, DocType Mapper
+	{
+		'doctype': 'DocType',
+		'name': 'DocType Mapper'
+	},
+
+	# DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'permlevel': 0,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'idx': 2,
+		'permlevel': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'module',
+		'fieldtype': 'Select',
+		'idx': 1,
+		'label': 'Module',
+		'oldfieldname': 'module',
+		'oldfieldtype': 'Select',
+		'options': 'link:Module Def',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'from_doctype',
+		'fieldtype': 'Select',
+		'idx': 2,
+		'label': 'From DocType',
+		'no_copy': 1,
+		'oldfieldname': 'from_doctype',
+		'oldfieldtype': 'Select',
+		'options': 'link:DocType'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'to_doctype',
+		'fieldtype': 'Select',
+		'idx': 3,
+		'label': 'To DocType',
+		'no_copy': 1,
+		'oldfieldname': 'to_doctype',
+		'oldfieldtype': 'Select',
+		'options': 'link:DocType'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'ref_doc_submitted',
+		'fieldtype': 'Check',
+		'idx': 4,
+		'label': 'Ref Doc should be submitted?',
+		'oldfieldname': 'ref_doc_submitted',
+		'oldfieldtype': 'Check'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'field_mapper_details',
+		'fieldtype': 'Table',
+		'idx': 5,
+		'label': 'Field Mapper Details',
+		'oldfieldname': 'field_mapper_details',
+		'oldfieldtype': 'Table',
+		'options': 'Field Mapper Detail'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'table_mapper_details',
+		'fieldtype': 'Table',
+		'idx': 6,
+		'label': 'Table Mapper Details',
+		'oldfieldname': 'table_mapper_details',
+		'oldfieldtype': 'Table',
+		'options': 'Table Mapper Detail'
+	}
+]

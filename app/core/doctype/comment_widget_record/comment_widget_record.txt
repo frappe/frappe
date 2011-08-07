@@ -1,0 +1,150 @@
+# DocType, Comment Widget Record
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2010-08-08 17:08:55',
+		'docstatus': 0,
+		'modified': '2010-09-20 14:06:57',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': 'CWR/.#####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'issingle': 0,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 8
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Comment Widget Record',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'Comment Widget Record',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'System Manager',
+		'write': 1
+	},
+
+	# DocType, Comment Widget Record
+	{
+		'doctype': 'DocType',
+		'name': 'Comment Widget Record'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment',
+		'fieldtype': 'Text',
+		'idx': 1,
+		'label': 'Comment',
+		'oldfieldname': 'comment',
+		'oldfieldtype': 'Text'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment_by',
+		'fieldtype': 'Data',
+		'idx': 2,
+		'label': 'Comment By',
+		'oldfieldname': 'comment_by',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment_by_fullname',
+		'fieldtype': 'Data',
+		'idx': 3,
+		'label': 'Comment By Fullname',
+		'oldfieldname': 'comment_by_fullname',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment_date',
+		'fieldtype': 'Date',
+		'idx': 4,
+		'label': 'Comment Date',
+		'oldfieldname': 'comment_date',
+		'oldfieldtype': 'Date'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment_time',
+		'fieldtype': 'Data',
+		'idx': 5,
+		'label': 'Comment Time',
+		'oldfieldname': 'comment_time',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment_doctype',
+		'fieldtype': 'Data',
+		'idx': 6,
+		'label': 'Comment Doctype',
+		'oldfieldname': 'comment_doctype',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'comment_docname',
+		'fieldtype': 'Data',
+		'idx': 7,
+		'label': 'Comment Docname',
+		'oldfieldname': 'comment_docname',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'post_topic',
+		'fieldtype': 'Data',
+		'idx': 8,
+		'label': 'Post Topic',
+		'oldfieldname': 'post_topic',
+		'oldfieldtype': 'Data'
+	}
+]

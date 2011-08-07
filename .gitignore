@@ -1,3 +1,7 @@
 *.pyc
 *.comp.js
 *.DS_Store
+defs.py
+www/images/user/
+backups/
+user_files/

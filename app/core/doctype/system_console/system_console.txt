@@ -1,0 +1,110 @@
+# DocType, System Console
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-05-09 17:47:03',
+		'docstatus': 0,
+		'modified': '2011-04-22 13:12:21',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307624201',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'document_type': 'System',
+		'issingle': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'show_in_menu': 1,
+		'version': 6
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'System Console',
+		'parentfield': 'fields',
+		'parenttype': 'DocType'
+	},
+
+	# These values are common for all DocPerm
+	{
+		'doctype': 'DocPerm',
+		'name': '__common__',
+		'parent': 'System Console',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'read': 1,
+		'role': 'Administrator'
+	},
+
+	# DocType, System Console
+	{
+		'doctype': 'DocType',
+		'name': 'System Console'
+	},
+
+	# DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'permlevel': 0,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'idx': 2,
+		'permlevel': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'script',
+		'fieldtype': 'Code',
+		'idx': 1,
+		'label': 'Script',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'colour': 'White:FFF',
+		'doctype': 'DocField',
+		'fieldtype': 'Button',
+		'idx': 2,
+		'label': 'Server (Python)',
+		'permlevel': 0,
+		'trigger': 'Client'
+	},
+
+	# DocField
+	{
+		'colour': 'White:FFF',
+		'doctype': 'DocField',
+		'fieldtype': 'Button',
+		'idx': 3,
+		'label': 'Client (JS)',
+		'permlevel': 0,
+		'trigger': 'Client'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'response',
+		'fieldtype': 'Text',
+		'idx': 4,
+		'label': 'Error',
+		'permlevel': 1
+	}
+]

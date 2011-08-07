@@ -1,0 +1,104 @@
+# DocType, Custom Script
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 15:56:01',
+		'docstatus': 0,
+		'modified': '2011-07-22 15:56:01',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307624201',
+		'autoname': 'CustomScript.####',
+		'colour': 'White:FFF',
+		'description': 'Adds a custom script (client or server) to a DocType',
+		'doctype': 'DocType',
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'version': 2
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Custom Script',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'name': '__common__',
+		'parent': 'Custom Script',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'write': 1
+	},
+
+	# DocType, Custom Script
+	{
+		'doctype': 'DocType',
+		'name': 'Custom Script'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'role': 'System Manager'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'idx': 1,
+		'role': 'Administrator'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'dt',
+		'fieldtype': 'Link',
+		'idx': 1,
+		'label': 'DocType',
+		'oldfieldname': 'dt',
+		'oldfieldtype': 'Link',
+		'options': 'DocType'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'script_type',
+		'fieldtype': 'Select',
+		'idx': 2,
+		'label': 'Script Type',
+		'oldfieldname': 'script_type',
+		'oldfieldtype': 'Select',
+		'options': 'Server\nClient'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'script',
+		'fieldtype': 'Code',
+		'idx': 3,
+		'label': 'Script',
+		'oldfieldname': 'script',
+		'oldfieldtype': 'Code',
+		'options': 'Script'
+	}
+]

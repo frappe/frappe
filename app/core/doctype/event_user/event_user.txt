@@ -1,0 +1,54 @@
+# DocType, Event User
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-09-20 14:06:57',
+		'modified_by': 'nabin@webnotestech.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': 'EVP.#####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'istable': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'person',
+		'fieldtype': 'Select',
+		'idx': 1,
+		'label': 'Person',
+		'name': '__common__',
+		'oldfieldname': 'person',
+		'oldfieldtype': 'Select',
+		'options': 'link:Profile',
+		'parent': 'Event User',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'search_index': 1
+	},
+
+	# DocType, Event User
+	{
+		'doctype': 'DocType',
+		'name': 'Event User'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField'
+	}
+]

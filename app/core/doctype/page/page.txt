@@ -1,0 +1,137 @@
+# DocType, Page
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-12-16 23:46:03',
+		'modified_by': 'yogesh@webnotestech.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1307624201',
+		'allow_copy': 0,
+		'allow_email': 0,
+		'allow_print': 0,
+		'autoname': 'field:page_name',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'hide_heading': 0,
+		'hide_toolbar': 0,
+		'idx': 0,
+		'issingle': 0,
+		'istable': 0,
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 0,
+		'section_style': 'Tabbed',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 8
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Page',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# These values are common for all DocPerm
+	{
+		'cancel': 0,
+		'create': 1,
+		'doctype': 'DocPerm',
+		'execute': 0,
+		'idx': 1,
+		'name': '__common__',
+		'parent': 'Page',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'permlevel': 0,
+		'read': 1,
+		'role': 'Administrator',
+		'submit': 0,
+		'write': 1
+	},
+
+	# DocType, Page
+	{
+		'doctype': 'DocType',
+		'name': 'Page'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'page_name',
+		'fieldtype': 'Data',
+		'idx': 2,
+		'label': 'Page Name',
+		'oldfieldname': 'page_name',
+		'oldfieldtype': 'Data',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'module',
+		'fieldtype': 'Select',
+		'idx': 3,
+		'label': 'Module',
+		'oldfieldname': 'module',
+		'oldfieldtype': 'Select',
+		'options': 'link:Module Def',
+		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'standard',
+		'fieldtype': 'Select',
+		'idx': 4,
+		'label': 'Standard',
+		'oldfieldname': 'standard',
+		'oldfieldtype': 'Select',
+		'options': '\nYes\nNo',
+		'reqd': 1,
+		'search_index': 1
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'HTML',
+		'idx': 5,
+		'label': 'Help HTML',
+		'oldfieldtype': 'HTML',
+		'options': '<div class="comment" style="margin: 8px 0px">To add images, use <b>$image(<i>filename</i>)</b><br>Where file name is the ID or Name of the File record</div>'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'content',
+		'fieldtype': 'Text Editor',
+		'hidden': 0,
+		'idx': 6,
+		'label': 'Content',
+		'oldfieldname': 'content',
+		'oldfieldtype': 'Text Editor',
+		'reqd': 0,
+		'search_index': 0
+	}
+]

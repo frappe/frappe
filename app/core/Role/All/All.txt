@@ -1,0 +1,26 @@
+# Role, All
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2010-08-08 17:08:51',
+		'docstatus': 0,
+		'modified': '2009-03-12 14:40:07',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all Role
+	{
+		'doctype': 'Role',
+		'module': 'Core',
+		'name': '__common__',
+		'role_name': 'All'
+	},
+
+	# Role, All
+	{
+		'doctype': 'Role',
+		'name': 'All'
+	}
+]

@@ -1,0 +1,142 @@
+# DocType, Table Mapper Detail
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-07-22 15:59:13',
+		'docstatus': 0,
+		'modified': '2011-07-22 15:59:13',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'autoname': 'TMD/.#######',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'istable': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'section_style': 'Tray',
+		'server_code_error': ' ',
+		'show_in_menu': 0,
+		'version': 5
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'Table Mapper Detail',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# DocType, Table Mapper Detail
+	{
+		'doctype': 'DocType',
+		'name': 'Table Mapper Detail'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'from_table',
+		'fieldtype': 'Select',
+		'idx': 1,
+		'label': 'From Table',
+		'oldfieldname': 'from_table',
+		'oldfieldtype': 'Select',
+		'options': 'link:DocType',
+		'reqd': 1,
+		'width': '140px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'to_table',
+		'fieldtype': 'Select',
+		'idx': 2,
+		'label': 'To Table',
+		'oldfieldname': 'to_table',
+		'oldfieldtype': 'Select',
+		'options': 'link:DocType',
+		'reqd': 1,
+		'width': '140px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'from_field',
+		'fieldtype': 'Data',
+		'idx': 3,
+		'label': 'From Field',
+		'oldfieldname': 'from_field',
+		'oldfieldtype': 'Data',
+		'width': '140px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'to_field',
+		'fieldtype': 'Data',
+		'idx': 4,
+		'label': 'To Field',
+		'oldfieldname': 'to_field',
+		'oldfieldtype': 'Data',
+		'width': '140px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'match_id',
+		'fieldtype': 'Int',
+		'idx': 5,
+		'label': 'Match Id',
+		'oldfieldname': 'match_id',
+		'oldfieldtype': 'Int',
+		'reqd': 0,
+		'width': '60px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'validation_logic',
+		'fieldtype': 'Small Text',
+		'idx': 6,
+		'label': 'Validation Logic',
+		'oldfieldname': 'validation_logic',
+		'oldfieldtype': 'Small Text',
+		'reqd': 1,
+		'width': '150px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'reference_doctype_key',
+		'fieldtype': 'Data',
+		'idx': 7,
+		'label': 'Reference DocType Key',
+		'oldfieldname': 'reference_doctype_key',
+		'oldfieldtype': 'Data'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'reference_key',
+		'fieldtype': 'Data',
+		'idx': 8,
+		'label': 'Reference Docname Key',
+		'oldfieldname': 'reference_key',
+		'oldfieldtype': 'Data'
+	}
+]

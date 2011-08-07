@@ -1,0 +1,196 @@
+# DocType, DocPerm
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2009-05-12 11:19:11',
+		'docstatus': 0,
+		'modified': '2010-09-20 14:06:57',
+		'modified_by': 'yogesh@webnotestech.com',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'allow_copy': 0,
+		'allow_email': 0,
+		'allow_print': 0,
+		'autoname': 'PERM.#####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'hide_heading': 0,
+		'hide_toolbar': 0,
+		'idx': 0,
+		'issingle': 0,
+		'istable': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'read_only': 0,
+		'section_style': 'Simple',
+		'server_code_error': ' ',
+		'show_in_menu': 0
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'DocPerm',
+		'parentfield': 'fields',
+		'parenttype': 'DocType',
+		'permlevel': 0
+	},
+
+	# DocType, DocPerm
+	{
+		'doctype': 'DocType',
+		'name': 'DocPerm'
+	},
+
+	# DocField
+	{
+		'default': '0',
+		'doctype': 'DocField',
+		'fieldname': 'permlevel',
+		'fieldtype': 'Int',
+		'hidden': 0,
+		'idx': 1,
+		'label': 'Level',
+		'oldfieldname': 'permlevel',
+		'oldfieldtype': 'Int',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '40px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'role',
+		'fieldtype': 'Link',
+		'hidden': 0,
+		'idx': 2,
+		'label': 'Role',
+		'oldfieldname': 'role',
+		'oldfieldtype': 'Link',
+		'options': 'Role',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '150px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'read',
+		'fieldtype': 'Check',
+		'hidden': 0,
+		'idx': 3,
+		'label': 'Read',
+		'oldfieldname': 'read',
+		'oldfieldtype': 'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '32px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'write',
+		'fieldtype': 'Check',
+		'hidden': 0,
+		'idx': 4,
+		'label': 'Write',
+		'oldfieldname': 'write',
+		'oldfieldtype': 'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '32px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'create',
+		'fieldtype': 'Check',
+		'hidden': 0,
+		'idx': 5,
+		'label': 'Create',
+		'oldfieldname': 'create',
+		'oldfieldtype': 'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '32px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'submit',
+		'fieldtype': 'Check',
+		'hidden': 0,
+		'idx': 6,
+		'label': 'Submit',
+		'oldfieldname': 'submit',
+		'oldfieldtype': 'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '32px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'cancel',
+		'fieldtype': 'Check',
+		'hidden': 0,
+		'idx': 7,
+		'label': 'Cancel',
+		'oldfieldname': 'cancel',
+		'oldfieldtype': 'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '32px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'execute',
+		'fieldtype': 'Check',
+		'hidden': 0,
+		'idx': 8,
+		'label': 'Execute',
+		'oldfieldname': 'execute',
+		'oldfieldtype': 'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'width': '32px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'amend',
+		'fieldtype': 'Check',
+		'idx': 9,
+		'label': 'Amend',
+		'oldfieldname': 'amend',
+		'oldfieldtype': 'Check'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'match',
+		'fieldtype': 'Data',
+		'hidden': 0,
+		'idx': 10,
+		'label': 'Match',
+		'oldfieldname': 'match',
+		'oldfieldtype': 'Data',
+		'reqd': 0,
+		'search_index': 0
+	}
+]

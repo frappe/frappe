@@ -1,0 +1,27 @@
+# Page, Login Page
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2010-12-14 10:23:15',
+		'docstatus': 0,
+		'modified': '2010-12-24 13:59:56',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all Page
+	{
+		'doctype': 'Page',
+		'module': 'Core',
+		'name': '__common__',
+		'page_name': 'Login Page',
+		'standard': 'Yes'
+	},
+
+	# Page, Login Page
+	{
+		'doctype': 'Page',
+		'name': 'Login Page'
+	}
+]
