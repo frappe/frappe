@@ -1,4 +1,5 @@
 import webnotes
+from webnotes import defs
 
 class Profile:
 	"""
