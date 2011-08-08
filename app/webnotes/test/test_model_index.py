@@ -3,9 +3,10 @@
 """
 
 from webnotes.run_tests import TestCase
-from webnotes.models.model_index import ModelIndex
+from webnotes.model.model_index import ModelIndex
+from model.collection import *
 
-test_model_def = FileCollection(raw_models = [
+test_model_def = FileCollection(__file__,raw_models = [
 		{
 			'name': 'Temp Sandbox',
 			'doctype': 'DocType',
