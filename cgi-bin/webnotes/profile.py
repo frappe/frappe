@@ -149,13 +149,16 @@ class Profile:
 		pwd = self.get_random_password()
 		
 		# get profile
-		profile = webnotes.conn.sql("SELECT name, email, first_name, last_name, registered FROM tabProfile WHERE name=%s OR email=%s",(self.name, self.name))
-		
+		profile = webnotes.conn.sql("SELECT name, email, first_name, last_name FROM tabProfile WHERE name=%s OR email=%s",(self.name, self.name))
+
+		profile_cols = [desc[0] for desc in webnotes.conn.sql("DESCRIBE tabProfile")]
+
 		if not profile:
 			raise Exception, "Profile %s not found" % self.name
-		elif not profile[0][4]:
+		elif 'registered' in profile_cols:
+			if not webnotes.conn.sql("SELECT registered FROM tabProfile WHERE name=%s", self.name)[0][0]:
 			# if an unregistered user tries to reset password
-			raise Exception, "You cannot reset your password as you have not completed registration. You need to complete registration using the link provided in the email."
+				raise Exception, "You cannot reset your password as you have not completed registration. You need to complete registration using the link provided in the email."
 
 		# update tab Profile
 		webnotes.conn.sql("UPDATE tabProfile SET password=password(%s) WHERE name=%s", (pwd, profile[0][0]))
