@@ -61,7 +61,7 @@ password: admin
 ------------------------------------------------------------------------
 
 Step by step instructions on CentOS/Fedora:
-	0.Check out the source code.
+	0. Check out the source code.
 	1. Modify the v170/cgi-bin/webnotes/defs file to your required settings and rename it to defs.py 
 	2. yum install mysql
 	3. yum install httpd

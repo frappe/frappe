@@ -279,12 +279,12 @@ class FileCollection(Collection):
 	"""
 		Collection stored in files
 	"""
-	def __init__(self, path, ttype=None, name=None, models=[]):
+	def __init__(self, path, ttype=None, name=None, models=[],raw_models = []):
 		self.path = path
-		Collection.__init__(self, ttype, name, models)
+		Collection.__init__(self, ttype, name, models,raw_models)
 
 		# autoread
-		if path:
+		if self.path:
 			self.read()
 		
 	def read(self):
@@ -294,7 +294,7 @@ class FileCollection(Collection):
 		from webnotes.model.model import Model
 		from webnotes.model.utils import peval_collection
 		
-		if path:
+		if self.path:
 			f = file(self.path, 'r')
 			self.set_models([Model(attributes=m) for m in peval_collection(f.read())])
 			f.close()
