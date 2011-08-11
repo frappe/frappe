@@ -1118,7 +1118,7 @@ _f.Frm.prototype.savetrash = function() {
 		$c('webnotes.model.delete_doc', {dt:this.doctype, dn:this.docname}, function(r,rt) {
 			if(r.message=='okay') {
 				// delete from locals
-				delete locals[me.doctype][me.docname];
+				LocalDB.delete_doc(me.doctype, me.docname);
 				
 				// delete from recent
 				if(page_body.wntoolbar) page_body.wntoolbar.rdocs.remove(me.doctype, me.docname);

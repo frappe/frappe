@@ -181,7 +181,7 @@ _f.Frm.prototype.savedoc=function(save_action,onsave,onerr){this.error_in_sectio
 _f.Frm.prototype.saveupdate=function(){this.save('Update');}
 _f.Frm.prototype.savesubmit=function(){var answer=confirm("Permanently Submit "+this.docname+"?");if(answer)this.save('Submit');}
 _f.Frm.prototype.savecancel=function(){var answer=confirm("Permanently Cancel "+this.docname+"?");if(answer)this.save('Cancel');}
-_f.Frm.prototype.savetrash=function(){var me=this;var answer=confirm("Permanently Delete "+this.docname+"? This action cannot be reversed");if(answer){$c('webnotes.model.delete_doc',{dt:this.doctype,dn:this.docname},function(r,rt){if(r.message=='okay'){delete locals[me.doctype][me.docname];if(page_body.wntoolbar)page_body.wntoolbar.rdocs.remove(me.doctype,me.docname);nav_obj.show_last_open();}})}}
+_f.Frm.prototype.savetrash=function(){var me=this;var answer=confirm("Permanently Delete "+this.docname+"? This action cannot be reversed");if(answer){$c('webnotes.model.delete_doc',{dt:this.doctype,dn:this.docname},function(r,rt){if(r.message=='okay'){LocalDB.delete_doc(me.doctype,me.docname);if(page_body.wntoolbar)page_body.wntoolbar.rdocs.remove(me.doctype,me.docname);nav_obj.show_last_open();}})}}
 _f.Frm.prototype.amend_doc=function(){if(!this.fields_dict['amended_from']){alert('"amended_from" field must be present to do an amendment.');return;}
 var me=this;var fn=function(newdoc){newdoc.amended_from=me.docname;if(me.fields_dict&&me.fields_dict['amendment_date'])
 newdoc.amendment_date=dateutil.obj_to_str(new Date());}
