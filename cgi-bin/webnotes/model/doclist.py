@@ -239,6 +239,8 @@ class DocList:
 		"""
 			Update after submit - some values changed after submit
 		"""
+		if self.doc.docstatus != 1:
+			msgprint("Only to called after submit", raise_exception=1)
 		self.to_docstatus = 1
 		self.prepare_for_save(1)
 		self.save_main()
