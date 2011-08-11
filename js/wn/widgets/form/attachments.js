@@ -9,6 +9,12 @@ wn.widgets.form.sidebar.Attachments = function(parent, sidebar, doctype, docname
 		// attachment
 		this.attach_wrapper = $a(this.wrapper, 'div');
 		
+		// no attachments if file is unsaved
+		if(this.frm.doc.__islocal) {
+			this.attach_wrapper.innerHTML = 'Attachments can be uploaded after saving'
+			return;
+		}
+		
 		// no of attachments
 		var n = this.frm.doc.file_list ? this.frm.doc.file_list.split('\n').length : 0;
 		
@@ -90,25 +96,24 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 	// remove
 	this.del = $a(this.wrapper, 'span', 'link_type', {marginLeft:'3px'}, '[x]');
 	this.del.onclick = function() {
-		var yn = confirm("The document will be saved after the attachment is deleted for the changes to be permanent. Proceed?")
+		var yn = confirm("Are you sure you want to delete the attachment?")
 		if(yn) {
 			var callback = function(r, rt) {
+				// update timestamp
+				locals[me.frm.doctype][me.frm.docname].modified = r.message;
 				$dh(me.wrapper);
 				me.remove_fileid();
-				var ret=me.frm.save('Save');
-				if(ret=='Error')
-					msgprint("error:The document was not saved. To make the removal permanent, you must save the document before closing.");
-			}
-				
-			$c('webnotes.widgets.form.remove_attach', args = {'fid': me.fileid }, callback );
-	
+				frm.refresh();
+			}				
+			$c('webnotes.widgets.form.remove_attach', 
+				args = {'fid': me.fileid, dt: me.frm.doctype, dn: me.frm.docname }, callback );
 		}		
 	}
 }
 
 // this function will be called after the upload is done
 // from webnotes.utils.file_manager
-wn.widgets.form.file_upload_done = function(doctype, docname, fileid, filename, at_id) {
+wn.widgets.form.file_upload_done = function(doctype, docname, fileid, filename, at_id, new_timestamp) {
 	
 	var at_id = cint(at_id);
 	
@@ -122,16 +127,12 @@ wn.widgets.form.file_upload_done = function(doctype, docname, fileid, filename, 
 	else
 		doc.file_list = filename + ',' + fileid;
 	
+	// update timestamp
+	doc.modified = new_timestamp;
+	
 	// update file_list
 	var frm = frms[doctype];
 	frm.attachments.dialog.hide();
-	frm.attachments.render();
-
-	var do_save = confirm('File Uploaded Sucessfully. You must save this document for the uploaded file to be registred. Save this document now?');
-	if(do_save) {
-		var ret = frm.save('Save');
-		if(ret=='Error')msgprint("error:The document was not saved. To make the attachment permanent, you must save the document before closing.");
-	} else {
-		msgprint("error:The document was not saved. To make the attachment permanent, you must save the document before closing.");
-	}
+	msgprint('File Uploaded Sucessfully.');
+	frm.refresh();
 }
