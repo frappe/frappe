@@ -97,7 +97,7 @@ class DocList:
 		"""
 		from webnotes.model.meta import is_single
 
-		if (not is_single(self.doc.doctype)) and (not self.doc.fields.get('__islocal')):
+		if (not is_single(self.doc.doctype)) and (not cint(self.doc.fields.get('__islocal'))):
 			tmp = webnotes.conn.sql("""
 				SELECT modified FROM `tab%s` WHERE name="%s" for update""" 
 				% (self.doc.doctype, self.doc.name))

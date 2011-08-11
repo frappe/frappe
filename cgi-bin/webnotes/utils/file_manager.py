@@ -7,19 +7,85 @@ def upload():
 	dn = form.getvalue('docname')
 	at_id = form.getvalue('at_id')
 
+	webnotes.response['type'] = 'iframe'
+	if not webnotes.form['filedata'].filename:
+		webnotes.response['result']	= """
+		<script type='text/javascript'>
+		window.parent.frms['%s'].attachments.dialog.hide();
+		window.parent.msgprint("Please select a file!");
+		</script>""" % dt
+		return
+		
 	# save
 	fid, fname = save_uploaded()
 	
-	if fid:
+	# save it in the form
+	updated = add_file_list(dt, dn, fname, fid)
+	
+	if fid and updated:
 		# refesh the form!
+		# with the new modified timestamp
 		webnotes.response['result'] = """
 <script type='text/javascript'>
-window.parent.wn.widgets.form.file_upload_done('%s', '%s', '%s', '%s', '%s');
-window.parent.frms['%s'].show_doc('%s');
+window.parent.wn.widgets.form.file_upload_done('%(dt)s', '%(dn)s', '%(fid)s', '%(fname)s', '%(at_id)s', '%(mod)s');
+window.parent.frms['%(dt)s'].show_doc('%(dn)s');
 </script>
-			""" % (dt, dn, fid, fname.replace("'", "\\'"), at_id, dt, dn)
+			""" % {
+				'dt': dt,
+				'dn': dn,
+				'fid': fid,
+				'fname': fname.replace("'", "\\'"),
+				'at_id': at_id,
+				'mod': webnotes.conn.get_value(dt, dn, 'modified')
+			}
 
 # -------------------------------------------------------
+
+def add_file_list(dt, dn, fname, fid):
+	"""
+		udpate file_list attribute of the record
+	"""
+	import webnotes
+	try:
+		# get the old file_list
+		fl = webnotes.conn.sql("select file_list from `tab%s` where name=%s" % (dt, '%s'), dn)[0][0] or ''
+		if fl:
+			fl += '\n'
+			
+		# add new file id
+		fl += fname + ',' + fid
+		
+		# save
+		webnotes.conn.set_value(dt, dn, 'file_list', fl)
+		
+		return True
+
+	except Exception, e:
+		webnotes.response['result'] = """
+<script type='text/javascript'>
+window.parent.msgprint("Error while uploading: %s");
+</script>""" % str(e)
+
+
+def remove_file_list(dt, dn, fid):
+	"""
+		Remove fid from the give file_list
+	"""
+	import webnotes
+	
+	# get the old file_list
+	fl = webnotes.conn.sql("select file_list from `tab%s` where name=%s" % (dt, '%s'), dn)[0][0] or ''
+	new_fl = []
+	fl = fl.split('\n')
+	for f in fl:
+		if f.split(',')[1]!=fid:
+			new_fl.append(f)
+		
+	# update the file_list
+	webnotes.conn.set_value(dt, dn, 'file_list', '\n'.join(new_fl))
+	
+	# return the new timestamp
+	return webnotes.conn.get_value(dt, dn, 'modified')
 
 def make_thumbnail(blob, size):
 	from PIL import Image
