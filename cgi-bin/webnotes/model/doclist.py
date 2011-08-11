@@ -130,7 +130,7 @@ class DocList:
 			webnotes.msgprint("""[Link Validation] Could not find the following values: %s. 
 			Please correct and resave. Document Not Saved.""" % ', '.join(err_list), raise_exception=1)
 	
-	def update_timestamps(self):
+	def update_timestamps_and_docstatus(self):
 		"""
 			Update owner, creation, modified_by, modified, docstatus
 		"""
@@ -156,7 +156,7 @@ class DocList:
 		self.check_permission()
 		if check_links:
 			self.check_links()
-		self.update_timestamps()
+		self.update_timestamps_and_docstatus()
 
 	def run_method(self, method):
 		"""
@@ -240,6 +240,7 @@ class DocList:
 			Update after submit - some values changed after submit
 		"""
 		self.to_docstatus = 1
+		self.prepare_for_save(1)
 		self.save_main()
 		self.save_children()
 		self.run_method('on_update_after_submit')
