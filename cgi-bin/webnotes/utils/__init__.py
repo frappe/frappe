@@ -295,7 +295,7 @@ def cstr(s):
 				s = s.encode('utf-8', 'ignore')
 			except:
 				pass
-		return str(s)
+		return unicode(s)
 
 def str_esc_quote(s):
 	"""
