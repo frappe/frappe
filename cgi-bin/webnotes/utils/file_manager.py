@@ -48,7 +48,7 @@ def add_file_list(dt, dn, fname, fid):
 	import webnotes
 	try:
 		# get the old file_list
-		fl = webnotes.conn.sql("select file_list from `tab%s` where name=%s" % (dt, '%s'), dn)[0][0] or ''
+		fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
 		if fl:
 			fl += '\n'
 			
@@ -74,7 +74,7 @@ def remove_file_list(dt, dn, fid):
 	import webnotes
 	
 	# get the old file_list
-	fl = webnotes.conn.sql("select file_list from `tab%s` where name=%s" % (dt, '%s'), dn)[0][0] or ''
+	fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
 	new_fl = []
 	fl = fl.split('\n')
 	for f in fl:
