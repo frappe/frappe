@@ -197,6 +197,7 @@ def runserverobj():
 		doclist = DocList()
 		doclist.from_compressed(form.getvalue('docs'), dn)
 		so = doclist.make_obj()
+		doclist.check_if_latest()
 		
 	check_guest_access(so.doc)
 	
@@ -288,6 +289,9 @@ def remove_attach():
 	
 	fid = webnotes.form.getvalue('fid')
 	webnotes.utils.file_manager.delete_file(fid, verbose=1)
+	
+	# remove from dt dn
+	return str(webnotes.utils.file_manager.remove_file_list(webnotes.form.getvalue('dt'), webnotes.form.getvalue('dn'), fid))
 
 # Get Fields - Counterpart to $c_get_fields
 #===========================================================================================

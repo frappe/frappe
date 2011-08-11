@@ -57,6 +57,8 @@ cookies = {}
 auto_masters = {}
 tenant_id = None
 
+from webnotes.utils import cstr
+
 #
 # Custom Class (no traceback)
 #
@@ -90,13 +92,13 @@ def errprint(msg):
 	"""
 	   Append to the :data:`debug log`
 	"""
-	debug_log.append(str(msg or ''))
+	debug_log.append(cstr(msg or ''))
 
 def msgprint(msg, small=0, raise_exception=0):
 	"""
 	   Append to the :data:`message_log`
 	"""	
-	message_log.append((small and '__small:' or '')+str(msg or ''))
+	message_log.append((small and '__small:' or '')+cstr(msg or ''))
 	if raise_exception:
 		raise ValidationError
 
