@@ -42,7 +42,7 @@ function $c(command, args, fn, on_timeout, no_spinner, freeze_msg) {
 			var rtxt = req.responseText;
 						
 			try { 
-				var r = eval("var a="+rtxt+";a"); 
+				var r = JSON.parse(rtxt); 
 			} catch(e) { 
 				alert('Handler Exception:' + rtxt);
 				return; 
