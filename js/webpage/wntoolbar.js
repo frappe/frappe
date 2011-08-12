@@ -104,23 +104,27 @@ function WNToolbar(parent) {
 			if(it)$dh(it);
 			if(pscript.on_recent_update)pscript.on_recent_update();
 		}
-		// add menu items
-		var rlist = profile.recent.split('\n');
-		var m = rlist.length;
-		if(m>15)m=15;
-		for (var i=0;i<m;i++) {
-			var t = rlist[i].split('~~~');
-			if(t[1]) {
-				var dt = t[0]; var dn = t[1];
-				this.rdocs.add(dt, dn, 0);
-			}
-		}
 
 		this.rename_notify = function(dt, old, name) {
 			me.rdocs.remove(dt, old);
 			me.rdocs.add(dt, name, 1);
 		}
 		rename_observers.push(this);
+
+		// add menu items
+		try{ var rlist = JSON.parse(profile.recent); }
+		catch(e) { return; /*old style-do nothing*/ }
+		
+		var m = rlist.length;
+		if(m>15)m=15;
+		for (var i=0;i<m;i++) {
+			var rd = rlist[i]
+			if(rd[1]) {
+				var dt = rd[0]; var dn = rd[1];
+				this.rdocs.add(dt, dn, 0);
+			}
+		}
+
 	}
 	
 	// Tools
