@@ -182,7 +182,7 @@ class Profile:
 		child_tables = [t[0] for t in conn.sql('select name from tabDocType where istable = 1')]
 		
 		if not (dt in ['Print Format', 'Start Page', 'Event', 'ToDo Item', 'Search Criteria']) and not webnotes.is_testing and not (dt in child_tables):
-			r = cstr(webnotes.conn.sql("select recent_documents from tabProfile where name=%s", self.name)[0][0] or '')
+			r = webnotes.conn.sql("select recent_documents from tabProfile where name=%s", self.name)[0][0] or ''
 			new_str = dt+'~~~'+dn + '\n'
 			if new_str in r:
 				r = r.replace(new_str, '')
