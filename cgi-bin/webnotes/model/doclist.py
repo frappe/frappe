@@ -62,6 +62,7 @@ class DocList:
 			self.doc, self.children = self.docs[0], self.docs[1:]
 
 		else:
+			self.doc = None
 			self.children = []
 			for d in self.docs:
 				if d.name == docname:
