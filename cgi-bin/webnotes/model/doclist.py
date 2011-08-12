@@ -68,6 +68,10 @@ class DocList:
 					self.doc = d
 				else:
 					self.children.append(d)
+					
+			# catch all if no self.doc
+			if not self.doc:
+				self.doc, self.children = self.docs[0], self.docs[1:]
 	
 	def make_obj(self):
 		"""
