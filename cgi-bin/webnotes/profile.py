@@ -196,6 +196,7 @@ class Profile:
 				rd = rdl[i]
 				if rd==new_rd:
 					del rdl[i]
+					break
 
 			rdl.append(new_rd)
 			if len(rdl) > 20:
