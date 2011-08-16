@@ -214,19 +214,18 @@ def runserverobj():
 
 def make_csv_output(res, dt):
 	import webnotes
-	from webnotes.utils import getCSVelement
-
-	txt = []
-	if type(res)==list:
-		for r in res:
-			txt.append(','.join([getCSVelement(i) for i in r]))
-		
-		txt = '\n'.join(txt)
 	
-	else:
-		txt = 'Output was not in list format\n' + r
-					
-	webnotes.response['result'] = txt
+	from cStringIO import StringIO
+	import csv
+	
+	f = StringIO()
+	writer = csv.writer(f)
+	for r in res:
+		writer.writerow(r)
+	
+	f.seek(0)
+						
+	webnotes.response['result'] = f.read()
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = dt.replace(' ','')						
 
