@@ -150,10 +150,16 @@ class Profile:
 		
 		# get profile
 		profile = webnotes.conn.sql("SELECT name, email, first_name, last_name FROM tabProfile WHERE name=%s OR email=%s",(self.name, self.name))
-		
+
+		profile_cols = [desc[0] for desc in webnotes.conn.sql("DESCRIBE tabProfile")]
+
 		if not profile:
 			raise Exception, "Profile %s not found" % self.name
-		
+		elif 'registered' in profile_cols:
+			if not webnotes.conn.sql("SELECT registered FROM tabProfile WHERE name=%s", self.name)[0][0]:
+			# if an unregistered user tries to reset password
+				raise Exception, "You cannot reset your password as you have not completed registration. You need to complete registration using the link provided in the email."
+
 		# update tab Profile
 		webnotes.conn.sql("UPDATE tabProfile SET password=password(%s) WHERE name=%s", (pwd, profile[0][0]))
 		
@@ -170,12 +176,14 @@ class Profile:
 		Update the user's `Recent` list with the given `dt` and `dn`
 		"""
 		conn = webnotes.conn
+		from webnotes.utils import cstr
 	
 		# get list of child tables, so we know what not to add in the recent list
 		child_tables = [t[0] for t in conn.sql('select name from tabDocType where istable = 1')]
+		
 		if not (dt in ['Print Format', 'Start Page', 'Event', 'ToDo Item', 'Search Criteria']) and not webnotes.is_testing and not (dt in child_tables):
-			r = webnotes.conn.sql("select recent_documents from tabProfile where name=%s", self.name)[0][0] or ''
-			new_str = dt+'~~~'+dn + '\n'
+			r = cstr(webnotes.conn.sql("select recent_documents from tabProfile where name=%s", self.name)[0][0] or '')
+			new_str = cstr(dt)+'~~~'+cstr(dn) + '\n'
 			if new_str in r:
 				r = r.replace(new_str, '')
 
