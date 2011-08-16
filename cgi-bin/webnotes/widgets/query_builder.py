@@ -294,7 +294,7 @@ def runquery(q='', ret=0, from_export=0):
 # ====================================================================
 
 def runquery_csv():
-	from webnotes.utils import getCSVelement
+	global out
 
 	# run query
 	res = runquery(from_export = 1)
@@ -312,22 +312,19 @@ def runquery_csv():
 	
 	# Headings
 	heads = []
-	for h in out['colnames']:
-		heads.append(getCSVelement(h))
-	if form.has_key('colnames'):
-		for h in form.getvalue('colnames').split(','):
-			heads.append(getCSVelement(h))
-
-	# Output dataset
-	dset = [rep_name, '']
-	if heads:
-		dset.append(','.join(heads))
 	
-	# Data
-	for r in out['values']:
-		dset.append(','.join([getCSVelement(i) for i in r]))
-		
-	txt = '\n'.join(dset)
-	out['result'] = txt
+	rows = [[rep_name], out['colnames']] + out['values']
+	
+	from cStringIO import StringIO
+	import csv
+	
+	f = StringIO()
+	writer = csv.writer(f)
+	for r in rows:
+		writer.writerow(r)
+	
+	f.seek(0)
+	out['result'] = f.read()
 	out['type'] = 'csv'
 	out['doctype'] = rep_name
+
