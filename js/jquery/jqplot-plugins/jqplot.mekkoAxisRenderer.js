@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -83,7 +95,11 @@
             var dim=0;
             var temp;
             
-            this._elem = $('<div class="jqplot-axis jqplot-'+this.name+'" style="position:absolute;"></div>');
+            var elem = document.createElement('div');
+            this._elem = $(elem);
+            this._elem.addClass('jqplot-axis jqplot-'+this.name);
+            this._elem.css('position', 'absolute');
+            elem = null;
             
             if (this.name == 'xaxis' || this.name == 'x2axis') {
                 this._elem.width(this._plotDimensions.width);
@@ -97,8 +113,7 @@
             this.labelOptions.axis = this.name;
             this._label = new this.labelRenderer(this.labelOptions);
             if (this._label.show) {
-                var elem = this._label.draw(ctx);
-                elem.appendTo(this._elem);
+                this._elem.append(this._label.draw(ctx));
             }
             
             var t, tick, elem;
@@ -107,8 +122,7 @@
                 for (var i=0; i<t.length; i++) {
                     tick = t[i];
                     if (tick.showLabel && (!tick.isMinorTick || this.showMinorTicks)) {
-                        elem = tick.draw(ctx);
-                        elem.appendTo(this._elem);
+                        this._elem.append(tick.draw(ctx));
                     }
                 }
             }
@@ -127,6 +141,7 @@
                     elem.addClass('jqplot-'+this.name+'-tick');
                     elem.addClass('jqplot-mekko-barLabel');
                     elem.appendTo(this._elem);
+                    elem = null;
                 }   
             }
             
@@ -467,7 +482,7 @@
         
         if (this.show) {
             if (this.name == 'xaxis' || this.name == 'x2axis') {
-                for (i=0; i<ticks.length; i++) {
+                for (var i=0; i<ticks.length; i++) {
                     var t = ticks[i];
                     if (t.show && t.showLabel) {
                         var shim;
@@ -522,7 +537,7 @@
                 }
                 // now show the labels under the bars.
                 var b, l, r;
-                for (i=0; i<this.barLabels.length; i++) {
+                for (var i=0; i<this.barLabels.length; i++) {
                     b = this._barLabels[i];
                     if (b.show) {
                         w = b.getWidth();
@@ -535,7 +550,7 @@
                 }
             }
             else {
-                for (i=0; i<ticks.length; i++) {
+                for (var i=0; i<ticks.length; i++) {
                     var t = ticks[i];
                     if (t.show && t.showLabel) {                        
                         var shim;
