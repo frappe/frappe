@@ -293,7 +293,11 @@ $c('resume_session',{pwd:resume_dialog.widgets['password'].value},callback)}
 d.onhide=function(){if(!resume_dialog.allow_close)logout();}
 resume_dialog=d;}
 resume_dialog.wrong_count=0;resume_dialog.show();}
-var msg_dialog;function msgprint(msg,issmall,callback){if(!msg)return;if(typeof(msg)!='string')
+(function($){$.require=function(jsFiles,params){var params=params||{};var bType=params.browserType===false?false:true;if(!bType){return $;}
+var cBack=params.callBack||function(){};var eCache=params.cache===false?false:true;if(!$.require.loadedLib)$.require.loadedLib={};if(!$.scriptPath){var path=$('script').attr('src');$.scriptPath=path.replace(/\w+\.js$/,'');}
+if(typeof jsFiles==="string"){jsFiles=new Array(jsFiles);}
+for(var n=0;n<jsFiles.length;n++){if(!$.require.loadedLib[jsFiles[n]]){$.ajax({type:"GET",url:$.scriptPath+jsFiles[n],success:cBack,dataType:"script",cache:eCache,async:false});$.require.loadedLib[jsFiles[n]]=true;}}
+return $;};})(jQuery);var msg_dialog;function msgprint(msg,issmall,callback){if(!msg)return;if(typeof(msg)!='string')
 msg=JSON.stringify(msg);if(issmall){show_alert(msg);return;}
 if(msg.substr(0,8)=='__small:'){show_alert(msg.substr(8));return;}
 if(!msg_dialog){msg_dialog=new Dialog(500,200,"Message");msg_dialog.make_body([['HTML','Msg']])

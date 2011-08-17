@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -32,7 +44,8 @@
         // wether to show the cursor or not.
         this.show = $.jqplot.config.enablePlugins;
         // prop: showTooltip
-        // show a cursor position tooltip near the cursor
+        // show a cursor position tooltip.  Location of the tooltip
+        // will be controlled by followMouse and tooltipLocation.
         this.showTooltip = true;
         // prop: followMouse
         // Tooltip follows the mouse, it is not at a fixed location.
@@ -79,6 +92,10 @@
         // They Will be set through call to zoomProxy method.
         this.zoomProxy = false;
         this.zoomTarget = false;
+        // prop: looseZoom
+        // Will expand zoom range to provide more rounded tick values.
+        // Works only with linear axes and date axes.
+        this.looseZoom = false;
         // prop: clickReset
         // Will reset plot zoom if single click on plot without drag.
         this.clickReset = false;
@@ -101,7 +118,7 @@
         // // auatoscale the adjacent axis.
         // this.autoscaleConstraint = true;
         this.shapeRenderer = new $.jqplot.ShapeRenderer();
-        this._zoom = {start:[], end:[], started: false, zooming:false, isZoomed:false, axes:{start:{}, end:{}}};
+        this._zoom = {start:[], end:[], started: false, zooming:false, isZoomed:false, axes:{start:{}, end:{}}, gridpos:{}, datapos:{}};
         this._tooltipElem;
         this.zoomCanvas;
         this.cursorCanvas;
@@ -116,6 +133,17 @@
         // Format string used in the cursor legend.  If showTooltipDataPosition is true,
         // this will also be the default format string used by tooltipFormatString.
         this.cursorLegendFormatString = $.jqplot.Cursor.cursorLegendFormatString;
+        // whether the cursor is over the grid or not.
+        this._oldHandlers = {onselectstart: null, ondrag: null, onmousedown: null};
+        // prop: constrainOutsideZoom
+        // True to limit actual zoom area to edges of grid, even when zooming
+        // outside of plot area.  That is, can't zoom out by mousing outside plot.
+        this.constrainOutsideZoom = true;
+        // prop: showTooltipOutsideZoom
+        // True will keep updating the tooltip when zooming of the grid.
+        this.showTooltipOutsideZoom = false;
+        // true if mouse is over grid, false if not.
+        this.onGrid = false;
         $.extend(true, this, options);
     };
     
@@ -142,7 +170,6 @@
             
             if (c.zoom) {
                 $.jqplot.eventListenerHooks.push(['jqplotMouseDown', handleMouseDown]);
-                $.jqplot.eventListenerHooks.push(['jqplotMouseUp', handleMouseUp]);
                 
                 if (c.clickReset) {
                     $.jqplot.eventListenerHooks.push(['jqplotClick', handleClick]);
@@ -150,7 +177,7 @@
                 
                 if (c.dblClickReset) {
                     $.jqplot.eventListenerHooks.push(['jqplotDblClick', handleDblClick]);
-                }
+                }             
             }
     
             this.resetZoom = function() {
@@ -158,12 +185,17 @@
                 if (!c.zoomProxy) {
                     for (var ax in axes) {
                         axes[ax].reset();
+                        axes[ax]._ticks = [];
+                        // fake out tick creation algorithm to make sure original auto
+                        // computed format string is used if _overrideFormatString is true
+                        axes[ax]._autoFormatString = c._zoom.axes[ax].tickFormatString;
                     }
                     this.redraw();
                 }
                 else {
                     var ctx = this.plugins.cursor.zoomCanvas._ctx;
                     ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+                    ctx = null;
                 }
                 this.plugins.cursor._zoom.isZoomed = false;
                 this.target.trigger('jqplotResetZoom', [this, this.plugins.cursor]);
@@ -183,17 +215,49 @@
     // called with context of plot
     $.jqplot.Cursor.postDraw = function() {
         var c = this.plugins.cursor;
-        // if (c.zoom) {
-        c.zoomCanvas = new $.jqplot.GenericCanvas();
-        this.eventCanvas._elem.before(c.zoomCanvas.createElement(this._gridPadding, 'jqplot-zoom-canvas', this._plotDimensions));
-        var zctx = c.zoomCanvas.setContext();
-        // }
-        c._tooltipElem = $('<div class="jqplot-cursor-tooltip" style="position:absolute;display:none"></div>');
-        c.zoomCanvas._elem.before(c._tooltipElem);
+        
+        // Memory Leaks patch
+        if (c.zoomCanvas) {
+            c.zoomCanvas.resetCanvas();
+            c.zoomCanvas = null;
+        }
+        
+        if (c.cursorCanvas) {
+            c.cursorCanvas.resetCanvas();
+            c.cursorCanvas = null;
+        }
+        
+        if (c._tooltipElem) {
+            c._tooltipElem.emptyForce();
+            c._tooltipElem = null;
+        }
+
+        
+        if (c.zoom) {
+            c.zoomCanvas = new $.jqplot.GenericCanvas();
+            this.eventCanvas._elem.before(c.zoomCanvas.createElement(this._gridPadding, 'jqplot-zoom-canvas', this._plotDimensions, this));
+            c.zoomCanvas.setContext();
+        }
+
+        var elem = document.createElement('div');
+        c._tooltipElem = $(elem);
+        elem = null;
+        c._tooltipElem.addClass('jqplot-cursor-tooltip');
+        c._tooltipElem.css({position:'absolute', display:'none'});
+        
+        
+        if (c.zoomCanvas) {
+            c.zoomCanvas._elem.before(c._tooltipElem);
+        }
+
+        else {
+            this.eventCanvas._elem.before(c._tooltipElem);
+        }
+
         if (c.showVerticalLine || c.showHorizontalLine) {
             c.cursorCanvas = new $.jqplot.GenericCanvas();
-            this.eventCanvas._elem.before(c.cursorCanvas.createElement(this._gridPadding, 'jqplot-cursor-canvas', this._plotDimensions));
-            var zctx = c.cursorCanvas.setContext();
+            this.eventCanvas._elem.before(c.cursorCanvas.createElement(this._gridPadding, 'jqplot-cursor-canvas', this._plotDimensions, this));
+            c.cursorCanvas.setContext();
         }
 
         // if we are showing the positions in unit coordinates, and no axes groups
@@ -252,13 +316,18 @@
         var cax = cursor._zoom.axes;
         if (!plot.plugins.cursor.zoomProxy && cursor._zoom.isZoomed) {
             for (var ax in axes) {
+                // axes[ax]._ticks = [];
+                // axes[ax].min = cax[ax].min;
+                // axes[ax].max = cax[ax].max;
+                // axes[ax].numberTicks = cax[ax].numberTicks; 
+                // axes[ax].tickInterval = cax[ax].tickInterval;
+                // // for date axes
+                // axes[ax].daTickInterval = cax[ax].daTickInterval;
+                axes[ax].reset();
                 axes[ax]._ticks = [];
-                axes[ax].min = cax[ax].min;
-                axes[ax].max = cax[ax].max;
-                axes[ax].numberTicks = cax[ax].numberTicks; 
-                axes[ax].tickInterval = cax[ax].tickInterval;
-                // for date axes
-                axes[ax].daTickInterval = cax[ax].daTickInterval;
+                // fake out tick creation algorithm to make sure original auto
+                // computed format string is used if _overrideFormatString is true
+                axes[ax]._autoFormatString = cax[ax].tickFormatString;
             }
             plot.redraw();
             cursor._zoom.isZoomed = false;
@@ -266,6 +335,7 @@
         else {
             var ctx = cursor.zoomCanvas._ctx;
             ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+            ctx = null;
         }
         plot.target.trigger('jqplotResetZoom', [plot, cursor]);
     };
@@ -280,9 +350,9 @@
         var zaxes = c._zoom.axes;
         var start = zaxes.start;
         var end = zaxes.end;
-        var min, max;
+        var min, max, dp, span;
         var ctx = plot.plugins.cursor.zoomCanvas._ctx;
-        // don't zoom is zoom area is too small (in pixels)
+        // don't zoom if zoom area is too small (in pixels)
         if ((c.constrainZoomTo == 'none' && Math.abs(gridpos.x - c._zoom.start[0]) > 6 && Math.abs(gridpos.y - c._zoom.start[1]) > 6) || (c.constrainZoomTo == 'x' && Math.abs(gridpos.x - c._zoom.start[0]) > 6) ||  (c.constrainZoomTo == 'y' && Math.abs(gridpos.y - c._zoom.start[1]) > 6)) {
             if (!plot.plugins.cursor.zoomProxy) {
                 for (var ax in datapos) {
@@ -295,22 +365,42 @@
                         c._zoom.axes[ax].daTickInterval = axes[ax].daTickInterval;
                         c._zoom.axes[ax].min = axes[ax].min;
                         c._zoom.axes[ax].max = axes[ax].max;
+                        c._zoom.axes[ax].tickFormatString = (axes[ax].tickOptions != null) ? axes[ax].tickOptions.formatString :  '';
                     }
+
+
                     if ((c.constrainZoomTo == 'none') || (c.constrainZoomTo == 'x' && ax.charAt(0) == 'x') || (c.constrainZoomTo == 'y' && ax.charAt(0) == 'y')) {   
                         dp = datapos[ax];
-                        if (dp != null) {           
+                        if (dp != null) {  
+                            var newmin, newmax;         
                             if (dp > start[ax]) { 
-                                axes[ax].min = start[ax];
-                                axes[ax].max = dp;
+                                newmin = start[ax];
+                                newmax = dp;
                             }
                             else {
                                 span = start[ax] - dp;
-                                axes[ax].max = start[ax];
-                                axes[ax].min = dp;
+                                newmin = dp;
+                                newmax = start[ax];
                             }
-                            axes[ax].tickInterval = null;
-                            // for date axes...
-                            axes[ax].daTickInterval = null;
+                            
+                            if (this.looseZoom && (axes[ax].renderer.constructor === $.jqplot.LinearAxisRenderer || axes[ax].renderer.constructor === $.jqplot.DateAxisRenderer)) {
+                                var ret = $.jqplot.LinearTickGenerator(newmin, newmax);
+                                axes[ax].min = ret[0];
+                                axes[ax].max = ret[1];
+                                axes[ax]._autoFormatString = ret[3];
+                                axes[ax].numberTicks = ret[2];
+                                axes[ax].tickInterval = ret[4];
+                                // for date axes...
+                                axes[ax].daTickInterval = [ret[4]/1000, 'seconds'];
+                            }
+                            else {
+                                axes[ax].min = newmin;
+                                axes[ax].max = newmax;
+                                axes[ax].tickInterval = null;
+                                // for date axes...
+                                axes[ax].daTickInterval = null;
+                            }
+
                             axes[ax]._ticks = [];
                         }
                     }
@@ -326,6 +416,7 @@
                 ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
                 plot.redraw();
                 c._zoom.isZoomed = true;
+                ctx = null;
             }
             plot.target.trigger('jqplotZoom', [gridpos, datapos, plot, cursor]);
         }
@@ -445,11 +536,12 @@
                 }
             }        
         }
+        ctx = null;
     }
         
     function getIntersectingPoints(plot, x, y) {
         var ret = {indices:[], data:[]};
-        var s, i, d0, d, j, r;
+        var s, i, d0, d, j, r, p;
         var threshold;
         var c = plot.plugins.cursor;
         for (var i=0; i<plot.series.length; i++) {
@@ -517,8 +609,9 @@
                 break;
         }
             
-        c._tooltipElem.css('left', x);
-        c._tooltipElem.css('top', y);
+        elem.css('left', x);
+        elem.css('top', y);
+	    elem = null;
     }
     
     function positionTooltip(plot) { 
@@ -575,66 +668,83 @@
                 elem.css({right:a, bottom:b});
                 break;
         }
+        elem = null;
     }
     
     function handleClick (ev, gridpos, datapos, neighbor, plot) {
-        ev.stopPropagation();
         ev.preventDefault();
+        ev.stopImmediatePropagation();
         var c = plot.plugins.cursor;
         if (c.clickReset) {
             c.resetZoom(plot, c);
+        }
+        var sel = window.getSelection;
+        if (document.selection && document.selection.empty)
+        {
+            document.selection.empty();
+        }
+        else if (sel && !sel().isCollapsed) {
+            sel().collapse();
         }
         return false;
     }
     
     function handleDblClick (ev, gridpos, datapos, neighbor, plot) {
-        ev.stopPropagation();
         ev.preventDefault();
+        ev.stopImmediatePropagation();
         var c = plot.plugins.cursor;
         if (c.dblClickReset) {
             c.resetZoom(plot, c);
+        }
+        var sel = window.getSelection;
+        if (document.selection && document.selection.empty)
+        {
+            document.selection.empty();
+        }
+        else if (sel && !sel().isCollapsed) {
+            sel().collapse();
         }
         return false;
     }
     
     function handleMouseLeave(ev, gridpos, datapos, neighbor, plot) {
         var c = plot.plugins.cursor;
+        c.onGrid = false;
         if (c.show) {
             $(ev.target).css('cursor', c.previousCursor);
-            if (c.showTooltip) {
+            if (c.showTooltip && !(c._zoom.zooming && c.showTooltipOutsideZoom && !c.constrainOutsideZoom)) {
                 c._tooltipElem.hide();
             }
             if (c.zoom) {
-                c._zoom.started = false;
-                c._zoom.zooming = false;
-                if (!c.zoomProxy) {
-                    var ctx = c.zoomCanvas._ctx;
-                    ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
-                }
+                c._zoom.gridpos = gridpos;
+                c._zoom.datapos = datapos;
             }
             if (c.showVerticalLine || c.showHorizontalLine) {
                 var ctx = c.cursorCanvas._ctx;
                 ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
-            } if (c.showCursorLegend) {
-            var cells = $(plot.targetId + ' td.jqplot-cursor-legend-label');
-            for (var i=0; i<cells.length; i++) {
-                var idx = $(cells[i]).data('seriesIndex');
-                var series = plot.series[idx];
-                var label = series.label.toString();
-                if (plot.legend.escapeHtml) {
-                    $(cells[i]).text($.jqplot.sprintf(c.cursorLegendFormatString, label, undefined, undefined));
-                }
-                else {
-                    $(cells[i]).html($.jqplot.sprintf(c.cursorLegendFormatString, label, undefined, undefined));
-                }
+                ctx = null;
+            }
+            if (c.showCursorLegend) {
+                var cells = $(plot.targetId + ' td.jqplot-cursor-legend-label');
+                for (var i=0; i<cells.length; i++) {
+                    var idx = $(cells[i]).data('seriesIndex');
+                    var series = plot.series[idx];
+                    var label = series.label.toString();
+                    if (plot.legend.escapeHtml) {
+                        $(cells[i]).text($.jqplot.sprintf(c.cursorLegendFormatString, label, undefined, undefined));
+                    }
+                    else {
+                        $(cells[i]).html($.jqplot.sprintf(c.cursorLegendFormatString, label, undefined, undefined));
+                    }
                 
-            }        
-        }
+                }        
+            }
         }
     }
     
     function handleMouseEnter(ev, gridpos, datapos, neighbor, plot) {
         var c = plot.plugins.cursor;
+        c.onGrid = true;
         if (c.show) {
             c.previousCursor = ev.target.style.cursor;
             ev.target.style.cursor = c.style;
@@ -652,11 +762,11 @@
                 moveLine(gridpos, plot);
             }
         }
-    }
+
+    }    
     
     function handleMouseMove(ev, gridpos, datapos, neighbor, plot) {
         var c = plot.plugins.cursor;
-        var ctx = c.zoomCanvas._ctx;
         if (c.show) {
             if (c.showTooltip) {
                 updateTooltip(gridpos, datapos, plot);
@@ -664,32 +774,95 @@
                     moveTooltip(gridpos, plot);
                 }
             }
-            if (c.zoom && c._zoom.started && !c.zoomTarget) {
-                c._zoom.zooming = true;
-                if (c.constrainZoomTo == 'x') {
-                    c._zoom.end = [gridpos.x, ctx.canvas.height];
-                }
-                else if (c.constrainZoomTo == 'y') {
-                    c._zoom.end = [ctx.canvas.width, gridpos.y];
-                }
-                else {
-                    c._zoom.end = [gridpos.x, gridpos.y];
-                }
-                drawZoomBox.call(c);
-            }
             if (c.showVerticalLine || c.showHorizontalLine) {
                 moveLine(gridpos, plot);
             }
         }
     }
+            
+    function getEventPosition(ev) {
+        var plot = ev.data.plot;
+        var go = plot.eventCanvas._elem.offset();
+        var gridPos = {x:ev.pageX - go.left, y:ev.pageY - go.top};
+        var dataPos = {xaxis:null, yaxis:null, x2axis:null, y2axis:null, y3axis:null, y4axis:null, y5axis:null, y6axis:null, y7axis:null, y8axis:null, y9axis:null};
+        var an = ['xaxis', 'yaxis', 'x2axis', 'y2axis', 'y3axis', 'y4axis', 'y5axis', 'y6axis', 'y7axis', 'y8axis', 'y9axis'];
+        var ax = plot.axes;
+        var n, axis;
+        for (n=11; n>0; n--) {
+            axis = an[n-1];
+            if (ax[axis].show) {
+                dataPos[axis] = ax[axis].series_p2u(gridPos[axis.charAt(0)]);
+            }
+        }
+
+        return {offsets:go, gridPos:gridPos, dataPos:dataPos};
+    }    
+    
+    function handleZoomMove(ev) {
+        var plot = ev.data.plot;
+        var c = plot.plugins.cursor;
+        // don't do anything if not on grid.
+        if (c.show && c.zoom && c._zoom.started && !c.zoomTarget) {
+            var ctx = c.zoomCanvas._ctx;
+            var positions = getEventPosition(ev);
+            var gridpos = positions.gridPos;
+            var datapos = positions.dataPos;
+            c._zoom.gridpos = gridpos;
+            c._zoom.datapos = datapos;
+            c._zoom.zooming = true;
+            var xpos = gridpos.x;
+            var ypos = gridpos.y;
+            var height = ctx.canvas.height;
+            var width = ctx.canvas.width;
+            if (c.showTooltip && !c.onGrid && c.showTooltipOutsideZoom) {
+                updateTooltip(gridpos, datapos, plot);
+                if (c.followMouse) {
+                    moveTooltip(gridpos, plot);
+                }
+            }
+            if (c.constrainZoomTo == 'x') {
+                c._zoom.end = [xpos, height];
+            }
+            else if (c.constrainZoomTo == 'y') {
+                c._zoom.end = [width, ypos];
+            }
+            else {
+                c._zoom.end = [xpos, ypos];
+            }
+            var sel = window.getSelection;
+            if (document.selection && document.selection.empty)
+            {
+                document.selection.empty();
+            }
+            else if (sel && !sel().isCollapsed) {
+                sel().collapse();
+            }
+            drawZoomBox.call(c);
+            ctx = null;
+        }
+    }
     
     function handleMouseDown(ev, gridpos, datapos, neighbor, plot) {
         var c = plot.plugins.cursor;
+        $(document).one('mouseup.jqplot_cursor', {plot:plot}, handleMouseUp);
         var axes = plot.axes;
+        if (document.onselectstart != undefined) {
+            c._oldHandlers.onselectstart = document.onselectstart;
+            document.onselectstart = function () { return false; };
+        }
+        if (document.ondrag != undefined) {
+            c._oldHandlers.ondrag = document.ondrag;
+            document.ondrag = function () { return false; };
+        }
+        if (document.onmousedown != undefined) {
+            c._oldHandlers.onmousedown = document.onmousedown;
+            document.onmousedown = function () { return false; };
+        }
         if (c.zoom) {
             if (!c.zoomProxy) {
                 var ctx = c.zoomCanvas._ctx;
                 ctx.clearRect(0,0,ctx.canvas.width, ctx.canvas.height);
+                ctx = null;
             }
             if (c.constrainZoomTo == 'x') {
                 c._zoom.start = [gridpos.x, 0];
@@ -704,17 +877,69 @@
             for (var ax in datapos) {
                 // get zoom starting position.
                 c._zoom.axes.start[ax] = datapos[ax];
-            }
+            }  
+            $(document).bind('mousemove.jqplotCursor', {plot:plot}, handleZoomMove);              
         }
     }
     
-    function handleMouseUp(ev, gridpos, datapos, neighbor, plot) {
+    function handleMouseUp(ev) {
+        var plot = ev.data.plot;
         var c = plot.plugins.cursor;
         if (c.zoom && c._zoom.zooming && !c.zoomTarget) {
-            c.doZoom(gridpos, datapos, plot, c);
+            var xpos = c._zoom.gridpos.x;
+            var ypos = c._zoom.gridpos.y;
+            var datapos = c._zoom.datapos;
+            var height = c.zoomCanvas._ctx.canvas.height;
+            var width = c.zoomCanvas._ctx.canvas.width;
+            var axes = plot.axes;
+            
+            if (c.constrainOutsideZoom && !c.onGrid) {
+                if (xpos < 0) { xpos = 0; }
+                else if (xpos > width) { xpos = width; }
+                if (ypos < 0) { ypos = 0; }
+                else if (ypos > height) { ypos = height; }
+                
+                for (var axis in datapos) {
+                    if (datapos[axis]) {
+                        if (axis.charAt(0) == 'x') {
+                            datapos[axis] = axes[axis].series_p2u(xpos);
+                        }
+                        else {
+                            datapos[axis] = axes[axis].series_p2u(ypos);
+                        }
+                    }
+                }
+            }
+            
+            if (c.constrainZoomTo == 'x') {
+                ypos = height;
+            }
+            else if (c.constrainZoomTo == 'y') {
+                xpos = width;
+            }
+            c._zoom.end = [xpos, ypos];
+            c._zoom.gridpos = {x:xpos, y:ypos};
+            
+            c.doZoom(c._zoom.gridpos, datapos, plot, c);
         }
         c._zoom.started = false;
         c._zoom.zooming = false;
+        
+        $(document).unbind('mousemove.jqplotCursor', handleZoomMove);
+        
+        if (document.onselectstart != undefined && c._oldHandlers.onselectstart != null){
+            document.onselectstart = c._oldHandlers.onselectstart;
+            c._oldHandlers.onselectstart = null;
+        }
+        if (document.ondrag != undefined && c._oldHandlers.ondrag != null){
+            document.ondrag = c._oldHandlers.ondrag;
+            c._oldHandlers.ondrag = null;
+        }
+        if (document.onmousedown != undefined && c._oldHandlers.onmousedown != null){
+            document.onmousedown = c._oldHandlers.onmousedown;
+            c._oldHandlers.onmousedown = null;
+        }
+
     }
     
     function drawZoomBox() {
@@ -746,6 +971,7 @@
         ctx.clearRect(l, t, w, h);
         // IE won't show transparent fill rect, so stroke a rect also.
         ctx.strokeRect(l,t,w,h);
+        ctx = null;
     }
     
     $.jqplot.CursorLegendRenderer = function(options) {
@@ -758,15 +984,23 @@
     
     // called in context of a Legend
     $.jqplot.CursorLegendRenderer.prototype.draw = function() {
+        if (this._elem) {
+            this._elem.emptyForce();
+            this._elem = null;
+        }
         if (this.show) {
-            var series = this._series;
+            var series = this._series, s;
             // make a table.  one line label per row.
-            this._elem = $('<table class="jqplot-legend jqplot-cursor-legend" style="position:absolute"></table>');
+            var elem = document.createElement('div');
+            this._elem = $(elem);
+            elem = null;
+            this._elem.addClass('jqplot-legend jqplot-cursor-legend');
+            this._elem.css('position', 'absolute');
         
             var pad = false;
             for (var i = 0; i< series.length; i++) {
                 s = series[i];
-                if (s.show) {
+                if (s.show && s.showLabel) {
                     var lt = $.jqplot.sprintf(this.formatString, s.label.toString());
                     if (lt) {
                         var color = s.color;
@@ -786,6 +1020,9 @@
                     }
                 }
             }
+            series = s = null;
+            delete series;
+            delete s;
         }
         
         function addrow(label, color, pad, idx) {
@@ -805,6 +1042,8 @@
             else {
                 td.html(label);
             }
+            tr = null;
+            td = null;
         }
         return this._elem;
     };
