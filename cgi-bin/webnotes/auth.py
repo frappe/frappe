@@ -104,7 +104,7 @@ class HTTPRequest:
 			else:
 				db_name = getattr(webnotes.defs,'default_db_name','')
 	
-		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password',''))
+		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password', None))
 		webnotes.ac_name = ac_name
 
 # =================================================================================
