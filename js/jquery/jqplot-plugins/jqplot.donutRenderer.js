@@ -29,30 +29,31 @@
  */
 (function($) {
     /**
-     * Class: $.jqplot.PieRenderer
-     * Plugin renderer to draw a pie chart.
+     * Class: $.jqplot.DonutRenderer
+     * Plugin renderer to draw a donut chart.
      * x values, if present, will be used as slice labels.
      * y values give slice size.
      * 
      * To use this renderer, you need to include the 
-     * pie renderer plugin, for example:
+     * donut renderer plugin, for example:
      * 
-     * > <script type="text/javascript" src="plugins/jqplot.pieRenderer.js"></script>
+     * > <script type="text/javascript" src="plugins/jqplot.donutRenderer.js"></script>
      * 
      * Properties described here are passed into the $.jqplot function
      * as options on the series renderer.  For example:
      * 
      * > plot2 = $.jqplot('chart2', [s1, s2], {
      * >     seriesDefaults: {
-     * >         renderer:$.jqplot.PieRenderer,
+     * >         renderer:$.jqplot.DonutRenderer,
      * >         rendererOptions:{
      * >              sliceMargin: 2,
+     * >              innerDiameter: 110,
      * >              startAngle: -90
      * >          }
      * >      }
      * > });
      * 
-     * A pie plot will trigger events on the plot target
+     * A donut plot will trigger events on the plot target
      * according to user interaction.  All events return the event object,
      * the series index, the point (slice) index, and the point data for 
      * the appropriate slice.
@@ -66,26 +67,38 @@
      * 'jqplotDataRightClick' - tiggered when the user right clicks on a slice if
      * the "captureRightClick" option is set to true on the plot.
      */
-    $.jqplot.PieRenderer = function(){
+    $.jqplot.DonutRenderer = function(){
         $.jqplot.LineRenderer.call(this);
     };
     
-    $.jqplot.PieRenderer.prototype = new $.jqplot.LineRenderer();
-    $.jqplot.PieRenderer.prototype.constructor = $.jqplot.PieRenderer;
+    $.jqplot.DonutRenderer.prototype = new $.jqplot.LineRenderer();
+    $.jqplot.DonutRenderer.prototype.constructor = $.jqplot.DonutRenderer;
     
     // called with scope of a series
-    $.jqplot.PieRenderer.prototype.init = function(options, plot) {
+    $.jqplot.DonutRenderer.prototype.init = function(options, plot) {
         // Group: Properties
         //
         // prop: diameter
-        // Outer diameter of the pie, auto computed by default
+        // Outer diameter of the donut, auto computed by default
         this.diameter = null;
+        // prop: innerDiameter
+        // Inner diameter of the donut, auto calculated by default.
+        // If specified will override thickness value.
+        this.innerDiameter = null;
+        // prop: thickness
+        // thickness of the donut, auto computed by default
+        // Overridden by if innerDiameter is specified.
+        this.thickness = null;
         // prop: padding
-        // padding between the pie and plot edges, legend, etc.
+        // padding between the donut and plot edges, legend, etc.
         this.padding = 20;
         // prop: sliceMargin
-        // angular spacing between pie slices in degrees.
+        // angular spacing between donut slices in degrees.
         this.sliceMargin = 0;
+        // prop: ringMargin
+        // pixel distance between rings, or multiple series in a donut plot.
+        // null will compute ringMargin based on sliceMargin.
+        this.ringMargin = null;
         // prop: fill
         // true or false, wether to fil the slices.
         this.fill = true;
@@ -122,32 +135,28 @@
         // Format string for data labels.  If none, '%s' is used for "label" and for arrays, '%d' for value and '%d%%' for percentage.
         this.dataLabelFormatString = null;
         // prop: dataLabelThreshold
-        // Threshhold in percentage (0-100) of pie area, below which no label will be displayed.
+        // Threshhold in percentage (0 - 100) of pie area, below which no label will be displayed.
         // This applies to all label types, not just to percentage labels.
         this.dataLabelThreshold = 3;
         // prop: dataLabelPositionFactor
         // A Multiplier (0-1) of the pie radius which controls position of label on slice.
         // Increasing will slide label toward edge of pie, decreasing will slide label toward center of pie.
-        this.dataLabelPositionFactor = 0.52;
+        this.dataLabelPositionFactor = 0.4;
         // prop: dataLabelNudge
         // Number of pixels to slide the label away from (+) or toward (-) the center of the pie.
-        this.dataLabelNudge = 2;
-        // prop: dataLabelCenterOn
-        // True to center the data label at its position.
-        // False to set the inside facing edge of the label at its position.
-        this.dataLabelCenterOn = true;
+        this.dataLabelNudge = 0;
         // prop: startAngle
-        // Angle to start drawing pie in degrees.  
+        // Angle to start drawing donut in degrees.  
         // According to orientation of canvas coordinate system:
         // 0 = on the positive x axis
         // -90 = on the positive y axis.
         // 90 = on the negaive y axis.
         // 180 or - 180 = on the negative x axis.
         this.startAngle = 0;
-        this.tickRenderer = $.jqplot.PieTickRenderer;
-        // Used as check for conditions where pie shouldn't be drawn.
+        this.tickRenderer = $.jqplot.DonutTickRenderer;
+        // Used as check for conditions where donut shouldn't be drawn.
         this._drawData = true;
-        this._type = 'pie';
+        this._type = 'donut';
         
         // if user has passed in highlightMouseDown option and not set highlightMouseOver, disable highlightMouseOver
         if (options.highlightMouseDown && options.highlightMouseOver == null) {
@@ -155,13 +164,18 @@
         }
         
         $.extend(true, this, options);
-
-        if (this.sliceMargin < 0) {
-            this.sliceMargin = 0;
+        if (this.diameter != null) {
+            this.diameter = this.diameter - this.sliceMargin;
         }
-
         this._diameter = null;
+        this._innerDiameter = null;
         this._radius = null;
+        this._innerRadius = null;
+        this._thickness = null;
+        // references to the previous series in the plot to properly calculate diameters
+        // and thicknesses of nested rings.
+        this._previousSeries = [];
+        this._numberSeries = 1;
         // array of [start,end] angles arrays, one for each slice.  In radians.
         this._sliceAngles = [];
         // index of the currenty highlighted point, if any
@@ -182,8 +196,6 @@
             }
         }
         
-        this.highlightColorGenerator = new $.jqplot.ColorGenerator(this.highlightColors);
-        
         plot.postParseOptionsHooks.addOnce(postParseOptions);
         plot.postInitHooks.addOnce(postInit);
         plot.eventListenerHooks.addOnce('jqplotMouseMove', handleMove);
@@ -192,9 +204,11 @@
         plot.eventListenerHooks.addOnce('jqplotClick', handleClick);
         plot.eventListenerHooks.addOnce('jqplotRightClick', handleRightClick);
         plot.postDrawHooks.addOnce(postPlotDraw);
+        
+        
     };
     
-    $.jqplot.PieRenderer.prototype.setGridData = function(plot) {
+    $.jqplot.DonutRenderer.prototype.setGridData = function(plot) {
         // set gridData property.  This will hold angle in radians of each data point.
         var stack = [];
         var td = [];
@@ -223,7 +237,7 @@
         this.gridData = td;
     };
     
-    $.jqplot.PieRenderer.prototype.makeGridData = function(data, plot) {
+    $.jqplot.DonutRenderer.prototype.makeGridData = function(data, plot) {
         var stack = [];
         var td = [];
         var tot = 0;
@@ -250,74 +264,31 @@
         }
         return td;
     };
-
-    function calcRadiusAdjustment(ang) {
-        return Math.sin((ang - (ang-Math.PI) / 8 / Math.PI )/2.0);
-    }
-
-    function calcRPrime(ang1, ang2, sliceMargin, fill, lineWidth) {
-        var rprime = 0;
-        var ang = ang2 - ang1;
-        var absang = Math.abs(ang);
-        var sm = sliceMargin;
-        if (fill == false) {
-            sm += lineWidth;
-        }
-
-        if (sm > 0 && absang > 0.01 && absang < 6.282) {
-            rprime = parseFloat(sm) / 2.0 / calcRadiusAdjustment(ang);
-        }
-
-        return rprime;
-    }
     
-    $.jqplot.PieRenderer.prototype.drawSlice = function (ctx, ang1, ang2, color, isShadow) {
-        if (this._drawData) {
-            var r = this._radius;
-            var fill = this.fill;
-            var lineWidth = this.lineWidth;
-            var sm = this.sliceMargin;
-            if (this.fill == false) {
-                sm += this.lineWidth;
+    $.jqplot.DonutRenderer.prototype.drawSlice = function (ctx, ang1, ang2, color, isShadow) {
+        var r = this._diameter / 2;
+        var ri = r - this._thickness;
+        var fill = this.fill;
+        // var lineWidth = this.lineWidth;
+        ctx.save();
+        ctx.translate(this._center[0], this._center[1]);
+        // ctx.translate(this.sliceMargin*Math.cos((ang1+ang2)/2), this.sliceMargin*Math.sin((ang1+ang2)/2));
+        
+        if (isShadow) {
+            for (var i=0; i<this.shadowDepth; i++) {
+                ctx.save();
+                ctx.translate(this.shadowOffset*Math.cos(this.shadowAngle/180*Math.PI), this.shadowOffset*Math.sin(this.shadowAngle/180*Math.PI));
+                doDraw();
             }
-            ctx.save();
-            ctx.translate(this._center[0], this._center[1]);
-            
-            var rprime = calcRPrime(ang1, ang2, this.sliceMargin, this.fill, this.lineWidth);
-
-            var transx = rprime * Math.cos((ang1 + ang2) / 2.0);
-            var transy = rprime * Math.sin((ang1 + ang2) / 2.0);
-
-            if ((ang2 - ang1) <= Math.PI) {
-                r -= rprime;  
-            }
-            else {
-                r += rprime;
-            }
-
-            ctx.translate(transx, transy);
-            
-            if (isShadow) {
-                for (var i=0, l=this.shadowDepth; i<l; i++) {
-                    ctx.save();
-                    ctx.translate(this.shadowOffset*Math.cos(this.shadowAngle/180*Math.PI), this.shadowOffset*Math.sin(this.shadowAngle/180*Math.PI));
-                    doDraw(r);
-                }
-                for (var i=0, l=this.shadowDepth; i<l; i++) {
-                    ctx.restore();
-                }
-            }
-    
-            else {
-                doDraw(r);
-            }
-            ctx.restore();
         }
-    
-        function doDraw (rad) {
+        
+        else {
+            doDraw();
+        }
+        
+        function doDraw () {
             // Fix for IE and Chrome that can't seem to draw circles correctly.
             // ang2 should always be <= 2 pi since that is the way the data is converted.
-            // 2Pi = 6.2831853, Pi = 3.1415927
              if (ang2 > 6.282 + this.startAngle) {
                 ang2 = 6.282 + this.startAngle;
                 if (ang1 > ang2) {
@@ -325,19 +296,18 @@
                 }
             }
             // Fix for IE, where it can't seem to handle 0 degree angles.  Also avoids
-            // ugly line on unfilled pies.
+            // ugly line on unfilled donuts.
             if (ang1 >= ang2) {
                 return;
-            }            
-        
+            }
             ctx.beginPath();  
             ctx.fillStyle = color;
             ctx.strokeStyle = color;
-            ctx.lineWidth = lineWidth;
-            ctx.arc(0, 0, rad, ang1, ang2, false);
-            ctx.lineTo(0,0);
+            // ctx.lineWidth = lineWidth;
+            ctx.arc(0, 0, r, ang1, ang2, false);
+            ctx.lineTo(ri*Math.cos(ang2), ri*Math.sin(ang2));
+            ctx.arc(0,0, ri, ang2, ang1, true);
             ctx.closePath();
-        
             if (fill) {
                 ctx.fill();
             }
@@ -345,17 +315,25 @@
                 ctx.stroke();
             }
         }
+        
+        if (isShadow) {
+            for (var i=0; i<this.shadowDepth; i++) {
+                ctx.restore();
+            }
+        }
+        
+        ctx.restore();
     };
     
     // called with scope of series
-    $.jqplot.PieRenderer.prototype.draw = function (ctx, gd, options, plot) {
+    $.jqplot.DonutRenderer.prototype.draw = function (ctx, gd, options, plot) {
         var i;
         var opts = (options != undefined) ? options : {};
         // offset and direction of offset due to legend placement
         var offx = 0;
         var offy = 0;
         var trans = 1;
-        var colorGenerator = new $.jqplot.ColorGenerator(this.seriesColors);
+        // var colorGenerator = new this.colorGenerator(this.seriesColors);
         if (options.legendInfo && options.legendInfo.placement == 'insideGrid') {
             var li = options.legendInfo;
             switch (li.location) {
@@ -393,6 +371,7 @@
         }
         
         var shadow = (opts.shadow != undefined) ? opts.shadow : this.shadow;
+        var showLine = (opts.showLine != undefined) ? opts.showLine : this.showLine;
         var fill = (opts.fill != undefined) ? opts.fill : this.fill;
         var cw = ctx.canvas.width;
         var ch = ctx.canvas.height;
@@ -400,68 +379,46 @@
         var h = ch - offy - 2 * this.padding;
         var mindim = Math.min(w,h);
         var d = mindim;
+        var ringmargin =  (this.ringMargin == null) ? this.sliceMargin * 2.0 : this.ringMargin;
         
-        // Fixes issue #272.  Thanks hugwijst!
-        // reset slice angles array.
-        this._sliceAngles = [];
-
-        var sm = this.sliceMargin;
-        if (this.fill == false) {
-            sm += this.lineWidth;
+        for (var i=0; i<this._previousSeries.length; i++) {
+            d -= 2.0 * this._previousSeries[i]._thickness + 2.0 * ringmargin;
         }
-        
-        var rprime;
-        var maxrprime = 0;
-
-        var ang, ang1, ang2, shadowColor;
-        var sa = this.startAngle / 180 * Math.PI;
-
-        // have to pre-draw shadows, so loop throgh here and calculate some values also.
-        for (var i=0, l=gd.length; i<l; i++) {
-            ang1 = (i == 0) ? sa : gd[i-1][1] + sa;
-            ang2 = gd[i][1] + sa;
-
-            this._sliceAngles.push([ang1, ang2]);
-
-            rprime = calcRPrime(ang1, ang2, this.sliceMargin, this.fill, this.lineWidth);
-
-            if (Math.abs(ang2-ang1) > Math.PI) {
-                maxrprime = Math.max(rprime, maxrprime);  
-            }
-        }
-
-        if (this.diameter != null && this.diameter > 0) {
-            this._diameter = this.diameter - 2*maxrprime;
+        this._diameter = this.diameter || d;
+        if (this.innerDiameter != null) {
+            var od = (this._numberSeries > 1 && this.index > 0) ? this._previousSeries[0]._diameter : this._diameter;
+            this._thickness = this.thickness || (od - this.innerDiameter - 2.0*ringmargin*this._numberSeries) / this._numberSeries/2.0;
         }
         else {
-            this._diameter = d - 2*maxrprime;
-        }
-
-        // Need to check for undersized pie.  This can happen if
-        // plot area too small and legend is too big.
-        if (this._diameter < 6) {
-            $.jqplot.log('Diameter of pie too small, not rendering.');
-            return;
+            this._thickness = this.thickness || mindim / 2 / (this._numberSeries + 1) * 0.85;
         }
 
         var r = this._radius = this._diameter/2;
-
-        this._center = [(cw - trans * offx)/2 + trans * offx + maxrprime * Math.cos(sa), (ch - trans*offy)/2 + trans * offy + maxrprime * Math.sin(sa)];
-
+        this._innerRadius = this._radius - this._thickness;
+        var sa = this.startAngle / 180 * Math.PI;
+        this._center = [(cw - trans * offx)/2 + trans * offx, (ch - trans*offy)/2 + trans * offy];
+        
         if (this.shadow) {
-            for (var i=0, l=gd.length; i<l; i++) {
-                shadowColor = 'rgba(0,0,0,'+this.shadowAlpha+')';
-                this.renderer.drawSlice.call (this, ctx, this._sliceAngles[i][0], this._sliceAngles[i][1], shadowColor, true);
+            var shadowColor = 'rgba(0,0,0,'+this.shadowAlpha+')';
+            for (var i=0; i<gd.length; i++) {
+                var ang1 = (i == 0) ? sa : gd[i-1][1] + sa;
+                // Adjust ang1 and ang2 for sliceMargin
+                ang1 += this.sliceMargin/180*Math.PI;
+                this.renderer.drawSlice.call (this, ctx, ang1, gd[i][1]+sa, shadowColor, true);
             }
-        }
-        
-        for (var i=0; i<gd.length; i++) {
-                      
-            this.renderer.drawSlice.call (this, ctx, this._sliceAngles[i][0], this._sliceAngles[i][1], colorGenerator.next(), false);
-        
-            if (this.showDataLabels && gd[i][2]*100 >= this.dataLabelThreshold) {
-                var fstr, avgang = (this._sliceAngles[i][0] + this._sliceAngles[i][1])/2, label;
             
+        }
+        for (var i=0; i<gd.length; i++) {
+            var ang1 = (i == 0) ? sa : gd[i-1][1] + sa;
+            // Adjust ang1 and ang2 for sliceMargin
+            ang1 += this.sliceMargin/180*Math.PI;
+            var ang2 = gd[i][1] + sa;
+            this._sliceAngles.push([ang1, ang2]);
+            this.renderer.drawSlice.call (this, ctx, ang1, ang2, this.seriesColors[i], false);
+            
+            if (this.showDataLabels && gd[i][2]*100 >= this.dataLabelThreshold) {
+                var fstr, avgang = (ang1+ang2)/2, label;
+                
                 if (this.dataLabels == 'label') {
                     fstr = this.dataLabelFormatString || '%s';
                     label = $.jqplot.sprintf(fstr, gd[i][0]);
@@ -478,42 +435,37 @@
                     fstr = this.dataLabelFormatString || '%s';
                     label = $.jqplot.sprintf(fstr, this.dataLabels[i]);
                 }
-            
-                var fact = (this._radius ) * this.dataLabelPositionFactor + this.sliceMargin + this.dataLabelNudge;
-            
+                
+                var fact = this._innerRadius + this._thickness * this.dataLabelPositionFactor + this.sliceMargin + this.dataLabelNudge;
+                
                 var x = this._center[0] + Math.cos(avgang) * fact + this.canvas._offsets.left;
                 var y = this._center[1] + Math.sin(avgang) * fact + this.canvas._offsets.top;
-            
-                var labelelem = $('<div class="jqplot-pie-series jqplot-data-label" style="position:absolute;">' + label + '</div>').insertBefore(plot.eventCanvas._elem);
-                if (this.dataLabelCenterOn) {
-                    x -= labelelem.width()/2;
-                    y -= labelelem.height()/2;
-                }
-                else {
-                    x -= labelelem.width() * Math.sin(avgang/2);
-                    y -= labelelem.height()/2;
-                }
+                
+                var labelelem = $('<span class="jqplot-donut-series jqplot-data-label" style="position:absolute;">' + label + '</span>').insertBefore(plot.eventCanvas._elem);
+                x -= labelelem.width()/2;
+                y -= labelelem.height()/2;
                 x = Math.round(x);
                 y = Math.round(y);
                 labelelem.css({left: x, top: y});
             }
-        }            
+        }
+               
     };
     
-    $.jqplot.PieAxisRenderer = function() {
+    $.jqplot.DonutAxisRenderer = function() {
         $.jqplot.LinearAxisRenderer.call(this);
     };
     
-    $.jqplot.PieAxisRenderer.prototype = new $.jqplot.LinearAxisRenderer();
-    $.jqplot.PieAxisRenderer.prototype.constructor = $.jqplot.PieAxisRenderer;
+    $.jqplot.DonutAxisRenderer.prototype = new $.jqplot.LinearAxisRenderer();
+    $.jqplot.DonutAxisRenderer.prototype.constructor = $.jqplot.DonutAxisRenderer;
         
     
-    // There are no traditional axes on a pie chart.  We just need to provide
+    // There are no traditional axes on a donut chart.  We just need to provide
     // dummy objects with properties so the plot will render.
     // called with scope of axis object.
-    $.jqplot.PieAxisRenderer.prototype.init = function(options){
+    $.jqplot.DonutAxisRenderer.prototype.init = function(options){
         //
-        this.tickRenderer = $.jqplot.PieTickRenderer;
+        this.tickRenderer = $.jqplot.DonutTickRenderer;
         $.extend(true, this, options);
         // I don't think I'm going to need _dataBounds here.
         // have to go Axis scaling in a way to fit chart onto plot area
@@ -532,19 +484,19 @@
     
     
     
-    $.jqplot.PieLegendRenderer = function(){
+    $.jqplot.DonutLegendRenderer = function(){
         $.jqplot.TableLegendRenderer.call(this);
     };
     
-    $.jqplot.PieLegendRenderer.prototype = new $.jqplot.TableLegendRenderer();
-    $.jqplot.PieLegendRenderer.prototype.constructor = $.jqplot.PieLegendRenderer;
+    $.jqplot.DonutLegendRenderer.prototype = new $.jqplot.TableLegendRenderer();
+    $.jqplot.DonutLegendRenderer.prototype.constructor = $.jqplot.DonutLegendRenderer;
     
     /**
-     * Class: $.jqplot.PieLegendRenderer
-     * Legend Renderer specific to pie plots.  Set by default
-     * when user creates a pie plot.
+     * Class: $.jqplot.DonutLegendRenderer
+     * Legend Renderer specific to donut plots.  Set by default
+     * when user creates a donut plot.
      */
-    $.jqplot.PieLegendRenderer.prototype.init = function(options) {
+    $.jqplot.DonutLegendRenderer.prototype.init = function(options) {
         // Group: Properties
         //
         // prop: numberRows
@@ -557,53 +509,27 @@
     };
     
     // called with context of legend
-    $.jqplot.PieLegendRenderer.prototype.draw = function() {
+    $.jqplot.DonutLegendRenderer.prototype.draw = function() {
         var legend = this;
         if (this.show) {
             var series = this._series;
-
-
-            this._elem = $(document.createElement('table'));
-            this._elem.addClass('jqplot-table-legend');
-
-            var ss = {position:'absolute'};
-            if (this.background) {
-                ss['background'] = this.background;
-            }
-            if (this.border) {
-                ss['border'] = this.border;
-            }
-            if (this.fontSize) {
-                ss['fontSize'] = this.fontSize;
-            }
-            if (this.fontFamily) {
-                ss['fontFamily'] = this.fontFamily;
-            }
-            if (this.textColor) {
-                ss['textColor'] = this.textColor;
-            }
-            if (this.marginTop != null) {
-                ss['marginTop'] = this.marginTop;
-            }
-            if (this.marginBottom != null) {
-                ss['marginBottom'] = this.marginBottom;
-            }
-            if (this.marginLeft != null) {
-                ss['marginLeft'] = this.marginLeft;
-            }
-            if (this.marginRight != null) {
-                ss['marginRight'] = this.marginRight;
-            }
-
-            this._elem.css(ss);
-
-            // Pie charts legends don't go by number of series, but by number of data points
+            var ss = 'position:absolute;';
+            ss += (this.background) ? 'background:'+this.background+';' : '';
+            ss += (this.border) ? 'border:'+this.border+';' : '';
+            ss += (this.fontSize) ? 'font-size:'+this.fontSize+';' : '';
+            ss += (this.fontFamily) ? 'font-family:'+this.fontFamily+';' : '';
+            ss += (this.textColor) ? 'color:'+this.textColor+';' : '';
+            ss += (this.marginTop != null) ? 'margin-top:'+this.marginTop+';' : '';
+            ss += (this.marginBottom != null) ? 'margin-bottom:'+this.marginBottom+';' : '';
+            ss += (this.marginLeft != null) ? 'margin-left:'+this.marginLeft+';' : '';
+            ss += (this.marginRight != null) ? 'margin-right:'+this.marginRight+';' : '';
+            this._elem = $('<table class="jqplot-table-legend" style="'+ss+'"></table>');
+            // Donut charts legends don't go by number of series, but by number of data points
             // in the series.  Refactor things here for that.
             
             var pad = false, 
                 reverse = false,
-                nr, 
-                nc;
+                nr, nc;
             var s = series[0];
             var colorGenerator = new $.jqplot.ColorGenerator(s.seriesColors);
             
@@ -627,24 +553,16 @@
                     nc = 1;
                 }
                 
-                var i, j;
-                var tr, td1, td2; 
-                var lt, rs, color;
-                var idx = 0; 
-                var div0, div1;   
+                var i, j, tr, td1, td2, lt, rs, color;
+                var idx = 0;    
                 
                 for (i=0; i<nr; i++) {
-                    tr = $(document.createElement('tr'));
-                    tr.addClass('jqplot-table-legend');
-                    
                     if (reverse){
-                        tr.prependTo(this._elem);
+                        tr = $('<tr class="jqplot-table-legend"></tr>').prependTo(this._elem);
                     }
-                    
                     else{
-                        tr.appendTo(this._elem);
+                        tr = $('<tr class="jqplot-table-legend"></tr>').appendTo(this._elem);
                     }
-                    
                     for (j=0; j<nc; j++) {
                         if (idx < pd.length){
                             lt = this.labels[idx] || pd[idx][0].toString();
@@ -666,23 +584,11 @@
                                 }
                             }
                             rs = (pad) ? this.rowSpacing : '0';
-
-
-
-                            td1 = $(document.createElement('td'));
-                            td1.addClass('jqplot-table-legend');
-                            td1.css({textAlign: 'center', paddingTop: rs});
-
-                            div0 = $(document.createElement('div'));
-                            div1 = $(document.createElement('div'));
-                            div1.addClass('jqplot-table-legend-swatch');
-                            div1.css({backgroundColor: color, borderColor: color});
-                            td1.append(div0.append(div1));
-
-                            td2 = $(document.createElement('td'));
-                            td2.addClass('jqplot-table-legend');
-                            td2.css('paddingTop', rs);
-
+                
+                            td1 = $('<td class="jqplot-table-legend" style="text-align:center;padding-top:'+rs+';">'+
+                                '<div><div class="jqplot-table-legend-swatch" style="border-color:'+color+';"></div>'+
+                                '</div></td>');
+                            td2 = $('<td class="jqplot-table-legend" style="padding-top:'+rs+';"></td>');
                             if (this.escapeHtml){
                                 td2.text(lt);
                             }
@@ -707,22 +613,115 @@
         return this._elem;                
     };
     
-    $.jqplot.PieRenderer.prototype.handleMove = function(ev, gridpos, datapos, neighbor, plot) {
-        if (neighbor) {
-            var ins = [neighbor.seriesIndex, neighbor.pointIndex, neighbor.data];
-            plot.target.trigger('jqplotDataMouseOver', ins);
-            if (plot.series[ins[0]].highlightMouseOver && !(ins[0] == plot.plugins.pieRenderer.highlightedSeriesIndex && ins[1] == plot.series[ins[0]]._highlightedPoint)) {
-                plot.target.trigger('jqplotDataHighlight', ins);
-                highlight (plot, ins[0], ins[1]);
-            }
-        }
-        else if (neighbor == null) {
-            unhighlight (plot);
-        }
-    };
-    
-    
-    // this.eventCanvas._elem.bind($.jqplot.eventListenerHooks[i][0], {plot:this}, $.jqplot.eventListenerHooks[i][1]);
+    // $.jqplot.DonutLegendRenderer.prototype.pack = function(offsets) {
+    //     if (this.show) {
+    //         // fake a grid for positioning
+    //         var grid = {_top:offsets.top, _left:offsets.left, _right:offsets.right, _bottom:this._plotDimensions.height - offsets.bottom};        
+    //         if (this.placement == 'insideGrid') {
+    //             switch (this.location) {
+    //                 case 'nw':
+    //                     var a = grid._left + this.xoffset;
+    //                     var b = grid._top + this.yoffset;
+    //                     this._elem.css('left', a);
+    //                     this._elem.css('top', b);
+    //                     break;
+    //                 case 'n':
+    //                     var a = (offsets.left + (this._plotDimensions.width - offsets.right))/2 - this.getWidth()/2;
+    //                     var b = grid._top + this.yoffset;
+    //                     this._elem.css('left', a);
+    //                     this._elem.css('top', b);
+    //                     break;
+    //                 case 'ne':
+    //                     var a = offsets.right + this.xoffset;
+    //                     var b = grid._top + this.yoffset;
+    //                     this._elem.css({right:a, top:b});
+    //                     break;
+    //                 case 'e':
+    //                     var a = offsets.right + this.xoffset;
+    //                     var b = (offsets.top + (this._plotDimensions.height - offsets.bottom))/2 - this.getHeight()/2;
+    //                     this._elem.css({right:a, top:b});
+    //                     break;
+    //                 case 'se':
+    //                     var a = offsets.right + this.xoffset;
+    //                     var b = offsets.bottom + this.yoffset;
+    //                     this._elem.css({right:a, bottom:b});
+    //                     break;
+    //                 case 's':
+    //                     var a = (offsets.left + (this._plotDimensions.width - offsets.right))/2 - this.getWidth()/2;
+    //                     var b = offsets.bottom + this.yoffset;
+    //                     this._elem.css({left:a, bottom:b});
+    //                     break;
+    //                 case 'sw':
+    //                     var a = grid._left + this.xoffset;
+    //                     var b = offsets.bottom + this.yoffset;
+    //                     this._elem.css({left:a, bottom:b});
+    //                     break;
+    //                 case 'w':
+    //                     var a = grid._left + this.xoffset;
+    //                     var b = (offsets.top + (this._plotDimensions.height - offsets.bottom))/2 - this.getHeight()/2;
+    //                     this._elem.css({left:a, top:b});
+    //                     break;
+    //                 default:  // same as 'se'
+    //                     var a = grid._right - this.xoffset;
+    //                     var b = grid._bottom + this.yoffset;
+    //                     this._elem.css({right:a, bottom:b});
+    //                     break;
+    //             }
+    //             
+    //         }
+    //         else {
+    //             switch (this.location) {
+    //                 case 'nw':
+    //                     var a = this._plotDimensions.width - grid._left + this.xoffset;
+    //                     var b = grid._top + this.yoffset;
+    //                     this._elem.css('right', a);
+    //                     this._elem.css('top', b);
+    //                     break;
+    //                 case 'n':
+    //                     var a = (offsets.left + (this._plotDimensions.width - offsets.right))/2 - this.getWidth()/2;
+    //                     var b = this._plotDimensions.height - grid._top + this.yoffset;
+    //                     this._elem.css('left', a);
+    //                     this._elem.css('bottom', b);
+    //                     break;
+    //                 case 'ne':
+    //                     var a = this._plotDimensions.width - offsets.right + this.xoffset;
+    //                     var b = grid._top + this.yoffset;
+    //                     this._elem.css({left:a, top:b});
+    //                     break;
+    //                 case 'e':
+    //                     var a = this._plotDimensions.width - offsets.right + this.xoffset;
+    //                     var b = (offsets.top + (this._plotDimensions.height - offsets.bottom))/2 - this.getHeight()/2;
+    //                     this._elem.css({left:a, top:b});
+    //                     break;
+    //                 case 'se':
+    //                     var a = this._plotDimensions.width - offsets.right + this.xoffset;
+    //                     var b = offsets.bottom + this.yoffset;
+    //                     this._elem.css({left:a, bottom:b});
+    //                     break;
+    //                 case 's':
+    //                     var a = (offsets.left + (this._plotDimensions.width - offsets.right))/2 - this.getWidth()/2;
+    //                     var b = this._plotDimensions.height - offsets.bottom + this.yoffset;
+    //                     this._elem.css({left:a, top:b});
+    //                     break;
+    //                 case 'sw':
+    //                     var a = this._plotDimensions.width - grid._left + this.xoffset;
+    //                     var b = offsets.bottom + this.yoffset;
+    //                     this._elem.css({right:a, bottom:b});
+    //                     break;
+    //                 case 'w':
+    //                     var a = this._plotDimensions.width - grid._left + this.xoffset;
+    //                     var b = (offsets.top + (this._plotDimensions.height - offsets.bottom))/2 - this.getHeight()/2;
+    //                     this._elem.css({right:a, top:b});
+    //                     break;
+    //                 default:  // same as 'se'
+    //                     var a = grid._right - this.xoffset;
+    //                     var b = grid._bottom + this.yoffset;
+    //                     this._elem.css({right:a, bottom:b});
+    //                     break;
+    //             }
+    //         }
+    //     } 
+    // };
     
     // setup default renderers for axes and legend so user doesn't have to
     // called with scope of plot
@@ -731,30 +730,43 @@
         options.axesDefaults = options.axesDefaults || {};
         options.legend = options.legend || {};
         options.seriesDefaults = options.seriesDefaults || {};
-        // only set these if there is a pie series
+        // only set these if there is a donut series
         var setopts = false;
-        if (options.seriesDefaults.renderer == $.jqplot.PieRenderer) {
+        if (options.seriesDefaults.renderer == $.jqplot.DonutRenderer) {
             setopts = true;
         }
         else if (options.series) {
             for (var i=0; i < options.series.length; i++) {
-                if (options.series[i].renderer == $.jqplot.PieRenderer) {
+                if (options.series[i].renderer == $.jqplot.DonutRenderer) {
                     setopts = true;
                 }
             }
         }
         
         if (setopts) {
-            options.axesDefaults.renderer = $.jqplot.PieAxisRenderer;
-            options.legend.renderer = $.jqplot.PieLegendRenderer;
+            options.axesDefaults.renderer = $.jqplot.DonutAxisRenderer;
+            options.legend.renderer = $.jqplot.DonutLegendRenderer;
             options.legend.preDraw = true;
             options.seriesDefaults.pointLabels = {show: false};
         }
     }
     
+    // called with scope of plot.
     function postInit(target, data, options) {
-        for (var i=0; i<this.series.length; i++) {
-            if (this.series[i].renderer.constructor == $.jqplot.PieRenderer) {
+        // if multiple series, add a reference to the previous one so that
+        // donut rings can nest.
+        for (var i=1; i<this.series.length; i++) {
+            if (!this.series[i]._previousSeries.length){
+                for (var j=0; j<i; j++) {
+                    if (this.series[i].renderer.constructor == $.jqplot.DonutRenderer && this.series[j].renderer.constructor == $.jqplot.DonutRenderer) {
+                        this.series[i]._previousSeries.push(this.series[j]);
+                    }
+                }
+            }
+        }
+        for (i=0; i<this.series.length; i++) {
+            if (this.series[i].renderer.constructor == $.jqplot.DonutRenderer) {
+                this.series[i]._numberSeries = this.series.length;
                 // don't allow mouseover and mousedown at same time.
                 if (this.series[i].highlightMouseOver) {
                     this.series[i].highlightMouseDown = false;
@@ -764,6 +776,7 @@
         this.target.bind('mouseout', {plot:this}, function (ev) { unhighlight(ev.data.plot); });
     }
     
+    var postParseOptionsRun = false;
     // called with scope of plot
     function postParseOptions(options) {
         for (var i=0; i<this.series.length; i++) {
@@ -774,20 +787,20 @@
     
     function highlight (plot, sidx, pidx) {
         var s = plot.series[sidx];
-        var canvas = plot.plugins.pieRenderer.highlightCanvas;
+        var canvas = plot.plugins.donutRenderer.highlightCanvas;
         canvas._ctx.clearRect(0,0,canvas._ctx.canvas.width, canvas._ctx.canvas.height);
         s._highlightedPoint = pidx;
-        plot.plugins.pieRenderer.highlightedSeriesIndex = sidx;
-        s.renderer.drawSlice.call(s, canvas._ctx, s._sliceAngles[pidx][0], s._sliceAngles[pidx][1], s.highlightColorGenerator.get(pidx), false);
+        plot.plugins.donutRenderer.highlightedSeriesIndex = sidx;
+        s.renderer.drawSlice.call(s, canvas._ctx, s._sliceAngles[pidx][0], s._sliceAngles[pidx][1], s.highlightColors[pidx], false);
     }
     
     function unhighlight (plot) {
-        var canvas = plot.plugins.pieRenderer.highlightCanvas;
+        var canvas = plot.plugins.donutRenderer.highlightCanvas;
         canvas._ctx.clearRect(0,0, canvas._ctx.canvas.width, canvas._ctx.canvas.height);
         for (var i=0; i<plot.series.length; i++) {
             plot.series[i]._highlightedPoint = null;
         }
-        plot.plugins.pieRenderer.highlightedSeriesIndex = null;
+        plot.plugins.donutRenderer.highlightedSeriesIndex = null;
         plot.target.trigger('jqplotDataUnhighlight');
     }
  
@@ -798,7 +811,7 @@
             evt1.pageX = ev.pageX;
             evt1.pageY = ev.pageY;
             plot.target.trigger(evt1, ins);
-            if (plot.series[ins[0]].highlightMouseOver && !(ins[0] == plot.plugins.pieRenderer.highlightedSeriesIndex && ins[1] == plot.series[ins[0]]._highlightedPoint)) {
+            if (plot.series[ins[0]].highlightMouseOver && !(ins[0] == plot.plugins.donutRenderer.highlightedSeriesIndex && ins[1] == plot.series[ins[0]]._highlightedPoint)) {
                 var evt = jQuery.Event('jqplotDataHighlight');
                 evt.pageX = ev.pageX;
                 evt.pageY = ev.pageY;
@@ -814,7 +827,7 @@
     function handleMouseDown(ev, gridpos, datapos, neighbor, plot) {
         if (neighbor) {
             var ins = [neighbor.seriesIndex, neighbor.pointIndex, neighbor.data];
-            if (plot.series[ins[0]].highlightMouseDown && !(ins[0] == plot.plugins.pieRenderer.highlightedSeriesIndex && ins[1] == plot.series[ins[0]]._highlightedPoint)) {
+            if (plot.series[ins[0]].highlightMouseDown && !(ins[0] == plot.plugins.donutRenderer.highlightedSeriesIndex && ins[1] == plot.series[ins[0]]._highlightedPoint)) {
                 var evt = jQuery.Event('jqplotDataHighlight');
                 evt.pageX = ev.pageX;
                 evt.pageY = ev.pageY;
@@ -828,7 +841,7 @@
     }
     
     function handleMouseUp(ev, gridpos, datapos, neighbor, plot) {
-        var idx = plot.plugins.pieRenderer.highlightedSeriesIndex;
+        var idx = plot.plugins.donutRenderer.highlightedSeriesIndex;
         if (idx != null && plot.series[idx].highlightMouseDown) {
             unhighlight(plot);
         }
@@ -847,7 +860,7 @@
     function handleRightClick(ev, gridpos, datapos, neighbor, plot) {
         if (neighbor) {
             var ins = [neighbor.seriesIndex, neighbor.pointIndex, neighbor.data];
-            var idx = plot.plugins.pieRenderer.highlightedSeriesIndex;
+            var idx = plot.plugins.donutRenderer.highlightedSeriesIndex;
             if (idx != null && plot.series[idx].highlightMouseDown) {
                 unhighlight(plot);
             }
@@ -863,35 +876,34 @@
     // insert it before the eventCanvas, so eventCanvas will still capture events.
     function postPlotDraw() {
         // Memory Leaks patch    
-        if (this.plugins.pieRenderer && this.plugins.pieRenderer.highlightCanvas) {
-            this.plugins.pieRenderer.highlightCanvas.resetCanvas();
-            this.plugins.pieRenderer.highlightCanvas = null;
+        if (this.plugins.donutRenderer && this.plugins.donutRenderer.highlightCanvas) {
+            this.plugins.donutRenderer.highlightCanvas.resetCanvas();
+            this.plugins.donutRenderer.highlightCanvas = null;
         }
 
-        this.plugins.pieRenderer = {highlightedSeriesIndex:null};
-        this.plugins.pieRenderer.highlightCanvas = new $.jqplot.GenericCanvas();
-        
+        this.plugins.donutRenderer = {highlightedSeriesIndex:null};
+        this.plugins.donutRenderer.highlightCanvas = new $.jqplot.GenericCanvas();
         // do we have any data labels?  if so, put highlight canvas before those
+        // Fix for broken jquery :first selector with canvas (VML) elements.
         var labels = $(this.targetId+' .jqplot-data-label');
         if (labels.length) {
-            $(labels[0]).before(this.plugins.pieRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-pieRenderer-highlight-canvas', this._plotDimensions, this));
+            $(labels[0]).before(this.plugins.donutRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-donutRenderer-highlight-canvas', this._plotDimensions, this));
         }
         // else put highlight canvas before event canvas.
         else {
-            this.eventCanvas._elem.before(this.plugins.pieRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-pieRenderer-highlight-canvas', this._plotDimensions, this));
+            this.eventCanvas._elem.before(this.plugins.donutRenderer.highlightCanvas.createElement(this._gridPadding, 'jqplot-donutRenderer-highlight-canvas', this._plotDimensions, this));
         }
-        
-        var hctx = this.plugins.pieRenderer.highlightCanvas.setContext();
+        var hctx = this.plugins.donutRenderer.highlightCanvas.setContext();
     }
     
     $.jqplot.preInitHooks.push(preInit);
     
-    $.jqplot.PieTickRenderer = function() {
+    $.jqplot.DonutTickRenderer = function() {
         $.jqplot.AxisTickRenderer.call(this);
     };
     
-    $.jqplot.PieTickRenderer.prototype = new $.jqplot.AxisTickRenderer();
-    $.jqplot.PieTickRenderer.prototype.constructor = $.jqplot.PieTickRenderer;
+    $.jqplot.DonutTickRenderer.prototype = new $.jqplot.AxisTickRenderer();
+    $.jqplot.DonutTickRenderer.prototype.constructor = $.jqplot.DonutTickRenderer;
     
 })(jQuery);
     

@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -68,10 +80,11 @@
         // prop: shadowDepth
         // number of strokes to make of the shadow.
         this.shadowDepth = 3;
+        this.isTrendline = true;
         
     };
     
-    $.jqplot.postParseSeriesOptionsHooks.push(parseTrendLineOptions);
+    $.jqplot.postSeriesInitHooks.push(parseTrendLineOptions);
     $.jqplot.postDrawSeriesHooks.push(drawTrendline);
     $.jqplot.addLegendRowHooks.push(addTrendlineLegend);
     
@@ -88,8 +101,8 @@
     }
 
     // called within scope of a series
-    function parseTrendLineOptions (seriesDefaults, options) {
-        if (this.renderer.constructor != $.jqplot.PieRenderer) {
+    function parseTrendLineOptions (target, data, seriesDefaults, options, plot) {
+        if (this.renderer.constructor == $.jqplot.LineRenderer) {
             this.trendline = new $.jqplot.Trendline();
             options = options || {};
             $.extend(true, this.trendline, {color:this.color}, seriesDefaults.trendline, options.trendline);
@@ -108,7 +121,6 @@
             var data = options.data || this.data;
             fit = fitData(data, this.trendline.type);
             var gridData = options.gridData || this.renderer.makeGridData.call(this, fit.data);
-        
             this.trendline.renderer.draw.call(this.trendline, sctx, gridData, {showLine:true, shadow:this.trendline.shadow});
         }
     }

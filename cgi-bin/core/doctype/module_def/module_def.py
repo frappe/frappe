@@ -43,7 +43,7 @@ class DocType:
 						r.save(1)
 
 	def on_update(self, from_update=0):
-		import webnotes.defs
+		from webnotes import defs
 		from webnotes.utils.transfer import in_transfer
 		
 		if (not in_transfer) and getattr(defs,'developer_mode', 0):

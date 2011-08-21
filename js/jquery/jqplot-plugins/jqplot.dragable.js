@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -67,10 +79,16 @@
     // insert it before the eventCanvas, so eventCanvas will still capture events.
     // add a new DragCanvas object to the plot plugins to handle drawing on this new canvas.
     $.jqplot.Dragable.postPlotDraw = function() {
+        // Memory Leaks patch    
+        if (this.plugins.dragable && this.plugins.dragable.highlightCanvas) {
+            this.plugins.dragable.highlightCanvas.resetCanvas();
+            this.plugins.dragable.highlightCanvas = null;
+        }
+
         this.plugins.dragable = {previousCursor:'auto', isOver:false};
         this.plugins.dragable.dragCanvas = new DragCanvas();
         
-        this.eventCanvas._elem.before(this.plugins.dragable.dragCanvas.createElement(this._gridPadding, 'jqplot-dragable-canvas', this._plotDimensions));
+        this.eventCanvas._elem.before(this.plugins.dragable.dragCanvas.createElement(this._gridPadding, 'jqplot-dragable-canvas', this._plotDimensions, this));
         var dctx = this.plugins.dragable.dragCanvas.setContext();
     };
     
@@ -168,6 +186,7 @@
                 initDragPoint(plot, neighbor);
                 drag.markerRenderer.draw(s.gridData[neighbor.pointIndex][0], s.gridData[neighbor.pointIndex][1], dc._ctx);
                 ev.target.style.cursor = "move";
+                plot.target.trigger('jqplotDragStart', [neighbor.seriesIndex, neighbor.pointIndex, gridpos, datapos]);
             }
         }
         // Just in case of a hickup, we'll clear the drag canvas and reset.
@@ -194,10 +213,12 @@
             var y = (drag.constrainTo == 'x') ? dp.data[1] : datapos[s.yaxis];
             // var x = datapos[s.xaxis];
             // var y = datapos[s.yaxis];
-            s.data[dp.pointIndex] = [x,y];
+            s.data[dp.pointIndex][0] = x;
+            s.data[dp.pointIndex][1] = y;
             plot.drawSeries({preventJqPlotSeriesDrawTrigger:true}, dp.seriesIndex);
             dc._neighbor = null;
             ev.target.style.cursor = dc._cursors.pop();
+            plot.target.trigger('jqplotDragStop', [gridpos, datapos]);
         }
     }
 })(jQuery);
