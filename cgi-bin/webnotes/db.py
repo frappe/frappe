@@ -15,9 +15,6 @@ class Database:
 		self.host = host or 'localhost'
 		self.user = user or getattr(defs, 'default_db_name', '')
 
-		# password can be empty string
-		self.password = password==None and getattr(defs, 'db_password', '') or password
-
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or defs.default_db_name
 		
@@ -28,6 +25,8 @@ class Database:
 		self.in_transaction = 0
 		self.transaction_writes = 0
 		self.testing_tables = []
+
+		self.password = self.get_db_password(ac_name, password)
 		
 		self.connect()
 		if self.user != 'root':
@@ -36,6 +35,27 @@ class Database:
 		if webnotes.logger:
 			webnotes.logger.debug('Database object initialized for:%s',self.user)
 
+	def get_db_password(self, db_name, password):
+		"""
+			Return db password. order of importance:
+			
+				1. password
+				2. defs.get_db_password()
+				3. defs.db_password
+		"""
+		# password can be empty string
+		if password:
+			return password
+		
+		if hasattr(defs, 'get_db_password'):
+			return defs.get_db_password(db_name)
+
+		if hasattr(defs, 'db_password'):
+			return defs.db_password
+
+		else: 
+			return ''
+			
 	def get_db_login(self, ac_name):
 		return getattr(defs,'db_name_map').get(ac_name, getattr(defs,'default_db_name'))
 

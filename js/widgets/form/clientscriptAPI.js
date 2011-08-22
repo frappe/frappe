@@ -24,8 +24,7 @@ get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, 
 	function(r, rt) {
 		if (r.message)  {
 			var d = locals[dt][dn];
-			var field_dict = eval('var a='+r.message+';a');
-
+			var field_dict = r.message;
 			for(var key in field_dict) {
 				d[key] = field_dict[key];
 				if (table_field) refresh_field(key, d.name, table_field);
