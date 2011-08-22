@@ -98,9 +98,17 @@ class Installer:
 
 		webnotes.conn.commit()
 
-	#
-	# main script to create a database from
-	#
+	def get_db_password(self, db_name):
+		"""
+			Get the db_password by method
+		"""
+		import webnotes.defs
+		if hasattr(webnotes.defs, 'get_db_password'):
+			return webnotes.defs.get_db_password(db_name)
+		if hasattr(webnotes.defs, 'db_password'):
+			return webnotes.defs.db_password
+		return ''
+
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.

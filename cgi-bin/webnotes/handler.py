@@ -410,17 +410,14 @@ else:
 	except: # python 2.4
 		import simplejson as json
 	
-	try:
-		str_out = json.dumps(webnotes.response)
-	except:
-		str_out = str(webnotes.response).replace(', None', ', ""')
+	str_out = json.dumps(webnotes.response)
 	
-	if acceptsGzip and len(str_out)>512:
+	if acceptsGzip and 1 and len(str_out)>512:
 		out_buf = compressBuf(str_out)
 		print "Content-Encoding: gzip"
 		print "Content-Length: %d" % (len(out_buf))
 		
-	print "Content-Type: text/html; Charset: ISO-8859-1"
+	print "Content-Type: text/html; charset: utf-8"
 	
 	# if there ar additional cookies defined during the request, add them here
 	if webnotes.cookies or webnotes.add_cookies: 
