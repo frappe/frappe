@@ -428,7 +428,7 @@ $c_get_values=function(args,doc,dt,dn,user_callback){var call_back=function(r,rt
 refresh_field(fl[i],dn,args.table_field);else
 refresh_field(fl[i]);}}
 $c('webnotes.widgets.form.get_fields',args,call_back);}
-get_server_fields=function(method,arg,table_field,doc,dt,dn,allow_edit,call_back){if(!allow_edit)freeze('Fetching Data...');$c('runserverobj',args={'method':method,'docs':compress_doclist([doc]),'arg':arg},function(r,rt){if(r.message){var d=locals[dt][dn];var field_dict=eval('var a='+r.message+';a');for(var key in field_dict){d[key]=field_dict[key];if(table_field)refresh_field(key,d.name,table_field);else refresh_field(key);}}
+get_server_fields=function(method,arg,table_field,doc,dt,dn,allow_edit,call_back){if(!allow_edit)freeze('Fetching Data...');$c('runserverobj',args={'method':method,'docs':compress_doclist([doc]),'arg':arg},function(r,rt){if(r.message){var d=locals[dt][dn];var field_dict=r.message;for(var key in field_dict){d[key]=field_dict[key];if(table_field)refresh_field(key,d.name,table_field);else refresh_field(key);}}
 if(call_back){doc=locals[doc.doctype][doc.name];call_back(doc,dt,dn);}
 if(!allow_edit)unfreeze();});}
 set_multiple=function(dt,dn,dict,table_field){var d=locals[dt][dn];for(var key in dict){d[key]=dict[key];if(table_field)refresh_field(key,d.name,table_field);else refresh_field(key);}}
@@ -474,7 +474,9 @@ for(var i=0;i<cl.length;i++){this.render_one_comment(cl[i]);}}else{this.msg.inne
 this.render_one_comment=function(det){$a(this.wrapper,'div','social sidebar-comment-text','',det.comment);$a(this.wrapper,'div','sidebar-comment-info','',comment_when(det.creation)+' by '+det.comment_by_fullname);}
 this.add_comment=function(){if(!this.input.value)return;this.btn.set_working();wn.widgets.form.comments.add(this.input,me.doctype,me.docname,function(){me.btn.done_working();me.make_body();});}
 this.refresh();}
-wn.widgets.form.sidebar.Attachments=function(parent,sidebar,doctype,docname){var me=this;this.frm=sidebar.form;this.make=function(){if(this.wrapper)this.wrapper.innerHTML='';else this.wrapper=$a(parent,'div','sidebar-comment-wrapper');this.attach_wrapper=$a(this.wrapper,'div');var n=this.frm.doc.file_list?this.frm.doc.file_list.split('\n').length:0;if(n<this.frm.meta.max_attachments||!this.frm.meta.max_attachments){this.btn=$btn($a(this.wrapper,'div','sidebar-comment-message'),'Add',function(){me.add_attachment()});}
+wn.widgets.form.sidebar.Attachments=function(parent,sidebar,doctype,docname){var me=this;this.frm=sidebar.form;this.make=function(){if(this.wrapper)this.wrapper.innerHTML='';else this.wrapper=$a(parent,'div','sidebar-comment-wrapper');this.attach_wrapper=$a(this.wrapper,'div');if(this.frm.doc.__islocal){this.attach_wrapper.innerHTML='Attachments can be uploaded after saving'
+return;}
+var n=this.frm.doc.file_list?this.frm.doc.file_list.split('\n').length:0;if(n<this.frm.meta.max_attachments||!this.frm.meta.max_attachments){this.btn=$btn($a(this.wrapper,'div','sidebar-comment-message'),'Add',function(){me.add_attachment()});}
 this.render();}
 this.render=function(){this.attach_wrapper.innerHTML=''
 var doc=locals[me.frm.doctype][me.frm.docname];var fl=doc.file_list?doc.file_list.split('\n'):[];for(var i=0;i<fl.length;i++){new wn.widgets.form.sidebar.Attachment(this.attach_wrapper,fl[i],me.frm)}}
@@ -486,12 +488,11 @@ this.make();}
 wn.widgets.form.sidebar.Attachment=function(parent,filedet,frm){filedet=filedet.split(',')
 this.filename=filedet[0];this.fileid=filedet[1];this.frm=frm;var me=this;this.wrapper=$a(parent,'div','sidebar-comment-message');this.remove_fileid=function(){var doc=locals[me.frm.doctype][me.frm.docname];var fl=doc.file_list.split('\n');new_fl=[];for(var i=0;i<fl.length;i++){if(fl[i].split(',')[1]!=me.fileid)new_fl.push(fl[i]);}
 doc.file_list=new_fl.join('\n');}
-this.ln=$a(this.wrapper,'a','link_type',{fontSize:'11px'},this.filename);this.ln.href=outUrl+'?cmd=get_file&fname='+this.fileid;this.ln.target='_blank';this.del=$a(this.wrapper,'span','link_type',{marginLeft:'3px'},'[x]');this.del.onclick=function(){var yn=confirm("The document will be saved after the attachment is deleted for the changes to be permanent. Proceed?")
-if(yn){var callback=function(r,rt){$dh(me.wrapper);me.remove_fileid();var ret=me.frm.save('Save');if(ret=='Error')
-msgprint("error:The document was not saved. To make the removal permanent, you must save the document before closing.");}
-$c('webnotes.widgets.form.remove_attach',args={'fid':me.fileid},callback);}}}
-wn.widgets.form.file_upload_done=function(doctype,docname,fileid,filename,at_id){var at_id=cint(at_id);var doc=locals[doctype][docname];if(doc.file_list){var fl=doc.file_list.split('\n')
+this.ln=$a(this.wrapper,'a','link_type',{fontSize:'11px'},this.filename);this.ln.href=outUrl+'?cmd=get_file&fname='+this.fileid;this.ln.target='_blank';this.del=$a(this.wrapper,'span','link_type',{marginLeft:'3px'},'[x]');this.del.onclick=function(){var yn=confirm("Are you sure you want to delete the attachment?")
+if(yn){var callback=function(r,rt){locals[me.frm.doctype][me.frm.docname].modified=r.message;$dh(me.wrapper);me.remove_fileid();frm.refresh();}
+$c('webnotes.widgets.form.remove_attach',args={'fid':me.fileid,dt:me.frm.doctype,dn:me.frm.docname},callback);}}}
+wn.widgets.form.file_upload_done=function(doctype,docname,fileid,filename,at_id,new_timestamp){var at_id=cint(at_id);var doc=locals[doctype][docname];if(doc.file_list){var fl=doc.file_list.split('\n')
 fl.push(filename+','+fileid)
 doc.file_list=fl.join('\n');}
 else
-doc.file_list=filename+','+fileid;var frm=frms[doctype];frm.attachments.dialog.hide();frm.attachments.render();var do_save=confirm('File Uploaded Sucessfully. You must save this document for the uploaded file to be registred. Save this document now?');if(do_save){var ret=frm.save('Save');if(ret=='Error')msgprint("error:The document was not saved. To make the attachment permanent, you must save the document before closing.");}else{msgprint("error:The document was not saved. To make the attachment permanent, you must save the document before closing.");}}
+doc.file_list=filename+','+fileid;doc.modified=new_timestamp;var frm=frms[doctype];frm.attachments.dialog.hide();msgprint('File Uploaded Sucessfully.');frm.refresh();}

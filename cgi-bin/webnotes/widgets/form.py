@@ -197,6 +197,7 @@ def runserverobj():
 		doclist = DocList()
 		doclist.from_compressed(form.getvalue('docs'), dn)
 		so = doclist.make_obj()
+		doclist.check_if_latest()
 		
 	check_guest_access(so.doc)
 	
@@ -213,19 +214,18 @@ def runserverobj():
 
 def make_csv_output(res, dt):
 	import webnotes
-	from webnotes.utils import getCSVelement
-
-	txt = []
-	if type(res)==list:
-		for r in res:
-			txt.append(','.join([getCSVelement(i) for i in r]))
-		
-		txt = '\n'.join(txt)
 	
-	else:
-		txt = 'Output was not in list format\n' + r
-					
-	webnotes.response['result'] = txt
+	from cStringIO import StringIO
+	import csv
+	
+	f = StringIO()
+	writer = csv.writer(f)
+	for r in res:
+		writer.writerow(r)
+	
+	f.seek(0)
+						
+	webnotes.response['result'] = f.read()
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = dt.replace(' ','')						
 
@@ -288,6 +288,9 @@ def remove_attach():
 	
 	fid = webnotes.form.getvalue('fid')
 	webnotes.utils.file_manager.delete_file(fid, verbose=1)
+	
+	# remove from dt dn
+	return str(webnotes.utils.file_manager.remove_file_list(webnotes.form.getvalue('dt'), webnotes.form.getvalue('dn'), fid))
 
 # Get Fields - Counterpart to $c_get_fields
 #===========================================================================================

@@ -287,16 +287,13 @@ def cstr(s):
 	"""	
 	Convert to string
 	"""
-	if s==None: 
+	if type(s) in (str, unicode):
+		return s
+	elif s==None: 
 		return ''
 	else:
-		if hasattr(s, 'encode'):
-			try:
-				s = s.encode('utf-8', 'ignore')
-			except:
-				pass
 		return str(s)
-
+		
 def str_esc_quote(s):
 	"""
 	Escape quotes
