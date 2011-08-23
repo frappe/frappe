@@ -22,16 +22,16 @@ def getsearchfields():
 	webnotes.response['searchfields'] = [['name', 'ID', 'Data', '']] + res
 
 def make_query(fields, dt, key, txt, start, length):
-	return  """SELECT %(fields)s 
-		FROM `tab%(dt)s` 
+	return  """SELECT %(fields)s
+		FROM `tab%(dt)s`
 		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' AND `tab%(dt)s`.docstatus != 2
-		ORDER BY `tab%(dt)s`.`%(key)s` 
+		ORDER BY `tab%(dt)s`.`%(key)s`
 		DESC LIMIT %(start)s, %(len)s """ % {
 			'fields': fields,
 			'dt': dt,
 			'key': key,
 			'txt': txt + '%',
-			'start': start, 
+			'start': start,
 			'len': length
 		}
 
@@ -48,7 +48,7 @@ def get_std_fields_list(dt, key):
 
 def build_for_autosuggest(res):
 	from webnotes.utils import cstr
-	
+
 	results = []
 	for r in res:
 		info = ''
@@ -56,10 +56,10 @@ def build_for_autosuggest(res):
 			info = ','.join([cstr(t) for t in r[1:]])
 			if len(info) > 30:
 				info = info[:30] + '...'
-				
+
 		results.append({'id':r[0], 'value':r[0], 'info':info})
 	return results
-	
+
 def scrub_custom_query(query, key, txt):
 	if '%(key)s' in query:
 		query = query.replace('%(key)s', key)
@@ -74,7 +74,7 @@ def search_link():
 	txt = webnotes.form.getvalue('txt')
 	dt = webnotes.form.getvalue('dt')
 	query = webnotes.form.getvalue('query')
-	
+
 	if query:
 		res = webnotes.conn.sql(scrub_custom_query(query, 'name', txt))
 	else:
@@ -97,5 +97,5 @@ def search_widget():
 		query = scrub_custom_query(user_query, key, txt)
 	else:
 		query = make_query(', '.join(get_std_fields_list(dt, key)), dt, key, txt, webnotes.form.getvalue('start') or 0, webnotes.form.getvalue('page_len') or 50)
-	
+
 	webnotes.widgets.query_builder.runquery(query)
