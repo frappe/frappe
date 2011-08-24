@@ -39,8 +39,11 @@ class IncomingMail:
 		"""
 			get utf-8 encoded part content
 		"""
-		return unicode(part.get_payload(decode=True),str(charset),"ignore").encode('utf8','replace')
-		
+		try:
+			return unicode(part.get_payload(decode=True),str(charset),"ignore").encode('utf8','replace')
+		except LookupError, e:
+			return part.get_payload()		
+
 	def get_attachment(self, part, charset):
 		"""
 			Extracts an attachment
