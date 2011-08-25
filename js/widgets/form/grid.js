@@ -66,7 +66,6 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	if((width+'').slice(-2)!='px') {
 		width= width + 'px';
 	}
-	msgprint(width);
 	var col = this.head_row.insertCell(idx);
 	
 	col.doctype = doctype; // for report (fields may be from diff doctypes)
