@@ -186,9 +186,11 @@ def commonify_doclist(doclist, with_comments=1):
 			c[k] = doclist[0][k]
 		return c
 
-	def strip_common(d):
+	def strip_common_and_idx(d):
 		for k in common_keys:
 			if k in d: del d[k]
+			
+		if 'idx' in d: del d['idx']
 		return d
 
 	def make_common_dicts(doclist):
@@ -211,7 +213,7 @@ def commonify_doclist(doclist, with_comments=1):
 	# make docs
 	final = []
 	for d in doclist:
-		f = strip_common(get_diff_dict(common_dict[d['doctype']], d))
+		f = strip_common_and_idx(get_diff_dict(common_dict[d['doctype']], d))
 		f['doctype'] = d['doctype'] # keep doctype!
 
 		# strip name for child records (only an auto generated number!)
@@ -228,7 +230,7 @@ def commonify_doclist(doclist, with_comments=1):
 		d['name']='__common__'
 		if with_comments:
 			d['##comment'] = 'These values are common for all ' + d['doctype']
-		commons.append(strip_common(d))
+		commons.append(strip_common_and_idx(d))
 
 	common_values = make_common(doclist)
 	return [common_values]+commons+final
@@ -237,18 +239,32 @@ def uncommonify_doclist(dl):
 	"""
 		Expands an commonified doclist
 	"""
+	# first one has common values
 	common_values = dl[0]
 	common_dict = {}
 	final = []
+	idx_dict = {}
 
 	for d in dl[1:]:
 		if 'name' in d and d['name']=='__common__':
+			# common for a doctype - 
 			del d['name']
 			common_dict[d['doctype']] = d
 		else:
+			dt = d['doctype']
+			if not dt in idx_dict: idx_dict[dt] = 0;
 			d1 = common_values.copy()
-			d1.update(common_dict[d['doctype']])
+
+			# update from common and global
+			d1.update(common_dict[dt])
 			d1.update(d)
+
+			# idx by sequence
+			d1['idx'] = idx_dict[dt]
+			
+			# increment idx
+			idx_dict[dt] += 1
+
 			final.append(d1)
 
 	return final

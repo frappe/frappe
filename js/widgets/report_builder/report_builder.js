@@ -507,7 +507,13 @@ _r.ReportBuilder.prototype.set_sort_options = function(l) {
 	
 	empty_select(this.dt.sort_sel);
 		
-	if(l) sl = add_lists(l, this.orig_sort_list)
+	if(l) sl = add_lists(l, this.orig_sort_list);
+	
+	// no sorts, add one
+	if(!l.length) {
+		l.push(['ID', 'name'])
+	}
+	
 	for(var i=0; i<sl.length; i++) {
 		this.dt.add_sort_option(sl[i][0], sl[i][1]);
 	}
