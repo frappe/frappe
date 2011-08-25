@@ -71,12 +71,6 @@ _f.FormGrid.prototype.make_columns = function() {
 			this.insert_column(this.field.df.options, gl[i].fieldname, gl[i].fieldtype, gl[i].label, gl[i].width, gl[i].options, this.field.perm, gl[i].reqd);
 		}
 	}
-	
-	// set width as percent
-	for(var i=0;i<this.head_row.cells.length; i++) {
-		var c = this.head_row.cells[i];
-		$w(c,cint(cint(c.style.width) / this.total_width * 100)+'%')
-	}
 }
 
 _f.FormGrid.prototype.set_column_label = function(fieldname, label) {
