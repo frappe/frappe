@@ -121,7 +121,8 @@ if(this.docname){if(!this.check_doc_perm())return;if(!this.setup_done)this.setup
 if(this.doc.__islocal)
 this.is_editable[this.docname]=1;this.editable=this.is_editable[this.docname];if(!this.doc.__archived&&(this.editable||(!this.editable&&this.meta.istable))){if(this.print_wrapper){$dh(this.print_wrapper);$ds(this.page_layout.wrapper);}
 if(!this.meta.istable){this.refresh_header();this.sidebar&&this.sidebar.refresh();}
-this.runclientscript('refresh');this.refresh_tabs();this.refresh_fields();this.refresh_dependency();this.refresh_footer();if(this.layout)this.layout.show();if(is_onload)
+this.runclientscript('refresh');$(document).trigger('form_refresh')
+this.refresh_tabs();this.refresh_fields();this.refresh_dependency();this.refresh_footer();if(this.layout)this.layout.show();if(is_onload)
 this.runclientscript('onload_post_render',this.doctype,this.docname);}else{this.refresh_header();if(this.print_wrapper){this.refresh_print_layout();}
 this.runclientscript('edit_status_changed');}
 if(!this.display)this.show_the_frm();if(!this.meta.in_dialog)page_body.change_to('Forms');}}
