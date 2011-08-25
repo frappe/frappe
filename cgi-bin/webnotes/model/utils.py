@@ -74,13 +74,13 @@ def getlist(doclist, field):
        if d.type=='Phone':
          pl.append(d)
 	"""
-
+	from webnotes.utils import cint
 	l = []
 	for d in doclist:
 		if d.parent and (not d.parent.lower().startswith('old_parent:')) and d.parentfield == field:
 			l.append(d)
 
-	l.sort(lambda a, b: a.idx - b.idx)
+	l.sort(lambda a, b: cint(a.idx) - cint(b.idx))
 
 	return l
 
