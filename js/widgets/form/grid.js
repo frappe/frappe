@@ -5,6 +5,7 @@ _f.Grid = function(parent) { }
 
 _f.Grid.prototype.init = function(parent, row_height) {
 	
+	this.col_idx_by_name = {}
 	this.alt_row_bg = '#F2F2FF';
 	this.row_height = row_height;
 
@@ -14,11 +15,10 @@ _f.Grid.prototype.init = function(parent, row_height) {
 		
 	// Sr No
 	this.insert_column('', '', 'Int', 'Sr', '50px', '', [1,0,0]);
-	this.total_width = 50;
 	
 	if(this.oninit)this.oninit();
 	
-	keypress_observers.push(this)
+	keypress_observers.push(this);
 }
 
 _f.Grid.prototype.make_ui = function(parent) { 
@@ -62,8 +62,10 @@ _f.Grid.prototype.hide = function() {
 _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label, width, options, perm, reqd) {
 	
 	var idx = this.head_row.cells.length;
-	if(!width)width = '100px';
-	
+	if(!width)width = '140px';
+	if((width+'').slice(-2)!='px') {
+		width= width + 'px';
+	}
 	var col = this.head_row.insertCell(idx);
 	
 	col.doctype = doctype; // for report (fields may be from diff doctypes)
@@ -74,43 +76,42 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	if(reqd)
 		col.childNodes[0].style.color = "#D22";
 	
-	this.total_width += cint(width);
-	$w(col, width);
-	
-	col.orig_width = col.style.width;
+	col.style.width = width;
 	col.options = options;
 	col.perm = perm;
 
+	this.col_idx_by_name[fieldname] = idx;
 }
 
-_f.Grid.prototype.set_column_disp = function(label, show) { 
-	//alert(label);
-	for(var i=0; i<this.head_row.cells.length; i++) {
-		var c = this.head_row.cells[i];
-		if(label && (c.label == label || c.cur_label == label)) {
-			//alert(c.orig_width);
-			if(show) {
-				var w = c.orig_width;
-				this.head_tab.style.width = (this.total_width + cint(w)) + 'px';
-				this.tab.style.width = (this.total_width + cint(w)) + 'px';
-			} else {
-				var w = '0px';
-				this.head_tab.style.width = (this.total_width - cint(c.orig_width)) + 'px';
-				this.tab.style.width = (this.total_width - cint(c.orig_width)) + 'px';
-			}
-			$w(c, w);
-			// change width of table too
-			if(this.tab) {
-				for(var j=0; j<this.tab.rows.length; j++) {
-					var cell = this.tab.rows[j].cells[i];
-					$w(cell, w);
-					if(show) { $ds(cell.div); cell.div.style.padding = '2px'; }
-					else { $dh(cell.div); cell.div.style.padding = '0px'; }
-				}
-			}
-			break;
-		}
+_f.Grid.prototype.reset_table_width = function() { 
+	var w = 0;
+	for(var i=0, len=this.head_row.cells.length; i<len; i++) {
+		w += cint(this.head_row.cells[i].style.width);
 	}
+	this.head_tab.style.width = w + 'px';
+	this.tab.style.width = w + 'px';
+}
+
+_f.Grid.prototype.set_column_disp = function(fieldname, show) { 
+	var cidx = this.col_idx_by_name[fieldname];
+	if(!cidx) {
+		msgprint('Trying to hide unknown column: ' + fieldname);
+		return;
+	}
+	
+	var disp = show ? 'table-cell' : 'none';
+
+	// head
+	this.head_row.cells[cidx].style.display = disp;
+
+	// body
+	for(var i=0, len=this.tab.rows.length; i<len; i++) {
+		var cell = this.tab.rows[i].cells[cidx];
+		cell.style.display = disp;
+	}
+	
+	// reset table width
+	this.reset_table_width();
 }
 
 _f.Grid.prototype.append_row = function(idx, docname) { 
@@ -125,7 +126,7 @@ _f.Grid.prototype.append_row = function(idx, docname) {
 	for(var i=0; i<this.head_row.cells.length; i++){
 		var cell = row.insertCell(i);
 		var hc = this.head_row.cells[i];
-		$w(cell, hc.style.width);
+		cell.style.width = hc.style.width;
 		cell.row = row;
 		cell.grid = this;
 		cell.className = 'grid_cell';
@@ -394,8 +395,7 @@ _f.Grid.prototype.set_data = function(data) {
 	this.cell_deselect();
 
 	// set table widths
-	this.tab.style.width = this.total_width + 'px';
-	this.head_tab.style.width = this.total_width + 'px';
+	this.reset_table_width();
 
 	// append if reqd
 	if(data.length > this.tab.rows.length)

@@ -622,6 +622,11 @@ _f.Frm.prototype.refresh = function(docname) {
 			// call trigger
 	 		this.runclientscript('refresh');
 			
+			// trigger global trigger
+			// to use this
+			// $(docuemnt).bind('form_refresh', function() { })
+			$(document).trigger('form_refresh')
+			
 			// tabs
 			this.refresh_tabs();
 			
