@@ -28,14 +28,6 @@ class DocType:
 	def autoname(self):
 		self.doc.name = make_autoname(self.doc.from_doctype + '-' + self.doc.to_doctype)
 
-	# Map Custom Fields
-	# ------------------
-	def map_custom_fields(self, from_doctype, to_doctype, from_doc, to_doc):
-		fld_list = []
-		for d in sql("select fieldname from `tabCustom Field` where dt = %s and docstatus != 2",from_doctype):
-			if sql("select fieldname from `tabCustom Field` where dt = %s and fieldname = %s and docstatus != 2",(to_doctype, d[0])):
-				fld_list.append([d[0], d[0], 'Yes'])
-		self.set_value(fld_list, from_doc, to_doc)
 		
 	def map_fields_with_same_name(self, from_doctype, to_doctype, from_doc, to_doc, fld_list):
 		"""
@@ -115,8 +107,7 @@ class DocType:
 						self.map_fields_with_same_name(from_doctype, to_doctype, from_doc, to_doc, fld_list)				
 						# Maps field in parent
 						self.set_value(fld_list, from_doc, to_doc)
-						# Map custom fields
-						self.map_custom_fields(from_doctype, to_doctype, from_doc, to_doc)	
+
 
 					# Parent to child OR child to child mapping
 					else:
@@ -135,8 +126,7 @@ class DocType:
 							self.map_fields_with_same_name(from_table_name, t[1], d, ch, fld_list)
 							# Map values
 							self.set_value(fld_list, d, ch)
-							# Map custom fields
-							self.map_custom_fields(from_table_name, t[1], d, ch)
+
 
 
 		# Required when called from server side for refreshing table
