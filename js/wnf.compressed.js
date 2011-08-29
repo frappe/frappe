@@ -293,7 +293,11 @@ $c('resume_session',{pwd:resume_dialog.widgets['password'].value},callback)}
 d.onhide=function(){if(!resume_dialog.allow_close)logout();}
 resume_dialog=d;}
 resume_dialog.wrong_count=0;resume_dialog.show();}
-var msg_dialog;function msgprint(msg,issmall,callback){if(!msg)return;if(typeof(msg)!='string')
+(function($){$.require=function(jsFiles,params){var params=params||{};var bType=params.browserType===false?false:true;if(!bType){return $;}
+var cBack=params.callBack||function(){};var eCache=params.cache===false?false:true;if(!$.require.loadedLib)$.require.loadedLib={};if(!$.scriptPath){var path=$('script').attr('src');$.scriptPath=path.replace(/\w+\.js$/,'');}
+if(typeof jsFiles==="string"){jsFiles=new Array(jsFiles);}
+for(var n=0;n<jsFiles.length;n++){if(!$.require.loadedLib[jsFiles[n]]){$.ajax({type:"GET",url:$.scriptPath+jsFiles[n],success:cBack,dataType:"script",cache:eCache,async:false});$.require.loadedLib[jsFiles[n]]=true;}}
+return $;};})(jQuery);var msg_dialog;function msgprint(msg,issmall,callback){if(!msg)return;if(typeof(msg)!='string')
 msg=JSON.stringify(msg);if(issmall){show_alert(msg);return;}
 if(msg.substr(0,8)=='__small:'){show_alert(msg.substr(8));return;}
 if(!msg_dialog){msg_dialog=new Dialog(500,200,"Message");msg_dialog.make_body([['HTML','Msg']])
@@ -1030,11 +1034,11 @@ $ds(d.rows['Search By']);if(search_fields[d.sel_type]){empty_select(field_sel);a
 d.onhide=function(){if(page_body.wntoolbar)
 page_body.wntoolbar.search_sel.disabled=0;if(d.input&&d.input.txt)
 d.input.txt.onchange()}
-btn.onclick=function(){if(this.disabled)return;this.set_working();d.set_doctype=d.sel_type;var q='';if(d.input&&d.input.get_query){var doc={};if(cur_frm)doc=locals[cur_frm.doctype][cur_frm.docname];var q=d.input.get_query(doc,d.input.doctype,d.input.docname);if(!q){return'';}}
+btn.onclick=function(){if(this.disabled)return;this.set_working();d.set_doctype=d.sel_type;var q='';args={};if(d.input&&d.input.get_query){var doc={};args.is_simple=1;if(cur_frm)doc=locals[cur_frm.doctype][cur_frm.docname];var q=d.input.get_query(doc,d.input.doctype,d.input.docname);if(!q){return'';}}
 var get_sf_fieldname=function(v){var lf=search_fields[d.sel_type];if(!lf)
 return'name'
 for(var i=0;i<lf.length;i++)if(lf[i][1]==v)return lf[i][0];}
-$c('webnotes.widgets.search.search_widget',args={'txt':strip(inp.value),'doctype':d.sel_type,'query':q,'searchfield':get_sf_fieldname(sel_val(field_sel))},function(r,rtxt){btn.done_working();if(r.coltypes)r.coltypes[0]='Link';d.values_len=r.values.length;d.set_result(r);},function(){btn.done_working();});}
+$.extend(args,{'txt':strip(inp.value),'doctype':d.sel_type,'query':q,'searchfield':get_sf_fieldname(sel_val(field_sel))});$c('webnotes.widgets.search.search_widget',args,function(r,rtxt){btn.done_working();if(r.coltypes)r.coltypes[0]='Link';d.values_len=r.values.length;d.set_result(r);},function(){btn.done_working();});}
 d.set_result=function(r){d.rows['Result'].innerHTML='';var c=$a(d.rows['Result'],'div','comment',{paddingBottom:'4px',marginBottom:'4px',borderBottom:'1px solid #CCC',marginLeft:'4px'});if(r.values.length==50)
 c.innerHTML='Showing max 50 results. Use filters to narrow down your search';else
 c.innerHTML='Showing '+r.values.length+' resuts.';var w=$a(d.rows['Result'],'div','',{height:'240px',overflow:'auto',margin:'4px'});for(var i=0;i<r.values.length;i++){var div=$a(w,'div','',{marginBottom:'4px',paddingBottom:'4px',borderBottom:'1px dashed #CCC'});var l=$a($a(div,'div'),'span','link_type');l.innerHTML=r.values[i][0];l.link_name=r.values[i][0];l.dt=r.coloptions[0];if(d.input)
@@ -1126,7 +1130,7 @@ pages['_home']=this;return this;}
 function render_page(page_name,menuitem){if(!page_name)return;if((!locals['Page'])||(!locals['Page'][page_name])){loadpage('_home');return;}
 var pdoc=locals['Page'][page_name];if(pdoc.style)set_style(pdoc.style)
 if(pdoc.stylesheet){set_style(locals.Stylesheet[pdoc.stylesheet].stylesheet);stylesheets.push(pdoc.stylesheet);}
-var p=new Page(page_name,pdoc._Page__content?pdoc._Page__content:pdoc.content);var script=pdoc.__script?pdoc.__script:pdoc.script;p.doc=pdoc;if(script){try{eval(script);}catch(e){submit_error(e);}}
+var p=new Page(page_name,pdoc._Page__content?pdoc._Page__content:pdoc.content);var script=pdoc.__script?pdoc.__script:pdoc.script;p.doc=pdoc;if(script){eval(script);}
 page_body.change_to(page_name);try{if(pscript['onload_'+page_name])pscript['onload_'+page_name]();}catch(e){submit_error(e);}
 return p;}
 function refresh_page(page_name){var fn=function(r,rt){render_page(page_name)}

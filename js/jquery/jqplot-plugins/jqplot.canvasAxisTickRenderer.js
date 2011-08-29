@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -72,12 +84,16 @@
         // prop: formatString
         // string passed to the formatter.
         this.formatString = '';
+        // prop: prefix
+        // String to prepend to the tick label.
+        // Prefix is prepended to the formatted tick label.
+        this.prefix = '';
         // prop: fontFamily
         // css spec for the font-family css attribute.
         this.fontFamily = '"Trebuchet MS", Arial, Helvetica, sans-serif';
         // prop: fontSize
         // CSS spec for font size.
-        this.fontSize = '11px';
+        this.fontSize = '10pt';
         // prop: fontWeight
         // CSS spec for fontWeight
         this.fontWeight = 'normal';
@@ -92,7 +108,7 @@
         // true to turn on native canvas font support in Mozilla 3.5+ and Safari 4+.
         // If true, tick label will be drawn with canvas tag native support for fonts.
         // If false, tick label will be drawn with Hershey font metrics.
-        this.enableFontSupport = false;
+        this.enableFontSupport = true;
         // prop: pt2px
         // Point to pixel scaling factor, used for computing height of bounding box
         // around a label.  The labels text renderer has a default setting of 1.4, which 
@@ -116,27 +132,14 @@
         }
         
         if (this.enableFontSupport) {
-            if ($.browser.safari) {
-                var p = $.browser.version.split('.');
-                for (var i=0; i<p.length; i++) { p[i] = Number(p[i]); }
-                if (p[0] > 528 || (p[0] == 528 && p[1] >= 16)) {
-                    this._textRenderer = new $.jqplot.CanvasFontRenderer(ropts); 
-                }
-            }
-            else if ($.browser.mozilla) {
-                var p = $.browser.version.split(".");
-                if (p[0] > 1 || (p[0] == 1 &&  p[1] >= 9 && p[2] > 0) ) {
-                    this._textRenderer = new $.jqplot.CanvasFontRenderer(ropts);
-                }
-                else {
-                    this._textRenderer = new $.jqplot.CanvasTextRenderer(ropts);
-                }
+            
+            function support_canvas_text() {
+                return !!(document.createElement('canvas').getContext && typeof document.createElement('canvas').getContext('2d').fillText == 'function');
             }
             
-            // TODO: test and enable this
-            // else if ($.browser.msie) {
-            //     this._textRenderer = new $.jqplot.CanvasFontRenderer(ropts); 
-            // }
+            if (support_canvas_text()) {
+                this._textRenderer = new $.jqplot.CanvasFontRenderer(ropts);
+            }
             
             else {
                 this._textRenderer = new $.jqplot.CanvasTextRenderer(ropts); 
@@ -196,37 +199,49 @@
         return this;
     };
     
-    $.jqplot.CanvasAxisTickRenderer.prototype.draw = function(ctx) {
+    $.jqplot.CanvasAxisTickRenderer.prototype.draw = function(ctx, plot) {
         if (!this.label) {
-            this.label = this.formatter(this.formatString, this.value);
+            this.label = this.prefix + this.formatter(this.formatString, this.value);
         }
+        
+        // Memory Leaks patch
+        if (this._elem) {
+            if ($.jqplot.use_excanvas) {
+                window.G_vmlCanvasManager.uninitElement(this._elem.get(0));
+            }
+            
+            this._elem.emptyForce();
+            this._elem = null;
+        }
+
         // create a canvas here, but can't draw on it untill it is appended
         // to dom for IE compatability.
-        var domelem = document.createElement('canvas');
+
+        var elem = plot.canvasManager.getCanvas();
+
         this._textRenderer.setText(this.label, ctx);
         var w = this.getWidth(ctx);
         var h = this.getHeight(ctx);
-        domelem.width = w;
-        domelem.height = h;
-        domelem.style.width = w;
-        domelem.style.height = h;
-        domelem.style.textAlign = 'left';
-        domelem.style.position = 'absolute';
-        this._domelem = domelem;
-        this._elem = $(domelem);
+        // canvases seem to need to have width and heigh attributes directly set.
+        elem.width = w;
+        elem.height = h;
+        elem.style.width = w;
+        elem.style.height = h;
+        elem.style.textAlign = 'left';
+        elem.style.position = 'absolute';
+		
+		elem = plot.canvasManager.initCanvas(elem);
+		
+        this._elem = $(elem);
         this._elem.css(this._styles);
         this._elem.addClass('jqplot-'+this.axis+'-tick');
-        
+		
+        elem = null;
         return this._elem;
     };
     
     $.jqplot.CanvasAxisTickRenderer.prototype.pack = function() {
-        if ($.browser.msie) {
-            window.G_vmlCanvasManager.init_(document);
-            this._domelem = window.G_vmlCanvasManager.initElement(this._domelem);
-        }
-        var ctx = this._elem.get(0).getContext("2d");
-        this._textRenderer.draw(ctx, this.label);
+        this._textRenderer.draw(this._elem.get(0).getContext("2d"), this.label);
     };
     
 })(jQuery);

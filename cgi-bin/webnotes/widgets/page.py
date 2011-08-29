@@ -19,7 +19,7 @@ class Page:
 			Loads page info from files in module
 		"""
 		# load js
-		doc.fields['__script'] = module.get_doc_file('page',doc.name,'.js').read()
+		doc.fields['__script'] = module.get_doc_file('page',doc.name,'.js').read() or doc.script
 		doc.script = None
 
 		# load css

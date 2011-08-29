@@ -104,7 +104,7 @@ class HTTPRequest:
 			else:
 				db_name = getattr(webnotes.defs,'default_db_name','')
 	
-		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password', None))
+		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password', ''))
 		webnotes.ac_name = ac_name
 
 # =================================================================================
@@ -127,8 +127,9 @@ class LoginManager:
 	# ---------------------------
 	
 	def post_login(self):
-		self.validate_ip_address()
 		self.run_trigger()
+		self.validate_ip_address()
+		self.validate_hour()
 	
 	# check password
 	# --------------
@@ -186,16 +187,38 @@ class LoginManager:
 	# -------------
 	
 	def validate_ip_address(self):
-		try:
-			ip = webnotes.conn.sql("select ip_address from tabProfile where name = '%s'" % self.user)[0][0] or ''
-		except: return
+		ip_list = webnotes.conn.get_value('Profile', self.user, 'restrict_ip', ignore=True)
+		
+		if not ip_list: 
+			return
+
+		ip_list = ip_list.replace(",", "\n").split('\n')
+		ip_list = [i.strip() for i in ip_list]
+
+		for ip in ip_list:
+			if webnotes.remote_ip.startswith(ip):
+				return
 			
-		ip = ip.replace(",", "\n").split('\n')
-		ip = [i.strip() for i in ip]
+		webnotes.msgprint('Not allowed from this IP Address', raise_exception=1)
+
+	def validate_hour(self):
+		"""
+			check if user is logging in during restricted hours
+		"""
+		login_before = int(webnotes.conn.get_value('Profile', self.user, 'login_before', ignore=True) or 0)
+		login_after = int(webnotes.conn.get_value('Profile', self.user, 'login_after', ignore=True) or 0)
+		
+		if not (login_before or login_after):
+			return
 			
-		if ret and ip:
-			if not (webnotes.remote_ip.startswith(ip[0]) or (webnotes.remote_ip in ip)):
-				raise Exception, 'Not allowed from this IP Address'	
+		from webnotes.utils import now_datetime
+		current_hour = int(now_datetime().strftime('%H'))
+				
+		if login_before and current_hour > login_before:
+			webnotes.msgprint('Not allowed to login after restricted hour', raise_exception=1)
+
+		if login_after and current_hour < login_after:
+			webnotes.msgprint('Not allowed to login before restricted hour', raise_exception=1)
 
 	# login as guest
 	# --------------
