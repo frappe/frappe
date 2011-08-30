@@ -126,7 +126,11 @@ _f.Grid.prototype.append_row = function(idx, docname) {
 	for(var i=0; i<this.head_row.cells.length; i++){
 		var cell = row.insertCell(i);
 		var hc = this.head_row.cells[i];
+		
+		// ape style of head
 		cell.style.width = hc.style.width;
+		cell.style.display = hc.style.display;
+		
 		cell.row = row;
 		cell.grid = this;
 		cell.className = 'grid_cell';
