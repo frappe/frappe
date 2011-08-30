@@ -35,6 +35,8 @@ class DocType:
 		"""
 		exception_flds = [f[0] for f in fld_list if f[2] == 'No']
 		exception_flds += default_fields
+		exception_flds += ['amended_from', 'amendment_date', 'file_list', 'naming_series', 'status']
+		
 		map_fld_list = [
 			[d[0], d[0], 'Yes'] for d in sql("""
 				select t1.fieldname 
@@ -43,7 +45,6 @@ class DocType:
 				and t1.fieldname = t2.fieldname 
 				and t1.docstatus != 2 and t2.docstatus != 2 
 				and ifnull(t1.fieldname, '') != ''
-				and t1.fieldname != 'naming_series'
 			""",(from_doctype, to_doctype)) if d[0] not in exception_flds
 		]
 
