@@ -2,7 +2,7 @@
 import webnotes
 
 from webnotes.utils import add_days, add_months, add_years, cint, cstr, date_diff, default_fields, flt, fmt_money, formatdate, generate_hash, getTraceback, get_defaults, get_first_day, get_last_day, getdate, has_common, month_name, now, nowdate, replace_newlines, sendmail, set_default, str_esc_quote, user_format, validate_email_add
-from webnotes.model import db_exists
+from webnotes.model import db_exists, default_fields
 from webnotes.model.doc import Document, addchild, removechild, getchildren, make_autoname, SuperDocType
 from webnotes.model.doclist import getlist, copy_doclist
 from webnotes.model.code import get_obj, get_server_obj, run_server_obj, updatedb, check_syntax
@@ -34,7 +34,9 @@ class DocType:
 			Returns field list with same name in from and to doctype
 		"""
 		exception_flds = [f[0] for f in fld_list if f[2] == 'No']
-			
+		exception_flds += default_fields
+		exception_flds += ['amended_from', 'amendment_date', 'file_list', 'naming_series', 'status']
+		
 		map_fld_list = [
 			[d[0], d[0], 'Yes'] for d in sql("""
 				select t1.fieldname 
@@ -43,10 +45,9 @@ class DocType:
 				and t1.fieldname = t2.fieldname 
 				and t1.docstatus != 2 and t2.docstatus != 2 
 				and ifnull(t1.fieldname, '') != ''
-				and t1.fieldname != 'naming_series'
 			""",(from_doctype, to_doctype)) if d[0] not in exception_flds
 		]
-		
+
 		self.set_value(map_fld_list, from_doc, to_doc)
 	
 	
@@ -85,47 +86,50 @@ class DocType:
 
 			if from_to in eval(from_to_list):
 				fld_list = sql("select from_field, to_field, map from `tabField Mapper Detail` where parent = '%s' and match_id = %s" % (from_doctype + "-" + to_doctype, match_id))
-				if fld_list:
-					if not from_docname:
-						msgprint(from_doctype + " not selected for mapping")
+				if not from_docname:
+					msgprint(from_doctype + " not selected for mapping")
+					raise Exception
+					
+				# Parent to parent mapping			 
+				if from_table_name == self.doc.from_doctype and to_table_name == self.doc.to_doctype:
+					
+					# Check validation
+					nm = sql("select name from `tab%s` where name = '%s' and %s" % (from_doctype, from_docname, validation_logic))
+					nm = nm and nm[0][0] or ''
+					
+					# If validation failed raise exception
+					if not nm:
+						msgprint("Validation failed in doctype mapper. Please contact Administrator.")
 						raise Exception
-						
-					# Parent to parent mapping			 
-					if from_table_name == self.doc.from_doctype and to_table_name == self.doc.to_doctype:
-						
-						# Check validation
-						nm = sql("select name from `tab%s` where name = '%s' and %s" % (from_doctype, from_docname, validation_logic))
-						nm = nm and nm[0][0] or ''
-						
-						# If validation failed raise exception
-						if not nm:
-							msgprint("Validation failed in doctype mapper. Please contact Administrator.")
-							raise Exception
-						
-						from_doc = Document(from_doctype, nm)
+					
+					from_doc = Document(from_doctype, nm)
 
-						# Map fields with same name
-						self.map_fields_with_same_name(from_doctype, to_doctype, from_doc, to_doc, fld_list)				
-						# Maps field in parent
+					# Map fields with same name
+
+					self.map_fields_with_same_name(from_doctype, to_doctype, from_doc, to_doc, fld_list)				
+					# Maps field in parent
+					
+					if fld_list:
 						self.set_value(fld_list, from_doc, to_doc)
 
 
-					# Parent to child OR child to child mapping
+				# Parent to child OR child to child mapping
+				else:
+					dnlist = ()
+					if from_table_name == self.doc.from_doctype:
+						dnlist = ((from_docname,),)
 					else:
-						dnlist = ()
-						if from_table_name == self.doc.from_doctype:
-							dnlist = ((from_docname,),)
-						else:
-							dnlist = sql("select name from `tab%s` where parent='%s' and parenttype = '%s' and %s order by idx" % (from_table_name, from_docname, self.doc.from_doctype, validation_logic))
-						
-						for dn in dnlist:
-							# Add a row in target table in 'To DocType' and returns obj
-							ch = addchild(to_doc, t[3], t[1], 1, doclist)
-							# Creates object for 'From DocType', it can be parent or child
-							d = Document(t[0], dn[0])
-							# Map fields with same name
-							self.map_fields_with_same_name(from_table_name, t[1], d, ch, fld_list)
-							# Map values
+						dnlist = sql("select name from `tab%s` where parent='%s' and parenttype = '%s' and %s order by idx" % (from_table_name, from_docname, self.doc.from_doctype, validation_logic))
+					
+					for dn in dnlist:
+						# Add a row in target table in 'To DocType' and returns obj
+						ch = addchild(to_doc, t[3], t[1], 1, doclist)
+						# Creates object for 'From DocType', it can be parent or child
+						d = Document(t[0], dn[0])
+						# Map fields with same name
+						self.map_fields_with_same_name(from_table_name, t[1], d, ch, fld_list)
+						# Map values
+						if fld_list:
 							self.set_value(fld_list, d, ch)
 
 
@@ -142,7 +146,6 @@ class DocType:
 					to_doc.fields[f[1]] = eval(f[0][5:])
 				else:
 					to_doc.fields[f[1]] = obj.fields.get(f[0])
-
 				
 	# Validate
 	#---------
