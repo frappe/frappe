@@ -43,6 +43,7 @@ class DocType:
 				and t1.fieldname = t2.fieldname 
 				and t1.docstatus != 2 and t2.docstatus != 2 
 				and ifnull(t1.fieldname, '') != ''
+				and t1.fieldname != 'naming_series'
 			""",(from_doctype, to_doctype)) if d[0] not in exception_flds
 		]
 		
