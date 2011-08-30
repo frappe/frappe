@@ -70,7 +70,7 @@ class DocTags:
 		
 	def get_tags(self, dn):
 		"""returns tag for a particular item"""
-		return webnotes.conn.get_value(self.dt, dn, '_user_tags') or ''
+		return webnotes.conn.get_value(self.dt, dn, '_user_tags', ignore=1) or ''
 
 	def create(self, tag):
 		try:
@@ -117,6 +117,10 @@ class DocTags:
 				(self.dt,'%s','%s'), (tags , dn))
 		except Exception, e:
 			if e.args[0]==1054: 
+				if not tags:
+					# no tags, nothing to do
+					return
+					
 				self.setup()
 				self.update(dn, tl)
 			else: raise e
