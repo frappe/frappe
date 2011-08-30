@@ -76,6 +76,10 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	# check if links exist
 	if not force:
 		check_if_doc_is_linked(doctype, name)
+
+	# remove tags
+	from webnotes.widgets.tags import clear_tags
+	clear_tags(doctype, name)
 	
 	try:
 		webnotes.conn.sql("delete from `tab%s` where name='%s' limit 1" % (doctype, name))
@@ -86,7 +90,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 			webnotes.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
 		
 		raise e
-	
+		
 	return 'okay'
 
 #=================================================================================

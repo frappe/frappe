@@ -21,8 +21,8 @@ function makeselector() {
 		['Button', 'Search'],
 		['HTML', 'Help'],
 		['HTML', 'Result']
-	]);	
-	
+	]);
+
 	// search with
 	var inp = d.widgets['Beginning With'];
 	var field_sel = d.widgets['Search By'];
@@ -39,7 +39,7 @@ function makeselector() {
 		}
 		d.style = 'Link';
 		d.set_query_description()
-		
+
 		if(!d.sel_type)d.sel_type = 'Value';
 		d.set_title('Select a "'+ d.sel_type +'" for field "'+label+'"');
 	}
@@ -47,18 +47,18 @@ function makeselector() {
 		if(d.style!='Search') {
 			d.rows['Result'].innerHTML ='';
 			d.values_len = 0;
-		}		
+		}
 		d.style = 'Search';
 		if(d.input) { d.input = null; sel_type = null; }
 		d.sel_type = get_label_doctype(dt);
 		d.set_title('Quick Search for ' + dt);
 	}
-	
-	inp.onkeydown = function(e) { 
+
+	inp.onkeydown = function(e) {
 		if(isIE)var kc = window.event.keyCode;
 		else var kc = e.keyCode;
 
-		if(kc==13) if(!btn.disabled)btn.onclick(); 
+		if(kc==13) if(!btn.disabled)btn.onclick();
 	}
 
 	d.set_query_description = function() {
@@ -68,18 +68,18 @@ function makeselector() {
 			d.rows['Help'].innerHTML =''
 		}
 	}
-	d.onshow = function() { 
+	d.onshow = function() {
 		if(d.set_doctype!=d.sel_type) {
 			d.rows['Result'].innerHTML ='';
 			d.values_len = 0;
 		}
-			
-		inp.value = '';		
+
+		inp.value = '';
 		if(d.input && d.input.txt.value) {
 			inp.value = d.input.txt.value;
 		}
 		try{inp.focus();} catch(e){}
-		
+
 		if(d.input) d.input.set_get_query();
 
 		// temp function to strip labels from search fields
@@ -88,10 +88,10 @@ function makeselector() {
 			for(var i=0; i<lf.length; i++) l.push(lf[i][1]);
 			return l;
 		}
-	
+
 		// set fields
 		$ds(d.rows['Search By']);
-		
+
 		if(search_fields[d.sel_type]) {
 			empty_select(field_sel);
 			add_sel_options(field_sel, get_sf_list(d.sel_type), 'ID');
@@ -121,8 +121,11 @@ function makeselector() {
 		this.set_working();
 		d.set_doctype = d.sel_type;
 		var q = '';
+		args = {};
+
 		if(d.input && d.input.get_query) {
 			var doc = {};
+			args.is_simple = 1;
 			if(cur_frm) doc = locals[cur_frm.doctype][cur_frm.docname];
 			var q = d.input.get_query(doc, d.input.doctype, d.input.docname);
 			if(!q) { return ''; }
@@ -131,21 +134,25 @@ function makeselector() {
 		// for field type, return field name
 		var get_sf_fieldname = function(v) {
 			var lf = search_fields[d.sel_type];
-			
+
 			// still loading options
 			if(!lf)
 				return 'name'
-				
-			for(var i=0; i<lf.length; i++) if(lf[i][1]==v) return lf[i][0];
-		}		
 
-		$c('webnotes.widgets.search.search_widget', 
-			args = {
-				'txt':strip(inp.value)
-				,'doctype':d.sel_type
-				,'query':q
-				,'searchfield':get_sf_fieldname(sel_val(field_sel))
-			},
+			for(var i=0; i<lf.length; i++) if(lf[i][1]==v) return lf[i][0];
+		}
+
+		// build args
+		$.extend(args, {
+			'txt':strip(inp.value)
+			,'doctype':d.sel_type
+			,'query':q
+			,'searchfield':get_sf_fieldname(sel_val(field_sel))
+		});
+
+		// run the query
+		$c('webnotes.widgets.search.search_widget',
+			args,
 			function(r, rtxt) {
 				btn.done_working();
 				if(r.coltypes)r.coltypes[0]='Link'; // first column must always be selectable even if it is not a link
@@ -153,7 +160,7 @@ function makeselector() {
 				d.set_result(r);
 			}, function() { btn.done_working(); });
 	}
-	
+
 	d.set_result = function(r) {
 		d.rows['Result'].innerHTML = '';
 		var c = $a(d.rows['Result'],'div','comment',{paddingBottom:'4px',marginBottom:'4px',borderBottom:'1px solid #CCC', marginLeft:'4px'});
@@ -178,8 +185,8 @@ function makeselector() {
 			for(var j=1; j<r.values[i].length; j++) cl.push(r.values[i][j]);
 			var c = $a(div,'div','comment',{marginTop:'2px'}); c.innerHTML = cl.join(', ');
 		}
-		
+
 	}
-	
-	selector = d;	
+
+	selector = d;
 }

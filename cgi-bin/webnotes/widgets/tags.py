@@ -95,14 +95,26 @@ class DocTags:
 		self.update(dn, filter(lambda x:x!=tag, tl))
 		TagCounter(self.dt).update(tag, -1)
 
+	def remove_all(self, dn):
+		"""remove all user tags (call before delete)"""
+		tl = self.get_tags(dn).split(',')
+		tl = filter(lambda x:x, tl)
+		tc = TagCounter(self.dt)
+		for t in tl:
+			tc.update(t, -1)
+		self.update(dn, [])
+
 	def update(self, dn, tl):
 		"""updates the _user_tag column in the table"""
 
-		tl = list(set(filter(lambda x: x, tl)))
-					
+		if not tl:
+			tags = ''
+		else:
+			tl = list(set(filter(lambda x: x, tl)))
+			tags = ',' + ','.join(tl)
 		try:
 			webnotes.conn.sql("update `tab%s` set _user_tags=%s where name=%s" % \
-				(self.dt,'%s','%s'), (',' + ','.join(tl), dn))
+				(self.dt,'%s','%s'), (tags , dn))
 		except Exception, e:
 			if e.args[0]==1054: 
 				self.setup()
@@ -141,6 +153,8 @@ class TagCounter:
 	# if doctype cnt does not exist
 	# creates it for the first time
 	def update(self, tag, diff):
+		if not tag:
+			return
 		"updates tag cnt for a doctype and tag"
 		cnt = webnotes.conn.sql("select cnt from `_tag_cnt` where doctype=%s and tag=%s", (self.doctype, tag))
 
@@ -255,4 +269,6 @@ def get_top_tags(args=''):
 		get_item('tags-' + dt).set(tl, 60*60)
 	
 		return tl
-	
+
+def clear_tags(dt, dn):
+	DocTags(dt).remove_all(dn)

@@ -87,10 +87,13 @@
 	# DocField
 	{
 		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 1,
-		'label': 'Details',
-		'oldfieldtype': 'Section Break',
+		'fieldname': 'criteria_name',
+		'fieldtype': 'Data',
+		'hidden': 0,
+		'idx': 5,
+		'label': 'Criteria Name',
+		'oldfieldname': 'criteria_name',
+		'oldfieldtype': 'Data',
 		'permlevel': 0
 	},
 
@@ -135,41 +138,6 @@
 		'search_index': 1
 	},
 
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'criteria_name',
-		'fieldtype': 'Data',
-		'hidden': 0,
-		'idx': 5,
-		'label': 'Criteria Name',
-		'oldfieldname': 'criteria_name',
-		'oldfieldtype': 'Data',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'description',
-		'fieldtype': 'Text',
-		'idx': 6,
-		'label': 'Description',
-		'oldfieldname': 'description',
-		'oldfieldtype': 'Text',
-		'permlevel': 0,
-		'width': '300px'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 7,
-		'label': 'Query Details',
-		'oldfieldtype': 'Section Break',
-		'permlevel': 0
-	},
 
 	# DocField
 	{
@@ -189,7 +157,7 @@
 		'doctype': 'DocField',
 		'fieldname': 'filters',
 		'fieldtype': 'Text',
-		'hidden': 0,
+		'hidden': 1,
 		'idx': 9,
 		'label': 'Filters',
 		'oldfieldname': 'filters',
@@ -284,32 +252,6 @@
 		'idx': 16,
 		'label': 'Group By',
 		'oldfieldname': 'group_by',
-		'oldfieldtype': 'Data',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'graph_series',
-		'fieldtype': 'Data',
-		'hidden': 0,
-		'idx': 17,
-		'label': 'Graph Series',
-		'oldfieldname': 'graph_series',
-		'oldfieldtype': 'Data',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'graph_values',
-		'fieldtype': 'Data',
-		'hidden': 0,
-		'idx': 18,
-		'label': 'Graph Values',
-		'oldfieldname': 'graph_values',
 		'oldfieldtype': 'Data',
 		'permlevel': 0
 	},
