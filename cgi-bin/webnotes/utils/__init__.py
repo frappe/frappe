@@ -119,7 +119,7 @@ def getdate(string_date):
 	else:
 		return ''
 
-def add_days(date, days):
+def add_days(date, days, format='string'):
 	"""
 		 Adds `days` to the given `string_date`
 	"""
@@ -130,7 +130,11 @@ def add_days(date, days):
 	if type(date) not in (datetime.datetime, datetime.date): 
 		date = getdate(date)
 
-	return (date + datetime.timedelta(days)).strftime('%Y-%m-%d')
+	dt =  date + datetime.timedelta(days)
+	if format=='string':
+		return dt.strftime('%Y-%m-%d')
+	else:
+		return dt
 
 def add_months(string_date, months):
 	import datetime

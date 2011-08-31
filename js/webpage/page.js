@@ -56,7 +56,7 @@ function render_page(page_name, menuitem) {
 	p.doc = pdoc;
 
 	if(script) {
-		try { eval(script); } catch(e) { submit_error(e); }
+		eval(script);
 	}
 
 	// change

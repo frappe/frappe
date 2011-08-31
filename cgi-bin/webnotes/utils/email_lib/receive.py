@@ -131,7 +131,10 @@ class POP3Mailbox:
 		num = len(self.pop.list()[1])
 		for m in range(num):
 			msg = self.pop.retr(m+1)
-			self.process_message(IncomingMail('\n'.join(msg[1])))
+			try:
+				self.process_message(IncomingMail('\n'.join(msg[1])))
+			except:
+				pass
 			self.pop.dele(m+1)
 		self.pop.quit()
 		
