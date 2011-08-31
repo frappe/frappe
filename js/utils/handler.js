@@ -259,7 +259,7 @@ function open_url_post(URL, PARAMS, new_window) {
 	temp.method="POST";
 	temp.style.display="none";
 	if(new_window){
-
+		temp.target = '_blank';
 	}
 	for(var x in PARAMS) {
 		var opt=document.createElement("textarea");
