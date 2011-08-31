@@ -468,7 +468,10 @@ _f.CodeField.prototype.init_editor = function() {
 	});
 	
 	// reset content
-	if(cur_frm) this.editor.setContent(locals[cur_frm.doctype][cur_frm.docname][this.df.fieldname]);
+	var c = locals[cur_frm.doctype][cur_frm.docname][this.df.fieldname];
+	if(cur_frm && c) {
+		this.editor.setContent(c);
+	}
 }
 
 _f.CodeField.prototype.set_disp = function(val) {
