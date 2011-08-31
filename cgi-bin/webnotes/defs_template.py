@@ -60,13 +60,13 @@ auto_cache_clear = 0
 # then only sent notification email from the system
 #
 
-admin_email_notification = 0
+admin_email_notification = 1
 
 #
-# Global Sent Email: Global email settings, if 1 then only mail will go from the system
+# Global Send Email: Global email settings, if 1 then only mail will go from the system
 #
 
-global_sent_email = 1
+global_send_email = 1
 
 #
 # Time Zone: Useful if your users are across timezones
