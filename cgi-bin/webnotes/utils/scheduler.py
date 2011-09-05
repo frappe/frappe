@@ -162,7 +162,7 @@ def cancel_event(event):
 if __name__=='__main__':
 	import os,sys
 
-	cgi_bin_path = os.path.sep.join(__file__.split(os.path.sep)[:-3])
+	cgi_bin_path = os.path.sep.join(os.path.abspath(__file__).split(os.path.sep)[:-3])
 
 	sys.path.append(cgi_bin_path)
 
