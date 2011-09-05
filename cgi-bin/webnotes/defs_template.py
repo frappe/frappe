@@ -48,7 +48,25 @@ modules_path = ''
 # saved to the modules folder
 #
 developer_mode = 0
+
+#
+# Auto Clear Cache: If set, automatically clears cache on refresh
+#
+
 auto_cache_clear = 0
+
+#
+# Admin Email Notification: If the admin_email_notification is set, 
+# then only sent notification email from the system
+#
+
+admin_email_notification = 0
+
+#
+# Global Send Email: Global email settings, if 1 then only mail will go from the system
+#
+
+global_send_email = 1
 
 #
 # Time Zone: Useful if your users are across timezones
