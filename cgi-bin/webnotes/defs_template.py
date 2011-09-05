@@ -60,7 +60,7 @@ auto_cache_clear = 0
 # then only sent notification email from the system
 #
 
-admin_email_notification = 1
+admin_email_notification = 0
 
 #
 # Global Send Email: Global email settings, if 1 then only mail will go from the system
