@@ -34,5 +34,5 @@ def write_log():
 	from webnotes.utils import sendmail
 	subj = 'Error in running patches in %s' % webnotes.conn.cur_db_name
 	msg = subj + '<br><br>Login User: ' + webnotes.user.name + '<br><br>' + webnotes.getTraceback()
-	if getattr(webnotes.defs,'admin_email_notification',1):
+	if getattr(webnotes.defs,'admin_email_notification',0):
 		sendmail(['developers@erpnext.com'], sender='automail@erpnext.com', subject= subj, parts=[['text/plain', msg]])
