@@ -1,0 +1,19 @@
+{
+	"core.min.js": [
+		"wn/provide.js",
+		"wn/xmlhttp.js",
+		"wn/assets.js",
+		"wn/require.js",
+		"wn/dom.js",
+		"wn/page.js",
+		"lib/json2.js",
+		"core.js"
+	],
+	"lib/superfish/superfish.min.js": [
+		"lib/superfish/hoverIntent.js",
+		"lib/superfish/superfish.js",
+		"lib/superfish/make_superfish.js",
+		"lib/superfish/css/superfish.css",
+		"lib/superfish/css/superfish-vertical.css"
+	]
+}
