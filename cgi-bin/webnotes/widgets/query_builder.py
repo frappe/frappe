@@ -14,7 +14,7 @@ def get_search_criteria_list(dt):
 def load_report_list():
 	webnotes.response['rep_list'] = get_search_criteria_list(form.getvalue('dt'))
 
-	
+
 # Get, scrub metadata
 # ====================================================================
 
@@ -37,20 +37,20 @@ def get_parent_dt(dt):
 
 def get_sql_meta(tl):
 	std_columns = {
-		'owner':('Owner', '', '', '100'), 
-		'creation':('Created on', 'Date', '', '100'), 
-		'modified':('Last modified on', 'Date', '', '100'), 
+		'owner':('Owner', '', '', '100'),
+		'creation':('Created on', 'Date', '', '100'),
+		'modified':('Last modified on', 'Date', '', '100'),
 		'modified_by':('Modified By', '', '', '100')
 	}
-	
+
 	meta = {}
-	
+
 	for dt in tl:
 		meta[dt] = std_columns.copy()
 
 		# for table doctype, the ID is the parent id
 		pdt = get_parent_dt(dt)
-		if pdt: 
+		if pdt:
 			meta[dt]['parent'] = ('ID', 'Link', pdt, '200')
 
 		# get the field properties from DocField
@@ -58,10 +58,10 @@ def get_sql_meta(tl):
 		for r in res:
 			if r[0]:
 				meta[dt][r[0]] = (r[1], r[2], r[3], r[4]);
-				
+
 		# name
 		meta[dt]['name'] = ('ID', 'Link', dt, '200')
-			
+
 	return meta
 
 # Additional conditions to fulfill match permission rules
@@ -80,12 +80,12 @@ def getmatchcondition(dt, ud, ur):
 				return ''
 
 	return ' OR '.join(cond)
-	
+
 def add_match_conditions(q, tl, ur, ud):
 	sl = []
 	for dt in tl:
 		s = getmatchcondition(dt, ud, ur)
-		if s: 
+		if s:
 			sl.append(s)
 
 	# insert the conditions
@@ -94,13 +94,13 @@ def add_match_conditions(q, tl, ur, ud):
 
 		condition_end = q.find('ORDER BY')!=-1 and 'ORDER BY' or 'LIMIT'
 		condition_end = q.find('GROUP BY')!=-1 and 'GROUP BY' or condition_end
-		
+
 		if q.find('ORDER BY')!=-1 or q.find('LIMIT')!=-1 or q.find('GROUP BY')!=-1: # if query continues beyond conditions
 			q = q.split(condition_end)
 			q = q[0] + condition_st + '(' + ' OR '.join(sl) + ') ' + condition_end + q[1]
 		else:
 			q = q + condition_st + '(' + ' OR '.join(sl) + ')'
-			
+
 	return q
 
 # execute server-side script from Search Criteria
@@ -111,7 +111,7 @@ def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[]
 	for c in colnames:
 		col_idx[c] = i
 		i+=1
-	
+
 	# load globals (api)
 	from webnotes import *
 	from webnotes.utils import *
@@ -127,12 +127,12 @@ def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[]
 	NEWLINE = '\n'
 
 	exec str(code)
-	
+
 	if out!=None:
 		res = out
 
 	return res, style, header_html, footer_html, page_template
-	
+
 # ====================================================================
 
 def guess_type(m):
@@ -146,7 +146,7 @@ def guess_type(m):
 		return 'Date'
 	else:
 		return 'Data'
-		
+
 def build_description_simple():
 	colnames, coltypes, coloptions, colwidths = [], [], [], []
 
@@ -155,7 +155,7 @@ def build_description_simple():
 		coltypes.append(guess_type[m[0]])
 		coloptions.append('')
 		colwidths.append('100')
-	
+
 	return colnames, coltypes, coloptions, colwidths
 
 # ====================================================================
@@ -180,27 +180,27 @@ def build_description_standard(meta, tl):
 
 		if (not dt) and merged_meta.get(fn):
 			# no "AS" given, find type from merged description
-			
+
 			desc = merged_meta[fn]
 			colnames.append(desc[0] or fn)
 			coltypes.append(desc[1] or '')
 			coloptions.append(desc[2] or '')
 			colwidths.append(desc[3] or '100')
-			
+
 		elif meta.get(dt,{}).has_key(fn):
 			# type specified for a multi-table join
 			# usually from Report Builder
-			
+
 			desc = meta[dt][fn]
 			colnames.append(desc[0] or fn)
 			coltypes.append(desc[1] or '')
 			coloptions.append(desc[2] or '')
 			colwidths.append(desc[3] or '100')
-			
+
 		else:
 			# nothing found
 			# guess
-			
+
 			colnames.append(fn)
 			coltypes.append(guess_type(f[1]))
 			coloptions.append('')
@@ -214,21 +214,21 @@ def build_description_standard(meta, tl):
 def runquery(q='', ret=0, from_export=0):
 	import webnotes.utils
 
-	formatted = cint(form.getvalue('formatted'))	
-	
+	formatted = cint(form.getvalue('formatted'))
+
 	# CASE A: Simple Query
 	# --------------------
 	if form.getvalue('simple_query') or form.getvalue('is_simple'):
-		q = form.getvalue('simple_query') or form.getvalue('query')
+		if not q: q = form.getvalue('simple_query') or form.getvalue('query')
 		if q.split()[0].lower() != 'select':
 			raise Exception, 'Query must be a SELECT'
-		
+
 		as_dict = cint(form.getvalue('as_dict'))
 		res = sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
-		
+
 		# build colnames etc from metadata
 		colnames, coltypes, coloptions, colwidths = [], [], [], []
-		
+
 	# CASE B: Standard Query
 	# -----------------------
 	else:
@@ -236,17 +236,17 @@ def runquery(q='', ret=0, from_export=0):
 
 		tl = get_sql_tables(q)
 		meta = get_sql_meta(tl)
-			
+
 		q = add_match_conditions(q, tl, webnotes.user.roles, webnotes.user.get_defaults())
-		
+
 		# replace special variables
 		q = q.replace('__user', session['user'])
 		q = q.replace('__today', webnotes.utils.nowdate())
-		
+
 		res = sql(q, as_list=1, formatted=formatted)
 
 		colnames, coltypes, coloptions, colwidths = build_description_standard(meta, tl)
-		
+
 	# run server script
 	# -----------------
 	style, header_html, footer_html, page_template = '', '', '', ''
@@ -254,15 +254,15 @@ def runquery(q='', ret=0, from_export=0):
 		sc_id = form.getvalue('sc_id')
 		from webnotes.model.code import get_code
 		sc_details = webnotes.conn.sql("select module, standard, server_script from `tabSearch Criteria` where name=%s", sc_id)[0]
-		if sc_details[1]!='No':	
+		if sc_details[1]!='No':
 			code = get_code(sc_details[0], 'Search Criteria', sc_id, 'py')
 		else:
 			code = sc_details[2]
-			
+
 		if code:
 			filter_values = form.has_key('filter_values') and eval(form.getvalue('filter_values','')) or {}
 			res, style, header_html, footer_html, page_template = exec_report(code, res, colnames, colwidths, coltypes, coloptions, filter_values, q, from_export)
-		
+
 	out['colnames'] = colnames
 	out['coltypes'] = coltypes
 	out['coloptions'] = coloptions
@@ -270,17 +270,17 @@ def runquery(q='', ret=0, from_export=0):
 	out['header_html'] = header_html
 	out['footer_html'] = footer_html
 	out['page_template'] = page_template
-	
+
 	if style:
 		out['style'] = style
-	
+
 	# just the data - return
 	if ret==1:
-		return res	
+		return res
 
 	out['values'] = res
 
-	# return num of entries 
+	# return num of entries
 	qm = form.has_key('query_max') and form.getvalue('query_max') or ''
 	if qm and qm.strip():
 		if qm.split()[0].lower() != 'select':
@@ -298,31 +298,31 @@ def runquery_csv():
 
 	# run query
 	res = runquery(from_export = 1)
-	
+
 	q = form.getvalue('query')
-	
+
 	rep_name = form.getvalue('report_name')
 	if not form.has_key('simple_query'):
 
 		# Report Name
 		if not rep_name:
 			rep_name = get_sql_tables(q)[0]
-	
+
 	if not rep_name: rep_name = 'DataExport'
-	
+
 	# Headings
 	heads = []
-	
+
 	rows = [[rep_name], out['colnames']] + out['values']
-	
+
 	from cStringIO import StringIO
 	import csv
-	
+
 	f = StringIO()
 	writer = csv.writer(f)
 	for r in rows:
 		writer.writerow(r)
-	
+
 	f.seek(0)
 	out['result'] = f.read()
 	out['type'] = 'csv'

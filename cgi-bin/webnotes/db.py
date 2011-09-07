@@ -26,7 +26,7 @@ class Database:
 		self.transaction_writes = 0
 		self.testing_tables = []
 
-		self.password = self.get_db_password(ac_name, password)
+		self.password = self.get_db_password(user, password)
 		
 		self.connect()
 		if self.user != 'root':
@@ -57,7 +57,9 @@ class Database:
 			return ''
 			
 	def get_db_login(self, ac_name):
-		return getattr(defs,'db_name_map').get(ac_name, getattr(defs,'default_db_name'))
+		if hasattr(defs, 'db_name_map'):
+			return getattr(defs,'db_name_map').get(ac_name, getattr(defs,'default_db_name'))
+		else: return ac_name
 
 	def connect(self):
 		"""
@@ -253,7 +255,7 @@ class Database:
 	# ======================================================================================
 	# get a single value from a record
 
-	def get_value(self, doctype, docname, fieldname):
+	def get_value(self, doctype, docname, fieldname, ignore=None):
 		"""
 		      Get a single / multiple value from a record.
 
@@ -264,8 +266,13 @@ class Database:
 		if docname and (docname!=doctype or docname=='DocType'):
 			if type(fieldname) in (list, tuple):
 				fl = '`, `'.join(fieldname)
-
-			r = self.sql("select `%s` from `tab%s` where name='%s'" % (fl, doctype, docname))
+			try:
+				r = self.sql("select `%s` from `tab%s` where name='%s'" % (fl, doctype, docname))
+			except Exception, e:
+				if e.args[0]==1054 and ignore:
+					return None
+				else:
+					raise e
 			return r and (len(r[0]) > 1 and r[0] or r[0][0]) or None
 		else:
 			if type(fieldname) in (list, tuple):

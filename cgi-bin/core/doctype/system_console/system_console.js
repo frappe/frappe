@@ -1,10 +1,12 @@
 cur_frm.cscript['Server (Python)'] = function(doc, dt, dn) {
+	doc.response = 'Executing...'
+	refresh_field('response');
 	$c_obj([doc], 'execute_server', '', function(r, rt) {
 		doc = locals[doc.doctype][doc.name];
 		if(r.exc) {
 			doc.response = r.exc;
 		} else {
-			doc.response = 'Worked!'
+			doc.response = 'Worked!'.bold()
 		}
 		refresh_field('response');
 	})
