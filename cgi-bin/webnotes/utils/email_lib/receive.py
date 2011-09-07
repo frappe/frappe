@@ -39,8 +39,11 @@ class IncomingMail:
 		"""
 			get utf-8 encoded part content
 		"""
-		return unicode(part.get_payload(decode=True),str(charset),"ignore").encode('utf8','replace')
-		
+		try:
+			return unicode(part.get_payload(decode=True),str(charset),"ignore").encode('utf8','replace')
+		except LookupError, e:
+			return part.get_payload()		
+
 	def get_attachment(self, part, charset):
 		"""
 			Extracts an attachment
@@ -128,7 +131,10 @@ class POP3Mailbox:
 		num = len(self.pop.list()[1])
 		for m in range(num):
 			msg = self.pop.retr(m+1)
-			self.process_message(IncomingMail('\n'.join(msg[1])))
+			try:
+				self.process_message(IncomingMail('\n'.join(msg[1])))
+			except:
+				pass
 			self.pop.dele(m+1)
 		self.pop.quit()
 		

@@ -76,7 +76,18 @@
 		'fieldname': 'test_link',
 		'fieldtype': 'Link',
 		'idx': 2,
-		'label': 'Test Link'
+		'label': 'Test Link',
+		'options': 'Profile'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'test_select',
+		'fieldtype': 'Select',
+		'idx': 2,
+		'label': 'Test Select',
+		'options': 'A\nB\nC'
 	},
 
 	# DocField

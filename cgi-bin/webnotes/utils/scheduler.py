@@ -89,7 +89,7 @@ class Scheduler:
 		import webnotes, webnotes.defs, webnotes.db
 
 		try:
-			webnotes.conn = webnotes.db.Database(user=db_name, password=webnotes.defs.db_password)
+			webnotes.conn = webnotes.db.Database(user=db_name, password=webnotes.get_db_password(db_name))
 			webnotes.session = {'user':'Administrator'}
 
 			module = '.'.join(event.split('.')[:-1])
@@ -138,7 +138,7 @@ class Scheduler:
 			
 			# if recurring, update next_execution
 			if e['recurring']:
-				self.conn.sql("update Event set next_execution = addtime(now(), sec_to_time(%s))", e['interval'])
+				self.conn.sql("update Event set next_execution = addtime(now(), sec_to_time(%s)) where event=%s", (e['interval'], e['event']))
 			
 			# else clear
 			else:
@@ -162,7 +162,7 @@ def cancel_event(event):
 if __name__=='__main__':
 	import os,sys
 
-	cgi_bin_path = os.path.sep.join(__file__.split(os.path.sep)[:-3])
+	cgi_bin_path = os.path.sep.join(os.path.abspath(__file__).split(os.path.sep)[:-3])
 
 	sys.path.append(cgi_bin_path)
 

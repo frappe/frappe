@@ -98,9 +98,17 @@ class Installer:
 
 		webnotes.conn.commit()
 
-	#
-	# main script to create a database from
-	#
+	def get_db_password(self, db_name):
+		"""
+			Get the db_password by method
+		"""
+		import webnotes.defs
+		if hasattr(webnotes.defs, 'get_db_password'):
+			return webnotes.defs.get_db_password(db_name)
+		if hasattr(webnotes.defs, 'db_password'):
+			return webnotes.defs.db_password
+		return ''
+
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
@@ -111,7 +119,7 @@ class Installer:
 		self.dbman.delete_user(target)
 
 		# create user and db
-		self.dbman.create_user(target,getattr(webnotes.defs,'db_password',None))
+		self.dbman.create_user(target,self.get_db_password(target))
 		if verbose: print "Created user %s" % target
 	
 		# create a database
@@ -165,7 +173,7 @@ def make_scheduler(root_login, root_password, verbose):
 	dbman.delete_user('master_scheduler')
 
 	# create user and db
-	dbman.create_user('master_scheduler', getattr(webnotes.defs,'db_password',None))
+	dbman.create_user('master_scheduler', getattr(webnotes.defs,'scheduler_password',None))
 	if verbose: print "Created user master_scheduler"
 
 	# create a database

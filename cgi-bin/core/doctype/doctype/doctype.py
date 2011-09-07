@@ -80,10 +80,10 @@ class DocType:
 
 		self.change_modified_of_parent()
 		
-		import webnotes.defs
+		from webnotes import defs
 		from webnotes.utils.transfer import in_transfer
 
-		if (not in_transfer) and getattr(defs,'developer_mode', 0):
+		if (not in_transfer) and getattr(webnotes.defs,'developer_mode', 0):
 			self.export_doc()
 		sql("delete from __DocTypeCache")
 		

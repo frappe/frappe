@@ -622,6 +622,11 @@ _f.Frm.prototype.refresh = function(docname) {
 			// call trigger
 	 		this.runclientscript('refresh');
 			
+			// trigger global trigger
+			// to use this
+			// $(docuemnt).bind('form_refresh', function() { })
+			$(document).trigger('form_refresh')
+			
 			// tabs
 			this.refresh_tabs();
 			
@@ -1123,7 +1128,7 @@ _f.Frm.prototype.savetrash = function() {
 		$c('webnotes.model.delete_doc', {dt:this.doctype, dn:this.docname}, function(r,rt) {
 			if(r.message=='okay') {
 				// delete from locals
-				delete locals[me.doctype][me.docname];
+				LocalDB.delete_doc(me.doctype, me.docname);
 				
 				// delete from recent
 				if(page_body.wntoolbar) page_body.wntoolbar.rdocs.remove(me.doctype, me.docname);

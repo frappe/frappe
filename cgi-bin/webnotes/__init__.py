@@ -57,6 +57,8 @@ cookies = {}
 auto_masters = {}
 tenant_id = None
 
+from webnotes.utils import cstr
+
 #
 # Custom Class (no traceback)
 #
@@ -90,13 +92,16 @@ def errprint(msg):
 	"""
 	   Append to the :data:`debug log`
 	"""
-	debug_log.append(str(msg or ''))
+	debug_log.append(cstr(msg or ''))
 
-def msgprint(msg, small=0, raise_exception=0):
+def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	"""
 	   Append to the :data:`message_log`
 	"""	
-	message_log.append((small and '__small:' or '')+str(msg or ''))
+	if as_table and type(msg) in (list, tuple):
+		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
+	
+	message_log.append((small and '__small:' or '')+cstr(msg or ''))
 	if raise_exception:
 		raise ValidationError
 
@@ -195,3 +200,13 @@ def setup_logging():
 if getattr(defs, 'log_file_name', None):
 	setup_logging()
 	
+def get_db_password(db_name):
+	from webnotes import defs
+	if hasattr(defs, 'get_db_password'):
+		return defs.get_db_password(db_name)
+		
+	elif hasattr(defs, 'db_password'):
+		return defs.db_password
+		
+	else:
+		return db_name

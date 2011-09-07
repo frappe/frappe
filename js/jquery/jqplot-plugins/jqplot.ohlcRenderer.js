@@ -1,18 +1,30 @@
 /**
- * Copyright (c) 2009 Chris Leonello
+ * jqPlot
+ * Pure JavaScript plotting plugin using jQuery
+ *
+ * Version: 1.0.0b2_r792
+ *
+ * Copyright (c) 2009-2011 Chris Leonello
  * jqPlot is currently available for use in all personal or commercial projects 
- * under both the MIT and GPL version 2.0 licenses. This means that you can 
+ * under both the MIT (http://www.opensource.org/licenses/mit-license.php) and GPL 
+ * version 2.0 (http://www.gnu.org/licenses/gpl-2.0.html) licenses. This means that you can 
  * choose the license that best suits your project and use it accordingly. 
  *
- * The author would appreciate an email letting him know of any substantial
- * use of jqPlot.  You can reach the author at: chris dot leonello at gmail 
- * dot com or see http://www.jqplot.com/info.php .  This is, of course, 
- * not required.
+ * Although not required, the author would appreciate an email letting him 
+ * know of any substantial use of jqPlot.  You can reach the author at: 
+ * chris at jqplot dot com or see http://www.jqplot.com/info.php .
  *
  * If you are feeling kind and generous, consider supporting the project by
  * making a donation at: http://www.jqplot.com/donate.php .
  *
- * Thanks for using jqPlot!
+ * sprintf functions contained in jqplot.sprintf.js by Ash Searle:
+ *
+ *     version 2007.04.27
+ *     author Ash Searle
+ *     http://hexmen.com/blog/2007/03/printf-sprintf/
+ *     http://hexmen.com/js/sprintf.js
+ *     The author (Ash Searle) has placed this code in the public domain:
+ *     "This code is unrestricted: you are free to use it however you like."
  * 
  */
 (function($) {
@@ -95,6 +107,10 @@
         // true if is a hi-low-close chart (no open price).
         // This is determined automatically from the series data.
         this.hlc = false;
+        // prop: lineWidth
+        // Width of the hi-low line and open/close ticks.
+        // Must be set in the rendererOptions for the series.
+        this.lineWidth = 1.5;
         this._tickLength;
         this._bodyWidth;
     };
@@ -104,10 +120,13 @@
     
     // called with scope of series.
     $.jqplot.OHLCRenderer.prototype.init = function(options) {
-        // prop: lineWidth
-        // Width of the hi-low line and open/close ticks.
-        this.lineWidth = 1.5;
+        options = options || {};
+        // lineWidth has to be set on the series, changes in renderer
+        // constructor have no effect.  set the default here
+        // if no renderer option for lineWidth is specified.
+        this.lineWidth = options.lineWidth || 1.5;
         $.jqplot.LineRenderer.prototype.init.call(this, options);
+        this._type = 'ohlc';
         // set the yaxis data bounds here to account for hi and low values
         var db = this._yaxis._dataBounds;
         var d = this._plotData;
@@ -171,13 +190,23 @@
                     xmaxidx = i+1;
                 }
             }
+
+            var dwidth = this.gridData[xmaxidx-1][0] - this.gridData[xminidx][0];
+            var nvisiblePoints = xmaxidx - xminidx;
+            try {
+                var dinterval = Math.abs(this._xaxis.series_u2p(parseInt(this._xaxis._intervalStats[0].sortedIntervals[0].interval)) - this._xaxis.series_u2p(0)); 
+            }
+
+            catch (e) {
+                var dinterval = dwidth / nvisiblePoints;
+            }
             
             if (r.candleStick) {
                 if (typeof(r.bodyWidth) == 'number') {
                     r._bodyWidth = r.bodyWidth;
                 }
                 else {
-                    r._bodyWidth = Math.min(20, ctx.canvas.width/(xmaxidx - xminidx)/2);
+                    r._bodyWidth = Math.min(20, dinterval/1.75);
                 }
             }
             else {
@@ -185,7 +214,7 @@
                     r._tickLength = r.tickLength;
                 }
                 else {
-                    r._tickLength = Math.min(10, ctx.canvas.width/(xmaxidx - xminidx)/4);
+                    r._tickLength = Math.min(10, dinterval/3.5);
                 }
             }
             

@@ -263,14 +263,17 @@ class _DocType:
 			doclist = self._load_from_cache()
 		
 		from webnotes.modules import Module
+
+		doc = doclist[0]
 		
 		# add custom script if present
 		from webnotes.model.code import get_custom_script
-		custom = get_custom_script(dt, 'Client') or ''
+		custom = get_custom_script(doc.name, 'Client') or ''
 		
-		doc = doclist[0]
-		doc.fields['__js'] = Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() + custom
-		doc.fields['__css'] = Module(doc.module).get_doc_file('doctype', doc.name, '.css').read()
+		doc.fields['__client_script'] = \
+			Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() \
+			+ '\n' + custom
+
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
 
@@ -291,6 +294,24 @@ def get_property(dt, property):
 		return prop[0][0]
 	else:
 		return webnotes.conn.get_value('DocType', dt, property)
+
+def get_field_property(dt, fieldname, property):
+	"""
+		get a field property, override it from property setter if specified
+	"""
+	field = webnotes.conn.sql("""
+		select name, `%s` 
+		from tabDocField 
+		where parent=%s and fieldname=%s""" % (property, '%s', '%s'), (dt, fieldname))
+		
+	prop = webnotes.conn.sql("""
+		select value 
+		from `tabProperty Setter` 
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, field[0][0], property))
+	if prop: 
+		return prop[0][0]
+	else:
+		return field[0][1]
 
 def get(dt):
 	"""

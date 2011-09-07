@@ -139,8 +139,13 @@ class Module:
 		"""
 			Sync the file to the db
 		"""
+		import os
 		dt, dn = scrub_dt_dn(dt, dn)
-		self.get_file(dt, dn, dn + '.txt').sync()
+		path = os.path.exists(os.path.join(self.get_path(), os.path.join(dt, dn, dn + '.txt')))
+		if not path:
+			webnotes.msgprint("%s not found" % path)
+		else:
+			self.get_file(dt, dn, dn + '.txt').sync(force=1)
 		
 	def sync_all_of_type(self, extn, verbose=0):
 		"""
@@ -217,15 +222,13 @@ class ModuleFile:
 		"""
 			returns file contents
 		"""
-		try:
+		import os
+		if os.path.exists(self.path):
 			f = open(self.path,'r')
 			self.content = f.read()
 			f.close()
-		except IOError, e:
-			if e.args[0]==2:
-				self.content = ''
-			else:
-				raise e
+		else:
+			self.content = ''
 
 		return self.content
 		
@@ -248,21 +251,21 @@ class TxtModuleFile(ModuleFile):
 	def __init__(self, path):
 		ModuleFile.__init__(self, path)
 	
-	def sync(self):
+	def sync(self, force=1):
 		"""
 			import the doclist if new
 		"""
 		if self.is_new():
 			from webnotes.model.utils import peval_doclist
 			doclist = peval_doclist(self.read())
-			if doclist:
+			if doclist:					
+				from webnotes.utils.transfer import set_doc
+				set_doc(doclist, 1, 1, 1)
+
 				# since there is a new timestamp on the file, update timestamp in
 				# the record
 				webnotes.conn.sql("update `tab%s` set modified=now() where name=%s" \
 					% (doclist[0]['doctype'], '%s'), doclist[0]['name'])
-					
-				from webnotes.utils.transfer import set_doc
-				set_doc(doclist, 1, 1, 1)
 		
 			self.update()
 			
@@ -306,6 +309,7 @@ class JsModuleFile(ModuleFile):
 		"""
 		name = match.group('name')
 		custom = ''
+
 		import webnotes.defs, os
 		
 		if os.path.sep in name:
@@ -314,12 +318,12 @@ class JsModuleFile(ModuleFile):
 		else:
 			# its a doctype
 			path = os.path.join(get_doc_path('DocType', name), scrub(name) + '.js')
-
+	
 			# add custom script if present
 			from webnotes.model.code import get_custom_script
-			custom = get_custom_script(dt, 'Client') or ''
-		
-		return JsModuleFile(path).read() + custom
+			custom = get_custom_script(name, 'Client') or ''
+			
+		return JsModuleFile(path).read() + '\n' + custom
 			
 	def read(self):
 		"""

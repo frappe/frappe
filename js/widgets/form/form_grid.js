@@ -67,15 +67,14 @@ _f.FormGrid.prototype.make_columns = function() {
 
 	var p = this.field.perm;
 	for(var i=0;i<gl.length;i++) {
-		if(p[this.field.df.permlevel] && p[this.field.df.permlevel][READ] && (!gl[i].hidden)) { // if read
+		if(p[this.field.df.permlevel] && p[this.field.df.permlevel][READ]) { // if read
 			this.insert_column(this.field.df.options, gl[i].fieldname, gl[i].fieldtype, gl[i].label, gl[i].width, gl[i].options, this.field.perm, gl[i].reqd);
+			// hide it even if it is hidden at start..
+			// so that it can be brought back once
+			if(gl[i].hidden) {
+				this.set_column_disp(gl[i].fieldname, false);
+			}
 		}
-	}
-	
-	// set width as percent
-	for(var i=0;i<this.head_row.cells.length; i++) {
-		var c = this.head_row.cells[i];
-		$w(c,cint(cint(c.style.width) / this.total_width * 100)+'%')
 	}
 }
 
