@@ -176,6 +176,11 @@ _f.Frm.prototype.setup_print = function() {
 			l.push(fl[i].format);
 		
 	}
+
+	// if default print format is given, use it
+	if(this.meta.default_print_format)
+		this.default_format = this.meta.default_print_format;
+
 	l.push('Standard');
 	this.print_sel = $a(null, 'select', '', {width:'160px'});
 	add_sel_options(this.print_sel, l);
