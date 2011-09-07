@@ -5,7 +5,7 @@
 	{
 		'creation': '2009-05-12 11:19:11',
 		'docstatus': 0,
-		'modified': '2011-09-07 14:51:07',
+		'modified': '2011-09-07 15:28:18',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
@@ -31,7 +31,7 @@
 		'section_style': 'Simple',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 10
+		'version': 11
 	},
 
 	# These values are common for all DocField
@@ -608,107 +608,5 @@
 		'reqd': 0,
 		'search_index': 0,
 		'width': '300px'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'change_log',
-		'fieldtype': 'Text',
-		'label': 'Change Log',
-		'oldfieldname': 'change_log',
-		'oldfieldtype': 'Text'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'label': 'Template',
-		'oldfieldtype': 'Section Break'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'dt_template',
-		'fieldtype': 'Code',
-		'label': 'DocType Template',
-		'oldfieldname': 'dt_template',
-		'oldfieldtype': 'Code'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'client_script_core',
-		'fieldtype': 'Code',
-		'label': 'Client Script Core',
-		'oldfieldname': 'client_script_core',
-		'oldfieldtype': 'Code'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'client_script',
-		'fieldtype': 'Code',
-		'hidden': 0,
-		'label': 'Client Side Javascript',
-		'oldfieldname': 'client_script',
-		'oldfieldtype': 'Code',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'server_code_core',
-		'fieldtype': 'Code',
-		'label': 'Server Code Core',
-		'oldfieldname': 'server_code_core',
-		'oldfieldtype': 'Code'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'server_code',
-		'fieldtype': 'Code',
-		'label': 'Server Code',
-		'oldfieldname': 'server_code',
-		'oldfieldtype': 'Code'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'server_code_compiled',
-		'fieldtype': 'Code',
-		'hidden': 1,
-		'label': 'Server Code Compiled',
-		'oldfieldname': 'server_code_compiled',
-		'oldfieldtype': 'Code'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'server_code_error',
-		'fieldtype': 'Read Only',
-		'label': 'Server Code Error',
-		'oldfieldname': 'server_code_error',
-		'oldfieldtype': 'Read Only'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'client_string',
-		'fieldtype': 'Code',
-		'label': 'Clientside String',
-		'oldfieldname': 'client_string',
-		'oldfieldtype': 'Code'
 	}
 ]
