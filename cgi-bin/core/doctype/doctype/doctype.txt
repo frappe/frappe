@@ -5,14 +5,14 @@
 	{
 		'creation': '2009-05-12 11:19:11',
 		'docstatus': 0,
-		'modified': '2011-05-16 10:19:14',
+		'modified': '2011-09-07 14:51:07',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
+		'_last_update': '1311674341',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
@@ -21,7 +21,6 @@
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
-		'idx': 0,
 		'issingle': 0,
 		'istable': 0,
 		'module': 'Core',
@@ -32,7 +31,7 @@
 		'section_style': 'Simple',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 8
+		'version': 10
 	},
 
 	# These values are common for all DocField
@@ -52,7 +51,8 @@
 		'parent': 'DocType',
 		'parentfield': 'permissions',
 		'parenttype': 'DocType',
-		'read': 1
+		'read': 1,
+		'role': 'Administrator'
 	},
 
 	# DocType, DocType
@@ -63,20 +63,11 @@
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'permlevel': 0,
-		'role': 'System Manager'
-	},
-
-	# DocPerm
-	{
 		'cancel': 0,
 		'create': 1,
 		'doctype': 'DocPerm',
 		'execute': 0,
-		'idx': 1,
 		'permlevel': 0,
-		'role': 'Administrator',
 		'submit': 0,
 		'write': 1
 	},
@@ -84,9 +75,7 @@
 	# DocPerm
 	{
 		'doctype': 'DocPerm',
-		'idx': 2,
-		'permlevel': 1,
-		'role': 'Administrator'
+		'permlevel': 1
 	},
 
 	# DocField
@@ -94,7 +83,6 @@
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
 		'hidden': 0,
-		'idx': 1,
 		'label': 'Options',
 		'oldfieldtype': 'Section Break',
 		'reqd': 0,
@@ -105,7 +93,6 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Column Break',
-		'idx': 2,
 		'label': 'Settings',
 		'oldfieldtype': 'Column Break',
 		'width': '50%'
@@ -116,7 +103,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'module',
 		'fieldtype': 'Link',
-		'idx': 3,
 		'label': 'Module',
 		'oldfieldname': 'module',
 		'oldfieldtype': 'Link',
@@ -129,7 +115,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'version',
 		'fieldtype': 'Int',
-		'idx': 4,
 		'label': 'Version',
 		'oldfieldname': 'version',
 		'oldfieldtype': 'Int'
@@ -141,7 +126,6 @@
 		'fieldname': 'name',
 		'fieldtype': 'Data',
 		'hidden': 1,
-		'idx': 5,
 		'label': 'Name',
 		'oldfieldname': 'name',
 		'oldfieldtype': 'Data',
@@ -155,7 +139,6 @@
 		'fieldname': 'autoname',
 		'fieldtype': 'Data',
 		'hidden': 0,
-		'idx': 6,
 		'label': 'Auto Name',
 		'oldfieldname': 'autoname',
 		'oldfieldtype': 'Data',
@@ -169,7 +152,6 @@
 		'fieldname': 'owner',
 		'fieldtype': 'Link',
 		'hidden': 1,
-		'idx': 7,
 		'label': 'Owner',
 		'oldfieldname': 'owner',
 		'oldfieldtype': 'Link',
@@ -182,7 +164,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'name_case',
 		'fieldtype': 'Select',
-		'idx': 8,
 		'label': 'Name Case',
 		'oldfieldname': 'name_case',
 		'oldfieldtype': 'Select',
@@ -195,7 +176,6 @@
 		'fieldname': 'search_fields',
 		'fieldtype': 'Data',
 		'hidden': 0,
-		'idx': 9,
 		'label': 'Search Fields',
 		'oldfieldname': 'search_fields',
 		'oldfieldtype': 'Data',
@@ -210,7 +190,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'subject',
 		'fieldtype': 'Data',
-		'idx': 10,
 		'label': 'Subject'
 	},
 
@@ -221,7 +200,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'tag_fields',
 		'fieldtype': 'Data',
-		'idx': 11,
 		'label': 'tag_fields'
 	},
 
@@ -231,7 +209,6 @@
 		'fieldname': 'istable',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 12,
 		'label': 'Is Table',
 		'oldfieldname': 'istable',
 		'oldfieldtype': 'Check',
@@ -245,7 +222,6 @@
 		'fieldname': 'read_only',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 13,
 		'label': 'Not In Search',
 		'oldfieldname': 'read_only',
 		'oldfieldtype': 'Check',
@@ -258,7 +234,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'in_create',
 		'fieldtype': 'Check',
-		'idx': 14,
 		'label': 'Not In Create',
 		'oldfieldname': 'in_create',
 		'oldfieldtype': 'Check'
@@ -270,7 +245,6 @@
 		'fieldname': 'issingle',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 15,
 		'label': 'Is Single',
 		'oldfieldname': 'issingle',
 		'oldfieldtype': 'Check',
@@ -284,7 +258,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'read_only_onload',
 		'fieldtype': 'Check',
-		'idx': 16,
 		'label': 'Show Print First',
 		'oldfieldname': 'read_only_onload',
 		'oldfieldtype': 'Check'
@@ -295,7 +268,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'show_in_menu',
 		'fieldtype': 'Check',
-		'idx': 17,
 		'label': 'Show In Pages',
 		'oldfieldname': 'show_in_menu',
 		'oldfieldtype': 'Check'
@@ -306,7 +278,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'document_type',
 		'fieldtype': 'Select',
-		'idx': 18,
 		'label': 'Document Type',
 		'oldfieldname': 'document_type',
 		'oldfieldtype': 'Select',
@@ -318,7 +289,6 @@
 		'doctype': 'DocField',
 		'fieldtype': 'Column Break',
 		'hidden': 0,
-		'idx': 19,
 		'label': 'Display',
 		'oldfieldtype': 'Column Break',
 		'reqd': 0,
@@ -331,7 +301,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'is_transaction_doc',
 		'fieldtype': 'Check',
-		'idx': 20,
 		'label': 'Is Transaction Doc',
 		'oldfieldname': 'is_transaction_doc',
 		'oldfieldtype': 'Check'
@@ -342,7 +311,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'use_template',
 		'fieldtype': 'Check',
-		'idx': 21,
 		'label': 'Use Template',
 		'oldfieldname': 'use_template',
 		'oldfieldtype': 'Check'
@@ -354,7 +322,6 @@
 		'fieldname': 'print_outline',
 		'fieldtype': 'Select',
 		'hidden': 0,
-		'idx': 22,
 		'label': 'Print Outline',
 		'oldfieldname': 'print_outline',
 		'oldfieldtype': 'Select',
@@ -369,7 +336,6 @@
 		'fieldname': 'allow_print',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 23,
 		'label': 'Hide Print',
 		'oldfieldname': 'allow_print',
 		'oldfieldtype': 'Check',
@@ -383,7 +349,6 @@
 		'fieldname': 'allow_email',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 24,
 		'label': 'Hide Email',
 		'oldfieldname': 'allow_email',
 		'oldfieldtype': 'Check',
@@ -396,7 +361,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'in_dialog',
 		'fieldtype': 'Check',
-		'idx': 25,
 		'label': 'In Dialog',
 		'oldfieldname': 'in_dialog',
 		'oldfieldtype': 'Check'
@@ -408,7 +372,6 @@
 		'fieldname': 'allow_copy',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 26,
 		'label': 'Hide Copy',
 		'oldfieldname': 'allow_copy',
 		'oldfieldtype': 'Check',
@@ -422,7 +385,6 @@
 		'fieldname': 'hide_toolbar',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 27,
 		'label': 'Hide Toolbar',
 		'oldfieldname': 'hide_toolbar',
 		'oldfieldtype': 'Check',
@@ -436,7 +398,6 @@
 		'fieldname': 'hide_heading',
 		'fieldtype': 'Check',
 		'hidden': 0,
-		'idx': 28,
 		'label': 'Hide Heading',
 		'oldfieldname': 'hide_heading',
 		'oldfieldtype': 'Check',
@@ -449,7 +410,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'allow_attach',
 		'fieldtype': 'Check',
-		'idx': 29,
 		'label': 'Allow Attach',
 		'oldfieldname': 'allow_attach',
 		'oldfieldtype': 'Check',
@@ -462,7 +422,6 @@
 		'fieldname': 'max_attachments',
 		'fieldtype': 'Int',
 		'hidden': 1,
-		'idx': 30,
 		'label': 'Max Attachments',
 		'oldfieldname': 'max_attachments',
 		'oldfieldtype': 'Int'
@@ -473,7 +432,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'allow_rename',
 		'fieldtype': 'Check',
-		'idx': 31,
 		'label': 'Allow Rename',
 		'oldfieldname': 'allow_rename',
 		'oldfieldtype': 'Check'
@@ -484,7 +442,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'section_style',
 		'fieldtype': 'Select',
-		'idx': 32,
 		'label': 'Section Style',
 		'oldfieldname': 'section_style',
 		'oldfieldtype': 'Select',
@@ -497,7 +454,6 @@
 		'fieldname': 'colour',
 		'fieldtype': 'Select',
 		'hidden': 0,
-		'idx': 33,
 		'label': 'Colour',
 		'oldfieldname': 'colour',
 		'oldfieldtype': 'Select',
@@ -512,7 +468,6 @@
 		'fieldname': 'smallicon',
 		'fieldtype': 'Select',
 		'hidden': 0,
-		'idx': 34,
 		'label': 'Small Icon',
 		'oldfieldname': 'smallicon',
 		'oldfieldtype': 'Select',
@@ -524,8 +479,15 @@
 	# DocField
 	{
 		'doctype': 'DocField',
+		'fieldname': 'default_print_format',
+		'fieldtype': 'Data',
+		'label': 'Default Print Format'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
-		'idx': 35,
 		'label': 'Permissions',
 		'oldfieldtype': 'Section Break'
 	},
@@ -534,7 +496,6 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Column Break',
-		'idx': 36,
 		'label': 'Roles and Permissions',
 		'oldfieldtype': 'Column Break',
 		'width': '70%'
@@ -547,7 +508,6 @@
 		'fieldname': 'permissions',
 		'fieldtype': 'Table',
 		'hidden': 0,
-		'idx': 37,
 		'label': 'Permissions',
 		'oldfieldname': 'permissions',
 		'oldfieldtype': 'Table',
@@ -561,7 +521,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'allow_trash',
 		'fieldtype': 'Check',
-		'idx': 38,
 		'label': 'Allow Trash',
 		'oldfieldname': 'allow_trash',
 		'oldfieldtype': 'Check'
@@ -571,7 +530,6 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Column Break',
-		'idx': 39,
 		'label': 'Print Formats',
 		'oldfieldtype': 'Column Break',
 		'width': '30%'
@@ -583,7 +541,6 @@
 		'fieldname': 'formats',
 		'fieldtype': 'Table',
 		'hidden': 0,
-		'idx': 40,
 		'label': 'Formats',
 		'oldfieldname': 'formats',
 		'oldfieldtype': 'Table',
@@ -597,7 +554,6 @@
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
 		'hidden': 0,
-		'idx': 41,
 		'label': 'Fields',
 		'oldfieldtype': 'Section Break',
 		'reqd': 0,
@@ -609,7 +565,6 @@
 		'doctype': 'DocField',
 		'fieldtype': 'Column Break',
 		'hidden': 0,
-		'idx': 42,
 		'label': 'Document Fields',
 		'oldfieldtype': 'Column Break',
 		'reqd': 0,
@@ -622,7 +577,6 @@
 		'fieldname': 'fields',
 		'fieldtype': 'Table',
 		'hidden': 0,
-		'idx': 43,
 		'label': 'Fields',
 		'oldfieldname': 'fields',
 		'oldfieldtype': 'Table',
@@ -636,7 +590,6 @@
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
 		'hidden': 0,
-		'idx': 44,
 		'label': 'Description',
 		'oldfieldtype': 'Section Break',
 		'reqd': 0,
@@ -649,12 +602,113 @@
 		'fieldname': 'description',
 		'fieldtype': 'Text',
 		'hidden': 0,
-		'idx': 45,
 		'label': 'Description',
 		'oldfieldname': 'description',
 		'oldfieldtype': 'Text',
 		'reqd': 0,
 		'search_index': 0,
 		'width': '300px'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'change_log',
+		'fieldtype': 'Text',
+		'label': 'Change Log',
+		'oldfieldname': 'change_log',
+		'oldfieldtype': 'Text'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Section Break',
+		'label': 'Template',
+		'oldfieldtype': 'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'dt_template',
+		'fieldtype': 'Code',
+		'label': 'DocType Template',
+		'oldfieldname': 'dt_template',
+		'oldfieldtype': 'Code'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'client_script_core',
+		'fieldtype': 'Code',
+		'label': 'Client Script Core',
+		'oldfieldname': 'client_script_core',
+		'oldfieldtype': 'Code'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'client_script',
+		'fieldtype': 'Code',
+		'hidden': 0,
+		'label': 'Client Side Javascript',
+		'oldfieldname': 'client_script',
+		'oldfieldtype': 'Code',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'server_code_core',
+		'fieldtype': 'Code',
+		'label': 'Server Code Core',
+		'oldfieldname': 'server_code_core',
+		'oldfieldtype': 'Code'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'server_code',
+		'fieldtype': 'Code',
+		'label': 'Server Code',
+		'oldfieldname': 'server_code',
+		'oldfieldtype': 'Code'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'server_code_compiled',
+		'fieldtype': 'Code',
+		'hidden': 1,
+		'label': 'Server Code Compiled',
+		'oldfieldname': 'server_code_compiled',
+		'oldfieldtype': 'Code'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'server_code_error',
+		'fieldtype': 'Read Only',
+		'label': 'Server Code Error',
+		'oldfieldname': 'server_code_error',
+		'oldfieldtype': 'Read Only'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'client_string',
+		'fieldtype': 'Code',
+		'label': 'Clientside String',
+		'oldfieldname': 'client_string',
+		'oldfieldtype': 'Code'
 	}
 ]
