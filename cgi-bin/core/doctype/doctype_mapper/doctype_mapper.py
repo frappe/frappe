@@ -143,7 +143,12 @@ class DocType:
 		for f in fld_list:
 			if f[2] == 'Yes':
 				if f[0].startswith('eval:'):
-					to_doc.fields[f[1]] = eval(f[0][5:])
+					try:
+						val = eval(f[0][5:])
+					except:
+						val = ''
+						
+					to_doc.fields[f[1]] = val
 				else:
 					to_doc.fields[f[1]] = obj.fields.get(f[0])
 				
