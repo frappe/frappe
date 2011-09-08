@@ -297,7 +297,7 @@ _f.ButtonField.prototype.make_input = function() { var me = this;
 	
 	// make the input
 	this.input = $btn(this.button_area, 
-		me.df.label.substr(0,20) + ((me.df.label.length>20) ? '..' : ''), {width:'170px', fontWeight:'bold'}, null, 1)
+		me.df.label.substr(0,20) + ((me.df.label.length>20) ? '..' : ''), null, {width:'170px', fontWeight:'bold'}, 'cupid-blue', 1)
 
 	this.input.onclick = function() {
 		if(me.not_in_form) return;
@@ -425,7 +425,7 @@ _f.CodeField.prototype.make_input = function() {
 		// setup tiny mce
 		$(me.input).tinymce({
 			// Location of TinyMCE script
-			script_url : 'js/tiny_mce_33/tiny_mce.js',
+			script_url : 'lib/js/legacy/tiny_mce_33/tiny_mce.js',
 
 			// General options
 			theme : "advanced",

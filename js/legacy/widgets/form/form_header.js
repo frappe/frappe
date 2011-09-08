@@ -176,13 +176,12 @@ _f.FrmHeader.prototype.set_save_submit_color = function(doc) {
 	
 	if(cint(doc.docstatus)==0 && submit_btn && save_btn) {
 		if(cint(doc.__unsaved)) {
-			save_btn.wid_color = 'green';
-			submit_btn.wid_color = 'normal';
+			save_btn.className = 'cupid-green';
+			submit_btn.className = 'clean-gray';
 		} else {
-			save_btn.wid_color = 'normal';
-			submit_btn.wid_color = 'green';
+			save_btn.className = 'clean-gray';
+			submit_btn.className = 'cupid-green';
 		}
-		$wid_normal(save_btn); $wid_normal(submit_btn);
 	}
 }
 

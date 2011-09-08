@@ -23,7 +23,6 @@ function unfreeze() {
 	fcount--;
 	if(!fcount) {
 		$dh(dialog_back);
-		show_selects();
 		frozen = 0;
 	}
 }

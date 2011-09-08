@@ -2,6 +2,7 @@
 // -------------------------------------------------------------------------------
 
 function loadreport(dt, rep_name, onload, menuitem, reset_report) {
+	wn.require('lib/js/legacy/report.compressed.js');
 	dt = get_label_doctype(dt);
 	
 	var show_report_builder = function(rb_con) {
@@ -47,6 +48,7 @@ function loadreport(dt, rep_name, onload, menuitem, reset_report) {
 var load_doc = loaddoc;
 
 function loaddoc(doctype, name, onload, menuitem, from_archive) {
+	wn.require('lib/js/legacy/form.compressed.js');
 	doctype = get_label_doctype(doctype);
 
 	// validate
@@ -112,6 +114,7 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 
 
 function new_doc(doctype, onload, in_dialog, on_save_callback, cdt, cdn, cnic) {
+	wn.require('lib/js/legacy/form.compressed.js');
 	// cnic = caller not in container (caller is a dialog)
 	
 	doctype = get_label_doctype(doctype);

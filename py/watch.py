@@ -7,5 +7,5 @@ if __name__=='__main__':
 	
 	while 1:
 		build.run()
-		time.sleep(2)
+		time.sleep(5)
 
