@@ -14,13 +14,11 @@ Following libraries have been used in wnframework
 - JSON2
 - JQuery
 - JQPlot
-- History
+- [History](http://benalman.com/projects/jquery-hashchange-plugin/)
 - Suckerfish (menu)
 
 ## CSS
 
 - Skeleton CSS:
-- CSS3 Overlay:
-	[https://github.com/LearnBoost/CSS3-Overlay/](https://github.com/LearnBoost/CSS3-Overlay/)
-	[http://blog.learnboost.com/blog/a-css3-overlay-system/](http://blog.learnboost.com/blog/a-css3-overlay-system/)
+- [CSS3 Overlay](https://github.com/LearnBoost/CSS3-Overlay/)
 

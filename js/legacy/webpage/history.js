@@ -44,7 +44,10 @@ nav_obj.open_notify = function(t, dt, dn, no_history) {
 			nav_obj.on_open(id);
 		
 		// add to "back" history
-		dhtmlHistory.add('!' + id,'');
+		// replace state (to url)
+		if(window.location.hash!='!' + id) {
+			window.location.hash = '!' + id;
+		}
 	}
 	
 	nav_obj.notify_observers(t, dt, dn);
@@ -119,7 +122,7 @@ nav_obj.get_page = function(loc) {
 //
 // function called when page is updated
 //
-function historyChange(newLocation, historyData) {
+function historyChange(newLocation) {
 	var t = nav_obj.get_page(newLocation)
 
 	for(var i=0;i<t.length;i++) 
@@ -160,3 +163,7 @@ function historyChange(newLocation, historyData) {
 		loaddocbrowser(t[1]);
 	} 
 };
+
+$(window).bind('hashchange', function() {
+	historyChange(location.hash);
+});

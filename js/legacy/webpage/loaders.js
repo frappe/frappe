@@ -223,21 +223,23 @@ function loadpage(page_name, call_back, no_history) {
 }
 
 //
-// adds to the url (if called using loadpage and not the url) - if i do not do this then it will overwrite
+// adds to the url (if called using loadpage and not the url) 
+// - if i do not do this then it will overwrite
 // this is useful when an argument is passed to the page separated by a /
 //
 pscript.update_page_history = function(page_name, no_history) {
 	var arg = null;
+	var t = null;
+	
 	// get from page
 	if(window.location.hash) {
 		var t = nav_obj.get_page(window.location.hash)
 	} else if(get_url_arg('page')) {
 		var t = nav_obj.get_page(get_url_arg('page'))
-	} else {
-		return;
 	}
 
-	if(t[1]==page_name) arg = t[2];
+	if(t && t[1]==page_name) arg = t[2];
+		
 	nav_obj.open_notify('Page', page_name, arg, no_history);
 }
 

@@ -17,9 +17,9 @@ wn.page = {
 		var title = $('nav ul li a[href*="' + src + '"]').attr('title') || 'No Title'
 		
 		// replace state (to url)
-		state = History.getState();
-		if(state.hash!=src) {
-			History.replaceState(null, title, src);	
+		state = window.location.hash;
+		if(state!=src) {
+			window.location.hash = state;
 		}
 		else {
 			document.title = title;

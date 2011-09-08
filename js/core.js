@@ -1,11 +1,7 @@
 
 // load all critical libraries
 wn.require("lib/js/lib/jquery.min.js");
-//wn.require("lib/js/lib/history/history.min.js");
-wn.require("lib/js/lib/history/history.adapter.jquery.js");
-wn.require("lib/js/lib/history/history.js");
-wn.require("lib/js/lib/history/history.html4.js");
-wn.require("lib/js/wn/history.js");
+wn.require("lib/js/lib/history/history.min.js");
 
 /* overload links for ajax pages */
 $(document).bind('ready', function() {
@@ -26,7 +22,7 @@ $(document).bind('ready', function() {
 	});
 
 	// go to hash page if exists
-	if(window.location.hash) {
+	if(!wn.settings.no_history && window.location.hash) {
 		wn.page.set(window.location.hash.substr(1));
 	}
 

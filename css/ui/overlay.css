@@ -23,7 +23,7 @@ body.overlaid div.overlay {
     height: 100%;
     top: 0;
     left: 0;
-    background: rgba(0,0,0,0.6);
+    background: rgba(0,0,0,0.4);
 
     -webkit-user-select: auto;
     -moz-user-select: auto;

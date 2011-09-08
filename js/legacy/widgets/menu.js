@@ -124,8 +124,6 @@ function DropdownMenu(parent, width) {
 		// clear menu timeout
 		mcancelclosetime();
 		
-		hide_selects(); 
-
 		me.is_active = 1;
 		
 		$ds(me.body); // show
@@ -142,9 +140,6 @@ function DropdownMenu(parent, width) {
 
 	this.hide = function() {
 		$dh(me.body);
-
-		//$dh(me.body); // hide
-		if(!frozen)show_selects();
 		
 		// clear from active list
 		me.is_active = 0;

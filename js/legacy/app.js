@@ -206,8 +206,8 @@ get_window_height = function() {
 // setup space holder
 setup_space_holder = function() {
 	// space holder div
-	var space_holder_div = $a(null,'div','space_holder');
-	space_holder_div.innerHTML = 'Loading...'	
+	window.space_holder_div = $a(null,'div','space_holder');
+	window.space_holder_div.innerHTML = 'Loading...'	
 }
 
 startup_list.push(setup_space_holder);
