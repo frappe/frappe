@@ -159,6 +159,8 @@ function setup_calendar() {
 	var p = new Page('_calendar');
 	p.wrapper.style.height = '100%'; // IE FIX
 	p.wrapper.onshow = function() { 
+		wn.require('lib/js/legacy/widgets/calendar.js');
+
 		if(!_c.calendar) {
 			new_widget('Calendar', function(c) { 
 				_c.calendar = c;

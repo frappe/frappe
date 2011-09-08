@@ -112,7 +112,6 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 // New Doc
 // -------------------------------------------------------------------------------
 
-
 function new_doc(doctype, onload, in_dialog, on_save_callback, cdt, cdn, cnic) {
 	wn.require('lib/js/legacy/form.compressed.js');
 	// cnic = caller not in container (caller is a dialog)
@@ -271,6 +270,8 @@ function loadscript(src, call_back) {
 
 var doc_browser_page;
 function loaddocbrowser(dt, label, fields) {
+	wn.require('lib/js/legacy/widgets/form/fields.js');
+	wn.require('lib/js/legacy/webpage/docbrowser.js');
 	dt = get_label_doctype(dt);
 	if(!doc_browser_page)
 		doc_browser_page = new ItemBrowserPage();

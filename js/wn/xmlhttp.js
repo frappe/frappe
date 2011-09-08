@@ -14,7 +14,7 @@ wn.xmlhttp = {
 		}		
 	},
 	
-	get: function(url, callback, async) {
+	get: function(url, callback, args, async) {
 		// async by default
 		if(async === null) async=true;
 		var req = wn.xmlhttp.request();
@@ -26,7 +26,7 @@ wn.xmlhttp = {
 			}
 		}
 		req.open('GET', url, async);
-		req.send(null);
+		req.send(args ? url + '?' + args : null);
 		
 		// for sync
 		if(!async) {

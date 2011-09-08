@@ -9,7 +9,6 @@
 // 		+ input_area
 //		+ display_area
 // ======================================================================================
-
 var no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image'];
 var codeid=0; var code_editors={};
 
@@ -415,6 +414,8 @@ DataField.prototype.make_input = function() {
 	// -----------------------
 	
 	if(this.df.options=='Suggest') {
+		wn.require('lib/js/legacy/widgets/autosuggest.js');
+
 		// add auto suggest
 		if(this.suggest_icon) $di(this.suggest_icon);
 		this.set_get_query = function() { }
@@ -585,6 +586,7 @@ LinkField.prototype.make_input = function() {
 
 	me.get_value = function() { return me.txt.value; }
 
+	wn.require('lib/js/legacy/widgets/autosuggest.js');
 		
 	// add auto suggest
 	var opts = {

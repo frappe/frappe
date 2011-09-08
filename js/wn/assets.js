@@ -53,7 +53,7 @@ wn.assets = {
 		wn.xmlhttp.get(t, function(txt) {
 			// add it to localstorage
 			wn.assets.add(src, txt);			
-		}, false)
+		}, 'q=' & Math.floor(Math.random()*1000) , false)
 	},
 	
 	// pass on to the handler to set

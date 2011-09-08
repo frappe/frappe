@@ -51,13 +51,13 @@ button.minimal {
 *******************************************************************************/
 button.clean-gray {
   background-color: #eeeeee;
-  background-image: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#cccccc));
+  background-image: -webkit-gradient(linear, left top, left bottom, from(#eeeeee), to(#dddddd));
   /* Saf4+, Chrome */
-  background-image: -webkit-linear-gradient(top, #eeeeee, #cccccc);
-  background-image: -moz-linear-gradient(top, #eeeeee, #cccccc);
-  background-image: -ms-linear-gradient(top, #eeeeee, #cccccc);
-  background-image: -o-linear-gradient(top, #eeeeee, #cccccc);
-  background-image: linear-gradient(top, #eeeeee, #cccccc);
+  background-image: -webkit-linear-gradient(top, #eeeeee, #dddddd);
+  background-image: -moz-linear-gradient(top, #eeeeee, #dddddd);
+  background-image: -ms-linear-gradient(top, #eeeeee, #dddddd);
+  background-image: -o-linear-gradient(top, #eeeeee, #dddddd);
+  background-image: linear-gradient(top, #eeeeee, #dddddd);
   border: 1px solid #ccc;
   border-bottom: 1px solid #bbb;
   -webkit-border-radius: 3px;
@@ -112,11 +112,6 @@ button.cupid-green {
   -ms-border-radius: 3px;
   -o-border-radius: 3px;
   border-radius: 3px;
-  -webkit-box-shadow: inset 0 1px 0 0 #96ca6d;
-  -moz-box-shadow: inset 0 1px 0 0 #96ca6d;
-  -ms-box-shadow: inset 0 1px 0 0 #96ca6d;
-  -o-box-shadow: inset 0 1px 0 0 #96ca6d;
-  box-shadow: inset 0 1px 0 0 #96ca6d;
   color: #fff;
   line-height: 1;
   font-size: 11px;

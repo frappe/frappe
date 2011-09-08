@@ -19,6 +19,10 @@ wn.ui.Button = function(args) {
 				if(!this.disabled) this.user_onclick(this); 
 			})
 			
+			// bc
+			me.btn.set_working = me.set_working;
+			me.btn.done_working = me.done_working;
+			
 			// style
 			if(args.style) 
 				wn.dom.css(me.btn, args.style);
@@ -26,14 +30,14 @@ wn.ui.Button = function(args) {
 
 		set_working: function() {
 			me.btn.disabled = 'disabled';
-			wn.dom.show(this.loading_img, 'inline');
+			wn.dom.show(me.loading_img, 'inline');
 			if(args.is_ajax) 
 				wn.dom.css(me.btn,{marginRight:'0px'});
 		},
 		
 		done_working: function() {
 			me.btn.disabled = false;
-			wn.dom.hide(this.loading_img);
+			wn.dom.hide(me.loading_img);
 			if(args.is_ajax) 
 				wn.dom.css(me.btn,{marginRight:'24px'});
 		}

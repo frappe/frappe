@@ -23,6 +23,8 @@ list_opts = {
 // -------------------------------------------------------
 
 function Listing(head_text, no_index, no_loading) {
+	wn.require('lib/js/legacy/widgets/form/fields.js');
+
 	this.start = 0; 
 	this.page_len = 20;
 	this.filters_per_line = 7;

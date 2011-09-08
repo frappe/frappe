@@ -87,7 +87,9 @@ _e.make = function() {
 	
     // ---- add auto suggest ---- 
     var opts = { script: '', json: true, maxresults: 10 };
-    
+
+	wn.require('lib/js/legacy/widgets/autosuggest.js');
+
     var as = new AutoSuggest(d.widgets['To'], opts);
     as.custom_select = function(txt, sel) {
       // ---- add to the last comma ---- 
