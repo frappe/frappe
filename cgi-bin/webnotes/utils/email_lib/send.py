@@ -16,6 +16,9 @@ class EMail:
 	"""
 	def __init__(self, sender='', recipients=[], subject='', from_defs=0, alternative=0, reply_to=None):
 		from email.mime.multipart import MIMEMultipart
+		from email import Charset
+		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
+
 		if type(recipients)==str:
 			recipients = recipients.replace(';', ',')
 			recipients = recipients.split(',')
@@ -36,7 +39,8 @@ class EMail:
 			Attach message in the text portion of multipart/alternative
 		"""
 		from email.mime.text import MIMEText		
-		part = MIMEText(message, 'plain')
+		msg = unicode(message, 'utf-8')
+		part = MIMEText(msg.encode('utf-8'), 'plain', 'UTF-8')		
 		self.msg_multipart.attach(part)
 		
 	def set_html(self, message):
