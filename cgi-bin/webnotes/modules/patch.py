@@ -5,6 +5,10 @@ def run(log_exception=1):
 	from patches import patch
 	from webnotes.utils import cint
 	
+	if webnotes.conn.cur_db_name=='accounts':
+		# no patches on accounts
+		return
+	
 	next_patch = cint(webnotes.conn.get_global('next_patch'))
 	
 	if next_patch <= patch.last_patch:
