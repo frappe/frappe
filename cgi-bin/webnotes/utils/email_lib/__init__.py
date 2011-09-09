@@ -29,19 +29,18 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 		
 	email = EMail(sender, recipients, subject, reply_to=reply_to)
 	email.cc = cc
-		
-	if msg:
-		if template:
-			msg = make_html_body(msg, template)
+	
+	if msg:		
+		if template:			
+			msg = make_html_body(msg, template).encode('utf-8')
 		else:
 			# if not html, then lets put some whitespace
 			if (not '<br>' in msg) or (not '<p>' in msg):
-				msg = msg.replace('\n','<br>')
-			
+				msg = msg.replace('\n','<br>')		
 		footer = get_footer()
-		msg = msg + (footer or '')
-		email.set_text(html2text(msg))
-		email.set_html(msg)
+		msg = msg + (footer or '')		
+		email.set_text(html2text(msg))				
+		email.set_html(msg)		
 	for p in parts:
 		email.set_message(p[1])
 	for a in attach:

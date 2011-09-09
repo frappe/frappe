@@ -162,12 +162,12 @@ class Profile:
 
 		# update tab Profile
 		webnotes.conn.sql("UPDATE tabProfile SET password=password(%s) WHERE name=%s", (pwd, profile[0][0]))
-		
+
 		self.send_email("Password Reset", "<p>Dear %s%s,</p><p>your password has been changed to %s</p><p>[Automatically Generated]</p>" % (profile[0][2], (profile[0][3] and (' ' + profile[0][3]) or ''), pwd), profile[0][1])
 		
 	def send_email(self, subj, mess, email):
 		import webnotes.utils.email_lib
-		
+
 		webnotes.utils.email_lib.sendmail(email, msg=mess, subject=subj)
 	
 	# update recent documents
