@@ -75,7 +75,8 @@ var cur_frm=null;
 var pscript = {};
 var validated = true;
 var validation_message = '';
-var tinymce_loaded=null;
+var tinymce_loaded = null;
+var cur_autosug = null;
 
 // icons
 var exp_icon = "images/ui/right-arrow.gif"; 
