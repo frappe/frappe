@@ -117,7 +117,6 @@ class DocType:
 		
 		exception_flds = default_fields
 		exception_flds += [f[1] for f in flds]
-		exception_flds += ['amended_from', 'amendment_date', 'file_list', 'naming_series', 'status']
 		
 		similar_flds = [
 			[d[0], d[0], 'Yes'] for d in sql("""
