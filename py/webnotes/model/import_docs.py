@@ -323,7 +323,7 @@ class CSVImport:
 		except Exception:
 			sql("ROLLBACK")
 			self.msg.append('<div style="color: RED"> Validation Error: %s</div>' % str((webnotes.message_log and webnotes.message_log[0]) or webnotes.utils.getTraceback()))
-			self.msg.append('<div style="color: RED"> Did not import</div>'
+			self.msg.append('<div style="color: RED"> Did not import</div>')
 			
 	# do import
 	# --------------------------------------------------------------------
