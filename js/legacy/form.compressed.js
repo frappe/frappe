@@ -61,7 +61,8 @@ this.setup_footer();if(!(this.meta.istable||user=='Guest'))this.frm_head=new _f.
 this.layout.wrapper.style.backgroundColor='#'+this.meta.colour.split(':')[1];this.setup_fields_std();}
 _f.Frm.prototype.setup_print=function(){var fl=getchildren('DocFormat',this.meta.name,'formats','DocType');var l=[];this.default_format='Standard';if(fl.length){this.default_format=fl[0].format;for(var i=0;i<fl.length;i++)
 l.push(fl[i].format);}
-l.push('Standard');this.print_sel=$a(null,'select','',{width:'160px'});add_sel_options(this.print_sel,l);this.print_sel.value=this.default_format;}
+if(this.meta.default_print_format)
+this.default_format=this.meta.default_print_format;l.push('Standard');this.print_sel=$a(null,'select','',{width:'160px'});add_sel_options(this.print_sel,l);this.print_sel.value=this.default_format;}
 _f.Frm.prototype.print_doc=function(){if(this.doc.docstatus==2){msgprint("Cannot Print Cancelled Documents.");return;}
 _p.show_dialog();}
 _f.Frm.prototype.email_doc=function(){if(!_e.dialog)_e.make();sel=this.print_sel;var c=$td(_e.dialog.rows['Format'].tab,0,1);if(c.cur_sel){c.removeChild(c.cur_sel);c.cur_sel=null;}
@@ -263,7 +264,7 @@ _f.Grid.prototype.make_ui=function(parent){var ht=make_table($a(parent,'div'),1,
 _f.Grid.prototype.show=function(){if(this.can_add_rows){$ds(this.tbar_div);}else{$dh(this.tbar_div);}
 $ds(this.wrapper);}
 _f.Grid.prototype.hide=function(){$dh(this.wrapper);$dh(this.tbar_div);}
-_f.Grid.prototype.insert_column=function(doctype,fieldname,fieldtype,label,width,options,perm,reqd){var idx=this.head_row.cells.length;if(!width)width='140px';if((width+'').slice(-2)!='px'){width=width+'px';}
+_f.Grid.prototype.insert_column=function(doctype,fieldname,fieldtype,label,width,options,perm,reqd){var idx=this.head_row.cells.length;if(!width)width='100px';if((width+'').slice(-2)!='px'){width=width+'px';}
 var col=this.head_row.insertCell(idx);col.doctype=doctype;col.fieldname=fieldname;col.fieldtype=fieldtype;col.innerHTML='<div>'+label+'</div>';col.label=label;if(reqd)
 col.childNodes[0].style.color="#D22";col.style.width=width;col.options=options;col.perm=perm;this.col_idx_by_name[fieldname]=idx;}
 _f.Grid.prototype.reset_table_width=function(){var w=0;for(var i=0,len=this.head_row.cells.length;i<len;i++){w+=cint(this.head_row.cells[i].style.width);}
