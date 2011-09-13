@@ -316,7 +316,7 @@ class UpdateDocTypeMapper(UpdateDocumentMerge):
 		if d.doctype=='Field Mapper Detail':
 			return webnotes.conn.sql("select name from `tabField Mapper Detail` where from_field=%s and to_field=%s and match_id=%s and parent=%s", (d.from_field, d.to_field, d.match_id, d.parent))
 		elif d.doctype=='Table Mapper Detail':
-			return webnotes.conn.sql("select name from `tabTable Mapper Detail` where from_table=%s and to_table = %s and match_id=%s and parent=%s", (d.from_table, d.to_table, d.match_id, d.parent))
+			return webnotes.conn.sql("select name from `tabTable Mapper Detail` where from_table=%s and to_table = %s and match_id=%s and validation_logic=%s and parent=%s", (d.from_table, d.to_table, d.match_id, d.validation_logic, d.parent))
 		
 	def get_orignal_values(self, d):
 		if d.doctype in ['Field Mapper Detail', 'Table Mapper Detail']: 
