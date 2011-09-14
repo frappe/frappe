@@ -1,19 +1,17 @@
 // library to mange assets (js, css, models, html) etc in the app.
 // will try and get from localStorge if latest are available
 // or will load them via xmlhttp
-// depends on asset_timestamps_ loaded via boot
+// depends on wn.versions to manage versioning
 
 wn.assets = {
 	// keep track of executed assets
 	executed_ : {},
 	
 	// check if the asset exists in
-	// localstorage and if the timestamp
-	// matches with the loaded timestamp
+	// localstorage 
 	exists: function(src) {
 		if('localStorage' in window
-			&& localStorage.getItem(src)
-			&& localStorage.getItem('[ts] '+src) == asset_timestamps_[src])
+			&& localStorage.getItem(src))
 			return true
 	},
 	
@@ -22,7 +20,6 @@ wn.assets = {
 	add: function(src, txt) {
 		if('localStorage' in window) {
 			localStorage.setItem(src, txt);
-			localStorage.setItem('[ts] ' + src, asset_timestamps_[src]);
 		}
 	},
 	

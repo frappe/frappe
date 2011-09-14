@@ -40,7 +40,9 @@ class Bundle:
 			f = open(outfile, 'w')
 			f.write(temp.getvalue())
 			f.close()
-			self.timestamps.update(outfile)
+
+			self.vc.repo.add(outfile)
+
 			if verbose: print 'Wrote %s' % outfile
 
 		return temp
@@ -50,13 +52,15 @@ class Bundle:
 			Returns true if the files are changed since last build
 		"""
 		import os
-		from build import force_rebuild
+		from build import force_rebuild, verbose
 
 		if force_rebuild:
 			return True
 		
 		for f in files:
-			if f in self.timestamps.dirty:
+			if f in self.dirty:
+				if verbose:
+					print '*** %s changed' % f 
 				return True
 		return False
 
@@ -82,7 +86,7 @@ class Bundle:
 		jsm.minify(temp, out)
 
 		out.close()
-		self.timestamps.update(outfile)
+		self.vc.repo.add(outfile)
 
 		new_size = os.path.getsize(outfile)
 
@@ -92,7 +96,7 @@ class Bundle:
 			print 'Compressed: %.2f kB' % (new_size / 1024.0)
 			print 'Reduction: %.1f%%' % (float(org_size - new_size) / org_size * 100)
 
-	def make(self, path):
+	def make(self, bpath):
 		"""
 			Build (stitch + compress) the file defined in build.json
 		"""
@@ -101,9 +105,11 @@ class Bundle:
 		
 		# open the build.json file and read
 		# the dict
-		bfile = open(os.path.join(path, 'build.json'), 'r')
+		bfile = open(bpath, 'r')
 		bdata = json.loads(bfile.read())
 		bfile.close()
+		
+		path = os.path.dirname(bpath)
 		
 		for outfile in bdata:
 			prefix, fname = False, outfile
@@ -115,8 +121,6 @@ class Bundle:
 			# build the file list relative to the main folder
 			fl = [os.path.relpath(os.path.join(path, f), os.curdir) for f in bdata[outfile]]
 
-			self.timestamps.bundled += fl
-
 			if self.changed(fl):
 				# js files are minified by default unless explicitly
 				# mentioned in the prefix.
@@ -127,16 +131,15 @@ class Bundle:
 				else:
 					self.concat(fl, os.path.relpath(os.path.join(path, fname), os.curdir))			
 						
-	def bundle(self, timestamps):
+	def bundle(self, vc):
 		"""
-			Build js files from "build.json"
+			Build js files from "build.json" found in version control
 		"""
 		import os
-		self.timestamps = timestamps
+		self.dirty = vc.repo.uncommitted()
+		self.vc = vc
 
 		# walk the parent folder and build all files as defined in the build.json files
-		for wt in os.walk('.', followlinks=True):
-			if 'build.json' in wt[2]:
-				# found build file
-				self.make(os.path.abspath(wt[0]))
+		for b in vc.repo.sql("select fname from bundles"):
+			self.make(os.path.abspath(os.path.join(vc.root_path, b[0])))
 

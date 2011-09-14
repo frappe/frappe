@@ -2,6 +2,7 @@
 	"core.min.js": [
 		"wn/provide.js",
 		"wn/xmlhttp.js",
+		"wn/versions.js",
 		"wn/assets.js",
 		"wn/require.js",
 		"wn/dom.js",

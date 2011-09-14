@@ -25,8 +25,9 @@ wn.xmlhttp = {
 				wn.xmlhttp.complete(req, callback, url)
 			}
 		}
-		req.open('GET', url, async);
-		req.send(args ? url + '?' + args : null);
+		var u = args ? (url + '?' + args) : url;
+		req.open('GET', u, async);
+		req.send(null);
 		
 		// for sync
 		if(!async) {

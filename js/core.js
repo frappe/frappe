@@ -1,3 +1,5 @@
+// find files changed since last version
+wn.versions.check();
 
 // load all critical libraries
 wn.require("lib/js/lib/jquery.min.js");

@@ -7,6 +7,7 @@
 	uncommitted (fname, ftype, content, timestamp)
 	files (fname, ftype, content, timestamp, version)
 	log (fname, ftype, version)
+	bundle_files (fname primary key)
 	
 	Discussion:
 	
@@ -27,23 +28,29 @@ TODO
 import unittest
 import os
 
-root_path = os.path.abspath(os.path.join(os.path.abspath(os.path.dirname(__file__)), '..', '..'))
 test_file = {'fname':'test.js', 'ftype':'js', 'content':'test_code', 'timestamp':'1100'}
+root_path = os.path.abspath(os.curdir)
 
 def edit_file():
 	# edit a file
-	p = os.path.join(root_path, 'js/core.min.js')
-	content = open(p, 'r').read()
+	p = os.path.join(root_path, 'lib/js/core.js')
+
+	# read
+	f1 = open(p, 'r')
+	content = f1.read()
+	f1.close()
+	
+	# write
 	f = open(p, 'w')
 	f.write(content)
 	f.close()
-	return p
+	return os.path.relpath(p, root_path)
 		
 verbose = False
 
 class TestVC(unittest.TestCase):
 	def setUp(self):
-		self.vc = VersionControl(root_path)
+		self.vc = VersionControl()
 		self.vc.repo.setup()
 	
 	def test_add(self):
@@ -86,13 +93,12 @@ class TestVC(unittest.TestCase):
 		self.vc.repo.commit()
 
 		p = edit_file()
-
 		# add
 		self.vc.add_all()
 
 		# check if added
 		ret = self.vc.repo.sql("select * from uncommitted", as_dict=1)
-		self.assertTrue(ret[0]['fname']==p)
+		self.assertTrue(p in [r['fname'] for r in ret])
 
 	def test_merge(self):
 		self.vc.add_all()
@@ -114,7 +120,7 @@ class TestVC(unittest.TestCase):
 		self.vc.merge(self.vc.repo, self.vc.master)
 		
 		log = self.vc.master.diff(int(self.vc.master.get_value('last_version_number'))-1)
-		self.assertTrue(log, [p])
+		self.assertTrue(p in log)
 				
 	def tearDown(self):
 		self.vc.close()
@@ -124,25 +130,26 @@ class TestVC(unittest.TestCase):
 
 
 class VersionControl:
-	def __init__(self, root):
+	def __init__(self, root=None):
 		#self.master = Repository(self, 'versions-master.db')
-		self.root(root)
+		self.set_root(root)
 
 		self.repo = Repository(self, 'versions-local.db')
 		self.ignore_folders = ['.git', '.', '..']
-		self.ignore_files = ['pyc', 'DS_Store', 'txt', 'db-journal', 'db']
+		self.ignore_files = ['py', 'pyc', 'DS_Store', 'txt', 'db-journal', 'db']
 	
 	def setup_master(self):
 		self.master = Repository(self, 'versions-master.db')
 	
-	def root(self, path=None):
+	def set_root(self, path=None):
 		"""
 			set / reset root and connect
+			(the root path is the path of the folder)
 		"""
-		if path:
-			self.root_path = path
-		else:
-			return self.root_path
+		if not path:
+			raise Exception, 'path must be given'
+		
+		self.root_path = path
 	
 	def timestamp(self, path):
 		"""
@@ -164,12 +171,16 @@ class VersionControl:
 					wt[1].remove(folder)
 					
 			for fname in wt[2]:
+				fpath = os.path.join(wt[0], fname)
+
+				if fname.endswith('build.json'):
+					self.repo.add_bundle(fpath)
+					continue
+				
 				if fname.split('.')[-1] in self.ignore_files:
 					# nothing to do
 					continue
-					
-				fpath = os.path.join(wt[0], fname)
-				
+								
 				# file does not exist
 				if not self.repo.exists(fpath):
 					if verbose:
@@ -208,6 +219,7 @@ class VersionControl:
 			target.commit(d[0])			
 
 	def close(self):
+		self.repo.conn.commit()
 		self.repo.conn.close()
 		
 class Repository:
@@ -223,12 +235,14 @@ class Repository:
 		"""
 			setup the schema
 		"""
+		print "setting up %s..." % self.db_path
 		self.cur.executescript("""
 		create table properties(pkey primary key, value);
 		create table uncommitted(fname primary key, ftype, content, timestamp);
 		create table files (fname primary key, ftype, content, timestamp, version);
 		create table log (fname, ftype, version);
 		create table versions (number integer primary key, version);
+		create table bundles(fname primary key);
 		""")
 		
 	def sql(self, query, values=(), as_dict=None):
@@ -267,13 +281,17 @@ class Repository:
 		"""
 			add to uncommitted
 		"""
+		import os
+		# commit relative path
+		fname = os.path.relpath(fname, self.vc.root_path)
+				
 		if not ftype:
 			ftype = fname.split('.')[-1]
 			
 		if not timestamp:
 			timestamp = self.vc.timestamp(fname)
 		
-		self.sql("insert into uncommitted(fname, ftype, timestamp, content) values (?, ?, ?, ?)" \
+		self.sql("insert or replace into uncommitted(fname, ftype, timestamp, content) values (?, ?, ?, ?)" \
 			, (fname, ftype, timestamp, content))
 	
 	def new_version(self):
@@ -296,15 +314,30 @@ class Repository:
 	
 	def commit(self, version=None):
 		"""
+			rebuild bundles if necessary
 			copy uncommitted files to repository, update the log and add the change
 		"""
+		# make bundles
+		from bundle import Bundle
+		Bundle().bundle(self.vc)
+		
 		# get a new version number
-		if not version:
-			version = self.new_version()
+		if not version: version = self.new_version()
 
 		self.update_number(version)
 
 		# find added files to commit
+		self.add_from_uncommitted(version)
+						
+		# clear uncommitted
+		self.sql("delete from uncommitted")
+	
+	
+	def add_from_uncommitted(self, version):
+		"""
+			move files from uncommitted table to files table
+		"""
+		
 		added = self.sql("select * from uncommitted", as_dict=1)
 		for f in added:
 			
@@ -316,21 +349,20 @@ class Repository:
 				""", (f['fname'], f['ftype'], f['timestamp'], f['content'], version))
 				
 			# update log
-			self.add_log(f['fname'], f['ftype'], version)
-						
-		# clear uncommitted
-		self.sql("delete from uncommitted")
+			self.add_log(f['fname'], f['ftype'], version)	
 	
 	def exists(self, fname):
 		"""
 			true if exists
 		"""
+		fname = os.path.relpath(fname, self.vc.root_path)
 		return self.sql("select fname from files where fname=?", (fname,))
 
 	def timestamp(self, fname):
 		"""
 			get timestamp
 		"""
+		fname = os.path.relpath(fname, self.vc.root_path)
 		return int(self.sql("select timestamp from files where fname=?", (fname,))[0][0] or 0)
 
 	def diff(self, number):
@@ -345,6 +377,12 @@ class Repository:
 			
 		return list(set([f[0] for f in ret]))
 	
+	def uncommitted(self):
+		"""
+			return list of uncommitted files
+		"""
+		return [f[0] for f in self.sql("select fname from uncommitted")]
+	
 	def get_file(self, fname):
 		"""
 			return file info as dict
@@ -356,7 +394,15 @@ class Repository:
 			add file to log
 		"""
 		self.sql("insert into log(fname, ftype, version) values (?,?,?)", (fname, ftype, version))
-		
+	
+	def add_bundle(self, fname):
+		"""
+			add to bundles
+		"""
+		self.sql("insert or replace into bundles(fname) values (?)", (fname,))
 		
 if __name__=='__main__':
+	import os, sys
+	sys.path.append('py')
+	sys.path.append('lib/py')
 	unittest.main()

@@ -14,11 +14,9 @@ class Project:
 		"""
 			load libraries
 		"""
-		from build.timestamps import Timestamps
 		from build.bundle import Bundle
 		from nav import Nav
 		
-		self.timestamps = Timestamps()
 		self.bundle = Bundle()
 		self.nav = Nav()
 
@@ -29,11 +27,13 @@ class Project:
 		import json
 
 		corejs = open('lib/js/core.min.js', 'r')
+		v = int(self.vc.repo.get_value('last_version_number') or 0) + 1
 		
-		boot = 'var asset_timestamps_=' + self.timestamps.get('json', ('js', 'html', 'css')) \
-			+ '\n' + corejs.read()
-		
+		boot = ('window._version_number="%s"' % str(v)) + \
+			'\n' + corejs.read()
+
 		corejs.close()
+		
 		return boot
 
 	def render_templates(self):
@@ -69,15 +69,22 @@ class Project:
 					print "Rendered %s | %.2fkb" % (fpath, os.path.getsize(fpath) / 1024.0)
 				
 
-	def build(self):
+	def build(self, root_path):
 		"""
-			Build all js files, timestamps.js, index.html and template.html
+			Build all js files, index.html and template.html
 		"""
+		from build.version import VersionControl
 		
-		# make bundles
-		self.bundle.bundle(self.timestamps)
+		self.vc = VersionControl(root_path)
+		self.vc.add_all()
 		
 		# index, template if framework is dirty
-		if self.timestamps.dirty:
+		if self.vc.repo.uncommitted():
+			self.bundle.bundle(self.vc)			
 			self.render_templates()
-			self.timestamps.write()
+
+			# again add all bundles
+			self.vc.add_all()
+			self.vc.repo.commit()
+		
+		self.vc.close()

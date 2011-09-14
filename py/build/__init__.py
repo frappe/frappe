@@ -2,20 +2,17 @@ verbose = True
 force_rebuild = False
 no_minify = False
 
-def run():
+def run(path):
 	"""
 		Run the builder
 	"""
 	global verbose
 	import sys, os
 
-	sys.path.append('py')
-	sys.path.append('lib/py')
-
 	from build.project import Project
 
 	verbose = True
-	Project().build()
+	Project().build(path)
 	
 if __name__=='__main__':
 	run()
