@@ -28,6 +28,9 @@ wn.assets = {
 	},
 	
 	extn: function(src) {
+		if(src.indexOf('?')!=-1) {
+			src = src.split('?').slice(-1)[0];
+		}
 		return src.split('.').slice(-1)[0];
 	},
 
@@ -45,6 +48,8 @@ wn.assets = {
 	// load an asset via
 	// xmlhttp
 	load: function(src) {
+		// this is virtual page load, only get the the source
+		// *without* the template
 		var t = wn.assets.extn(src)=='html' ? wn.assets.html_src(src) : src;
 
 		wn.xmlhttp.get(t, function(txt) {
@@ -86,6 +91,11 @@ wn.assets = {
 			// make the html content page
 			var page = wn.dom.add($('.outer .inner').get(0), 'div', 'content', null, txt);
 			page.setAttribute("_src", src);
+		},
+		cgi: function(txt, src) {
+			// dynamic content, will return content as
+			// javascript
+			wn.dom.eval(txt)
 		}
 	}
 }

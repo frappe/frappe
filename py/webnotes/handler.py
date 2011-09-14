@@ -44,10 +44,9 @@ def logout():
 # --------
 
 def get_diff():
-	import os
 	v = webnotes.form_dict.get('version_number')
 	from build.version import VersionControl
-	webnotes.response['message'] = VersionControl(os.path.abspath(os.path.curdir)).repo.diff(v)
+	webnotes.response['message'] = VersionControl().repo.diff(v)
 
 # DocType Mapper
 # ------------------------------------------------------------------------------------

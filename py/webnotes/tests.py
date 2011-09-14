@@ -15,7 +15,7 @@ import sys, os
 import unittest
 
 # webnotes path
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.append('lib/py')
 
 # modules path
 import webnotes

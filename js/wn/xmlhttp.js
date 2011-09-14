@@ -25,7 +25,14 @@ wn.xmlhttp = {
 				wn.xmlhttp.complete(req, callback, url)
 			}
 		}
-		var u = args ? (url + '?' + args) : url;
+		// separator can be & or ? 
+		// based on if there are already arguments
+		var sep = (args.indexOf('?')==-1 ? '?' : '&');
+		
+		// add arguments to url
+		var u = args ? (url + sep + args) : url;
+
+		// call the server
 		req.open('GET', u, async);
 		req.send(null);
 		

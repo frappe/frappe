@@ -17,19 +17,13 @@
 	must pull the latest .wnf db and merge
 	
 	versions-local.db is never commited in the global repository
-	
-TODO
-
-	- walk
-	- merge
-	- client
 """
 
 import unittest
 import os
 
 test_file = {'fname':'test.js', 'ftype':'js', 'content':'test_code', 'timestamp':'1100'}
-root_path = os.path.abspath(os.curdir)
+root_path = os.curdir
 
 def edit_file():
 	# edit a file
@@ -50,18 +44,18 @@ verbose = False
 
 class TestVC(unittest.TestCase):
 	def setUp(self):
-		self.vc = VersionControl()
+		self.vc = VersionControl(root_path, True)
 		self.vc.repo.setup()
 	
 	def test_add(self):
-		self.vc.repo.add(**test_file)
-		ret = self.vc.repo.sql('select * from uncommitted', as_dict=1)[0]
-		self.assertTrue(ret==test_file)
+		self.vc.add(**test_file)
+		ret = self.vc.repo.sql('select * from uncommitted', as_dict=1)[0]		
+		self.assertTrue(ret['content']==test_file['content'])
 	
 	def test_commit(self):
 		last_number = self.vc.repo.get_value('last_version_number')
-		self.vc.repo.add(**test_file)
-		self.vc.repo.commit()
+		self.vc.add(**test_file)
+		self.vc.commit()
 
 		# test version
 		number = self.vc.repo.get_value('last_version_number')
@@ -78,8 +72,8 @@ class TestVC(unittest.TestCase):
 		self.assertTrue(self.vc.repo.sql("select * from log where version=?", (version,)))
 
 	def test_diff(self):
-		self.vc.repo.add(**test_file)
-		self.vc.repo.commit()
+		self.vc.add(**test_file)
+		self.vc.commit()
 		self.assertTrue(self.vc.repo.diff(None), ['test.js'])
 
 	def test_walk(self):
@@ -90,7 +84,7 @@ class TestVC(unittest.TestCase):
 		ret = self.vc.repo.sql("select * from uncommitted", as_dict=1)
 		self.assertTrue(len(ret)>0)
 
-		self.vc.repo.commit()
+		self.vc.commit()
 
 		p = edit_file()
 		# add
@@ -103,19 +97,18 @@ class TestVC(unittest.TestCase):
 	def test_merge(self):
 		self.vc.add_all()
 		
-		self.vc.repo.commit()
+		self.vc.commit()
 		
 		# write the file
 		self.vc.repo.conn.commit()
 
 		# make master (copy)
-		os.system('cp %s %s' % (os.path.join(root_path, 'versions-local.db'), os.path.join(root_path, 'versions-master.db')))
 		self.vc.setup_master()
 
 		p = edit_file()
 		
 		self.vc.add_all()
-		self.vc.repo.commit()
+		self.vc.commit()
 				
 		self.vc.merge(self.vc.repo, self.vc.master)
 		
@@ -124,39 +117,66 @@ class TestVC(unittest.TestCase):
 				
 	def tearDown(self):
 		self.vc.close()
-		os.remove(self.vc.repo.db_path)
-
-
-
+		if os.path.exists(self.vc.local_db_name()):
+			os.remove(self.vc.local_db_name())
+		if os.path.exists(self.vc.master_db_name()):
+			os.remove(self.vc.master_db_name())
 
 class VersionControl:
-	def __init__(self, root=None):
-		#self.master = Repository(self, 'versions-master.db')
+	def __init__(self, root=None, testing=False):
+		self.testing = testing
+
 		self.set_root(root)
 
-		self.repo = Repository(self, 'versions-local.db')
+		self.repo = Repository(self, self.local_db_name())
 		self.ignore_folders = ['.git', '.', '..']
 		self.ignore_files = ['py', 'pyc', 'DS_Store', 'txt', 'db-journal', 'db']
 	
+	def local_db_name(self):
+		"""return local db name"""
+		return os.path.join(self.root_path, 'versions-local.db' + (self.testing and '.test' or ''))
+
+	def master_db_name(self):
+		"""return master db name"""
+		return os.path.join(self.root_path, 'versions-master.db' + (self.testing and '.test' or ''))
+	
 	def setup_master(self):
-		self.master = Repository(self, 'versions-master.db')
+		"""
+			setup master db from local (if not present)
+		"""
+		import os
+		if not os.path.exists(self.master_db_name()):
+			os.system('cp %s %s' % (self.local_db_name(), self.master_db_name()))
+
+		self.master = Repository(self, self.master_db_name())
 	
 	def set_root(self, path=None):
 		"""
 			set / reset root and connect
 			(the root path is the path of the folder)
 		"""
+		import os
 		if not path:
-			raise Exception, 'path must be given'
+			path = os.path.abspath(os.path.curdir)
 		
 		self.root_path = path
+	
+	def relpath(self, fname):
+		"""
+			get relative path from root path
+		"""
+		import os
+		return os.path.relpath(fname, self.root_path)
 	
 	def timestamp(self, path):
 		"""
 			returns timestamp
 		"""
 		import os
-		return int(os.stat(path).st_mtime)
+		if os.path.exists(path):
+			return int(os.stat(path).st_mtime)
+		else:
+			return 0
 
 	def add_all(self):
 		"""
@@ -182,7 +202,7 @@ class VersionControl:
 					continue
 								
 				# file does not exist
-				if not self.repo.exists(fpath):
+				if not self.exists(fpath):
 					if verbose:
 						print "%s added" % fpath
 					self.repo.add(fpath)
@@ -217,16 +237,44 @@ class VersionControl:
 				target.add(**f)
 			
 			target.commit(d[0])			
+	
+	"""
+		short hand
+	"""
+	def commit(self, version=None): 
+		"""commit to local"""
+		self.repo.commit(version)
+		
+	def add(self, **args):
+		"""add to local"""
+		self.repo.add(**args)
 
+	def remove(self, fname):
+		"""remove from local"""
+		self.repo.add(fname=fname, action='remove')
+		
+	def exists(self, fname):
+		"""exists in local"""
+		return len(self.repo.sql("select fname from files where fname=?", (self.relpath(fname),)))
+				
+	def get_file(self, fname):
+		"""return file"""
+		return self.repo.sql("select * from files where fname=?", (self.relpath(fname),), as_dict=1)[0]
+		
+		
 	def close(self):
 		self.repo.conn.commit()
 		self.repo.conn.close()
-		
+	
+	
+	
+	
 class Repository:
-	def __init__(self, vc, fname = 'versions-local.db'):
+	def __init__(self, vc, fname):
 		self.vc = vc
 
 		import sqlite3
+		
 		self.db_path = os.path.join(self.vc.root_path, fname)
 		self.conn = sqlite3.connect(self.db_path)
 		self.cur = self.conn.cursor()
@@ -238,7 +286,7 @@ class Repository:
 		print "setting up %s..." % self.db_path
 		self.cur.executescript("""
 		create table properties(pkey primary key, value);
-		create table uncommitted(fname primary key, ftype, content, timestamp);
+		create table uncommitted(fname primary key, ftype, content, timestamp, action);
 		create table files (fname primary key, ftype, content, timestamp, version);
 		create table log (fname, ftype, version);
 		create table versions (number integer primary key, version);
@@ -277,22 +325,26 @@ class Repository:
 		self.sql("insert or replace into properties(pkey, value) values (?, ?)", (key,value))
 
 		
-	def add(self, fname, ftype=None, timestamp=None, content=None, version=None):
+	def add(self, fname, ftype=None, timestamp=None, content=None, version=None, action=None):
 		"""
 			add to uncommitted
 		"""
 		import os
-		# commit relative path
-		fname = os.path.relpath(fname, self.vc.root_path)
-				
-		if not ftype:
-			ftype = fname.split('.')[-1]
-			
+
 		if not timestamp:
 			timestamp = self.vc.timestamp(fname)
-		
-		self.sql("insert or replace into uncommitted(fname, ftype, timestamp, content) values (?, ?, ?, ?)" \
-			, (fname, ftype, timestamp, content))
+
+		# commit relative path
+		fname = self.vc.relpath(fname)
+				
+		if not action:
+			action = 'add'
+			
+		if not ftype:
+			ftype = fname.split('.')[-1]
+					
+		self.sql("insert or replace into uncommitted(fname, ftype, timestamp, content, action) values (?, ?, ?, ?, ?)" \
+			, (fname, ftype, timestamp, content, action))
 	
 	def new_version(self):
 		"""
@@ -340,29 +392,28 @@ class Repository:
 		
 		added = self.sql("select * from uncommitted", as_dict=1)
 		for f in added:
+			if f['action']=='add':
+				# move them to "files"
+				self.sql("""
+					insert or replace into files 
+					(fname, ftype, timestamp, content, version) 
+					values (?,?,?,?,?)
+					""", (f['fname'], f['ftype'], f['timestamp'], f['content'], version))
+
+			elif f['action']=='remove':
+				self.sql("""delete from files where fname=?""", (f['fname'],))
 			
-			# move them to "files"
-			self.sql("""
-				insert or replace into files 
-				(fname, ftype, timestamp, content, version) 
-				values (?,?,?,?,?)
-				""", (f['fname'], f['ftype'], f['timestamp'], f['content'], version))
-				
+			else:
+				raise Exception, 'bad action %s' % action
+			
 			# update log
 			self.add_log(f['fname'], f['ftype'], version)	
 	
-	def exists(self, fname):
-		"""
-			true if exists
-		"""
-		fname = os.path.relpath(fname, self.vc.root_path)
-		return self.sql("select fname from files where fname=?", (fname,))
-
 	def timestamp(self, fname):
 		"""
 			get timestamp
 		"""
-		fname = os.path.relpath(fname, self.vc.root_path)
+		fname = self.vc.relpath(fname)
 		return int(self.sql("select timestamp from files where fname=?", (fname,))[0][0] or 0)
 
 	def diff(self, number):
@@ -383,12 +434,6 @@ class Repository:
 		"""
 		return [f[0] for f in self.sql("select fname from uncommitted")]
 	
-	def get_file(self, fname):
-		"""
-			return file info as dict
-		"""
-		return self.sql("select * from files where fname=?", (fname,), as_dict=1)[0]
-		
 	def add_log(self, fname, ftype, version):
 		"""
 			add file to log

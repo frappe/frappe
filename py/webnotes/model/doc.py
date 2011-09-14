@@ -95,8 +95,14 @@ class Document:
 	def _loadfromdb(self, doctype = None, name = None):
 		if name: self.name = name
 		if doctype: self.doctype = doctype
-				
-		if webnotes.model.meta.is_single(self.doctype):
+		
+		is_single = False
+		try: 
+			is_single = webnotes.model.meta.is_single(self.doctype)
+		except Exception, e:
+			pass
+		
+		if is_single:
 			self._loadsingle()
 		else:
 			dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))

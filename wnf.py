@@ -9,7 +9,6 @@ version.verbose = True
 def run():
 	sys.path.append('lib')
 	sys.path.append('lib/py')
-	vc = version.VersionControl(os.path.abspath(os.curdir))
 
 	if len(sys.argv)<2:
 		print "wnframework version control utility"
@@ -20,25 +19,13 @@ def run():
 
 	if cmd=='build':
 		from py import build
-		build.run(os.path.abspath(os.curdir))
-		
-	if cmd=='add':
-		if not len(sys.argv)>1:
-			print 'usage: wnf add path/to/file'
-			return
-			
-		vc.repo.add(sys.argv[2])
-	
-	if cmd=='commit':
-		if len(sys.argv>2) and sys.argv[2]=='-a':
-			vc.add_all()
-		
-		vc.repo.commit()
-	
-	if cmd=='diff':
-		vc.repo.uncommitted()
-	
+		build.run()
+
+		vc = version.VersionControl()
+		print 'version %s' % vc.repo.get_value('last_version_number')
+				
 	if cmd=='merge':
+		vc = version.VersionControl()
 		vc.setup_master()
 		if sys.argv[2]=='local':
 			vc.merge(vc.repo, vc.master)
@@ -47,11 +34,32 @@ def run():
 		else:
 			print "usage: wnf merge local|master"
 			print "help: parameter (local or master) is the source"
+		vc.close()
 
 	if cmd=='setup':
+		vc = version.VersionControl()
 		vc.repo.setup()
+		vc.close()
+		
+	if cmd=='clear_startup':
+		from webnotes import startup
+		startup.clear_info('all')
 
-	vc.close()
+		vc = version.VersionControl()
+		print 'version %s' % vc.repo.get_value('last_version_number')
+		
+	if cmd=='log':
+		vc = version.VersionControl()
+		for l in vc.repo.sql("select * from log order by rowid desc limit 10 ", as_dict =1):
+			print 'file:'+ l['fname'] + ' | version: ' + l['version']
+		print 'version %s' % vc.repo.get_value('last_version_number')
+		vc.close()
+		
+	if cmd=='files':
+		vc = version.VersionControl()
+		for f in vc.repo.sql("select fname from files where fname like ?", ((sys.argv[2] + '%'),)):
+			print f[0]
+		vc.close()
 
 if __name__=='__main__':
 	run()
