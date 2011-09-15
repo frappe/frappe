@@ -259,7 +259,7 @@ function WNToolbar(parent) {
 		$td(t,0,4).innerHTML = '<span style="cursor: pointer;" onclick="logout()">Logout</span>';
 		this.menu_table_right = t;
 		$y($td(t,0,5), {width:'18px'});
-		this.spinner = $a($td(t,0,5),'img','',{display:'none'}); this.spinner.src = 'images/ui/spinner.gif';
+		this.spinner = $a($td(t,0,5),'img','',{display:'none'}); this.spinner.src = 'lib/images/ui/spinner.gif';
 	}
 
 	this.download_backup = function() {

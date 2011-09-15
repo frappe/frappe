@@ -193,10 +193,7 @@ ItemBrowser.prototype.make_toolbar = function() {
 	if(this.dt_details.can_cancel) {
 		this.delete_btn = $btn(this.main_toolbar, 'Delete', function() { me.delete_items(); });
 	}
-	
-	if(this.archive_btn && this.delete_btn)
-		$btn_join(this.archive_btn, this.delete_btn)
-	
+		
 	// search box
 	this.search_input = $a(this.main_toolbar, 'input', '', {width:'120px', marginLeft:'24px', border:'1px solid #AAA'});
 	this.search_btn = $btn(this.main_toolbar, 'Search', function() { me.run(); }, {marginLeft:'4px'});	

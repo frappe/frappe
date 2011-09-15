@@ -113,7 +113,7 @@ $item_set_working = function(ele) {
 	} else {
 		ele.disabled = 1;
 		ele.loading_img = $a(ele.parentNode,'img','',{marginLeft:'4px',marginBottom:'-2px',display:'inline'});
-		ele.loading_img.src = 'images/ui/button-load.gif';
+		ele.loading_img.src = 'lib/images/ui/button-load.gif';
 	}
 }
 $item_done_working = function(ele) {
