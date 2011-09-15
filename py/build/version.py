@@ -234,6 +234,7 @@ class VersionControl:
 		"""
 		for d in self.version_diff(source, target):
 			for f in source.sql("select * from files where version=?", d, as_dict=1):
+				print 'merging %s' % f['fname']
 				target.add(**f)
 			
 			target.commit(d[0])			
@@ -265,6 +266,10 @@ class VersionControl:
 	def close(self):
 		self.repo.conn.commit()
 		self.repo.conn.close()
+		
+		if hasattr(self, 'master'):
+			self.master.conn.commit()
+			self.master.conn.close()
 	
 	
 	

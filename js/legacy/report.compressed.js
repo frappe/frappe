@@ -52,7 +52,7 @@ _r.ReportBuilder.prototype.setup_dt_filters_and_cols=function(fl,dt){var me=this
 var sf_list=locals.DocType[dt].search_fields?locals.DocType[dt].search_fields.split(','):[];for(var i in sf_list)sf_list[i]=strip(sf_list[i]);for(var i=0;i<fl.length;i++){var f=fl[i];if(f&&cint(f.in_filter)){me.report_filters.add_field(f,dt,in_list(sf_list,f.fieldname));}
 if(f&&!in_list(no_value_fields,f.fieldtype)&&f.fieldname!='docstatus'&&(!f.report_hide)){me.column_picker.add_field(f);}}
 me.set_sort_options();}
-_r.ReportBuilder.prototype.set_sort_options=function(l){var sl=this.orig_sort_list;empty_select(this.dt.sort_sel);if(l)sl=add_lists(l,this.orig_sort_list);if(!l.length){l.push(['ID','name'])}
+_r.ReportBuilder.prototype.set_sort_options=function(l){var sl=this.orig_sort_list;empty_select(this.dt.sort_sel);if(l)sl=add_lists(l,this.orig_sort_list);if(!l)l=[];if(!l.length){l.push(['ID','name'])}
 for(var i=0;i<sl.length;i++){this.dt.add_sort_option(sl[i][0],sl[i][1]);}}
 _r.ReportBuilder.prototype.validate_permissions=function(onload){this.perm=get_perm(this.parent_dt?this.parent_dt:this.doctype);if(!this.perm[0][READ]){this.forbidden=1;if(user=='Guest'){msgprint('You must log in to view this page');}else{msgprint('No Read Permission');}
 nav_obj.show_last_open();return 0;}

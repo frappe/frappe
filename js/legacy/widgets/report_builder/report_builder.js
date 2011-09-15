@@ -441,7 +441,7 @@ _r.ReportBuilder.prototype.setup_filters_and_cols = function() {
 	// hide primary filters blue box if there are no primary filters
 	if(!this.has_primary_filters) 
 		$dh(this.report_filters.first_page_filter);
-
+	
 	this.column_picker.refresh();
 
 	// show body
@@ -471,7 +471,7 @@ _r.ReportBuilder.prototype.setup_dt_filters_and_cols = function(fl, dt) {
 
 	var lab = $a(me.picker_area,'div','builder_dt_head');
 	lab.innerHTML = 'Select columns for ' + get_doctype_label(dt);
-		
+
 	// get fields
 	var dt_fields = fields_list[dt];
 	for(var i=0;i<dt_fields.length;i++) {
@@ -499,6 +499,7 @@ _r.ReportBuilder.prototype.setup_dt_filters_and_cols = function(fl, dt) {
 			me.column_picker.add_field(f);
 		}
 	}
+
 	me.set_sort_options();
 }
 
@@ -506,10 +507,13 @@ _r.ReportBuilder.prototype.setup_dt_filters_and_cols = function(fl, dt) {
 
 _r.ReportBuilder.prototype.set_sort_options = function(l) {
 	var sl = this.orig_sort_list;
-	
+
 	empty_select(this.dt.sort_sel);
 		
 	if(l) sl = add_lists(l, this.orig_sort_list);
+	
+	// make new list if reqd
+	if(!l) l = [];
 	
 	// no sorts, add one
 	if(!l.length) {
