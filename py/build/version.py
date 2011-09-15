@@ -366,13 +366,8 @@ class Repository:
 	
 	def commit(self, version=None):
 		"""
-			rebuild bundles if necessary
 			copy uncommitted files to repository, update the log and add the change
 		"""
-		# make bundles
-		from bundle import Bundle
-		Bundle().bundle(self.vc)
-		
 		# get a new version number
 		if not version: version = self.new_version()
 

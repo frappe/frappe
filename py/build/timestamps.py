@@ -1,3 +1,6 @@
+## DEPRECATED
+
+
 class Timestamps:
 	"""
 		Build / manage json timestamp files

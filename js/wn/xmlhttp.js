@@ -27,7 +27,7 @@ wn.xmlhttp = {
 		}
 		// separator can be & or ? 
 		// based on if there are already arguments
-		var sep = (args.indexOf('?')==-1 ? '?' : '&');
+		var sep = ((args && args.indexOf('?'))==-1) ? '?' : '&';
 		
 		// add arguments to url
 		var u = args ? (url + sep + args) : url;

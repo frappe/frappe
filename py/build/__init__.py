@@ -2,7 +2,7 @@ verbose = True
 force_rebuild = False
 no_minify = False
 
-def run(path):
+def run():
 	"""
 		Run the builder
 	"""
@@ -12,7 +12,7 @@ def run(path):
 	from build.project import Project
 
 	verbose = True
-	Project().build(path)
+	Project().build()
 	
 if __name__=='__main__':
 	run()

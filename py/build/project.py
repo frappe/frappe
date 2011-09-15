@@ -10,7 +10,7 @@ class Project:
 			assets/js/core.min.js
 			assets/timestamps.json
 	"""	
-	def __init__(self,):
+	def __init__(self):
 		"""
 			load libraries
 		"""
@@ -69,18 +69,18 @@ class Project:
 					print "Rendered %s | %.2fkb" % (fpath, os.path.getsize(fpath) / 1024.0)
 				
 
-	def build(self, root_path):
+	def build(self):
 		"""
 			Build all js files, index.html and template.html
 		"""
 		from build.version import VersionControl
 		
-		self.vc = VersionControl(root_path)
+		self.vc = VersionControl()
 		self.vc.add_all()
 		
 		# index, template if framework is dirty
 		if self.vc.repo.uncommitted():
-			self.bundle.bundle(self.vc)			
+			self.bundle.bundle(self.vc)
 			self.render_templates()
 
 			# again add all bundles

@@ -337,5 +337,6 @@ class JsModuleFile(ModuleFile):
 			p = re.compile('\$import\( (?P<name> [^)]*) \)', re.VERBOSE)
 
 			code = p.sub(self.get_js, code)
-			
+						
 		return code
+		
