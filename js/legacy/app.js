@@ -70,7 +70,7 @@ function startup() {
 		setup_events();
 
 		var a = new Body();
-		page_body.run_startup_code();		
+		page_body.run_startup_code();
 		page_body.setup_sidebar_menu();
 		
 		for(var i=0; i<startup_list.length; i++) {
