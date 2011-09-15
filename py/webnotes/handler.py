@@ -11,7 +11,6 @@ session = None
 errdoc = ''
 errdoctype = ''
 errmethod = ''
-fw_folder = '/Users/rushabh/workbench/www/'
 
 
 # Logs
