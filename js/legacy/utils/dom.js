@@ -71,11 +71,11 @@ function $ln(parent, label, onclick, style) {
 	return wn.ele.link({parent:parent, label:label, onclick:onclick, style:style})
 }
 
-function $btn(parent, label, onclick, style, class, is_ajax) {
+function $btn(parent, label, onclick, style, css_class, is_ajax) {
 	wn.require('lib/js/wn/ui/button.js');
 	if(class==='green') class='cupid-green';
 	return new wn.ui.Button(
-		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, class: class}
+		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
 	).btn;
 }
 

@@ -3,7 +3,7 @@ wn.ui.Button = function(args) {
 	var me = this;
 	$.extend(this, {
 		make: function() {
-			me.btn = wn.dom.add(args.parent, 'button', args.class || 'clean-gray');
+			me.btn = wn.dom.add(args.parent, 'button', args.css_class || 'clean-gray');
 
 			// ajax loading
 			me.loading_img = wn.dom.add(args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
