@@ -58,6 +58,12 @@ def run():
 		vc.merge(vc.repo, vc.master)
 		vc.close()
 
+	elif cmd=='merge-local':
+		vc = version.VersionControl()
+		vc.setup_master()
+		vc.merge(vc.master, vc.repo)
+		vc.close()
+
 	elif cmd=='setup':
 		setup()
 		

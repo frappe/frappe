@@ -1208,7 +1208,7 @@ _f.ButtonField.prototype.make_input = function() { var me = this;
 
 	this.input.onclick = function() {
 		if(me.not_in_form) return;
-		this.disabled = true;
+		this.disabled = 'disabled';
 		if(cur_frm.cscript[me.df.label] && (!me.in_filter)) {			
 			cur_frm.runclientscript(me.df.label, me.doctype, me.docname);
 			this.disabled = false;
