@@ -38,12 +38,12 @@ Field.prototype.make_body = function() {
 	
 		// error icon
 		this.label_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 4px'}); $dh(this.label_icon);
-		this.label_icon.src = 'images/icons/error.gif';
+		this.label_icon.src = 'lib/images/icons/error.gif';
 		this.label_icon.title = 'Mandatory value needs to be entered';
 
 		// error icon
 		this.suggest_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 0px'}); $dh(this.suggest_icon);
-		this.suggest_icon.src = 'images/icons/bullet_arrow_down.png';
+		this.suggest_icon.src = 'lib/images/icons/bullet_arrow_down.png';
 		this.suggest_icon.title = 'With suggestions';
 
 	} else {
@@ -808,7 +808,7 @@ CheckField.prototype.validate = function(v) {
 CheckField.prototype.onmake = function() {
 	this.checkimg = $a(this.disp_area, 'div');
 	var img = $a(this.checkimg, 'img');
-	img.src = 'images/ui/tick.gif';
+	img.src = 'lib/images/ui/tick.gif';
 	$dh(this.checkimg);
 }
 

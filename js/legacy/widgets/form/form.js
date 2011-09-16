@@ -287,13 +287,12 @@ _f.Frm.prototype.setup_tips = function() {
 	this.c1 = r.insertCell(1);
 	
 	this.img = $a(c0, 'img');
-	this.img.setAttribute('src','images/icons/lightbulb.gif');
+	this.img.setAttribute('src','lib/images/icons/lightbulb.gif');
 	c0.style.width = '24px';
 	
-	this.set_tip = function(t, icon) {
+	this.set_tip = function(t) {
 		me.c1.innerHTML = '<div style="margin-bottom: 8px;">'+t+'</div>'; 
 		$ds(me.tip_box);
-		if(icon) this.img.setAttribute('src','images/icons/'+icon);
 	}
 	this.append_tip = function(t) {
 		me.c1.innerHTML += '<div style="margin-bottom: 8px;">' + t + '</div>';  $ds(me.tip_box);

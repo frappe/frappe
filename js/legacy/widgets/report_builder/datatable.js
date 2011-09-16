@@ -67,14 +67,14 @@ _r.DataTable = function(html_fieldname, dt, repname, hide_toolbar) {
   this.no_data_tag = $a(this.wrapper, 'div', 'report_no_data');
   this.no_data_tag.innerHTML = 'No Records Found';
 
-  this.fetching_tag = $a(this.wrapper, 'div', '', {height:'100%', background:'url("images/ui/square_loading.gif") center no-repeat', display:'none'});  
+  this.fetching_tag = $a(this.wrapper, 'div', '', {height:'100%', background:'url("lib/images/ui/square_loading.gif") center no-repeat', display:'none'});  
 }
 
 _r.DataTable.prototype.add_icon = function(parent, imgsrc) {
   var i = $a(parent, 'img');
   i.style.padding = '2px';
   i.style.cursor = 'pointer';
-  i.setAttribute('src', 'images/icons/'+imgsrc+'.gif');
+  i.setAttribute('src', 'lib/images/icons/'+imgsrc+'.gif');
   return i;
 }
 
@@ -180,10 +180,10 @@ _r.DataTable.prototype.make_toolbar = function(parent) {
 }
 
 _r.DataTable.prototype.set_desc = function() {
-	this.sort_icon.src = 'images/icons/arrow_down.gif'; this.sort_order='DESC';
+	this.sort_icon.src = 'lib/images/icons/arrow_down.gif'; this.sort_order='DESC';
 }
 _r.DataTable.prototype.set_asc = function(icon) {
-	this.sort_icon.src = 'images/icons/arrow_up.gif'; this.sort_order='ASC'; 
+	this.sort_icon.src = 'lib/images/icons/arrow_up.gif'; this.sort_order='ASC'; 
 }
 
 ////

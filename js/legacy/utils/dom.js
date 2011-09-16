@@ -47,7 +47,7 @@ wn.ele = {
 	link: function(args) {
 		var span = $a(args.parent, 'span', 'link_type', args.style);
 		span.loading_img = $a(args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
-		span.loading_img.src= 'images/ui/button-load.gif';
+		span.loading_img.src= 'lib/images/ui/button-load.gif';
 
 		span.innerHTML = args.label;
 		span.user_onclick = args.onclick;
@@ -526,9 +526,9 @@ var user_img_loading = [];
 set_user_img = function(img, username, get_latest, img_id) {
 	function set_it(i) {
 		if(user_img[username]=='no_img_m')
-			i.src = 'images/ui/no_img/no_img_m.gif';
+			i.src = 'lib/images/no_img_m.gif';
 		else if(user_img[username]=='no_img_f')
-			i.src = 'images/ui/no_img/no_img_f.gif'; // no image
+			i.src = 'lib/images/no_img_f.gif'; // no image
 		else {
 			ac_id = locals['Control Panel']['Control Panel'].account_id;
 			i.src = repl('cgi-bin/getfile.cgi?ac=%(ac)s&name=%(fn)s', {fn:user_img[username], ac:ac_id});			

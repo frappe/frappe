@@ -78,7 +78,7 @@ ItemBrowser = function(parent, dt, label, field_list) {
 	
 	// loading...
 	this.layout.loading = $a($td(this.layout.wtab,0,0), 'div','layout_wrapper',{padding:'200px 0px', textAlign:'center', fontSize:'14px', color:'#444', display:'none'});
-	this.layout.loading.innerHTML = 'Loading<img src="images/ui/button-load.gif" style="margin-bottom: -2px; margin-left: 8px">';
+	this.layout.loading.innerHTML = 'Loading<img src="lib/images/ui/button-load.gif" style="margin-bottom: -2px; margin-left: 8px">';
 	
 	// setup toolbar
 	this.setup_toolbar();

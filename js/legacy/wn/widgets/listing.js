@@ -47,7 +47,7 @@ wn.widgets.Listing = function(opts) {
 			this.ref_img = $a(this.toolbar_area, 'span', 'link_type', {color:'#888'}, '[refresh]');
 			this.ref_img.onclick = function() { me.run(); }
 			
-			this.loading_img = $a(this.toolbar_area, 'img', 'images/ui/button-load.gif', {display:'none', marginLeft:'3px', marginBottom:'-2px'});	
+			this.loading_img = $a(this.toolbar_area, 'img', 'lib/images/ui/button-load.gif', {display:'none', marginLeft:'3px', marginBottom:'-2px'});	
 		}
 		
 		if(this.opts.new_doctype) {

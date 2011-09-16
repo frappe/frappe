@@ -24,7 +24,6 @@ _f.Frm.prototype.setup_attach = function() {
 
 	$w(label_area, "33%");
 	var d = $a(label_area, 'div');
-	//var img = $a(d, 'img', '', {marginRight:'8px'}); img.src = 'images/icons/paperclip.gif';
 	$a(d, 'span').innerHTML = '<h4>File Attachments:</h4>';
 	
 	// button

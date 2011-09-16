@@ -89,7 +89,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 			);
 		} else {
 			var img = $a(parent, 'img', '', {marginRight: '7px', marginBottom:'-3px'});
-			img.src = 'images/icons/' + icon;
+			img.src = 'lib/images/icons/' + icon;
 		}
 	}
 	
