@@ -16,7 +16,8 @@ wn.ui.Button = function(args) {
 			// onclick
 			me.btn.user_onclick = args.onclick; 
 			$(me.btn).bind('click', function() { 
-				if(!this.disabled) this.user_onclick(this); 
+				if(!this.disabled && this.user_onclick) 
+					this.user_onclick(this); 
 			})
 			
 			// bc

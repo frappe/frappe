@@ -232,7 +232,12 @@ class VersionControl:
 		"""
 			merges with two repositories
 		"""
-		for d in self.version_diff(source, target):
+		diff = self.version_diff(source, target)
+		if not len(diff):
+			print 'nothing to merge'
+			return
+			
+		for d in diff:
 			for f in source.sql("select * from files where version=?", d, as_dict=1):
 				print 'merging %s' % f['fname']
 				target.add(**f)

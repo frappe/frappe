@@ -11,9 +11,30 @@ def print_help():
 	print "Usage:"
 	print "python lib/wnf.py build : scan all folders and commit versions with latest changes"
 	print "python lib/wnf.py setup : setup the local system (from master or fresh)"
-	print "python lib/wnf.py merge [local|master] : merge from source (master or local)"
+	print "python lib/wnf.py merge : merge from local into master"
 	print "python lib/wnf.py log : list last 10 commits"
+	print "python lib/wnf.py pull : pull from git"
+
+def setup():
+	import os, sys
 	
+	if not os.path.exists('versions-local.db'):
+		if os.path.exists('versions-master.db'):
+			import shutil
+			shutil.copyfile('versions-master.db', 'versions-local.db')
+			print "created versions-local.db from versions-master.db"
+		else:
+			vc = version.VersionControl()
+			vc.repo.setup()
+			vc.close()
+			print "created fresh versions-local.db"
+	else:
+		if len(sys.argv)==3 and sys.argv[2]=='master':
+			import shutil
+			shutil.copyfile('versions-local.db', 'versions-master.db')
+			print "created versions-master.db from versions-local.db"
+		else:
+			print "versions-local.db already exists. Nothing to do."
 def run():
 	sys.path.append('lib')
 	sys.path.append('lib/py')
@@ -34,33 +55,11 @@ def run():
 	elif cmd=='merge':
 		vc = version.VersionControl()
 		vc.setup_master()
-		if sys.argv[2]=='local':
-			vc.merge(vc.repo, vc.master)
-		elif sys.argv[2]=='master':
-			vc.merge(vc.master, vc.repo)
-		else:
-			print "usage: wnf merge local|master"
-			print "help: parameter (local or master) is the source"
+		vc.merge(vc.repo, vc.master)
 		vc.close()
 
 	elif cmd=='setup':
-		if not os.path.exists('versions-local.db'):
-			if os.path.exists('versions-master.db'):
-				import shutil
-				shutil.copyfile('versions-master.db', 'versions-local.db')
-				print "created versions-local.db from versions-master.db"
-			else:
-				vc = version.VersionControl()
-				vc.repo.setup()
-				vc.close()
-				print "created fresh versions-local.db"
-		else:
-			if len(sys.argv)==3 and sys.argv[2]=='master':
-				import shutil
-				shutil.copyfile('versions-local.db', 'versions-master.db')
-				print "created versions-master.db from versions-local.db"
-			else:
-				print "versions-local.db already exists. Nothing to do."
+		setup()
 		
 	elif cmd=='clear_startup':
 		# experimental
@@ -82,6 +81,24 @@ def run():
 		for f in vc.repo.sql("select fname from files where fname like ?", ((sys.argv[2] + '%'),)):
 			print f[0]
 		vc.close()
+	
+	# pull from remote and merge with local
+	elif cmd=='gitpull':
+		branch = 'master'
+		if len(sys.argv)>2:
+			branch = sys.argv[2]
+
+		print "pulling erpnext"
+		os.system('git pull origin %s' % branch)
+		vc = version.VersionControl()
+		vc.setup_master()
+		vc.merge(vc.master, vc.repo)
+		vc.close()
+
+		print "pulling framework"
+		os.chdir('lib')
+		os.system('git pull origin %s' % branch)
 		
+	
 if __name__=='__main__':
 	run()
