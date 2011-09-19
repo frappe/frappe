@@ -156,7 +156,7 @@ class LoginManager:
 			webnotes.msgprint('Authentication Failed', raise_exception=1)
 			#If Authentication failed, lock the table for 2 seconds
                         from webnotes.model.db_schema import DbManager
-			DbManager.create_lock(table)
+			DbManager.create_lock('tabProfile')
 			time.sleep(2)
 			DbMananger.release_locks()
 		self.user = p[0][0]
