@@ -268,12 +268,12 @@ class DbManager:
 		"""
 		return list(self.conn.sql("DESC %s"%table))
 
-	def create_lock(self,table):
+	def create_lock(self,table,lock_type='WRITE'):
 		"""
 		Just a lock on a corresponding row in a table
 
 		"""
-		return self.conn.sql("LOCK TABLES %s WRITE"%table)
+		return self.conn.sql("LOCK TABLES %s %s"%(table,lock_type))
 
 	def release_locks(self):
 		"""
