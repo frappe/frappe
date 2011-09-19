@@ -16,7 +16,7 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
-		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')					
+		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
 
 		# load cookies
 		webnotes.cookie_manager = CookieManager()
@@ -48,7 +48,7 @@ class HTTPRequest:
 		# run login triggers
 		if webnotes.form_dict.get('cmd')=='login':
 			webnotes.login_manager.run_trigger('on_login_post_session')
-			
+
 		# load profile
 		self.setup_profile()
 
@@ -65,7 +65,7 @@ class HTTPRequest:
 		if webnotes.session['data'].get('profile'):
 			webnotes.user.load_from_session(webnotes.session['data']['profile'])
 		else:
-			webnotes.user.load_profile()	
+			webnotes.user.load_profile()
 
 
 	# get account name
@@ -75,21 +75,21 @@ class HTTPRequest:
 		# login
 		if webnotes.form_dict.get('acx'):
 			return webnotes.form_dict.get('acx')
-		
+
 		# in form
 		elif webnotes.form_dict.get('ac_name'):
 			return webnotes.form_dict.get('ac_name')
-			
+
 		# in cookie
 		elif webnotes.incoming_cookies.get('ac_name'):
 			return webnotes.incoming_cookies.get('ac_name')
-			
-			
+
+
 	# set database login
 	# ------------------
 
 	def set_db(self, ac_name = None):
-		
+
 
 		# select based on subdomain
 		if getattr(webnotes.defs,'domain_name_map', {}).get(self.domain):
@@ -103,7 +103,7 @@ class HTTPRequest:
 					get(ac_name, ac_name)
 			else:
 				db_name = getattr(webnotes.defs,'default_db_name','')
-	
+
 		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password', ''))
 		webnotes.ac_name = ac_name
 
@@ -117,7 +117,7 @@ class LoginManager:
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
 			from webnotes.session_cache import clear_cache
-			clear_cache(webnotes.form_dict.get('usr'))				
+			clear_cache(webnotes.form_dict.get('usr'))
 
 			self.authenticate()
 			self.post_login()
@@ -125,41 +125,45 @@ class LoginManager:
 
 	# run triggers, write cookies
 	# ---------------------------
-	
+
 	def post_login(self):
 		self.run_trigger()
 		self.validate_ip_address()
 		self.validate_hour()
-	
+
 	# check password
 	# --------------
-	
+
 	def authenticate(self, user=None, pwd=None):
-		if not (user and pwd):	
+		if not (user and pwd):
 			user, pwd = webnotes.form_dict.get('usr'), webnotes.form_dict.get('pwd')
 
 		if not (user and pwd):
 			webnotes.msgprint('Incomplete Login Details', raise_exception=1)
-		
+
 		# custom authentication (for single-sign on)
 		self.load_control_panel()
 		if hasattr(self.cp, 'authenticate'):
 			self.user = self.cp.authenticate()
-		
+
 		# check the password
 		if user=='Administrator':
 			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s OR `password`=PASSWORD(%s))", (user, pwd, pwd))
 		else:
 			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s  OR `password`=PASSWORD(%s)) and IFNULL(enabled,0)=1", (user, pwd, pwd))
-			
+
 		if not p:
 			webnotes.msgprint('Authentication Failed', raise_exception=1)
-			
+			#If Authentication failed, lock the table for 2 seconds
+                        from webnotes.model.db_schema import DbManager
+			DbManager.create_lock(table)
+			time.sleep(2)
+			DbMananger.release_locks()
 		self.user = p[0][0]
-	
+
 	# triggers
 	# --------
-	
+
 	def load_control_panel(self):
 		import webnotes.model.code
 		try:
@@ -167,7 +171,7 @@ class LoginManager:
 				self.cp = webnotes.model.code.get_obj('Control Panel')
 		except Exception, e:
 			webnotes.response['Control Panel Exception'] = webnotes.utils.getTraceback()
-	
+
 	# --------
 	def run_trigger(self, method='on_login'):
 		try:
@@ -177,7 +181,7 @@ class LoginManager:
 			return
 		except ImportError, e:
 			webnotes.errprint(str(e))
-	
+
 		# deprecated
 		self.load_control_panel()
 		if self.cp and hasattr(self.cp, method):
@@ -185,11 +189,11 @@ class LoginManager:
 
 	# ip validation
 	# -------------
-	
+
 	def validate_ip_address(self):
 		ip_list = webnotes.conn.get_value('Profile', self.user, 'restrict_ip', ignore=True)
-		
-		if not ip_list: 
+
+		if not ip_list:
 			return
 
 		ip_list = ip_list.replace(",", "\n").split('\n')
@@ -198,7 +202,7 @@ class LoginManager:
 		for ip in ip_list:
 			if webnotes.remote_ip.startswith(ip):
 				return
-			
+
 		webnotes.msgprint('Not allowed from this IP Address', raise_exception=1)
 
 	def validate_hour(self):
@@ -207,13 +211,13 @@ class LoginManager:
 		"""
 		login_before = int(webnotes.conn.get_value('Profile', self.user, 'login_before', ignore=True) or 0)
 		login_after = int(webnotes.conn.get_value('Profile', self.user, 'login_after', ignore=True) or 0)
-		
+
 		if not (login_before or login_after):
 			return
-			
+
 		from webnotes.utils import now_datetime
 		current_hour = int(now_datetime().strftime('%H'))
-				
+
 		if login_before and current_hour > login_before:
 			webnotes.msgprint('Not allowed to login after restricted hour', raise_exception=1)
 
@@ -222,7 +226,7 @@ class LoginManager:
 
 	# login as guest
 	# --------------
-	
+
 	def login_as_guest(self):
 		res = webnotes.conn.sql("select name from tabProfile where name='Guest' and ifnull(enabled,0)=1")
 		if not res:
@@ -232,7 +236,7 @@ class LoginManager:
 
 	# Logout
 	# ------
-	
+
 	def call_on_logout_event(self):
 		import webnotes.model.code
 		cp = webnotes.model.code.get_obj('Control Panel', 'Control Panel')
@@ -242,7 +246,7 @@ class LoginManager:
 	def logout(self, arg=''):
 		self.run_trigger('on_logout')
 		webnotes.conn.sql('update tabSessions set status="Logged Out" where sid="%s"' % webnotes.session['sid'])
-		
+
 # =================================================================================
 # Cookie Manager
 # =================================================================================
@@ -263,19 +267,19 @@ class CookieManager:
 			webnotes.cookies.load(c)
 			for c in webnotes.cookies.values():
 				cookies[c.key] = c.value
-					
+
 		webnotes.incoming_cookies = cookies
-		
+
 	# Set cookies
 	# -----------
-	
+
 	def set_cookies(self):
 		if webnotes.conn.cur_db_name:
 			webnotes.cookies['account_id'] = webnotes.conn.cur_db_name
-		
-		# ac_name	
+
+		# ac_name
 		webnotes.cookies['ac_name'] = webnotes.ac_name or ''
-		
+
 		if webnotes.session.get('sid'):
 			webnotes.cookies['sid'] = webnotes.session['sid']
 
@@ -283,7 +287,7 @@ class CookieManager:
 			import datetime
 			expires = datetime.datetime.now() + datetime.timedelta(days=3)
 
-			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')		
+			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')
 
 	# Set Remember Me
 	# ---------------
@@ -297,10 +301,10 @@ class CookieManager:
 			expires = datetime.datetime.now() + datetime.timedelta(days=remember_days)
 
 			for k in webnotes.cookies.keys():
-				webnotes.cookies[k]['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')	
+				webnotes.cookies[k]['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')
 
 # =================================================================================
-# Session 
+# Session
 # =================================================================================
 
 class Session:
@@ -312,14 +316,14 @@ class Session:
 		if webnotes.form_dict.get('cmd')=='login':
 			self.start()
 			return
-			
+
 		self.load()
-	
+
 	# start a session
 	# ---------------
 	def load(self):
 		import webnotes
-		
+
 		r=None
 		try:
 			r = webnotes.conn.sql("select user, sessiondata, status from tabSessions where sid='%s'" % self.sid)
@@ -328,10 +332,10 @@ class Session:
 				self.add_status_column()
 			else:
 				raise e
-	
+
 		if r:
 			r=r[0]
-			
+
 			# ExipredSession
 			if r[2]=='Expired' and (webnotes.form_dict.get('cmd')!='resume_session'):
 				if r[0]=='Guest' or (not webnotes.form_dict.get('cmd')) or webnotes.form_dict.get('cmd')=='logout':
@@ -349,10 +353,10 @@ class Session:
 					raise Exception, 'Logged Out'
 			else:
 				self.data = {'data':eval(r[1]), 'user':r[0], 'sid': self.sid}
-		else:				
+		else:
 			webnotes.login_manager.login_as_guest()
 			self.start()
-			
+
 
 	# start a session
 	# ---------------
@@ -360,7 +364,7 @@ class Session:
 		import os
 		import webnotes
 		import webnotes.utils
-		
+
 		# generate sid
 		self.data['user'] = webnotes.login_manager.user
 		self.data['sid'] = webnotes.utils.generate_hash()
@@ -370,7 +374,7 @@ class Session:
 		# get ipinfo
 		if webnotes.conn.get_global('get_ip_info'):
 			self.get_ipinfo()
-		
+
 		# insert session
 		try:
 			self.insert_session_record()
@@ -396,12 +400,12 @@ class Session:
 		webnotes.login_manager.authenticate(self.data['user'], pwd)
 		webnotes.conn.sql("update tabSessions set status='Active' where sid=%s", self.data['sid'])
 		return 'Logged In'
-	
+
 	# update session
 	# --------------
 	def update(self):
 		# update session
-		webnotes.conn.sql("update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() where sid=%s" , (str(self.data['data']), self.data['user'], self.data['sid']))	
+		webnotes.conn.sql("update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() where sid=%s" , (str(self.data['data']), self.data['user'], self.data['sid']))
 
 		self.check_expired()
 
@@ -410,14 +414,14 @@ class Session:
 	def check_expired(self):
 		# in control panel?
 		exp_sec = webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '6:00:00'
-		
+
 		# set sessions as expired
 		try:
 			webnotes.conn.sql("update from tabSessions where TIMEDIFF(NOW(), lastupdate) > %s SET `status`='Expired'", exp_sec)
 		except Exception, e:
 			if e.args[0]==1054:
 				self.add_status_column()
-		
+
 		# clear out old sessions
 		webnotes.conn.sql("delete from tabSessions where TIMEDIFF(NOW(), lastupdate) > '72:00:00'")
 
@@ -432,16 +436,16 @@ class Session:
 	# -----------------------------
 	def get_ipinfo(self):
 		import os
-		
+
 		try:
 			import pygeoip
 		except:
 			return
-		
+
 		gi = pygeoip.GeoIP('data/GeoIP.dat')
 		self.data['data']['ipinfo'] = {'countryName': gi.country_name_by_addr(os.environ.get('REMOTE_ADDR'))}
-			
+
 	# -----------------------------
 	def insert_session_record(self):
 		webnotes.conn.sql("insert into tabSessions (sessiondata, user, lastupdate, sid, status) values (%s , %s, NOW(), %s, 'Active')", (str(self.data['data']), self.data['user'], self.data['sid']))
-		
+

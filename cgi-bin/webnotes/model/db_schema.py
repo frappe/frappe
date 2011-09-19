@@ -45,39 +45,39 @@ class DbTable:
 		self.name = prefix + doctype
 		self.columns = {}
 		self.current_columns = {}
-		
+
 		# lists for change
 		self.add_column = []
 		self.change_type = []
 		self.add_index = []
 		self.drop_index = []
 		self.set_default = []
-		
+
 		# load
 		self.get_columns_from_docfields()
 
 	def create(self):
 		add_text = ''
-		
+
 		# columns
 		t = self.get_column_definitions()
 		if t: add_text += ',\n'.join(self.get_column_definitions()) + ',\n'
-		
+
 		# index
 		t = self.get_index_definitions()
 		if t: add_text += ',\n'.join(self.get_index_definitions()) + ',\n'
-	
+
 		# create table
 		webnotes.conn.sql("""create table `%s` (
-			name varchar(120) not null primary key, 
+			name varchar(120) not null primary key,
 			creation datetime,
 			modified datetime,
-			modified_by varchar(40), 
+			modified_by varchar(40),
 			owner varchar(40),
-			docstatus int(1) default '0', 
+			docstatus int(1) default '0',
 			parent varchar(120),
-			parentfield varchar(120), 
-			parenttype varchar(120), 
+			parentfield varchar(120),
+			parenttype varchar(120),
 			idx int(8),
 			%sindex parent(parent)) ENGINE=InnoDB""" % (self.name, add_text))
 
@@ -87,12 +87,12 @@ class DbTable:
 		for f in fl:
 			if not f.get('no_column'):
 				self.columns[f['fieldname']] = DbColumn(self, f['fieldname'], f['fieldtype'], f.get('length'), f['default'], f['search_index'], f['options'])
-	
+
 	def get_columns_from_db(self):
 		self.show_columns = webnotes.conn.sql("desc `%s`" % self.name)
 		for c in self.show_columns:
 			self.current_columns[c[0]] = {'name': c[0], 'type':c[1], 'index':c[3], 'default':c[4]}
-	
+
 	def get_column_definitions(self):
 		column_list = [] + default_columns
 		ret = []
@@ -103,7 +103,7 @@ class DbTable:
 					ret.append('`'+ k+ '` ' + d)
 					column_list.append(k)
 		return ret
-	
+
 	def get_index_definitions(self):
 		ret = []
 		for k in self.columns.keys():
@@ -131,24 +131,24 @@ class DbTable:
 			return
 
 		fk_list = self.get_foreign_keys()
-		
+
 		# make dictionary of constraint names
 		fk_dict = {}
 		for f in fk_list:
 			fk_dict[f[0]] = f[1]
-			
+
 		# drop
 		for col in self.drop_foreign_key:
 			webnotes.conn.sql("set foreign_key_checks=0")
 			webnotes.conn.sql("alter table `%s` drop foreign key `%s`" % (self.name, fk_dict[col.fieldname]))
 			webnotes.conn.sql("set foreign_key_checks=1")
-		
+
 	def sync(self):
 		if not self.name in DbManager(webnotes.conn).get_tables_list(webnotes.conn.cur_db_name):
 			self.create()
 		else:
 			self.alter()
-	
+
 	def alter(self):
 		self.get_columns_from_db()
 		for col in self.columns.values():
@@ -191,21 +191,21 @@ class DbColumn:
 
 		if not d:
 			return
-			
+
 		ret = d[0]
 		if d[1]:
 			ret += '(' + d[1] + ')'
 		if with_default and self.default and (self.default not in default_shortcuts):
 			ret += ' default "' + self.default.replace('"', '\"') + '"'
 		return ret
-		
+
 	def check(self, current_def):
 		column_def = self.get_definition(0)
 
 		# no columns
 		if not column_def:
 			return
-		
+
 		# to add?
 		if not current_def:
 			self.fieldname = validate_column_name(self.fieldname)
@@ -215,15 +215,15 @@ class DbColumn:
 		# type
 		if current_def['type'] != column_def:
 			self.table.change_type.append(self)
-		
+
 		# index
 		else:
 			if (current_def['index'] and not self.set_index):
 				self.table.drop_index.append(self)
-			
+
 			if (not current_def['index'] and self.set_index and not (column_def in ['text','blob'])):
 				self.table.add_index.append(self)
-		
+
 		# default
 		if (self.default and (current_def['default'] != self.default) and (self.default not in default_shortcuts) and not (column_def in ['text','blob'])):
 			self.table.set_default.append(self)
@@ -231,21 +231,21 @@ class DbColumn:
 
 class DbManager:
 	"""
-	Basically, a wrapper for oft-used mysql commands. like show tables,databases, variables etc... 
+	Basically, a wrapper for oft-used mysql commands. like show tables,databases, variables etc...
 
 	#TODO:
-		0.  Simplify / create settings for the restore database source folder 
+		0.  Simplify / create settings for the restore database source folder
 		0a. Merge restore database and extract_sql(from webnotes_server_tools).
 		1. Setter and getter for different mysql variables.
 		2. Setter and getter for mysql variables at global level??
-	"""	
+	"""
 	def __init__(self,conn):
 		"""
 		Pass root_conn here for access to all databases.
 		"""
  		if conn:
  			self.conn = conn
-		
+
 
 	def get_variables(self,regex):
 		"""
@@ -261,17 +261,29 @@ class DbManager:
 		db_list = self.get_database_list()
 		for db in db_list:
 			self.drop_database(db)
-			
+
 	def get_table_schema(self,table):
 		"""
 		Just returns the output of Desc tables.
 		"""
 		return list(self.conn.sql("DESC %s"%table))
-		
-			
-	def get_tables_list(self,target):	
+
+	def create_lock(self,table):
 		"""
-		
+		Just a lock on a corresponding row in a table
+
+		"""
+		return self.conn.sql("LOCK TABLES %s WRITE"%table)
+
+	def release_locks(self):
+		"""
+		Warning: this releases all locks held by the current session. May not be a good idea.
+		"""
+
+		return self.conn.sql("UNLOCK TABLES")
+	def get_tables_list(self,target):
+		"""
+
 		"""
 		try:
 			self.conn.use(target)
@@ -306,7 +318,7 @@ class DbManager:
 				raise e
 
 	def create_database(self,target):
-		
+
 		try:
 			self.conn.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
 		except Exception,e:
@@ -356,7 +368,7 @@ class DbManager:
 		import webnotes.defs
 		mysql_path = getattr(webnotes.defs, 'mysql_path', None)
 		mysql = mysql_path and os.path.join(mysql_path, 'mysql') or 'mysql'
-		
+
 		try:
 			ret = os.system("%s -u root -p%s %s < %s"%(mysql, root_password.replace(" ", "\ "), target.replace("$", "\$"), source))
 		except Exception,e:
@@ -366,7 +378,7 @@ class DbManager:
 		try:
 			self.conn.sql("DROP TABLE IF EXISTS %s "%(table_name))
 		except Exception,e:
-			raise e	
+			raise e
 
 	def set_transaction_isolation_level(self,scope='SESSION',level='READ COMMITTED'):
 		#Sets the transaction isolation level. scope = global/session
@@ -403,7 +415,7 @@ def updatedb(dt, archive=0):
 	res = webnotes.conn.sql("select ifnull(issingle, 0) from tabDocType where name=%s", dt)
 	if not res:
 		raise Exception, 'Wrong doctype "%s" in updatedb' % dt
-	
+
 	if not res[0][0]:
 		webnotes.conn.commit()
 		tab = DbTable(dt, archive and 'arc' or 'tab')
@@ -425,6 +437,6 @@ def remove_all_foreign_keys():
 				fklist = []
 			else:
 				raise e
-				
+
 		for f in fklist:
 			webnotes.conn.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
