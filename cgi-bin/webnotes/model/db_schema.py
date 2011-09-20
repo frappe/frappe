@@ -357,8 +357,11 @@ class DbManager:
 		mysql_path = getattr(webnotes.defs, 'mysql_path', None)
 		mysql = mysql_path and os.path.join(mysql_path, 'mysql') or 'mysql'
 		
+		from webnotes.utils import make_esc
+		esc = make_esc('$ ')
+		
 		try:
-			ret = os.system("%s -u root -p%s %s < %s"%(mysql, root_password.replace(" ", "\ "), target.replace("$", "\$"), source))
+			ret = os.system("%s -u root -p%s %s < %s"%(mysql, esc(root_password), esc(target), source))
 		except Exception,e:
 			raise e
 
