@@ -1,0 +1,20 @@
+{
+	"default.css": [
+		"css/body.css",
+		"css/menus.css",
+		"css/messages.css",
+		"css/forms.css",
+		"css/grid.css",
+		"css/listing.css",
+		"css/report.css",
+		"css/calendar.css",
+		"css/autosuggest.css",
+		"css/dialog.css",
+		"css/wntoolbar.css",
+		"css/tabs.css",
+		"css/jqplot.css",
+		"css/bw-icons.css",
+		"css/sidebar.css",
+		"css/doc_column_view.css"
+	]
+}
