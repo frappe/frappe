@@ -291,6 +291,7 @@ class CSVImport:
 		cur_doc = Document(fielddata = fd)
 		cur_doc.doctype, cur_doc.parenttype, cur_doc.parentfield = self.dt_list[0], len(self.dt_list) > 1 and self.dt_list[1] or '', len(self.dt_list) > 1 and self.dt_list[2] or ''
 		obj = ''
+		webnotes.message_log = []
 		# save the document
 		try:
 			if webnotes.conn.in_transaction:
@@ -321,7 +322,8 @@ class CSVImport:
 
 		except Exception:
 			sql("ROLLBACK")
-			self.msg.append('<div style="color: RED"> Validation: %s</div>' % str(webnotes.message_log[-1:]))
+			self.msg.append('<div style="color: RED"> Validation Error: %s</div>' % str((webnotes.message_log and webnotes.message_log[0]) or webnotes.utils.getTraceback()))
+			self.msg.append('<div style="color: RED"> Did not import</div>')
 			
 	# do import
 	# --------------------------------------------------------------------
