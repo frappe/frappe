@@ -24,7 +24,7 @@ class BackupGenerator:
 		If specifying db_file_name, also append ".sql.gz"
 	"""
 	def __init__(self, db_name, user, password, db_file_name=None):
-		self.db_name = db_name
+		self.db_name = db_name.replace('$', '\$')
 		self.user = user
 		self.password = password
 		self.db_file_name = db_file_name and db_file_name \
