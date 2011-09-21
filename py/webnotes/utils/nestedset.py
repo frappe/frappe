@@ -156,6 +156,8 @@ def rebuild_tree(doctype, parent_field):
 	result = webnotes.conn.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL" % (doctype, parent_field, parent_field))
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
+		webnotes.conn.sql("commit")
+		webnotes.conn.sql("start transaction")
 		
 def rebuild_node(doctype, parent, left, parent_field, cnt = 0):
 	"""
