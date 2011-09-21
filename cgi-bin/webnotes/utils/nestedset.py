@@ -156,11 +156,16 @@ def rebuild_tree(doctype, parent_field):
 	result = webnotes.conn.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL" % (doctype, parent_field, parent_field))
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
+		webnotes.conn.sql("commit")
+		webnotes.conn.sql("start transaction")
 		
-def rebuild_node(doctype, parent, left, parent_field, cnt = 0):
+cnt = 0
+
+def rebuild_node(doctype, parent, left, parent_field):
 	"""
 		reset lft, rgt and recursive call for all children
 	"""
+	global cnt
 	from webnotes.utils import now
 	n = now()
 	
@@ -170,7 +175,8 @@ def rebuild_node(doctype, parent, left, parent_field, cnt = 0):
 	# get all children of this node
 	result = webnotes.conn.sql("SELECT name FROM `tab%s` WHERE `%s`='%s'" % (doctype, parent_field, parent))
 	for r in result:
-		right = rebuild_node(doctype, r[0], right, parent_field, cnt)
+
+		right = rebuild_node(doctype, r[0], right, parent_field)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
@@ -178,7 +184,7 @@ def rebuild_node(doctype, parent, left, parent_field, cnt = 0):
 
 	# commit after every 100
 	cnt += 1
-	if cnt % 100 == 0:
+	if cnt % 500 == 0:
 		cnt = 0
 		webnotes.conn.sql("commit")
 		webnotes.conn.sql("start transaction")
