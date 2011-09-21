@@ -157,7 +157,7 @@ def rebuild_tree(doctype, parent_field):
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 		
-def rebuild_node(doctype, parent, left, parent_field):
+def rebuild_node(doctype, parent, left, parent_field, cnt = 0):
 	"""
 		reset lft, rgt and recursive call for all children
 	"""
@@ -165,16 +165,23 @@ def rebuild_node(doctype, parent, left, parent_field):
 	n = now()
 	
 	# the right value of this node is the left value + 1
-	right = left+1
+	right = left+1	
 
 	# get all children of this node
 	result = webnotes.conn.sql("SELECT name FROM `tab%s` WHERE `%s`='%s'" % (doctype, parent_field, parent))
 	for r in result:
-		right = rebuild_node(doctype, r[0], right, parent_field)
+		right = rebuild_node(doctype, r[0], right, parent_field, cnt)
 
 	# we've got the left value, and now that we've processed
 	# the children of this node we also know the right value
 	webnotes.conn.sql("UPDATE `tab%s` SET lft=%s, rgt=%s, modified='%s' WHERE name='%s'" % (doctype,left,right,n,parent))
+
+	# commit after every 100
+	cnt += 1
+	if cnt % 100 == 0:
+		cnt = 0
+		webnotes.conn.sql("commit")
+		webnotes.conn.sql("start transaction")
 
 	#return the right value of this node + 1
 	return right+1
@@ -220,4 +227,3 @@ def update_remove_node(doctype, name):
 		# update all on the right
 		webnotes.conn.sql("update `tab%s` set rgt = rgt-2, modified='%s' where rgt > %s" %(doctype,n,left[0][0]))
 		webnotes.conn.sql("update `tab%s` set lft = lft-2, modified='%s' where lft > %s" %(doctype,n,left[0][0]))
-
