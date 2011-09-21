@@ -28,7 +28,7 @@ class BackupGenerator:
 		self.user = user
 		self.password = password
 		self.db_file_name = db_file_name and db_file_name \
-							or (os.path.join(backup_path, db_name + ".sql.gz"))
+							or (os.path.join(backup_path, self.db_name + ".sql.gz"))
 
 	def take_dump(self):
 		"""
@@ -88,7 +88,7 @@ class BackupGenerator:
 		 Also, a new backup will be available for download (if requested)\
 		  only after 24 hours.""" % {"file_url":file_url}
 		
-		datetime_str = datetime.fromtimestamp(os.stat(self.db_file_name).st_ctime)
+		datetime_str = datetime.fromtimestamp(os.stat(self.db_file_name.replace('\$', '$')).st_ctime)
 		
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
 		sendmail(recipients=recipient_list, msg=msg, subject=subject)
