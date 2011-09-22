@@ -636,6 +636,10 @@ def get_file_timestamp(fn):
 		else:
 			return None
 
-
+def make_esc(esc_chars):
+	"""
+		Function generator for Escaping special characters
+	"""
+	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
 	
 
