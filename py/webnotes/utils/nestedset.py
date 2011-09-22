@@ -153,7 +153,7 @@ def rebuild_tree(doctype, parent_field):
 	"""
 	# get all roots
 	right = 1
-	result = webnotes.conn.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL" % (doctype, parent_field, parent_field))
+	result = webnotes.conn.sql("SELECT name FROM `tab%s` WHERE `%s`='' or `%s` IS NULL ORDER BY name ASC" % (doctype, parent_field, parent_field))
 	for r in result:
 		right = rebuild_node(doctype, r[0], right, parent_field)
 		
