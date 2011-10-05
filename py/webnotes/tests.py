@@ -44,7 +44,7 @@ def setup():
 	"""
 	from webnotes.db import Database
 	webnotes.conn = Database()
-	webnotes.session = {'user':'Administrator'}
+	webnotes.session = {'user':'Administrator', 'profile':'Administrator'}
 
 if __name__=='__main__':
 	setup()
