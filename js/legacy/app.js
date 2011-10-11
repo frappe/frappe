@@ -162,12 +162,9 @@ function setup_calendar() {
 		wn.require('lib/js/legacy/widgets/calendar.js');
 
 		if(!_c.calendar) {
-			new_widget('Calendar', function(c) { 
-				_c.calendar = c;
-				_c.calendar.init(p.cont);
-				rename_observers.push(_c.calendar);
-				
-			});
+			_c.calendar = new Calendar();
+			_c.calendar.init(p.cont);
+			rename_observers.push(_c.calendar);
 		}
 	}
 }

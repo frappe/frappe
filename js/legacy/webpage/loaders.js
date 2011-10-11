@@ -5,10 +5,10 @@ function loadreport(dt, rep_name, onload, menuitem, reset_report) {
 	wn.require('lib/js/legacy/report.compressed.js');
 	dt = get_label_doctype(dt);
 	
-	var show_report_builder = function(rb_con) {
+	var show_report_builder = function() {
 		if(!_r.rb_con) {
 			// first load
-			_r.rb_con = rb_con;
+			_r.rb_con = new _r.ReportContainer();
 		}
 				
 		_r.rb_con.set_dt(dt, function(rb) { 
@@ -38,7 +38,7 @@ function loadreport(dt, rep_name, onload, menuitem, reset_report) {
 			}
 		} );
 	}
-	new_widget('_r.ReportContainer', show_report_builder, 1);
+	show_report_builder();
 }
 
 
@@ -65,8 +65,8 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 
 	var show_form = function(f) {
 		// load the frm container
-		if(!_f.frm_con && f) {
-			_f.frm_con = f; //new _f.FrmContainer();
+		if(!_f.frm_con) {
+			_f.frm_con = new _f.FrmContainer(); //new _f.FrmContainer();
 		}		
 				
 		// case A - frm not loaded
@@ -105,7 +105,8 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 	}
 		
 	//// is libary loaded?
-	new_widget('_f.FrmContainer', show_form, 1);
+	
+	show_form();
 }
 
 
@@ -170,7 +171,7 @@ function new_doc(doctype, onload, in_dialog, on_save_callback, cdt, cdn, cnic) {
 		
 	}
 
-	new_widget('_f.FrmContainer', show_form, 1);	
+	show_form();
 }
 var newdoc = new_doc;
 

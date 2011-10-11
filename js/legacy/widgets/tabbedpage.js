@@ -35,7 +35,8 @@ TabbedPage.prototype.add_tab = function(n, onshow, no_body, with_heading) {
 
 	tab.collapse = function() { 
 		if(this.tab_body)$dh(this.tab_body); this.className = '';
-		hide_autosuggest();
+		if(hide_autosuggest)
+			hide_autosuggest();
 	}
 	tab.set_selected = function() { 
 		if(me.cur_tab) me.cur_tab.collapse();
