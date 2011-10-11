@@ -20,7 +20,9 @@ def upload():
 	fid, fname = save_uploaded()
 	
 	# save it in the form
-	updated = add_file_list(dt, dn, fname, fid)
+	updated = False
+	if fid:
+		updated = add_file_list(dt, dn, fname, fid)
 	
 	if fid and updated:
 		# refesh the form!
