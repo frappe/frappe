@@ -59,7 +59,8 @@ function Body() {
 
 	this.setup_sidebar_menu = function() {
 		if(this.left_sidebar && this.cp.show_sidebar_menu){
-			new_widget('SidebarMenu', function(m) { sidebar_menu = m; m.make_menu(''); });
+			sidebar_menu = new SidebarMenu();
+			sidebar_menu.make_menu('');
 		}
 	}
 	

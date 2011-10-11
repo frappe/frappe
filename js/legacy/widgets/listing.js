@@ -164,13 +164,9 @@ Listing.prototype.do_print = function() {
 		is_simple:1
 	}
 	
-	new_widget('_p.PrintQuery', function(w) {
-		// global
-		if(!_p.print_query) 
-			_p.print_query = w;
-		
-		_p.print_query.show_dialog(args);	
-	}, 1);
+	wn.require('lib/js/legacy/widgets/print_query.js');	
+	_p.print_query = new _p.PrintQuery();
+	_p.print_query.show_dialog(args);
 }
 
 // -------------------------------------------------------

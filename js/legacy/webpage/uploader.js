@@ -28,12 +28,6 @@ Uploader = function(parent, args, callback) {
 	var inp = $a_input($a(ul_form,'span'),'submit',null,{marginLeft:'7px'}); inp.value = 'Upload';
 	
 	$y(inp,{width:'80px'});
-	$wid_normal(inp);
-
-	inp.onmouseover = function() { $wid_active(this); }
-	inp.onmouseout = function() { $wid_normal(this); }
-	inp.onmousedown = function() { $wid_pressed(this); }
-	inp.onmouseup = function() { $wid_active(inp); }
 	
 	// dt, dn to show
 	for(var key in args) {

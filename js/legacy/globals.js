@@ -30,6 +30,7 @@ var user_fullname=null;
 var user_email=null;
 var user_img = {};
 var home_page=null;
+var hide_autosuggest=null;
 
 var page_body=null;
 var pscript = {};
