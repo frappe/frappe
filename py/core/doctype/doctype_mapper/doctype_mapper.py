@@ -114,8 +114,8 @@ class DocType:
 		"""
 			Returns field list with same name in from and to doctype
 		"""
-		
-		exception_flds = default_fields
+		import copy
+		exception_flds = copy.copy(default_fields)
 		exception_flds += [f[1] for f in flds]
 		
 		similar_flds = [
@@ -130,7 +130,7 @@ class DocType:
 				and t1.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')
 			""",(t['from_table'], t['to_table'])) if d[0] not in exception_flds
 		]
-		
+
 		return similar_flds		
 		
 	#---------------------------------------------------------------------------
