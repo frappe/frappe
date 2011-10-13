@@ -17,8 +17,9 @@ pscript.onLoginReply = function(r, rtext) {
 	pscript.login_btn.done_working();
     if(r.message=="Logged In"){
         window.location.href='index.html' + (get_url_arg('page') ? ('?page='+get_url_arg('page')) : '');
-    } else {
-        $i('login_message').innerHTML = '<span style="color: RED;">'+eval(r.message)+'</span>';
+    } else{
+
+        $i('login_message').innerHTML = '<span style="color: RED;">'+r.message+'</span>';
         //if(r.exc)alert(r.exc);
     }
 }

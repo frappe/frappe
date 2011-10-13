@@ -139,8 +139,10 @@ class LoginManager:
 			user, pwd = webnotes.form_dict.get('usr'), webnotes.form_dict.get('pwd')
 
 		if not (user and pwd):
-			webnotes.msgprint('Incomplete Login Details', raise_exception=1)
-		
+                        webnotes.response['message'] = 'Incomplete Login Details'  
+                        raise ValidationError                    
+						#webnotes.msgprint('Incomplete Login Details', raise_exception=1)
+                        
 		# custom authentication (for single-sign on)
 		self.load_control_panel()
 		if hasattr(self.cp, 'authenticate'):
@@ -153,7 +155,9 @@ class LoginManager:
 			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s  OR `password`=PASSWORD(%s)) and IFNULL(enabled,0)=1", (user, pwd, pwd))
 			
 		if not p:
-			webnotes.msgprint('Authentication Failed', raise_exception=1)
+			webnotes.response['message'] = 'Authentication Failed'
+			raise ValidationError
+			#webnotes.msgprint('Authentication Failed',raise_exception=1)
 			
 		self.user = p[0][0]
 	
