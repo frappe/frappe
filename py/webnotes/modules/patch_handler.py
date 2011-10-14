@@ -26,7 +26,18 @@ def run(patch_list, overwrite = 0, log_exception=1, conn = '', db_name = '', roo
 		webnotes.conn.begin()
 				
 		# execute patch
-		execute_patch(p, log_exception)
+		if log_exception:
+			try:
+				exec('from patches import ' + p)
+				eval(p).execute()
+			except Exception, e:
+				write_log()
+				webnotes.conn.rollback()
+				return			
+		else:
+			exec('from patches import ' + p)
+			eval(p).execute()
+
 			
 		# update patch log table
 		webnotes.conn.sql("insert into `__PatchLog` (patch, applied_on) values (%s, now())", p)
@@ -35,20 +46,6 @@ def run(patch_list, overwrite = 0, log_exception=1, conn = '', db_name = '', roo
 		
 		print "Patch: %s applied successfully..." % p
 
-#-----------------------------------------------------
-def execute_patch(p, log_exception):
-	if log_exception:
-		try:
-			exec('from patches import ' + p)
-			eval(p).execute()
-		except Exception, e:
-			write_log()
-			webnotes.conn.rollback()
-			return
-	else:
-		exec('from patches import ' + p)
-		eval(p).execute()
-	
 #-----------------------------------------------------
 def check_already_applied_patch(patch_list):
 	"""
