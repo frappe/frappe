@@ -24,7 +24,7 @@ def run(patch_list, overwrite = 0, log_exception=1, conn = '', db_name = '', db_
 		webnotes.conn = conn
 	
 	# session
-	if not hasattr(webnotes, 'session'):
+	if not (webnotes.session and webnotes.session['user']):
 		webnotes.session = {'user':'Administrator'}
 
 	# no patches on accounts
