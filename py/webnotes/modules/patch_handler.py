@@ -88,6 +88,7 @@ def check_already_applied_patch(patch_list):
 		if e.args[0]==1146:
 			webnotes.conn.sql("create table if not exists `__PatchLog` (patch TEXT, applied_on DATETIME)")
 			check_already_applied_patch(patch_list)
+			return
 		else:
 			raise e
 			
