@@ -14,6 +14,9 @@ def print_help():
 	print "python lib/wnf.py merge : merge from local into master"
 	print "python lib/wnf.py log : list last 10 commits"
 	print "python lib/wnf.py pull : pull from git"
+	print "python lib/wnf.py replace txt1 txt2 extn"
+	print "python lib/wnf.py patch patch1 .. : run patches from patches module if not executed"
+	print "python lib/wnf.py patch -f patch1 .. : run patches from patches module, force rerun"
 
 def setup():
 	import os, sys
@@ -38,6 +41,9 @@ def setup():
 def run():
 	sys.path.append('lib')
 	sys.path.append('lib/py')
+	import webnotes
+	import webnotes.defs
+	sys.path.append(webnotes.defs.modules_path)
 
 	if len(sys.argv)<2:
 		print_help()
@@ -45,7 +51,19 @@ def run():
 
 	cmd = sys.argv[1]
 
-	if cmd=='build':
+	if cmd=='watch':
+		from py import build
+		import time
+		
+		while True:
+			build.run()
+
+			vc = version.VersionControl()
+			print 'version %s' % vc.repo.get_value('last_version_number')
+			time.sleep(5)
+			
+
+	elif cmd=='build':
 		from py import build
 		build.run()
 
@@ -104,7 +122,20 @@ def run():
 		print "pulling framework"
 		os.chdir('lib')
 		os.system('git pull origin %s' % branch)
+
+	# replace code
+	elif cmd=='replace':
+		from webnotes.utils.replace_code import replace
+		replace('.', sys.argv[2], sys.argv[3], sys.argv[4])
 		
-	
+	elif cmd=='patch':
+		from webnotes.modules.patch_handler import run
+		if len(sys.argv)>2 and sys.argv[2]=='-f':
+			# force patch
+			run(patch_list = sys.argv[3:], overwrite=1, log_exception=0)
+		else:
+			# run patch once
+			run(patch_list = sys.argv[2:], log_exception=0)
+
 if __name__=='__main__':
 	run()
