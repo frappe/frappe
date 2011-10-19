@@ -24,7 +24,7 @@ def run(patch_list, overwrite = 0, log_exception=1, conn = '', db_name = '', db_
 		webnotes.conn = conn
 	
 	# session
-	if not hasattr(webnotes, 'session'):
+	if not (webnotes.session and webnotes.session['user']):
 		webnotes.session = {'user':'Administrator'}
 
 	# no patches on accounts
@@ -88,6 +88,7 @@ def check_already_applied_patch(patch_list):
 		if e.args[0]==1146:
 			webnotes.conn.sql("create table if not exists `__PatchLog` (patch TEXT, applied_on DATETIME)")
 			check_already_applied_patch(patch_list)
+			return
 		else:
 			raise e
 			
@@ -132,4 +133,3 @@ if __name__=='__main__':
 	sys.path.append('lib/py')
 	
 	run(sys.argv[1:])
-	
