@@ -239,7 +239,7 @@ Listing.prototype.add_filter = function(label, ftype, options, tname, fname, con
 	//if(!inp.input.custom_select && !inp.input.txt)
 	//	$y(inp.input,{width:'100%'});
 	
-	inp.tn = tname; inp.fn = fname; inp.condition = cond;
+	inp.tn = tname; inp.fn = fname; inp.condition = ftype=='Data' ? 'like' : cond;
 	
 	var me = this;
 	inp.onchange = function() { me.start = 0; }
