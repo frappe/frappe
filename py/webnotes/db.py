@@ -26,7 +26,7 @@ class Database:
 		self.transaction_writes = 0
 		self.testing_tables = []
 
-		self.password = self.get_db_password(user, password)
+		self.password = self.get_db_password(self.user, password)
 		
 		self.connect()
 		if self.user != 'root':
