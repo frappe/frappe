@@ -2,7 +2,7 @@
 $.extend(_p, {
 	show_dialog: function() {
 		if(!_p.dialog) {
-			_p.make_dialog();		
+			_p.make_dialog();	
 		}
 		_p.dialog.show();
 	},
@@ -10,56 +10,42 @@ $.extend(_p, {
 	make_dialog: function() {
 		// Prepare Dialog Box Layout		
 		var d = new Dialog(
-			w = 360,
-			h = 140,
-			title = 'Print Formats',
-			content = [
+			360, // w
+			140, // h
+			'Print Formats', // title
+			[ // content
 				['HTML', 'Select'],
 				['Check', 'No Letterhead'],
 				['HTML', 'Buttons']				
-			]);		
-		d.widgets['No Letterhead'].checked = 1;
+			]);
+		//d.widgets['No Letterhead'].checked = 1;
 		
 		// Print Button
-		$btn(
-			parent = d.widgets.Buttons,
-			label = 'Print',
-			onclick = function() {
-				_p.build({
-					fmtname: sel_val(cur_frm.print_sel),
-					onload: _p.go,
-					no_letterhead: d.widgets['No Letterhead'].checked,
-					only_body: undefined
-				});			
+		$btn(d.widgets.Buttons, 'Print', function() {
+				_p.build(
+					sel_val(cur_frm.print_sel), // fmtname
+					_p.go, // onload
+					d.widgets['No Letterhead'].checked // no_letterhead
+				);
 			},
-			style = {
-				cssFloat: 'right',
-				marginBottom: '16px',
-				marginLeft: '7px'
-			},
-			css_class = 'green'
-		);
+			{
+					cssFloat: 'right',
+					marginBottom: '16px',
+					marginLeft: '7px'
+			}, 'green');
 		
 		// Print Preview
-		$btn(
-			parent = d.widgets.Buttons,
-			label = 'Preview',
-			onclick = function() {
-				_p.build({
-					fmtname: sel_val(cur_frm.print_sel),
-					onload: _p.preview,
-					no_letterhead: d.widgets['No Letterhead'].checked,
-					only_body: undefined
-				});
+		$btn(d.widgets.Buttons, 'Preview', function() {
+				_p.build(
+					sel_val(cur_frm.print_sel), // fmtname
+					_p.preview, // onload
+					d.widgets['No Letterhead'].checked // no_letterhead
+				);
 			},
-			style = {
+			{
 				cssFloat: 'right',
 				marginBottom: '16px'			
-			},
-			css_class = ''
-		);
-		
-		_p.dialog = d;
+			}, '');
 		
 		// Delete previous print format select list and Reload print format list from current form
 		d.onshow = function() {
@@ -68,8 +54,10 @@ $.extend(_p, {
 				c.removeChild(c.cur_sel);
 			}
 			c.appendChild(cur_frm.print_sel);
-			c.cur_sel = cur_frm.print_sel;		
+			c.cur_sel = cur_frm.print_sel;	
 		}
+		
+		_p.dialog = d;
 	},
 	
 	// Define formats dict
@@ -81,18 +69,25 @@ $.extend(_p, {
 			+ no_letterhead
 			+ only_body
 	*/
-	build: function(args) {
+	build: function(fmtname, onload, no_letterhead, only_body) {
+		args = {
+			fmtname: fmtname,
+			onload: onload,
+			no_letterhead: no_letterhead,
+			only_body: only_body
+		};
+	
 		if(!cur_frm) {
 			alert('No Document Selected');
 			return;
 		}
-		
+				
 		// Get current doc (record)
 		var doc = locals[cur_frm.doctype][cur_frm.docname];
 		if(args.fmtname == 'Standard') {
 			/*
 				Render standard print layout
-				The function passed as args.onload is then called using these parameters
+				The function passed as args onload is then called using these parameters
 			*/
 			args.onload(_p.render({
 				body: _p.print_std(args.no_letterhead),
@@ -105,26 +100,27 @@ $.extend(_p, {
 		} else {			
 			if (!_p.formats[args.fmtname]) {
 				/*
-					If print formats are not loaded, then load them and call the args.onload function on callback.
+					If print formats are not loaded, then load them and call the args onload function on callback.
 					I think, this case happens when preview is invoked directly
 				*/
+				var build_args = args;
 				$c(
 					command = 'webnotes.widgets.form.get_print_format',
-					args = { 'name': args.fmtname	},
+					args = { 'name': build_args.fmtname	},
 					fn = function(r, rt) {
-						_p.formats[args.fmtname] = r.message;
-						args.onload(_p.render({
-							body: _p.formats[args.fmtname],
+						_p.formats[build_args.fmtname] = r.message;
+						build_args.onload(_p.render({
+							body: _p.formats[build_args.fmtname],
 							style: '',
 							doc: doc,
 							title: doc.name,
-							no_letterhead: args.no_letterhead,
-							only_body: args.only_body
+							no_letterhead: build_args.no_letterhead,
+							only_body: build_args.only_body
 						}));						
 					}
 				);			
 			} else {
-				// If print format is already loaded, go ahead with args.onload function call
+				// If print format is already loaded, go ahead with args onload function call
 				args.onload(_p.render({
 					body: _p.formats[args.fmtname],
 					style: '',
@@ -165,7 +161,9 @@ $.extend(_p, {
 		// Show letterhead?
 		_p.show_letterhead(container, args);
 		
-		_p.render_final(style, stat, container, args);
+		_p.render_header_on_break(container, args);
+		
+		return _p.render_final(style, stat, container, args);
 	},
 	
 
@@ -178,7 +176,7 @@ $.extend(_p, {
 				<div style = '\
 						font-size: 20px; \
 						font-weight: bold;'>\
-					{{TITLE}}\
+					{{HEAD}}\
 				</div>\
 				{{DESCRIPTION}}\
 			</div>"
@@ -237,10 +235,12 @@ $.extend(_p, {
 		}
 		
 		// Concatenate all styles
-		return (args.only_body ? '' : _p.def_print_style_body)
+		style_concat =  (args.only_body ? '' : _p.def_print_style_body)
 			+ _p.def_print_style_other
-			+ args.style;
+			+ args.style
 			+ body_style;
+			
+		return style_concat;
 	},
 
 
@@ -260,7 +260,7 @@ $.extend(_p, {
 				}
 			}
 			jslist = container.getElementsByTagName('script');
-		}	
+		}
 	},
 	
 	
@@ -273,10 +273,25 @@ $.extend(_p, {
 	},
 	
 	
+	render_header_on_break: function(container, args) {
+		var page_set = container.getElementsByClassName('page-settings');
+		if(page_set.length) {
+			for(var i = 0; i < page_set.length; i++) {
+				var tmp = '';
+				// if draft/archived, show draft/archived banner
+				tmp += _p.show_draft(args);
+				tmp += _p.show_archived(args);
+				_p.show_letterhead(page_set[i], args);
+				page_set[i].innerHTML = tmp + page_set[i].innerHTML;
+			}
+		}
+	},
+	
+	
 	// called by _p.render for final render of print
 	render_final: function(style, stat, container, args) {
-		var header = '';
-		var footer = '';
+		var header = '<div class="page-settings">\n';
+		var footer = '\n</div>';
 		if(!args.only_body) {
 			header = '<!DOCTYPE html>\n\
 					<html>\
@@ -284,16 +299,16 @@ $.extend(_p, {
 							<title>' + args.title + '</title>\
 							<style>' + style + '</style>\
 						</head>\
-						<body>\n';
+						<body>\n' + header;
 			
-			footer = '\n</body>\n\
+			footer = footer + '\n</body>\n\
 					</html>';
 		}
-		return header
+		var finished =  header
 			+ stat
 			+ container.innerHTML.replace(/<div/g, '\n<div').replace(/<td/g, '\n<td')
 			+ footer;
-	
+		return finished;
 	},
 	
 	
@@ -308,7 +323,6 @@ $.extend(_p, {
 		}		
 		return lh;
 	},
-	
 	
 	// common print style setting
 	print_style: "\
@@ -331,12 +345,225 @@ $.extend(_p, {
 			font-size: 14px; \
 			font-weight: bold; \
 			margin: 8px 0px; \
-			}"
+			}",
 	
+	print_style_other: "",
 	
-	/*print_std_add_table: function() {
+	print_std: function(no_letterhead) {
+		// Get doctype, docname, layout for a doctype
+		var docname = cur_frm.docname;
+		var doctype = cur_frm.doctype;
+		var data = getchildren('DocField', doctype, 'fields', 'DocType');
+		var layout = _p.add_layout(doctype);
+		this.pf_list = [layout];
+		var me = this;
+		me.layout = layout;
+
+		$.extend(this, {
+			build_head: function(doctype, docname) {
+				// Heading
+				var h1_style = {
+					fontSize: '22px',
+					marginBottom: '8px'			
+				}
+				var h1 = $a(me.layout.cur_row.header, 'h1', '', h1_style);
+				h1.innerHTML = cur_frm.pformat[docname] ? cur_frm.pformat[docname] :
+					get_doctype_label(doctype);
+					
+				var h2_style = {
+					fontSize: '16px',
+					color: '#888',
+					marginBottom: '8px',
+					paddingBottom: '8px',
+					borderBottom: (me.layout.with_border ? '0px' :
+						'1px solid #000')
+				}
+				var h2 = $a(me.layout.cur_row.header, 'div', '', h2_style);
+				h2.innerHTML = docname;
+			},
+			
+			build_data: function(data, doctype, docname) {
+				// Start with a row and a cell in that row
+				if(data[0] && data[0].fieldtype != "Section Break") {
+					me.layout.addrow();
+					if(data[0].fieldtype != "Column Break") {
+						me.layout.addcell();
+					}
+				}
+				
+				$.extend(this, {
+					generate_custom_html: function(field, doctype, docname) {
+						var container = $a(me.layout.cur_cell, 'div');
+						container.innerHTML = cur_frm.pformat[field.fieldname](locals[doctype][docname]);					
+					},
+					
+					render_normal: function(field) {
+						switch(field.fieldtype) {
+							case 'Section Break':
+								me.layout.addrow();
+								
+								// Add column if no column break after this field
+								if(field[i+1] && field[i+1].fieldtype !=
+										'Column Break') {
+									me.layout.addcell();
+								}
+								break;
+							
+							case 'Column Break':
+								me.layout.addcell(field.width, field.label);							
+								break;
+								
+							case 'Table':
+								var table = print_table(
+										doctype, // dt
+										docname, // dn
+										field.fieldname,
+										field.options, // tabletype 
+										null, // cols
+										null, // head_labels
+										null, // widths
+										null); // condition
+								me.layout = _p.print_std_add_table(table, me.layout, me.pf_list, doctype, no_letterhead);
+								break;
+							
+							case 'HTML':
+								var div = $a(me.layout.cur_cell, 'div');
+								div.innerHTML = field.options;
+								break;
+							
+							case 'Code':
+								var div = $a(me.layout.cur_cell, 'div');
+								var val = _f.get_value(doctype, docname,
+									field.fieldname);
+								div.innerHTML = '<div>' + field.label +
+									': </div><pre style="font-family: Courier, Fixed;">' + (val ? val : '') +
+									'</pre>';
+								break;
+								
+							case 'Text Editor':
+								var div = $a(me.layout.cur_cell, 'div');
+								var val = _f.get_value(doctype, docname,
+									field.fieldname);
+								div.innerHTML = val ? val : '';
+								break;
+								
+							default:
+								// Add Cell Data
+								_p.print_std_add_field(doctype, docname, field, me.layout);
+								break;
+						}
+					}				
+				});
+				
+				// Then build each field
+				for(var i = 0; i < data.length; i++) {
+					var fieldname = data[i].fieldname ? data[i].fieldname :
+						data[i].label;
+					var field = fieldname ?
+						get_field(doctype, fieldname, docname) : data[i];
+					if(!field.print_hide) {
+						if(cur_frm.pformat[field.fieldname]) {
+							// If there is a custom method to generate the HTML, then use it
+							this.generate_custom_html(field, doctype, docname);
+						} else {
+							// Do the normal rendering
+							this.render_normal(field);
+						}
+					}					
+				}
+				me.layout.close_borders();
+			},
+			
+			build_html: function() {
+				var html = '';
+				for(var i = 0; i < me.pf_list.length; i++) {
+					if(me.pf_list[i].wrapper) {
+						html += me.pf_list[i].wrapper.innerHTML;
+					} else if(me.pf_list[i].innerHTML) {
+						html += me.pf_list[i].innerHTML;
+					} else {
+						html += me.pf_list[i];
+					}
+				}
+				this.pf_list = [];
+				return html;
+			}
+		});
+		
+		this.build_head(doctype, docname);
+
+		this.build_data(data, doctype, docname);
+
+		var html = this.build_html();
+		return html;
+	},
 	
+	add_layout: function(doctype) {
+		var layout = new Layout();
+		layout.addrow();
+		
+		if(locals['DocType'][doctype].print_outline == 'Yes') {
+			layout.with_border = 1
+		}
+		
+		return layout;	
+	},
 	
+	print_std_add_table: function(t, layout, pf_list, dt, no_letterhead) {
+		if(t.appendChild) {
+			// If only one table is passed
+			layout.cur_cell.appendChild(t);
+		} else {
+			page_break = '\n\
+				<div style = "page-break-after: always;" \
+				class = "page_break"></div><div class="page-settings">';
+				
+			// If a list of tables is passed
+			for(var i = 0; i < t.length-1; i++) {
+				// add to current page
+				layout.cur_cell.appendChild(t[i]);
+				layout.close_borders();
+				
+				pf_list.push(page_break);
+				
+				// Create new page
+				layout = _p.add_layout(dt, no_letterhead);
+				pf_list.push(layout);
+				
+				layout.addrow();
+				layout.addcell();
+				
+				var div = $a(layout.cur_cell, 'div');
+				div.innerHTML = 'Continued from previous page...';
+				div.style.padding = '4px';
+			}
+			
+			// Append last table
+			layout.cur_cell.appendChild(t[t.length-1]);
+		}
+		return layout;
+	},
+	
+	print_std_add_field: function(dt, dn, f, layout) {
+		var val = _f.get_value(dt, dn, f.fieldname);
+		if(f.fieldtype!='Button') {
+			if(val || in_list['Float', 'Int', 'Currency'], f.fieldtype) {
+				// If value or a numeric type then proceed
+				
+				// Add field table
+				row = _p.field_tab(layout.cur_cell);
+				
+				// Add label
+				row.cells[0].innerHTML = f.label ? f.label : f.fieldname;
+				$s(row.cells[1], val, f.fieldtype);
+				
+				// left align currency in normal display
+				if(f.fieldtype == 'Currency') {
+					$y(row.cells[1], { textAlign: 'left' });
+				}
+				
+			}
+		}
 	},
 	
 	field_tab: function(layout_cell) {
@@ -348,10 +575,151 @@ $.extend(_p, {
 		row.cells[0].className = 'datalabelcell';
 		row.cells[1].className = 'datainputcell';
 		return row;
-	}*/
+	}
 });
 
-print_table = function(args) {
 
+print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass) {
+	var me = this;
+	$.extend(this, {
+		flist: fields_list[tabletype],
+		
+		data: getchildren(
+			tabletype, // child_dt
+			dn, // parent
+			fieldname, // parentfield
+			dt // parenttype
+		),
+		
+		cell_style: {
+			border: '1px solid #000',
+			padding: '2px',
+			verticalAlign: 'top'	
+		},
+		
+		head_cell_style: {
+			border: '1px solid #000',
+			padding: '2px',
+			verticalAlign: 'top',
+			backgroundColor: '#ddd'		
+		},
+		
+		table_style: {
+			width: '100%',
+			borderCollapse: 'collapse',
+			marginBottom: '10px'		
+		},
+		
+		/*
+			This function prepares a list of columns to be displayed and calls make_print_table to create a table with these columns
+		*/
+		prepare_col_heads: function(flist) {
+			var new_flist = [];
+			
+			// Make a list of column headings
+			if(cols && cols.length) {
+				// If cols to be displayed are passed in print_table
+				if(cols[0] == 'SR') { new_flist.push('SR') }
+				for(var i = 0; i < cols.length; i++) {
+					for(var j = 0; j < flist.length; j++) {
+						if(flist[j].fieldname == cols[i]) {
+							new_flist.push(flist[j]);
+							break;
+						}
+					}
+				}			
+			} else {
+				// Default action: remove hidden cols
+				new_flist.push('SR');
+				for(var i = 0; i < flist.length; i++) {
+					if(!flist[i].print_hide) {
+						new_flist.push(flist[i]);
+					}
+				}			
+			}
+			
+			// Changing me.flist so that it could be used to hide data
+			me.flist = new_flist;
+		},
+		
+		// This function makes a new table with its heading rows
+		make_print_table: function(flist) {
+			// Make a table
+			var wrapper = document.createElement('div');
+			var table = $a(wrapper, 'table', '', me.table_style);
+			table.wrapper = wrapper;
+			
+			// Make Head Row
+			table.insertRow(0);
+			var col_start = 0;
+			
+			// If 'SR' exists in flist, then create its heading column cell
+			if(flist[0]=='SR') {
+				var cell = table.rows[0].insertCell(0);
+				cell.innerHTML = head_labels?head_labels[0]:'<b>SR</b>';
+				$y(cell, { width: '30px' });
+				$y(cell, me.head_cell_style);
+				col_start++;
+			}
+			
+			for(var c = col_start; c < flist.length; c++) {
+				var cell = table.rows[0].insertCell(c);
+				$y(cell, me.head_cell_style);
+				cell.innerHTML = head_labels?head_labels[c]:flist[c].label;
+				if(flist[c].width) { $y(cell, {width: flist[c].width}); }
+				if(widths) { $y(cell, {width: widths[c]}); }
+				if(flist[c].fieldtype == 'Currency') {
+					$y(cell, { textAlign: 'right' });
+				}
+				cell.style.fontWeight = 'bold';
+			}
+			return table;
+		},
+		
+		// Populate table with data
+		populate_table: function(table, data) {
+			for(var r = 0; r < data.length; r++) {
+				if((!condition) || (condition(data[r]))) {
+					// Check for page break
+					if(data[r].page_break) {
+						table = me.make_print_table(me.flist);
+						me.table_list.push(table.wrapper);
+					}
+					
+					var row = table.insertRow(table.rows.length);
+					
+					// Add serial number if required
+					if(me.flist[0] == 'SR') {
+						var cell = row.insertCell(0);
+						cell.innerHTML = r + 1;
+						$y(cell, me.cell_style);
+					}
+					
+					for(var c=me.flist.indexOf('SR')+1; c<me.flist.length; c++){
+						var cell = row.insertCell(c);
+						$y(cell, me.cell_style);
+						$s(cell, data[r][me.flist[c].fieldname],
+							me.flist[c].fieldtype);
+						if(me.flist[c].fieldtype == 'Currency') {
+							cell.style.textAlign = 'right';
+						}
+					}
+				}			
+			}
+		}
+	});	
+	
+	// If no data, do not create table
+	if(!this.data.length) { return document.createElement('div'); }
+	
+	this.prepare_col_heads(this.flist);
 
+	var table = me.make_print_table(this.flist);
+
+	this.table_list = [table.wrapper];
+
+	this.populate_table(table, this.data);
+
+	// If multiple tables exists, send whole list, else send only one table
+	return (me.table_list.length > 1) ? me.table_list : me.table_list[0];
 }
