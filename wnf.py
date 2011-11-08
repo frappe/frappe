@@ -38,6 +38,28 @@ def setup():
 			print "created versions-master.db from versions-local.db"
 		else:
 			print "versions-local.db already exists. Nothing to do."
+
+"""simple replacement script"""
+
+def replace_code(start, txt1, txt2, extn):
+	"""replace all txt1 by txt2 in files with extension (extn)"""
+	import os, re
+	for wt in os.walk(start, followlinks=1):
+		for fn in wt[2]:
+			if fn.split('.')[-1]==extn:
+				fpath = os.path.join(wt[0], fn)
+				f = open(fpath, 'r')
+				content = f.read()
+				f.close()
+				
+				if re.search(txt1, content):
+				
+					f = open(fpath, 'w')
+					f.write(re.sub(txt1, txt2, content))
+					f.close()
+				
+					print 'updated in %s' % fpath
+
 def run():
 	sys.path.append('lib')
 	sys.path.append('lib/py')
@@ -125,8 +147,7 @@ def run():
 
 	# replace code
 	elif cmd=='replace':
-		from webnotes.utils.replace_code import replace
-		replace('.', sys.argv[2], sys.argv[3], sys.argv[4])
+		replace_code('.', sys.argv[2], sys.argv[3], sys.argv[4])
 		
 	elif cmd=='patch':
 		from webnotes.modules.patch_handler import run
