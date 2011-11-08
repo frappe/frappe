@@ -18,8 +18,9 @@ def run(patch_list, overwrite = 0, log_exception=1, conn = '', db_name = '', db_
 
 	# db connection
 	if not conn:
-		connect_db(db_name or webnotes.defs.default_db_name, \
-			db_password or webnotes.defs.db_password)
+		dbn = db_name or webnotes.defs.default_db_name
+		pwd = db_password or (hasattr(webnotes.defs, 'get_db_password') and webnotes.defs.get_db_password(dbn)) or (hasattr(webnotes.defs, 'db_password') and webnotes.defs.db_password) 
+		connect_db(dbn, pwd)
 	else:
 		webnotes.conn = conn
 	
