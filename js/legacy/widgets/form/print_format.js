@@ -155,11 +155,11 @@ $.extend(_p, {
 		// Append args.body's content as a child of container
 		container.innerHTML = args.body;
 		
-		_p.run_embedded_js(container, args.doc);
-		var style = _p.consolidate_css(container, args);
-		
 		// Show letterhead?
 		_p.show_letterhead(container, args);
+		
+		_p.run_embedded_js(container, args.doc);
+		var style = _p.consolidate_css(container, args);
 		
 		_p.render_header_on_break(container, args);
 		
@@ -235,10 +235,9 @@ $.extend(_p, {
 		}
 		
 		// Concatenate all styles
+		//style_concat =  _p.def_print_style_other + args.style + body_style;
 		style_concat =  (args.only_body ? '' : _p.def_print_style_body)
-			+ _p.def_print_style_other
-			+ args.style
-			+ body_style;
+				+ _p.def_print_style_other + args.style + body_style;
 			
 		return style_concat;
 	},
@@ -254,8 +253,8 @@ $.extend(_p, {
 					var parent = jslist[i].parentNode;
 					var span = $a(parent, 'span');
 					parent.replaceChild(span, jslist[i]);
-					var val = eval(code);
-					if(!val) { val = ''; }
+					var val = code ? eval(code) : '';
+					if(!val || typeof(val)=='object') { val = ''; }
 					span.innerHTML = val;
 				}
 			}
@@ -319,7 +318,7 @@ $.extend(_p, {
 		if(cur_frm.doc.letter_head) {
 			lh = cstr(_p.letter_heads[cur_frm.doc.letter_head]);
 		} else if (cp.letter_head) {
-			lh = cp.letter_head
+			lh = cp.letter_head;
 		}		
 		return lh;
 	},
@@ -346,8 +345,6 @@ $.extend(_p, {
 			font-weight: bold; \
 			margin: 8px 0px; \
 			}",
-	
-	print_style_other: "",
 	
 	print_std: function(no_letterhead) {
 		// Get doctype, docname, layout for a doctype
@@ -516,7 +513,7 @@ $.extend(_p, {
 		} else {
 			page_break = '\n\
 				<div style = "page-break-after: always;" \
-				class = "page_break"></div><div class="page-settings">';
+				class = "page_break"></div><div class="page-settings"></div>';
 				
 			// If a list of tables is passed
 			for(var i = 0; i < t.length-1; i++) {
@@ -547,7 +544,7 @@ $.extend(_p, {
 	print_std_add_field: function(dt, dn, f, layout) {
 		var val = _f.get_value(dt, dn, f.fieldname);
 		if(f.fieldtype!='Button') {
-			if(val || in_list['Float', 'Int', 'Currency'], f.fieldtype) {
+			if(val || in_list(['Float', 'Int', 'Currency'], f.fieldtype)) {
 				// If value or a numeric type then proceed
 				
 				// Add field table
@@ -579,7 +576,7 @@ $.extend(_p, {
 });
 
 
-print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass) {
+print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier) {
 	var me = this;
 	$.extend(this, {
 		flist: fields_list[tabletype],
@@ -601,7 +598,8 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 			border: '1px solid #000',
 			padding: '2px',
 			verticalAlign: 'top',
-			backgroundColor: '#ddd'		
+			backgroundColor: '#ddd',
+			fontWeight: 'bold'
 		},
 		
 		table_style: {
@@ -668,10 +666,9 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 				cell.innerHTML = head_labels?head_labels[c]:flist[c].label;
 				if(flist[c].width) { $y(cell, {width: flist[c].width}); }
 				if(widths) { $y(cell, {width: widths[c]}); }
-				if(flist[c].fieldtype == 'Currency') {
+				if(in_list(['Currency', 'Float'], flist[c].fieldtype)) {
 					$y(cell, { textAlign: 'right' });
 				}
-				cell.style.fontWeight = 'bold';
 			}
 			return table;
 		},
@@ -698,9 +695,12 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 					for(var c=me.flist.indexOf('SR')+1; c<me.flist.length; c++){
 						var cell = row.insertCell(c);
 						$y(cell, me.cell_style);
+						if(modifier && me.flist[c].fieldname in modifier) {
+							data[r][me.flist[c].fieldname] = modifier[me.flist[c].fieldname](data[r]);
+						}
 						$s(cell, data[r][me.flist[c].fieldname],
 							me.flist[c].fieldtype);
-						if(me.flist[c].fieldtype == 'Currency') {
+						if(in_list(['Currency', 'Float'], me.flist[c].fieldtype)) {
 							cell.style.textAlign = 'right';
 						}
 					}
