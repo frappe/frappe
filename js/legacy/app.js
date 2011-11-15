@@ -134,8 +134,7 @@ function redirect_to_login() {
 }
 
 // default print style
-_p.def_print_style_body = "html, body, div, span, td { font-family: Arial, Helvetica; font-size: 12px; }"
-	+"\npre { margin:0; padding:0;}"	
+_p.def_print_style_body = "html, body, div, span, td { font-family: Arial, Helvetica; font-size: 12px; }" + "\npre { margin:0; padding:0;}"	
 
 _p.def_print_style_other = "\n.simpletable, .noborder { border-collapse: collapse; margin-bottom: 10px;}"
 	+"\n.simpletable td {border: 1pt solid #000; vertical-align: top; padding: 2px; }"
