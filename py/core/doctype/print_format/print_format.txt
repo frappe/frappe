@@ -5,14 +5,14 @@
 	{
 		'creation': '2009-05-12 11:19:11',
 		'docstatus': 0,
-		'modified': '2011-11-14 16:51:20',
+		'modified': '2011-11-15 17:56:52',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1321269659',
+		'_last_update': '1321354395',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
@@ -29,7 +29,7 @@
 		'section_style': 'Simple',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 8
+		'version': 10
 	},
 
 	# These values are common for all DocField
@@ -85,6 +85,7 @@
 
 	# DocField
 	{
+		'description': 'Associate a DocType to the Print Format',
 		'doctype': 'DocField',
 		'fieldname': 'doc_type',
 		'fieldtype': 'Select',
