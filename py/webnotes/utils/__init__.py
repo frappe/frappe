@@ -389,7 +389,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not fraction_currency:
 		fraction_currency = d.get('fraction_currency', 'paise')
 
-	n = str(flt(number))
+	n = "%.2f" % flt(number)
 	main, fraction = n.split('.')
 	if len(fraction)==1: fraction += '0'
 	
