@@ -26,6 +26,7 @@ class DocType:
 					WHERE parent=%s
 					AND parenttype='DocType'
 					AND parentfield='formats'""", self.doc.doc_type)[0][0]
+				if not max_idx: max_idx = 0
 				d = Document('DocFormat')
 				d.parent = self.doc.doc_type
 				d.parenttype = 'DocType'
