@@ -180,44 +180,6 @@ class ModuleFile:
 	def __init__(self, path):
 		self.path = path
 		
-	def is_new(self):
-		"""
-			Returns true if file does not match with last updated timestamp
-		"""
-		import webnotes.utils
-		self.timestamp = webnotes.utils.get_file_timestamp(self.path)
-		if self.timestamp != self.get_db_timestamp():
-			return True
-		
-	def get_db_timestamp(self):
-		"""
-			Returns the timestamp of the file
-		"""
-		try:
-			ts = webnotes.conn.sql("select tstamp from __file_timestamp where file_name=%s", self.path)
-			if ts:
-				return ts[0][0]
-		except Exception, e:
-			if e.args[0]==1146:
-				# create the table
-				webnotes.conn.commit()
-				webnotes.conn.sql("""
-					create table __file_timestamp (
-						file_name varchar(180) primary key, 
-						tstamp varchar(40)) engine=InnoDB""")
-				webnotes.conn.begin()
-			else:
-				raise e
-						
-	def update(self):
-		"""
-			Update the timestamp into the database
-			(must be called after is_new)
-		"""
-		webnotes.conn.sql("""
-			insert into __file_timestamp(file_name, tstamp) 
-			values (%s, %s) on duplicate key update tstamp=%s""", (self.path, self.timestamp, self.timestamp))
-
 	def load_content(self):
 		"""
 			returns file contents
@@ -255,19 +217,17 @@ class TxtModuleFile(ModuleFile):
 		"""
 			import the doclist if new
 		"""
-		if self.is_new():
-			from webnotes.model.utils import peval_doclist
-			doclist = peval_doclist(self.read())
-			if doclist:					
-				from webnotes.utils.transfer import set_doc
-				set_doc(doclist, 1, 1, 1)
+		from webnotes.model.utils import peval_doclist
+		doclist = peval_doclist(self.read())
+		if doclist:					
+			from webnotes.utils.transfer import set_doc
+			set_doc(doclist, 1, 1, 1)
 
-				# since there is a new timestamp on the file, update timestamp in
-				# the record
-				webnotes.conn.sql("update `tab%s` set modified=now() where name=%s" \
-					% (doclist[0]['doctype'], '%s'), doclist[0]['name'])
-		
-			self.update()
+			# since there is a new timestamp on the file, update timestamp in
+			# the record
+			webnotes.conn.sql("update `tab%s` set modified=now() where name=%s" \
+				% (doclist[0]['doctype'], '%s'), doclist[0]['name'])
+	
 			
 class SqlModuleFile(ModuleFile):
 	def __init__(self, path):
@@ -278,20 +238,19 @@ class SqlModuleFile(ModuleFile):
 			execute the sql if new
 			The caller must either commit or rollback an open transaction
 		"""
-		if self.is_new():
-			content = self.read()
-			
-			# execute everything but selects
-			# theses are ddl statements, should either earlier
-			# changes must be committed or rollbacked
-			# by the caller
-			if content.strip().split()[0].lower() in ('insert','update','delete','create','alter','drop'):
-				webnotes.conn.sql(self.read())
 
-			# start a new transaction, as we have to update
-			# the timestamp table
-			webnotes.conn.begin()
-			self.update()
+		content = self.read()
+		
+		# execute everything but selects
+		# theses are ddl statements, should either earlier
+		# changes must be committed or rollbacked
+		# by the caller
+		if content.strip().split()[0].lower() in ('insert','update','delete','create','alter','drop'):
+			webnotes.conn.sql(self.read())
+
+		# start a new transaction, as we have to update
+		# the timestamp table
+		webnotes.conn.begin()
 			
 class JsModuleFile(ModuleFile):
 	"""
@@ -339,4 +298,3 @@ class JsModuleFile(ModuleFile):
 			code = p.sub(self.get_js, code)
 						
 		return code
-		
