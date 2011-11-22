@@ -394,13 +394,13 @@ $.extend(_p, {
 						container.innerHTML = cur_frm.pformat[field.fieldname](locals[doctype][docname]);					
 					},
 					
-					render_normal: function(field) {
+					render_normal: function(field, data, i) {
 						switch(field.fieldtype) {
 							case 'Section Break':
 								me.layout.addrow();
 								
 								// Add column if no column break after this field
-								if(field[i+1] && field[i+1].fieldtype !=
+								if(data[i+1] && data[i+1].fieldtype !=
 										'Column Break') {
 									me.layout.addcell();
 								}
@@ -464,7 +464,7 @@ $.extend(_p, {
 							this.generate_custom_html(field, doctype, docname);
 						} else {
 							// Do the normal rendering
-							this.render_normal(field);
+							this.render_normal(field, data, i);
 						}
 					}					
 				}

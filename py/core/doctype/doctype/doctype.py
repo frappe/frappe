@@ -63,15 +63,14 @@ class DocType:
 				if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
 					webnotes.msgprint('%(lable)s [%(fieldtype)s] cannot be mandatory', raise_exception=1)
 		
-		# validate if allow attach, then file_list must be present
-		if self.doc.allow_attach and not fieldnames.get('file_list'):
-			webnotes.msgprint('To allow attachments, a field with fieldname "file_list" of type text must be present', raise_exception = 1)
 		
 	def validate(self):
 		self.validate_series()
 		self.scrub_field_names()
 		self.validate_fields()
 		self.set_version()
+		self.make_file_list()
+
 
 	def on_update(self):
 		# make schma changes
@@ -86,6 +85,7 @@ class DocType:
 		if (not in_transfer) and getattr(webnotes.defs,'developer_mode', 0):
 			self.export_doc()
 		sql("delete from __DocTypeCache")
+
 		
 	def export_doc(self):
 		from webnotes.modules.export_module import export_to_files
@@ -94,3 +94,22 @@ class DocType:
 	def import_doc(self):
 		from webnotes.modules.import_module import import_from_files
 		import_from_files(record_list=[[self.doc.module, 'doctype', self.doc.name]])		
+	
+	def make_file_list(self):
+		"""
+			if allow_attach is checked and the column file_list doesn't exist,
+			create a new field 'file_list'
+		"""
+		if self.doc.allow_attach:
+			if 'file_list' not in [d.fieldname for d in self.doclist]:
+				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)
+				new.label = 'File List'
+				new.fieldtype = 'Text'
+				new.fieldname = 'file_list'
+				new.hidden = 1
+				new.permlevel = 0
+				new.print_hide = 1
+				new.no_copy = 1
+				max_idx = max([d.idx for d in self.doclist if d.idx])
+				max_idx = max_idx and max_idx or 0
+				new.idx = max_idx + 1 

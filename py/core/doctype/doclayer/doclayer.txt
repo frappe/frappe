@@ -1,0 +1,226 @@
+# DocType, DocLayer
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2011-11-16 16:09:34',
+		'docstatus': 0,
+		'modified': '2011-11-17 16:38:45',
+		'modified_by': 'Administrator',
+		'owner': 'Administrator'
+	},
+
+	# These values are common for all DocType
+	{
+		'_last_update': '1321528082',
+		'autoname': 'DL.####',
+		'colour': 'White:FFF',
+		'doctype': 'DocType',
+		'hide_toolbar': 0,
+		'issingle': 1,
+		'module': 'Core',
+		'name': '__common__',
+		'search_fields': 'doc_type',
+		'section_style': 'Simple',
+		'show_in_menu': 1,
+		'version': 21
+	},
+
+	# These values are common for all DocField
+	{
+		'doctype': 'DocField',
+		'name': '__common__',
+		'parent': 'DocLayer',
+		'parentfield': 'fields',
+		'parenttype': 'DocType'
+	},
+
+	# These values are common for all DocPerm
+	{
+		'doctype': 'DocPerm',
+		'name': '__common__',
+		'parent': 'DocLayer',
+		'parentfield': 'permissions',
+		'parenttype': 'DocType',
+		'read': 1,
+		'role': 'System Manager'
+	},
+
+	# DocType, DocLayer
+	{
+		'doctype': 'DocType',
+		'name': 'DocLayer'
+	},
+
+	# DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'permlevel': 0,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'create': 1,
+		'doctype': 'DocPerm',
+		'permlevel': 1,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'permlevel': 2
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'doc_type',
+		'fieldtype': 'Select',
+		'label': 'Type',
+		'options': 'Link:DocType',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Section Break',
+		'label': 'Properties',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Column Break',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'autoname',
+		'fieldtype': 'Data',
+		'label': 'Auto Name',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'search_fields',
+		'fieldtype': 'Data',
+		'label': 'Search Fields',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'tag_fields',
+		'fieldtype': 'Data',
+		'label': 'Tag Fields',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'default_print_format',
+		'fieldtype': 'Link',
+		'label': 'Default Print Format',
+		'options': 'Print Format',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Column Break',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'read_only_onload',
+		'fieldtype': 'Check',
+		'label': 'Show Print First',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'allow_print',
+		'fieldtype': 'Check',
+		'label': 'Hide Print',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'allow_email',
+		'fieldtype': 'Check',
+		'label': 'Hide Email',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'allow_copy',
+		'fieldtype': 'Check',
+		'label': 'Hide Copy',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'allow_rename',
+		'fieldtype': 'Check',
+		'label': 'Allow Rename',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'allow_attach',
+		'fieldtype': 'Check',
+		'label': 'Allow Attach',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'max_attachments',
+		'fieldtype': 'Int',
+		'label': 'Max Attachments',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Section Break',
+		'label': 'Fields',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'fields',
+		'fieldtype': 'Table',
+		'label': 'Fields',
+		'options': 'DocLayerField',
+		'permlevel': 1
+	}
+]
