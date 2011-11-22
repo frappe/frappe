@@ -216,19 +216,91 @@ class _DocType:
 			else: 
 				raise e
 
+
+		change_idx = False
+
 		# loop over fields and override property
 		for d in doclist:
 			if d.doctype=='DocField' and d.name in property_dict:
 				for p in property_dict[d.name]:
 					if p['property_type']=='Check':
 						d.fields[p['property']] = int(p['value'])
+					elif p['property']=='previous_field':
+						change_idx = True
+						continue	
 					else:
 						d.fields[p['property']] = p['value']
+
+		if change_idx: self._change_doclist_idx(doclist, property_dict)
 					
 		# override properties in the main doctype
 		if dt in property_dict:
 			for p in property_dict[self.name]:
 				doclist[0].fields[p['property']] = p['value']
+				
+
+	def _change_doclist_idx(self, doclist, property_dict):
+		"""
+			1. Select docs in doclist of type DocField
+			2. Sort this doclist according to idx
+			3. Extract the name of docs in a list
+			4. Arrange the property_dict entries of property "previous_field"
+			   and chain the set of fields according to value
+			5. Move the docnames according to their previous field values
+			6. Assign the new idx values to the doclist docs
+		"""
+		# Process doclist
+		docfield_doclist = [d for d in doclist if d.doctype=='DocField']
+		sorted_docfield_doclist = sorted(docfield_doclist, key=lambda df: df.idx)
+		docfields = [d.name for d in sorted_docfield_doclist]
+		
+		# Process property_dict
+		previous_field_dict = {}
+		for pl in property_dict.values():
+			for p in pl:
+				if p['property'] == 'previous_field':
+					previous_field_dict[str(p['value'])] = str(p['doc_name'])
+
+		i = 0
+		if 'None' in previous_field_dict:
+			prev_field = 'None'
+		else:
+			i = i + 1
+			prev_field = docfields[i]
+		
+		while previous_field_dict:
+			get_next_docfield = 0
+
+			if prev_field in previous_field_dict:
+				this_field = previous_field_dict[prev_field]
+				docfields.remove(this_field)
+				
+				if prev_field == 'None':
+					docfields.insert(0, this_field)
+				else:
+					docfields.insert(docfields.index(prev_field) + 1, this_field)
+				
+				del previous_field_dict[prev_field]
+
+				if this_field in previous_field_dict:
+					prev_field = this_field
+				else:
+					get_next_docfield = 1
+			else:
+				get_next_docfield = 1
+
+			if get_next_docfield:
+				i = i + 1
+				prev_field = docfields[i]
+				vals = previous_field_dict.values()
+				if prev_field in vals:
+					i = i - 1
+					keys = previous_field_dict.keys()
+					prev_field = keys[vals.index(prev_field)]
+
+		for d in doclist:
+			if d.doctype=='DocField':
+				d.idx = docfields.index(d.name) + 1
 				
 
 	def make_doclist(self):
