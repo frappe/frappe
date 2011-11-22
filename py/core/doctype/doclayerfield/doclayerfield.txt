@@ -5,7 +5,7 @@
 	{
 		'creation': '2011-11-16 16:45:16',
 		'docstatus': 0,
-		'modified': '2011-11-17 14:28:16',
+		'modified': '2011-11-22 16:09:21',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
@@ -27,7 +27,7 @@
 		'read_only': 0,
 		'section_style': 'Simple',
 		'show_in_menu': 0,
-		'version': 2
+		'version': 3
 	},
 
 	# These values are common for all DocField
@@ -214,19 +214,6 @@
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'no_copy',
-		'fieldtype': 'Check',
-		'label': 'No Copy',
-		'oldfieldname': 'no_copy',
-		'oldfieldtype': 'Check',
-		'permlevel': 0,
-		'reqd': 0,
-		'width': '50px'
 	},
 
 	# DocField

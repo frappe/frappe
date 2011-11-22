@@ -129,17 +129,17 @@ class DocType:
 			# get a list of property setter docs
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
 			
-			webnotes.msgprint('this doc')
-			webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in this_doclist])
-			webnotes.msgprint('ref doc')
-			webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in ref_doclist])
-			webnotes.msgprint('def doc')
-			webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in dt_doclist])
-
 			self.set_properties(diff_list)
 
-			webnotes.msgprint('End of Post')
-			webnotes.msgprint([[d.fields['property'], d.fields['value'], d.fields['doc_name'], d.fields['select_item'], 'delete' in d.fields and d.fields['delete'] or None] for d in diff_list])
+			#webnotes.msgprint('End of Post')
+			#webnotes.msgprint('this doc')
+			#webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in this_doclist])
+			#webnotes.msgprint('ref doc')
+			#webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in ref_doclist])
+			#webnotes.msgprint('def doc')
+			#webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in dt_doclist])
+
+			#webnotes.msgprint([[d.fields['property'], d.fields['value'], d.fields['doc_name'], d.fields['select_item'], 'delete' in d.fields and d.fields['delete'] or None] for d in diff_list])
 
 
 	def diff(self, new_dl, ref_dl, dt_dl):
@@ -178,11 +178,9 @@ class DocType:
 		
 		defaults = {}
 		for d in df_defaults:
-			fieldname = d['fieldname']
-			del d['fieldname']
-			defaults[fieldname] = d
-		defaults['idx'] = {'fieldtype' : 'Int', 'default' : 1, 'label' : 'idx'}
-		defaults['previous_field'] = {'fieldtype' : 'Data', 'default' : None, 'label' : 'Previous Field'}
+			defaults[d['fieldname']] = d
+		defaults['idx'] = {'fieldname' : 'idx', 'fieldtype' : 'Int', 'default' : 1, 'label' : 'idx'}
+		defaults['previous_field'] = {'fieldname' : 'previous_field', 'fieldtype' : 'Data', 'default' : None, 'label' : 'Previous Field'}
 		return defaults
 
 
