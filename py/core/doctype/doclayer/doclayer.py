@@ -32,7 +32,6 @@ class DocType:
 			'in_filter',
 			'hidden',
 			'print_hide',
-			'no_copy',
 			'report_hide',
 			'allow_on_submit',
 			'depends_on',
@@ -200,6 +199,7 @@ class DocType:
 			new_d.fields[prop] in [None, ''] \
 			and ref_d.fields[prop] in [None, ''] \
 		):
+			#webnotes.msgprint("new: " + str(new_d.fields[prop]) + " | old: " + str(ref_d.fields[prop]))
 			# Check if the new property is same as that in original doctype
 			# If yes, we need to delete the property setter entry
 			for dt_d in dt_doclist:
@@ -278,3 +278,15 @@ class DocType:
 			# Save the property setter doc if not marked for deletion i.e. delete=0
 			if not d.delete:
 				d.save(1)
+
+	
+	def delete(self):
+		"""
+			Deletes all property setter entries for the selected doctype
+			and resets it to standard
+		"""
+		if self.doc.doc_type:
+			webnotes.conn.sql("""
+				DELETE FROM `tabProperty Setter`
+				WHERE doc_type = %s""", self.doc.doc_type)
+		self.get()
