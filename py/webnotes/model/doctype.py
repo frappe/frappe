@@ -206,9 +206,10 @@ class _DocType:
 		dt = doclist[0].name
 		try:
 			for f in webnotes.conn.sql("select doc_name, property, property_type, value from `tabProperty Setter` where doc_type=%s", dt, as_dict=1):
-				if not f['doc_name'] in property_dict:
-					property_dict[f['doc_name']] = []
-				property_dict[f['doc_name']].append(f)
+				#if not f['doc_name'] in property_dict:
+				#	property_dict[f['doc_name']] = []
+				#property_dict[f['doc_name']].append(f)
+				property_dict[f['doc_name']] = f
 		except Exception, e:
 			if e.args[0]==1146:
 				# no override table
@@ -216,20 +217,67 @@ class _DocType:
 			else: 
 				raise e
 
+
 		# loop over fields and override property
 		for d in doclist:
 			if d.doctype=='DocField' and d.name in property_dict:
-				for p in property_dict[d.name]:
-					if p['property_type']=='Check':
-						d.fields[p['property']] = int(p['value'])
-					else:
-						d.fields[p['property']] = p['value']
+				#for p in property_dict[d.name]:
+				p = property_dict[d.name]
+				if p['property_type']=='Check':
+					d.fields[p['property']] = int(p['value'])
+				elif p['property']=='previous_field':
+					continue	
+				else:
+					d.fields[p['property']] = p['value']
+
+		self.change_doclist_idx(doclist, property_dict)
 					
 		# override properties in the main doctype
 		if dt in property_dict:
 			for p in property_dict[self.name]:
 				doclist[0].fields[p['property']] = p['value']
 				
+
+	def change_doclist_idx(self, doclist, property_dict):
+		"""
+
+		"""
+		docfields = []
+		sorted_doclist = sorted([dl for dl in doclist if dl.doctype=='DocField'], key=lambda dl: dl.idx)
+		old_order = [d.name for d in sorted_doclist]
+		property_list = []
+		import webnotes
+		for p in property_dict.values():
+			if p['property']=='previous_field':
+				property_list.append([p['value'], p['doc_name']])
+
+		nf = [p for p in property_list if p[0] is None]
+
+		while(old_order):
+			if nf:
+				property_list.remove(nf[0])
+				next_field = nf[0][1]
+			else:
+				for o in old_order:
+					if not (o in docfields):
+						next_field = o
+						old_order.remove(o)
+						break
+					else:
+						old_order.remove(o)
+			docfields.append(next_field)
+			nf = property_list and [p for p in property_list if p[0]==next_field] or None
+
+		webnotes.msgprint(docfields)
+
+
+		for d in doclist:
+			if d.doctype == 'DocField':
+				d.idx = docfields.index(d.name) + 1
+
+		for d in sorted([dl for dl in doclist if dl.doctype=='DocField'], key=lambda dl: dl.idx):
+			webnotes.msgprint(str(d.idx) + " | " + str(d.label))
+
 
 	def make_doclist(self):
 		"""
