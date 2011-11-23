@@ -235,7 +235,7 @@ class _DocType:
 					
 		# override properties in the main doctype
 		if dt in property_dict:
-			for p in property_dict[self.name]:
+			for p in property_dict[dt]:
 				doclist[0].fields[p['property']] = p['value']
 				
 
