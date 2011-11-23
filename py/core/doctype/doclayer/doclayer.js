@@ -13,6 +13,8 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 	p = cur_frm.grids[0].grid.tbar_tab.children[0].children[0];
 	p.removeChild(p.children[0])
 	p.removeChild(p.children[0])
+	cur_frm.tip_wrapper.id = 'tip_wrapper';
+	cur_frm.add_fields_help();
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
@@ -20,10 +22,8 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	cur_frm.frm_head.timestamp_area.hidden = true;
 	cur_frm.frm_head.page_head.buttons.Save.hidden = true;
 	cur_frm.page_layout.footer.hidden = true;
-	cur_frm.tip_wrapper.id = 'tip_wrapper';
 	if(doc.doc_type) { $('#tip_wrapper').slideUp('slow'); }
 
-	
 	cur_frm.add_custom_button('Update', function() {
 		if(cur_frm.fields_dict['doc_type'].value) {
 			$c_obj(make_doclist(dt, dn), 'post', '', function(r, rt) {
@@ -51,7 +51,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	}, 1);
 
 	if(!doc.doc_type) {
-		cur_frm.set_tip('You can start by selecting a Type from the drop down menu')
+		cur_frm.set_tip('You can start by selecting a Form Type from the drop down menu')
 		$('#tip_wrapper').fadeIn();
 		var page_head = cur_frm.frm_head.page_head;
 		page_head.buttons['Update'].disabled = true;
@@ -59,6 +59,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 		page_head.buttons['Reset to defaults'].disabled = true;
 	}
 }
+
 
 cur_frm.confirm = function(msg, doc, dt, dn) {
 	var d = new wn.widgets.Dialog({
@@ -100,4 +101,101 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 
 	cur_frm.confirm.dialog = d;
 	d.show();
+}
+
+
+cur_frm.add_fields_help = function() {
+	$(cur_frm.grids[0].parent).before(
+		'<div style="padding: 10px">\
+			<a id="fields_help" class="link_type">Help</a>\
+		</div>');
+	$('#fields_help').click(function() {
+		var d = new wn.widgets.Dialog({
+			title: 'Help: Field Properties',
+			width: 600
+		});
+
+		var help =
+			"<table cellspacing='25'>\
+				<tr>\
+					<td><b>Label</b></td>\
+					<td>Set the display label for the field</td>\
+				</tr>\
+				<tr>\
+					<td width='25%'><b>Options</b></td>\
+					<td width='75%'>Specify the value of the field</td>\
+				</tr>\
+				<tr>\
+					<td><b>Perm Level</b></td>\
+					<td>\
+						Assign a permission level to the field.<br />\
+						(Permissions can be managed via Setup &gt; Permission Manager)\
+					</td>\
+				</tr>\
+				<tr>\
+					<td><b>Width</b></td>\
+					<td>\
+						Width of the input box<br />\
+						Example: <i>120px</i>\
+					</td>\
+				</tr>\
+				<tr>\
+					<td><b>Reqd</b></td>\
+					<td>Mark the field as Mandatory</td>\
+				</tr>\
+				<tr>\
+					<td><b>In Filter</b></td>\
+					<td>Use the field to filter records</td>\
+				</tr>\
+				<tr>\
+					<td><b>Hidden</b></td>\
+					<td>Hide field in form</td>\
+				</tr>\
+				<tr>\
+					<td><b>Print Hide</b></td>\
+					<td>Hide field in Standard Print Format</td>\
+				</tr>\
+				<tr>\
+					<td><b>Report Hide</b></td>\
+					<td>Hide field in Report Builder</td>\
+				</tr>\
+				<tr>\
+					<td><b>Allow on Submit</b></td>\
+					<td>Allow field to remain editable even after submission</td>\
+				</tr>\
+				<tr>\
+					<td><b>Depends On</b></td>\
+					<td>\
+						Show field if a condition is met<br />\
+						Example: <code>eval:doc.status=='Cancelled'</code>\
+						 on a field like \"reason_for_cancellation\" will reveal \
+						\"Reason for Cancellation\" only if the record is Cancelled.\
+					</td>\
+				</tr>\
+				<tr>\
+					<td><b>Description</b></td>\
+					<td>Show a description below the field</td>\
+				</tr>\
+				<tr>\
+					<td><b>Default</b></td>\
+					<td>Specify a default value</td>\
+				</tr>\
+				<tr>\
+					<td></td>\
+					<td><a class='link_type' \
+							onclick='cur_frm.fields_help_dialog.hide()'\
+							style='color:grey'>Press Esc to close</a>\
+					</td>\
+				</tr>\
+			</table>"
+		
+		$y(d.body, {padding: '32px', textAlign: 'center', lineHeight: '200%'});
+
+		$a(d.body, 'div', '', {textAlign: 'left'}, help);
+
+		d.show();
+
+		cur_frm.fields_help_dialog = d;
+
+	});
 }
