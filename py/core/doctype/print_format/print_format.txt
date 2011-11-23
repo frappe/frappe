@@ -3,33 +3,44 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2009-05-12 16:43:58',
 		'docstatus': 0,
-		'modified': '2011-11-15 17:56:52',
+		'modified': '2011-11-23 13:39:59',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1321354395',
+		'_last_update': '1321362800',
+		'allow_attach': 0,
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
+		'allow_rename': 0,
+		'allow_trash': 0,
 		'autoname': 'Prompt',
 		'colour': 'White:FFF',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
+		'in_create': 0,
+		'in_dialog': 0,
+		'is_transaction_doc': 0,
 		'issingle': 0,
 		'istable': 0,
+		'max_attachments': 0,
 		'module': 'Core',
 		'name': '__common__',
 		'read_only': 0,
+		'read_only_onload': 0,
 		'section_style': 'Simple',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 10
+		'subject': 'eval:("<span style=\'color:grey\'>Module: <b>%(module)s</b>, Type: <b>%(doc_type)s</b>, Standard: <b>%(standard)s</b></span>")',
+		'tag_fields': 'doc_type',
+		'use_template': 0,
+		'version': 24
 	},
 
 	# These values are common for all DocField
@@ -48,14 +59,12 @@
 		'cancel': 0,
 		'create': 1,
 		'doctype': 'DocPerm',
-		'execute': 0,
 		'name': '__common__',
 		'parent': 'Print Format',
 		'parentfield': 'permissions',
 		'parenttype': 'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': 'System Manager',
 		'submit': 0,
 		'write': 1
 	},
@@ -68,19 +77,33 @@
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'doctype': 'DocPerm',
+		'role': 'Administrator'
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'role': 'System Manager'
 	},
 
 	# DocField
 	{
+		'allow_on_submit': 0,
 		'doctype': 'DocField',
 		'fieldname': 'module',
 		'fieldtype': 'Select',
+		'hidden': 0,
+		'in_filter': 1,
 		'label': 'Module',
+		'no_copy': 0,
 		'oldfieldname': 'module',
 		'oldfieldtype': 'Select',
-		'options': 'link:Module Def',
-		'reqd': 1
+		'options': 'Module Def',
+		'print_hide': 0,
+		'report_hide': 0,
+		'reqd': 1,
+		'search_index': 1
 	},
 
 	# DocField
@@ -89,33 +112,46 @@
 		'doctype': 'DocField',
 		'fieldname': 'doc_type',
 		'fieldtype': 'Select',
+		'in_filter': 1,
 		'label': 'DocType',
 		'options': 'link:DocType',
-		'reqd': 0
+		'reqd': 0,
+		'search_index': 0
 	},
 
 	# DocField
 	{
+		'allow_on_submit': 0,
 		'doctype': 'DocField',
 		'fieldname': 'standard',
 		'fieldtype': 'Select',
+		'hidden': 0,
+		'in_filter': 1,
 		'label': 'Standard',
+		'no_copy': 0,
 		'oldfieldname': 'standard',
 		'oldfieldtype': 'Select',
 		'options': '\nYes\nNo',
+		'print_hide': 0,
+		'report_hide': 0,
 		'reqd': 1,
 		'search_index': 1
 	},
 
 	# DocField
 	{
+		'allow_on_submit': 0,
 		'doctype': 'DocField',
 		'fieldname': 'html',
 		'fieldtype': 'Code',
 		'hidden': 0,
+		'in_filter': 0,
 		'label': 'HTML',
+		'no_copy': 0,
 		'oldfieldname': 'html',
 		'oldfieldtype': 'Text Editor',
+		'print_hide': 0,
+		'report_hide': 0,
 		'reqd': 0,
 		'search_index': 0
 	}

@@ -16,7 +16,6 @@ class DocType:
 			'allow_print',
 			'allow_email',
 			'allow_copy',
-			'allow_rename',
 			'allow_attach',
 			'max_attachments' 
 		]

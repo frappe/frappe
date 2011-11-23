@@ -5,14 +5,14 @@
 	{
 		'creation': '2011-11-16 16:09:34',
 		'docstatus': 0,
-		'modified': '2011-11-17 16:38:45',
+		'modified': '2011-11-23 18:01:26',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1321528082',
+		'_last_update': '1322050979',
 		'autoname': 'DL.####',
 		'colour': 'White:FFF',
 		'doctype': 'DocType',
@@ -22,8 +22,8 @@
 		'name': '__common__',
 		'search_fields': 'doc_type',
 		'section_style': 'Simple',
-		'show_in_menu': 1,
-		'version': 21
+		'show_in_menu': 0,
+		'version': 74
 	},
 
 	# These values are common for all DocField
@@ -79,7 +79,7 @@
 		'doctype': 'DocField',
 		'fieldname': 'doc_type',
 		'fieldtype': 'Select',
-		'label': 'Type',
+		'label': 'Select Form Type',
 		'options': 'Link:DocType',
 		'permlevel': 0
 	},
@@ -101,15 +101,18 @@
 
 	# DocField
 	{
+		'description': 'E.g.<br />\nBased on field - <b>field:customer_name</b><br />\nBased on number series: <b>TRN.####</b>',
 		'doctype': 'DocField',
 		'fieldname': 'autoname',
 		'fieldtype': 'Data',
+		'hidden': 1,
 		'label': 'Auto Name',
-		'permlevel': 0
+		'permlevel': 2
 	},
 
 	# DocField
 	{
+		'description': 'Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box',
 		'doctype': 'DocField',
 		'fieldname': 'search_fields',
 		'fieldtype': 'Data',
@@ -119,6 +122,7 @@
 
 	# DocField
 	{
+		'description': 'Fields separated by comma (,) will be set as tags',
 		'doctype': 'DocField',
 		'fieldname': 'tag_fields',
 		'fieldtype': 'Data',
@@ -145,6 +149,7 @@
 
 	# DocField
 	{
+		'description': 'Load Print View on opening of an existing form',
 		'doctype': 'DocField',
 		'fieldname': 'read_only_onload',
 		'fieldtype': 'Check',
@@ -181,15 +186,7 @@
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'allow_rename',
-		'fieldtype': 'Check',
-		'label': 'Allow Rename',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
+		'description': 'Note: maximum attachment size = 1mb',
 		'doctype': 'DocField',
 		'fieldname': 'allow_attach',
 		'fieldtype': 'Check',
@@ -199,6 +196,7 @@
 
 	# DocField
 	{
+		'depends_on': 'eval:doc.allow_attach',
 		'doctype': 'DocField',
 		'fieldname': 'max_attachments',
 		'fieldtype': 'Int',
@@ -208,6 +206,7 @@
 
 	# DocField
 	{
+		'description': 'Customize Label, Print Hide, Default etc.',
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
 		'label': 'Fields',
