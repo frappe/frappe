@@ -248,6 +248,9 @@ class DocType:
 			d.select_property = self.defaults[prop]['label']
 			if delete: d.delete = 1
 			
+			if d.select_item:
+				d.select_item = self.remove_forbidden(d.select_item)
+			
 			# return the property setter doc
 			return d
 
@@ -289,3 +292,12 @@ class DocType:
 				DELETE FROM `tabProperty Setter`
 				WHERE doc_type = %s""", self.doc.doc_type)
 		self.get()
+
+	def remove_forbidden(self, string):
+		"""
+			Replace forbidden characters with a space
+		"""
+		forbidden = ['%', "'", '"', '#', '*', '?', '`']
+		for f in forbidden:
+			string.replace(f, ' ')
+	

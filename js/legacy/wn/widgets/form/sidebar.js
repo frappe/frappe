@@ -26,7 +26,9 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					{
 						type: 'link',
 						label: 'Print',
-						display: function() { return !me.form.doc.__islocal },
+						display: function() { 
+							return !(me.form.doc.__islocal || me.form.meta.allow_print);
+						},
 						icon: 'ic-print',
 						onclick: function() { me.form.print_doc() }
 					},
@@ -34,7 +36,9 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					{
 						type: 'link',
 						label: 'Email',
-						display: function() { return !me.form.doc.__islocal },
+						display: function() { 
+							return !(me.form.doc.__islocal || me.form.meta.allow_email);
+						},
 						icon: 'ic-mail',
 						onclick: function() { me.form.email_doc() }
 					},
