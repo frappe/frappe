@@ -5,14 +5,14 @@
 	{
 		'creation': '2011-11-16 16:09:34',
 		'docstatus': 0,
-		'modified': '2011-11-23 18:01:26',
+		'modified': '2011-11-24 12:59:42',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1322050979',
+		'_last_update': '1322119618',
 		'autoname': 'DL.####',
 		'colour': 'White:FFF',
 		'doctype': 'DocType',
@@ -23,7 +23,7 @@
 		'search_fields': 'doc_type',
 		'section_style': 'Simple',
 		'show_in_menu': 0,
-		'version': 74
+		'version': 95
 	},
 
 	# These values are common for all DocField
@@ -80,7 +80,7 @@
 		'fieldname': 'doc_type',
 		'fieldtype': 'Select',
 		'label': 'Select Form Type',
-		'options': 'Link:DocType',
+		'options': 'Link:DocType\nmodule IN ("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", "Selling", "Stock", "Support")\nIFNULL(issingle, 0)=0\nIFNULL(in_create, 0)=0',
 		'permlevel': 0
 	},
 
