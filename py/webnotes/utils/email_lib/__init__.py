@@ -19,7 +19,7 @@ def make_html_body(content, template = None):
 	return template_html % {'content': content}
 
 
-def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc=[], attach=[], send_now=1, reply_to=None, template=None):
+def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc=[], attach=[], send_now=1, reply_to=None, template=None, from_defs=0):
 	"""
 		send an html email as multipart with attachments and all
 	"""
@@ -27,7 +27,7 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 	from webnotes.utils.email_lib.html2text import html2text
 	from webnotes.utils.email_lib.send import EMail
 		
-	email = EMail(sender, recipients, subject, reply_to=reply_to)
+	email = EMail(sender, recipients, subject, reply_to=reply_to, from_defs=from_defs)
 	email.cc = cc
 	
 	if msg:		
