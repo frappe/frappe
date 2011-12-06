@@ -47,10 +47,12 @@ class Scheduler:
 			db_name = webnotes.conn.cur_db_name
 
 		self.clear(db_name, event)
+		self.conn.sql("start transaction")
 		self.conn.sql("""insert into 
 			Event (`db_name`, `event`, `interval`, next_execution, recurring) 
 			values  (%s, %s, %s, ADDTIME(NOW(), SEC_TO_TIME(%s)), %s)
 			""", (webnotes.conn.cur_db_name, event, interval, interval, recurring))
+		self.conn.sql("commit")
 
 	def get_events(self, db_name=None):
 		"""
@@ -79,8 +81,9 @@ class Scheduler:
 		"""
 			Clears the event
 		"""
-		self.connect()
+		self.conn.sql("start transaction")
 		self.conn.sql("delete from Event where `event`=%s and db_name=%s", (event, db_name))
+		self.conn.sql("commit")
 
 	def execute(self, db_name, event, now):
 		"""
@@ -101,7 +104,6 @@ class Scheduler:
 			ret = locals()[method]()
 			webnotes.conn.commit()
 			webnotes.conn.close()
-			
 			self.log(db_name, event, ret or 'Ok')
 			
 		except Exception, e:
@@ -114,11 +116,14 @@ class Scheduler:
 		"""
 			Log an event error
 		"""
+		self.conn.sql("start transaction")
 		self.conn.sql("insert into `EventLog`(db_name, event, log, executed_on) values (%s, %s, %s, now())", \
 			(db_name, event, traceback))
 			
 		# delete old logs
 		self.conn.sql("delete from EventLog where executed_on < subdate(curdate(), interval 30 day)")
+
+		self.conn.sql("commit")
 
 	def run(self, now=0):
 		"""
@@ -131,15 +136,15 @@ class Scheduler:
 		el = self.conn.sql("""select `db_name`, `event`, `recurring`, `interval`
 			from `Event` 
 			%s""" % cond, as_dict=1)
-		
 		for e in el:
 			# execute the event
 			self.execute(e['db_name'], e['event'], now)
 			
 			# if recurring, update next_execution
 			if e['recurring']:
+				self.conn.sql("start transaction")
 				self.conn.sql("update Event set next_execution = addtime(now(), sec_to_time(%s)) where event=%s", (e['interval'], e['event']))
-			
+				self.conn.sql("commit")
 			# else clear
 			else:
 				self.clear(e['db_name'], e['event'])
