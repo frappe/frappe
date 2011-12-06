@@ -58,6 +58,8 @@ class DocList:
 		from webnotes.model.doc import Document
 
 		self.docs = [Document(fielddata=d) for d in self.docs]
+		self.doclist = self.docs
+
 		if not docname:
 			self.doc, self.children = self.docs[0], self.docs[1:]
 
@@ -80,7 +82,7 @@ class DocList:
 		if self.obj: return self.obj
 
 		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.children)
+		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
 		return self.obj
 
 	def next(self):
@@ -250,6 +252,41 @@ class DocList:
 		self.save_main()
 		self.save_children()
 		self.run_method('on_update_after_submit')
+
+# clone
+
+def clone(source_doclist):
+	""" Copy previous invoice and change dates"""
+	from webnotes.model.doc import Document
+	new_doclist = []
+	new_parent = Document(fielddata = source_doclist.doc.fields.copy())
+	new_parent.name = 'Temp/001'
+	new_parent.fields['__islocal'] = 1
+	new_parent.fields['docstatus'] = 0
+
+	if new_parent.fields.has_key('amended_from'):
+		new_parent.fields['amended_from'] = None
+		new_parent.fields['amendment_date'] = None
+
+	new_parent.save(1)
+
+	new_doclist.append(new_parent)
+
+	for d in source_doclist.doclist[1:]:
+		newd = Document(fielddata = d.fields.copy())
+		newd.name = None
+		newd.fields['__islocal'] = 1
+		newd.fields['docstatus'] = 0
+		newd.parent = new_parent.name
+		new_doclist.append(newd)
+	
+	doclistobj = DocList()
+	doclistobj.docs = new_doclist
+	doclistobj.doc = new_doclist[0]
+	doclistobj.doclist = new_doclist
+	doclistobj.children = new_doclist[1:]
+	doclistobj.save()
+	return doclistobj
 
 
 # for bc
