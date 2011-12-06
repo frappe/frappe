@@ -500,7 +500,7 @@ wn.urllib = {
 	
 	// returns the base url with http + domain + path (-index.cgi or # or ?)
 	get_base_url: function() {
-		var url= window.location.href.split('#')[0].split('?')[0].split('index.cgi')[0];
+		var url= window.location.href.split('#')[0].split('?')[0].split('index.html')[0];
 		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
 		return url
 	},
