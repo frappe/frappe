@@ -109,7 +109,7 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 		return
 		
 	module = module.replace(' ','_').lower()
-	dt = doc.doctype.replace(' ','_').lower()
+	dt = doc.doctype.replace(' ','_').replace('-', '_').lower()
 
 	# import
 	try:
