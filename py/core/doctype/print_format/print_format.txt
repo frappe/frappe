@@ -5,14 +5,14 @@
 	{
 		'creation': '2009-05-12 16:43:58',
 		'docstatus': 0,
-		'modified': '2011-11-23 13:39:59',
+		'modified': '2011-12-05 11:45:45',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1321362800',
+		'_last_update': '1322035799',
 		'allow_attach': 0,
 		'allow_copy': 0,
 		'allow_email': 0,
@@ -40,7 +40,7 @@
 		'subject': 'eval:("<span style=\'color:grey\'>Module: <b>%(module)s</b>, Type: <b>%(doc_type)s</b>, Standard: <b>%(standard)s</b></span>")',
 		'tag_fields': 'doc_type',
 		'use_template': 0,
-		'version': 24
+		'version': 25
 	},
 
 	# These values are common for all DocField
@@ -99,7 +99,7 @@
 		'no_copy': 0,
 		'oldfieldname': 'module',
 		'oldfieldtype': 'Select',
-		'options': 'Module Def',
+		'options': 'link:Module Def',
 		'print_hide': 0,
 		'report_hide': 0,
 		'reqd': 1,
