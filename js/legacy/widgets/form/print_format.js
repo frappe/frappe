@@ -189,7 +189,17 @@ $.extend(_p, {
 		Display draft in header if true
 	*/	
 	show_draft: function(args) {
-		if(args.doc && cint(args.doc.docstatus)==0 && cur_frm.perm[0][SUBMIT]) {
+		var is_doctype_submittable = 0;
+		var plist = locals['DocPerm'];
+		for(var perm in plist) {
+			var p = plist[perm];
+			if((p.parent==args.doc.doctype) && (p.submit==1)){
+				is_doctype_submittable = 1;
+				break;
+			}
+		}
+
+		if(args.doc && cint(args.doc.docstatus)==0 && is_doctype_submittable) {
 			draft = _p.head_banner_format();
 			draft = draft.replace("{{HEAD}}", "DRAFT");
 			draft = draft.replace("{{DESCRIPTION}}", "This box will go away after the document is submitted.");
