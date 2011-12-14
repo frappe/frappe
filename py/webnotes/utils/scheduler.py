@@ -153,7 +153,9 @@ def set_event(event, interval=60*60*24, recurring=1):
 	"""
 		Adds an event to the master scheduler
 	"""
-	return Scheduler().set(event, interval, recurring)
+	sch = Scheduler()
+	sch.connect()
+	return sch.set(event, interval, recurring)
 
 
 def cancel_event(event):
@@ -161,7 +163,11 @@ def cancel_event(event):
 		Cancels an event
 	"""
 	import webnotes
-	return Scheduler().clear(webnotes.conn.cur_db_name, event)
+	
+	sch = Scheduler()
+	sch.connect()
+	return sch.clear(webnotes.conn.cur_db_name, event)
+
 
 # to be called from cron
 if __name__=='__main__':
