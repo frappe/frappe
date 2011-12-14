@@ -138,6 +138,7 @@ class EMail:
 		setup the SMTP (outgoing) server from `Control Panel` or defs.py
 		"""
 		if self.from_defs:
+			import webnotes
 			self.server = getattr(webnotes.defs,'mail_server','')
 			self.login = getattr(webnotes.defs,'mail_login','')
 			self.port = getattr(webnotes.defs,'mail_port',None)
