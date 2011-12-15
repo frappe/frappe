@@ -82,7 +82,7 @@ class DocList:
 		if self.obj: return self.obj
 
 		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
+		self.obj = get_obj(doc=self.doc, doclist=self.children)
 		return self.obj
 
 	def next(self):
