@@ -184,7 +184,6 @@ class VersionControl:
 		"""
 		import os
 		for wt in os.walk(self.root_path, followlinks = True):
-			
 			# ignore folders
 			for folder in self.ignore_folders:
 				if folder in wt[1]:
