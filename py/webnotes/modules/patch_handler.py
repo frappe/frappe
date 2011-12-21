@@ -3,6 +3,12 @@
 
 	Patch files usually lie in the "patches" module specified by "modules_path" in defs.py
 
+	To run directly
+	
+	python lib/wnf.py patch patch1, patch2 etc
+	python lib/wnf.py patch -f patch1, patch2 etc
+	
+	where patch1, patch2 is module name
 """
 import unittest
 import sys
