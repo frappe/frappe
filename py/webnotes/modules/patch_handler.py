@@ -28,11 +28,12 @@ class PatchHandler:
 
 			Arguments can be:
 				* db_name
-				* print_enabled --> to enabled printing
+				* verbose --> to enabled printing
 		"""
-		self.print_enabled = kwargs.get('print_enabled')
+		self.verbose = kwargs.get('verbose')
 		try:
 			self.db_name = kwargs.get('db_name')
+			webnotes.conn = None
 			webnotes.conn = Database(user=self.db_name)
 			webnotes.conn.use(self.db_name)
 			if not (webnotes.session and webnotes.session['user']):
@@ -161,7 +162,7 @@ class PatchHandler:
 			
 			Logs exceptions in patches.patch.log
 
-			Also, if self.print_enabled is true, then it prints what gets logged
+			Also, if self.verbose is true, then it prints what gets logged
 
 			Arguments can be:
 				* log_type = success/error/info
@@ -178,7 +179,7 @@ class PatchHandler:
 			webnotes.conn.sql("""\
 				INSERT INTO `__PatchLog`
 				VALUES (%s, now())""", patch)
-			if self.print_enabled: print 'Patch: %s applied successfully' % patch
+			if self.verbose: print 'Patch: %s applied successfully' % patch
 	
 		elif log_type == 'error' or log_type == 'info':
 			args = {
@@ -188,7 +189,7 @@ class PatchHandler:
 				'msg': kwargs.get('msg')
 			}
 			patch_msg = self.write_log(**args)
-			if self.print_enabled: print patch_msg
+			if self.verbose: print patch_msg
 		
 
 
@@ -226,7 +227,7 @@ class PatchHandler:
 		try:
 			if log_type=='error' and getattr(webnotes.defs, 'admin_email_notification', 0):
 				webnotes.utils.email_lib.sendmail(\
-					recipients='developers@erpnext.com', \
+					recipients=getattr(webnotes.defs, 'admin_email_address', 'developers@erpnext.com'), \
 					sender='exception+patches@erpnext.com', \
 					subject='Patch Error' + \
 						(patch_module and (": " + patch_module + "." + patch_file) or ""), \
@@ -297,18 +298,18 @@ class TestPatchHandler(unittest.TestCase):
 
 	
 	def test_run_patch(self):
-		self.ph = PatchHandler(db_name='frappe', print_enabled=1)
+		self.ph = PatchHandler(db_name='frappe', verbose=1)
 		#self.ph.run_patch(patch_module=self.patch_module, patch_file=self.patch_file, force=1)
 
 
 	def test_run(self):
-		self.ph = PatchHandler(db_name='frappe', print_enabled=1)
+		self.ph = PatchHandler(db_name='frappe', verbose=1)
 		self.ph.run(patch_list=self.patch_list)
 		self.ph.run(run_latest=True)
 
 	
 	def test_reload(self):
-		self.ph = PatchHandler(db_name='frappe', print_enabled=1)
+		self.ph = PatchHandler(db_name='frappe', verbose=1)
 		self.ph.reload(module='Core', doc_type='DocType', doc_name='Print Format')
 
 
