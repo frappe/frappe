@@ -23,7 +23,7 @@ Uploader = function(parent, args, callback) {
 	// file data
 	var inp_fdata = $a_input($a(ul_form,'span'),'file',{name:'filedata'},{marginLeft:'7px'});
 
-	var inp = $a_input($a(ul_form,'span'),'hidden',{name:'cmd'}); inp.value = 'uploadfile';
+	if(!('cmd' in args)) { var inp = $a_input($a(ul_form,'span'),'hidden',{name:'cmd'}); inp.value = 'uploadfile'; }
 	var inp = $a_input($a(ul_form,'span'),'hidden',{name:'uploader_id'}); inp.value = id;
 	var inp = $a_input($a(ul_form,'span'),'submit',null,{marginLeft:'7px'}); inp.value = 'Upload';
 	

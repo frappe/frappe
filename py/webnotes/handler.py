@@ -116,12 +116,19 @@ def uploadfile():
 		fid, fname = webnotes.utils.file_manager.save_uploaded()
 		
 		# do something with the uploaded file
-		if fid and webnotes.form_dict.get('server_obj'):
-			from webnotes.model.code import get_obj
-			getattr(get_obj(webnotes.form_dict.get('server_obj')), webnotes.form_dict.get('method'))(fid, fname)
-			
-		# return the upload
 		if fid:
+			if webnotes.form_dict.get('server_obj'):
+				from webnotes.model.code import get_obj
+				getattr(get_obj(webnotes.form_dict.get('server_obj')), webnotes.form_dict.get('method'))(fid, fname)
+		
+			elif webnotes.form_dict.get('modulename'):
+				# calls a python module to handle the script
+				__import__(webnotes.form_dict['modulename'])
+				import sys
+				moduleobj = sys.modules[webnotes.form_dict['modulename']]
+				getattr(moduleobj, webnotes.form_dict['method'])(fid, fname)
+
+
 			webnotes.response['result'] = '<script>window.parent.upload_callback("'+webnotes.form_dict.get('uploader_id')+'", "'+fid+'")</script>'
 	
 # File upload (from scripts)
