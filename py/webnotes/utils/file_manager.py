@@ -1,5 +1,6 @@
+import webnotes
+
 def upload():
-	import webnotes
 	form = webnotes.form
 
 	# get record details
@@ -47,7 +48,6 @@ def add_file_list(dt, dn, fname, fid):
 	"""
 		udpate file_list attribute of the record
 	"""
-	import webnotes
 	try:
 		# get the old file_list
 		fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
@@ -69,11 +69,19 @@ window.parent.msgprint("Error while uploading: %s");
 </script>""" % str(e)
 
 
+def remove_all(dt, dn):
+	"""remove all files in a transaction"""
+	file_list = webnotes.conn.get_value(dt, dn, 'file_list') or ''
+	for afile in file_list.split('\n'):
+		if afile:
+			fname, fid = afile.split(',')
+			remove_file_list(dt, dn, fid)
+			delete_file(fid)
+
 def remove_file_list(dt, dn, fid):
 	"""
 		Remove fid from the give file_list
 	"""
-	import webnotes
 	
 	# get the old file_list
 	fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
@@ -105,7 +113,6 @@ def make_thumbnail(blob, size):
 
 
 def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js_fail=''):
-	import webnotes
 	import webnotes.utils
 	
 	webnotes.response['type'] = 'iframe'
@@ -144,7 +151,6 @@ def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js
 # -------------------------------------------------------
 
 def save_file(fname, content, module=None):
-	import webnotes
 	from webnotes.model.doc import Document
 
 	# some browsers return the full path
@@ -167,7 +173,7 @@ def save_file(fname, content, module=None):
 # -------------------------------------------------------
 
 def write_file(fid, content):
-	import webnotes, os, webnotes.defs
+	import os, webnotes.defs
 
 	# test size
 	max_file_size = 1000000
@@ -195,12 +201,11 @@ def write_file(fid, content):
 # -------------------------------------------------------
 def get_file_system_name(fname):
 	# get system name from File Data table
-	import webnotes
 	return webnotes.conn.sql("select name, file_name from `tabFile Data` where name=%s or file_name=%s", (fname, fname))
 
 # -------------------------------------------------------
 def delete_file(fname, verbose=0):
-	import webnotes, os
+	import os
 		
 	for f in get_file_system_name(fname):
 		webnotes.conn.sql("delete from `tabFile Data` where name=%s", f[0])
@@ -219,7 +224,6 @@ def delete_file(fname, verbose=0):
 # -------------------------------------------------------
 
 def get_file(fname):
-	import webnotes
 	in_fname = fname
 	
 	# from the "File" table
@@ -248,7 +252,6 @@ def get_file(fname):
 # -------------------------------------------------------
 
 def convert_to_files(verbose=0):
-	import webnotes
 	
 	# nfiles
 	fl = webnotes.conn.sql("select name from `tabFile Data`")
