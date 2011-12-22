@@ -252,7 +252,7 @@ def uncommonify_doclist(dl):
 			common_dict[d['doctype']] = d
 		else:
 			dt = d['doctype']
-			if not dt in idx_dict: idx_dict[dt] = 0;
+			if not dt in idx_dict: idx_dict[dt] = 1;
 			d1 = common_values.copy()
 
 			# update from common and global
