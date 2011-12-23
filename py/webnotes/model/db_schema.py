@@ -387,7 +387,7 @@ class DbManager:
 def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
 	import re
-	if not re.match("[a-zA-Z_][a-zA-Z0-9_]*$", n):
+	if re.search("[\W]", n):
 		webnotes.msgprint('err:%s is not a valid fieldname.<br>A valid name must contain letters / numbers / spaces.<br><b>Tip: </b>You can change the Label after the fieldname has been set' % n)
 		raise Exception
 	return n
