@@ -89,6 +89,7 @@ class PatchHandler:
 				* doc_name
 		"""
 		try:
+			self.block_user(True, msg="Patches are being executed in the system. Please try again in a few minutes.")
 			module = kwargs.get('module')
 			doc_type, doc_name = kwargs.get('doc_type'), kwargs.get('doc_name')
 			reload_string = 'Module: %s, DocType: %s, DocName: %s' % (module, doc_type, doc_name)
@@ -97,9 +98,10 @@ class PatchHandler:
 			reload_doc(module, doc_type, doc_name)
 			
 			self.log(log_type='info', msg='Reload successful. ' + reload_string)
-		
 		except Exception, e:
 			self.log(log_type='error', msg='Reload error. ' + reload_string)
+		finally:
+			self.block_user(False)
 
 
 	def get_executed_patch_list(self):
@@ -124,16 +126,16 @@ class PatchHandler:
 
 	def run(self, **kwargs):
 		"""
-			Runs a patch or reload on a db
+			Runs a patch on a db
 
 			Arguments can be:
 				* Either one of 
-					+ patch_list --> [{
-							'patch_module': <module>, 
-							'patch_file': <file>, 
-							'force': True/False
-						}, ...]
-					+ run_latest --> can be any true value
+					* patch_list
+						--> List of dict containing:
+							+ patch_module
+							+ patch_file (!Mandatory)
+					* force --> True/False (Only application if patch_list)
+				* run_latest --> True/False
 
 			Before beginning, block user
 			After completion, unblock user
@@ -179,7 +181,7 @@ class PatchHandler:
 			webnotes.conn.sql("""\
 				INSERT INTO `__PatchLog`
 				VALUES (%s, now())""", patch)
-			if self.verbose: print 'Patch: %s applied successfully' % patch
+			if self.verbose: print 'Patch: %s applied successfully on %s' % (patch, str(self.db_name))
 	
 		elif log_type == 'error' or log_type == 'info':
 			args = {
