@@ -112,4 +112,5 @@ class DocType:
 				new.no_copy = 1
 				max_idx = max([d.idx for d in self.doclist if d.idx])
 				max_idx = max_idx and max_idx or 0
-				new.idx = max_idx + 1 
+				new.idx = max_idx + 1
+				new.save()
