@@ -15,8 +15,8 @@ def print_help():
 	print "python lib/wnf.py log : list last 10 commits"
 	print "python lib/wnf.py pull : pull from git"
 	print "python lib/wnf.py replace txt1 txt2 extn"
-	print "python lib/wnf.py patch patch1 .. : run patches from patches module if not executed"
-	print "python lib/wnf.py patch -f patch1 .. : run patches from patches module, force rerun"
+	print "python lib/wnf.py patch -vp patch1 .. : run patches from patches module if not executed"
+	print "python lib/wnf.py patch -fvp patch1 .. : run patches from patches module, force rerun"
 
 def setup():
 	import os, sys
@@ -150,13 +150,37 @@ def run():
 		replace_code('.', sys.argv[2], sys.argv[3], sys.argv[4])
 		
 	elif cmd=='patch':
-		from webnotes.modules.patch_handler import run
-		if len(sys.argv)>2 and sys.argv[2]=='-f':
-			# force patch
-			run(patch_list = sys.argv[3:], overwrite=1, log_exception=0)
-		else:
-			# run patch once
-			run(patch_list = sys.argv[2:], log_exception=0)
+		from optparse import OptionParser
+		parser = OptionParser()
+		parser.add_option("-q", "--quiet",
+						  action="store_false", dest="verbose", default=True,
+						  help="Do not print status messages to stdout")
+		parser.add_option("-l", "--latest",
+						  action="store_true", dest="run_latest", default=False,
+						  help="Apply the latest patches")
+		parser.add_option("-p", "--patch", dest="patch_list", metavar='PATCH_MODULE.PATCH_FILE',
+						  action="append",
+						  help="Apply patch PATCH_MODULE.PATCH_FILE\n\
+						  Can be used more than once for applying multiple patches")
+		parser.add_option("-f", "--force",
+						  action="store_true", dest="force", default=False,
+						  help="Force Apply all patches specified using option -p or --patch")
+		(options, args) = parser.parse_args()
+		
+		if options.patch_list:
+			for patch in options.patch_list:
+				patch_split = patch.split(".")
+				idx = options.patch_list.index(patch)
+				patch_module = ".".join(patch_split[:-1])
+				options.patch_list[idx] = {
+					'patch_module': patch_module or "patches",
+					'patch_file': patch_split[-1]
+				}
+
+		options.db_name = hasattr(webnotes.defs, 'default_db_name') and getattr(webnotes.defs, 'default_db_name') or None
+		
+		from webnotes.modules.patch_handler import PatchHandler
+		PatchHandler(**options.__dict__).run(**options.__dict__)
 
 if __name__=='__main__':
 	run()
