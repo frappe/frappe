@@ -239,9 +239,11 @@ class LoginManager:
 		if hasattr(cp, 'on_logout'):
 			cp.on_logout(self)
 
-	def logout(self, arg=''):
+	def logout(self, arg='', sid=None):
+		if not sid: sid = webnotes.session['sid']
+		self.sid = sid
 		self.run_trigger('on_logout')
-		webnotes.conn.sql('update tabSessions set status="Logged Out" where sid="%s"' % webnotes.session['sid'])
+		webnotes.conn.sql('update tabSessions set status="Logged Out" where sid="%s"' % sid)
 		
 # =================================================================================
 # Cookie Manager
