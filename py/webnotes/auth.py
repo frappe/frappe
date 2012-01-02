@@ -137,10 +137,9 @@ class LoginManager:
 	def authenticate(self, user=None, pwd=None):
 		if not (user and pwd):	
 			user, pwd = webnotes.form_dict.get('usr'), webnotes.form_dict.get('pwd')
-
 		if not (user and pwd):
-			webnotes.msgprint('Incomplete Login Details', raise_exception=1)
-		
+			webnotes.response['message'] = 'Incomplete Login Details'  
+			raise Exception
 		# custom authentication (for single-sign on)
 		self.load_control_panel()
 		if hasattr(self.cp, 'authenticate'):
@@ -151,9 +150,10 @@ class LoginManager:
 			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s OR `password`=PASSWORD(%s))", (user, pwd, pwd))
 		else:
 			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s  OR `password`=PASSWORD(%s)) and IFNULL(enabled,0)=1", (user, pwd, pwd))
-			
 		if not p:
-			webnotes.msgprint('Authentication Failed', raise_exception=1)
+			webnotes.response['message'] = 'Authentication Failed'
+			raise Exception
+			#webnotes.msgprint('Authentication Failed',raise_exception=1)
 			
 		self.user = p[0][0]
 	
@@ -239,9 +239,11 @@ class LoginManager:
 		if hasattr(cp, 'on_logout'):
 			cp.on_logout(self)
 
-	def logout(self, arg=''):
+	def logout(self, arg='', sid=None):
+		if not sid: sid = webnotes.session['sid']
+		self.sid = sid
 		self.run_trigger('on_logout')
-		webnotes.conn.sql('update tabSessions set status="Logged Out" where sid="%s"' % webnotes.session['sid'])
+		webnotes.conn.sql('update tabSessions set status="Logged Out" where sid="%s"' % sid)
 		
 # =================================================================================
 # Cookie Manager

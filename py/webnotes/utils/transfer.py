@@ -195,8 +195,8 @@ class UpdateDocType(UpdateDocumentMerge):
 	def get_id(self, d):
 		key = d.fieldname and 'fieldname' or 'label'
 		if d.fields.get(key):
-			return webnotes.conn.sql("""select name, options, permlevel, reqd, print_hide, hidden
-			from tabDocField where %s=%s and parent=%s""" % (key, '%s', '%s'), (d.fields[key], d.parent))
+			return webnotes.conn.sql("""select name, options, permlevel, reqd, print_hide, hidden, fieldtype
+				from tabDocField where %s=%s and parent=%s""" % (key, '%s', '%s'), (d.fields[key], d.parent))
 				
 	def on_save(self):
 		self.renum()
@@ -208,7 +208,7 @@ class UpdateDocType(UpdateDocumentMerge):
 	def get_orignal_values(self, d):
 		if d.doctype=='DocField':
 			t = self.get_id(d)[0]
-			return {'name': t[0], 'options': t[1], 'reqd':t[3], 'print_hide':t[4], 'hidden':t[5]}
+			return {'name': t[0], 'options': t[1], 'reqd':t[3],	'print_hide':t[4], 'hidden':t[5], 'fieldtype':t[6]}
 
 		if d.doctype=='DocType':
 			return webnotes.conn.sql("select server_code, client_script from `tabDocType` where name=%s", d.name, as_dict = 1)[0]
