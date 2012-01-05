@@ -66,9 +66,11 @@ class IncomingMail:
 			Extracts thread id of the message between first [] 
 			from the subject
 		"""
+		import re
 		subject = self.mail.get('Subject', '')
-		if '[' in subject and ']' in subject:
-			return subject.split('[')[1].split(']')[0]
+
+		return re.findall('(?<=\[)\w+', subject)
+
 
 	def process_part(self, part):
 		"""
