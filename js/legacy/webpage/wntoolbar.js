@@ -252,11 +252,8 @@ function WNToolbar(parent) {
 		var t = make_table(w, 1, 6, null, [], this.right_table_style);
 		
 		$y(t,{cssFloat:'right', color:'#FFF'});
-		$td(t,0,0).innerHTML = user_fullname;
-		$td(t,0,1).innerHTML = '<span style="cursor: pointer;font-weight: bold" onclick="get_help()">Help</span>';
-		$td(t,0,2).innerHTML = '<span style="cursor: pointer;font-weight: bold" onclick="get_feedback()">Feedback</span>';
-		$td(t,0,3).innerHTML = '<span style="cursor: pointer;" onclick="loaddoc(\'Profile\', user)">Profile</span>';
-		$td(t,0,4).innerHTML = '<span style="cursor: pointer;" onclick="logout()">Logout</span>';
+		$td(t,0,0).innerHTML = '<a style="cursor: pointer; font-weight: bold; color: #FFF; text-decoration: underline" onclick="get_help()">Help</a>';
+		$td(t,0,4).innerHTML = '<span style="cursor: pointer; font-weight: bold; color: #FFF;" onclick="logout()">Logout</span>';
 		this.menu_table_right = t;
 		$y($td(t,0,5), {width:'18px'});
 		this.spinner = $a($td(t,0,5),'img','',{display:'none'}); this.spinner.src = 'lib/images/ui/spinner.gif';
