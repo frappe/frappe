@@ -48,8 +48,15 @@ _f.Grid.prototype.make_ui = function(parent) {
 }
 
 _f.Grid.prototype.show = function() { 
-	if(this.can_add_rows) {
+	if(this.can_edit && this.field.df['default'].toLowerCase()!='no toolbar') {
 		$ds(this.tbar_div);
+		if(this.can_add_rows) {
+			$td(this.tbar_tab, 0, 0).style.display = 'table-cell';
+			$td(this.tbar_tab, 0, 1).style.display = 'table-cell';
+		} else {
+			$td(this.tbar_tab, 0, 0).style.display = 'none';
+			$td(this.tbar_tab, 0, 1).style.display = 'none';
+		}
 	} else {
 		$dh(this.tbar_div);
 	}
