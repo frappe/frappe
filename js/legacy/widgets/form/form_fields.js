@@ -285,12 +285,24 @@ _f.TableField.prototype.refresh = function() {
 			if(this.df['default'].toLowerCase()!='no toolbar')
 				this.grid.can_add_rows = true;
 		}
-		if(cur_frm.editable 
-			&& this.df.allow_on_submit 
-				&& cur_frm.doc.docstatus == 1 
-					&& this.df['default'].toLowerCase()!='no toolbar') {
-				this.grid.can_add_rows = true;
+		
+		// submitted or cancelled
+		if(cur_frm.editable && cur_frm.doc.docstatus > 0) {
+			if(this.df.allow_on_submit && cur_frm.doc.docstatus==1) {
 				this.grid.can_edit = true;
+				if(this.df['default'].toLowerCase()=='no toolbar') {
+					this.grid.can_add_rows = false;
+				} else {
+					this.grid.can_add_rows = true;
+				}
+			} else {
+				this.grid.can_add_rows = false;
+				this.grid.can_edit = false;
+			}
+		}
+
+		if(this.df['default'].toLowerCase()=='no add rows') {
+			this.grid.can_add_rows = false;
 		}
 	}
 	

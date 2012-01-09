@@ -1,18 +1,11 @@
 cur_frm.cscript.doc_type = function(doc, dt, dn) {
-	//console.log(doc);
-	//console.log(doc_type);
-
 	$c_obj(make_doclist(dt, dn), 'get', '', function(r, rt) {
 		cur_frm.refresh();
-		//console.log(arguments);
 	});
 }
 
 cur_frm.cscript.onload = function(doc, dt, dn) {
 	cur_frm.grids[0].grid.tbar_div.style.width = "30%";
-	p = cur_frm.grids[0].grid.tbar_tab.children[0].children[0];
-	p.removeChild(p.children[0])
-	p.removeChild(p.children[0])
 	cur_frm.tip_wrapper.id = 'tip_wrapper';
 	cur_frm.add_fields_help();
 }
@@ -24,6 +17,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	cur_frm.page_layout.footer.hidden = true;
 	if(doc.doc_type) { $('#tip_wrapper').slideUp('slow'); }
 
+	//cur_frm.grids[0].grid.tab.rows[cur_frm.grids[0].grid.tab.rows.length-1].hidden = true;
 	cur_frm.add_custom_button('Update', function() {
 		if(cur_frm.fields_dict['doc_type'].value) {
 			$c_obj(make_doclist(dt, dn), 'post', '', function(r, rt) {
@@ -34,7 +28,6 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 					'<span style="padding: 2px; background-color: rgb(0, 170, 17); \
 					color: rgb(255, 255, 255); font-weight: bold; margin-left: 0px; \
 					font-size: 11px;">Saved</span>';
-					//console.log(arguments);
 				}
 			});	
 		}
