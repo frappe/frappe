@@ -240,7 +240,8 @@ _f.TableField.prototype.refresh=function(){if(!this.grid)return;var st=this.get_
 this.df['default']='';this.grid.can_add_rows=false;this.grid.can_edit=false
 if(st=='Write'){if(cur_frm.editable&&this.perm[this.df.permlevel]&&this.perm[this.df.permlevel][WRITE]){this.grid.can_edit=true;if(this.df['default'].toLowerCase()!='no toolbar')
 this.grid.can_add_rows=true;}
-if(cur_frm.editable&&this.df.allow_on_submit&&cur_frm.doc.docstatus==1&&this.df['default'].toLowerCase()!='no toolbar'){this.grid.can_add_rows=true;this.grid.can_edit=true;}}
+if(cur_frm.editable&&cur_frm.doc.docstatus>0){if(this.df.allow_on_submit&&cur_frm.doc.docstatus==1){this.grid.can_edit=true;if(this.df['default'].toLowerCase()=='no toolbar'){this.grid.can_add_rows=false;}else{this.grid.can_add_rows=true;}}else{this.grid.can_add_rows=false;this.grid.can_edit=false;}}
+if(this.df['default'].toLowerCase()=='no add rows'){this.grid.can_add_rows=false;}}
 if(this.old_status!=st){if(st=='Write'){this.grid.show();}else if(st=='Read'){this.grid.show();}else{this.grid.hide();}
 this.old_status=st;}
 this.grid.refresh();}
@@ -256,7 +257,7 @@ _f.cur_grid_cell=null;_f.Grid=function(parent){}
 _f.Grid.prototype.init=function(parent,row_height){this.col_idx_by_name={}
 this.alt_row_bg='#F2F2FF';this.row_height=row_height;if(!row_height)this.row_height='26px';this.make_ui(parent);this.insert_column('','','Int','Sr','50px','',[1,0,0]);if(this.oninit)this.oninit();keypress_observers.push(this);}
 _f.Grid.prototype.make_ui=function(parent){var ht=make_table($a(parent,'div'),1,2,'100%',['60%','40%']);this.main_title=$td(ht,0,0);this.main_title.className='columnHeading';$td(ht,0,1).style.textAlign='right';this.tbar_div=$a($td(ht,0,1),'div','grid_tbarlinks');if(isIE)$y(this.tbar_div,{width:'200px'});this.tbar_tab=make_table(this.tbar_div,1,4,'100%',['25%','25%','25%','25%']);this.wrapper=$a(parent,'div','grid_wrapper');$h(this.wrapper,cint(screen.width*0.5)+'px');this.head_wrapper=$a(this.wrapper,'div','grid_head_wrapper');this.head_tab=$a(this.head_wrapper,'table','grid_head_table');this.head_row=this.head_tab.insertRow(0);this.tab_wrapper=$a(this.wrapper,'div','grid_tab_wrapper');this.tab=$a(this.tab_wrapper,'table','grid_table');var me=this;this.wrapper.onscroll=function(){me.head_wrapper.style.top=me.wrapper.scrollTop+'px';}}
-_f.Grid.prototype.show=function(){if(this.can_add_rows){$ds(this.tbar_div);}else{$dh(this.tbar_div);}
+_f.Grid.prototype.show=function(){if(this.can_edit&&this.field.df['default'].toLowerCase()!='no toolbar'){$ds(this.tbar_div);if(this.can_add_rows){$td(this.tbar_tab,0,0).style.display='table-cell';$td(this.tbar_tab,0,1).style.display='table-cell';}else{$td(this.tbar_tab,0,0).style.display='none';$td(this.tbar_tab,0,1).style.display='none';}}else{$dh(this.tbar_div);}
 $ds(this.wrapper);}
 _f.Grid.prototype.hide=function(){$dh(this.wrapper);$dh(this.tbar_div);}
 _f.Grid.prototype.insert_column=function(doctype,fieldname,fieldtype,label,width,options,perm,reqd){var idx=this.head_row.cells.length;if(!width)width='100px';if((width+'').slice(-2)!='px'){width=width+'px';}

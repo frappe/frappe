@@ -3,16 +3,16 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-11-16 16:09:34',
+		'creation': '2011-12-21 11:07:56',
 		'docstatus': 0,
-		'modified': '2011-11-24 12:59:42',
+		'modified': '2012-01-09 11:56:53',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1322119618',
+		'_last_update': '1325570719',
 		'autoname': 'DL.####',
 		'colour': 'White:FFF',
 		'doctype': 'DocType',
@@ -23,7 +23,7 @@
 		'search_fields': 'doc_type',
 		'section_style': 'Simple',
 		'show_in_menu': 0,
-		'version': 95
+		'version': 96
 	},
 
 	# These values are common for all DocField
@@ -215,6 +215,7 @@
 
 	# DocField
 	{
+		'default': 'no add rows',
 		'doctype': 'DocField',
 		'fieldname': 'fields',
 		'fieldtype': 'Table',
