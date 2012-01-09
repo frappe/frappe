@@ -132,7 +132,10 @@ function WNToolbar(parent) {
 	this.setup_help = function() {
 		me.menu.add_top_menu('Tools', function() {  }, "sprite-tools");
 		this.menu.add_item('Tools','Error Console', function() { err_console.show(); });
-		this.menu.add_item('Tools','Clear Cache', function() { $c('webnotes.session_cache.clear',{},function(r,rt){ show_alert(r.message); }) });
+		this.menu.add_item('Tools','Clear Cache', function() {
+			localStorage.clear();
+			$c('webnotes.session_cache.clear',{},function(r,rt){ show_alert(r.message); });
+		});
 		if(has_common(user_roles,['Administrator','System Manager'])) {
 			this.menu.add_item('Tools','Download Backup', function() { me.download_backup(); });
 		}
