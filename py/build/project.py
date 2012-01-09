@@ -1,4 +1,5 @@
 verbose = False
+import os
 
 class Project:
 	"""
@@ -14,22 +15,31 @@ class Project:
 		"""
 			load libraries
 		"""
-		from build.bundle import Bundle
-		from nav import Nav
-		
+		from py.build.bundle import Bundle
 		self.bundle = Bundle()
-		self.nav = Nav()
 
+	def getversion(self):
+		"""get from version.num file and increment it"""
+		
+		if os.path.exists('version.num'):
+			with open('version.num', 'r') as vfile:
+				self.version = int(vfile.read()) + 1
+		else:
+			self.version = 1
+
+		with open('version.num', 'w') as vfile:
+			vfile.write(str(self.version))
+			
+		return self.version
+		
 	def boot(self):
 		"""
 			returns bootstrap js
 		"""
 		import json
 
-		corejs = open('lib/js/core.min.js', 'r')
-		v = int(self.vc.repo.get_value('last_version_number') or 0) + 1
-		
-		boot = ('window._version_number="%s"' % str(v)) + \
+		corejs = open('lib/js/core.min.js', 'r')		
+		boot = ('window._version_number="%s"' % str(self.getversion())) + \
 			'\n' + corejs.read()
 
 		corejs.close()
@@ -40,51 +50,31 @@ class Project:
 		"""
 			Generate static files from templates
 		"""
-
 		# render templates
-		import os
-		from jinja2 import Environment, FileSystemLoader
-		from build.markdown2_extn import Markdown2Extension
-
-		env = Environment(loader=FileSystemLoader('templates'), extensions=[Markdown2Extension])
-
-		# dynamic boot info
-		env.globals['boot'] = self.boot()
-		env.globals['nav'] = self.nav.html()
-		page_info = self.nav.page_info()
-		
+		boot = self.boot()
 		for wt in os.walk('templates'):
 			for fname in wt[2]:
 				if fname.split('.')[-1]=='html' and not fname.startswith('template'):
 					fpath = os.path.relpath(os.path.join(wt[0], fname), 'templates')
-					temp = env.get_template(fpath)
 					
-					env.globals.update(self.nav.page_info_template)
-					env.globals.update(page_info.get(fpath, {}))
+					with open(os.path.join(wt[0], fname), 'r') as tempfile:
+						temp = tempfile.read()
 					
-					# out file in parent folder of template
-					f = open(fpath, 'w')
-					f.write(temp.render())
-					f.close()
+					temp = temp % boot
+					
+					with open(fpath, 'w') as outfile:
+						outfile.write(temp)
+
 					print "Rendered %s | %.2fkb" % (fpath, os.path.getsize(fpath) / 1024.0)
 				
 
 	def build(self):
 		"""
-			Build all js files, index.html and template.html
+			build js files, index.html
 		"""
-		from build.version import VersionControl
-		
-		self.vc = VersionControl()
-		self.vc.add_all()
-		
-		# index, template if framework is dirty
-		if self.vc.repo.uncommitted():
-			self.bundle.bundle(self.vc)
-			self.render_templates()
-
-			# again add all bundles
-			self.vc.add_all()
-			self.vc.repo.commit()
-		
-		self.vc.close()
+		for wt in os.walk('lib'):
+			for fname in wt[2]:
+				if fname=='build.json':
+					self.bundle.make(os.path.join(wt[0], fname))
+						
+		self.render_templates()

@@ -41,28 +41,9 @@ class Bundle:
 			f.write(temp.getvalue())
 			f.close()
 
-			self.vc.repo.add(outfile)
-
 			if verbose: print 'Wrote %s' % outfile
 
 		return temp
-		
-	def changed(self, files):
-		"""
-			Returns true if the files are changed since last build
-		"""
-		import os
-		from build import force_rebuild, verbose
-
-		if force_rebuild:
-			return True
-		
-		for f in files:
-			if f in self.dirty:
-				if verbose:
-					print '*** %s changed' % f 
-				return True
-		return False
 
 	def minify(self, in_files, outfile, concat=False):
 		"""
@@ -86,7 +67,6 @@ class Bundle:
 		jsm.minify(temp, out)
 
 		out.close()
-		self.vc.repo.add(outfile)
 
 		new_size = os.path.getsize(outfile)
 
@@ -105,9 +85,9 @@ class Bundle:
 		
 		# open the build.json file and read
 		# the dict
-		bfile = open(bpath, 'r')
-		bdata = json.loads(bfile.read())
-		bfile.close()
+		print "making %s ..." % bpath
+		with open(bpath, 'r') as bfile:
+			bdata = json.loads(bfile.read())
 		
 		path = os.path.dirname(bpath)
 		
@@ -121,25 +101,13 @@ class Bundle:
 			# build the file list relative to the main folder
 			fl = [os.path.relpath(os.path.join(path, f), os.curdir) for f in bdata[outfile]]
 
-			if self.changed(fl):
-				# js files are minified by default unless explicitly
-				# mentioned in the prefix.
-				# some files may not work if minified (known jsmin bug)
+			# js files are minified by default unless explicitly
+			# mentioned in the prefix.
+			# some files may not work if minified (known jsmin bug)
 				
-				if fname.split('.')[-1]=='js' and prefix!='concat' and not no_minify:
-					self.minify(fl, os.path.relpath(os.path.join(path, fname), os.curdir))
-				else:
-					self.concat(fl, os.path.relpath(os.path.join(path, fname), os.curdir))			
+			if fname.split('.')[-1]=='js' and prefix!='concat' and not no_minify:
+				self.minify(fl, os.path.relpath(os.path.join(path, fname), os.curdir))
+			else:
+				self.concat(fl, os.path.relpath(os.path.join(path, fname), os.curdir))			
 						
-	def bundle(self, vc):
-		"""
-			Build js files from "build.json" found in version control
-		"""
-		import os
-		self.dirty = vc.repo.uncommitted()
-		self.vc = vc
-
-		# walk the parent folder and build all files as defined in the build.json files
-		for b in vc.repo.sql("select fname from bundles"):
-			self.make(os.path.abspath(os.path.join(vc.root_path, b[0])))
-
+		
