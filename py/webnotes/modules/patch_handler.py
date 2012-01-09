@@ -67,8 +67,7 @@ class PatchHandler:
 			if kwargs.get('force') or module_file not in executed_patches:
 				webnotes.conn.begin()
 				
-				module = __import__(module_file)
-				patch = getattr(module, patch_file)
+				patch = __import__(module_file, fromlist=True)
 				getattr(patch, 'execute')()
 
 				self.log(log_type='success', patch_module=patch_module, patch_file=patch_file)
