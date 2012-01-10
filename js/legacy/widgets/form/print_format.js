@@ -590,13 +590,20 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 	var me = this;
 	$.extend(this, {
 		flist: fields_list[tabletype],
-		
-		data: getchildren(
-			tabletype, // child_dt
-			dn, // parent
-			fieldname, // parentfield
-			dt // parenttype
-		),
+
+		data: function() {
+			var children = getchildren(
+				tabletype, // child_dt
+				dn, // parent
+				fieldname, // parentfield
+				dt // parenttype
+			);
+			var data = []
+			for(var i=0; i<children.length; i++) {
+				data.push(copy_dict(children[i]));
+			}
+			return data;
+		}(),
 		
 		cell_style: {
 			border: '1px solid #000',
