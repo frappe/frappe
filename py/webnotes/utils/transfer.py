@@ -188,7 +188,7 @@ class UpdateDocType(UpdateDocumentMerge):
 		UpdateDocumentMerge.__init__(self, in_doclist)
 		self.to_update_doctype = ['DocType', 'DocField']
 		
-	def to_udpate(self, d):
+	def to_update(self, d):
 		if (d.fieldtype not in ['Section Break', 'Column Break', 'HTML']) and (d.fieldname or d.label):
 			return 1
 	
