@@ -64,13 +64,35 @@ def run():
 		replace_code('.', sys.argv[2], sys.argv[3], sys.argv[4])
 		
 	elif cmd=='patch':
-		from webnotes.modules.patch_handler import run
-		if len(sys.argv)>2 and sys.argv[2]=='-f':
-			# force patch
-			run(patch_list = sys.argv[3:], overwrite=1, log_exception=0)
-		else:
-			# run patch once
-			run(patch_list = sys.argv[2:], log_exception=0)
+		from optparse import OptionParser
+		parser = OptionParser()
+		parser.add_option("-q", "--quiet",
+						  action="store_false", dest="verbose", default=True,
+						  help="Do not print status messages to stdout")
+		parser.add_option("-l", "--latest",
+						  action="store_true", dest="run_latest", default=False,
+						  help="Apply the latest patches")
+		parser.add_option("-p", "--patch", dest="patch_list", metavar='PATCH_MODULE.PATCH_FILE',
+						  action="append",
+						  help="Apply patch PATCH_MODULE.PATCH_FILE")
+		parser.add_option("-f", "--force",
+						  action="store_true", dest="force", default=False,
+						  help="Force Apply all patches specified using option -p or --patch")
+		(options, args) = parser.parse_args()
+		
+		if options.patch_list:
+			for patch in options.patch_list:
+				patch_split = patch.split(".")
+				idx = options.patch_list.index(patch)
+				patch_module = ".".join(patch_split[:-1])
+				options.patch_list[idx] = {
+					'patch_module': patch_module or "patches",
+					'patch_file': patch_split[-1]
+				}
+		kwargs = options.__dict__
+		from webnotes.modules.patch_handler import PatchHandler
+		PatchHandler(db_name=getattr(webnotes.defs, 'default_db_name'), verbose=kwargs.get('verbose')).run(**kwargs)		
+
 
 if __name__=='__main__':
 	run()
