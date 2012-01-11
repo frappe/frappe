@@ -208,7 +208,7 @@ class UpdateDocType(UpdateDocumentMerge):
 	def get_orignal_values(self, d):
 		if d.doctype=='DocField':
 			t = self.get_id(d)[0]
-			return {'name': t[0], 'options': t[1], 'reqd':t[3],	'print_hide':t[4], 'hidden':t[5], 'fieldtype':t[6]}
+			return {'name': t[0], 'options': t[1], 'fieldtype':t[6]}
 
 		if d.doctype=='DocType':
 			return webnotes.conn.sql("select server_code, client_script from `tabDocType` where name=%s", d.name, as_dict = 1)[0]
