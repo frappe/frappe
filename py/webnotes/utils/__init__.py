@@ -530,8 +530,8 @@ def clear_recycle_bin():
 def send_error_report():
 	sql = webnotes.conn.sql
 	m = ''
-	acc_id = webnotes.conn.get_value('Control Panel',None,'account_id') or ''
-	if acc_id: m = 'Account Id : '+acc_id
+	company = webnotes.conn.get_value('Control Panel',None,'company_name') or ''
+	if company: m = 'Company : ' + company
 	form = webnotes.form
 	err_msg = '''
 		%s <br>

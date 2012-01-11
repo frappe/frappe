@@ -1,20 +1,19 @@
 {
 	"default.css": [
-		"css/body.css",
-		"css/menus.css",
-		"css/messages.css",
-		"css/forms.css",
-		"css/grid.css",
-		"css/listing.css",
-		"css/report.css",
-		"css/calendar.css",
-		"css/autosuggest.css",
-		"css/dialog.css",
-		"css/wntoolbar.css",
-		"css/tabs.css",
-		"css/jqplot.css",
-		"css/bw-icons.css",
-		"css/sidebar.css",
-		"css/doc_column_view.css"
+		"body.css",
+		"menus.css",
+		"messages.css",
+		"forms.css",
+		"grid.css",
+		"listing.css",
+		"report.css",
+		"calendar.css",
+		"autosuggest.css",
+		"dialog.css",
+		"wntoolbar.css",
+		"tabs.css",
+		"jqplot.css",
+		"bw-icons.css",
+		"sidebar.css"
 	]
 }

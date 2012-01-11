@@ -132,7 +132,10 @@ function WNToolbar(parent) {
 	this.setup_help = function() {
 		me.menu.add_top_menu('Tools', function() {  }, "sprite-tools");
 		this.menu.add_item('Tools','Error Console', function() { err_console.show(); });
-		this.menu.add_item('Tools','Clear Cache', function() { $c('webnotes.session_cache.clear',{},function(r,rt){ show_alert(r.message); }) });
+		this.menu.add_item('Tools','Clear Cache', function() {
+			localStorage.clear();
+			$c('webnotes.session_cache.clear',{},function(r,rt){ show_alert(r.message); });
+		});
 		if(has_common(user_roles,['Administrator','System Manager'])) {
 			this.menu.add_item('Tools','Download Backup', function() { me.download_backup(); });
 		}
@@ -252,11 +255,8 @@ function WNToolbar(parent) {
 		var t = make_table(w, 1, 6, null, [], this.right_table_style);
 		
 		$y(t,{cssFloat:'right', color:'#FFF'});
-		$td(t,0,0).innerHTML = user_fullname;
-		$td(t,0,1).innerHTML = '<span style="cursor: pointer;font-weight: bold" onclick="get_help()">Help</span>';
-		$td(t,0,2).innerHTML = '<span style="cursor: pointer;font-weight: bold" onclick="get_feedback()">Feedback</span>';
-		$td(t,0,3).innerHTML = '<span style="cursor: pointer;" onclick="loaddoc(\'Profile\', user)">Profile</span>';
-		$td(t,0,4).innerHTML = '<span style="cursor: pointer;" onclick="logout()">Logout</span>';
+		$td(t,0,0).innerHTML = '<a style="cursor: pointer; font-weight: bold; color: #FFF; text-decoration: underline" onclick="get_help()">Help</a>';
+		$td(t,0,4).innerHTML = '<span style="cursor: pointer; font-weight: bold; color: #FFF;" onclick="logout()">Logout</span>';
 		this.menu_table_right = t;
 		$y($td(t,0,5), {width:'18px'});
 		this.spinner = $a($td(t,0,5),'img','',{display:'none'}); this.spinner.src = 'lib/images/ui/spinner.gif';

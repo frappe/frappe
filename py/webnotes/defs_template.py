@@ -57,10 +57,11 @@ auto_cache_clear = 0
 
 #
 # Admin Email Notification: If the admin_email_notification is set, 
-# then only sent notification email from the system
+# then only sent notification email from the system to admin_email_address
 #
 
 admin_email_notification = 0
+admin_email_address = 'test@example.com'
 
 #
 # Global Send Email: Global email settings, if 1 then only mail will go from the system
