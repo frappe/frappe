@@ -32,31 +32,32 @@ def compress(doclist):
 		docs = doclist
 
 	kl, vl = {}, []
+	forbidden = ['server_code_compiled']
+
+	# scan for keys & values
 	for d in docs:
 		dt = d['doctype']
 		if not (dt in kl.keys()):
-			fl = d.keys()
-			forbidden = ['server_code_compiled']
-			nl = ['doctype','localname','__oldparent','__unsaved']
+			kl[dt] = ['doctype','localname','__oldparent','__unsaved']	
 
-			# add client script for doctype, doctype due to ambiguity
-			if dt=='DocType': nl.append('__client_script')
+		# add client script for doctype, doctype due to ambiguity
+		if dt=='DocType' and '__client_script' not in kl[dt]: 
+			kl[dt].append('__client_script')
 
-			for f in fl:
-				if not (f in nl) and not (f in forbidden):
-					nl.append(f)
-			kl[dt] = nl
+		for f in d.keys():
+			if not (f in kl[dt]) and not (f in forbidden):
+				# if key missing, then append
+				kl[dt].append(f)
 
-		## values
-		fl = kl[dt]
-		nl = []
-		for f in fl:
+		# build values
+		tmp = []
+		for f in kl[dt]:
 			v = d.get(f)
-
 			if type(v)==long:
 				v=int(v)
-			nl.append(v)
-		vl.append(nl)
+			tmp.append(v)
+
+		vl.append(tmp)
 	#errprint(str({'_vl':vl,'_kl':kl}))
 	return {'_vl':vl,'_kl':kl}
 
