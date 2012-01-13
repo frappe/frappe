@@ -78,6 +78,9 @@ def run():
 		parser.add_option("-f", "--force",
 						  action="store_true", dest="force", default=False,
 						  help="Force Apply all patches specified using option -p or --patch")
+		parser.add_option("-d", "--db",
+						  dest="db_name",
+						  help="Apply the patches on given db")
 		(options, args) = parser.parse_args()
 		
 		if options.patch_list:
@@ -91,7 +94,7 @@ def run():
 				}
 		kwargs = options.__dict__
 		from webnotes.modules.patch_handler import PatchHandler
-		PatchHandler(db_name=getattr(webnotes.defs, 'default_db_name'), verbose=kwargs.get('verbose')).run(**kwargs)		
+		PatchHandler(db_name=kwargs.get('db_name') or getattr(webnotes.defs, 'default_db_name'), verbose=kwargs.get('verbose')).run(**kwargs)		
 
 
 if __name__=='__main__':

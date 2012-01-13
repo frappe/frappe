@@ -33,7 +33,6 @@ class PatchHandler:
 		self.verbose = kwargs.get('verbose')
 		try:
 			self.db_name = kwargs.get('db_name')
-			webnotes.conn = None
 			webnotes.conn = Database(user=self.db_name)
 			webnotes.conn.use(self.db_name)
 			if not (webnotes.session and webnotes.session['user']):
@@ -70,8 +69,8 @@ class PatchHandler:
 				patch = __import__(module_file, fromlist=True)
 				getattr(patch, 'execute')()
 
-				self.log(log_type='success', patch_module=patch_module, patch_file=patch_file)
 				webnotes.conn.commit()
+				self.log(log_type='success', patch_module=patch_module, patch_file=patch_file)
 		
 		except Exception, e:
 			webnotes.conn.rollback()
@@ -156,6 +155,8 @@ class PatchHandler:
 
 		self.block_user(False)
 
+		webnotes.conn.close()
+
 	
 	def log(self, **kwargs):
 		"""
@@ -177,9 +178,11 @@ class PatchHandler:
 		patch = str(patch_module) + "." + str(patch_file)
 
 		if log_type == 'success':
+			webnotes.conn.begin()
 			webnotes.conn.sql("""\
 				INSERT INTO `__PatchLog`
 				VALUES (%s, now())""", patch)
+			webnotes.conn.commit()
 			if self.verbose: print 'Patch: %s applied successfully on %s' % (patch, str(self.db_name))
 	
 		elif log_type == 'error' or log_type == 'info':
