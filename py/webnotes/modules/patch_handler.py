@@ -33,7 +33,6 @@ class PatchHandler:
 		self.verbose = kwargs.get('verbose')
 		try:
 			self.db_name = kwargs.get('db_name')
-			if webnotes.conn: webnotes.conn.close()
 			webnotes.conn = Database(user=self.db_name)
 			webnotes.conn.use(self.db_name)
 			if not (webnotes.session and webnotes.session['user']):
