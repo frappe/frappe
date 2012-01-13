@@ -70,8 +70,8 @@ class PatchHandler:
 				patch = __import__(module_file, fromlist=True)
 				getattr(patch, 'execute')()
 
-				self.log(log_type='success', patch_module=patch_module, patch_file=patch_file)
 				webnotes.conn.commit()
+				self.log(log_type='success', patch_module=patch_module, patch_file=patch_file)
 		
 		except Exception, e:
 			webnotes.conn.rollback()
