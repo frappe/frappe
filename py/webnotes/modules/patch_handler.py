@@ -33,7 +33,7 @@ class PatchHandler:
 		self.verbose = kwargs.get('verbose')
 		try:
 			self.db_name = kwargs.get('db_name')
-			webnotes.conn = None
+			if webnotes.conn: webnotes.conn.close()
 			webnotes.conn = Database(user=self.db_name)
 			webnotes.conn.use(self.db_name)
 			if not (webnotes.session and webnotes.session['user']):
@@ -177,9 +177,11 @@ class PatchHandler:
 		patch = str(patch_module) + "." + str(patch_file)
 
 		if log_type == 'success':
+			webnotes.conn.begin()
 			webnotes.conn.sql("""\
 				INSERT INTO `__PatchLog`
 				VALUES (%s, now())""", patch)
+			webnotes.conn.commit()
 			if self.verbose: print 'Patch: %s applied successfully on %s' % (patch, str(self.db_name))
 	
 		elif log_type == 'error' or log_type == 'info':
