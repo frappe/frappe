@@ -156,6 +156,8 @@ class PatchHandler:
 
 		self.block_user(False)
 
+		webnotes.conn.close()
+
 	
 	def log(self, **kwargs):
 		"""
