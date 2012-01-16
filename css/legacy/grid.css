@@ -45,7 +45,7 @@
 
 .grid_tab_wrapper {
 	position: absolute;
-	top: 30px;
+	top: 40px;
 	border-bottom: 1px solid #DDD;
 }
 
@@ -64,7 +64,7 @@
 .grid_head_wrapper {
 	position: absolute;
 	z-index: 1;
-	height: 30px;
+	height: 40px;
 	padding: 0px;
 	overflow: hidden;
 	/*background-color: #fff;*/
@@ -74,7 +74,7 @@
 	background-color: #EEE;
 	border-right: 1px solid #AAA;
 	border-bottom: 1px solid #AAA;
-	height: 30px;
+	height: 40px;
 	padding: 0px;
 }
 
