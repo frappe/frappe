@@ -273,7 +273,10 @@ class _DocType:
 
 			if prev_field in previous_field_dict:
 				this_field = previous_field_dict[prev_field]
-				docfields.remove(this_field)
+				try:
+					docfields.remove(this_field)
+				except ValueError:
+					pass
 				
 				if prev_field == 'None':
 					docfields.insert(0, this_field)
