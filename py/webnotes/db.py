@@ -134,12 +134,12 @@ class Database:
 		# execute
 		try:
 			if values!=():
-				self._cursor.execute(query, values)
 				if debug: webnotes.msgprint(query % values)
+				self._cursor.execute(query, values)
 				
 			else:
-				self._cursor.execute(query)	
 				if debug: webnotes.msgprint(query)
+				self._cursor.execute(query)	
 		except Exception, e:
 			# ignore data definition errors
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
