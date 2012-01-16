@@ -195,8 +195,10 @@ class LoginManager:
 		ip_list = ip_list.replace(",", "\n").split('\n')
 		ip_list = [i.strip() for i in ip_list]
 
-		for ip in ip_list:
-			if webnotes.remote_ip.startswith(ip):
+		for ip in ip_list:
+			if webnotes.remote_ip.startswith(ip):
+				return
+			elif webnotes.form_dict.get('via_ip') and webnotes.form_dict.get('via_ip').startswith(ip):
 				return
 			
 		webnotes.msgprint('Not allowed from this IP Address', raise_exception=1)
