@@ -19,6 +19,13 @@ _f.Grid.prototype.init = function(parent, row_height) {
 	if(this.oninit)this.oninit();
 	
 	keypress_observers.push(this);
+	
+	var me = this;
+	
+	// reset grid heights after complete is triggerd on the form
+	$(cur_frm.wrapper).bind('render_complete', function() {
+		me.set_ht();
+	});	
 }
 
 _f.Grid.prototype.make_ui = function(parent) { 
@@ -397,8 +404,13 @@ _f.Grid.prototype.make_template = function(hc) {
 	hc.template.grid = this;
 }
 
-_f.Grid.prototype.append_rows = function(n) { for(var i=0;i<n;i++) this.append_row(); }
-_f.Grid.prototype.truncate_rows = function(n) { for(var i=0;i<n;i++) this.tab.deleteRow(this.tab.rows.length-1); }
+_f.Grid.prototype.append_rows = function(n) { 
+	for(var i=0;i<n;i++) this.append_row(); 
+}
+
+_f.Grid.prototype.truncate_rows = function(n) { 
+	for(var i=0;i<n;i++) this.tab.deleteRow(this.tab.rows.length-1); 
+}
 
 _f.Grid.prototype.set_data = function(data) {
 
@@ -424,19 +436,21 @@ _f.Grid.prototype.set_data = function(data) {
 	if(this.can_add_rows && this.make_newrow) {
 		this.make_newrow();
 	}
-	
-	this.set_ht();
-	
+		
 	if(this.wrapper.onscroll)this.wrapper.onscroll();
 }
 
-_f.Grid.prototype.set_ht = function(ridx, docname) {
+_f.Grid.prototype.set_ht = function() {
+	var max_ht = cint(0.5 * screen.width);
 	var ht = $(this.tab).height() + $(this.head_tab).height() + 30;
-	
-	if(ht < 100)ht=100; 
-	if(ht > cint(0.3 * screen.width))ht=cint(0.3 * screen.width);
+
+	if(ht < 100)
+		ht=100; 
+		
+	if(ht > max_ht) ht = max_ht;
+
 	ht += 4;
-	$y(this.wrapper,{height:ht+'px'});
+	$y(this.wrapper,{height:ht+'px'});	
 }
 
 _f.Grid.prototype.refresh_row = function(ridx, docname) {
