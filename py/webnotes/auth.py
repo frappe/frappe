@@ -189,7 +189,7 @@ class LoginManager:
 	def validate_ip_address(self):
 		ip_list = webnotes.conn.get_value('Profile', self.user, 'restrict_ip', ignore=True)
 		
-		if not ip_list: 
+		if not ip_list:
 			return
 
 		ip_list = ip_list.replace(",", "\n").split('\n')
@@ -197,6 +197,8 @@ class LoginManager:
 
 		for ip in ip_list:
 			if webnotes.remote_ip.startswith(ip):
+				return
+			elif webnotes.form_dict.get('via_ip') and webnotes.form_dict.get('via_ip').startswith(ip):
 				return
 			
 		webnotes.msgprint('Not allowed from this IP Address', raise_exception=1)
