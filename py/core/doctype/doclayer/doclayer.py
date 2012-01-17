@@ -254,6 +254,8 @@ class DocType:
 			# return the property setter doc
 			return d
 
+		else: return None
+
 
 	def set_properties(self, ps_doclist):
 		"""
