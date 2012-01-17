@@ -1,5 +1,6 @@
 pscript['onload_Login Page'] = function(){
-	var lw = $i('login_wrapper')
+
+	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');
 	$bg(document.getElementsByTagName('body')[0], '#DDD');
 	
@@ -11,6 +12,11 @@ pscript['onload_Login Page'] = function(){
   );
 }
 
+pscript['onshow_Login Page'] = function() {
+	// set banner
+	var bannerhtml = locals['Control Panel']['Control Panel'].client_name;
+	if(bannerhtml) $('.login-banner').html(bannerhtml);	
+}
 
 // Login Callback
 pscript.onLoginReply = function(r, rtext) {

@@ -59,7 +59,8 @@ class Database:
 	def get_db_login(self, ac_name):
 		if hasattr(defs, 'db_name_map'):
 			return getattr(defs,'db_name_map').get(ac_name, getattr(defs,'default_db_name'))
-		else: return ac_name
+		else: 
+			return ac_name
 
 	def connect(self):
 		"""

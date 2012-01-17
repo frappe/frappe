@@ -62,9 +62,7 @@ function startup() {
 	}
 	
 	var callback = function(r,rt) {
-		if(wn.sb) wn.sb.hide();
-		if(r.exc) msgprint(r.exc);
-		
+		if(r.exc) console.log(r.exc);
 		setup_globals(r);
 		setup_history();
 		setup_events();
@@ -129,8 +127,9 @@ function logout() {
 function redirect_to_login() {
 	if(login_file) 
 		window.location.href = login_file;
-	else 
-		window.location.href = 'index.html';	
+	else {
+		window.location.reload();		
+	}
 }
 
 // default print style

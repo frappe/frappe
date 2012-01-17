@@ -89,8 +89,7 @@ class HTTPRequest:
 	# ------------------
 
 	def set_db(self, ac_name = None):
-		
-
+		"""connect to db, from ac_name or db_name"""
 		# select based on subdomain
 		if getattr(webnotes.defs,'domain_name_map', {}).get(self.domain):
 			db_name = webnotes.defs.domain_name_map[self.domain]
@@ -104,7 +103,8 @@ class HTTPRequest:
 			else:
 				db_name = getattr(webnotes.defs,'default_db_name','')
 	
-		webnotes.conn = webnotes.db.Database(user = db_name,password = getattr(webnotes.defs,'db_password', ''))
+		webnotes.conn = webnotes.db.Database(user = db_name, \
+			password = getattr(webnotes.defs,'db_password', ''))
 		webnotes.ac_name = ac_name
 
 # =================================================================================

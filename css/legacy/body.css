@@ -140,3 +140,12 @@ div.std-footer-item {
 	background: linear-gradient(top, #84827c 0%,#27211c 100%); /* W3C */
 	color: #FFF;
 }
+
+.layout_wrapper {
+	padding: 13px;
+	margin: 7px;
+	-moz-box-shadow: 1px 1px 6px #AAA;
+	-webkit-box-shadow: 1px 1px 6px #AAA;
+	box-shadow: 1px 1px 6px #AAA;
+	background-color: #FFF;
+}

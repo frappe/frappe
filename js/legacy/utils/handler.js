@@ -74,7 +74,7 @@ function validate_session(r,rt) {
 		start_sid = get_cookie('sid');
 		return true;
 	}
-	if(start_sid && start_sid != get_cookie('sid') && user!='Guest') {
+	if(start_sid && start_sid != get_cookie('sid') && user && user!='Guest') {
 		page_body.set_session_changed();	
 		return;
 	}
