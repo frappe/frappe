@@ -667,6 +667,8 @@ _f.Frm.prototype.refresh = function(docname) {
 		// show the page
 		if(!this.meta.in_dialog) page_body.change_to('Forms');
 
+		$(cur_frm.wrapper).trigger('render_complete');
+
 	} 
 }
 
