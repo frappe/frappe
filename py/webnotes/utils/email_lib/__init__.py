@@ -26,6 +26,7 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 
 	from webnotes.utils.email_lib.html2text import html2text
 	from webnotes.utils.email_lib.send import EMail
+	import HTMLParser
 		
 	email = EMail(sender, recipients, subject, reply_to=reply_to, from_defs=from_defs)
 	email.cc = cc
@@ -38,9 +39,12 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 			if (not '<br>' in msg) or (not '<p>' in msg):
 				msg = msg.replace('\n','<br>')		
 		footer = get_footer()
-		msg = msg + (footer or '')		
-		email.set_text(html2text(msg))				
-		email.set_html(msg)		
+		msg = msg + (footer or '')
+		try:
+			email.set_text(html2text(msg))
+		except HTMLParser.HTMLParseError:
+			pass
+		email.set_html(msg)
 	for p in parts:
 		email.set_message(p[1])
 	for a in attach:
