@@ -227,7 +227,6 @@ class _DocType:
 						d.fields[p['property']] = int(p['value'])
 					elif p['property']=='previous_field':
 						change_idx = True
-						continue	
 					else:
 						d.fields[p['property']] = p['value']
 
@@ -260,6 +259,8 @@ class _DocType:
 			for p in pl:
 				if p['property'] == 'previous_field':
 					previous_field_dict[str(p['value'])] = str(p['doc_name'])
+		#webnotes.msgprint(previous_field_dict)
+		#webnotes.msgprint(docfields)
 
 		i = 0
 		if 'None' in previous_field_dict:
@@ -273,19 +274,19 @@ class _DocType:
 
 			if prev_field in previous_field_dict:
 				this_field = previous_field_dict[prev_field]
-				try:
-					docfields.remove(this_field)
-				except ValueError:
-					pass
-				
-				if prev_field == 'None':
-					docfields.insert(0, this_field)
-				else:
-					docfields.insert(docfields.index(prev_field) + 1, this_field)
+				if (prev_field in docfields or prev_field=='None') and this_field in docfields:
+					try:
+						docfields.remove(this_field)
+						if prev_field == 'None':
+							docfields.insert(0, this_field)
+						else:
+							docfields.insert(docfields.index(prev_field) + 1, this_field)
+					except ValueError:
+						pass
 				
 				del previous_field_dict[prev_field]
 
-				if this_field in previous_field_dict:
+				if this_field in previous_field_dict.keys():
 					prev_field = this_field
 				else:
 					get_next_docfield = 1
@@ -301,6 +302,7 @@ class _DocType:
 					keys = previous_field_dict.keys()
 					prev_field = keys[vals.index(prev_field)]
 
+		#webnotes.msgprint(doclist)
 		for d in doclist:
 			if d.doctype=='DocField':
 				d.idx = docfields.index(d.name) + 1
