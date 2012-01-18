@@ -39,8 +39,6 @@ _f.Grid.prototype.make_ui = function(parent) {
 			
 	this.wrapper = $a(parent, 'div', 'grid_wrapper');
 
-	$h(this.wrapper, cint(screen.width * 0.5) + 'px');
-
 	this.head_wrapper = $a(this.wrapper, 'div', 'grid_head_wrapper');
 
 	this.head_tab = $a(this.head_wrapper, 'table', 'grid_head_table');
@@ -441,7 +439,7 @@ _f.Grid.prototype.set_data = function(data) {
 }
 
 _f.Grid.prototype.set_ht = function() {
-	var max_ht = cint(0.5 * screen.width);
+	var max_ht = cint(0.37 * screen.width);
 	var ht = $(this.tab).height() + $(this.head_tab).height() + 30;
 
 	if(ht < 100)
