@@ -124,7 +124,7 @@ class Database:
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
 		      * returns as a list of lists (with cleaned up dates and decimals) if as_list = 1
-		"""			
+		"""
 		# in transaction validations
 		self.check_transaction_status(query)
 		
@@ -340,4 +340,7 @@ class Database:
 		      Close my connection
 		"""
 		if self._conn:
+			self._cursor.close()
 			self._conn.close()
+			self._cursor = None
+			self._conn = None

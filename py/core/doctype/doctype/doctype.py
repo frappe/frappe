@@ -2,7 +2,6 @@
 import webnotes
 
 from webnotes.utils import now, cint
-sql = webnotes.conn.sql
 msgprint = webnotes.msgprint
 
 
@@ -15,6 +14,7 @@ class DocType:
 		self.doclist = doclist
 
 	def change_modified_of_parent(self):
+		sql = webnotes.conn.sql
 		parent_list = sql('SELECT parent from tabDocField where fieldtype="Table" and options="%s"' % self.doc.name)
 		for p in parent_list:
 			sql('UPDATE tabDocType SET modified="%s" WHERE `name`="%s"' % (now(), p[0]))
@@ -35,6 +35,7 @@ class DocType:
 	# check if this series is not used elsewhere
 	#
 	def validate_series(self, autoname=None, name=None):
+		sql = webnotes.conn.sql
 		if not autoname: autoname = self.doc.autoname
 		if not name: name = self.doc.name
 		
@@ -73,6 +74,7 @@ class DocType:
 
 
 	def on_update(self):
+		sql = webnotes.conn.sql
 		# make schma changes
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)

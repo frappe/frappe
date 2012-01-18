@@ -5,11 +5,7 @@ from webnotes.utils import cint, cstr, flt, formatdate, now
 from webnotes.model.doc import Document
 from webnotes import msgprint, errprint
 
-sql = webnotes.conn.sql
-	
 # -----------------------------------------------------------------------------------------
-
-
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
@@ -17,6 +13,7 @@ class DocType:
 	# Get Fields
 	# -----------
 	def get_fields_label(self):
+		sql = webnotes.conn.sql
 		label_name = []
 		for i in sql("SELECT idx, label FROM tabDocField WHERE parent = '%s' and ifnull(hidden,0) = 0 and fieldname != '%s' order by idx" % (self.doc.dt, cstr(self.doc.fieldname))):	i[1] and i[0] and label_name.append(i[1]+' - '+cstr(i[0]))
 		return "\n".join(label_name)
@@ -34,6 +31,7 @@ class DocType:
 	# Validate Field
 	# ---------------
 	def validate_field(self):
+		sql = webnotes.conn.sql
 		if self.doc.__islocal == 1 and sql("select name from tabDocField where parent = %s and (label = %s or fieldname = %s)" , (self.doc.dt, self.doc.label, self.doc.fieldname)):
 			msgprint("%s field already exists in Document : %s" % (self.doc.label, self.doc.dt))
 			raise Exception
@@ -47,6 +45,7 @@ class DocType:
 	# Update Field
 	# -------------
 	def update_field(self, df, new):
+		sql = webnotes.conn.sql
 		import webnotes.model
 		sql("update tabDocField set idx = idx + 1, modified = %s where parent = %s and idx > %s", (now(),self.doc.dt, self.idx))
 		for k in self.doc.fields:
@@ -62,6 +61,7 @@ class DocType:
 	# Add Field
 	# ----------
 	def add_field(self):
+		sql = webnotes.conn.sql
 		field_exists = sql("select name from tabDocField where parent = %s and (label = %s or fieldname = %s)" , (self.doc.dt, self.doc.label, self.doc.fieldname))
 		field_exists = field_exists and field_exists[0][0] or ''
 		self.ignore_fields = ['dt','trash_reason','insert_after','index','customfield1','length']
@@ -88,6 +88,7 @@ class DocType:
 	# Trash
 	# ------
 	def on_trash(self):
+		sql = webnotes.conn.sql
 		sql("update tabDocField set idx = idx - 1 where parent = %s and idx > %s" , (self.doc.dt, cint((self.doc.insert_after).split(' - ')[1])))
 		sql("delete from tabDocField where parent = %s and fieldname = %s", (self.doc.dt, self.doc.fieldname))
 

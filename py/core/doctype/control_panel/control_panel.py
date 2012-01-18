@@ -6,7 +6,6 @@ from webnotes.model.doc import Document
 from webnotes.model.code import get_obj
 from webnotes import session, form, is_testing, msgprint, errprint
 
-sql = webnotes.conn.sql
 get_value = webnotes.conn.get_value
 	
 # -----------------------------------------------------------------------------------------
@@ -19,7 +18,7 @@ class DocType:
 
 	def on_update(self):
 		# clear cache on save
-		sql("delete from __SessionCache")
+		webnotes.conn.sql("delete from __SessionCache")
 
 	def upload_many(self,form):
 		pass
