@@ -68,9 +68,7 @@ class Database:
 		"""
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password)
 		self._conn.set_character_set('utf8')
-
 		self._cursor = self._conn.cursor()
-		return self._cursor
 	
 	def use(self, db_name):
 		"""

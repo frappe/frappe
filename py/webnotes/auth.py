@@ -67,45 +67,38 @@ class HTTPRequest:
 		else:
 			webnotes.user.load_profile()	
 
-
-	# get account name
-	# ------------------
-
-	def get_ac_name(self):
-		# login
-		if webnotes.form_dict.get('acx'):
-			return webnotes.form_dict.get('acx')
-		
-		# in form
-		elif webnotes.form_dict.get('ac_name'):
-			return webnotes.form_dict.get('ac_name')
-			
-		# in cookie
-		elif webnotes.incoming_cookies.get('ac_name'):
-			return webnotes.incoming_cookies.get('ac_name')
-			
-			
 	# set database login
 	# ------------------
 
+	def get_db_name(self):
+		# highest priority if comes via form
+		if webnotes.form_dict.get('ac_name'):
+			db_name = webnotes.form_dict.get('ac_name')
+		elif webnotes.form_dict.get('acx'):
+			db_name = webnotes.form_dict.get('acx')
+			
+		# then from cookie
+		elif webnotes.incoming_cookies.get('account_id'):
+			db_name = webnotes.incoming_cookies.get('account_id')
+			
+		# then via defs
+		elif hasattr(webnotes.defs, 'get_db_name'):
+			db_name = webnotes.defs.get_db_name()
+		
+		# then default
+		else:
+			db_name = getattr(webnotes.defs,'default_db_name','')
+		
+		if not db_name:
+			raise Exception, "Unable to resolve database name"
+			
+		return db_name
+
 	def set_db(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
-		# select based on subdomain
-		if getattr(webnotes.defs,'domain_name_map', {}).get(self.domain):
-			db_name = webnotes.defs.domain_name_map[self.domain]
-
-		# select based on ac_name
-		else:
-			ac_name = self.get_ac_name()
-			if ac_name:
-				db_name = getattr(webnotes.defs,'db_name_map',{}).\
-					get(ac_name, ac_name)
-			else:
-				db_name = getattr(webnotes.defs,'default_db_name','')
-	
-		webnotes.conn = webnotes.db.Database(user = db_name, \
+			
+		webnotes.conn = webnotes.db.Database(user = self.get_db_name(), \
 			password = getattr(webnotes.defs,'db_password', ''))
-		webnotes.ac_name = ac_name
 
 # =================================================================================
 # Login Manager
@@ -274,11 +267,7 @@ class CookieManager:
 	# -----------
 	
 	def set_cookies(self):
-		if webnotes.conn.cur_db_name:
-			webnotes.cookies['account_id'] = webnotes.conn.cur_db_name
-		
-		# ac_name	
-		webnotes.cookies['ac_name'] = webnotes.ac_name or ''
+		webnotes.cookies['account_id'] = webnotes.conn.cur_db_name
 		
 		if webnotes.session.get('sid'):
 			webnotes.cookies['sid'] = webnotes.session['sid']
