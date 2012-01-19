@@ -31,32 +31,19 @@ def replace_code(start, txt1, txt2, extn):
 					print 'updated in %s' % fpath
 
 def run():
-	sys.path.append('lib')
+	sys.path.append('.')
 	sys.path.append('lib/py')
 	import webnotes
 	import webnotes.defs
-	sys.path.append(webnotes.defs.modules_path)
 
 	if len(sys.argv)<2:
 		print_help()
 		return
 
-	cmd = sys.argv[1]
+	cmd = sys.argv[1]			
 
-	if cmd=='watch':
-		from py import build
-		import time
-		
-		while True:
-			build.run()
-
-			vc = version.VersionControl()
-			print 'version %s' % vc.repo.get_value('last_version_number')
-			time.sleep(5)
-			
-
-	elif cmd=='build':
-		from py.build.project import Project
+	if cmd=='build':
+		from build.project import Project
 		Project().build()
 		
 	# replace code
@@ -66,9 +53,6 @@ def run():
 	elif cmd=='patch':
 		from optparse import OptionParser
 		parser = OptionParser()
-		parser.add_option("-q", "--quiet",
-						  action="store_false", dest="verbose", default=True,
-						  help="Do not print status messages to stdout")
 		parser.add_option("-l", "--latest",
 						  action="store_true", dest="run_latest", default=False,
 						  help="Apply the latest patches")
@@ -81,21 +65,34 @@ def run():
 		parser.add_option("-d", "--db",
 						  dest="db_name",
 						  help="Apply the patches on given db")
+		parser.add_option('-r', '--reload_doc',help="reload doc, requires module, dt, dn", nargs=3)
 		(options, args) = parser.parse_args()
+
+		from webnotes.db import Database
+		import webnotes.modules.patch_handler
+
+		# connect to db
+		if options.db_name is not None:
+			webnotes.connect(options.db_name)
+		else:
+			webnotes.connect()
 		
+		# run individual patches
 		if options.patch_list:
 			for patch in options.patch_list:
-				patch_split = patch.split(".")
-				idx = options.patch_list.index(patch)
-				patch_module = ".".join(patch_split[:-1])
-				options.patch_list[idx] = {
-					'patch_module': patch_module or "patches",
-					'patch_file': patch_split[-1]
-				}
-		kwargs = options.__dict__
-		from webnotes.modules.patch_handler import PatchHandler
-		PatchHandler(db_name=kwargs.get('db_name') or getattr(webnotes.defs, 'default_db_name'), verbose=kwargs.get('verbose')).run(**kwargs)		
+				webnotes.modules.patch_handler.run_single(\
+					patchmodule = patch, force = options.force)
+		
+		# reload
+		elif options.reload_doc:
+			webnotes.modules.patch_handler.reload_doc(\
+				{"module":args[0], "dt":args[1], "dn":args[2]})		
 
+		# run all pending
+		elif options.run_latest:
+			webnotes.modules.patch_handler.run_all()
+			
+		print '\n'.join(webnotes.modules.patch_handler.log_list)
 
 if __name__=='__main__':
 	run()

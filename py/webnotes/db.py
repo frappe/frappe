@@ -32,9 +32,6 @@ class Database:
 		if self.user != 'root':
 			self.use(self.user)
 		
-		if webnotes.logger:
-			webnotes.logger.debug('Database object initialized for:%s',self.user)
-
 	def get_db_password(self, db_name, password):
 		"""
 			Return db password. order of importance:

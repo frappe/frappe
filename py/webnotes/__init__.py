@@ -144,7 +144,7 @@ def create_folder(path):
 			raise e
 
 
-def connect(db_name):
+def connect(db_name=None):
 	"""
 		Connect to this db (or db), if called from command prompt
 	"""
@@ -153,7 +153,7 @@ def connect(db_name):
 
 	import webnotes.db
 	global conn
-	conn = webnotes.db.Database(db_name=db_name)
+	conn = webnotes.db.Database(user=db_name)
 	
 	global session
 	session = {'user':'Administrator'}

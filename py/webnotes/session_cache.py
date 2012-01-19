@@ -33,13 +33,6 @@ def get():
 	# get country
 	country = webnotes.session['data'].get('ipinfo', {}).get('countryName', 'Unknown Country')
 
-	# run patches
-	try:
-		import webnotes.modules.patch
-		webnotes.modules.patch.run()
-	except ImportError, e: 
-		pass # no patches - do nothing
-
 	# check if cache exists
 	if not getattr(webnotes.defs,'auto_cache_clear',None):
 		cache = load(country)
