@@ -49,7 +49,7 @@ class DocType:
 			self.set_module()
 		
 		self.autoname()
-		sql("update `tabSearch Criteria` set name=%s where name=%s", (self.doc.name, old_name))
+		webnotes.conn.sql("update `tabSearch Criteria` set name=%s where name=%s", (self.doc.name, old_name))
 		
 	def rename_export(self, old_name):
 				

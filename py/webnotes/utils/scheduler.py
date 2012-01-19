@@ -92,9 +92,9 @@ class Scheduler:
 		import webnotes, webnotes.defs, webnotes.db
 
 		try:
+			webnotes.conn = None
 			webnotes.conn = webnotes.db.Database(user=db_name, password=webnotes.get_db_password(db_name))
 			webnotes.session = {'user':'Administrator'}
-
 			module = '.'.join(event.split('.')[:-1])
 			method = event.split('.')[-1]
 		
