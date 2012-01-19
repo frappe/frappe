@@ -51,10 +51,18 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		webnotes.conn.rollback()
 		global has_errors
 		has_errors = True
-		log(webnotes.getTraceback())
+		tb = webnotes.getTraceback()
+		log(tb)
+		add_to_patch_log(tb)
 
 	block_user(False)
 
+
+def add_to_patch_log(tb):
+	"""add error log to patches/patch.log"""
+	with open('patches/patch.log','a') as patchlog:
+		patchlog.write('\n\n' + tb)
+	
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
 	webnotes.conn.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
