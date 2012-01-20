@@ -277,7 +277,6 @@ class CookieManager:
 			expires = datetime.datetime.now() + datetime.timedelta(days=3)
 
 			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')		
-			webnotes.cookies['path'] = '/'
 
 	# Set Remember Me
 	# ---------------

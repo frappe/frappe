@@ -2,4 +2,5 @@
 *.comp.js
 *.DS_Store
 user_files
+logs
 defs.py
