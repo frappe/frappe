@@ -33,29 +33,18 @@ wn.assets = {
 		}
 		return src.split('.').slice(-1)[0];
 	},
-
-	html_src: function(src) {
-		if(src.indexOf('/')!=-1) {
-			var t = src.split('/').slice(0,-1);
-			t.push('src');
-			t = t.join('/') +'/' + a.split('/').slice(-1)[0];
-		} else {
-			var t = 'src/' + src;
-		}
-		return t;
-	},
 	
 	// load an asset via
 	// xmlhttp
 	load: function(src) {
 		// this is virtual page load, only get the the source
 		// *without* the template
-		var t = wn.assets.extn(src)=='html' ? wn.assets.html_src(src) : src;
+		var t = src;
 
 		wn.xmlhttp.get(t, function(txt) {
 			// add it to localstorage
 			wn.assets.add(src, txt);			
-		}, 'q=' & Math.floor(Math.random()*1000) , false)
+		}, 'q=' + Math.floor(Math.random()*1000) , false)
 	},
 	
 	// pass on to the handler to set
@@ -86,11 +75,6 @@ wn.assets = {
 				se.appendChild(document.createTextNode(txt));
 			}
 			document.getElementsByTagName('head')[0].appendChild(se);			
-		},
-		html: function(txt, src) {
-			// make the html content page
-			var page = wn.dom.add($('.outer .inner').get(0), 'div', 'content', null, txt);
-			page.setAttribute("_src", src);
 		},
 		cgi: function(txt, src) {
 			// dynamic content, will return content as

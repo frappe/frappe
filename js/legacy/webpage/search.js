@@ -109,8 +109,6 @@ function makeselector() {
 		}
 	}
 	d.onhide = function() {
-		if(page_body.wntoolbar)
-			page_body.wntoolbar.search_sel.disabled = 0;
 		if(d.input && d.input.txt) // link, call onchange
 			d.input.txt.onchange()
 	}

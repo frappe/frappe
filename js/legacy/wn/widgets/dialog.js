@@ -3,6 +3,7 @@
 wn.widgets.FieldGroup = function() {
 	
 	this.make_fields = function(body, fl) {
+		wn.require('lib/js/legacy/widgets/form/fields.js');
 		$y(this.body, {padding:'11px'});
 		this.fields_dict = {}; // reset
 		for(var i=0; i<fl.length; i++) {
@@ -60,7 +61,10 @@ wn.widgets.Dialog = function(opts) {
 	this.display = false;
 	
 	this.make = function(opts) {
-		if(opts) this.opts = opts;
+		if(opts) 
+			this.opts = opts;
+		if(!this.opts.width) this.opts.width = 480;
+		
 		this.wrapper = $a(popup_cont, 'div', 'dialog_wrapper');
 
 		if(this.opts.width)
