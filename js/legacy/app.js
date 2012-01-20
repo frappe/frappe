@@ -193,10 +193,9 @@ window.onresize = function() {
 
 get_window_height = function() {
 	var ht = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight ? document.documentElement.offsetHeight : document.body.offsetHeight;
-	var toolbarh = page_body.wntoolbar ? page_body.wntoolbar.wrapper.offsetHeight : 0
 	var bannerh = page_body.banner_area ? page_body.banner_area.offsetHeight : 0
 	var footerh = page_body.footer ? page_body.footer.offsetHeight : 0
-	ht = ht - bannerh - toolbarh - footerh;
+	ht = ht - bannerh - footerh;
 	return ht;
 }
 

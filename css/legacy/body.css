@@ -13,8 +13,6 @@ body {
 
 input, select, button { font-size: 12px; font-family: Arial, Helvetica, Sans; }
 
-li { margin: 4px; }
-
 h1, h2, h3, h4, h5 {
 	font-family: Tahoma, Sans;
 	font-weight: normal;
@@ -60,6 +58,7 @@ div.comment { color: #444; }
 div#body_div {
 	position: relative;
 	display: none;
+	margin-top: 48px;
 }
 
 div.no_script {
@@ -148,4 +147,19 @@ div.std-footer-item {
 	-webkit-box-shadow: 1px 1px 6px #AAA;
 	box-shadow: 1px 1px 6px #AAA;
 	background-color: #FFF;
+}
+
+/* from bootstrap */
+.container {
+  margin-left: auto;
+  margin-right: auto;
+  zoom: 1;
+}
+.container:before, .container:after {
+  display: table;
+  content: "";
+  zoom: 1;
+}
+.container:after {
+  clear: both;
 }

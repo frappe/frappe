@@ -541,7 +541,7 @@ _f.Frm.prototype.refresh_header = function() {
 	if(this.frm_head)this.frm_head.refresh_toolbar();
 	
 	// add to recent
-	if(page_body.wntoolbar) page_body.wntoolbar.rdocs.add(this.doctype, this.docname, 1);
+	if(wn.ui.toolbar.recent) wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);
 	
 	// refresh_heading - status etc.
 	this.set_heading();
@@ -1145,7 +1145,7 @@ _f.Frm.prototype.savetrash = function() {
 				LocalDB.delete_doc(me.doctype, me.docname);
 				
 				// delete from recent
-				if(page_body.wntoolbar) page_body.wntoolbar.rdocs.remove(me.doctype, me.docname);
+				if(wn.ui.toolbar.recent) wn.ui.toolbar.recent.remove(me.doctype, me.docname);
 				
 				// "close"
 				nav_obj.show_last_open();
