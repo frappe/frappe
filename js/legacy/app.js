@@ -75,9 +75,6 @@ function startup() {
 			startup_list[i]();
 		}		
 		
-		$dh('startup_div');
-		$ds('body_div');
-
 		// show a new form on loading?
 		if(get_url_arg('embed')) {
 			newdoc(get_url_arg('embed'));
@@ -92,6 +89,8 @@ function startup() {
 			// show home oage
 			loadpage(home_page);
 		}
+		$dh('startup_div');
+		$ds('body_div');
 	}
 	if(_startup_data && keys(_startup_data).length && _startup_data.docs) {
 		LocalDB.sync(_startup_data.docs);

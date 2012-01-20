@@ -5,7 +5,6 @@ Server side handler for "Form" events
 import webnotes
 import webnotes.model.doc
 import webnotes.model.meta
-from webnotes.model.triggers import fire_event
 
 def getdoc():
 	"""

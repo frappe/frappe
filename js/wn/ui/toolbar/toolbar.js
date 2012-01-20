@@ -97,7 +97,9 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		}
 	},
 	make_logout: function() {
-		$('.topbar .nav.secondary-nav a.dropdown-toggle').html(user_fullname);
+		var fn = user_fullname;
+		if(fn.length > 15) fn = fn.substr(0,12) + '...';
+		$('.topbar .nav.secondary-nav a.dropdown-toggle').html(fn);
 		
 		// logout
 		$('#toolbar-user').append('<li><a href="#" onclick="return logout();">Logout</a></li>');
