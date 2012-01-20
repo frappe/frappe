@@ -12,8 +12,8 @@
 		"dialog.css",
 		"wntoolbar.css",
 		"tabs.css",
-		"jqplot.css",
 		"bw-icons.css",
-		"sidebar.css"
+		"sidebar.css",
+		"bootstrap-buttons.css"
 	]
 }

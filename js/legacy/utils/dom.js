@@ -73,7 +73,7 @@ function $ln(parent, label, onclick, style) {
 
 function $btn(parent, label, onclick, style, css_class, is_ajax) {
 	wn.require('lib/js/wn/ui/button.js');
-	if(css_class==='green') css_class='cupid-green';
+	if(css_class==='green') css_class='success';
 	return new wn.ui.Button(
 		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
 	).btn;

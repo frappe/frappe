@@ -475,32 +475,13 @@ def get_defaults(key=None):
 	"""
 	Get dictionary of default values from the :term:`Control Panel`, or a value if key is passed
 	"""
-	if key:
-		res = webnotes.conn.sql('select defvalue from `tabDefaultValue` where parent = "Control Panel" and defkey=%s', key)
-		return res and res[0][0] or None
-	else:
-		res = webnotes.conn.sql('select defkey, defvalue from `tabDefaultValue` where parent = "Control Panel"')
-		d = {}
-		for rec in res: 
-			d[rec[0]] = rec[1] or ''
-		return d
+	return webnotes.conn.get_defaults(key)
 
 def set_default(key, val):
 	"""
 	Set / add a default value to :term:`Control Panel`
 	"""
-	res = webnotes.conn.sql('select defkey from `tabDefaultValue` where defkey="%s" and parent = "Control Panel"' % key)
-	if res:
-		webnotes.conn.sql('update `tabDefaultValue` set defvalue="%s" where parent = "Control Panel" and defkey="%s"' % (val, key))
-	else:
-		from webnotes.model.doc import Document
-		d = Document('DefaultValue')
-		d.parent = 'Control Panel'
-		d.parenttype = 'Control Panel'
-		d.parentfield = 'system_defaults'
-		d.defkey = key
-		d.defvalue = val
-		d.save(1)
+	return webnotes.conn.set_default(key, val)
 
 #
 # Clear recycle bin

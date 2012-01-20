@@ -302,6 +302,42 @@ class Database:
 
 	# ======================================================================================
 
+	def set_default(self, key, val):
+		"""set control panel default (tabDefaultVal)"""
+
+		if self.sql("""select defkey from `tabDefaultValue` where 
+			defkey=%s and parent = "Control Panel" """, key):
+			
+			# update
+			self.sql("""update `tabDefaultValue` set defvalue="%s" 
+				where parent = "Control Panel" and defkey=%s""", (val, key))
+		else:
+			from webnotes.model.doc import Document
+			d = Document('DefaultValue')
+			d.parent = 'Control Panel'
+			d.parenttype = 'Control Panel'
+			d.parentfield = 'system_defaults'
+			d.defkey = key
+			d.defvalue = val
+			d.save(1)
+	
+	def get_default(self, key):
+		"""get default value"""
+		ret = self.sql("""select defvalue from tabDefaultValue where defkey=%s""", key)
+		return ret and ret[0][0] or None
+		
+	def get_defaults(self, key=None):
+		"""get all defaults"""
+		if key:
+			return self.get_default(key)
+		else:
+			res = self.sql("""select defkey, defvalue from `tabDefaultValue` 
+				where parent = "Control Panel" """)
+			d = {}
+			for rec in res: 
+				d[rec[0]] = rec[1] or ''
+			return d		
+
 	def begin(self):
 		if not self.in_transaction:
 			self.sql("start transaction")
