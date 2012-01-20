@@ -107,7 +107,7 @@ if(this.meta.in_dialog&&!this.parent.dialog.display){if(!this.meta.istable)
 this.parent.table_form=false;this.parent.dialog.show();}
 this.parent.last_displayed=this;}
 _f.Frm.prototype.set_print_heading=function(txt){this.pformat[cur_frm.docname]=txt;}
-_f.Frm.prototype.defocus_rest=function(){mclose();if(_f.cur_grid_cell)_f.cur_grid_cell.grid.cell_deselect();cur_page=null;}
+_f.Frm.prototype.defocus_rest=function(){if(_f.cur_grid_cell)_f.cur_grid_cell.grid.cell_deselect();cur_page=null;}
 _f.Frm.prototype.get_doc_perms=function(){var p=[0,0,0,0,0,0];for(var i=0;i<this.perm.length;i++){if(this.perm[i]){if(this.perm[i][READ])p[READ]=1;if(this.perm[i][WRITE])p[WRITE]=1;if(this.perm[i][SUBMIT])p[SUBMIT]=1;if(this.perm[i][CANCEL])p[CANCEL]=1;if(this.perm[i][AMEND])p[AMEND]=1;}}
 return p;}
 _f.Frm.prototype.refresh_header=function(){if(!this.meta.in_dialog){set_title(this.meta.issingle?this.doctype:this.docname);}
