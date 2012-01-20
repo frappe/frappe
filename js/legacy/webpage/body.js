@@ -121,7 +121,8 @@ function Body() {
 		// core areas;
 		if(user=='Guest') user_defaults.hide_webnotes_toolbar = 1;
 		if(!cint(user_defaults.hide_webnotes_toolbar) || user=='Administrator') {
-			wn.require('lib/js/wn/ui/toolbar/toolbar.js');
+			wn.provide('wn.ui.toolbar');
+			wn.require('lib/js/wn/ui/toolbar.min.js');
 			this.wntoolbar = new wn.ui.toolbar.Toolbar();
 		}
 		

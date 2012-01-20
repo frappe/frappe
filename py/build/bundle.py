@@ -4,7 +4,7 @@ class Bundle:
 	"""
 		Concatenate, compress and mix (if required) js+css files from build.json
 	"""	
-	def concat(self, filelist, outfile=None,  is_js=False):	
+	def concat(self, filelist, outfile=None):	
 		"""
 			Concat css and js files into a bundle
 		"""
@@ -14,67 +14,44 @@ class Bundle:
 		
 		out_type = outfile and outfile.split('.')[-1] or 'js'
 		
-		temp = StringIO()
+		outtxt = ''
 		for f in filelist:
-			if verbose:
-				print f + ' | ' + str(int(os.path.getsize(f)/1024)) + 'k'
-
-			fh = open(f)
+			suffix = None
+			if ':' in f:
+				f, suffix = f.split(':')
 			
-			# get file type
-			ftype = f.split('.')[-1] 
+			print f + ' | ' + str(int(os.path.getsize(f)/1024)) + 'k'
+			
+			# get data
+			with open(f, 'r') as infile:			
+				# get file type
+				ftype = f.split('.')[-1] 
 
-			# special concat (css inside js)
-			if is_js and ftype =='css':
-				css = fh.read()
-				data = "\nwn.assets.handler.css('%s');\n" % css.replace("'", "\\'").replace('\n', '\\\n')
+				data = infile.read()
 
-			# plain concat
-			else:
-				data = fh.read() + '\n'
-				
-			fh.close()
-			temp.write(data)
+				# css -> js
+				if out_type=='js' and ftype =='css':
+					data = "\nwn.assets.handler.css('%s');\n" %\
+					 	data.replace("'", "\\'").replace('\n', '\\\n')
+
+			outtxt += ('\n/*\n*\t%s\n*/\n' % f)
 					
-		if outfile:
-			f = open(outfile, 'w')
-			f.write(temp.getvalue())
-			f.close()
-
-			if verbose: print 'Wrote %s' % outfile
-
-		return temp
-
-	def minify(self, in_files, outfile, concat=False):
-		"""
-			Compress in_files into outfile,
-			give some stats
-		"""
-		from build import verbose
-		import os
-
-		# concat everything into temp
-		outtype = outfile.split('.')[-1]
-		temp = self.concat(in_files, is_js=True)
-	
-		out = open(outfile, 'w')
-
-		org_size = len(temp.getvalue())
-		temp.seek(0)
-
-		# minify
-		jsm = JavascriptMinify()
-		jsm.minify(temp, out)
-
-		out.close()
-
-		new_size = os.path.getsize(outfile)
-
-		if verbose:
-			print '=> %s' % outfile
-			print 'Original: %.2f kB' % (org_size / 1024.0)
-			print 'Compressed: %.2f kB' % (new_size / 1024.0)
-			print 'Reduction: %.1f%%' % (float(org_size - new_size) / org_size * 100)
+			# append
+			if suffix=='concat' or out_type != 'js':
+				outtxt += data
+			else:
+				jsm = JavascriptMinify()
+				tmpin = StringIO(data)
+				tmpout = StringIO()
+				jsm.minify(tmpin, tmpout)
+				tmpmin = tmpout.getvalue() or ''
+				tmpmin.strip('\n')
+				outtxt += tmpmin
+		
+		with open(outfile, 'w') as f:
+			f.write(outtxt)
+		
+		print "Wrote %s - %sk" % (outfile, str(int(os.path.getsize(outfile)/1024)))
 
 	def make(self, bpath):
 		"""
@@ -92,22 +69,12 @@ class Bundle:
 		path = os.path.dirname(bpath)
 		
 		for outfile in bdata:
-			prefix, fname = False, outfile
-
-			# check if there is a prefix
-			if ':' in outfile:
-				prefix, fname = outfile.split(':')
-
 			# build the file list relative to the main folder
 			fl = [os.path.relpath(os.path.join(path, f), os.curdir) for f in bdata[outfile]]
 
 			# js files are minified by default unless explicitly
 			# mentioned in the prefix.
 			# some files may not work if minified (known jsmin bug)
-				
-			if fname.split('.')[-1]=='js' and prefix!='concat' and not no_minify:
-				self.minify(fl, os.path.relpath(os.path.join(path, fname), os.curdir))
-			else:
-				self.concat(fl, os.path.relpath(os.path.join(path, fname), os.curdir))			
+			self.concat(fl, os.path.relpath(os.path.join(path, outfile), os.curdir))			
 						
 		

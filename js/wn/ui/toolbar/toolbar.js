@@ -1,13 +1,4 @@
-wn.provide('wn.ui.toolbar');
-
-wn.require('lib/js/wn/class.js');
 wn.require('lib/css/bootstrap/bootstrap-topbar.css');
-wn.require('lib/js/bootstrap/bootstrap-dropdown.js');
-wn.require('lib/js/wn/ui/toolbar/selector_dialog.js');
-wn.require('lib/js/wn/ui/toolbar/new.js');
-wn.require('lib/js/wn/ui/toolbar/search.js');
-wn.require('lib/js/wn/ui/toolbar/report.js');
-wn.require('lib/js/wn/ui/toolbar/recent.js');
 
 wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {

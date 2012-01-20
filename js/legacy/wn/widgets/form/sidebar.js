@@ -4,6 +4,13 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	this.opts = {
 		sections: [
 			{
+				title: 'Assign To',
+				render: function(wrapper) {
+					me.form.attachments = new wn.widgets.form.sidebar.AssignTo(wrapper, me, me.form.doctype, me.form.docname);
+				},
+				display: function() { if(!me.form.doc.__local) }
+			},
+			{
 				title: 'Actions',
 				items: [
 					{

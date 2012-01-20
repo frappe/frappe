@@ -1,5 +1,6 @@
 {
 	"core.min.js": [
+		"wn/class.js:concat",
 		"wn/provide.js",
 		"wn/xmlhttp.js",
 		"wn/versions.js",
@@ -9,5 +10,14 @@
 		"wn/page.js",
 		"lib/json2.js",
 		"core.js"
+	],
+	"wn/ui/toolbar.min.js": [
+		"bootstrap/bootstrap-dropdown.js:concat",
+		"wn/ui/toolbar/selector_dialog.js",
+		"wn/ui/toolbar/new.js",
+		"wn/ui/toolbar/search.js",
+		"wn/ui/toolbar/report.js",
+		"wn/ui/toolbar/recent.js",
+		"wn/ui/toolbar/toolbar.js"
 	]
 }
