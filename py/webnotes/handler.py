@@ -190,18 +190,14 @@ def get_graph():
 
 def reset_password():
 	form_dict = webnotes.form_dict
+	from webnotes.model.code import get_obj
 	
-	act = form_dict.get('account', '')
 	user = form_dict.get('user', '')
-	if act:
-		webnotes.conn.set_db(act)
-
-	try:
-		p = webnotes.profile.Profile(user)
-		p.reset_password()
+	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
+		get_obj('Profile', user).reset_password()
 		webnotes.msgprint("Password has been reset and sent to your email id.")
-	except Exception, e:
-		webnotes.msgprint(str(e))
+	else:
+		webnotes.msgprint("No such user (%s)", user)
 
 # Resume session
 # ------------------------------------------------------------------------------------

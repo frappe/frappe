@@ -55,6 +55,12 @@ def generate_hash():
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
 
+def random_string(length):
+	"""generate a random string"""
+	import string
+	from random import choice
+	return ''.join([choice(string.letters + string.digits) for i in range(length)])
+
 def db_exists(dt, dn):
 	return webnotes.conn.sql('select name from `tab%s` where name="%s"' % (dt, dn))
 
