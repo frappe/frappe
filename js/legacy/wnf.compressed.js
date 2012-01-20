@@ -661,16 +661,7 @@ $c('webnotes.utils.send_error_report',{'err_msg':err_console.rows['Error List'].
 err_console.widgets['Clear'].onclick=function(){err_list=[];err_console.rows['Error List'].innerHTML='';err_console.hide();}
 err_console.onshow=function(){err_console.rows['Error List'].innerHTML='<div style="padding: 16px; height: 360px; width: 90%; overflow: auto;">'
 +err_list.join('<div style="height: 10px; margin-bottom: 10px; border-bottom: 1px solid #AAA"></div>')+'</div>';}}
-startup_list.push(setup_err_console);var about_dialog;function show_about(){if(!about_dialog){var d=new Dialog(360,480,'About')
-d.make_body([['HTML','info']]);d.rows['info'].innerHTML="<div style='padding: 16px;'><center>"
-+"<h2>Powered by Web Notes Framework</h2>"
-+"<p style='color: #888'>Open Source Python + JS Framework</p>"
-+"<p>Code Repository: <a href='http://code.google.com/p/wnframework'>http://code.google.com/p/wnframework</a></p>"
-+"<p>Forum: <a href='http://groups.google.com/group/wnframework'>http://groups.google.com/group/wnframework</a></p>"
-+"<p>Website: <a href='http://wnframework.org'>http://wnframework.org/</a></p>"
-+"</div>";about_dialog=d;}
-about_dialog.show();}
-function loadreport(dt,rep_name,onload,menuitem,reset_report){wn.require('lib/js/legacy/report.compressed.js');dt=get_label_doctype(dt);var show_report_builder=function(){if(!_r.rb_con){_r.rb_con=new _r.ReportContainer();}
+startup_list.push(setup_err_console);function loadreport(dt,rep_name,onload,menuitem,reset_report){wn.require('lib/js/legacy/report.compressed.js');dt=get_label_doctype(dt);var show_report_builder=function(){if(!_r.rb_con){_r.rb_con=new _r.ReportContainer();}
 _r.rb_con.set_dt(dt,function(rb){if(rep_name){var t=rb.current_loaded;rb.load_criteria(rep_name);if(onload)
 onload(rb);if((rb.dt)&&(!rb.dt.has_data()||rb.current_loaded!=t))
 rb.dt.run();}else{if(reset_report){rb.reset_report();}}

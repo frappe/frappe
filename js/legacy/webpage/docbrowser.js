@@ -19,6 +19,10 @@
 
 
 ItemBrowserPage = function() {
+	if(user=='Guest') {
+		msgprint("Not Allowed");
+		return;
+	}
 	this.lists = {};
 	this.dt_details = {};
 	this.cur_list = null;

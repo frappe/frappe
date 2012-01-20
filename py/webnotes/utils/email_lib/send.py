@@ -38,9 +38,10 @@ class EMail:
 		"""
 			Attach message in the text portion of multipart/alternative
 		"""
-		from email.mime.text import MIMEText		
-		msg = unicode(message, 'utf-8')
-		part = MIMEText(msg.encode('utf-8'), 'plain', 'UTF-8')		
+		from email.mime.text import MIMEText
+		if type(message) is not unicode:
+			message = unicode(message, 'utf-8')
+		part = MIMEText(message.encode('utf-8'), 'plain', 'UTF-8')		
 		self.msg_multipart.attach(part)
 		
 	def set_html(self, message):

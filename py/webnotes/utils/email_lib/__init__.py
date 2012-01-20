@@ -19,7 +19,7 @@ def make_html_body(content, template = None):
 
 	return template_html % {'content': content}
 
-def sendmail_md(recipients, sender, msg, subject=None):
+def sendmail_md(recipients, sender=None, msg=None, subject=None):
 	"""send markdown email"""
 	import markdown2
 	sendmail(recipients, sender, markdown2.markdown(msg), subject, txt=msg)
@@ -42,8 +42,9 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 			msg = make_html_body(msg, template).encode('utf-8')
 		else:
 			# if not html, then lets put some whitespace
-			if (not '<br>' in msg) or (not '<p>' in msg):
-				msg = msg.replace('\n','<br>')		
+			if (not '<br>' in msg) and (not '<p>' in msg):
+				msg = msg.replace('\n','<br>')
+	
 		footer = get_footer()
 		msg = msg + (footer or '')
 		if txt:

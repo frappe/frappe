@@ -4,6 +4,11 @@
 //  - New ReportBuilder is made here
 
 _r.ReportContainer = function() {
+	if(user=='Guest') {
+		msgprint("Not Allowed");
+		return;
+	}
+
 	wn.require('lib/js/legacy/widgets/form/fields.js');
 
 	this.wrapper = page_body.add_page("Report Builder", function() { });
