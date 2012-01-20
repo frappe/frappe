@@ -174,8 +174,8 @@ class DocList:
 		if hasattr(self.obj, 'custom_' + method):
 			getattr(self.obj, 'custom_' + method)()
 
-		from webnotes.model.triggers import fire_event
-		fire_event(self.doc, method)
+		from webnotes.model.events import trigger
+		trigger(method, self.doc)
 
 	def save_main(self):
 		"""
