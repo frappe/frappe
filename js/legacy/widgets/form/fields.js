@@ -1054,15 +1054,15 @@ TimeField.prototype.set_as_error = function() { }
 TimeField.prototype.make_input = function() { var me = this;
 	this.input = $a(this.input_area, 'div', 'time_field');
 	
-	var t = make_table(this.input, 1, 3, '160px');
+	var t = make_table(this.input, 1, 3, '200px');
 
 	var opt_hr = ['1','2','3','4','5','6','7','8','9','10','11','12'];
 	var opt_mn = ['00','05','10','15','20','25','30','35','40','45','50','55'];
 	var opt_am = ['AM','PM'];
 
-	this.input_hr = new SelectWidget($td(t,0,0), opt_hr, '40px');
-	this.input_mn = new SelectWidget($td(t,0,1), opt_mn, '40px');
-	this.input_am = new SelectWidget($td(t,0,2), opt_am, '40px');
+	this.input_hr = new SelectWidget($td(t,0,0), opt_hr, '50px');
+	this.input_mn = new SelectWidget($td(t,0,1), opt_mn, '50px');
+	this.input_am = new SelectWidget($td(t,0,2), opt_am, '50px');
 
 	this.input_hr.inp.isactive = 1; this.input_mn.inp.isactive = 1; this.input_am.inp.isactive = 1;
 	if(this.input_hr.btn) {
