@@ -94,7 +94,7 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 	this.ln.target = '_blank';
 	
 	// remove
-	this.del = $a(this.wrapper, 'span', 'link_type', {marginLeft:'3px'}, '[x]');
+	this.del = $a(this.wrapper, 'span', 'close', '', '&#215;');
 	this.del.onclick = function() {
 		var yn = confirm("Are you sure you want to delete the attachment?")
 		if(yn) {
@@ -105,7 +105,7 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 				me.remove_fileid();
 				frm.refresh();
 			}				
-			$c('webnotes.widgets.form.remove_attach', 
+			$c('webnotes.widgets.form.utils.remove_attach', 
 				args = {'fid': me.fileid, dt: me.frm.doctype, dn: me.frm.docname }, callback );
 		}		
 	}

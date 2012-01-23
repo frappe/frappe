@@ -688,7 +688,7 @@ LinkField.prototype.set_onchange = function() {
 		if(cur_frm.fetch_dict[me.df.fieldname])
 			fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');
 			
-		$c('webnotes.widgets.form.validate_link', {'value':me.txt.value, 'options':me.df.options, 'fetch': fetch}, function(r,rt) { 
+		$c('webnotes.widgets.form.utils.validate_link', {'value':me.txt.value, 'options':me.df.options, 'fetch': fetch}, function(r,rt) { 
 			setTimeout('_link_onchange_flag = 0', 500);
 
 			if(selector && selector.display) return; // selecting from popup
@@ -1200,11 +1200,13 @@ _f.ButtonField.prototype.make_input = function() { var me = this;
 	}
 
 	// make a button area for one button
-	if(!this.button_area) this.button_area = $a(this.input_area, 'span','',{marginRight:'4px'});
+	if(!this.button_area) 
+		this.button_area = $a(this.input_area, 'span','',{marginRight:'4px'});
 	
 	// make the input
 	this.input = $btn(this.button_area, 
-		me.df.label.substr(0,20) + ((me.df.label.length>20) ? '..' : ''), null, {width:'170px', fontWeight:'bold'}, null, 1)
+		me.df.label.substr(0,20) + ((me.df.label.length>20) ? '..' : ''), null, 
+		{maxWidth:'170px', fontWeight:'bold'}, null, 1)
 
 	this.input.onclick = function() {
 		if(me.not_in_form) return;

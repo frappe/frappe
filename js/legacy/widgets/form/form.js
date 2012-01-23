@@ -1085,7 +1085,7 @@ _f.Frm.prototype.reload_doc = function() {
 	page_body.set_status('Reloading...')
 	if(me.doc.__islocal) { 
 		// reload only doctype
-		$c('webnotes.widgets.form.getdoctype', {'doctype':me.doctype }, ret_fn, null, null, 'Refreshing ' + me.doctype + '...');
+		$c('webnotes.widgets.form.load.getdoctype', {'doctype':me.doctype }, ret_fn, null, null, 'Refreshing ' + me.doctype + '...');
 	} else {
 		// delete all unsaved rows
 		var gl = me.grids;
@@ -1101,7 +1101,7 @@ _f.Frm.prototype.reload_doc = function() {
 			}
 		}
 		// reload doc and docytpe
-		$c('webnotes.widgets.form.getdoc', {'name':me.docname, 'doctype':me.doctype, 'getdoctype':1, 'user':user}, ret_fn, null, null, 'Refreshing ' + me.docname + '...');
+		$c('webnotes.widgets.form.load.getdoc', {'name':me.docname, 'doctype':me.doctype, 'getdoctype':1, 'user':user}, ret_fn, null, null, 'Refreshing ' + me.docname + '...');
 	}
 }
 

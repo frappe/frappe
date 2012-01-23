@@ -171,3 +171,29 @@ button.btn::-moz-focus-inner, input[type=submit].btn::-moz-focus-inner {
   padding: 0;
   border: 0;
 }
+
+/* CLose */
+
+.close {
+  float: right;
+  color: #000000;
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 13.5px;
+  margin-bottom: -2px;
+  text-shadow: 0 1px 0 #ffffff;
+  filter: alpha(opacity=25);
+  -khtml-opacity: 0.25;
+  -moz-opacity: 0.25;
+  opacity: 0.25;
+  text-decoration: none;
+}
+.close:hover {
+  color: #000000;
+  text-decoration: none;
+  filter: alpha(opacity=40);
+  -khtml-opacity: 0.4;
+  -moz-opacity: 0.4;
+  opacity: 0.4;
+  cursor: pointer;
+}

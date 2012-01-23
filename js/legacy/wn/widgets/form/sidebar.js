@@ -4,13 +4,6 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	this.opts = {
 		sections: [
 			{
-				title: 'Assign To',
-				render: function(wrapper) {
-					me.form.attachments = new wn.widgets.form.sidebar.AssignTo(wrapper, me, me.form.doctype, me.form.docname);
-				},
-				display: function() { if(!me.form.doc.__local) }
-			},
-			{
 				title: 'Actions',
 				items: [
 					{
@@ -73,14 +66,15 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 				]
 			},
 
-/*			{
-				title: 'Follow this ' + get_doctype_label(me.form.doctype),
+			{
+				title: 'Assign To',
 				render: function(wrapper) {
-					new wn.widgets.follow.Follow(wrapper, me.form.doctype, me.form.docname);
+					me.form.assign_to = new wn.widgets.form.sidebar.AssignTo(wrapper, me, me.form.doctype, me.form.docname);
 				},
-				display: function() { return !me.form.doc.__islocal }
-			},*/
-
+				display: function() { if(!me.form.doc.__local) return true; 
+					 else return false;}
+			},
+			
 			{
 				title: 'Attachments',
 				render: function(wrapper) {
@@ -88,7 +82,15 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 				},
 				display: function() { return me.form.meta.allow_attach }
 			},
-						
+
+			{
+				title: 'Comments',
+				render: function(wrapper) {
+					new wn.widgets.form.sidebar.Comments(wrapper, me, me.form.doctype, me.form.docname);
+				},
+				display: function() { return !me.form.doc.__islocal }
+			},
+
 			{
 				title: 'Tags',
 				render: function(wrapper) {
@@ -96,14 +98,6 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						me.form.doc._user_tags ? me.form.doc._user_tags.split(',') : [], 
 						me.form.doctype, me.form.docname, 0, 
 						function() {	});
-				},
-				display: function() { return !me.form.doc.__islocal }
-			},
-
-			{
-				title: 'Comments',
-				render: function(wrapper) {
-					new wn.widgets.form.sidebar.Comments(wrapper, me, me.form.doctype, me.form.docname);
 				},
 				display: function() { return !me.form.doc.__islocal }
 			}

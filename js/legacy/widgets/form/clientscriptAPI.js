@@ -15,7 +15,7 @@ $c_get_values = function(args, doc, dt, dn, user_callback) {
 				refresh_field(fl[i]);
 		}
 	}
-	$c('webnotes.widgets.form.get_fields',args,call_back);
+	$c('webnotes.widgets.form.utils.get_fields',args,call_back);
 }
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {

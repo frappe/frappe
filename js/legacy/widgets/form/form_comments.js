@@ -10,7 +10,7 @@ wn.widgets.form.comments = {
 	},
 	
 	add: function(input, dt, dn, callback) { 
-		$c('webnotes.widgets.form.add_comment', wn.widgets.form.comments.get_args(input, dt, dn), 
+		$c('webnotes.widgets.form.comments.add_comment', wn.widgets.form.comments.get_args(input, dt, dn), 
 			function(r,rt) {
 				// update the comments
 				wn.widgets.form.comments.update_comment_list(input, dt, dn);
@@ -23,7 +23,7 @@ wn.widgets.form.comments = {
 	},
 	
 	remove: function(dt, dn, comment_id, callback) {
-		$c('webnotes.widgets.form.remove_comment',{
+		$c('webnotes.widgets.form.comments.remove_comment',{
 				id:comment_id, 
 				dt:dt, 
 				dn:dn

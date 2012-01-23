@@ -66,7 +66,7 @@ _r.ReportBuilder.prototype.setup_doctype=function(onload){var me=this;if(!locals
 this.parent_dt=f.parent;}
 if(!me.validate_permissions())
 return;me.validate_permissions();me.make_body();me.setup_filters_and_cols();if(onload)onload(me);}}
-_r.ReportBuilder.prototype.load_doctype_from_server=function(onload){var me=this;$c('webnotes.widgets.form.getdoctype',args={'doctype':this.doctype,'with_parent':1},function(r,rt){if(r.parent_dt)me.parent_dt=r.parent_dt;if(!me.validate_permissions())
+_r.ReportBuilder.prototype.load_doctype_from_server=function(onload){var me=this;$c('webnotes.widgets.form.load.getdoctype',args={'doctype':this.doctype,'with_parent':1},function(r,rt){if(r.parent_dt)me.parent_dt=r.parent_dt;if(!me.validate_permissions())
 return;me.make_body();me.setup_filters_and_cols();if(onload)onload(me);});}
 _r.ReportBuilder.prototype.reset_report=function(){this.clear_criteria();this.mytabs.items['Select Columns'].show();this.mytabs.items['More Filters'].show();this.report_filters.refresh();this.column_picker.refresh();var dt=this.parent_dt?this.parent_dt:this.doctype;this.set_filter(dt,'Saved',1);this.set_filter(dt,'Submitted',1);this.set_filter(dt,'Cancelled',0);this.column_picker.set_defaults();this.dt.clear_all();this.dt.sort_sel.value='ID';this.dt.page_len_sel.inp.value='50';this.dt.set_no_limit(0);this.dt.set_desc();}
 _r.ReportBuilder.prototype.make_datatable=function(){var me=this;this.dt_area=$a(this.mytabs.items['Result'].body,'div');var clear_area=$a(this.mytabs.items['Result'].body,'div');clear_area.style.marginTop='8px';clear_area.style.textAlign='right';this.clear_btn=$a($a(clear_area,'span'),'button');this.clear_btn.innerHTML='Clear Settings';this.clear_btn.onclick=function(){me.reset_report();}

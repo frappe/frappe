@@ -33,8 +33,8 @@ def cleanup_docs():
 # ------------------------------------------------------------------------------------
 
 def runserverobj(arg=None):
-	import webnotes.widgets.form
-	webnotes.widgets.form.runserverobj()
+	import webnotes.widgets.form.run_method
+	webnotes.widgets.form.run_method.runserverobj()
 
 def logout():
 	webnotes.login_manager.logout()
