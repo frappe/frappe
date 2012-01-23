@@ -79,7 +79,7 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 		
 		// case C - only frm loaded
 		} else {
-			$c('webnotes.widgets.form.getdoc', {'name':name, 'doctype':doctype, 'user':user, 'from_archive':(from_archive ? 1 : 0) }, show_doc, null, null);	// onload
+			$c('webnotes.widgets.form.load.getdoc', {'name':name, 'doctype':doctype, 'user':user, 'from_archive':(from_archive ? 1 : 0) }, show_doc, null, null);	// onload
 		}
 	}
 				

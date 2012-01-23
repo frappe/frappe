@@ -74,7 +74,7 @@ function save_doclist(dt, dn, save_action, onsave, onerr) {
 		//if(user=='Administrator')errprint(out);
 		page_body.set_status('Saving...')
 		
-		$c('webnotes.widgets.form.savedocs', {'docs':compress_doclist(doclist), 'docname':dn, 'action': save_action, 'user':user }, 
+		$c('webnotes.widgets.form.save.savedocs', {'docs':compress_doclist(doclist), 'docname':dn, 'action': save_action, 'user':user }, 
 			function(r, rtxt) {
 				if(f){ f.savingflag = false;}
 				if(r.saved) {

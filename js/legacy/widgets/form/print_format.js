@@ -105,7 +105,7 @@ $.extend(_p, {
 				*/
 				var build_args = args;
 				$c(
-					command = 'webnotes.widgets.form.get_print_format',
+					command = 'webnotes.widgets.form.print_format.get',
 					args = { 'name': build_args.fmtname	},
 					fn = function(r, rt) {
 						_p.formats[build_args.fmtname] = r.message;

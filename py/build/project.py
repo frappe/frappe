@@ -39,7 +39,7 @@ class Project:
 		import json
 
 		corejs = open('lib/js/core.min.js', 'r')		
-		boot = ('window._version_number="%s"' % str(self.getversion())) + \
+		boot = ('window._version_number="%s";' % str(self.getversion())) + \
 			'\n' + corejs.read()
 
 		corejs.close()

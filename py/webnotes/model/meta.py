@@ -19,7 +19,9 @@ def is_single(doctype):
 #=================================================================================
 
 def get_parent_dt(dt):
-	parent_dt = webnotes.conn.sql('select parent from tabDocField where fieldtype="Table" and options="%s" and (parent not like "old_parent:%%") limit 1' % dt)
+	parent_dt = webnotes.conn.sql("""select parent from tabDocField 
+		where fieldtype="Table" and options="%s" and (parent not like "old_parent:%%") 
+		limit 1""" % dt)
 	return parent_dt and parent_dt[0][0] or ''
 
 #=================================================================================
@@ -44,22 +46,5 @@ def get_link_fields(doctype):
 
 def get_table_fields(doctype):
 	return webnotes.conn.sql("select options, fieldname from tabDocField where parent='%s' and fieldtype='Table'" % doctype)
-	
-#=================================================================================
 
-def get_search_criteria(dt):
-	import webnotes.model.doc
-	# load search criteria for reports (all)
-	dl = []
-	sc_list = webnotes.conn.sql("select name from `tabSearch Criteria` where doc_type = '%s' or parent_doc_type = '%s' and (disabled!=1 OR disabled IS NULL)" % (dt, dt))
-	for sc in sc_list:
-		if sc[0]:
-			dl += webnotes.model.doc.get('Search Criteria', sc[0])
-	return dl
-
-#=================================================================================
-
-def get_print_format_html(name):
-	html = webnotes.conn.sql('select html from `tabPrint Format` where name="%s"' % name)
-	return html and html[0][0] or ''
 	

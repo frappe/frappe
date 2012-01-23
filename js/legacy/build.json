@@ -50,6 +50,7 @@
 		,"wn/widgets/form/sidebar.js"
 		,"wn/widgets/form/comments.js"
 		,"wn/widgets/form/attachments.js"
+		,"wn/widgets/form/assign_to.js"
 	],
 	"report.compressed.js": [
 		"widgets/report_builder/report_builder.js"

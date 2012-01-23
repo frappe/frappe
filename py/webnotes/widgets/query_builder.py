@@ -7,13 +7,6 @@ out = webnotes.response
 
 from webnotes.utils import cint
 
-def get_search_criteria_list(dt):
-	sc_list = sql("select criteria_name, doc_type from `tabSearch Criteria` where doc_type = '%s' or parent_doc_type = '%s'" % (dt, dt))
-	return [list(s) for s in sc_list]
-
-def load_report_list():
-	webnotes.response['rep_list'] = get_search_criteria_list(form.getvalue('dt'))
-
 
 # Get, scrub metadata
 # ====================================================================
@@ -31,8 +24,8 @@ def get_sql_tables(q):
 def get_parent_dt(dt):
 	pdt = ''
 	if sql('select name from `tabDocType` where istable=1 and name="%s"' % dt):
-		res = sql('select parent from `tabDocField` where fieldtype="Table" and options="%s"' % dt)
-		if res: pdt = res[0][0]
+		import webnotes.model.meta
+		return webnotes.model.meta.get_parent_dt(dt)
 	return pdt
 
 def get_sql_meta(tl):

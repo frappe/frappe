@@ -4,7 +4,7 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 	this.doctype = doctype; this.docname = docname;
 	
 	this.refresh = function() {
-		$c('webnotes.widgets.form.get_comments', {dt: me.doctype, dn: me.docname, limit: 5}, function(r, rt) {
+		$c('webnotes.widgets.form.comments.get_comments', {dt: me.doctype, dn: me.docname, limit: 5}, function(r, rt) {
 			wn.widgets.form.comments.sync(me.doctype, me.docname, r);
 			me.make_body();
 		});

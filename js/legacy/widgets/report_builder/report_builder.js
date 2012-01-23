@@ -573,7 +573,7 @@ _r.ReportBuilder.prototype.setup_doctype = function(onload) {
 
 _r.ReportBuilder.prototype.load_doctype_from_server = function(onload) {
 	var me = this;
-	$c('webnotes.widgets.form.getdoctype', args = {'doctype': this.doctype, 'with_parent':1 }, 
+	$c('webnotes.widgets.form.load.getdoctype', args = {'doctype': this.doctype, 'with_parent':1 }, 
 		function(r,rt) { 
 			if(r.parent_dt)me.parent_dt = r.parent_dt;
 			if(!me.validate_permissions()) 

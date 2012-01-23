@@ -146,10 +146,10 @@ _f.add_frm = function(doctype, onload, opt_name, from_archive) {
 		if(get_url_arg('akey')) args['akey'] = get_url_arg('akey');
 		if(from_archive) args['from_archive'] = 1;
 
-		$c('webnotes.widgets.form.getdoc', args, callback);
+		$c('webnotes.widgets.form.load.getdoc', args, callback);
 	} else {
 		// get doctype only
-		$c('webnotes.widgets.form.getdoctype', args={'doctype':doctype}, callback);
+		$c('webnotes.widgets.form.load.getdoctype', args={'doctype':doctype}, callback);
 	}
 }
 

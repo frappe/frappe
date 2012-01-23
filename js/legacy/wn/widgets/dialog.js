@@ -1,7 +1,7 @@
 // opts { width, height, title, fields (like docfields) }
 
 wn.widgets.FieldGroup = function() {
-	
+	this.first_button = false;
 	this.make_fields = function(body, fl) {
 		wn.require('lib/js/legacy/widgets/form/fields.js');
 		$y(this.body, {padding:'11px'});
@@ -13,6 +13,12 @@ wn.widgets.FieldGroup = function() {
 			f.not_in_form = 1;
 			this.fields_dict[df.fieldname] = f
 			f.refresh();
+			
+			// first button primary ?
+			if(df.fieldtype=='Button' && !this.first_button) {
+				$(f.input).addClass('primary');
+				this.first_button = true;
+			}
 		}
 	}
 	
@@ -50,6 +56,15 @@ wn.widgets.FieldGroup = function() {
 		for(var key in dict) {
 			if(this.fields_dict[key]) {
 				this.set_value(key, dict[key]);
+			}
+		}
+	}
+	
+	this.clear = function() {
+		for(key in this.fields_dict) {
+			var f = this.fields_dict[key];
+			if(f) {
+				f.set_input(f.df['default'] || '');				
 			}
 		}
 	}

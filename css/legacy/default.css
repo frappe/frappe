@@ -1,3 +1,7 @@
+
+/*
+*	lib/css/legacy/body.css
+*/
 html { 
 	margin: 0px;
 	padding: 0px;
@@ -164,6 +168,9 @@ div.std-footer-item {
   clear: both;
 }
 
+/*
+*	lib/css/legacy/menus.css
+*/
 
 /******** Menus - menu.js ************/
 
@@ -215,6 +222,9 @@ div.dd_item {
 	background-color: #FFF;
 }
 div.dd_item_mo { background-color: #FE8; }
+/*
+*	lib/css/legacy/messages.css
+*/
 
 /* FLOATING MESSAGE */
 
@@ -274,6 +284,9 @@ div.notice {
 	text-align: center;
 	font-size: 14px;
 }
+/*
+*	lib/css/legacy/forms.css
+*/
 /* FORMS */
 
 
@@ -496,6 +509,9 @@ div.sidebar-comment-info {
 	font-size: 10px;
 	color: #777;
 }
+/*
+*	lib/css/legacy/grid.css
+*/
 
 
 /* Grid */
@@ -618,6 +634,9 @@ div.sidebar-comment-info {
 }
 
 .gridDivSelected option { border: 0px; }
+/*
+*	lib/css/legacy/listing.css
+*/
 /* listing 2.0 */
 
 div.listing-more {
@@ -675,6 +694,9 @@ div.srs_filter_area td {
 
 
 
+/*
+*	lib/css/legacy/report.css
+*/
 
 /* Reports */
 
@@ -855,6 +877,9 @@ table.builder_tab td {
 	width: 33%;
 	padding: 2px;
 }
+/*
+*	lib/css/legacy/calendar.css
+*/
 /**** CALENDAR ****/
 
 .caldiv {
@@ -1027,6 +1052,9 @@ div.cal_event_hover {
 	text-decoration: underline;
 }
 
+/*
+*	lib/css/legacy/autosuggest.css
+*/
 /* 
 ================================================
 autosuggest, inquisitor style
@@ -1119,6 +1147,9 @@ div.autosuggest ul em
 	font-weight: bold;
 }
 
+/*
+*	lib/css/legacy/dialog.css
+*/
 /***** Dialogs *******/
 
 div.dialog_wrapper {
@@ -1196,6 +1227,9 @@ div.dialog_row table td textarea {
 	font-size: 12px;
 }
 
+/*
+*	lib/css/legacy/wntoolbar.css
+*/
 
 /* Recent */
 
@@ -1222,6 +1256,9 @@ div.status_flag {
 .sprite-report { background-position: 0 -264px;  } 
 .sprite-search { background-position: 0 -330px;  } 
 .sprite-tools { background-position: 0 -396px;  } 
+/*
+*	lib/css/legacy/tabs.css
+*/
 
 /******* TABS ********/
 
@@ -1281,6 +1318,9 @@ ul.box_tabs li.box_tab_selected a {
 /*	background:url("../images/ui/rc/tab-right-CCC.gif") no-repeat right top; */
 }
 
+/*
+*	lib/css/legacy/bw-icons.css
+*/
 
 /** general icons **/
 
@@ -1532,6 +1572,9 @@ ul.box_tabs li.box_tab_selected a {
 .ic-zoom { background-position: -144px -864px;  } 
 
 
+/*
+*	lib/css/legacy/sidebar.css
+*/
 div.psidebar-wrapper {
 	margin: 0px 8px;
 }
@@ -1576,6 +1619,9 @@ div.follower-list {
 	margin-top: 7px;
 	font-size: 11px;
 }
+/*
+*	lib/css/legacy/bootstrap-buttons.css
+*/
 .btn.danger,
 .alert-message.danger,
 .btn.danger:hover,
@@ -1748,4 +1794,30 @@ div.follower-list {
 button.btn::-moz-focus-inner, input[type=submit].btn::-moz-focus-inner {
   padding: 0;
   border: 0;
+}
+
+/* CLose */
+
+.close {
+  float: right;
+  color: #000000;
+  font-size: 15px;
+  font-weight: bold;
+  line-height: 13.5px;
+  margin-bottom: -2px;
+  text-shadow: 0 1px 0 #ffffff;
+  filter: alpha(opacity=25);
+  -khtml-opacity: 0.25;
+  -moz-opacity: 0.25;
+  opacity: 0.25;
+  text-decoration: none;
+}
+.close:hover {
+  color: #000000;
+  text-decoration: none;
+  filter: alpha(opacity=40);
+  -khtml-opacity: 0.4;
+  -moz-opacity: 0.4;
+  opacity: 0.4;
+  cursor: pointer;
 }
