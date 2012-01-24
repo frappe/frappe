@@ -153,7 +153,6 @@ _r.ReportBuilder.prototype.make_save_criteria = function() {
 	
 	// make_list
 	// ---------
-	
 	this.sc_list = []; this.sc_dict = {};
 	for(var n in locals['Search Criteria']) {
 		var d = locals['Search Criteria'][n];
@@ -202,7 +201,7 @@ _r.ReportBuilder.prototype.save_criteria = function(save_as) {
 	for(var i=0;i<this.filter_fields.length;i++) {
 		var t = this.filter_fields[i];
 		var v = t.get_value?t.get_value():'';
-		if(v)fl[t.df.parent + '\1' + t.df.label + (t.bound?('\1'+t.bound):'')] = v;
+		if(v) fl[t.df.parent + '\1' + t.df.label + (t.bound?('\1'+t.bound):'')] = v;
 	}
 	
 	doc.columns = cl.join(',');
@@ -223,12 +222,12 @@ _r.ReportBuilder.prototype.save_criteria = function(save_as) {
 		me.sc_dict[criteria_name] = r.main_doc_name;
 		me.set_criteria_sel(criteria_name);
 	}
-	if(this.current_loaded && overwrite) {
-		msgprint('Filters and Columns Synchronized. You must also "Save" the Search Criteria to update');
-		loaddoc('Search Criteria', this.sc_dict[this.current_loaded]);
-	} else {
-		save_doclist(doc.doctype, doc.name, 'Save', fn); // server-side save
-	}
+	//if(this.current_loaded && overwrite) {
+	//	msgprint('Filters and Columns Synchronized. You must also "Save" the Search Criteria to update');
+	//	loaddoc('Search Criteria', this.sc_dict[this.current_loaded]);
+	//} else {
+	save_doclist(doc.doctype, doc.name, 'Save', fn); // server-side save
+	//}
 }
 
 // -------------------------------------------------------------------------------------
