@@ -2,8 +2,6 @@
 import webnotes
 from webnotes.utils import cint
 
-sql = webnotes.conn.sql
-
 	
 # -----------------------------------------------------------------------------------------
 
@@ -17,17 +15,17 @@ class DocType:
 			.replace('/', '-')
 		
 		# for duplicates
-		if sql("select name from `tabSearch Criteria` where name = %s", self.doc.name):
-			m = sql("select name from `tabSearch Criteria` where name like '%s%%' order by name desc limit 1" % self.doc.name)[0][0]
+		if webnotes.conn.sql("select name from `tabSearch Criteria` where name = %s", self.doc.name):
+			m = webnotes.conn.sql("select name from `tabSearch Criteria` where name like '%s%%' order by name desc limit 1" % self.doc.name)[0][0]
 			self.doc.name = self.doc.name + str(cint(m[-1]) + 1)
 
 	def set_module(self):
 		if not self.doc.module:
-			doctype_module = sql("select module from tabDocType where name = '%s'" % (self.doc.doc_type))
+			doctype_module = webnotes.conn.sql("select module from tabDocType where name = '%s'" % (self.doc.doc_type))
 			webnotes.conn.set(self.doc,'module',doctype_module and doctype_module[0][0] or 'NULL')
 
 	def validate(self):
-		if sql("select name from `tabSearch Criteria` where criteria_name=%s and name!=%s", (self.doc.criteria_name, self.doc.name)):
+		if webnotes.conn.sql("select name from `tabSearch Criteria` where criteria_name=%s and name!=%s", (self.doc.criteria_name, self.doc.name)):
 			webnotes.msgprint("Criteria Name '%s' already used, please use another name" % self.doc.criteria_name, raise_exception = 1)
 
 	def on_update(self):
