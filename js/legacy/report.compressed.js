@@ -23,7 +23,7 @@ cl.push(t[i].parent+'\1'+t[i].label);for(var i=0;i<this.filter_fields.length;i++
 doc.columns=cl.join(',');doc.filters=docstring(fl);doc.sort_by=sel_val(this.dt.sort_sel);doc.sort_order=this.dt.sort_order;doc.page_len=this.dt.page_len;if(this.parent_dt)
 doc.parent_doc_type=this.parent_dt
 var me=this;var fn=function(r){me.sc_dict[criteria_name]=r.main_doc_name;me.set_criteria_sel(criteria_name);}
-if(this.current_loaded&&overwrite){msgprint('Filters and Columns Synchronized. You must also "Save" the Search Criteria to update');loaddoc('Search Criteria',this.sc_dict[this.current_loaded]);}else{save_doclist(doc.doctype,doc.name,'Save',fn);}}
+save_doclist(doc.doctype,doc.name,'Save',fn);}
 _r.ReportBuilder.prototype.hide_all_filters=function(){for(var i=0;i<this.filter_fields.length;i++){this.filter_fields[i].df.filter_hide=1;}}
 _r.ReportBuilder.prototype.run=function(){this.dt.run();}
 _r.ReportBuilder.prototype.clear_criteria=function(){this.column_picker.clear();this.column_picker.set_defaults();for(var i=0;i<this.filter_fields.length;i++){this.filter_fields[i].df.filter_hide=0;this.filter_fields[i].df.ignore=0;if(this.filter_fields[i].is_custom){this.filter_fields[i].df.filter_hide=1;this.filter_fields[i].df.ignore=1;}
