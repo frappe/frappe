@@ -999,14 +999,14 @@ SelectField.prototype.make_input = function() {
 				}
 			}
 		} else {
-			if(me.options_list && in_list(me.options_list, v)) {
+			if(me.options_list) {
 				if(me.input.multiple) {
 					for(var i=0; i<me.input.options.length; i++) {
 						me.input.options[i].selected = 0;
-						if(me.input.options[i].value && me.input.options[i].value == v)
+						if(me.input.options[i].value && inList(v.split(","), me.input.options[i].value))
 							me.input.options[i].selected = 1;
 					}
-				} else {
+				} else if(in_list(me.options_list, v)){
 					me.input.value = v;
 				}
 			}
