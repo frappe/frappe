@@ -116,6 +116,7 @@ function makeselector() {
 	btn.onclick = function() {
 		if(this.disabled) return;
 
+		this.args.is_ajax = true;
 		this.set_working();
 		d.set_doctype = d.sel_type;
 		var q = '';

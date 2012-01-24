@@ -267,7 +267,10 @@ class CookieManager:
 	# -----------
 	
 	def set_cookies(self):
-		webnotes.cookies['account_id'] = webnotes.conn.cur_db_name
+		if webnotes.form_dict.get('cmd')=='logout':
+			webnotes.cookies['account_id'] = ''
+		else:
+			webnotes.cookies['account_id'] = webnotes.conn.cur_db_name
 		
 		if webnotes.session.get('sid'):
 			webnotes.cookies['sid'] = webnotes.session['sid']

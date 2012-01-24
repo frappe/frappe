@@ -1,13 +1,10 @@
 /** Page Body
 
 	+ body
-		+ wntoolbar
-		+ banner_area
 		+ body
 			+ left_sidebar
 			+ center
 			+ right_sidebar
-		+ footer
 	+ dead session
 
 **/
@@ -64,30 +61,11 @@ function Body() {
 		}
 	}
 	
-	this.setup_header_footer = function() {		
-		// header
-		if(cint(this.cp.header_height)) {
-			var hh = this.cp.header_height ? (cint(this.cp.header_height) + 'px') : '0px';
-			$y(this.header, {height:hh, borderBottom:'1px solid #CCC'}); 
-			if(this.cp.client_name)this.banner_area.innerHTML = this.cp.client_name;
-		}
-		
-		// footer
-		var fh = this.cp.footer_height ? (cint(this.cp.footer_height) + 'px') : '0px';
-		$y(this.footer, {height:fh}); 
-		if(this.cp.footer_html)this.footer.innerHTML = this.cp.footer_html;
-
-	}
-	
 	this.run_startup_code = function() {
-		// startup style
-		if(this.cp.startup_css)
-			set_style(this.cp.startup_css);
-		
 		// startup code
+		wn.require(wn.modules_path + '/startup/startup.css');
+		wn.require(wn.modules_path + '/startup/startup.js');
 		try{
-			if(this.cp.startup_code)
-				eval(this.cp.startup_code);
 			if(this.cp.custom_startup_code)
 				eval(this.cp.custom_startup_code);
 		} catch(e) {
@@ -96,15 +74,10 @@ function Body() {
 	}
 	
 	this.setup = function() {
-		this.cp = locals['Control Panel']['Control Panel'];
+		this.cp = wn.control_panel;
 		
 		this.wrapper = $a($i('body_div'),'div');
-		this.banner_area = $a(this.wrapper, 'div');;
-		
-		this.topmenu = $a(this.wrapper, 'div');
-		this.breadcrumbs = $a(this.wrapper, 'div');
 		this.body = $a(this.wrapper, 'div');
-		this.footer = $a(this.wrapper, 'div');
 		
 		// sidebars
 		if(user_defaults.hide_sidebars) {
@@ -113,10 +86,6 @@ function Body() {
 		}		
 
 		this.setup_page_areas();
-
-	
-		// headers & footer
-		this.setup_header_footer();
 
 		// core areas;
 		if(user=='Guest') user_defaults.hide_webnotes_toolbar = 1;

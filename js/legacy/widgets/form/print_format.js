@@ -323,7 +323,7 @@ $.extend(_p, {
 	
 	// fetches letter head from current doc or control panel
 	get_letter_head: function() {
-		var cp = locals['Control Panel']['Control Panel'];
+		var cp = wn.control_panel;
 		var lh = '';
 		if(cur_frm.doc.letter_head) {
 			lh = cstr(_p.letter_heads[cur_frm.doc.letter_head]);

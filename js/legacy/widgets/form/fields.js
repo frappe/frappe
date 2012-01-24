@@ -491,7 +491,7 @@ function DateField() { } DateField.prototype = new Field();
 DateField.prototype.make_input = function() {
 
 	var me = this;
-	this.user_fmt = locals['Control Panel']['Control Panel'].date_format;
+	this.user_fmt = wn.control_panel.date_format;
 	if(!this.user_fmt)this.user_fmt = 'dd-mm-yy';
 
 	this.input = $a(this.input_area, 'input');

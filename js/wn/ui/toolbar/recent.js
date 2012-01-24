@@ -16,6 +16,8 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		this.add(dt, name, 1);
 	},
 	add: function(dt, dn, on_top) {
+		if(this.istable(dt)) return;
+		
 		this.remove(dt, dn);
 		var html = repl('<li data-docref="%(dt)s/%(dn)s">\
 			<a href="#Form/%(dt)s/%(dn)s">\
@@ -27,6 +29,9 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		} else {
 			$('#toolbar-recent').append(html);
 		}
+	},
+	istable: function(dt) {
+		return locals.DocType[dt] && locals.DocType[dt].istable || false;
 	},
 	remove: function(dt, dn) {
 		$(repl('#toolbar-recent li[data-docref="%(dt)s/%(dn)s"]', {dt:dt, dn:dn})).remove();

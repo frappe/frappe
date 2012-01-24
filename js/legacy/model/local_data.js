@@ -1,7 +1,7 @@
 // Local DB 
 //-----------
 
-var locals = {};
+var locals = {'DocType':{}};
 var fields = {}; // fields[doctype][fieldname]
 var fields_list = {}; // fields_list[doctype]
 var LocalDB={};
