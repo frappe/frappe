@@ -77,7 +77,7 @@ wn.datetime = {
 	},
 	
 	get_user_fmt: function() {
-		var t = locals['Control Panel']['Control Panel'].date_format;
+		var t = wn.control_panel.date_format;
 		if(!t) t = 'dd-mm-yyyy';
 		return t;
 	},

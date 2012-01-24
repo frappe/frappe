@@ -14,7 +14,7 @@ pscript['onload_Login Page'] = function(){
 
 pscript['onshow_Login Page'] = function() {
 	// set banner
-	var bannerhtml = locals['Control Panel']['Control Panel'].client_name;
+	var bannerhtml = wn.control_panel.client_name;
 	if(bannerhtml) $('.login-banner').html(bannerhtml);	
 }
 

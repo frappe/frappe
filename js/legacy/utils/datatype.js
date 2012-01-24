@@ -10,7 +10,7 @@ function fmt_money(v){
 	if(isNaN(v)) {
 		return ''; // not a number
 	} else {
-		var cp = locals['Control Panel']['Control Panel'];
+		var cp = wn.control_panel;
 		var val = 2; // variable used to differentiate other values from Millions
 		if(cp.currency_format == 'Millions') val = 3;
 		v = v.toFixed(2);
@@ -275,7 +275,7 @@ var known_numbers = {
 }
 
 function in_words(n) {
-	var is_million = locals['Control Panel']['Control Panel'].currency_format == 'Millions' ? 1 : 0;
+	var is_million = wn.control_panel.currency_format == 'Millions' ? 1 : 0;
     n=cint(n)
     if(known_numbers[n]) return known_numbers[n];
     var bestguess = n + '';

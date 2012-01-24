@@ -51,7 +51,10 @@ function $c(command, args, fn, on_timeout, no_spinner, freeze_msg) {
 			if(freeze_msg)unfreeze();
 			
 			if(!validate_session(r,rtxt)) return;
-			if(r.exc) { errprint(r.exc); };
+			if(r.exc) { 
+				errprint(r.exc); 
+				console.log(r.exc);
+			};
 			if(r.server_messages) { msgprint(r.server_messages);};
 			if(r.docs) { LocalDB.sync(r.docs); }
 			saveAllowed = true;

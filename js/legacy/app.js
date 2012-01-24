@@ -4,6 +4,7 @@
 var popup_cont;
 var session = {};
 var start_sid = null;
+if(!wn) var wn = {};
 
 function startup() {
 
@@ -15,6 +16,8 @@ function startup() {
 	// Globals
 	// ---------------------------------
 	var setup_globals = function(r) {
+		wn.boot = r;
+		
 		profile = r.profile;
 		user = r.profile.name;		
 		user_fullname = profile.first_name + (r.profile.last_name ? (' ' + r.profile.last_name) : '');
@@ -35,6 +38,9 @@ function startup() {
 		if(r.dt_labels) {
 			for(key in r.dt_labels)session.rev_dt_labels[r.dt_labels[key]] = key;
 		}
+
+		// control panel
+		wn.control_panel = r.control_panel;
 	}
 	
 	var setup_history = function(r) {
@@ -192,17 +198,5 @@ window.onresize = function() {
 
 get_window_height = function() {
 	var ht = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight ? document.documentElement.offsetHeight : document.body.offsetHeight;
-	var bannerh = page_body.banner_area ? page_body.banner_area.offsetHeight : 0
-	var footerh = page_body.footer ? page_body.footer.offsetHeight : 0
-	ht = ht - bannerh - footerh;
 	return ht;
 }
-
-// setup space holder
-setup_space_holder = function() {
-	// space holder div
-	window.space_holder_div = $a(null,'div','space_holder');
-	window.space_holder_div.innerHTML = 'Loading...'	
-}
-
-startup_list.push(setup_space_holder);

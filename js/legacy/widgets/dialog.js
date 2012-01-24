@@ -16,7 +16,7 @@ function Dialog(w, h, title, content) {
 	this.oncancel = '';
 	this.no_cancel_flag = 0; // allow to cancel
 	this.display = false;
-	var me = this;
+	this.first_button = false;
 }
 
 Dialog.prototype = new wn.widgets.Dialog()
@@ -110,9 +110,13 @@ Dialog.prototype.make_row = function(d) {
 	} 
 	else if(d[0]=='Button') {
 		c2.style.height = '32px';
-		c2.style.textAlign = 'right';
-		var b = $btn(c2, d[1], function(btn) { if(btn._onclick) btn._onclick(me) }, null, null, 1);
+		var b = $btn(c2, d[1], function(btn) { 
+			if(btn._onclick) btn._onclick(me) }, null, null, 1);
 		b.dialog = me;
+		if(!this.first_button) {
+			$(b).addClass('primary');
+			this.first_button = true;
+		}
 		if(d[2]) {
 			b._onclick = d[2];
 		}

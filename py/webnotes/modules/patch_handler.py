@@ -60,7 +60,8 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
-	with open('patches/patch.log','a') as patchlog:
+	import webnotes.defs, os
+	with open(os.path.join(webnotes.defs.modules_path,'patches','patch.log'),'a') as patchlog:
 		patchlog.write('\n\n' + tb)
 	
 def update_patch_log(patchmodule):

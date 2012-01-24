@@ -60,7 +60,7 @@ _e.make = function() {
 		var cc= emailfrom;
 		
 		if(!emailfrom) { 
-			emailfrom = locals['Control Panel']['Control Panel'].auto_email_id; 
+			emailfrom = wn.control_panel.auto_email_id; 
 			cc = ''; 
 		}
 		sendmail(emailto, emailfrom, emailfrom, d.widgets['Subject'].value, d.widgets['Message'].value, sel_val(cur_frm.print_sel), d.widgets['Send With Attachments'].checked);
