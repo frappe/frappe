@@ -630,3 +630,30 @@ def make_esc(esc_chars):
 	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
 	
 
+def get_doctype_label(dt=None):
+	"""
+		Gets label of a doctype
+	"""
+	if dt:
+		res = webnotes.conn.sql("""\
+			SELECT name, dt_label FROM `tabDocType Label`
+			WHERE name=%s""", dt)
+		return res and res[0][0] or dt
+	else:
+		res = webnotes.conn.sql("SELECT name, dt_label FROM `tabDocType Label`")
+		dt_label_dict = {}
+		for r in res:
+			dt_label_dict[r[0]] = r[1]
+
+		return dt_label_dict
+
+
+def get_label_doctype(label):
+	"""
+		Gets doctype from its label
+	"""
+	res = webnotes.conn.sql("""\
+		SELECT name FROM `tabDocType Label`
+		WHERE dt_label=%s""", label)
+
+	return res and res[0][0] or label
