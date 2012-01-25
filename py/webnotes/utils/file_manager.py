@@ -125,15 +125,6 @@ def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js
 			i = form['filedata']
 	
 			fname, content = i.filename, i.file.read()
-	
-			# thumbnail
-			if webnotes.form_dict.get('thumbnail'):
-				try:
-					content = make_thumbnail(content, int(form.get('thumbnail')))
-					# change extension to jpg
-					fname = '.'.join(fname.split('.')[:-1])+'.jpg'
-				except Exception, e:
-					pass
 		
 			# get the file id
 			fid = save_file(fname, content)
@@ -144,7 +135,11 @@ def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js
 			webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("No file"); %s</script>""" % js_fail
 			
 	except Exception, e:
-		webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("%s"); window.parent.errprint("%s"); %s</script>""" % (str(e), webnotes.utils.getTraceback().replace('\n','<br>').replace('"', '\\"'), js_fail)
+		webnotes.response['result'] = """<script type='text/javascript'>
+			window.parent.msgprint("%s"); 
+			window.parent.errprint("%s"); 
+			%s</script>""" % (str(e), \
+				webnotes.utils.getTraceback().replace('\n','<br>').replace('"', '\\"'), js_fail)
 	
 	return fid, fname
 

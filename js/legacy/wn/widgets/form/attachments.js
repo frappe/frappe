@@ -89,8 +89,8 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 	}
 		
 	// download
-	this.ln = $a(this.wrapper, 'a', 'link_type', {fontSize:'11px'}, this.filename);
-	this.ln.href = outUrl + '?cmd=get_file&fname='+this.fileid;
+	this.ln = $a(this.wrapper, 'a', 'link_type', {fontSize:'11px'}, this.fileid);
+	this.ln.href = 'files/'+this.fileid;
 	this.ln.target = '_blank';
 	
 	// remove
