@@ -13,9 +13,9 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
 	//console.log(p)
-	cur_frm.frm_head.timestamp_area.hidden = true;
-	cur_frm.frm_head.page_head.buttons.Save.hidden = true;
-	cur_frm.page_layout.footer.hidden = true;
+	$(cur_frm.frm_head.timestamp_area).toggle(false);
+	$(cur_frm.frm_head.page_head.buttons.Save).toggle(false);
+	$(cur_frm.page_layout.footer).toggle(false);
 	if(doc.doc_type) { $('#tip_wrapper').slideUp('slow'); }
 
 	//cur_frm.grids[0].grid.tab.rows[cur_frm.grids[0].grid.tab.rows.length-1].hidden = true;
@@ -33,7 +33,8 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 			});	
 		}
 	},1);
-	cur_frm.frm_head.page_head.buttons.Update.className = "cupid-green";
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('primary');
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('cupid-green');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
