@@ -624,12 +624,34 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 			borderCollapse: 'collapse',
 			marginBottom: '10px'		
 		},
+
+		remove_empty_cols: function(flist) {
+			var non_empty_cols = []
+			for(var i=0; i<me.data.length; i++) {
+				for(var c=0; c<flist.length; c++) {
+					if(flist[c].print_hide || !inList(['', null], me.data[i][flist[c].fieldname])) {
+						if(!inList(non_empty_cols, flist[c])) {
+							non_empty_cols.push(flist[c]);
+						}
+					}
+				}
+			}
+			for(var c=0; c<flist.length; c++) {
+				if(!inList(non_empty_cols, flist[c])) {
+					//console.log(flist[c].fieldname);
+					flist.splice(c, 1);
+					c = c - 1;
+				}
+			}
+		},
 		
 		/*
 			This function prepares a list of columns to be displayed and calls make_print_table to create a table with these columns
 		*/
 		prepare_col_heads: function(flist) {
 			var new_flist = [];
+
+			me.remove_empty_cols(flist);
 			
 			// Make a list of column headings
 			if(cols && cols.length) {
