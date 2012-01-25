@@ -8,13 +8,14 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 	cur_frm.grids[0].grid.tbar_div.style.width = "30%";
 	cur_frm.tip_wrapper.id = 'tip_wrapper';
 	cur_frm.add_fields_help();
+	cur_frm.load_doclabel_options(doc, dt, dn);
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
 	//console.log(p)
-	cur_frm.frm_head.timestamp_area.hidden = true;
-	cur_frm.frm_head.page_head.buttons.Save.hidden = true;
-	cur_frm.page_layout.footer.hidden = true;
+	$(cur_frm.frm_head.timestamp_area).toggle(false);
+	$(cur_frm.frm_head.page_head.buttons.Save).toggle(false);
+	$(cur_frm.page_layout.footer).toggle(false);
 	if(doc.doc_type) { $('#tip_wrapper').slideUp('slow'); }
 
 	//cur_frm.grids[0].grid.tab.rows[cur_frm.grids[0].grid.tab.rows.length-1].hidden = true;
@@ -32,7 +33,8 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 			});	
 		}
 	},1);
-	cur_frm.frm_head.page_head.buttons.Update.className = "cupid-green";
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('primary');
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('cupid-green');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
@@ -50,6 +52,26 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 		page_head.buttons['Update'].disabled = true;
 		page_head.buttons['Refresh Form'].disabled = true;
 		page_head.buttons['Reset to defaults'].disabled = true;
+	}
+
+	cur_frm.refresh_doctype_select(doc, dt, dn);
+}
+
+cur_frm.load_doclabel_options = function(doc, dt, dn) {
+	$c_obj('DocLayer','get_doctype_list','', function(r,rt) {
+		cur_frm.doctype_list = add_lists([""], r.message.doctype_list).join("\n");
+		doc = locals[doc.doctype][doc.name]
+		cur_frm.refresh_doctype_select(doc, dt, dn);
+	});
+}
+
+cur_frm.refresh_doctype_select = function(doc, dt, dn) {
+	var doc_type = cur_frm.fields_dict['doc_type'];
+	doc_type.refresh_options(cur_frm.doctype_list);
+	if(doc.doc_type) {
+		doc_type.set_input(doc.doc_type);
+	} else {
+		doc_type.set_input('');
 	}
 }
 
