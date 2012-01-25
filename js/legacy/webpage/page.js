@@ -42,12 +42,14 @@ function render_page(page_name, menuitem) {
 	}
 	var pdoc = locals['Page'][page_name];
 
-
 	// style
 	if(pdoc.style) set_style(pdoc.style)
 
 	// stylesheet
-	if(pdoc.stylesheet) { set_style(locals.Stylesheet[pdoc.stylesheet].stylesheet); stylesheets.push(pdoc.stylesheet); }
+	if(pdoc.stylesheet) { 
+		set_style(locals.Stylesheet[pdoc.stylesheet].stylesheet); 
+		stylesheets.push(pdoc.stylesheet); 
+	}
 
 	// create page
 	var p = new Page(page_name, pdoc._Page__content?pdoc._Page__content:pdoc.content);
@@ -64,10 +66,12 @@ function render_page(page_name, menuitem) {
 	
 	// run onload
 	try {
-		if(pscript['onload_'+page_name]) pscript['onload_'+page_name](); // onload
-	} catch(e) { submit_error(e); }
+		if(pscript['onload_'+page_name]) 
+			pscript['onload_'+page_name](page_body.pages[page_name]); // onload
+	} catch(e) { 
+		submit_error(e); 
+	}
 		
-	//setTimeout('page_body.pages[cur_page].set_page_height()', 100);
 	return p;
 }
 

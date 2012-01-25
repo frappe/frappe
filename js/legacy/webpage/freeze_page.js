@@ -9,9 +9,7 @@ function freeze(msg, do_freeze) {
 		dialog_back = $a($i('body_div'), 'div', 'dialog_back');
 		if(isIE) dialog_back.style['filter'] = 'alpha(opacity=60)';
 	}
-
 	$ds(dialog_back);
-	$y(dialog_back, {height: $(document).height() + 'px'});
 
 	fcount++;
 	frozen = 1;

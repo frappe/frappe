@@ -15,8 +15,6 @@ body {
 	color: #000;
 }
 
-input, select, button { font-size: 12px; font-family: Arial, Helvetica, Sans; }
-
 h1, h2, h3, h4, h5 {
 	font-family: Tahoma, Sans;
 	font-weight: normal;
@@ -32,12 +30,18 @@ pre { margin: 0px; padding: 0px; }
 
 button { margin: 2px; margin-left: 0px; }
 
+label {
+	padding-top: 15px;
+	color: #404040;
+}
+
 select, input, textarea { 
 	border: 1px solid #AAA; 
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
-	font-size: 13px
-	padding: 2px;
+	font-size: 13px;
+	padding: 4px;
+	color: #222;
 }
 
 textarea { font-family: arial, helvetica, sans serif; height: 120px; width: 90%; overflow-x: auto; font-size: 12px; }
@@ -1182,11 +1186,12 @@ div.dialog_body {
 }
 
 div.dialog_back {
-	position: absolute;
+	position: fixed;
 	display: none;
 	top: 0px;
 	left: 0px;
-	width: 100%;
+	bottom: 0px;
+	right: 0px;
 	background-color: #EEE;
 	opacity: 0.6;
 	z-index: 50;
