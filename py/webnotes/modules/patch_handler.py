@@ -60,7 +60,8 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
-	with open('patches/patch.log','a') as patchlog:
+	import webnotes.defs, os
+	with open(os.path.join(webnotes.defs.modules_path,'patches','patch.log'),'a') as patchlog:
 		patchlog.write('\n\n' + tb)
 	
 def update_patch_log(patchmodule):
@@ -70,7 +71,10 @@ def update_patch_log(patchmodule):
 
 def executed(patchmodule):
 	"""return True if is executed"""
-	return webnotes.conn.sql("""select patch from __PatchLog where patch=%s""", patchmodule)
+	done = webnotes.conn.sql("""select patch from __PatchLog where patch=%s""", patchmodule)
+	if done:
+		print "Patch %s executed in %s" % (patchmodule, webnotes.conn.cur_db_name)
+	return done
 	
 def block_user(block):
 	"""stop/start execution till patch is run"""
@@ -82,7 +86,7 @@ def block_user(block):
 
 def setup():
 	webnotes.conn.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
-			patch TEXT, applied_on DATETIME)""")
+			patch TEXT, applied_on DATETIME) engine=InnoDB""")
 		
 log_list = []
 has_errors = False

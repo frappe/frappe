@@ -93,21 +93,6 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 		
 	return 'okay'
 
-#=================================================================================
-# new feature added 9-Jun-10 to allow doctypes to have labels 
-def get_dt_labels():
-	d = {}
-	try:
-		res = webnotes.conn.sql("select name, dt_label from `tabDocType Label`")
-	except:
-		return {}
-		
-	for r in res:
-		d[r[0]] = r[1]
-	
-	return d
-#=================================================================================
-
 def get_search_criteria(dt):
 	import webnotes.model.doc
 	# load search criteria for reports (all)

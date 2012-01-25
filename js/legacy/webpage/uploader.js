@@ -11,7 +11,8 @@ Uploader = function(parent, args, callback) {
 	this.callback = callback;
 	
 	var div = $a(parent, 'div');
-	div.innerHTML = '<iframe id="'+id+'" name="'+id+'" src="blank1.html" style="width:0px; height:0px; border:0px"></iframe>';
+	div.innerHTML = '<iframe id="'+id+'" name="'+id+'" src="blank.html" \
+		style="width:0px; height:0px; border:0px"></iframe>';
 
 	// upload form
 	var div = $a(parent,'div');

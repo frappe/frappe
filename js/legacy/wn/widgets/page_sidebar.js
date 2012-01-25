@@ -49,7 +49,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 	this.wrapper = $a(sidebar.wrapper, 'div', 'psidebar-section');
 	this.head = $a(this.wrapper, 'div', 'psidebar-section-head', '', opts.title);
 	this.body = $a(this.wrapper, 'div', 'psidebar-section-body');
-	$br(this.wrapper, '3px');
+	$br(this.wrapper, '5px');
 	this.opts = opts;
 
 

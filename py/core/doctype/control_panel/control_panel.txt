@@ -3,24 +3,24 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-01-24 12:47:42',
 		'docstatus': 0,
-		'modified': '2011-02-12 17:04:27',
+		'modified': '2012-01-24 12:50:01',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
+		'_last_update': '1327389019',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
 		'colour': 'White:FFF',
+		'default_print_format': 'Standard',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
-		'idx': 0,
 		'in_create': 1,
 		'issingle': 1,
 		'istable': 0,
@@ -32,7 +32,7 @@
 		'server_code_error': ' ',
 		'show_in_menu': 1,
 		'smallicon': 'controller.png',
-		'version': 21
+		'version': 25
 	},
 
 	# These values are common for all DocField
@@ -50,7 +50,6 @@
 		'create': 1,
 		'doctype': 'DocPerm',
 		'execute': 0,
-		'idx': 1,
 		'name': '__common__',
 		'parent': 'Control Panel',
 		'parentfield': 'permissions',
@@ -77,7 +76,6 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
-		'idx': 1,
 		'label': 'General',
 		'permlevel': 0
 	},
@@ -87,7 +85,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'date_format',
 		'fieldtype': 'Select',
-		'idx': 2,
 		'label': 'Date Format',
 		'options': 'yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\nmm/dd/yyyy\nmm-dd-yyyy',
 		'permlevel': 0
@@ -98,7 +95,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'currency_format',
 		'fieldtype': 'Select',
-		'idx': 3,
 		'label': 'Currency Format',
 		'options': 'Millions\nLacs',
 		'permlevel': 0
@@ -109,7 +105,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'password_expiry_days',
 		'fieldtype': 'Int',
-		'idx': 4,
 		'label': 'Password Expires in (days)',
 		'permlevel': 0
 	},
@@ -121,7 +116,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'session_expiry',
 		'fieldtype': 'Data',
-		'idx': 5,
 		'label': 'Session Expires in (time)',
 		'permlevel': 0
 	},
@@ -131,8 +125,14 @@
 		'doctype': 'DocField',
 		'fieldname': 'sync_with_gateway',
 		'fieldtype': 'Check',
-		'idx': 6,
 		'label': 'Sync with Gateway',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Column Break',
 		'permlevel': 0
 	},
 
@@ -141,7 +141,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'title',
 		'fieldtype': 'Data',
-		'idx': 7,
 		'label': 'Title',
 		'permlevel': 0
 	},
@@ -151,7 +150,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'account_id',
 		'fieldtype': 'Data',
-		'idx': 8,
 		'label': 'Account Id',
 		'permlevel': 0
 	},
@@ -161,7 +159,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'company_name',
 		'fieldtype': 'Data',
-		'idx': 9,
 		'label': 'Company Name',
 		'permlevel': 0
 	},
@@ -171,7 +168,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'industry',
 		'fieldtype': 'Data',
-		'idx': 10,
 		'label': 'Industry',
 		'permlevel': 0
 	},
@@ -181,7 +177,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'time_zone',
 		'fieldtype': 'Data',
-		'idx': 11,
 		'label': 'Time Zone',
 		'permlevel': 0
 	},
@@ -191,7 +186,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'country',
 		'fieldtype': 'Data',
-		'idx': 12,
 		'label': 'Country',
 		'permlevel': 0
 	},
@@ -201,7 +195,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'total_sms_sent',
 		'fieldtype': 'Int',
-		'idx': 13,
 		'label': 'Total SMS Sent',
 		'permlevel': 1
 	},
@@ -210,189 +203,6 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
-		'idx': 14,
-		'label': 'Home Pages',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'default_home_pages',
-		'fieldtype': 'Table',
-		'idx': 15,
-		'label': 'Default Home Pages',
-		'options': 'Default Home Page',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'home_page',
-		'fieldtype': 'Link',
-		'idx': 16,
-		'label': 'Home Page',
-		'options': 'Page',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 17,
-		'label': 'Startup',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'startup_code',
-		'fieldtype': 'Code',
-		'idx': 18,
-		'label': 'Startup Code (JS)',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'startup_css',
-		'fieldtype': 'Code',
-		'idx': 19,
-		'label': 'Startup CSS',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 20,
-		'label': 'Display',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'idx': 21,
-		'label': 'Display Options',
-		'permlevel': 0,
-		'width': '100%'
-	},
-
-	# DocField
-	{
-		'description': 'Default page width is auto',
-		'doctype': 'DocField',
-		'fieldname': 'page_width',
-		'fieldtype': 'Int',
-		'idx': 22,
-		'label': 'Page WIdth',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'hide_webnotes_toolbar',
-		'fieldtype': 'Check',
-		'idx': 23,
-		'label': 'Hide WebNotes Toolbar',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'background_color',
-		'fieldtype': 'Data',
-		'idx': 24,
-		'label': 'Background Color',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 25,
-		'label': 'Header / Footer',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'description': 'Default header height is 40px',
-		'doctype': 'DocField',
-		'fieldname': 'header_height',
-		'fieldtype': 'Int',
-		'idx': 26,
-		'label': 'Header Height',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'client_name',
-		'fieldtype': 'Text',
-		'idx': 27,
-		'label': 'Header HTML',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'footer_height',
-		'fieldtype': 'Int',
-		'idx': 28,
-		'label': 'Footer Height',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'footer_html',
-		'fieldtype': 'Text',
-		'idx': 29,
-		'label': 'Footer HTML',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'letter_head',
-		'fieldtype': 'Text',
-		'idx': 30,
-		'label': 'Letter Head',
-		'permlevel': 0,
-		'print_hide': 1
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'client_logo',
-		'fieldtype': 'Link',
-		'idx': 31,
-		'label': 'Client Logo',
-		'options': 'File',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 32,
 		'label': 'Mail Server',
 		'permlevel': 0
 	},
@@ -403,7 +213,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'support_email_id',
 		'fieldtype': 'Data',
-		'idx': 33,
 		'label': 'Support Email Id',
 		'permlevel': 0
 	},
@@ -413,7 +222,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'letter_head_image',
 		'fieldtype': 'Data',
-		'idx': 34,
 		'label': 'Letter Head Image',
 		'permlevel': 0
 	},
@@ -424,7 +232,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'auto_email_id',
 		'fieldtype': 'Data',
-		'idx': 35,
 		'label': 'Auto Email Id',
 		'permlevel': 0
 	},
@@ -436,8 +243,14 @@
 		'doctype': 'DocField',
 		'fieldname': 'outgoing_mail_server',
 		'fieldtype': 'Data',
-		'idx': 36,
 		'label': 'Outgoing Mail Server',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Column Break',
 		'permlevel': 0
 	},
 
@@ -446,7 +259,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'mail_port',
 		'fieldtype': 'Data',
-		'idx': 37,
 		'label': 'Mail Port',
 		'permlevel': 0
 	},
@@ -456,7 +268,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'use_ssl',
 		'fieldtype': 'Check',
-		'idx': 38,
 		'label': 'Use SSL',
 		'permlevel': 0
 	},
@@ -466,7 +277,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'mail_login',
 		'fieldtype': 'Data',
-		'idx': 39,
 		'label': 'Login Id',
 		'permlevel': 0
 	},
@@ -476,7 +286,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'mail_password',
 		'fieldtype': 'Password',
-		'idx': 40,
 		'label': 'Mail Password',
 		'permlevel': 0
 	},
@@ -486,7 +295,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'mail_footer',
 		'fieldtype': 'Text',
-		'idx': 41,
 		'label': 'Mail Footer',
 		'permlevel': 0
 	},
@@ -495,7 +303,6 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
-		'idx': 42,
 		'label': 'Defaults',
 		'permlevel': 0
 	},
@@ -506,7 +313,6 @@
 		'fieldname': 'system_defaults',
 		'fieldtype': 'Table',
 		'hidden': 0,
-		'idx': 43,
 		'label': 'System Defaults',
 		'options': 'DefaultValue',
 		'permlevel': 0,
@@ -518,30 +324,16 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
-		'idx': 44,
-		'label': 'Sidebars',
+		'label': 'Banner',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'description': 'To hide the left sidebar, leave this blank or 0',
 		'doctype': 'DocField',
-		'fieldname': 'left_sidebar_width',
-		'fieldtype': 'Int',
-		'idx': 45,
-		'label': 'Left Sidebar Width',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'description': 'To hide the right sidebar, leave this blank or 0',
-		'doctype': 'DocField',
-		'fieldname': 'right_sidebar_width',
-		'fieldtype': 'Int',
-		'idx': 46,
-		'label': 'Right Sidebar Width',
+		'fieldname': 'client_name',
+		'fieldtype': 'Text',
+		'label': 'Banner HTML',
 		'permlevel': 0
 	},
 
@@ -549,39 +341,44 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'Section Break',
-		'idx': 47,
-		'label': 'Test Script',
+		'label': 'Startup',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
 		'doctype': 'DocField',
-		'fieldtype': 'Button',
-		'idx': 48,
-		'label': 'Execute Local',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Button',
-		'icon': 'accept.png',
-		'idx': 49,
-		'label': 'Execute (Careful!)',
-		'options': 'execute_test',
-		'permlevel': 0,
-		'width': '150px'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'test_code',
+		'fieldname': 'custom_startup_code',
 		'fieldtype': 'Code',
-		'idx': 50,
-		'label': 'Test Code',
+		'label': 'Custom Startup Code',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Section Break',
+		'label': 'Home Pages',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'home_page',
+		'fieldtype': 'Link',
+		'label': 'Home Page',
+		'options': 'Page',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'default_home_pages',
+		'fieldtype': 'Table',
+		'label': 'Default Home Pages',
+		'options': 'Default Home Page',
 		'permlevel': 0
 	}
 ]

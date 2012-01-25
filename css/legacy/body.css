@@ -58,7 +58,7 @@ div.comment { color: #444; }
 div#body_div {
 	position: relative;
 	display: none;
-	margin-top: 48px;
+	margin-top: 56px;
 }
 
 div.no_script {
@@ -141,8 +141,7 @@ div.std-footer-item {
 }
 
 .layout_wrapper {
-	padding: 13px;
-	margin: 7px;
+	padding: 15px;
 	-moz-box-shadow: 1px 1px 6px #AAA;
 	-webkit-box-shadow: 1px 1px 6px #AAA;
 	box-shadow: 1px 1px 6px #AAA;

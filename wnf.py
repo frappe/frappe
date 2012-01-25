@@ -45,6 +45,10 @@ def run():
 	if cmd=='build':
 		from build.project import Project
 		Project().build()
+	
+	elif cmd=='clear':
+		from build.project import Project
+		Project().render_templates()
 		
 	# replace code
 	elif cmd=='replace':

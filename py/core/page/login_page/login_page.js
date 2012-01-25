@@ -1,21 +1,19 @@
 pscript['onload_Login Page'] = function(){
-
 	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');
 	$bg(document.getElementsByTagName('body')[0], '#DDD');
 	
-	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin)
+	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin);
+	$(pscript.login_btn).addClass('primary');
 	
-    keypress_observers.push(new function() {
-      this.notify_keypress = function(kc) { if(kc==13 && $i("password").value) pscript.doLogin(); }
-    }
-  );
+	$('#login_wrapper').keyup(function(ev){
+		if(ev.which==13 && $('#password').value)
+			pscript.doLogin();
+	})	
 }
 
 pscript['onshow_Login Page'] = function() {
 	// set banner
-	var bannerhtml = locals['Control Panel']['Control Panel'].client_name;
-	if(bannerhtml) $('.login-banner').html(bannerhtml);	
 }
 
 // Login Callback

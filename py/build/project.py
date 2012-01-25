@@ -76,5 +76,5 @@ class Project:
 			for fname in wt[2]:
 				if fname=='build.json':
 					self.bundle.make(os.path.join(wt[0], fname))
-						
+	
 		self.render_templates()

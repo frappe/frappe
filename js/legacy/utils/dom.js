@@ -452,19 +452,6 @@ function get_cookie(c) {
 	return unescape(t.substring(ind+c.length+1,ind1));
 }
 
-// add space holder
-add_space_holder = function(parent,cs){
-	if(!cs) cs = {margin:'170px 0px'}	
-	$y(space_holder_div,cs);
-	parent.appendChild(space_holder_div);
-}
-
-// remove space holder
-remove_space_holder = function(){
-	if(space_holder_div.parentNode)
-		space_holder_div.parentNode.removeChild(space_holder_div);
-};
-
 // URL utilities
 
 wn.urllib = {
@@ -510,7 +497,7 @@ wn.urllib = {
 	// by file id / name
 	get_file_url: function(file_id) {
 		//var url = wn.urllib.get_base_url();		
-		var ac_id = locals['Control Panel']['Control Panel'].account_id;		
+		var ac_id = wn.control_panel.account_id;		
 		return repl('cgi-bin/getfile.cgi?name=%(fn)s&acx=%(ac)s', {fn:file_id, ac:ac_id})
 	}	
 }
@@ -530,7 +517,7 @@ set_user_img = function(img, username, get_latest, img_id) {
 		else if(user_img[username]=='no_img_f')
 			i.src = 'lib/images/ui/no_img_f.gif'; // no image
 		else {
-			ac_id = locals['Control Panel']['Control Panel'].account_id;
+			ac_id = wn.control_panel.account_id;
 			i.src = repl('cgi-bin/getfile.cgi?ac=%(ac)s&name=%(fn)s', {fn:user_img[username], ac:ac_id});			
 		}
 	}

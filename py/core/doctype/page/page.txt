@@ -5,23 +5,23 @@
 	{
 		'creation': '2009-05-12 11:19:11',
 		'docstatus': 0,
-		'modified': '2010-12-16 23:46:03',
-		'modified_by': 'yogesh@webnotestech.com',
+		'modified': '2012-01-24 16:05:50',
+		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
+		'_last_update': '1323345145',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
 		'autoname': 'field:page_name',
 		'colour': 'White:FFF',
+		'default_print_format': 'Standard',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
-		'idx': 0,
 		'issingle': 0,
 		'istable': 0,
 		'module': 'Core',
@@ -30,7 +30,7 @@
 		'section_style': 'Tabbed',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 8
+		'version': 9
 	},
 
 	# These values are common for all DocField
@@ -49,7 +49,6 @@
 		'create': 1,
 		'doctype': 'DocPerm',
 		'execute': 0,
-		'idx': 1,
 		'name': '__common__',
 		'parent': 'Page',
 		'parentfield': 'permissions',
@@ -75,9 +74,16 @@
 	# DocField
 	{
 		'doctype': 'DocField',
+		'fieldtype': 'Section Break',
+		'label': 'Page HTML',
+		'oldfieldtype': 'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
 		'fieldname': 'page_name',
 		'fieldtype': 'Data',
-		'idx': 2,
 		'label': 'Page Name',
 		'oldfieldname': 'page_name',
 		'oldfieldtype': 'Data',
@@ -89,7 +95,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'module',
 		'fieldtype': 'Select',
-		'idx': 3,
 		'label': 'Module',
 		'oldfieldname': 'module',
 		'oldfieldtype': 'Select',
@@ -102,7 +107,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'standard',
 		'fieldtype': 'Select',
-		'idx': 4,
 		'label': 'Standard',
 		'oldfieldname': 'standard',
 		'oldfieldtype': 'Select',
@@ -115,22 +119,42 @@
 	{
 		'doctype': 'DocField',
 		'fieldtype': 'HTML',
-		'idx': 5,
 		'label': 'Help HTML',
 		'oldfieldtype': 'HTML',
-		'options': '<div class="comment" style="margin: 8px 0px">To add images, use <b>$image(<i>filename</i>)</b><br>Where file name is the ID or Name of the File record</div>'
+		'options': '<div class="help-box">To add images, use <b>$image(<i>filename</i>)</b><br>Where file name is the ID or Name of the File record</div>'
 	},
 
 	# DocField
 	{
 		'doctype': 'DocField',
 		'fieldname': 'content',
-		'fieldtype': 'Text Editor',
+		'fieldtype': 'Code',
 		'hidden': 0,
-		'idx': 6,
 		'label': 'Content',
 		'oldfieldname': 'content',
 		'oldfieldtype': 'Text Editor',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Section Break',
+		'label': 'Permissions',
+		'oldfieldtype': 'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'roles',
+		'fieldtype': 'Table',
+		'hidden': 0,
+		'label': 'Roles',
+		'oldfieldname': 'roles',
+		'oldfieldtype': 'Table',
+		'options': 'Page Role',
 		'reqd': 0,
 		'search_index': 0
 	}

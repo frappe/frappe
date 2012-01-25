@@ -491,7 +491,7 @@ function DateField() { } DateField.prototype = new Field();
 DateField.prototype.make_input = function() {
 
 	var me = this;
-	this.user_fmt = locals['Control Panel']['Control Panel'].date_format;
+	this.user_fmt = wn.control_panel.date_format;
 	if(!this.user_fmt)this.user_fmt = 'dd-mm-yy';
 
 	this.input = $a(this.input_area, 'input');
@@ -916,7 +916,6 @@ SelectField.prototype.make_input = function() {
 	var opt=[];
 	
 	if(this.in_filter && (!this.df.single_select)) {
-
 		// multiple select
 		this.input = $a(this.input_area, 'select');
 		this.input.multiple = true;
@@ -940,6 +939,10 @@ SelectField.prototype.make_input = function() {
 			
 			me.run_trigger();
 		}
+		
+		if(this.df.options == 'attach_files:') {
+			this.file_attach = true;
+		}
 	}
 
 	// set as single (to be called from report builder)
@@ -951,10 +954,13 @@ SelectField.prototype.make_input = function() {
 	}
 	
 	// refresh options list
-	this.refresh_options = function(options) {
+	this.refresh_options = function(options) {		
 		if(options)
 			me.df.options = options;
 
+		if(this.file_attach)
+			this.set_attach_options();
+		
 		me.options_list = me.df.options?me.df.options.split('\n'):[];
 		
 		// add options
@@ -963,7 +969,6 @@ SelectField.prototype.make_input = function() {
 			me.options_list = add_lists([''], me.options_list);			
 		}
 		add_sel_options(this.input, me.options_list);
-		
 	}
 	
 	// refresh options
@@ -1027,6 +1032,20 @@ SelectField.prototype.make_input = function() {
 				return val;
 			}
 			return me.input.value;
+		}
+	}
+	
+	this.set_attach_options = function() {
+		if(!cur_frm) return;
+		var fl = cur_frm.doc.file_list;
+		if(fl) {
+			this.df.options = '';
+			var fl = fl.split('\n');
+			for(var i in fl) {
+				this.df.options += '\n' + fl[i].split(',')[1];
+			}
+		} else {
+			this.df.options = ''
 		}
 	}
 	this.refresh();

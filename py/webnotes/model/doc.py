@@ -130,8 +130,7 @@ class Document:
 
 	def _loadsingle(self):
 		self.name = self.doctype
-		dataset = webnotes.conn.sql("select field, value from tabSingles where doctype='%s'" % self.doctype)
-		for d in dataset: self.fields[d[0]] = d[1]
+		self.fields.update(getsingle(self.doctype))
 
 	# Setter
 	# ---------------------------------------------------------------------------
@@ -671,9 +670,6 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 			webnotes.response['exc_type'] = 'PermissionError'
 			raise webnotes.ValidationError, '[WNF] No read permission for %s %s' % (dt, dn)
 
-	# import report_builder code
-	get_report_builder_code(doc)
-
 	if not with_children:
 		# done
 		return [doc,]
@@ -686,4 +682,14 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 	for t in tablefields:
 		doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
+	# import report_builder code
+	if not from_get_obj:
+		get_report_builder_code(doc)
+
 	return doclist
+
+def getsingle(doctype):
+	"""get single doc as dict"""
+	dataset = webnotes.conn.sql("select field, value from tabSingles where doctype=%s", doctype)
+	return dict(dataset)
+	
