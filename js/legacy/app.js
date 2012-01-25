@@ -95,8 +95,7 @@ function startup() {
 			// show home oage
 			loadpage(home_page);
 		}
-		$dh('startup_div');
-		$ds('body_div');
+		page_body.ready();
 	}
 	if(_startup_data && keys(_startup_data).length && _startup_data.docs) {
 		LocalDB.sync(_startup_data.docs);
