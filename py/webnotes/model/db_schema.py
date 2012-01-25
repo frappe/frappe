@@ -79,7 +79,9 @@ class DbTable:
 			parentfield varchar(120), 
 			parenttype varchar(120), 
 			idx int(8),
-			%sindex parent(parent)) ENGINE=InnoDB""" % (self.name, add_text))
+			%sindex parent(parent)) 
+			ENGINE=InnoDB 
+			CHARACTER SET=utf8""" % (self.name, add_text))
 
 	def get_columns_from_docfields(self):
 		fl = webnotes.conn.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
