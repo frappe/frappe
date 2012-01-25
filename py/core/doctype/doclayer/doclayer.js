@@ -8,6 +8,7 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 	cur_frm.grids[0].grid.tbar_div.style.width = "30%";
 	cur_frm.tip_wrapper.id = 'tip_wrapper';
 	cur_frm.add_fields_help();
+	cur_frm.load_doclabel_options(doc, dt, dn);
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
@@ -50,6 +51,26 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 		page_head.buttons['Update'].disabled = true;
 		page_head.buttons['Refresh Form'].disabled = true;
 		page_head.buttons['Reset to defaults'].disabled = true;
+	}
+
+	cur_frm.refresh_doctype_select(doc, dt, dn);
+}
+
+cur_frm.load_doclabel_options = function(doc, dt, dn) {
+	$c_obj('DocLayer','get_doctype_list','', function(r,rt) {
+		cur_frm.doctype_list = add_lists([""], r.message.doctype_list).join("\n");
+		doc = locals[doc.doctype][doc.name]
+		cur_frm.refresh_doctype_select(doc, dt, dn);
+	});
+}
+
+cur_frm.refresh_doctype_select = function(doc, dt, dn) {
+	var doc_type = cur_frm.fields_dict['doc_type'];
+	doc_type.refresh_options(cur_frm.doctype_list);
+	if(doc.doc_type) {
+		doc_type.set_input(doc.doc_type);
+	} else {
+		doc_type.set_input('');
 	}
 }
 

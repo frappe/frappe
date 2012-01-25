@@ -39,6 +39,10 @@ class DocType:
 			'name'
 		]
 
+		if self.doc.doc_type:
+			from webnotes.utils import get_label_doctype
+			self.true_doctype = get_label_doctype(self.doc.doc_type)
+
 
 	def get(self):
 		"""
@@ -72,8 +76,8 @@ class DocType:
 		from webnotes.model.doctype import _DocType
 		from webnotes.model.doc import get
 		
-		ref_doclist = get('DocType', self.doc.doc_type)
-		_DocType(self.doc.doc_type)._override_field_properties(ref_doclist)
+		ref_doclist = get('DocType', self.true_doctype)
+		_DocType(self.true_doctype)._override_field_properties(ref_doclist)
 		
 		return ref_doclist
 
@@ -122,7 +126,7 @@ class DocType:
 			
 			this_doclist = [self.doc] + self.doclist
 			ref_doclist = self.get_ref_doclist()
-			dt_doclist = doc.get('DocType', self.doc.doc_type)
+			dt_doclist = doc.get('DocType', self.true_doctype)
 			
 			# get a list of property setter docs
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
@@ -234,13 +238,13 @@ class DocType:
 			from webnotes.model.doc import Document
 			d = Document('Property Setter')
 			d.doctype_or_field = ref_d.doctype=='DocField' and 'DocField' or 'DocType'
-			d.doc_type = self.doc.doc_type
+			d.doc_type = self.true_doctype
 			d.doc_name = ref_d.name
 			d.property = prop
 			d.value = value
 			d.property_type = self.defaults[prop]['fieldtype']
 			d.default_value = self.defaults[prop]['default']
-			d.select_doctype = self.doc.doc_type 
+			d.select_doctype = self.doc.doc_type
 			d.select_item = ref_d.label and str(ref_d.idx) \
 				+ " - " + str(ref_d.label) \
 				+	" (" + str(ref_d.fieldtype) + ")" \
@@ -292,7 +296,7 @@ class DocType:
 		if self.doc.doc_type:
 			webnotes.conn.sql("""
 				DELETE FROM `tabProperty Setter`
-				WHERE doc_type = %s""", self.doc.doc_type)
+				WHERE doc_type = %s""", self.true_doctype)
 		self.get()
 
 	def remove_forbidden(self, string):
@@ -302,4 +306,24 @@ class DocType:
 		forbidden = ['%', "'", '"', '#', '*', '?', '`']
 		for f in forbidden:
 			string.replace(f, ' ')
+
+
+	def get_doctype_list(self):
+		"""
+			Returns a list of doctypes allowed to be customized
+		"""
+		res = webnotes.conn.sql("""\
+			SELECT name FROM `tabDocType`
+			WHERE (module IN 
+			("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", 
+			"Selling", "Stock", "Support") OR name IN ("Contact", "Address")) 
+			AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0
+		""")
+
+		from webnotes.utils import get_doctype_label
+		dt_label_dict = get_doctype_label()
 	
+		doctype_list = res and [dt_label_dict.get(r[0], r[0]) for r in res] or []
+		doctype_list.sort()
+	
+		return {'doctype_list': doctype_list}
