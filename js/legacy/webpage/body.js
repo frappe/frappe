@@ -23,6 +23,11 @@ function Body() {
 		return n;
 	}
 	
+	this.ready = function() {
+		$dh('startup_div');
+		$ds('body_div');		
+	}
+	
 	this.setup_page_areas = function() {		
 		var n = this.no_of_columns();
 

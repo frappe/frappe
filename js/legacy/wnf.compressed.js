@@ -971,6 +971,7 @@ if(errfld.length)msgprint('<b>Mandatory fields required in '+
 
 function Body(){this.left_sidebar=null;this.right_sidebar=null;this.status_area=null;var me=this;page_body=this;this.no_of_columns=function(){var n=2;if(cint(me&&me.cp&&me.cp.right_sidebar_width))
 n=n+1;return n;}
+this.ready=function(){$dh('startup_div');$ds('body_div');}
 this.setup_page_areas=function(){var n=this.no_of_columns();this.body_table=make_table(this.body,1,n,'100%');$y(this.body_table,{tableLayout:'fixed'});var c=0;this.left_sidebar=$td(this.body_table,0,c);$y(this.left_sidebar,{width:cint(this.cp.left_sidebar_width)+'px'});c++;this.center=$a($td(this.body_table,0,c),'div');c++;if(cint(this.cp.right_sidebar_width)){this.right_sidebar=$td(this.body_table,0,c);$y(this.right_sidebar,{width:cint(this.cp.right_sidebar_width)+'px'})
 c++;}
 this.center.header=$a(this.center,'div');this.center.body=$a(this.center,'div');this.center.loading=$a(this.center,'div','',{margin:'200px 0px',fontSize:'14px',color:'#999',textAlign:'center'});this.center.loading.innerHTML='Loading...'}
@@ -1005,7 +1006,7 @@ click_observers[i].notify_click(ev,target);}});if(isIE){$op($i('dialog_back'),60
 var callback=function(r,rt){if(r.exc)console.log(r.exc);setup_globals(r);setup_history();setup_events();var a=new Body();page_body.run_startup_code();page_body.setup_sidebar_menu();for(var i=0;i<startup_list.length;i++){startup_list[i]();}
 if(get_url_arg('embed')){newdoc(get_url_arg('embed'));return;}
 var t=to_open();if(t){historyChange(t);}else if(home_page){loadpage(home_page);}
-$dh('startup_div');$ds('body_div');}
+page_body.ready();}
 if(_startup_data&&keys(_startup_data).length&&_startup_data.docs){LocalDB.sync(_startup_data.docs);callback(_startup_data,'');if(_startup_data.server_messages)msgprint(_startup_data.server_messages);}else{if($i('startup_div'))
 $c('startup',{},callback,null,1);}}
 function to_open(){if(get_url_arg('page'))
