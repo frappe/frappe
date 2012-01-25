@@ -1,3 +1,8 @@
+#login_wrapper {
+	width: 300px !important;
+	margin: 20px auto;
+}
+
 .login-banner {
 	margin-bottom: 20px;
 }
