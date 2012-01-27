@@ -589,7 +589,14 @@ $.extend(_p, {
 print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier) {
 	var me = this;
 	$.extend(this, {
-		flist: fields_list[tabletype],
+		flist: function() {
+			var flist = [];
+			var fl = fields_list[tabletype];
+			for(var i=0; i<fl.length; i++) {
+				flist.push(copy_dict(fl[i]));
+			}
+			return flist;
+		}(),
 
 		data: function() {
 			var children = getchildren(
