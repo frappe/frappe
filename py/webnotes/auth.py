@@ -65,7 +65,7 @@ class HTTPRequest:
 		if webnotes.session['data'].get('profile'):
 			webnotes.user.load_from_session(webnotes.session['data']['profile'])
 		else:
-			webnotes.user.load_profile()	
+			webnotes.user.load_profile()
 
 	# set database login
 	# ------------------
@@ -318,7 +318,8 @@ class Session:
 		
 		r=None
 		try:
-			r = webnotes.conn.sql("select user, sessiondata, status from tabSessions where sid='%s'" % self.sid)
+			r = webnotes.conn.sql("""select user, sessiondata, status from 
+				tabSessions where sid='%s'""" % self.sid)
 		except Exception, e:
 			if e.args[0]==1054:
 				self.add_status_column()
@@ -344,7 +345,8 @@ class Session:
 					webnotes.response['session_status'] = 'Logged Out'
 					raise Exception, 'Logged Out'
 			else:
-				self.data = {'data':eval(r[1]), 'user':r[0], 'sid': self.sid}
+				self.data = {'data': (r[1] and eval(r[1]) or {}), 
+					'user':r[0], 'sid': self.sid}
 		else:				
 			webnotes.login_manager.login_as_guest()
 			self.start()

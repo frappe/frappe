@@ -42,7 +42,12 @@ class Installer:
 
 		import webnotes
 		self.dbman.drop_table('__DocTypeCache')
-		webnotes.conn.sql("create table `__DocTypeCache` (name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)")
+		webnotes.conn.sql("""create table `__DocTypeCache` 
+			(name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)""")
+
+		self.dbman.drop_table('__SessionCache')
+		webnotes.conn.sq.("""create table `__SessionCache` 
+			(user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)""")
 
 		# set the basic passwords
 		webnotes.conn.begin()

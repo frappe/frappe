@@ -13,16 +13,14 @@ def clear():
 
 def clear_cache(user=''):
 	"""clear cache"""
-	try:
-		if user:
-			webnotes.conn.sql("delete from __SessionCache where user=%s", user)
-		else:
-			webnotes.conn.sql("delete from __SessionCache")
-	except Exception, e:
-		if e.args[0]==1146:
-			make_cache_table()
-		else:
-			raise e
+	if user:
+		webnotes.conn.sql("delete from __SessionCache where user=%s", user)
+		webnotes.conn.sql("update tabSessions set sessiondata=NULL where user=%s", user)
+	else:
+		webnotes.conn.sql("delete from __SessionCache")
+		webnotes.conn.sql("update tabSessions set sessiondata=NULL")
+		
+	webnotes.session['data'] = {}
 
 def get():
 	"""get session boot info"""
@@ -70,8 +68,3 @@ def add_to_cache(sd, country):
 
 	# make new
 	webnotes.conn.sql("insert into `__SessionCache` (user, country, cache) VALUES (%s, %s, %s)", (webnotes.session['user'], country, str(sd)))
-
-def make_cache_table():
-	webnotes.conn.commit()
-	webnotes.conn.sql("create table `__SessionCache` (user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)")
-	webnotes.conn.begin()

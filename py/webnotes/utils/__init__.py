@@ -327,9 +327,6 @@ def parse_val(v):
 	"""
 	import datetime
 	
-	try: import decimal # for decimal Python 2.5 (?)
-	except: pass
-
 	if type(v)==datetime.date:
 		v = str(v)
 	elif type(v)==datetime.timedelta:
@@ -337,10 +334,6 @@ def parse_val(v):
 	elif type(v)==datetime.datetime:
 		v = str(v)
 	elif type(v)==long: v=int(v)
-
-	try:
-		if type(v)==decimal.Decimal: v=float(v)
-	except: pass
 
 	return v
 	
