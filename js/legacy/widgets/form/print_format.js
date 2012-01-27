@@ -586,7 +586,7 @@ $.extend(_p, {
 });
 
 
-print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier) {
+print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier, hide_empty) {
 	var me = this;
 	$.extend(this, {
 		flist: function() {
@@ -657,7 +657,9 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 		prepare_col_heads: function(flist) {
 			var new_flist = [];
 
-			me.remove_empty_cols(flist);
+			if(!cols || (cols && cols.length && hide_empty)) {
+				me.remove_empty_cols(flist);
+			}
 			
 			// Make a list of column headings
 			if(cols && cols.length) {
