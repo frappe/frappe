@@ -38,10 +38,17 @@ class DocType:
 			'default',
 			'name'
 		]
+		self.set_true_doctype()
 
+
+	def set_true_doctype(self):
+		"""
+			Sets a value of self.true_doctype as the actual doctype and not its label
+		"""
 		if self.doc.doc_type:
 			from webnotes.utils import get_label_doctype
 			self.true_doctype = get_label_doctype(self.doc.doc_type)
+		else: self.true_doctype = None
 
 
 	def get(self):
@@ -51,6 +58,7 @@ class DocType:
 		self.clear()
 
 		if self.doc.doc_type:
+			if not self.true_doctype: self.set_true_doctype()
 			from webnotes.model.doc import addchild
 
 			for d in self.get_ref_doclist():
@@ -132,16 +140,6 @@ class DocType:
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
 			
 			self.set_properties(diff_list)
-
-			#webnotes.msgprint('End of Post')
-			#webnotes.msgprint('this doc')
-			#webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in this_doclist])
-			#webnotes.msgprint('ref doc')
-			#webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in ref_doclist])
-			#webnotes.msgprint('def doc')
-			#webnotes.msgprint([[d.name, d.idx, 'label' in d.fields and d.label or None] for d in dt_doclist])
-
-			#webnotes.msgprint([[d.fields['property'], d.fields['value'], d.fields['doc_name'], d.fields['select_item'], 'delete' in d.fields and d.fields['delete'] or None] for d in diff_list])
 
 
 	def diff(self, new_dl, ref_dl, dt_dl):
