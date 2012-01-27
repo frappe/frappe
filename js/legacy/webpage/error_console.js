@@ -7,15 +7,6 @@ function errprint(t) {
 	err_list[err_list.length] = ('<pre style="font-family: Courier, Fixed; font-size: 11px; border-bottom: 1px solid #AAA; overflow: auto; width: 90%;">'+t+'</pre>');
 }
 
-function submit_error(e) {
-	if(isIE) {
-		var t = 'Explorer: ' + e + '\n' + e.description;
-	} else {
-		var t = 'Mozilla: ' + e.toString() + '\n' + e.message + '\nLine Number:' + e.lineNumber;// + '\nStack:' + e.stack;
-	}
-	errprint(e + '\nLine Number:' + e.lineNumber + '\nStack:' + e.stack);
-}
-
 function setup_err_console() {
 	err_console = new Dialog(640, 480, 'Error Console')
 	err_console.make_body([

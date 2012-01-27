@@ -19,9 +19,10 @@ def clear_cache(user=''):
 	else:
 		webnotes.conn.sql("delete from __SessionCache")
 		webnotes.conn.sql("update tabSessions set sessiondata=NULL")
-		
-	webnotes.session['data'] = {}
-
+	
+	if webnotes.session:
+		webnotes.session['data'] = {}
+	
 def get():
 	"""get session boot info"""
 	import webnotes.defs

@@ -490,7 +490,7 @@ this.make_filters=function(){if(this.opts.filters){$ds(this.filters_area);this.f
 this.make_toolbar=function(){if(!this.opts.hide_refresh){this.ref_img=$a(this.toolbar_area,'span','link_type',{color:'#888'},'[refresh]');this.ref_img.onclick=function(){me.run();}
 this.loading_img=$a(this.toolbar_area,'img','lib/images/ui/button-load.gif',{display:'none',marginLeft:'3px',marginBottom:'-2px'});}
 if(this.opts.new_doctype){this.new_btn=$btn(this.toolbar_area,'New '+get_doctype_label(this.opts.new_doctype),function(){newdoc(me.opts.new_doctype,me.opts.new_doc_onload,me.opts.new_doc_indialog,me.opts.new_doc_onsave);},{marginLeft:'7px'});}}
-this.make_more_button=function(){this.more_btn=$btn(this.more_button_area,'Show more results...',function(){me.more_btn.set_working();me.run(function(){me.more_btn.done_working();},1);},{fontSize:'14px'},0,1);$y(this.more_btn.loading_img,{marginBottom:'0px'});}
+this.make_more_button=function(){this.more_btn=$btn(this.more_button_area,'More...',function(){me.more_btn.set_working();me.run(function(){me.more_btn.done_working();},1);},{fontSize:'14px'},0,1);$y(this.more_btn.loading_img,{marginBottom:'0px'});}
 this.clear=function(){this.results_area.innerHTML='';this.table=null;$ds(this.results_area);$dh(this.no_results_area);}
 this.make_results=function(r,rt){if(this.start==0)this.clear();$dh(this.more_button_area);if(this.loading_img)$dh(this.loading_img)
 if(r.values&&r.values.length){this.values=r.values;var m=Math.min(r.values.length,this.page_length);for(var i=0;i<m;i++){var row=this.add_row();this.opts.render_row(row,r.values[i],this,i);}
@@ -499,9 +499,9 @@ if(this.onrun)this.onrun();if(this.opts.onrun)this.opts.onrun();}
 this.add_row=function(){return $a(this.results_area,'div','',(opts.cell_style?opts.cell_style:{padding:'3px'}));}
 this.run=function(callback,append){if(callback)
 this.onrun=callback;if(!append)
-this.start=0;this.query=this.opts.get_query();this.add_limits();args={query_max:this.query_max?this.query_max:''}
-args.simple_query=this.query;if(this.opts.as_dict)args.as_dict=1;if(this.opts.formatted)args.formatted=1;if(this.loading_img)$di(this.loading_img);$c('webnotes.widgets.query_builder.runquery',args,function(r,rt){me.make_results(r,rt)},null,this.opts.no_loading);}
-this.add_limits=function(){this.query+=' LIMIT '+this.start+','+(this.page_length+1);}
+this.start=0;this.query=this.opts.get_query?this.opts.get_query():this.opts.query;this.add_limits();args={query_max:this.query_max||this.opts.query_max||''}
+args.simple_query=this.query;args.as_dict=1;if(this.loading_img)$di(this.loading_img);$c('webnotes.widgets.query_builder.runquery',args,function(r,rt){me.make_results(r,rt)},null,this.opts.no_loading);}
+this.refresh=this.run;this.add_limits=function(){this.query+=' LIMIT '+this.start+','+(this.page_length+1);}
 if(opts)this.make();}
 /*
 *	lib/js/legacy/widgets/tree.js
@@ -756,8 +756,6 @@ $dh(dialog_message);if(!fcount)return;fcount--;if(!fcount){$dh(dialog_back);froz
 */
 
 var err_console;var err_list=[];function errprint(t){err_list[err_list.length]=('<pre style="font-family: Courier, Fixed; font-size: 11px; border-bottom: 1px solid #AAA; overflow: auto; width: 90%;">'+t+'</pre>');}
-function submit_error(e){if(isIE){var t='Explorer: '+e+'\n'+e.description;}else{var t='Mozilla: '+e.toString()+'\n'+e.message+'\nLine Number:'+e.lineNumber;}
-errprint(e+'\nLine Number:'+e.lineNumber+'\nStack:'+e.stack);}
 function setup_err_console(){err_console=new Dialog(640,480,'Error Console')
 err_console.make_body([['HTML','Error List'],['Button','Clear'],['HTML','Error Report']]);var span=$a(err_console.widgets['Error Report'],'span','link_type');span.innerHTML='Send Error Report';span.onclick=function(){msg=prompt('How / where did you get the error [optional]')
 var call_back=function(r,rt){err_console.hide();msgprint("Error Report Sent")}
@@ -797,7 +795,7 @@ var newdoc=new_doc;var pscript={};var cur_page;function loadpage(page_name,call_
 page_name=home_page;var fn=function(r,rt){page_body.set_status('Done');if(page_body.pages[page_name]){var p=page_body.pages[page_name]
 page_body.change_to(page_name);}else{var p=render_page(page_name);if(!p)return;}
 cur_page=page_name;if(call_back)call_back();scroll(0,0);pscript.update_page_history(page_name,no_history)
-try{if(pscript['refresh_'+page_name])pscript['refresh_'+page_name]();}catch(e){submit_error(e);}}
+try{if(pscript['refresh_'+page_name])pscript['refresh_'+page_name]();}catch(e){console.log(e);}}
 if(get_local('Page',page_name)||page_body.pages[page_name])
 fn();else{args=get_url_dict();args.name=page_name;$c('webnotes.widgets.page.getpage',args,fn);}}
 pscript.update_page_history=function(page_name,no_history){var arg=null;var t=null;if(window.location.hash){var t=nav_obj.get_page(window.location.hash)}else if(get_url_arg('page')){var t=nav_obj.get_page(get_url_arg('page'))}
@@ -819,7 +817,7 @@ function upload_callback(id,fid){uploaders[id].callback(fid);}
 *	lib/js/legacy/webpage/page.js
 */
 
-var pages=[];var stylesheets=[];function Page(page_name,content){var me=this;this.name=page_name;this.onshow=function(){set_title(me.doc.page_title?me.doc.page_title:me.name);try{if(pscript['onshow_'+me.name])pscript['onshow_'+me.name]();}catch(e){submit_error(e);}
+var pages=[];var stylesheets=[];function Page(page_name,content){var me=this;this.name=page_name;this.onshow=function(){set_title(me.doc.title?me.doc.title:me.name);try{if(pscript['onshow_'+me.name])pscript['onshow_'+me.name](me.wrapper);}catch(e){console.log(e);}
 cur_frm=null;}
 this.wrapper=page_body.add_page(page_name,this.onshow);this.cont=this.wrapper
 if(content)
@@ -830,7 +828,7 @@ var pdoc=locals['Page'][page_name];if(pdoc.style)set_style(pdoc.style)
 if(pdoc.stylesheet){set_style(locals.Stylesheet[pdoc.stylesheet].stylesheet);stylesheets.push(pdoc.stylesheet);}
 var p=new Page(page_name,pdoc._Page__content?pdoc._Page__content:pdoc.content);var script=pdoc.__script?pdoc.__script:pdoc.script;p.doc=pdoc;if(script){eval(script);}
 page_body.change_to(page_name);try{if(pscript['onload_'+page_name])
-pscript['onload_'+page_name](page_body.pages[page_name]);}catch(e){submit_error(e);}
+pscript['onload_'+page_name](page_body.pages[page_name]);}catch(e){console.log(e);}
 return p;}
 function refresh_page(page_name){var fn=function(r,rt){render_page(page_name)}
 $c('webnotes.widgets.page.getpage',{'name':page_name,stylesheets:JSON.stringify(stylesheets)},fn);}

@@ -82,6 +82,9 @@ class Document:
 
 		if (doctype and name):
 			self._loadfromdb(doctype, name)
+		else:
+			if not fielddata:
+				self.fields['__islocal'] = 1
 
 	def __nonzero__(self):
 		return True

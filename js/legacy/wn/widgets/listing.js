@@ -2,6 +2,19 @@
 // uses FieldGroup for rendering filters
 // removed rarely used functionality
 //
+// opts:
+//   parent
+//   query or get_query
+//   query_max
+//   no_result_message ("No result")
+//   page_length (20)
+//   filters ([{docfield}, ..])
+//   hide_refresh (False)
+//   new_doctype
+//   [function] render_row(parent, data)
+//   [function] onrun
+//   no_loading (no ajax indicator)
+
 
 wn.widgets.Listing = function(opts) {
 	this.opts = opts;
@@ -63,7 +76,7 @@ wn.widgets.Listing = function(opts) {
 	// make more button
 	// that shows more results when they are displayed
 	this.make_more_button = function() {
-		this.more_btn = $btn(this.more_button_area, 'Show more results...', 
+		this.more_btn = $btn(this.more_button_area, 'More...', 
 			function() {
 				me.more_btn.set_working();
 				me.run(function() { 
@@ -137,20 +150,21 @@ wn.widgets.Listing = function(opts) {
 			this.start = 0;
 
 		// load query
-		this.query = this.opts.get_query();
+		this.query = this.opts.get_query ? this.opts.get_query() : this.opts.query;
 		this.add_limits();
 
-		args={ query_max: this.query_max ? this.query_max : '' }
+		args={ query_max: this.query_max || this.opts.query_max || '' }
 		args.simple_query = this.query;
 		
-		if(this.opts.as_dict) args.as_dict = 1;
-		if(this.opts.formatted) args.formatted = 1;
+		args.as_dict = 1;
 		
 		// show loading
 		if(this.loading_img) $di(this.loading_img);
 		$c('webnotes.widgets.query_builder.runquery', args, 
 			function(r, rt) { me.make_results(r, rt) }, null, this.opts.no_loading);
 	}
+	
+	this.refresh = this.run;
 	
 	this.add_limits = function() {
 		this.query += ' LIMIT ' + this.start + ',' + (this.page_length+1);

@@ -979,7 +979,7 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 		if(this.cscript['custom_'+caller])
 			ret += this.cscript['custom_'+caller](doc, cdt, cdn);
 	} catch(e) {
-		submit_error(e);
+		console.log(e);
 	}
 
 	if(caller && caller.toLowerCase()=='setup') {
@@ -992,7 +992,7 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 			try {
 				var tmp = eval(cs);
 			} catch(e) {
-				submit_error(e);
+				console.log(e);
 			}
 		}
 

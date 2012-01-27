@@ -5,14 +5,14 @@
 	{
 		'creation': '2009-05-12 11:19:11',
 		'docstatus': 0,
-		'modified': '2012-01-24 16:05:50',
+		'modified': '2012-01-27 13:26:59',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1323345145',
+		'_last_update': '1327650972',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
@@ -30,7 +30,7 @@
 		'section_style': 'Tabbed',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 9
+		'version': 11
 	},
 
 	# These values are common for all DocField
@@ -93,6 +93,20 @@
 	# DocField
 	{
 		'doctype': 'DocField',
+		'fieldname': 'title',
+		'fieldtype': 'Data',
+		'label': 'Title'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Column Break'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
 		'fieldname': 'module',
 		'fieldtype': 'Select',
 		'label': 'Module',
@@ -118,10 +132,7 @@
 	# DocField
 	{
 		'doctype': 'DocField',
-		'fieldtype': 'HTML',
-		'label': 'Help HTML',
-		'oldfieldtype': 'HTML',
-		'options': '<div class="help-box">To add images, use <b>$image(<i>filename</i>)</b><br>Where file name is the ID or Name of the File record</div>'
+		'fieldtype': 'Section Break'
 	},
 
 	# DocField
@@ -157,5 +168,27 @@
 		'options': 'Page Role',
 		'reqd': 0,
 		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldtype': 'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'script',
+		'fieldtype': 'Code',
+		'label': 'Script (JS)'
+	},
+
+	# DocField
+	{
+		'doctype': 'DocField',
+		'fieldname': 'style',
+		'fieldtype': 'Code',
+		'label': 'Style (CSS)'
 	}
 ]

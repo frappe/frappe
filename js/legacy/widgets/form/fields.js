@@ -853,7 +853,6 @@ TextField.prototype.make_input = function() {
 		return; // do nothing, text dialog will take over
 	
 	this.input = $a(this.input_area, 'textarea');
-	this.input.wrap = 'off';
 	if(this.df.fieldtype=='Small Text')
 		this.input.style.height = "80px";
 	this.input.set_input = function(v) {

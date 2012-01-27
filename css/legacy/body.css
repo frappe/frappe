@@ -40,7 +40,13 @@ select, input, textarea {
 	color: #222;
 }
 
-textarea { font-family: arial, helvetica, sans serif; height: 120px; width: 90%; overflow-x: auto; font-size: 12px; }
+textarea { 
+	font-family: inherit; 
+	height: 120px; 
+	width: 90%; 
+	font-size: 12px; 
+	white-space: normal;
+}
 
 table { padding: 0px; border-collapse: 'collapse'}
 
@@ -63,6 +69,7 @@ div#body_div {
 	position: relative;
 	display: none;
 	margin-top: 56px;
+	padding-right: 7px;
 }
 
 div.no_script {

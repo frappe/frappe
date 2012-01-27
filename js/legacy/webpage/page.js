@@ -9,12 +9,14 @@ function Page(page_name, content) {
 
 	this.onshow = function() {
 		// default set_title
-		set_title(me.doc.page_title ? me.doc.page_title : me.name);
+		set_title(me.doc.title ? me.doc.title : me.name);
 		
 		// onshow
 		try {
-			if(pscript['onshow_'+me.name]) pscript['onshow_'+me.name](); // onload
-		} catch(e) { submit_error(e); }
+			if(pscript['onshow_'+me.name]) pscript['onshow_'+me.name](me.wrapper); // onload
+		} catch(e) { 
+			console.log(e); 
+		}
 		
 		// clear cur_frm
 		cur_frm = null;
@@ -69,7 +71,7 @@ function render_page(page_name, menuitem) {
 		if(pscript['onload_'+page_name]) 
 			pscript['onload_'+page_name](page_body.pages[page_name]); // onload
 	} catch(e) { 
-		submit_error(e); 
+		console.log(e); 
 	}
 		
 	return p;
