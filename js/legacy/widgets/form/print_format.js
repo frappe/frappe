@@ -645,7 +645,6 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 			}
 			for(var c=0; c<flist.length; c++) {
 				if(!inList(non_empty_cols, flist[c])) {
-					//console.log(flist[c].fieldname);
 					flist.splice(c, 1);
 					c = c - 1;
 				}
