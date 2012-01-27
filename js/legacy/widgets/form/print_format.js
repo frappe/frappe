@@ -590,12 +590,12 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 	var me = this;
 	$.extend(this, {
 		flist: function() {
-			var flist = [];
+			var f_list = [];
 			var fl = fields_list[tabletype];
 			for(var i=0; i<fl.length; i++) {
-				flist.push(copy_dict(fl[i]));
+				f_list.push(copy_dict(fl[i]));
 			}
-			return flist;
+			return f_list;
 		}(),
 
 		data: function() {
