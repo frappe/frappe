@@ -33,11 +33,13 @@ function newHttpReq() {
 }
 
 // call execute serverside request
-function $c(command, args, fn, on_timeout, no_spinner, freeze_msg) {
+function $c(command, args, fn, on_timeout, no_spinner, freeze_msg, btn) {
 	var req=newHttpReq();
 	ret_fn=function() {
 		if (checkResponse(req, on_timeout, no_spinner, freeze_msg)) {
-			if(!no_spinner)hide_loading(); // Loaded
+			if(btn)$(btn).done_working();
+			if(!no_spinner)
+				hide_loading(); // Loaded
 
 			var rtxt = req.responseText;
 						
@@ -61,6 +63,7 @@ function $c(command, args, fn, on_timeout, no_spinner, freeze_msg) {
 			if(fn)fn(r, rtxt);
 		}
 	}
+	if(btn) $(btn).set_working();
 	req.onreadystatechange=ret_fn;
 	req.open("POST",outUrl,true);
 	req.setRequestHeader("ENCTYPE", "multipart/form-data");
@@ -103,21 +106,36 @@ function validate_session(r,rt) {
 }
 
 // For calling an object
-function $c_obj(doclist, method, arg, call_back, no_spinner, freeze_msg) {
+function $c_obj(doclist, method, arg, call_back, no_spinner, freeze_msg, btn) {
 	var args = { 'method':method, 'arg': (typeof arg=='string' ? arg : JSON.stringify(arg)) }
 	
 	if(typeof doclist=='string') args.doctype = doclist; 
 	else args.docs = compress_doclist(doclist)
 
 	// single
-	$c('runserverobj',args, call_back, null, no_spinner, freeze_msg);	
+	$c('runserverobj',args, call_back, null, no_spinner, freeze_msg, btn);
 }
 
 // For call a page metho
-function $c_page(module, page, method, arg, call_back, no_spinner, freeze_msg) {
+function $c_page(module, page, method, arg, call_back, no_spinner, freeze_msg, btn) {
 	if(arg && !arg.substr) arg = JSON.stringify(arg);
-	$c(module+'.page.'+page+'.'+page+'.'+method,{'arg':arg}, call_back, null, no_spinner, freeze_msg);
+	$c(module+'.page.'+page+'.'+page+'.'+method,{'arg':arg}, 
+		call_back, null, no_spinner, freeze_msg, btn);
 }
+
+// generic server call (call page, object)
+wn.call = function(args) {
+	if(args.module && args.page) {
+		$c_page(args.module, args.page, args.method, args.args, args.callback, 
+			args.no_spinner, false, args.btn);
+	} else if(args.docs) {
+		$c_obj(args.doc, args.method, args.args, args.callback, args.no_spinner,
+			false, args.btn);
+	} else {
+		$c(args.method, args.args, args.callback, args.no_spinner, false, args.btn);
+	}
+}
+
 
 // For calling an for output as csv
 function $c_obj_csv(doclist, method, arg) {
@@ -138,12 +156,6 @@ function $c_obj_csv(doclist, method, arg) {
 	open_url_post(outUrl, args);
 }
 
-
-// For loading a matplotlib Plot
-function $c_graph(img, control_dt, method, arg) {
-	img.src = outUrl + '?' + makeArgString({cmd:'get_graph', dt:control_dt, method:method, arg:arg});
-}
-
 function my_eval(co) {
 	var w = window;
 
@@ -156,93 +168,6 @@ function my_eval(co) {
 		}
 	} else {
 		w.execScript(co); // IE
-	}
-}
-
-
-// For loading javascript file on demand using AJAX
-function $c_js(fn, callback) {
-	var req=newHttpReq();
-
-	ret_fn=function() {
-		if (checkResponse(req, function() { }, 1, null)) {
-			if(req.responseText.substr(0,9)=='Not Found') {
-				alert(req.responseText);
-				return;	
-			}
-			hide_loading();
-			my_eval(req.responseText);
-			callback();
-		}
-	}
-
-	req.onreadystatechange=ret_fn;
-	req.open("POST",'cgi-bin/getjsfile.cgi',true);
-	req.setRequestHeader("ENCTYPE", "multipart/form-data");
-	req.setRequestHeader("Content-Type", "application/x-www-form-urlencoded; charset=UTF-8");
-	req.send(makeArgString({filename:fn})); 
-	set_loading();
-}
-
-var load_queue = {};
-var currently_loading = {};
-var widgets = {};
-var single_widgets = {};
-
-// load a widget on demand
-// --------------------------------------------------------------
-function new_widget(widget, callback, single_type) {
-	var namespace = '';
-	var widget_name = widget;
-	
-	if(widget.search(/\./) != -1) {
-		namespace = widget.split('.')[0];
-		widget_name = widget.split('.')[1];
-	}
-
-	var widget_loaded = function() {		
-		currently_loading[widget] = 0;
-		for(var i in load_queue[widget]) {
-			// callback
-			load_queue[widget][i](create_widget());
-		}
-
-		// clear the queue
-		load_queue[widget] = [];
-	}
-
-	var create_widget = function() {
-		if(single_type && single_widgets[widget_name]) 
-			return null;
-		
-		if(namespace)
-			var w = new window[namespace][widget_name]();
-		else
-			var w = new window[widget_name]();
-		
-		// add to singles
-		if(single_type) 
-			single_widgets[widget_name] = w;
-			
-		return w;
-	}
-	
-	if(namespace ? window[namespace][widget_name] : window[widget_name]) {
-		// loaded?
-		callback(create_widget());
-	} else {
-
-		// loading in process
-		if(!load_queue[widget]) load_queue[widget] = [];
-		load_queue[widget].push(callback);
-		
-		// load only if not currently loading
-		if(!currently_loading[widget]) {
-			$c_js(widget_files[widget], widget_loaded);
-		}
-
-		// flag it as loading
-		currently_loading[widget] = 1;	
 	}
 }
 
@@ -274,99 +199,3 @@ function open_url_post(URL, PARAMS, new_window) {
 	temp.submit();
 	return temp;
 }
-
-
-// Resume sessions
-var resume_dialog = null;
-
-function resume_session() {
-	if(!resume_dialog) {
-		var d = new Dialog(400,200,'Session Expired');
-		d.make_body([
-			['Password','password','Re-enter your password to resume the session'], ['Button','Go']]);
-
-		// check password
-		d.widgets['Go'].onclick = function() {
-			resume_dialog.widgets['Go'].set_working();
-			var callback = function(r, rt) {
-				resume_dialog.widgets['Go'].done_working();
-				if(r.message == 'Logged In') {
-					
-					// okay
-					resume_dialog.allow_close=1;
-					resume_dialog.hide();
-					setTimeout('resume_dialog.allow_close=0',100);
-				} else {
-					
-					// wrong password
-					msgprint('Wrong Password, try again');
-					resume_dialog.wrong_count++;
-					if(resume_dialog.wrong_count > 2) logout();
-				}
-			}
-			$c('resume_session',{pwd:resume_dialog.widgets['password'].value},callback)
-		}
-		d.onhide = function() {
-			if(!resume_dialog.allow_close) logout();
-		}
-		resume_dialog = d;
-	}
-	resume_dialog.wrong_count = 0;
-	resume_dialog.show();
-}
-
-/**
-* require is used for on demand loading of JavaScript
-*
-* require r1 // 2008.02.05 // jQuery 1.2.2
-*
-* // basic usage (just like .accordion)
-* $.require("comp1.js");
-*
-
-* @param  jsFiles string array or string holding the js file names to load
-* @param  params object holding parameter like browserType, callback, cache
-* @return The jQuery object
-* @author Manish Shanker
-*/
-
-(function($){
-	$.require = function(jsFiles, params) {
-
-		var params = params || {};
-		var bType = params.browserType===false?false:true;
-
-		if (!bType){
-			return $;
-		}
-
-		var cBack = params.callBack || function(){};
-		var eCache = params.cache===false?false:true;
-
-		if (!$.require.loadedLib) $.require.loadedLib = {};
-
-		if ( !$.scriptPath ) {
-			var path = $('script').attr('src');
-			$.scriptPath = path.replace(/\w+\.js$/, '');
-		}
-		if (typeof jsFiles === "string") {
-			jsFiles = new Array(jsFiles);
-		}
-		for (var n=0; n< jsFiles.length; n++) {
-			if (!$.require.loadedLib[jsFiles[n]]) {
-				$.ajax({
-					type: "GET",
-					url: $.scriptPath + jsFiles[n],
-					success: cBack,
-					dataType: "script",
-					cache: eCache,
-					async: false
-				});
-				$.require.loadedLib[jsFiles[n]] = true;
-			}
-		}	
-		//console.dir($.require.loadedLib);
-
-		return $;
-	};
-})(jQuery);

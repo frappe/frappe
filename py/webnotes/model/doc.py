@@ -118,6 +118,8 @@ class Document:
 	# ---------------------------------------------------------------------------
 
 	def _load_values(self, data, description):
+		if '__islocal' in self.fields:
+			del self.fields['__islocal']
 		for i in range(len(description)):
 			v = data[i]
 			self.fields[description[i][0]] = webnotes.conn.convert_to_simple_type(v)

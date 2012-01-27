@@ -220,47 +220,51 @@ wn.datetime.time_to_hhmm = function(hh,mm,am) {
 	return hh + ':' + mm;
 }
 
-// when
+/*
+ * JavaScript Pretty Date
+ * Copyright (c) 2011 John Resig (ejohn.org)
+ * Licensed under the MIT and GPL licenses.
+ */
 
-wn.datetime.comment_when = function(dt, only_days) {
-
-	if(only_days) {
-		var cdate = dateutil.str_to_obj(dt.split(' ')[0]);
-		var diff = (new Date() - cdate) / 1000;
-
-		if(diff < 604800) {
-			var t = Math.floor(diff/86400);
-			if(t==0) return "Today";
-			if(t==1) return "Yesterday";
-			return t + " days ago"
-		} else {
-			return cdate.getDate() + " " + month_list[cdate.getMonth()] + " " + cdate.getFullYear();
-		}
-	} else {
-		var cdate = dateutil.str_to_obj(dt);
-		var diff = (new Date() - cdate) / 1000;
-		
-		if(diff < 60) {
-			return "Few moments ago"
-		} else if(diff < 3600) {
-			var t = Math.floor(diff/60);
-			return t + " minute" + (t==1?"":"s") + " ago"
-		} else if(diff < 86400) {
-			var t = Math.floor(diff/3600);
-			return t + " hour" + (t==1?"":"s") + " ago"
-		} else if(diff < 604800) {
-			var t = Math.floor(diff/86400);
-			return t + " day" + (t==1?"":"s") + " ago"
-		} else {
-			return cdate.getDate() + " " + month_list[cdate.getMonth()] + " " + cdate.getFullYear();
-		}
-	}
+// Takes an ISO time and returns a string representing how
+// long ago the date represents.
+function prettyDate(time){
+	if(!time) return ''
+	var date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[0-9]*/, "")),
+		diff = (((new Date()).getTime() - date.getTime()) / 1000),
+		day_diff = Math.floor(diff / 86400);
+	
+	if ( isNaN(day_diff) || day_diff < 0 )
+		return '';
+			
+	return day_diff == 0 && (
+			diff < 60 && "just now" ||
+			diff < 120 && "1 minute ago" ||
+			diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
+			diff < 7200 && "1 hour ago" ||
+			diff < 86400 && Math.floor( diff / 3600 ) + " hours ago") ||
+		day_diff == 1 && "Yesterday" ||
+		day_diff < 7 && day_diff + " days ago" ||
+		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago" ||
+		day_diff < 365 && Math.ceil( day_diff / 30) + " months ago" ||
+		"more than " + Math.floor( day_diff / 365 ) + " year(s) ago";
 }
+
+// If jQuery is included in the page, adds a jQuery plugin to handle it as well
+if ( typeof jQuery != "undefined" )
+	jQuery.fn.prettyDate = function(){
+		return this.each(function(){
+			var date = prettyDate(this.title);
+			if ( date )
+				jQuery(this).text( date );
+		});
+	};
+
+var comment_when = prettyDate;
 
 // globals (deprecate)
 var date = dateutil = wn.datetime;
 var get_today = wn.datetime.get_today
-var comment_when = wn.datetime.comment_when;
 var time_to_ampm = wn.datetime.time_to_ampm;
 var time_to_hhmm = wn.datetime.time_to_hhmm;
 var only_date = wn.datetime.only_date;
