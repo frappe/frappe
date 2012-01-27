@@ -592,8 +592,10 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 		flist: (function() {
 			var f_list = [];
 			var fl = fields_list[tabletype];
-			for(var i=0; i<fl.length; i++) {
-				f_list.push(copy_dict(fl[i]));
+			if(fl) {
+				for(var i=0; i<fl.length; i++) {
+					f_list.push(copy_dict(fl[i]));
+				}
 			}
 			return f_list;
 		})(),
