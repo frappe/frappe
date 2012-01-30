@@ -82,7 +82,7 @@ wn.widgets.Listing = function(opts) {
 				me.run(function() { 
 					me.more_btn.done_working(); 
 				}, 1);
-			}, {fontSize:'14px'}, 0, 1
+			}, '', 0, 1
 		);
 		
 		$y(this.more_btn.loading_img, {marginBottom:'0px'});

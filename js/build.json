@@ -1,6 +1,6 @@
 {
 	"core.min.js": [
-		"wn/class.js:concat",
+		"wn/class.js",
 		"wn/provide.js",
 		"wn/xmlhttp.js",
 		"wn/versions.js",

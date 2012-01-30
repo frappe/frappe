@@ -13,7 +13,6 @@
 		,"widgets/dialog.js"
 		,"widgets/listing.js"
 		,"wn/widgets/listing.js"
-		,"widgets/tree.js"
 		,"widgets/layout.js"
 		,"widgets/tabbedpage.js"
 		,"webpage/page_header.js"

@@ -9,7 +9,6 @@
 					+ this.wtab (table)
 						+ this.main
 							+ this.head
-							+ this.tip_wrapper
 							+ this.body
 								+ this.layout
 								+ this.footer
@@ -17,6 +16,8 @@
 				+ this.print_wrapper
 					+ this.head
 */
+
+wn.provide('_f');
 
 // called from table edit
 _f.edit_record = function(dt, dn) {
@@ -128,10 +129,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 		main_width: this.in_dialog ? '100%' : '75%',
 		sidebar_width: this.in_dialog ? '0%' : '25%'
 	})	
-	
-	
-	this.tip_wrapper = $a(this.page_layout.toolbar_area, 'div');		
-		
+			
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
 	
@@ -153,18 +151,30 @@ _f.Frm.prototype.setup_std_layout = function() {
 	// hide close btn for dialog rendering
 	if(this.frm_head && this.meta.in_dialog) $dh(this.frm_head.page_head.close_btn);
 	
-	// setup tips area
-	this.setup_tips();
-	
 	// bg colour
 	if(this.meta.colour) 
 		this.layout.wrapper.style.backgroundColor = '#'+this.meta.colour.split(':')[1];
 	
 	// create fields
 	this.setup_fields_std();
+	
+	// description
+	if(this.meta.description)
+		this.add_description();
 }
 
 // ======================================================================================
+
+_f.Frm.prototype.add_description = function() {
+	if(!wn.md2html) {
+		wn.require('lib/js/lib/showdown.js');
+		wn.md2html = new Showdown.converter();
+	}
+	
+	this.description_wrapper = $a(this.page_layout.footer.help_area, 'div', 
+		'info-box round', {}, 
+		wn.md2html.makeHtml('#### Help\n\n' + this.meta.description));
+}
 
 _f.Frm.prototype.setup_print = function() { 
 	var fl = getchildren('DocFormat', this.meta.name, 'formats', 'DocType');
@@ -272,33 +282,6 @@ _f.Frm.prototype.set_section = function(sec_id) {
 		this.sections[this.cur_section[this.docname]].collapse();
 	this.sections[sec_id].expand();
 	this.cur_section[this.docname] = sec_id;
-}
-
-// TIPS
-// ======================================================================================
-
-_f.Frm.prototype.setup_tips = function() {
-	var me = this;
-	this.tip_box = $a(this.tip_wrapper, 'div', 'help_box');
-
-	var tab = $a(this.tip_box, 'table');
-	var r = tab.insertRow(0);
-	var c0 = r.insertCell(0);
-	this.c1 = r.insertCell(1);
-	
-	this.img = $a(c0, 'img');
-	this.img.setAttribute('src','lib/images/icons/lightbulb.gif');
-	c0.style.width = '24px';
-	
-	this.set_tip = function(t) {
-		me.c1.innerHTML = '<div style="margin-bottom: 8px;">'+t+'</div>'; 
-		$ds(me.tip_box);
-	}
-	this.append_tip = function(t) {
-		me.c1.innerHTML += '<div style="margin-bottom: 8px;">' + t + '</div>';  $ds(me.tip_box);
-	}
-	this.clear_tip = function() { me.c1.innerHTML = ''; $dh(me.tip_box); }
-	$dh(this.tip_box);
 }
 
 // SETUP

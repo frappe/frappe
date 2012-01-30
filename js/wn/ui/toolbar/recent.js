@@ -21,7 +21,7 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		this.remove(dt, dn);
 		var html = repl('<li data-docref="%(dt)s/%(dn)s">\
 			<a href="#Form/%(dt)s/%(dn)s">\
-				<span class="help">%(dt)s</span>: %(dn)s\
+				<span class="help">%(dt)s:</span> %(dn)s\
 			</a></li>', 
 			{dt:dt, dn:dn});
 		if(on_top) {
