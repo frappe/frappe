@@ -6,7 +6,6 @@ cur_frm.cscript.doc_type = function(doc, dt, dn) {
 
 cur_frm.cscript.onload = function(doc, dt, dn) {
 	cur_frm.grids[0].grid.tbar_div.style.width = "30%";
-	cur_frm.tip_wrapper.id = 'tip_wrapper';
 	cur_frm.add_fields_help();
 	cur_frm.load_doclabel_options(doc, dt, dn);
 }
@@ -16,7 +15,6 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	$(cur_frm.frm_head.timestamp_area).toggle(false);
 	$(cur_frm.frm_head.page_head.buttons.Save).toggle(false);
 	$(cur_frm.page_layout.footer).toggle(false);
-	if(doc.doc_type) { $('#tip_wrapper').slideUp('slow'); }
 
 	//cur_frm.grids[0].grid.tab.rows[cur_frm.grids[0].grid.tab.rows.length-1].hidden = true;
 	cur_frm.add_custom_button('Update', function() {
@@ -46,8 +44,6 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	}, 1);
 
 	if(!doc.doc_type) {
-		cur_frm.set_tip('You can start by selecting a Form Type from the drop down menu')
-		$('#tip_wrapper').fadeIn();
 		var page_head = cur_frm.frm_head.page_head;
 		page_head.buttons['Update'].disabled = true;
 		page_head.buttons['Refresh Form'].disabled = true;

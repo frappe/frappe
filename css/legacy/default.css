@@ -257,26 +257,15 @@ div.notice {
 /** help **/
 
 .info-box {
-	background-color:#eeeef2;
-	font-size: 12px;
+	background-color:#f4f4f9;
 	line-height: 1.6em;
-	color: #335;
-	padding: 7px;
+	color: #333;
+	padding: 3px 7px;
 	margin: 11px 0px;
-	border: 1px solid #c2c2cc;	
+	border: 1px solid #ddd;	
 }
 
 .help_box, .help-box {
-	background-color:#FFC;
-	font-size: 13px;
-	line-height: 1.6em;
-	color: #864;
-	padding: 7px;
-	margin: 11px 0px;
-	border: 1px solid #EEB;
-}
-
-.help_box {
 	background-color:#FFC;
 	font-size: 13px;
 	color: #864;
@@ -650,7 +639,7 @@ div.sidebar-comment-info {
 
 div.listing-more {
 	margin: 7px 0px 17px 0px;
-	textAlign: center;
+	text-align: center;
 	display: none;
 }
 
