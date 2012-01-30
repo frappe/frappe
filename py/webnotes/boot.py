@@ -27,7 +27,7 @@ def get_bootinfo():
 		import webnotes.widgets.menus
 		bootinfo['start_items'] = webnotes.widgets.menus.get_menu_items()
 		bootinfo['dt_labels'] = get_dt_labels()
-
+		
 	# home page
 	get_home_page(bootinfo, doclist)
 
@@ -62,15 +62,9 @@ def get_home_page(bootinfo, doclist):
 		doclist += webnotes.widgets.page.get(home_page)
 	bootinfo['home_page'] = home_page or ''
 
+
+
 def get_dt_labels():
 	import webnotes
-	d = {}
-	try:
-		res = webnotes.conn.sql("select name, dt_label from `tabDocType Label`")
-	except:
-		return {}
-		
-	for r in res:
-		d[r[0]] = r[1]
-	
-	return d
+	res = webnotes.conn.sql("select name, dt_label from `tabDocType Label`")
+	return dict(res)

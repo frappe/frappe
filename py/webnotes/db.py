@@ -64,7 +64,8 @@ class Database:
 		      Connect to a database
 		"""
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password)
-		self._conn.set_character_set('utf8')
+		self._conn.converter[246]=float
+		self._conn.set_character_set('utf8')		
 		self._cursor = self._conn.cursor()
 	
 	def use(self, db_name):
@@ -119,7 +120,7 @@ class Database:
 		"""
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
-		      * returns as a list of lists (with cleaned up dates and decimals) if as_list = 1
+		      * returns as a list of lists (with cleaned up dates) if as_list = 1
 		"""
 		# in transaction validations
 		self.check_transaction_status(query)
@@ -168,8 +169,6 @@ class Database:
 	# ======================================================================================
 
 	def convert_to_simple_type(self, v, formatted=0):
-		try: import decimal # for decimal Python 2.5 onwards
-		except: pass
 		import datetime
 		from webnotes.utils import formatdate, fmt_money
 
@@ -193,12 +192,6 @@ class Database:
 		# long
 		elif type(v)==long: 
 			v=int(v)
-
-		# decimal
-		try:
-			if type(v)==decimal.Decimal: 
-				v=float(v)
-		except: pass
 		
 		# convert to strings... (if formatted)
 		if formatted:
@@ -309,7 +302,7 @@ class Database:
 			defkey=%s and parent = "Control Panel" """, key):
 			
 			# update
-			self.sql("""update `tabDefaultValue` set defvalue="%s" 
+			self.sql("""update `tabDefaultValue` set defvalue=%s 
 				where parent = "Control Panel" and defkey=%s""", (val, key))
 		else:
 			from webnotes.model.doc import Document

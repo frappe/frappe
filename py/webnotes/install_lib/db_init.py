@@ -94,7 +94,9 @@ class DatabaseInstance:
 	def create_doctypecache(self):
 		self.conn.sql("DROP TABLE IF EXISTS `__DocTypeCache`")
 		self.conn.sql("create table `__DocTypeCache` (name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)")
-		
+		self.conn.sql("""
+		create table `__SessionCache` (user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)
+		""")
 		
 		
 

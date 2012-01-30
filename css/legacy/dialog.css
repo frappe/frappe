@@ -31,11 +31,12 @@ div.dialog_body {
 }
 
 div.dialog_back {
-	position: absolute;
+	position: fixed;
 	display: none;
 	top: 0px;
 	left: 0px;
-	width: 100%;
+	bottom: 0px;
+	right: 0px;
 	background-color: #EEE;
 	opacity: 0.6;
 	z-index: 50;

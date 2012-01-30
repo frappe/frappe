@@ -144,7 +144,7 @@ function historyChange(newLocation) {
 	
 	if(t[0]=='Form') {
 		_history_current = newLocation;
-		if(docname.substr(0, 3)=='New') {
+		if(docname.substr(0, 3)=='New' && !(locals[t[1]] && locals[t[1]][docname])) {
 			newdoc(t[1]);
 		} else {
 			loaddoc(t[1], docname);

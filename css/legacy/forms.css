@@ -142,10 +142,9 @@ div.time_field select{
 .datainputcell { padding: 2px 0px; }
 
 
-.field_description {
+.field_description, .help {
 	margin: 3px 0px 11px 0px;
 	color: #888;
-	font-size: 12px;
 	font-style: italic;
 }
 

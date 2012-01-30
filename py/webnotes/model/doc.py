@@ -82,6 +82,9 @@ class Document:
 
 		if (doctype and name):
 			self._loadfromdb(doctype, name)
+		else:
+			if not fielddata:
+				self.fields['__islocal'] = 1
 
 	def __nonzero__(self):
 		return True
@@ -115,6 +118,8 @@ class Document:
 	# ---------------------------------------------------------------------------
 
 	def _load_values(self, data, description):
+		if '__islocal' in self.fields:
+			del self.fields['__islocal']
 		for i in range(len(description)):
 			v = data[i]
 			self.fields[description[i][0]] = webnotes.conn.convert_to_simple_type(v)
@@ -244,7 +249,7 @@ class Document:
 	# Insert
 	# ---------------------------------------------------------------------------
 	
-	def _makenew(self, autoname, istable, case='', make_autoname=1):
+	def insert(self, autoname, istable, case='', make_autoname=1):
 		# set name
 		if make_autoname:
 			self._set_name(autoname, istable)
@@ -371,15 +376,38 @@ class Document:
 		res = webnotes.model.meta.get_dt_values(self.doctype, 'autoname, issingle, istable, name_case', as_dict=1)
 		res = res and res[0] or {}
 
+		# add missing parentinfo (if reqd)
+		if self.parent and not (self.parenttype and self.parentfield):
+			self.update_parentinfo()
+
 		# if required, make new
 		if new or (not new and self.fields.get('__islocal')) and (not res.get('issingle')):
-			r = self._makenew(res.get('autoname'), res.get('istable'), res.get('name_case'), make_autoname)
+			r = self.insert(res.get('autoname'), res.get('istable'), res.get('name_case'), \
+				make_autoname)
 			if r: 
 				return r
 				
 		# save the values
 		self._update_values(res.get('issingle'), check_links and self.make_link_list() or {}, ignore_fields)
 		self._clear_temp_fields()
+
+	def update_parentinfo(self):
+		"""update parent type and parent field, if not explicitly specified"""
+
+		tmp = webnotes.conn.sql("""select parent, fieldname from tabDocField 
+			where fieldtype='Table' and options=%s""", self.doctype)
+			
+		if len(tmp)==0:
+			raise Exception, 'Incomplete parent info in child table (%s, %s)' \
+				% (self.doctype, self.fields.get('name', '[new]'))
+		
+		elif len(tmp)>1:
+			raise Exception, 'Ambiguous parent info (%s, %s)' \
+				% (self.doctype, self.fields.get('name', '[new]'))
+
+		else:
+			self.parenttype = tmp[0][0]
+			self.parentfield = tmp[0][1]
 
 	# check permissions
 	# ---------------------------------------------------------------------------

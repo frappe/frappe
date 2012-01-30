@@ -28,13 +28,13 @@ class DocType():
 			other_list = webnotes.conn.sql("""select name from `tabFile Data` 
 				where name like '%s-%%.%s' order by name desc""" % (parts[0], '.'.join(parts[1:])))
 			
-				if other_list:
-					last_name = other_list[0][0]
-				
-					from webnotes.utils import cint
-					new_id = str(cint(last_name.split('.')[0].split('-')[-1]) + 1)
-				else:
-					new_id = '1'
+			if other_list:
+				last_name = other_list[0][0]
+			
+				from webnotes.utils import cint
+				new_id = str(cint(last_name.split('.')[0].split('-')[-1]) + 1)
+			else:
+				new_id = '1'
 					
 			# new name	
 			self.doc.file_name = parts[0] + '-' + new_id + '.' + '.'.join(parts[1:])

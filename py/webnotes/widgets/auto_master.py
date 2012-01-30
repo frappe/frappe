@@ -26,7 +26,8 @@ def get_master_fields(dt):
 		webnotes.session['data']['auto_masters'] = {}
 	
 	if webnotes.session['data']['auto_masters'].get(dt, None)==None:
-		fl = webnotes.conn.sql("select fieldname from tabDocField where fieldtype='Data' and options='Suggest' and parent=%s", dt)
+		fl = webnotes.conn.sql("select fieldname from tabDocField where fieldtype='Data' \
+			and options='Suggest' and parent=%s", dt)
 		webnotes.session['data']['auto_masters'][dt] = fl
 	return webnotes.session['data']['auto_masters'][dt]
 		

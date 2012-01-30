@@ -37,9 +37,14 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 		
 		// on change
 		$(this.dialog.fields_dict.doctype.input).change(function() {
-			me.dialog.hide();
-			me.opts.execute($(this).val());
+			me.dialog.fields_dict.go.input.click();
+		}).keypress(function(ev) {
+			if(ev.which==13) {
+				me.dialog.fields_dict.go.input.click();				
+			}
 		});
+		
+		
 	},
 	show: function() {
 		this.dialog.show();

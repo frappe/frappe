@@ -62,7 +62,7 @@ class DocType:
 		"""
 		from webnotes import defs
 		from webnotes.utils.transfer import in_transfer
-		if not in_transfer and getattr(defs,'developer_mode', 0):
+		if not in_transfer and getattr(defs,'developer_mode', 0) and self.doc.standard=='Yes':
 			from webnotes.modules.export_module import export_to_files
 			from webnotes.modules import get_module_path, scrub
 			import os

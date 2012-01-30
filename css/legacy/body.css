@@ -11,8 +11,6 @@ body {
 	color: #000;
 }
 
-input, select, button { font-size: 12px; font-family: Arial, Helvetica, Sans; }
-
 h1, h2, h3, h4, h5 {
 	font-family: Tahoma, Sans;
 	font-weight: normal;
@@ -28,15 +26,27 @@ pre { margin: 0px; padding: 0px; }
 
 button { margin: 2px; margin-left: 0px; }
 
+label {
+	padding-top: 15px;
+	color: #404040;
+}
+
 select, input, textarea { 
 	border: 1px solid #AAA; 
 	-moz-border-radius: 4px;
 	-webkit-border-radius: 4px;
-	font-size: 13px
-	padding: 2px;
+	font-size: 13px;
+	padding: 4px;
+	color: #222;
 }
 
-textarea { font-family: arial, helvetica, sans serif; height: 120px; width: 90%; overflow-x: auto; font-size: 12px; }
+textarea { 
+	font-family: inherit; 
+	height: 120px; 
+	width: 90%; 
+	font-size: 12px; 
+	white-space: normal;
+}
 
 table { padding: 0px; border-collapse: 'collapse'}
 
@@ -59,6 +69,7 @@ div#body_div {
 	position: relative;
 	display: none;
 	margin-top: 56px;
+	padding-right: 7px;
 }
 
 div.no_script {

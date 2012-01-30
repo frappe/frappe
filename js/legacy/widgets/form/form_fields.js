@@ -335,7 +335,6 @@ _f.CodeField.prototype.make_input = function() {
 	this.input = $a(this.input_area, 'textarea','code_text',{fontSize:'12px'});
 	this.myid = wn.dom.set_unique_id(this.input);
 
-	this.input.setAttribute('wrap', 'off');
 	this.input.set_input = function(v) {
 		if(me.editor) {
 			me.editor.setContent(v);

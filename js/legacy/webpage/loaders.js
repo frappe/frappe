@@ -212,7 +212,7 @@ function loadpage(page_name, call_back, no_history) {
 		try {
 			if(pscript['refresh_'+page_name]) pscript['refresh_'+page_name](); // onload
 		} catch(e) { 
-			submit_error(e); 
+			console.log(e); 
 		}
 	}
 	

@@ -15,7 +15,7 @@ class Profile:
 		self.can_get_report = []
 		
 	def _load_roles(self):
-		res = webnotes.conn.sql('select role from tabUserRole where parent = "%s"' % self.name)
+		res = webnotes.conn.sql('select role from tabUserRole where parent = %s', self.name)
 		self.roles = []
 		for t in res:
 			if t[0]: self.roles.append(t[0])
@@ -32,7 +32,7 @@ class Profile:
 		"""
 		if self.roles:
 			return self.roles
-		
+			
 		return self._load_roles()
 	
 	def get_allow_list(self, key):

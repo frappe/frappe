@@ -106,20 +106,26 @@ $item_selected = function(ele) {
 }
 $item_pressed = function(ele) {
 	$bg(ele,'#F90'); $fg(ele,'#FFF');
-}
-$item_set_working = function(ele) {
-	if(ele.loading_img) { 
-		$di(ele.loading_img) 
-	} else {
-		ele.disabled = 1;
-		ele.loading_img = $a(ele.parentNode,'img','',{marginLeft:'4px',marginBottom:'-2px',display:'inline'});
-		ele.loading_img.src = 'lib/images/ui/button-load.gif';
+};
+
+(function($) {
+	$.fn.set_working = function() {
+		var ele = this.get(0);
+		if(ele.loading_img) { 
+			$di(ele.loading_img) 
+		} else {
+			ele.disabled = 1;
+			ele.loading_img = $a(ele.parentNode,'img','',
+				{marginLeft:'4px',marginBottom:'-2px',display:'inline'});
+			ele.loading_img.src = 'lib/images/ui/button-load.gif';
+		}		
 	}
-}
-$item_done_working = function(ele) {
-	ele.disabled = 0;
-	if(ele.loading_img) { $dh(ele.loading_img) };
-}
+	$.fn.done_working = function() {
+		var ele = this.get(0);
+		ele.disabled = 0;
+		if(ele.loading_img) { $dh(ele.loading_img) };		
+	}
+})(jQuery);
 
 // set out of 100
 function set_opacity(ele, ieop) {
