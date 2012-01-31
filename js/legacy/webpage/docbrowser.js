@@ -73,8 +73,6 @@ ItemBrowser = function(parent, dt, label, field_list) {
 
 	this.layout.no_records = $a($td(this.layout.wtab,0,0), 'div');
 
-	// header (?)
-	this.desc_area = $a(this.layout.head, 'div', 'field_description', '');
 	$dh(this.layout.page_head.separator);
 
 	// areas
@@ -181,9 +179,6 @@ ItemBrowser.prototype.get_status_check = function() {
 
 ItemBrowser.prototype.make_toolbar = function() {
 	var me = this;
-
-	// description
-	if(this.dt_details.description)this.desc_area.innerHTML = this.dt_details.description;
 
 	// new button
 	if(inList(profile.can_create, this.dt)) {

@@ -136,14 +136,15 @@ wn.widgets.Listing = function(opts) {
 	
 	// add a results row
 	this.add_row = function() {
-		return $a(this.results_area, 'div', '', (opts.cell_style ? opts.cell_style : {padding: '3px'}));
+		return $a(this.results_area, 'div', '', 
+			(opts.cell_style ? opts.cell_style : {padding: '3px 0px'}));
 	}
 	
 
 	// run the query, get the query from 
 	// the get_query method of opts
 	this.run = function(callback, append) {
-		if(callback) 
+		if(callback)
 			this.onrun = callback;
 
 		if(!append)
@@ -160,8 +161,13 @@ wn.widgets.Listing = function(opts) {
 		
 		// show loading
 		if(this.loading_img) $di(this.loading_img);
-		$c('webnotes.widgets.query_builder.runquery', args, 
-			function(r, rt) { me.make_results(r, rt) }, null, this.opts.no_loading);
+		wn.call({
+			method:'webnotes.widgets.query_builder.runquery',
+			args: args,
+			callback: function(r, rt) { me.make_results(r, rt) },
+			no_spinner: this.opts.no_loading,
+			btn: this.opts.run_btn
+		});
 	}
 	
 	this.refresh = this.run;
