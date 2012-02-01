@@ -7,16 +7,24 @@ function Page(page_name, content) {
 	var me = this;
 	this.name = page_name;
 
+	this.trigger = function(event) {
+		try {
+			if(pscript[event+'_'+this.name]) 
+				pscript[event+'_'+this.name](this.wrapper);
+		} catch(e) { 
+			console.log(e); 
+		}
+	}
+
 	this.onshow = function() {
 		// default set_title
 		set_title(me.doc.title ? me.doc.title : me.name);
 		
-		// onshow
-		try {
-			if(pscript['onshow_'+me.name]) pscript['onshow_'+me.name](me.wrapper); // onload
-		} catch(e) { 
-			console.log(e); 
+		if(!me.onload_complete) {
+			me.trigger('onload');
+			me.onload_complete = true;
 		}
+		me.trigger('onshow');
 		
 		// clear cur_frm
 		cur_frm = null;
@@ -65,14 +73,6 @@ function render_page(page_name, menuitem) {
 
 	// change
 	page_body.change_to(page_name);	
-	
-	// run onload
-	try {
-		if(pscript['onload_'+page_name]) 
-			pscript['onload_'+page_name](page_body.pages[page_name]); // onload
-	} catch(e) { 
-		console.log(e); 
-	}
 		
 	return p;
 }

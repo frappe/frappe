@@ -1,5 +1,5 @@
 // provide a namespace
-wn = {}
+if(!window.wn)wn = {}
 wn.provide = function(namespace) {
 	var nsl = namespace.split('.');
 	var l = nsl.length;

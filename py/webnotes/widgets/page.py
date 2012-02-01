@@ -116,4 +116,30 @@ def getpage():
 		
 	# send
 	webnotes.response['docs'] = doclist
+
+def get_page_path(page_name, module):
+	import os
+	import webnotes.defs
+	from webnotes.modules import scrub
+	return os.path.join(webnotes.defs.modules_path, 'erpnext', scrub(module), \
+		'page', scrub(page_name), scrub(page_name) + '.html')
+	
+def get_page_html(page_name):
+	"""get html of page"""
+	p = webnotes.conn.sql("""select module, content from tabPage where name=%s""", \
+		page_name, as_dict=1)
+
+	if not p:
+		return ''
+	else:
+		import os
+		p=p[0]
+		
+		path = get_page_path(page_name, p['module'])
+		if os.path.exists(path):
+			with open(path, 'r') as f:
+				return f.read()
+		else:
+			return p['content']
+			
 	

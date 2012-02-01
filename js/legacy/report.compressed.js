@@ -1,8 +1,7 @@
 
 /*
-*	lib/js/legacy/widgets/report_builder/report_builder.js
-*/
-
+ *	lib/js/legacy/widgets/report_builder/report_builder.js
+ */
 _r.ReportContainer=function(){if(user=='Guest'){msgprint("Not Allowed");return;}
 wn.require('lib/js/legacy/widgets/form/fields.js');this.wrapper=page_body.add_page("Report Builder",function(){});this.wrapper.className='layout_wrapper';var head_div=$a(this.wrapper,'div');this.rb_area=$a(this.wrapper,'div');$dh(this.wrapper);var me=this;this.rb_dict={};this.page_head=new PageHeader(head_div);$y(this.page_head.wrapper,{marginBottom:'0px'});var run_fn=function(){if(me.cur_rb){me.cur_rb.dt.start_rec=1;me.cur_rb.dt.run();}}
 var runbtn=this.page_head.add_button('Run',run_fn,1,'ui-icon-circle-triangle-e',1);if(has_common(['Administrator','System Manager'],user_roles)){var savebtn=this.page_head.add_button('Save',function(){if(me.cur_rb)me.cur_rb.save_criteria();},0,'ui-icon-disk');var fn=function(){if(me.cur_rb){if(!me.cur_rb.current_loaded){msgprint("error:You must save the report before you can set Advanced features");return;}
@@ -149,9 +148,8 @@ this.all_fields[i].selected=1;}}
 _r.ReportColumnPicker.prototype.add_field=function(f){if(!f.label)return;var by_default=(f.in_filter)?1:0;this.all_fields.push({selected:by_default,df:f,sel_idx:(by_default?this.sel_idx:0),selected_by_default:by_default});this.sel_idx+=by_default;}
 _r.ReportColumnPicker.prototype.set=function(dt,label,selected){for(var i=0;i<this.all_fields.length;i++){if(this.all_fields[i].df.parent==dt&&this.all_fields[i].df.label==label){this.all_fields[i].selected=selected;this.all_fields[i].sel_idx=this.sel_idx;this.sel_idx+=cint(selected);this.refresh();return;}}}
 /*
-*	lib/js/legacy/widgets/report_builder/datatable.js
-*/
-
+ *	lib/js/legacy/widgets/report_builder/datatable.js
+ */
 _r.scroll_head=function(ele){var h=ele.childNodes[0];h.style.top=cint(ele.scrollTop)+'px';}
 _r.DataTable=function(html_fieldname,dt,repname,hide_toolbar){var me=this;if(html_fieldname.substr){var html_field=cur_frm.fields_dict[html_fieldname];html_field.onrefresh=function(){if(me.docname!=cur_frm.docname){me.clear_all();me.docname=cur_frm.docname;}}
 var parent=html_field.wrapper;datatables[html_fieldname]=this;}else{var parent=html_fieldname;}
@@ -222,9 +220,8 @@ tab.style.borderCollapse='collapse';var hr=tab.insertRow(0);var c0=add_head_styl
 for(var ri=0;ri<this.tab.rows.length;ri++){var row=this.tab.rows[ri];var dt_row=tab.insertRow(tab.rows.length);for(var ci=0;ci<row.cells.length;ci++){var c=add_cell_style(dt_row.insertCell(ci));c.innerHTML=row.cells[ci].innerHTML;}}
 return w.innerHTML;}
 /*
-*	lib/js/legacy/widgets/report_builder/calculator.js
-*/
-
+ *	lib/js/legacy/widgets/report_builder/calculator.js
+ */
 _r.calc_dialog=null;_r.show_calc=function(tab,colnames,coltypes,add_idx){if(!add_idx)add_idx=0;if(!tab||!tab.rows.length){msgprint("No Data");return;}
 if(!_r.calc_dialog){var d=new Dialog(400,400,"Calculator")
 d.make_body([['Select','Column'],['Data','Sum'],['Data','Average'],['Data','Min'],['Data','Max']])

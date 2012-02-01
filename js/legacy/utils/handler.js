@@ -132,7 +132,7 @@ wn.call = function(args) {
 		$c_obj(args.doc, args.method, args.args, args.callback, args.no_spinner,
 			false, args.btn);
 	} else {
-		$c(args.method, args.args, args.callback, args.no_spinner, false, args.btn);
+		$c(args.method, args.args, args.callback, false, args.no_spinner, false, args.btn);
 	}
 }
 

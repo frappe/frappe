@@ -20,6 +20,8 @@ def clear_cache(user=''):
 		webnotes.conn.sql("delete from __SessionCache")
 		webnotes.conn.sql("update tabSessions set sessiondata=NULL")
 	
+	# rebuild a cache for guest
+	
 	if webnotes.session:
 		webnotes.session['data'] = {}
 	

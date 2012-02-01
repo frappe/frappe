@@ -100,13 +100,14 @@ class Profile:
 		"""
 		Get the name of the user's home page from the `Control Panel`
 		"""
-		roles = self.get_roles()
-		hpl = webnotes.conn.sql("select role, home_page from `tabDefault Home Page` where parent='Control Panel' order by idx asc")
-		for h in hpl:
-			if h[0] in roles:
-				return h[1]
-
-		return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'
+		hpl = webnotes.conn.sql("""select home_page from `tabDefault Home Page` 
+			where parent='Control Panel' 
+			and role in ('%s') order by idx asc limit 1""" % "', '".join(self.get_roles()))
+			
+		if hpl:
+			return hpl[0][0]
+		else:
+			return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'
 
 	def get_defaults(self):
 		"""
@@ -141,14 +142,12 @@ class Profile:
 
 	
 		# get list of child tables, so we know what not to add in the recent list
-		child_tables = [t[0] for t in conn.sql('select name from tabDocType where istable = 1')]
+		child_tables = [t[0] for t in conn.sql('select name from tabDocType where ifnull(istable,0) = 1')]
 		
-		if not (dt in ['Print Format', 'Start Page', 'Event', 'ToDo Item', 'Search Criteria']) and not webnotes.is_testing and not (dt in child_tables):
-			r = webnotes.conn.sql("select recent_documents from tabProfile where name=%s", self.name)[0][0] or ''
-
-			
-			# clear old style (to be removed)
-			if '~~' in r: r = ''
+		if not (dt in ['Print Format', 'Start Page', 'Event', 'ToDo Item', 'Search Criteria']) \
+			and not (dt in child_tables):
+			r = webnotes.conn.sql("select recent_documents from tabProfile where name=%s", \
+				self.name)[0][0] or ''
 			
 			rdl = json.loads(r or '[]')
 			new_rd = [dt, dn]
@@ -160,9 +159,10 @@ class Profile:
 					del rdl[i]
 					break
 
-			rdl.append(new_rd)
-			if len(rdl) > 20:
-				rdl = rdl[:20]
+			if len(rdl) > 19:
+				rdl = rdl[:19]
+			
+			rdl = [new_rd] + rdl
 			
 			self.recent = json.dumps(rdl)
 						

@@ -39,13 +39,6 @@ def runserverobj(arg=None):
 def logout():
 	webnotes.login_manager.logout()
 
-# versions
-# --------
-
-def get_diff():
-	v = webnotes.form_dict.get('version_number')
-	from build.version import VersionControl
-	webnotes.response['message'] = VersionControl().repo.diff(v)
 
 # DocType Mapper
 # ------------------------------------------------------------------------------------
@@ -166,27 +159,6 @@ def get_file():
 			webnotes.response['filecontent'] = res[1]
 	else:
 		webnotes.msgprint('[get_file] Unknown file name')
-		
-# Get Graph
-# ------------------------------------------------------------------------------------
-def get_graph():
-	form = webnotes.form
-
-	import StringIO
-	f = StringIO.StringIO()
-
-	# call the object
-	obj = server.get_obj(form_dict.get('dt'))
-	plt = server.run_server_obj(obj, form_dict.get('method'), form_dict.get('arg'))
-	plt.savefig(f)
-
-	# stream out
-	webnotes.response['type'] = 'download'
-	webnotes.response['filename'] = webnotes.user.get_random_password() + '.png'
-	webnotes.response['filecontent'] = f.getvalue()
-
-# Reset Password
-# ------------------------------------------------------------------------------------
 
 def reset_password():
 	form_dict = webnotes.form_dict
@@ -199,27 +171,59 @@ def reset_password():
 	else:
 		webnotes.msgprint("No such user (%s)", user)
 
-# Resume session
-# ------------------------------------------------------------------------------------
 
-def resume_session():
-	webnotes.response['message'] = webnotes.session_obj.resume()
+def handle():
+	"""handle request"""
+	cmd = webnotes.form_dict['cmd']
 
-# -------------
-# Create Backup
-# -------------
+	if cmd!='login':
+		# login executed in webnotes.auth
+		try:
+			execute_cmd(cmd)
+		except webnotes.ValidationError:
+			webnotes.conn.rollback()
+		except:
+			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.conn and webnotes.conn.rollback()
+			
+	if webnotes.conn:
+		webnotes.conn.close()
+		
+	print_response()
 
-def backupdb(form_dict, session):
-	db_name = server.decrypt(form_dict.get('db_name'))
+def execute_cmd(cmd):
+	"""execute a request as python module"""
+	validate_cmd(cmd)
+	method = get_method(cmd)
 
-	server.backup_db(db_name)
+	if not webnotes.conn.in_transaction:
+		webnotes.conn.begin()
 
-	webnotes.response['type'] = 'download'
-	webnotes.response['filename'] = db_name+'.tar.gz'
-	webnotes.response['filecontent'] = open('../backups/' + db_name+'.tar.gz','rb').read()
+	if 'arg' in webnotes.form_dict:
+		# direct method call
+		ret = method(webnotes.form_dict.get('arg'))
+	else:
+		ret = method()
 
-# ---------------------------------------------------------------------
+	# returns with a message
+	if ret:
+		webnotes.response['message'] = ret
 
+	# update session
+	webnotes.session_obj.update()
+
+	if webnotes.conn.in_transaction:
+		webnotes.conn.commit()
+
+def get_method(cmd):
+	"""get method object from cmd"""
+	if '.' in cmd:
+		module = __import__('.'.join(cmd.split('.')[:-1]), fromlist=[''])
+		method = getattr(module, cmd.split('.')[-1])
+	else:
+		method = globals()[cmd]
+	return method
+	
 def validate_cmd(cmd):
 	# check if there is no direct possibility of malicious script injection
 	if cmd.startswith('webnotes.model.code'):
@@ -230,123 +234,86 @@ def validate_cmd(cmd):
 
 	if cmd.startswith('webnotes.conn'):
 		raise Exception, 'Cannot call database connection method directly from the handler'
-	
-# Execution Starts Here
-# ---------------------------------------------------------------------
-
-import webnotes.auth
-import webnotes.db
-
-# reset password
-# ---------------------------------------------------------------------
-
-if form_dict.has_key('cmd') and (form_dict.get('cmd')=='reset_password'):
-	webnotes.conn = webnotes.db.Database(use_default = 1)
-	sql = webnotes.conn.sql
-	sql("START TRANSACTION")
-	try:
-		reset_password()
-		sql("COMMIT")
-	except Exception, e:
-		webnotes.errprint(str(e))
-		sql("ROLLBACK")
-	
-# pre-login access - for registration etc.
-# ---------------------------------------------------------------------
-
-elif form_dict.has_key('cmd') and (form_dict.get('cmd')=='prelogin'):
-	webnotes.conn = webnotes.db.Database(use_default = 1)
-	sql = webnotes.conn.sql
-	webnotes.session = {'user':'Administrator'}
-
-	import webnotes.model.code
-	
-	sql("START TRANSACTION")
-	try:
-		webnotes.response['message'] = webnotes.model.code.get_obj('Profile Control').prelogin(form_dict) or ''
-		sql("COMMIT")
-	except:
-		webnotes.errprint(webnotes.utils.getTraceback())
-		sql("ROLLBACK")
-
-# main stuff
-# ---------------------------------------------------------------------
-
-else:
-
-	try:
-		webnotes.request = webnotes.auth.HTTPRequest()
-	
-		if form_dict.get('cmd') != 'login' and webnotes.conn:
-			sql = webnotes.conn.sql
 		
-			# NOTE:
-			# guest should only be allowed: 
-			# getdoc (if Guest access)
-			# runserverobj (if Guest access)
+def print_response():
+	import string
+	import os
+
+	if webnotes.response.get('type')=='csv':
+		print_csv()
+	elif webnotes.response.get('type')=='iframe':
+		print_iframe()
+	elif webnotes.response.get('type')=='download':
+		print_raw()
+	else:
+		print_json()
 		
-			# get command cmd
-			cmd = form_dict.has_key('cmd') and form_dict.get('cmd') or ''
-			read_only = form_dict.has_key('_read_only') and form_dict.get('_read_only') or None
+def print_csv():
+	print "Content-Type: text/csv"
+	print "Content-Disposition: attachment; filename="+webnotes.response['doctype'].replace(' ', '_')+".csv"
+	print
+	print webnotes.response['result']
 
-			validate_cmd(cmd)
+def print_iframe():
+	print "Content-Type: text/html"
+	print
+	if webnotes.response.get('result'):
+		print webnotes.response['result']
+	if webnotes.debug_log:
+		print '''<script type='text/javascript'>alert("%s");</script>''' % ('-------'.join(webnotes.debug_log).replace('"', '').replace('\n',''))
 
-			module = ''
-			if '.' in cmd:
-				module = '.'.join(cmd.split('.')[:-1])
-				cmd = cmd.split('.')[-1]
+def print_raw():
+	import mimetypes
+	print "Content-Type: %s" % (mimetypes.guess_type(webnotes.response['filename'])[0] or 'application/unknown')
+	print "Content-Disposition: filename="+webnotes.response['filename'].replace(' ', '_')
+	print
+	print webnotes.response['filecontent']
 
-				exec 'from %s import %s' % (module, cmd) in locals()			
+def print_json():
+	make_logs()
+	cleanup_docs()
+
+	import json
+	str_out = json.dumps(webnotes.response)
 	
-	
-			# execute
-			if locals().has_key(cmd):
-				if (not webnotes.conn.in_transaction) and (not read_only):
-					webnotes.conn.begin()
-				
-				if webnotes.form_dict.get('arg'):
-					# direct method call
-					ret = locals()[cmd](webnotes.form_dict.get('arg'))
-				else:
-					ret = locals()[cmd]()
-				
-				# returns with a message
-				if ret:
-					webnotes.response['message'] = ret
-						
-				# update session
-				webnotes.session_obj.update()
-				
-				if webnotes.conn.in_transaction:
-					webnotes.conn.commit()
-			else:
-				if cmd!='login':
-					webnotes.msgprint('No Method: %s' % cmd)
+	if accept_gzip() and len(str_out)>512:
+		out_buf = compressBuf(str_out)
+		print "Content-Encoding: gzip"
+		print "Content-Length: %d" % (len(out_buf))
+		str_out = out_buf
+		
+	print "Content-Type: text/html; charset: utf-8"
+	print_cookies()
 
-	except webnotes.ValidationError:
-		webnotes.conn.rollback()
+	# Headers end
+	print 
+	print str_out
+
+def accept_gzip():
+	"""return true if client accepts gzip"""
+	try:
+		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
+			return True
 	except:
-		webnotes.errprint(webnotes.utils.getTraceback())
-		webnotes.conn and webnotes.conn.rollback()
-			
+		return False
 
-#### cleanup
-#-----------
+def make_logs():
+	"""make strings for msgprint and errprint"""
+	if webnotes.debug_log:
+		t = '\n----------------\n'.join(webnotes.debug_log)
+		webnotes.response['exc'] = t
 
-if webnotes.conn:
-	webnotes.conn.close()
+	if webnotes.message_log:
+		t = '\n----------------\n'.join(webnotes.message_log)
+		webnotes.response['server_messages'] = t	
 
-#### go
-
-import string
-import os
-
-acceptsGzip, out_buf, str_out = 0, None, None
-try:
-	if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
-		acceptsGzip = 1 # problem in win ?
-except:
-	pass
+def print_cookies():
+	"""if there ar additional cookies defined during the request, add them"""
+	if webnotes.cookies or webnotes.add_cookies: 
+		for c in webnotes.add_cookies.keys():
+			webnotes.cookies[c] = webnotes.add_cookies[c]
+		
+		print webnotes.cookies
 
 def compressBuf(buf):
 	import gzip, cStringIO
@@ -355,90 +322,3 @@ def compressBuf(buf):
 	zfile.write(buf)
 	zfile.close()
 	return zbuf.getvalue()
-
-# CSV
-# -------------------------------------------------------------------
-
-if webnotes.response.get('type')=='csv':
-	print "Content-Type: text/csv"
-	print "Content-Disposition: attachment; filename="+webnotes.response['doctype'].replace(' ', '_')+".csv"
-	print
-	print webnotes.response['result']
-
-# IFRAME
-# -------------------------------------------------------------------
-
-elif webnotes.response.get('type')=='iframe':
-	print "Content-Type: text/html"
-	print
-	if webnotes.response.get('result'):
-		print webnotes.response['result']
-	if webnotes.debug_log:
-		print '''<script type='text/javascript'>alert("%s");</script>''' % ('-------'.join(webnotes.debug_log).replace('"', '').replace('\n',''))
-
-# file
-# -------------------------------------------------------------------
-
-elif webnotes.response.get('type')=='download':
-	import mimetypes
-	print "Content-Type: %s" % (mimetypes.guess_type(webnotes.response['filename'])[0] or 'application/unknown')
-	print "Content-Disposition: filename="+webnotes.response['filename'].replace(' ', '_')
-	print
-	print webnotes.response['filecontent']
-
-# JSON
-# -------------------------------------------------------------------
-
-else:
-	if webnotes.debug_log:
-		save_log = 1
-		if webnotes.debug_log[0].startswith('[Validation Error]'):
-			save_log = 0
-
-		t = '\n----------------\n'.join(webnotes.debug_log)
-		if errdoctype: 
-			t = t + '\nDocType: ' + errdoctype
-		if errdoc: 
-			t = t + '\nName: ' + errdoc
-		if errmethod: 
-			t = t + '\nMethod: ' + errmethod
-		webnotes.response['exc'] = '<pre>'+t.replace('\n','<br>')+'</pre>'
-
-		if save_log: # don't save validation errors
-			try:  save_log(t, 'Server')
-			except: pass
-
-	if webnotes.message_log:
-		webnotes.response['server_messages'] = '\n----------------\n'.join(webnotes.message_log)
-
-	cleanup_docs()
-	
-	# Convert to JSON
-	# ---------------
-	try:
-		import json
-	except: # python 2.4
-		import simplejson as json
-	
-	str_out = json.dumps(webnotes.response)
-	
-	if acceptsGzip and 1 and len(str_out)>512:
-		out_buf = compressBuf(str_out)
-		print "Content-Encoding: gzip"
-		print "Content-Length: %d" % (len(out_buf))
-		
-	print "Content-Type: text/html; charset: utf-8"
-	
-	# if there ar additional cookies defined during the request, add them here
-	if webnotes.cookies or webnotes.add_cookies: 
-		for c in webnotes.add_cookies.keys():
-			webnotes.cookies[c] = webnotes.add_cookies[c]
-			
-		print webnotes.cookies
-		
-	print # Headers end
-	
-if out_buf:
-	sys.stdout.write(out_buf)
-elif str_out:
-	print str_out

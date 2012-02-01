@@ -39,7 +39,6 @@ class HTTPRequest:
 		# start session
 		webnotes.session_obj = Session()
 		webnotes.session = webnotes.session_obj.data
-		webnotes.tenant_id = webnotes.session.get('tenant_id', 0)
 
 		# write out cookies if sid is supplied (this is a pre-logged in redirect)
 		if webnotes.form_dict.get('sid'):
@@ -316,15 +315,8 @@ class Session:
 	def load(self):
 		import webnotes
 		
-		r=None
-		try:
-			r = webnotes.conn.sql("""select user, sessiondata, status from 
-				tabSessions where sid='%s'""" % self.sid)
-		except Exception, e:
-			if e.args[0]==1054:
-				self.add_status_column()
-			else:
-				raise e
+		r = webnotes.conn.sql("""select user, sessiondata, status from 
+			tabSessions where sid='%s'""" % self.sid)
 	
 		if r:
 			r=r[0]
@@ -418,13 +410,6 @@ class Session:
 		
 		# clear out old sessions
 		webnotes.conn.sql("delete from tabSessions where TIMEDIFF(NOW(), lastupdate) > '72:00:00'")
-
-	# -----------------------------
-	def add_status_column(self):
-		webnotes.conn.commit()
-		webnotes.conn.sql("alter table tabSessions add column `status` varchar(20)")
-		webnotes.conn.begin()
-
 
 	# Get IP Info from ipinfodb.com
 	# -----------------------------
