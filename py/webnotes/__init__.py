@@ -70,7 +70,7 @@ def get_index_path():
 	return os.sep.join(os.path.dirname(os.path.abspath(__file__)).split(os.sep)[:-2])
 
 def get_files_path():
-	import defs
+	import defs, os
 	if not conn:
 		raise Exception, 'You must login first'
 

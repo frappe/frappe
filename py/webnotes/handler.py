@@ -146,7 +146,9 @@ def upload_many():
 # File download
 # ------------------------------------------------------------------------------------
 def get_file():
+	import webnotes
 	import webnotes.utils.file_manager
+	form = webnotes.form
 
 	res = webnotes.utils.file_manager.get_file(form.getvalue('fname'))
 	if res:
