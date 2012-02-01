@@ -7,7 +7,7 @@ pscript['onload_Login Page'] = function(){
 	$(pscript.login_btn).addClass('primary');
 	
 	$('#password').keypress(function(ev){
-		if(ev.which==13 && $('#password').value)
+		if(ev.which==13 && $('#password').val())
 			pscript.doLogin();
 	})	
 }
