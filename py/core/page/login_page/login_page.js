@@ -6,7 +6,7 @@ pscript['onload_Login Page'] = function(){
 	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin);
 	$(pscript.login_btn).addClass('primary');
 	
-	$('#login_wrapper').keyup(function(ev){
+	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').value)
 			pscript.doLogin();
 	})	
@@ -20,7 +20,7 @@ pscript['onshow_Login Page'] = function() {
 pscript.onLoginReply = function(r, rtext) {
 	pscript.login_btn.done_working();
     if(r.message=="Logged In"){
-        window.location.href='index.html' + (get_url_arg('page') ? ('?page='+get_url_arg('page')) : '');
+        window.location.href='index.cgi' + (get_url_arg('page') ? ('?page='+get_url_arg('page')) : '');
     } else {
         $i('login_message').innerHTML = '<span style="color: RED;">'+(r.message)+'</span>';
         //if(r.exc)alert(r.exc);

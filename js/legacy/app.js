@@ -97,12 +97,13 @@ function startup() {
 		}
 		page_body.ready();
 	}
-	if(_startup_data && keys(_startup_data).length && _startup_data.docs) {
-		LocalDB.sync(_startup_data.docs);
-		callback(_startup_data, '');
-		
-		// for debug
-		if(_startup_data.server_messages) msgprint(_startup_data.server_messages);
+	if(wn.boot) {
+		LocalDB.sync(wn.boot.docs);
+		callback(wn.boot, '');
+		if(wn.boot.error_messages)
+			console.log(wn.boot.error_messages)
+		if(wn.boot.server_messages) 
+			msgprint(wn.boot.server_messages);
 	} else {
 		if($i('startup_div'))
 			$c('startup',{},callback,null,1);

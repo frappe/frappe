@@ -8,9 +8,8 @@ def get_bootinfo():
 	import webnotes
 	bootinfo = {}	
 	doclist = []
-	
-	webnotes.conn.begin()
 
+	webnotes.conn.begin()
 	# profile
 	get_profile(bootinfo)
 	
@@ -59,10 +58,10 @@ def get_home_page(bootinfo, doclist):
 	home_page = webnotes.user.get_home_page()
 	if home_page:
 		import webnotes.widgets.page
+		page_doclist = webnotes.widgets.page.get(home_page)
 		doclist += webnotes.widgets.page.get(home_page)
 	bootinfo['home_page'] = home_page or ''
-
-
+	bootinfo['home_page_html'] = page_doclist[0].content
 
 def get_dt_labels():
 	import webnotes

@@ -43,12 +43,12 @@ def run():
 	cmd = sys.argv[1]			
 
 	if cmd=='build':
-		from build.project import Project
-		Project().build()
+		import build.project
+		build.project.build()
 	
 	elif cmd=='clear':
-		from build.project import Project
-		Project().render_templates()
+		from build.project import increment_version
+		print "Version:" + str(increment_version())
 		
 	# replace code
 	elif cmd=='replace':

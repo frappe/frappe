@@ -7,6 +7,8 @@ wn.versions = {
 			if(window._version_number==-1 || parseInt(localStorage._version_number)
 			 	!= parseInt(window._version_number)) {
 				localStorage.clear();
+				console.log("Cache cleared - version: " + _version_number 
+					+ ' to ' + localStorage._version_number)
 			}
 			localStorage.setItem('_version_number', window._version_number);
 		}

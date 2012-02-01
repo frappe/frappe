@@ -100,13 +100,14 @@ class Profile:
 		"""
 		Get the name of the user's home page from the `Control Panel`
 		"""
-		roles = self.get_roles()
-		hpl = webnotes.conn.sql("select role, home_page from `tabDefault Home Page` where parent='Control Panel' order by idx asc")
-		for h in hpl:
-			if h[0] in roles:
-				return h[1]
-
-		return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'
+		hpl = webnotes.conn.sql("""select home_page from `tabDefault Home Page` 
+			where parent='Control Panel' 
+			and role in ('%s') order by idx asc limit 1""" % "', '".join(self.get_roles()))
+			
+		if hpl:
+			return hpl[0][0]
+		else:
+			return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'
 
 	def get_defaults(self):
 		"""

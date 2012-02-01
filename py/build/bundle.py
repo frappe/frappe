@@ -34,7 +34,7 @@ class Bundle:
 					data = "\nwn.assets.handler.css('%s');\n" %\
 					 	data.replace("'", "\\'").replace('\n', '\\\n')
 
-			outtxt += ('\n/*\n*\t%s\n*/\n' % f)
+			outtxt += ('\n/*\n *\t%s\n */' % f)
 					
 			# append
 			if suffix=='concat' or out_type != 'js':

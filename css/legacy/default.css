@@ -1,8 +1,7 @@
 
 /*
-*	lib/css/legacy/body.css
-*/
-html { 
+ *	lib/css/legacy/body.css
+ */html { 
 	margin: 0px;
 	padding: 0px;
 }
@@ -179,9 +178,8 @@ div.std-footer-item {
 }
 
 /*
-*	lib/css/legacy/menus.css
-*/
-
+ *	lib/css/legacy/menus.css
+ */
 /******** Menus - menu.js ************/
 
 ul.menu_toolbar {
@@ -233,9 +231,8 @@ div.dd_item {
 }
 div.dd_item_mo { background-color: #FE8; }
 /*
-*	lib/css/legacy/messages.css
-*/
-
+ *	lib/css/legacy/messages.css
+ */
 /* FLOATING MESSAGE */
 
 .btn-img { cursor: pointer; }
@@ -284,9 +281,8 @@ div.notice {
 	font-size: 14px;
 }
 /*
-*	lib/css/legacy/forms.css
-*/
-/* FORMS */
+ *	lib/css/legacy/forms.css
+ *//* FORMS */
 
 
 div.frm_print_wrapper {
@@ -508,9 +504,8 @@ div.sidebar-comment-info {
 	color: #777;
 }
 /*
-*	lib/css/legacy/grid.css
-*/
-
+ *	lib/css/legacy/grid.css
+ */
 
 /* Grid */
 
@@ -633,9 +628,8 @@ div.sidebar-comment-info {
 
 .gridDivSelected option { border: 0px; }
 /*
-*	lib/css/legacy/listing.css
-*/
-/* listing 2.0 */
+ *	lib/css/legacy/listing.css
+ *//* listing 2.0 */
 
 div.listing-more {
 	margin: 7px 0px 17px 0px;
@@ -693,9 +687,8 @@ div.srs_filter_area td {
 
 
 /*
-*	lib/css/legacy/report.css
-*/
-
+ *	lib/css/legacy/report.css
+ */
 /* Reports */
 
 div.report_grid_area {
@@ -876,9 +869,8 @@ table.builder_tab td {
 	padding: 2px;
 }
 /*
-*	lib/css/legacy/calendar.css
-*/
-/**** CALENDAR ****/
+ *	lib/css/legacy/calendar.css
+ *//**** CALENDAR ****/
 
 .caldiv {
 	position:absolute;
@@ -1051,9 +1043,8 @@ div.cal_event_hover {
 }
 
 /*
-*	lib/css/legacy/autosuggest.css
-*/
-/* 
+ *	lib/css/legacy/autosuggest.css
+ *//* 
 ================================================
 autosuggest, inquisitor style
 ================================================
@@ -1146,9 +1137,8 @@ div.autosuggest ul em
 }
 
 /*
-*	lib/css/legacy/dialog.css
-*/
-/***** Dialogs *******/
+ *	lib/css/legacy/dialog.css
+ *//***** Dialogs *******/
 
 div.dialog_wrapper {
 	position: absolute;
@@ -1227,9 +1217,8 @@ div.dialog_row table td textarea {
 }
 
 /*
-*	lib/css/legacy/wntoolbar.css
-*/
-
+ *	lib/css/legacy/wntoolbar.css
+ */
 /* Recent */
 
 div.status_flag {
@@ -1256,9 +1245,8 @@ div.status_flag {
 .sprite-search { background-position: 0 -330px;  } 
 .sprite-tools { background-position: 0 -396px;  } 
 /*
-*	lib/css/legacy/tabs.css
-*/
-
+ *	lib/css/legacy/tabs.css
+ */
 /******* TABS ********/
 
 div.box_label_wrapper {
@@ -1318,9 +1306,8 @@ ul.box_tabs li.box_tab_selected a {
 }
 
 /*
-*	lib/css/legacy/bw-icons.css
-*/
-
+ *	lib/css/legacy/bw-icons.css
+ */
 /** general icons **/
 
 .wn-icon { background: url('lib/images/icons/icons.png'); width: 16px; height: 16px; cursor: pointer; }
@@ -1572,9 +1559,8 @@ ul.box_tabs li.box_tab_selected a {
 
 
 /*
-*	lib/css/legacy/sidebar.css
-*/
-div.psidebar-wrapper {
+ *	lib/css/legacy/sidebar.css
+ */div.psidebar-wrapper {
 	margin: 0px 8px;
 }
 
@@ -1624,9 +1610,8 @@ div.follower-list {
 	font-size: 11px;
 }
 /*
-*	lib/css/legacy/bootstrap-buttons.css
-*/
-.btn.danger,
+ *	lib/css/legacy/bootstrap-buttons.css
+ */.btn.danger,
 .alert-message.danger,
 .btn.danger:hover,
 .alert-message.danger:hover,

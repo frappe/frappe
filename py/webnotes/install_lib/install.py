@@ -49,11 +49,25 @@ class Installer:
 		webnotes.conn.sq.("""create table `__SessionCache` 
 			(user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)""")
 
+		create_sessions_table()
+
 		# set the basic passwords
 		webnotes.conn.begin()
 		webnotes.conn.sql("update tabProfile set password = password('admin') where name='Administrator'")
 		webnotes.conn.commit()
 
+	def create_sessions_table(self):
+		self.dbman.drop_table('tabSessions')
+		webnotes.conn.sql("""CREATE TABLE `tabSessions` (
+		  `user` varchar(40) DEFAULT NULL,
+		  `sid` varchar(120) DEFAULT NULL,
+		  `sessiondata` longtext,
+		  `ipaddress` varchar(16) DEFAULT NULL,
+		  `lastupdate` datetime DEFAULT NULL,
+		  `status` varchar(20) DEFAULT NULL,
+		  KEY `sid` (`sid`)
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
+		
 	def import_core_module(self):
 		"""
 			Imports the "Core" module from .txt file and creates
