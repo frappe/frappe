@@ -53,7 +53,15 @@ textarea {
 
 table { padding: 0px; border-collapse: 'collapse'}
 
-td { padding:0px; margin: 0px; vertical-align: top; }
+td { 
+	padding:0px; 
+	margin: 0px; 
+	vertical-align: top; 
+}
+
+p {
+	margin: 0px 0px 9px 0px;
+}
 
 a:active { outline:none; }
 
@@ -257,9 +265,13 @@ div.notice {
 	background-color:#f4f4f9;
 	line-height: 1.6em;
 	color: #333;
-	padding: 3px 7px;
+	padding: 11px 11px 2px 11px;
 	margin: 11px 0px;
 	border: 1px solid #ddd;	
+	
+	-webkit-border-radius: 5px;
+	-moz-border-radius: 5px;
+	border-radius: 5px;	
 }
 
 .help_box, .help-box {

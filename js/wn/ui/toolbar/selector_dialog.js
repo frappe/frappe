@@ -31,6 +31,7 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 		
 		// on go
 		$(this.dialog.fields_dict.go.input).click(function() {
+			if(!me.dialog.display) return;
 			me.dialog.hide();
 			me.opts.execute(me.dialog.fields_dict.doctype.get_value());
 		});

@@ -50,7 +50,15 @@ textarea {
 
 table { padding: 0px; border-collapse: 'collapse'}
 
-td { padding:0px; margin: 0px; vertical-align: top; }
+td { 
+	padding:0px; 
+	margin: 0px; 
+	vertical-align: top; 
+}
+
+p {
+	margin: 0px 0px 9px 0px;
+}
 
 a:active { outline:none; }
 
