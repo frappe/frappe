@@ -151,6 +151,7 @@ $.extend(_p, {
 		// if draft/archived, show draft/archived banner
 		stat += _p.show_draft(args);		
 		stat += _p.show_archived(args);
+		stat += _p.show_cancelled(args);
 		
 		// Append args.body's content as a child of container
 		container.innerHTML = args.body;
@@ -219,6 +220,23 @@ $.extend(_p, {
 			archived = _p.head_banner_format();
 			archived = archived.replace("{{HEAD}}", "ARCHIVED");
 			archived = archived.replace("{{DESCRIPTION}}", "You must restore this document to make it editable.");
+			return archived;
+		} else {
+			return "";
+		}	
+	},
+
+
+	/*
+		Check if doc is cancelled
+		Display cancelled in header if true
+	*/
+	show_cancelled: function(args) {
+		if(args.doc && args.doc.docstatus==2) {
+			cancelled = _p.head_banner_format();
+			cancelled = cancelled.replace("{{HEAD}}", "CANCELLED");
+			cancelled = cancelled.replace("{{DESCRIPTION}}", "You must amend this document to make it editable.");
+			return cancelled;
 		} else {
 			return "";
 		}	
@@ -586,10 +604,19 @@ $.extend(_p, {
 });
 
 
-print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier) {
+print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier, hide_empty) {
 	var me = this;
 	$.extend(this, {
-		flist: fields_list[tabletype],
+		flist: (function() {
+			var f_list = [];
+			var fl = fields_list[tabletype];
+			if(fl) {
+				for(var i=0; i<fl.length; i++) {
+					f_list.push(copy_dict(fl[i]));
+				}
+			}
+			return f_list;
+		})(),
 
 		data: function() {
 			var children = getchildren(
@@ -638,7 +665,6 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 			}
 			for(var c=0; c<flist.length; c++) {
 				if(!inList(non_empty_cols, flist[c])) {
-					//console.log(flist[c].fieldname);
 					flist.splice(c, 1);
 					c = c - 1;
 				}
@@ -651,7 +677,9 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 		prepare_col_heads: function(flist) {
 			var new_flist = [];
 
-			me.remove_empty_cols(flist);
+			if(!cols || (cols && cols.length && hide_empty)) {
+				me.remove_empty_cols(flist);
+			}
 			
 			// Make a list of column headings
 			if(cols && cols.length) {

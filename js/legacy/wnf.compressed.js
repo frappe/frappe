@@ -70,6 +70,7 @@ remainder=n%1000000000}}
 if(remainder){if(remainder>=100)comma=','
 else comma=''
 return bestguess+comma+' '+in_words(remainder);}else{return bestguess;}}
+function roundNumber(num,dec){var result=Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);return result;}
 /*
  *	lib/js/legacy/utils/browser_detect.js
  */

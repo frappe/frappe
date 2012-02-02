@@ -19,7 +19,7 @@ class DocList:
 		if dt and dn:
 			self.load_from_db(dt, dn)
 
-	def load_from_db(self, dt, dn):
+	def load_from_db(self, dt, dn, prefix='tab'):
 		"""
 			Load doclist from dt
 		"""
@@ -35,7 +35,9 @@ class DocList:
 		for t in tablefields:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
-		self.docs = docs
+		self.docs = doclist
+		self.doc = doc
+		self.children = doclist[1:]
 
 	def __iter__(self):
 		"""

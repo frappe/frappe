@@ -195,7 +195,21 @@ class EMail:
 		if (not send_now) and getattr(webnotes.defs, 'batch_emails', 0):
 			self.add_to_queue()
 			return
+		
+		sess = self.smtp_connect()
+		
+		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
+		
+		try:
+			sess.quit()
+		except:
+			pass
+	
 
+	def smtp_connect(self):
+		"""
+			Gets a smtp connection
+		"""
 		import smtplib
 		sess = smtplib.SMTP(self.server, self.port or None)
 		
@@ -210,15 +224,8 @@ class EMail:
 		if ret[0]!=235:
 			msgprint(ret[1])
 			raise Exception
-		
-		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
-		
-		try:
-			sess.quit()
-		except:
-			pass
-			
 
+		return sess
 
 
 # ===========================================
