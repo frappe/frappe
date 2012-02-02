@@ -35,6 +35,7 @@ def run():
 	sys.path.append('lib/py')
 	import webnotes
 	import webnotes.defs
+	sys.path.append(webnotes.defs.modules_path)
 
 	if len(sys.argv)<2:
 		print_help()
