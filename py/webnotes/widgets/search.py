@@ -3,8 +3,12 @@ import webnotes
 
 # this is called when a new doctype is setup for search - to set the filters
 def getsearchfields():
-
-	sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form.getvalue("doctype"))
+	sf = webnotes.conn.sql("""\
+		SELECT value FROM `tabProperty Setter`
+		WHERE doc_type=%s AND doc_name=%s AND property='search_fields'""", \
+		(webnotes.form.getvalue("doctype"), webnotes.form.getvalue("doctype")))
+	if not (sf and len(sf)>0 and sf[0][0]):
+		sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form.getvalue("doctype"))
 	sf = sf and sf[0][0] or ''
 	sf = [s.strip() for s in sf.split(',')]
 	if sf and sf[0]:
