@@ -124,7 +124,7 @@ ItemBrowser.prototype.setup_toolbar = function() {
 	var parent = this.layout.toolbar_area
 	// toolbar
 	this.main_toolbar = $a(parent, 'div', '', {padding: '3px', backgroundColor:'#EEE'});
-	$br(this.main_toolbar, '3px'); $gr(this.main_toolbar, '#DDD', '#CCC');
+	$br(this.main_toolbar, '3px'); 
 	
 	this.sub_toolbar = $a(parent, 'div', '', {marginBottom:'7px', padding: '3px', textAlign:'right', fontSize:'11px', color:'#444'});
 	
