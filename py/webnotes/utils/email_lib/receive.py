@@ -97,7 +97,7 @@ class POP3Mailbox:
 	def __init__(self, settings_doc):
 		"""
 			settings_doc must contain
-			is_ssl, host, username, password
+			use_ssl, host, username, password
 			(by name or object)
 		"""
 		if type(settings_doc)==str:

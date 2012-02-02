@@ -71,8 +71,8 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 				render: function(wrapper) {
 					me.form.assign_to = new wn.widgets.form.sidebar.AssignTo(wrapper, me, me.form.doctype, me.form.docname);
 				},
-				display: function() { if(!me.form.doc.__local) return true; 
-					 else return false;}
+				display: function() { if(!me.form.doc.__local) return false; 
+					 else return true;}
 			},
 			
 			{
