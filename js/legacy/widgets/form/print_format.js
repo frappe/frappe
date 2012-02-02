@@ -151,6 +151,7 @@ $.extend(_p, {
 		// if draft/archived, show draft/archived banner
 		stat += _p.show_draft(args);		
 		stat += _p.show_archived(args);
+		stat += _p.show_cancelled(args);
 		
 		// Append args.body's content as a child of container
 		container.innerHTML = args.body;
@@ -219,6 +220,23 @@ $.extend(_p, {
 			archived = _p.head_banner_format();
 			archived = archived.replace("{{HEAD}}", "ARCHIVED");
 			archived = archived.replace("{{DESCRIPTION}}", "You must restore this document to make it editable.");
+			return archived;
+		} else {
+			return "";
+		}	
+	},
+
+
+	/*
+		Check if doc is cancelled
+		Display cancelled in header if true
+	*/
+	show_cancelled: function(args) {
+		if(args.doc && args.doc.docstatus==2) {
+			cancelled = _p.head_banner_format();
+			cancelled = cancelled.replace("{{HEAD}}", "CANCELLED");
+			cancelled = cancelled.replace("{{DESCRIPTION}}", "You must amend this document to make it editable.");
+			return cancelled;
 		} else {
 			return "";
 		}	

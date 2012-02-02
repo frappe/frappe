@@ -219,3 +219,42 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 def db_exists(dt, dn):
 	import webnotes
 	return webnotes.conn.exists(dt, dn)
+
+
+def delete_fields(args_dict, delete=0):
+	"""
+		Delete a field.
+		* Deletes record from `tabDocField`
+		* If not single doctype: Drops column from table
+		* If single, deletes record from `tabSingles`
+
+		args_dict = { dt: [field names] }
+	"""
+	for dt in args_dict.keys():
+		fields = args_dict[dt]
+		if not fields: continue
+		
+		webnotes.conn.sql("""\
+			DELETE FROM `tabDocField`
+			WHERE parent=%s AND fieldname IN (%s)
+		""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
+		
+		# Delete the data / column only if delete is specified
+		if not delete: continue
+		
+		is_single = webnotes.conn.sql("select issingle from tabDocType where name = '%s'" % dt)
+		is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
+		if is_single:
+			webnotes.conn.sql("""\
+				DELETE FROM `tabSingles`
+				WHERE doctype=%s AND field IN (%s)
+			""" % ('%s', ", ".join(['"' + f + '"' for f in fields])), dt)
+		else:
+			existing_fields = webnotes.conn.sql("desc `tab%s`" % dt)
+			existing_fields = existing_fields and [e[0] for e in existing_fields] or []
+			query = "ALTER TABLE `tab%s` " % dt + \
+				", ".join(["DROP COLUMN `%s`" % f for f in fields if f in existing_fields])
+			webnotes.conn.commit()
+			webnotes.conn.sql(query)
+				
+			
