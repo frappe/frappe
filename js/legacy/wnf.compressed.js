@@ -119,7 +119,7 @@ var date=new Date((time||"").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[
 return'';return day_diff==0&&(diff<60&&"just now"||diff<120&&"1 minute ago"||diff<3600&&Math.floor(diff/60)+" minutes ago"||diff<7200&&"1 hour ago"||diff<86400&&Math.floor(diff/3600)+" hours ago")||day_diff==1&&"Yesterday"||day_diff<7&&day_diff+" days ago"||day_diff<31&&Math.ceil(day_diff/7)+" weeks ago"||day_diff<365&&Math.ceil(day_diff/30)+" months ago"||"more than "+Math.floor(day_diff/365)+" year(s) ago";}
 if(typeof jQuery!="undefined")
 jQuery.fn.prettyDate=function(){return this.each(function(){var date=prettyDate(this.title);if(date)
-jQuery(this).text(date);});};var comment_when=prettyDate;var date=dateutil=wn.datetime;var get_today=wn.datetime.get_today
+jQuery(this).text(date);});};var comment_when=prettyDate;wn.datetme.comment_when=prettyDate;var date=dateutil=wn.datetime;var get_today=wn.datetime.get_today
 var time_to_ampm=wn.datetime.time_to_ampm;var time_to_hhmm=wn.datetime.time_to_hhmm;var only_date=wn.datetime.only_date;
 /*
  *	lib/js/legacy/utils/dom.js

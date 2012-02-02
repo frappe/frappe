@@ -261,6 +261,7 @@ if ( typeof jQuery != "undefined" )
 	};
 
 var comment_when = prettyDate;
+wn.datetme.comment_when = prettyDate;
 
 // globals (deprecate)
 var date = dateutil = wn.datetime;
