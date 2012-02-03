@@ -56,8 +56,6 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		import os
 		if os.environ.get('HTTP_HOST'):
 			add_to_patch_log(tb)
-		else:
-			print tb
 
 	block_user(False)
 
