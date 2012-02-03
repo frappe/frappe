@@ -5,15 +5,17 @@
 	{
 		'creation': '2010-08-08 17:08:55',
 		'docstatus': 0,
-		'modified': '2010-09-20 14:06:57',
+		'modified': '2012-02-03 11:29:33',
 		'modified_by': 'Administrator',
 		'owner': 'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
+		'_last_update': '1311536932',
 		'autoname': 'CWR/.#####',
 		'colour': 'White:FFF',
+		'default_print_format': 'Standard',
 		'doctype': 'DocType',
 		'issingle': 0,
 		'module': 'Core',
@@ -21,7 +23,7 @@
 		'section_style': 'Simple',
 		'server_code_error': ' ',
 		'show_in_menu': 0,
-		'version': 8
+		'version': 9
 	},
 
 	# These values are common for all DocField
@@ -36,17 +38,13 @@
 
 	# These values are common for all DocPerm
 	{
-		'create': 1,
 		'doctype': 'DocPerm',
-		'idx': 1,
 		'name': '__common__',
 		'parent': 'Comment Widget Record',
 		'parentfield': 'permissions',
 		'parenttype': 'DocType',
 		'permlevel': 0,
-		'read': 1,
-		'role': 'System Manager',
-		'write': 1
+		'read': 1
 	},
 
 	# DocType, Comment Widget Record
@@ -57,7 +55,16 @@
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'create': 1,
+		'doctype': 'DocPerm',
+		'role': 'System Manager',
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': 'DocPerm',
+		'role': 'All'
 	},
 
 	# DocField
@@ -65,7 +72,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'comment',
 		'fieldtype': 'Text',
-		'idx': 1,
 		'label': 'Comment',
 		'oldfieldname': 'comment',
 		'oldfieldtype': 'Text'
@@ -76,7 +82,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'comment_by',
 		'fieldtype': 'Data',
-		'idx': 2,
 		'label': 'Comment By',
 		'oldfieldname': 'comment_by',
 		'oldfieldtype': 'Data'
@@ -87,7 +92,6 @@
 		'doctype': 'DocField',
 		'fieldname': 'comment_by_fullname',
 		'fieldtype': 'Data',
-		'idx': 3,
 		'label': 'Comment By Fullname',
 		'oldfieldname': 'comment_by_fullname',
 		'oldfieldtype': 'Data'
@@ -96,31 +100,8 @@
 	# DocField
 	{
 		'doctype': 'DocField',
-		'fieldname': 'comment_date',
-		'fieldtype': 'Date',
-		'idx': 4,
-		'label': 'Comment Date',
-		'oldfieldname': 'comment_date',
-		'oldfieldtype': 'Date'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'comment_time',
-		'fieldtype': 'Data',
-		'idx': 5,
-		'label': 'Comment Time',
-		'oldfieldname': 'comment_time',
-		'oldfieldtype': 'Data'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
 		'fieldname': 'comment_doctype',
 		'fieldtype': 'Data',
-		'idx': 6,
 		'label': 'Comment Doctype',
 		'oldfieldname': 'comment_doctype',
 		'oldfieldtype': 'Data'
@@ -131,20 +112,8 @@
 		'doctype': 'DocField',
 		'fieldname': 'comment_docname',
 		'fieldtype': 'Data',
-		'idx': 7,
 		'label': 'Comment Docname',
 		'oldfieldname': 'comment_docname',
-		'oldfieldtype': 'Data'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'post_topic',
-		'fieldtype': 'Data',
-		'idx': 8,
-		'label': 'Post Topic',
-		'oldfieldname': 'post_topic',
 		'oldfieldtype': 'Data'
 	}
 ]
