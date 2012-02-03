@@ -63,7 +63,7 @@ class Database:
 		"""
 		      Connect to a database
 		"""
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password)
+		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, use_unicode=True)
 		self._conn.converter[246]=float
 		self._conn.set_character_set('utf8')		
 		self._cursor = self._conn.cursor()
@@ -124,9 +124,6 @@ class Database:
 		"""
 		# in transaction validations
 		self.check_transaction_status(query)
-		
-		if getattr(defs,'multi_tenant',None):
-			query = self.add_multi_tenant_condition(query)
 			
 		# execute
 		try:
@@ -152,14 +149,7 @@ class Database:
 		else:
 			return self._cursor.fetchall()
 
-	# add condition for tenant id
-	# ======================================================================================
-	def add_multi_tenant_condition(query):
-		import webnotes.multi_tenant
-		return webnotes.multi_tenant.query_parser.add_condition(query)
 		
-	# ======================================================================================
-
 	def get_description(self):
 		"""
 		      Get metadata of the last query
