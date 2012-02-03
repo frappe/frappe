@@ -101,6 +101,9 @@ def run():
 	
 	# patch
 	elif options.patch_list:
+		# clear log
+		webnotes.modules.patch_handler.log_list = []
+		
 		# connect to db
 		if options.db_name is not None:
 			webnotes.connect(options.db_name)
@@ -108,20 +111,22 @@ def run():
 			webnotes.connect()
 	
 		# run individual patches
-		if options.patch_list:
-			for patch in options.patch_list:
-				webnotes.modules.patch_handler.run_single(\
-					patchmodule = patch, force = options.force)
+		for patch in options.patch_list:
+			webnotes.modules.patch_handler.run_single(\
+				patchmodule = patch, force = options.force)
+		
+		print '\n'.join(webnotes.modules.patch_handler.log_list)
 	
 		# reload
-		elif options.reload_doc:
-			webnotes.modules.patch_handler.reload_doc(\
-				{"module":args[0], "dt":args[1], "dn":args[2]})		
+	elif options.reload_doc:
+		webnotes.modules.patch_handler.reload_doc(\
+			{"module":args[0], "dt":args[1], "dn":args[2]})		
+		print '\n'.join(webnotes.modules.patch_handler.log_list)
 
-		# run all pending
-		elif options.run_latest:
-			webnotes.modules.patch_handler.run_all()
+	# run all pending
+	elif options.run_latest:
+		webnotes.modules.patch_handler.run_all()
+		print '\n'.join(webnotes.modules.patch_handler.log_list)
 		
-
 if __name__=='__main__':
 	run()
