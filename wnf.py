@@ -2,18 +2,6 @@
 
 import os, sys
 
-def print_help():
-	print "wnframework version control utility"
-	print
-	print "Usage:"
-	print "python lib/wnf.py build : scan all folders and commit versions with latest changes"
-	print "python lib/wnf.py pull : pull from git"
-	print "python lib/wnf.py replace txt1 txt2 extn"
-	print "python lib/wnf.py patch patch1 .. : run patches from patches module if not executed"
-	print "python lib/wnf.py patch -f patch1 .. : run patches from patches module, force rerun"
-
-"""simple replacement script"""
-
 def replace_code(start, txt1, txt2, extn):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
 	import os, re
@@ -112,7 +100,7 @@ def run():
 	
 	
 	# patch
-	elif options.patch:
+	elif options.patch_list:
 		# connect to db
 		if options.db_name is not None:
 			webnotes.connect(options.db_name)
