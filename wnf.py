@@ -12,11 +12,13 @@ def replace_code(start, txt1, txt2, extn):
 				with open(fpath, 'r') as f:
 					content = f.read()
 				
-				if re.search(txt1, content):				
-					with open(fpath, 'w') as f:
-						f.write(re.sub(txt1, txt2, content))
+				if re.search(txt1, content):
+					a = raw_input('Change in %s [y/n]?' % fpath)
+					if a=='y':
+						with open(fpath, 'w') as f:
+							f.write(re.sub(txt1, txt2, content))
 				
-					print 'updated in %s' % fpath
+						print 'updated in %s' % fpath
 
 def setup_options():
 	from optparse import OptionParser

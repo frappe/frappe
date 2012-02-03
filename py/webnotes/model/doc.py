@@ -323,7 +323,8 @@ class Document:
 			dt = dt[5:]
 		if '\n' in dt:
 			dt = dt.split('\n')[0]
-		tmp = webnotes.conn.sql("""SELECT name FROM `tab%s` WHERE name = %s""" % (dt, '%s'), dn)
+		tmp = webnotes.conn.sql("""SELECT name FROM `tab%s` 
+			WHERE name = %s""" % (dt, '%s'), dn)
 		return tmp and tmp[0][0] or ''# match case
 
 	# Update query
