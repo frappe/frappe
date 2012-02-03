@@ -65,7 +65,7 @@ class Database:
 		"""
 		      Connect to a database
 		"""
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password)
+		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, use_unicode=True)
 		self._conn.set_character_set('utf8')
 
 		self._cursor = self._conn.cursor()
