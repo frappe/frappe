@@ -170,16 +170,16 @@ def now_datetime():
 	return utcnow.astimezone(timezone(user_time_zone))
 
 def now():
-	"""
-		 Returns `time.strftime('%Y-%m-%d %H:%M:%S')`
-	"""
+	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
 	return now_datetime().strftime('%Y-%m-%d %H:%M:%S')
 	
 def nowdate():
-	"""
-		 Returns time.strftime('%Y-%m-%d')
-	"""
+	"""return current date as yyyy-mm-dd"""
 	return now_datetime().strftime('%Y-%m-%d')
+
+def nowtime():
+	"""return current time in hh:mm"""
+	return now_datetime().strftime('%H:%M')
 
 def get_first_day(dt, d_years=0, d_months=0):
 	"""
@@ -247,12 +247,14 @@ def timestamps_equal(t1, t2):
 	return 1
 
 def global_date_format(date):
+	"""returns date as 1 January 2012"""
 	import datetime
 
 	if type(date) in (str, unicode):
 		date = getdate(date)
 	
-	return date.strftime('%d') + ' ' + month_name_full[int(date.strftime('%m'))] + ' ' + date.strftime('%Y')
+	return date.strftime('%d') + ' ' + month_name_full[int(date.strftime('%m'))] \
+		+ ' ' + date.strftime('%Y')
 	
 	
 	

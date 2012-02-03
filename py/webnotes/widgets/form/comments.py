@@ -32,9 +32,11 @@ def add_comment():
 		for arg in ['comment', 'comment_by', 'comment_by_fullname', 'comment_doctype', \
 			'comment_docname']:
 			cmt.fields[arg] = args[arg]
-		cmt.comment_date = nowdate()
-		cmt.comment_time = time.strftime('%H:%M')
 		cmt.save(1)
+
+	import startup.event_handlers
+	if hasattr(startup.event_handlers, 'comment_added'):
+		startup.event_handlers.comment_added(cmt)
   			
 def remove_comment():
 	"""remove a comment"""

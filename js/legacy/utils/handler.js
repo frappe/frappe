@@ -46,7 +46,7 @@ function $c(command, args, fn, on_timeout, no_spinner, freeze_msg, btn) {
 			try { 
 				var r = JSON.parse(rtxt); 
 			} catch(e) { 
-				alert('Handler Exception:' + rtxt);
+				msgprint('Handler Exception:' + rtxt);
 				return; 
 			}
 			// unfreeze

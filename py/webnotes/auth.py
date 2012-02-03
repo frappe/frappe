@@ -139,15 +139,23 @@ class LoginManager:
 		
 		# check the password
 		if user=='Administrator':
-			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s OR `password`=PASSWORD(%s))", (user, pwd, pwd))
+			p = webnotes.conn.sql("""select name, first_name, last_name 
+				from tabProfile where name=%s 
+				and (`password`=%s OR `password`=PASSWORD(%s))""", (user, pwd, pwd), as_dict=1)
 		else:
-			p = webnotes.conn.sql("select name from tabProfile where name=%s and (`password`=%s  OR `password`=PASSWORD(%s)) and IFNULL(enabled,0)=1", (user, pwd, pwd))
+			p = webnotes.conn.sql("""select name, first_name, last_name 
+				from tabProfile where name=%s 
+				and (`password`=%s  OR `password`=PASSWORD(%s)) 
+				and IFNULL(enabled,0)=1""", (user, pwd, pwd), as_dict=1)
 		if not p:
 			webnotes.response['message'] = 'Authentication Failed'
 			raise Exception
 			#webnotes.msgprint('Authentication Failed',raise_exception=1)
 			
-		self.user = p[0][0]
+		p = p[0]
+		self.user = p['name']
+		self.user_fullname = (p.get('first_name') and (p.get('first_name') + ' ') or '') \
+			+ (p.get('last_name') or '')
 	
 	# triggers
 	# --------
