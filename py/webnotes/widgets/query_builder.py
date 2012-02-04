@@ -321,6 +321,9 @@ def runquery_csv():
 	f = StringIO()
 	writer = csv.writer(f)
 	for r in rows:
+		for i in xrange(len(r)):
+			if type(r[i]) is unicode:
+				r[i] = r[i].encode('utf-8')
 		writer.writerow(r)
 
 	f.seek(0)
