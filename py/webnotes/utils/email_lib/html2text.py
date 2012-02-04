@@ -448,7 +448,7 @@ def html2text_file(html, out=wrapwrite, baseurl=''):
 
 def html2text(html, baseurl=''):
     txt = html2text_file(html, None, baseurl)    
-    return optwrap(txt.encode('utf-8'))    
+    return optwrap(txt) #.encode('utf-8'))    
 
 if __name__ == "__main__":
     baseurl = ''
