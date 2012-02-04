@@ -39,7 +39,7 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 	
 	if msg:		
 		if template:			
-			msg = make_html_body(msg, template).encode('utf-8')
+			msg = make_html_body(msg, template)
 		else:
 			# if not html, then lets put some whitespace
 			if (not '<br>' in msg) and (not '<p>' in msg):
