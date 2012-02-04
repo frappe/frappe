@@ -192,9 +192,16 @@ function repl(s, dict) {
 
 ///// dict type
 
-function keys(obj) { var mykeys=[];for (key in obj) mykeys[mykeys.length]=key;return mykeys;}
-function values(obj) { var myvalues=[];for (key in obj) myvalues[myvalues.length]=obj[key];return myvalues;}
-function seval(s) { return eval('var a='+s+';a'); }
+function keys(obj) { 
+	var mykeys=[];
+	for (key in obj) mykeys[mykeys.length]=key;
+	return mykeys;
+}
+function values(obj) { 
+	var myvalues=[];
+	for (key in obj) myvalues[myvalues.length]=obj[key];
+	return myvalues;
+}
 
 function in_list(list, item) {
 	for(var i=0; i<list.length; i++)
@@ -232,8 +239,6 @@ function docstring(obj)  {
 	}
 	return  "{" + l.join(',') + '}';
 }
-
-function ie_refresh(e) { $dh(e); $ds(e); }
 
 function DocLink(p, doctype, name, onload) {
 	var a = $a(p,'span','link_type'); a.innerHTML = a.dn = name; a.dt = doctype;

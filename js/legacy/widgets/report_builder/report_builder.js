@@ -341,7 +341,7 @@ _r.ReportBuilder.prototype.load_criteria = function(criteria_name) {
 
 	// set filters
 	// -----------
-	var fl = eval('var a='+this.sc.filters+';a');
+	var fl = JSON.parse(this.sc.filters);
 	for(var n in fl) {
 		if(fl[n]) {
 			var key = n.split('\1');
