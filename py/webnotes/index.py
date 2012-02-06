@@ -52,11 +52,6 @@ def get():
 		import json
 
 		bootinfo = webnotes.session_cache.get()
-		
-		# is this needed?
-		home_content = bootinfo['home_page_html']
-		del bootinfo['home_page_html']
-
 		bootinfo = """var wn = {}; wn.boot = %s;""" % json.dumps(bootinfo)
 
 		return template.render(bootinfo = bootinfo, \

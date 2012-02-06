@@ -60,8 +60,9 @@ def get_home_page(bootinfo, doclist):
 		import webnotes.widgets.page
 		page_doclist = webnotes.widgets.page.get(home_page)
 		doclist += webnotes.widgets.page.get(home_page)
+		bootinfo['home_page_html'] = page_doclist[0].content
+
 	bootinfo['home_page'] = home_page or ''
-	bootinfo['home_page_html'] = page_doclist[0].content
 
 def get_dt_labels():
 	import webnotes
