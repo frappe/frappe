@@ -800,10 +800,6 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	var viewname = docname;
 	if(this.meta.issingle) viewname = this.doctype;
 
-	var iconsrc = 'page.gif';
-	if(this.meta.smallicon) 
-		iconsrc = this.meta.smallicon;
-
 	// Client Script
 	this.runclientscript('onload', this.doctype, this.docname);
 	
