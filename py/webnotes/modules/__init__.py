@@ -65,6 +65,13 @@ def reload_doc(module, dt, dn):
 	"""
 	Module(module).reload(dt, dn)
 
+def export_doc(doctype, name):
+	"""write out a doc"""
+	from webnotes.modules.export_module import write_document_file
+	module = webnotes.conn.get_value(doctype, name, 'module')
+	doclist = [d.fields for d in webnotes.model.doc.get(doctype, name)]
+	write_document_file(doclist, module)
+
 
 class ModuleManager:
 	"""
