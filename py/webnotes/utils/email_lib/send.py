@@ -19,7 +19,7 @@ class EMail:
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
-		if type(recipients)==str:
+		if isinstance(recipients, basestring):
 			recipients = recipients.replace(';', ',')
 			recipients = recipients.split(',')
 			
