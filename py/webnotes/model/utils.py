@@ -148,7 +148,7 @@ def _make_html(doc, link_list):
 			# link field
 			if v and (k in link_list.keys()):
 				dt = link_list[k]
-				if type(dt)==str and dt.startswith('link:'):
+				if isinstance(dt, basestring) and dt.startswith('link:'):
 					dt = dt[5:]
 				v = '<a href="index.cgi?page=Form/%s/%s">%s</a>' % (dt, v, v)
 

@@ -100,7 +100,7 @@ class POP3Mailbox:
 			use_ssl, host, username, password
 			(by name or object)
 		"""
-		if type(settings_doc)==str:
+		if isinstance(settings_doc, basestring):
 			from webnotes.model.doc import Document
 			self.settings = Document(settings_doc, settings_doc)
 		else:

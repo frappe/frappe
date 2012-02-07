@@ -66,7 +66,7 @@ def db_exists(dt, dn):
 
 def load_json(arg):
 	# already a dictionary?
-	if type(arg) not in (str, unicode):
+	if not isinstance(arg, basestring):
 		return arg
 	
 	import json
@@ -246,7 +246,7 @@ def global_date_format(date):
 	"""returns date as 1 January 2012"""
 	import datetime
 
-	if type(date) in (str, unicode):
+	if isinstance(date, basestring):
 		date = getdate(date)
 	
 	return date.strftime('%d') + ' ' + month_name_full[int(date.strftime('%m'))] \
@@ -277,7 +277,7 @@ def flt(s):
 	"""
 	Convert to float (ignore commas)
 	"""
-	if type(s)==str: # if string
+	if isinstance(s, basestring): # if string
 		s = s.replace(',','')
 	try: tmp = float(s)
 	except: tmp = 0
@@ -295,7 +295,7 @@ def cstr(s):
 	"""	
 	Convert to string
 	"""
-	if type(s) in (str, unicode):
+	if isinstance(s, basestring):
 		return s
 	elif s==None: 
 		return ''
