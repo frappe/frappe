@@ -704,7 +704,7 @@ if(!frms[doctype])
 _f.add_frm(doctype,show_doc);else
 show_doc(frms[doctype]);}
 show_form();}
-var newdoc=new_doc;var pscript={};var cur_page;function loadpage(page_name,call_back,no_history){if(page_name=='_home')
+var newdoc=new_doc;var pscript={};var cur_page;function loadpage(page_name,call_back,no_history){if(!page_name)return;if(page_name=='_home')
 page_name=home_page;var fn=function(r,rt){page_body.set_status('Done');if(page_body.pages[page_name]){var p=page_body.pages[page_name]
 page_body.change_to(page_name);}else{var p=render_page(page_name);if(!p)return;}
 cur_page=page_name;if(call_back)call_back();scroll(0,0);pscript.update_page_history(page_name,no_history)

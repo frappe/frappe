@@ -181,6 +181,7 @@ var newdoc = new_doc;
 var pscript={};
 var cur_page;
 function loadpage(page_name, call_back, no_history) {
+	if(!page_name) return;
 	if(page_name=='_home')
 		page_name = home_page;
 	var fn = function(r,rt) {
