@@ -26,6 +26,7 @@ h6 {
   font-weight: bold;
   color: #333333;
   text-rendering: optimizelegibility;
+  margin-bottom: 0.3em;
 }
 h1 small,
 h2 small,
