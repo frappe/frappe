@@ -329,7 +329,8 @@ class CSVImport:
 	# --------------------------------------------------------------------
 	def import_csv(self, csv_data, import_date_format = 'yyyy-mm-dd', overwrite = 0):
 		import csv
-		self.validate_success, self.csv_data = 1, self.convert_csv_data_into_list(csv.reader(csv_data.splitlines()))
+		self.validate_success = 1
+		self.csv_data = self.convert_csv_data_into_list(csv.reader(csv_data.splitlines()))
 		self.import_date_format, self.overwrite = import_date_format, overwrite
 		if len(self.csv_data) > 4:
 			
@@ -345,12 +346,12 @@ class CSVImport:
 				self.validate_data()
 		else:
 			self.msg.append('<p><b>No data entered in file.</b></p>')
-		return '\n'.join(self.msg)
+		return '\n'.join([m.encode('utf-8') for m in self.msg])
 
 	def convert_csv_data_into_list(self,csv_data):
 		st_list = []
 		for s in csv_data:
-			st_list.append([d.strip() for d in s])
+			st_list.append([unicode(d, 'utf-8').strip() for d in s])
 		return st_list
 
 # Get Template method
