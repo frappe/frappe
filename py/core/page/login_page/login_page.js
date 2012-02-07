@@ -1,7 +1,6 @@
 pscript['onload_Login Page'] = function(){
 	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');
-	$bg(document.getElementsByTagName('body')[0], '#DDD');
 	
 	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin);
 	$(pscript.login_btn).addClass('primary');
