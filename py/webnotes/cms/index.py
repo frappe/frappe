@@ -63,16 +63,15 @@ def html_snapshot(page):
 	from webnotes.widgets.page import get_page_html	
 	from webnotes.model.doc import Document
 
-	doc = Document('Top Bar Settings', 'Top Bar Settings')
+	doc = Document('Website Settings', 'Website Settings')
 	doc.content = get_page_html(page)
 	doc.header_menu = doc.footer_menu = ''
 	doc.page_name = page
 	
-	for m in webnotes.conn.sql("""select parentfield, label, std_page, custom_page
+	for m in webnotes.conn.sql("""select parentfield, label, url, custom_page
 		from `tabTop Bar Item` where parent='Top Bar Settings' order by idx""", as_dict=1):
 	
-		if m['custom_page']:
-			m['std_page'] = m['custom_page']
+		m['std_page'] = m.get('url') or m('custom_page')
 
 		if m['parentfield']=='top_bar_items':				
 			doc.header_menu += '<li><a href="index.cgi#!%(std_page)s">%(label)s</a></li>' % m
