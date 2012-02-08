@@ -22,6 +22,17 @@ def getCSVelement(v):
 		return '"'+v+'"'
 	else: return v or ''
 
+def get_full_name(profile):
+	"""get the full name (first name + last name) of the user from Profile"""
+	p = webnotes.conn.sql("""select first_name, last_name from tabProfile
+		where name=%s""", profile, as_dict=1)
+	if p:
+		p = p[0]
+		full_name = (p['first_name'] and (p['first_name'] + ' ') or '') + (p['last_name'] or '')
+		return full_name or profile
+	else:
+		return profile
+		
 def extract_email_id(s):
 	"""
 		Extract email id from email header format

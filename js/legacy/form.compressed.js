@@ -70,7 +70,7 @@ this.setup_footer();if(!(this.meta.istable||user=='Guest'))this.frm_head=new _f.
 this.layout.wrapper.style.backgroundColor='#'+this.meta.colour.split(':')[1];this.setup_fields_std();if(this.meta.description)
 this.add_description();}
 _f.Frm.prototype.add_description=function(){if(!wn.md2html){wn.require('lib/js/lib/showdown.js');wn.md2html=new Showdown.converter();}
-this.description_wrapper=$a(this.page_layout.footer.help_area,'div','info-box round',{},wn.md2html.makeHtml('#### Help\n\n'+this.meta.description));}
+this.description_wrapper=$a(this.page_layout.footer.help_area,'div','info-box',{marginTop:'10px'},wn.md2html.makeHtml('#### Help\n\n'+this.meta.description));}
 _f.Frm.prototype.setup_print=function(){var fl=getchildren('DocFormat',this.meta.name,'formats','DocType');var l=[];this.default_format='Standard';if(fl.length){this.default_format=fl[0].format;for(var i=0;i<fl.length;i++)
 l.push(fl[i].format);}
 if(this.meta.default_print_format)

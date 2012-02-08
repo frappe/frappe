@@ -20,16 +20,13 @@ div.notice {
 /** help **/
 
 .info-box {
-	background-color:#f4f4f9;
-	line-height: 1.6em;
-	color: #333;
-	padding: 11px 11px 2px 11px;
-	margin: 11px 0px;
-	border: 1px solid #ddd;	
-	
-	-webkit-border-radius: 5px;
-	-moz-border-radius: 5px;
-	border-radius: 5px;	
+    background-color: #F8F8F8;
+    border: 1px solid #CCCCCC;
+    border-radius: 3px 3px 3px 3px;
+    line-height: 1.6em;
+    overflow: auto;
+    padding: 6px 10px;
+	margin-bottom: 9px;
 }
 
 .help_box, .help-box {
