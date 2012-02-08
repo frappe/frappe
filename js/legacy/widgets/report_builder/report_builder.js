@@ -205,7 +205,7 @@ _r.ReportBuilder.prototype.save_criteria = function(save_as) {
 	}
 	
 	doc.columns = cl.join(',');
-	doc.filters = docstring(fl);
+	doc.filters = JSON.stringify(fl);
 	
 	// sort by and sort order
 	doc.sort_by = sel_val(this.dt.sort_sel);
@@ -341,7 +341,11 @@ _r.ReportBuilder.prototype.load_criteria = function(criteria_name) {
 
 	// set filters
 	// -----------
-	var fl = JSON.parse(this.sc.filters);
+	try {
+		var fl = JSON.parse(this.sc.filters);		
+	} catch(e) {
+		eval('var fl = ' + this.sc.filters);
+	}
 	for(var n in fl) {
 		if(fl[n]) {
 			var key = n.split('\1');

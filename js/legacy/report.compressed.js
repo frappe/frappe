@@ -19,7 +19,7 @@ if(!overwrite){var criteria_name=prompt('Select a name for the criteria:','');if
 return;var dn=createLocal('Search Criteria');var doc=locals['Search Criteria'][dn];doc.criteria_name=criteria_name;doc.doc_type=this.doctype;}
 var cl=[];var fl={};var t=this.column_picker.get_selected();for(var i=0;i<t.length;i++)
 cl.push(t[i].parent+'\1'+t[i].label);for(var i=0;i<this.filter_fields.length;i++){var t=this.filter_fields[i];var v=t.get_value?t.get_value():'';if(v)fl[t.df.parent+'\1'+t.df.label+(t.bound?('\1'+t.bound):'')]=v;}
-doc.columns=cl.join(',');doc.filters=docstring(fl);doc.sort_by=sel_val(this.dt.sort_sel);doc.sort_order=this.dt.sort_order;doc.page_len=this.dt.page_len;if(this.parent_dt)
+doc.columns=cl.join(',');doc.filters=JSON.stringify(fl);doc.sort_by=sel_val(this.dt.sort_sel);doc.sort_order=this.dt.sort_order;doc.page_len=this.dt.page_len;if(this.parent_dt)
 doc.parent_doc_type=this.parent_dt
 var me=this;var fn=function(r){me.sc_dict[criteria_name]=r.main_doc_name;me.set_criteria_sel(criteria_name);}
 save_doclist(doc.doctype,doc.name,'Save',fn);}
@@ -35,7 +35,8 @@ this.filter_fields_dict[dt+'\1'+label].set_input(value);}
 _r.ReportBuilder.prototype.load_criteria=function(criteria_name){this.clear_criteria();if(!this.sc_dict[criteria_name]){alert(criteria_name+' could not be loaded. Please Refresh and try again');}
 this.sc=locals['Search Criteria'][this.sc_dict[criteria_name]];var report=this;if(this.sc&&this.sc.report_script)eval(this.sc.report_script);this.large_report=0;if(report.customize_filters){try{report.customize_filters(this);}catch(err){errprint('Error in "customize_filters":\n'+err);}}
 this.report_filters.refresh();this.column_picker.clear();var cl=this.sc.columns?this.sc.columns.split(','):[];for(var c=0;c<cl.length;c++){var key=cl[c].split('\1');this.select_column(key[0],key[1],1);}
-var fl=JSON.parse(this.sc.filters);for(var n in fl){if(fl[n]){var key=n.split('\1');if(key[1]=='docstatus'){}
+try{var fl=JSON.parse(this.sc.filters);}catch(e){eval('var fl = '+this.sc.filters);}
+for(var n in fl){if(fl[n]){var key=n.split('\1');if(key[1]=='docstatus'){}
 this.set_filter(key[0],key[1],fl[n]);}}
 this.set_criteria_sel(criteria_name);}
 _r.ReportBuilder.prototype.set_criteria_sel=function(criteria_name){var sc=locals['Search Criteria'][this.sc_dict[criteria_name]];if(sc&&sc.add_col)
