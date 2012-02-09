@@ -11,6 +11,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		if(in_list(user_roles, 'Administrator'))
 			this.make_options();
 		this.make_tools();
+		this.set_user_name();
 		this.make_logout();
 		
 		$('.topbar').dropdown();
@@ -27,7 +28,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<img src="lib/images/ui/spinner.gif" id="spinner"/>\
 				<ul class="nav secondary-nav">\
 					<li class="dropdown">\
-						<a class="dropdown-toggle" href="#" onclick="return false;"></a>\
+						<a class="dropdown-toggle" href="#" onclick="return false;" id="toolbar-user-link"></a>\
 						<ul class="dropdown-menu" id="toolbar-user">\
 						</ul>\
 					</li>\
@@ -87,11 +88,14 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				}));		
 		}
 	},
-	make_logout: function() {
+
+	set_user_name: function() {
 		var fn = user_fullname;
 		if(fn.length > 15) fn = fn.substr(0,12) + '...';
-		$('.topbar .nav.secondary-nav a.dropdown-toggle').html(fn);
-		
+		$('#toolbar-user-link').html(fn);
+	},
+
+	make_logout: function() {
 		// logout
 		$('#toolbar-user').append('<li><a href="#" onclick="return logout();">Logout</a></li>');
 	}
