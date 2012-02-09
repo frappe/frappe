@@ -46,10 +46,10 @@ class Installer:
 			(name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)""")
 
 		self.dbman.drop_table('__SessionCache')
-		webnotes.conn.sq.("""create table `__SessionCache` 
+		webnotes.conn.sql("""create table `__SessionCache` 
 			(user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)""")
 
-		create_sessions_table()
+		self.create_sessions_table()
 
 		# set the basic passwords
 		webnotes.conn.begin()
@@ -57,6 +57,8 @@ class Installer:
 		webnotes.conn.commit()
 
 	def create_sessions_table(self):
+		"""create sessions table"""
+		import webnotes
 		self.dbman.drop_table('tabSessions')
 		webnotes.conn.sql("""CREATE TABLE `tabSessions` (
 		  `user` varchar(40) DEFAULT NULL,

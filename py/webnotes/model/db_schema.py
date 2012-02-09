@@ -254,15 +254,6 @@ class DbManager:
 		Get variables that match the passed pattern regex
 		"""
 		return list(self.conn.sql("SHOW VARIABLES LIKE '%s'"%regex))
-
-
-	def drop_all_databases(self):
-		"""
-		Danger: will delete all databases except test,mysql.
-		"""
-		db_list = self.get_database_list()
-		for db in db_list:
-			self.drop_database(db)
 			
 	def get_table_schema(self,table):
 		"""
@@ -271,20 +262,12 @@ class DbManager:
 		return list(self.conn.sql("DESC %s"%table))
 		
 			
-	def get_tables_list(self,target):	
-		"""
-		
-		"""
-		try:
+	def get_tables_list(self,target=None):
+		"""get list of tables"""
+		if target:
 			self.conn.use(target)
-			res = self.conn.sql("SHOW TABLES;")
-			table_list = []
-			for table in res:
-				table_list.append(table[0])
-			return table_list
-
-		except Exception,e:
-			raise e
+		
+		return [t[0] for t in self.conn.sql("SHOW TABLES")]
 
 	def create_user(self,user,password):
 		#Create user if it doesn't exist.
@@ -308,12 +291,10 @@ class DbManager:
 				raise e
 
 	def create_database(self,target):
-		
-		try:
-			self.conn.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
-		except Exception,e:
-			raise e
+		if target in self.get_database_list():
+			self.drop_database(target)
 
+		self.conn.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % target)
 
 	def drop_database(self,target):
 		try:
@@ -344,15 +325,8 @@ class DbManager:
 
 
 	def get_database_list(self):
-		try:
-			db_list = []
-			ret_db_list = self.conn.sql("SHOW DATABASES")
-			for db in ret_db_list:
-				if db[0] not in ['information_schema', 'mysql', 'test', 'accounts']:
-					db_list.append(db[0])
-			return db_list
-		except Exception,e:
-			raise e
+		"""get list of databases"""
+		return [d[0] for d in self.conn.sql("SHOW DATABASES")]
 
 	def restore_database(self,target,source,root_password):
 		import webnotes.defs
@@ -368,6 +342,9 @@ class DbManager:
 			raise e
 
 	def drop_table(self,table_name):
+		"""drop table if exists"""
+		if not table_name in self.get_tables_list():
+			return
 		try:
 			self.conn.sql("DROP TABLE IF EXISTS %s "%(table_name))
 		except Exception,e:
