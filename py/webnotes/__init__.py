@@ -87,11 +87,34 @@ def create_folder(path):
 	
 	try:
 		os.makedirs(path)
-	except Exception, e:
-		if e.args[0]==17: 
-			pass
-		else: 
+	except OSError, e:
+		if e.args[0]!=17: 
 			raise e
+
+def create_symlink(source_path, link_path):
+	"""
+	Wrapper function for os.symlink (does not throw exception if directory exists)
+	"""
+	import os
+	
+	try:
+		os.symlink(source_path, link_path)
+	except OSError, e:
+		if e.args[0]!=17: 
+			raise e
+
+def remove_file(path):
+	"""
+	Wrapper function for os.remove (does not throw exception if file/symlink does not exists)
+	"""
+	import os
+	
+	try:
+		os.remove(path)
+	except OSError, e:
+		if e.args[0]!=2: 
+			raise e
+
 
 def connect(db_name=None):
 	"""
