@@ -109,7 +109,7 @@ def get(name):
 	"""
 	return Page(name).load()
 
-@webnotes.whitelist()
+@webnotes.whitelist(allow_guest=True)
 def getpage():
 	"""
 	   Load the page from `webnotes.form` and send it via `webnotes.response`
