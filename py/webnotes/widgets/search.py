@@ -2,6 +2,7 @@
 import webnotes
 
 # this is called when a new doctype is setup for search - to set the filters
+@webnotes.whitelist()
 def getsearchfields():
 	sf = webnotes.conn.sql("""\
 		SELECT value FROM `tabProperty Setter`
@@ -72,6 +73,7 @@ def scrub_custom_query(query, key, txt):
 	return query
 
 # this is called by the Link Field
+@webnotes.whitelist()
 def search_link():
 	import webnotes.widgets.query_builder
 
@@ -89,6 +91,7 @@ def search_link():
 	webnotes.response['results'] = build_for_autosuggest(res)
 
 # this is called by the search box
+@webnotes.whitelist()
 def search_widget():
 	import webnotes.widgets.query_builder
 

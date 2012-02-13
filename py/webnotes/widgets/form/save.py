@@ -1,4 +1,6 @@
 import webnotes
+
+@webnotes.whitelist()
 def savedocs():
 	"""save / submit / cancel / update doclist"""
 	try:

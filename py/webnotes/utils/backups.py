@@ -115,7 +115,7 @@ class BackupGenerator:
 		
 		return recipient_list
 		
-#-------------------------------------------------------------------------------
+@webnotes.whitelist()
 def get_backup():
 	"""
 		This function is executed when the user clicks on 

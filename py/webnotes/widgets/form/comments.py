@@ -1,5 +1,6 @@
 import webnotes
 
+@webnotes.whitelist()
 def get_comments(doctype=None, docname=None, limit=5):
 	"""load last 5 comments"""
 	nc, cl = 0, []
@@ -18,7 +19,7 @@ def get_comments(doctype=None, docname=None, limit=5):
 
 		webnotes.response['n_comments'], webnotes.response['comment_list'] = nc, cl
 
-	
+@webnotes.whitelist()
 def add_comment():
 	"""add a new comment"""
 	import time
@@ -37,7 +38,8 @@ def add_comment():
 	import startup.event_handlers
 	if hasattr(startup.event_handlers, 'comment_added'):
 		startup.event_handlers.comment_added(cmt)
-  			
+
+@webnotes.whitelist()
 def remove_comment():
 	"""remove a comment"""
 	args = webnotes.form_dict

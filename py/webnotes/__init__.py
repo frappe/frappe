@@ -142,6 +142,7 @@ remote_ip = get_env_vars('REMOTE_ADDR')		#Required for login from python shell
 logger = None
 	
 def get_db_password(db_name):
+	"""get db password from defs"""
 	import defs
 	
 	if hasattr(defs, 'get_db_password'):
@@ -152,3 +153,24 @@ def get_db_password(db_name):
 		
 	else:
 		return db_name
+
+
+whitelisted = []
+guest_methods = []
+def whitelist(allow_guest=False):
+	"""
+	decorator for whitelisting a function
+	
+	Note: if the function is allowed to be accessed by a guest user,
+	it must explicitly be marked as allow_guest=True
+	"""
+	def innerfn(fn):
+		global whitelisted, guest_methods
+		whitelisted.append(fn)
+
+		if allow_guest:
+			guest_methods.append(fn)
+
+		return fn
+
+	return innerfn

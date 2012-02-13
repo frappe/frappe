@@ -1,5 +1,7 @@
 """
 Server side methods called from DocBrowser
+
+Needs to be refactored
 """
 
 import webnotes
@@ -7,6 +9,7 @@ from webnotes.utils import cint, cstr
 
 sql = webnotes.conn.sql
 
+@webnotes.whitelist()
 def get_menu_items():
 	"""
 	   Returns a list of items to show in `Options` of the Web Notes Toolbar
@@ -39,9 +42,11 @@ def get_menu_items():
 		
 	return menuitems
 	
-# --------------------------------------------------------------
+@webnotes.whitelist()
 def has_result():
-	return sql("select name from `tab%s` limit 1" % webnotes.form_dict.get('dt')) and 'Yes' or 'No'
+	"""return Yes if the given dt has any records"""
+	return sql("select name from `tab%s` limit 1" % \
+		webnotes.form_dict.get('dt')) and 'Yes' or 'No'
 
 # --------------------------------------------------------------
 
@@ -91,6 +96,7 @@ def get_columns(out, sf, fl, dt, tag_fields):
 # NOTE: THIS SHOULD BE CACHED IN DOCTYPE CACHE
 # --------------------------------------------------------------
 
+@webnotes.whitelist()
 def get_dt_details():
 	"""
 		Returns details called by DocBrowser this includes:
@@ -148,19 +154,14 @@ def get_dt_details():
 	return out
 
 
-# --------------------------------------------------------------
-
+@webnotes.whitelist()
 def get_trend():
 	return {'trend': get_dt_trend(webnotes.form_dict.get('dt'))}
 
 
-
-
-
-#
-# delete and archive in docbrowser
-#
+@webnotes.whitelist()
 def delete_items():
+	"""delete selected items"""
 	il = eval(webnotes.form_dict.get('items'))
 	from webnotes.model import delete_doc
 	from webnotes.model.code import get_obj
@@ -171,9 +172,9 @@ def delete_items():
 			dt_obj.on_trash()
 		delete_doc(d[0], d[1])
 
-# --------------------------------------------------------------
-
+@webnotes.whitelist()
 def archive_items():
+	"""archinve selected items"""
 	il = eval(webnotes.form_dict.get('items'))
 	
 	from webnotes.utils.archive import archive_doc

@@ -1,9 +1,8 @@
+import webnotes
 
-# remove attachment
-#===========================================================================================
-
+@webnotes.whitelist()
 def remove_attach():
-	import webnotes
+	"""remove attachment"""
 	import webnotes.utils.file_manager
 	
 	fid = webnotes.form.getvalue('fid')
@@ -12,10 +11,9 @@ def remove_attach():
 	# remove from dt dn
 	return str(webnotes.utils.file_manager.remove_file_list(webnotes.form.getvalue('dt'), webnotes.form.getvalue('dn'), fid))
 
-# Get Fields - Counterpart to $c_get_fields
-#===========================================================================================
+@webnotes.whitelist()
 def get_fields():
-	import webnotes
+	"""get fields"""
 	r = {}
 	args = {
 		'select':webnotes.form.getvalue('select')
@@ -29,9 +27,9 @@ def get_fields():
 			r[f], i = ret[0][i], i+1
 	webnotes.response['message']=r
 
-# validate link
-#===========================================================================================
+@webnotes.whitelist()
 def validate_link():
+	"""validate link when updated by user"""
 	import webnotes
 	import webnotes.utils
 	
@@ -46,6 +44,8 @@ def validate_link():
 	
 		# get fetch values
 		if fetch:
-			webnotes.response['fetch_values'] = [webnotes.utils.parse_val(c) for c in webnotes.conn.sql("select %s from `tab%s` where name=%s" % (fetch, options, '%s'), value)[0]]
+			webnotes.response['fetch_values'] = [webnotes.utils.parse_val(c) \
+				for c in webnotes.conn.sql("select %s from `tab%s` where name=%s" \
+					% (fetch, options, '%s'), value)[0]]
 	
 		webnotes.response['message'] = 'Ok'

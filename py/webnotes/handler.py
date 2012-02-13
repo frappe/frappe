@@ -15,9 +15,7 @@ errmethod = ''
 
 # Logs
 
-# refresh / start page
-# ------------------------------------------------------------------------------------
-
+@webnotes.whitelist(allow_guest=True)
 def startup():
 	import webnotes
 	import webnotes.session_cache
@@ -32,10 +30,12 @@ def cleanup_docs():
 # server calls
 # ------------------------------------------------------------------------------------
 
+@webnotes.whitelist()
 def runserverobj(arg=None):
 	import webnotes.widgets.form.run_method
 	webnotes.widgets.form.run_method.runserverobj()
 
+@webnotes.whitelist()
 def logout():
 	webnotes.login_manager.logout()
 
@@ -43,6 +43,7 @@ def logout():
 # DocType Mapper
 # ------------------------------------------------------------------------------------
 
+@webnotes.whitelist()
 def dt_map():
 	import webnotes
 	import webnotes.model.utils
@@ -65,6 +66,7 @@ def dt_map():
 # Load Month Events
 # ------------------------------------------------------------------------------------
 
+@webnotes.whitelist()
 def load_month_events():
 	import webnotes
 	form = webnotes.form
@@ -80,6 +82,7 @@ def load_month_events():
 # Data import
 # ------------------------------------------------------------------------------------
 
+@webnotes.whitelist()
 def import_csv():
 	import webnotes.model.import_docs
 	form = webnotes.form
@@ -92,6 +95,7 @@ def import_csv():
 	rhead = '''<style>body, html {font-family: Arial; font-size: 12px;}</style>'''
 	webnotes.response['result']= rhead + r
 
+@webnotes.whitelist()
 def get_template():
 	import webnotes.model.import_docs
 	webnotes.model.import_docs.get_template()
@@ -100,6 +104,7 @@ def get_template():
 # File Upload
 # ------------------------------------------------------------------------------------
 
+@webnotes.whitelist()
 def uploadfile():
 	import webnotes.utils.file_manager
 	if webnotes.form_dict.get('from_form'):
@@ -127,6 +132,7 @@ def uploadfile():
 # File upload (from scripts)
 # ------------------------------------------------------------------------------------
 
+@webnotes.whitelist()
 def upload_many():
 	from webnotes.model.code import get_obj
 
@@ -143,8 +149,7 @@ def upload_many():
 	webnotes.response['type'] = 'iframe'
 
 
-# File download
-# ------------------------------------------------------------------------------------
+@webnotes.whitelist()
 def get_file():
 	import webnotes
 	import webnotes.utils.file_manager
@@ -162,6 +167,7 @@ def get_file():
 	else:
 		webnotes.msgprint('[get_file] Unknown file name')
 
+@webnotes.whitelist(allow_guest=True)
 def reset_password():
 	form_dict = webnotes.form_dict
 	from webnotes.model.code import get_obj
@@ -198,6 +204,16 @@ def execute_cmd(cmd):
 	validate_cmd(cmd)
 	method = get_method(cmd)
 
+	# check if whitelisted
+	if webnotes.session['user'] == 'Guest':
+		if (method not in webnotes.guest_methods):
+			webnotes.msgprint('Not Allowed, %s' % str(method))
+			raise Exception, 'Not Allowed, %s' % str(method)
+	else:
+		if not method in webnotes.whitelisted:
+			webnotes.msgprint('Not Allowed, %s' % str(method))
+			raise Exception, 'Not Allowed, %s' % str(method)
+		
 	if not webnotes.conn.in_transaction:
 		webnotes.conn.begin()
 

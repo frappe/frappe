@@ -102,12 +102,14 @@ class Page:
 		else:
 			return []
 
+@webnotes.whitelist()
 def get(name):
 	"""
 	   Return the :term:`doclist` of the `Page` specified by `name`
 	"""
 	return Page(name).load()
 
+@webnotes.whitelist()
 def getpage():
 	"""
 	   Load the page from `webnotes.form` and send it via `webnotes.response`
@@ -118,6 +120,7 @@ def getpage():
 	webnotes.response['docs'] = doclist
 
 def get_page_path(page_name, module):
+	"""get path of the page html file"""
 	import os
 	import webnotes.defs
 	from webnotes.modules import scrub
@@ -125,7 +128,7 @@ def get_page_path(page_name, module):
 		'page', scrub(page_name), scrub(page_name) + '.html')
 	
 def get_page_html(page_name):
-	"""get html of page"""
+	"""get html of page, called from webnotes.cms.index"""
 	p = webnotes.conn.sql("""select module, content from tabPage where name=%s""", \
 		page_name, as_dict=1)
 
