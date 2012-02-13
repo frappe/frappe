@@ -6,6 +6,7 @@ permission, homepage, control panel variables, system defaults etc
 """
 import webnotes
 
+@webnotes.whitelist()
 def clear():
 	"""clear all cache"""
 	clear_cache()

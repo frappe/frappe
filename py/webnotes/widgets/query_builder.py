@@ -204,6 +204,7 @@ def build_description_standard(meta, tl):
 # Entry Point - Run the query
 # ====================================================================
 
+@webnotes.whitelist(allow_guest=True)
 def runquery(q='', ret=0, from_export=0):
 	import webnotes.utils
 
@@ -283,9 +284,8 @@ def runquery(q='', ret=0, from_export=0):
 
 		out['n_values'] = webnotes.utils.cint(sql(qm)[0][0])
 
-# Export to CSV
-# ====================================================================
 
+@webnotes.whitelist()
 def runquery_csv():
 	global out
 

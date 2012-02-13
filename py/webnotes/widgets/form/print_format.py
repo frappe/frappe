@@ -1,5 +1,6 @@
 import webnotes
 
+@webnotes.whitelist()
 def get():
 	"""load print format by `name`"""
 	import re

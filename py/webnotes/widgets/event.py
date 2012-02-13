@@ -1,8 +1,9 @@
 # Event
 # -------------
+import webnotes
 
+@webnotes.whitelist()
 def get_cal_events(m_st, m_end):
-	import webnotes
 	import webnotes.model.doc
 	
 	sql = webnotes.conn.sql
@@ -34,8 +35,8 @@ def get_cal_events(m_st, m_end):
 # Load Month Events
 # -----------------
 
+@webnotes.whitelist()
 def load_month_events():
-	import webnotes
 	from webnotes.utils import cint
 	
 	form = webnotes.form

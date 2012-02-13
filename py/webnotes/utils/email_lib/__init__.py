@@ -72,7 +72,7 @@ def get_footer():
 	footer += (webnotes.conn.get_global('global_mail_footer') or '')
 	return footer
 
-
+@webnotes.whitelist()
 def send_form():
 	"""
 		Emails a print format (form)
@@ -82,12 +82,11 @@ def send_form():
 	from webnotes.utils.email_lib.form_email import FormEmail
 	FormEmail().send()
 
-
+@webnotes.whitelist()
 def get_contact_list():
 	"""
 		Returns contacts (from autosuggest)
 	"""
-	import webnotes
 
 	cond = ['`%s` like "%s%%"' % (f, webnotes.form.getvalue('txt')) for f in webnotes.form.getvalue('where').split(',')]
 	cl = webnotes.conn.sql("select `%s` from `tab%s` where %s" % (

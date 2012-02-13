@@ -20,6 +20,9 @@ Design:
 
 """
 
+import webnotes
+from webnotes.utils import cint, cstr, load_json
+
 
 def check_user_tags(dt):
 	"if the user does not have a tags column, then it creates one"
@@ -33,6 +36,7 @@ def check_user_tags(dt):
 #
 # Add a new tag
 #
+@webnotes.whitelist()
 def add_tag():
 	"adds a new tag to a record, and creates the Tag master"
 	
@@ -47,6 +51,7 @@ def add_tag():
 #
 # remove tag
 #
+@webnotes.whitelist()
 def remove_tag():
 	"removes tag from the record"
 	f = webnotes.form_dict
@@ -55,9 +60,6 @@ def remove_tag():
 	DocTags(dt).remove(dn, tag)
 
 
-
-import webnotes
-from webnotes.utils import cint, cstr, load_json
 		
 class DocTags:
 	"""Tags for a particular doctype"""
@@ -221,7 +223,6 @@ class TagCounter:
 
 
 
-
 def get_top_field_tags(dt):
 	from webnotes.model.doctype import get_property
 	tf = get_property(dt, 'tag_fields')
@@ -250,6 +251,7 @@ def get_top_field_tags(dt):
 # returns the top ranked 10 tags for the
 # doctype. 
 # merges the top tags from fields and user tags
+@webnotes.whitelist()
 def get_top_tags(args=''):
 	"returns the top 10 tags for the doctype from fields (7) and users (3)"
 	tl = None

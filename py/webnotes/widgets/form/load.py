@@ -1,6 +1,7 @@
 import webnotes
 import webnotes.model.doc
 
+@webnotes.whitelist()
 def getdoc():
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
@@ -33,7 +34,7 @@ def getdoc():
 
 	webnotes.response['docs'] = doclist
 
-
+@webnotes.whitelist()
 def getdoctype():
 	"""load doctype"""
 	import webnotes.model.doctype

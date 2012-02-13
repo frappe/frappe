@@ -516,6 +516,7 @@ def clear_recycle_bin():
 # Send Error Report
 # ==============================================================================
 
+@webnotes.whitelist()
 def send_error_report():
 	sql = webnotes.conn.sql
 	m = ''

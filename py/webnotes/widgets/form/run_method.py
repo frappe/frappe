@@ -1,5 +1,6 @@
 import webnotes
 
+@webnotes.whitelist()
 def runserverobj():
 	"""
 		Run server objects

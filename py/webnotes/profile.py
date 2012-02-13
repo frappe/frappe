@@ -148,6 +148,9 @@ class Profile:
 			and not (dt in child_tables):
 			r = webnotes.conn.sql("select recent_documents from tabProfile where name=%s", \
 				self.name)[0][0] or ''
+
+			if '~~~' in r:
+				r = '[]'
 			
 			rdl = json.loads(r or '[]')
 			new_rd = [dt, dn]
@@ -205,6 +208,7 @@ class Profile:
 		self.roles = d['roles']
 		self.defaults = d['defaults']
 
+@webnotes.whitelist()
 def get_user_img():
 	if not webnotes.form.getvalue('username'):
 		webnotes.response['message'] = 'no_img_m'
