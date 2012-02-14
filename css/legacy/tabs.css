@@ -40,10 +40,7 @@ ul.box_tabs li.box_tab_mouseover {
 }
 
 
-ul.box_tabs li.box_tab_selected {
-/*	background:url("../images/ui/rc/tab-left-CCC.gif") no-repeat left top;
-	background-color: #ABABAB; */
-	
+ul.box_tabs li.box_tab_selected {	
 	background-color: #777;
 	
 	background: -webkit-gradient(linear, left top, left bottom, from(#999), to(#777));
@@ -54,5 +51,5 @@ ul.box_tabs li.box_tab_selected {
 	
 }
 ul.box_tabs li.box_tab_selected a {
-/*	background:url("../images/ui/rc/tab-right-CCC.gif") no-repeat right top; */
+
 }

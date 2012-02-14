@@ -6,8 +6,6 @@ var cur_dialog;
 var top_index=91;
 
 function Dialog(w, h, title, content) {
-	wn.require('lib/js/legacy/widgets/form/fields.js');
-
 	this.make({width:w, title:title});
 
 	if(content)this.make_body(content);

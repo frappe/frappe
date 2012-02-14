@@ -7,7 +7,6 @@ var start_sid = null;
 if(!wn) var wn = {};
 
 function startup() {
-
 	// save the sid (so that we know if it changes mid-session)
 	start_sid = get_cookie('sid');
 	
@@ -34,7 +33,6 @@ function startup() {
 		if(r.ipinfo) session.ipinfo = r.ipinfo;
 		session.dt_labels = r.dt_labels;
 		session.rev_dt_labels = {} // reverse lookup - get doctype by label
-		_tags.color_map = r.tag_color_map;
 		if(r.dt_labels) {
 			for(key in r.dt_labels)session.rev_dt_labels[r.dt_labels[key]] = key;
 		}
@@ -173,16 +171,6 @@ function setup_calendar() {
 }
 
 startup_list.push(setup_calendar);
-
-// ie6 fixed pos fix
-if(isIE6) {
-	var scroll_list = []
-	window.onscroll = function() { 
-		for(var i=0; i<scroll_list.length; i++) {
-			scroll_list[i]();
-		}	
-	}
-}
 
 var resize_observers = []
 function set_resize_observer(fn) {

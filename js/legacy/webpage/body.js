@@ -25,7 +25,7 @@ function Body() {
 	
 	this.ready = function() {
 		$dh('startup_div');
-		$ds('body_div');		
+		$ds('body_div');	
 	}
 	
 	this.setup_page_areas = function() {		
@@ -67,9 +67,8 @@ function Body() {
 	}
 	
 	this.run_startup_code = function() {
+		$(document).trigger('startup');
 		// startup code
-		wn.require(wn.modules_path + '/startup/startup.css');
-		wn.require(wn.modules_path + '/startup/startup.js');
 		try{
 			if(this.cp.custom_startup_code)
 				eval(this.cp.custom_startup_code);
@@ -95,8 +94,6 @@ function Body() {
 		// core areas;
 		if(user=='Guest') user_defaults.hide_webnotes_toolbar = 1;
 		if(!cint(user_defaults.hide_webnotes_toolbar) || user=='Administrator') {
-			wn.provide('wn.ui.toolbar');
-			wn.require('lib/js/wn/ui/toolbar.min.js');
 			this.wntoolbar = new wn.ui.toolbar.Toolbar();
 		}
 		

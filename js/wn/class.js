@@ -17,6 +17,8 @@ To subclass, use:
  */
 // Inspired by base2 and Prototype
 
+; /* otherwise causes a concat bug? */
+
 (function(){
 	var initializing = false, fnTest = /xyz/.test(function(){xyz;}) ? /\b_super\b/ : /.*/;
 	// The base Class implementation (does nothing)

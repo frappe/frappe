@@ -3,7 +3,6 @@
 wn.widgets.FieldGroup = function() {
 	this.first_button = false;
 	this.make_fields = function(body, fl) {
-		wn.require('lib/js/legacy/widgets/form/fields.js');
 		$y(this.body, {padding:'11px'});
 		this.fields_dict = {}; // reset
 		for(var i=0; i<fl.length; i++) {

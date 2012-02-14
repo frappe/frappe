@@ -226,9 +226,6 @@ class LoginManager:
 	# --------------
 	
 	def login_as_guest(self):
-		res = webnotes.conn.sql("select name from tabProfile where name='Guest' and ifnull(enabled,0)=1")
-		if not res:
-			raise Exception, "No Guest Access"
 		self.user = 'Guest'
 		self.post_login()
 
@@ -320,11 +317,22 @@ class Session:
 	
 	# start a session
 	# ---------------
+	def get_session_record(self):
+		"""get session record, or return the standard Guest Record"""
+		r = webnotes.conn.sql("""select user, sessiondata, status from 
+			tabSessions where sid='%s'""" % self.sid)
+		if not r:
+			# return guest record if present
+			self.sid = 'Guest'
+			r = webnotes.conn.sql("""select user, sessiondata, status from 
+				tabSessions where sid='%s'""" % self.sid)
+			
+		return r
+	
 	def load(self):
 		import webnotes
 		
-		r = webnotes.conn.sql("""select user, sessiondata, status from 
-			tabSessions where sid='%s'""" % self.sid)
+		r = self.get_session_record()
 	
 		if r:
 			r=r[0]
@@ -332,14 +340,12 @@ class Session:
 			# ExipredSession
 			if r[2]=='Expired' and (webnotes.form_dict.get('cmd')!='resume_session'):
 				if r[0]=='Guest' or (not webnotes.form_dict.get('cmd')) or webnotes.form_dict.get('cmd')=='logout':
-					webnotes.login_manager.login_as_guest()
-					self.start()
+					self.start_as_guest()
 				else:
 					webnotes.response['session_status'] = 'Session Expired'
 					raise Exception, 'Session Expired'
 			elif r[2]=='Logged Out':
-				webnotes.login_manager.login_as_guest()
-				self.start()
+				self.start_as_guest()
 				# allow refresh or logout
 				if webnotes.form_dict.get('cmd') and webnotes.form_dict.get('cmd')!='logout':
 					webnotes.response['session_status'] = 'Logged Out'
@@ -348,9 +354,12 @@ class Session:
 				self.data = {'data': (r[1] and eval(r[1]) or {}), 
 					'user':r[0], 'sid': self.sid}
 		else:				
-			webnotes.login_manager.login_as_guest()
-			self.start()
-			
+			self.start_as_guest()
+
+	def start_as_guest(self):
+		"""all guests share the same 'Guest' session"""
+		webnotes.login_manager.login_as_guest()
+		self.start()
 
 	# start a session
 	# ---------------
@@ -360,8 +369,13 @@ class Session:
 		import webnotes.utils
 		
 		# generate sid
+		if webnotes.login_manager.user=='Guest':
+			sid = 'Guest'
+		else:
+			sid = webnotes.utils.generate_hash()
+		
 		self.data['user'] = webnotes.login_manager.user
-		self.data['sid'] = webnotes.utils.generate_hash()
+		self.data['sid'] = sid
 		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR');
 		self.data['data']['tenant_id'] = webnotes.form_dict.get('tenant_id', 0)
 
@@ -399,25 +413,29 @@ class Session:
 	# --------------
 	def update(self):
 		# update session
-		webnotes.conn.sql("update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() where sid=%s" , (str(self.data['data']), self.data['user'], self.data['sid']))	
+		if webnotes.session['user'] != 'Guest':
+			webnotes.conn.sql("""update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() 
+				where sid=%s""" , (str(self.data['data']), self.data['user'], self.data['sid']))	
 
-		self.check_expired()
+			self.check_expired()
 
 	# check expired
 	# -------------
 	def check_expired(self):
-		# in control panel?
+		"""expire non-guest sessions"""
 		exp_sec = webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '6:00:00'
 		
 		# set sessions as expired
 		try:
-			webnotes.conn.sql("update from tabSessions where TIMEDIFF(NOW(), lastupdate) > %s SET `status`='Expired'", exp_sec)
+			webnotes.conn.sql("""update tabSessions where TIMEDIFF(NOW(), lastupdate) > 
+				%s and sid!='Guest' SET `status`='Expired'""", exp_sec)
 		except Exception, e:
 			if e.args[0]==1054:
 				self.add_status_column()
 		
 		# clear out old sessions
-		webnotes.conn.sql("delete from tabSessions where TIMEDIFF(NOW(), lastupdate) > '72:00:00'")
+		webnotes.conn.sql("""delete from tabSessions where TIMEDIFF(NOW(), lastupdate) 
+			> '72:00:00' and sid!='Guest'""")
 
 	# Get IP Info from ipinfodb.com
 	# -----------------------------

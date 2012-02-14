@@ -12,4 +12,3 @@ wn.ui.toolbar.Report = wn.ui.toolbar.SelectorDialog.extend({
 	}
 });
 
-wn.ui.toolbar.report = new wn.ui.toolbar.Report();

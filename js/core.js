@@ -1,10 +1,6 @@
 // find files changed since last version
 wn.versions.check();
 
-// load all critical libraries
-wn.require("lib/js/lib/jquery.min.js");
-wn.require("lib/js/lib/history/history.min.js");
-
 /* overload links for ajax pages */
 $(document).bind('ready', function() {
 	var base = window.location.href.split('#')[0];

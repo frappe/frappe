@@ -5,11 +5,7 @@ def build():
 	"""concat / minify js files"""
 	from py.build.bundle import Bundle
 	bundle = Bundle()
-	for wt in os.walk('lib'):
-		for fname in wt[2]:
-			if fname=='build.json':
-				bundle.make(os.path.join(wt[0], fname))
-	
+	bundle.make('build.json')
 	increment_version()
 
 def get_version():
@@ -29,15 +25,3 @@ def increment_version():
 		vfile.write(str(version))
 		
 	return version
-	
-def get_corejs():
-	"""return corejs with version number"""
-	import json
-
-	corejs = open('lib/js/core.min.js', 'r')		
-	boot = ('window._version_number="%s";' % str(get_version())) + \
-		'\n' + corejs.read()
-
-	corejs.close()
-	
-	return boot

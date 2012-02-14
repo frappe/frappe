@@ -1,4 +1,3 @@
-wn.require('lib/css/bootstrap/bootstrap-topbar.css');
 
 wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
@@ -41,14 +40,17 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.topbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
 	},
 	make_new: function() {
+		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
 		$('.topbar .nav:first').append('<li><a href="#" \
 			onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>');
 	},
 	make_search: function() {
+		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
 		$('.topbar .nav:first').append('<li><a href="#" \
 			onclick="return wn.ui.toolbar.search.show();">Search</a></li>');
 	},
 	make_report: function() {
+		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
 		$('.topbar .nav:first').append('<li><a href="#" \
 			onclick="return wn.ui.toolbar.report.show();">Report</a></li>');
 	},

@@ -1,7 +1,7 @@
 
 /** general icons **/
 
-.wn-icon { background: url('lib/images/icons/icons.png'); width: 16px; height: 16px; cursor: pointer; }
+.wn-icon { background: url('../lib/images/icons/icons.png'); width: 16px; height: 16px; cursor: pointer; }
 .ic-2x2_grid { background-position: 0 0;  } 
 .ic-3x3_grid { background-position: 0 -36px;  } 
 .ic-3x3_grid_2 { background-position: 0 -72px;  } 

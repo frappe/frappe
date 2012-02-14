@@ -8,9 +8,6 @@ _r.ReportContainer = function() {
 		msgprint("Not Allowed");
 		return;
 	}
-
-	wn.require('lib/js/legacy/widgets/form/fields.js');
-
 	this.wrapper = page_body.add_page("Report Builder", function() { });
 	this.wrapper.className ='layout_wrapper';
 	var head_div = $a(this.wrapper, 'div');	

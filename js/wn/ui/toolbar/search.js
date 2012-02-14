@@ -15,5 +15,3 @@ wn.ui.toolbar.Search = wn.ui.toolbar.SelectorDialog.extend({
 		makeselector();
 	}
 });
-
-wn.ui.toolbar.search = new wn.ui.toolbar.Search();

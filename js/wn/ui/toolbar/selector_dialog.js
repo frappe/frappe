@@ -6,6 +6,8 @@ opts:
 
 */
 
+wn.provide('wn.ui.toolbar');
+
 wn.ui.toolbar.SelectorDialog = Class.extend({
 	init: function(opts) {
 		this.opts = opts;

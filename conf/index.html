@@ -5,10 +5,11 @@
 	{{ ajax_meta_tag }}
 	<meta name="author" content="">
 	<script type="text/javascript">
-{{ bootinfo }};
-
-{{ corejs }}
-</script>
+	window._version_number = "{{ version }}";
+	{{ bootinfo }};
+	</script>
+	{{ style_tag }}
+	{{ script_tag }}
 </head>
 <body>
 	{{ body_html }}

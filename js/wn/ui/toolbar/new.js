@@ -11,6 +11,3 @@ wn.ui.toolbar.NewDialog = wn.ui.toolbar.SelectorDialog.extend({
 		this.set_values(profile.can_create.join(',').split(','));
 	}
 });
-
-wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
-

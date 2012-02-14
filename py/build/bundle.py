@@ -68,9 +68,12 @@ class Bundle:
 		
 		path = os.path.dirname(bpath)
 		
-		for outfile in bdata:
+		for buildfile in bdata:
 			# build the file list relative to the main folder
-			fl = [os.path.relpath(os.path.join(path, f), os.curdir) for f in bdata[outfile]]
+			outfile = buildfile.keys()[0]
+			infiles = buildfile[outfile]
+			
+			fl = [os.path.relpath(os.path.join(path, f), os.curdir) for f in infiles]
 
 			# js files are minified by default unless explicitly
 			# mentioned in the prefix.

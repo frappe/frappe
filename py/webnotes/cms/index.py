@@ -24,7 +24,6 @@ body_html = """
  %s
 </div>
 <footer></footer>
-<script>wn.require('js/app.js');</script>
 <div id="dialog_back"></div>
 """
 
@@ -42,20 +41,27 @@ def get():
 		if not page:
 			page = webnotes.user.get_home_page()
 			
-		return template.render(bootinfo = '', \
-			corejs = '', body_html=html_snapshot(page), ajax_meta_tag = '')
+		return template.render(bootinfo = '', style_tag='', version='0', \
+			script_tag = '', body_html=html_snapshot(page), ajax_meta_tag = '')
 	
 	# home page
 	else:
 		import webnotes.session_cache
-		from build.project import get_corejs
+		from build.project import get_version
 		import json
 
 		bootinfo = webnotes.session_cache.get()
 		bootinfo = """var wn = {}; wn.boot = %s;""" % json.dumps(bootinfo)
 
-		return template.render(bootinfo = bootinfo, \
-			corejs = get_corejs(), body_html=body_html % '', \
+		if webnotes.session['user'] == 'Guest':
+			script_tag = '<script type="text/javascript" src="js/all-web.js"></script>'
+			style_tag = '<link type="text/css" rel="stylesheet" href="css/all-web.css">'
+		else:
+			script_tag = '<script type="text/javascript" src="js/all-app.js"></script>'
+			style_tag = '<link type="text/css" rel="stylesheet" href="css/all-app.css">'
+
+		return template.render(bootinfo = bootinfo, version = get_version(), \
+			script_tag = script_tag, style_tag = style_tag, body_html=body_html % '', \
 			ajax_meta_tag = '<meta name="fragment" content="!">')
 			
 def html_snapshot(page):
