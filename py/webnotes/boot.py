@@ -16,6 +16,10 @@ def get_bootinfo():
 	# control panel
 	import webnotes.model.doc
 	cp = webnotes.model.doc.getsingle('Control Panel')
+
+	# remove email settings from control panel dict
+	for field in ['mail_login', 'mail_password', 'mail_port', 'outgoing_mail_server', 'use_ssl']:
+		del cp[field]
 	
 	# system info
 	bootinfo['control_panel'] = cp

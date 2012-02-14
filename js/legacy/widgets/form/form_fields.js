@@ -306,17 +306,17 @@ _f.TableField.prototype.refresh = function() {
 		}
 	}
 	
-	if(this.old_status!=st) {
-		if(st=='Write') {
-			// nothing
-			this.grid.show();
-		} else if(st=='Read') {
-			this.grid.show();
-		} else {
-			this.grid.hide();
-		}
-		this.old_status = st; // save this if next time
+	//if(this.old_status!=st) {
+	if(st=='Write') {
+		// nothing
+		this.grid.show();
+	} else if(st=='Read') {
+		this.grid.show();
+	} else {
+		this.grid.hide();
 	}
+	//	this.old_status = st; // save this if next time
+	//}
 
 	this.grid.refresh();
 }
