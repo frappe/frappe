@@ -41,7 +41,7 @@ def get():
 		if not page:
 			page = webnotes.user.get_home_page()
 			
-		return template.render(bootinfo = '', style_tag='', version='0', \
+		return template.render(bootinfo = '', style_tag='', version='0', analytics_code = '',\
 			script_tag = '', body_html=html_snapshot(page), ajax_meta_tag = '')
 	
 	# home page
@@ -50,8 +50,8 @@ def get():
 		from build.project import get_version
 		import json
 
-		bootinfo = webnotes.session_cache.get()
-		bootinfo = """var wn = {}; wn.boot = %s;""" % json.dumps(bootinfo)
+		bootdict = webnotes.session_cache.get()
+		bootinfo = """var wn = {}; wn.boot = %s;""" % json.dumps(bootdict)
 
 		if webnotes.session['user'] == 'Guest':
 			script_tag = '<script type="text/javascript" src="js/all-web.js"></script>'
@@ -60,9 +60,10 @@ def get():
 			script_tag = '<script type="text/javascript" src="js/all-app.js"></script>'
 			style_tag = '<link type="text/css" rel="stylesheet" href="css/all-app.css">'
 
-		return template.render(bootinfo = bootinfo, version = get_version(), \
-			script_tag = script_tag, style_tag = style_tag, body_html=body_html % '', \
-			ajax_meta_tag = '<meta name="fragment" content="!">')
+		return template.render(bootinfo = bootinfo, version = get_version(),
+			script_tag = script_tag, style_tag = style_tag, body_html=body_html % '',
+			ajax_meta_tag = '<meta name="fragment" content="!">', 
+			analytics_code = bootdict.get('analytics_code', '') or '')
 			
 def html_snapshot(page):
 	"""get html snapshot for search bot"""

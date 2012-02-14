@@ -131,7 +131,7 @@ class LoginManager:
 			user, pwd = webnotes.form_dict.get('usr'), webnotes.form_dict.get('pwd')
 		if not (user and pwd):
 			webnotes.response['message'] = 'Incomplete Login Details'  
-			raise Exception
+			raise webnotes.AuthenticationError
 		# custom authentication (for single-sign on)
 		self.load_control_panel()
 		if hasattr(self.cp, 'authenticate'):
@@ -149,7 +149,7 @@ class LoginManager:
 				and IFNULL(enabled,0)=1""", (user, pwd, pwd), as_dict=1)
 		if not p:
 			webnotes.response['message'] = 'Authentication Failed'
-			raise Exception
+			raise webnotes.AuthenticationError
 			#webnotes.msgprint('Authentication Failed',raise_exception=1)
 			
 		p = p[0]

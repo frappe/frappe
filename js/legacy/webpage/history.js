@@ -52,6 +52,14 @@ nav_obj.open_notify = function(t, dt, dn, no_history) {
 	
 	nav_obj.notify_observers(t, dt, dn);
 
+	if(wn.boot.analytics_code) {
+		try {
+			eval(wn.boot.analytics_code);
+		} catch (e) {
+			console.log(e);
+		}
+	}
+
 }
 
 // Notify observers

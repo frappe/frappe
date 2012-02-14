@@ -10,6 +10,15 @@
 	</script>
 	{{ style_tag }}
 	{{ script_tag }}
+	{% if analytics_code %}
+	<script type="text/javascript">
+	try {
+		{{ analytics_code }}
+	} catch(e) {
+		console.log(e);
+	}
+	</script>
+	{% endif %}
 </head>
 <body>
 	{{ body_html }}
