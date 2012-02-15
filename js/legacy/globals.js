@@ -78,3 +78,11 @@ var validated = true;
 var validation_message = '';
 var tinymce_loaded = null;
 var cur_autosug = null;
+
+if(!console) {
+	var console = {
+		log: function(txt) {
+			errprint(txt);
+		}
+	}
+}

@@ -82,12 +82,6 @@ function Body() {
 		
 		this.wrapper = $a($i('body_div'),'div');
 		this.body = $a(this.wrapper, 'div');
-		
-		// sidebars
-		if(user_defaults.hide_sidebars) {
-			this.cp.left_sidebar_width = null;
-			this.cp.right_sidebar_width = null;
-		}		
 
 		this.setup_page_areas();
 
