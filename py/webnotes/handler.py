@@ -35,7 +35,7 @@ def runserverobj(arg=None):
 	import webnotes.widgets.form.run_method
 	webnotes.widgets.form.run_method.runserverobj()
 
-@webnotes.whitelist()
+@webnotes.whitelist(allow_guest=True)
 def logout():
 	webnotes.login_manager.logout()
 
