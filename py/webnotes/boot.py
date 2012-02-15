@@ -22,7 +22,7 @@ def get_bootinfo():
 		del cp[field]
 	
 	# system info
-	bootinfo['control_panel'] = cp
+	bootinfo['control_panel'] = cp.copy()
 	bootinfo['account_name'] = cp.get('account_id')
 	bootinfo['sysdefaults'] = webnotes.utils.get_defaults()
 

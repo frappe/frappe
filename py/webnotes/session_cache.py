@@ -60,15 +60,18 @@ def load(country):
 		else:
 			raise e
 	
-def add_to_cache(sd, country):
+def add_to_cache(bootinfo, country):
 	"""add to cache"""
 	import webnotes.model.utils
 
-	if sd.get('docs'):
-		sd['docs'] = webnotes.model.utils.compress(sd['docs'])
+	if bootinfo.get('docs'):
+		bootinfo['docs'] = webnotes.model.utils.compress(bootinfo['docs'])
 
 	# delete earlier (?)
-	webnotes.conn.sql("delete from __SessionCache where user=%s and country=%s", (webnotes.session['user'], country))
+	webnotes.conn.sql("""delete from __SessionCache where user=%s 
+		and country=%s""", (webnotes.session['user'], country))
 
 	# make new
-	webnotes.conn.sql("insert into `__SessionCache` (user, country, cache) VALUES (%s, %s, %s)", (webnotes.session['user'], country, str(sd)))
+	webnotes.conn.sql("""insert into `__SessionCache` 
+		(user, country, cache) VALUES (%s, %s, %s)""", \
+			(webnotes.session['user'], country, str(bootinfo)))
