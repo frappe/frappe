@@ -196,7 +196,8 @@ def write_file(fid, content):
 # -------------------------------------------------------
 def get_file_system_name(fname):
 	# get system name from File Data table
-	return webnotes.conn.sql("select name, file_name from `tabFile Data` where name=%s or file_name=%s", (fname, fname))
+	return webnotes.conn.sql("""select name, file_name from `tabFile Data` 
+		where name=%s or file_name=%s""", (fname, fname))
 
 # -------------------------------------------------------
 def delete_file(fname, verbose=0):
@@ -219,29 +220,21 @@ def delete_file(fname, verbose=0):
 # -------------------------------------------------------
 
 def get_file(fname):
-	in_fname = fname
-	
-	# from the "File" table
-	if webnotes.conn.exists('File',fname):
-		fname = webnotes.conn.sql("select file_list from tabFile where name=%s", fname)
-		fname = fname and fname[0][0]
-		fname = fname.split('\n')[0].split(',')[1]
-
-
-	if get_file_system_name(fname):
-		f = get_file_system_name(fname)[0]
+	"""deprecated"""
+	f = get_file_system_name(fname)
+	if f:
+		file_id = f[0][0].replace('/','-')
+		file_name = f[0][1]
 	else:
-		f = None
+		file_id = fname
+		file_name = fname
 
-		
 	# read the file
 	import os
-		
-	file_id = f[0].replace('/','-')
-	file = open(os.path.join(webnotes.get_files_path(), file_id), 'r')
-	content = file.read()
-	file.close()
-	return [f[1], content]
+	with open(os.path.join(webnotes.get_files_path(), file_id), 'r') as f:
+		content = f.read()
+
+	return [file_name, content]
 
 # Conversion Patch
 # -------------------------------------------------------
