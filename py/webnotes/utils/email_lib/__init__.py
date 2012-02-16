@@ -22,7 +22,7 @@ def make_html_body(content, template = None):
 def sendmail_md(recipients, sender=None, msg=None, subject=None, from_defs=0):
 	"""send markdown email"""
 	import markdown2
-	sendmail(recipients, sender, markdown2.markdown(msg), subject, txt=msg, from_defs)
+	sendmail(recipients, sender, markdown2.markdown(msg), subject, txt=msg, from_defs=from_defs)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 		parts=[], cc=[], attach=[], send_now=1, reply_to=None, template=None, from_defs=0):
