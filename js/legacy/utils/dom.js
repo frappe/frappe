@@ -465,9 +465,7 @@ wn.urllib = {
 	// a file upload / attachment
 	// by file id / name
 	get_file_url: function(file_id) {
-		//var url = wn.urllib.get_base_url();		
-		var ac_id = wn.control_panel.account_id;		
-		return repl('cgi-bin/getfile.cgi?name=%(fn)s&acx=%(ac)s', {fn:file_id, ac:ac_id})
+		return repl('files/%(fn)s', {fn:file_id, ac:ac_id})
 	}	
 }
 
