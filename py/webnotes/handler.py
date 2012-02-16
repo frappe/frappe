@@ -180,11 +180,9 @@ def reset_password():
 		try:
 			from server_tools.gateway_utils import change_password
 			res = change_password(None, pwd, user=user)
-			import json
-			server_msg = res and json.loads(res) or ''
 		except ImportError, e:
-			server_msg = 'No Gateway'
-		if server_msg and str(server_msg.get('message'))=='Password Updated' or server_msg=='No Gateway':
+			res = 'No Gateway'
+		if res and res.get('message')=='Password Updated' or res=='No Gateway':
 			user_profile.send_new_pwd(pwd)
 			webnotes.msgprint("Password has been reset and sent to your email id.")
 		else:
