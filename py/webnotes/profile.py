@@ -208,6 +208,30 @@ class Profile:
 		self.roles = d['roles']
 		self.defaults = d['defaults']
 
+	
+	def reset_password(self):
+		"""reset password"""
+		from webnotes.utils import random_string, now
+		import os
+		pwd = random_string(8)
+		
+		# update tab Profile
+		webnotes.conn.sql("""UPDATE tabProfile SET password=password(%s), modified=%s 
+			WHERE name=%s""", (pwd, now(), self.name))
+
+		# send email
+		with open(os.path.join(os.path.dirname(__file__), 'password_reset.txt'), 'r') as f:
+			reset_password_mail = f.read()
+
+		
+		from webnotes.utils.email_lib import sendmail_md
+		sendmail_md(recipients= self.name, \
+			msg = reset_password_mail % {"user": get_user_fullname(self.name), "password": pwd}, \
+			subject = 'Password Reset', from_defs=1)
+		
+		return pwd
+
+
 @webnotes.whitelist()
 def get_user_img():
 	if not webnotes.form.getvalue('username'):
@@ -223,3 +247,8 @@ def get_user_img():
 			webnotes.response['message'] = 'no_img_m'		
 	else:
 		webnotes.response['message'] = 'no_img_m'
+
+
+def get_user_fullname(user):
+	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", user)
+	return fullname and fullname[0][0] or ''

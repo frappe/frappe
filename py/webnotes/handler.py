@@ -174,7 +174,8 @@ def reset_password():
 	
 	user = form_dict.get('user', '')
 	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
-		pwd = get_obj('Profile', user).reset_password()
+		import profile
+		pwd = profile.Profile(user).reset_password()
 		try:
 			from server_tools.gateway_utils import change_password
 			change_password(new_password=pwd, user=user)
