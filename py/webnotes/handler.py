@@ -182,7 +182,7 @@ def reset_password():
 			res = change_password(None, pwd, user=user)
 		except ImportError, e:
 			pass
-		if res = 'Password Updated':
+		if res == 'Password Updated':
 			user_profile.send_new_pwd(pwd)
 			webnotes.msgprint("Password has been reset and sent to your email id.")
 		else:
