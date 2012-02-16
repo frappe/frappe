@@ -212,7 +212,6 @@ class Profile:
 	def reset_password(self):
 		"""reset password"""
 		from webnotes.utils import random_string, now
-		import os
 		pwd = random_string(8)
 		
 		# update tab Profile
@@ -226,6 +225,7 @@ class Profile:
 		"""
 			Send new password to user
 		"""
+		import os
 		# send email
 		with open(os.path.join(os.path.dirname(__file__), 'password_reset.txt'), 'r') as f:
 			reset_password_mail = f.read()
