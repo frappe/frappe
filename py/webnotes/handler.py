@@ -178,7 +178,7 @@ def reset_password():
 		pwd = profile.Profile(user).reset_password()
 		try:
 			from server_tools.gateway_utils import change_password
-			change_password(new_password=pwd, user=user)
+			change_password(None, pwd, user=user)
 		except ImportError, e:
 			pass
 		webnotes.msgprint("Password has been reset and sent to your email id.")
