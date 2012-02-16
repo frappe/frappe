@@ -56,5 +56,6 @@ class DocType:
 		from webnotes.utils.email_lib import sendmail_md
 		sendmail_md(recipients= self.doc.email or self.doc.name, \
 			msg = reset_password_mail % {"user": self.get_fullname(), "password":pwd}, \
-			subject = 'Password Reset')
-			
+			subject = 'Password Reset', from_defs=1)
+		
+		return pwd
