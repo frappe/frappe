@@ -175,13 +175,18 @@ def reset_password():
 	user = form_dict.get('user', '')
 	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
 		import profile
-		pwd = profile.Profile(user).reset_password()
+		user_profile = profile.Profile(user)
+		pwd = user_profile.reset_password()
 		try:
 			from server_tools.gateway_utils import change_password
-			change_password(None, pwd, user=user)
+			res = change_password(None, pwd, user=user)
 		except ImportError, e:
 			pass
-		webnotes.msgprint("Password has been reset and sent to your email id.")
+		if res = 'Password Updated':
+			user_profile.send_new_pwd(pwd)
+			webnotes.msgprint("Password has been reset and sent to your email id.")
+		else:
+			webnotes.msgprint(res)
 	else:
 		webnotes.msgprint("No such user (%s)", user)
 

@@ -219,17 +219,23 @@ class Profile:
 		webnotes.conn.sql("""UPDATE tabProfile SET password=password(%s), modified=%s 
 			WHERE name=%s""", (pwd, now(), self.name))
 
+		return pwd
+
+
+	def send_new_pwd(self, pwd):
+		"""
+			Send new password to user
+		"""
 		# send email
 		with open(os.path.join(os.path.dirname(__file__), 'password_reset.txt'), 'r') as f:
 			reset_password_mail = f.read()
-
 		
 		from webnotes.utils.email_lib import sendmail_md
 		sendmail_md(recipients= self.name, \
 			msg = reset_password_mail % {"user": get_user_fullname(self.name), "password": pwd}, \
 			subject = 'Password Reset', from_defs=1)
-		
-		return pwd
+
+
 
 
 @webnotes.whitelist()
