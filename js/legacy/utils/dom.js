@@ -465,7 +465,7 @@ wn.urllib = {
 	// a file upload / attachment
 	// by file id / name
 	get_file_url: function(file_id) {
-		return repl('files/%(fn)s', {fn:file_id, ac:ac_id})
+		return repl('files/%(fn)s', {fn:file_id})
 	}	
 }
 
