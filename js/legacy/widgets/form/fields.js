@@ -376,11 +376,7 @@ Field.prototype.activate = function(docname) {
 function DataField() { } DataField.prototype = new Field();
 DataField.prototype.make_input = function() {
 	var me = this;
-	this.input = $a(this.input_area, 'input');
-
-	if(this.df.fieldtype=='Password') {
-		$(this.input).attr('type', 'password');
-	}
+	this.input = $a_input(this.input_area, this.df.fieldtype=='Password' ? 'password' : 'text');
 
 	this.get_value= function() {
 		var v = this.input.value;
