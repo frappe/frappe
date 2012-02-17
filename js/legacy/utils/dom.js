@@ -79,18 +79,6 @@ function $btn(parent, label, onclick, style, css_class, is_ajax) {
 	).btn;
 }
 
-
-
-function addEvent(ev, fn) {
-	if(isIE) {
-		document.attachEvent('on'+ev, function() { 
-			fn(window.event, window.event.srcElement); 
-		});
-	} else {
-		document.addEventListener(ev, function(e) { fn(e, e.target); }, true);
-	}
-}
-
 // item (for tabs and triggers)
 // ====================================
 
@@ -233,21 +221,15 @@ function $a(parent, newtag, className, cs, innerHTML, onclick) {
 }
 function $a_input(p, in_type, attributes, cs) {
 	if(!attributes) attributes = {};
-	if(in_type) attributes.type = in_type 
-	if(isIE) {
-		var s= '<input ';
-		for(key in attributes)
-			s+= ' ' + key + '="'+ attributes[key] + '"';
-		s+= '>'
-		p.innerHTML = s
-		var o = p.childNodes[0];
-	} else {
-		var o = $a(p, 'input'); 
-		for(key in attributes)
-			o.setAttribute(key, attributes[key]);
-	}
-	if(cs)$y(o,cs);
-	return o;
+	
+	var $input = $(p).append('<input type="'+ in_type +'">').find('input:last');
+	for(key in attributes)
+		$input.attr(key, attributes[key]);
+		
+	var input = $input.get(0);
+	if(cs)
+		$y(input,cs);
+	return input;
 }
 
 function $dh(d) { 

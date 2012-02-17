@@ -349,7 +349,6 @@ Field.prototype.activate = function(docname) {
 	this.refresh();
 
 	if(this.input) {
-		this.input.isactive = true;
 		var v = _f.get_value(this.doctype, this.docname, this.df.fieldname);
 		this.last_value=v;
 		// set input value
@@ -369,8 +368,6 @@ Field.prototype.activate = function(docname) {
 	}
 	if(this.txt) {
 		try{this.txt.focus();} catch(e){} // IE Fix - Unexpected call???
-		this.txt.isactive = true;
-		if(this.btn)this.btn.isactive = true;
 		this.txt.field_object = this;
 	}
 }
@@ -382,12 +379,7 @@ DataField.prototype.make_input = function() {
 	this.input = $a(this.input_area, 'input');
 
 	if(this.df.fieldtype=='Password') {
-		if(isIE) {
-			this.input_area.innerHTML = '<input type="password">'; // IE fix
-			this.input = this.input_area.childNodes[0];
-		} else {
-			this.input.setAttribute('type', 'password');
-		}
+		$(this.input).attr('type', 'password');
 	}
 
 	this.get_value= function() {
@@ -824,14 +816,12 @@ CheckField.prototype.onmake = function() {
 CheckField.prototype.make_input = function() { var me = this;
 	this.input = $a_input(this.input_area,'checkbox');
 	$y(this.input, {width:"16px", border:'0px', margin:'2px'}); // no specs for checkbox
-	this.input.onchange = function() {
+	
+	$(this.input).click(function() {
 		me.set(this.checked?1:0);
-		me.run_trigger();
-	}
-	if(isIE){
-		this.input.onclick = this.input.onchange;
-		$y(this.input, {margin:'-1px'});
-	}
+		me.run_trigger();		
+	})
+	
 	this.input.set_input = function(v) {
 		v = parseInt(v); if(isNaN(v)) v = 0;
 		if(v) me.input.checked = true;
@@ -939,12 +929,6 @@ SelectField.prototype.make_input = function() {
 			if(me.validate)
 				me.validate();
 			me.set(sel_val(this));
-			// IE grid disappears
-			if(isIE && me.in_grid) {
-				$dh(_f.cur_grid_cell.grid.wrapper);
-				$ds(_f.cur_grid_cell.grid.wrapper);
-			}
-			
 			me.run_trigger();
 		}
 		
@@ -1090,11 +1074,6 @@ TimeField.prototype.make_input = function() { var me = this;
 	this.input_hr = new SelectWidget($td(t,0,0), opt_hr, '50px');
 	this.input_mn = new SelectWidget($td(t,0,1), opt_mn, '50px');
 	this.input_am = new SelectWidget($td(t,0,2), opt_am, '50px');
-
-	this.input_hr.inp.isactive = 1; this.input_mn.inp.isactive = 1; this.input_am.inp.isactive = 1;
-	if(this.input_hr.btn) {
-		this.input_hr.btn.isactive = 1; this.input_mn.btn.isactive = 1; this.input_am.btn.isactive = 1;
-	}
 	
 	var onchange_fn = function() {
 		me.set(me.get_time()); 

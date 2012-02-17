@@ -54,12 +54,11 @@ function makeselector() {
 		d.set_title('Quick Search for ' + dt);
 	}
 
-	inp.onkeydown = function(e) {
-		if(isIE)var kc = window.event.keyCode;
-		else var kc = e.keyCode;
-
-		if(kc==13) if(!btn.disabled)btn.onclick();
-	}
+	$(inp).keydown(function(e) {
+		if(e.which==13) {
+			if(!btn.disabled)btn.onclick();
+		}
+	})
 
 	d.set_query_description = function() {
 		if(d.input && d.input.query_description) {

@@ -5,6 +5,7 @@ _f.Grid = function(parent) { }
 
 _f.Grid.prototype.init = function(parent, row_height) {
 	
+	var me = this;
 	this.col_idx_by_name = {}
 	this.alt_row_bg = '#F2F2FF';
 	this.row_height = row_height;
@@ -18,9 +19,10 @@ _f.Grid.prototype.init = function(parent, row_height) {
 	
 	if(this.oninit)this.oninit();
 	
-	keypress_observers.push(this);
-	
-	var me = this;
+	// bind clicks
+	$(this.wrapper).bind('keydown', function(e) {
+		me.notify_keypress(e, e.which);
+	})
 	
 	// reset grid heights after complete is triggerd on the form
 	$(cur_frm.wrapper).bind('render_complete', function() {
@@ -34,7 +36,6 @@ _f.Grid.prototype.make_ui = function(parent) {
 	this.main_title = $td(ht,0,0); this.main_title.className = 'columnHeading';
 	$td(ht,0,1).style.textAlign = 'right';
 	this.tbar_div = $a($td(ht,0,1), 'div', 'grid_tbarlinks');
-	if(isIE) $y(this.tbar_div, {width:'200px'});
 	this.tbar_tab = make_table(this.tbar_div,1,4,'100%',['25%','25%','25%','25%']);	
 			
 	this.wrapper = $a(parent, 'div', 'grid_wrapper');
@@ -151,7 +152,7 @@ _f.Grid.prototype.append_row = function(idx, docname) {
 		if(this.row_height) {
 			cell.div.style.height = this.row_height; }
 		cell.div.cell = cell;
-		cell.div.onclick = function(e) { me.cell_click(this.cell, e); }
+		cell.div.onclick = function(e) { me.cell_select(this.cell); }
 
 		if(odd) {
 			$bg(cell, this.alt_row_bg); cell.is_odd = 1;
@@ -231,28 +232,25 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	}
 }
 
-_f.Grid.prototype.cell_click = function(cell, e) {
-	if(_f.cur_grid_cell==cell)
-		return; // on existing cell
-		
-	this.cell_select(cell);
-	if(cur_frm.editable) {
-		if(isIE) {
-			window.event.cancelBubble = true;
-			window.event.returnValue = false;
-		} else {
-			e.preventDefault();	
-		}
+// if clicked on whitespace 
+// and a grid cell is selected
+// deselect the cell
+$(document).bind('click', function(e) {
+	var is_target_toolbar = function() {
+		return $(e.target).parents('.grid_tbarlinks').length;
 	}
-}
+	
+	var is_target_input = function() {
+		return $(e.target).parents().get().indexOf(_f.cur_grid_cell)!=-1;
+	}
 
-_f.Grid.prototype.notify_click = function(e, target) {
-	if(_f.cur_grid_cell && !target.isactive) {
-		if(!(text_dialog && text_dialog.display) && !datepicker_active && !(selector && selector.display) && !(cur_autosug)) {
+	if(_f.cur_grid_cell && !is_target_input() && !is_target_toolbar()) {
+		if(!(text_dialog && text_dialog.display) 
+			&& !datepicker_active && !(selector && selector.display) && !(cur_autosug)) {
 			_f.cur_grid_cell.grid.cell_deselect();
 		}
-	}
-}
+	}	
+});
 
 _f.Grid.prototype.cell_deselect = function() {
 	if(_f.cur_grid_cell) {
@@ -263,19 +261,15 @@ _f.Grid.prototype.cell_deselect = function() {
 		else c.div.style.border = '2px solid #FFF';
 		_f.cur_grid_cell = null;
 		_f.cur_grid = null;
-		this.isactive = false;
-		
-		// remove from observer
-		delete click_observers[this.observer_id];
 	}
 }
 
 _f.Grid.prototype.cell_select = function(cell, ri, ci) {
 	if(ri!=null && ci!=null)
 		cell = this.tab.rows[ri].cells[ci];
-	
-	var hc = this.head_row.cells[cell.cellIndex];
 
+	var hc = this.head_row.cells[cell.cellIndex];
+	
 	if(!hc.template) {
 		this.make_template(hc);
 	}
@@ -287,11 +281,6 @@ _f.Grid.prototype.cell_select = function(cell, ri, ci) {
 		cell.div.style.border = '2px solid #88F';
 		_f.cur_grid_cell = cell;
 		this.add_template(cell);
-		this.isactive = true;
-		
-		// start observing clicks
-		click_observers.push(this);
-		this.observer_id = click_observers.length - 1;
 	}
 }
 
@@ -307,7 +296,7 @@ _f.Grid.prototype.add_template = function(cell) {
 		hc.template.activated=1;
 		
 		if(hc.template.input && hc.template.input.set_width) {
-			hc.template.input.set_width(isIE ? cell.offsetWidth : cell.clientWidth);
+			hc.template.input.set_width($(cell).width());
 		}
 	}
 }
@@ -358,11 +347,6 @@ _f.Grid.prototype.remove_template = function(cell) {
 		cell.div.removeChild(hc.template.wrapper);
 	this.set_cell_value(cell);
 	hc.template.activated=0;
-	
-	if(isIE6) {
-		$dh(this.wrapper); $ds(this.wrapper);	
-	}
-
 }
 
 _f.Grid.prototype.notify_keypress = function(e, keycode) {

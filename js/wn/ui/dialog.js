@@ -172,10 +172,9 @@ wn.widgets.Dialog = function(opts) {
 
 wn.widgets.Dialog.prototype = new wn.widgets.FieldGroup();
 
-// Close dialog on Escape
-keypress_observers.push(new function() {
-	this.notify_keypress = function(e, kc) {
-		if(cur_dialog && kc==27 && !cur_dialog.no_cancel_flag) 
-			cur_dialog.hide();
+// close open dialogs on ESC
+$(document).bind('keydown', function(e) {
+	if(cur_dialog && !cur_dialog.no_cancel_flag && e.which==27) {
+		cur_dialog.hide();
 	}
 });

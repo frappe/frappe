@@ -45,31 +45,10 @@ function startup() {
 		rename_observers.push(nav_obj);
 	}
 	
-	var setup_events = function() {
-		addEvent('keyup', function(ev, target) {
-			for(var i in keypress_observers) {
-				if(keypress_observers[i])
-					keypress_observers[i].notify_keypress(ev, ev.keyCode);
-			}
-		});
-		addEvent('click', function(ev, target) {
-			for(var i=0; i<click_observers.length; i++) {
-				if(click_observers[i])
-					click_observers[i].notify_click(ev, target);
-			}
-		});
-		
-		// Transparent background for IE
-		if(isIE) {
-			$op($i('dialog_back'), 60);
-		}
-	}
-	
 	var callback = function(r,rt) {
 		if(r.exc) console.log(r.exc);
 		setup_globals(r);
 		setup_history();
-		setup_events();
 
 		var a = new Body();
 		page_body.run_startup_code();

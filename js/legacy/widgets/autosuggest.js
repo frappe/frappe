@@ -29,10 +29,7 @@ function AutoSuggest(id, param) {
 	// set keyup handler for field
 	// and prevent autocomplete from client
 	var p = this;
-	
-	// NOTE: not using addEventListener because UpArrow fired twice in Safari
-	//DOM.addEvent( this.fld, 'keyup', function(ev){ return me.onKeyPress(ev); } );
-		
+			
 	this.fld.onkeypress 	= function(ev){ if(!(selector && selector.display)) return p.onKeyPress(ev); };
 	this.fld.onkeyup 		= function(ev){ if(!(selector && selector.display)) return p.onKeyUp(ev); };
 	

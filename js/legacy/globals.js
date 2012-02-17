@@ -35,8 +35,6 @@ var hide_autosuggest=null;
 var page_body=null;
 var pscript = {};
 var selector=null; 
-var keypress_observers = [];
-var click_observers = [];
 
 // ui
 var top_index=91;
