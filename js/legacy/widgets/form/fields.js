@@ -233,9 +233,18 @@ Field.prototype.refresh = function() {
 	this.set_label();
 	this.refresh_display();
 	
-	// further refresh
-	if(this.onrefresh) this.onrefresh();
-	if(this.input&&this.input.refresh) this.input.refresh(this.df);
+	// further refresh	
+	if(this.onrefresh) 
+		this.onrefresh(); // called by various fields
+		
+	if(this.input) {
+		if(this.input.refresh) this.input.refresh(this.df);
+	}
+	if(this.wrapper) {
+		this.wrapper.fieldobj = this;
+		$(this.wrapper).trigger('refresh');		
+	}
+	
 
 	if(!this.not_in_form)
 		this.set_input(_f.get_value(this.doctype,this.docname,this.df.fieldname));
