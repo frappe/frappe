@@ -90,12 +90,12 @@ class CSVImport:
 
 	def validate_fields(self, lb_list):
 		self.msg.append('<p><b>Checking fieldnames for %s</b></p>' % self.dt_list[0])
-		if len(self.dt_list) > 1 and self.overwrite:
-			self.msg.append('<div style="color:RED"> Error: Overwrite is not possible for Document %s </div>' % self.dt_list[0])
-			self.validate_success = 0
-			return
+		#if len(self.dt_list) > 1 and self.overwrite:
+		#	self.msg.append('<div style="color:RED"> Error: Overwrite is not possible for Document %s </div>' % self.dt_list[0])
+		#	self.validate_success = 0
+		#	return
 		
-		elif self.overwrite and 'Name' != lb_list[0]:
+		if self.overwrite and len(self.dt_list) == 1 and 'Name' != lb_list[0]:
 			self.msg.append('<div style="color:RED"> Error : At Row 4 and Column 1: To Overwrite fieldname should be Name </div>')
 			self.validate_success = 0
 			return
@@ -107,7 +107,7 @@ class CSVImport:
 			lb_list.pop(lb_list.index(self.dt_list[1]))
 
 		dtd = sql("select autoname from `tabDocType` where name = '%s' " % self.dt_list[0])[0][0]
-		if self.prompt_autoname_flag or self.overwrite:
+		if (self.prompt_autoname_flag or self.overwrite) and len(self.dt_list) == 1:
 			self.fields.append('name')
 			res.append('Name')
 			lb_list.pop(lb_list.index('Name'))
@@ -243,7 +243,12 @@ class CSVImport:
 		self.msg.append('<p><b>Checking Data for %s</b></p>' % self.dt_list[0])
 		date_list, link_list, select_list, reqd_list = self.get_field_type_list()
 
-		
+
+		# Delete all data of child tables before over-writing
+		if len(self.dt_list) > 1 and self.overwrite:
+			webnotes.conn.sql("delete from `tab%s`" % self.dt_list[0])
+			self.msg.append('<div style="color: ORANGE">Deleted all data from %s before re-importing</div>' % self.dt_list[0])
+	
 		# load data
 		row = 5
 		for d in self.data:
@@ -304,13 +309,12 @@ class CSVImport:
 					self.msg.append('<div style="color: ORANGE">Row %s => Over-written: %s</div>' % (row, cur_doc.name))
 				else:
 					self.msg.append('<div style="color: ORANGE">Row %s => Ignored: %s</div>' % (row, cur_doc.name))
-			else:
-				if cur_doc.parent and webnotes.conn.exists(cur_doc.parenttype, cur_doc.parent) or not cur_doc.parent:
-					cur_doc.save(1)
-					obj = webnotes.model.code.get_obj(cur_doc.parent and cur_doc.parenttype or cur_doc.doctype, cur_doc.parent or cur_doc.name, with_children = 1)
-					self.msg.append('<div style="color: GREEN">Row %s => Created: %s</div>' % (row, cur_doc.name))
-				else: 
-					self.msg.append('<div style="color: RED">Row %s => Invalid %s : %s</div>' % (row, cur_doc.parenttype, cur_doc.parent))
+			elif cur_doc.parent and webnotes.conn.exists(cur_doc.parenttype, cur_doc.parent) or not cur_doc.parent:
+				cur_doc.save(1)
+				obj = webnotes.model.code.get_obj(cur_doc.parent and cur_doc.parenttype or cur_doc.doctype, cur_doc.parent or cur_doc.name, with_children = 1)
+				self.msg.append('<div style="color: GREEN">Row %s => Created: %s</div>' % (row, cur_doc.name))
+			else: 
+				self.msg.append('<div style="color: RED">Row %s => Invalid %s : %s</div>' % (row, cur_doc.parenttype, cur_doc.parent))
 		except Exception:
 			self.msg.append('<div style="color: RED"> Validation: %s</div>' % str(webnotes.utils.getTraceback()))
 		try:

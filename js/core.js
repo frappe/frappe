@@ -1,4 +1,13 @@
 // find files changed since last version
+
+if(!console) {
+	var console = {
+		log: function(txt) {
+			errprint(txt);
+		}
+	}
+}
+
 wn.versions.check();
 
 /* overload links for ajax pages */
