@@ -61,7 +61,8 @@ wn.widgets.form.sidebar.AssignTo = Class.extend({
 						'default': 'Assigned by ' + user}, 
 					{fieldtype:'Date', fieldname:'date', label:'Complete By'}, 
 					{fieldtype:'Select', fieldname:'priority', label:'Priority',
-						options:'Low\nMedium\nHigh', 'default':'Medium'}, 
+						options:'Low\nMedium\nHigh', 'default':'Medium'},
+					{fieldtype:'Check', fieldname:'notify', label:'Notify By Email'},
 					{fieldtype:'Button', label:'Add', fieldname:'add_btn'}
 				]
 			});
@@ -75,7 +76,8 @@ wn.widgets.form.sidebar.AssignTo = Class.extend({
 						assign_to: assign_to,
 						description: me.dialog.fields_dict.description.get_value(),
 						priority: me.dialog.fields_dict.priority.get_value(),
-						date: me.dialog.fields_dict.date.get_value()
+						date: me.dialog.fields_dict.date.get_value(),
+						notify: me.dialog.fields_dict.notify.get_value()
 					}, function(r,rt) {me.render(r.message);});
 				}
 			}

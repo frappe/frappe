@@ -3,16 +3,14 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		this.make();
 		this.make_home();
-		this.make_new();
-		this.make_search();
-		this.make_report();
+		this.make_document();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		if(in_list(user_roles, 'Administrator'))
 			this.make_options();
 		this.make_tools();
 		this.set_user_name();
 		this.make_logout();
-		
+
 		$('.topbar').dropdown();
 		
 		$(document).trigger('toolbar_setup');
@@ -39,21 +37,21 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make_home: function() {
 		$('.topbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
 	},
-	make_new: function() {
+
+	make_document: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
-		$('.topbar .nav:first').append('<li><a href="#" \
-			onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>');
-	},
-	make_search: function() {
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
-		$('.topbar .nav:first').append('<li><a href="#" \
-			onclick="return wn.ui.toolbar.search.show();">Search</a></li>');
-	},
-	make_report: function() {
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
-		$('.topbar .nav:first').append('<li><a href="#" \
-			onclick="return wn.ui.toolbar.report.show();">Report</a></li>');
+		$('.topbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" href="#" onclick="return false;">Document</a>\
+			<ul class="dropdown-menu" id="toolbar-document">\
+				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">Search</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">Report</a></li>\
+			</ul>\
+		</li>');
 	},
+
 	make_tools: function() {
 		$('.topbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#" onclick="return false;">Tools</a>\
