@@ -443,5 +443,4 @@ _f.Grid.prototype.refresh_row = function(ridx, docname) {
 	for(var cidx=0; cidx<row.cells.length; cidx++) {
 		this.set_cell_value(row.cells[cidx]);
 	}
-
 }

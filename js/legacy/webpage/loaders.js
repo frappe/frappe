@@ -270,6 +270,10 @@ function loadscript(src, call_back) {
 
 var doc_browser_page;
 function loaddocbrowser(dt, label, fields) {
+	//wn.require('lib/js/wn/pages/doclistview.js');	
+	//wn.pages.doclistview.show(dt);
+	//return;
+	
 	wn.require('lib/js/legacy/webpage/docbrowser.js');
 	dt = get_label_doctype(dt);
 	if(!doc_browser_page)

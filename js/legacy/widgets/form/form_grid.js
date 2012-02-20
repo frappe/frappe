@@ -99,6 +99,11 @@ _f.FormGrid.prototype.refresh = function() {
 		data[data.length] = docset[i].name;
 	}
 	this.set_data(data);
+	
+	// if form open, refresh form
+	if(_f.frm_dialog && _f.frm_dialog.dialog.display &&  _f.frm_dialog.cur_frm) {
+		_f.frm_dialog.cur_frm.refresh();
+	}
 }
 
 _f.FormGrid.prototype.set_unsaved = function() {
