@@ -10,8 +10,6 @@ div.psidebar-head {
 }
 
 div.psidebar-section {
-	background-color: #fff;
-	border: 1px solid #b2b2b7;
 	margin-bottom: 11px;
 	overflow: hidden;
 }
@@ -19,14 +17,7 @@ div.psidebar-section {
 div.psidebar-section-head {
 	font-size: 12px;
 	padding: 5px 11px;
-	background: #eeeeee; /* Old browsers */
-	background: -moz-linear-gradient(top,  #eeeeee 0%, #cccccc 100%); /* FF3.6+ */
-	background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#eeeeee), color-stop(100%,#cccccc)); /* Chrome,Safari4+ */
-	background: -webkit-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* Chrome10+,Safari5.1+ */
-	background: -o-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* Opera 11.10+ */
-	background: -ms-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* IE10+ */
-	background: linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* W3C */
-	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
+	border-bottom: 2px solid #444;
 }
 
 div.psidebar-section-body {

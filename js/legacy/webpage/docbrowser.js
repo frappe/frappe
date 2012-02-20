@@ -71,7 +71,7 @@ ItemBrowser = function(parent, dt, label, field_list) {
 		heading: l
 	})
 
-	this.layout.no_records = $a($td(this.layout.wtab,0,0), 'div');
+	this.layout.no_records = $a(this.layout.main, 'div');
 
 	$dh(this.layout.page_head.separator);
 
@@ -79,7 +79,7 @@ ItemBrowser = function(parent, dt, label, field_list) {
 	this.no_result_area = $a(this.layout.no_records, 'div','layout_wrapper',{fontSize:'14px', textAlign:'center', padding:'200px 0px'});
 	
 	// loading...
-	this.layout.loading = $a($td(this.layout.wtab,0,0), 'div','layout_wrapper',{padding:'200px 0px', textAlign:'center', fontSize:'14px', color:'#444', display:'none'});
+	this.layout.loading = $a(this.layout.main, 'div','',{padding:'200px 0px', textAlign:'center', fontSize:'14px', color:'#444', display:'none'});
 	this.layout.loading.innerHTML = 'Loading<img src="lib/images/ui/button-load.gif" style="margin-bottom: -2px; margin-left: 8px">';
 	
 	// setup toolbar
@@ -101,10 +101,7 @@ ItemBrowser.prototype.show_area = function(area) {
 
 ItemBrowser.prototype.setup_sidebar = function() {
 	var me = this;
-	
-	// table
-	$y(this.layout.sidebar_area, {paddingTop:'53px'});
-	
+		
 	// sidebar
 	this.sidebar = new wn.widgets.PageSidebar(this.layout.sidebar_area, {
 		sections: [

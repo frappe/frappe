@@ -109,7 +109,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	this.refresh = function() {
 		var parent = this.form.page_layout.sidebar_area;
 		if(!this.sidebar) {
-			$y(parent, {paddingTop:'37px'})
+			//$y(parent, {paddingTop:'37px'})
 			this.sidebar = new wn.widgets.PageSidebar(parent, this.opts);
 		} else {
 			this.sidebar.refresh();

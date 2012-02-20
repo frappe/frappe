@@ -9,13 +9,16 @@
 			+ sidebar_area
 
 */
+
+wn.sidebar_background = '#f2f2f2';
 wn.PageLayout = function(args) {
 	$.extend(this, args)
-	this.wrapper 		= $a(this.parent, 'div');
-	this.wtab 			= make_table(this.wrapper, 1, 2, '100%', [this.main_width, this.sidebar_width]);
-	this.main 			= $a($td(this.wtab,0,0), 'div', 'layout_wrapper');
-	this.sidebar_area 	= $a($td(this.wtab,0,1), 'div');
-	this.head 			= $a(this.main, 'div');
+	this.wrapper 		= $a(this.parent, 'div', 'layout-wrapper', 
+		{backgroundColor: wn.sidebar_background, padding: '0px'});
+	this.main 			= $a(this.wrapper, 'div', 'layout-main-section');
+	this.sidebar_area 	= $a(this.wrapper, 'div', 'layout-side-section');
+	$a(this.wrapper, 'div', '', {clear:'both'});
+	this.head 			= $a(this.main, 'div');	
 	this.toolbar_area 	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
 	this.footer 		= $a(this.main, 'div');

@@ -3,7 +3,7 @@
 
 wn.versions = {
 	check: function() {
-		if(localStorage) {
+		if(window.localStorage) {
 			if(window._version_number==-1 || parseInt(localStorage._version_number)
 			 	!= parseInt(window._version_number)) {
 				var localversion = localStorage._version_number;
