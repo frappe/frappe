@@ -14,7 +14,7 @@
 wn.widgets.PageSidebar = function(parent, opts) {
 	this.opts = opts
 	this.sections = {}
-	this.wrapper = $a(parent, 'div', 'psidebar-wrapper')
+	this.wrapper = $a(parent, 'div', 'psidebar')
 
 	// refresh sidebar - make head and sections
 	this.refresh = function() {
@@ -34,7 +34,7 @@ wn.widgets.PageSidebar = function(parent, opts) {
 	}
 
 	this.make_head = function() {
-		this.head = $a(this.wrapper, 'div', 'psidebar-head', '', this.opts.title);
+		this.head = $a(this.wrapper, 'div', 'head', '', this.opts.title);
 	}
 	
 	this.refresh();
@@ -46,9 +46,9 @@ wn.widgets.PageSidebar = function(parent, opts) {
 wn.widgets.PageSidebarSection = function(sidebar, opts) {
 	this.items = [];
 	this.sidebar = sidebar;
-	this.wrapper = $a(sidebar.wrapper, 'div', 'psidebar-section');
-	this.head = $a(this.wrapper, 'div', 'psidebar-section-head', '', opts.title);
-	this.body = $a(this.wrapper, 'div', 'psidebar-section-body');
+	this.wrapper = $a(sidebar.wrapper, 'div', 'section');
+	this.head = $a(this.wrapper, 'div', 'section-head', '', opts.title);
+	this.body = $a(this.wrapper, 'div', 'section-body');
 	$br(this.wrapper, '5px');
 	this.opts = opts;
 
@@ -60,7 +60,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 			var item = this.opts.items[i];
 			if((item.display && item.display()) || !item.display) {
 				
-				var div = $a(this.body, 'div', 'psidebar-section-item');
+				var div = $a(this.body, 'div', 'section-item');
 				this.make_one_item(item, div);
 			}
 				
@@ -116,7 +116,7 @@ wn.widgets.PageSidebarLink = function(section, opts, wrapper) {
 	if(opts.icon) {
 		section.add_icon(this.wrapper, opts.icon);
 	}
-	this.ln = $a(this.wrapper, 'span', 'link_type psidebar-section-link', opts.style, opts.label);
+	this.ln = $a(this.wrapper, 'span', 'link_type section-link', opts.style, opts.label);
 	this.ln.onclick = function() { me.opts.onclick(me) };
 }
 

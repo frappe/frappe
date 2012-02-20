@@ -10,11 +10,9 @@
 
 */
 
-wn.sidebar_background = '#f2f2f2';
 wn.PageLayout = function(args) {
 	$.extend(this, args)
-	this.wrapper 		= $a(this.parent, 'div', 'layout-wrapper', 
-		{backgroundColor: wn.sidebar_background, padding: '0px'});
+	this.wrapper 		= $a(this.parent, 'div', 'layout-wrapper layout-wrapper-background');
 	this.main 			= $a(this.wrapper, 'div', 'layout-main-section');
 	this.sidebar_area 	= $a(this.wrapper, 'div', 'layout-side-section');
 	$a(this.wrapper, 'div', '', {clear:'both'});

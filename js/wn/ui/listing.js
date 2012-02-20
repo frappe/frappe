@@ -4,7 +4,9 @@
 //
 // opts:
 //   parent
-//   query or get_query
+//   method (method to call on server)
+//   args (additional args to method)
+//   query or get_query (will be deprecated)
 //   query_max
 //   no_result_message ("No result")
 //   page_length (20)
@@ -56,7 +58,7 @@ wn.widgets.Listing = function(opts) {
 	
 	// make the toolbar
 	this.make_toolbar = function() {
-		if(!this.opts.hide_refresh) {
+		if(!(this.opts.hide_refresh || this.opts.no_refresh)) {
 			this.ref_img = $a(this.toolbar_area, 'span', 'link_type', {color:'#888'}, '[refresh]');
 			this.ref_img.onclick = function() { me.run(); }
 			
@@ -151,18 +153,28 @@ wn.widgets.Listing = function(opts) {
 			this.start = 0;
 
 		// load query
-		this.query = this.opts.get_query ? this.opts.get_query() : this.opts.query;
-		this.add_limits();
-
-		args={ query_max: this.query_max || this.opts.query_max || '' }
-		args.simple_query = this.query;
+		if(!this.opts.method) {
+			this.query = this.opts.get_query ? this.opts.get_query() : this.opts.query;
+			this.add_limits();
+			var args={ 
+				query_max: this.query_max || this.opts.query_max || '',
+				as_dict: 1
+			}
+			args.simple_query = this.query;
+		} else {
+			var args = {
+				limit_start: this.start,
+				limit_page_length: this.page_length
+			}
+		}
 		
-		args.as_dict = 1;
+		if(this.opts.args)
+			$.extend(args, this.opts.args)
 		
 		// show loading
 		if(this.loading_img) $di(this.loading_img);
 		wn.call({
-			method:'webnotes.widgets.query_builder.runquery',
+			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
 			args: args,
 			callback: function(r, rt) { me.make_results(r, rt) },
 			no_spinner: this.opts.no_loading,

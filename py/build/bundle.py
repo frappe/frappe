@@ -20,7 +20,7 @@ class Bundle:
 			if ':' in f:
 				f, suffix = f.split(':')
 			
-			print f + ' | ' + str(int(os.path.getsize(f)/1024)) + 'k'
+			# print f + ' | ' + str(int(os.path.getsize(f)/1024)) + 'k'
 			
 			# get data
 			with open(f, 'r') as infile:			
