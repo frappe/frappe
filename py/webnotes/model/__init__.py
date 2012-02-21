@@ -215,6 +215,7 @@ def delete_fields(args_dict, delete=0):
 
 		args_dict = { dt: [field names] }
 	"""
+	import webnotes.utils
 	for dt in args_dict.keys():
 		fields = args_dict[dt]
 		if not fields: continue
