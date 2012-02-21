@@ -13,13 +13,13 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.set_user_name();
 		this.make_logout();
 		
-		$('.topbar').dropdown();
+		$('.navbar').dropdown();
 		
 		$(document).trigger('toolbar_setup');
 	},
 	make: function() {
-		$('header').append('<div class="topbar">\
-			<div class="topbar-inner">\
+		$('header').append('<div class="navbar navbar-fixed-top">\
+			<div class="navbar-inner">\
 			<div class="container">\
 				<a class="brand"></a>\
 				<ul class="nav">\
@@ -27,7 +27,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<img src="lib/images/ui/spinner.gif" id="spinner"/>\
 				<ul class="nav secondary-nav">\
 					<li class="dropdown">\
-						<a class="dropdown-toggle" href="#" onclick="return false;" id="toolbar-user-link"></a>\
+						<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+							onclick="return false;" id="toolbar-user-link"></a>\
 						<ul class="dropdown-menu" id="toolbar-user">\
 						</ul>\
 					</li>\
@@ -37,26 +38,27 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</div>');		
 	},
 	make_home: function() {
-		$('.topbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
+		$('.navbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
 	},
 	make_new: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
-		$('.topbar .nav:first').append('<li><a href="#" \
+		$('.navbar .nav:first').append('<li><a href="#" \
 			onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>');
 	},
 	make_search: function() {
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
-		$('.topbar .nav:first').append('<li><a href="#" \
+		$('.navbar .nav:first').append('<li><a href="#" \
 			onclick="return wn.ui.toolbar.search.show();">Search</a></li>');
 	},
 	make_report: function() {
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
-		$('.topbar .nav:first').append('<li><a href="#" \
+		$('.navbar .nav:first').append('<li><a href="#" \
 			onclick="return wn.ui.toolbar.report.show();">Report</a></li>');
 	},
 	make_tools: function() {
-		$('.topbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" href="#" onclick="return false;">Tools</a>\
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+				onclick="return false;">Tools<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return err_console.show();">Error Console</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">Clear Cache</a></li>\
@@ -71,8 +73,9 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		}
 	},
 	make_options: function() {
-		$('.topbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" href="#" onclick="return false;">Options</a>\
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" \
+				href="#" onclick="return false;">Options<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-options">\
 			</ul>\
 		</li>');
