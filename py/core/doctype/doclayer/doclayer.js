@@ -31,8 +31,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 			});	
 		}
 	},1);
-	$(cur_frm.frm_head.page_head.buttons.Update).addClass('primary');
-	$(cur_frm.frm_head.page_head.buttons.Update).addClass('cupid-green');
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-primary');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
@@ -63,7 +62,9 @@ cur_frm.load_doclabel_options = function(doc, dt, dn) {
 
 cur_frm.refresh_doctype_select = function(doc, dt, dn) {
 	var doc_type = cur_frm.fields_dict['doc_type'];
-	doc_type.refresh_options(cur_frm.doctype_list);
+	if(doc_type) {
+		doc_type.refresh_options(cur_frm.doctype_list);
+	}
 	if(doc.doc_type) {
 		doc_type.set_input(doc.doc_type);
 	} else {

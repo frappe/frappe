@@ -1,8 +1,9 @@
 // recent document list
 wn.ui.toolbar.RecentDocs = Class.extend({
 	init:function() {
-		$('.topbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" href="#" onclick="return false;">Recent</a>\
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+				onclick="return false;">Recent<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-recent"></ul>\
 		</li>');
 		this.setup();
@@ -21,7 +22,7 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		this.remove(dt, dn);
 		var html = repl('<li data-docref="%(dt)s/%(dn)s">\
 			<a href="#Form/%(dt)s/%(dn)s">\
-				<span class="help">%(dt)s:</span> %(dn)s\
+				%(dn)s <span style="font-size: 10px">(%(dt)s)</span>\
 			</a></li>', 
 			{dt:dt, dn:dn});
 		if(on_top) {

@@ -3,7 +3,7 @@ pscript['onload_Login Page'] = function(){
 	$bs(lw, '1px 1px 3px #888');
 	
 	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin);
-	$(pscript.login_btn).addClass('primary');
+	$(pscript.login_btn).addClass('btn-primary');
 	
 	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').val())

@@ -28,7 +28,11 @@ def add():
 		d.description = webnotes.form_dict['description']
 		d.priority = webnotes.form_dict.get('priority', 'Medium')
 		d.date = webnotes.form_dict.get('date', nowdate())
+		d.assigned_by = webnotes.user.name
 		d.save(1)
+
+	# notify
+	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', notify=webnotes.form_dict.get('notify'))
 		
 	# update feeed
 	try:
@@ -45,8 +49,37 @@ def add():
 @webnotes.whitelist()
 def remove():
 	"""remove from todo"""
+	res = webnotes.conn.sql("""\
+		select assigned_by, owner, reference_type, reference_name from `tabToDo Item`
+		where reference_type=%(doctype)s and reference_name=%(name)s
+		and owner=%(assign_to)s""", webnotes.form_dict)
+
 	webnotes.conn.sql("""delete from `tabToDo Item`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		and owner=%(assign_to)s""", webnotes.form_dict)
-		
+
+	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
+
 	return get()
+
+
+def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', notify=0):
+	"""
+		Notify assignee that there is a change in assignment
+	"""
+	if not (assigned_by and owner and doc_type and doc_name): return
+	# Search for email address in description -- i.e. assignee
+	assignment = """<a href="#!Form/%s/%s">%s</a>""" % (doc_type, doc_name, doc_name)
+	if action=='CLOSE':
+		arg = {
+			'uid': assigned_by,
+			'comment': "The task %s, assigned to %s, has been closed by %s" % (assignment, owner, webnotes.user.name)
+		}
+	else:
+		arg = {
+			'uid': owner,
+			'comment': "A new task, %s, has been assigned to you by %s" % (assignment, webnotes.user.name),
+			'notify': notify
+		}
+	from home.page.my_company import my_company
+	my_company.post_comment(arg)

@@ -59,7 +59,7 @@ function msgprint(msg, issmall, callback) {
 
 // Floating Message
 var growl_area;
-function show_alert(txt) {
+function show_alert(txt, id) {
 	if(!growl_area) {
 		growl_area = $a(popup_cont, 'div', '', {position:'fixed', bottom:'8px', right:'8px', width: '320px', zIndex:10});
 	}
@@ -74,5 +74,6 @@ function show_alert(txt) {
 	// text
 	var t = $a(body, 'div', '', { color:'#FFF' });
 	$(t).html(txt);
+	if(id) { $(t).attr('id', id); }
 	$(wrapper).hide().fadeIn(1000);
 }

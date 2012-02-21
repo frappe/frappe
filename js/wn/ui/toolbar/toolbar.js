@@ -3,17 +3,14 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		this.make();
 		this.make_home();
-		this.make_new();
-		this.make_search();
-		this.make_report();
+		this.make_document();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		if(in_list(user_roles, 'Administrator'))
 			this.make_options();
 		this.make_tools();
 		this.set_user_name();
 		this.make_logout();
-		
-		$('.navbar').dropdown();
+		$('.dropdown-toggle').dropdown();
 		
 		$(document).trigger('toolbar_setup');
 	},
@@ -25,7 +22,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<ul class="nav">\
 				</ul>\
 				<img src="lib/images/ui/spinner.gif" id="spinner"/>\
-				<ul class="nav secondary-nav">\
+				<ul class="nav pull-right">\
 					<li class="dropdown">\
 						<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 							onclick="return false;" id="toolbar-user-link"></a>\
@@ -40,21 +37,22 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make_home: function() {
 		$('.navbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
 	},
-	make_new: function() {
+
+	make_document: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
-		$('.navbar .nav:first').append('<li><a href="#" \
-			onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>');
-	},
-	make_search: function() {
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
-		$('.navbar .nav:first').append('<li><a href="#" \
-			onclick="return wn.ui.toolbar.search.show();">Search</a></li>');
-	},
-	make_report: function() {
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
-		$('.navbar .nav:first').append('<li><a href="#" \
-			onclick="return wn.ui.toolbar.report.show();">Report</a></li>');
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
+				onclick="return false;">Document<b class="caret"></b></a>\
+			<ul class="dropdown-menu" id="toolbar-document">\
+				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">Search</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">Report</a></li>\
+			</ul>\
+		</li>');
 	},
+
 	make_tools: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
@@ -97,7 +95,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	set_user_name: function() {
 		var fn = user_fullname;
 		if(fn.length > 15) fn = fn.substr(0,12) + '...';
-		$('#toolbar-user-link').html(fn);
+		$('#toolbar-user-link').html(fn + '<b class="caret"></b>');
 	},
 
 	make_logout: function() {

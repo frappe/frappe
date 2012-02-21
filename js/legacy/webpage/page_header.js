@@ -51,7 +51,7 @@ PageHeader.prototype.add_button = function(label, fn, bold, icon, green) {
 	var tb = this.toolbar_area;
 	if(this.buttons[label]) return;
 		
-	var btn = $btn(tb,label,fn,{marginRight:'4px'}, (green ? 'primary' : ''));
+	var btn = $btn(tb,label,fn,{marginRight:'4px'}, (green ? 'btn-primary' : ''));
 	if(bold) $y(btn,{fontWeight:'bold'});
 
 	this.buttons[label]=btn;

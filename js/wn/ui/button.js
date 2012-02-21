@@ -2,7 +2,7 @@ wn.ui.Button = function(args) {
 	var me = this;
 	$.extend(this, {
 		make: function() {
-			me.btn = wn.dom.add(args.parent, 'button', 'btn small ' + (args.css_class || ''));
+			me.btn = wn.dom.add(args.parent, 'button', 'btn btn-small ' + (args.css_class || ''));
 			me.btn.args = args;
 
 			// ajax loading
