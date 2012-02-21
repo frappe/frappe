@@ -90,19 +90,25 @@ class CSVImport:
 
 	def validate_fields(self, lb_list):
 		self.msg.append('<p><b>Checking fieldnames for %s</b></p>' % self.dt_list[0])
-		#if len(self.dt_list) > 1 and self.overwrite:
-		#	self.msg.append('<div style="color:RED"> Error: Overwrite is not possible for Document %s </div>' % self.dt_list[0])
-		#	self.validate_success = 0
-		#	return
 		
 		if self.overwrite and len(self.dt_list) == 1 and 'Name' != lb_list[0]:
 			self.msg.append('<div style="color:RED"> Error : At Row 4 and Column 1: To Overwrite fieldname should be Name </div>')
 			self.validate_success = 0
 			return
+
 		# labelnames
 		res = self.validate_success and [d[0] for d in sql("select label from tabDocField where parent='%s' and docstatus!=2 and ifnull(hidden,'') in ('',0)" % self.dt_list[0])] or []
-
 		if len(self.dt_list) > 1 and self.dt_list[1]:
+			if self.dt_list[1] not in lb_list:
+				self.msg.append('<div style="color:RED"> Error : At Row 4: There should be one column named "'+self.dt_list[1]+'"</div>')
+				self.validate_success = 0
+				return
+
+			if 'Name' in lb_list:
+				self.msg.append('<div style="color:RED"> Error : At Row 4: "Name" column should not be there</div>')
+				self.validate_success = 0
+				return
+
 			self.fields.append('parent')
 			lb_list.pop(lb_list.index(self.dt_list[1]))
 
