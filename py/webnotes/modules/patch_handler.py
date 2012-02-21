@@ -16,10 +16,9 @@ def run_all(patch_list=None):
 	"""run all pending patches"""
 	executed = [p[0] for p in webnotes.conn.sql("""select patch from __PatchLog""")]
 	import patches.patch_list
-	
-	for patch in patch_list or patches.patch_list.patch_list:
-		if not patch['patch_file'] in executed:
-			pn = patch['patch_module'] + '.' + patch['patch_file']
+	for patch in (patch_list or patches.patch_list.patch_list):
+		pn = patch['patch_module'] + '.' + patch['patch_file']
+		if pn not in executed:
 			run_single(patchmodule = pn)
 
 def reload_doc(args):
@@ -69,7 +68,7 @@ def add_to_patch_log(tb):
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
 	webnotes.conn.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
-		patchmodule.split('.')[-1])
+		patchmodule)
 
 def executed(patchmodule):
 	"""return True if is executed"""

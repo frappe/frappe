@@ -25,6 +25,7 @@ class Database:
 		self.in_transaction = 0
 		self.transaction_writes = 0
 		self.testing_tables = []
+		self.auto_commit_on_many_writes = 0
 
 		self.password = self.get_db_password(self.user, password)
 		
@@ -92,8 +93,12 @@ class Database:
 		if self.in_transaction and query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
 			if self.transaction_writes > 5000:
-				webnotes.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
-				raise Exception, 'Bad Query!!! Too many writes'
+				if self.auto_commit_on_many_writes:
+					webnotes.conn.commit()
+					webnotes.conn.begin()
+				else:
+					webnotes.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
+					raise Exception, 'Bad Query!!! Too many writes'
 	
 	def fetch_as_dict(self, formatted=0):
 		"""
