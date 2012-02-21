@@ -129,9 +129,9 @@ ItemBrowser.prototype.setup_toolbar = function() {
 	this.sub_toolbar = $a(parent, 'div', '', {marginBottom:'7px', padding: '3px', textAlign:'right', fontSize:'11px', color:'#444'});
 	
 	// archives label
-	this.archives_label = $a(parent, 'div', 'help_box_big',{display:'none'},'Showing from Archives');
-	var span = $a(this.archives_label, 'span', 'link_type', {marginLeft:'8px'}, 'Show Active');
-	span.onclick = function() { me.show_archives.checked = 0; me.show_archives.onclick(); }
+	//this.archives_label = $a(parent, 'div', 'help_box_big',{display:'none'},'Showing from Archives');
+	//var span = $a(this.archives_label, 'span', 'link_type', {marginLeft:'8px'}, 'Show Active');
+	//span.onclick = function() { me.show_archives.checked = 0; me.show_archives.onclick(); }
 	
 	this.trend_area = $a(parent, 'div', '', {marginBottom:'16px', padding: '4px', backgroundColor:'#EEF', border: '1px solid #CCF', display:'none'});
 	$br(this.trend_area, '5px');
@@ -186,11 +186,11 @@ ItemBrowser.prototype.make_toolbar = function() {
 	}
 	
 	// archive, delete
-	if(in_list(profile.can_write, this.dt)) {
-		this.archive_btn = $btn(this.main_toolbar, 'Archive', function() { me.archive_items(); }, {marginLeft:'24px'});
-	} 
+	//if(in_list(profile.can_write, this.dt)) {
+	//	this.archive_btn = $btn(this.main_toolbar, 'Archive', function() { me.archive_items(); }, {marginLeft:'24px'});
+	//} 
 	if(this.dt_details.can_cancel) {
-		this.delete_btn = $btn(this.main_toolbar, 'Delete', function() { me.delete_items(); });
+		this.delete_btn = $btn(this.main_toolbar, 'Delete', function() { me.delete_items(); }, {marginLeft: '24px'});
 	}
 		
 	// search box
@@ -212,7 +212,7 @@ ItemBrowser.prototype.make_toolbar = function() {
 		this.make_checkbox('Cancelled', 0)
 	}
 	
-	this.set_archiving();
+	//this.set_archiving();
 
 }
 
@@ -461,12 +461,12 @@ ItemBrowser.prototype.make_the_list  = function(dt, wrapper) {
 	lst.get_query = function() {
 		q = {};
 		var fl = [];
-		q.table = repl('`%(prefix)s%(dt)s`', {prefix:(me.show_archives.checked ? 'arc' : 'tab'), dt:this.dt});
+		q.table = repl('`%(prefix)s%(dt)s`', {prefix: 'tab'/*(me.show_archives.checked ? 'arc' : 'tab')*/, dt:this.dt});
 	
 		// columns
 		for(var i=0;i<this.cl.length;i++) {
-			if(!(me.show_archives && me.show_archives.checked && this.cl[i][0]=='_user_tags'))
-				fl.push(q.table+'.`'+this.cl[i][0]+'`')
+			//if(!(me.show_archives && me.show_archives.checked && this.cl[i][0]=='_user_tags'))
+			fl.push(q.table+'.`'+this.cl[i][0]+'`')
 		}
 
 		if(me.dt_details.submittable) {
@@ -494,10 +494,10 @@ ItemBrowser.prototype.make_the_list  = function(dt, wrapper) {
 				
 		this.query = repl("SELECT %(fields)s FROM %(table)s WHERE %(conds)s", q);
 		this.query_max = repl("SELECT COUNT(*) FROM %(table)s WHERE %(conds)s", q);
-		if(me.show_archives.checked)
-			this.prefix = 'arc';
-		else
-			this.prefix = 'tab'
+		//if(me.show_archives.checked)
+		//	this.prefix = 'arc';
+		//else
+		this.prefix = 'tab'
 		
 	}
 	
