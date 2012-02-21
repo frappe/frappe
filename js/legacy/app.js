@@ -59,10 +59,6 @@ function startup() {
 		}		
 		
 		// show a new form on loading?
-		if(get_url_arg('embed')) {
-			newdoc(get_url_arg('embed'));
-			return;
-		}
 		
 		// open an existing page or record
 		var t = to_open();

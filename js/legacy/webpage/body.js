@@ -92,7 +92,8 @@ function Body() {
 		}
 		
 		// page width
-		if(this.cp.page_width) $y(this.wrapper,{width:cint(this.cp.page_width) + 'px'});
+		if(this.cp.page_width) 
+			$y(this.wrapper,{width:cint(this.cp.page_width) + 'px'});
 		
 	}
 	

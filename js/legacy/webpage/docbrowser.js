@@ -66,17 +66,18 @@ ItemBrowser = function(parent, dt, label, field_list) {
 	// make the layout
 	this.layout = new wn.PageLayout({
 		parent: parent,
-		main_width: '75%',
-		sidebar_width: '25%',
 		heading: l
 	})
 
-	this.layout.no_records = $a(this.layout.main, 'div');
-
 	$dh(this.layout.page_head.separator);
 
-	// areas
-	this.no_result_area = $a(this.layout.no_records, 'div','layout_wrapper',{fontSize:'14px', textAlign:'center', padding:'200px 0px'});
+
+	this.layout.results = $a(this.layout.main, 'div');
+
+	// no records
+	this.layout.no_records = $a(this.layout.main, 'div');
+	this.no_result_area = $a(this.layout.no_records, 
+		'div','',{fontSize:'14px', textAlign:'center', padding:'200px 0px'});
 	
 	// loading...
 	this.layout.loading = $a(this.layout.main, 'div','',{padding:'200px 0px', textAlign:'center', fontSize:'14px', color:'#444', display:'none'});
@@ -92,7 +93,7 @@ ItemBrowser = function(parent, dt, label, field_list) {
 // one of "loading", "no_result", "main"
 ItemBrowser.prototype.show_area = function(area) {
 	$ds(this.layout[area]);
-	var al = ['loading','no_records','main'];
+	var al = ['loading','no_records','results'];
 	for(var a in al) {
 		if(al[a]!=area) 
 			$dh(this.layout[al[a]]);
@@ -118,7 +119,7 @@ ItemBrowser.prototype.setup_sidebar = function() {
 // setup the toolbar and archiving and deleteing functionality
 ItemBrowser.prototype.setup_toolbar = function() {
 	var me = this;
-	var parent = this.layout.toolbar_area
+	var parent = $a(this.layout.results, 'div');
 	// toolbar
 	this.main_toolbar = $a(parent, 'div', '', {padding: '3px', backgroundColor:'#EEE'});
 	$br(this.main_toolbar, '3px'); 
@@ -317,7 +318,7 @@ ItemBrowser.prototype.load_details = function() {
 		me.dt_details = r.message;
 		if(r.message) {
 			me.make_toolbar();
-			me.make_the_list(me.dt, me.layout.body);
+			me.make_the_list(me.dt, me.layout.results);
 			
 			// fire onload
 			if(me.cscript.onload) 
@@ -335,7 +336,7 @@ ItemBrowser.prototype.load_details = function() {
 // -------------------------------------------------
 
 ItemBrowser.prototype.show_results = function() {
-	this.show_area('main');
+	this.show_area('results');
 
 	set_title(get_doctype_label(this.label));
 }
@@ -383,7 +384,8 @@ ItemBrowser.prototype.show_trend = function(trend) {
 ItemBrowser.prototype.show_no_result = function() {
 	this.show_area('no_records');
 
-	this.no_result_area.innerHTML = repl('No %(dt)s found. <span class="link_type" onclick="newdoc(\'%(dt)s\')">Click here</span> to create your first %(dt)s!', {dt:get_doctype_label(this.dt)});
+	this.no_result_area.innerHTML = 
+		repl('No %(dt)s found. <span class="link_type" onclick="newdoc(\'%(dt)s\')">Click here</span> to create your first %(dt)s!', {dt:get_doctype_label(this.dt)});
 	set_title(get_doctype_label(this.label));
 }
 
@@ -391,7 +393,7 @@ ItemBrowser.prototype.show_no_result = function() {
 
 ItemBrowser.prototype.make_new = function(dt, label, field_list) {
 	// make the list
-	this.make_the_list(dt, this.layout.body);
+	this.make_the_list(dt, this.layout.results);
 }
 
 // -------------------------------------------------

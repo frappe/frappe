@@ -62,7 +62,29 @@ hr {
   border-bottom: 1px solid #ffffff;
 }
 
+/* links */
+
 a:active { outline:none; }
+
+a {
+  color: #0088cc;
+  text-decoration: none;
+}
+a:hover {
+  color: #005580;
+  text-decoration: underline;
+}
+
+.link_type {
+	padding:2px;
+	color: #0088cc;
+	cursor: pointer;
+}
+
+.link_type:hover {
+	color: #005580;
+	text-decoration: underline;
+}
 
 :focus { -moz-outline-style:none; }
 
@@ -103,19 +125,6 @@ div.loading_div {
 div#head_div { background-color: #FFF; }
 
 #head_banner { background-color: #FFF; }
-
-.link_type {
-	padding:2px;
-	color: #00b;
-	text-decoration: underline;
-	cursor: pointer;
-}
-
-.link_type:hover {
-	color: #fff !important; 
-	background-color: #07b;
-	text-decoration: none;
-}
 
 div.std-footer {
 	margin: 13px 0px;

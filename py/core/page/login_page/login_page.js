@@ -1,10 +1,9 @@
 pscript['onload_Login Page'] = function(){
 	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');
-	
-	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin);
-	$(pscript.login_btn).addClass('btn-primary');
-	
+
+	$('#login_btn').click(pscript.doLogin)
+		
 	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').val())
 			pscript.doLogin();
@@ -17,7 +16,7 @@ pscript['onshow_Login Page'] = function() {
 
 // Login Callback
 pscript.onLoginReply = function(r, rtext) {
-	pscript.login_btn.done_working();
+	$('#login_btn').done_working();
     if(r.message=="Logged In"){
         window.location.href='index.cgi' + (get_url_arg('page') ? ('?page='+get_url_arg('page')) : '');
     } else {
@@ -36,7 +35,7 @@ pscript.doLogin = function(){
     if($i('remember_me').checked) 
       args['remember_me'] = 1;
 
-	pscript.login_btn.set_working();
+	$('#login_btn').set_working();
 	
     $c("login", args, pscript.onLoginReply);
 }

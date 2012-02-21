@@ -4,7 +4,9 @@ var err_console;
 var err_list = [];
 
 function errprint(t) {
-	err_list[err_list.length] = ('<pre style="font-family: Courier, Fixed; font-size: 11px; border-bottom: 1px solid #AAA; overflow: auto; width: 90%;">'+t+'</pre>');
+	if(!err_list)err_list = [];
+	err_list.push('<pre style="font-family: Courier, Fixed; font-size: 11px; \
+		border-bottom: 1px solid #AAA; overflow: auto; width: 90%;">'+t+'</pre>');
 }
 
 function setup_err_console() {

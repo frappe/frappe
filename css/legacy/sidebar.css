@@ -27,7 +27,7 @@ div.psidebar div.section-item {
 	margin-bottom: 7px;
 }
 
-div.psidebar .section-link {
+div.psidebar div.section-item, div.psidebar .section-link {
 	font-size: 11px;
 	color: #666;
 }

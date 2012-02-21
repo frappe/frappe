@@ -19,7 +19,7 @@ _f.ColumnBreak.prototype.make_body = function() {
 	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
 	// header
 	if(this.df&&this.df.label){
-		this.label = $a(this.cell.wrapper, 'h3', '', '', this.df.label);
+		this.label = $a(this.cell.wrapper, 'div', '', '', this.df.label);
 	}
 
 }

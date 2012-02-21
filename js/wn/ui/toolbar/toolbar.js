@@ -35,7 +35,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</div>');		
 	},
 	make_home: function() {
-		$('.navbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
+		$('.navbar .nav:first').append('<li data-name="navbar-home"><a href="#'+home_page+'">Home</a></li>')
 	},
 
 	make_document: function() {
