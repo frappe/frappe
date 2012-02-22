@@ -36,6 +36,11 @@ ItemBrowserPage = function() {
 ItemBrowserPage.prototype.show = function(dt, label, field_list) {
 	var me = this;
 
+	if(wn.boot.profile.can_read.indexOf(dt)==-1) {
+		msgprint("No read permission");
+		return;
+	}
+	
 	if(this.cur_list && this.cur_list.dt != dt) $dh(this.cur_list.layout.wrapper);
 		
 	if(!me.lists[dt]) {
