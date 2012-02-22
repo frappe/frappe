@@ -29,16 +29,15 @@ ul.box_tabs li {
 	cursor: pointer;
 }
 
-ul.box_tabs a {
+ul.box_tabs li a {
 	display:block;
 	padding:3px 15px 3px 6px;
-	text-decoration:none;
+	text-decoration: none;
 }
 
 ul.box_tabs li.box_tab_mouseover {
 	background-color: #BBB;
 }
-
 
 ul.box_tabs li.box_tab_selected {	
 	background-color: #777;
@@ -51,5 +50,5 @@ ul.box_tabs li.box_tab_selected {
 	
 }
 ul.box_tabs li.box_tab_selected a {
-
+	color: #fff;
 }

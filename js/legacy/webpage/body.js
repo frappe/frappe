@@ -14,56 +14,20 @@ function Body() {
 	this.right_sidebar = null;
 	this.status_area = null;
 	var me = this;
-	page_body = this;	
-
-	this.no_of_columns = function() {
-		var n = 2;
-		if(cint(me && me.cp && me.cp.right_sidebar_width)) 
-			n = n + 1;
-		return n;
-	}
+	page_body = this;
 	
 	this.ready = function() {
 		$dh('startup_div');
 		$ds('body_div');	
 	}
 	
-	this.setup_page_areas = function() {		
-		var n = this.no_of_columns();
-
-		// has sidebars, make a table
-		this.body_table = make_table(this.body, 1, n, '100%');
-		$y(this.body_table, {tableLayout:'fixed'});
-		var c = 0;
-				
-		// left sidebar
-		this.left_sidebar = $td(this.body_table, 0, c);
-		$y(this.left_sidebar, {width:cint(this.cp.left_sidebar_width) + 'px'});
-		c++;
-			
-		// center
-		this.center = $a($td(this.body_table, 0, c), 'div');
-		c++;
-			
-		// right side bar
-		if(cint(this.cp.right_sidebar_width)) {
-			this.right_sidebar = $td(this.body_table, 0, c);
-			$y(this.right_sidebar, {width:cint(this.cp.right_sidebar_width) + 'px'})
-			c++;			
-		}
-		
+	this.setup_page_areas = function() {
+		this.center = this.body;
 		this.center.header = $a(this.center, 'div');
 		this.center.body = $a(this.center, 'div');
 		this.center.loading = $a(this.center, 'div', '', {margin:'200px 0px', fontSize:'14px', color:'#999', textAlign:'center'});
 		this.center.loading.innerHTML = 'Loading...'
 				
-	}
-
-	this.setup_sidebar_menu = function() {
-		if(this.left_sidebar && this.cp.show_sidebar_menu){
-			sidebar_menu = new SidebarMenu();
-			sidebar_menu.make_menu('');
-		}
 	}
 	
 	this.run_startup_code = function() {
