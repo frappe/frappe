@@ -168,7 +168,8 @@ def now_datetime():
 	
 	# get localtime
 	if not user_time_zone:
-		user_time_zone = webnotes.conn.get_value('Control Panel', None, 'time_zone') or 'Asia/Calcutta'
+		user_time_zone = webnotes.conn.get_value('Control Panel', None, 'time_zone') \
+			or 'Asia/Calcutta'
 
 	# convert to UTC
 	utcnow = timezone('UTC').localize(datetime.utcnow())

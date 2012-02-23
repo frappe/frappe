@@ -41,19 +41,15 @@ class Installer:
 	def framework_cleanups(self, target):
 
 		import webnotes
-		self.dbman.drop_table('__DocTypeCache')
-		webnotes.conn.sql("""create table `__DocTypeCache` 
-			(name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)""")
-
-		self.dbman.drop_table('__SessionCache')
-		webnotes.conn.sql("""create table `__SessionCache` 
-			(user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)""")
-
 		self.create_sessions_table()
+		self.create_scheduler_log()
+		self.create_doctype_cache()
+		self.create_session_cache()
 
 		# set the basic passwords
 		webnotes.conn.begin()
-		webnotes.conn.sql("update tabProfile set password = password('admin') where name='Administrator'")
+		webnotes.conn.sql("""update tabProfile set password = password('admin') 
+			where name='Administrator'""")
 		webnotes.conn.commit()
 
 	def create_sessions_table(self):
@@ -69,7 +65,33 @@ class Installer:
 		  `status` varchar(20) DEFAULT NULL,
 		  KEY `sid` (`sid`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
-		
+	
+	def create_scheduler_log(self):
+		import webnotes
+		self.dbman.drop_table('__SchedulerLog')
+		webnotes.conn.sql("""create table __SchedulerLog (
+			`timestamp` timestamp,
+			method varchar(200),
+			error text
+		) engine=MyISAM""")
+	
+	def create_doctype_cache(self):
+		import webnotes
+		self.dbman.drop_table('__DocTypeCache')
+		webnotes.conn.sql("""create table `__DocTypeCache` (
+			name VARCHAR(120), 
+			modified DATETIME, 
+			content TEXT, 
+			server_code_compiled TEXT)""")
+	
+	def create_session_cache(self):
+		import webnotes
+		self.dbman.drop_table('__SessionCache')
+		webnotes.conn.sql("""create table `__SessionCache` ( 
+			user VARCHAR(120), 
+			country VARCHAR(120), 
+			cache LONGTEXT)""")
+			
 	def import_core_module(self):
 		"""
 			Imports the "Core" module from .txt file and creates
