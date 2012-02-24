@@ -178,7 +178,7 @@ div.std-footer-item {
 }
 
 .layout-main-section {
-	width: 70%;
+	width: 71%;
 	float: left;
 	padding: 15px;
 	background-color: #FFF;
@@ -187,7 +187,7 @@ div.std-footer-item {
 
 .layout-side-section {
 	width: 22%;
-	float: right;
+	/*float: right;*/
 	color: #606060;
 	overflow-x: hidden;
 	padding: 15px;
