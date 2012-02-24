@@ -147,6 +147,7 @@ function $c_page(module, page, method, arg, call_back, no_spinner, freeze_msg, b
 
 // generic server call (call page, object)
 wn.call = function(args) {
+	if(!args.args) args.args = {};
 	if(args.module && args.page) {
 		$c_page(args.module, args.page, args.method, args.args, args.callback, 
 			args.no_spinner, false, args.btn);

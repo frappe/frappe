@@ -1,18 +1,19 @@
-[class^="icon-"] {
+[class^="icon-"], [class*=" icon-"] {
   display: inline-block;
   width: 14px;
   height: 14px;
+  line-height: 14px;
   vertical-align: text-top;
-  background-image: url(../img/glyphicons-halflings.png);
+  background-image: url("../lib/images/icons/glyphicons-halflings.png");
   background-position: 14px 14px;
   background-repeat: no-repeat;
   *margin-right: .3em;
 }
-[class^="icon-"]:last-child {
+[class^="icon-"]:last-child, [class*=" icon-"]:last-child {
   *margin-left: 0;
 }
 .icon-white {
-  background-image: url(../img/glyphicons-halflings-white.png);
+  background-image: url("../lib/images/icons/glyphicons-halflings-white.png");
 }
 .icon-glass {
   background-position: 0      0;

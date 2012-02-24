@@ -26,9 +26,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make();
 		this.make_home();
 		this.make_document();
+		this.make_apps();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
-		if(in_list(user_roles, 'Administrator'))
-			this.make_options();
 		this.make_tools();
 		this.set_user_name();
 		this.make_logout();
@@ -57,7 +56,9 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</div>');		
 	},
 	make_home: function() {
-		$('.navbar .nav:first').append('<li data-name="navbar-home"><a href="#'+home_page+'">Home</a></li>')
+		$('.navbar .nav:first').append('<li data-name="navbar-home">\
+			<a href="#!'+home_page+'">Home</a></li>');
+		$('.navbar .brand').attr('href', "#!" + home_page);
 	},
 
 	make_document: function() {
@@ -68,9 +69,12 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				onclick="return false;">Document<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-document">\
-				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">Search</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">Report</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
+					<i class="icon-plus"></i> New</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">\
+					<i class="icon-search"></i> Search</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">\
+					<i class="icon-list"></i> Report</a></li>\
 			</ul>\
 		</li>');
 	},
@@ -92,26 +96,17 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				Download Backup</a></li>');
 		}
 	},
-	make_options: function() {
+	make_apps: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" \
-				href="#" onclick="return false;">Options<b class="caret"></b></a>\
-			<ul class="dropdown-menu" id="toolbar-options">\
+				href="#" onclick="return false;">Apps<b class="caret"></b></a>\
+			<ul class="dropdown-menu">\
+				<li><a href="#!messages">Messages</a></li>\
+				<li><a href="#!todo">To Do</a></li>\
+				<li><a href="#!calendar">Calendar</a></li>\
+				<li><a href="#!questions">Knowledge Base</a></li>\
 			</ul>\
 		</li>');
-
-		profile.start_items.sort(function(a,b){return (a[4]-b[4])});
-		
-		for(var i=0;i< profile.start_items.length;i++) {
-			var d = profile.start_items[i];
-			var ispage = d[0]=='Page';
-			$('#toolbar-options').append(repl('<li><a href="#%(type)s%(dt)s%(dn)s">\
-				%(dn)s</a></li>', {
-					type : (ispage ? '' : 'Form/'),
-					dt : (ispage ? '' : (d[0] + '/')), 
-					dn : d[5] || d[1]
-				}));		
-		}
 	},
 
 	set_user_name: function() {

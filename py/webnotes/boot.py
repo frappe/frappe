@@ -50,7 +50,6 @@ def get_bootinfo():
 
 	if webnotes.session['user'] != 'Guest':
 		import webnotes.widgets.menus
-		bootinfo['start_items'] = webnotes.widgets.menus.get_menu_items()
 		bootinfo['dt_labels'] = get_dt_labels()
 		
 	# home page

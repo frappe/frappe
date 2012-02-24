@@ -23,7 +23,6 @@ function startup() {
 		user_defaults = profile.defaults;
 		user_roles = profile.roles;
 		user_email = profile.email;
-		profile.start_items = r.start_items;
 		home_page = r.home_page;
 		_p.letter_heads = r.letter_heads;
 
