@@ -97,9 +97,9 @@ _f.SectionBreak.prototype.make_collapsible = function(head) {
 	}
 
 	// back to top
-	var span = $a(div, 'div', 'wn-icon ic-arrow_top', {cssFloat:'right', marginRight:'8px', cursor:'pointer', marginTop:'7px'})
+	var span = $a(div, 'i', 'icon-arrow-up', {cssFloat:'right', marginRight:'8px', 
+		cursor:'pointer', verticalAlign:'middle', marginTop:'7px'})
 	span.title = 'Go to top';
-	//var span = $a(div, 'span', 'link_type', {cssFloat:'right', marginRight:'8px'});
 	span.onclick = function() { scroll(0, 0); }
 
 	// exp / collapse

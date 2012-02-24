@@ -31,7 +31,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					{
 						type: 'link',
 						label: 'New',
-						icon: 'ic-doc_new',
+						icon: 'icon-plus',
 						display: function() { 
 							return in_list(profile.can_create, form.doctype) 
 						},
@@ -41,7 +41,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					{
 						type: 'link',
 						label: 'Refresh',
-						icon: 'ic-playback_reload',
+						icon: 'icon-refresh',
 						onclick: function() { me.form.reload_doc() }
 					},
 
@@ -51,7 +51,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return !(me.form.doc.__islocal || me.form.meta.allow_print);
 						},
-						icon: 'ic-print',
+						icon: 'icon-print',
 						onclick: function() { me.form.print_doc() }
 					},
 
@@ -61,7 +61,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return !(me.form.doc.__islocal || me.form.meta.allow_email);
 						},
-						icon: 'ic-mail',
+						icon: 'icon-envelope',
 						onclick: function() { me.form.email_doc() }
 					},
 
@@ -71,7 +71,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return in_list(profile.can_create, me.form.doctype) && !me.form.meta.allow_copy 
 						},
-						icon: 'ic-clipboard_copy',
+						icon: 'icon-file',
 						onclick: function() { me.form.copy_doc() }
 					},
 					
@@ -82,7 +82,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 							return me.form.meta.allow_trash && cint(me.form.doc.docstatus) != 2 
 							&& (!me.form.doc.__islocal) && me.form.perm[0][CANCEL] 
 						},
-						icon: 'ic-trash',
+						icon: 'icon-remove-sign',
 						onclick: function() { me.form.savetrash() }
 					}
 				]

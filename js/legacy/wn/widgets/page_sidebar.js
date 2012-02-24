@@ -105,14 +105,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 	
 	// image
 	this.add_icon = function(parent, icon) {
-		if(icon.substr(0,3)=='ic-') {
-			var img = $a(parent, 'div', 'wn-icon ' + icon, 
-				{cssFloat:'left', marginRight: '7px', marginBottom:'-3px'}
-			);
-		} else {
-			var img = $a(parent, 'img', '', {marginRight: '7px', marginBottom:'-3px'});
-			img.src = 'lib/images/icons/' + icon;
-		}
+		var img = $a(parent, 'i', icon, {marginRight: '7px', marginBottom:'-3px'});
 	}
 	
 	this.refresh = function() {

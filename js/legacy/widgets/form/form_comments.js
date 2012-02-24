@@ -198,7 +198,7 @@ CommentItem.prototype.show_cmt = function(cell, ri, ci, d) {
 CommentItem.prototype.cmt_delete = function(cell, ri, ci, d) {
   var me = this;
   if(d[ri][2] == user || d[ri][3] == user) {
-    del = $a(cell,'div','wn-icon ic-trash',{cursor:'pointer'});
+    del = $a(cell,'i','icon-remove-sign',{cursor:'pointer'});
     del.cmt_id = d[ri][0];
     del.onclick = function(){ 
       wn.widgets.form.comments.remove(cur_frm.doctype, cur_frm.docname, this.cmt_id, 

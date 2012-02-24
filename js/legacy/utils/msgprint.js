@@ -89,7 +89,7 @@ function show_alert(txt, id) {
 	var body = $a(wrapper, 'div', 'notice');
 	
 	// close
-	var c = $a(body, 'div', 'wn-icon ic-round_delete', {cssFloat:'right'});
+	var c = $a(body, 'i', 'icon-remove-sign', {cssFloat:'right', cursor: 'pointer'});
 	$(c).click(function() { $dh(this.wrapper) });
 	c.wrapper = wrapper;
 	
