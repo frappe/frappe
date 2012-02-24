@@ -55,19 +55,6 @@ var _e = {};
 var _r = {};
 var FILTER_SEP = '\1';
 
-// calendar 
-var _c = {};
-
-var widget_files = {
-	'_f.FrmContainer':'form.compressed.js'
-	,'_c.CalendarPopup':'widgets/form/date_picker.js'
-	,'_r.ReportContainer':'report.compressed.js'
-	,'_p.PrintQuery':'widgets/print_query.js'
-	,'Calendar':'widgets/calendar.js'
-	,'Recommendation':'widgets/recommend.js'
-	,'RatingWidget':'widgets/rating.js'
-}
-
 // API globals
 var frms={};
 var cur_frm=null;

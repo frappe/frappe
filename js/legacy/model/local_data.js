@@ -106,9 +106,6 @@ LocalDB.sync = function(list) {
 			} else if(d.label) {
 				fields[d.parent][d.label] = d;
 			}
-		} else if(d.doctype=='Event') {
-			if((!d.localname) && _c.calendar && (!_c.calendar.has_event[d.name]))
-				_c.calendar.set_event(d);
 		}
 		if(d.localname)
 			notify_rename_observers(d.doctype, d.localname, d.name);

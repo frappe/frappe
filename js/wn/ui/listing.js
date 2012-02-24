@@ -81,7 +81,13 @@ wn.widgets.Listing = function(opts) {
 	// make the toolbar
 	this.make_toolbar = function() {
 		if(!(this.opts.hide_refresh || this.opts.no_refresh)) {
-			this.ref_img = $a(this.toolbar_area, 'span', 'link_type', {color:'#888'}, '[refresh]');
+			if(this.opts.title) {
+				$a(this.toolbar_area, 'h3', '', 
+					{display:'inline-block',marginRight:'15px'}, 
+					this.opts.title);
+			}
+			this.ref_img = $a(this.toolbar_area, 'span', 'link_type', 
+				{color:'#888'}, '[refresh]');
 			this.ref_img.onclick = function() { me.run(); }
 			
 			this.loading_img = $a(this.toolbar_area, 'img', 'lib/images/ui/button-load.gif', {display:'none', marginLeft:'3px', marginBottom:'-2px'});	

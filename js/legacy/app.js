@@ -127,24 +127,6 @@ _p.preview = function(html) {
 	w.document.close();
 }
 
-// setup calendar
-function setup_calendar() {
-
-	var p = new Page('_calendar');
-	p.wrapper.style.height = '100%'; // IE FIX
-	p.wrapper.onshow = function() { 
-		wn.require('lib/js/legacy/widgets/calendar.js');
-
-		if(!_c.calendar) {
-			_c.calendar = new Calendar();
-			_c.calendar.init(p.cont);
-			rename_observers.push(_c.calendar);
-		}
-	}
-}
-
-startup_list.push(setup_calendar);
-
 var resize_observers = []
 function set_resize_observer(fn) {
 	if(resize_observers.indexOf(fn)==-1) resize_observers.push(fn);	
