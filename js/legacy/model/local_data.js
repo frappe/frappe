@@ -322,8 +322,7 @@ var rename_observers = [];
 function notify_rename_observers(dt, old_name, new_name) {
 	// delete from local
 	try {
-		var old = locals[dt][old_name]; 
-		old.parent = null; old.__deleted = 1;
+		delete locals[dt][old_name];
 	} catch(e) {
 		alert("[rename_from_local] No Document for: "+ old_name);
 	}
