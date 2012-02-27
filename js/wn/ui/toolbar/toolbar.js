@@ -26,7 +26,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make();
 		this.make_home();
 		this.make_document();
-		this.make_apps();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		this.make_tools();
 		this.set_user_name();
@@ -56,8 +55,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</div>');		
 	},
 	make_home: function() {
-		$('.navbar .nav:first').append('<li data-name="navbar-home">\
-			<a href="#!'+home_page+'">Home</a></li>');
 		$('.navbar .brand').attr('href', "#!" + home_page);
 	},
 
@@ -96,19 +93,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				Download Backup</a></li>');
 		}
 	},
-	make_apps: function() {
-		$('.navbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" data-toggle="dropdown" \
-				href="#" onclick="return false;">Apps<b class="caret"></b></a>\
-			<ul class="dropdown-menu">\
-				<li><a href="#!messages">Messages</a></li>\
-				<li><a href="#!todo">To Do</a></li>\
-				<li><a href="#!calendar">Calendar</a></li>\
-				<li><a href="#!questions">Knowledge Base</a></li>\
-			</ul>\
-		</li>');
-	},
-
 	set_user_name: function() {
 		var fn = user_fullname;
 		if(fn.length > 15) fn = fn.substr(0,12) + '...';

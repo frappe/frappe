@@ -450,12 +450,6 @@
   right: 13px;
 }
 
-/*extra size menus for recent*/
-.dropdown-menu#toolbar-recent, .dropdown-menu#toolbar-options, .dropdown-menu#toolbar-help{
-	width: 260px !important;
-	max-width: 260px !important;
-}
-
 /* ajax spinner */
 .navbar #spinner {
 	display: block;
