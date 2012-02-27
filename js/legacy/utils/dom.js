@@ -189,7 +189,7 @@ function cint(v, def) {
 	if(isNaN(v))v=def?def:0; return v; 
 }
 function validate_email(id) { 
-	if(strip(id).search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) return 0; else return 1; }
+	if(strip(id.toLowerCase()).search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) return 0; else return 1; }
 function validate_spl_chars(txt) { 
 	if(txt.search(/^[a-zA-Z0-9_\- ]*$/)==-1) return 1; else return 0; }
 	
