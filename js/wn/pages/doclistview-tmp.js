@@ -148,7 +148,6 @@ wn.body.List = function(list_page, parent, doctype) {
 		},
 		
 		reload: function() {
-			list_page.page_head.set_status('Checking for updates...');
 			wn.list.diff(doctype, (me.list.length ? me.list[0].modified : null), 
 				me.render_reload);
 		},
@@ -164,7 +163,6 @@ wn.body.List = function(list_page, parent, doctype) {
 			me.render(me.list);
 			
 			// update heading
-			list_page.page_head.set_status('');
 		},
 		
 		refresh: function() {			

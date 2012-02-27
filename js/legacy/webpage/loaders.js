@@ -106,7 +106,6 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 				
 	var show_doc = function(r,rt) {
 		if(locals[doctype] && locals[doctype][name]) {
-			page_body.set_status('Done');
 			var frm = frms[doctype];
 			
 			// show
@@ -205,10 +204,9 @@ function loadpage(page_name, call_back, no_history) {
 	if(page_name=='_home')
 		page_name = home_page;
 	var fn = function(r,rt) {
-		page_body.set_status('Done');
-		if(page_body.pages[page_name]) {
+		if(wn.pages[page_name]) {
 			// loaded
-			var p = page_body.pages[page_name]
+			var p = wn.pages[page_name]
 			
 			// show
 			page_body.change_to(page_name);
@@ -237,7 +235,7 @@ function loadpage(page_name, call_back, no_history) {
 		}
 	}
 	
-	if(get_local('Page', page_name) || page_body.pages[page_name]) 
+	if(get_local('Page', page_name) || wn.pages[page_name]) 
 		fn();
 	else {
 		args = get_url_dict(); // send everything to the page

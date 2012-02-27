@@ -22,7 +22,6 @@
 
 // PAGE
 
-var pages=[];
 var stylesheets = [];
 
 function Page(page_name, content) {	
@@ -32,13 +31,16 @@ function Page(page_name, content) {
 	this.trigger = function(event) {
 		try {
 			if(pscript[event+'_'+this.name]) 
-				pscript[event+'_'+this.name](this.wrapper);
+				pscript[event+'_'+this.name](me.wrapper);
+			if(me.wrapper[event]) {
+				me.wrapper[event](me.wrapper);
+			}
 		} catch(e) { 
 			console.log(e); 
 		}
 	}
 
-	this.onshow = function() {
+	this.page_show = function() {
 		// default set_title
 		set_title(me.doc.title ? me.doc.title : me.name);
 		
@@ -52,14 +54,11 @@ function Page(page_name, content) {
 		cur_frm = null;
 	}
 
-	this.wrapper = page_body.add_page(page_name, this.onshow);
+	this.wrapper = page_body.add_page(page_name, this.page_show);
 	this.cont = this.wrapper // bc
 
 	if(content)
 		this.wrapper.innerHTML = content;
-
-	if(page_name == home_page)
-		pages['_home'] = this;
 	
 	return this;
 }
@@ -103,5 +102,6 @@ function refresh_page(page_name) {
 	var fn = function(r, rt) {
 		render_page(page_name)	
 	}
-	$c('webnotes.widgets.page.getpage', {'name':page_name, stylesheets:JSON.stringify(stylesheets)}, fn);
+	$c('webnotes.widgets.page.getpage', {'name':page_name, 
+		stylesheets:JSON.stringify(stylesheets)}, fn);
 }

@@ -317,10 +317,8 @@ _r.DataTable.prototype.run = function() {
 
   if(this.is_simple) args.is_simple = 1;
 
-  page_body.set_status('Running Query...');
   $c('webnotes.widgets.query_builder.runquery', args, function(r,rt) {  
   	$dh(me.fetching_tag); 
-    page_body.set_status('Done');
   	me.show_result(r,rt); 
   });
   

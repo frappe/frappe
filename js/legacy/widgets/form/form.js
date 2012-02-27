@@ -1076,14 +1076,12 @@ _f.Frm.prototype.reload_doc = function() {
 	}
 
 	var ret_fn = function(r, rtxt) {
-		page_body.set_status('Done')
 		// n tweets and last comment
 				
 		me.runclientscript('setup', me.doctype, me.docname);
 		me.refresh();
 	}
 
-	page_body.set_status('Reloading...')
 	if(me.doc.__islocal) { 
 		// reload only doctype
 		$c('webnotes.widgets.form.load.getdoctype', {'doctype':me.doctype }, ret_fn, null, null, 'Refreshing ' + me.doctype + '...');

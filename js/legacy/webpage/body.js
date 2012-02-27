@@ -31,6 +31,8 @@
 
 **/
 
+wn.provide('wn.pages');
+
 function Body() { 
 	this.left_sidebar = null;
 	this.right_sidebar = null;
@@ -89,15 +91,14 @@ function Body() {
 	// - Item List
 	// - [Pages by their names]
 
-	this.pages = {};
 	this.cur_page = null;
 	this.add_page = function(label, onshow, onhide) {
 		var c = $a(this.center.body, 'div');
 		if(onshow)
-			c.onshow = onshow;
+			c.page_show = onshow;
 		if(onhide)
-			c.onhide = onhide;
-		this.pages[label] = c;
+			c.page_hide = onhide;
+		wn.pages[label] = c;
 		$dh(c);
 		return c;
 	}
@@ -105,24 +106,19 @@ function Body() {
 	this.change_to = function(label) {
 		// hide existing
 		$dh(this.center.loading);
-		if(me.cur_page &&  me.pages[label]!=me.cur_page) {
-			if(me.cur_page.onhide)
-				me.cur_page.onhide();
+		if(me.cur_page &&  wn.pages[label]!=me.cur_page) {
+			if(me.cur_page.page_hide)
+				me.cur_page.page_hide();
 			$dh(me.cur_page);
 		}
 		// show
-		me.cur_page = me.pages[label];
+		me.cur_page = wn.pages[label];
 		me.cur_page_label = label;
 		$(me.cur_page).fadeIn();
 	
 		// on show
-		if(me.cur_page.onshow)
-			me.cur_page.onshow(me.cur_page);
-	}
-
-	this.set_status = function(txt) {
-		if(this.status_area)
-			this.status_area.innerHTML = txt;
+		if(me.cur_page.page_show)
+			me.cur_page.page_show(me.cur_page);
 	}
 	
 	this.set_session_changed = function() {

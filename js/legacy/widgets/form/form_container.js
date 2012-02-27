@@ -119,7 +119,6 @@ _f.add_frm = function(doctype, onload, opt_name, from_archive) {
 
 	// Load Doctype from server
 	var callback = function(r,rt) {
-		page_body.set_status('Done')
 
 		if(!locals['DocType'][doctype]) {
 			if(r.exc) { msgprint("Did not load " + doctype, 1); }

@@ -59,9 +59,9 @@ def add():
 	# update feeed
 	try:
 		import home
-		from webnotes.utils import get_full_name
+		from webnotes.utils import get_fullname
 		home.make_feed('Assignment', d.reference_type, d.reference_name, webnotes.session['user'],
-			'[%s] Assigned to %s' % (d.priority, get_full_name(d.owner)), '#C78F58')
+			'[%s] Assigned to %s' % (d.priority, get_fullname(d.owner)), '#C78F58')
 	except ImportError, e:
 		pass
 	

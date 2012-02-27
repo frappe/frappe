@@ -49,6 +49,8 @@ wn.widgets.Listing = function(opts) {
 
 	// create place holders for all the elements
 	this.make = function(opts) {
+		if(this.opts.parent.jquery)
+			this.opts.parent = this.opts.parent.get(0);
 		this.wrapper = $a(this.opts.parent, 'div');
 		this.filters_area = $a(this.wrapper, 'div', 'listing-filters');
 		this.toolbar_area = $a(this.wrapper, 'div', 'listing-toolbar');
@@ -134,6 +136,7 @@ wn.widgets.Listing = function(opts) {
 		
 		$dh(this.more_button_area);
 		if(this.loading_img) $dh(this.loading_img)
+		if(r.message) r.values = r.message;
 
 		if(r.values && r.values.length) {
 			this.values = r.values;

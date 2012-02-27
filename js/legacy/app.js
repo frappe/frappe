@@ -19,7 +19,7 @@ function startup() {
 		
 		profile = r.profile;
 		user = r.profile.name;		
-		user_fullname = profile.first_name + (r.profile.last_name ? (' ' + r.profile.last_name) : '');
+		user_fullname = wn.boot.user_fullnames ? wn.boot.user_fullnames[user] : 'Guest';
 		user_defaults = profile.defaults;
 		user_roles = profile.roles;
 		user_email = profile.email;
