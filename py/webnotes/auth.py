@@ -46,11 +46,6 @@ class HTTPRequest:
 		# set db
 		self.set_db()
 
-		# check status
-		if webnotes.conn.get_global("__session_status")=='stop':
-			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
-			raise Exception
-
 		# -----------------------------
 		# start transaction
 		webnotes.conn.begin()
@@ -61,6 +56,12 @@ class HTTPRequest:
 		# start session
 		webnotes.session_obj = Session()
 		webnotes.session = webnotes.session_obj.data
+
+		# check status
+		if webnotes.conn.get_global("__session_status")=='stop':
+			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
+			raise webnotes.SessionStopped('Session Stopped')
+			#raise webnotes.ValidationError(webnotes.conn.get_global("__session_status_message"))
 
 		# write out cookies if sid is supplied (this is a pre-logged in redirect)
 		if webnotes.form_dict.get('sid'):
