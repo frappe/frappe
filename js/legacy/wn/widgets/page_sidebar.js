@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 // opts = { 'title': 'My Sidebar',
 //  'sections': [
 //     {'title': 'Actions', 
@@ -14,7 +36,7 @@
 wn.widgets.PageSidebar = function(parent, opts) {
 	this.opts = opts
 	this.sections = {}
-	this.wrapper = $a(parent, 'div', 'psidebar-wrapper')
+	this.wrapper = $a(parent, 'div', 'psidebar')
 
 	// refresh sidebar - make head and sections
 	this.refresh = function() {
@@ -34,7 +56,7 @@ wn.widgets.PageSidebar = function(parent, opts) {
 	}
 
 	this.make_head = function() {
-		this.head = $a(this.wrapper, 'div', 'psidebar-head', '', this.opts.title);
+		this.head = $a(this.wrapper, 'div', 'head', '', this.opts.title);
 	}
 	
 	this.refresh();
@@ -46,9 +68,9 @@ wn.widgets.PageSidebar = function(parent, opts) {
 wn.widgets.PageSidebarSection = function(sidebar, opts) {
 	this.items = [];
 	this.sidebar = sidebar;
-	this.wrapper = $a(sidebar.wrapper, 'div', 'psidebar-section');
-	this.head = $a(this.wrapper, 'div', 'psidebar-section-head', '', opts.title);
-	this.body = $a(this.wrapper, 'div', 'psidebar-section-body');
+	this.wrapper = $a(sidebar.wrapper, 'div', 'section');
+	this.head = $a(this.wrapper, 'div', 'section-head', '', opts.title);
+	this.body = $a(this.wrapper, 'div', 'section-body');
 	$br(this.wrapper, '5px');
 	this.opts = opts;
 
@@ -60,7 +82,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 			var item = this.opts.items[i];
 			if((item.display && item.display()) || !item.display) {
 				
-				var div = $a(this.body, 'div', 'psidebar-section-item');
+				var div = $a(this.body, 'div', 'section-item');
 				this.make_one_item(item, div);
 			}
 				
@@ -83,14 +105,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 	
 	// image
 	this.add_icon = function(parent, icon) {
-		if(icon.substr(0,3)=='ic-') {
-			var img = $a(parent, 'div', 'wn-icon ' + icon, 
-				{cssFloat:'left', marginRight: '7px', marginBottom:'-3px'}
-			);
-		} else {
-			var img = $a(parent, 'img', '', {marginRight: '7px', marginBottom:'-3px'});
-			img.src = 'lib/images/icons/' + icon;
-		}
+		var img = $a(parent, 'i', icon, {marginRight: '7px', marginBottom:'-3px'});
 	}
 	
 	this.refresh = function() {
@@ -116,7 +131,7 @@ wn.widgets.PageSidebarLink = function(section, opts, wrapper) {
 	if(opts.icon) {
 		section.add_icon(this.wrapper, opts.icon);
 	}
-	this.ln = $a(this.wrapper, 'span', 'link_type psidebar-section-link', opts.style, opts.label);
+	this.ln = $a(this.wrapper, 'span', 'link_type section-link', opts.style, opts.label);
 	this.ln.onclick = function() { me.opts.onclick(me) };
 }
 

@@ -186,7 +186,7 @@ return;if(_r.rb_con.cur_rb){if(_r.rb_con.cur_rb.large_report==1){msgprint("This 
 _r.rb_con.cur_rb.mytabs.items['Result'].expand();}
 var me=this;this._get_query();if(this.set_data){this.show_result(this.set_data);this.set_data=null;return;}
 $ds(this.fetching_tag);if(isFF)this.clear_all();var args={'query':me.query,'report_name':'_r.DataTable','show_deleted':1,'sc_id':me.search_criteria?me.search_criteria.name:'','filter_values':me.filter_vals?docstring(me.filter_vals):'','roles':'["'+user_roles.join('","')+'"]'}
-if(this.is_simple)args.is_simple=1;page_body.set_status('Running Query...');$c('webnotes.widgets.query_builder.runquery',args,function(r,rt){$dh(me.fetching_tag);page_body.set_status('Done');me.show_result(r,rt);});}
+if(this.is_simple)args.is_simple=1;$c('webnotes.widgets.query_builder.runquery',args,function(r,rt){$dh(me.fetching_tag);me.show_result(r,rt);});}
 _r.DataTable.prototype.clear_all=function(){if(this.htab&&this.htab.parentNode){this.htab.parentNode.removeChild(this.htab);delete this.htab;}
 if(this.tab&&this.tab.parentNode){this.tab.parentNode.removeChild(this.tab);delete this.tab;}
 $dh(this.no_data_tag);}

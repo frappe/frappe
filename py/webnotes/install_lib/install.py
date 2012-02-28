@@ -1,3 +1,25 @@
+# Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+# 
+# MIT License (MIT)
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a 
+# copy of this software and associated documentation files (the "Software"), 
+# to deal in the Software without restriction, including without limitation 
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+# and/or sell copies of the Software, and to permit persons to whom the 
+# Software is furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+
 import os,sys
 
 cgi_bin_path = os.path.sep.join(__file__.split(os.path.sep)[:-3])
@@ -41,19 +63,15 @@ class Installer:
 	def framework_cleanups(self, target):
 
 		import webnotes
-		self.dbman.drop_table('__DocTypeCache')
-		webnotes.conn.sql("""create table `__DocTypeCache` 
-			(name VARCHAR(120), modified DATETIME, content TEXT, server_code_compiled TEXT)""")
-
-		self.dbman.drop_table('__SessionCache')
-		webnotes.conn.sql("""create table `__SessionCache` 
-			(user VARCHAR(120), country VARCHAR(120), cache LONGTEXT)""")
-
 		self.create_sessions_table()
+		self.create_scheduler_log()
+		self.create_doctype_cache()
+		self.create_session_cache()
 
 		# set the basic passwords
 		webnotes.conn.begin()
-		webnotes.conn.sql("update tabProfile set password = password('admin') where name='Administrator'")
+		webnotes.conn.sql("""update tabProfile set password = password('admin') 
+			where name='Administrator'""")
 		webnotes.conn.commit()
 
 	def create_sessions_table(self):
@@ -69,7 +87,33 @@ class Installer:
 		  `status` varchar(20) DEFAULT NULL,
 		  KEY `sid` (`sid`)
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
-		
+	
+	def create_scheduler_log(self):
+		import webnotes
+		self.dbman.drop_table('__SchedulerLog')
+		webnotes.conn.sql("""create table __SchedulerLog (
+			`timestamp` timestamp,
+			method varchar(200),
+			error text
+		) engine=MyISAM""")
+	
+	def create_doctype_cache(self):
+		import webnotes
+		self.dbman.drop_table('__DocTypeCache')
+		webnotes.conn.sql("""create table `__DocTypeCache` (
+			name VARCHAR(120), 
+			modified DATETIME, 
+			content TEXT, 
+			server_code_compiled TEXT)""")
+	
+	def create_session_cache(self):
+		import webnotes
+		self.dbman.drop_table('__SessionCache')
+		webnotes.conn.sql("""create table `__SessionCache` ( 
+			user VARCHAR(120), 
+			country VARCHAR(120), 
+			cache LONGTEXT)""")
+			
 	def import_core_module(self):
 		"""
 			Imports the "Core" module from .txt file and creates

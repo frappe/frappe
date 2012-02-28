@@ -1,10 +1,31 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 pscript['onload_Login Page'] = function(){
 	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');
-	
-	pscript.login_btn = $btn('login_btn', 'Login', pscript.doLogin);
-	$(pscript.login_btn).addClass('primary');
-	
+
+	$('#login_btn').click(pscript.doLogin)
+		
 	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').val())
 			pscript.doLogin();
@@ -17,7 +38,7 @@ pscript['onshow_Login Page'] = function() {
 
 // Login Callback
 pscript.onLoginReply = function(r, rtext) {
-	pscript.login_btn.done_working();
+	$('#login_btn').done_working();
     if(r.message=="Logged In"){
         window.location.href='index.cgi' + (get_url_arg('page') ? ('?page='+get_url_arg('page')) : '');
     } else {
@@ -36,7 +57,7 @@ pscript.doLogin = function(){
     if($i('remember_me').checked) 
       args['remember_me'] = 1;
 
-	pscript.login_btn.set_working();
+	$('#login_btn').set_working();
 	
     $c("login", args, pscript.onLoginReply);
 }

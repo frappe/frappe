@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 cur_frm.cscript.doc_type = function(doc, dt, dn) {
 	$c_obj(make_doclist(dt, dn), 'get', '', function(r, rt) {
 		cur_frm.refresh();
@@ -31,8 +53,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 			});	
 		}
 	},1);
-	$(cur_frm.frm_head.page_head.buttons.Update).addClass('primary');
-	$(cur_frm.frm_head.page_head.buttons.Update).addClass('cupid-green');
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-primary');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);

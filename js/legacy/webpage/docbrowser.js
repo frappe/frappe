@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 /* ItemBrowserPage
  	+ this.my_page
 		+ this.page_layout (wn.PageLayout)
@@ -36,6 +58,11 @@ ItemBrowserPage = function() {
 ItemBrowserPage.prototype.show = function(dt, label, field_list) {
 	var me = this;
 
+	if(wn.boot.profile.can_read.indexOf(dt)==-1) {
+		msgprint("No read permission");
+		return;
+	}
+	
 	if(this.cur_list && this.cur_list.dt != dt) $dh(this.cur_list.layout.wrapper);
 		
 	if(!me.lists[dt]) {
@@ -66,20 +93,21 @@ ItemBrowser = function(parent, dt, label, field_list) {
 	// make the layout
 	this.layout = new wn.PageLayout({
 		parent: parent,
-		main_width: '75%',
-		sidebar_width: '25%',
 		heading: l
 	})
 
-	this.layout.no_records = $a($td(this.layout.wtab,0,0), 'div');
-
 	$dh(this.layout.page_head.separator);
 
-	// areas
-	this.no_result_area = $a(this.layout.no_records, 'div','layout_wrapper',{fontSize:'14px', textAlign:'center', padding:'200px 0px'});
+
+	this.layout.results = $a(this.layout.main, 'div');
+
+	// no records
+	this.layout.no_records = $a(this.layout.main, 'div');
+	this.no_result_area = $a(this.layout.no_records, 
+		'div','',{fontSize:'14px', textAlign:'center', padding:'200px 0px'});
 	
 	// loading...
-	this.layout.loading = $a($td(this.layout.wtab,0,0), 'div','layout_wrapper',{padding:'200px 0px', textAlign:'center', fontSize:'14px', color:'#444', display:'none'});
+	this.layout.loading = $a(this.layout.main, 'div','',{padding:'200px 0px', textAlign:'center', fontSize:'14px', color:'#444', display:'none'});
 	this.layout.loading.innerHTML = 'Loading<img src="lib/images/ui/button-load.gif" style="margin-bottom: -2px; margin-left: 8px">';
 	
 	// setup toolbar
@@ -92,7 +120,7 @@ ItemBrowser = function(parent, dt, label, field_list) {
 // one of "loading", "no_result", "main"
 ItemBrowser.prototype.show_area = function(area) {
 	$ds(this.layout[area]);
-	var al = ['loading','no_records','main'];
+	var al = ['loading','no_records','results'];
 	for(var a in al) {
 		if(al[a]!=area) 
 			$dh(this.layout[al[a]]);
@@ -101,10 +129,7 @@ ItemBrowser.prototype.show_area = function(area) {
 
 ItemBrowser.prototype.setup_sidebar = function() {
 	var me = this;
-	
-	// table
-	$y(this.layout.sidebar_area, {paddingTop:'53px'});
-	
+		
 	// sidebar
 	this.sidebar = new wn.widgets.PageSidebar(this.layout.sidebar_area, {
 		sections: [
@@ -121,7 +146,7 @@ ItemBrowser.prototype.setup_sidebar = function() {
 // setup the toolbar and archiving and deleteing functionality
 ItemBrowser.prototype.setup_toolbar = function() {
 	var me = this;
-	var parent = this.layout.toolbar_area
+	var parent = $a(this.layout.results, 'div');
 	// toolbar
 	this.main_toolbar = $a(parent, 'div', '', {padding: '3px', backgroundColor:'#EEE'});
 	$br(this.main_toolbar, '3px'); 
@@ -129,9 +154,9 @@ ItemBrowser.prototype.setup_toolbar = function() {
 	this.sub_toolbar = $a(parent, 'div', '', {marginBottom:'7px', padding: '3px', textAlign:'right', fontSize:'11px', color:'#444'});
 	
 	// archives label
-	this.archives_label = $a(parent, 'div', 'help_box_big',{display:'none'},'Showing from Archives');
-	var span = $a(this.archives_label, 'span', 'link_type', {marginLeft:'8px'}, 'Show Active');
-	span.onclick = function() { me.show_archives.checked = 0; me.show_archives.onclick(); }
+	//this.archives_label = $a(parent, 'div', 'help_box_big',{display:'none'},'Showing from Archives');
+	//var span = $a(this.archives_label, 'span', 'link_type', {marginLeft:'8px'}, 'Show Active');
+	//span.onclick = function() { me.show_archives.checked = 0; me.show_archives.onclick(); }
 	
 	this.trend_area = $a(parent, 'div', '', {marginBottom:'16px', padding: '4px', backgroundColor:'#EEF', border: '1px solid #CCF', display:'none'});
 	$br(this.trend_area, '5px');
@@ -186,11 +211,11 @@ ItemBrowser.prototype.make_toolbar = function() {
 	}
 	
 	// archive, delete
-	if(in_list(profile.can_write, this.dt)) {
-		this.archive_btn = $btn(this.main_toolbar, 'Archive', function() { me.archive_items(); }, {marginLeft:'24px'});
-	} 
+	//if(in_list(profile.can_write, this.dt)) {
+	//	this.archive_btn = $btn(this.main_toolbar, 'Archive', function() { me.archive_items(); }, {marginLeft:'24px'});
+	//} 
 	if(this.dt_details.can_cancel) {
-		this.delete_btn = $btn(this.main_toolbar, 'Delete', function() { me.delete_items(); });
+		this.delete_btn = $btn(this.main_toolbar, 'Delete', function() { me.delete_items(); }, {marginLeft: '24px'});
 	}
 		
 	// search box
@@ -212,7 +237,7 @@ ItemBrowser.prototype.make_toolbar = function() {
 		this.make_checkbox('Cancelled', 0)
 	}
 	
-	this.set_archiving();
+	//this.set_archiving();
 
 }
 
@@ -320,7 +345,7 @@ ItemBrowser.prototype.load_details = function() {
 		me.dt_details = r.message;
 		if(r.message) {
 			me.make_toolbar();
-			me.make_the_list(me.dt, me.layout.body);
+			me.make_the_list(me.dt, me.layout.results);
 			
 			// fire onload
 			if(me.cscript.onload) 
@@ -338,7 +363,7 @@ ItemBrowser.prototype.load_details = function() {
 // -------------------------------------------------
 
 ItemBrowser.prototype.show_results = function() {
-	this.show_area('main');
+	this.show_area('results');
 
 	set_title(get_doctype_label(this.label));
 }
@@ -386,7 +411,8 @@ ItemBrowser.prototype.show_trend = function(trend) {
 ItemBrowser.prototype.show_no_result = function() {
 	this.show_area('no_records');
 
-	this.no_result_area.innerHTML = repl('No %(dt)s found. <span class="link_type" onclick="newdoc(\'%(dt)s\')">Click here</span> to create your first %(dt)s!', {dt:get_doctype_label(this.dt)});
+	this.no_result_area.innerHTML = 
+		repl('No %(dt)s found. <span class="link_type" onclick="newdoc(\'%(dt)s\')">Click here</span> to create your first %(dt)s!', {dt:get_doctype_label(this.dt)});
 	set_title(get_doctype_label(this.label));
 }
 
@@ -394,7 +420,7 @@ ItemBrowser.prototype.show_no_result = function() {
 
 ItemBrowser.prototype.make_new = function(dt, label, field_list) {
 	// make the list
-	this.make_the_list(dt, this.layout.body);
+	this.make_the_list(dt, this.layout.results);
 }
 
 // -------------------------------------------------
@@ -461,12 +487,12 @@ ItemBrowser.prototype.make_the_list  = function(dt, wrapper) {
 	lst.get_query = function() {
 		q = {};
 		var fl = [];
-		q.table = repl('`%(prefix)s%(dt)s`', {prefix:(me.show_archives.checked ? 'arc' : 'tab'), dt:this.dt});
+		q.table = repl('`%(prefix)s%(dt)s`', {prefix: 'tab'/*(me.show_archives.checked ? 'arc' : 'tab')*/, dt:this.dt});
 	
 		// columns
 		for(var i=0;i<this.cl.length;i++) {
-			if(!(me.show_archives && me.show_archives.checked && this.cl[i][0]=='_user_tags'))
-				fl.push(q.table+'.`'+this.cl[i][0]+'`')
+			//if(!(me.show_archives && me.show_archives.checked && this.cl[i][0]=='_user_tags'))
+			fl.push(q.table+'.`'+this.cl[i][0]+'`')
 		}
 
 		if(me.dt_details.submittable) {
@@ -494,10 +520,10 @@ ItemBrowser.prototype.make_the_list  = function(dt, wrapper) {
 				
 		this.query = repl("SELECT %(fields)s FROM %(table)s WHERE %(conds)s", q);
 		this.query_max = repl("SELECT COUNT(*) FROM %(table)s WHERE %(conds)s", q);
-		if(me.show_archives.checked)
-			this.prefix = 'arc';
-		else
-			this.prefix = 'tab'
+		//if(me.show_archives.checked)
+		//	this.prefix = 'arc';
+		//else
+		this.prefix = 'tab'
 		
 	}
 	

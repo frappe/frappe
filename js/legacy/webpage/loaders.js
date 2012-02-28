@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 // Load Report
 // -------------------------------------------------------------------------------
 
@@ -84,7 +106,6 @@ function loaddoc(doctype, name, onload, menuitem, from_archive) {
 				
 	var show_doc = function(r,rt) {
 		if(locals[doctype] && locals[doctype][name]) {
-			page_body.set_status('Done');
 			var frm = frms[doctype];
 			
 			// show
@@ -183,10 +204,9 @@ function loadpage(page_name, call_back, no_history) {
 	if(page_name=='_home')
 		page_name = home_page;
 	var fn = function(r,rt) {
-		page_body.set_status('Done');
-		if(page_body.pages[page_name]) {
+		if(wn.pages[page_name]) {
 			// loaded
-			var p = page_body.pages[page_name]
+			var p = wn.pages[page_name]
 			
 			// show
 			page_body.change_to(page_name);
@@ -215,7 +235,7 @@ function loadpage(page_name, call_back, no_history) {
 		}
 	}
 	
-	if(get_local('Page', page_name) || page_body.pages[page_name]) 
+	if(get_local('Page', page_name) || wn.pages[page_name]) 
 		fn();
 	else {
 		args = get_url_dict(); // send everything to the page

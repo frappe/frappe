@@ -1,3 +1,25 @@
+# Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+# 
+# MIT License (MIT)
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a 
+# copy of this software and associated documentation files (the "Software"), 
+# to deal in the Software without restriction, including without limitation 
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+# and/or sell copies of the Software, and to permit persons to whom the 
+# Software is furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+
 """
 Server side methods called from DocBrowser
 
@@ -10,62 +32,22 @@ from webnotes.utils import cint, cstr
 sql = webnotes.conn.sql
 
 @webnotes.whitelist()
-def get_menu_items():
-	"""
-	   Returns a list of items to show in `Options` of the Web Notes Toolbar
-	   List contains Pages and Single DocTypes
-	"""
-	import webnotes.utils
-
-	rl = webnotes.user.get_roles() + [webnotes.session['user']]
-	role_options = ["role = '"+r+"'" for r in rl]
-	
-	sql = webnotes.conn.sql
-	menuitems = []
-	
-	# pages
-	pages = sql("select distinct parent from `tabPage Role` where docstatus!=2 and (%s)" % (' OR '.join(role_options)))
-
-	for p in pages:
-		tmp = sql("select icon, parent_node, menu_index, show_in_menu from tabPage where name = '%s'" % p[0])
-		if tmp and tmp[0][3]:
-			menuitems.append(['Page', p[0] or '', tmp[0][1] or '', tmp[0][0] or '', webnotes.utils.cint(tmp[0][2])])
-			
-	# singles
-	tmp = sql("select smallicon, parent_node, menu_index, name from tabDocType where (show_in_menu = 1 and show_in_menu is not null)")
-	singles = {}
-	for t in tmp: singles[t[3]] = t
-		
-	for p in webnotes.user.can_read:
-		tmp = singles.get(p, None)
-		if tmp: menuitems.append([p, p, tmp[1] or '', tmp[0] or '', int(tmp[2] or 0)])
-		
-	return menuitems
-	
-@webnotes.whitelist()
 def has_result():
 	"""return Yes if the given dt has any records"""
 	return sql("select name from `tab%s` limit 1" % \
 		webnotes.form_dict.get('dt')) and 'Yes' or 'No'
 
-# --------------------------------------------------------------
-
 def is_submittable(dt):
 	return sql("select name from tabDocPerm where parent=%s and ifnull(submit,0)=1 and docstatus<1 limit 1", dt)
-
-# --------------------------------------------------------------
 
 def can_cancel(dt):
 	return sql('select name from tabDocPerm where parent="%s" and ifnull(cancel,0)=1 and docstatus<1 and role in ("%s") limit 1' % (dt, '", "'.join(webnotes.user.get_roles())))
 
-# --------------------------------------------------------------
 def get_dt_trend(dt):
 	ret = {}
 	for r in sql("select datediff(now(),modified), count(*) from `tab%s` where datediff(now(),modified) between 0 and 30 group by date(modified)" % dt):
 		ret[cint(r[0])] = cint(r[1])
 	return ret
-
-# --------------------------------------------------------------
 
 def get_columns(out, sf, fl, dt, tag_fields):
 	if not fl:

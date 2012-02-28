@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 wn.widgets.form.sidebar = { Sidebar: function(form) {
 	var me = this;
 	this.form = form;
@@ -9,7 +31,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					{
 						type: 'link',
 						label: 'New',
-						icon: 'ic-doc_new',
+						icon: 'icon-plus',
 						display: function() { 
 							return in_list(profile.can_create, form.doctype) 
 						},
@@ -19,7 +41,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					{
 						type: 'link',
 						label: 'Refresh',
-						icon: 'ic-playback_reload',
+						icon: 'icon-refresh',
 						onclick: function() { me.form.reload_doc() }
 					},
 
@@ -29,7 +51,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return !(me.form.doc.__islocal || me.form.meta.allow_print);
 						},
-						icon: 'ic-print',
+						icon: 'icon-print',
 						onclick: function() { me.form.print_doc() }
 					},
 
@@ -39,7 +61,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return !(me.form.doc.__islocal || me.form.meta.allow_email);
 						},
-						icon: 'ic-mail',
+						icon: 'icon-envelope',
 						onclick: function() { me.form.email_doc() }
 					},
 
@@ -49,7 +71,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return in_list(profile.can_create, me.form.doctype) && !me.form.meta.allow_copy 
 						},
-						icon: 'ic-clipboard_copy',
+						icon: 'icon-file',
 						onclick: function() { me.form.copy_doc() }
 					},
 					
@@ -60,7 +82,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 							return me.form.meta.allow_trash && cint(me.form.doc.docstatus) != 2 
 							&& (!me.form.doc.__islocal) && me.form.perm[0][CANCEL] 
 						},
-						icon: 'ic-trash',
+						icon: 'icon-remove-sign',
 						onclick: function() { me.form.savetrash() }
 					}
 				]
@@ -109,7 +131,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	this.refresh = function() {
 		var parent = this.form.page_layout.sidebar_area;
 		if(!this.sidebar) {
-			$y(parent, {paddingTop:'37px'})
+			//$y(parent, {paddingTop:'37px'})
 			this.sidebar = new wn.widgets.PageSidebar(parent, this.opts);
 		} else {
 			this.sidebar.refresh();

@@ -1,3 +1,25 @@
+# Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+# 
+# MIT License (MIT)
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a 
+# copy of this software and associated documentation files (the "Software"), 
+# to deal in the Software without restriction, including without limitation 
+# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+# and/or sell copies of the Software, and to permit persons to whom the 
+# Software is furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in 
+# all copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+# 
+
 """
 	Execute Patch Files
 
@@ -16,10 +38,9 @@ def run_all(patch_list=None):
 	"""run all pending patches"""
 	executed = [p[0] for p in webnotes.conn.sql("""select patch from __PatchLog""")]
 	import patches.patch_list
-	
-	for patch in patch_list or patches.patch_list.patch_list:
-		if not patch['patch_file'] in executed:
-			pn = patch['patch_module'] + '.' + patch['patch_file']
+	for patch in (patch_list or patches.patch_list.patch_list):
+		pn = patch['patch_module'] + '.' + patch['patch_file']
+		if pn not in executed:
 			run_single(patchmodule = pn)
 
 def reload_doc(args):
@@ -69,7 +90,7 @@ def add_to_patch_log(tb):
 def update_patch_log(patchmodule):
 	"""update patch_file in patch log"""
 	webnotes.conn.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
-		patchmodule.split('.')[-1])
+		patchmodule)
 
 def executed(patchmodule):
 	"""return True if is executed"""

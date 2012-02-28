@@ -19,11 +19,10 @@ function startup() {
 		
 		profile = r.profile;
 		user = r.profile.name;		
-		user_fullname = profile.first_name + (r.profile.last_name ? (' ' + r.profile.last_name) : '');
+		user_fullname = wn.boot.user_fullnames ? wn.boot.user_fullnames[user] : 'Guest';
 		user_defaults = profile.defaults;
 		user_roles = profile.roles;
 		user_email = profile.email;
-		profile.start_items = r.start_items;
 		home_page = r.home_page;
 		_p.letter_heads = r.letter_heads;
 
@@ -52,17 +51,12 @@ function startup() {
 
 		var a = new Body();
 		page_body.run_startup_code();
-		page_body.setup_sidebar_menu();
 		
 		for(var i=0; i<startup_list.length; i++) {
 			startup_list[i]();
 		}		
 		
 		// show a new form on loading?
-		if(get_url_arg('embed')) {
-			newdoc(get_url_arg('embed'));
-			return;
-		}
 		
 		// open an existing page or record
 		var t = to_open();
@@ -132,24 +126,6 @@ _p.preview = function(html) {
 	w.document.write(html)
 	w.document.close();
 }
-
-// setup calendar
-function setup_calendar() {
-
-	var p = new Page('_calendar');
-	p.wrapper.style.height = '100%'; // IE FIX
-	p.wrapper.onshow = function() { 
-		wn.require('lib/js/legacy/widgets/calendar.js');
-
-		if(!_c.calendar) {
-			_c.calendar = new Calendar();
-			_c.calendar.init(p.cont);
-			rename_observers.push(_c.calendar);
-		}
-	}
-}
-
-startup_list.push(setup_calendar);
 
 var resize_observers = []
 function set_resize_observer(fn) {

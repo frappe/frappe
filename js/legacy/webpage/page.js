@@ -1,6 +1,27 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 // PAGE
 
-var pages=[];
 var stylesheets = [];
 
 function Page(page_name, content) {	
@@ -10,13 +31,16 @@ function Page(page_name, content) {
 	this.trigger = function(event) {
 		try {
 			if(pscript[event+'_'+this.name]) 
-				pscript[event+'_'+this.name](this.wrapper);
+				pscript[event+'_'+this.name](me.wrapper);
+			if(me.wrapper[event]) {
+				me.wrapper[event](me.wrapper);
+			}
 		} catch(e) { 
 			console.log(e); 
 		}
 	}
 
-	this.onshow = function() {
+	this.page_show = function() {
 		// default set_title
 		set_title(me.doc.title ? me.doc.title : me.name);
 		
@@ -30,14 +54,11 @@ function Page(page_name, content) {
 		cur_frm = null;
 	}
 
-	this.wrapper = page_body.add_page(page_name, this.onshow);
+	this.wrapper = page_body.add_page(page_name, this.page_show);
 	this.cont = this.wrapper // bc
 
 	if(content)
 		this.wrapper.innerHTML = content;
-
-	if(page_name == home_page)
-		pages['_home'] = this;
 	
 	return this;
 }
@@ -81,5 +102,6 @@ function refresh_page(page_name) {
 	var fn = function(r, rt) {
 		render_page(page_name)	
 	}
-	$c('webnotes.widgets.page.getpage', {'name':page_name, stylesheets:JSON.stringify(stylesheets)}, fn);
+	$c('webnotes.widgets.page.getpage', {'name':page_name, 
+		stylesheets:JSON.stringify(stylesheets)}, fn);
 }

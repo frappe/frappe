@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 // _f.Grid
 
 _f.cur_grid_cell = null;
@@ -217,7 +239,7 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 
 		if(cur_frm.editable && this.can_edit) {
 
-			var ed = $a($td(t,0,1),'div','wn-icon ic-doc_edit',{cursor:'pointer'}); ed.cell = cell; ed.title = 'Edit Row';
+			var ed = $a($td(t,0,1),'i','icon-edit',{cursor:'pointer'}); ed.cell = cell; ed.title = 'Edit Row';
 			ed.onclick = function() { 
 				_f.cur_grid = me;
 				_f.cur_grid_ridx = this.cell.row.rowIndex;

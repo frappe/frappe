@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 
 wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
@@ -5,27 +27,25 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make_home();
 		this.make_document();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
-		if(in_list(user_roles, 'Administrator'))
-			this.make_options();
 		this.make_tools();
 		this.set_user_name();
 		this.make_logout();
-
-		$('.topbar').dropdown();
+		$('.dropdown-toggle').dropdown();
 		
 		$(document).trigger('toolbar_setup');
 	},
 	make: function() {
-		$('header').append('<div class="topbar">\
-			<div class="topbar-inner">\
+		$('header').append('<div class="navbar navbar-fixed-top">\
+			<div class="navbar-inner">\
 			<div class="container">\
 				<a class="brand"></a>\
 				<ul class="nav">\
 				</ul>\
 				<img src="lib/images/ui/spinner.gif" id="spinner"/>\
-				<ul class="nav secondary-nav">\
+				<ul class="nav pull-right">\
 					<li class="dropdown">\
-						<a class="dropdown-toggle" href="#" onclick="return false;" id="toolbar-user-link"></a>\
+						<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+							onclick="return false;" id="toolbar-user-link"></a>\
 						<ul class="dropdown-menu" id="toolbar-user">\
 						</ul>\
 					</li>\
@@ -35,26 +55,31 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</div>');		
 	},
 	make_home: function() {
-		$('.topbar .nav:first').append('<li><a href="#'+home_page+'">Home</a></li>')
+		$('.navbar .brand').attr('href', "#!" + home_page);
 	},
 
 	make_document: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
-		$('.topbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" href="#" onclick="return false;">Document</a>\
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
+				onclick="return false;">Document<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-document">\
-				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">New</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">Search</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">Report</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
+					<i class="icon-plus"></i> New</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">\
+					<i class="icon-search"></i> Search</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">\
+					<i class="icon-list"></i> Report</a></li>\
 			</ul>\
 		</li>');
 	},
 
 	make_tools: function() {
-		$('.topbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" href="#" onclick="return false;">Tools</a>\
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+				onclick="return false;">Tools<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return err_console.show();">Error Console</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">Clear Cache</a></li>\
@@ -68,31 +93,10 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				Download Backup</a></li>');
 		}
 	},
-	make_options: function() {
-		$('.topbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" href="#" onclick="return false;">Options</a>\
-			<ul class="dropdown-menu" id="toolbar-options">\
-			</ul>\
-		</li>');
-
-		profile.start_items.sort(function(a,b){return (a[4]-b[4])});
-		
-		for(var i=0;i< profile.start_items.length;i++) {
-			var d = profile.start_items[i];
-			var ispage = d[0]=='Page';
-			$('#toolbar-options').append(repl('<li><a href="#%(type)s%(dt)s%(dn)s">\
-				%(dn)s</a></li>', {
-					type : (ispage ? '' : 'Form/'),
-					dt : (ispage ? '' : (d[0] + '/')), 
-					dn : d[5] || d[1]
-				}));		
-		}
-	},
-
 	set_user_name: function() {
 		var fn = user_fullname;
 		if(fn.length > 15) fn = fn.substr(0,12) + '...';
-		$('#toolbar-user-link').html(fn);
+		$('#toolbar-user-link').html(fn + '<b class="caret"></b>');
 	},
 
 	make_logout: function() {

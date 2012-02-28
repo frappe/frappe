@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+// 
+
 _f.FormGrid = function(field) {
 	this.field = field;
 	this.doctype = field.df.options;
@@ -24,7 +46,7 @@ _f.FormGrid.prototype.make_tbar_link = function(parent, label, fn, icon) {
 
 	var div = $a(parent,'div','',{cursor:'pointer'});
 	var t = make_table(div, 1, 2, '90%', ['20px',null]);
-	var img = $a($td(t,0,0),'div','wn-icon ' + icon);
+	var img = $a($td(t,0,0), 'i' , icon);
 
 	$y($td(t,0,0),{textAlign:'right'});
 
@@ -47,10 +69,14 @@ _f.FormGrid.prototype.make_tbar_link = function(parent, label, fn, icon) {
 _f.FormGrid.prototype.make_buttons = function() {
 	var me = this;
 	this.tbar_btns = {};
-	this.tbar_btns['Del'] = this.make_tbar_link($td(this.tbar_tab,0,0),'Del', function() { me.delete_row(); }, 'ic-round_minus');
-	this.tbar_btns['Ins'] = this.make_tbar_link($td(this.tbar_tab,0,1),'Ins', function() { me.insert_row(); }, 'ic-round_plus');
-	this.tbar_btns['Up'] = this.make_tbar_link($td(this.tbar_tab,0,2),'Up', function() { me.move_row(true); }, 'ic-arrow_top');
-	this.tbar_btns['Dn'] = this.make_tbar_link($td(this.tbar_tab,0,3),'Dn', function() { me.move_row(false); }, 'ic-arrow_bottom');
+	this.tbar_btns['Del'] = this.make_tbar_link($td(this.tbar_tab,0,0),'Del', 
+		function() { me.delete_row(); }, 'icon-remove-sign');
+	this.tbar_btns['Ins'] = this.make_tbar_link($td(this.tbar_tab,0,1),'Ins', 
+		function() { me.insert_row(); }, 'icon-plus');
+	this.tbar_btns['Up'] = this.make_tbar_link($td(this.tbar_tab,0,2),'Up', 
+		function() { me.move_row(true); }, 'icon-arrow-up');
+	this.tbar_btns['Dn'] = this.make_tbar_link($td(this.tbar_tab,0,3),'Dn', 
+		function() { me.move_row(false); }, 'icon-arrow-down');
 		
 	for(var i in this.btns)
 		this.btns[i].isactive = true;
