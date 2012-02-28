@@ -211,3 +211,8 @@ def whitelist(allow_guest=False):
 		return fn
 
 	return innerfn
+	
+def clear_cache():
+	"""clear boot cache"""
+	from webnotes.session_cache import clear
+	clear()
