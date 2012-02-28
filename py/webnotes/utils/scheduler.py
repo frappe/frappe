@@ -67,6 +67,9 @@ def execute():
 			if now.weekday()==0:
 				out.append('weekly:' + trigger('execute_weekly'))
 			
+		if now.hour != last.hour:
+			out.append('hourly:' + trigger('execute_hourly'))
+
 	out.append('all:' + trigger('execute_all'))
 	
 	webnotes.conn.set_global('scheduler_last_event', nowtime.strftime(format))
@@ -85,16 +88,18 @@ def trigger(method):
 			return 'ok'
 		
 	except Exception, e:
-		webnotes.conn.rollback()
-		traceback = webnotes.getTraceback()
-		log(method, traceback)
-		return traceback
-	
-def log(method, error):
+		return log(method)
+
+def log(method):
 	"""log error in patch_log"""
+	webnotes.conn.rollback()
+	traceback = webnotes.getTraceback()
+	
 	import webnotes.utils
 	webnotes.conn.sql("""insert into __SchedulerLog (`timestamp`, method, error) 
-		values (%s, %s, %s)""", (webnotes.utils.now_datetime(), method, error))
-	
+		values (%s, %s, %s)""", (webnotes.utils.now_datetime(), method, traceback))
+
+	return traceback
+
 if __name__=='__main__':
 	execute()
