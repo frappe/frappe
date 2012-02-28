@@ -106,7 +106,7 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	col.doctype = doctype; // for report (fields may be from diff doctypes)
 	col.fieldname = fieldname;
 	col.fieldtype = fieldtype;
-	col.innerHTML = '<div>'+label+'</div>';
+	col.innerHTML = '<div data-grid-fieldname = "'+doctype+'-'+fieldname+'">'+label+'</div>';
 	col.label = label;
 	if(reqd)
 		col.childNodes[0].style.color = "#D22";
