@@ -60,12 +60,8 @@ class HTTPRequest:
 		# check status
 		if webnotes.conn.get_global("__session_status")=='stop':
 			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
-<<<<<<< HEAD
-			raise Exception
-=======
 			raise webnotes.SessionStopped('Session Stopped')
-			#raise webnotes.ValidationError(webnotes.conn.get_global("__session_status_message"))
->>>>>>> fe327620e090d5a47a431a3ed8cc8e9aa0345672
+
 
 		# write out cookies if sid is supplied (this is a pre-logged in redirect)
 		if webnotes.form_dict.get('sid'):
