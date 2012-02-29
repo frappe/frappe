@@ -164,6 +164,7 @@ wn.widgets.Listing = function(opts) {
 		// callbacks
 		if(this.onrun) this.onrun();
 		if(this.opts.onrun) this.opts.onrun();
+		if(this.opts.callback) this.opts.callback(r);
 	}
 	
 	
