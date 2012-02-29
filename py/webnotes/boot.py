@@ -77,13 +77,19 @@ def get_fullnames():
 	import webnotes
 	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
-			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, '')), user_image
-		from tabProfile where ifnull(enabled, 0)=1""")
+			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, '')), 
+			user_image, gender
+		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
 	d = {}
 	for r in ret:
-		d[r[0]]= {'fullname': r[1], 'image': r[2]}
+		if not r[2]:
+			r[2] = 'lib/images/ui/no_img_m.gif'
+		else:
+			r[2] = 'files/' + r[2]
+			
+		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3]}
 
-	return ret
+	return d
 		
 def get_profile(bootinfo):
 	"""get profile info"""
