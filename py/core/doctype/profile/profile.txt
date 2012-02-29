@@ -3,52 +3,54 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2011-08-25 17:35:27',
 		'docstatus': 0,
-		'modified': '2011-08-25 14:02:26',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-02-29 17:09:18',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1311340897',
+		'_last_update': u'1323345145',
 		'allow_attach': 1,
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
-		'colour': 'White:FFF',
+		'colour': u'White:FFF',
+		'default_print_format': u'Standard',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
 		'issingle': 0,
 		'istable': 0,
 		'max_attachments': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'print_outline': 'Yes',
+		'print_outline': u'Yes',
 		'read_only': 0,
-		'search_fields': 'first_name, last_name',
+		'search_fields': u'first_name, last_name',
+		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 32
+		'version': 33
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Profile',
-		'parentfield': 'fields',
-		'parenttype': 'DocType'
+		'parent': u'Profile',
+		'parentfield': u'fields',
+		'parenttype': u'DocType'
 	},
 
 	# These values are common for all DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'Profile',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Profile',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'read': 1,
 		'write': 1
 	},
@@ -56,94 +58,94 @@
 	# DocType, Profile
 	{
 		'doctype': 'DocType',
-		'name': 'Profile'
+		'name': u'Profile'
 	},
 
 	# DocPerm
 	{
 		'cancel': 0,
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'execute': 0,
 		'permlevel': 0,
-		'role': 'Administrator',
+		'role': u'Administrator',
 		'submit': 0
 	},
 
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 0,
-		'role': 'System Manager'
+		'role': u'System Manager'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': 'Administrator'
+		'role': u'Administrator'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'match': 'owner',
+		'doctype': u'DocPerm',
+		'match': u'owner',
 		'permlevel': 0,
-		'role': 'All'
+		'role': u'All'
 	},
 
 	# DocField
 	{
-		'default': '1',
-		'doctype': 'DocField',
-		'fieldname': 'enabled',
-		'fieldtype': 'Check',
-		'label': 'Enabled',
-		'oldfieldname': 'enabled',
-		'oldfieldtype': 'Check',
+		'default': u'1',
+		'doctype': u'DocField',
+		'fieldname': u'enabled',
+		'fieldtype': u'Check',
+		'label': u'Enabled',
+		'oldfieldname': u'enabled',
+		'oldfieldtype': u'Check',
 		'permlevel': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'password',
-		'fieldtype': 'Password',
-		'label': 'Password',
-		'permlevel': 1,
-		'hidden': 1
-	},
-	
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'registered',
-		'fieldtype': 'Check',
-		'label': 'Registered',
-		'permlevel': 0,
-		'hidden': 1
+		'doctype': u'DocField',
+		'fieldname': u'password',
+		'fieldtype': u'Password',
+		'hidden': 1,
+		'label': u'Password',
+		'permlevel': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'unsubscribed',
-		'fieldtype': 'Check',
-		'label': 'Unsubscribed',
-		'permlevel': 0,
-		'hidden': 1		
+		'doctype': u'DocField',
+		'fieldname': u'registered',
+		'fieldtype': u'Check',
+		'hidden': 1,
+		'label': u'Registered',
+		'permlevel': 0
 	},
-	
+
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'recent_documents',
-		'fieldtype': 'Text',
+		'doctype': u'DocField',
+		'fieldname': u'unsubscribed',
+		'fieldtype': u'Check',
 		'hidden': 1,
-		'label': 'Recent Documents',
-		'oldfieldname': 'recent_documents',
-		'oldfieldtype': 'Text',
+		'label': u'Unsubscribed',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'recent_documents',
+		'fieldtype': u'Text',
+		'hidden': 1,
+		'label': u'Recent Documents',
+		'oldfieldname': u'recent_documents',
+		'oldfieldtype': u'Text',
 		'permlevel': 0,
 		'reqd': 0,
 		'search_index': 0
@@ -151,292 +153,311 @@
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'first_name',
-		'fieldtype': 'Data',
-		'label': 'First Name',
-		'oldfieldname': 'first_name',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'first_name',
+		'fieldtype': u'Data',
+		'label': u'First Name',
+		'oldfieldname': u'first_name',
+		'oldfieldtype': u'Data',
 		'permlevel': 0,
 		'reqd': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'middle_name',
-		'fieldtype': 'Data',
-		'label': 'Middle Name (Optional)',
-		'oldfieldname': 'middle_name',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'middle_name',
+		'fieldtype': u'Data',
+		'label': u'Middle Name (Optional)',
+		'oldfieldname': u'middle_name',
+		'oldfieldtype': u'Data',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'last_name',
-		'fieldtype': 'Data',
-		'label': 'Last Name',
-		'oldfieldname': 'last_name',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'last_name',
+		'fieldtype': u'Data',
+		'label': u'Last Name',
+		'oldfieldname': u'last_name',
+		'oldfieldtype': u'Data',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'gender',
-		'fieldtype': 'Select',
-		'label': 'Gender',
-		'oldfieldname': 'gender',
-		'oldfieldtype': 'Select',
-		'options': '\nMale\nFemale',
+		'doctype': u'DocField',
+		'fieldname': u'gender',
+		'fieldtype': u'Select',
+		'label': u'Gender',
+		'oldfieldname': u'gender',
+		'oldfieldtype': u'Select',
+		'options': u'\nMale\nFemale',
 		'permlevel': 0,
 		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'oldfieldtype': 'Column Break',
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'oldfieldtype': u'Column Break',
 		'permlevel': 1,
-		'width': '50%'
+		'width': u'50%'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'email',
-		'fieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'email',
+		'fieldtype': u'Data',
 		'hidden': 0,
-		'label': 'Email',
-		'oldfieldname': 'email',
-		'oldfieldtype': 'Data',
+		'label': u'Email',
+		'oldfieldname': u'email',
+		'oldfieldtype': u'Data',
 		'permlevel': 0,
 		'reqd': 1,
 		'search_index': 0
 	},
-	
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'bio',
-		'fieldtype': 'Text',
-		'label': 'Bio',
-		'oldfieldname': 'bio',
-		'oldfieldtype': 'Text',
-		'permlevel': 0,
-		'search_index': 0,
-		'hidden': 1
-	},
-
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'interests',
-		'fieldtype': 'Text',
-		'label': 'Interests',
-		'oldfieldname': 'interests',
-		'oldfieldtype': 'Text',
-		'permlevel': 0,
-		'hidden': 1
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'birth_date',
-		'fieldtype': 'Date',
-		'label': 'Birth Date',
-		'oldfieldname': 'birth_date',
-		'oldfieldtype': 'Date',
-		'permlevel': 0
-	},
-
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'activities',
-		'fieldtype': 'Text',
-		'label': 'Activities',
-		'oldfieldname': 'activities',
-		'oldfieldtype': 'Text',
-		'permlevel': 0,
-		'hidden': 1
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'messanger_status',
-		'fieldtype': 'Data',
-		'label': 'Messanger Status',
-		'oldfieldname': 'messanger_status',
-		'oldfieldtype': 'Data',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'user_type',
-		'fieldtype': 'Select',
-		'label': 'User Type',
-		'oldfieldname': 'user_type',
-		'oldfieldtype': 'Select',
-		'options': '\nSystem User\nPartner',
-		'permlevel': 0
-	},
-
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'hidden': 0,
-		'oldfieldtype': 'Section Break',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	},
-	
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'label': 'Roles',
-		'oldfieldtype': 'Column Break',
-		'permlevel': 1,
-		'width': '50%'
-	},	
-
-	# DocField
-	{
-		'colour': 'White:FFF',
-		'default': 'Simple',
-		'doctype': 'DocField',
-		'fieldname': 'userroles',
-		'fieldtype': 'Table',
-		'hidden': 0,
-		'label': 'User Roles',
-		'oldfieldname': 'userroles',
-		'oldfieldtype': 'Table',
-		'options': 'UserRole',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'label': 'System Defaults',
-		'oldfieldtype': 'Column Break',
-		'permlevel': 1,
-		'width': '50%'
-	},
-
-	# DocField
-	{
-		'colour': 'White:FFF',
-		'default': 'Simple',
-		'doctype': 'DocField',
-		'fieldname': 'defaults',
-		'fieldtype': 'Table',
-		'hidden': 0,
-		'label': 'Defaults',
-		'oldfieldname': 'defaults',
-		'oldfieldtype': 'Table',
-		'options': 'DefaultValue',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'label': 'Login Details',
-		'oldfieldtype': 'Section Break',
-		'permlevel': 0,
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'login_before',
-		'fieldtype': 'Int',
-		'label': 'Login Before',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'login_after',
-		'fieldtype': 'Int',
-		'label': 'Login After',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'restrict_ip',
-		'fieldtype': 'Data',
-		'label': 'Restrict IP',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'oldfieldtype': 'Column Break',
-		'width': '50%'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'last_login',
-		'fieldtype': 'Read Only',
-		'hidden': 0,
-		'label': 'Last Login',
-		'oldfieldname': 'last_login',
-		'oldfieldtype': 'Read Only',
-		'permlevel': 0,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'last_ip',
-		'fieldtype': 'Read Only',
-		'label': 'Last IP',
-		'oldfieldname': 'last_ip',
-		'oldfieldtype': 'Read Only',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'file_list',
-		'fieldtype': 'Text',
+		'doctype': u'DocField',
+		'fieldname': u'bio',
+		'fieldtype': u'Text',
 		'hidden': 1,
-		'label': 'File List',
-		'oldfieldname': 'file_list',
-		'oldfieldtype': 'Text',
+		'label': u'Bio',
+		'oldfieldname': u'bio',
+		'oldfieldtype': u'Text',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'interests',
+		'fieldtype': u'Text',
+		'hidden': 1,
+		'label': u'Interests',
+		'oldfieldname': u'interests',
+		'oldfieldtype': u'Text',
 		'permlevel': 0
-	}	
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'birth_date',
+		'fieldtype': u'Date',
+		'label': u'Birth Date',
+		'oldfieldname': u'birth_date',
+		'oldfieldtype': u'Date',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'activities',
+		'fieldtype': u'Text',
+		'hidden': 1,
+		'label': u'Activities',
+		'oldfieldname': u'activities',
+		'oldfieldtype': u'Text',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'messanger_status',
+		'fieldtype': u'Data',
+		'label': u'Messanger Status',
+		'oldfieldname': u'messanger_status',
+		'oldfieldtype': u'Data',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'user_type',
+		'fieldtype': u'Select',
+		'label': u'User Type',
+		'oldfieldname': u'user_type',
+		'oldfieldtype': u'Select',
+		'options': u'\nSystem User\nPartner',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldtype': u'Section Break',
+		'hidden': 0,
+		'oldfieldtype': u'Section Break',
+		'permlevel': 1,
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'label': u'Roles',
+		'oldfieldtype': u'Column Break',
+		'permlevel': 1,
+		'width': u'50%'
+	},
+
+	# DocField
+	{
+		'colour': u'White:FFF',
+		'default': u'Simple',
+		'doctype': u'DocField',
+		'fieldname': u'userroles',
+		'fieldtype': u'Table',
+		'hidden': 0,
+		'label': u'User Roles',
+		'oldfieldname': u'userroles',
+		'oldfieldtype': u'Table',
+		'options': u'UserRole',
+		'permlevel': 1,
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'label': u'System Defaults',
+		'oldfieldtype': u'Column Break',
+		'permlevel': 1,
+		'width': u'50%'
+	},
+
+	# DocField
+	{
+		'colour': u'White:FFF',
+		'default': u'Simple',
+		'doctype': u'DocField',
+		'fieldname': u'defaults',
+		'fieldtype': u'Table',
+		'hidden': 0,
+		'label': u'Defaults',
+		'oldfieldname': u'defaults',
+		'oldfieldtype': u'Table',
+		'options': u'DefaultValue',
+		'permlevel': 1,
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldtype': u'Section Break',
+		'label': u'Login Details',
+		'oldfieldtype': u'Section Break',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'login_before',
+		'fieldtype': u'Int',
+		'label': u'Login Before',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'login_after',
+		'fieldtype': u'Int',
+		'label': u'Login After',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'restrict_ip',
+		'fieldtype': u'Data',
+		'label': u'Restrict IP',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'oldfieldtype': u'Column Break',
+		'permlevel': 0,
+		'width': u'50%'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'last_login',
+		'fieldtype': u'Read Only',
+		'hidden': 0,
+		'label': u'Last Login',
+		'oldfieldname': u'last_login',
+		'oldfieldtype': u'Read Only',
+		'permlevel': 0,
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'last_ip',
+		'fieldtype': u'Read Only',
+		'label': u'Last IP',
+		'oldfieldname': u'last_ip',
+		'oldfieldtype': u'Read Only',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'user_image',
+		'fieldtype': u'Data',
+		'hidden': 1,
+		'label': u'User Image',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'background_image',
+		'fieldtype': u'Data',
+		'hidden': 1,
+		'label': u'Background Image',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'file_list',
+		'fieldtype': u'Text',
+		'hidden': 1,
+		'label': u'File List',
+		'no_copy': 1,
+		'oldfieldname': u'file_list',
+		'oldfieldtype': u'Text',
+		'permlevel': 0
+	}
 ]

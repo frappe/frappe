@@ -208,8 +208,18 @@ var rstrip = function(s, chars) {
 	return s;
 }
 
+function repl_all(s, s1, s2) {
+	var idx = s.indexOf(s1);
+	while (idx != -1){
+		s = s.replace(s1, s2);
+	 	idx = s.indexOf(s1);
+	}
+	return s;
+}
 function repl(s, dict) {
-	return sprintf(s, dict);
+	if(s==null)return '';
+	for(key in dict) s = repl_all(s, '%('+key+')s', dict[key]);
+	return s;
 }
 
 ///// dict type
