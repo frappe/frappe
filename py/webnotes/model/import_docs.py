@@ -383,7 +383,7 @@ class CSVImport:
 	def convert_csv_data_into_list(self,csv_data):
 		st_list = []
 		for s in csv_data:
-			st_list.append([unicode(d, 'utf-8').strip() for d in s])
+			st_list.append([d.strip() for d in s])
 		return st_list
 
 # Get Template method

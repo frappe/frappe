@@ -212,7 +212,17 @@ def whitelist(allow_guest=False):
 
 	return innerfn
 	
-def clear_cache():
+def clear_cache(user=None):
 	"""clear boot cache"""
 	from webnotes.session_cache import clear
-	clear()
+	clear(user)
+	
+def get_roles():
+	"""get roles of current user"""
+	if session['user']=='Guest':
+		return ['Guest']
+		
+	roles = [r[0] for r in conn.sql("""select distinct role from tabUserRole 
+		where parent=%s and role!='All'""", session['user'])]
+
+	return roles + ['All']

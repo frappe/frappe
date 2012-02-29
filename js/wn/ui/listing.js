@@ -152,7 +152,7 @@ wn.widgets.Listing = function(opts) {
 			this.start += m;
 			
 			// refreh more button
-			if(r.values.length > this.page_length) $ds(this.more_button_area);
+			if(r.values.length >= this.page_length) $ds(this.more_button_area);
 			
 		} else {
 			if(this.start==0) {

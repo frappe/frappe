@@ -151,6 +151,15 @@ function cstr(s) {
 	if(s==null)return '';
 	return s+'';
 }
+function nth(number) {
+	number = cint(number);
+	var s = 'th';
+	if((number+'').substr(-1)=='1') s = 'st';
+	if((number+'').substr(-1)=='2') s = 'nd';
+	if((number+'').substr(-1)=='3') s = 'rd';
+	return number+s;
+}
+
 function flt(v,decimals) { 
 	if(v==null || v=='')return 0;
 	v=(v+'').replace(/,/g,'');
@@ -198,18 +207,9 @@ var rstrip = function(s, chars) {
 	}
 	return s;
 }
-function repl_all(s, s1, s2) {
-	var idx = s.indexOf(s1);
-	while (idx != -1){
-		s = s.replace(s1, s2);
-	 	idx = s.indexOf(s1);
-	}
-	return s;
-}
+
 function repl(s, dict) {
-	if(s==null)return '';
-	for(key in dict) s = repl_all(s, '%('+key+')s', dict[key]);
-	return s;
+	return sprintf(s, dict);
 }
 
 ///// dict type
@@ -247,19 +247,7 @@ function add_lists(l1, l2) {
 }
 
 function docstring(obj)  {
-	var l = [];
-	for(key in obj) {
-		var v = obj[key];
-		if(v!=null) {
-			if(typeof(v)==typeof(1)) {
-				l[l.length] = "'"+ key + "':" + (v + '');
-			} else {
-	   			v = v+''; // convert to string
-   				l[l.length] = "'"+ key + "':'" + v.replace(/'/g, "\\'").replace(/\n/g, "\\n") + "'";
-   			}
-   		}
-	}
-	return  "{" + l.join(',') + '}';
+	return JSON.stringify(obj);
 }
 
 function DocLink(p, doctype, name, onload) {
