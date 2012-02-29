@@ -365,7 +365,6 @@ class CSVImport:
 		self.csv_data = self.convert_csv_data_into_list(csv.reader(csv_data.splitlines()))
 		self.import_date_format, self.overwrite = import_date_format, overwrite
 		if len(self.csv_data) > 4:
-			
 			self.doctype_data, self.labels, self.data = self.csv_data[0][:4], self.csv_data[3], self.csv_data[4:]
 			self.fields = []
 		
@@ -378,7 +377,15 @@ class CSVImport:
 				self.validate_data()
 		else:
 			self.msg.append('<p><b>No data entered in file.</b></p>')
-		return '\n'.join([m.encode('utf-8') for m in self.msg])
+		
+		try:
+			out_utf8 = '\n'.join([m.encode('utf-8') for m in self.msg])
+		except UnicodeEncodeError, e:
+			out_utf8 = """<div>We are unable to detect the encoding of the
+					given .csv file. Please save the .csv file with UTF-8
+					encoding. (See Data Import Guide -- Do you have Non-English data?)</div>"""
+
+		return out_utf8
 
 	def convert_csv_data_into_list(self,csv_data):
 		st_list = []
