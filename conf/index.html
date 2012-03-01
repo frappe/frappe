@@ -4,7 +4,14 @@
 	<title>ERPNext</title>
 	{{ ajax_meta_tag }}
 	<meta name="author" content="">
+	<script type="text/javascript" src="lib/js/lib/jquery.min.js"></script>
 	<script type="text/javascript">
+	// browser support
+	if(($.browser.mozilla && parseFloat($.browser.version)<4) ||
+		($.browser.msie && parseFloat($.browser.version)<9) ||
+		($.browser.webkit && parseFloat($.browser.version)<534) ) {
+			window.location.href= 'unsupported.html';			
+		}
 	window._version_number = "{{ version }}";
 	{{ bootinfo }};
 	</script>

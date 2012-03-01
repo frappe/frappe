@@ -30,20 +30,6 @@ if(!console) {
 	}
 }
 
-wn.check_browser_support = function() {
-	var is_supported = function() {
-		if($.browser.mozilla && flt($.browser.version)<4) return false;
-		if($.browser.msie && flt($.browser.version)<9) return false;
-		if($.browser.webkit && flt($.browser.version)<534) return false;
-		return true;
-	}
-	if(!is_supported()) {
-		window.location.href= 'unsupported.html';
-	}
-}
-
-wn.check_browser_support();
-
 wn.versions.check();
 
 /* overload links for ajax pages */
