@@ -226,3 +226,13 @@ div.std-footer-item {
   -moz-box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
   box-shadow: inset 0 1px 1px rgba(0, 0, 0, 0.05);
 }
+
+.avatar-small {
+	display: inline-block; 
+	min-width: 29px;
+}
+.avatar-small img {
+	height: 24px; 
+	margin-bottom: -7px;
+	max-width: 24px;
+}
