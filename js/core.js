@@ -38,18 +38,11 @@ wn.check_browser_support = function() {
 		return true;
 	}
 	if(!is_supported()) {
-		$('body').html('<div style="width: 900px; margin: 20px auto; padding: 20px;\
-			background-color: #fff; border: 2px solid #aaa; font-family: Arial">\
-			<h3>Unsupported Browser</h3> \
-			<p><i>ERPNext requires a modern web browser to function correctly</i></p> \
-			<p>Supported browsers are: \
-			<ul><li><a href="http://mozilla.com/firefox">Mozilla Firfox 4+</a>, \
-			<li><a href="http://google.com/chrome">Google Chorme 14+</a>, \
-			<li><a href="http://apple.com/safari">Apple Safari 5+</a>, \
-			<li><a href="http://ie.microsoft.com">Microsoft Internet Explorer 9+</a>, \
-			<li><a href="http://www.opera.com/">Opera</a></p></ul>');
-	}	
+		window.location.href= 'unsupported.html';
+	}
 }
+
+wn.check_browser_support();
 
 wn.versions.check();
 
