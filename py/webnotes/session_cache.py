@@ -29,9 +29,9 @@ permission, homepage, control panel variables, system defaults etc
 import webnotes
 
 @webnotes.whitelist()
-def clear():
+def clear(user=None):
 	"""clear all cache"""
-	clear_cache()
+	clear_cache(user)
 	webnotes.response['message'] = "Cache Cleared"
 
 def clear_cache(user=''):

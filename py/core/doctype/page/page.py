@@ -34,33 +34,16 @@ class DocType:
 		"""
 		from webnotes.utils import cint
 		if (self.doc.name and self.doc.name.startswith('New Page')) or not self.doc.name:
-			self.doc.name = self.doc.page_name.lower().replace('"','').replace("'",'').replace(' ', '-')[:20]
+			self.doc.name = self.doc.page_name.lower().replace('"','').replace("'",'').\
+				replace(' ', '-')[:20]
 			if webnotes.conn.exists('Page',self.doc.name):
-				cnt = webnotes.conn.sql('select name from tabPage where name like "%s-%%" order by name desc limit 1' % self.doc.name)
+				cnt = webnotes.conn.sql("""select name from tabPage 
+					where name like "%s-%%" order by name desc limit 1""" % self.doc.name)
 				if cnt:
 					cnt = cint(cnt[0][0].split('-')[-1]) + 1
 				else:
 					cnt = 1
 				self.doc.name += '-' + str(cnt)
-
-	def onload(self):
-		"""
-			loads html from file before passing
-		"""
-		import os
-		from webnotes.modules import get_module_path, scrub
-		
-		# load content
-		if not self.doc.module:
-			return
-			
-		try:
-			file = open(os.path.join(get_module_path(self.doc.module), 'page', scrub(self.doc.name) + '.html'), 'r')
-			self.doc.content = file.read() or ''
-			file.close()
-		except IOError, e: # no file / permission
-			if e.args[0]!=2:
-				raise e
 
 	def validate(self):
 		"""
@@ -90,8 +73,29 @@ class DocType:
 			import os
 			export_to_files(record_list=[['Page', self.doc.name]])
 	
-			if self.doc.write_content and self.doc.content:
-				file = open(os.path.join(get_module_path(self.doc.module), 'page', scrub(self.doc.name), scrub(self.doc.name) + '.html'), 'w')
-				file.write(self.doc.content)
-				file.close()
+			# write files
+			path = os.path.join(get_module_path(self.doc.module), 'page', scrub(self.doc.name), scrub(self.doc.name))
+			
+			# html
+			if not os.path.exists(path + '.html'):
+				with open(path + '.html', 'w') as f:
+					f.write("""<div class="layout-wrapper">
+	<a class="close" onclick="window.history.back();">&times;</a>
+	<h1>Activity</h1>
+</div>""" % self.doc.title)
+					
+			# js
+			if not os.path.exists(path + '.js'):
+				with open(path + '.js', 'w') as f:
+					f.write("""wn.pages['%s'].onload = function(wrapper) { }""" % self.doc.name)
+			
+			# py
+			if not os.path.exists(path + '.py'):
+				with open(path + '.py', 'w') as f:
+					f.write("""import webnotes""")
+
+			# css
+			if not os.path.exists(path + '.css'):
+				with open(path + '.css', 'w') as f:
+					pass
  

@@ -97,13 +97,10 @@ def remove_all(dt, dn):
 	for afile in file_list.split('\n'):
 		if afile:
 			fname, fid = afile.split(',')
-			remove_file_list(dt, dn, fid)
-			delete_file(fid)
+			remove_file(dt, dn, fid)
 
-def remove_file_list(dt, dn, fid):
-	"""
-		Remove fid from the give file_list
-	"""
+def remove_file(dt, dn, fid):
+	"""Remove fid from the give file_list"""
 	
 	# get the old file_list
 	fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
@@ -112,6 +109,9 @@ def remove_file_list(dt, dn, fid):
 	for f in fl:
 		if f.split(',')[1]!=fid:
 			new_fl.append(f)
+
+	# delete
+	delete_file(fid)
 		
 	# update the file_list
 	webnotes.conn.set_value(dt, dn, 'file_list', '\n'.join(new_fl))
@@ -215,28 +215,18 @@ def write_file(fid, content):
 	file.close()
 		
 
-# -------------------------------------------------------
 def get_file_system_name(fname):
 	# get system name from File Data table
 	return webnotes.conn.sql("""select name, file_name from `tabFile Data` 
 		where name=%s or file_name=%s""", (fname, fname))
 
-# -------------------------------------------------------
-def delete_file(fname, verbose=0):
+def delete_file(fid, verbose=0):
+	"""delete file from file system"""
 	import os
-		
-	for f in get_file_system_name(fname):
-		webnotes.conn.sql("delete from `tabFile Data` where name=%s", f[0])
-	
-		# delete file
-		file_id = f[0].replace('/','-')
-		try:
-			os.remove(os.path.join(webnotes.get_files_path(), file_id))
-		except OSError, e:
-			if e.args[0]!=2:
-				raise e
-		
-		if verbose: webnotes.msgprint('File Deleted')
+	webnotes.conn.sql("delete from `tabFile Data` where name=%s", fid)	
+	path = os.path.join(webnotes.get_files_path(), fid.replace('/','-'))
+	if os.path.exists(path):
+		os.remove(path)
 
 # Get File
 # -------------------------------------------------------
@@ -258,26 +248,5 @@ def get_file(fname):
 
 	return [file_name, content]
 
-# Conversion Patch
-# -------------------------------------------------------
-
-def convert_to_files(verbose=0):
-	
-	# nfiles
-	fl = webnotes.conn.sql("select name from `tabFile Data`")
-	for f in fl:
-		# get the blob
-		blob = webnotes.conn.sql("select blob_content from `tabFile Data` where name=%s", f[0])[0][0]
-		
-		if blob:
-
-			if hasattr(blob, 'tostring'):
-				blob = blob.tostring()
-
-			# write the file
-			write_file(f[0], blob)
-						
-			if verbose:
-				webnotes.msgprint('%s updated' % f[0])
 
 # -------------------------------------------------------

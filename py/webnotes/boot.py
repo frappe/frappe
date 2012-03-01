@@ -51,7 +51,7 @@ def get_bootinfo():
 	if webnotes.session['user'] != 'Guest':
 		import webnotes.widgets.menus
 		bootinfo['dt_labels'] = get_dt_labels()
-		bootinfo['user_fullnames'] = get_fullnames()
+		bootinfo['user_info'] = get_fullnames()
 		
 	# home page
 	get_home_page(bootinfo, doclist)
@@ -75,15 +75,21 @@ def get_bootinfo():
 def get_fullnames():
 	"""map of user fullnames"""
 	import webnotes
-	ret = dict(webnotes.conn.sql("""select name, 
+	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
-			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, ''))
-		from tabProfile where ifnull(enabled, 0)=1"""))
-	for key in ret:
-		if not ret[key]:
-			ret[key] = key
+			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, '')), 
+			user_image, gender
+		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
+	d = {}
+	for r in ret:
+		if not r[2]:
+			r[2] = 'lib/images/ui/no_img_m.gif'
+		else:
+			r[2] = 'files/' + r[2]
+			
+		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3]}
 
-	return ret
+	return d
 		
 def get_profile(bootinfo):
 	"""get profile info"""

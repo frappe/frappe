@@ -159,7 +159,12 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.layout = new Layout(this.page_layout.body, '100%');
 	
 	// sidebar
-	if(!this.in_dialog) {
+	if(this.in_dialog) {
+		// hide sidebar
+		$(this.page_layout.wrapper).removeClass('layout-wrapper-background');
+		$(this.page_layout.main).removeClass('layout-main-section');
+		$(this.page_layout.sidebar_area).toggle(false);
+	} else {
 		this.setup_sidebar();
 	}
 		

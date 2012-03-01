@@ -174,7 +174,7 @@ wn.datetime = {
 	
 	global_date_format: function(d) {
 		if(d.substr) d = this.str_to_obj(d);
-		return d.getDate() + ' ' + month_list_full[d.getMonth()] + ' ' + d.getFullYear();
+		return nth(d.getDate()) + ' ' + month_list_full[d.getMonth()] + ' ' + d.getFullYear();
 	},
 
 	get_today: function() {
@@ -252,9 +252,12 @@ wn.datetime.time_to_hhmm = function(hh,mm,am) {
 // long ago the date represents.
 function prettyDate(time){
 	if(!time) return ''
-	var date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[0-9]*/, "")),
-		diff = (((new Date()).getTime() - date.getTime()) / 1000),
-		day_diff = Math.floor(diff / 86400);
+	var date = time;
+	if(typeof(time)=="string")
+		date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[0-9]*/, ""));
+	
+	var diff = (((new Date()).getTime() - date.getTime()) / 1000),
+	day_diff = Math.floor(diff / 86400);
 	
 	if ( isNaN(day_diff) || day_diff < 0 )
 		return '';
