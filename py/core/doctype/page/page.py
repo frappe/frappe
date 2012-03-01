@@ -81,7 +81,7 @@ class DocType:
 				with open(path + '.html', 'w') as f:
 					f.write("""<div class="layout-wrapper">
 	<a class="close" onclick="window.history.back();">&times;</a>
-	<h1>Activity</h1>
+	<h1>%s</h1>
 </div>""" % self.doc.title)
 					
 			# js
