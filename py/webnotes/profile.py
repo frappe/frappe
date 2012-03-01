@@ -62,7 +62,8 @@ class Profile:
 			and parent not like "old_parent:%%" 
 			and ifnull(docstatus,0)=0
 			"""):
-			self.doctype_map[r[0]]['child_tables'].append(r[1])
+			if r[0] in self.doctype_map:
+				self.doctype_map[r[0]]['child_tables'].append(r[1])
 	
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
