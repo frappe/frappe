@@ -602,9 +602,9 @@ _f.Frm.prototype.refresh = function(docname) {
 		this.doc = get_local(this.doctype, this.docname);	  
 		
 		// load the record for the first time, if not loaded (call 'onload')
-		var is_onload = false;
+		cur_frm.cscript.is_onload = false;
 		if(!this.opendocs[this.docname]) { 
-			is_onload = true;
+			cur_frm.cscript.is_onload = true;
 			this.setnewdoc(this.docname); 
 		}
 
@@ -652,7 +652,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.layout) this.layout.show();
 
 			// call onload post render for callbacks to be fired
-			if(is_onload)
+			if(cur_frm.cscript.is_onload)
 				this.runclientscript('onload_post_render', this.doctype, this.docname);			
 		
 		} else {
