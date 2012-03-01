@@ -31,6 +31,7 @@ class Profile:
 		self.name = name or webnotes.session.get('user')
 		self.roles = []
 
+		self.all_read = []
 		self.can_create = []
 		self.can_read = []
 		self.can_write = []
@@ -115,6 +116,9 @@ class Profile:
 			if (p.get('read') or p.get('write')) and (not dtp.get('read_only')):
 				self.can_get_report.append(dt)
 				self.can_get_report += dtp['child_tables']
+				
+			if p.get('read') or p.get('write'):
+				self.all_read.append(dt)
 		
 
 	def get_home_page(self):
@@ -220,6 +224,7 @@ class Profile:
 		d['can_read'] = list(set(self.can_read))
 		d['can_get_report'] = list(set(self.can_get_report))
 		d['allow_modules'] = self.allow_modules
+		d['all_read'] = self.all_read
 		
 		return d
 		
@@ -232,6 +237,7 @@ class Profile:
 		self.can_write = d['can_write']
 		self.can_get_report = d['can_get_report']
 		self.allow_modules = d['allow_modules']
+		self.all_read = d['all_read']
 
 		self.roles = d['roles']
 		self.defaults = d['defaults']
