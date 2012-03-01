@@ -47,7 +47,7 @@ var pending_req = 0;
 
 // new XMLHttpRequest object
 function newHttpReq() { 
-	if (!isIE) 
+	if (!$.browser.msie) 
  		var r=new XMLHttpRequest(); 
 	else if (window.ActiveXObject) 
 		var r=new ActiveXObject("Microsoft.XMLHTTP"); 

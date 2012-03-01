@@ -416,11 +416,7 @@ AutoSuggest.prototype.createList = function(arr) {
 	}
 
 	this.body = div;
-	
-	if(isIE) {
-		$y(div,{border:'1px solid #444'});
-	}
-	
+		
 	// currently no item is highlighted
 	//
 	
@@ -477,15 +473,15 @@ AutoSuggest.prototype.setHighlight = function(n)
 	if(this.body.scrollbars) {
 		var cur_y = 0;
 		for(var i=0; i<this.iHigh-1; i++)
-			cur_y += (isIE ? list.childNodes[i].offsetHeight : list.childNodes[i].clientHeight);
+			cur_y += ($.browser.msie ? list.childNodes[i].offsetHeight : list.childNodes[i].clientHeight);
 		
 		// scroll up
 		if(cur_y < this.body.scrollTop)
 			this.body.scrollTop = cur_y;
 			
 		// scroll down
-		ff_delta = (isFF ? cint(this.iHigh/2) : 0);
-		var h = (isIE ? ele.offsetHeight : ele.clientHeight);
+		ff_delta = ($.browser.mozilla ? cint(this.iHigh/2) : 0);
+		var h = ($.browser.msie ? ele.offsetHeight : ele.clientHeight);
 		if(cur_y >= (this.body.scrollTop + this.oP.maxheight - h))
 			this.body.scrollTop = cur_y - this.oP.maxheight + h + ff_delta;
 	}

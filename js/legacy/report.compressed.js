@@ -185,7 +185,7 @@ _r.DataTable.prototype.run=function(){if(this.validate&&!this.validate())
 return;if(_r.rb_con.cur_rb){if(_r.rb_con.cur_rb.large_report==1){msgprint("This is a very large report and cannot be shown in the browser as it is likely to make your browser very slow.<br><br>Please click on 'Export' to open in a spreadsheet");return;}
 _r.rb_con.cur_rb.mytabs.items['Result'].expand();}
 var me=this;this._get_query();if(this.set_data){this.show_result(this.set_data);this.set_data=null;return;}
-$ds(this.fetching_tag);if(isFF)this.clear_all();var args={'query':me.query,'report_name':'_r.DataTable','show_deleted':1,'sc_id':me.search_criteria?me.search_criteria.name:'','filter_values':me.filter_vals?docstring(me.filter_vals):'','roles':'["'+user_roles.join('","')+'"]'}
+$ds(this.fetching_tag);if($.browser.mozilla)this.clear_all();var args={'query':me.query,'report_name':'_r.DataTable','show_deleted':1,'sc_id':me.search_criteria?me.search_criteria.name:'','filter_values':me.filter_vals?docstring(me.filter_vals):'','roles':'["'+user_roles.join('","')+'"]'}
 if(this.is_simple)args.is_simple=1;$c('webnotes.widgets.query_builder.runquery',args,function(r,rt){$dh(me.fetching_tag);me.show_result(r,rt);});}
 _r.DataTable.prototype.clear_all=function(){if(this.htab&&this.htab.parentNode){this.htab.parentNode.removeChild(this.htab);delete this.htab;}
 if(this.tab&&this.tab.parentNode){this.tab.parentNode.removeChild(this.tab);delete this.tab;}

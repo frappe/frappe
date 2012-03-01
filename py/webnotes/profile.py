@@ -205,7 +205,8 @@ class Profile:
 		t = webnotes.conn.sql("""select email, first_name, last_name, 
 			recent_documents from tabProfile where name = %s""", self.name)[0]
 
-		self.build_permissions()
+		if not self.can_read:
+			self.build_permissions()
 
 		d = {}
 		d['name'] = self.name
