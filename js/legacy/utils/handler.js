@@ -47,7 +47,7 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 		args.docs = compress_doclist(doclist)
 	
 	wn.request.call({
-		args: args
+		args: args,
 		success: callback,
 		btn: btn,
 		freeze: freeze_msg,
