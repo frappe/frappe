@@ -62,17 +62,15 @@ class HTTPRequest:
 			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
 			raise webnotes.SessionStopped('Session Stopped')
 
-
-		# write out cookies if sid is supplied (this is a pre-logged in redirect)
-		if webnotes.form_dict.get('sid'):
-			webnotes.cookie_manager.set_cookies()
-
 		# run login triggers
 		if webnotes.form_dict.get('cmd')=='login':
 			webnotes.login_manager.run_trigger('on_login_post_session')
 			
 		# load profile
 		self.setup_profile()
+
+		# write out cookies
+		webnotes.cookie_manager.set_cookies()
 
 		webnotes.conn.commit()
 		# end transaction
@@ -305,7 +303,6 @@ class CookieManager:
 			# sid expires in 3 days
 			import datetime
 			expires = datetime.datetime.now() + datetime.timedelta(days=3)
-
 			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')		
 
 	# Set Remember Me
@@ -345,36 +342,19 @@ class Session:
 		r = webnotes.conn.sql("""select user, sessiondata, status from 
 			tabSessions where sid='%s'""" % self.sid)
 		if not r:
-			# return guest record if present
 			self.sid = 'Guest'
 			r = webnotes.conn.sql("""select user, sessiondata, status from 
 				tabSessions where sid='%s'""" % self.sid)
 			
-		return r
+		return r and r[0] or None
 	
 	def load(self):
+		"""non-login request: load a session"""
 		import webnotes
 		
 		r = self.get_session_record()
-	
 		if r:
-			r=r[0]
-			
-			# ExipredSession
-			if r[2]=='Expired' and (webnotes.form_dict.get('cmd')!='resume_session'):
-				if r[0]=='Guest' or (not webnotes.form_dict.get('cmd')) or webnotes.form_dict.get('cmd')=='logout':
-					self.start_as_guest()
-				else:
-					webnotes.response['session_status'] = 'Session Expired'
-					raise Exception, 'Session Expired'
-			elif r[2]=='Logged Out':
-				self.start_as_guest()
-				# allow refresh or logout
-				if webnotes.form_dict.get('cmd') and webnotes.form_dict.get('cmd')!='logout':
-					webnotes.response['session_status'] = 'Logged Out'
-					raise Exception, 'Logged Out'
-			else:
-				self.data = {'data': (r[1] and eval(r[1]) or {}), 
+			self.data = {'data': (r[1] and eval(r[1]) or {}), 
 					'user':r[0], 'sid': self.sid}
 		else:				
 			self.start_as_guest()
@@ -384,9 +364,8 @@ class Session:
 		webnotes.login_manager.login_as_guest()
 		self.start()
 
-	# start a session
-	# ---------------
 	def start(self):
+		"""start a new session"""
 		import os
 		import webnotes
 		import webnotes.utils
@@ -417,33 +396,13 @@ class Session:
 				raise e
 
 		# update profile
-		webnotes.conn.sql("UPDATE tabProfile SET last_login = '%s', last_ip = '%s' where name='%s'" % (webnotes.utils.now(), webnotes.remote_ip, self.data['user']))
+		webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
+			where name='%s'""" % (webnotes.utils.now(), webnotes.remote_ip, self.data['user']))
 
 		# set cookies to write
 		webnotes.session = self.data
 		webnotes.cookie_manager.set_cookies()
 
-
-	# resume session
-	# --------------
-	def resume(self):
-		pwd = webnotes.form_dict.get('pwd')
-		webnotes.login_manager.authenticate(self.data['user'], pwd)
-		webnotes.conn.sql("update tabSessions set status='Active' where sid=%s", self.data['sid'])
-		return 'Logged In'
-	
-	# update session
-	# --------------
-	def update(self):
-		# update session
-		if webnotes.session['user'] != 'Guest':
-			webnotes.conn.sql("""update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() 
-				where sid=%s""" , (str(self.data['data']), self.data['user'], self.data['sid']))	
-
-			self.check_expired()
-
-	# check expired
-	# -------------
 	def check_expired(self):
 		"""expire non-guest sessions"""
 		exp_sec = webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '6:00:00'
@@ -460,8 +419,6 @@ class Session:
 		webnotes.conn.sql("""delete from tabSessions where TIMEDIFF(NOW(), lastupdate) 
 			> '72:00:00' and sid!='Guest'""")
 
-	# Get IP Info from ipinfodb.com
-	# -----------------------------
 	def get_ipinfo(self):
 		import os
 		
@@ -473,7 +430,9 @@ class Session:
 		gi = pygeoip.GeoIP('data/GeoIP.dat')
 		self.data['data']['ipinfo'] = {'countryName': gi.country_name_by_addr(os.environ.get('REMOTE_ADDR'))}
 			
-	# -----------------------------
 	def insert_session_record(self):
-		webnotes.conn.sql("insert into tabSessions (sessiondata, user, lastupdate, sid, status) values (%s , %s, NOW(), %s, 'Active')", (str(self.data['data']), self.data['user'], self.data['sid']))
+		webnotes.conn.sql("""insert into tabSessions 
+			(sessiondata, user, lastupdate, sid, status) 
+			values (%s , %s, NOW(), %s, 'Active')""", 
+				(str(self.data['data']), self.data['user'], self.data['sid']))
 		

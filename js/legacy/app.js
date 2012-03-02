@@ -3,13 +3,9 @@
 // dialog container
 var popup_cont;
 var session = {};
-var start_sid = null;
 if(!wn) var wn = {};
 
-function startup() {
-	// save the sid (so that we know if it changes mid-session)
-	start_sid = get_cookie('sid');
-	
+function startup() {	
 	popup_cont = $a(document.getElementsByTagName('body')[0], 'div');
 
 	// Globals

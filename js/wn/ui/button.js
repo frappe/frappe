@@ -56,7 +56,7 @@ wn.ui.Button = function(args) {
 			if(me.btn.args.is_ajax) {
 				$(me.btn).css('margin-right', '0px');
 			}
-			wn.dom.show(me.loading_img, 'inline');
+			$(me.loading_img).css('display','inline');
 		},
 		
 		done_working: function() {
@@ -64,7 +64,7 @@ wn.ui.Button = function(args) {
 			if(me.btn.args.is_ajax) {
 				$(me.btn).css('margin-right', '24px');				
 			}
-			wn.dom.hide(me.loading_img);
+			$(me.loading_img).toggle(false);
 		}
 	});
 	this.make();

@@ -176,7 +176,7 @@ CommentItem = function(cell, ri, ci, d, comment) {
 // Set picture
 // -----------
 CommentItem.prototype.set_picture = function(d, ri){
-	set_user_img(this.img, user)
+	this.user.src = wn.user_info(d[ri][2]).image;
 	this.cmt_by.innerHTML = d[ri][7] ? d[ri][7] : d[ri][2];
 }
 

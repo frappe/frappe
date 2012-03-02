@@ -52,6 +52,7 @@ def get_bootinfo():
 		import webnotes.widgets.menus
 		bootinfo['dt_labels'] = get_dt_labels()
 		bootinfo['user_info'] = get_fullnames()
+		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
 	get_home_page(bootinfo, doclist)

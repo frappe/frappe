@@ -61,11 +61,11 @@ wn.dom.css= function(ele, s) {
 	return ele;
 }
 
-wn.dom.hide = function(ele) {
-	ele.style.display = 'none';
-}
-
-wn.dom.show = function(ele, value) {
-	if(!value) value = 'block';
-	ele.style.display = value;
+wn.get_cookie = function(c) {
+	var t=""+document.cookie;
+	var ind=t.indexOf(c);
+	if (ind==-1 || c=="") return ""; 
+	var ind1=t.indexOf(';',ind);
+	if (ind1==-1) ind1=t.length; 
+	return unescape(t.substring(ind+c.length+1,ind1));
 }	

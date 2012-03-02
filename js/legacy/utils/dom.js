@@ -272,12 +272,9 @@ function $i(id) {
 	if(id && id.appendChild)return id; // already an element
 	return document.getElementById(id); 
 }
-function $t(parent, txt) { 	if(parent.substr)parent = $i(parent); return parent.appendChild(document.createTextNode(txt)); }
 function $w(e,w) { if(e && e.style && w)e.style.width = w; }
 function $h(e,h) { if(e && e.style && h)e.style.height = h; }
 function $bg(e,w) { if(e && e.style && w)e.style.backgroundColor = w; }
-function $fg(e,w) { if(e && e.style && w)e.style.color = w; }
-function $op(e,w) { if(e && e.style && w) { set_opacity(e,w); } }
 
 function $y(ele, s) { 
 	if(ele && s) { 
@@ -415,16 +412,6 @@ function get_scroll_top() {
 	return st;
 }
 
-
-function get_cookie(c) {
-	var t=""+document.cookie;
-	var ind=t.indexOf(c);
-	if (ind==-1 || c=="") return ""; 
-	var ind1=t.indexOf(';',ind);
-	if (ind1==-1) ind1=t.length; 
-	return unescape(t.substring(ind+c.length+1,ind1));
-}
-
 // URL utilities
 
 wn.urllib = {
@@ -475,54 +462,3 @@ wn.urllib = {
 
 get_url_arg = wn.urllib.get_arg;
 get_url_dict = wn.urllib.get_dict;
-
-// set user image
-var user_img = {}
-var user_img_queue = {};
-var user_img_loading = [];
-
-set_user_img = function(img, username, get_latest, img_id) {
-	function set_it(i) {
-		if(user_img[username]=='no_img_m')
-			i.src = 'lib/images/ui/no_img_m.gif';
-		else if(user_img[username]=='no_img_f')
-			i.src = 'lib/images/ui/no_img_f.gif'; // no image
-		else {
-			ac_id = wn.control_panel.account_id;
-			i.src = repl('cgi-bin/getfile.cgi?ac=%(ac)s&name=%(fn)s', {fn:user_img[username], ac:ac_id});			
-		}
-	}
-
-	// given
-	if(img_id) {
-		user_img[username] = img_id;
-		set_it(img);
-		return;
-	}
-	
-	// from dict or load
-	if(user_img[username] && !get_latest) {
-		set_it(img);
-	} else{
-		// queue multiple request while loading
-		if(in_list(user_img_loading,username)) {
-			if(!user_img_queue[username]) 
-				user_img_queue[username] = [];
-			user_img_queue[username].push(img);
-			return;
-		}
-		$c('webnotes.profile.get_user_img',{username:username},function(r,rt) { 
-				delete user_img_loading[user_img_loading.indexOf(username)];
-				user_img[username] = r.message; 
-
-				if(user_img_queue[username]) {
-					var q=user_img_queue[username];
-					for(var i in q) { set_it(q[i]); }
-				}
-				set_it(img); 
-				
-			}, null, 1);
-		user_img_loading.push(username);
-	}
-
-}

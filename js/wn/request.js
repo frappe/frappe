@@ -1,0 +1,111 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+
+// My HTTP Request
+
+wn.provide('wn.request');
+wn.request.url = 'index.cgi';
+
+// call execute serverside request
+wn.request.prepare = function(opts) {
+	// btn indicator
+	if(opts.btn) $(opts.btn).set_working();
+		
+	// navbar indicator
+	if(opts.show_spinner) set_loading();
+	
+	// freeze page
+	if(opts.freeze) freeze();
+	
+	// no cmd?
+	if(!opts.args.cmd) {
+		console.log(opts)
+		throw "Incomplete Request";
+	}
+}
+
+wn.request.cleanup = function(opts, r) {
+	// stop button indicator
+	if(opts.btn) $(opts.btn).done_working();
+	
+	// hide button indicator
+	if(opts.show_spinner) hide_loading();
+
+	// un-freeze page
+	if(opts.freeze) unfreeze();
+
+	// session expired?
+	if(wn.boot.sid && wn.get_cookie('sid') != wn.boot.sid) { 
+		msgprint('Session expired');
+		setTimeout('redirect_to_login()', 3000); 
+		return;
+	}
+	
+	// show messages
+	if(r.server_messages) msgprint(r.server_messages)
+	
+	// show errors
+	if(r.exc) { errprint(r.exc); console.log(r.exc); };
+		
+	// sync docs
+	if(r.docs) LocalDB.sync(r.docs);
+}
+
+wn.request.call = function(opts) {
+	wn.request.prepare(opts);
+	$.ajax({
+		url: opts.url || wn.request.url,
+		data: opts.args,
+		type: opts.type || 'POST',
+		dataType: opts.dataType || 'json',
+		success: function(r, xhr) {
+			wn.request.cleanup(opts, r);
+			opts.success(r, xhr.responseText);
+		},
+		error: function(xhr, textStatus) {
+			wn.request.cleanup(opts, {});
+			msgprint('Unable to complete request: ' + textStatus)
+			if(opts.error)opts.error(xhr)
+		}
+	})
+}
+
+// generic server call (call page, object)
+wn.call = function(opts) {
+	var args = opts.args || {};
+	
+	// cmd
+	if(opts.module && opts.page) {
+		args.cmd = module+'.page.'+page+'.'+page+'.'+method
+	} else if(opts.method) {
+		args.cmd = opts.method;
+	}
+
+	wn.request.call({
+		args: args,
+		success: opts.callback,
+		error: opts.error,
+		btn: opts.btn,
+		freeze: opts.freeze,
+		show_spinner: !opts.no_spinner
+	});
+}

@@ -225,7 +225,11 @@ SingleTag.prototype.make_body = function(parent) {
 	if(this.onclick) $y(this.body, {cursor:'pointer'});
 	
 	// hover
-	$(this.body).hover(function() { $op(this,60); } ,function() { $op(this,100); });
+	$(this.body).hover(function() { 
+		$(this).css('opacity', 0.6);
+	 } ,function() { 
+		$(this).css('opacity', 1);
+	 });
 
 	// label
 	this.make_label();
