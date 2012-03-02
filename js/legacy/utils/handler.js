@@ -35,11 +35,11 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(typeof arg=='string') arg = JSON.stringify(arg);
 	
-	args: {
+	args = {
 		cmd:'runserverobj',
 		arg: arg,
-		method: method,
-	},
+		method: method
+	};
 	
 	if(typeof doclist=='string') 
 		args.doctype = doclist; 
