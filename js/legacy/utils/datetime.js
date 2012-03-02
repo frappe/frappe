@@ -68,6 +68,11 @@ wn.datetime = {
 		return ((d1-d2) / 86400000); 
 	},
 	
+	get_day_diff: function(d1, d2) {
+		return dateutil.get_diff(new Date(d1.getYear(), d1.getMonth(), d1.getDate(), 0, 0), 
+			new Date(d2.getYear(), d2.getMonth(), d2.getDate(), 0, 0))
+	},
+	
 	add_days: function(d, days) { 
 		d.setTime(d.getTime()+(days*24*60*60*1000)); return d
 	},
