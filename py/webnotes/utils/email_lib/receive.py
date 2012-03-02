@@ -153,6 +153,7 @@ class POP3Mailbox:
 		
 		self.connect()
 		num = len(self.pop.list()[1])
+		# WARNING: Hard coded max no. of messages to be popped
 		if num > 25: num = 25
 		for m in range(num):
 			msg = self.pop.retr(m+1)
