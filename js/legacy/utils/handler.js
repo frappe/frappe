@@ -34,13 +34,20 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 // For calling an object
 function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(typeof arg=='string') arg = JSON.stringify(arg);
+	
+	args: {
+		cmd:'runserverobj',
+		arg: arg,
+		method: method,
+	},
+	
+	if(typeof doclist=='string') 
+		args.doctype = doclist; 
+	else 
+		args.docs = compress_doclist(doclist)
+	
 	wn.request.call({
-		args: {
-			cmd:'runserverobj',
-			arg: arg,
-			method: method,
-			docs: JSON.stringify(doclist)
-		},
+		args: args
 		success: callback,
 		btn: btn,
 		freeze: freeze_msg,
