@@ -33,7 +33,7 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 
 // For calling an object
 function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
-	if(typeof arg=='string') arg = JSON.stringify(arg);
+	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
 	
 	args = {
 		cmd:'runserverobj',
@@ -57,7 +57,7 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 
 // For call a page metho
 function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, btn) {
-	if(typeof arg=='string') arg = JSON.stringify(arg);
+	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
 	wn.request.call({
 		args: {
 			cmd: module+'.page.'+page+'.'+page+'.'+method,
@@ -65,7 +65,6 @@ function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, bt
 			method: method
 		},
 		success: callback,
-		error: error,
 		btn: btn,
 		freeze: freeze_msg,
 		show_spinner: !no_spinner
