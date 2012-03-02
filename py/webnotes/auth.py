@@ -228,7 +228,8 @@ class LoginManager:
 						webnotes.form_dict.get('via_ip').startswith(webnotes.defs.server_ip)):
 					return
 			
-		webnotes.msgprint('Not allowed from this IP Address', raise_exception=1)
+		webnotes.msgprint('Not allowed from this IP Address')
+		raise webnotes.AuthenticationError
 
 	def validate_hour(self):
 		"""
