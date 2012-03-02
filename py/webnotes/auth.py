@@ -408,6 +408,14 @@ class Session:
 		webnotes.session = self.data
 		webnotes.cookie_manager.set_cookies()
 
+	def update(self):
+		"""extend session expiry"""
+		if webnotes.session['user'] != 'Guest':
+			webnotes.conn.sql("""update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() 
+				where sid=%s""" , (str(self.data['data']), self.data['user'], self.data['sid']))	
+
+			self.check_expired()
+
 	def check_expired(self):
 		"""expire non-guest sessions"""
 		exp_sec = webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '6:00:00'
