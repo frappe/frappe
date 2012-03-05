@@ -317,6 +317,7 @@ class _DocType:
 
 			if get_next_docfield:
 				i = i + 1
+				if i>=len(docfields): break
 				prev_field = docfields[i]
 				vals = previous_field_dict.values()
 				if prev_field in vals:
