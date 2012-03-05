@@ -34,7 +34,7 @@ from datetime import datetime
 
 
 #Global constants
-from webnotes.defs import backup_path, backup_link_path, backup_url
+from webnotes.defs import backup_path, backup_link_path
 verbose = 0
 
 #-------------------------------------------------------------------------------
@@ -98,6 +98,11 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
+		if hasattr(webnotes.defs, 'backup_url'):
+			backup_url = webnotes.defs.backup_url
+		else:
+			backup_url = webnotes.conn.get_value('Website Settings',
+				'Website Settings', 'subdomain') or ''
 		file_url = os.path.join(backup_url, backup_file)
 		from webnotes.utils.email_lib import sendmail
 		
