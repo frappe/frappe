@@ -103,6 +103,9 @@ class BackupGenerator:
 		else:
 			backup_url = webnotes.conn.get_value('Website Settings',
 				'Website Settings', 'subdomain') or ''
+			if hasattr(webnotes.defs, 'backup_folder_name'):
+				backup_url = os.path.join(backup_url,
+						webnotes.defs.backup_folder_name)
 		file_url = os.path.join(backup_url, backup_file)
 		from webnotes.utils.email_lib import sendmail
 		
