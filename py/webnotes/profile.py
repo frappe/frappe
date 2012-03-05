@@ -31,92 +31,95 @@ class Profile:
 		self.name = name or webnotes.session.get('user')
 		self.roles = []
 
+		self.all_read = []
 		self.can_create = []
 		self.can_read = []
 		self.can_write = []
 		self.can_get_report = []
+		self.allow_modules = []
 		
 	def _load_roles(self):
-		res = webnotes.conn.sql('select role from tabUserRole where parent = %s', self.name)
-		self.roles = []
-		for t in res:
-			if t[0]: self.roles.append(t[0])
-		if webnotes.session.get('user') == 'Guest':
-			self.roles.append('Guest')
-		else:
-			self.roles.append('All')
-			
+		self.roles = webnotes.get_roles()
 		return self.roles
 
 	def get_roles(self):
-		"""
-		get list of roles
-		"""
+		"""get list of roles"""
 		if self.roles:
 			return self.roles
 			
 		return self._load_roles()
 	
-	def get_allow_list(self, key):
-		"""
-	      	Internal - get list of DocType where `key` is allowed. Key is either 'read', 'write' or 'create'
-		"""
-		conn = webnotes.conn
-		roles = self.get_roles()
-		return [r[0] for r in conn.sql('SELECT DISTINCT t1.parent FROM `tabDocPerm` t1, tabDocType t2 WHERE t1.`%s`=1 AND t1.parent not like "old_parent:%%" AND t1.parent = t2.name AND IFNULL(t2.istable,0) = 0 AND t1.role in ("%s") order by t1.parent' % (key, '", "'.join(roles)))]
-	
-	def get_create_list(self):
-		"""
-		Get list of DocTypes the user can create. Will filter DocTypes tagged with 'not_in_create' and table
-		"""
-		cl = self.get_allow_list('create')
-		conn = webnotes.conn
-		no_create_list = [r[0] for r in conn.sql('select name from tabDocType where ifnull(in_create,0)=1 or ifnull(istable,0)=1 or ifnull(issingle,0)=1')]
-		self.can_create = filter(lambda x: x not in no_create_list, cl)
-		return self.can_create
-		
-	def get_read_list(self):
-		"""
-		Get list of DocTypes the user can read
-		"""
-		self.can_read = list(set(self.get_allow_list('read') + self.get_allow_list('write')))
-		return self.can_read
-	
-	def get_report_list(self):
-
-		conn = webnotes.conn
-	
-		# get all tables list
-		res = conn.sql('SELECT parent, options from tabDocField where fieldtype="Table"')
-		table_types, all_tabletypes = {}, []
-		
-		# make a dictionary fo all table types
-		for t in res: 
-			all_tabletypes.append(t[1])
-			if not table_types.has_key(t[0]):
-				table_types[t[0]] = []
-			table_types[t[0]].append(t[1])
-	
-		no_search_list = [r[0] for r in conn.sql('SELECT name FROM tabDocType WHERE read_only = 1 ORDER BY name')]
-		# make the lists
-		for f in self.can_read:
-			tl = table_types.get(f, None)
-			if tl:
-				for t in tl:
-					if t and (not t in self.can_get_report) and (not t in no_search_list):
-						self.can_get_report.append(t)
+	def build_doctype_map(self):
+		"""build map of special doctype properties"""
 			
-			if f and (not f in self.can_get_report) and (not f in no_search_list): 
-				self.can_get_report.append(f)
+		self.doctype_map = {}
+		for r in webnotes.conn.sql("""select name, in_create, issingle, istable, 
+			read_only, module from tabDocType""", as_dict=1):
+			r['child_tables'] = []
+			self.doctype_map[r['name']] = r
+			
+		for r in webnotes.conn.sql("""select parent, options from tabDocField 
+			where fieldtype="Table"
+			and parent not like "old_parent:%%" 
+			and ifnull(docstatus,0)=0
+			"""):
+			if r[0] in self.doctype_map:
+				self.doctype_map[r[0]]['child_tables'].append(r[1])
 	
-		return self.can_get_report
+	def build_perm_map(self):
+		"""build map of permissions at level 0"""
 		
-	def get_write_list(self):
+		self.perm_map = {}
+		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create` 
+			from tabDocPerm where docstatus=0 
+			and ifnull(permlevel,0)=0
+			and parent not like "old_parent:%%" 
+			and role in ('%s')""" % "','".join(self.get_roles()), as_dict=1):
+			
+			dt = r['parent']
+			
+			if not dt in  self.perm_map:
+				self.perm_map[dt] = {}
+				
+			for k in ('read', 'write', 'create'):
+				if not self.perm_map[dt].get(k):
+					self.perm_map[dt][k] = r.get(k)
+						
+	def build_permissions(self):
+		"""build lists of what the user can read / write / create
+		quirks: 
+			read_only => Not in Search
+			in_create => Not in create
+		
 		"""
-		Get list of DocTypes the user can write
-		"""	
-		self.can_write = self.get_allow_list('write')
-		return self.can_write
+		
+		self.build_doctype_map()
+		self.build_perm_map()
+		
+		for dt in self.doctype_map:
+			dtp = self.doctype_map[dt]
+			p = self.perm_map.get(dt, {})
+			
+			if (p.get('read') or p.get('write')) and (not dtp.get('istable')) \
+				and (not dtp.get('read_only')):
+				self.can_read.append(dt)
+				if not dtp['module'] in self.allow_modules:
+					self.allow_modules.append(dtp['module'])
+
+			if p.get('write') and not dtp.get('istable'):
+				self.can_write.append(dt)
+			
+			if p.get('create') and (not dtp.get('in_create')) and (not dtp.get('istable')) \
+				and (not dtp.get('issingle')):
+				self.can_create.append(dt)
+				
+			if (p.get('read') or p.get('write')) and (not dtp.get('read_only')):
+				self.can_get_report.append(dt)
+				self.can_get_report += dtp['child_tables']
+				
+			if p.get('read') or p.get('write'):
+				self.all_read.append(dt)
+		
 
 	def get_home_page(self):
 		"""
@@ -136,7 +139,8 @@ class Profile:
 		Get the user's default values based on user and role profile
 		"""
 		roles = self.get_roles() + [self.name]
-		res = webnotes.conn.sql('select defkey, defvalue from `tabDefaultValue` where parent in ("%s")' % '", "'.join(roles))
+		res = webnotes.conn.sql("""select defkey, defvalue 
+		from `tabDefaultValue` where parent in ("%s")""" % '", "'.join(roles))
 	
 		self.defaults = {'owner': [self.name,]}
 
@@ -191,13 +195,18 @@ class Profile:
 			
 			self.recent = json.dumps(rdl)
 						
-			webnotes.conn.sql("update tabProfile set recent_documents=%s where name=%s", (self.recent, self.name))
+			webnotes.conn.sql("""update tabProfile set 
+				recent_documents=%s where name=%s""", (self.recent, self.name))
 			
 	def load_profile(self):
 		"""
 	      	Return a dictionary of user properites to be stored in the session
 		"""
-		t = webnotes.conn.sql('select email, first_name, last_name, recent_documents from tabProfile where name = %s', self.name)[0]
+		t = webnotes.conn.sql("""select email, first_name, last_name, 
+			recent_documents from tabProfile where name = %s""", self.name)[0]
+
+		if not self.can_read:
+			self.build_permissions()
 
 		d = {}
 		d['name'] = self.name
@@ -208,13 +217,15 @@ class Profile:
 		
 		d['hide_tips'] = self.get_hide_tips()
 		
-		d['roles'] = self.get_roles()
+		d['roles'] = self.roles
 		d['defaults'] = self.get_defaults()
 		
-		d['can_create'] = self.get_create_list()
-		d['can_read'] = self.get_read_list()
-		d['can_write'] = self.get_write_list()
-		d['can_get_report'] = self.get_report_list()
+		d['can_create'] = self.can_create
+		d['can_write'] = self.can_write
+		d['can_read'] = list(set(self.can_read))
+		d['can_get_report'] = list(set(self.can_get_report))
+		d['allow_modules'] = self.allow_modules
+		d['all_read'] = self.all_read
 		
 		return d
 		
@@ -226,6 +237,8 @@ class Profile:
 		self.can_read = d['can_read']
 		self.can_write = d['can_write']
 		self.can_get_report = d['can_get_report']
+		self.allow_modules = d['allow_modules']
+		self.all_read = d['all_read']
 
 		self.roles = d['roles']
 		self.defaults = d['defaults']

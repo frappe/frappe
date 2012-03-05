@@ -68,6 +68,11 @@ wn.datetime = {
 		return ((d1-d2) / 86400000); 
 	},
 	
+	get_day_diff: function(d1, d2) {
+		return dateutil.get_diff(new Date(d1.getYear(), d1.getMonth(), d1.getDate(), 0, 0), 
+			new Date(d2.getYear(), d2.getMonth(), d2.getDate(), 0, 0))
+	},
+	
 	add_days: function(d, days) { 
 		d.setTime(d.getTime()+(days*24*60*60*1000)); return d
 	},
@@ -174,7 +179,7 @@ wn.datetime = {
 	
 	global_date_format: function(d) {
 		if(d.substr) d = this.str_to_obj(d);
-		return d.getDate() + ' ' + month_list_full[d.getMonth()] + ' ' + d.getFullYear();
+		return nth(d.getDate()) + ' ' + month_list_full[d.getMonth()] + ' ' + d.getFullYear();
 	},
 
 	get_today: function() {
@@ -252,9 +257,12 @@ wn.datetime.time_to_hhmm = function(hh,mm,am) {
 // long ago the date represents.
 function prettyDate(time){
 	if(!time) return ''
-	var date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[0-9]*/, "")),
-		diff = (((new Date()).getTime() - date.getTime()) / 1000),
-		day_diff = Math.floor(diff / 86400);
+	var date = time;
+	if(typeof(time)=="string")
+		date = new Date((time || "").replace(/-/g,"/").replace(/[TZ]/g," ").replace(/\.[0-9]*/, ""));
+	
+	var diff = (((new Date()).getTime() - date.getTime()) / 1000),
+	day_diff = Math.floor(diff / 86400);
 	
 	if ( isNaN(day_diff) || day_diff < 0 )
 		return '';

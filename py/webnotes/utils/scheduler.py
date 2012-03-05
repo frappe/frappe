@@ -55,19 +55,19 @@ def execute():
 	nowtime = webnotes.utils.now_datetime()
 	last = webnotes.conn.get_global('scheduler_last_event')
 	if last:
-		last = datetime.strptime(last_event, format)
+		last = datetime.strptime(last, format)
 
-		if now.day != last.day:
+		if nowtime.day != last.day:
 
 			out.append('daily:' + trigger('execute_daily'))
 
-			if now.month != last.month:
+			if nowtime.month != last.month:
 				out.append('monthly:' + trigger('execute_monthly'))
 					
-			if now.weekday()==0:
+			if nowtime.weekday()==0:
 				out.append('weekly:' + trigger('execute_weekly'))
 			
-		if now.hour != last.hour:
+		if nowtime.hour != last.hour:
 			out.append('hourly:' + trigger('execute_hourly'))
 
 	out.append('all:' + trigger('execute_all'))
@@ -92,6 +92,7 @@ def trigger(method):
 
 def log(method):
 	"""log error in patch_log"""
+	import webnotes
 	webnotes.conn.rollback()
 	traceback = webnotes.getTraceback()
 	

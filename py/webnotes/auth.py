@@ -46,11 +46,6 @@ class HTTPRequest:
 		# set db
 		self.set_db()
 
-		# check status
-		if webnotes.conn.get_global("__session_status")=='stop':
-			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
-			raise Exception
-
 		# -----------------------------
 		# start transaction
 		webnotes.conn.begin()
@@ -61,6 +56,12 @@ class HTTPRequest:
 		# start session
 		webnotes.session_obj = Session()
 		webnotes.session = webnotes.session_obj.data
+
+		# check status
+		if webnotes.conn.get_global("__session_status")=='stop':
+			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
+			raise webnotes.SessionStopped('Session Stopped')
+
 
 		# write out cookies if sid is supplied (this is a pre-logged in redirect)
 		if webnotes.form_dict.get('sid'):
@@ -220,10 +221,15 @@ class LoginManager:
 		for ip in ip_list:
 			if webnotes.remote_ip.startswith(ip):
 				return
-			elif webnotes.form_dict.get('via_ip') and webnotes.form_dict.get('via_ip').startswith(ip):
-				return
+			elif webnotes.form_dict.get('via_ip'):
+				if webnotes.form_dict.get('via_ip').startswith(ip):
+					return
+				elif (hasattr(webnotes.defs, 'server_ip') and
+						webnotes.form_dict.get('via_ip').startswith(webnotes.defs.server_ip)):
+					return
 			
-		webnotes.msgprint('Not allowed from this IP Address', raise_exception=1)
+		webnotes.msgprint('Not allowed from this IP Address')
+		raise webnotes.AuthenticationError
 
 	def validate_hour(self):
 		"""

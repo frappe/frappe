@@ -304,7 +304,7 @@ _r.DataTable.prototype.run = function() {
   }
     
   $ds(this.fetching_tag);
-  if(isFF)this.clear_all();
+  if($.browser.mozilla)this.clear_all();
   
   var args = { 
 			'query':me.query,

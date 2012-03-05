@@ -159,7 +159,12 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.layout = new Layout(this.page_layout.body, '100%');
 	
 	// sidebar
-	if(!this.in_dialog) {
+	if(this.in_dialog) {
+		// hide sidebar
+		$(this.page_layout.wrapper).removeClass('layout-wrapper-background');
+		$(this.page_layout.main).removeClass('layout-main-section');
+		$(this.page_layout.sidebar_area).toggle(false);
+	} else {
 		this.setup_sidebar();
 	}
 		
@@ -388,7 +393,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 			sec = fld;
 		
 		// default col-break after sec-break
-		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')) {
+		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')&&!f.hidden) {
 			var c = this.layout.addcell();
 			$y(c.wrapper, {padding: '8px'});			
 		}
@@ -602,9 +607,9 @@ _f.Frm.prototype.refresh = function(docname) {
 		this.doc = get_local(this.doctype, this.docname);	  
 		
 		// load the record for the first time, if not loaded (call 'onload')
-		var is_onload = false;
+		cur_frm.cscript.is_onload = false;
 		if(!this.opendocs[this.docname]) { 
-			is_onload = true;
+			cur_frm.cscript.is_onload = true;
 			this.setnewdoc(this.docname); 
 		}
 
@@ -652,7 +657,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.layout) this.layout.show();
 
 			// call onload post render for callbacks to be fired
-			if(is_onload)
+			if(cur_frm.cscript.is_onload)
 				this.runclientscript('onload_post_render', this.doctype, this.docname);			
 		
 		} else {

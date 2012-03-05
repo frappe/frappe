@@ -64,6 +64,12 @@ class UnknownDomainError(Exception):
 		self.value = value
 	def __str__(self):
 		return repr(self.value)	
+
+class SessionStopped(Exception):
+	def __init__(self, value):
+		self.value = value
+	def __str__(self):
+		return repr(self.value)	
 		
 def getTraceback():
 	import utils
@@ -205,3 +211,18 @@ def whitelist(allow_guest=False):
 		return fn
 
 	return innerfn
+	
+def clear_cache(user=None):
+	"""clear boot cache"""
+	from webnotes.session_cache import clear
+	clear(user)
+	
+def get_roles():
+	"""get roles of current user"""
+	if session['user']=='Guest':
+		return ['Guest']
+		
+	roles = [r[0] for r in conn.sql("""select distinct role from tabUserRole 
+		where parent=%s and role!='All'""", session['user'])]
+
+	return roles + ['All']

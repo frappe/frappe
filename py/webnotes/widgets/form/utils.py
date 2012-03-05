@@ -28,10 +28,9 @@ def remove_attach():
 	import webnotes.utils.file_manager
 	
 	fid = webnotes.form.getvalue('fid')
-	webnotes.utils.file_manager.delete_file(fid, verbose=1)
-	
+		
 	# remove from dt dn
-	return str(webnotes.utils.file_manager.remove_file_list(webnotes.form.getvalue('dt'), webnotes.form.getvalue('dn'), fid))
+	return str(webnotes.utils.file_manager.remove_file(webnotes.form.getvalue('dt'), webnotes.form.getvalue('dn'), fid))
 
 @webnotes.whitelist()
 def get_fields():
