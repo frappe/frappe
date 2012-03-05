@@ -228,7 +228,7 @@ _f.ImageField.prototype.get_image_src = function(doc) {
 		var img_extn_list = ['gif', 'jpg', 'bmp', 'jpeg', 'jp2', 'cgm',  'ief', 'jpm', 'jpx', 'png', 'tiff', 'jpe', 'tif'];
 
 		if(in_list(img_extn_list, extn)) {
-			var src = outUrl + "?cmd=downloadfile&file_id="+file[1];
+			var src = webnotes.request.url + "?cmd=downloadfile&file_id="+file[1];
 		}
 	} else {
 		var src = "";
@@ -248,7 +248,7 @@ _f.ImageField.prototype.onrefresh = function() {
 	var doc = locals[this.frm.doctype][this.frm.docname];
 	
 	if(!this.df.options) var src = this.get_image_src(doc);
-	else var src = outUrl + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
+	else var src = webnotes.request.url + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
 
 	
 	if(src) {

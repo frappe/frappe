@@ -38,7 +38,7 @@ Uploader = function(parent, args, callback) {
 
 	// upload form
 	var div = $a(parent,'div');
-	div.innerHTML = '<form method="POST" enctype="multipart/form-data" action="'+outUrl+'" target="'+id+'"></form>';
+	div.innerHTML = '<form method="POST" enctype="multipart/form-data" action="'+webnotes.request.url+'" target="'+id+'"></form>';
 	var ul_form = div.childNodes[0];
     
 	var f_list = [];

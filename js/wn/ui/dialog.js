@@ -37,7 +37,7 @@ wn.widgets.FieldGroup = function() {
 			
 			// first button primary ?
 			if(df.fieldtype=='Button' && !this.first_button) {
-				$(f.input).addClass('btn-primary');
+				$(f.input).addClass('btn-info');
 				this.first_button = true;
 			}
 		}

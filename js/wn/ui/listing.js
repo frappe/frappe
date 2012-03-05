@@ -28,6 +28,7 @@
 //   parent
 //   method (method to call on server)
 //   args (additional args to method)
+//   get_args (method to return args as dict)
 //   query or get_query (will be deprecated)
 //   query_max
 //   no_result_message ("No result")
@@ -202,6 +203,10 @@ wn.widgets.Listing = function(opts) {
 		
 		if(this.opts.args)
 			$.extend(args, this.opts.args)
+			
+		if(this.opts.get_args) {
+			$.extend(args, this.opts.get_args());
+		}
 		
 		// show loading
 		if(this.loading_img) $di(this.loading_img);

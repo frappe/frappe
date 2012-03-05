@@ -301,3 +301,8 @@ function loaddocbrowser(dt, label, fields) {
 	doc_browser_page.show(dt, label, fields);
 	nav_obj.open_notify('List',dt,'');
 }
+
+function loaddocbrowser2(dt, label, fields) {
+	wn.pages.doclistview.show(dt);
+	return;
+}

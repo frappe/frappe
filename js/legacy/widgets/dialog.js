@@ -134,7 +134,7 @@ Dialog.prototype.make_row = function(d) {
 			if(btn._onclick) btn._onclick(me) }, null, null, 1);
 		b.dialog = me;
 		if(!this.first_button) {
-			$(b).addClass('btn-primary');
+			$(b).addClass('btn-info');
 			this.first_button = true;
 		}
 		if(d[2]) {

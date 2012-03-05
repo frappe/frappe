@@ -198,11 +198,11 @@ _f.FrmHeader.prototype.set_save_submit_color = function(doc) {
 	
 	if(cint(doc.docstatus)==0 && submit_btn && save_btn) {
 		if(cint(doc.__unsaved)) {
-			$(save_btn).addClass('btn-primary');
-			$(submit_btn).removeClass('btn-primary');
+			$(save_btn).addClass('btn-info');
+			$(submit_btn).removeClass('btn-info');
 		} else {
-			$(submit_btn).addClass('btn-primary');
-			$(save_btn).removeClass('btn-primary');
+			$(submit_btn).addClass('btn-info');
+			$(save_btn).removeClass('btn-info');
 		}
 	}
 }

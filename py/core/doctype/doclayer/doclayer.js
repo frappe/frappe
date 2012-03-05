@@ -53,7 +53,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 			});	
 		}
 	},1);
-	$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-primary');
+	$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-info');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
