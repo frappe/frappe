@@ -41,7 +41,7 @@ import webnotes.model
 import webnotes.model.doclist
 import webnotes.model.doc
 
-from webnotes.utils import cstr
+from webnotes.utils import cstr, cint
 
 class _DocType:
 	"""
@@ -246,7 +246,7 @@ class _DocType:
 			if d.doctype=='DocField' and d.name in property_dict:
 				for p in property_dict[d.name]:
 					if p['property_type']=='Check':
-						d.fields[p['property']] = int(p['value'])
+						d.fields[p['property']] = cint(p['value'])
 					elif p['property']=='previous_field':
 						change_idx = True
 					else:
@@ -317,6 +317,7 @@ class _DocType:
 
 			if get_next_docfield:
 				i = i + 1
+				if i>=len(docfields): break
 				prev_field = docfields[i]
 				vals = previous_field_dict.values()
 				if prev_field in vals:
