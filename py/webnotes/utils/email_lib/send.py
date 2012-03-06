@@ -180,7 +180,7 @@ class EMail:
 			self.login = cp.mail_login or getattr(webnotes.defs,'mail_login','')
 			self.port = cp.mail_port or getattr(webnotes.defs,'mail_port',None)
 			self.password = cp.mail_password or getattr(webnotes.defs,'mail_password','')
-			self.use_ssl = cint(cp.use_ssl)
+			self.use_ssl = cint(cp.use_ssl) or cint(getattr(webnotes.defs, 'use_ssl', ''))
 
 	def make_msg(self):
 		self.msg_root['Subject'] = self.subject
