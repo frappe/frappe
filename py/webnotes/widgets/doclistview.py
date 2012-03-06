@@ -35,7 +35,30 @@ def get(arg=None):
 	
 	data = webnotes.form_dict
 	filters = json.loads(data['filters'])
+	fields = json.loads(data['fields'])
+	tables = ['`tab' + data['doctype'] + '`']
+	conditions = [tables[0] + '.docstatus < 2']
+	joined = [tables[0]]
 	
+	# make conditions from filters
+	for f in filters:
+		tname = ('`tab' + f[0] + '`')
+		if not tname in tables:
+			tables.append(tname)
+		
+		conditions.append(tname + '.' + f[1] + " " + f[2] + " '" + f[3].replace("'", "\'") + "'")	
+		
+		if not tname in joined:
+			conditions.append(tname + '.parent = ' + tables[0] + '.name')
+			joined.append(tname)
+			
+	data['tables'] = ', '.join(tables)
+	data['conditions'] = ' and '.join(conditions)
+	data['fields'] = ', '.join(fields)
+	if not data.get('order_by'):
+		data['order_by'] = tables[0] + '.modified desc'
 	
 	query = """select %(fields)s from %(tables)s where %(conditions)s
-		limit %(limit_start)s, %(limit_page_length)s"""
+		order by %(order_by)s
+		limit %(limit_start)s, %(limit_page_length)s""" % data
+	return webnotes.conn.sql(query, as_dict=1, debug=1)

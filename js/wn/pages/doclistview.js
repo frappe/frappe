@@ -21,6 +21,7 @@
 // 
 
 wn.provide('wn.pages.doclistview');
+wn.provide('wn.doclistviews');
 
 wn.pages.doclistview.pages = {};
 wn.pages.doclistview.show = function(doctype) {
@@ -45,6 +46,7 @@ wn.pages.DocListView = Class.extend({
 		this.load_doctype();
 	},
 	make: function() {
+		var me = this;
 		$(this.wrapper).html('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="layout-main-section">\
 				<a class="close" onclick="window.history.back();">&times;</a>\
@@ -57,18 +59,32 @@ wn.pages.DocListView = Class.extend({
 			</div>\
 			<div class="layout-side-section">\
 			</div>\
+			<div style="clear: both"></div>\
 		</div>');
 		// filter button
 		$(this.wrapper).find('.run-btn').click(function() {
 			me.list.run();
 		});
+		$(this.wrapper).find('h1').html(this.label);
 	},
 	load_doctype: function() {
 		var me = this;
 		wn.call({
 			method: 'webnotes.widgets.form.load.getdoctype',
-			args: {doctype:this.doctype},
+			args: {doctype: me.doctype},
 			callback: function() {
+				if(locals.DocType[me.doctype].__listjs) {
+					eval(locals.DocType[me.doctype].__listjs);
+					me.listview = wn.doclistviews[me.doctype];
+				} else {
+					me.listview = {}
+				}
+
+				if(!me.listview.fields)
+					me.listview.fields = ['name', 'modified', 'owner'];
+				if(!me.listview.render)
+					me.listview.render = me.default_render;
+
 				me.make_filters();
 				me.make_list();
 			}
@@ -85,16 +101,27 @@ wn.pages.DocListView = Class.extend({
 			args: {
 				doctype: this.doctype,
 				subject: locals.DocType[this.doctype].subject,
+				fields: JSON.stringify(me.listview.fields),
 			},
 			get_args: function() {
 				return {filters: JSON.stringify(me.filter_list.get_filters())}
 			},
 			render_row: function(row, data) {
-				row.innerHTML = data;
+				data.fullname = wn.user_info(data.owner).fullname;
+				data.avatar = wn.user_info(data.owner).image;
+				data.when = dateutil.comment_when(data.modified);
+				data.doctype = me.doctype;
+				me.listview.render(row, data, me);
 			},
 			hide_refresh: true
 		});
 		this.list.run();
+	},
+	default_render: function(row, data) {
+		$(row).html(repl('<span class="avatar-small"><img src="%(avatar)s" /></span>\
+			<a href="#!Form/%(doctype)s/%(name)s">%(name)s</span>\
+			<span style="float:right; font-size: 11px; color: #888">%(when)s</span>', data))
+			.addClass('list-row');
 	}
 });
 

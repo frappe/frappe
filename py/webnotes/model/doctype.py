@@ -329,6 +329,29 @@ class _DocType:
 			if d.doctype=='DocField':
 				d.idx = docfields.index(d.name) + 1
 				
+	def _add_code(self, doc):
+		"""add js, css code"""
+		import os
+		from webnotes.defs import modules_path
+		from webnotes.modules import scrub
+		
+		path = os.path.join(modules_path, scrub(doc.module), 'doctype', scrub(doc.name))
+
+		fpath = os.path.join(path, scrub(doc.name) + '.js')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__js'] = f.read()
+
+		fpath = os.path.join(path, scrub(doc.name) + '.css')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__css'] = f.read()
+
+		fpath = os.path.join(path, 'listview.js')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__listjs'] = f.read()
+
 
 	def make_doclist(self):
 		"""
@@ -369,13 +392,7 @@ class _DocType:
 		from webnotes.model.code import get_custom_script
 		custom = get_custom_script(doc.name, 'Client') or ''
 		
-		doc.fields['__js'] = \
-			Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() \
-			+ '\n' + custom
-
-		doc.fields['__css'] = \
-			Module(doc.module).get_doc_file('doctype', doc.name, '.css').read()
-			
+		self._add_code(doc)
 		self._load_select_options(doclist)
 		self._clear_code(doclist)
 

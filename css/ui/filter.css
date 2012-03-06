@@ -27,3 +27,28 @@ div.list_filter input, div.list_filter select {
 	width: 130px;
 	margin-right: 7px;
 }
+
+span.bar-outer {
+	display: inline-block;
+	margin: 0px 7px;
+	margin-top: 3px;
+	background-color: #fff;
+	border: 1px solid #aaa;
+	height: 10px;
+}
+
+span.bar-inner {
+	display: inline-block;
+	background-color: #bdf;
+	height: 100%;
+	margin-bottom: 2px;
+}
+span.bar-complete {
+	background-color: green;
+}
+div.list-row {
+	border-bottom: 1px solid #eee;
+}
+div.list-row:hover {
+	background-color: #eef
+}
