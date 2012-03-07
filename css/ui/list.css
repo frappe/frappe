@@ -1,3 +1,26 @@
+.hide {
+	display: none;
+}
+
+.list-filters {
+	margin: 7px 0px;
+}
+
+.wnlist .img-load {
+	display: none;
+	float: left;
+	margin-left: 11px;
+	margin-top: 8px;
+}
+
+div.list-row {
+	border-bottom: 1px solid #eee;
+	padding: 3px 0px;
+}
+div.list-row:hover {
+	background-color: #eef
+}
+
 div.show_filters {
 	display: none;
 }
@@ -8,7 +31,7 @@ div.filter_list {
 
 div.show_filters.well {
 	margin-top: 11px;
-	margin-bottom: 0px;
+	margin-bottom: 11px;
 }
 
 div.filter_list .run_btn {
@@ -45,10 +68,4 @@ span.bar-inner {
 }
 span.bar-complete {
 	background-color: green;
-}
-div.list-row {
-	border-bottom: 1px solid #eee;
-}
-div.list-row:hover {
-	background-color: #eef
 }

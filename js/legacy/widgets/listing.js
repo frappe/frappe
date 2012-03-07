@@ -23,7 +23,7 @@
 // Listing
 // this listing object will soon be 
 // deprecated because it has a very non standard way of creation
-// the new listing object is at wn.widgets.Listing
+// the new listing object is at wn.ui.Listing
 // -----------------------
 
 list_opts = {

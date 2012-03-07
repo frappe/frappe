@@ -61,4 +61,4 @@ def get(arg=None):
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		order by %(order_by)s
 		limit %(limit_start)s, %(limit_page_length)s""" % data
-	return webnotes.conn.sql(query, as_dict=1, debug=1)
+	return webnotes.conn.sql(query, as_dict=1)

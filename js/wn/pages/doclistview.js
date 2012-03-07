@@ -34,88 +34,92 @@ wn.pages.doclistview.show = function(doctype) {
 	page_body.change_to(pagename);
 }
 
-wn.pages.DocListView = Class.extend({
+wn.pages.DocListView = wn.ui.Listing.extend({
 	init: function(doctype, page) {
 		this.doctype = doctype;
-		this.wrapper = page;
+		this.$w = $(page);
 		this.label = get_doctype_label(doctype);
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
-		 	this.label : (this.label + ' List')	
-		
-		this.make();
+		 	this.label : (this.label + ' List');
+		this.make_page();
 		this.load_doctype();
 	},
-	make: function() {
+	
+	make_page: function() {
 		var me = this;
-		$(this.wrapper).html('<div class="layout-wrapper layout-wrapper-background">\
-			<div class="layout-main-section">\
+		this.$w.html(repl('<div class="layout-wrapper">\
 				<a class="close" onclick="window.history.back();">&times;</a>\
-				<h1>List</h1>\
+				<h1>%(label)s</h1>\
 				<hr>\
-				<div id="list-filters"></div>\
-				<button class="btn btn-small btn-info run-btn" style="margin-top: 11px">\
-					<i class="icon-refresh icon-white"></i> Refresh</button>\
-				<div id="list-body"></div>\
-			</div>\
-			<div class="layout-side-section">\
-			</div>\
-			<div style="clear: both"></div>\
-		</div>');
-		// filter button
-		$(this.wrapper).find('.run-btn').click(function() {
-			me.list.run();
-		});
-		$(this.wrapper).find('h1').html(this.label);
+				<div class="wnlist-area"><div class="help">Loading...</div></div>\
+		</div>', {label: this.label}));
 	},
+
 	load_doctype: function() {
 		var me = this;
 		wn.call({
 			method: 'webnotes.widgets.form.load.getdoctype',
 			args: {doctype: me.doctype},
 			callback: function() {
-				if(locals.DocType[me.doctype].__listjs) {
-					eval(locals.DocType[me.doctype].__listjs);
-					me.listview = wn.doclistviews[me.doctype];
-				} else {
-					me.listview = {}
-				}
-
-				if(!me.listview.fields)
-					me.listview.fields = ['name', 'modified', 'owner'];
-				if(!me.listview.render)
-					me.listview.render = me.default_render;
-
-				me.make_filters();
-				me.make_list();
+				me.$w.find('.wnlist-area').empty(),
+				me.setup_listview();
+				me.init_list();
 			}
 		});
 	},
-	make_filters: function() {
-		this.filter_list = new wn.ui.FilterList(this, $('#list-filters').get(0), this.doctype);
+	setup_listview: function() {
+		if(locals.DocType[this.doctype].__listjs) {
+			eval(locals.DocType[this.doctype].__listjs);
+			this.listview = wn.doclistviews[this.doctype];
+		} else {
+			this.listview = {}
+		}
+
+		if(!this.listview.fields)
+			this.listview.fields = [
+				{field: "name", name:"ID"},
+				{field: "modified", name:"Last Updated"},
+				{field: "owner", name:"Created By"}
+			];
+		if(!this.listview.render)
+			this.listview.render = this.default_render;
+		
 	},
-	make_list: function() {
-		var me = this;
-		this.list = new wn.widgets.Listing({
-			parent: $('#list-body').get(0),
+	init_list: function() {
+		// init list
+		this.make({
 			method: 'webnotes.widgets.doclistview.get',
-			args: {
-				doctype: this.doctype,
-				subject: locals.DocType[this.doctype].subject,
-				fields: JSON.stringify(me.listview.fields),
-			},
-			get_args: function() {
-				return {filters: JSON.stringify(me.filter_list.get_filters())}
-			},
-			render_row: function(row, data) {
-				data.fullname = wn.user_info(data.owner).fullname;
-				data.avatar = wn.user_info(data.owner).image;
-				data.when = dateutil.comment_when(data.modified);
-				data.doctype = me.doctype;
-				me.listview.render(row, data, me);
-			},
-			hide_refresh: true
+			get_args: this.get_args,
+			parent: this.$w.find('.wnlist-area'),
+			start: 0,
+			page_length: 20,
+			show_filters: true,
+			show_grid: true,
+			columns: this.listview.fields
 		});
-		this.list.run();
+		this.run();
+	},
+	render_row: function(row, data) {
+		data.fullname = wn.user_info(data.owner).fullname;
+		data.avatar = wn.user_info(data.owner).image;
+		data.when = dateutil.comment_when(data.modified);
+		data.doctype = this.doctype;
+		this.listview.render(row, data, this);
+	},	
+	get_query_fields: function() {
+		var fields = [];
+		$.each(this.listview.fields, function(i,f) {
+			fields.push(f.query || f.field);
+		});
+		return fields;
+	},
+	get_args: function() {
+		return {
+			doctype: this.doctype,
+			subject: locals.DocType[this.doctype].subject,
+			fields: JSON.stringify(this.get_query_fields()),
+			filters: JSON.stringify(this.filter_list.get_filters())
+		}
 	},
 	default_render: function(row, data) {
 		$(row).html(repl('<span class="avatar-small"><img src="%(avatar)s" /></span>\
@@ -123,221 +127,4 @@ wn.pages.DocListView = Class.extend({
 			<span style="float:right; font-size: 11px; color: #888">%(when)s</span>', data))
 			.addClass('list-row');
 	}
-});
-
-wn.require('lib/css/ui/filter.css');
-
-wn.ui.FilterList = Class.extend({
-	init: function(list_obj, parent, doctype) {
-		this.filters = [];
-		this.list_obj = list_obj;
-		this.doctype = doctype;
-		this.make(parent);
-		this.set_events();
-	},
-	make: function(parent) {
-		$(parent).html('<div>\
-			<span class="link_type set_filters">Filter this list</span>\
-		</div>\
-		<div class="show_filters well">\
-			<div class="filter_area"></div>\
-			<div>\
-				<button class="btn btn-small add-filter-btn">\
-					<i class="icon-plus"></i> Add Filter</button>\
-			</div>\
-		</div>');
-		
-		this.$w = $(parent);
-	},
-	set_events: function() {
-		var me = this;
-		// show filters
-		this.$w.find('.set_filters').bind('click', function() {
-			me.$w.find('.show_filters').slideToggle();
-			if(!me.filters.length)
-				me.add_filter();
-		});
-
-		// show filters
-		this.$w.find('.add-filter-btn').bind('click', function() {
-			me.add_filter();
-		});
-			
-	},
-	
-	add_filter: function(fieldname, condition, value) {
-		this.filters.push(new wn.ui.Filter(this, this.doctype, fieldname, condition, value));
-	},
-	
-	get_filters: function() {
-		// get filter values as dict
-		var values = [];
-		$.each(this.filters, function(i, f) {
-			if(f.filter_field)
-				values.push(f.get_value());
-		})
-		return values;
-	}
-});
-
-wn.ui.Filter = Class.extend({
-	init: function(flist, doctype, fieldname, condition, value) {
-		flist.$w.find('.filter_area').append('<div class="list_filter">\
-		<select class="fieldname_select"></select>\
-		<select class="condition">\
-			<option value="=">Equals</option>\
-			<option value="like">Like</option>\
-			<option value=">=">Greater or equals</option>\
-			<option value=">=">Less or equals</option>\
-			<option value=">">Greater than</option>\
-			<option value="<">Less than</option>\
-			<option value="!=">Not equals</option>\
-		</select>\
-		<span class="filter_field"></span>\
-		<a class="close">&times;</a>\
-		</div>');
-		this.fields_by_name = {};
-		this.flist = flist;
-		this.$w = this.flist.$w.find('.list_filter:last-child');
-		this.doctype = doctype;
-		this.fieldname = fieldname;
-		this.condition = condition;
-		this.value = value;
-		this.set_events();
-	},
-	set_events: function() {
-		var me = this;
-		
-		// render fields
-		this.render_field_select();
-		
-		this.$w.find('.fieldname_select').bind('change', function() {
-			me.set_field(this.value);
-		});
-
-		this.$w.find('a.close').bind('click', function() { 
-			me.$w.css('display','none');
-			var value = me.filter_field.get_value();
-			me.filter_field = null;
-			if(!me.flist.get_filters().length) {
-				me.flist.$w.find('.set_filters').toggle(true);
-				me.flist.$w.find('.show_filters').toggle(false);
-				me.list_obj.list.run();
-			}
-			if(value) {
-				me.list_obj.list.run();
-			}
-			return false;
-		});
-		
-		// set the field
-		if(me.fieldname) {
-			// presents given (could be via tags!)
-			me.set_field(me.fieldname);
-			if(me.condition) me.$w.find('.condition').val(me.condition)
-			if(me.value) me.filter_field.set_input(me.value)
-		} else {
-			me.set_field('name');
-		}
-
-	},
-	
-	render_field_select: function() {
-		var me = this;
-		var $fs = me.$w.find('.fieldname_select');
-		me.table_fields = [];
-		var std_filters = [
-			{fieldname:'name', fieldtype:'Data', label:'ID', parent:me.doctype},
-			{fieldname:'modified', fieldtype:'Date', label:'Last Modified', parent:me.doctype},
-			{fieldname:'owner', fieldtype:'Data', label:'Created By', parent:me.doctype},
-			{fieldname:'_user_tags', fieldtype:'Data', label:'Tags', parent:me.doctype}
-		];
-		
-		// main table
-		$.each(std_filters.concat(fields_list[me.doctype]), function(i, df) {
-			me.add_field_option(df, $fs);
-		});
-		
-		// child tables
-		$.each(me.table_fields, function(i,table_df) {
-			if(table_df.options) {
-				$.each(fields_list[table_df.options], function(i, df) {
-					me.add_field_option(df, $fs);
-				});				
-			}
-		})
-	},
-	
-	add_field_option: function(df, $fs) {
-		var me = this;
-		if(df.parent==me.doctype) {
-			var label = df.label;
-			var table = get_label_doctype(me.doctype);
-			if(df.fieldtype=='Table') me.table_fields.push(df);					
-		} else {
-			var label = df.label + ' (' + df.parent + ')';
-			var table = df.parent;
-		}
-		if(wn.model.no_value_type.indexOf(df.fieldtype)==-1 && 
-			!me.fields_by_name[df.fieldname]) {
-			$fs.append($('<option>', {
-				value: df.fieldname,
-				table: table
-			}).text(label));
-			me.fields_by_name[df.fieldname] = df;						
-		}
-	},
-	
-	set_field: function(fieldname) {
-		var me = this;
-		// set in fieldname (again)
-		me.$w.find('.fieldname_select').val(fieldname);
-
-		wn.require('lib/js/legacy/widgets/form/fields.js');
-		var field_area = me.$w.find('.filter_field').get(0);
-		field_area.innerHTML = '';
-
-		var df = me.fields_by_name[fieldname];
-		df.original_type = df.fieldtype;
-		df.description = '';
-		if(df.fieldtype=='Check') {
-			df.fieldtype='Select';
-			df.options='No\nYes';
-		} else if(['Text','Text Editor','Code','Link'].indexOf(df.fieldtype)!=-1) {
-			df.fieldtype = 'Data';				
-		}
-
-		f = make_field(me.fields_by_name[fieldname], null, field_area, null, 0, 1);
-		f.df.single_select = 1;
-		f.not_in_form = 1;
-		f.with_label = 0;
-		f.refresh();
-		
-		me.filter_field = f;
-		
-		// set as "like" for data fields
-		if(df.fieldtype=='Data') {
-			me.$w.find('.condition').val('like');
-		} else {
-			me.$w.find('.condition').val('=');
-		}
-	},
-	
-	get_value: function() {
-		var me = this;
-		var val = me.filter_field.get_value();
-		var cond = me.$w.find('.condition').val();
-		
-		if(me.filter_field.df.original_type == 'Check') {
-			val = (val=='Yes' ? 1 :0);
-		}
-		
-		if(cond=='like') {
-			val = val + '%';
-		}
-		
-		return [me.$w.find('.fieldname_select option:selected').attr('table'), 
-			me.filter_field.df.fieldname, me.$w.find('.condition').val(), val];
-	}
-
 });
