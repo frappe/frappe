@@ -53,17 +53,6 @@ cur_frm.cscript.label = function(doc){
 }
 
 
-// Get Field Label based on DocType
-// ---------------------------------
-cur_frm.cscript.dt = function(doc, cdt, cdn) {
-  var callback = function(r, rt){
-    
-    set_field_options('insert_after', r.message);
-  }
-  $c_obj([doc], 'get_fields_label', '', callback);
-}
-
-
 cur_frm.fields_dict['dt'].get_query = function(doc, dt, dn) {
   return 'SELECT tabDocType.name FROM tabDocType WHERE IFNULL(tabDocType.issingle,0)=0 AND tabDocType.name LIKE "%s" ORDER BY name ASC LIMIT 50'
 }

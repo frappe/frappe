@@ -103,11 +103,13 @@ class DocType:
 			* Applies property setter properties on the doclist
 			* returns the modified doclist
 		"""
-		from webnotes.model.doctype import _DocType
-		from webnotes.model.doc import get
-		
-		ref_doclist = get('DocType', self.true_doctype)
-		_DocType(self.true_doctype)._override_field_properties(ref_doclist)
+		from webnotes.model.doctype import get
+
+		ref_doclist = get(self.true_doctype, form=0)
+
+		#ref_doclist = get('DocType', self.true_doctype)
+		#_DocType(self.true_doctype)._override_field_properties(ref_doclist)
+
 		
 		return ref_doclist
 
@@ -141,7 +143,7 @@ class DocType:
 					args['doc_to_set'].fields[f] = None
 			elif 'doc' in args:
 				for f in args['list']:
-					args['doc_to_set'].fields[f] = args['doc'].fields[f]
+					args['doc_to_set'].fields[f] = args['doc'].fields.get(f)
 		else:
 			webnotes.msgprint("Please specify args['list'] to set", raise_exception=1)
 
@@ -162,6 +164,9 @@ class DocType:
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
 			
 			self.set_properties(diff_list)
+
+			from webnotes.utils.cache import CacheItem
+			CacheItem(self.true_doctype).clear()
 
 
 	def diff(self, new_dl, ref_dl, dt_dl):
@@ -212,40 +217,40 @@ class DocType:
 			sets delete property if it is required to be deleted
 		"""
 		# Check if property has changed compared to when it was loaded 
-		if new_d.fields[prop] != ref_d.fields[prop] \
+		if new_d.fields.get(prop) != ref_d.fields.get(prop) \
 		and not \
 		( \
-			new_d.fields[prop] in [None, 0] \
-			and ref_d.fields[prop] in [None, 0] \
+			new_d.fields.get(prop) in [None, 0] \
+			and ref_d.fields.get(prop) in [None, 0] \
 		) and not \
 		( \
-			new_d.fields[prop] in [None, ''] \
-			and ref_d.fields[prop] in [None, ''] \
+			new_d.fields.get(prop) in [None, ''] \
+			and ref_d.fields.get(prop) in [None, ''] \
 		):
 			#webnotes.msgprint("new: " + str(new_d.fields[prop]) + " | old: " + str(ref_d.fields[prop]))
 			# Check if the new property is same as that in original doctype
 			# If yes, we need to delete the property setter entry
 			for dt_d in dt_doclist:
 				if dt_d.name == ref_d.name \
-				and (new_d.fields[prop] == dt_d.fields[prop] \
+				and (new_d.fields.get(prop) == dt_d.fields.get(prop) \
 				or \
 				( \
-					new_d.fields[prop] in [None, 0] \
-					and dt_d.fields[prop] in [None, 0] \
+					new_d.fields.get(prop) in [None, 0] \
+					and dt_d.fields.get(prop) in [None, 0] \
 				) or \
 				( \
-					new_d.fields[prop] in [None, ''] \
-					and dt_d.fields[prop] in [None, ''] \
+					new_d.fields.get(prop) in [None, ''] \
+					and dt_d.fields.get(prop) in [None, ''] \
 				)):
 					delete = 1
 					break
 		
-			value = new_d.fields[prop]
+			value = new_d.fields.get(prop)
 
 			if prop == 'idx':
 				if value > 1:
 					for idoc in ([self.doc] + self.doclist):
-							if idoc.fields[prop] == (value - 1):
+							if idoc.fields.get(prop) == (value - 1):
 								prop = 'previous_field'
 								value = idoc.name
 								break

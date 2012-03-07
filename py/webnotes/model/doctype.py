@@ -18,30 +18,20 @@
 # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# 
+#
 
-"""
- DocType module
- ==============
- 
- This module has the DocType class that represents a "DocType" as metadata.
- This is usually called by the form builder or report builder.
+# TODO:
+# Patch: Remove DocFormat
+# Custom Field Changes:
+#	Remove insert after
+# DocLayer:
+#	Allow type changing
 
- Key functions:
-	* manage cache - read / write
-	* merge client-side scripts
-	* update properties from the modules .txt files
-
- Cache management:
-	* Cache is stored in __DocTypeCache
-"""
-
+# imports
 import webnotes
 import webnotes.model
-import webnotes.model.doclist
 import webnotes.model.doc
-
-from webnotes.utils import cstr, cint
+from webnotes.utils.cache import CacheItem
 
 class _DocType:
 	"""
@@ -49,354 +39,302 @@ class _DocType:
 	"""
 	def __init__(self, name):
 		self.name = name
-	
-	# is cache modified ?
-	# =================================================================
-	
-	def is_modified(self):
+
+	def make_doclist(self, form=1):
 		"""
-			Returns true if modified
-		"""		
-		try:
-			# doctype modified
-			modified = webnotes.conn.sql("select modified from tabDocType where name=%s", self.name)[0][0]
-	
-			# cache modified
-			cache_modified = webnotes.conn.sql("SELECT modified from `__DocTypeCache` where name='%s'" % self.name)[0][0]
-			
-		except IndexError, e:
-			return 1
-
-		return cache_modified != modified
-
-	# write to cache
-	# =================================================================
-
-	def _update_cache(self, doclist):
-		import zlib
-
-		if webnotes.conn.sql("SELECT name FROM __DocTypeCache WHERE name=%s", self.name):
-			webnotes.conn.sql("UPDATE `__DocTypeCache` SET `modified`=%s, `content`=%s WHERE name=%s", (doclist[0].modified, zlib.compress(str([d.fields for d in doclist]),2), self.name))
-		else:
-			webnotes.conn.sql("INSERT INTO `__DocTypeCache` (`name`, `modified`, `content`) VALUES (%s, %s, %s)" , (self.name, doclist[0].modified, zlib.compress(str([d.fields for d in doclist]))))
-
-	# read from cache
-	# =================================================================
-
-	def _load_from_cache(self):
-		import zlib
-	
-		doclist = eval(zlib.decompress(webnotes.conn.sql("SELECT content from `__DocTypeCache` where name=%s", self.name)[0][0]))
-		return [webnotes.model.doc.Document(fielddata = d) for d in doclist]
-
-
-	# load options for "link:" type 'Select' fields
-	# =================================================================
-			
-	def _load_select_options(self, doclist):
-		for d in doclist:
-			if d.doctype=='DocField' and d.fieldtype=='Select' and d.options and d.options[:5].lower()=='link:':
-				op = d.options.split('\n')
-				if len(op)>1 and op[1][:4].lower() == 'sql:':
-					ol = webnotes.conn.sql(op[1][4:].replace('__user', webnotes.session['user']))	
-				else:
-					t = op[0][5:].strip()
-					op = op[1:]
-					op = [oc.replace('__user', webnotes.session['user']) for oc in op]
-					
-					try:
-						# select options will always come from the user db
-						ol = webnotes.conn.sql("select name from `tab%s` where %s docstatus!=2 order by name asc" % (t, op and (' AND '.join(op) + ' AND ') or ''))
-					except:
-						ol = []
-				ol = [''] + [o[0] or '' for o in ol]
-				d.options = '\n'.join(ol)
-
-	# clear un-necessary code from going to the client side
-	# =================================================================
-
-	def _clear_code(self, doclist):
-		if self.name != 'DocType':
-			if doclist[0].server_code: doclist[0].server_code = None
-			if doclist[0].server_code_core: doclist[0].server_code_core = None
-			if doclist[0].client_script: doclist[0].client_script = None
-			if doclist[0].client_script_core: doclist[0].client_script_core = None
-			doclist[0].server_code_compiled = None
-
-	# build a list of all the records required for the DocType
-	# =================================================================
-	
-	def _get_last_update(self, dt):
-		"""
-			Returns last update timestamp
-		"""
-		try:
-			last_update = webnotes.conn.sql("select _last_update from tabDocType where name=%s", dt)[0][0]
-		except Exception, e:
-			if e.args[0]==1054: 
-				self._setup_last_update(dt)
-				last_update = None
-		
-		return last_update
-
-	def _setup_last_update(self, doctype):
-		"""
-			Adds _last_update column to tabDocType
 
 		"""
-		webnotes.conn.commit()
-		webnotes.conn.sql("alter table `tabDocType` add column _last_update varchar(32)")
-		webnotes.conn.begin()
-		
-	def _get_fields(self, file_name):
-		"""
-			Returns a dictionary of DocFields by fieldname or label
-		"""
-		try:
-			txt = open(file_name, 'r').read()
-		except:
-			return
-		from webnotes.model.utils import peval_doclist
+		if form:
+			cached_doclist = self.load_from_cache()
+			if cached_doclist: return cached_doclist
 
-		doclist = peval_doclist(txt)
-		fields = {}
-		for d in doclist:
-			if d['doctype']=='DocField':
-				if d.get('fieldname') or d.get('label'):
-					fields[d.get('fieldname') or d.get('label')] = d
-		return fields
-		
-	def _update_field_properties(self, doclist):
-		"""
-			Updates properties like description, depends on from the database based on the timestamp
-			of the .txt file. Adds a column _last_updated if not exists in the database and uses
-			it to update the file..
-			
-			This feature is built because description is changed / updated quite often and is tedious to
-			write a patch every time. Can be extended to cover more updates
-		"""
-		
-		update_fields = ('description', 'depends_on')
+		# Get parent doc and its fields
+		doclist = webnotes.model.doc.get('DocType', self.name, 1)
+		doclist += self.get_custom_fields(self.name)
 
-		from webnotes.modules import get_item_file
-		from webnotes.utils import get_file_timestamp
-
-		doc = doclist[0] # main doc
-		file_name = get_item_file(doc.module, 'DocType', doc.name)
-		time_stamp = get_file_timestamp(file_name)
-		last_update = self._get_last_update(doc.name)
-		
-		# this is confusing because we are updating the fields of fields
-		
-		if last_update != time_stamp:
-
-			# there are updates!
-			fields = self._get_fields(file_name)
-			if fields:
-				for d in doclist:
-				
-					# for each field in teh outgoing doclist
-					if d.doctype=='DocField':
-						key = d.fieldname or d.label
-					
-						# if it has a fieldname or label
-						if key and key in fields:
-						
-							# update the values
-							for field_to_update in update_fields:
-								if field_to_update in fields[key] and fields[key][field_to_update] != d.fields[field_to_update]:
-									new_value = fields[key][field_to_update]
-							
-									# in doclist
-									d.fields[field_to_update] = new_value
-						
-									# in database
-									webnotes.conn.sql("update tabDocField set `%s` = %s where parent=%s and `%s`=%s" % \
-										(field_to_update, '%s', '%s', (d.fieldname and 'fieldname' or 'label'), '%s'), \
-										(new_value, doc.name, key))
-					
-				webnotes.conn.sql("update tabDocType set _last_update=%s where name=%s", (time_stamp, doc.name))
-	
-	def _override_field_properties(self, doclist):
-		"""
-			Override field properties that are updated by "Property Setter"
-			The term "property" is used to define a fieldname of a field to avoid confusing
-			terminology
-		"""
-		# load field properties and add them to a dictionary
-		property_dict = {}
-		dt = doclist[0].name
-		try:
-			for f in webnotes.conn.sql("select doc_name, property, property_type, value from `tabProperty Setter` where doc_type=%s", dt, as_dict=1):
-				if not f['doc_name'] in property_dict:
-					property_dict[f['doc_name']] = []
-				property_dict[f['doc_name']].append(f)
-		except Exception, e:
-			if e.args[0]==1146:
-				# no override table
-				pass
-			else: 
-				raise e
-
-
-		change_idx = False
-
-		# loop over fields and override property
-		for d in doclist:
-			if d.doctype=='DocField' and d.name in property_dict:
-				for p in property_dict[d.name]:
-					if p['property_type']=='Check':
-						d.fields[p['property']] = cint(p['value'])
-					elif p['property']=='previous_field':
-						change_idx = True
-					else:
-						d.fields[p['property']] = p['value']
-
-		if change_idx: self._change_doclist_idx(doclist, property_dict)
-					
-		# override properties in the main doctype
-		if dt in property_dict:
-			for p in property_dict[dt]:
-				doclist[0].fields[p['property']] = p['value']
-				
-
-	def _change_doclist_idx(self, doclist, property_dict):
-		"""
-			1. Select docs in doclist of type DocField
-			2. Sort this doclist according to idx
-			3. Extract the name of docs in a list
-			4. Arrange the property_dict entries of property "previous_field"
-			   and chain the set of fields according to value
-			5. Move the docnames according to their previous field values
-			6. Assign the new idx values to the doclist docs
-		"""
-		# Process doclist
-		docfield_doclist = [d for d in doclist if d.doctype=='DocField']
-		sorted_docfield_doclist = sorted(docfield_doclist, key=lambda df: df.idx)
-		docfields = [d.name for d in sorted_docfield_doclist]
-		
-		# Process property_dict
-		previous_field_dict = {}
-		for pl in property_dict.values():
-			for p in pl:
-				if p['property'] == 'previous_field':
-					previous_field_dict[str(p['value'])] = str(p['doc_name'])
-		#webnotes.msgprint(previous_field_dict)
-		#webnotes.msgprint(docfields)
-
-		i = 0
-		if 'None' in previous_field_dict:
-			prev_field = 'None'
-		else:
-			i = i + 1
-			prev_field = docfields[i]
-		
-		while previous_field_dict:
-			get_next_docfield = 0
-
-			if prev_field in previous_field_dict:
-				this_field = previous_field_dict[prev_field]
-				if (prev_field in docfields or prev_field=='None') and this_field in docfields:
-					try:
-						docfields.remove(this_field)
-						if prev_field == 'None':
-							docfields.insert(0, this_field)
-						else:
-							docfields.insert(docfields.index(prev_field) + 1, this_field)
-					except ValueError:
-						pass
-				
-				del previous_field_dict[prev_field]
-
-				if this_field in previous_field_dict.keys():
-					prev_field = this_field
-				else:
-					get_next_docfield = 1
-			else:
-				get_next_docfield = 1
-
-			if get_next_docfield:
-				i = i + 1
-				if i>=len(docfields): break
-				prev_field = docfields[i]
-				vals = previous_field_dict.values()
-				if prev_field in vals:
-					i = i - 1
-					keys = previous_field_dict.keys()
-					prev_field = keys[vals.index(prev_field)]
-
-		#webnotes.msgprint(doclist)
-		for d in doclist:
-			if d.doctype=='DocField':
-				d.idx = docfields.index(d.name) + 1
-				
-
-	def make_doclist(self):
-		"""
-		      returns the :term:`doclist` for consumption by the client
-		      
-		      * it cleans up the server code
-		      * executes all `$import` tags in client code
-		      * replaces `link:` in the `Select` fields
-		      * loads all related `Search Criteria`
-		      * updates the cache
-		"""		
-		tablefields = webnotes.model.meta.get_table_fields(self.name)
-
-		if self.is_modified():
-			# yes
-			doclist = webnotes.model.doc.get('DocType', self.name, 1)
-			
-			self._update_field_properties(doclist)
-			self._override_field_properties(doclist)
-			
-			# table doctypes
-			for t in tablefields: 
+		if form:
+			table_fields = self.get_table_fields(doclist)
+			for t in table_fields:
+				# Get child doc and its fields
 				table_doclist = webnotes.model.doc.get('DocType', t[0], 1)
-				
-				self._override_field_properties(table_doclist)
+				table_doclist += self.get_custom_fields(t[0])
 				doclist += table_doclist
 
-			# don't save compiled server code
-
-		else:
-			doclist = self._load_from_cache()
+		self.apply_property_setters(doclist)
 		
-		from webnotes.modules import Module
-
-		doc = doclist[0]
-		
-		# add custom script if present
-		from webnotes.model.code import get_custom_script
-		custom = get_custom_script(doc.name, 'Client') or ''
-		
-		doc.fields['__js'] = \
-			Module(doc.module).get_doc_file('doctype', doc.name, '.js').read() \
-			+ '\n' + custom
-
-		doc.fields['__css'] = \
-			Module(doc.module).get_doc_file('doctype', doc.name, '.css').read()
-			
-		self._load_select_options(doclist)
-		self._clear_code(doclist)
+		if form:
+			self.load_select_options(doclist)
+			self.load_custom_scripts(doclist)
+			self.load_print_formats(doclist)
+			self.insert_into_cache(doclist)
 
 		return doclist
 
-def clear_cache():
-	webnotes.conn.sql("delete from __DocTypeCache")
-	
-def get_property(dt, property):
+	def get_custom_fields(self, doc_type):
+		"""
+			Gets a list of custom field docs masked as type DocField
+		"""
+		custom_doclist = []
+		res = webnotes.conn.sql("""SELECT * FROM `tabCustom Field`
+			WHERE dt = %s AND docstatus < 2""", doc_type, as_dict=1)
+		for r in res:
+			# Cheat! Mask Custom Field as DocField
+			custom_field = webnotes.model.doc.Document(fielddata=r)
+			self.mask_custom_field(custom_field, doc_type)
+			custom_doclist.append(custom_field)
+
+		return custom_doclist
+
+	def mask_custom_field(self, custom_field, doc_type):
+		"""
+			Masks doctype and parent related properties of Custom Field as that
+			of DocField
+		"""
+		custom_field.fields.update({
+			'doctype': 'DocField',
+			'parent': doc_type,
+			'parentfield': 'fields',
+			'parenttype': 'DocType',
+		})
+
+	def get_table_fields(self, doclist):
+		"""
+			Returns [[options, fieldname]] of fields of type 'Table'
+		"""
+		table_fields = []
+		for d in doclist:
+			if d.doctype=='DocField' and d.fieldtype == 'Table':
+				table_fields.append([d.options, d.fieldname])
+		return table_fields
+
+	def apply_property_setters(self, doclist):
+		"""
+
+		"""
+		property_dict, doc_type_list = self.get_property_setters(doclist)
+		for d in doclist:
+			self.update_field_properties(d, property_dict)
+		
+		self.apply_previous_field_properties(doclist, property_dict,
+				doc_type_list)
+
+	def get_property_setters(self, doclist):
+		"""
+			Returns a dict of property setter lists and doc_type_list
+		"""
+		property_dict = {}
+		doc_type_list = list(set(
+			d.doctype=='DocType' and d.name or d.parent
+			for d in doclist))
+		in_string = '", "'.join(doc_type_list)
+		for ps in webnotes.conn.sql("""\
+			SELECT doc_name, property, property_type, value
+			FROM `tabProperty Setter`
+			WHERE doc_type IN ("%s")""" % in_string, as_dict=1):
+			property_dict.setdefault(ps.get('doc_name'), []).append(ps)
+		return property_dict, doc_type_list
+
+	def update_field_properties(self, d, property_dict):
+		"""
+			apply properties except previous_field ones
+		"""
+		if not property_dict.get(d.name): return
+		
+		from webnotes.utils import cint
+		prop_updates = dict([
+			prop.get('property_type')=='Check'
+			and [prop.get('property'), cint(prop.get('value'))]
+			or [prop.get('property'), prop.get('value')]
+			for prop in property_dict.get(d.name)
+			if prop.get('property')!='previous_field'
+		])
+		
+		prop_updates and d.fields.update(prop_updates)
+
+	def apply_previous_field_properties(self, doclist, property_dict,
+			doc_type_list):
+		"""
+
+		"""
+		prev_field_dict = self.get_previous_field_properties(property_dict)
+		if not prev_field_dict: return
+
+		for doc_type in doc_type_list:
+			docfields = self.get_sorted_docfields(doclist, doc_type)
+			docfields = self.sort_docfields(docfields, prev_field_dict)
+			if docfields: self.change_idx(doclist, docfields)
+
+	def get_previous_field_properties(self, property_dict):
+		"""
+			setup prev_field_dict
+		"""
+		from webnotes.utils import cstr
+		prev_field_list = []
+		for prop_list in property_dict.values():
+			for prop in prop_list:
+				if prop.get('property')=='previous_field':
+					prev_field_list.append([cstr(prop.get('value')),
+						cstr(prop.get('doc_name'))])
+					break
+		if not prev_field_list: return
+		return dict(prev_field_list)
+
+	def get_sorted_docfields(self, doclist, doc_type):
+		"""
+			get a sorted list of docfield names
+		"""
+		sorted_list = sorted([
+				d for d in doclist
+				if d.doctype == 'DocField'
+				and d.parent == doc_type
+			], key=lambda df: df.idx)
+		return [d.name for d in sorted_list]
+
+	def sort_docfields(self, docfields, prev_field_dict):
+		"""
+			
+		"""
+		temp_dict = dict([name, prev_field_dict.get(name)]
+				for name in docfields if name in prev_field_dict)
+		if not temp_dict: return
+		prev_field = 'None' in temp_dict and 'None' or docfields[0]
+		i = 0
+		while temp_dict:
+			get_next_docfield = True
+			cur_field = temp_dict.get(prev_field)
+			if cur_field and cur_field in docfields:
+				try:
+					del temp_dict[prev_field]
+					docfields.remove(cur_field)
+					if prev_field in docfields:
+						docfields.insert(docfields.index(prev_field) + 1,
+								cur_field)
+					elif prev_field == 'None':
+						docfields.insert(0, cur_field)
+				except ValueError:
+					pass
+
+				if cur_field in temp_dict:
+					prev_field = cur_field
+					get_next_docfield = False
+
+			if get_next_docfield:
+				i += 1
+				if i>=len(docfields): break
+				prev_field = docfields[i]
+				keys, vals = temp_dict.keys(), temp_dict.values()
+				if prev_field in vals:
+					i -= 1
+					prev_field = keys[vals.index(prev_field)]
+		
+		return docfields
+
+	def change_idx(self, doclist, docfields):
+		for d in doclist:
+			if d.name in docfields:
+				d.idx = docfields.index(d.name) + 1
+
+	def load_select_options(self, doclist):
+		"""
+			Loads Select options for 'Select' fields
+			with link: as start of options
+		"""
+		for d in doclist:
+			if (d.doctype == 'DocField' and d.fieldtype == 'Select' and
+				d.options and d.options[:5].lower() == 'link:'):
+				
+				# Get various options
+				opt_list = self._get_select_options(d)
+
+				opt_list = [''] + [o[0] or '' for o in opt_list]
+				d.options = "\n".join(opt_list)
+
+	def _get_select_options(self, d):
+		"""
+			Queries and returns select options
+			(called by load_select_options)
+		"""
+		op = d.options.split('\n')
+		if len(op) > 1 and op[1][:4].lower() == 'sql:':
+			# Execute the sql query
+			query = op[1][4:].replace('__user',
+						webnotes.session.get('user'))
+		else:
+			# Extract DocType and Conditions
+			# and execute the resulting query
+			dt = op[0][5:].strip()
+			cond_list = [cond.replace('__user',
+				webnotes.session.get('user')) for cond in op[1:]]
+			query = """\
+				SELECT name FROM `tab%s`
+				WHERE %s docstatus!=2
+				ORDER BY name ASC""" % (dt,
+				cond_list and (" AND ".join(cond_list) + " AND ") or "")
+		try:
+			opt_list = webnotes.conn.sql(query)
+		except:
+			# WARNING: Exception suppressed
+			opt_list = []
+
+		return opt_list
+
+	def load_custom_scripts(self, doclist):
+		"""
+			Loads custom js and css
+		"""
+		from webnotes.modules import Module
+		from webnotes.model.code import get_custom_script
+
+		doc = doclist[0]
+		custom = get_custom_script(doc.name, 'Client') or ''
+		module = Module(doc.module)
+		doc.fields.update({
+			'__js': module.get_doc_file(
+				'doctype', doc.name, '.js').read() + '\n' + custom,
+			'__css': module.get_doc_file(
+				'doctype', doc.name, '.css').read(),
+		})
+
+		# clear code
+		if self.name != 'DocType':
+			doc.server_code = doc.server_code_core = doc.client_script \
+			= doc.client_script_core = doc.server_code_compiled = None
+
+	def load_print_formats(self, doclist):
+		"""
+			Load Print Formats in doclist
+		"""
+		# TODO: Process Print Formats for $import
+		# to deprecate code in print_format.py
+		print_formats = webnotes.conn.sql("""\
+			SELECT * FROM `tabPrint Format`
+			WHERE doc_type=%s AND docstatus<2""", doclist[0].fields.get('name'),
+			as_dict=1)
+		for pf in print_formats:
+			if not pf: continue
+			print_format_doc = webnotes.model.doc.Document('Print Format', fielddata=pf)
+			doclist.append(print_format_doc)
+
+	def load_from_cache(self):
+		import json
+		json_doclist = CacheItem(self.name).get()
+		if json_doclist:
+			return [webnotes.model.doc.Document(fielddata=d)
+					for d in json.loads(json_doclist)]
+
+	def insert_into_cache(self, doclist):
+		import json
+		# TODO: zlib compression (was causing error when I tried)
+		json_doclist = json.dumps([d.fields for d in doclist])
+		CacheItem(self.name).set(json_doclist, 3600)
+
+def get(dt, form=1):
 	"""
-		get a doctype property, override it from property setter if specified
+	Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
 	"""
-	prop = webnotes.conn.sql("""
-		select value 
-		from `tabProperty Setter` 
-		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property))
-	if prop: 
-		return prop[0][0]
-	else:
-		return webnotes.conn.get_value('DocType', dt, property)
+	doclist = _DocType(dt).make_doclist(form)
+		
+	return doclist
 
 def get_field_property(dt, fieldname, property):
 	"""
@@ -416,11 +354,44 @@ def get_field_property(dt, fieldname, property):
 	else:
 		return field[0][1]
 
-def get(dt):
+# Deprecate after docbrowser rewrite
+def get_property(dt, property):
 	"""
-	Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
+		get a doctype property, override it from property setter if specified
 	"""
-	doclist = _DocType(dt).make_doclist()
-		
-	return doclist
-	 
+	prop = webnotes.conn.sql("""
+		select value 
+		from `tabProperty Setter` 
+		where doc_type=%s and doc_name=%s and property=%s""", (dt, dt, property))
+	if prop: 
+		return prop[0][0]
+	else:
+		return webnotes.conn.get_value('DocType', dt, property)
+
+# Test Cases
+import unittest
+
+class DocTypeTest(unittest.TestCase):
+	def setUp(self):
+		self.name = 'Sales Order'
+		self.dt = _DocType(self.name)
+
+	def tearDown(self):
+		webnotes.conn.rollback()
+
+	def test_make_doclist(self):
+		doclist = self.dt.make_doclist()
+		for d in doclist:
+			print d.doctype, d.name, d.parent
+			if not d.doctype: print d.fields
+			#print "--", d.name, "--"
+			#print d.doctype
+		self.assertTrue(doclist)
+
+	def test_get_custom_fields(self):
+		return
+		doclist = self.dt.get_custom_fields(self.name)
+		for d in doclist:
+			print "--", d.name, "--"
+			print d.fields
+		#self.assertTrue(doclist)

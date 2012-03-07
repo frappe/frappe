@@ -204,14 +204,12 @@ _f.Frm.prototype.add_description = function() {
 }
 
 _f.Frm.prototype.setup_print = function() { 
-	var fl = getchildren('DocFormat', this.meta.name, 'formats', 'DocType');
-	var l = [];	
+	var l = []
 	this.default_format = 'Standard';
-	if(fl.length) {
-		this.default_format = fl[0].format;
-		for(var i=0;i<fl.length;i++) 
-			l.push(fl[i].format);
-		
+	for(var key in locals['Print Format']) {
+		if(locals['Print Format'][key].doc_type == this.meta.name) {
+			l.push(locals['Print Format'][key].name);
+		}
 	}
 
 	// if default print format is given, use it

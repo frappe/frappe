@@ -69,7 +69,6 @@ class DatabaseInstance:
 			,['Role','Guest']
 			,['Role','All']
 			,['DocType','DocPerm']
-			,['DocType','DocFormat']
 			,['DocType','DocField']
 			,['DocType','DocType']
 			,['DocType','DefaultValue']
@@ -219,27 +218,6 @@ class DatabaseInstance:
 		  KEY `parent` (`parent`)
 		) ENGINE=InnoDB DEFAULT CHARSET=latin1;""")
 		
-	# DocFormat
-	# ------------------------------------------------------
-
-	def create_docformat(self):
-		self.conn.sql("DROP TABLE IF EXISTS `tabDocFormat`")
-		self.conn.sql("""CREATE TABLE `tabDocFormat` (
-		  `name` varchar(120) NOT NULL,
-		  `creation` datetime default NULL,
-		  `modified` datetime default NULL,
-		  `modified_by` varchar(40) default NULL,
-		  `owner` varchar(40) default NULL,
-		  `docstatus` int(1) default '0',
-		  `parent` varchar(120) default NULL,
-		  `parentfield` varchar(120) default NULL,
-		  `parenttype` varchar(120) default NULL,
-		  `idx` int(8) default NULL,
-		  `format` varchar(180) default NULL,
-		  PRIMARY KEY  (`name`),
-		  KEY `parent` (`parent`)
-		) ENGINE=InnoDB DEFAULT CHARSET=latin1;""")
-
 	# DocType
 	# ------------------------------------------------------
 

@@ -76,4 +76,3 @@ def setup():
 def get_item(key):
 	"""returns get CacheItem object"""
 	return CacheItem(key)
-	pass

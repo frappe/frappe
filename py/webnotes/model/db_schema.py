@@ -106,11 +106,19 @@ class DbTable:
 			CHARACTER SET=utf8""" % (self.name, add_text))
 
 	def get_columns_from_docfields(self):
+		"""
+			get columns from docfields and custom fields
+		"""
 		fl = webnotes.conn.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
+		custom_fl = webnotes.conn.sql("""\
+			SELECT * FROM `tabCustom Field`
+			WHERE dt = %s AND docstatus < 2""", self.doctype, as_dict=1)
+		if custom_fl: fl += custom_fl
 
 		for f in fl:
-			if not f.get('no_column'):
-				self.columns[f['fieldname']] = DbColumn(self, f['fieldname'], f['fieldtype'], f.get('length'), f['default'], f['search_index'], f['options'])
+			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
+					f['fieldtype'], f.get('length'), f.get('default'),
+					f.get('search_index'), f.get('options'))
 	
 	def get_columns_from_db(self):
 		self.show_columns = webnotes.conn.sql("desc `%s`" % self.name)
