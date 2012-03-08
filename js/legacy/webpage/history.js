@@ -144,7 +144,7 @@ nav_obj.get_page = function(loc) {
 	if(loc.substr(0,1)=='#') { loc = loc.substr(1); }
 	if(loc.substr(0,1)=='!') { loc = loc.substr(1); }
 
-	if(!in_list(['Page/', 'Form/', 'Repor', 'DocBr', 'List/'], loc.substr(0,5))) {
+	if(!in_list(['Page/', 'Form/', 'Repor', 'DocBr', 'List/', 'List2'], loc.substr(0,5))) {
 		loc = 'Page/' + loc;	
 	}
 	return loc.split('/');	
@@ -191,7 +191,11 @@ function historyChange(newLocation) {
 	} else if(t[0]=='DocBrowser' || t[0]=='List') {
 		_history_current = newLocation;
 		loaddocbrowser(t[1]);
-	} 
+	} else if(t[0]=='List2') {
+		_history_current = newLocation;
+		loaddocbrowser2(t[1]);
+	}
+	
 };
 
 $(window).bind('hashchange', function() {

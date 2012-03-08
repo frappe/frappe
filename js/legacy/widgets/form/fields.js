@@ -43,9 +43,9 @@ Field.prototype.make_body = function() {
 	
 	// parent element
 	if(this.parent)
-		this.wrapper = $a(this.parent, 'div');
+		this.wrapper = $a(this.parent, (this.with_label ? 'div' : 'span'));
 	else
-		this.wrapper = document.createElement('div');
+		this.wrapper = document.createElement((this.with_label ? 'div' : 'span'));
 
 	this.label_area = $a(this.wrapper, 'div', '', {margin:'8px 0px 2px 0px'});
 
@@ -75,8 +75,8 @@ Field.prototype.make_body = function() {
 
 	// make the input areas
 	if(!this.input_area) {
-		this.input_area = $a(this.wrapper, 'div');
-		this.disp_area = $a(this.wrapper, 'div');
+		this.input_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
+		this.disp_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
 	}
 
 	// apply style
@@ -94,6 +94,7 @@ Field.prototype.make_body = function() {
 
 	if(this.onmake)this.onmake();
 }
+
 
 Field.prototype.set_max_width = function() {
 	var no_max = ['Code', 'Text Editor', 'Text', 'Table', 'HTML']

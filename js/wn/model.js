@@ -18,20 +18,9 @@
 // HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
 // CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// 
+//
 
-/* Only using native widget now - no longer want to support IE6 */
+wn.provide('wn.model');
 
-function SelectWidget(parent, options, width, editable, bg_color) {
-	var me = this;
-	// native select
-	this.inp = $a(parent, 'select');
-	if(options) add_sel_options(this.inp, options);
-	if(width) $y(this.inp, {width:width});
-	this.set_width = function(w) { $y(this.inp, {width:w}) };
-	this.set_options = function(o) { add_sel_options(this.inp, o); }
-	this.inp.onchange = function() {
-		if(me.onchange)me.onchange(this);
-	}
-	return;
-}
+wn.model.no_value_type = ['Section Break', 'Column Break', 'HTML', 'Table', 
+ 	'Button', 'Image'];

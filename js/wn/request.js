@@ -95,7 +95,7 @@ wn.call = function(opts) {
 	
 	// cmd
 	if(opts.module && opts.page) {
-		args.cmd = module+'.page.'+page+'.'+page+'.'+method
+		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method
 	} else if(opts.method) {
 		args.cmd = opts.method;
 	}
