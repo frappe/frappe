@@ -111,11 +111,11 @@ wn.ui.Listing = Class.extend({
 				\
 				<div class="result">\
 					<div class="result-list"></div>\
-					<div class="result-grid"></div>\
+					<div class="result-grid hide"></div>\
 				</div>\
 				\
-				<div class="paging-button hide">\
-					<button class="btn btn-small btn-more">More...</div>\
+				<div class="paging-button">\
+					<button class="btn btn-small btn-more hide">More...</div>\
 				</div>\
 			</div>\
 		', this.opts));
@@ -168,17 +168,17 @@ wn.ui.Listing = Class.extend({
 				newdoc(me.new_doctype);
 			})
 		} else {
-			this.$w.find('.btn-new').toggle(false).attr('hidden', 'true');
+			this.$w.find('.btn-new').toggle(false).attr('hidden', 'hidden');
 		}
 		
 		// hide-filter
 		if(!me.show_filters) {
-			this.$w.find('.btn-filter').toggle(false).attr('hidden', 'true');
+			this.$w.find('.btn-filter').toggle(false).attr('hidden', 'hidden');
 		}
 		
 		// hide-refresh
 		if(this.hide_refresh || this.no_refresh) {
-			this.$w.find('.btn-refresh').toggle(false).attr('hidden', 'true');			
+			this.$w.find('.btn-refresh').toggle(false).attr('hidden', 'hidden');			
 		}
 		
 		// toggle-view
@@ -187,7 +187,7 @@ wn.ui.Listing = Class.extend({
 		}
 		
 		// btn group only if more than 1 button
-		if(this.$w.find('.list-toolbar [hidden!="true"]').length>1) {
+		if(this.$w.find('.list-toolbar a[hidden!="hidden"]').length>1) {
 			this.$w.find('.list-toolbar').addClass('btn-group')
 		}
 	},
@@ -216,7 +216,7 @@ wn.ui.Listing = Class.extend({
 			this.onrun = a0;
 		if(a0 && a0.callback)
 			this.onrun = a0.callback;
-		if(!a1 || (a0 && a0.append)) 
+		if(!a1 && !(a0 && a0.append)) 
 			this.start = 0;		
 
 		me.$w.find('.img-load').toggle(true);

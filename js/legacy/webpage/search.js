@@ -27,7 +27,7 @@ search_fields = {};
 
 function setlinkvalue(name) {
 	//selector.input.set(name);// in local - this will be set onchange
-	selector.input.set_input(name); // on screen
+	selector.input.set_input_value(name); // on screen
 	selector.hide();
 }
 
@@ -130,8 +130,8 @@ function makeselector() {
 		}
 	}
 	d.onhide = function() {
-		if(d.input && d.input.txt) // link, call onchange
-			d.input.txt.onchange()
+		//if(d.input && d.input.txt) // link, call onchange
+		//	d.input.txt.set_input_value()
 	}
 
 	btn.onclick = function() {
@@ -191,10 +191,15 @@ function makeselector() {
 
 		var w = $a(d.rows['Result'],'div','',{height:'240px',overflow:'auto',margin:'4px'});
 		for(var i=0; i<r.values.length; i++) {
-			var div = $a(w,'div','',{marginBottom:'4px',paddingBottom:'4px',borderBottom:'1px dashed #CCC'});
+			var div = $a(w,'div','',
+				{marginBottom:'4px',paddingBottom:'4px',borderBottom:'1px dashed #CCC'});
 
 			// link
-			var l = $a($a(div,'div'),'span','link_type'); l.innerHTML = r.values[i][0]; l.link_name = r.values[i][0]; l.dt = r.coloptions[0];
+			var l = $a($a(div,'div'),'span','link_type'); 
+			l.innerHTML = r.values[i][0]; 
+			l.link_name = r.values[i][0]; 
+			l.dt = r.coloptions[0];
+
 			if(d.input)
 				l.onclick = function() { setlinkvalue(this.link_name); }
 			else
