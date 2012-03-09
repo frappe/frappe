@@ -408,6 +408,11 @@ DataField.prototype.make_input = function() {
 	}
 
 	this.input.name = this.df.fieldname;
+	
+	$(this.input).change(function() {
+		me.set_value($(this).val());
+	});
+	
 	this.set_value = function(val) {
 		if(!me.last_value)me.last_value='';
 
@@ -457,7 +462,7 @@ DataField.prototype.make_input = function() {
 				});
 			},
 			select: function(event, ui) {
-				me.set_value(ui.item.value);
+				me.set_input_value(ui.item.value);
 				return false;
 			}
 		});
@@ -753,12 +758,6 @@ LinkField.prototype.set_input_value = function(val) {
 	);
 }
 
-LinkField.prototype.set_onchange = function() { 
-	var me = this;
-	$(me.txt).change(function(event) { 	
-			
-	});
-}
 LinkField.prototype.set_fetch_values = function(fetch_values) { 
 	var fl = cur_frm.fetch_dict[this.df.fieldname].fields;
 	var changed_fields = [];
