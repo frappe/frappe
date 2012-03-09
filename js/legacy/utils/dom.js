@@ -40,7 +40,7 @@ wn.tinymce = {
 		ele.myid = wn.dom.set_unique_id(ele);
 		$(ele).tinymce({
 			// Location of TinyMCE script
-			script_url : 'lib/js/legacy/tiny_mce_33/tiny_mce.js',
+			script_url : 'lib/js/lib/tiny_mce_33/tiny_mce.js',
 
 			height: height ? height : '200px',
 			

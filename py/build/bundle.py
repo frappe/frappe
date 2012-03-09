@@ -60,7 +60,7 @@ class Bundle:
 					
 			# append
 			if suffix=='concat' or out_type != 'js':
-				outtxt += data
+				outtxt += '\n' + data + '\n'
 			else:
 				jsm = JavascriptMinify()
 				tmpin = StringIO(data)
