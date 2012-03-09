@@ -82,7 +82,7 @@ wn.ui.Listing = Class.extend({
 				\
 				<h3 class="title hide">%(title)s</h3>\
 				<div style="height: 30px;">\
-					<div class="btn-group" style="float: left;">\
+					<div class="list-toolbar" style="float: left;">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
 						<a class="btn btn-small btn-new">\
@@ -168,22 +168,27 @@ wn.ui.Listing = Class.extend({
 				newdoc(me.new_doctype);
 			})
 		} else {
-			this.$w.find('.btn-new').toggle(false);
+			this.$w.find('.btn-new').toggle(false).attr('hidden', 'true');
 		}
 		
 		// hide-filter
 		if(!me.show_filters) {
-			this.$w.find('.btn-filter').toggle(false);
+			this.$w.find('.btn-filter').toggle(false).attr('hidden', 'true');
 		}
 		
 		// hide-refresh
 		if(this.hide_refresh || this.no_refresh) {
-			this.$w.find('.btn-refresh').toggle(false);			
+			this.$w.find('.btn-refresh').toggle(false).attr('hidden', 'true');			
 		}
 		
 		// toggle-view
 		if(this.show_grid) {
 			this.$w.find('.select-view').toggle(true);
+		}
+		
+		// btn group only if more than 1 button
+		if(this.$w.find('.list-toolbar [hidden!="true"]').length>1) {
+			this.$w.find('.list-toolbar').addClass('btn-group')
 		}
 	},
 	make_filters: function() {

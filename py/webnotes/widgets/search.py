@@ -84,7 +84,7 @@ def build_for_autosuggest(res):
 			if len(info) > 30:
 				info = info[:30] + '...'
 
-		results.append({'id':r[0], 'value':r[0], 'info':info})
+		results.append({'label':r[0], 'value':r[0], 'info':info})
 	return results
 
 def scrub_custom_query(query, key, txt):

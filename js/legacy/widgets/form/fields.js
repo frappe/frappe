@@ -408,20 +408,24 @@ DataField.prototype.make_input = function() {
 	}
 
 	this.input.name = this.df.fieldname;
-	this.input.onchange = function() {
+	this.set_value = function(val) {
 		if(!me.last_value)me.last_value='';
-		if(me.validate)
-			me.input.value = me.validate(me.input.value);
-		me.set(me.input.value);
+
+		if(me.validate) {
+			val = me.validate(val);
+			me.input.value = val;
+		}
+			
+		me.set(val);
 		if(me.format_input)
 			me.format_input();
 		if(in_list(['Currency','Float','Int'], me.df.fieldtype)) {
-			if(flt(me.last_value)==flt(me.input.value)) {
-				me.last_value = me.input.value;
+			if(flt(me.last_value)==flt(val)) {
+				me.last_value = val;
 				return; // do not run trigger
 			}
 		}
-		me.last_value = me.input.value;
+		me.last_value = val;
 		me.run_trigger();
 	}
 	this.input.set_input = function(val) { 
@@ -434,21 +438,29 @@ DataField.prototype.make_input = function() {
 	// -----------------------
 	
 	if(this.df.options=='Suggest') {
-		wn.require('lib/js/legacy/widgets/autosuggest.js');
-
 		// add auto suggest
 		if(this.suggest_icon) $di(this.suggest_icon);
-		this.set_get_query = function() { }
-		this.get_query = function(doc, dt, dn) {
-			return repl('SELECT DISTINCT `%(fieldname)s` FROM `tab%(dt)s` WHERE `%(fieldname)s` LIKE "%s" LIMIT 50', {fieldname:me.df.fieldname, dt:me.df.parent})
-		}
-		var opts = {
-			script: '',
-			json: true,
-			maxresults: 10,
-			link_field: this
-		};
-		this.as = new AutoSuggest(this.input, opts);
+		$(me.input).autocomplete({
+			source: function(request, response) {
+				wn.call({
+					method:'webnotes.widgets.search.search_link',
+					args: {
+						'txt': request.term, 
+						'dt': me.df.options,
+						'query': repl('SELECT DISTINCT `%(fieldname)s` FROM \
+							`tab%(dt)s` WHERE `%(fieldname)s` LIKE "%s" LIMIT 50', 
+							{fieldname:me.df.fieldname, dt:me.df.parent})
+					},
+					callback: function(r) {
+						response(r.results);
+					}
+				});
+			},
+			select: function(event, ui) {
+				me.set_value(ui.item.value);
+				return false;
+			}
+		});
 	}
 }
 DataField.prototype.validate = function(v) {
@@ -516,9 +528,6 @@ DateField.prototype.make_input = function() {
 
 	this.input = $a(this.input_area, 'input');
 
-	// load the style
-	wn.require('lib/css/legacy/jquery-ui.css');
-
 	$(this.input).datepicker({
 		dateFormat: me.user_fmt.replace('yyyy','yy'), 
 		altFormat:'yy-mm-dd', 
@@ -576,9 +585,6 @@ DateField.prototype.validate = function(v) {
 
 // ======================================================================================
 
-// for ensuring in AutoSuggest that 2 values are not set in quick succession due to un intentional event call
-var _link_onchange_flag = null;
-
 // reference when a new record is created via link
 function LinkField() { } LinkField.prototype = new Field();
 LinkField.prototype.make_input = function() { 
@@ -603,7 +609,7 @@ LinkField.prototype.make_input = function() {
 
 	me.txt.field_object = this;		
 	// set onchange triggers
-	me.set_onchange();
+
 	me.input.set_input = function(val) {
 		if(val==undefined)val='';
 		me.txt.value = val;
@@ -611,17 +617,39 @@ LinkField.prototype.make_input = function() {
 
 	me.get_value = function() { return me.txt.value; }
 
-	wn.require('lib/js/legacy/widgets/autosuggest.js');
-		
-	// add auto suggest
-	var opts = {
-		script: '',
-		json: true,
-		maxresults: 10,
-		link_field: me
+	$(me.txt).autocomplete({
+		source: function(request, response) {
+			wn.call({
+				method:'webnotes.widgets.search.search_link',
+				args: {
+					'txt': request.term, 
+					'dt': me.df.options,
+					'query': me.get_custom_query()
+				},
+				callback: function(r) {
+					response(r.results);
+				},
+			});
+		},
+		select: function(event, ui) {
+			me.set_input_value(ui.item.value);
+			return false;
+		}
+	}).data('autocomplete')._renderItem = function(ul, item) {
+		return $('<li></li>')
+			.data('item.autocomplete', item)
+			.append(repl('<a>%(label)s<br><span style="font-size:10px">%(info)s</span></a>', item))
+			.appendTo(ul);
 	};
-	this.as = new AutoSuggest(me.txt, opts);
-	
+}
+
+LinkField.prototype.get_custom_query = function() {
+	this.set_get_query();
+	if(this.get_query) {
+		if(cur_frm)
+			var doc = locals[cur_frm.doctype][cur_frm.docname];
+		return this.get_query(doc, this.doctype, this.docname);
+	}
 }
 
 LinkField.prototype.setup_buttons = function() { 
@@ -663,61 +691,56 @@ LinkField.prototype.setup_buttons = function() {
 	}
 }
 
-LinkField.prototype.set_onchange = function() { 
+LinkField.prototype.set_input_value = function(val) {
 	var me = this;
-	me.txt.onchange = function(e) { 
-		if(cur_autosug)return; // still setting value
-
-		// check values are not set in quick succession due to un-intentional event call				
-		if(_link_onchange_flag) { return;}
-		_link_onchange_flag = 1;
-		
-		// refresh mandatory style
-		me.refresh_label_icon();
-		
-		// not in form, do nothing
-		if(me.not_in_form) {
-			_link_onchange_flag = 0;	 
-			return;
+	// refresh mandatory style
+	me.refresh_label_icon();
+	
+	// not in form, do nothing
+	if(me.not_in_form) {
+		return;
+	}
+	
+	// same value, do nothing
+	if(cur_frm) {
+		if(val == locals[me.doctype][me.docname][me.df.fieldname]) { 
+			me.set(val); // one more time, grid bug?
+			me.run_trigger(); // wanted - called as refresh?
+			return; 
 		}
-		
-		// same value, do nothing
-		if(cur_frm) {
-			if(me.txt.value == locals[me.doctype][me.docname][me.df.fieldname]) { 
-				me.set(me.txt.value); // one more time, grid bug?
-				me.run_trigger(); // wanted - called as refresh?
-				setTimeout('_link_onchange_flag = 0', 500);
-				return; 
-			}
-		}
-		
-		me.set(me.txt.value);
-		
-		// deselect cell if in grid
-		if(_f.cur_grid_cell)
-			_f.cur_grid_cell.grid.cell_deselect();
-		
-		// run trigger if value is cleared
-		if(!me.txt.value) {
-			me.run_trigger();
-			setTimeout('_link_onchange_flag = 0', 500);
-			return;
-		}
+	}
+	
+	// set in locals
+	me.set(val);
+	
+	// deselect cell if in grid
+	if(_f.cur_grid_cell)
+		_f.cur_grid_cell.grid.cell_deselect();
+	
+	// run trigger if value is cleared
+	if(!val) {
+		me.run_trigger();
+		return;
+	}
 
-		// validate the value just entered
-		var fetch = '';
-		if(cur_frm.fetch_dict[me.df.fieldname])
-			fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');
-			
-		$c('webnotes.widgets.form.utils.validate_link', {'value':me.txt.value, 'options':me.df.options, 'fetch': fetch}, function(r,rt) { 
-			setTimeout('_link_onchange_flag = 0', 500);
-
+	// validate the value just entered
+	var fetch = '';
+	if(cur_frm.fetch_dict[me.df.fieldname])
+		fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');
+		
+	$c('webnotes.widgets.form.utils.validate_link', {
+			'value':val, 
+			'options':me.df.options, 
+			'fetch': fetch
+		}, 
+		function(r,rt) { 
 			if(selector && selector.display) return; // selecting from popup
-			
+		
 			if(r.message=='Ok') {
 				// set fetch values
-				if(r.fetch_values) me.set_fetch_values(r.fetch_values);
-				
+				if(r.fetch_values) 
+					me.set_fetch_values(r.fetch_values);
+			
 				me.run_trigger();
 			} else {
 				var astr = '';
@@ -726,9 +749,15 @@ LinkField.prototype.set_onchange = function() {
 				me.txt.value = ''; 
 				me.set('');
 			}
-		});
-		
-	}
+		}
+	);
+}
+
+LinkField.prototype.set_onchange = function() { 
+	var me = this;
+	$(me.txt).change(function(event) { 	
+			
+	});
 }
 LinkField.prototype.set_fetch_values = function(fetch_values) { 
 	var fl = cur_frm.fetch_dict[this.df.fieldname].fields;
