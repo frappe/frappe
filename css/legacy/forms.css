@@ -1,5 +1,17 @@
 /* FORMS */
 
+div.form-section-break {
+	margin: 15px 0px 3px 0px;
+}
+
+div.form-section-break h3 {
+	line-height: 20px;
+}
+
+div.form-section-break hr {
+	margin: 9px 0px;
+}
+
 
 div.frm_print_wrapper {
 	background-color:#FFF;
@@ -143,9 +155,9 @@ div.time_field select{
 
 
 .field_description, .help {
-	margin: 3px 0px 11px 0px;
+	margin: 3px 0px;
+	font-size: 11px;
 	color: #888;
-	font-style: italic;
 }
 
 .field_description_top {

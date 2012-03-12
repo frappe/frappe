@@ -199,7 +199,7 @@ _f.Frm.prototype.add_description = function() {
 	}
 	
 	this.description_wrapper = $a(this.page_layout.footer.help_area, 'div', 
-		'info-box', {marginTop:'10px'}, 
+		'well', {marginTop:'11px'}, 
 		wn.md2html.makeHtml('#### Help\n\n' + this.meta.description));
 }
 

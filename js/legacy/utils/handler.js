@@ -87,7 +87,7 @@ function $c_obj_csv(doclist, method, arg) {
 		args.docs = compress_doclist(doclist);
 
 	// open
-	open_url_post(webnotes.request.url, args);
+	open_url_post(wn.request.url, args);
 }
 
 // call a url as POST

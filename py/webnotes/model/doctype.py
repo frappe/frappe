@@ -303,6 +303,11 @@ class _DocType:
 			with open(fpath, 'r') as f:
 				doc.fields['__listjs'] = f.read()
 
+		fpath = os.path.join(path, 'help.md')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['description'] = f.read()
+
 
 	def make_doclist(self):
 		"""

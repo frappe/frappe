@@ -122,7 +122,7 @@ function LayoutCell(layout, layoutRow, width) {
 	
 	var h = $a(this.cell, 'div','',{padding:(layout.with_border ? '0px 8px' : '0px')});	
 
-	this.wrapper = $a(this.cell, 'div','',{padding:(layout.with_border ? '8px' : '8px 0px')}); 
+	this.wrapper = $a(this.cell, 'div','',{padding:(layout.with_border ? '8px' : '0px')}); 
 	
 	layout.cur_cell = this.wrapper;
 	layout.cur_cell.header = h;
