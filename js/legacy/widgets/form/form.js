@@ -477,8 +477,6 @@ _f.Frm.prototype.refresh_print_layout = function() {
 _f.Frm.prototype.hide = function() {
 	$dh(this.wrapper);
 	this.display = 0;
-	if(hide_autosuggest)
-		hide_autosuggest();
 }
 
 // --------------------------------------------------------------------------------------

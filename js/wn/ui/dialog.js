@@ -176,9 +176,6 @@ wn.widgets.Dialog = function(opts) {
 		unfreeze();
 		$dh(this.wrapper);
 
-		// clear open autosuggests
-		if(cur_autosug) cur_autosug.clearSuggestions();
-
 		// flags
 		this.display = false;
 		cur_dialog = null;

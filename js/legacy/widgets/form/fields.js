@@ -703,6 +703,7 @@ LinkField.prototype.set_input_value = function(val) {
 	
 	// not in form, do nothing
 	if(me.not_in_form) {
+		$(this.txt).val(val);
 		return;
 	}
 	
