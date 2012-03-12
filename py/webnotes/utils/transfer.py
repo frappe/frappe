@@ -52,8 +52,6 @@ def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 		
 		if dt=='DocType':
 			ud = UpdateDocType(doclist)
-		elif dt == 'Module Def':
-			ud = UpdateModuleDef(doclist)
 		elif dt == 'DocType Mapper':
 			ud = UpdateDocTypeMapper(doclist)
 		else:
@@ -300,30 +298,6 @@ class UpdateDocType(UpdateDocumentMerge):
 		if hasattr(so, 'on_update'):
 			so.on_update()
 
-
-class UpdateModuleDef(UpdateDocumentMerge):
-	"""
-		Merge `Module Def`
-	"""
-	def __init__(self, in_doclist):
-		UpdateDocumentMerge.__init__(self, in_doclist)
-		self.to_update_doctype = ['Module Def', 'Module Def Item']
-			
-	def get_id(self, d):		
-		return webnotes.conn.sql("select name from `tabModule Def Item` where doc_type=%s and doc_name=%s and display_name=%s and parent=%s", (d.doc_type, d.doc_name, d.display_name, d.parent))
-	
-	def to_update(self, d):
-		if d.doctype=='Module Def Item': return 1
-	
-	def get_orignal_values(self, d):
-		if d.doctype=='Module Def Item':
-			return {'name': self.get_id(d)[0][0]}
-		if d.doctype=='Module Def':
-			return webnotes.conn.sql("select module_seq, disabled, is_hidden from `tabModule Def` where name=%s", d.name, as_dict = 1)[0]
-
-	def run_on_update(self):
-		# no scripts for Module Def
-		pass
 
 
 class UpdateDocTypeMapper(UpdateDocumentMerge):

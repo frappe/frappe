@@ -105,13 +105,9 @@ def get_custom_script(doctype, script_type):
 		Returns custom script if set in doctype `Custom Script`
 	"""
 	import webnotes
-	try:
-		custom_script = webnotes.conn.sql("select script from `tabCustom Script` where dt=%s and script_type=%s", (doctype, script_type))
-	except Exception, e:
-		if e.args[0]==1146: 
-			return None
-		else: raise e
-			
+	custom_script = webnotes.conn.sql("""select script from `tabCustom Script` 
+		where dt=%s and script_type=%s""", (doctype, script_type))
+	
 	if custom_script and custom_script[0][0]:
 		return custom_script[0][0]
 		
@@ -121,7 +117,7 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	"""
 	# for test
 	import webnotes
-	
+	from webnotes.modules import scrub
 
 	# get doctype details
 	module = webnotes.conn.get_value('DocType', doc.doctype, 'module')
@@ -130,14 +126,13 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	if not module:
 		return
 		
-	module = module.replace(' ','_').lower()
-	dt = doc.doctype.replace(' ','_').replace('-', '_').lower()
+	module = scrub(module)
+	dt = scrub(doc.doctype)
 
-	# import
 	try:
-		exec 'from %s.doctype.%s.%s import DocType' % (module, dt, dt)
+		module = __import__('%s.doctype.%s.%s' % (module, dt, dt), fromlist=[''])
+		DocType = getattr(module, 'DocType')
 	except ImportError, e:
-		# declare it here
 		class DocType:
 			def __init__(self, d, dl):
 				self.doc, self.doclist = d, dl
@@ -145,7 +140,7 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	# custom?
 	custom_script = get_custom_script(doc.doctype, 'Server')
 	if custom_script:
-		global custom_class		
+		global custom_class
 		
 		exec custom_class + custom_script.replace('\t','  ') in locals()
 			
@@ -203,13 +198,13 @@ def check_syntax(code):
 	return ''
 
 #===================================================================================
-def get_code(module, dt, dn, extn, is_static=None, fieldname=None):
+def get_code(module, dt, dn, extn, fieldname=None):
 	from webnotes.modules import scrub, get_module_path
 	import os, webnotes
 	
 	# get module (if required)
 	if not module:
-		module = webnotes.conn.sql("select module from `tab%s` where name=%s" % (dt,'%s'),dn)[0][0]
+		module = webnotes.conn.get_value(dt, dn, 'module')
 
 	# no module, quit
 	if not module:
@@ -221,8 +216,6 @@ def get_code(module, dt, dn, extn, is_static=None, fieldname=None):
 
 	# get file name
 	fname = dn + '.' + extn
-	if is_static:
-		fname = dn + '_static.' + extn
 
 	# code
 	code = ''

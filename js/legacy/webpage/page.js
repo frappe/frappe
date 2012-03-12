@@ -22,8 +22,6 @@
 
 // PAGE
 
-var stylesheets = [];
-
 function Page(page_name, content) {	
 	var me = this;
 	this.name = page_name;
@@ -76,12 +74,6 @@ function render_page(page_name, menuitem) {
 	// style
 	if(pdoc.style) set_style(pdoc.style)
 
-	// stylesheet
-	if(pdoc.stylesheet) { 
-		set_style(locals.Stylesheet[pdoc.stylesheet].stylesheet); 
-		stylesheets.push(pdoc.stylesheet); 
-	}
-
 	// create page
 	var p = new Page(page_name, pdoc._Page__content?pdoc._Page__content:pdoc.content);
 	// script
@@ -102,6 +94,5 @@ function refresh_page(page_name) {
 	var fn = function(r, rt) {
 		render_page(page_name)	
 	}
-	$c('webnotes.widgets.page.getpage', {'name':page_name, 
-		stylesheets:JSON.stringify(stylesheets)}, fn);
+	$c('webnotes.widgets.page.getpage', {'name':page_name}, fn);
 }

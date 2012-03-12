@@ -166,56 +166,6 @@ class _DocType:
 					fields[d.get('fieldname') or d.get('label')] = d
 		return fields
 		
-	def _update_field_properties(self, doclist):
-		"""
-			Updates properties like description, depends on from the database based on the timestamp
-			of the .txt file. Adds a column _last_updated if not exists in the database and uses
-			it to update the file..
-			
-			This feature is built because description is changed / updated quite often and is tedious to
-			write a patch every time. Can be extended to cover more updates
-		"""
-		
-		update_fields = ('description', 'depends_on')
-
-		from webnotes.modules import get_item_file
-		from webnotes.utils import get_file_timestamp
-
-		doc = doclist[0] # main doc
-		file_name = get_item_file(doc.module, 'DocType', doc.name)
-		time_stamp = get_file_timestamp(file_name)
-		last_update = self._get_last_update(doc.name)
-		
-		# this is confusing because we are updating the fields of fields
-		
-		if last_update != time_stamp:
-
-			# there are updates!
-			fields = self._get_fields(file_name)
-			if fields:
-				for d in doclist:
-				
-					# for each field in teh outgoing doclist
-					if d.doctype=='DocField':
-						key = d.fieldname or d.label
-					
-						# if it has a fieldname or label
-						if key and key in fields:
-						
-							# update the values
-							for field_to_update in update_fields:
-								if field_to_update in fields[key] and fields[key][field_to_update] != d.fields[field_to_update]:
-									new_value = fields[key][field_to_update]
-							
-									# in doclist
-									d.fields[field_to_update] = new_value
-						
-									# in database
-									webnotes.conn.sql("update tabDocField set `%s` = %s where parent=%s and `%s`=%s" % \
-										(field_to_update, '%s', '%s', (d.fieldname and 'fieldname' or 'label'), '%s'), \
-										(new_value, doc.name, key))
-					
-				webnotes.conn.sql("update tabDocType set _last_update=%s where name=%s", (time_stamp, doc.name))
 	
 	def _override_field_properties(self, doclist):
 		"""
@@ -370,7 +320,6 @@ class _DocType:
 			# yes
 			doclist = webnotes.model.doc.get('DocType', self.name, 1)
 			
-			self._update_field_properties(doclist)
 			self._override_field_properties(doclist)
 			
 			# table doctypes
@@ -385,8 +334,6 @@ class _DocType:
 		else:
 			doclist = self._load_from_cache()
 		
-		from webnotes.modules import Module
-
 		doc = doclist[0]
 		
 		# add custom script if present
