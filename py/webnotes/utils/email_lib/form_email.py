@@ -147,12 +147,13 @@ class FormEmail:
 
 		# footer
 		footer = get_footer()
-		if footer: 
+		if footer:
+			footer = footer.encode('utf-8')
 			html_message += footer
 			text_message += footer
 
 		# message as text
-		self.email.set_text(html2text(text_message))
+		self.email.set_text(html2text(unicode(text_message, 'utf-8')))
 		self.email.set_html(html_message)
 					
 	def send(self):
