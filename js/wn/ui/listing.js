@@ -63,6 +63,9 @@ wn.ui.Listing = Class.extend({
 	prepare_opts: function() {
 		if(this.opts.new_doctype)
 			this.opts.new_doctype = get_doctype_label(this.opts.new_doctype);
+		if(!this.opts.no_result_message) {
+			this.opts.no_result_message = 'Nothing to show'
+		}
 	},
 	make: function(opts) {
 		if(opts) {
@@ -81,7 +84,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<h3 class="title hide">%(title)s</h3>\
-				<div style="height: 30px;">\
+				<div style="height: 37px;" class="list-toolbar-wrapper">\
 					<div class="list-toolbar" style="float: left;">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
@@ -94,7 +97,6 @@ wn.ui.Listing = Class.extend({
 						class="img-load"/>\
 				</div>\
 				\
-				<div style="clear: both; height: 11px;"></div>\
 				<div class="list-filters hide">\
 					<div class="show_filters well">\
 						<div class="filter_area"></div>\
@@ -190,6 +192,11 @@ wn.ui.Listing = Class.extend({
 		if(this.$w.find('.list-toolbar a[hidden!="hidden"]').length>1) {
 			this.$w.find('.list-toolbar').addClass('btn-group')
 		}
+		
+		// hide toolbar if nothing to show
+		if(this.$w.find('.list-toolbar a[hidden!="hidden"]').length==0) {
+			this.$w.find('.list-toolbar-wrapper').toggle(false);
+		}
 	},
 	make_filters: function() {
 		this.filter_list = new wn.ui.FilterList({
@@ -283,10 +290,17 @@ wn.ui.Listing = Class.extend({
 	},
 	render_grid: function() {
 		//this.gridid = wn.dom.set_unique_id()
+		if(this.columns[0].field!='_idx') {
+			this.columns = [{field:'_idx', name: 'Sr.', width: 40}].concat(this.columns);
+		}
 		$.each(this.columns, function(i, c) {
 			if(!c.id) c.id = c.field;
 		})
 		
+		// add sr in data
+		$.each(this.data, function(i, v) {
+			v._idx = i+1;
+		})
 		
 		wn.require('lib/js/lib/slickgrid/slick.grid.css');
 		wn.require('lib/js/lib/slickgrid/slick-default-theme.css');

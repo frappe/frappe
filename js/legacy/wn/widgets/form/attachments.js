@@ -33,7 +33,8 @@ wn.widgets.form.sidebar.Attachments = function(parent, sidebar, doctype, docname
 		
 		// no attachments if file is unsaved
 		if(this.frm.doc.__islocal) {
-			this.attach_wrapper.innerHTML = 'Attachments can be uploaded after saving'
+			this.attach_wrapper.innerHTML = '<div class="help">Attachments can be \
+				uploaded after saving</div>';
 			return;
 		}
 		

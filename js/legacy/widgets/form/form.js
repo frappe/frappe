@@ -199,7 +199,7 @@ _f.Frm.prototype.add_description = function() {
 	}
 	
 	this.description_wrapper = $a(this.page_layout.footer.help_area, 'div', 
-		'info-box', {marginTop:'10px'}, 
+		'well', {marginTop:'11px'}, 
 		wn.md2html.makeHtml('#### Help\n\n' + this.meta.description));
 }
 
@@ -477,8 +477,6 @@ _f.Frm.prototype.refresh_print_layout = function() {
 _f.Frm.prototype.hide = function() {
 	$dh(this.wrapper);
 	this.display = 0;
-	if(hide_autosuggest)
-		hide_autosuggest();
 }
 
 // --------------------------------------------------------------------------------------

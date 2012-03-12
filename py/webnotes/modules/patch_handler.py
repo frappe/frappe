@@ -45,8 +45,8 @@ def run_all(patch_list=None):
 
 def reload_doc(args):
 	"""relaod a doc args {module, doctype, docname}"""	
-	import webnotes.modules.module_manager
-	run_single(method = webnotes.modules.module_manager.reload_doc, methodargs = args)
+	import webnotes.modules
+	run_single(method = webnotes.modules.reload_doc, methodargs = args)
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	"""run a single patch"""

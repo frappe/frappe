@@ -29,7 +29,8 @@ _f.ColumnBreak = function() {
 }
 
 _f.ColumnBreak.prototype.make_body = function() {
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
+	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || 
+		this.df.hidden) {
 		// no display
 		return;
 	}
@@ -74,90 +75,6 @@ _f.SectionBreak.prototype.make_row = function() {
 	this.row = this.df.label ? this.frm.layout.addrow() : this.frm.layout.addsubrow();
 }
 
-_f.SectionBreak.prototype.make_collapsible = function(head) {
-	var me = this;
-
-	var div = $a(head,'div','',{paddingBottom: '3px', borderBottom:'1px solid #AAA'});
-	if(cur_frm.meta.in_dialog) $y(div, {marginLeft:'8px'});
-	
-	// checkbox
-	this.chk = $a_input(div, 'checkbox',null,{marginRight:'8px'})
-	
-	// label
-	if(this.df.label) {
-		this.label = $a(div, 'h3', '', {display:'inline'}, this.df.label);		
-	}
-	
-
-	// description
-	var d = this.df.description;
-	if(d) {
-		this.desc_area = $a(div, 'span', 'field_description', {marginLeft:'8px'});
-		this.desc_area.innerHTML = d.substr(0,50) + (d.length > 50 ? '...' : '');
-	}
-
-	// back to top
-	var span = $a(div, 'i', 'icon-arrow-up', {cssFloat:'right', marginRight:'8px', 
-		cursor:'pointer', verticalAlign:'middle', marginTop:'7px'})
-	span.title = 'Go to top';
-	span.onclick = function() { scroll(0, 0); }
-
-	// exp / collapse
-
-	this.chk.onclick = function() { 
-		if(this.checked) me.expand(); 
-		else me.collapse(); 
-	}
-	
-	this.expand = function() { 
-		$(me.row.main_body).slideDown();
-	}
-	
-	this.collapse = function() { 
-		$(me.row.main_body).slideUp();
-	}
-	
-	// hide by default
-	if(me.frm.section_count) {
-		$dh(this.row.main_body);
-	} else {
-		this.chk.checked = true;
-	}
-}
-
-// ======================================================================================
-
-_f.SectionBreak.prototype.make_simple_section = function(with_header) {
-	this.wrapper = $a(this.row.main_head, 'div', '', {margin:'8px 8px 0px 0px'});
-	var me = this;
-
-	// colour
-	if(this.df.colour) {
-		var col = this.df.colour.split(':')[1];
-		if(col!='FFF') {			
-			$y(this.row.sub_wrapper, { margin:'8px', padding: '0px' ,backgroundColor: ('#' + col)} );
-		}
-	}
-	
-	if(with_header) {
-		if(this.df.label && this.df.options!='Simple') {
-			this.make_collapsible(this.wrapper);
-		} else {
-			// divider
-			$y(this.wrapper, {paddingBottom:'4px'});
-			if(this.df.label) {
-				$a(this.wrapper, 'h3', '', {}, this.df.label);
-			}
-		}
-	}
-
-	// indent
-	$y(this.row.body, { marginLeft:'17px' });
-
-}
-
-// ======================================================================================
-
 _f.SectionBreak.prototype.add_to_sections = function() {
 	this.sec_id = this.frm.sections.length;
 	this.frm.sections[this.sec_id] = this;
@@ -170,16 +87,24 @@ _f.SectionBreak.prototype.make_body = function() {
 		// no display
 		return;
 	}
-	var me = this;
 
-	if(this.df){
-		this.make_row();
-		this.make_simple_section(1, 1);
-	}	
+	this.make_row();
+	this.wrapper = $a(this.row.main_head, 'div');
+
+	if(this.df.label) {
+		if(!this.df.description) this.df.description = '';
+		$(this.wrapper).html(repl('<div class="form-section-break">\
+			<h3>%(label)s</h3>\
+			<div class="help">%(description)s</div>\
+			</div>', this.df));
+	} else {
+		$(this.wrapper).html('<div class="form-section-break"></div>');
+	}
+
+	// indent
+	$y(this.row.body, { marginLeft:'17px' });
 }
 
-
-// ======================================================================================
 
 _f.SectionBreak.prototype.refresh = function(layout) {
 	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
@@ -228,7 +153,7 @@ _f.ImageField.prototype.get_image_src = function(doc) {
 		var img_extn_list = ['gif', 'jpg', 'bmp', 'jpeg', 'jp2', 'cgm',  'ief', 'jpm', 'jpx', 'png', 'tiff', 'jpe', 'tif'];
 
 		if(in_list(img_extn_list, extn)) {
-			var src = webnotes.request.url + "?cmd=downloadfile&file_id="+file[1];
+			var src = wn.request.url + "?cmd=downloadfile&file_id="+file[1];
 		}
 	} else {
 		var src = "";
@@ -248,7 +173,7 @@ _f.ImageField.prototype.onrefresh = function() {
 	var doc = locals[this.frm.doctype][this.frm.docname];
 	
 	if(!this.df.options) var src = this.get_image_src(doc);
-	else var src = webnotes.request.url + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
+	else var src = wn.request.url + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
 
 	
 	if(src) {

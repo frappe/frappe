@@ -47,7 +47,7 @@ Field.prototype.make_body = function() {
 	else
 		this.wrapper = document.createElement((this.with_label ? 'div' : 'span'));
 
-	this.label_area = $a(this.wrapper, 'div', '', {margin:'8px 0px 2px 0px'});
+	this.label_area = $a(this.wrapper, 'div', '', {margin:'0px 0px 2px 0px'});
 
 	if(ischk && !this.in_grid) {
 		this.input_area = $a(this.label_area, 'span', '', {marginRight:'4px'});
@@ -84,10 +84,10 @@ Field.prototype.make_body = function() {
 		if(this.label_area) $dh(this.label_area);
 	} else {
 		this.input_area.className = 'input_area';
-		$y(this.wrapper,{marginBottom:'4px'});
+		$y(this.wrapper,{marginBottom:'9px'});
 		
 		// set description
-		this.set_description();		
+		this.set_description();	
 	}
 	
 	// bind label refresh
@@ -703,6 +703,7 @@ LinkField.prototype.set_input_value = function(val) {
 	
 	// not in form, do nothing
 	if(me.not_in_form) {
+		$(this.txt).val(val);
 		return;
 	}
 	
