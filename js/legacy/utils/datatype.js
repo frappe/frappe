@@ -168,7 +168,7 @@ function flt(v,decimals) {
 	if(isNaN(v))
 		v=0; 
 	if(decimals!=null)
-		return v.toFixed(decimals);
+		return parseFloat(v.toFixed(decimals));
 	return v; 
 }
 

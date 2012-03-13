@@ -78,8 +78,6 @@ _f.Frm = function(doctype, parent) {
 	this.is_editable = {};
 	this.opendocs = {};
 	this.sections = [];
-	this.sections_by_label = {};
-	this.section_count;
 	this.grids = [];
 	this.cscript = {};
 	this.pformat = {};
@@ -354,8 +352,10 @@ _f.Frm.prototype.setup_fields_std = function() {
 			sec.fields.push(fld);			
 		}
 		
-		if(f.fieldtype=='Section Break' && f.options != 'Simple')
+		if(f.fieldtype=='Section Break') {
 			sec = fld;
+			this.sections.push(fld);			
+		}
 		
 		// default col-break after sec-break
 		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')&&!f.hidden) {
@@ -657,7 +657,7 @@ _f.Frm.prototype.refresh_footer = function() {
 // --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.refresh_fields = function() {
-	// set fields
+	// refresh fields
 	for(var i=0; i<this.fields.length; i++) {
 		var f = this.fields[i];
 		f.perm = this.perm;
@@ -668,9 +668,16 @@ _f.Frm.prototype.refresh_fields = function() {
 		var fn = f.df.fieldname || f.df.label;
 		if(fn)
 			f.df = get_field(this.doctype, fn, this.docname);
-		if(f.refresh)
-			f.refresh();
+			
+		if(f.df.fieldtype!='Section Break' && f.refresh) {
+			f.refresh();			
+		}
 	}
+
+	// refresh sections
+	$.each(this.sections, function(i, f) {
+		f.refresh();
+	})
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
