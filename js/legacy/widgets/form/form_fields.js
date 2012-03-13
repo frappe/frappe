@@ -132,7 +132,7 @@ _f.SectionBreak.prototype.has_data = function() {
 	var me = this;
 	for(var i in me.fields) {
 		var f = me.fields[i];
-		var v = f.df.get_value ? f.df.get_value() : null;
+		var v = f.get_value ? f.get_value() : null;
 		
 		// value that is not default
 		defaultval = f.df['default'] || sys_defaults[f.fieldname] || user_defaults[f.fieldname];
@@ -141,13 +141,13 @@ _f.SectionBreak.prototype.has_data = function() {
 		}
 		
 		// unfilled mandatory field
-		if(!v && f.df.reqd) {
+		if(f.df.reqd && !v) {
 			return true;
 		}
 		
 		// filled table
 		if(f.df.fieldtype=='Table') {
-			if(f.grid.get_children.length || f.df.reqd) {
+			if(f.grid.get_children().length || f.df.reqd) {
 				return true;
 			}
 		}

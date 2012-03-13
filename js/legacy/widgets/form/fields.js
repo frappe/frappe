@@ -400,7 +400,8 @@ DataField.prototype.make_input = function() {
 
 	this.get_value= function() {
 		var v = this.input.value;
-		if(this.validate)v = this.validate(v);
+		if(this.validate)
+			v = this.validate(v);
 		return v;
 	}
 
@@ -811,7 +812,9 @@ IntField.prototype.format_input = function() {
 
 function FloatField() { } FloatField.prototype = new DataField();
 FloatField.prototype.validate = function(v) {
-	var v= parseFloat(v); if(isNaN(v))return null;
+	var v= parseFloat(v); 
+	if(isNaN(v))
+		return null;
 	return v;
 };
 FloatField.prototype.format_input = function() {
@@ -831,7 +834,7 @@ CurrencyField.prototype.format_input = function() {
 
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
-		return 0; 
+		return 0;
 	return flt(v,2); 
 }
 CurrencyField.prototype.set_disp = function(val) { 
