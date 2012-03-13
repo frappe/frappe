@@ -50,86 +50,122 @@ _f.ColumnBreak.prototype.make_body = function() {
 _f.ColumnBreak.prototype.refresh = function(layout) {
 	if(!this.cell)return; // no perm
 	
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
-	if(fn) {
-		this.df = get_field(this.doctype, fn, this.docname);
-	
-		// hidden
-		if(this.set_hidden!=this.df.hidden) {
-			if(this.df.hidden)
-				this.cell.hide();
-			else
-				this.cell.show();
-			this.set_hidden = this.df.hidden;
-		}
+	// hidden
+	if(this.set_hidden!=this.df.hidden) {
+		if(this.df.hidden)
+			this.cell.hide();
+		else
+			this.cell.show();
+		this.set_hidden = this.df.hidden;
 	}
 }
 
 // ======================================================================================
 
 _f.SectionBreak = function() {
+	this.fields = [];
 	this.set_input = function() { };
+	this.make_row = function() {
+		this.row = this.df.label ? this.frm.layout.addrow() : this.frm.layout.addsubrow();		
+	}
 }
 
-_f.SectionBreak.prototype.make_row = function() {
-	this.row = this.df.label ? this.frm.layout.addrow() : this.frm.layout.addsubrow();
-}
-
-_f.SectionBreak.prototype.add_to_sections = function() {
-	this.sec_id = this.frm.sections.length;
-	this.frm.sections[this.sec_id] = this;
-	this.frm.sections_by_label[this.df.label] = this;
-}
-
-_f.cur_sec_header = null;
 _f.SectionBreak.prototype.make_body = function() {
+	var me = this;
 	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
 		// no display
 		return;
 	}
 
 	this.make_row();
-	this.wrapper = $a(this.row.main_head, 'div');
 
 	if(this.df.label) {
-		if(!this.df.description) this.df.description = '';
-		$(this.wrapper).html(repl('<div class="form-section-break">\
-			<h3>%(label)s</h3>\
-			<div class="help">%(description)s</div>\
+		if(!this.df.description) 
+			this.df.description = '';
+		$(this.row.main_head).html(repl('<div class="form-section-head" style="cursor: pointer">\
+				<div class="head">%(label)s</h3>\
+				<div class="help">%(description)s</div>\
 			</div>', this.df));
+			
+		this.$expand = $(this.row.main_head).find('.form-section-head').click(function() {
+			if($(me.row.main_head).find('h3').length) {
+				me.section_collapse();				
+			} else {
+				me.section_expand();
+			}
+			return false;
+		});
+		
+		this.collapsible = true;
 	} else {
-		$(this.wrapper).html('<div class="form-section-break"></div>');
+		// simple
+		$(this.wrapper).html('<div class="form-section-head"></div>');
+	}
+
+	// collapse section
+	this.section_collapse = function() {
+		$(me.row.main_head).find('.head')
+			.html('<i class="icon-play"></i> \
+				<a href="#" onclick="return false;">Show "' + me.df.label + '"</a>');
+		$(me.row.main_body).toggle(false);
+		
+	}
+	
+	// expand section
+	this.section_expand = function() {
+		$(me.row.main_head).find('.head')
+			.html('<h3><i class="icon-minus" style="margin-top: 3px"></i> ' 
+				+ me.df.label + '</h3>');
+		$(me.row.main_body).slideDown();
 	}
 
 	// indent
 	$y(this.row.body, { marginLeft:'17px' });
 }
 
+_f.SectionBreak.prototype.has_data = function() {
+	// return true if
+	// 1. any field in the section is mandatory & not set as default
+	// 2. any field in the section has data that is not default
+	// 3. if table, table has rows
+	
+	var me = this;
+	for(var i in me.fields) {
+		var f = me.fields[i];
+		var v = f.df.get_value ? f.df.get_value() : null;
+		
+		// value that is not default
+		defaultval = f.df['default'] || sys_defaults[f.fieldname] || user_defaults[f.fieldname];
+		if(v && v != defaultval) {
+			return true;
+		}
+		
+		// unfilled mandatory field
+		if(!v && f.df.reqd) {
+			return true;
+		}
+		
+		// filled table
+		if(f.df.fieldtype=='Table') {
+			if(f.grid.get_children.length || f.df.reqd) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
 
 _f.SectionBreak.prototype.refresh = function(layout) {
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
-
-	if(fn)
-		this.df = get_field(this.doctype, fn, this.docname);
-
-	// hidden
-	if(this.set_hidden!=this.df.hidden) {
-		if(this.df.hidden) {
-			if(this.frm.meta.section_style=='Tabbed') {
-				$dh(this.mytab);
-			} else if(this.tray_item)
-				this.tray_item.hide();
-			
-			if(this.row)this.row.hide();
-		} else {
-			if(this.frm.meta.section_style=='Tabbed') {
-				$di(this.mytab);
-			} else if(this.tray_item)
-				this.tray_item.show();
-
-			if(this.expanded)this.row.show();
+	if(this.df.hidden) {
+		if(this.row)this.row.hide();
+	} else {
+		if(this.collapsible) {
+			if(this.has_data()) {
+				this.section_expand();
+			} else {
+				this.section_collapse();
+			}	
 		}
-		this.set_hidden = this.df.hidden;
 	}
 }
 

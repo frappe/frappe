@@ -45,6 +45,8 @@
 //   page_length (20)
 //   hide_refresh (False)
 //   new_doctype
+//   new_doc_onload
+//   new_doc_onsave
 //   [function] render_row(parent, data)
 //   [function] onrun
 //   no_loading (no ajax indicator)
@@ -167,20 +169,20 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.$w.find('.btn-new').toggle(true).click(function() {
-				newdoc(me.new_doctype);
+				newdoc(me.new_doctype, me.new_doc_onload, true, me.new_doc_onsave);
 			})
 		} else {
-			this.$w.find('.btn-new').toggle(false).attr('hidden', 'hidden');
+			this.$w.find('.btn-new').remove();
 		}
 		
 		// hide-filter
 		if(!me.show_filters) {
-			this.$w.find('.btn-filter').toggle(false).attr('hidden', 'hidden');
+			this.$w.find('.btn-filter').remove();
 		}
 		
 		// hide-refresh
 		if(this.hide_refresh || this.no_refresh) {
-			this.$w.find('.btn-refresh').toggle(false).attr('hidden', 'hidden');			
+			this.$w.find('.btn-refresh').remove();			
 		}
 		
 		// toggle-view
@@ -189,7 +191,7 @@ wn.ui.Listing = Class.extend({
 		}
 		
 		// btn group only if more than 1 button
-		if(this.$w.find('.list-toolbar a[hidden!="hidden"]').length>1) {
+		if(this.$w.find('.list-toolbar a').length>1) {
 			this.$w.find('.list-toolbar').addClass('btn-group')
 		}
 		
