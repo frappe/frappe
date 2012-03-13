@@ -265,35 +265,11 @@ pscript.update_page_history = function(page_name, no_history) {
 	nav_obj.open_notify('Page', page_name, arg, no_history);
 }
 
-//
-// Load Script
-//
-function loadscript(src, call_back) {
-	set_loading();
-	var script = $a('head','script');
-	script.type = 'text/javascript';
-	script.src = src;
-	script.onload = function() { 
-		if(call_back)call_back(); hide_loading(); 
-	}
-	// IE 6 & 7
-	script.onreadystatechange = function() {
-		if (this.readyState == 'complete' || this.readyState == 'loaded') {
-			hide_loading();
-			call_back();
-		}
-	}
-}
-
 // Load DocBrowser
 // -------------------------------------------------------------------------------
 
 var doc_browser_page;
-function loaddocbrowser(dt, label, fields) {
-	//wn.require('lib/js/wn/pages/doclistview.js');	
-	//wn.pages.doclistview.show(dt);
-	//return;
-	
+function loaddocbrowser(dt, label, fields) {	
 	wn.require('lib/js/legacy/webpage/docbrowser.js');
 	dt = get_label_doctype(dt);
 	if(!doc_browser_page)

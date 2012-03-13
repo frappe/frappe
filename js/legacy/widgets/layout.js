@@ -74,7 +74,7 @@ Layout.prototype.close_borders = function() {
 
 function LayoutRow(layout, parent) {
 	this.layout = layout;
-	this.wrapper = $a(parent,'div');
+	this.wrapper = $a(parent,'div','form-layout-row');
 	
 	// main head
 	this.main_head = $a(this.wrapper, 'div');

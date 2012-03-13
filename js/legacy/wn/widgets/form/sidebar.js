@@ -40,6 +40,16 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 
 					{
 						type: 'link',
+						label: 'List',
+						icon: 'icon-list',
+						display: function() { 
+							return true; 
+						},
+						onclick: function() { window.location.href="#!List2/" + me.form.doctype }
+					},
+					
+					{
+						type: 'link',
 						label: 'Refresh',
 						icon: 'icon-refresh',
 						onclick: function() { me.form.reload_doc() }
@@ -124,6 +134,20 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						function() {	});
 				},
 				display: function() { return !me.form.doc.__islocal }
+			},
+
+			{
+				title: 'Help',
+				render: function(wrapper) {
+					if(!wn.md2html) {
+						wn.require('lib/js/lib/showdown.js');
+						wn.md2html = new Showdown.converter();
+					}
+
+					$a(wrapper, 'div', 'help', {}, 
+						wn.md2html.makeHtml(me.form.meta.description));
+				},
+				display: function() { return me.form.meta.description }
 			}
 		]
 	}

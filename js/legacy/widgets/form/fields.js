@@ -134,9 +134,6 @@ Field.prototype.get_status = function() {
 	if(this.not_in_form) {
 		return 'Write';
 	}
-		
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
-	this.df = get_field(this.doctype, fn, this.docname);
 
 	if(!this.df.permlevel) this.df.permlevel = 0;
 
@@ -990,7 +987,7 @@ SelectField.prototype.make_input = function() {
 	this.set_as_single = function() {
 		var i = this.input;
 		i.multiple = false;
-		i.style.height = null; // default
+		i.style.height = null;
 		if(i.lab)$dh(i.lab)
 	}
 	

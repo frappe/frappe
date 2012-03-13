@@ -77,7 +77,6 @@ _f.Frm = function(doctype, parent) {
 	var me = this;
 	this.is_editable = {};
 	this.opendocs = {};
-	this.cur_section = {};
 	this.sections = [];
 	this.sections_by_label = {};
 	this.section_count;
@@ -184,23 +183,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	
 	// create fields
 	this.setup_fields_std();
-	
-	// description
-	if(this.meta.description)
-		this.add_description();
-}
-
-// ======================================================================================
-
-_f.Frm.prototype.add_description = function() {
-	if(!wn.md2html) {
-		wn.require('lib/js/lib/showdown.js');
-		wn.md2html = new Showdown.converter();
-	}
-	
-	this.description_wrapper = $a(this.page_layout.footer.help_area, 'div', 
-		'well', {marginTop:'11px'}, 
-		wn.md2html.makeHtml('#### Help\n\n' + this.meta.description));
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -267,10 +249,6 @@ _f.Frm.prototype.email_doc = function() {
 _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	if(this.doctype != dt) return;
 	
-	// sections
-	this.cur_section[name] = this.cur_section[old];
-	delete this.cur_section[old];
-
 	// editable
 	this.is_editable[name] = this.is_editable[old];
 	delete this.is_editable[old];
@@ -298,19 +276,6 @@ _f.Frm.prototype.set_heading = function() {
 }
 
 
-// PAGING
-// ======================================================================================
-
-_f.Frm.prototype.set_section = function(sec_id) {
-	if(!this.sections[sec_id] || !this.sections[sec_id].expand) 
-		return; // Simple type
-	
-	if(this.sections[this.cur_section[this.docname]])
-		this.sections[this.cur_section[this.docname]].collapse();
-	this.sections[sec_id].expand();
-	this.cur_section[this.docname] = sec_id;
-}
-
 // SETUP
 // ======================================================================================
 
@@ -337,7 +302,7 @@ _f.Frm.prototype.setup_footer = function() {
 	var f = this.page_layout.footer;
 
 	// save buttom
-	f.save_area = $a(this.page_layout.footer,'div','',{display:'none'});
+	f.save_area = $a(this.page_layout.footer,'div','',{display:'none', marginTop:'11px'});
 	f.help_area = $a(this.page_layout.footer,'div');
 
 	var b = $btn(f.save_area, 'Save',
@@ -371,23 +336,23 @@ _f.Frm.prototype.setup_fields_std = function() {
 	var sec;
 	for(var i=0;i<fl.length;i++) {
 		var f=fl[i];
-		
-		// no section breaks in embedded forms
-		if(get_url_arg('embed') && (in_list(['Section Break','Column Break'], f.fieldtype))) continue;
-		
+				
 		// if section break and next item 
 		// is a section break then ignore
-		if(f.fieldtype=='Section Break' && fl[i+1] && fl[i+1].fieldtype=='Section Break') continue;
+		if(f.fieldtype=='Section Break' && fl[i+1] && fl[i+1].fieldtype=='Section Break') 
+			continue;
 		
 		var fn = f.fieldname?f.fieldname:f.label;
 				
 		var fld = make_field(f, this.doctype, this.layout.cur_cell, this);
+
 		this.fields[this.fields.length] = fld;
 		this.fields_dict[fn] = fld;
 
-		// Add to section break so that this section can be shown when there is an error
-		if(this.meta.section_style != 'Simple')
+		if(sec && ['Section Break', 'Column Break'].indexOf(f.fieldtype)==-1) {
 			fld.parent_section = sec;
+			sec.fields.push(fld);			
+		}
 		
 		if(f.fieldtype=='Section Break' && f.options != 'Simple')
 			sec = fld;
@@ -638,10 +603,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			// to use this
 			// $(docuemnt).bind('form_refresh', function() { })
 			$(document).trigger('form_refresh')
-			
-			// tabs
-			this.refresh_tabs();
-			
+						
 			// fields
 			this.refresh_fields();
 			
@@ -681,19 +643,6 @@ _f.Frm.prototype.refresh = function(docname) {
 
 // --------------------------------------------------------------------------------------
 
-_f.Frm.prototype.refresh_tabs = function() {
-	var me = this;
-	if(me.meta.section_style=='Tray'||me.meta.section_style=='Tabbed') {
-		for(var i in me.sections) {
-			me.sections[i].collapse();
-		}
-		
-		me.set_section(me.cur_section[me.docname]);
-	}
-}
-
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
@@ -713,7 +662,14 @@ _f.Frm.prototype.refresh_fields = function() {
 		var f = this.fields[i];
 		f.perm = this.perm;
 		f.docname = this.docname;
-		if(f.refresh)f.refresh();
+		
+		// if field is identifiable (not blank section or column break)
+		// get the "customizable" parameters for this record
+		var fn = f.df.fieldname || f.df.label;
+		if(fn)
+			f.df = get_field(this.doctype, fn, this.docname);
+		if(f.refresh)
+			f.refresh();
 	}
 
 	// cleanup activities after refresh
@@ -831,9 +787,6 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	this.is_editable[docname] = 1;
 	if(this.meta.read_only_onload) this.is_editable[docname] = 0;
 		
-	// Section Type
-	if(this.meta.section_style=='Tray'||this.meta.section_style=='Tabbed') { this.cur_section[docname] = 0; }
-
 	this.opendocs[docname] = true;
 }
 
