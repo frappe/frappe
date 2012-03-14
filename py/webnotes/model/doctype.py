@@ -203,11 +203,12 @@ class _DocType:
 			if cur_field and cur_field in docfields:
 				try:
 					del temp_dict[prev_field]
-					docfields.remove(cur_field)
 					if prev_field in docfields:
+						docfields.remove(cur_field)
 						docfields.insert(docfields.index(prev_field) + 1,
 								cur_field)
 					elif prev_field == 'None':
+						docfields.remove(cur_field)
 						docfields.insert(0, cur_field)
 				except ValueError:
 					pass

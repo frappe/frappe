@@ -63,7 +63,7 @@ class DocType:
 		]
 
 		self.property_restrictions = {
-			'fieldtype': ['Currency', 'Float', 'Int'],
+			'fieldtype': ['Currency', 'Float'],
 		}
 
 		self.forbidden_properties = ['idx']

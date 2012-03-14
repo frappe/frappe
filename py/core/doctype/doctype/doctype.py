@@ -110,6 +110,9 @@ class DocType:
 			self.export_doc()
 		sql("delete from __DocTypeCache")
 
+		from webnotes.utils.cache import CacheItem
+		CacheItem(self.doc.name).clear()
+
 		
 	def export_doc(self):
 		from webnotes.modules.export_module import export_to_files
@@ -125,7 +128,10 @@ class DocType:
 			create a new field 'file_list'
 		"""
 		if self.doc.allow_attach:
-			if 'file_list' not in [d.fieldname for d in self.doclist]:
+			import webnotes.model.doctype
+			temp_doclist = webnotes.model.doctype.get(self.doc.doctype, form=0)
+			if 'file_list' not in [d.fieldname for d in temp_doclist if \
+					d.doctype=='DocField']:
 				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)
 				new.label = 'File List'
 				new.fieldtype = 'Text'
@@ -134,7 +140,7 @@ class DocType:
 				new.permlevel = 0
 				new.print_hide = 1
 				new.no_copy = 1
-				max_idx = max([d.idx for d in self.doclist if d.idx])
+				max_idx = max([d.idx for d in temp_doclist if d.idx])
 				max_idx = max_idx and max_idx or 0
 				new.idx = max_idx + 1
 				new.save()

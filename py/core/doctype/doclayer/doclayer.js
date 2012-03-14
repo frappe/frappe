@@ -137,7 +137,7 @@ cur_frm.add_fields_help = function() {
 				<tr>\
 					<td><b>Type</b></td>\
 					<td>Change type of field. (Currently, Type change is \
-						allowed among 'Currency, Float and Int')</td>\
+						allowed among 'Currency and Float')</td>\
 				</tr>\
 				<tr>\
 					<td width='25%'><b>Options</b></td>\

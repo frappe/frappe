@@ -30,7 +30,7 @@ import os
 import webnotes
 
 type_map = {
-	'currency':		('decimal', '14,2')
+	'currency':		('decimal', '14,6')
 	,'int':			('int', '11')
 	,'float':		('decimal', '14,6')
 	,'check':		('int', '1')
