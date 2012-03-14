@@ -87,7 +87,7 @@ _f.SectionBreak.prototype.make_body = function() {
 				<div class="help">%(description)s</div>\
 			</div>', this.df));
 			
-		this.$expand = $(this.row.main_head).find('.form-section-head').click(function() {
+		this.$expand = $(this.row.main_head).find('.head').click(function() {
 			if($(me.row.main_head).find('h3').length) {
 				me.section_collapse();				
 			} else {
@@ -105,18 +105,21 @@ _f.SectionBreak.prototype.make_body = function() {
 	// collapse section
 	this.section_collapse = function() {
 		$(me.row.main_head).find('.head')
-			.html('<i class="icon-play"></i> \
+			.html('<i class="icon-chevron-right"></i> \
 				<a href="#" onclick="return false;">Show "' + me.df.label + '"</a>');
 		$(me.row.main_body).toggle(false);
 		
 	}
 	
 	// expand section
-	this.section_expand = function() {
+	this.section_expand = function(no_animation) {
 		$(me.row.main_head).find('.head')
-			.html('<h3><i class="icon-minus" style="margin-top: 3px"></i> ' 
+			.html('<h3><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
 				+ me.df.label + '</h3>');
-		$(me.row.main_body).slideDown();
+		if(no_animation)
+			$(me.row.main_body).toggle(true);
+		else
+			$(me.row.main_body).slideDown();
 	}
 
 	// indent
@@ -155,13 +158,13 @@ _f.SectionBreak.prototype.has_data = function() {
 	return false;
 }
 
-_f.SectionBreak.prototype.refresh = function(layout) {
+_f.SectionBreak.prototype.refresh = function(from_form) {
 	if(this.df.hidden) {
 		if(this.row)this.row.hide();
 	} else {
 		if(this.collapsible) {
 			if(this.has_data()) {
-				this.section_expand();
+				this.section_expand(from_form);
 			} else {
 				this.section_collapse();
 			}	

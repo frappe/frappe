@@ -72,14 +72,22 @@ PageHeader.prototype.add_button = function(label, fn, bold, icon, green) {
 
 	var tb = this.toolbar_area;
 	if(this.buttons[label]) return;
-		
-	var btn = $btn(tb,label,fn,{marginRight:'4px'}, (green ? 'btn-info' : ''));
-	if(bold) $y(btn,{fontWeight:'bold'});
 
-	this.buttons[label]=btn;
+	iconhtml = icon ? ('<i class="'+icon+'"></i> ') : '';
+
+	var $button = $('<button class="btn btn-small">'+ iconhtml + label +'</button>')
+		.click(fn)
+		.appendTo(tb);
+	if(green) {
+		$button.addClass('btn-info');
+		$button.find('i').addClass('icon-white');
+	}
+	if(bold) $button.css('font-weight', 'bold');
+	
+	this.buttons[label] = $button.get(0);
 	$ds(this.toolbar_area);
 	
-	return btn;
+	return this.buttons[label];
 }
 
 PageHeader.prototype.clear_toolbar = function() {

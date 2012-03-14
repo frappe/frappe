@@ -99,6 +99,13 @@ wn.call = function(opts) {
 	} else if(opts.method) {
 		args.cmd = opts.method;
 	}
+	
+	// stringify args if required
+	for(key in args) {
+		if(args[key] && typeof args[key] != 'string') {
+			args[key] = JSON.stringify(args[key]);
+		}
+	}
 
 	wn.request.call({
 		args: args,

@@ -676,7 +676,7 @@ _f.Frm.prototype.refresh_fields = function() {
 
 	// refresh sections
 	$.each(this.sections, function(i, f) {
-		f.refresh();
+		f.refresh(true);
 	})
 
 	// cleanup activities after refresh
