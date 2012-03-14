@@ -3,102 +3,103 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-11-16 16:45:16',
+		'creation': '2011-11-24 15:24:03',
 		'docstatus': 0,
-		'modified': '2011-11-23 13:43:17',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-13 17:38:42',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
+		'_last_update': u'1326705243',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
-		'autoname': 'DLF.#####',
-		'colour': 'White:FFF',
+		'autoname': u'DLF.#####',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
 		'issingle': 0,
 		'istable': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
 		'read_only': 0,
-		'section_style': 'Simple',
+		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 4
+		'version': 7
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'hidden': 0,
 		'name': '__common__',
-		'parent': 'DocLayerField',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'DocLayerField',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'print_hide': 0
 	},
 
 	# These values are common for all DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'DocLayerField',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'DocLayerField',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'read': 1
 	},
 
 	# DocType, DocLayerField
 	{
 		'doctype': 'DocType',
-		'name': 'DocLayerField'
+		'name': u'DocLayerField'
 	},
 
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 0,
-		'role': 'System Manager',
+		'role': u'System Manager',
 		'write': 1
 	},
 
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': 'System Manager',
+		'role': u'System Manager',
 		'write': 1
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 2,
-		'role': 'System Manager'
+		'role': u'System Manager'
 	},
 
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 2,
-		'role': 'Administrator',
+		'role': u'Administrator',
 		'write': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'label',
-		'fieldtype': 'Data',
-		'label': 'Label',
-		'oldfieldname': 'label',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'label',
+		'fieldtype': u'Data',
+		'label': u'Label',
+		'oldfieldname': u'label',
+		'oldfieldtype': u'Data',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 1
@@ -106,26 +107,26 @@
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'fieldtype',
-		'fieldtype': 'Select',
-		'label': 'Type',
-		'oldfieldname': 'fieldtype',
-		'oldfieldtype': 'Select',
-		'options': 'Data\nSelect\nText\nSmall Text\nText Editor\nLink\nInt\nDate\nTime\nCurrency\nTable\nFloat\nCheck\nSection Break\nColumn Break\nButton\nRead Only\nCode\nHTML\nImage\nBlob\nPassword',
-		'permlevel': 2,
+		'doctype': u'DocField',
+		'fieldname': u'fieldtype',
+		'fieldtype': u'Select',
+		'label': u'Type',
+		'oldfieldname': u'fieldtype',
+		'oldfieldtype': u'Select',
+		'options': u'Data\nSelect\nText\nSmall Text\nText Editor\nLink\nInt\nDate\nTime\nCurrency\nTable\nFloat\nCheck\nSection Break\nColumn Break\nButton\nRead Only\nCode\nHTML\nImage\nBlob\nPassword',
+		'permlevel': 1,
 		'reqd': 1,
 		'search_index': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'fieldname',
-		'fieldtype': 'Data',
-		'label': 'Name',
-		'oldfieldname': 'fieldname',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'fieldname',
+		'fieldtype': u'Data',
+		'label': u'Name',
+		'oldfieldname': u'fieldname',
+		'oldfieldtype': u'Data',
 		'permlevel': 2,
 		'reqd': 0,
 		'search_index': 1
@@ -133,13 +134,13 @@
 
 	# DocField
 	{
-		'description': 'For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma',
-		'doctype': 'DocField',
-		'fieldname': 'options',
-		'fieldtype': 'Text',
-		'label': 'Options',
-		'oldfieldname': 'options',
-		'oldfieldtype': 'Text',
+		'description': u'For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma',
+		'doctype': u'DocField',
+		'fieldname': u'options',
+		'fieldtype': u'Text',
+		'label': u'Options',
+		'oldfieldname': u'options',
+		'oldfieldtype': u'Text',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0
@@ -147,13 +148,13 @@
 
 	# DocField
 	{
-		'default': '0',
-		'doctype': 'DocField',
-		'fieldname': 'permlevel',
-		'fieldtype': 'Int',
-		'label': 'Perm Level',
-		'oldfieldname': 'permlevel',
-		'oldfieldtype': 'Int',
+		'default': u'0',
+		'doctype': u'DocField',
+		'fieldname': u'permlevel',
+		'fieldtype': u'Int',
+		'label': u'Perm Level',
+		'oldfieldname': u'permlevel',
+		'oldfieldtype': u'Int',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0
@@ -161,67 +162,67 @@
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'width',
-		'fieldtype': 'Data',
-		'label': 'Width',
-		'oldfieldname': 'width',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'width',
+		'fieldtype': u'Data',
+		'label': u'Width',
+		'oldfieldname': u'width',
+		'oldfieldtype': u'Data',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0,
-		'width': '50px'
+		'width': u'50px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'reqd',
-		'fieldtype': 'Check',
-		'label': 'Reqd',
-		'oldfieldname': 'reqd',
-		'oldfieldtype': 'Check',
+		'doctype': u'DocField',
+		'fieldname': u'reqd',
+		'fieldtype': u'Check',
+		'label': u'Reqd',
+		'oldfieldname': u'reqd',
+		'oldfieldtype': u'Check',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0,
-		'width': '50px'
+		'width': u'50px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'in_filter',
-		'fieldtype': 'Check',
-		'label': 'In Filter',
-		'oldfieldname': 'in_filter',
-		'oldfieldtype': 'Check',
+		'doctype': u'DocField',
+		'fieldname': u'in_filter',
+		'fieldtype': u'Check',
+		'label': u'In Filter',
+		'oldfieldname': u'in_filter',
+		'oldfieldtype': u'Check',
 		'permlevel': 1,
 		'reqd': 0,
-		'width': '50px'
+		'width': u'50px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'hidden',
-		'fieldtype': 'Check',
-		'label': 'Hidden',
-		'oldfieldname': 'hidden',
-		'oldfieldtype': 'Check',
+		'doctype': u'DocField',
+		'fieldname': u'hidden',
+		'fieldtype': u'Check',
+		'label': u'Hidden',
+		'oldfieldname': u'hidden',
+		'oldfieldtype': u'Check',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0,
-		'width': '50px'
+		'width': u'50px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'print_hide',
-		'fieldtype': 'Check',
-		'label': 'Print Hide',
-		'oldfieldname': 'print_hide',
-		'oldfieldtype': 'Check',
+		'doctype': u'DocField',
+		'fieldname': u'print_hide',
+		'fieldtype': u'Check',
+		'label': u'Print Hide',
+		'oldfieldname': u'print_hide',
+		'oldfieldtype': u'Check',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0
@@ -229,62 +230,62 @@
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'doctype': 'DocField',
-		'fieldname': 'report_hide',
-		'fieldtype': 'Check',
-		'label': 'Report Hide',
-		'oldfieldname': 'report_hide',
-		'oldfieldtype': 'Check',
+		'colour': u'White:FFF',
+		'doctype': u'DocField',
+		'fieldname': u'report_hide',
+		'fieldtype': u'Check',
+		'label': u'Report Hide',
+		'oldfieldname': u'report_hide',
+		'oldfieldtype': u'Check',
 		'permlevel': 1,
 		'reqd': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'allow_on_submit',
-		'fieldtype': 'Check',
-		'label': 'Allow on Submit',
-		'oldfieldname': 'allow_on_submit',
-		'oldfieldtype': 'Check',
+		'doctype': u'DocField',
+		'fieldname': u'allow_on_submit',
+		'fieldtype': u'Check',
+		'label': u'Allow on Submit',
+		'oldfieldname': u'allow_on_submit',
+		'oldfieldtype': u'Check',
 		'permlevel': 0,
 		'reqd': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'depends_on',
-		'fieldtype': 'Data',
-		'label': 'Depends On',
-		'oldfieldname': 'depends_on',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'depends_on',
+		'fieldtype': u'Data',
+		'label': u'Depends On',
+		'oldfieldname': u'depends_on',
+		'oldfieldtype': u'Data',
 		'permlevel': 1,
 		'reqd': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'description',
-		'fieldtype': 'Text',
-		'label': 'Description',
-		'oldfieldname': 'description',
-		'oldfieldtype': 'Text',
+		'doctype': u'DocField',
+		'fieldname': u'description',
+		'fieldtype': u'Text',
+		'label': u'Description',
+		'oldfieldname': u'description',
+		'oldfieldtype': u'Text',
 		'permlevel': 1,
 		'reqd': 0,
-		'width': '300px'
+		'width': u'300px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'default',
-		'fieldtype': 'Text',
-		'label': 'Default',
-		'oldfieldname': 'default',
-		'oldfieldtype': 'Text',
+		'doctype': u'DocField',
+		'fieldname': u'default',
+		'fieldtype': u'Text',
+		'label': u'Default',
+		'oldfieldname': u'default',
+		'oldfieldtype': u'Text',
 		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0

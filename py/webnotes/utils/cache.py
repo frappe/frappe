@@ -25,9 +25,9 @@ Simple Caching:
 
 Stores key-value pairs in database and enables simple caching
 
-get_item(key).get() returns the cached value if not expired (else returns null)
-get_item(key).set(interval = 60000) sets a value to cache, expiring after x seconds
-get_item(key).clear() clears an old value
+CacheItem(key).get() returns the cached value if not expired (else returns null)
+CacheItem(key).set(interval = 60000) sets a value to cache, expiring after x seconds
+CahceItem(key).clear() clears an old value
 setup() sets up cache
 """
 
@@ -73,6 +73,3 @@ def setup():
 		)""")
 	webnotes.conn.begin()
 
-def get_item(key):
-	"""returns get CacheItem object"""
-	return CacheItem(key)

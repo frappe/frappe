@@ -279,11 +279,11 @@ def get_top_tags(args=''):
 	tl = None
 	dt = webnotes.form_dict['doctype']
 	
-	from webnotes.utils.cache import get_item
+	from webnotes.utils.cache import CacheItem
 	
 	# if not reload, try and load from cache
 	if not cint(webnotes.form_dict.get('refresh')):
-		tl = get_item('tags-' + dt).get()
+		tl = CacheItem('tags-' + dt).get()
 	
 	if tl:
 		return eval(tl)
@@ -294,7 +294,7 @@ def get_top_tags(args=''):
 			tl = tl[:20]
 			
 		# set in cache and don't reload for an hour
-		get_item('tags-' + dt).set(tl, 60*60)
+		CacheItem('tags-' + dt).set(tl, 3600)
 	
 		return tl
 

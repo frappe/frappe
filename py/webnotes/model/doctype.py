@@ -22,8 +22,6 @@
 
 # TODO:
 # Patch: Remove DocFormat
-# Custom Field Changes:
-#	Remove insert after
 # DocLayer:
 #	Allow type changing
 
@@ -306,6 +304,7 @@ class _DocType:
 		"""
 		# TODO: Process Print Formats for $import
 		# to deprecate code in print_format.py
+		# if this is implemented, clear CacheItem on saving print format
 		print_formats = webnotes.conn.sql("""\
 			SELECT * FROM `tabPrint Format`
 			WHERE doc_type=%s AND docstatus<2""", doclist[0].fields.get('name'),
@@ -324,7 +323,6 @@ class _DocType:
 
 	def insert_into_cache(self, doclist):
 		import json
-		# TODO: zlib compression (was causing error when I tried)
 		json_doclist = json.dumps([d.fields for d in doclist])
 		CacheItem(self.name).set(json_doclist, 3600)
 
@@ -332,10 +330,12 @@ def get(dt, form=1):
 	"""
 	Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
 	"""
-	doclist = _DocType(dt).make_doclist(form)
-		
+	if not dt: return []
+
+	doclist = _DocType(dt).make_doclist(form)	
 	return doclist
 
+# Deprecate after import_docs rewrite
 def get_field_property(dt, fieldname, property):
 	"""
 		get a field property, override it from property setter if specified
@@ -354,7 +354,8 @@ def get_field_property(dt, fieldname, property):
 	else:
 		return field[0][1]
 
-# Deprecate after docbrowser rewrite
+# Deprecate after docbrowser rewrite,
+# used in tags
 def get_property(dt, property):
 	"""
 		get a doctype property, override it from property setter if specified
@@ -394,4 +395,4 @@ class DocTypeTest(unittest.TestCase):
 		for d in doclist:
 			print "--", d.name, "--"
 			print d.fields
-		#self.assertTrue(doclist)
+		self.assertTrue(doclist)

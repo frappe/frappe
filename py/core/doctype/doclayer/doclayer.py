@@ -25,6 +25,7 @@
 	Thus providing a better UI from user perspective
 """
 import webnotes
+from webnotes.utils import cstr
 
 class DocType:
 	def __init__(self, doc, doclist=[]):
@@ -60,18 +61,12 @@ class DocType:
 			'default',
 			'name'
 		]
-		self.set_true_doctype()
 
+		self.property_restrictions = {
+			'fieldtype': ['Currency', 'Float', 'Int'],
+		}
 
-	def set_true_doctype(self):
-		"""
-			Sets a value of self.true_doctype as the actual doctype and not its label
-		"""
-		if self.doc.doc_type:
-			from webnotes.utils import get_label_doctype
-			self.true_doctype = get_label_doctype(self.doc.doc_type)
-		else: self.true_doctype = None
-
+		self.forbidden_properties = ['idx']
 
 	def get(self):
 		"""
@@ -80,7 +75,6 @@ class DocType:
 		self.clear()
 
 		if self.doc.doc_type:
-			if not self.true_doctype: self.set_true_doctype()
 			from webnotes.model.doc import addchild
 
 			for d in self.get_ref_doclist():
@@ -105,12 +99,8 @@ class DocType:
 		"""
 		from webnotes.model.doctype import get
 
-		ref_doclist = get(self.true_doctype, form=0)
+		ref_doclist = get(self.doc.doc_type, form=0)
 
-		#ref_doclist = get('DocType', self.true_doctype)
-		#_DocType(self.true_doctype)._override_field_properties(ref_doclist)
-
-		
 		return ref_doclist
 
 
@@ -158,7 +148,7 @@ class DocType:
 			
 			this_doclist = [self.doc] + self.doclist
 			ref_doclist = self.get_ref_doclist()
-			dt_doclist = doc.get('DocType', self.true_doctype)
+			dt_doclist = doc.get('DocType', self.doc.doc_type)
 			
 			# get a list of property setter docs
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
@@ -166,7 +156,8 @@ class DocType:
 			self.set_properties(diff_list)
 
 			from webnotes.utils.cache import CacheItem
-			CacheItem(self.true_doctype).clear()
+			CacheItem(self.doc.doc_type).clear()
+			CacheItem('tags-' + self.doc.doc_type).clear()
 
 
 	def diff(self, new_dl, ref_dl, dt_dl):
@@ -181,6 +172,8 @@ class DocType:
 			for ref_d in ref_dl:
 				if ref_d.doctype == 'DocField' and new_d.name == ref_d.name:
 					for prop in self.docfield_properties:
+						# do not set forbidden properties like idx
+						if prop in self.forbidden_properties: continue
 						d = self.prepare_to_set(prop, new_d, ref_d, dt_dl)
 						if d: diff_list.append(d)
 					break
@@ -190,7 +183,7 @@ class DocType:
 						d = self.prepare_to_set(prop, new_d, ref_d, dt_dl)
 						if d: diff_list.append(d)
 					break
-		
+
 		return diff_list
 
 
@@ -246,34 +239,50 @@ class DocType:
 					break
 		
 			value = new_d.fields.get(prop)
+			
+			if (prop in self.property_restrictions and 
+				(value not in self.property_restrictions.get(prop) or
+				ref_d.fields.get(prop) not in self.property_restrictions.get(prop)
+				)):
+				webnotes.msgprint("""\
+					You cannot change '%s' of '%s' from '%s' to '%s'.
+					%s can only be changed among '%s'.
+					<i>Ignoring this change and saving.</i>\
+					""" % (self.defaults.get(prop, {}).get('label') or prop,
+						new_d.fields.get('label') or new_d.fields.get('idx'),
+						ref_d.fields.get(prop), value,
+						self.defaults.get(prop, {}).get('label') or prop,
+						", ".join(self.property_restrictions.get(prop)),
+					))
+				return None
 
-			if prop == 'idx':
-				if value > 1:
-					for idoc in ([self.doc] + self.doclist):
-							if idoc.fields.get(prop) == (value - 1):
-								prop = 'previous_field'
-								value = idoc.name
-								break
-				elif value == 1:
-					prop = 'previous_field'
-					value = None
+
+			#if prop == 'idx':
+			#	if value > 1:
+			#		for idoc in ([self.doc] + self.doclist):
+			#				if idoc.fields.get(prop) == (value - 1):
+			#					prop = 'previous_field'
+			#					value = idoc.name
+			#					break
+			#	elif value == 1:
+			#		prop = 'previous_field'
+			#		value = None
 
 			# If the above conditions are fulfilled,
 			# create a property setter doc, but dont save it yet.
 			from webnotes.model.doc import Document
 			d = Document('Property Setter')
 			d.doctype_or_field = ref_d.doctype=='DocField' and 'DocField' or 'DocType'
-			d.doc_type = self.true_doctype
+			d.doc_type = self.doc.doc_type
 			d.doc_name = ref_d.name
 			d.property = prop
 			d.value = value
 			d.property_type = self.defaults[prop]['fieldtype']
 			d.default_value = self.defaults[prop]['default']
 			d.select_doctype = self.doc.doc_type
-			d.select_item = ref_d.label and str(ref_d.idx) \
-				+ " - " + str(ref_d.label) \
-				+	" (" + str(ref_d.fieldtype) + ")" \
-				or None
+			d.select_item = ref_d.label and "-".join([
+				cstr(ref_d.label), cstr(ref_d.fieldtype),
+				cstr(ref_d.fieldname)]) or None
 			d.select_property = self.defaults[prop]['label']
 			if delete: d.delete = 1
 			
@@ -321,7 +330,12 @@ class DocType:
 		if self.doc.doc_type:
 			webnotes.conn.sql("""
 				DELETE FROM `tabProperty Setter`
-				WHERE doc_type = %s""", self.true_doctype)
+				WHERE doc_type = %s""", self.doc.doc_type)
+		
+			from webnotes.utils.cache import CacheItem
+			CacheItem(self.doc.doc_type).clear()
+			CacheItem('tags-' + self.doc.doc_type).clear()
+
 		self.get()
 
 	def remove_forbidden(self, string):
@@ -331,24 +345,3 @@ class DocType:
 		forbidden = ['%', "'", '"', '#', '*', '?', '`']
 		for f in forbidden:
 			string.replace(f, ' ')
-
-
-	def get_doctype_list(self):
-		"""
-			Returns a list of doctypes allowed to be customized
-		"""
-		res = webnotes.conn.sql("""\
-			SELECT name FROM `tabDocType`
-			WHERE (module IN 
-			("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", 
-			"Selling", "Stock", "Support") OR name IN ("Contact", "Address")) 
-			AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0
-		""")
-
-		from webnotes.utils import get_doctype_label
-		dt_label_dict = get_doctype_label()
-	
-		doctype_list = res and [dt_label_dict.get(r[0], r[0]) for r in res] or []
-		doctype_list.sort()
-	
-		return {'doctype_list': doctype_list}

@@ -3,59 +3,59 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-12-21 11:07:56',
+		'creation': '2011-11-24 15:24:03',
 		'docstatus': 0,
-		'modified': '2012-01-25 17:14:46',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-13 11:15:54',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1326273643',
-		'autoname': 'DL.####',
-		'colour': 'White:FFF',
+		'_last_update': u'1327492055',
+		'autoname': u'DL.####',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'hide_toolbar': 0,
 		'issingle': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'search_fields': 'doc_type',
-		'section_style': 'Simple',
+		'search_fields': u'doc_type',
+		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 106
+		'version': 108
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'DocLayer',
-		'parentfield': 'fields',
-		'parenttype': 'DocType'
+		'parent': u'DocLayer',
+		'parentfield': u'fields',
+		'parenttype': u'DocType'
 	},
 
 	# These values are common for all DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'DocLayer',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'DocLayer',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'read': 1,
-		'role': 'System Manager'
+		'role': u'System Manager'
 	},
 
 	# DocType, DocLayer
 	{
 		'doctype': 'DocType',
-		'name': 'DocLayer'
+		'name': u'DocLayer'
 	},
 
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 0,
 		'write': 1
 	},
@@ -63,164 +63,165 @@
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 1,
 		'write': 1
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'permlevel': 2
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'doc_type',
-		'fieldtype': 'Select',
+		'doctype': u'DocField',
+		'fieldname': u'doc_type',
+		'fieldtype': u'Select',
 		'hidden': 0,
-		'label': 'Select Form Type',
+		'label': u'Select Form Type',
+		'options': u'link:DocType\n(module IN  ("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", "Selling", "Stock", "Support") OR name IN ("Contact", "Address")) AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'label': 'Properties',
+		'doctype': u'DocField',
+		'fieldtype': u'Section Break',
+		'label': u'Properties',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'description': 'E.g.<br />\nBased on field - <b>field:customer_name</b><br />\nBased on number series: <b>TRN.####</b>',
-		'doctype': 'DocField',
-		'fieldname': 'autoname',
-		'fieldtype': 'Data',
+		'description': u'E.g.<br />\nBased on field - <b>field:customer_name</b><br />\nBased on number series: <b>TRN.####</b>',
+		'doctype': u'DocField',
+		'fieldname': u'autoname',
+		'fieldtype': u'Data',
 		'hidden': 1,
-		'label': 'Auto Name',
+		'label': u'Auto Name',
 		'permlevel': 2
 	},
 
 	# DocField
 	{
-		'description': 'Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box',
-		'doctype': 'DocField',
-		'fieldname': 'search_fields',
-		'fieldtype': 'Data',
-		'label': 'Search Fields',
+		'description': u'Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box',
+		'doctype': u'DocField',
+		'fieldname': u'search_fields',
+		'fieldtype': u'Data',
+		'label': u'Search Fields',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'description': 'Fields separated by comma (,) will be set as tags',
-		'doctype': 'DocField',
-		'fieldname': 'tag_fields',
-		'fieldtype': 'Data',
-		'label': 'Tag Fields',
+		'description': u'Fields separated by comma (,) will be set as tags',
+		'doctype': u'DocField',
+		'fieldname': u'tag_fields',
+		'fieldtype': u'Data',
+		'label': u'Tag Fields',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'default_print_format',
-		'fieldtype': 'Link',
-		'label': 'Default Print Format',
-		'options': 'Print Format',
+		'doctype': u'DocField',
+		'fieldname': u'default_print_format',
+		'fieldtype': u'Link',
+		'label': u'Default Print Format',
+		'options': u'Print Format',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'description': 'Load Print View on opening of an existing form',
-		'doctype': 'DocField',
-		'fieldname': 'read_only_onload',
-		'fieldtype': 'Check',
-		'label': 'Show Print First',
+		'description': u'Load Print View on opening of an existing form',
+		'doctype': u'DocField',
+		'fieldname': u'read_only_onload',
+		'fieldtype': u'Check',
+		'label': u'Show Print First',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'allow_print',
-		'fieldtype': 'Check',
-		'label': 'Hide Print',
+		'doctype': u'DocField',
+		'fieldname': u'allow_print',
+		'fieldtype': u'Check',
+		'label': u'Hide Print',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'allow_email',
-		'fieldtype': 'Check',
-		'label': 'Hide Email',
+		'doctype': u'DocField',
+		'fieldname': u'allow_email',
+		'fieldtype': u'Check',
+		'label': u'Hide Email',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'allow_copy',
-		'fieldtype': 'Check',
-		'label': 'Hide Copy',
+		'doctype': u'DocField',
+		'fieldname': u'allow_copy',
+		'fieldtype': u'Check',
+		'label': u'Hide Copy',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'description': 'Note: maximum attachment size = 1mb',
-		'doctype': 'DocField',
-		'fieldname': 'allow_attach',
-		'fieldtype': 'Check',
-		'label': 'Allow Attach',
+		'description': u'Note: maximum attachment size = 1mb',
+		'doctype': u'DocField',
+		'fieldname': u'allow_attach',
+		'fieldtype': u'Check',
+		'label': u'Allow Attach',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'depends_on': 'eval:doc.allow_attach',
-		'doctype': 'DocField',
-		'fieldname': 'max_attachments',
-		'fieldtype': 'Int',
-		'label': 'Max Attachments',
+		'depends_on': u'eval:doc.allow_attach',
+		'doctype': u'DocField',
+		'fieldname': u'max_attachments',
+		'fieldtype': u'Int',
+		'label': u'Max Attachments',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'description': 'Customize Label, Print Hide, Default etc.',
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'label': 'Fields',
+		'description': u'Customize Label, Print Hide, Default etc.',
+		'doctype': u'DocField',
+		'fieldtype': u'Section Break',
+		'label': u'Fields',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'default': 'no add rows',
-		'doctype': 'DocField',
-		'fieldname': 'fields',
-		'fieldtype': 'Table',
-		'label': 'Fields',
-		'options': 'DocLayerField',
+		'default': u'no add rows',
+		'doctype': u'DocField',
+		'fieldname': u'fields',
+		'fieldtype': u'Table',
+		'label': u'Fields',
+		'options': u'DocLayerField',
 		'permlevel': 1
 	}
 ]

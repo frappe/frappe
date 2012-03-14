@@ -72,9 +72,68 @@ class DocType:
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.dt)
 
+		# create property setter to emulate insert after
+		self.create_property_setter()
+
 		from webnotes.utils.cache import CacheItem
 		CacheItem(self.doc.dt).clear()
 
 	def on_trash(self):
-		pass
 		# delete property setter entries
+		webnotes.conn.sql("""\
+			DELETE FROM `tabProperty Setter`
+			WHERE doc_type = %s
+			AND (doc_name = %s
+			OR (property = 'previous_field' AND value = %s))""",
+				(self.doc.dt, self.doc.name, self.doc.name))
+
+		from webnotes.utils.cache import CacheItem
+		CacheItem(self.doc.dt).clear()
+
+	def create_property_setter(self):
+		idx_label_list, field_list = get_fields_label(self.doc.dt, 0)
+		label_index = idx_label_list.index(self.doc.insert_after)
+		if label_index==-1: return
+
+		prev_field = field_list[label_index]
+		webnotes.conn.sql("""\
+			DELETE FROM `tabProperty Setter`
+			WHERE doc_type = %s
+			AND doc_name = %s
+			AND property = 'previous_field'""", (self.doc.dt, self.doc.name))
+		ps = Document('Property Setter', fielddata = {
+			'doctype_or_field': 'DocField',
+			'doc_type': self.doc.dt,
+			'doc_name': self.doc.name,
+			'property': 'previous_field',
+			'value': prev_field,
+			'property_type': 'Data',
+			'select_doctype': self.doc.dt
+		})
+		ps.save(1)
+
+
+@webnotes.whitelist()
+def get_fields_label(dt=None, form=1):
+	"""
+		if form=1: Returns a string of field labels separated by \n
+		if form=0: Returns lists of field labels and field names
+	"""
+	import webnotes
+	from webnotes.utils import cstr
+	import webnotes.model.doctype
+	
+	if not dt: dt = webnotes.form_dict.get('doctype')
+	if not dt: return ""
+	
+	doclist = webnotes.model.doctype.get(dt, form=0)
+	docfields = sorted((d for d in doclist if d.doctype=='DocField'),
+			key=lambda d: d.idx)
+	idx_label_list = ("-".join([cstr(d.idx), cstr(d.label)]) for d in docfields)
+	if form:
+		return "\n".join(idx_label_list)
+	else:
+		# return idx_label_list, field_list
+		field_list = [cstr(d.name) for d in docfields]
+		return list(idx_label_list), field_list
+
