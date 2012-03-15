@@ -139,6 +139,3 @@ backup_link_path = '/var/www/wnframework/backups'
 # url to be emailed to the "System Manager" Role to download
 # the backup
 backup_url = 'http://localhost/backups'
-
-# System TimeZone (should be acceptable by pytz: Recommended format Continent/City)
-system_timezone = 'Asia/Kolkata'

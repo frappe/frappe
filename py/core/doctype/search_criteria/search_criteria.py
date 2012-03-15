@@ -47,7 +47,9 @@ class DocType:
 			webnotes.conn.set(self.doc,'module',doctype_module and doctype_module[0][0] or 'NULL')
 
 	def validate(self):
-		if webnotes.conn.sql("select name from `tabSearch Criteria` where criteria_name=%s and name!=%s", (self.doc.criteria_name, self.doc.name)):
+		if webnotes.conn.sql("select name from `tabSearch Criteria` where \
+				criteria_name=%s and name!=%s", (self.doc.criteria_name,
+					self.doc.name)):
 			webnotes.msgprint("Criteria Name '%s' already used, please use another name" % self.doc.criteria_name, raise_exception = 1)
 
 	def on_update(self):
