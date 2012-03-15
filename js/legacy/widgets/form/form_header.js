@@ -60,36 +60,36 @@ _f.FrmHeader.prototype.refresh= function() {
 		if(!cur_frm.editable)
 				this.page_head.add_button('Edit', function() { 
 					cur_frm.edit_doc();
-				}, 1, 'ui-icon-document', 1
+				}, 1, 'icon-pencil', 1
 			);
 		else
 			this.page_head.add_button('Print View', function() { 
 				cur_frm.is_editable[cur_frm.docname] = 0;				
-				cur_frm.refresh(); }, 1, 'ui-icon-document' );	
+				cur_frm.refresh(); }, 1, 'icon-print' );	
 	}
 
 	
 	// Save
 	if(cur_frm.editable && cint(cur_frm.doc.docstatus)==0 && p[WRITE])
-		this.page_head.add_button('Save', function() { cur_frm.save('Save');}, 1, 'ui-icon-disk',1);
+		this.page_head.add_button('Save', function() { cur_frm.save('Save');}, 1, 'icon-ok',1);
 	
 	// Submit
 	if(cint(cur_frm.doc.docstatus)==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
-		this.page_head.add_button('Submit', function() { cur_frm.savesubmit(); }, 0, 'ui-icon-locked');
+		this.page_head.add_button('Submit', function() { cur_frm.savesubmit(); }, 0, 'icon-lock');
 
 	// Update after sumit
 	if(cint(cur_frm.doc.docstatus)==1 && p[SUBMIT]) {
-		this.update_btn = this.page_head.add_button('Update', function() { cur_frm.saveupdate(); }, 1, 'ui-icon-disk', 1);
+		this.update_btn = this.page_head.add_button('Update', function() { cur_frm.saveupdate(); }, 1, 'icon-ok', 1);
 		if(!cur_frm.doc.__unsaved) $dh(this.update_btn);
 	}
 	
 	// Cancel
 	if(cint(cur_frm.doc.docstatus)==1  && p[CANCEL])
-		this.page_head.add_button('Cancel', function() { cur_frm.savecancel() }, 0, 'ui-icon-closethick');
+		this.page_head.add_button('Cancel', function() { cur_frm.savecancel() }, 0, 'icon-remove');
 
 	// Amend
 	if(cint(cur_frm.doc.docstatus)==2  && p[AMEND])
-		this.page_head.add_button('Amend', function() { cur_frm.amend_doc() }, 0, 'ui-icon-scissors');
+		this.page_head.add_button('Amend', function() { cur_frm.amend_doc() }, 0, 'icon-pencil');
 
 }
 
@@ -199,10 +199,16 @@ _f.FrmHeader.prototype.set_save_submit_color = function(doc) {
 	if(cint(doc.docstatus)==0 && submit_btn && save_btn) {
 		if(cint(doc.__unsaved)) {
 			$(save_btn).addClass('btn-info');
+			$(save_btn).find('i').addClass('icon-white');
+
 			$(submit_btn).removeClass('btn-info');
+			$(submit_btn).find('i').removeClass('icon-white');
 		} else {
 			$(submit_btn).addClass('btn-info');
+			$(submit_btn).find('i').addClass('icon-white');
+
 			$(save_btn).removeClass('btn-info');
+			$(save_btn).find('i').removeClass('icon-white');
 		}
 	}
 }

@@ -38,6 +38,7 @@ def get(arg=None):
 	fields = json.loads(data['fields'])
 	tables = ['`tab' + data['doctype'] + '`']
 	conditions = [tables[0] + '.docstatus < 2']
+	# add table explict to field
 	joined = [tables[0]]
 	
 	# make conditions from filters
@@ -46,7 +47,14 @@ def get(arg=None):
 		if not tname in tables:
 			tables.append(tname)
 		
-		conditions.append(tname + '.' + f[1] + " " + f[2] + " '" + f[3].replace("'", "\'") + "'")	
+		# prepare in condition
+		if f[2]=='in':
+			opts = ["'" + t.strip().replace("'", "\'") + "'" for t in f[3].split(',')]
+			f[3] = "(" + ', '.join(opts) + ")"
+		else:
+			f[3] = "'" + f[3].replace("'", "\'") + "'"	
+		
+		conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
 		
 		if not tname in joined:
 			conditions.append(tname + '.parent = ' + tables[0] + '.name')
@@ -62,3 +70,64 @@ def get(arg=None):
 		order by %(order_by)s
 		limit %(limit_start)s, %(limit_page_length)s""" % data
 	return webnotes.conn.sql(query, as_dict=1)
+	
+@webnotes.whitelist()
+def delete_items():
+	"""delete selected items"""
+	import json
+	from webnotes.model import delete_doc
+	from webnotes.model.code import get_obj
+
+	il = json.loads(webnotes.form_dict.get('items'))
+	doctype = webnotes.form_dict.get('doctype')
+	
+	for d in il:
+		dt_obj = get_obj(doctype, d)
+		if hasattr(dt_obj, 'on_trash'):
+			dt_obj.on_trash()
+		delete_doc(doctype, d)
+		
+@webnotes.whitelist()
+def get_stats():
+	"""get tag info"""
+	import json
+	tags = json.loads(webnotes.form_dict.get('stats'))
+	doctype = webnotes.form_dict['doctype']
+	
+	stats = {}
+	
+	for tag in tags:
+		tagcount = webnotes.conn.sql("""select %(tag)s, count(*) 
+			from `tab%(doctype)s` 
+			where ifnull(%(tag)s, '')!=''
+			group by %(tag)s;""" % locals(), as_list=1)
+			
+		if tag=='_user_tags':
+			stats[tag] = scrub_user_tags(tagcount)
+		else:
+			stats[tag] = tagcount
+			
+	return stats
+
+def scrub_user_tags(tagcount):
+	"""rebuild tag list for tags"""
+	rdict = {}
+	tagdict = dict(tagcount)
+	for t in tagdict:
+		alltags = t.split(',')
+		for tag in alltags:
+			if tag:
+				if not tag in rdict:
+					rdict[tag] = 0
+			
+				rdict[tag] += tagdict[t]
+	
+	rlist = []
+	for tag in rdict:
+		rlist.append([tag, rdict[tag]])
+	
+	return rlist
+	
+
+		
+		

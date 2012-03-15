@@ -24,3 +24,9 @@ wn.provide('wn.model');
 
 wn.model.no_value_type = ['Section Break', 'Column Break', 'HTML', 'Table', 
  	'Button', 'Image'];
+
+wn.model.can_delete = function(doctype) {
+	if(!doctype) return false;
+	return locals.DocType[doctype].allow_trash && 
+		wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
+}

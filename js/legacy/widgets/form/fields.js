@@ -115,8 +115,7 @@ Field.prototype.set_description = function() {
 	if(this.df.description) {
 		// parent
 		var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) ? this.label_area : this.wrapper;
-
-		this.desc_area = $a(p, 'div', 'field_description', '', this.df.description)			
+		this.desc_area = $a(p, 'div', 'help', '', this.df.description)			
 
 		// padding on the bottom
 		if(in_list(['Text Editor', 'Code'], this.df.fieldtype))

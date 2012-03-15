@@ -40,8 +40,6 @@
 
 //   no_result_message ("No result")
 
-//   show_grid [false]
-
 //   page_length (20)
 //   hide_refresh (False)
 //   new_doctype
@@ -63,8 +61,13 @@ wn.ui.Listing = Class.extend({
 		}
 	},
 	prepare_opts: function() {
-		if(this.opts.new_doctype)
-			this.opts.new_doctype = get_doctype_label(this.opts.new_doctype);
+		if(this.opts.new_doctype) {
+			if(wn.boot.profile.can_read.indexOf(this.opts.new_doctype)==-1) {
+				this.opts.new_doctype = null;
+			} else {
+				this.opts.new_doctype = get_doctype_label(this.opts.new_doctype);				
+			}
+		}
 		if(!this.opts.no_result_message) {
 			this.opts.no_result_message = 'Nothing to show'
 		}
@@ -73,31 +76,12 @@ wn.ui.Listing = Class.extend({
 		if(opts) {
 			this.opts = opts;
 		}
-		$.extend(this, this.opts);
 		this.prepare_opts();
+		$.extend(this, this.opts);
 		
 		$(this.parent).html(repl('\
 			<div class="wnlist">\
-				<div class="btn-group hide select-view" style="float: right;">\
-					<a class="btn btn-small btn-info btn-list">\
-						<i class="icon-list icon-white"></i> List</a>\
-					<a class="btn btn-small btn-grid">\
-						<i class="icon-th"></i> Grid</a>\
-				</div>\
-				\
 				<h3 class="title hide">%(title)s</h3>\
-				<div style="height: 37px;" class="list-toolbar-wrapper">\
-					<div class="list-toolbar" style="float: left;">\
-						<a class="btn btn-small btn-refresh btn-info">\
-							<i class="icon-refresh icon-white"></i> Refresh</a>\
-						<a class="btn btn-small btn-new">\
-							<i class="icon-plus"></i> New %(new_doctype)s</a>\
-						<a class="btn btn-small btn-filter">\
-							<i class="icon-search"></i> Filter</a>\
-					</div>\
-					<img src="lib/images/ui/button-load.gif" \
-						class="img-load"/>\
-				</div>\
 				\
 				<div class="list-filters hide">\
 					<div class="show_filters well">\
@@ -108,6 +92,19 @@ wn.ui.Listing = Class.extend({
 						</div>\
 					</div>\
 				</div>\
+				\
+				<div style="height: 37px;" class="list-toolbar-wrapper">\
+					<div class="list-toolbar">\
+						<a class="btn btn-small btn-refresh btn-info">\
+							<i class="icon-refresh icon-white"></i> Refresh</a>\
+						<a class="btn btn-small btn-new">\
+							<i class="icon-plus"></i> New</a>\
+						<a class="btn btn-small btn-filter">\
+							<i class="icon-search"></i> Filter</a>\
+					</div>\
+					<img src="lib/images/ui/button-load.gif" \
+						class="img-load" style="float: left;"/>\
+				</div><div style="clear:both"></div>\
 				\
 				<div class="no-result help hide">\
 					%(no_result_message)s\
@@ -126,6 +123,10 @@ wn.ui.Listing = Class.extend({
 		this.$w = $(this.parent).find('.wnlist');
 		this.set_events();
 		this.make_filters();
+	},
+	add_button: function(html, onclick, before) {
+		$(html).click(onclick).insertBefore(this.$w.find('.list-toolbar ' + before));
+		this.btn_groupify();
 	},
 	show_view: function($btn, $div, $btn_unsel, $div_unsel) {
 		$btn_unsel.removeClass('btn-info');
@@ -147,18 +148,6 @@ wn.ui.Listing = Class.extend({
 		// next page
 		this.$w.find('.btn-more').click(function() {
 			me.run({append: true });
-		});
-		
-		// show list view
-		this.$w.find('.btn-list').click(function() {
-			me.show_view($(this), me.$w.find('.result-list'),
-				me.$w.find('.btn-grid'), me.$w.find('.result-grid'))
-		});
-
-		// show grid view
-		this.$w.find('.btn-grid').click(function() {
-			me.show_view($(this), me.$w.find('.result-grid'),
-				me.$w.find('.btn-list'), me.$w.find('.result-list'))
 		});
 		
 		// title
@@ -184,19 +173,17 @@ wn.ui.Listing = Class.extend({
 		if(this.hide_refresh || this.no_refresh) {
 			this.$w.find('.btn-refresh').remove();			
 		}
-		
-		// toggle-view
-		if(this.show_grid) {
-			this.$w.find('.select-view').toggle(true);
-		}
-		
+			
 		// btn group only if more than 1 button
-		if(this.$w.find('.list-toolbar a').length>1) {
+		this.btn_groupify();
+	},
+	btn_groupify: function() {
+		var nbtns = this.$w.find('.list-toolbar a').length;
+		if(nbtns > 1) {
 			this.$w.find('.list-toolbar').addClass('btn-group')
-		}
-		
-		// hide toolbar if nothing to show
-		if(this.$w.find('.list-toolbar a[hidden!="hidden"]').length==0) {
+		}		
+
+		if(nbtns == 0) {
 			this.$w.find('.list-toolbar-wrapper').toggle(false);
 		}
 	},
@@ -228,17 +215,20 @@ wn.ui.Listing = Class.extend({
 		if(!a1 && !(a0 && a0.append)) 
 			this.start = 0;		
 
-		me.$w.find('.img-load').toggle(true);
+		me.set_working(true);
 		wn.call({
 			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
 			args: this.get_call_args(),
 			callback: function(r) { 
-				me.$w.find('.img-load').toggle(false);
+				me.set_working(false);
 				me.render_results(r) 
 			},
 			no_spinner: this.opts.no_loading,
 			btn: this.run_btn
 		});
+	},
+	set_working: function(flag) {
+		this.$w.find('.img-load').toggle(flag);
 	},
 	get_call_args: function() {
 		// load query
@@ -276,9 +266,6 @@ wn.ui.Listing = Class.extend({
 		if(r.values && r.values.length) {
 			this.data = this.data.concat(r.values);
 			this.render_list(r.values);
-			if(this.show_grid) {
-				this.render_grid();				
-			}
 		} else {
 			if(this.start==0) {
 				this.$w.find('.result').toggle(false);
@@ -290,37 +277,7 @@ wn.ui.Listing = Class.extend({
 		if(this.onrun) this.onrun();
 		if(this.callback) this.callback(r);
 	},
-	render_grid: function() {
-		//this.gridid = wn.dom.set_unique_id()
-		if(this.columns[0].field!='_idx') {
-			this.columns = [{field:'_idx', name: 'Sr.', width: 40}].concat(this.columns);
-		}
-		$.each(this.columns, function(i, c) {
-			if(!c.id) c.id = c.field;
-		})
-		
-		// add sr in data
-		$.each(this.data, function(i, v) {
-			v._idx = i+1;
-		})
-		
-		wn.require('lib/js/lib/slickgrid/slick.grid.css');
-		wn.require('lib/js/lib/slickgrid/slick-default-theme.css');
-		wn.require('lib/js/lib/slickgrid/jquery.event.drag.min.js');
-		wn.require('lib/js/lib/slickgrid/slick.core.js');
-		wn.require('lib/js/lib/slickgrid/slick.grid.js');
-		
-		var options = {
-			enableCellNavigation: true,
-			enableColumnReorder: false
-		};		
-		grid = new Slick.Grid(this.$w.find('.result-grid')
-			.css('border', '1px solid grey')
-			.css('height', '500px')
-			.get(0), this.data, 
-			this.columns, options);
-	    
-	},
+
 	render_list: function(values) {		
 		var m = Math.min(values.length, this.page_length);
 		
@@ -351,6 +308,7 @@ wn.ui.Listing = Class.extend({
 
 wn.ui.FilterList = Class.extend({
 	init: function(opts) {
+		wn.require('lib/js/legacy/widgets/form/fields.js');
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
@@ -379,13 +337,18 @@ wn.ui.FilterList = Class.extend({
 			condition: condition,
 			value: value
 		}));
+		
+		// list must be expanded
+		if(fieldname) {
+			this.$w.find('.show_filters').slideDown();
+		}
 	},
 	
 	get_filters: function() {
 		// get filter values as dict
 		var values = [];
 		$.each(this.filters, function(i, f) {
-			if(f.filter_field)
+			if(f.field)
 				values.push(f.get_value());
 		})
 		return values;
@@ -395,9 +358,16 @@ wn.ui.FilterList = Class.extend({
 	update_filters: function() {
 		var fl = [];
 		$.each(this.filters, function(i, f) {
-			if(f.filter_field) fl.push(f);
+			if(f.field) fl.push(f);
 		})
 		this.filters = fl;
+	},
+	
+	get_filter: function(fieldname) {
+		for(var i in this.filters) {
+			if(this.filters[i].field.df.fieldname==fieldname)
+				return this.filters[i];
+		}
 	}
 });
 
@@ -421,13 +391,14 @@ wn.ui.Filter = Class.extend({
 			<option value=">=">Less or equals</option>\
 			<option value=">">Greater than</option>\
 			<option value="<">Less than</option>\
+			<option value="in">In</option>\
 			<option value="!=">Not equals</option>\
 		</select>\
 		<span class="filter_field"></span>\
 		<a class="close">&times;</a>\
 		</div>');
 		this.$w = this.flist.$w.find('.list_filter:last-child');
-		this.$select = this.$w.find('.fieldname_select');		
+		this.$select = this.$w.find('.fieldname_select');
 	},
 	make_options: function() {
 		if(this.filter_fields) {
@@ -450,8 +421,8 @@ wn.ui.Filter = Class.extend({
 
 		this.$w.find('a.close').bind('click', function() { 
 			me.$w.css('display','none');
-			var value = me.filter_field.get_value();
-			me.filter_field = null;
+			var value = me.field.get_value();
+			me.field = null;
 			if(!me.flist.get_filters().length) {
 				me.flist.$w.find('.set_filters').toggle(true);
 				me.flist.$w.find('.show_filters').toggle(false);
@@ -462,17 +433,35 @@ wn.ui.Filter = Class.extend({
 			me.flist.update_filters();
 			return false;
 		});
+
+		// add help for "in" codition
+		me.$w.find('.condition').change(function() {
+			if($(this).val()=='in') {
+				me.set_field(me.field.df.fieldname, 'Data');
+				if(!me.field.desc_area)
+					me.field.desc_area = $a(me.field.wrapper, 'span', 'help', null,
+						'values separated by comma');				
+			} else {
+				me.set_field(me.field.df.fieldname);				
+			}
+		});
 		
 		// set the field
 		if(me.fieldname) {
 			// presents given (could be via tags!)
-			me.set_field(me.fieldname);
-			if(me.condition) me.$w.find('.condition').val(me.condition)
-			if(me.value) me.filter_field.set_input(me.value)
+			this.set_values(me.fieldname, me.condition, me.value);
 		} else {
 			me.set_field('name');
-		}
+		}	
 
+	},
+	
+	set_values: function(fieldname, condition, value) {
+		// presents given (could be via tags!)
+		this.set_field(fieldname);
+		if(condition) this.$w.find('.condition').val(condition).change();
+		if(value) this.field.set_input(value)
+		
 	},
 	
 	render_field_select: function() {
@@ -520,46 +509,83 @@ wn.ui.Filter = Class.extend({
 		}
 	},
 	
-	set_field: function(fieldname) {
+	set_field: function(fieldname, fieldtype) {
 		var me = this;
+		
 		// set in fieldname (again)
-		me.$w.find('.fieldname_select').val(fieldname);
 
-		wn.require('lib/js/legacy/widgets/form/fields.js');
-		var field_area = me.$w.find('.filter_field').empty().get(0);
+		var cur_fieldtype = me.field ? me.field.df.fieldtype : null;
+		var cur_fieldname = me.field ? me.field.df.fieldname : null;
 
 		var df = me.fields_by_name[fieldname];
-		df.original_type = df.fieldtype;
-		df.description = '';
+		this.set_fieldtype(df, fieldtype);
+			
+		// called when condition is changed, 
+		// don't change if all is well
+		if(me.field && cur_fieldname == fieldname && df.fieldtype == cur_fieldtype) {
+			return;
+		}
+		
+		// clear field area and make field
+		me.$w.find('.fieldname_select').val(fieldname);
+		var field_area = me.$w.find('.filter_field').empty().get(0);
+		f = make_field(df, null, field_area, null, 0, 1);
+		f.df.single_select = 1;
+		f.not_in_form = 1;
+		f.with_label = 0;
+		f.refresh();
+		me.field = f;
+		
+		this.set_default_condition(df, fieldtype);
+		
+		$(me.field.wrapper).find(':input').keydown(function(ev) {
+			if(ev.which==13) {
+				me.flist.listobj.run();
+			}
+		})
+	},
+	
+	set_fieldtype: function(df, fieldtype) {
+		// reset
+		if(df.original_type)
+			df.fieldtype = df.original_type;
+		else
+			df.original_type = df.fieldtype;
+			
+		df.description = ''; df.reqd = 0;
+		
+		// given
+		if(fieldtype) {
+			df.fieldtype = fieldtype;
+			return;
+		} 
+		
+		// scrub
 		if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
 		} else if(['Text','Text Editor','Code','Link'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';				
 		}
-
-		f = make_field(me.fields_by_name[fieldname], null, field_area, null, 0, 1);
-		f.df.single_select = 1;
-		f.not_in_form = 1;
-		f.with_label = 0;
-		f.refresh();
-		
-		me.filter_field = f;
-		
-		// set as "like" for data fields
-		if(df.fieldtype=='Data') {
-			me.$w.find('.condition').val('like');
-		} else {
-			me.$w.find('.condition').val('=');
-		}
+	},
+	
+	set_default_condition: function(df, fieldtype) {
+		if(!fieldtype) {
+			// set as "like" for data fields
+			if(df.fieldtype=='Data') {
+				this.$w.find('.condition').val('like');
+			} else {
+				this.$w.find('.condition').val('=');
+			}			
+		}		
 	},
 	
 	get_value: function() {
 		var me = this;
-		var val = me.filter_field.get_value();
+		var val = me.field.get_value();
 		var cond = me.$w.find('.condition').val();
 		
-		if(me.filter_field.df.original_type == 'Check') {
+		if(me.field.df.original_type == 'Check') {
 			val = (val=='Yes' ? 1 :0);
 		}
 		
@@ -568,7 +594,7 @@ wn.ui.Filter = Class.extend({
 		}
 		
 		return [me.$w.find('.fieldname_select option:selected').attr('table'), 
-			me.filter_field.df.fieldname, me.$w.find('.condition').val(), val];
+			me.field.df.fieldname, me.$w.find('.condition').val(), val];
 	}
 
 });
