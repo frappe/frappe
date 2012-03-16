@@ -141,8 +141,9 @@ def rename(dt, old, new, is_doctype = 0):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link" or "Select" with "link:"
 	"""
-	sql = webnotes.conn.sql
+	import webnotes.utils
 
+	sql = webnotes.conn.sql
 	# rename doc
 	sql("update `tab%s` set name='%s' where name='%s'" % (dt, new, old))
 
@@ -150,16 +151,20 @@ def rename(dt, old, new, is_doctype = 0):
 	ct = sql("select options from tabDocField where parent = '%s' and fieldtype='Table'" % dt)
 	for c in ct:
 		sql("update `tab%s` set parent='%s' where parent='%s'" % (c[0], new, old))
+	
+	# if dt is a child table of another dt
+	sql("update `tabDocField` set options = '%s' where options = '%s' and fieldtype = 'Table'" % (new, old))
 
 	# get links (link / select)
 	ll = get_link_fields(dt)
-	for l in ll:
-		is_single = sql("select issingle from tabDocType where name = '%s'" % l[0])
-		is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
-		if is_single:
-			sql("update `tabSingles` set value='%s' where field='%s' and value = '%s' and doctype = '%s' " % (new, l[1], old, l[0]))
-		else:
-			sql("update `tab%s` set `%s`='%s' where `%s`='%s'" % (l[0], l[1], new, l[1], old))
+	update_link_fld_values(ll, old, new)
+	
+	# update options and values where select options contains old dt
+	select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select'" % old)
+	update_link_fld_values(select_flds, old, new)
+	
+	sql("update `tabDocField` set options = replace(options, '%s', '%s') where options like '%%%s%%'" % (old, new, old))
+
 
 	# doctype
 	if is_doctype:
@@ -169,6 +174,18 @@ def rename(dt, old, new, is_doctype = 0):
 		ct = sql("select options from tabDocField where parent = '%s' and fieldtype='Table'" % new)
 		for c in ct:
 			sql("update `tab%s` set parenttype='%s' where parenttype='%s'" % (c[0], new, old))
+
+
+
+def update_link_fld_values(flds, old, new):
+	for l in flds:
+		is_single = sql("select issingle from tabDocType where name = '%s'" % l[0])
+		is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
+		if is_single:
+			sql("update `tabSingles` set value='%s' where field='%s' and value = '%s' and doctype = '%s' " % (new, l[1], old, l[0]))
+		else:
+			sql("update `tab%s` set `%s`='%s' where `%s`='%s'" % (l[0], l[1], new, l[1], old))
+
 
 #=================================================================================
 
