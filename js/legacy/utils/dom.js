@@ -94,7 +94,6 @@ function $ln(parent, label, onclick, style) {
 }
 
 function $btn(parent, label, onclick, style, css_class, is_ajax) {
-	wn.require('lib/js/wn/ui/button.js');
 	if(css_class==='green') css_class='btn-info';
 	return new wn.ui.Button(
 		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
@@ -321,14 +320,7 @@ function $yt(tab, r, c, s) { /// set style on tables with wildcards
 // add css classes etc
 
 function set_style(txt) {
-	var se = document.createElement('style');
-	se.type = "text/css";
-	if (se.styleSheet) {
-		se.styleSheet.cssText = txt;
-	} else {
-		se.appendChild(document.createTextNode(txt));
-	}
-	document.getElementsByTagName('head')[0].appendChild(se);	
+	wn.dom.set_style(txt);
 }
 
 // Make table

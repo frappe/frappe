@@ -30,7 +30,7 @@ _r.ReportContainer = function() {
 		msgprint("Not Allowed");
 		return;
 	}
-	this.wrapper = page_body.add_page("Report Builder", function() { });
+	this.wrapper = wn.container.add_page("Report Builder", function() { });
 	this.wrapper.className ='layout_wrapper';
 	var head_div = $a(this.wrapper, 'div');	
 	this.rb_area = $a(this.wrapper, 'div');
@@ -563,7 +563,7 @@ _r.ReportBuilder.prototype.validate_permissions = function(onload) {
 		} else {
 			msgprint('No Read Permission');
 		}
-		nav_obj.show_last_open();
+		window.back();
 		return 0;
 	}
 	return 1;

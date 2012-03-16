@@ -41,32 +41,37 @@
 
 wn.provide('_f');
 
+_f.frms = {};
 // called from table edit
 _f.edit_record = function(dt, dn) {
-	d = _f.frm_dialog;
-	
-	var show_dialog = function() {
-		var f = frms[dt];
-		if(f.meta.istable) {
-			f.parent_doctype = cur_frm.doctype;
-			f.parent_docname = cur_frm.docname;
-		}
-		
-		d.cur_frm = f;
-		d.dn = dn;
-		d.table_form = f.meta.istable;
-		
-		// show the form
-		f.refresh(dn);
+	if(!_f.frm_dialog) {
+		// make by twin
+		_f.frm_dialog = new _f.FrmDialog();		
 	}
+	var d = _f.frm_dialog;
+	
+	wn.model.with_doctype(dt, function() {
+		wn.model.with_doc(dt, dn, function(dn) {
+			// load
+			if(!_f.frms[dt]) {
+				_f.frms[dt] = new _f.Frm(dt, d.body);
+			}
+			var f = _f.frms[dt];
+			if(f.meta.istable) {
+				f.parent_doctype = cur_frm.doctype;
+				f.parent_docname = cur_frm.docname;
+			}
 
-	// load
-	if(!frms[dt]) {
-		_f.add_frm(dt, show_dialog, null);
-	} else {
-		show_dialog();
-	}
-	
+			d.cur_frm = f;
+			d.dn = dn;
+			d.table_form = f.meta.istable;
+
+			// show the form
+			f.refresh(dn);
+			
+			d.dialog.show();				
+		})
+	})
 }
 
 _f.Frm = function(doctype, parent) {
@@ -85,8 +90,6 @@ _f.Frm = function(doctype, parent) {
 	this.parent = parent;
 	this.tinymce_id_list = [];
 	
-	frms[doctype] = this;
-
 	this.setup_meta(doctype);
 	
 	// notify on rename
@@ -95,6 +98,21 @@ _f.Frm = function(doctype, parent) {
 
 // ======================================================================================
 
+_f.Frm.prototype.check_doctype_conflict = function(docname) {
+	var me = this;
+	if(this.doctype=='DocType') {
+		if(wn.views.formview[docname]) {
+			msgprint("Cannot open DocType when its instance is open")
+			throw 'doctype open conflict'
+		}
+	} else {
+		if(wn.views.formview.DocType && wn.views.formview.DocType.frm.opendocs[this.doctype]) {
+			msgprint("Cannot open instance when its DocType is open")
+			throw 'doctype open conflict'
+		}		
+	}
+}
+
 _f.Frm.prototype.setup = function() {
 
 	var me = this;
@@ -102,7 +120,7 @@ _f.Frm.prototype.setup = function() {
 	this.fields_dict = {};
 
 	// wrapper
-	this.wrapper = $a(this.parent.body, 'div');
+	this.wrapper = this.parent;
 	
 	// create area for print fomrat
 	this.setup_print_layout();
@@ -134,7 +152,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	this.print_btn = $btn($td(t,0,0), 'Print', function() { cur_frm.print_doc() });
 
 	$y($td(t,0,1), {textAlign: 'right'});
-	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { nav_obj.show_last_open(); });
+	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { window.back(); });
 }
 
 
@@ -395,17 +413,6 @@ _f.Frm.prototype.setup_client_script = function() {
 
 // --------------------------------------------------------------------------------------
 
-// change the parent - deprecated
-_f.Frm.prototype.set_parent = function(parent) {
-	if(parent) {
-		this.parent = parent;
-		if(this.wrapper && this.wrapper.parentNode != parent)
-			parent.appendChild(this.wrapper);
-	}
-}
-
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.refresh_print_layout = function() {
 	$ds(this.print_wrapper);
 	$dh(this.page_layout.wrapper);
@@ -436,37 +443,16 @@ _f.Frm.prototype.refresh_print_layout = function() {
 }
 
 
-// SHOW!
-// ======================================================================================
-
-_f.Frm.prototype.hide = function() {
-	$dh(this.wrapper);
-	this.display = 0;
-}
 
 // --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.show_the_frm = function() {
-	// hide other (open) forms
-	if(this.parent.last_displayed && this.parent.last_displayed != this) {
-		this.parent.last_displayed.defocus_rest();
-		this.parent.last_displayed.hide();
-	}
-
-	// show the form
-	if(this.wrapper && this.wrapper.style.display.toLowerCase()=='none') {
-		$ds(this.wrapper);
-		this.display = 1;
-	}
-	
 	// show the dialog
 	if(this.meta.in_dialog && !this.parent.dialog.display) {
 		if(!this.meta.istable)
 			this.parent.table_form = false;
 		this.parent.dialog.show();
-	}
-	
-	this.parent.last_displayed = this;
+	}	
 }
 
 // --------------------------------------------------------------------------------------
@@ -479,7 +465,6 @@ _f.Frm.prototype.set_print_heading = function(txt) {
 _f.Frm.prototype.defocus_rest = function() {
 	// deselect others
 	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect();
-	cur_page = null;
 }
 
 // -------- Permissions -------
@@ -536,7 +521,7 @@ _f.Frm.prototype.check_doc_perm = function() {
 				return 1;
 			}
 		}
-		nav_obj.show_last_open();
+		window.back();
 		return 0;
 	}
 	return 1
@@ -629,15 +614,8 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 			this.runclientscript('edit_status_changed');
 		}
-		
-		// show the record
-		if(!this.display) this.show_the_frm();
-		
-		// show the page
-		if(!this.meta.in_dialog) page_body.change_to('Forms');
 
 		$(cur_frm.wrapper).trigger('render_complete');
-
 	} 
 }
 
@@ -768,6 +746,7 @@ _f.Frm.prototype.refresh_dependency = function() {
 // ======================================================================================
 
 _f.Frm.prototype.setnewdoc = function(docname) {
+	this.check_doctype_conflict(docname);
 
 	// if loaded
 	if(this.opendocs[docname]) { // already exists
@@ -1032,15 +1011,11 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 // ======================================================================================
 
 _f.Frm.prototype.reload_doc = function() {
-	var me = this;
-	if(frms['DocType'] && frms['DocType'].opendocs[me.doctype]) {
-		msgprint("error:Cannot refresh an instance of \"" + me.doctype+ "\" when the DocType is open.");
-		return;
-	}
+	this.check_doctype_conflict(this.docname);
 
+	var me = this;
 	var ret_fn = function(r, rtxt) {
-		// n tweets and last comment
-				
+		// n tweets and last comment				
 		me.runclientscript('setup', me.doctype, me.docname);
 		me.refresh();
 	}
@@ -1109,7 +1084,7 @@ _f.Frm.prototype.savetrash = function() {
 				if(wn.ui.toolbar.recent) wn.ui.toolbar.recent.remove(me.doctype, me.docname);
 				
 				// "close"
-				nav_obj.show_last_open();
+				window.back();
 			}
 		})
 	} 
@@ -1142,7 +1117,7 @@ _f.set_value = function(dt, dn, fn, v) {
 	var d = locals[dt][dn];
 
 	if(!d) {
-		errprint('error:Trying to set a value for "'+dt+','+dn+'" which is not found');
+		console.log('_f.set_value - '+ fn+': "'+dt+','+dn+'" not found');
 		return;
 	}
 
@@ -1152,11 +1127,11 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed) {
 		d[fn] = v;
 		d.__unsaved = 1;
-		var frm = frms[d.doctype];
+		var frm = wn.views.formview[d.doctype];
 		try {
 			if(d.parent && d.parenttype) {
 				locals[d.parenttype][d.parent].__unsaved = 1;
-				frm = frms[d.parenttype];
+				frm = wn.views.formview[d.parenttype];
 			}
 		} catch(e) {
 			if(d.parent && d.parenttype)

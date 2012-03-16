@@ -22,11 +22,49 @@
 
 wn.provide('wn.model');
 
-wn.model.no_value_type = ['Section Break', 'Column Break', 'HTML', 'Table', 
- 	'Button', 'Image'];
+wn.model = {
+	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 
+ 	'Button', 'Image'],
 
-wn.model.can_delete = function(doctype) {
-	if(!doctype) return false;
-	return locals.DocType[doctype].allow_trash && 
-		wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
+	with_doctype: function(doctype, callback) {
+		if(locals.DocType[doctype]) {
+			callback();
+		} else {
+			wn.call({
+				method:'webnotes.widgets.form.load.getdoctype',
+				args: {
+					doctype: doctype
+				},
+				callback: callback
+			});
+		}
+	},
+	
+	with_doc: function(doctype, name, callback) {
+		if(!name) name = doctype; // single type
+		if(locals[doctype] && locals[doctype][name]) {
+			callback(name);
+		} else {
+			if(name && name.indexOf('New ' + doctype) != -1) {
+				// newdoc
+				name = LocalDB.create(doctype);
+				callback(name);
+			} else {
+				wn.call({
+					method: 'webnotes.widgets.form.load.getdoc',
+					args: {
+						doctype: doctype,
+						name: name
+					},
+					callback: function(r) { callback(name); }
+				});
+			}
+		}
+	},
+
+	can_delete: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype].allow_trash && 
+			wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
+	}
 }

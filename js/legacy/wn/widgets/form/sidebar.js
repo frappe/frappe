@@ -45,7 +45,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return true; 
 						},
-						onclick: function() { window.location.href="#!List2/" + me.form.doctype }
+						onclick: function() { window.location.href="#!List/" + me.form.doctype }
 					},
 					
 					{

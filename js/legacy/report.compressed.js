@@ -3,7 +3,7 @@
  *	lib/js/legacy/widgets/report_builder/report_builder.js
  */
 _r.ReportContainer=function(){if(user=='Guest'){msgprint("Not Allowed");return;}
-this.wrapper=page_body.add_page("Report Builder",function(){});this.wrapper.className='layout_wrapper';var head_div=$a(this.wrapper,'div');this.rb_area=$a(this.wrapper,'div');$dh(this.wrapper);var me=this;this.rb_dict={};this.page_head=new PageHeader(head_div);$y(this.page_head.wrapper,{marginBottom:'0px'});var run_fn=function(){if(me.cur_rb){me.cur_rb.dt.start_rec=1;me.cur_rb.dt.run();}}
+this.wrapper=wn.container.add_page("Report Builder",function(){});this.wrapper.className='layout_wrapper';var head_div=$a(this.wrapper,'div');this.rb_area=$a(this.wrapper,'div');$dh(this.wrapper);var me=this;this.rb_dict={};this.page_head=new PageHeader(head_div);$y(this.page_head.wrapper,{marginBottom:'0px'});var run_fn=function(){if(me.cur_rb){me.cur_rb.dt.start_rec=1;me.cur_rb.dt.run();}}
 var runbtn=this.page_head.add_button('Run',run_fn,1,'ui-icon-circle-triangle-e',1);if(has_common(['Administrator','System Manager'],user_roles)){var savebtn=this.page_head.add_button('Save',function(){if(me.cur_rb)me.cur_rb.save_criteria();},0,'ui-icon-disk');var fn=function(){if(me.cur_rb){if(!me.cur_rb.current_loaded){msgprint("error:You must save the report before you can set Advanced features");return;}
 loaddoc('Search Criteria',me.cur_rb.sc_dict[me.cur_rb.current_loaded]);}};var advancedbtn=this.page_head.add_button('Advanced Settings',fn);}
 this.set_dt=function(dt,onload){my_onload=function(f){if(!f.forbidden){me.cur_rb=f;me.cur_rb.mytabs.items['Result'].expand();if(onload)onload(f);}}
@@ -60,7 +60,7 @@ me.set_sort_options();}
 _r.ReportBuilder.prototype.set_sort_options=function(l){var sl=this.orig_sort_list;empty_select(this.dt.sort_sel);if(l)sl=add_lists(l,this.orig_sort_list);if(!l)l=[];if(!l.length){l.push(['ID','name'])}
 for(var i=0;i<sl.length;i++){this.dt.add_sort_option(sl[i][0],sl[i][1]);}}
 _r.ReportBuilder.prototype.validate_permissions=function(onload){this.perm=get_perm(this.parent_dt?this.parent_dt:this.doctype);if(!this.perm[0][READ]){this.forbidden=1;if(user=='Guest'){msgprint('You must log in to view this page');}else{msgprint('No Read Permission');}
-nav_obj.show_last_open();return 0;}
+window.back();return 0;}
 return 1;}
 _r.ReportBuilder.prototype.setup_doctype=function(onload){var me=this;if(!locals['DocType'][this.doctype]){this.load_doctype_from_server(onload);}else{for(var key in locals.DocField){var f=locals.DocField[key];if(f.fieldtype=='Table'&&f.options==this.doctype)
 this.parent_dt=f.parent;}

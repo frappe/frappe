@@ -31,7 +31,7 @@ function errprint(t) {
 		border-bottom: 1px solid #AAA; overflow: auto; width: 90%;">'+t+'</pre>');
 }
 
-function setup_err_console() {
+$(document).bind('startup', function() {
 	err_console = new Dialog(640, 480, 'Error Console')
 	err_console.make_body([
 		['HTML', 'Error List']
@@ -57,6 +57,4 @@ function setup_err_console() {
 		err_console.rows['Error List'].innerHTML = '<div style="padding: 16px; height: 360px; width: 90%; overflow: auto;">' 
 			+ err_list.join('<div style="height: 10px; margin-bottom: 10px; border-bottom: 1px solid #AAA"></div>') + '</div>';
 	}
-}
-
-startup_list.push(setup_err_console);
+});

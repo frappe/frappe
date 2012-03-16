@@ -71,7 +71,7 @@ _f.FrmHeader.prototype.refresh= function() {
 	
 	// Save
 	if(cur_frm.editable && cint(cur_frm.doc.docstatus)==0 && p[WRITE])
-		this.page_head.add_button('Save', function() { cur_frm.save('Save');}, 1, 'icon-ok',1);
+		this.page_head.add_button('Save', function() { cur_frm.save('Save');}, 1, '',1);
 	
 	// Submit
 	if(cint(cur_frm.doc.docstatus)==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))

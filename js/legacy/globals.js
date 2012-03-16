@@ -31,7 +31,6 @@ var user_email=null;
 var user_img = {};
 var home_page=null;
 
-var page_body=null;
 var pscript = {};
 var selector=null; 
 

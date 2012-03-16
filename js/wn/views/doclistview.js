@@ -20,24 +20,26 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-wn.provide('wn.pages.doclistview');
+wn.provide('wn.views.doclistview');
 wn.provide('wn.doclistviews');
 
-wn.pages.doclistview.pages = {};
-wn.pages.doclistview.show = function(doctype) {
+wn.views.doclistview.pages = {};
+wn.views.doclistview.show = function(doctype) {
 	var pagename = doctype + ' List';
-	var page = wn.pages.doclistview.pages[pagename];
-	if(!page) {
-		var page = page_body.add_page(pagename);
-		page.doclistview = new wn.pages.DocListView(doctype, page);
-		wn.pages.doclistview.pages[pagename] = page;
-	}
-	
-	document.title = page.doclistview.label;
-	page_body.change_to(pagename);
+	wn.model.with_doctype(doctype, function() {
+		var page = wn.views.doclistview.pages[pagename];
+		if(!page) {
+			var page = wn.container.add_page(pagename);
+			page.doclistview = new wn.views.DocListView(doctype, page);
+			wn.views.doclistview.pages[pagename] = page;
+		}
+
+		document.title = page.doclistview.label;
+		wn.container.change_to(pagename);		
+	})
 }
 
-wn.pages.DocListView = wn.ui.Listing.extend({
+wn.views.DocListView = wn.ui.Listing.extend({
 	init: function(doctype, page) {
 		this.doctype = get_label_doctype(doctype);
 		this.$page = $(page);
@@ -45,7 +47,7 @@ wn.pages.DocListView = wn.ui.Listing.extend({
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	this.label : (this.label + ' List');
 		this.make_page();
-		this.load_doctype();
+		this.setup();
 	},
 	
 	make_page: function() {
@@ -69,22 +71,16 @@ wn.pages.DocListView = wn.ui.Listing.extend({
 		</div>', {label: this.label}));
 	},
 
-	load_doctype: function() {
+	setup: function() {
 		var me = this;
-		wn.call({
-			method: 'webnotes.widgets.form.load.getdoctype',
-			args: {doctype: me.doctype},
-			callback: function() {
-				me.can_delete = wn.model.can_delete(me.doctype);
-				me.meta = locals.DocType[me.doctype];
-				me.$page.find('.wnlist-area').empty(),
-				me.setup_docstatus_filter();
-				me.setup_listview();
-				me.init_list();
-				me.init_stats();
-				me.add_delete_option();
-			}
-		});
+		me.can_delete = wn.model.can_delete(me.doctype);
+		me.meta = locals.DocType[me.doctype];
+		me.$page.find('.wnlist-area').empty(),
+		me.setup_docstatus_filter();
+		me.setup_listview();
+		me.init_list();
+		me.init_stats();
+		me.add_delete_option();
 	},
 	setup_docstatus_filter: function() {
 		var me = this;
@@ -104,7 +100,7 @@ wn.pages.DocListView = wn.ui.Listing.extend({
 			eval(this.meta.__listjs);
 			this.listview = new wn.doclistviews[this.doctype](this);
 		} else {
-			this.listview = new wn.pages.ListView(this);
+			this.listview = new wn.views.ListView(this);
 		}
 		this.listview.parent = this;
 	},
@@ -281,7 +277,7 @@ wn.pages.DocListView = wn.ui.Listing.extend({
 	}
 });
 
-wn.pages.ListView = Class.extend({
+wn.views.ListView = Class.extend({
 	init: function(doclistview) {
 		this.doclistview = doclistview;
 		this.doctype = doclistview.doctype;

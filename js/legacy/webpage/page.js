@@ -52,7 +52,7 @@ function Page(page_name, content) {
 		cur_frm = null;
 	}
 
-	this.wrapper = page_body.add_page(page_name, this.page_show);
+	this.wrapper = wn.container.add_page(page_name, this.page_show);
 	this.cont = this.wrapper // bc
 
 	if(content)
@@ -85,7 +85,7 @@ function render_page(page_name, menuitem) {
 	}
 
 	// change
-	page_body.change_to(page_name);	
+	wn.container.change_to(page_name);	
 		
 	return p;
 }

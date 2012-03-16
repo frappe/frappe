@@ -28,10 +28,23 @@ wn.dom.by_id = function(id) {
 }
 
 wn.dom.eval = function(txt) {
+	if(!txt) return;
 	var el = document.createElement('script');
 	el.appendChild(document.createTextNode(txt));
 	// execute the script globally
 	document.getElementsByTagName('head')[0].appendChild(el);
+}
+
+wn.dom.set_style = function(txt) {
+	if(!txt) return;
+	var se = document.createElement('style');
+	se.type = "text/css";
+	if (se.styleSheet) {
+		se.styleSheet.cssText = txt;
+	} else {
+		se.appendChild(document.createTextNode(txt));
+	}
+	document.getElementsByTagName('head')[0].appendChild(se);	
 }
 
 wn.dom.add = function(parent, newtag, className, cs, innerHTML, onclick) {

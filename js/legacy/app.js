@@ -36,34 +36,44 @@ function startup() {
 		wn.control_panel = r.control_panel;
 	}
 	
-	var setup_history = function(r) {
-		rename_observers.push(nav_obj);
+	var setup_viewport = function() {
+		wn.container = new wn.views.Container();
+		
+		// toolbar
+		if(user=='Guest') 
+			user_defaults.hide_webnotes_toolbar = 1;
+		if(!cint(user_defaults.hide_webnotes_toolbar) || user=='Administrator') {
+			wn.container.wntoolbar = new wn.ui.toolbar.Toolbar();
+		}
+
+		// startup code
+		$(document).trigger('startup');
+		try{
+			if(wn.control_panel.custom_startup_code)
+				eval(wn.control_panel.custom_startup_code);
+		} catch(e) {
+			errprint(e);
+		}
+				
+		// open an existing page or record
+		var t = to_open();
+		if(t) {
+			wn.set_route(t);
+		} else if(home_page) {
+			loadpage(home_page);
+		}
+		wn.route();
+
+		$dh('startup_div');
+		$ds('body_div');
 	}
 	
 	var callback = function(r,rt) {
 		if(r.exc) console.log(r.exc);
 		setup_globals(r);
-		setup_history();
-
-		var a = new Body();
-		page_body.run_startup_code();
-		
-		for(var i=0; i<startup_list.length; i++) {
-			startup_list[i]();
-		}		
-		
-		// show a new form on loading?
-		
-		// open an existing page or record
-		var t = to_open();
-		if(t) {
-			historyChange(t);
-		} else if(home_page) {
-			// show home oage
-			loadpage(home_page);
-		}
-		page_body.ready();
+		setup_viewport();
 	}
+	
 	if(wn.boot) {
 		LocalDB.sync(wn.boot.docs);
 		callback(wn.boot, '');
