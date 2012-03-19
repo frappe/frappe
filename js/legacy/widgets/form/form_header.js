@@ -34,7 +34,7 @@ _f.FrmHeader = function(parent, frm) {
 	var div = $a(null, 'div', '', {marginBottom:'4px'}); 
 	
 	this.page_head.lhs.insertBefore(div, this.page_head.sub_head);
-	this.dn_area = $a(div, 'span', '', {fontSize:'14px', fontWeight:'normal', marginRight:'8px'})
+	this.dn_area = $a(div, 'span', '', {fontSize:'14px', fontWeight:'normal', marginRight:'8px', padding: '2px'})
 	
 	// status
 	this.status_area = $a(div, 'span', '', {marginRight:'8px', marginBottom:'2px', cursor:'pointer', textShadow:'none'})
@@ -118,11 +118,6 @@ _f.FrmHeader.prototype.refresh_toolbar = function() {
 	//this.refresh_comments();
 }
 
-/*_f.FrmHeader.prototype.refresh_comments = function() {
-	var n = cint(cur_frm.n_comments[cur_frm.doc.name]);
-	if(this.comment_btn && !cur_frm.doc.__islocal)
-		this.comment_btn.innerHTML = 'Comments ('+n+')';
-}*/
 
 // refresh heading and labels
 // -------------------------------------------------------------------
@@ -227,6 +222,10 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	this.dn_area.innerHTML = '';
 	if(!f.meta.issingle)
 		this.dn_area.innerHTML = f.docname;
+	
+	$(this.dn_area)
+		.removeClass('background-fade-in')
+		.css('background-color', '#ff8')
 
 	// get the doc
 	var doc = locals[f.doctype][f.docname];
@@ -244,5 +243,8 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	if(sl[1])t.appendChild(sl[1]);
 
 	// timestamp
-	this.timestamp_area.innerHTML = me.get_timestamp(doc);	
+	this.timestamp_area.innerHTML = me.get_timestamp(doc);
+	
+	setTimeout('$(cur_frm.frm_head.dn_area).addClass("background-fade-in")\
+	.css("background-color", "white")', 1500)
 }

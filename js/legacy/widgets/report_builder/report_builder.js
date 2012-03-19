@@ -30,13 +30,10 @@ _r.ReportContainer = function() {
 		msgprint("Not Allowed");
 		return;
 	}
-	this.wrapper = wn.container.add_page("Report Builder", function() { });
-	this.wrapper.className ='layout_wrapper';
+	this.wrapper = $a(wn.container.add_page("Report Builder"), 'div', 'layout-wrapper');
 	var head_div = $a(this.wrapper, 'div');	
 	this.rb_area = $a(this.wrapper, 'div');
-		
-	$dh(this.wrapper);
-	
+			
 	var me = this;
 	this.rb_dict = {};
 

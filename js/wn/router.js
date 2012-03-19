@@ -1,13 +1,8 @@
 // route urls to their virtual pages
 
 wn.route = function() {
-	var route = window.location.hash;
-	wn._cur_route = location.hash;
-
-	if(route.substr(0,1)=='#') route = route.substr(1);
-	if(route.substr(0,1)=='!') route = route.substr(1);	
-
-	route = $.map(route.split('/'), function(r) { return decodeURIComponent(r); });
+	wn._cur_route = window.location.hash;
+	route = wn.get_route();
 	
 	switch (route[0]) {
 		case "List":
@@ -25,6 +20,16 @@ wn.route = function() {
 		default:
 			wn.views.pageview.show(route[0]);
 	}
+}
+
+wn.get_route = function(route) {
+	if(!route)
+		route = window.location.hash;
+
+	if(route.substr(0,1)=='#') route = route.substr(1);
+	if(route.substr(0,1)=='!') route = route.substr(1);	
+
+	return $.map(route.split('/'), function(r) { return decodeURIComponent(r); });	
 }
 
 wn.set_route = function(route) {

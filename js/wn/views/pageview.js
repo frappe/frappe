@@ -33,6 +33,7 @@ wn.views.Page = Class.extend({
 		
 		this.pagedoc = locals.Page[this.name];
 		this.wrapper = wn.container.add_page(this.name);
+		this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
 		
 		// set content, script and style
 		this.wrapper.innerHTML = this.pagedoc.content;

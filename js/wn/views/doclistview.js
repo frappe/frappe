@@ -26,6 +26,7 @@ wn.provide('wn.doclistviews');
 wn.views.doclistview.pages = {};
 wn.views.doclistview.show = function(doctype) {
 	var pagename = doctype + ' List';
+	var doctype = get_label_doctype(doctype);
 	wn.model.with_doctype(doctype, function() {
 		var page = wn.views.doclistview.pages[pagename];
 		if(!page) {
@@ -41,7 +42,7 @@ wn.views.doclistview.show = function(doctype) {
 
 wn.views.DocListView = wn.ui.Listing.extend({
 	init: function(doctype, page) {
-		this.doctype = get_label_doctype(doctype);
+		this.doctype = doctype;
 		this.$page = $(page);
 		this.label = get_doctype_label(doctype);
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
