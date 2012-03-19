@@ -411,26 +411,27 @@ class Session:
 	def update(self):
 		"""extend session expiry"""
 		if webnotes.session['user'] != 'Guest':
+			self.check_expired()
 			webnotes.conn.sql("""update tabSessions set sessiondata=%s, user=%s, lastupdate=NOW() 
 				where sid=%s""" , (str(self.data['data']), self.data['user'], self.data['sid']))	
 
-			self.check_expired()
-
+	# check expired
+	# -------------
 	def check_expired(self):
 		"""expire non-guest sessions"""
 		exp_sec = webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '6:00:00'
 		
 		# set sessions as expired
 		try:
-			webnotes.conn.sql("""update tabSessions where TIMEDIFF(NOW(), lastupdate) > 
-				%s and sid!='Guest' SET `status`='Expired'""", exp_sec)
+			webnotes.conn.sql("""delete from tabSessions
+				where TIMEDIFF(NOW(), lastupdate) > TIME(%s) and sid!='Guest'""", exp_sec)
 		except Exception, e:
 			if e.args[0]==1054:
 				self.add_status_column()
-		
+
 		# clear out old sessions
 		webnotes.conn.sql("""delete from tabSessions where TIMEDIFF(NOW(), lastupdate) 
-			> '72:00:00' and sid!='Guest'""")
+			> TIME('72:00:00') and sid!='Guest'""")
 
 	def get_ipinfo(self):
 		import os
