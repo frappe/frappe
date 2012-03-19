@@ -129,7 +129,7 @@ class DocType:
 		"""
 		if self.doc.allow_attach:
 			import webnotes.model.doctype
-			temp_doclist = webnotes.model.doctype.get(self.doc.doctype, form=0)
+			temp_doclist = webnotes.model.doctype.get(self.doc.name, form=0)
 			if 'file_list' not in [d.fieldname for d in temp_doclist if \
 					d.doctype=='DocField']:
 				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)

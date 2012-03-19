@@ -262,7 +262,7 @@ class DocType:
 			#		for idoc in ([self.doc] + self.doclist):
 			#				if idoc.fields.get(prop) == (value - 1):
 			#					prop = 'previous_field'
-			#					value = idoc.name
+			#					value = idoc.fieldname
 			#					break
 			#	elif value == 1:
 			#		prop = 'previous_field'
@@ -274,11 +274,11 @@ class DocType:
 			d = Document('Property Setter')
 			d.doctype_or_field = ref_d.doctype=='DocField' and 'DocField' or 'DocType'
 			d.doc_type = self.doc.doc_type
-			d.doc_name = ref_d.name
+			d.field_name = ref_d.fieldname
 			d.property = prop
 			d.value = value
 			d.property_type = self.defaults[prop]['fieldtype']
-			d.default_value = self.defaults[prop]['default']
+			#d.default_value = self.defaults[prop]['default']
 			d.select_doctype = self.doc.doc_type
 			d.select_item = ref_d.label and "-".join([
 				cstr(ref_d.label), cstr(ref_d.fieldtype),
@@ -303,19 +303,12 @@ class DocType:
 			* Save the property setter doc in the list
 		"""
 		for d in ps_doclist:
-			# Check if the property setter doc already exists
-			res = webnotes.conn.sql("""
-				SELECT * FROM `tabProperty Setter`
+			# Delete existing property setter entry
+			webnotes.conn.sql("""
+				DELETE FROM `tabProperty Setter`
 				WHERE doc_type = %(doc_type)s
-				AND doc_name = %(doc_name)s
+				AND field_name = %(field_name)s
 				AND property = %(property)s""", d.fields)
-
-			if res and res[0][0]:
-				webnotes.conn.sql("""
-					DELETE FROM `tabProperty Setter`
-					WHERE doc_type = %(doc_type)s
-					AND doc_name = %(doc_name)s
-					AND property = %(property)s""", d.fields)
 
 			# Save the property setter doc if not marked for deletion i.e. delete=0
 			if not d.delete:

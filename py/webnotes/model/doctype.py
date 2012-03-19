@@ -22,8 +22,6 @@
 
 # TODO:
 # Patch: Remove DocFormat
-# DocLayer:
-#	Allow type changing
 
 # imports
 import webnotes
@@ -120,33 +118,47 @@ class _DocType:
 		"""
 			Returns a dict of property setter lists and doc_type_list
 		"""
+		from webnotes.utils import cstr
 		property_dict = {}
+		# final property dict will be
+		# {
+		#	doc_type: {
+		#		fieldname: [list of property setter dicts]
+		#	}
+		# }
+
 		doc_type_list = list(set(
 			d.doctype=='DocType' and d.name or d.parent
 			for d in doclist))
 		in_string = '", "'.join(doc_type_list)
 		for ps in webnotes.conn.sql("""\
-			SELECT doc_name, property, property_type, value
+			SELECT doc_type, field_name, property, property_type, value
 			FROM `tabProperty Setter`
 			WHERE doc_type IN ("%s")""" % in_string, as_dict=1):
-			property_dict.setdefault(ps.get('doc_name'), []).append(ps)
+			property_dict.setdefault(ps.get('doc_type'),
+					{}).setdefault(cstr(ps.get('field_name')), []).append(ps)
+
 		return property_dict, doc_type_list
 
 	def update_field_properties(self, d, property_dict):
 		"""
 			apply properties except previous_field ones
 		"""
-		if not property_dict.get(d.name): return
+		from webnotes.utils import cstr
+		# get property setters for a given doctype's fields
+		doctype_property_dict = (d.doctype=='DocField' and property_dict.get(d.parent) or
+			property_dict.get(d.name))
+		if not (doctype_property_dict and doctype_property_dict.get(cstr(d.fieldname))): return
 		
 		from webnotes.utils import cint
 		prop_updates = dict([
 			prop.get('property_type')=='Check'
-			and [prop.get('property'), cint(prop.get('value'))]
-			or [prop.get('property'), prop.get('value')]
-			for prop in property_dict.get(d.name)
-			if prop.get('property')!='previous_field'
+				and [prop.get('property'), cint(prop.get('value'))]
+				or [prop.get('property'), prop.get('value')]
+			for prop in doctype_property_dict.get(cstr(d.fieldname))
+				if prop.get('property')!='previous_field'
 		])
-		
+
 		prop_updates and d.fields.update(prop_updates)
 
 	def apply_previous_field_properties(self, doclist, property_dict,
@@ -159,7 +171,7 @@ class _DocType:
 
 		for doc_type in doc_type_list:
 			docfields = self.get_sorted_docfields(doclist, doc_type)
-			docfields = self.sort_docfields(docfields, prev_field_dict)
+			docfields = self.sort_docfields(doc_type, docfields, prev_field_dict)
 			if docfields: self.change_idx(doclist, docfields)
 
 	def get_previous_field_properties(self, property_dict):
@@ -167,15 +179,19 @@ class _DocType:
 			setup prev_field_dict
 		"""
 		from webnotes.utils import cstr
-		prev_field_list = []
-		for prop_list in property_dict.values():
-			for prop in prop_list:
-				if prop.get('property')=='previous_field':
-					prev_field_list.append([cstr(prop.get('value')),
-						cstr(prop.get('doc_name'))])
-					break
-		if not prev_field_list: return
-		return dict(prev_field_list)
+		doctype_prev_field_list = []
+		for doc_type in property_dict:
+			prev_field_list = []
+			for prop_list in property_dict.get(doc_type).values():
+				for prop in prop_list:
+					if prop.get('property') == 'previous_field':
+						prev_field_list.append([prop.get('value'),
+							prop.get('field_name')])
+						break
+			if not prev_field_list: continue
+			doctype_prev_field_list.append([doc_type, dict(prev_field_list)])
+		if not doctype_prev_field_list: return
+		return dict(doctype_prev_field_list)
 
 	def get_sorted_docfields(self, doclist, doc_type):
 		"""
@@ -186,15 +202,15 @@ class _DocType:
 				if d.doctype == 'DocField'
 				and d.parent == doc_type
 			], key=lambda df: df.idx)
-		return [d.name for d in sorted_list]
+		return [d.fieldname for d in sorted_list]
 
-	def sort_docfields(self, docfields, prev_field_dict):
+	def sort_docfields(self, doc_type, docfields, prev_field_dict):
 		"""
 			
 		"""
-		temp_dict = dict([name, prev_field_dict.get(name)]
-				for name in docfields if name in prev_field_dict)
+		temp_dict = prev_field_dict.get(doc_type)
 		if not temp_dict: return
+
 		prev_field = 'None' in temp_dict and 'None' or docfields[0]
 		i = 0
 		while temp_dict:
@@ -230,8 +246,8 @@ class _DocType:
 
 	def change_idx(self, doclist, docfields):
 		for d in doclist:
-			if d.name in docfields:
-				d.idx = docfields.index(d.name) + 1
+			if d.fieldname and d.fieldname in docfields:
+				d.idx = docfields.index(d.fieldname) + 1
 
 	def load_select_options(self, doclist):
 		"""
@@ -384,7 +400,7 @@ class DocTypeTest(unittest.TestCase):
 	def test_make_doclist(self):
 		doclist = self.dt.make_doclist()
 		for d in doclist:
-			print d.doctype, d.name, d.parent
+			print d.idx, d.doctype, d.name, d.parent
 			if not d.doctype: print d.fields
 			#print "--", d.name, "--"
 			#print d.doctype

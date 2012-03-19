@@ -99,12 +99,12 @@ class DocType:
 		webnotes.conn.sql("""\
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
-			AND doc_name = %s
-			AND property = 'previous_field'""", (self.doc.dt, self.doc.name))
+			AND field_name = %s
+			AND property = 'previous_field'""", (self.doc.dt, self.doc.fieldname))
 		ps = Document('Property Setter', fielddata = {
 			'doctype_or_field': 'DocField',
 			'doc_type': self.doc.dt,
-			'doc_name': self.doc.name,
+			'field_name': self.doc.fieldname,
 			'property': 'previous_field',
 			'value': prev_field,
 			'property_type': 'Data',
@@ -129,11 +129,12 @@ def get_fields_label(dt=None, form=1):
 	doclist = webnotes.model.doctype.get(dt, form=0)
 	docfields = sorted((d for d in doclist if d.doctype=='DocField'),
 			key=lambda d: d.idx)
-	idx_label_list = ("-".join([cstr(d.idx), cstr(d.label)]) for d in docfields)
+	idx_label_list = (" - ".join([cstr(d.label) or cstr(d.fieldname) or \
+		cstr(d.fieldtype), cstr(d.idx)]) for d in docfields)
 	if form:
 		return "\n".join(idx_label_list)
 	else:
 		# return idx_label_list, field_list
-		field_list = [cstr(d.name) for d in docfields]
+		field_list = [cstr(d.fieldname) for d in docfields]
 		return list(idx_label_list), field_list
 
