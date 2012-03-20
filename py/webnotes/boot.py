@@ -39,10 +39,6 @@ def get_bootinfo():
 	import webnotes.model.doc
 	cp = webnotes.model.doc.getsingle('Control Panel')
 
-	# remove email settings from control panel dict
-	for field in ['mail_login', 'mail_password', 'mail_port', 'outgoing_mail_server', 'use_ssl']:
-		del cp[field]
-	
 	import webnotes.defs
 	from webnotes.utils import cint
 	cp['sync_with_gateway'] = hasattr(webnotes.defs, 'sync_with_gateway') and \

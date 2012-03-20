@@ -175,12 +175,12 @@ class EMail:
 			from webnotes.utils import cint
 
 			# get defaults from control panel
-			cp = webnotes.model.doc.Document('Control Panel','Control Panel')
-			self.server = cp.outgoing_mail_server or getattr(webnotes.defs,'mail_server','')
-			self.login = cp.mail_login or getattr(webnotes.defs,'mail_login','')
-			self.port = cp.mail_port or getattr(webnotes.defs,'mail_port',None)
-			self.password = cp.mail_password or getattr(webnotes.defs,'mail_password','')
-			self.use_ssl = cint(cp.use_ssl) or cint(getattr(webnotes.defs, 'use_ssl', ''))
+			es = webnotes.model.doc.Document('Email Settings','Email Settings')
+			self.server = es.outgoing_mail_server.encode('utf-8') or getattr(webnotes.defs,'mail_server','')
+			self.login = es.mail_login.encode('utf-8') or getattr(webnotes.defs,'mail_login','')
+			self.port = cint(es.mail_port) or getattr(webnotes.defs,'mail_port',None)
+			self.password = es.mail_password.encode('utf-8') or getattr(webnotes.defs,'mail_password','')
+			self.use_ssl = cint(es.use_ssl) or cint(getattr(webnotes.defs, 'use_ssl', ''))
 
 	def make_msg(self):
 		self.msg_root['Subject'] = self.subject
