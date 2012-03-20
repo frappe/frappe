@@ -32,7 +32,8 @@ wn.get_route = function(route) {
 	return $.map(route.split('/'), function(r) { return decodeURIComponent(r); });	
 }
 
-wn.set_route = function(route) {
+wn.set_route = function() {
+	route = $.map(arguments, function(a) { return encodeURIComponent(a) }).join('/');
 	window.location.hash = route;
 }
 

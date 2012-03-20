@@ -157,7 +157,7 @@ wn.widgets.form.file_upload_done = function(doctype, docname, fileid, filename, 
 	doc.modified = new_timestamp;
 	
 	// update file_list
-	var frm = frms[doctype];
+	var frm = wn.views.formview[doctype].frm;
 	frm.attachments.dialog.hide();
 	msgprint('File Uploaded Sucessfully.');
 	frm.refresh();

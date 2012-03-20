@@ -38,9 +38,6 @@ _f.FrmHeader = function(parent, frm) {
 	
 	// status
 	this.status_area = $a(div, 'span', '', {marginRight:'8px', marginBottom:'2px', cursor:'pointer', textShadow:'none'})
-
-	// timestamp
-	this.timestamp_area = $a($a(div,'div','',{marginTop:'3px'}), 'span', 'field_description', {fontSize:'11px'});
 }
 _f.FrmHeader.prototype.show = function() {  $ds(this.wrapper); }
 _f.FrmHeader.prototype.hide = function() {  $dh(this.wrapper); }
@@ -118,22 +115,6 @@ _f.FrmHeader.prototype.refresh_toolbar = function() {
 	//this.refresh_comments();
 }
 
-
-// refresh heading and labels
-// -------------------------------------------------------------------
-
-_f.FrmHeader.prototype.get_timestamp = function(doc) {
-	var scrub_date = function(d) {
-		if(d)t=d.split(' ');else return '';
-		return dateutil.str_to_user(t[0]) + ' ' + t[1];
-	}
-	
-	return repl("Created: %(c_by)s %(c_on)s %(m_by)s %(m_on)s", 
-		{c_by:doc.owner
-		,c_on:scrub_date(doc.creation ? doc.creation:'')
-		,m_by:doc.modified_by?(' | Modified: '+doc.modified_by):''
-		,m_on:doc.modified ? ('on '+scrub_date(doc.modified)) : ''} );
-}
 
 // make the status tag
 // -------------------------------------------------------------------
@@ -218,6 +199,8 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	// main title
 	this.dt_area.innerHTML = get_doctype_label(f.doctype);
 	
+	if(f.meta.issingle) $(this.dn_area).toggle(false);
+	
 	// sub title
 	this.dn_area.innerHTML = '';
 	if(!f.meta.issingle)
@@ -242,9 +225,6 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	t.appendChild(sl[0]);
 	if(sl[1])t.appendChild(sl[1]);
 
-	// timestamp
-	this.timestamp_area.innerHTML = me.get_timestamp(doc);
-	
 	setTimeout('$(cur_frm.frm_head.dn_area).addClass("background-fade-in")\
 	.css("background-color", "white")', 1500)
 }

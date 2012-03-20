@@ -58,7 +58,7 @@ function startup() {
 		// open an existing page or record
 		var t = to_open();
 		if(t) {
-			wn.set_route(t);
+			window.location.hash = t;
 		} else if(home_page) {
 			loadpage(home_page);
 		}

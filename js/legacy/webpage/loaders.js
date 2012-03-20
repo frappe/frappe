@@ -22,20 +22,33 @@
 
 function loadreport(dt, rep_name, onload) {
 	if(rep_name)
-		wn.set_route('Report/' + encodeURIComponent(dt) + '/' + encodeURIComponent(rep_name));
+		wn.set_route('Report', dt, rep_name);
 	else
-		wn.set_route('Report/' + encodeURIComponent(dt));
+		wn.set_route('Report', dt);
 }	
 
 function loaddoc(doctype, name, onload) {
 	doctype = get_label_doctype(doctype);
-	wn.set_route(['Form', encodeURIComponent(doctype), encodeURIComponent(name)].join('/'));
+	wn.model.with_doctype(doctype, function() {
+		if(locals.DocType[doctype].in_dialog) {
+			console.log(1)
+			_f.edit_record(doctype, name);
+		} else {
+			wn.set_route('Form', doctype, name);			
+		}
+	})
 }
 var load_doc = loaddoc;
 
 function new_doc(doctype, onload, in_dialog, on_save_callback, cdt, cdn, cnic) {
 	doctype = get_label_doctype(doctype);
-	wn.set_route(['Form', encodeURIComponent(doctype), encodeURIComponent('New ' + doctype)].join('/'));
+	wn.model.with_doctype(doctype, function() {
+		if(locals.DocType[doctype].in_dialog) {
+			_f.edit_record(doctype, 'New ' + doctype);
+		} else {
+			wn.set_route('Form', doctype, 'New ' + doctype);
+		}
+	})
 }
 var newdoc = new_doc;
 
@@ -44,6 +57,6 @@ function loadpage(page_name, call_back, no_history) {
 	wn.set_route(page_name);
 }
 
-function loaddocbrowser(dt, label, fields) {	
-	wn.set_route('List/' + encodeURICompontent(dt));
+function loaddocbrowser(dt) {	
+	wn.set_route('List', dt);
 }

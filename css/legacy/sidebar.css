@@ -14,9 +14,8 @@ div.psidebar div.section {
 }
 
 div.psidebar div.section-head {
-	font-size: 12px;
 	padding: 5px 11px;
-	border-bottom: 2px solid #444;
+	border-bottom: 2px solid #777;
 }
 
 div.psidebar div.section-body {

@@ -26,6 +26,8 @@ wn.model = {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 
  	'Button', 'Image'],
 
+	new_names: {},
+
 	with_doctype: function(doctype, callback) {
 		if(locals.DocType[doctype]) {
 			callback();

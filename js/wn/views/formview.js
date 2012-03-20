@@ -4,6 +4,10 @@ wn.provide('wn.views.formview');
 
 wn.views.formview = {
 	show: function(dt, dn) {
+		// renamed (on save)?
+		if(wn.model.new_names[dn])
+			dn = wn.model.new_names[dn];
+		
 		// show doctype
 		wn.model.with_doctype(dt, function() {
 			wn.model.with_doc(dt, dn, function(dn) {

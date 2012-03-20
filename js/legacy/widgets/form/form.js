@@ -42,37 +42,6 @@
 wn.provide('_f');
 
 _f.frms = {};
-// called from table edit
-_f.edit_record = function(dt, dn) {
-	if(!_f.frm_dialog) {
-		// make by twin
-		_f.frm_dialog = new _f.FrmDialog();		
-	}
-	var d = _f.frm_dialog;
-	
-	wn.model.with_doctype(dt, function() {
-		wn.model.with_doc(dt, dn, function(dn) {
-			// load
-			if(!_f.frms[dt]) {
-				_f.frms[dt] = new _f.Frm(dt, d.body);
-			}
-			var f = _f.frms[dt];
-			if(f.meta.istable) {
-				f.parent_doctype = cur_frm.doctype;
-				f.parent_docname = cur_frm.docname;
-			}
-
-			d.cur_frm = f;
-			d.dn = dn;
-			d.table_form = f.meta.istable;
-
-			// show the form
-			f.refresh(dn);
-			
-			d.dialog.show();				
-		})
-	})
-}
 
 _f.Frm = function(doctype, parent) {
 	this.docname = '';
@@ -93,7 +62,11 @@ _f.Frm = function(doctype, parent) {
 	this.setup_meta(doctype);
 	
 	// notify on rename
-	rename_observers.push(this);
+	var me = this;
+	$(document).bind('rename', function(event, dt, old_name, new_name) {
+		if(dt==me.doctype)
+			me.rename_notify(dt, old_name, new_name)
+	});
 }
 
 // ======================================================================================
@@ -142,7 +115,10 @@ _f.Frm.prototype.setup = function() {
 _f.Frm.prototype.setup_print_layout = function() {
 	this.print_wrapper = $a(this.wrapper, 'div');
 	this.print_head = $a(this.print_wrapper, 'div');
-	this.print_body = $a(this.print_wrapper,'div', 'layout_wrapper', {padding:'23px'});
+	this.print_body = $a(this.print_wrapper,'div', 'layout_wrapper', {
+		padding:'23px',
+		minHeight: '800px'
+	});
 	
 	var t= make_table(this.print_head, 1 ,2, '100%', [], {padding: '6px'});
 	this.view_btn_wrapper = $a($td(t,0,0) , 'span', 'green_buttons');
@@ -163,8 +139,8 @@ _f.Frm.prototype.onhide = function() { if(_f.cur_grid_cell) _f.cur_grid_cell.gri
 _f.Frm.prototype.setup_std_layout = function() {
 	this.page_layout = new wn.PageLayout({
 		parent: this.wrapper,
-		main_width: this.in_dialog ? '100%' : '75%',
-		sidebar_width: this.in_dialog ? '0%' : '25%'
+		main_width: this.meta.in_dialog ? '100%' : '75%',
+		sidebar_width: this.meta.in_dialog ? '0%' : '25%'
 	})	
 			
 	// only tray
@@ -174,7 +150,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.layout = new Layout(this.page_layout.body, '100%');
 	
 	// sidebar
-	if(this.in_dialog) {
+	if(this.meta.in_dialog) {
 		// hide sidebar
 		$(this.page_layout.wrapper).removeClass('layout-wrapper-background');
 		$(this.page_layout.main).removeClass('layout-main-section');
@@ -262,9 +238,7 @@ _f.Frm.prototype.email_doc = function() {
 
 // ======================================================================================
 
-_f.Frm.prototype.rename_notify = function(dt, old, name) {
-	if(this.doctype != dt) return;
-	
+_f.Frm.prototype.rename_notify = function(dt, old, name) {	
 	// editable
 	this.is_editable[name] = this.is_editable[old];
 	delete this.is_editable[old];
@@ -280,10 +254,11 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 		local_dt[dt][name] = local_dt[dt][old];
 		local_dt[dt][old] = null;
 	}
-	
-	this.opendocs[old] = false;
+
+	delete this.opendocs[old];
 	this.opendocs[name] = true;
 }
+
 // refresh the heading labels
 // ======================================================================================
 
@@ -587,7 +562,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			// trigger global trigger
 			// to use this
 			// $(docuemnt).bind('form_refresh', function() { })
-			$(document).trigger('form_refresh')
+			$(document).trigger('form_refresh');
 						
 			// fields
 			this.refresh_fields();
@@ -602,8 +577,12 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.layout) this.layout.show();
 
 			// call onload post render for callbacks to be fired
-			if(cur_frm.cscript.is_onload)
-				this.runclientscript('onload_post_render', this.doctype, this.docname);			
+			if(cur_frm.cscript.is_onload) {
+				this.runclientscript('onload_post_render', this.doctype, this.docname);
+			}
+				
+			// focus on first input
+			$(this.wrapper).find('.form-layout-row :input:first').focus();		
 		
 		} else {
 			// show print layout
@@ -837,6 +816,7 @@ _f.Frm.prototype.save = function(save_action, call_back) {
  	
 	
 	var ret_fn = function(r) {
+		me.savingflag = false;
 		if(user=='Guest' && !r.exc) {
 			// if user is guest, show a message after succesful saving
 			$dh(me.page_layout.wrapper);
@@ -853,7 +833,6 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 		}
 
 		if(call_back){
-			if(call_back == 'home'){ loadpage('_home'); return; }
 			call_back(r);
 		}
 	}

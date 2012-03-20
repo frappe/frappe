@@ -34,7 +34,7 @@ def upload():
 	if not webnotes.form['filedata'].filename:
 		webnotes.response['result']	= """
 		<script type='text/javascript'>
-		window.parent.frms['%s'].attachments.dialog.hide();
+		window.parent.wn.views.fomrview['%s'].frm.attachments.dialog.hide();
 		window.parent.msgprint("Please select a file!");
 		</script>""" % dt
 		return
@@ -53,7 +53,7 @@ def upload():
 		webnotes.response['result'] = """
 <script type='text/javascript'>
 window.parent.wn.widgets.form.file_upload_done('%(dt)s', '%(dn)s', '%(fid)s', '%(fname)s', '%(at_id)s', '%(mod)s');
-window.parent.frms['%(dt)s'].show_doc('%(dn)s');
+window.parent.wn.views.formview['%(dt)s'].frm.show_doc('%(dn)s');
 </script>
 			""" % {
 				'dt': dt,

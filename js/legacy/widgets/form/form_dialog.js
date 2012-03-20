@@ -85,6 +85,43 @@ _f.FrmDialog = function() {
 		if(wn.container.page.frm) {
 			cur_frm = wn.container.page.frm;
 		}
+
+		// call onhide
+		if(me.cur_frm.cscript.hide_dialog) {
+			me.cur_frm.cscript.hide_dialog();
+		}	
 	}
 	this.dialog = d;
+}
+
+// called from table edit
+_f.edit_record = function(dt, dn) {
+	if(!_f.frm_dialog) {
+		// make by twin
+		_f.frm_dialog = new _f.FrmDialog();		
+	}
+	var d = _f.frm_dialog;
+	
+	wn.model.with_doctype(dt, function() {
+		wn.model.with_doc(dt, dn, function(dn) {
+			// load
+			if(!_f.frms[dt]) {
+				_f.frms[dt] = new _f.Frm(dt, d.body);
+			}
+			var f = _f.frms[dt];
+			if(f.meta.istable) {
+				f.parent_doctype = cur_frm.doctype;
+				f.parent_docname = cur_frm.docname;
+			}
+
+			d.cur_frm = f;
+			d.dn = dn;
+			d.table_form = f.meta.istable;
+
+			// show the form
+			f.refresh(dn);
+			
+			d.dialog.show();				
+		})
+	})
 }

@@ -116,6 +116,7 @@ CommentList.prototype.add_comment = function() {
 // --------------------
 CommentList.prototype.make_lst = function() {
   if(!this.lst) {
+	wn.require('lib/js/legacy/widgets/listing.js');
     var l = new Listing('Comments', 1);
     var me = this;
     // define the columns etc

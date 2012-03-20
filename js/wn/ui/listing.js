@@ -43,8 +43,6 @@
 //   page_length (20)
 //   hide_refresh (False)
 //   new_doctype
-//   new_doc_onload
-//   new_doc_onsave
 //   [function] render_row(parent, data)
 //   [function] onrun
 //   no_loading (no ajax indicator)
@@ -158,7 +156,7 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.$w.find('.btn-new').toggle(true).click(function() {
-				newdoc(me.new_doctype, me.new_doc_onload, true, me.new_doc_onsave);
+				newdoc(me.new_doctype);
 			})
 		} else {
 			this.$w.find('.btn-new').remove();
