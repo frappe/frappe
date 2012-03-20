@@ -21,12 +21,23 @@ div.list-row {
 div.list-row:hover {
 	background-color: #eef
 }
+
 div.list-row .label {
-	margin-left: 3px;
+	margin-right: 4px;
 }
-div.list-row .main {
-	margin-left: 4px;
-	color: #444;
+
+div.list-row table {
+	table-layout: fixed;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+div.list-row table td {
+	overflow: hidden;
+	padding-right: 3px;
+	vertical-align: middle;
+	height: 24px;
+	max-height: 24px;
 }
 
 div.paging-button {
@@ -80,9 +91,13 @@ span.bar-inner {
 	background-color: #bdf;
 	height: 100%;
 	margin-bottom: 2px;
+	float: left;
 }
 span.bar-complete {
-	background-color: green;
+	background-color: #009900;
+}
+span.bar-empty {
+	background-color: #990000;
 }
 
 

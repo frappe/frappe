@@ -296,9 +296,6 @@ Field.prototype.set = function(val) {
 	if((!this.docname) && this.grid) {
 		this.docname = this.grid.add_newrow(); // new row
 	}
-	// cleanup ms word quotes
-	if(in_list(['Data','Text','Small Text','Code'], this.df.fieldtype))
-		val = clean_smart_quotes(val);
 	
 	var set_val = val;
 	if(this.validate)set_val = this.validate(val);
@@ -741,6 +738,10 @@ LinkField.prototype.set_input_value = function(val) {
 		
 			if(r.message=='Ok') {
 				// set fetch values
+				if($(me.txt).val()!=val) {
+					me.set_input(val);
+				}
+				
 				if(r.fetch_values) 
 					me.set_fetch_values(r.fetch_values);
 			

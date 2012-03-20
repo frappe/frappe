@@ -78,8 +78,9 @@ _f.FrmDialog = function() {
 	// -------------------------------------------
 	d.onhide = function() {
 		// if called from grid, refresh the row
-		if(_f.cur_grid)
-			_f.cur_grid.refresh_row(_f.cur_grid_ridx, me.dn);
+		if(_f.cur_grid) {
+			_f.cur_grid.refresh_row(_f.cur_grid_ridx, me.dn);			
+		}
 		
 		// set the new global cur_frm (if applicable)
 		if(wn.container.page.frm) {

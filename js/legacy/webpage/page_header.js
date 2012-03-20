@@ -38,8 +38,8 @@ var def_ph_style = {
 	wrapper: {marginBottom:'16px', backgroundColor:'#EEE'}
 	,main_heading: { }
 	,sub_heading: { marginBottom:'8px', color:'#555', display:'none' }
-	,separator: { borderTop:'3px solid #777' } // show this when there is no toolbar
-	,toolbar_area: { padding:'3px 0px', display:'none',borderBottom:'1px solid #AAA'}
+	,separator: { borderTop:'1px solid #ddd' } // show this when there is no toolbar
+	,toolbar_area: { padding:'3px 0px', display:'none',borderBottom:'1px solid #ddd'}
 }
 
 function PageHeader(parent, main_text, sub_text) {

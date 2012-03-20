@@ -282,7 +282,6 @@ _f.Grid.prototype.cell_deselect = function() {
 		if(c.is_odd) c.div.style.border = '2px solid ' + c.grid.alt_row_bg;
 		else c.div.style.border = '2px solid #FFF';
 		_f.cur_grid_cell = null;
-		_f.cur_grid = null;
 	}
 }
 

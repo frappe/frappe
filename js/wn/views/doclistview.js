@@ -286,27 +286,82 @@ wn.views.ListView = Class.extend({
 		var t = "`tab"+this.doctype+"`.";
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
 			t + '_user_tags', t + 'modified'];
-		this.stats = ['_user_tags']
+		this.stats = ['_user_tags'];
+
+		if(!this.doclistview.can_delete) {
+			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
+		}
+	},
+	columns: [
+		{width: '5%', content:'check'},
+		{width: '5%', content:'avatar'},
+		{width: '5%', content:'docstatus', css: {"text-align": "center"}},
+		{width: '30%', content:'name'},
+		{width: '40%', content:'tags', css: {'color':'#aaa'}},
+		{width: '10%', content:'modified', css: {'text-align': 'right', 'color':'#777'}}		
+	],
+	render_column: function(data, parent, opts) {
+		var me = this;
+		
+		// style
+		if(opts.css) {
+			$.each(opts.css, function(k, v) { $(parent).css(k, v)});
+		}
+		
+		// multiple content
+		if(opts.content.indexOf && opts.content.indexOf('+')!=-1) {
+			$.map(opts.content.split('+'), function(v) {
+				me.render_column(data, parent, {content:v}); 
+			});
+			return;
+		}
+		
+		// content
+		if(typeof opts.content=='function') {
+			opts.content(parent, data);
+		}
+		else if(opts.content=='name') {
+			$(parent).html(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
+		} 
+		else if(opts.content=='avatar') {
+			$(parent).html(repl('<span class="avatar-small"><img src="%(avatar)s" \
+				title="%(fullname)s"/></span>', 
+				data));			
+		}
+		else if(opts.content=='check') {
+			$(parent).html('<input type="checkbox">');
+			$(parent).find('input').data('name', data.name);			
+		}
+		else if(opts.content=='docstatus') {
+			$(parent).html(repl('<span class="docstatus"><i class="%(docstatus_icon)s" \
+				title="%(docstatus_title)s"></i></span>', data));			
+		}
+		else if(opts.content=='tags') {
+			this.add_user_tags(parent, data);
+		}
+		else if(opts.content=='modified') {
+			$(parent).append(data.when);			
+		}
+		else if(data[opts.content]) {
+			$(parent).append(data[opts.content]);
+		}
+		
 	},
 	render: function(row, data) {
+		var me = this;
 		this.prepare_data(data);
+		rowhtml = '';
+				
+		// make table
+		$.each(this.columns, function(i, v) {
+			rowhtml += repl('<td style="width: %(width)s"></td>', v);
+		});
+		var tr = $(row).html('<table><tbody><tr>' + rowhtml + '</tr></tbody></table>').find('tr').get(0);
 		
-		$(row).html(repl(
-			'<span class="list-check hide"><input type="checkbox"></span> \
-			<span class="avatar-small"><img src="%(avatar)s" /></span> \
-			<span class="docstatus"><i class="%(docstatus_icon)s" \
-				title="%(docstatus_title)s"></i></span> \
-			<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>\
-			<span class="tags"></span> \
-			<span style="float:right; font-size: 11px; color: #888; \
-				margin-left: 8px;">%(when)s</span>\
-			<span class="main" style=""></span>\
-			', data))
-			.addClass('list-row');
-		
-		this.hide_delete(row, data);
-		this.add_user_tags(row, data);
-		this.$main = $(row).find('.main');
+		// render cells
+		$.each(this.columns, function(i, v) {
+			me.render_column(data, tr.cells[i], v);
+		});
 	},
 	prepare_data: function(data) {
 		data.fullname = wn.user_info(data.owner).fullname;
@@ -325,16 +380,7 @@ wn.views.ListView = Class.extend({
 			data.docstatus_title = 'Cancelled';
 		}		
 	},
-	hide_delete: function(row, data) {
-		// hide delete
-		if(this.parent.can_delete) {
-			$(row).find('.list-check')
-				.removeClass('hide');
-			$(row).find('.list-check input')
-				.data('name', data.name);
-		}
-	},
-	add_user_tags: function(row, data) {
+	add_user_tags: function(parent, data) {
 		var me = this;
 		if(data._user_tags) {
 			$.each(data._user_tags.split(','), function(i, t) {
@@ -344,7 +390,7 @@ wn.views.ListView = Class.extend({
 						.click(function() {
 							me.doclistview.set_filter('_user_tags', $(this).text())
 						})
-						.appendTo($(row).find('.tags'));
+						.appendTo(parent);
 				}
 			});
 		}		

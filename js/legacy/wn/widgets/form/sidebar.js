@@ -43,7 +43,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						label: 'List',
 						icon: 'icon-list',
 						display: function() { 
-							return true; 
+							return !me.form.meta.issingle; 
 						},
 						onclick: function() { window.location.href="#!List/" + me.form.doctype }
 					},
