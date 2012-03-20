@@ -108,7 +108,6 @@ class DocType:
 
 		if (not in_transfer) and getattr(webnotes.defs,'developer_mode', 0):
 			self.export_doc()
-		sql("delete from __DocTypeCache")
 
 		from webnotes.utils.cache import CacheItem
 		CacheItem(self.doc.name).clear()

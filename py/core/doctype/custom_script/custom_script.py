@@ -19,23 +19,18 @@
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
 import webnotes
 
 class DocType:
 	def __init__(self, d, dl):
-		self.doc, self.doclist = d,dl
-
-	def validate(self):
-		# old_doc_type is required for clearing item cache
-		self.old_doc_type = webnotes.conn.get_value('Print Format',
-				self.doc.name, 'doc_type')
+		self.doc, self.doclist = d, dl
 
 	def on_update(self):
-		from webnotes.utils.cache import CacheItem
-		CacheItem(self.old_doc_type).clear()
-		CacheItem(self.doc.doc_type).clear()
-
+		if self.doc.script_type == 'Client':
+			from webnotes.utils.cache import CacheItem
+			CacheItem(self.doc.dt).clear()
+	
 	def on_trash(self):
-		from webnotes.utils.cache import CacheItem
-		CacheItem(self.doc.doc_type).clear()
+		if self.doc.script_type == 'Client':
+			from webnotes.utils.cache import CacheItem
+			CacheItem(self.doc.dt).clear()
