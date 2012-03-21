@@ -165,13 +165,8 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			{
 				title: 'Help',
 				render: function(wrapper) {
-					if(!wn.md2html) {
-						wn.require('lib/js/lib/showdown.js');
-						wn.md2html = new Showdown.converter();
-					}
-
-					$a(wrapper, 'div', 'help small', {}, 
-						wn.md2html.makeHtml(me.form.meta.description));
+					$(wrapper).html('<div class="help small">' 
+						+ wn.markdown(me.form.meta.description) + '</div>')
 				},
 				display: function() { return me.form.meta.description }
 			}
