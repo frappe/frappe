@@ -49,7 +49,7 @@ ItemBrowserPage = function() {
 	this.dt_details = {};
 	this.cur_list = null;
 
-	this.my_page = page_body.add_page('ItemBrowser');
+	this.my_page = wn.container.add_page('ItemBrowser');
 	this.wrapper = $a(this.my_page,'div');
 }
 
@@ -72,7 +72,7 @@ ItemBrowserPage.prototype.show = function(dt, label, field_list) {
 	me.cur_list = me.lists[dt];
 	me.cur_list.show();
 	
-	page_body.change_to('ItemBrowser');
+	wn.container.change_to('ItemBrowser');
 }
 
 // -------------------------------------------------

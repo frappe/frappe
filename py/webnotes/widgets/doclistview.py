@@ -37,7 +37,11 @@ def get(arg=None):
 	filters = json.loads(data['filters'])
 	fields = json.loads(data['fields'])
 	tables = ['`tab' + data['doctype'] + '`']
-	conditions = [tables[0] + '.docstatus < 2']
+	docstatus = json.loads(data['docstatus'])
+	if docstatus:
+		conditions = [tables[0] + '.docstatus in (' + ','.join(docstatus) + ')']
+	else:
+		conditions = [tables[0] + '.docstatus < 2']
 	# add table explict to field
 	joined = [tables[0]]
 	

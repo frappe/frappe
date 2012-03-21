@@ -267,7 +267,7 @@ class Document:
 		for f in forbidden:
 			if f in self.name:
 				webnotes.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
-
+				
 	# Insert
 	# ---------------------------------------------------------------------------
 	

@@ -20,8 +20,6 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-var startup_list = [];
-
 wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
 
 

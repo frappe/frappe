@@ -13,3 +13,13 @@ wn.user_info = function(uid) {
 		wn.boot.user_info[uid].image = def.image;
 	return wn.boot.user_info[uid];
 }
+
+// wn.session_alive is true if user shows mouse movement in 30 seconds
+
+wn.session_alive = true;
+$(document).bind('mousemove', function() {
+	wn.session_alive = true;
+	if(wn.session_alive_timeout) 
+		clearTimeout(wn.session_alive_timeout);
+	wn.session_alive_timeout = setTimeout('wn.session_alive=false;', 30000);
+})

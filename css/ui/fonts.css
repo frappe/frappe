@@ -1,0 +1,13 @@
+@font-face {
+  font-family: 'Pontano Sans';
+  font-style: normal;
+  font-weight: 800;
+  src: url('../lib/css/fonts/pontanosans.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Droid Sans';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Droid Sans'), local('DroidSans'), url('../lib/css/fonts/droidsans.woff') format('woff');
+}

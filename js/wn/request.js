@@ -91,7 +91,7 @@ wn.request.call = function(opts) {
 
 // generic server call (call page, object)
 wn.call = function(opts) {
-	var args = opts.args || {};
+	var args = $.extend({}, opts.args)
 	
 	// cmd
 	if(opts.module && opts.page) {
@@ -99,7 +99,7 @@ wn.call = function(opts) {
 	} else if(opts.method) {
 		args.cmd = opts.method;
 	}
-	
+		
 	// stringify args if required
 	for(key in args) {
 		if(args[key] && typeof args[key] != 'string') {

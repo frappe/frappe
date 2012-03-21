@@ -43,8 +43,6 @@
 //   page_length (20)
 //   hide_refresh (False)
 //   new_doctype
-//   new_doc_onload
-//   new_doc_onsave
 //   [function] render_row(parent, data)
 //   [function] onrun
 //   no_loading (no ajax indicator)
@@ -85,15 +83,15 @@ wn.ui.Listing = Class.extend({
 				\
 				<div class="list-filters hide">\
 					<div class="show_filters well">\
-						<div class="filter_area"></div>\
 						<div>\
 							<button class="btn btn-small add-filter-btn">\
 								<i class="icon-plus"></i> Add Filter</button>\
 						</div>\
+						<div class="filter_area"></div>\
 					</div>\
 				</div>\
 				\
-				<div style="height: 37px;" class="list-toolbar-wrapper">\
+				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
 					<div class="list-toolbar">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
@@ -158,7 +156,7 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.$w.find('.btn-new').toggle(true).click(function() {
-				newdoc(me.new_doctype, me.new_doc_onload, true, me.new_doc_onsave);
+				newdoc(me.new_doctype);
 			})
 		} else {
 			this.$w.find('.btn-new').remove();
@@ -513,16 +511,17 @@ wn.ui.Filter = Class.extend({
 		var me = this;
 		
 		// set in fieldname (again)
-
-		var cur_fieldtype = me.field ? me.field.df.fieldtype : null;
-		var cur_fieldname = me.field ? me.field.df.fieldname : null;
+		var cur = me.field ? {
+			fieldname: me.field.df.fieldname,
+			fieldtype: me.field.df.fieldtype
+		} : {}
 
 		var df = me.fields_by_name[fieldname];
 		this.set_fieldtype(df, fieldtype);
 			
 		// called when condition is changed, 
 		// don't change if all is well
-		if(me.field && cur_fieldname == fieldname && df.fieldtype == cur_fieldtype) {
+		if(me.field && cur.fieldname == fieldname && df.fieldtype == cur.fieldtype) {
 			return;
 		}
 		

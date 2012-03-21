@@ -41,11 +41,11 @@ body_html = """
 </div>
 <!-- Main Starts -->
 <div id="body_div"> 
+	<footer></footer>
 </div>
 <div class="no_script" style="display: none;">
  %s
 </div>
-<footer></footer>
 <div id="dialog_back"></div>
 """
 

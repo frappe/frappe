@@ -84,7 +84,7 @@ _f.SectionBreak.prototype.make_body = function() {
 			this.df.description = '';
 		$(this.row.main_head).html(repl('<div class="form-section-head" style="cursor: pointer">\
 				<div class="head">%(label)s</h3>\
-				<div class="help">%(description)s</div>\
+				<div class="help small">%(description)s</div>\
 			</div>', this.df));
 			
 		this.$expand = $(this.row.main_head).find('.head').click(function() {
@@ -246,7 +246,7 @@ _f.TableField.prototype.make_body = function() {
 	if(this.perm[this.df.permlevel] && this.perm[this.df.permlevel][READ]) {
 		// add comment area
 		if(this.df.description) {
-			this.desc_area = $a(this.parent, 'div', 'field_description', '', this.df.description)
+			this.desc_area = $a(this.parent, 'div', 'help small', '', this.df.description)
 		}
 		this.grid = new _f.FormGrid(this);
 		if(this.frm)this.frm.grids[this.frm.grids.length] = this;

@@ -13,12 +13,31 @@
 	margin-top: 8px;
 }
 
+/* list-row */
 div.list-row {
 	border-bottom: 1px solid #eee;
-	padding: 3px 0px;
+	padding: 5px 0px;
 }
 div.list-row:hover {
 	background-color: #eef
+}
+
+div.list-row .label {
+	margin-right: 4px;
+}
+
+div.list-row table {
+	table-layout: fixed;
+	border-collapse: collapse;
+	width: 100%;
+}
+
+div.list-row table td {
+	overflow: hidden;
+	padding-right: 3px;
+	vertical-align: middle;
+	height: 24px;
+	max-height: 24px;
 }
 
 div.paging-button {
@@ -56,6 +75,8 @@ div.list_filter input, div.list_filter select {
 	margin-right: 7px;
 }
 
+/* bar */
+
 span.bar-outer {
 	display: inline-block;
 	margin: 0px 7px;
@@ -70,7 +91,55 @@ span.bar-inner {
 	background-color: #bdf;
 	height: 100%;
 	margin-bottom: 2px;
+	float: left;
 }
 span.bar-complete {
-	background-color: green;
+	background-color: #009900;
 }
+span.bar-empty {
+	background-color: #990000;
+}
+
+
+/* stats */
+
+div.stat-wrapper {
+	margin-bottom: 19px;	
+}
+
+div.stat-grid {
+	border: 2px solid #bbb;
+	background-color: white;
+	border-radius: 5px;
+	-moz-border-radius: 5px;
+	-webkit-border-radius: 5px;
+	overflow: hidden;
+}
+
+div.stat-label {
+	position: relative;
+	padding: 3px;
+	text-align: center;
+}
+div.stat-label, div.stat-label a {
+	z-index: 5;
+}
+
+div.stat-item {
+	position: relative;
+	border-bottom: 1px solid #ddd;
+}
+div.stat-item:last-child {
+	border-bottom: 0px solid #ddd;	
+}
+
+div.stat-bar {
+	position: absolute;
+	left: 0px;
+	background-color: #def;
+	height: 100%;
+	z-index: 0;
+}
+
+
+

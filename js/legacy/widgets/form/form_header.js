@@ -34,13 +34,10 @@ _f.FrmHeader = function(parent, frm) {
 	var div = $a(null, 'div', '', {marginBottom:'4px'}); 
 	
 	this.page_head.lhs.insertBefore(div, this.page_head.sub_head);
-	this.dn_area = $a(div, 'span', '', {fontSize:'14px', fontWeight:'normal', marginRight:'8px'})
+	this.dn_area = $a(div, 'span', '', {fontSize:'14px', fontWeight:'normal', marginRight:'8px', padding: '2px'})
 	
 	// status
 	this.status_area = $a(div, 'span', '', {marginRight:'8px', marginBottom:'2px', cursor:'pointer', textShadow:'none'})
-
-	// timestamp
-	this.timestamp_area = $a($a(div,'div','',{marginTop:'3px'}), 'span', 'field_description', {fontSize:'11px'});
 }
 _f.FrmHeader.prototype.show = function() {  $ds(this.wrapper); }
 _f.FrmHeader.prototype.hide = function() {  $dh(this.wrapper); }
@@ -71,7 +68,7 @@ _f.FrmHeader.prototype.refresh= function() {
 	
 	// Save
 	if(cur_frm.editable && cint(cur_frm.doc.docstatus)==0 && p[WRITE])
-		this.page_head.add_button('Save', function() { cur_frm.save('Save');}, 1, 'icon-ok',1);
+		this.page_head.add_button('Save', function() { cur_frm.save('Save');}, 1, '',1);
 	
 	// Submit
 	if(cint(cur_frm.doc.docstatus)==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
@@ -118,27 +115,6 @@ _f.FrmHeader.prototype.refresh_toolbar = function() {
 	//this.refresh_comments();
 }
 
-/*_f.FrmHeader.prototype.refresh_comments = function() {
-	var n = cint(cur_frm.n_comments[cur_frm.doc.name]);
-	if(this.comment_btn && !cur_frm.doc.__islocal)
-		this.comment_btn.innerHTML = 'Comments ('+n+')';
-}*/
-
-// refresh heading and labels
-// -------------------------------------------------------------------
-
-_f.FrmHeader.prototype.get_timestamp = function(doc) {
-	var scrub_date = function(d) {
-		if(d)t=d.split(' ');else return '';
-		return dateutil.str_to_user(t[0]) + ' ' + t[1];
-	}
-	
-	return repl("Created: %(c_by)s %(c_on)s %(m_by)s %(m_on)s", 
-		{c_by:doc.owner
-		,c_on:scrub_date(doc.creation ? doc.creation:'')
-		,m_by:doc.modified_by?(' | Modified: '+doc.modified_by):''
-		,m_on:doc.modified ? ('on '+scrub_date(doc.modified)) : ''} );
-}
 
 // make the status tag
 // -------------------------------------------------------------------
@@ -223,10 +199,16 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	// main title
 	this.dt_area.innerHTML = get_doctype_label(f.doctype);
 	
+	if(f.meta.issingle) $(this.dn_area).toggle(false);
+	
 	// sub title
 	this.dn_area.innerHTML = '';
 	if(!f.meta.issingle)
 		this.dn_area.innerHTML = f.docname;
+	
+	$(this.dn_area)
+		.removeClass('background-fade-in')
+		.css('background-color', '#ff8')
 
 	// get the doc
 	var doc = locals[f.doctype][f.docname];
@@ -243,6 +225,6 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	t.appendChild(sl[0]);
 	if(sl[1])t.appendChild(sl[1]);
 
-	// timestamp
-	this.timestamp_area.innerHTML = me.get_timestamp(doc);	
+	setTimeout('$(cur_frm.frm_head.dn_area).addClass("background-fade-in")\
+	.css("background-color", "white")', 1500)
 }

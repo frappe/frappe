@@ -95,14 +95,7 @@ wn.assets = {
 			wn.dom.eval(txt);
 		},
 		css: function(txt, src) {
-			var se = document.createElement('style');
-			se.type = "text/css";
-			if (se.styleSheet) {
-				se.styleSheet.cssText = txt;
-			} else {
-				se.appendChild(document.createTextNode(txt));
-			}
-			document.getElementsByTagName('head')[0].appendChild(se);			
+			wn.dom.set_style(txt);
 		},
 		cgi: function(txt, src) {
 			// dynamic content, will return content as

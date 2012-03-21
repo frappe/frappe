@@ -56,7 +56,7 @@ Field.prototype.make_body = function() {
 	
 	// label
 	if(this.with_label) {	
-		this.label_span = $a(this.label_area, 'span', 'field_label')
+		this.label_span = $a(this.label_area, 'span', 'small')
 	
 		// error icon
 		this.label_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 4px'}); $dh(this.label_icon);
@@ -115,11 +115,11 @@ Field.prototype.set_description = function() {
 	if(this.df.description) {
 		// parent
 		var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) ? this.label_area : this.wrapper;
-		this.desc_area = $a(p, 'div', 'help', '', this.df.description)			
+		this.desc_area = $a(p, 'div', 'help small', '', this.df.description)			
 
 		// padding on the bottom
 		if(in_list(['Text Editor', 'Code'], this.df.fieldtype))
-			$(this.desc_area).addClass('field_description_top');
+			$(this.desc_area).addClass('help small');
 	}
 }
 
@@ -296,9 +296,6 @@ Field.prototype.set = function(val) {
 	if((!this.docname) && this.grid) {
 		this.docname = this.grid.add_newrow(); // new row
 	}
-	// cleanup ms word quotes
-	if(in_list(['Data','Text','Small Text','Code'], this.df.fieldtype))
-		val = clean_smart_quotes(val);
 	
 	var set_val = val;
 	if(this.validate)set_val = this.validate(val);
@@ -741,6 +738,10 @@ LinkField.prototype.set_input_value = function(val) {
 		
 			if(r.message=='Ok') {
 				// set fetch values
+				if($(me.txt).val()!=val) {
+					me.set_input(val);
+				}
+				
 				if(r.fetch_values) 
 					me.set_fetch_values(r.fetch_values);
 			
@@ -935,7 +936,7 @@ function make_text_dialog() {
 		this.widgets['Enter Text'].focus();
 		this.widgets['Description'].innerHTML = ''
 		if(this.field.df.description)
-			$a(this.widgets['Description'], 'div', 'field_description', '', this.field.df.description);
+			$a(this.widgets['Description'], 'div', 'help small', '', this.field.df.description);
 	}
 	d.onhide = function() {
 		if(_f.cur_grid_cell)

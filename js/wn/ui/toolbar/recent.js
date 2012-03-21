@@ -31,8 +31,12 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		this.setup();
 		this.bind_events();
 	},
-	bind_events: function() {
-		rename_observers.push(this);
+	bind_events: function() {		
+		// notify on rename
+		var me = this;
+		$(document).bind('rename', function(event, dt, old_name, new_name) {
+			me.rename_notify(dt, old_name, new_name)
+		});
 	},
 	rename_notify: function(dt, old, name) {
 		this.remove(dt, old);
