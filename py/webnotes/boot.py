@@ -41,7 +41,7 @@ def get_bootinfo():
 
 	# remove email settings from control panel dict
 	for field in ['mail_login', 'mail_password', 'mail_port', 'outgoing_mail_server', 'use_ssl']:
-		del cp[field]
+		if field in cp: del cp[field]
 	
 	# system info
 	bootinfo['control_panel'] = cp.copy()
