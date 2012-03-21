@@ -59,7 +59,7 @@ function PageHeader(parent, main_text, sub_text) {
 	// close btn
 	$y($td(this.t1, 0, 1),{textAlign:'right', padding:'3px'});
 	this.close_btn = $a($td(this.t1, 0, 1), 'span', 'close', {},  '&times;');
-	this.close_btn.onclick = function() { window.back(); };
+	this.close_btn.onclick = function() { window.history.back(); };
 
 	if(main_text) this.main_head.innerHTML = main_text;
 	if(sub_text) this.sub_head.innerHTML = sub_text;

@@ -117,9 +117,22 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			show_grid: true,
 			new_doctype: this.doctype,
 			allow_delete: true,
+			no_result_message: this.make_no_result(),
 			columns: this.listview.fields
 		});
 		this.run();
+	},
+	make_no_result: function() {
+		return repl('<div class="well"><p>No %(doctype)s found</p>\
+		%(description)s\
+		<hr>\
+		<p><button class="btn btn-info btn-small"\
+				onclick="wn.set_route(\'Form\', \'New %(doctype)s\');"\
+				>Make a new %(doctype)s</button>\
+		</p></div>', {
+			doctype: this.doctype,
+			description: locals.DocType[this.doctype].description || '' 
+		});
 	},
 	render_row: function(row, data) {
 		data.doctype = this.doctype;
