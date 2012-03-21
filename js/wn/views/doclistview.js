@@ -123,15 +123,16 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.run();
 	},
 	make_no_result: function() {
-		return repl('<div class="well"><p>No %(doctype)s found</p>\
+		return repl('<div class="well"><p>No %(doctype_label)s found</p>\
 		%(description)s\
 		<hr>\
 		<p><button class="btn btn-info btn-small"\
-				onclick="wn.set_route(\'Form\', \'New %(doctype)s\');"\
-				>Make a new %(doctype)s</button>\
+				onclick="wn.set_route(\'Form\', \'%(doctype)s\', \'New %(doctype)s\');"\
+				>Make a new %(doctype_label)s</button>\
 		</p></div>', {
+			doctype_label: get_doctype_label(this.doctype),
 			doctype: this.doctype,
-			description: locals.DocType[this.doctype].description || '' 
+			description: wn.markdown(locals.DocType[this.doctype].description || '')
 		});
 	},
 	render_row: function(row, data) {
