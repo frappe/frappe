@@ -110,7 +110,7 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 		arg = {
 			'uid': owner,
 			'comment': "A new task, %s, has been assigned to you by %s." \
-				% (assignment, webnotes.session.get('uer')),
+				% (assignment, webnotes.session.get('user')),
 			'notify': notify
 		}
 	from home.page.my_company import my_company
