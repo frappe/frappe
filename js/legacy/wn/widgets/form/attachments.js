@@ -115,7 +115,7 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 	var display_name = this.fileid;
 	if(this.fileid.substr(0,8)=='FileData') 
 		display_name = this.filename;
-	this.ln = $a(this.wrapper, 'a', 'link_type', {fontSize:'11px'}, display_name);
+	this.ln = $a(this.wrapper, 'a', 'link_type small', {}, display_name);
 	this.ln.href = 'files/'+this.fileid;
 	this.ln.target = '_blank';
 	

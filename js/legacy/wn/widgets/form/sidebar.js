@@ -147,10 +147,10 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					
 					$(wrapper).html(repl('<p>Created:<br> <span class="avatar-small">\
 							<img title="%(created_by)s" src="%(avatar_created)s" /></span> \
-							<span class="help">%(creation)s</span></p>\
+							<span class="help small">%(creation)s</span></p>\
 							<p>Modified:<br> <span class="avatar-small">\
 							<img title="%(modified_by)s" src="%(avatar_modified)s" /></span> \
-							<span class="help">%(modified)s</span></p>', {
+							<span class="help small">%(modified)s</span></p>', {
 								created_by: wn.user_info(doc.owner).fullname,
 								avatar_created: wn.user_info(doc.owner).image,
 								creation: scrub_date(doc.creation),
@@ -170,7 +170,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						wn.md2html = new Showdown.converter();
 					}
 
-					$a(wrapper, 'div', 'help', {}, 
+					$a(wrapper, 'div', 'help small', {}, 
 						wn.md2html.makeHtml(me.form.meta.description));
 				},
 				display: function() { return me.form.meta.description }

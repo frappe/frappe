@@ -147,7 +147,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	delete_items: function() {
 		var me = this;				
-		var dl = $.map(me.$page.find('.list-check :checked'), function(e) {
+		var dl = $.map(me.$page.find('.list-delete:checked'), function(e) {
 			return $(e).data('name');
 		});
 		if(!dl.length) 
@@ -191,7 +191,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			if(field=='_user_tags') {
 				this.$page.find('.layout-side-section')
 					.append('<div class="stat-wrapper"><h4>Tags</h4>\
-						<div class="help"><i>No records tagged.</i><br><br> \
+						<div class="help small"><i>No records tagged.</i><br><br> \
 						To add a tag, open the document and click on \
 						"Add Tag" on the sidebar</div></div>');
 			}
@@ -329,7 +329,7 @@ wn.views.ListView = Class.extend({
 				data));			
 		}
 		else if(opts.content=='check') {
-			$(parent).html('<input type="checkbox">');
+			$(parent).html('<input class="list-delete" type="checkbox">');
 			$(parent).find('input').data('name', data.name);			
 		}
 		else if(opts.content=='docstatus') {
@@ -342,8 +342,20 @@ wn.views.ListView = Class.extend({
 		else if(opts.content=='modified') {
 			$(parent).append(data.when);			
 		}
+		else if(opts.type=='bar-graph') {
+			args = {
+				percent: data[opts.content],
+				fully_delivered: (data[opts.content] > 99 ? 'bar-complete' : ''),
+				label: opts.label
+			}
+			$(parent).html(repl('<span class="bar-outer" style="width: 30px; float: right" \
+				title="%(percent)s% %(label)s">\
+				<span class="bar-inner %(fully_delivered)s" \
+					style="width: %(percent)s%;"></span>\
+			</span>', args));
+		}
 		else if(data[opts.content]) {
-			$(parent).append(data[opts.content]);
+			$(parent).append(' ' + data[opts.content]);
 		}
 		
 	},

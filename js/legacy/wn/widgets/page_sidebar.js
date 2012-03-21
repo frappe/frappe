@@ -82,7 +82,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 			var item = this.opts.items[i];
 			if((item.display && item.display()) || !item.display) {
 				
-				var div = $a(this.body, 'div', 'section-item');
+				var div = $a(this.body, 'div', 'section-item small');
 				this.make_one_item(item, div);
 			}
 				
@@ -131,7 +131,7 @@ wn.widgets.PageSidebarLink = function(section, opts, wrapper) {
 	if(opts.icon) {
 		section.add_icon(this.wrapper, opts.icon);
 	}
-	this.ln = $a(this.wrapper, 'span', 'link_type section-link', opts.style, opts.label);
+	this.ln = $a(this.wrapper, 'span', 'link_type section-link small', opts.style, opts.label);
 	this.ln.onclick = function() { me.opts.onclick(me) };
 }
 

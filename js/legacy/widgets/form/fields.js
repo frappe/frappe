@@ -56,7 +56,7 @@ Field.prototype.make_body = function() {
 	
 	// label
 	if(this.with_label) {	
-		this.label_span = $a(this.label_area, 'span', 'field_label')
+		this.label_span = $a(this.label_area, 'span', 'small')
 	
 		// error icon
 		this.label_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 4px'}); $dh(this.label_icon);
@@ -115,11 +115,11 @@ Field.prototype.set_description = function() {
 	if(this.df.description) {
 		// parent
 		var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) ? this.label_area : this.wrapper;
-		this.desc_area = $a(p, 'div', 'help', '', this.df.description)			
+		this.desc_area = $a(p, 'div', 'help small', '', this.df.description)			
 
 		// padding on the bottom
 		if(in_list(['Text Editor', 'Code'], this.df.fieldtype))
-			$(this.desc_area).addClass('field_description_top');
+			$(this.desc_area).addClass('help small');
 	}
 }
 
@@ -936,7 +936,7 @@ function make_text_dialog() {
 		this.widgets['Enter Text'].focus();
 		this.widgets['Description'].innerHTML = ''
 		if(this.field.df.description)
-			$a(this.widgets['Description'], 'div', 'field_description', '', this.field.df.description);
+			$a(this.widgets['Description'], 'div', 'help small', '', this.field.df.description);
 	}
 	d.onhide = function() {
 		if(_f.cur_grid_cell)
