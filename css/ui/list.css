@@ -8,8 +8,8 @@
 
 .wnlist .img-load {
 	display: none;
-	margin-left: 11px;
-	margin-top: 8px;
+	float: left;
+	margin-bottom: 8px;
 }
 
 /* list-row */
