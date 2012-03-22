@@ -283,10 +283,11 @@ class _DocType:
 	def _add_code(self, doc):
 		"""add js, css code"""
 		import os
-		from webnotes.defs import modules_path
-		from webnotes.modules import scrub
+		from webnotes.modules import scrub, get_module_path
 		
-		path = os.path.join(modules_path, scrub(doc.module), 'doctype', scrub(doc.name))
+		modules_path = get_module_path(doc.module)
+		
+		path = os.path.join(modules_path, 'doctype', scrub(doc.name))
 
 		fpath = os.path.join(path, scrub(doc.name) + '.js')
 		if os.path.exists(fpath):
