@@ -26,11 +26,7 @@ wn.views.pageview = {
 wn.views.Page = Class.extend({
 	init: function(name) {
 		this.name = name;
-		this.render();
-	},
-	render: function() {
 		var me = this;
-		
 		this.pagedoc = locals.Page[this.name];
 		this.wrapper = wn.container.add_page(this.name);
 		this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
@@ -48,14 +44,13 @@ wn.views.Page = Class.extend({
 			me.trigger('onshow');
 		});
 	},
-	trigger: function(event) {
+	trigger: function(eventname) {
 		var me = this;
 		try {
-			if(pscript[event+'_'+this.name]) {
-				pscript[event+'_'+this.name](me.wrapper);				
-			}
-			if(me.wrapper[event]) {
-				me.wrapper[event](me.wrapper);
+			if(pscript[eventname+'_'+this.name]) {
+				pscript[eventname+'_'+this.name](me.wrapper);				
+			} else if(me.wrapper[eventname]) {
+				me.wrapper[eventname](me.wrapper);
 			}
 		} catch(e) { 
 			console.log(e); 

@@ -22,6 +22,11 @@ wn.views.Container = Class.extend({
 		return page;
 	},
 	change_to: function(label) {
+		if(this.page && this.page.label == label) {
+			// don't trigger double events
+			return;
+		}
+		
 		var me = this;
 		if(label.tagName) {
 			// if sent the div, get the table
