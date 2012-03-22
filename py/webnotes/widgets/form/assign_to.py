@@ -90,27 +90,36 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 		Notify assignee that there is a change in assignment
 	"""
 	if not (assigned_by and owner and doc_type and doc_name): return
+
+	from webnotes.boot import get_fullnames
+	user_info = get_fullnames()
+
 	# Search for email address in description -- i.e. assignee
-	assignment = """<a href="#!Form/%s/%s">%s</a>""" % (doc_type, doc_name, doc_name)
+	assignment = """<a href="#!Form/%s/%s">%s: %s</a>""" % (doc_type, doc_name,
+			doc_type, doc_name)
 	if action=='CLOSE':
 		if owner == webnotes.session.get('user'):
 			arg = {
 				'uid': assigned_by,
 				'comment': "The task %s, that you assigned to %s, has been \
-					closed." % (assignment, owner)
+					closed." % (assignment,
+						user_info.get(owner, {}).get('fullname'))
 			}
 		else:
 			arg = {
 				'uid': assigned_by,
 				'comment': "The task %s, that you assigned to %s, \
-					has been closed	by %s." % (assignment, owner,
-					webnotes.session.get('user'))
+					has been closed	by %s." % (assignment,
+					user_info.get(owner, {}).get('fullname'),
+					user_info.get(webnotes.session.get('user'),
+						{}).get('fullname'))
 			}
 	else:
 		arg = {
 			'uid': owner,
 			'comment': "A new task, %s, has been assigned to you by %s." \
-				% (assignment, webnotes.session.get('user')),
+				% (assignment,
+				user_info.get(webnotes.session.get('user'), {}).get('fullname')),
 			'notify': notify
 		}
 	from home.page.my_company import my_company
