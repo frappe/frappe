@@ -92,7 +92,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
-					<div class="list-toolbar btn-group" style="display:inline-block;">\
+					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
 						<a class="btn btn-small btn-new">\
@@ -181,15 +181,8 @@ wn.ui.Listing = Class.extend({
 	},
 	btn_groupify: function() {
 		var nbtns = this.$w.find('.list-toolbar a').length;
-		if(nbtns > 1) {
-			var w = 0;
-			this.$w.find('.list-toolbar a').each(function(i,e) { 
-				w+= $(this).outerWidth(); 
-			});
-			this.$w.find('.list-toolbar').css('width', (w+10) + 'px');
-		}
 
-		if(nbtns == 0) {	
+		if(nbtns == 0) {
 			this.$w.find('.list-toolbar-wrapper').toggle(false);
 		}
 	},
