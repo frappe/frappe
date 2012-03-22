@@ -92,7 +92,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
-					<div class="list-toolbar" style="float: left; width: 50%">\
+					<div class="list-toolbar btn-group" style="display:inline-block;">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
 						<a class="btn btn-small btn-new">\
@@ -100,8 +100,9 @@ wn.ui.Listing = Class.extend({
 						<a class="btn btn-small btn-filter">\
 							<i class="icon-search"></i> Filter</a>\
 					</div>\
-					<img src="lib/images/ui/button-load.gif" \
-						class="img-load" style="float: left"/>\
+					<div style="display:inline-block; width: 24px; margin-left: 4px">\
+						<img src="lib/images/ui/button-load.gif" \
+						class="img-load"/></div>\
 				</div><div style="clear:both"></div>\
 				\
 				<div class="no-result help hide">\
@@ -181,10 +182,14 @@ wn.ui.Listing = Class.extend({
 	btn_groupify: function() {
 		var nbtns = this.$w.find('.list-toolbar a').length;
 		if(nbtns > 1) {
-			this.$w.find('.list-toolbar').addClass('btn-group')
+			var w = 0;
+			this.$w.find('.list-toolbar a').each(function(i,e) { 
+				w+= $(this).outerWidth(); 
+			});
+			this.$w.find('.list-toolbar').css('width', (w+10) + 'px');
 		}
 
-		if(nbtns == 0) {
+		if(nbtns == 0) {	
 			this.$w.find('.list-toolbar-wrapper').toggle(false);
 		}
 	},
