@@ -78,7 +78,7 @@ def get_fullnames():
 	import webnotes
 	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
-			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, '')), 
+			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
 			user_image, gender
 		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
 	d = {}
