@@ -120,9 +120,11 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 
 _f.Grid.prototype.reset_table_width = function() { 
 	var w = 0;
-	for(var i=0, len=this.head_row.cells.length; i<len; i++) {
-		w += cint(this.head_row.cells[i].style.width);
-	}
+	$.each(this.head_row.cells, function(i, cell) {
+		if((cell.style.display || '').toLowerCase()!='none')
+			w += cint(cell.style.width);
+	})
+	
 	this.head_tab.style.width = w + 'px';
 	this.tab.style.width = w + 'px';
 }
