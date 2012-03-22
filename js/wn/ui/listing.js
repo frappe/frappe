@@ -92,16 +92,16 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
-					<div class="list-toolbar">\
+					<div class="list-toolbar" style="float: left">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
 						<a class="btn btn-small btn-new">\
 							<i class="icon-plus"></i> New</a>\
 						<a class="btn btn-small btn-filter">\
 							<i class="icon-search"></i> Filter</a>\
-						<img src="lib/images/ui/button-load.gif" \
-							class="img-load"/>\
 					</div>\
+					<img src="lib/images/ui/button-load.gif" \
+						class="img-load" style="float: left"/>\
 				</div><div style="clear:both"></div>\
 				\
 				<div class="no-result help hide">\
@@ -182,7 +182,7 @@ wn.ui.Listing = Class.extend({
 		var nbtns = this.$w.find('.list-toolbar a').length;
 		if(nbtns > 1) {
 			this.$w.find('.list-toolbar').addClass('btn-group')
-		}		
+		}
 
 		if(nbtns == 0) {
 			this.$w.find('.list-toolbar-wrapper').toggle(false);
