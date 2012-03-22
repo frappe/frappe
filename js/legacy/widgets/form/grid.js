@@ -263,6 +263,8 @@ $(document).bind('click', function(e) {
 	}
 	
 	var is_target_input = function() {
+		if(e.target.tagName.toLowerCase()=='option') return true;
+		
 		return $(e.target).parents().get().indexOf(_f.cur_grid_cell)!=-1;
 	}
 
@@ -270,8 +272,9 @@ $(document).bind('click', function(e) {
 		if(!(text_dialog && text_dialog.display) 
 			&& !datepicker_active && !(selector && selector.display)) {
 			_f.cur_grid_cell.grid.cell_deselect();
+			return false;
 		}
-	}	
+	}
 });
 
 _f.Grid.prototype.cell_deselect = function() {

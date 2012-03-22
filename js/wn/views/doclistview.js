@@ -307,12 +307,12 @@ wn.views.ListView = Class.extend({
 		}
 	},
 	columns: [
-		{width: '5%', content:'check'},
-		{width: '5%', content:'avatar'},
-		{width: '5%', content:'docstatus', css: {"text-align": "center"}},
-		{width: '30%', content:'name'},
+		{width: '3%', content:'check'},
+		{width: '4%', content:'avatar'},
+		{width: '3%', content:'docstatus', css: {"text-align": "center"}},
+		{width: '35%', content:'name'},
 		{width: '40%', content:'tags', css: {'color':'#aaa'}},
-		{width: '10%', content:'modified', css: {'text-align': 'right', 'color':'#777'}}		
+		{width: '15%', content:'modified', css: {'text-align': 'right', 'color':'#777'}}		
 	],
 	render_column: function(data, parent, opts) {
 		var me = this;
@@ -392,7 +392,19 @@ wn.views.ListView = Class.extend({
 	prepare_data: function(data) {
 		data.fullname = wn.user_info(data.owner).fullname;
 		data.avatar = wn.user_info(data.owner).image;
+		
+		// when
 		data.when = dateutil.str_to_user(data.modified).split(' ')[0];
+		var diff = dateutil.get_diff(dateutil.get_today(), data.modified.split(' ')[0]);
+		if(diff==0) {
+			data.when = 'Today'
+		}
+		if(diff == -1) {
+			data.when = 'Yesterday'
+		}
+		if(diff == -2) {
+			data.when = '2 days ago'
+		}
 		
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
