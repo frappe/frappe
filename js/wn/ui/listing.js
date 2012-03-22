@@ -92,7 +92,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
-					<div class="list-toolbar" style="float: left">\
+					<div class="list-toolbar" style="float: left; width: 50%">\
 						<a class="btn btn-small btn-refresh btn-info">\
 							<i class="icon-refresh icon-white"></i> Refresh</a>\
 						<a class="btn btn-small btn-new">\
