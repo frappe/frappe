@@ -399,10 +399,10 @@ wn.views.ListView = Class.extend({
 		if(diff==0) {
 			data.when = 'Today'
 		}
-		if(diff == -1) {
+		if(diff == 1) {
 			data.when = 'Yesterday'
 		}
-		if(diff == -2) {
+		if(diff == 2) {
 			data.when = '2 days ago'
 		}
 		
