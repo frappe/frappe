@@ -583,7 +583,10 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 				
 			// focus on first input
-			$(this.wrapper).find('.form-layout-row :input:first').focus();		
+			
+			if(this.doc.docstatus==0) {
+				$(this.wrapper).find('.form-layout-row :input:first').focus();
+			}
 		
 		} else {
 			// show print layout
