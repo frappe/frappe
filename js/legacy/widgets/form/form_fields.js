@@ -163,7 +163,7 @@ _f.SectionBreak.prototype.refresh = function(from_form) {
 		if(this.row)this.row.hide();
 	} else {
 		if(this.collapsible) {
-			if(this.has_data()) {
+			if(this.df.reqd || this.has_data()) {
 				this.section_expand(from_form);
 			} else {
 				this.section_collapse();
