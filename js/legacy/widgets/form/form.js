@@ -73,7 +73,9 @@ _f.Frm = function(doctype, parent) {
 
 _f.Frm.prototype.check_doctype_conflict = function(docname) {
 	var me = this;
-	if(this.doctype=='DocType') {
+	if(this.doctype=='DocType' && docname=='DocType') {
+		msgprint('Allowing DocType, DocType. Be careful!')
+	} else if(this.doctype=='DocType') {
 		if(wn.views.formview[docname]) {
 			msgprint("Cannot open DocType when its instance is open")
 			throw 'doctype open conflict'

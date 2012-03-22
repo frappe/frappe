@@ -30,12 +30,13 @@ class Profile:
 	def __init__(self, name=''):
 		self.name = name or webnotes.session.get('user')
 		self.roles = []
-
+		
 		self.all_read = []
 		self.can_create = []
 		self.can_read = []
 		self.can_write = []
 		self.can_cancel = []
+		self.can_search = []
 		self.can_get_report = []
 		self.allow_modules = []
 		
@@ -100,30 +101,35 @@ class Profile:
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})
-			
-			if (p.get('read') or p.get('write')) and (not dtp.get('istable')) \
-				and (not dtp.get('read_only')):
-				self.can_read.append(dt)
-				if not dtp['module'] in self.allow_modules:
-					self.allow_modules.append(dtp['module'])
 
-			if p.get('write') and not dtp.get('istable'):
-				self.can_write.append(dt)
-			
-			if p.get('create') and (not dtp.get('in_create')) and (not dtp.get('istable')) \
-				and (not dtp.get('issingle')):
-				self.can_create.append(dt)
-				
-			if (p.get('read') or p.get('write')) and (not dtp.get('read_only')):
-				self.can_get_report.append(dt)
-				self.can_get_report += dtp['child_tables']
-				
-			if p.get('read') or p.get('write'):
-				self.all_read.append(dt)
-				
+			if not dtp.get('istable'):
+				if p.get('create') and not dtp.get('in_create') and \
+						not dtp.get('issingle'):
+					self.can_create.append(dt)
+				elif p.get('write'):
+					self.can_write.append(dt)
+				elif p.get('read'):
+					if dtp.get('read_only'):
+						self.all_read.append(dt)
+					else:
+						self.can_read.append(dt)
+
 			if p.get('cancel'):
 				self.can_cancel.append(dt)
-		
+
+			if (p.get('read') or p.get('write') or p.get('create')) and \
+					not dtp.get('read_only'):
+				self.can_get_report.append(dt)
+				self.can_get_report += dtp['child_tables']
+				if not dtp.get('istable'):
+					if not dtp.get('issingle'):
+						self.can_search.append(dt)
+					if not dtp.get('module') in self.allow_modules:
+						self.allow_modules.append(dtp.get('module'))
+
+		self.can_write += self.can_create
+		self.can_read += self.can_write
+		self.all_read += self.can_read
 
 	def get_home_page(self):
 		"""
@@ -231,6 +237,7 @@ class Profile:
 		d['can_get_report'] = list(set(self.can_get_report))
 		d['allow_modules'] = self.allow_modules
 		d['all_read'] = self.all_read
+		d['can_search'] = list(set(self.can_search))
 		
 		return d
 		
