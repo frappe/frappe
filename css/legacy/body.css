@@ -110,7 +110,6 @@ div.comment { color: #444; }
 }
 
 div#body_div {
-	position: relative;
 	display: none;
 	padding-right: 7px;
 	width: 900px;
@@ -121,12 +120,6 @@ div#body_div {
 .content {
 	width: 900px;
 	margin-bottom: 30px;
-	position: absolute;
-	-webkit-transition:all 0.5s ease-in-out;
-	-moz-transition:all 0.5s ease-in-out;
-	-o-transition:all 0.5s ease-in-out;
-	-ms-transition:all 0.5s ease-in-out;	
-	transition:all 0.5s ease-in-out;
 }
 
 .background-fade-in {
@@ -134,25 +127,6 @@ div#body_div {
     -moz-transition: background 1s ease-in;
     -o-transition: background 1s ease-in;
     transition: background 1s ease-in;
-}
-
-/* selector for open pages */
-#opened-page-selector {
-	width: 900px;
-	height: 900px;
-	position: absolute;
-	z-index: 100;
-	opacity: 0;
-	background-color: #bdf;
-}
-
-#opened-page-selector.active {
-	opacity: 0.6;
-	cursor: pointer;
-}
-
-.popover-container {
-	height: 400px;
 }
 
 footer {

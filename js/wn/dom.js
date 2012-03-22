@@ -81,4 +81,11 @@ wn.get_cookie = function(c) {
 	var ind1=t.indexOf(';',ind);
 	if (ind1==-1) ind1=t.length; 
 	return unescape(t.substring(ind+c.length+1,ind1));
-}	
+}
+
+wn.dom.set_box_shadow = function(ele, spread) {
+	$(ele).css('-moz-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
+	$(ele).css('-webkit-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
+	$(ele).css('-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
+	
+}
