@@ -53,6 +53,7 @@ def get_bootinfo():
 		import webnotes.widgets.menus
 		bootinfo['dt_labels'] = get_dt_labels()
 		bootinfo['user_info'] = get_fullnames()
+		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
 	get_home_page(bootinfo, doclist)
@@ -78,7 +79,7 @@ def get_fullnames():
 	import webnotes
 	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
-			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, '')), 
+			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
 			user_image, gender
 		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
 	d = {}

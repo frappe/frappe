@@ -33,7 +33,7 @@ wn.ui.toolbar.Search = wn.ui.toolbar.SelectorDialog.extend({
 		});
 		
 		// get new types
-		this.set_values(profile.can_read.join(',').split(','));
+		this.set_values(profile.can_search.join(',').split(','));
 		
 		// global search selector
 		makeselector();

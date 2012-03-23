@@ -58,5 +58,5 @@ function export_csv(q, report_name, sc_id, is_simple, filter_values, colnames) {
     if(colnames) 
     	args.colnames = colnames.join(',');
 	args.report_name = report_name ? report_name : '';
-	open_url_post(outUrl, args);
+	open_url_post(wn.request.url, args);
 }

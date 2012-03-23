@@ -28,10 +28,23 @@ wn.dom.by_id = function(id) {
 }
 
 wn.dom.eval = function(txt) {
+	if(!txt) return;
 	var el = document.createElement('script');
 	el.appendChild(document.createTextNode(txt));
 	// execute the script globally
 	document.getElementsByTagName('head')[0].appendChild(el);
+}
+
+wn.dom.set_style = function(txt) {
+	if(!txt) return;
+	var se = document.createElement('style');
+	se.type = "text/css";
+	if (se.styleSheet) {
+		se.styleSheet.cssText = txt;
+	} else {
+		se.appendChild(document.createTextNode(txt));
+	}
+	document.getElementsByTagName('head')[0].appendChild(se);	
 }
 
 wn.dom.add = function(parent, newtag, className, cs, innerHTML, onclick) {
@@ -61,11 +74,18 @@ wn.dom.css= function(ele, s) {
 	return ele;
 }
 
-wn.dom.hide = function(ele) {
-	ele.style.display = 'none';
+wn.get_cookie = function(c) {
+	var t=""+document.cookie;
+	var ind=t.indexOf(c);
+	if (ind==-1 || c=="") return ""; 
+	var ind1=t.indexOf(';',ind);
+	if (ind1==-1) ind1=t.length; 
+	return unescape(t.substring(ind+c.length+1,ind1));
 }
 
-wn.dom.show = function(ele, value) {
-	if(!value) value = 'block';
-	ele.style.display = value;
-}	
+wn.dom.set_box_shadow = function(ele, spread) {
+	$(ele).css('-moz-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
+	$(ele).css('-webkit-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
+	$(ele).css('-box-shadow', '0px 0px '+ spread +'px rgba(0,0,0,0.3);')
+	
+}

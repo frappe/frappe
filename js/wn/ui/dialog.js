@@ -37,7 +37,7 @@ wn.widgets.FieldGroup = function() {
 			
 			// first button primary ?
 			if(df.fieldtype=='Button' && !this.first_button) {
-				$(f.input).addClass('btn-primary');
+				$(f.input).addClass('btn-info');
 				this.first_button = true;
 			}
 		}
@@ -175,9 +175,6 @@ wn.widgets.Dialog = function(opts) {
 		// hide
 		unfreeze();
 		$dh(this.wrapper);
-
-		// clear open autosuggests
-		if(cur_autosug) cur_autosug.clearSuggestions();
 
 		// flags
 		this.display = false;

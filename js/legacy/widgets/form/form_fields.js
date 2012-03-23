@@ -29,7 +29,8 @@ _f.ColumnBreak = function() {
 }
 
 _f.ColumnBreak.prototype.make_body = function() {
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
+	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || 
+		this.df.hidden) {
 		// no display
 		return;
 	}
@@ -49,162 +50,125 @@ _f.ColumnBreak.prototype.make_body = function() {
 _f.ColumnBreak.prototype.refresh = function(layout) {
 	if(!this.cell)return; // no perm
 	
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
-	if(fn) {
-		this.df = get_field(this.doctype, fn, this.docname);
-	
-		// hidden
-		if(this.set_hidden!=this.df.hidden) {
-			if(this.df.hidden)
-				this.cell.hide();
-			else
-				this.cell.show();
-			this.set_hidden = this.df.hidden;
-		}
+	// hidden
+	if(this.set_hidden!=this.df.hidden) {
+		if(this.df.hidden)
+			this.cell.hide();
+		else
+			this.cell.show();
+		this.set_hidden = this.df.hidden;
 	}
 }
 
 // ======================================================================================
 
 _f.SectionBreak = function() {
+	this.fields = [];
 	this.set_input = function() { };
-}
-
-_f.SectionBreak.prototype.make_row = function() {
-	this.row = this.df.label ? this.frm.layout.addrow() : this.frm.layout.addsubrow();
-}
-
-_f.SectionBreak.prototype.make_collapsible = function(head) {
-	var me = this;
-
-	var div = $a(head,'div','',{paddingBottom: '3px', borderBottom:'1px solid #AAA'});
-	if(cur_frm.meta.in_dialog) $y(div, {marginLeft:'8px'});
-	
-	// checkbox
-	this.chk = $a_input(div, 'checkbox',null,{marginRight:'8px'})
-	
-	// label
-	if(this.df.label) {
-		this.label = $a(div, 'h3', '', {display:'inline'}, this.df.label);		
-	}
-	
-
-	// description
-	var d = this.df.description;
-	if(d) {
-		this.desc_area = $a(div, 'span', 'field_description', {marginLeft:'8px'});
-		this.desc_area.innerHTML = d.substr(0,50) + (d.length > 50 ? '...' : '');
-	}
-
-	// back to top
-	var span = $a(div, 'i', 'icon-arrow-up', {cssFloat:'right', marginRight:'8px', 
-		cursor:'pointer', verticalAlign:'middle', marginTop:'7px'})
-	span.title = 'Go to top';
-	span.onclick = function() { scroll(0, 0); }
-
-	// exp / collapse
-
-	this.chk.onclick = function() { 
-		if(this.checked) me.expand(); 
-		else me.collapse(); 
-	}
-	
-	this.expand = function() { 
-		$(me.row.main_body).slideDown();
-	}
-	
-	this.collapse = function() { 
-		$(me.row.main_body).slideUp();
-	}
-	
-	// hide by default
-	if(me.frm.section_count) {
-		$dh(this.row.main_body);
-	} else {
-		this.chk.checked = true;
+	this.make_row = function() {
+		this.row = this.df.label ? this.frm.layout.addrow() : this.frm.layout.addsubrow();		
 	}
 }
 
-// ======================================================================================
-
-_f.SectionBreak.prototype.make_simple_section = function(with_header) {
-	this.wrapper = $a(this.row.main_head, 'div', '', {margin:'8px 8px 0px 0px'});
-	var me = this;
-
-	// colour
-	if(this.df.colour) {
-		var col = this.df.colour.split(':')[1];
-		if(col!='FFF') {			
-			$y(this.row.sub_wrapper, { margin:'8px', padding: '0px' ,backgroundColor: ('#' + col)} );
-		}
-	}
-	
-	if(with_header) {
-		if(this.df.label && this.df.options!='Simple') {
-			this.make_collapsible(this.wrapper);
-		} else {
-			// divider
-			$y(this.wrapper, {paddingBottom:'4px'});
-			if(this.df.label) {
-				$a(this.wrapper, 'h3', '', {}, this.df.label);
-			}
-		}
-	}
-
-	// indent
-	$y(this.row.body, { marginLeft:'17px' });
-
-}
-
-// ======================================================================================
-
-_f.SectionBreak.prototype.add_to_sections = function() {
-	this.sec_id = this.frm.sections.length;
-	this.frm.sections[this.sec_id] = this;
-	this.frm.sections_by_label[this.df.label] = this;
-}
-
-_f.cur_sec_header = null;
 _f.SectionBreak.prototype.make_body = function() {
+	var me = this;
 	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
 		// no display
 		return;
 	}
-	var me = this;
 
-	if(this.df){
-		this.make_row();
-		this.make_simple_section(1, 1);
-	}	
+	this.make_row();
+
+	if(this.df.label) {
+		if(!this.df.description) 
+			this.df.description = '';
+		$(this.row.main_head).html(repl('<div class="form-section-head" style="cursor: pointer">\
+				<div class="head">%(label)s</h3>\
+				<div class="help small">%(description)s</div>\
+			</div>', this.df));
+			
+		this.$expand = $(this.row.main_head).find('.head').click(function() {
+			if($(me.row.main_head).find('h3').length) {
+				me.section_collapse();				
+			} else {
+				me.section_expand();
+			}
+			return false;
+		});
+		
+		this.collapsible = true;
+	} else {
+		// simple
+		$(this.wrapper).html('<div class="form-section-head"></div>');
+	}
+
+	// collapse section
+	this.section_collapse = function() {
+		$(me.row.main_head).find('.head')
+			.html('<i class="icon-chevron-right"></i> \
+				<a href="#" onclick="return false;">Show "' + me.df.label + '"</a>');
+		$(me.row.main_body).toggle(false);
+		
+	}
+	
+	// expand section
+	this.section_expand = function(no_animation) {
+		$(me.row.main_head).find('.head')
+			.html('<h3><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
+				+ me.df.label + '</h3>');
+		if(no_animation)
+			$(me.row.main_body).toggle(true);
+		else
+			$(me.row.main_body).slideDown();
+	}
+
+	// indent
+	$y(this.row.body, { marginLeft:'17px' });
 }
 
-
-// ======================================================================================
-
-_f.SectionBreak.prototype.refresh = function(layout) {
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
-
-	if(fn)
-		this.df = get_field(this.doctype, fn, this.docname);
-
-	// hidden
-	if(this.set_hidden!=this.df.hidden) {
-		if(this.df.hidden) {
-			if(this.frm.meta.section_style=='Tabbed') {
-				$dh(this.mytab);
-			} else if(this.tray_item)
-				this.tray_item.hide();
-			
-			if(this.row)this.row.hide();
-		} else {
-			if(this.frm.meta.section_style=='Tabbed') {
-				$di(this.mytab);
-			} else if(this.tray_item)
-				this.tray_item.show();
-
-			if(this.expanded)this.row.show();
+_f.SectionBreak.prototype.has_data = function() {
+	// return true if
+	// 1. any field in the section is mandatory & not set as default
+	// 2. any field in the section has data that is not default
+	// 3. if table, table has rows
+	
+	var me = this;
+	for(var i in me.fields) {
+		var f = me.fields[i];
+		var v = f.get_value ? f.get_value() : null;
+		
+		// value that is not default
+		defaultval = f.df['default'] || sys_defaults[f.fieldname] || user_defaults[f.fieldname];
+		if(v && v != defaultval) {
+			return true;
 		}
-		this.set_hidden = this.df.hidden;
+		
+		// unfilled mandatory field
+		if(f.df.reqd && !v) {
+			return true;
+		}
+		
+		// filled table
+		if(f.df.fieldtype=='Table') {
+			if(f.grid.get_children().length || f.df.reqd) {
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+_f.SectionBreak.prototype.refresh = function(from_form) {
+	if(this.df.hidden) {
+		if(this.row)this.row.hide();
+	} else {
+		if(this.collapsible) {
+			if(this.df.reqd || this.has_data()) {
+				this.section_expand(from_form);
+			} else {
+				this.section_collapse();
+			}	
+		}
 	}
 }
 
@@ -228,7 +192,7 @@ _f.ImageField.prototype.get_image_src = function(doc) {
 		var img_extn_list = ['gif', 'jpg', 'bmp', 'jpeg', 'jp2', 'cgm',  'ief', 'jpm', 'jpx', 'png', 'tiff', 'jpe', 'tif'];
 
 		if(in_list(img_extn_list, extn)) {
-			var src = outUrl + "?cmd=downloadfile&file_id="+file[1];
+			var src = wn.request.url + "?cmd=downloadfile&file_id="+file[1];
 		}
 	} else {
 		var src = "";
@@ -248,7 +212,7 @@ _f.ImageField.prototype.onrefresh = function() {
 	var doc = locals[this.frm.doctype][this.frm.docname];
 	
 	if(!this.df.options) var src = this.get_image_src(doc);
-	else var src = outUrl + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
+	else var src = wn.request.url + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
 
 	
 	if(src) {
@@ -282,7 +246,7 @@ _f.TableField.prototype.make_body = function() {
 	if(this.perm[this.df.permlevel] && this.perm[this.df.permlevel][READ]) {
 		// add comment area
 		if(this.df.description) {
-			this.desc_area = $a(this.parent, 'div', 'field_description', '', this.df.description)
+			this.desc_area = $a(this.parent, 'div', 'help small', '', this.df.description)
 		}
 		this.grid = new _f.FormGrid(this);
 		if(this.frm)this.frm.grids[this.frm.grids.length] = this;
@@ -384,7 +348,7 @@ _f.CodeField.prototype.make_input = function() {
 		// setup tiny mce
 		$(me.input).tinymce({
 			// Location of TinyMCE script
-			script_url : 'lib/js/legacy/tiny_mce_33/tiny_mce.js',
+			script_url : 'lib/js/lib/tiny_mce_33/tiny_mce.js',
 
 			// General options
 			theme : "advanced",
@@ -403,7 +367,7 @@ _f.CodeField.prototype.make_input = function() {
 			theme_advanced_toolbar_location : "top",
 			theme_advanced_toolbar_align : "left",
 
-			content_css: "js/tiny_mce_33/custom_content.css",
+			content_css: "lib/js/lib/tiny_mce_33/custom_content.css",
 
 			oninit: function() { me.init_editor(); }
 		});

@@ -116,6 +116,7 @@ CommentList.prototype.add_comment = function() {
 // --------------------
 CommentList.prototype.make_lst = function() {
   if(!this.lst) {
+	wn.require('lib/js/legacy/widgets/listing.js');
     var l = new Listing('Comments', 1);
     var me = this;
     // define the columns etc
@@ -176,7 +177,7 @@ CommentItem = function(cell, ri, ci, d, comment) {
 // Set picture
 // -----------
 CommentItem.prototype.set_picture = function(d, ri){
-	set_user_img(this.img, user)
+	this.user.src = wn.user_info(d[ri][2]).image;
 	this.cmt_by.innerHTML = d[ri][7] ? d[ri][7] : d[ri][2];
 }
 

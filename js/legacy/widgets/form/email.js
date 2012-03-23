@@ -90,7 +90,7 @@ _e.make = function() {
 	}
 
 	d.onhide = function() {
-		hide_autosuggest();
+		
 	}
 
 	d.make_body([
@@ -107,57 +107,53 @@ _e.make = function() {
 	
 	$td(d.rows['Format'].tab,0,1).cur_sel = d.widgets['Format'];
 	
-    // ---- add auto suggest ---- 
-    var opts = { script: '', json: true, maxresults: 10 };
+	function split( val ) {
+		return val.split( /,\s*/ );
+	}
+	function extractLast( term ) {
+		return split(term).pop();
+	}
 
-	wn.require('lib/js/legacy/widgets/autosuggest.js');
 
-    var as = new AutoSuggest(d.widgets['To'], opts);
-    as.custom_select = function(txt, sel) {
-      // ---- add to the last comma ---- 
-      var r = '';
-      var tl = txt.split(',');
-      for(var i=0;i<tl.length-1;i++) r=r+tl[i]+',';
-      r = r+(r?' ':'')+sel;
-      if(r[r.length-1]==NEWLINE) r=substr(0,r.length-1);
-      return r;
-    }
-    
-    var emailto = d.widgets['To']
-
-    as.set_input_value = function(new_txt) {
-      if(emailto.value && emailto.value.indexOf(',')!=-1) {
-        var txt = emailto.value.split(',');
-        txt.splice(txt.length - 1, 1, new_txt);
-        for(var i=0;i<txt.length-1;i++) txt[i] = strip(txt[i]);
-        emailto.value = txt.join(', ');
-      } else {
-        emailto.value = new_txt;	
-      }
-    }
-    
-    // ---- override server call ---- 
-    as.doAjaxRequest = function(txt) {
-      var pointer = as; var q = '';
-      
-      // ---- get last few letters typed ---- 
-      var last_txt = txt.split(',');
-      last_txt = last_txt[last_txt.length-1];
-      
-      // ---- show options ---- 
-      var call_back = function(r,rt) {
-        as.aSug = [];
-        if(!r.cl) return;
-        for (var i=0;i<r.cl.length;i++) {
-          as.aSug.push({'id':r.cl[i], 'value':r.cl[i], 'info':''});
-        }
-        as.createList(as.aSug);
-      }
-      $c('webnotes.utils.email_lib.get_contact_list',{'select':_e.email_as_field, 'from':_e.email_as_dt, 'where':_e.email_as_in, 'txt':(last_txt ? strip(last_txt) : '%')},call_back);
-      return;
-    }
-	
-	var sel;
+	$(d.widgets['To'])
+		.bind( "keydown", function(event) {
+			if (event.keyCode === $.ui.keyCode.TAB &&
+					$(this).data( "autocomplete" ).menu.active ) {
+				event.preventDefault();
+			}
+		})	
+		.autocomplete({
+			source: function(request, response) {
+				wn.call({
+					method:'webnotes.utils.email_lib.get_contact_list',
+					args: {
+						'select': _e.email_as_field, 
+						'from': _e.email_as_dt, 
+						'where': _e.email_as_in, 
+						'txt': extractLast(request.term).value || '%'
+					},
+					callback: function(r) {
+						response($.ui.autocomplete.filter(
+							r.cl || [], extractLast(request.term)));
+					}
+				});
+			},
+			focus: function() {
+				// prevent value inserted on focus
+				return false;
+			},
+			select: function( event, ui ) {
+				var terms = split( this.value );
+				// remove the current input
+				terms.pop();
+				// add the selected item
+				terms.push( ui.item.value );
+				// add placeholder to get the comma-and-space at the end
+				terms.push( "" );
+				this.value = terms.join( ", " );
+				return false;
+			}
+		});
 
 	_e.dialog = d;
 }

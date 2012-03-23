@@ -75,7 +75,7 @@ Dialog.prototype.make_row = function(d) {
 		var c1 = $td(t,0,0);
 		var c2 = $td(t,0,1);
 		if(d[0]!='Check' && d[0]!='Button')
-			$t(c1, d[1]);
+			$(c1).text(d[1]);
 	}
 	
 	if(d[0]=='HTML') {
@@ -134,7 +134,7 @@ Dialog.prototype.make_row = function(d) {
 			if(btn._onclick) btn._onclick(me) }, null, null, 1);
 		b.dialog = me;
 		if(!this.first_button) {
-			$(b).addClass('btn-primary');
+			$(b).addClass('btn-info');
 			this.first_button = true;
 		}
 		if(d[2]) {

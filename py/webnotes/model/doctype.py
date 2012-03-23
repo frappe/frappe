@@ -60,7 +60,7 @@ class _DocType:
 		
 		if form:
 			self.load_select_options(doclist)
-			self.load_custom_scripts(doclist)
+			self.add_code(doclist[0])
 			self.load_print_formats(doclist)
 			self.insert_into_cache(doclist)
 
@@ -248,6 +248,41 @@ class _DocType:
 		for d in doclist:
 			if d.fieldname and d.fieldname in docfields:
 				d.idx = docfields.index(d.fieldname) + 1
+				
+	def add_code(self, doc):
+		"""add js, css code"""
+		import os
+		from webnotes.modules import scrub, get_module_path
+		
+		modules_path = get_module_path(doc.module)
+
+		path = os.path.join(modules_path, 'doctype', scrub(doc.name))
+
+		fpath = os.path.join(path, scrub(doc.name) + '.js')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__js'] = f.read()
+
+		fpath = os.path.join(path, scrub(doc.name) + '.css')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__css'] = f.read()
+
+		fpath = os.path.join(path, 'listview.js')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__listjs'] = f.read()
+
+		fpath = os.path.join(path, 'help.md')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['description'] = f.read()
+		
+		# custom script
+		from webnotes.model.code import get_custom_script
+		custom = get_custom_script(doc.name, 'Client') or ''
+		doc.fields['__js'] = doc.fields.setdefault('__js', '') + custom
+		
 
 	def load_select_options(self, doclist):
 		"""
@@ -292,28 +327,6 @@ class _DocType:
 			opt_list = []
 
 		return opt_list
-
-	def load_custom_scripts(self, doclist):
-		"""
-			Loads custom js and css
-		"""
-		from webnotes.modules import Module
-		from webnotes.model.code import get_custom_script
-
-		doc = doclist[0]
-		custom = get_custom_script(doc.name, 'Client') or ''
-		module = Module(doc.module)
-		doc.fields.update({
-			'__js': module.get_doc_file(
-				'doctype', doc.name, '.js').read() + '\n' + custom,
-			'__css': module.get_doc_file(
-				'doctype', doc.name, '.css').read(),
-		})
-
-		# clear code
-		if self.name != 'DocType':
-			doc.server_code = doc.server_code_core = doc.client_script \
-			= doc.client_script_core = doc.server_code_compiled = None
 
 	def load_print_formats(self, doclist):
 		"""

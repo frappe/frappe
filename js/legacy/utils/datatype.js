@@ -20,8 +20,6 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-var startup_list = [];
-
 wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
 
 
@@ -168,7 +166,7 @@ function flt(v,decimals) {
 	if(isNaN(v))
 		v=0; 
 	if(decimals!=null)
-		return v.toFixed(decimals);
+		return parseFloat(v.toFixed(decimals));
 	return v; 
 }
 

@@ -1,14 +1,4 @@
-/* listing 2.0 */
 
-div.listing-more {
-	margin: 7px 0px 17px 0px;
-	text-align: center;
-	display: none;
-}
-
-div.listing-toolbar {
-	margin: 7px 0px;
-}
 
 /* SRS */
 
@@ -51,6 +41,3 @@ div.srs_filter_area {
 div.srs_filter_area td {
 	vertical-align: middle;
 }
-
-
-

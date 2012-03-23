@@ -22,7 +22,6 @@
 
 // library to mange assets (js, css, models, html) etc in the app.
 // will try and get from localStorge if latest are available
-// or will load them via xmlhttp
 // depends on wn.versions to manage versioning
 
 wn.assets = {
@@ -57,16 +56,23 @@ wn.assets = {
 	},
 	
 	// load an asset via
-	// xmlhttp
 	load: function(src) {
 		// this is virtual page load, only get the the source
 		// *without* the template
 		var t = src;
 
-		wn.xmlhttp.get(t, function(txt) {
-			// add it to localstorage
-			wn.assets.add(src, txt);			
-		}, 'q=' + Math.floor(Math.random()*1000) , false)
+		$.ajax({
+			url: t,
+			data: {
+				q: Math.floor(Math.random()*1000)
+			},
+			dataType: 'text',
+			success: function(txt) {
+				// add it to localstorage
+				wn.assets.add(src, txt);				
+			},
+			async: false
+		})
 	},
 	
 	// pass on to the handler to set
@@ -89,14 +95,7 @@ wn.assets = {
 			wn.dom.eval(txt);
 		},
 		css: function(txt, src) {
-			var se = document.createElement('style');
-			se.type = "text/css";
-			if (se.styleSheet) {
-				se.styleSheet.cssText = txt;
-			} else {
-				se.appendChild(document.createTextNode(txt));
-			}
-			document.getElementsByTagName('head')[0].appendChild(se);			
+			wn.dom.set_style(txt);
 		},
 		cgi: function(txt, src) {
 			// dynamic content, will return content as

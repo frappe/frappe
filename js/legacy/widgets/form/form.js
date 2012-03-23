@@ -41,33 +41,7 @@
 
 wn.provide('_f');
 
-// called from table edit
-_f.edit_record = function(dt, dn) {
-	d = _f.frm_dialog;
-	
-	var show_dialog = function() {
-		var f = frms[dt];
-		if(f.meta.istable) {
-			f.parent_doctype = cur_frm.doctype;
-			f.parent_docname = cur_frm.docname;
-		}
-		
-		d.cur_frm = f;
-		d.dn = dn;
-		d.table_form = f.meta.istable;
-		
-		// show the form
-		f.refresh(dn);
-	}
-
-	// load
-	if(!frms[dt]) {
-		_f.add_frm(dt, show_dialog, null);
-	} else {
-		show_dialog();
-	}
-	
-}
+_f.frms = {};
 
 _f.Frm = function(doctype, parent) {
 	this.docname = '';
@@ -77,10 +51,7 @@ _f.Frm = function(doctype, parent) {
 	var me = this;
 	this.is_editable = {};
 	this.opendocs = {};
-	this.cur_section = {};
 	this.sections = [];
-	this.sections_by_label = {};
-	this.section_count;
 	this.grids = [];
 	this.cscript = {};
 	this.pformat = {};
@@ -88,15 +59,34 @@ _f.Frm = function(doctype, parent) {
 	this.parent = parent;
 	this.tinymce_id_list = [];
 	
-	frms[doctype] = this;
-
 	this.setup_meta(doctype);
 	
 	// notify on rename
-	rename_observers.push(this);
+	var me = this;
+	$(document).bind('rename', function(event, dt, old_name, new_name) {
+		if(dt==me.doctype)
+			me.rename_notify(dt, old_name, new_name)
+	});
 }
 
 // ======================================================================================
+
+_f.Frm.prototype.check_doctype_conflict = function(docname) {
+	var me = this;
+	if(this.doctype=='DocType' && docname=='DocType') {
+		msgprint('Allowing DocType, DocType. Be careful!')
+	} else if(this.doctype=='DocType') {
+		if(wn.views.formview[docname]) {
+			msgprint("Cannot open DocType when its instance is open")
+			throw 'doctype open conflict'
+		}
+	} else {
+		if(wn.views.formview.DocType && wn.views.formview.DocType.frm.opendocs[this.doctype]) {
+			msgprint("Cannot open instance when its DocType is open")
+			throw 'doctype open conflict'
+		}		
+	}
+}
 
 _f.Frm.prototype.setup = function() {
 
@@ -105,7 +95,7 @@ _f.Frm.prototype.setup = function() {
 	this.fields_dict = {};
 
 	// wrapper
-	this.wrapper = $a(this.parent.body, 'div');
+	this.wrapper = this.parent;
 	
 	// create area for print fomrat
 	this.setup_print_layout();
@@ -127,7 +117,10 @@ _f.Frm.prototype.setup = function() {
 _f.Frm.prototype.setup_print_layout = function() {
 	this.print_wrapper = $a(this.wrapper, 'div');
 	this.print_head = $a(this.print_wrapper, 'div');
-	this.print_body = $a(this.print_wrapper,'div', 'layout_wrapper', {padding:'23px'});
+	this.print_body = $a(this.print_wrapper,'div', 'layout_wrapper', {
+		padding:'23px',
+		minHeight: '800px'
+	});
 	
 	var t= make_table(this.print_head, 1 ,2, '100%', [], {padding: '6px'});
 	this.view_btn_wrapper = $a($td(t,0,0) , 'span', 'green_buttons');
@@ -137,7 +130,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	this.print_btn = $btn($td(t,0,0), 'Print', function() { cur_frm.print_doc() });
 
 	$y($td(t,0,1), {textAlign: 'right'});
-	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { nav_obj.show_last_open(); });
+	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { window.back(); });
 }
 
 
@@ -148,8 +141,8 @@ _f.Frm.prototype.onhide = function() { if(_f.cur_grid_cell) _f.cur_grid_cell.gri
 _f.Frm.prototype.setup_std_layout = function() {
 	this.page_layout = new wn.PageLayout({
 		parent: this.wrapper,
-		main_width: this.in_dialog ? '100%' : '75%',
-		sidebar_width: this.in_dialog ? '0%' : '25%'
+		main_width: this.meta.in_dialog ? '100%' : '75%',
+		sidebar_width: this.meta.in_dialog ? '0%' : '25%'
 	})	
 			
 	// only tray
@@ -159,7 +152,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.layout = new Layout(this.page_layout.body, '100%');
 	
 	// sidebar
-	if(this.in_dialog) {
+	if(this.meta.in_dialog) {
 		// hide sidebar
 		$(this.page_layout.wrapper).removeClass('layout-wrapper-background');
 		$(this.page_layout.main).removeClass('layout-main-section');
@@ -184,23 +177,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	
 	// create fields
 	this.setup_fields_std();
-	
-	// description
-	if(this.meta.description)
-		this.add_description();
-}
-
-// ======================================================================================
-
-_f.Frm.prototype.add_description = function() {
-	if(!wn.md2html) {
-		wn.require('lib/js/lib/showdown.js');
-		wn.md2html = new Showdown.converter();
-	}
-	
-	this.description_wrapper = $a(this.page_layout.footer.help_area, 'div', 
-		'info-box', {marginTop:'10px'}, 
-		wn.md2html.makeHtml('#### Help\n\n' + this.meta.description));
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -262,13 +238,7 @@ _f.Frm.prototype.email_doc = function() {
 
 // ======================================================================================
 
-_f.Frm.prototype.rename_notify = function(dt, old, name) {
-	if(this.doctype != dt) return;
-	
-	// sections
-	this.cur_section[name] = this.cur_section[old];
-	delete this.cur_section[old];
-
+_f.Frm.prototype.rename_notify = function(dt, old, name) {	
 	// editable
 	this.is_editable[name] = this.is_editable[old];
 	delete this.is_editable[old];
@@ -284,10 +254,11 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 		local_dt[dt][name] = local_dt[dt][old];
 		local_dt[dt][old] = null;
 	}
-	
-	this.opendocs[old] = false;
+
+	delete this.opendocs[old];
 	this.opendocs[name] = true;
 }
+
 // refresh the heading labels
 // ======================================================================================
 
@@ -296,19 +267,6 @@ _f.Frm.prototype.set_heading = function() {
 }
 
 
-// PAGING
-// ======================================================================================
-
-_f.Frm.prototype.set_section = function(sec_id) {
-	if(!this.sections[sec_id] || !this.sections[sec_id].expand) 
-		return; // Simple type
-	
-	if(this.sections[this.cur_section[this.docname]])
-		this.sections[this.cur_section[this.docname]].collapse();
-	this.sections[sec_id].expand();
-	this.cur_section[this.docname] = sec_id;
-}
-
 // SETUP
 // ======================================================================================
 
@@ -316,6 +274,7 @@ _f.Frm.prototype.set_section = function(sec_id) {
 _f.Frm.prototype.setup_meta = function() {
 	this.meta = get_local('DocType',this.doctype);
 	this.perm = get_perm(this.doctype); // for create
+	if(this.meta.istable) { this.meta.in_dialog = 1 }
 	this.setup_print();
 }
 
@@ -335,7 +294,7 @@ _f.Frm.prototype.setup_footer = function() {
 	var f = this.page_layout.footer;
 
 	// save buttom
-	f.save_area = $a(this.page_layout.footer,'div','',{display:'none'});
+	f.save_area = $a(this.page_layout.footer,'div','',{display:'none', marginTop:'11px'});
 	f.help_area = $a(this.page_layout.footer,'div');
 
 	var b = $btn(f.save_area, 'Save',
@@ -369,26 +328,28 @@ _f.Frm.prototype.setup_fields_std = function() {
 	var sec;
 	for(var i=0;i<fl.length;i++) {
 		var f=fl[i];
-		
-		// no section breaks in embedded forms
-		if(get_url_arg('embed') && (in_list(['Section Break','Column Break'], f.fieldtype))) continue;
-		
+				
 		// if section break and next item 
 		// is a section break then ignore
-		if(f.fieldtype=='Section Break' && fl[i+1] && fl[i+1].fieldtype=='Section Break') continue;
+		if(f.fieldtype=='Section Break' && fl[i+1] && fl[i+1].fieldtype=='Section Break') 
+			continue;
 		
 		var fn = f.fieldname?f.fieldname:f.label;
 				
 		var fld = make_field(f, this.doctype, this.layout.cur_cell, this);
+
 		this.fields[this.fields.length] = fld;
 		this.fields_dict[fn] = fld;
 
-		// Add to section break so that this section can be shown when there is an error
-		if(this.meta.section_style != 'Simple')
+		if(sec && ['Section Break', 'Column Break'].indexOf(f.fieldtype)==-1) {
 			fld.parent_section = sec;
+			sec.fields.push(fld);			
+		}
 		
-		if(f.fieldtype=='Section Break' && f.options != 'Simple')
+		if(f.fieldtype=='Section Break') {
 			sec = fld;
+			this.sections.push(fld);			
+		}
 		
 		// default col-break after sec-break
 		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')&&!f.hidden) {
@@ -428,17 +389,6 @@ _f.Frm.prototype.setup_client_script = function() {
 
 // --------------------------------------------------------------------------------------
 
-// change the parent - deprecated
-_f.Frm.prototype.set_parent = function(parent) {
-	if(parent) {
-		this.parent = parent;
-		if(this.wrapper && this.wrapper.parentNode != parent)
-			parent.appendChild(this.wrapper);
-	}
-}
-
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.refresh_print_layout = function() {
 	$ds(this.print_wrapper);
 	$dh(this.page_layout.wrapper);
@@ -469,39 +419,16 @@ _f.Frm.prototype.refresh_print_layout = function() {
 }
 
 
-// SHOW!
-// ======================================================================================
-
-_f.Frm.prototype.hide = function() {
-	$dh(this.wrapper);
-	this.display = 0;
-	if(hide_autosuggest)
-		hide_autosuggest();
-}
 
 // --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.show_the_frm = function() {
-	// hide other (open) forms
-	if(this.parent.last_displayed && this.parent.last_displayed != this) {
-		this.parent.last_displayed.defocus_rest();
-		this.parent.last_displayed.hide();
-	}
-
-	// show the form
-	if(this.wrapper && this.wrapper.style.display.toLowerCase()=='none') {
-		$ds(this.wrapper);
-		this.display = 1;
-	}
-	
 	// show the dialog
 	if(this.meta.in_dialog && !this.parent.dialog.display) {
 		if(!this.meta.istable)
 			this.parent.table_form = false;
 		this.parent.dialog.show();
-	}
-	
-	this.parent.last_displayed = this;
+	}	
 }
 
 // --------------------------------------------------------------------------------------
@@ -514,7 +441,6 @@ _f.Frm.prototype.set_print_heading = function(txt) {
 _f.Frm.prototype.defocus_rest = function() {
 	// deselect others
 	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect();
-	cur_page = null;
 }
 
 // -------- Permissions -------
@@ -571,7 +497,7 @@ _f.Frm.prototype.check_doc_perm = function() {
 				return 1;
 			}
 		}
-		nav_obj.show_last_open();
+		window.back();
 		return 0;
 	}
 	return 1
@@ -637,11 +563,8 @@ _f.Frm.prototype.refresh = function(docname) {
 			// trigger global trigger
 			// to use this
 			// $(docuemnt).bind('form_refresh', function() { })
-			$(document).trigger('form_refresh')
-			
-			// tabs
-			this.refresh_tabs();
-			
+			$(document).trigger('form_refresh');
+						
 			// fields
 			this.refresh_fields();
 			
@@ -655,8 +578,15 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.layout) this.layout.show();
 
 			// call onload post render for callbacks to be fired
-			if(cur_frm.cscript.is_onload)
-				this.runclientscript('onload_post_render', this.doctype, this.docname);			
+			if(cur_frm.cscript.is_onload) {
+				this.runclientscript('onload_post_render', this.doctype, this.docname);
+			}
+				
+			// focus on first input
+			
+			if(this.doc.docstatus==0) {
+				$(this.wrapper).find('.form-layout-row :input:first').focus();
+			}
 		
 		} else {
 			// show print layout
@@ -667,29 +597,9 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 			this.runclientscript('edit_status_changed');
 		}
-		
-		// show the record
-		if(!this.display) this.show_the_frm();
-		
-		// show the page
-		if(!this.meta.in_dialog) page_body.change_to('Forms');
 
 		$(cur_frm.wrapper).trigger('render_complete');
-
 	} 
-}
-
-// --------------------------------------------------------------------------------------
-
-_f.Frm.prototype.refresh_tabs = function() {
-	var me = this;
-	if(me.meta.section_style=='Tray'||me.meta.section_style=='Tabbed') {
-		for(var i in me.sections) {
-			me.sections[i].collapse();
-		}
-		
-		me.set_section(me.cur_section[me.docname]);
-	}
 }
 
 // --------------------------------------------------------------------------------------
@@ -708,13 +618,27 @@ _f.Frm.prototype.refresh_footer = function() {
 // --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.refresh_fields = function() {
-	// set fields
+	// refresh fields
 	for(var i=0; i<this.fields.length; i++) {
 		var f = this.fields[i];
 		f.perm = this.perm;
 		f.docname = this.docname;
-		if(f.refresh)f.refresh();
+		
+		// if field is identifiable (not blank section or column break)
+		// get the "customizable" parameters for this record
+		var fn = f.df.fieldname || f.df.label;
+		if(fn)
+			f.df = get_field(this.doctype, fn, this.docname);
+			
+		if(f.df.fieldtype!='Section Break' && f.refresh) {
+			f.refresh();			
+		}
 	}
+
+	// refresh sections
+	$.each(this.sections, function(i, f) {
+		f.refresh(true);
+	})
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
@@ -805,6 +729,7 @@ _f.Frm.prototype.refresh_dependency = function() {
 // ======================================================================================
 
 _f.Frm.prototype.setnewdoc = function(docname) {
+	this.check_doctype_conflict(docname);
 
 	// if loaded
 	if(this.opendocs[docname]) { // already exists
@@ -831,9 +756,6 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	this.is_editable[docname] = 1;
 	if(this.meta.read_only_onload) this.is_editable[docname] = 0;
 		
-	// Section Type
-	if(this.meta.section_style=='Tray'||this.meta.section_style=='Tabbed') { this.cur_section[docname] = 0; }
-
 	this.opendocs[docname] = true;
 }
 
@@ -898,6 +820,7 @@ _f.Frm.prototype.save = function(save_action, call_back) {
  	
 	
 	var ret_fn = function(r) {
+		me.savingflag = false;
 		if(user=='Guest' && !r.exc) {
 			// if user is guest, show a message after succesful saving
 			$dh(me.page_layout.wrapper);
@@ -914,7 +837,6 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 		}
 
 		if(call_back){
-			if(call_back == 'home'){ loadpage('_home'); return; }
 			call_back(r);
 		}
 	}
@@ -1072,15 +994,11 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 // ======================================================================================
 
 _f.Frm.prototype.reload_doc = function() {
-	var me = this;
-	if(frms['DocType'] && frms['DocType'].opendocs[me.doctype]) {
-		msgprint("error:Cannot refresh an instance of \"" + me.doctype+ "\" when the DocType is open.");
-		return;
-	}
+	this.check_doctype_conflict(this.docname);
 
+	var me = this;
 	var ret_fn = function(r, rtxt) {
-		// n tweets and last comment
-				
+		// n tweets and last comment				
 		me.runclientscript('setup', me.doctype, me.docname);
 		me.refresh();
 	}
@@ -1149,7 +1067,7 @@ _f.Frm.prototype.savetrash = function() {
 				if(wn.ui.toolbar.recent) wn.ui.toolbar.recent.remove(me.doctype, me.docname);
 				
 				// "close"
-				nav_obj.show_last_open();
+				window.back();
 			}
 		})
 	} 
@@ -1182,7 +1100,7 @@ _f.set_value = function(dt, dn, fn, v) {
 	var d = locals[dt][dn];
 
 	if(!d) {
-		errprint('error:Trying to set a value for "'+dt+','+dn+'" which is not found');
+		console.log('_f.set_value - '+ fn+': "'+dt+','+dn+'" not found');
 		return;
 	}
 
@@ -1192,11 +1110,11 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed) {
 		d[fn] = v;
 		d.__unsaved = 1;
-		var frm = frms[d.doctype];
+		var frm = wn.views.formview[d.doctype];
 		try {
 			if(d.parent && d.parenttype) {
 				locals[d.parenttype][d.parent].__unsaved = 1;
-				frm = frms[d.parenttype];
+				frm = wn.views.formview[d.parenttype];
 			}
 		} catch(e) {
 			if(d.parent && d.parenttype)

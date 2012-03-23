@@ -20,6 +20,10 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+var pending_req = 0;
+var fcount = 0;
+var dialog_back;
+
 function set_loading() {
 	pending_req++;
 	$('#spinner').css('visibility', 'visible');
@@ -31,5 +35,22 @@ function hide_loading() {
 	if(!pending_req){
 		$('body').css('cursor', 'default');
 		$('#spinner').css('visibility', 'hidden');
+	}
+}
+
+function freeze() {
+	// blur
+	if(!dialog_back) {
+		dialog_back = $a($i('body_div'), 'div', 'dialog_back');
+		$(dialog_back).css('opacity', 0.6);
+	}
+	$ds(dialog_back);
+	fcount++;
+}
+function unfreeze() {
+	if(!fcount)return; // anything open?
+	fcount--;
+	if(!fcount) {
+		$dh(dialog_back);
 	}
 }

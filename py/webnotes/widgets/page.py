@@ -36,93 +36,62 @@ class Page:
 	def __init__(self, name):
 		self.name = name
 
-	def get_from_files(self, doc, module):
+	def get_from_files(self, doc):
 		"""
 			Loads page info from files in module
 		"""
-		# load js
-		doc.fields['__script'] = module.get_doc_file('page',doc.name,'.js').read() or doc.script
+		from webnotes.modules import get_module_path, scrub
+		import os
+		
+		path = os.path.join(get_module_path(doc.module), 'page', scrub(doc.name))
+
+		# script
+		fpath = os.path.join(path, scrub(doc.name) + '.js')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.fields['__script'] = f.read()
 		doc.script = None
 
-		# load css
-		css = module.get_doc_file('page',doc.name,'.css').read()
-		if css: doc.style = css
+		# css
+		fpath = os.path.join(path, scrub(doc.name) + '.css')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.style = f.read()
 		
 		# html
-		doc.content = module.get_doc_file('page',doc.name,'.html').read() or doc.content
+		fpath = os.path.join(path, scrub(doc.name) + '.html')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				doc.content = f.read()
 	
-	def get_template(self, template):
-		"""
-			Returns the page template content
-		"""
-		ret = '%(content)s'
-		# load code from template
-		if template:
-			from webnotes.modules import Module
-			ret = Module(webnotes.conn.get_value('Page Template', template, 'module'))\
-				.get_doc_file('Page Template', template, '.html').read()
-			if not ret:
-				ret = webnotes.conn.get_value('Page Template', template, 'template')
-		
-		return ret
-					
 	def process_content(self, doc):
 		"""
 			Put in template and generate dynamic if starts with #!python
 		"""
-		template = self.get_template(doc.template)
 		content = ''
 		
 		# eval content
 		if doc.content and doc.content.startswith('#!python'):
 			from webnotes.model.code import execute
-			content = template % {'content': execute(doc.content).get('content')}
+			doc.__content = execute(doc.content).get('content')
 		else:
-			content = template % {'content': doc.content or ''}				
-
-		doc.__content = content
+			doc.__content = content
 			
 	def load(self):	
 		"""
 			Returns :term:`doclist` of the `Page`
-		"""
-		from webnotes.modules import Module
-		
+		"""		
 		doclist = webnotes.model.doc.get('Page', self.name)
 		doc = doclist[0]
 
 		# load from module
 		if doc.module: 
-			module = Module(doc.module)
-			self.get_from_files(doc, module)
+			self.get_from_files(doc)
 
 		# process
 		self.process_content(doc)
-
-		# add stylesheet
-		if doc.stylesheet:
-			doclist += self.load_stylesheet(doc.stylesheet)
 		
 		return doclist
-
-	def load_stylesheet(self, stylesheet):
-		import webnotes
-		# load stylesheet
-		loaded = eval(webnotes.form_dict.get('stylesheets') or '[]')
-		if not stylesheet in loaded:
-			import webnotes.model.doc
-			from webnotes.modules import Module
-			
-			# doclist
-			sslist = webnotes.model.doc.get('Stylesheet', stylesheet)
-			
-			# stylesheet from file
-			css = Module(sslist[0].module).get_doc_file('Stylesheet', stylesheet, '.css').read()
-			
-			if css: sslist[0].stylesheet = css			
-			return sslist
-		else:
-			return []
 
 @webnotes.whitelist()
 def get(name):

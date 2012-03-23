@@ -40,6 +40,16 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 
 					{
 						type: 'link',
+						label: 'List',
+						icon: 'icon-list',
+						display: function() { 
+							return !me.form.meta.issingle; 
+						},
+						onclick: function() { window.location.href="#!List/" + me.form.doctype }
+					},
+					
+					{
+						type: 'link',
 						label: 'Refresh',
 						icon: 'icon-refresh',
 						onclick: function() { me.form.reload_doc() }
@@ -124,6 +134,41 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						function() {	});
 				},
 				display: function() { return !me.form.doc.__islocal }
+			},
+			
+			{
+				title: 'Users',
+				render: function(wrapper) {
+					var doc = cur_frm.doc;
+					var scrub_date = function(d) {
+						if(d)t=d.split(' ');else return '';
+						return dateutil.str_to_user(t[0]) + ' ' + t[1];
+					}
+					
+					$(wrapper).html(repl('<p>Created:<br> <span class="avatar-small">\
+							<img title="%(created_by)s" src="%(avatar_created)s" /></span> \
+							<span class="help small">%(creation)s</span></p>\
+							<p>Modified:<br> <span class="avatar-small">\
+							<img title="%(modified_by)s" src="%(avatar_modified)s" /></span> \
+							<span class="help small">%(modified)s</span></p>', {
+								created_by: wn.user_info(doc.owner).fullname,
+								avatar_created: wn.user_info(doc.owner).image,
+								creation: scrub_date(doc.creation),
+								modified_by: wn.user_info(doc.modified_by).fullname,
+								avatar_modified: wn.user_info(doc.modified_by).image,
+								modified: scrub_date(doc.modified)
+							}));
+				},
+				display: function() { return !me.form.doc.__islocal }
+			},
+
+			{
+				title: 'Help',
+				render: function(wrapper) {
+					$(wrapper).html('<div class="help small">' 
+						+ wn.markdown(me.form.meta.description) + '</div>')
+				},
+				display: function() { return me.form.meta.description }
 			}
 		]
 	}

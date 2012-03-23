@@ -43,11 +43,11 @@ Field.prototype.make_body = function() {
 	
 	// parent element
 	if(this.parent)
-		this.wrapper = $a(this.parent, 'div');
+		this.wrapper = $a(this.parent, (this.with_label ? 'div' : 'span'));
 	else
-		this.wrapper = document.createElement('div');
+		this.wrapper = document.createElement((this.with_label ? 'div' : 'span'));
 
-	this.label_area = $a(this.wrapper, 'div', '', {margin:'8px 0px 2px 0px'});
+	this.label_area = $a(this.wrapper, 'div', '', {margin:'0px 0px 2px 0px'});
 
 	if(ischk && !this.in_grid) {
 		this.input_area = $a(this.label_area, 'span', '', {marginRight:'4px'});
@@ -56,7 +56,7 @@ Field.prototype.make_body = function() {
 	
 	// label
 	if(this.with_label) {	
-		this.label_span = $a(this.label_area, 'span', 'field_label')
+		this.label_span = $a(this.label_area, 'span', 'small')
 	
 		// error icon
 		this.label_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 4px'}); $dh(this.label_icon);
@@ -75,8 +75,8 @@ Field.prototype.make_body = function() {
 
 	// make the input areas
 	if(!this.input_area) {
-		this.input_area = $a(this.wrapper, 'div');
-		this.disp_area = $a(this.wrapper, 'div');
+		this.input_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
+		this.disp_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
 	}
 
 	// apply style
@@ -84,16 +84,17 @@ Field.prototype.make_body = function() {
 		if(this.label_area) $dh(this.label_area);
 	} else {
 		this.input_area.className = 'input_area';
-		$y(this.wrapper,{marginBottom:'4px'});
+		$y(this.wrapper,{marginBottom:'9px'});
 		
 		// set description
-		this.set_description();		
+		this.set_description();	
 	}
 	
 	// bind label refresh
 
 	if(this.onmake)this.onmake();
 }
+
 
 Field.prototype.set_max_width = function() {
 	var no_max = ['Code', 'Text Editor', 'Text', 'Table', 'HTML']
@@ -114,12 +115,11 @@ Field.prototype.set_description = function() {
 	if(this.df.description) {
 		// parent
 		var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) ? this.label_area : this.wrapper;
-
-		this.desc_area = $a(p, 'div', 'field_description', '', this.df.description)			
+		this.desc_area = $a(p, 'div', 'help small', '', this.df.description)			
 
 		// padding on the bottom
 		if(in_list(['Text Editor', 'Code'], this.df.fieldtype))
-			$(this.desc_area).addClass('field_description_top');
+			$(this.desc_area).addClass('help small');
 	}
 }
 
@@ -133,9 +133,6 @@ Field.prototype.get_status = function() {
 	if(this.not_in_form) {
 		return 'Write';
 	}
-		
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
-	this.df = get_field(this.doctype, fn, this.docname);
 
 	if(!this.df.permlevel) this.df.permlevel = 0;
 
@@ -299,9 +296,6 @@ Field.prototype.set = function(val) {
 	if((!this.docname) && this.grid) {
 		this.docname = this.grid.add_newrow(); // new row
 	}
-	// cleanup ms word quotes
-	if(in_list(['Data','Text','Small Text','Code'], this.df.fieldtype))
-		val = clean_smart_quotes(val);
 	
 	var set_val = val;
 	if(this.validate)set_val = this.validate(val);
@@ -402,25 +396,35 @@ DataField.prototype.make_input = function() {
 
 	this.get_value= function() {
 		var v = this.input.value;
-		if(this.validate)v = this.validate(v);
+		if(this.validate)
+			v = this.validate(v);
 		return v;
 	}
 
 	this.input.name = this.df.fieldname;
-	this.input.onchange = function() {
+	
+	$(this.input).change(function() {
+		me.set_value($(this).val());
+	});
+	
+	this.set_value = function(val) {
 		if(!me.last_value)me.last_value='';
-		if(me.validate)
-			me.input.value = me.validate(me.input.value);
-		me.set(me.input.value);
+
+		if(me.validate) {
+			val = me.validate(val);
+			me.input.value = val;
+		}
+			
+		me.set(val);
 		if(me.format_input)
 			me.format_input();
 		if(in_list(['Currency','Float','Int'], me.df.fieldtype)) {
-			if(flt(me.last_value)==flt(me.input.value)) {
-				me.last_value = me.input.value;
+			if(flt(me.last_value)==flt(val)) {
+				me.last_value = val;
 				return; // do not run trigger
 			}
 		}
-		me.last_value = me.input.value;
+		me.last_value = val;
 		me.run_trigger();
 	}
 	this.input.set_input = function(val) { 
@@ -433,21 +437,29 @@ DataField.prototype.make_input = function() {
 	// -----------------------
 	
 	if(this.df.options=='Suggest') {
-		wn.require('lib/js/legacy/widgets/autosuggest.js');
-
 		// add auto suggest
 		if(this.suggest_icon) $di(this.suggest_icon);
-		this.set_get_query = function() { }
-		this.get_query = function(doc, dt, dn) {
-			return repl('SELECT DISTINCT `%(fieldname)s` FROM `tab%(dt)s` WHERE `%(fieldname)s` LIKE "%s" LIMIT 50', {fieldname:me.df.fieldname, dt:me.df.parent})
-		}
-		var opts = {
-			script: '',
-			json: true,
-			maxresults: 10,
-			link_field: this
-		};
-		this.as = new AutoSuggest(this.input, opts);
+		$(me.input).autocomplete({
+			source: function(request, response) {
+				wn.call({
+					method:'webnotes.widgets.search.search_link',
+					args: {
+						'txt': request.term, 
+						'dt': me.df.options,
+						'query': repl('SELECT DISTINCT `%(fieldname)s` FROM \
+							`tab%(dt)s` WHERE `%(fieldname)s` LIKE "%s" LIMIT 50', 
+							{fieldname:me.df.fieldname, dt:me.df.parent})
+					},
+					callback: function(r) {
+						response(r.results);
+					}
+				});
+			},
+			select: function(event, ui) {
+				me.set_input_value(ui.item.value);
+				return false;
+			}
+		});
 	}
 }
 DataField.prototype.validate = function(v) {
@@ -515,9 +527,6 @@ DateField.prototype.make_input = function() {
 
 	this.input = $a(this.input_area, 'input');
 
-	// load the style
-	wn.require('lib/css/legacy/jquery-ui.css');
-
 	$(this.input).datepicker({
 		dateFormat: me.user_fmt.replace('yyyy','yy'), 
 		altFormat:'yy-mm-dd', 
@@ -575,9 +584,6 @@ DateField.prototype.validate = function(v) {
 
 // ======================================================================================
 
-// for ensuring in AutoSuggest that 2 values are not set in quick succession due to un intentional event call
-var _link_onchange_flag = null;
-
 // reference when a new record is created via link
 function LinkField() { } LinkField.prototype = new Field();
 LinkField.prototype.make_input = function() { 
@@ -602,7 +608,7 @@ LinkField.prototype.make_input = function() {
 
 	me.txt.field_object = this;		
 	// set onchange triggers
-	me.set_onchange();
+
 	me.input.set_input = function(val) {
 		if(val==undefined)val='';
 		me.txt.value = val;
@@ -610,17 +616,39 @@ LinkField.prototype.make_input = function() {
 
 	me.get_value = function() { return me.txt.value; }
 
-	wn.require('lib/js/legacy/widgets/autosuggest.js');
-		
-	// add auto suggest
-	var opts = {
-		script: '',
-		json: true,
-		maxresults: 10,
-		link_field: me
+	$(me.txt).autocomplete({
+		source: function(request, response) {
+			wn.call({
+				method:'webnotes.widgets.search.search_link',
+				args: {
+					'txt': request.term, 
+					'dt': me.df.options,
+					'query': me.get_custom_query()
+				},
+				callback: function(r) {
+					response(r.results);
+				},
+			});
+		},
+		select: function(event, ui) {
+			me.set_input_value(ui.item.value);
+			return false;
+		}
+	}).data('autocomplete')._renderItem = function(ul, item) {
+		return $('<li></li>')
+			.data('item.autocomplete', item)
+			.append(repl('<a>%(label)s<br><span style="font-size:10px">%(info)s</span></a>', item))
+			.appendTo(ul);
 	};
-	this.as = new AutoSuggest(me.txt, opts);
-	
+}
+
+LinkField.prototype.get_custom_query = function() {
+	this.set_get_query();
+	if(this.get_query) {
+		if(cur_frm)
+			var doc = locals[cur_frm.doctype][cur_frm.docname];
+		return this.get_query(doc, this.doctype, this.docname);
+	}
 }
 
 LinkField.prototype.setup_buttons = function() { 
@@ -662,61 +690,61 @@ LinkField.prototype.setup_buttons = function() {
 	}
 }
 
-LinkField.prototype.set_onchange = function() { 
+LinkField.prototype.set_input_value = function(val) {
 	var me = this;
-	me.txt.onchange = function(e) { 
-		if(cur_autosug)return; // still setting value
-
-		// check values are not set in quick succession due to un-intentional event call				
-		if(_link_onchange_flag) { return;}
-		_link_onchange_flag = 1;
-		
-		// refresh mandatory style
-		me.refresh_label_icon();
-		
-		// not in form, do nothing
-		if(me.not_in_form) {
-			_link_onchange_flag = 0;	 
-			return;
+	// refresh mandatory style
+	me.refresh_label_icon();
+	
+	// not in form, do nothing
+	if(me.not_in_form) {
+		$(this.txt).val(val);
+		return;
+	}
+	
+	// same value, do nothing
+	if(cur_frm) {
+		if(val == locals[me.doctype][me.docname][me.df.fieldname]) { 
+			me.set(val); // one more time, grid bug?
+			me.run_trigger(); // wanted - called as refresh?
+			return; 
 		}
-		
-		// same value, do nothing
-		if(cur_frm) {
-			if(me.txt.value == locals[me.doctype][me.docname][me.df.fieldname]) { 
-				me.set(me.txt.value); // one more time, grid bug?
-				me.run_trigger(); // wanted - called as refresh?
-				setTimeout('_link_onchange_flag = 0', 500);
-				return; 
-			}
-		}
-		
-		me.set(me.txt.value);
-		
-		// deselect cell if in grid
-		if(_f.cur_grid_cell)
-			_f.cur_grid_cell.grid.cell_deselect();
-		
-		// run trigger if value is cleared
-		if(!me.txt.value) {
-			me.run_trigger();
-			setTimeout('_link_onchange_flag = 0', 500);
-			return;
-		}
+	}
+	
+	// set in locals
+	me.set(val);
+	
+	// deselect cell if in grid
+	if(_f.cur_grid_cell)
+		_f.cur_grid_cell.grid.cell_deselect();
+	
+	// run trigger if value is cleared
+	if(!val) {
+		me.run_trigger();
+		return;
+	}
 
-		// validate the value just entered
-		var fetch = '';
-		if(cur_frm.fetch_dict[me.df.fieldname])
-			fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');
-			
-		$c('webnotes.widgets.form.utils.validate_link', {'value':me.txt.value, 'options':me.df.options, 'fetch': fetch}, function(r,rt) { 
-			setTimeout('_link_onchange_flag = 0', 500);
-
+	// validate the value just entered
+	var fetch = '';
+	if(cur_frm.fetch_dict[me.df.fieldname])
+		fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');
+		
+	$c('webnotes.widgets.form.utils.validate_link', {
+			'value':val, 
+			'options':me.df.options, 
+			'fetch': fetch
+		}, 
+		function(r,rt) { 
 			if(selector && selector.display) return; // selecting from popup
-			
+		
 			if(r.message=='Ok') {
 				// set fetch values
-				if(r.fetch_values) me.set_fetch_values(r.fetch_values);
+				if($(me.txt).val()!=val) {
+					me.set_input(val);
+				}
 				
+				if(r.fetch_values) 
+					me.set_fetch_values(r.fetch_values);
+			
 				me.run_trigger();
 			} else {
 				var astr = '';
@@ -725,10 +753,10 @@ LinkField.prototype.set_onchange = function() {
 				me.txt.value = ''; 
 				me.set('');
 			}
-		});
-		
-	}
+		}
+	);
 }
+
 LinkField.prototype.set_fetch_values = function(fetch_values) { 
 	var fl = cur_frm.fetch_dict[this.df.fieldname].fields;
 	var changed_fields = [];
@@ -784,7 +812,9 @@ IntField.prototype.format_input = function() {
 
 function FloatField() { } FloatField.prototype = new DataField();
 FloatField.prototype.validate = function(v) {
-	var v= parseFloat(v); if(isNaN(v))return null;
+	var v= parseFloat(v); 
+	if(isNaN(v))
+		return null;
 	return v;
 };
 FloatField.prototype.format_input = function() {
@@ -804,7 +834,7 @@ CurrencyField.prototype.format_input = function() {
 
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
-		return 0; 
+		return 0;
 	return flt(v,2); 
 }
 CurrencyField.prototype.set_disp = function(val) { 
@@ -906,7 +936,7 @@ function make_text_dialog() {
 		this.widgets['Enter Text'].focus();
 		this.widgets['Description'].innerHTML = ''
 		if(this.field.df.description)
-			$a(this.widgets['Description'], 'div', 'field_description', '', this.field.df.description);
+			$a(this.widgets['Description'], 'div', 'help small', '', this.field.df.description);
 	}
 	d.onhide = function() {
 		if(_f.cur_grid_cell)
@@ -960,7 +990,7 @@ SelectField.prototype.make_input = function() {
 	this.set_as_single = function() {
 		var i = this.input;
 		i.multiple = false;
-		i.style.height = null; // default
+		i.style.height = null;
 		if(i.lab)$dh(i.lab)
 	}
 	
@@ -1019,7 +1049,7 @@ SelectField.prototype.make_input = function() {
 				if(me.input.multiple) {
 					for(var i=0; i<me.input.options.length; i++) {
 						me.input.options[i].selected = 0;
-						if(me.input.options[i].value && inList(v.split(","), me.input.options[i].value))
+						if(me.input.options[i].value && inList(typeof(v)=='string'?v.split(","):v, me.input.options[i].value))
 							me.input.options[i].selected = 1;
 					}
 				} else if(in_list(me.options_list, v)){

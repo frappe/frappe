@@ -30,9 +30,7 @@ var user_fullname=null;
 var user_email=null;
 var user_img = {};
 var home_page=null;
-var hide_autosuggest=null;
 
-var page_body=null;
 var pscript = {};
 var selector=null; 
 
@@ -62,4 +60,3 @@ var pscript = {};
 var validated = true;
 var validation_message = '';
 var tinymce_loaded = null;
-var cur_autosug = null;

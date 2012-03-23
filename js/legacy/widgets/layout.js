@@ -74,7 +74,7 @@ Layout.prototype.close_borders = function() {
 
 function LayoutRow(layout, parent) {
 	this.layout = layout;
-	this.wrapper = $a(parent,'div');
+	this.wrapper = $a(parent,'div','form-layout-row');
 	
 	// main head
 	this.main_head = $a(this.wrapper, 'div');
@@ -122,7 +122,7 @@ function LayoutCell(layout, layoutRow, width) {
 	
 	var h = $a(this.cell, 'div','',{padding:(layout.with_border ? '0px 8px' : '0px')});	
 
-	this.wrapper = $a(this.cell, 'div','',{padding:(layout.with_border ? '8px' : '8px 0px')}); 
+	this.wrapper = $a(this.cell, 'div','',{padding:(layout.with_border ? '8px' : '0px')}); 
 	
 	layout.cur_cell = this.wrapper;
 	layout.cur_cell.header = h;

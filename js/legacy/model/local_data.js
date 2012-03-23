@@ -107,8 +107,11 @@ LocalDB.sync = function(list) {
 				fields[d.parent][d.label] = d;
 			}
 		}
-		if(d.localname)
-			notify_rename_observers(d.doctype, d.localname, d.name);
+		if(d.localname) {
+			wn.model.new_names[d.localname] = d.name;
+			$(document).trigger('rename', [d.doctype, d.localname, d.name]);
+			delete locals[d.doctype][d.localname];
+		}
 	}
 }
 
@@ -144,17 +147,6 @@ LocalDB.set_default_values = function(doc) {
 		}
 	}
 	return fields_to_refresh;
-}
-// ======================================================================================
-
-LocalDB.is_doc_loaded = function(dt, dn) {
-	var exists = false;
-	if(locals[dt] && locals[dt][dn]) exists = true;
-	if(exists && dt=='DocType' // if it is a doctype
-		&& !locals[dt][dn].__islocal // and not copied
-			&& !frms[dt]) // and not loaded
-				 exists = false; // reload
-	return exists;
 }
 
 // ======================================================================================
@@ -313,25 +305,6 @@ function make_doclist(dt, dn, deleted) {
 		}
 	}
 	return dl;
-}
-
-// Renaming notification list
-// ======================================================================================
-
-var rename_observers = [];
-function notify_rename_observers(dt, old_name, new_name) {
-	// delete from local
-	try {
-		delete locals[dt][old_name];
-	} catch(e) {
-		alert("[rename_from_local] No Document for: "+ old_name);
-	}
-
-	// everyone who observers			
-	for(var i=0; i<rename_observers.length;i++) {
-		if(rename_observers[i])
-			rename_observers[i].rename_notify(dt, old_name, new_name);
-	}	
 }
 
 // Meta Data

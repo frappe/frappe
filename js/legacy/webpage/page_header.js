@@ -38,8 +38,8 @@ var def_ph_style = {
 	wrapper: {marginBottom:'16px', backgroundColor:'#EEE'}
 	,main_heading: { }
 	,sub_heading: { marginBottom:'8px', color:'#555', display:'none' }
-	,separator: { borderTop:'3px solid #777' } // show this when there is no toolbar
-	,toolbar_area: { padding:'3px 0px', display:'none',borderBottom:'1px solid #AAA'}
+	,separator: { borderTop:'1px solid #ddd' } // show this when there is no toolbar
+	,toolbar_area: { padding:'3px 0px', display:'none',borderBottom:'1px solid #ddd'}
 }
 
 function PageHeader(parent, main_text, sub_text) {
@@ -59,7 +59,7 @@ function PageHeader(parent, main_text, sub_text) {
 	// close btn
 	$y($td(this.t1, 0, 1),{textAlign:'right', padding:'3px'});
 	this.close_btn = $a($td(this.t1, 0, 1), 'span', 'close', {},  '&times;');
-	this.close_btn.onclick = function() { nav_obj.show_last_open(); };
+	this.close_btn.onclick = function() { window.history.back(); };
 
 	if(main_text) this.main_head.innerHTML = main_text;
 	if(sub_text) this.sub_head.innerHTML = sub_text;
@@ -72,14 +72,22 @@ PageHeader.prototype.add_button = function(label, fn, bold, icon, green) {
 
 	var tb = this.toolbar_area;
 	if(this.buttons[label]) return;
-		
-	var btn = $btn(tb,label,fn,{marginRight:'4px'}, (green ? 'btn-primary' : ''));
-	if(bold) $y(btn,{fontWeight:'bold'});
 
-	this.buttons[label]=btn;
+	iconhtml = icon ? ('<i class="'+icon+'"></i> ') : '';
+
+	var $button = $('<button class="btn btn-small">'+ iconhtml + label +'</button>')
+		.click(fn)
+		.appendTo(tb);
+	if(green) {
+		$button.addClass('btn-info');
+		$button.find('i').addClass('icon-white');
+	}
+	if(bold) $button.css('font-weight', 'bold');
+	
+	this.buttons[label] = $button.get(0);
 	$ds(this.toolbar_area);
 	
-	return btn;
+	return this.buttons[label];
 }
 
 PageHeader.prototype.clear_toolbar = function() {

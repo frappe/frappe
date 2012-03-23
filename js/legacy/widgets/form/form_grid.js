@@ -115,8 +115,12 @@ _f.FormGrid.prototype.set_column_label = function(fieldname, label) {
 	}
 }
 
+_f.FormGrid.prototype.get_children = function() {
+	return getchildren(this.doctype, this.field.frm.docname, this.field.df.fieldname, this.field.frm.doctype);
+}
+
 _f.FormGrid.prototype.refresh = function() {
-	var docset = getchildren(this.doctype, this.field.frm.docname, this.field.df.fieldname, this.field.frm.doctype);
+	var docset = this.get_children();
 	var data = [];
 	
 	//alert(docset.length);

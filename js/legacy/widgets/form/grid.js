@@ -120,9 +120,11 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 
 _f.Grid.prototype.reset_table_width = function() { 
 	var w = 0;
-	for(var i=0, len=this.head_row.cells.length; i<len; i++) {
-		w += cint(this.head_row.cells[i].style.width);
-	}
+	$.each(this.head_row.cells, function(i, cell) {
+		if((cell.style.display || '').toLowerCase()!='none')
+			w += cint(cell.style.width);
+	})
+	
 	this.head_tab.style.width = w + 'px';
 	this.tab.style.width = w + 'px';
 }
@@ -263,15 +265,18 @@ $(document).bind('click', function(e) {
 	}
 	
 	var is_target_input = function() {
+		if(e.target.tagName.toLowerCase()=='option') return true;
+		
 		return $(e.target).parents().get().indexOf(_f.cur_grid_cell)!=-1;
 	}
 
 	if(_f.cur_grid_cell && !is_target_input() && !is_target_toolbar()) {
 		if(!(text_dialog && text_dialog.display) 
-			&& !datepicker_active && !(selector && selector.display) && !(cur_autosug)) {
+			&& !datepicker_active && !(selector && selector.display)) {
 			_f.cur_grid_cell.grid.cell_deselect();
+			return false;
 		}
-	}	
+	}
 });
 
 _f.Grid.prototype.cell_deselect = function() {
@@ -282,7 +287,6 @@ _f.Grid.prototype.cell_deselect = function() {
 		if(c.is_odd) c.div.style.border = '2px solid ' + c.grid.alt_row_bg;
 		else c.div.style.border = '2px solid #FFF';
 		_f.cur_grid_cell = null;
-		_f.cur_grid = null;
 	}
 }
 

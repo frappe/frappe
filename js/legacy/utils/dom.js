@@ -40,7 +40,7 @@ wn.tinymce = {
 		ele.myid = wn.dom.set_unique_id(ele);
 		$(ele).tinymce({
 			// Location of TinyMCE script
-			script_url : 'lib/js/legacy/tiny_mce_33/tiny_mce.js',
+			script_url : 'lib/js/lib/tiny_mce_33/tiny_mce.js',
 
 			height: height ? height : '200px',
 			
@@ -94,8 +94,7 @@ function $ln(parent, label, onclick, style) {
 }
 
 function $btn(parent, label, onclick, style, css_class, is_ajax) {
-	wn.require('lib/js/wn/ui/button.js');
-	if(css_class==='green') css_class='btn-primary';
+	if(css_class==='green') css_class='btn-info';
 	return new wn.ui.Button(
 		{parent:parent, label:label, onclick:onclick, style:style, is_ajax: is_ajax, css_class: css_class}
 	).btn;
@@ -170,6 +169,20 @@ $bs = function(ele, r) { $(ele).css('-moz-box-shadow',r).css('-webkit-box-shadow
 
 // Select
 // ====================================
+
+function SelectWidget(parent, options, width, editable, bg_color) {
+	var me = this;
+	// native select
+	this.inp = $a(parent, 'select');
+	if(options) add_sel_options(this.inp, options);
+	if(width) $y(this.inp, {width:width});
+	this.set_width = function(w) { $y(this.inp, {width:w}) };
+	this.set_options = function(o) { add_sel_options(this.inp, o); }
+	this.inp.onchange = function() {
+		if(me.onchange)me.onchange(this);
+	}
+	return;
+}
 
 function empty_select(s) {
 	if(s.custom_select) { s.empty(); return; }
@@ -272,12 +285,9 @@ function $i(id) {
 	if(id && id.appendChild)return id; // already an element
 	return document.getElementById(id); 
 }
-function $t(parent, txt) { 	if(parent.substr)parent = $i(parent); return parent.appendChild(document.createTextNode(txt)); }
 function $w(e,w) { if(e && e.style && w)e.style.width = w; }
 function $h(e,h) { if(e && e.style && h)e.style.height = h; }
 function $bg(e,w) { if(e && e.style && w)e.style.backgroundColor = w; }
-function $fg(e,w) { if(e && e.style && w)e.style.color = w; }
-function $op(e,w) { if(e && e.style && w) { set_opacity(e,w); } }
 
 function $y(ele, s) { 
 	if(ele && s) { 
@@ -310,14 +320,7 @@ function $yt(tab, r, c, s) { /// set style on tables with wildcards
 // add css classes etc
 
 function set_style(txt) {
-	var se = document.createElement('style');
-	se.type = "text/css";
-	if (se.styleSheet) {
-		se.styleSheet.cssText = txt;
-	} else {
-		se.appendChild(document.createTextNode(txt));
-	}
-	document.getElementsByTagName('head')[0].appendChild(se);	
+	wn.dom.set_style(txt);
 }
 
 // Make table
@@ -415,16 +418,6 @@ function get_scroll_top() {
 	return st;
 }
 
-
-function get_cookie(c) {
-	var t=""+document.cookie;
-	var ind=t.indexOf(c);
-	if (ind==-1 || c=="") return ""; 
-	var ind1=t.indexOf(';',ind);
-	if (ind1==-1) ind1=t.length; 
-	return unescape(t.substring(ind+c.length+1,ind1));
-}
-
 // URL utilities
 
 wn.urllib = {
@@ -475,54 +468,3 @@ wn.urllib = {
 
 get_url_arg = wn.urllib.get_arg;
 get_url_dict = wn.urllib.get_dict;
-
-// set user image
-var user_img = {}
-var user_img_queue = {};
-var user_img_loading = [];
-
-set_user_img = function(img, username, get_latest, img_id) {
-	function set_it(i) {
-		if(user_img[username]=='no_img_m')
-			i.src = 'lib/images/ui/no_img_m.gif';
-		else if(user_img[username]=='no_img_f')
-			i.src = 'lib/images/ui/no_img_f.gif'; // no image
-		else {
-			ac_id = wn.control_panel.account_id;
-			i.src = repl('cgi-bin/getfile.cgi?ac=%(ac)s&name=%(fn)s', {fn:user_img[username], ac:ac_id});			
-		}
-	}
-
-	// given
-	if(img_id) {
-		user_img[username] = img_id;
-		set_it(img);
-		return;
-	}
-	
-	// from dict or load
-	if(user_img[username] && !get_latest) {
-		set_it(img);
-	} else{
-		// queue multiple request while loading
-		if(in_list(user_img_loading,username)) {
-			if(!user_img_queue[username]) 
-				user_img_queue[username] = [];
-			user_img_queue[username].push(img);
-			return;
-		}
-		$c('webnotes.profile.get_user_img',{username:username},function(r,rt) { 
-				delete user_img_loading[user_img_loading.indexOf(username)];
-				user_img[username] = r.message; 
-
-				if(user_img_queue[username]) {
-					var q=user_img_queue[username];
-					for(var i in q) { set_it(q[i]); }
-				}
-				set_it(img); 
-				
-			}, null, 1);
-		user_img_loading.push(username);
-	}
-
-}

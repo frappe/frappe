@@ -1,5 +1,23 @@
 /* FORMS */
 
+div.form-section-head {
+	margin: 11px 0px 3px 0px;
+	border-top: 1px solid #ccc;
+	padding-top: 11px;
+}
+
+div.form-layout-row:first-child .form-section-head {
+	border-top: 0px solid #ccc !important;	
+}
+
+div.form-section-head h3 {
+	line-height: 20px;
+}
+
+div.form-section-head hr {
+	margin: 9px 0px;
+}
+
 
 div.frm_print_wrapper {
 	background-color:#FFF;
@@ -27,24 +45,6 @@ div.grid_tbarlinks {
 	-webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;
 }
 
-
-div.frm_tip_box {
-	margin: 0px;
-	padding: 8px;
-	background-color: #FFC;
-	display: none;
-	font-size: 11px;
-	border: 1px solid #FFB;
-}
-
-div.frm_tip_box table {
-	border-collapse: collapse;
-	vertical-align: top;
-}
-
-td.frm_tray_area {
-	width: 122px;
-}
 
 div.dialog_frm {
 	position: relative;
@@ -142,19 +142,14 @@ div.time_field select{
 .datainputcell { padding: 2px 0px; }
 
 
-.field_description, .help {
-	margin: 3px 0px 11px 0px;
-	color: #888;
-	font-style: italic;
+.help ol {
+	padding-left: 19px;
 }
 
 .field_description_top {
 	margin-bottom: 3px;
 }
 
-.field_label {
-	font-size:11px;
-}
 .input_area input, select, textarea { 
 	font-size: 14px;
 	padding: 2px;
@@ -205,7 +200,6 @@ div.sidebar-comment-wrapper input {
 }
 div.sidebar-comment-message {
 	margin-top: 8px;
-	font-size: 11px;
 	color: #777;
 }
 
@@ -216,6 +210,5 @@ div.sidebar-comment-text {
 	color: #444;
 }
 div.sidebar-comment-info {
-	font-size: 10px;
 	color: #777;
 }
