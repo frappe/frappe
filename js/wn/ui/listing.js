@@ -593,7 +593,7 @@ wn.ui.Filter = Class.extend({
 		}
 		
 		return [me.$w.find('.fieldname_select option:selected').attr('table'), 
-			me.field.df.fieldname, me.$w.find('.condition').val(), val];
+			me.field.df.fieldname, me.$w.find('.condition').val(), cstr(val)];
 	}
 
 });
