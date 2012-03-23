@@ -454,10 +454,6 @@ DataField.prototype.make_input = function() {
 						response(r.results);
 					}
 				});
-			},
-			select: function(event, ui) {
-				me.set_input_value(ui.item.value);
-				return false;
 			}
 		});
 	}
@@ -631,8 +627,7 @@ LinkField.prototype.make_input = function() {
 			});
 		},
 		select: function(event, ui) {
-			me.set_input_value(ui.item.value);
-			return false;
+			me.set_input_value(ui.item.value);			
 		}
 	}).data('autocomplete')._renderItem = function(ul, item) {
 		return $('<li></li>')
@@ -640,6 +635,11 @@ LinkField.prototype.make_input = function() {
 			.append(repl('<a>%(label)s<br><span style="font-size:10px">%(info)s</span></a>', item))
 			.appendTo(ul);
 	};
+	
+	$(this.txt).change(function() {
+		if(!$(this).val())
+			me.set_input_value('');
+	})
 }
 
 LinkField.prototype.get_custom_query = function() {
@@ -691,7 +691,9 @@ LinkField.prototype.setup_buttons = function() {
 }
 
 LinkField.prototype.set_input_value = function(val) {
+	
 	var me = this;
+		
 	// refresh mandatory style
 	me.refresh_label_icon();
 	
