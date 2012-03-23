@@ -26,14 +26,15 @@ _f.FrmHeader = function(parent, frm) {
 	if(frm.meta.in_dialog) $y(this.wrapper, {marginLeft:'8px', marginRight:'8px'});
 
 	this.page_head = new PageHeader(this.wrapper);
-	
+	wn.views.breadcrumbs(this.page_head.breadcrumbs, frm.meta.module, frm.meta.name);
+		
 	// doctype
 	this.dt_area = $a(this.page_head.main_head, 'h1', '', {marginRight:'8px', display:'inline'})
 	
 	// name
 	var div = $a(null, 'div', '', {marginBottom:'4px'}); 
 	
-	this.page_head.lhs.insertBefore(div, this.page_head.sub_head);
+	this.page_head.wrapper.insertBefore(div, this.page_head.sub_head);
 	this.dn_area = $a(div, 'span', '', {fontSize:'14px', fontWeight:'normal', marginRight:'8px', padding: '2px'})
 	
 	// status

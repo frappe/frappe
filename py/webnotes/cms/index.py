@@ -41,8 +41,8 @@ body_html = """
 </div>
 <!-- Main Starts -->
 <div id="body_div"> 
-	<footer></footer>
 </div>
+<footer></footer>
 <div class="no_script" style="display: none;">
  %s
 </div>
@@ -100,7 +100,7 @@ def html_snapshot(page):
 	for m in webnotes.conn.sql("""select parentfield, label, url, custom_page
 		from `tabTop Bar Item` where parent='Top Bar Settings' order by idx""", as_dict=1):
 	
-		m['std_page'] = m.get('url') or m('custom_page')
+		m['std_page'] = m.get('url') or m.get('custom_page')
 
 		if m['parentfield']=='top_bar_items':				
 			doc.header_menu += '<li><a href="index.cgi#!%(std_page)s">%(label)s</a></li>' % m

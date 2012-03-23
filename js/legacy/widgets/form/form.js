@@ -158,6 +158,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 		$(this.page_layout.main).removeClass('layout-main-section');
 		$(this.page_layout.sidebar_area).toggle(false);
 	} else {
+		// module link
 		this.setup_sidebar();
 	}
 		
