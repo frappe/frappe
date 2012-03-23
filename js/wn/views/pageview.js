@@ -42,6 +42,7 @@ wn.views.Page = Class.extend({
 		$(this.wrapper).bind('show', function() {
 			cur_frm = null;
 			me.trigger('onshow');
+			me.trigger('refresh');
 		});
 	},
 	trigger: function(eventname) {
