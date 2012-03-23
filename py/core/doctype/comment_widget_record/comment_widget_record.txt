@@ -5,115 +5,141 @@
 	{
 		'creation': '2010-08-08 17:08:55',
 		'docstatus': 0,
-		'modified': '2012-02-03 11:29:33',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-22 14:53:41',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1311536932',
-		'autoname': 'CWR/.#####',
-		'colour': 'White:FFF',
-		'default_print_format': 'Standard',
+		'_last_update': u'1311536932',
+		'autoname': u'CWR/.#####',
+		'colour': u'White:FFF',
+		'default_print_format': u'Standard',
 		'doctype': 'DocType',
 		'issingle': 0,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
-		'server_code_error': ' ',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
 		'version': 9
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Comment Widget Record',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
-		'permlevel': 0
+		'no_copy': 0,
+		'parent': u'Comment Widget Record',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
+		'permlevel': 0,
+		'search_index': 0
 	},
 
 	# These values are common for all DocPerm
 	{
-		'doctype': 'DocPerm',
+		'create': 1,
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'Comment Widget Record',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Comment Widget Record',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
-		'read': 1
+		'read': 1,
+		'role': u'System Manager',
+		'write': 1
 	},
 
 	# DocType, Comment Widget Record
 	{
 		'doctype': 'DocType',
-		'name': 'Comment Widget Record'
+		'name': u'Comment Widget Record'
 	},
 
 	# DocPerm
 	{
-		'create': 1,
-		'doctype': 'DocPerm',
-		'role': 'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': 'DocPerm',
-		'role': 'All'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'comment',
-		'fieldtype': 'Text',
-		'label': 'Comment',
-		'oldfieldname': 'comment',
-		'oldfieldtype': 'Text'
+		'doctype': u'DocField',
+		'fieldname': u'comment',
+		'fieldtype': u'Text',
+		'label': u'Comment',
+		'oldfieldname': u'comment',
+		'oldfieldtype': u'Text'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'comment_by',
-		'fieldtype': 'Data',
-		'label': 'Comment By',
-		'oldfieldname': 'comment_by',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'comment_by',
+		'fieldtype': u'Data',
+		'label': u'Comment By',
+		'oldfieldname': u'comment_by',
+		'oldfieldtype': u'Data'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'comment_by_fullname',
-		'fieldtype': 'Data',
-		'label': 'Comment By Fullname',
-		'oldfieldname': 'comment_by_fullname',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'comment_by_fullname',
+		'fieldtype': u'Data',
+		'label': u'Comment By Fullname',
+		'oldfieldname': u'comment_by_fullname',
+		'oldfieldtype': u'Data'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'comment_doctype',
-		'fieldtype': 'Data',
-		'label': 'Comment Doctype',
-		'oldfieldname': 'comment_doctype',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'comment_date',
+		'fieldtype': u'Date',
+		'label': u'Comment Date',
+		'oldfieldname': u'comment_date',
+		'oldfieldtype': u'Date'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'comment_docname',
-		'fieldtype': 'Data',
-		'label': 'Comment Docname',
-		'oldfieldname': 'comment_docname',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'comment_time',
+		'fieldtype': u'Data',
+		'label': u'Comment Time',
+		'oldfieldname': u'comment_time',
+		'oldfieldtype': u'Data'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'comment_doctype',
+		'fieldtype': u'Data',
+		'label': u'Comment Doctype',
+		'oldfieldname': u'comment_doctype',
+		'oldfieldtype': u'Data'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'comment_docname',
+		'fieldtype': u'Data',
+		'label': u'Comment Docname',
+		'oldfieldname': u'comment_docname',
+		'oldfieldtype': u'Data'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'post_topic',
+		'fieldtype': u'Data',
+		'label': u'Post Topic',
+		'oldfieldname': u'post_topic',
+		'oldfieldtype': u'Data'
 	}
 ]

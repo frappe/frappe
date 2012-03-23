@@ -5,229 +5,231 @@
 	{
 		'creation': '2009-05-12 11:19:11',
 		'docstatus': 0,
-		'modified': '2011-02-25 17:03:58',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-22 14:23:58',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
-		'autoname': 'EV.#####',
-		'client_script': "cur_frm.cscript.onload = function(doc, cdt, cdn) {\n  var df = get_field('Event', 'Intro HTML', doc.name);\n  if(doc.ref_type) {\n    ref = repl(cur_frm.cstring.ref_html, {'dt': doc.ref_type, 'dn':doc.ref_name});\n  } else var ref = '';\n     \n  df.options = repl(cur_frm.cstring.intro_html, {'ref': ref});\n  refresh_fields('Intro HTML');\n}",
-		'client_string': '---intro_html---\n\n<div style="padding: 8px; background-color: #EEF; border: 1px solid #CCF; margin-bottom: 8px;">\n  %(ref)s\n  <a href="javascript:loadpage(\'_calendar\')">Go To Calendar</a>\n</div>\n\n---ref_html---\n\nReference : <a href="javascript:loaddoc(\'%(dt)s\', \'%(dn)s\')">%(dn)s</a><br><br>',
-		'colour': 'White:FFF',
+		'_last_update': u'1307624201',
+		'autoname': u'EV.#####',
+		'client_string': u'---intro_html---\n\n<div style="padding: 8px; background-color: #EEF; border: 1px solid #CCF; margin-bottom: 8px;">\n  %(ref)s\n  <a href="javascript:loadpage(\'_calendar\')">Go To Calendar</a>\n</div>\n\n---ref_html---\n\nReference : <a href="javascript:loaddoc(\'%(dt)s\', \'%(dn)s\')">%(dn)s</a><br><br>',
+		'colour': u'White:FFF',
+		'default_print_format': u'Standard',
 		'doctype': 'DocType',
 		'in_create': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
 		'read_only': 1,
-		'section_style': 'Tabbed',
-		'server_code_error': ' ',
+		'section_style': u'Tabbed',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 2
+		'version': 3
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Event',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'Event',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
 	# These values are common for all DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
-		'idx': 1,
-		'match': 'owner',
+		'doctype': u'DocPerm',
+		'match': u'owner',
 		'name': '__common__',
-		'parent': 'Event',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Event',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': 'All',
+		'role': u'All',
 		'write': 1
 	},
 
 	# DocType, Event
 	{
 		'doctype': 'DocType',
-		'name': 'Event'
+		'name': u'Event'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 1,
-		'label': 'Details',
-		'oldfieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldtype': u'Section Break',
+		'label': u'Details',
+		'oldfieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'HTML',
-		'idx': 2,
-		'label': 'Intro HTML',
-		'oldfieldtype': 'HTML'
+		'doctype': u'DocField',
+		'fieldtype': u'HTML',
+		'label': u'Intro HTML',
+		'oldfieldtype': u'HTML'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'event_date',
-		'fieldtype': 'Date',
-		'idx': 3,
-		'label': 'Event Date',
-		'oldfieldname': 'event_date',
-		'oldfieldtype': 'Date',
+		'doctype': u'DocField',
+		'fieldname': u'event_date',
+		'fieldtype': u'Date',
+		'label': u'Event Date',
+		'no_copy': 0,
+		'oldfieldname': u'event_date',
+		'oldfieldtype': u'Date',
 		'search_index': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'event_hour',
-		'fieldtype': 'Time',
-		'idx': 4,
-		'label': 'Event Time',
-		'oldfieldname': 'event_hour',
-		'oldfieldtype': 'Time'
+		'doctype': u'DocField',
+		'fieldname': u'event_hour',
+		'fieldtype': u'Time',
+		'label': u'Event Time',
+		'no_copy': 0,
+		'oldfieldname': u'event_hour',
+		'oldfieldtype': u'Time',
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'event_name',
-		'fieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'event_name',
+		'fieldtype': u'Data',
 		'hidden': 1,
-		'idx': 5,
-		'label': 'Event Name',
-		'oldfieldname': 'event_name',
-		'oldfieldtype': 'Data'
+		'label': u'Event Name',
+		'no_copy': 0,
+		'oldfieldname': u'event_name',
+		'oldfieldtype': u'Data',
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'description',
-		'fieldtype': 'Text',
-		'idx': 6,
-		'label': 'Description',
-		'oldfieldname': 'description',
-		'oldfieldtype': 'Text',
-		'width': '300px'
+		'doctype': u'DocField',
+		'fieldname': u'description',
+		'fieldtype': u'Text',
+		'label': u'Description',
+		'no_copy': 0,
+		'oldfieldname': u'description',
+		'oldfieldtype': u'Text',
+		'search_index': 0,
+		'width': u'300px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'notes',
-		'fieldtype': 'Text',
-		'idx': 7,
-		'label': 'Notes',
-		'oldfieldname': 'notes',
-		'oldfieldtype': 'Text'
+		'doctype': u'DocField',
+		'fieldname': u'notes',
+		'fieldtype': u'Text',
+		'label': u'Notes',
+		'no_copy': 0,
+		'oldfieldname': u'notes',
+		'oldfieldtype': u'Text',
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'event_type',
-		'fieldtype': 'Select',
-		'idx': 8,
-		'label': 'Event Type',
-		'oldfieldname': 'event_type',
-		'oldfieldtype': 'Select',
-		'options': 'Private\nPublic\nCancel',
+		'doctype': u'DocField',
+		'fieldname': u'event_type',
+		'fieldtype': u'Select',
+		'label': u'Event Type',
+		'no_copy': 0,
+		'oldfieldname': u'event_type',
+		'oldfieldtype': u'Select',
+		'options': u'Private\nPublic\nCancel',
 		'search_index': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 9,
-		'label': 'Participants',
-		'oldfieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldtype': u'Section Break',
+		'label': u'Participants',
+		'oldfieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'idx': 10,
-		'label': 'Individuals',
-		'oldfieldtype': 'Column Break',
-		'width': '50%'
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'label': u'Individuals',
+		'oldfieldtype': u'Column Break',
+		'width': u'50%'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'event_individuals',
-		'fieldtype': 'Table',
-		'idx': 11,
-		'label': 'Event Individuals',
-		'oldfieldname': 'event_individuals',
-		'oldfieldtype': 'Table',
-		'options': 'Event User'
+		'doctype': u'DocField',
+		'fieldname': u'event_individuals',
+		'fieldtype': u'Table',
+		'label': u'Event Individuals',
+		'no_copy': 0,
+		'oldfieldname': u'event_individuals',
+		'oldfieldtype': u'Table',
+		'options': u'Event User',
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'idx': 12,
-		'label': 'Groups',
-		'oldfieldtype': 'Column Break',
-		'width': '50%'
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'label': u'Groups',
+		'oldfieldtype': u'Column Break',
+		'width': u'50%'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'event_roles',
-		'fieldtype': 'Table',
-		'idx': 13,
-		'label': 'Event Roles',
-		'oldfieldname': 'event_roles',
-		'oldfieldtype': 'Table',
-		'options': 'Event Role'
+		'doctype': u'DocField',
+		'fieldname': u'event_roles',
+		'fieldtype': u'Table',
+		'label': u'Event Roles',
+		'no_copy': 0,
+		'oldfieldname': u'event_roles',
+		'oldfieldtype': u'Table',
+		'options': u'Event Role',
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'ref_type',
-		'fieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'ref_type',
+		'fieldtype': u'Data',
 		'hidden': 0,
-		'idx': 14,
-		'label': 'Ref Type',
-		'oldfieldname': 'ref_type',
-		'oldfieldtype': 'Data'
+		'label': u'Ref Type',
+		'no_copy': 0,
+		'oldfieldname': u'ref_type',
+		'oldfieldtype': u'Data',
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'ref_name',
-		'fieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'ref_name',
+		'fieldtype': u'Data',
 		'hidden': 0,
-		'idx': 15,
-		'label': 'Ref Name',
-		'oldfieldname': 'ref_name',
-		'oldfieldtype': 'Data'
+		'label': u'Ref Name',
+		'no_copy': 0,
+		'oldfieldname': u'ref_name',
+		'oldfieldtype': u'Data',
+		'search_index': 0
 	}
 ]

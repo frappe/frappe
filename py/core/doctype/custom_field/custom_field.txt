@@ -3,359 +3,371 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 15:56:01',
+		'creation': '2010-10-13 16:33:29',
 		'docstatus': 0,
-		'modified': '2011-07-22 15:56:01',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-22 14:23:46',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1305789385',
-		'autoname': 'CustomField.####',
-		'colour': 'White:FFF',
-		'description': 'Adds a custom field to a DocType',
+		'_last_update': u'1305789385',
+		'allow_trash': 1,
+		'autoname': u'CustomField.####',
+		'colour': u'White:FFF',
+		'default_print_format': u'Standard',
+		'description': u'Adds a custom field to a DocType',
 		'doctype': 'DocType',
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'search_fields': 'dt,label,fieldtype,options',
-		'section_style': 'Simple',
-		'server_code': '    \n  # Add Field\n  # ----------\n  def add_field(self):\n    field_exists = sql("select name from tabDocField where parent = %s and (label = %s or fieldname = %s)" , (self.doc.dt, self.doc.label, self.doc.fieldname))\n    field_exists = field_exists and field_exists[0][0] or \'\'\n    self.ignore_fields = [\'dt\',\'trash_reason\',\'insert_after\',\'index\',\'customfield1\',\'length\']\n    if field_exists:\n      df = Document(\'DocField\',field_exists)\n      self.update_field(df, n = 0)\n    else:\n      df = Document(\'DocField\')\n      self.update_field(df, n = 1)\n\n\n\n  # Update Field\n  # -------------\n  def update_field(self, df, n):\n    import webnotes.model\n    sql("update tabDocField set idx = idx + 1 where parent = %s and idx > %s", (self.doc.dt, self.idx))\n    for k in self.doc.fields:\n      if k not in webnotes.model.default_fields and k not in self.ignore_fields:\n        df.fields[k] = self.doc.fields[k]\n    df.parent = self.doc.dt\n    df.parenttype = \'DocType\'\n    df.parentfield = \'fields\'\n    df.idx = self.idx+1\n    df.save(n)\n    dt_obj = get_obj(\'DocType\',self.doc.dt,with_children=1)\n    dt_obj.validate()\n    dt_obj.on_update()\n    dt_obj.doc.save()',
-		'server_code_error': ' ',
+		'search_fields': u'dt,label,fieldtype,options',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 158
+		'subject': u'%(label)s (%(fieldtype)s) on %(dt)s',
+		'tag_fields': u'dt,fieldtype',
+		'version': 159
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Custom Field',
-		'parentfield': 'fields',
-		'parenttype': 'DocType'
+		'parent': u'Custom Field',
+		'parentfield': u'fields',
+		'parenttype': u'DocType'
 	},
 
 	# These values are common for all DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'Custom Field',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Custom Field',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'read': 1
 	},
 
 	# DocType, Custom Field
 	{
 		'doctype': 'DocType',
-		'name': 'Custom Field'
+		'name': u'Custom Field'
 	},
 
 	# DocPerm
 	{
 		'cancel': 1,
 		'create': 1,
-		'doctype': 'DocPerm',
-		'idx': 1,
+		'doctype': u'DocPerm',
 		'permlevel': 0,
-		'role': 'Administrator',
+		'role': u'Administrator',
 		'write': 1
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'idx': 2,
+		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': 'Administrator'
+		'role': u'Administrator'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'idx': 3,
+		'doctype': u'DocPerm',
 		'permlevel': 2,
-		'role': 'Administrator'
+		'role': u'Administrator'
 	},
 
 	# DocPerm
 	{
 		'cancel': 1,
 		'create': 1,
-		'doctype': 'DocPerm',
-		'idx': 4,
+		'doctype': u'DocPerm',
 		'permlevel': 0,
-		'role': 'System Manager',
+		'role': u'System Manager',
 		'write': 1
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'idx': 5,
+		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': 'System Manager'
+		'role': u'System Manager'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'idx': 1,
-		'label': 'Details',
-		'oldfieldtype': 'Column Break',
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'label': u'Details',
+		'oldfieldtype': u'Column Break',
 		'permlevel': 0,
-		'width': '50%'
+		'width': u'50%'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'trash_reason',
-		'fieldtype': 'Small Text',
-		'idx': 2,
-		'label': 'Trash Reason',
-		'oldfieldname': 'trash_reason',
-		'oldfieldtype': 'Small Text',
-		'permlevel': 1
+		'doctype': u'DocField',
+		'fieldname': u'trash_reason',
+		'fieldtype': u'Small Text',
+		'label': u'Trash Reason',
+		'no_copy': 0,
+		'oldfieldname': u'trash_reason',
+		'oldfieldtype': u'Small Text',
+		'permlevel': 1,
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'dt',
-		'fieldtype': 'Link',
-		'idx': 3,
-		'label': 'Document',
-		'oldfieldname': 'dt',
-		'oldfieldtype': 'Link',
-		'options': 'DocType',
-		'permlevel': 0,
-		'reqd': 1,
-		'trigger': 'Client'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'label',
-		'fieldtype': 'Data',
-		'idx': 4,
-		'label': 'Label',
-		'no_copy': 1,
-		'oldfieldname': 'label',
-		'oldfieldtype': 'Data',
-		'permlevel': 0,
-		'reqd': 1
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'HTML',
-		'idx': 5,
-		'label': 'Label Help',
-		'oldfieldtype': 'HTML',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'colour': 'White:FFF',
-		'doctype': 'DocField',
-		'fieldname': 'fieldtype',
-		'fieldtype': 'Select',
-		'idx': 6,
-		'label': 'Field Type',
-		'oldfieldname': 'fieldtype',
-		'oldfieldtype': 'Select',
-		'options': '\nButton\nCheck\nColumn Break\nCurrency\nData\nDate\nFloat\nHTML\nInt\nLink\nRead Only\nSection Break\nSelect\nSmall Text\nText\nText Editor\nTime',
+		'doctype': u'DocField',
+		'fieldname': u'dt',
+		'fieldtype': u'Link',
+		'in_filter': 1,
+		'label': u'Document',
+		'no_copy': 0,
+		'oldfieldname': u'dt',
+		'oldfieldtype': u'Link',
+		'options': u'DocType',
 		'permlevel': 0,
 		'reqd': 1,
-		'trigger': 'Client'
+		'search_index': 1,
+		'trigger': u'Client'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'HTML',
-		'idx': 7,
-		'label': 'Options Help',
-		'oldfieldtype': 'HTML',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'options',
-		'fieldtype': 'Text',
-		'idx': 8,
-		'label': 'Options',
-		'oldfieldname': 'options',
-		'oldfieldtype': 'Text',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'description',
-		'fieldtype': 'Text',
-		'idx': 9,
-		'label': 'Field Description',
-		'oldfieldname': 'description',
-		'oldfieldtype': 'Text',
-		'permlevel': 0,
-		'width': '300px'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'idx': 10,
-		'label': 'Properties',
-		'oldfieldtype': 'Column Break',
-		'permlevel': 0,
-		'width': '50%'
-	},
-
-	# DocField
-	{
-		'colour': 'White:FFF',
-		'description': 'Select the label after which you want to insert new field.',
-		'doctype': 'DocField',
-		'fieldname': 'insert_after',
-		'fieldtype': 'Select',
-		'idx': 11,
-		'label': 'Insert After',
-		'oldfieldname': 'insert_after',
-		'oldfieldtype': 'Select',
-		'permlevel': 0,
-		'trigger': 'Client'
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'default',
-		'fieldtype': 'Text',
-		'idx': 12,
-		'label': 'Default Value',
-		'oldfieldname': 'default',
-		'oldfieldtype': 'Text',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': 'DocField',
-		'fieldname': 'fieldname',
-		'fieldtype': 'Data',
-		'idx': 13,
-		'label': 'Fieldname',
+		'doctype': u'DocField',
+		'fieldname': u'label',
+		'fieldtype': u'Data',
+		'in_filter': 1,
+		'label': u'Label',
 		'no_copy': 1,
-		'oldfieldname': 'fieldname',
-		'oldfieldtype': 'Data',
-		'permlevel': 2
+		'oldfieldname': u'label',
+		'oldfieldtype': u'Data',
+		'permlevel': 0,
+		'reqd': 1,
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'width',
-		'fieldtype': 'Data',
-		'idx': 14,
-		'label': 'Width',
-		'oldfieldname': 'width',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldtype': u'HTML',
+		'label': u'Label Help',
+		'oldfieldtype': u'HTML',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'reqd',
-		'fieldtype': 'Check',
-		'idx': 15,
-		'label': 'Is Mandatory Field',
-		'oldfieldname': 'reqd',
-		'oldfieldtype': 'Check',
+		'colour': u'White:FFF',
+		'doctype': u'DocField',
+		'fieldname': u'fieldtype',
+		'fieldtype': u'Select',
+		'in_filter': 1,
+		'label': u'Field Type',
+		'no_copy': 0,
+		'oldfieldname': u'fieldtype',
+		'oldfieldtype': u'Select',
+		'options': u'\nButton\nCheck\nColumn Break\nCurrency\nData\nDate\nFloat\nHTML\nInt\nLink\nRead Only\nSection Break\nSelect\nSmall Text\nText\nText Editor\nTime',
+		'permlevel': 0,
+		'reqd': 1,
+		'search_index': 0,
+		'trigger': u'Client'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldtype': u'HTML',
+		'label': u'Options Help',
+		'oldfieldtype': u'HTML',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'in_filter',
-		'fieldtype': 'Check',
-		'idx': 16,
-		'label': 'In Report Filter',
-		'oldfieldname': 'in_filter',
-		'oldfieldtype': 'Check',
-		'permlevel': 0
+		'doctype': u'DocField',
+		'fieldname': u'options',
+		'fieldtype': u'Text',
+		'label': u'Options',
+		'no_copy': 0,
+		'oldfieldname': u'options',
+		'oldfieldtype': u'Text',
+		'permlevel': 0,
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'no_copy',
-		'fieldtype': 'Check',
-		'idx': 17,
-		'label': 'No Copy',
-		'oldfieldname': 'no_copy',
-		'oldfieldtype': 'Check',
-		'permlevel': 0
+		'doctype': u'DocField',
+		'fieldname': u'description',
+		'fieldtype': u'Text',
+		'label': u'Field Description',
+		'no_copy': 0,
+		'oldfieldname': u'description',
+		'oldfieldtype': u'Text',
+		'permlevel': 0,
+		'search_index': 0,
+		'width': u'300px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'print_hide',
-		'fieldtype': 'Check',
-		'idx': 18,
-		'label': 'Print Hide',
-		'oldfieldname': 'print_hide',
-		'oldfieldtype': 'Check',
-		'permlevel': 0
+		'doctype': u'DocField',
+		'fieldtype': u'Column Break',
+		'label': u'Properties',
+		'oldfieldtype': u'Column Break',
+		'permlevel': 0,
+		'width': u'50%'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'report_hide',
-		'fieldtype': 'Check',
-		'idx': 19,
-		'label': 'Report Hide',
-		'oldfieldname': 'report_hide',
-		'oldfieldtype': 'Check',
-		'permlevel': 0
+		'colour': u'White:FFF',
+		'description': u'Select the label after which you want to insert new field.',
+		'doctype': u'DocField',
+		'fieldname': u'insert_after',
+		'fieldtype': u'Select',
+		'label': u'Insert After',
+		'no_copy': 1,
+		'oldfieldname': u'insert_after',
+		'oldfieldtype': u'Select',
+		'permlevel': 0,
+		'search_index': 0,
+		'trigger': u'Client'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'allow_on_submit',
-		'fieldtype': 'Check',
-		'idx': 20,
-		'label': 'Allow on Submit',
-		'oldfieldname': 'allow_on_submit',
-		'oldfieldtype': 'Check',
-		'permlevel': 0
+		'doctype': u'DocField',
+		'fieldname': u'default',
+		'fieldtype': u'Text',
+		'label': u'Default Value',
+		'no_copy': 0,
+		'oldfieldname': u'default',
+		'oldfieldtype': u'Text',
+		'permlevel': 0,
+		'search_index': 0
 	},
 
 	# DocField
 	{
-		'default': '0',
-		'doctype': 'DocField',
-		'fieldname': 'permlevel',
-		'fieldtype': 'Int',
-		'idx': 21,
-		'label': 'Permission Level',
-		'oldfieldname': 'permlevel',
-		'oldfieldtype': 'Int',
-		'permlevel': 0
+		'doctype': u'DocField',
+		'fieldname': u'fieldname',
+		'fieldtype': u'Data',
+		'label': u'Fieldname',
+		'no_copy': 1,
+		'oldfieldname': u'fieldname',
+		'oldfieldtype': u'Data',
+		'permlevel': 2,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'width',
+		'fieldtype': u'Data',
+		'label': u'Width',
+		'no_copy': 0,
+		'oldfieldname': u'width',
+		'oldfieldtype': u'Data',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'reqd',
+		'fieldtype': u'Check',
+		'label': u'Is Mandatory Field',
+		'no_copy': 0,
+		'oldfieldname': u'reqd',
+		'oldfieldtype': u'Check',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'in_filter',
+		'fieldtype': u'Check',
+		'label': u'In Report Filter',
+		'no_copy': 0,
+		'oldfieldname': u'in_filter',
+		'oldfieldtype': u'Check',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'no_copy',
+		'fieldtype': u'Check',
+		'label': u'No Copy',
+		'no_copy': 0,
+		'oldfieldname': u'no_copy',
+		'oldfieldtype': u'Check',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'print_hide',
+		'fieldtype': u'Check',
+		'label': u'Print Hide',
+		'no_copy': 0,
+		'oldfieldname': u'print_hide',
+		'oldfieldtype': u'Check',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'report_hide',
+		'fieldtype': u'Check',
+		'label': u'Report Hide',
+		'no_copy': 0,
+		'oldfieldname': u'report_hide',
+		'oldfieldtype': u'Check',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'allow_on_submit',
+		'fieldtype': u'Check',
+		'label': u'Allow on Submit',
+		'no_copy': 0,
+		'oldfieldname': u'allow_on_submit',
+		'oldfieldtype': u'Check',
+		'permlevel': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'default': u'0',
+		'doctype': u'DocField',
+		'fieldname': u'permlevel',
+		'fieldtype': u'Int',
+		'label': u'Permission Level',
+		'no_copy': 0,
+		'oldfieldname': u'permlevel',
+		'oldfieldtype': u'Int',
+		'permlevel': 0,
+		'search_index': 0
 	}
 ]
