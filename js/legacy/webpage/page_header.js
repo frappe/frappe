@@ -45,21 +45,16 @@ var def_ph_style = {
 function PageHeader(parent, main_text, sub_text) {
 
 	this.wrapper = $a(parent,'div','page_header');
-	this.t1 = make_table($a(this.wrapper,'div','',def_ph_style.wrapper.backgroundColor), 1, 2, '100%', [null, '100px'], {padding: '2px'});
-	$y(this.t1, {borderCollapse:'collapse'})
-	this.lhs = $td(this.t1, 0, 0);
+	this.close_btn = $a(this.wrapper, 'a', 'close', {}, '&times;');
+	this.close_btn.onclick = function() { window.history.back(); };
 	
-	this.main_head = $a(this.lhs, 'h1', '', def_ph_style.main_heading);
-	this.sub_head = $a(this.lhs, 'h4', '', def_ph_style.sub_heading);
+	this.breadcrumbs = $a(this.wrapper, 'div');
+	this.main_head = $a(this.wrapper, 'h1', '', def_ph_style.main_heading);
+	this.sub_head = $a(this.wrapper, 'h4', '', def_ph_style.sub_heading);
 
 	this.separator = $a(this.wrapper, 'div', '', def_ph_style.separator);
 	this.toolbar_area = $a(this.wrapper, 'div', '', def_ph_style.toolbar_area);
 	this.padding_area = $a(this.wrapper, 'div', '', {padding:'3px'});
-
-	// close btn
-	$y($td(this.t1, 0, 1),{textAlign:'right', padding:'3px'});
-	this.close_btn = $a($td(this.t1, 0, 1), 'span', 'close', {},  '&times;');
-	this.close_btn.onclick = function() { window.history.back(); };
 
 	if(main_text) this.main_head.innerHTML = main_text;
 	if(sub_text) this.sub_head.innerHTML = sub_text;

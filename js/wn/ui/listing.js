@@ -83,11 +83,11 @@ wn.ui.Listing = Class.extend({
 				\
 				<div class="list-filters hide">\
 					<div class="show_filters well">\
-						<div class="filter_area"></div>\
 						<div>\
 							<button class="btn btn-small add-filter-btn">\
 								<i class="icon-plus"></i> Add Filter</button>\
 						</div>\
+						<div class="filter_area"></div>\
 					</div>\
 				</div>\
 				\
@@ -593,7 +593,7 @@ wn.ui.Filter = Class.extend({
 		}
 		
 		return [me.$w.find('.fieldname_select option:selected').attr('table'), 
-			me.field.df.fieldname, me.$w.find('.condition').val(), val];
+			me.field.df.fieldname, me.$w.find('.condition').val(), cstr(val)];
 	}
 
 });
