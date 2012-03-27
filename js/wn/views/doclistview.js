@@ -56,6 +56,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.$page.html(repl('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="layout-main-section">\
 				<a class="close" onclick="window.history.back();">&times;</a>\
+				<div class="breadcrumbs-area"></div>\
 				<h1>%(label)s</h1>\
 				<hr>\
 				<div class="wnlist-area"><div class="help">Loading...</div></div>\
@@ -70,6 +71,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			</div>\
 			<div style="clear: both"></div>\
 		</div>', {label: this.label}));
+		
+		wn.views.breadcrumbs(this.$page.find('.breadcrumbs-area').get(0), locals.DocType[this.doctype].module);
 	},
 
 	setup: function() {

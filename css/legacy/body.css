@@ -119,7 +119,6 @@ div#body_div {
 
 .content {
 	width: 900px;
-	margin-bottom: 30px;
 }
 
 .background-fade-in {
@@ -130,9 +129,8 @@ div#body_div {
 }
 
 footer {
-	position: absolute;
-	bottom: 0px;
-	width: 100%;
+	width: 900px;
+	margin: auto;
 }
 header .container {
 	width: 900px;
@@ -156,7 +154,6 @@ div.no_script {
 }
 
 div.loading_div {
-	position: absolute;
 	background-color: #FFFFCC;
 	z-index: 1999;
 	right: 5px;
@@ -195,7 +192,6 @@ div.std-footer-item {
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.3);
 	background-color: #fff;
 	padding: 15px;
-	margin-bottom: 30px;
 }
 
 .layout-wrapper-background {
