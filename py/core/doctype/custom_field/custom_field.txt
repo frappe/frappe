@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2010-10-13 16:33:29',
+		'creation': '2012-03-27 14:35:35',
 		'docstatus': 0,
-		'modified': '2012-03-22 14:23:46',
+		'modified': '2012-03-27 14:35:35',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -99,6 +99,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'details',
 		'fieldtype': u'Column Break',
 		'label': u'Details',
 		'oldfieldtype': u'Column Break',
@@ -154,6 +155,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'label_help',
 		'fieldtype': u'HTML',
 		'label': u'Label Help',
 		'oldfieldtype': u'HTML',
@@ -181,6 +183,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'options_help',
 		'fieldtype': u'HTML',
 		'label': u'Options Help',
 		'oldfieldtype': u'HTML',
@@ -217,6 +220,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'properties',
 		'fieldtype': u'Column Break',
 		'label': u'Properties',
 		'oldfieldtype': u'Column Break',

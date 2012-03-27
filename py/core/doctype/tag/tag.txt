@@ -3,92 +3,89 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 15:59:13',
+		'creation': '2012-03-27 14:35:39',
 		'docstatus': 0,
-		'modified': '2011-07-22 15:59:13',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 18:43:27',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'autoname': 'field:tag_name',
-		'colour': 'White:FFF',
+		'autoname': u'field:tag_name',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'name_case': 'Title Case',
-		'section_style': 'Simple',
-		'server_code_error': ' ',
+		'name_case': u'Title Case',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 5
+		'version': 6
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Tag',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'Tag',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
 	# These values are common for all DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
-		'idx': 1,
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'Tag',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Tag',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': 'System Manager',
+		'role': u'System Manager',
 		'write': 1
 	},
 
 	# DocType, Tag
 	{
 		'doctype': 'DocType',
-		'name': 'Tag'
+		'name': u'Tag'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'tag_name',
-		'fieldtype': 'Data',
-		'idx': 1,
-		'label': 'Tag Name',
-		'oldfieldname': 'tag_name',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'tag_name',
+		'fieldtype': u'Data',
+		'label': u'Tag Name',
+		'oldfieldname': u'tag_name',
+		'oldfieldtype': u'Data'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'idx': 2,
-		'label': 'Tag Details',
-		'oldfieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldname': u'tag_details_section_break',
+		'fieldtype': u'Section Break',
+		'label': u'Tag Details',
+		'oldfieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'tag_details',
-		'fieldtype': 'Table',
-		'idx': 3,
-		'label': 'Tag Details1',
-		'oldfieldname': 'tag_details',
-		'oldfieldtype': 'Table',
-		'options': 'Tag Detail'
+		'doctype': u'DocField',
+		'fieldname': u'tag_details',
+		'fieldtype': u'Table',
+		'label': u'Tag Details1',
+		'oldfieldname': u'tag_details',
+		'oldfieldtype': u'Table',
+		'options': u'Tag Detail'
 	}
 ]

@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-08-25 17:35:27',
+		'creation': '2012-03-27 14:35:38',
 		'docstatus': 0,
-		'modified': '2012-02-29 17:09:18',
+		'modified': '2012-03-27 14:35:38',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -201,6 +201,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'column_break0',
 		'fieldtype': u'Column Break',
 		'oldfieldtype': u'Column Break',
 		'permlevel': 1,
@@ -296,6 +297,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'section_break0',
 		'fieldtype': u'Section Break',
 		'hidden': 0,
 		'oldfieldtype': u'Section Break',
@@ -307,6 +309,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'roles',
 		'fieldtype': u'Column Break',
 		'label': u'Roles',
 		'oldfieldtype': u'Column Break',
@@ -334,6 +337,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'system_defaults',
 		'fieldtype': u'Column Break',
 		'label': u'System Defaults',
 		'oldfieldtype': u'Column Break',
@@ -361,6 +365,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'login_details',
 		'fieldtype': u'Section Break',
 		'label': u'Login Details',
 		'oldfieldtype': u'Section Break',
@@ -397,6 +402,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'column_break1',
 		'fieldtype': u'Column Break',
 		'oldfieldtype': u'Column Break',
 		'permlevel': 0,

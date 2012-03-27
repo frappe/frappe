@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:39',
 		'docstatus': 0,
-		'modified': '2012-03-22 14:29:28',
+		'modified': '2012-03-27 18:43:00',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -22,7 +22,7 @@
 		'section_style': u'Tabbed',
 		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 5
+		'version': 6
 	},
 
 	# These values are common for all DocField
@@ -52,6 +52,32 @@
 
 	# DocPerm
 	{
+		'amend': 0,
+		'cancel': 0,
+		'create': 0,
+		'doctype': u'DocPerm',
+		'permlevel': 0,
+		'role': u'Administrator',
+		'submit': 0,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': u'DocPerm',
+		'permlevel': 1,
+		'role': u'Administrator'
+	},
+
+	# DocPerm
+	{
+		'doctype': u'DocPerm',
+		'permlevel': 1,
+		'role': u'All'
+	},
+
+	# DocPerm
+	{
 		'create': 1,
 		'doctype': u'DocPerm',
 		'permlevel': 0,
@@ -64,21 +90,6 @@
 		'doctype': u'DocPerm',
 		'permlevel': 1,
 		'role': u'All'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'Administrator',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'Administrator'
 	},
 
 	# DocField
@@ -306,6 +317,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'client_script',
 		'fieldtype': u'Section Break',
 		'label': u'Client Script',
 		'oldfieldtype': u'Section Break',
@@ -328,6 +340,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'server_script_section_break',
 		'fieldtype': u'Section Break',
 		'label': u'Server Script',
 		'oldfieldtype': u'Section Break',
@@ -350,6 +363,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'overload_query',
 		'fieldtype': u'Section Break',
 		'label': u'Overload Query',
 		'oldfieldtype': u'Section Break',

@@ -69,6 +69,7 @@ def diff_ref_db():
 		for doc in webnotes.conn.sql("""select * from `tab%s`""" % dt, as_dict=1):
 			# get file for this doc
 			doc['doctype'] = dt
+			#print doc['name'], doc['doctype'], doc['module']
 			path = os.path.join(webnotes.defs.modules_path, scrub(doc['module']), \
 				scrub(dt), scrub(doc['name']), scrub(doc['name']) + '.txt')	
 			path_core = os.path.join(os.getcwd(), 'lib', 'py', 'core', \

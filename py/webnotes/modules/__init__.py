@@ -44,7 +44,8 @@ def get_module_path(module):
 	m = scrub(module)
 	
 	if m in ('core'):
-		return os.path.join(webnotes.defs.modules_path, '..', 'lib', 'py', 'core')
+		path_to_lib = os.sep.join(webnotes.defs.modules_path.split(os.path.sep)[:-1])
+		return os.path.join(path_to_lib, 'lib', 'py', 'core')
 	else:
 		return os.path.join(webnotes.defs.modules_path, m)
 	

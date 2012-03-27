@@ -3,32 +3,32 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 12:08:57',
+		'creation': '2012-03-27 14:35:38',
 		'docstatus': 0,
-		'modified': '2011-07-22 12:09:36',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:45:52',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'autoname': '_SD.####',
-		'colour': 'White:FFF',
+		'autoname': u'_SD.####',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
-		'module': 'Core',
+		'is_submittable': 1,
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
+		'section_style': u'Simple',
 		'version': 2
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Sandbox',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
-		'permlevel': 0
+		'parent': u'Sandbox',
+		'parentfield': u'fields',
+		'parenttype': u'DocType'
 	},
 
 	# These values are common for all DocPerm
@@ -36,16 +36,15 @@
 		'amend': 1,
 		'cancel': 1,
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'execute': 1,
-		'idx': 1,
 		'name': '__common__',
-		'parent': 'Sandbox',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Sandbox',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': 'Administrator',
+		'role': u'Administrator',
 		'submit': 1,
 		'write': 1
 	},
@@ -53,67 +52,92 @@
 	# DocType, Sandbox
 	{
 		'doctype': 'DocType',
-		'name': 'Sandbox'
+		'name': u'Sandbox'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'test_data',
-		'fieldtype': 'Data',
-		'idx': 1,
-		'label': 'Test Data'
+		'doctype': u'DocField',
+		'fieldname': u'test_data',
+		'fieldtype': u'Data',
+		'label': u'Test Data',
+		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'test_link',
-		'fieldtype': 'Link',
-		'idx': 2,
-		'label': 'Test Link',
-		'options': 'Profile'
+		'doctype': u'DocField',
+		'fieldname': u'test_link',
+		'fieldtype': u'Link',
+		'label': u'Test Link',
+		'options': u'Profile',
+		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'test_select',
-		'fieldtype': 'Select',
-		'idx': 2,
-		'label': 'Test Select',
-		'options': 'A\nB\nC'
+		'doctype': u'DocField',
+		'fieldname': u'test_select',
+		'fieldtype': u'Select',
+		'label': u'Test Select',
+		'options': u'A\nB\nC',
+		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'test_text',
-		'fieldtype': 'Text',
-		'idx': 3,
-		'label': 'Test Text'
+		'doctype': u'DocField',
+		'fieldname': u'test_text',
+		'fieldtype': u'Text',
+		'label': u'Test Text',
+		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'test_date',
-		'fieldtype': 'Date',
-		'idx': 4,
-		'label': 'Test Date'
+		'doctype': u'DocField',
+		'fieldname': u'test_date',
+		'fieldtype': u'Date',
+		'label': u'Test Date',
+		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'to_be_dropped',
-		'fieldtype': 'Data',
-		'idx': 5,
-		'label': 'to be dropped'
+		'doctype': u'DocField',
+		'fieldname': u'to_be_dropped',
+		'fieldtype': u'Data',
+		'label': u'to be dropped',
+		'permlevel': 0
+	},
+
+	# DocField
+	{
+		'depends_on': u'eval:doc.amended_from',
+		'description': u'The date at which current entry is corrected in the system.',
+		'doctype': u'DocField',
+		'fieldname': u'amendment_date',
+		'fieldtype': u'Date',
+		'label': u'Amendment Date',
+		'no_copy': 1,
+		'permlevel': 0,
+		'print_hide': 1
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'amended_from',
+		'fieldtype': u'Link',
+		'label': u'Amended From',
+		'no_copy': 1,
+		'options': u'Receivable Voucher',
+		'permlevel': 1,
+		'print_hide': 1
 	}
 ]

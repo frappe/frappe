@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:37',
 		'docstatus': 0,
-		'modified': '2012-03-22 14:23:58',
+		'modified': '2012-03-27 14:35:37',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -42,14 +42,12 @@
 	{
 		'create': 1,
 		'doctype': u'DocPerm',
-		'match': u'owner',
 		'name': '__common__',
 		'parent': u'Event',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': u'All',
 		'write': 1
 	},
 
@@ -61,12 +59,20 @@
 
 	# DocPerm
 	{
-		'doctype': u'DocPerm'
+		'doctype': u'DocPerm',
+		'role': u'All'
+	},
+
+	# DocPerm
+	{
+		'doctype': u'DocPerm',
+		'role': u'Administrator'
 	},
 
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'details',
 		'fieldtype': u'Section Break',
 		'label': u'Details',
 		'oldfieldtype': u'Section Break'
@@ -75,6 +81,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'intro_html',
 		'fieldtype': u'HTML',
 		'label': u'Intro HTML',
 		'oldfieldtype': u'HTML'
@@ -158,6 +165,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'participants',
 		'fieldtype': u'Section Break',
 		'label': u'Participants',
 		'oldfieldtype': u'Section Break'
@@ -166,6 +174,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'individuals',
 		'fieldtype': u'Column Break',
 		'label': u'Individuals',
 		'oldfieldtype': u'Column Break',
@@ -188,6 +197,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'groups',
 		'fieldtype': u'Column Break',
 		'label': u'Groups',
 		'oldfieldtype': u'Column Break',

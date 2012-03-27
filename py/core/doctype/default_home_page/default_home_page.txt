@@ -3,60 +3,58 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-10-28 11:12:48',
+		'creation': '2012-03-27 14:35:35',
 		'docstatus': 0,
-		'modified': '2010-09-20 14:06:57',
-		'modified_by': 'nabin@webnotestech.com',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:35',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'colour': 'White:FFF',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'istable': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
+		'section_style': u'Simple',
 		'show_in_menu': 0,
 		'version': 2
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Link',
+		'doctype': u'DocField',
+		'fieldtype': u'Link',
 		'name': '__common__',
-		'oldfieldtype': 'Link',
-		'parent': 'Default Home Page',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'oldfieldtype': u'Link',
+		'parent': u'Default Home Page',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
 	# DocType, Default Home Page
 	{
 		'doctype': 'DocType',
-		'name': 'Default Home Page'
+		'name': u'Default Home Page'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'role',
-		'idx': 1,
-		'label': 'Role',
-		'oldfieldname': 'role',
-		'options': 'Role'
+		'doctype': u'DocField',
+		'fieldname': u'role',
+		'label': u'Role',
+		'oldfieldname': u'role',
+		'options': u'Role'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'home_page',
-		'idx': 2,
-		'label': 'Home Page',
-		'oldfieldname': 'home_page',
-		'options': 'Page'
+		'doctype': u'DocField',
+		'fieldname': u'home_page',
+		'label': u'Home Page',
+		'oldfieldname': u'home_page',
+		'options': u'Page'
 	}
 ]

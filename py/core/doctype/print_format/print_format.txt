@@ -3,24 +3,24 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 16:43:58',
+		'creation': '2012-03-27 14:35:38',
 		'docstatus': 0,
-		'modified': '2011-12-05 11:45:45',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:38',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1322035799',
+		'_last_update': u'1322035799',
 		'allow_attach': 0,
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
 		'allow_rename': 0,
 		'allow_trash': 0,
-		'autoname': 'Prompt',
-		'colour': 'White:FFF',
+		'autoname': u'Prompt',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
@@ -30,26 +30,26 @@
 		'issingle': 0,
 		'istable': 0,
 		'max_attachments': 0,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
 		'read_only': 0,
 		'read_only_onload': 0,
-		'section_style': 'Simple',
-		'server_code_error': ' ',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'subject': 'eval:("<span style=\'color:grey\'>Module: <b>%(module)s</b>, Type: <b>%(doc_type)s</b>, Standard: <b>%(standard)s</b></span>")',
-		'tag_fields': 'doc_type',
+		'subject': u'eval:("<span style=\'color:grey\'>Module: <b>%(module)s</b>, Type: <b>%(doc_type)s</b>, Standard: <b>%(standard)s</b></span>")',
+		'tag_fields': u'doc_type',
 		'use_template': 0,
 		'version': 25
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Print Format',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'Print Format',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
@@ -58,11 +58,11 @@
 		'amend': 0,
 		'cancel': 0,
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'Print Format',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Print Format',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
 		'submit': 0,
@@ -72,34 +72,34 @@
 	# DocType, Print Format
 	{
 		'doctype': 'DocType',
-		'name': 'Print Format'
+		'name': u'Print Format'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'role': 'Administrator'
+		'doctype': u'DocPerm',
+		'role': u'Administrator'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'role': 'System Manager'
+		'doctype': u'DocPerm',
+		'role': u'System Manager'
 	},
 
 	# DocField
 	{
 		'allow_on_submit': 0,
-		'doctype': 'DocField',
-		'fieldname': 'module',
-		'fieldtype': 'Select',
+		'doctype': u'DocField',
+		'fieldname': u'module',
+		'fieldtype': u'Select',
 		'hidden': 0,
 		'in_filter': 1,
-		'label': 'Module',
+		'label': u'Module',
 		'no_copy': 0,
-		'oldfieldname': 'module',
-		'oldfieldtype': 'Select',
-		'options': 'link:Module Def',
+		'oldfieldname': u'module',
+		'oldfieldtype': u'Select',
+		'options': u'link:Module Def',
 		'print_hide': 0,
 		'report_hide': 0,
 		'reqd': 1,
@@ -108,13 +108,13 @@
 
 	# DocField
 	{
-		'description': 'Associate a DocType to the Print Format',
-		'doctype': 'DocField',
-		'fieldname': 'doc_type',
-		'fieldtype': 'Select',
+		'description': u'Associate a DocType to the Print Format',
+		'doctype': u'DocField',
+		'fieldname': u'doc_type',
+		'fieldtype': u'Select',
 		'in_filter': 1,
-		'label': 'DocType',
-		'options': 'link:DocType',
+		'label': u'DocType',
+		'options': u'link:DocType',
 		'reqd': 0,
 		'search_index': 0
 	},
@@ -122,16 +122,16 @@
 	# DocField
 	{
 		'allow_on_submit': 0,
-		'doctype': 'DocField',
-		'fieldname': 'standard',
-		'fieldtype': 'Select',
+		'doctype': u'DocField',
+		'fieldname': u'standard',
+		'fieldtype': u'Select',
 		'hidden': 0,
 		'in_filter': 1,
-		'label': 'Standard',
+		'label': u'Standard',
 		'no_copy': 0,
-		'oldfieldname': 'standard',
-		'oldfieldtype': 'Select',
-		'options': '\nYes\nNo',
+		'oldfieldname': u'standard',
+		'oldfieldtype': u'Select',
+		'options': u'\nYes\nNo',
 		'print_hide': 0,
 		'report_hide': 0,
 		'reqd': 1,
@@ -141,15 +141,15 @@
 	# DocField
 	{
 		'allow_on_submit': 0,
-		'doctype': 'DocField',
-		'fieldname': 'html',
-		'fieldtype': 'Code',
+		'doctype': u'DocField',
+		'fieldname': u'html',
+		'fieldtype': u'Code',
 		'hidden': 0,
 		'in_filter': 0,
-		'label': 'HTML',
+		'label': u'HTML',
 		'no_copy': 0,
-		'oldfieldname': 'html',
-		'oldfieldtype': 'Text Editor',
+		'oldfieldname': u'html',
+		'oldfieldtype': u'Text Editor',
 		'print_hide': 0,
 		'report_hide': 0,
 		'reqd': 0,

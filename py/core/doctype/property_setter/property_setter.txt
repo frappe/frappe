@@ -3,39 +3,39 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 15:59:12',
+		'creation': '2012-03-27 14:35:38',
 		'docstatus': 0,
-		'modified': '2011-07-22 15:59:12',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 19:07:11',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1308120990',
+		'_last_update': u'1308120990',
 		'allow_print': 0,
 		'allow_trash': 1,
-		'autoname': "eval:doc.select_doctype + '-' + (doc.select_item or doc.doc_name) + '-' + doc.property",
-		'colour': 'White:FFF',
-		'description': 'Property Setter overrides a standard DocType or Field property',
+		'autoname': u"eval:doc.select_doctype + '-' + (doc.select_item or doc.field_name) + '-' + doc.property",
+		'colour': u'White:FFF',
+		'description': u'Property Setter overrides a standard DocType or Field property',
 		'doctype': 'DocType',
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'search_fields': 'doc_name,property',
-		'section_style': 'Simple',
+		'search_fields': u'doc_name,property',
+		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'subject': '<b>%(property)s</b> property of %(doc_type)s %(doc_name)s',
-		'tag_fields': 'property',
-		'version': 36
+		'subject': u'<b>%(property)s</b> property of %(doc_type)s %(doc_name)s',
+		'tag_fields': u'property',
+		'version': 39
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Property Setter',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'Property Setter',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
@@ -43,11 +43,11 @@
 	{
 		'cancel': 1,
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'Property Setter',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Property Setter',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
 		'write': 1
@@ -56,57 +56,52 @@
 	# DocType, Property Setter
 	{
 		'doctype': 'DocType',
-		'name': 'Property Setter'
+		'name': u'Property Setter'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'idx': 1,
-		'role': 'Administrator'
+		'doctype': u'DocPerm',
+		'role': u'Administrator'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'idx': 2,
-		'role': 'System Manager'
+		'doctype': u'DocPerm',
+		'role': u'System Manager'
 	},
 
 	# DocField
 	{
-		'depends_on': 'eval:doc.__islocal',
-		'doctype': 'DocField',
-		'fieldname': 'doctype_or_field',
-		'fieldtype': 'Select',
-		'idx': 1,
-		'label': 'DocType or Field',
+		'depends_on': u'eval:doc.__islocal',
+		'doctype': u'DocField',
+		'fieldname': u'doctype_or_field',
+		'fieldtype': u'Select',
+		'label': u'DocType or Field',
 		'no_column': 0,
-		'options': '\nDocField\nDocType',
+		'options': u'\nDocField\nDocType',
 		'reqd': 1
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': 'eval:doc.doctype_or_field && doc.__islocal',
-		'doctype': 'DocField',
-		'fieldname': 'select_doctype',
-		'fieldtype': 'Select',
-		'idx': 2,
-		'label': 'Select DocType',
+		'colour': u'White:FFF',
+		'depends_on': u'eval:doc.doctype_or_field && doc.__islocal',
+		'doctype': u'DocField',
+		'fieldname': u'select_doctype',
+		'fieldtype': u'Select',
+		'label': u'Select DocType',
 		'no_column': 0
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': "eval:doc.doctype_or_field=='DocField' && doc.__islocal",
-		'doctype': 'DocField',
-		'fieldname': 'select_item',
-		'fieldtype': 'Select',
-		'idx': 3,
-		'label': 'Select Field',
+		'colour': u'White:FFF',
+		'depends_on': u"eval:doc.doctype_or_field=='DocField' && doc.__islocal",
+		'doctype': u'DocField',
+		'fieldname': u'select_item',
+		'fieldtype': u'Select',
+		'label': u'Select Field',
 		'no_column': 0,
 		'reqd': 0
 	},
@@ -114,44 +109,41 @@
 	# DocField
 	{
 		'allow_on_submit': 0,
-		'depends_on': 'eval:doc.doctype_or_field && doc.__islocal',
-		'doctype': 'DocField',
-		'fieldname': 'select_property',
-		'fieldtype': 'Select',
-		'idx': 4,
-		'label': 'Select Property',
+		'depends_on': u'eval:doc.doctype_or_field && doc.__islocal',
+		'doctype': u'DocField',
+		'fieldname': u'select_property',
+		'fieldtype': u'Select',
+		'label': u'Select Property',
 		'no_column': 0
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': 'doc_name',
-		'description': 'New value to be set',
-		'doctype': 'DocField',
-		'fieldname': 'value',
-		'fieldtype': 'Text',
-		'idx': 5,
-		'label': 'Set Value'
+		'colour': u'White:FFF',
+		'depends_on': u'doc_name',
+		'description': u'New value to be set',
+		'doctype': u'DocField',
+		'fieldname': u'value',
+		'fieldtype': u'Text',
+		'label': u'Set Value'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break',
-		'idx': 6,
+		'doctype': u'DocField',
+		'fieldname': u'column_break0',
+		'fieldtype': u'Column Break',
 		'search_index': 0
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'doctype': 'DocField',
-		'fieldname': 'doc_type',
-		'fieldtype': 'Read Only',
-		'idx': 7,
+		'colour': u'White:FFF',
+		'doctype': u'DocField',
+		'fieldname': u'doc_type',
+		'fieldtype': u'Read Only',
 		'in_filter': 0,
-		'label': 'DocType',
+		'label': u'DocType',
 		'no_column': 0,
 		'reqd': 0,
 		'search_index': 1
@@ -159,54 +151,50 @@
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': "eval:doc.doctype_or_field=='DocField'",
-		'description': 'ID (name) of the entity whose property is to be set',
-		'doctype': 'DocField',
-		'fieldname': 'doc_name',
-		'fieldtype': 'Read Only',
-		'idx': 8,
+		'colour': u'White:FFF',
+		'depends_on': u"eval:doc.doctype_or_field=='DocField'",
+		'description': u'ID (name) of the entity whose property is to be set',
+		'doctype': u'DocField',
+		'fieldname': u'field_name',
+		'fieldtype': u'Read Only',
 		'in_filter': 0,
-		'label': 'Field ID',
+		'label': u'Field Name',
 		'reqd': 0,
 		'search_index': 1
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': 'eval:doc.doc_name && doc.__islocal',
-		'doctype': 'DocField',
-		'fieldname': 'property',
-		'fieldtype': 'Read Only',
-		'idx': 9,
+		'colour': u'White:FFF',
+		'depends_on': u'eval:doc.doc_name && doc.__islocal',
+		'doctype': u'DocField',
+		'fieldname': u'property',
+		'fieldtype': u'Read Only',
 		'in_filter': 0,
-		'label': 'Property',
+		'label': u'Property',
 		'reqd': 1,
 		'search_index': 1
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': 'doc_name',
-		'doctype': 'DocField',
-		'fieldname': 'property_type',
-		'fieldtype': 'Read Only',
-		'idx': 10,
-		'label': 'Property Type',
+		'colour': u'White:FFF',
+		'depends_on': u'doc_name',
+		'doctype': u'DocField',
+		'fieldname': u'property_type',
+		'fieldtype': u'Read Only',
+		'label': u'Property Type',
 		'no_column': 0
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'depends_on': 'doc_name',
-		'doctype': 'DocField',
-		'fieldname': 'default_value',
-		'fieldtype': 'Read Only',
-		'idx': 11,
-		'label': 'Default Value',
+		'colour': u'White:FFF',
+		'depends_on': u'doc_name',
+		'doctype': u'DocField',
+		'fieldname': u'default_value',
+		'fieldtype': u'Read Only',
+		'label': u'Default Value',
 		'no_column': 0
 	}
 ]

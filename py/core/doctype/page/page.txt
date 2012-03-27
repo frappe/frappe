@@ -3,43 +3,43 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:38',
 		'docstatus': 0,
-		'modified': '2012-01-27 13:26:59',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:38',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1327650972',
+		'_last_update': u'1327650972',
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
-		'autoname': 'field:page_name',
-		'colour': 'White:FFF',
-		'default_print_format': 'Standard',
+		'autoname': u'field:page_name',
+		'colour': u'White:FFF',
+		'default_print_format': u'Standard',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
 		'issingle': 0,
 		'istable': 0,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
 		'read_only': 0,
-		'section_style': 'Tabbed',
-		'server_code_error': ' ',
+		'section_style': u'Tabbed',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
 		'version': 11
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Page',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'Page',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
@@ -47,15 +47,15 @@
 	{
 		'cancel': 0,
 		'create': 1,
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'execute': 0,
 		'name': '__common__',
-		'parent': 'Page',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'Page',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': 'Administrator',
+		'role': u'Administrator',
 		'submit': 0,
 		'write': 1
 	},
@@ -63,132 +63,137 @@
 	# DocType, Page
 	{
 		'doctype': 'DocType',
-		'name': 'Page'
+		'name': u'Page'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'label': 'Page HTML',
-		'oldfieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldname': u'page_html',
+		'fieldtype': u'Section Break',
+		'label': u'Page HTML',
+		'oldfieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'page_name',
-		'fieldtype': 'Data',
-		'label': 'Page Name',
-		'oldfieldname': 'page_name',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'page_name',
+		'fieldtype': u'Data',
+		'label': u'Page Name',
+		'oldfieldname': u'page_name',
+		'oldfieldtype': u'Data',
 		'reqd': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'title',
-		'fieldtype': 'Data',
-		'label': 'Title'
+		'doctype': u'DocField',
+		'fieldname': u'title',
+		'fieldtype': u'Data',
+		'label': u'Title'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Column Break'
+		'doctype': u'DocField',
+		'fieldname': u'column_break0',
+		'fieldtype': u'Column Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'module',
-		'fieldtype': 'Select',
-		'label': 'Module',
-		'oldfieldname': 'module',
-		'oldfieldtype': 'Select',
-		'options': 'link:Module Def',
+		'doctype': u'DocField',
+		'fieldname': u'module',
+		'fieldtype': u'Select',
+		'label': u'Module',
+		'oldfieldname': u'module',
+		'oldfieldtype': u'Select',
+		'options': u'link:Module Def',
 		'reqd': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'standard',
-		'fieldtype': 'Select',
-		'label': 'Standard',
-		'oldfieldname': 'standard',
-		'oldfieldtype': 'Select',
-		'options': '\nYes\nNo',
+		'doctype': u'DocField',
+		'fieldname': u'standard',
+		'fieldtype': u'Select',
+		'label': u'Standard',
+		'oldfieldname': u'standard',
+		'oldfieldtype': u'Select',
+		'options': u'\nYes\nNo',
 		'reqd': 1,
 		'search_index': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldname': u'section_break0',
+		'fieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'content',
-		'fieldtype': 'Code',
+		'doctype': u'DocField',
+		'fieldname': u'content',
+		'fieldtype': u'Code',
 		'hidden': 0,
-		'label': 'Content',
-		'oldfieldname': 'content',
-		'oldfieldtype': 'Text Editor',
+		'label': u'Content',
+		'oldfieldname': u'content',
+		'oldfieldtype': u'Text Editor',
 		'reqd': 0,
 		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break',
-		'label': 'Permissions',
-		'oldfieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldname': u'permissions',
+		'fieldtype': u'Section Break',
+		'label': u'Permissions',
+		'oldfieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'roles',
-		'fieldtype': 'Table',
+		'doctype': u'DocField',
+		'fieldname': u'roles',
+		'fieldtype': u'Table',
 		'hidden': 0,
-		'label': 'Roles',
-		'oldfieldname': 'roles',
-		'oldfieldtype': 'Table',
-		'options': 'Page Role',
+		'label': u'Roles',
+		'oldfieldname': u'roles',
+		'oldfieldtype': u'Table',
+		'options': u'Page Role',
 		'reqd': 0,
 		'search_index': 0
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldtype': 'Section Break'
+		'doctype': u'DocField',
+		'fieldname': u'section_break1',
+		'fieldtype': u'Section Break'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'script',
-		'fieldtype': 'Code',
-		'label': 'Script (JS)'
+		'doctype': u'DocField',
+		'fieldname': u'script',
+		'fieldtype': u'Code',
+		'label': u'Script (JS)'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'style',
-		'fieldtype': 'Code',
-		'label': 'Style (CSS)'
+		'doctype': u'DocField',
+		'fieldname': u'style',
+		'fieldtype': u'Code',
+		'label': u'Style (CSS)'
 	}
 ]

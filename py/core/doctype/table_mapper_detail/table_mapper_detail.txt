@@ -3,140 +3,132 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 15:59:13',
+		'creation': '2012-03-27 14:35:39',
 		'docstatus': 0,
-		'modified': '2011-07-22 15:59:13',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:39',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'autoname': 'TMD/.#######',
-		'colour': 'White:FFF',
+		'autoname': u'TMD/.#######',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'istable': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Tray',
-		'server_code_error': ' ',
+		'section_style': u'Tray',
+		'server_code_error': u' ',
 		'show_in_menu': 0,
 		'version': 5
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'Table Mapper Detail',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'Table Mapper Detail',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
 	# DocType, Table Mapper Detail
 	{
 		'doctype': 'DocType',
-		'name': 'Table Mapper Detail'
+		'name': u'Table Mapper Detail'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'from_table',
-		'fieldtype': 'Select',
-		'idx': 1,
-		'label': 'From Table',
-		'oldfieldname': 'from_table',
-		'oldfieldtype': 'Select',
-		'options': 'link:DocType',
+		'doctype': u'DocField',
+		'fieldname': u'from_table',
+		'fieldtype': u'Select',
+		'label': u'From Table',
+		'oldfieldname': u'from_table',
+		'oldfieldtype': u'Select',
+		'options': u'link:DocType',
 		'reqd': 1,
-		'width': '140px'
+		'width': u'140px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'to_table',
-		'fieldtype': 'Select',
-		'idx': 2,
-		'label': 'To Table',
-		'oldfieldname': 'to_table',
-		'oldfieldtype': 'Select',
-		'options': 'link:DocType',
+		'doctype': u'DocField',
+		'fieldname': u'to_table',
+		'fieldtype': u'Select',
+		'label': u'To Table',
+		'oldfieldname': u'to_table',
+		'oldfieldtype': u'Select',
+		'options': u'link:DocType',
 		'reqd': 1,
-		'width': '140px'
+		'width': u'140px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'from_field',
-		'fieldtype': 'Data',
-		'idx': 3,
-		'label': 'From Field',
-		'oldfieldname': 'from_field',
-		'oldfieldtype': 'Data',
-		'width': '140px'
+		'doctype': u'DocField',
+		'fieldname': u'from_field',
+		'fieldtype': u'Data',
+		'label': u'From Field',
+		'oldfieldname': u'from_field',
+		'oldfieldtype': u'Data',
+		'width': u'140px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'to_field',
-		'fieldtype': 'Data',
-		'idx': 4,
-		'label': 'To Field',
-		'oldfieldname': 'to_field',
-		'oldfieldtype': 'Data',
-		'width': '140px'
+		'doctype': u'DocField',
+		'fieldname': u'to_field',
+		'fieldtype': u'Data',
+		'label': u'To Field',
+		'oldfieldname': u'to_field',
+		'oldfieldtype': u'Data',
+		'width': u'140px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'match_id',
-		'fieldtype': 'Int',
-		'idx': 5,
-		'label': 'Match Id',
-		'oldfieldname': 'match_id',
-		'oldfieldtype': 'Int',
+		'doctype': u'DocField',
+		'fieldname': u'match_id',
+		'fieldtype': u'Int',
+		'label': u'Match Id',
+		'oldfieldname': u'match_id',
+		'oldfieldtype': u'Int',
 		'reqd': 0,
-		'width': '60px'
+		'width': u'60px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'validation_logic',
-		'fieldtype': 'Small Text',
-		'idx': 6,
-		'label': 'Validation Logic',
-		'oldfieldname': 'validation_logic',
-		'oldfieldtype': 'Small Text',
+		'doctype': u'DocField',
+		'fieldname': u'validation_logic',
+		'fieldtype': u'Small Text',
+		'label': u'Validation Logic',
+		'oldfieldname': u'validation_logic',
+		'oldfieldtype': u'Small Text',
 		'reqd': 1,
-		'width': '150px'
+		'width': u'150px'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'reference_doctype_key',
-		'fieldtype': 'Data',
-		'idx': 7,
-		'label': 'Reference DocType Key',
-		'oldfieldname': 'reference_doctype_key',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'reference_doctype_key',
+		'fieldtype': u'Data',
+		'label': u'Reference DocType Key',
+		'oldfieldname': u'reference_doctype_key',
+		'oldfieldtype': u'Data'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'reference_key',
-		'fieldtype': 'Data',
-		'idx': 8,
-		'label': 'Reference Docname Key',
-		'oldfieldname': 'reference_key',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'reference_key',
+		'fieldtype': u'Data',
+		'label': u'Reference Docname Key',
+		'oldfieldname': u'reference_key',
+		'oldfieldtype': u'Data'
 	}
 ]

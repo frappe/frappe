@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-16 19:03:35',
+		'creation': '2012-03-27 14:35:36',
 		'docstatus': 0,
-		'modified': '2012-03-21 15:48:33',
+		'modified': '2012-03-27 14:35:36',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -95,6 +95,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'options',
 		'fieldtype': u'Section Break',
 		'hidden': 0,
 		'label': u'Options',
@@ -106,6 +107,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'settings',
 		'fieldtype': u'Column Break',
 		'label': u'Settings',
 		'oldfieldtype': u'Column Break',
@@ -309,6 +311,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'display',
 		'fieldtype': u'Column Break',
 		'hidden': 0,
 		'label': u'Display',
@@ -509,6 +512,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'permissions_section_break',
 		'fieldtype': u'Section Break',
 		'label': u'Permissions',
 		'oldfieldtype': u'Section Break'
@@ -517,6 +521,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'roles_and_permissions',
 		'fieldtype': u'Column Break',
 		'label': u'Roles and Permissions',
 		'oldfieldtype': u'Column Break',
@@ -551,29 +556,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldtype': u'Column Break',
-		'label': u'Print Formats',
-		'oldfieldtype': u'Column Break',
-		'width': u'30%'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'formats',
-		'fieldtype': u'Table',
-		'hidden': 0,
-		'label': u'Formats',
-		'oldfieldname': u'formats',
-		'oldfieldtype': u'Table',
-		'options': u'DocFormat',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
+		'fieldname': u'fields_section_break',
 		'fieldtype': u'Section Break',
 		'hidden': 0,
 		'label': u'Fields',
@@ -585,6 +568,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'document_fields',
 		'fieldtype': u'Column Break',
 		'hidden': 0,
 		'label': u'Document Fields',
@@ -610,6 +594,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'description_section_break',
 		'fieldtype': u'Section Break',
 		'hidden': 0,
 		'label': u'Description',

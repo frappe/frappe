@@ -3,50 +3,49 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:37',
 		'docstatus': 0,
-		'modified': '2010-09-20 14:06:57',
-		'modified_by': 'nabin@webnotestech.com',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:37',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'autoname': '__EVR.#####',
-		'colour': 'White:FFF',
+		'autoname': u'__EVR.#####',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'istable': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
+		'section_style': u'Simple',
 		'show_in_menu': 0
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'role',
-		'fieldtype': 'Link',
-		'idx': 1,
-		'label': 'Role',
+		'doctype': u'DocField',
+		'fieldname': u'role',
+		'fieldtype': u'Link',
+		'label': u'Role',
 		'name': '__common__',
-		'oldfieldname': 'role',
-		'oldfieldtype': 'Link',
-		'options': 'Role',
-		'parent': 'Event Role',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'oldfieldname': u'role',
+		'oldfieldtype': u'Link',
+		'options': u'Role',
+		'parent': u'Event Role',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
 	# DocType, Event Role
 	{
 		'doctype': 'DocType',
-		'name': 'Event Role'
+		'name': u'Event Role'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField'
+		'doctype': u'DocField'
 	}
 ]

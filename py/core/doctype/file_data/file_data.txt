@@ -3,72 +3,69 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:37',
 		'docstatus': 0,
-		'modified': '2010-12-01 13:35:53',
-		'modified_by': 'umair@iwebnotes.com',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:37',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'autoname': 'FileData/.#####',
-		'colour': 'White:FFF',
+		'autoname': u'FileData/.#####',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
 		'read_only': 0,
-		'section_style': 'Simple',
-		'server_code_error': ' '
+		'section_style': u'Simple',
+		'server_code_error': u' '
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'File Data',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'File Data',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0
 	},
 
 	# DocType, File Data
 	{
 		'doctype': 'DocType',
-		'name': 'File Data'
+		'name': u'File Data'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'file_name',
-		'fieldtype': 'Data',
-		'idx': 1,
-		'label': 'File Name',
-		'oldfieldname': 'file_name',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'file_name',
+		'fieldtype': u'Data',
+		'label': u'File Name',
+		'oldfieldname': u'file_name',
+		'oldfieldtype': u'Data'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'module',
-		'fieldtype': 'Link',
-		'idx': 2,
-		'label': 'Module',
-		'oldfieldname': 'module',
-		'oldfieldtype': 'Link',
-		'options': 'Module Def'
+		'doctype': u'DocField',
+		'fieldname': u'module',
+		'fieldtype': u'Link',
+		'label': u'Module',
+		'oldfieldname': u'module',
+		'oldfieldtype': u'Link',
+		'options': u'Module Def'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'blob_content',
-		'fieldtype': 'Blob',
-		'idx': 3,
-		'label': 'Blob Content',
-		'oldfieldname': 'blob_content',
-		'oldfieldtype': 'Blob'
+		'doctype': u'DocField',
+		'fieldname': u'blob_content',
+		'fieldtype': u'Blob',
+		'label': u'Blob Content',
+		'oldfieldname': u'blob_content',
+		'oldfieldtype': u'Blob'
 	}
 ]

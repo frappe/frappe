@@ -3,108 +3,104 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-05-09 17:47:03',
+		'creation': '2012-03-27 14:35:39',
 		'docstatus': 0,
-		'modified': '2011-04-22 13:12:21',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:39',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
-		'colour': 'White:FFF',
+		'_last_update': u'1307624201',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
-		'document_type': 'System',
+		'document_type': u'System',
 		'issingle': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
+		'section_style': u'Simple',
 		'show_in_menu': 1,
 		'version': 6
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'System Console',
-		'parentfield': 'fields',
-		'parenttype': 'DocType'
+		'parent': u'System Console',
+		'parentfield': u'fields',
+		'parenttype': u'DocType'
 	},
 
 	# These values are common for all DocPerm
 	{
-		'doctype': 'DocPerm',
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'System Console',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'System Console',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'read': 1,
-		'role': 'Administrator'
+		'role': u'Administrator'
 	},
 
 	# DocType, System Console
 	{
 		'doctype': 'DocType',
-		'name': 'System Console'
+		'name': u'System Console'
 	},
 
 	# DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
-		'idx': 1,
+		'doctype': u'DocPerm',
 		'permlevel': 0,
 		'write': 1
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm',
-		'idx': 2,
+		'doctype': u'DocPerm',
 		'permlevel': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'script',
-		'fieldtype': 'Code',
-		'idx': 1,
-		'label': 'Script',
+		'doctype': u'DocField',
+		'fieldname': u'script',
+		'fieldtype': u'Code',
+		'label': u'Script',
 		'permlevel': 0
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'doctype': 'DocField',
-		'fieldtype': 'Button',
-		'idx': 2,
-		'label': 'Server (Python)',
+		'colour': u'White:FFF',
+		'doctype': u'DocField',
+		'fieldname': u'server_python',
+		'fieldtype': u'Button',
+		'label': u'Server (Python)',
 		'permlevel': 0,
-		'trigger': 'Client'
+		'trigger': u'Client'
 	},
 
 	# DocField
 	{
-		'colour': 'White:FFF',
-		'doctype': 'DocField',
-		'fieldtype': 'Button',
-		'idx': 3,
-		'label': 'Client (JS)',
+		'colour': u'White:FFF',
+		'doctype': u'DocField',
+		'fieldname': u'client_js',
+		'fieldtype': u'Button',
+		'label': u'Client (JS)',
 		'permlevel': 0,
-		'trigger': 'Client'
+		'trigger': u'Client'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'response',
-		'fieldtype': 'Text',
-		'idx': 4,
-		'label': 'Error',
+		'doctype': u'DocField',
+		'fieldname': u'response',
+		'fieldtype': u'Text',
+		'label': u'Error',
 		'permlevel': 1
 	}
 ]

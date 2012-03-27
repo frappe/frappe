@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-11-24 15:24:03',
+		'creation': '2012-03-27 14:35:36',
 		'docstatus': 0,
-		'modified': '2012-03-22 14:26:13',
+		'modified': '2012-03-27 18:41:56',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -23,7 +23,7 @@
 		'search_fields': u'doc_type',
 		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 107
+		'version': 108
 	},
 
 	# These values are common for all DocField
@@ -81,8 +81,8 @@
 		'fieldtype': u'Select',
 		'hidden': 0,
 		'label': u'Select Form Type',
-		'options': u'link:DocType\n(module IN  ("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", "Selling", "Stock", "Support") OR name IN ("Contact", "Address")) AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0',
 		'no_copy': 0,
+		'options': u'link:DocType\n(module IN  ("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", "Selling", "Stock", "Support") OR name IN ("Contact", "Address")) AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0',
 		'permlevel': 0,
 		'search_index': 0
 	},
@@ -90,6 +90,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'properties',
 		'fieldtype': u'Section Break',
 		'label': u'Properties',
 		'permlevel': 0
@@ -98,6 +99,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'column_break0',
 		'fieldtype': u'Column Break',
 		'permlevel': 0
 	},
@@ -154,6 +156,7 @@
 	# DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'column_break1',
 		'fieldtype': u'Column Break',
 		'permlevel': 0
 	},
@@ -231,6 +234,7 @@
 	{
 		'description': u'Customize Label, Print Hide, Default etc.',
 		'doctype': u'DocField',
+		'fieldname': u'fields_section_break',
 		'fieldtype': u'Section Break',
 		'label': u'Fields',
 		'permlevel': 0

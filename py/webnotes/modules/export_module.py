@@ -109,7 +109,6 @@ def write_document_file(doclist, record_module=None):
 		
 	# write the data file	
 	fname = (code_type and scrub(doclist[0]['name'])) or doclist[0]['name']
-	
 	txtfile = open(os.path.join(folder, fname +'.txt'),'w+')
 	txtfile.write(pprint_doclist(doclist))
 	#dict_list = [pprint_dict(d) for d in doclist]	

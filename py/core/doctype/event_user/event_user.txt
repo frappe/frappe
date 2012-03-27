@@ -3,40 +3,39 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:37',
 		'docstatus': 0,
-		'modified': '2010-09-20 14:06:57',
-		'modified_by': 'nabin@webnotestech.com',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:37',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'autoname': 'EVP.#####',
-		'colour': 'White:FFF',
+		'autoname': u'EVP.#####',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'istable': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
-		'server_code_error': ' ',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'show_in_menu': 0
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'person',
-		'fieldtype': 'Select',
-		'idx': 1,
-		'label': 'Person',
+		'doctype': u'DocField',
+		'fieldname': u'person',
+		'fieldtype': u'Select',
+		'label': u'Person',
 		'name': '__common__',
-		'oldfieldname': 'person',
-		'oldfieldtype': 'Select',
-		'options': 'link:Profile',
-		'parent': 'Event User',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'oldfieldname': u'person',
+		'oldfieldtype': u'Select',
+		'options': u'link:Profile',
+		'parent': u'Event User',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'search_index': 1
 	},
@@ -44,11 +43,11 @@
 	# DocType, Event User
 	{
 		'doctype': 'DocType',
-		'name': 'Event User'
+		'name': u'Event User'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField'
+		'doctype': u'DocField'
 	}
 ]

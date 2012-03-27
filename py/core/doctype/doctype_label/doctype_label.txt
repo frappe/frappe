@@ -3,33 +3,33 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2011-07-22 15:58:56',
+		'creation': '2012-03-27 14:35:37',
 		'docstatus': 0,
-		'modified': '2011-07-22 15:58:56',
-		'modified_by': 'Administrator',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:37',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': '1307624201',
-		'autoname': 'field:dt',
-		'colour': 'White:FFF',
+		'_last_update': u'1307624201',
+		'autoname': u'field:dt',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
-		'section_style': 'Simple',
-		'server_code_error': ' ',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'version': 2
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': 'DocType Label',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'DocType Label',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'reqd': 1
 	},
@@ -37,49 +37,46 @@
 	# These values are common for all DocPerm
 	{
 		'create': 1,
-		'doctype': 'DocPerm',
-		'idx': 1,
+		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': 'DocType Label',
-		'parentfield': 'permissions',
-		'parenttype': 'DocType',
+		'parent': u'DocType Label',
+		'parentfield': u'permissions',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
-		'role': 'Administrator',
+		'role': u'Administrator',
 		'write': 1
 	},
 
 	# DocType, DocType Label
 	{
 		'doctype': 'DocType',
-		'name': 'DocType Label'
+		'name': u'DocType Label'
 	},
 
 	# DocPerm
 	{
-		'doctype': 'DocPerm'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'dt',
-		'fieldtype': 'Select',
-		'idx': 1,
-		'label': 'Select DocType',
-		'oldfieldname': 'dt',
-		'oldfieldtype': 'Select',
-		'options': 'link:DocType'
+		'doctype': u'DocField',
+		'fieldname': u'dt',
+		'fieldtype': u'Select',
+		'label': u'Select DocType',
+		'oldfieldname': u'dt',
+		'oldfieldtype': u'Select',
+		'options': u'link:DocType'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'dt_label',
-		'fieldtype': 'Data',
-		'idx': 2,
-		'label': 'DocType Label',
-		'oldfieldname': 'dt_label',
-		'oldfieldtype': 'Data'
+		'doctype': u'DocField',
+		'fieldname': u'dt_label',
+		'fieldtype': u'Data',
+		'label': u'DocType Label',
+		'oldfieldname': u'dt_label',
+		'oldfieldtype': u'Data'
 	}
 ]

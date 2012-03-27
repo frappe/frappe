@@ -3,11 +3,11 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2009-05-12 11:19:11',
+		'creation': '2012-03-27 14:35:35',
 		'docstatus': 0,
-		'modified': '2010-09-20 14:06:57',
-		'modified_by': 'nabin@webnotestech.com',
-		'owner': 'Administrator'
+		'modified': '2012-03-27 14:35:35',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
@@ -15,62 +15,59 @@
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
-		'autoname': 'DEF.######',
-		'colour': 'White:FFF',
+		'autoname': u'DEF.######',
+		'colour': u'White:FFF',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
-		'idx': 0,
 		'issingle': 0,
 		'istable': 1,
-		'module': 'Core',
+		'module': u'Core',
 		'name': '__common__',
 		'read_only': 0,
-		'section_style': 'Simple',
-		'server_code_error': ' ',
+		'section_style': u'Simple',
+		'server_code_error': u' ',
 		'show_in_menu': 0
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': 'DocField',
+		'doctype': u'DocField',
 		'hidden': 0,
 		'name': '__common__',
-		'parent': 'DefaultValue',
-		'parentfield': 'fields',
-		'parenttype': 'DocType',
+		'parent': u'DefaultValue',
+		'parentfield': u'fields',
+		'parenttype': u'DocType',
 		'permlevel': 0,
 		'search_index': 0,
-		'width': '200px'
+		'width': u'200px'
 	},
 
 	# DocType, DefaultValue
 	{
 		'doctype': 'DocType',
-		'name': 'DefaultValue'
+		'name': u'DefaultValue'
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'defkey',
-		'fieldtype': 'Data',
-		'idx': 1,
-		'label': 'Key',
-		'oldfieldname': 'defkey',
-		'oldfieldtype': 'Data',
+		'doctype': u'DocField',
+		'fieldname': u'defkey',
+		'fieldtype': u'Data',
+		'label': u'Key',
+		'oldfieldname': u'defkey',
+		'oldfieldtype': u'Data',
 		'reqd': 1
 	},
 
 	# DocField
 	{
-		'doctype': 'DocField',
-		'fieldname': 'defvalue',
-		'fieldtype': 'Text',
-		'idx': 2,
-		'label': 'Value',
-		'oldfieldname': 'defvalue',
-		'oldfieldtype': 'Text',
+		'doctype': u'DocField',
+		'fieldname': u'defvalue',
+		'fieldtype': u'Text',
+		'label': u'Value',
+		'oldfieldname': u'defvalue',
+		'oldfieldtype': u'Text',
 		'reqd': 0
 	}
 ]
