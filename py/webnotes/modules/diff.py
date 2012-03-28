@@ -46,15 +46,20 @@ def diff_ref_file():
 	missing = property_diff = 0
 	property_count = {}
 
+	get_diff(webnotes.defs.modules_path)
+	get_diff(os.path.join(os.getcwd(), 'lib', 'py', 'core'))
 	
-	for wt in os.walk(webnotes.defs.modules_path):
+	print_stats()
+
+
+def get_diff(path):
+	for wt in os.walk(path):
 		for fname in wt[2]:
 			if fname.endswith('.txt'):
 				path = os.path.join(wt[0], fname)
 				with open(path, 'r') as txtfile:
 					doclist_diff(peval_doclist(txtfile.read()))
 
-	print_stats()
 	
 def diff_ref_db():
 	"""get diff using database as reference"""
@@ -65,10 +70,15 @@ def diff_ref_db():
 			# get file for this doc
 			doc['doctype'] = dt
 			path = os.path.join(webnotes.defs.modules_path, scrub(doc['module']), \
+				scrub(dt), scrub(doc['name']), scrub(doc['name']) + '.txt')	
+			path_core = os.path.join(os.getcwd(), 'lib', 'py', 'core', \
 				scrub(dt), scrub(doc['name']), scrub(doc['name']) + '.txt')
-				
+
 			if os.path.exists(path):
 				with open(path, 'r') as txtfile:
+					target = peval_doclist(txtfile.read())					
+			elif os.path.exists(path_core):
+				with open(path_core, 'r') as txtfile:
 					target = peval_doclist(txtfile.read())					
 			else:
 				target = [None,]
