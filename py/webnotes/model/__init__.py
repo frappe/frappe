@@ -160,7 +160,7 @@ def rename(dt, old, new, is_doctype = 0):
 	update_link_fld_values(ll, old, new)
 	
 	# update options and values where select options contains old dt
-	select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select'" % old)
+	select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new))
 	update_link_fld_values(select_flds, old, new)
 	
 	sql("update `tabDocField` set options = replace(options, '%s', '%s') where options like '%%%s%%'" % (old, new, old))
@@ -168,7 +168,10 @@ def rename(dt, old, new, is_doctype = 0):
 
 	# doctype
 	if is_doctype:
-		sql("RENAME TABLE `tab%s` TO `tab%s`" % (old, new))
+		if not is_single_dt(old):
+			sql("RENAME TABLE `tab%s` TO `tab%s`" % (old, new))
+		else:
+			sql("update tabSingles set doctype = %s where doctype = %s", (new, old))
 
 		# get child docs (update parenttype)
 		ct = sql("select options from tabDocField where parent = '%s' and fieldtype='Table'" % new)
@@ -179,13 +182,15 @@ def rename(dt, old, new, is_doctype = 0):
 
 def update_link_fld_values(flds, old, new):
 	for l in flds:
-		is_single = sql("select issingle from tabDocType where name = '%s'" % l[0])
-		is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
-		if is_single:
-			sql("update `tabSingles` set value='%s' where field='%s' and value = '%s' and doctype = '%s' " % (new, l[1], old, l[0]))
+		if is_single_dt(l[0]):
+			webnotes.conn.sql("update `tabSingles` set value='%s' where field='%s' and value = '%s' and doctype = '%s' " % (new, l[1], old, l[0]))
 		else:
-			sql("update `tab%s` set `%s`='%s' where `%s`='%s'" % (l[0], l[1], new, l[1], old))
+			webnotes.conn.sql("update `tab%s` set `%s`='%s' where `%s`='%s'" % (l[0], l[1], new, l[1], old))
 
+def is_single_dt(dt):
+	is_single = webnotes.conn.sql("select issingle from tabDocType where name = '%s'" % dt)
+	is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
+	return is_single
 
 #=================================================================================
 
