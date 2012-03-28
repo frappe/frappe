@@ -195,9 +195,16 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				doctype: me.doctype
 			},
 			callback: function(r) {
+				// This gives a predictable stats order
+				$.each(me.listview.stats, function(i, v) {
+					me.render_stat(v, r.message[v]);
+				});
+
+				// This doesn't give a predictable stats order
+				/*
 				$.each(r.message, function(field, stat) {
 					me.render_stat(field, stat);
-				});
+				});*/
 			}
 		});
 	},
@@ -338,19 +345,19 @@ wn.views.ListView = Class.extend({
 			opts.content(parent, data);
 		}
 		else if(opts.content=='name') {
-			$(parent).html(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
+			$(parent).append(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
-			$(parent).html(repl('<span class="avatar-small"><img src="%(avatar)s" \
+			$(parent).append(repl('<span class="avatar-small"><img src="%(avatar)s" \
 				title="%(fullname)s"/></span>', 
 				data));			
 		}
 		else if(opts.content=='check') {
-			$(parent).html('<input class="list-delete" type="checkbox">');
+			$(parent).append('<input class="list-delete" type="checkbox">');
 			$(parent).find('input').data('name', data.name);			
 		}
 		else if(opts.content=='docstatus') {
-			$(parent).html(repl('<span class="docstatus"><i class="%(docstatus_icon)s" \
+			$(parent).append(repl('<span class="docstatus"><i class="%(docstatus_icon)s" \
 				title="%(docstatus_title)s"></i></span>', data));			
 		}
 		else if(opts.content=='tags') {
@@ -365,7 +372,7 @@ wn.views.ListView = Class.extend({
 				fully_delivered: (data[opts.content] > 99 ? 'bar-complete' : ''),
 				label: opts.label
 			}
-			$(parent).html(repl('<span class="bar-outer" style="width: 30px; float: right" \
+			$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right" \
 				title="%(percent)s% %(label)s">\
 				<span class="bar-inner %(fully_delivered)s" \
 					style="width: %(percent)s%;"></span>\

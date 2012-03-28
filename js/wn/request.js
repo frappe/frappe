@@ -83,7 +83,7 @@ wn.request.call = function(opts) {
 		},
 		error: function(xhr, textStatus) {
 			wn.request.cleanup(opts, {});
-			msgprint('Unable to complete request: ' + textStatus)
+			show_alert('Unable to complete request: ' + textStatus)
 			if(opts.error)opts.error(xhr)
 		}
 	})
