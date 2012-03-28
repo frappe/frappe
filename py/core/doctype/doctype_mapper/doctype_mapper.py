@@ -239,7 +239,7 @@ class DocType:
 		ft = sql("select fieldtype from tabDocField where fieldname = '%s' and parent = '%s'" % (fld,tbl))
 		ft	= ft and ft[0][0] or ''
 		if ft == 'Currency' or ft == 'Float':
-			cur_val = '%.2f' % cur_val
+			cur_val = '%.2f' % flt(cur_val)
 		return cur_val, ft
 				
 	# Check consistency
