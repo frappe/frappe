@@ -93,14 +93,24 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 	# Search for email address in description -- i.e. assignee
 	assignment = """<a href="#!Form/%s/%s">%s</a>""" % (doc_type, doc_name, doc_name)
 	if action=='CLOSE':
-		arg = {
-			'uid': assigned_by,
-			'comment': "The task %s, assigned to %s, has been closed by %s" % (assignment, owner, webnotes.user.name)
-		}
+		if owner == webnotes.session.get('user'):
+			arg = {
+				'uid': assigned_by,
+				'comment': "The task %s, that you assigned to %s, has been \
+					closed." % (assignment, owner)
+			}
+		else:
+			arg = {
+				'uid': assigned_by,
+				'comment': "The task %s, that you assigned to %s, \
+					has been closed	by %s." % (assignment, owner,
+					webnotes.session.get('user'))
+			}
 	else:
 		arg = {
 			'uid': owner,
-			'comment': "A new task, %s, has been assigned to you by %s" % (assignment, webnotes.user.name),
+			'comment': "A new task, %s, has been assigned to you by %s." \
+				% (assignment, webnotes.session.get('user')),
 			'notify': notify
 		}
 	from home.page.my_company import my_company

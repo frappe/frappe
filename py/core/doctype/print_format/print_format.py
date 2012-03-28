@@ -34,7 +34,7 @@ class DocType:
 			from webnotes.model.doc import Document
 			res = webnotes.conn.sql("""
 				SELECT * FROM `tabDocFormat`
-				WHERE format=%s""", self.doc.name)
+				WHERE format=%s and docstatus<2""", self.doc.name)
 			if res and res[0]:
 				d = Document('DocFormat', res[0][0])
 				d.parent = self.doc.doc_type

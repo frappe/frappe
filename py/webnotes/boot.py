@@ -41,7 +41,7 @@ def get_bootinfo():
 
 	# remove email settings from control panel dict
 	for field in ['mail_login', 'mail_password', 'mail_port', 'outgoing_mail_server', 'use_ssl']:
-		del cp[field]
+		if field in cp: del cp[field]
 	
 	# system info
 	bootinfo['control_panel'] = cp.copy()
@@ -77,7 +77,7 @@ def get_fullnames():
 	import webnotes
 	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
-			if(ifnull(first_name, '')!='', ' ', ''), ifnull(last_name, '')), 
+			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
 			user_image, gender
 		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
 	d = {}
