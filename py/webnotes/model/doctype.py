@@ -207,7 +207,10 @@ class _DocType:
 		# override properties in the main doctype
 		if dt in property_dict:
 			for p in property_dict[dt]:
-				doclist[0].fields[p['property']] = p['value']
+				if p['value'] in ['0', '1']:
+					doclist[0].fields[p['property']] = cint(p['value'])
+				else:
+					doclist[0].fields[p['property']] = p['value']
 				
 
 	def _change_doclist_idx(self, doclist, property_dict):
