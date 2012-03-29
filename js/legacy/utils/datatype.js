@@ -200,8 +200,8 @@ var rstrip = function(s, chars) {
 	if(!chars) chars = ['\n', '\t', ' '];
 	var last_char = s.substr(s.length-1);
 	while(in_list(chars, last_char)) {
-		var s = s.substr(0, this.length-1);
-		last_char = s.substr(this.length-1);
+		var s = s.substr(0, s.length-1);
+		last_char = s.substr(s.length-1);
 	}
 	return s;
 }
