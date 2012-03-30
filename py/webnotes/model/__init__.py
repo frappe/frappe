@@ -135,7 +135,10 @@ def get_link_fields(dt):
 	"""
 		Returns linked fields for dt as a tuple of (linked_doctype, linked_field)
 	"""
-	return webnotes.conn.sql("select parent, fieldname from tabDocField where parent not like 'old%%' and ((options = '%s' and fieldtype='Link') or (options = 'link:%s' and fieldtype='Select'))" % (dt, dt))
+	return webnotes.conn.sql("select parent, fieldname from tabDocField where \
+			parent not like 'old%%' and parent != '0' and \
+			((options = '%s' and fieldtype='Link') or \
+			(options = 'link:%s' and fieldtype='Select'))" % (dt, dt))
 
 def rename(dt, old, new, is_doctype = 0):
 	"""
@@ -164,7 +167,6 @@ def rename(dt, old, new, is_doctype = 0):
 	update_link_fld_values(select_flds, old, new)
 	
 	sql("update `tabDocField` set options = replace(options, '%s', '%s') where options like '%%%s%%'" % (old, new, old))
-
 
 	# doctype
 	if is_doctype:

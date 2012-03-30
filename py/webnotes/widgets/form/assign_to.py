@@ -27,14 +27,14 @@ import webnotes
 @webnotes.whitelist()
 def get():
 	"""get assigned to"""
-	return webnotes.conn.sql("""select owner from `tabToDo Item`
+	return webnotes.conn.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		order by modified desc limit 5""", webnotes.form_dict, as_dict=1)
 		
 @webnotes.whitelist()
 def add():
 	"""add in someone's to do list"""
-	if webnotes.conn.sql("""select owner from `tabToDo Item`
+	if webnotes.conn.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		and owner=%(assign_to)s""", webnotes.form_dict):
 		webnotes.msgprint("Already in todo")
@@ -43,7 +43,7 @@ def add():
 		from webnotes.model.doc import Document
 		from webnotes.utils import nowdate
 		
-		d = Document("ToDo Item")
+		d = Document("ToDo")
 		d.owner = webnotes.form_dict['assign_to']
 		d.reference_type = webnotes.form_dict['doctype']
 		d.reference_name = webnotes.form_dict['name']
@@ -72,11 +72,11 @@ def add():
 def remove():
 	"""remove from todo"""
 	res = webnotes.conn.sql("""\
-		select assigned_by, owner, reference_type, reference_name from `tabToDo Item`
+		select assigned_by, owner, reference_type, reference_name from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		and owner=%(assign_to)s""", webnotes.form_dict)
 
-	webnotes.conn.sql("""delete from `tabToDo Item`
+	webnotes.conn.sql("""delete from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		and owner=%(assign_to)s""", webnotes.form_dict)
 

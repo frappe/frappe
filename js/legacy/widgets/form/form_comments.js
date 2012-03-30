@@ -137,11 +137,11 @@ CommentList.prototype.make_lst = function() {
 			ifnull(t2.last_name,'')),''), '', \
 			DAYOFMONTH(t1.creation), MONTHNAME(t1.creation), YEAR(t1.creation), \
 			hour(t1.creation), minute(t1.creation), second(t1.creation) \
-			from `tabComment Widget Record` t1, `tabProfile` t2 \
+			from `tabComment` t1, `tabProfile` t2 \
 			where t1.comment_doctype = '%(dt)s' and t1.comment_docname = '%(dn)s' \
 			and t1.comment_by = t2.name order by t1.creation desc",{dt:me.dt, dn:me.dn});
 			
-      this.query_max = repl("select count(name) from `tabComment Widget Record` where \
+      this.query_max = repl("select count(name) from `tabComment` where \
 		comment_doctype='%(dt)s' and comment_docname='%(dn)s'",{'dt': me.dt, 'dn': me.dn});
     }
 

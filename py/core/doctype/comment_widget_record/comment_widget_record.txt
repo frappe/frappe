@@ -1,4 +1,4 @@
-# DocType, Comment Widget Record
+# DocType, Comment
 [
 
 	# These values are common in all dictionaries
@@ -31,7 +31,7 @@
 		'doctype': u'DocField',
 		'name': '__common__',
 		'no_copy': 0,
-		'parent': u'Comment Widget Record',
+		'parent': u'Comment',
 		'parentfield': u'fields',
 		'parenttype': u'DocType',
 		'permlevel': 0,
@@ -43,7 +43,7 @@
 		'create': 1,
 		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': u'Comment Widget Record',
+		'parent': u'Comment',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
 		'permlevel': 0,
@@ -52,10 +52,10 @@
 		'write': 1
 	},
 
-	# DocType, Comment Widget Record
+	# DocType, Comment
 	{
 		'doctype': 'DocType',
-		'name': u'Comment Widget Record'
+		'name': u'Comment'
 	},
 
 	# DocPerm

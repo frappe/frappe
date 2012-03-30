@@ -175,7 +175,7 @@ class DocType:
 				new.label = 'Amended From'
 				new.fieldtype = 'Link'
 				new.fieldname = 'amended_from'
-				new.options = "Receivable Voucher"
+				new.options = "Sales Invoice"
 				new.permlevel = 1
 				new.print_hide = 1
 				new.no_copy = 1

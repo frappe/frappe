@@ -1,4 +1,4 @@
-# DocType, DocLayer
+# DocType, Customize Form
 [
 
 	# These values are common in all dictionaries
@@ -30,7 +30,7 @@
 	{
 		'doctype': u'DocField',
 		'name': '__common__',
-		'parent': u'DocLayer',
+		'parent': u'Customize Form',
 		'parentfield': u'fields',
 		'parenttype': u'DocType'
 	},
@@ -39,17 +39,17 @@
 	{
 		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': u'DocLayer',
+		'parent': u'Customize Form',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
 		'read': 1,
 		'role': u'System Manager'
 	},
 
-	# DocType, DocLayer
+	# DocType, Customize Form
 	{
 		'doctype': 'DocType',
-		'name': u'DocLayer'
+		'name': u'Customize Form'
 	},
 
 	# DocPerm
@@ -248,7 +248,7 @@
 		'fieldtype': u'Table',
 		'label': u'Fields',
 		'no_copy': 0,
-		'options': u'DocLayerField',
+		'options': u'Customize Form Field',
 		'permlevel': 1,
 		'search_index': 0
 	}

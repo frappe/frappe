@@ -21,7 +21,7 @@
 # 
 
 """
-	DocLayer is a Single DocType used to mask the Property Setter
+	Customize Form is a Single DocType used to mask the Property Setter
 	Thus providing a better UI from user perspective
 """
 import webnotes
@@ -70,7 +70,7 @@ class DocType:
 
 	def get(self):
 		"""
-			Gets DocFields applied with Property Setter customizations via DocLayerField
+			Gets DocFields applied with Property Setter customizations via Customize Form Field
 		"""
 		self.clear()
 
@@ -79,7 +79,7 @@ class DocType:
 
 			for d in self.get_ref_doclist():
 				if d.doctype=='DocField':
-					new = addchild(self.doc, 'fields', 'DocLayerField', 1, self.doclist)
+					new = addchild(self.doc, 'fields', 'Customize Form Field', 1, self.doclist)
 					self.set(
 						{
 							'list': self.docfield_properties,
@@ -140,7 +140,7 @@ class DocType:
 
 	def post(self):
 		"""
-			Save diff between DocLayer DocList and DocType DocList as property setter entries
+			Save diff between Customize Form DocList and DocType DocList as property setter entries
 		"""
 		if self.doc.doc_type:
 			from webnotes.model import doc
@@ -178,7 +178,7 @@ class DocType:
 						if d: diff_list.append(d)
 					break
 				
-				elif ref_d.doctype == 'DocType' and new_d.doctype == 'DocLayer':
+				elif ref_d.doctype == 'DocType' and new_d.doctype == 'Customize Form':
 					for prop in self.doctype_properties:
 						d = self.prepare_to_set(prop, new_d, ref_d, dt_dl)
 						if d: diff_list.append(d)

@@ -1,4 +1,4 @@
-# DocType, DocLayerField
+# DocType, Customize Form Field
 [
 
 	# These values are common in all dictionaries
@@ -36,7 +36,7 @@
 		'doctype': u'DocField',
 		'hidden': 0,
 		'name': '__common__',
-		'parent': u'DocLayerField',
+		'parent': u'Customize Form Field',
 		'parentfield': u'fields',
 		'parenttype': u'DocType',
 		'print_hide': 0
@@ -46,16 +46,16 @@
 	{
 		'doctype': u'DocPerm',
 		'name': '__common__',
-		'parent': u'DocLayerField',
+		'parent': u'Customize Form Field',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
 		'read': 1
 	},
 
-	# DocType, DocLayerField
+	# DocType, Customize Form Field
 	{
 		'doctype': 'DocType',
-		'name': u'DocLayerField'
+		'name': u'Customize Form Field'
 	},
 
 	# DocPerm
