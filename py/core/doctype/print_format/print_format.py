@@ -33,9 +33,12 @@ class DocType:
 
 	def on_update(self):
 		from webnotes.utils.cache import CacheItem
-		CacheItem(self.old_doc_type).clear()
-		CacheItem(self.doc.doc_type).clear()
+		if hasattr(self, 'old_doc_type') and self.old_doc_type:
+			CacheItem(self.old_doc_type).clear()
+		if self.doc.doc_type:
+			CacheItem(self.doc.doc_type).clear()
 
 	def on_trash(self):
-		from webnotes.utils.cache import CacheItem
-		CacheItem(self.doc.doc_type).clear()
+		if self.doc.doc_type:
+			from webnotes.utils.cache import CacheItem
+			CacheItem(self.doc.doc_type).clear()
