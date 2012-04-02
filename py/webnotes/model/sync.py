@@ -17,7 +17,6 @@ def sync_core_doctypes():
 	for path, folders, files in os.walk(core_path):
 		for f in files:
 			if f.endswith(".txt"):
-				print (module_name, f[:-4])
 				sync(module_name, f[:-4])
 
 def sync_modules():
@@ -32,7 +31,7 @@ def sync_modules():
 				path_tuple = rel_path.split(os.sep)
 				if (len(path_tuple)==3 and path_tuple[0] in modules_list and
 						path_tuple[1] == 'doctype'):
-					print (path_tuple[0], f[:-4])
+					#print (path_tuple[0], f[:-4])
 					sync(path_tuple[0], f[:-4])
 
 # docname in small letters with underscores
@@ -40,17 +39,23 @@ def sync(module_name, docname):
 	with open(get_file_path(module_name, docname), 'r') as f:
 		from webnotes.model.utils import peval_doclist
 		doclist = peval_doclist(f.read())
+		modified = doclist[0]['modified']
 		if not doclist:
 			raise Exception('DocList could not be evaluated')
-
+		if modified == str(webnotes.conn.get_value('DocType', doclist[0].get('name'), 'modified')):
+			return
 		webnotes.conn.begin()
 		
 		delete_doctype_docfields(doclist)
 		save_doctype_docfields(doclist)
 		save_perms_if_none_exist(doclist)
+		webnotes.conn.sql('UPDATE `tabDocType` SET modified=%s WHERE name=%s',
+				(modified, doclist[0]['name']))
 		
 		webnotes.conn.commit()
+		print module_name, '|', docname
 		
+		#raise Exception
 		return doclist[0].get('name')
 		
 def get_file_path(module_name, docname):
