@@ -51,6 +51,11 @@ def reload_doc(args):
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	"""run a single patch"""
+	import webnotes.defs
+	
+	# don't write txt files
+	webnotes.defs.developer_mode = 0
+	
 	if force or method or not executed(patchmodule):
 		return execute_patch(patchmodule, method, methodargs)
 	else:
