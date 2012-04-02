@@ -151,15 +151,16 @@ class _DocType:
 		if not (doctype_property_dict and doctype_property_dict.get(cstr(d.fieldname))): return
 		
 		from webnotes.utils import cint
-		prop_updates = dict([
-			prop.get('property_type')=='Check'
-				and [prop.get('property'), cint(prop.get('value'))]
-				or [prop.get('property'), prop.get('value')]
-			for prop in doctype_property_dict.get(cstr(d.fieldname))
-				if prop.get('property')!='previous_field'
-		])
+		prop_updates = []
+		for prop in doctype_property_dict.get(cstr(d.fieldname)):
+			if prop.get('property')=='previous_field': continue
+			if prop.get('property_type') == 'Check' or \
+					prop.get('value') in ['0', '1']:
+				prop_updates.append([prop.get('property'), cint(prop.get('value'))])
+			else:
+				prop_updates.append([prop.get('property'), prop.get('value')])
 
-		prop_updates and d.fields.update(prop_updates)
+		prop_updates and d.fields.update(dict(prop_updates))
 
 	def apply_previous_field_properties(self, doclist, property_dict,
 			doc_type_list):
