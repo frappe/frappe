@@ -25,6 +25,7 @@
   font-weight: 400;
   src: local('Open Sans'), local('OpenSans'), url('../lib/css/fonts/opensans.woff') format('woff');
 }
+
 @font-face {
   font-family: 'Lato';
   font-style: normal;
@@ -32,3 +33,9 @@
   src: local('Lato Regular'), local('Lato-Regular'), url('../lib/css/fonts/lato.woff') format('woff');
 }
 
+@font-face {
+  font-family: 'Cabin';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Cabin Regular'), local('Cabin-Regular'), url('../lib/css/fonts/cabin.woff') format('woff');
+}

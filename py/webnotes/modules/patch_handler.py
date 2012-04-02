@@ -41,7 +41,8 @@ def run_all(patch_list=None):
 	for patch in (patch_list or patches.patch_list.patch_list):
 		pn = patch['patch_module'] + '.' + patch['patch_file']
 		if pn not in executed:
-			run_single(patchmodule = pn)
+			if not run_single(patchmodule = pn):
+				return log(pn + ': failed: STOPPED')
 
 def reload_doc(args):
 	"""relaod a doc args {module, doctype, docname}"""	
@@ -51,10 +52,13 @@ def reload_doc(args):
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	"""run a single patch"""
 	if force or method or not executed(patchmodule):
-		execute_patch(patchmodule, method, methodargs)
+		return execute_patch(patchmodule, method, methodargs)
+	else:
+		return True
 		
 def execute_patch(patchmodule, method=None, methodargs=None):
 	"""execute the patch"""
+	success = False
 	block_user(True)
 	webnotes.conn.begin()
 	log('Executing %s in %s' % (patchmodule or str(methodargs), webnotes.conn.cur_db_name))
@@ -67,7 +71,8 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		elif method:
 			method(**methodargs)
 			
-		webnotes.conn.commit()		
+		webnotes.conn.commit()
+		success = True
 	except Exception, e:
 		webnotes.conn.rollback()
 		global has_errors
@@ -79,7 +84,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 			add_to_patch_log(tb)
 
 	block_user(False)
-
+	return success
 
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
