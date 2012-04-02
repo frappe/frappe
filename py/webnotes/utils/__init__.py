@@ -438,7 +438,7 @@ def in_words(integer):
 	Returns string in words for the given integer.
 	"""
 
-	in_million = webnotes.conn.get_value('Control Panel',None,'currency_format')=='Millions' and 1 or 0
+	in_million = webnotes.conn.get_default('currency_format')=='Millions' and 1 or 0
 	
 
 	n=int(integer)
