@@ -114,7 +114,7 @@ class Database:
 
 		if self.in_transaction and query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if self.transaction_writes > 5000:
+			if self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					webnotes.conn.commit()
 					webnotes.conn.begin()
