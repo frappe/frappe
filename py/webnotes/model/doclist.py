@@ -198,7 +198,6 @@ class DocList:
 		if hasattr(self.obj, 'custom_' + method):
 			getattr(self.obj, 'custom_' + method)()
 
-		from webnotes.model.events import trigger
 		trigger(method, self.doc)
 
 	def save_main(self):
@@ -312,6 +311,19 @@ def clone(source_doclist):
 	doclistobj.save()
 	return doclistobj
 
+
+def trigger(method, doc):
+	"""trigger doctype events"""
+	try:
+		import startup.event_handlers
+	except ImportError:
+		return
+		
+	if hasattr(startup.event_handlers, method):
+		getattr(startup.event_handlers, method)(doc)
+		
+	if hasattr(startup.event_handlers, 'doclist_all'):
+		startup.event_handlers.doclist_all(doc, method)
 
 # for bc
 def getlist(doclist, parentfield):
