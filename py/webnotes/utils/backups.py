@@ -121,7 +121,7 @@ class BackupGenerator:
 		datetime_str = datetime.fromtimestamp(os.stat(self.db_file_name.replace('\$', '$')).st_ctime)
 		
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
-		sendmail(recipients=recipient_list, msg=msg, subject=subject)
+		sendmail(recipients=recipient_list, msg=msg, subject=subject, from_defs=1)
 		return recipient_list
 		
 		
