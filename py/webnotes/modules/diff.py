@@ -30,6 +30,7 @@ dt_map = {
 	'DocType': {
 		'DocField': ['fieldname', 'label']
 	},
+	'Search Criteria': {},
 	'Page': {}
 }
 

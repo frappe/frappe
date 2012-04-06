@@ -4,11 +4,12 @@
 """
 import webnotes
 
-def sync_all():
-	sync_core_doctypes()
-	sync_modules()
+def sync_all(force=0):
+	sync_core_doctypes(force)
+	sync_modules(force)
+	webnotes.conn.sql("DELETE FROM __CacheItem")
 
-def sync_core_doctypes():
+def sync_core_doctypes(force=0):
 	import os
 	import core
 	module_name = 'core'
@@ -17,9 +18,9 @@ def sync_core_doctypes():
 	for path, folders, files in os.walk(core_path):
 		for f in files:
 			if f.endswith(".txt"):
-				sync(module_name, f[:-4])
+				sync(module_name, f[:-4], force)
 
-def sync_modules():
+def sync_modules(force=0):
 	import os
 	import webnotes.defs
 	for path, folders, files in os.walk(webnotes.defs.modules_path):
@@ -32,17 +33,17 @@ def sync_modules():
 				if (len(path_tuple)==3 and path_tuple[0] in modules_list and
 						path_tuple[1] == 'doctype'):
 					#print (path_tuple[0], f[:-4])
-					sync(path_tuple[0], f[:-4])
+					sync(path_tuple[0], f[:-4], force)
 
 # docname in small letters with underscores
-def sync(module_name, docname):
+def sync(module_name, docname, force=0):
 	with open(get_file_path(module_name, docname), 'r') as f:
 		from webnotes.model.utils import peval_doclist
 		doclist = peval_doclist(f.read())
 		modified = doclist[0]['modified']
 		if not doclist:
 			raise Exception('DocList could not be evaluated')
-		if modified == str(webnotes.conn.get_value('DocType', doclist[0].get('name'), 'modified')):
+		if modified == str(webnotes.conn.get_value('DocType', doclist[0].get('name'), 'modified')) and not force:
 			return
 		webnotes.conn.begin()
 		

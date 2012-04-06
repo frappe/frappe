@@ -100,15 +100,15 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 	if action=='CLOSE':
 		if owner == webnotes.session.get('user'):
 			arg = {
-				'uid': assigned_by,
-				'comment': "The task %s, that you assigned to %s, has been \
+				'contact': assigned_by,
+				'txt': "The task %s, that you assigned to %s, has been \
 					closed." % (assignment,
 						user_info.get(owner, {}).get('fullname'))
 			}
 		else:
 			arg = {
-				'uid': assigned_by,
-				'comment': "The task %s, that you assigned to %s, \
+				'contact': assigned_by,
+				'txt': "The task %s, that you assigned to %s, \
 					has been closed	by %s." % (assignment,
 					user_info.get(owner, {}).get('fullname'),
 					user_info.get(webnotes.session.get('user'),
@@ -116,11 +116,12 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 			}
 	else:
 		arg = {
-			'uid': owner,
-			'comment': "A new task, %s, has been assigned to you by %s." \
+			'contact': owner,
+			'txt': "A new task, %s, has been assigned to you by %s." \
 				% (assignment,
 				user_info.get(webnotes.session.get('user'), {}).get('fullname')),
 			'notify': notify
 		}
-	from home.page.my_company import my_company
-	my_company.post_comment(arg)
+	from utilities.page.messages import messages
+	import json
+	messages.post(json.dumps(arg))
