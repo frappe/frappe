@@ -95,6 +95,12 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	if hasattr(obj,'on_trash'):
 		obj.on_trash()
 	
+	if doctype=='DocType':
+		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", name)
+		webnotes.conn.sql("delete from `tabCustom Script` where dt = %s", name)
+		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", name)
+		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", name)
+
 	# check if links exist
 	if not force:
 		check_if_doc_is_linked(doctype, name)
@@ -166,11 +172,11 @@ def rename(dt, old, new, is_doctype = 0):
 	select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new))
 	update_link_fld_values(select_flds, old, new)
 	
-	sql("update `tabDocField` set options = replace(options, '%s', '%s') where options like '%%%s%%'" % (old, new, old))
+	sql("update `tabDocField` set options = replace(options, '%s', '%s') where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new, old, new))
 
 	# doctype
 	if is_doctype:
-		if not is_single_dt(old):
+		if not is_single_dt(new):
 			sql("RENAME TABLE `tab%s` TO `tab%s`" % (old, new))
 		else:
 			sql("update tabSingles set doctype = %s where doctype = %s", (new, old))
@@ -190,7 +196,7 @@ def update_link_fld_values(flds, old, new):
 			webnotes.conn.sql("update `tab%s` set `%s`='%s' where `%s`='%s'" % (l[0], l[1], new, l[1], old))
 
 def is_single_dt(dt):
-	is_single = webnotes.conn.sql("select issingle from tabDocType where name = '%s'" % dt)
+	is_single = webnotes.conn.sql("select issingle from tabDocType where name = %s", dt)
 	is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
 	return is_single
 
