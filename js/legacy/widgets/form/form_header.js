@@ -27,7 +27,7 @@ _f.FrmHeader = function(parent, frm) {
 
 	this.page_head = new PageHeader(this.wrapper);
 	wn.views.breadcrumbs(this.page_head.breadcrumbs, frm.meta.module, frm.meta.name);
-		
+	
 	// doctype
 	this.dt_area = $a(this.page_head.main_head, 'h1', '', {marginRight:'8px', display:'inline'})
 	

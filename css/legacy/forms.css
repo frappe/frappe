@@ -1,5 +1,19 @@
 /* FORMS */
 
+.breadcrumbs-area {
+	margin-bottom: 8px;
+}
+
+.breadcrumbs {
+	background-color: #e8e8e8;
+	padding: 3px;
+	border-radius: 3px;
+}
+
+.breadcrumbs a {
+	color: #000000;
+}
+
 div.form-section-head {
 	margin: 11px 0px 3px 0px;
 	border-top: 1px solid #ccc;

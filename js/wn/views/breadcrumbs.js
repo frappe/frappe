@@ -1,7 +1,7 @@
 wn.provide('wn.views');
 wn.views.breadcrumbs = function(parent, module, doctype, name) {
 	var $bspan = $(repl('<span class="breadcrumbs">\
-		<a href="#%(home_page)s"><i class="icon-home"></i></a></span>', {home_page: wn.boot.home_page}));
+		<a href="#%(home_page)s">Home</a></span>', {home_page: wn.boot.home_page}));
 	if(module) {
 		$bspan.append(repl(' / <a href="#!%(module_small)s-home">%(module)s Home</a>',
 			{module: module, module_small: module.toLowerCase() }))
