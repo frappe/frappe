@@ -100,7 +100,7 @@ _f.FrmHeader.prototype.hide_toolbar = function() { $dh(this.wrapper); }
 _f.FrmHeader.prototype.refresh_toolbar = function() {
 	var m = cur_frm.meta;
 	
-	if(m.hide_heading || cur_frm.in_dialog) { 
+	if(m.hide_heading || cur_frm.in_dialog) {
 		// no heading... poof
 		this.hide(); 
 	} else {
