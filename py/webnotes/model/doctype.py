@@ -385,20 +385,34 @@ def get_field_property(dt, fieldname, property):
 	else:
 		return field[0][1]
 
-# Deprecate after docbrowser rewrite,
-# used in tags
-def get_property(dt, property):
+def get_property(dt, property, fn=None):
 	"""
 		get a doctype property, override it from property setter if specified
 	"""
-	prop = webnotes.conn.sql("""
-		select value 
-		from `tabProperty Setter` 
-		where doc_type=%s and field_name=%s and property=%s""", (dt, dt, property))
-	if prop: 
-		return prop[0][0]
+	if fn:
+		prop = webnotes.conn.sql("""
+			select value 
+			from `tabProperty Setter` 
+			where doc_type=%s and field_name=%s
+			and property=%s""", (dt, fn, property))
+		if prop: 
+			return prop[0][0]
+		else:
+			val = webnotes.conn.sql("""\
+				SELECT %s FROM `tabDocField`
+				WHERE parent = %s AND fieldname = %s""" % \
+				(property, '%s', '%s'), (dt, fn))
+			if val and val[0][0]: return val[0][0] or ''
 	else:
-		return webnotes.conn.get_value('DocType', dt, property)
+		prop = webnotes.conn.sql("""
+			select value 
+			from `tabProperty Setter` 
+			where doc_type=%s and doctype_or_field='DocType'
+			and property=%s""", (dt, property))
+		if prop: 
+			return prop[0][0]
+		else:
+			return webnotes.conn.get_value('DocType', dt, property)
 
 # Test Cases
 import unittest
