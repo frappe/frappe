@@ -59,6 +59,7 @@ function startup() {
 		var t = to_open();
 		if(t) {
 			window.location.hash = t;
+			set_favicon();
 		} else if(home_page) {
 			loadpage(home_page);
 		}
@@ -148,4 +149,15 @@ window.onresize = function() {
 get_window_height = function() {
 	var ht = window.innerHeight ? window.innerHeight : document.documentElement.offsetHeight ? document.documentElement.offsetHeight : document.body.offsetHeight;
 	return ht;
+}
+
+// favicon disappears when window.location.hash value is changed in firefox
+// This is used to mitigate this favicon bug in firefox
+function set_favicon() {
+	var link = $('link[type="image/x-icon"]').remove().attr("href");
+	var favicon ='\
+		<link rel="shortcut icon" href="' + link + '" type="image/x-icon"> \
+		<link rel="icon" href="' + link + '" type="image/x-icon">'
+
+	$(favicon).appendTo('head');
 }

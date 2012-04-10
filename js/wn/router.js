@@ -35,6 +35,9 @@ wn.get_route = function(route) {
 wn.set_route = function() {
 	route = $.map(arguments, function(a) { return encodeURIComponent(a) }).join('/');
 	window.location.hash = route;
+	
+	// Set favicon (app.js)
+	set_favicon();
 }
 
 wn._cur_route = null;
