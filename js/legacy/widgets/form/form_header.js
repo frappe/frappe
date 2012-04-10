@@ -29,7 +29,7 @@ _f.FrmHeader = function(parent, frm) {
 	wn.views.breadcrumbs(this.page_head.breadcrumbs, frm.meta.module, frm.meta.name);
 	
 	// doctype
-	this.dt_area = $a(this.page_head.main_head, 'h1', '', {marginRight:'8px', display:'inline'})
+	this.dt_area = $a(this.page_head.main_head, 'span', '', {marginRight:'8px', display:'inline'})
 	
 	// name
 	var div = $a(null, 'div', '', {marginBottom:'4px'}); 
