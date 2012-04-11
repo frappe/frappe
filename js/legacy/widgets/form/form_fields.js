@@ -104,8 +104,8 @@ _f.SectionBreak.prototype.make_body = function() {
 	// expand section
 	this.section_expand = function(no_animation) {
 		$(me.row.main_head).find('.head')
-			.html('<h3><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
-				+ me.df.label + '</h3>');
+			.html('<h2><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
+				+ me.df.label + '</h2>');
 		if(no_animation)
 			$(me.row.main_body).toggle(true);
 		else
