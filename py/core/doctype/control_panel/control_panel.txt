@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:35',
+		'creation': '2012-04-11 13:16:57',
 		'docstatus': 0,
-		'modified': '2012-03-27 19:23:07',
+		'modified': '2012-04-11 17:15:53',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -32,7 +32,7 @@
 		'server_code_error': u' ',
 		'show_in_menu': 1,
 		'smallicon': u'controller.png',
-		'version': 26
+		'version': 27
 	},
 
 	# These values are common for all DocField
@@ -118,15 +118,6 @@
 		'fieldname': u'session_expiry',
 		'fieldtype': u'Data',
 		'label': u'Session Expires in (time)',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'sync_with_gateway',
-		'fieldtype': u'Check',
-		'label': u'Sync with Gateway',
 		'permlevel': 0
 	},
 
