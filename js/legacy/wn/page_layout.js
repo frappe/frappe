@@ -35,10 +35,10 @@
 wn.PageLayout = function(args) {
 	$.extend(this, args)
 	this.wrapper 		= $a(this.parent, 'div', 'layout-wrapper layout-wrapper-background');
+	this.head 			= $a(this.wrapper, 'div');	
 	this.main 			= $a(this.wrapper, 'div', 'layout-main-section');
 	this.sidebar_area 	= $a(this.wrapper, 'div', 'layout-side-section');
 	$a(this.wrapper, 'div', '', {clear:'both'});
-	this.head 			= $a(this.main, 'div');	
 	this.toolbar_area 	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
 	this.footer 		= $a(this.main, 'div');
