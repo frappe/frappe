@@ -82,21 +82,11 @@ _f.SectionBreak.prototype.make_body = function() {
 	if(this.df.label) {
 		if(!this.df.description) 
 			this.df.description = '';
-		$(this.row.main_head).html(repl('<div class="form-section-head" style="cursor: pointer">\
-				<div class="head">%(label)s</h3>\
-				<div class="help small">%(description)s</div>\
+		$(this.row.main_head).html(repl('<div class="form-section-head">\
+				<h3 class="head">%(label)s</h3>\
+				<div class="help small" \
+					style="margin-top: 4px; margin-bottom: 8px;">%(description)s</div>\
 			</div>', this.df));
-			
-		this.$expand = $(this.row.main_head).find('.head').click(function() {
-			if($(me.row.main_head).find('h3').length) {
-				me.section_collapse();				
-			} else {
-				me.section_expand();
-			}
-			return false;
-		});
-		
-		this.collapsible = true;
 	} else {
 		// simple
 		$(this.wrapper).html('<div class="form-section-head"></div>');
@@ -163,11 +153,12 @@ _f.SectionBreak.prototype.refresh = function(from_form) {
 		if(this.row)this.row.hide();
 	} else {
 		if(this.collapsible) {
-			if(this.df.reqd || this.has_data()) {
-				this.section_expand(from_form);
-			} else {
-				this.section_collapse();
-			}	
+			//this.section_expand(from_form);
+			//if(this.df.reqd || this.has_data()) {
+			//	this.section_expand(from_form);
+			//} else {
+			//	this.section_collapse();
+			//}	
 		}
 	}
 }

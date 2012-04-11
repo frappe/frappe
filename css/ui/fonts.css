@@ -39,3 +39,11 @@
   font-weight: 400;
   src: local('Cabin Regular'), local('Cabin-Regular'), url('../lib/css/fonts/cabin.woff') format('woff');
 }
+
+@font-face {
+  font-family: 'Pacifico';
+  font-style: normal;
+  font-weight: normal;
+  src: local('Pacifico Regular'), local('Pacifico-Regular'), url('../lib/css/fonts/pacifico.woff') format('woff');
+}
+

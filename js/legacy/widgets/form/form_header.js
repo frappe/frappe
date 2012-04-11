@@ -20,6 +20,100 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+// features
+// --------
+// toolbar - standard and custom
+// label - saved, submitted etc
+// breadcrumbs
+// save / submit button toggle based on "saved" or not
+// highlight and fade name based on refresh
+
+_f.FrmHeader = Class.extend({
+	init: function(parent, frm) {
+		this.appframe = new wn.views.AppFrame(parent)
+		this.appframe.$titlebar.append('<span class="label-area"></span>\
+				<span class="breadcrumb-area"></span>');
+		this.$w = this.appframe.$w;
+	},
+	refresh: function() {
+		// refresh breadcrumbs
+		wn.views.breadcrumbs($(this.$w.find('.breadcrumb-area')), 
+			cur_frm.meta.module, cur_frm.meta.name, cur_frm.docname);
+			
+		this.refresh_labels();
+		this.refresh_toolbar();
+		
+	},
+	refresh_labels: function() {
+		var labinfo = {
+			0: ['Draft', ''],
+			1: ['Submitted', 'label-info'],
+			2: ['Cancelled', 'label-important']
+		}[cint(cur_frm.doc.docstatus)];
+		
+		if(cur_frm.doc.__unsaved) {
+			labinfo[1] = 'label-warning'
+		}
+		
+		this.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
+			%(lab_status)s</span>', {
+				lab_status: labinfo[0],
+				lab_class: labinfo[1]
+			}));		
+	},
+	refresh_toolbar: function() {
+		// clear
+		this.appframe.clear_buttons();
+		var p = cur_frm.get_doc_perms();
+
+		// Edit
+		if(cur_frm.meta.read_only_onload && !cur_frm.doc.__islocal) {
+			if(!cur_frm.editable)
+				this.appframe.add_button('Edit', function() { 
+					cur_frm.edit_doc();
+				},'icon-pencil');
+			else
+				this.appframe.add_button('Print View', function() { 
+					cur_frm.is_editable[cur_frm.docname] = 0;				
+					cur_frm.refresh(); }, 'icon-print' );	
+		}
+
+		var docstatus = cint(cur_frm.doc.docstatus);
+		// Save
+		if(docstatus==0 && p[WRITE]) {
+			this.appframe.add_button('Save', function() { cur_frm.save('Save');}, '');
+			this.appframe.buttons['Save'].addClass('btn-info');			
+		}
+		// Submit
+		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
+			this.appframe.add_button('Submit', function() { cur_frm.savesubmit();}, 'icon-lock');
+
+		// Update after sumit
+		if(docstatus==1 && p[SUBMIT]) {
+			this.appframe.add_button('Update', function() { cur_frm.savesubmit();}, '');
+			if(!cur_frm.doc.__unsaved) this.appframe.buttons['Update'].toggle(false);
+		}
+
+		// Cancel
+		if(docstatus==1  && p[CANCEL])
+			this.appframe.add_button('Cancel', function() { cur_frm.savecancel() }, 'icon-remove');
+
+		// Amend
+		if(docstatus==2  && p[AMEND])
+			this.appframe.add_button('Amend', function() { cur_frm.amend_doc() }, 'icon-pencil');
+
+	},
+	show: function() {
+	},
+	hide: function() {
+		
+	},
+	hide_close: function() {
+		this.$w.find('.close').toggle(false);
+	}
+})
+
+/*
 _f.FrmHeader = function(parent, frm) {
 	var me = this;
 	this.wrapper = $a(parent, 'div');
@@ -229,3 +323,5 @@ _f.FrmHeader.prototype.refresh_labels = function(f) {
 	setTimeout('$(cur_frm.frm_head.dn_area).addClass("background-fade-in")\
 	.css("background-color", "white")', 1500)
 }
+
+*/
