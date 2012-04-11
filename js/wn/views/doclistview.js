@@ -54,9 +54,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	make_page: function() {
 		var me = this;
 		this.$page.html(repl('<div class="layout-wrapper layout-wrapper-background">\
-			<div class="layout-main-section">\
+			<div class="page-app-bar">\
+				<span class="breadcrumbs-area"></span>\
 				<a class="close" onclick="window.history.back();">&times;</a>\
-				<div class="breadcrumbs-area"></div>\
+			</div>\
+			<div class="layout-main-section">\
 				<h1>%(label)s</h1>\
 				<hr>\
 				<div class="wnlist-area"><div class="help">Loading...</div></div>\

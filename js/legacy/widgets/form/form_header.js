@@ -32,12 +32,12 @@ _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
 		this.buttons = {};
 		this.$w = $('<div class="form-header">\
-			<div class="form-header-main">\
+			<div class="page-app-bar">\
 				<span class="label-area"></span>\
 				<span class="breadcrumb-area"></span>\
 				<span class="close">&times;</span>\
 			</div>\
-			<div class="form-header-toolbar">\
+			<div class="page-app-toolbar">\
 			</div>\
 		</div>').appendTo(parent);
 		this.$w.find('.close').click(function() {
@@ -72,7 +72,7 @@ _f.FrmHeader = Class.extend({
 	},
 	refresh_toolbar: function() {
 		// clear
-		this.$w.find('.form-header-toolbar').empty();
+		this.$w.find('.page-app-toolbar').empty();
 		var p = cur_frm.get_doc_perms();
 
 		// Edit
@@ -91,7 +91,7 @@ _f.FrmHeader = Class.extend({
 		// Save
 		if(docstatus==0 && p[WRITE]) {
 			this.add_button('Save', function() { cur_frm.save('Save');}, '');
-			this.buttons['Save'].addClass('btn-primary');			
+			this.buttons['Save'].addClass('btn-info');			
 		}
 		// Submit
 		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
@@ -120,7 +120,7 @@ _f.FrmHeader = Class.extend({
 		this.buttons[label] = $(repl('<button class="btn btn-small">\
 			%(icon)s %(label)s</button>', args))
 			.click(click)
-			.appendTo(this.$w.find('.form-header-toolbar'));
+			.appendTo(this.$w.find('.page-app-toolbar'));
 	},
 	show: function() {
 	},
