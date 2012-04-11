@@ -167,11 +167,9 @@ _f.Frm.prototype.setup_std_layout = function() {
 	
 		
 	// header - no headers for tables and guests
-	if(!(this.meta.istable || user=='Guest')) this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
-	
-	// hide close btn for dialog rendering
-	if(this.frm_head && this.meta.in_dialog) $dh(this.frm_head.page_head.close_btn);
-	
+	if(!(this.meta.istable || user=='Guest' || this.meta.in_dialog)) 
+		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
+		
 	// bg colour
 	if(this.meta.colour) 
 		this.layout.wrapper.style.backgroundColor = '#'+this.meta.colour.split(':')[1];
@@ -259,14 +257,6 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	delete this.opendocs[old];
 	this.opendocs[name] = true;
 }
-
-// refresh the heading labels
-// ======================================================================================
-
-_f.Frm.prototype.set_heading = function() {
-	if(!this.meta.istable && this.frm_head) this.frm_head.refresh_labels(this);
-}
-
 
 // SETUP
 // ======================================================================================
@@ -362,7 +352,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 
 // --------------------------------------------------------------------------------------
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	this.frm_head.page_head.add_button(label, fn, 1);
+	this.frm_head.add_button(label, fn, icon);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	//
@@ -470,15 +460,16 @@ _f.Frm.prototype.refresh_header = function() {
 	if(!this.meta.in_dialog) {
 		set_title(this.meta.issingle ? this.doctype : this.docname);
 	}	
+	
+	// form title
+	this.page_layout.main_head.innerHTML = '<h2>'+this.docname+'</h2>';
 
 	// show / hide buttons
-	if(this.frm_head)this.frm_head.refresh_toolbar();
+	if(this.frm_head)this.frm_head.refresh();
 	
 	// add to recent
-	if(wn.ui.toolbar.recent) wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);
-	
-	// refresh_heading - status etc.
-	this.set_heading();
+	if(wn.ui.toolbar.recent) 
+		wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);	
 }
 
 // --------------------------------------------------------------------------------------
@@ -1111,18 +1102,19 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed) {
 		d[fn] = v;
 		d.__unsaved = 1;
-		var frm = wn.views.formview[d.doctype];
+		var frm = wn.views.formview[d.doctype].frm;
 		try {
 			if(d.parent && d.parenttype) {
 				locals[d.parenttype][d.parent].__unsaved = 1;
-				frm = wn.views.formview[d.parenttype];
+				frm = wn.views.formview[d.parenttype].frm;
 			}
 		} catch(e) {
 			if(d.parent && d.parenttype)
 			errprint('Setting __unsaved error:'+d.name+','+d.parent+','+d.parenttype);
 		}
-		if(frm && frm==cur_frm) {
-			frm.set_heading();
+		
+		if(frm && frm==cur_frm && frm.frm_head) {
+			frm.frm_head.refresh_labels();
 		}
 	}
 }

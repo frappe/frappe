@@ -119,24 +119,6 @@ _r.DataTable.prototype.make_toolbar = function(parent) {
   var ht = make_table(this.hbar,1,3,'100%',['40%','40%','20%'],{verticalAlign:'middle'});
   var div = $a($td(ht,0,0), 'div');
   
-	var make_btn = function(label,icon,onclick,bold) {
-		var btn = $btn(div,label,onclick);
-		if(bold)$y(btn,{fontWeight: 'bold'});
-	}
-	
-	
-	// refresh btn
-	make_btn('Refresh','ui-icon-refresh',function() { me.start_rec = 1; me.run();},1); 
-	
-	// export
-	make_btn('Export','ui-icon-circle-arrow-e',function() {me.do_export();}); 
-
-	// print
-	make_btn('Print','ui-icon-print',function() {me.do_print();}); 
-
-	// print
-	make_btn('Calc','ui-icon-calculator',function() {me.do_calc();}); 
-
   // sort select
   var t = make_table($td(ht,0,1),1,6,null,[null,null,null,'20px',null,null],{verticalAlign:'middle'});
 
