@@ -1,5 +1,12 @@
 /* FORMS */
 
+div.form-title {
+	/*background-color: #e0eeff;*/
+	padding: 5px 11px 15px 11px;
+	margin: -15px -15px 0px -15px;
+	border-bottom: 1px solid #eee;
+}
+
 div.form-section-head {
 	margin: 11px -15px 3px -15px;
 	border-top: 1px solid #ccc;
@@ -9,7 +16,7 @@ div.form-section-head {
 div.form-layout-row:first-child .form-section-head {
 	border-top: 0px solid #ccc !important;
 	margin-top: 0px;
-	padding-top: 0px;
+	padding-top: 15px;
 }
 
 div.form-section-head h3 {

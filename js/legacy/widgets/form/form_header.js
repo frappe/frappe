@@ -30,19 +30,10 @@
 
 _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
-		this.buttons = {};
-		this.$w = $('<div class="form-header">\
-			<div class="page-app-bar">\
-				<span class="label-area"></span>\
-				<span class="breadcrumb-area"></span>\
-				<span class="close">&times;</span>\
-			</div>\
-			<div class="page-app-toolbar">\
-			</div>\
-		</div>').appendTo(parent);
-		this.$w.find('.close').click(function() {
-			window.history.back();
-		})
+		this.appframe = new wn.views.AppFrame(parent)
+		this.appframe.$titlebar.append('<span class="label-area"></span>\
+				<span class="breadcrumb-area"></span>');
+		this.$w = this.appframe.$w;
 	},
 	refresh: function() {
 		// refresh breadcrumbs
@@ -72,17 +63,17 @@ _f.FrmHeader = Class.extend({
 	},
 	refresh_toolbar: function() {
 		// clear
-		this.$w.find('.page-app-toolbar').empty();
+		this.appframe.clear_buttons();
 		var p = cur_frm.get_doc_perms();
 
 		// Edit
 		if(cur_frm.meta.read_only_onload && !cur_frm.doc.__islocal) {
 			if(!cur_frm.editable)
-				this.add_button('Edit', function() { 
+				this.appframe.add_button('Edit', function() { 
 					cur_frm.edit_doc();
 				},'icon-pencil');
 			else
-				this.add_button('Print View', function() { 
+				this.appframe.add_button('Print View', function() { 
 					cur_frm.is_editable[cur_frm.docname] = 0;				
 					cur_frm.refresh(); }, 'icon-print' );	
 		}
@@ -90,37 +81,27 @@ _f.FrmHeader = Class.extend({
 		var docstatus = cint(cur_frm.doc.docstatus);
 		// Save
 		if(docstatus==0 && p[WRITE]) {
-			this.add_button('Save', function() { cur_frm.save('Save');}, '');
-			this.buttons['Save'].addClass('btn-info');			
+			this.appframe.add_button('Save', function() { cur_frm.save('Save');}, '');
+			this.appframe.buttons['Save'].addClass('btn-info');			
 		}
 		// Submit
 		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
-			this.add_button('Submit', function() { cur_frm.savesubmit();}, 'icon-lock');
+			this.appframe.add_button('Submit', function() { cur_frm.savesubmit();}, 'icon-lock');
 
 		// Update after sumit
 		if(docstatus==1 && p[SUBMIT]) {
-			this.add_button('Update', function() { cur_frm.savesubmit();}, '');
-			if(!cur_frm.doc.__unsaved) this.buttons['Update'].toggle(false);
+			this.appframe.add_button('Update', function() { cur_frm.savesubmit();}, '');
+			if(!cur_frm.doc.__unsaved) this.appframe.buttons['Update'].toggle(false);
 		}
 
 		// Cancel
 		if(docstatus==1  && p[CANCEL])
-			this.add_button('Cancel', function() { cur_frm.savecancel() }, 'icon-remove');
+			this.appframe.add_button('Cancel', function() { cur_frm.savecancel() }, 'icon-remove');
 
 		// Amend
 		if(docstatus==2  && p[AMEND])
-			this.add_button('Amend', function() { cur_frm.amend_doc() }, 'icon-pencil');
+			this.appframe.add_button('Amend', function() { cur_frm.amend_doc() }, 'icon-pencil');
 
-	},
-	add_button: function(label, click, icon) {
-		args = { label: label, icon:'' };
-		if(icon) {
-			args.icon = '<i class="'+icon+'"></i>';
-		}
-		this.buttons[label] = $(repl('<button class="btn btn-small">\
-			%(icon)s %(label)s</button>', args))
-			.click(click)
-			.appendTo(this.$w.find('.page-app-toolbar'));
 	},
 	show: function() {
 	},

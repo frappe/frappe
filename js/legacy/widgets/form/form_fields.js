@@ -83,7 +83,7 @@ _f.SectionBreak.prototype.make_body = function() {
 		if(!this.df.description) 
 			this.df.description = '';
 		$(this.row.main_head).html(repl('<div class="form-section-head">\
-				<h2 class="head">%(label)s</h2>\
+				<h3 class="head">%(label)s</h3>\
 				<div class="help small" \
 					style="margin-top: 4px; margin-bottom: 8px;">%(description)s</div>\
 			</div>', this.df));
@@ -104,8 +104,8 @@ _f.SectionBreak.prototype.make_body = function() {
 	// expand section
 	this.section_expand = function(no_animation) {
 		$(me.row.main_head).find('.head')
-			.html('<h2><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
-				+ me.df.label + '</h2>');
+			.html('<h3><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
+				+ me.df.label + '</h3>');
 		if(no_animation)
 			$(me.row.main_body).toggle(true);
 		else

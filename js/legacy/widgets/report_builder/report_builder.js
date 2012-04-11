@@ -30,18 +30,15 @@ _r.ReportContainer = function() {
 		msgprint("Not Allowed");
 		return;
 	}
-	this.wrapper = $a(wn.container.add_page("Report Builder"), 'div', 'layout-wrapper');
-	var head_div = $a(this.wrapper, 'div');	
-	this.rb_area = $a(this.wrapper, 'div');
+	var page = wn.container.add_page("Report Builder");
+	this.wrapper = $a(page, 'div', 'layout-wrapper', {padding: '0px'});
+	this.appframe = new wn.views.AppFrame(this.wrapper);
+	this.appframe.$titlebar.append('<span class="report-title">');
+	this.rb_area = $a(this.wrapper, 'div', '', {padding: '15px'});
 			
 	var me = this;
 	this.rb_dict = {};
 
-	// tool bar
-	this.page_head = new PageHeader(head_div);
-	$y(this.page_head.wrapper, {marginBottom:'0px'});
-
-	// buttons
 
 	var run_fn = function() { 
 		if(me.cur_rb){
@@ -50,13 +47,22 @@ _r.ReportContainer = function() {
 		} 
 	}
 	
-	var runbtn = this.page_head.add_button('Run', run_fn, 1, 'ui-icon-circle-triangle-e', 1);
+	var runbtn = this.appframe.add_button('Run', run_fn, 'icon-refresh');
 
+	// refresh btn
+	this.appframe.add_button('Export', function() { me.cur_rb && me.cur_rb.dt.do_export(); },
+		'icon-download-alt');
+	this.appframe.add_button('Print', function() { me.cur_rb && me.cur_rb.dt.do_print(); },
+		'icon-print');
+	this.appframe.add_button('Calc', function() { me.cur_rb && me.cur_rb.dt.do_calc(); },
+		'icon-plus');
+	
 	// new
 	if(has_common(['Administrator', 'System Manager'], user_roles)) {
 		// save
 		
-		var savebtn = this.page_head.add_button('Save', function() {if(me.cur_rb) me.cur_rb.save_criteria(); }, 0, 'ui-icon-disk');
+		var savebtn = this.appframe.add_button('Save', 
+			function() {if(me.cur_rb) me.cur_rb.save_criteria(); });
 		
 		// advanced
 		var fn = function() { 
@@ -68,7 +74,7 @@ _r.ReportContainer = function() {
 				loaddoc('Search Criteria', me.cur_rb.sc_dict[me.cur_rb.current_loaded]);
 			}
 		};
-		var advancedbtn = this.page_head.add_button('Advanced Settings', fn);
+		var advancedbtn = this.appframe.add_button('Advanced Settings', fn, 'icon-cog');
 	}
 
 	// set a type
@@ -300,9 +306,9 @@ _r.ReportBuilder.prototype.clear_criteria = function() {
 // -------------------------------------------------------------------------------------
 
 _r.ReportBuilder.prototype.set_main_title = function(t, t1) {
-	_r.rb_con.page_head.main_head.innerHTML = t;
-	_r.rb_con.page_head.sub_head.innerHTML = (t1 ? t1 : '');
-	set_title(t);
+	var title = t + (t1 ? t1 : '');
+	_r.rb_con.appframe.$titlebar.find('.report-title').html(title);
+	set_title(title);
 }
 
 _r.ReportBuilder.prototype.select_column = function(dt, label, value) {
