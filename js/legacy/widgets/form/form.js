@@ -1102,6 +1102,7 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed) {
 		d[fn] = v;
 		d.__unsaved = 1;
+		console.log('Not able to find formview - check form.js');
 		var frm = wn.views.formview[d.doctype].frm;
 		try {
 			if(d.parent && d.parenttype) {
