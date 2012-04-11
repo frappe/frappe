@@ -14,7 +14,7 @@
 	{
 		'_last_update': u'1305789385',
 		'allow_trash': 1,
-		'autoname': u'CustomField.####',
+		'autoname': u'eval:doc.dt+"-"+doc.fieldname',
 		'colour': u'White:FFF',
 		'default_print_format': u'Standard',
 		'description': u'Adds a custom field to a DocType',
