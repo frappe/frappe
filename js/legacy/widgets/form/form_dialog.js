@@ -32,7 +32,6 @@ _f.FrmDialog = function() {
 
 	var d = new Dialog(640, null, 'Edit Row');
 	this.body = $a(d.body, 'div', 'dialog_frm');
-	$y(d.body, {backgroundColor:'#EEE'});
 	d.done_btn_area = $a(d.body, 'div', '', {margin:'8px'});
 
 	// done button
@@ -90,7 +89,11 @@ _f.FrmDialog = function() {
 		// call onhide
 		if(me.cur_frm.cscript.hide_dialog) {
 			me.cur_frm.cscript.hide_dialog();
-		}	
+		}
+		
+		// hide the form
+		console.log(me.cur_frm.wrapper);
+		$(me.cur_frm.page_layout.wrapper).toggle(false);
 	}
 	this.dialog = d;
 }
@@ -98,7 +101,6 @@ _f.FrmDialog = function() {
 // called from table edit
 _f.edit_record = function(dt, dn) {
 	if(!_f.frm_dialog) {
-		// make by twin
 		_f.frm_dialog = new _f.FrmDialog();		
 	}
 	var d = _f.frm_dialog;
@@ -114,13 +116,16 @@ _f.edit_record = function(dt, dn) {
 				f.parent_doctype = cur_frm.doctype;
 				f.parent_docname = cur_frm.docname;
 			}
-
+			
 			d.cur_frm = f;
 			d.dn = dn;
 			d.table_form = f.meta.istable;
 
 			// show the form
 			f.refresh(dn);
+
+			$(f.page_layout.wrapper).removeClass('layout-wrapper')
+				.removeClass('layout-wrapper-background').toggle(true);
 			
 			d.dialog.show();				
 		})
