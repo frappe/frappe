@@ -1102,16 +1102,13 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed) {
 		d[fn] = v;
 		d.__unsaved = 1;
-		console.log('Not able to find formview - check form.js');
-		var frm = wn.views.formview[d.doctype].frm;
-		try {
-			if(d.parent && d.parenttype) {
-				locals[d.parenttype][d.parent].__unsaved = 1;
-				frm = wn.views.formview[d.parenttype].frm;
-			}
-		} catch(e) {
-			if(d.parent && d.parenttype)
-			errprint('Setting __unsaved error:'+d.name+','+d.parent+','+d.parenttype);
+			
+		if(d.parent && d.parenttype) {
+			locals[d.parenttype][d.parent].__unsaved = 1;
+			var frm = wn.views.formview[d.parenttype].frm;
+		} else {
+			locals[d.doctype][d.name].__unsaved = 1;
+			var frm = wn.views.formview[d.doctype].frm;
 		}
 		
 		if(frm && frm==cur_frm && frm.frm_head) {
