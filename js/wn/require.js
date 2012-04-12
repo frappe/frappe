@@ -33,9 +33,9 @@ wn.require = function(items) {
 
 	for(var i=0; i< l; i++) {
 		var src = items[i];
-		if(!(src in wn.assets.executed_)) {
+		//if(!(src in wn.assets.executed_)) {
 			// check if available in localstorage
-			wn.assets.execute(src);
-		}
+		wn.assets.execute(src);
+		//}
 	}
 }

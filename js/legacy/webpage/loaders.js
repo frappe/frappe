@@ -28,10 +28,9 @@ function loadreport(dt, rep_name, onload) {
 }	
 
 function loaddoc(doctype, name, onload) {
-	doctype = get_label_doctype(doctype);
+	//doctype = get_label_doctype(doctype);
 	wn.model.with_doctype(doctype, function() {
 		if(locals.DocType[doctype].in_dialog) {
-			console.log(1)
 			_f.edit_record(doctype, name);
 		} else {
 			wn.set_route('Form', doctype, name);			

@@ -352,7 +352,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 
 // --------------------------------------------------------------------------------------
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	this.frm_head.add_button(label, fn, icon);
+	this.frm_head.appframe.add_button(label, fn, icon);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	//
