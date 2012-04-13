@@ -130,8 +130,8 @@ set_field_permlevel = function(n, level) {
 hide_field = function(n) {
 	function _hide_field(n,hidden) {
 		var df = get_field(cur_frm.doctype, n, cur_frm.docname);
-		if(df)df.hidden = hidden; refresh_field(n);
-		else console.log("hide_field cannot find field " + n);
+		if(df) { df.hidden = hidden; refresh_field(n); }
+		else { console.log("hide_field cannot find field " + n); }
 	}	
 	if(cur_frm) {
 		if(n.substr) _hide_field(n,1);
@@ -142,8 +142,8 @@ hide_field = function(n) {
 unhide_field = function(n) {
 	function _hide_field(n,hidden) {
 		var df = get_field(cur_frm.doctype, n, cur_frm.docname);
-		if(df)df.hidden = hidden; refresh_field(n);
-		else console.log("unhide_field cannot find field " + n);
+		if(df) {df.hidden = hidden; refresh_field(n); }
+		else { console.log("unhide_field cannot find field " + n); }
 	}	
 	if(cur_frm) {
 		if(n.substr) _hide_field(n,0);
