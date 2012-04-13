@@ -20,7 +20,7 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-cur_frm.cscript['Server (Python)'] = function(doc, dt, dn) {
+cur_frm.cscript['server_python'] = function(doc, dt, dn) {
 	doc.response = 'Executing...'
 	refresh_field('response');
 	$c_obj([doc], 'execute_server', '', function(r, rt) {
@@ -34,7 +34,7 @@ cur_frm.cscript['Server (Python)'] = function(doc, dt, dn) {
 	})
 }
 
-cur_frm.cscript['Client (JS)'] = function(doc, dt, dn) {
+cur_frm.cscript['client_js'] = function(doc, dt, dn) {
 	try {
 		doc.response = eval(doc.script);		
 	} catch(e) {

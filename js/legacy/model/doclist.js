@@ -141,7 +141,6 @@ function check_required(dt, dn, parent_dt) {
 					
 					// switch to section
 					if(!cur_frm.error_in_section && f.parent_section) {
-						cur_frm.set_section(f.parent_section.sec_id);
 						cur_frm.error_in_section = 1;
 					}
 				}

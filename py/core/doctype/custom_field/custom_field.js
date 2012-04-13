@@ -45,12 +45,12 @@ cur_frm.cscript.has_special_chars = function(t) {
 // ------
 cur_frm.cscript.label = function(doc){
 	if(doc.label && cur_frm.cscript.has_special_chars(doc.label)){
-		cur_frm.fields_dict['Label Help'].disp_area.innerHTML = '<font color = "red">Special Characters are not allowed</font>';
+		cur_frm.fields_dict['label_help'].disp_area.innerHTML = '<font color = "red">Special Characters are not allowed</font>';
 		doc.label = '';
 		refresh_field('label');
 	}
 	else
-		cur_frm.fields_dict['Label Help'].disp_area.innerHTML = '';
+		cur_frm.fields_dict['label_help'].disp_area.innerHTML = '';
 }
 
 

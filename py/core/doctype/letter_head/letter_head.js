@@ -24,7 +24,7 @@ cur_frm.cscript.validate = function(doc, dt, dn) {
 	return 1;
 }
 
-cur_frm.cscript['Set From Image'] = function(doc, dt, dn) {
+cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
 	if(!doc.file_list) {
 		msgprint('Please attach an image file first');
 		return;
