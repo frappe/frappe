@@ -37,6 +37,7 @@
 
 //   query or get_query (will be deprecated)
 //   query_max
+//   buttons_in_frame
 
 //   no_result_message ("No result")
 
@@ -92,13 +93,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
-					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
-						<a class="btn btn-small btn-refresh btn-info">\
-							<i class="icon-refresh icon-white"></i> Refresh</a>\
-						<a class="btn btn-small btn-new">\
-							<i class="icon-plus"></i> New</a>\
-						<a class="btn btn-small btn-filter">\
-							<i class="icon-search"></i> Filter</a>\
+					<div class="list-toolbar" style="display:inline-block; margin-right: 10px;">\
 					</div>\
 					<div style="display:inline-block; width: 24px; margin-left: 4px">\
 						<img src="lib/images/ui/button-load.gif" \
@@ -122,13 +117,26 @@ wn.ui.Listing = Class.extend({
 		this.$w = $(this.parent).find('.wnlist');
 		this.set_events();
 		
+		if(this.appframe) {
+			this.$w.find('.list-toolbar-wrapper').toggle(false);
+		} 
+		
 		if(this.show_filters) {
 			this.make_filters();			
 		}
 	},
-	add_button: function(html, onclick, before) {
-		$(html).click(onclick).insertBefore(this.$w.find('.list-toolbar ' + before));
-		this.btn_groupify();
+	add_button: function(label, click, icon) {
+		if(this.appframe) {
+			return this.appframe.add_button(label, click, icon)
+		} else {
+			$button = $('<button class="btn btn-small"></button>')
+				.appendTo(this.$w.find('.list-toolbar'))
+			if(icon) {
+				$('<i>').addClass(icon).appendTo($button);
+			}
+			$button.html(label).click(click);
+			return $button
+		}
 	},
 	show_view: function($btn, $div, $btn_unsel, $div_unsel) {
 		$btn_unsel.removeClass('btn-info');
@@ -142,11 +150,6 @@ wn.ui.Listing = Class.extend({
 	set_events: function() {
 		var me = this;
 	
-		// run
-		this.$w.find('.btn-refresh').click(function() {
-			me.run();
-		});
-
 		// next page
 		this.$w.find('.btn-more').click(function() {
 			me.run({append: true });
@@ -156,36 +159,29 @@ wn.ui.Listing = Class.extend({
 		if(this.title) {
 			this.$w.find('h3').html(this.title).toggle(true);
 		}
-		
+	
+		// hide-refresh
+		if(!(this.hide_refresh || this.no_refresh)) {
+			this.add_button('Refresh', function() {
+				me.run();
+			}, 'icon-refresh');
+		}
+				
 		// new
 		if(this.new_doctype) {
-			this.$w.find('.btn-new').toggle(true).click(function() {
-				newdoc(me.new_doctype);
-			})
-		} else {
-			this.$w.find('.btn-new').remove();
-		}
+			this.add_button('New ' + this.new_doctype, function() {
+				newdoc(me.new_doctype)
+			}, 'icon-plus');
+		} 
 		
 		// hide-filter
-		if(!me.show_filters) {
-			this.$w.find('.btn-filter').remove();
+		if(me.show_filters) {
+			this.add_button('Show Filters', function() {
+				me.filter_list.show_filters();
+			}, 'icon-search').addClass('btn-filter');
 		}
-		
-		// hide-refresh
-		if(this.hide_refresh || this.no_refresh) {
-			this.$w.find('.btn-refresh').remove();			
-		}
-			
-		// btn group only if more than 1 button
-		this.btn_groupify();
 	},
-	btn_groupify: function() {
-		var nbtns = this.$w.find('.list-toolbar a').length;
 
-		if(nbtns == 0) {
-			this.$w.find('.list-toolbar-wrapper').toggle(false);
-		}
-	},
 	make_filters: function() {
 		this.filter_list = new wn.ui.FilterList({
 			listobj: this, 
@@ -315,17 +311,16 @@ wn.ui.FilterList = Class.extend({
 	set_events: function() {
 		var me = this;
 		// show filters
-		this.listobj.$w.find('.btn-filter').bind('click', function() {
-			me.$w.find('.show_filters').slideToggle();
-			if(!me.filters.length)
-				me.add_filter();
-		});
-
-		// show filters
 		this.$w.find('.add-filter-btn').bind('click', function() {
 			me.add_filter();
 		});
 			
+	},
+	
+	show_filters: function() {
+		this.$w.find('.show_filters').slideToggle();
+		if(!this.filters.length)
+			this.add_filter();
 	},
 	
 	add_filter: function(fieldname, condition, value) {

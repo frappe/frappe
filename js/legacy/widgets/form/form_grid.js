@@ -139,7 +139,7 @@ _f.FormGrid.prototype.refresh = function() {
 _f.FormGrid.prototype.set_unsaved = function() {
 	// set unsaved
 	locals[cur_frm.doctype][cur_frm.docname].__unsaved=1;
-	cur_frm.set_heading();	
+	cur_frm.frm_head && cur_frm.frm_head.refresh_labels();
 }
 
 _f.FormGrid.prototype.insert_row = function() {

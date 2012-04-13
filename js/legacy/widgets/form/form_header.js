@@ -30,7 +30,7 @@
 
 _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
-		this.appframe = new wn.views.AppFrame(parent)
+		this.appframe = new wn.ui.AppFrame(parent)
 		this.appframe.$titlebar.append('<span class="label-area"></span>\
 				<span class="breadcrumb-area"></span>');
 		this.$w = this.appframe.$w;

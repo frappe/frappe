@@ -71,7 +71,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			<div style="clear: both"></div>\
 		</div>', {label: this.label}));
 		
-		this.appframe = new wn.views.AppFrame(this.$page.find('.appframe-area'));
+		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
 		wn.views.breadcrumbs($('<span>').appendTo(this.appframe.$titlebar), locals.DocType[this.doctype].module);
 	},
 
@@ -157,9 +157,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	add_delete_option: function() {
 		var me = this;
 		if(this.can_delete) {
-			this.add_button('<a class="btn btn-small btn-delete">\
-				<i class="icon-remove"></i> Delete</a>', 
-					function() { me.delete_items(); },'.btn-filter')
+			this.add_button('Delete', function() { me.delete_items(); }, 'icon-remove')
 		}
 	},
 	delete_items: function() {

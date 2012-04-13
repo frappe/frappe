@@ -111,9 +111,6 @@ _f.SectionBreak.prototype.make_body = function() {
 		else
 			$(me.row.main_body).slideDown();
 	}
-
-	// indent
-	$y(this.row.body, { marginLeft:'17px' });
 }
 
 _f.SectionBreak.prototype.has_data = function() {

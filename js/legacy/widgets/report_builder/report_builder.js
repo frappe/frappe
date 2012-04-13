@@ -32,7 +32,7 @@ _r.ReportContainer = function() {
 	}
 	var page = wn.container.add_page("Report Builder");
 	this.wrapper = $a(page, 'div', 'layout-wrapper', {padding: '0px'});
-	this.appframe = new wn.views.AppFrame(this.wrapper);
+	this.appframe = new wn.ui.AppFrame(this.wrapper);
 	this.appframe.$titlebar.append('<span class="report-title">');
 	this.rb_area = $a(this.wrapper, 'div', '', {padding: '15px'});
 			
