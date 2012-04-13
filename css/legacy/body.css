@@ -199,6 +199,10 @@ div.std-footer-item {
 	overflow: hidden;
 }
 
+.layout-wrapper-appframe {
+	padding: 0px;
+}
+
 .layout-wrapper-background {
 	background-color: #fafafa !important;
 	padding: 0px;
