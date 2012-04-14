@@ -20,11 +20,11 @@ curpath = os.path.dirname(__file__)
 sys.path.append(os.path.join(curpath, '..', '..'))
 
 import webnotes
-import webnotes.defs
+import conf
 from webnotes.modules.export_module import export_to_files
 from termcolor import colored
 
-sys.path.append(webnotes.defs.modules_path)
+sys.path.append(conf.modules_path)
 
 def update_field_property(f, property):
 	import webnotes
@@ -68,7 +68,7 @@ def replace_code(old, new):
 
 def update_fieldname_patch_file(fdata):
 	"""update patch file with list"""
-	with open(webnotes.defs.fieldname_patch_file, 'a') as patchfile:
+	with open(conf.fieldname_patch_file, 'a') as patchfile:
 		patchfile.write(str(fdata) + '\n')
 
 def search_replace_with_prompt(fpath, txt1, txt2):

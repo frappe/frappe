@@ -51,20 +51,21 @@ password: admin
 
 Step by step instructions on CentOS/Fedora:
 	0.Check out the source code.
-	1. Modify the v170/cgi-bin/webnotes/defs file to your required settings and rename it to defs.py 
-	2. yum install mysql
-	3. yum install httpd
-	4. yum install MySQL-python
-	5. yum install python-setuptools
-	6. easy_install pytz
-	7. easy_install email
-	8. easy_install simplejson suds
-	9. easy_install pygeoip (optional for geo ip)
-	9. yum install libjpeg-devel (optional)
-	10.yum install python-imaging (optional)
+	Modify the v170/cgi-bin/webnotes/defs file to your required settings and rename it to defs.py 
 
-	11. Edit /etc/httpd/conf/httpd.conf and add the options as mentioned above.	
-	12. from the trunk/v170/cgi-bin folder run python webnotes/install_lib/install.py install
+	$ yum install mysql
+	$ yum install httpd
+	$ yum install MySQL-python
+	$ yum install python-setuptools
+	$ easy_install pytz
+	$ easy_install email
+	$ easy_install simplejson suds
+	$ easy_install pygeoip (optional for geo ip)
+	$ yum install libjpeg-devel (optional)
+	$ yum install python-imaging (optional)
+
+	- Edit /etc/httpd/conf/httpd.conf and add the options as mentioned above.	
+	- from the trunk/v170/cgi-bin folder run python webnotes/install_lib/install.py install
 
 
 

@@ -1,22 +1,19 @@
 ## wnframework
 
-wnframework is a full-stack web application framework that uses python/mysql on the server side. includes a tightly integrated client side library and uses many html5 featuers.
+Full-stack web application framework that uses python/mysql on the server side and a tightly integrated client side library. Primarily built for erpnext.
 
 Projects: [erpnext](http://erpnext.org) | [webnotes/erpnext](https://github.com/webnotes/erpnext)
 
-## Version
+## Setup
 
-Version 2 is a radical reworking of the wnframework. This will be the current development version. For a stable version see -1.7 branches
+- In your application root, set wnframework folder as the "lib" folder.
+- Copy index.cgi, build.json, wnf.py in the application root
+- update "conf.py" with database, email authentication info
 
-#### Roadmap for version 2
+## wnf.py
 
-- lazy loading + localstorage of js libs (completed)
-- refactoring of js library
-- separation of the view from the model
-
-## Librarires
-
-wnframework uses a number of libraries in the open domain, see attribution.md (it may not be a complete list but we are working on it!)
+wnf.py is the command line utility to build client side files. Usually all client-side files
+that are common are build in js/all-web.js (for non logged in users) or js/all-app.js (for logged in users)
 
 ## License
 

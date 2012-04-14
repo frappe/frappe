@@ -113,9 +113,9 @@ def getpage():
 def get_page_path(page_name, module):
 	"""get path of the page html file"""
 	import os
-	import webnotes.defs
+	import conf
 	from webnotes.modules import scrub
-	return os.path.join(webnotes.defs.modules_path, 'erpnext', scrub(module), \
+	return os.path.join(conf.modules_path, 'erpnext', scrub(module), \
 		'page', scrub(page_name), scrub(page_name) + '.html')
 	
 def get_page_html(page_name):

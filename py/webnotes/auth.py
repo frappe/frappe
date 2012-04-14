@@ -24,7 +24,7 @@ import webnotes
 import webnotes.db
 import webnotes.utils
 import webnotes.profile
-import webnotes.defs
+import conf
 
 # =================================================================================
 # HTTPRequest
@@ -91,34 +91,14 @@ class HTTPRequest:
 	# ------------------
 
 	def get_db_name(self):
-		# highest priority if comes via form
-		if webnotes.form_dict.get('ac_name'):
-			db_name = webnotes.form_dict.get('ac_name')
-		elif webnotes.form_dict.get('acx'):
-			db_name = webnotes.form_dict.get('acx')
-			
-		# then from cookie
-		elif webnotes.incoming_cookies.get('account_id'):
-			db_name = webnotes.incoming_cookies.get('account_id')
-			
-		# then via defs
-		elif hasattr(webnotes.defs, 'get_db_name'):
-			db_name = webnotes.defs.get_db_name()
-		
-		# then default
-		else:
-			db_name = getattr(webnotes.defs,'default_db_name','')
-		
-		if not db_name:
-			raise Exception, "Unable to resolve database name"
-			
-		return db_name
+		"""get database name from conf"""
+		return conf.db_name
 
 	def set_db(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
 			
 		webnotes.conn = webnotes.db.Database(user = self.get_db_name(), \
-			password = getattr(webnotes.defs,'db_password', ''))
+			password = getattr(conf,'db_password', ''))
 
 # =================================================================================
 # Login Manager
@@ -219,12 +199,6 @@ class LoginManager:
 		for ip in ip_list:
 			if webnotes.remote_ip.startswith(ip):
 				return
-			elif webnotes.form_dict.get('via_ip'):
-				if webnotes.form_dict.get('via_ip').startswith(ip):
-					return
-				elif (hasattr(webnotes.defs, 'server_ip') and
-						webnotes.form_dict.get('via_ip').startswith(webnotes.defs.server_ip)):
-					return
 			
 		webnotes.msgprint('Not allowed from this IP Address')
 		raise webnotes.AuthenticationError

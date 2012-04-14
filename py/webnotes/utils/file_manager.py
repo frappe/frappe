@@ -190,12 +190,12 @@ def save_file(fname, content, module=None):
 # -------------------------------------------------------
 
 def write_file(fid, content):
-	import os, webnotes.defs
+	import os, conf
 
 	# test size
 	max_file_size = 1000000
-	if hasattr(webnotes.defs, 'max_file_size'):
-		max_file_size = webnotes.defs.max_file_size
+	if hasattr(conf, 'max_file_size'):
+		max_file_size = conf.max_file_size
 
 	if len(content) > max_file_size:
 		raise Exception, 'Maximum File Limit (%s MB) Crossed' % (int(max_file_size / 1000000))

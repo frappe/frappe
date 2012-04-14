@@ -703,9 +703,8 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 	"""
 	Returns a doclist containing the main record and all child records
 	"""	
-	import webnotes 
+	import webnotes
 	import webnotes.model
-	import webnotes.defs
 
 	dn = dn or dt
 

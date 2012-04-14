@@ -24,24 +24,24 @@
 # --------------------
 
 import MySQLdb
-from webnotes import defs
 import webnotes
+import conf
 
 class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
-	   login details from `defs.py`. This is called by the request handler and is accessible using
+	   login details from `conf.py`. This is called by the request handler and is accessible using
 	   the `conn` global variable. the `sql` method is also global to run queries
 	"""
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or 'localhost'
-		self.user = user or getattr(defs, 'default_db_name', '')
+		self.user = user or getattr(conf, 'default_db_name', '')
 
 		if ac_name:
-			self.user = self.get_db_login(ac_name) or defs.default_db_name
+			self.user = self.get_db_login(ac_name) or conf.db_name
 		
 		if use_default:
-			self.user = defs.default_db_name
+			self.user = conf.db_name
 
 		self.is_testing = 0
 		self.in_transaction = 0
@@ -49,38 +49,14 @@ class Database:
 		self.testing_tables = []
 		self.auto_commit_on_many_writes = 0
 
-		self.password = self.get_db_password(self.user, password)
+		self.password = password or webnotes.get_db_password(self.user)
 		
 		self.connect()
 		if self.user != 'root':
 			self.use(self.user)
-		
-	def get_db_password(self, db_name, password):
-		"""
-			Return db password. order of importance:
-			
-				1. password
-				2. defs.get_db_password()
-				3. defs.db_password
-		"""
-		# password can be empty string
-		if password:
-			return password
-		
-		if hasattr(defs, 'get_db_password'):
-			return defs.get_db_password(db_name)
-
-		if hasattr(defs, 'db_password'):
-			return defs.db_password
-
-		else: 
-			return ''
 			
 	def get_db_login(self, ac_name):
-		if hasattr(defs, 'db_name_map'):
-			return getattr(defs,'db_name_map').get(ac_name, getattr(defs,'default_db_name'))
-		else: 
-			return ac_name
+		return ac_name
 
 	def connect(self):
 		"""

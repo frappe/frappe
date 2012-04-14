@@ -22,7 +22,6 @@
 
 import sys, os
 import webnotes
-import webnotes.defs
 import webnotes.utils
 
 form = webnotes.form

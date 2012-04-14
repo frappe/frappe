@@ -22,22 +22,6 @@
 
 import os,sys
 
-cgi_bin_path = os.path.sep.join(__file__.split(os.path.sep)[:-3])
-
-sys.path.append(cgi_bin_path)
-
-
-		
-#
-# make a copy of defs.py (if not exists)
-#		
-def copy_defs():
-	global cgi_bin_path
-	if not os.path.exists(os.path.join(cgi_bin_path, 'webnotes', 'defs.py')):
-		ret = os.system('cp '+ os.path.join(cgi_bin_path, 'webnotes', 'defs_template.py')+\
-			' '+os.path.join(cgi_bin_path, 'webnotes', 'defs.py'))
-		print 'Made copy of defs.py'
-
 #
 # Main Installer Class
 #
@@ -46,7 +30,6 @@ class Installer:
 
 		import webnotes
 		import webnotes.db
-		import webnotes.defs
 	
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
@@ -55,7 +38,6 @@ class Installer:
 		webnotes.conn=self.conn
 		webnotes.session= {'user':'Administrator'}
 		self.dbman = DbManager(self.conn)
-		self.mysql_path = hasattr(webnotes.defs, 'mysql_path') and webnotes.defs.mysql_path or ''
 
 	#
 	# run framework related cleanups
@@ -167,18 +149,13 @@ class Installer:
 		"""
 			Get the db_password by method
 		"""
-		import webnotes.defs
-		if hasattr(webnotes.defs, 'get_db_password'):
-			return webnotes.defs.get_db_password(db_name)
-		if hasattr(webnotes.defs, 'db_password'):
-			return webnotes.defs.db_password
-		return ''
+		import conf
+		return conf.db_password
 
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
 		"""
-		import webnotes.defs		
 		
 		# delete user (if exists)
 		self.dbman.delete_user(target)
@@ -223,54 +200,6 @@ class Installer:
 		
 		return target		
 
-def make_scheduler(root_login, root_password, verbose):
-	"""
-		Make the database where all scheduler events will be stored from multiple datbases
-		See webnotes.utils.scheduler for more information
-	"""
-	conn = webnotes.db.Database(user=root_login, password=root_password)			
-
-	from webnotes.model.db_schema import DbManager
-
-	dbman = DbManager(conn)
-	
-	# delete user (if exists)
-	dbman.delete_user('master_scheduler')
-
-	# create user and db
-	dbman.create_user('master_scheduler', getattr(webnotes.defs,'scheduler_password',None))
-	if verbose: print "Created user master_scheduler"
-
-	# create a database
-	dbman.create_database('master_scheduler')
-	if verbose: print "Created database master_scheduler" 
-
-	# grant privileges to user
-	dbman.grant_all_privileges('master_scheduler','master_scheduler')
-
-	# flush user privileges
-	dbman.flush_privileges()
-	
-	conn.use('master_scheduler')
-	
-	# create events table
-	conn.sql("""create table Event(
-		`db_name` varchar(60),
-		`event` varchar(180),
-		`interval` int(20),
-		`next_execution` timestamp,
-		`recurring` int(1),
-		primary key (`db_name`, `event`),
-		index next_execution(next_execution)
-		)""")
-	
-	conn.sql("""create table EventLog(
-		`db_name` varchar(180), 
-		`event` varchar(180),
-		`executed_on` timestamp,
-		`log` text,
-		index executed_on(executed_on))
-	""")
 #
 # load the options
 #
@@ -292,31 +221,17 @@ if __name__=='__main__':
 	parser = get_parser()
 	(options, args)	= parser.parse_args()
 	
-	try:
-	
-		import webnotes
-		import webnotes.db
-		import webnotes.defs
-	except ImportError:
-		copy_defs()
-		import webnotes
-		import webnotes.db
-		import webnotes.defs
+	import webnotes
+	import webnotes.db
 
 	if len(args)==3:
-		
 		root_login, root_password, db_name = args[0], args[1], args[2]
-		
-		if db_name=='master_scheduler':
-			make_scheduler(root_login, root_password, 1)
-		else:
-			inst = Installer(root_login, root_password)
-
-			inst.import_from_db(db_name, source_path=options.source_path, \
-				password = options.password, verbose = 1)
+		inst = Installer(root_login, root_password)
+		inst.import_from_db(db_name, source_path=options.source_path, \
+			password = options.password, verbose = 1)
 
 
-			print "Database created, please edit defs.py to get started"		
+		print "Database created, please edit conf.py to get started"		
 	else:
 		parser.print_help()
 		

@@ -293,7 +293,7 @@ class DocType:
 		"""
 			If developer_mode = 1, mapper will be written to files
 		"""
-		import webnotes.defs
-		if hasattr(webnotes.defs, 'developer_mode') and webnotes.defs.developer_mode:
+		import conf
+		if hasattr(conf, 'developer_mode') and conf.developer_mode:
 			from webnotes.modules.export_module import export_to_files
 			export_to_files(record_list=[[self.doc.doctype, self.doc.name]])		

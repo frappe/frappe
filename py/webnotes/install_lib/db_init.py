@@ -38,10 +38,10 @@ class DatabaseInstance:
 #		self.setup_users()
 		
 	def create_db_and_user(self):
-		import webnotes.defs
+		import conf
 		
 		# create user and db
-		self.conn.sql("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (self.db_name, webnotes.defs.db_password))
+		self.conn.sql("CREATE USER '%s'@'localhost' IDENTIFIED BY '%s'" % (self.db_name, conf.db_password))
 		self.conn.sql("CREATE DATABASE IF NOT EXISTS `%s` ;" % self.db_name)
 		self.conn.sql("GRANT ALL PRIVILEGES ON `%s` . * TO '%s'@'localhost';" % (self.db_name, self.db_name))
 		self.conn.sql("FLUSH PRIVILEGES")

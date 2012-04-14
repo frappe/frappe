@@ -26,7 +26,7 @@ Allows easy adding of Attachments of "File" objects
 """
 
 import webnotes	
-import webnotes.defs
+import conf
 from webnotes import msgprint
 import email
 
@@ -164,11 +164,11 @@ class EMail:
 		"""
 		if self.from_defs:
 			import webnotes
-			self.server = getattr(webnotes.defs,'mail_server','')
-			self.login = getattr(webnotes.defs,'mail_login','')
-			self.port = getattr(webnotes.defs,'mail_port',None)
-			self.password = getattr(webnotes.defs,'mail_password','')
-			self.use_ssl = getattr(webnotes.defs,'use_ssl',0)
+			self.server = getattr(conf,'mail_server','')
+			self.login = getattr(conf,'mail_login','')
+			self.port = getattr(conf,'mail_port',None)
+			self.password = getattr(conf,'mail_password','')
+			self.use_ssl = getattr(conf,'use_ssl',0)
 
 		else:	
 			import webnotes.model.doc
@@ -176,11 +176,11 @@ class EMail:
 
 			# get defaults from control panel
 			es = webnotes.model.doc.Document('Email Settings','Email Settings')
-			self.server = es.outgoing_mail_server.encode('utf-8') or getattr(webnotes.defs,'mail_server','')
-			self.login = es.mail_login.encode('utf-8') or getattr(webnotes.defs,'mail_login','')
-			self.port = cint(es.mail_port) or getattr(webnotes.defs,'mail_port',None)
-			self.password = es.mail_password.encode('utf-8') or getattr(webnotes.defs,'mail_password','')
-			self.use_ssl = cint(es.use_ssl) or cint(getattr(webnotes.defs, 'use_ssl', ''))
+			self.server = es.outgoing_mail_server.encode('utf-8') or getattr(conf,'mail_server','')
+			self.login = es.mail_login.encode('utf-8') or getattr(conf,'mail_login','')
+			self.port = cint(es.mail_port) or getattr(conf,'mail_port',None)
+			self.password = es.mail_password.encode('utf-8') or getattr(conf,'mail_password','')
+			self.use_ssl = cint(es.use_ssl) or cint(getattr(conf, 'use_ssl', ''))
 
 	def make_msg(self):
 		self.msg_root['Subject'] = self.subject
@@ -216,10 +216,6 @@ class EMail:
 		self.validate()
 		self.make_msg()
 		
-		if (not send_now) and getattr(webnotes.defs, 'batch_emails', 0):
-			self.add_to_queue()
-			return
-		
 		sess = self.smtp_connect()
 		
 		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
@@ -251,81 +247,3 @@ class EMail:
 			raise Exception
 
 		return sess
-
-
-# ===========================================
-# Email Queue
-# Maintains a list of emails in a file
-# Flushes them when called from cron
-# Defs settings:
-# 	email_queue: (filename) [default: email_queue.py]
-#
-# From the scheduler, call: flush(qty)
-# ===========================================
-
-class EmailQueue:
-	def __init__(self):
-		self.server = self.login = self.sess = None
-		self.filename = getattr(webnotes.defs, 'email_queue', 'email_queue.py')
-	
-		try:
-			f = open(self.filename, 'r')
-			self.queue = eval(f.read() or '[]')
-			f.close()
-		except IOError, e:
-			if e.args[0]==2:
-				self.queue = []
-			else:
-				raise e
-		
-	def push(self, email):
-		self.queue.append(email)
-		
-	def close(self):
-		f = open(self.filename, 'w')
-		f.write(str(self.queue))
-		f.close()
-
-	def get_smtp_session(self, e):
-		if self.server==e['server'] and self.login==e['login'] and self.sess:
-			return self.sess
-
-		webnotes.msgprint('getting server')
-
-		import smtplib
-	
-		sess = smtplib.SMTP(e['server'], e['port'] or None)
-		
-		if self.use_ssl: 
-			sess.ehlo()
-			sess.starttls()
-			sess.ehlo()
-			
-		ret = sess.login(e['login'], e['password'])
-
-		# check if logged correctly
-		if ret[0]!=235:
-			webnotes.msgprint(ret[1])
-			raise Exception
-						
-		self.sess = sess
-		self.server, self.login = e['server'], e['login']
-		
-		return sess
-		
-	def flush(self, qty = 100):
-		f = open(self.filename, 'r')
-		
-		self.queue = eval(f.read() or '[]')
-		
-		if len(self.queue) < 100:
-			qty = len(self.queue)
-
-		for i in range(qty):
-			e = self.queue[i]
-			sess = self.get_smtp_session(e)
-			sess.sendmail(e['sender'], e['recipients'], e['msg'])			
-		
-		self.queue = self.queue[:(len(self.queue) - qty)]
-		self.close()
-

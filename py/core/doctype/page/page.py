@@ -65,9 +65,9 @@ class DocType:
 			Writes the .txt for this page and if write_content is checked,
 			it will write out a .html file
 		"""
-		from webnotes import defs
+		import conf
 		from webnotes.utils.transfer import in_transfer
-		if not in_transfer and getattr(defs,'developer_mode', 0) and self.doc.standard=='Yes':
+		if not in_transfer and getattr(conf,'developer_mode', 0) and self.doc.standard=='Yes':
 			from webnotes.modules.export_module import export_to_files
 			from webnotes.modules import get_module_path, scrub
 			import os

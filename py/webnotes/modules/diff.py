@@ -23,7 +23,7 @@
 """get diff bettween txt files and database records"""
 
 import webnotes
-import os, webnotes.defs
+import os, conf
 from webnotes.model.utils import peval_doclist
 
 dt_map = {
@@ -47,7 +47,7 @@ def diff_ref_file():
 	missing = property_diff = 0
 	property_count = {}
 
-	get_diff(webnotes.defs.modules_path)
+	get_diff(conf.modules_path)
 	get_diff(os.path.join(os.getcwd(), 'lib', 'py', 'core'))
 	
 	print_stats()
@@ -71,7 +71,7 @@ def diff_ref_db():
 			# get file for this doc
 			doc['doctype'] = dt
 			#print doc['name'], doc['doctype'], doc['module']
-			path = os.path.join(webnotes.defs.modules_path, scrub(doc['module']), \
+			path = os.path.join(conf.modules_path, scrub(doc['module']), \
 				scrub(dt), scrub(doc['name']), scrub(doc['name']) + '.txt')	
 			path_core = os.path.join(os.getcwd(), 'lib', 'py', 'core', \
 				scrub(dt), scrub(doc['name']), scrub(doc['name']) + '.txt')

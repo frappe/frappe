@@ -40,14 +40,14 @@ def scrub_dt_dn(dt, dn):
 			
 def get_module_path(module):
 	"""Returns path of the given module"""
-	import os, webnotes.defs
+	import os, conf
 	m = scrub(module)
 	
 	if m in ('core'):
-		path_to_lib = os.sep.join(webnotes.defs.modules_path.split(os.path.sep)[:-1])
+		path_to_lib = os.sep.join(conf.modules_path.split(os.path.sep)[:-1])
 		return os.path.join(path_to_lib, 'lib', 'py', 'core')
 	else:
-		return os.path.join(webnotes.defs.modules_path, m)
+		return os.path.join(conf.modules_path, m)
 	
 
 def reload_doc(module, dt=None, dn=None):
@@ -93,10 +93,10 @@ def export_doc(doctype, name):
 
 def get_all_modules():
 	"""Return list of all modules"""
-	import webnotes.defs
+	import conf
 	from webnotes.modules.utils import listfolders
 
-	if hasattr(webnotes.defs, 'modules_path'):
-		return listfolders(webnotes.defs.modules_path, 1)
+	if hasattr(conf, 'modules_path'):
+		return listfolders(conf.modules_path, 1)
 			
 		

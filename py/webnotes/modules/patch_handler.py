@@ -51,10 +51,10 @@ def reload_doc(args):
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
 	"""run a single patch"""
-	import webnotes.defs
+	import conf
 	
 	# don't write txt files
-	webnotes.defs.developer_mode = 0
+	conf.developer_mode = 0
 	
 	if force or method or not executed(patchmodule):
 		return execute_patch(patchmodule, method, methodargs)
@@ -93,8 +93,8 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
-	import webnotes.defs, os
-	with open(os.path.join(webnotes.defs.modules_path,'erpnext','patches','patch.log'),'a') as patchlog:
+	import conf, os
+	with open(os.path.join(conf.modules_path,'erpnext','patches','patch.log'),'a') as patchlog:
 		patchlog.write('\n\n' + tb)
 	
 def update_patch_log(patchmodule):

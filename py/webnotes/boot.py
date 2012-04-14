@@ -39,10 +39,7 @@ def get_bootinfo():
 	import webnotes.model.doc
 	cp = webnotes.model.doc.getsingle('Control Panel')
 
-	import webnotes.defs
 	from webnotes.utils import cint
-	cp['sync_with_gateway'] = hasattr(webnotes.defs, 'sync_with_gateway') and \
-			cint(webnotes.defs.sync_with_gateway) or 0
 	
 	# system info
 	bootinfo['control_panel'] = cp.copy()

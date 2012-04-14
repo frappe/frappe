@@ -34,7 +34,7 @@ from datetime import datetime
 
 
 #Global constants
-from webnotes.defs import backup_path, backup_link_path
+from conf import backup_path, backup_link_path
 verbose = 0
 
 #-------------------------------------------------------------------------------
@@ -98,14 +98,14 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		if hasattr(webnotes.defs, 'backup_url'):
-			backup_url = webnotes.defs.backup_url
+		if hasattr(conf, 'backup_url'):
+			backup_url = conf.backup_url
 		else:
 			backup_url = webnotes.conn.get_value('Website Settings',
 				'Website Settings', 'subdomain') or ''
-			if hasattr(webnotes.defs, 'backup_folder_name'):
+			if hasattr(conf, 'backup_folder_name'):
 				backup_url = os.path.join(backup_url,
-						webnotes.defs.backup_folder_name)
+						conf.backup_folder_name)
 		file_url = os.path.join(backup_url, backup_file)
 		from webnotes.utils.email_lib import sendmail
 		
@@ -151,28 +151,14 @@ def get_backup():
 		This function is executed when the user clicks on 
 		Toos > Download Backup
 	"""
-	#if verbose: print webnotes.conn.cur_db_name + " " + webnotes.defs.db_password
+	#if verbose: print webnotes.conn.cur_db_name + " " + conf.db_password
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  get_db_password(webnotes.conn.cur_db_name))
+						  webnotes.get_db_password(webnotes.conn.cur_db_name))
 	recipient_list = odb.get_backup()
 	delete_temp_backups()
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly on the following email address:
 	%s""" % (', '.join(recipient_list)))
-
-
-def get_db_password(db_name):
-	"""
-		Get db password from defs
-	"""
-	from webnotes import defs
-	if hasattr(defs, 'get_db_password'):
-		return defs.get_db_password(db_name)
-
-	if hasattr(defs, 'db_password'):
-		return defs.db_password
-
-
 
 def delete_temp_backups():
 	"""

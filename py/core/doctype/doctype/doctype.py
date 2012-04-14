@@ -104,10 +104,10 @@ class DocType:
 
 		self.change_modified_of_parent()
 		
-		from webnotes import defs
+		import conf
 		from webnotes.utils.transfer import in_transfer
 
-		if (not in_transfer) and getattr(webnotes.defs,'developer_mode', 0):
+		if (not in_transfer) and getattr(conf,'developer_mode', 0):
 			self.export_doc()
 
 		from webnotes.utils.cache import CacheItem

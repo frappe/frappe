@@ -58,7 +58,8 @@ class DocType:
 	
 	def export_doc(self):
 		# export
-		if self.doc.standard == 'Yes' and getattr(webnotes.defs, 'developer_mode', 0) == 1:
+		import conf
+		if self.doc.standard == 'Yes' and getattr(conf, 'developer_mode', 0) == 1:
 			from webnotes.modules.export_module import export_to_files
 			export_to_files(record_list=[['Search Criteria', self.doc.name]])
 

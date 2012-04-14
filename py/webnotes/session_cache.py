@@ -50,13 +50,14 @@ def clear_cache(user=''):
 	
 def get():
 	"""get session boot info"""
-	import webnotes.defs
+	import webnotes
+	import conf
 	
 	# get country
 	country = webnotes.session['data'].get('ipinfo', {}).get('countryName', 'Unknown Country')
 
 	# check if cache exists
-	if not getattr(webnotes.defs,'auto_cache_clear',None):
+	if not getattr(conf,'auto_cache_clear',None):
 		cache = load(country)
 		if cache:
 			return cache

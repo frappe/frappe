@@ -359,16 +359,13 @@ class DbManager:
 		"""get list of databases"""
 		return [d[0] for d in self.conn.sql("SHOW DATABASES")]
 
-	def restore_database(self,target,source,root_password):
-		import webnotes.defs
-		mysql_path = getattr(webnotes.defs, 'mysql_path', None)
-		mysql = mysql_path and os.path.join(mysql_path, 'mysql') or 'mysql'
-		
+	def restore_database(self,target,source,root_password):		
 		from webnotes.utils import make_esc
 		esc = make_esc('$ ')
 		
 		try:
-			ret = os.system("%s -u root -p%s %s < %s"%(mysql, esc(root_password), esc(target), source))
+			ret = os.system("mysql -u root -p%s %s < %s" % \
+				(esc(root_password), esc(target), source))
 		except Exception,e:
 			raise e
 

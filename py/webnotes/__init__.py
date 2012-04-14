@@ -107,14 +107,8 @@ def get_index_path():
 	return os.sep.join(os.path.dirname(os.path.abspath(__file__)).split(os.sep)[:-2])
 
 def get_files_path():
-	import defs, os
-	if not conn:
-		raise Exception, 'You must login first'
-
-	if defs.files_path:
-		return os.path.join(defs.files_path, conn.cur_db_name)
-	else:
-		return os.path.join(get_index_path(), 'user_files', conn.cur_db_name)
+	import conf
+	return conf.files_path
 	
 def create_folder(path):
 	"""
@@ -179,14 +173,14 @@ remote_ip = get_env_vars('REMOTE_ADDR')		#Required for login from python shell
 logger = None
 	
 def get_db_password(db_name):
-	"""get db password from defs"""
-	import defs
+	"""get db password from conf"""
+	import conf
 	
-	if hasattr(defs, 'get_db_password'):
-		return defs.get_db_password(db_name)
+	if hasattr(conf, 'get_db_password'):
+		return conf.get_db_password(db_name)
 		
-	elif hasattr(defs, 'db_password'):
-		return defs.db_password
+	elif hasattr(conf, 'db_password'):
+		return conf.db_password
 		
 	else:
 		return db_name

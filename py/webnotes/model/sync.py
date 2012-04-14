@@ -22,13 +22,13 @@ def sync_core_doctypes(force=0):
 
 def sync_modules(force=0):
 	import os
-	import webnotes.defs
-	for path, folders, files in os.walk(webnotes.defs.modules_path):
-		if path == webnotes.defs.modules_path:
+	import conf
+	for path, folders, files in os.walk(conf.modules_path):
+		if path == conf.modules_path:
 			modules_list = folders
 		for f in files:
 			if f.endswith(".txt"):
-				rel_path = os.path.relpath(path, webnotes.defs.modules_path)
+				rel_path = os.path.relpath(path, conf.modules_path)
 				path_tuple = rel_path.split(os.sep)
 				if (len(path_tuple)==3 and path_tuple[0] in modules_list and
 						path_tuple[1] == 'doctype'):
