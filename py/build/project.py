@@ -23,26 +23,33 @@
 verbose = False
 import os				
 
+def generate_hash():
+	"""
+		 Generates random hash for session id
+	"""
+	import hashlib, time
+	return hashlib.sha224(str(time.time())).hexdigest()
+	
 def build():
 	"""concat / minify js files"""
 	from py.build.bundle import Bundle
 	bundle = Bundle()
 	bundle.make('build.json')
-	increment_version()
+	update_version()
 
 def get_version():
 	"""get from version.num file and increment it"""
 	if os.path.exists('version.num'):
 		with open('version.num', 'r') as vfile:
-			version = int(vfile.read()) + 1
+			version = vfile.read()
 	else:
-		version = 1
+		version = generate_hash()
 
 	return version
 
-def increment_version():
+def update_version():
 	"""incremenet version by 1"""
-	version = get_version()
+	version = generate_hash()
 	with open('version.num', 'w') as vfile:
 		vfile.write(str(version))
 		
