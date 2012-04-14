@@ -79,14 +79,14 @@ class Bundle:
 		"""
 			Build (stitch + compress) the file defined in build.json
 		"""
-		import os, sys, json
+		import os, sys
 		from build import no_minify
 		
 		# open the build.json file and read
 		# the dict
 		print "making %s ..." % bpath
 		with open(bpath, 'r') as bfile:
-			bdata = json.loads(bfile.read())
+			bdata = eval(bfile.read())
 		
 		path = os.path.dirname(bpath)
 		

@@ -14,6 +14,7 @@ wn.views.pageview = {
 		}		
 	},
 	show: function(name) {
+		if(!name) return;
 		wn.views.pageview.with_page(name, function() {
 			if(!wn.pages[name]) {
 				wn.views.pageview.pages[name]  = new wn.views.Page(name);

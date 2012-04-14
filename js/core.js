@@ -25,7 +25,7 @@
 if(!console) {
 	var console = {
 		log: function(txt) {
-			errprint(txt);
+			alert(txt);
 		}
 	}
 }

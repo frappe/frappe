@@ -6,14 +6,23 @@ Projects: [erpnext](http://erpnext.org) | [webnotes/erpnext](https://github.com/
 
 ## Setup
 
-- In your application root, set wnframework folder as the "lib" folder.
-- Copy index.cgi, build.json, wnf.py in the application root
-- update "conf.py" with database, email authentication info
+To start a new project, in the application root:
+
+1. Set wnframework folder as the `lib` folder.
+1. Copy the following files from lib/conf: `index.cgi`, `build.json`, `conf.py`. 
+1. Create folders `js`, `css`, `modules`, `modules/startup`. These folders contain the js, css assets and modules folder is where all the new application modules will be created.
+1. Update database name/password in conf.py and set modules folder to "modules".
+1. Run `$ lib/wnf.py --install dbrootpassword newdbname lib/conf/Framework.sql` to install a fresh database.
+1. Create `app.js` containing basic application info (see `lib/conf`)
+1. Create empty files `__init__.py` and `event_handlers.py` in `modules/startup`. This is where you write all events (like, onlogin, onlogout etc)
+1. Run `$ lib/wnf.py -b` to build js and css assets from `build.json`.
+1. Go to the browser and go to your application folder. The admin username is "Administrator" and password is "admin"
+
+enjoy!
 
 ## wnf.py
 
-wnf.py is the command line utility to build client side files. Usually all client-side files
-that are common are build in js/all-web.js (for non logged in users) or js/all-app.js (for logged in users)
+`$ lib/wnf.py --help` for more info
 
 ## License
 

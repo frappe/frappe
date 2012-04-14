@@ -64,7 +64,7 @@ wn.request.cleanup = function(opts, r) {
 	if(r.server_messages) msgprint(r.server_messages)
 	
 	// show errors
-	if(r.exc) { errprint(r.exc); console.log(r.exc); };
+	if(r.exc) { console.log(r.exc); };
 		
 	// sync docs
 	if(r.docs) LocalDB.sync(r.docs);

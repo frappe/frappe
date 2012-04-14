@@ -52,7 +52,8 @@ function startup() {
 			if(wn.control_panel.custom_startup_code)
 				eval(wn.control_panel.custom_startup_code);
 		} catch(e) {
-			errprint(e);
+			console.log('Error in evaluating custom startup code:');
+			console.log(e);
 		}
 				
 		// open an existing page or record
@@ -100,7 +101,7 @@ function to_open() {
 function logout() {
 	$c('logout', args = {}, function(r,rt) { 
 		if(r.exc) {
-			msgprint(r.exc);
+			console.log(r.exc);
 			return;
 		}
 		redirect_to_login();

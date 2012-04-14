@@ -48,7 +48,6 @@ def get_bootinfo():
 
 	if webnotes.session['user'] != 'Guest':
 		import webnotes.widgets.menus
-		bootinfo['dt_labels'] = get_dt_labels()
 		bootinfo['user_info'] = get_fullnames()
 		bootinfo['sid'] = webnotes.session['sid'];
 		
@@ -111,8 +110,3 @@ def get_home_page(bootinfo, doclist):
 		bootinfo['home_page_html'] = page_doclist[0].content
 
 	bootinfo['home_page'] = home_page or ''
-
-def get_dt_labels():
-	import webnotes
-	res = webnotes.conn.sql("select name, dt_label from `tabDocType Label`")
-	return dict(res)
