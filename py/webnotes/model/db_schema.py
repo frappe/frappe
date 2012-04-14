@@ -110,10 +110,15 @@ class DbTable:
 			get columns from docfields and custom fields
 		"""
 		fl = webnotes.conn.sql("SELECT * FROM tabDocField WHERE parent = '%s'" % self.doctype, as_dict = 1)
-		custom_fl = webnotes.conn.sql("""\
-			SELECT * FROM `tabCustom Field`
-			WHERE dt = %s AND docstatus < 2""", self.doctype, as_dict=1)
-		if custom_fl: fl += custom_fl
+		
+		try:
+			custom_fl = webnotes.conn.sql("""\
+				SELECT * FROM `tabCustom Field`
+				WHERE dt = %s AND docstatus < 2""", self.doctype, as_dict=1)
+			if custom_fl: fl += custom_fl
+		except Exception, e:
+			if e.args[0]!=1146: # ignore no custom field
+				raise e
 
 		for f in fl:
 			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],

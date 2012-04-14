@@ -63,9 +63,13 @@ def get_bootinfo():
 	bootinfo['docs'] = doclist
 	
 	# plugins
-	import startup.event_handlers
-	if getattr(startup.event_handlers, 'boot_session'):
-		startup.event_handlers.boot_session(bootinfo)
+	try:
+		import startup.event_handlers
+		if getattr(startup.event_handlers, 'boot_session'):
+			startup.event_handlers.boot_session(bootinfo)
+
+	except ImportError:
+		pass
 
 	webnotes.conn.commit()
 	

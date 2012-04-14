@@ -62,7 +62,11 @@ class CacheItem:
 	
 	def clear(self):
 		"""clear the item"""
-		webnotes.conn.sql("delete from __CacheItem where `key`=%s", self.key)
+		try:
+			webnotes.conn.sql("delete from __CacheItem where `key`=%s", self.key)
+		except Exception, e:
+			if e.args[0]!=1146: # ignore table not existing
+				raise e
 
 def setup():
 	webnotes.conn.commit()
