@@ -141,6 +141,9 @@ def load_install_docs(modules):
 					create_doc(data)
 			
 			webnotes.conn.commit()
+			
+		if hasattr(module, 'module_init'):
+			module.module_init()
 
 def create_doc(data):
 	from webnotes.model.doc import Document

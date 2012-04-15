@@ -102,11 +102,15 @@ def get_profile(bootinfo):
 def get_home_page(bootinfo, doclist):
 	"""load home page"""
 	import webnotes
-	home_page = webnotes.user.get_home_page()
-	if home_page:
-		import webnotes.widgets.page
-		page_doclist = webnotes.widgets.page.get(home_page)
-		doclist += webnotes.widgets.page.get(home_page)
-		bootinfo['home_page_html'] = page_doclist[0].content
+	import webnotes.widgets.page
 
-	bootinfo['home_page'] = home_page or ''
+	home_page = webnotes.user.get_home_page() or 'Login Page'
+
+	try:
+		page_doclist = webnotes.widgets.page.get(home_page)
+	except webnotes.PermissionError, e:
+		page_doclist = webnotes.widgets.page.get('Login Page')
+		
+	bootinfo['home_page_html'] = page_doclist[0].content
+	bootinfo['home_page'] = page_doclist[0].name
+	doclist += page_doclist

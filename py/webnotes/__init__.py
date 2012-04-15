@@ -58,7 +58,10 @@ class ValidationError(Exception):
 	
 class AuthenticationError(Exception):
 	pass
-	
+
+class PermissionError(Exception):
+	pass
+
 class UnknownDomainError(Exception):
 	def __init__(self, value):
 		self.value = value
