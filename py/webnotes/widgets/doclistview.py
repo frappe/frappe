@@ -37,6 +37,11 @@ def get(arg=None):
 	filters = json.loads(data['filters'])
 	fields = json.loads(data['fields'])
 	tables = ['`tab' + data['doctype'] + '`']
+
+	# select fields if they exist in table
+	columns = [".".join([tables[0], col]) for col in get_table_columns(data['doctype'])]
+	fields = [f for f in fields if f in columns]
+
 	docstatus = json.loads(data['docstatus'])
 	if docstatus:
 		conditions = [tables[0] + '.docstatus in (' + ','.join(docstatus) + ')']
@@ -97,10 +102,11 @@ def get_stats():
 	import json
 	tags = json.loads(webnotes.form_dict.get('stats'))
 	doctype = webnotes.form_dict['doctype']
-	
 	stats = {}
 	
+	columns = get_table_columns(doctype)
 	for tag in tags:
+		if not tag in columns: continue
 		tagcount = webnotes.conn.sql("""select %(tag)s, count(*) 
 			from `tab%(doctype)s` 
 			where ifnull(%(tag)s, '')!=''
@@ -131,7 +137,7 @@ def scrub_user_tags(tagcount):
 		rlist.append([tag, rdict[tag]])
 	
 	return rlist
-	
 
-		
-		
+def get_table_columns(table):
+	res = webnotes.conn.sql("DESC `tab%s`" % table, as_dict=1)
+	if res: return [r['Field'] for r in res]
