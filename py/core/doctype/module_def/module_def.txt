@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-04-14 17:04:29',
+		'creation': '2012-04-15 11:01:48',
 		'docstatus': 0,
-		'modified': '2012-04-14 23:59:39',
+		'modified': '2012-04-15 11:13:35',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -17,11 +17,10 @@
 		'doctype': 'DocType',
 		'module': u'Core',
 		'name': '__common__',
-		'search_fields': u'doctype_list',
 		'section_style': u'Simple',
 		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 3
+		'version': 1
 	},
 
 	# These values are common for all DocField
