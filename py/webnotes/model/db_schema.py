@@ -295,7 +295,7 @@ class DbManager:
 		"""
 		Just returns the output of Desc tables.
 		"""
-		return list(self.conn.sql("DESC %s"%table))
+		return list(self.conn.sql("DESC `%s`"%table))
 		
 			
 	def get_tables_list(self,target=None):
