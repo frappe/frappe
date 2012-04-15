@@ -33,6 +33,10 @@ setup() sets up cache
 
 import webnotes
 
+def clear():
+	"""clear doctype cache"""
+	webnotes.conn.sql("""delete from __CacheItem""")
+
 class CacheItem:
 	def __init__(self, key):
 		"""create a new cache"""
@@ -57,8 +61,5 @@ class CacheItem:
 	
 	def clear(self):
 		"""clear the item"""
-		try:
-			webnotes.conn.sql("delete from __CacheItem where `key`=%s", self.key)
-		except Exception, e:
-			if e.args[0]!=1146: # ignore table not existing
-				raise e
+		webnotes.conn.sql("delete from __CacheItem where `key`=%s", self.key)
+

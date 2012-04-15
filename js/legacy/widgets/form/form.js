@@ -1108,7 +1108,7 @@ _f.set_value = function(dt, dn, fn, v) {
 			var frm = wn.views.formview[d.parenttype].frm;
 		} else {
 			locals[d.doctype][d.name].__unsaved = 1;
-			var frm = wn.views.formview[d.doctype].frm;
+			var frm = wn.views.formview[d.doctype] && wn.views.formview[d.doctype].frm;
 		}
 		
 		if(frm && frm==cur_frm && frm.frm_head) {

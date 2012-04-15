@@ -130,9 +130,6 @@ def setup_options():
 	parser.add_option("--replace", nargs=3, default=False, 
 						metavar = "search replace_by extension",
 						help="file search-replace")
-
-	parser.add_option("--cci", nargs=1, metavar="CacheItem Key or all",
-		help="Clear Cache Item")
 	
 	parser.add_option("--sync_all", help="Synchronize all DocTypes using txt files",
 			nargs=0)
@@ -169,7 +166,11 @@ def run():
 	elif options.clear:
 		from build.project import update_version
 		print "Version:" + str(update_version())
-	
+		import webnotes.utils.cache
+		webnotes.conn.begin()
+		webnotes.utils.cache.clear()
+		webnotes.conn.commit()
+		
 	# code replace
 	elif options.replace:
 		replace_code('.', options.replace[0], options.replace[1], options.replace[2])
@@ -245,14 +246,7 @@ def run():
 	elif options.run_scheduler_event is not None:
 		import webnotes.utils.scheduler
 		print webnotes.utils.scheduler.trigger('execute_' + options.run_scheduler_event)
-	
-	elif options.cci is not None:
-		if options.cci=='all':
-			webnotes.conn.sql("DELETE FROM __CacheItem")
-		else:
-			from webnotes.utils.cache import CacheItem
-			CacheItem(options.cci).clear()
-	
+		
 	elif options.sync_all is not None:
 		import webnotes.model.sync
 		webnotes.model.sync.sync_all(options.force or 0)

@@ -31,20 +31,25 @@ import webnotes
 @webnotes.whitelist()
 def clear(user=None):
 	"""clear all cache"""
+	import webnotes
 	clear_cache(user)
 	webnotes.response['message'] = "Cache Cleared"
 
 def clear_cache(user=''):
 	"""clear cache"""
+	import webnotes
 	if user:
 		webnotes.conn.sql("delete from __SessionCache where user=%s", user)
 		webnotes.conn.sql("update tabSessions set sessiondata=NULL where user=%s", user)
 	else:
 		webnotes.conn.sql("delete from __SessionCache")
 		webnotes.conn.sql("update tabSessions set sessiondata=NULL")
+
+	# doctype cache
+	import webnotes.utils.cache
+	webnotes.utils.cache.clear()
 	
 	# rebuild a cache for guest
-	
 	if webnotes.session:
 		webnotes.session['data'] = {}
 	
