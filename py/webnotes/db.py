@@ -343,14 +343,25 @@ class Database:
 		"""	
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
 
-	def exists(self, dt, dn):
+	def exists(self, dt, dn=None):
 		"""
 		      Returns true if the record exists
 		"""	
-		try:
-			return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), dn)
-		except:
-			return None
+		if isinstance(dt, basestring):
+			try:
+				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), dn)
+			except:
+				return None
+		elif isinstance(dt, dict) and dt.get('doctype'):
+			try:
+				conditions = []
+				for d in dt:
+					if d == 'doctype': continue
+					conditions.append('`%s` = "%s"' % (d, dt[d].replace('"', '\"')))
+				return self.sql('select name from `tab%s` where %s' % \
+						(dt['doctype'], " and ".join(conditions)))
+			except:
+				return None
 
 	# ======================================================================================
 	def close(self):

@@ -126,22 +126,28 @@ def save_perms_if_none_exist(doclist):
 
 def load_install_docs(modules):
 	import os
-	from webnotes.model.doc import Document
-	
 	if isinstance(modules, basestring): modules = [modules]
 	
 	for module_name in modules:
 		module = __import__(module_name)
 		if hasattr(module, 'install_docs'):
 			webnotes.conn.begin()
+
 			for data in module.install_docs:
 				if data.get('name'):
 					if not webnotes.conn.exists(data['doctype'], data.get('name')):
-						d = Document(data['doctype'])
-						d.fields.update(data)
-						d.save()
-						print 'Created %(doctype)s %(name)s' % d.fields
+						create_doc(data)
+				elif not webnotes.conn.exists(data):
+					create_doc(data)
+			
 			webnotes.conn.commit()
+
+def create_doc(data):
+	from webnotes.model.doc import Document
+	d = Document(data['doctype'])
+	d.fields.update(data)
+	d.save()
+	print 'Created %(doctype)s %(name)s' % d.fields
 
 import unittest
 class TestSync(unittest.TestCase):
