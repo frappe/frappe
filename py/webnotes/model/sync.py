@@ -12,28 +12,44 @@ def sync_all(force=0):
 def sync_core_doctypes(force=0):
 	import os
 	import core
-	module_name = 'core'
-	core_path = os.path.abspath(os.sep.join(core.__file__.split(os.sep)[:-1]
-		+ ['doctype']))
-	for path, folders, files in os.walk(core_path):
-		for f in files:
-			if f.endswith(".txt"):
-				sync(module_name, f[:-4], force)
+	# doctypes
+	walk_and_sync(os.path.abspath(os.path.dirname(core.__file__)), force)
 
 def sync_modules(force=0):
-	import os
 	import conf
-	for path, folders, files in os.walk(conf.modules_path):
-		if path == conf.modules_path:
-			modules_list = folders
+	walk_and_sync(conf.modules_path, force)
+
+def walk_and_sync(start_path, force=0):
+	"""walk and sync all doctypes and pages"""
+	import os
+	from webnotes.modules import reload_doc
+
+	modules = []
+
+	for path, folders, files in os.walk(start_path):
 		for f in files:
 			if f.endswith(".txt"):
-				rel_path = os.path.relpath(path, conf.modules_path)
-				path_tuple = rel_path.split(os.sep)
-				if (len(path_tuple)==3 and path_tuple[0] in modules_list and
-						path_tuple[1] == 'doctype'):
-					#print (path_tuple[0], f[:-4])
-					sync(path_tuple[0], f[:-4], force)
+				# great grand-parent folder is module_name
+				module_name = path.split(os.sep)[-3]
+				if not module_name in modules:
+					modules.append(module_name)
+				
+				# grand parent folder is doctype
+				doctype = path.split(os.sep)[-2]
+				
+				# parent folder is the name
+				name = path.split(os.sep)[-1]
+				
+				if doctype == 'doctype':
+					sync(module_name, name, force)
+				elif doctype == 'page':
+					reload_doc(module_name, 'page', name)
+					print module_name + ' | ' + doctype + ' | ' + name
+					
+	# load install docs
+	load_install_docs(modules)
+		
+
 
 # docname in small letters with underscores
 def sync(module_name, docname, force=0):
@@ -43,14 +59,16 @@ def sync(module_name, docname, force=0):
 		modified = doclist[0]['modified']
 		if not doclist:
 			raise Exception('DocList could not be evaluated')
-		if modified == str(webnotes.conn.get_value('DocType', doclist[0].get('name'), 'modified')) and not force:
+		if modified == str(webnotes.conn.get_value(doclist[0].get('doctype'), 
+			doclist[0].get('name'), 'modified')) and not force:
 			return
 		webnotes.conn.begin()
 		
 		delete_doctype_docfields(doclist)
 		save_doctype_docfields(doclist)
 		save_perms_if_none_exist(doclist)
-		webnotes.conn.sql('UPDATE `tabDocType` SET modified=%s WHERE name=%s',
+		webnotes.conn.sql("""UPDATE `tab{doctype}` 
+			SET modified=%s WHERE name=%s""".format(doctype=doclist[0]['doctype']),
 				(modified, doclist[0]['name']))
 		
 		webnotes.conn.commit()
@@ -106,6 +124,24 @@ def save_perms_if_none_exist(doclist):
 		if d.get('doctype') != 'DocPerm': continue
 		Document(fielddata=d).save(1, check_links=0, ignore_fields=1)
 
+def load_install_docs(modules):
+	import os
+	from webnotes.model.doc import Document
+	
+	if isinstance(modules, basestring): modules = [modules]
+	
+	for module_name in modules:
+		module = __import__(module_name)
+		if hasattr(module, 'install_docs'):
+			webnotes.conn.begin()
+			for data in module.install_docs:
+				if data.get('name'):
+					if not webnotes.conn.exists(data['doctype'], data.get('name')):
+						d = Document(data['doctype'])
+						d.fields.update(data)
+						d.save()
+						print 'Created %(doctype)s %(name)s' % d.fields
+			webnotes.conn.commit()
 
 import unittest
 class TestSync(unittest.TestCase):

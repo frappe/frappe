@@ -24,9 +24,10 @@ install_docs = [
 	{'doctype':'Module Def', 'name': 'Core', 'module_name':'Core'},
 
 	# roles
-	{'doctype':'Role', 'role_name': 'Administrator'},
-	{'doctype':'Role', 'role_name': 'All'},
-	{'doctype':'Role', 'role_name': 'Guest'},
+	{'doctype':'Role', 'role_name': 'Administrator', 'name': 'Administrator'},
+	{'doctype':'Role', 'role_name': 'All', 'name': 'All'},
+	{'doctype':'Role', 'role_name': 'System Manager', 'name': 'System Manager'},
+	{'doctype':'Role', 'role_name': 'Guest', 'name': 'Guest'},
 	
 	# profiles
 	{'doctype':'Profile', 'name':'Administrator', 'first_name':'Administrator', 

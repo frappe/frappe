@@ -3,16 +3,15 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:38',
+		'creation': '2012-04-14 17:04:30',
 		'docstatus': 0,
-		'modified': '2012-03-27 19:07:11',
+		'modified': '2012-04-15 08:57:32',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
-		'_last_update': u'1308120990',
 		'allow_print': 0,
 		'allow_trash': 1,
 		'autoname': u"eval:doc.select_doctype + '-' + (doc.select_item or doc.field_name) + '-' + doc.property",
@@ -26,7 +25,7 @@
 		'show_in_menu': 0,
 		'subject': u'<b>%(property)s</b> property of %(doc_type)s %(doc_name)s',
 		'tag_fields': u'property',
-		'version': 39
+		'version': 1
 	},
 
 	# These values are common for all DocField

@@ -45,7 +45,8 @@ class DocType:
 		return webnotes.conn.sql("select name, fieldtype, label, fieldname from tabDocField where parent=%s", self.doc.doc_type, as_dict = 1)
 	
 	def get_defaults(self):
-		if self.doc.doc_type == self.doc.doc_name:
-			return webnotes.conn.sql("select * from `tabDocType` where name=%s", self.doc.doc_name, as_dict = 1)[0]
+		if not self.doc.field_name:
+			return webnotes.conn.sql("select * from `tabDocType` where name=%s", self.doc.doc_type, as_dict = 1)[0]
 		else:
-			return webnotes.conn.sql("select * from `tabDocField` where name=%s", self.doc.doc_name, as_dict = 1)[0]
+			return webnotes.conn.sql("select * from `tabDocField` where fieldname=%s and parent=%s", 
+				(self.doc.field_name, self.doc.doc_type), as_dict = 1)[0]

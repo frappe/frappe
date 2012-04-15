@@ -82,7 +82,6 @@ class Installer:
 			from webnotes.model.sync import sync_core_doctypes
 			print "Building tables from core module..."
 			sync_core_doctypes()
-			self.install_core()
 
 		# framework cleanups
 		self.framework_cleanups(target)
@@ -97,6 +96,7 @@ class Installer:
 		self.create_scheduler_log()
 		self.create_doctype_cache()
 		self.create_session_cache()
+		self.create_cache_item()
 
 		# set the basic passwords
 		webnotes.conn.begin()
@@ -144,25 +144,14 @@ class Installer:
 			country VARCHAR(120), 
 			cache LONGTEXT)""")
 
-	def install_core(self):
-		"""create install docs"""
+	def create_cache_item(self):
 		import webnotes
-		from core import install_docs
-		from webnotes.model.doc import Document
-		from webnotes.modules import reload_doc
-
-		webnotes.conn.begin()
-		
-		for data in install_docs:
-			d = Document(data['doctype'])
-			d.fields.update(data)
-			d.save()
-			print 'Created %(doctype)s %(name)s' % d.fields
-	
-		# login page
-		reload_doc('core', 'page', 'login_page')
-		print 'Loaded Login Page'
-		
-		webnotes.conn.commit()
+		self.dbman.drop_table('__CacheItem')
+		webnotes.conn.sql("""create table __CacheItem(
+			`key` VARCHAR(180) NOT NULL PRIMARY KEY,
+			`value` TEXT,
+			`expires_on` TIMESTAMP
+			)""")
+			
 
 		

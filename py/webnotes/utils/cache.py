@@ -47,18 +47,13 @@ class CacheItem:
 	
 	def set(self, value, interval=6000):
 		"""set a new value, with interval"""
-		try:
-			self.clear()
-			webnotes.conn.sql("""INSERT INTO 
-					__CacheItem (`key`, `value`, expires_on) 
-				VALUES 
-					(%s, %s, addtime(now(), sec_to_time(%s)))
-				""", (self.key, str(value), interval))
-		except Exception, e:
-			if e.args[0]==1146: 
-				setup()
-				self.set(value, interval)
-			else: raise e
+		self.clear()
+		webnotes.conn.sql("""INSERT INTO 
+				__CacheItem (`key`, `value`, expires_on) 
+			VALUES 
+				(%s, %s, addtime(now(), sec_to_time(%s)))
+			""", (self.key, str(value), interval))
+
 	
 	def clear(self):
 		"""clear the item"""
@@ -67,13 +62,3 @@ class CacheItem:
 		except Exception, e:
 			if e.args[0]!=1146: # ignore table not existing
 				raise e
-
-def setup():
-	webnotes.conn.commit()
-	webnotes.conn.sql("""create table __CacheItem(
-		`key` VARCHAR(180) NOT NULL PRIMARY KEY,
-		`value` TEXT,
-		`expires_on` TIMESTAMP
-		)""")
-	webnotes.conn.begin()
-

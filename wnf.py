@@ -158,6 +158,8 @@ def run():
 	# connect
 	if options.db_name is not None:
 		webnotes.connect(options.db_name)
+	else:
+		webnotes.connect(conf.db_name)
 
 	# build
 	if options.build:
