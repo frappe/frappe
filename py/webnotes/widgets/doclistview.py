@@ -36,6 +36,7 @@ def get(arg=None):
 	data = webnotes.form_dict
 	filters = json.loads(data['filters'])
 	fields = json.loads(data['fields'])
+		
 	tables = ['`tab' + data['doctype'] + '`']
 	docstatus = json.loads(data['docstatus'])
 	if docstatus:

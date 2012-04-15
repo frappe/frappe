@@ -35,7 +35,7 @@ class Database:
 	"""
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or 'localhost'
-		self.user = user or getattr(conf, 'default_db_name', '')
+		self.user = user or conf.db_name
 
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or conf.db_name
@@ -50,7 +50,7 @@ class Database:
 		self.auto_commit_on_many_writes = 0
 
 		self.password = password or webnotes.get_db_password(self.user)
-		
+				
 		self.connect()
 		if self.user != 'root':
 			self.use(self.user)

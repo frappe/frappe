@@ -145,8 +145,7 @@ def remove_file(path):
 	except OSError, e:
 		if e.args[0]!=2: 
 			raise e
-
-
+			
 def connect(db_name=None):
 	"""
 		Connect to this db (or db), if called from command prompt

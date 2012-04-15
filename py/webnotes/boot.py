@@ -64,7 +64,7 @@ def get_bootinfo():
 	# plugins
 	try:
 		import startup.event_handlers
-		if getattr(startup.event_handlers, 'boot_session'):
+		if getattr(startup.event_handlers, 'boot_session', None):
 			startup.event_handlers.boot_session(bootinfo)
 
 	except ImportError:

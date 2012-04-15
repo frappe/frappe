@@ -43,6 +43,7 @@
 
 //   page_length (20)
 //   hide_refresh (False)
+//   no_toolbar
 //   new_doctype
 //   [function] render_row(parent, data)
 //   [function] onrun
@@ -92,7 +93,7 @@ wn.ui.Listing = Class.extend({
 					</div>\
 				</div>\
 				\
-				<div style="height: 37px; margin-bottom:9px" class="list-toolbar-wrapper">\
+				<div style="margin-bottom:9px" class="list-toolbar-wrapper">\
 					<div class="list-toolbar" style="display:inline-block; margin-right: 10px;">\
 					</div>\
 					<div style="display:inline-block; width: 24px; margin-left: 4px">\
@@ -180,6 +181,10 @@ wn.ui.Listing = Class.extend({
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}
+		
+		if(me.no_toolbar || me.hide_toolbar) {
+			me.$w.find('.list-toolbar-wrapper').toggle(false);
+		}
 	},
 
 	make_filters: function() {
@@ -208,12 +213,12 @@ wn.ui.Listing = Class.extend({
 		if(a0 && a0.callback)
 			this.onrun = a0.callback;
 		if(!a1 && !(a0 && a0.append)) 
-			this.start = 0;		
+			this.start = 0;
 
 		me.set_working(true);
 		wn.call({
 			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
-			args: this.get_call_args(),
+			args: this.get_call_args(a0),
 			callback: function(r) { 
 				me.set_working(false);
 				me.render_results(r) 
@@ -224,7 +229,7 @@ wn.ui.Listing = Class.extend({
 	set_working: function(flag) {
 		this.$w.find('.img-load').toggle(flag);
 	},
-	get_call_args: function() {
+	get_call_args: function(opts) {
 		// load query
 		if(!this.method) {
 			this.query = this.get_query ? this.get_query() : this.query;
@@ -246,7 +251,7 @@ wn.ui.Listing = Class.extend({
 			$.extend(args, this.args)
 			
 		if(this.get_args) {
-			$.extend(args, this.get_args());
+			$.extend(args, this.get_args(opts));
 		}
 		return args;		
 	},
