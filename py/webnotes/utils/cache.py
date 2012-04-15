@@ -35,7 +35,10 @@ import webnotes
 
 def clear():
 	"""clear doctype cache"""
-	webnotes.conn.sql("""delete from __CacheItem""")
+	try:
+		webnotes.conn.sql("""delete from __CacheItem""")
+	except Exception, e:
+		if e.args[0]!=1146: raise e
 
 class CacheItem:
 	def __init__(self, key):
@@ -61,5 +64,7 @@ class CacheItem:
 	
 	def clear(self):
 		"""clear the item"""
-		webnotes.conn.sql("delete from __CacheItem where `key`=%s", self.key)
-
+		try:
+			webnotes.conn.sql("delete from __CacheItem where `key`=%s", self.key)
+		except Exception, e:
+			if e.args[0]!=1146: raise e

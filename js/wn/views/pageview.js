@@ -14,9 +14,12 @@ wn.views.pageview = {
 		}		
 	},
 	show: function(name) {
-		if(!name) return;
-		wn.views.pageview.with_page(name, function() {
-			if(!wn.pages[name]) {
+		if(!name) name = wn.boot.home_page;
+		wn.views.pageview.with_page(name, function(r) {
+			if(r && r.exc) {
+				if(!wn.pages['404']) wn.views.make_404();
+				wn.container.change_to('404');
+			} else if(!wn.pages[name]) {
 				wn.views.pageview.pages[name]  = new wn.views.Page(name);
 			}
 			wn.container.change_to(name);			
@@ -59,3 +62,13 @@ wn.views.Page = Class.extend({
 		}
 	}
 })
+
+
+wn.views.make_404 = function() {
+	var page = wn.container.add_page('404');
+	$(page).html('<div class="layout-wrapper">\
+		<h1>Not Found</h1><br>\
+		<p>Sorry we were unable to find what you were looking for.</p>\
+		<p><a href="#">Go back to home</a></p>\
+		</div>')
+};
