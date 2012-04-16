@@ -37,7 +37,7 @@ wn.set_route = function() {
 	window.location.hash = route;
 	
 	// Set favicon (app.js)
-	set_favicon();
+	wn.app.set_favicon();
 }
 
 wn._cur_route = null;
