@@ -11,6 +11,10 @@ wn.views.formview = {
 		// show doctype
 		wn.model.with_doctype(dt, function() {
 			wn.model.with_doc(dt, dn, function(dn) {
+				if(!(locals[dt] && locals[dt][dn])) {
+					wn.container.change_to('404');
+					return;
+				}
 				if(!wn.views.formview[dt]) {
 					wn.views.formview[dt] = wn.container.add_page('Form - ' + dt);
 					wn.views.formview[dt].frm = new _f.Frm(dt, wn.views.formview[dt]);
@@ -19,5 +23,9 @@ wn.views.formview = {
 				wn.views.formview[dt].frm.refresh(dn);
 			});
 		})
+	},
+	create: function(dt) {
+		var new_name = LocalDB.create(dt);
+		wn.set_route('Form', dt, new_name);
 	}
 }

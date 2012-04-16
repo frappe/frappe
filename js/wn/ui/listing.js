@@ -171,7 +171,7 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.add_button('New ' + this.new_doctype, function() {
-				newdoc(me.new_doctype)
+				wn.views.formview.create(me.new_doctype)
 			}, 'icon-plus');
 		} 
 		

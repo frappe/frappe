@@ -43,9 +43,10 @@ function new_doc(doctype, onload, in_dialog, on_save_callback, cdt, cdn, cnic) {
 	doctype = get_label_doctype(doctype);
 	wn.model.with_doctype(doctype, function() {
 		if(locals.DocType[doctype].in_dialog) {
-			_f.edit_record(doctype, 'New ' + doctype);
+			var new_name = LocalDB.create(doctype);
+			_f.edit_record(doctype, new_name);
 		} else {
-			wn.set_route('Form', doctype, 'New ' + doctype);
+			wn.views.formview.create(doctype);
 		}
 	})
 }

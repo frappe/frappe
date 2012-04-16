@@ -1,8 +1,17 @@
 // route urls to their virtual pages
 
+// re-route map (for rename)
+wn.re_route = {
+	
+}
 wn.route = function() {
+	if(wn.re_route[window.location.hash]) {
+		window.location.hash = wn.re_route[window.location.hash];
+	}
+
 	wn._cur_route = window.location.hash;
-	route = wn.get_route();
+
+	route = wn.get_route();	
 	
 	switch (route[0]) {
 		case "List":

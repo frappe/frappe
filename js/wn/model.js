@@ -47,20 +47,14 @@ wn.model = {
 		if(locals[doctype] && locals[doctype][name]) {
 			callback(name);
 		} else {
-			if(name && name.indexOf('New ' + doctype) != -1) {
-				// newdoc
-				name = LocalDB.create(doctype);
-				callback(name);
-			} else {
-				wn.call({
-					method: 'webnotes.widgets.form.load.getdoc',
-					args: {
-						doctype: doctype,
-						name: name
-					},
-					callback: function(r) { callback(name); }
-				});
-			}
+			wn.call({
+				method: 'webnotes.widgets.form.load.getdoc',
+				args: {
+					doctype: doctype,
+					name: name
+				},
+				callback: function(r) { callback(name); }
+			});
 		}
 	},
 
