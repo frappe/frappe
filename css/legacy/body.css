@@ -225,6 +225,10 @@ div.std-footer-item {
 	padding: 0px;
 }
 
+.layout-section {
+	padding: 15px;	
+}
+
 .layout-main-section {
 	width: 71%;
 	float: left;

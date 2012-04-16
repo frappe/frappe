@@ -17,7 +17,7 @@ div.appframe-titlebar {
 	background: -ms-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* IE10+ */
 	background: linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* W3C */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
-	border-bottom: 1px solid #ccc;
+	border-bottom: 1px solid #aaa;
 	min-height: 1.2em;
 }
 

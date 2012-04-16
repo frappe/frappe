@@ -25,6 +25,13 @@
 wn.widgets.FieldGroup = function() {
 	this.first_button = false;
 	this.make_fields = function(body, fl) {
+		if(!window.make_field) {
+			// called in website, load some libs
+			wn.require('lib/css/legacy/fields.css');
+			wn.require('lib/js/legacy/widgets/form/fields.js');
+			wn.require('lib/js/wn/ui/button.js');
+		}
+		
 		$y(this.body, {padding:'11px'});
 		this.fields_dict = {}; // reset
 		for(var i=0; i<fl.length; i++) {
@@ -184,6 +191,9 @@ wn.widgets.Dialog = function(opts) {
 }
 
 wn.widgets.Dialog.prototype = new wn.widgets.FieldGroup();
+
+wn.provide('wn.ui');
+wn.ui.Dialog = wn.widgets.Dialog
 
 // close open dialogs on ESC
 $(document).bind('keydown', function(e) {

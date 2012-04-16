@@ -198,19 +198,11 @@ def reset_password():
 		import profile
 		user_profile = profile.Profile(user)
 		pwd = user_profile.reset_password()
-		try:
-			from server_tools.gateway_utils import change_password
-			res = change_password(None, pwd, user=user)
-		except ImportError, e:
-			res = 'No Gateway'
-		if res and res.get('message')=='Password Updated' or res=='No Gateway':
-			user_profile.send_new_pwd(pwd)
-			webnotes.msgprint("Password has been reset and sent to your email id.")
-		else:
-			webnotes.msgprint('Unable to reset password. Please contact support@erpnext.com')
-			webnotes.msgprint(res)
+		user_profile.send_new_pwd(pwd)
+		
+		webnotes.msgprint("Password has been reset and sent to your email id.")
 	else:
-		webnotes.msgprint("No such user (%s)", user)
+		webnotes.msgprint("No such user (%s)" % user)
 
 
 def handle():

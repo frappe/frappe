@@ -75,7 +75,7 @@ class Bundle:
 		
 		print "Wrote %s - %sk" % (outfile, str(int(os.path.getsize(outfile)/1024)))
 
-	def make(self, bpath):
+	def make(self):
 		"""
 			Build (stitch + compress) the file defined in build.json
 		"""
@@ -84,16 +84,32 @@ class Bundle:
 		
 		# open the build.json file and read
 		# the dict
-		print "making %s ..." % bpath
-		with open(bpath, 'r') as bfile:
+		
+		print "Building js and css files..."
+		
+		# framework js and css files
+		with open('lib/build.json', 'r') as bfile:
 			bdata = eval(bfile.read())
 		
-		path = os.path.dirname(bpath)
+		# app js and css files
+		if os.path.exists('build.json'):
+			with open('build.json', 'r') as bfile:
+				appfiles = eval(bfile.read())
+		else:
+			appfiles = {}
+		
+		path = '.'
 		
 		for buildfile in bdata:
 			# build the file list relative to the main folder
 			outfile = buildfile.keys()[0]
 			infiles = buildfile[outfile]
+			
+			# add app js and css to the list
+			if outfile in appfiles:
+				for f in appfiles[outfile]:
+					if f not in infiles:
+						infiles.append(f)
 			
 			fl = [os.path.relpath(os.path.join(path, f), os.curdir) for f in infiles]
 

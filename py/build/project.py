@@ -34,7 +34,7 @@ def build():
 	"""concat / minify js files"""
 	from py.build.bundle import Bundle
 	bundle = Bundle()
-	bundle.make('build.json')
+	bundle.make()
 	update_version()
 
 def get_version():

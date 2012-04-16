@@ -20,7 +20,10 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-pscript['onload_Login Page'] = function(){
+pscript['onload_Login Page'] = function(wrapper){
+	wrapper.appframe = new wn.ui.AppFrame($(wrapper).find('.appframe-area'));
+	wrapper.appframe.title('Login');
+
 	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');
 
@@ -63,18 +66,26 @@ pscript.doLogin = function(){
 }
 
 
-pscript.show_forgot_password = function(){
+wn.show_forgot_password = function(){
     // create dialog
-    var d = new Dialog(400, 400, 'Reset Password')
-    d.make_body([['HTML','Title','Enter your email id to reset the password'], ['Data','Email Id'], ['Button','Reset']]);
+	var d = new wn.ui.Dialog({
+		title:"Forgot Password",
+		fields: [
+			{'label':'Email Id', 'fieldname':'email_id', 'fieldtype':'Data', 'reqd':true},
+			{'label':'Email Me A New Password', 'fieldname':'run', 'fieldtype':'Button'}
+		]
+	});
 
-    var callback = function(r,rt) { 
-        if(!r.exc) pscript.forgot_dialog.hide();
-    }
-
-    d.widgets['Reset'].onclick = function() {
-      $c('reset_password', {user: pscript.forgot_dialog.widgets['Email Id'].value}, callback)
-    }
-    d.show();
-    pscript.forgot_dialog = d;
+	$(d.fields_dict.run.input).click(function() {
+		var values = d.get_values();
+		if(!values) return;
+		wn.call({
+			method:'reset_password',
+			args: { user: values.email_id },
+			callback: function() {
+				d.hide();
+			}
+		})
+	})
+	d.show();
 }
