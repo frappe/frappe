@@ -378,6 +378,7 @@ _r.ReportBuilder.prototype.load_criteria = function(criteria_name) {
 
 	// refresh column picker
 	this.set_criteria_sel(criteria_name);
+	this.set_filters_from_route();
 }
 
 // -------------------------------------------------------------------------------------
@@ -473,9 +474,23 @@ _r.ReportBuilder.prototype.setup_filters_and_cols = function() {
 		$dh(this.report_filters.first_page_filter);
 	
 	this.column_picker.refresh();
-
+	
 	// show body
 	$ds(me.body);
+}
+
+_r.ReportBuilder.prototype.set_filters_from_route = function() {
+	// add filters from route
+	var route = wn.get_route();
+	if(route.length>3) {
+		for(var i=3; i<route.length; i++) {
+			var p = route[i].split('=');
+			if(p.length==2) {
+				var dt = this.parent_dt ? this.parent_dt: this.doctype;
+				this.set_filter(dt, p[0], p[1]);
+			}
+		} 
+	}	
 }
 
 // -------------------------------------------------------------------------------------
@@ -634,6 +649,8 @@ _r.ReportBuilder.prototype.reset_report = function() {
 	this.dt.page_len_sel.inp.value = '50';
 	this.dt.set_no_limit(0);
 	this.dt.set_desc();
+	
+	this.set_filters_from_route();
 }
 
 //

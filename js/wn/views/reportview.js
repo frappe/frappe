@@ -13,14 +13,9 @@ wn.views.reportview = {
 				var t = rb.current_loaded;
 				rb.load_criteria(rep_name);
 
-				// call onload
-				if(onload)
-					onload(rb);
-
 				// if loaded, then run
 				if((rb.dt) && (!rb.dt.has_data() || rb.current_loaded!=t))
 					rb.dt.run();
-
 			}
 
 			// show
