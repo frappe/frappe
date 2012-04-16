@@ -17,8 +17,7 @@ wn.views.pageview = {
 		if(!name) name = wn.boot.home_page;
 		wn.views.pageview.with_page(name, function(r) {
 			if(r && r.exc) {
-				if(!wn.pages['404']) wn.views.make_404();
-				wn.container.change_to('404');
+				if(!r['403'])wn.container.change_to('404');
 			} else if(!wn.pages[name]) {
 				wn.views.pageview.pages[name]  = new wn.views.Page(name);
 			}
@@ -70,5 +69,14 @@ wn.views.make_404 = function() {
 		<h1>Not Found</h1><br>\
 		<p>Sorry we were unable to find what you were looking for.</p>\
 		<p><a href="#">Go back to home</a></p>\
-		</div>')
+		</div>').toggle(false);
+};
+
+wn.views.make_403 = function() {
+	var page = wn.container.add_page('403');
+	$(page).html('<div class="layout-wrapper">\
+		<h1>Not Permitted</h1><br>\
+		<p>Sorry you are not permitted to view this page.</p>\
+		<p><a href="#">Go back to home</a></p>\
+		</div>').toggle(false);
 };

@@ -7,7 +7,7 @@ wn.views.Container = Class.extend({
 		this.container = $('#body_div').get(0);
 		this.page = null; // current page
 		this.pagewidth = $('#body_div').width();
-		this.pagemargin = 50;
+		this.pagemargin = 50;		
 	},
 	add_page: function(label, onshow, onhide) {
 		var page = $('<div class="content"></div>')

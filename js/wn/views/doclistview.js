@@ -27,7 +27,8 @@ wn.views.doclistview.pages = {};
 wn.views.doclistview.show = function(doctype) {
 	var pagename = doctype + ' List';
 	var doctype = get_label_doctype(doctype);
-	wn.model.with_doctype(doctype, function() {
+	wn.model.with_doctype(doctype, function(r) {
+		if(r && r['403']) return;
 		var page = wn.views.doclistview.pages[pagename];
 		if(!page) {
 			var page = wn.container.add_page(pagename);

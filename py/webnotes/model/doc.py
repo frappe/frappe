@@ -682,7 +682,7 @@ def check_page_perm(doc):
 		return
 
 	if not webnotes.conn.sql("select name from `tabPage Role` where parent=%s and role='Guest'", doc.name):
-		webnotes.response['exc_type'] = 'PermissionError'
+		webnotes.response['403'] = 1
 		raise webnotes.PermissionError, '[WNF] No read permission for %s %s' % ('Page', doc.name)
 
 def get_report_builder_code(doc):
@@ -716,7 +716,7 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 			check_page_perm(doc)
 	else:
 		if not doc.check_perm():
-			webnotes.response['exc_type'] = 'PermissionError'
+			webnotes.response['403'] = 1
 			raise webnotes.ValidationError, '[WNF] No read permission for %s %s' % (dt, dn)
 
 	if not with_children:

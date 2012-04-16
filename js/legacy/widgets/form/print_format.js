@@ -20,6 +20,26 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+// default print style
+_p.def_print_style_body = "html, body, div, span, td { font-family: Arial, Helvetica; font-size: 12px; }" + "\npre { margin:0; padding:0;}"	
+
+_p.def_print_style_other = "\n.simpletable, .noborder { border-collapse: collapse; margin-bottom: 10px;}"
+	+"\n.simpletable td {border: 1pt solid #000; vertical-align: top; padding: 2px; }"
+	+"\n.noborder td { vertical-align: top; }"
+
+_p.go = function(html) {
+	var d = document.createElement('div')
+	d.innerHTML = html
+	$(d).printElement();
+}
+
+_p.preview = function(html) {
+	var w = window.open('');
+	w.document.write(html)
+	w.document.close();
+}
+
+
 // _p can be referenced as this inside $.extend
 $.extend(_p, {
 	show_dialog: function() {
@@ -366,7 +386,7 @@ $.extend(_p, {
 		var cp = wn.control_panel;
 		var lh = '';
 		if(cur_frm.doc.letter_head) {
-			lh = cstr(_p.letter_heads[cur_frm.doc.letter_head]);
+			lh = cstr(wn.boot.letter_heads[cur_frm.doc.letter_head]);
 		} else if (cp.letter_head) {
 			lh = cp.letter_head;
 		}		

@@ -240,10 +240,11 @@ def execute_cmd(cmd):
 	# check if whitelisted
 	if webnotes.session['user'] == 'Guest':
 		if (method not in webnotes.guest_methods):
-			webnotes.msgprint('Not Allowed, %s' % str(method))
+			webnotes.response['403'] = 1
 			raise Exception, 'Not Allowed, %s' % str(method)
 	else:
 		if not method in webnotes.whitelisted:
+			webnotes.response['403'] = 1
 			webnotes.msgprint('Not Allowed, %s' % str(method))
 			raise Exception, 'Not Allowed, %s' % str(method)
 		

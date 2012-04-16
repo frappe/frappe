@@ -83,7 +83,10 @@ function msgprint(msg, issmall, callback) {
 var growl_area;
 function show_alert(txt, id) {
 	if(!growl_area) {
-		growl_area = $a(popup_cont, 'div', '', {position:'fixed', bottom:'8px', right:'8px', width: '320px', zIndex:10});
+		if(!$('#dialog-container').length) {
+			$('<div id="dialog-container">').appendTo('body');
+		}
+		growl_area = $a($i('dialog-container'), 'div', '', {position:'fixed', bottom:'8px', right:'8px', width: '320px', zIndex:10});
 	}
 	var wrapper = $a(growl_area, 'div', '', {position:'relative'});
 	var body = $a(wrapper, 'div', 'notice');

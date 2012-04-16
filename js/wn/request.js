@@ -56,7 +56,7 @@ wn.request.cleanup = function(opts, r) {
 	// session expired?
 	if(wn.boot.sid && wn.get_cookie('sid') != wn.boot.sid) { 
 		msgprint('Session expired');
-		setTimeout('redirect_to_login()', 3000); 
+		setTimeout('wn.app.redirect_to_login()', 3000); 
 		return;
 	}
 	
@@ -65,7 +65,12 @@ wn.request.cleanup = function(opts, r) {
 	
 	// show errors
 	if(r.exc) { console.log(r.exc); };
-		
+	
+	// 403
+	if(r['403']) {
+		wn.container.change_to('403');
+	}
+
 	// sync docs
 	if(r.docs) LocalDB.sync(r.docs);
 }

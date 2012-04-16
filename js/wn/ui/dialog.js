@@ -101,7 +101,11 @@ wn.widgets.Dialog = function(opts) {
 			this.opts = opts;
 		if(!this.opts.width) this.opts.width = 480;
 		
-		this.wrapper = $a(popup_cont, 'div', 'dialog_wrapper');
+		if(!$('#dialog-container').length) {
+			$('<div id="dialog-container">').appendTo('body');
+		}
+		
+		this.wrapper = $('<div class="dialog_wrapper">').appendTo('#dialog-container').get(0);
 
 		if(this.opts.width)
 			this.wrapper.style.width = this.opts.width + 'px';

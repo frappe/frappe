@@ -16,20 +16,15 @@ wn.settings.no_history = 1;
 
 // constants
 var NEWLINE = '\n';
-var login_file = '';
-var version = 'v170';
 
 // user
 var profile=null;
-var session = {};
-var is_testing = false;
 var user=null;
 var user_defaults=null;
 var user_roles=null;
 var user_fullname=null;
 var user_email=null;
 var user_img = {};
-var home_page=null;
 
 var pscript = {};
 var selector=null; 

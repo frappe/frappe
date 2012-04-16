@@ -55,7 +55,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</div>');		
 	},
 	make_home: function() {
-		$('.navbar .brand').attr('href', "#!" + home_page);
+		$('.navbar .brand').attr('href', "#");
 	},
 
 	make_document: function() {
@@ -101,7 +101,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 
 	make_logout: function() {
 		// logout
-		$('#toolbar-user').append('<li><a href="#" onclick="return logout();">Logout</a></li>');
+		$('#toolbar-user').append('<li><a href="#" onclick="return wn.app.logout();">Logout</a></li>');
 	}
 });
 

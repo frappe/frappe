@@ -349,17 +349,11 @@ Meta.set_field_property=function(fn, key, val, doc) {
 // Get Dt label
 // ======================================================================================
 function get_doctype_label(dt) {
-	if(session.dt_labels && session.dt_labels[dt])
-		return session.dt_labels[dt]
-	else
-		return dt
+	return dt
 }
 
 function get_label_doctype(label) {
-	if(session.rev_dt_labels && session.rev_dt_labels[label])
-		return session.rev_dt_labels[label]
-	else
-		return label
+	return label
 }
 // Global methods for API
 // ======================================================================================
