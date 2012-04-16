@@ -75,15 +75,21 @@ function save_doclist(dt, dn, save_action, onsave, onerr) {
 	
 	// make doc list
 	var doclist = make_doclist(dt, dn, 1);
-	var all_clear = true;
+	var all_reqd_ok = true;
 	
 	if(save_action!='Cancel') {
 		for(var n in doclist) {
 			// type / mandatory checking
-			var tmp = check_required(doclist[n].doctype, doclist[n].name, doclist[0].doctype);
-			if(doclist[n].docstatus+''!='2'&&all_clear) // if not deleted
-				all_clear = tmp;
+			var reqd_ok = check_required(doclist[n].doctype, doclist[n].name, doclist[0].doctype);
+			if(doclist[n].docstatus+''!='2' && all_reqd_ok) // if not deleted
+				all_reqd_ok = reqd_ok;
 		}
+	}
+	
+	// mandatory not filled
+	if(!all_reqd_ok) {
+		onerr()
+		return;
 	}
 		
 	var _save = function() {
