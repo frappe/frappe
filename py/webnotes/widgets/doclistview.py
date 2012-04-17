@@ -39,9 +39,9 @@ def get(arg=None):
 		
 	tables = ['`tab' + data['doctype'] + '`']
 
-	# select fields if they exist in table
-	columns = [".".join([tables[0], col]) for col in get_table_columns(data['doctype'])]
-	fields = [f for f in fields if f in columns]
+	# keep _user_tags only if it exists in table
+	columns = get_table_columns(data['doctype'])
+	if '_user_tags' not in columns: del fields[fields.index('_user_tags')]
 
 	docstatus = json.loads(data['docstatus'])
 	if docstatus:
