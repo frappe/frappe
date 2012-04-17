@@ -310,10 +310,8 @@ wn.views.ListView = Class.extend({
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
 			t + '_user_tags', t + 'modified'];
 		this.stats = ['_user_tags'];
+		this.show_hide_check_column();
 
-		if(!this.doclistview.can_delete) {
-			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
-		}
 	},
 	columns: [
 		{width: '3%', content:'check'},
@@ -441,5 +439,10 @@ wn.views.ListView = Class.extend({
 				}
 			});
 		}		
+	},
+	show_hide_check_column: function() {
+		if(!this.doclistview.can_delete) {
+			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
+		}
 	}
 })
