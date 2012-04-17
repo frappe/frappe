@@ -10,7 +10,9 @@ wn.views.formview = {
 		
 		// show doctype
 		wn.model.with_doctype(dt, function() {
-			wn.model.with_doc(dt, dn, function(dn) {
+			wn.model.with_doc(dt, dn, function(dn, r) {
+				if(r && r['403']) return; // not permitted
+				
 				if(!(locals[dt] && locals[dt][dn])) {
 					wn.container.change_to('404');
 					return;

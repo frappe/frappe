@@ -53,7 +53,7 @@ wn.model = {
 					doctype: doctype,
 					name: name
 				},
-				callback: function(r) { callback(name); }
+				callback: function(r) { callback(name, r); }
 			});
 		}
 	},
