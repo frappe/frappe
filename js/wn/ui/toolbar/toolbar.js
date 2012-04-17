@@ -82,7 +82,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				onclick="return false;">Tools<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return err_console.show();">Error Console</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">Clear Cache</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">Clear Cache & Refresh</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">About</a></li>\
 			</ul>\
 		</li>');
@@ -107,7 +107,12 @@ wn.ui.toolbar.Toolbar = Class.extend({
 
 wn.ui.toolbar.clear_cache = function() {
 	localStorage && localStorage.clear();
-	$c('webnotes.session_cache.clear',{},function(r,rt){ show_alert(r.message); });
+	$c('webnotes.session_cache.clear',{},function(r,rt){ 
+		if(!r.exc) {
+			show_alert(r.message);
+			location.reload();
+		}
+	});
 	return false;
 }
 
