@@ -45,11 +45,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 					msgprint(r.exc);
 				} else {
 					if(r.server_messages) { cur_frm.cscript.doc_type(doc, doc.doctype, doc.name); }
-					cur_frm.frm_head.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
-						%(lab_status)s</span>', {
-							lab_status: 'Saved',
-							lab_class: 'label-success'
-						}));
+				cur_frm.frm_head.set_label(['Saved', 'label-success']);				
 				}
 			});	
 		}
@@ -116,11 +112,7 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 			} else {
 				cur_frm.confirm.dialog.hide();
 				cur_frm.refresh();
-				cur_frm.frm_head.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
-					%(lab_status)s</span>', {
-						lab_status: 'Saved',
-						lab_class: 'label-success'
-					}));
+				cur_frm.frm_head.set_label(['Saved', 'label-success']);
 			}
 		});	
 	});

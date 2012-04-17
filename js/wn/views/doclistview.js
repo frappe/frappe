@@ -131,7 +131,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		%(description)s\
 		<hr>\
 		<p><button class="btn btn-info btn-small"\
-				onclick="wn.set_route(\'Form\', \'%(doctype)s\', \'New %(doctype)s\');"\
+				onclick="newdoc(\'%(doctype)s\');"\
 				>Make a new %(doctype_label)s</button>\
 		</p></div>', {
 			doctype_label: get_doctype_label(this.doctype),

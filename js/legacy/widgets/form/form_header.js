@@ -54,7 +54,11 @@ _f.FrmHeader = Class.extend({
 		if(cur_frm.doc.__unsaved) {
 			labinfo[1] = 'label-warning'
 		}
+
+		this.set_label(labinfo);
 		
+	},
+	set_label: function(labinfo) {
 		this.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
