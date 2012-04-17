@@ -34,5 +34,6 @@ wn.versions.check();
 
 /* start the application */
 $(document).bind('ready', function() {
-	wn.app = new wn.Application();
+	wn.provide('wn.app');
+	$.extend(wn.app, new wn.Application());
 });

@@ -36,6 +36,6 @@ wn.ui.misc.about = function() {
 	
 		wn.ui.misc.about_dialog = d;		
 	}
-
+	
 	wn.ui.misc.about_dialog.show();
 }
