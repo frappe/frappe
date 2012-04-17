@@ -79,9 +79,9 @@ class Installer:
 
 		# fresh app
 		if 'Framework.sql' in source_path:
-			from webnotes.model.sync import sync_core_doctypes
-			print "Building tables from core module..."
-			sync_core_doctypes()
+			from webnotes.model.sync import sync_install
+			print "Building tables from all module..."
+			sync_install()
 
 		# framework cleanups
 		self.framework_cleanups(target)
@@ -94,7 +94,6 @@ class Installer:
 		import webnotes
 		self.create_sessions_table()
 		self.create_scheduler_log()
-		self.create_doctype_cache()
 		self.create_session_cache()
 		self.create_cache_item()
 
@@ -126,15 +125,6 @@ class Installer:
 			method varchar(200),
 			error text
 		) engine=MyISAM""")
-	
-	def create_doctype_cache(self):
-		import webnotes
-		self.dbman.drop_table('__DocTypeCache')
-		webnotes.conn.sql("""create table `__DocTypeCache` (
-			name VARCHAR(120), 
-			modified DATETIME, 
-			content TEXT, 
-			server_code_compiled TEXT)""")
 	
 	def create_session_cache(self):
 		import webnotes

@@ -33,9 +33,10 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
 	//console.log(p)
-	$(cur_frm.frm_head.timestamp_area).toggle(false);
-	$(cur_frm.frm_head.page_head.buttons.Save).toggle(false);
-	$(cur_frm.page_layout.footer).toggle(false);
+	//$(cur_frm.frm_head.timestamp_area).toggle(false);
+	//$(cur_frm.frm_head.page_head.buttons.Save).toggle(false);
+	//$(cur_frm.page_layout.footer).toggle(false);
+	cur_frm.frm_head.appframe.clear_buttons();
 
 	cur_frm.add_custom_button('Update', function() {
 		if(cur_frm.fields_dict['doc_type'].value) {
@@ -43,17 +44,17 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 				if(r.exc) {
 					msgprint(r.exc);
 				} else {
-					wn.ui.toolbar.clear_cache();
 					if(r.server_messages) { cur_frm.cscript.doc_type(doc, doc.doctype, doc.name); }
-					cur_frm.frm_head.status_area.innerHTML = 
-					'<span style="padding: 2px; background-color: rgb(0, 170, 17); \
-					color: rgb(255, 255, 255); font-weight: bold; margin-left: 0px; \
-					font-size: 11px;">Saved</span>';
+					this.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
+						%(lab_status)s</span>', {
+							lab_status: 'Saved',
+							lab_class: 'label-success'
+						}));
 				}
 			});	
 		}
 	},1);
-	$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-info');
+	//$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-info');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
@@ -65,10 +66,10 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	}, 1);
 
 	if(!doc.doc_type) {
-		var page_head = cur_frm.frm_head.page_head;
-		page_head.buttons['Update'].disabled = true;
-		page_head.buttons['Refresh Form'].disabled = true;
-		page_head.buttons['Reset to defaults'].disabled = true;
+		var frm_head = cur_frm.frm_head.appframe;
+		$(frm_head.buttons['Update']).attr('disabled', true);
+		$(frm_head.buttons['Refresh Form']).attr('disabled', true);
+		$(frm_head.buttons['Reset to defaults']).attr('disabled', true);
 	}
 
 	cur_frm.cscript.hide_allow_attach(doc, dt, dn);
@@ -119,7 +120,6 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 				'<span style="padding: 2px; background-color: rgb(0, 170, 17); \
 				color: rgb(255, 255, 255); font-weight: bold; margin-left: 0px; \
 				font-size: 11px;">Saved</span>';
-				wn.ui.toolbar.clear_cache();
 			}
 		});	
 	});

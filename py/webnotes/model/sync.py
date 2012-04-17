@@ -5,19 +5,26 @@
 import webnotes
 
 def sync_all(force=0):
-	sync_core_doctypes(force)
-	sync_modules(force)
-	webnotes.conn.sql("DELETE FROM __CacheItem")
+	modules = []
+	modules += sync_core_doctypes(force)
+	modules += sync_modules(force)
+	try:
+		webnotes.conn.begin()
+		webnotes.conn.sql("DELETE FROM __CacheItem")
+		webnotes.conn.commit()
+	except Exception, e:
+		if e[0]!=1146: raise e
+	return modules
 
 def sync_core_doctypes(force=0):
 	import os
 	import core
 	# doctypes
-	walk_and_sync(os.path.abspath(os.path.dirname(core.__file__)), force)
+	return walk_and_sync(os.path.abspath(os.path.dirname(core.__file__)), force)
 
 def sync_modules(force=0):
 	import conf
-	walk_and_sync(conf.modules_path, force)
+	return walk_and_sync(conf.modules_path, force)
 
 def walk_and_sync(start_path, force=0):
 	"""walk and sync all doctypes and pages"""
@@ -46,9 +53,7 @@ def walk_and_sync(start_path, force=0):
 					reload_doc(module_name, 'page', name)
 					print module_name + ' | ' + doctype + ' | ' + name
 					
-	# load install docs
-	load_install_docs(modules)
-		
+	return modules
 
 
 # docname in small letters with underscores
@@ -123,6 +128,13 @@ def save_perms_if_none_exist(doclist):
 	for d in doclist:
 		if d.get('doctype') != 'DocPerm': continue
 		Document(fielddata=d).save(1, check_links=0, ignore_fields=1)
+
+def sync_install(force=1):
+	# sync all doctypes
+	modules = sync_all(force)
+	
+	# load install docs
+	load_install_docs(modules)
 
 def load_install_docs(modules):
 	import os
