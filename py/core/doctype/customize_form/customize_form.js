@@ -45,7 +45,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 					msgprint(r.exc);
 				} else {
 					if(r.server_messages) { cur_frm.cscript.doc_type(doc, doc.doctype, doc.name); }
-					this.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
+					cur_frm.frm_head.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
 						%(lab_status)s</span>', {
 							lab_status: 'Saved',
 							lab_class: 'label-success'
@@ -116,10 +116,11 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 			} else {
 				cur_frm.confirm.dialog.hide();
 				cur_frm.refresh();
-				cur_frm.frm_head.status_area.innerHTML = 
-				'<span style="padding: 2px; background-color: rgb(0, 170, 17); \
-				color: rgb(255, 255, 255); font-weight: bold; margin-left: 0px; \
-				font-size: 11px;">Saved</span>';
+				cur_frm.frm_head.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
+					%(lab_status)s</span>', {
+						lab_status: 'Saved',
+						lab_class: 'label-success'
+					}));
 			}
 		});	
 	});
