@@ -32,10 +32,6 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
-	//console.log(p)
-	//$(cur_frm.frm_head.timestamp_area).toggle(false);
-	//$(cur_frm.frm_head.page_head.buttons.Save).toggle(false);
-	//$(cur_frm.page_layout.footer).toggle(false);
 	cur_frm.frm_head.appframe.clear_buttons();
 
 	cur_frm.add_custom_button('Update', function() {
@@ -50,7 +46,6 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 			});	
 		}
 	},1);
-	//$(cur_frm.frm_head.page_head.buttons.Update).addClass('btn-info');
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
