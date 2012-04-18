@@ -106,17 +106,19 @@ wn.dom.set_box_shadow = function(ele, spread) {
 	$.fn.set_working = function() {
 		var ele = this.get(0);
 		if(ele.loading_img) { 
-			$di(ele.loading_img) 
+			$(ele.loading_img).toggle(true);
 		} else {
 			ele.disabled = 1;
 			ele.loading_img = $('<img src="lib/images/ui/button-load.gif" \
 				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
-				.insertAfter(ele);			
+				.insertAfter(ele);
 		}		
 	}
 	$.fn.done_working = function() {
 		var ele = this.get(0);
 		ele.disabled = 0;
-		if(ele.loading_img) { $(ele.loading_img).toggle(false); };
+		if(ele.loading_img) { 
+			$(ele.loading_img).toggle(false); 
+		};
 	}
 })(jQuery);

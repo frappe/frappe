@@ -14,7 +14,7 @@ wn.ui.AppFrame = Class.extend({
 
 	},
 	title: function(txt) {
-		this.$titlebar.find('.appframe-title').text(txt);
+		this.$titlebar.find('.appframe-title').html(txt);
 	},
 	add_button: function(label, click, icon) {
 		if(!this.$w.find('.appframe-toolbar').length)
