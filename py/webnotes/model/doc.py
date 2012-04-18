@@ -436,7 +436,9 @@ class Document:
 
 	def _get_perms(self):
 		if not self._perms:
-			self._perms = webnotes.conn.sql("select role, `match` from tabDocPerm where parent=%s and ifnull(`read`,0) = 1 and ifnull(permlevel,0)=0", self.doctype)
+			self._perms = webnotes.conn.sql("""select role, `match` from tabDocPerm
+				where parent=%s and ifnull(`read`,0) = 1 
+				and ifnull(permlevel,0)=0""", self.doctype)
 
 	def _get_roles(self):
 		# check if roles match/
@@ -485,14 +487,7 @@ class Document:
 					has_perm = 0
 					if verbose:
 						webnotes.msgprint("Value not allowed: '%s' for '%s'" % (self.fields.get(m, 'no value'), m))
-					
 	
-		# check for access key
-		if webnotes.form and webnotes.form.has_key('akey'):
-			import webnotes.utils.encrypt
-			if webnotes.utils.encrypt.decrypt(webnotes.form.getvalue('akey')) == self.name:
-				has_perm = 1
-				webnotes.response['print_access'] = 1
 				
 		return has_perm
 
