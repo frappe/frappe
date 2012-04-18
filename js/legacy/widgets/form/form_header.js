@@ -94,7 +94,7 @@ _f.FrmHeader = Class.extend({
 
 		// Update after sumit
 		if(docstatus==1 && p[SUBMIT]) {
-			this.appframe.add_button('Update', function() { cur_frm.savesubmit();}, '');
+			this.appframe.add_button('Update', function() { cur_frm.saveupdate();}, '');
 			if(!cur_frm.doc.__unsaved) this.appframe.buttons['Update'].toggle(false);
 		}
 
