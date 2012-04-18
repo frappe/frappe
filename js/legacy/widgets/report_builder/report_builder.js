@@ -76,7 +76,7 @@ _r.ReportContainer = function() {
 		};
 		var advancedbtn = this.appframe.add_button('Advanced Settings', fn, 'icon-cog');
 	}
-
+	
 	// set a type
 	this.set_dt = function(dt, onload) {
 		my_onload = function(f) {
@@ -363,11 +363,7 @@ _r.ReportBuilder.prototype.load_criteria = function(criteria_name) {
 
 	// set filters
 	// -----------
-	try {
-		var fl = JSON.parse(this.sc.filters);		
-	} catch(e) {
-		eval('var fl = ' + this.sc.filters);
-	}
+	eval('var fl=' + this.sc.filters);
 	for(var n in fl) {
 		if(fl[n]) {
 			var key = n.split('\1');
@@ -614,7 +610,7 @@ _r.ReportBuilder.prototype.setup_doctype = function(onload) {
 _r.ReportBuilder.prototype.load_doctype_from_server = function(onload) {
 	var me = this;
 	$c('webnotes.widgets.form.load.getdoctype', args = {'doctype': this.doctype, 'with_parent':1 }, 
-		function(r,rt) { 
+		function(r,rt) {
 			if(r.parent_dt)me.parent_dt = r.parent_dt;
 			if(!me.validate_permissions()) 
 				return;

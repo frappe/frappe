@@ -14,8 +14,9 @@ wn.views.reportview = {
 				rb.load_criteria(rep_name);
 
 				// if loaded, then run
-				if((rb.dt) && (!rb.dt.has_data() || rb.current_loaded!=t))
+				if((rb.dt) && (!rb.dt.has_data() || rb.current_loaded!=t)) {
 					rb.dt.run();
+				}
 			}
 
 			// show

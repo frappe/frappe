@@ -520,7 +520,7 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// set customized permissions for this record
 		this.runclientscript('set_perm',this.doctype, this.docname);
-	
+
 		// set the doc
 		this.doc = get_local(this.doctype, this.docname);	  
 		
