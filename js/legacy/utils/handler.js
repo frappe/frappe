@@ -102,7 +102,10 @@ function open_url_post(URL, PARAMS, new_window) {
 	for(var x in PARAMS) {
 		var opt=document.createElement("textarea");
 		opt.name=x;
-		opt.value=PARAMS[x];
+		var val = PARAMS[x];
+		if(typeof val!='string') 
+			val = JSON.stringify(val);
+		opt.value=val;
 		temp.appendChild(opt);
 	}
 	document.body.appendChild(temp);

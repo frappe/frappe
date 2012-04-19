@@ -42,7 +42,6 @@ wn.Application = Class.extend({
 	},
 	load_bootinfo: function() {
 		LocalDB.sync(wn.boot.docs);
-		wn.user = wn.boot.profile.name;
 		wn.control_panel = wn.boot.control_panel;
 		
 		if(wn.boot.error_messages)
@@ -71,7 +70,7 @@ wn.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(wn.user!='Guest') {
+		if(wn.user.name !='Guest') {
 			wn.container.wntoolbar = new wn.ui.toolbar.Toolbar();
 		}
 	},

@@ -306,7 +306,7 @@ _f.Frm.prototype.setup_footer = function() {
 // --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.setup_fields_std = function() {
-	var fl = fields_list[this.doctype]; 
+	var fl = wn.meta.docfield_list[this.doctype]; 
 
 	fl.sort(function(a,b) { return a.idx - b.idx});
 

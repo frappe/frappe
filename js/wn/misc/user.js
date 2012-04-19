@@ -14,6 +14,19 @@ wn.user_info = function(uid) {
 	return wn.boot.user_info[uid];
 }
 
+wn.provide('wn.user');
+
+$.extend(wn.user, {
+	name: wn.boot.profile.name,
+	has_role: function(rl) {
+		if(typeof rl=='string') rl = [rl];
+		for(var i in rl) {
+			if(wn.boot.profile.roles.indexOf(rl[i])!=-1)
+				return true;
+		}
+	}
+})
+
 // wn.session_alive is true if user shows mouse movement in 30 seconds
 
 wn.session_alive = true;

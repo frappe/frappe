@@ -83,7 +83,7 @@ _f.FormGrid.prototype.make_buttons = function() {
 }
 
 _f.FormGrid.prototype.make_columns = function() {
-	var gl = fields_list[this.field.df.options];
+	var gl = wn.meta.docfield_list[this.field.df.options];
 
 	if(!gl) {
 		alert('Table details not found "'+this.field.df.options+'"');

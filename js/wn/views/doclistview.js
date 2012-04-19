@@ -221,7 +221,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			return;
 		}
 		
-		var label = fields[this.doctype][field] ? fields[this.doctype][field].label : field;
+		var label = wn.meta.docfield_map[this.doctype][field] ? 
+			wn.meta.docfield_map[this.doctype][field].label : field;
 		if(label=='_user_tags') label = 'Tags';
 		
 		// grid
