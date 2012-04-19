@@ -50,12 +50,12 @@ def check_if_doc_is_linked(dt, dn):
 		else:
 			item = None
 			try:
-				item = sql("select name from `tab%s` where `%s`='%s' and docstatus!=2 limit 1" % (link_dt, link_field, dn))
+				item = sql("select name, parent from `tab%s` where `%s`='%s' and docstatus!=2 limit 1" % (link_dt, link_field, dn))
 			except Exception, e:
 				if e.args[0]==1146: pass
 				else: raise e
 			if item:
-				webnotes.msgprint("Cannot delete %s <b>%s</b> because it is linked in %s <b>%s</b>" % (dt, dn, link_dt, item[0][0]), raise_exception=1)
+				webnotes.msgprint("Cannot delete %s <b>%s</b> because it is linked in %s <b>%s</b>" % (dt, dn, link_dt, item[0][1] or item[0][0]), raise_exception=1)
 
 @webnotes.whitelist()
 def delete_doc(doctype=None, name=None, doclist = None, force=0):
