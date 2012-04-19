@@ -32,9 +32,8 @@ function fmt_money(v){
 	if(isNaN(v)) {
 		return ''; // not a number
 	} else {
-		var cp = wn.control_panel;
 		var val = 2; // variable used to differentiate other values from Millions
-		if(cp.currency_format == 'Millions') val = 3;
+		if(wn.boot.sysdefaults.currency_format == 'Millions') val = 3;
 		v = v.toFixed(2);
 		var delimiter = ","; // replace comma if desired
 		amount = v+'';
