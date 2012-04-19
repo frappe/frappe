@@ -1102,6 +1102,7 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) changed = 0;
 
 	if(changed) {
+		var prev_unsaved = d.__unsaved
 		d[fn] = v;
 		d.__unsaved = 1;
 			
@@ -1113,8 +1114,11 @@ _f.set_value = function(dt, dn, fn, v) {
 			var frm = wn.views.formview[d.doctype] && wn.views.formview[d.doctype].frm;
 		}
 		
-		if(frm && frm==cur_frm && frm.frm_head) {
+		// No need to refresh labels and toolbar again and again.
+		// Just check if __unsaved was not set previously
+		if(frm && frm==cur_frm && frm.frm_head && !prev_unsaved) {
 			frm.frm_head.refresh_labels();
+			frm.frm_head.refresh_toolbar();
 		}
 	}
 }
