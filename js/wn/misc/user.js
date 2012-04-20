@@ -24,6 +24,9 @@ $.extend(wn.user, {
 			if(wn.boot.profile.roles.indexOf(rl[i])!=-1)
 				return true;
 		}
+	},
+	is_report_manager: function() {
+		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	}
 })
 

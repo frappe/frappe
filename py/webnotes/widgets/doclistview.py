@@ -155,6 +155,24 @@ def get_tables():
 	return tables
 
 @webnotes.whitelist()
+def save_report():
+	"""save report"""
+	from webnotes.model.doc import Document
+	
+	data = webnotes.form_dict
+	if webnotes.conn.exists('Report', data['name']):
+		d = Document('Report', data['name'])
+	else:
+		d = Document('Report')
+		d.name = data['name']
+		d.ref_doctype = data['doctype']
+		
+	d.json = data['json']
+	d.save()
+	webnotes.msgprint("%s saved." % d.name)
+	return d.name
+
+@webnotes.whitelist()
 def export_query():
 	"""export from report builder"""
 	
@@ -193,7 +211,9 @@ def export_query():
 
 def verify_export_allowed():
 	"""throw exception if user is not allowed to export"""
-	if not ('Administrator' in roles or 'System Manager' in roles or 'Data Export' in roles):
+	global roles
+	roles = webnotes.get_roles()
+	if not ('Administrator' in roles or 'System Manager' in roles or 'Report Manager' in roles):
 		raise webnotes.PermissionError
 
 def get_labels(columns):

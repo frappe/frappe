@@ -1,3 +1,25 @@
+// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
+// 
+// MIT License (MIT)
+// 
+// Permission is hereby granted, free of charge, to any person obtaining a 
+// copy of this software and associated documentation files (the "Software"), 
+// to deal in the Software without restriction, including without limitation 
+// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
+// and/or sell copies of the Software, and to permit persons to whom the 
+// Software is furnished to do so, subject to the following conditions:
+// 
+// The above copyright notice and this permission notice shall be included in 
+// all copies or substantial portions of the Software.
+// 
+// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
+// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
+// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
+// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
+// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
+// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+//
+
 wn.ui.FilterList = Class.extend({
 	init: function(opts) {
 		wn.require('lib/js/legacy/widgets/form/fields.js');
@@ -78,7 +100,7 @@ wn.ui.Filter = Class.extend({
 			<option value="=">Equals</option>\
 			<option value="like">Like</option>\
 			<option value=">=">Greater or equals</option>\
-			<option value=">=">Less or equals</option>\
+			<option value="<=">Less or equals</option>\
 			<option value=">">Greater than</option>\
 			<option value="<">Less than</option>\
 			<option value="in">In</option>\
@@ -239,9 +261,10 @@ wn.ui.Filter = Class.extend({
 
 // <select> widget with all fields of a doctype as options
 wn.ui.FieldSelect = Class.extend({
-	init: function(parent, doctype, filter_fields) {
+	init: function(parent, doctype, filter_fields, with_blank) {
 		this.doctype = doctype;
 		this.fields_by_name = {};
+		this.with_blank = with_blank;
 		this.$select = $('<select>').appendTo(parent);
 		if(filter_fields) {
 			for(var i in filter_fields)
@@ -260,6 +283,13 @@ wn.ui.FieldSelect = Class.extend({
 			{fieldname:'creation', fieldtype:'Date', label:'Created On', parent:me.doctype},
 			{fieldname:'_user_tags', fieldtype:'Data', label:'Tags', parent:me.doctype}
 		];
+		
+		// blank
+		if(this.with_blank) {
+			this.$select.append($('<option>', {
+				value: ''
+			}).text(''));
+		}
 
 		// main table
 		$.each(std_filters.concat(wn.meta.docfield_list[me.doctype]), function(i, df) {
