@@ -651,7 +651,7 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 	$.extend(this, {
 		flist: (function() {
 			var f_list = [];
-			var fl = fields_list[tabletype];
+			var fl = wn.meta.docfield_list[tabletype];
 			if(fl) {
 				for(var i=0; i<fl.length; i++) {
 					f_list.push(copy_dict(fl[i]));

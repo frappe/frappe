@@ -24,8 +24,6 @@
 //-----------
 
 var locals = {'DocType':{}};
-var fields = {}; // fields[doctype][fieldname]
-var fields_list = {}; // fields_list[doctype]
 var LocalDB={};
 var READ = 0; var WRITE = 1; var CREATE = 2; var SUBMIT = 3; var CANCEL = 4; var AMEND = 5;
 
@@ -87,26 +85,8 @@ LocalDB.sync = function(list) {
 		LocalDB.add(d.doctype, d.name);
 		locals[d.doctype][d.name] = d;
 
-		// cleanup for a second-loading
-		if(d.doctype=='DocType') {
-			fields_list[d.name] = [];
-		} else if(d.doctype=='DocField') { // field dictionary / list 
-			if(!d.parent) {
-				alert('Error: No parent specified for field "' + d.label + '"');
-			}
-		
-			if(!fields_list[d.parent])fields_list[d.parent] = [];
-			fields_list[d.parent][fields_list[d.parent].length] = d;
+		if(d.doctype=='DocField') wn.meta.add_field(d);
 
-			if(!fields[d.parent])
-				fields[d.parent] = {};
-			
-			if(d.fieldname) {
-				fields[d.parent][d.fieldname] = d;
-			} else if(d.label) {
-				fields[d.parent][d.label] = d;
-			}
-		}
 		if(d.localname) {
 			wn.model.new_names[d.localname] = d.name;
 			$(document).trigger('rename', [d.doctype, d.localname, d.name]);
@@ -131,7 +111,7 @@ LocalDB.get_localname=function(doctype) {
 
 LocalDB.set_default_values = function(doc) {
 	var doctype = doc.doctype;
-	var docfields = fields_list[doctype];
+	var docfields = wn.meta.docfield_list[doctype];
 	if(!docfields) {
 		return;
 	}
@@ -331,7 +311,7 @@ Meta.get_field=function(dt, fn, dn) {
 	if(dn && local_dt[dt]&&local_dt[dt][dn]){
 		return local_dt[dt][dn][fn];
 	} else {
-		if(fields[dt]) var d = fields[dt][fn];
+		if(wn.meta.docfield_map[dt]) var d = wn.meta.docfield_map[dt][fn];
 		if(d) return d;
 	}
 	return {};

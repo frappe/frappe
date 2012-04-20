@@ -29,10 +29,10 @@ function compress_doclist(list) {
 			var tfl = ['doctype', 'name', 'docstatus', 'owner', 'parent', 'parentfield', 'parenttype', 'idx', 'creation', 'modified', 'modified_by', '__islocal', '__deleted','__newname', '__modified', '_user_tags'];  // for text
 			var fl =  ['doctype', 'name', 'docstatus', 'owner', 'parent', 'parentfield', 'parenttype', 'idx', 'creation', 'modified', 'modified_by', '__islocal', '__deleted','__newname', '__modified', '_user_tags'];  // for unique
 			
-			for(key in fields[o.doctype]) { // all other values
+			for(key in wn.meta.docfield_map[o.doctype]) { // all other values
 				if(!in_list(fl, key) 
-					&& !in_list(no_value_fields, fields[o.doctype][key].fieldtype)
-					&& !fields[o.doctype][key].no_column) {
+					&& !in_list(no_value_fields, wn.meta.docfield_map[o.doctype][key].fieldtype)
+					&& !wn.meta.docfield_map[o.doctype][key].no_column) {
 						fl[fl.length] = key; // save value list
 						tfl[tfl.length] = key //.replace(/'/g, "\\'").replace(/\n/g, "\\n");
 					}
@@ -124,7 +124,7 @@ function save_doclist(dt, dn, save_action, onsave, onerr) {
 function check_required(dt, dn, parent_dt) {
 	var doc = locals[dt][dn];
 	if(doc.docstatus>1)return true;
-	var fl = fields_list[dt];
+	var fl = wn.meta.docfield_list[dt];
 	
 	if(!fl)return true; // no doctype loaded
 	
@@ -156,7 +156,7 @@ function check_required(dt, dn, parent_dt) {
 		}
 	}
 	if(errfld.length)msgprint('<b>Mandatory fields required in '+
-	 	(doc.parenttype ? (fields[doc.parenttype][doc.parentfield].label + ' (Table)') : get_doctype_label(doc.doctype)) +
+	 	(doc.parenttype ? (wn.meta.docfield_map[doc.parenttype][doc.parentfield].label + ' (Table)') : get_doctype_label(doc.doctype)) +
 		':</b>\n' + errfld.join('\n'));
 	return all_clear;
 }

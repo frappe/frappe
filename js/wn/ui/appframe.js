@@ -33,4 +33,25 @@ wn.ui.AppFrame = Class.extend({
 	clear_buttons: function() {
 		this.$w.find('.appframe-toolbar').empty();
 	}
-})
+});
+
+// parent, title, single_column
+// standard page with appframe
+
+wn.ui.make_app_page = function(opts) {
+	if(opts.single_column) {
+		$(opts.parent).html('<div class="layout-wrapper layout-wrapper-appframe">\
+			<div class="layout-appframe"></div>\
+			<div class="layout-main"></div>\
+		</div>');			
+	} else {
+		$(opts.parent).html('<div class="layout-wrapper layout-wrapper-background">\
+			<div class="layout-appframe"></div>\
+			<div class="layout-main-section"></div>\
+			<div class="layout-side-section"></div>\
+			<div class="clear"></div>\
+		</div>');			
+	}
+	opts.parent.appframe = new wn.ui.AppFrame($(opts.parent).find('.layout-appframe'));
+	if(opts.title) opts.parent.appframe.title(opts.title);
+}

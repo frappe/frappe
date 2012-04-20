@@ -26,6 +26,9 @@ wn.route = function() {
 		case "Report":
 			wn.views.reportview.show(route[1], route[2]);
 			break;
+		case "Report2":
+			wn.views.reportview2.show();
+			break;
 		default:
 			wn.views.pageview.show(route[0]);
 	}

@@ -73,6 +73,7 @@ class DocType:
 	def validate_fields(self):
 		"validates fields for incorrect properties and double entries"
 		fieldnames = {}
+		illegal = ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$']
 		for d in self.doclist:
 			if d.parent and d.fieldtype and d.parent == self.doc.name:
 				# check if not double
@@ -81,6 +82,11 @@ class DocType:
 						webnotes.msgprint('Fieldname <b>%s</b> appears twice (rows %s and %s). Please rectify' \
 						 	% (d.fieldname, str(d.idx + 1), str(fieldnames[d.fieldname] + 1)), raise_exception=1)
 					fieldnames[d.fieldname] = d.idx
+					
+					# check bad characters
+					for c in illegal:
+						if c in d.fieldname:
+							webnotes.msgprint('"%s" not allowed in fieldname' % c)
 					
 				# check illegal mandatory
 				if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:

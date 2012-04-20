@@ -514,7 +514,7 @@ _r.ReportBuilder.prototype.setup_dt_filters_and_cols = function(fl, dt) {
 	lab.innerHTML = 'Select columns for ' + get_doctype_label(dt);
 
 	// get fields
-	var dt_fields = fields_list[dt];
+	var dt_fields = wn.meta.docfield_list[dt];
 	for(var i=0;i<dt_fields.length;i++) {
 		fl[fl.length] = dt_fields[i];
 	}
