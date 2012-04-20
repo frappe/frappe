@@ -35,13 +35,17 @@ wn.route = function() {
 }
 
 wn.get_route = function(route) {
+	return $.map(wn.get_route_str(route).split('/'), 
+		function(r) { return decodeURIComponent(r); });	
+}
+
+wn.get_route_str = function(route) {
 	if(!route)
 		route = window.location.hash;
 
 	if(route.substr(0,1)=='#') route = route.substr(1);
-	if(route.substr(0,1)=='!') route = route.substr(1);	
-
-	return $.map(route.split('/'), function(r) { return decodeURIComponent(r); });	
+	if(route.substr(0,1)=='!') route = route.substr(1);
+	return route;	
 }
 
 wn.set_route = function() {

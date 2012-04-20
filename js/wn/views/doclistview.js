@@ -23,28 +23,26 @@
 wn.provide('wn.views.doclistview');
 wn.provide('wn.doclistviews');
 
-wn.views.doclistview.pages = {};
 wn.views.doclistview.show = function(doctype) {
-	var pagename = doctype + ' List';
-	var doctype = get_label_doctype(doctype);
-	wn.model.with_doctype(doctype, function(r) {
-		if(r && r['403']) return;
-		var page = wn.views.doclistview.pages[pagename];
-		if(!page) {
-			var page = wn.container.add_page(pagename);
-			page.doclistview = new wn.views.DocListView(doctype, page);
-			wn.views.doclistview.pages[pagename] = page;
+	var page_name = wn.get_route_str();
+	if(wn.pages[page_name]) {
+		wn.container.change_to(wn.pages[page_name]);
+	} else {
+		var route = wn.get_route();
+		if(route[1]) {
+			wn.model.with_doctype(route[1], function(r) {
+				if(r && r['403']) {
+					return;
+				}
+				new wn.views.DocListView(route[1]);
+			});
 		}
-
-		document.title = page.doclistview.label;
-		wn.container.change_to(pagename);		
-	})
+	}
 }
 
 wn.views.DocListView = wn.ui.Listing.extend({
-	init: function(doctype, page) {
+	init: function(doctype) {
 		this.doctype = doctype;
-		this.$page = $(page);
 		this.label = get_doctype_label(doctype);
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	this.label : (this.label + ' List');
@@ -54,6 +52,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_page: function() {
 		var me = this;
+		var page_name = wn.get_route_str();
+		var page = wn.container.add_page(page_name);
+		wn.container.change_to(page_name);
+		this.$page = $(page);
+		
 		this.$page.html(repl('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="appframe-area"></div>\
 			<div class="layout-main-section">\
@@ -85,7 +88,16 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		me.setup_listview();
 		me.init_list();
 		me.init_stats();
+		me.make_report_button();
 		me.add_delete_option();
+	},
+	make_report_button: function() {
+		var me = this;
+		if(wn.boot.profile.can_get_report.indexOf(this.doctype)!=-1) {
+			this.appframe.add_button('Build Report', function() {
+				wn.set_route('Report2', me.doctype);
+			}, 'icon-th')
+		}
 	},
 	setup_docstatus_filter: function() {
 		var me = this;

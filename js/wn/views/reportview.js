@@ -58,15 +58,15 @@ wn.views.reportview = {
 
 wn.views.reportview2 = {
 	show: function(dt) {
-		var route = wn.get_route();
-		var page_name = window.location.hash.substr(1);
+		var page_name = wn.get_route_str();
 		if(wn.pages[page_name]) {
 			wn.container.change_to(wn.pages[page_name]);
 		} else {
+			var route = wn.get_route();
 			if(route[1]) {
 				new wn.views.ReportView(route[1], route[2]);				
 			} else {
-				
+				new wn.views.ReportHome();
 			}
 		}
 	}
@@ -75,7 +75,7 @@ wn.views.reportview2 = {
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(doctype, docname) {
 		var me = this;
-		this.page_name = window.location.hash.substr(1);
+		this.page_name = wn.get_route_str();
 		this.import_slickgrid();
 		this.doctype = doctype;
 		this.docname = docname;
@@ -105,10 +105,8 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	},
 	make_page: function() {
 		this.page = wn.container.add_page(this.page_name);
-		var title = 'Report: ' + this.doctype;
-		if(this.docname) title += ' - ' + this.docname;
 		wn.ui.make_app_page({parent:this.page, 
-			title: title, single_column:true});
+			single_column:true});
 		wn.container.change_to(this.page_name);
 	},
 	set_init_columns: function() {
@@ -123,7 +121,10 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	},
 	setup: function() {
 		var me = this;
+		wn.views.breadcrumbs($('<span>').appendTo(this.page.appframe.$titlebar), 
+			locals.DocType[this.doctype].module);
 		this.make({
+			title: 'Report: ' + (this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype),
 			appframe: this.page.appframe,
 			method: 'webnotes.widgets.doclistview.get',
 			get_args: this.get_args,
@@ -326,8 +327,9 @@ wn.views.ReportView = wn.ui.Listing.extend({
 						})
 					},
 					callback: function(r) {
+						if(r.exc) return;
 						if(r.message != me.docname)
-							wn.set_route('Report2', me.doctype, me.docname);
+							wn.set_route('Report2', me.doctype, r.message);
 					}
 				});
 			}, 'icon-upload');
