@@ -91,7 +91,7 @@ class IncomingMail:
 		import re
 		subject = self.mail.get('Subject', '')
 
-		return re.findall('(?<=\[)[\w/]+', subject)
+		return re.findall('(?<=\[)[\w/-]+', subject)
 
 
 	def process_part(self, part):
