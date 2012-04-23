@@ -149,9 +149,12 @@ def get_tables():
 
 	# add tables from fields
 	for f in json.loads(data['fields']):
-		if not f.split('.')[0] in tables:
-			tables.append(f.split('.')[0])
-			
+		table_name = f.split('.')[0]
+		# check if ifnull function is used
+		if table_name.lower().startswith('ifnull('):
+			table_name = table_name[7:]
+		if not table_name in tables:
+			tables.append(table_name)	
 	return tables
 
 @webnotes.whitelist()
