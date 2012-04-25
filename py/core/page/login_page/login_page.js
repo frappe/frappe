@@ -23,6 +23,7 @@
 pscript['onload_Login Page'] = function(wrapper){
 	wrapper.appframe = new wn.ui.AppFrame($(wrapper).find('.appframe-area'));
 	wrapper.appframe.title('Login');
+	wrapper.appframe.$w.find('.close').toggle(false);
 
 	var lw = $i('login_wrapper');
 	$bs(lw, '1px 1px 3px #888');

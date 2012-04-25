@@ -244,7 +244,9 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 
 	// from form
 	if(this.docname == old)
-		this.docname = name;	
+		this.docname = name;
+	else
+		return; // thats it, not for children!
 
 	// cleanup
 	if(this && this.opendocs[old]) {
