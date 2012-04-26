@@ -49,7 +49,7 @@ def execute():
 	if not webnotes.conn:
 		webnotes.connect()
 	
-	webnotes.connect.begin()
+	webnotes.conn.begin()
 	out = []
 
 	# if first task of the day execute daily tasks
