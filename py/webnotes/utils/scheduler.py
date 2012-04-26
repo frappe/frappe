@@ -48,7 +48,8 @@ def execute():
 	
 	if not webnotes.conn:
 		webnotes.connect()
-
+	
+	webnotes.conn.begin()
 	out = []
 
 	# if first task of the day execute daily tasks
@@ -73,6 +74,7 @@ def execute():
 	out.append('all:' + trigger('execute_all'))
 	
 	webnotes.conn.set_global('scheduler_last_event', nowtime.strftime(format))
+	webnotes.conn.commit()
 	
 	return '\n'.join(out)
 	

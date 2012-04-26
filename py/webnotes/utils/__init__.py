@@ -648,12 +648,31 @@ def get_file_timestamp(fn):
 		else:
 			return None
 
+# to be deprecated
 def make_esc(esc_chars):
 	"""
 		Function generator for Escaping special characters
 	"""
 	return lambda s: ''.join(['\\' + c if c in esc_chars else c for c in s])
-	
+
+# esc / unescape characters -- used for command line
+def esc(s, esc_chars):
+	"""
+		Escape special characters
+	"""
+	for c in esc_chars:
+		esc_str = '\\' + c
+		s = s.replace(c, esc_str)
+	return s
+
+def unesc(s, esc_chars):
+	"""
+		UnEscape special characters
+	"""
+	for c in esc_chars:
+		esc_str = '\\' + c
+		s = s.replace(esc_str, c)
+	return s
 
 def get_doctype_label(dt=None):
 	"""
