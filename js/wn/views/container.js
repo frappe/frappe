@@ -11,6 +11,7 @@ wn.views.Container = Class.extend({
 	},
 	add_page: function(label, onshow, onhide) {
 		var page = $('<div class="content"></div>')
+			.attr('id', "page-" + label)
 			.appendTo(this.container).get(0);
 		if(onshow)
 			$(page).bind('show', onshow);

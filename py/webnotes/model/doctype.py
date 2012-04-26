@@ -49,11 +49,12 @@ class _DocType:
 		doclist += self.get_custom_fields(self.name)
 
 		if form:
-			table_fields = self.get_table_fields(doclist)
-			for t in table_fields:
+			table_fields = [t[0] for t in self.get_table_fields(doclist)]
+			# for each unique table
+			for t in list(set(table_fields)):
 				# Get child doc and its fields
-				table_doclist = webnotes.model.doc.get('DocType', t[0], 1)
-				table_doclist += self.get_custom_fields(t[0])
+				table_doclist = webnotes.model.doc.get('DocType', t, 1)
+				table_doclist += self.get_custom_fields(t)
 				doclist += table_doclist
 
 		self.apply_property_setters(doclist)
