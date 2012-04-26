@@ -139,7 +139,7 @@ class Installer:
 		self.dbman.drop_table('__CacheItem')
 		webnotes.conn.sql("""create table __CacheItem(
 			`key` VARCHAR(180) NOT NULL PRIMARY KEY,
-			`value` TEXT,
+			`value` LONGTEXT,
 			`expires_on` TIMESTAMP
 			)""")
 			

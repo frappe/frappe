@@ -94,6 +94,10 @@ def setup_options():
 	parser.add_option("--push", nargs=3, default=False, 
 						metavar = "remote branch comment",
 						help="git commit + push (both repos) [remote] [branch] [comment]")
+	parser.add_option("--checkout", nargs=1, default=False, 
+						metavar = "branch",
+						help="git checkout [branch]")						
+						
 	parser.add_option("-l", "--latest",
 						action="store_true", dest="run_latest", default=False,
 						help="Apply the latest patches")
@@ -197,7 +201,12 @@ def run():
 		os.chdir('lib')
 		os.system('git commit -a -m "%s"' % options.push[2])
 		os.system('git push %s %s' % (options.push[0], options.push[1]))
-	
+		
+	elif options.checkout:
+		os.system('git checkout %s' % options.checkout)
+		os.chdir('lib')
+		os.system('git checkout %s' % options.checkout)
+			
 	# patch
 	elif options.patch_list:
 		# clear log
