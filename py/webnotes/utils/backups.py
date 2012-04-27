@@ -34,6 +34,7 @@ from datetime import datetime
 
 
 #Global constants
+import conf
 from conf import backup_path, backup_link_path
 verbose = 0
 
@@ -98,6 +99,7 @@ class BackupGenerator:
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
+		import conf
 		if hasattr(conf, 'backup_url'):
 			backup_url = conf.backup_url
 		else:

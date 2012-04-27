@@ -62,12 +62,12 @@ class HTTPRequest:
 			webnotes.msgprint(webnotes.conn.get_global("__session_status_message"))
 			raise webnotes.SessionStopped('Session Stopped')
 
+		# load profile
+		self.setup_profile()
+
 		# run login triggers
 		if webnotes.form_dict.get('cmd')=='login':
 			webnotes.login_manager.run_trigger('on_login_post_session')
-			
-		# load profile
-		self.setup_profile()
 
 		# write out cookies
 		webnotes.cookie_manager.set_cookies()
@@ -81,11 +81,12 @@ class HTTPRequest:
 
 	def setup_profile(self):
 		webnotes.user = webnotes.profile.Profile()
+		
 		# load the profile data
-		if webnotes.session['data'].get('profile'):
-			webnotes.user.load_from_session(webnotes.session['data']['profile'])
-		else:
-			webnotes.user.load_profile()
+		if not webnotes.session['data'].get('profile'):
+			webnotes.session['data']['profile'] = webnotes.user.load_profile()
+
+		webnotes.user.load_from_session(webnotes.session['data']['profile'])			
 
 	# set database login
 	# ------------------
