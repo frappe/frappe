@@ -78,6 +78,7 @@ class CSVImport:
 		self.msg = []
 		self.csv_data = None
 		self.import_date_format = None
+		self.deleted_records = []
 
 	def validate_doctype(self, dt_list):
 		cl, tables, self.dt_list, self.prompt_autoname_flag = 0, [t[0] for t in sql("show tables")], [], 0
@@ -271,15 +272,10 @@ class CSVImport:
 		self.msg.append('<p><b>Checking Data for %s</b></p>' % self.dt_list[0])
 		date_list, link_list, select_list, reqd_list = self.get_field_type_list()
 
-
-		# Delete all data of child tables before over-writing
-		if len(self.dt_list) > 1 and self.overwrite:
-			webnotes.conn.sql("delete from `tab%s`" % self.dt_list[0])
-			self.msg.append('<div style="color: ORANGE">Deleted all data from %s before re-importing</div>' % self.dt_list[0])
-	
 		# load data
 		row = 5
 		for d in self.data:
+	
 			self.validate_success, fd, col = 1, {}, 1
 			self.msg.append('<p><b>Checking Row %s </b></p>' % (row))
 			for i in range(len(d)):
@@ -319,6 +315,7 @@ class CSVImport:
 			row = row + 1
 
 	def update_data(self, fd, row):
+
 		# load metadata
 		from webnotes.model.doc import Document
 		cur_doc = Document(fielddata = fd)
@@ -327,6 +324,12 @@ class CSVImport:
 		webnotes.message_log = []
 		# save the document
 		try:
+			# Delete data of child tables before over-writing
+			if len(self.dt_list) > 1 and self.overwrite and cur_doc.parent and cur_doc.parent not in self.deleted_records:
+				webnotes.conn.sql("delete from `tab%s` where parent = '%s'" % (self.dt_list[0], cur_doc.parent))
+				self.deleted_records.append(cur_doc.parent)
+				self.msg.append('<div style="color: ORANGE">Deleted %s data of %s : %s before re-importing</div>' % (self.dt_list[0], self.dt_list[1], cur_doc.parent))
+
 			if webnotes.conn.in_transaction:
 				sql("COMMIT")
 			sql("START TRANSACTION")
