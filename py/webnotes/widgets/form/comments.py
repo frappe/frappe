@@ -41,7 +41,7 @@ def get_comments(doctype=None, docname=None, limit=5):
 
 		webnotes.response['n_comments'], webnotes.response['comment_list'] = nc, cl
 
-@webnotes.whitelist()
+@webnotes.whitelist(allow_guest=True)
 def add_comment():
 	"""add a new comment"""
 	import time

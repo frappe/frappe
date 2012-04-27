@@ -89,6 +89,7 @@ LocalDB.sync = function(list) {
 
 		if(d.localname) {
 			wn.model.new_names[d.localname] = d.name;
+			console.log(d.localname);
 			$(document).trigger('rename', [d.doctype, d.localname, d.name]);
 			delete locals[d.doctype][d.localname];
 		}

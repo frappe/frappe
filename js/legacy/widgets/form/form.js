@@ -64,6 +64,7 @@ _f.Frm = function(doctype, parent) {
 	// notify on rename
 	var me = this;
 	$(document).bind('rename', function(event, dt, old_name, new_name) {
+		console.log(arguments)
 		if(dt==me.doctype)
 			me.rename_notify(dt, old_name, new_name)
 	});
@@ -238,15 +239,15 @@ _f.Frm.prototype.email_doc = function() {
 // ======================================================================================
 
 _f.Frm.prototype.rename_notify = function(dt, old, name) {	
-	// editable
-	this.is_editable[name] = this.is_editable[old];
-	delete this.is_editable[old];
-
 	// from form
 	if(this.docname == old)
 		this.docname = name;
 	else
 		return; // thats it, not for children!
+
+	// editable
+	this.is_editable[name] = this.is_editable[old];
+	delete this.is_editable[old];
 
 	// cleanup
 	if(this && this.opendocs[old]) {
