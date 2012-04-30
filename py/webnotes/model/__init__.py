@@ -158,16 +158,16 @@ def rename(dt, old, new, is_doctype = 0):
 	# get links (link / select)
 	ll = get_link_fields(dt)
 	update_link_fld_values(ll, old, new)
-	
-	# update options and values where select options contains old dt
-	select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new))
-	update_link_fld_values(select_flds, old, new)
-	
-	sql("update `tabDocField` set options = replace(options, '%s', '%s') where options like '%%%s%%'" % (old, new, old))
 
 
 	# doctype
-	if is_doctype:
+	if is_doctype:		
+		# update options and values where select options contains old dt
+		select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new))
+		update_link_fld_values(select_flds, old, new)
+	
+		sql("update `tabDocField` set options = replace(options, '%s', '%s') where options like '%%%s%%'" % (old, new, old))
+
 		if not is_single_dt(old):
 			sql("RENAME TABLE `tab%s` TO `tab%s`" % (old, new))
 		else:
