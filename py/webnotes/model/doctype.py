@@ -40,7 +40,13 @@ class _DocType:
 		"""
 
 		"""
-		if form:
+		# do not load from cache if auto cache clear is enabled
+		import conf
+		from_cache = True
+		if hasattr(conf, 'auto_cache_clear'):
+			from_cache = not conf.auto_cache_clear
+		
+		if form and from_cache:
 			cached_doclist = self.load_from_cache()
 			if cached_doclist: return cached_doclist
 
