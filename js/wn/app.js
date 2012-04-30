@@ -33,7 +33,6 @@ wn.Application = Class.extend({
 			
 		// favicon
 		this.set_favicon();
-		
 		// trigger app startup
 		$(document).trigger('startup');
 		

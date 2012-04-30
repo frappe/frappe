@@ -1004,7 +1004,7 @@ SelectField.prototype.make_input = function() {
 		if(this.file_attach)
 			this.set_attach_options();
 		
-		me.options_list = me.df.options?me.df.options.split('\n'):[];
+		me.options_list = me.df.options?me.df.options.split('\n'):[''];
 		
 		// add options
 		empty_select(this.input);
