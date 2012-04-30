@@ -292,13 +292,12 @@ wn.ui.Listing = Class.extend({
 		}
 	},
 	add_row: function() {
-		return this.$w.find('.result-list').append('<div class="list-row">')
-			.find('.list-row:last').get(0);
+		return $('<div class="list-row">').appendTo(this.$w.find('.result-list')).get(0);
 	},
 	refresh: function() { 
 		this.run(); 
 	},
 	add_limits: function() {
 		this.query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
-	}	
+	}
 });

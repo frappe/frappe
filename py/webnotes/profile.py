@@ -248,6 +248,7 @@ class Profile:
 		self.can_create = d['can_create']
 		self.can_read = d['can_read']
 		self.can_write = d['can_write']
+		self.can_search = d['can_search']
 		self.can_get_report = d['can_get_report']
 		self.allow_modules = d['allow_modules']
 		self.all_read = d['all_read']
