@@ -35,10 +35,6 @@ import webnotes
 
 body_html = """
 <header></header>
-<div id="startup_div" style="padding: 8px; 
-	font-size: 12px; font-family: Arial !important; line-height: 1.6em;">
-	Loading...
-</div>
 <!-- Main Starts -->
 <div id="body_div"> 
 </div>

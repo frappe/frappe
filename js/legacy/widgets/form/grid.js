@@ -260,6 +260,7 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 // and a grid cell is selected
 // deselect the cell
 $(document).bind('click', function(e) {
+	var me = this;
 	var is_target_toolbar = function() {
 		return $(e.target).parents('.grid_tbarlinks').length;
 	}
@@ -270,7 +271,7 @@ $(document).bind('click', function(e) {
 		
 		// autosuggest openend
 		//if(wn._autosugg_open) return true;
-		
+				
 		return $(e.target).parents().get().indexOf(_f.cur_grid_cell)!=-1;
 	}
 
@@ -295,6 +296,8 @@ _f.Grid.prototype.cell_deselect = function() {
 }
 
 _f.Grid.prototype.cell_select = function(cell, ri, ci) {
+	if(_f.cur_grid_cell==cell && cell.hc) return;
+	
 	if(ri!=null && ci!=null)
 		cell = this.tab.rows[ri].cells[ci];
 
@@ -324,6 +327,7 @@ _f.Grid.prototype.add_template = function(cell) {
 		cell.div.appendChild(hc.template.wrapper);
 		hc.template.activate(cell.row.docname);
 		hc.template.activated=1;
+		cell.hc = hc;
 		
 		if(hc.template.input && hc.template.input.set_width) {
 			hc.template.input.set_width($(cell).width());
@@ -350,8 +354,8 @@ _f.grid_refresh_date = function() {
 	_f.grid_date_cell.grid.set_cell_value(_f.grid_date_cell);
 }
 _f.grid_refresh_field = function(temp, input) {
-	if(input.value != _f.get_value(temp.doctype, temp.docname, temp.df.fieldname))
-		if(input.onchange)input.onchange();
+	if($(input).val() != _f.get_value(temp.doctype, temp.docname, temp.df.fieldname))
+		$(input).trigger('change');
 }
 
 _f.Grid.prototype.remove_template = function(cell) {
@@ -360,17 +364,13 @@ _f.Grid.prototype.remove_template = function(cell) {
 	if(!hc.template)return;
 	if(!hc.template.activated)return;
 
-	if(hc.template.txt) {
-		if(hc.template.df.fieldtype=='Date') {
-			// for calendar popup. the value will come after this
-			_f.grid_date_cell = cell;
-			setTimeout('_f.grid_refresh_date()', 100);
-		}
-		if(hc.template.txt.value)
-		_f.grid_refresh_field(hc.template, hc.template.txt);
-		
-	} else if(hc.template.input) {
-		_f.grid_refresh_field(hc.template, hc.template.input);		
+	if(hc.template.df.fieldtype=='Date') {
+		// for calendar popup. the value will come after this
+		_f.grid_date_cell = cell;
+		setTimeout('_f.grid_refresh_date()', 100);
+	} else {
+		var input = hc.template.txt || hc.template.input;
+		_f.grid_refresh_field(hc.template, input)
 	}
 
 	if(hc.template && hc.template.wrapper.parentNode)

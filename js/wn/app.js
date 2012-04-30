@@ -65,8 +65,6 @@ wn.Application = Class.extend({
 		wn.container = new wn.views.Container();
 		wn.views.make_403();
 		wn.views.make_404();
-		$('#startup_div').toggle(false);
-		$('#body_div').toggle(true);
 	},
 	make_nav_bar: function() {
 		// toolbar
