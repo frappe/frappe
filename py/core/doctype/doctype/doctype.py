@@ -45,7 +45,7 @@ class DocType:
 		restricted = ('name','parent','idx','owner','creation','modified','modified_by','parentfield','parenttype')
 		for d in self.doclist:
 			if d.parent and d.fieldtype:
-				if (not d.fieldname) and (d.fieldtype.lower() in ('data', 'select', 'int', 'float', 'currency', 'table', 'text', 'link', 'date', 'code', 'check', 'read only', 'small_text', 'time')):
+				if (not d.fieldname):
 					d.fieldname = d.label.strip().lower().replace(' ','_')
 					if d.fieldname in restricted:
 						d.fieldname = d.fieldname + '1'

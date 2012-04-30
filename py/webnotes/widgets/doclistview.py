@@ -153,6 +153,8 @@ def get_tables():
 		# check if ifnull function is used
 		if table_name.lower().startswith('ifnull('):
 			table_name = table_name[7:]
+		if not table_name[0]=='`':
+			table_name = '`' + table_name + '`'
 		if not table_name in tables:
 			tables.append(table_name)	
 	return tables
