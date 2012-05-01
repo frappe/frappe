@@ -1,5 +1,5 @@
 wn.ui.AppFrame = Class.extend({
-	init: function(parent) {
+	init: function(parent, title) {
 		this.buttons = {};
 		this.$w = $('<div></div>').appendTo(parent);
 		
@@ -11,6 +11,8 @@ wn.ui.AppFrame = Class.extend({
 		this.$w.find('.close').click(function() {
 			window.history.back();
 		})
+		
+		if(title) this.title(title);
 
 	},
 	title: function(txt) {
