@@ -243,7 +243,11 @@ class LoginManager:
 		if not user: user = webnotes.session.get('user')
 		self.user = user
 		self.run_trigger('on_logout')
-		webnotes.conn.sql('delete from tabSessions where user=%s', user)
+		webnotes.msgprint(webnotes.session.get('sid'))
+		if user=='demo@webnotestech.com':
+			webnotes.conn.sql('delete from tabSessions where sid=%s', webnotes.session.get('sid'))
+		else:
+			webnotes.conn.sql('delete from tabSessions where user=%s', user)
 		
 # =================================================================================
 # Cookie Manager
