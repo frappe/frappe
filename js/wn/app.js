@@ -77,7 +77,7 @@ wn.Application = Class.extend({
 			method:'logout',
 			callback: function(r) {
 				if(r.exc) {
-					console.log(r.exc); return;
+					console.log(r.exc);
 				}
 				me.redirect_to_login();
 			}

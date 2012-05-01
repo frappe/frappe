@@ -62,13 +62,4 @@ $(window).bind('hashchange', function() {
 	if(location.hash==wn._cur_route)
 		return;	
 	wn.route();
-	
-	// analytics code
-	if(wn.boot.analytics_code) {
-		try {
-			eval(wn.boot.analytics_code);
-		} catch (e) {
-			console.log(e);
-		}
-	}
 });
