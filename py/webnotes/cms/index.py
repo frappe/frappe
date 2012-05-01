@@ -59,8 +59,9 @@ def get():
 		if not page:
 			page = webnotes.user.get_home_page()
 			
-		return template.render(bootinfo = '', style_tag='', version='0', analytics_code = '',\
-			script_tag = '', body_html=html_snapshot(page), ajax_meta_tag = '')
+		return template.render(bootinfo = '', style_tag='', version='0', analytics_code = '',
+			script_tag = '', body_html=html_snapshot(page), ajax_meta_tag = '', 
+			title=webnotes.conn.get_value('Page', page, 'title'))
 	
 	# home page
 	else:
@@ -81,7 +82,7 @@ def get():
 		return template.render(bootinfo = bootinfo, version = get_version(),
 			script_tag = script_tag, style_tag = style_tag, body_html=body_html % '',
 			ajax_meta_tag = '<meta name="fragment" content="!">', 
-			analytics_code = bootdict.get('analytics_code', '') or '')
+			analytics_code = bootdict.get('analytics_code', '') or '', title='ERPNext')
 			
 def html_snapshot(page):
 	"""get html snapshot for search bot"""

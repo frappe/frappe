@@ -243,7 +243,10 @@ class LoginManager:
 		if not user: user = webnotes.session.get('user')
 		self.user = user
 		self.run_trigger('on_logout')
-		webnotes.conn.sql('delete from tabSessions where user=%s', user)
+		if user=='demo@webnotestech.com':
+			webnotes.conn.sql('delete from tabSessions where sid=%s', webnotes.session.get('sid'))
+		else:
+			webnotes.conn.sql('delete from tabSessions where user=%s', user)
 		
 # =================================================================================
 # Cookie Manager
@@ -396,6 +399,10 @@ class Session:
 		"""expire non-guest sessions"""
 		exp_sec = webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '6:00:00'
 		
+		# incase seconds is missing
+		if len(exp_sec.split(':')) == 2:
+			exp_sec = exp_sec + ':00'
+			
 		# set sessions as expired
 		try:
 			webnotes.conn.sql("""delete from tabSessions
