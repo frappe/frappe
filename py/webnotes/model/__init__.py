@@ -167,16 +167,16 @@ def rename(dt, old, new, is_doctype = 0):
 	# get links (link / select)
 	ll = get_link_fields(dt)
 	update_link_fld_values(ll, old, new)
-	
-	# update options and values where select options contains old dt
-	select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new))
-	update_link_fld_values(select_flds, old, new)
-	
-	sql("update `tabDocField` set options = replace(options, '%s', '%s') where parent not like 'old%%' and options like '%%%s%%' and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new, old, new))
 
 	# doctype
-	if is_doctype:
-		if not is_single_dt(new):
+	if is_doctype:		
+		# update options and values where select options contains old dt
+		select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and (options like '%%%s%%' or options like '%%%s%%') and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % ('\n' + old, old + '\n', new))
+		update_link_fld_values(select_flds, old, new)
+	
+		sql("update `tabDocField` set options = replace(options, '%s', '%s') where parent not like 'old%%' and (options like '%%%s%%' or options like '%%%s%%') and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new, '\n' + old, old + '\n', new))
+
+		if not is_single_dt(old):
 			sql("RENAME TABLE `tab%s` TO `tab%s`" % (old, new))
 		else:
 			sql("update tabSingles set doctype = %s where doctype = %s", (new, old))
