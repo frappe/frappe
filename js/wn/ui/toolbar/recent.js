@@ -65,8 +65,7 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 	},
 	setup: function() {
 		// add menu items
-		try{ var rlist = JSON.parse(profile.recent); }
-		catch(e) { return; /*old style-do nothing*/ }
+		var rlist = JSON.parse(profile.recent||"[]");
 		
 		var m = rlist.length;
 		if(m>15)m=15;

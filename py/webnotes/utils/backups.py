@@ -35,7 +35,9 @@ from datetime import datetime
 
 #Global constants
 import conf
-from conf import backup_path, backup_link_path
+from conf import backup_path
+subdomain = webnotes.conn.get_value('Website Settings', 'Website Settings', 'subdomain')
+backup_link_path = "/".join(['http:/', subdomain, 'backups'])
 verbose = 0
 
 #-------------------------------------------------------------------------------
