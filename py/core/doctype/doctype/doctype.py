@@ -87,7 +87,10 @@ class DocType:
 					for c in illegal:
 						if c in d.fieldname:
 							webnotes.msgprint('"%s" not allowed in fieldname' % c)
-					
+				
+				else:
+					webnotes.msgprint("Fieldname is mandatory in row %s" % str(d.idx+1), raise_exception=1)
+				
 				# check illegal mandatory
 				if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
 					webnotes.msgprint('%(lable)s [%(fieldtype)s] cannot be mandatory', raise_exception=1)

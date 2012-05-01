@@ -31,7 +31,14 @@ $.extend(wn.meta, {
 		wn.meta.docfield_map[df.parent][df.fieldname || df.label] = df;
 		
 		if(!wn.meta.docfield_list[df.parent])
-			wn.meta.docfield_list[df.parent] = []
+			wn.meta.docfield_list[df.parent] = [];
+			
+		// check for repeat
+		for(var i in wn.meta.docfield_list[df.parent]) {
+			var d = wn.meta.docfield_list[df.parent][i];
+			if(df.fieldname==d.fieldname) 
+				return; // no repeat
+		}
 		wn.meta.docfield_list[df.parent].push(df);
 	}
 });
