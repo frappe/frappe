@@ -390,20 +390,24 @@ _f.CodeField.prototype.make_input = function() {
 		}
 		
 		this.input.set_input = function(v) {
+			me.setting_value = true;
 			me.editor.getSession().setValue(v);
+			me.setting_value = false;
 		}
-		me.editor.getSession().on('change', function() {
-			me.set(me.get_value());
-			me.run_trigger();			
-		})
+		
 		this.get_value = function() {
 			return me.editor.getSession().getValue(); // tinyMCE
 		}
-		$(this.wrapper).bind('refresh', function() {
-			me.editor.resize();			
-		});
 		$(cur_frm.wrapper).bind('render_complete', function() {
-			me.editor.resize();			
+			me.editor.resize();
+			me.editor.getSession().on('change', function() {
+				if(me.setting_value) return;
+				var val = me.get_value();
+				if(locals[cur_frm.doctype][cur_frm.docname][me.df.fieldname] != val) {
+					me.set(me.get_value());
+					me.run_trigger();
+				}
+			})
 		});
 		
 	}
