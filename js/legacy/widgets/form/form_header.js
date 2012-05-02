@@ -55,7 +55,7 @@ _f.FrmHeader = Class.extend({
 			labinfo[0]='Saved, to Submit';
 		}
 		
-		if(cur_frm.doc.__unsaved) {
+		if(cur_frm.doc.__unsaved || cur_frm.doc.__islocal) {
 			labinfo[0] = 'Not Saved';
 			labinfo[1] = 'label-warning'
 		}

@@ -340,7 +340,11 @@ _f.CodeField.prototype.make_input = function() {
 		});
 
 		this.input.set_input = function(v) {
-			me.editor.setContent(v);
+			if(me.editor) {
+				me.editor.setContent(v);				
+			} else {
+				$(me.input).val(v);
+			}
 		}
 		this.input.onchange = function() {
 			me.set(me.editor.getContent());
