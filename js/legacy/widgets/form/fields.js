@@ -638,7 +638,8 @@ LinkField.prototype.make_input = function() {
 	
 	$(this.txt).change(function() {
 		if(!$(this).val()) {
-			if(selector && selector.display) return;
+			if(selector && selector.display) 
+				return;
 			me.set_input_value('');			
 		}
 	})
@@ -710,7 +711,7 @@ LinkField.prototype.set_input_value = function(val) {
 	// same value, do nothing
 	if(cur_frm) {
 		if(val == locals[me.doctype][me.docname][me.df.fieldname]) { 
-			me.set(val); // one more time, grid bug?
+			//me.set(val); // one more time, grid bug?
 			me.run_trigger(); // wanted - called as refresh?
 			return; 
 		}
@@ -742,13 +743,15 @@ LinkField.prototype.set_input_value = function(val) {
 		function(r,rt) { 
 			if(r.message=='Ok') {
 				// set fetch values
-				if($(me.txt).val()!=val && !from_selector) {
-					me.set_input_value(val);
+				if($(me.txt).val()!=val) {
+					if((me.grid && !from_selector) || (!me.grid)) {
+						$(me.txt).val(val);
+					}
 				}
 				
 				if(r.fetch_values) 
 					me.set_fetch_values(r.fetch_values);
-			
+
 				me.run_trigger();
 			} else {
 				var astr = '';
