@@ -240,6 +240,9 @@ _f.Frm.prototype.email_doc = function() {
 
 _f.Frm.prototype.rename_notify = function(dt, old, name) {	
 	// from form
+	if(this.meta.in_dialog) 
+		return;
+	
 	if(this.docname == old)
 		this.docname = name;
 	else
