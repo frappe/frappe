@@ -53,7 +53,7 @@ def make_query(fields, dt, key, txt, start, length):
 		FROM `tab%(dt)s`
 		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' AND `tab%(dt)s`.docstatus != 2
 		ORDER BY `tab%(dt)s`.`%(key)s`
-		DESC LIMIT %(start)s, %(len)s """ % {
+		ASC LIMIT %(start)s, %(len)s """ % {
 			'fields': fields,
 			'dt': dt,
 			'key': key,
