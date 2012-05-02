@@ -56,7 +56,8 @@ wn.request.cleanup = function(opts, r) {
 	// session expired?
 	if(wn.boot.sid && wn.get_cookie('sid') != wn.boot.sid) { 
 		msgprint('Session Expired. Logging you out');
-		wn.app.logout();
+		if(!wn.app.logged_out)
+			wn.app.logout();
 		return;
 	}
 	

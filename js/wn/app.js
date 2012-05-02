@@ -73,6 +73,7 @@ wn.Application = Class.extend({
 	},
 	logout: function() {
 		var me = this;
+		me.logged_out = true;
 		wn.call({
 			method:'logout',
 			callback: function(r) {
