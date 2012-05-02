@@ -392,10 +392,10 @@ _f.CodeField.prototype.make_input = function() {
 		this.input.set_input = function(v) {
 			me.editor.getSession().setValue(v);
 		}
-		this.input.onchange = function() {
+		me.editor.getSession().on('change', function() {
 			me.set(me.get_value());
-			me.run_trigger();
-		}
+			me.run_trigger();			
+		})
 		this.get_value = function() {
 			return me.editor.getSession().getValue(); // tinyMCE
 		}
