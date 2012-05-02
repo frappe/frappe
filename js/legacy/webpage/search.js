@@ -28,7 +28,7 @@ search_fields = {};
 function setlinkvalue(name) {
 	//selector.input.set(name);// in local - this will be set onchange
 	selector.input.set_input_value(name); // on screen
-	selector.hide();
+	setTimeout('selector.hide()',100);
 }
 
 // Link Selector
@@ -54,7 +54,8 @@ function makeselector() {
 	d.sel_type = '';
 	d.values_len = 0;
 	d.set = function(input, type, label) {
-		d.sel_type = type; d.input = input;
+		d.sel_type = type; 
+		d.input = input;
 		if(d.style!='Link') {
 			d.rows['Result'].innerHTML ='';
 			d.values_len = 0;

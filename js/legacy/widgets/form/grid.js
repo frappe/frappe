@@ -274,7 +274,7 @@ $(document).bind('click', function(e) {
 				
 		return $(e.target).parents().get().indexOf(_f.cur_grid_cell)!=-1;
 	}
-
+	
 	if(_f.cur_grid_cell && !is_target_input() && !is_target_toolbar()) {
 		if(!(text_dialog && text_dialog.display) 
 			&& !datepicker_active && !(selector && selector.display)) {

@@ -637,8 +637,9 @@ LinkField.prototype.make_input = function() {
 	};
 	
 	$(this.txt).change(function() {
-		if(!$(this).val())
-			me.set_input_value('');
+		if(!$(this).val()) {
+			me.set_input_value('');			
+		}
 	})
 }
 
@@ -741,7 +742,7 @@ LinkField.prototype.set_input_value = function(val) {
 			if(r.message=='Ok') {
 				// set fetch values
 				if($(me.txt).val()!=val) {
-					me.set_input(val);
+					me.set_input_value(val);
 				}
 				
 				if(r.fetch_values) 
