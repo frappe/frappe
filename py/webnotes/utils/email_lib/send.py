@@ -145,7 +145,7 @@ class EMail:
 		"""
 		if not self.sender:
 			self.sender = hasattr(conf, 'auto_email_id') \
-					and conf.auto_email_id or 'automail@erpnext.com'
+					and conf.auto_email_id or '"ERPNext Notifier" <automail@erpnext.com>'
 
 		from webnotes.utils import validate_email_add
 		# validate ids
