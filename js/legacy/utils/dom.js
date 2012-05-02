@@ -20,13 +20,6 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-wn.dom.set_unique_id = function(ele) {
-	var id = 'unique-' + wn.dom.id_count;
-	ele.setAttribute('id', id);
-	wn.dom.id_count++;
-	return id;
-}
-
 // short hand functions for setting up
 // rich text editor tinymce
 wn.tinymce = {

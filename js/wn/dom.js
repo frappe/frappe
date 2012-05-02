@@ -24,8 +24,15 @@
 wn.provide('wn.dom');
 
 wn.dom = {
+	id_count: 0,
 	by_id: function(id) {
 		return document.getElementById(id);
+	},
+	set_unique_id: function(ele) {
+		var id = 'unique-' + wn.dom.id_count;
+		ele.setAttribute('id', id);
+		wn.dom.id_count++;
+		return id;
 	},
 	eval: function(txt) {
 		if(!txt) return;

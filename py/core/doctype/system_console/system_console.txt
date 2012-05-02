@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:39',
+		'creation': '2012-04-02 16:01:07',
 		'docstatus': 0,
-		'modified': '2012-03-27 14:35:39',
+		'modified': '2012-05-02 15:25:21',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -21,7 +21,7 @@
 		'name': '__common__',
 		'section_style': u'Simple',
 		'show_in_menu': 1,
-		'version': 6
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -70,6 +70,7 @@
 		'fieldname': u'script',
 		'fieldtype': u'Code',
 		'label': u'Script',
+		'options': u'Python',
 		'permlevel': 0
 	},
 
