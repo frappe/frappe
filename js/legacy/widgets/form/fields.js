@@ -627,7 +627,7 @@ LinkField.prototype.make_input = function() {
 			});
 		},
 		select: function(event, ui) {
-			me.set_input_value(ui.item.value);			
+			me.set_input_value(ui.item.value);
 		}
 	}).data('autocomplete')._renderItem = function(ul, item) {
 		return $('<li></li>')
@@ -638,6 +638,7 @@ LinkField.prototype.make_input = function() {
 	
 	$(this.txt).change(function() {
 		if(!$(this).val()) {
+			if(selector && selector.display) return;
 			me.set_input_value('');			
 		}
 	})
@@ -694,6 +695,8 @@ LinkField.prototype.setup_buttons = function() {
 LinkField.prototype.set_input_value = function(val) {
 	
 	var me = this;
+	var from_selector = false;
+	if(selector && selector.display) from_selector = true;
 		
 	// refresh mandatory style
 	me.refresh_label_icon();
@@ -737,11 +740,9 @@ LinkField.prototype.set_input_value = function(val) {
 			'fetch': fetch
 		}, 
 		function(r,rt) { 
-			if(selector && selector.display) return; // selecting from popup
-		
 			if(r.message=='Ok') {
 				// set fetch values
-				if($(me.txt).val()!=val) {
+				if($(me.txt).val()!=val && !from_selector) {
 					me.set_input_value(val);
 				}
 				

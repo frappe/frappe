@@ -28,7 +28,7 @@ search_fields = {};
 function setlinkvalue(name) {
 	//selector.input.set(name);// in local - this will be set onchange
 	selector.input.set_input_value(name); // on screen
-	setTimeout('selector.hide()',100);
+	selector.hide();
 }
 
 // Link Selector
