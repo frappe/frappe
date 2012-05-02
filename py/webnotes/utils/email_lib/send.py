@@ -144,7 +144,8 @@ class EMail:
 		validate the email ids
 		"""
 		if not self.sender:
-			self.sender = webnotes.conn.get_value('Control Panel',None,'auto_email_id')
+			self.sender = hasattr(conf, 'auto_email_id') \
+					and conf.auto_email_id or '"ERPNext Notification" <automail@erpnext.com>'
 
 		from webnotes.utils import validate_email_add
 		# validate ids

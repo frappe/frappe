@@ -66,7 +66,6 @@ class BackupGenerator:
 		"""
 		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | 
 					 gzip -c > %(backup_file_path)s""" % self.__dict__
-		webnotes.msgprint(cmd_string)
 		os.system(cmd_string)
 	
 	def get_recipients(self):
