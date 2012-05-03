@@ -388,6 +388,10 @@ wn.views.ListView = Class.extend({
 					style="width: %(percent)s%;"></span>\
 			</span>', args));
 		}
+		else if(opts.type=='link' && opts.doctype) {
+			$(parent).append(repl('<a href="#!Form/'+opts.doctype+'/'
+				+data[opts.content]+'">'+data[opts.content]+'</a>', data));
+		}
 		else if(data[opts.content]) {
 			$(parent).append(' ' + data[opts.content]);
 		}

@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:38',
+		'creation': '2012-04-02 16:01:07',
 		'docstatus': 0,
-		'modified': '2012-03-27 14:35:38',
+		'modified': '2012-05-03 09:55:18',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -40,7 +40,7 @@
 		'subject': u'eval:("<span style=\'color:grey\'>Module: <b>%(module)s</b>, Type: <b>%(doc_type)s</b>, Standard: <b>%(standard)s</b></span>")',
 		'tag_fields': u'doc_type',
 		'use_template': 0,
-		'version': 25
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -55,16 +55,17 @@
 
 	# These values are common for all DocPerm
 	{
-		'amend': 0,
 		'cancel': 0,
 		'create': 1,
 		'doctype': u'DocPerm',
+		'execute': 0,
 		'name': '__common__',
 		'parent': u'Print Format',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
 		'permlevel': 0,
 		'read': 1,
+		'role': u'Administrator',
 		'submit': 0,
 		'write': 1
 	},
@@ -77,14 +78,7 @@
 
 	# DocPerm
 	{
-		'doctype': u'DocPerm',
-		'role': u'Administrator'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'role': u'System Manager'
+		'doctype': u'DocPerm'
 	},
 
 	# DocField
@@ -150,6 +144,7 @@
 		'no_copy': 0,
 		'oldfieldname': u'html',
 		'oldfieldtype': u'Text Editor',
+		'options': u'HTML',
 		'print_hide': 0,
 		'report_hide': 0,
 		'reqd': 0,
