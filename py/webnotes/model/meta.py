@@ -67,7 +67,10 @@ def get_link_fields(doctype):
 #=================================================================================
 
 def get_table_fields(doctype):
-	return webnotes.conn.sql("select options, fieldname from tabDocField \
-		where parent='%s' and fieldtype='Table'" % doctype, as_list=1)
-
+	child_tables = [[d[0], d[1]] for d in webnotes.conn.sql("select options, fieldname from tabDocField \
+		where parent='%s' and fieldtype='Table'" % doctype, as_list=1)]
 	
+	custom_child_tables = [[d[0], d[1]] for d in webnotes.conn.sql("select options, fieldname from `tabCustom Field` \
+		where dt='%s' and fieldtype='Table'" % doctype, as_list=1)]
+
+	return child_tables + custom_child_tables
