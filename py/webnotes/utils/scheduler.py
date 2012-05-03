@@ -49,7 +49,6 @@ def execute():
 	if not webnotes.conn:
 		webnotes.connect()
 	
-	webnotes.conn.begin()
 	out = []
 
 	# if first task of the day execute daily tasks
@@ -73,6 +72,7 @@ def execute():
 
 	out.append('all:' + trigger('execute_all'))
 	
+	webnotes.conn.begin()
 	webnotes.conn.set_global('scheduler_last_event', nowtime.strftime(format))
 	webnotes.conn.commit()
 	
@@ -97,10 +97,12 @@ def log(method):
 	import webnotes
 	webnotes.conn.rollback()
 	traceback = webnotes.getTraceback()
-	
+
 	import webnotes.utils
+	webnotes.conn.begin()
 	webnotes.conn.sql("""insert into __SchedulerLog (`timestamp`, method, error) 
 		values (%s, %s, %s)""", (webnotes.utils.now_datetime(), method, traceback))
+	webnotes.conn.commit()
 
 	return traceback
 
