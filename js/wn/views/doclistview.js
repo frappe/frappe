@@ -392,6 +392,9 @@ wn.views.ListView = Class.extend({
 			$(parent).append(repl('<a href="#!Form/'+opts.doctype+'/'
 				+data[opts.content]+'">'+data[opts.content]+'</a>', data));
 		}
+		else if(opts.template) {
+			$(parent).append(repl(opts.template, data));
+		}
 		else if(data[opts.content]) {
 			$(parent).append(' ' + data[opts.content]);
 		}
@@ -440,7 +443,14 @@ wn.views.ListView = Class.extend({
 		} else if(data.docstatus==2) {
 			data.docstatus_icon = 'icon-remove';			
 			data.docstatus_title = 'Cancelled';
-		}		
+		}
+		
+		// nulls as strings
+		for(key in data) {
+			if(data[key]==null) {
+				data[key]='';
+			}
+		}
 	},
 	add_user_tags: function(parent, data) {
 		var me = this;
