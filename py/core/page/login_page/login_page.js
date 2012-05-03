@@ -33,7 +33,8 @@ pscript['onload_Login Page'] = function(wrapper){
 	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').val())
 			pscript.doLogin();
-	})	
+	});
+	$(document).trigger('login_rendered');
 }
 
 pscript['onshow_Login Page'] = function() {
