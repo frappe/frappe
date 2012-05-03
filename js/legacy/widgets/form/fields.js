@@ -412,9 +412,9 @@ DataField.prototype.make_input = function() {
 
 		if(me.validate) {
 			val = me.validate(val);
-			me.input.value = val;
+			me.input.value = val==undefined ? '' : val;
 		}
-			
+
 		me.set(val);
 		if(me.format_input)
 			me.format_input();
