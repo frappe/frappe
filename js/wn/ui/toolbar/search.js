@@ -27,8 +27,7 @@ wn.ui.toolbar.Search = wn.ui.toolbar.SelectorDialog.extend({
 		this._super({
 			title: "Search",
 			execute: function(val) {
-				selector.set_search(val);
-				selector.show();
+				new wn.ui.Search({doctype:val});
 			},
 		});
 		

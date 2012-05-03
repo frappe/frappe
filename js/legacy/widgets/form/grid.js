@@ -364,14 +364,14 @@ _f.Grid.prototype.remove_template = function(cell) {
 	if(!hc.template)return;
 	if(!hc.template.activated)return;
 
-	if(hc.template.df.fieldtype=='Date') {
+	/*if(hc.template.df.fieldtype=='Date') {
 		// for calendar popup. the value will come after this
 		_f.grid_date_cell = cell;
 		setTimeout('_f.grid_refresh_date()', 100);
 	} else {
 		var input = hc.template.txt || hc.template.input;
 		_f.grid_refresh_field(hc.template, input)
-	}
+	}*/
 
 	if(hc.template && hc.template.wrapper.parentNode)
 		cell.div.removeChild(hc.template.wrapper);

@@ -39,6 +39,9 @@ def get(arg=None):
 	data = webnotes.form_dict
 	global tables
 	
+	if 'query' in data:
+		return run_custom_query(data)
+	
 	filters = json.loads(data['filters'])
 	fields = json.loads(data['fields'])
 	tables = get_tables()
@@ -60,6 +63,13 @@ def get(arg=None):
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		order by %(order_by)s %(limit)s""" % data
 	return webnotes.conn.sql(query, as_dict=1)
+
+def run_custom_query(data):
+	"""run custom query"""
+	query = data['query']
+	if '%(key)s' in query:
+		query = query.replace('%(key)s', 'name')
+	return webnotes.conn.sql(query, as_dict=1, debug=1)
 
 def load_doctypes():
 	"""load all doctypes and roles"""
@@ -133,13 +143,17 @@ def build_filter_conditions(data, filters, conditions):
 def build_match_conditions(data, conditions):
 	"""add match conditions if applicable"""
 	match_conditions = []
+	match = True
 	for d in doctypes[data['doctype']]:
-		if d.doctype == 'DocPerm' and d.match:
-			if d.role in roles: # role applicable
-				for v in webnotes.user.defaults.get(d.match, ['**No Match**']):
-					match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'], d.match,v))
+		if d.doctype == 'DocPerm':
+			if d.role in roles:
+				if d.match: # role applicable
+					for v in webnotes.user.defaults.get(d.match, ['**No Match**']):
+						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'], d.match,v))
+				else:
+					match = False
 	
-	if match_conditions:
+	if match_conditions and match:
 		conditions.append('('+ ' or '.join(match_conditions) +')')
 
 def get_tables():

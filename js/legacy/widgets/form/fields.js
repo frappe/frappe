@@ -404,7 +404,7 @@ DataField.prototype.make_input = function() {
 	this.input.name = this.df.fieldname;
 	
 	$(this.input).change(function() {
-		me.set_value($(this).val());
+		me.set_value(me.get_value && me.get_value() || $(this.input).val());
 	});
 	
 	this.set_value = function(val) {
@@ -694,7 +694,6 @@ LinkField.prototype.setup_buttons = function() {
 }
 
 LinkField.prototype.set_input_value = function(val) {
-	
 	var me = this;
 	var from_selector = false;
 	if(selector && selector.display) from_selector = true;
@@ -725,7 +724,7 @@ LinkField.prototype.set_input_value = function(val) {
 		_f.cur_grid_cell.grid.cell_deselect();
 	
 	// run trigger if value is cleared
-	if(!val) {
+	if(locals[me.doctype][me.docname][me.df.fieldname] && !val) {
 		me.run_trigger();
 		return;
 	}

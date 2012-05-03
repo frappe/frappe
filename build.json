@@ -136,6 +136,7 @@
 			"lib/js/wn/ui/appframe.js",
 			"lib/js/wn/ui/dialog.js",
 			"lib/js/wn/ui/button.js",
+			"lib/js/wn/ui/search.js",
 			"lib/js/legacy/widgets/dialog.js",
 			"lib/js/legacy/widgets/layout.js",
 			"lib/js/legacy/widgets/tabbedpage.js",

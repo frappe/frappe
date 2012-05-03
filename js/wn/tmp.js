@@ -105,3 +105,14 @@ render_grid: function() {
 		return this.change_to(label); 
 	}
 });
+
+////
+
+me.set_get_query();
+new wn.ui.Search({
+	query: me.get_query ? me.get_query() : null,
+	doctype:me.df.options,
+	callback: function(val) {
+		me.set_input_value(val)
+	}
+});
