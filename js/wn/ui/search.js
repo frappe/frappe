@@ -8,6 +8,7 @@ wn.ui.Search = Class.extend({
 		wn.model.with_doctype(this.doctype, function(r) {
 			me.make();
 			me.dialog.show();
+			me.list.$w.find('.list-filters input[type="text"]').focus();
 		});
 	},
 	make: function() {

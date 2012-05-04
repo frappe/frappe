@@ -38,7 +38,7 @@ wn.ui.FilterList = Class.extend({
 	},
 	
 	show_filters: function() {
-		this.$w.find('.show_filters').slideToggle();
+		this.$w.find('.show_filters').toggle();
 		if(!this.filters.length)
 			this.add_filter();
 	},
@@ -53,7 +53,7 @@ wn.ui.FilterList = Class.extend({
 		
 		// list must be expanded
 		if(fieldname) {
-			this.$w.find('.show_filters').slideDown();
+			this.$w.find('.show_filters').toggle(true);
 		}
 	},
 	
