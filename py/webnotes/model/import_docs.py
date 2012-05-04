@@ -437,8 +437,14 @@ def get_template():
 	# Help on Line 
 	line1 = line1 + ',,,Please fill columns which are Mandatory., Please do not modify the structure'
 	
-	# fieldnames
-	res = sql("select fieldname, fieldtype, label, reqd, hidden from tabDocField where parent='%s' and docstatus!=2" % dt)
+	# standard fields
+	res1 = [[d[0], d[1], d[2], d[3], d[4]] for d in sql("select fieldname, fieldtype, label, reqd, hidden \
+		from tabDocField where parent='%s' and docstatus!=2" % dt)]
+	# custom fields
+	res2 = [[d[0], d[1], d[2], d[3], 0] for d in sql("select fieldname, fieldtype, label, reqd \
+		from `tabCustom Field` where dt ='%s' and docstatus!=2" % dt)]
+	
+	res = res1 + res2
 
 	for r in res:
 		# restrict trash_reason field, hidden and required fields 
