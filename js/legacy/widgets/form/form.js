@@ -131,7 +131,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	this.print_btn = $btn($td(t,0,0), 'Print', function() { cur_frm.print_doc() });
 
 	$y($td(t,0,1), {textAlign: 'right'});
-	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { window.back(); });
+	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { window.history.back(); });
 }
 
 
