@@ -35,6 +35,7 @@ _p.go = function(html) {
 
 _p.preview = function(html) {
 	var w = window.open('');
+	if(!w) return;
 	w.document.write(html)
 	w.document.close();
 }
