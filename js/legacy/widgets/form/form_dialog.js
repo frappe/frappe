@@ -92,7 +92,7 @@ _f.FrmDialog = function() {
 		}
 		
 		// hide the form
-		console.log(me.cur_frm.wrapper);
+		//console.log(me.cur_frm.wrapper);
 		$(me.cur_frm.page_layout.wrapper).toggle(false);
 	}
 	this.dialog = d;
