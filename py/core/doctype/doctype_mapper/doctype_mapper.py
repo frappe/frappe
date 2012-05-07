@@ -237,9 +237,9 @@ class DocType:
 		for t in getlist(self.doclist, 'table_mapper_details'):
 			if t.reference_key and child_obj.fields[t.reference_key]:
 				from_flds, to_flds = {}, {}
-				for d in get(d.from_table):
+				for d in get(t.from_table):
 					flds[d.fieldname] = [d.label, d.fieldtype]
-				for d in get(d.to_table):
+				for d in get(t.to_table):
 					flds[d.fieldname] = [d.label, d.fieldtype]
 
 				for cl in checklist:
