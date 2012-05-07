@@ -92,7 +92,6 @@
 
 	{
 		"js/all-web.js": [
-			"lib/js/lib/history/history.min.js:concat",
 			"lib/js/lib/bootstrap.min.js:concat",
 			"lib/js/core.min.js:concat",
 			"lib/js/legacy/globals.js",
@@ -117,7 +116,6 @@
 	
 	{
 		"js/all-app.js": [
-			"lib/js/lib/history/history.min.js:concat",
 			"lib/js/lib/jquery/jquery.ui.core.js:concat",
 			"lib/js/lib/jquery/jquery.ui.datepicker.js:concat",
 			"lib/js/lib/jquery/jquery.ui.autocomplete.js:concat",
