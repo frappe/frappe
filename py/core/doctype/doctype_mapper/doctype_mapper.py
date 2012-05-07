@@ -249,20 +249,21 @@ class DocType:
 						else:
 							cur_val = par_obj.fields[cl[1]]
 						
-						if to_flds[cl[1]][0] in ['Currency', 'Float']:
+						if to_flds[cl[1]][1] in ['Currency', 'Float']:
 							cur_val = '%.2f' % flt(cur_val)
 
-						if cl[2] == '=' and to_flds[cl[1]][0] in ['Currency', 'Float']:
+						if cl[2] == '=' and to_flds[cl[1]][1] in ['Currency', 'Float']:
 							consistent = sql("select name, %s from `tab%s` where name = '%s' and '%s' - %s <= 0.5" % (cl[0], t.from_table, child_obj.fields[t.reference_key], flt(cur_val), cl[0]))
 						else:
-							consistent = sql("select name, %s from `tab%s` where name = '%s' and '%s' %s ifnull(%s, '')" % (cl[0], t.from_table, child_obj.fields[t.reference_key], to_flds[cl[1]][0] in ('Currency', 'Float', 'Int') and flt(cur_val) or cstr(cur_val), cl[2],	cl[0]))
+							consistent = sql("select name, %s from `tab%s` where name = '%s' and '%s' %s ifnull(%s, '')" % (cl[0], t.from_table, child_obj.fields[t.reference_key], 
+								to_flds[cl[1]][1] in ('Currency', 'Float', 'Int') and flt(cur_val) or cstr(cur_val), cl[2],	cl[0]))
 
 						if not self.ref_doc:
 							det = sql("select name, parent from `tab%s` where name = '%s'" % (t.from_table, child_obj.fields[t.reference_key]))
 							self.ref_doc = det[0][1] and det[0][1] or det[0][0]			 
 
 						if not consistent:
-							self.give_message(from_flds[cl[0]][1], to_flds[cl[1]][1], cl[2])
+							self.give_message(from_flds[cl[0]][0], to_flds[cl[1]][0], cl[2])
 							
 	# Gives message and raise exception
 	#-----------------------------------
