@@ -238,9 +238,9 @@ class DocType:
 			if t.reference_key and child_obj.fields[t.reference_key]:
 				from_flds, to_flds = {}, {}
 				for d in get(t.from_table):
-					flds[d.fieldname] = [d.label, d.fieldtype]
+					from_flds[d.fieldname] = [d.label, d.fieldtype]
 				for d in get(t.to_table):
-					flds[d.fieldname] = [d.label, d.fieldtype]
+					to_flds[d.fieldname] = [d.label, d.fieldtype]
 
 				for cl in checklist:
 					if cl[3] == t.match_id:
