@@ -63,18 +63,6 @@ class Page:
 			with open(fpath, 'r') as f:
 				doc.content = f.read()
 	
-	def process_content(self, doc):
-		"""
-			Put in template and generate dynamic if starts with #!python
-		"""
-		content = ''
-		
-		# eval content
-		if doc.content and doc.content.startswith('#!python'):
-			from webnotes.model.code import execute
-			doc.__content = execute(doc.content).get('content')
-		else:
-			doc.__content = content
 			
 	def load(self):	
 		"""
@@ -97,7 +85,10 @@ def get(name):
 	"""
 	   Return the :term:`doclist` of the `Page` specified by `name`
 	"""
-	return Page(name).load()
+	from webnotes.model.code import get_obj
+	page = get_obj('Page', name)
+	page.get_from_files()
+	return page.doclist
 
 @webnotes.whitelist(allow_guest=True)
 def getpage():

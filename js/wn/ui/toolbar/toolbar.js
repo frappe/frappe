@@ -41,7 +41,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<a class="brand"></a>\
 				<ul class="nav">\
 				</ul>\
-				<img src="lib/images/ui/spinner.gif" id="spinner"/>\
+				<img src="images/lib/ui/spinner.gif" id="spinner"/>\
 				<ul class="nav pull-right">\
 					<li class="dropdown">\
 						<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
@@ -123,7 +123,6 @@ wn.ui.toolbar.download_backup = function() {
 
 wn.ui.toolbar.show_about = function() {
 	try {
-		wn.require('lib/js/wn/misc/about.js');
 		wn.ui.misc.about();		
 	} catch(e) {
 		console.log(e);

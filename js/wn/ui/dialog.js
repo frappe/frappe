@@ -27,9 +27,8 @@ wn.widgets.FieldGroup = function() {
 	this.make_fields = function(body, fl) {
 		if(!window.make_field) {
 			// called in website, load some libs
-			wn.require('lib/css/legacy/fields.css');
-			wn.require('lib/js/legacy/widgets/form/fields.js');
-			wn.require('lib/js/wn/ui/button.js');
+			wn.require('css/fields.css');
+			wn.require('js/fields.js');
 		}
 		
 		$y(this.body, {padding:'11px'});

@@ -22,6 +22,28 @@
 
 wn.Application = Class.extend({
 	init: function() {
+		var me = this;
+		if(window.app) {
+			wn.call({
+				method: 'startup',
+				callback: function(r, rt) {
+					wn.provide('wn.boot');
+					wn.boot = r;
+					if(wn.boot.profile.name=='Guest') {
+						window.location = 'index.html';
+						return;
+					}
+					me.startup();
+				}
+			})
+		} else {
+			// clear sid cookie
+			document.cookie = "sid=Guest;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"
+			this.startup();
+			//wn.views.pageview.show(window.home_page);
+		}
+	},
+	startup: function() {
 		// load boot info
 		this.load_bootinfo();
 
@@ -37,18 +59,22 @@ wn.Application = Class.extend({
 		$(document).trigger('startup');
 		
 		// route to home page
-		wn.route();
+		wn.route();		
 	},
 	load_bootinfo: function() {
-		LocalDB.sync(wn.boot.docs);
-		wn.control_panel = wn.boot.control_panel;
-		
-		if(wn.boot.error_messages)
-			console.log(wn.boot.error_messages)
-		if(wn.boot.server_messages) 
-			msgprint(wn.boot.server_messages);
-		
-		this.set_globals();		
+		if(wn.boot) {
+			LocalDB.sync(wn.boot.docs);
+			wn.control_panel = wn.boot.control_panel;
+
+			if(wn.boot.error_messages)
+				console.log(wn.boot.error_messages)
+			if(wn.boot.server_messages) 
+				msgprint(wn.boot.server_messages);
+
+			this.set_globals();					
+		} else {
+			this.set_as_guest();
+		}
 	},
 	set_globals: function() {
 		// for backward compatibility
@@ -60,6 +86,16 @@ wn.Application = Class.extend({
 		user_email = profile.email;
 		sys_defaults = wn.boot.sysdefaults;		
 	},
+	set_as_guest: function() {
+		// for backward compatibility
+		profile = {name:'Guest'};
+		user = 'Guest';
+		user_fullname = 'Guest';
+		user_defaults = {};
+		user_roles = ['Guest'];
+		user_email = '';
+		sys_defaults = {};
+	},
 	make_page_container: function() {
 		wn.container = new wn.views.Container();
 		wn.views.make_403();
@@ -67,7 +103,7 @@ wn.Application = Class.extend({
 	},
 	make_nav_bar: function() {
 		// toolbar
-		if(wn.user.name !='Guest') {
+		if(wn.boot) {
 			wn.container.wntoolbar = new wn.ui.toolbar.Toolbar();
 		}
 	},
@@ -85,8 +121,7 @@ wn.Application = Class.extend({
 		})
 	},
 	redirect_to_login: function() {
-		window.location.hash = '';
-		window.location.reload();		
+		window.location.href = 'index.html';
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");

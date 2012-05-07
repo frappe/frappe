@@ -72,17 +72,8 @@ def get():
 		bootdict = webnotes.session_cache.get()
 		bootinfo = """var wn = {}; wn.boot = %s;""" % json.dumps(bootdict)
 
-		if webnotes.session['user'] == 'Guest':
-			script_tag = '<script type="text/javascript" src="js/all-web.js"></script>'
-			style_tag = '<link type="text/css" rel="stylesheet" href="css/all-web.css">'
-		else:
-			script_tag = '<script type="text/javascript" src="js/all-app.js"></script>'
-			style_tag = '<link type="text/css" rel="stylesheet" href="css/all-app.css">'
-
 		return template.render(bootinfo = bootinfo, version = get_version(),
-			script_tag = script_tag, style_tag = style_tag, body_html=body_html % '',
-			ajax_meta_tag = '<meta name="fragment" content="!">', 
-			analytics_code = bootdict.get('analytics_code', '') or '', title='ERPNext')
+			script_tag = script_tag, style_tag = style_tag, body_html=body_html % '')
 			
 def html_snapshot(page):
 	"""get html snapshot for search bot"""

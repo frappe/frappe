@@ -274,12 +274,7 @@ class CookieManager:
 	# Set cookies
 	# -----------
 	
-	def set_cookies(self):
-		if webnotes.form_dict.get('cmd')=='logout':
-			webnotes.cookies['account_id'] = ''
-		else:
-			webnotes.cookies['account_id'] = webnotes.conn.cur_db_name
-		
+	def set_cookies(self):		
 		if webnotes.session.get('sid'):
 			webnotes.cookies['sid'] = webnotes.session['sid']
 
@@ -287,6 +282,7 @@ class CookieManager:
 			import datetime
 			expires = datetime.datetime.now() + datetime.timedelta(days=3)
 			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')		
+			webnotes.cookies['sid']['path'] = '/'
 
 	# Set Remember Me
 	# ---------------
@@ -309,7 +305,7 @@ class CookieManager:
 class Session:
 	def __init__(self, user=None):
 		self.user = user
-		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid')
+		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
 		self.data = {'user':user,'data':{}}
 
 		if webnotes.form_dict.get('cmd')=='login':

@@ -2,33 +2,31 @@
 <head>
 	<meta charset="utf-8">
 	<title>{{ title }}</title>
-	{{ ajax_meta_tag }}
-	<meta name="author" content="">
+	<meta name="generator" content="wnframework">
 	<link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon">
 	<link rel="icon" href="images/favicon.ico" type="image/x-icon">
-	<script type="text/javascript" src="lib/js/lib/jquery/jquery.min.js"></script>
-	<script type="text/javascript">
-	// browser support
-	if(($.browser.mozilla && parseFloat($.browser.version)<4) ||
-		($.browser.msie && parseFloat($.browser.version)<9) ||
-		($.browser.webkit && parseFloat($.browser.version)<533) ) {
-			//window.location.href= 'unsupported.html';			
-		}
-	window._version_number = "{{ version }}";
-	{{ bootinfo }};
+	<script type="text/javascript" src="js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="js/all-web.js"></script>
+	<script type="text/javascript" src="js/wn-web.js"></script>
+	<link type="text/css" rel="stylesheet" href="css/all-web.css">
+	<link type="text/css" rel="stylesheet" href="css/wn-web.css">
+	{% if script %}
+	<script>
+	$(document).ready(function() {
+		{{ script }}
+	});
 	</script>
-	{{ style_tag }}
-	{{ script_tag }}
-	{% if analytics_code %}
-	<script type="text/javascript">
-	try {
-		{{ analytics_code }}
-	} catch(e) {
-		console.log(e);
-	}
-	</script>
+	{% endif %}
+	{% if style %}
+	<style>{{ style }}</style>
 	{% endif %}
 </head>
 <body>
-	{{ body_html }}
+	<header>{{ header }}</header>
+	<div id="body_div">
+		<div class="content" id="page-{{ name }}" style="display: block;">
+		{{ content }}
+		</div>
+	</div>
+	<footer>{{ footer }}</footer>
 </body>

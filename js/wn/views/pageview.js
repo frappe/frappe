@@ -3,18 +3,18 @@ wn.provide('wn.views.pageview');
 wn.views.pageview = {
 	pages: {},
 	with_page: function(name, callback) {
-		if(!locals.Page[name]) {
+		if((locals.Page && locals.Page[name]) || name==window.home_page) {
+			callback();
+		} else {
 			wn.call({
 				method: 'webnotes.widgets.page.getpage', 
 				args: {'name':name },
 				callback: callback
 			});
-		} else {
-			callback();
 		}		
 	},
 	show: function(name) {
-		if(!name) name = wn.boot.home_page;
+		if(!name) name = (wn.boot ? wn.boot.home_page : 'Login Page');
 		wn.views.pageview.with_page(name, function(r) {
 			if(r && r.exc) {
 				if(!r['403'])wn.container.change_to('404');
@@ -27,18 +27,25 @@ wn.views.pageview = {
 }
 
 wn.views.Page = Class.extend({
-	init: function(name) {
+	init: function(name, wrapper) {
 		this.name = name;
 		var me = this;
-		this.pagedoc = locals.Page[this.name];
-		this.wrapper = wn.container.add_page(this.name);
-		this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
-		this.wrapper.page_name = this.pagedoc.name;
+		// web home page
+		if(name==window.home_page) {
+			this.wrapper = document.getElementById('page-' + name);
+			this.wrapper.title = document.title;
+			this.wrapper.label = window.home_page;
+		} else {
+			this.pagedoc = locals.Page[this.name];
+			this.wrapper = wn.container.add_page(this.name);
+			this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
+			this.wrapper.page_name = this.pagedoc.name;
 		
-		// set content, script and style
-		this.wrapper.innerHTML = this.pagedoc.content;
-		wn.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
-		wn.dom.set_style(this.pagedoc.style || '');
+			// set content, script and style
+			this.wrapper.innerHTML = this.pagedoc.content;
+			wn.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
+			wn.dom.set_style(this.pagedoc.style || '');
+		}
 		
 		this.trigger('onload');
 		

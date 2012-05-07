@@ -14,11 +14,11 @@ render_grid: function() {
 		v._idx = i+1;
 	})
 	
-	wn.require('lib/js/lib/slickgrid/slick.grid.css');
-	wn.require('lib/js/lib/slickgrid/slick-default-theme.css');
-	wn.require('lib/js/lib/slickgrid/jquery.event.drag.min.js');
-	wn.require('lib/js/lib/slickgrid/slick.core.js');
-	wn.require('lib/js/lib/slickgrid/slick.grid.js');
+	wn.require('js/lib/slickgrid/slick.grid.css');
+	wn.require('js/lib/slickgrid/slick-default-theme.css');
+	wn.require('js/lib/slickgrid/jquery.event.drag.min.js');
+	wn.require('js/lib/slickgrid/slick.core.js');
+	wn.require('js/lib/slickgrid/slick.grid.js');
 	
 	var options = {
 		enableCellNavigation: true,

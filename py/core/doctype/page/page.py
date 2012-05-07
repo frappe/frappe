@@ -99,3 +99,58 @@ class DocType:
 				with open(path + '.css', 'w') as f:
 					pass
  
+	def get_from_files(self):
+		"""
+			Loads page info from files in module
+		"""
+		from webnotes.modules import get_module_path, scrub
+		import os
+		
+		path = os.path.join(get_module_path(self.doc.module), 'page', scrub(self.doc.name))
+
+		# script
+		fpath = os.path.join(path, scrub(self.doc.name) + '.js')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				self.doc.script = f.read()
+
+		# css
+		fpath = os.path.join(path, scrub(self.doc.name) + '.css')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				self.doc.style = f.read()
+		
+		# html
+		fpath = os.path.join(path, scrub(self.doc.name) + '.html')
+		if os.path.exists(fpath):
+			with open(fpath, 'r') as f:
+				self.doc.content = f.read()
+
+	def write_cms_page(self, home_page=False):
+		"""write cms page"""
+		import webnotes.cms
+		from jinja2 import Template
+
+		fname = webnotes.cms.page_name(self.doc.name) + '.html'
+		if home_page:
+			fname = 'index.html'
+				
+		if self.doc.web_page=='Yes' or home_page:
+			if not self.doc.title:
+				self.doc.title = self.doc.name
+
+			import startup.event_handlers
+			if hasattr(startup.event_handlers, 'get_web_header'):
+				self.doc.header = startup.event_handlers.get_web_header()
+
+			if hasattr(startup.event_handlers, 'get_web_footer'):
+				self.doc.footer = startup.event_handlers.get_web_footer()
+			
+			with open(fname, 'w') as page:
+				with open('../lib/conf/index.html', 'r') as template:
+					t = Template(template.read())
+					page.write(t.render(self.doc.fields))
+					
+			del self.doc.fields['header']
+			del self.doc.fields['footer']
+							

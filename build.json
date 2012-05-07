@@ -16,10 +16,7 @@
 			"lib/js/wn/ui/listing.js",
 			"lib/js/wn/ui/filters.js",
 			"lib/js/wn/views/container.js",
-			"lib/js/wn/views/doclistview.js",
 			"lib/js/wn/views/pageview.js",
-			"lib/js/wn/views/formview.js",
-			"lib/js/wn/views/reportview.js",
 			"lib/js/wn/request.js",
 			"lib/js/core.js"
 		]
@@ -37,7 +34,7 @@
 	},
 	
 	{
-		"lib/js/legacy/report.compressed.js": [
+		"public/js/report-legacy.js": [
 			"lib/js/legacy/widgets/report_builder/report_builder.js",
 			"lib/js/legacy/widgets/report_builder/datatable.js",
 			"lib/js/legacy/widgets/report_builder/calculator.js"
@@ -45,7 +42,7 @@
 	},
 
 	{
-		"css/all-web.css": [
+		"public/css/all-web.css": [
 			"lib/css/bootstrap/headings.css",
 			"lib/css/bootstrap/buttons.css",
 			"lib/css/bootstrap/navbar.css",
@@ -63,7 +60,7 @@
 	},
 	
 	{
-		"css/all-app.css": [
+		"public/css/all-app.css": [
 			"lib/css/bootstrap/headings.css",
 			"lib/css/bootstrap/buttons.css",
 			"lib/css/bootstrap/navbar.css",
@@ -86,12 +83,12 @@
 			"lib/css/ui/common.css",
 			"lib/css/ui/list.css",
 			"lib/css/ui/views.css",
-			"lib/css/ui/fonts.css",
+			"lib/css/ui/fonts.css"
 		]
 	},
 
 	{
-		"js/all-web.js": [
+		"public/js/all-web.js": [
 			"lib/js/lib/bootstrap.min.js:concat",
 			"lib/js/core.min.js:concat",
 			"lib/js/legacy/globals.js",
@@ -109,13 +106,12 @@
 			"lib/js/legacy/wn/widgets/footer.js",
 			"lib/js/legacy/model/local_data.js",
 			"lib/js/legacy/model/doclist.js",
-			"lib/js/wn/app.js",
-			"js/app.js"
+			"lib/js/wn/app.js"
 		]
 	},
 	
 	{
-		"js/all-app.js": [
+		"public/js/all-app.js": [
 			"lib/js/lib/jquery/jquery.ui.core.js:concat",
 			"lib/js/lib/jquery/jquery.ui.datepicker.js:concat",
 			"lib/js/lib/jquery/jquery.ui.autocomplete.js:concat",
@@ -135,6 +131,11 @@
 			"lib/js/wn/ui/dialog.js",
 			"lib/js/wn/ui/button.js",
 			"lib/js/wn/ui/search.js",
+			"lib/js/wn/ui/tree.js",
+			"lib/js/wn/misc/about.js",
+			"lib/js/wn/views/doclistview.js",
+			"lib/js/wn/views/formview.js",
+			"lib/js/wn/views/reportview.js",
 			"lib/js/legacy/widgets/dialog.js",
 			"lib/js/legacy/widgets/layout.js",
 			"lib/js/legacy/widgets/tabbedpage.js",
@@ -168,9 +169,25 @@
 			"lib/js/legacy/wn/widgets/form/comments.js",
 			"lib/js/legacy/wn/widgets/form/attachments.js",
 			"lib/js/legacy/wn/widgets/form/assign_to.js",
-			"lib/js/wn/app.js",
-			"js/app.js"
+			"lib/js/wn/app.js"
 		]
+	},
+	
+	{
+		"public/js/fields.js": ["lib/js/legacy/widgets/form/fields.js"]
+	},
+
+	{
+		"public/css/fields.css": ["lib/css/legacy/fields.css"]
+	},
+
+	{
+		"public/js/listing.js": ["lib/js/legacy/widgets/listing.js"]
+	},
+
+	{
+		"public/js/print_query.js": ["lib/js/legacy/widgets/print_query.js"]
 	}
+	
 ]
 

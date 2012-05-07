@@ -36,6 +36,8 @@ def build():
 	bundle = Bundle()
 	bundle.make()
 	update_version()
+	import webnotes.cms
+	webnotes.cms.make(get_version())
 
 def get_version():
 	"""get from version.num file and increment it"""

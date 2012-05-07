@@ -30,10 +30,10 @@ if(!console) {
 	}
 }
 
-wn.versions.check();
 
 /* start the application */
 $(document).bind('ready', function() {
+	wn.versions.check();
 	wn.provide('wn.app');
 	$.extend(wn.app, new wn.Application());
 });

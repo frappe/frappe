@@ -145,7 +145,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 			$(ele.loading_img).toggle(true);
 		} else {
 			ele.disabled = 1;
-			ele.loading_img = $('<img src="lib/images/ui/button-load.gif" \
+			ele.loading_img = $('<img src="images/lib/ui/button-load.gif" \
 				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
 				.insertAfter(ele);
 		}		

@@ -99,7 +99,7 @@ Listing.prototype.make = function(parent) {
 
 	// results
 	this.results = $a($a(this.body_area, 'div','srs_results_area'),'div');
-	this.fetching_area = $a(this.body_area, 'div','',{height:'120px', background:'url("lib/images/ui/square_loading.gif") center no-repeat', display:'none'});
+	this.fetching_area = $a(this.body_area, 'div','',{height:'120px', background:'url("images/lib/ui/square_loading.gif") center no-repeat', display:'none'});
 	this.show_no_records = $a(this.body_area,'div','',{margin:'200px 0px', textAlign:'center', fontSize:'14px', color:'#888', display:'none'});
 	this.show_no_records.innerHTML = 'No Result';
 
@@ -160,7 +160,7 @@ Listing.prototype.make_toolbar = function() {
 	}
 	
 	this.loading_img = $a(this.btn_area,'img','',{display:'none',marginBottom:'-2px'});
-	this.loading_img.src = 'lib/images/ui/button-load.gif';
+	this.loading_img.src = 'images/lib/ui/button-load.gif';
 	
 	if(!keys(this.buttons).length)
 		$dh(this.btn_area);
@@ -184,7 +184,7 @@ Listing.prototype.do_print = function() {
 		is_simple:1
 	}
 	
-	wn.require('lib/js/legacy/widgets/print_query.js');	
+	wn.require('js/print_query.js');	
 	_p.print_query = new _p.PrintQuery();
 	_p.print_query.show_dialog(args);
 }
@@ -233,7 +233,7 @@ Listing.prototype.add_filter = function(label, ftype, options, tname, fname, con
 	
 	// filter label
 	var d1= $a(c,'div','',{fontSize:'11px', marginBottom:'2px'}); d1.innerHTML = label;
-	if(ftype=='Link') d1.innerHTML += ' <img src="lib/images/icons/link.png" style="margin-bottom:-5px" title="Link">';
+	if(ftype=='Link') d1.innerHTML += ' <img src="images/lib/icons/link.png" style="margin-bottom:-5px" title="Link">';
 	
 	var d2= $a(c,'div');
 	

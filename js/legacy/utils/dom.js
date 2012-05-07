@@ -33,7 +33,7 @@ wn.tinymce = {
 		ele.myid = wn.dom.set_unique_id(ele);
 		$(ele).tinymce({
 			// Location of TinyMCE script
-			script_url : 'lib/js/lib/tiny_mce_33/tiny_mce.js',
+			script_url : 'js/lib/tiny_mce_33/tiny_mce.js',
 
 			height: height ? height : '200px',
 			
@@ -62,7 +62,7 @@ wn.ele = {
 	link: function(args) {
 		var span = $a(args.parent, 'span', 'link_type', args.style);
 		span.loading_img = $a(args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
-		span.loading_img.src= 'lib/images/ui/button-load.gif';
+		span.loading_img.src= 'images/lib/ui/button-load.gif';
 
 		span.innerHTML = args.label;
 		span.user_onclick = args.onclick;

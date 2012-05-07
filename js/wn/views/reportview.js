@@ -22,7 +22,7 @@
 
 wn.views.reportview = {
 	show: function(dt, rep_name) {
-		wn.require('lib/js/legacy/report.compressed.js');
+		wn.require('js/report-legacy.js');
 		dt = get_label_doctype(dt);
 
 		if(!_r.rb_con) {
@@ -96,11 +96,11 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		});
 	},
 	import_slickgrid: function() {
-		wn.require('lib/js/lib/slickgrid/slick.grid.css');
-		wn.require('lib/js/lib/slickgrid/slick-default-theme.css');
-		wn.require('lib/js/lib/slickgrid/jquery.event.drag.min.js');
-		wn.require('lib/js/lib/slickgrid/slick.core.js');
-		wn.require('lib/js/lib/slickgrid/slick.grid.js');
+		wn.require('js/lib/slickgrid/slick.grid.css');
+		wn.require('js/lib/slickgrid/slick-default-theme.css');
+		wn.require('js/lib/slickgrid/jquery.event.drag.min.js');
+		wn.require('js/lib/slickgrid/slick.core.js');
+		wn.require('js/lib/slickgrid/slick.grid.js');
 		wn.dom.set_style('.slick-cell { font-size: 12px; }');
 	},
 	make_page: function() {
@@ -344,7 +344,7 @@ wn.ui.ColumnPicker = Class.extend({
 		this.selects = {};
 	},
 	show: function(columns) {
-		wn.require('lib/js/lib/jquery/jquery.ui.sortable.js');
+		wn.require('js/lib/jquery/jquery.ui.sortable.js');
 		var me = this;
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
