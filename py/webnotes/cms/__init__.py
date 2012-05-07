@@ -1,4 +1,8 @@
-"""make index, wn.js, wn.css pages"""
+"""
+make index, wn.js, wn.css pages
+- rebuild all pages on change of website settings (toolbar)
+- if home, write index.html
+"""
 def make(version):
 	import os
 	import webnotes
