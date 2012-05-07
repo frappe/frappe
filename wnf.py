@@ -259,10 +259,16 @@ def run():
 	elif options.sync_all is not None:
 		import webnotes.model.sync
 		webnotes.model.sync.sync_all(options.force or 0)
+		# update js code version (clear to localStorage)
+		from build.project import update_version
+		update_version()
 
 	elif options.sync is not None:
 		import webnotes.model.sync
 		webnotes.model.sync.sync(options.sync[0], options.sync[1], options.force or 0)
+		# update js code version (clear to localStorage)
+		from build.project import update_version
+		update_version()
 
 	# print messages
 	if webnotes.message_log:

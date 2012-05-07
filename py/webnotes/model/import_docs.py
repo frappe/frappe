@@ -437,7 +437,7 @@ def get_template():
 	# Help on Line 
 	line1 = line1 + ',,,Please fill columns which are Mandatory., Please do not modify the structure'
 	
-	# fieldnames
+	# standard fields
 	res = sql("select fieldname, fieldtype, label, reqd, hidden from tabDocField where parent='%s' and docstatus!=2" % dt)
 
 	for r in res:

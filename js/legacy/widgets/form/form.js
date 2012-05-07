@@ -64,7 +64,7 @@ _f.Frm = function(doctype, parent) {
 	// notify on rename
 	var me = this;
 	$(document).bind('rename', function(event, dt, old_name, new_name) {
-		console.log(arguments)
+		//console.log(arguments)
 		if(dt==me.doctype)
 			me.rename_notify(dt, old_name, new_name)
 	});
@@ -833,7 +833,7 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 		}
 		
 		if(!me.meta.istable) {
-			me.refresh();
+			me.refresh(r.docname);
 		}
 
 		if(call_back){
