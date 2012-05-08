@@ -111,12 +111,13 @@ wn.dom = {
 }
 
 wn.get_cookie = function(c) {
-	var t=""+document.cookie;
-	var ind=t.indexOf(c);
-	if (ind==-1 || c=="") return ""; 
-	var ind1=t.indexOf(';',ind);
-	if (ind1==-1) ind1=t.length; 
-	return unescape(t.substring(ind+c.length+1,ind1));
+	var clist = (document.cookie+'').split(';');
+	var cookies = {};
+	for(var i=0;i<clist.length;i++) {
+		var tmp = clist[i].split('=');
+		cookies[strip(tmp[0])] = strip(tmp[1]);
+	}
+	return cookies[c];
 }
 
 wn.dom.set_box_shadow = function(ele, spread) {

@@ -1,9 +1,8 @@
 wn.provide('wn.views.pageview');
 
 wn.views.pageview = {
-	pages: {},
 	with_page: function(name, callback) {
-		if((locals.Page && locals.Page[name]) || name==window.home_page) {
+		if((locals.Page && locals.Page[name]) || name==window.page_name) {
 			callback();
 		} else {
 			wn.call({
@@ -14,12 +13,12 @@ wn.views.pageview = {
 		}		
 	},
 	show: function(name) {
-		if(!name) name = (wn.boot ? wn.boot.home_page : 'Login Page');
+		if(!name) name = (wn.boot ? wn.boot.home_page : window.page_name);
 		wn.views.pageview.with_page(name, function(r) {
 			if(r && r.exc) {
 				if(!r['403'])wn.container.change_to('404');
 			} else if(!wn.pages[name]) {
-				wn.views.pageview.pages[name]  = new wn.views.Page(name);
+				new wn.views.Page(name);
 			}
 			wn.container.change_to(name);			
 		});
@@ -31,10 +30,11 @@ wn.views.Page = Class.extend({
 		this.name = name;
 		var me = this;
 		// web home page
-		if(name==window.home_page) {
+		if(name==window.page_name) {
 			this.wrapper = document.getElementById('page-' + name);
 			this.wrapper.title = document.title;
-			this.wrapper.label = window.home_page;
+			this.wrapper.label = window.page_name;
+			wn.pages[window.page_name] = this.wrapper;
 		} else {
 			this.pagedoc = locals.Page[this.name];
 			this.wrapper = wn.container.add_page(this.name);
@@ -46,7 +46,7 @@ wn.views.Page = Class.extend({
 			wn.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
 			wn.dom.set_style(this.pagedoc.style || '');
 		}
-		
+
 		this.trigger('onload');
 		
 		// set events

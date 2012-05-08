@@ -99,6 +99,9 @@ class DocType:
 				with open(path + '.css', 'w') as f:
 					pass
  
+			# web page
+			self.write_cms_page()
+
 	def get_from_files(self):
 		"""
 			Loads page info from files in module
@@ -131,11 +134,19 @@ class DocType:
 		import webnotes.cms
 		from jinja2 import Template
 
-		fname = webnotes.cms.page_name(self.doc.name) + '.html'
-		if home_page:
-			fname = 'index.html'
-				
 		if self.doc.web_page=='Yes' or home_page:
+			# doc will be dirty, so save it
+			_doc = self.doc.fields.copy()
+			
+			# load from files
+			self.get_from_files()
+			fname = webnotes.cms.page_name(self.doc.name) + '.html'
+
+			# home page?
+			if self.doc.name==webnotes.cms.get_home_page('Guest'):
+				fname = 'index.html'
+				self.doc.web_page = 'Yes'
+
 			if not self.doc.title:
 				self.doc.title = self.doc.name
 
@@ -147,10 +158,9 @@ class DocType:
 				self.doc.footer = startup.event_handlers.get_web_footer()
 			
 			with open(fname, 'w') as page:
-				with open('../lib/conf/index.html', 'r') as template:
+				with open('../lib/conf/template.html', 'r') as template:
 					t = Template(template.read())
 					page.write(t.render(self.doc.fields))
-					
-			del self.doc.fields['header']
-			del self.doc.fields['footer']
-							
+
+			# back to original doc
+			self.doc.fields = _doc

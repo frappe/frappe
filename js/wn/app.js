@@ -55,11 +55,16 @@ wn.Application = Class.extend({
 			
 		// favicon
 		this.set_favicon();
+
 		// trigger app startup
 		$(document).trigger('startup');
 		
-		// route to home page
-		wn.route();		
+		if(wn.boot) {
+			// route to home page
+			wn.route();	
+		}
+		
+		$(document).trigger('app_ready');
 	},
 	load_bootinfo: function() {
 		if(wn.boot) {
