@@ -27,14 +27,16 @@ import cgi, cgitb, os, sys
 cgitb.enable()
 
 # import libs
-sys.path.append('.')
-sys.path.append('lib/py')
-sys.path.append('erpnext')
+sys.path.append('..')
+
+import conf
+
+sys.path.append('../lib/py')
+sys.path.append(conf.modules_path)
 
 import webnotes
 import webnotes.handler
 import webnotes.auth
-import webnotes.defs
 
 def init():
 	# make the form_dict
@@ -48,8 +50,8 @@ def init():
 		return True
 	except webnotes.AuthenticationError, e:
 		return True
-	except webnotes.UnknownDomainError, e:
-		print "Location: " + (webnotes.defs.redirect_404)
+	#except webnotes.UnknownDomainError, e:
+	#	print "Location: " + (conf.redirect_404)
 	except webnotes.SessionStopped, e:
 		if 'cmd' in webnotes.form_dict:
 			webnotes.handler.print_json()
@@ -70,11 +72,9 @@ def respond():
 	if 'cmd' in webnotes.form_dict:
 		webnotes.handler.handle()
 	else:
-		import webnotes.cms.index
 		print "Content-Type: text/html"
-		webnotes.handler.print_cookies()
 		print
-		print webnotes.cms.index.get()
+		print "<html><head><script>window.location.href='index.html';</script></head></html>"
 
 if __name__=="__main__":
 	if init():

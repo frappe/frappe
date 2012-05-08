@@ -132,6 +132,7 @@ class DocType:
 	def write_cms_page(self, home_page=False):
 		"""write cms page"""
 		import webnotes.cms
+		import os, codecs
 		from jinja2 import Template
 
 		if self.doc.web_page=='Yes' or home_page:
@@ -147,6 +148,10 @@ class DocType:
 				fname = 'index.html'
 				self.doc.web_page = 'Yes'
 
+			# save in public folder
+			if os.path.basename(os.path.abspath('.'))!='public':
+				fname = os.path.join('public', fname)
+
 			if not self.doc.title:
 				self.doc.title = self.doc.name
 
@@ -157,8 +162,9 @@ class DocType:
 			if hasattr(startup.event_handlers, 'get_web_footer'):
 				self.doc.footer = startup.event_handlers.get_web_footer()
 			
-			with open(fname, 'w') as page:
-				with open('../lib/conf/template.html', 'r') as template:
+			with codecs.open(fname, 'w', 'utf-8') as page:
+				with open(os.path.join(os.path.dirname(webnotes.cms.__file__),
+					'template.html'), 'r') as template:
 					t = Template(template.read())
 					page.write(t.render(self.doc.fields))
 
