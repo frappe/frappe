@@ -61,15 +61,19 @@ _e.make = function() {
 		if(!emailfrom)
 			emailfrom = user_email;
 		
+		emailto = emailto.replace(/ /g, "");
 		// validate email ids
 		var email_list = emailto.split(/[,|;]/);
 		var valid = 1;
 		for(var i=0;i<email_list.length;i++){
-			if(!validate_email(email_list[i])) {
+			if(!email_list[i]) {
+				email_list.splice(i, 1);
+			} else if(!validate_email(email_list[i])) {
 				msgprint('error:'+email_list[i] + ' is not a valid email id');
 				valid = 0;
 			}
-		}
+		}	
+		emailto = email_list.join(",");
 		
 		// validate from
 		if(emailfrom && !validate_email(emailfrom)) {

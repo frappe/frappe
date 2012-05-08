@@ -78,6 +78,8 @@ def setup_options():
 	parser.add_option("-d", "--db",
 						dest="db_name",
 						help="Apply the patches on given db")
+	parser.add_option("--password",
+						help="Password for given db", nargs=1)
 
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
@@ -158,7 +160,10 @@ def run():
 
 	# connect
 	if options.db_name is not None:
-		webnotes.connect(options.db_name)
+		if options.password:
+			webnotes.connect(options.db_name, options.password)
+		else:
+			webnotes.connect(options.db_name)
 	elif not options.install:
 		webnotes.connect(conf.db_name)
 
