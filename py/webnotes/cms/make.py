@@ -25,10 +25,6 @@ def make_web_core():
 	# js/wn-web.js and css/wn-web.css
 	write_web_js_css(home_page)
 
-	# sitemap.xml
-	
-	# rss.xml
-
 def write_web_js_css(home_page):
 	"""write web js and css"""
 

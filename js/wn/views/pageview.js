@@ -32,8 +32,8 @@ wn.views.Page = Class.extend({
 		// web home page
 		if(name==window.page_name) {
 			this.wrapper = document.getElementById('page-' + name);
-			this.wrapper.title = document.title;
-			this.wrapper.label = window.page_name;
+			this.wrapper.label = document.title || window.page_name;
+			this.wrapper.page_name = window.page_name;
 			wn.pages[window.page_name] = this.wrapper;
 		} else {
 			this.pagedoc = locals.Page[this.name];
