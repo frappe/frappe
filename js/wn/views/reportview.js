@@ -195,23 +195,50 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	build_columns: function() {
 		var me = this;
 		return $.map(this.columns, function(c) {
-			return {
+			var docfield = wn.meta.docfield_map[c[1] || me.doctype][c[0]];
+			coldef = {
 				id: c[0],
 				field: c[0],
-				name: (wn.meta.docfield_map[c[1] || me.doctype][c[0]] ? 
-					wn.meta.docfield_map[c[1] || me.doctype][c[0]].label : toTitle(c[0])),
-				width: 120
+				docfield: docfield,
+				name: (docfield ? docfield.label : toTitle(c[0])),
+				width: (docfield ? cint(docfield.width) : 120) || 120
 			}
+			
+			console.log(docfield && docfield.width);
+			
+			if(c[0]=='name') {
+				coldef.formatter = function(row, cell, value, columnDef, dataContext) {
+					return repl("<a href='#!Form/%(doctype)s/%(name)s'>%(name)s</a>", {
+						doctype: me.doctype,
+						name: value
+					});
+				}
+			} else if(docfield && docfield.fieldtype=='Link') {
+				coldef.formatter = function(row, cell, value, columnDef, dataContext) {
+					if(value) {
+						return repl("<a href='#!Form/%(doctype)s/%(name)s'>%(name)s</a>", {
+							doctype: columnDef.docfield.options,
+							name: value
+						});						
+					} else {
+						return '';
+					}
+				}				
+			}
+			
+			return coldef;
 		});
 	},
 	
 	// render data
 	render_list: function() {
+		var me = this;
 		//this.gridid = wn.dom.set_unique_id()
 		var columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40}].concat(this.build_columns());
 
 		// add sr in data
 		$.each(this.data, function(i, v) {
+			// add index
 			v._idx = i+1;
 		});
 
