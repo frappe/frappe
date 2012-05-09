@@ -149,7 +149,7 @@ def remove_file(path):
 		if e.args[0]!=2: 
 			raise e
 			
-def connect(db_name=None):
+def connect(db_name=None, password=None):
 	"""
 		Connect to this db (or db), if called from command prompt
 	"""
@@ -158,7 +158,7 @@ def connect(db_name=None):
 
 	import webnotes.db
 	global conn
-	conn = webnotes.db.Database(user=db_name)
+	conn = webnotes.db.Database(user=db_name, password=password)
 	
 	global session
 	session = {'user':'Administrator'}
