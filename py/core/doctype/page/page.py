@@ -129,13 +129,13 @@ class DocType:
 			with open(fpath, 'r') as f:
 				self.doc.content = f.read()
 
-	def write_cms_page(self, home_page=False):
+	def write_cms_page(self, force=False):
 		"""write cms page"""
 		import webnotes.cms
 		import os, codecs
 		from jinja2 import Template
 
-		if self.doc.web_page=='Yes' or home_page:
+		if self.doc.web_page=='Yes' or force:
 			# doc will be dirty, so save it
 			_doc = self.doc.fields.copy()
 			
@@ -157,10 +157,10 @@ class DocType:
 
 			import startup.event_handlers
 			if hasattr(startup.event_handlers, 'get_web_header'):
-				self.doc.header = startup.event_handlers.get_web_header()
+				self.doc.header = startup.event_handlers.get_web_header(self.doc.name)
 
 			if hasattr(startup.event_handlers, 'get_web_footer'):
-				self.doc.footer = startup.event_handlers.get_web_footer()
+				self.doc.footer = startup.event_handlers.get_web_footer(self.doc.name)
 			
 			with codecs.open(fname, 'w', 'utf-8') as page:
 				with open(os.path.join(os.path.dirname(webnotes.cms.__file__),

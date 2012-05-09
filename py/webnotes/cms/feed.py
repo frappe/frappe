@@ -24,7 +24,7 @@
 Generate RSS feed for blog
 """
 
-rss = """<?xml version="1.0" encoding="UTF-8" ?>
+rss = u"""<?xml version="1.0" encoding="UTF-8" ?>
 <rss version="2.0">
 <channel>
         <title>%(title)s</title>
@@ -37,10 +37,10 @@ rss = """<?xml version="1.0" encoding="UTF-8" ?>
 </channel>
 </rss>"""
 
-rss_item = """
+rss_item = u"""
 <item>
         <title>%(title)s</title>
-        <description>%(content_html)s</description>
+        <description>%(content)s</description>
         <link>%(link)s</link>
         <guid>%(name)s</guid>
         <pubDate>%(modified)s</pubDate>
@@ -55,22 +55,25 @@ def generate():
 	
 	items = ''
 	modified = None
-	for blog in webnotes.conn.sql("""select name, title, content_html, modified from tabBlog 
-		where ifnull(published,0)=1 order by modified desc limit 100""", as_dict=1):
-		blog['link'] = host + '/#!' + blog['name']
-		blog['content_html'] = scrub(blog['content_html'] or '')
+	for blog in webnotes.conn.sql("""select name, title, content, modified, page_name 
+		from tabBlog 
+		where ifnull(published,0)=1 
+		order by modified desc limit 100""", as_dict=1):
+		
+		blog['link'] = host + '/' + blog['page_name'] + '.html'
+		blog['content'] = scrub(blog['content'][:1000] or '')
 		if not modified:
 			modified = blog['modified']
 		items += rss_item % blog
 		
 	ws = Document('Website Settings', 'Website Settings')
-	return rss % {
+	return (rss % {
 		'title': ws.title_prefix,
 		'description': ws.description or (ws.title_prefix + ' Blog'),
 		'modified': modified,
 		'items': items,
-		'link': host + '/#!blog'
-	}
+		'link': host + '/blog.html'
+	}).encode('utf-8', 'ignore')
 	
 def scrub(txt):
 	return txt.replace('<', '&lt;').replace('>', '&gt;')

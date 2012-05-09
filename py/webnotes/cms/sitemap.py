@@ -31,7 +31,7 @@ link_xml = """\n<url><loc>%s</loc><lastmod>%s</lastmod></url>"""
 # generate the sitemap XML
 def generate(domain):
 	global frame_xml, link_xml
-	import urllib
+	import urllib, os
 	import webnotes
 
 	# settings
@@ -47,9 +47,10 @@ def generate(domain):
 				FROM tabPage t1, `tabPage Role` t2
 				WHERE t1.name = t2.parent
 				and t2.role = 'Guest'
+				and t1.web_page = 'Yes'
 				ORDER BY modified DESC"""):
 
-			page_url = domain + '#!' + urllib.quote(r[0])
+			page_url = os.path.join(domain, urllib.quote(r[0]) + '.html')
 			site_map += link_xml % (page_url, r[1].strftime('%Y-%m-%d'))
 		
 

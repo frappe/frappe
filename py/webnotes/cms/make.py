@@ -2,42 +2,57 @@
 make index, wn.js, wn.css pages
 - rebuild all pages on change of website settings (toolbar)
 """
-def make(version):
+def make():
 	import os
 	import webnotes
-	from webnotes.model.code import get_obj
 	from jinja2 import Template
 	import webnotes.cms
 	
-	webnotes.connect()
+	if not webnotes.conn:
+		webnotes.connect()
 	
-	# get web home
+	make_web_core()
+
+def make_web_core():
+	"""make index.html, wn-web.js, wn-web.css, sitemap.xml and rss.xml"""
+	# index.html
+	from webnotes.model.code import get_obj
+	import webnotes
+	
 	home_page = webnotes.cms.get_home_page('Guest')
+	get_obj('Page', home_page).write_cms_page()
 
-	page = get_obj('Page', home_page)	
-	page.write_cms_page(home_page=True)
+	# js/wn-web.js and css/wn-web.css
+	write_web_js_css(home_page)
+
+	# sitemap.xml
 	
+	# rss.xml
+
+def write_web_js_css(home_page):
+	"""write web js and css"""
+
 	# script - wn.js
+	import os
 	import startup.event_handlers
+
+	fname = 'js/wn-web.js'
+	if os.path.basename(os.path.abspath('.'))!='public':
+		fname = os.path.join('public', fname)
+			
 	if hasattr(startup.event_handlers, 'get_web_script'):
-		with open('public/js/wn-web.js', 'w') as f:
+		with open(fname, 'w') as f:
 
-			script = 'window._version_number = "%s";\n' % version
-			script += 'window.home_page = "%s";\n' % home_page
-
+			script = 'window.home_page = "%s";\n' % home_page
 			script += startup.event_handlers.get_web_script()
 
 			f.write(script)
 
+	fname = 'css/wn-web.css'
+	if os.path.basename(os.path.abspath('.'))!='public':
+		fname = os.path.join('public', fname)
+
 	# style - wn.css
 	if hasattr(startup.event_handlers, 'get_web_style'):
-		with open('public/css/wn-web.css', 'w') as f:
+		with open(fname, 'w') as f:
 			f.write(startup.event_handlers.get_web_style())
-
-	# make app.html
-	with open(os.path.join(os.path.dirname(webnotes.cms.__file__), 'app.html'), 'r') \
-		as app_template:
-		with open('public/app.html', 'w') as app:
-			app.write(Template(app_template.read()).render(version=version))
-
-
