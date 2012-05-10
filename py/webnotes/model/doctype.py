@@ -368,7 +368,7 @@ class _DocType:
 	def insert_into_cache(self, doclist):
 		import json
 		json_doclist = json.dumps([d.fields for d in doclist])
-		CacheItem(self.name).set(json_doclist, 3600)
+		CacheItem(self.name).set(json_doclist)
 
 def get(dt, form=1):
 	"""

@@ -107,7 +107,7 @@ def remove_file(dt, dn, fid):
 	new_fl = []
 	fl = fl.split('\n')
 	for f in fl:
-		if f.split(',')[1]!=fid:
+		if f and f.split(',')[1]!=fid:
 			new_fl.append(f)
 
 	# delete
@@ -133,37 +133,31 @@ def make_thumbnail(blob, size):
 	
 	return fcontent
 
+def get_uploaded_content():
+	import webnotes
+	
+	if 'filedata' in webnotes.form:
+		i = webnotes.form['filedata']
+		webnotes.uploaded_filename, webnotes.uploaded_content = i.filename, i.file.read()
+		return webnotes.uploaded_filename, webnotes.uploaded_content
+	else:
+		webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("No file"); %s</script>""" % js_fail
+		return None, None
 
 def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js_fail=''):
 	import webnotes.utils
 	
 	webnotes.response['type'] = 'iframe'
 
-	form, fid, fname = webnotes.form, None, None
+	form = webnotes.form
 
-	try:
-		# has attachment?
-		if 'filedata' in form:
-			i = form['filedata']
-	
-			fname, content = i.filename, i.file.read()
+	fname, content = get_uploaded_content()
+	if content:
+		fid = save_file(fname, content)
+		return fid, fname
 		
-			# get the file id
-			fid = save_file(fname, content)
-			
-			# okay
-			webnotes.response['result'] = """<script type='text/javascript'>%s</script>""" % js_okay
-		else:
-			webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("No file"); %s</script>""" % js_fail
-			
-	except Exception, e:
-		webnotes.response['result'] = """<script type='text/javascript'>
-			window.parent.msgprint("%s"); 
-			window.parent.errprint("%s"); 
-			%s</script>""" % (str(e), \
-				webnotes.utils.getTraceback().replace('\n','<br>').replace('"', '\\"'), js_fail)
-	
-	return fid, fname
+	else: 
+		return None, fname
 
 # -------------------------------------------------------
 
@@ -227,26 +221,3 @@ def delete_file(fid, verbose=0):
 	path = os.path.join(webnotes.get_files_path(), fid.replace('/','-'))
 	if os.path.exists(path):
 		os.remove(path)
-
-# Get File
-# -------------------------------------------------------
-
-def get_file(fname):
-	"""deprecated"""
-	f = get_file_system_name(fname)
-	if f:
-		file_id = f[0][0].replace('/','-')
-		file_name = f[0][1]
-	else:
-		file_id = fname
-		file_name = fname
-
-	# read the file
-	import os
-	with open(os.path.join(webnotes.get_files_path(), file_id), 'r') as f:
-		content = f.read()
-
-	return [file_name, content]
-
-
-# -------------------------------------------------------

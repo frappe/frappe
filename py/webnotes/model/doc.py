@@ -208,7 +208,6 @@ class Document:
 		# amendments
 		if self.amended_from: 
 			self._get_amended_name()
-
 		# by method
 		elif so and hasattr(so, 'autoname'):
 			r = webnotes.model.code.run_server_obj(so, 'autoname')

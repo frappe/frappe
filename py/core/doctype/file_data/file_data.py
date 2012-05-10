@@ -40,6 +40,8 @@ class DocType():
 		if not '.' in self.doc.file_name:
 			raise Exception, 'file name must have extension (.)'
 
+		self.doc.file_name = self.doc.file_name.replace('-', '')
+
 		parts = self.doc.file_name.split('.')
 
 		same = webnotes.conn.sql("""select name from `tabFile Data` 

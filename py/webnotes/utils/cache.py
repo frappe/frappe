@@ -48,19 +48,25 @@ class CacheItem:
 	def get(self):
 		"""get value"""
 		try:
-			return webnotes.conn.sql("select `value` from __CacheItem where `key`=%s and expires_on > NOW()", self.key)[0][0]
+			return webnotes.conn.sql("""select `value` from __CacheItem where 
+				`key`=%s and ifnull(expires_on, '2100-01-01') > NOW()""", self.key)[0][0]
 		except Exception:
 			return None
 	
-	def set(self, value, interval=6000):
+	def set(self, value, interval=None):
 		"""set a new value, with interval"""
 		self.clear()
-		webnotes.conn.sql("""INSERT INTO 
-				__CacheItem (`key`, `value`, expires_on) 
-			VALUES 
-				(%s, %s, addtime(now(), sec_to_time(%s)))
-			""", (self.key, str(value), interval))
-
+		if interval:
+			webnotes.conn.sql("""insert into 
+					__CacheItem (`key`, `value`, expires_on) 
+				values (%s, %s, addtime(now(), sec_to_time(%s)))
+				""", (self.key, str(value), interval))
+		else:
+			webnotes.conn.sql("""insert into 
+					__CacheItem (`key`, `value`) 
+				values (%s, %s)
+				""", (self.key, str(value)))
+			
 	
 	def clear(self):
 		"""clear the item"""

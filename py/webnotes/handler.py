@@ -127,28 +127,47 @@ def get_template():
 
 @webnotes.whitelist()
 def uploadfile():
+	import webnotes.utils
 	import webnotes.utils.file_manager
-	if webnotes.form_dict.get('from_form'):
-		webnotes.utils.file_manager.upload()
-	else:
-		# save the file
-		fid, fname = webnotes.utils.file_manager.save_uploaded()
-		
-		# do something with the uploaded file
-		if fid:
-			if webnotes.form_dict.get('server_obj'):
-				from webnotes.model.code import get_obj
-				getattr(get_obj(webnotes.form_dict.get('server_obj')), webnotes.form_dict.get('method'))(fid, fname)
-		
-			elif webnotes.form_dict.get('modulename'):
-				# calls a python module to handle the script
-				__import__(webnotes.form_dict['modulename'])
+	import json
+
+	ret = []
+
+	try:
+		if webnotes.form_dict.get('from_form'):
+			webnotes.utils.file_manager.upload()
+		else:
+			if webnotes.form_dict.get('method'):
+				m = webnotes.form_dict['method']
+				modulename = '.'.join(m.split('.')[:-1])
+				methodname = m.split('.')[-1]
+
+				__import__(modulename)
 				import sys
-				moduleobj = sys.modules[webnotes.form_dict['modulename']]
-				getattr(moduleobj, webnotes.form_dict['method'])(fid, fname)
+				moduleobj = sys.modules[modulename]
+				ret = getattr(moduleobj, methodname)()
+	except Exception, e:
+		webnotes.msgprint(e)
+		webnotes.errprint(webnotes.utils.getTraceback())
 
-
-			webnotes.response['result'] = '<script>window.parent.upload_callback("'+webnotes.form_dict.get('uploader_id')+'", "'+fid+'")</script>'
+	webnotes.response['type'] = 'iframe'
+	if not webnotes.response.get('result'):
+		webnotes.response['result'] = """<script>
+			window.parent.wn.upload.callback("%s", %s);
+			var messages = %s;
+			if(messages.length) {
+				for(var i in messages)
+					window.parent.msgprint(messages[i]);
+			};
+			var errors = %s;
+			if(errors.length) {
+				for(var i in errors)
+					window.parent.console.log(errors[i]);
+			}
+		</script>""" % (webnotes.form_dict.get('_id'), 
+			json.dumps(ret),
+			json.dumps(webnotes.message_log),
+			json.dumps(webnotes.debug_log))
 	
 # File upload (from scripts)
 # ------------------------------------------------------------------------------------

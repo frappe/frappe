@@ -80,13 +80,17 @@ wn.widgets.form.sidebar.Attachments = function(parent, sidebar, doctype, docname
 		}
 		this.dialog.body.innerHTML = '';
 		this.dialog.show();
-		
-		this.uploader = new Uploader(this.dialog.body, {
-			from_form: 1,
-			doctype: doctype,
-			docname: docname,
-			at_id: this.at_id
-		}, wn.widgets.form.file_upload_done);		
+			
+		wn.upload.make({
+			parent: this.dialog.body,
+			args: {
+				from_form: 1,
+				doctype: doctype,
+				docname: docname
+			},
+			callback: wn.widgets.form.file_upload_done
+		});
+			
 	}
 	
 	this.make();
@@ -140,9 +144,7 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 // this function will be called after the upload is done
 // from webnotes.utils.file_manager
 wn.widgets.form.file_upload_done = function(doctype, docname, fileid, filename, at_id, new_timestamp) {
-	
-	var at_id = cint(at_id);
-	
+		
 	// add to file_list
 	var doc = locals[doctype][docname];
 	if(doc.file_list) {
