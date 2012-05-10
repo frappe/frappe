@@ -49,7 +49,9 @@ class Installer:
 		self.dbman.delete_user(target)
 
 		# create user and db
-		self.dbman.create_user(target, conf.db_password)
+		self.dbman.create_user(target, 
+			hasattr(conf, 'db_password') and conf.db_password or password)
+			
 		if verbose: print "Created user %s" % target
 	
 		# create a database
