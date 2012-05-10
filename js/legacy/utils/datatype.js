@@ -110,7 +110,7 @@ function $s(ele, v, ftype, fopt) {
 		ele.style.textAlign = 'right';
 		ele.innerHTML = v;
 	} else if(ftype == 'Check') {
-		if(v) ele.innerHTML = '<img src="lib/images/ui/tick.gif">';
+		if(v) ele.innerHTML = '<img src="images/lib/ui/tick.gif">';
 		else ele.innerHTML = '';
 	} else {
 		ele.innerHTML = v;

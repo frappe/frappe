@@ -52,7 +52,7 @@ def get_bootinfo():
 		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
-	get_home_page(bootinfo, doclist)
+	add_home_page(bootinfo, doclist)
 
 	# ipinfo
 	if webnotes.session['data'].get('ipinfo'):
@@ -99,12 +99,13 @@ def get_profile(bootinfo):
 	bootinfo['profile'] = webnotes.user.load_profile()
 	webnotes.session['data']['profile'] = bootinfo['profile']
 	
-def get_home_page(bootinfo, doclist):
+def add_home_page(bootinfo, doclist):
 	"""load home page"""
 	import webnotes
 	import webnotes.widgets.page
+	import webnotes.cms
 
-	home_page = webnotes.user.get_home_page() or 'Login Page'
+	home_page = webnotes.cms.get_home_page(webnotes.session['user']) or 'Login Page'
 
 	try:
 		page_doclist = webnotes.widgets.page.get(home_page)

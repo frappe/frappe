@@ -60,11 +60,11 @@ function msgprint(msg, issmall, callback) {
 
 	$dh(msg_dialog.msg_icon);
 	if(msg.substr(0,6).toLowerCase()=='error:') {
-		msg_dialog.msg_icon.src = 'lib/images/icons/error.gif'; $di(msg_dialog.msg_icon); msg = msg.substr(6);
+		msg_dialog.msg_icon.src = 'images/lib/icons/error.gif'; $di(msg_dialog.msg_icon); msg = msg.substr(6);
 	} else if(msg.substr(0,8).toLowerCase()=='message:') {
-		msg_dialog.msg_icon.src = 'lib/images/icons/application.gif'; $di(msg_dialog.msg_icon); msg = msg.substr(8);
+		msg_dialog.msg_icon.src = 'images/lib/icons/application.gif'; $di(msg_dialog.msg_icon); msg = msg.substr(8);
 	} else if(msg.substr(0,3).toLowerCase()=='ok:') {
-		msg_dialog.msg_icon.src = 'lib/images/icons/accept.gif'; $di(msg_dialog.msg_icon); msg = msg.substr(3);
+		msg_dialog.msg_icon.src = 'images/lib/icons/accept.gif'; $di(msg_dialog.msg_icon); msg = msg.substr(3);
 	}
 
 

@@ -332,7 +332,7 @@ wn.views.ListView = Class.extend({
 		{width: '3%', content:'docstatus', css: {"text-align": "center"}},
 		{width: '35%', content:'name'},
 		{width: '40%', content:'tags', css: {'color':'#aaa'}},
-		{width: '15%', content:'modified', css: {'text-align': 'right', 'color':'#777'}}		
+		{width: '15%', content:'modified', css: {'text-align': 'right', 'color':'#222'}}		
 	],
 	render_column: function(data, parent, opts) {
 		var me = this;
@@ -424,7 +424,7 @@ wn.views.ListView = Class.extend({
 		data.when = dateutil.str_to_user(data.modified).split(' ')[0];
 		var diff = dateutil.get_diff(dateutil.get_today(), data.modified.split(' ')[0]);
 		if(diff==0) {
-			data.when = 'Today'
+			data.when = dateutil.comment_when(data.modified);
 		}
 		if(diff == 1) {
 			data.when = 'Yesterday'

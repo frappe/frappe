@@ -84,8 +84,6 @@ def setup_options():
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
 						help="minify + concat js files")
-	parser.add_option("-c", "--clear", default=False, action="store_true",
-						help="reset version")
 
 	# git
 	parser.add_option("--status", default=False, action="store_true",
@@ -171,14 +169,6 @@ def run():
 	if options.build:
 		import build.project
 		build.project.build()		
-
-	elif options.clear:
-		from build.project import update_version
-		print "Version:" + str(update_version())
-		import webnotes.utils.cache
-		webnotes.conn.begin()
-		webnotes.utils.cache.clear()
-		webnotes.conn.commit()
 		
 	# code replace
 	elif options.replace:
@@ -191,14 +181,9 @@ def run():
 		os.system('git status')
 	
 	elif options.pull:
-		from build.project import update_version
 		os.system('git pull %s %s' % (options.pull[0], options.pull[1]))
 		os.chdir('lib')
-		os.system('git pull %s %s' % (options.pull[0], options.pull[1]))
-
-		# update js code version (clear to localStorage)
-		update_version()
-		
+		os.system('git pull %s %s' % (options.pull[0], options.pull[1]))		
 
 	elif options.push:
 		os.system('git commit -a -m "%s"' % options.push[2])
@@ -264,16 +249,10 @@ def run():
 	elif options.sync_all is not None:
 		import webnotes.model.sync
 		webnotes.model.sync.sync_all(options.force or 0)
-		# update js code version (clear to localStorage)
-		from build.project import update_version
-		update_version()
 
 	elif options.sync is not None:
 		import webnotes.model.sync
 		webnotes.model.sync.sync(options.sync[0], options.sync[1], options.force or 0)
-		# update js code version (clear to localStorage)
-		from build.project import update_version
-		update_version()
 
 	# print messages
 	if webnotes.message_log:

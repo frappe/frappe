@@ -3,7 +3,7 @@
 wn.user_info = function(uid) {
 	var def = {
 		'fullname':uid, 
-		'image': 'lib/images/ui/no_img_m.gif'
+		'image': 'images/lib/ui/no_img_m.gif'
 	}
 	if(!wn.boot.user_info) return def
 	if(!wn.boot.user_info[uid]) return def
@@ -17,11 +17,12 @@ wn.user_info = function(uid) {
 wn.provide('wn.user');
 
 $.extend(wn.user, {
-	name: wn.boot.profile.name,
+	name: (wn.boot ? wn.boot.profile.name : 'Guest'),
 	has_role: function(rl) {
-		if(typeof rl=='string') rl = [rl];
+		if(typeof rl=='string') 
+			rl = [rl];
 		for(var i in rl) {
-			if(wn.boot.profile.roles.indexOf(rl[i])!=-1)
+			if((wn.boot ? wn.boot.profile.roles : ['Guest']).indexOf(rl[i])!=-1)
 				return true;
 		}
 	},

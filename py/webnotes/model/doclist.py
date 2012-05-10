@@ -83,21 +83,7 @@ class DocList:
 
 		self.docs = [Document(fielddata=d) for d in self.docs]
 		self.doclist = self.docs
-
-		if not docname:
-			self.doc, self.children = self.docs[0], self.docs[1:]
-
-		else:
-			self.doc = None
-			self.children = []
-			for d in self.docs:
-				if d.name == docname:
-					self.doc = d
-				else:
-					self.children.append(d)
-			# catch all if no self.doc
-			if not self.doc:
-				self.doc, self.children = self.docs[0], self.docs[1:]
+		self.doc, self.children = self.docs[0], self.docs[1:]
 
 	def make_obj(self):
 		"""
@@ -169,7 +155,7 @@ class DocList:
 		user = webnotes.__dict__.get('session', {}).get('user') or 'Administrator'
 
 		for d in self.docs:
-			if self.doc.__islocal:
+			if self.doc.fields.get('__islocal'):
 				d.owner = user
 				d.creation = ts
 
@@ -205,7 +191,7 @@ class DocList:
 			Save the main doc
 		"""
 		try:
-			self.doc.save(cint(self.doc.__islocal))
+			self.doc.save(cint(self.doc.fields.get('__islocal')))
 		except NameError, e:
 			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 

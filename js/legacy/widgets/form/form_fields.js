@@ -315,7 +315,7 @@ _f.CodeField.prototype.make_input = function() {
 		// setup tiny mce
 		$(me.input).tinymce({
 			// Location of TinyMCE script
-			script_url : 'lib/js/lib/tiny_mce_33/tiny_mce.js',
+			script_url : 'js/lib/tiny_mce_33/tiny_mce.js',
 
 			// General options
 			theme : "advanced",
@@ -334,7 +334,7 @@ _f.CodeField.prototype.make_input = function() {
 			theme_advanced_toolbar_location : "top",
 			theme_advanced_toolbar_align : "left",
 
-			content_css: "lib/js/lib/tiny_mce_33/custom_content.css",
+			content_css: "js/lib/tiny_mce_33/custom_content.css",
 
 			oninit: function() { me.init_editor(); }
 		});
@@ -358,8 +358,8 @@ _f.CodeField.prototype.make_input = function() {
 		// setup ace
 		//this.input = $a(this.input_area, 'div', '', {position:'relative', width: '90%', height:'300px'});
 
-		wn.require('lib/js/lib/ace/ace.js');
-		//wn.require('lib/js/lib/ace/theme-twilight.js');
+		wn.require('js/lib/ace/ace.js');
+		//wn.require('js/lib/ace/theme-twilight.js');
 		
 		$(this.input_area).css('border','1px solid #aaa');
 		this.pre = $a(this.input_area, 'pre', '', {
@@ -372,19 +372,19 @@ _f.CodeField.prototype.make_input = function() {
 	    //this.editor.setTheme("ace/theme/twilight");
 
 		if(me.df.options=='Markdown' || me.df.options=='HTML') {
-			wn.require('lib/js/lib/ace/mode-html.js');	
+			wn.require('js/lib/ace/mode-html.js');	
 			var HTMLMode = require("ace/mode/html").Mode;
 		    me.editor.getSession().setMode(new HTMLMode());
 		}
 
 		else if(me.df.options=='Javascript') {
-			wn.require('lib/js/lib/ace/mode-javascript.js');	
+			wn.require('js/lib/ace/mode-javascript.js');	
 			var JavascriptMode = require("ace/mode/javascript").Mode;
 		    me.editor.getSession().setMode(new JavascriptMode());
 		}
 
 		else if(me.df.options=='Python') {
-			wn.require('lib/js/lib/ace/mode-python.js');	
+			wn.require('js/lib/ace/mode-python.js');	
 			var PythonMode = require("ace/mode/python").Mode;
 		    me.editor.getSession().setMode(new PythonMode());
 		}

@@ -233,18 +233,19 @@ class EMail:
 		"""
 		from webnotes.utils import cint
 		import smtplib
-		sess = smtplib.SMTP(self.server.encode('utf-8'), cint(self.port) or None)
+		sess = smtplib.SMTP(self.server, cint(self.port) or None)
 		
 		if self.use_ssl: 
 			sess.ehlo()
 			sess.starttls()
 			sess.ehlo()
 		
-		ret = sess.login(self.login.encode('utf-8'), self.password.encode('utf-8'))
+		if self.login and self.password:
+			ret = sess.login(self.login, self.password)
 
-		# check if logged correctly
-		if ret[0]!=235:
-			msgprint(ret[1])
-			raise Exception
+			# check if logged correctly
+			if ret[0]!=235:
+				msgprint(ret[1])
+				raise Exception
 
 		return sess

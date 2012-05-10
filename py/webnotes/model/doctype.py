@@ -261,30 +261,36 @@ class _DocType:
 		"""add js, css code"""
 		import os
 		from webnotes.modules import scrub, get_module_path
+		import conf
 		
 		modules_path = get_module_path(doc.module)
 
 		path = os.path.join(modules_path, 'doctype', scrub(doc.name))
 
-		fpath = os.path.join(path, scrub(doc.name) + '.js')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.fields['__js'] = f.read()
-
-		fpath = os.path.join(path, scrub(doc.name) + '.css')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.fields['__css'] = f.read()
-
-		fpath = os.path.join(path, 'listview.js')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.fields['__listjs'] = f.read()
-
-		fpath = os.path.join(path, 'help.md')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.fields['description'] = f.read()
+		def _add_code(fname, fieldname):
+			fpath = os.path.join(path, fname)
+			if os.path.exists(fpath):
+				with open(fpath, 'r') as f:
+					doc.fields[fieldname] = f.read()
+			
+		_add_code(scrub(doc.name) + '.js', '__js')
+		_add_code(scrub(doc.name) + '.css', '__css')
+		_add_code('listview.js', '__listjs')
+		_add_code('help.md', 'description')
+		
+		# embed all require files
+		import re
+		def _sub(match):
+			fpath = os.path.join(os.path.dirname(conf.modules_path), \
+				re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
+			if os.path.exists(fpath):
+				with open(fpath, 'r') as f:
+					return '\n' + f.read() + '\n'
+			else:
+				return '\n// no file "%s" found \n' % fpath
+		
+		if doc.fields.get('__js'):
+			doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
 		
 		# custom script
 		from webnotes.model.code import get_custom_script

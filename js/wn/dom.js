@@ -111,12 +111,13 @@ wn.dom = {
 }
 
 wn.get_cookie = function(c) {
-	var t=""+document.cookie;
-	var ind=t.indexOf(c);
-	if (ind==-1 || c=="") return ""; 
-	var ind1=t.indexOf(';',ind);
-	if (ind1==-1) ind1=t.length; 
-	return unescape(t.substring(ind+c.length+1,ind1));
+	var clist = (document.cookie+'').split(';');
+	var cookies = {};
+	for(var i=0;i<clist.length;i++) {
+		var tmp = clist[i].split('=');
+		cookies[strip(tmp[0])] = strip(tmp[1]);
+	}
+	return cookies[c];
 }
 
 wn.dom.set_box_shadow = function(ele, spread) {
@@ -145,7 +146,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 			$(ele.loading_img).toggle(true);
 		} else {
 			ele.disabled = 1;
-			ele.loading_img = $('<img src="lib/images/ui/button-load.gif" \
+			ele.loading_img = $('<img src="images/lib/ui/button-load.gif" \
 				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
 				.insertAfter(ele);
 		}		
