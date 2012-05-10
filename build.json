@@ -79,11 +79,11 @@
 			"lib/css/legacy/dialog.css",
 			"lib/css/legacy/tabs.css",
 			"lib/css/legacy/sidebar.css",
-			"lib/css/Aristo/aristo.selected.css",
 			"lib/css/ui/common.css",
 			"lib/css/ui/list.css",
 			"lib/css/ui/views.css",
-			"lib/css/ui/fonts.css"
+			"lib/css/ui/fonts.css",
+			"lib/js/lib/Aristo/aristo.selected.css",
 		]
 	},
 

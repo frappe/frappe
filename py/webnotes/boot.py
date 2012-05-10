@@ -85,7 +85,7 @@ def get_fullnames():
 	d = {}
 	for r in ret:
 		if not r[2]:
-			r[2] = 'lib/images/ui/no_img_m.gif'
+			r[2] = 'images/lib/ui/no_img_m.gif'
 		else:
 			r[2] = 'files/' + r[2]
 			
