@@ -100,6 +100,12 @@ class Bundle:
 		
 		path = '.'
 		
+		# add additional app files in bdata
+		buildfile_list = [buildfile.keys()[0] for buildfile in bdata]
+		for f in appfiles:
+			if f not in buildfile_list:
+				bdata.append({f: appfiles[f]})		
+		
 		for buildfile in bdata:
 			# build the file list relative to the main folder
 			outfile = buildfile.keys()[0]
@@ -116,6 +122,5 @@ class Bundle:
 			# js files are minified by default unless explicitly
 			# mentioned in the prefix.
 			# some files may not work if minified (known jsmin bug)
-			self.concat(fl, os.path.relpath(os.path.join(path, outfile), os.curdir))			
-						
+			self.concat(fl, os.path.relpath(os.path.join(path, outfile), os.curdir))						
 		
