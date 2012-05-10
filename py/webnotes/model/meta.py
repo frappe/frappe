@@ -57,12 +57,18 @@ def get_link_fields(doctype):
 	"""
 		Returns list of link fields for a doctype in tuple (fieldname, options, label)
 	"""
-	return webnotes.conn.sql("""
-		SELECT fieldname, options, label 
-		FROM tabDocField 
-		WHERE parent='%s' 
-		and (fieldtype='Link' or (fieldtype='Select' and `options` like 'link:%%')) 
-		and fieldname!='owner'""" % (doctype))
+	import webnotes.model.doctype
+	doclist = webnotes.model.doctype.get(doctype)
+	return [
+		(d.fields.get('fieldname'), d.fields.get('options'), d.fields.get('label'))
+		for d in doclist
+		if d.fields.get('doctype') == 'DocField' and d.fields.get('parent') == doctype
+		and d.fields.get('fieldname')!='owner'
+		and (d.fields.get('fieldtype') == 'Link' or
+			(	d.fields.get('fieldtype') == 'Select'
+				and (d.fields.get('options') or '').startswith('link:'))
+			)
+	]
 
 #=================================================================================
 
