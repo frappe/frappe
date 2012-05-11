@@ -338,59 +338,6 @@ function $td(t,r,c) {
 	if(c<0)c=t.rows[0].cells.length+c;
 	return t.rows[r].cells[c]; 
 }
-// sum of values in a table column
-function $sum(t, cidx) {
-	var s = 0;
-	if(cidx<1)cidx = t.rows[0].cells.length + cidx;
-	for(var ri=0; ri<t.rows.length; ri++) {
-		var c = t.rows[ri].cells[cidx];
-		if(c.div) s += flt(c.div.innerHTML);
-		else if(c.value) s+= flt(c.value);
-		else s += flt(c.innerHTML);
-	}
-	return s;
-}
-
-function objpos(obj){
-  if(obj.substr)obj = $i(obj);
-  var p = $(obj).offset();
-  return {x : cint(p.left), y : cint(p.top) }
-}
-
-
-function get_screen_dims() {
-  var d={};
-  d.w = 0; d.h = 0;
-  if( typeof( window.innerWidth ) == 'number' ) {
-	//Non-IE
-	d.w = window.innerWidth;
-	d.h = window.innerHeight;
-  } else if( document.documentElement && ( document.documentElement.clientWidth || document.documentElement.clientHeight ) ) {
-	//IE 6+ in 'standards compliant mode'
-	d.w = document.documentElement.clientWidth;
-	d.h = document.documentElement.clientHeight;
-  } else if( document.body && ( document.body.clientWidth || document.body.clientHeight ) ) {
-	//IE 4 compatible
-	d.w = document.body.clientWidth;
-	d.h = document.body.clientHeight;
-  }	
-  return d
-}
-
-// get full page size
-function get_page_size(){
-	return [$(document).height(), $(document).width()];
-}
-
-// get scroll top
-function get_scroll_top() {
-	var st = 0;
-	if(document.documentElement && document.documentElement.scrollTop)
-		st = document.documentElement.scrollTop;
-	else if(document.body && document.body.scrollTop)
-		st = document.body.scrollTop;
-	return st;
-}
 
 // URL utilities
 

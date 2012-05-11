@@ -137,10 +137,8 @@ wn.widgets.Dialog = function(opts) {
 	
 	this.set_postion = function() {
 		// place it at the center
-		var d = get_screen_dims();
-
-		this.wrapper.style.left  = ((d.w - cint(this.wrapper.style.width))/2) + 'px';
-        this.wrapper.style.top = (get_scroll_top() + 60) + 'px';
+		this.wrapper.style.left  = (($(window).width() - cint(this.wrapper.style.width))/2) + 'px';
+        this.wrapper.style.top = ($(window).scrollTop() + 60) + 'px';
 
 		// place it on top
 		top_index++;
