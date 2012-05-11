@@ -222,7 +222,7 @@ wn.datetime.only_date = function(val) {
 wn.datetime.time_to_ampm = function(v) {
 	if(!v) {
 		var d = new Date();
-		var t = [d.getHours(), cint(d.getMinutes()/5)*5]
+		var t = [d.getHours(), cint(d.getMinutes()/5)*5 + '']
 	} else {
 		var t = v.split(':');
 	}
@@ -246,6 +246,9 @@ wn.datetime.time_to_hhmm = function(hh,mm,am) {
 	} else if(am == 'PM' && hh!='12') {
 		hh = cint(hh) + 12;
 	}
+	if(!mm) mm='00';
+	if(!hh) hh='00';
+	
 	return hh + ':' + mm;
 }
 
