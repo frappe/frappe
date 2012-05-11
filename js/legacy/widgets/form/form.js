@@ -865,7 +865,8 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 		// make doc list
 		var doclist = compress_doclist(make_doclist(this.doctype, this.docname));
 		// send to run
-		if(callingfield)callingfield.input.disabled = true;
+		if(callingfield)
+			$(callingfield.input).set_working();
 
 		$c('runserverobj', {'docs':doclist, 'method':scriptname }, 
 			function(r, rtxt) { 
@@ -880,7 +881,8 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 				me.refresh_dependency();
 
 				// enable button
-				if(callingfield)callingfield.input.done_working();
+				if(callingfield)
+					$(callingfield.input).done_working();
 			}
 		);
 	}

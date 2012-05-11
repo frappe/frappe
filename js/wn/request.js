@@ -29,7 +29,7 @@ wn.request.url = 'index.cgi';
 wn.request.prepare = function(opts) {
 	// btn indicator
 	if(opts.btn) $(opts.btn).set_working();
-		
+	
 	// navbar indicator
 	if(opts.show_spinner) set_loading();
 	

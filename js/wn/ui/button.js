@@ -30,7 +30,6 @@ wn.ui.Button = function(args) {
 			// ajax loading
 			me.loading_img = wn.dom.add(me.btn.args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
 			me.loading_img.src= 'images/lib/ui/button-load.gif';
-			if(args.is_ajax) wn.dom.css(me.btn,{marginRight:'24px'});
 
 			// label
 			me.btn.innerHTML = args.label;
@@ -53,17 +52,11 @@ wn.ui.Button = function(args) {
 
 		set_working: function() {
 			me.btn.disabled = 'disabled';
-			if(me.btn.args.is_ajax) {
-				$(me.btn).css('margin-right', '0px');
-			}
 			$(me.loading_img).css('display','inline');
 		},
 		
 		done_working: function() {
 			me.btn.disabled = false;
-			if(me.btn.args.is_ajax) {
-				$(me.btn).css('margin-right', '24px');				
-			}
 			$(me.loading_img).toggle(false);
 		}
 	});

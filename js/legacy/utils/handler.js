@@ -34,7 +34,7 @@ function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
 // For calling an object
 function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
-	
+		
 	args = {
 		cmd:'runserverobj',
 		arg: arg,
