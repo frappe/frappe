@@ -38,7 +38,7 @@ wn.Application = Class.extend({
 			})
 		} else {
 			// clear sid cookie
-			document.cookie = "sid=Guest;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"
+			//document.cookie = "sid=Guest;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"
 			this.startup();
 			//wn.views.pageview.show(window.home_page);
 		}

@@ -6,7 +6,7 @@ wn.upload = {
 				style="width:0px; height:0px; border:0px"></iframe>\
 			<form method="POST" enctype="multipart/form-data" \
 				action="%(action)s" target="%(id)s">\
-				<input type="file" name="filedata" /><br>\
+				<input type="file" name="filedata" /><br><br>\
 				<input type="submit" class="btn btn-small" value="Upload" />\
 			</form>', {
 				id: id,

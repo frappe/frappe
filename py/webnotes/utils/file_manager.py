@@ -70,26 +70,17 @@ def add_file_list(dt, dn, fname, fid):
 	"""
 		udpate file_list attribute of the record
 	"""
-	try:
-		# get the old file_list
-		fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
-		if fl:
-			fl += '\n'
-			
-		# add new file id
-		fl += fname + ',' + fid
-		
-		# save
-		webnotes.conn.set_value(dt, dn, 'file_list', fl)
-		
-		return True
+	fl = webnotes.conn.get_value(dt, dn, 'file_list') or ''
+	if fl:
+		fl += '\n'
+	
+	# add new file id
+	fl += fname + ',' + fid
 
-	except Exception, e:
-		webnotes.response['result'] = """
-<script type='text/javascript'>
-window.parent.msgprint("Error while uploading: %s");
-</script>""" % str(e)
+	# save
+	webnotes.conn.set_value(dt, dn, 'file_list', fl)
 
+	return True
 
 def remove_all(dt, dn):
 	"""remove all files in a transaction"""
@@ -141,10 +132,10 @@ def get_uploaded_content():
 		webnotes.uploaded_filename, webnotes.uploaded_content = i.filename, i.file.read()
 		return webnotes.uploaded_filename, webnotes.uploaded_content
 	else:
-		webnotes.response['result'] = """<script type='text/javascript'>window.parent.msgprint("No file"); %s</script>""" % js_fail
+		webnotes.msgprint('No File');
 		return None, None
 
-def save_uploaded(js_okay='window.parent.msgprint("File Upload Successful")', js_fail=''):
+def save_uploaded():
 	import webnotes.utils
 	
 	webnotes.response['type'] = 'iframe'
