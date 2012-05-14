@@ -30,7 +30,8 @@ wn.dom = {
 	},
 	set_unique_id: function(ele) {
 		var id = 'unique-' + wn.dom.id_count;
-		ele.setAttribute('id', id);
+		if(ele)
+			ele.setAttribute('id', id);
 		wn.dom.id_count++;
 		return id;
 	},
@@ -142,10 +143,10 @@ wn.dom.set_box_shadow = function(ele, spread) {
 	}
 	$.fn.set_working = function() {
 		var ele = this.get(0);
+		$(ele).attr('disabled', 'disabled');
 		if(ele.loading_img) { 
 			$(ele.loading_img).toggle(true);
 		} else {
-			ele.disabled = 1;
 			ele.loading_img = $('<img src="images/lib/ui/button-load.gif" \
 				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
 				.insertAfter(ele);
@@ -153,7 +154,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 	}
 	$.fn.done_working = function() {
 		var ele = this.get(0);
-		ele.disabled = 0;
+		$(ele).attr('disabled', null);
 		if(ele.loading_img) { 
 			$(ele.loading_img).toggle(false); 
 		};

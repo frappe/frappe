@@ -127,66 +127,35 @@ def get_template():
 
 @webnotes.whitelist()
 def uploadfile():
+	import webnotes.utils
 	import webnotes.utils.file_manager
-	if webnotes.form_dict.get('from_form'):
-		webnotes.utils.file_manager.upload()
-	else:
-		# save the file
-		fid, fname = webnotes.utils.file_manager.save_uploaded()
-		
-		# do something with the uploaded file
-		if fid:
-			if webnotes.form_dict.get('server_obj'):
-				from webnotes.model.code import get_obj
-				getattr(get_obj(webnotes.form_dict.get('server_obj')), webnotes.form_dict.get('method'))(fid, fname)
-		
-			elif webnotes.form_dict.get('modulename'):
-				# calls a python module to handle the script
-				__import__(webnotes.form_dict['modulename'])
+	import json
+
+	ret = []
+
+	try:
+		if webnotes.form_dict.get('from_form'):
+			webnotes.utils.file_manager.upload()
+		else:
+			if webnotes.form_dict.get('method'):
+				m = webnotes.form_dict['method']
+				modulename = '.'.join(m.split('.')[:-1])
+				methodname = m.split('.')[-1]
+
+				__import__(modulename)
 				import sys
-				moduleobj = sys.modules[webnotes.form_dict['modulename']]
-				getattr(moduleobj, webnotes.form_dict['method'])(fid, fname)
+				moduleobj = sys.modules[modulename]
+				ret = getattr(moduleobj, methodname)()
+	except Exception, e:
+		webnotes.msgprint(e)
+		webnotes.errprint(webnotes.utils.getTraceback())
 
-
-			webnotes.response['result'] = '<script>window.parent.upload_callback("'+webnotes.form_dict.get('uploader_id')+'", "'+fid+'")</script>'
-	
-# File upload (from scripts)
-# ------------------------------------------------------------------------------------
-
-@webnotes.whitelist()
-def upload_many():
-	from webnotes.model.code import get_obj
-
-	# pass it on to upload_many method in Control Panel
-	cp = get_obj('Control Panel')
-	cp.upload_many(webnotes.form)
-	
-	webnotes.response['result'] = """
-<script type='text/javascript'>
-%s
-</script>
-%s
-%s""" % (cp.upload_callback(webnotes.form), '\n----\n'.join(webnotes.message_log).replace("'", "\'"), '\n----\n'.join(webnotes.debug_log).replace("'", "\'").replace("\n","<br>"))
 	webnotes.response['type'] = 'iframe'
-
-
-@webnotes.whitelist()
-def get_file():
-	import webnotes
-	import webnotes.utils.file_manager
-	form = webnotes.form
-
-	res = webnotes.utils.file_manager.get_file(form.getvalue('fname'))
-	if res:
-		webnotes.response['type'] = 'download'
-		webnotes.response['filename'] = res[0]
-		
-		if hasattr(res[1], 'tostring'):
-			webnotes.response['filecontent'] = res[1].tostring()
-		else: 
-			webnotes.response['filecontent'] = res[1]
-	else:
-		webnotes.msgprint('[get_file] Unknown file name')
+	if not webnotes.response.get('result'):
+		webnotes.response['result'] = """<script>
+			window.parent.wn.upload.callback("%s", %s);
+		</script>""" % (webnotes.form_dict.get('_id'),
+			json.dumps(ret))
 
 @webnotes.whitelist(allow_guest=True)
 def reset_password():
@@ -299,12 +268,25 @@ def print_csv():
 	print webnotes.response['result']
 
 def print_iframe():
+	import json
 	print "Content-Type: text/html"
 	print
 	if webnotes.response.get('result'):
 		print webnotes.response['result']
 	if webnotes.debug_log:
-		print '''<script type='text/javascript'>alert("%s");</script>''' % ('-------'.join(webnotes.debug_log).replace('"', '').replace('\n',''))
+		print """	
+			<script>
+			var messages = %s;
+			if(messages.length) {
+				for(var i in messages)
+					window.parent.msgprint(messages[i]);
+			};
+			var errors = %s;
+			if(errors.length) {
+				for(var i in errors)
+					window.parent.console.log(errors[i]);
+			}
+		</script>""" % (json.dumps(webnotes.message_log), json.dumps(webnotes.debug_log))
 
 def print_raw():
 	import mimetypes

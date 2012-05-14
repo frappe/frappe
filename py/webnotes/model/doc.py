@@ -29,19 +29,6 @@ import webnotes.model.meta
 
 from webnotes.utils import *
 
-# actually should be "BaseDocType" - deprecated. Only for v160
-class SuperDocType:
-	def __init__(self):
-		pass
-		
-	def __getattr__(self, name):
-		if self.__dict__.has_key(name):
-			return self.__dict__[name]
-		elif self.super and hasattr(self.super, name):
-			return getattr(self.super, name)
-		else:
-			raise AttributeError, 'BaseDocType Attribute Error'
-
 class Document:
 	"""
 	   The wn(meta-data)framework equivalent of a Database Record.
@@ -208,7 +195,6 @@ class Document:
 		# amendments
 		if self.amended_from: 
 			self._get_amended_name()
-
 		# by method
 		elif so and hasattr(so, 'autoname'):
 			r = webnotes.model.code.run_server_obj(so, 'autoname')
@@ -401,6 +387,9 @@ class Document:
 		# add missing parentinfo (if reqd)
 		if self.parent and not (self.parenttype and self.parentfield):
 			self.update_parentinfo()
+			
+		if self.parent and not self.idx:
+			self.set_idx()
 
 		# if required, make new
 		if new or (not new and self.fields.get('__islocal')) and (not res.get('issingle')):
@@ -430,6 +419,12 @@ class Document:
 		else:
 			self.parenttype = tmp[0][0]
 			self.parentfield = tmp[0][1]
+
+	def set_idx(self):
+		"""set idx"""
+		self.idx = (webnotes.conn.sql("""select max(idx) from `tab%s` 
+			where parent=%s and parentfield=%s""" % (self.doctype, '%s', '%s'), 
+			(self.parent, self.parentfield))[0][0] or 0) + 1
 
 	# check permissions
 	# ---------------------------------------------------------------------------
@@ -560,20 +555,6 @@ def addchild(parent, fieldname, childtype = '', local=0, doclist=None):
      d.save(1)
 	"""
 	return parent.addchild(fieldname, childtype, local, doclist)
-
-# Remove Child
-# ------------
-
-def removechild(d, is_local = 0):
-	"""
-	   Sets the docstatus of the object d to 2 (deleted) and appends an 'old_parent:' to the parent name
-	"""
-	if not is_local:
-		set(d, 'docstatus', 2)
-		set(d, 'parent', 'old_parent:' + d.parent)
-	else:
-		d.parent = 'old_parent:' + d.parent
-		d.docstatus = 2
 			
 # Naming
 # ------
@@ -645,11 +626,12 @@ def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix
 	
 	if field: 
 		tmp = ' and parentfield="%s" ' % field
-	if parenttype: 
+	if parenttype:
 		tmp = ' and parenttype="%s" ' % parenttype
 
 	try:
-		dataset = webnotes.conn.sql("select * from `%s%s` where parent='%s' %s order by idx" % (prefix, childtype, name, tmp))
+		dataset = webnotes.conn.sql("select * from `%s%s` where parent='%s' %s order by idx" \
+			% (prefix, childtype, name, tmp))
 		desc = webnotes.conn.get_description()
 	except Exception, e:
 		if prefix=='arc' and e.args[0]==1146:

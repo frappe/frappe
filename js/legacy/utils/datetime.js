@@ -226,12 +226,14 @@ wn.datetime.time_to_ampm = function(v) {
 	} else {
 		var t = v.split(':');
 	}
-	
-	
+
 	if(t.length!=2){
 		show_alert('[set_time] Incorect time format');
 		return;
 	}
+	
+	if(t[1].length==1) t[1]='0' + t[1];
+	
 	if(cint(t[0]) == 0) var ret = ['12', t[1], 'AM'];
 	else if(cint(t[0]) < 12) var ret = [cint(t[0]) + '', t[1], 'AM'];
 	else if(cint(t[0]) == 12) var ret = ['12', t[1], 'PM'];
@@ -248,7 +250,7 @@ wn.datetime.time_to_hhmm = function(hh,mm,am) {
 	}
 	if(!mm) mm='00';
 	if(!hh) hh='00';
-	
+
 	return hh + ':' + mm;
 }
 
