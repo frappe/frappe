@@ -162,7 +162,7 @@ def run():
 			webnotes.connect(options.db_name, options.password)
 		else:
 			webnotes.connect(options.db_name)
-	elif not options.install:
+	elif not any([options.install, options.pull]):
 		webnotes.connect(conf.db_name)
 
 	# build

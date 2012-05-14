@@ -250,6 +250,7 @@ wn.datetime.time_to_hhmm = function(hh,mm,am) {
 	}
 	if(!mm) mm='00';
 	if(!hh) hh='00';
+
 	return hh + ':' + mm;
 }
 
