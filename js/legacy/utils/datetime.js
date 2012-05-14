@@ -76,7 +76,9 @@ wn.datetime = {
 	},
 	
 	add_days: function(d, days) { 
-		d.setTime(d.getTime()+(days*24*60*60*1000)); return d
+		dt = dateutil.str_to_obj(d)
+		dt.setTime(dt.getTime()+(days*24*60*60*1000)); 
+		return dateutil.obj_to_str(dt);
 	},
 	
 	add_months: function(d, months) {
