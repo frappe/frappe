@@ -454,6 +454,9 @@ DataField.prototype.make_input = function() {
 						response(r.results);
 					}
 				});
+			},
+			select: function(event, ui) {
+				me.set(ui.item.value);
 			}
 		});
 	}
