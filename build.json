@@ -99,6 +99,7 @@
 			"lib/js/legacy/utils/msgprint.js",
 			"lib/js/wn/ui/appframe.js",
 			"lib/js/wn/ui/dialog.js",
+			"lib/js/wn/ui/button.js",
 			"lib/js/legacy/widgets/dialog.js",
 			"lib/js/legacy/webpage/page_header.js",
 			"lib/js/legacy/webpage/spinner.js",
