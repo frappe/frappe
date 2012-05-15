@@ -84,6 +84,8 @@ def setup_options():
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
 						help="minify + concat js files")
+	parser.add_option("--cms", default=False, action="store_true",
+						help="take a dump of website pages, js and css")
 
 	# git
 	parser.add_option("--status", default=False, action="store_true",
@@ -168,7 +170,16 @@ def run():
 	# build
 	if options.build:
 		import build.project
-		build.project.build()		
+		build.project.build()	
+
+	elif options.cms:
+		from webnotes.model.code import get_obj
+		# rewrite pages
+		ws = get_obj('Website Settings')
+		ws.rewrite_pages()
+		ss = get_obj('Style Settings')
+		ss.validate()
+		ss.on_update()
 		
 	# code replace
 	elif options.replace:
