@@ -49,7 +49,7 @@ def walk_and_sync(start_path, force=0):
 				
 				if doctype == 'doctype':
 					sync(module_name, name, force)
-				elif doctype in ['page', 'search_criteria', 'Print Format', 'DocType Mapper']:
+				elif doctype in ['page']:#, 'search_criteria', 'Print Format', 'DocType Mapper']:
 					reload_doc(module_name, doctype, name)
 					print module_name + ' | ' + doctype + ' | ' + name
 					
