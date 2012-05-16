@@ -190,7 +190,7 @@ def check_record(d, parentdoctype):
 					if val not in docfield.options.split('\n'):
 						raise Exception, "%s must be one of:" % key
 						
-			if docfield.fieldtype=='Date':
+			if docfield.fieldtype=='Date' and val:
 				import datetime
 				datetime.datetime.strptime(val, '%Y-%m-%d')
 
