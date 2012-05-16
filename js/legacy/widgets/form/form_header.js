@@ -62,13 +62,18 @@ _f.FrmHeader = Class.extend({
 
 		this.set_label(labinfo);
 		
+		// show update button if unsaved
+		if(cur_frm.doc.__unsaved && cint(cur_frm.doc.docstatus)==1 && this.appframe.buttons['Update']) {
+			this.appframe.buttons['Update'].toggle(true);
+		}
+		
 	},
 	set_label: function(labinfo) {
 		this.$w.find('.label-area').html(repl('<span class="label %(lab_class)s">\
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
 				lab_class: labinfo[1]
-			}));		
+			}));
 	},
 	refresh_toolbar: function() {
 		// clear

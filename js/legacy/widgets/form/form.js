@@ -1115,10 +1115,12 @@ _f.set_value = function(dt, dn, fn, v) {
 		d.__unsaved = 1;
 			
 		if(d.parent && d.parenttype) {
-			locals[d.parenttype][d.parent].__unsaved = 1;
+			var doc = locals[d.parenttype][d.parent];
+			doc.__unsaved = 1;
 			var frm = wn.views.formview[d.parenttype].frm;
 		} else {
-			locals[d.doctype][d.name].__unsaved = 1;
+			var doc = locals[d.doctype][d.name]
+			doc.__unsaved = 1;
 			var frm = wn.views.formview[d.doctype] && wn.views.formview[d.doctype].frm;
 		}
 		
@@ -1126,7 +1128,7 @@ _f.set_value = function(dt, dn, fn, v) {
 		// Just check if __unsaved was not set previously
 		if(frm && frm==cur_frm && frm.frm_head && !prev_unsaved) {
 			frm.frm_head.refresh_labels();
-			frm.frm_head.refresh_toolbar();
+			//frm.frm_head.refresh_toolbar();
 		}
 	}
 }
