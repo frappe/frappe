@@ -212,3 +212,19 @@ def delete_file(fid, verbose=0):
 	path = os.path.join(webnotes.get_files_path(), fid.replace('/','-'))
 	if os.path.exists(path):
 		os.remove(path)
+		
+def get_file(fname):
+	f = get_file_system_name(fname)
+	if f:
+		file_id = f[0][0].replace('/','-')
+		file_name = f[0][1]
+	else:
+		file_id = fname
+		file_name = fname
+
+	# read the file
+	import os
+	with open(os.path.join(webnotes.get_files_path(), file_id), 'r') as f:
+		content = f.read()
+
+	return [file_name, content]
