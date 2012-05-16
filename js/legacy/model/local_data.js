@@ -256,12 +256,11 @@ LocalDB.no_copy_list = ['amended_from','amendment_date','cancel_reason'];
 LocalDB.copy=function(dt, dn, from_amend) {
 	var newdoc = LocalDB.create(dt);
 	for(var key in locals[dt][dn]) {
-		if(key!=='name' && key.substr(0,2)!='__') { // dont copy name and blank fields
-			locals[dt][newdoc][key] = locals[dt][dn][key];
-		}
+		// dont copy name and blank fields
 		var df = get_field(dt, key);
-		if(df && ((!from_amend && cint(df.no_copy)==1) || in_list(LocalDB.no_copy_list, df.fieldname))) { // blank out 'No Copy'
-			locals[dt][newdoc][key]='';
+		if(key!=='name' && key.substr(0,2)!='__' &&
+			!(df && ((!from_amend && cint(df.no_copy)==1) || in_list(LocalDB.no_copy_list, df.fieldname)))) { 
+			locals[dt][newdoc][key] = locals[dt][dn][key];
 		}
 	}
 	return locals[dt][newdoc];
