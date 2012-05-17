@@ -40,6 +40,10 @@ class DocList:
 		self.to_docstatus = 0
 		if dt and dn:
 			self.load_from_db(dt, dn)
+		if type(dt) is list:
+			self.docs = dt
+			self.doc = dt[0]
+			self.children = dt[1:]
 
 	def load_from_db(self, dt, dn, prefix='tab'):
 		"""

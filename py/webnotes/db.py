@@ -259,10 +259,10 @@ class Database:
 			r = self.sql("select value from tabSingles where field in ('%s') and doctype='%s'" % (fieldname, doctype))
 			return r and (len(r) > 1 and (i[0] for i in r) or r[0][0]) or None
 
-	def set_value(self, dt, dn, field, val):
+	def set_value(self, dt, dn, field, val, modified = None):
 		from webnotes.utils import now
 		if dn and dt!=dn:
-			self.sql("update `tab"+dt+"` set `"+field+"`=%s, modified=%s where name=%s", (val, now(), dn))
+			self.sql("update `tab"+dt+"` set `"+field+"`=%s, modified=%s where name=%s", (val, modified or now(), dn))
 		else:
 			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
 				self.sql("update tabSingles set value=%s where field=%s and doctype=%s", (val, field, dt))
@@ -270,7 +270,7 @@ class Database:
 				self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)", (dt, field, val))
 				
 	def set(self, doc, field, val):
-		self.set_value(doc.doctype, doc.name, field, val)
+		self.set_value(doc.doctype, doc.name, field, val, doc.modified)
 		doc.fields[field] = val
 
 	# ======================================================================================
