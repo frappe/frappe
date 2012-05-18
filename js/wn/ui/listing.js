@@ -87,6 +87,8 @@ wn.ui.Listing = Class.extend({
 					<div class="show_filters well">\
 						<div class="filter_area"></div>\
 						<div>\
+							<button class="btn btn-small btn-info search-btn">\
+								<i class="icon-refresh icon-white"></i> Search</button>\
 							<button class="btn btn-small add-filter-btn">\
 								<i class="icon-plus"></i> Add Filter</button>\
 						</div>\
@@ -165,6 +167,7 @@ wn.ui.Listing = Class.extend({
 			this.add_button('Refresh', function() {
 				me.run();
 			}, 'icon-refresh');
+			
 		}
 				
 		// new
