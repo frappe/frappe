@@ -34,7 +34,9 @@ wn.ui.FilterList = Class.extend({
 		this.$w.find('.add-filter-btn').bind('click', function() {
 			me.add_filter();
 		});
-			
+		this.$w.find('.search-btn').bind('click', function() {
+			me.listobj.run();
+		});
 	},
 	
 	show_filters: function() {
