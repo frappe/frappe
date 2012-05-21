@@ -180,6 +180,7 @@ def run():
 		ss = get_obj('Style Settings')
 		ss.validate()
 		ss.on_update()
+		os.system('chown -R apache:apache *')
 		
 	# code replace
 	elif options.replace:
