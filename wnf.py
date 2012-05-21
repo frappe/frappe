@@ -181,6 +181,8 @@ def run():
 		ss.validate()
 		ss.on_update()
 		os.system('chown -R apache:apache *')
+		if not os.path.exists('public/login-page.html') and os.path.exists('public/index.html'):
+			os.system('cp public/index.html public/login-page.html')
 		
 	# code replace
 	elif options.replace:
