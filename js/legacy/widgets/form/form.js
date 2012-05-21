@@ -865,7 +865,8 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 		// make doc list
 		var doclist = compress_doclist(make_doclist(this.doctype, this.docname));
 		// send to run
-		if(callingfield)callingfield.input.disabled = true;
+		if(callingfield)
+			$(callingfield.input).set_working();
 
 		$c('runserverobj', {'docs':doclist, 'method':scriptname }, 
 			function(r, rtxt) { 
@@ -880,7 +881,8 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 				me.refresh_dependency();
 
 				// enable button
-				if(callingfield)callingfield.input.done_working();
+				if(callingfield)
+					$(callingfield.input).done_working();
 			}
 		);
 	}
@@ -1113,10 +1115,12 @@ _f.set_value = function(dt, dn, fn, v) {
 		d.__unsaved = 1;
 			
 		if(d.parent && d.parenttype) {
-			locals[d.parenttype][d.parent].__unsaved = 1;
+			var doc = locals[d.parenttype][d.parent];
+			doc.__unsaved = 1;
 			var frm = wn.views.formview[d.parenttype].frm;
 		} else {
-			locals[d.doctype][d.name].__unsaved = 1;
+			var doc = locals[d.doctype][d.name]
+			doc.__unsaved = 1;
 			var frm = wn.views.formview[d.doctype] && wn.views.formview[d.doctype].frm;
 		}
 		
@@ -1124,7 +1128,7 @@ _f.set_value = function(dt, dn, fn, v) {
 		// Just check if __unsaved was not set previously
 		if(frm && frm==cur_frm && frm.frm_head && !prev_unsaved) {
 			frm.frm_head.refresh_labels();
-			frm.frm_head.refresh_toolbar();
+			//frm.frm_head.refresh_toolbar();
 		}
 	}
 }

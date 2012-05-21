@@ -1,0 +1,29 @@
+# Page, data-import-tool
+[
+
+	# These values are common in all dictionaries
+	{
+		'creation': '2012-05-10 10:06:00',
+		'docstatus': 0,
+		'modified': '2012-05-10 10:06:00',
+		'modified_by': u'Administrator',
+		'owner': u'Administrator'
+	},
+
+	# These values are common for all Page
+	{
+		'doctype': 'Page',
+		'module': u'Core',
+		'name': '__common__',
+		'page_name': u'Data Import Tool',
+		'standard': u'Yes',
+		'title': u'Data Import Tool',
+		'web_page': u'No'
+	},
+
+	# Page, data-import-tool
+	{
+		'doctype': 'Page',
+		'name': u'data-import-tool'
+	}
+]

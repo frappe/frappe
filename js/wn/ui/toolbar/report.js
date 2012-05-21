@@ -25,7 +25,7 @@ wn.ui.toolbar.Report = wn.ui.toolbar.SelectorDialog.extend({
 		this._super({
 			title: "Start Report For",
 			execute: function(val) {
-				loadreport(val, null, null, null, 1);
+				wn.set_route('Report2', val);
 			},
 		});
 		

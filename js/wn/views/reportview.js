@@ -64,36 +64,59 @@ wn.views.reportview2 = {
 		} else {
 			var route = wn.get_route();
 			if(route[1]) {
-				new wn.views.ReportView(route[1], route[2]);				
+				new wn.views.ReportViewPage(route[1], route[2]);				
 			} else {
-				new wn.views.ReportHome();
+				wn.set_route('404');
 			}
 		}
 	}
 }
 
-wn.views.ReportView = wn.ui.Listing.extend({
+wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
-		var me = this;
+		this.doctype = doctype;
+		this.docname = docname;
 		this.page_name = wn.get_route_str();
+		this.make_page();
+
+		var me = this;
+		wn.model.with_doctype(doctype, function() {
+			me.make_report_view();
+			if(docname) {
+				wn.model.with_doc('Report', docname, function(r) {
+					me.reportview.set_columns_and_filters(JSON.parse(locals['Report'][docname].json));
+					me.reportview.run();
+				});
+			} else {
+				me.reportview.run();
+			}
+		});
+
+	},
+	make_page: function() {
+		this.page = wn.container.add_page(this.page_name);
+		wn.ui.make_app_page({parent:this.page, 
+			single_column:true});
+		wn.container.change_to(this.page_name);
+	},
+	make_report_view: function() {
+		// add breadcrumbs
+		wn.views.breadcrumbs($('<span>').appendTo(this.page.appframe.$titlebar), 
+			locals.DocType[this.doctype].module);
+			
+		this.reportview = new wn.views.ReportView(this.doctype, this.docname, this.page)
+	}
+})
+
+wn.views.ReportView = wn.ui.Listing.extend({
+	init: function(doctype, docname, page) {
+		var me = this;
 		this.import_slickgrid();
 		this.doctype = doctype;
 		this.docname = docname;
+		this.page = page;
 		this.tab_name = '`tab'+doctype+'`';
-		
-		// list of [column_name, table_name]
-		this.make_page();
-		wn.model.with_doctype(doctype, function() {
-			me.setup();
-			if(docname) {
-				wn.model.with_doc('Report', docname, function(r) {
-					me.set_columns_and_filters(JSON.parse(locals['Report'][docname].json));
-					me.run();
-				});
-			} else {
-				me.run();
-			}
-		});
+		this.setup();
 	},
 	import_slickgrid: function() {
 		wn.require('js/lib/slickgrid/slick.grid.css');
@@ -103,17 +126,12 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		wn.require('js/lib/slickgrid/slick.grid.js');
 		wn.dom.set_style('.slick-cell { font-size: 12px; }');
 	},
-	make_page: function() {
-		this.page = wn.container.add_page(this.page_name);
-		wn.ui.make_app_page({parent:this.page, 
-			single_column:true});
-		wn.container.change_to(this.page_name);
-	},
+
 	set_init_columns: function() {
 		// pre-select mandatory columns
 		var columns = [['name'], ['owner']];
 		$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
-			if(df.in_filter && df.fieldname!='naming_series') {
+			if(df.in_filter && df.fieldname!='naming_series' && df.fieldtype!='Table') {
 				columns.push([df.fieldname]);
 			}
 		});
@@ -121,8 +139,6 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	},
 	setup: function() {
 		var me = this;
-		wn.views.breadcrumbs($('<span>').appendTo(this.page.appframe.$titlebar), 
-			locals.DocType[this.doctype].module);
 		this.make({
 			title: 'Report: ' + (this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype),
 			appframe: this.page.appframe,
@@ -203,9 +219,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				name: (docfield ? docfield.label : toTitle(c[0])),
 				width: (docfield ? cint(docfield.width) : 120) || 120
 			}
-			
-			console.log(docfield && docfield.width);
-			
+						
 			if(c[0]=='name') {
 				coldef.formatter = function(row, cell, value, columnDef, dataContext) {
 					return repl("<a href='#!Form/%(doctype)s/%(name)s'>%(name)s</a>", {

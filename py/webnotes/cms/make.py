@@ -5,6 +5,7 @@ make index, wn.js, wn.css pages
 def make():
 	import os
 	import webnotes
+	# TODO: why is jinja2 imported?
 	from jinja2 import Template
 	import webnotes.cms
 	

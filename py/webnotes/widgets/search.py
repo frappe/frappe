@@ -49,7 +49,7 @@ def getsearchfields():
 	webnotes.response['searchfields'] = [['name', 'ID', 'Data', '']] + res
 
 def make_query(fields, dt, key, txt, start, length):
-	return  """SELECT %(fields)s
+	query = """SELECT %(fields)s
 		FROM `tab%(dt)s`
 		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' AND `tab%(dt)s`.docstatus != 2
 		ORDER BY `tab%(dt)s`.`%(key)s`
@@ -61,6 +61,7 @@ def make_query(fields, dt, key, txt, start, length):
 			'start': start,
 			'len': length
 		}
+	return query
 
 def get_std_fields_list(dt, key):
 	# get additional search fields
@@ -102,6 +103,12 @@ def search_link():
 	txt = webnotes.form.getvalue('txt')
 	dt = webnotes.form.getvalue('dt')
 	query = webnotes.form.getvalue('query')
+	
+	# txt - decode it to utf-8. why to do this?
+	# "%(something_unicode)s %(something ascii encoded with utf-8)s"
+	# tries to decode ascii string using ascii codec and not utf-8
+	# since web pages are encoded in utf-8, we can force decode to utf-8
+	txt = txt.decode('utf-8')
 
 	if query:
 		res = webnotes.conn.sql(scrub_custom_query(query, 'name', txt))
@@ -121,6 +128,12 @@ def search_widget():
 	txt = webnotes.form.getvalue('txt') or ''
 	key = webnotes.form.getvalue('searchfield') or 'name' # key field
 	user_query = webnotes.form.getvalue('query') or ''
+
+	# txt - decode it to utf-8. why to do this?
+	# "%(something_unicode)s %(something ascii encoded with utf-8)s"
+	# tries to decode ascii string using ascii codec and not utf-8
+	# since web pages are encoded in utf-8, we can force decode to utf-8
+	txt = txt.decode('utf-8')
 
 	if user_query:
 		query = scrub_custom_query(user_query, key, txt)

@@ -79,11 +79,11 @@
 			"lib/css/legacy/dialog.css",
 			"lib/css/legacy/tabs.css",
 			"lib/css/legacy/sidebar.css",
-			"lib/css/Aristo/aristo.selected.css",
 			"lib/css/ui/common.css",
 			"lib/css/ui/list.css",
 			"lib/css/ui/views.css",
-			"lib/css/ui/fonts.css"
+			"lib/css/ui/fonts.css",
+			"lib/js/lib/Aristo/aristo.selected.css",
 		]
 	},
 
@@ -99,6 +99,7 @@
 			"lib/js/legacy/utils/msgprint.js",
 			"lib/js/wn/ui/appframe.js",
 			"lib/js/wn/ui/dialog.js",
+			"lib/js/wn/ui/button.js",
 			"lib/js/legacy/widgets/dialog.js",
 			"lib/js/legacy/webpage/page_header.js",
 			"lib/js/legacy/webpage/spinner.js",
@@ -132,6 +133,7 @@
 			"lib/js/wn/ui/button.js",
 			"lib/js/wn/ui/search.js",
 			"lib/js/wn/ui/tree.js",
+			"lib/js/wn/upload.js",
 			"lib/js/wn/misc/about.js",
 			"lib/js/wn/views/doclistview.js",
 			"lib/js/wn/views/formview.js",
@@ -146,7 +148,6 @@
 			"lib/js/legacy/webpage/spinner.js",
 			"lib/js/legacy/webpage/error_console.js",
 			"lib/js/legacy/webpage/loaders.js",
-			"lib/js/legacy/webpage/uploader.js",
 			"lib/js/legacy/wn/page_layout.js",
 			"lib/js/legacy/wn/widgets/page_sidebar.js",
 			"lib/js/legacy/wn/widgets/footer.js",
