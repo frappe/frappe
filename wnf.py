@@ -174,15 +174,20 @@ def run():
 
 	elif options.cms:
 		from webnotes.model.code import get_obj
+
 		# rewrite pages
 		ws = get_obj('Website Settings')
 		ws.rewrite_pages()
 		ss = get_obj('Style Settings')
 		ss.validate()
 		ss.on_update()
-		os.system('chown -R apache:apache *')
+
+		# create login-page.html if it doesnt exist by copying index.html
 		if not os.path.exists('public/login-page.html') and os.path.exists('public/index.html'):
-			os.system('cp public/index.html public/login-page.html')
+			os.symlink('public/index.html', 'public/login-page.html')
+
+		# change owner of files
+		os.system('chown -R apache:apache *')
 		
 	# code replace
 	elif options.replace:
