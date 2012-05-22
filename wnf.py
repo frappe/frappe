@@ -180,7 +180,7 @@ def run():
 		ws.rewrite_pages()
 		ss = get_obj('Style Settings')
 		ss.validate()
-		ss.save()
+		ss.doc.save()
 		ss.on_update()
 
 		# create login-page.html if it doesnt exist by copying index.html
