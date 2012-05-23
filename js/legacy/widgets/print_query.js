@@ -57,8 +57,8 @@ _p.PrintQuery.prototype.render = function(max_rows, page_len) {
 
 	if(!args.query) return;
 
-	var callback = function(r,rt) {
-
+	var callback = function(r, rt) {
+		
 		if(!r.values) { return; }
 		if(!page_len) page_len = r.values.length;
 
@@ -102,15 +102,18 @@ _p.PrintQuery.prototype.render = function(max_rows, page_len) {
 			+ (r.footer_html ? r.footer_html : '')
 			+'</body></html>';
 		_p.preview(html);
+		
 	}
 	var out_args = copy_dict(args);
 	if(args.is_simple) {
 		out_args.simple_query = args.query;
 		delete out_args.query;
 	}
+	
 	// add filter values
 	if(args.filter_values) 
 		out_args.filter_values = args.filter_values;
+	
 	$c('webnotes.widgets.query_builder.runquery', out_args, callback);
 }
 
