@@ -345,7 +345,7 @@ wn.views.ListView = Class.extend({
 		// multiple content
 		if(opts.content.indexOf && opts.content.indexOf('+')!=-1) {
 			$.map(opts.content.split('+'), function(v) {
-				me.render_column(data, parent, {content:v}); 
+				me.render_column(data, parent, {content:v});
 			});
 			return;
 		}
@@ -455,9 +455,12 @@ wn.views.ListView = Class.extend({
 	add_user_tags: function(parent, data) {
 		var me = this;
 		if(data._user_tags) {
+			if($(parent).html().length > 0) {
+				$(parent).append('<br />');
+			}
 			$.each(data._user_tags.split(','), function(i, t) {
 				if(t) {
-					$('<span class="label label-info" style="cursor: pointer">' 
+					$('<span class="label label-info" style="cursor: pointer; line-height: 200%">' 
 						+ strip(t) + '</span>')
 						.click(function() {
 							me.doclistview.set_filter('_user_tags', $(this).text())
