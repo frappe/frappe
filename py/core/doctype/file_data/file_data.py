@@ -45,20 +45,24 @@ class DocType():
 		parts = self.doc.file_name.split('.')
 
 		same = webnotes.conn.sql("""select name from `tabFile Data` 
-			where name like %s order by name desc""", self.doc.file_name)
+			where name=%s""", self.doc.file_name)
 		
 		if same:
 			# check for more
 			other_list = webnotes.conn.sql("""select name from `tabFile Data` 
-				where name like '%s-%%.%s' order by name desc""" % (parts[0], '.'.join(parts[1:])))
+				where name like '%s-%%.%s'""" % (parts[0], '.'.join(parts[1:])))
 			
 			if other_list:
-				last_name = other_list[0][0]
-			
 				from webnotes.utils import cint
-				new_id = str(cint(last_name.split('.')[0].split('-')[-1]) + 1)
+				# gets the max number from format like name-###.ext
+				last_num = max(
+						(cint(other[0].split('.')[0].split('-')[-1])
+						for other in other_list)
+					)
 			else:
-				new_id = '1'
+				last_num = 0
+			
+			new_id = "%03d" % (last_num + 1)
 					
 			# new name	
 			self.doc.file_name = parts[0] + '-' + new_id + '.' + '.'.join(parts[1:])
