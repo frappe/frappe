@@ -75,11 +75,12 @@ def get():
 	return bootinfo
 
 def load(country):
-	"""load from cache"""	
+	"""load from cache"""
+	import json
 	try:
 		sd = webnotes.conn.sql("select cache from __SessionCache where user='%s' %s" % (webnotes.session['user'], (country and (" and country='%s'" % country) or '')))
 		if sd:
-			return eval(sd[0][0])
+			return json.loads(sd[0][0])
 		else:
 			return None
 	except Exception, e:
@@ -90,6 +91,7 @@ def load(country):
 	
 def add_to_cache(bootinfo, country):
 	"""add to cache"""
+	import json
 	import webnotes.model.utils
 
 	if bootinfo.get('docs'):
@@ -102,4 +104,4 @@ def add_to_cache(bootinfo, country):
 	# make new
 	webnotes.conn.sql("""insert into `__SessionCache` 
 		(user, country, cache) VALUES (%s, %s, %s)""", \
-			(webnotes.session['user'], country, str(bootinfo)))
+			(webnotes.session['user'], country, json.dumps(bootinfo)))
