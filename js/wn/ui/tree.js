@@ -70,6 +70,10 @@ wn.ui.TreeNode = Class.extend({
 		} else {
 			this.$a.append('<i class="icon-file"></i> ' + this.label);
 		}
+		
+		if(this.tree.onrender) {
+			this.tree.onrender(this);
+		}
 	},
 	selectnode: function() {
 		// expand children
@@ -100,15 +104,16 @@ wn.ui.TreeNode = Class.extend({
 		}
 		this.load();
 	},
-	addnode: function(label, expandable) {
+	addnode: function(data) {
 		if(!this.$ul) {
 			this.$ul = $('<ul>').toggle(false).appendTo(this.parent);
 		}
 		return new wn.ui.TreeNode({
 			tree:this.tree, 
 			parent: $('<li>').appendTo(this.$ul), 
-			label: label, 
-			expandable: expandable
+			label: data.value, 
+			expandable: data.expandable,
+			data: data
 		});
 	},
 	load: function() {
@@ -126,7 +131,7 @@ wn.ui.TreeNode = Class.extend({
 				$(me.$a).done_working();
 
 				$.each(r.message, function(i, v) {
-					node = me.addnode(v.value || v, v.expandable);
+					node = me.addnode(v);
 					node.$a.data('node-data', v);
 				});
 				
