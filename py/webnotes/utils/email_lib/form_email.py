@@ -175,7 +175,7 @@ class FormEmail:
 		# i.e. with_attachments=1
 		if cint(self.with_attachments):
 			for a in self.set_attachments():
-				a and self.email.attach_file(a.split(',')[0])
+				a and self.email.attach_file(a.split(',')[1])
 
 		# cc
 		if self.cc:
