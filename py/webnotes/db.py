@@ -131,11 +131,11 @@ class Database:
 		# execute
 		try:
 			if values!=():
-				if debug: webnotes.msgprint(query % values)
+				if debug: webnotes.errprint(query % values)
 				self._cursor.execute(query, values)
 				
 			else:
-				if debug: webnotes.msgprint(query)
+				if debug: webnotes.errprint(query)
 				self._cursor.execute(query)	
 		except Exception, e:
 			# ignore data definition errors

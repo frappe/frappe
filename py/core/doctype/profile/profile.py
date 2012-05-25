@@ -59,3 +59,17 @@ class DocType:
 	def get_fullname(self):
 		return (self.doc.first_name or '') + \
 			(self.doc.first_name and " " or '') + (self.doc.last_name or '')
+			
+	def on_rename(self,newdn,olddn):
+		tables = webnotes.conn.sql("show tables")
+		for tab in tables:
+			desc = webnotes.conn.sql("desc `%s`" % tab[0], as_dict=1)
+			has_fields = []
+			for d in desc:
+				if d.get('Field') in ['owner', 'modified_by']:
+					has_fields.append(d.get('Field'))
+			for field in has_fields:
+				webnotes.conn.sql("""\
+					update `%s` set `%s`=%s
+					where `%s`=%s""" % \
+					(tab[0], field, '%s', field, '%s'), (newdn, olddn))

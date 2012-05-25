@@ -398,23 +398,23 @@ def get_field_property(dt, fieldname, property):
 	else:
 		return field[0][1]
 
-def get_property(dt, property, fn=None):
+def get_property(dt, property, fieldname=None):
 	"""
 		get a doctype property, override it from property setter if specified
 	"""
-	if fn:
+	if fieldname:
 		prop = webnotes.conn.sql("""
 			select value 
 			from `tabProperty Setter` 
 			where doc_type=%s and field_name=%s
-			and property=%s""", (dt, fn, property))
+			and property=%s""", (dt, fieldname, property))
 		if prop: 
 			return prop[0][0]
 		else:
 			val = webnotes.conn.sql("""\
 				SELECT %s FROM `tabDocField`
 				WHERE parent = %s AND fieldname = %s""" % \
-				(property, '%s', '%s'), (dt, fn))
+				(property, '%s', '%s'), (dt, fieldname))
 			if val and val[0][0]: return val[0][0] or ''
 	else:
 		prop = webnotes.conn.sql("""
