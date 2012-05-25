@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:38',
+		'creation': '2012-05-03 18:43:24',
 		'docstatus': 0,
-		'modified': '2012-03-27 14:35:38',
+		'modified': '2012-05-24 12:30:06',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -32,7 +32,7 @@
 		'search_fields': u'first_name, last_name',
 		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 33
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -51,8 +51,7 @@
 		'parent': u'Profile',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
-		'read': 1,
-		'write': 1
+		'read': 1
 	},
 
 	# DocType, Profile
@@ -69,7 +68,8 @@
 		'execute': 0,
 		'permlevel': 0,
 		'role': u'Administrator',
-		'submit': 0
+		'submit': 0,
+		'write': 1
 	},
 
 	# DocPerm
@@ -77,22 +77,24 @@
 		'create': 1,
 		'doctype': u'DocPerm',
 		'permlevel': 0,
-		'role': u'System Manager'
+		'role': u'System Manager',
+		'write': 1
 	},
 
 	# DocPerm
 	{
 		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': u'Administrator'
+		'role': u'Administrator',
+		'write': 1
 	},
 
 	# DocPerm
 	{
 		'doctype': u'DocPerm',
-		'match': u'owner',
 		'permlevel': 0,
-		'role': u'All'
+		'role': u'All',
+		'write': 0
 	},
 
 	# DocField
@@ -369,7 +371,7 @@
 		'fieldtype': u'Section Break',
 		'label': u'Login Details',
 		'oldfieldtype': u'Section Break',
-		'permlevel': 0
+		'permlevel': 1
 	},
 
 	# DocField
@@ -378,7 +380,7 @@
 		'fieldname': u'login_before',
 		'fieldtype': u'Int',
 		'label': u'Login Before',
-		'permlevel': 0
+		'permlevel': 1
 	},
 
 	# DocField
@@ -387,7 +389,7 @@
 		'fieldname': u'login_after',
 		'fieldtype': u'Int',
 		'label': u'Login After',
-		'permlevel': 0
+		'permlevel': 1
 	},
 
 	# DocField
@@ -396,7 +398,7 @@
 		'fieldname': u'restrict_ip',
 		'fieldtype': u'Data',
 		'label': u'Restrict IP',
-		'permlevel': 0
+		'permlevel': 1
 	},
 
 	# DocField
@@ -418,7 +420,7 @@
 		'label': u'Last Login',
 		'oldfieldname': u'last_login',
 		'oldfieldtype': u'Read Only',
-		'permlevel': 0,
+		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 0
 	},
@@ -431,7 +433,7 @@
 		'label': u'Last IP',
 		'oldfieldname': u'last_ip',
 		'oldfieldtype': u'Read Only',
-		'permlevel': 0
+		'permlevel': 1
 	},
 
 	# DocField

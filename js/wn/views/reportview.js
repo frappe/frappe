@@ -131,7 +131,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		// pre-select mandatory columns
 		var columns = [['name'], ['owner']];
 		$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
-			if(df.in_filter && df.fieldname!='naming_series') {
+			if(df.in_filter && df.fieldname!='naming_series' && df.fieldtype!='Table') {
 				columns.push([df.fieldname]);
 			}
 		});

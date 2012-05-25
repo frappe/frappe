@@ -476,7 +476,7 @@ _r.DataTable.prototype.do_print = function() {
 		is_simple : (this.is_simple ? 'Yes' : ''),
 		sc_id : (this.search_criteria ? this.search_criteria.name : ''),
 		filter_values : docstring(this.filter_vals),
-		finder: this.finder ? this.finder : null
+		//finder: this.finder ? this.finder : null
 	};
 	
 	wn.require('js/print_query.js');	

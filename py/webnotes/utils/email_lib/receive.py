@@ -73,7 +73,7 @@ class IncomingMail:
 		self.attachments.append({
 			'content-type': part.get_content_type(),
 			'filename': part.get_filename(),
-			'content': part.get_payload(decode=True)
+			'content': part.get_payload(decode=True),
 		})
 				
 	def parse(self):
