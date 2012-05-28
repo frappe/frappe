@@ -120,6 +120,13 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	// add overwrite option
 	$('<input type="checkbox" name="overwrite"><span> Overwrite</span><br><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
+
+	// add overwrite option
+	$('<span>Date Format: </span><select name="date_format"></select><br><br>')
+		.insertBefore('#dit-upload-area form input[type="submit"]')
+	
+	$('#dit-upload-area select').add_options(['dd/mm/yyyy', 'mm/dd/yyyy', 'yyyy-mm-dd'])
+
 	
 	// rename button
 	$('#dit-upload-area form input[type="submit"]')

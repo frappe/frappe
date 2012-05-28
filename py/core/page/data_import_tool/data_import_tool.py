@@ -142,6 +142,11 @@ def upload():
 	if len(rows[1]) > 0 and ':' in rows[1][0]:
 		parentdoctype = rows[1][0].split(':')[1].strip()
 	
+	# get parentfield
+	if parentdoctype:
+		parentfield = webnotes.conn.sql("""select fieldname from tabDocField where parent=%s
+			and options=%s and fieldtype='Table'""", (parentdoctype, doctype))[0][0]
+	
 	# columns
 	columns = rows[3][1:]
 	
@@ -158,6 +163,9 @@ def upload():
 				# child doc
 				doc = Document(doctype)
 				doc.fields.update(d)
+				if parentdoctype:
+					doc.parenttype = parentdoctype
+					doc.parentfield = parentfield
 				doc.save()
 				ret.append('Inserted row for %s at #%s' % (getlink(parentdoctype, doc.parent), 
 					str(doc.idx)))
@@ -192,7 +200,13 @@ def check_record(d, parentdoctype):
 						
 			if docfield.fieldtype=='Date' and val:
 				import datetime
-				datetime.datetime.strptime(val, '%Y-%m-%d')
+				dateformats = {
+					'yyyy-mm-dd':'%Y-%m-%d',
+					'dd/mm/yyyy':'%d/%m/%Y',
+					'mm/dd/yyyy':'%m/%d/%Y'
+				}
+				d[key] = datetime.datetime.strptime(val, 
+					dateformats[webnotes.form_dict['date_format']]).strftime('%Y-%m-%d')
 
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
