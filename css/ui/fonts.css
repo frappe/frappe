@@ -47,3 +47,16 @@
   src: local('Pacifico Regular'), local('Pacifico-Regular'), url('fonts/pacifico.woff') format('woff');
 }
 
+@font-face {
+  font-family: 'Oleo Script';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Oleo Script'), local('OleoScript-Regular'), url('fonts/oleoscript.woff') format('woff');
+}
+
+@font-face {
+  font-family: 'Cookie';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Cookie-Regular'), url('fonts/cookie.woff') format('woff');
+}
