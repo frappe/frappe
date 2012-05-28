@@ -42,7 +42,7 @@ wn.get_route = function(route) {
 	
 	// for app
 	return $.map(wn.get_route_str(route).split('/'), 
-		function(r) { return decodeURIComponent(r); });	
+		function(r) { return decodeURIComponent(r); });
 }
 
 wn.get_route_str = function(route) {
