@@ -195,7 +195,7 @@ def check_record(d, parentdoctype):
 						if not webnotes.conn.exists(link_doctype, val):
 							raise Exception, "%s must be a valid %s" % (key, link_doctype)
 				else:
-					if val not in docfield.options.split('\n'):
+					if val and (val not in docfield.options.split('\n')):
 						raise Exception, "%s must be one of:" % key
 						
 			if docfield.fieldtype=='Date' and val:
