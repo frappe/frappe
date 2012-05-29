@@ -210,12 +210,16 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				$.each(me.listview.stats, function(i, v) {
 					me.render_stat(v, r.message[v]);
 				});
-
-				// This doesn't give a predictable stats order
-				/*
-				$.each(r.message, function(field, stat) {
-					me.render_stat(field, stat);
-				});*/
+				
+				// reload button at the end
+				if(me.listview.stats.length) {
+					$('<button class="btn btn-small"><i class="refresh"></i> Refresh</button>')
+						.click(function() {
+							me.reload_stats();
+						}).appendTo($('<div class="stat-wrapper">')
+							.appendTo(me.$page.find('.layout-side-section')))					
+				}
+				
 			}
 		});
 	},
@@ -274,6 +278,10 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		this.setup_stat_item_click($item);
 		return $item;
+	},
+	reload_stats: function() {
+		this.$page.find('.layout-side-section .stat-wrapper').remove();
+		this.init_stats();
 	},
 	setup_stat_item_click: function($item) {
 		var me = this;
