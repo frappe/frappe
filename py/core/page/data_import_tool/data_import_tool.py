@@ -127,8 +127,21 @@ def upload():
 	try:
 		reader = csv.reader(fcontent.splitlines())
 		# decode everything
-		for row in reader:
-			rows.append([unicode(c.strip(), 'utf-8') for c in row])
+		csvrows = [[val for val in row] for row in reader]
+		
+		for row in csvrows:
+			newrow = []
+			for val in row:
+				try:
+					newrow.append(unicode(val.strip(), 'utf-8'))
+				except UnicodeDecodeError, e:
+					raise Exception, """Some character(s) in row #%s, column #%s are
+						not readable by utf-8. Ignoring them. If you are importing a non
+						english language, please make sure your file is saved in the 'utf-8'
+						encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
+					
+			rows.append(newrow)
+			
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
 		raise e
