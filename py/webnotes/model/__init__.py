@@ -137,8 +137,17 @@ def get_search_criteria(dt):
 # Rename Doc
 #=================================================================================
 def rename(doctype, old, new, is_doctype=0, debug=1):
-	import webnotes.model.rename
-	webnotes.model.rename.rename(doctype, old, new, is_doctype, debug)
+	import webnotes.model.rename_doc
+	webnotes.model.rename_doc.rename_doc(doctype, old, new, is_doctype, debug)
+	
+def get_link_fields(dt):
+	"""
+		Returns linked fields for dt as a tuple of (linked_doctype, linked_field)
+	"""
+	import webnotes.model.rename_doc
+	link_fields = webnotes.model.rename_doc.get_link_fields(dt)
+	link_fields = [[lf['parent'], lf['fieldname']] for lf in link_fields]
+	return link_fields
 	
 #=================================================================================
 
