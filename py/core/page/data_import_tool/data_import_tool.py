@@ -26,7 +26,7 @@ def get_template():
 	global doctype_dl
 
 	doctype = webnotes.form_dict['doctype']
-	parentdoctype = webnotes.form_dict.get('parent_doctype')
+	parenttype = webnotes.form_dict.get('parent_doctype')
 	
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	tablecolumns = [f[0] for f in webnotes.conn.sql('desc `tab%s`' % doctype)]
@@ -51,8 +51,8 @@ def get_template():
 	
 	w.writerow(['Upload Template for: %s' % doctype])
 	
-	if parentdoctype != doctype:
-		w.writerow(['This is a child table for: %s' % parentdoctype])
+	if parenttype != doctype:
+		w.writerow(['This is a child table for: %s' % parenttype])
 		key = 'parent'
 	else:
 		w.writerow([''])
@@ -127,8 +127,21 @@ def upload():
 	try:
 		reader = csv.reader(fcontent.splitlines())
 		# decode everything
-		for row in reader:
-			rows.append([unicode(c.strip(), 'utf-8') for c in row])
+		csvrows = [[val for val in row] for row in reader]
+		
+		for row in csvrows:
+			newrow = []
+			for val in row:
+				try:
+					newrow.append(unicode(val.strip(), 'utf-8'))
+				except UnicodeDecodeError, e:
+					raise Exception, """Some character(s) in row #%s, column #%s are
+						not readable by utf-8. Ignoring them. If you are importing a non
+						english language, please make sure your file is saved in the 'utf-8'
+						encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
+					
+			rows.append(newrow)
+			
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
 		raise e
@@ -138,14 +151,26 @@ def upload():
 	doctype = rows[0][0].split(':')[1].strip()
 	doctype_dl = webnotes.model.doctype.get(doctype, form=0)
 		
-	parentdoctype = None
+	parenttype, parentfield = None, None
 	if len(rows[1]) > 0 and ':' in rows[1][0]:
-		parentdoctype = rows[1][0].split(':')[1].strip()
+		parenttype = rows[1][0].split(':')[1].strip()
 	
+	# get parentfield
+	if parenttype:
+		import webnotes.model.doctype
+		for d in webnotes.model.doctype.get(parenttype):
+			if d.fieldtype=='Table' and d.options==doctype:
+				parentfield = d.fieldname
+				break
+	
+		if not parentfield:
+			webnotes.msgprint("Did not find parentfield for %s (%s)" % (parenttype, doctype),
+				raise_exception=1)
+			
 	# columns
 	columns = rows[3][1:]
 	
-	if parentdoctype and overwrite:
+	if parenttype and overwrite:
 		delete_child_rows(rows, doctype)
 		
 	for row in rows[8:]:
@@ -153,13 +178,16 @@ def upload():
 		d['doctype'] = doctype
 				
 		try:
-			check_record(d, parentdoctype)
-			if parentdoctype:
+			check_record(d, parenttype)
+			if parenttype:
 				# child doc
 				doc = Document(doctype)
 				doc.fields.update(d)
+				if parenttype:
+					doc.parenttype = parenttype
+					doc.parentfield = parentfield
 				doc.save()
-				ret.append('Inserted row for %s at #%s' % (getlink(parentdoctype, doc.parent), 
+				ret.append('Inserted row for %s at #%s' % (getlink(parenttype, doc.parent), 
 					str(doc.idx)))
 			else:
 				ret.append(import_doc(d, doctype, overwrite))
@@ -168,9 +196,9 @@ def upload():
 			webnotes.errprint(webnotes.getTraceback())
 	return ret
 
-def check_record(d, parentdoctype):
+def check_record(d, parenttype):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
-	if parentdoctype and not d.get('parent'):
+	if parenttype and not d.get('parent'):
 		raise Exception, "parent is required."
 
 	for key in d:
@@ -187,12 +215,18 @@ def check_record(d, parentdoctype):
 						if not webnotes.conn.exists(link_doctype, val):
 							raise Exception, "%s must be a valid %s" % (key, link_doctype)
 				else:
-					if val not in docfield.options.split('\n'):
+					if val and (val not in docfield.options.split('\n')):
 						raise Exception, "%s must be one of:" % key
 						
 			if docfield.fieldtype=='Date' and val:
 				import datetime
-				datetime.datetime.strptime(val, '%Y-%m-%d')
+				dateformats = {
+					'yyyy-mm-dd':'%Y-%m-%d',
+					'dd/mm/yyyy':'%d/%m/%Y',
+					'mm/dd/yyyy':'%m/%d/%Y'
+				}
+				d[key] = datetime.datetime.strptime(val, 
+					dateformats[webnotes.form_dict['date_format']]).strftime('%Y-%m-%d')
 
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()

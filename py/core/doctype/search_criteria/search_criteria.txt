@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:39',
+		'creation': '2012-05-15 12:14:25',
 		'docstatus': 0,
-		'modified': '2012-03-27 18:43:00',
+		'modified': '2012-05-29 15:05:46',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -22,7 +22,7 @@
 		'section_style': u'Tabbed',
 		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 6
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -52,32 +52,6 @@
 
 	# DocPerm
 	{
-		'amend': 0,
-		'cancel': 0,
-		'create': 0,
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'Administrator',
-		'submit': 0,
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'Administrator'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'All'
-	},
-
-	# DocPerm
-	{
 		'create': 1,
 		'doctype': u'DocPerm',
 		'permlevel': 0,
@@ -90,6 +64,21 @@
 		'doctype': u'DocPerm',
 		'permlevel': 1,
 		'role': u'All'
+	},
+
+	# DocPerm
+	{
+		'doctype': u'DocPerm',
+		'permlevel': 0,
+		'role': u'Administrator',
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'doctype': u'DocPerm',
+		'permlevel': 1,
+		'role': u'Administrator'
 	},
 
 	# DocField
@@ -154,7 +143,7 @@
 		'doctype': u'DocField',
 		'fieldname': u'doc_type',
 		'fieldtype': u'Data',
-		'hidden': 1,
+		'hidden': 0,
 		'label': u'Doc Type',
 		'no_copy': 0,
 		'oldfieldname': u'doc_type',
@@ -196,7 +185,7 @@
 		'doctype': u'DocField',
 		'fieldname': u'parent_doc_type',
 		'fieldtype': u'Data',
-		'hidden': 1,
+		'hidden': 0,
 		'label': u'Parent Doc Type',
 		'no_copy': 0,
 		'oldfieldname': u'parent_doc_type',

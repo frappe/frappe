@@ -75,7 +75,12 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 		method: 'core.doctype.custom_field.custom_field.get_fields_label',
 		args: { doctype: doc.dt, fieldname: doc.fieldname },
 		callback: function(r, rt) {
-			set_field_options('insert_after', r.message);
+			doc = locals[doc.doctype][doc.name];
+			var insert_after_val = null;
+			if(doc.insert_after) {
+				insert_after_val = doc.insert_after;
+			}
+			set_field_options('insert_after', r.message, insert_after_val);
 		}
 	});
 }
