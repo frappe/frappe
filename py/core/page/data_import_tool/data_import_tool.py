@@ -26,7 +26,7 @@ def get_template():
 	global doctype_dl
 
 	doctype = webnotes.form_dict['doctype']
-	parentdoctype = webnotes.form_dict.get('parent_doctype')
+	parenttype = webnotes.form_dict.get('parent_doctype')
 	
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	tablecolumns = [f[0] for f in webnotes.conn.sql('desc `tab%s`' % doctype)]
@@ -51,8 +51,8 @@ def get_template():
 	
 	w.writerow(['Upload Template for: %s' % doctype])
 	
-	if parentdoctype != doctype:
-		w.writerow(['This is a child table for: %s' % parentdoctype])
+	if parenttype != doctype:
+		w.writerow(['This is a child table for: %s' % parenttype])
 		key = 'parent'
 	else:
 		w.writerow([''])
@@ -138,19 +138,26 @@ def upload():
 	doctype = rows[0][0].split(':')[1].strip()
 	doctype_dl = webnotes.model.doctype.get(doctype, form=0)
 		
-	parentdoctype = None
+	parenttype, parentfield = None, None
 	if len(rows[1]) > 0 and ':' in rows[1][0]:
-		parentdoctype = rows[1][0].split(':')[1].strip()
+		parenttype = rows[1][0].split(':')[1].strip()
 	
 	# get parentfield
-	if parentdoctype:
-		parentfield = webnotes.conn.sql("""select fieldname from tabDocField where parent=%s
-			and options=%s and fieldtype='Table'""", (parentdoctype, doctype))[0][0]
+	if parenttype:
+		import webnotes.model.doctype
+		for d in webnotes.model.doctype.get(parenttype):
+			if d.fieldtype=='Table' and d.options==doctype:
+				parentfield = d.fieldname
+				break
 	
+		if not parentfield:
+			webnotes.msgprint("Did not find parentfield for %s (%s)" % (parenttype, doctype),
+				raise_exception=1)
+			
 	# columns
 	columns = rows[3][1:]
 	
-	if parentdoctype and overwrite:
+	if parenttype and overwrite:
 		delete_child_rows(rows, doctype)
 		
 	for row in rows[8:]:
@@ -158,16 +165,16 @@ def upload():
 		d['doctype'] = doctype
 				
 		try:
-			check_record(d, parentdoctype)
-			if parentdoctype:
+			check_record(d, parenttype)
+			if parenttype:
 				# child doc
 				doc = Document(doctype)
 				doc.fields.update(d)
-				if parentdoctype:
-					doc.parenttype = parentdoctype
+				if parenttype:
+					doc.parenttype = parenttype
 					doc.parentfield = parentfield
 				doc.save()
-				ret.append('Inserted row for %s at #%s' % (getlink(parentdoctype, doc.parent), 
+				ret.append('Inserted row for %s at #%s' % (getlink(parenttype, doc.parent), 
 					str(doc.idx)))
 			else:
 				ret.append(import_doc(d, doctype, overwrite))
@@ -176,9 +183,9 @@ def upload():
 			webnotes.errprint(webnotes.getTraceback())
 	return ret
 
-def check_record(d, parentdoctype):
+def check_record(d, parenttype):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
-	if parentdoctype and not d.get('parent'):
+	if parenttype and not d.get('parent'):
 		raise Exception, "parent is required."
 
 	for key in d:
