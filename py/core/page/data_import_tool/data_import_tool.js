@@ -121,6 +121,11 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	$('<input type="checkbox" name="overwrite"><span> Overwrite</span><br><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
 
+	// add ignore option
+	$('<input type="checkbox" name="ignore_encoding_errors"><span> Ignore Encoding Errors</span><br><br>')
+		.insertBefore('#dit-upload-area form input[type="submit"]')
+
+
 	// add overwrite option
 	$('<span>Date Format: </span><select name="date_format"></select><br><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
