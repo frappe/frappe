@@ -136,70 +136,19 @@ def get_search_criteria(dt):
 
 # Rename Doc
 #=================================================================================
-
+def rename(doctype, old, new, is_doctype=0, debug=1):
+	import webnotes.model.rename_doc
+	webnotes.model.rename_doc.rename_doc(doctype, old, new, is_doctype, debug)
+	
 def get_link_fields(dt):
 	"""
 		Returns linked fields for dt as a tuple of (linked_doctype, linked_field)
 	"""
-	return webnotes.conn.sql("select parent, fieldname from tabDocField where \
-			parent not like 'old%%' and parent != '0' and \
-			((options = '%s' and fieldtype='Link') or \
-			(options = 'link:%s' and fieldtype='Select'))" % (dt, dt))
-
-def rename(dt, old, new, is_doctype=0):
-	"""
-		Renames a doc(dt, old) to doc(dt, new) and updates all linked fields of type "Link" or "Select" with "link:"
-	"""
-	import webnotes.utils
-
-	sql = webnotes.conn.sql
-	# rename doc
-	sql("update `tab%s` set name='%s' where name='%s'" % (dt, new, old))
-
-	# get child docs
-	ct = sql("select options from tabDocField where parent = '%s' and fieldtype='Table'" % dt)
-	for c in ct:
-		sql("update `tab%s` set parent='%s' where parent='%s'" % (c[0], new, old))
+	import webnotes.model.rename_doc
+	link_fields = webnotes.model.rename_doc.get_link_fields(dt)
+	link_fields = [[lf['parent'], lf['fieldname']] for lf in link_fields]
+	return link_fields
 	
-	# if dt is a child table of another dt
-	sql("update `tabDocField` set options = '%s' where options = '%s' and fieldtype = 'Table'" % (new, old))
-
-	# get links (link / select)
-	ll = get_link_fields(dt)
-	update_link_fld_values(ll, old, new)
-
-	# doctype
-	if dt=='DocType':		
-		# update options and values where select options contains old dt
-		select_flds = sql("select parent, fieldname from `tabDocField` where parent not like 'old%%' and (options like '%%%s%%' or options like '%%%s%%') and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % ('\n' + old, old + '\n', new))
-		update_link_fld_values(select_flds, old, new)
-	
-		sql("update `tabDocField` set options = replace(options, '%s', '%s') where parent not like 'old%%' and (options like '%%%s%%' or options like '%%%s%%') and options not like 'link:%%' and fieldtype = 'Select' and parent != '%s'" % (old, new, '\n' + old, old + '\n', new))
-
-		if not is_single_dt(new):
-			sql("RENAME TABLE `tab%s` TO `tab%s`" % (old, new))
-		else:
-			sql("update tabSingles set doctype = %s where doctype = %s", (new, old))
-
-		# get child docs (update parenttype)
-		ct = sql("select options from tabDocField where parent = '%s' and fieldtype='Table'" % new)
-		for c in ct:
-			sql("update `tab%s` set parenttype='%s' where parenttype='%s'" % (c[0], new, old))
-
-
-
-def update_link_fld_values(flds, old, new):
-	for l in flds:
-		if is_single_dt(l[0]):
-			webnotes.conn.sql("update `tabSingles` set value='%s' where field='%s' and value = '%s' and doctype = '%s' " % (new, l[1], old, l[0]))
-		else:
-			webnotes.conn.sql("update `tab%s` set `%s`='%s' where `%s`='%s'" % (l[0], l[1], new, l[1], old))
-
-def is_single_dt(dt):
-	is_single = webnotes.conn.sql("select issingle from tabDocType where name = %s", dt)
-	is_single = is_single and webnotes.utils.cint(is_single[0][0]) or 0
-	return is_single
-
 #=================================================================================
 
 def clear_recycle_bin():
