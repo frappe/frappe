@@ -135,7 +135,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			show_filters: true,
 			show_grid: true,
 			new_doctype: this.doctype,
-			new_doc_constructor: this.new_doc_constructor || null,
 			allow_delete: this.allow_delete,
 			no_result_message: this.make_no_result(),
 			columns: this.listview.fields

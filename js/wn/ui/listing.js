@@ -172,10 +172,8 @@ wn.ui.Listing = Class.extend({
 				
 		// new
 		if(this.new_doctype) {
-			this.add_button('New ' + this.new_doctype, function() {
-				me.new_doc_constructor
-				? me.new_doc_constructor(me.new_doctype)
-				: newdoc(me.new_doctype);
+			this.add_button('New ' + this.new_doctype, function() { 
+				me.make_new_doc(me.new_doctype);
 			}, 'icon-plus');
 		} 
 		
@@ -189,6 +187,10 @@ wn.ui.Listing = Class.extend({
 		if(me.no_toolbar || me.hide_toolbar) {
 			me.$w.find('.list-toolbar-wrapper').toggle(false);
 		}
+	},
+	
+	make_new_doc: function(new_doctype) {
+		new_doc(new_doctype);
 	},
 
 	make_filters: function() {
