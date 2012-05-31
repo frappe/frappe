@@ -173,7 +173,9 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.add_button('New ' + this.new_doctype, function() {
-				newdoc(me.new_doctype);
+				me.new_doc_constructor
+				? me.new_doc_constructor(me.new_doctype)
+				: newdoc(me.new_doctype);
 			}, 'icon-plus');
 		} 
 		

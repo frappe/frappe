@@ -46,17 +46,20 @@ wn.ui.FilterList = Class.extend({
 	},
 	
 	add_filter: function(fieldname, condition, value) {
+		this.push_new_filter(fieldname, condition, value);
+		// list must be expanded
+		if(fieldname) {
+			this.$w.find('.show_filters').toggle(true);
+		}
+	},
+	
+	push_new_filter: function(fieldname, condition, value) {
 		this.filters.push(new wn.ui.Filter({
 			flist: this,
 			fieldname: fieldname,
 			condition: condition,
 			value: value
 		}));
-		
-		// list must be expanded
-		if(fieldname) {
-			this.$w.find('.show_filters').toggle(true);
-		}
 	},
 	
 	get_filters: function() {

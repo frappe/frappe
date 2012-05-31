@@ -120,23 +120,28 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			this.listview = new wn.views.ListView(this);
 		}
 		this.listview.parent = this;
+		this.wrapper = this.$page.find('.wnlist-area');
+		this.page_length = 20;
+		this.allow_delete = true;
 	},
-	init_list: function() {
+	init_list: function(auto_run) {
 		// init list
 		this.make({
 			method: 'webnotes.widgets.doclistview.get',
 			get_args: this.get_args,
-			parent: this.$page.find('.wnlist-area'),
+			parent: this.wrapper,
 			start: 0,
-			page_length: 20,
+			page_length: this.page_length,
 			show_filters: true,
 			show_grid: true,
 			new_doctype: this.doctype,
-			allow_delete: true,
+			new_doc_constructor: this.new_doc_constructor || null,
+			allow_delete: this.allow_delete,
 			no_result_message: this.make_no_result(),
 			columns: this.listview.fields
 		});
-		this.run();
+		
+		if((auto_run !== false) && (auto_run !== 0)) this.run();
 	},
 	make_no_result: function() {
 		return repl('<div class="well"><p>No %(doctype_label)s found</p>\
@@ -164,7 +169,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			fields: this.get_query_fields(),
 			filters: this.filter_list.get_filters(),
 			docstatus: this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'), 
-				function(inp) { return $(inp).attr('data-docstatus') }) : []
+				function(inp) { return $(inp).attr('data-docstatus') }) : [],
+			order_by: this.listview.order_by || null,
 		}
 	},
 	add_delete_option: function() {
@@ -484,3 +490,32 @@ wn.views.ListView = Class.extend({
 		}
 	}
 })
+
+wn.provide('wn.views.RecordListView');
+wn.views.RecordListView = wn.views.DocListView.extend({
+	init: function(doctype, wrapper, ListView) {
+		this.doctype = doctype;
+		this.wrapper = wrapper;
+		this.listview = new ListView(this);
+		this.listview.parent = this;
+		this.setup();
+	},
+	
+	setup: function() {
+		var me = this;
+		me.page_length = 10;
+		
+		$(me.wrapper).empty();
+		
+		me.init_list();
+	},
+	
+	get_args: function() {
+		var args = this._super();
+		$.each((this.default_filters || []), function(i, f) {
+			args.filters.push(f);
+		});
+		args.docstatus = args.docstatus.concat((this.default_docstatus || []));
+		return args;
+	},
+});
