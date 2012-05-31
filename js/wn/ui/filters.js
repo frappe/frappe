@@ -45,7 +45,7 @@ wn.ui.FilterList = Class.extend({
 			this.add_filter();
 	},
 	
-	add_filter: function(fieldname, condition, value) {
+	add_filter: function(fieldname, condition, value) {		
 		this.push_new_filter(fieldname, condition, value);
 		// list must be expanded
 		if(fieldname) {
@@ -59,7 +59,7 @@ wn.ui.FilterList = Class.extend({
 			fieldname: fieldname,
 			condition: condition,
 			value: value
-		}));
+        }));
 	},
 	
 	get_filters: function() {

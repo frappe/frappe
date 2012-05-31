@@ -33,7 +33,7 @@ function loaddoc(doctype, name, onload) {
 		if(locals.DocType[doctype].in_dialog) {
 			_f.edit_record(doctype, name);
 		} else {
-			wn.set_route('Form', doctype, name);
+			wn.set_route('Form', doctype, name);			
 		}
 	})
 }

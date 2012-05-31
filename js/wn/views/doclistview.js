@@ -140,7 +140,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			no_result_message: this.make_no_result(),
 			columns: this.listview.fields
 		});
-		
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
 	},
 	make_no_result: function() {
@@ -489,7 +488,7 @@ wn.views.ListView = Class.extend({
 			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
 		}
 	}
-})
+});
 
 wn.provide('wn.views.RecordListView');
 wn.views.RecordListView = wn.views.DocListView.extend({
@@ -500,20 +499,20 @@ wn.views.RecordListView = wn.views.DocListView.extend({
 		this.listview.parent = this;
 		this.setup();
 	},
-	
+
 	setup: function() {
 		var me = this;
 		me.page_length = 10;
-		
+
 		$(me.wrapper).empty();
-		
+
 		me.init_list();
 	},
-	
+
 	get_args: function() {
 		var args = this._super();
 		$.each((this.default_filters || []), function(i, f) {
-			args.filters.push(f);
+		      args.filters.push(f);
 		});
 		args.docstatus = args.docstatus.concat((this.default_docstatus || []));
 		return args;
