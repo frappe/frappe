@@ -295,7 +295,7 @@ class _DocType:
 		# custom script
 		from webnotes.model.code import get_custom_script
 		custom = get_custom_script(doc.name, 'Client') or ''
-		doc.fields['__js'] = doc.fields.setdefault('__js', '') + custom
+		doc.fields['__js'] = doc.fields.setdefault('__js', '') + '\n' + custom
 		
 
 	def load_select_options(self, doclist):
