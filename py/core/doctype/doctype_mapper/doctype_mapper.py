@@ -142,11 +142,11 @@ class DocType:
 		exception_flds = copy.copy(default_fields)
 		exception_flds += [f[1] for f in flds]
 		
-		from_flds = [d.fieldname for d in get(t['from_table']) \
+		from_flds = [d.fieldname for d in get(t['from_table'], 0) \
 			if cint(d.no_copy) == 0 and d.docstatus != 2 and d.fieldname \
 			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')]
 
-		to_flds = [d.fieldname for d in get(t['to_table']) \
+		to_flds = [d.fieldname for d in get(t['to_table'], 0) \
 			if cint(d.no_copy) == 0 and d.docstatus != 2 and d.fieldname \
 			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')]
 
