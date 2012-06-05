@@ -200,8 +200,8 @@ class DocType:
 		"""
 		flds = {}
 		for t in getlist(self.doclist, 'table_mapper_details'):
-			from_flds = [cstr(d.fieldname) for d in get(t.from_table)]
-			to_flds = [cstr(d.fieldname) for d in get(t.to_table)]
+			from_flds = [cstr(d.fieldname) for d in get(t.from_table, 0)]
+			to_flds = [cstr(d.fieldname) for d in get(t.to_table, 0)]
 			flds[cstr(t.match_id)] = [cstr(t.from_table), from_flds, cstr(t.to_table), to_flds]
 
 		for d in getlist(self.doclist, 'field_mapper_details'):
@@ -235,10 +235,10 @@ class DocType:
 	def get_label_and_type(self, from_dt, to_dt):
 		"""get label, fieldtype"""
 		from_flds, to_flds = {}, {}
-		for d in get(from_dt):
+		for d in get(from_dt, 0):
 			from_flds[d.fieldname] = {'label': d.label, 'fieldtype': d.fieldtype}
 
-		for d in get(to_dt):
+		for d in get(to_dt, 0):
 			to_flds[d.fieldname] = {'label': d.label, 'fieldtype': d.fieldtype}
 
 		return from_flds, to_flds
