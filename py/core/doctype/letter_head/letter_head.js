@@ -34,7 +34,7 @@ cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
 			return;
 	}
 
-	var file_name = doc.file_list.split(',')[0]
+	var file_name = doc.file_list.split(',')[1]
 
 	if(!in_list(['gif','jpg','jpeg','png'], file_name.split('.')[1].toLowerCase())) {
 		msgprint("Please upload a web friendly (GIF, JPG or PNG) image file for the letter head");

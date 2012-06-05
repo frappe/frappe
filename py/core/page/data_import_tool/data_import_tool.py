@@ -132,13 +132,16 @@ def upload():
 		for row in csvrows:
 			newrow = []
 			for val in row:
-				try:
-					newrow.append(unicode(val.strip(), 'utf-8'))
-				except UnicodeDecodeError, e:
-					raise Exception, """Some character(s) in row #%s, column #%s are
-						not readable by utf-8. Ignoring them. If you are importing a non
-						english language, please make sure your file is saved in the 'utf-8'
-						encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
+				if webnotes.form_dict.get('ignore_encoding_errors'):
+					newrow.append(unicode(val.strip(), 'utf-8', errors='ignore'))
+				else:
+					try:
+						newrow.append(unicode(val.strip(), 'utf-8'))
+					except UnicodeDecodeError, e:
+						raise Exception, """Some character(s) in row #%s, column #%s are
+							not readable by utf-8. Ignoring them. If you are importing a non
+							english language, please make sure your file is saved in the 'utf-8'
+							encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
 					
 			rows.append(newrow)
 			
