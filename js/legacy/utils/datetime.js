@@ -41,6 +41,7 @@ function int_to_str(i, len) {
 wn.datetime = {
 	
 	str_to_obj: function(d) { 
+		if(typeof d=="object") return d;
 		if(!d) return new Date(); 
 		var tm = [null, null];
 		if(d.search(' ')!=-1) {
@@ -57,6 +58,7 @@ wn.datetime = {
 	},
 
 	obj_to_str: function(d) { 
+		if(typeof d=='string') return d;
 		return d.getFullYear() + '-' + int_to_str(d.getMonth()+1,2) + '-' + int_to_str(d.getDate(),2); 
 	},
 	
@@ -76,9 +78,9 @@ wn.datetime = {
 	},
 	
 	add_days: function(d, days) { 
-		dt = dateutil.str_to_obj(d)
-		dt.setTime(dt.getTime()+(days*24*60*60*1000)); 
-		return dateutil.obj_to_str(dt);
+		var dt = dateutil.str_to_obj(d);
+		var new_dt = new Date(dt.getTime()+(days*24*60*60*1000));
+		return dateutil.obj_to_str(new_dt);
 	},
 	
 	add_months: function(d, months) {
