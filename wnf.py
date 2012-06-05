@@ -72,7 +72,7 @@ def search_replace_with_prompt(fpath, txt1, txt2):
 	
 def create_cms_files():
 	from webnotes.model.code import get_obj
-
+	os.system('rm public/login-page.html')
 	# rewrite pages
 	ws = get_obj('Website Settings')
 	ws.rewrite_pages()

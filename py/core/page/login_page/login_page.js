@@ -31,8 +31,12 @@ pscript['onload_Login Page'] = function(wrapper){
 	$('#login_btn').click(pscript.doLogin)
 		
 	$('#password').keypress(function(ev){
-		if(ev.which==13 && $('#password').val())
-			pscript.doLogin();
+		if(ev.which==13 && $('#password').val()) {
+			$('form').submit(function() {
+				pscript.doLogin();
+				return false;
+			});
+		}
 	});
 	$(document).trigger('login_rendered');
 }
@@ -65,6 +69,8 @@ pscript.doLogin = function(){
 	$('#login_btn').set_working();
 	
     $c("login", args, pscript.onLoginReply);
+
+	return false;
 }
 
 
