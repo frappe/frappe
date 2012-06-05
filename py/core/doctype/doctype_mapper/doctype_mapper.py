@@ -75,7 +75,7 @@ class DocType:
 
 		tbl_list = sql("""\
 			select from_table, to_table, from_field, to_field, match_id, validation_logic
-			from `tabTable Mapper Detail` where parent ="%s"" order by match_id""" \
+			from `tabTable Mapper Detail` where parent ="%s" order by match_id""" \
 			% self.doc.name, as_dict=1)
 
 		for t in tbl_list:
