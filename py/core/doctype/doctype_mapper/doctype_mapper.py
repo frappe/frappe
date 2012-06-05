@@ -73,8 +73,10 @@ class DocType:
 		if not doclist:
 			doclist.append(to_doc)
 
-		tbl_list = sql("select from_table, to_table, from_field, to_field, match_id, validation_logic \
-			from `tabTable Mapper Detail` where parent ='%s' order by match_id" % self.doc.name, as_dict=1)
+		tbl_list = sql("""\
+			select from_table, to_table, from_field, to_field, match_id, validation_logic
+			from `tabTable Mapper Detail` where parent ="%s"" order by match_id""" \
+			% self.doc.name, as_dict=1)
 
 		for t in tbl_list:
 			if [t['from_table'], t['to_table']] in eval(from_to_list):
@@ -114,11 +116,14 @@ class DocType:
 		"""
 		docnames = ()
 		if t['from_table'] == self.doc.from_doctype:
-			docnames = sql("select name from `tab%s` where name = '%s' and %s" % (from_dt, from_dn, t['validation_logic']))			
+			docnames = sql("""select name from `tab%s` where name = "%s" and %s""" \
+				% (from_dt, from_dn, t['validation_logic']))			
 			if not docnames:
 				msgprint("Validation failed in doctype mapper. Please contact Administrator.", raise_exception=1)
 		else:
-			docnames = sql("select name from `tab%s` where parent='%s' and parenttype = '%s' and %s order by idx" \
+			docnames = sql("""\
+				select name from `tab%s`
+				where parent="%s" and parenttype = "%s" and %s order by idx""" \
 				% (t['from_table'], from_dn, self.doc.from_doctype, t['validation_logic']))
 		
 		return docnames
@@ -129,7 +134,7 @@ class DocType:
 		return [[f[0], f[1], f[2]] for f in sql("""
 			select from_field, to_field, map 
 			from `tabField Mapper Detail` 
-			where parent = '%s' and match_id = %s		
+			where parent = "%s" and match_id = %s		
 		""" % (self.doc.name, t['match_id']))]
 
 
@@ -262,15 +267,21 @@ class DocType:
 							cur_val = '%.2f' % flt(cur_val)
 
 						if cl['op'] == '=' and to_flds[cl['to_fld']]['fieldtype'] in ['Currency', 'Float']:
-							consistent = sql("select name, %s from `tab%s` where name = '%s' and '%s' - %s <= 0.5" \
-								% (cl['from_fld'], t.from_table, child_obj.fields[t.reference_key], flt(cur_val), cl['from_fld']))
+							consistent = sql("""\
+								select name, %s from `tab%s`
+								where name = "%s" and "%s" - %s <= 0.5""" \
+								% (cl['from_fld'], t.from_table, child_obj.fields[t.reference_key], 
+									flt(cur_val), cl['from_fld']))
 						else:
-							consistent = sql("select name, %s from `tab%s` where name = '%s' and '%s' %s ifnull(%s, '')" \
+							consistent = sql("""\
+								select name, %s from `tab%s`
+								where name = "%s" and "%s" %s ifnull(%s, '')""" \
 								% (cl['from_fld'], t.from_table, child_obj.fields[t.reference_key], \
-								to_flds[cl['to_fld']]['fieldtype'] in ('Currency', 'Float', 'Int') and flt(cur_val) or cstr(cur_val), cl['op'],	cl['from_fld']))
+								to_flds[cl['to_fld']]['fieldtype'] in ('Currency', 'Float', 'Int') \
+									and flt(cur_val) or cstr(cur_val), cl['op'],	cl['from_fld']))
 
 						if not self.ref_doc:
-							det = sql("select name, parent from `tab%s` where name = '%s'" % (t.from_table, child_obj.fields[t.reference_key]))
+							det = sql("""select name, parent from `tab%s` where name = \"%s\"""" % (t.from_table, child_obj.fields[t.reference_key]))
 							self.ref_doc = det[0][1] and det[0][1] or det[0][0]
 
 						if not consistent:
@@ -285,7 +296,8 @@ class DocType:
 
 	def check_ref_docstatus(self):
 		if self.ref_doc:
-			det = sql("select name, docstatus from `tab%s` where name = '%s'" % (self.doc.from_doctype, self.ref_doc))
+			det = sql("""select name, docstatus from `tab%s` where name = \"%s\"""" \
+					% (self.doc.from_doctype, self.ref_doc))
 			if not det:
 				msgprint("%s: %s does not exists in the system" % (self.doc.from_doctype, self.ref_doc), raise_exception=1)
 			elif self.doc.ref_doc_submitted and det[0][1] != 1:
