@@ -70,6 +70,23 @@ def search_replace_with_prompt(fpath, txt1, txt2):
 		f.write(''.join(tmp))
 	print colored('Updated', 'green')
 	
+def create_cms_files():
+	from webnotes.model.code import get_obj
+
+	# rewrite pages
+	ws = get_obj('Website Settings')
+	ws.rewrite_pages()
+	ss = get_obj('Style Settings')
+	ss.validate()
+	ss.doc.save()
+	ss.on_update()
+
+	# create login-page.html if it doesnt exist by copying index.html
+	if not os.path.exists('public/login-page.html') and os.path.exists('public/index.html'):
+		os.system('cp public/index.html public/login-page.html')
+
+	# change owner of files
+	os.system('chown -R apache:apache *')
 
 def setup_options():
 	from optparse import OptionParser
@@ -173,22 +190,7 @@ def run():
 		build.project.build()	
 
 	elif options.cms:
-		from webnotes.model.code import get_obj
-
-		# rewrite pages
-		ws = get_obj('Website Settings')
-		ws.rewrite_pages()
-		ss = get_obj('Style Settings')
-		ss.validate()
-		ss.doc.save()
-		ss.on_update()
-
-		# create login-page.html if it doesnt exist by copying index.html
-		if not os.path.exists('public/login-page.html') and os.path.exists('public/index.html'):
-			os.system('cp public/index.html public/login-page.html')
-
-		# change owner of files
-		os.system('chown -R apache:apache *')
+		create_cms_files()
 		
 	# code replace
 	elif options.replace:
