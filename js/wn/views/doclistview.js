@@ -168,7 +168,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			filters: this.filter_list.get_filters(),
 			docstatus: this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'), 
 				function(inp) { return $(inp).attr('data-docstatus') }) : [],
-			order_by: this.listview.order_by || null,
+			order_by: this.listview.order_by || undefined,
 		}
 	},
 	add_delete_option: function() {
