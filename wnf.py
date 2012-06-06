@@ -88,6 +88,30 @@ def create_cms_files():
 	# change owner of files
 	os.system('chown -R apache:apache *')
 
+def pull(remote, branch):
+	os.system('git pull %s %s' % (remote, branch))
+	os.chdir('lib')
+	os.system('git pull %s %s' % (remote, branch))
+	os.chdir('..')
+	
+def apply_latest_patches():
+	webnotes.modules.patch_handler.run_all()
+	print '\n'.join(webnotes.modules.patch_handler.log_list)
+	
+def sync_all(force=0):
+	import webnotes.model.sync
+	webnotes.model.sync.sync_all(force)
+
+def update_erpnext(remote='origin', branch='master'):
+	# do a pull
+	pull(remote, branch)
+	
+	# apply latest patches
+	apply_latest_patches()
+	
+	# sync all
+	sync_all()
+
 def setup_options():
 	from optparse import OptionParser
 	parser = OptionParser()
@@ -159,6 +183,9 @@ def setup_options():
 	
 	parser.add_option("--sync", help="Synchronize given DocType using txt file",
 			nargs=2, metavar="module doctype (use their folder names)")
+			
+	parser.add_option("--update", help="Pull, run latest patches and sync all",
+			nargs=2, metavar="ORIGIN BRANCH")
 
 	return parser.parse_args()
 	
@@ -189,9 +216,6 @@ def run():
 		import build.project
 		build.project.build()	
 
-	elif options.cms:
-		create_cms_files()
-		
 	# code replace
 	elif options.replace:
 		replace_code('.', options.replace[0], options.replace[1], options.replace[2])
@@ -203,9 +227,7 @@ def run():
 		os.system('git status')
 	
 	elif options.pull:
-		os.system('git pull %s %s' % (options.pull[0], options.pull[1]))
-		os.chdir('lib')
-		os.system('git pull %s %s' % (options.pull[0], options.pull[1]))		
+		pull(options.pull[0], options.pull[1])
 
 	elif options.push:
 		os.system('git commit -a -m "%s"' % options.push[2])
@@ -243,8 +265,7 @@ def run():
 
 	# run all pending
 	elif options.run_latest:
-		webnotes.modules.patch_handler.run_all()
-		print '\n'.join(webnotes.modules.patch_handler.log_list)
+		apply_latest_patches()
 	
 	elif options.install:
 		from webnotes.install_lib.install import Installer
@@ -269,12 +290,18 @@ def run():
 		print webnotes.utils.scheduler.trigger('execute_' + options.run_scheduler_event)
 		
 	elif options.sync_all is not None:
-		import webnotes.model.sync
-		webnotes.model.sync.sync_all(options.force or 0)
+		sync_all(options.force or 0)
 
 	elif options.sync is not None:
 		import webnotes.model.sync
 		webnotes.model.sync.sync(options.sync[0], options.sync[1], options.force or 0)
+	
+	elif options.update:
+		update_erpnext(options.update[0], options.update[1])
+		if options.cms: create_cms_files()
+		
+	elif options.cms:
+		create_cms_files()
 
 	# print messages
 	if webnotes.message_log:
