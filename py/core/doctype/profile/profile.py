@@ -73,3 +73,6 @@ class DocType:
 					update `%s` set `%s`=%s
 					where `%s`=%s""" % \
 					(tab[0], field, '%s', field, '%s'), (newdn, olddn))
+		webnotes.conn.sql("""\
+			update `tabProfile` set email=%s
+			where name=%s""", (newdn, newdn))
