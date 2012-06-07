@@ -90,9 +90,9 @@ def create_cms_files():
 
 def pull(remote, branch):
 	os.system('git pull %s %s' % (remote, branch))
-	os.chdir('lib')
+	os.system('cd lib')
 	os.system('git pull %s %s' % (remote, branch))
-	os.chdir('..')
+	os.system('cd ..')
 	
 def apply_latest_patches():
 	import webnotes.modules.patch_handler

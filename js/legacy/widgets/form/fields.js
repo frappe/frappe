@@ -404,7 +404,10 @@ DataField.prototype.make_input = function() {
 	this.input.name = this.df.fieldname;
 	
 	$(this.input).change(function() {
-		me.set_value(me.get_value && me.get_value() || $(this.input).val());
+		//me.set_value(me.get_value && me.get_value() || $(this.input).val());
+		
+		// fix: allow 0 as value
+		me.set_value(me.get_value ? me.get_value() : $(this.input).val());
 	});
 	
 	this.set_value = function(val) {
