@@ -141,10 +141,6 @@ class FormEmail:
 		# form itself (only in the html message)
 		html_message += self.body
 
-		# form link
-		html_message += self.get_form_link()
-		text_message += self.get_form_link()
-
 		# footer
 		footer = get_footer()
 		if footer:
@@ -155,7 +151,34 @@ class FormEmail:
 		# message as text
 		self.email.set_text(html2text(unicode(text_message, 'utf-8')))
 		self.email.set_html(html_message)
-					
+	
+	def make_communication(self):
+		"""make email communication"""
+		from webnotes.model.doc import Document
+		comm = Document('Communication')
+		comm.communication_medium = 'Email'
+		comm.subject = self.subject
+		comm.content = self.message
+		comm.category = 'Sent Mail'
+		comm.action = 'Sent Mail'
+		comm.naming_series = 'COMM-'
+		try:
+			comm_cols = [c[0] for c in webnotes.conn.sql("""desc tabCommunication""")]
+			
+			# tag to record
+			if self.dt in comm_cols:
+				comm.fields[self.dt] = self.dn
+				
+			# tag to customer, supplier (?)
+			if self.customer:
+				comm.customer = self.customer
+			if self.supplier:
+				comm.supplier = self.supplier
+			
+			comm.save(1)
+		except Exception, e:
+			if e.args[0]!=1146: raise e
+	
 	def send(self):
 		"""
 			Send the form with html attachment
@@ -182,4 +205,6 @@ class FormEmail:
 			self.email.cc = [self.cc]
 		
 		self.email.send(send_now=1)
+		self.make_communication()
+		
 		webnotes.msgprint('Sent')

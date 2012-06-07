@@ -95,6 +95,7 @@ def pull(remote, branch):
 	os.chdir('..')
 	
 def apply_latest_patches():
+	import webnotes.modules.patch_handler
 	webnotes.modules.patch_handler.run_all()
 	print '\n'.join(webnotes.modules.patch_handler.log_list)
 	

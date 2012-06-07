@@ -39,7 +39,9 @@ sendmail = function(emailto, emailfrom, cc, subject, message, fmt, with_attachme
 			'full_domain': wn.urllib.get_base_url(),
 			'with_attachments':with_attachments ? 1 : 0,
 			'dt':cur_frm.doctype,
-			'dn':cur_frm.docname
+			'dn':cur_frm.docname,
+			'customer': cur_frm.doc.customer || '',
+			'supplier': cur_frm.doc.supplier || ''
 			}, 
 			function(r, rtxt) { 
 				//

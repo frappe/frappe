@@ -110,7 +110,8 @@ def get_contact_list():
 		Returns contacts (from autosuggest)
 	"""
 
-	cond = ['`%s` like "%s%%"' % (f, webnotes.form.getvalue('txt')) for f in webnotes.form.getvalue('where').split(',')]
+	cond = ['`%s` like "%s%%"' % (f, 
+		webnotes.form.getvalue('txt')) for f in webnotes.form.getvalue('where').split(',')]
 	cl = webnotes.conn.sql("select `%s` from `tab%s` where %s" % (
   			 webnotes.form.getvalue('select')
 			,webnotes.form.getvalue('from')
