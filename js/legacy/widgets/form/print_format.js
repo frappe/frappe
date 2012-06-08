@@ -428,15 +428,30 @@ $.extend(_p, {
 		me.layout = layout;
 
 		$.extend(this, {
-			build_head: function(doctype, docname) {
+			build_head: function(data, doctype, docname) {
 				// Heading
 				var h1_style = {
 					fontSize: '22px',
 					marginBottom: '8px'			
 				}
 				var h1 = $a(me.layout.cur_row.header, 'h1', '', h1_style);
-				h1.innerHTML = cur_frm.pformat[docname] ? cur_frm.pformat[docname] :
-					get_doctype_label(doctype);
+				
+				// Get print heading
+				if (cur_frm.pformat[docname]) {
+					// first check in cur_frm.pformat
+					h1.innerHTML = cur_frm.pformat[docname];
+				} else {
+					// then check if select print heading exists and has a value
+					var val = null;
+					for (var i = 0; i < data.length; i++) {
+						if (data[i].fieldname === 'select_print_heading') {
+							val = _f.get_value(doctype, docname, data[i].fieldname);
+							break;
+						}
+					}
+					// if not, just have doctype has heading
+					h1.innerHTML = val ? val : get_doctype_label(doctype);
+				}
 					
 				var h2_style = {
 					fontSize: '16px',
@@ -558,7 +573,7 @@ $.extend(_p, {
 			}
 		});
 		
-		this.build_head(doctype, docname);
+		this.build_head(data, doctype, docname);
 
 		this.build_data(data, doctype, docname);
 
