@@ -55,9 +55,14 @@ cur_frm.cscript.label = function(doc){
 
 
 cur_frm.fields_dict['dt'].get_query = function(doc, dt, dn) {
-	return 'SELECT tabDocType.name FROM tabDocType WHERE IFNULL(tabDocType.issingle,0)=0 AND tabDocType.name LIKE "%s" ORDER BY name ASC LIMIT 50';
+	return 'SELECT name FROM `tabDocType` \
+	WHERE IFNULL(issingle,0)=0 AND \
+	IFNULL(in_create, 0)=0 AND \
+	(module IN ("Accounts", "Buying", "HR", "Knowledge Base", \
+		"Production", "Projects", "Selling", "Stock", "Support") OR \
+		name IN ("Contact", "Address")) AND \
+	name LIKE "%s" ORDER BY name ASC LIMIT 50';
 }
-
 
 cur_frm.cscript.fieldtype = function(doc, dt, dn) {
 	if(doc.fieldtype == 'Link') cur_frm.fields_dict['Options Help'].disp_area.innerHTML = 'Please enter name of the document you want this field to be linked to in <b>Options</b>.<br> Eg.: Customer';
