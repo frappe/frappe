@@ -119,7 +119,7 @@ class Database:
 
 	# ======================================================================================
 	
-	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0, ignore_ddl=0):
+	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0, ignore_ddl=0, as_utf8=0):
 		"""
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
@@ -149,6 +149,8 @@ class Database:
 			return self.fetch_as_dict(formatted)
 		elif as_list:
 			return self.convert_to_lists(self._cursor.fetchall(), formatted)
+		elif as_utf8:
+			return self.convert_to_utf8(self._cursor.fetchall(), formatted)
 		else:
 			return self._cursor.fetchall()
 
@@ -206,6 +208,22 @@ class Database:
 			nr = []
 			for c in r:
 				nr.append(self.convert_to_simple_type(c, formatted))
+			nres.append(nr)
+		return nres
+		
+	# ======================================================================================
+
+	def convert_to_utf8(self, res, formatted=0):
+		"""
+		      Convert the given result set to a list of lists and as utf8 (with cleaned up dates and decimals)
+		"""
+		nres = []
+		for r in res:
+			nr = []
+			for c in r:
+				if type(c) is unicode:
+					c = c.encode('utf-8')
+					nr.append(self.convert_to_simple_type(c, formatted))
 			nres.append(nr)
 		return nres
 
