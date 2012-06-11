@@ -117,12 +117,11 @@ class Profile:
 			if p.get('cancel'):
 				self.can_cancel.append(dt)
 
-			if (p.get('read') or p.get('write') or p.get('create')) and \
-					not dtp.get('read_only'):
+			if (p.get('read') or p.get('write') or p.get('create')):
 				self.can_get_report.append(dt)
 				self.can_get_report += dtp['child_tables']
 				if not dtp.get('istable'):
-					if not dtp.get('issingle'):
+					if not dtp.get('issingle') and not dtp.get('read_only'):
 						self.can_search.append(dt)
 					if not dtp.get('module') in self.allow_modules:
 						self.allow_modules.append(dtp.get('module'))

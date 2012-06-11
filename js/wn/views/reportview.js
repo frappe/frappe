@@ -111,7 +111,9 @@ wn.views.ReportViewPage = Class.extend({
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(doctype, docname, page) {
 		var me = this;
+		$(page).find('.layout-main').html('Loading Report...');
 		this.import_slickgrid();
+		$(page).find('.layout-main').empty();
 		this.doctype = doctype;
 		this.docname = docname;
 		this.page = page;
