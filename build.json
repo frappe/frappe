@@ -146,7 +146,6 @@
 			"lib/js/legacy/widgets/export_query.js",
 			"lib/js/legacy/webpage/search.js",
 			"lib/js/legacy/webpage/spinner.js",
-			"lib/js/legacy/webpage/error_console.js",
 			"lib/js/legacy/webpage/loaders.js",
 			"lib/js/legacy/wn/page_layout.js",
 			"lib/js/legacy/wn/widgets/page_sidebar.js",
