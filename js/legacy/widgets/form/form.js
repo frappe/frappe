@@ -262,7 +262,7 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	delete this.opendocs[old];
 	this.opendocs[name] = true;
 	
-	wn.re_route[window.location.hash] = 'Form/' + encodeURIComponent(this.doctype) + '/' + encodeURIComponent(name);
+	wn.re_route[window.location.hash] = '#Form/' + encodeURIComponent(this.doctype) + '/' + encodeURIComponent(name);
 	wn.set_route('Form', this.doctype, name);
 }
 
