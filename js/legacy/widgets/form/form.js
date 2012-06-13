@@ -213,6 +213,12 @@ _f.Frm.prototype.email_doc = function() {
 	// make selector
 	if(!_e.dialog) _e.make();
 	
+	_e.dialog.widgets['To'].value = '';
+	
+	if (cur_frm.doc && cur_frm.doc.contact_email) {
+		_e.dialog.widgets['To'].value = cur_frm.doc.contact_email;
+	}
+	
 	// set print selector
 	sel = this.print_sel;
 	var c = $td(_e.dialog.rows['Format'].tab,0,1);
