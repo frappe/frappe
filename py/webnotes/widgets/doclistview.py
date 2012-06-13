@@ -91,7 +91,7 @@ def remove_user_tags(fields):
 	for fld in fields:
 		if '_user_tags' in fld:
 			if not '_user_tags' in get_table_columns(webnotes.form_dict['doctype']):
-				del fields[fld]
+				del fields[fields.index(fld)]
 				break
 
 def add_limit(data):
