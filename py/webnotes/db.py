@@ -98,7 +98,7 @@ class Database:
 					webnotes.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
 					raise Exception, 'Bad Query!!! Too many writes'
 	
-	def fetch_as_dict(self, formatted=0):
+	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		"""
 		      Internal - get results as dictionary
 		"""
@@ -107,7 +107,10 @@ class Database:
 		for r in result:
 			dict = {}
 			for i in range(len(r)):
-				dict[self._cursor.description[i][0]] = self.convert_to_simple_type(r[i], formatted)
+				val = self.convert_to_simple_type(r[i], formatted)
+				if as_utf8 and type(val) is unicode:
+					val = val.encode('utf-8')
+				dict[self._cursor.description[i][0]] = val
 			ret.append(dict)
 		return ret
 	
@@ -119,7 +122,7 @@ class Database:
 
 	# ======================================================================================
 	
-	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0, ignore_ddl=0):
+	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0, ignore_ddl=0, as_utf8=0):
 		"""
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
@@ -146,9 +149,11 @@ class Database:
 
 		# scrub output if required
 		if as_dict:
-			return self.fetch_as_dict(formatted)
+			return self.fetch_as_dict(formatted, as_utf8)
 		elif as_list:
-			return self.convert_to_lists(self._cursor.fetchall(), formatted)
+			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
+		elif as_utf8:
+			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
 		else:
 			return self._cursor.fetchall()
 
@@ -197,7 +202,7 @@ class Database:
 
 	# ======================================================================================
 
-	def convert_to_lists(self, res, formatted=0):
+	def convert_to_lists(self, res, formatted=0, as_utf8=0):
 		"""
 		      Convert the given result set to a list of lists (with cleaned up dates and decimals)
 		"""
@@ -205,7 +210,26 @@ class Database:
 		for r in res:
 			nr = []
 			for c in r:
-				nr.append(self.convert_to_simple_type(c, formatted))
+				val = self.convert_to_simple_type(c, formatted)
+				if as_utf8 and type(val) is unicode:
+					val = val.encode('utf-8')
+				nr.append(val)
+			nres.append(nr)
+		return nres
+		
+	# ======================================================================================
+
+	def convert_to_utf8(self, res, formatted=0):
+		"""
+		      Convert the given result set to a list of lists and as utf8 (with cleaned up dates and decimals)
+		"""
+		nres = []
+		for r in res:
+			nr = []
+			for c in r:
+				if type(c) is unicode:
+					c = c.encode('utf-8')
+					nr.append(self.convert_to_simple_type(c, formatted))
 			nres.append(nr)
 		return nres
 

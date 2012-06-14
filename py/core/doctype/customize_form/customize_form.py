@@ -31,9 +31,7 @@ class DocType:
 	def __init__(self, doc, doclist=[]):
 		self.doc, self.doclist = doc, doclist
 		self.doctype_properties = [
-			'autoname',
 			'search_fields',
-			'tag_fields',
 			'default_print_format',
 			'read_only_onload',
 			'allow_print',

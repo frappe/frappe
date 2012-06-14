@@ -534,24 +534,6 @@ def clear_recycle_bin():
 
 	return "%s records deleted" % str(int(total_deleted))
 
-
-# Send Error Report
-# ==============================================================================
-
-@webnotes.whitelist()
-def send_error_report():
-	sql = webnotes.conn.sql
-	m = ''
-	company = webnotes.conn.get_value('Control Panel',None,'company_name') or ''
-	if company: m = 'Company : ' + company
-	form = webnotes.form
-	err_msg = '''
-		%s <br>
-		Comment: %s
-		Err Msg : %s
-	''' % (m, form.getvalue('msg') or '', form.getvalue('err_msg'))
-	sendmail([webnotes.conn.get_value('Control Panel',None,'support_email_id') or 'support@iwebnotes.com'], sender=webnotes.session['user'], msg=err_msg, subject='Error Report '+m)
-
 # Dictionary utils
 # ==============================================================================
 

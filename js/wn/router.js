@@ -6,7 +6,20 @@ wn.re_route = {
 }
 wn.route = function() {
 	if(wn.re_route[window.location.hash]) {
-		window.location.hash = wn.re_route[window.location.hash];
+		// after saving a doc, for example,
+		// "New DocType 1" and the renamed "TestDocType", both exist in history
+		// now if we try to go back,
+		// it doesn't allow us to go back to the one prior to "New DocType 1"
+		// Hence if this check is true, instead of changing location hash, 
+		// we just do a back to go to the doc previous to the "New DocType 1"
+		var re_route_val = wn.get_route_str(wn.re_route[window.location.hash]);
+		var cur_route_val = wn.get_route_str(wn._cur_route);
+		if (decodeURIComponent(re_route_val) === decodeURIComponent(cur_route_val)) {
+			window.history.back();
+			return;
+		} else {
+			window.location.hash = wn.re_route[window.location.hash];
+		}
 	}
 
 	wn._cur_route = window.location.hash;

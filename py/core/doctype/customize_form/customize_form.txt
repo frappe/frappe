@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:36',
+		'creation': '2012-05-15 12:14:21',
 		'docstatus': 0,
-		'modified': '2012-03-27 18:41:56',
+		'modified': '2012-06-12 12:10:13',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -23,7 +23,7 @@
 		'search_fields': u'doc_type',
 		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 108
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -106,36 +106,11 @@
 
 	# DocField
 	{
-		'description': u'E.g.<br />\nBased on field - <b>field:customer_name</b><br />\nBased on number series: <b>TRN.####</b>',
-		'doctype': u'DocField',
-		'fieldname': u'autoname',
-		'fieldtype': u'Data',
-		'hidden': 1,
-		'label': u'Auto Name',
-		'no_copy': 0,
-		'permlevel': 2,
-		'search_index': 0
-	},
-
-	# DocField
-	{
 		'description': u'Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box',
 		'doctype': u'DocField',
 		'fieldname': u'search_fields',
 		'fieldtype': u'Data',
 		'label': u'Search Fields',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'description': u'Fields separated by comma (,) will be set as tags',
-		'doctype': u'DocField',
-		'fieldname': u'tag_fields',
-		'fieldtype': u'Data',
-		'label': u'Tag Fields',
 		'no_copy': 0,
 		'permlevel': 0,
 		'search_index': 0

@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-04-20 11:37:49',
+		'creation': '2012-05-15 12:14:24',
 		'docstatus': 0,
-		'modified': '2012-04-20 12:52:44',
+		'modified': '2012-06-13 18:50:36',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -18,7 +18,7 @@
 		'module': u'Core',
 		'name': '__common__',
 		'section_style': u'Simple',
-		'version': 2
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -33,7 +33,6 @@
 
 	# These values are common for all DocPerm
 	{
-		'cancel': 1,
 		'doctype': u'DocPerm',
 		'name': '__common__',
 		'parent': u'Report',
@@ -51,20 +50,29 @@
 
 	# DocPerm
 	{
+		'cancel': 1,
 		'doctype': u'DocPerm',
 		'role': u'Administrator'
 	},
 
 	# DocPerm
 	{
+		'cancel': 1,
 		'doctype': u'DocPerm',
 		'role': u'System Manager'
 	},
 
 	# DocPerm
 	{
+		'cancel': 1,
 		'doctype': u'DocPerm',
 		'role': u'Report Manager'
+	},
+
+	# DocPerm
+	{
+		'doctype': u'DocPerm',
+		'role': u'All'
 	},
 
 	# DocField
