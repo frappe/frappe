@@ -7,6 +7,11 @@ div.form-title {
 	border-bottom: 1px solid #eee;
 }
 
+.appframe-titlebar .label {
+	vertical-align: middle;
+	margin-right: 7px;
+}
+
 div.form-section-head {
 	margin: 11px -15px 3px -15px;
 	border-top: 1px solid #ccc;

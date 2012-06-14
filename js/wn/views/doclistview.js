@@ -57,11 +57,9 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		wn.container.change_to(page_name);
 		this.$page = $(page);
 		
-		this.$page.html(repl('<div class="layout-wrapper layout-wrapper-background">\
+		this.$page.html('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="appframe-area"></div>\
 			<div class="layout-main-section">\
-				<h1>%(label)s</h1>\
-				<hr>\
 				<div class="wnlist-area"><div class="help">Loading...</div></div>\
 			</div>\
 			<div class="layout-side-section">\
@@ -73,10 +71,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				</div>\
 			</div>\
 			<div style="clear: both"></div>\
-		</div>', {label: this.label}));
+		</div>');
 		
 		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
-		wn.views.breadcrumbs($('<span>').appendTo(this.appframe.$titlebar), locals.DocType[this.doctype].module);
+		wn.views.breadcrumbs($('<span class="breadcrumb-area">').appendTo(this.appframe.$titlebar), 
+			locals.DocType[this.doctype].module, this.doctype);
 	},
 
 	setup: function() {

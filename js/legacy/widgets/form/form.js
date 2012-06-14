@@ -476,7 +476,7 @@ _f.Frm.prototype.refresh_header = function() {
 	}	
 	
 	// form title
-	this.page_layout.main_head.innerHTML = '<h2>'+this.docname+'</h2>';
+	//this.page_layout.main_head.innerHTML = '<h2>'+this.docname+'</h2>';
 
 	// show / hide buttons
 	if(this.frm_head)this.frm_head.refresh();
