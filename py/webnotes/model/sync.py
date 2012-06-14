@@ -50,14 +50,15 @@ def walk_and_sync(start_path, force=0):
 				if doctype == 'doctype':
 					sync(module_name, name, force)
 				elif doctype in ['page']:#, 'search_criteria', 'Print Format', 'DocType Mapper']:
-					reload_doc(module_name, doctype, name)
-					print module_name + ' | ' + doctype + ' | ' + name
+					if reload_doc(module_name, doctype, name):
+						print module_name + ' | ' + doctype + ' | ' + name
 					
 	return modules
 
 
 # docname in small letters with underscores
 def sync(module_name, docname, force=0):
+	"""sync doctype from file if modified"""
 	with open(get_file_path(module_name, docname), 'r') as f:
 		from webnotes.model.utils import peval_doclist
 		doclist = peval_doclist(f.read())
