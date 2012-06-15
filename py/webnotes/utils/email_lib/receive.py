@@ -152,16 +152,25 @@ class POP3Mailbox:
 			return # nothing to do
 		
 		self.connect()
-		num = len(self.pop.list()[1])
+		num = num_copy = len(self.pop.list()[1])
+		
 		# WARNING: Hard coded max no. of messages to be popped
-		if num > 25: num = 25
-		for m in range(num):
-			msg = self.pop.retr(m+1)
+		if num > 20: num = 20
+		for m in xrange(1, num+1):
+			msg = self.pop.retr(m)
 			try:
 				self.process_message(IncomingMail('\n'.join(msg[1])))
 			except:
 				pass
-			self.pop.dele(m+1)
+			self.pop.dele(m)
+		
+		# WARNING: Delete message number 101 onwards from the pop list
+		# This is to avoid having too many messages entering the system
+		num = num_copy
+		if num > 100:
+			for m in xrange(101, num+1):
+				self.pop.dele(m)
+		
 		self.pop.quit()
 		
 	def check_mails(self):
