@@ -153,8 +153,8 @@ def connect(db_name=None, password=None):
 	"""
 		Connect to this db (or db), if called from command prompt
 	"""
-	if is_apache_user():
-		raise Exception, 'Not for web users!'
+	#if is_apache_user():
+	#	raise Exception, 'Not for web users!'
 
 	import webnotes.db
 	global conn
