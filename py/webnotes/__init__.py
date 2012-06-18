@@ -97,14 +97,6 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	if raise_exception:
 		raise ValidationError, msg
 
-def is_apache_user():
-	import os
-	if os.environ.get('USER') == 'apache':
-		return True 
-	else:
-		return (not os.environ.get('USER'))
-		# os.environ does not have user, so allows a security vulnerability,fixed now. 
-
 def get_index_path():
 	import os
 	return os.sep.join(os.path.dirname(os.path.abspath(__file__)).split(os.sep)[:-2])
@@ -153,9 +145,6 @@ def connect(db_name=None, password=None):
 	"""
 		Connect to this db (or db), if called from command prompt
 	"""
-	if is_apache_user():
-		raise Exception, 'Not for web users!'
-
 	import webnotes.db
 	global conn
 	conn = webnotes.db.Database(user=db_name, password=password)
