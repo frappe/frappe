@@ -369,7 +369,7 @@ _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
 	this.frm_head.appframe.add_button(label, fn, icon);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
-	//
+	this.frm_head.refresh_toolbar()
 }
 
 // --------------------------------------------------------------------------------------
