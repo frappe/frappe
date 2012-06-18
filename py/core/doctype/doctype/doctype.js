@@ -47,19 +47,8 @@ cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 			<a href="#!List/Custom%20Script">Custom Script</a> \
 			and <a href="#!List/Property%20Setter">Property Setter</a>')
 	}
-
-
-	// show button for import
-	cur_frm.add_custom_button('Import from File', cur_frm.cscript.do_import);
 }
 
 cur_frm.cscript.validate = function(doc, cdt, cdn) {
 	doc.server_code_compiled = null;
-}
-
-cur_frm.cscript.do_import = function(doc, cdt, cdn) {
-	callback = function(r,rt) {
-		cur_frm.refresh_doc();
-	}
-	$c_obj([doc], 'import_doctype', '', callback)
 }
