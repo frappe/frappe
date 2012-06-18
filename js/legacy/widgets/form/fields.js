@@ -642,13 +642,25 @@ LinkField.prototype.make_input = function() {
 			.appendTo(ul);
 	};
 	
-	$(this.txt).change(function() {
-		if(!$(this).val()) {
+	$(me.txt).change(function(event) {
+		//console.log(event);
+		
+		me.wait = false;
+		
+		var val = me.get_value();
+		if(!val) {
 			if(selector && selector.display) 
 				return;
-			me.set_input_value('');			
+			me.set_input_value('');
 		}
-	})
+
+		// SetTimeout hack! if in put is set via autocomplete, do not validate twice
+		setTimeout(function() {
+			if(!me.wait) {
+				me.validate_link(val);
+			}
+		}, 100);
+	});
 }
 
 LinkField.prototype.get_custom_query = function() {
@@ -701,6 +713,10 @@ LinkField.prototype.setup_buttons = function() {
 
 LinkField.prototype.set_input_value = function(val) {
 	var me = this;
+
+	// SetTimeout hack! if in put is set via autocomplete, do not validate twice
+	me.wait = true;
+	
 	var from_selector = false;
 	if(selector && selector.display) from_selector = true;
 		
@@ -734,7 +750,13 @@ LinkField.prototype.set_input_value = function(val) {
 		me.run_trigger();
 		return;
 	}
+	
+	me.validate_link(val);
+}
 
+LinkField.prototype.validate_link = function(val) {
+	//console.log(['in validate of link field', val]);
+	var me = this;
 	// validate the value just entered
 	var fetch = '';
 	if(cur_frm.fetch_dict[me.df.fieldname])
