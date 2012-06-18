@@ -180,7 +180,7 @@ class _DocType:
 		for doc_type in doc_type_list:
 			docfields = self.get_sorted_docfields(doclist, doc_type)
 			docfields = self.sort_docfields(doc_type, docfields, prev_field_dict)
-			if docfields: self.change_idx(doclist, docfields)
+			if docfields: self.change_idx(doclist, docfields, doc_type)
 
 	def get_previous_field_properties(self, property_dict):
 		"""
@@ -252,9 +252,9 @@ class _DocType:
 		
 		return docfields
 
-	def change_idx(self, doclist, docfields):
+	def change_idx(self, doclist, docfields, doc_type):
 		for d in doclist:
-			if d.fieldname and d.fieldname in docfields:
+			if d.fieldname and d.fieldname in docfields and d.parent == doc_type:
 				d.idx = docfields.index(d.fieldname) + 1
 				
 	def add_code(self, doc):
