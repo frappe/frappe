@@ -283,11 +283,28 @@ wn.ui.FieldSelect = Class.extend({
 		me.table_fields = [];
 		var std_filters = [
 			{fieldname:'name', fieldtype:'Data', label:'ID', parent:me.doctype},
-			{fieldname:'modified', fieldtype:'Date', label:'Last Modified', parent:me.doctype},
-			{fieldname:'owner', fieldtype:'Data', label:'Created By', parent:me.doctype},
-			{fieldname:'creation', fieldtype:'Date', label:'Created On', parent:me.doctype},
-			{fieldname:'_user_tags', fieldtype:'Data', label:'Tags', parent:me.doctype}
+			{fieldname:'modified', fieldtype:'Date', label:'Last Modified',
+				parent:me.doctype},
+			{fieldname:'owner', fieldtype:'Data', label:'Created By',
+				parent:me.doctype},
+			{fieldname:'creation', fieldtype:'Date', label:'Created On',
+				parent:me.doctype},
+			{fieldname:'_user_tags', fieldtype:'Data', label:'Tags',
+				parent:me.doctype},
+			{fieldname:'docstatus', fieldtype:'Int', label:'Doc Status',
+				parent:me.doctype},
 		];
+		
+		// add parenttype column
+		var doctype_obj = locals['DocType'][me.doctype];
+		if(doctype_obj && cint(doctype_obj.istable)) {
+			std_filters = std_filters.concat([{
+				fieldname: 'parent',
+				fieldtype: 'Data',
+				label: 'Parent',
+				parent: me.doctype
+			}]);
+		}
 		
 		// blank
 		if(this.with_blank) {

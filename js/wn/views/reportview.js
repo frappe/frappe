@@ -152,7 +152,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			show_filters: true,
 			new_doctype: this.doctype,
 			allow_delete: true,
-		});	
+		});
 		this.make_column_picker();
 		this.make_sorter();
 		this.make_export();
