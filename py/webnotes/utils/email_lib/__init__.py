@@ -68,6 +68,7 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 				msg = msg.replace('\n','<br>')
 	
 		footer = get_footer()
+		footer = footer.encode('utf-8', errors="ignore")
 		msg = msg + (footer or '')
 		if txt:
 			email.set_text(txt)
