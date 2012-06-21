@@ -117,7 +117,7 @@ wn.widgets.form.sidebar.Attachment = function(parent, filedet, frm) {
 		
 	// download
 	var display_name = this.fileid;
-	if(this.fileid.substr(0,8)=='FileData') 
+	if(this.fileid && this.fileid.substr(0,8)=='FileData') 
 		display_name = this.filename;
 	this.ln = $a(this.wrapper, 'a', 'link_type small', {}, display_name);
 	this.ln.href = 'files/'+this.fileid;
