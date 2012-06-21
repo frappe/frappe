@@ -77,6 +77,7 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 			email.set_text(txt)
 		else:
 			try:
+				msg_unicode = msg
 				if isinstance(msg, str):
 					msg_unicode = unicode(msg, 'utf-8', 'ignore')
 				email.set_text(html2text(msg_unicode))
