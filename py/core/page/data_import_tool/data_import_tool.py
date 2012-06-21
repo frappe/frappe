@@ -153,7 +153,11 @@ def upload():
 	# doctype
 	doctype = rows[0][0].split(':')[1].strip()
 	doctype_dl = webnotes.model.doctype.get(doctype, form=0)
-		
+	
+	if doctype in ['Customer', 'Supplier'] and len(rows[8:]) > 100:
+		webnotes.msgprint("Please upload only upto 100 %ss at a time" % doctype)
+		raise Exception
+	
 	parenttype, parentfield = None, None
 	if len(rows[1]) > 0 and ':' in rows[1][0]:
 		parenttype = rows[1][0].split(':')[1].strip()
