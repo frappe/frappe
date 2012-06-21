@@ -102,11 +102,11 @@ class DocType:
 		self.scrub_field_names()
 		self.validate_fields()
 		self.set_version()
-		self.make_amendable()
-		self.make_file_list()
-
 
 	def on_update(self):
+		self.make_amendable()
+		self.make_file_list()
+		
 		sql = webnotes.conn.sql
 		# make schma changes
 		from webnotes.model.db_schema import updatedb

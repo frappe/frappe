@@ -52,6 +52,7 @@ def get_module_path(module):
 
 def reload_doc(module, dt=None, dn=None):
 	"""reload single / list of records"""
+
 	if type(module) is list:
 		for m in module:
 			reload_single_doc(m[0], m[1], m[2])
@@ -60,6 +61,9 @@ def reload_doc(module, dt=None, dn=None):
 		
 def reload_single_doc(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
+	if dt.lower() == 'doctype':
+		return
+		
 	import os
 	dt, dn = scrub_dt_dn(dt, dn)
 
