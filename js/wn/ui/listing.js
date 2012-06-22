@@ -238,13 +238,13 @@ wn.ui.Listing = Class.extend({
 	get_call_args: function(opts) {
 		// load query
 		if(!this.method) {
-			this.query = this.get_query ? this.get_query() : this.query;
-			this.add_limits();
+			var query = this.get_query ? this.get_query() : this.query;
+			query = this.add_limits(query);
 			var args={ 
 				query_max: this.query_max,
 				as_dict: 1
 			}
-			args.simple_query = this.query;
+			args.simple_query = query;
 		} else {
 			var args = {
 				limit_start: this.start,
@@ -304,7 +304,8 @@ wn.ui.Listing = Class.extend({
 	refresh: function() { 
 		this.run(); 
 	},
-	add_limits: function() {
-		this.query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
+	add_limits: function(query) {
+		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
+		return query
 	}
 });

@@ -115,7 +115,7 @@ def add_match_conditions(q, tl, ur, ud):
 			q = q[0] + condition_st + '(' + ' OR '.join(sl) + ') ' + condition_end + q[1]
 		else:
 			q = q + condition_st + '(' + ' OR '.join(sl) + ')'
-
+	
 	return q
 
 # execute server-side script from Search Criteria
