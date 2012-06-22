@@ -30,7 +30,7 @@ def get_template():
 	
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	tablecolumns = [f[0] for f in webnotes.conn.sql('desc `tab%s`' % doctype)]
-
+	
 	def getinforow(docfield):
 		"""make info comment"""
 		if docfield.fieldtype == 'Select':
@@ -68,7 +68,7 @@ def get_template():
 	def append_row(t, mandatory):
 		docfield = getdocfield(t)
 		if docfield and ((mandatory and docfield.reqd) or (not mandatory and not docfield.reqd)) \
-			and (t not in ('parenttype', 'trash_reason')):
+			and (t not in ('parenttype', 'trash_reason', 'file_list')):
 			fieldrow.append(t)
 			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
 			typerow.append(docfield.fieldtype)
@@ -153,7 +153,11 @@ def upload():
 	# doctype
 	doctype = rows[0][0].split(':')[1].strip()
 	doctype_dl = webnotes.model.doctype.get(doctype, form=0)
-		
+	
+	if doctype in ['Customer', 'Supplier'] and len(rows[8:]) > 100:
+		webnotes.msgprint("Please upload only upto 100 %ss at a time" % doctype)
+		raise Exception
+	
 	parenttype, parentfield = None, None
 	if len(rows[1]) > 0 and ':' in rows[1][0]:
 		parenttype = rows[1][0].split(':')[1].strip()

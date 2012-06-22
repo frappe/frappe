@@ -66,14 +66,21 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 			# if not html, then lets put some whitespace
 			if (not '<br>' in msg) and (not '<p>' in msg):
 				msg = msg.replace('\n','<br>')
-	
+		
 		footer = get_footer()
+
+		# encode using utf-8
+		footer = footer.encode('utf-8', 'ignore')
+
 		msg = msg + (footer or '')
 		if txt:
 			email.set_text(txt)
 		else:
 			try:
-				email.set_text(html2text(msg))
+				msg_unicode = msg
+				if isinstance(msg, str):
+					msg_unicode = unicode(msg, 'utf-8', 'ignore')
+				email.set_text(html2text(msg_unicode))
 			except HTMLParser.HTMLParseError:
 				pass
 		email.set_html(msg)
