@@ -43,7 +43,7 @@ wn.provide('_f');
 
 _f.frms = {};
 
-_f.Frm = function(doctype, parent) {
+_f.Frm = function(doctype, parent, in_form) {
 	this.docname = '';
 	this.doctype = doctype;
 	this.display = 0;
@@ -60,6 +60,9 @@ _f.Frm = function(doctype, parent) {
 	this.tinymce_id_list = [];
 	
 	this.setup_meta(doctype);
+	
+	// show in form instead of in dialog, when called using url (router.js)
+	this.in_form = in_form ? true : false;
 	
 	// notify on rename
 	var me = this;
@@ -142,8 +145,8 @@ _f.Frm.prototype.onhide = function() { if(_f.cur_grid_cell) _f.cur_grid_cell.gri
 _f.Frm.prototype.setup_std_layout = function() {
 	this.page_layout = new wn.PageLayout({
 		parent: this.wrapper,
-		main_width: this.meta.in_dialog ? '100%' : '75%',
-		sidebar_width: this.meta.in_dialog ? '0%' : '25%'
+		main_width: (this.meta.in_dialog && !this.in_form) ? '100%' : '75%',
+		sidebar_width: (this.meta.in_dialog && !this.in_form) ? '0%' : '25%'
 	})	
 			
 	// only tray
@@ -153,7 +156,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.layout = new Layout(this.page_layout.body, '100%');
 	
 	// sidebar
-	if(this.meta.in_dialog) {
+	if(this.meta.in_dialog && !this.in_form) {
 		// hide sidebar
 		$(this.page_layout.wrapper).removeClass('layout-wrapper-background');
 		$(this.page_layout.main).removeClass('layout-main-section');
@@ -168,7 +171,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	
 		
 	// header - no headers for tables and guests
-	if(!(this.meta.istable || user=='Guest' || this.meta.in_dialog)) 
+	if(!(this.meta.istable || user=='Guest' || (this.meta.in_dialog && !this.in_form))) 
 		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
 		
 	// bg colour
@@ -246,7 +249,7 @@ _f.Frm.prototype.email_doc = function() {
 
 _f.Frm.prototype.rename_notify = function(dt, old, name) {	
 	// from form
-	if(this.meta.in_dialog) 
+	if(this.meta.in_dialog && !this.in_form) 
 		return;
 	
 	if(this.docname == old)
@@ -276,7 +279,7 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 // ======================================================================================
 
 
-_f.Frm.prototype.setup_meta = function() {
+_f.Frm.prototype.setup_meta = function(doctype) {
 	this.meta = get_local('DocType',this.doctype);
 	this.perm = get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
@@ -471,7 +474,7 @@ _f.Frm.prototype.get_doc_perms = function() {
 _f.Frm.prototype.refresh_header = function() {
 	// set title
 	// main title
-	if(!this.meta.in_dialog) {
+	if(!this.meta.in_dialog || this.in_form) {
 		set_title(this.meta.issingle ? this.doctype : this.docname);
 	}	
 	
@@ -514,7 +517,7 @@ _f.Frm.prototype.check_doc_perm = function() {
 _f.Frm.prototype.refresh = function(docname) {
 	// record switch
 	if(docname) {
-		if(this.docname != docname && !this.meta.in_dialog && !this.meta.istable) scroll(0, 0);
+		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) scroll(0, 0);
 		this.docname = docname;
 	}
 	if(!this.meta.istable) {
@@ -613,7 +616,7 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
-		if(get_url_arg('embed') || (this.editable && !this.meta.in_dialog && this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE])) {
+		if(get_url_arg('embed') || (this.editable && (!this.meta.in_dialog || this.in_form) && this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE])) {
 			f.show_save();
 		} else {
 			f.hide_save();
