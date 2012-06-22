@@ -19,7 +19,7 @@ wn.views.formview = {
 				}
 				if(!wn.views.formview[dt]) {
 					wn.views.formview[dt] = wn.container.add_page('Form - ' + dt);
-					wn.views.formview[dt].frm = new _f.Frm(dt, wn.views.formview[dt]);
+					wn.views.formview[dt].frm = new _f.Frm(dt, wn.views.formview[dt], true);
 				}
 				wn.container.change_to('Form - ' + dt);
 				wn.views.formview[dt].frm.refresh(dn);
