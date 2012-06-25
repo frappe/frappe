@@ -21,7 +21,7 @@
 // 
 
 
-cur_frm.cscript['Server (Python)']=function(doc,dt,dn){$c_obj([doc],'execute_server','',function(r,rt){doc=locals[doc.doctype][doc.name];if(r.exc){doc.response=r.exc;}else{doc.response='Worked!'}
+cur_frm.cscript['Server (Python)']=function(doc,dt,dn){$c_obj(make_doclist(doc.doctype, doc.name),'execute_server','',function(r,rt){doc=locals[doc.doctype][doc.name];if(r.exc){doc.response=r.exc;}else{doc.response='Worked!'}
 refresh_field('response');})}
 cur_frm.cscript['Client (JS)']=function(doc,dt,dn){try{doc.response=eval(doc.script);}catch(e){doc.response=e.toString()
 +'\nMessage:'+e.message

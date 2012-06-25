@@ -505,13 +505,21 @@ class Document:
 		"""
 		from webnotes.model.utils import getlist
 		
-		for d in getlist(doclist, tablefield):
-			d.fields['__oldparent'] = d.parent
-			d.parent = 'old_parent:' + d.parent # for client to send it back while saving
-			d.docstatus = 2
-			if save and not d.fields.get('__islocal'):
-				d.save()
-		self.fields['__unsaved'] = 1
+		table_list = getlist(doclist, tablefield)
+		delete_list = [d.name for d in table_list]
+		
+		if delete_list:
+			#filter doclist
+			doclist = filter(lambda d: d.name not in delete_list, doclist)
+		
+			# delete from db
+			webnotes.conn.sql("""\
+				delete from `tab%s`
+				where name in ("%s")""" % (table_list[0].doctype, '", "'.join(delete_list)))
+
+			self.fields['__unsaved'] = 1
+		
+		return doclist
 
 	def addchild(self, fieldname, childtype = '', local=0, doclist=None):
 		"""
@@ -520,9 +528,6 @@ class Document:
 	      * if local is set, it does not save the record
 	      * if doclist is passed, it append the record to the doclist
 		"""
-		if not childtype:
-			childtype = db_getchildtype(self.doctype, fieldname)
-	
 		d = Document()
 		d.parent = self.name
 		d.parenttype = self.doctype

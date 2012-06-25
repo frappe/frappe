@@ -167,7 +167,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	}
 		
 	// footer
-	this.setup_footer();		
+	this.setup_footer();
 	
 		
 	// header - no headers for tables and guests

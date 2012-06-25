@@ -217,6 +217,7 @@ def run():
 
 	# code replace
 	elif options.replace:
+		print options.replace
 		replace_code('.', options.replace[0], options.replace[1], options.replace[2])
 	
 	# git
