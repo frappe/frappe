@@ -55,14 +55,25 @@ def get(arg=None):
 	data['tables'] = ', '.join(tables)
 	data['conditions'] = ' and '.join(conditions)
 	data['fields'] = ', '.join(fields)
+	
 	if not data.get('order_by'):
 		data['order_by'] = tables[0] + '.modified desc'
+	check_sort_by_table(data.get('order_by'), tables)
 	
 	add_limit(data)
 	
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		order by %(order_by)s %(limit)s""" % data
 	return webnotes.conn.sql(query, as_dict=1)
+
+def check_sort_by_table(sort_by, tables):
+	"""check atleast 1 column selected from the sort by table """
+	tbl = sort_by.split('.')[0]
+	if tbl not in tables:
+		if tbl.startswith('`'):
+			tbl = tbl[4:-1]
+		webnotes.msgprint("Please select atleast 1 column from '%s' to sort"\
+			% tbl, raise_exception=1)
 
 def run_custom_query(data):
 	"""run custom query"""
