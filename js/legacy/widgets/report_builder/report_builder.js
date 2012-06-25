@@ -478,6 +478,8 @@ _r.ReportBuilder.prototype.setup_filters_and_cols = function() {
 _r.ReportBuilder.prototype.set_filters_from_route = function() {
 	// add filters from route
 	var route = wn.get_route();
+	//save this for checking changes in filter
+	this.current_route = wn.get_route_str();
 	if(route.length>3) {
 		for(var i=3; i<route.length; i++) {
 			var p = route[i].split('=');
