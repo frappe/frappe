@@ -142,8 +142,8 @@ class Installer:
 		webnotes.conn.sql("""create table __CacheItem(
 			`key` VARCHAR(180) NOT NULL PRIMARY KEY,
 			`value` LONGTEXT,
-			`expires_on` TIMESTAMP
-			)""")
+			`expires_on` DATETIME
+			) ENGINE=MyISAM DEFAULT CHARSET=utf8""")
 			
 
 		
