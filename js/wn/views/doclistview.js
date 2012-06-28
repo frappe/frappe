@@ -124,6 +124,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.allow_delete = true;
 	},
 	init_list: function(auto_run) {
+		var me = this;
 		// init list
 		this.make({
 			method: 'webnotes.widgets.doclistview.get',
@@ -138,20 +139,30 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			no_result_message: this.make_no_result(),
 			columns: this.listview.fields
 		});
+		
+		// make_new_doc can be overridden so that default values can be prefilled
+		// for example - communication list in customer
+		$(this.wrapper).find('button[list_view_doc="'+me.doctype+'"]').click(function(){
+			me.make_new_doc(me.doctype);
+		});
+		
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
 	},
+	
 	make_no_result: function() {
-		return repl('<div class="well"><p>No %(doctype_label)s found</p>\
+		var no_result_message = repl('<div class="well">\
+		<p>No %(doctype_label)s found</p>\
 		%(description)s\
 		<hr>\
-		<p><button class="btn btn-info btn-small"\
-				onclick="newdoc(\'%(doctype)s\');"\
-				>Make a new %(doctype_label)s</button>\
+		<p><button class="btn btn-info btn-small" list_view_doc="%(doctype)s">\
+			Make a new %(doctype_label)s</button>\
 		</p></div>', {
 			doctype_label: get_doctype_label(this.doctype),
 			doctype: this.doctype,
-			description: wn.markdown(locals.DocType[this.doctype].description || '')
+			description: wn.markdown(locals.DocType[this.doctype].description || ''),
 		});
+		
+		return no_result_message;
 	},
 	render_row: function(row, data) {
 		data.doctype = this.doctype;
@@ -431,18 +442,7 @@ wn.views.ListView = Class.extend({
 		data.fullname = wn.user_info(data.owner).fullname;
 		data.avatar = wn.user_info(data.owner).image;
 		
-		// when
-		data.when = dateutil.str_to_user(data.modified).split(' ')[0];
-		var diff = dateutil.get_diff(dateutil.get_today(), data.modified.split(' ')[0]);
-		if(diff==0) {
-			data.when = dateutil.comment_when(data.modified);
-		}
-		if(diff == 1) {
-			data.when = 'Yesterday'
-		}
-		if(diff == 2) {
-			data.when = '2 days ago'
-		}
+		this.prepare_when(data, data.modified);
 		
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
@@ -463,6 +463,23 @@ wn.views.ListView = Class.extend({
 			}
 		}
 	},
+	
+	prepare_when: function(data, date_str) {
+		if (!date_str) date_str = data.modified;
+		// when
+		data.when = dateutil.str_to_user(date_str).split(' ')[0];
+		var diff = dateutil.get_diff(dateutil.get_today(), date_str.split(' ')[0]);
+		if(diff==0) {
+			data.when = dateutil.comment_when(date_str);
+		}
+		if(diff == 1) {
+			data.when = 'Yesterday'
+		}
+		if(diff == 2) {
+			data.when = '2 days ago'
+		}
+	},
+	
 	add_user_tags: function(parent, data) {
 		var me = this;
 		if(data._user_tags) {
