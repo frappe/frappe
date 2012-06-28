@@ -267,18 +267,15 @@ class DocType:
 							cur_val = '%.2f' % flt(cur_val)
 
 						if cl['op'] == '=' and to_flds[cl['to_fld']]['fieldtype'] in ['Currency', 'Float']:
-							consistent = sql("""\
-								select name, %s from `tab%s`
-								where name = "%s" and "%s" - %s <= 0.5""" \
-								% (cl['from_fld'], t.from_table, child_obj.fields[t.reference_key], 
-									flt(cur_val), cl['from_fld']))
+							consistent = sql("""select name, %s from `tab%s` \
+								where name = %s and %s - %s <= 0.5"""% (cl['from_fld'], t.from_table, '%s', '%s', \
+									 cl['from_fld']), (child_obj.fields[t.reference_key], flt(cur_val)))
 						else:
-							consistent = sql("""\
-								select name, %s from `tab%s`
-								where name = "%s" and "%s" %s ifnull(%s, '')""" \
-								% (cl['from_fld'], t.from_table, child_obj.fields[t.reference_key], \
+							consistent = sql("""select name, %s from `tab%s` \
+								where name = %s and %s %s ifnull(%s, '')""" % (cl['from_fld'], t.from_table, \
+								'%s', '%s', cl['op'], cl['from_fld']), (child_obj.fields[t.reference_key], \
 								to_flds[cl['to_fld']]['fieldtype'] in ('Currency', 'Float', 'Int') \
-									and flt(cur_val) or cstr(cur_val), cl['op'],	cl['from_fld']))
+									and flt(cur_val) or cstr(cur_val)))
 
 						if not self.ref_doc:
 							det = sql("""select name, parent from `tab%s` where name = \"%s\"""" % (t.from_table, child_obj.fields[t.reference_key]))
