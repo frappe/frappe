@@ -89,8 +89,8 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						type: 'link',
 						label: 'Delete',
 						display: function() { 
-							return me.form.meta.allow_trash && cint(me.form.doc.docstatus) != 2 
-							&& (!me.form.doc.__islocal) && me.form.perm[0][CANCEL] 
+							return (cint(me.form.doc.docstatus) != 1) && !me.form.doc.__islocal
+								&& wn.model.can_delete(me.form.doctype);
 						},
 						icon: 'icon-remove-sign',
 						onclick: function() { me.form.savetrash() }
