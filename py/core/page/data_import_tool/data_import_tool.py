@@ -181,6 +181,7 @@ def upload():
 		delete_child_rows(rows, doctype)
 		
 	for row in rows[8:]:
+		if not row: continue
 		d = dict(zip(columns, row[1:]))
 		d['doctype'] = doctype
 				
