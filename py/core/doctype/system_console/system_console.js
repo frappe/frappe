@@ -23,7 +23,7 @@
 cur_frm.cscript['server_python'] = function(doc, dt, dn) {
 	doc.response = 'Executing...'
 	refresh_field('response');
-	$c_obj([doc], 'execute_server', '', function(r, rt) {
+	$c_obj(make_doclist(doc.doctype, doc.name), 'execute_server', '', function(r, rt) {
 		doc = locals[doc.doctype][doc.name];
 		if(r.exc) {
 			doc.response = r.exc;

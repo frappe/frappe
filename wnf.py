@@ -55,7 +55,7 @@ def search_replace_with_prompt(fpath, txt1, txt2):
 	tmp = []
 	for c in content:
 		if c.find(txt1) != -1:
-			print '\n', fpath
+			print fpath
 			print  colored(txt1, 'red').join(c[:-1].split(txt1))
 			a = ''
 			while a.lower() not in ['y', 'n', 'skip']:
@@ -217,6 +217,7 @@ def run():
 
 	# code replace
 	elif options.replace:
+		print options.replace
 		replace_code('.', options.replace[0], options.replace[1], options.replace[2])
 	
 	# git

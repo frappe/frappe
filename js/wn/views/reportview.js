@@ -32,11 +32,11 @@ wn.views.reportview = {
 
 		_r.rb_con.set_dt(dt, function(rb) { 
 			if(rep_name) {
-				var t = rb.current_loaded;
+				var route_changed = (rb.current_route != wn.get_route_str())
 				rb.load_criteria(rep_name);
 
-				// if loaded, then run
-				if((rb.dt) && (!rb.dt.has_data() || rb.current_loaded!=t)) {
+				// if loaded, then run				
+				if(rb.dt && route_changed) {
 					rb.dt.run();
 				}
 			}
@@ -192,16 +192,20 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	
 	get_order_by: function() {
 		// first 
-		var order_by = this.get_full_column_name([this.sort_by_select.val()]) 
+		var order_by = this.get_selected_table_and_column(this.sort_by_select) 
 			+ ' ' + this.sort_order_select.val()
-		
+			
 		// second
 		if(this.sort_by_next_select.val()) {
-			order_by += ', ' + this.get_full_column_name([this.sort_by_next_select.val()]) 
+			order_by += ', ' + this.get_selected_table_and_column(this.sort_by_next_select) 
 				+ ' ' + this.sort_order_next_select.val()
 		}
 		
 		return order_by;
+	},
+	get_selected_table_and_column: function($select) {
+		return this.get_full_column_name([$select.val(), 
+			$select.find('option:selected').attr('table')]) 
 	},
 	
 	// get table_name.column_name

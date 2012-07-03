@@ -683,3 +683,18 @@ def get_label_doctype(label):
 		WHERE dt_label=%s""", label)
 
 	return res and res[0][0] or label
+
+
+def get_system_managers_list():
+	"""Returns a list of system managers' email addresses"""
+	system_managers_list = webnotes.conn.sql("""\
+		SELECT DISTINCT p.name
+		FROM tabUserRole ur, tabProfile p
+		WHERE
+			ur.parent = p.name AND
+			ur.role='System Manager' AND
+			p.docstatus<2 AND
+			p.enabled=1 AND
+			p.name not in ('Administrator', 'Guest')""", as_list=1)
+
+	return [sysman[0] for sysman in system_managers_list]

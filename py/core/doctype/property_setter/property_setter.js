@@ -32,7 +32,7 @@ $.extend(cur_frm.cscript, {
 	
 	// set doctypes with label
 	do_setup: function(doc) {
-		$c_obj([doc], 'get_setup_data', '', function(r,rt) {
+		$c_obj(make_doclist(doc.doctype, doc.name), 'get_setup_data', '', function(r,rt) {
 			var r = r.message;
 			cur_frm.cscript.set_doctypes(r.doctypes);
 
@@ -76,7 +76,7 @@ $.extend(cur_frm.cscript, {
 	
 	// load fields for this doctype
 	set_field_ids: function(doc) {
-		$c_obj([doc], 'get_field_ids', '', function(r,rt) {
+		$c_obj(make_doclist(doc.doctype, doc.name), 'get_field_ids', '', function(r,rt) {
 			var fl = [];
 			cur_frm.field_id_list = [];
 			for(var i=0; i<r.message.length; i++) {

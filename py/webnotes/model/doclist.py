@@ -78,6 +78,10 @@ class DocList:
 		from webnotes.model.utils import expand
 		self.docs = expand(data)
 		self.objectify(docname)
+		
+	def set_doclist(self, docs):
+		self.doclist = docs
+		self.doc, self.children = docs[0], docs[1:]
 
 	def objectify(self, docname=None):
 		"""
@@ -86,8 +90,7 @@ class DocList:
 		from webnotes.model.doc import Document
 
 		self.docs = [Document(fielddata=d) for d in self.docs]
-		self.doclist = self.docs
-		self.doc, self.children = self.docs[0], self.docs[1:]
+		self.set_doclist(self.docs)
 
 	def make_obj(self):
 		"""
@@ -189,6 +192,8 @@ class DocList:
 			getattr(self.obj, 'custom_' + method)()
 
 		trigger(method, self.doc)
+		
+		self.set_doclist([self.obj.doc] + self.obj.doclist)
 
 	def save_main(self):
 		"""

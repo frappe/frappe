@@ -55,14 +55,32 @@ def get(arg=None):
 	data['tables'] = ', '.join(tables)
 	data['conditions'] = ' and '.join(conditions)
 	data['fields'] = ', '.join(fields)
+	
 	if not data.get('order_by'):
 		data['order_by'] = tables[0] + '.modified desc'
+		
+	if len(tables) > 1:
+		data['group_by'] = "group by " + tables[0] + ".name"
+	else:
+		data['group_by'] = ''
+
+	check_sort_by_table(data.get('order_by'), tables)
 	
 	add_limit(data)
 	
 	query = """select %(fields)s from %(tables)s where %(conditions)s
-		order by %(order_by)s %(limit)s""" % data
+		%(group_by)s order by %(order_by)s %(limit)s""" % data
+
 	return webnotes.conn.sql(query, as_dict=1)
+
+def check_sort_by_table(sort_by, tables):
+	"""check atleast 1 column selected from the sort by table """
+	tbl = sort_by.split('.')[0]
+	if tbl not in tables:
+		if tbl.startswith('`'):
+			tbl = tbl[4:-1]
+		webnotes.msgprint("Please select atleast 1 column from '%s' to sort"\
+			% tbl, raise_exception=1)
 
 def run_custom_query(data):
 	"""run custom query"""
@@ -121,7 +139,7 @@ def build_conditions(filters):
 
 	# match conditions
 	build_match_conditions(data, conditions)
-		
+
 	return conditions
 		
 def build_filter_conditions(data, filters, conditions):
@@ -164,6 +182,8 @@ def get_tables():
 	# add tables from fields
 	for f in json.loads(data['fields']):
 		table_name = f.split('.')[0]
+		if table_name.lower().startswith('group_concat('):
+			table_name = table_name[13:]
 		# check if ifnull function is used
 		if table_name.lower().startswith('ifnull('):
 			table_name = table_name[7:]

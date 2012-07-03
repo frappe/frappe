@@ -643,10 +643,21 @@ LinkField.prototype.make_input = function() {
 	};
 	
 	$(this.txt).change(function() {
-		if(!$(this).val()) {
+		var val = $(this).val();//me.get_value();
+
+		me.set_input_value_executed = false;
+		
+		if(!val) {
 			if(selector && selector.display) 
 				return;
 			me.set_input_value('');			
+		} else {
+			// SetTimeout hack! if in put is set via autocomplete, do not validate twice
+			setTimeout(function() {
+				if (!me.set_input_value_executed) {
+					me.set_input_value(val);
+				}
+			}, 100);
 		}
 	})
 }
@@ -662,7 +673,7 @@ LinkField.prototype.get_custom_query = function() {
 
 LinkField.prototype.setup_buttons = function() { 
 	var me = this;
-
+	
 	// magnifier - search
 	me.btn.onclick = function() {
 		selector.set(me, me.df.options, me.df.label);
@@ -701,6 +712,10 @@ LinkField.prototype.setup_buttons = function() {
 
 LinkField.prototype.set_input_value = function(val) {
 	var me = this;
+	
+	// SetTimeout hack! if in put is set via autocomplete, do not validate twice
+	me.set_input_value_executed = true;
+
 	var from_selector = false;
 	if(selector && selector.display) from_selector = true;
 		
@@ -735,7 +750,12 @@ LinkField.prototype.set_input_value = function(val) {
 		return;
 	}
 
+	me.validate_link(val, from_selector);
+}
+
+LinkField.prototype.validate_link = function(val, from_selector) {
 	// validate the value just entered
+	var me = this;
 	var fetch = '';
 	if(cur_frm.fetch_dict[me.df.fieldname])
 		fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');
@@ -745,7 +765,7 @@ LinkField.prototype.set_input_value = function(val) {
 			'options':me.df.options, 
 			'fetch': fetch
 		}, 
-		function(r,rt) { 
+		function(r,rt) {
 			if(r.message=='Ok') {
 				// set fetch values
 				if($(me.txt).val()!=val) {

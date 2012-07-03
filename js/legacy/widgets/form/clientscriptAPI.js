@@ -42,7 +42,7 @@ $c_get_values = function(args, doc, dt, dn, user_callback) {
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	if(!allow_edit)freeze('Fetching Data...');
-	$c('runserverobj', args={'method':method, 'docs':compress_doclist([doc]), 'arg':arg},
+	$c('runserverobj', args={'method':method, 'docs':compress_doclist(make_doclist(doc.doctype, doc.name)), 'arg':arg},
 	function(r, rt) {
 		if (r.message)  {
 			var d = locals[dt][dn];

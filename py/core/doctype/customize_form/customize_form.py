@@ -107,7 +107,7 @@ class DocType:
 			Clear fields in the doc
 		"""
 		# Clear table before adding new doctype's fields
-		self.doc.clear_table(self.doclist, 'fields')
+		self.doclist = self.doc.clear_table(self.doclist, 'fields')
 		self.set({ 'list': self.doctype_properties, 'value': None })
 	
 		

@@ -77,6 +77,9 @@ function get_local(dt, dn) { return locals[dt] ? locals[dt][dn] : null; }
 
 LocalDB.sync = function(list) {
 	if(list._kl)list = expand_doclist(list);
+	if (list) {
+		LocalDB.clear_locals(list[0].doctype, list[0].name);
+	}
 	for(var i=0;i<list.length;i++) {
 		var d = list[i];
 		if(!d.name) // get name (local if required)
@@ -95,6 +98,15 @@ LocalDB.sync = function(list) {
 		}
 	}
 }
+
+LocalDB.clear_locals = function(dt, dn) {
+	var doclist = make_doclist(dt, dn, 1);
+	// console.dir(['in clear', doclist]);
+	$.each(doclist, function(i, v) {
+		v && delete locals[v.doctype][v.name];
+	});
+}
+
 
 // Get Local Name
 // ======================================================================================
@@ -269,6 +281,7 @@ LocalDB.copy=function(dt, dn, from_amend) {
 // ======================================================================================
 
 function make_doclist(dt, dn, deleted) {
+	if(!locals[dt]) { return []; }
 	var dl = [];
 	dl[0] = locals[dt][dn];
 	

@@ -45,6 +45,7 @@ def savedocs():
 		# send updated docs
 		webnotes.response['saved'] = '1'
 		webnotes.response['main_doc_name'] = doclist.doc.name
+		webnotes.response['doctype'] = doclist.doc.doctype
 		webnotes.response['docname'] = doclist.doc.name
 		webnotes.response['docs'] = [doclist.doc] + doclist.children
 
