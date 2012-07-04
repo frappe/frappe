@@ -29,12 +29,6 @@ _f.ColumnBreak = function() {
 }
 
 _f.ColumnBreak.prototype.make_body = function() {
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || 
-		this.df.hidden) {
-		// no display
-		return;
-	}
-
 	this.cell = this.frm.layout.addcell(this.df.width);
 	$y(this.cell.wrapper, {padding: '8px'});
 	_f.cur_col_break_width = this.df.width;
@@ -48,15 +42,23 @@ _f.ColumnBreak.prototype.make_body = function() {
 }
 
 _f.ColumnBreak.prototype.refresh = function(layout) {
-	if(!this.cell)return; // no perm
+	//if(!this.cell)return; // no perm
+	
+	var hidden = 0;
+	// we generate column breaks, but hide it based on perms/hidden value
+	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || 
+		this.df.hidden) {
+		// do not display, as no permission
+		hidden = 1;
+	}
 	
 	// hidden
-	if(this.set_hidden!=this.df.hidden) {
-		if(this.df.hidden)
+	if(this.set_hidden!=hidden) {
+		if(hidden)
 			this.cell.hide();
 		else
 			this.cell.show();
-		this.set_hidden = this.df.hidden;
+		this.set_hidden = hidden;
 	}
 }
 
@@ -72,11 +74,6 @@ _f.SectionBreak = function() {
 
 _f.SectionBreak.prototype.make_body = function() {
 	var me = this;
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
-		// no display
-		return;
-	}
-
 	this.make_row();
 
 	if(this.df.label) {
@@ -146,7 +143,14 @@ _f.SectionBreak.prototype.has_data = function() {
 }
 
 _f.SectionBreak.prototype.refresh = function(from_form) {
-	if(this.df.hidden) {
+	var hidden = 0;
+	// we generate section breaks, but hide it based on perms/hidden value
+	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
+		// no display
+		hidden = 1;
+	}
+
+	if(hidden) {
 		if(this.row)this.row.hide();
 	} else {
 		if(this.collapsible) {

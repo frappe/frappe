@@ -239,7 +239,7 @@ Field.prototype.refresh_display = function() {
 	}
 }
 
-Field.prototype.refresh = function() { 
+Field.prototype.refresh = function() {
 	// get status
 	this.disp_status = this.get_status();
 

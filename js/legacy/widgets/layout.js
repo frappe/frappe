@@ -157,6 +157,6 @@ LayoutCell.prototype.set_width = function(row, width) {
 	
 }
 
-LayoutCell.prototype.show = function() { $ds(this.wrapper); }
-LayoutCell.prototype.hide = function() { $dh(this.wrapper); }
+LayoutCell.prototype.show = function() { $ds(this.cell); }
+LayoutCell.prototype.hide = function() { $dh(this.cell); }
 
