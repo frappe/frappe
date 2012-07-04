@@ -657,7 +657,7 @@ LinkField.prototype.make_input = function() {
 				if (!me.set_input_value_executed) {
 					me.set_input_value(val);
 				}
-			}, 100);
+			}, 1000);
 		}
 	})
 }
