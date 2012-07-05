@@ -216,7 +216,6 @@ class DocList:
 		"""
 		child_map = {}
 		
-		webnotes.errprint([[]])
 		for d in self.children:
 			if d.fields.has_key('parent'):
 				if d.parent and (not d.parent.startswith('old_parent:')):
