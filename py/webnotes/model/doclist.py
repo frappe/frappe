@@ -231,7 +231,7 @@ class DocList:
 			cnames = child_map[dt]
 			webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
 				name not in (%s)""" % (dt, '%s', '%s', ','.join(['%s'] * len(cnames))), 
-					tuple([self.doc.name, self.doc.doctype] + cnames), debug=1)
+					tuple([self.doc.name, self.doc.doctype] + cnames))
 
 	def save(self, check_links=1):
 		"""
