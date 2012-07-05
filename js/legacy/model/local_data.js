@@ -225,12 +225,7 @@ LocalDB.create = function(doctype, n) {
 // ======================================================================================
 
 LocalDB.delete_record = function(dt, dn)  {
-	var d = locals[dt][dn];
-	if(!d.__islocal) // newly created (not required to tag)
-		d.__oldparent = d.parent;
-	d.parent = 'old_parent:' + d.parent; // should be ..
-	d.docstatus = 2;
-	d.__deleted = 1;
+	delete locals[dt][dn];
 }
 
 // ======================================================================================
@@ -280,7 +275,7 @@ LocalDB.copy=function(dt, dn, from_amend) {
 
 // ======================================================================================
 
-function make_doclist(dt, dn, deleted) {
+function make_doclist(dt, dn) {
 	if(!locals[dt]) { return []; }
 	var dl = [];
 	dl[0] = locals[dt][dn];
@@ -290,9 +285,8 @@ function make_doclist(dt, dn, deleted) {
 		if(locals[ndt]) {
 			for(var ndn in locals[ndt]) {
 				var doc = locals[ndt][ndn];
-				if(doc && doc.parenttype==dt && (doc.parent==dn||(deleted&&doc.__oldparent==dn))) {
-					dl[dl.length]=doc;
-					//if(deleted&&(doc.__oldparent==dn))alert(doc.name+','+doc.__oldparent);
+				if(doc && doc.parenttype==dt && doc.parent==dn) {
+					dl.push(doc)
 				}
 			}
 		}

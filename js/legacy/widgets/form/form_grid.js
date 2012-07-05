@@ -222,7 +222,7 @@ _f.FormGrid.prototype.check_selected = function() {
 _f.FormGrid.prototype.delete_row = function(dt, dn) {
 	if(dt && dn) {
 		LocalDB.delete_record(dt, dn);
-		this.refresh();	
+		this.refresh();
 	} else {
 		if(!this.check_selected()) return;
 		var r = _f.cur_grid_cell.row;

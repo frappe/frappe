@@ -214,18 +214,24 @@ class DocList:
 		"""
 			Save Children, with the new parent name
 		"""
+		child_map = {}
+		
 		for d in self.children:
-			deleted, local = d.fields.get('__deleted',0), d.fields.get('__islocal',0)
-
-			if cint(local) and cint(deleted):
-				pass
-
-			elif d.fields.has_key('parent'):
+			if d.fields.has_key('parent'):
 				if d.parent and (not d.parent.startswith('old_parent:')):
 					d.parent = self.doc.name # rename if reqd
 					d.parenttype = self.doc.doctype
 
-				d.save(new = cint(local))
+				d.save(new = cint(d.fields.get('__islocal')))
+			
+			child_map.setdefault(d.doctype, []).append(d.name)
+		
+		# delete all children in database that are not in the child_map
+		for dt in child_map:
+			cnames = child_map[dt]
+			webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+				name not in (%s)""" % (dt, '%s', '%s', ','.join(['%s'] * len(cnames))), 
+					tuple([self.doc.name, self.doc.doctype] + cnames), debug=1)
 
 	def save(self, check_links=1):
 		"""
