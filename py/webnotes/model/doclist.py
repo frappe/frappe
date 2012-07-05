@@ -216,6 +216,7 @@ class DocList:
 		"""
 		child_map = {}
 		
+		webnotes.errprint([[]])
 		for d in self.children:
 			if d.fields.has_key('parent'):
 				if d.parent and (not d.parent.startswith('old_parent:')):
@@ -227,11 +228,19 @@ class DocList:
 			child_map.setdefault(d.doctype, []).append(d.name)
 		
 		# delete all children in database that are not in the child_map
-		for dt in child_map:
-			cnames = child_map[dt]
-			webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
-				name not in (%s)""" % (dt, '%s', '%s', ','.join(['%s'] * len(cnames))), 
-					tuple([self.doc.name, self.doc.doctype] + cnames))
+		
+		# get all children types
+		tablefields = webnotes.model.meta.get_table_fields(self.doc.doctype)
+				
+		for dt in tablefields:
+			cnames = child_map.get(dt[0]) or []
+			if cnames:
+				webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+					name not in (%s)""" % (dt[0], '%s', '%s', ','.join(['%s'] * len(cnames))), 
+						tuple([self.doc.name, self.doc.doctype] + cnames))
+			else:
+				webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
+					% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
 
 	def save(self, check_links=1):
 		"""
