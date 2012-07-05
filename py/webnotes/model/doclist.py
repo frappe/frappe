@@ -191,7 +191,7 @@ class DocList:
 		if hasattr(self.obj, 'custom_' + method):
 			getattr(self.obj, 'custom_' + method)()
 
-		trigger(method, self.doc)
+		trigger(method, self.obj.doc)
 		
 		self.set_doclist([self.obj.doc] + self.obj.doclist)
 
