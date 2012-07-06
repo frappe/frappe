@@ -215,7 +215,7 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	// show static
 	var hc = this.head_row.cells[cell.cellIndex];
 	
-	if(hc.fieldname) {
+	if(hc.fieldname && locals[hc.doctype][cell.row.docname]) {
 		var v = locals[hc.doctype][cell.row.docname][hc.fieldname];
 	} else {
 		var v = (cell.row.rowIndex + 1); // Index
