@@ -38,7 +38,6 @@ _f.ColumnBreak.prototype.make_body = function() {
 	if(this.df&&this.df.label){
 		this.label = $a(this.cell.wrapper, 'div', '', '', this.df.label);
 	}
-
 }
 
 _f.ColumnBreak.prototype.refresh = function(layout) {
