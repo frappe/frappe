@@ -185,6 +185,9 @@ def setup_options():
 			
 	parser.add_option("--update", help="Pull, run latest patches and sync all",
 			nargs=2, metavar="ORIGIN BRANCH")
+			
+	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
+			action="store_true")
 
 	return parser.parse_args()
 	
@@ -302,6 +305,10 @@ def run():
 		
 	elif options.cms:
 		create_cms_files()
+		
+	elif options.cleanup_data:
+		from utilities import cleanup_data
+		cleanup_data.run()
 
 	# print messages
 	if webnotes.message_log:

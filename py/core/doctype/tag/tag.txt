@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:39',
+		'creation': '2012-07-09 11:17:17',
 		'docstatus': 0,
-		'modified': '2012-03-27 18:43:27',
+		'modified': '2012-07-09 14:19:39',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -21,13 +21,18 @@
 		'section_style': u'Simple',
 		'server_code_error': u' ',
 		'show_in_menu': 0,
-		'version': 6
+		'version': 1
 	},
 
 	# These values are common for all DocField
 	{
 		'doctype': u'DocField',
+		'fieldname': u'tag_name',
+		'fieldtype': u'Data',
+		'label': u'Tag Name',
 		'name': '__common__',
+		'oldfieldname': u'tag_name',
+		'oldfieldtype': u'Data',
 		'parent': u'Tag',
 		'parentfield': u'fields',
 		'parenttype': u'DocType',
@@ -61,31 +66,6 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
-		'fieldname': u'tag_name',
-		'fieldtype': u'Data',
-		'label': u'Tag Name',
-		'oldfieldname': u'tag_name',
-		'oldfieldtype': u'Data'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'tag_details_section_break',
-		'fieldtype': u'Section Break',
-		'label': u'Tag Details',
-		'oldfieldtype': u'Section Break'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'tag_details',
-		'fieldtype': u'Table',
-		'label': u'Tag Details1',
-		'oldfieldname': u'tag_details',
-		'oldfieldtype': u'Table',
-		'options': u'Tag Detail'
+		'doctype': u'DocField'
 	}
 ]
