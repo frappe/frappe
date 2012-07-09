@@ -98,9 +98,6 @@ class DocType:
 			if not os.path.exists(path + '.css'):
 				with open(path + '.css', 'w') as f:
 					pass
- 
-			# web page
-			self.write_cms_page()
 
 	def get_from_files(self):
 		"""
