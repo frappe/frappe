@@ -962,7 +962,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	var newdoc = LocalDB.copy(this.doctype, dn, from_amend);
 
 	// do not copy attachments
-	if(this.meta.allow_attach && newdoc.file_list)
+	if(this.meta.allow_attach && newdoc.file_list && !from_amend)
 		newdoc.file_list = null;
 	
 	// copy chidren
