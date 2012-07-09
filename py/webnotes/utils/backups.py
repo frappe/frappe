@@ -89,12 +89,12 @@ class BackupGenerator:
 		"""
 		backup_url = webnotes.conn.get_value('Website Settings',
 			'Website Settings', 'subdomain') or ''
-		backup_url = os.path.join(backup_url, 'backups')
+		backup_url = os.path.join('http://' + backup_url, 'backups')
 		file_url = os.path.join(backup_url, backup_file)
 		from webnotes.utils.email_lib import sendmail
 		
 		recipient_list = self.get_recipients()
-		msg = """<a href=%(file_url)s>Click here to begin downloading\
+		msg = """<a href="%(file_url)s">Click here to begin downloading\
 		 your backup</a>
 		 
 		 This link will be valid for 24 hours.
