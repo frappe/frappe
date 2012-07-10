@@ -317,7 +317,13 @@ _f.Frm.prototype.set_intro = function(txt) {
 		this.intro_area = $('<div class="form-intro-area">')
 			.insertBefore(this.page_layout.body.firstChild);
 	}
-	this.intro_area.html(txt);
+	if(txt) {
+		this.intro_area.html(txt);		
+	} else {
+		this.intro_area.remove();
+		this.intro_area = null;
+	}
+	
 }
 
 _f.Frm.prototype.setup_fields_std = function() {
@@ -624,8 +630,6 @@ _f.Frm.prototype.refresh_footer = function() {
 	}
 }
 
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.refresh_fields = function() {
 	// refresh fields
 	for(var i=0; i<this.fields.length; i++) {
@@ -653,7 +657,6 @@ _f.Frm.prototype.refresh_fields = function() {
 	this.cleanup_refresh(this);
 }
 
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.cleanup_refresh = function() {
 	var me = this;
@@ -680,7 +683,6 @@ _f.Frm.prototype.cleanup_refresh = function() {
 }
 
 // Resolve "depends_on" and show / hide accordingly
-// ======================================================================================
 
 _f.Frm.prototype.refresh_dependency = function() {
 	var me = this;
@@ -866,7 +868,6 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 	}
 }
 
-// ======================================================================================
 
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 	var me = this;
@@ -897,8 +898,6 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 	}
 }
 
-
-// ======================================================================================
 
 _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 	var _dt = this.parent_doctype ? this.parent_doctype : this.doctype;
@@ -947,8 +946,6 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 	}
 	return ret;
 }
-
-// ======================================================================================
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	
@@ -1002,8 +999,6 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	loaddoc(newdoc.doctype, newdoc.name);
 }
 
-// ======================================================================================
-
 _f.Frm.prototype.reload_doc = function() {
 	this.check_doctype_conflict(this.docname);
 
@@ -1023,7 +1018,6 @@ _f.Frm.prototype.reload_doc = function() {
 	}
 }
 
-// ======================================================================================
 
 _f.Frm.prototype.savedoc = function(save_action, onsave, onerr) {
 	this.error_in_section = 0;
@@ -1071,8 +1065,6 @@ _f.Frm.prototype.savetrash = function() {
 	} 
 }
 
-// ======================================================================================
-
 _f.Frm.prototype.amend_doc = function() {
 	if(!this.fields_dict['amended_from']) {
 		alert('"amended_from" field must be present to do an amendment.');
@@ -1086,8 +1078,6 @@ _f.Frm.prototype.amend_doc = function() {
     }
     this.copy_doc(fn, 1);
 }
-
-// ======================================================================================
 
 _f.get_value = function(dt, dn, fn) {
 	if(locals[dt] && locals[dt][dn]) 
@@ -1129,8 +1119,6 @@ _f.set_value = function(dt, dn, fn, v) {
 	}
 }
 
-// ======================================================================================
-
 _f.Frm.prototype.show_comments = function() {
 	if(!cur_frm.comments) {
 		cur_frm.comments = new Dialog(540, 400, 'Comments');
@@ -1144,3 +1132,10 @@ _f.Frm.prototype.show_comments = function() {
 	cur_frm.comments.list.run();
 }
 
+_f.Frm.prototype.get_doc = function() {
+	return locals[this.doctype][this.docname];
+}
+
+_f.Frm.prototype.get_doclist = function() {
+	return make_doclist(this.doctype, this.docname);
+}

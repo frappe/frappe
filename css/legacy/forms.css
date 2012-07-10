@@ -12,6 +12,13 @@ div.form-title {
 	margin-right: 7px;
 }
 
+div.form-intro-area {
+	background-color: #ffe;
+	padding: 9px 9px 0px 9px;
+	border: 1px dashed #fc7;
+	margin-bottom: 15px;
+}
+
 div.form-section-head {
 	margin: 11px -15px 3px -15px;
 	border-top: 1px solid #ccc;
