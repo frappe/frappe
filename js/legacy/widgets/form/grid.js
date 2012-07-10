@@ -54,13 +54,13 @@ _f.Grid.prototype.init = function(parent, row_height) {
 
 _f.Grid.prototype.make_ui = function(parent) { 
 
-	var ht = make_table($a(parent, 'div'), 1, 2, '100%', ['60%','40%']);
+	var ht = make_table($a(parent, 'div'), 1, 2, '100%', ['55%','45%']);
 	this.main_title = $td(ht,0,0); this.main_title.className = 'columnHeading';
 	$td(ht,0,1).style.textAlign = 'right';
 	this.tbar_div = $a($td(ht,0,1), 'div', 'grid_tbarlinks');
 	this.tbar_tab = make_table(this.tbar_div,1,4,'100%',['25%','25%','25%','25%']);	
 			
-	this.wrapper = $a(parent, 'div', 'grid_wrapper');
+	this.wrapper = $a(parent, 'div', 'grid_wrapper round');
 
 	this.head_wrapper = $a(this.wrapper, 'div', 'grid_head_wrapper');
 
