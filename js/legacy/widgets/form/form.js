@@ -26,7 +26,7 @@
  		+ this.wrapper
  			+ this.content
 	 			+ this.saved_wrapper
-				+ wn.PageLayout	(this.page_layout_layout)
+				+ wn.PageLayout	(this.page_layout)
 				+ this.wrapper
 					+ this.wtab (table)
 						+ this.main
@@ -210,8 +210,7 @@ _f.Frm.prototype.print_doc = function() {
 	_p.show_dialog(); // multiple options
 }
 
-// ======================================================================================
-
+// email the form
 _f.Frm.prototype.email_doc = function() {
 	// make selector
 	if(!_e.dialog) _e.make();
@@ -245,8 +244,7 @@ _f.Frm.prototype.email_doc = function() {
 	_e.dialog.show();
 }
 
-// ======================================================================================
-
+// notify this form of renamed records
 _f.Frm.prototype.rename_notify = function(dt, old, name) {	
 	// from form
 	if(this.meta.in_dialog && !this.in_form) 
@@ -276,8 +274,6 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 }
 
 // SETUP
-// ======================================================================================
-
 
 _f.Frm.prototype.setup_meta = function(doctype) {
 	this.meta = get_local('DocType',this.doctype);
@@ -287,13 +283,11 @@ _f.Frm.prototype.setup_meta = function(doctype) {
 }
 
 
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.setup_sidebar = function() {
 	this.sidebar = new wn.widgets.form.sidebar.Sidebar(this);
 }
 
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.setup_footer = function() {
 	var me = this;
@@ -318,7 +312,13 @@ _f.Frm.prototype.setup_footer = function() {
 	}
 }
 
-// --------------------------------------------------------------------------------------
+_f.Frm.prototype.set_intro = function(txt) {
+	if(!this.intro_area) {
+		this.intro_area = $('<div class="form-intro-area">')
+			.insertBefore(this.page_layout.body.firstChild);
+	}
+	this.intro_area.html(txt);
+}
 
 _f.Frm.prototype.setup_fields_std = function() {
 	var fl = wn.meta.docfield_list[this.doctype]; 
