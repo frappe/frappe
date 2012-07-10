@@ -360,7 +360,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 		}
 		
 		// default col-break after sec-break
-		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')&&!f.hidden) {
+		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')) {
 			var c = this.layout.addcell();
 			$y(c.wrapper, {padding: '8px'});			
 		}
