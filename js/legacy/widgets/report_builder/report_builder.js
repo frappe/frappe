@@ -426,12 +426,7 @@ _r.ReportBuilder.prototype.setup_filters_and_cols = function() {
 	// function checks where there is submit permission on the DocType or if the DocType 
 	// can be trashed
 	function can_dt_be_submitted(dt) {
-		if(locals.DocType && locals.DocType[dt] && locals.DocType[dt].allow_trash) return 1;
-		var plist = getchildren('DocPerm', dt, 'permissions', 'DocType');
-		for(var pidx in plist) {
-			if(plist[pidx].submit) return 1;
-		}
-		return 0;
+		return locals.DocType[dt] && locals.DocType[dt].is_submittable || 0;
 	}
 
 	var me = this;

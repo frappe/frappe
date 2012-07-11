@@ -5,7 +5,7 @@
 	{
 		'creation': '2012-07-03 13:30:34',
 		'docstatus': 0,
-		'modified': '2012-07-11 13:53:14',
+		'modified': '2012-07-11 16:15:21',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -332,16 +332,6 @@
 		'fieldname': u'is_submittable',
 		'fieldtype': u'Check',
 		'label': u'Is Submittable'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_trash',
-		'fieldtype': u'Check',
-		'label': u'Allow Trash',
-		'oldfieldname': u'allow_trash',
-		'oldfieldtype': u'Check'
 	},
 
 	# DocField

@@ -128,7 +128,8 @@ Field.prototype.set_description = function() {
 
 Field.prototype.get_status = function() {
 	// if used in filters
-	if(this.in_filter) this.not_in_form = this.in_filter;
+	if(this.in_filter) 
+		this.not_in_form = this.in_filter;
 	
 	if(this.not_in_form) {
 		return 'Write';
@@ -140,7 +141,7 @@ Field.prototype.get_status = function() {
 	var ret;
 
 	// permission level
-	if(cur_frm.editable && p && p[WRITE])ret='Write';
+	if(cur_frm.editable && p && p[WRITE] && !this.disabled)ret='Write';
 	else if(p && p[READ])ret='Read';
 	else ret='None';
 

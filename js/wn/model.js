@@ -60,8 +60,6 @@ wn.model = {
 
 	can_delete: function(doctype) {
 		if(!doctype) return false;
-		//return locals.DocType[doctype].allow_trash && 
-		//	wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
 		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
 	}
 }

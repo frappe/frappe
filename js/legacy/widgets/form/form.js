@@ -623,7 +623,9 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
-		if(get_url_arg('embed') || (this.editable && (!this.meta.in_dialog || this.in_form) && this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE])) {
+		if(this.editable && (!this.meta.in_dialog || this.in_form) 
+			&& this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE]
+			&& (this.fields && this.fields.length > 7)) {
 			f.show_save();
 		} else {
 			f.hide_save();
@@ -1146,4 +1148,15 @@ _f.Frm.prototype.get_doclist = function() {
 _f.Frm.prototype.toggle_fields = function(fields, show) {
 	if(show) { unhide_field(fields) } 
 	else { hide_field(fields) }
+}
+
+_f.Frm.prototype.enable_fields = function(fields, enable) {
+	if(typeof fields=='string') fields = [fields];
+	$.each(fields, function(i,f) {
+		var field = cur_frm.fields_dict[f];
+		if(field) {
+			field.disabled = enable ? false : true;
+			field.refresh && field.refresh();
+		};
+	})
 }
