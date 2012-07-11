@@ -314,7 +314,7 @@ _f.Frm.prototype.setup_footer = function() {
 
 _f.Frm.prototype.set_intro = function(txt) {
 	if(!this.intro_area) {
-		this.intro_area = $('<div class="form-intro-area">')
+		this.intro_area = $('<div class="help-box form-intro-area">')
 			.insertBefore(this.page_layout.body.firstChild);
 	}
 	if(txt) {
@@ -1138,4 +1138,9 @@ _f.Frm.prototype.get_doc = function() {
 
 _f.Frm.prototype.get_doclist = function() {
 	return make_doclist(this.doctype, this.docname);
+}
+
+_f.Frm.prototype.toggle_fields = function(fields, show) {
+	if(show) { unhide_field(fields) } 
+	else { hide_field(fields) }
 }

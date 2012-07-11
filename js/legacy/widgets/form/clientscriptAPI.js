@@ -134,7 +134,7 @@ hide_field = function(n) {
 		else { console.log("hide_field cannot find field " + n); }
 	}	
 	if(cur_frm) {
-		if(n.substr) _hide_field(n,1);
+		if(typeof n == 'string') _hide_field(n,1);
 		else { for(var i in n)_hide_field(n[i],1) }
 	}
 }
@@ -146,7 +146,7 @@ unhide_field = function(n) {
 		else { console.log("unhide_field cannot find field " + n); }
 	}	
 	if(cur_frm) {
-		if(n.substr) _hide_field(n,0);
+		if(typeof n == 'string') _hide_field(n,0);
 		else { for(var i in n)_hide_field(n[i],0) }
 	}
 }

@@ -13,10 +13,8 @@ div.form-title {
 }
 
 div.form-intro-area {
-	background-color: #ffe;
 	padding: 9px 9px 0px 9px;
-	border: 1px dashed #fc7;
-	margin-bottom: 15px;
+	margin: 0px 0px 15px 0px;
 }
 
 div.form-section-head {

@@ -234,7 +234,7 @@ _f.FormGrid.prototype.delete_row = function(dt, dn) {
 		LocalDB.delete_record(this.doctype, r.docname);	
 		
 		this.refresh();
-		if(ri < (this.tab.rows.length-2))
+		if(ri < (this.tab.rows.length-1))
 			this.cell_select(null, ri, ci);
 		else _f.cur_grid_cell = null;	
 	}

@@ -38,10 +38,10 @@ function makeselector() {
 	var d = new Dialog(540,440, 'Search');
 
 	d.make_body([
+		['HTML', 'Help'],
 		['Data', 'Beginning With', 'Tip: You can use wildcard "%"'],
 		['Select', 'Search By'],
 		['Button', 'Search'],
-		['HTML', 'Help'],
 		['HTML', 'Result']
 	]);
 
@@ -64,7 +64,8 @@ function makeselector() {
 		d.set_query_description()
 
 		if(!d.sel_type)d.sel_type = 'Value';
-		d.set_title('Select a "'+ d.sel_type +'" for field "'+label+'"');
+		d.set_title("Select");
+		d.set_query_description('Select a "'+ d.sel_type +'" for field "'+label+'"');
 	}
 	d.set_search = function(dt) {
 		if(d.style!='Search') {
@@ -83,9 +84,10 @@ function makeselector() {
 		}
 	})
 
-	d.set_query_description = function() {
-		if(d.input && d.input.query_description) {
-			d.rows['Help'].innerHTML ='<div class="help_box">' + d.input.query_description + '</div>';
+	d.set_query_description = function(txt) {
+		if(!txt) txt = d.input && d.input.query_description || null;
+		if(txt) {
+			d.rows['Help'].innerHTML ='<div class="help-box" style="margin-top:0px">' + txt + '</div>';
 		} else {
 			d.rows['Help'].innerHTML =''
 		}

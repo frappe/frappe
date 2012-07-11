@@ -296,7 +296,7 @@ _f.Grid.prototype.cell_deselect = function() {
 }
 
 _f.Grid.prototype.cell_select = function(cell, ri, ci) {
-	if(_f.cur_grid_cell==cell && cell.hc) return;
+	if(cell && _f.cur_grid_cell==cell && cell.hc) return;
 	
 	if(ri!=null && ci!=null)
 		cell = this.tab.rows[ri].cells[ci];
