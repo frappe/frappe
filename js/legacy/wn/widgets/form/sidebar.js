@@ -160,15 +160,6 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 							}));
 				},
 				display: function() { return !me.form.doc.__islocal }
-			},
-
-			{
-				title: 'Help',
-				render: function(wrapper) {
-					$(wrapper).html('<div class="help small">' 
-						+ wn.markdown(me.form.meta.description) + '</div>')
-				},
-				display: function() { return me.form.meta.description }
 			}
 		]
 	}

@@ -99,12 +99,13 @@ wn.widgets.FieldGroup = function() {
 
 wn.widgets.Dialog = function(opts) {
 	
-	this.opts = opts;
 	this.display = false;
 	
 	this.make = function(opts) {
-		if(opts) 
+		if(opts) {
 			this.opts = opts;
+			$.extend(this, opts);
+		}
 		if(!this.opts.width) this.opts.width = 480;
 		
 		if(!$('#dialog-container').length) {
@@ -183,7 +184,7 @@ wn.widgets.Dialog = function(opts) {
 		this.appframe.$titlebar.find('.close').toggle(false);
 	}
 
-	if(opts) this.make();
+	if(opts) this.make(opts);
 
 }
 

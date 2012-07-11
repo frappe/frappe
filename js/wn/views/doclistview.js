@@ -74,8 +74,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		</div>');
 		
 		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
-		wn.views.breadcrumbs($('<span class="breadcrumb-area">').appendTo(this.appframe.$titlebar), 
-			locals.DocType[this.doctype].module, this.doctype);
+		wn.views.breadcrumbs(this.appframe, locals.DocType[this.doctype].module, this.doctype);
 	},
 
 	setup: function() {

@@ -318,7 +318,8 @@ _f.Frm.prototype.set_intro = function(txt) {
 			.insertBefore(this.page_layout.body.firstChild);
 	}
 	if(txt) {
-		this.intro_area.html(txt);		
+		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+		this.intro_area.html(txt);
 	} else {
 		this.intro_area.remove();
 		this.intro_area = null;
@@ -1096,6 +1097,8 @@ _f.set_value = function(dt, dn, fn, v) {
 	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) changed = 0;
 
 	if(changed) {
+		//console.log('value changed for ' + dt + ', ' + dn + ', ' + fn)
+		
 		var prev_unsaved = d.__unsaved
 		d[fn] = v;
 		d.__unsaved = 1;

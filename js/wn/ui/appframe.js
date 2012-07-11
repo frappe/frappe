@@ -18,10 +18,12 @@ wn.ui.AppFrame = Class.extend({
 	title: function(txt) {
 		this.$titlebar.find('.appframe-title').html(txt);
 	},
-	add_button: function(label, click, icon) {
+	make_toolbar: function() {
 		if(!this.$w.find('.appframe-toolbar').length)
-			this.$w.append('<div class="appframe-toolbar"></div>');
-
+			this.$w.append('<div class="appframe-toolbar"></div>');	
+	},
+	add_button: function(label, click, icon) {
+		this.make_toolbar();
 		args = { label: label, icon:'' };
 		if(icon) {
 			args.icon = '<i class="icon '+icon+'"></i>';
@@ -32,8 +34,32 @@ wn.ui.AppFrame = Class.extend({
 			.appendTo(this.$w.find('.appframe-toolbar'));
 		return this.buttons[label];
 	},
+	add_help_button: function(txt) {
+		this.make_toolbar();
+		$('<button class="btn btn-small" style="float:right;" button-type="help">\
+			<b>?</b></button>')
+			.data('help-text', txt)
+			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
+			.appendTo(this.$w.find('.appframe-toolbar'));			
+	},
 	clear_buttons: function() {
 		this.$w.find('.appframe-toolbar').empty();
+	},
+	add_breadcrumb: function(html) {
+		if(!this.$breadcrumbs)
+			this.$breadcrumbs = $('</span>\
+				<span class="breadcrumb-area"></span>').appendTo(this.$titlebar);
+		
+		var crumb = $('<span>').html(html);
+		
+		// first breadcrumb is a title
+		if(!this.$breadcrumbs.find('span').length) {
+			crumb.addClass('appframe-title');
+		}
+		crumb.appendTo(this.$breadcrumbs);
+	},
+	clear_breadcrumbs: function() {
+		this.$breadcrumbs && this.$breadcrumbs.empty();
 	}
 });
 

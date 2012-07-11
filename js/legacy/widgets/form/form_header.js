@@ -31,14 +31,17 @@
 _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
 		this.appframe = new wn.ui.AppFrame(parent)
-		this.appframe.$titlebar.append('</span>\
-				<span class="breadcrumb-area"></span>');
 		this.$w = this.appframe.$w;
 	},
 	refresh: function() {
 		// refresh breadcrumbs
-		wn.views.breadcrumbs($(this.$w.find('.breadcrumb-area')), 
-			cur_frm.meta.module, cur_frm.meta.name, cur_frm.docname);
+		if(cur_frm.cscript.set_breadcrumbs) {
+			this.appframe.clear_breadcrumbs();
+			cur_frm.cscript.set_breadcrumbs();
+		} else {
+			wn.views.breadcrumbs(this.appframe, 
+				cur_frm.meta.module, cur_frm.meta.name, cur_frm.docname);			
+		}
 			
 		this.refresh_labels();
 		this.refresh_toolbar();
@@ -116,6 +119,12 @@ _f.FrmHeader = Class.extend({
 		// Amend
 		if(docstatus==2  && p[AMEND])
 			this.appframe.add_button('Amend', function() { cur_frm.amend_doc() }, 'icon-pencil');
+			
+		// Help
+		if(cur_frm.meta.description) {
+			this.appframe.add_help_button(wn.markdown('## ' + cur_frm.doctype + '\n<br>\n'
+				+ cur_frm.meta.description));
+		}
 
 	},
 	show: function() {
