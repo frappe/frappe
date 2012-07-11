@@ -235,13 +235,14 @@ _f.TableField.prototype = new Field();
 _f.TableField.prototype.with_label = 0;
 _f.TableField.prototype.make_body = function() {
 	if(this.perm[this.df.permlevel] && this.perm[this.df.permlevel][READ]) {
-		// add comment area
-		if(this.df.description) {
-			this.desc_area = $a(this.parent, 'div', 'help small', '', this.df.description)
-		}
 		this.grid = new _f.FormGrid(this);
 		if(this.frm)this.frm.grids[this.frm.grids.length] = this;
 		this.grid.make_buttons();
+		
+		// description
+		if(this.df.description) {
+			this.desc_area = $a(this.parent, 'div', 'help small', '', this.df.description)
+		}
 	}
 }
 

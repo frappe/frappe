@@ -24,7 +24,7 @@ wn.ui.AppFrame = Class.extend({
 
 		args = { label: label, icon:'' };
 		if(icon) {
-			args.icon = '<i class="'+icon+'"></i>';
+			args.icon = '<i class="icon '+icon+'"></i>';
 		}
 		this.buttons[label] = $(repl('<button class="btn btn-small">\
 			%(icon)s %(label)s</button>', args))

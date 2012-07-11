@@ -12,6 +12,11 @@ div.form-title {
 	margin-right: 7px;
 }
 
+div.form-intro-area {
+	padding: 9px 9px 0px 9px;
+	margin: 0px 0px 15px 0px;
+}
+
 div.form-section-head {
 	margin: 11px -15px 3px -15px;
 	border-top: 1px solid #ccc;
@@ -21,7 +26,7 @@ div.form-section-head {
 div.form-layout-row:first-child .form-section-head {
 	border-top: 0px solid #ccc !important;
 	margin-top: 0px;
-	padding-top: 15px;
+	padding-top: 0px;
 }
 
 div.form-section-head h3 {
@@ -47,18 +52,6 @@ div.page_break {
 	margin: 24px 0px;
 	border-top: 1px dashed #888;
 }
-
-div.grid_tbarlinks {
-	border-bottom: 0px;
-	background-color: #CCC;
-	padding: 4px 4px 2px 4px;
-	width: 190px;
-	float: right;
-
-	-moz-border-radius-topleft: 5px; -moz-border-radius-topright: 5px;
-	-webkit-border-top-left-radius: 5px; -webkit-border-top-right-radius: 5px;
-}
-
 
 div.dialog_frm {
 	position: relative;
