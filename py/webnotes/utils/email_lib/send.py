@@ -218,7 +218,7 @@ class EMail:
 		self.make_msg()
 		
 		sess = self.smtp_connect()
-		
+
 		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
 		
 		try:
@@ -229,23 +229,48 @@ class EMail:
 
 	def smtp_connect(self):
 		"""
-			Gets a smtp connection
+			Gets a smtp connection and handles errors
 		"""
 		from webnotes.utils import cint
 		import smtplib
-		sess = smtplib.SMTP(self.server, cint(self.port) or None)
+		import _socket
 		
-		if self.use_ssl: 
-			sess.ehlo()
-			sess.starttls()
-			sess.ehlo()
+		# check if email server specified
+		if not self.server:
+			err_msg = 'Outgoing Mail Server not specified'
+			webnotes.msgprint(err_msg)
+			raise webnotes.OutgoingEmailError, err_msg
 		
-		if self.login and self.password:
+		try:
+			sess = smtplib.SMTP(self.server, cint(self.port) or None)
+			
+			if not sess:
+				err_msg = 'Could not connect to outgoing email server'
+				webnotes.msgprint(err_msg)
+				raise webnotes.OutgoingEmailError, err_msg
+		
+			if self.use_ssl: 
+				sess.ehlo()
+				sess.starttls()
+				sess.ehlo()
+		
 			ret = sess.login(self.login, self.password)
 
 			# check if logged correctly
 			if ret[0]!=235:
 				msgprint(ret[1])
-				raise Exception
+				raise webnotes.OutgoingEmailError, ret[1]
 
-		return sess
+			return sess
+			
+		except _socket.error, e:
+			# Invalid mail server -- due to refusing connection
+			webnotes.msgprint('Invalid Outgoing Mail Server or Port. Please rectify and try again.')
+			raise webnotes.OutgoingEmailError, e
+		except smtplib.SMTPAuthenticationError, e:
+			webnotes.msgprint('Invalid Login Id or Mail Password. Please rectify and try again.')
+			raise webnotes.OutgoingEmailError, e
+		except smtplib.SMTPException, e:
+			webnotes.msgprint('There is something wrong with your Outgoing Mail Settings. \
+				Please contact us at support@erpnext.com')
+			raise webnotes.OutgoingEmailError, e

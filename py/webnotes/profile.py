@@ -267,7 +267,7 @@ class Profile:
 		from webnotes.utils.email_lib import sendmail_md
 		sendmail_md(recipients= self.name, \
 			msg = reset_password_mail % {"user": get_user_fullname(self.name), "password": pwd}, \
-			subject = 'Password Reset', from_defs=1)
+			subject = 'Password Reset')
 
 
 

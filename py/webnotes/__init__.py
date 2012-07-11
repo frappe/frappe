@@ -61,6 +61,9 @@ class AuthenticationError(Exception):
 
 class PermissionError(Exception):
 	pass
+	
+class OutgoingEmailError(ValidationError):
+	pass
 
 class UnknownDomainError(Exception):
 	def __init__(self, value):
