@@ -85,7 +85,7 @@ function makeselector() {
 	})
 
 	d.set_query_description = function(txt) {
-		if(!txt) txt = d.input && d.input.query_description || null;
+		txt = d.input && d.input.query_description || txt;
 		if(txt) {
 			d.rows['Help'].innerHTML ='<div class="help-box" style="margin-top:0px">' + txt + '</div>';
 		} else {
