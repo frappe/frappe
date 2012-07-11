@@ -182,7 +182,8 @@ def handle():
 		# login executed in webnotes.auth
 		try:
 			execute_cmd(cmd)
-		except webnotes.ValidationError:
+		except webnotes.ValidationError, e:
+			webnotes.errprint(e)
 			webnotes.conn.rollback()
 		except:
 			webnotes.errprint(webnotes.utils.getTraceback())
