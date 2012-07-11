@@ -126,6 +126,8 @@ def setup_options():
 						help="minify + concat js files")
 	parser.add_option("--cms", default=False, action="store_true",
 						help="take a dump of website pages, js and css")
+	parser.add_option("--domain", metavar="DOMAIN",
+						help="store domain in Website Settings", nargs=1)
 
 	# git
 	parser.add_option("--status", default=False, action="store_true",
@@ -309,6 +311,11 @@ def run():
 	elif options.cleanup_data:
 		from utilities import cleanup_data
 		cleanup_data.run()
+		
+	elif options.domain:
+		webnotes.conn.set_value('Website Settings', None, 'subdomain', options.domain)
+		webnotes.conn.commit()
+		print "Domain set to", options.domain
 
 	# print messages
 	if webnotes.message_log:
