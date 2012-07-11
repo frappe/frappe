@@ -43,37 +43,42 @@ rss_item = u"""
         <description>%(content)s</description>
         <link>%(link)s</link>
         <guid>%(name)s</guid>
-        <pubDate>%(modified)s</pubDate>
+        <pubDate>%(published)s</pubDate>
 </item>"""
 
 def generate():
 	"""generate rss feed"""
 	import webnotes, os
 	from webnotes.model.doc import Document
+	import webnotes.utils
 	
 	host = (os.environ.get('HTTPS') and 'https://' or 'http://') + os.environ.get('HTTP_HOST')
 	
 	items = ''
-	modified = None
-	for blog in webnotes.conn.sql("""select name, title, content, modified, page_name 
-		from tabBlog 
-		where ifnull(published,0)=1 
-		order by modified desc limit 100""", as_dict=1):
-		
-		blog['link'] = host + '/' + blog['page_name'] + '.html'
-		blog['content'] = scrub(blog['content'][:1000] or '')
-		if not modified:
-			modified = blog['modified']
+	blog_list = webnotes.conn.sql("""\
+		select
+			cache.name as name, cache.html as content,
+			cache.creation as published, cache.modified as modified,
+			(
+				select title from `tabBlog` blog
+				where blog.page_name = cache.name
+			) as title
+		from `tabWeb Cache` cache
+		where cache.doc_type = 'Blog'
+		order by creation desc limit 100""", as_dict=1)
+
+	for blog in blog_list:
+		blog['link'] = host + '/' + blog['name'] + '.html'
+		blog['content'] = webnotes.utils.escape_html((blog.get('content') or ''))
 		items += rss_item % blog
+
+	modified = max((blog['modified'] for blog in blog_list))
 		
 	ws = Document('Website Settings', 'Website Settings')
 	return (rss % {
-		'title': ws.title_prefix,
-		'description': ws.description or (ws.title_prefix + ' Blog'),
-		'modified': modified,
-		'items': items,
-		'link': host + '/blog.html'
-	}).encode('utf-8', 'ignore')
-	
-def scrub(txt):
-	return txt.replace('<', '&lt;').replace('>', '&gt;')
+				'title': ws.title_prefix,
+				'description': ws.description or (ws.title_prefix + ' Blog'),
+				'modified': modified,
+				'items': items,
+				'link': host + '/blog.html'
+			}).encode('utf-8', 'ignore')

@@ -346,3 +346,17 @@ def runquery_csv():
 	out['type'] = 'csv'
 	out['doctype'] = rep_name
 
+def add_limit_to_query(query, args):
+	"""
+		Add limit condition to query
+		can be used by methods called in listing to add limit condition
+	"""
+	if args.get('limit_page_length'):
+		query += """
+			limit %(limit_start)s, %(limit_page_length)s"""
+			
+		import webnotes.utils
+		args['limit_start'] = webnotes.utils.cint(args.get('limit_start'))
+		args['limit_page_length'] = webnotes.utils.cint(args.get('limit_page_length'))
+	
+	return query, args

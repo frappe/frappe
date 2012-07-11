@@ -283,7 +283,7 @@ def global_date_format(date):
 	if isinstance(date, basestring):
 		date = getdate(date)
 	
-	return date.strftime('%d') + ' ' + month_name_full[int(date.strftime('%m'))] \
+	return cstr(cint(date.strftime('%d'))) + ' ' + month_name_full[int(date.strftime('%m'))] \
 		+ ' ' + date.strftime('%Y')
 	
 	
@@ -655,6 +655,24 @@ def unesc(s, esc_chars):
 		esc_str = '\\' + c
 		s = s.replace(esc_str, c)
 	return s
+	
+def strip_html(text):
+	"""
+		removes anything enclosed in and including <>
+	"""
+	import re
+	return re.compile(r'<.*?>').sub('', text)
+	
+def escape_html(text):
+	html_escape_table = {
+		"&": "&amp;",
+		'"': "&quot;",
+		"'": "&apos;",
+		">": "&gt;",
+		"<": "&lt;",
+	}
+
+	return "".join(html_escape_table.get(c,c) for c in text)
 
 def get_doctype_label(dt=None):
 	"""

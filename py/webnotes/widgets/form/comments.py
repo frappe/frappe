@@ -42,10 +42,10 @@ def get_comments(doctype=None, docname=None, limit=5):
 		webnotes.response['n_comments'], webnotes.response['comment_list'] = nc, cl
 
 @webnotes.whitelist(allow_guest=True)
-def add_comment():
+def add_comment(args=None):
 	"""add a new comment"""
 	import time
-	args = webnotes.form_dict
+	if not args: args = webnotes.form_dict
 
 	if args.get('comment'):
 		from webnotes.model.doc import Document
@@ -60,6 +60,8 @@ def add_comment():
 	import startup.event_handlers
 	if hasattr(startup.event_handlers, 'comment_added'):
 		startup.event_handlers.comment_added(cmt)
+	
+	return cmt.fields
 
 @webnotes.whitelist()
 def remove_comment():
