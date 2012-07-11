@@ -88,12 +88,12 @@ wn.request.call = function(opts) {
 		dataType: opts.dataType || 'json',
 		success: function(r, xhr) {
 			wn.request.cleanup(opts, r);
-			opts.success(r, xhr.responseText);
+			opts.success && opts.success(r, xhr.responseText);
 		},
 		error: function(xhr, textStatus) {
 			wn.request.cleanup(opts, {});
 			show_alert('Unable to complete request: ' + textStatus)
-			if(opts.error)opts.error(xhr)
+			opts.error && opts.error(xhr)
 		}
 	})
 }

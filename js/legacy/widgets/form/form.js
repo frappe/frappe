@@ -681,7 +681,7 @@ _f.Frm.prototype.cleanup_refresh = function() {
 
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
-		set_field_permlevel(fn,1); // make it readonly / hidden
+		cur_frm.toggle_fields(fn, false);
 	}
 }
 
@@ -1159,4 +1159,8 @@ _f.Frm.prototype.enable_fields = function(fields, enable) {
 			field.refresh && field.refresh();
 		};
 	})
+}
+
+_f.Frm.prototype.call_server = function(method, args, callback) {
+	$c_obj(cur_frm.get_doclist(), method, args, callback);
 }
