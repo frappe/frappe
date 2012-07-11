@@ -58,14 +58,11 @@ def generate():
 	blog_list = webnotes.conn.sql("""\
 		select
 			cache.name as name, cache.html as content,
-			cache.creation as published, cache.modified as modified,
-			(
-				select title from `tabBlog` blog
-				where blog.page_name = cache.name
-			) as title
-		from `tabWeb Cache` cache
-		where cache.doc_type = 'Blog'
-		order by creation desc limit 100""", as_dict=1)
+			cache.modified as modified,
+			blog.creation as published, blog.title as title
+		from `tabWeb Cache` cache, `tabBlog` blog
+		where cache.doc_type = 'Blog' and blog.page_name = cache.name
+		order by published desc, modified desc, name asc limit 100""", as_dict=1)
 
 	for blog in blog_list:
 		blog['link'] = host + '/' + blog['name'] + '.html'
