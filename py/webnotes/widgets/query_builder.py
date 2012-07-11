@@ -254,9 +254,9 @@ def runquery(q='', ret=0, from_export=0):
 		meta = get_sql_meta(tl)
 
 		q = add_match_conditions(q, tl, webnotes.user.roles, webnotes.user.get_defaults())
-
+		webnotes
 		# replace special variables
-		q = q.replace('__user', session['user'])
+		q = q.replace('__user', session['user'].encode('utf-8'))
 		q = q.replace('__today', webnotes.utils.nowdate())
 
 		res = sql(q, as_list=1, formatted=formatted)

@@ -515,7 +515,9 @@ class Document:
 			# delete from db
 			webnotes.conn.sql("""\
 				delete from `tab%s`
-				where name in ("%s")""" % (table_list[0].doctype, '", "'.join(delete_list)))
+				where parent=%s and parenttype=%s"""
+				% (table_list[0].doctype, '%s', '%s'),
+				(self.name, self.doctype))
 
 			self.fields['__unsaved'] = 1
 		
