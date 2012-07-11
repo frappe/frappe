@@ -3,5 +3,5 @@ wn.markdown = function(txt) {
 		wn.require('js/lib/showdown.js');
 		wn.md2html = new Showdown.converter();
 	}
-	return wn.md2html.makeHtml(txt);
+	return '<div class="markdown">' + wn.md2html.makeHtml(txt) + '</div>';
 }
