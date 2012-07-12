@@ -48,10 +48,10 @@ wn.route = function() {
 }
 
 wn.get_route = function(route) {
-	// route for web
-	if(!wn.boot) {
-		return [window.page_name];
-	}
+	// route for web [deprecated after cms2]
+	// if(!wn.boot) {
+	// 	return [window.page_name];
+	// }
 	
 	// for app
 	return $.map(wn.get_route_str(route).split('/'), 
