@@ -90,6 +90,11 @@ def update_erpnext(remote='origin', branch='master'):
 	# apply latest patches
 	apply_latest_patches()
 	
+	import webnotes.modules.patch_handler
+	for l in webnotes.modules.patch_handler.log_list:
+		if "failed: STOPPED" in l:
+			return
+	
 	# sync all
 	sync_all()
 
