@@ -70,24 +70,6 @@ def search_replace_with_prompt(fpath, txt1, txt2):
 		f.write(''.join(tmp))
 	print colored('Updated', 'green')
 	
-def create_cms_files():
-	from webnotes.model.code import get_obj
-	os.system('rm public/login-page.html')
-	# rewrite pages
-	ws = get_obj('Website Settings')
-	ws.rewrite_pages()
-	ss = get_obj('Style Settings')
-	ss.validate()
-	ss.doc.save()
-	ss.on_update()
-
-	# create login-page.html if it doesnt exist by copying index.html
-	if not os.path.exists('public/login-page.html') and os.path.exists('public/index.html'):
-		os.system('cp public/index.html public/login-page.html')
-
-	# change owner of files
-	os.system('chown -R apache:apache *')
-
 def pull(remote, branch):
 	os.system('git pull %s %s' % (remote, branch))
 	os.system('cd lib && git pull %s %s' % (remote, branch))
@@ -124,8 +106,6 @@ def setup_options():
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
 						help="minify + concat js files")
-	parser.add_option("--cms", default=False, action="store_true",
-						help="take a dump of website pages, js and css")
 	parser.add_option("--domain", metavar="DOMAIN",
 						help="store domain in Website Settings", nargs=1)
 
@@ -303,11 +283,7 @@ def run():
 	
 	elif options.update:
 		update_erpnext(options.update[0], options.update[1])
-		if options.cms: create_cms_files()
-		
-	elif options.cms:
-		create_cms_files()
-		
+
 	elif options.cleanup_data:
 		from utilities import cleanup_data
 		cleanup_data.run()
