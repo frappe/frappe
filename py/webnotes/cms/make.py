@@ -21,7 +21,6 @@ def make_web_core():
 	import webnotes
 	
 	home_page = webnotes.cms.get_home_page('Guest')
-	#get_obj('Page', home_page).write_cms_page()
 
 	# js/wn-web.js and css/wn-web.css
 	write_web_js_css(home_page)

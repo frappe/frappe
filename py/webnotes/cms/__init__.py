@@ -1,11 +1,3 @@
-
-def page_name(title):
-	"""truncated page name"""	
-	import re
-	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
-	return '-'.join(name.split()[:4])
-	
 def get_home_page(user=None):
 	"""get home page for user"""
 	if not user:

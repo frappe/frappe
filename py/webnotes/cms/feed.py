@@ -50,15 +50,13 @@ def generate():
 	"""generate rss feed"""
 	import webnotes, os
 	from webnotes.model.doc import Document
-	import webnotes.utils
 	
 	host = (os.environ.get('HTTPS') and 'https://' or 'http://') + os.environ.get('HTTP_HOST')
 	
 	items = ''
 	blog_list = webnotes.conn.sql("""\
 		select
-			cache.name as name, cache.html as content,
-			cache.modified as modified,
+			cache.name as name, cache.modified as modified,
 			blog.creation as published, blog.title as title
 		from `tabWeb Cache` cache, `tabBlog` blog
 		where cache.doc_type = 'Blog' and blog.page_name = cache.name
@@ -66,7 +64,9 @@ def generate():
 
 	for blog in blog_list:
 		blog['link'] = host + '/' + blog['name'] + '.html'
-		blog['content'] = webnotes.utils.escape_html((blog.get('content') or ''))
+
+		blog['content'] = get_content(blog['name'])
+		
 		items += rss_item % blog
 
 	modified = max((blog['modified'] for blog in blog_list))
@@ -79,3 +79,18 @@ def generate():
 				'items': items,
 				'link': host + '/blog.html'
 			}).encode('utf-8', 'ignore')
+			
+def get_content(page_name):
+	import website.web_cache
+	content = website.web_cache.get_html(page_name)
+	
+	import webnotes.utils
+	
+	content = content.split("<!-- begin blog content -->")
+	content = len(content) > 1 and content[1] or content[0]
+	
+	content = content.split("<!-- end blog content -->")
+	content = content[0]
+	
+	content = webnotes.utils.escape_html(content)
+	return content
