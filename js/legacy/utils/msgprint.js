@@ -44,7 +44,7 @@ function msgprint(msg, title) {
 			.appendTo(msg_dialog.body);
 	}
 
-	if(msg.search(/<br>|<p>/)==-1)
+	if(msg.search(/<br>|<p>|<li>/)==-1)
 		msg = replace_newlines(msg);
 
 	msg_dialog.set_title(title || 'Message')

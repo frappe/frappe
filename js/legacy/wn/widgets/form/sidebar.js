@@ -95,7 +95,10 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						icon: 'icon-remove-sign',
 						onclick: function() { me.form.savetrash() }
 					}
-				]
+				],
+				display: function() {
+					return me.form.meta.hide_toolbar ? false : true;
+				}
 			},
 
 			{

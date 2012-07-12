@@ -324,8 +324,22 @@ _f.Frm.prototype.set_intro = function(txt) {
 		this.intro_area.remove();
 		this.intro_area = null;
 	}
-	
 }
+
+_f.Frm.prototype.set_footnote = function(txt) {
+	if(!this.footnote_area) {
+		this.footnote_area = $('<div class="help-box form-intro-area">')
+			.insertAfter(this.page_layout.body.lastChild);
+	}
+	if(txt) {
+		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+		this.footnote_area.html(txt);
+	} else {
+		this.footnote_area.remove();
+		this.footnote_area = null;
+	}
+}
+
 
 _f.Frm.prototype.setup_fields_std = function() {
 	var fl = wn.meta.docfield_list[this.doctype]; 
@@ -1163,4 +1177,9 @@ _f.Frm.prototype.enable_fields = function(fields, enable) {
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
 	$c_obj(cur_frm.get_doclist(), method, args, callback);
+}
+
+_f.Frm.prototype.set_value = function(field, value) {
+	cur_frm.get_doc()[field] = value;
+	cur_frm.fields_dict[field].refresh();
 }
