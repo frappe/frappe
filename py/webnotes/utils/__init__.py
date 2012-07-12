@@ -731,7 +731,12 @@ def pretty_date(iso_datetime):
 		iso_datetime = datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S')
 	now_dt = datetime.strptime(now(), '%Y-%m-%d %H:%M:%S')
 	dt_diff = now_dt - iso_datetime
-	dt_diff_seconds = dt_diff.total_seconds()
+	
+	# available only in python 2.7+
+	# dt_diff_seconds = dt_diff.total_seconds()
+	
+	dt_diff_seconds = dt_diff.days * 86400.0 + dt_diff.seconds
+	
 	dt_diff_days = math.floor(dt_diff_seconds / 86400.0)
 	
 	# differnt cases
