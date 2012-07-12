@@ -62,10 +62,11 @@ def generate():
 		where cache.doc_type = 'Blog' and blog.page_name = cache.name
 		order by published desc, modified desc, name asc limit 100""", as_dict=1)
 
+	import website.blog
 	for blog in blog_list:
 		blog['link'] = host + '/' + blog['name'] + '.html'
 
-		blog['content'] = get_content(blog['name'])
+		blog['content'] = website.blog.get_blog_content(blog['name'])
 		
 		items += rss_item % blog
 
@@ -79,18 +80,3 @@ def generate():
 				'items': items,
 				'link': host + '/blog.html'
 			}).encode('utf-8', 'ignore')
-			
-def get_content(page_name):
-	import website.web_cache
-	content = website.web_cache.get_html(page_name)
-	
-	import webnotes.utils
-	
-	content = content.split("<!-- begin blog content -->")
-	content = len(content) > 1 and content[1] or content[0]
-	
-	content = content.split("<!-- end blog content -->")
-	content = content[0]
-	
-	content = webnotes.utils.escape_html(content)
-	return content

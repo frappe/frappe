@@ -111,6 +111,10 @@ def setup_options():
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
 						help="minify + concat js files")
+						
+	parser.add_option("--build_web_cache", default=False, action="store_true",
+						help="build web cache")
+
 	parser.add_option("--domain", metavar="DOMAIN",
 						help="store domain in Website Settings", nargs=1)
 
@@ -297,6 +301,10 @@ def run():
 		webnotes.conn.set_value('Website Settings', None, 'subdomain', options.domain)
 		webnotes.conn.commit()
 		print "Domain set to", options.domain
+		
+	elif options.build_web_cache:
+		import website.web_cache
+		website.web_cache.refresh_cache(True)
 
 	# print messages
 	if webnotes.message_log:
