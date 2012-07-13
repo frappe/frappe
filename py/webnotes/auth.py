@@ -38,7 +38,7 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
-		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')					
+		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
 
 		# load cookies
 		webnotes.cookie_manager = CookieManager()

@@ -98,9 +98,6 @@ class DocType:
 			if not os.path.exists(path + '.css'):
 				with open(path + '.css', 'w') as f:
 					pass
- 
-			# web page
-			self.write_cms_page()
 
 	def get_from_files(self):
 		"""
@@ -128,45 +125,3 @@ class DocType:
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				self.doc.content = f.read()
-
-	def write_cms_page(self, force=False):
-		"""write cms page"""
-		import webnotes.cms
-		import os, codecs
-		from jinja2 import Template
-
-		if self.doc.web_page=='Yes' or force:
-			# doc will be dirty, so save it
-			_doc = self.doc.fields.copy()
-			
-			# load from files
-			self.get_from_files()
-			fname = webnotes.cms.page_name(self.doc.name) + '.html'
-
-			# home page?
-			if self.doc.name==webnotes.cms.get_home_page('Guest'):
-				fname = 'index.html'
-				self.doc.web_page = 'Yes'
-
-			# save in public folder
-			if os.path.basename(os.path.abspath('.'))!='public':
-				fname = os.path.join('public', fname)
-
-			if not self.doc.title:
-				self.doc.title = self.doc.name
-
-			import startup.event_handlers
-			if hasattr(startup.event_handlers, 'get_web_header'):
-				self.doc.header = startup.event_handlers.get_web_header(self.doc.name)
-
-			if hasattr(startup.event_handlers, 'get_web_footer'):
-				self.doc.footer = startup.event_handlers.get_web_footer(self.doc.name)
-			
-			with codecs.open(fname, 'w', 'utf-8') as page:
-				with open(os.path.join(os.path.dirname(webnotes.cms.__file__),
-					'template.html'), 'r') as template:
-					t = Template(template.read())
-					page.write(t.render(self.doc.fields))
-
-			# back to original doc
-			self.doc.fields = _doc

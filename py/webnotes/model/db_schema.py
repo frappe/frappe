@@ -35,7 +35,7 @@ type_map = {
 	,'float':		('decimal', '18,6')
 	,'check':		('int', '1')
 	,'small text':	('text', '')
-	,'long text':	('text', '')
+	,'long text':	('longtext', '')
 	,'code':		('text', '')
 	,'text editor':	('text', '')
 	,'date':		('date', '')

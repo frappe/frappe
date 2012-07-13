@@ -23,7 +23,7 @@
 // My HTTP Request
 
 wn.provide('wn.request');
-wn.request.url = 'index.cgi';
+wn.request.url = 'server.py';
 
 // call execute serverside request
 wn.request.prepare = function(opts) {

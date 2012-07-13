@@ -42,16 +42,15 @@ def generate(domain):
 	page_list = []
 	
 	if domain:
-		# list of all Guest pages (static content)
-		for r in webnotes.conn.sql("""SELECT distinct t1.name, t1.modified 
-				FROM tabPage t1, `tabPage Role` t2
-				WHERE t1.name = t2.parent
-				and t2.role = 'Guest'
-				and t1.web_page = 'Yes'
-				ORDER BY modified DESC"""):
-
-			page_url = os.path.join(domain, urllib.quote(r[0]) + '.html')
-			site_map += link_xml % (page_url, r[1].strftime('%Y-%m-%d'))
+		# list of all pages in web cache
+		pages = webnotes.conn.sql("""\
+			select name, `modified`
+			from `tabWeb Cache`
+			order by modified desc""")
 		
+		for p in pages:
+			page_url = os.path.join(domain, urllib.quote(p[0]) + '.html')
+			modified = p[1].strftime('%Y-%m-%d')
+			site_map += link_xml % (page_url, modified)
 
 	return frame_xml % site_map
