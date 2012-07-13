@@ -16,7 +16,8 @@ wn.ui.AppFrame = Class.extend({
 
 	},
 	title: function(txt) {
-		this.$titlebar.find('.appframe-title').html(txt);
+		this.clear_breadcrumbs();
+		this.add_breadcrumb(txt);
 	},
 	make_toolbar: function() {
 		if(!this.$w.find('.appframe-toolbar').length)

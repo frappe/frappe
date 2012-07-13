@@ -136,7 +136,7 @@ function check_required(dt, dn, parent_dt) {
 		
 		if(fl[i].fieldtype=='Table') {
 			var no_value = true;
-			$.each(locals[fl[i].options], function(k,d) {
+			$.each(locals[fl[i].options] || {}, function(k,d) {
 				if(d.parent==doc.name && d.parenttype==doc.doctype && d.parentfield==fl[i].fieldname) {
 					no_value = false;
 				}
