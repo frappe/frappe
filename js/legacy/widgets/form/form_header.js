@@ -81,6 +81,12 @@ _f.FrmHeader = Class.extend({
 	},
 	refresh_toolbar: function() {
 		// clear
+		
+		if(cur_frm.meta.hide_toolbar) {
+			$('.appframe-toolbar').toggle(false);
+			return;
+		}
+		
 		this.appframe.clear_buttons();
 		var p = cur_frm.get_doc_perms();
 

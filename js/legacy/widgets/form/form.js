@@ -324,8 +324,22 @@ _f.Frm.prototype.set_intro = function(txt) {
 		this.intro_area.remove();
 		this.intro_area = null;
 	}
-	
 }
+
+_f.Frm.prototype.set_footnote = function(txt) {
+	if(!this.footnote_area) {
+		this.footnote_area = $('<div class="help-box form-intro-area">')
+			.insertAfter(this.page_layout.body.lastChild);
+	}
+	if(txt) {
+		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+		this.footnote_area.html(txt);
+	} else {
+		this.footnote_area.remove();
+		this.footnote_area = null;
+	}
+}
+
 
 _f.Frm.prototype.setup_fields_std = function() {
 	var fl = wn.meta.docfield_list[this.doctype]; 
@@ -834,19 +848,8 @@ _f.Frm.prototype.save = function(save_action, call_back) {
  	
 	
 	var ret_fn = function(r) {
-		me.savingflag = false;
-		if(user=='Guest' && !r.exc) {
-			// if user is guest, show a message after succesful saving
-			$dh(me.page_layout.wrapper);
-			$ds(me.saved_wrapper);
-			me.saved_wrapper.innerHTML = 
-				'<div style="padding: 150px 16px; text-align: center; font-size: 14px;">' 
-				+ (cur_frm.message_after_save ? cur_frm.message_after_save : 'Your information has been sent. Thank you!') 
-				+ '</div>';
-			return; // no refresh
-		}
-		
-		if(!me.meta.istable) {
+		me.savingflag = false;		
+		if(!me.meta.istable && r) {
 			me.refresh(r.docname);
 		}
 
@@ -1163,4 +1166,9 @@ _f.Frm.prototype.enable_fields = function(fields, enable) {
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
 	$c_obj(cur_frm.get_doclist(), method, args, callback);
+}
+
+_f.Frm.prototype.set_value = function(field, value) {
+	cur_frm.get_doc()[field] = value;
+	cur_frm.fields_dict[field].refresh();
 }

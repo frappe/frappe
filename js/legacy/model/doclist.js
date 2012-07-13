@@ -133,8 +133,19 @@ function check_required(dt, dn, parent_dt) {
 	for(var i=0;i<fl.length;i++) {
 		var key = fl[i].fieldname;
 		var v = doc[key];
+		
+		if(fl[i].fieldtype=='Table') {
+			var no_value = true;
+			$.each(locals[fl[i].options], function(k,d) {
+				if(d.parent==doc.name && d.parenttype==doc.doctype && d.parentfield==fl[i].fieldname) {
+					no_value = false;
+				}
+			});
+		} else {
+			var no_value = is_null(v);			
+		}
 				
-		if(fl[i].reqd && is_null(v) && fl[i].fieldname) {
+		if(fl[i].reqd && no_value && fl[i].fieldname) {
 			errfld[errfld.length] = fl[i].label;
 			
 			// Bring to front "Section"
