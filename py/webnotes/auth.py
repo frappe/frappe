@@ -107,7 +107,6 @@ class HTTPRequest:
 
 class LoginManager:
 	def __init__(self):
-		self.cp = None
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
 			from webnotes.session_cache import clear_cache
@@ -132,45 +131,31 @@ class LoginManager:
 		if not (user and pwd):	
 			user, pwd = webnotes.form_dict.get('usr'), webnotes.form_dict.get('pwd')
 		if not (user and pwd):
-			webnotes.response['message'] = 'Incomplete Login Details'  
-			raise webnotes.AuthenticationError
-		# custom authentication (for single-sign on)
-		self.load_control_panel()
-		if hasattr(self.cp, 'authenticate'):
-			self.user = self.cp.authenticate()
+			self.fail('Incomplete login details')
 		
-		# check the password
-		if user=='Administrator':
-			p = webnotes.conn.sql("""select name, first_name, last_name 
-				from tabProfile where name=%s 
-				and (`password`=%s OR `password`=PASSWORD(%s))""", (user, pwd, pwd), as_dict=1)
+		self.check_if_enabled(user)
+		self.user = self.check_password(user, pwd)
+	
+	def check_if_enabled(self, user):
+		"""raise exception if user not enabled"""
+		if user=='Administrator': return
+		if not int(webnotes.conn.get_value('Profile', user, 'enabled')):
+			self.fail('User disabled or missing')
+
+	def check_password(self, user, pwd):
+		"""check password"""
+		user = webnotes.conn.sql("""select `user` from __Auth where `user`=%s 
+			and `password`=password(%s)""", (user, pwd))
+		if not user:
+			self.fail('Incorrect password')
 		else:
-			p = webnotes.conn.sql("""select name, first_name, last_name 
-				from tabProfile where name=%s 
-				and (`password`=%s  OR `password`=PASSWORD(%s)) 
-				and IFNULL(enabled,0)=1""", (user, pwd, pwd), as_dict=1)
-		if not p:
-			webnotes.response['message'] = 'Authentication Failed'
-			raise webnotes.AuthenticationError
-			#webnotes.msgprint('Authentication Failed',raise_exception=1)
-			
-		p = p[0]
-		self.user = p['name']
-		self.user_fullname = (p.get('first_name') and (p.get('first_name') + ' ') or '') \
-			+ (p.get('last_name') or '')
+			return user[0][0] # in correct case
 	
-	# triggers
-	# --------
+	def fail(self, message):
+		webnotes.response['message'] = message
+		raise webnotes.AuthenticationError
+		
 	
-	def load_control_panel(self):
-		import webnotes.model.code
-		try:
-			if not self.cp:
-				self.cp = webnotes.model.code.get_obj('Control Panel')
-		except Exception, e:
-			webnotes.response['Control Panel Exception'] = webnotes.utils.getTraceback()
-	
-	# --------
 	def run_trigger(self, method='on_login'):
 		try:
 			from startup import event_handlers
@@ -180,15 +165,8 @@ class LoginManager:
 		except ImportError, e:
 			pass
 	
-		# deprecated
-		self.load_control_panel()
-		if self.cp and hasattr(self.cp, method):
-			getattr(self.cp, method)(self)
-
-	# ip validation
-	# -------------
-	
 	def validate_ip_address(self):
+		"""check if IP Address is valid"""
 		ip_list = webnotes.conn.get_value('Profile', self.user, 'restrict_ip', ignore=True)
 		
 		if not ip_list:
@@ -205,9 +183,7 @@ class LoginManager:
 		raise webnotes.AuthenticationError
 
 	def validate_hour(self):
-		"""
-			check if user is logging in during restricted hours
-		"""
+		"""check if user is logging in during restricted hours"""
 		login_before = int(webnotes.conn.get_value('Profile', self.user, 'login_before', ignore=True) or 0)
 		login_after = int(webnotes.conn.get_value('Profile', self.user, 'login_after', ignore=True) or 0)
 		
@@ -222,28 +198,17 @@ class LoginManager:
 
 		if login_after and current_hour < login_after:
 			webnotes.msgprint('Not allowed to login before restricted hour', raise_exception=1)
-
-	# login as guest
-	# --------------
 	
 	def login_as_guest(self):
+		"""login as guest"""
 		self.user = 'Guest'
 		self.post_login()
-
-	# Logout
-	# ------
-	
-	def call_on_logout_event(self):
-		import webnotes.model.code
-		cp = webnotes.model.code.get_obj('Control Panel', 'Control Panel')
-		if hasattr(cp, 'on_logout'):
-			cp.on_logout(self)
 
 	def logout(self, arg='', user=None):
 		if not user: user = webnotes.session.get('user')
 		self.user = user
 		self.run_trigger('on_logout')
-		if user=='demo@webnotestech.com':
+		if user in ['demo@erpnext.com', 'Administrator']:
 			webnotes.conn.sql('delete from tabSessions where sid=%s', webnotes.session.get('sid'))
 		else:
 			webnotes.conn.sql('delete from tabSessions where user=%s', user)
@@ -258,8 +223,6 @@ class CookieManager:
 		webnotes.cookies = Cookie.SimpleCookie()
 		self.get_incoming_cookies()
 
-	# get incoming cookies
-	# --------------------
 	def get_incoming_cookies(self):
 		import os
 		cookies = {}
@@ -271,9 +234,6 @@ class CookieManager:
 					
 		webnotes.incoming_cookies = cookies
 		
-	# Set cookies
-	# -----------
-	
 	def set_cookies(self):		
 		if webnotes.session.get('sid'):
 			webnotes.cookies['sid'] = webnotes.session['sid']
@@ -283,9 +243,6 @@ class CookieManager:
 			expires = datetime.datetime.now() + datetime.timedelta(days=3)
 			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')		
 			webnotes.cookies['sid']['path'] = '/'
-
-	# Set Remember Me
-	# ---------------
 
 	def set_remember_me(self):
 		if webnotes.utils.cint(webnotes.form_dict.get('remember_me')):

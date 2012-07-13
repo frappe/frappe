@@ -218,7 +218,7 @@ def clear_cache(user=None):
 	from webnotes.session_cache import clear
 	clear(user)
 	
-def get_roles(user=None):
+def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
 	if not user:
 		user = session['user']
@@ -226,5 +226,11 @@ def get_roles(user=None):
 	if user=='Guest':
 		return ['Guest']
 		
-	return [r[0] for r in conn.sql("""select distinct role from tabUserRole 
+	roles = [r[0] for r in conn.sql("""select role from tabUserRole 
 		where parent=%s and role!='All'""", user)] + ['All']
+		
+	# filter standard if required
+	if not with_standard:
+		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
+	
+	return roles

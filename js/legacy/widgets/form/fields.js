@@ -298,9 +298,9 @@ Field.prototype.set = function(val) {
 		this.docname = this.grid.add_newrow(); // new row
 	}
 	
-	var set_val = val;
-	if(this.validate)set_val = this.validate(val);
-	_f.set_value(this.doctype, this.docname, this.df.fieldname, set_val);
+	if(this.validate)
+		val = this.validate(val);
+	cur_frm.set_value_in_locals(this.doctype, this.docname, this.df.fieldname, val);
 	this.value = val; // for return
 }
 
@@ -513,9 +513,9 @@ ReadOnlyField.prototype = new Field();
 function HTMLField() { } 
 HTMLField.prototype = new Field();
 HTMLField.prototype.with_label = 0;
-HTMLField.prototype.set_disp = function(val) { this.disp_area.innerHTML = val; }
+HTMLField.prototype.set_disp = function(val) { if(this.disp_area) this.disp_area.innerHTML = val; }
 HTMLField.prototype.set_input = function(val) { if(val) this.set_disp(val); }
-HTMLField.prototype.onrefresh = function() { this.set_disp(this.df.options?this.df.options:''); }
+HTMLField.prototype.onrefresh = function() { if(this.df.options) this.set_disp(this.df.options); }
 
 // ======================================================================================
 

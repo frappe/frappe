@@ -838,7 +838,7 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 	} else { // no validation for cancellation
 		validated = true;
 		if(this.cscript.validate)
-			this.runclientscript('validate', this.doctype, this.docname);
+			this.runclientscript('validate');
 	
 		if(!validated) {
 			this.savingflag = false;
@@ -1090,41 +1090,24 @@ _f.get_value = function(dt, dn, fn) {
 		return locals[dt][dn][fn];
 }
 
-_f.set_value = function(dt, dn, fn, v) {
+_f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 	var d = locals[dt][dn];
-
-	if(!d) {
-		console.log('_f.set_value - '+ fn+': "'+dt+','+dn+'" not found');
-		return;
-	}
-
 	var changed = d[fn] != v;
-	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) changed = 0;
+	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) 
+		changed = false;
 
 	if(changed) {
-		//console.log('value changed for ' + dt + ', ' + dn + ', ' + fn)
-		
-		var prev_unsaved = d.__unsaved
 		d[fn] = v;
-		d.__unsaved = 1;
-			
-		if(d.parent && d.parenttype) {
-			var doc = locals[d.parenttype][d.parent];
-			doc.__unsaved = 1;
-			var frm = wn.views.formview[d.parenttype].frm;
-		} else {
-			var doc = locals[d.doctype][d.name]
-			doc.__unsaved = 1;
-			var frm = wn.views.formview[d.doctype] && wn.views.formview[d.doctype].frm;
-		}
-		
-		// No need to refresh labels and toolbar again and again.
-		// Just check if __unsaved was not set previously
-		if(frm && frm==cur_frm && frm.frm_head && !prev_unsaved) {
-			frm.frm_head.refresh_labels();
-			//frm.frm_head.refresh_toolbar();
-		}
+		if(d.parenttype)
+			d.__unsaved = 1;		
+		this.set_unsaved();			
 	}
+}
+
+_f.Frm.prototype.set_unsaved = function() {
+	if(cur_frm.doc.__unsaved) return;
+	cur_frm.doc.__unsaved = 1;
+	cur_frm.frm_head.refresh_labels()
 }
 
 _f.Frm.prototype.show_comments = function() {

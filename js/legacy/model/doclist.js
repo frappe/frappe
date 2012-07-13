@@ -26,7 +26,9 @@ function compress_doclist(list) {
 		var o = list[i];
 		var fl = [];
 		if(!kl[o.doctype]) { // make key only once # doctype must be first
-			var tfl = ['doctype', 'name', 'docstatus', 'owner', 'parent', 'parentfield', 'parenttype', 'idx', 'creation', 'modified', 'modified_by', '__islocal', '__newname', '__modified', '_user_tags'];  // for text
+			var tfl = ['doctype', 'name', 'docstatus', 'owner', 'parent', 'parentfield', 'parenttype', 
+				'idx', 'creation', 'modified', 'modified_by', '__islocal', '__newname', '__modified', 
+				'_user_tags', '__temp'];
 			var fl = [].concat(tfl);
 			
 			for(key in wn.meta.docfield_map[o.doctype]) { // all other values
