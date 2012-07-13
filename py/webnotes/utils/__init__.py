@@ -283,7 +283,7 @@ def global_date_format(date):
 	if isinstance(date, basestring):
 		date = getdate(date)
 	
-	return date.strftime('%d') + ' ' + month_name_full[int(date.strftime('%m'))] \
+	return cstr(cint(date.strftime('%d'))) + ' ' + month_name_full[int(date.strftime('%m'))] \
 		+ ' ' + date.strftime('%Y')
 	
 	
@@ -655,6 +655,24 @@ def unesc(s, esc_chars):
 		esc_str = '\\' + c
 		s = s.replace(esc_str, c)
 	return s
+	
+def strip_html(text):
+	"""
+		removes anything enclosed in and including <>
+	"""
+	import re
+	return re.compile(r'<.*?>').sub('', text)
+	
+def escape_html(text):
+	html_escape_table = {
+		"&": "&amp;",
+		'"': "&quot;",
+		"'": "&apos;",
+		">": "&gt;",
+		"<": "&lt;",
+	}
+
+	return "".join(html_escape_table.get(c,c) for c in text)
 
 def get_doctype_label(dt=None):
 	"""
@@ -698,3 +716,47 @@ def get_system_managers_list():
 			p.name not in ('Administrator', 'Guest')""", as_list=1)
 
 	return [sysman[0] for sysman in system_managers_list]
+
+def pretty_date(iso_datetime):
+	"""
+		Takes an ISO time and returns a string representing how
+		long ago the date represents.
+		Ported from PrettyDate by John Resig
+	"""
+	if not iso_datetime: return ''
+	from datetime import datetime
+	import math
+	
+	if isinstance(iso_datetime, basestring):
+		iso_datetime = datetime.strptime(iso_datetime, '%Y-%m-%d %H:%M:%S')
+	now_dt = datetime.strptime(now(), '%Y-%m-%d %H:%M:%S')
+	dt_diff = now_dt - iso_datetime
+	
+	# available only in python 2.7+
+	# dt_diff_seconds = dt_diff.total_seconds()
+	
+	dt_diff_seconds = dt_diff.days * 86400.0 + dt_diff.seconds
+	
+	dt_diff_days = math.floor(dt_diff_seconds / 86400.0)
+	
+	# differnt cases
+	if dt_diff_seconds < 60.0:
+		return 'just now'
+	elif dt_diff_seconds < 120.0:
+		return '1 minute ago'
+	elif dt_diff_seconds < 3600.0:
+		return '%s minutes ago' % cint(math.floor(dt_diff_seconds / 60.0))
+	elif dt_diff_seconds < 7200.0:
+		return '1 hour ago'
+	elif dt_diff_seconds < 86400.0:
+		return '%s hours ago' % cint(math.floor(dt_diff_seconds / 3600.0))
+	elif dt_diff_days == 1.0:
+		return 'Yesterday'
+	elif dt_diff_days < 7.0:
+		return '%s days ago' % cint(dt_diff_days)
+	elif dt_diff_days < 31.0:
+		return '%s week(s) ago' % cint(math.ceil(dt_diff_days / 7.0))
+	elif dt_diff_days < 365.0:
+		return '%s months ago' % cint(math.ceil(dt_diff_days / 30.0))
+	else:
+		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))

@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-04-02 16:01:07',
+		'creation': '2012-05-10 13:55:07',
 		'docstatus': 0,
-		'modified': '2012-05-07 12:17:01',
+		'modified': '2012-07-12 11:37:24',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -97,15 +97,6 @@
 		'fieldname': u'title',
 		'fieldtype': u'Data',
 		'label': u'Title'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'web_page',
-		'fieldtype': u'Select',
-		'label': u'Web Page',
-		'options': u'No\nYes'
 	},
 
 	# DocField
