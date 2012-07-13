@@ -318,13 +318,28 @@ _f.Frm.prototype.set_intro = function(txt) {
 			.insertBefore(this.page_layout.body.firstChild);
 	}
 	if(txt) {
-		this.intro_area.html(txt);		
+		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+		this.intro_area.html(txt);
 	} else {
 		this.intro_area.remove();
 		this.intro_area = null;
 	}
-	
 }
+
+_f.Frm.prototype.set_footnote = function(txt) {
+	if(!this.footnote_area) {
+		this.footnote_area = $('<div class="help-box form-intro-area">')
+			.insertAfter(this.page_layout.body.lastChild);
+	}
+	if(txt) {
+		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+		this.footnote_area.html(txt);
+	} else {
+		this.footnote_area.remove();
+		this.footnote_area = null;
+	}
+}
+
 
 _f.Frm.prototype.setup_fields_std = function() {
 	var fl = wn.meta.docfield_list[this.doctype]; 
@@ -622,7 +637,9 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
-		if(get_url_arg('embed') || (this.editable && (!this.meta.in_dialog || this.in_form) && this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE])) {
+		if(this.editable && (!this.meta.in_dialog || this.in_form) 
+			&& this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE]
+			&& (this.fields && this.fields.length > 7)) {
 			f.show_save();
 		} else {
 			f.hide_save();
@@ -678,7 +695,7 @@ _f.Frm.prototype.cleanup_refresh = function() {
 
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
-		set_field_permlevel(fn,1); // make it readonly / hidden
+		cur_frm.toggle_fields(fn, false);
 	}
 }
 
@@ -821,7 +838,7 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 	} else { // no validation for cancellation
 		validated = true;
 		if(this.cscript.validate)
-			this.runclientscript('validate', this.doctype, this.docname);
+			this.runclientscript('validate');
 	
 		if(!validated) {
 			this.savingflag = false;
@@ -831,19 +848,8 @@ _f.Frm.prototype.save = function(save_action, call_back) {
  	
 	
 	var ret_fn = function(r) {
-		me.savingflag = false;
-		if(user=='Guest' && !r.exc) {
-			// if user is guest, show a message after succesful saving
-			$dh(me.page_layout.wrapper);
-			$ds(me.saved_wrapper);
-			me.saved_wrapper.innerHTML = 
-				'<div style="padding: 150px 16px; text-align: center; font-size: 14px;">' 
-				+ (cur_frm.message_after_save ? cur_frm.message_after_save : 'Your information has been sent. Thank you!') 
-				+ '</div>';
-			return; // no refresh
-		}
-		
-		if(!me.meta.istable) {
+		me.savingflag = false;		
+		if(!me.meta.istable && r) {
 			me.refresh(r.docname);
 		}
 
@@ -1084,39 +1090,24 @@ _f.get_value = function(dt, dn, fn) {
 		return locals[dt][dn][fn];
 }
 
-_f.set_value = function(dt, dn, fn, v) {
+_f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 	var d = locals[dt][dn];
-
-	if(!d) {
-		console.log('_f.set_value - '+ fn+': "'+dt+','+dn+'" not found');
-		return;
-	}
-
 	var changed = d[fn] != v;
-	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) changed = 0;
+	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) 
+		changed = false;
 
 	if(changed) {
-		var prev_unsaved = d.__unsaved
 		d[fn] = v;
-		d.__unsaved = 1;
-			
-		if(d.parent && d.parenttype) {
-			var doc = locals[d.parenttype][d.parent];
-			doc.__unsaved = 1;
-			var frm = wn.views.formview[d.parenttype].frm;
-		} else {
-			var doc = locals[d.doctype][d.name]
-			doc.__unsaved = 1;
-			var frm = wn.views.formview[d.doctype] && wn.views.formview[d.doctype].frm;
-		}
-		
-		// No need to refresh labels and toolbar again and again.
-		// Just check if __unsaved was not set previously
-		if(frm && frm==cur_frm && frm.frm_head && !prev_unsaved) {
-			frm.frm_head.refresh_labels();
-			//frm.frm_head.refresh_toolbar();
-		}
+		if(d.parenttype)
+			d.__unsaved = 1;		
+		this.set_unsaved();			
 	}
+}
+
+_f.Frm.prototype.set_unsaved = function() {
+	if(cur_frm.doc.__unsaved) return;
+	cur_frm.doc.__unsaved = 1;
+	cur_frm.frm_head.refresh_labels()
 }
 
 _f.Frm.prototype.show_comments = function() {
@@ -1143,4 +1134,24 @@ _f.Frm.prototype.get_doclist = function() {
 _f.Frm.prototype.toggle_fields = function(fields, show) {
 	if(show) { unhide_field(fields) } 
 	else { hide_field(fields) }
+}
+
+_f.Frm.prototype.enable_fields = function(fields, enable) {
+	if(typeof fields=='string') fields = [fields];
+	$.each(fields, function(i,f) {
+		var field = cur_frm.fields_dict[f];
+		if(field) {
+			field.disabled = enable ? false : true;
+			field.refresh && field.refresh();
+		};
+	})
+}
+
+_f.Frm.prototype.call_server = function(method, args, callback) {
+	$c_obj(cur_frm.get_doclist(), method, args, callback);
+}
+
+_f.Frm.prototype.set_value = function(field, value) {
+	cur_frm.get_doc()[field] = value;
+	cur_frm.fields_dict[field].refresh();
 }

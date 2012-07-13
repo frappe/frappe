@@ -74,8 +74,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		</div>');
 		
 		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
-		wn.views.breadcrumbs($('<span class="breadcrumb-area">').appendTo(this.appframe.$titlebar), 
-			locals.DocType[this.doctype].module, this.doctype);
+		wn.views.breadcrumbs(this.appframe, locals.DocType[this.doctype].module, this.doctype);
 	},
 
 	setup: function() {
@@ -89,6 +88,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		me.init_stats();
 		me.make_report_button();
 		me.add_delete_option();
+		me.make_help();
 	},
 	make_report_button: function() {
 		var me = this;
@@ -96,6 +96,13 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			this.appframe.add_button('Build Report', function() {
 				wn.set_route('Report2', me.doctype);
 			}, 'icon-th')
+		}
+	},
+	make_help: function() {
+		// Help
+		if(this.meta.description) {
+			this.appframe.add_help_button(wn.markdown('## ' + this.meta.name + '\n\n'
+				+ this.meta.description));
 		}
 	},
 	setup_docstatus_filter: function() {
@@ -152,14 +159,12 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	make_no_result: function() {
 		var no_result_message = repl('<div class="well">\
 		<p>No %(doctype_label)s found</p>\
-		%(description)s\
 		<hr>\
 		<p><button class="btn btn-info btn-small" list_view_doc="%(doctype)s">\
 			Make a new %(doctype_label)s</button>\
 		</p></div>', {
 			doctype_label: get_doctype_label(this.doctype),
-			doctype: this.doctype,
-			description: wn.markdown(locals.DocType[this.doctype].description || ''),
+			doctype: this.doctype
 		});
 		
 		return no_result_message;
@@ -184,7 +189,12 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	add_delete_option: function() {
 		var me = this;
 		if(this.can_delete) {
-			this.add_button('Delete', function() { me.delete_items(); }, 'icon-remove')
+			this.add_button('Delete', function() { me.delete_items(); }, 'icon-remove');
+			$('<div style="padding: 4px"><input type="checkbox" name="select-all" />\
+			 	Select all</div>').insertBefore(this.$page.find('.result-list'));
+			this.$page.find('[name="select-all"]').click(function() {
+				me.$page.find('.list-delete').attr('checked', $(this).attr('checked') || false);
+			})
 		}
 	},
 	delete_items: function() {

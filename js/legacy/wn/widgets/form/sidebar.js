@@ -43,7 +43,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						label: 'List',
 						icon: 'icon-list',
 						display: function() { 
-							return !me.form.meta.issingle; 
+							return !me.form.meta.issingle && !me.form.meta.read_only; 
 						},
 						onclick: function() { window.location.href="#!List/" + me.form.doctype }
 					},
@@ -95,7 +95,10 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						icon: 'icon-remove-sign',
 						onclick: function() { me.form.savetrash() }
 					}
-				]
+				],
+				display: function() {
+					return me.form.meta.hide_toolbar ? false : true;
+				}
 			},
 
 			{
@@ -160,15 +163,6 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 							}));
 				},
 				display: function() { return !me.form.doc.__islocal }
-			},
-
-			{
-				title: 'Help',
-				render: function(wrapper) {
-					$(wrapper).html('<div class="help small">' 
-						+ wn.markdown(me.form.meta.description) + '</div>')
-				},
-				display: function() { return me.form.meta.description }
 			}
 		]
 	}

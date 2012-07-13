@@ -36,7 +36,7 @@ _f.ColumnBreak.prototype.make_body = function() {
 	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
 	// header
 	if(this.df&&this.df.label){
-		this.label = $a(this.cell.wrapper, 'div', '', '', this.df.label);
+		this.label = $a(this.cell.wrapper, 'h4', '', '', this.df.label);
 	}
 }
 
@@ -152,14 +152,7 @@ _f.SectionBreak.prototype.refresh = function(from_form) {
 	if(hidden) {
 		if(this.row)this.row.hide();
 	} else {
-		if(this.collapsible) {
-			//this.section_expand(from_form);
-			//if(this.df.reqd || this.has_data()) {
-			//	this.section_expand(from_form);
-			//} else {
-			//	this.section_collapse();
-			//}	
-		}
+		if(this.row)this.row.show();
 	}
 }
 
@@ -241,7 +234,8 @@ _f.TableField.prototype.make_body = function() {
 		
 		// description
 		if(this.df.description) {
-			this.desc_area = $a(this.parent, 'div', 'help small', '', this.df.description)
+			this.desc_area = $a(this.parent, 'div', 'help small', 
+				{marginBottom:'9px', marginTop:'0px'}, this.df.description)
 		}
 	}
 }

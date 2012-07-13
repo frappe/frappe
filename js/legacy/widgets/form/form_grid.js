@@ -138,8 +138,7 @@ _f.FormGrid.prototype.refresh = function() {
 
 _f.FormGrid.prototype.set_unsaved = function() {
 	// set unsaved
-	locals[cur_frm.doctype][cur_frm.docname].__unsaved=1;
-	cur_frm.frm_head && cur_frm.frm_head.refresh_labels();
+	cur_frm.set_unsaved();
 }
 
 _f.FormGrid.prototype.insert_row = function() {
@@ -155,7 +154,6 @@ _f.FormGrid.prototype.insert_row = function() {
 	// refresh
 	this.refresh();
 	this.cell_select('', row_idx, ci);
-	this.set_unsaved();
 }
 
 _f.FormGrid.prototype.new_row_doc = function() {
@@ -165,6 +163,7 @@ _f.FormGrid.prototype.new_row_doc = function() {
 	d.parent = this.field.frm.docname;
 	d.parentfield = this.field.df.fieldname;
 	d.parenttype = this.field.frm.doctype;
+	this.set_unsaved();
 	return d;
 }
 _f.FormGrid.prototype.add_newrow = function() {

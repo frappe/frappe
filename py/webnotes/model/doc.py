@@ -485,9 +485,6 @@ class Document:
 	
 				
 		return has_perm
-
-	# Cleanup
-	# ---------------------------------------------------------------------------
 		
 	def _clear_temp_fields(self):
 		# clear temp stuff
@@ -495,9 +492,6 @@ class Document:
 		for f in keys:
 			if f.startswith('__'): 
 				del self.fields[f]
-
-	# Table methods
-	# ---------------------------------------------------------------------------
 
 	def clear_table(self, doclist, tablefield, save=0):
 		"""
@@ -548,7 +542,7 @@ class Document:
 			doclist.append(d)
 	
 		return d
-
+		
 def addchild(parent, fieldname, childtype = '', local=0, doclist=None):
 	"""
 	

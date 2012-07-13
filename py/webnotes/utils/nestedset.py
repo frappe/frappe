@@ -251,3 +251,10 @@ def update_remove_node(doctype, name):
 		# update all on the right
 		webnotes.conn.sql("update `tab%s` set rgt = rgt-2, modified='%s' where rgt > %s" %(doctype,n,left[0][0]))
 		webnotes.conn.sql("update `tab%s` set lft = lft-2, modified='%s' where lft > %s" %(doctype,n,left[0][0]))
+
+class DocTypeNestedSet:
+	def on_update(self):
+		update_nsm(self)
+		
+	def on_trash(self):
+		update_remove_node(self.doc.doctype, self.doc.name)

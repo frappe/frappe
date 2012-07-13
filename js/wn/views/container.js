@@ -49,11 +49,10 @@ wn.views.Container = Class.extend({
 		// show new
 		this.page = page;
 		$(this.page).fadeIn();
-		$(this.page).trigger('show');
 		this.page._route = window.location.hash;
 		document.title = this.page.label;
-		scroll(0,0);
-				
+		$(this.page).trigger('show');
+		scroll(0,0);				
 		return this.page;
 	}
 });

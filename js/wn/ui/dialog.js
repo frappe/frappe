@@ -49,6 +49,15 @@ wn.widgets.FieldGroup = function() {
 		}
 	}
 	
+	this.catch_enter_as_submit = function() {
+		var me = this;
+		$(this.body).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
+			if(e.which==13) {
+				$(me.body).find('.btn-info:first').click();
+			}
+		})
+	}
+	
 	/* get values */
 	this.get_values = function() {
 		var ret = {};
@@ -99,12 +108,13 @@ wn.widgets.FieldGroup = function() {
 
 wn.widgets.Dialog = function(opts) {
 	
-	this.opts = opts;
 	this.display = false;
 	
 	this.make = function(opts) {
-		if(opts) 
+		if(opts) {
 			this.opts = opts;
+			$.extend(this, opts);
+		}
 		if(!this.opts.width) this.opts.width = 480;
 		
 		if(!$('#dialog-container').length) {
@@ -118,8 +128,10 @@ wn.widgets.Dialog = function(opts) {
 
 		this.make_head();
 		this.body = $a(this.wrapper, 'div', 'dialog_body');	
-		if(this.opts.fields)
+		if(this.opts.fields) {
 			this.make_fields(this.body, this.opts.fields);
+			this.catch_enter_as_submit();			
+		}
 	}
 	
 	this.make_head = function() {
@@ -155,7 +167,7 @@ wn.widgets.Dialog = function(opts) {
 
 		// show it
 		$ds(this.wrapper);
-
+		
 		// hide background
 		freeze();
 
@@ -164,6 +176,9 @@ wn.widgets.Dialog = function(opts) {
 
 		// call onshow
 		if(this.onshow)this.onshow();
+		
+		// focus on first input
+		$(this.wrapper).find(':input:first').focus();
 	}
 
 	this.hide = function() {
@@ -183,7 +198,7 @@ wn.widgets.Dialog = function(opts) {
 		this.appframe.$titlebar.find('.close').toggle(false);
 	}
 
-	if(opts) this.make();
+	if(opts) this.make(opts);
 
 }
 

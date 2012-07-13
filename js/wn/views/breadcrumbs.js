@@ -1,24 +1,22 @@
 wn.provide('wn.views');
-wn.views.breadcrumbs = function(parent, module, doctype, name) {
-	$(parent).empty();
-	var $bspan = $(parent);
+wn.views.breadcrumbs = function(appframe, module, doctype, name) {
+	appframe.clear_breadcrumbs();
 
 	if(name) {
-		$bspan.append('<span class="appframe-title">' + name + '</span>');
+		appframe.add_breadcrumb(name);
 	} else if(doctype) {
-		$bspan.append('<span class="appframe-title">' + doctype + ' List </span>');
+		appframe.add_breadcrumb(doctype + ' List');
 	} else if(module) {
-		$bspan.append('<span class="appframe-title">' + module + '</span>');		
+		appframe.add_breadcrumb(module);
 	}
 
 	if(name && doctype && (!locals['DocType'][doctype].issingle)) {
-		$bspan.append(repl('<span> in <a href="#!List/%(doctype)s">%(doctype)s List</a></span>',
+		appframe.add_breadcrumb(repl(' in <a href="#!List/%(doctype)s">%(doctype)s List</a>',
 			{doctype: doctype}))
 	};
 	
 	if(doctype && module && wn.modules && wn.modules[module]) {
-		$bspan.append(repl('<span> in <a href="#!%(module_page)s">%(module)s</a></span>',
+		appframe.add_breadcrumb(repl(' in <a href="#!%(module_page)s">%(module)s</a>',
 			{module: module, module_page: wn.modules[module] }))
 	}
-	//$bspan.appendTo(parent);
 }

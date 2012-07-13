@@ -3,20 +3,22 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-05-15 12:14:22',
+		'creation': '2012-07-03 13:30:34',
 		'docstatus': 0,
-		'modified': '2012-07-02 20:14:52',
+		'modified': '2012-07-11 16:15:21',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
+		'allow_attach': 0,
 		'allow_copy': 0,
 		'allow_email': 0,
 		'allow_print': 0,
 		'autoname': u'Prompt',
 		'colour': u'White:FFF',
+		'description': u'The basic building block of wnframework is a **DocType**. A DocType represents both a table in the database and a form from which a user can enter data. Actions are also embedded in the DocType. Hence it is the Model, View and Controller.\n\nDocTypes can be single  tables or groups. For example, Quotation has a \u201cQuotation\u201d DocType and a \u201cQuotation Item\u201d doctype for the Items table, among others.  DocTypes contain a collection of fields called DocFields that form the basis of the columns in the database and the layout of the form.',
 		'doctype': 'DocType',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
@@ -45,15 +47,12 @@
 
 	# These values are common for all DocPerm
 	{
-		'amend': 0,
-		'cancel': 0,
 		'doctype': u'DocPerm',
 		'name': '__common__',
 		'parent': u'DocType',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
-		'read': 1,
-		'submit': 0
+		'read': 1
 	},
 
 	# DocType, DocType
@@ -64,52 +63,40 @@
 
 	# DocPerm
 	{
-		'create': 1,
 		'doctype': u'DocPerm',
 		'permlevel': 0,
-		'role': u'System Manager',
-		'write': 1
+		'role': u'System Manager'
 	},
 
 	# DocPerm
 	{
+		'cancel': 0,
 		'create': 1,
 		'doctype': u'DocPerm',
 		'execute': 0,
 		'permlevel': 0,
 		'role': u'Administrator',
+		'submit': 0,
 		'write': 1
 	},
 
 	# DocPerm
 	{
-		'create': 0,
 		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': u'Administrator',
-		'write': 0
+		'role': u'Administrator'
 	},
 
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'options',
+		'fieldname': u'sb0',
 		'fieldtype': u'Section Break',
 		'hidden': 0,
-		'label': u'Options',
+		'label': u'DocType Details',
 		'oldfieldtype': u'Section Break',
 		'reqd': 0,
 		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'settings',
-		'fieldtype': u'Column Break',
-		'label': u'Settings',
-		'oldfieldtype': u'Column Break',
-		'width': u'50%'
 	},
 
 	# DocField
@@ -122,6 +109,123 @@
 		'oldfieldtype': u'Link',
 		'options': u'Suggest',
 		'reqd': 1
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'cb01',
+		'fieldtype': u'Column Break'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'document_type',
+		'fieldtype': u'Select',
+		'label': u'Document Type',
+		'oldfieldname': u'document_type',
+		'oldfieldtype': u'Select',
+		'options': u'\nMaster\nTransaction\nSystem\nOther'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'sb0_5',
+		'fieldtype': u'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'description',
+		'fieldtype': u'Text',
+		'hidden': 0,
+		'label': u'Description',
+		'oldfieldname': u'description',
+		'oldfieldtype': u'Text',
+		'reqd': 0,
+		'search_index': 0,
+		'width': u'300px'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'fields_section_break',
+		'fieldtype': u'Section Break',
+		'hidden': 0,
+		'label': u'Fields',
+		'oldfieldtype': u'Section Break',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'fields',
+		'fieldtype': u'Table',
+		'hidden': 0,
+		'label': u'Fields',
+		'oldfieldname': u'fields',
+		'oldfieldtype': u'Table',
+		'options': u'DocField',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'sb1',
+		'fieldtype': u'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'cb10',
+		'fieldtype': u'Column Break',
+		'label': u'Database'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'issingle',
+		'fieldtype': u'Check',
+		'hidden': 0,
+		'label': u'Is Single',
+		'oldfieldname': u'issingle',
+		'oldfieldtype': u'Check',
+		'reqd': 0,
+		'search_index': 0,
+		'trigger': u'Client'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'istable',
+		'fieldtype': u'Check',
+		'hidden': 0,
+		'label': u'Is Table',
+		'oldfieldname': u'istable',
+		'oldfieldtype': u'Check',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'cb11',
+		'fieldtype': u'Column Break',
+		'label': u'Naming',
+		'oldfieldtype': u'Column Break',
+		'width': u'50%'
 	},
 
 	# DocField
@@ -164,14 +268,49 @@
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'istable',
-		'fieldtype': u'Check',
+		'fieldname': u'sb2',
+		'fieldtype': u'Section Break',
+		'label': u'Permission Rules'
+	},
+
+	# DocField
+	{
+		'colour': u'White:FFF',
+		'doctype': u'DocField',
+		'fieldname': u'permissions',
+		'fieldtype': u'Table',
 		'hidden': 0,
-		'label': u'Is Table',
-		'oldfieldname': u'istable',
-		'oldfieldtype': u'Check',
+		'label': u'Permissions',
+		'oldfieldname': u'permissions',
+		'oldfieldtype': u'Table',
+		'options': u'DocPerm',
 		'reqd': 0,
 		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'sb3',
+		'fieldtype': u'Section Break'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'cb30',
+		'fieldtype': u'Column Break',
+		'label': u'Permissions Settings'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'in_create',
+		'fieldtype': u'Check',
+		'label': u'User Cannot Create',
+		'oldfieldname': u'in_create',
+		'oldfieldtype': u'Check'
 	},
 
 	# DocField
@@ -180,35 +319,11 @@
 		'fieldname': u'read_only',
 		'fieldtype': u'Check',
 		'hidden': 0,
-		'label': u'Not In Search',
+		'label': u'User Cannot Search',
 		'oldfieldname': u'read_only',
 		'oldfieldtype': u'Check',
 		'reqd': 0,
 		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'in_create',
-		'fieldtype': u'Check',
-		'label': u'Not In Create',
-		'oldfieldname': u'in_create',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'issingle',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Is Single',
-		'oldfieldname': u'issingle',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'trigger': u'Client'
 	},
 
 	# DocField
@@ -222,45 +337,45 @@
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'read_only_onload',
+		'fieldname': u'allow_rename',
 		'fieldtype': u'Check',
-		'label': u'Show Print First',
-		'oldfieldname': u'read_only_onload',
+		'label': u'Allow Rename',
+		'oldfieldname': u'allow_rename',
 		'oldfieldtype': u'Check'
 	},
 
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'document_type',
-		'fieldtype': u'Select',
-		'label': u'Document Type',
-		'oldfieldname': u'document_type',
-		'oldfieldtype': u'Select',
-		'options': u'\nMaster\nTransaction\nSystem\nOther'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'display',
+		'fieldname': u'cb31',
 		'fieldtype': u'Column Break',
-		'hidden': 0,
-		'label': u'Display',
-		'oldfieldtype': u'Column Break',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'50%'
+		'label': u'Hide Actions'
 	},
 
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'is_transaction_doc',
+		'fieldname': u'hide_heading',
 		'fieldtype': u'Check',
-		'label': u'Is Transaction Doc',
-		'oldfieldname': u'is_transaction_doc',
-		'oldfieldtype': u'Check'
+		'hidden': 0,
+		'label': u'Hide Heading',
+		'oldfieldname': u'hide_heading',
+		'oldfieldtype': u'Check',
+		'reqd': 0,
+		'search_index': 0
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'hide_toolbar',
+		'fieldtype': u'Check',
+		'hidden': 0,
+		'label': u'Hide Toolbar',
+		'oldfieldname': u'hide_toolbar',
+		'oldfieldtype': u'Check',
+		'reqd': 0,
+		'search_index': 0
 	},
 
 	# DocField
@@ -292,16 +407,6 @@
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'in_dialog',
-		'fieldtype': u'Check',
-		'label': u'In Dialog',
-		'oldfieldname': u'in_dialog',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
 		'fieldname': u'allow_copy',
 		'fieldtype': u'Check',
 		'hidden': 0,
@@ -315,27 +420,57 @@
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'hide_toolbar',
-		'fieldtype': u'Check',
+		'fieldname': u'sb4',
+		'fieldtype': u'Section Break',
 		'hidden': 0,
-		'label': u'Hide Toolbar',
-		'oldfieldname': u'hide_toolbar',
-		'oldfieldtype': u'Check',
+		'oldfieldtype': u'Column Break',
 		'reqd': 0,
-		'search_index': 0
+		'search_index': 0,
+		'width': u'50%'
 	},
 
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'hide_heading',
+		'fieldname': u'cb41',
+		'fieldtype': u'Column Break',
+		'label': u'Display'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'default_print_format',
+		'fieldtype': u'Data',
+		'label': u'Default Print Format'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'read_only_onload',
 		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Hide Heading',
-		'oldfieldname': u'hide_heading',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0
+		'label': u'Show Print First',
+		'oldfieldname': u'read_only_onload',
+		'oldfieldtype': u'Check'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'in_dialog',
+		'fieldtype': u'Check',
+		'label': u'In Dialog',
+		'oldfieldname': u'in_dialog',
+		'oldfieldtype': u'Check'
+	},
+
+	# DocField
+	{
+		'doctype': u'DocField',
+		'fieldname': u'cb42',
+		'fieldtype': u'Column Break',
+		'label': u'Attachments'
 	},
 
 	# DocField
@@ -358,131 +493,5 @@
 		'label': u'Max Attachments',
 		'oldfieldname': u'max_attachments',
 		'oldfieldtype': u'Int'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_rename',
-		'fieldtype': u'Check',
-		'label': u'Allow Rename',
-		'oldfieldname': u'allow_rename',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'default_print_format',
-		'fieldtype': u'Data',
-		'label': u'Default Print Format'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'permissions_section_break',
-		'fieldtype': u'Section Break',
-		'label': u'Permissions',
-		'oldfieldtype': u'Section Break'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'roles_and_permissions',
-		'fieldtype': u'Column Break',
-		'label': u'Roles and Permissions',
-		'oldfieldtype': u'Column Break',
-		'width': u'70%'
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'doctype': u'DocField',
-		'fieldname': u'permissions',
-		'fieldtype': u'Table',
-		'hidden': 0,
-		'label': u'Permissions',
-		'oldfieldname': u'permissions',
-		'oldfieldtype': u'Table',
-		'options': u'DocPerm',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_trash',
-		'fieldtype': u'Check',
-		'label': u'Allow Trash',
-		'oldfieldname': u'allow_trash',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'fields_section_break',
-		'fieldtype': u'Section Break',
-		'hidden': 0,
-		'label': u'Fields',
-		'oldfieldtype': u'Section Break',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'document_fields',
-		'fieldtype': u'Column Break',
-		'hidden': 0,
-		'label': u'Document Fields',
-		'oldfieldtype': u'Column Break',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'fields',
-		'fieldtype': u'Table',
-		'hidden': 0,
-		'label': u'Fields',
-		'oldfieldname': u'fields',
-		'oldfieldtype': u'Table',
-		'options': u'DocField',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'description_section_break',
-		'fieldtype': u'Section Break',
-		'hidden': 0,
-		'label': u'Description',
-		'oldfieldtype': u'Section Break',
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'description',
-		'fieldtype': u'Text',
-		'hidden': 0,
-		'label': u'Description',
-		'oldfieldname': u'description',
-		'oldfieldtype': u'Text',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'300px'
 	}
 ]
