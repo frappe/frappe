@@ -644,6 +644,11 @@ _f.Frm.prototype.refresh_footer = function() {
 	}
 }
 
+_f.Frm.prototype.refresh_field = function(fname) {
+	cur_frm.fields_dict[fname] && cur_frm.fields_dict[fname].refresh
+		&& cur_frm.fields_dict[fname].refresh();
+}
+
 _f.Frm.prototype.refresh_fields = function() {
 	// refresh fields
 	for(var i=0; i<this.fields.length; i++) {
@@ -1124,16 +1129,30 @@ _f.Frm.prototype.get_doclist = function() {
 }
 
 _f.Frm.prototype.field_map = function(fnames, fn) {
-	if(typeof fnames=='string') fnames = [fnames];
+	if(typeof fnames=='string') {
+		if(fnames == '*') {
+			fnames = keys(this.fields_dict);
+		} else {
+			fnames = [fnames];			
+		}
+	}
 	$.each(fnames, function(i,f) {
 		//var field = cur_frm.fields_dict[f]; - much better design
 		var field = wn.meta.get_docfield(cur_frm.doctype, f, cur_frm.docname)
 		if(field) {
 			fn(field);
-			field.refresh && field.refresh();
+			cur_frm.refresh_field(f);
 		};
 	})
 	
+}
+
+_f.Frm.prototype.set_df_property = function(fieldname, property, value) {
+	var field = wn.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname)
+	if(field) {
+		field[property] = value;
+		cur_frm.refresh_field(fieldname);
+	};
 }
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {

@@ -96,9 +96,7 @@ refresh_field = function(n, docname, table_field) {
 	
 	if(table_field) { // for table
 		if(_f.frm_dialog && _f.frm_dialog.display) {
-			// in dialog
-			if(_f.frm_dialog.cur_frm.fields_dict[n] && _f.frm_dialog.cur_frm.fields_dict[n].refresh)
-				_f.frm_dialog.cur_frm.fields_dict[n].refresh();
+			_f.frm_dialog.cur_frm.refresh_field(n);
 		} else {
 			var g = _f.cur_grid_cell;
 			if(g) var hc = g.grid.head_row.cells[g.cellIndex];
@@ -109,29 +107,22 @@ refresh_field = function(n, docname, table_field) {
 				cur_frm.fields_dict[table_field].grid.refresh_cell(docname, n);
 			}
 		}
-	} else if(cur_frm && cur_frm.fields_dict) {
-		if(cur_frm.fields_dict[n] && cur_frm.fields_dict[n].refresh)
-			cur_frm.fields_dict[n].refresh();
+	} else if(cur_frm) {
+		cur_frm.refresh_field(n)
 	}
 }
 
 set_field_options = function(n, txt) {
-	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
-	if(df)df.options = txt;
-	refresh_field(n);
+	cur_frm.set_df_property(n, 'options', txt)
 }
 
 set_field_permlevel = function(n, level) {
-	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
-	if(df)df.permlevel = level;
-	refresh_field(n);
+	cur_frm.set_df_property(n, 'permlevel', level)
 }
 
 hide_field = function(n) {
 	function _hide_field(n,hidden) {
-		var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
-		if(df) { df.hidden = hidden; refresh_field(n); }
-		else { console.log("hide_field cannot find field " + n); }
+		cur_frm.set_df_property(n, 'hidden', hidden)
 	}	
 	if(cur_frm) {
 		if(typeof n == 'string') _hide_field(n,1);
@@ -141,9 +132,7 @@ hide_field = function(n) {
 
 unhide_field = function(n) {
 	function _hide_field(n,hidden) {
-		var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
-		if(df) {df.hidden = hidden; refresh_field(n); }
-		else { console.log("unhide_field cannot find field " + n); }
+		cur_frm.set_df_property(n, 'hidden', hidden)
 	}	
 	if(cur_frm) {
 		if(typeof n == 'string') _hide_field(n,0);
