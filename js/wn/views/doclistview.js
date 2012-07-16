@@ -384,7 +384,7 @@ wn.views.ListView = Class.extend({
 		
 		// content
 		if(typeof opts.content=='function') {
-			opts.content(parent, data);
+			opts.content(parent, data, me);
 		}
 		else if(opts.content=='name') {
 			$(parent).append(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
@@ -409,16 +409,7 @@ wn.views.ListView = Class.extend({
 			$(parent).append(data.when);			
 		}
 		else if(opts.type=='bar-graph') {
-			args = {
-				percent: data[opts.content],
-				fully_delivered: (data[opts.content] > 99 ? 'bar-complete' : ''),
-				label: opts.label
-			}
-			$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right" \
-				title="%(percent)s% %(label)s">\
-				<span class="bar-inner %(fully_delivered)s" \
-					style="width: %(percent)s%;"></span>\
-			</span>', args));
+			this.render_bar_graph(parent, data, opts.content, opts.label);
 		}
 		else if(opts.type=='link' && opts.doctype) {
 			$(parent).append(repl('<a href="#!Form/'+opts.doctype+'/'
@@ -512,6 +503,22 @@ wn.views.ListView = Class.extend({
 		if(!this.doclistview.can_delete) {
 			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
 		}
+	},
+	render_bar_graph: function(parent, data, field, label) {
+		var args = {
+			percent: data[field],
+			fully_delivered: (data[field] > 99 ? 'bar-complete' : ''),
+			label: label
+		}
+		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right" \
+			title="%(percent)s% %(label)s">\
+			<span class="bar-inner %(fully_delivered)s" \
+				style="width: %(percent)s%;"></span>\
+		</span>', args));
+	},
+	render_icon: function(parent, icon_class, label) {
+		var icon_html = "<i class='%(icon_class)s' title='%(label)s'></i>";
+		$(parent).append(repl(icon_html, {icon_class: icon_class, label: label || ''}));
 	}
 });
 
