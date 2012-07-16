@@ -508,7 +508,7 @@ wn.views.ListView = Class.extend({
 	},
 	render_icon: function(parent, icon_class, label) {
 		var icon_html = "<i class='%(icon_class)s' title='%(label)s'></i>";
-		$(parent).append(repl(icon_html, {icon_class: icon_class, label: label}));
+		$(parent).append(repl(icon_html, {icon_class: icon_class, label: label || ''}));
 	}
 });
 
