@@ -173,11 +173,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	// header - no headers for tables and guests
 	if(!(this.meta.istable || user=='Guest' || (this.meta.in_dialog && !this.in_form))) 
 		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
-		
-	// bg colour
-	if(this.meta.colour) 
-		this.layout.wrapper.style.backgroundColor = '#'+this.meta.colour.split(':')[1];
-	
+			
 	// create fields
 	this.setup_fields_std();
 }
@@ -658,7 +654,7 @@ _f.Frm.prototype.refresh_fields = function() {
 		// get the "customizable" parameters for this record
 		var fn = f.df.fieldname || f.df.label;
 		if(fn)
-			f.df = get_field(this.doctype, fn, this.docname);
+			f.df = wn.meta.get_docfield(this.doctype, fn, this.docname);
 			
 		if(f.df.fieldtype!='Section Break' && f.refresh) {
 			f.refresh();			
@@ -695,7 +691,7 @@ _f.Frm.prototype.cleanup_refresh = function() {
 
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
-		cur_frm.toggle_fields(fn, false);
+		cur_frm.toggle_display(fn, false);
 	}
 }
 
@@ -906,14 +902,11 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 
 
 _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
-	var _dt = this.parent_doctype ? this.parent_doctype : this.doctype;
-	var _dn = this.parent_docname ? this.parent_docname : this.docname;
-	var doc = get_local(_dt, _dn);
-
 	if(!cdt)cdt = this.doctype;
 	if(!cdn)cdn = this.docname;
 
 	var ret = null;
+	var doc = cur_frm.doc;
 	try {
 		if(this.cscript[caller])
 			ret = this.cscript[caller](doc, cdt, cdn);
@@ -979,7 +972,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 		
 		// get tabel field
 		if(!tf_dict[d1.parentfield]) {
-			tf_dict[d1.parentfield] = get_field(d1.parenttype, d1.parentfield);
+			tf_dict[d1.parentfield] = wn.meta.get_docfield(d1.parenttype, d1.parentfield);
 		}
 		
 		if(d1.parent==dn && cint(tf_dict[d1.parentfield].no_copy)!=1) {
@@ -1026,7 +1019,6 @@ _f.Frm.prototype.reload_doc = function() {
 
 
 _f.Frm.prototype.savedoc = function(save_action, onsave, onerr) {
-	this.error_in_section = 0;
 	save_doclist(this.doctype, this.docname, save_action, onsave, onerr);
 }
 
@@ -1131,20 +1123,29 @@ _f.Frm.prototype.get_doclist = function() {
 	return make_doclist(this.doctype, this.docname);
 }
 
-_f.Frm.prototype.toggle_fields = function(fields, show) {
-	if(show) { unhide_field(fields) } 
-	else { hide_field(fields) }
-}
-
-_f.Frm.prototype.enable_fields = function(fields, enable) {
-	if(typeof fields=='string') fields = [fields];
-	$.each(fields, function(i,f) {
-		var field = cur_frm.fields_dict[f];
+_f.Frm.prototype.field_map = function(fnames, fn) {
+	if(typeof fnames=='string') fnames = [fnames];
+	$.each(fnames, function(i,f) {
+		//var field = cur_frm.fields_dict[f]; - much better design
+		var field = wn.meta.get_docfield(cur_frm.doctype, f, cur_frm.docname)
 		if(field) {
-			field.disabled = enable ? false : true;
+			fn(field);
 			field.refresh && field.refresh();
 		};
 	})
+	
+}
+
+_f.Frm.prototype.toggle_enable = function(fnames, enable) {
+	cur_frm.field_map(fnames, function(field) { field.disabled = enable ? false : true; });
+}
+
+_f.Frm.prototype.toggle_reqd = function(fnames, mandatory) {
+	cur_frm.field_map(fnames, function(field) { field.reqd = mandatory ? true : false; });
+}
+
+_f.Frm.prototype.toggle_display = function(fnames, show) {
+	cur_frm.field_map(fnames, function(field) { field.hidden = show ? false : true; });
 }
 
 _f.Frm.prototype.call_server = function(method, args, callback) {

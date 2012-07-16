@@ -5,7 +5,7 @@
 	{
 		'creation': '2012-07-03 13:30:35',
 		'docstatus': 0,
-		'modified': '2012-07-13 14:20:39',
+		'modified': '2012-07-13 15:03:49',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -231,17 +231,6 @@
 	# DocField
 	{
 		'doctype': u'DocField',
-		'fieldname': u'password',
-		'fieldtype': u'Password',
-		'hidden': 1,
-		'label': u'Password',
-		'permlevel': 1,
-		'print_hide': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
 		'fieldname': u'birth_date',
 		'fieldtype': u'Date',
 		'label': u'Birth Date',
@@ -278,7 +267,7 @@
 	# DocField
 	{
 		'colour': u'White:FFF',
-		'description': u'Check / Uncheck roles assigned to the Profile. To find out what permissions the Role has, click on the "?" icon.',
+		'description': u'Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.',
 		'doctype': u'DocField',
 		'fieldname': u'sb1',
 		'fieldtype': u'Section Break',
@@ -297,10 +286,12 @@
 
 	# DocField
 	{
+		'colour': u'White:FFF',
+		'description': u'These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.',
 		'doctype': u'DocField',
 		'fieldname': u'sb2',
 		'fieldtype': u'Section Break',
-		'label': u'User Defaults',
+		'label': u'Defaults',
 		'oldfieldtype': u'Column Break',
 		'permlevel': 1,
 		'width': u'50%'

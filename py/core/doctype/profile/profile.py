@@ -46,6 +46,9 @@ class DocType:
 		self.update_roles()
 		self.logout_if_disabled()
 		
+		if self.doc.fields.get('__islocal') and not self.doc.new_password:
+			webnotes.msgprint("Password required while creating new doc")
+		
 	def logout_if_disabled(self):
 		"""logout if disabled"""
 		if cint(self.doc.disabled):
@@ -113,13 +116,80 @@ class DocType:
 			webnotes.conn.sql("""insert into __Auth (user, `password`) values (%s, password(%s)) 
 				on duplicate key update `password`=password(%s)""", (self.doc.name, 
 				self.doc.new_password, self.doc.new_password))
+			
+			if not self.doc.fields.get('__islocal'):
+				self.password_reset_mail(self.doc.new_password)
+
 			webnotes.conn.set(self.doc, 'new_password', '')
 			webnotes.msgprint("Password updated.")
 
 	def get_fullname(self):
+		"""get first_name space last_name"""
 		return (self.doc.first_name or '') + \
 			(self.doc.first_name and " " or '') + (self.doc.last_name or '')
-			
+
+	def password_reset_mail(self, password):
+		"""reset password"""
+		txt = """
+## Password Reset
+
+Dear %(first_name)s %(last_name)s,
+
+Your password has been reset. Your new password is:
+
+password: %(password)s
+
+To login to %(product)s, please go to:
+
+%(login_url)s
+
+Thank you,<br>
+%(user_fullname)s
+		"""
+		self.send_login_mail(txt, password)
+		
+	def send_welcome_mail(self, password):
+		"""send welcome mail to user with password and login url"""
+		txt = """
+## %(company)s
+
+Dear %(first_name)s %(last_name)s,
+
+A new account has been created for you, here are your details:
+
+login-id: %(user)s<br>
+password: %(password)s
+
+To login to your new %(product)s account, please go to:
+
+%(login_url)s
+
+Thank you,<br>
+%(user_fullname)s
+		"""
+		self.send_login_mail(txt, password)
+
+	def send_login_mail(self, txt, password):
+		"""send mail with login details"""
+		import startup
+		import os
+	
+		from webnotes.utils.email_lib import sendmail_md
+		from webnotes.profile import get_user_fullname
+		from webnotes.utils import get_request_site_address
+	
+		args = {
+			'first_name': self.doc.first_name,
+			'last_name': self.doc.last_name or '',
+			'user': self.doc.name,
+			'password': password,
+			'company': webnotes.conn.get_default('company') or startup.product,
+			'login_url': get_request_site_address(),
+			'product': startup.product_name,
+			'user_fullname': get_user_fullname(webnotes.session['user'])
+		}
+		sendmail_md(self.doc.email, subject="Welcome to " + startup.product_name, msg=txt % args)
+	
 	def on_rename(self,newdn,olddn):
 		tables = webnotes.conn.sql("show tables")
 		for tab in tables:
@@ -156,18 +226,6 @@ def get_perm_info(arg=None):
 		and docstatus<2 order by parent, permlevel""", 
 			webnotes.form_dict['role'], as_dict=1)
 
-def send_welcome_mail(email, args):
-	"""send welcome mail to user with password and login url"""
-	pr = Document('Profile', email)
-	from webnotes.utils.email_lib import sendmail_md
-	args.update({
-		'company': webnotes.conn.get_default('company'),
-		'password': args.get('password'),
-		'account_url': webnotes.conn.get_value('Website Settings',
-			'Website Settings', 'subdomain') or ""
-	})
-	if not args.get('last_name'): args['last_name'] = ''
-	sendmail_md(pr.email, subject="Welcome to ERPNext", msg=welcome_txt % args)
 
 @webnotes.whitelist()
 def delete(arg=None):
@@ -176,19 +234,5 @@ def delete(arg=None):
 		webnotes.form_dict['uid'])
 	webnotes.login_manager.logout(user=webnotes.form_dict['uid'])
 	
-welcome_txt = """
-## %(company)s
 
-Dear %(first_name)s %(last_name)s
 
-Welcome!
-
-A new account has been created for you, here are your details:
-
-login-id: %(user)s
-password: %(password)s
-
-To login to your new ERPNext account, please go to:
-
-%(account_url)s
-"""

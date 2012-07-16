@@ -47,7 +47,7 @@ Field.prototype.make_body = function() {
 	else
 		this.wrapper = document.createElement((this.with_label ? 'div' : 'span'));
 
-	this.label_area = $a(this.wrapper, 'div', '', {margin:'0px 0px 2px 0px'});
+	this.label_area = $a(this.wrapper, 'div', '', {margin:'0px 0px 2px 0px', minHeight:'1em'});
 
 	if(ischk && !this.in_grid) {
 		this.input_area = $a(this.label_area, 'span', '', {marginRight:'4px'});
@@ -56,17 +56,17 @@ Field.prototype.make_body = function() {
 	
 	// label
 	if(this.with_label) {	
-		this.label_span = $a(this.label_area, 'span', 'small')
+		this.label_span = $a(this.label_area, 'span', 'small', {cssFloat:'left'})
 	
 		// error icon
-		this.label_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 4px'}); $dh(this.label_icon);
-		this.label_icon.src = 'images/lib/icons/error.gif';
-		this.label_icon.title = 'Mandatory value needs to be entered';
+		this.label_icon = $('<i class="icon icon-warning-sign">').toggle(false)
+			.appendTo(this.label_area).css('float','left').css('margin-left','7px')
+			.attr("title", "This field is mandatory.");
 
 		// error icon
-		this.suggest_icon = $a(this.label_area,'img','',{margin:'-3px 4px -3px 0px'}); $dh(this.suggest_icon);
-		this.suggest_icon.src = 'images/lib/icons/bullet_arrow_down.png';
-		this.suggest_icon.title = 'With suggestions';
+		this.suggest_icon = $('<i class="icon icon-chevron-down">').toggle(false)
+			.appendTo(this.label_area).css('float','left').css('margin-left','7px')
+			.attr("title", "will show suggestions as you type.");
 
 	} else {
 		this.label_span = $a(this.label_area, 'span', '', {marginRight:'4px'})
@@ -141,7 +141,7 @@ Field.prototype.get_status = function() {
 	var ret;
 
 	// permission level
-	if(cur_frm.editable && p && p[WRITE] && !this.disabled)ret='Write';
+	if(cur_frm.editable && p && p[WRITE] && !this.df.disabled)ret='Write';
 	else if(p && p[READ])ret='Read';
 	else ret='None';
 
@@ -275,15 +275,17 @@ Field.prototype.refresh = function() {
 
 Field.prototype.refresh_label_icon = function() {	
 	// mandatory
-	if(this.df.reqd) {
-		if(this.get_value && is_null(this.get_value())) {
-		 	if(this.label_icon) $ds(this.label_icon);
-			$(this.txt ? this.txt : this.input).addClass('field-to-update')
-		} else {
-		 	if(this.label_icon) $dh(this.label_icon);
-			$(this.txt ? this.txt : this.input).removeClass('field-to-update')
-		}
-	}
+	var to_update = false;
+	if(this.df.reqd && this.get_value && is_null(this.get_value())) 
+		to_update = true;
+		
+	if(!to_update && this.df.has_error) this.df.has_error = false;
+
+	if(this.label_icon) this.label_icon.toggle(to_update);
+	$(this.txt ? this.txt : this.input).toggleClass('field-to-update', to_update);
+	
+	$(this.txt ? this.txt : this.input).toggleClass('field-has-error', 
+		this.df.has_error ? true : false);
 }
 
 // Set / display values
@@ -319,9 +321,6 @@ Field.prototype.run_trigger = function() {
 	// update mandatory icon
 	this.refresh_label_icon();
 
-	if(this.df.reqd && this.get_value && !is_null(this.get_value()) && this.set_as_error)
-		this.set_as_error(0);
-
 	if(this.not_in_form) {
 		return;
 	}
@@ -343,18 +342,6 @@ Field.prototype.set_disp_html = function(t) {
 
 Field.prototype.set_disp = function(val) { 
 	this.set_disp_html(val);
-}
-
-Field.prototype.set_as_error = function(set) { 
-	if(this.in_grid || this.in_filter) return;
-	
-	var w = this.txt ? this.txt : this.input;
-	if(set) {
-		$y(w, {border: '2px solid RED'});
-		
-	} else {
-		$y(w, {border: '1px solid #888'});	
-	}
 }
 
 // Show in GRID
@@ -442,7 +429,7 @@ DataField.prototype.make_input = function() {
 	
 	if(this.df.options=='Suggest') {
 		// add auto suggest
-		if(this.suggest_icon) $di(this.suggest_icon);
+		if(this.suggest_icon) this.suggest_icon.toggle(true);
 		$(me.input).autocomplete({
 			source: function(request, response) {
 				wn.call({
@@ -494,13 +481,6 @@ DataField.prototype.validate = function(v) {
 	} else {
 		return v;	
 	}	
-}
-
-DataField.prototype.onrefresh = function() {
-	if(this.input&&this.df.colour) {
-		var col = '#'+this.df.colour.split(':')[1];
-		$bg(this.input,col);
-	}
 }
 
 // ======================================================================================
@@ -1142,7 +1122,6 @@ TimeField.prototype.set_time = function(v) {
 }
 
 TimeField.prototype.set_style_mandatory = function() { }
-TimeField.prototype.set_as_error = function() { }
 
 TimeField.prototype.make_input = function() { var me = this;
 	this.input = $a(this.input_area, 'div', 'time_field');
@@ -1239,8 +1218,6 @@ function makeinput_popup(me, iconsrc, iconsrc1, iconsrc2) {
 		$dh(me.btn2);
 	}
 		
-	if(me.df.colour)
-		me.txt.style.background = '#'+me.df.colour.split(':')[1];
 	me.txt.name = me.df.fieldname;
 
 	me.setdisabled = function(tf) { me.txt.disabled = tf; }

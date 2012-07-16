@@ -80,7 +80,13 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc
 	"""
 	import webnotes.utils.email_lib
 	return email_lib.sendmail(recipients, sender, msg, subject, parts, cc, attach)
-	
+
+def get_request_site_address():
+	"""get app url from request"""
+	import os
+	return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
+		+ os.environ.get('HTTP_HOST')
+
 def generate_hash():
 	"""
 		 Generates random hash for session id

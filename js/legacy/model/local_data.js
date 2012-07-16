@@ -264,7 +264,7 @@ LocalDB.copy=function(dt, dn, from_amend) {
 	var newdoc = LocalDB.create(dt);
 	for(var key in locals[dt][dn]) {
 		// dont copy name and blank fields
-		var df = get_field(dt, key);
+		var df = wn.meta.get_docfield(dt, key);
 		if(key!=='name' && key.substr(0,2)!='__' &&
 			!(df && ((!from_amend && cint(df.no_copy)==1) || in_list(LocalDB.no_copy_list, df.fieldname)))) { 
 			locals[dt][newdoc][key] = locals[dt][dn][key];
@@ -314,15 +314,6 @@ Meta.make_local_dt = function(dt, dn) {
 	}
 }
 
-Meta.get_field=function(dt, fn, dn) { 
-	if(dn && local_dt[dt]&&local_dt[dt][dn]){
-		return local_dt[dt][dn][fn];
-	} else {
-		if(wn.meta.docfield_map[dt]) var d = wn.meta.docfield_map[dt][fn];
-		if(d) return d;
-	}
-	return {};
-}
 Meta.set_field_property=function(fn, key, val, doc) {
 	if(!doc && (cur_frm.doc))doc = cur_frm.doc;
 	try{
@@ -346,5 +337,4 @@ function get_label_doctype(label) {
 // ======================================================================================
 
 var getchildren = LocalDB.getchildren;
-var get_field = Meta.get_field;
 var createLocal = LocalDB.create;

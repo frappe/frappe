@@ -61,5 +61,23 @@ wn.model = {
 	can_delete: function(doctype) {
 		if(!doctype) return false;
 		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
+	},
+	
+	has_value: function(dt, dn, fn) {
+		// return true if property has value
+		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];
+		var df = wn.meta.get_docfield(dt, fn, dn);
+		
+		if(df.fieldtype=='Table') {
+			var ret = false;
+			$.each(locals[df.options] || {}, function(k,d) {
+				if(d.parent==dn && d.parenttype==dt && d.parentfield==df.fieldname) {
+					ret = true;
+				}
+			});
+		} else {
+			var ret = !is_null(val);			
+		}
+		return ret ? true : false;
 	}
 }

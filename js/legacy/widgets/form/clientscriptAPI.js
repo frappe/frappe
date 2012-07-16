@@ -79,7 +79,7 @@ refresh_many = function (flist, dn, table_field) {
 }
 
 set_field_tip = function(n,txt) {
-	var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df)df.description = txt;
 
 	if(cur_frm && cur_frm.fields_dict) {
@@ -116,20 +116,20 @@ refresh_field = function(n, docname, table_field) {
 }
 
 set_field_options = function(n, txt) {
-	var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df)df.options = txt;
 	refresh_field(n);
 }
 
 set_field_permlevel = function(n, level) {
-	var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df)df.permlevel = level;
 	refresh_field(n);
 }
 
 hide_field = function(n) {
 	function _hide_field(n,hidden) {
-		var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+		var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 		if(df) { df.hidden = hidden; refresh_field(n); }
 		else { console.log("hide_field cannot find field " + n); }
 	}	
@@ -141,7 +141,7 @@ hide_field = function(n) {
 
 unhide_field = function(n) {
 	function _hide_field(n,hidden) {
-		var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+		var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 		if(df) {df.hidden = hidden; refresh_field(n); }
 		else { console.log("unhide_field cannot find field " + n); }
 	}	
@@ -149,8 +149,4 @@ unhide_field = function(n) {
 		if(typeof n == 'string') _hide_field(n,0);
 		else { for(var i in n)_hide_field(n[i],0) }
 	}
-}
-
-get_field_obj = function(fn) {
-	return cur_frm.fields_dict[fn];
 }

@@ -40,5 +40,12 @@ $.extend(wn.meta, {
 				return; // no repeat
 		}
 		wn.meta.docfield_list[df.parent].push(df);
+	},
+	get_docfield: function(dt, fn, dn) {
+		if(dn && local_dt[dt] && local_dt[dt][dn]){
+			return local_dt[dt][dn][fn];
+		} else {
+			return wn.meta.docfield_map[dt][fn];
+		}
 	}
 });

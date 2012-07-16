@@ -543,7 +543,7 @@ $.extend(_p, {
 					var fieldname = data[i].fieldname ? data[i].fieldname :
 						data[i].label;
 					var field = fieldname ?
-						get_field(doctype, fieldname, docname) : data[i];
+						wn.meta.get_docfield(doctype, fieldname, docname) : data[i];
 					if(!field.print_hide) {
 						if(cur_frm.pformat[field.fieldname]) {
 							// If there is a custom method to generate the HTML, then use it

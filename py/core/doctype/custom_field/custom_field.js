@@ -25,7 +25,7 @@
 // --------
 
 cur_frm.cscript.refresh = function(doc, cdt, cdn) {
-	if(!doc.__islocal) get_field(doc.doctype, 'dt' , doc.name).permlevel = 1;
+	cur_frm.toggle_enable('dt', doc.__islocal)
 	cur_frm.cscript.dt(doc, cdt, cdn);
 }
 
