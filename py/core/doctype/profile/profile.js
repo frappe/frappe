@@ -1,7 +1,8 @@
 cur_frm.cscript.onload = function(doc) {
-	if(!cur_frm.role_editor) {
-		var role_area = $('<div style="min-height: 300px">').appendTo(cur_frm.fields_dict.roles_html.wrapper);
-		cur_frm.role_editor = new wn.RoleEditor(role_area);
+	if(!cur_frm.roles_editor) {
+		var role_area = $('<div style="min-height: 300px">')
+			.appendTo(cur_frm.fields_dict.roles_html.wrapper);
+		cur_frm.roles_editor = new wn.RoleEditor(role_area);
 	}
 }
 
@@ -11,12 +12,14 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_reqd('new_password', doc.__islocal);
 
 	if(!doc.__islocal) {
-		cur_frm.role_editor.show(doc.name)
+		cur_frm.roles_editor.show(doc.name)
 	}
 }
 
 cur_frm.cscript.validate = function(doc) {
-	doc.__temp = JSON.stringify(cur_frm.role_editor.get_roles());
+	doc.__temp = JSON.stringify({
+		roles:cur_frm.roles_editor.get_roles()
+	});
 }
 
 wn.RoleEditor = Class.extend({
@@ -139,4 +142,6 @@ wn.RoleEditor = Class.extend({
 			width: 500
 		});
 	}
-})
+});
+
+

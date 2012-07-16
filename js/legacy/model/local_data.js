@@ -88,7 +88,13 @@ LocalDB.sync = function(list) {
 		LocalDB.add(d.doctype, d.name);
 		locals[d.doctype][d.name] = d;
 
-		if(d.doctype=='DocField') wn.meta.add_field(d);
+		// reset cur_frm.doc (as new doc is loaded from the server)
+		if(cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
+			cur_frm.doc = d;
+		}
+
+		if(d.doctype=='DocField') 
+			wn.meta.add_field(d);
 
 		if(d.localname) {
 			wn.model.new_names[d.localname] = d.name;

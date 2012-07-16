@@ -42,6 +42,11 @@ class DocType:
 			self.doc.name = self.doc.email
 
 	def validate(self):
+		self.temp = {}
+		if self.doc.fields.get('__temp'):
+			self.temp = json.loads(self.doc.fields['__temp'])
+			del self.doc.fields['__temp']
+
 		self.validate_max_users()
 		self.update_roles()
 		self.logout_if_disabled()
@@ -73,31 +78,26 @@ class DocType:
 	
 	def update_roles(self):
 		"""update roles if set"""		
-		if self.doc.fields.get('__temp'):
-			roles = json.loads(self.doc.fields['__temp'])
-			del self.doc.fields['__temp']
+
+		if self.temp.get('roles'):
+			from webnotes.model.doc import Document
 
 			# remove roles
 			webnotes.conn.sql("""delete from tabUserRole where parent='%s' 
-				and role in ('%s')""" % (self.doc.name, "','".join(roles['unset_roles'])))
+				and role in ('%s')""" % (self.doc.name, "','".join(self.temp['roles']['unset_roles'])))
 
 			self.check_one_system_manager()
 
 			# add roles
 			user_roles = webnotes.get_roles(self.doc.name)
-			for role in roles['set_roles']:
+			for role in self.temp['roles']['set_roles']:
 				if not role in user_roles:
-					self.add_role(role)
-
-	def add_role(self, role):
-		"""add role to Profile"""
-		from webnotes.model.doc import Document
-		d = Document('UserRole')
-		d.role = role
-		d.parenttype = 'Profile'
-		d.parentfield = 'user_roles'
-		d.parent = self.doc.name
-		d.save()
+					d = Document('UserRole')
+					d.role = role
+					d.parenttype = 'Profile'
+					d.parentfield = 'user_roles'
+					d.parent = self.doc.name
+					d.save()
 			
 	def check_one_system_manager(self):
 		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager'
@@ -226,7 +226,14 @@ def get_perm_info(arg=None):
 		and docstatus<2 order by parent, permlevel""", 
 			webnotes.form_dict['role'], as_dict=1)
 
+@webnotes.whitelist()
+def get_defaults(arg=None):
+	return webnotes.conn.sql("""select defkey, defvalue from tabDefaultValue where 
+		parent=%s and parenttype = 'Profile'""", webnotes.form_dict['profile'])
 
+
+	
+	
 @webnotes.whitelist()
 def delete(arg=None):
 	"""delete user"""

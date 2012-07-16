@@ -534,7 +534,8 @@ _f.Frm.prototype.check_doc_perm = function() {
 _f.Frm.prototype.refresh = function(docname) {
 	// record switch
 	if(docname) {
-		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) scroll(0, 0);
+		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) 
+			scroll(0, 0);
 		this.docname = docname;
 	}
 	if(!this.meta.istable) {
@@ -547,14 +548,14 @@ _f.Frm.prototype.refresh = function(docname) {
 		// check permissions
 		if(!this.check_doc_perm()) return;
 
+		// set the doc
+		this.doc = get_local(this.doctype, this.docname);	  
+
 		// do setup
 		if(!this.setup_done) this.setup();
 
 		// set customized permissions for this record
 		this.runclientscript('set_perm',this.doctype, this.docname);
-
-		// set the doc
-		this.doc = get_local(this.doctype, this.docname);	  
 		
 		// load the record for the first time, if not loaded (call 'onload')
 		cur_frm.cscript.is_onload = false;
@@ -899,7 +900,6 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 		);
 	}
 }
-
 
 _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 	if(!cdt)cdt = this.doctype;

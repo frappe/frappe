@@ -5,7 +5,7 @@
 	{
 		'creation': '2012-07-03 13:30:35',
 		'docstatus': 0,
-		'modified': '2012-07-13 15:03:49',
+		'modified': '2012-07-16 14:56:38',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -300,17 +300,13 @@
 	# DocField
 	{
 		'colour': u'White:FFF',
-		'default': u'Simple',
+		'description': u'Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set "match" permission rules. To see list of fields, go to <a href="#Form/Customize Form/Customize Form">Customize Form</a>.',
 		'doctype': u'DocField',
-		'fieldname': u'defaults_html',
-		'fieldtype': u'HTML',
-		'hidden': 0,
-		'label': u'Defaults HTML',
-		'oldfieldname': u'defaults',
-		'oldfieldtype': u'Table',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
+		'fieldname': u'defaults',
+		'fieldtype': u'Table',
+		'label': u'Profile Defaults',
+		'options': u'DefaultValue',
+		'permlevel': 0
 	},
 
 	# DocField
