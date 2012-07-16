@@ -5,7 +5,7 @@
 	{
 		'creation': '2012-05-15 12:14:24',
 		'docstatus': 0,
-		'modified': '2012-05-16 13:29:26',
+		'modified': '2012-07-16 12:48:22',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -71,7 +71,7 @@
 	# DocPerm
 	{
 		'amend': 0,
-		'cancel': 0,
+		'cancel': 1,
 		'create': 1,
 		'doctype': u'DocPerm',
 		'permlevel': 0,
@@ -82,7 +82,7 @@
 
 	# DocPerm
 	{
-		'cancel': 0,
+		'cancel': 1,
 		'create': 1,
 		'doctype': u'DocPerm',
 		'execute': 0,
@@ -96,15 +96,15 @@
 	{
 		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': u'System Manager'
+		'role': u'Administrator',
+		'write': 1
 	},
 
 	# DocPerm
 	{
 		'doctype': u'DocPerm',
 		'permlevel': 1,
-		'role': u'Administrator',
-		'write': 1
+		'role': u'System Manager'
 	},
 
 	# DocField
