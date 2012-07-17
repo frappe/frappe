@@ -976,7 +976,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 		d1 = dl[d];
 		
 		// get tabel field
-		if(!tf_dict[d1.parentfield]) {
+		if(d1.parentfield && !tf_dict[d1.parentfield]) {
 			tf_dict[d1.parentfield] = wn.meta.get_docfield(d1.parenttype, d1.parentfield);
 		}
 		
