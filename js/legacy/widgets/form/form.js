@@ -523,7 +523,7 @@ _f.Frm.prototype.check_doc_perm = function() {
 				return 1;
 			}
 		}
-		window.back();
+		window.history.back();
 		return 0;
 	}
 	return 1
