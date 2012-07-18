@@ -58,9 +58,9 @@ def get(arg=None):
 	
 	if not data.get('order_by'):
 		data['order_by'] = tables[0] + '.modified desc'
-		
-	if len(tables) > 1:
-		data['group_by'] = "group by " + tables[0] + ".name"
+
+	if data.get('group_by'):
+		data['group_by'] = "group by " + data.get('group_by')
 	else:
 		data['group_by'] = ''
 

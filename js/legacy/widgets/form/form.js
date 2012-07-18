@@ -80,12 +80,12 @@ _f.Frm.prototype.check_doctype_conflict = function(docname) {
 	if(this.doctype=='DocType' && docname=='DocType') {
 		msgprint('Allowing DocType, DocType. Be careful!')
 	} else if(this.doctype=='DocType') {
-		if(wn.views.formview[docname]) {
+		if (wn.views.formview[docname] || wn.pages['List/'+docname]) {
 			msgprint("Cannot open DocType when its instance is open")
 			throw 'doctype open conflict'
 		}
 	} else {
-		if(wn.views.formview.DocType && wn.views.formview.DocType.frm.opendocs[this.doctype]) {
+		if (wn.views.formview.DocType && wn.views.formview.DocType.frm.opendocs[this.doctype]) {
 			msgprint("Cannot open instance when its DocType is open")
 			throw 'doctype open conflict'
 		}		
@@ -542,11 +542,16 @@ _f.Frm.prototype.refresh = function(docname) {
 		cur_frm = this;
 		this.parent.cur_frm = this;
 	}
-			
+	
 	if(this.docname) { // document to show
 
 		// check permissions
 		if(!this.check_doc_perm()) return;
+		
+		// check if doctype is already open
+		if (!this.opendocs[this.docname]) {
+			this.check_doctype_conflict(this.docname);
+		}
 
 		// set the doc
 		this.doc = get_local(this.doctype, this.docname);	  
@@ -759,7 +764,8 @@ _f.Frm.prototype.refresh_dependency = function() {
 // ======================================================================================
 
 _f.Frm.prototype.setnewdoc = function(docname) {
-	this.check_doctype_conflict(docname);
+	// moved this call to refresh function
+	// this.check_doctype_conflict(docname);
 
 	// if loaded
 	if(this.opendocs[docname]) { // already exists
