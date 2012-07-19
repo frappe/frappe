@@ -275,7 +275,7 @@ class _DocType:
 			
 		_add_code(scrub(doc.name) + '.js', '__js')
 		_add_code(scrub(doc.name) + '.css', '__css')
-		_add_code('listview.js', '__listjs')
+		_add_code('%s_list.js' % scrub(doc.name), '__listjs')
 		_add_code('help.md', 'description')
 		
 		# embed all require files
