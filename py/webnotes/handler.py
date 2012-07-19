@@ -91,10 +91,9 @@ def dt_map():
 @webnotes.whitelist()
 def load_month_events():
 	import webnotes
-	form = webnotes.form
 
-	mm = form.getvalue('month')
-	yy = form.getvalue('year')
+	mm = webnotes.form_dict.get('month')
+	yy = webnotes.form_dict.get('year')
 	m_st = str(yy) + '-' + str(mm) + '-01'
 	m_end = str(yy) + '-' + str(mm) + '-31'
 
@@ -107,11 +106,10 @@ def load_month_events():
 @webnotes.whitelist()
 def import_csv():
 	import webnotes.model.import_docs
-	form = webnotes.form
 	from webnotes.utils import cint
 	
 	i = webnotes.model.import_docs.CSVImport()
-	r = i.import_csv(form.getvalue('csv_file'), form.getvalue('dateformat'), form_dict.get('overwrite', 0) and 1)
+	r = i.import_csv(webnotes.form_dict.get('csv_file'), webnotes.form_dict.get('dateformat'), webnotes.form_dict.get('overwrite', 0) and 1)
 	
 	webnotes.response['type']='iframe'
 	rhead = '''<style>body, html {font-family: Arial; font-size: 12px;}</style>'''
@@ -233,8 +231,13 @@ def execute_cmd(cmd):
 def get_method(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
-		module = __import__('.'.join(cmd.split('.')[:-1]), fromlist=[''])
-		method = getattr(module, cmd.split('.')[-1])
+		from webnotes.utils import get_encoded_string
+		cmd_parts = cmd.split('.')
+		module_string = ".".join(cmd_parts[:-1])
+		method_string = cmd_parts[-1]
+		module = __import__(module_string,
+				fromlist=[get_encoded_string(method_string)])
+		method = getattr(module, method_string)
 	else:
 		method = globals()[cmd]
 	return method
@@ -251,71 +254,123 @@ def validate_cmd(cmd):
 		raise Exception, 'Cannot call database connection method directly from the handler'
 		
 def print_response():
-	import string
-	import os
+	print_map = {
+		'csv': print_csv,
+		'iframe': print_iframe,
+		'download': print_raw,
+		'json': print_json,
+	}
+	
+	print_map.get(webnotes.response.get('type'), print_json)()
 
-	if webnotes.response.get('type')=='csv':
-		print_csv()
-	elif webnotes.response.get('type')=='iframe':
-		print_iframe()
-	elif webnotes.response.get('type')=='download':
-		print_raw()
-	else:
-		print_json()
-		
-def print_csv():
-	print "Content-Type: text/csv"
-	print "Content-Disposition: attachment; filename="+webnotes.response['doctype'].replace(' ', '_')+".csv"
-	print
-	print webnotes.response['result']
-
-def print_iframe():
-	import json
-	print "Content-Type: text/html"
-	print
-	if webnotes.response.get('result'):
-		print webnotes.response['result']
-	if webnotes.debug_log:
-		print """	
-			<script>
-			var messages = %s;
-			if(messages.length) {
-				for(var i in messages)
-					window.parent.msgprint(messages[i]);
-			};
-			var errors = %s;
-			if(errors.length) {
-				for(var i in errors)
-					window.parent.console.log(errors[i]);
-			}
-		</script>""" % (json.dumps(webnotes.message_log), json.dumps(webnotes.debug_log))
-
-def print_raw():
-	import mimetypes
-	print "Content-Type: %s" % (mimetypes.guess_type(webnotes.response['filename'])[0] or 'application/unknown')
-	print "Content-Disposition: filename="+webnotes.response['filename'].replace(' ', '_')
-	print
-	print webnotes.response['filecontent']
+def print_content(content, args=None):
+	"""encode and print content"""
+	if not args: args = {}
+	
+	from webnotes.utils import get_encoded_string
+	print get_encoded_string("\n".join(content) % args)
 
 def print_json():
 	make_logs()
 	cleanup_docs()
 
 	import json
-	str_out = json.dumps(webnotes.response)
+	response = json.dumps(webnotes.response)
 	
-	if accept_gzip() and len(str_out)>512:
-		out_buf = compressBuf(str_out)
-		print "Content-Encoding: gzip"
-		print "Content-Length: %d" % (len(out_buf))
-		str_out = out_buf
+	content = []
+	
+	if accept_gzip() and len(response)>512:
+		out_buf = compressBuf(response)
+		content += [
+			"Content-Encoding: gzip",
+			"Content-Length: %d" % (len(out_buf))
+		]
+		response = out_buf
 		
-	print "Content-Type: text/html; charset: utf-8"
-	print_cookies()
+	add_cookies()
+	
+	content += [
+		"Content-Type: text/html; charset: utf-8",
+		"%(cookies)s",
+		"",
+		"%(response)s"
+	]
+	
+	args = {
+		'cookies': webnotes.cookies,
+		'response': response,
+	}
+	
+	print_content(content, args)
+		
+def print_csv():
+	content = [
+		"Content-Type: text/csv",
+		"Content-Disposition: attachment; filename=%(filename)s.csv",
+		"",
+		"%(response)s"
+	]
+	
+	args = {
+		"filename": webnotes.response['doctype'].replace(' ', '_'),
+		"response": webnotes.response['result'],
+	}
 
-	# Headers end
-	print 
-	print str_out
+	print_content(content, args)
+
+def print_iframe():
+	content = [
+		"Content-Type: text/html",
+		"",
+		"%(response)s",
+		"%(debug)s"
+	]
+	
+	args = {
+		'response': webnotes.response.get('result') or '',
+		'debug': ''
+	}
+	
+	if webnotes.debug_log:
+		import json
+		args['debug'] = """\
+			<script>
+				var messages = %(messages)s;
+				if (messages.length) {
+					for (var i in messages) {
+						window.parent.msgprint(messages[i]);
+					}
+				}
+				var errors = %(errors)s;
+				if (errors.length) {
+					for (var i in errors) {
+						window.parent.console.log(errors[i]);
+					}
+				}
+			</script>""" % {
+				'messages': json.dumps(webnotes.message_log).replace("'", "\\'"),
+				'errors': json.dumps(webnotes.debug_log).replace("'", "\\'"),
+			}
+	
+	print_content(content, args)
+
+def print_raw():
+	content = [
+		"Content-Type: %(mime_type)s",
+		"Content-Disposition: filename=%(filename)s",
+		"",
+		"%(response)s",
+	]
+	
+	import mimetypes
+	args = {
+		"mime_type": mimetypes.guess_type(webnotes.response['filename'])[0] \
+						or 'application/unknown',
+		"filename": webnotes.response['filename'].replace(' ', '_'),
+		"content": webnotes.response['filecontent'],
+	}
+	
+	print_content(content, args)
 
 def accept_gzip():
 	"""return true if client accepts gzip"""
@@ -333,15 +388,15 @@ def make_logs():
 
 	if webnotes.message_log:
 		t = '\n----------------\n'.join(webnotes.message_log)
-		webnotes.response['server_messages'] = t	
+		webnotes.response['server_messages'] = t
 
-def print_cookies():
+def add_cookies():
 	"""if there ar additional cookies defined during the request, add them"""
-	if webnotes.cookies or webnotes.add_cookies: 
+	from webnotes.utils import get_encoded_string
+	if webnotes.cookies or webnotes.add_cookies:
 		for c in webnotes.add_cookies.keys():
-			webnotes.cookies[c] = webnotes.add_cookies[c]
-		
-		print webnotes.cookies
+			webnotes.cookies[get_encoded_string(c)] = \
+				get_encoded_string(webnotes.add_cookies[c])
 
 def compressBuf(buf):
 	import gzip, cStringIO

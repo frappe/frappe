@@ -70,18 +70,14 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]', txt=None, \
 		
 		footer = get_footer()
 
-		# encode using utf-8
-		footer = footer.encode('utf-8', 'ignore')
+		footer = footer
 
 		msg = msg + (footer or '')
 		if txt:
 			email.set_text(txt)
 		else:
 			try:
-				msg_unicode = msg
-				if isinstance(msg, str):
-					msg_unicode = unicode(msg, 'utf-8', 'ignore')
-				email.set_text(html2text(msg_unicode))
+				email.set_text(html2text(msg))
 			except HTMLParser.HTMLParseError:
 				pass
 		email.set_html(msg)
@@ -119,10 +115,10 @@ def get_contact_list():
 	"""
 
 	cond = ['`%s` like "%s%%"' % (f, 
-		webnotes.form.getvalue('txt')) for f in webnotes.form.getvalue('where').split(',')]
+		webnotes.form_dict.get('txt')) for f in webnotes.form_dict.get('where').split(',')]
 	cl = webnotes.conn.sql("select `%s` from `tab%s` where %s" % (
-  			 webnotes.form.getvalue('select')
-			,webnotes.form.getvalue('from')
+  			 webnotes.form_dict.get('select')
+			,webnotes.form_dict.get('from')
 			,' OR '.join(cond)
 		)
 	)

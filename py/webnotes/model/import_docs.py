@@ -405,11 +405,10 @@ def get_template():
 
 	from webnotes.utils import getCSVelement
 	
-	form = webnotes.form
 	sql = webnotes.conn.sql
 	# get form values
-	dt = form.getvalue('dt')
-	overwrite = cint(form.getvalue('overwrite')) or 0
+	dt = webnotes.form_dict.get('dt')
+	overwrite = cint(webnotes.form_dict.get('overwrite')) or 0
 
 	pt, pf = '', ''
 	tmp_lbl, tmp_ml = [],[]

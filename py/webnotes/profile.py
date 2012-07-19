@@ -276,11 +276,11 @@ class Profile:
 
 @webnotes.whitelist()
 def get_user_img():
-	if not webnotes.form.getvalue('username'):
+	if not webnotes.form_dict.get('username'):
 		webnotes.response['message'] = 'no_img_m'
 		return
 
-	f = webnotes.conn.sql("select file_list from tabProfile where name=%s", webnotes.form.getvalue('username',''))
+	f = webnotes.conn.sql("select file_list from tabProfile where name=%s", webnotes.form_dict.get('username',''))
 	if f:
 		if f[0][0]:
 			lst = f[0][0].split('\n')	

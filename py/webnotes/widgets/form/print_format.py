@@ -28,7 +28,7 @@ def get():
 	"""load print format by `name`"""
 	import re
 
-	html = get_html(webnotes.form.getvalue('name'))
+	html = get_html(webnotes.form_dict.get('name'))
 
 	p = re.compile('\$import\( (?P<name> [^)]*) \)', re.VERBOSE)
 	out_html = ''

@@ -236,25 +236,35 @@ class CookieManager:
 		webnotes.incoming_cookies = cookies
 		
 	def set_cookies(self):		
-		if webnotes.session.get('sid'):
-			webnotes.cookies['sid'] = webnotes.session['sid']
+		if not webnotes.session.get('sid'): return
+		
+		from webnotes.utils import get_encoded_string
+		import datetime
 
-			# sid expires in 3 days
-			import datetime
-			expires = datetime.datetime.now() + datetime.timedelta(days=3)
-			webnotes.cookies['sid']['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')		
-			webnotes.cookies['sid']['path'] = '/'
+		# sid expires in 3 days
+		expires = datetime.datetime.now() + datetime.timedelta(days=3)
+		expires = expires.strftime('%a, %d %b %Y %H:%M:%S')
+		
+		webnotes.cookies[b'sid'] = get_encoded_string(webnotes.session['sid'])
+		webnotes.cookies[b'sid'][b'expires'] = get_encoded_string(expires)
+		webnotes.cookies[b'sid'][b'path'] = b'/'
 
 	def set_remember_me(self):
-		if webnotes.utils.cint(webnotes.form_dict.get('remember_me')):
-			remember_days = webnotes.conn.get_value('Control Panel',None,'remember_for_days') or 7
-			webnotes.cookies['remember_me'] = 1
+		from webnotes.utils import cint, get_encoded_string
+		
+		if not cint(webnotes.form_dict.get('remember_me')): return
+		
+		remember_days = webnotes.conn.get_value('Control Panel', None,
+			'remember_for_days') or 7
+			
+		import datetime
+		expires = datetime.datetime.now() + \
+					datetime.timedelta(days=remember_days)
+		expires = expires.strftime('%a, %d %b %Y %H:%M:%S')
 
-			import datetime
-			expires = datetime.datetime.now() + datetime.timedelta(days=remember_days)
-
-			for k in webnotes.cookies.keys():
-				webnotes.cookies[k]['expires'] = expires.strftime('%a, %d %b %Y %H:%M:%S')	
+		webnotes.cookies[b'remember_me'] = 1
+		for k in webnotes.cookies.keys():
+			webnotes.cookies[k][b'expires'] = get_encoded_string(expires)
 
 # =================================================================================
 # Session 

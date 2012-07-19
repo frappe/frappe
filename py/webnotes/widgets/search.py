@@ -30,13 +30,13 @@ def getsearchfields():
 	sf = webnotes.conn.sql("""\
 		SELECT value FROM `tabProperty Setter`
 		WHERE doc_type=%s AND property='search_fields'""", \
-		(webnotes.form.getvalue("doctype")))
+		(webnotes.form_dict.get("doctype")))
 	if not (sf and len(sf)>0 and sf[0][0]):
-		sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form.getvalue("doctype"))
+		sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form_dict.get("doctype"))
 	sf = sf and sf[0][0] or ''
 	sf = [s.strip() for s in sf.split(',')]
 	if sf and sf[0]:
-		res =  webnotes.conn.sql("select fieldname, label, fieldtype, options from tabDocField where parent='%s' and fieldname in (%s)" % (webnotes.form.getvalue("doctype","_NA"), '"'+'","'.join(sf)+'"'))
+		res =  webnotes.conn.sql("select fieldname, label, fieldtype, options from tabDocField where parent='%s' and fieldname in (%s)" % (webnotes.form_dict.get("doctype","_NA"), '"'+'","'.join(sf)+'"'))
 	else:
 		res = []
 
@@ -101,9 +101,9 @@ def scrub_custom_query(query, key, txt):
 def search_link():
 	import webnotes.widgets.query_builder
 
-	txt = webnotes.form.getvalue('txt')
-	dt = webnotes.form.getvalue('dt')
-	query = webnotes.form.getvalue('query')
+	txt = webnotes.form_dict.get('txt')
+	dt = webnotes.form_dict.get('dt')
+	query = webnotes.form_dict.get('query')
 	
 	# txt - decode it to utf-8. why to do this?
 	# "%(something_unicode)s %(something ascii encoded with utf-8)s"
@@ -125,10 +125,10 @@ def search_link():
 def search_widget():
 	import webnotes.widgets.query_builder
 
-	dt = webnotes.form.getvalue('doctype')
-	txt = webnotes.form.getvalue('txt') or ''
-	key = webnotes.form.getvalue('searchfield') or 'name' # key field
-	user_query = webnotes.form.getvalue('query') or ''
+	dt = webnotes.form_dict.get('doctype')
+	txt = webnotes.form_dict.get('txt') or ''
+	key = webnotes.form_dict.get('searchfield') or 'name' # key field
+	user_query = webnotes.form_dict.get('query') or ''
 
 	# txt - decode it to utf-8. why to do this?
 	# "%(something_unicode)s %(something ascii encoded with utf-8)s"
@@ -139,6 +139,6 @@ def search_widget():
 	if user_query:
 		query = scrub_custom_query(user_query, key, txt)
 	else:
-		query = make_query(', '.join(get_std_fields_list(dt, key)), dt, key, txt, webnotes.form.getvalue('start') or 0, webnotes.form.getvalue('page_len') or 50)
+		query = make_query(', '.join(get_std_fields_list(dt, key)), dt, key, txt, webnotes.form_dict.get('start') or 0, webnotes.form_dict.get('page_len') or 50)
 
 	webnotes.widgets.query_builder.runquery(query)

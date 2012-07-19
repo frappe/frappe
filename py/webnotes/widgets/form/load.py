@@ -63,10 +63,10 @@ def getdoctype():
 	import webnotes.model.doctype
 	import webnotes.model.meta
 	
-	form, doclist = webnotes.form, []
+	doclist = []
 	
-	dt = form.getvalue('doctype')
-	with_parent = form.getvalue('with_parent')
+	dt = webnotes.form_dict.get('doctype')
+	with_parent = webnotes.form_dict.get('with_parent')
 
 	# with parent (called from report builder)
 	if with_parent:

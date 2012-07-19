@@ -23,7 +23,6 @@
 from __future__ import unicode_literals
 import webnotes
 
-form = webnotes.form
 session = webnotes.session
 sql = webnotes.conn.sql
 out = webnotes.response
@@ -231,16 +230,16 @@ def build_description_standard(meta, tl):
 def runquery(q='', ret=0, from_export=0):
 	import webnotes.utils
 
-	formatted = cint(form.getvalue('formatted'))
+	formatted = cint(webnotes.form_dict.get('formatted'))
 
 	# CASE A: Simple Query
 	# --------------------
-	if form.getvalue('simple_query') or form.getvalue('is_simple'):
-		if not q: q = form.getvalue('simple_query') or form.getvalue('query')
+	if webnotes.form_dict.get('simple_query') or webnotes.form_dict.get('is_simple'):
+		if not q: q = webnotes.form_dict.get('simple_query') or webnotes.form_dict.get('query')
 		if q.split()[0].lower() != 'select':
 			raise Exception, 'Query must be a SELECT'
 
-		as_dict = cint(form.getvalue('as_dict'))
+		as_dict = cint(webnotes.form_dict.get('as_dict'))
 		res = sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
 
 		# build colnames etc from metadata
@@ -249,7 +248,7 @@ def runquery(q='', ret=0, from_export=0):
 	# CASE B: Standard Query
 	# -----------------------
 	else:
-		if not q: q = form.getvalue('query')
+		if not q: q = webnotes.form_dict.get('query')
 
 		tl = get_sql_tables(q)
 		meta = get_sql_meta(tl)
@@ -257,7 +256,7 @@ def runquery(q='', ret=0, from_export=0):
 		q = add_match_conditions(q, tl, webnotes.user.roles, webnotes.user.get_defaults())
 		webnotes
 		# replace special variables
-		q = q.replace('__user', session['user'].encode('utf-8'))
+		q = q.replace('__user', session['user'])
 		q = q.replace('__today', webnotes.utils.nowdate())
 
 		res = sql(q, as_list=1, formatted=formatted)
@@ -267,8 +266,8 @@ def runquery(q='', ret=0, from_export=0):
 	# run server script
 	# -----------------
 	style, header_html, footer_html, page_template = '', '', '', ''
-	if form.has_key('sc_id') and form.getvalue('sc_id'):
-		sc_id = form.getvalue('sc_id')
+	if form.has_key('sc_id') and webnotes.form_dict.get('sc_id'):
+		sc_id = webnotes.form_dict.get('sc_id')
 		from webnotes.model.code import get_code
 		sc_details = webnotes.conn.sql("select module, standard, server_script from `tabSearch Criteria` where name=%s", sc_id)[0]
 		if sc_details[1]!='No':
@@ -277,7 +276,7 @@ def runquery(q='', ret=0, from_export=0):
 			code = sc_details[2]
 
 		if code:
-			filter_values = form.has_key('filter_values') and eval(form.getvalue('filter_values','')) or {}
+			filter_values = form.has_key('filter_values') and eval(webnotes.form_dict.get('filter_values','')) or {}
 			res, style, header_html, footer_html, page_template = exec_report(code, res, colnames, colwidths, coltypes, coloptions, filter_values, q, from_export)
 
 	out['colnames'] = colnames
@@ -298,7 +297,7 @@ def runquery(q='', ret=0, from_export=0):
 	out['values'] = res
 
 	# return num of entries
-	qm = form.has_key('query_max') and form.getvalue('query_max') or ''
+	qm = form.has_key('query_max') and webnotes.form_dict.get('query_max') or ''
 	if qm and qm.strip():
 		if qm.split()[0].lower() != 'select':
 			raise Exception, 'Query (Max) must be a SELECT'
@@ -315,9 +314,9 @@ def runquery_csv():
 	# run query
 	res = runquery(from_export = 1)
 
-	q = form.getvalue('query')
+	q = webnotes.form_dict.get('query')
 
-	rep_name = form.getvalue('report_name')
+	rep_name = webnotes.form_dict.get('report_name')
 	if not form.has_key('simple_query'):
 
 		# Report Name
@@ -336,10 +335,10 @@ def runquery_csv():
 
 	f = StringIO()
 	writer = csv.writer(f)
+	from webnotes.utils import get_encoded_string
 	for r in rows:
 		for i in xrange(len(r)):
-			if type(r[i]) is unicode:
-				r[i] = r[i].encode('utf-8')
+			r[i] = get_encoded_string(r[i])
 		writer.writerow(r)
 
 	f.seek(0)

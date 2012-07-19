@@ -1095,6 +1095,8 @@ _f.get_value = function(dt, dn, fn) {
 
 _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 	var d = locals[dt][dn];
+	if (!d) return;
+	
 	var changed = d[fn] != v;
 	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) 
 		changed = false;

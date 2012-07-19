@@ -238,10 +238,10 @@ def export_query():
 
 	f = StringIO()
 	writer = csv.writer(f)
+	from webnotes.utils import get_encoded_string
 	for r in data:
 		for i in xrange(len(r)):
-			if type(r[i]) is unicode:
-				r[i] = r[i].encode('utf-8')
+			r[i] = get_encoded_string(r[i])
 		writer.writerow(r)
 
 	f.seek(0)

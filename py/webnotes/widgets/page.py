@@ -96,7 +96,7 @@ def getpage():
 	"""
 	   Load the page from `webnotes.form` and send it via `webnotes.response`
 	"""
-	doclist = get(webnotes.form.getvalue('name'))
+	doclist = get(webnotes.form_dict.get('name'))
 		
 	# send
 	webnotes.response['docs'] = doclist

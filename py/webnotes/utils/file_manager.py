@@ -24,12 +24,10 @@ from __future__ import unicode_literals
 import webnotes
 
 def upload():
-	form = webnotes.form
-
 	# get record details
-	dt = form.getvalue('doctype')
-	dn = form.getvalue('docname')
-	at_id = form.getvalue('at_id')
+	dt = webnotes.form_dict.get('doctype')
+	dn = webnotes.form_dict.get('docname')
+	at_id = webnotes.form_dict.get('at_id')
 
 	webnotes.response['type'] = 'iframe'
 	if not webnotes.form['filedata'].filename:

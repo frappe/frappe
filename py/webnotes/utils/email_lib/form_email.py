@@ -24,8 +24,6 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import cint
 
-form = webnotes.form
-
 from webnotes.utils.email_lib import get_footer
 from webnotes.utils.email_lib.send import EMail
 
@@ -109,7 +107,7 @@ class FormEmail:
 		"""
 		al = []
 		try:
-			al = webnotes.conn.sql('select file_list from `tab%s` where name="%s"' % (form.getvalue('dt'), form.getvalue('dn')))
+			al = webnotes.conn.sql('select file_list from `tab%s` where name="%s"' % (webnotes.form_dict.get('dt'), webnotes.form_dict.get('dn')))
 			if al:
 				al = (al[0][0] or '').split('\n')
 		except Exception, e:
@@ -145,12 +143,11 @@ class FormEmail:
 		# footer
 		footer = get_footer()
 		if footer:
-			footer = footer.encode('utf-8')
 			html_message += footer
 			text_message += footer
 
 		# message as text
-		self.email.set_text(html2text(unicode(text_message, 'utf-8')))
+		self.email.set_text(html2text(text_message))
 		self.email.set_html(html_message)
 	
 	def make_communication(self):

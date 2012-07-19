@@ -28,23 +28,23 @@ def remove_attach():
 	"""remove attachment"""
 	import webnotes.utils.file_manager
 	
-	fid = webnotes.form.getvalue('fid')
+	fid = webnotes.form_dict.get('fid')
 		
 	# remove from dt dn
-	return str(webnotes.utils.file_manager.remove_file(webnotes.form.getvalue('dt'), webnotes.form.getvalue('dn'), fid))
+	return str(webnotes.utils.file_manager.remove_file(webnotes.form_dict.get('dt'), webnotes.form_dict.get('dn'), fid))
 
 @webnotes.whitelist()
 def get_fields():
 	"""get fields"""
 	r = {}
 	args = {
-		'select':webnotes.form.getvalue('select')
-		,'from':webnotes.form.getvalue('from')
-		,'where':webnotes.form.getvalue('where')
+		'select':webnotes.form_dict.get('select')
+		,'from':webnotes.form_dict.get('from')
+		,'where':webnotes.form_dict.get('where')
 	}
 	ret = webnotes.conn.sql("select %(select)s from `%(from)s` where %(where)s limit 1" % args)
 	if ret:
-		fl, i = webnotes.form.getvalue('fields').split(','), 0
+		fl, i = webnotes.form_dict.get('fields').split(','), 0
 		for f in fl:
 			r[f], i = ret[0][i], i+1
 	webnotes.response['message']=r
@@ -55,7 +55,7 @@ def validate_link():
 	import webnotes
 	import webnotes.utils
 	
-	value, options, fetch = webnotes.form.getvalue('value'), webnotes.form.getvalue('options'), webnotes.form.getvalue('fetch')
+	value, options, fetch = webnotes.form_dict.get('value'), webnotes.form_dict.get('options'), webnotes.form_dict.get('fetch')
 
 	# no options, don't validate
 	if not options or options=='null' or options=='undefined':
