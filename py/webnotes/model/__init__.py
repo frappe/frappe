@@ -21,6 +21,7 @@
 # 
 
 # model __init__.py
+from __future__ import unicode_literals
 import webnotes
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']

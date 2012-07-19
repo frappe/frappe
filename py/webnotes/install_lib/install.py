@@ -23,6 +23,7 @@
 # called from wnf.py
 # lib/wnf.py --install [rootpassword] [dbname] [source]
 
+from __future__ import unicode_literals
 import os,sys
 
 class Installer:

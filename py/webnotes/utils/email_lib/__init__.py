@@ -20,6 +20,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
+from __future__ import unicode_literals
 import webnotes
 
 def sendmail_html(sender, recipients, subject, html, text=None, template=None, send_now=1, reply_to=None):

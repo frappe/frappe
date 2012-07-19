@@ -1,6 +1,7 @@
 # app configuration
 
 # database config
+from __future__ import unicode_literals
 db_name = 'yourdbname'
 db_password = 'yourdbpassword'
 

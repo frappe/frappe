@@ -20,6 +20,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
+from __future__ import unicode_literals
 install_docs = [
 	{'doctype':'Module Def', 'name': 'Core', 'module_name':'Core'},
 

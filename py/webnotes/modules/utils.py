@@ -20,6 +20,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
+from __future__ import unicode_literals
 def listfolders(path, only_name=0):
 	"""
 		Returns the list of folders (with paths) in the given path, 

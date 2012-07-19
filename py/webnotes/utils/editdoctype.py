@@ -1,5 +1,6 @@
 #!/usr/bin/python
 
+from __future__ import unicode_literals
 """
 Utilty to review DocType fields:
 

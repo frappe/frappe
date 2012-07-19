@@ -21,6 +21,7 @@
 # 
 
 # Search
+from __future__ import unicode_literals
 import webnotes
 
 # this is called when a new doctype is setup for search - to set the filters

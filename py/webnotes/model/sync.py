@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 """
 	Sync's doctype and docfields from txt files to database
 	perms will get synced only if none exist

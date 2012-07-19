@@ -20,6 +20,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
+from __future__ import unicode_literals
 """
 This is where all the plug-in code is executed. The standard method for DocTypes is declaration of a 
 standardized `DocType` class that has the methods of any DocType. When an object is instantiated using the

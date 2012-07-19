@@ -22,6 +22,7 @@
 
 # util __init__.py
 
+from __future__ import unicode_literals
 import webnotes
 
 user_time_zone = None

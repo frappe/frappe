@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 """
 make index, wn.js, wn.css pages
 - rebuild all pages on change of website settings (toolbar)

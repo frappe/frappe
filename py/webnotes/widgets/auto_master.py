@@ -24,6 +24,7 @@
 # _ + fieldname is the table
 # 'value' is the column name, pkey
 
+from __future__ import unicode_literals
 import webnotes
 
 # create masters for a doctype

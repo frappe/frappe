@@ -23,6 +23,7 @@
 # Database Module
 # --------------------
 
+from __future__ import unicode_literals
 import MySQLdb
 import webnotes
 import conf

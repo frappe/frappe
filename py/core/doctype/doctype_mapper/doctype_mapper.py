@@ -21,6 +21,7 @@
 # 
 
 # Please edit this list and import only required elements
+from __future__ import unicode_literals
 import webnotes
 
 from webnotes.utils import cint, cstr, default_fields, flt, formatdate, get_defaults, getdate, now, nowdate, replace_newlines, set_default

@@ -22,6 +22,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
+from __future__ import unicode_literals
 import os, sys
 
 def replace_code(start, txt1, txt2, extn, search=None):

@@ -21,6 +21,7 @@
 # 
 
 #!/usr/bin/env python
+from __future__ import unicode_literals
 """html2text: Turn HTML into equivalent Markdown-structured text."""
 __version__ = "3.02"
 __author__ = "Aaron Swartz (me@aaronsw.com)"

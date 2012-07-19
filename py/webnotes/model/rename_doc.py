@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 import webnotes
 
 def rename_doc(doctype, old, new, is_doctype=0, debug=0):

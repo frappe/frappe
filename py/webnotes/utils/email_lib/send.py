@@ -20,6 +20,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
+from __future__ import unicode_literals
 """
 Sends email via outgoing server specified in "Control Panel"
 Allows easy adding of Attachments of "File" objects

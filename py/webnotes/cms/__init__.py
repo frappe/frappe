@@ -1,3 +1,4 @@
+from __future__ import unicode_literals
 def get_home_page(user=None):
 	"""get home page for user"""
 	if not user:

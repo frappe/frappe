@@ -22,6 +22,7 @@
 
 
 
+from __future__ import unicode_literals
 import os, os.path, shutil
 
 # This code is original from jsmin by Douglas Crockford, it was translated to
