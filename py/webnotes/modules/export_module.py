@@ -60,7 +60,7 @@ def create_folder(module, dt, dn):
 	# get module path by importing the module
 	modules_path = get_module_path(module)
 			
-	code_type = dt in ['DocType', 'Page', 'Search Criteria']
+	code_type = dt in ['DocType', 'Page', 'Search Criteria', 'Report']
 	
 	# create folder
 	folder = os.path.join(modules_path, code_type and scrub(dt) or dt, code_type and scrub(dn) or dn)
@@ -99,7 +99,7 @@ def write_document_file(doclist, record_module=None):
 	module = get_module_name(doclist, record_module)
 
 	# create the folder
-	code_type = doclist[0]['doctype'] in ['DocType','Page','Search Criteria']
+	code_type = doclist[0]['doctype'] in ['DocType','Page','Search Criteria', 'Report']
 	
 	# create folder
 	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'])

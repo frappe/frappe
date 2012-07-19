@@ -48,7 +48,7 @@ def switch_module(dt, dn, to, frm=None, export=None):
 		export_doc(dt, dn)
 
 		# copy code files
-		if dt in ('DocType', 'Page', 'Search Criteria'):
+		if dt in ('DocType', 'Page', 'Search Criteria', 'Report'):
 			from_path = os.path.join(get_module_path(frm), scrub(dt), scrub(dn), scrub(dn))
 			to_path = os.path.join(get_module_path(to), scrub(dt), scrub(dn), scrub(dn))
 

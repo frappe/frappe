@@ -25,7 +25,7 @@
 """
 import webnotes
 
-transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper','GL Mapper','Search Criteria', 'Patch']
+transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper','GL Mapper','Search Criteria', 'Patch', 'Report']
 
 def scrub(txt):
 	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
@@ -33,7 +33,7 @@ def scrub(txt):
 def scrub_dt_dn(dt, dn):
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
 	ndt, ndn = dt, dn
-	if dt.lower() in ('doctype', 'search criteria', 'page'):
+	if dt.lower() in ('doctype', 'search criteria', 'page', 'report'):
 		ndt, ndn = scrub(dt), scrub(dn)
 
 	return ndt, ndn
