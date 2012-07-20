@@ -266,7 +266,7 @@ def runquery(q='', ret=0, from_export=0):
 	# run server script
 	# -----------------
 	style, header_html, footer_html, page_template = '', '', '', ''
-	if form.has_key('sc_id') and webnotes.form_dict.get('sc_id'):
+	if webnotes.form_dict.get('sc_id'):
 		sc_id = webnotes.form_dict.get('sc_id')
 		from webnotes.model.code import get_code
 		sc_details = webnotes.conn.sql("select module, standard, server_script from `tabSearch Criteria` where name=%s", sc_id)[0]
@@ -276,7 +276,7 @@ def runquery(q='', ret=0, from_export=0):
 			code = sc_details[2]
 
 		if code:
-			filter_values = form.has_key('filter_values') and eval(webnotes.form_dict.get('filter_values','')) or {}
+			filter_values = eval(webnotes.form_dict.get('filter_values','')) or {}
 			res, style, header_html, footer_html, page_template = exec_report(code, res, colnames, colwidths, coltypes, coloptions, filter_values, q, from_export)
 
 	out['colnames'] = colnames
@@ -297,11 +297,11 @@ def runquery(q='', ret=0, from_export=0):
 	out['values'] = res
 
 	# return num of entries
-	qm = form.has_key('query_max') and webnotes.form_dict.get('query_max') or ''
+	qm = webnotes.form_dict.get('query_max') or ''
 	if qm and qm.strip():
 		if qm.split()[0].lower() != 'select':
 			raise Exception, 'Query (Max) must be a SELECT'
-		if not form.has_key('simple_query'):
+		if not webnotes.form_dict.get('simple_query'):
 			qm = add_match_conditions(qm, tl, webnotes.user.roles, webnotes.user.defaults)
 
 		out['n_values'] = webnotes.utils.cint(sql(qm)[0][0])
@@ -317,7 +317,7 @@ def runquery_csv():
 	q = webnotes.form_dict.get('query')
 
 	rep_name = webnotes.form_dict.get('report_name')
-	if not form.has_key('simple_query'):
+	if not webnotes.form_dict.get('simple_query'):
 
 		# Report Name
 		if not rep_name:

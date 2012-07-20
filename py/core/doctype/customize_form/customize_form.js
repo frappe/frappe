@@ -77,7 +77,7 @@ cur_frm.cscript.hide_allow_attach = function(doc, dt, dn) {
 		'Leave Application', 'Lead', 'Journal Voucher', 'Item', 'Purchase Request',
 		'Expense Claim', 'Opportunity', 'Employee', 'Delivery Note',
 		'Customer Issue', 'Customer', 'Contact Us Settings', 'Company',
-		'Bulk Rename Tool', 'Blog', 'BOM', 'About Us Settings'];
+		'Blog', 'BOM', 'About Us Settings'];
 	
 	if(inList(allow_attach_list, doc.doc_type)) {
 		unhide_field('allow_attach');

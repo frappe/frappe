@@ -34,6 +34,16 @@ errdoc = ''
 errdoctype = ''
 errmethod = ''
 
+def get_cgi_fields():
+	"""make webnotes.form_dict from cgi field storage"""
+	import cgi
+	import webnotes
+	from webnotes.utils import cstr
+	
+	# make the form_dict
+	webnotes.form = cgi.FieldStorage(keep_blank_values=True)
+	for key in webnotes.form.keys():
+		webnotes.form_dict[key] = cstr(webnotes.form.getvalue(key))
 
 # Logs
 
@@ -271,37 +281,31 @@ def print_content(content, args=None):
 	print get_encoded_string("\n".join(content) % args)
 
 def print_json():
+	from webnotes.utils import get_encoded_string
+	
 	make_logs()
 	cleanup_docs()
+	add_cookies()
+
+	content = []
 
 	import json
 	response = json.dumps(webnotes.response)
-	
-	content = []
-	
-	if accept_gzip() and len(response)>512:
-		out_buf = compressBuf(response)
-		content += [
-			"Content-Encoding: gzip",
-			"Content-Length: %d" % (len(out_buf))
-		]
-		response = out_buf
-		
-	add_cookies()
-	
+	response = get_encoded_string(response)
+	response, content = gzip_response(response, content)
+
 	content += [
 		"Content-Type: text/html; charset: utf-8",
 		"%(cookies)s",
 		"",
-		"%(response)s"
 	]
 	
-	args = {
-		'cookies': webnotes.cookies,
-		'response': response,
-	}
+	args = { 'cookies': webnotes.cookies }
 	
 	print_content(content, args)
+
+	# seperately printing response, since it can be gzipped or not
+	print response
 		
 def print_csv():
 	content = [
@@ -372,14 +376,6 @@ def print_raw():
 	
 	print_content(content, args)
 
-def accept_gzip():
-	"""return true if client accepts gzip"""
-	try:
-		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
-			return True
-	except:
-		return False
-
 def make_logs():
 	"""make strings for msgprint and errprint"""
 	if webnotes.debug_log:
@@ -397,6 +393,27 @@ def add_cookies():
 		for c in webnotes.add_cookies.keys():
 			webnotes.cookies[get_encoded_string(c)] = \
 				get_encoded_string(webnotes.add_cookies[c])
+
+def gzip_response(response, content):
+	if accept_gzip() and len(response)>512:
+		out_buf = compressBuf(response)
+		content += [
+			"Content-Encoding: gzip",
+			"Content-Length: %d" % (len(out_buf))
+		]
+		response = out_buf
+	return response, content
+	
+def accept_gzip():
+	"""return true if client accepts gzip"""
+	try:
+		import string
+		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
+			return True
+		else:
+			return False
+	except:
+		return False
 
 def compressBuf(buf):
 	import gzip, cStringIO

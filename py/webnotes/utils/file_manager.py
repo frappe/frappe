@@ -30,7 +30,8 @@ def upload():
 	at_id = webnotes.form_dict.get('at_id')
 
 	webnotes.response['type'] = 'iframe'
-	if not webnotes.form['filedata'].filename:
+	filename = webnotes.form['filedata'].filename
+	if not filename:
 		webnotes.response['result']	= """
 		<script type='text/javascript'>
 		window.parent.wn.views.fomrview['%s'].frm.attachments.dialog.hide();
@@ -126,6 +127,7 @@ def make_thumbnail(blob, size):
 def get_uploaded_content():
 	import webnotes
 	
+	# should not be unicode when reading a file, hence using webnotes.form
 	if 'filedata' in webnotes.form:
 		i = webnotes.form['filedata']
 		webnotes.uploaded_filename, webnotes.uploaded_content = i.filename, i.file.read()
@@ -138,8 +140,6 @@ def save_uploaded():
 	import webnotes.utils
 	
 	webnotes.response['type'] = 'iframe'
-
-	form = webnotes.form
 
 	fname, content = get_uploaded_content()
 	if content:

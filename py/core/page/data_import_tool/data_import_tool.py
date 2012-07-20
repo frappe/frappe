@@ -91,19 +91,19 @@ def get_template():
 	
 	w.writerow([data_separator])
 
+	from webnotes.utils import get_encoded_string, cstr
+
 	if webnotes.form_dict.get('with_data')=='Yes':
 		data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" % doctype, as_dict=1)
 		for d in data:
 			row = ['']
 			for c in columns:
 				val = d.get(c, '')
-				if type(val) is unicode:
-					val = val.encode('utf-8')
-				row.append(val)
+				row.append(get_encoded_string(val))
 			w.writerow(row)
 
 	# write out response as a type csv
-	webnotes.response['result'] = tobj.getvalue()
+	webnotes.response['result'] = cstr(tobj.getvalue())
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = doctype
 
@@ -124,32 +124,9 @@ def upload():
 	fname, fcontent = get_uploaded_content()
 	overwrite = webnotes.form_dict.get('overwrite')
 
-	ret, rows = [], []
-	try:
-		reader = csv.reader(fcontent.splitlines())
-		# decode everything
-		csvrows = [[val for val in row] for row in reader]
-		
-		for row in csvrows:
-			newrow = []
-			for val in row:
-				if webnotes.form_dict.get('ignore_encoding_errors'):
-					newrow.append(unicode(val.strip(), 'utf-8', errors='ignore'))
-				else:
-					try:
-						newrow.append(unicode(val.strip(), 'utf-8'))
-					except UnicodeDecodeError, e:
-						raise Exception, """Some character(s) in row #%s, column #%s are
-							not readable by utf-8. Ignoring them. If you are importing a non
-							english language, please make sure your file is saved in the 'utf-8'
-							encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
-					
-			rows.append(newrow)
-			
-	except Exception, e:
-		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
-		raise e
-
+	ret = []
+	
+	rows = read_csv_content(fcontent)
 	
 	# doctype
 	doctype = rows[0][0].split(':')[1].strip()
@@ -204,6 +181,39 @@ def upload():
 			ret.append('Error for ' + row[1] + ': ' + str(e))
 			webnotes.errprint(webnotes.getTraceback())
 	return ret
+	
+def read_csv_content(fcontent):
+	import csv
+	import webnotes
+	from webnotes.utils import cstr
+	
+	rows = []
+	
+	try:
+		reader = csv.reader(fcontent.splitlines())
+		# decode everything
+		csvrows = [[val for val in row] for row in reader]
+		
+		for row in csvrows:
+			newrow = []
+			for val in row:
+				if webnotes.form_dict.get('ignore_encoding_errors'):
+					newrow.append(cstr(val.strip()))
+				else:
+					try:
+						newrow.append(unicode(val.strip(), 'utf-8'))
+					except UnicodeDecodeError, e:
+						raise Exception, """Some character(s) in row #%s, column #%s are
+							not readable by utf-8. Ignoring them. If you are importing a non
+							english language, please make sure your file is saved in the 'utf-8'
+							encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
+					
+			rows.append(newrow)
+		
+		return rows
+	except Exception, e:
+		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
+		raise e
 
 def check_record(d, parenttype):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
