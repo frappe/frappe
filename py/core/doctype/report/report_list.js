@@ -8,14 +8,19 @@ wn.doclistviews['Report'] = wn.views.ListView.extend({
 	
 	prepare_data: function(data) {
 		this._super(data);
-		data.report = repl("<a href=\"#!Report2/%(ref_doctype)s/%(name)s\">\
-								%(name)s</a>", data);
-	},
+		
+		if(wn.boot.profile.all_read.indexOf(data.ref_doctype)==-1) {
+			data.report = repl("<span style=\"color:#999\">%(name)s</span>", data);
+		} else {
+			data.report = repl("<a href=\"#!Report2/%(ref_doctype)s/%(name)s\">\
+									%(name)s</a>", data);
+		}
+},
 	
 	columns: [
 		{width: '3%', content: 'check'},
-		{width: '85%', content: 'report'},
-		{width: '12%', content: 'modified',
+		{width: '82%', content: 'report'},
+		{width: '15%', content: 'modified',
 			css: {'text-align': 'right', 'color':'#777'}}
 	]
 });
