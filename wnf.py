@@ -98,6 +98,37 @@ def update_erpnext(remote='origin', branch='master'):
 	
 	# sync all
 	sync_all()
+	
+def append_future_import():
+	"""appends from __future__ import unicode_literals to py files if necessary"""
+	import os
+	import conf
+	conf_path = os.path.abspath(conf.__file__)
+	if conf_path.endswith("pyc"):
+		conf_path = conf_path[:-1]
+	
+	base_path = os.path.dirname(conf_path)
+	
+	for path, folders, files in os.walk(base_path):
+		for f in files:
+			if f.endswith('.py'):
+				file_path = os.path.join(path, f)
+				with open(file_path, 'r') as pyfile:
+					content = pyfile.read()
+				future_import = 'from __future__ import unicode_literals'
+
+				if future_import in content: continue
+
+				content = content.split('\n')
+				idx = -1
+				for c in content:
+					idx += 1
+					if c and not c.startswith('#'):
+						break
+				content.insert(idx, future_import)
+				content = "\n".join(content)
+				with open(file_path, 'w') as pyfile:
+					pyfile.write(content)
 
 def setup_options():
 	from optparse import OptionParser
@@ -180,6 +211,9 @@ def setup_options():
 			
 	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
 			action="store_true")
+			
+	parser.add_option("--append_future_import", default=False, action="store_true", 
+			help="append from __future__ import unicode literals to py files")
 
 	return parser.parse_args()
 	
@@ -306,6 +340,9 @@ def run():
 	elif options.build_web_cache:
 		import website.web_cache
 		website.web_cache.refresh_cache(True)
+		
+	elif options.append_future_import:
+		append_future_import()
 
 	# print messages
 	if webnotes.message_log:
