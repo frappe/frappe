@@ -42,8 +42,11 @@ class EMail:
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
 		if isinstance(recipients, basestring):
-			recipients = recipients.replace(';', ',')
+			recipients = recipients.replace(';', ',').replace(' ', '').replace('\n', '')
 			recipients = recipients.split(',')
+			
+		# remove null
+		recipients = filter(None, recipients)	
 			
 		self.from_defs = from_defs
 		self.sender = sender

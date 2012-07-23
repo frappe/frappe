@@ -339,7 +339,7 @@ wn.ui.FieldSelect = Class.extend({
 			var table = df.parent;
 		}
 		if(wn.model.no_value_type.indexOf(df.fieldtype)==-1 && 
-			!me.fields_by_name[df.fieldname]) {
+			!(me.fields_by_name[df.fieldname] && me.fields_by_name[df.fieldname]['parent'] == df.parent)) {
 			this.$select.append($('<option>', {
 				value: df.fieldname,
 				table: table

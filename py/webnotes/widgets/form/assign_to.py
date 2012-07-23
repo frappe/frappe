@@ -25,18 +25,23 @@
 import webnotes
 
 @webnotes.whitelist()
-def get():
+def get(args=None):
 	"""get assigned to"""
+	if not args:
+		args = webnotes.form_dict
 	return webnotes.conn.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		order by modified desc limit 5""", webnotes.form_dict, as_dict=1)
+		order by modified desc limit 5""", args, as_dict=1)
 		
 @webnotes.whitelist()
-def add():
+def add(args=None):
 	"""add in someone's to do list"""
+	if not args:
+		args = webnotes.form_dict
+	
 	if webnotes.conn.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", webnotes.form_dict):
+		and owner=%(assign_to)s""", args):
 		webnotes.msgprint("Already in todo")
 		return
 	else:
@@ -44,17 +49,17 @@ def add():
 		from webnotes.utils import nowdate
 		
 		d = Document("ToDo")
-		d.owner = webnotes.form_dict['assign_to']
-		d.reference_type = webnotes.form_dict['doctype']
-		d.reference_name = webnotes.form_dict['name']
-		d.description = webnotes.form_dict['description']
-		d.priority = webnotes.form_dict.get('priority', 'Medium')
-		d.date = webnotes.form_dict.get('date', nowdate())
+		d.owner = args['assign_to']
+		d.reference_type = args['doctype']
+		d.reference_name = args['name']
+		d.description = args['description']
+		d.priority = args.get('priority', 'Medium')
+		d.date = args.get('date', nowdate())
 		d.assigned_by = webnotes.user.name
 		d.save(1)
 
 	# notify
-	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', notify=webnotes.form_dict.get('notify'))
+	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', notify=args.get('notify'))
 		
 	# update feeed
 	try:
@@ -66,23 +71,26 @@ def add():
 		pass
 	
 	
-	return get()
+	return get(args)
 
 @webnotes.whitelist()
-def remove():
+def remove(args=None):
 	"""remove from todo"""
+	if not args:
+		args = webnotes.form_dict
+	
 	res = webnotes.conn.sql("""\
 		select assigned_by, owner, reference_type, reference_name from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", webnotes.form_dict)
+		and owner=%(assign_to)s""", args)
 
 	webnotes.conn.sql("""delete from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", webnotes.form_dict)
+		and owner=%(assign_to)s""", args)
 
 	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
 
-	return get()
+	return get(args)
 
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', notify=0):
