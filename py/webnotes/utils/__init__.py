@@ -56,6 +56,16 @@ def get_fullname(profile):
 	else:
 		return profile
 		
+def decode_email_header(s):
+	import email.header
+	decoded_header_tuple = email.header.decode_header(s)
+	
+	decoded_list = []
+	for header in decoded_header_tuple:
+		decoded_list.append(cstr(header[0], encoding = header[1] or 'utf-8'))
+			
+	return " ".join(decoded_list)
+		
 def extract_email_id(s):
 	"""
 		Extract email id from email header format

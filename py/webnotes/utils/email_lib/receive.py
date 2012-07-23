@@ -36,6 +36,7 @@ class IncomingMail:
 		import email
 		
 		self.mail = email.message_from_string(content)
+		
 		self.text_content = ''
 		self.html_content = ''
 		self.attachments = []
@@ -154,15 +155,19 @@ class POP3Mailbox:
 		
 		self.connect()
 		num = num_copy = len(self.pop.list()[1])
-		
+
 		# WARNING: Hard coded max no. of messages to be popped
 		if num > 20: num = 20
 		for m in xrange(1, num+1):
 			msg = self.pop.retr(m)
+			
 			try:
-				self.process_message(IncomingMail('\n'.join(msg[1])))
-			except:
+				self.process_message(IncomingMail(b'\n'.join(msg[1])))
+			except Exception, e:
 				pass
+				# import webnotes
+				# webnotes.errprint(e)
+
 			self.pop.dele(m)
 		
 		# WARNING: Delete message number 101 onwards from the pop list
