@@ -100,8 +100,9 @@ class IncomingMail:
 		"""
 			Process a single part of an email
 		"""
-		charset = self.get_charset(part)
 		content_type = part.get_content_type()
+		charset = part.get_content_charset()
+		if not charset: charset = self.get_charset(part)
 
 		if content_type == 'text/plain':
 			self.text_content += self.get_payload(part, charset)

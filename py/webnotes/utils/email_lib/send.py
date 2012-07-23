@@ -43,7 +43,7 @@ class EMail:
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
 
 		if isinstance(recipients, basestring):
-			recipients = recipients.replace(';', ',').replace(' ', '').replace('\n', '')
+			recipients = recipients.replace(';', ',').replace('\n', '')
 			recipients = recipients.split(',')
 			
 		# remove null
@@ -189,13 +189,18 @@ class EMail:
 			self.use_ssl = cint(es.use_ssl) or cint(getattr(conf, 'use_ssl', ''))
 
 	def make_msg(self):
-		self.msg_root['Subject'] = self.subject
-		self.msg_root['From'] = self.sender
-		self.msg_root['To'] = ', '.join([r.strip() for r in self.recipients])
+		from email.header import Header
+		charset = 'utf-8'
+		
+		self.msg_root['Subject'] = Header(self.subject, charset)
+		self.msg_root['From'] = Header(self.sender, charset)
+		self.msg_root['To'] = Header(', '.join([r.strip() for r in self.recipients]), charset)
+		
 		if self.reply_to and self.reply_to != self.sender:
-			self.msg_root['Reply-To'] = self.reply_to
+			self.msg_root['Reply-To'] = Header(self.reply_to, charset)
+		
 		if self.cc:
-			self.msg_root['CC'] = ', '.join([r.strip() for r in self.cc])
+			self.msg_root['CC'] = Header(', '.join([r.strip() for r in self.cc]), charset)
 	
 	def add_to_queue(self):
 		# write to a file called "email_queue" or as specified in email
@@ -224,7 +229,12 @@ class EMail:
 		
 		sess = self.smtp_connect()
 
-		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
+		from webnotes.utils import get_encoded_string
+		sess.sendmail(
+			get_encoded_string(self.sender),
+			[get_encoded_string(r) for r in self.recipients],
+			get_encoded_string(self.msg_root.as_string())
+		)
 		
 		try:
 			sess.quit()
