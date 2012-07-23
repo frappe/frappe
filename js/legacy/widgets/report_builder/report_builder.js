@@ -305,8 +305,7 @@ _r.ReportBuilder.prototype.clear_criteria = function() {
 
 // -------------------------------------------------------------------------------------
 
-_r.ReportBuilder.prototype.set_main_title = function(t, t1) {
-	var title = t + (t1 ? t1 : '');
+_r.ReportBuilder.prototype.set_main_title = function(title) {
 	_r.rb_con.appframe.$titlebar.find('.report-title').html(title);
 	set_title(title);
 }
@@ -414,7 +413,7 @@ _r.ReportBuilder.prototype.set_criteria_sel = function(criteria_name) {
 	
 	this.current_loaded = criteria_name;
 	// load additional fields sort option
-	this.set_main_title(criteria_name, sc.description);
+	this.set_main_title(criteria_name);
 }
 
 //
