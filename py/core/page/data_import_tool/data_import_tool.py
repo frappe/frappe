@@ -248,18 +248,18 @@ def delete_child_rows(rows, doctype):
 def import_doc(d, doctype, overwrite):
 	"""import main (non child) document"""
 	import webnotes
-	from webnotes.model.doc import Document
+	import webnotes.model.doc
 	from webnotes.model.doclist import DocList
 
 	if webnotes.conn.exists(doctype, d['name']):
 		if overwrite:
-			doc = Document(doctype, d['name'])
-			doc.fields.update(d)
-			DocList([doc]).save()
+			doclist = webnotes.model.doc.get(doctype, d['name'])
+			doclist[0].fields.update(d)
+			DocList(doclist).save()
 			return 'Updated ' + getlink(doctype, d['name'])
 		else:
 			return 'Ignored ' + getlink(doctype, d['name']) + ' (exists)'
 	else:
 		d['__islocal'] = 1
-		DocList([Document(fielddata = d)]).save()
+		DocList([webnotes.model.doc.Document(fielddata = d)]).save()
 		return 'Inserted ' + getlink(doctype, d['name'])
