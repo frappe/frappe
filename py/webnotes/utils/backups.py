@@ -45,7 +45,7 @@ class BackupGenerator:
 		If specifying db_file_name, also append ".sql.gz"
 	"""
 	def __init__(self, db_name, user, password):
-		self.db_name = db_name.replace('$', '\$')
+		self.db_name = db_name
 		self.user = user
 		self.password = password
 		self.backup_file_name = self.get_backup_file_name()
@@ -64,9 +64,16 @@ class BackupGenerator:
 		"""
 			Dumps a db via mysqldump
 		"""
-		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | 
-					 gzip -c > %(backup_file_path)s""" % self.__dict__
-		os.system(cmd_string)
+		import webnotes.utils
+		
+		# escape reserved characters
+		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] for item in self.__dict__.copy().items())
+		webnotes.errprint(args)
+
+		cmd_string = "mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_file_path)s" \
+			% args
+
+		ret = os.system(cmd_string)
 	
 	def get_recipients(self):
 		"""
@@ -125,7 +132,7 @@ class BackupGenerator:
 		
 		#Email Link
 		recipient_list = self.send_email(backup_file)
-		
+
 		return recipient_list
 		
 		
