@@ -3,11 +3,11 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-07-03 13:30:35',
-		'docstatus': 0,
-		'modified': '2012-07-16 14:56:38',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
+		u'creation': '2012-07-27 14:17:32',
+		u'docstatus': 0,
+		u'modified': '2012-07-27 14:25:59',
+		u'modified_by': u'Administrator',
+		u'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
@@ -20,7 +20,7 @@
 		'colour': u'White:FFF',
 		'default_print_format': u'Standard',
 		'description': u'Profile Represents a User in the system.',
-		'doctype': 'DocType',
+		u'doctype': u'DocType',
 		'document_type': u'System',
 		'hide_heading': 0,
 		'hide_toolbar': 0,
@@ -28,7 +28,7 @@
 		'istable': 0,
 		'max_attachments': 5,
 		'module': u'Core',
-		'name': '__common__',
+		u'name': u'__common__',
 		'print_outline': u'Yes',
 		'read_only': 0,
 		'search_fields': u'first_name, last_name',
@@ -39,8 +39,8 @@
 
 	# These values are common for all DocField
 	{
-		'doctype': u'DocField',
-		'name': '__common__',
+		u'doctype': u'DocField',
+		u'name': u'__common__',
 		'parent': u'Profile',
 		'parentfield': u'fields',
 		'parenttype': u'DocType'
@@ -48,8 +48,8 @@
 
 	# These values are common for all DocPerm
 	{
-		'doctype': u'DocPerm',
-		'name': '__common__',
+		u'doctype': u'DocPerm',
+		u'name': u'__common__',
 		'parent': u'Profile',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
@@ -58,53 +58,13 @@
 
 	# DocType, Profile
 	{
-		'doctype': 'DocType',
-		'name': u'Profile'
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'create': 1,
-		'doctype': u'DocPerm',
-		'execute': 0,
-		'permlevel': 0,
-		'role': u'Administrator',
-		'submit': 0,
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'create': 1,
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'cancel': 0,
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'Administrator',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'cancel': 0,
-		'doctype': u'DocPerm',
-		'match': u'owner',
-		'permlevel': 0,
-		'role': u'All'
+		u'doctype': u'DocType',
+		u'name': u'Profile'
 	},
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'sb0',
 		'fieldtype': u'Section Break',
 		'label': u'Profile Details',
@@ -114,7 +74,7 @@
 	# DocField
 	{
 		'default': u'1',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'enabled',
 		'fieldtype': u'Check',
 		'label': u'Enabled',
@@ -125,7 +85,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'sb0_5',
 		'fieldtype': u'Section Break',
 		'permlevel': 0
@@ -133,7 +93,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'unsubscribed',
 		'fieldtype': u'Check',
 		'hidden': 1,
@@ -143,7 +103,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'recent_documents',
 		'fieldtype': u'Text',
 		'hidden': 1,
@@ -159,7 +119,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Id of the profile will be the email.',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'email',
 		'fieldtype': u'Data',
 		'hidden': 0,
@@ -173,7 +133,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'first_name',
 		'fieldtype': u'Data',
 		'label': u'First Name',
@@ -185,7 +145,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'middle_name',
 		'fieldtype': u'Data',
 		'label': u'Middle Name (Optional)',
@@ -196,7 +156,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'last_name',
 		'fieldtype': u'Data',
 		'label': u'Last Name',
@@ -207,11 +167,11 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'column_break0',
 		'fieldtype': u'Column Break',
 		'oldfieldtype': u'Column Break',
-		'permlevel': 1,
+		'permlevel': 0,
 		'width': u'50%'
 	},
 
@@ -219,7 +179,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Set a new password.',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'new_password',
 		'fieldtype': u'Password',
 		'hidden': 0,
@@ -230,7 +190,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'birth_date',
 		'fieldtype': u'Date',
 		'label': u'Birth Date',
@@ -241,7 +201,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'user_type',
 		'fieldtype': u'Select',
 		'label': u'User Type',
@@ -253,7 +213,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'gender',
 		'fieldtype': u'Select',
 		'label': u'Gender',
@@ -268,7 +228,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'sb1',
 		'fieldtype': u'Section Break',
 		'label': u'Roles',
@@ -277,7 +237,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'roles_html',
 		'fieldtype': u'HTML',
 		'label': u'Roles HTML',
@@ -288,7 +248,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'sb2',
 		'fieldtype': u'Section Break',
 		'label': u'Defaults',
@@ -301,7 +261,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set "match" permission rules. To see list of fields, go to <a href="#Form/Customize Form/Customize Form">Customize Form</a>.',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'defaults',
 		'fieldtype': u'Table',
 		'label': u'Profile Defaults',
@@ -311,7 +271,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'sb3',
 		'fieldtype': u'Section Break',
 		'label': u'Security Settings',
@@ -323,7 +283,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Allow user to login only after this hour (0-24)',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'login_after',
 		'fieldtype': u'Int',
 		'label': u'Login After',
@@ -334,7 +294,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Allow user to login only before this hour (0-24)',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'login_before',
 		'fieldtype': u'Int',
 		'label': u'Login Before',
@@ -345,7 +305,7 @@
 	{
 		'colour': u'White:FFF',
 		'description': u'Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)',
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'restrict_ip',
 		'fieldtype': u'Data',
 		'label': u'Restrict IP',
@@ -354,7 +314,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'column_break1',
 		'fieldtype': u'Column Break',
 		'oldfieldtype': u'Column Break',
@@ -364,7 +324,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'last_login',
 		'fieldtype': u'Read Only',
 		'hidden': 0,
@@ -378,7 +338,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'last_ip',
 		'fieldtype': u'Read Only',
 		'label': u'Last IP',
@@ -389,7 +349,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'user_image',
 		'fieldtype': u'Data',
 		'hidden': 1,
@@ -399,7 +359,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'background_image',
 		'fieldtype': u'Data',
 		'hidden': 1,
@@ -409,7 +369,7 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'file_list',
 		'fieldtype': u'Text',
 		'hidden': 1,
@@ -418,5 +378,41 @@
 		'oldfieldname': u'file_list',
 		'oldfieldtype': u'Text',
 		'permlevel': 0
+	},
+
+	# DocPerm
+	{
+		'cancel': 0,
+		'create': 1,
+		u'doctype': u'DocPerm',
+		'execute': 0,
+		'permlevel': 0,
+		'role': u'Administrator',
+		'submit': 0,
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'create': 1,
+		u'doctype': u'DocPerm',
+		'permlevel': 0,
+		'role': u'System Manager',
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		u'doctype': u'DocPerm',
+		'permlevel': 1,
+		'role': u'Administrator',
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		u'doctype': u'DocPerm',
+		'permlevel': 0,
+		'role': u'All'
 	}
 ]
