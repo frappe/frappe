@@ -58,7 +58,10 @@ def get_fullname(profile):
 		
 def decode_email_header(s):
 	import email.header
-	decoded_header_tuple = email.header.decode_header(s)
+	
+	# replace double quotes with blank
+	# double quotes in header prohibit decoding of header
+	decoded_header_tuple = email.header.decode_header(s.replace('"', ''))
 	
 	decoded_list = []
 	for header in decoded_header_tuple:
