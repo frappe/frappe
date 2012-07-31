@@ -731,7 +731,8 @@ LinkField.prototype.set_input_value = function(val) {
 		return;
 	}
 
-	me.validate_link(val, from_selector);
+	// validate only if val is not empty
+	if (val) { me.validate_link(val, from_selector); }
 }
 
 LinkField.prototype.validate_link = function(val, from_selector) {
