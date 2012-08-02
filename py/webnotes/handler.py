@@ -188,11 +188,11 @@ def handle():
 		except:
 			webnotes.errprint(webnotes.utils.getTraceback())
 			webnotes.conn and webnotes.conn.rollback()
-			
+				
+	print_response()
+
 	if webnotes.conn:
 		webnotes.conn.close()
-		
-	print_response()
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
@@ -259,9 +259,17 @@ def print_response():
 		print_iframe()
 	elif webnotes.response.get('type')=='download':
 		print_raw()
+	elif webnotes.response.get('type')=='page':
+		print_page()
 	else:
 		print_json()
-		
+
+def print_page():
+	"""print web page"""
+	from website.utils import render
+	render(webnotes.response['page_name'])
+	
+
 def print_csv():
 	print "Content-Type: text/csv"
 	print "Content-Disposition: attachment; filename="+webnotes.response['doctype'].replace(' ', '_')+".csv"
