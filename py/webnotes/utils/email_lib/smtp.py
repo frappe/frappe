@@ -30,13 +30,22 @@ import conf
 from webnotes import msgprint
 import email
 
+def get_email(recipients, sender='', msg='', subject='[No Subject]'):
+	"""send an html email as multipart with attachments and all"""
+	email = EMail(sender, recipients, subject)
+	if (not '<br>' in msg) and (not '<p>' in msg) and (not '<div' in msg):
+		msg = msg.replace('\n', '<br>')
+	email.set_html(msg)
+
+	return email
+
 class EMail:
 	"""
 	Wrapper on the email module. Email object represents emails to be sent to the client. 
 	Also provides a clean way to add binary `FileData` attachments
 	Also sets all messages as multipart/alternative for cleaner reading in text-only clients
 	"""
-	def __init__(self, sender='', recipients=[], subject='', from_defs=0, alternative=0, reply_to=None):
+	def __init__(self, sender='', recipients=[], subject='', alternative=0, reply_to=None):
 		from email.mime.multipart import MIMEMultipart
 		from email import Charset
 		Charset.add_charset('utf-8', Charset.QP, Charset.QP, 'utf-8')
@@ -48,7 +57,6 @@ class EMail:
 		# remove null
 		recipients = filter(None, recipients)	
 			
-		self.from_defs = from_defs
 		self.sender = sender
 		self.reply_to = reply_to or sender
 		self.recipients = recipients
@@ -58,6 +66,7 @@ class EMail:
 		self.msg_multipart = MIMEMultipart('alternative')
 		self.msg_root.attach(self.msg_multipart)
 		self.cc = []
+		self.html_set = False
 	
 	def set_text(self, message):
 		"""
@@ -68,21 +77,32 @@ class EMail:
 			message = message.encode('utf-8')
 		part = MIMEText(message, 'plain', 'utf-8')		
 		self.msg_multipart.attach(part)
-		
+			
 	def set_html(self, message):
-		"""
-			Attach message in the html portion of multipart/alternative
-		"""
-		from email.mime.text import MIMEText		
-		if isinstance(message, unicode):
-			message = message.encode('utf-8')
-		part = MIMEText(message, 'html', 'utf-8')
+		"""Attach message in the html portion of multipart/alternative"""
+		from email.mime.text import MIMEText
+		message = unicode(message) + self.get_footer()
+
+		# this is the first html part of a multi-part message, 
+		# convert to text well
+		if not self.html_set: 
+			self.set_html_text(message)
+
+		part = MIMEText(message.encode('utf-8'), 'html', 'utf-8')
 		self.msg_multipart.attach(part)
+		self.html_set = True
+
+	def set_html_text(self, html):
+		"""return html2text"""
+		import HTMLParser
+		from webnotes.utils.email_lib.html2text import html2text
+		try:
+			self.set_text(html2text(html))
+		except HTMLParser.HTMLParseError:
+			pass
 	
 	def set_message(self, message, mime_type='text/html', as_attachment=0, filename='attachment.html'):
-		"""
-			Append the message with MIME content to the root node (as attachment)
-		"""
+		"""Append the message with MIME content to the root node (as attachment)"""
 		from email.mime.text import MIMEText
 		
 		maintype, subtype = mime_type.split('/')
@@ -92,11 +112,15 @@ class EMail:
 			part.add_header('Content-Disposition', 'attachment', filename=filename)
 		
 		self.msg_root.attach(part)
+	
+	def get_footer(self):
+		"""append a footer"""
+		footer = webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
+		footer += (webnotes.conn.get_global('global_mail_footer') or '')
+		return unicode(footer)
 		
 	def attach_file(self, n):
-		"""
-		attach a file from the `FileData` table
-		"""
+		"""attach a file from the `FileData` table"""
 		from webnotes.utils.file_manager import get_file		
 		res = get_file(n)
 		if not res:
@@ -105,7 +129,7 @@ class EMail:
 		self.add_attachment(res[0], res[1])
 	
 	def add_attachment(self, fname, fcontent, content_type=None):
-	
+		"""add attachment"""
 		from email.mime.audio import MIMEAudio
 		from email.mime.base import MIMEBase
 		from email.mime.image import MIMEImage
@@ -143,12 +167,10 @@ class EMail:
 		self.msg_root.attach(part)
 	
 	def validate(self):
-		"""
-		validate the email ids
-		"""
+		"""validate the email ids"""
 		if not self.sender:
-			self.sender = hasattr(conf, 'auto_email_id') \
-					and conf.auto_email_id or '"ERPNext Notification" <automail@erpnext.com>'
+			self.sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id') \
+				or getattr(conf, 'auto_email_id', '"ERPNext Notification" <notification@erpnext.com>')
 
 		from webnotes.utils import validate_email_add
 		# validate ids
@@ -162,31 +184,8 @@ class EMail:
 			if not validate_email_add(e):
 				webnotes.msgprint("%s is not a valid email id" % e, raise_exception = 1)
 	
-	def setup(self):
-		"""
-		setup the SMTP (outgoing) server from `Control Panel` or defs.py
-		"""
-		if self.from_defs:
-			import webnotes
-			self.server = getattr(conf,'mail_server','')
-			self.login = getattr(conf,'mail_login','')
-			self.port = getattr(conf,'mail_port',None)
-			self.password = getattr(conf,'mail_password','')
-			self.use_ssl = getattr(conf,'use_ssl',0)
-
-		else:	
-			import webnotes.model.doc
-			from webnotes.utils import cint
-
-			# get defaults from control panel
-			es = webnotes.model.doc.Document('Email Settings','Email Settings')
-			self.server = es.outgoing_mail_server.encode('utf-8') or getattr(conf,'mail_server','')
-			self.login = es.mail_login.encode('utf-8') or getattr(conf,'mail_login','')
-			self.port = cint(es.mail_port) or getattr(conf,'mail_port',None)
-			self.password = es.mail_password.encode('utf-8') or getattr(conf,'mail_password','')
-			self.use_ssl = cint(es.use_ssl) or cint(getattr(conf, 'use_ssl', ''))
-
-	def make_msg(self):
+	def make(self):
+		"""build into msg_root"""
 		self.msg_root['Subject'] = self.subject
 		self.msg_root['From'] = self.sender
 		self.msg_root['To'] = ', '.join([r.strip() for r in self.recipients])
@@ -194,46 +193,43 @@ class EMail:
 			self.msg_root['Reply-To'] = self.reply_to
 		if self.cc:
 			self.msg_root['CC'] = ', '.join([r.strip() for r in self.cc])
-	
-	def add_to_queue(self):
-		# write to a file called "email_queue" or as specified in email
-		q = EmailQueue()
-		q.push({
-			'server': self.server, 
-			'port': self.port, 
-			'use_ssl': self.use_ssl,
-			'login': self.login,
-			'password': self.password,
-			'sender': self.sender,
-			'recipients': self.recipients, 
-			'msg': self.msg_root.as_string()
-		})
-		q.close()
 
-	def send(self, send_now = 0):
-		"""		
-		send the message
-		"""
-		from webnotes.utils import cint
-		
-		self.setup()
+	def as_string(self):
+		"""validate, build message and convert to string"""
 		self.validate()
-		self.make_msg()
+		self.make()
+		return self.msg_root.as_string()
 		
-		sess = self.smtp_connect()
+	def send(self, as_bulk=False):
+		"""send the message or add it to Outbox Email"""		
+		SMTPServer().sess.sendmail(self.sender, self.recipients, self.as_string())
 
-		sess.sendmail(self.sender, self.recipients, self.msg_root.as_string())
+
+class SMTPServer:
+	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
+		import webnotes.model.doc
+		from webnotes.utils import cint
+
+		# get defaults from control panel
+		es = webnotes.model.doc.Document('Email Settings','Email Settings')
+		self.server = server or es.outgoing_mail_server.encode('utf-8') \
+			or getattr(conf,'mail_server','')
+		self.login = login or es.mail_login.encode('utf-8') \
+			or getattr(conf,'mail_login','')
+		self.port = port or cint(es.mail_port) \
+			or getattr(conf,'mail_port',None)
+		self.password = password or es.mail_password.encode('utf-8') \
+			or getattr(conf,'mail_password','')
+		self.use_ssl = use_ssl or cint(es.use_ssl) \
+			or cint(getattr(conf, 'use_ssl', ''))
+		self._sess = None
+
+	@property
+	def sess(self):
+		"""get session"""
+		if self._sess:
+			return self._sess
 		
-		try:
-			sess.quit()
-		except:
-			pass
-	
-
-	def smtp_connect(self):
-		"""
-			Gets a smtp connection and handles errors
-		"""
 		from webnotes.utils import cint
 		import smtplib
 		import _socket
@@ -245,26 +241,26 @@ class EMail:
 			raise webnotes.OutgoingEmailError, err_msg
 		
 		try:
-			sess = smtplib.SMTP(self.server, cint(self.port) or None)
+			self._sess = smtplib.SMTP(self.server, cint(self.port) or None)
 			
-			if not sess:
+			if not self._sess:
 				err_msg = 'Could not connect to outgoing email server'
 				webnotes.msgprint(err_msg)
 				raise webnotes.OutgoingEmailError, err_msg
 		
 			if self.use_ssl: 
-				sess.ehlo()
-				sess.starttls()
-				sess.ehlo()
+				self._sess.ehlo()
+				self._sess.starttls()
+				self._sess.ehlo()
 		
-			ret = sess.login(self.login, self.password)
+			ret = self._sess.login(self.login, self.password)
 
 			# check if logged correctly
 			if ret[0]!=235:
 				msgprint(ret[1])
 				raise webnotes.OutgoingEmailError, ret[1]
 
-			return sess
+			return self._sess
 			
 		except _socket.error, e:
 			# Invalid mail server -- due to refusing connection
@@ -277,3 +273,5 @@ class EMail:
 			webnotes.msgprint('There is something wrong with your Outgoing Mail Settings. \
 				Please contact us at support@erpnext.com')
 			raise webnotes.OutgoingEmailError, e
+
+	

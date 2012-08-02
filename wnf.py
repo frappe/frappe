@@ -148,7 +148,7 @@ def setup_options():
 						help="export doc")
 
 	# install
-	parser.add_option('--install', nargs=3, metavar = "rootpassword dbname source",
+	parser.add_option('--install', nargs=2, metavar = "dbname source",
 						help="install fresh db")
 	
 	# diff
@@ -263,8 +263,8 @@ def run():
 	
 	elif options.install:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root', options.install[0])
-		inst.import_from_db(options.install[1], source_path=options.install[2], \
+		inst = Installer('root')
+		inst.import_from_db(options.install[0], source_path=options.install[1], \
 			password='admin', verbose = 1)
 	
 	elif options.diff_ref_file is not None:

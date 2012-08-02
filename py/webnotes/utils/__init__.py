@@ -66,21 +66,26 @@ def extract_email_id(s):
 	return s
 	
 def validate_email_add(email_str):
-	"""
-		Validates the email string
-	"""
+	"""Validates the email string"""
 	s = extract_email_id(email_str)
 	import re
 	#return re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", email_str)
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", s)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc=[], attach=[]):
-	"""
-	Send an email. For more details see :func:`email_lib.sendmail`
-	"""
+	"""Send an email. For more details see :func:`email_lib.sendmail`"""
 	import webnotes.utils.email_lib
 	return email_lib.sendmail(recipients, sender, msg, subject, parts, cc, attach)
-	
+
+def get_request_site_address():
+	"""get app url from request"""
+	import os
+	try:
+		return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
+			+ os.environ.get('HTTP_HOST')
+	except TypeError, e:
+		return 'http://localhost'
+
 def generate_hash():
 	"""
 		 Generates random hash for session id

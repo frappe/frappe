@@ -26,11 +26,15 @@
 import os,sys
 
 class Installer:
-	def __init__(self, root_login, root_password):
+	def __init__(self, root_login, root_password=None):
 
 		import webnotes
 		import webnotes.db
 	
+		if not root_password:
+			import getpass
+			root_password = getpass.getpass("MySQL root password: ")
+			
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
 		
@@ -144,6 +148,3 @@ class Installer:
 			`value` LONGTEXT,
 			`expires_on` DATETIME
 			) ENGINE=MyISAM DEFAULT CHARSET=utf8""")
-			
-
-		
