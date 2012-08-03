@@ -25,7 +25,7 @@ import webnotes
 from webnotes.utils import cint
 
 from webnotes.utils.email_lib import get_footer
-from webnotes.utils.email_lib.send import EMail
+from webnotes.utils.email_lib.smtp import EMail
 
 class FormEmail:
 	"""
@@ -202,7 +202,7 @@ class FormEmail:
 		if self.cc:
 			self.email.cc = [self.cc]
 		
-		self.email.send(send_now=1)
+		self.email.send()
 		self.make_communication()
 		
 		webnotes.msgprint('Sent')

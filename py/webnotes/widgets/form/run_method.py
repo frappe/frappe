@@ -72,19 +72,14 @@ def make_csv_output(res, dt):
 	
 	from cStringIO import StringIO
 	import csv
-	
-	from webnotes.utils import get_encoded_string, cstr
-	
+		
 	f = StringIO()
 	writer = csv.writer(f)
 	for r in res:
-		row = []
-		for col in r:
-			row.append(get_encoded_string(col))
-		writer.writerow(row)
+		writer.writerow([v.encode('utf-8') for v in r])
 	
 	f.seek(0)
 						
-	webnotes.response['result'] = cstr(f.read())
+	webnotes.response['result'] = unicode(f.read(), 'utf-8')
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = dt.replace(' ','')		

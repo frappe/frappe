@@ -335,11 +335,8 @@ def runquery_csv():
 
 	f = StringIO()
 	writer = csv.writer(f)
-	from webnotes.utils import get_encoded_string
 	for r in rows:
-		for i in xrange(len(r)):
-			r[i] = get_encoded_string(r[i])
-		writer.writerow(r)
+		writer.writerow([v.encode('utf-8') for v in r])
 
 	f.seek(0)
 	out['result'] = f.read()

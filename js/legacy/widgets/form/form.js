@@ -958,7 +958,6 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
-	
 	if(!this.perm[0][CREATE]) {
 		msgprint('You are not allowed to create '+this.meta.name);
 		return;

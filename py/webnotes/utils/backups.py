@@ -68,8 +68,8 @@ class BackupGenerator:
 		import webnotes.utils
 		
 		# escape reserved characters
-		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] for item in self.__dict__.copy().items())
-		webnotes.errprint(args)
+		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] 
+			for item in self.__dict__.copy().items())
 
 		cmd_string = "mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_file_path)s" \
 			% args

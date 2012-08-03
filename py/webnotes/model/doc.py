@@ -105,6 +105,12 @@ class Document:
 	# Load Document
 	# ---------------------------------------------------------------------------
 
+	def encode(self, encoding='utf-8'):
+		"""convert all unicode values to utf-8"""
+		for key in self.fields:
+			if isinstance(self.fields[key], unicode):
+				self.fields[key] = self.fields[key].encode(encoding)
+
 	def _loadfromdb(self, doctype = None, name = None):
 		if name: self.name = name
 		if doctype: self.doctype = doctype

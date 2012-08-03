@@ -238,14 +238,12 @@ def export_query():
 
 	f = StringIO()
 	writer = csv.writer(f)
-	from webnotes.utils import get_encoded_string, cstr
+	from webnotes.utils import cstr
 	for r in data:
-		for i in xrange(len(r)):
-			r[i] = get_encoded_string(r[i])
-		writer.writerow(r)
+		writer.writerow([v.encode('utf-8') for v in r])
 
 	f.seek(0)
-	webnotes.response['result'] = cstr(f.read())
+	webnotes.response['result'] = unicode(f.read(), 'utf-8')
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = [t[4:-1] for t in tables][0]
 

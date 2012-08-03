@@ -91,15 +91,14 @@ def get_template():
 	
 	w.writerow([data_separator])
 
-	from webnotes.utils import get_encoded_string, cstr
+	from webnotes.utils import cstr
 
 	if webnotes.form_dict.get('with_data')=='Yes':
 		data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" % doctype, as_dict=1)
 		for d in data:
 			row = ['']
 			for c in columns:
-				val = d.get(c, '')
-				row.append(get_encoded_string(val))
+				row.append(d.get(c, '').encode('utf-8'))
 			w.writerow(row)
 
 	# write out response as a type csv

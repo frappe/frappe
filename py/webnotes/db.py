@@ -123,7 +123,8 @@ class Database:
 
 	# ======================================================================================
 	
-	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, ignore_no_table = 1, debug=0, ignore_ddl=0, as_utf8=0):
+	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, 
+		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0):
 		"""
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
@@ -131,6 +132,10 @@ class Database:
 		"""
 		# in transaction validations
 		self.check_transaction_status(query)
+		
+		# autocommit
+		if auto_commit and self.in_transaction: self.commit()
+		if auto_commit: self.begin()
 			
 		# execute
 		try:
@@ -147,6 +152,8 @@ class Database:
 				pass
 			else:
 				raise e
+
+		if auto_commit: self.commit()
 
 		# scrub output if required
 		if as_dict:

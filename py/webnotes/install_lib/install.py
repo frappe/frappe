@@ -27,11 +27,15 @@ from __future__ import unicode_literals
 import os,sys
 
 class Installer:
-	def __init__(self, root_login, root_password):
+	def __init__(self, root_login, root_password=None):
 
 		import webnotes
 		import webnotes.db
 	
+		if root_login and not root_password:
+			import getpass
+			root_password = getpass.getpass("MySQL root password: ")
+			
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
 		

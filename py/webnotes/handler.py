@@ -197,11 +197,11 @@ def handle():
 		except:
 			webnotes.errprint(webnotes.utils.getTraceback())
 			webnotes.conn and webnotes.conn.rollback()
-			
+				
+	print_response()
+
 	if webnotes.conn:
 		webnotes.conn.close()
-		
-	print_response()
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
@@ -241,12 +241,10 @@ def execute_cmd(cmd):
 def get_method(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
-		from webnotes.utils import get_encoded_string
 		cmd_parts = cmd.split('.')
 		module_string = ".".join(cmd_parts[:-1])
 		method_string = cmd_parts[-1]
-		module = __import__(module_string,
-				fromlist=[get_encoded_string(method_string)])
+		module = __import__(module_string, fromlist=True)
 		method = getattr(module, method_string)
 	else:
 		method = globals()[cmd]
@@ -269,75 +267,44 @@ def print_response():
 		'iframe': print_iframe,
 		'download': print_raw,
 		'json': print_json,
+		'page': print_page
 	}
 	
 	print_map.get(webnotes.response.get('type'), print_json)()
 
-def print_content(content, args=None):
-	"""encode and print content"""
-	if not args: args = {}
-	
-	from webnotes.utils import get_encoded_string
-	print get_encoded_string("\n".join(content) % args)
+def print_page():
+	"""print web page"""
+	from website.utils import render
+	render(webnotes.response['page_name'])
 
-def print_json():
-	from webnotes.utils import get_encoded_string
-	
+def eprint(content):
+	print content.encode('utf-8')
+
+def print_json():	
 	make_logs()
 	cleanup_docs()
 	add_cookies()
 
-	content = []
+	eprint("Content-Type: text/html; charset: utf-8")
+	print webnotes.cookies
 
 	import json
-	response = json.dumps(webnotes.response)
-	response = get_encoded_string(response)
-	response, content = gzip_response(response, content)
-
-	content += [
-		"Content-Type: text/html; charset: utf-8",
-		"%(cookies)s",
-		"",
-	]
-	
-	args = { 'cookies': webnotes.cookies }
-	
-	print_content(content, args)
-
-	# seperately printing response, since it can be gzipped or not
-	print response
+	print_zip(json.dumps(webnotes.response))
 		
 def print_csv():
-	content = [
-		"Content-Type: text/csv",
-		"Content-Disposition: attachment; filename=%(filename)s.csv",
-		"",
-		"%(response)s"
-	]
-	
-	args = {
-		"filename": webnotes.response['doctype'].replace(' ', '_'),
-		"response": webnotes.response['result'],
-	}
-
-	print_content(content, args)
+	eprint("Content-Type: text/csv; charset: utf-8")
+	eprint("Content-Disposition: attachment; filename=%s.csv" % webnotes.response['doctype'].replace(' ', '_'))
+	eprint("")
+	eprint(webnotes.response['result'])
 
 def print_iframe():
-	content = [
-		"Content-Type: text/html",
-		"",
-		"%(response)s",
-		"%(debug)s"
-	]
-	
-	args = {
-		'response': webnotes.response.get('result') or '',
-		'debug': ''
-	}
+	eprint("Content-Type: text/html; charset: utf-8")
+	eprint("")
+	eprint(webnotes.response.get('result') or '')
 	
 	if webnotes.debug_log:
 		import json
-		args['debug'] = """\
+		eprint("""\
 			<script>
 				var messages = %(messages)s;
 				if (messages.length) {
@@ -354,27 +321,16 @@ def print_iframe():
 			</script>""" % {
 				'messages': json.dumps(webnotes.message_log).replace("'", "\\'"),
 				'errors': json.dumps(webnotes.debug_log).replace("'", "\\'"),
-			}
-	
-	print_content(content, args)
+			})
 
 def print_raw():
-	content = [
-		"Content-Type: %(mime_type)s",
-		"Content-Disposition: filename=%(filename)s",
-		"",
-		"%(response)s",
-	]
-	
-	import mimetypes
-	args = {
-		"mime_type": mimetypes.guess_type(webnotes.response['filename'])[0] \
-						or 'application/unknown',
-		"filename": webnotes.response['filename'].replace(' ', '_'),
-		"content": webnotes.response['filecontent'],
-	}
-	
-	print_content(content, args)
+	eprint("Content-Type: %s" % \
+		mimetypes.guess_type(webnotes.response['filename'])[0] \
+		or 'application/unknown'),
+	eprint("Content-Disposition: filename=%s" % \
+		webnotes.response['filename'].replace(' ', '_'))
+	eprint("")
+	eprint(webnotes.response['filecontent'])
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
@@ -388,22 +344,20 @@ def make_logs():
 
 def add_cookies():
 	"""if there ar additional cookies defined during the request, add them"""
-	from webnotes.utils import get_encoded_string
 	if webnotes.cookies or webnotes.add_cookies:
 		for c in webnotes.add_cookies.keys():
-			webnotes.cookies[get_encoded_string(c)] = \
-				get_encoded_string(webnotes.add_cookies[c])
+			webnotes.cookies[c.encode('utf-8')] = \
+				webnotes.add_cookies[c].encode('utf-8')
 
-def gzip_response(response, content):
+def print_zip(response):
+	response = response.encode('utf-8')
 	if accept_gzip() and len(response)>512:
-		out_buf = compressBuf(response)
-		content += [
-			"Content-Encoding: gzip",
-			"Content-Length: %d" % (len(out_buf))
-		]
-		response = out_buf
-	return response, content
-	
+		response = compressBuf(response)
+		eprint("Content-Encoding: gzip")
+		eprint("Content-Length: %d" % len(response))
+	eprint("")
+	print response
+
 def accept_gzip():
 	"""return true if client accepts gzip"""
 	try:

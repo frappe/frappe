@@ -80,26 +80,25 @@ def extract_email_id(s):
 	return s
 	
 def validate_email_add(email_str):
-	"""
-		Validates the email string
-	"""
+	"""Validates the email string"""
 	s = extract_email_id(email_str)
 	import re
 	#return re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", email_str)
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", s)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc=[], attach=[]):
-	"""
-	Send an email. For more details see :func:`email_lib.sendmail`
-	"""
+	"""Send an email. For more details see :func:`email_lib.sendmail`"""
 	import webnotes.utils.email_lib
 	return email_lib.sendmail(recipients, sender, msg, subject, parts, cc, attach)
 
 def get_request_site_address():
 	"""get app url from request"""
 	import os
-	return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
-		+ os.environ.get('HTTP_HOST')
+	try:
+		return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
+			+ os.environ.get('HTTP_HOST')
+	except TypeError, e:
+		return 'http://localhost'
 
 def generate_hash():
 	"""
@@ -344,51 +343,17 @@ def cint(s):
 	try: tmp = int(float(s))
 	except: tmp = 0
 	return tmp
-
-def get_encoded_string(content, encoding='utf-8'):
-	content = convert_to_unicode(content)
-	
-	if isinstance(content, str):
-		return content
 		
-	else:
-		return content.encode('utf-8')
-	
-def get_string(content, encoding='utf-8', errors='ignore'):
-	content = convert_to_unicode(content)
-
-	if isinstance(content, unicode):
-		return content
-		
-	else:
-		return unicode(content, encoding, errors)
-
-	
-def convert_to_unicode(content):
-	"""
-		converts types other than basestring to unicode
-		(like int, float, list, dict, etc.)
-	"""
-	if content == None:
+def cstr(s):
+	if isinstance(s, unicode):
+		return
+	elif s==None: 
 		return ''
-	elif not isinstance(content, basestring):
-		return unicode(content)
+	elif isinstance(s, basestring):
+		return unicode(s, 'utf-8')
 	else:
-		return content
-		
-cstr = get_string
+		return unicode(s)
 
-# def cstr(s):
-# 	"""	
-# 	Convert to string
-# 	"""
-# 	if isinstance(s, basestring):
-# 		return s
-# 	elif s==None: 
-# 		return ''
-# 	else:
-# 		return str(s)
-		
 def str_esc_quote(s):
 	"""
 	Escape quotes
