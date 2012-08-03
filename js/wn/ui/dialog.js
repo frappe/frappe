@@ -35,6 +35,9 @@ wn.widgets.FieldGroup = function() {
 		this.fields_dict = {}; // reset
 		for(var i=0; i<fl.length; i++) {
 			var df = fl[i];
+			if(!df.fieldname && df.label) {
+				df.fieldname = df.label.replace(/ /g, '_').toLowerCase();
+			}
 			var div = $a(body, 'div', '', {margin:'6px 0px'})
 			f = make_field(df, null, div, null);
 			f.not_in_form = 1;

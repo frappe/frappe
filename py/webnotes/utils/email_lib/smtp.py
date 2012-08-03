@@ -115,8 +115,9 @@ class EMail:
 	
 	def get_footer(self):
 		"""append a footer"""
+		import startup
 		footer = webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
-		footer += (webnotes.conn.get_global('global_mail_footer') or '')
+		footer += getattr(startup, 'mail_footer', '')
 		return unicode(footer)
 		
 	def attach_file(self, n):

@@ -22,6 +22,8 @@
 
 import webnotes
 
+class BulkLimitCrossedError(webnotes.ValidationError): pass
+
 def send(recipients=[], doctype='Profile', email_field='email', first_name_field="first_name",
 				last_name_field="last_name", subject='[No Subject]', message='[No Content]'):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
@@ -31,18 +33,24 @@ def send(recipients=[], doctype='Profile', email_field='email', first_name_field
 		return rdata[0]['unsubscribed']
 
 	def check_bulk_limit(new_mails):
-		import conf
+		import conf, startup
 		from webnotes.utils import nowdate
-		todays_bulk = webnotes.conn.sql("""select count(*) from `tabBulk Email` where
-			datediff(%s, creation)<1""" % nowdate())[0][0]
+		this_month = webnotes.conn.sql("""select count(*) from `tabBulk Email` where
+			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		bulk_mail_limit = getattr(conf, 'bulk_mail_limit', 200)
-		if todays_bulk + len(recipients) > bulk_mail_limit:
-			webnotes.msgprint("""Buik Mail Limit Crossed""", raise_exception=1)
+		if hasattr(startup, 'get_monthly_bulk_mail_limit'):
+			monthly_bulk_mail_limit = startup.get_monthly_bulk_mail_limit()
+		else:
+			monthly_bulk_mail_limit = getattr(conf, 'monthly_bulk_mail_limit', 500)
+
+		if this_month + len(recipients) > monthly_bulk_mail_limit:
+			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,
+				raise_exception=BulkLimitCrossedError)
 
 	def add_unsubscribe_link(email):
 		from webnotes.utils import get_request_site_address
-		return message + """<div style="padding: 7px; border-top: 1px solid #aaa>">
+		return message + """<div style="padding: 7px; border-top: 1px solid #aaa;
+			margin-top: 17px;">
 			<small><a href="http://%s/server.py?cmd=%s&email=%s&type=%s&email_field=%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_request_site_address(), 
 			'webnotes.utils.email_lib.bulk.unsubscribe', email, doctype, email_field)
@@ -113,6 +121,6 @@ def flush():
 				where name=%s""", (str(e), email["name"]), auto_commit=True)
 
 def clear_outbox():
-	"""remove mails older than 7 days in Outbox"""
+	"""remove mails older than 30 days in Outbox"""
 	webnotes.conn.sql("""delete from `tabBulk Email` where
-		datediff(now(), creation) > 7""", (str(e), email["name"]), auto_commit=True)
+		datediff(now(), creation) > 30""", (str(e), email["name"]), auto_commit=True)

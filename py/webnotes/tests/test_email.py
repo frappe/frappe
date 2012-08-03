@@ -58,6 +58,12 @@ class TestEmail(unittest.TestCase):
 		self.assertFalse('rmehta@gmail.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('rushabh@erpnext.com' in [d['recipient'] for d in bulk])
 		self.assertTrue('Unsubscribe' in bulk[0]['message'])
+	
+	def test_bulk_limit(self):
+		from webnotes.utils.email_lib.bulk import unsubscribe, send, BulkLimitCrossedError
+		self.assertRaises(BulkLimitCrossedError, send, recipients=['rmehta@gmail.com']*1000, 
+				doctype='Lead', email_field='email_id', first_name_field='lead_name',
+				last_name_field=None, subject='Testing Bulk', message='This is a bulk mail!')
 		
 		
 if __name__=='__main__':
