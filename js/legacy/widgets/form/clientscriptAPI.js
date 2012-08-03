@@ -127,30 +127,49 @@ set_field_permlevel = function(n, level) {
 	refresh_field(n);
 }
 
+toggle_field = function(n, hidden) {
+	var df_obj = get_field_obj(n);
+	var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+	if(df) {
+		// hide column and section breaks
+		if (df_obj.df.fieldtype==="Section Break") {
+			$(df_obj.row.wrapper).toggle(hidden ? false : true);
+		} else if (df_obj.df.fieldtype==="Column Break") {
+			$(df_obj.cell.wrapper).toggle(hidden ? false : true);
+		} else {
+			df.hidden = hidden;
+			refresh_field(n);
+		}
+	}
+	else {
+		console.log((hidden ? "hide_field" : "unhide_field") + " cannot find field " + n);
+	}
+}
+
 hide_field = function(n) {
-	function _hide_field(n,hidden) {
-		var df = get_field(cur_frm.doctype, n, cur_frm.docname);
-		if(df) { df.hidden = hidden; refresh_field(n); }
-		else { console.log("hide_field cannot find field " + n); }
-	}	
 	if(cur_frm) {
-		if(n.substr) _hide_field(n,1);
-		else { for(var i in n)_hide_field(n[i],1) }
+		if(n.substr) toggle_field(n, 1);
+		else { for(var i in n) toggle_field(n[i], 1) }
 	}
 }
 
 unhide_field = function(n) {
-	function _hide_field(n,hidden) {
-		var df = get_field(cur_frm.doctype, n, cur_frm.docname);
-		if(df) {df.hidden = hidden; refresh_field(n); }
-		else { console.log("unhide_field cannot find field " + n); }
-	}	
 	if(cur_frm) {
-		if(n.substr) _hide_field(n,0);
-		else { for(var i in n)_hide_field(n[i],0) }
+		if(n.substr) toggle_field(n, 0);
+		else { for(var i in n) toggle_field(n[i], 0) }
 	}
 }
 
 get_field_obj = function(fn) {
 	return cur_frm.fields_dict[fn];
+}
+
+// set missing values in given doc
+set_missing_values = function(doc, dict) {
+	// dict contains fieldname as key and "default value" as value
+	var fields_to_set = {};
+	
+	$.each(dict, function(i, v) { if (!doc[i]) { fields_to_set[i] = v; } });
+	
+	if (fields_to_set) { set_multiple(doc.doctype, doc.name, fields_to_set); }
 }
