@@ -58,6 +58,8 @@ default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today']
 
 from webnotes.utils import cint
 
+import _mysql_exceptions
+
 # -------------------------------------------------
 # Class database table
 # -------------------------------------------------
@@ -203,7 +205,10 @@ class DbTable:
 
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
-				webnotes.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
+				try:
+					webnotes.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
+				except _mysql_exceptions.OperationalError, e:
+					if e[0] != 1091: raise e
 
 
 		for col in self.set_default:

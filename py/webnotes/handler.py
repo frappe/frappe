@@ -290,7 +290,7 @@ def print_json():
 	print webnotes.cookies
 
 	import json
-	print_zip(json.dumps(webnotes.response))
+	print_zip(json.dumps(webnotes.response, default=json_handler))
 		
 def print_csv():
 	eprint("Content-Type: text/csv; charset: utf-8")
@@ -358,6 +358,17 @@ def print_zip(response):
 		eprint("Content-Length: %d" % len(response))
 	eprint("")
 	print response
+	
+def json_handler(obj):
+	"""serialize non-serializable data for json"""
+	import datetime
+	
+	# serialize date
+	if isinstance(obj, datetime.date):
+		return unicode(obj)
+	else:
+		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
+			(type(obj), repr(obj))
 
 def accept_gzip():
 	"""return true if client accepts gzip"""
