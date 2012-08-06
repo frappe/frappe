@@ -336,10 +336,11 @@ def runquery_csv():
 	f = StringIO()
 	writer = csv.writer(f)
 	for r in rows:
-		writer.writerow([v.encode('utf-8') for v in r])
+		# encode only unicode type strings and not int, floats etc.
+		writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
 
 	f.seek(0)
-	out['result'] = f.read()
+	out['result'] = unicode(f.read(), 'utf-8')
 	out['type'] = 'csv'
 	out['doctype'] = rep_name
 
