@@ -330,6 +330,14 @@ Meta.set_field_property=function(fn, key, val, doc) {
 	}
 }
 
+Meta.get_field = function(dt, fn, dn) {
+	try {
+		return local_dt[dt][dn][fn];
+	} catch(e) {
+		return null;
+	}
+}
+
 // Get Dt label
 // ======================================================================================
 function get_doctype_label(dt) {

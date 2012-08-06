@@ -122,7 +122,7 @@ set_field_permlevel = function(n, level) {
 
 toggle_field = function(n, hidden) {
 	var df_obj = get_field_obj(n);
-	var df = get_field(cur_frm.doctype, n, cur_frm.docname);
+	var df = Meta.get_field(cur_frm.doctype, n, cur_frm.docname);
 	if(df) {
 		// hide column and section breaks
 		if (df_obj.df.fieldtype==="Section Break") {
