@@ -309,7 +309,7 @@ def print_json():
 	cleanup_docs()
 
 	import json
-	str_out = json.dumps(webnotes.response)
+	str_out = json.dumps(webnotes.response, default=json_handler)
 	
 	if accept_gzip() and len(str_out)>512:
 		out_buf = compressBuf(str_out)
@@ -323,6 +323,17 @@ def print_json():
 	# Headers end
 	print 
 	print str_out
+	
+def json_handler(obj):
+	"""serialize non-serializable data for json"""
+	import datetime
+	
+	# serialize date
+	if isinstance(obj, datetime.date):
+		return str(obj)
+	else:
+		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \
+			(type(obj), repr(obj))
 
 def accept_gzip():
 	"""return true if client accepts gzip"""
