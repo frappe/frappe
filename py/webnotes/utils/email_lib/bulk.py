@@ -123,4 +123,4 @@ def flush():
 def clear_outbox():
 	"""remove mails older than 30 days in Outbox"""
 	webnotes.conn.sql("""delete from `tabBulk Email` where
-		datediff(now(), creation) > 30""", (str(e), email["name"]), auto_commit=True)
+		datediff(now(), creation) > 30""")
