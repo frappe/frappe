@@ -107,8 +107,8 @@ class Installer:
 
 		# set the basic passwords
 		webnotes.conn.begin()
-		webnotes.conn.sql("""update tabProfile set password = password('admin') 
-			where name='Administrator'""")
+		webnotes.conn.sql("""update __Auth set password = password('admin') 
+			where user='Administrator'""")
 		webnotes.conn.commit()
 
 	def create_sessions_table(self):
@@ -145,7 +145,7 @@ class Installer:
 	def create_cache_item(self):
 		import webnotes
 		self.dbman.drop_table('__CacheItem')
-		webnotes.conn.sql("""create table __CacheItem(
+		webnotes.conn.sql("""create table __CacheItem (
 			`key` VARCHAR(180) NOT NULL PRIMARY KEY,
 			`value` LONGTEXT,
 			`expires_on` DATETIME
@@ -153,8 +153,7 @@ class Installer:
 			
 	def create_auth_table(self):
 		import webnotes
-		self.dbman.drop_table('__Auth')
-		webnotes.conn.sql("""create table __Auth(
+		webnotes.conn.sql("""create table if not exists __Auth (
 			`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 			`password` VARCHAR(180) NOT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")

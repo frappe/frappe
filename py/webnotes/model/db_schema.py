@@ -346,7 +346,7 @@ class DbManager:
 
 	def grant_all_privileges(self,target,user):
 		try:
-			self.conn.sql("GRANT ALL PRIVILEGES ON `%s` . * TO '%s'@'localhost';" % (target, user))
+			self.conn.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
 		except Exception,e:
 			raise e
 
