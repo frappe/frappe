@@ -81,7 +81,7 @@ class EMail:
 
 		"""Attach message in the html portion of multipart/alternative"""
 		from email.mime.text import MIMEText
-		message = unicode(message, 'utf-8') + self.get_footer()
+		message = message + self.get_footer()
 
 		# this is the first html part of a multi-part message, 
 		# convert to text well
@@ -118,7 +118,7 @@ class EMail:
 		import startup
 		footer = webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
 		footer += getattr(startup, 'mail_footer', '')
-		return unicode(footer)
+		return footer
 		
 	def attach_file(self, n):
 		"""attach a file from the `FileData` table"""
