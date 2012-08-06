@@ -192,6 +192,7 @@ def handle():
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
+			#webnotes.errprint(webnotes.utils.getTraceback())
 			webnotes.errprint(e)
 			webnotes.conn.rollback()
 		except:
@@ -243,9 +244,9 @@ def get_method(cmd):
 	if '.' in cmd:
 		cmd_parts = cmd.split('.')
 		module_string = ".".join(cmd_parts[:-1])
-		method_string = cmd_parts[-1]
-		module = __import__(module_string, fromlist=True)
-		method = getattr(module, method_string)
+		fn_string = cmd_parts[-1]
+		module = __import__(module_string, fromlist=[module_string.split('.')[-1].encode('utf-8')])
+		method = getattr(module, fn_string)
 	else:
 		method = globals()[cmd]
 	return method
@@ -334,13 +335,13 @@ def print_raw():
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
+	import json
+	from webnotes.utils import cstr
 	if webnotes.debug_log:
-		t = '\n----------------\n'.join(webnotes.debug_log)
-		webnotes.response['exc'] = t
+		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.debug_log])
 
 	if webnotes.message_log:
-		t = '\n----------------\n'.join(webnotes.message_log)
-		webnotes.response['server_messages'] = t
+		webnotes.response['server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
 
 def add_cookies():
 	"""if there ar additional cookies defined during the request, add them"""

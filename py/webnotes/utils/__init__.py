@@ -346,7 +346,7 @@ def cint(s):
 		
 def cstr(s):
 	if isinstance(s, unicode):
-		return
+		return s
 	elif s==None: 
 		return ''
 	elif isinstance(s, basestring):

@@ -71,11 +71,6 @@ wn.Application = Class.extend({
 			LocalDB.sync(wn.boot.docs);
 			wn.control_panel = wn.boot.control_panel;
 
-			if(wn.boot.error_messages)
-				console.log(wn.boot.error_messages)
-			if(wn.boot.server_messages) 
-				msgprint(wn.boot.server_messages);
-
 			this.set_globals();					
 		} else {
 			this.set_as_guest();

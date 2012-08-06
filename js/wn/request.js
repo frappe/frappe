@@ -63,10 +63,22 @@ wn.request.cleanup = function(opts, r) {
 	}
 	
 	// show messages
-	if(r.server_messages) msgprint(r.server_messages)
+	if(r.server_messages) {
+		r.server_messages = JSON.parse(r.server_messages)
+		msgprint(r.server_messages);
+	}
 	
 	// show errors
-	if(r.exc) { console.log(r.exc); };
+	if(r.exc) { 
+		r.exc = JSON.parse(r.exc);
+		if(r.exc instanceof Array) {
+			$.each(r.exc, function(i, v) {
+				if(v)console.log(v);
+			})
+		} else {
+			console.log(r.exc); 			
+		}
+	};
 	
 	// 403
 	if(r['403']) {
