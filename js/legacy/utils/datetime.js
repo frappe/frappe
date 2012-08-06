@@ -110,7 +110,7 @@ wn.datetime = {
 	},
 	
 	get_user_fmt: function() {
-		var t = wn.control_panel.date_format;
+		var t = sys_defaults.date_format;
 		if(!t) t = 'dd-mm-yyyy';
 		return t;
 	},
