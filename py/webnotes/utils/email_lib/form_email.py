@@ -25,7 +25,6 @@ from webnotes.utils import cint
 
 form = webnotes.form
 
-from webnotes.utils.email_lib import get_footer
 from webnotes.utils.email_lib.smtp import EMail
 
 class FormEmail:
@@ -140,13 +139,6 @@ class FormEmail:
 
 		# form itself (only in the html message)
 		html_message += self.body
-
-		# footer
-		footer = get_footer()
-		if footer:
-			footer = footer.encode('utf-8')
-			html_message += footer
-			text_message += footer
 
 		# message as text
 		self.email.set_text(html2text(unicode(text_message, 'utf-8')))
