@@ -29,8 +29,7 @@ _f.ColumnBreak = function() {
 }
 
 _f.ColumnBreak.prototype.make_body = function() {
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || 
-		this.df.hidden) {
+	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ])) {
 		// no display
 		return;
 	}
@@ -72,7 +71,7 @@ _f.SectionBreak = function() {
 
 _f.SectionBreak.prototype.make_body = function() {
 	var me = this;
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
+	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ])) {
 		// no display
 		return;
 	}
@@ -149,14 +148,7 @@ _f.SectionBreak.prototype.refresh = function(from_form) {
 	if(this.df.hidden) {
 		if(this.row)this.row.hide();
 	} else {
-		if(this.collapsible) {
-			//this.section_expand(from_form);
-			//if(this.df.reqd || this.has_data()) {
-			//	this.section_expand(from_form);
-			//} else {
-			//	this.section_collapse();
-			//}	
-		}
+		if(this.row)this.row.show();
 	}
 }
 
@@ -319,7 +311,7 @@ _f.CodeField.prototype.make_input = function() {
 
 			// General options
 			theme : "advanced",
-			plugins : "style,inlinepopups,table",
+			plugins : "style,inlinepopups,table,advimage",
 			extended_valid_elements: "div[id|dir|class|align|style]",
 			
 			// w/h
@@ -327,7 +319,7 @@ _f.CodeField.prototype.make_input = function() {
 			height: '360px',
 	
 			// buttons
-			theme_advanced_buttons1 : "bold,italic,underline,strikethrough,hr,|,justifyleft,justifycenter,justifyright,|,formatselect,fontselect,fontsizeselect",
+			theme_advanced_buttons1 : "bold,italic,underline,strikethrough,hr,|,justifyleft,justifycenter,justifyright,|,formatselect,fontselect,fontsizeselect,|,image",
 			theme_advanced_buttons2 : "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,code,|,forecolor,backcolor,|,tablecontrols",
 			theme_advanced_buttons3 : "",
 

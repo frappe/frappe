@@ -356,7 +356,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 		
 		if(f.fieldtype=='Section Break') {
 			sec = fld;
-			this.sections.push(fld);			
+			this.sections.push(fld);
 		}
 		
 		// default col-break after sec-break
@@ -692,17 +692,12 @@ _f.Frm.prototype.refresh_dependency = function() {
 	var doc = locals[this.doctype][this.docname];
 
 	// build dependants' dictionary	
-	var dep_dict = {};
 	var has_dep = false;
 	
 	for(fkey in me.fields) { 
 		var f = me.fields[fkey];
 		f.dependencies_clear = true;
-		var guardian = f.df.depends_on;
-		if(guardian) {
-			if(!dep_dict[guardian])
-				dep_dict[guardian] = [];
-			dep_dict[guardian][dep_dict[guardian].length] = f;
+		if(f.df.depends_on) {
 			has_dep = true;
 		}
 	}
@@ -714,7 +709,6 @@ _f.Frm.prototype.refresh_dependency = function() {
 		var f = me.fields[i];
 		f.guardian_has_value = true;
 		if(f.df.depends_on) {
-			
 			// evaluate guardian
 			var v = doc[f.df.depends_on];
 			if(f.df.depends_on.substr(0,5)=='eval:') {
@@ -731,9 +725,11 @@ _f.Frm.prototype.refresh_dependency = function() {
 
 			// show / hide
 			if(f.guardian_has_value) {
-				if(f.grid)f.grid.show(); else $ds(f.wrapper);		
+				f.df.hidden = false;
+				f.refresh()
 			} else {
-				if(f.grid)f.grid.hide(); else $dh(f.wrapper);		
+				f.df.hidden = true;
+				f.refresh()
 			}
 		}
 	}
