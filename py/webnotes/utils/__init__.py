@@ -130,11 +130,11 @@ def getTraceback():
 		 Returns the traceback of the Exception
 	"""
 	import sys, traceback, string
-	type, value, tb = sys.exc_info()
+	exc_type, value, tb = sys.exc_info()
 	
-	body = "Traceback (innermost last):\n"
-	list = traceback.format_tb(tb, None) + traceback.format_exception_only(type, value)
-	body = body + "%-20s %s" % (string.join(list[:-1], ""), list[-1])
+	trace_list = traceback.format_tb(tb, None) + traceback.format_exception_only(exc_type, value)
+	body = "Traceback (innermost last):\n" + "%-20s %s" % \
+		(unicode((b"").join(trace_list[:-1]), 'utf-8'), unicode(trace_list[-1], 'utf-8'))
 	
 	if webnotes.logger:
 		webnotes.logger.error('Db:'+(webnotes.conn and webnotes.conn.cur_db_name or '') + ' - ' + body)
