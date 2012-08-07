@@ -171,7 +171,7 @@ class EMail:
 		"""validate the email ids"""
 		if not self.sender:
 			self.sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id') \
-				or getattr(conf, 'auto_email_id', '"ERPNext Notification" <notification@erpnext.com>')
+				or getattr(conf, 'auto_email_id', 'ERPNext Notification <notification@erpnext.com>')
 
 		from webnotes.utils import validate_email_add
 		# validate ids
