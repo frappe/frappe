@@ -63,12 +63,10 @@ def decode_email_header(s):
 	# double quotes in header prohibit decoding of header
 	decoded_header_tuple = email.header.decode_header(s.replace('"', ''))
 	
-	decoded_list = []
-	for header in decoded_header_tuple:
-		decoded_list.append(cstr(header[0], encoding = header[1] or 'utf-8'))
-			
+	decoded_list = map(lambda h: unicode(h[0], encoding=h[1] or 'utf-8'), decoded_header_tuple)
+	
 	return " ".join(decoded_list)
-		
+
 def extract_email_id(s):
 	"""
 		Extract email id from email header format
