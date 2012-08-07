@@ -332,7 +332,7 @@ _f.CodeField.prototype.make_input = function() {
 			theme_advanced_toolbar_location : "top",
 			theme_advanced_toolbar_align : "left",
 
-			content_css: "js/lib/tiny_mce_33/custom_content.css",
+			content_css: "js/lib/tiny_mce_33/custom_content.css?q=1",
 
 			oninit: function() { me.init_editor(); }
 		});
