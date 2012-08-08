@@ -184,7 +184,7 @@ Thank you,<br>
 			'last_name': self.doc.last_name or '',
 			'user': self.doc.name,
 			'password': password,
-			'company': webnotes.conn.get_default('company') or startup.product,
+			'company': webnotes.conn.get_default('company') or startup.product_name,
 			'login_url': get_request_site_address(),
 			'product': startup.product_name,
 			'user_fullname': get_user_fullname(webnotes.session['user'])

@@ -63,12 +63,10 @@ def decode_email_header(s):
 	# double quotes in header prohibit decoding of header
 	decoded_header_tuple = email.header.decode_header(s.replace('"', ''))
 	
-	decoded_list = []
-	for header in decoded_header_tuple:
-		decoded_list.append(cstr(header[0], encoding = header[1] or 'utf-8'))
-			
+	decoded_list = map(lambda h: unicode(h[0], encoding=h[1] or 'utf-8'), decoded_header_tuple)
+	
 	return " ".join(decoded_list)
-		
+
 def extract_email_id(s):
 	"""
 		Extract email id from email header format
@@ -132,11 +130,11 @@ def getTraceback():
 		 Returns the traceback of the Exception
 	"""
 	import sys, traceback, string
-	type, value, tb = sys.exc_info()
+	exc_type, value, tb = sys.exc_info()
 	
-	body = "Traceback (innermost last):\n"
-	list = traceback.format_tb(tb, None) + traceback.format_exception_only(type, value)
-	body = body + "%-20s %s" % (string.join(list[:-1], ""), list[-1])
+	trace_list = traceback.format_tb(tb, None) + traceback.format_exception_only(exc_type, value)
+	body = "Traceback (innermost last):\n" + "%-20s %s" % \
+		(unicode((b"").join(trace_list[:-1]), 'utf-8'), unicode(trace_list[-1], 'utf-8'))
 	
 	if webnotes.logger:
 		webnotes.logger.error('Db:'+(webnotes.conn and webnotes.conn.cur_db_name or '') + ' - ' + body)

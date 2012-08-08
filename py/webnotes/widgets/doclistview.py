@@ -240,7 +240,8 @@ def export_query():
 	writer = csv.writer(f)
 	from webnotes.utils import cstr
 	for r in data:
-		writer.writerow([v.encode('utf-8') for v in r])
+		# encode only unicode type strings and not int, floats etc.
+		writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
 
 	f.seek(0)
 	webnotes.response['result'] = unicode(f.read(), 'utf-8')

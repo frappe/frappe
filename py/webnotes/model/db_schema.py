@@ -58,6 +58,8 @@ default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today']
 
 from webnotes.utils import cint
 
+import _mysql_exceptions
+
 # -------------------------------------------------
 # Class database table
 # -------------------------------------------------
@@ -199,12 +201,15 @@ class DbTable:
 			webnotes.conn.sql("alter table `%s` change `%s` `%s` %s" % (self.name, col.fieldname, col.fieldname, col.get_definition()))
 
 		for col in self.add_index:
-			webnotes.conn.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
+			# if index key not exists
+			if not webnotes.conn.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+				webnotes.conn.sql("alter table `%s` add index `%s`(`%s`)" % (self.name, col.fieldname, col.fieldname))
 
 		for col in self.drop_index:
 			if col.fieldname != 'name': # primary key
-				webnotes.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
-
+				# if index key exists
+				if webnotes.conn.sql("show index from `%s` where key_name = '%s'" % (self.name, col.fieldname)):
+					webnotes.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
 
 		for col in self.set_default:
 			webnotes.conn.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), col.default)
@@ -341,7 +346,7 @@ class DbManager:
 
 	def grant_all_privileges(self,target,user):
 		try:
-			self.conn.sql("GRANT ALL PRIVILEGES ON `%s` . * TO '%s'@'localhost';" % (target, user))
+			self.conn.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
 		except Exception,e:
 			raise e
 

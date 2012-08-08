@@ -668,7 +668,7 @@ _f.Frm.prototype.refresh_fields = function() {
 			f.df = wn.meta.get_docfield(this.doctype, fn, this.docname);
 			
 		if(f.df.fieldtype!='Section Break' && f.refresh) {
-			f.refresh();			
+			f.refresh();
 		}
 	}
 
