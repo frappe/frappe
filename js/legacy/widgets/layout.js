@@ -89,7 +89,7 @@ function LayoutRow(layout, parent) {
 	
 	this.header = $a(this.main_body, 'div','',{padding:(layout.with_border ? '0px 8px' : '0px')});
 	this.body = $a(this.main_body,'div');
-	this.table = $a(this.body, 'table', '', {width:'100%', borderCollapse: 'collapse'});
+	this.table = $a(this.body, 'table', '', {width:'100%', borderCollapse: 'collapse', tableLayout:'fixed'});
 	this.row = this.table.insertRow(0);
 	
 	this.mycells = [];

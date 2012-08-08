@@ -56,7 +56,7 @@ def add(args=None):
 		d.description = args['description']
 		d.priority = args.get('priority', 'Medium')
 		d.date = args.get('date', nowdate())
-		d.assigned_by = webnotes.user.name
+		d.assigned_by = args.get('assigned_by', webnotes.user.name)
 		d.save(1)
 
 	# notify
