@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:36',
+		'creation': '2012-05-03 18:41:14',
 		'docstatus': 0,
-		'modified': '2012-03-27 14:35:36',
+		'modified': '2012-08-07 16:34:48',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -28,7 +28,7 @@
 		'read_only': 0,
 		'section_style': u'Simple',
 		'show_in_menu': 0,
-		'version': 7
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -255,6 +255,8 @@
 
 	# DocField
 	{
+		'colour': u'White:FFF',
+		'description': u"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>\nmyfield\neval:doc.myfield=='My Value'<br>\neval:doc.age>18",
 		'doctype': u'DocField',
 		'fieldname': u'depends_on',
 		'fieldtype': u'Data',

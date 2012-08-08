@@ -43,7 +43,10 @@ def get_cgi_fields():
 	# make the form_dict
 	webnotes.form = cgi.FieldStorage(keep_blank_values=True)
 	for key in webnotes.form.keys():
-		webnotes.form_dict[key] = cstr(webnotes.form.getvalue(key))
+		# file upload must not be decoded as it is treated as a binary
+		# file and hence in any encoding (it does not matter)
+		if not getattr(webnotes.form[key], 'filename', None):
+			webnotes.form_dict[key] = cstr(webnotes.form.getvalue(key))
 
 # Logs
 
