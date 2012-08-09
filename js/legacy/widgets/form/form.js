@@ -746,10 +746,10 @@ _f.Frm.prototype.refresh_dependency = function() {
 
 			// show / hide
 			if(f.guardian_has_value) {
-				f.df.hidden = false;
+				f.df.hidden = 0;
 				f.refresh()
 			} else {
-				f.df.hidden = true;
+				f.df.hidden = 1;
 				f.refresh()
 			}
 		}
