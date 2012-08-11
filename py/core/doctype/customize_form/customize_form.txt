@@ -5,7 +5,7 @@
 	{
 		'creation': '2012-05-15 12:14:21',
 		'docstatus': 0,
-		'modified': '2012-06-12 12:10:13',
+		'modified': '2012-06-12 12:10:15',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -82,7 +82,7 @@
 		'hidden': 0,
 		'label': u'Select Form Type',
 		'no_copy': 0,
-		'options': u'link:DocType\n(module IN  ("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", "Selling", "Stock", "Support") OR name IN ("Contact", "Address")) AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0',
+		'options': u'link:DocType\n(module IN  ("Accounts", "Buying", "HR", "Knowledge Base", "Production", "Projects", "Selling", "Stock", "Support", "Website") OR name IN ("Contact", "Address")) AND IFNULL(issingle, 0)=0 AND IFNULL(in_create, 0)=0',
 		'permlevel': 0,
 		'search_index': 0
 	},
