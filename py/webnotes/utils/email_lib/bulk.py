@@ -76,7 +76,7 @@ def send(recipients=[], doctype='Profile', email_field='email', first_name_field
 			email_field, '%s'), r, as_dict=1)
 		if not is_unsubscribed(rdata):
 			# add to queue
-			add(r, sender, subject, add_unsubscribe_link(r) % {"full_name":full_name(rdata)})
+			add(r, sender, subject, add_unsubscribe_link(r))
 
 def add(email, sender, subject, message):
 	"""add to bulk mail queue"""
