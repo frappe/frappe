@@ -318,19 +318,19 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				// second filter set for this field
 				if(fieldname=='_user_tags') {
 					// and for tags
-					this.filter_list.add_filter(fieldname, 'like', '%' + label);
+					this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);
 				} else {
 					// or for rest using "in"
-					filter.set_values(fieldname, 'in', v + ', ' + label);
+					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
 				}
 			}
 		} else {
 			// no filter for this item,
 			// setup one
 			if(fieldname=='_user_tags') {
-				this.filter_list.add_filter(fieldname, 'like', '%' + label);					
+				this.filter_list.add_filter(this.doctype, fieldname, 'like', '%' + label);					
 			} else {
-				this.filter_list.add_filter(fieldname, '=', label);					
+				this.filter_list.add_filter(this.doctype, fieldname, '=', label);					
 			}
 		}
 		this.run();

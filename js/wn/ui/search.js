@@ -54,7 +54,7 @@ wn.ui.Search = Class.extend({
 					});
 			}
 		});
-		this.list.filter_list.add_filter('name', 'like');
+		this.list.filter_list.add_filter(this.doctype, 'name', 'like');
 		this.list.run();
 	}
 })
