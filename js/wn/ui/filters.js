@@ -45,17 +45,18 @@ wn.ui.FilterList = Class.extend({
 			this.add_filter();
 	},
 	
-	add_filter: function(fieldname, condition, value) {		
-		this.push_new_filter(fieldname, condition, value);
+	add_filter: function(tablename, fieldname, condition, value) {
+		this.push_new_filter(tablename, fieldname, condition, value);
 		// list must be expanded
 		if(fieldname) {
 			this.$w.find('.show_filters').toggle(true);
 		}
 	},
 	
-	push_new_filter: function(fieldname, condition, value) {
+	push_new_filter: function(tablename, fieldname, condition, value) {
 		this.filters.push(new wn.ui.Filter({
 			flist: this,
+			tablename: tablename,
 			fieldname: fieldname,
 			condition: condition,
 			value: value
@@ -125,7 +126,8 @@ wn.ui.Filter = Class.extend({
 		
 		// render fields		
 		this.fieldselect.$select.bind('change', function() {
-			me.set_field(this.value);
+			var $selected = $(this).find("option:selected")
+			me.set_field($selected.attr("table"), $selected.attr("fieldname"));
 		});
 
 		this.$w.find('a.close').bind('click', function() { 
@@ -146,53 +148,56 @@ wn.ui.Filter = Class.extend({
 		// add help for "in" codition
 		me.$w.find('.condition').change(function() {
 			if($(this).val()=='in') {
-				me.set_field(me.field.df.fieldname, 'Data');
+				me.set_field(me.field.df.parent, me.field.df.fieldname, 'Data');
 				if(!me.field.desc_area)
 					me.field.desc_area = $a(me.field.wrapper, 'span', 'help', null,
 						'values separated by comma');				
 			} else {
-				me.set_field(me.field.df.fieldname);				
+				me.set_field(me.field.df.parent, me.field.df.fieldname);				
 			}
 		});
 		
 		// set the field
 		if(me.fieldname) {
 			// presents given (could be via tags!)
-			this.set_values(me.fieldname, me.condition, me.value);
+			this.set_values(me.tablename, me.fieldname, me.condition, me.value);
 		} else {
-			me.set_field('name');
+			me.set_field(me.doctype, 'name');
 		}	
 
 	},
 	
-	set_values: function(fieldname, condition, value) {
+	set_values: function(tablename, fieldname, condition, value) {
 		// presents given (could be via tags!)
-		this.set_field(fieldname);
+		this.set_field(tablename, fieldname);
 		if(condition) this.$w.find('.condition').val(condition).change();
 		if(value) this.field.set_input(value)
 		
 	},
 	
-	set_field: function(fieldname, fieldtype) {
+	set_field: function(tablename, fieldname, fieldtype) {
 		var me = this;
 		
 		// set in fieldname (again)
 		var cur = me.field ? {
 			fieldname: me.field.df.fieldname,
-			fieldtype: me.field.df.fieldtype
+			fieldtype: me.field.df.fieldtype,
+			parent: me.field.df.parent,
 		} : {}
 
-		var df = me.fieldselect.fields_by_name[fieldname];
+		var df = me.fieldselect.fields_by_name[tablename][fieldname];
 		this.set_fieldtype(df, fieldtype);
 			
 		// called when condition is changed, 
 		// don't change if all is well
-		if(me.field && cur.fieldname == fieldname && df.fieldtype == cur.fieldtype) {
+		if(me.field && cur.fieldname == fieldname && df.fieldtype == cur.fieldtype && 
+			df.parent == cur.parent) {
 			return;
 		}
-		
+
 		// clear field area and make field
-		me.fieldselect.$select.val(fieldname);
+		me.fieldselect.$select.val(tablename + "." + fieldname);
+		
 		var field_area = me.$w.find('.filter_field').empty().get(0);
 		f = make_field(df, null, field_area, null, 0, 1);
 		f.df.single_select = 1;
@@ -255,7 +260,10 @@ wn.ui.Filter = Class.extend({
 		}
 		
 		if(cond=='like') {
-			val = val + '%';
+			// add % only if not there at the end
+			if ((val.length === 0) || (val.lastIndexOf("%") !== (val.length - 1))) {
+				val = (val || "") + '%';
+			}
 		}
 		
 		return [me.fieldselect.$select.find('option:selected').attr('table'), 
@@ -333,18 +341,20 @@ wn.ui.FieldSelect = Class.extend({
 		if(me.doctype && df.parent==me.doctype) {
 			var label = df.label;
 			var table = me.doctype;
-			if(df.fieldtype=='Table') me.table_fields.push(df);					
+			if(df.fieldtype=='Table') me.table_fields.push(df);
 		} else {
 			var label = df.label + ' (' + df.parent + ')';
 			var table = df.parent;
 		}
 		if(wn.model.no_value_type.indexOf(df.fieldtype)==-1 && 
-			!(me.fields_by_name[df.fieldname] && me.fields_by_name[df.fieldname]['parent'] == df.parent)) {
+			!(me.fields_by_name[df.parent] && me.fields_by_name[df.parent][df.fieldname])) {
 			this.$select.append($('<option>', {
-				value: df.fieldname,
-				table: table
+				value: table + "." + df.fieldname,
+				fieldname: df.fieldname,
+				table: df.parent
 			}).text(label));
-			me.fields_by_name[df.fieldname] = df;						
+			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
+			me.fields_by_name[df.parent][df.fieldname] = df;	
 		}
 	}
 })
