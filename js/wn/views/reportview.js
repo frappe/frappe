@@ -166,7 +166,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		if(opts.columns) this.columns = opts.columns;
 		if(opts.filters) $.each(opts.filters, function(i, f) {
 			// fieldname, condition, value
-			me.filter_list.add_filter(f[1], f[2], f[3]);
+			me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
 		});
 		
 		// first sort
@@ -198,13 +198,13 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		// second
 		if(this.sort_by_next_select.val()) {
 			order_by += ', ' + this.get_selected_table_and_column(this.sort_by_next_select) 
-				+ ' ' + this.sort_order_next_select.val()
+				+ ' ' + this.sort_order_next_select.attr("fieldname")
 		}
 		
 		return order_by;
 	},
 	get_selected_table_and_column: function($select) {
-		return this.get_full_column_name([$select.val(), 
+		return this.get_full_column_name([$select.find('option:selected').attr('fieldname'), 
 			$select.find('option:selected').attr('table')]) 
 	},
 	
@@ -415,7 +415,7 @@ wn.ui.ColumnPicker = Class.extend({
 		
 		// add column
 		$(this.dialog.body).find('.btn-add').click(function() {
-			me.add_column('name');
+			me.add_column(['name']);
 		});
 		
 		// update
@@ -424,8 +424,9 @@ wn.ui.ColumnPicker = Class.extend({
 			// selected columns as list of [column_name, table_name]
 			me.list.columns = [];
 			$(me.dialog.body).find('select').each(function() {
-				me.list.columns.push([$(this).val(), 
-					$(this).find('option:selected').attr('table')]);
+				var $selected = $(this).find('option:selected');
+				me.list.columns.push([$selected.attr('fieldname'), 
+					$selected.attr('table')]);
 			})
 			me.list.run();
 		});
@@ -439,7 +440,7 @@ wn.ui.ColumnPicker = Class.extend({
 			</div>')
 			.appendTo($(this.dialog.body).find('.column-list'));
 		var fieldselect = new wn.ui.FieldSelect(w, this.doctype);
-		fieldselect.$select.css('width', '90%').val(c);
+		fieldselect.$select.css('width', '90%').val((c[1] || this.doctype) + "." + c[0]);
 		w.find('.close').click(function() {
 			$(this).parent().remove();
 		});
