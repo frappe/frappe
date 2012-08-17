@@ -105,12 +105,6 @@ def search_link():
 	dt = webnotes.form_dict.get('dt')
 	query = webnotes.form_dict.get('query')
 	
-	# txt - decode it to utf-8. why to do this?
-	# "%(something_unicode)s %(something ascii encoded with utf-8)s"
-	# tries to decode ascii string using ascii codec and not utf-8
-	# since web pages are encoded in utf-8, we can force decode to utf-8
-	txt = txt.decode('utf-8')
-
 	if query:
 		res = webnotes.conn.sql(scrub_custom_query(query, 'name', txt))
 	else:
@@ -129,12 +123,6 @@ def search_widget():
 	txt = webnotes.form_dict.get('txt') or ''
 	key = webnotes.form_dict.get('searchfield') or 'name' # key field
 	user_query = webnotes.form_dict.get('query') or ''
-
-	# txt - decode it to utf-8. why to do this?
-	# "%(something_unicode)s %(something ascii encoded with utf-8)s"
-	# tries to decode ascii string using ascii codec and not utf-8
-	# since web pages are encoded in utf-8, we can force decode to utf-8
-	txt = txt.decode('utf-8')
 
 	if user_query:
 		query = scrub_custom_query(user_query, key, txt)
