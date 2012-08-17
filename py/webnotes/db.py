@@ -302,6 +302,7 @@ class Database:
 				self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)", (dt, field, val))
 				
 	def set(self, doc, field, val):
+		doc.modified = now()
 		self.set_value(doc.doctype, doc.name, field, val, doc.modified)
 		doc.fields[field] = val
 
