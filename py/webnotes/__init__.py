@@ -98,7 +98,8 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
 	if raise_exception:
-		if issubclass(raise_exception, Exception):
+		import inspect
+		if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 			raise raise_exception, msg
 		else:
 			raise ValidationError, msg
