@@ -270,8 +270,7 @@ def run():
 
 	elif options.git:
 		os.system('git %s' % options.git)
-		os.chdir('lib')
-		os.system('git %s' % options.git)
+		os.system('cd lib && git %s' % options.git)
 				
 	elif options.checkout:
 		os.system('git checkout %s' % options.checkout)
