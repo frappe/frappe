@@ -277,6 +277,11 @@ class _DocType:
 		_add_code(scrub(doc.name) + '.css', '__css')
 		_add_code('%s_list.js' % scrub(doc.name), '__listjs')
 		_add_code('help.md', 'description')
+
+		# custom script
+		from webnotes.model.code import get_custom_script
+		custom = get_custom_script(doc.name, 'Client') or ''
+		doc.fields['__js'] = doc.fields.setdefault('__js', '') + '\n' + custom
 		
 		# embed all require files
 		import re
@@ -291,11 +296,6 @@ class _DocType:
 		
 		if doc.fields.get('__js'):
 			doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
-		
-		# custom script
-		from webnotes.model.code import get_custom_script
-		custom = get_custom_script(doc.name, 'Client') or ''
-		doc.fields['__js'] = doc.fields.setdefault('__js', '') + '\n' + custom
 		
 
 	def load_select_options(self, doclist):
