@@ -302,12 +302,18 @@ class DocType:
 		"""
 		for d in ps_doclist:
 			# Delete existing property setter entry
-			webnotes.conn.sql("""
-				DELETE FROM `tabProperty Setter`
-				WHERE doc_type = %(doc_type)s
-				AND field_name = %(field_name)s
-				AND property = %(property)s""", d.fields)
-
+			if not d.fields.get("field_name"):
+				webnotes.conn.sql("""
+					DELETE FROM `tabProperty Setter`
+					WHERE doc_type = %(doc_type)s
+					AND property = %(property)s""", d.fields)
+			else:
+				webnotes.conn.sql("""
+					DELETE FROM `tabProperty Setter`
+					WHERE doc_type = %(doc_type)s
+					AND field_name = %(field_name)s
+					AND property = %(property)s""", d.fields)
+			
 			# Save the property setter doc if not marked for deletion i.e. delete=0
 			if not d.delete:
 				d.save(1)
