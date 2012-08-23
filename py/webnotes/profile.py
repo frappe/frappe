@@ -41,6 +41,9 @@ class Profile:
 		self.can_get_report = []
 		self.allow_modules = []
 		
+		# for doctypes with create permission but are not supposed to be created using New
+		self.in_create = []
+		
 	def _load_roles(self):
 		self.roles = webnotes.get_roles()
 		return self.roles
@@ -104,9 +107,11 @@ class Profile:
 			p = self.perm_map.get(dt, {})
 
 			if not dtp.get('istable'):
-				if p.get('create') and not dtp.get('in_create') and \
-						not dtp.get('issingle'):
-					self.can_create.append(dt)
+				if p.get('create') and not dtp.get('issingle'):
+					if dtp.get('in_create'):
+						self.in_create.append(dt)
+					else:
+						self.can_create.append(dt)
 				elif p.get('write'):
 					self.can_write.append(dt)
 				elif p.get('read'):
@@ -128,6 +133,7 @@ class Profile:
 						self.allow_modules.append(dtp.get('module'))
 
 		self.can_write += self.can_create
+		self.can_write += self.in_create
 		self.can_read += self.can_write
 		self.all_read += self.can_read
 
@@ -225,6 +231,8 @@ class Profile:
 		d['allow_modules'] = self.allow_modules
 		d['all_read'] = self.all_read
 		d['can_search'] = list(set(self.can_search))
+		
+		d['in_create'] = self.in_create
 		
 		return d
 		
