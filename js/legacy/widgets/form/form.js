@@ -588,7 +588,7 @@ _f.Frm.prototype.refresh = function(docname) {
 				this.refresh_header();
 				this.sidebar && this.sidebar.refresh();
 			}
-		
+			
 			// call trigger
 	 		this.runclientscript('refresh');
 			

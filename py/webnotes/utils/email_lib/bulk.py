@@ -52,7 +52,7 @@ def send(recipients=[], doctype='Profile', email_field='email', first_name_field
 		from webnotes.utils import get_request_site_address
 		return message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
-			<small><a href="http://%s/server.py?cmd=%s&email=%s&type=%s&email_field=%s">
+			<small><a href="%s/server.py?cmd=%s&email=%s&type=%s&email_field=%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_request_site_address(), 
 			'webnotes.utils.email_lib.bulk.unsubscribe', email, doctype, email_field)
 
@@ -95,8 +95,8 @@ def unsubscribe():
 	doctype = webnotes.form_dict.get('type')
 	field = webnotes.form_dict.get('email_field')
 	email = webnotes.form_dict.get('email')
-	webnotes.conn.sql("""update `tab%s` set unsubscribed=1 
-		where email_id=%s""" % (doctype, '%s'), email)
+	webnotes.conn.sql("""update `tab%s` set unsubscribed=1
+		where `%s`=%s""" % (doctype, field, '%s'), email)
 	
 	webnotes.unsubscribed_email = email
 	webnotes.response['type'] = 'page'
@@ -105,7 +105,7 @@ def unsubscribe():
 def flush():
 	"""flush email queue, every time: called from scheduler"""
 	import webnotes
-	from webnotes.utils.email_lib.smtp import SMTPServer
+	from webnotes.utils.email_lib.smtp import SMTPServer, get_email
 	
 	smptserver = SMTPServer()
 
@@ -119,7 +119,7 @@ def flush():
 				email["name"], auto_commit=True)
 		except Exception, e:
 			webnotes.conn.sql("""update `tabBulk Email` set status='Error', error=%s 
-				where name=%s""", (str(e), email["name"]), auto_commit=True)
+				where name=%s""", (unicode(e), email["name"]), auto_commit=True)
 
 def clear_outbox():
 	"""remove mails older than 30 days in Outbox"""
