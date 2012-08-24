@@ -50,6 +50,7 @@ def send(recipients=[], doctype='Profile', email_field='email', first_name_field
 
 	def add_unsubscribe_link(email):
 		from webnotes.utils import get_request_site_address
+		import urllib
 		return message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
 			<small><a href="%s/server.py?%s">
