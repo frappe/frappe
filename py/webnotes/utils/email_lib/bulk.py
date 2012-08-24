@@ -25,10 +25,11 @@ import webnotes
 
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 
-def send(recipients=[], doctype='Profile', email_field='email', first_name_field="first_name",
+def send(recipients=None, sender=None, doctype='Profile', email_field='email', first_name_field="first_name",
 				last_name_field="last_name", subject='[No Subject]', message='[No Content]'):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
 	import webnotes
+	
 	def is_unsubscribed(rdata):
 		if not rdata: return 1
 		return rdata[0]['unsubscribed']
@@ -73,9 +74,11 @@ def send(recipients=[], doctype='Profile', email_field='email', first_name_field
 			return fname + ' ' + lname
 		else:
 			return rdata[0][email_field].split('@')[0].title()
-		
+	
+	if not recipients: recipients = []
+	if not sender or sender == "Administrator":
+		sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
 	check_bulk_limit(len(recipients))
-	sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
 
 	for r in recipients:
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
