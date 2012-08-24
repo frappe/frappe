@@ -77,6 +77,14 @@ def extract_email_id(s):
 		s = s.strip().lower()
 	return s
 	
+def get_email_id(user):
+	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
+	if user == "Administrator":
+		return user
+	
+	fullname = get_fullname(user)
+	return "%s <%s>" % (fullname, user)
+	
 def validate_email_add(email_str):
 	"""Validates the email string"""
 	s = extract_email_id(email_str)
