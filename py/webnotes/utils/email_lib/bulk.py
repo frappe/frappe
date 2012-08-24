@@ -52,9 +52,14 @@ def send(recipients=[], doctype='Profile', email_field='email', first_name_field
 		from webnotes.utils import get_request_site_address
 		return message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
-			<small><a href="%s/server.py?cmd=%s&email=%s&type=%s&email_field=%s">
+			<small><a href="%s/server.py?%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_request_site_address(), 
-			'webnotes.utils.email_lib.bulk.unsubscribe', email, doctype, email_field)
+			urllib.urlencode({
+				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
+				"email": email,
+				"type": doctype,
+				"email_field": email_field
+			}))
 
 	def full_name(rdata):
 		fname = rdata[0].get(first_name_field, '')
