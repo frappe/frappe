@@ -171,16 +171,19 @@ def uploadfile():
 
 @webnotes.whitelist(allow_guest=True)
 def reset_password():
-	form_dict = webnotes.form_dict
 	from webnotes.model.code import get_obj
+	from webnotes.utils import random_string
 	
-	user = form_dict.get('user', '')
+	user = webnotes.form_dict.get('user', '')
 	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
-		import profile
-		user_profile = profile.Profile(user)
-		pwd = user_profile.reset_password()
-		user_profile.send_new_pwd(pwd)
-		
+		new_password = random_string(8)
+		webnotes.conn.sql("""update `__Auth` set password=password(%s)
+			where `user`=%s""", (new_password, user))
+
+		# Hack!
+		webnotes.session["user"] = user
+		profile = get_obj("Profile", user)
+		profile.password_reset_mail(new_password)
 		webnotes.msgprint("Password has been reset and sent to your email id.")
 	else:
 		webnotes.msgprint("No such user (%s)" % user)

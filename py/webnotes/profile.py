@@ -252,36 +252,6 @@ class Profile:
 		self.roles = d['roles']
 		self.defaults = d['defaults']
 
-	
-	def reset_password(self):
-		"""reset password"""
-		from webnotes.utils import random_string, now
-		pwd = random_string(8)
-		
-		# update tab Profile
-		webnotes.conn.sql("""UPDATE tabProfile SET password=password(%s), modified=%s 
-			WHERE name=%s""", (pwd, now(), self.name))
-
-		return pwd
-
-
-	def send_new_pwd(self, pwd):
-		"""
-			Send new password to user
-		"""
-		import os
-		# send email
-		with open(os.path.join(os.path.dirname(__file__), 'password_reset.txt'), 'r') as f:
-			reset_password_mail = f.read()
-		
-		from webnotes.utils.email_lib import sendmail_md
-		sendmail_md(recipients= self.name, \
-			msg = reset_password_mail % {"user": get_user_fullname(self.name), "password": pwd}, \
-			subject = 'Password Reset')
-
-
-
-
 @webnotes.whitelist()
 def get_user_img():
 	if not webnotes.form_dict.get('username'):
@@ -294,7 +264,7 @@ def get_user_img():
 			lst = f[0][0].split('\n')	
 			webnotes.response['message'] = lst[0].split(',')[1]
 		else:
-			webnotes.response['message'] = 'no_img_m'		
+			webnotes.response['message'] = 'no_img_m'
 	else:
 		webnotes.response['message'] = 'no_img_m'
 
