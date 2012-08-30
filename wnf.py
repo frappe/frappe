@@ -214,9 +214,12 @@ def setup_options():
 			
 	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
 			action="store_true")
-			
+
 	parser.add_option("--append_future_import", default=False, action="store_true", 
 			help="append from __future__ import unicode literals to py files")
+	
+	parser.add_option("--backup", help="Takes backup of database in backup folder",
+		default=False, action="store_true")
 
 	return parser.parse_args()
 	
@@ -350,6 +353,10 @@ def run():
 		
 	elif options.append_future_import:
 		append_future_import()
+
+	elif options.backup:
+		from webnotes.utils.backups import scheduled_backup
+		scheduled_backup()
 
 	# print messages
 	if webnotes.message_log:

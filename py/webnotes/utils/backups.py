@@ -151,6 +151,17 @@ def get_backup():
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly on the following email address:
 	%s""" % (', '.join(recipient_list)))
+	
+def scheduled_backup():
+	"""this function is called from scheduler
+		deletes backups older than 7 days
+		takes backup"""
+	delete_temp_backups(older_than=168)
+	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
+						  webnotes.get_db_password(webnotes.conn.cur_db_name))
+	odb.take_dump()
+	from webnotes.utils import now
+	print "backup taken -", odb.backup_file_name, "- on", now()
 
 def recent_backup_exists():
 	file_list = os.listdir(conf.backup_path)
@@ -160,14 +171,14 @@ def recent_backup_exists():
 			return this_file
 	return None
 
-def delete_temp_backups():
+def delete_temp_backups(older_than=24):
 	"""
 		Cleans up the backup_link_path directory by deleting files older than 24 hours
 	"""
 	file_list = os.listdir(conf.backup_path)
 	for this_file in file_list:
 		this_file_path = os.path.join(conf.backup_path, this_file)
-		if is_file_old(this_file_path):
+		if is_file_old(this_file_path, older_than):
 			os.remove(this_file_path)
 
 
