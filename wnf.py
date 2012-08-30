@@ -179,6 +179,9 @@ def setup_options():
 			
 	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
 			action="store_true")
+	
+	parser.add_option("--backup", help="Takes backup of database in backup folder",
+		default=False, action="store_true")
 
 	return parser.parse_args()
 	
@@ -305,6 +308,10 @@ def run():
 	elif options.build_web_cache:
 		import website.web_cache
 		website.web_cache.refresh_cache(True)
+		
+	elif options.backup:
+		from webnotes.utils.backups import scheduled_backup
+		scheduled_backup()
 
 	# print messages
 	if webnotes.message_log:
