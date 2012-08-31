@@ -1090,6 +1090,7 @@ _f.get_value = function(dt, dn, fn) {
 
 _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 	var d = locals[dt][dn];
+
 	if (!d) return;
 	
 	var changed = d[fn] != v;
@@ -1099,8 +1100,8 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 	if(changed) {
 		d[fn] = v;
 		if(d.parenttype)
-			d.__unsaved = 1;		
-		this.set_unsaved();			
+			d.__unsaved = 1;
+		this.set_unsaved();
 	}
 }
 
