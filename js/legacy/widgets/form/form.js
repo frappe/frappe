@@ -1103,7 +1103,7 @@ _f.set_value = function(dt, dn, fn, v) {
 		return;
 	}
 
-	var changed = d[fn] != v;
+	var changed = (d[fn] != v);
 	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) changed = 0;
 
 	if(changed) {

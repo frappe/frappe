@@ -45,6 +45,7 @@ _f.FrmHeader = Class.extend({
 		
 	},
 	refresh_labels: function() {
+		cur_frm.doc = get_local(cur_frm.doc.doctype, cur_frm.doc.name);
 		var labinfo = {
 			0: ['Saved', 'label-success'],
 			1: ['Submitted', 'label-info'],
