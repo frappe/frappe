@@ -61,7 +61,7 @@ class DocType:
 		]
 
 		self.property_restrictions = {
-			'fieldtype': ['Currency', 'Float'],
+			'fieldtype': [['Currency', 'Float'], ['Small Text', 'Data']],
 		}
 
 		self.forbidden_properties = ['idx']
@@ -238,33 +238,25 @@ class DocType:
 		
 			value = new_d.fields.get(prop)
 			
-			if (prop in self.property_restrictions and 
-				(value not in self.property_restrictions.get(prop) or
-				ref_d.fields.get(prop) not in self.property_restrictions.get(prop)
-				)):
-				webnotes.msgprint("""\
-					You cannot change '%s' of '%s' from '%s' to '%s'.
-					%s can only be changed among '%s'.
-					<i>Ignoring this change and saving.</i>\
-					""" % (self.defaults.get(prop, {}).get('label') or prop,
-						new_d.fields.get('label') or new_d.fields.get('idx'),
+			if prop in self.property_restrictions:
+				allow_change = False
+				for restrict_list in self.property_restrictions.get(prop):
+					if value in restrict_list and \
+							ref_d.fields.get(prop) in restrict_list:
+						allow_change = True
+						break
+				if not allow_change:
+					webnotes.msgprint("""\
+						You cannot change '%s' of '%s' from '%s' to '%s'.
+						%s can only be changed among %s.
+						<i>Ignoring this change and saving.</i>""" % \
+						(self.defaults.get(prop, {}).get("label") or prop,
+						new_d.fields.get("label") or new_d.fields.get("idx"),
 						ref_d.fields.get(prop), value,
-						self.defaults.get(prop, {}).get('label') or prop,
-						", ".join(self.property_restrictions.get(prop)),
-					))
-				return None
-
-
-			#if prop == 'idx':
-			#	if value > 1:
-			#		for idoc in ([self.doc] + self.doclist):
-			#				if idoc.fields.get(prop) == (value - 1):
-			#					prop = 'previous_field'
-			#					value = idoc.fieldname
-			#					break
-			#	elif value == 1:
-			#		prop = 'previous_field'
-			#		value = None
+						self.defaults.get(prop, {}).get("label") or prop,
+						" -or- ".join([", ".join(r) for r in \
+							self.property_restrictions.get(prop)])))
+					return None
 
 			# If the above conditions are fulfilled,
 			# create a property setter doc, but dont save it yet.
