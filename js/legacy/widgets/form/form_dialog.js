@@ -127,7 +127,7 @@ _f.edit_record = function(dt, dn) {
 			$(f.page_layout.wrapper).removeClass('layout-wrapper')
 				.removeClass('layout-wrapper-background').toggle(true);
 			
-			d.dialog.show();				
+			d.dialog.show();
 		})
 	})
 }

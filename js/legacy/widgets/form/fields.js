@@ -703,7 +703,7 @@ LinkField.prototype.setup_buttons = function() {
 				}
 			}
 			_f.calling_doc_stack.push([me.doctype, me.docname]);
-			new_doc(me.df.options, me.on_new, 1, on_save_callback, me.doctype, me.docname, me.frm.not_in_container); 
+			new_doc(me.df.options); 
 		}
 	} else {
 		$dh(me.btn2); $y($td(me.tab,0,2), {width:'0px'});

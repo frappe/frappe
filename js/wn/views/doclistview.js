@@ -137,13 +137,14 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			new_doctype: this.doctype,
 			allow_delete: this.allow_delete,
 			no_result_message: this.make_no_result(),
-			columns: this.listview.fields
+			columns: this.listview.fields,
+			custom_new_doc: me.listview.make_new_doc || undefined,
 		});
 		
 		// make_new_doc can be overridden so that default values can be prefilled
 		// for example - communication list in customer
 		$(this.wrapper).find('button[list_view_doc="'+me.doctype+'"]').click(function(){
-			me.make_new_doc(me.doctype);
+			(me.listview.make_new_doc || me.make_new_doc)(me.doctype);
 		});
 		
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
