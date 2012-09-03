@@ -398,7 +398,7 @@ wn.views.ListView = Class.extend({
 			this.add_user_tags(parent, data);
 		}
 		else if(opts.content=='modified') {
-			$(parent).append(data.when);			
+			$(parent).append(data.when);
 		}
 		else if(opts.type=='bar-graph') {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
@@ -411,7 +411,11 @@ wn.views.ListView = Class.extend({
 			$(parent).append(repl(opts.template, data));
 		}
 		else if(data[opts.content]) {
-			$(parent).append(' ' + data[opts.content]);
+			if(opts.type=="date") {
+				data[opts.content] = wn.datetime.str_to_user(data[opts.content])
+			}
+			$(parent).append(repl('<span title="%(title)s"> %(content)s</span>', {
+				"title": opts.title || opts.content, "content": data[opts.content]}));
 		}
 		
 	},
