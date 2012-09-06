@@ -76,7 +76,12 @@ def make_csv_output(res, dt):
 	f = StringIO()
 	writer = csv.writer(f)
 	for r in res:
-		writer.writerow([v.encode('utf-8') for v in r])
+		row = []
+		for v in r:
+			if isinstance(v, basestring):
+				v = v.encode("utf-8")
+			row.append(v)
+		writer.writerow(row)
 	
 	f.seek(0)
 						
