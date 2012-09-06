@@ -147,6 +147,7 @@ class POP3Mailbox:
 			Loads messages from the mailbox and calls
 			process_message for each message
 		"""
+		import webnotes
 		
 		if not self.check_mails():
 			return # nothing to do
