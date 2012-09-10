@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:36',
+		'creation': '2012-05-25 14:30:53',
 		'docstatus': 0,
-		'modified': '2012-03-27 14:35:36',
+		'modified': '2012-09-10 12:14:04',
 		'modified_by': u'Administrator',
 		'owner': u'Administrator'
 	},
@@ -27,7 +27,7 @@
 		'show_in_menu': 0,
 		'subject': u'%(label)s (%(fieldtype)s) on %(dt)s',
 		'tag_fields': u'dt,fieldtype',
-		'version': 159
+		'version': 1
 	},
 
 	# These values are common for all DocField
@@ -173,7 +173,7 @@
 		'no_copy': 0,
 		'oldfieldname': u'fieldtype',
 		'oldfieldtype': u'Select',
-		'options': u'\nButton\nCheck\nColumn Break\nCurrency\nData\nDate\nFloat\nHTML\nInt\nLink\nRead Only\nSection Break\nSelect\nSmall Text\nText\nText Editor\nTime\nTable',
+		'options': u'\nButton\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nFloat\nHTML\nInt\nLink\nRead Only\nSection Break\nSelect\nSmall Text\nText\nText Editor\nTime\nTable',
 		'permlevel': 0,
 		'reqd': 1,
 		'search_index': 0,
