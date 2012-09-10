@@ -343,7 +343,7 @@ _r.ReportBuilder.prototype.load_criteria = function(criteria_name) {
 		try {
 			report.customize_filters(this);
 		} catch(err) {
-			errprint('Error in "customize_filters":\n' + err);
+			console.log('Error in "customize_filters":\n' + err);
 		}
 	}
 
