@@ -50,6 +50,7 @@ wn.ui.AppFrame = Class.extend({
 		this.add_toolbar();
 		return $("<input style='width: 80px;'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
+			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "").appendTo(this.add_label(label));
 	},
 });
