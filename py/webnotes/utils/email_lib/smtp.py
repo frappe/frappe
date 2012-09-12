@@ -213,14 +213,13 @@ class SMTPServer:
 
 		# get defaults from control panel
 		es = webnotes.model.doc.Document('Email Settings','Email Settings')
-		self.server = server or es.outgoing_mail_server.encode('utf-8') \
-			or getattr(conf,'mail_server','')
-		self.login = login or es.mail_login.encode('utf-8') \
+		self.server = server or (es.outgoing_mail_server and \
+			es.outgoing_mail_server.encode('utf-8')) or getattr(conf,'mail_server','')
+		self.login = login or (es.mail_login and es.mail_login.encode('utf-8')) \
 			or getattr(conf,'mail_login','')
-		self.port = port or cint(es.mail_port) \
-			or getattr(conf,'mail_port',None)
-		self.password = password or es.mail_password.encode('utf-8') \
-			or getattr(conf,'mail_password','')
+		self.port = port or cint(es.mail_port) or getattr(conf,'mail_port',None)
+		self.password = password or (es.mail_password and \
+			es.mail_password.encode('utf-8')) or getattr(conf,'mail_password','')
 		self.use_ssl = use_ssl or cint(es.use_ssl) \
 			or cint(getattr(conf, 'use_ssl', ''))
 		self._sess = None
