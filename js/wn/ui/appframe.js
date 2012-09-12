@@ -32,7 +32,7 @@ wn.ui.AppFrame = Class.extend({
 		return this.buttons[label];
 	},
 	clear_buttons: function() {
-		this.toolbar.empty();
+		this.toolbar && this.toolbar.empty();
 	},
 	add_toolbar: function() {
 		if(!this.toolbar)
