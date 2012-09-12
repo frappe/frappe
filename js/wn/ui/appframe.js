@@ -19,12 +19,8 @@ wn.ui.AppFrame = Class.extend({
 		this.clear_breadcrumbs();
 		this.add_breadcrumb(txt);
 	},
-	make_toolbar: function() {
-		if(!this.$w.find('.appframe-toolbar').length)
-			this.$w.append('<div class="appframe-toolbar"></div>');	
-	},
 	add_button: function(label, click, icon) {
-		this.make_toolbar();
+		this.add_toolbar();
 		args = { label: label, icon:'' };
 		if(icon) {
 			args.icon = '<i class="icon '+icon+'"></i>';
@@ -32,7 +28,7 @@ wn.ui.AppFrame = Class.extend({
 		this.buttons[label] = $(repl('<button class="btn btn-small">\
 			%(icon)s %(label)s</button>', args))
 			.click(click)
-			.appendTo(this.$w.find('.appframe-toolbar'));
+			.appendTo(this.toolbar);
 		return this.buttons[label];
 	},
 	add_help_button: function(txt) {
@@ -41,10 +37,10 @@ wn.ui.AppFrame = Class.extend({
 			<b>?</b></button>')
 			.data('help-text', txt)
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
-			.appendTo(this.$w.find('.appframe-toolbar'));			
+			.appendTo(this.toolbar);			
 	},
 	clear_buttons: function() {
-		this.$w.find('.appframe-toolbar').empty();
+		this.toolbar && this.toolbar.empty();
 	},
 	add_breadcrumb: function(html) {
 		if(!this.$breadcrumbs)
@@ -61,7 +57,26 @@ wn.ui.AppFrame = Class.extend({
 	},
 	clear_breadcrumbs: function() {
 		this.$breadcrumbs && this.$breadcrumbs.empty();
-	}
+	},
+	add_toolbar: function() {
+		if(!this.toolbar)
+			this.$w.append('<div class="appframe-toolbar"></div>');
+		this.toolbar = this.$w.find('.appframe-toolbar');
+	},
+	add_select: function(label, options) {
+		this.add_toolbar();
+		return $("<select style='width: 160px;'>").add_options(options).appendTo(this.add_label(label));
+	},
+	add_label: function(label) {
+		return $("<span style='margin-right: 12px;'>"+label+" </span>").appendTo(this.toolbar);
+	},
+	add_date: function(label, date) {
+		this.add_toolbar();
+		return $("<input style='width: 80px;'>").datepicker({
+			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
+			changeYear: true,
+		}).val(dateutil.str_to_user(date) || "").appendTo(this.add_label(label));
+	},
 });
 
 // parent, title, single_column

@@ -913,7 +913,7 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 	if(!cdn)cdn = this.docname;
 
 	var ret = null;
-	var doc = cur_frm.doc;
+	var doc = locals[cur_frm.doc.doctype][cur_frm.doc.name];
 	try {
 		if(this.cscript[caller])
 			ret = this.cscript[caller](doc, cdt, cdn);

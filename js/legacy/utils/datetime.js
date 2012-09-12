@@ -183,6 +183,10 @@ wn.datetime = {
 		}
 	},
 	
+	user_to_obj: function(d) {
+		return dateutil.str_to_obj(dateutil.user_to_str(d));
+	},
+	
 	global_date_format: function(d) {
 		if(d.substr) d = this.str_to_obj(d);
 		return nth(d.getDate()) + ' ' + month_list_full[d.getMonth()] + ' ' + d.getFullYear();
