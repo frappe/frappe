@@ -235,13 +235,17 @@ _r.DataTable.prototype.update_query = function(no_limit) {
   if((_r.rb_con.cur_rb && _r.rb_con.cur_rb.get_query) || (this.search_criteria && this.search_criteria.custom_query)) {
   	// no sorting if custom_query or get_query
   } else {
+	var me = this;
 	var sort_by = null,
 		sort_order = "";
 	if (sel_val(this.sort_sel)) {
 		sort_by = sel_val(this.sort_sel);
 		sort_order = this.sort_order;
 	} else if(_r.rb_con.cur_rb.sc.sort_by) {
-		sort_by = _r.rb_con.cur_rb.sc.sort_by;
+		sort_by = (_r.rb_con.cur_rb.sc.sort_by || "").split(",");
+		sort_by = $.map(sort_by, function(v) {
+			return v.trim() + " " + (me.sort_order || "");
+		}).join(", ");
 		sort_order = "";
 	} else {
 		this.sort_sel.selectedIndex = 0; // select the first value (IE)
