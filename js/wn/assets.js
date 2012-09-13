@@ -24,9 +24,32 @@
 // will try and get from localStorge if latest are available
 // depends on wn.versions to manage versioning
 
+wn.require = function(items) {
+	if(typeof items === "string") {
+		items = [items];
+	}
+	var l = items.length;
+
+	for(var i=0; i< l; i++) {
+		var src = items[i];
+		//if(!(src in wn.assets.executed_)) {
+			// check if available in localstorage
+		wn.assets.execute(src);
+		//}
+	}
+}
+
 wn.assets = {
 	// keep track of executed assets
 	executed_ : {},
+	
+	check: function() {
+		// if version is different then clear localstorage
+		if(window._version_number != localStorage.getItem("_version_number")) {
+			localStorage.clear();
+			localStorage.setItem("_version_number", window._version_number)
+		}
+	},
 	
 	// check if the asset exists in
 	// localstorage 
@@ -96,11 +119,6 @@ wn.assets = {
 		},
 		css: function(txt, src) {
 			wn.dom.set_style(txt);
-		},
-		cgi: function(txt, src) {
-			// dynamic content, will return content as
-			// javascript
-			wn.dom.eval(txt)
 		}
 	}
 }

@@ -377,15 +377,8 @@ def json_handler(obj):
 			(type(obj), repr(obj))
 
 def accept_gzip():
-	"""return true if client accepts gzip"""
-	try:
-		import string
-		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
-			return True
-		else:
-			return False
-	except:
-		return False
+	if "gzip" in os.environ.get("HTTP_ACCEPT_ENCODING", ""):
+		return True
 
 def compressBuf(buf):
 	import gzip, cStringIO
