@@ -30,10 +30,12 @@ if(!console) {
 	}
 }
 
+// this will be set during build
+window._version_number = "%(_version_number)s";
 
 /* start the application */
 $(document).ready(function() {
-	wn.versions.check();
+	wn.assets.check();
 	wn.provide('wn.app');
 	$.extend(wn.app, new wn.Application());
 });

@@ -55,6 +55,11 @@ class Bundle:
 				if out_type=='js' and ftype =='css':
 					data = "\nwn.assets.handler.css('%s');\n" %\
 					 	data.replace("'", "\\'").replace('\n', '\\\n')
+					
+				# add version number in core
+				if os.path.basename(f)=='core.js':
+					from webnotes.utils import generate_hash
+					data = data % {"_version_number": generate_hash()}
 
 			outtxt += ('\n/*\n *\t%s\n */' % f)
 					
