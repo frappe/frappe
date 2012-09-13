@@ -337,11 +337,8 @@ def json_handler(obj):
 
 def accept_gzip():
 	"""return true if client accepts gzip"""
-	try:
-		if string.find(os.environ["HTTP_ACCEPT_ENCODING"], "gzip") != -1:
-			return True
-	except:
-		return False
+	if "gzip" in os.environ.get("HTTP_ACCEPT_ENCODING", ""):
+		return True
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
