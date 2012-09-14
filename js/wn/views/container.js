@@ -25,6 +25,7 @@ wn.views.Container = Class.extend({
 	change_to: function(label) {
 		if(this.page && this.page.label == label) {
 			// don't trigger double events
+			//$(this.page).trigger('show');
 			return;
 		}
 		
@@ -41,14 +42,16 @@ wn.views.Container = Class.extend({
 		}
 		
 		// hide current
-		if(this.page) {
+		if(this.page && this.page != page) {
 			$(this.page).toggle(false);
 			$(this.page).trigger('hide');
 		}
 		
 		// show new
-		this.page = page;
-		$(this.page).fadeIn();
+		if(!this.page || this.page != page) {
+			this.page = page;
+			$(this.page).fadeIn();			
+		}
 		this.page._route = window.location.hash;
 		document.title = this.page.label;
 		$(this.page).trigger('show');

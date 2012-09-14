@@ -64,15 +64,20 @@ wn.ui.AppFrame = Class.extend({
 		this.toolbar = this.$w.find('.appframe-toolbar');
 	},
 	add_label: function(label) {
-		return $("<span style='margin: 2px 4px;'>"+label+" </span>").appendTo(this.toolbar);
+		return $("<span class='label'>"+label+" </span>").appendTo(this.toolbar);
 	},
 	add_select: function(label, options) {
 		this.add_toolbar();
-		return $("<select style='width: 160px; margin: 2px 4px;'>").add_options(options).appendTo(this.toolbar);
+		return $("<select style='width: 160px;'>").add_options(options).appendTo(this.toolbar);
 	},
+	add_data: function(label) {
+		this.add_toolbar();
+		return $("<input style='width: 100px;' placeholder='"+ label +"'>")
+			.appendTo(this.toolbar);
+	}, 
 	add_date: function(label, date) {
 		this.add_toolbar();
-		return $("<input style='width: 80px; margin: 2px 4px;'>").datepicker({
+		return $("<input style='width: 80px;'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "").appendTo(this.toolbar);

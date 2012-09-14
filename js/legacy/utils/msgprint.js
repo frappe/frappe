@@ -58,6 +58,7 @@ function msgprint(msg, title) {
 	msg_dialog.msg_area.append(msg);
 	msg_dialog.show();
 	
+	return msg_dialog;
 }
 
 // Floating Message

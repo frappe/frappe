@@ -161,3 +161,14 @@ wn.dom.set_box_shadow = function(ele, spread) {
 		};
 	}
 })(jQuery);
+
+wn.to_csv = function(data) {
+	var res = [];
+	$.each(data, function(i, row) {
+		row = $.map(row, function(col) {
+			return typeof(col)==="string" ? ('"' + col.replace(/"/g, '\"') + '"') : col;
+		});
+		res.push(row.join(","));
+	});
+	return res.join("\n");
+}

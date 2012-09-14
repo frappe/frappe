@@ -99,6 +99,36 @@ wn.views.GridReport = Class.extend({
 				<div class="bar" style="width: 10%"></div></div>')
 			.appendTo(this.wrapper);
 	},
+	make_grid_wrapper: function() {
+		$('<div style="text-align: right;"> \
+			<a href="#" class="grid-report-print"><i class="icon icon-print"></i> Print</a> \
+			<span style="color: #aaa; margin: 0px 10px;"> | </span> \
+			<a href="#" class="grid-report-export"><i class="icon icon-download-alt"></i> Export</a> \
+		</div>').appendTo(this.wrapper);
+		
+		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
+		
+		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
+			background-color: #eee; margin-top: 15px;'>")
+			.appendTo(this.wrapper);
+		this.id = wn.dom.set_unique_id(this.grid_wrapper.get(0));
+
+		var me = this;
+		// bind show event to reset cur_report_grid
+		// and refresh filters from url
+		// this must be called after init
+		// because "wn.container.page" will only be set
+		// once "load" event is over.
+		
+		$(wn.container.page).bind('show', function() {
+			// reapply filters on show
+			wn.cur_grid_report = me;
+			me.apply_filters_from_route();
+			me.refresh();
+		});
+
+		this.apply_filters_from_route();
+	},
 	load_filters: function(callback) {
 		// override
 		callback();
@@ -109,13 +139,21 @@ wn.views.GridReport = Class.extend({
 			v.fieldname = v.fieldname || v.label.replace(/ /g, '_').toLowerCase();
 			var input = null;
 			if(v.fieldtype=='Select') {
-				input = me.appframe.add_select(v.label, ["Select "+v.options]);
+				input = me.appframe.add_select(v.label, [v.default_value]);
 			} else if(v.fieldtype=='Button') {
 				input = me.appframe.add_button(v.label);
+				if(v.icon) {
+					$('<i class="icon '+ v.icon +'"></i>').prependTo(input);
+				}
 			} else if(v.fieldtype=='Date') {
 				input = me.appframe.add_date(v.label);
 			} else if(v.fieldtype=='Label') {
 				input = me.appframe.add_label(v.label);
+			} else if(v.fieldtype=='Data') {
+				input = me.appframe.add_data(v.label);
+			}
+			if(v.cssClass) {
+				input && input.addClass(v.cssClass);
 			}
 			input && (input.get(0).opts = v);
 			me.filter_inputs[v.fieldname] = input;
@@ -131,15 +169,35 @@ wn.views.GridReport = Class.extend({
 		wn.dom.set_style('.slick-cell { font-size: 12px; }');		
 	},
 	refresh: function() {
-		this.prepare_data();
 		this.render();
+	},
+	apply_filters_from_route: function() {
+		var hash = window.location.hash;
+		var me = this;
+		if(hash.indexOf('/') != -1) {
+			$.each(hash.split('/').splice(1).join('/').split('&'), function(i, f) {
+				var f = f.split("=");
+				me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
+			});
+		}
+	},
+	set_route: function() {
+		wn.set_route(wn.container.page.page_name, $.map(this.filter_inputs, function(v) {
+			var val = v.val();
+			var opts = v.get(0).opts;
+			if(val && val != opts.default_value)
+				return encodeURIComponent(opts.fieldname) 
+					+ '=' + encodeURIComponent(val);
+		}).join('&'))
 	},
 	render: function() {
 		// new slick grid
 		this.waiting.toggle(false);
-		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa;'>")
-			.appendTo(this.wrapper);
-		this.id = wn.dom.set_unique_id(this.grid_wrapper.get(0));
+		
+		if(!this.grid_wrapper) this.make_grid_wrapper();
+		
+		this.apply_link_formatters();
+		this.prepare_data();
 		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, this.options);
 
@@ -162,11 +220,58 @@ wn.views.GridReport = Class.extend({
 		this.dataView.setFilter(this.dataview_filter);
 		this.dataView.endUpdate();
 	},
+	export: function() {
+		var me = this;
+		var res = [$.map(this.columns, function(v) { return v.name; })];
+		var col_map = $.map(this.columns, function(v) { return v.field; });
+		
+		for (var i=0, len=this.dataView.getLength(); i<len; i++) {
+			var d = this.dataView.getItem(i);
+			var row = $.map(col_map, function(col) {
+				return d[col];
+			});
+			
+			res.push(row);
+		}
+		
+		wn.require("js/lib/downloadify/downloadify.min.js");
+		wn.require("js/lib/downloadify/swfobject.js");
+		
+		var id = wn.dom.set_unique_id();
+		var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to download this file.</p>');
+		
+		Downloadify.create(id ,{
+			filename: function(){
+				return me.title + '.csv';
+			},
+			data: function(){ 
+				return wn.to_csv(res);
+			},
+			swf: 'js/lib/downloadify/downloadify.swf',
+			downloadImage: 'js/lib/downloadify/download.png',
+			onComplete: function(){ msgobj.hide(); },
+			onCancel: function(){ msgobj.hide(); },
+			onError: function(){ msgobj.hide(); },
+			width: 100,
+			height: 30,
+			transparent: true,
+			append: false			
+		});
+		
+		return false;
+	},
 	options: {
 		editable: false,
 		enableColumnReorder: false
 	},
 	dataview_filter: function(item) {
+		var filters = wn.cur_grid_report.filter_inputs;
+		for (i in filters) {
+			var filter = filters[i].get(0);
+			if(filter.opts.filter && !filter.opts.filter($(filter).val(), item, filter.opts)) {
+				return false;
+			}
+		}
 		return true;
 	},
 	date_formatter: function(row, cell, value, columnDef, dataContext) {
@@ -174,5 +279,42 @@ wn.views.GridReport = Class.extend({
 	},
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return "<div style='text-align: right;'>" + fmt_money(value) + "</div>";
+	},
+	text_formatter: function(row, cell, value, columnDef, dataContext) {
+		return "<span title='" + value +"'>" + value + "</div>";
+	},
+	apply_link_formatters: function() {
+		var me = this;
+		$.each(this.columns, function(i, col) {
+			if(col.link_formatter) {
+				col.formatter = function(row, cell, value, columnDef, dataContext) {
+					// added link and open button to links
+					// link_formatter must have
+					// filter_input, open_btn (true / false), doctype (will be eval'd)
+					
+					// make link to add a filter
+					var link_formatter = wn.cur_grid_report.columns[cell].link_formatter;	
+					var html = repl('<a href="#" \
+						onclick="wn.cur_grid_report.filter_inputs.%(col_name)s.val(\'%(value)s\'); \
+							wn.cur_grid_report.set_route(); return false;">\
+						%(value)s</a>', {
+							value: value,
+							col_name: link_formatter.filter_input,
+							page_name: wn.container.page.page_name
+						})
+
+					// make icon to open form
+					if(link_formatter.open_btn) {
+						html += repl(' <i class="icon icon-share" style="cursor: pointer;"\
+							onclick="wn.set_route(\'Form\', \'%(doctype)s\', \'%(value)s\');">\
+						</i>', {
+							value: value,
+							doctype: eval(link_formatter.doctype)
+						});
+					}
+					return html;
+				}
+			}
+		})
 	}
 })
