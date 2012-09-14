@@ -106,7 +106,8 @@ wn.request.call = function(opts) {
 					if(xhr.readyState > 2) {
 				    	var total = parseInt(xhr.getResponseHeader('Content-length'));
 				    	var completed = parseInt(xhr.responseText.length);
-						opts.progress_bar.css('width', (100.0 / total * completed).toFixed(2) + '%');
+						var percent = (100.0 / total * completed).toFixed(2)
+						opts.progress_bar.css('width', (percent < 10 ? 10 : percent) + '%');
 					}
 				}, 50);
 			},
