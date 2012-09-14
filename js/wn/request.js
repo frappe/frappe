@@ -81,7 +81,7 @@ wn.request.cleanup = function(opts, r) {
 
 wn.request.call = function(opts) {
 	wn.request.prepare(opts);
-	$.ajax({
+	var args = {
 		url: opts.url || wn.request.url,
 		data: opts.args,
 		type: opts.type || 'POST',
@@ -95,7 +95,28 @@ wn.request.call = function(opts) {
 			show_alert('Unable to complete request: ' + textStatus)
 			if(opts.error)opts.error(xhr)
 		}
-	})
+	};
+	
+	if(opts.progress_bar) {
+		var interval = null;
+		$.extend(args, {
+			xhr: function() {
+				var xhr = jquery.ajaxSettings.xhr();
+				interval = setInterval(function() {
+					if(xhr.readyState > 2) {
+				    	var total = parseInt(xhr.getResponseHeader('Content-length'));
+				    	var completed = parseInt(xhr.responseText.length);
+						opts.progress_bar.css('width', (100.0 / total * completed).toFixed(2) + '%');
+					}
+				}, 50);
+			},
+			complete: function() {
+				clearInterval(interval);
+			}
+		})
+	}
+	
+	$.ajax(args)
 }
 
 // generic server call (call page, object)

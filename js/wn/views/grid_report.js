@@ -24,7 +24,7 @@ wn.provide("wn.report_dump");
 
 $.extend(wn.report_dump, {
 	data: {},
-	with_data: function(doctypes, callback) {
+	with_data: function(doctypes, callback, progress_bar) {
 		var missing = [];
 		$.each(doctypes, function(i, v) {
 			if(!wn.report_dump.data[v]) missing.push(v);
@@ -48,7 +48,8 @@ $.extend(wn.report_dump, {
 						wn.report_dump.data[doctype] = data;
 					});
 					callback();
-				}
+				},
+				progress_bar: progress_bar
 			})
 		} else {
 			callback();
@@ -61,8 +62,9 @@ wn.views.GridReport = Class.extend({
 	init: function(opts) {
 		this.filter_inputs = {};
 		$.extend(this, opts);
-		this.wrapper = $("<div style='height: 500px; border: 1px solid #aaa;'>").appendTo(this.parent);
-		this.id = wn.dom.set_unique_id(this.wrapper.get(0));
+		
+		this.wrapper = $('<div>').appendTo(this.parent);
+		
 		if(this.filters) {
 			this.make_filters();
 		}
@@ -88,13 +90,13 @@ wn.views.GridReport = Class.extend({
 			
 			me.setup();
 			me.refresh();
-		});
+		}, this.wrapper.find(".progress .bar"));
 	},
 	make_waiting: function() {
-		$('<div class="well" style="width: 63%; margin: 30px auto;">\
+		this.waiting = $('<div class="well" style="width: 63%; margin: 30px auto;">\
 			<p style="text-align: center;">Loading Report...</p>\
 			<div class="progress progress-striped active">\
-				<div class="bar" style="width: 100%"></div></div>')
+				<div class="bar" style="width: 10%"></div></div>')
 			.appendTo(this.wrapper);
 	},
 	load_filters: function(callback) {
@@ -134,6 +136,11 @@ wn.views.GridReport = Class.extend({
 	},
 	render: function() {
 		// new slick grid
+		this.waiting.toggle(false);
+		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa;'>")
+			.appendTo(this.wrapper);
+		this.id = wn.dom.set_unique_id(this.grid_wrapper.get(0));
+		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, this.options);
 
 		// bind events
