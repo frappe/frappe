@@ -120,7 +120,6 @@ wn.request.call = function(opts) {
 				    	var completed = parseInt(xhr.responseText.length);
 						var percent = (100.0 / total * completed).toFixed(2)
 						opts.progress_bar.css('width', (percent < 10 ? 10 : percent) + '%');
-						console.log(percent);
 					}
 				}, 50);
 				return xhr;
@@ -130,9 +129,7 @@ wn.request.call = function(opts) {
 			}
 		})
 	}
-	
-	console.log(ajax_args);
-	
+		
 	$.ajax(ajax_args);
 }
 
