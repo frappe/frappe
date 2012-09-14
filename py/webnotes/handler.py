@@ -358,10 +358,13 @@ def add_cookies():
 
 def print_zip(response):
 	response = response.encode('utf-8')
-	if accept_gzip() and len(response)>512:
+	orig_len = len(response)
+	if accept_gzip() and orig_len>512:
 		response = compressBuf(response)
 		eprint("Content-Encoding: gzip")
+		eprint("Original-Length: %d" % orig_len)
 		eprint("Content-Length: %d" % len(response))
+		
 	eprint("")
 	print response
 	
