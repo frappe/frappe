@@ -127,6 +127,7 @@ wn.request.call = function(opts) {
 				return xhr;
 			},
 			complete: function() {
+				opts.progress_bar.css('width', '100%');
 				clearInterval(interval);
 			}
 		})
