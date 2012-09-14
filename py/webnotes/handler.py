@@ -311,10 +311,12 @@ def print_json():
 	import json
 	str_out = json.dumps(webnotes.response, default=json_handler)
 	
-	if accept_gzip() and len(str_out)>512:
+	orig_length = len(str_out)
+	if accept_gzip() and orig_length >512:
 		out_buf = compressBuf(str_out)
 		print "Content-Encoding: gzip"
 		print "Content-Length: %d" % (len(out_buf))
+		print "Original-Length: %d" % (orig_length)
 		str_out = out_buf
 		
 	print "Content-Type: text/html; charset: utf-8"
