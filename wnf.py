@@ -143,6 +143,10 @@ def setup_options():
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
 						help="minify + concat js files")
+	parser.add_option("-w", "--watch", default=False, action="store_true",
+						help="watch and minify + concat js files, if necessary")
+	parser.add_option("--no_compress", default=False, action="store_true",
+						help="do not compress when building js bundle")
 						
 	parser.add_option("--build_web_cache", default=False, action="store_true",
 						help="build web cache")
@@ -153,12 +157,13 @@ def setup_options():
 	# git
 	parser.add_option("--status", default=False, action="store_true",
 						help="git status")
-	parser.add_option("--pull", nargs=2, default=False,
-						metavar = "remote branch",
-						help="git pull (both repos)")
 	parser.add_option("--git", nargs=1, default=False, 
 						metavar = "git options",
 						help="run git with options in both repos")
+	parser.add_option("--pull", nargs=2, default=False,
+						metavar = "remote branch",
+						help="git pull (both repos)")
+
 	parser.add_option("--push", nargs=3, default=False, 
 						metavar = "remote branch comment",
 						help="git commit + push (both repos) [remote] [branch] [comment]")
@@ -247,8 +252,12 @@ def run():
 
 	# build
 	if options.build:
-		import build.project
-		build.project.build()	
+		from webnotes.utils import bundlejs
+		bundlejs.bundle(options.no_compress)
+
+	if options.watch:
+		from webnotes.utils import bundlejs
+		bundlejs.watch(options.no_compress)
 
 	# code replace
 	elif options.replace:
@@ -260,6 +269,11 @@ def run():
 		os.system('git status')
 		os.chdir('lib')
 		os.system('git status')
+
+	elif options.git:
+		os.system('git %s' % options.git)
+		os.chdir('lib')
+		os.system('git %s' % options.git)
 	
 	elif options.pull:
 		pull(options.pull[0], options.pull[1])
@@ -270,10 +284,6 @@ def run():
 		os.chdir('lib')
 		os.system('git commit -a -m "%s"' % options.push[2])
 		os.system('git push %s %s' % (options.push[0], options.push[1]))
-
-	elif options.git:
-		os.system('git %s' % options.git)
-		os.system('cd lib && git %s' % options.git)
 				
 	elif options.checkout:
 		os.system('git checkout %s' % options.checkout)

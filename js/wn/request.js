@@ -93,7 +93,7 @@ wn.request.cleanup = function(opts, r) {
 
 wn.request.call = function(opts) {
 	wn.request.prepare(opts);
-	var args = {
+	var ajax_args = {
 		url: opts.url || wn.request.url,
 		data: opts.args,
 		type: opts.type || 'POST',
@@ -108,20 +108,22 @@ wn.request.call = function(opts) {
 			opts.error && opts.error(xhr)
 		}
 	};
-	
+		
 	if(opts.progress_bar) {
 		var interval = null;
-		$.extend(args, {
+		$.extend(ajax_args, {
 			xhr: function() {
-				var xhr = jquery.ajaxSettings.xhr();
+				var xhr = jQuery.ajaxSettings.xhr();
 				interval = setInterval(function() {
 					if(xhr.readyState > 2) {
 				    	var total = parseInt(xhr.getResponseHeader('Content-length'));
 				    	var completed = parseInt(xhr.responseText.length);
 						var percent = (100.0 / total * completed).toFixed(2)
 						opts.progress_bar.css('width', (percent < 10 ? 10 : percent) + '%');
+						console.log(percent);
 					}
 				}, 50);
+				return xhr;
 			},
 			complete: function() {
 				clearInterval(interval);
@@ -129,7 +131,9 @@ wn.request.call = function(opts) {
 		})
 	}
 	
-	$.ajax(args)
+	console.log(ajax_args);
+	
+	$.ajax(ajax_args);
 }
 
 // generic server call (call page, object)
@@ -156,6 +160,7 @@ wn.call = function(opts) {
 		error: opts.error,
 		btn: opts.btn,
 		freeze: opts.freeze,
-		show_spinner: !opts.no_spinner
+		show_spinner: !opts.no_spinner,
+		progress_bar: opts.progress_bar
 	});
 }
