@@ -137,6 +137,7 @@
 			"lib/js/wn/views/doclistview.js",
 			"lib/js/wn/views/formview.js",
 			"lib/js/wn/views/reportview.js",
+			"lib/js/wn/views/grid_report.js",
 			"lib/js/legacy/widgets/dialog.js",
 			"lib/js/legacy/widgets/layout.js",
 			"lib/js/legacy/widgets/tabbedpage.js",
