@@ -273,6 +273,8 @@ def formatdate(string_date):
 	global user_format
 	if not user_format:
 		user_format = webnotes.conn.get_value('Control Panel', None, 'date_format')
+	if not isinstance(string_date, basestring):
+		string_date = str(string_date)
 	d = string_date.split('-');
 	out = user_format
 	return out.replace('dd', ('%.2i' % cint(d[2]))).replace('mm', ('%.2i' % cint(d[1]))).replace('yyyy', d[0])
@@ -395,40 +397,38 @@ def parse_val(v):
 	
 # ==============================================================================
 
-def fmt_money(amount, fmt = '%.2f'):
+def fmt_money(amount, decimal_fmt="%02.d"):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	curr = webnotes.conn.get_value('Control Panel', None, 'currency_format') or 'Millions'
+	currency_format = webnotes.conn.get_value('Control Panel', None, 'currency_format') \
+		or 'Millions'
+	comma_frequency = (currency_format == "Millions") and 3 or 2
+	minus = flt(amount) < 0 and "-" or ""
 
-	val = 2
-	if curr == 'Millions': val = 3
-
-	if cstr(amount).find('.') == -1:	temp = '00'
-	else: temp = cstr(amount).split('.')[1]
-
-	l = []
-	minus = ''
-	if flt(amount) < 0: minus = '-'
-
-	amount = ''.join(cstr(amount).split(','))
-	amount = cstr(abs(flt(amount))).split('.')[0]
+	# get whole and fraction parts
+	str_amount = cstr(amount)
+	if "." in str_amount:
+		amount_whole = abs(cint(str_amount.split(".")[0]))
+		amount_fraction = cint(str_amount.split(".")[1])
+	else:
+		amount_whole = abs(cint(str_amount))
+		amount_fraction = 0
 	
-	# main logic	
-	if len(cstr(amount)) > 3:
-		nn = amount[len(amount)-3:]
-		l.append(nn)
-		amount = amount[0:len(amount)-3]
-		while len(cstr(amount)) > val:
-			nn = amount[len(amount)-val:]
-			l.insert(0,nn)
-			amount = amount[0:len(amount)-val]
-	
-	if len(amount) > 0:	l.insert(0,amount)
+	# reverse the whole part, so that it is easy to append commas
+	whole_reversed = cstr(amount_whole)[::-1]
+	whole_with_comma = whole_reversed[:3]
+	if len(whole_reversed) > 3:
+		remaining_str = whole_reversed[3:]
+		for i in xrange(len(remaining_str)):
+			# insert a comma after the specified frequency of digits
+			if i%comma_frequency==0:
+				whole_with_comma += ","
+			whole_with_comma += remaining_str[i]
+	# reverse the whole part again to get the original number back!
+	whole_with_comma = whole_with_comma[::-1]
 
-	amount = ','.join(l)+'.'+temp
-	amount = minus + amount
-	return amount
+	return ("%s%s."+decimal_fmt) % (minus, whole_with_comma, amount_fraction)
 
 #
 # convet currency to words

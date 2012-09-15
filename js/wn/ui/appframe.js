@@ -20,7 +20,7 @@ wn.ui.AppFrame = Class.extend({
 		this.add_breadcrumb(txt);
 	},
 	add_button: function(label, click, icon) {
-		this.add_toolbar();
+		this.make_toolbar();
 		args = { label: label, icon:'' };
 		if(icon) {
 			args.icon = '<i class="icon '+icon+'"></i>';
@@ -58,7 +58,7 @@ wn.ui.AppFrame = Class.extend({
 	clear_breadcrumbs: function() {
 		this.$breadcrumbs && this.$breadcrumbs.empty();
 	},
-	add_toolbar: function() {
+	make_toolbar: function() {
 		if(!this.toolbar)
 			this.$w.append('<div class="appframe-toolbar"></div>');
 		this.toolbar = this.$w.find('.appframe-toolbar');
@@ -67,11 +67,11 @@ wn.ui.AppFrame = Class.extend({
 		return $("<span style='margin: 2px 4px;'>"+label+" </span>").appendTo(this.toolbar);
 	},
 	add_select: function(label, options) {
-		this.add_toolbar();
+		this.make_toolbar();
 		return $("<select style='width: 160px; margin: 2px 4px;'>").add_options(options).appendTo(this.toolbar);
 	},
 	add_date: function(label, date) {
-		this.add_toolbar();
+		this.make_toolbar();
 		return $("<input style='width: 80px; margin: 2px 4px;'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
