@@ -20,7 +20,7 @@ wn.ui.AppFrame = Class.extend({
 		this.add_breadcrumb(txt);
 	},
 	add_button: function(label, click, icon) {
-		this.add_toolbar();
+		this.make_toolbar();
 		args = { label: label, icon:'' };
 		if(icon) {
 			args.icon = '<i class="icon '+icon+'"></i>';
@@ -58,7 +58,7 @@ wn.ui.AppFrame = Class.extend({
 	clear_breadcrumbs: function() {
 		this.$breadcrumbs && this.$breadcrumbs.empty();
 	},
-	add_toolbar: function() {
+	make_toolbar: function() {
 		if(!this.toolbar)
 			this.$w.append('<div class="appframe-toolbar"></div>');
 		this.toolbar = this.$w.find('.appframe-toolbar');
