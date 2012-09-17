@@ -208,17 +208,20 @@ wn.views.GridReport = Class.extend({
 		this.prepare_data();
 		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, this.options);
+		var me = this;
 
 		// bind events
 		this.dataView.onRowsChanged.subscribe(function (e, args) {
-			grid.invalidateRows(args.rows);
-			grid.render();
+			me.grid.invalidateRows(args.rows);
+			me.grid.render();
 		});
 		
 		this.dataView.onRowCountChanged.subscribe(function (e, args) {
-			grid.updateRowCount();
-			grid.render();
+			me.grid.updateRowCount();
+			me.grid.render();
 		});
+		
+		this.add_grid_events && this.add_grid_events();
 	},
 	prepare_data_view: function(items) {
 		// initialize the model
@@ -278,6 +281,8 @@ wn.views.GridReport = Class.extend({
 		enableColumnReorder: false
 	},
 	dataview_filter: function(item) {
+		// generic filter: apply filter functiions
+		// from all filter_inputs
 		var filters = wn.cur_grid_report.filter_inputs;
 		for (i in filters) {
 			var filter = filters[i].get(0);
@@ -285,6 +290,12 @@ wn.views.GridReport = Class.extend({
 				return false;
 			}
 		}
+		
+		// hand over to additional filters (if applicable)
+		if(wn.cur_grid_report.custom_dataview_filter) {
+			return wn.cur_grid_report.custom_dataview_filter(item);
+		}
+		
 		return true;
 	},
 	date_formatter: function(row, cell, value, columnDef, dataContext) {

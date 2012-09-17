@@ -20,7 +20,7 @@ wn.ui.AppFrame = Class.extend({
 		this.add_breadcrumb(txt);
 	},
 	add_button: function(label, click, icon) {
-		this.make_toolbar();
+		this.add_toolbar();
 		args = { label: label, icon:'' };
 		if(icon) {
 			args.icon = '<i class="icon '+icon+'"></i>';
@@ -32,7 +32,7 @@ wn.ui.AppFrame = Class.extend({
 		return this.buttons[label];
 	},
 	add_help_button: function(txt) {
-		this.make_toolbar();
+		this.add_toolbar();
 		$('<button class="btn btn-small" style="float:right;" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
@@ -58,7 +58,7 @@ wn.ui.AppFrame = Class.extend({
 	clear_breadcrumbs: function() {
 		this.$breadcrumbs && this.$breadcrumbs.empty();
 	},
-	make_toolbar: function() {
+	add_toolbar: function() {
 		if(!this.toolbar)
 			this.$w.append('<div class="appframe-toolbar"></div>');
 		this.toolbar = this.$w.find('.appframe-toolbar');

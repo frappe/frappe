@@ -34,7 +34,7 @@ def get_data():
 		conditions = order_by = ""
 		if args.get("conditions"):
 			conditions = " where " + " and ".join(args["conditions"])
-		if args.get("order by"):
+		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
 		
 		out[d] = {}
