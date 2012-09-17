@@ -35,7 +35,8 @@
 		"public/js/report-legacy.js": [
 			"lib/js/legacy/widgets/report_builder/report_builder.js",
 			"lib/js/legacy/widgets/report_builder/datatable.js",
-			"lib/js/legacy/widgets/report_builder/calculator.js"
+			"lib/js/legacy/widgets/report_builder/calculator.js",
+			"lib/js/legacy/widgets/print_query.js"
 		]
 	},
 
@@ -185,9 +186,5 @@
 		"public/js/listing.js": ["lib/js/legacy/widgets/listing.js"]
 	},
 
-	{
-		"public/js/print_query.js": ["lib/js/legacy/widgets/print_query.js"]
-	}
-	
 ]
 

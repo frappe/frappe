@@ -76,29 +76,17 @@ class DocType:
 	
 			# write files
 			path = os.path.join(get_module_path(self.doc.module), 'page', scrub(self.doc.name), scrub(self.doc.name))
-			
-			# html
-			if not os.path.exists(path + '.html'):
-				with open(path + '.html', 'w') as f:
-					f.write("""<div class="layout-wrapper">
-	<a class="close" onclick="window.history.back();">&times;</a>
-	<h1>%s</h1>
-</div>""" % self.doc.title)
-					
+								
 			# js
 			if not os.path.exists(path + '.js'):
 				with open(path + '.js', 'w') as f:
-					f.write("""wn.pages['%s'].onload = function(wrapper) { }""" % self.doc.name)
-			
-			# py
-			if not os.path.exists(path + '.py'):
-				with open(path + '.py', 'w') as f:
-					f.write("""import webnotes""")
-
-			# css
-			if not os.path.exists(path + '.css'):
-				with open(path + '.css', 'w') as f:
-					pass
+					f.write("""wn.pages['%s'].onload = function(wrapper) { 
+	wn.ui.make_app_page({
+		parent: wrapper,
+		title: '%s',
+		single_column: true
+	});					
+}""" % (self.doc.name, self.doc.title))
 
 	def get_from_files(self):
 		"""

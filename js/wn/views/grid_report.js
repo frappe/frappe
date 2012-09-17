@@ -61,6 +61,7 @@ wn.provide("wn.views");
 wn.views.GridReport = Class.extend({
 	init: function(opts) {
 		this.filter_inputs = {};
+		this.preset_checks = [];
 		$.extend(this, opts);
 		
 		this.wrapper = $('<div>').appendTo(this.parent);
@@ -73,24 +74,39 @@ wn.views.GridReport = Class.extend({
 		
 		var me = this;
 		this.get_data();
-		wn.cur_grid_report = this;
 	},
 	get_data: function() {
 		var me = this;
 		wn.report_dump.with_data(this.doctypes, function() {
 			// setup filters
-			$.each(me.filter_inputs, function(i, v) {
-				var opts = v.get(0).opts;
-				if (opts.fieldtype == "Select" && inList(me.doctypes, opts.options)) {
-					$(v).add_options($.map(wn.report_dump.data[opts.options], function(d) {
-						return d.name;
-					}));
-				}
-			});
-			
-			me.setup();
+			me.setup_filters();
+			me.init_filter_values();
 			me.refresh();
 		}, this.wrapper.find(".progress .bar"));
+	},
+	setup_filters: function() {
+		var me = this;
+		$.each(me.filter_inputs, function(i, v) {
+			var opts = v.get(0).opts;
+			if (opts.fieldtype == "Select" && inList(me.doctypes, opts.link)) {
+				$(v).add_options($.map(wn.report_dump.data[opts.link], function(d) {
+					return d.name;
+				}));
+			}
+		});	
+
+		// refresh
+		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() { 
+			me.set_route(); 
+		});
+		
+		// reset filters
+		this.filter_inputs.reset_filters && this.filter_inputs.reset_filters.click(function() { 
+			me.init_filter_values(); 
+			me.set_route(); 
+		});
+
+			
 	},
 	make_waiting: function() {
 		this.waiting = $('<div class="well" style="width: 63%; margin: 30px auto;">\
@@ -100,6 +116,12 @@ wn.views.GridReport = Class.extend({
 			.appendTo(this.wrapper);
 	},
 	make_grid_wrapper: function() {
+		
+		// plot wrapper
+		$('<div class="plot" style="margin-bottom: 15px; display: none; \
+			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
+		
+		// print / export
 		$('<div style="text-align: right;"> \
 			<a href="#" class="grid-report-print"><i class="icon icon-print"></i> Print</a> \
 			<span style="color: #aaa; margin: 0px 10px;"> | </span> \
@@ -108,6 +130,7 @@ wn.views.GridReport = Class.extend({
 		
 		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
 		
+		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
 			background-color: #eee; margin-top: 15px;'>")
 			.appendTo(this.wrapper);
@@ -120,13 +143,14 @@ wn.views.GridReport = Class.extend({
 		// because "wn.container.page" will only be set
 		// once "load" event is over.
 		
-		$(wn.container.page).bind('show', function() {
+		$(this.page).bind('show', function() {
 			// reapply filters on show
 			wn.cur_grid_report = me;
 			me.apply_filters_from_route();
 			me.refresh();
 		});
 
+		wn.cur_grid_report = this;
 		this.apply_filters_from_route();
 	},
 	load_filters: function(callback) {
@@ -139,7 +163,7 @@ wn.views.GridReport = Class.extend({
 			v.fieldname = v.fieldname || v.label.replace(/ /g, '_').toLowerCase();
 			var input = null;
 			if(v.fieldtype=='Select') {
-				input = me.appframe.add_select(v.label, [v.default_value]);
+				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
 			} else if(v.fieldtype=='Button') {
 				input = me.appframe.add_button(v.label);
 				if(v.icon) {
@@ -177,7 +201,17 @@ wn.views.GridReport = Class.extend({
 		wn.dom.set_style('.slick-cell { font-size: 12px; }');		
 	},
 	refresh: function() {
+		this.init_refresh && this.init_refresh();
+		this.waiting.toggle(false);
+		if(!this.grid_wrapper) 
+			this.make_grid_wrapper();		
+		this.setup_columns();
+		this.apply_link_formatters();
+		this.prepare_data();
+		// plot might need prepared data
+		this.init_plot && this.init_plot();
 		this.render();
+		this.render_plot();
 	},
 	apply_filters_from_route: function() {
 		var hash = window.location.hash;
@@ -185,7 +219,11 @@ wn.views.GridReport = Class.extend({
 		if(hash.indexOf('/') != -1) {
 			$.each(hash.split('/').splice(1).join('/').split('&'), function(i, f) {
 				var f = f.split("=");
-				me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
+				if(me.filter_inputs[f[0]]) {
+					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));					
+				} else {
+					console.log("Invalid filter: " +f[0]);
+				}
 			});
 		}
 	},
@@ -200,13 +238,6 @@ wn.views.GridReport = Class.extend({
 	},
 	render: function() {
 		// new slick grid
-		this.waiting.toggle(false);
-		
-		if(!this.grid_wrapper) this.make_grid_wrapper();
-		
-		this.apply_link_formatters();
-		this.prepare_data();
-		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, this.options);
 		var me = this;
 
@@ -233,22 +264,7 @@ wn.views.GridReport = Class.extend({
 	},
 	export: function() {
 		var me = this;
-		var res = [$.map(this.columns, function(v) { return v.name; })];
-		var col_map = $.map(this.columns, function(v) { return v.field; });
-		
-		for (var i=0, len=this.dataView.getLength(); i<len; i++) {
-			var d = this.dataView.getItem(i);
-			var row = [];
-			$.each(col_map, function(i, col) {
-				var val = d[col];
-				if(val===null || val===undefined) {
-					val = ""
-				}
-				row.push(val);
-			})
-			
-			res.push(row);
-		}
+		var res = [$.map(this.columns, function(v) { return v.name; })].concat(this.get_view_data());
 		
 		wn.require("js/lib/downloadify/downloadify.min.js");
 		wn.require("js/lib/downloadify/swfobject.js");
@@ -276,6 +292,30 @@ wn.views.GridReport = Class.extend({
 		
 		return false;
 	},
+	render_plot: function() {
+		if(!this.get_plot_data) return;
+		wn.require('js/lib/flot/jquery.flot.js');
+		$.plot(this.wrapper.find('.plot').toggle(true), this.get_plot_data());
+	},
+	get_view_data: function() {
+		var res = [];
+		var col_map = $.map(this.columns, function(v) { return v.field; });
+
+		for (var i=0, len=this.dataView.getLength(); i<len; i++) {
+			var d = this.dataView.getItem(i);
+			var row = [];
+			$.each(col_map, function(i, col) {
+				var val = d[col];
+				if(val===null || val===undefined) {
+					val = ""
+				}
+				row.push(val);
+			})
+			
+			res.push(row);
+		}
+		return res;
+	},
 	options: {
 		editable: false,
 		enableColumnReorder: false
@@ -286,7 +326,7 @@ wn.views.GridReport = Class.extend({
 		var filters = wn.cur_grid_report.filter_inputs;
 		for (i in filters) {
 			var filter = filters[i].get(0);
-			if(filter.opts.filter && !filter.opts.filter($(filter).val(), item, filter.opts)) {
+			if(filter.opts.filter && !filter.opts.filter($(filter).val(), item, filter.opts, wn.cur_grid_report)) {
 				return false;
 			}
 		}

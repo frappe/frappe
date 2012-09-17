@@ -494,7 +494,6 @@ _r.DataTable.prototype.do_print = function() {
 		//finder: this.finder ? this.finder : null
 	};
 	
-	wn.require('js/print_query.js');	
 	_p.print_query = new _p.PrintQuery();
 	_p.print_query.show_dialog(args);
 }

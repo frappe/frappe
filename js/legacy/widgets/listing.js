@@ -148,11 +148,6 @@ Listing.prototype.make_toolbar = function() {
 		make_btn('Export','ui-icon-circle-arrow-e',function() {me.do_export();});
 	}
 
-	// print
-	if(!this.opts.hide_print) {
-		make_btn('Print','ui-icon-print',function() {me.do_print();});
-	}
-	
 	// calc
 	if(this.opts.show_calc) {
 		make_btn('Calc','ui-icon-calculator',function() {me.do_calc();});
@@ -165,32 +160,6 @@ Listing.prototype.make_toolbar = function() {
 	if(!keys(this.buttons).length)
 		$dh(this.btn_area);
 }
-
-// -------------------------------------------------------
-
-Listing.prototype.do_print = function() {
-	this.build_query();
-	if(!this.query) { alert('No Query!'); return; }
-	
-	args = {
-		query:this.query,
-		title:this.head_text,
-		colnames:this.colnames,
-		colwidths:this.colwidths,
-		coltypes:this.coltypes,
-		has_index:(this.no_index ? 0 : 1),
-		has_headings: 1,
-		check_limit:1,
-		is_simple:1
-	}
-	
-	wn.require('js/print_query.js');	
-	_p.print_query = new _p.PrintQuery();
-	_p.print_query.show_dialog(args);
-}
-
-// -------------------------------------------------------
-
 
 Listing.prototype.do_calc = function() {
 	show_calc(this.result_tab, this.colnames, this.coltypes, 0)

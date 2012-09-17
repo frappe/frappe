@@ -71,7 +71,10 @@ wn.Application = Class.extend({
 			LocalDB.sync(wn.boot.docs);
 			wn.control_panel = wn.boot.control_panel;
 
-			this.set_globals();					
+			this.set_globals();
+			if(wn.boot.developer_mode) {
+				(console.warn || console.log)("LocalStorage is OFF for developer mode. Please build before going live.");
+			}			
 		} else {
 			this.set_as_guest();
 		}

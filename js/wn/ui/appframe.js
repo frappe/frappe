@@ -68,7 +68,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	add_select: function(label, options) {
 		this.add_toolbar();
-		return $("<select style='width: 160px;'>").add_options(options).appendTo(this.toolbar);
+		return $("<select style='width: 100px;'>").add_options(options).appendTo(this.toolbar);
 	},
 	add_data: function(label) {
 		this.add_toolbar();
