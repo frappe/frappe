@@ -97,12 +97,13 @@ def remove(args=None):
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', notify=0):
 	"""
 		Notify assignee that there is a change in assignment
-	"""
+	"""	
 	if not (assigned_by and owner and doc_type and doc_name): return
 
+	# self assignment / closing - no message
 	if assigned_by==owner:
 		return
-	
+
 	from webnotes.boot import get_fullnames
 	user_info = get_fullnames()
 
