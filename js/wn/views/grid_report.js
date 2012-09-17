@@ -152,10 +152,18 @@ wn.views.GridReport = Class.extend({
 			} else if(v.fieldtype=='Data') {
 				input = me.appframe.add_data(v.label);
 			}
-			if(v.cssClass) {
-				input && input.addClass(v.cssClass);
+
+			if(input) {
+				input && (input.get(0).opts = v);				
+				if(v.cssClass) {
+					input.addClass(v.cssClass);
+				}
+				input.keypress(function(e) {
+					if(e.which==13) {
+						me.refresh();
+					}
+				})
 			}
-			input && (input.get(0).opts = v);
 			me.filter_inputs[v.fieldname] = input;
 		});
 	},
@@ -227,9 +235,14 @@ wn.views.GridReport = Class.extend({
 		
 		for (var i=0, len=this.dataView.getLength(); i<len; i++) {
 			var d = this.dataView.getItem(i);
-			var row = $.map(col_map, function(col) {
-				return d[col];
-			});
+			var row = [];
+			$.each(col_map, function(i, col) {
+				var val = d[col];
+				if(val===null || val===undefined) {
+					val = ""
+				}
+				row.push(val);
+			})
 			
 			res.push(row);
 		}
@@ -278,10 +291,17 @@ wn.views.GridReport = Class.extend({
 		return dateutil.str_to_user(value);
 	},
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
-		return "<div style='text-align: right;'>" + fmt_money(value) + "</div>";
+		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
+			_style: dataContext._style || "",
+			value: fmt_money(value)
+		});
 	},
 	text_formatter: function(row, cell, value, columnDef, dataContext) {
-		return "<span title='" + value +"'>" + value + "</div>";
+		return repl('<span style="%(_style)s" title="%(esc_value)s">%(value)s</span>', {
+			_style: dataContext._style || "",
+			esc_value: cstr(value).replace(/"/g, '\"'),
+			value: cstr(value)
+		});
 	},
 	apply_link_formatters: function() {
 		var me = this;
@@ -291,6 +311,14 @@ wn.views.GridReport = Class.extend({
 					// added link and open button to links
 					// link_formatter must have
 					// filter_input, open_btn (true / false), doctype (will be eval'd)
+					if(!value) return "";
+										
+					if(dataContext._show) {
+						return repl('<span style="%(_style)s">%(value)s</span>', {
+							_style: dataContext._style || "",
+							value: value
+						});
+					}
 					
 					// make link to add a filter
 					var link_formatter = wn.cur_grid_report.columns[cell].link_formatter;	
