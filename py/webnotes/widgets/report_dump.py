@@ -20,12 +20,14 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+from __future__ import unicode_literals
 import webnotes
 import json
 
 @webnotes.whitelist()
 def get_data():
 	from startup.report_data_map import data_map
+	from webnotes.utils import cstr
 	
 	doctypes = json.loads(webnotes.form_dict.get("doctypes"))
 	out = {}
@@ -41,5 +43,31 @@ def get_data():
 		out[d]["data"] = webnotes.conn.sql("""select %s from `tab%s` %s %s""" % (",".join(args["columns"]),
 			d, conditions, order_by), as_list=1)
 		out[d]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
+		
+		if args.get("links"):
+			out[d]["links"] = args["links"]
+	
+	for d in out:
+		if out[d].get("links"):
+			for link_key in out[d]["links"]:
+				link = out[d]["links"][link_key]
+				if link[0] in out:
+					
+					# make a map of link ids
+					# to index
+					link_map = {}
+					doctype_data = out[link[0]]
+					col_idx = doctype_data["columns"].index(link[1])
+					for row_idx in xrange(len(doctype_data["data"])):
+						row = doctype_data["data"][row_idx]
+						link_map[row[col_idx]] = row_idx
+						
+					for row in out[d]["data"]:
+						col_idx = out[d]["columns"].index(link_key)
+						# replace by id
+						row[col_idx] = link_map[row[col_idx]]
+						
+	#for d in out:
+	#	out[d]["data"] = "~".join(["|".join([cstr(e) for e in p]) for p in out[d]["data"]])
 	
 	return out

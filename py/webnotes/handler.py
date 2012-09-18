@@ -296,7 +296,7 @@ def print_json():
 	print webnotes.cookies
 
 	import json
-	print_zip(json.dumps(webnotes.response, default=json_handler))
+	print_zip(json.dumps(webnotes.response, default=json_handler, separators=(',',':')))
 		
 def print_csv():
 	eprint("Content-Type: text/csv; charset: utf-8")
