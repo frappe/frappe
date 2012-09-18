@@ -449,7 +449,8 @@ wn.views.ListView = Class.extend({
 		data.fullname = wn.user_info(data.owner).fullname;
 		data.avatar = wn.user_info(data.owner).image;
 		
-		this.prepare_when(data, data.modified);
+		if(data.modified)
+			this.prepare_when(data, data.modified);
 		
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
