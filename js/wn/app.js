@@ -73,7 +73,7 @@ wn.Application = Class.extend({
 
 			this.set_globals();
 			if(wn.boot.developer_mode) {
-				(console.warn || console.log)("LocalStorage is OFF for developer mode. Please build before going live.");
+				console.log("LocalStorage is OFF for developer mode. Please build before going live.");
 			}			
 		} else {
 			this.set_as_guest();
