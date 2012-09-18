@@ -98,7 +98,10 @@ def get_template():
 		for d in data:
 			row = ['']
 			for c in columns:
-				row.append(d.get(c, '').encode('utf-8'))
+				col = d.get(c, '')
+				if isinstance(col, basestring):
+					col = col.encode('utf-8')
+				row.append(col)
 			w.writerow(row)
 
 	# write out response as a type csv
