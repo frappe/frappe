@@ -62,10 +62,10 @@ wn.ui.Listing = Class.extend({
 	},
 	prepare_opts: function() {
 		if(this.opts.new_doctype) {
-			if(wn.boot.profile.can_read.indexOf(this.opts.new_doctype)==-1) {
+			if(wn.boot.profile.can_create.indexOf(this.opts.new_doctype)==-1) {
 				this.opts.new_doctype = null;
 			} else {
-				this.opts.new_doctype = get_doctype_label(this.opts.new_doctype);				
+				this.opts.new_doctype = get_doctype_label(this.opts.new_doctype);
 			}
 		}
 		if(!this.opts.no_result_message) {
