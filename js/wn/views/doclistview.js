@@ -474,7 +474,7 @@ wn.views.ListView = Class.extend({
 	prepare_when: function(data, date_str) {
 		if (!date_str) date_str = data.modified;
 		// when
-		data.when = dateutil.str_to_user(date_str).split(' ')[0];
+		data.when = (dateutil.str_to_user(date_str)).split(' ')[0];
 		var diff = dateutil.get_diff(dateutil.get_today(), date_str.split(' ')[0]);
 		if(diff==0) {
 			data.when = dateutil.comment_when(date_str);
