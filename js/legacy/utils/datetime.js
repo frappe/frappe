@@ -162,25 +162,32 @@ wn.datetime = {
 	user_to_str: function(d) {
 		var user_fmt = this.get_user_fmt();
 		
+		var time_str = '';
+		if (d.search(/ /)!=-1) {
+			time_str = " " + d.split(" ")[1];
+			d = d.split(" ")[0];
+		}
+		
 		if(user_fmt=='dd-mm-yyyy') {
 			var d = d.split('-');
-			return  d[2]+'-'+d[1]+'-'+d[0];
+			var val = d[2]+'-'+d[1]+'-'+d[0];
 		}
 		else if(user_fmt=='dd/mm/yyyy') {
 			var d = d.split('/');
-			return  d[2]+'-'+d[1]+'-'+d[0];
+			var val = d[2]+'-'+d[1]+'-'+d[0];
 		}
 		else if(user_fmt=='yyyy-mm-dd') {
-			return d;
+			var val = d;
 		}
 		else if(user_fmt=='mm/dd/yyyy') {
 			var d = d.split('/');
-			return  d[2]+'-'+d[0]+'-'+d[1];
+			var val = d[2]+'-'+d[0]+'-'+d[1];
 		}
 		else if(user_fmt=='mm-dd-yyyy') {
 			var d = d.split('-');
-			return  d[2]+'-'+d[0]+'-'+d[1];
+			var val = d[2]+'-'+d[0]+'-'+d[1];
 		}
+		return val + time_str;
 	},
 	
 	user_to_obj: function(d) {

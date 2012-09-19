@@ -25,7 +25,7 @@ wn.views.Container = Class.extend({
 	change_to: function(label) {
 		if(this.page && this.page.label == label) {
 			// don't trigger double events
-			//$(this.page).trigger('show');
+			$(this.page).trigger('show');
 			return;
 		}
 		
@@ -50,7 +50,8 @@ wn.views.Container = Class.extend({
 		// show new
 		if(!this.page || this.page != page) {
 			this.page = page;
-			$(this.page).fadeIn();			
+			//$(this.page).fadeIn();
+			$(this.page).toggle(true);
 		}
 		this.page._route = window.location.hash;
 		document.title = this.page.label;

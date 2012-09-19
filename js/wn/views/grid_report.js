@@ -171,7 +171,7 @@ wn.views.GridReport = Class.extend({
 				}
 				input.keypress(function(e) {
 					if(e.which==13) {
-						me.refresh();
+						me.set_route();
 					}
 				})
 			}
@@ -213,15 +213,21 @@ wn.views.GridReport = Class.extend({
 		this.waiting.toggle(false);
 		if(!this.grid_wrapper) 
 			this.make();
-		this.setup_columns();
-		this.apply_link_formatters();
+		this.show_zero = $('.show-zero input:checked').length;
 		this.load_filter_values();
+		this.setup_columns();
+		this.setup_dataview_columns();
+		this.apply_link_formatters();
 		this.prepare_data();
 		// plot might need prepared data
 		this.render();
 		this.render_plot();
 	},
-
+	setup_dataview_columns: function() {
+		this.dataview_columns = $.map(this.columns, function(col) {
+			return !col.hidden ? col : null;
+		});	
+	},
 	make: function() {
 		
 		// plot wrapper
@@ -255,8 +261,6 @@ wn.views.GridReport = Class.extend({
 		$(this.wrapper).trigger('make');
 		
 	},
-
-	
 	apply_filters_from_route: function() {
 		var hash = window.location.hash;
 		var me = this;
@@ -269,6 +273,8 @@ wn.views.GridReport = Class.extend({
 					console.log("Invalid filter: " +f[0]);
 				}
 			});
+		} else {
+			this.init_filter_values();
 		}
 	},
 	set_route: function() {
@@ -282,9 +288,7 @@ wn.views.GridReport = Class.extend({
 	},
 	render: function() {
 		// new slick grid
-		this.grid = new Slick.Grid("#"+this.id, this.dataView, $.map(this.columns, function(col) {
-			return !col.hidden ? col : null;
-		}), this.options);
+		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.dataview_columns, this.options);
 		var me = this;
 
 		// bind events
@@ -305,7 +309,7 @@ wn.views.GridReport = Class.extend({
 		this.dataView = new Slick.Data.DataView({ inlineFilters: true });
 		this.dataView.beginUpdate();
 		this.dataView.setItems(items);
-		// this.dataView.setFilter(this.dataview_filter);
+		if(this.dataview_filter) this.dataView.setFilter(this.dataview_filter);
 		this.dataView.endUpdate();
 	},
 	export: function() {
@@ -339,9 +343,13 @@ wn.views.GridReport = Class.extend({
 		return false;
 	},
 	render_plot: function() {
-		if(!this.get_plot_data) return;
+		var plot_data = this.get_plot_data ? this.get_plot_data() : null;
+		if(!plot_data) {
+			this.wrapper.find('.plot').toggle(false);
+			return;
+		}
 		wn.require('js/lib/flot/jquery.flot.js');
-		$.plot(this.wrapper.find('.plot').toggle(true), this.get_plot_data(), this.get_plot_options());
+		$.plot(this.wrapper.find('.plot').toggle(true), plot_data, this.get_plot_options());
 		this.setup_plot_hover();
 	},
 	setup_plot_hover: function() {
@@ -430,6 +438,29 @@ wn.views.GridReport = Class.extend({
 		}
 		return true;
 	},
+	apply_zero_filter: function(val, item, opts, me) {
+		// show only non-zero values
+		if(!me.show_zero) {
+			for(var i=0, j=me.columns.length; i<j; i++) {
+				var col = me.columns[i];
+				if(col.formatter==me.currency_formatter) {
+					if(flt(item[col.field]) > 0.001 ||  flt(item[col.field]) < -0.001) {
+						return true;
+					} 
+				}
+			}					
+			return false;
+		} 
+		return true;
+	},
+	show_zero_check: function() {
+		var me = this;
+		this.wrapper.bind('make', function() {
+			me.wrapper.find('.show-zero').toggle(true).find('input').click(function(){
+				me.refresh();
+			});	
+		});
+	},
 	is_default: function(fieldname) {
 		return this[fieldname]==this[fieldname + "_default"];
 	},
@@ -458,7 +489,7 @@ wn.views.GridReport = Class.extend({
 	},
 	apply_link_formatters: function() {
 		var me = this;
-		$.each(this.columns, function(i, col) {
+		$.each(this.dataview_columns, function(i, col) {
 			if(col.link_formatter) {
 				col.formatter = function(row, cell, value, columnDef, dataContext) {
 					// added link and open button to links
@@ -474,7 +505,7 @@ wn.views.GridReport = Class.extend({
 					}
 					
 					// make link to add a filter
-					var link_formatter = wn.cur_grid_report.columns[cell].link_formatter;	
+					var link_formatter = wn.cur_grid_report.dataview_columns[cell].link_formatter;	
 					var html = repl('<a href="#" \
 						onclick="wn.cur_grid_report.filter_inputs.%(col_name)s.val(\'%(value)s\'); \
 							wn.cur_grid_report.set_route(); return false;">\
