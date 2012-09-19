@@ -167,7 +167,9 @@ Field.prototype.get_status = function() {
 	
 	if(cur_frm.editable && a_o_s && cint(cur_frm.doc.docstatus)>0 && !this.df.hidden) {
 		tmp_perm = get_perm(cur_frm.doctype, cur_frm.docname, 1);
-		if(tmp_perm[this.df.permlevel] && tmp_perm[this.df.permlevel][WRITE])ret='Write';
+		if(tmp_perm[this.df.permlevel] && tmp_perm[this.df.permlevel][WRITE]) {
+			ret='Write';
+		}
 	}
 
 	return ret;
@@ -582,7 +584,7 @@ LinkField.prototype.make_input = function() {
 		me.setup_buttons();
 
 		me.onrefresh = function() {
-			if(me.can_create && cur_frm.doc.docstatus==0) 
+			if(me.can_create) 
 				$(me.btn2).css('display', 'inline-block');
 			else $dh(me.btn2);
 		}
