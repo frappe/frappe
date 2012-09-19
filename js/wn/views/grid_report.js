@@ -375,11 +375,8 @@ wn.views.GridReport = Class.extend({
 					me.previousPoint = item.dataIndex;
 
 					$("#" + me.tooltip_id).remove();
-					var x = dateutil.obj_to_user(new Date(item.datapoint[0])),
-						y = fmt_money(item.datapoint[1]);
-
-						showTooltip(item.pageX, item.pageY,
-							item.series.label + " on " + x + " = " + y);
+					showTooltip(item.pageX, item.pageY, 
+						me.get_tooltip_text(item.series.label, item.datapoint[0], item.datapoint[1]));
 				}
 			}
 			else {
@@ -388,6 +385,11 @@ wn.views.GridReport = Class.extend({
 			}
 	    });
 		
+	},
+	get_tooltip_text: function(label, x, y) {
+		var date = dateutil.obj_to_user(new Date(x));
+	 	var value = fmt_money(y);
+		return value + " on " + date;
 	},
 	get_view_data: function() {
 		var res = [];
