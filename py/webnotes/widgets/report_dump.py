@@ -46,7 +46,7 @@ def get_data():
 		out[d] = {}
 		start = datetime.datetime.now()
 		out[d]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from `tab%s` %s %s""" % (",".join(args["columns"]),
-			d, conditions, order_by), debug=True)]
+			d, conditions, order_by))]
 		out[d]["time"] = str(datetime.datetime.now() - start)
 		out[d]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
 		
