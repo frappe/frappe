@@ -404,7 +404,7 @@ wn.views.GridReport = Class.extend({
 		editable: false,
 		enableColumnReorder: false
 	},
-	dataview_filter: function(item) {
+	apply_filters: function(item) {
 		// generic filter: apply filter functiions
 		// from all filter_inputs
 		var filters = this.filter_inputs;

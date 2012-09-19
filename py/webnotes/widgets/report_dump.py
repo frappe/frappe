@@ -28,20 +28,26 @@ import json
 def get_data():
 	from startup.report_data_map import data_map
 	from webnotes.utils import cstr
-	
+	import datetime
 	doctypes = json.loads(webnotes.form_dict.get("doctypes"))
 	out = {}
+	
+	start = datetime.datetime.now()
 	for d in doctypes:
 		args = data_map[d]
 		conditions = order_by = ""
+		if args.get("force_index"):
+			conditions = " force index (%s) " % args["force_index"]
 		if args.get("conditions"):
-			conditions = " where " + " and ".join(args["conditions"])
+			conditions += " where " + " and ".join(args["conditions"])
 		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
 		
 		out[d] = {}
-		out[d]["data"] = webnotes.conn.sql("""select %s from `tab%s` %s %s""" % (",".join(args["columns"]),
-			d, conditions, order_by), as_list=1)
+		start = datetime.datetime.now()
+		out[d]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from `tab%s` %s %s""" % (",".join(args["columns"]),
+			d, conditions, order_by), debug=True)]
+		out[d]["time"] = str(datetime.datetime.now() - start)
 		out[d]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
 		
 		if args.get("links"):
@@ -66,8 +72,5 @@ def get_data():
 						col_idx = out[d]["columns"].index(link_key)
 						# replace by id
 						row[col_idx] = link_map[row[col_idx]]
-						
-	#for d in out:
-	#	out[d]["data"] = "~".join(["|".join([cstr(e) for e in p]) for p in out[d]["data"]])
-	
+		
 	return out

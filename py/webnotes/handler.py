@@ -363,7 +363,8 @@ def print_zip(response):
 		response = compressBuf(response)
 		eprint("Content-Encoding: gzip")
 		eprint("Original-Length: %d" % orig_len)
-		eprint("Content-Length: %d" % len(response))
+	
+	eprint("Content-Length: %d" % len(response))
 		
 	eprint("")
 	print response
@@ -374,6 +375,8 @@ def json_handler(obj):
 	
 	# serialize date
 	if isinstance(obj, datetime.date):
+		return unicode(obj)
+	if isinstance(obj, datetime.timedelta):
 		return unicode(obj)
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \

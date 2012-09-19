@@ -89,6 +89,8 @@ wn.request.cleanup = function(opts, r) {
 	if(r.docs) {
 		LocalDB.sync(r.docs);
 	}
+	
+	wn.last_response = r;
 }
 
 wn.request.call = function(opts) {
