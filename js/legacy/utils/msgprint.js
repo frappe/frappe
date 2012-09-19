@@ -27,7 +27,9 @@ function msgprint(msg, title) {
 	
 	if(msg instanceof Array) {
 		$.each(msg, function(i,v) {
-			if(v)msgprint(v);
+			if(v) {
+				msgprint(v);
+			}
 		})
 		return;
 	}
@@ -55,6 +57,10 @@ function msgprint(msg, title) {
 		msg = replace_newlines(msg);
 
 	msg_dialog.set_title(title || 'Message')
+
+	// append a <hr> if another msg already exists
+	if(msg_dialog.msg_area.html()) msg_dialog.msg_area.append("<hr>");
+
 	msg_dialog.msg_area.append(msg);
 	msg_dialog.show();
 	
