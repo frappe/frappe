@@ -268,7 +268,7 @@ wn.views.GridReport = Class.extend({
 			$.each(hash.split('/').splice(1).join('/').split('&'), function(i, f) {
 				var f = f.split("=");
 				if(me.filter_inputs[f[0]]) {
-					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));					
+					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
 				} else {
 					console.log("Invalid filter: " +f[0]);
 				}
@@ -352,10 +352,12 @@ wn.views.GridReport = Class.extend({
 		
 		var plot_options = this.get_plot_options();
 		var plot_area = this.wrapper.find('.plot');
+		// if zoom, require navigate
+		if(plot_options.zoom) wn.require('js/lib/flot/jquery.flot.navigate.js');
 		
-		$.plot(plot_area.toggle(true), plot_data, plot_options);
+		this.plot = $.plot(plot_area.toggle(true), plot_data, plot_options);
+		
 		this.setup_plot_hover();
-		
 		// setup zoom if required
 		if(plot_options.zoom) this.setup_plot_zoom(plot_area);
 	},
@@ -394,48 +396,40 @@ wn.views.GridReport = Class.extend({
 		
 	},
 	setup_plot_zoom: function(plot_area) {
-		wn.require('js/lib/flot/jquery.flot.navigate.js');
+		var me = this;
 		
-		// show pan/zoom messages to illustrate events 
-    	plot_area.bind('plotpan', function (event, plot) {
-	        var axes = plot.getAxes();
-	        $(".message").html("Panning to x: "  + axes.xaxis.min.toFixed(2)
-	                           + " &ndash; " + axes.xaxis.max.toFixed(2)
-	                           + " and y: " + axes.yaxis.min.toFixed(2)
-	                           + " &ndash; " + axes.yaxis.max.toFixed(2));
-	    });
-
-	    plot_area.bind('plotzoom', function (event, plot) {
-	        var axes = plot.getAxes();
-	        $(".message").html("Zooming to x: "  + axes.xaxis.min.toFixed(2)
-	                           + " &ndash; " + axes.xaxis.max.toFixed(2)
-	                           + " and y: " + axes.yaxis.min.toFixed(2)
-	                           + " &ndash; " + axes.yaxis.max.toFixed(2));
-	    });
-
-	    // add zoom out button 
-	    $('<div class="button" style="right:20px;top:20px">zoom out</div>').appendTo(plot_area)
+		// add zoom out button 
+		$('<span class="link_type">zoom in</span>')
+		.appendTo(plot_area)
 			.click(function (e) {
 		        e.preventDefault();
-		        plot.zoomOut();
+		        me.plot.zoom();
 		    });
 
-	    // and add panning buttons
-    
-	    // little helper for taking the repetitive work out of placing
-	    // panning arrows
-	    function addArrow(dir, right, top, offset) {
-	        $('<img class="button" src="arrow-' + dir + '.gif" style="right:' + right + 'px;top:' + top + 'px">')
-				.appendTo(plot_area).click(function (e) {
-		            e.preventDefault();
-		            plot.pan(offset);
-		        });
-	    }
+		// add zoom out button 
+		$('<span class="link_type">zoom out</span>')
+		.appendTo(plot_area)
+			.click(function (e) {
+		        e.preventDefault();
+		        me.plot.zoomOut();
+		    });
 
-	    // addArrow('left', 55, 60, { left: -100 });
-	    // addArrow('right', 25, 60, { left: 100 });
-	    // addArrow('up', 40, 45, { top: -100 });
-	    // addArrow('down', 40, 75, { top: 100 });
+		
+		// and add panning buttons
+		// little helper for taking the repetitive work out of placing
+		// panning arrows
+		function addArrow(direction, style, offset) {
+		    var t = $('<span><i class="icon icon-arrow-' + direction + '"></i></span>')
+				.appendTo(plot_area).click(function (e) {
+				e.preventDefault();
+				me.plot.pan(offset);
+			});
+		}
+
+		addArrow('left', "top:100px; left: 600px", { left: -100 });
+		addArrow('right', "top: 100px; left: 650px", { left: 100 });
+		addArrow('up', "top: 50px; left: 625px", { top: -100 });
+		addArrow('down', "top: 150px; left: 625px", { top: 100 });
 	},
 	get_tooltip_text: function(label, x, y) {
 		var date = dateutil.obj_to_user(new Date(x));
