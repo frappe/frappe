@@ -187,15 +187,14 @@ class EMail:
 	
 	def make(self):
 		"""build into msg_root"""
-		from email.header import Header
-		self.msg_root['Subject'] = Header(self.subject, 'utf-8')
-		self.msg_root['From'] = Header(self.sender, 'utf-8')
-		self.msg_root['To'] = Header(', '.join([r.strip() for r in self.recipients]), 'utf-8')
+		self.msg_root['Subject'] = self.subject.encode("utf-8")
+		self.msg_root['From'] = self.sender.encode("utf-8")
+		self.msg_root['To'] = ', '.join([r.strip() for r in self.recipients]).encode("utf-8")
 		if self.reply_to and self.reply_to != self.sender:
-			self.msg_root['Reply-To'] = Header(self.reply_to, 'utf-8')
+			self.msg_root['Reply-To'] = self.reply_to.encode("utf-8")
 		
 		if self.cc:
-			self.msg_root['CC'] = Header(', '.join([r.strip() for r in self.cc]), 'utf-8')
+			self.msg_root['CC'] = ', '.join([r.strip() for r in self.cc]).encode("utf-8")
 	
 	def as_string(self):
 		"""validate, build message and convert to string"""
