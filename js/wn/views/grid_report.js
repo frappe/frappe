@@ -74,6 +74,7 @@ wn.views.GridReport = Class.extend({
 	init: function(opts) {
 		this.filter_inputs = {};
 		this.preset_checks = [];
+		this.tree_grid = {show: false};
 		$.extend(this, opts);
 		
 		this.wrapper = $('<div>').appendTo(this.parent);
@@ -133,17 +134,25 @@ wn.views.GridReport = Class.extend({
 			me.init_filter_values(); 
 			me.set_route(); 
 		});
+	},
+	init_filter_values: function() {
+		var me = this;
+		$.each(this.filter_inputs, function(key, filter) {
+			var opts = filter.get(0).opts;
+			if(sys_defaults[key]) {
+				filter.val(sys_defaults[key]);
+			} else if(opts.fieldtype=='Select') {
+				filter.get(0).selectedIndex = 0;
+			} else if(opts.fieldtype=='Data') {
+				filter.val("");
+			}
+		})
+		if(this.filter_inputs.from_date)
+			this.filter_inputs.from_date.val(dateutil.str_to_user(sys_defaults.year_start_date));
+		if(this.filter_inputs.to_date)
+			this.filter_inputs.to_date.val(dateutil.str_to_user(sys_defaults.year_end_date));
+	},
 
-			
-	},
-	make_waiting: function() {
-		this.waiting = $('<div class="well" style="width: 63%; margin: 30px auto;">\
-			<p style="text-align: center;">Loading Report...</p>\
-			<div class="progress progress-striped active">\
-				<div class="bar" style="width: 10%"></div></div>')
-			.appendTo(this.wrapper);
-			
-	},
 	make_filters: function() {
 		var me = this;
 		$.each(this.filters, function(i, v) {
@@ -178,6 +187,14 @@ wn.views.GridReport = Class.extend({
 			me.filter_inputs[v.fieldname] = input;
 		});
 	},
+	make_waiting: function() {
+		this.waiting = $('<div class="well" style="width: 63%; margin: 30px auto;">\
+			<p style="text-align: center;">Loading Report...</p>\
+			<div class="progress progress-striped active">\
+				<div class="bar" style="width: 10%"></div></div>')
+			.appendTo(this.wrapper);
+			
+	},
 	load_filter_values: function() {
 		var me = this;
 		$.each(this.filter_inputs, function(i, f) {
@@ -191,6 +208,12 @@ wn.views.GridReport = Class.extend({
 				}
 			}
 		});
+		
+		if(this.filter_inputs.from_date && this.filter_inputs.to_date && (this.to_date < this.from_date)) {
+			msgprint("From Date must be before To Date");
+			return;
+		}
+		
 	},
 	make_name_map: function(data, key) {
 		var map = {};
@@ -200,6 +223,16 @@ wn.views.GridReport = Class.extend({
 		})
 		return map;
 	},
+	
+	reset_item_values: function(item) {
+		var me = this;
+		$.each(this.columns, function(i, col) {
+			if (col.formatter==me.currency_formatter) {
+				item[col.id] = 0;
+			}
+		});		
+	},
+	
  	import_slickgrid: function() {
 		wn.require('js/lib/slickgrid/slick.grid.css');
 		wn.require('js/lib/slickgrid/slick-default-theme.css');
@@ -207,7 +240,8 @@ wn.views.GridReport = Class.extend({
 		wn.require('js/lib/slickgrid/slick.core.js');
 		wn.require('js/lib/slickgrid/slick.grid.js');
 		wn.require('js/lib/slickgrid/slick.dataview.js');
-		wn.dom.set_style('.slick-cell { font-size: 12px; }');		
+		wn.dom.set_style('.slick-cell { font-size: 12px; }');
+		if(this.tree_grid.show) wn.require("js/app/tree_grid.css");	
 	},
 	refresh: function() {
 		this.waiting.toggle(false);
@@ -219,7 +253,10 @@ wn.views.GridReport = Class.extend({
 		this.setup_dataview_columns();
 		this.apply_link_formatters();
 		this.prepare_data();
+		this.prepare_data_view();
 		// plot might need prepared data
+		this.wrapper.find(".processing").toggle(true);
+		this.wrapper.find(".processing").delay(2000).fadeOut(300);
 		this.render();
 		this.render_plot();
 	},
@@ -231,11 +268,13 @@ wn.views.GridReport = Class.extend({
 	make: function() {
 		
 		// plot wrapper
-		$('<div class="plot" style="margin-bottom: 15px; display: none; \
+		this.plot_area = $('<div class="plot" style="margin-bottom: 15px; display: none; \
 			height: 300px; width: 100%;"></div>').appendTo(this.wrapper);
 		
 		// print / export
 		$('<div style="text-align: right;"> \
+			<div class="processing" style="background-color: #fec; display: none; float: left; margin: 2px"> \
+				Updated! </div>\
 			<a href="#" class="grid-report-print"><i class="icon icon-print"></i> Print</a> \
 			<span style="color: #aaa; margin: 0px 10px;"> | </span> \
 			<a href="#" class="grid-report-export"><i class="icon icon-download-alt"></i> Export</a> \
@@ -286,6 +325,10 @@ wn.views.GridReport = Class.extend({
 					+ '=' + encodeURIComponent(val);
 		}).join('&'))
 	},
+	options: {
+		editable: false,
+		enableColumnReorder: false
+	},
 	render: function() {
 		// new slick grid
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.dataview_columns, this.options);
@@ -302,14 +345,15 @@ wn.views.GridReport = Class.extend({
 			me.grid.render();
 		});
 		
-		this.add_grid_events && this.add_grid_events();
+		this.tree_grid.show && this.add_tree_grid_events();
 	},
-	prepare_data_view: function(items) {
+	prepare_data_view: function() {
 		// initialize the model
 		this.dataView = new Slick.Data.DataView({ inlineFilters: true });
 		this.dataView.beginUpdate();
-		this.dataView.setItems(items);
+		this.dataView.setItems(this.data);
 		if(this.dataview_filter) this.dataView.setFilter(this.dataview_filter);
+		if(this.tree_grid.show) this.dataView.setFilter(this.tree_dataview_filter);
 		this.dataView.endUpdate();
 	},
 	export: function() {
@@ -342,18 +386,286 @@ wn.views.GridReport = Class.extend({
 		
 		return false;
 	},
+	add_tree_grid_events: function() {
+		var me = this;
+		this.grid.onClick.subscribe(function (e, args) {
+			if ($(e.target).hasClass("toggle")) {
+				var item = me.dataView.getItem(args.row);
+				if (item) {
+					if (!item._collapsed) {
+						item._collapsed = true;
+					} else {
+						item._collapsed = false;
+					}
+
+					me.dataView.updateItem(item.id, item);
+				}
+				e.stopImmediatePropagation();
+			}
+		});
+	},
+	tree_formatter: function (row, cell, value, columnDef, dataContext) {
+		var me = wn.cur_grid_report;
+		value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+		var data = me.data;
+		var spacer = "<span style='display:inline-block;height:1px;width:" + 
+			(15 * dataContext["indent"]) + "px'></span>";
+		var idx = me.dataView.getIdxById(dataContext.id);
+		var link = me.tree_grid.formatter(dataContext);
+		
+		if(columnDef.doctype) {
+			link += me.get_link_open_icon(columnDef.doctype, value);	
+		}
+			
+		if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
+			if (dataContext._collapsed) {
+				return spacer + " <span class='toggle expand'></span>&nbsp;" + link;
+			} else {
+				return spacer + " <span class='toggle collapse'></span>&nbsp;" + link;
+			}
+		} else {
+			return spacer + " <span class='toggle'></span>&nbsp;" + link;
+		}
+	},
+	tree_dataview_filter: function(item) {
+		var me = wn.cur_grid_report;
+		if(!me.apply_filters(item)) return false;
+		
+		var parent = item[me.tree_grid.parent_field];
+		while (parent) {
+			if (me.item_by_name[parent]._collapsed) {
+				return false;
+			}
+			parent = me.parent_map[parent];
+		}
+		return true;
+	},
+	set_indent: function() {
+		var me = this;
+		$.each(this.data, function(i, d) {
+			var indent = 0;
+			var parent = me.parent_map[d.name];
+			if(parent) {
+				while(parent) {
+					indent++;
+					parent = me.parent_map[parent];
+				}				
+			}
+			d.indent = indent;
+		});
+	},
+	apply_filters: function(item) {
+		// generic filter: apply filter functiions
+		// from all filter_inputs
+		var filters = this.filter_inputs;
+		if(item._show) return true;
+		
+		for (i in filters) {
+			if(!this.apply_filter(item, i)) return false;
+		}
+		
+		return true;
+	},
+	apply_filter: function(item, fieldname) {
+		var filter = this.filter_inputs[fieldname].get(0);
+		if(filter.opts.filter) {
+			if(!filter.opts.filter(this[filter.opts.fieldname], item, filter.opts, this)) {
+				return false;
+			}
+		}
+		return true;
+	},
+	apply_zero_filter: function(val, item, opts, me) {
+		// show only non-zero values
+		if(!me.show_zero) {
+			for(var i=0, j=me.columns.length; i<j; i++) {
+				var col = me.columns[i];
+				if(col.formatter==me.currency_formatter && !col.hidden) {
+					if(flt(item[col.field]) > 0.001 ||  flt(item[col.field]) < -0.001) {
+						return true;
+					} 
+				}
+			}
+			return false;
+		} 
+		return true;
+	},
+	show_zero_check: function() {
+		var me = this;
+		this.wrapper.bind('make', function() {
+			me.wrapper.find('.show-zero').toggle(true).find('input').click(function(){
+				me.refresh();
+			});	
+		});
+	},
+	is_default: function(fieldname) {
+		return this[fieldname]==this[fieldname + "_default"];
+	},
+	date_formatter: function(row, cell, value, columnDef, dataContext) {
+		return dateutil.str_to_user(value);
+	},
+	currency_formatter: function(row, cell, value, columnDef, dataContext) {
+		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
+			_style: dataContext._style || "",
+			value: fmt_money(value)
+		});
+	},
+	text_formatter: function(row, cell, value, columnDef, dataContext) {
+		return repl('<span style="%(_style)s" title="%(esc_value)s">%(value)s</span>', {
+			_style: dataContext._style || "",
+			esc_value: cstr(value).replace(/"/g, '\"'),
+			value: cstr(value)
+		});
+	},
+	check_formatter: function(row, cell, value, columnDef, dataContext) {					
+		return repl("<input type='checkbox' data-id='%(id)s' \
+			class='plot-check' %(checked)s>", {
+				"id": dataContext.id,
+				"checked": dataContext.checked ? "checked" : ""
+			})
+	},
+	apply_link_formatters: function() {
+		var me = this;
+		$.each(this.dataview_columns, function(i, col) {
+			if(col.link_formatter) {
+				col.formatter = function(row, cell, value, columnDef, dataContext) {
+					// added link and open button to links
+					// link_formatter must have
+					// filter_input, open_btn (true / false), doctype (will be eval'd)
+					if(!value) return "";
+					
+					var me = wn.cur_grid_report;
+										
+					if(dataContext._show) {
+						return repl('<span style="%(_style)s">%(value)s</span>', {
+							_style: dataContext._style || "",
+							value: value
+						});
+					}
+					
+					// make link to add a filter
+					var link_formatter = me.dataview_columns[cell].link_formatter;	
+					var html = repl('<a href="#" \
+						onclick="wn.cur_grid_report.filter_inputs.%(col_name)s.val(\'%(value)s\'); \
+							wn.cur_grid_report.set_route(); return false;">\
+						%(value)s</a>', {
+							value: value,
+							col_name: link_formatter.filter_input,
+							page_name: wn.container.page.page_name
+						})
+
+					// make icon to open form
+					if(link_formatter.open_btn) {
+						html += me.get_link_open_icon(eval(link_formatter.doctype), value);
+					}
+					return html;
+				}
+			}
+		})
+	},
+	get_link_open_icon: function(doctype, name) {
+		return repl(' <i class="icon icon-share" style="cursor: pointer;"\
+			onclick="wn.set_route(\'Form\', \'%(doctype)s\', \'%(name)s\');">\
+		</i>', {
+			name: name,
+			doctype: doctype
+		});
+	},
+	make_date_range_columns: function() {
+		this.columns = [];
+		
+		var me = this;
+		var range = this.filter_inputs.range.val();
+		this.from_date = dateutil.user_to_str(this.filter_inputs.from_date.val());
+		this.to_date = dateutil.user_to_str(this.filter_inputs.to_date.val());
+		var date_diff = dateutil.get_diff(this.to_date, this.from_date);
+			
+		me.column_map = {};
+		
+		var add_column = function(date) {
+			me.columns.push({
+				id: date,
+				name: dateutil.str_to_user(date),
+				field: date,
+				formatter: me.currency_formatter,
+				width: 100
+			});
+		}
+		
+		var build_columns = function(condition) {
+			// add column for each date range
+			for(var i=0; i < date_diff; i++) {
+				var date = dateutil.add_days(me.from_date, i);
+				if(!condition) condition = function() { return true; }
+				
+				if(condition(date)) add_column(date);
+				me.last_date = date;
+				
+				if(me.columns.length) {
+					me.column_map[date] = me.columns[me.columns.length-1];
+				}
+			}
+		}
+		
+		// make columns for all date ranges
+		if(range=='Daily') {
+			build_columns();
+		} else if(range=='Weekly') {
+			build_columns(function(date) {
+				if(!me.last_date) return true;
+				return !(dateutil.get_diff(date, me.from_date) % 7)
+			});		
+		} else if(range=='Monthly') {
+			build_columns(function(date) {
+				if(!me.last_date) return true;
+				return dateutil.str_to_obj(me.last_date).getMonth() != dateutil.str_to_obj(date).getMonth()
+			});
+		} else if(range=='Quarterly') {
+			build_columns(function(date) {
+				if(!me.last_date) return true;
+				return dateutil.str_to_obj(date).getDate()==1 && in_list([0,3,6,9], dateutil.str_to_obj(date).getMonth())
+			});			
+		} else if(range=='Yearly') {
+			build_columns(function(date) {
+				if(!me.last_date) return true;
+				return $.map(wn.report_dump.data['Fiscal Year'], function(v) { 
+						return date==v.year_start_date ? true : null;
+					}).length;
+			});
+		}
+		
+		// set label as last date of period
+		$.each(this.columns, function(i, col) {
+			col.name = me.columns[i+1]
+				? dateutil.str_to_user(dateutil.add_days(me.columns[i+1].id, -1))
+				: dateutil.str_to_user(me.to_date);				
+		});		
+	}
+});
+
+wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 	render_plot: function() {
 		var plot_data = this.get_plot_data ? this.get_plot_data() : null;
 		if(!plot_data) {
-			this.wrapper.find('.plot').toggle(false);
+			this.plot_area.toggle(false);
 			return;
 		}
 		wn.require('js/lib/flot/jquery.flot.js');
 		
-		this.plot = $.plot(this.wrapper.find('.plot').toggle(true), plot_data,
+		this.plot = $.plot(this.plot_area.toggle(true), plot_data,
 			this.get_plot_options());
 		
 		this.setup_plot_hover();
+	},
+	setup_plot_check: function() {
+		var me = this;
+		me.wrapper.bind('make', function() {
+			me.wrapper.on("click", ".plot-check", function() {
+				var checked = $(this).attr("checked");
+				me.item_by_name[$(this).attr("data-id")].checked = checked ? true : false;
+				me.render_plot();			
+			});	
+		});
 	},
 	setup_plot_hover: function() {
 		var me = this;
@@ -413,125 +725,4 @@ wn.views.GridReport = Class.extend({
 		}
 		return res;
 	},
-	options: {
-		editable: false,
-		enableColumnReorder: false
-	},
-	apply_filters: function(item) {
-		// generic filter: apply filter functiions
-		// from all filter_inputs
-		var filters = this.filter_inputs;
-		if(item._show) return true;
-		
-		for (i in filters) {
-			if(!this.apply_filter(item, i)) return false;
-		}
-		
-		// hand over to additional filters (if applicable)
-		if(this.custom_dataview_filter) {
-			return this.custom_dataview_filter(item);
-		}
-		
-		return true;
-	},
-	apply_filter: function(item, fieldname) {
-		var filter = this.filter_inputs[fieldname].get(0);
-		if(filter.opts.filter) {
-			if(!filter.opts.filter(this[filter.opts.fieldname], item, filter.opts, this)) {
-				return false;
-			}
-		}
-		return true;
-	},
-	apply_zero_filter: function(val, item, opts, me) {
-		// show only non-zero values
-		if(!me.show_zero) {
-			for(var i=0, j=me.columns.length; i<j; i++) {
-				var col = me.columns[i];
-				if(col.formatter==me.currency_formatter) {
-					if(flt(item[col.field]) > 0.001 ||  flt(item[col.field]) < -0.001) {
-						return true;
-					} 
-				}
-			}					
-			return false;
-		} 
-		return true;
-	},
-	show_zero_check: function() {
-		var me = this;
-		this.wrapper.bind('make', function() {
-			me.wrapper.find('.show-zero').toggle(true).find('input').click(function(){
-				me.refresh();
-			});	
-		});
-	},
-	is_default: function(fieldname) {
-		return this[fieldname]==this[fieldname + "_default"];
-	},
-	date_formatter: function(row, cell, value, columnDef, dataContext) {
-		return dateutil.str_to_user(value);
-	},
-	currency_formatter: function(row, cell, value, columnDef, dataContext) {
-		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
-			_style: dataContext._style || "",
-			value: fmt_money(value)
-		});
-	},
-	text_formatter: function(row, cell, value, columnDef, dataContext) {
-		return repl('<span style="%(_style)s" title="%(esc_value)s">%(value)s</span>', {
-			_style: dataContext._style || "",
-			esc_value: cstr(value).replace(/"/g, '\"'),
-			value: cstr(value)
-		});
-	},
-	check_formatter: function(row, cell, value, columnDef, dataContext) {					
-		return repl("<input type='checkbox' data-id='%(id)s' \
-			class='plot-check' %(checked)s>", {
-				"id": dataContext.id,
-				"checked": dataContext.checked ? "checked" : ""
-			})
-	},
-	apply_link_formatters: function() {
-		var me = this;
-		$.each(this.dataview_columns, function(i, col) {
-			if(col.link_formatter) {
-				col.formatter = function(row, cell, value, columnDef, dataContext) {
-					// added link and open button to links
-					// link_formatter must have
-					// filter_input, open_btn (true / false), doctype (will be eval'd)
-					if(!value) return "";
-										
-					if(dataContext._show) {
-						return repl('<span style="%(_style)s">%(value)s</span>', {
-							_style: dataContext._style || "",
-							value: value
-						});
-					}
-					
-					// make link to add a filter
-					var link_formatter = wn.cur_grid_report.dataview_columns[cell].link_formatter;	
-					var html = repl('<a href="#" \
-						onclick="wn.cur_grid_report.filter_inputs.%(col_name)s.val(\'%(value)s\'); \
-							wn.cur_grid_report.set_route(); return false;">\
-						%(value)s</a>', {
-							value: value,
-							col_name: link_formatter.filter_input,
-							page_name: wn.container.page.page_name
-						})
-
-					// make icon to open form
-					if(link_formatter.open_btn) {
-						html += repl(' <i class="icon icon-share" style="cursor: pointer;"\
-							onclick="wn.set_route(\'Form\', \'%(doctype)s\', \'%(value)s\');">\
-						</i>', {
-							value: value,
-							doctype: eval(link_formatter.doctype)
-						});
-					}
-					return html;
-				}
-			}
-		})
-	}
 })

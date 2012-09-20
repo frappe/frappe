@@ -29,8 +29,13 @@
 # 3. call update_nsm(doc_obj) in the on_upate method
 
 # ------------------------------------------
-
 from __future__ import unicode_literals
+
+# uncomment below lines for testing
+# import sys, unittest
+# sys.path.append("lib/py")
+# sys.path.append(".")
+
 import webnotes, unittest
 
 class TestNSM(unittest.TestCase):
@@ -259,3 +264,7 @@ class DocTypeNestedSet:
 		
 	def on_trash(self):
 		update_remove_node(self.doc.doctype, self.doc.name)
+
+if __name__=="__main__":
+	webnotes.connect()
+	unittest.main()
