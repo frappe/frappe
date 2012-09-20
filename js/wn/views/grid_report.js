@@ -262,7 +262,7 @@ wn.views.GridReport = Class.extend({
 		
 	},
 	apply_filters_from_route: function() {
-		var hash = window.location.hash;
+		var hash = decodeURIComponent(window.location.hash);
 		var me = this;
 		if(hash.indexOf('/') != -1) {
 			$.each(hash.split('/').splice(1).join('/').split('&'), function(i, f) {
@@ -350,16 +350,10 @@ wn.views.GridReport = Class.extend({
 		}
 		wn.require('js/lib/flot/jquery.flot.js');
 		
-		var plot_options = this.get_plot_options();
-		var plot_area = this.wrapper.find('.plot');
-		// if zoom, require navigate
-		if(plot_options.zoom) wn.require('js/lib/flot/jquery.flot.navigate.js');
-		
-		this.plot = $.plot(plot_area.toggle(true), plot_data, plot_options);
+		this.plot = $.plot(this.wrapper.find('.plot').toggle(true), plot_data,
+			this.get_plot_options());
 		
 		this.setup_plot_hover();
-		// setup zoom if required
-		if(plot_options.zoom) this.setup_plot_zoom(plot_area);
 	},
 	setup_plot_hover: function() {
 		var me = this;
@@ -394,42 +388,6 @@ wn.views.GridReport = Class.extend({
 			}
 	    });
 		
-	},
-	setup_plot_zoom: function(plot_area) {
-		var me = this;
-		
-		// add zoom out button 
-		$('<span class="link_type">zoom in</span>')
-		.appendTo(plot_area)
-			.click(function (e) {
-		        e.preventDefault();
-		        me.plot.zoom();
-		    });
-
-		// add zoom out button 
-		$('<span class="link_type">zoom out</span>')
-		.appendTo(plot_area)
-			.click(function (e) {
-		        e.preventDefault();
-		        me.plot.zoomOut();
-		    });
-
-		
-		// and add panning buttons
-		// little helper for taking the repetitive work out of placing
-		// panning arrows
-		function addArrow(direction, style, offset) {
-		    var t = $('<span><i class="icon icon-arrow-' + direction + '"></i></span>')
-				.appendTo(plot_area).click(function (e) {
-				e.preventDefault();
-				me.plot.pan(offset);
-			});
-		}
-
-		addArrow('left', "top:100px; left: 600px", { left: -100 });
-		addArrow('right', "top: 100px; left: 650px", { left: 100 });
-		addArrow('up', "top: 50px; left: 625px", { top: -100 });
-		addArrow('down', "top: 150px; left: 625px", { top: 100 });
 	},
 	get_tooltip_text: function(label, x, y) {
 		var date = dateutil.obj_to_user(new Date(x));
