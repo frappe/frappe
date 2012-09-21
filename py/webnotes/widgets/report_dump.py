@@ -72,7 +72,7 @@ def get_data():
 						col_idx = out[d]["columns"].index(link_key)
 						# replace by id
 						if row[col_idx]:
-							row[col_idx] = link_map[row[col_idx]]
+							row[col_idx] = link_map.get(row[col_idx])
 	
 	missing = {}
 	# don't send everything

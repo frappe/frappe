@@ -45,7 +45,8 @@ $.extend(wn.report_dump, {
 							$.each(doctype_data.columns, function(idx, col) {
 								row[col] = d[idx];
 							});
-							row.id = row.name || doctype + "-" + i
+							row.id = row.name || doctype + "-" + i;
+							row.doctype = doctype;
 							data.push(row);
 						});
 						wn.report_dump.data[doctype] = data;
@@ -140,6 +141,10 @@ wn.views.GridReport = Class.extend({
 		this.filter_inputs.reset_filters && this.filter_inputs.reset_filters.click(function() { 
 			me.init_filter_values(); 
 			me.set_route(); 
+		});
+		
+		this.filter_inputs.range && this.filter_inputs.range.change(function() {
+			me.set_route();				
 		});
 	},
 	init_filter_values: function() {
@@ -288,6 +293,7 @@ wn.views.GridReport = Class.extend({
 		</div>').appendTo(this.wrapper);
 		
 		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
+		this.wrapper.find(".grid-report-print").click(function() { msgprint("Coming Soon"); return false; });
 		
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
@@ -393,102 +399,6 @@ wn.views.GridReport = Class.extend({
 		
 		return false;
 	},
-	add_tree_grid_events: function() {
-		var me = this;
-		this.grid.onClick.subscribe(function (e, args) {
-			if ($(e.target).hasClass("toggle")) {
-				var item = me.dataView.getItem(args.row);
-				if (item) {
-					if (!item._collapsed) {
-						item._collapsed = true;
-					} else {
-						item._collapsed = false;
-					}
-
-					me.dataView.updateItem(item.id, item);
-				}
-				e.stopImmediatePropagation();
-			}
-		});
-	},
-	tree_formatter: function (row, cell, value, columnDef, dataContext) {
-		var me = wn.cur_grid_report;
-		value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
-		var data = me.data;
-		var spacer = "<span style='display:inline-block;height:1px;width:" + 
-			(15 * dataContext["indent"]) + "px'></span>";
-		var idx = me.dataView.getIdxById(dataContext.id);
-		var link = me.tree_grid.formatter(dataContext);
-		
-		if(columnDef.doctype) {
-			link += me.get_link_open_icon(columnDef.doctype, value);	
-		}
-			
-		if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
-			if (dataContext._collapsed) {
-				return spacer + " <span class='toggle expand'></span>&nbsp;" + link;
-			} else {
-				return spacer + " <span class='toggle collapse'></span>&nbsp;" + link;
-			}
-		} else {
-			return spacer + " <span class='toggle'></span>&nbsp;" + link;
-		}
-	},
-	tree_dataview_filter: function(item) {
-		var me = wn.cur_grid_report;
-		if(!me.apply_filters(item)) return false;
-		
-		var parent = item[me.tree_grid.parent_field];
-		while (parent) {
-			if (me.item_by_name[parent]._collapsed) {
-				return false;
-			}
-			parent = me.parent_map[parent];
-		}
-		return true;
-	},
-	prepare_tree: function(item_dt, group_dt) {
-		var group_data = wn.report_dump.data[group_dt];
-		var item_data = wn.report_dump.data[item_dt];
-		
-		// prepare map with child in respective group
-		var me = this;
-		var item_group_map = {};
-		var group_ids = $.map(group_data, function(v) { return v.id; });
-		$.each(item_data, function(i, item) {
-			var parent = item[me.tree_grid.parent_field];
-			if(!item_group_map[parent]) item_group_map[parent] = [];
-			if(group_ids.indexOf(item.name)==-1) {
-				item_group_map[parent].push(item);				
-			} else {
-				msgprint("Ignoring Item "+ item.name.bold() + 
-					", because a group exists with the same name!");
-			}
-		});
-		
-		// arrange items besides their parent item groups
-		var items = [];
-		$.each(group_data, function(i, group){
-			group.is_group = true;
-			items.push(group);
-			items = items.concat(item_group_map[group.name] || []);
-		});
-		return items;
-	},
-	set_indent: function() {
-		var me = this;
-		$.each(this.data, function(i, d) {
-			var indent = 0;
-			var parent = me.parent_map[d.name];
-			if(parent) {
-				while(parent) {
-					indent++;
-					parent = me.parent_map[parent];
-				}				
-			}
-			d.indent = indent;
-		});
-	},
 	apply_filters: function(item) {
 		// generic filter: apply filter functiions
 		// from all filter_inputs
@@ -591,7 +501,9 @@ wn.views.GridReport = Class.extend({
 
 					// make icon to open form
 					if(link_formatter.open_btn) {
-						html += me.get_link_open_icon(eval(link_formatter.doctype), value);
+						var doctype = link_formatter.doctype ? eval(link_formatter.doctype) 
+							: dataContext.doctype;
+						html += me.get_link_open_icon(doctype, value);
 					}
 					return html;
 				}
@@ -675,7 +587,7 @@ wn.views.GridReport = Class.extend({
 				? dateutil.str_to_user(dateutil.add_days(me.columns[i+1].id, -1))
 				: dateutil.str_to_user(me.to_date);				
 		});		
-	}
+	},
 });
 
 wn.views.GridReportWithPlot = wn.views.GridReport.extend({
@@ -782,7 +694,7 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 			}
 		});
 	
-		return data;
+		return data.length ? data : false;
 	},
 	get_plot_options: function() {
 		return {
@@ -792,5 +704,117 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 				max: dateutil.str_to_obj(this.to_date).getTime() }
 		}
 	}
+});
 
-})
+wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
+	make_transaction_list: function(parent_doctype, doctype) {
+		var me = this;
+		var tmap = {};
+		$.each(wn.report_dump.data[doctype], function(i, v) {
+			if(!tmap[v.parent]) tmap[v.parent] = [];
+			tmap[v.parent].push(v);
+		});
+		this.tl = [];
+		$.each(wn.report_dump.data[parent_doctype], function(i, parent) {
+			$.each(tmap[parent.name], function(i, d) {
+				me.tl.push($.extend(copy_dict(parent), d));
+			});
+		});
+	},
+	add_tree_grid_events: function() {
+		var me = this;
+		this.grid.onClick.subscribe(function (e, args) {
+			if ($(e.target).hasClass("toggle")) {
+				var item = me.dataView.getItem(args.row);
+				if (item) {
+					if (!item._collapsed) {
+						item._collapsed = true;
+					} else {
+						item._collapsed = false;
+					}
+
+					me.dataView.updateItem(item.id, item);
+				}
+				e.stopImmediatePropagation();
+			}
+		});
+	},
+	tree_formatter: function (row, cell, value, columnDef, dataContext) {
+		var me = wn.cur_grid_report;
+		value = value.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;");
+		var data = me.data;
+		var spacer = "<span style='display:inline-block;height:1px;width:" + 
+			(15 * dataContext["indent"]) + "px'></span>";
+		var idx = me.dataView.getIdxById(dataContext.id);
+		var link = me.tree_grid.formatter(dataContext);
+		
+		if(dataContext.doctype) {
+			link += me.get_link_open_icon(dataContext.doctype, value);	
+		}
+			
+		if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {
+			if (dataContext._collapsed) {
+				return spacer + " <span class='toggle expand'></span>&nbsp;" + link;
+			} else {
+				return spacer + " <span class='toggle collapse'></span>&nbsp;" + link;
+			}
+		} else {
+			return spacer + " <span class='toggle'></span>&nbsp;" + link;
+		}
+	},
+	tree_dataview_filter: function(item) {
+		var me = wn.cur_grid_report;
+		if(!me.apply_filters(item)) return false;
+		
+		var parent = item[me.tree_grid.parent_field];
+		while (parent) {
+			if (me.item_by_name[parent]._collapsed) {
+				return false;
+			}
+			parent = me.parent_map[parent];
+		}
+		return true;
+	},
+	prepare_tree: function(item_dt, group_dt) {
+		var group_data = wn.report_dump.data[group_dt];
+		var item_data = wn.report_dump.data[item_dt];
+		
+		// prepare map with child in respective group
+		var me = this;
+		var item_group_map = {};
+		var group_ids = $.map(group_data, function(v) { return v.id; });
+		$.each(item_data, function(i, item) {
+			var parent = item[me.tree_grid.parent_field];
+			if(!item_group_map[parent]) item_group_map[parent] = [];
+			if(group_ids.indexOf(item.name)==-1) {
+				item_group_map[parent].push(item);				
+			} else {
+				msgprint("Ignoring Item "+ item.name.bold() + 
+					", because a group exists with the same name!");
+			}
+		});
+		
+		// arrange items besides their parent item groups
+		var items = [];
+		$.each(group_data, function(i, group){
+			group.is_group = true;
+			items.push(group);
+			items = items.concat(item_group_map[group.name] || []);
+		});
+		return items;
+	},
+	set_indent: function() {
+		var me = this;
+		$.each(this.data, function(i, d) {
+			var indent = 0;
+			var parent = me.parent_map[d.name];
+			if(parent) {
+				while(parent) {
+					indent++;
+					parent = me.parent_map[parent];
+				}				
+			}
+			d.indent = indent;
+		});
+	},
+});
