@@ -32,7 +32,10 @@ $.extend(wn.report_dump, {
 		if(missing.length) {
 			wn.call({
 				method: "webnotes.widgets.report_dump.get_data",
-				args: {doctypes: missing},
+				args: {
+					doctypes: doctypes,
+					missing: missing
+				},
 				callback: function(r) {
 					// creating map of data from a list
 					$.each(r.message, function(doctype, doctype_data) {
@@ -53,7 +56,11 @@ $.extend(wn.report_dump, {
 						if(doctype_data.links) {
 							$.each(wn.report_dump.data[doctype], function(row_idx, row) {
 								$.each(doctype_data.links, function(link_key, link) {
-									row[link_key] = wn.report_dump.data[link[0]][row[link_key]][link[1]];
+									if(wn.report_dump.data[link[0]][row[link_key]]) {
+										row[link_key] = wn.report_dump.data[link[0]][row[link_key]][link[1]];
+									} else {
+										row[link_key] = null;
+									}
 								})
 							})
 						}
@@ -440,6 +447,34 @@ wn.views.GridReport = Class.extend({
 		}
 		return true;
 	},
+	prepare_tree: function(item_dt, group_dt) {
+		var group_data = wn.report_dump.data[group_dt];
+		var item_data = wn.report_dump.data[item_dt];
+		
+		// prepare map with child in respective group
+		var me = this;
+		var item_group_map = {};
+		var group_ids = $.map(group_data, function(v) { return v.id; });
+		$.each(item_data, function(i, item) {
+			var parent = item[me.tree_grid.parent_field];
+			if(!item_group_map[parent]) item_group_map[parent] = [];
+			if(group_ids.indexOf(item.name)==-1) {
+				item_group_map[parent].push(item);				
+			} else {
+				msgprint("Ignoring Item "+ item.name.bold() + 
+					", because a group exists with the same name!");
+			}
+		});
+		
+		// arrange items besides their parent item groups
+		var items = [];
+		$.each(group_data, function(i, group){
+			group.is_group = true;
+			items.push(group);
+			items = items.concat(item_group_map[group.name] || []);
+		});
+		return items;
+	},
 	set_indent: function() {
 		var me = this;
 		$.each(this.data, function(i, d) {
@@ -725,4 +760,37 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 		}
 		return res;
 	},
+	get_plot_data: function() {
+		var data = [];
+		var me = this;
+		$.each(this.data, function(i, item) {
+			if (item.checked) {
+				data.push({
+					label: item.name,
+					data: $.map(me.columns, function(col, idx) {
+						if(col.formatter==me.currency_formatter && !col.hidden && col.plot!==false) {
+							return me.get_plot_points(item, col, idx)
+						}
+					}),
+					points: {show: true},
+					lines: {show: true, fill: true},
+				});
+				
+				// prepend opening 
+				data[data.length-1].data = [[dateutil.str_to_obj(me.from_date).getTime(), 
+					item.opening]].concat(data[data.length-1].data);
+			}
+		});
+	
+		return data;
+	},
+	get_plot_options: function() {
+		return {
+			grid: { hoverable: true, clickable: true },
+			xaxis: { mode: "time", 
+				min: dateutil.str_to_obj(this.from_date).getTime(),
+				max: dateutil.str_to_obj(this.to_date).getTime() }
+		}
+	}
+
 })

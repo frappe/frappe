@@ -71,6 +71,15 @@ def get_data():
 					for row in out[d]["data"]:
 						col_idx = out[d]["columns"].index(link_key)
 						# replace by id
-						row[col_idx] = link_map[row[col_idx]]
-		
-	return out
+						if row[col_idx]:
+							row[col_idx] = link_map[row[col_idx]]
+	
+	missing = {}
+	# don't send everything
+	# send only missing! 
+	# (but we need to load all to make links)
+	for d in out:
+		if d in webnotes.form_dict.get("missing",[]):
+			missing[d] = out[d]
+	
+	return missing
