@@ -80,14 +80,21 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email', f
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
 	check_bulk_limit(len(recipients))
 
+	from webnotes.utils.email_lib.html2text import html2text
+	try:
+		text_content = html2text(html)
+	except HTMLParser.HTMLParseError:
+		text_content = "[See html attachment]"
+	
+
 	for r in recipients:
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), r, as_dict=1)
 		if not is_unsubscribed(rdata):
 			# add to queue
-			add(r, sender, subject, add_unsubscribe_link(r))
+			add(r, sender, subject, add_unsubscribe_link(r), text_content)
 
-def add(email, sender, subject, message):
+def add(email, sender, subject, message, text_content = None):
 	"""add to bulk mail queue"""
 	from webnotes.model.doc import Document
 	from webnotes.utils.email_lib.smtp import get_email
@@ -95,7 +102,8 @@ def add(email, sender, subject, message):
 	e = Document('Bulk Email')
 	e.sender = sender
 	e.recipient = email
-	e.message = get_email(email, sender=e.sender, msg=message, subject=subject).as_string()
+	e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
+		text_content = text_content).as_string()
 	e.status = 'Not Sent'
 	e.save()
 
