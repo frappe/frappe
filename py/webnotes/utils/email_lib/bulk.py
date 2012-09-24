@@ -80,9 +80,11 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email', f
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
 	check_bulk_limit(len(recipients))
 
+	import HTMLParser
 	from webnotes.utils.email_lib.html2text import html2text
+	
 	try:
-		text_content = html2text(html)
+		text_content = html2text(message)
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"
 	
@@ -126,8 +128,14 @@ def flush():
 	
 	smptserver = SMTPServer()
 
-	for email in webnotes.conn.sql("""select * from `tabBulk Email` where status='Not Sent'""", 
-		as_dict=1):
+	for i in xrange(500):		
+		email = webnotes.conn.sql("""select * from `tabBulk Email` where 
+			status='Not Sent' limit 1 for update""", as_dict=1)
+		if email:
+			email = email[0]
+		else:
+			break
+			
 		webnotes.conn.sql("""update `tabBulk Email` set status='Sending' where name=%s""", 
 			email["name"], auto_commit=True)
 		try:
