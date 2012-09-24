@@ -144,7 +144,7 @@ wn.views.GridReport = Class.extend({
 		});
 		
 		this.filter_inputs.range && this.filter_inputs.range.change(function() {
-			me.set_route();				
+			me.set_route();
 		});
 	},
 	init_filter_values: function() {
@@ -186,7 +186,7 @@ wn.views.GridReport = Class.extend({
 			}
 
 			if(input) {
-				input && (input.get(0).opts = v);				
+				input && (input.get(0).opts = v);
 				if(v.cssClass) {
 					input.addClass(v.cssClass);
 				}
@@ -270,7 +270,7 @@ wn.views.GridReport = Class.extend({
 		this.wrapper.find(".processing").toggle(true);
 		this.wrapper.find(".processing").delay(2000).fadeOut(300);
 		this.render();
-		this.render_plot();
+		this.render_plot && this.render_plot();
 	},
 	setup_dataview_columns: function() {
 		this.dataview_columns = $.map(this.columns, function(col) {
