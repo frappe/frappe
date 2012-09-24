@@ -31,12 +31,12 @@ import conf
 from webnotes import msgprint
 import email
 
-def get_email(recipients, sender='', msg='', subject='[No Subject]'):
+def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None):
 	"""send an html email as multipart with attachments and all"""
 	email = EMail(sender, recipients, subject)
 	if (not '<br>' in msg) and (not '<p>' in msg) and (not '<div' in msg):
 		msg = msg.replace('\n', '<br>')
-	email.set_html(msg)
+	email.set_html(msg, text_content)
 
 	return email
 
@@ -77,7 +77,7 @@ class EMail:
 		part = MIMEText(message.encode('utf-8'), 'plain', 'utf-8')		
 		self.msg_multipart.attach(part)
 			
-	def set_html(self, message):
+	def set_html(self, message, text_content = None):
 
 		"""Attach message in the html portion of multipart/alternative"""
 		from email.mime.text import MIMEText
@@ -86,7 +86,10 @@ class EMail:
 		# this is the first html part of a multi-part message, 
 		# convert to text well
 		if not self.html_set: 
-			self.set_html_text(message)
+			if text_content:
+				self.set_text(text_content)
+			else:
+				self.set_html_text(message)
 
 		part = MIMEText(message.encode('utf-8'), 'html', 'utf-8')
 		self.msg_multipart.attach(part)
