@@ -37,6 +37,7 @@ from __future__ import unicode_literals
 # sys.path.append(".")
 
 import webnotes, unittest
+from webnotes import msgprint
 
 class TestNSM(unittest.TestCase):
 	
@@ -264,7 +265,15 @@ class DocTypeNestedSet:
 		
 	def on_trash(self):
 		update_remove_node(self.doc.doctype, self.doc.name)
-
+		
+	def validate_root_details(self, root, parent_field):
+		#does not exists parent
+		if self.doc.name==root and self.doc.fields.get(parent_field):
+			msgprint("You can not assign parent for root: %s" % (root, ), raise_exception=1)
+	
+		elif self.doc.name!=root and not self.doc.parent_account:
+			msgprint("Parent is mandatory for %s" % (self.doc.name, ), raise_exception=1)
+		
 if __name__=="__main__":
 	webnotes.connect()
 	unittest.main()

@@ -706,6 +706,7 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 	}
 });
 
+
 wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 	make_transaction_list: function(parent_doctype, doctype) {
 		var me = this;
@@ -716,9 +717,11 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 		});
 		this.tl = [];
 		$.each(wn.report_dump.data[parent_doctype], function(i, parent) {
-			$.each(tmap[parent.name], function(i, d) {
-				me.tl.push($.extend(copy_dict(parent), d));
-			});
+			if(tmap[parent.name]) {
+				$.each(tmap[parent.name], function(i, d) {
+					me.tl.push($.extend(copy_dict(parent), d));
+				});
+			}
 		});
 	},
 	add_tree_grid_events: function() {
@@ -812,7 +815,7 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 				while(parent) {
 					indent++;
 					parent = me.parent_map[parent];
-				}				
+				}
 			}
 			d.indent = indent;
 		});
