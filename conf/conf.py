@@ -11,9 +11,6 @@ files_path = 'user_files'
 # max file attachment size (default 1MB)
 max_file_size = 1000000
 
-# user modules - include in sys.path
-modules_path = '.'
-
 # generate schema (.txt files)
 developer_mode = 0
 

@@ -230,10 +230,10 @@ def setup_options():
 	
 def run():
 	sys.path.append('.')
-	sys.path.append('lib/py')
+	sys.path.append('lib')
+	sys.path.append('app')
 	import webnotes
 	import conf
-	sys.path.append(conf.modules_path)
 
 	(options, args) = setup_options()
 
