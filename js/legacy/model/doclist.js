@@ -151,7 +151,7 @@ function check_required(dt, dn, parent_dt) {
 					f.df.has_error = true;
 					f.refresh_label_icon && f.refresh_label_icon();
 					
-					if(all_clear) {
+					if(all_clear && f.wrapper) {
 						$(document).scrollTop($(f.wrapper).offset().top - 100);
 					}
 					
