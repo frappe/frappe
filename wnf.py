@@ -75,8 +75,8 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	print colored('Updated', 'green')
 	
 def pull(remote, branch):
-	os.system('git pull %s %s' % (remote, branch))
 	os.system('cd lib && git pull %s %s' % (remote, branch))
+	os.system('cd ../app && git pull %s %s' % (remote, branch))
 	
 def apply_latest_patches():
 	import webnotes.modules.patch_handler

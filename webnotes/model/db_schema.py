@@ -414,7 +414,7 @@ def validate_column_name(n):
 # sync table - called from form.py
 # -------------------------------------------------
 
-def updatedb(dt, archive=0):
+def updatedb(dt):
 	"""
 	Syncs a `DocType` to the table
 	   * creates if required
@@ -427,7 +427,7 @@ def updatedb(dt, archive=0):
 	
 	if not res[0][0]:
 		webnotes.conn.commit()
-		tab = DbTable(dt, archive and 'arc' or 'tab')
+		tab = DbTable(dt, 'tab')
 		tab.sync()
 		webnotes.conn.begin()
 

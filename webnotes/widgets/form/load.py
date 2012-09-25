@@ -37,23 +37,18 @@ def getdoc():
 	
 	form = webnotes.form_dict
 	doctype, docname = form.get('doctype'), form.get('name')
-	prefix = cint(form.get('from_archive')) and 'arc' or 'tab'
 
 	if not (doctype and docname):
 		raise Exception, 'doctype and name required!'
 	
 	doclist = []
 	# single
-	doclist = load_single_doc(doctype, docname, (form.get('user') or webnotes.session['user']), prefix)
+	doclist = load_single_doc(doctype, docname, (form.get('user') or webnotes.session['user']))
 	
 	# load doctype along with the doc
 	if form.get('getdoctype'):
 		import webnotes.model.doctype
 		doclist += webnotes.model.doctype.get(doctype)
-
-	# tag as archived
-	if prefix == 'arc':
-		doclist[0].__archived=1
 
 	webnotes.response['docs'] = doclist
 
@@ -87,16 +82,12 @@ def getdoctype():
 
 	webnotes.response['docs'] = doclist
 
-def load_single_doc(dt, dn, user, prefix):
+def load_single_doc(dt, dn, user):
 	"""load doc and call onload methods"""
 	import webnotes.model.code
 
 	if not dn: dn = dt
-	dl = webnotes.model.doc.get(dt, dn, prefix=prefix)
-
-	# archive, done
-	if prefix=='arc':
-		return dl
+	dl = webnotes.model.doc.get(dt, dn)
 
 	try:
 		so, r = webnotes.model.code.get_server_obj(dl[0], dl), None
