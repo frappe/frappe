@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 import sys, os
 import webnotes
 import webnotes.utils
+import webnotes.sessions
 
 form = webnotes.form
 form_dict = webnotes.form_dict
@@ -52,10 +53,7 @@ def get_cgi_fields():
 
 @webnotes.whitelist(allow_guest=True)
 def startup():
-	import webnotes
-	import webnotes.session_cache
-
-	webnotes.response.update(webnotes.session_cache.get())
+	webnotes.response.update(webnotes.sessions.get())
 
 def cleanup_docs():
 	import webnotes.model.utils

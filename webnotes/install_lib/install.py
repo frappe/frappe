@@ -101,7 +101,6 @@ class Installer:
 		import webnotes
 		self.create_sessions_table()
 		self.create_scheduler_log()
-		self.create_session_cache()
 		self.create_cache_item()
 		self.create_auth_table()
 
@@ -133,14 +132,6 @@ class Installer:
 			method varchar(200),
 			error text
 		) engine=MyISAM""")
-	
-	def create_session_cache(self):
-		import webnotes
-		self.dbman.drop_table('__SessionCache')
-		webnotes.conn.sql("""create table `__SessionCache` ( 
-			user VARCHAR(120), 
-			country VARCHAR(120), 
-			cache LONGTEXT) ENGINE=InnoDB""")
 
 	def create_cache_item(self):
 		import webnotes

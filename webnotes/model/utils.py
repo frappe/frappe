@@ -81,7 +81,6 @@ def compress(doclist):
 			tmp.append(v)
 
 		vl.append(tmp)
-	#errprint(str({'_vl':vl,'_kl':kl}))
 	return {'_vl':vl,'_kl':kl}
 
 

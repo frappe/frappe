@@ -36,24 +36,39 @@ code_fields_dict = {
 	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
 }
 
-version = 'v170'
+class DictObj(dict):
+	"""dict like object that exposes keys as attributes"""
+	def __getattr__(self, key):
+		return self.get(key)
+	def __setattr__(self, key, value):
+		self[key] = value
+	def __getstate__(self): 
+		return self
+	def __setstate__(self, d): 
+		self.update(d)
+
 form_dict = {}
-auth_obj = None
 conn = None
+_memc = None
 form = None
 session = None
 user = None
-is_testing = None
 incoming_cookies = {}
 add_cookies = {} # append these to outgoing request
 cookies = {}
-auto_masters = {}
-tenant_id = None
-response = {'message':'', 'exc':''}
+response = DictObj({'message':'', 'exc':''})
 debug_log = []
 message_log = []
 
+# memcache
 
+def cache():
+	global _memc
+	if not _memc:
+		from webnotes.memc import MClient
+		_memc = MClient(['localhost:11211'])
+	return _memc
+		
 class ValidationError(Exception):
 	pass
 	
@@ -220,7 +235,7 @@ def whitelist(allow_guest=False, allow_roles=[]):
 	
 def clear_cache(user=None):
 	"""clear boot cache"""
-	from webnotes.session_cache import clear
+	from webnotes.sessions import clear
 	clear(user)
 	
 def get_roles(user=None, with_standard=True):

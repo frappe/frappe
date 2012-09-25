@@ -110,7 +110,7 @@ class LoginManager:
 	def __init__(self):
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
-			from webnotes.session_cache import clear_cache
+			from webnotes.sessions import clear_cache
 			clear_cache(webnotes.form_dict.get('usr'))				
 
 			self.authenticate()
@@ -272,7 +272,7 @@ class Session:
 	def __init__(self, user=None):
 		self.user = user
 		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
-		self.data = {'user':user,'data':{}}
+		self.data = webnotes.DictObj({'user':user,'data':{}})
 
 		if webnotes.form_dict.get('cmd')=='login':
 			self.start()
@@ -299,9 +299,9 @@ class Session:
 		
 		r = self.get_session_record()
 		if r:
-			self.data = {'data': (r[1] and eval(r[1]) or {}), 
-					'user':r[0], 'sid': self.sid}
-		else:				
+			self.data = webnotes.DictObj({'data': (r[1] and eval(r[1]) or {}), 
+					'user':r[0], 'sid': self.sid})
+		else:
 			self.start_as_guest()
 
 	def start_as_guest(self):
@@ -324,7 +324,6 @@ class Session:
 		self.data['user'] = webnotes.login_manager.user
 		self.data['sid'] = sid
 		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR');
-		self.data['data']['tenant_id'] = webnotes.form_dict.get('tenant_id', 0)
 
 		# get ipinfo
 		if webnotes.conn.get_global('get_ip_info'):

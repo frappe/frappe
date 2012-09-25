@@ -25,7 +25,7 @@
 from __future__ import unicode_literals
 import os, sys
 
-def replace_code(start, txt1, txt2, extn, search=None):
+def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
 	import webnotes.utils
 	import os, re
@@ -40,13 +40,13 @@ def replace_code(start, txt1, txt2, extn, search=None):
 						content = f.read()
 				
 					if re.search(search, content):
-						res = search_replace_with_prompt(fpath, txt1, txt2)
+						res = search_replace_with_prompt(fpath, txt1, txt2, force)
 						if res == 'skip':
 							return 'skip'
 
 
 
-def search_replace_with_prompt(fpath, txt1, txt2):
+def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	""" Search and replace all txt1 by txt2 in the file with confirmation"""
 
 	from termcolor import colored
@@ -59,12 +59,15 @@ def search_replace_with_prompt(fpath, txt1, txt2):
 			print fpath
 			print  colored(txt1, 'red').join(c[:-1].split(txt1))
 			a = ''
-			while a.lower() not in ['y', 'n', 'skip']:
-				a = raw_input('Do you want to Change [y/n/skip]?')
-			if a.lower() == 'y':
+			if force:
 				c = c.replace(txt1, txt2)
-			elif a.lower() == 'skip':
-				return 'skip'
+			else:
+				while a.lower() not in ['y', 'n', 'skip']:
+					a = raw_input('Do you want to Change [y/n/skip]?')
+				if a.lower() == 'y':
+					c = c.replace(txt1, txt2)
+				elif a.lower() == 'skip':
+					return 'skip'
 		tmp.append(c)
 
 	with open(fpath, 'w') as f:
@@ -262,7 +265,7 @@ def run():
 	# code replace
 	elif options.replace:
 		print options.replace
-		replace_code('.', options.replace[0], options.replace[1], options.replace[2])
+		replace_code('.', options.replace[0], options.replace[1], options.replace[2], force=options.force)
 	
 	# git
 	elif options.status:

@@ -25,19 +25,21 @@ from __future__ import unicode_literals
 bootstrap client session
 """
 
+import webnotes
+import webnotes.model.doc
+import webnotes.widgets.page
+import webnotes.cms
+
 
 def get_bootinfo():
 	"""build and return boot info"""
-	import webnotes
-	bootinfo = {}	
+	bootinfo = webnotes.DictObj()
 	doclist = []
 
-	webnotes.conn.begin()
 	# profile
 	get_profile(bootinfo)
 	
 	# control panel
-	import webnotes.model.doc
 	cp = webnotes.model.doc.getsingle('Control Panel')
 
 	from webnotes.utils import cint
@@ -48,7 +50,6 @@ def get_bootinfo():
 	bootinfo['sysdefaults'] = webnotes.utils.get_defaults()
 
 	if webnotes.session['user'] != 'Guest':
-		import webnotes.widgets.menus
 		bootinfo['user_info'] = get_fullnames()
 		bootinfo['sid'] = webnotes.session['sid'];
 		
@@ -64,20 +65,20 @@ def get_bootinfo():
 	
 	# plugins
 	try:
-		import startup.event_handlers
-		if getattr(startup.event_handlers, 'boot_session', None):
-			startup.event_handlers.boot_session(bootinfo)
+		from startup import event_handlers
+		if getattr(event_handlers, 'boot_session', None):
+			event_handlers.boot_session(bootinfo)
 
 	except ImportError:
 		pass
-
-	webnotes.conn.commit()
+	
+	from webnotes.model.utils import compress
+	bootinfo['docs'] = compress(bootinfo['docs'])
 	
 	return bootinfo
 
 def get_fullnames():
 	"""map of user fullnames"""
-	import webnotes
 	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
@@ -96,15 +97,11 @@ def get_fullnames():
 		
 def get_profile(bootinfo):
 	"""get profile info"""
-	import webnotes
 	bootinfo['profile'] = webnotes.user.load_profile()
 	webnotes.session['data']['profile'] = bootinfo['profile']
 	
 def add_home_page(bootinfo, doclist):
 	"""load home page"""
-	import webnotes
-	import webnotes.widgets.page
-	import webnotes.cms
 
 	home_page = webnotes.cms.get_home_page(webnotes.session['user']) or 'Login Page'
 

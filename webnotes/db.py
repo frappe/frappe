@@ -44,10 +44,8 @@ class Database:
 		if use_default:
 			self.user = conf.db_name
 
-		self.is_testing = 0
 		self.in_transaction = 0
 		self.transaction_writes = 0
-		self.testing_tables = []
 		self.auto_commit_on_many_writes = 0
 
 		self.password = password or webnotes.get_db_password(self.user)
@@ -63,9 +61,8 @@ class Database:
 		"""
 		      Connect to a database
 		"""
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, use_unicode=True)
+		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
-		self._conn.set_character_set('utf8')		
 		self._cursor = self._conn.cursor()
 	
 	def use(self, db_name):
@@ -106,13 +103,13 @@ class Database:
 		result = self._cursor.fetchall()
 		ret = []
 		for r in result:
-			dict = {}
+			row_dict = webnotes.DictObj({})
 			for i in range(len(r)):
 				val = self.convert_to_simple_type(r[i], formatted)
 				if as_utf8 and type(val) is unicode:
 					val = val.encode('utf-8')
-				dict[self._cursor.description[i][0]] = val
-			ret.append(dict)
+				row_dict[self._cursor.description[i][0]] = val
+			ret.append(row_dict)
 		return ret
 	
 	def validate_query(self, q):
@@ -240,30 +237,6 @@ class Database:
 					nr.append(self.convert_to_simple_type(c, formatted))
 			nres.append(nr)
 		return nres
-
-	# ======================================================================================
-
-	def replace_tab_by_test(self, query):
-		"""
-		      Relace all ``tab`` + doctype to ``test`` + doctype
-		"""
-		if self.is_testing:
-			tl = self.get_testing_tables()
-			for t in tl:
-				query = query.replace(t, 'test' + t[3:])
-		return query
-		
-	def get_testing_tables(self):
-		"""
-		      Get list of all tables for which `tab` is to be replaced by `test` before a query is executed
-		"""
-		if not self.testing_tables:
-			testing_tables = ['tab'+r[0] for r in self.sql('SELECT name from tabDocType where docstatus<2 and (issingle=0 or issingle is null)', allow_testing = 0)]
-			testing_tables+=['tabSeries','tabSingles'] # tabSessions is not included here
-		return self.testing_tables
-
-	# ======================================================================================
-	# get a single value from a record
 
 	def get_value(self, doctype, docname, fieldname, ignore=None):
 		"""
