@@ -335,12 +335,6 @@ div.std-footer-item {
 }
 
 .erpnext-logo {
-	position: fixed;
-	bottom: 5px;
-	left: 5px;
-	height: 30px;
-	width: 30px;
-	background: url('../images/erpnext-fade.png') no-repeat top left;
 }
 
 .markdown p {

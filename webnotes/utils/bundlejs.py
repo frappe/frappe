@@ -77,7 +77,7 @@ class Bundle:
 				tmpmin = tmpout.getvalue() or ''
 				tmpmin.strip('\n')
 				outtxt += tmpmin
-		
+						
 		with open(outfile, 'w') as f:
 			f.write(outtxt)
 		
@@ -152,7 +152,7 @@ class Bundle:
 				appfiles = eval(bfile.read())
 		else:
 			appfiles = {}
-				
+		
 		# add additional app files in bdata
 		buildfile_list = [builddict.keys()[0] for builddict in bdata]
 		for f in appfiles:

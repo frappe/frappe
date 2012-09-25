@@ -3,7 +3,7 @@
 wn.user_info = function(uid) {
 	var def = {
 		'fullname':uid, 
-		'image': 'images/lib/ui/no_img_m.gif'
+		'image': 'lib/images/ui/no_img_m.gif'
 	}
 	if(!wn.boot.user_info) return def
 	if(!wn.boot.user_info[uid]) return def

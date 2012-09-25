@@ -101,7 +101,7 @@
 .fn-gantt .dataPanel {
     margin-left: 0px;
     border-right: 1px solid #DDD;
-    background-image: url(js/lib/jQuery.Gantt/img/grid.png);
+    background-image: url(lib/js/lib/jQuery.Gantt/img/grid.png);
     background-repeat: repeat;
     background-position: 24px 24px;
 }
@@ -294,7 +294,7 @@
 .fn-gantt .navigate .nav-slider-button {
     width: 17px;
     height: 60px;
-    background: url(js/lib/jQuery.Gantt/img/slider_handle.png) center center no-repeat;
+    background: url(lib/js/lib/jQuery.Gantt/img/slider_handle.png) center center no-repeat;
     left: 0px;
     top: 0px;
     margin: -26px 0 0 0;
@@ -325,7 +325,7 @@
     width: 20px;
     height: 20px;
     font-size: 0px;
-    background: #595959 url(js/lib/jQuery.Gantt/img/icon_sprite.png) !important;
+    background: #595959 url(lib/js/lib/jQuery.Gantt/img/icon_sprite.png) !important;
     border: 1px solid #454546;
     cursor: pointer;
     vertical-align: top;
@@ -401,7 +401,7 @@
 }
 
 .fn-gantt-loader {
-    background-image: url(js/lib/jQuery.Gantt/img/loader_bg.png);
+    background-image: url(lib/js/lib/jQuery.Gantt/img/loader_bg.png);
     z-index: 30;
 }
 

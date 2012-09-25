@@ -266,28 +266,32 @@ def run():
 	
 	# git
 	elif options.status:
-		os.system('git status')
 		os.chdir('lib')
+		os.system('git status')
+		os.chdir('../app')
 		os.system('git status')
 
 	elif options.git:
-		os.system('git %s' % options.git)
 		os.chdir('lib')
+		os.system('git %s' % options.git)
+		os.chdir('../app')
 		os.system('git %s' % options.git)
 	
 	elif options.pull:
 		pull(options.pull[0], options.pull[1])
 
 	elif options.push:
+		os.chdir('lib')
 		os.system('git commit -a -m "%s"' % options.push[2])
 		os.system('git push %s %s' % (options.push[0], options.push[1]))
-		os.chdir('lib')
+		os.chdir('../app')
 		os.system('git commit -a -m "%s"' % options.push[2])
 		os.system('git push %s %s' % (options.push[0], options.push[1]))
 				
 	elif options.checkout:
-		os.system('git checkout %s' % options.checkout)
 		os.chdir('lib')
+		os.system('git checkout %s' % options.checkout)
+		os.chdir('../app')
 		os.system('git checkout %s' % options.checkout)
 			
 	# patch

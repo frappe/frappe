@@ -287,7 +287,7 @@ class _DocType:
 		# embed all require files
 		import re
 		def _sub(match):
-			fpath = os.path.join(os.path.dirname(conf.__file__), 'app',
+			fpath = os.path.join(os.path.dirname(conf.__file__),
 				re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
 			if os.path.exists(fpath):
 				with open(fpath, 'r') as f:

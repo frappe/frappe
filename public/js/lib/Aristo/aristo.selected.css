@@ -63,7 +63,7 @@
 .ui-widget-content a { color: #4F4F4F; }
 .ui-widget-header { border: 1px solid #B6B6B6; color: #4F4F4F; font-weight: bold; }
 .ui-widget-header {
-	background: #ededed url(../js/lib/Aristo/images/bg_fallback.png) 0 0 repeat-x; /* Old browsers */
+	background: #ededed url(../lib/js/lib/Aristo/images/bg_fallback.png) 0 0 repeat-x; /* Old browsers */
 		background: -moz-linear-gradient(top, #ededed 0%, #c4c4c4 100%); /* FF3.6+ */
 		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ededed), color-stop(100%,#c4c4c4)); /* Chrome,Safari4+ */
 		background: -webkit-linear-gradient(top, #ededed 0%,#c4c4c4 100%); /* Chrome10+,Safari5.1+ */
@@ -77,7 +77,7 @@
 ----------------------------------*/
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { border: 1px solid #B6B6B6; font-weight: normal; color: #4F4F4F; }
 .ui-state-default, .ui-widget-content .ui-state-default, .ui-widget-header .ui-state-default { 
-	background: #ededed url(../js/lib/Aristo/images/bg_fallback.png) 0 0 repeat-x; /* Old browsers */
+	background: #ededed url(../lib/js/lib/Aristo/images/bg_fallback.png) 0 0 repeat-x; /* Old browsers */
 		background: -moz-linear-gradient(top, #ededed 0%, #c4c4c4 100%); /* FF3.6+ */
 		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#ededed), color-stop(100%,#c4c4c4)); /* Chrome,Safari4+ */
 		background: -webkit-linear-gradient(top, #ededed 0%,#c4c4c4 100%); /* Chrome10+,Safari5.1+ */
@@ -94,7 +94,7 @@
 .ui-state-active, .ui-widget-content .ui-state-active, .ui-widget-header .ui-state-active { 
 	outline: none;
 	color: #1c4257; border: 1px solid #7096ab;
-	background: #ededed url(../js/lib/Aristo/images/bg_fallback.png) 0 -50px repeat-x; /* Old browsers */
+	background: #ededed url(../lib/js/lib/Aristo/images/bg_fallback.png) 0 -50px repeat-x; /* Old browsers */
 		background: -moz-linear-gradient(top, #b9e0f5 0%, #92bdd6 100%); /* FF3.6+ */
 		background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#b9e0f5), color-stop(100%,#92bdd6)); /* Chrome,Safari4+ */
 		background: -webkit-linear-gradient(top, #b9e0f5 0%,#92bdd6 100%); /* Chrome10+,Safari5.1+ */
@@ -123,14 +123,14 @@
 ----------------------------------*/
 
 /* states and images */
-.ui-icon { width: 16px; height: 16px; background-image: url(../js/lib/Aristo/images/ui-icons_222222_256x240.png); }
-.ui-widget-content .ui-icon {background-image: url(../js/lib/Aristo/images/ui-icons_222222_256x240.png); }
-.ui-widget-header .ui-icon {background-image: url(../js/lib/Aristo/images/ui-icons_222222_256x240.png); }
-.ui-state-default .ui-icon { background-image: url(../js/lib/Aristo/images/ui-icons_454545_256x240.png); }
-.ui-state-hover .ui-icon, .ui-state-focus .ui-icon {background-image: url(../js/lib/Aristo/images/ui-icons_454545_256x240.png); }
-.ui-state-active .ui-icon {background-image: url(../js/lib/Aristo/images/ui-icons_454545_256x240.png); }
-.ui-state-highlight .ui-icon {background-image: url(../js/lib/Aristo/images/ui-icons_454545_256x240.png); }
-.ui-state-error .ui-icon, .ui-state-error-text .ui-icon { background: url(../js/lib/Aristo/images/icon_sprite.png) -16px 0 no-repeat !important; }
+.ui-icon { width: 16px; height: 16px; background-image: url(../lib/js/lib/Aristo/images/ui-icons_222222_256x240.png); }
+.ui-widget-content .ui-icon {background-image: url(../lib/js/lib/Aristo/images/ui-icons_222222_256x240.png); }
+.ui-widget-header .ui-icon {background-image: url(../lib/js/lib/Aristo/images/ui-icons_222222_256x240.png); }
+.ui-state-default .ui-icon { background-image: url(../lib/js/lib/Aristo/images/ui-icons_454545_256x240.png); }
+.ui-state-hover .ui-icon, .ui-state-focus .ui-icon {background-image: url(../lib/js/lib/Aristo/images/ui-icons_454545_256x240.png); }
+.ui-state-active .ui-icon {background-image: url(../lib/js/lib/Aristo/images/ui-icons_454545_256x240.png); }
+.ui-state-highlight .ui-icon {background-image: url(../lib/js/lib/Aristo/images/ui-icons_454545_256x240.png); }
+.ui-state-error .ui-icon, .ui-state-error-text .ui-icon { background: url(../lib/js/lib/Aristo/images/icon_sprite.png) -16px 0 no-repeat !important; }
 .ui-state-highlight .ui-icon, .ui-state-error .ui-icon { margin-top: -1px; }
 
 /* positioning */
@@ -255,7 +255,7 @@
 .ui-icon-video { background-position: -224px -128px; }
 .ui-icon-script { background-position: -240px -128px; }
 .ui-icon-alert { background-position: 0 -144px; }
-.ui-icon-info { background: url(../js/lib/Aristo/images/icon_sprite.png) 0 0 no-repeat !important; }
+.ui-icon-info { background: url(../lib/js/lib/Aristo/images/icon_sprite.png) 0 0 no-repeat !important; }
 .ui-icon-notice { background-position: -32px -144px; }
 .ui-icon-help { background-position: -48px -144px; }
 .ui-icon-check { background-position: -64px -144px; }
@@ -421,7 +421,7 @@
 .ui-datepicker .ui-datepicker-next span { background-position: -16px -32px !important; }
 .ui-datepicker .ui-datepicker-prev-hover span { background-position: 0px -48px !important; }
 .ui-datepicker .ui-datepicker-next-hover span { background-position: -16px -48px !important; }
-.ui-datepicker .ui-datepicker-prev span, .ui-datepicker .ui-datepicker-next span { display: block; position: absolute; left: 50%; margin-left: -8px; top: 50%; margin-top: -8px; background: url(../js/lib/Aristo/images/icon_sprite.png) no-repeat; }
+.ui-datepicker .ui-datepicker-prev span, .ui-datepicker .ui-datepicker-next span { display: block; position: absolute; left: 50%; margin-left: -8px; top: 50%; margin-top: -8px; background: url(../lib/js/lib/Aristo/images/icon_sprite.png) no-repeat; }
 .ui-datepicker .ui-datepicker-title { margin: 0 2.3em; line-height: 1.8em; text-align: center; font-size: 12px; text-shadow: 0 1px 0 rgba(255,255,255,0.6); }
 .ui-datepicker .ui-datepicker-title select { font-size:1em; margin:1px 0; }
 .ui-datepicker select.ui-datepicker-month-year {width: 100%;}
