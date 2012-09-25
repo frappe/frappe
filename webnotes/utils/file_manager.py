@@ -22,6 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+import os, conf
 
 def upload():
 	# get record details
@@ -112,9 +113,9 @@ def remove_file(dt, dn, fid):
 
 def make_thumbnail(blob, size):
 	from PIL import Image
-	import cStringIO
+	from cStringIO import StringIO
 				
-	fobj = cStringIO.StringIO(blob)
+	fobj = StringIO(blob)
 	image = Image.open(fobj)
 	image.thumbnail((tn,tn*2), Image.ANTIALIAS)
 	outfile = cStringIO.StringIO()
@@ -124,9 +125,7 @@ def make_thumbnail(blob, size):
 	
 	return fcontent
 
-def get_uploaded_content():
-	import webnotes
-	
+def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
 	if 'filedata' in webnotes.form:
 		i = webnotes.form['filedata']
@@ -136,68 +135,62 @@ def get_uploaded_content():
 		webnotes.msgprint('No File');
 		return None, None
 
-def save_uploaded():
-	import webnotes.utils
-	
+def save_uploaded():	
 	webnotes.response['type'] = 'iframe'
-
 	fname, content = get_uploaded_content()
 	if content:
 		fid = save_file(fname, content)
 		return fid, fname
-		
 	else: 
 		return None, fname
 
-# -------------------------------------------------------
-
 def save_file(fname, content, module=None):
 	from webnotes.model.doc import Document
+	from filecmp import cmp
+
+	check_max_file_size(content)
+	new_fname = write_file(content)
 
 	# some browsers return the full path
 	if '\\' in fname:
 		fname = fname.split('\\')[-1]
 	if '/' in fname:
 		fname = fname.split('/')[-1]
+		
+	# we use - for versions, so remove them from the name!
+	fname = fname.replace('-', '')
 
-	# generate the ID (?)
-	f = Document('File Data')
-	f.file_name = fname
-	if module:
-		f.module = module
-	f.save(1)
-	
-	write_file(f.name, content)
+	fpath = os.path.join(conf.files_path, fname)
+	if os.path.exists(fpath) and cmp(fpath, new_fname):
+		# remove file, already exists!
+		os.remove(new_fname)
+		return fname
+	else:
+		# generate the ID (?)
+		f = Document('File Data')
+		f.file_name = fname
+		f.save(1)
+		# rename new file
+		os.rename(new_fname, os.path.join(conf.files_path, f.name))		
+		return f.name
 
-	return f.name
-
-# -------------------------------------------------------
-
-def write_file(fid, content):
-	import os, conf
-
-	# test size
-	max_file_size = 1000000
-	if hasattr(conf, 'max_file_size'):
-		max_file_size = conf.max_file_size
+def check_max_file_size(content):
+	max_file_size = getattr(conf, 'max_file_size', 1000000)
 
 	if len(content) > max_file_size:
 		raise Exception, 'Maximum File Limit (%s MB) Crossed' % (int(max_file_size / 1000000))
 
-	# no slashes
-	fid = fid.replace('/','-')
-
-	# save to a folder (not accessible to public)
-	folder = webnotes.get_files_path()
-		
+def write_file(content):
+	"""write file to disk with a random name"""
 	# create account folder (if not exists)
-	webnotes.create_folder(folder)
+	webnotes.create_folder(conf.files_path)
+	fname = os.path.join(conf.files_path, webnotes.generate_hash())
 
 	# write the file
-	file = open(os.path.join(folder, fid),'w+')
-	file.write(content)
-	file.close()
-		
+	with open(fname, 'w+') as f:
+		f.write(content)
+
+	return fname		
 
 def get_file_system_name(fname):
 	# get system name from File Data table
@@ -208,7 +201,7 @@ def delete_file(fid, verbose=0):
 	"""delete file from file system"""
 	import os
 	webnotes.conn.sql("delete from `tabFile Data` where name=%s", fid)	
-	path = os.path.join(webnotes.get_files_path(), fid.replace('/','-'))
+	path = os.path.join(conf.files_path, fid.replace('/','-'))
 	if os.path.exists(path):
 		os.remove(path)
 		
@@ -223,7 +216,7 @@ def get_file(fname):
 
 	# read the file
 	import os
-	with open(os.path.join(webnotes.get_files_path(), file_id), 'r') as f:
+	with open(os.path.join(conf.files_path, file_id), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]

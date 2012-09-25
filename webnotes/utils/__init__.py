@@ -106,13 +106,6 @@ def get_request_site_address():
 	except TypeError, e:
 		return 'http://localhost'
 
-def generate_hash():
-	"""
-		 Generates random hash for session id
-	"""
-	import hashlib, time
-	return hashlib.sha224(str(time.time())).hexdigest()
-
 def random_string(length):
 	"""generate a random string"""
 	import string

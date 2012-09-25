@@ -119,14 +119,6 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			raise raise_exception, msg
 		else:
 			raise ValidationError, msg
-
-def get_index_path():
-	import os
-	return os.sep.join(os.path.dirname(os.path.abspath(__file__)).split(os.sep)[:-2])
-
-def get_files_path():
-	import conf
-	return conf.files_path
 	
 def create_folder(path):
 	"""
@@ -254,3 +246,8 @@ def get_roles(user=None, with_standard=True):
 		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
 	
 	return roles
+
+def generate_hash():
+	"""Generates random hash for session id"""
+	import hashlib, time
+	return hashlib.sha224(str(time.time())).hexdigest()

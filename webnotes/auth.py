@@ -319,7 +319,7 @@ class Session:
 		if webnotes.login_manager.user=='Guest':
 			sid = 'Guest'
 		else:
-			sid = webnotes.utils.generate_hash()
+			sid = webnotes.generate_hash()
 		
 		self.data['user'] = webnotes.login_manager.user
 		self.data['sid'] = sid
