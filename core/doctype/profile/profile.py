@@ -59,7 +59,7 @@ class DocType:
 		"""logout if disabled"""
 		if not cint(self.doc.enabled):
 			import webnotes
-			webnotes.login_manager.logout(self.doc.name)
+			webnotes.login_manager.logout(user=self.doc.name)
 	
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
@@ -193,6 +193,11 @@ Thank you,<br>
 		sendmail_md(self.doc.email, subject="Welcome to " + startup.product_name, msg=txt % args)
 	
 	def on_rename(self,newdn,olddn):
+		# do not allow renaming administrator and guest
+		if olddn in ["Administrator", "Guest"]:
+			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
+				(olddn, ), raise_exception=1)
+			
 		tables = webnotes.conn.sql("show tables")
 		for tab in tables:
 			desc = webnotes.conn.sql("desc `%s`" % tab[0], as_dict=1)
@@ -205,9 +210,14 @@ Thank you,<br>
 					update `%s` set `%s`=%s
 					where `%s`=%s""" % \
 					(tab[0], field, '%s', field, '%s'), (newdn, olddn))
+					
+		# set email
 		webnotes.conn.sql("""\
 			update `tabProfile` set email=%s
 			where name=%s""", (newdn, newdn))
+		
+		# update __Auth table
+		webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
 						
 @webnotes.whitelist()
 def get_all_roles(arg=None):
