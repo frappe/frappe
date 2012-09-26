@@ -59,7 +59,7 @@ class DocType:
 		"""logout if disabled"""
 		if not cint(self.doc.enabled):
 			import webnotes
-			webnotes.login_manager.logout(self.doc.name)
+			webnotes.login_manager.logout(user=self.doc.name)
 	
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
