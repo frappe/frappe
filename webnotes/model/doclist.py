@@ -219,7 +219,7 @@ class DocList:
 		
 		for d in self.children:
 			if d.fields.has_key('parent'):
-				if d.parent and (not d.parent.startswith('old_parent:')):
+				if d.parent:
 					d.parent = self.doc.name # rename if reqd
 					d.parenttype = self.doc.doctype
 
@@ -257,7 +257,7 @@ class DocList:
 			Save & Submit - set docstatus = 1, run "on_submit"
 		"""
 		if self.doc.docstatus != 0:
-			msgprint("Only draft can be submitted", raise_exception=1)
+			webnotes.msgprint("Only draft can be submitted", raise_exception=1)
 		self.to_docstatus = 1
 		self.save()
 		self.run_method('on_submit')

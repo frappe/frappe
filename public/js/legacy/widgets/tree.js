@@ -31,8 +31,8 @@ function Tree(parent, width, do_animate) {
   this.is_root = 1;
   this.do_animate = do_animate;
   var me = this;
-  this.exp_img = 'images/lib/icons/plus.gif';
-  this.col_img = 'images/lib/icons/minus.gif';
+  this.exp_img = 'lib/images/icons/plus.gif';
+  this.col_img = 'lib/images/icons/minus.gif';
   
   this.body = $a(parent, 'div');
   if(width)$w(this.body, width);
@@ -124,7 +124,7 @@ function TreeNode(tree, parent, id, imagesrc, onclick, onexpand, opts, label) {
     $y(t2,{borderCollapse:'collapse'});
     this.img_cell = $td(t2, 0, 0);
     $y(this.img_cell, {cursor:'pointer',verticalAlign:'middle',width:'20px'});
-    if(!imagesrc) imagesrc = "images/lib/icons/folder.gif";
+    if(!imagesrc) imagesrc = "lib/images/icons/folder.gif";
     this.usrimg = $a(this.img_cell, 'img');
     this.usrimg.src = imagesrc;
     

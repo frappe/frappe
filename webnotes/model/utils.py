@@ -100,7 +100,7 @@ def getlist(doclist, field):
 	from webnotes.utils import cint
 	l = []
 	for d in doclist:
-		if d.parent and (not d.parent.lower().startswith('old_parent:')) and d.parentfield == field:
+		if d.parentfield == field:
 			l.append(d)
 
 	l.sort(lambda a, b: cint(a.idx) - cint(b.idx))

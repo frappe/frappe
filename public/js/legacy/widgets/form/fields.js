@@ -874,7 +874,7 @@ CheckField.prototype.validate = function(v) {
 CheckField.prototype.onmake = function() {
 	this.checkimg = $a(this.disp_area, 'div');
 	var img = $a(this.checkimg, 'img');
-	img.src = 'images/lib/ui/tick.gif';
+	img.src = 'lib/images/ui/tick.gif';
 	$dh(this.checkimg);
 }
 

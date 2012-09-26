@@ -73,9 +73,9 @@ class Document:
 		self._prefix = prefix
 		
 		if fielddata: 
-			self.fields = fielddata
+			self.fields = webnotes.DictObj(fielddata)
 		else: 
-			self.fields = {}
+			self.fields = webnotes.DictObj()
 		
 		if not self.fields.has_key('name'):
 			self.fields['name']='' # required on save
@@ -95,6 +95,9 @@ class Document:
 		else:
 			if not fielddata:
 				self.fields['__islocal'] = 1
+		
+		if not self.fields.docstatus:
+			self.fields.docstatus = 0
 
 	def __nonzero__(self):
 		return True
@@ -541,7 +544,7 @@ class Document:
 		d.owner = webnotes.session['user']
 		
 		if local:
-			d.fields['__islocal'] = '1' # for Client to identify unsaved doc
+			d.fields['__islocal'] = 1 # for Client to identify unsaved doc
 		else: 
 			d.save(new=1)
 	

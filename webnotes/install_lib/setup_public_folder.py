@@ -19,6 +19,7 @@ def make():
 		["web.py", "../lib/public/html/web.py"],
 		["server.py", "../lib/public/html/server.py"],
 		["app.html", "../lib/public/html/app.html"],
+		["blank.html", "../lib/public/html/blank.html"],
 		["unsupported.html", "../lib/public/html/unsupported.html"],
 		["sitemap.xml", "../lib/public/html/sitemap.xml"],
 		["rss.xml", "../lib/public/html/rss.xml"],

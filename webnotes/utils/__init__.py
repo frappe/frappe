@@ -259,13 +259,18 @@ user_format = None
 	 * dd/mm/yyyy
 """
 
-def formatdate(string_date):
+def formatdate(string_date=None):
 	"""
 	 	Convers the given string date to :data:`user_format`
 	"""
 	global user_format
+
 	if not user_format:
 		user_format = webnotes.conn.get_value('Control Panel', None, 'date_format')
+
+	if not string_date:
+		string_date = nowdate()
+		
 	if not isinstance(string_date, basestring):
 		string_date = str(string_date)
 	d = string_date.split('-');

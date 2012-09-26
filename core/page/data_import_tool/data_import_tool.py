@@ -117,18 +117,16 @@ def getdocfield(fieldname):
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def upload():
 	"""upload data"""
-	import csv
 	global doctype_dl
-	from webnotes.utils.file_manager import get_uploaded_content
 	import webnotes.model.doctype
 	from webnotes.model.doc import Document
+	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
 	
-	fname, fcontent = get_uploaded_content()
 	overwrite = webnotes.form_dict.get('overwrite')
 
 	ret = []
 	
-	rows = read_csv_content(fcontent)
+	rows = read_csv_content_from_uploaded_file()
 	
 	# doctype
 	doctype = rows[0][0].split(':')[1].strip()
@@ -184,41 +182,11 @@ def upload():
 			webnotes.errprint(webnotes.getTraceback())
 	return ret
 	
-def read_csv_content(fcontent):
-	import csv
-	import webnotes
-	from webnotes.utils import cstr
-	
-	rows = []
-	
-	try:
-		reader = csv.reader(fcontent.splitlines())
-		# decode everything
-		csvrows = [[val for val in row] for row in reader]
-		
-		for row in csvrows:
-			newrow = []
-			for val in row:
-				if webnotes.form_dict.get('ignore_encoding_errors'):
-					newrow.append(cstr(val.strip()))
-				else:
-					try:
-						newrow.append(unicode(val.strip(), 'utf-8'))
-					except UnicodeDecodeError, e:
-						raise Exception, """Some character(s) in row #%s, column #%s are
-							not readable by utf-8. Ignoring them. If you are importing a non
-							english language, please make sure your file is saved in the 'utf-8'
-							encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
-					
-			rows.append(newrow)
-		
-		return rows
-	except Exception, e:
-		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
-		raise e
-
 def check_record(d, parenttype):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
+	
+	from webnotes.utils.dateutils import user_to_str
+	
 	if parenttype and not d.get('parent'):
 		raise Exception, "parent is required."
 
@@ -240,14 +208,7 @@ def check_record(d, parenttype):
 						raise Exception, "%s must be one of:" % key
 						
 			if docfield.fieldtype=='Date' and val:
-				import datetime
-				dateformats = {
-					'yyyy-mm-dd':'%Y-%m-%d',
-					'dd/mm/yyyy':'%d/%m/%Y',
-					'mm/dd/yyyy':'%m/%d/%Y'
-				}
-				d[key] = datetime.datetime.strptime(val, 
-					dateformats[webnotes.form_dict['date_format']]).strftime('%Y-%m-%d')
+				d[key] = user_to_str(val, webnotes.form_dict['date_format'])
 
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()

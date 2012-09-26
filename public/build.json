@@ -11,6 +11,7 @@
 			"lib/public/js/wn/misc/user.js",
 			"lib/public/js/lib/public/json2.js",
 			"lib/public/js/wn/router.js",
+			"lib/public/js/wn/ui/messages.js",
 			"lib/public/js/wn/ui/listing.js",
 			"lib/public/js/wn/ui/filters.js",
 			"lib/public/js/wn/views/container.js",

@@ -200,12 +200,7 @@ wn.views.GridReport = Class.extend({
 		});
 	},
 	make_waiting: function() {
-		this.waiting = $('<div class="well" style="width: 63%; margin: 30px auto;">\
-			<p style="text-align: center;">Loading Report...</p>\
-			<div class="progress progress-striped active">\
-				<div class="bar" style="width: 10%"></div></div>')
-			.appendTo(this.wrapper);
-			
+		this.waiting = wn.messages.waiting(this.wrapper, "Loading Report...", '10');			
 	},
 	load_filter_values: function() {
 		var me = this;

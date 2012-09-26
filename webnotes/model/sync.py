@@ -4,6 +4,8 @@ from __future__ import unicode_literals
 	perms will get synced only if none exist
 """
 import webnotes
+import os
+import conf
 
 def sync_all(force=0):
 	modules = []
@@ -18,41 +20,38 @@ def sync_all(force=0):
 	return modules
 
 def sync_core_doctypes(force=0):
-	import os
-	import core
 	# doctypes
-	return walk_and_sync(os.path.abspath(os.path.dirname(core.__file__)), force)
+	return walk_and_sync(os.path.join(os.path.dirname(conf.__file__), 'lib'), force)
 
 def sync_modules(force=0):
-	import conf, os
 	return walk_and_sync(os.path.join(os.path.dirname(conf.__file__), 'app'), force)
 
 def walk_and_sync(start_path, force=0):
 	"""walk and sync all doctypes and pages"""
-	import os
 	from webnotes.modules import reload_doc
 
 	modules = []
 
 	for path, folders, files in os.walk(start_path):
-		for f in files:
-			if f.endswith(".txt"):
-				# great grand-parent folder is module_name
-				module_name = path.split(os.sep)[-3]
-				if not module_name in modules:
-					modules.append(module_name)
+		if os.path.basename(os.path.dirname(path)) in ('doctype', 'page'):
+			for f in files:				
+				if f.endswith(".txt"):
+					# great grand-parent folder is module_name
+					module_name = path.split(os.sep)[-3]
+					if not module_name in modules:
+						modules.append(module_name)
 				
-				# grand parent folder is doctype
-				doctype = path.split(os.sep)[-2]
+					# grand parent folder is doctype
+					doctype = path.split(os.sep)[-2]
 				
-				# parent folder is the name
-				name = path.split(os.sep)[-1]
+					# parent folder is the name
+					name = path.split(os.sep)[-1]
 				
-				if doctype == 'doctype':
-					sync(module_name, name, force)
-				elif doctype in ['page']:#, 'search_criteria', 'Print Format', 'DocType Mapper']:
-					if reload_doc(module_name, doctype, name):
-						print module_name + ' | ' + doctype + ' | ' + name
+					if doctype == 'doctype':
+						sync(module_name, name, force)
+					elif doctype in ['page']:#, 'search_criteria', 'Print Format', 'DocType Mapper']:
+						if reload_doc(module_name, doctype, name):
+							print module_name + ' | ' + doctype + ' | ' + name
 					
 	return modules
 
@@ -87,7 +86,6 @@ def sync(module_name, docname, force=0):
 def get_file_path(module_name, docname):
 	if not (module_name and docname):
 		raise Exception('No Module Name or DocName specified')
-	import os
 	module = __import__(module_name)
 	module_init_path = os.path.abspath(module.__file__)
 	module_path = os.sep.join(module_init_path.split(os.sep)[:-1])
@@ -139,7 +137,6 @@ def sync_install(force=1):
 	load_install_docs(modules)
 
 def load_install_docs(modules):
-	import os
 	if isinstance(modules, basestring): modules = [modules]
 	
 	for module_name in modules:
