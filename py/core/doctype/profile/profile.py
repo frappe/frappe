@@ -57,14 +57,15 @@ class DocType:
 		
 	def logout_if_disabled(self):
 		"""logout if disabled"""
-		if cint(self.doc.disabled):
+		if not cint(self.doc.enabled):
 			import webnotes.login_manager
 			webnotes.login_manager.logout(self.doc.name)
 	
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
 		import conf
-		if hasattr(conf, 'max_users'):
+		# check only when enabling a user
+		if hasattr(conf, 'max_users') and self.doc.enabled:
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
 				and name not in ('Administrator', 'Guest')""")[0][0]
