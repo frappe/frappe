@@ -42,7 +42,11 @@ def user_to_str(date, date_format = None):
 		'mm/dd/yyyy':'%m/%d/%Y',
 		'dd-mm-yyyy':'%d-%m-%Y'
 	}
-	return datetime.datetime.strptime(date, 
-		dateformats[date_format]).strftime('%Y-%m-%d')
-	
+	try:
+		return datetime.datetime.strptime(date, 
+			dateformats[date_format]).strftime('%Y-%m-%d')
+	except ValueError, e:
+		webnotes.msgprint("Date %s must be in format %s" % (date, date_format), raise_exception=True)
+
+
 	

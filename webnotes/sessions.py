@@ -57,6 +57,7 @@ def get():
 	if not getattr(conf,'auto_cache_clear',None):
 		cache = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
 		if cache:
+			cache['from_cache'] = 1
 			return cache
 	
 	# if not create it

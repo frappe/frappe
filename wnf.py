@@ -366,7 +366,7 @@ def run():
 		
 	elif options.build_web_cache:
 		import website.web_cache
-		website.web_cache.refresh_cache(True)
+		website.web_cache.refresh_cache(['Blog'])
 		
 	elif options.append_future_import:
 		append_future_import()
