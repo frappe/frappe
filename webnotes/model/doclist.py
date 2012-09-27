@@ -46,11 +46,13 @@ class DocList:
 			self.doc = dt[0]
 			self.children = dt[1:]
 
-	def load_from_db(self, dt, dn, prefix='tab'):
+	def load_from_db(self, dt=None, dn=None, prefix='tab'):
 		"""
 			Load doclist from dt
 		"""
 		from webnotes.model.doc import Document, getchildren
+		if not dt: dt = self.doc.doctype
+		if not dn: dn = self.doc.name
 
 		doc = Document(dt, dn, prefix=prefix)
 
@@ -62,9 +64,7 @@ class DocList:
 		for t in tablefields:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
-		self.docs = doclist
-		self.doc = doc
-		self.children = doclist[1:]
+		self.set_doclist(doclist)
 
 	def __iter__(self):
 		"""
@@ -81,8 +81,11 @@ class DocList:
 		self.objectify(docname)
 		
 	def set_doclist(self, docs):
-		self.doclist = docs
+		self.docs = self.doclist = docs
 		self.doc, self.children = docs[0], docs[1:]
+		if self.obj:
+			self.obj.doclist = self.doclist
+			self.obj.doc = self.doc
 
 	def objectify(self, docname=None):
 		"""
@@ -102,12 +105,6 @@ class DocList:
 		from webnotes.model.code import get_obj
 		self.obj = get_obj(doc=self.doc, doclist=self.children)
 		return self.obj
-
-	def next(self):
-		"""
-			Next doc
-		"""
-		return self.docs.next()
 
 	def to_dict(self):
 		"""
