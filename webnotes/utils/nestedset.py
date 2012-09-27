@@ -32,8 +32,8 @@
 from __future__ import unicode_literals
 
 # uncomment below lines for testing
-import sys, unittest
-sys.path.extend([".", "app", "lib"])
+# import sys, unittest
+# sys.path.extend([".", "app", "lib"])
 
 import webnotes, unittest
 from webnotes import msgprint
