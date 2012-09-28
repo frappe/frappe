@@ -221,12 +221,13 @@ wn.ui.Listing = Class.extend({
 		if(!a1 && !(a0 && a0.append)) 
 			this.start = 0;
 
-		me.set_working(true);
+		if(!me.opts.no_loading)
+			me.set_working(true);
 		wn.call({
 			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
 			args: this.get_call_args(a0),
 			callback: function(r) { 
-				me.set_working(false);
+				if(!me.opts.no_loading)me.set_working(false);
 				me.render_results(r) 
 			},
 			no_spinner: this.opts.no_loading
@@ -286,6 +287,9 @@ wn.ui.Listing = Class.extend({
 
 	render_list: function(values) {		
 		var m = Math.min(values.length, this.page_length);
+		this.data = values;
+		if(this.filter_list)
+			this.filter_values = this.filter_list.get_filters();
 		
 		// render the rows
 		for(var i=0; i < m; i++) {

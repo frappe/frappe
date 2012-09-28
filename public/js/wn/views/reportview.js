@@ -22,7 +22,7 @@
 
 wn.views.reportview = {
 	show: function(dt, rep_name) {
-		wn.require('app/js/report-legacy.js');
+		wn.require('js/report-legacy.js');
 		dt = get_label_doctype(dt);
 
 		if(!_r.rb_con) {

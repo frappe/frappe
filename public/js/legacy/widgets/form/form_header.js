@@ -107,7 +107,7 @@ _f.FrmHeader = Class.extend({
 		// Save
 		if(docstatus==0 && p[WRITE]) {
 			this.appframe.add_button('Save', function() { cur_frm.save('Save');}, '');
-			this.appframe.buttons['Save'].addClass('btn-info');			
+			this.appframe.buttons['Save'].addClass('btn-info').text("Save (Ctrl+S)");			
 		}
 		// Submit
 		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))

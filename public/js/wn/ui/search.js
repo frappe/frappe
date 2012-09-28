@@ -41,7 +41,7 @@ wn.ui.Search = Class.extend({
 				}
 			},
 			render_row: function(parent, data) {
-				$ln = $('<a style="cursor: pointer;" data-name="'+data.name+'">'
+				$ln = $('<a href="#" data-name="'+data.name+'">'
 					+ data.name +'</a>')
 					.appendTo(parent)
 					.click(function() {
@@ -51,7 +51,11 @@ wn.ui.Search = Class.extend({
 							me.callback(val);
 						else 
 							wn.set_route('Form', me.doctype, val);
+						return false;
 					});
+				if(this.data.length==1) {
+					$ln.click();
+				}
 			}
 		});
 		this.list.filter_list.add_filter(this.doctype, 'name', 'like');

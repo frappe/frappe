@@ -259,7 +259,7 @@ def runquery(q='', ret=0, from_export=0):
 		q = q.replace('__user', session['user'])
 		q = q.replace('__today', webnotes.utils.nowdate())
 
-		res = sql(q, as_list=1, formatted=formatted)
+		res = sql(q, as_list=1, formatted=formatted, debug=1)
 
 		colnames, coltypes, coloptions, colwidths = build_description_standard(meta, tl)
 

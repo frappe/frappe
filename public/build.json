@@ -119,6 +119,7 @@
 			"lib/public/js/lib/jquery/jquery.ui.autocomplete.js:concat",
 			"lib/public/js/lib/tiny_mce_33/jquery.tinymce.js:concat",
 			"lib/public/js/lib/bootstrap.min.js:concat",
+			"lib/public/js/lib/mousetrap.min.js",
 			"lib/public/js/lib/sprintf.js",
 			"public/js/core.min.js",
 			"lib/public/js/legacy/globals.js",

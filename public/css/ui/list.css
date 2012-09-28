@@ -15,7 +15,7 @@
 /* list-row */
 div.list-row {
 	border-bottom: 1px solid #ddd;
-	padding: 5px 0px;
+	padding: 5px;
 }
 
 div.list-row .label {

@@ -171,6 +171,10 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		return no_result_message;
 	},
 	render_row: function(row, data) {
+		$(row).css({
+			"margin-left": "-15px",
+			"margin-right": "-15px"
+		});
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
 	},	
@@ -192,7 +196,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var me = this;
 		if(this.can_delete) {
 			this.add_button('Delete', function() { me.delete_items(); }, 'icon-remove');
-			$('<div style="padding: 4px"><input type="checkbox" name="select-all" />\
+			$('<div style="padding: 9px; margin-left: -15px;"><input type="checkbox" name="select-all" />\
 			 	Select all</div>').insertBefore(this.$page.find('.result-list'));
 			this.$page.find('[name="select-all"]').click(function() {
 				me.$page.find('.list-delete').attr('checked', $(this).attr('checked') || false);
