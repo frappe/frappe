@@ -78,7 +78,9 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
 		var module = locals.DocType[this.doctype].module;
 		wn.views.breadcrumbs(this.appframe, locals.DocType[this.doctype].module, this.doctype);
-		this.appframe.add_tab(module, null, function() {
+		this.appframe.add_tab('<span class="small-module-icons small-module-icons-'+
+			module.toLowerCase()+'"></span>'+' <span>'
+			+ module + "</span>", 0.4, function() {
 			wn.set_route(wn.modules[module]);
 		})
 	},

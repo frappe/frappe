@@ -82,20 +82,28 @@ div.appframe-toolbar button {
 
 div.appframe-tabs {
 	position: absolute;
-	margin: 8px;
+	margin: 0px;
 }
 
 span.appframe-tab {
 	display: inline-block;
 	background-color: #555;
 	color: white;
-	padding: 5px 11px;
+	padding: 12px 11px;
 	margin-right: 40px;
 	margin-left: -40px;
-	height: 16px;
+	height: 18px;
 	vertical-align: middle;
 	float: right;
 	cursor: pointer;
+}
+
+span.appframe-tab:hover {
+	opacity: 1 !important;
+}
+
+span.appframe-tab span {
+	display: inline-block;
 }
 
 

@@ -5,7 +5,7 @@ wn.ui.AppFrame = Class.extend({
 				
 		this.$titlebar = $('<div class="appframe-titlebar">\
 			<span class="appframe-title"></span>\
-			<span class="close" style="margin-top: 5px;">&times;</span>\
+			<span class="close" style="margin-top: 5px; margin-right: 7px;">&times;</span>\
 		</div>').appendTo(this.$w);
 
 		this.$w.find('.close').click(function() {
@@ -26,11 +26,11 @@ wn.ui.AppFrame = Class.extend({
 			//this.$w.parents(".layout-wrapper").css("margin-top", "30px");
 		}
 	},
-	add_tab: function(tab_name, background_color, click) {
+	add_tab: function(tab_name, opacity, click) {
 		this.add_tabs();
 		var span = $('<span class="appframe-tab"></span>')
-			.text(tab_name).appendTo(this.tabs);
-		background_color && span.css("background-color", background_color);
+			.html(tab_name).appendTo(this.tabs);
+		opacity && span.css("opacity", opacity);
 		click && span.click(click);
 		return span
 	},
