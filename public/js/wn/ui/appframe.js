@@ -2,10 +2,10 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title) {
 		this.buttons = {};
 		this.$w = $('<div></div>').appendTo(parent);
-		
+				
 		this.$titlebar = $('<div class="appframe-titlebar">\
 			<span class="appframe-title"></span>\
-			<span class="close">&times;</span>\
+			<span class="close" style="margin-top: 5px;">&times;</span>\
 		</div>').appendTo(this.$w);
 
 		this.$w.find('.close').click(function() {
@@ -18,6 +18,21 @@ wn.ui.AppFrame = Class.extend({
 	title: function(txt) {
 		this.clear_breadcrumbs();
 		this.add_breadcrumb(txt);
+	},
+	add_tabs: function() {
+		if(!this.tabs) {
+			this.tabs = $('<div class="appframe-tabs"></div>')
+				.prependTo(this.$w).css("width", this.$w.width());
+			//this.$w.parents(".layout-wrapper").css("margin-top", "30px");
+		}
+	},
+	add_tab: function(tab_name, background_color, click) {
+		this.add_tabs();
+		var span = $('<span class="appframe-tab"></span>')
+			.text(tab_name).appendTo(this.tabs);
+		background_color && span.css("background-color", background_color);
+		click && span.click(click);
+		return span
 	},
 	add_button: function(label, click, icon) {
 		this.add_toolbar();

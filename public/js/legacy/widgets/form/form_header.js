@@ -32,6 +32,12 @@ _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
 		this.appframe = new wn.ui.AppFrame(parent)
 		this.$w = this.appframe.$w;
+		this.appframe.add_tab(frm.meta.module, "#888", function() {
+			wn.set_route(wn.modules[frm.meta.module])
+		});
+		this.appframe.add_tab(frm.doctype, null, function() {
+			wn.set_route("List", frm.doctype);
+		});
 	},
 	refresh: function() {
 		// refresh breadcrumbs

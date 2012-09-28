@@ -47,7 +47,7 @@ class DictObj(dict):
 	def __setstate__(self, d): 
 		self.update(d)
 
-form_dict = {}
+form_dict = DictObj()
 conn = None
 _memc = None
 form = None

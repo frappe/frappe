@@ -56,6 +56,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var page = wn.container.add_page(page_name);
 		wn.container.change_to(page_name);
 		this.$page = $(page);
+
+		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
 		
 		this.$page.html('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="appframe-area"></div>\
@@ -72,9 +74,13 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			</div>\
 			<div style="clear: both"></div>\
 		</div>');
-		
+				
 		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
+		var module = locals.DocType[this.doctype].module;
 		wn.views.breadcrumbs(this.appframe, locals.DocType[this.doctype].module, this.doctype);
+		this.appframe.add_tab(module, null, function() {
+			wn.set_route(wn.modules[module]);
+		})
 	},
 
 	setup: function() {
