@@ -91,7 +91,7 @@ class DbTable:
 		# index
 		t = self.get_index_definitions()
 		if t: add_text += ',\n'.join(self.get_index_definitions()) + ',\n'
-	
+		
 		# create table
 		webnotes.conn.sql("""create table `%s` (
 			name varchar(120) not null primary key, 

@@ -36,6 +36,17 @@ code_fields_dict = {
 	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
 }
 
+class DictObj(dict):
+	"""dict like object that exposes keys as attributes"""
+	def __getattr__(self, key):
+		return self.get(key)
+	def __setattr__(self, key, value):
+		self[key] = value
+	def __getstate__(self): 
+		return self
+	def __setstate__(self, d): 
+		self.update(d)
+
 version = 'v170'
 form_dict = {}
 auth_obj = None

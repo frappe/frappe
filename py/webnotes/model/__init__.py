@@ -29,6 +29,15 @@ default_fields = ['doctype','name','owner','creation','modified','modified_by','
 
 #=================================================================================
 
+def insert(doclist):
+	from webnotes.model.doclist import DocList
+	for d in doclist:
+		d["__islocal"] = 1
+	dl = DocList(doclist)
+	dl.save()
+	
+	return dl
+
 def check_if_doc_is_linked(dt, dn):
 	"""
 		Raises excption if the given doc(dt, dn) is linked in another record.

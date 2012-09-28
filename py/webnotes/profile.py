@@ -248,6 +248,7 @@ class Profile:
 		self.can_get_report = d['can_get_report']
 		self.allow_modules = d['allow_modules']
 		self.all_read = d['all_read']
+		self.in_create = d['in_create']
 
 		self.roles = d['roles']
 		self.defaults = d['defaults']

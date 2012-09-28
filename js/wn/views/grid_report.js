@@ -278,6 +278,7 @@ wn.views.GridReport = Class.extend({
 		});	
 	},
 	make: function() {
+		var me = this;
 		
 		// plot wrapper
 		this.plot_area = $('<div class="plot" style="margin-bottom: 15px; display: none; \

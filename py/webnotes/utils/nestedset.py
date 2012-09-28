@@ -345,6 +345,6 @@ class DocTypeNestedSet:
 		elif self.doc.name!=root and not self.doc.parent_account:
 			msgprint("Parent is mandatory for %s" % (self.doc.name, ), raise_exception=1)
 		
-if __name__=="__main__":
-	webnotes.connect()
-	unittest.main()
+# if __name__=="__main__":
+# 	webnotes.connect()
+# 	unittest.main()
