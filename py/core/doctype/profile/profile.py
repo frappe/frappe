@@ -50,6 +50,12 @@ class DocType:
 
 		self.validate_max_users()
 		self.update_roles()
+		
+		# do not allow disabling administrator/guest
+		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
+			webnotes.msgprint("Hey! You cannot disable user: %s" % self.doc.name,
+				raise_exception=1)
+		
 		self.logout_if_disabled()
 		
 		if self.doc.fields.get('__islocal') and not self.doc.new_password:
@@ -197,10 +203,16 @@ Thank you,<br>
 		sendmail_md(self.doc.email, subject="Welcome to " + startup.product_name, msg=txt % args)
 		
 	def on_trash(self):
-		if self.name in ["Administrator", "Guest"]:
+		if self.doc.name in ["Administrator", "Guest"]:
 			webnotes.msgprint("""Hey! You cannot delete user: %s""" % (self.name, ),
 				raise_exception=1)
-		webnotes.conn.sql("""delete from __Auth where user=%s""", self.name)
+				
+		# disable the user and log him/her out
+		self.doc.enabled = 0
+		self.logout_if_disabled()
+		
+		# delete their password
+		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
 	
 	def on_rename(self,newdn,olddn):
 		# do not allow renaming administrator and guest
