@@ -49,6 +49,9 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 				{fieldtype:'Button', label:'Go', fieldname:'go'}
 			]
 		});
+		if(this.opts.help) {
+			$("<div class='help'>"+this.opts.help+"</div>").appendTo(this.dialog.body);
+		}
 	},
 	bind_events: function() {
 		var me = this;

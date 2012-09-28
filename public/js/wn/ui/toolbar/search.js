@@ -29,6 +29,7 @@ wn.ui.toolbar.Search = wn.ui.toolbar.SelectorDialog.extend({
 			execute: function(val) {
 				new wn.ui.Search({doctype:val});
 			},
+			help: "Shortcut: Ctrl+G"
 		});
 		
 		// get new types

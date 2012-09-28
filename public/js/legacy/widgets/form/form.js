@@ -859,7 +859,7 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 
 		if(call_back){
 			call_back(r);
-		}
+		}		
 	}
 
 	var me = this;
