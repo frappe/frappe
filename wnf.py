@@ -75,8 +75,20 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	print colored('Updated', 'green')
 	
 def pull(remote, branch):
-	os.system('cd lib && git pull %s %s' % (remote, branch))
-	os.system('cd ../app && git pull %s %s' % (remote, branch))
+	os.chdir("lib")
+	os.system('git pull %s %s' % (remote, branch))
+	os.chdir("../app")
+	os.system('git pull %s %s' % (remote, branch))
+	rebuild()
+
+def rebuild():
+	# build js / css
+	from webnotes.utils import bundlejs
+	bundlejs.bundle(options.no_compress)		
+
+	# build cache
+	import website.web_cache
+	website.web_cache.refresh_cache(['Blog'])
 	
 def apply_latest_patches():
 	import webnotes.modules.patch_handler

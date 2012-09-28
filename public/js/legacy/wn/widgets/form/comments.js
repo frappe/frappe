@@ -37,6 +37,11 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 		else this.wrapper = $a(parent, 'div', 'sidebar-comment-wrapper');
 
 		this.input = $a_input(this.wrapper, 'text');
+		$(this.input).keydown(function(e) {
+			if(e.which==13) {
+				$(me.btn).click();
+			}
+		})
 		this.btn = $btn(this.wrapper, 'Post', function() { me.add_comment() }, {marginLeft:'8px'});
 
 		this.render_comments()
