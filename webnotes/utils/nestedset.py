@@ -31,10 +31,6 @@
 # ------------------------------------------
 from __future__ import unicode_literals
 
-# uncomment below lines for testing
-# import sys, unittest
-# sys.path.extend([".", "app", "lib"])
-
 import webnotes, unittest
 from webnotes import msgprint
 from webnotes.model.doclist import DocList
@@ -344,7 +340,3 @@ class DocTypeNestedSet:
 	
 		elif self.doc.name!=root and not self.doc.parent_account:
 			msgprint("Parent is mandatory for %s" % (self.doc.name, ), raise_exception=1)
-		
-if __name__=="__main__":
-	webnotes.connect()
-	unittest.main()
