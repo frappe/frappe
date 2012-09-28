@@ -84,7 +84,7 @@ def pull(remote, branch):
 def rebuild():
 	# build js / css
 	from webnotes.utils import bundlejs
-	bundlejs.bundle(options.no_compress)		
+	bundlejs.bundle()		
 
 	# build cache
 	import website.web_cache
