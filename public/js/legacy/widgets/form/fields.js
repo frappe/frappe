@@ -208,6 +208,8 @@ Field.prototype.refresh_display = function() {
 		if(this.disp_status=='Write') { // write
 			if(this.make_input&&(!this.input)) { // make input if reqd
 				this.make_input();
+				if(this.txt || this.input)
+					$(this.txt || this.input).addClass("mousetrap");
 				if(this.onmake_input) this.onmake_input();				
 			}
 			

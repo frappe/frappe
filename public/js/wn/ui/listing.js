@@ -287,6 +287,7 @@ wn.ui.Listing = Class.extend({
 
 	render_list: function(values) {		
 		var m = Math.min(values.length, this.page_length);
+		this.data = values;
 		
 		// render the rows
 		for(var i=0; i < m; i++) {
