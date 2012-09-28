@@ -137,6 +137,8 @@ class Database:
 		# execute
 		try:
 			if values!=():
+				if isinstance(values, dict):
+					values = dict(values)
 				if debug: webnotes.errprint(query % values)
 				self._cursor.execute(query, values)
 				
