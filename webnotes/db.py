@@ -240,34 +240,54 @@ class Database:
 			nres.append(nr)
 		return nres
 
-	def get_value(self, doctype, docname, fieldname, ignore=None):
-		"""
-		      Get a single / multiple value from a record.
+	def build_conditions(self, filters):
+		def _build_condition(key):
+			"""
+				filter's key is passed by map function
+				build conditions like:
+					* ifnull(`fieldname`, default_value) = %(fieldname)s
+					* `fieldname` = %(fieldname)s
+			"""
+			if "[" in key:
+				split_key = key.split("[")
+				return "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") = %(" + key + ")s"
+			else:
+				return "`" + key + "` = %(" + key + ")s"
 
-		      For Single DocType, let docname be = None
-		"""
+		if isinstance(filters, basestring):
+			filters = { "name": filters }
+		conditions = map(_build_condition, filters)
+
+		return " and ".join(conditions), filters
+
+	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False):
+		"""Get a single / multiple value from a record. 
+		For Single DocType, let filters be = None"""
+		if filters is not None and (filters!=doctype or filters=='DocType'):
 			
-		fl = fieldname
-		if docname and (docname!=doctype or docname=='DocType'):
-			if type(fieldname) in (list, tuple):
-				fl = '`, `'.join(fieldname)
+			fl = isinstance(fieldname, basestring) and fieldname or "`, `".join(fieldname)
+			conditions, filters = self.build_conditions(filters)
+			
 			try:
-				import json
-				from webnotes.utils import cstr
-				r = self.sql("select `%s` from `tab%s` where name='%s'" % (fl, doctype, docname))
+				r = self.sql("select `%s` from `tab%s` where %s" % (fl, doctype, conditions), 
+					filters, as_dict)
 			except Exception, e:
 				if e.args[0]==1054 and ignore:
 					return None
 				else:
 					raise e
-			return r and (len(r[0]) > 1 and r[0] or r[0][0]) or None
-		else:
-			if type(fieldname) in (list, tuple):
-				fl = "', '".join(fieldname)
 
-			r = self.sql("select value from tabSingles where field in ('%s') and doctype='%s'" % \
-				(fieldname, doctype))
-			return r and (len(r) > 1 and (i[0] for i in r) or r[0][0]) or None
+			return r and (len(r[0]) > 1 and r[0] or r[0][0]) or None
+
+		else:
+			fieldname = isinstance(fieldname, basestring) and [fieldname] or fieldname
+
+			r = self.sql("select field, value from tabSingles where field in (%s) and \
+				doctype=%s" % (', '.join(['%s']*len(fieldname)), '%s'), tuple(fieldname) + (doctype,), as_dict=False)
+			if as_dict:
+				return r and webnotes.DictObj(r) or None
+			else:
+				return r and (len(r) > 1 and [i[0] for i in r] or r[0][1]) or None
 
 	def set_value(self, dt, dn, field, val, modified = None):
 		from webnotes.utils import now

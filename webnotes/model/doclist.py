@@ -30,6 +30,7 @@ Group actions like save, etc are performed on doclists
 
 import webnotes
 from webnotes.utils import cint
+from webnotes.model.doc import Document
 
 class DocList:
 	"""
@@ -42,9 +43,7 @@ class DocList:
 		if dt and dn:
 			self.load_from_db(dt, dn)
 		if type(dt) is list:
-			self.docs = dt
-			self.doc = dt[0]
-			self.children = dt[1:]
+			self.set_doclist(dt)
 
 	def load_from_db(self, dt=None, dn=None, prefix='tab'):
 		"""
@@ -78,23 +77,18 @@ class DocList:
 		"""
 		from webnotes.model.utils import expand
 		self.docs = expand(data)
-		self.objectify(docname)
+		self.set_doclist(self.docs)
 		
 	def set_doclist(self, docs):
+		for i, d in enumerate(docs):
+			if isinstance(d, dict):
+				docs[i] = Document(fielddata=d)
+		
 		self.docs = self.doclist = docs
 		self.doc, self.children = docs[0], docs[1:]
 		if self.obj:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc
-
-	def objectify(self, docname=None):
-		"""
-			Converts self.docs from a list of dicts to list of Documents
-		"""
-		from webnotes.model.doc import Document
-
-		self.docs = [Document(fielddata=d) for d in self.docs]
-		self.set_doclist(self.docs)
 
 	def make_obj(self):
 		"""
@@ -213,13 +207,13 @@ class DocList:
 			Save Children, with the new parent name
 		"""
 		child_map = {}
-		
 		for d in self.children:
-			if d.fields.has_key('parent'):
-				if d.parent:
-					d.parent = self.doc.name # rename if reqd
-					d.parenttype = self.doc.doctype
-
+			if (d.fields.has_key('parent') and d.fields.get('parent')) or \
+					(d.fields.has_key("parentfield") and d.fields.get("parentfield")):
+				# if d.parent:
+				d.parent = self.doc.name # rename if reqd
+				d.parenttype = self.doc.doctype
+				
 				d.save(new = cint(d.fields.get('__islocal')))
 			
 			child_map.setdefault(d.doctype, []).append(d.name)

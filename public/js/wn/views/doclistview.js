@@ -190,7 +190,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		return this.listview.fields;
 	},
 	get_args: function() {
-		return {
+		var args = {
 			doctype: this.doctype,
 			fields: this.get_query_fields(),
 			filters: this.filter_list.get_filters(),
@@ -199,6 +199,13 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			order_by: this.listview.order_by || undefined,
 			group_by: this.listview.group_by || undefined,
 		}
+		
+		// apply default filters, if specified for a listing
+		$.each((this.listview.default_filters || []), function(i, f) {
+		      args.filters.push(f);
+		});
+		
+		return args;
 	},
 	add_delete_option: function() {
 		var me = this;
@@ -562,9 +569,11 @@ wn.views.RecordListView = wn.views.DocListView.extend({
 
 	get_args: function() {
 		var args = this._super();
+		
 		$.each((this.default_filters || []), function(i, f) {
 		      args.filters.push(f);
 		});
+		
 		args.docstatus = args.docstatus.concat((this.default_docstatus || []));
 		return args;
 	},
