@@ -141,7 +141,6 @@
 			"lib/public/js/wn/views/formview.js",
 			"lib/public/js/wn/views/reportview.js",
 			"lib/public/js/wn/views/grid_report.js",
-			"lib/public/js/wn/views/query_report.js",
 			"lib/public/js/legacy/widgets/dialog.js",
 			"lib/public/js/legacy/widgets/layout.js",
 			"lib/public/js/legacy/widgets/tabbedpage.js",

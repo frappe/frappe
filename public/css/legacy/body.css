@@ -306,3 +306,7 @@ div.std-footer-item {
 .markdown h3, .markdown h4 {
 	margin-bottom: 5px;
 }
+
+.clear {
+	clear: both;
+}

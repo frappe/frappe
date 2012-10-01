@@ -33,8 +33,8 @@ def save():
 	
 	if not webnotes.has_permission(doclist[0]["doctype"], "write"):
 		webnotes.msgprint("No Write Permission", raise_exception=True)
-		
+
 	doclistobj = DocList(doclist)
 	doclistobj.save()
-
-	webntoes.msgprint("%s: '%s' saved" % form.doctype, form.name)
+	
+	return [d.fields for d in doclist]

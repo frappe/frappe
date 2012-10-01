@@ -5,7 +5,7 @@
 	{
 		u'creation': '2012-06-13 19:07:26',
 		u'docstatus': 0,
-		u'modified': '2012-10-01 14:00:02',
+		u'modified': '2012-10-01 17:58:19',
 		u'modified_by': u'Administrator',
 		u'owner': u'Administrator'
 	},
@@ -46,6 +46,15 @@
 	{
 		u'doctype': u'DocType',
 		u'name': u'Report'
+	},
+
+	# DocField
+	{
+		u'doctype': u'DocField',
+		'fieldname': u'is_standard',
+		'fieldtype': u'Select',
+		'label': u'Is Standard',
+		'options': u'No\nYes'
 	},
 
 	# DocField
