@@ -40,7 +40,7 @@ _f.FrmHeader = Class.extend({
 		if(!frm.meta.issingle) {
 			this.appframe.add_tab(frm.doctype, 0.3, function() {
 				wn.set_route("List", frm.doctype);
-			});			
+			});
 		}
 	},
 	refresh: function() {
@@ -52,10 +52,9 @@ _f.FrmHeader = Class.extend({
 			wn.views.breadcrumbs(this.appframe, 
 				cur_frm.meta.module, cur_frm.meta.name, cur_frm.docname);			
 		}
-			
+		
 		this.refresh_labels();
 		this.refresh_toolbar();
-		
 	},
 	refresh_labels: function() {
 		cur_frm.doc = get_local(cur_frm.doc.doctype, cur_frm.doc.name);

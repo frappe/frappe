@@ -29,8 +29,29 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 		$c('webnotes.widgets.form.comments.get_comments', {dt: me.doctype, dn: me.docname, limit: 5}, function(r, rt) {
 			wn.widgets.form.comments.sync(me.doctype, me.docname, r);
 			me.make_body();
+			me.refresh_latest_comment();
 		});
 	}
+	
+	this.refresh_latest_comment = function() {
+		var wrapper = cur_frm.page_layout.body;
+		if(!$(wrapper).find(".latest-comment").length) {
+			$('<div class="latest-comment help-box" style="margin-top:0px;">').prependTo(wrapper);
+		}
+		var comment_list = wn.widgets.form.comments.comment_list[me.docname];
+		if(comment_list) {
+			$(wrapper).find(".latest-comment")
+				.html(repl('<div style="width: 70%; float:left;">\
+					Last Comment: <b>%(comment)s</b></div>\
+					<div style="width: 25%; float:right; text-align: right; font-size: 90%">\
+						by %(comment_by_fullname)s</div>\
+					<div class="clear"></div>', comment_list[0]))					
+				.toggle(true);
+		} else {
+			$(wrapper).find(".latest-comment").toggle(false);			
+		}
+	}
+	
 	
 	this.make_body = function() {
 		if(this.wrapper) this.wrapper.innerHTML = '';
