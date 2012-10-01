@@ -25,7 +25,6 @@
 	+ this.parent (either FormContainer or Dialog)
  		+ this.wrapper
  			+ this.content
-	 			+ this.saved_wrapper
 				+ wn.PageLayout	(this.page_layout)
 				+ this.wrapper
 					+ this.wtab (table)
@@ -103,9 +102,6 @@ _f.Frm.prototype.setup = function() {
 	
 	// create area for print fomrat
 	this.setup_print_layout();
-
-	// thank you goes here (in case of Guest, don't refresh, just say thank you!)
-	this.saved_wrapper = $a(this.wrapper, 'div');
 	
 	// 2 column layout
 	this.setup_std_layout();
@@ -119,22 +115,26 @@ _f.Frm.prototype.setup = function() {
 // ======================================================================================
 
 _f.Frm.prototype.setup_print_layout = function() {
+	var me = this;
 	this.print_wrapper = $a(this.wrapper, 'div');
-	this.print_head = $a(this.print_wrapper, 'div');
-	this.print_body = $a(this.print_wrapper,'div', 'layout_wrapper', {
-		padding:'23px',
-		minHeight: '800px'
+	wn.ui.make_app_page({
+		parent: this.print_wrapper,
+		single_column: true,
+		title: me.doctype + ": Print View"
 	});
 	
-	var t= make_table(this.print_head, 1 ,2, '100%', [], {padding: '6px'});
-	this.view_btn_wrapper = $a($td(t,0,0) , 'span', 'green_buttons');
-	this.view_btn = $btn(this.view_btn_wrapper, 'View Details', function() { cur_frm.edit_doc() }, 
-		{marginRight:'4px'}, 'green');
-
-	this.print_btn = $btn($td(t,0,0), 'Print', function() { cur_frm.print_doc() });
-
-	$y($td(t,0,1), {textAlign: 'right'});
-	this.print_close_btn = $btn($td(t,0,1), 'Close', function() { window.history.back(); });
+	var appframe = this.print_wrapper.appframe;
+	appframe.add_button("View Details", function() {
+		me.edit_doc();
+	}).addClass("btn-success");
+	
+	appframe.add_button("Print", function() {
+		me.print_doct();
+	}, 'icon-print');
+	
+	this.print_body = $(this.print_wrapper).find(".layout-main")
+		.css("min-height", "400px").get(0);
+	
 }
 
 
@@ -148,7 +148,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 		main_width: (this.meta.in_dialog && !this.in_form) ? '100%' : '75%',
 		sidebar_width: (this.meta.in_dialog && !this.in_form) ? '0%' : '25%'
 	})	
-			
+
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
 	
@@ -168,10 +168,9 @@ _f.Frm.prototype.setup_std_layout = function() {
 		
 	// footer
 	this.setup_footer();
-	
 		
 	// header - no headers for tables and guests
-	if(!(this.meta.istable || user=='Guest' || (this.meta.in_dialog && !this.in_form))) 
+	if(!(this.meta.istable || (this.meta.in_dialog && !this.in_form))) 
 		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
 			
 	// create fields
