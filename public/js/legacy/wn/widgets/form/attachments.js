@@ -71,7 +71,7 @@ wn.widgets.form.sidebar.Attachments = function(parent, sidebar, doctype, docname
 	// using the file mamanger
 	this.add_attachment = function() {
 		if(!this.dialog) {
-			this.dialog = new wn.widgets.Dialog({
+			this.dialog = new wn.ui.Dialog({
 				title:'Add Attachment',
 				width: 400
 			})

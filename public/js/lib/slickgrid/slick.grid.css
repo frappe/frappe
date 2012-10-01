@@ -51,11 +51,11 @@ classes should alter those!
 }
 
 .slick-sort-indicator-desc {
-  background: url(images/sort-desc.gif);
+  background: url(lib/js/lib/slickgrid/images/sort-desc.gif);
 }
 
 .slick-sort-indicator-asc {
-  background: url(images/sort-asc.gif);
+  background: url(lib/js/lib/slickgrid/images/sort-asc.gif);
 }
 
 .slick-resizable-handle {

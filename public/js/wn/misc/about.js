@@ -25,7 +25,7 @@
 wn.provide('wn.ui.misc');
 wn.ui.misc.about = function() {
 	if(!wn.ui.misc.about_dialog) {
-		var d = new wn.widgets.Dialog({title:'About wnframework'})
+		var d = new wn.ui.Dialog({title:'About wnframework'})
 	
 		$(d.body).html(repl("<div style='padding: 20px'<p><b>Application Name:</b> %(name)s</p>\
 		<p><b>Version:</b> %(version)s</p>\

@@ -41,7 +41,7 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 		this.bind_events();
 	},
 	make_dialog: function() {
-		this.dialog = new wn.widgets.Dialog({
+		this.dialog = new wn.ui.Dialog({
 			title: this.opts.title,
 			width: 300,
 			fields: [

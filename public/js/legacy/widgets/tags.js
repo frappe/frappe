@@ -100,7 +100,7 @@ TagList.prototype.make_add_tag = function() {
 TagList.prototype.make_tag_dialog = function() {
 	var me = this;
 	
-	var d = new wn.widgets.Dialog({
+	var d = new wn.ui.Dialog({
 		title: 'Add a tag',
 		width: 400,
 		fields: [

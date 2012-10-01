@@ -185,7 +185,7 @@ wn.ui.Filter = Class.extend({
 			parent: me.field.df.parent,
 		} : {}
 
-		var df = me.fieldselect.fields_by_name[tablename][fieldname];
+		var df = copy_dict(me.fieldselect.fields_by_name[tablename][fieldname]);
 		this.set_fieldtype(df, fieldtype);
 			
 		// called when condition is changed, 

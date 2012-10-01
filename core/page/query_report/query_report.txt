@@ -1,0 +1,28 @@
+# Page, query-report
+[
+
+	# These values are common in all dictionaries
+	{
+		u'creation': '2012-10-01 10:35:32',
+		u'docstatus': 0,
+		u'modified': '2012-10-01 10:35:32',
+		u'modified_by': u'Administrator',
+		u'owner': u'Administrator'
+	},
+
+	# These values are common for all Page
+	{
+		u'doctype': u'Page',
+		'module': u'Core',
+		u'name': u'__common__',
+		'page_name': u'query-report',
+		'standard': u'Yes',
+		'title': u'Query Report'
+	},
+
+	# Page, query-report
+	{
+		u'doctype': u'Page',
+		u'name': u'query-report'
+	}
+]

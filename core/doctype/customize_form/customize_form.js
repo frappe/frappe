@@ -87,7 +87,7 @@ cur_frm.cscript.hide_allow_attach = function(doc, dt, dn) {
 }
 
 cur_frm.confirm = function(msg, doc, dt, dn) {
-	var d = new wn.widgets.Dialog({
+	var d = new wn.ui.Dialog({
 		title: 'Reset To Defaults',
 		width: 500
 	});
@@ -132,7 +132,7 @@ cur_frm.add_fields_help = function() {
 			<a id="fields_help" class="link_type">Help</a>\
 		</div>');
 	$('#fields_help').click(function() {
-		var d = new wn.widgets.Dialog({
+		var d = new wn.ui.Dialog({
 			title: 'Help: Field Properties',
 			width: 600
 		});

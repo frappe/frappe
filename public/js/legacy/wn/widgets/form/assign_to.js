@@ -72,7 +72,7 @@ wn.widgets.form.sidebar.AssignTo = Class.extend({
 	add: function() {
 		var me = this;
 		if(!me.dialog) {
-			me.dialog = new wn.widgets.Dialog({
+			me.dialog = new wn.ui.Dialog({
 				title: 'Add to To Do',
 				width: 350,
 				fields: [

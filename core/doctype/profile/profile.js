@@ -147,7 +147,7 @@ wn.RoleEditor = Class.extend({
 		
 	},
 	make_perm_dialog: function() {
-		this.perm_dialog = new wn.widgets.Dialog({
+		this.perm_dialog = new wn.ui.Dialog({
 			title:'Role Permissions',
 			width: 500
 		});

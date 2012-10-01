@@ -357,7 +357,6 @@ _f.CodeField.prototype.make_input = function() {
 		//this.input = $a(this.input_area, 'div', '', {position:'relative', width: '90%', height:'300px'});
 
 		wn.require('lib/js/lib/ace/ace.js');
-		//wn.require('lib/js/lib/ace/theme-twilight.js');
 		
 		$(this.input_area).css('border','1px solid #aaa');
 		this.pre = $a(this.input_area, 'pre', '', {

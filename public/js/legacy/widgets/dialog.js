@@ -28,7 +28,7 @@ var cur_dialog;
 var top_index=91;
 
 function Dialog(w, h, title, content) {
-	this.make({width:w, title:title});
+	$.extend(this, new wn.ui.Dialog({width:w, title:title}));
 
 	if(content)this.make_body(content);
 
@@ -38,8 +38,6 @@ function Dialog(w, h, title, content) {
 	this.display = false;
 	this.first_button = false;
 }
-
-Dialog.prototype = new wn.widgets.Dialog()
 
 Dialog.prototype.make_body = function(content) {
 	this.rows = {}; this.widgets = {};

@@ -3,28 +3,28 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-05-15 12:14:24',
-		'docstatus': 0,
-		'modified': '2012-06-13 18:50:36',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
+		u'creation': '2012-06-13 19:07:26',
+		u'docstatus': 0,
+		u'modified': '2012-10-01 14:00:02',
+		u'modified_by': u'Administrator',
+		u'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
 		'allow_trash': 1,
 		'colour': u'White:FFF',
-		'doctype': 'DocType',
+		u'doctype': u'DocType',
 		'module': u'Core',
-		'name': '__common__',
+		u'name': u'__common__',
 		'section_style': u'Simple',
 		'version': 1
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': u'DocField',
-		'name': '__common__',
+		u'doctype': u'DocField',
+		u'name': u'__common__',
 		'parent': u'Report',
 		'parentfield': u'fields',
 		'parenttype': u'DocType',
@@ -33,8 +33,8 @@
 
 	# These values are common for all DocPerm
 	{
-		'doctype': u'DocPerm',
-		'name': '__common__',
+		u'doctype': u'DocPerm',
+		u'name': u'__common__',
 		'parent': u'Report',
 		'parentfield': u'permissions',
 		'parenttype': u'DocType',
@@ -44,40 +44,21 @@
 
 	# DocType, Report
 	{
-		'doctype': 'DocType',
-		'name': u'Report'
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'doctype': u'DocPerm',
-		'role': u'Administrator'
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'doctype': u'DocPerm',
-		'role': u'System Manager'
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'doctype': u'DocPerm',
-		'role': u'Report Manager'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'role': u'All'
+		u'doctype': u'DocType',
+		u'name': u'Report'
 	},
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
+		'fieldname': u'query',
+		'fieldtype': u'Text',
+		'label': u'Query'
+	},
+
+	# DocField
+	{
+		u'doctype': u'DocField',
 		'fieldname': u'json',
 		'fieldtype': u'Text',
 		'label': u'JSON'
@@ -85,9 +66,37 @@
 
 	# DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'ref_doctype',
 		'fieldtype': u'Data',
 		'label': u'Ref DocType'
+	},
+
+	# DocPerm
+	{
+		'cancel': 1,
+		u'doctype': u'DocPerm',
+		'role': u'Administrator'
+	},
+
+	# DocPerm
+	{
+		'cancel': 1,
+		u'doctype': u'DocPerm',
+		'role': u'System Manager',
+		'write': 1
+	},
+
+	# DocPerm
+	{
+		'cancel': 1,
+		u'doctype': u'DocPerm',
+		'role': u'Report Manager'
+	},
+
+	# DocPerm
+	{
+		u'doctype': u'DocPerm',
+		'role': u'All'
 	}
 ]

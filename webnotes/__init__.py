@@ -247,6 +247,15 @@ def get_roles(user=None, with_standard=True):
 	
 	return roles
 
+def has_permission(doctype, ptype):
+	"""check if user has permission"""
+	return conn.sql("""select name from tabDocPerm p
+		where p.parent = %s
+		and ifnull(p.`%s`,0) = 1
+		and ifnull(p.permlevel,0) = 0
+		and p.role in (select `role` from tabUserRole where `parent`=%s)
+		""" % ("%s", ptype, "%s"), (doctype, session.user))
+
 def generate_hash():
 	"""Generates random hash for session id"""
 	import hashlib, time
