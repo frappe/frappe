@@ -1,5 +1,6 @@
 # make public folders
 
+from __future__ import unicode_literals
 import os
 
 def make():

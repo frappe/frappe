@@ -20,6 +20,7 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #
 
+from __future__ import unicode_literals
 def read_csv_content_from_uploaded_file():
 	import csv
 	import webnotes
