@@ -106,7 +106,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 
 wn.ui.toolbar.clear_cache = function() {
 	localStorage && localStorage.clear();
-	$c('webnotes.session_cache.clear',{},function(r,rt){ 
+	$c('webnotes.sessions.clear',{},function(r,rt){ 
 		if(!r.exc) {
 			show_alert(r.message);
 			location.reload();

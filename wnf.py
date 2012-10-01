@@ -74,13 +74,11 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 		f.write(''.join(tmp))
 	print colored('Updated', 'green')
 	
-def pull(remote, branch):
-	os.chdir("lib")
-	os.system('git pull %s %s' % (remote, branch))
-	os.chdir("../app")
-	os.system('git pull %s %s' % (remote, branch))
-	rebuild()
-
+def pull(remote, branch, build=False):
+	os.system('cd lib && git pull %s %s' % (remote, branch))
+	os.system('cd app && git pull %s %s' % (remote, branch))
+	if build: rebuild()
+	
 def rebuild():
 	# build js / css
 	from webnotes.utils import bundlejs
@@ -100,10 +98,10 @@ def sync_all(force=0):
 	webnotes.model.sync.sync_all(force)
 
 def update_erpnext(remote='origin', branch='master'):
-	# do a pull
 	pull(remote, branch)
+	patch_sync_build()
 	
-	# apply latest patches
+def patch_sync_build():
 	apply_latest_patches()
 	
 	import webnotes.modules.patch_handler
@@ -111,8 +109,9 @@ def update_erpnext(remote='origin', branch='master'):
 		if "failed: STOPPED" in l:
 			return
 	
-	# sync all
 	sync_all()
+	
+	rebuild()
 	
 def append_future_import():
 	"""appends from __future__ import unicode_literals to py files if necessary"""
@@ -231,6 +230,10 @@ def setup_options():
 			
 	parser.add_option("--update", help="Pull, run latest patches and sync all",
 			nargs=2, metavar="ORIGIN BRANCH")
+
+	parser.add_option("--patch_sync_build", 
+		help="run latest patches, sync all and rebuild js css",
+		nargs=2, metavar="ORIGIN BRANCH")
 			
 	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
 			action="store_true")
@@ -296,7 +299,7 @@ def run():
 		os.system('git %s' % options.git)
 	
 	elif options.pull:
-		pull(options.pull[0], options.pull[1])
+		pull(options.pull[0], options.pull[1], build=True)
 
 	elif options.push:
 		os.chdir('lib')
@@ -369,6 +372,9 @@ def run():
 	
 	elif options.update:
 		update_erpnext(options.update[0], options.update[1])
+	
+	elif options.patch_sync_build:
+		patch_sync_build()
 
 	elif options.cleanup_data:
 		from utilities import cleanup_data

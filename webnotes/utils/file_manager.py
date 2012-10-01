@@ -160,7 +160,7 @@ def save_file(fname, content, module=None):
 	# we use - for versions, so remove them from the name!
 	fname = fname.replace('-', '')
 
-	fpath = os.path.join(conf.files_path, fname)
+	fpath = os.path.join(get_files_path(), fname)
 	if os.path.exists(fpath) and cmp(fpath, new_fname):
 		# remove file, already exists!
 		os.remove(new_fname)
@@ -171,7 +171,7 @@ def save_file(fname, content, module=None):
 		f.file_name = fname
 		f.save(1)
 		# rename new file
-		os.rename(new_fname, os.path.join(conf.files_path, f.name))		
+		os.rename(new_fname, os.path.join(get_files_path(), f.name))		
 		return f.name
 
 def check_max_file_size(content):
@@ -183,8 +183,8 @@ def check_max_file_size(content):
 def write_file(content):
 	"""write file to disk with a random name"""
 	# create account folder (if not exists)
-	webnotes.create_folder(conf.files_path)
-	fname = os.path.join(conf.files_path, webnotes.generate_hash())
+	webnotes.create_folder(get_files_path())
+	fname = os.path.join(get_files_path(), webnotes.generate_hash())
 
 	# write the file
 	with open(fname, 'w+') as f:
@@ -201,7 +201,7 @@ def delete_file(fid, verbose=0):
 	"""delete file from file system"""
 	import os
 	webnotes.conn.sql("delete from `tabFile Data` where name=%s", fid)	
-	path = os.path.join(conf.files_path, fid.replace('/','-'))
+	path = os.path.join(get_files_path(), fid.replace('/','-'))
 	if os.path.exists(path):
 		os.remove(path)
 		
@@ -216,7 +216,16 @@ def get_file(fname):
 
 	# read the file
 	import os
-	with open(os.path.join(conf.files_path, file_id), 'r') as f:
+	with open(os.path.join(get_files_path(), file_id), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
+
+files_path = None
+def get_files_path():
+	global files_path
+	if not files_path:
+		import os, conf
+		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
+			conf.files_path)
+	return files_path
