@@ -50,10 +50,18 @@ class DocType:
 
 		self.validate_max_users()
 		self.update_roles()
+		
+		# do not allow disabling administrator/guest
+		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
+			webnotes.msgprint("Hey! You cannot disable user: %s" % self.doc.name,
+				raise_exception=1)
+		
 		self.logout_if_disabled()
 		
 		if self.doc.fields.get('__islocal') and not self.doc.new_password:
-			webnotes.msgprint("Password required while creating new doc")
+			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
+		
+		self.is_new = self.doc.fields.get("__islocal")
 		
 	def logout_if_disabled(self):
 		"""logout if disabled"""
@@ -102,8 +110,7 @@ class DocType:
 					d.save()
 			
 	def check_one_system_manager(self):
-		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager'
-			and docstatus<2"""):
+		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager' and docstatus<2 and parent!='Administrator'"""):
 			webnotes.msgprint("""Cannot un-select as System Manager as there must 
 				be atleast one 'System Manager'""", raise_exception=1)
 				
@@ -119,10 +126,13 @@ class DocType:
 				on duplicate key update `password`=password(%s)""", (self.doc.name, 
 				self.doc.new_password, self.doc.new_password))
 			
-			if not self.doc.fields.get('__islocal'):
-				self.password_reset_mail(self.doc.new_password)
-
 			webnotes.conn.set(self.doc, 'new_password', '')
+			
+			if not self.new:
+				self.password_reset_mail(self.doc.new_password)
+			else:
+				self.send_welcome_mail(self.doc.new_password)
+			
 			webnotes.msgprint("Password updated.")
 
 	def get_fullname(self):
@@ -191,6 +201,18 @@ Thank you,<br>
 			'user_fullname': get_user_fullname(webnotes.session['user'])
 		}
 		sendmail_md(self.doc.email, subject="Welcome to " + startup.product_name, msg=txt % args)
+		
+	def on_trash(self):
+		if self.doc.name in ["Administrator", "Guest"]:
+			webnotes.msgprint("""Hey! You cannot delete user: %s""" % (self.name, ),
+				raise_exception=1)
+				
+		# disable the user and log him/her out
+		self.doc.enabled = 0
+		self.logout_if_disabled()
+		
+		# delete their password
+		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
 	
 	def on_rename(self,newdn,olddn):
 		# do not allow renaming administrator and guest
@@ -242,16 +264,3 @@ def get_perm_info(arg=None):
 def get_defaults(arg=None):
 	return webnotes.conn.sql("""select defkey, defvalue from tabDefaultValue where 
 		parent=%s and parenttype = 'Profile'""", webnotes.form_dict['profile'])
-
-
-	
-	
-@webnotes.whitelist()
-def delete(arg=None):
-	"""delete user"""
-	webnotes.conn.sql("update tabProfile set enabled=0, docstatus=2 where name=%s", 
-		webnotes.form_dict['uid'])
-	webnotes.login_manager.logout(user=webnotes.form_dict['uid'])
-	
-
-

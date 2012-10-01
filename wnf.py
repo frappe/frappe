@@ -240,6 +240,9 @@ def setup_options():
 	
 	parser.add_option("--backup", help="Takes backup of database in backup folder",
 		default=False, action="store_true")
+		
+	parser.add_option("--test", help="Run test", metavar="MODULE", 	
+			nargs=1)
 
 	return parser.parse_args()
 	
@@ -386,10 +389,19 @@ def run():
 	elif options.backup:
 		from webnotes.utils.backups import scheduled_backup
 		scheduled_backup()
-
+		
 	# print messages
 	if webnotes.message_log:
 		print '\n'.join(webnotes.message_log)
+		
+	if options.test is not None:
+		module_name = options.test
+		import unittest
+
+		del sys.argv[1:]
+		# is there a better way?
+		exec ('from %s import *' % module_name) in globals()		
+		unittest.main()
 
 if __name__=='__main__':
 	run()
