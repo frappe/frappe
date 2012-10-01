@@ -122,7 +122,10 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 				render: function(wrapper) {
 					new wn.widgets.form.sidebar.Comments(wrapper, me, me.form.doctype, me.form.docname);
 				},
-				display: function() { return !me.form.doc.__islocal }
+				display: function() { 
+					$(cur_frm.page_layout.body).find(".latest-comment").toggle(false);
+					return !me.form.doc.__islocal;
+				}
 			},
 
 			{
