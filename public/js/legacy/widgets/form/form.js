@@ -130,7 +130,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	}).addClass("btn-success");
 	
 	appframe.add_button("Print", function() {
-		me.print_doct();
+		me.print_doc();
 	}, 'icon-print');
 	
 	var layout_main = $(this.print_wrapper).find(".layout-main");
