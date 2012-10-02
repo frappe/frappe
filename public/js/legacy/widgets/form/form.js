@@ -139,7 +139,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 		.prependTo(layout_main)
 		.css({"width": $(layout_main).width()});
 	
-	this.print_body = $("<div style='margin-top: 25px'>").appendTo(layout_main)
+	this.print_body = $("<div style='margin: 25px'>").appendTo(layout_main)
 		.css("min-height", "400px").get(0);
 		
 }
