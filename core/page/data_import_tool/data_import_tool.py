@@ -35,7 +35,9 @@ def get_template():
 	def getinforow(docfield):
 		"""make info comment"""
 		if docfield.fieldtype == 'Select':
-			if docfield.options.startswith('link:'):
+			if not docfield.options:
+				return ''
+			elif docfield.options.startswith('link:'):
 				return 'Valid %s' % docfield.options[5:]
 			else:
 				return 'One of: %s' % ', '.join(filter(None, docfield.options.split('\n')))
