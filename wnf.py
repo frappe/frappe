@@ -301,7 +301,7 @@ def run():
 	elif not any([options.install, options.pull]):
 		webnotes.connect(conf.db_name)
 
-	elif options.pull:
+	if options.pull:
 		pull(options.pull[0], options.pull[1], build=True)
 
 	elif options.push:
