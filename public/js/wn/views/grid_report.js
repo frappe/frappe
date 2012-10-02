@@ -366,33 +366,7 @@ wn.views.GridReport = Class.extend({
 		this.dataView.endUpdate();
 	},
 	export: function() {
-		var me = this;
-		var res = [$.map(this.columns, function(v) { return v.name; })].concat(this.get_view_data());
-		
-		wn.require("lib/js/lib/downloadify/downloadify.min.js");
-		wn.require("lib/js/lib/downloadify/swfobject.js");
-		
-		var id = wn.dom.set_unique_id();
-		var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to download this file.</p>');
-		
-		Downloadify.create(id ,{
-			filename: function(){
-				return me.title + '.csv';
-			},
-			data: function(){ 
-				return wn.to_csv(res);
-			},
-			swf: 'lib/js/lib/downloadify/downloadify.swf',
-			downloadImage: 'lib/js/lib/downloadify/download.png',
-			onComplete: function(){ msgobj.hide(); },
-			onCancel: function(){ msgobj.hide(); },
-			onError: function(){ msgobj.hide(); },
-			width: 100,
-			height: 30,
-			transparent: true,
-			append: false			
-		});
-		
+		wn.downloadify(wn.slickgrid_tools.get_view_data(this.columns, this.dataView));
 		return false;
 	},
 	apply_filters: function(item) {
@@ -648,25 +622,6 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 		var date = dateutil.obj_to_user(new Date(x));
 	 	var value = fmt_money(y);
 		return value + " on " + date;
-	},
-	get_view_data: function() {
-		var res = [];
-		var col_map = $.map(this.columns, function(v) { return v.field; });
-
-		for (var i=0, len=this.dataView.getLength(); i<len; i++) {
-			var d = this.dataView.getItem(i);
-			var row = [];
-			$.each(col_map, function(i, col) {
-				var val = d[col];
-				if(val===null || val===undefined) {
-					val = ""
-				}
-				row.push(val);
-			})
-			
-			res.push(row);
-		}
-		return res;
 	},
 	get_plot_data: function() {
 		var data = [];

@@ -1,5 +1,5 @@
 wn.ui.AppFrame = Class.extend({
-	init: function(parent, title) {
+	init: function(parent, title, module) {
 		this.buttons = {};
 		this.$w = $('<div></div>').appendTo(parent);
 				
@@ -13,11 +13,20 @@ wn.ui.AppFrame = Class.extend({
 		})
 		
 		if(title) this.title(title);
+		if(module) this.set_marker(module);
 
 	},
 	title: function(txt) {
 		this.clear_breadcrumbs();
 		this.add_breadcrumb(txt);
+	},
+	set_marker: function(module) {
+		var color = wn.module_css_classes[wn.module_css_map[module]].middle;
+		$('<div class="appframe-marker">')
+			.prependTo(this.$titlebar)
+			.css({
+				"background-color": color
+			});
 	},
 	add_tabs: function() {
 		if(!this.tabs) {
@@ -118,4 +127,5 @@ wn.ui.make_app_page = function(opts) {
 	}
 	opts.parent.appframe = new wn.ui.AppFrame($(opts.parent).find('.layout-appframe'));
 	if(opts.title) opts.parent.appframe.title(opts.title);
+	if(opts.module) opts.parent.appframe.set_marker(opts.module);
 }

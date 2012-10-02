@@ -30,13 +30,14 @@
 
 _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
-		this.appframe = new wn.ui.AppFrame(parent)
+		this.appframe = new wn.ui.AppFrame(parent, null, frm.meta.module)
 		this.$w = this.appframe.$w;
 		this.appframe.add_tab('<span class="small-module-icons small-module-icons-'+
 			frm.meta.module.toLowerCase()+'"></span>'+
 			' <span>'+ frm.meta.module + "</span>", 0.4, function() {
 			wn.set_route(wn.modules[frm.meta.module])
 		});
+				
 		if(!frm.meta.issingle) {
 			this.appframe.add_tab(frm.doctype, 0.3, function() {
 				wn.set_route("List", frm.doctype);

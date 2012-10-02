@@ -45,7 +45,7 @@
 }
 
 div.appframe-titlebar {
-	padding: 6px;
+	padding: 6px; padding-left: 13px;
 	background: #dfdfdf; /* Old browsers */
 	min-height: 1.2em;
 	/*border-radius: 5px 5px 0px 0px;
@@ -55,6 +55,13 @@ div.appframe-titlebar {
 	/*text-shadow: 0px 1px 1px #fff;*/
 	color: #555;
 	border-bottom: 1px solid #c2c2c2;
+}
+
+div.appframe-marker {
+	position: absolute; 
+	width: 7px; 
+	margin: -6px; margin-left: -13px;
+	height: 42px;
 }
 
 span.appframe-title {

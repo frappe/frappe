@@ -5,3 +5,53 @@ wn.markdown = function(txt) {
 	}
 	return '<div class="markdown">' + wn.md2html.makeHtml(txt) + '</div>';
 }
+
+wn.downloadify = function(data) {
+	wn.require("lib/js/lib/downloadify/downloadify.min.js");
+	wn.require("lib/js/lib/downloadify/swfobject.js");
+	
+	var id = wn.dom.set_unique_id();
+	var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to download this file.</p>');
+	
+	Downloadify.create(id ,{
+		filename: function(){
+			return me.title + '.csv';
+		},
+		data: function(){ 
+			return wn.to_csv(data);
+		},
+		swf: 'lib/js/lib/downloadify/downloadify.swf',
+		downloadImage: 'lib/js/lib/downloadify/download.png',
+		onComplete: function(){ msgobj.hide(); },
+		onCancel: function(){ msgobj.hide(); },
+		onError: function(){ msgobj.hide(); },
+		width: 100,
+		height: 30,
+		transparent: true,
+		append: false			
+	});	
+}
+
+wn.slickgrid_tools = {
+	get_view_data: function(columns, dataView) {
+		var col_row = $.map(columns, function(v) { return v.name; });
+		var res = [];
+		var col_map = $.map(columns, function(v) { return v.field; });
+
+		for (var i=0, len=dataView.getLength(); i<len; i++) {
+			var d = dataView.getItem(i);
+			var row = [];
+			$.each(col_map, function(i, col) {
+				var val = d[col];
+				if(val===null || val===undefined) {
+					val = "";
+				}
+				row.push(val);
+			});
+
+			res.push(row);
+		}
+		return [col_row].concat(res);
+			
+	}
+}
