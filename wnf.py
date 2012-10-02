@@ -102,6 +102,10 @@ def update_erpnext(remote='origin', branch='master'):
 	patch_sync_build()
 	
 def patch_sync_build():
+	patch_sync()
+	rebuild()
+	
+def patch_sync():
 	apply_latest_patches()
 	
 	import webnotes.modules.patch_handler
@@ -110,8 +114,6 @@ def patch_sync_build():
 			return
 	
 	sync_all()
-	
-	rebuild()
 	
 def append_future_import():
 	"""appends from __future__ import unicode_literals to py files if necessary"""
@@ -233,6 +235,9 @@ def setup_options():
 
 	parser.add_option("--patch_sync_build", action="store_true", default=False,
 		help="run latest patches, sync all and rebuild js css")
+
+	parser.add_option("--patch_sync", action="store_true", default=False,
+		help="run latest patches, sync all")
 			
 	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
 			action="store_true")
@@ -378,6 +383,9 @@ def run():
 	
 	elif options.patch_sync_build:
 		patch_sync_build()
+	
+	elif options.patch_sync:
+		patch_sync()
 
 	elif options.cleanup_data:
 		from utilities import cleanup_data
