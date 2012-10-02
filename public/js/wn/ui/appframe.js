@@ -21,7 +21,11 @@ wn.ui.AppFrame = Class.extend({
 		this.add_breadcrumb(txt);
 	},
 	set_marker: function(module) {
-		var color = wn.module_css_classes[wn.module_css_map[module]].middle;
+		try {
+			var color = wn.module_css_classes[wn.module_css_map[module]].middle;			
+		} catch(e) {
+			var color = "#000";
+		}
 		$('<div class="appframe-marker">')
 			.prependTo(this.$titlebar)
 			.css({
