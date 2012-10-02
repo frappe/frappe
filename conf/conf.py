@@ -6,7 +6,7 @@ db_name = 'yourdbname'
 db_password = 'yourdbpassword'
 
 # user attachments stored in
-files_path = 'user_files'
+files_path = 'public/files'
 
 # max file attachment size (default 1MB)
 max_file_size = 1000000
@@ -24,7 +24,7 @@ admin_email_notification = 0
 user_timezone = 'Asia/Calcutta'
 
 # dump backups here
-backup_path = '/backups'
+backup_path = 'public/backups'
 
 # outgoing mail settings
 mail_server = None

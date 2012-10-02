@@ -782,3 +782,13 @@ def pretty_date(iso_datetime):
 		return '%s months ago' % cint(math.ceil(dt_diff_days / 30.0))
 	else:
 		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))
+		
+def execute_in_shell(cmd):
+	# using Popen instead of os.system - as recommended by python docs
+	from subprocess import Popen, PIPE
+	p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+
+	# get err and output
+	err, out = p.stderr.read(), p.stdout.read()
+
+	return err, out

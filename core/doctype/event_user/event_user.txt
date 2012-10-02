@@ -3,33 +3,34 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-03-27 14:35:37',
-		'docstatus': 0,
-		'modified': '2012-03-27 14:35:37',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
+		u'creation': '2012-05-15 12:14:23',
+		u'docstatus': 0,
+		u'modified': '2012-09-28 10:46:15',
+		u'modified_by': u'Administrator',
+		u'owner': u'Administrator'
 	},
 
 	# These values are common for all DocType
 	{
 		'autoname': u'EVP.#####',
 		'colour': u'White:FFF',
-		'doctype': 'DocType',
+		u'doctype': u'DocType',
 		'istable': 1,
 		'module': u'Core',
-		'name': '__common__',
+		u'name': u'__common__',
 		'section_style': u'Simple',
 		'server_code_error': u' ',
-		'show_in_menu': 0
+		'show_in_menu': 0,
+		'version': 1
 	},
 
 	# These values are common for all DocField
 	{
-		'doctype': u'DocField',
+		u'doctype': u'DocField',
 		'fieldname': u'person',
 		'fieldtype': u'Select',
 		'label': u'Person',
-		'name': '__common__',
+		u'name': u'__common__',
 		'oldfieldname': u'person',
 		'oldfieldtype': u'Select',
 		'options': u'link:Profile',
@@ -42,12 +43,12 @@
 
 	# DocType, Event User
 	{
-		'doctype': 'DocType',
-		'name': u'Event User'
+		u'doctype': u'DocType',
+		u'name': u'Event User'
 	},
 
 	# DocField
 	{
-		'doctype': u'DocField'
+		u'doctype': u'DocField'
 	}
 ]

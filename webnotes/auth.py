@@ -139,8 +139,9 @@ class LoginManager:
 	
 	def check_if_enabled(self, user):
 		"""raise exception if user not enabled"""
+		from webnotes.utils import cint
 		if user=='Administrator': return
-		if not int(webnotes.conn.get_value('Profile', user, 'enabled')):
+		if not cint(webnotes.conn.get_value('Profile', user, 'enabled')):
 			self.fail('User disabled or missing')
 
 	def check_password(self, user, pwd):

@@ -50,7 +50,7 @@ class BackupGenerator:
 		self.user = user
 		self.password = password
 		self.backup_file_name = self.get_backup_file_name()
-		self.backup_file_path = os.path.join(conf.backup_path, self.backup_file_name)
+		self.backup_file_path = os.path.join(get_backup_path(), self.backup_file_name)
 	
 	def get_backup_file_name(self):
 		import random
@@ -70,11 +70,10 @@ class BackupGenerator:
 		# escape reserved characters
 		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] 
 			for item in self.__dict__.copy().items())
-
-		cmd_string = "mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_file_path)s" \
-			% args
-
-		ret = os.system(cmd_string)
+					
+		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_file_path)s""" % args
+		
+		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
 	def get_recipients(self):
 		"""
@@ -110,7 +109,7 @@ class BackupGenerator:
 		 Also, a new backup will be available for download (if requested)\
 		  only after 24 hours.""" % {"file_url":file_url}
 		
-		backup_file_path = os.path.join(conf.backup_path, backup_file)
+		backup_file_path = os.path.join(get_backup_path(), backup_file)
 		datetime_str = datetime.fromtimestamp(os.stat(backup_file_path).st_ctime)
 		
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
@@ -126,7 +125,7 @@ class BackupGenerator:
 		#Check if file exists and is less than a day old
 		#If not Take Dump
 		backup_file = recent_backup_exists()
-
+		
 		if not backup_file:
 			self.take_dump()
 			backup_file = self.backup_file_name
@@ -164,9 +163,9 @@ def scheduled_backup():
 	print "backup taken -", odb.backup_file_name, "- on", now()
 
 def recent_backup_exists():
-	file_list = os.listdir(conf.backup_path)
+	file_list = os.listdir(get_backup_path())
 	for this_file in file_list:
-		this_file_path = os.path.join(conf.backup_path, this_file)
+		this_file_path = os.path.join(get_backup_path(), this_file)
 		if not is_file_old(this_file_path):
 			return this_file
 	return None
@@ -175,9 +174,9 @@ def delete_temp_backups(older_than=24):
 	"""
 		Cleans up the backup_link_path directory by deleting files older than 24 hours
 	"""
-	file_list = os.listdir(conf.backup_path)
+	file_list = os.listdir(get_backup_path())
 	for this_file in file_list:
-		this_file_path = os.path.join(conf.backup_path, this_file)
+		this_file_path = os.path.join(get_backup_path(), this_file)
 		if is_file_old(this_file_path, older_than):
 			os.remove(this_file_path)
 
@@ -203,7 +202,16 @@ def is_file_old(db_file_name, older_than=24):
 				return False
 		else:
 			if verbose: print "File does not exist"
-			return True		
+			return True	
+
+backup_path = None		
+def get_backup_path():
+	global backup_path
+	if not backup_path:
+		import os, conf
+		backup_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
+			conf.backup_path)
+	return backup_path
 
 #-------------------------------------------------------------------------------
 		
