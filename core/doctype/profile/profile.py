@@ -73,7 +73,8 @@ class DocType:
 		"""don't allow more than max users if set in conf"""
 		import conf
 		# check only when enabling a user
-		if hasattr(conf, 'max_users') and self.doc.enabled:
+		if hasattr(conf, 'max_users') and self.doc.enabled and \
+				self.doc.name not in ["Administrator", "Guest"]:
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
 				and name not in ('Administrator', 'Guest')""")[0][0]
