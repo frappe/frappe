@@ -43,7 +43,7 @@ wn.widgets.form.sidebar.Attachments = function(parent, sidebar, doctype, docname
 		
 		// button if the number of attachments is less than max
 		if(n < this.frm.meta.max_attachments || !this.frm.meta.max_attachments) {
-			this.btn = $btn($a(this.wrapper, 'div', 'sidebar-comment-message'), 'Add', 
+			this.btn = $btn($a(this.wrapper, 'div'), 'Add new attachment', 
 				function() { me.add_attachment() });			
 		}
 		

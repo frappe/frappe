@@ -133,9 +133,15 @@ _f.Frm.prototype.setup_print_layout = function() {
 		me.print_doct();
 	}, 'icon-print');
 	
-	this.print_body = $(this.print_wrapper).find(".layout-main")
-		.css("min-height", "400px").get(0);
+	var layout_main = $(this.print_wrapper).find(".layout-main");
+
+	$('<div class="ripped-paper-border"></div>')
+		.prependTo(layout_main)
+		.css({"width": $(layout_main).width()});
 	
+	this.print_body = $("<div style='margin-top: 25px'>").appendTo(layout_main)
+		.css("min-height", "400px").get(0);
+		
 }
 
 

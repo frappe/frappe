@@ -8,24 +8,25 @@ div.psidebar div.head {
 	margin-bottom: 12px;
 }
 
-div.psidebar div.section {
-	margin-bottom: 11px;
+div.section {
+	margin-bottom: 15px;
 	overflow: hidden;
 }
 
-div.psidebar div.section-head {
-	padding: 5px 11px;
-	border-bottom: 1px solid #aaa;
+div.section div.section-head {
+	padding: 5px 0px;
+	font-size: 109%;
+	font-weight: bold;
 }
 
-div.psidebar div.section-body {
-	margin: 7px 11px 11px 11px;
+div.section div.section-body {
+	
 }
 
-div.psidebar div.section-item {
+div.section div.section-item {
 	margin-bottom: 7px;
 }
 
-div.psidebar div.section-item, div.psidebar .section-link {
+div.section div.section-item, div.section .section-link {
 	color: #666;
 }

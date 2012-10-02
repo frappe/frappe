@@ -62,11 +62,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.$page.html('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="appframe-area"></div>\
 			<div class="layout-main-section">\
-				<div class="wnlist-area"><div class="help">Loading...</div></div>\
+				<div class="wnlist-area" style="margin-top: -15px;"><div class="help">Loading...</div></div>\
 			</div>\
 			<div class="layout-side-section">\
-				<div class="show-docstatus hide" style="margin-bottom: 19px">\
-					<h4>Show</h4>\
+				<div class="show-docstatus hide section">\
+					<div class="section-head">Show</div>\
 					<div><input data-docstatus="0" type="checkbox" checked="checked" /> Drafts</div>\
 					<div><input data-docstatus="1" type="checkbox" checked="checked" /> Submitted</div>\
 					<div><input data-docstatus="2" type="checkbox" /> Cancelled</div>\
@@ -83,7 +83,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		wn.views.breadcrumbs(this.appframe, locals.DocType[this.doctype].module, this.doctype);
 		this.appframe.add_tab('<span class="small-module-icons small-module-icons-'+
 			module.toLowerCase()+'"></span>'+' <span>'
-			+ module + "</span>", 0.4, function() {
+			+ module + "</span>", 0.7, function() {
 			wn.set_route(wn.modules[module]);
 		})
 	},
@@ -214,11 +214,10 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var me = this;
 		if(this.can_delete) {
 			this.add_button('Delete', function() { me.delete_items(); }, 'icon-remove');
-			$('<div style="padding: 9px; margin-left: -15px;"><input type="checkbox" name="select-all" />\
-			 	Select all</div>').insertBefore(this.$page.find('.result-list'));
-			this.$page.find('[name="select-all"]').click(function() {
-				me.$page.find('.list-delete').attr('checked', $(this).attr('checked') || false);
-			})
+			this.add_button('Select All', function() { 
+				var checks = me.$page.find('.list-delete');
+				checks.attr('checked', $(checks.get(0)).attr('checked') ? false : "checked");
+			}, 'icon-ok');
 		}
 	},
 	delete_items: function() {
@@ -277,7 +276,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(!stat || !stat.length) {
 			if(field=='_user_tags') {
 				this.$page.find('.layout-side-section')
-					.append('<div class="stat-wrapper"><h4>Tags</h4>\
+					.append('<div class="stat-wrapper section"><div class="section-head">Tags</div>\
 						<div class="help small"><i>No records tagged.</i><br><br> \
 						To add a tag, open the document and click on \
 						"Add Tag" on the sidebar</div></div>');
@@ -290,8 +289,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(label=='_user_tags') label = 'Tags';
 		
 		// grid
-		var $w = $('<div class="stat-wrapper">\
-			<h4>'+ label +'</h4>\
+		var $w = $('<div class="stat-wrapper section">\
+			<div class="section-head">'+ label +'</div>\
 			<div class="stat-grid">\
 			</div>\
 		</div>');

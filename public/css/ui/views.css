@@ -113,4 +113,11 @@ span.appframe-tab span {
 	display: inline-block;
 }
 
-
+div.ripped-paper-border {
+	background: url('../lib/images/ui/ripped-border.png') top repeat-x;
+	position: absolute;
+	margin-left: -15px;
+	margin-top: -15px;
+	padding-right: 30px;
+	height: 15px;
+}

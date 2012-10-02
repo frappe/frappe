@@ -31,7 +31,8 @@ wn.widgets.form.sidebar.AssignTo = Class.extend({
 		this.name = docname;
 		this.wrapper = $a(parent, 'div', 'sidebar-comment-wrapper');
 		this.body = $a(this.wrapper, 'div');
-		this.add_btn = $btn($a(this.wrapper, 'div', 'sidebar-comment-message'), 'Assign', 
+		this.add_btn = $btn($a(this.wrapper, 'div'), 
+			'Assign this document to', 
 			function() {
 				me.add();
 			})

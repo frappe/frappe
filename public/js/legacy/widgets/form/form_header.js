@@ -34,12 +34,12 @@ _f.FrmHeader = Class.extend({
 		this.$w = this.appframe.$w;
 		this.appframe.add_tab('<span class="small-module-icons small-module-icons-'+
 			frm.meta.module.toLowerCase()+'"></span>'+
-			' <span>'+ frm.meta.module + "</span>", 0.4, function() {
+			' <span>'+ frm.meta.module + "</span>", 0.7, function() {
 			wn.set_route(wn.modules[frm.meta.module])
 		});
 				
 		if(!frm.meta.issingle) {
-			this.appframe.add_tab(frm.doctype, 0.3, function() {
+			this.appframe.add_tab(frm.doctype, 0.5, function() {
 				wn.set_route("List", frm.doctype);
 			});
 		}

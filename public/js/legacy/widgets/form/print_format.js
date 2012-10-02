@@ -21,11 +21,14 @@
 // 
 
 // default print style
-_p.def_print_style_body = "html, body, div, span, td { font-family: Arial, Helvetica; font-size: 12px; }" + "\npre { margin:0; padding:0;}"	
+_p.def_print_style_body = "html, body, div, span, td { \
+		font-family: Arial, Helvetica; font-size: 12px; }\
+		pre { margin:0; padding:0;}"	
 
-_p.def_print_style_other = "\n.simpletable, .noborder { border-collapse: collapse; margin-bottom: 10px;}"
-	+"\n.simpletable td {border: 1pt solid #000; vertical-align: top; padding: 2px; }"
-	+"\n.noborder td { vertical-align: top; }"
+_p.def_print_style_other = "\n.simpletable, .noborder { \
+		border-collapse: collapse; margin-bottom: 10px;}\
+	.simpletable td {border: 1pt solid #777; vertical-align: top; padding: 4px; }\
+	.noborder td { vertical-align: top; }"
 
 _p.go = function(html) {
 	var d = document.createElement('div')
@@ -691,14 +694,14 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 		}(),
 		
 		cell_style: {
-			border: '1px solid #000',
-			padding: '2px',
+			border: '1px solid #999',
+			padding: '3px',
 			verticalAlign: 'top'	
 		},
 		
 		head_cell_style: {
-			border: '1px solid #000',
-			padding: '2px',
+			border: '1px solid #999',
+			padding: '3px',
 			verticalAlign: 'top',
 			backgroundColor: '#ddd',
 			fontWeight: 'bold'
@@ -707,7 +710,8 @@ print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, 
 		table_style: {
 			width: '100%',
 			borderCollapse: 'collapse',
-			marginBottom: '10px'		
+			marginBottom: '10px',
+			marginTop: '10px'		
 		},
 
 		remove_empty_cols: function(flist) {

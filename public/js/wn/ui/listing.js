@@ -83,7 +83,7 @@ wn.ui.Listing = Class.extend({
 			<div class="wnlist">\
 				<h3 class="title hide">%(title)s</h3>\
 				\
-				<div class="list-filters hide">\
+				<div class="list-filters" style="display: none;">\
 					<div class="show_filters well">\
 						<div class="filter_area"></div>\
 						<div>\
