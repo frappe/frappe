@@ -231,7 +231,7 @@ def setup_options():
 	parser.add_option("--update", help="Pull, run latest patches and sync all",
 			nargs=2, metavar="ORIGIN BRANCH")
 
-	parser.add_option("--patch_sync_build", 
+	parser.add_option("--patch_sync_build", action="store_true", default=False,
 		help="run latest patches, sync all and rebuild js css")
 			
 	parser.add_option("--cleanup_data", help="Cleanup test data", default=False, 	
