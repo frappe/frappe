@@ -64,7 +64,7 @@ div.appframe-marker {
 	height: 42px;
 }
 
-span.appframe-title {
+.appframe-title {
 	font-size: 160%;
 	font-weight: bold;
 }
