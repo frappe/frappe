@@ -28,7 +28,7 @@ class DocType:
 	def __init__(self, doc, doclist):
 		self.doc = doc
 		self.doclist = doclist
-
+		
 	def autoname(self):
 		"""set name as email id"""
 		import re
@@ -61,6 +61,7 @@ class DocType:
 		if self.doc.fields.get('__islocal') and not self.doc.new_password:
 			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
 		
+		# this is used in on_update call
 		self.is_new = self.doc.fields.get("__islocal")
 		
 	def logout_if_disabled(self):
@@ -73,7 +74,8 @@ class DocType:
 		"""don't allow more than max users if set in conf"""
 		import conf
 		# check only when enabling a user
-		if hasattr(conf, 'max_users') and self.doc.enabled:
+		if hasattr(conf, 'max_users') and self.doc.enabled and \
+				self.doc.name not in ["Administrator", "Guest"]:
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
 				and name not in ('Administrator', 'Guest')""")[0][0]
@@ -116,24 +118,25 @@ class DocType:
 				
 	def on_update(self):
 		# owner is always name
-		webnotes.conn.set(self.doc, 'owner' ,self.doc.name)
+		webnotes.conn.set(self.doc, 'owner', self.doc.name)
 		self.update_new_password()
 
 	def update_new_password(self):
 		"""update new password if set"""
 		if self.doc.new_password:
-			webnotes.conn.sql("""insert into __Auth (user, `password`) values (%s, password(%s)) 
+			webnotes.conn.sql("""insert into __Auth (user, `password`) 
+				values (%s, password(%s)) 
 				on duplicate key update `password`=password(%s)""", (self.doc.name, 
 				self.doc.new_password, self.doc.new_password))
 			
-			webnotes.conn.set(self.doc, 'new_password', '')
-			
-			if not self.new:
+			if not self.is_new:
 				self.password_reset_mail(self.doc.new_password)
+				webnotes.msgprint("Password updated.")
 			else:
 				self.send_welcome_mail(self.doc.new_password)
-			
-			webnotes.msgprint("Password updated.")
+				webnotes.msgprint("New user created. - %s" % self.doc.name)
+				
+			webnotes.conn.set(self.doc, 'new_password', '')
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
