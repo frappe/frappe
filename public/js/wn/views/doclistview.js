@@ -463,7 +463,7 @@ wn.views.ListView = Class.extend({
 		$.each(this.columns, function(i, v) {
 			rowhtml += repl('<td style="width: %(width)s"></td>', v);
 		});
-		var tr = $(row).html('<table><tbody><tr>' + rowhtml + '</tr></tbody></table>').find('tr').get(0);
+		var tr = $(row).html('<table class="doclist-row"><tbody><tr>' + rowhtml + '</tr></tbody></table>').find('tr').get(0);
 		
 		// render cells
 		$.each(this.columns, function(i, v) {
