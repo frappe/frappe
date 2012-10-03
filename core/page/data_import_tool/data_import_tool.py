@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import webnotes
+from webnotes.utils import cstr
 
 @webnotes.whitelist()
 def get_doctypes():
@@ -91,8 +92,6 @@ def get_template():
 	
 	w.writerow([data_separator])
 
-	from webnotes.utils import cstr
-
 	if webnotes.form_dict.get('with_data')=='Yes':
 		data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" % doctype, as_dict=1)
 		for d in data:
@@ -155,7 +154,7 @@ def upload():
 	if parenttype and overwrite:
 		delete_child_rows(rows, doctype)
 		
-	for row in rows[8:]:
+	for i, row in enumerate(rows[8:]):
 		if not row: continue
 		d = dict(zip(columns, row[1:]))
 		d['doctype'] = doctype
@@ -171,11 +170,11 @@ def upload():
 					doc.parentfield = parentfield
 				doc.save()
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype, doc.parent), 
-					str(doc.idx)))
+					unicode(doc.idx)))
 			else:
 				ret.append(import_doc(d, doctype, overwrite))
 		except Exception, e:
-			ret.append('Error for ' + row[1] + ': ' + str(e))
+			ret.append('Error for row (#%d) %s : %s' % (i+9, row[1], cstr(e)))
 			webnotes.errprint(webnotes.getTraceback())
 	return ret
 	
