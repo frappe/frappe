@@ -205,8 +205,8 @@ def check_record(d, parenttype):
 						if not docfield.options:
 							raise Exception, "Select options are missing for %s"
 						elif val not in docfield.options.split('\n'):
-							raise Exception, "%s must be one of: %s" % \
-								(key, ", ".join(docfield.options.split("\n")))
+							raise Exception, "%s must be one of: %s" % (key, 
+								", ".join(filter(None, docfield.options.split("\n"))))
 						
 			if docfield.fieldtype=='Date' and val:
 				d[key] = user_to_str(val, webnotes.form_dict['date_format'])
