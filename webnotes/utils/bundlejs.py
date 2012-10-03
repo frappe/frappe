@@ -59,10 +59,10 @@ class Bundle:
 
 				data = infile.read()
 
-				# css -> js
-				if out_type=='js' and ftype =='css':
-					data = "\nwn.assets.handler.css('%s');\n" %\
-					 	data.replace("'", "\\'").replace('\n', '\\\n')
+				if os.path.basename(f)=='core.js':
+					import webnotes
+					data = data % {"_version_number": webnotes.generate_hash() }
+
 
 			outtxt += ('\n/*\n *\t%s\n */' % f)
 					
