@@ -21,8 +21,7 @@ doctype_dl = None
 
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def get_template():
-	import webnotes, csv
-	from cStringIO import StringIO
+	import webnotes
 	import webnotes.model.doctype
 	global doctype_dl
 
@@ -48,8 +47,7 @@ def get_template():
 		else:
 			return ''
 			
-	tobj = StringIO()
-	w = csv.writer(tobj)
+	w = UnicodeWriter()
 	key = 'name'
 	
 	w.writerow(['Upload Template for: %s' % doctype])
@@ -98,16 +96,13 @@ def get_template():
 	if webnotes.form_dict.get('with_data')=='Yes':
 		data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" % doctype, as_dict=1)
 		for d in data:
-			row = ['']
+			row = [""]
 			for c in columns:
-				col = d.get(c, '')
-				if isinstance(col, basestring):
-					col = col.encode('utf-8')
-				row.append(col)
+				row.append(d.get(c, ""))
 			w.writerow(row)
 
 	# write out response as a type csv
-	webnotes.response['result'] = cstr(tobj.getvalue())
+	webnotes.response['result'] = cstr(w.queue.getvalue())
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = doctype
 
@@ -200,13 +195,14 @@ def check_record(d, parenttype):
 				raise Exception, "%s is mandatory." % key
 
 			if docfield.fieldtype=='Select':
-				if docfield.options.startswith('link:'):
+				if docfield.options and docfield.options.startswith('link:'):
 					if val:
 						link_doctype = docfield.options.split(':')[1]
 						if not webnotes.conn.exists(link_doctype, val):
 							raise Exception, "%s must be a valid %s" % (key, link_doctype)
 				else:
-					if val and (val not in docfield.options.split('\n')):
+					if val and ((not docfield.options) or 
+							(val not in docfield.options.split('\n'))):
 						raise Exception, "%s must be one of:" % key
 						
 			if docfield.fieldtype=='Date' and val:
@@ -239,3 +235,16 @@ def import_doc(d, doctype, overwrite):
 		d['__islocal'] = 1
 		DocList([webnotes.model.doc.Document(fielddata = d)]).save()
 		return 'Inserted ' + getlink(doctype, d['name'])
+
+import csv, cStringIO
+from webnotes.utils import encode
+class UnicodeWriter:
+	def __init__(self, encoding="utf-8"):
+		self.encoding = encoding
+		self.queue = cStringIO.StringIO()
+		self.writer = csv.writer(self.queue)
+	
+	def writerow(self, row):
+		row = encode(row, self.encoding)
+		self.writer.writerow(row)
+	

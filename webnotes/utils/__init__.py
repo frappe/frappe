@@ -374,6 +374,19 @@ def replace_newlines(s):
 	if s==None:return ''
 	return s.replace("\n","<br>")
 
+def encode(obj, encoding="utf-8"):
+	if isinstance(obj, list):
+		out = []
+		for o in obj:
+			if isinstance(o, unicode):
+				out.append(o.encode(encoding))
+			else:
+				out.append(o)
+		return out
+	elif isinstance(obj, unicode):
+		return obj.encode(encoding)
+	else:
+		return obj
 
 # ==============================================================================
 
