@@ -354,19 +354,16 @@ _f.CodeField.prototype.make_input = function() {
 
 	} else {
 		// setup ace
-		//this.input = $a(this.input_area, 'div', '', {position:'relative', width: '90%', height:'300px'});
-
 		wn.require('lib/js/lib/ace/ace.js');
 		
 		$(this.input_area).css('border','1px solid #aaa');
-		this.pre = $a(this.input_area, 'pre', '', {
-			position:'relative', height: '400px', width:'100%'
-		});
+		this.pre = $("<pre style='position: relative; height: 400px; \
+			width: 100%; padding: 0px; border-radius: 0px;\
+			margin: 0px; background-color: #fff;'>").appendTo(this.input_area).get(0);
+
 		this.input = {};
 		this.myid = wn.dom.set_unique_id(this.pre);
 		this.editor = ace.edit(this.myid);
-		//this.editor.getSession().setUseWrapMode(true);
-	    //this.editor.setTheme("ace/theme/twilight");
 
 		if(me.df.options=='Markdown' || me.df.options=='HTML') {
 			wn.require('lib/js/lib/ace/mode-html.js');	
