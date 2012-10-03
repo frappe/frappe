@@ -26,3 +26,18 @@
      -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
+
+.avatar-small {
+	display: inline-block; 
+	width: 30px;
+	height: 30px;
+	vertical-align: middle;
+	overflow: hidden;
+	border-radius: 30px;
+	-moz-border-radius: 30px;
+	-webkit-border-radius: 30px;
+	background-color: #ddd;
+}
+.avatar-small img {
+	width: 30px; 
+}

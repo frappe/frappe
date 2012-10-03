@@ -227,5 +227,5 @@ def get_files_path():
 	if not files_path:
 		import os, conf
 		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
-			conf.files_path)
+			'public', 'files')
 	return files_path

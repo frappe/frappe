@@ -253,22 +253,6 @@ class Profile:
 		self.roles = d['roles']
 		self.defaults = d['defaults']
 
-@webnotes.whitelist()
-def get_user_img():
-	if not webnotes.form_dict.get('username'):
-		webnotes.response['message'] = 'no_img_m'
-		return
-
-	f = webnotes.conn.sql("select file_list from tabProfile where name=%s", webnotes.form_dict.get('username',''))
-	if f:
-		if f[0][0]:
-			lst = f[0][0].split('\n')	
-			webnotes.response['message'] = lst[0].split(',')[1]
-		else:
-			webnotes.response['message'] = 'no_img_m'
-	else:
-		webnotes.response['message'] = 'no_img_m'
-
 
 def get_user_fullname(user):
 	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", user)
