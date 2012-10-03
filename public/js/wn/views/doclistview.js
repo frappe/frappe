@@ -417,7 +417,7 @@ wn.views.ListView = Class.extend({
 			$(parent).append(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
-			$(parent).append(repl('<span class="avatar-small"><img src="%(avatar)s" \
+			$(parent).append(repl('<span class="avatar avatar avatar-small"><img src="%(avatar)s" \
 				title="%(fullname)s"/></span>', 
 				data));			
 		}

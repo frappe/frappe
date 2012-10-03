@@ -148,10 +148,10 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						return dateutil.str_to_user(t[0]) + ' ' + t[1];
 					}
 					
-					$(wrapper).html(repl('<p>Created:<br> <span class="avatar-small">\
+					$(wrapper).html(repl('<p>Created:<br> <span class="avatar avatar avatar-small">\
 							<img title="%(created_by)s" src="%(avatar_created)s" /></span> \
 							<span class="help small">%(creation)s</span></p>\
-							<p>Modified:<br> <span class="avatar-small">\
+							<p>Modified:<br> <span class="avatar avatar avatar-small">\
 							<img title="%(modified_by)s" src="%(avatar_modified)s" /></span> \
 							<span class="help small">%(modified)s</span></p>', {
 								created_by: wn.user_info(doc.owner).fullname,
