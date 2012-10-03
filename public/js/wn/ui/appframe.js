@@ -110,6 +110,17 @@ wn.ui.AppFrame = Class.extend({
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "").appendTo(this.toolbar);
 	},
+	add_ripped_paper_effect: function(wrapper) {
+		if(!wrapper) var wrapper = wn.container.page;
+		var layout_main = $(wrapper).find('.layout-main');
+		if(!layout_main.length) {
+			layout_main = $(wrapper).find('.layout-main-section');
+		}
+		layout_main.css({"padding-top":"25px"});
+		$('<div class="ripped-paper-border"></div>')
+			.prependTo(layout_main)
+			.css({"width": $(layout_main).width()});
+	}
 });
 
 // parent, title, single_column

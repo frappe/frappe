@@ -133,12 +133,9 @@ _f.Frm.prototype.setup_print_layout = function() {
 		me.print_doc();
 	}, 'icon-print');
 	
-	var layout_main = $(this.print_wrapper).find(".layout-main");
-
-	$('<div class="ripped-paper-border"></div>')
-		.prependTo(layout_main)
-		.css({"width": $(layout_main).width()});
+	appframe.add_ripped_paper_effect(this.print_wrapper);
 	
+	var layout_main = $(this.print_wrapper).find(".layout-main");
 	this.print_body = $("<div style='margin: 25px'>").appendTo(layout_main)
 		.css("min-height", "400px").get(0);
 		
