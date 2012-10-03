@@ -131,3 +131,9 @@ div.stat-item {
 	-moz-border-radius: 9px;
 	overflow: hidden;
 }
+
+table.doclist-row td {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
