@@ -14,7 +14,6 @@ body {
 
 h1, h2, h3, h4, h5 {
 	font-family: Arial, sans-serif;
-	margin-top: 0.2em;
 }
 
 body {
@@ -151,10 +150,6 @@ div.fix_ff_cursor { overflow: auto; }
 /* --- Layout --- */
 
 div.comment { color: #444; }
-
-.small {
-	font-size: 12px;
-}
 
 .help {
 	margin-bottom: 3px;

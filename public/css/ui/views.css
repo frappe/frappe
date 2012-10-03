@@ -45,14 +45,10 @@
 }
 
 div.appframe-titlebar {
-	padding: 6px; padding-left: 13px;
+	padding: 6px; 
+	padding-left: 13px;
 	background: #dfdfdf; /* Old browsers */
-	min-height: 1.2em;
-	/*border-radius: 5px 5px 0px 0px;
-	-webkit-border-radius: 5px 5px 0px 0px;
-	-moz-border-radius: 5px 5px 0px 0px;*/
-
-	/*text-shadow: 0px 1px 1px #fff;*/
+	height: 30px;
 	color: #555;
 	border-bottom: 1px solid #c2c2c2;
 }

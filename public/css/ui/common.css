@@ -11,3 +11,18 @@
 	opacity:1;
 	Filter:alpha(opacity=100); /* For IE8 and earlier */
 }
+
+.navbar #spinner {
+	display: block;
+	float: right;
+	width: 20px;
+	margin-bottom: -5px;
+	margin-top: 10px;
+	visibility: hidden;
+}
+
+#alert-container .alert {
+  -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+     -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+          box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}

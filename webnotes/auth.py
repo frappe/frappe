@@ -247,7 +247,7 @@ class CookieManager:
 		webnotes.cookies[b'sid'] = webnotes.session['sid'].encode('utf-8')
 		webnotes.cookies[b'sid'][b'expires'] = expires.encode('utf-8')
 		webnotes.cookies[b'sid'][b'path'] = b'/'
-
+		
 	def set_remember_me(self):
 		from webnotes.utils import cint
 		

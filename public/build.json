@@ -43,14 +43,8 @@
 
 	{
 		"public/css/all-web.css": [
-			"lib/public/css/bootstrap/headings.css",
-			"lib/public/css/bootstrap/buttons.css",
-			"lib/public/css/bootstrap/navbar.css",
-			"lib/public/css/bootstrap/dropdown.css",
-			"lib/public/css/bootstrap/tooltip.css",
-			"lib/public/css/bootstrap/icons.css",
+			"lib/public/css/bootstrap.css",
 			"lib/public/css/legacy/body.css",
-			"lib/public/css/legacy/messages.css",
 			"lib/public/css/legacy/dialog.css",
 			"lib/public/css/ui/common.css",
 			"lib/public/css/ui/fonts.css",
@@ -61,17 +55,8 @@
 	
 	{
 		"public/css/all-app.css": [
-			"lib/public/css/bootstrap/headings.css",
-			"lib/public/css/bootstrap/buttons.css",
-			"lib/public/css/bootstrap/navbar.css",
-			"lib/public/css/bootstrap/dropdown.css",
-			"lib/public/css/bootstrap/tooltip.css",
-			"lib/public/css/bootstrap/label.css",
-			"lib/public/css/bootstrap/icons.css",
-			"lib/public/css/bootstrap/popover.css",
-			"lib/public/css/bootstrap/progress.css",
+			"lib/public/css/bootstrap.css",
 			"lib/public/css/legacy/body.css",
-			"lib/public/css/legacy/messages.css",
 			"lib/public/css/legacy/forms.css",
 			"lib/public/css/legacy/fields.css",
 			"lib/public/css/legacy/grid.css",
@@ -97,7 +82,6 @@
 			"lib/public/js/legacy/utils/datetime.js",
 			"lib/public/js/legacy/utils/dom.js",
 			"lib/public/js/legacy/utils/handler.js",
-			"lib/public/js/legacy/utils/msgprint.js",
 			"lib/public/js/wn/ui/appframe.js",
 			"lib/public/js/wn/ui/dialog.js",
 			"lib/public/js/wn/ui/button.js",
@@ -127,7 +111,6 @@
 			"lib/public/js/legacy/utils/datetime.js",
 			"lib/public/js/legacy/utils/dom.js",
 			"lib/public/js/legacy/utils/handler.js",
-			"lib/public/js/legacy/utils/msgprint.js",
 			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/wn/ui/appframe.js",

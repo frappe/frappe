@@ -56,17 +56,12 @@ Field.prototype.make_body = function() {
 	
 	// label
 	if(this.with_label) {	
-		this.label_span = $a(this.label_area, 'span', 'small', {cssFloat:'left'})
+		this.label_span = $a(this.label_area, 'span', 'small')
 	
 		// error icon
 		this.label_icon = $('<i class="icon icon-warning-sign">').toggle(false)
-			.appendTo(this.label_area).css('float','left').css('margin-left','7px')
+			.appendTo(this.label_area).css('margin-left','7px')
 			.attr("title", "This field is mandatory.");
-
-		// error icon
-		this.suggest_icon = $('<i class="icon icon-chevron-down">').toggle(false)
-			.appendTo(this.label_area).css('float','left').css('margin-left','7px')
-			.attr("title", "will show suggestions as you type.");
 
 	} else {
 		this.label_span = $a(this.label_area, 'span', '', {marginRight:'4px'})
@@ -285,7 +280,7 @@ Field.prototype.refresh_label_icon = function() {
 		
 	if(!to_update && this.df.has_error) this.df.has_error = false;
 
-	if(this.label_icon) this.label_icon.toggle(to_update);
+	if(this.label_icon) this.label_icon.css("display", (to_update ? "inline-block" : "none"));
 	$(this.txt ? this.txt : this.input).toggleClass('field-to-update', to_update);
 	
 	$(this.txt ? this.txt : this.input).toggleClass('field-has-error', 
@@ -426,34 +421,6 @@ DataField.prototype.make_input = function() {
 		if(val==null)val='';
 		me.input.value = val; 
 		if(me.format_input)me.format_input();
-	}
-	
-	// autosuggest type fields
-	// -----------------------
-	
-	if(this.df.options=='Suggest') {
-		// add auto suggest
-		if(this.suggest_icon) this.suggest_icon.toggle(true);
-		$(me.input).autocomplete({
-			source: function(request, response) {
-				wn.call({
-					method:'webnotes.widgets.search.search_link',
-					args: {
-						'txt': request.term, 
-						'dt': me.df.options,
-						'query': repl('SELECT DISTINCT `%(fieldname)s` FROM \
-							`tab%(dt)s` WHERE `%(fieldname)s` LIKE "%s" LIMIT 50', 
-							{fieldname:me.df.fieldname, dt:me.df.parent})
-					},
-					callback: function(r) {
-						response(r.results);
-					}
-				});
-			},
-			select: function(event, ui) {
-				me.set(ui.item.value);
-			}
-		});
 	}
 }
 DataField.prototype.validate = function(v) {

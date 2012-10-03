@@ -35,7 +35,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$(document).trigger('toolbar_setup');
 	},
 	make: function() {
-		$('header').append('<div class="navbar navbar-fixed-top">\
+		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse">\
 			<div class="navbar-inner">\
 			<div class="container">\
 				<a class="brand"></a>\

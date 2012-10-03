@@ -314,13 +314,17 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		args.width = flt(v[1]) / max * 100;
 		args.count = v[1];
 		args.field = field;
+		args.bar_style = "";
 		
-		$item = $(repl('<div class="stat-item">\
-			<div class="stat-bar" style="width: %(width)s%"></div>\
+		try { args.bar_style = "bar-" + me.listview.label_style[field][args.label]; } 
+		catch(e) { }
+
+		$item = $(repl('<div class="progress">\
+				<div class="bar %(bar_style)s" style="width: %(width)s%"></div>\
+			</div>\
 			<div class="stat-label">\
 				<a href="#" data-label="%(label)s" data-field="%(field)s">\
-					%(label)s</a> \
-				(%(count)s)</div>\
+					%(label)s</a> (%(count)s)\
 		</div>', args));
 		
 		this.setup_stat_item_click($item);

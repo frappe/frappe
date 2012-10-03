@@ -316,7 +316,7 @@ _f.Frm.prototype.setup_footer = function() {
 
 _f.Frm.prototype.set_intro = function(txt) {
 	if(!this.intro_area) {
-		this.intro_area = $('<div class="help-box form-intro-area">')
+		this.intro_area = $('<div class="alert form-intro-area">')
 			.insertBefore(this.page_layout.body.firstChild);
 	}
 	if(txt) {
@@ -330,7 +330,7 @@ _f.Frm.prototype.set_intro = function(txt) {
 
 _f.Frm.prototype.set_footnote = function(txt) {
 	if(!this.footnote_area) {
-		this.footnote_area = $('<div class="help-box form-intro-area">')
+		this.footnote_area = $('<div class="alert form-intro-area">')
 			.insertAfter(this.page_layout.body.lastChild);
 	}
 	if(txt) {

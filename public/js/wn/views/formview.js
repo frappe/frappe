@@ -14,7 +14,13 @@ wn.views.formview = {
 				if(r && r['403']) return; // not permitted
 				
 				if(!(locals[dt] && locals[dt][dn])) {
-					wn.container.change_to('404');
+					if(dn && dn.substr(0,4)=="New ") {
+						var new_name = LocalDB.create(dt);
+						wn.views.formview.show(dt, new_name);
+						return;
+					} else {
+						wn.container.change_to('404');
+					}
 					return;
 				}
 				if(!wn.views.formview[dt]) {
