@@ -87,7 +87,7 @@ def get(name):
 	   Return the :term:`doclist` of the `Page` specified by `name`
 	"""
 	from webnotes.model.code import get_obj
-	page = get_obj('Page', name)
+	page = get_obj('Page', name, with_children=1)
 	page.get_from_files()
 	return page.doclist
 
@@ -96,35 +96,30 @@ def getpage():
 	"""
 	   Load the page from `webnotes.form` and send it via `webnotes.response`
 	"""
-	doclist = get(webnotes.form_dict.get('name'))
-		
-	# send
-	webnotes.response['docs'] = doclist
-
-def get_page_path(page_name, module):
-	"""get path of the page html file"""
-	import os
-	import conf
-	from webnotes.modules import scrub
-	return os.path.join(os.path.dirname(conf.__file__), 'app', scrub(module), \
-		'page', scrub(page_name), scrub(page_name) + '.html')
+	page = webnotes.form_dict.get('name')
+	doclist = get(page)
 	
-def get_page_html(page_name):
-	"""get html of page, called from webnotes.cms.index"""
-	p = webnotes.conn.sql("""select module, content from tabPage where name=%s""", \
-		page_name, as_dict=1)
-
-	if not p:
-		return ''
+	if has_permission(doclist):
+		webnotes.response['docs'] = doclist
 	else:
-		import os
-		p=p[0]
+		webnotes.response['403'] = 1
+		raise webnotes.PermissionError, 'No read permission for Page %s' % \
+			(doclist[0].title or page, )
 		
-		path = get_page_path(page_name, p['module'])
-		if os.path.exists(path):
-			with open(path, 'r') as f:
-				return f.read()
-		else:
-			return p['content']
-			
+def has_permission(page_doclist):
+	if webnotes.user.name == "Administrator" or "System Manager" in webnotes.user.roles:
+		# free pass for Administrator and System Manager
+		return True
+		
+	page_roles = [d.role for d in page_doclist if d.fields.get("doctype")=="Page Role"]
 	
+	if webnotes.user.name == "Guest" and not (page_roles and "Guest" in page_roles):
+		# stop guest from accessing the page, if not explicitly specified
+		return False
+	
+	elif page_roles and not (set(page_roles) & set(webnotes.user.roles)):
+		# if page roles are defined but no common role are found, then deny
+		return False
+
+	# otherwise allow access
+	return True

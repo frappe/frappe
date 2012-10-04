@@ -3,27 +3,42 @@
 
 	# These values are common in all dictionaries
 	{
-		'creation': '2012-05-10 10:06:00',
-		'docstatus': 0,
-		'modified': '2012-05-10 10:06:00',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
+		u'creation': '2012-06-14 15:07:25',
+		u'docstatus': 0,
+		u'modified': '2012-10-04 16:54:24',
+		u'modified_by': u'Administrator',
+		u'owner': u'Administrator'
 	},
 
 	# These values are common for all Page
 	{
-		'doctype': 'Page',
+		u'doctype': u'Page',
 		'module': u'Core',
-		'name': '__common__',
+		u'name': u'__common__',
 		'page_name': u'Data Import Tool',
 		'standard': u'Yes',
 		'title': u'Data Import Tool',
 		'web_page': u'No'
 	},
 
+	# These values are common for all Page Role
+	{
+		u'doctype': u'Page Role',
+		u'name': u'__common__',
+		'parent': u'data-import-tool',
+		'parentfield': u'roles',
+		'parenttype': u'Page',
+		'role': u'System Manager'
+	},
+
 	# Page, data-import-tool
 	{
-		'doctype': 'Page',
-		'name': u'data-import-tool'
+		u'doctype': u'Page',
+		u'name': u'data-import-tool'
+	},
+
+	# Page Role
+	{
+		u'doctype': u'Page Role'
 	}
 ]
