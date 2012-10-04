@@ -26,6 +26,8 @@ wn.pages['query-report'].onload = function(wrapper) {
 		title: 'Query Report',
 		single_column: true
 	});
+
+	wn.require("lib/js/wn/views/query_report.js");
 	
 	wn.query_report = new wn.views.QueryReport({
 		parent: wrapper,

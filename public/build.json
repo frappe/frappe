@@ -34,6 +34,7 @@
 	
 	{
 		"public/js/report-legacy.js": [
+			"lib/public/js/legacy/widgets/tabbedpage.js",
 			"lib/public/js/legacy/widgets/report_builder/report_builder.js",
 			"lib/public/js/legacy/widgets/report_builder/datatable.js",
 			"lib/public/js/legacy/widgets/report_builder/calculator.js",
@@ -124,12 +125,9 @@
 			"lib/public/js/wn/misc/about.js",
 			"lib/public/js/wn/views/doclistview.js",
 			"lib/public/js/wn/views/formview.js",
-			"lib/public/js/wn/views/reportview.js",
-			"lib/public/js/wn/views/grid_report.js",
-			"lib/public/js/wn/views/query_report.js",
+			"lib/public/js/wn/views/load_reportview.js",
 			"lib/public/js/legacy/widgets/dialog.js",
 			"lib/public/js/legacy/widgets/layout.js",
-			"lib/public/js/legacy/widgets/tabbedpage.js",
 			"lib/public/js/legacy/webpage/page_header.js",
 			"lib/public/js/legacy/widgets/tags.js",
 			"lib/public/js/legacy/widgets/export_query.js",

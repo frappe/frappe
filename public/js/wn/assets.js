@@ -83,6 +83,8 @@ wn.assets = {
 		// this is virtual page load, only get the the source
 		// *without* the template
 		var t = src;
+		
+		set_loading();
 
 		$.ajax({
 			url: t,
@@ -95,7 +97,9 @@ wn.assets = {
 				wn.assets.add(src, txt);				
 			},
 			async: false
-		})
+		});
+		
+		hide_loading();
 	},
 	
 	// pass on to the handler to set

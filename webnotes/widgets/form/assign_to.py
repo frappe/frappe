@@ -135,6 +135,8 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 				user_info.get(webnotes.session.get('user'), {}).get('fullname')),
 			'notify': notify
 		}
+		
+	arg["parenttype"] = "Assignment"
 	from utilities.page.messages import messages
 	import json
 	messages.post(json.dumps(arg))

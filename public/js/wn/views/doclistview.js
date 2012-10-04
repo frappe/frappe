@@ -417,9 +417,15 @@ wn.views.ListView = Class.extend({
 			$(parent).append(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
-			$(parent).append(repl('<span class="avatar-small"><img src="%(avatar)s" \
-				title="%(fullname)s"/></span>', 
-				data));			
+			$(parent).append(repl('<span class="avatar avatar avatar-small"><img src="%(avatar)s" \
+				title="Created By: %(fullname)s"/></span>', 
+				data));
+		}
+		else if(opts.content=='avatar_modified') {
+			$(parent).append(repl('<span class="avatar avatar avatar-small">\
+				<img src="%(avatar_modified)s" \
+				title="Last Updated By: %(fullname_modified)s"/></span>', 
+				data));
 		}
 		else if(opts.content=='check') {
 			$(parent).append('<input class="list-delete" type="checkbox">');
@@ -473,6 +479,9 @@ wn.views.ListView = Class.extend({
 	prepare_data: function(data) {
 		data.fullname = wn.user_info(data.owner).fullname;
 		data.avatar = wn.user_info(data.owner).image;
+
+		data.fullname_modified = wn.user_info(data.modified_by).fullname;
+		data.avatar_modified = wn.user_info(data.modified_by).image;
 		
 		if(data.modified)
 			this.prepare_when(data, data.modified);

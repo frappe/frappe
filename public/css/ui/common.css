@@ -27,19 +27,36 @@
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-.avatar-small {
+.avatar {
 	display: inline-block; 
-	width: 30px;
-	height: 30px;
 	vertical-align: middle;
 	overflow: hidden;
+	background-color: #ddd;
+	border: 1px solid #eee;
+}
+
+.avatar-small {
+	margin-right: 5px;
+	width: 30px;
+	height: 30px;
 	border-radius: 30px;
 	-moz-border-radius: 30px;
 	-webkit-border-radius: 30px;
-	background-color: #ddd;
 }
 .avatar-small img {
 	width: 30px; 
+}
+
+.avatar-large {
+	margin-right: 10px;
+	width: 72px;
+	height: 72px;
+	border-radius: 72px;
+	-moz-border-radius: 72px;
+	-webkit-border-radius: 72px;
+}
+.avatar-large img {
+	width: 72px; 
 }
 
 .layout-main-section h4 {
