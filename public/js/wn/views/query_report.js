@@ -413,7 +413,11 @@ wn.views.QueryReport = Class.extend({
 	    });
 	},
 	export: function() {
-		wn.downloadify(wn.slickgrid_tools.get_view_data(this.columns, this.dataView));
+		var result = $.map(wn.slickgrid_tools.get_view_data(this.columns, this.dataView),
+		 	function(row) {
+				return [row.splice(1)];
+		});
+		wn.downloadify(result);
 		return false;		
 	}
 })
