@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		u'creation': '2012-06-13 19:07:26',
+		u'creation': '2012-10-02 15:44:56',
 		u'docstatus': 0,
-		u'modified': '2012-10-01 17:58:19',
+		u'modified': '2012-10-04 17:30:52',
 		u'modified_by': u'Administrator',
 		u'owner': u'Administrator'
 	},
@@ -85,7 +85,8 @@
 	{
 		'cancel': 1,
 		u'doctype': u'DocPerm',
-		'role': u'Administrator'
+		'role': u'Administrator',
+		'write': 1
 	},
 
 	# DocPerm
@@ -100,7 +101,8 @@
 	{
 		'cancel': 1,
 		u'doctype': u'DocPerm',
-		'role': u'Report Manager'
+		'role': u'Report Manager',
+		'write': 1
 	},
 
 	# DocPerm
