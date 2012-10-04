@@ -9,6 +9,7 @@
 			"lib/public/js/wn/meta.js",
 			"lib/public/js/wn/misc/tools.js",
 			"lib/public/js/wn/misc/user.js",
+			"lib/public/js/wn/misc/utils.js",
 			"lib/public/js/lib/public/json2.js",
 			"lib/public/js/wn/router.js",
 			"lib/public/js/wn/ui/messages.js",

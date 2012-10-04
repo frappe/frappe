@@ -413,7 +413,8 @@ wn.views.QueryReport = Class.extend({
 	    });
 	},
 	export: function() {
-		wn.downloadify(wn.slickgrid_tools.get_view_data(this.columns, this.dataView));
+		wn.downloadify(wn.slickgrid_tools.get_view_data(this.columns, this.dataView),
+			["Report Manager", "System Manager"]);
 		return false;		
 	}
 })

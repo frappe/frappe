@@ -6,7 +6,12 @@ wn.markdown = function(txt) {
 	return wn.md2html.makeHtml(txt);
 }
 
-wn.downloadify = function(data) {
+wn.downloadify = function(data, roles) {
+	if(roles && roles.length && !has_common(roles, user_roles)) {
+		msgprint("Export not allowed. You need " + wn.utils.comma_or(roles)
+			+ " Role to export.");
+		return;
+	}
 	wn.require("lib/js/lib/downloadify/downloadify.min.js");
 	wn.require("lib/js/lib/downloadify/swfobject.js");
 	
