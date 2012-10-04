@@ -202,7 +202,7 @@ def get_parent_details(rows):
 def check_record(d, parenttype):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	
-	from webnotes.utils.dateutils import user_to_str
+	from webnotes.utils.dateutils import parse_date
 	
 	if parenttype and not d.get('parent'):
 		raise Exception, "parent is required."
@@ -226,7 +226,7 @@ def check_record(d, parenttype):
 						", ".join(filter(None, docfield.options.split("\n"))))
 					
 			if val and docfield.fieldtype=='Date':
-				d[key] = parse_date(val, webnotes.form_dict['date_format'])
+				d[key] = parse_date(val)
 
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
@@ -237,33 +237,6 @@ def delete_child_rows(rows, doctype):
 	for p in list(set([r[1] for r in rows[8:]])):
 		webnotes.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
 		
-def parse_date(val, format):
-	from webnotes.utils.dateutils import user_to_str
-	
-	parsed_val = None
-	check_formats = [
-		format, # the one mentioned in the form
-		None, # users default date format
-		"yyyy-mm-dd", # system date format
-		"dd-mmm-yyyy", # numbers app format
-		"mm/dd/yyyy", # excel app format
-	]
-	
-	for f in check_formats:
-		try:
-			parsed_val = user_to_str(val, f, verbose=0)
-			if parsed_val:
-				webnotes.errprint([f, parsed_val])
-				break
-		except ValueError, e:
-			pass
-	
-	if not parsed_val:
-		webnotes.msgprint("Cannot identify date")
-		raise Exception
-		
-	return parsed_val
-
 def import_doc(d, doctype, overwrite, row_idx):
 	"""import main (non child) document"""
 	import webnotes

@@ -23,10 +23,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		<p id="dit-output"></p>\
 		');
 		
-	$(wrapper).find('.layout-side-section').append('<h4>Help</h4><br>\
-		<p><b>Date Format:</b></p>\
-		<p>Dates must be in format "YYYY-MM-DD", for example, \
-			31st Jan 2012 must be "2012-01-31"</p>\
+	$(wrapper).find('.layout-side-section').append('<h4>Help</h4>\
 		<p><b>Importing non-English data:</b></p>\
 		<p>While uploading non English files ensure that the encoding is UTF-8.</p>\
 		<p>Microsoft Excel Users:\
@@ -147,14 +144,6 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	// add ignore option
 	$('<input type="checkbox" name="ignore_encoding_errors"><span> Ignore Encoding Errors</span><br><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
-
-
-	// add overwrite option
-	$('<span>Date Format: </span><select name="date_format"></select><br><br>')
-		.insertBefore('#dit-upload-area form input[type="submit"]')
-	
-	$('#dit-upload-area select').add_options(['dd/mm/yyyy', 'mm/dd/yyyy', 'yyyy-mm-dd'])
-
 	
 	// rename button
 	$('#dit-upload-area form input[type="submit"]')
