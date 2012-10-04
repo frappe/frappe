@@ -22,32 +22,37 @@
 
 from __future__ import unicode_literals
 import webnotes
+import datetime
 
+# global values -- used for caching
 user_date_format = None
+dateformats = {
+	'yyyy-mm-dd': '%Y-%m-%d',
+	'dd/mm/yyyy': '%d/%m/%Y',
+	'mm/dd/yyyy': '%m/%d/%Y',
+	'dd-mm-yyyy': '%d-%m-%Y',
+	'dd-mmm-yyyy': '%d-%b-%Y', # numbers app format
+	'yyyy-mm-dd': '%Y-%m-%d',
+}
 
-def user_to_str(date, date_format = None):
+def user_to_str(date, date_format=None, verbose=1):
 	if not date: return date
 	
-	import datetime
-	
 	if not date_format:
-		if not user_date_format:
-			global user_date_format
-			user_date_format = webnotes.conn.get_value("Control Panel", None, "date_format")
+		date_format = get_user_date_format()
 
-		date_format = user_date_format
-		
-	dateformats = {
-		'yyyy-mm-dd':'%Y-%m-%d',
-		'dd/mm/yyyy':'%d/%m/%Y',
-		'mm/dd/yyyy':'%m/%d/%Y',
-		'dd-mm-yyyy':'%d-%m-%Y'
-	}
 	try:
 		return datetime.datetime.strptime(date, 
 			dateformats[date_format]).strftime('%Y-%m-%d')
 	except ValueError, e:
-		webnotes.msgprint("Date %s must be in format %s" % (date, date_format), raise_exception=True)
-
-
-	
+		if verbose:
+			webnotes.msgprint("Date %s must be in format %s" % (date, date_format),
+				raise_exception=True)
+		else:
+			raise e
+		
+def get_user_date_format():
+	if not user_date_format:
+		global user_date_format
+		user_date_format = webnotes.conn.get_value("Control Panel", None, "date_format")
+	return user_date_format	

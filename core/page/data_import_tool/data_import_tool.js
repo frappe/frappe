@@ -19,6 +19,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		<h3>2. Import Data</h3>\
 		<p class="help">Attach .csv file to import data</p>\
 		<div id="dit-upload-area"></div><br>\
+		<div class="dit-progress-area" style="display: None"></div>\
 		<p id="dit-output"></p>\
 		');
 		
@@ -42,6 +43,9 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		</p>')
 	
 	$select = $(wrapper).find('[name="dit-doctype"]');
+	
+	wn.messages.waiting($(wrapper).find(".dit-progress-area").toggle(false), 
+		"Performing hardcore import process....", 100);
 	
 	// load doctypes
 	wn.call({
@@ -99,14 +103,33 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			method: 'core.page.data_import_tool.data_import_tool.upload'
 		},
 		callback: function(r) {
-			$('#dit-output').empty();
+			$(wrapper).find(".dit-progress-area").toggle(false);
 			
-			$.each(r, function(i, v) {
+			// replace links if error has occured
+			if(r.error) {
+				r.messages = $.map(r.messages, function(v) {
+					var msg = v.replace("Inserted", "Valid").split("<");
+					if (msg.length > 1) {
+						v = msg[0] + (msg[1].split(">").slice(-1)[0]);
+					} else {
+						v = msg[0];
+					}
+					return v;
+				});
+				
+				r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
+					.concat(r.messages)
+			} else {
+				r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
+					concat(r.messages)
+			}
+			
+			$.each(r.messages, function(i, v) {
 				var $p = $('<p>').html(v).appendTo('#dit-output');
 				if(v.substr(0,5)=='Error') {
 					$p.css('color', 'red');
 				}
-				if(v.substr(0,8)=='Inserted') {
+				if(v.substr(0,8)=='Inserted' || v.substr(0,5)=='Valid') {
 					$p.css('color', 'green');
 				}
 				if(v.substr(0,7)=='Updated') {
@@ -137,6 +160,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	$('#dit-upload-area form input[type="submit"]')
 		.attr('value', 'Upload and Import')
 		.click(function() {
-			$('#dit-output').html('Performing hardcore import process....')
+			$('#dit-output').empty();
+			$(wrapper).find(".dit-progress-area").toggle(true);
 		});
 }

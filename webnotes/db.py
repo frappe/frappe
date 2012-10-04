@@ -264,13 +264,12 @@ class Database:
 		"""Get a single / multiple value from a record. 
 		For Single DocType, let filters be = None"""
 		if filters is not None and (filters!=doctype or filters=='DocType'):
-			
 			fl = isinstance(fieldname, basestring) and fieldname or "`, `".join(fieldname)
 			conditions, filters = self.build_conditions(filters)
 			
 			try:
-				r = self.sql("select `%s` from `tab%s` where %s" % (fl, doctype, conditions), 
-					filters, as_dict)
+				r = self.sql("select `%s` from `tab%s` where %s" % (fl, doctype,
+					conditions), filters, as_dict)
 			except Exception, e:
 				if e.args[0]==1054 and ignore:
 					return None

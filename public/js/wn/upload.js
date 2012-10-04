@@ -27,6 +27,7 @@ wn.upload = {
 		}
 		
 		$('#' + id).get(0).callback = opts.callback
+		
 	},
 	callback: function(id, file_id, args) {
 		$('#' + id).get(0).callback(file_id, args);
