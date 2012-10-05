@@ -460,19 +460,25 @@ wn.views.GridReport = Class.extend({
 					}
 					
 					// make link to add a filter
-					var link_formatter = me.dataview_columns[cell].link_formatter;	
-					var html = repl('<a href="#" \
-						onclick="wn.cur_grid_report.filter_inputs.%(col_name)s.val(\'%(value)s\'); \
-							wn.cur_grid_report.set_route(); return false;">\
-						%(value)s</a>', {
-							value: value,
-							col_name: link_formatter.filter_input,
-							page_name: wn.container.page.page_name
-						})
+					var link_formatter = me.dataview_columns[cell].link_formatter;
+					if (link_formatter.filter_input) {
+						var html = repl('<a href="#" \
+							onclick="wn.cur_grid_report.filter_inputs \
+								.%(col_name)s.val(\'%(value)s\'); \
+								wn.cur_grid_report.set_route(); return false;">\
+							%(value)s</a>', {
+								value: value,
+								col_name: link_formatter.filter_input,
+								page_name: wn.container.page.page_name
+							});
+					} else {
+						var html = value;
+					}
 
 					// make icon to open form
 					if(link_formatter.open_btn) {
-						var doctype = link_formatter.doctype ? eval(link_formatter.doctype) 
+						var doctype = link_formatter.doctype 
+							? eval(link_formatter.doctype) 
 							: dataContext.doctype;
 						html += me.get_link_open_icon(doctype, value);
 					}
