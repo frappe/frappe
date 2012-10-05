@@ -484,8 +484,8 @@ wn.views.GridReport = Class.extend({
 	get_link_open_icon: function(doctype, name) {
 		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
 			<i class="icon icon-share" style="cursor: pointer;"></i></a>', {
-			name: name,
-			doctype: doctype
+			doctype: doctype,
+			name: encodeURIComponent(name)			
 		});
 	},
 	make_date_range_columns: function() {
