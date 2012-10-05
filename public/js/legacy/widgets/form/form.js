@@ -1172,7 +1172,7 @@ _f.Frm.prototype.toggle_reqd = function(fnames, mandatory) {
 }
 
 _f.Frm.prototype.toggle_display = function(fnames, show) {
-	cur_frm.field_map(fnames, function(field) { field.hidden = show ? false : true; });
+	cur_frm.field_map(fnames, function(field) { field.hidden = show ? 0 : 1; });
 }
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
