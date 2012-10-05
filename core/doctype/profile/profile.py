@@ -78,7 +78,7 @@ class DocType:
 				self.doc.name not in ["Administrator", "Guest"]:
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
-				and name not in ('Administrator', 'Guest')""")[0][0]
+				and name not in ('Administrator', 'Guest', %s)""", (self.doc.name,))[0][0]
 			if active_users >= conf.max_users and conf.max_users:
 				webnotes.msgprint("""
 					You already have <b>%(active_users)s</b> active users, \
