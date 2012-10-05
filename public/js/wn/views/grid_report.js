@@ -482,9 +482,8 @@ wn.views.GridReport = Class.extend({
 		})
 	},
 	get_link_open_icon: function(doctype, name) {
-		return repl(' <i class="icon icon-share" style="cursor: pointer;"\
-			onclick="wn.set_route(\'Form\', \'%(doctype)s\', \'%(name)s\');">\
-		</i>', {
+		return repl(' <a href="#Form/%(doctype)s/%(name)s">\
+			<i class="icon icon-share" style="cursor: pointer;"></i></a>', {
 			name: name,
 			doctype: doctype
 		});
