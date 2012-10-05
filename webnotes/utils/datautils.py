@@ -21,16 +21,31 @@
 #
 
 from __future__ import unicode_literals
-def read_csv_content_from_uploaded_file():
-	import csv
-	import webnotes
-	from webnotes.utils import cstr
-	from webnotes.utils.file_manager import get_uploaded_content
+import webnotes
 
+def read_csv_content_from_uploaded_file():
+	from webnotes.utils.file_manager import get_uploaded_content
 	fname, fcontent = get_uploaded_content()
-		
+	return read_csv_content(fcontent)
+
+def read_csv_content_from_attached_file(doc):
+	if not doc.file_list:
+		msgprint("File not attached!")
+		raise Exception
+
+	try:
+		from webnotes.utils.file_manager import get_file
+		fid = doc.file_list.split(",")[1]
+		fname, fcontent = get_file(fid)
+		return read_csv_content(fcontent)
+	except Exception, e:
+		webnotes.msgprint("""Unable to open attached file. Please try again.""")
+		raise Exception
+
+def read_csv_content(fcontent):
+	import csv
+	from webnotes.utils import cstr
 	rows = []
-	
 	try:
 		reader = csv.reader(fcontent.splitlines())
 		# decode everything
