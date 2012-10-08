@@ -179,7 +179,7 @@ def reset_password():
 			where `user`=%s""", (new_password, user))
 
 		# Hack!
-		webnotes.session["user"] = user
+		webnotes.session["user"] = "Administrator"
 		profile = get_obj("Profile", user)
 		profile.password_reset_mail(new_password)
 		webnotes.msgprint("Password has been reset and sent to your email id.")

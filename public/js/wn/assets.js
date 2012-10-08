@@ -55,7 +55,7 @@ wn.assets = {
 	// localstorage 
 	exists: function(src) {
 		if('localStorage' in window
-			&& localStorage.getItem(src) && !wn.boot.developer_mode)
+			&& localStorage.getItem(src) && (wn.boot ? !wn.boot.developer_mode : true))
 			return true
 	},
 	

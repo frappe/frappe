@@ -148,7 +148,7 @@ class DocType:
 		txt = """
 ## Password Reset
 
-Dear %(first_name)s %(last_name)s,
+Dear %(first_name)s,
 
 Your password has been reset. Your new password is:
 
@@ -161,14 +161,14 @@ To login to %(product)s, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail(txt, password)
+		self.send_login_mail("Your ERPNext password has been reset", txt, password)
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
 		txt = """
 ## %(company)s
 
-Dear %(first_name)s %(last_name)s,
+Dear %(first_name)s,
 
 A new account has been created for you, here are your details:
 
@@ -182,9 +182,9 @@ To login to your new %(product)s account, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail(txt, password)
+		self.send_login_mail("Welcome to " + startup.product_name, txt, password)
 
-	def send_login_mail(self, txt, password):
+	def send_login_mail(self, subject, txt, password):
 		"""send mail with login details"""
 		import startup
 		import os
@@ -194,8 +194,7 @@ Thank you,<br>
 		from webnotes.utils import get_request_site_address
 	
 		args = {
-			'first_name': self.doc.first_name,
-			'last_name': self.doc.last_name or '',
+			'first_name': self.doc.first_name or self.doc.last_name or "",
 			'user': self.doc.name,
 			'password': password,
 			'company': webnotes.conn.get_default('company') or startup.product_name,
@@ -203,7 +202,7 @@ Thank you,<br>
 			'product': startup.product_name,
 			'user_fullname': get_user_fullname(webnotes.session['user'])
 		}
-		sendmail_md(self.doc.email, subject="Welcome to " + startup.product_name, msg=txt % args)
+		sendmail_md(self.doc.email, subject=subject, msg=txt % args)
 		
 	def on_trash(self):
 		if self.doc.name in ["Administrator", "Guest"]:

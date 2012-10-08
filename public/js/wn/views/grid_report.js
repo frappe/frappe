@@ -709,7 +709,7 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 		var link = me.tree_grid.formatter(dataContext);
 		
 		if(dataContext.doctype) {
-			link += me.get_link_open_icon(dataContext.doctype, value);	
+			link += me.get_link_open_icon(dataContext.doctype, dataContext.name);	
 		}
 			
 		if (data[idx + 1] && data[idx + 1].indent > data[idx].indent) {

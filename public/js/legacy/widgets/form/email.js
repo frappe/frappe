@@ -103,13 +103,14 @@ _e.make = function() {
 		 ['Data','To','Example: abc@hotmail.com, xyz@yahoo.com']
 		,['Select','Format']
 		,['Data','Subject']
-		,['Data','From','Optional']
+		,['Data','From']
 		,['Check','Send With Attachments','Will send all attached documents (if any)']
 		,['Text','Message']
 		,['Button','Send',email_go]]
 	);
 
-	d.widgets['From'].value = (user_email ? user_email:'');
+	d.widgets['From'].value = user_email;
+	$(d.widgets["From"]).attr("disabled", "disabled").addClass("disp_area");
 	
 	$td(d.rows['Format'].tab,0,1).cur_sel = d.widgets['Format'];
 	

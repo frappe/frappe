@@ -184,7 +184,7 @@ class EMail:
 		if self.reply_to and (not validate_email_add(self.reply_to)):
 			webnotes.msgprint("%s is not a valid email id" % self.reply_to, raise_exception = 1)
 
-		for e in self.recipients:
+		for e in self.recipients + (self.cc or []):
 			if not validate_email_add(e):
 				webnotes.msgprint("%s is not a valid email id" % e, raise_exception = 1)
 	
@@ -207,7 +207,8 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""		
-		SMTPServer().sess.sendmail(self.sender, self.recipients, self.as_string())
+		SMTPServer().sess.sendmail(self.sender, self.recipients + (self.cc or []),
+			self.as_string())
 
 class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
