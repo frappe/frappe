@@ -146,6 +146,7 @@ class FormEmail:
 	def make_communication(self):
 		"""make email communication"""
 		from webnotes.model.doc import Document
+		from webnotes.utils import nowdate
 		comm = Document('Communication')
 		comm.communication_medium = 'Email'
 		comm.subject = self.subject
@@ -153,6 +154,10 @@ class FormEmail:
 		comm.category = 'Sent Mail'
 		comm.action = 'Sent Mail'
 		comm.naming_series = 'COMM-'
+		comm.user = webnotes.session["user"]
+		comm.communication_date = nowdate()
+		comm.email_address = ", ".join(self.recipients)
+		
 		try:
 			comm_cols = [c[0] for c in webnotes.conn.sql("""desc tabCommunication""")]
 			
