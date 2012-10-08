@@ -194,7 +194,7 @@ Thank you,<br>
 		from webnotes.utils import get_request_site_address
 	
 		args = {
-			'first_name': self.doc.first_name or self.doc.last_name or "",
+			'first_name': self.doc.first_name or self.doc.last_name or "user",
 			'user': self.doc.name,
 			'password': password,
 			'company': webnotes.conn.get_default('company') or startup.product_name,
