@@ -166,7 +166,7 @@ def check_public():
 	from webnotes.install_lib.setup_public_folder import make
 	make()
 
-def bundle(no_compress):
+def bundle(no_compress, cms_make=True):
 	"""concat / minify js files"""
 	# build js files
 	check_public()
@@ -174,13 +174,10 @@ def bundle(no_compress):
 	bundle.no_compress = no_compress
 	bundle.make()
 
-	# build index.html and app.html (from future)
-	#import website.utils
-	#website.utils.make_web_files()
-	
-	# build index.html and app.html
-	import webnotes.cms.make
-	webnotes.cms.make.make()	
+	if cms_make:
+		# build index.html and app.html
+		import webnotes.cms.make
+		webnotes.cms.make.make()	
 	
 def watch(no_compress):
 	"""watch and rebuild if necessary"""

@@ -163,6 +163,8 @@ def setup_options():
 						help="watch and minify + concat js files, if necessary")
 	parser.add_option("--no_compress", default=False, action="store_true",
 						help="do not compress when building js bundle")
+	parser.add_option("--no_cms", default=False, action="store_true",
+						help="do not build wn-web.js and wn-css.js")
 						
 	parser.add_option("--build_web_cache", default=False, action="store_true",
 						help="build web cache")
@@ -263,9 +265,13 @@ def run():
 	# build
 	if options.build:
 		from webnotes.utils import bundlejs
-		bundlejs.bundle(options.no_compress)
+		if options.no_cms:
+			cms_make = False
+		else:
+			cms_make = True
+		bundlejs.bundle(options.no_compress, cms_make)
 		return
-
+		
 	elif options.watch:
 		from webnotes.utils import bundlejs
 		bundlejs.watch(options.no_compress)
@@ -397,6 +403,10 @@ def run():
 		print "Domain set to", options.domain
 		
 	elif options.build_web_cache:
+		# build wn-web.js and wn-web.css
+		import webnotes.cms.make
+		webnotes.cms.make.make()
+		
 		import website.web_cache
 		website.web_cache.refresh_cache(['Blog'])
 		
