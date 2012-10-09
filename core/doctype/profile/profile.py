@@ -165,6 +165,8 @@ Thank you,<br>
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
+		import startup
+		
 		txt = """
 ## %(company)s
 
@@ -186,7 +188,6 @@ Thank you,<br>
 
 	def send_login_mail(self, subject, txt, password):
 		"""send mail with login details"""
-		import startup
 		import os
 	
 		from webnotes.utils.email_lib import sendmail_md
