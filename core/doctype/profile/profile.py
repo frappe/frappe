@@ -190,6 +190,7 @@ Thank you,<br>
 		"""send mail with login details"""
 		import os
 	
+		import startup
 		from webnotes.utils.email_lib import sendmail_md
 		from webnotes.profile import get_user_fullname
 		from webnotes.utils import get_request_site_address
