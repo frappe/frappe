@@ -130,13 +130,8 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	module = scrub(module)
 	dt = scrub(doc.doctype)
 
-	try:
-		module = __import__('%s.doctype.%s.%s' % (module, dt, dt), fromlist=[''])
-		DocType = getattr(module, 'DocType')
-	except ImportError, e:
-		class DocType:
-			def __init__(self, d, dl):
-				self.doc, self.doclist = d, dl
+	module = __import__('%s.doctype.%s.%s' % (module, dt, dt), fromlist=[''])
+	DocType = getattr(module, 'DocType')
 
 	# custom?
 	custom_script = get_custom_script(doc.doctype, 'Server')
