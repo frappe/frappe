@@ -27,6 +27,9 @@ import webnotes
 def run():
 	globals().update(webnotes.form_dict)
 	
+	if not query:
+		webnotes.msgprint("Must specify a Query to run", raise_exception=1)
+	
 	if not doctype:
 		webnotes.msgprint("Must specify DocType for permissions.", 
 			raise_exception=1)
