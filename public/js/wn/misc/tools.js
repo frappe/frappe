@@ -6,7 +6,7 @@ wn.markdown = function(txt) {
 	return wn.md2html.makeHtml(txt);
 }
 
-wn.downloadify = function(data, roles) {
+wn.downloadify = function(data, roles, me) {
 	if(roles && roles.length && !has_common(roles, user_roles)) {
 		msgprint("Export not allowed. You need " + wn.utils.comma_or(roles)
 			+ " Role to export.");
