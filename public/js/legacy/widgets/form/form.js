@@ -808,6 +808,10 @@ _f.Frm.prototype.show_doc = function(dn) {
 // ======================================================================================
 var validated; // bad design :(
 _f.Frm.prototype.save = function(save_action, call_back) {
+	// removes focus from a field before save, 
+	// so that its change event gets triggered before saving
+	$(":focus").blur();
+	
 	//alert(save_action);
 	if(!save_action) save_action = 'Save';
 	var me = this;
