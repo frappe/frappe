@@ -64,6 +64,9 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	}
 
 	cur_frm.cscript.hide_allow_attach(doc, dt, dn);
+	
+	// hide save button at the bottom
+	$(cur_frm.page_layout.footer).toggle(false);
 }
 
 cur_frm.cscript.hide_allow_attach = function(doc, dt, dn) {
