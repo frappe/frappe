@@ -810,7 +810,7 @@ var validated; // bad design :(
 _f.Frm.prototype.save = function(save_action, call_back) {
 	// removes focus from a field before save, 
 	// so that its change event gets triggered before saving
-	$(":focus").blur();
+	$(document.activeElement).blur();
 	
 	//alert(save_action);
 	if(!save_action) save_action = 'Save';
