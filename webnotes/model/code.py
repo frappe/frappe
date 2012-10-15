@@ -130,8 +130,18 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	module = scrub(module)
 	dt = scrub(doc.doctype)
 
-	module = __import__('%s.doctype.%s.%s' % (module, dt, dt), fromlist=[''])
-	DocType = getattr(module, 'DocType')
+	try:
+		module = __import__('%s.doctype.%s.%s' % (module, dt, dt), fromlist=[''])
+		DocType = getattr(module, 'DocType')
+	except ImportError, e:
+		from webnotes.utils import cint
+		if not cint(webnotes.conn.get_value("DocType", doc.doctype, "custom")):
+			raise e
+		
+		class DocType:
+			def __init__(self, d, dl):
+				self.doc, self.doclist = d, dl
+		
 
 	# custom?
 	custom_script = get_custom_script(doc.doctype, 'Server')
