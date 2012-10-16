@@ -813,7 +813,11 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 	$(document.activeElement).blur();
 	
 	//alert(save_action);
-	if(!save_action) save_action = 'Save';
+	if(!save_action) {
+		if(cint(this.doc.docstatus) > 0) return;
+		save_action = 'Save';
+	}
+
 	var me = this;
 	if(this.savingflag) {
 		msgprint("Document is currently saving....");
