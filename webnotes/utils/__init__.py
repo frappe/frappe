@@ -738,20 +738,6 @@ def get_label_doctype(label):
 	return res and res[0][0] or label
 
 
-def get_system_managers_list():
-	"""Returns a list of system managers' email addresses"""
-	system_managers_list = webnotes.conn.sql("""\
-		SELECT DISTINCT p.name
-		FROM tabUserRole ur, tabProfile p
-		WHERE
-			ur.parent = p.name AND
-			ur.role='System Manager' AND
-			p.docstatus<2 AND
-			p.enabled=1 AND
-			p.name not in ('Administrator', 'Guest')""", as_list=1)
-
-	return [sysman[0] for sysman in system_managers_list]
-
 def pretty_date(iso_datetime):
 	"""
 		Takes an ISO time and returns a string representing how
@@ -796,12 +782,34 @@ def pretty_date(iso_datetime):
 	else:
 		return 'more than %s year(s) ago' % cint(math.floor(dt_diff_days / 365.0))
 		
-def execute_in_shell(cmd):
+def execute_in_shell(cmd, verbose=0):
 	# using Popen instead of os.system - as recommended by python docs
 	from subprocess import Popen, PIPE
 	p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
 
 	# get err and output
 	err, out = p.stderr.read(), p.stdout.read()
+	if verbose:
+		if err: print err
+		if out: print out
 
 	return err, out
+
+def comma_or(some_list):
+	return comma_sep(some_list, " or ")
+	
+def comma_and(some_list):
+	return comma_sep(some_list, " and ")
+	
+def comma_sep(some_list, sep):
+	if isinstance(some_list, list):
+		# ([] + some_list) is done to preserve the existing list
+		some_list = [unicode(s) for s in ([] + some_list)]
+		if not some_list:
+			return ""
+		elif len(some_list) == 1:
+			return some_list[0]
+		else:
+			return ", ".join(some_list[:-1]) + sep + some_list[-1]
+	else:
+		return some_list

@@ -257,3 +257,14 @@ class Profile:
 def get_user_fullname(user):
 	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", user)
 	return fullname and fullname[0][0] or ''
+
+def get_system_managers():
+	"""returns all system manager's profile details"""
+	system_managers = webnotes.conn.sql("""select distinct name
+		from tabProfile p 
+		where docstatus < 2 and enabled = 1
+		and name not in ("Administrator", "Guest")
+		and exists (select * from tabUserRole ur
+			where ur.parent = p.name and ur.role="System Manager")""")
+	
+	return [p[0] for p in system_managers]
