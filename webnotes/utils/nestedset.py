@@ -320,7 +320,7 @@ def update_add_node(doctype, name, parent, parent_field):
 	webnotes.conn.sql("update `tab%s` set lft=%s, rgt=%s, modified='%s' where name='%s'" % (doctype,right,right+1,n,name))
 	return right
 
-class DocTypeNestedSet:
+class DocTypeNestedSet(object):
 	def on_update(self):
 		update_nsm(self)
 		
