@@ -117,7 +117,7 @@ wn.views.GridReport = Class.extend({
 		wn.report_dump.with_data(this.doctypes, function() {
 			// setup filters
 			me.setup_filters();
-			me.init_filter_values();
+			me.apply_filters_from_route();
 			me.refresh();
 		}, this.wrapper.find(".progress .bar"));
 	},
