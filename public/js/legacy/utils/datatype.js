@@ -91,7 +91,7 @@ function is_null(v) {
 function $s(ele, v, ftype, fopt) { 	
 	if(v==null)v='';
 					
-	if(ftype =='Text'|| ftype =='Small Text') {
+	if((ftype =='Text'|| ftype =='Small Text') && typeof(v)=="string") {
 		ele.innerHTML = v?v.replace(/\n/g, '<br>'):'';
 	} else if(ftype =='Date') {
 		v = dateutil.str_to_user(v);

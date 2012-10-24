@@ -117,7 +117,7 @@ wn.views.GridReport = Class.extend({
 		wn.report_dump.with_data(this.doctypes, function() {
 			// setup filters
 			me.setup_filters();
-			me.init_filter_values();
+			me.apply_filters_from_route();
 			me.refresh();
 		}, this.wrapper.find(".progress .bar"));
 	},
@@ -313,7 +313,7 @@ wn.views.GridReport = Class.extend({
 		var hash = decodeURIComponent(window.location.hash);
 		var me = this;
 		if(hash.indexOf('/') != -1) {
-			$.each(hash.split('/').splice(1).join('/').split('&'), function(i, f) {
+			$.each(hash.split('/').splice(1).join('/').split('&&'), function(i, f) {
 				var f = f.split("=");
 				if(me.filter_inputs[f[0]]) {
 					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
@@ -332,7 +332,7 @@ wn.views.GridReport = Class.extend({
 			if(val && val != opts.default_value)
 				return encodeURIComponent(opts.fieldname) 
 					+ '=' + encodeURIComponent(val);
-		}).join('&'))
+		}).join('&&'));
 	},
 	options: {
 		editable: false,
