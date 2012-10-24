@@ -41,7 +41,7 @@ class DocType:
 
 	def on_update(self):
 		# clear cache on save
-		webnotes.conn.sql("delete from __SessionCache")
+		webnotes.clear_cache()
 
 	def upload_many(self,form):
 		pass
