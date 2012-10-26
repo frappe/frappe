@@ -25,6 +25,9 @@ import webnotes
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+		
+	def autoname(self):
+		self.doc.name = self.doc.dt + "-" + self.doc.script_type
 
 	def on_update(self):
 		if self.doc.script_type == 'Client':
