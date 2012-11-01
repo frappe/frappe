@@ -132,17 +132,17 @@ def get_fields_label(dt=None, form=1):
 	doclist = webnotes.model.doctype.get(dt, form=0)
 	docfields = sorted((d for d in doclist if d.doctype=='DocField'),
 			key=lambda d: d.idx)
+	
 	if fieldname:
-		idx_label_list = (" - ".join([cstr(d.label) or cstr(d.fieldname) or \
-			cstr(d.fieldtype), cstr(d.idx)]) for d in docfields \
-			if d.fieldname != fieldname)
+		idx_label_list = [cstr(d.label) or cstr(d.fieldname) or cstr(d.fieldtype)
+			for d in docfields if d.fieldname != fieldname]
 	else:
-		idx_label_list = (" - ".join([cstr(d.label) or cstr(d.fieldname) or \
-			cstr(d.fieldtype), cstr(d.idx)]) for d in docfields)
+		idx_label_list = [cstr(d.label) or cstr(d.fieldname) or cstr(d.fieldtype)
+			for d in docfields]
 	if form:
 		return "\n".join(idx_label_list)
 	else:
 		# return idx_label_list, field_list
 		field_list = [cstr(d.fieldname) for d in docfields]
-		return list(idx_label_list), field_list
+		return idx_label_list, field_list
 
