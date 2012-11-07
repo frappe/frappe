@@ -96,7 +96,8 @@ class DocType:
 
 			# remove roles
 			webnotes.conn.sql("""delete from tabUserRole where parent='%s' 
-				and role in ('%s')""" % (self.doc.name, "','".join(self.temp['roles']['unset_roles'])))
+				and role in ('%s')""" % (self.doc.name,
+				"','".join(self.temp['roles']['unset_roles'])))
 
 			if "System Manager" in self.temp['roles']['unset_roles']:
 				self.check_one_system_manager()
@@ -114,6 +115,11 @@ class DocType:
 			
 	def check_one_system_manager(self):
 		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager' and docstatus<2 and parent!='Administrator'"""):
+			if webnotes.conn.sql("""select count(*) from `tabProfile`
+					where name not in ('Administrator', 'Guest')""")[0][0] == 0:
+				self.temp["roles"]["set_roles"].append("System Manager")
+				return
+				
 			webnotes.msgprint("""Cannot un-select as System Manager as there must 
 				be atleast one 'System Manager'.""", raise_exception=1)
 				
