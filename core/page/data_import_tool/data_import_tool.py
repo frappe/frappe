@@ -123,7 +123,10 @@ def upload():
 	
 	# allow limit rows to be uploaded
 	max_rows = 500
-	if len(rows[8:]) > max_rows:
+	if not rows[8:]:
+		webnotes.msgprint("No data found")
+		raise Exception
+	elif len(rows[8:]) > max_rows:
 		webnotes.msgprint("Please upload only upto %d %ss at a time" % \
 			(max_rows, doctype))
 		raise Exception
@@ -135,7 +138,7 @@ def upload():
 	columns = rows[3][1:]
 	
 	# parent details
-	parenttype, parentfield = get_parent_details(rows)
+	parenttype, parentfield = get_parent_details(rows, doctype)
 	if parenttype and overwrite:
 		delete_child_rows(rows, doctype)
 
@@ -178,7 +181,7 @@ def upload():
 	
 	return {"messages": ret, "error": error}
 	
-def get_parent_details(rows):
+def get_parent_details(rows, doctype):
 	parenttype, parentfield = None, None
 	
 	# get parenttype
