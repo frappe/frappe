@@ -24,6 +24,62 @@ wn.Application = Class.extend({
 	init: function() {
 		var me = this;
 		if(window.app) {
+			this.load_app_js(function() { me.load_startup() });			
+		} else {
+			this.load_startup();
+		}
+	},
+	load_app_js: function(callback) {
+		var all_app = localStorage.getItem("all-app");
+		
+		if(all_app) {
+			wn.dom.eval(all_app);
+			callback();
+			return;
+		}
+		
+		var dialog = new wn.ui.Dialog({
+			title: "Loading...",
+			width: 500,
+			user_cannot_cancel: true
+		});
+		
+		dialog.show();
+		
+		wn.messages.waiting(dialog.body, "", 5);
+		var bar = $(dialog.body).find(".bar");
+
+		$.ajax({
+			url: "js/all-app.js",
+			success: function(data, status, xhr) {
+				// add it to localstorage
+				localStorage.setItem('all-app', xhr.responseText);
+				dialog.hide();		
+				callback();
+			},
+			xhr: function() {
+				var xhr = jQuery.ajaxSettings.xhr();
+				interval = setInterval(function() {
+					if(xhr.readyState > 2) {
+				    	var total =  parseInt(xhr.getResponseHeader('Content-Length'));
+				    	var completed = parseInt(xhr.responseText.length);
+						var percent = (100.0 / total * completed).toFixed(2);
+						bar.css('width', (percent < 10 ? 10 : percent) + '%');
+					}
+				}, 50);
+				wn.last_xhr = xhr;
+				return xhr;
+			},
+			error: function(xhr, status, e) {
+				console.log(e.message);
+				eval(xhr.responseText);
+			}
+		});
+		
+	},
+	load_startup: function() {
+		var me = this;
+		if(window.app) {
 			wn.call({
 				method: 'startup',
 				callback: function(r, rt) {
@@ -37,11 +93,8 @@ wn.Application = Class.extend({
 				}
 			})
 		} else {
-			// clear sid cookie
-			//document.cookie = "sid=Guest;expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/"
 			this.startup();
-			//wn.views.pageview.show(window.home_page);
-		}
+		}		
 	},
 	startup: function() {
 		// load boot info
@@ -68,13 +121,8 @@ wn.Application = Class.extend({
 	},
 	load_bootinfo: function() {
 		if(wn.boot) {
-			LocalDB.sync(wn.boot.docs);
 			wn.control_panel = wn.boot.control_panel;
-
 			this.set_globals();
-			if(wn.boot.developer_mode) {
-				console.log("LocalStorage is OFF for developer mode. Please build before going live.");
-			}			
 		} else {
 			this.set_as_guest();
 		}
@@ -100,6 +148,8 @@ wn.Application = Class.extend({
 		sys_defaults = {};
 	},
 	make_page_container: function() {
+		wn.temp_container = $("<div id='#temp-container' style='display: none;'>")
+			.appendTo("body");
 		wn.container = new wn.views.Container();
 		wn.views.make_403();
 		wn.views.make_404();

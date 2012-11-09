@@ -57,7 +57,7 @@ get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, 
 			doc = locals[doc.doctype][doc.name];
 			call_back(doc, dt, dn);
 		}
-		if(!allow_edit)unfreeze();
+		if(!allow_edit)wn.dom.unfreeze();
     }
   );
 }

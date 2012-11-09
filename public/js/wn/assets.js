@@ -84,7 +84,7 @@ wn.assets = {
 		// *without* the template
 		var t = src;
 		
-		set_loading();
+		wn.set_loading();
 
 		$.ajax({
 			url: t,
@@ -99,7 +99,7 @@ wn.assets = {
 			async: false
 		});
 		
-		hide_loading();
+		wn.done_loading();
 	},
 	
 	// pass on to the handler to set

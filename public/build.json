@@ -1,37 +1,4 @@
 [
-	{
-		"public/js/core.min.js": [
-			"lib/public/js/wn/class.js",
-			"lib/public/js/wn/provide.js",
-			"lib/public/js/wn/assets.js",
-			"lib/public/js/wn/dom.js",
-			"lib/public/js/wn/model.js",
-			"lib/public/js/wn/meta.js",
-			"lib/public/js/wn/misc/tools.js",
-			"lib/public/js/wn/misc/user.js",
-			"lib/public/js/wn/misc/utils.js",
-			"lib/public/js/lib/public/json2.js",
-			"lib/public/js/wn/router.js",
-			"lib/public/js/wn/ui/messages.js",
-			"lib/public/js/wn/ui/listing.js",
-			"lib/public/js/wn/ui/filters.js",
-			"lib/public/js/wn/views/container.js",
-			"lib/public/js/wn/views/pageview.js",
-			"lib/public/js/wn/request.js",
-			"lib/public/js/core.js"
-		]
-	},
-
-	{
-		"public/js/toolbar.min.js": [
-			"lib/public/js/wn/ui/toolbar/selector_dialog.js",
-			"lib/public/js/wn/ui/toolbar/new.js",
-			"lib/public/js/wn/ui/toolbar/search.js",
-			"lib/public/js/wn/ui/toolbar/report.js",
-			"lib/public/js/wn/ui/toolbar/recent.js",
-			"lib/public/js/wn/ui/toolbar/toolbar.js"
-		]	
-	},
 	
 	{
 		"public/js/report-legacy.js": [
@@ -57,6 +24,7 @@
 	
 	{
 		"public/css/all-app.css": [
+			"lib/public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
 			"lib/public/css/bootstrap.css",
 			"lib/public/css/legacy/body.css",
 			"lib/public/css/legacy/forms.css",
@@ -71,14 +39,32 @@
 			"lib/public/css/ui/list.css",
 			"lib/public/css/ui/views.css",
 			"lib/public/css/ui/fonts.css",
-			"lib/public/js/lib/Aristo/aristo.selected.css",
 		]
 	},
 
 	{
 		"public/js/all-web.js": [
 			"lib/public/js/lib/bootstrap.min.js",
-			"public/js/core.min.js",
+
+			"lib/public/js/wn/class.js",
+			"lib/public/js/wn/provide.js",
+			"lib/public/js/wn/assets.js",
+			"lib/public/js/wn/dom.js",
+			"lib/public/js/wn/model.js",
+			"lib/public/js/wn/meta.js",
+			"lib/public/js/wn/misc/tools.js",
+			"lib/public/js/wn/misc/user.js",
+			"lib/public/js/wn/misc/utils.js",
+			"lib/public/js/lib/public/json2.js",
+			"lib/public/js/wn/router.js",
+			"lib/public/js/wn/ui/messages.js",
+			"lib/public/js/wn/ui/listing.js",
+			"lib/public/js/wn/ui/filters.js",
+			"lib/public/js/wn/views/container.js",
+			"lib/public/js/wn/views/pageview.js",
+			"lib/public/js/wn/request.js",
+			"lib/public/js/core.js",
+
 			"lib/public/js/legacy/globals.js",
 			"lib/public/js/legacy/utils/datatype.js",
 			"lib/public/js/legacy/utils/datetime.js",
@@ -90,7 +76,6 @@
 			"lib/public/js/wn/ui/button.js",
 			"lib/public/js/legacy/widgets/dialog.js",
 			"lib/public/js/legacy/webpage/page_header.js",
-			"lib/public/js/legacy/webpage/spinner.js",
 			"lib/public/js/legacy/webpage/loaders.js",
 			"lib/public/js/legacy/wn/widgets/footer.js",
 			"lib/public/js/legacy/model/local_data.js",
@@ -105,21 +90,11 @@
 			"lib/public/js/lib/jquery/jquery.ui.datepicker.js:concat",
 			"lib/public/js/lib/jquery/jquery.ui.autocomplete.js:concat",
 			"lib/public/js/lib/tiny_mce_33/jquery.tinymce.js:concat",
-			"lib/public/js/lib/bootstrap.min.js:concat",
 			"lib/public/js/lib/mousetrap.min.js",
 			"lib/public/js/lib/sprintf.js",
-			"public/js/core.min.js",
-			"lib/public/js/legacy/globals.js",
-			"lib/public/js/legacy/utils/datatype.js",
-			"lib/public/js/legacy/utils/datetime.js",
-			"lib/public/js/legacy/utils/dom.js",
-			"lib/public/js/legacy/utils/handler.js",
 			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/legacy/widgets/form/fields.js",
-			"lib/public/js/wn/ui/appframe.js",
 			"lib/public/js/wn/ui/field_group.js",
-			"lib/public/js/wn/ui/dialog.js",
-			"lib/public/js/wn/ui/button.js",
 			"lib/public/js/wn/ui/search.js",
 			"lib/public/js/wn/ui/tree.js",
 			"lib/public/js/wn/upload.js",
@@ -127,20 +102,20 @@
 			"lib/public/js/wn/views/doclistview.js",
 			"lib/public/js/wn/views/formview.js",
 			"lib/public/js/wn/views/load_reportview.js",
-			"lib/public/js/legacy/widgets/dialog.js",
 			"lib/public/js/legacy/widgets/layout.js",
-			"lib/public/js/legacy/webpage/page_header.js",
 			"lib/public/js/legacy/widgets/tags.js",
 			"lib/public/js/legacy/widgets/export_query.js",
 			"lib/public/js/legacy/webpage/search.js",
-			"lib/public/js/legacy/webpage/spinner.js",
-			"lib/public/js/legacy/webpage/loaders.js",
 			"lib/public/js/legacy/wn/page_layout.js",
 			"lib/public/js/legacy/wn/widgets/page_sidebar.js",
-			"lib/public/js/legacy/wn/widgets/footer.js",
-			"lib/public/js/legacy/model/local_data.js",
-			"lib/public/js/legacy/model/doclist.js",
-			"public/js/toolbar.min.js",
+			
+			"lib/public/js/wn/ui/toolbar/selector_dialog.js",
+			"lib/public/js/wn/ui/toolbar/new.js",
+			"lib/public/js/wn/ui/toolbar/search.js",
+			"lib/public/js/wn/ui/toolbar/report.js",
+			"lib/public/js/wn/ui/toolbar/recent.js",
+			"lib/public/js/wn/ui/toolbar/toolbar.js",
+			
 			"lib/public/js/wn/views/breadcrumbs.js",
 			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/legacy/widgets/form/form_dialog.js",
@@ -157,7 +132,6 @@
 			"lib/public/js/legacy/wn/widgets/form/comments.js",
 			"lib/public/js/legacy/wn/widgets/form/attachments.js",
 			"lib/public/js/legacy/wn/widgets/form/assign_to.js",
-			"lib/public/js/wn/app.js"
 		]
 	},
 	

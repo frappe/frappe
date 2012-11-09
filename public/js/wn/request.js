@@ -31,10 +31,10 @@ wn.request.prepare = function(opts) {
 	if(opts.btn) $(opts.btn).set_working();
 	
 	// navbar indicator
-	if(opts.show_spinner) set_loading();
+	if(opts.show_spinner) wn.set_loading();
 	
 	// freeze page
-	if(opts.freeze) freeze();
+	if(opts.freeze) wn.dom.freeze();
 	
 	// no cmd?
 	if(!opts.args.cmd) {
@@ -48,10 +48,10 @@ wn.request.cleanup = function(opts, r) {
 	if(opts.btn) $(opts.btn).done_working();
 	
 	// hide button indicator
-	if(opts.show_spinner) hide_loading();
+	if(opts.show_spinner) wn.done_loading();
 
 	// un-freeze page
-	if(opts.freeze) unfreeze();
+	if(opts.freeze) wn.dom.unfreeze();
 
 	// session expired?
 	if(wn.boot && wn.boot.sid && wn.get_cookie('sid') != wn.boot.sid) { 
