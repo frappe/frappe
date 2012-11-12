@@ -27,6 +27,8 @@ wn.views.doclistview.show = function(doctype) {
 	var page_name = wn.get_route_str();
 	if(wn.pages[page_name]) {
 		wn.container.change_to(wn.pages[page_name]);
+		if(wn.container.page.doclistview)
+			wn.container.page.doclistview.run();
 	} else {
 		var route = wn.get_route();
 		if(route[1]) {
@@ -55,6 +57,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var page_name = wn.get_route_str();
 		var page = wn.container.add_page(page_name);
 		wn.container.change_to(page_name);
+		page.doclistview = this;
 		this.$page = $(page);
 
 		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
