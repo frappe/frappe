@@ -48,6 +48,7 @@ def get_bootinfo():
 	bootinfo['control_panel'] = cp.copy()
 	bootinfo['account_name'] = cp.get('account_id')
 	bootinfo['sysdefaults'] = webnotes.utils.get_defaults()
+	bootinfo['server_date'] = webnotes.utils.nowdate()
 
 	if webnotes.session['user'] != 'Guest':
 		bootinfo['user_info'] = get_fullnames()
