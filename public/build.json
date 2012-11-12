@@ -25,6 +25,9 @@
 	{
 		"public/css/all-app.css": [
 			"lib/public/js/lib/jquery/bootstrap_theme/jquery-ui.selected.css",
+			"lib/public/js/lib/slickgrid/slick.grid.css",
+			"lib/public/js/lib/slickgrid/slick-default-theme.css",
+
 			"lib/public/css/bootstrap.css",
 			"lib/public/css/legacy/body.css",
 			"lib/public/css/legacy/forms.css",
@@ -139,6 +142,19 @@
 			"lib/public/js/legacy/wn/widgets/form/comments.js",
 			"lib/public/js/legacy/wn/widgets/form/attachments.js",
 			"lib/public/js/legacy/wn/widgets/form/assign_to.js",
+
+			'lib/public/js/lib/jquery/jquery.ui.interactions.min.js',
+			
+			'lib/public/js/lib/slickgrid/jquery.event.drag.min.js',
+			'lib/public/js/lib/slickgrid/plugins/slick.cellrangeselector.js',
+			'lib/public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js',
+			'lib/public/js/lib/slickgrid/plugins/slick.rowselectionmodel.js',
+			'lib/public/js/lib/slickgrid/plugins/slick.rowmovemanager.js',
+			'lib/public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js',
+			'lib/public/js/lib/slickgrid/plugins/slick.cellrangeselector.js',
+			'lib/public/js/lib/slickgrid/slick.core.js',
+			'lib/public/js/lib/slickgrid/slick.grid.js',
+			'lib/public/js/lib/slickgrid/slick.dataview.js',
 		]
 	},
 	
