@@ -37,6 +37,17 @@ wn.downloadify = function(data, roles, me) {
 	});	
 }
 
+wn.to_csv = function(data) {
+	var res = [];
+	$.each(data, function(i, row) {
+		row = $.map(row, function(col) {
+			return typeof(col)==="string" ? ('"' + col.replace(/"/g, '\"') + '"') : col;
+		});
+		res.push(row.join(","));
+	});
+	return res.join("\n");
+}
+
 wn.slickgrid_tools = {
 	get_view_data: function(columns, dataView) {
 		var col_row = $.map(columns, function(v) { return v.name; });
