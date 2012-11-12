@@ -141,7 +141,6 @@ function makeselector() {
 		if(this.disabled) return;
 
 		this.args.is_ajax = true;
-		this.set_working();
 		d.set_doctype = d.sel_type;
 		var q = '';
 		args = {};
@@ -174,6 +173,7 @@ function makeselector() {
 		});
 
 		// run the query
+		this.set_working();
 		$c('webnotes.widgets.search.search_widget',
 			args,
 			function(r, rtxt) {

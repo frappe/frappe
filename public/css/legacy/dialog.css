@@ -31,7 +31,7 @@ div.dialog_body {
 	-webkit-border-radius: 5px;	
 }
 
-div.dialog_back {
+div#freeze {
 	position: fixed;
 	display: none;
 	top: 0px;
