@@ -66,7 +66,6 @@ wn.views.QueryReport = Class.extend({
 
 		this.make_query_form();
 		this.make_toolbar();
-		this.import_slickgrid();
 	},
 	make_toolbar: function() {
 		var me = this;
@@ -169,28 +168,6 @@ wn.views.QueryReport = Class.extend({
 				msg += "Please click on another report from the menu.";
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);	
 		}
-	},
-	import_slickgrid: function() {
-		wn.require('lib/js/lib/slickgrid/slick.grid.css');
-		wn.require('lib/js/lib/slickgrid/slick-default-theme.css');
-		wn.require('lib/js/lib/slickgrid/jquery.event.drag.min.js');
-		wn.require('lib/js/lib/slickgrid/slick.core.js');
-		wn.require('lib/js/lib/slickgrid/slick.grid.js');
-		wn.require('lib/js/lib/slickgrid/slick.dataview.js');
-		wn.dom.set_style('.slick-cell { font-size: 12px; }\
-		.slick-headerrow-column {\
-	      background: #87ceeb;\
-	      text-overflow: clip;\
-	      -moz-box-sizing: border-box;\
-	      box-sizing: border-box;\
-	    }\
-	    .slick-headerrow-column input {\
-	      margin: 0;\
-	      padding: 0;\
-	      width: 100%;\
-	      height: 100%;\
-	      -moz-box-sizing: border-box;\
-	      box-sizing: border-box;}');
 	},
 	refresh: function() {
 		// Run

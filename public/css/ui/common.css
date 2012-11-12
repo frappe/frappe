@@ -62,3 +62,23 @@
 .layout-main-section h4 {
 	margin-bottom: 3px;
 }
+
+..slick-cell { 
+	font-size: 12px; 
+}
+
+.slick-headerrow-column {
+	background: #87ceeb;
+	text-overflow: clip;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}
+
+.slick-headerrow-column input {
+	margin: 0;
+	padding: 0;
+	width: 100%;
+	height: 100%;
+	-moz-box-sizing: border-box;
+	box-sizing: border-box;
+}

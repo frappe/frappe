@@ -91,7 +91,6 @@ wn.views.GridReport = Class.extend({
 			this.make_filters();
 		}
 		this.make_waiting();
-		this.import_slickgrid();
 		
 		var me = this;
 		this.get_data();
@@ -251,16 +250,6 @@ wn.views.GridReport = Class.extend({
 		});		
 	},
 	
- 	import_slickgrid: function() {
-		wn.require('lib/js/lib/slickgrid/slick.grid.css');
-		wn.require('lib/js/lib/slickgrid/slick-default-theme.css');
-		wn.require('lib/js/lib/slickgrid/jquery.event.drag.min.js');
-		wn.require('lib/js/lib/slickgrid/slick.core.js');
-		wn.require('lib/js/lib/slickgrid/slick.grid.js');
-		wn.require('lib/js/lib/slickgrid/slick.dataview.js');
-		wn.dom.set_style('.slick-cell { font-size: 12px; }');
-		if(this.tree_grid.show) wn.require("app/js/tree_grid.css");	
-	},
 	refresh: function() {
 		this.waiting.toggle(false);
 		if(!this.grid_wrapper) 
