@@ -158,11 +158,22 @@ wn.views.GridReport = Class.extend({
 			} else if(opts.fieldtype=='Data') {
 				filter.val("");
 			}
+		});
+		
+		this.set_default_values();
+	},
+
+	set_default_values: function() {
+		var values = {
+			from_date: dateutil.str_to_user(sys_defaults.year_start_date),
+			to_date: dateutil.str_to_user(sys_defaults.year_end_date)
+		}
+		
+		var me = this;
+		$.each(values, function(i, v) {
+			if(me.filter_inputs[i] && !me.filter_inputs[i].val())
+				me.filter_inputs[i].val(v);
 		})
-		if(this.filter_inputs.from_date)
-			this.filter_inputs.from_date.val(dateutil.str_to_user(sys_defaults.year_start_date));
-		if(this.filter_inputs.to_date)
-			this.filter_inputs.to_date.val(dateutil.str_to_user(sys_defaults.year_end_date));
 	},
 
 	make_filters: function() {
@@ -324,6 +335,7 @@ wn.views.GridReport = Class.extend({
 		} else {
 			this.init_filter_values();
 		}
+		this.set_default_values();
 	},
 	set_route: function() {
 		wn.set_route(wn.container.page.page_name, $.map(this.filter_inputs, function(v) {

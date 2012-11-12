@@ -58,7 +58,6 @@ wn.views.reportview = {
 
 wn.views.reportview2 = {
 	show: function(dt) {
-		wn.require("lib/js/wn/views/reportview.js");
 		var page_name = wn.get_route_str();
 		if(wn.pages[page_name]) {
 			wn.container.change_to(wn.pages[page_name]);
