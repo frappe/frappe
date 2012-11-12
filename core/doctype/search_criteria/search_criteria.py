@@ -88,7 +88,7 @@ class DocType:
 		self.copy_file(path, scrub(old_name), '.py')
 		self.copy_file(path, scrub(old_name), '.js')
 		self.copy_file(path, scrub(old_name), '.sql')
-				
+
 	def copy_file(self, path, old_name, extn):
 		import os
 		from webnotes.modules import get_module_path, scrub

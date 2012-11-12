@@ -676,7 +676,7 @@ def check_page_perm(doc):
 def get_report_builder_code(doc):
 	if doc.doctype=='Search Criteria':
 		from webnotes.model.code import get_code
-		
+				
 		if doc.standard != 'No':
 			doc.report_script = get_code(doc.module, 'Search Criteria', doc.name, 'js')
 			doc.custom_query = get_code(doc.module, 'Search Criteria', doc.name, 'sql')

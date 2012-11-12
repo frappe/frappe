@@ -216,7 +216,7 @@ def get_code(module, dt, dn, extn, fieldname=None):
 		return ''
 	
 	# file names
-	if scrub(dt) in ('page','doctype','search_criteria'):
+	if dt in ('Page','Doctype','Search Criteria'):
 		dt, dn = scrub(dt), scrub(dn)
 
 	# get file name
