@@ -313,7 +313,7 @@ _f.CodeField.prototype.make_input = function() {
 		// setup tiny mce
 		$(me.input).tinymce({
 			// Location of TinyMCE script
-			script_url : 'lib/js/lib/tiny_mce_33/tiny_mce.js',
+			script_url : 'lib/js/lib/tiny_mce_3.5.7/tiny_mce.js',
 
 			// General options
 			theme : "advanced",
@@ -331,8 +331,9 @@ _f.CodeField.prototype.make_input = function() {
 
 			theme_advanced_toolbar_location : "top",
 			theme_advanced_toolbar_align : "left",
+			theme_advanced_path: false,
 
-			content_css: "lib/js/lib/tiny_mce_33/custom_content.css?q=1",
+			content_css: "lib/js/lib/tiny_mce_3.5.7/custom_content.css?q=1",
 
 			oninit: function() { me.init_editor(); }
 		});

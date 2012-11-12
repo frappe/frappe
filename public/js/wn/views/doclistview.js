@@ -196,12 +196,17 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		return this.listview.fields;
 	},
 	get_args: function() {
+		var docstatus_list = this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'), 
+			function(inp) { 
+				return $(inp).attr('data-docstatus'); 
+			}) : []
+		console.log(docstatus_list)
+		
 		var args = {
 			doctype: this.doctype,
 			fields: this.get_query_fields(),
 			filters: this.filter_list.get_filters(),
-			docstatus: this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'), 
-				function(inp) { return $(inp).attr('data-docstatus') }) : [],
+			docstatus: docstatus_list,
 			order_by: this.listview.order_by || undefined,
 			group_by: this.listview.group_by || undefined,
 		}
