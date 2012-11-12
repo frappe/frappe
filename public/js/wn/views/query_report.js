@@ -111,29 +111,33 @@ wn.views.QueryReport = Class.extend({
 		$(this.query_form.fields_dict.save.input).click(function() {
 			var doc = me.query_form.get_values();
 			if(!doc) return;
-						
+	
 			// new report
-			if(!me.doc) {
+			if(!me.doc || (me.doc.name != doc.name)) {
 				doc.doctype = "Report";
-				if(user=="Administrator") doc.is_standard="Yes";
-				else doc.is_standard="No"
 				doc.__islocal = 1;
+				if(user=="Administrator") 
+					doc.is_standard="Yes";
+				else 
+					doc.is_standard="No"
 			} else{
 				doc = $.extend(copy_dict(me.doc), doc);
 			}
-			
 			
 			wn.call({
 				method:"webnotes.client.save",
 				args: { doclist: [doc] },
 				callback: function(r) {
+					if(!r.exc) {
+						msgprint("Report Saved!")
+					}
 					wn.provide("locals.Report");
 					me.doc = r.message[0]
 					locals["Report"][me.doc.name] = r.message[0];
 					wn.set_route("query-report", me.doc.name);
 				}
 			})
-		});		
+		});
 	},
 	load: function() {
 		// load from route
