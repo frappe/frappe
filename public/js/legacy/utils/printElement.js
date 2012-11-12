@@ -151,24 +151,24 @@
 
         var html = new Array();
         html.push('<html><head><title>' + opts["pageTitle"] + '</title>');
-        if (opts["overrideElementCSS"]) {
-            if (opts["overrideElementCSS"].length > 0) {
-                for (var x = 0; x < opts["overrideElementCSS"].length; x++) {
-                    var current = opts["overrideElementCSS"][x];
-                    if (typeof (current) == 'string')
-                        html.push('<link type="text/css" rel="stylesheet" href="' + current + '" >');
-                    else
-                        html.push('<link type="text/css" rel="stylesheet" href="' + current["href"] + '" media="' + current["media"] + '" >');
-                }
-            }
-        }
-        else {
-            $("link", document).filter(function () {
-                return $(this).attr("rel").toLowerCase() == "stylesheet";
-            }).each(function () {
-                html.push('<link type="text/css" rel="stylesheet" href="' + $(this).attr("href") + '" media="' + $(this).attr('media') + '" >');
-            });
-        }
+        // if (opts["overrideElementCSS"]) {
+        //     if (opts["overrideElementCSS"].length > 0) {
+        //         for (var x = 0; x < opts["overrideElementCSS"].length; x++) {
+        //             var current = opts["overrideElementCSS"][x];
+        //             if (typeof (current) == 'string')
+        //                 html.push('<link type="text/css" rel="stylesheet" href="' + current + '" >');
+        //             else
+        //                 html.push('<link type="text/css" rel="stylesheet" href="' + current["href"] + '" media="' + current["media"] + '" >');
+        //         }
+        //     }
+        // }
+        // else {
+        //     $("link", document).filter(function () {
+        //         return $(this).attr("rel").toLowerCase() == "stylesheet";
+        //     }).each(function () {
+        //         html.push('<link type="text/css" rel="stylesheet" href="' + $(this).attr("href") + '" media="' + $(this).attr('media') + '" >');
+        //     });
+        // }
         //Ensure that relative links work
         html.push('<base href="' + _getBaseHref() + '" />');
         html.push('</head><body style="' + opts["printBodyOptions"]["styleToAdd"] + '" class="' + opts["printBodyOptions"]["classNameToAdd"] + '">');
