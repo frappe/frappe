@@ -69,7 +69,7 @@ function zip(k,v) {
 	return obj;
 }
 
-function save_doclist(dt, dn, save_action, onsave, onerr) {
+function save_doclist(dt, dn, save_action, onsave, onerr, btn) {
 	var doc = locals[dt][dn];
 	var doctype = locals['DocType'][dt];
 	
@@ -96,16 +96,19 @@ function save_doclist(dt, dn, save_action, onsave, onerr) {
 		
 	var _save = function() {
 		//console.log(compress_doclist(doclist));
+		
+		btn && $(btn).attr("disabled", true);
+		
 		$c('webnotes.widgets.form.save.savedocs', {'docs':compress_doclist(doclist), 'docname':dn, 'action': save_action, 'user':user }, 
-			function(r, rtxt) {
-				if(f){ f.savingflag = false;}
+			function(r) {
+				btn && $(btn).attr("disabled", false);
 				if(r.saved) {
 					if(onsave)onsave(r);
 				} else {
 					if(onerr)onerr(r);
 				}
 			}, function() {
-				if(f){ f.savingflag = false; } /*time out*/ 
+				//
 			},0,(f ? 'Saving...' : '')
 		);
 	}

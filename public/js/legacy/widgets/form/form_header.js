@@ -116,26 +116,32 @@ _f.FrmHeader = Class.extend({
 		var docstatus = cint(cur_frm.doc.docstatus);
 		// Save
 		if(docstatus==0 && p[WRITE]) {
-			this.appframe.add_button('Save', function() { cur_frm.save('Save');}, '');
+			this.appframe.add_button('Save', function() { 
+				cur_frm.save('Save', null, this);}, '');
 			this.appframe.buttons['Save'].addClass('btn-info').text("Save (Ctrl+S)");			
 		}
 		// Submit
 		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
-			this.appframe.add_button('Submit', function() { cur_frm.savesubmit();}, 'icon-lock');
+			this.appframe.add_button('Submit', function() { 
+				cur_frm.savesubmit(this);}, 'icon-lock');
 
 		// Update after sumit
 		if(docstatus==1 && p[SUBMIT]) {
-			this.appframe.add_button('Update', function() { cur_frm.saveupdate();}, '');
+			this.appframe.add_button('Update', function() { 
+				this.save('Update', null, this);
+			}, '');
 			if(!cur_frm.doc.__unsaved) this.appframe.buttons['Update'].toggle(false);
 		}
 
 		// Cancel
 		if(docstatus==1  && p[CANCEL])
-			this.appframe.add_button('Cancel', function() { cur_frm.savecancel() }, 'icon-remove');
+			this.appframe.add_button('Cancel', function() { 
+				cur_frm.savecancel(this) }, 'icon-remove');
 
 		// Amend
 		if(docstatus==2  && p[AMEND])
-			this.appframe.add_button('Amend', function() { cur_frm.amend_doc() }, 'icon-pencil');
+			this.appframe.add_button('Amend', function() { 
+				cur_frm.amend_doc() }, 'icon-pencil');
 			
 		// Help
 		if(cur_frm.meta.description) {

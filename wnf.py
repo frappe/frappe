@@ -274,7 +274,7 @@ def run():
 		
 	elif options.watch:
 		from webnotes.utils import bundlejs
-		bundlejs.watch(options.no_compress)
+		bundlejs.watch(True)
 		return
 
 	# code replace

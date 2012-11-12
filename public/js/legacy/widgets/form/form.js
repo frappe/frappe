@@ -299,7 +299,7 @@ _f.Frm.prototype.setup_footer = function() {
 	f.help_area = $a(this.page_layout.footer,'div');
 
 	var b = $btn(f.save_area, 'Save',
-		function() { cur_frm.save('Save'); },{marginLeft:'0px'},'green');
+		function() { cur_frm.save('Save', this); },{marginLeft:'0px'},'green');
 	
 	// show / hide save
 	f.show_save = function() {
@@ -807,7 +807,7 @@ _f.Frm.prototype.show_doc = function(dn) {
 
 // ======================================================================================
 var validated; // bad design :(
-_f.Frm.prototype.save = function(save_action, call_back) {
+_f.Frm.prototype.save = function(save_action, callback, btn) {
 	// removes focus from a field before save, 
 	// so that its change event gets triggered before saving
 	$(document.activeElement).blur();
@@ -816,12 +816,6 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 	if(!save_action) {
 		if(cint(this.doc.docstatus) > 0) return;
 		save_action = 'Save';
-	}
-
-	var me = this;
-	if(this.savingflag) {
-		msgprint("Document is currently saving....");
-		return; // already saving (do not double save)
 	}
 
 	if(save_action=='Submit') {
@@ -856,36 +850,28 @@ _f.Frm.prototype.save = function(save_action, call_back) {
 			this.runclientscript('validate');
 	
 		if(!validated) {
-			this.savingflag = false;
 			return 'Error';
 		}
 	}
  	
 	
-	var ret_fn = function(r) {
-		me.savingflag = false;		
+	var onsave = function(r) {
 		if(!me.meta.istable && r) {
 			me.refresh(r.docname);
 		}
-
-		if(call_back){
-			call_back(r);
-		}		
+		callback && callback(r)
 	}
 
 	var me = this;
-	var ret_fn_err = function(r) {
+	var onerr = function(r) {
 		var doc = locals[me.doctype][me.docname];
-		me.savingflag = false;
-		ret_fn(r);
+		onsave(r);
 	}
 	
-	this.savingflag = true;
 	if(this.docname && validated) {
 		// scroll to top
 		scroll(0, 0);
-		
-		return this.savedoc(save_action, ret_fn, ret_fn_err);
+		return save_doclist(this.doctype, this.docname, save_action, onsave, onerr, btn);
 	}
 }
 
@@ -1019,7 +1005,7 @@ _f.Frm.prototype.reload_doc = function() {
 	this.check_doctype_conflict(this.docname);
 
 	var me = this;
-	var ret_fn = function(r, rtxt) {
+	var onsave = function(r, rtxt) {
 		// n tweets and last comment				
 		me.runclientscript('setup', me.doctype, me.docname);
 		me.refresh();
@@ -1027,23 +1013,14 @@ _f.Frm.prototype.reload_doc = function() {
 
 	if(me.doc.__islocal) { 
 		// reload only doctype
-		$c('webnotes.widgets.form.load.getdoctype', {'doctype':me.doctype }, ret_fn, null, null, 'Refreshing ' + me.doctype + '...');
+		$c('webnotes.widgets.form.load.getdoctype', {'doctype':me.doctype }, onsave, null, null, 'Refreshing ' + me.doctype + '...');
 	} else {
 		// reload doc and docytpe
-		$c('webnotes.widgets.form.load.getdoc', {'name':me.docname, 'doctype':me.doctype, 'getdoctype':1, 'user':user}, ret_fn, null, null, 'Refreshing ' + me.docname + '...');
+		$c('webnotes.widgets.form.load.getdoc', {'name':me.docname, 'doctype':me.doctype, 'getdoctype':1, 'user':user}, onsave, null, null, 'Refreshing ' + me.docname + '...');
 	}
 }
 
-
-_f.Frm.prototype.savedoc = function(save_action, onsave, onerr) {
-	save_doclist(this.doctype, this.docname, save_action, onsave, onerr);
-}
-
-_f.Frm.prototype.saveupdate = function() {
-	this.save('Update');
-}
-
-_f.Frm.prototype.savesubmit = function() {
+_f.Frm.prototype.savesubmit = function(btn) {
 	var answer = confirm("Permanently Submit "+this.docname+"?");
 	var me = this;
 	if(answer) {
@@ -1051,13 +1028,13 @@ _f.Frm.prototype.savesubmit = function() {
 			if(!r.exc && me.cscript.on_submit) {
 				me.runclientscript('on_submit', me.doctype, me.docname);
 			}
-		});
+		}, btn);
 	}
 }
 
-_f.Frm.prototype.savecancel = function() {
+_f.Frm.prototype.savecancel = function(btn) {
 	var answer = confirm("Permanently Cancel "+this.docname+"?");
-	if(answer) this.save('Cancel');
+	if(answer) this.save('Cancel', null, btn);
 }
 
 // delete the record
