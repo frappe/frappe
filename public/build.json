@@ -109,6 +109,7 @@
 			"lib/public/js/wn/misc/about.js",
 			"lib/public/js/wn/views/doclistview.js",
 			"lib/public/js/wn/views/formview.js",
+			"lib/public/js/wn/form/formatters.js",
 			"lib/public/js/wn/views/load_reportview.js",
 			"lib/public/js/wn/views/reportview.js",
 			"lib/public/js/wn/views/grid_report.js",

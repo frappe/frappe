@@ -134,34 +134,21 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		var me = this;
 		return $.map(this.columns, function(c) {
 			var docfield = wn.meta.docfield_map[c[1] || me.doctype][c[0]];
+			if(c[0]=="name") { 
+				var docfield = {fieldname:"name", label:"ID", 
+					fieldtype:"Link", options:me.doctype }
+			}
 			coldef = {
 				id: c[0],
 				field: c[0],
 				docfield: docfield,
 				name: (docfield ? docfield.label : toTitle(c[0])),
-				width: (docfield ? cint(docfield.width) : 120) || 120
-			}
-						
-			if(c[0]=='name') {
-				coldef.formatter = function(row, cell, value, columnDef, dataContext) {
-					return repl("<a href='#!Form/%(doctype)s/%(name)s'>%(name)s</a>", {
-						doctype: me.doctype,
-						name: value
-					});
+				width: (docfield ? cint(docfield.width) : 120) || 120,
+				formatter: function(row, cell, value, columnDef, dataContext) {
+					var docfield = columnDef.docfield;	
+					return wn.form.get_formatter(docfield ? docfield.fieldtype : "Data")(value, docfield);
 				}
-			} else if(docfield && docfield.fieldtype=='Link') {
-				coldef.formatter = function(row, cell, value, columnDef, dataContext) {
-					if(value) {
-						return repl("<a href='#!Form/%(doctype)s/%(name)s'>%(name)s</a>", {
-							doctype: columnDef.docfield.options,
-							name: value
-						});						
-					} else {
-						return '';
-					}
-				}				
 			}
-			
 			return coldef;
 		});
 	},
