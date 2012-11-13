@@ -6,17 +6,17 @@ classes should alter those!
 */
 
 .slick-header-columns {
-  background: url('lib/js/lib/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
+  background: url('../lib/js/lib/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
   border-bottom: 1px solid silver;
 }
 
 .slick-header-column {
-  background: url('lib/js/lib/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
+  background: url('../lib/js/lib/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
   border-right: 1px solid silver;
 }
 
 .slick-header-column:hover, .slick-header-column-active {
-  background: white url('lib/js/lib/slickgrid/images/header-columns-over-bg.gif') repeat-x center bottom;
+  background: white url('../lib/js/lib/slickgrid/images/header-columns-over-bg.gif') repeat-x center bottom;
 }
 
 .slick-headerrow {
@@ -61,11 +61,11 @@ classes should alter those!
 }
 
 .slick-group-toggle.expanded {
-  background: url(lib/js/lib/slickgrid/images/collapse.gif) no-repeat center center;
+  background: url(../lib/js/lib/slickgrid/images/collapse.gif) no-repeat center center;
 }
 
 .slick-group-toggle.collapsed {
-  background: url(lib/js/lib/slickgrid/images/expand.gif) no-repeat center center;
+  background: url(../lib/js/lib/slickgrid/images/expand.gif) no-repeat center center;
 }
 
 .slick-group-totals {
@@ -107,7 +107,7 @@ classes should alter those!
   border: 1px solid gray;
   border-bottom: 0;
   border-top: 0;
-  background: url('lib/js/lib/slickgrid/images/header-bg.gif') repeat-x center top;
+  background: url('../lib/js/lib/slickgrid/images/header-bg.gif') repeat-x center top;
   color: black;
   height: 24px;
   line-height: 24px;
@@ -229,7 +229,7 @@ input.editor-percentcomplete {
   display: inline-block;
   width: 16px;
   height: 100%;
-  background: url("lib/js/lib/slickgrid/images/pencil.gif") no-repeat center center;
+  background: url("../lib/js/lib/slickgrid/images/pencil.gif") no-repeat center center;
   overflow: visible;
   z-index: 1000;
   float: right;
@@ -240,7 +240,7 @@ input.editor-percentcomplete {
   position: absolute;
   top: -2px;
   left: -9px;
-  background: url("lib/js/lib/slickgrid/images/editor-helper-bg.gif") no-repeat top left;
+  background: url("../lib/js/lib/slickgrid/images/editor-helper-bg.gif") no-repeat top left;
   padding-left: 9px;
 
   width: 120px;

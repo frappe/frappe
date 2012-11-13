@@ -16,7 +16,8 @@ wn.downloadify = function(data, roles, me) {
 	wn.require("lib/js/lib/downloadify/swfobject.js");
 	
 	var id = wn.dom.set_unique_id();
-	var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to download this file.</p>');
+	var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to \
+		download this file.</p>');
 	
 	Downloadify.create(id ,{
 		filename: function(){
@@ -49,7 +50,7 @@ wn.to_csv = function(data) {
 }
 
 wn.slickgrid_tools = {
-	get_view_data: function(columns, dataView) {
+	get_view_data: function(columns, dataView, filter) {
 		var col_row = $.map(columns, function(v) { return v.name; });
 		var res = [];
 		var col_map = $.map(columns, function(v) { return v.field; });
@@ -64,8 +65,10 @@ wn.slickgrid_tools = {
 				}
 				row.push(val);
 			});
-
-			res.push(row);
+			
+			if(!filter || filter(row, d)) {
+				res.push(row);				
+			}
 		}
 		return [col_row].concat(res);
 			
