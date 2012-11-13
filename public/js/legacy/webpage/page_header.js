@@ -48,7 +48,6 @@ function PageHeader(parent, main_text, sub_text) {
 	this.close_btn = $a(this.wrapper, 'a', 'close', {}, '&times;');
 	this.close_btn.onclick = function() { window.history.back(); };
 	
-	this.breadcrumbs = $a(this.wrapper, 'div', 'breadcrumbs-area');
 	this.main_head = $a(this.wrapper, 'h1', '', def_ph_style.main_heading);
 	this.sub_head = $a(this.wrapper, 'h4', '', def_ph_style.sub_heading);
 

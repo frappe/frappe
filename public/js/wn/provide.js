@@ -35,5 +35,10 @@ wn.provide = function(namespace) {
 	}
 }
 
+// future translation
+wn._ = function(txt) {
+	return txt;
+}
+
 wn.provide('wn.settings');
 wn.provide('wn.ui');

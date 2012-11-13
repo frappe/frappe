@@ -127,7 +127,6 @@
 			"lib/public/js/wn/ui/toolbar/recent.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
-			"lib/public/js/wn/views/breadcrumbs.js",
 			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/legacy/widgets/form/form_dialog.js",
 			"lib/public/js/legacy/widgets/form/form_header.js",

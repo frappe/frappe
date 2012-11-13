@@ -26,9 +26,7 @@ wn.views.ReportViewPage = Class.extend({
 		wn.container.change_to(this.page_name);
 	},
 	make_report_view: function() {
-		// add breadcrumbs
-		this.page.appframe.add_breadcrumb(locals.DocType[this.doctype].module);
-			
+		this.page.appframe.add_module_tab(locals.DocType[this.doctype].module);			
 		this.reportview = new wn.views.ReportView(this.doctype, this.docname, this.page)
 	}
 })

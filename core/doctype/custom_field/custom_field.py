@@ -58,12 +58,12 @@ class DocType:
 
 		CacheItem(self.doc.dt).clear()
 				
+		# create property setter to emulate insert after
+		self.create_property_setter()
+
 		# update the schema
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.dt)
-
-		# create property setter to emulate insert after
-		self.create_property_setter()
 
 	def on_trash(self):
 		# delete property setter entries

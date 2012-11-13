@@ -4,10 +4,14 @@ wn.ui.AppFrame = Class.extend({
 		this.$w = $('<div></div>').appendTo(parent);
 				
 		this.$titlebar = $('<div class="appframe-titlebar">\
-			<span class="appframe-title"></span>\
+			<div class="appframe-marker"></div>\
+			<span class="appframe-center">\
+				<span class="appframe-title"></span>\
+				<span class="appframe-subject"></span>\
+			</span>\
 			<span class="close" style="margin-top: 5px; margin-right: 7px;">&times;</span>\
 		</div>').appendTo(this.$w);
-
+		
 		this.$w.find('.close').click(function() {
 			window.history.back();
 		})
@@ -21,36 +25,31 @@ wn.ui.AppFrame = Class.extend({
 	},
 	set_title: function(txt) {
 		document.title = txt;
-		this.clear_breadcrumbs();
-		this.add_breadcrumb(txt);	
+		this.$titlebar.find(".appframe-title").html(txt);
 	},
 	set_marker: function(module) {
-		try {
-			var color = wn.module_css_classes[wn.module_css_map[module]].middle;			
-		} catch(e) {
-			var color = "#000";
-		}
-		$('<div class="appframe-marker">')
-			.prependTo(this.$titlebar)
+		var color = wn.get_module_color(module);
+		this.$titlebar.find(".appframe-marker")
 			.css({
 				"background-color": color
 			});
 	},
-	add_tabs: function() {
-		if(!this.tabs) {
-			this.tabs = $('<div class="appframe-tabs"></div>')
-				.prependTo(this.$w).css("width", this.$w.width());
-			//this.$w.parents(".layout-wrapper").css("margin-top", "30px");
-		}
-	},
-	add_tab: function(tab_name, opacity, click) {
-		this.add_tabs();
+	add_tab: function(tab_name, opacity, click) {		
 		var span = $('<span class="appframe-tab"></span>')
-			.html(tab_name).appendTo(this.tabs);
+			.html(tab_name).insertAfter(this.$titlebar.find(".close"));
 		opacity && span.css("opacity", opacity);
 		click && span.click(click);
-		return span
+		return span		
 	},
+	
+	add_module_tab: function(module) {
+		this.add_tab('<span class="small-module-icons small-module-icons-'+
+			module.toLowerCase()+'"></span>'+' <span>'
+			+ wn._(module) + "</span>", 0.7, function() {
+				wn.set_route(erpnext.modules[module]);
+		});	
+	},
+		
 	add_button: function(label, click, icon) {
 		this.add_toolbar();
 		args = { label: label, icon:'' };
@@ -63,6 +62,7 @@ wn.ui.AppFrame = Class.extend({
 			.appendTo(this.toolbar);
 		return this.buttons[label];
 	},
+
 	add_help_button: function(txt) {
 		this.add_toolbar();
 		$('<button class="btn btn-small" style="float:right;" button-type="help">\
@@ -71,25 +71,11 @@ wn.ui.AppFrame = Class.extend({
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
 			.appendTo(this.toolbar);			
 	},
+
 	clear_buttons: function() {
 		this.toolbar && this.toolbar.empty();
 	},
-	add_breadcrumb: function(html) {
-		if(!this.$breadcrumbs)
-			this.$breadcrumbs = $('</span>\
-				<span class="breadcrumb-area"></span>').appendTo(this.$titlebar);
-		
-		var crumb = $('<span>').html(html);
-		
-		// first breadcrumb is a title
-		if(!this.$breadcrumbs.find('span').length) {
-			crumb.addClass('appframe-title');
-		}
-		crumb.appendTo(this.$breadcrumbs);
-	},
-	clear_breadcrumbs: function() {
-		this.$breadcrumbs && this.$breadcrumbs.empty();
-	},
+
 	add_toolbar: function() {
 		if(!this.toolbar)
 			this.$w.append('<div class="appframe-toolbar"></div>');

@@ -24,7 +24,6 @@
 // --------
 // toolbar - standard and custom
 // label - saved, submitted etc
-// breadcrumbs
 // save / submit button toggle based on "saved" or not
 // highlight and fade name based on refresh
 
@@ -32,28 +31,17 @@ _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
 		this.appframe = new wn.ui.AppFrame(parent, null, frm.meta.module)
 		this.$w = this.appframe.$w;
-		this.appframe.add_tab('<span class="small-module-icons small-module-icons-'+
-			frm.meta.module.toLowerCase()+'"></span>'+
-			' <span>'+ frm.meta.module + "</span>", 0.7, function() {
-			wn.set_route(wn.modules[frm.meta.module])
-		});
-				
+		this.frm = frm;
+		
 		if(!frm.meta.issingle) {
 			this.appframe.add_tab(frm.doctype, 0.5, function() {
 				wn.set_route("List", frm.doctype);
 			});
 		}
+		this.appframe.add_module_tab(frm.meta.module);		
 	},
 	refresh: function() {
-		// refresh breadcrumbs
-		if(cur_frm.cscript.set_breadcrumbs) {
-			this.appframe.clear_breadcrumbs();
-			cur_frm.cscript.set_breadcrumbs();
-		} else {
-			wn.views.breadcrumbs(this.appframe, 
-				cur_frm.meta.module, cur_frm.meta.name, cur_frm.docname);			
-		}
-		
+		this.appframe.set_title(this.frm.docname);
 		this.refresh_labels();
 		this.refresh_toolbar();
 	},
@@ -88,7 +76,7 @@ _f.FrmHeader = Class.extend({
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
 				lab_class: labinfo[1]
-			})).insertBefore(this.$w.find('.breadcrumb-area'))
+			})).insertBefore(this.$w.find('.appframe-title'))
 	},
 	refresh_toolbar: function() {
 		// clear
