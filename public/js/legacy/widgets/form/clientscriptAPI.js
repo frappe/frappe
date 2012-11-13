@@ -41,7 +41,7 @@ $c_get_values = function(args, doc, dt, dn, user_callback) {
 }
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
-	if(!allow_edit)freeze('Fetching Data...');
+	if(!allow_edit) wn.dom.freeze();
 	$c('runserverobj', args={'method':method, 'docs':compress_doclist(make_doclist(doc.doctype, doc.name)), 'arg':arg},
 	function(r, rt) {
 		if (r.message)  {
@@ -57,7 +57,8 @@ get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, 
 			doc = locals[doc.doctype][doc.name];
 			call_back(doc, dt, dn);
 		}
-		if(!allow_edit)wn.dom.unfreeze();
+		if(!allow_edit)
+			wn.dom.unfreeze();
     }
   );
 }
