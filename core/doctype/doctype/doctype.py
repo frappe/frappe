@@ -68,40 +68,10 @@ class DocType:
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
 
-	#
-	# field validations
-	#
-	def validate_fields(self):
-		"validates fields for incorrect properties and double entries"
-		fieldnames = {}
-		illegal = ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$']
-		for d in self.doclist:
-			if not d.permlevel: d.permlevel = 0
-			if d.parent and d.fieldtype and d.parent == self.doc.name:
-				# check if not double
-				if d.fieldname:
-					if fieldnames.get(d.fieldname):
-						webnotes.msgprint('Fieldname <b>%s</b> appears twice (rows %s and %s). Please rectify' \
-						 	% (d.fieldname, str(d.idx + 1), str(fieldnames[d.fieldname] + 1)), raise_exception=1)
-					fieldnames[d.fieldname] = d.idx
-					
-					# check bad characters
-					for c in illegal:
-						if c in d.fieldname:
-							webnotes.msgprint('"%s" not allowed in fieldname' % c)
-				
-				else:
-					webnotes.msgprint("Fieldname is mandatory in row %s" % str(d.idx+1), raise_exception=1)
-				
-				# check illegal mandatory
-				if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
-					webnotes.msgprint('%(lable)s [%(fieldtype)s] cannot be mandatory', raise_exception=1)
-		
-		
 	def validate(self):
 		self.validate_series()
 		self.scrub_field_names()
-		self.validate_fields()
+		validate_fields(filter(lambda d: d.doctype=="DocField", self.doclist))
 		self.set_version()
 
 	def on_update(self):
@@ -194,4 +164,42 @@ class DocType:
 				new.save()
 				max_idx += 1
 
+def validate_fields_for_doctype(doctype):
+	from webnotes.model.doctype import get
+	validate_fields(filter(lambda d: d.doctype=="DocField" and d.parent==doctype, 
+		get(doctype)))
 
+def validate_fields(fields):
+	def check_illegal_characters(fieldname):
+		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$', 
+			'(', ')', '[', ']']:
+			if c in fieldname:
+				webnotes.msgprint("'%s' not allowed in fieldname (%s)" % (c, fieldname))
+	
+	def check_unique_fieldname(fieldname):
+		duplicates = filter(None, map(lambda df: df.fieldname==fieldname and str(df.idx) or None, fields))
+		if len(duplicates) > 1:
+			webnotes.msgprint('Fieldname <b>%s</b> appears more than once in rows (%s). Please rectify' \
+			 	% (fieldname, ', '.join(duplicates)), raise_exception=1)
+	
+	def check_illegal_mandatory(d):
+		if d.fieldtype in ('HTML', 'Button', 'Section Break', 'Column Break') and d.reqd:
+			webnotes.msgprint('%(label)s [%(fieldtype)s] cannot be mandatory' % d.fields, 
+				raise_exception=1)
+	
+	def check_link_table_options(d):
+		if d.fieldtype in ("Link", "Table"):
+			if not d.options:
+				webnotes.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.fields, raise_exception=1)
+			if not webnotes.conn.exists("DocType", d.options):
+				webnotes.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, raise_exception=1)
+
+	for d in fields:
+		if not d.permlevel: d.permlevel = 0
+		if not d.fieldname:
+			webnotes.msgprint("Fieldname is mandatory in row %s" % d.idx, raise_exception=1)
+		check_illegal_characters(d.fieldname)
+		check_unique_fieldname(d.fieldname)
+		check_illegal_mandatory(d)
+		check_link_table_options(d)
+		

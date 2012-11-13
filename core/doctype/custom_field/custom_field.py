@@ -24,44 +24,25 @@
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import cint, cstr, flt, formatdate, now
+from webnotes.utils import cint, cstr
 from webnotes.model.doc import Document
-from webnotes import msgprint, errprint
+from webnotes import msgprint
 
-
-# -----------------------------------------------------------------------------------------
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
-# *************************** Validate *******************************
 	def set_fieldname(self):
 		if not self.doc.fieldname:
 			# remove special characters from fieldname
 			self.doc.fieldname = filter(lambda x: x.isdigit() or x.isalpha() or '_', cstr(self.doc.label).lower().replace(' ','_'))
 
-
-	def validate_field(self, doctype_doclist):
-		exists = any(d for d in doctype_doclist if d.doctype == 'DocField' and
-				(d.fields.get('label') == self.doc.label or 
-				d.fields.get('fieldname') == self.doc.fieldname))
-		if self.doc.fields.get('__islocal') and exists:
-			msgprint("%s field already exists in Document : %s" % (self.doc.label, self.doc.dt))
-			raise Exception
-
-		if self.doc.fieldtype=='Link' and self.doc.options:
-			if not webnotes.conn.sql("select name from tabDocType where name=%s", self.doc.options):
-				msgprint("%s is not a valid Document" % self.doc.options)
-				raise Exception
-
 	def validate(self):
+		from webnotes.model.doctype import get
 		self.set_fieldname()
 		
-		from webnotes.model.doctype import get
 		temp_doclist = get(self.doc.dt, form=0)
-		
-		self.validate_field(temp_doclist)
-		
+				
 		# set idx
 		if not self.doc.idx:
 			from webnotes.utils import cint
@@ -69,15 +50,20 @@ class DocType:
 			self.doc.idx = cint(max_idx) + 1
 		
 	def on_update(self):
+		# validate field
+		from webnotes.utils.cache import CacheItem
+		from core.doctype.doctype.doctype import validate_fields_for_doctype
+
+		validate_fields_for_doctype(self.doc.dt)
+
+		CacheItem(self.doc.dt).clear()
+				
 		# update the schema
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.dt)
 
 		# create property setter to emulate insert after
 		self.create_property_setter()
-
-		from webnotes.utils.cache import CacheItem
-		CacheItem(self.doc.dt).clear()
 
 	def on_trash(self):
 		# delete property setter entries
@@ -102,17 +88,18 @@ class DocType:
 			WHERE doc_type = %s
 			AND field_name = %s
 			AND property = 'previous_field'""", (self.doc.dt, self.doc.fieldname))
-		ps = Document('Property Setter', fielddata = {
+		
+		webnotes.model_wrapper([{
+			'doctype': "Property Setter",
 			'doctype_or_field': 'DocField',
 			'doc_type': self.doc.dt,
 			'field_name': self.doc.fieldname,
 			'property': 'previous_field',
 			'value': prev_field,
 			'property_type': 'Data',
-			'select_doctype': self.doc.dt
-		})
-		ps.save(1)
-
+			'select_doctype': self.doc.dt,
+			'__islocal': 1
+		}]).save()
 
 @webnotes.whitelist()
 def get_fields_label(dt=None, form=1):

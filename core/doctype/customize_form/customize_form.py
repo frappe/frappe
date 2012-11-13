@@ -144,6 +144,7 @@ class DocType:
 		if self.doc.doc_type:
 			from webnotes.model import doc
 			from webnotes.model.doctype import get
+			from core.doctype.doctype.doctype import validate_fields_for_doctype
 			
 			this_doclist = [self.doc] + self.doclist
 			ref_doclist = self.get_ref_doclist()
@@ -153,6 +154,8 @@ class DocType:
 			diff_list = self.diff(this_doclist, ref_doclist, dt_doclist)
 			
 			self.set_properties(diff_list)
+
+			validate_fields_for_doctype(self.doc.doc_type)
 
 			from webnotes.utils.cache import CacheItem
 			CacheItem(self.doc.doc_type).clear()

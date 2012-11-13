@@ -260,3 +260,7 @@ def generate_hash():
 	"""Generates random hash for session id"""
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
+
+def model_wrapper(doctype, name=None):
+	from webnotes.model.doclist import DocList
+	return DocList(doctype, name)

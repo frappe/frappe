@@ -51,3 +51,7 @@ class DocType:
 		else:
 			return webnotes.conn.sql("select * from `tabDocField` where fieldname=%s and parent=%s", 
 				(self.doc.field_name, self.doc.doc_type), as_dict = 1)[0]
+				
+	def on_update(self):
+		from core.doctype.doctype.doctype import validate_fields_for_doctype
+		validate_fields_for_doctype(self.doc.doc_type)

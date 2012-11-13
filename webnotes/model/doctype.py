@@ -37,17 +37,16 @@ class _DocType:
 	def __init__(self, name):
 		self.name = name
 
-	def make_doclist(self, form=1):
+	def make_doclist(self, form=1, force=False):
 		"""
 
 		"""
 		# do not load from cache if auto cache clear is enabled
 		import conf
-		from_cache = True
 		if hasattr(conf, 'auto_cache_clear'):
-			from_cache = not conf.auto_cache_clear
+			force = not conf.auto_cache_clear
 		
-		if form and from_cache:
+		if form and not force:
 			cached_doclist = self.load_from_cache()
 			if cached_doclist: return cached_doclist
 
@@ -371,13 +370,13 @@ class _DocType:
 		json_doclist = json.dumps([d.fields for d in doclist])
 		CacheItem(self.name).set(json_doclist)
 
-def get(dt, form=1):
+def get(dt, form=1, force=False):
 	"""
 	Load "DocType" - called by form builder, report buider and from code.py (when there is no cache)
 	"""
 	if not dt: return []
 
-	doclist = _DocType(dt).make_doclist(form)	
+	doclist = _DocType(dt).make_doclist(form, force)
 	return doclist
 
 # Deprecate after import_docs rewrite

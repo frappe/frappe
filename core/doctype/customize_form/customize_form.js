@@ -38,7 +38,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 		if(cur_frm.fields_dict['doc_type'].value) {
 			$c_obj(make_doclist(dt, dn), 'post', '', function(r, rt) {
 				if(r.exc) {
-					msgprint(r.exc);
+					//msgprint(r.exc);
 				} else {
 					if(r.server_messages) { cur_frm.cscript.doc_type(doc, doc.doctype, doc.name); }
 				cur_frm.frm_head.set_label(['Saved', 'label-success']);				
