@@ -232,6 +232,7 @@ wn.views.GridReport = Class.extend({
 		}
 		
 	},
+
 	make_name_map: function(data, key) {
 		var map = {};
 		key = key || "name";

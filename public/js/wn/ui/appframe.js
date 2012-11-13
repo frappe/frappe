@@ -17,8 +17,11 @@ wn.ui.AppFrame = Class.extend({
 
 	},
 	title: function(txt) {
+		this.set_title(txt);
+	},
+	set_title: function(txt) {
 		this.clear_breadcrumbs();
-		this.add_breadcrumb(txt);
+		this.add_breadcrumb(txt);		
 	},
 	set_marker: function(module) {
 		try {
