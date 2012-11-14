@@ -26,7 +26,33 @@ wn.model = {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 
  	'Button', 'Image'],
 
+	std_fields: [
+		{fieldname:'name', fieldtype:'Link', label:'ID'},
+		{fieldname:'owner', fieldtype:'Data', label:'Created By'},
+		{fieldname:'creation', fieldtype:'Date', label:'Created On'},
+		{fieldname:'modified', fieldtype:'Date', label:'Last Updated On'},
+		{fieldname:'modified_by', fieldtype:'Date', label:'Last Updated By'},
+		{fieldname:'_user_tags', fieldtype:'Data', label:'Tags'},
+		{fieldname:'docstatus', fieldtype:'Int', label:'Document Status'},
+	],
+	
+	std_fields_table: [
+		{fieldname:'parent', fieldtype:'Data', label:'Parent'},
+		{fieldname:'idx', fieldtype:'Int', label:'Row No.'},
+	],
+
 	new_names: {},
+
+	get_std_field: function(fieldname) {
+		var docfield = $.map([].concat(wn.model.std_fields).concat(wn.model.std_fields_table), 
+			function(d) {
+				if(d.fieldname==fieldname) return d;
+			});
+		if(!docfield.length) {
+			msgprint("Unknown Column: " + fieldname);			
+		}
+		return docfield[0];
+	},
 
 	with_doctype: function(doctype, callback) {
 		if(locals.DocType[doctype]) {

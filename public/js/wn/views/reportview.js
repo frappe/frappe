@@ -132,9 +132,11 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		var me = this;
 		return $.map(this.columns, function(c) {
 			var docfield = wn.meta.docfield_map[c[1] || me.doctype][c[0]];
-			if(c[0]=="name") { 
-				var docfield = {fieldname:"name", label:"ID", 
-					fieldtype:"Link", options:me.doctype }
+			if(!docfield) {
+				var docfield = wn.model.get_std_field(c[0]);
+				if(c[0]=="name") { 
+					docfield.options = me.doctype;
+				}
 			}
 			coldef = {
 				id: c[0],

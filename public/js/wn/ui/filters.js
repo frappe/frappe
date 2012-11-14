@@ -22,7 +22,8 @@
 
 wn.ui.FilterList = Class.extend({
 	init: function(opts) {
-		wn.require('js/fields.js');
+		if(!window.make_field)
+			wn.require('js/fields.js');
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
@@ -289,19 +290,9 @@ wn.ui.FieldSelect = Class.extend({
 	build_options: function() {
 		var me = this;
 		me.table_fields = [];
-		var std_filters = [
-			{fieldname:'name', fieldtype:'Data', label:'ID', parent:me.doctype},
-			{fieldname:'modified', fieldtype:'Date', label:'Last Modified',
-				parent:me.doctype},
-			{fieldname:'owner', fieldtype:'Data', label:'Created By',
-				parent:me.doctype},
-			{fieldname:'creation', fieldtype:'Date', label:'Created On',
-				parent:me.doctype},
-			{fieldname:'_user_tags', fieldtype:'Data', label:'Tags',
-				parent:me.doctype},
-			{fieldname:'docstatus', fieldtype:'Int', label:'Doc Status',
-				parent:me.doctype},
-		];
+		var std_filters = $.map(wn.model.std_fields, function(d) {
+			return $.extend(copy_dict(d), {parent: me.doctype});
+		});
 		
 		// add parenttype column
 		var doctype_obj = locals['DocType'][me.doctype];
