@@ -88,7 +88,8 @@ class BackupGenerator:
 					self.backup_path_db = this_file_path
 
 	def zip_files(self):
-		cmd_string = """tar -czf %s public/files/""" % self.backup_path_files
+		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 'public', 'files')
+		cmd_string = """tar -czf %s %s""" % (self.backup_path_files, files_path)
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
 	def take_dump(self):
