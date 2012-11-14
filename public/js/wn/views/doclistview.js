@@ -146,6 +146,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			method: 'webnotes.widgets.doclistview.get',
 			get_args: this.get_args,
 			parent: this.wrapper,
+			freeze: true,
 			start: 0,
 			page_length: this.page_length,
 			show_filters: true,

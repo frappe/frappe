@@ -162,15 +162,16 @@ class FormEmail:
 			comm_cols = [c[0] for c in webnotes.conn.sql("""desc tabCommunication""")]
 			
 			# tag to record
-			if self.dt in comm_cols:
-				comm.fields[self.dt] = self.dn
+			dt = self.dt.lower().replace(" ", "_")
+			if dt in comm_cols:
+				comm.fields[dt] = self.dn
 				
 			# tag to customer, supplier (?)
 			if self.customer:
 				comm.customer = self.customer
 			if self.supplier:
 				comm.supplier = self.supplier
-			
+						
 			comm.save(1)
 		except Exception, e:
 			if e.args[0]!=1146: raise e

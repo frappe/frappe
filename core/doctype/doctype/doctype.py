@@ -190,9 +190,16 @@ def validate_fields(fields):
 	def check_link_table_options(d):
 		if d.fieldtype in ("Link", "Table"):
 			if not d.options:
-				webnotes.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.fields, raise_exception=1)
+				webnotes.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.fields, 
+					raise_exception=1)
 			if not webnotes.conn.exists("DocType", d.options):
-				webnotes.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, raise_exception=1)
+				webnotes.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, 
+					raise_exception=1)
+
+	def check_hidden_and_mandatory(d):
+		if d.hidden and d.reqd:
+			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd)""" % d.fields,
+				raise_exception=True)
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
@@ -202,4 +209,5 @@ def validate_fields(fields):
 		check_unique_fieldname(d.fieldname)
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
+		check_hidden_and_mandatory(d)
 		
