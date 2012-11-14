@@ -48,6 +48,7 @@ wn.assets = {
 		if(window._version_number != localStorage.getItem("_version_number")) {
 			localStorage.clear();
 			localStorage.setItem("_version_number", window._version_number)
+			console.log("Cleared App Cache.");
 		}
 	},
 	

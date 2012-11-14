@@ -59,11 +59,6 @@ class Bundle:
 
 				data = infile.read()
 
-				if os.path.basename(f)=='core.js':
-					import webnotes
-					data = data % {"_version_number": webnotes.generate_hash() }
-
-
 			outtxt += ('\n/*\n *\t%s\n */' % f)
 					
 			# append
@@ -113,6 +108,20 @@ class Bundle:
 			infiles = self.get_infiles(builddict)
 			
 			self.concat(infiles, os.path.relpath(os.path.join(self.path, outfile), os.curdir))						
+	
+		self.reset_app_html()
+		
+	def reset_app_html(self):
+		import webnotes
+
+		if os.path.exists("public/app.html"):
+			os.remove("public/app.html")
+					
+		with open('lib/public/html/app.html', 'r') as app_html:
+			data = app_html.read()
+			data = data % {"_version_number": webnotes.generate_hash() }
+			with open('public/app.html', 'w') as new_app_html:
+				new_app_html.write(data)
 	
 	def get_infiles(self, builddict):
 		"""make list of files to merge"""
