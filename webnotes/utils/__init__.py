@@ -677,6 +677,8 @@ def esc(s, esc_chars):
 	"""
 		Escape special characters
 	"""
+	if not s:
+		return ""
 	for c in esc_chars:
 		esc_str = '\\' + c
 		s = s.replace(c, esc_str)

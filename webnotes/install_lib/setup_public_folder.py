@@ -6,7 +6,7 @@ import os
 def make():
 	"""make public folder symlinks if missing"""
 	
-	dirs = ["public", "public/js", "public/css"]
+	dirs = ["public", "public/js", "public/css", "public/files", "public/backups"]
 	
 	for dirname in dirs:
 		if not os.path.exists(dirname):

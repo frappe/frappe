@@ -49,30 +49,55 @@ class BackupGenerator:
 		self.db_name = db_name
 		self.user = user
 		self.password = password
-		self.backup_file_name = self.get_backup_file_name()
-		self.backup_file_path = os.path.join(get_backup_path(), self.backup_file_name)
+		self.backup_path_files = None
+		self.backup_path_db = None
+
+	def get_backup(self):
+		"""
+			Takes a new dump if existing file is old
+			and sends the link to the file as email
+		"""
+		#Check if file exists and is less than a day old
+		#If not Take Dump
+		self.get_recent_backup()
+		if not (self.backup_path_files and self.backup_path_db):
+			self.set_backup_file_name()
+			self.take_dump()
+			self.zip_files()
 	
-	def get_backup_file_name(self):
+	def set_backup_file_name(self):
 		import random
 		todays_date = "".join(str(datetime.date(datetime.today())).split("-"))
 		random_number = str(int(random.random()*99999999))
 		
 		#Generate a random name using today's date and a 8 digit random number
-		random_name = todays_date + "_" + random_number + ".sql.gz"
-		return random_name
+		for_db = todays_date + "_" + random_number + "_database.sql.gz"
+		for_files = todays_date + "_" + random_number + "_files.tar.gz"
+		backup_path = get_backup_path()
+		self.backup_path_db = os.path.join(backup_path, for_db)	
+		self.backup_path_files = os.path.join(backup_path, for_files)	
+		
+	def get_recent_backup(self):
+		file_list = os.listdir(get_backup_path())
+		for this_file in file_list:
+			this_file_path = os.path.join(get_backup_path(), this_file)
+			if not is_file_old(this_file_path):
+				if "_files" in this_file_path:
+					self.backup_path_files = this_file_path
+				if "_database" in this_file_path:
+					self.backup_path_db = this_file_path
+
+	def zip_files(self):
+		cmd_string = """tar -czf %s public/files/""" % self.backup_path_files
+		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
 	def take_dump(self):
-		"""
-			Dumps a db via mysqldump
-		"""
 		import webnotes.utils
 		
 		# escape reserved characters
 		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] 
 			for item in self.__dict__.copy().items())
-					
-		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_file_path)s""" % args
-		
+		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_path_db)s""" % args		
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
 	def get_recipients(self):
@@ -90,49 +115,35 @@ class BackupGenerator:
 		return [i[0] for i in recipient_list]
 		
 		
-	def send_email(self, backup_file):
+	def send_email(self):
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
+		from webnotes.utils.email_lib import sendmail
+
 		backup_url = webnotes.conn.get_value('Website Settings',
 			'Website Settings', 'subdomain') or ''
-		backup_url = os.path.join('http://' + backup_url, 'backups')
-		file_url = os.path.join(backup_url, backup_file)
-		from webnotes.utils.email_lib import sendmail
+		backup_url = os.path.join('http://' + backup_url, 'backups')		
 		
 		recipient_list = self.get_recipients()
-		msg = """<a href="%(file_url)s">Click here to begin downloading\
-		 your backup</a>
-		 
-		 This link will be valid for 24 hours.
-		 
-		 Also, a new backup will be available for download (if requested)\
-		  only after 24 hours.""" % {"file_url":file_url}
 		
-		backup_file_path = os.path.join(get_backup_path(), backup_file)
-		datetime_str = datetime.fromtimestamp(os.stat(backup_file_path).st_ctime)
+		msg = """<p>Hello,</p>
+		<p>Your backups are ready to be downloaded.</p>
+		<p>1. <a href="%(db_backup_url)s">Click here to download\
+		 the database backup</a></p>
+		<p>2. <a href="%(files_backup_url)s">Click here to download\
+		the files backup</a></p>
+		<p>This link will be valid for 24 hours. A new backup will be available 
+		for download only after 24 hours.</p>
+		<p>Have a nice day!<br>ERPNext</p>""" % {
+			"db_backup_url": os.path.join(backup_url, os.path.basename(self.backup_path_db)),
+			"files_backup_url": os.path.join(backup_url, os.path.basename(self.backup_path_files)) 
+		}
 		
+		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
 		subject = datetime_str.strftime("%d/%m/%Y %H:%M:%S") + """ - Backup ready to be downloaded"""
+		
 		sendmail(recipients=recipient_list, msg=msg, subject=subject)
-		return recipient_list
-		
-		
-	def get_backup(self):
-		"""
-			Takes a new dump if existing file is old
-			and sends the link to the file as email
-		"""
-		#Check if file exists and is less than a day old
-		#If not Take Dump
-		backup_file = recent_backup_exists()
-		
-		if not backup_file:
-			self.take_dump()
-			backup_file = self.backup_file_name
-		
-		#Email Link
-		recipient_list = self.send_email(backup_file)
-
 		return recipient_list
 		
 		
@@ -146,7 +157,8 @@ def get_backup():
 	delete_temp_backups()
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.get_db_password(webnotes.conn.cur_db_name))
-	recipient_list = odb.get_backup()
+	odb.get_backup()
+	recipient_list = odb.send_email()
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly on the following email address:
 	%s""" % (', '.join(recipient_list)))
@@ -158,17 +170,10 @@ def scheduled_backup():
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.get_db_password(webnotes.conn.cur_db_name))
-	odb.take_dump()
+	odb.get_backup()
+	
 	from webnotes.utils import now
-	print "backup taken -", odb.backup_file_name, "- on", now()
-
-def recent_backup_exists():
-	file_list = os.listdir(get_backup_path())
-	for this_file in file_list:
-		this_file_path = os.path.join(get_backup_path(), this_file)
-		if not is_file_old(this_file_path):
-			return this_file
-	return None
+	print "backup taken -", odb.backup_path_db, "- on", now()
 
 def delete_temp_backups(older_than=24):
 	"""
@@ -179,8 +184,7 @@ def delete_temp_backups(older_than=24):
 		this_file_path = os.path.join(get_backup_path(), this_file)
 		if is_file_old(this_file_path, older_than):
 			os.remove(this_file_path)
-
-
+			
 def is_file_old(db_file_name, older_than=24):
 		"""
 			Checks if file exists and is older than specified hours
@@ -210,7 +214,7 @@ def get_backup_path():
 	if not backup_path:
 		import os, conf
 		backup_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
-			conf.backup_path)
+			'public', 'backups')
 	return backup_path
 
 #-------------------------------------------------------------------------------
