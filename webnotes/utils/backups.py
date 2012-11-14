@@ -72,7 +72,7 @@ class BackupGenerator:
 		
 		#Generate a random name using today's date and a 8 digit random number
 		for_db = todays_date + "_" + random_number + "_database.sql.gz"
-		for_files = todays_date + "_" + random_number + "_files.tar.gz"
+		for_files = todays_date + "_" + random_number + "_files.tar"
 		backup_path = get_backup_path()
 		self.backup_path_db = os.path.join(backup_path, for_db)	
 		self.backup_path_files = os.path.join(backup_path, for_files)	
@@ -89,7 +89,7 @@ class BackupGenerator:
 
 	def zip_files(self):
 		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 'public', 'files')
-		cmd_string = """tar -czf %s %s""" % (self.backup_path_files, files_path)
+		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
 	def take_dump(self):
