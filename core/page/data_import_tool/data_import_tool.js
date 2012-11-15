@@ -138,7 +138,8 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	});
 	
 	// add overwrite option
-	$('<input type="checkbox" name="overwrite"><span> Overwrite</span><br><br>')
+	$('<input type="checkbox" name="overwrite"><span> Overwrite</span>\
+		<p class="help">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
 
 	// add ignore option

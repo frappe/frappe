@@ -1,6 +1,22 @@
 from __future__ import unicode_literals
+
+import csv, cStringIO
 import webnotes
+import webnotes
+import webnotes.model.doc
+import webnotes.model.doctype
+from webnotes.model.doc import Document
+from webnotes.utils import encode
 from webnotes.utils import cstr
+
+data_keys = webnotes.DictObj({
+	"data_separator": '----Start entering data below this line----',
+	"main_table": "Table:",
+	"parent_table": "Parent Table:",
+	"columns": "Column Name:"
+})
+
+doctype_dl = None
 
 @webnotes.whitelist()
 def get_doctypes():
@@ -9,21 +25,13 @@ def get_doctypes():
 		
 @webnotes.whitelist()
 def get_doctype_options():
-	import webnotes
 	doctype = webnotes.form_dict['doctype']
-	import webnotes.model.doctype
 	return [doctype] + filter(None, map(lambda d: \
 		d.doctype=='DocField' and d.fieldtype=='Table' and d.options or None, 
 		webnotes.model.doctype.get(doctype, form=0)))
 
-data_separator = '----Start entering data below this line----'
-
-doctype_dl = None
-
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def get_template():
-	import webnotes
-	import webnotes.model.doctype
 	global doctype_dl
 
 	doctype = webnotes.form_dict['doctype']
@@ -50,21 +58,34 @@ def get_template():
 			
 	w = UnicodeWriter()
 	key = 'name'
-	
-	w.writerow(['Upload Template for: %s' % doctype])
+
+	w.writerow(['Data Import Template'])	
+	w.writerow([data_keys.main_table, doctype])
 	
 	if parenttype != doctype:
-		w.writerow(['This is a child table for: %s' % parenttype])
+		w.writerow([data_keys.parent_table, parenttype])
 		key = 'parent'
 	else:
 		w.writerow([''])
 	
 	w.writerow(['----'])
-	
-	fieldrow = ['Column Name:', key]
+	w.writerow(['Notes:'])
+	w.writerow(['- Please do not change the template headings.'])
+	w.writerow(['- First data column must be blank.'])
+	w.writerow(['- Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
+	w.writerow(['- For updating, you can update only selective columns.'])
+	w.writerow(['- If you are uploading new records, leave the "name" (ID) column blank.'])
+	w.writerow(['- If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
+	w.writerow(['- You can only upload 500 records in one go.'])
+	if key == "parent":
+		w.writerow(['- "Parent" signifies the parent table in which this row must be added'])
+		w.writerow(['- If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
+	w.writerow(['----'])
+	labelrow = ["Column Labels", "ID"]
+	fieldrow = [data_keys.columns, key]
 	mandatoryrow = ['Mandatory:', 'Yes']
 	typerow = ['Type:', 'Data (text)']
-	inforow = ['Info:', 'ID']
+	inforow = ['Info:', '']
 	columns = [key]
 	
 	def append_row(t, mandatory):
@@ -72,6 +93,7 @@ def get_template():
 		if docfield and ((mandatory and docfield.reqd) or (not mandatory and not docfield.reqd)) \
 			and (t not in ('parenttype', 'trash_reason', 'file_list')) and not docfield.hidden:
 			fieldrow.append(t)
+			labelrow.append(docfield.label)
 			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
 			typerow.append(docfield.fieldtype)
 			inforow.append(getinforow(docfield))
@@ -85,12 +107,13 @@ def get_template():
 	for t in tablecolumns:
 		append_row(t, False)
 
+	w.writerow(labelrow)
 	w.writerow(fieldrow)
 	w.writerow(mandatoryrow)
 	w.writerow(typerow)
 	w.writerow(inforow)
 	
-	w.writerow([data_separator])
+	w.writerow([data_keys.data_separator])
 
 	if webnotes.form_dict.get('with_data')=='Yes':
 		data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" % doctype, as_dict=1)
@@ -114,38 +137,60 @@ def getdocfield(fieldname):
 def upload():
 	"""upload data"""
 	global doctype_dl
-	import webnotes.model.doctype
-	from webnotes.model.doc import Document
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
 	
-	rows = read_csv_content_from_uploaded_file()
-	doctype = rows[0][0].split(':')[1].strip()
+	def bad_template():
+		webnotes.msgprint("Please do not change the rows above '%s'" % data_keys.data_separator,
+			raise_exception=1)
+			
+	def check_data_length():
+		max_rows = 500
+		if not data:
+			webnotes.msgprint("No data found", raise_exception=True)
+		elif len(data) > max_rows:
+			webnotes.msgprint("Please upload only upto %d %ss at a time" % \
+				(max_rows, doctype), raise_exception=True)
 	
+	def get_start_row():
+		for i, row in enumerate(rows):
+			if row[0]==data_keys.data_separator:
+				return i+1
+		bad_template()
+				
+	def get_header_row(key):
+		for i, row in enumerate(header):
+			if row[0]==key:
+				return row
+		return []
+		
+	# header
+	rows = read_csv_content_from_uploaded_file()
+	start_row = get_start_row()
+	header = rows[:start_row]
+	data = rows[start_row:]
+	doctype = get_header_row(data_keys.main_table)[1]
+	columns = get_header_row(data_keys.columns)[1:]
+	parenttype = get_header_row(data_keys.parent_table)
+	
+	if len(parenttype) > 1:
+		parenttype = parenttype[1]
+		parentfield = get_parent_field(doctype, parenttype)
+		
 	# allow limit rows to be uploaded
-	max_rows = 500
-	if not rows[8:]:
-		webnotes.msgprint("No data found")
-		raise Exception
-	elif len(rows[8:]) > max_rows:
-		webnotes.msgprint("Please upload only upto %d %ss at a time" % \
-			(max_rows, doctype))
-		raise Exception
-
+	check_data_length()
+	
 	webnotes.conn.begin()
 	
 	overwrite = webnotes.form_dict.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype, form=0)
-	columns = rows[3][1:]
 	
-	# parent details
-	parenttype, parentfield = get_parent_details(rows, doctype)
+	# delete child rows (if parenttype)
 	if parenttype and overwrite:
-		delete_child_rows(rows, doctype)
+		delete_child_rows(data, doctype)
 
 	ret = []
 	error = False
-	start_row = 8
-	for i, row in enumerate(rows[start_row:]):
+	for i, row in enumerate(data):
 		# bypass empty rows
 		if not row: continue
 		
@@ -181,16 +226,11 @@ def upload():
 	
 	return {"messages": ret, "error": error}
 	
-def get_parent_details(rows, doctype):
-	parenttype, parentfield = None, None
-	
-	# get parenttype
-	if len(rows[1]) > 0 and ':' in rows[1][0]:
-		parenttype = rows[1][0].split(':')[1].strip()
-		
+def get_parent_field(doctype, parenttype):
+	parentfield = None
+			
 	# get parentfield
 	if parenttype:
-		import webnotes.model.doctype
 		for d in webnotes.model.doctype.get(parenttype):
 			if d.fieldtype=='Table' and d.options==doctype:
 				parentfield = d.fieldname
@@ -201,7 +241,7 @@ def get_parent_details(rows, doctype):
 				(parenttype, doctype))
 			raise Exception
 	
-	return parenttype, parentfield
+	return parentfield
 	
 def check_record(d, parenttype):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
@@ -237,14 +277,11 @@ def getlink(doctype, name):
 
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
-	import webnotes
-	for p in list(set([r[1] for r in rows[8:]])):
+	for p in list(set([r[1] for r in rows])):
 		webnotes.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
 		
 def import_doc(d, doctype, overwrite, row_idx):
 	"""import main (non child) document"""
-	import webnotes
-	import webnotes.model.doc
 	from webnotes.model.doclist import DocList
 
 	if webnotes.conn.exists(doctype, d['name']):
@@ -263,8 +300,7 @@ def import_doc(d, doctype, overwrite, row_idx):
 		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
 			dl.doc.fields['name']))
 
-import csv, cStringIO
-from webnotes.utils import encode
+
 class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):
 		self.encoding = encoding
