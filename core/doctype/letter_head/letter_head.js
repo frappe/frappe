@@ -20,8 +20,32 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-cur_frm.cscript.validate = function(doc, dt, dn) {
-	return 1;
+cur_frm.cscript.refresh = function(doc) {	
+	if (doc.docstatus) hide_field('steps');
+	
+	cur_frm.set_intro("");
+	if(doc.__islocal) {
+		cur_frm.set_intro("Step 1: Set the name and save.");
+	} else {
+		if(!doc.file_list && !doc.content) {
+			cur_frm.set_intro("Step 2: Upload your letter head image / set html content directly");
+			cur_frm.add_custom_button("Upload", function() {
+				cur_frm.attachments.add_attachment();
+			}, 'icon-upload');			
+		}
+	}
+	
+	if(doc.file_list && !doc.content) {
+		cur_frm.cscript['set_from_image'](doc);
+	}
+	
+	if(doc.content) {
+		cur_frm.cscript.content(doc);
+	}
+}
+
+cur_frm.cscript.content = function(doc) {
+	$(cur_frm.fields_dict.preview.wrapper).html("<p>Preview:</p><hr>" + doc.content + "<hr>");	
 }
 
 cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
@@ -45,4 +69,5 @@ cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
 	
 	doc.content = img_link;
 	refresh_field('content');
+	cur_frm.cscript.content(doc);
 }
