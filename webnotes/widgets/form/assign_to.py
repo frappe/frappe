@@ -60,7 +60,8 @@ def add(args=None):
 		d.save(1)
 
 	# notify
-	notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', notify=args.get('notify'))
+	if not args.get("no_notification"):
+		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', notify=args.get('notify'))
 		
 	# update feeed
 	try:
