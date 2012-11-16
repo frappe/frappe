@@ -166,6 +166,7 @@ class POP3Mailbox:
 		if num > 20: num = 20
 		for m in xrange(1, num+1):
 			msg = self.pop.retr(m)
+			self.pop.dele(m)
 			
 			try:
 				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
@@ -173,7 +174,6 @@ class POP3Mailbox:
 				self.process_message(incoming_mail)
 				webnotes.conn.commit()
 			except:
-				self.pop.dele(m)
 				from webnotes.utils.scheduler import log
 				# log performs rollback and logs error in scheduler log
 				log("receive.get_messages")
