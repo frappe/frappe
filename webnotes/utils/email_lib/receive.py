@@ -172,8 +172,8 @@ class POP3Mailbox:
 				webnotes.conn.begin()
 				self.process_message(incoming_mail)
 				webnotes.conn.commit()
-				self.pop.dele(m)
 			except:
+				self.pop.dele(m)
 				from webnotes.utils.scheduler import log
 				# log performs rollback and logs error in scheduler log
 				log("receive.get_messages")
