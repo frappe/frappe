@@ -1165,6 +1165,6 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 }
 
 _f.Frm.prototype.set_value = function(field, value) {
-	cur_frm.get_doc()[field] = value;
+	cur_frm.doc[field] = value;
 	cur_frm.fields_dict[field].refresh();
 }

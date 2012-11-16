@@ -155,6 +155,8 @@ class POP3Mailbox:
 		if not self.check_mails():
 			return # nothing to do
 		
+		self.conn.commit()
+
 		self.connect()
 		num = num_copy = len(self.pop.list()[1])
 
@@ -169,14 +171,14 @@ class POP3Mailbox:
 			try:
 				webnotes.conn.begin()
 				self.process_message(IncomingMail(b'\n'.join(msg[1])))
-				self.pop.dele(m)
 				webnotes.conn.commit()
+				self.pop.dele(m)
 			except:
 				from webnotes.utils.scheduler import log
 				# log performs rollback and logs error in scheduler log
 				log("receive.get_messages")
 				errors = True
-				webnotes.conn.begin()
+				webnotes.conn.rollback()
 		
 		# WARNING: Delete message number 101 onwards from the pop list
 		# This is to avoid having too many messages entering the system
@@ -186,6 +188,7 @@ class POP3Mailbox:
 				self.pop.dele(m)
 		
 		self.pop.quit()
+		webnotes.conn.begin()
 		
 	def check_mails(self):
 		"""
