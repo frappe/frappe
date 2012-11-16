@@ -709,6 +709,13 @@ LinkField.prototype.set_input_value = function(val) {
 LinkField.prototype.validate_link = function(val, from_selector) {
 	// validate the value just entered
 	var me = this;
+
+	if(this.df.options=="[Select]") {
+		$(me.txt).val(val);
+		me.run_trigger();
+		return;		
+	}
+
 	var fetch = '';
 	if(cur_frm.fetch_dict[me.df.fieldname])
 		fetch = cur_frm.fetch_dict[me.df.fieldname].columns.join(', ');

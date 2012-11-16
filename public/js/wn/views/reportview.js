@@ -55,8 +55,9 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	},
 	setup: function() {
 		var me = this;
+		this.page_title = 'Report: ' + (this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
+		this.page.appframe.set_title(this.page_title)
 		this.make({
-			title: 'Report: ' + (this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype),
 			appframe: this.page.appframe,
 			method: 'webnotes.widgets.doclistview.get',
 			get_args: this.get_args,

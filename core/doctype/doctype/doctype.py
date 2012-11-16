@@ -192,6 +192,8 @@ def validate_fields(fields):
 			if not d.options:
 				webnotes.msgprint("""#%(idx)s %(label)s: Options must be specified for Link and Table type fields""" % d.fields, 
 					raise_exception=1)
+			if d.options=="[Select]":
+				return
 			if not webnotes.conn.exists("DocType", d.options):
 				webnotes.msgprint("""#%(idx)s %(label)s: Options %(options)s must be a valid "DocType" for Link and Table type fields""" % d.fields, 
 					raise_exception=1)

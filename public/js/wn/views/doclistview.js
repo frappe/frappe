@@ -196,7 +196,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			function(inp) { 
 				return $(inp).attr('data-docstatus'); 
 			}) : []
-		console.log(docstatus_list)
 		
 		var args = {
 			doctype: this.doctype,
