@@ -78,6 +78,9 @@ $(".selector").gantt({
 	},
 	onAddClick: function(dt, rowId) {
 		alert("Empty space clicked - add an item!");
+	},
+	onRender: function() {
+		console.log("chart rendered");
 	}
 });
 </pre>
@@ -212,6 +215,14 @@ $(".selector").gantt({
 				            <code>function (dt, rowId) { return; }</code></td>
 				        <td>
 				            a JS Function that gets called when clicking on a Gantt-Item. <br />The parameter passed to the function is the DateTime in ms for the clicked Cell, and the ID if the source object (row)</td>
+				    </tr>
+				    <tr>
+				        <td>
+				            <code>onRender</code></td>
+				        <td>
+				            <code>function () { return; }</code></td>
+				        <td>
+				            a JS Function called whenever the chart is (re)rendered</td>
 				    </tr>
                     <tr>
 						<td>
@@ -433,8 +444,7 @@ values: [{
 						from: "/Date(1320192000000)/",
 						to: "/Date(1322401600000)/",
 						label: "Requirement Gathering", 
-						customClass: "ganttRed",
-
+						customClass: "ganttRed"
 					}]
 				},{
 					name: " ",
@@ -519,6 +529,11 @@ values: [{
 				},
 				onAddClick: function(dt, rowId) {
 					alert("Empty space clicked - add an item!");
+				},
+				onRender: function() {
+					if (window.console && typeof console.log === "function") {
+						console.log("chart rendered");
+					}
 				}
 			});
 

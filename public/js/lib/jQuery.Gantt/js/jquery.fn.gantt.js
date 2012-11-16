@@ -1,4 +1,4 @@
-/*jshint shadow:true*/
+/*jshint shadow:true, unused:false, laxbreak:true, evil:true*/
 /*globals jQuery, alert*/
 
 (function ($) {
@@ -24,16 +24,17 @@
             waitText: "Please wait...",
             onItemClick: function (data) { return; },
             onAddClick: function (data) { return; },
+            onRender: function() { return; },
             scrollToToday: true
         };
 
         $.extend($.expr[":"], {
             findday: function (a, i, m) {
-                var cd = new Date(parseInt(m[3],10));
+                var cd = new Date(parseInt(m[3], 10));
                 var id = $(a).attr("id");
                 id = id ? id : "";
                 var si = id.indexOf("-") + 1;
-                var ed = new Date(parseInt(id.substring(si, id.length),10));
+                var ed = new Date(parseInt(id.substring(si, id.length), 10));
                 cd = new Date(cd.getFullYear(), cd.getMonth(), cd.getDate());
                 ed = new Date(ed.getFullYear(), ed.getMonth(), ed.getDate());
                 return cd.getTime() === ed.getTime();
@@ -42,7 +43,7 @@
 
         $.extend($.expr[":"], {
             findweek: function (a, i, m) {
-                var cd = new Date(parseInt(m[3],10));
+                var cd = new Date(parseInt(m[3], 10));
                 var id = $(a).attr("id");
                 id = id ? id : "";
                 var si = id.indexOf("-") + 1;
@@ -54,7 +55,7 @@
 
         $.extend($.expr[":"], {
             findmonth: function (a, i, m) {
-                var cd = new Date(parseInt(m[3],10));
+                var cd = new Date(parseInt(m[3], 10));
                 cd = cd.getFullYear() + "-" + cd.getMonth();
                 var id = $(a).attr("id");
                 id = id ? id : "";
@@ -192,7 +193,7 @@
 
                 $(element).html(element.gantt);
 
-                element.scrollNavigation.panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""),10);
+                element.scrollNavigation.panelMargin = parseInt($dataPanel.css("margin-left").replace("px", ""), 10);
                 element.scrollNavigation.panelMaxPos = ($dataPanel.width() - $rightPanel.width());
 
                 element.scrollNavigation.canScroll = ($dataPanel.width() > $rightPanel.width());
@@ -248,6 +249,7 @@
 
                 $dataPanel.css({ height: $leftPanel.height() });
                 core.waitToggle(element, false);
+                settings.onRender();
             },
             leftPanel: function (element) {
                 /* Left panel */
@@ -259,7 +261,7 @@
                 var entries = [];
                 $.each(element.data, function (i, entry) {
                     if (i >= element.pageNum * settings.itemsPerPage && i < (element.pageNum * settings.itemsPerPage + settings.itemsPerPage)) {
-                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i * tools.getCellSize() + '">');
+                        entries.push('<div class="row name row' + i + (entry.desc ? '' : ' fn-wide') + '" id="rowheader' + i + '" offset="' + i % settings.itemsPerPage * tools.getCellSize() + '">');
                         entries.push('<span class="fn-label' + (entry.cssClass ? ' ' + entry.cssClass : '') + '">' + entry.name + '</span>');
                         entries.push('</div>');
 
@@ -303,6 +305,8 @@
                             corrY = tools.getCellSize();
                             break;
                         case "hours":
+                            corrY = tools.getCellSize() * 4;
+                            break;
                         case "days":
                             corrY = tools.getCellSize() * 3;
                             break;
@@ -365,7 +369,7 @@
                 var holidays = settings.holidays ? settings.holidays.join() : '';
 
                 switch (settings.scale) {
-                    // hours /////////////////////////////////////////////////////////////////////////////////////////
+                    // hours ///////////////////////////////////////////////////////////////////////////////////////// 
                     case "hours":
 
                         range = tools.parseTimeRange(element.dateStart, element.dateEnd, element.scaleStep);
@@ -423,7 +427,7 @@
 
                                 var day_class2 = (today - day === 0) ? ' today' : (holidays.indexOf(getTime) > -1) ? "holiday" : dowClass[getDay];
 
-                                dayArr.push('<div class="row day ' + day_class2 + '" '
+                                dayArr.push('<div class="row date ' + day_class2 + '" '
                                         + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                         + ' <div class="fn-label">' + day.getDate() + '</div></div>');
                                 dowArr.push('<div class="row day ' + day_class2 + '" '
@@ -468,7 +472,7 @@
                             day_class = "holiday";
                         }
 
-                        dayArr.push('<div class="row day ' + day_class + '" '
+                        dayArr.push('<div class="row date ' + day_class + '" '
                                 + ' style="width: ' + tools.getCellSize() * hoursInDay + 'px;"> '
                                 + ' <div class="fn-label">' + day.getDate() + '</div></div>');
 
@@ -490,7 +494,7 @@
 
                         break;
 
-                    // weeks /////////////////////////////////////////////////////////////////////////////////////////
+                    // weeks ///////////////////////////////////////////////////////////////////////////////////////// 
                     case "weeks":
                         range = tools.parseWeeksRange(element.dateStart, element.dateEnd);
                         yearArr = ['<div class="row"/>'];
@@ -563,7 +567,7 @@
 
 
                         break;
-                    // months ////////////////////////////////////////////////////////////////////////////////////////
+                    // months //////////////////////////////////////////////////////////////////////////////////////// 
                     case 'months':
                         range = tools.parseMonthsRange(element.dateStart, element.dateEnd);
 
@@ -622,7 +626,7 @@
 
 
                         break;
-                    // days //////////////////////////////////////////////////////////////////////////////////////////
+                    // days ////////////////////////////////////////////////////////////////////////////////////////// 
                     default:
                         range = tools.parseDateRange(element.dateStart, element.dateEnd);
 
@@ -668,7 +672,7 @@
                                 day_class = "holiday";
                             }
 
-                            dayArr.push('<div class="row day ' + day_class + '" '
+                            dayArr.push('<div class="row date ' + day_class + '" '
                                     + ' id="dh-' + tools.genId(rday.getTime()) + '" offset="' + i * tools.getCellSize() + '" repdate="' + rday.genRepDate() + '> '
                                     + ' <div class="fn-label">' + rday.getDate() + '</div></div>');
                             dowArr.push('<div class="row day ' + day_class + '" '
@@ -788,7 +792,7 @@
                                             core.navigateTo(element, tools.getCellSize() * -7);
                                         } else if (settings.scale === 'weeks') {
                                             core.navigateTo(element, tools.getCellSize() * -4);
-                                        } else  if (settings.scale === 'months') {
+                                        } else if (settings.scale === 'months') {
                                             core.navigateTo(element, tools.getCellSize() * -3);
                                         }
                                     }))
@@ -940,9 +944,9 @@
                     try {
                         colStr = colStr.replace("rgb(", "").replace(")", "");
                         var rgbArr = colStr.split(",");
-                        var R = parseInt(rgbArr[0],10);
-                        var G = parseInt(rgbArr[1],10);
-                        var B = parseInt(rgbArr[2],10);
+                        var R = parseInt(rgbArr[0], 10);
+                        var G = parseInt(rgbArr[1], 10);
+                        var B = parseInt(rgbArr[2], 10);
                         var gray = Math.round((255 - (0.299 * R + 0.587 * G + 0.114 * B)) * 0.9, 1);
                         return "rgb(" + gray + ", " + gray + ", " + gray + ")";
                     } catch (err) {
@@ -979,7 +983,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"),10);
+                                    var top = tools.getCellSize() * 5 + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'margin-top': top, 'margin-left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1020,7 +1024,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"),10);
+                                    var top = tools.getCellSize() * 3 + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'margin-top': top, 'margin-left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1059,13 +1063,13 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 2 + 2 + parseInt(topEl.attr("offset"),10);
+                                    var top = tools.getCellSize() * 2 + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'margin-top': top, 'margin-left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
                                     break;
 
-                                // Days
+                                // Days 
                                 default:
                                     var dFrom = tools.genId(tools.dateDeserialize(day.from).getTime());
                                     var dTo = tools.genId(tools.dateDeserialize(day.to).getTime());
@@ -1085,7 +1089,7 @@
                                     // find row
                                     var topEl = $(element).find("#rowheader" + i);
 
-                                    var top = tools.getCellSize() * 4 + 2 + parseInt(topEl.attr("offset"),10);
+                                    var top = tools.getCellSize() * 4 + 2 + parseInt(topEl.attr("offset"), 10);
                                     _bar.css({ 'margin-top': top, 'margin-left': Math.floor(cFrom) });
 
                                     datapanel.append(_bar);
@@ -1149,7 +1153,7 @@
                     default:
                         var max_left = (dataPanelWidth - rightPanelWidth) * -1;
                         var cur_marg = $dataPanel.css("margin-left").replace("px", "");
-                        var val = parseInt(cur_marg,10) + val;
+                        var val = parseInt(cur_marg, 10) + val;
                         if (val <= 0 && val >= max_left) {
                             $dataPanel.animate({
                                 "margin-left": val + "px"
@@ -1293,7 +1297,7 @@
                 if (!element.scrollNavigation.canScroll) {
                     return false;
                 }
-                var _panelMargin = parseInt(element.scrollNavigation.panelMargin,10) + delta;
+                var _panelMargin = parseInt(element.scrollNavigation.panelMargin, 10) + delta;
                 if (_panelMargin > 0) {
                     element.scrollNavigation.panelMargin = 0;
                     $(element).find(".fn-gantt .dataPanel").css("margin-left", element.scrollNavigation.panelMargin + "px");
@@ -1549,8 +1553,8 @@
                     $("body").append(
                         $('<div style="display: none; position: absolute;" id="measureBarWidth" ><div class="fn-gantt"><div class="rightPanel"><div class="dataPanel"><div class="row day"><div class="bar" /></div></div></div></div></div>')
                     );
-                    tools._getProgressBarMargin = parseInt($("#measureBarWidth .fn-gantt .rightPanel .day .bar").css("margin-left").replace("px", ""),10);
-                    tools._getProgressBarMargin += parseInt($("#measureBarWidth .fn-gantt .rightPanel .day .bar").css("margin-right").replace("px", ""),10);
+                    tools._getProgressBarMargin = parseInt($("#measureBarWidth .fn-gantt .rightPanel .day .bar").css("margin-left").replace("px", ""), 10);
+                    tools._getProgressBarMargin += parseInt($("#measureBarWidth .fn-gantt .rightPanel .day .bar").css("margin-right").replace("px", ""), 10);
                     $("#measureBarWidth").empty().remove();
                 }
                 return tools._getProgressBarMargin;

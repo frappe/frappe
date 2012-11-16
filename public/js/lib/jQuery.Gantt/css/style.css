@@ -105,7 +105,7 @@
     background-repeat: repeat;
     background-position: 24px 24px;
 }
-.fn-gantt .day {
+.fn-gantt .day, .fn-gantt .date {
     overflow: visible;
     width: 24px;
     line-height: 24px;
@@ -224,13 +224,6 @@
 }
 .fn-gantt .ganttOrange .fn-label {
     color: #714715 !important;
-}
-
-.fn-gantt .ganttGray {
-    background-color: #eee;
-}
-.fn-gantt .ganttGray .fn-label {
-    color: #888 !important;
 }
 
 

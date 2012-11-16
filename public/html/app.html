@@ -12,7 +12,8 @@
 
 	if(($.browser.mozilla && parseFloat($.browser.version)<4) ||
 		($.browser.msie && parseFloat($.browser.version)<9) ||
-		($.browser.webkit && parseFloat($.browser.version)<533) ) {
+		($.browser.chrome && parseFloat($.browser.version)<23) ||
+		($.browser.safari && parseFloat($.browser.version)<533) ) {
 			window.location.href= 'unsupported.html';			
 		}
 	window.app = true;
