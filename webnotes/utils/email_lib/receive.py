@@ -42,6 +42,30 @@ class IncomingMail:
 		self.attachments = []
 		self.parse()
 
+	def parse(self):
+		"""
+			Extracts text, html and attachments from the mail
+		"""
+		for part in self.mail.walk():
+			self.process_part(part)
+
+	def process_part(self, part):
+		"""
+			Process a single part of an email
+		"""
+		content_type = part.get_content_type()
+		charset = part.get_content_charset()
+		if not charset: charset = self.get_charset(part)
+
+		if content_type == 'text/plain':
+			self.text_content += self.get_payload(part, charset)
+
+		if content_type == 'text/html':
+			self.html_content += self.get_payload(part, charset)
+
+		if part.get_filename():
+			self.get_attachment(part, charset)
+
 	def get_text_content(self):
 		"""
 			Returns the text parts of the email. If None, then HTML parts
@@ -78,12 +102,6 @@ class IncomingMail:
 			'content': part.get_payload(decode=True),
 		})
 				
-	def parse(self):
-		"""
-			Extracts text, html and attachments from the mail
-		"""
-		for part in self.mail.walk():
-			self.process_part(part)
 
 	def get_thread_id(self):
 		"""
@@ -94,24 +112,6 @@ class IncomingMail:
 		subject = self.mail.get('Subject', '')
 
 		return re.findall('(?<=\[)[\w/-]+', subject)
-
-
-	def process_part(self, part):
-		"""
-			Process a single part of an email
-		"""
-		content_type = part.get_content_type()
-		charset = part.get_content_charset()
-		if not charset: charset = self.get_charset(part)
-
-		if content_type == 'text/plain':
-			self.text_content += self.get_payload(part, charset)
-
-		if content_type == 'text/html':
-			self.html_content += self.get_payload(part, charset)
-
-		if part.get_filename():
-			self.get_attachment(part, charset)
 
 class POP3Mailbox:
 	"""
@@ -143,7 +143,6 @@ class POP3Mailbox:
 			self.pop = poplib.POP3(self.settings.host)
 		self.pop.user(self.settings.username)
 		self.pop.pass_(self.settings.password)
-		
 	
 	def get_messages(self):
 		"""
@@ -155,7 +154,7 @@ class POP3Mailbox:
 		if not self.check_mails():
 			return # nothing to do
 		
-		self.conn.commit()
+		webnotes.conn.commit()
 
 		self.connect()
 		num = num_copy = len(self.pop.list()[1])
@@ -169,8 +168,9 @@ class POP3Mailbox:
 			msg = self.pop.retr(m)
 			
 			try:
+				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
 				webnotes.conn.begin()
-				self.process_message(IncomingMail(b'\n'.join(msg[1])))
+				self.process_message(incoming_mail)
 				webnotes.conn.commit()
 				self.pop.dele(m)
 			except:
