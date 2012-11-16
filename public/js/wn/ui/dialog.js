@@ -53,6 +53,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 	make_head: function() {
 		var me = this;
 		this.appframe = new wn.ui.AppFrame(this.wrapper);
+		this.appframe.set_document_title = false;
 		this.appframe.$titlebar.find('.close').unbind('click').click(function() {
 			if(me.oncancel)me.oncancel(); me.hide();
 		});

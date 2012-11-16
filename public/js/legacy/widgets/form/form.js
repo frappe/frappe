@@ -120,6 +120,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	wn.ui.make_app_page({
 		parent: this.print_wrapper,
 		single_column: true,
+		set_document_title: false,
 		title: me.doctype + ": Print View",
 		module: me.meta.module
 	});

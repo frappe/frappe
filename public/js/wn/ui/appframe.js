@@ -1,5 +1,6 @@
 wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
+		this.set_document_title = true;
 		this.buttons = {};
 		this.$w = $('<div></div>').appendTo(parent);
 				
@@ -24,7 +25,8 @@ wn.ui.AppFrame = Class.extend({
 		this.set_title(txt);
 	},
 	set_title: function(txt) {
-		document.title = txt;
+		if(this.set_document_title) 
+			document.title = txt;
 		this.$titlebar.find(".appframe-title").html(txt);
 	},
 	set_marker: function(module) {
@@ -131,6 +133,8 @@ wn.ui.make_app_page = function(opts) {
 		</div>');			
 	}
 	opts.parent.appframe = new wn.ui.AppFrame($(opts.parent).find('.layout-appframe'));
+	if(opts.set_document_title!==undefined)
+		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.title(opts.title);
 	if(opts.module) opts.parent.appframe.set_marker(opts.module);
 }
