@@ -59,7 +59,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.page.appframe.set_title(this.page_title)
 		this.make({
 			appframe: this.page.appframe,
-			method: 'webnotes.widgets.doclistview.get',
+			method: 'webnotes.widgets.reportview.get',
 			get_args: this.get_args,
 			parent: $(this.page).find('.layout-main'),
 			start: 0,
@@ -241,7 +241,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		if(wn.user.is_report_manager()) {
 			this.page.appframe.add_button('Export', function() {
 				var args = me.get_args();
-				args.cmd = 'webnotes.widgets.doclistview.export_query'
+				args.cmd = 'webnotes.widgets.reportview.export_query'
 				open_url_post(wn.request.url, args);
 			}, 'icon-download-alt');
 		}
@@ -264,7 +264,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				
 				// callback
 				wn.call({
-					method: 'webnotes.widgets.doclistview.save_report',
+					method: 'webnotes.widgets.reportview.save_report',
 					args: {
 						name: name,
 						doctype: me.doctype,

@@ -70,9 +70,8 @@ class DocType:
 		webnotes.conn.sql("""\
 			DELETE FROM `tabProperty Setter`
 			WHERE doc_type = %s
-			AND (doc_name = %s
-			OR (property = 'previous_field' AND value = %s))""",
-				(self.doc.dt, self.doc.name, self.doc.name))
+			AND field_name = %s""",
+				(self.doc.dt, self.doc.fieldname))
 
 		from webnotes.utils.cache import CacheItem
 		CacheItem(self.doc.dt).clear()

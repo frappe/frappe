@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		u'creation': '2012-07-03 13:29:34',
+		u'creation': '2012-10-23 11:37:34',
 		u'docstatus': 0,
-		u'modified': '2012-10-23 11:04:56',
+		u'modified': '2012-11-17 16:11:48',
 		u'modified_by': u'Administrator',
 		u'owner': u'Administrator'
 	},
@@ -34,7 +34,8 @@
 		u'name': u'__common__',
 		'parent': u'Property Setter',
 		'parentfield': u'fields',
-		'parenttype': u'DocType'
+		'parenttype': u'DocType',
+		'permlevel': 0
 	},
 
 	# These values are common for all DocPerm
@@ -59,6 +60,22 @@
 
 	# DocField
 	{
+		u'doctype': u'DocField',
+		'fieldname': u'help',
+		'fieldtype': u'HTML',
+		'label': u'Help',
+		'options': u'<div class="alert">Please don\'t update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>'
+	},
+
+	# DocField
+	{
+		u'doctype': u'DocField',
+		'fieldname': u'sb0',
+		'fieldtype': u'Section Break'
+	},
+
+	# DocField
+	{
 		'depends_on': u'eval:doc.__islocal',
 		u'doctype': u'DocField',
 		'fieldname': u'doctype_or_field',
@@ -66,45 +83,7 @@
 		'label': u'DocType or Field',
 		'no_column': 0,
 		'options': u'\nDocField\nDocType',
-		'permlevel': 0,
 		'reqd': 1
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'depends_on': u'eval:doc.doctype_or_field && doc.__islocal',
-		u'doctype': u'DocField',
-		'fieldname': u'select_doctype',
-		'fieldtype': u'Select',
-		'label': u'Select DocType',
-		'no_column': 0,
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'depends_on': u"eval:doc.doctype_or_field=='DocField' && doc.__islocal",
-		u'doctype': u'DocField',
-		'fieldname': u'select_item',
-		'fieldtype': u'Select',
-		'label': u'Select Field',
-		'no_column': 0,
-		'permlevel': 0,
-		'reqd': 0
-	},
-
-	# DocField
-	{
-		'allow_on_submit': 0,
-		'depends_on': u'eval:doc.doctype_or_field && doc.__islocal',
-		u'doctype': u'DocField',
-		'fieldname': u'select_property',
-		'fieldtype': u'Select',
-		'label': u'Select Property',
-		'no_column': 0,
-		'permlevel': 0
 	},
 
 	# DocField
@@ -114,8 +93,7 @@
 		u'doctype': u'DocField',
 		'fieldname': u'value',
 		'fieldtype': u'Text',
-		'label': u'Set Value',
-		'permlevel': 0
+		'label': u'Set Value'
 	},
 
 	# DocField
@@ -123,7 +101,6 @@
 		u'doctype': u'DocField',
 		'fieldname': u'column_break0',
 		'fieldtype': u'Column Break',
-		'permlevel': 0,
 		'search_index': 0
 	},
 
@@ -137,7 +114,6 @@
 		'label': u'DocType',
 		'no_column': 0,
 		'options': u'DocType',
-		'permlevel': 1,
 		'reqd': 0,
 		'search_index': 1
 	},
@@ -149,10 +125,9 @@
 		'description': u'ID (name) of the entity whose property is to be set',
 		u'doctype': u'DocField',
 		'fieldname': u'field_name',
-		'fieldtype': u'Read Only',
+		'fieldtype': u'Data',
 		'in_filter': 0,
 		'label': u'Field Name',
-		'permlevel': 0,
 		'reqd': 0,
 		'search_index': 1
 	},
@@ -162,10 +137,9 @@
 		'colour': u'White:FFF',
 		u'doctype': u'DocField',
 		'fieldname': u'property',
-		'fieldtype': u'Read Only',
+		'fieldtype': u'Data',
 		'in_filter': 0,
 		'label': u'Property',
-		'permlevel': 0,
 		'reqd': 1,
 		'search_index': 1
 	},
@@ -175,10 +149,9 @@
 		'colour': u'White:FFF',
 		u'doctype': u'DocField',
 		'fieldname': u'property_type',
-		'fieldtype': u'Read Only',
+		'fieldtype': u'Data',
 		'label': u'Property Type',
-		'no_column': 0,
-		'permlevel': 0
+		'no_column': 0
 	},
 
 	# DocField
@@ -186,10 +159,9 @@
 		'colour': u'White:FFF',
 		u'doctype': u'DocField',
 		'fieldname': u'default_value',
-		'fieldtype': u'Read Only',
+		'fieldtype': u'Data',
 		'label': u'Default Value',
-		'no_column': 0,
-		'permlevel': 0
+		'no_column': 0
 	},
 
 	# DocPerm

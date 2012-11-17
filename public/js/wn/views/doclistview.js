@@ -143,7 +143,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var me = this;
 		// init list
 		this.make({
-			method: 'webnotes.widgets.doclistview.get',
+			method: 'webnotes.widgets.reportview.get',
 			get_args: this.get_args,
 			parent: this.wrapper,
 			freeze: true,
@@ -236,7 +236,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		me.set_working(true);
 		wn.call({
-			method: 'webnotes.widgets.doclistview.delete_items',
+			method: 'webnotes.widgets.reportview.delete_items',
 			args: {
 				items: dl,
 				doctype: me.doctype
@@ -250,7 +250,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	init_stats: function() {
 		var me = this
 		wn.call({
-			method: 'webnotes.widgets.doclistview.get_stats',
+			method: 'webnotes.widgets.reportview.get_stats',
 			args: {
 				stats: me.listview.stats,
 				doctype: me.doctype

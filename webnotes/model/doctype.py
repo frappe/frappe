@@ -127,13 +127,6 @@ class _DocType:
 		"""
 		from webnotes.utils import cstr
 		property_dict = {}
-		# final property dict will be
-		# {
-		#	doc_type: {
-		#		fieldname: [list of property setter dicts]
-		#	}
-		# }
-
 		doc_type_list = list(set(
 			d.doctype=='DocType' and d.name or d.parent
 			for d in doclist))
