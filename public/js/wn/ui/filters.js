@@ -268,7 +268,7 @@ wn.ui.Filter = Class.extend({
 		}
 		
 		return [me.fieldselect.$select.find('option:selected').attr('table'), 
-			me.field.df.fieldname, me.$w.find('.condition').val(), cstr(val)];
+			me.field.df.fieldname, me.$w.find('.condition').val(), val];
 	}
 
 });
