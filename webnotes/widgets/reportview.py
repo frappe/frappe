@@ -31,6 +31,10 @@ roles = []
 
 @webnotes.whitelist()
 def get(arg=None):
+	query = build_query(arg)
+	return compress(webnotes.conn.sql(query, as_dict=1))
+	
+def build_query(arg=None):
 	"""
 	build query
 	
@@ -71,8 +75,8 @@ def get(arg=None):
 	
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		%(group_by)s order by %(order_by)s %(limit)s""" % data
-
-	return compress(webnotes.conn.sql(query, as_dict=1))
+		
+	return query
 
 def compress(data):
 	"""separate keys and values"""
@@ -239,7 +243,7 @@ def export_query():
 	
 	# TODO: validate use is allowed to export
 	verify_export_allowed()
-	ret = get()
+	ret = webnotes.conn.sql(build_query(), as_dict=1)
 
 	columns = [x[0] for x in webnotes.conn.get_description()]
 	data = [['Sr'] + get_labels(columns),]
