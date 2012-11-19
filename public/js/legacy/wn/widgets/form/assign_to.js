@@ -102,7 +102,15 @@ wn.widgets.form.sidebar.AssignTo = Class.extend({
 						notify: me.dialog.fields_dict.notify.get_value()
 					}, function(r,rt) {me.render(r.message);});
 				}
-			}
+			};
+			
+			me.dialog.fields_dict.assign_to.get_query = function() {
+				return "select name, concat_ws(' ', first_name, middle_name, last_name) \
+					from `tabProfile` where ifnull(enabled, 0)=1 and docstatus < 2 and \
+					(%(key)s like \"%s\" or \
+					concat_ws(' ', first_name, middle_name, last_name) like \"%%%s\") \
+					limit 50";
+			};
 		}
 		me.dialog.clear();
 		me.dialog.show();
