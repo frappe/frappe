@@ -70,16 +70,16 @@ def get_template():
 	
 	w.writerow(['----'])
 	w.writerow(['Notes:'])
-	w.writerow(['- Please do not change the template headings.'])
-	w.writerow(['- First data column must be blank.'])
-	w.writerow(['- Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
-	w.writerow(['- For updating, you can update only selective columns.'])
-	w.writerow(['- If you are uploading new records, leave the "name" (ID) column blank.'])
-	w.writerow(['- If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
-	w.writerow(['- You can only upload 500 records in one go.'])
+	w.writerow(['-- Please do not change the template headings.'])
+	w.writerow(['-- First data column must be blank.'])
+	w.writerow(['-- Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
+	w.writerow(['-- For updating, you can update only selective columns.'])
+	w.writerow(['-- If you are uploading new records, leave the "name" (ID) column blank.'])
+	w.writerow(['-- If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
+	w.writerow(['-- You can only upload 500 records in one go.'])
 	if key == "parent":
-		w.writerow(['- "Parent" signifies the parent table in which this row must be added'])
-		w.writerow(['- If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
+		w.writerow(['-- "Parent" signifies the parent table in which this row must be added'])
+		w.writerow(['-- If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
 	w.writerow(['----'])
 	labelrow = ["Column Labels", "ID"]
 	fieldrow = [data_keys.columns, key]
