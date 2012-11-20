@@ -590,7 +590,9 @@ LinkField.prototype.make_input = function() {
 	}).data('autocomplete')._renderItem = function(ul, item) {
 		return $('<li></li>')
 			.data('item.autocomplete', item)
-			.append(repl('<a>%(label)s<br><span style="font-size:10px">%(info)s</span></a>', item))
+			.append(repl('<a><span style="font-weight: bold;">%(label)s</span><br>\
+				<span style="font-size:10px;">%(info)s</span></a>',
+				item))
 			.appendTo(ul);
 	};
 	

@@ -79,12 +79,13 @@ def build_for_autosuggest(res):
 	from webnotes.utils import cstr
 
 	results = []
+	
 	for r in res:
 		info = ''
 		if len(r) > 1:
-			info = ','.join([cstr(t) for t in r[1:]])
-			if len(info) > 30:
-				info = info[:30] + '...'
+			info = ', '.join([cstr(t) for t in r[1:]])
+			if len(info) > 50:
+				info = "<span title=\"%s\">%s...</span>" % (info, info[:50])
 
 		results.append({'label':r[0], 'value':r[0], 'info':info})
 	return results
