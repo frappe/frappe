@@ -258,7 +258,7 @@ class DocList:
 			Cancel - set docstatus 2, run "on_cancel"
 		"""
 		if self.doc.docstatus != 1:
-			msgprint("Only submitted can be cancelled", raise_exception=1)
+			webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
 		self.to_docstatus = 2
 		self.prepare_for_save(1)
 		self.save_main()
@@ -270,7 +270,7 @@ class DocList:
 			Update after submit - some values changed after submit
 		"""
 		if self.doc.docstatus != 1:
-			msgprint("Only to called after submit", raise_exception=1)
+			webnotes.msgprint("Only to called after submit", raise_exception=1)
 		self.to_docstatus = 1
 		self.prepare_for_save(1)
 		self.save_main()
