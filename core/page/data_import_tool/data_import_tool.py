@@ -305,7 +305,7 @@ class UnicodeWriter:
 	def __init__(self, encoding="utf-8"):
 		self.encoding = encoding
 		self.queue = cStringIO.StringIO()
-		self.writer = csv.writer(self.queue)
+		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
 	
 	def writerow(self, row):
 		row = encode(row, self.encoding)
