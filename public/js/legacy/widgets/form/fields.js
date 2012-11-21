@@ -264,7 +264,6 @@ Field.prototype.refresh = function() {
 		$(this.wrapper).trigger('refresh');		
 	}
 	
-
 	if(!this.not_in_form)
 		this.set_input(_f.get_value(this.doctype,this.docname,this.df.fieldname));
 

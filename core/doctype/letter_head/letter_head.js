@@ -27,7 +27,7 @@ cur_frm.cscript.refresh = function(doc) {
 	if(doc.__islocal) {
 		cur_frm.set_intro("Step 1: Set the name and save.");
 	} else {
-		if(!doc.file_list && !doc.content) {
+		if(!doc.file_list) {
 			cur_frm.set_intro("Step 2: Upload your letter head image / set html content directly");
 			cur_frm.add_custom_button("Upload", function() {
 				cur_frm.attachments.add_attachment();

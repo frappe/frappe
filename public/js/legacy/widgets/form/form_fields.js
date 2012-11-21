@@ -385,6 +385,11 @@ _f.CodeField.prototype.make_input = function() {
 		}
 		
 		this.input.set_input = function(v) {
+			// during field refresh in run trigger, set_input is called
+			// if called during on_change, setting doesn't make sense
+			// and causes cursor to shift back to first position
+			if(me.changing_value) return;
+			
 			me.setting_value = true;
 			me.editor.getSession().setValue(v);
 			me.setting_value = false;
@@ -400,7 +405,10 @@ _f.CodeField.prototype.make_input = function() {
 				var val = me.get_value();
 				if(locals[cur_frm.doctype][cur_frm.docname][me.df.fieldname] != val) {
 					me.set(me.get_value());
+
+					me.changing_value = true;
 					me.run_trigger();
+					me.changing_value = false;
 				}
 			})
 		});

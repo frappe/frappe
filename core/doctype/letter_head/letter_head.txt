@@ -3,9 +3,9 @@
 
 	# These values are common in all dictionaries
 	{
-		u'creation': '2012-07-03 13:30:35',
+		u'creation': '2012-11-19 12:06:53',
 		u'docstatus': 0,
-		u'modified': '2012-11-15 10:34:14',
+		u'modified': '2012-11-21 17:39:17',
 		u'modified_by': u'Administrator',
 		u'owner': u'Administrator'
 	},
@@ -69,6 +69,7 @@
 
 	# DocField
 	{
+		'colour': u'White:FFF',
 		'depends_on': u'letter_head_name',
 		u'doctype': u'DocField',
 		'fieldname': u'preview',

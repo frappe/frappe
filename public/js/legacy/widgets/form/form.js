@@ -726,6 +726,7 @@ _f.Frm.prototype.refresh_dependency = function() {
 			has_dep = true;
 		}
 	}
+	
 	if(!has_dep)return;
 
 
@@ -751,10 +752,10 @@ _f.Frm.prototype.refresh_dependency = function() {
 			// show / hide
 			if(f.guardian_has_value) {
 				f.df.hidden = 0;
-				f.refresh()
+				f.refresh();
 			} else {
 				f.df.hidden = 1;
-				f.refresh()
+				f.refresh();
 			}
 		}
 	}
@@ -1097,8 +1098,16 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 _f.Frm.prototype.set_unsaved = function() {
 	if(cur_frm.doc.__unsaved) return;
 	cur_frm.doc.__unsaved = 1;
-	var frm_head = cur_frm.frm_head || wn.container.page.frm.frm_head;
-	frm_head.refresh_labels();
+	
+	var frm_head;
+	if(cur_frm.frm_head) {
+		frm_head = cur_frm.frm_head;
+	} else if(wn.container.page.frm && wn.container.page.frm.frm_head) {
+		frm_head = wn.container.page.frm.frm_head
+	}
+	
+	if(frm_head) frm_head.refresh_labels();
+	
 }
 
 _f.Frm.prototype.show_comments = function() {
