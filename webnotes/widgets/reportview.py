@@ -193,8 +193,11 @@ def build_match_conditions(data, conditions):
 			if d.role in roles:
 				if d.match: # role applicable
 					for v in webnotes.user.defaults.get(d.match, ['**No Match**']):
-						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'], d.match,v))
-				else:
+						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'],
+							d.match, v))
+				elif d.read == 1 and d.permlevel == 0:
+					# don't restrict if another read permission at level 0 
+					# exists without a match restriction
 					match = False
 	
 	if match_conditions and match:
