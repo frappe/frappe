@@ -42,6 +42,7 @@
 			"lib/public/css/ui/list.css",
 			"lib/public/css/ui/views.css",
 			"lib/public/css/ui/fonts.css",
+			"lib/public/css/views/tree_grid.css",
 		]
 	},
 
