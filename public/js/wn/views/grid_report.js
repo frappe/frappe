@@ -23,8 +23,8 @@
 wn.provide("wn.report_dump");
 
 // chosen
-wn.require("lib/js/lib/chosen/chosen.jquery.min.js");
-wn.require("lib/js/lib/chosen/chosen.css");
+// wn.require("lib/js/lib/chosen/chosen.jquery.min.js");
+// wn.require("lib/js/lib/chosen/chosen.css");
 
 $.extend(wn.report_dump, {
 	data: {},
@@ -132,7 +132,7 @@ wn.views.GridReport = Class.extend({
 				$(v).add_options($.map(wn.report_dump.data[opts.link],
 					function(d) { return d.name; }));
 				
-				if(opts.chosen) $(v).trigger("liszt:updated"); // chosen
+				// if(opts.chosen) $(v).trigger("liszt:updated"); // chosen
 			}
 		});	
 
@@ -161,7 +161,7 @@ wn.views.GridReport = Class.extend({
 				filter.get(0).selectedIndex = 0;
 				
 				// chosen
-				if(opts.chosen) filter.trigger("liszt:updated");
+				// if(opts.chosen) filter.trigger("liszt:updated");
 				
 			} else if(opts.fieldtype=='Data') {
 				filter.val("");
@@ -193,7 +193,7 @@ wn.views.GridReport = Class.extend({
 				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
 				
 				// chosen
-				if(v.chosen) input.chosen();
+				// if(v.chosen) input.chosen();
 
 			} else if(v.fieldtype=='Button') {
 				input = me.appframe.add_button(v.label);
@@ -223,9 +223,9 @@ wn.views.GridReport = Class.extend({
 		});
 		
 		// chosen
-		me.appframe.$w.find('.chzn-drop').css('width','298px');
-		me.appframe.$w.find('.chzn-search input').css('width','263px');
-		me.appframe.$w.find('.chzn-container').css('margin', "0px 2px");
+		// me.appframe.$w.find('.chzn-drop').css('width','298px');
+		// me.appframe.$w.find('.chzn-search input').css('width','263px');
+		
 	},
 	make_waiting: function() {
 		this.waiting = wn.messages.waiting(this.wrapper, "Loading Report...", '10');			
@@ -338,9 +338,9 @@ wn.views.GridReport = Class.extend({
 					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
 					
 					// chosen
-					if(me.filter_inputs[f[0]].get(0).opts.chosen) {
-						$(me.filter_inputs[f[0]]).trigger("liszt:updated");
-					}
+					// if(me.filter_inputs[f[0]].get(0).opts.chosen) {
+					// 	$(me.filter_inputs[f[0]]).trigger("liszt:updated");
+					// }
 					
 				} else {
 					console.log("Invalid filter: " +f[0]);
