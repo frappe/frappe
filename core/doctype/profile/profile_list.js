@@ -17,6 +17,8 @@ wn.doclistviews['Profile'] = wn.views.ListView.extend({
 				["Profile", "name", "!=", "Guest"]
 			];
 		}
+		
+		this.order_by = "`tabProfile`.`enabled` desc, `tabProfile`.modified desc";
 	},
 
 	prepare_data: function(data) {
