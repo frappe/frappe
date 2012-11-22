@@ -22,6 +22,10 @@
 
 wn.provide("wn.report_dump");
 
+// chosen
+wn.require("lib/js/lib/chosen/chosen.jquery.min.js");
+wn.require("lib/js/lib/chosen/chosen.css");
+
 $.extend(wn.report_dump, {
 	data: {},
 	with_data: function(doctypes, callback, progress_bar) {
@@ -124,10 +128,10 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		$.each(me.filter_inputs, function(i, v) {
 			var opts = v.get(0).opts;
-			if (opts.fieldtype == "Select" && inList(me.doctypes, opts.link)) {
-				$(v).add_options($.map(wn.report_dump.data[opts.link], function(d) {
-					return d.name;
-				}));
+			if(opts.fieldtype == "Select" && inList(me.doctypes, opts.link)) {
+				$(v).add_options($.map(wn.report_dump.data[opts.link],
+					function(d) { return d.name; }))
+					.trigger("liszt:updated"); // chosen
 			}
 		});	
 
@@ -154,6 +158,10 @@ wn.views.GridReport = Class.extend({
 				filter.val(sys_defaults[key]);
 			} else if(opts.fieldtype=='Select') {
 				filter.get(0).selectedIndex = 0;
+				
+				// chosen
+				filter.trigger("liszt:updated");
+				
 			} else if(opts.fieldtype=='Data') {
 				filter.val("");
 			}
@@ -182,6 +190,10 @@ wn.views.GridReport = Class.extend({
 			var input = null;
 			if(v.fieldtype=='Select') {
 				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
+				
+				// chosen
+				input.chosen();
+
 			} else if(v.fieldtype=='Button') {
 				input = me.appframe.add_button(v.label);
 				if(v.icon) {
@@ -208,6 +220,11 @@ wn.views.GridReport = Class.extend({
 			}
 			me.filter_inputs[v.fieldname] = input;
 		});
+		
+		// chosen
+		me.appframe.$w.find('.chzn-drop').css('width','298px');
+		me.appframe.$w.find('.chzn-search input').css('width','263px');
+		me.appframe.$w.find('.chzn-container').css('margin', "0px 2px");
 	},
 	make_waiting: function() {
 		this.waiting = wn.messages.waiting(this.wrapper, "Loading Report...", '10');			
@@ -318,6 +335,12 @@ wn.views.GridReport = Class.extend({
 				var f = f.split("=");
 				if(me.filter_inputs[f[0]]) {
 					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
+					
+					// chosen
+					if(me.filter_inputs[f[0]].get(0).opts.fieldtype == "Select") {
+						$(me.filter_inputs[f[0]]).trigger("liszt:updated");
+					}
+					
 				} else {
 					console.log("Invalid filter: " +f[0]);
 				}
@@ -553,7 +576,7 @@ wn.views.GridReport = Class.extend({
 		} else if(range=='Yearly') {
 			build_columns(function(date) {
 				if(!me.last_date) return true;
-				return $.map(wn.report_dump.data['Fiscal Year'], function(v) { 
+				return $.map(wn.report_dump.data['Fiscal Year'], function(v) {
 						return date==v.year_start_date ? true : null;
 					}).length;
 			});
