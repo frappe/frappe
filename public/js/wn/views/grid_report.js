@@ -130,8 +130,9 @@ wn.views.GridReport = Class.extend({
 			var opts = v.get(0).opts;
 			if(opts.fieldtype == "Select" && inList(me.doctypes, opts.link)) {
 				$(v).add_options($.map(wn.report_dump.data[opts.link],
-					function(d) { return d.name; }))
-					.trigger("liszt:updated"); // chosen
+					function(d) { return d.name; }));
+				
+				if(opts.chosen) $(v).trigger("liszt:updated"); // chosen
 			}
 		});	
 
@@ -160,7 +161,7 @@ wn.views.GridReport = Class.extend({
 				filter.get(0).selectedIndex = 0;
 				
 				// chosen
-				filter.trigger("liszt:updated");
+				if(opts.chosen) filter.trigger("liszt:updated");
 				
 			} else if(opts.fieldtype=='Data') {
 				filter.val("");
@@ -192,7 +193,7 @@ wn.views.GridReport = Class.extend({
 				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
 				
 				// chosen
-				input.chosen();
+				if(v.chosen) input.chosen();
 
 			} else if(v.fieldtype=='Button') {
 				input = me.appframe.add_button(v.label);
@@ -337,7 +338,7 @@ wn.views.GridReport = Class.extend({
 					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
 					
 					// chosen
-					if(me.filter_inputs[f[0]].get(0).opts.fieldtype == "Select") {
+					if(me.filter_inputs[f[0]].get(0).opts.chosen) {
 						$(me.filter_inputs[f[0]]).trigger("liszt:updated");
 					}
 					
