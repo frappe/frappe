@@ -66,6 +66,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	block_user(True)
 	webnotes.conn.begin()
 	try:
+		log('Executing %s in %s' % (patchmodule or str(methodargs), webnotes.conn.cur_db_name))
 		if patchmodule:
 			patch = __import__(patchmodule, fromlist=True)
 			getattr(patch, 'execute')()
@@ -80,13 +81,14 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		global has_errors
 		has_errors = True
 		tb = webnotes.getTraceback()
-		log('Executing %s in %s' % (patchmodule or str(methodargs), webnotes.conn.cur_db_name))
 		log(tb)
 		import os
 		if os.environ.get('HTTP_HOST'):
 			add_to_patch_log(tb)
 
 	block_user(False)
+	if success:
+		log('Success')
 	return success
 
 def add_to_patch_log(tb):
