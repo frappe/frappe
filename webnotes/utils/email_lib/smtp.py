@@ -206,9 +206,15 @@ class EMail:
 		return self.msg_root.as_string()
 		
 	def send(self, as_bulk=False):
-		"""send the message or add it to Outbox Email"""		
-		SMTPServer().sess.sendmail(self.sender, self.recipients + (self.cc or []),
-			self.as_string())
+		"""send the message or add it to Outbox Email"""
+		import smtplib
+		try:
+			SMTPServer().sess.sendmail(self.sender, self.recipients + (self.cc or []),
+				self.as_string())
+		except smtplib.SMTPSenderRefused, e:
+			webnotes.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
+				Please rectify and try again.""",
+				raise_exception=webnotes.OutgoingEmailError)
 
 class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
@@ -217,18 +223,27 @@ class SMTPServer:
 
 		# get defaults from control panel
 		es = webnotes.model.doc.Document('Email Settings','Email Settings')
-		self.server = server or es.outgoing_mail_server \
-			or getattr(conf,'mail_server','')
-		self.login = login or es.mail_login \
-			or getattr(conf,'mail_login','')
-		self.port = port or cint(es.mail_port) \
-			or getattr(conf,'mail_port',None)
-		self.password = password or es.mail_password \
-			or getattr(conf,'mail_password','')
-		self.use_ssl = use_ssl or cint(es.use_ssl) \
-			or cint(getattr(conf, 'use_ssl', ''))
+		
 		self._sess = None
-
+		if server:
+			self.server = server
+			self.port = port
+			self.use_ssl = cint(use_ssl)
+			self.login = login
+			self.password = password
+		elif es.outgoing_mail_server:
+			self.server = es.outgoing_mail_server
+			self.port = es.mail_port
+			self.use_ssl = cint(es.use_ssl)
+			self.login = es.mail_login
+			self.password = es.mail_password
+		else:
+			self.server = getattr(conf, "mail_server", "")
+			self.port = getattr(conf, "mail_port", None)
+			self.use_ssl = cint(getattr(conf, "use_ssl", 0))
+			self.login = getattr(conf, "mail_login", "")
+			self.password = getattr(conf, "mail_password", "")
+			
 	@property
 	def sess(self):
 		"""get session"""
@@ -246,7 +261,11 @@ class SMTPServer:
 			raise webnotes.OutgoingEmailError, err_msg
 		
 		try:
-			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'), cint(self.port) or None)
+			if self.use_ssl and not self.port:
+				self.port = 587
+			
+			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'), 
+				cint(self.port) or None)
 			
 			if not self._sess:
 				err_msg = 'Could not connect to outgoing email server'
@@ -257,13 +276,15 @@ class SMTPServer:
 				self._sess.ehlo()
 				self._sess.starttls()
 				self._sess.ehlo()
-		
-			ret = self._sess.login((self.login or "").encode('utf-8'), (self.password or "").encode('utf-8'))
 
-			# check if logged correctly
-			if ret[0]!=235:
-				msgprint(ret[1])
-				raise webnotes.OutgoingEmailError, ret[1]
+			if self.login:
+				ret = self._sess.login((self.login or "").encode('utf-8'), 
+					(self.password or "").encode('utf-8'))
+
+				# check if logged correctly
+				if ret[0]!=235:
+					msgprint(ret[1])
+					raise webnotes.OutgoingEmailError, ret[1]
 
 			return self._sess
 			
@@ -272,7 +293,8 @@ class SMTPServer:
 			webnotes.msgprint('Invalid Outgoing Mail Server or Port. Please rectify and try again.')
 			raise webnotes.OutgoingEmailError, e
 		except smtplib.SMTPAuthenticationError, e:
-			webnotes.msgprint('Invalid Login Id or Mail Password. Please rectify and try again.')
+			webnotes.msgprint("Invalid Outgoing Mail Server's Login Id or Password. \
+				Please rectify and try again.")
 			raise webnotes.OutgoingEmailError, e
 		except smtplib.SMTPException, e:
 			webnotes.msgprint('There is something wrong with your Outgoing Mail Settings. \
