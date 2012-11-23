@@ -1,113 +1,83 @@
-# DocType, Report
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-10-04 18:45:27',
-		u'docstatus': 0,
-		u'modified': '2012-11-12 12:53:09',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'allow_trash': 1,
-		'colour': u'White:FFF',
-		u'doctype': u'DocType',
-		'module': u'Core',
-		u'name': u'__common__',
-		'section_style': u'Simple',
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		u'name': u'__common__',
-		'parent': u'Report',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		u'doctype': u'DocPerm',
-		u'name': u'__common__',
-		'parent': u'Report',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1
-	},
-
-	# DocType, Report
-	{
-		u'doctype': u'DocType',
-		u'name': u'Report'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'is_standard',
-		'fieldtype': u'Select',
-		'label': u'Is Standard',
-		'options': u'No\nYes'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'query',
-		'fieldtype': u'Text',
-		'label': u'Query'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'json',
-		'fieldtype': u'Text',
-		'label': u'JSON'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'ref_doctype',
-		'fieldtype': u'Data',
-		'label': u'Ref DocType'
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		u'doctype': u'DocPerm',
-		'role': u'Administrator',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		u'doctype': u'DocPerm',
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		u'doctype': u'DocPerm',
-		'role': u'Report Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm',
-		'role': u'All'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-11-23 17:59:58", 
+  "modified_by": "Administrator", 
+  "modified": "2012-11-23 18:03:11"
+ }, 
+ {
+  "name": "__common__", 
+  "doctype": "DocType", 
+  "module": "Core", 
+  "document_type": "System"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Report", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Report", 
+  "read": 1, 
+  "doctype": "DocPerm", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Report", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Is Standard", 
+  "fieldname": "is_standard", 
+  "fieldtype": "Select", 
+  "options": "No\nYes"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Query", 
+  "fieldname": "query", 
+  "fieldtype": "Text"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "JSON", 
+  "fieldname": "json", 
+  "fieldtype": "Text"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Ref DocType", 
+  "fieldname": "ref_doctype", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "Administrator", 
+  "cancel": 1
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "System Manager", 
+  "cancel": 1
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "Report Manager", 
+  "cancel": 1
+ }, 
+ {
+  "role": "All", 
+  "doctype": "DocPerm"
+ }
 ]
