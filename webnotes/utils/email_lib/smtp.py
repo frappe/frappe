@@ -246,7 +246,7 @@ class SMTPServer:
 			raise webnotes.OutgoingEmailError, err_msg
 		
 		try:
-			self._sess = smtplib.SMTP(self.server.encode('utf-8'), cint(self.port) or None)
+			self._sess = smtplib.SMTP((self.server or "").encode('utf-8'), cint(self.port) or None)
 			
 			if not self._sess:
 				err_msg = 'Could not connect to outgoing email server'
@@ -258,7 +258,7 @@ class SMTPServer:
 				self._sess.starttls()
 				self._sess.ehlo()
 		
-			ret = self._sess.login(self.login.encode('utf-8'), self.password.encode('utf-8'))
+			ret = self._sess.login((self.login or "").encode('utf-8'), (self.password or "").encode('utf-8'))
 
 			# check if logged correctly
 			if ret[0]!=235:
