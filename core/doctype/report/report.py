@@ -13,3 +13,14 @@ class DocType:
 		if self.doc.is_standard == "Yes" and webnotes.session.user!="Administrator":
 			webnotes.msgprint("""Only Administrator can save a standard report.
 			Please rename and save.""", raise_exception=True)
+
+	def on_update(self):
+		self.export_doc()
+	
+	def export_doc(self):
+		# export
+		import conf
+		if self.doc.is_standard == 'Yes' and getattr(conf, 'developer_mode', 0) == 1:
+			from webnotes.modules.export_file import export_to_files
+			export_to_files(record_list=[['Report', self.doc.name]], 
+				record_module=webnotes.conn.get_value("DocType", self.doc.ref_doctype, "module"))	

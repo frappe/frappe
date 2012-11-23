@@ -32,7 +32,7 @@ methods in following modules are imported for backward compatibility
 	* webnotes.*
 	* webnotes.utils.*
 	* webnotes.model.doc.*
-	* webnotes.model.doclist.*
+	* webnotes.model.wrapper.*
 """
 custom_class = '''
 # Please edit this list and import only required elements

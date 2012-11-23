@@ -632,6 +632,7 @@ def getseries(key, digits, doctype=''):
 
 def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix='tab'):
 	import webnotes
+	from webnotes.model.doclist import DocList
 	
 	tmp = ''
 	
@@ -640,17 +641,11 @@ def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix
 	if parenttype:
 		tmp = ' and parenttype="%s" ' % parenttype
 
-	try:
-		dataset = webnotes.conn.sql("select * from `%s%s` where parent='%s' %s order by idx" \
-			% (prefix, childtype, name, tmp))
-		desc = webnotes.conn.get_description()
-	except Exception, e:
-		if prefix=='arc' and e.args[0]==1146:
-			return []
-		else:
-			raise e
+	dataset = webnotes.conn.sql("select * from `%s%s` where parent='%s' %s order by idx" \
+		% (prefix, childtype, name, tmp))
+	desc = webnotes.conn.get_description()
 
-	l = []
+	l = DocList()
 	
 	for i in dataset:
 		d = Document()
@@ -692,7 +687,8 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 	"""	
 	import webnotes
 	import webnotes.model
-
+	from webnotes.model.doclist import DocList
+	
 	dn = dn or dt
 
 	# load the main doc
@@ -709,13 +705,13 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 
 	if not with_children:
 		# done
-		return [doc,]
+		return DocList([doc,])
 	
 	# get all children types
 	tablefields = webnotes.model.meta.get_table_fields(dt)
 
 	# load chilren
-	doclist = [doc,]
+	doclist = DocList([doc,])
 	for t in tablefields:
 		doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 

@@ -30,10 +30,10 @@ default_fields = ['doctype','name','owner','creation','modified','modified_by','
 #=================================================================================
 
 def insert(doclist):
-	from webnotes.model.doclist import DocList
+	from webnotes.model.wrapper import ModelWrapper
 	for d in doclist:
 		d["__islocal"] = 1
-	dl = DocList(doclist)
+	dl = ModelWrapper(doclist)
 	dl.save()
 	
 	return dl

@@ -29,7 +29,7 @@ def runserverobj():
 		Run server objects
 	"""
 	import webnotes.model.code
-	from webnotes.model.doclist import DocList
+	from webnotes.model.wrapper import ModelWrapper
 	from webnotes.utils import cint
 
 	doclist = None
@@ -43,7 +43,7 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		doclist = DocList()
+		doclist = ModelWrapper()
 		doclist.from_compressed(webnotes.form_dict.get('docs'), dn)
 		so = doclist.make_obj()
 		doclist.check_if_latest()

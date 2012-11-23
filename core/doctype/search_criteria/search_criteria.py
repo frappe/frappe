@@ -61,7 +61,7 @@ class DocType:
 		# export
 		import conf
 		if self.doc.standard == 'Yes' and getattr(conf, 'developer_mode', 0) == 1:
-			from webnotes.modules.export_module import export_to_files
+			from webnotes.modules.export_file import export_to_files
 			export_to_files(record_list=[['Search Criteria', self.doc.name]])
 
 	# patch to rename search criteria from old style numerical to

@@ -24,9 +24,23 @@ from __future__ import unicode_literals
 """
 	Utilities for using modules
 """
-import webnotes
+import webnotes, os, conf
 
-transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper','GL Mapper','Search Criteria', 'Patch', 'Report']
+transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper',
+	'GL Mapper','Search Criteria', 'Patch', 'Report']
+	
+lower_case_files_for = ['DocType', 'Page', 'Search Criteria', 'Report', 
+	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action']
+
+code_fields_dict = {
+	'Page':[('script', 'js'), ('content', 'html'), ('style', 'css'), ('static_content', 'html'), ('server_code', 'py')],
+	'DocType':[('server_code_core', 'py'), ('client_script_core', 'js')],
+	'Search Criteria':[('report_script', 'js'), ('server_script', 'py'), ('custom_query', 'sql')],
+	'Patch':[('patch_code', 'py')],
+	'Stylesheet':['stylesheet', 'css'],
+	'Page Template':['template', 'html'],
+	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
+}
 
 def scrub(txt):
 	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
@@ -34,14 +48,13 @@ def scrub(txt):
 def scrub_dt_dn(dt, dn):
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
 	ndt, ndn = dt, dn
-	if dt.lower() in ('doctype', 'search criteria', 'page', 'report'):
+	if dt in lower_case_files_for:
 		ndt, ndn = scrub(dt), scrub(dn)
 
 	return ndt, ndn
 			
 def get_module_path(module):
 	"""Returns path of the given module"""
-	import os, conf
 	m = scrub(module)
 	
 	app_path = os.path.dirname(conf.__file__)
@@ -50,56 +63,18 @@ def get_module_path(module):
 		return os.path.join(app_path, 'lib', 'core')
 	else:
 		return os.path.join(app_path, 'app', m)
-	
+
+def get_doc_path(module, doctype, name):
+	dt, dn = scrub_dt_dn(doctype, name)
+	return os.path.join(get_module_path(module), dt, dn)
 
 def reload_doc(module, dt=None, dn=None):
-	"""reload single / list of records"""
-
-	if type(module) is list:
-		for m in module:
-			reload_single_doc(m[0], m[1], m[2])
-	else:
-		reload_single_doc(module, dt, dn)
-		
-def reload_single_doc(module, dt, dn, force=False):
-	"""Sync a file from txt if modifed, return false if not updated"""
-	if dt.lower() == 'doctype':
-		return
-		
-	import os
-	dt, dn = scrub_dt_dn(dt, dn)
-
-	path = os.path.join(get_module_path(module), 
-		os.path.join(dt, dn, dn + '.txt'))
-		
-	if os.path.exists(path):
-		from webnotes.model.utils import peval_doclist
-		
-		with open(path, 'r') as f:
-			doclist = peval_doclist(f.read())
-			
-		if doclist:
-			doc = doclist[0]
-			if not force:
-				# check if timestamps match
-				if doc['modified']== str(webnotes.conn.get_value(doc['doctype'], doc['name'], 'modified')):
-					return False
-			
-			from webnotes.utils.transfer import set_doc
-			set_doc(doclist, 1, 1, 1)
-
-			# since there is a new timestamp on the file, update timestamp in
-			webnotes.conn.sql("update `tab%s` set modified=%s where name=%s" % \
-				(doc['doctype'], '%s', '%s'), 
-				(doc['modified'],doc['name']))
-			return True
-	else:
-		raise Exception, '%s missing' % path
-
+	from webnotes.modules.import_file import import_files
+	return import_files(module, dt, dn)
 
 def export_doc(doctype, name, module=None):
 	"""write out a doc"""
-	from webnotes.modules.export_module import write_document_file
+	from webnotes.modules.export_file import write_document_file
 	import webnotes.model.doc
 	if not module: module = webnotes.conn.get_value(doctype, name, 'module')
 	doclist = [d.fields for d in webnotes.model.doc.get(doctype, name)]

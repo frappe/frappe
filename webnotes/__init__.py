@@ -262,5 +262,5 @@ def generate_hash():
 	return hashlib.sha224(str(time.time())).hexdigest()
 
 def model_wrapper(doctype, name=None):
-	from webnotes.model.doclist import DocList
-	return DocList(doctype, name)
+	from webnotes.model.wrapper import ModelWrapper
+	return ModelWrapper(doctype, name)

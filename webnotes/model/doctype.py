@@ -77,7 +77,8 @@ class _DocType:
 		"""
 			Gets a list of custom field docs masked as type DocField
 		"""
-		custom_doclist = []
+		from webnotes.model.doclist import DocList
+		custom_doclist = DocList()
 		res = webnotes.conn.sql("""SELECT * FROM `tabCustom Field`
 			WHERE dt = %s AND docstatus < 2""", doc_type, as_dict=1)
 		for r in res:

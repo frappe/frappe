@@ -29,12 +29,12 @@ def save():
 	"""insert or update from form query"""
 	doclist = json.loads(webnotes.form_dict.doclist)
 	
-	from webnotes.model.doclist import DocList
+	from webnotes.model.wrapper import ModelWrapper
 	
 	if not webnotes.has_permission(doclist[0]["doctype"], "write"):
 		webnotes.msgprint("No Write Permission", raise_exception=True)
 
-	doclistobj = DocList(doclist)
+	doclistobj = ModelWrapper(doclist)
 	doclistobj.save()
 	
 	return [d.fields for d in doclist]

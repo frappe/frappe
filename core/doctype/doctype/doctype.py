@@ -86,7 +86,7 @@ class DocType:
 		self.change_modified_of_parent()
 		
 		import conf
-		from webnotes.utils.transfer import in_transfer
+		from webnotes.modules.import_merge import in_transfer
 
 		if (not in_transfer) and getattr(conf,'developer_mode', 0):
 			self.export_doc()
@@ -96,7 +96,7 @@ class DocType:
 
 		
 	def export_doc(self):
-		from webnotes.modules.export_module import export_to_files
+		from webnotes.modules.export_file import export_to_files
 		export_to_files(record_list=[['DocType', self.doc.name]])
 		
 	def import_doc(self):

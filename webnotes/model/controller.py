@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 """
-Transactions are defined as collection of classes, a DocList represents collection of Document
+Transactions are defined as collection of classes, a ModelWrapper represents collection of Document
 objects for a transaction with main and children.
 
 Group actions like save, etc are performed on doclists
@@ -32,7 +32,7 @@ import webnotes
 import json, os
 import webnotes.model
 import webnotes.model.doc
-import webnotes.model.doclist
+import webnotes.model.wrapper
 import webnotes.utils.cache
 
 from webnotes import _
@@ -79,12 +79,12 @@ def get_controller_class(module_name, doctype, module_path):
 		for attr in dir(module):
 			attrobj = getattr(module, attr)
 			if inspect.isclass(attrobj) and attr.startswith(doctype.replace(' ', '').replace('-', '')) \
-				and issubclass(attrobj, DocListController):
+				and issubclass(attrobj, ModelWrapperController):
 				return attrobj
 		
-	return DocListController
+	return ModelWrapperController
 			
-class DocListController(object):
+class ModelWrapperController(object):
 	"""
 	Collection of Documents with one parent and multiple children
 	"""
@@ -104,11 +104,11 @@ class DocListController(object):
 		self.set_doclist(self.load_doclist(doctype, name))
 		
 	def load_doclist(self, doctype, name):
-		return webnotes.model.doclist.load(doctype, name)
+		return webnotes.model.wrapper.load(doctype, name)
 	
 	def set_doclist(self, doclist):
-		if not isinstance(doclist, webnotes.model.doclist.DocList):
-			self.doclist = webnotes.model.doclist.objectify(doclist)
+		if not isinstance(doclist, webnotes.model.wrapper.ModelWrapper):
+			self.doclist = webnotes.model.wrapper.objectify(doclist)
 		else:
 			self.doclist = doclist
 		self.doc = self.doclist[0]
@@ -125,7 +125,7 @@ class DocListController(object):
 		from webnotes.model.doctype import get_property
 		if get_property(self.doc.doctype, "document_type") in ["Master", "Transaction"]\
 			and not self.doc.get("__islocal"):
-			from webnotes.model.doclist import load
+			from webnotes.model.wrapper import load
 			# get the old doclist
 			try:
 				oldlist = load(self.doc.doctype, self.doc.name)
