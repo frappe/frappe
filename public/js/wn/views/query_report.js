@@ -233,7 +233,7 @@ wn.views.QueryReport = Class.extend({
 					} else if(opts[1]=="Float") {
 						col.formatter = function(row, cell, value, columnDef, dataContext) {
 							return repl('<div style="text-align: right;">%(value)s</div>', {
-								value: value.toFixed(6)
+								value: flt(value).toFixed(6)
 							});
 						};
 					} else if(opts[1]=="Int") {
