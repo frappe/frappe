@@ -22,10 +22,6 @@
 
 wn.provide("wn.report_dump");
 
-// chosen
-// wn.require("lib/js/lib/chosen/chosen.jquery.min.js");
-// wn.require("lib/js/lib/chosen/chosen.css");
-
 $.extend(wn.report_dump, {
 	data: {},
 	with_data: function(doctypes, callback, progress_bar) {
@@ -131,8 +127,10 @@ wn.views.GridReport = Class.extend({
 			if(opts.fieldtype == "Select" && inList(me.doctypes, opts.link)) {
 				$(v).add_options($.map(wn.report_dump.data[opts.link],
 					function(d) { return d.name; }));
-				
-				// if(opts.chosen) $(v).trigger("liszt:updated"); // chosen
+			} else if(opts.fieldtype == "Link" && inList(me.doctypes, opts.link)) {
+				opts.list = $.map(wn.report_dump.data[opts.link],
+					function(d) { return d.name; });
+				me.set_autocomplete(v, opts.list);
 			}
 		});	
 
@@ -151,6 +149,16 @@ wn.views.GridReport = Class.extend({
 			me.set_route();
 		});
 	},
+	set_autocomplete: function($filter, list) {
+		var me = this;
+		$filter.autocomplete({
+			source: list,
+			select: function(event, ui) {
+				$filter.val(ui.item.value);
+				me.set_route();
+			}
+		});
+	},
 	init_filter_values: function() {
 		var me = this;
 		$.each(this.filter_inputs, function(key, filter) {
@@ -159,11 +167,9 @@ wn.views.GridReport = Class.extend({
 				filter.val(sys_defaults[key]);
 			} else if(opts.fieldtype=='Select') {
 				filter.get(0).selectedIndex = 0;
-				
-				// chosen
-				// if(opts.chosen) filter.trigger("liszt:updated");
-				
 			} else if(opts.fieldtype=='Data') {
+				filter.val("");
+			} else if(opts.fieldtype=="Link") {
 				filter.val("");
 			}
 		});
@@ -191,10 +197,11 @@ wn.views.GridReport = Class.extend({
 			var input = null;
 			if(v.fieldtype=='Select') {
 				input = me.appframe.add_select(v.label, v.options || [v.default_value]);
-				
-				// chosen
-				// if(v.chosen) input.chosen();
-
+			} else if(v.fieldtype=="Link") {
+				input = me.appframe.add_data(v.label);
+				input.autocomplete({
+					source: v.list || [],
+				});
 			} else if(v.fieldtype=='Button') {
 				input = me.appframe.add_button(v.label);
 				if(v.icon) {
@@ -221,11 +228,6 @@ wn.views.GridReport = Class.extend({
 			}
 			me.filter_inputs[v.fieldname] = input;
 		});
-		
-		// chosen
-		// me.appframe.$w.find('.chzn-drop').css('width','298px');
-		// me.appframe.$w.find('.chzn-search input').css('width','263px');
-		
 	},
 	make_waiting: function() {
 		this.waiting = wn.messages.waiting(this.wrapper, "Loading Report...", '10');			
@@ -336,12 +338,6 @@ wn.views.GridReport = Class.extend({
 				var f = f.split("=");
 				if(me.filter_inputs[f[0]]) {
 					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
-					
-					// chosen
-					// if(me.filter_inputs[f[0]].get(0).opts.chosen) {
-					// 	$(me.filter_inputs[f[0]]).trigger("liszt:updated");
-					// }
-					
 				} else {
 					console.log("Invalid filter: " +f[0]);
 				}
