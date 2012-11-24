@@ -105,5 +105,10 @@ wn.model = {
 			var ret = !is_null(val);			
 		}
 		return ret ? true : false;
-	}
+	},
+
+	get: function(doctype, filters) {
+		if(!locals[doctype]) return [];
+		return wn.utils.filter_dict(locals[doctype], filters);
+	},	
 }

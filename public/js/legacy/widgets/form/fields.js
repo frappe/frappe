@@ -43,9 +43,9 @@ Field.prototype.make_body = function() {
 	
 	// parent element
 	if(this.parent)
-		this.wrapper = $a(this.parent, (this.with_label ? 'div' : 'span'));
+		this.wrapper = $a(this.parent, (this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
 	else
-		this.wrapper = document.createElement((this.with_label ? 'div' : 'span'));
+		this.wrapper = document.createElement((this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
 
 	this.label_area = $a(this.wrapper, 'div', '', {margin:'0px 0px 2px 0px', minHeight:'1em'});
 

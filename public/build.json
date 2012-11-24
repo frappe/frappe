@@ -81,7 +81,6 @@
 			"lib/public/js/legacy/widgets/dialog.js",
 			"lib/public/js/legacy/webpage/page_header.js",
 			"lib/public/js/legacy/webpage/loaders.js",
-			"lib/public/js/legacy/wn/widgets/footer.js",
 			"lib/public/js/legacy/model/local_data.js",
 			"lib/public/js/legacy/model/doclist.js",
 			"lib/public/js/wn/app.js"

@@ -265,6 +265,10 @@ def doc(doctype=None, name=None, fielddata=None):
 	from webnotes.model.doc import Document
 	return Document(doctype, name, fielddata)
 
+def doclist(lst=None):
+	from webnotes.model.doclist import DocList
+	return DocList(lst)
+
 def model_wrapper(doctype, name=None):
 	from webnotes.model.wrapper import ModelWrapper
 	return ModelWrapper(doctype, name)

@@ -93,8 +93,10 @@ def load_single_doc(dt, dn, user):
 		so, r = webnotes.model.code.get_server_obj(dl[0], dl), None
 		if hasattr(so, 'onload'):
 			r = webnotes.model.code.run_server_obj(so, 'onload')
+			dl = so.doclist
 		if hasattr(so, 'custom_onload'):
 			r = webnotes.model.code.run_server_obj(so, 'custom_onload')
+			dl = so.doclist
 		if r: 
 			webnotes.msgprint(r)
 	except Exception, e:
