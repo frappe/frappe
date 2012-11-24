@@ -32,7 +32,7 @@ def walk_and_sync(start_path, force=0):
 
 	modules = []
 
-	document_type = ['page', 'workflow', 'module_def', 'workflow_state', 'workflow_action']
+	document_type = ['page', 'workflow', 'module_def', 'report', 'workflow_state', 'workflow_action']
 	for path, folders, files in os.walk(start_path):
 		if os.path.basename(os.path.dirname(path)) in (['doctype'] + document_type):
 			for f in files:				
