@@ -264,3 +264,11 @@ def generate_hash():
 def model_wrapper(doctype, name=None):
 	from webnotes.model.wrapper import ModelWrapper
 	return ModelWrapper(doctype, name)
+
+def delete_doc(doctype=None, name=None, doclist = None, force=0):
+	import webnotes.model
+	webnotes.model.delete_doc(doctype, name, doclist, force)
+	
+def reload_doc(module, dt=None, dn=None):
+	import webnotes.modules
+	webnotes.modules.reload_doc(module, dt, dn)

@@ -34,10 +34,6 @@ def run():
 		webnotes.msgprint("Must specify DocType for permissions.", 
 			raise_exception=1)
 	
-	if not ("tab" + doctype.lower()) in query.lower().split("from")[1].split("where")[0]:
-		webnotes.msgprint("Specified DocType must appear in query.", 
-			raise_exception=1)
-	
 	if not webnotes.has_permission(doctype, "read"):
 		webnotes.msgprint("Must have read permission to access this report.", 
 			raise_exception=1)
