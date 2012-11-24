@@ -261,6 +261,10 @@ def generate_hash():
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
 
+def doc(doctype=None, name=None, fielddata=None):
+	from webnotes.model.doc import Document
+	return Document(doctype, name, fielddata)
+
 def model_wrapper(doctype, name=None):
 	from webnotes.model.wrapper import ModelWrapper
 	return ModelWrapper(doctype, name)

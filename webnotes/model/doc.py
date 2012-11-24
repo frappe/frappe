@@ -66,7 +66,7 @@ class Document:
 		 * `idx` : Index (sequence) of the child record	
 	"""
 	
-	def __init__(self, doctype = '', name = '', fielddata = {}, prefix='tab'):
+	def __init__(self, doctype = None, name = None, fielddata = None, prefix='tab'):
 		self._roles = []
 		self._perms = []
 		self._user_defaults = {}
@@ -266,7 +266,7 @@ class Document:
 	# Insert
 	# ---------------------------------------------------------------------------
 	
-	def insert(self, autoname, istable, case='', make_autoname=1):
+	def insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
 		# set name
 		if make_autoname:
 			self._set_name(autoname, istable)
@@ -275,9 +275,12 @@ class Document:
 		self._validate_name(case)
 				
 		# insert!
-		if not self.owner: self.owner = webnotes.session['user']
-		self.modified_by = webnotes.session['user']
-		self.creation = self.modified = now()
+		if not keep_timestamps:
+			if not self.owner: 
+				self.owner = webnotes.session['user']
+			self.modified_by = webnotes.session['user']
+			self.creation = self.modified = now()
+
 		webnotes.conn.sql("""insert into `tab%(doctype)s` (name, owner, creation, modified, modified_by) 
 		values ('%(name)s', '%(owner)s', '%(creation)s', '%(modified)s', '%(modified_by)s')""" % self.fields)
 
@@ -347,14 +350,15 @@ class Document:
 	# Update query
 	# ---------------------------------------------------------------------------
 		
-	def _update_values(self, issingle, link_list, ignore_fields=0):
+	def _update_values(self, issingle, link_list, ignore_fields=0, keep_timestamps=False):
 		if issingle:
 			self._update_single(link_list)
 		else:
 			update_str, values = [], []
 			# set modified timestamp
-			self.modified = now()
-			self.modified_by = webnotes.session['user']
+			if self.modified and not keep_timestamps:
+				self.modified = now()
+				self.modified_by = webnotes.session['user']
 			for f in self.fields.keys():
 				if (not (f in ('doctype', 'name', 'perm', 'localname', 'creation','_user_tags'))) \
 					and (not f.startswith('__')): # fields not saved
@@ -382,7 +386,8 @@ class Document:
 	# Save values
 	# ---------------------------------------------------------------------------
 	
-	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname = 1):
+	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname = 1, 
+		keep_timestamps=False):
 		"""
 	      Saves the current record in the database. If new = 1, creates a new instance of the record.
 	      Also clears temperory fields starting with `__`
@@ -403,13 +408,13 @@ class Document:
 
 		# if required, make new
 		if new or (not new and self.fields.get('__islocal')) and (not res.get('issingle')):
-			r = self.insert(res.get('autoname'), res.get('istable'), res.get('name_case'), \
-				make_autoname)
+			r = self.insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
+				make_autoname, keep_timestamps = keep_timestamps)
 			if r: 
 				return r
 				
 		# save the values
-		self._update_values(res.get('issingle'), check_links and self.make_link_list() or {}, ignore_fields)
+		self._update_values(res.get('issingle'), check_links and self.make_link_list() or {}, ignore_fields, keep_timestamps = keep_timestamps)
 		self._clear_temp_fields()
 
 	def update_parentinfo(self):

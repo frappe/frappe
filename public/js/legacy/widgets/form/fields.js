@@ -896,6 +896,8 @@ TextField.prototype.make_input = function() {
 	this.input = $a(this.input_area, 'textarea');
 	if(this.df.fieldtype=='Small Text')
 		this.input.style.height = "80px";
+	if(this.df.width)
+		this.input.style.height = cint(this.df.width) + "px";
 	this.input.set_input = function(v) {
 		me.input.value = v;
 	}
