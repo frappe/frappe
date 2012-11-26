@@ -105,7 +105,7 @@ _e.make = function() {
 		,['Data','Subject']
 		,['Data','From']
 		,['Check','Send With Attachments','Will send all attached documents (if any)']
-		,['Text','Message']
+		,['Text','Message','To set your signature, go to <a href="#profile-settings">Profile Settings</a>']
 		,['Button','Send',email_go]]
 	);
 
