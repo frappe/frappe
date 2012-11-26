@@ -47,7 +47,7 @@ def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 	"""
 	if doclist[0].doctype == "DocType":
 		from webnotes.model.sync import merge_doctype
-		return merge_doctype(doclist)	
+		return merge_doctype(doclist, force=ovr)	
 	
 	global in_transfer
 	dt = doclist[0]['doctype']

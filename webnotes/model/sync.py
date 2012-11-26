@@ -64,13 +64,13 @@ def sync(module_name, docname, force=0):
 		from webnotes.modules.utils import peval_doclist
 		doclist = peval_doclist(f.read())
 		
-		if merge_doctype(doclist):
+		if merge_doctype(doclist, force):
 			print module_name, '|', docname
 		
 		#raise Exception
 		return doclist[0].get('name')
 
-def merge_doctype(doclist):
+def merge_doctype(doclist, force=False):
 	modified = doclist[0]['modified']
 	if not doclist:
 		raise Exception('ModelWrapper could not be evaluated')
