@@ -28,9 +28,9 @@ from webnotes.modules import scrub, get_module_path, scrub_dt_dn
 def import_files(module, dt=None, dn=None):
 	if type(module) is list:
 		for m in module:
-			import_file(m[0], m[1], m[2])
+			return import_file(m[0], m[1], m[2])
 	else:
-		import_file(module, dt, dn)
+		return import_file(module, dt, dn)
 		
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
@@ -42,7 +42,7 @@ def import_file(module, dt, dn, force=False):
 	path = os.path.join(get_module_path(module), 
 		os.path.join(dt, dn, dn + '.txt'))
 		
-	import_file_by_path(path, force)
+	return import_file_by_path(path, force)
 
 def import_file_by_path(path, force=False):
 	if os.path.exists(path):

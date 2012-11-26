@@ -50,7 +50,7 @@ class ModelWrapper:
 			Load doclist from dt
 		"""
 		from webnotes.model.doc import Document, getchildren
-		from webnotes.model.doclist import DocList
+
 		if not dt: dt = self.doc.doctype
 		if not dn: dn = self.doc.name
 
@@ -60,7 +60,7 @@ class ModelWrapper:
 		tablefields = webnotes.model.meta.get_table_fields(dt)
 
 		# load chilren
-		doclist = DocList([doc,])
+		doclist = webnotes.doclist([doc,])
 		for t in tablefields:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
@@ -85,8 +85,8 @@ class ModelWrapper:
 			if isinstance(d, dict):
 				docs[i] = Document(fielddata=d)
 		
-		self.docs = self.doclist = docs
-		self.doc, self.children = docs[0], docs[1:]
+		self.docs = self.doclist = webnotes.doclist(docs)
+		self.doc, self.children = docs[0], webnotes.doclist(docs[1:])
 		if self.obj:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc

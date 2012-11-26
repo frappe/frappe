@@ -279,4 +279,4 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	
 def reload_doc(module, dt=None, dn=None):
 	import webnotes.modules
-	webnotes.modules.reload_doc(module, dt, dn)
+	return webnotes.modules.reload_doc(module, dt, dn)

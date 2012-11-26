@@ -54,15 +54,16 @@ class DocType:
 	def set_version(self):
 		self.doc.version = cint(self.doc.version) + 1
 	
-	#
-	# check if this series is not used elsewhere
-	#
 	def validate_series(self, autoname=None, name=None):
 		sql = webnotes.conn.sql
 		if not autoname: autoname = self.doc.autoname
 		if not name: name = self.doc.name
 		
-		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) and (not autoname=='Prompt'):
+		if not autoname and self.doclist.get({"fieldname":"naming_series"}):
+			self.doc.autoname = "naming_series:"
+		
+		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) \
+			and (not autoname=='Prompt') and (not autoname.startswith('naming_series:')):
 			prefix = autoname.split('.')[0]
 			used_in = sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:

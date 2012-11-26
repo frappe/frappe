@@ -216,7 +216,15 @@ class Document:
 			if not n:
 				raise Exception, 'Name is required'
 			self.name = n.strip()
-		
+			
+		elif autoname and autoname.startswith("naming_series:"):
+			if not self.naming_series:
+				# pick default naming series
+				from webnotes.model.doctype import get_property
+				self.naming_series = get_property(self.doctype, "options", "naming_series").split("\n")
+				self.naming_series = self.naming_series[0] or self.naming_series[1]
+			self.name = make_autoname(self.naming_series+'.#####')
+			
 		# based on expression
 		elif autoname and autoname.startswith('eval:'):
 			doc = self # for setting
@@ -237,12 +245,11 @@ class Document:
 		# unable to determine a name, use a serial number!
 		if not self.name:
 			self.name = make_autoname('#########', self.doctype)
-					
+		
 	# Validate Name
 	# ---------------------------------------------------------------------------
 	
 	def _validate_name(self, case):
-
 		if webnotes.conn.sql('select name from `tab%s` where name=%s' % (self.doctype,'%s'), self.name):
 			raise NameError, 'Name %s already exists' % self.name
 		
@@ -251,7 +258,7 @@ class Document:
 		
 		# new..
 		if self.name.startswith('New '+self.doctype):
-			return 'There were some errors setting the name, please contact the administrator'
+			raise NameError, 'There were some errors setting the name, please contact the administrator'
 		
 		if case=='Title Case': self.name = self.name.title()
 		if case=='UPPER CASE': self.name = self.name.upper()
@@ -262,7 +269,7 @@ class Document:
 		for f in forbidden:
 			if f in self.name:
 				webnotes.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
-				
+		
 	# Insert
 	# ---------------------------------------------------------------------------
 	
