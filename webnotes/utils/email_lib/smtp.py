@@ -69,18 +69,9 @@ class EMail:
 		self.cc = []
 		self.html_set = False
 	
-	def set_text(self, message):
-		"""
-			Attach message in the text portion of multipart/alternative
-		"""
-		from email.mime.text import MIMEText
-		part = MIMEText(message.encode('utf-8'), 'plain', 'utf-8')		
-		self.msg_multipart.attach(part)
-			
 	def set_html(self, message, text_content = None):
 
 		"""Attach message in the html portion of multipart/alternative"""
-		from email.mime.text import MIMEText
 		message = message + self.get_footer()
 
 		# this is the first html part of a multi-part message, 
@@ -89,13 +80,25 @@ class EMail:
 			if text_content:
 				self.set_text(text_content)
 			else:
-				self.set_html_text(message)
-
-		part = MIMEText(message.encode('utf-8'), 'html', 'utf-8')
-		self.msg_multipart.attach(part)
+				self.set_html_as_text(message)
+		
+		self.set_part_html(message)
 		self.html_set = True
 
-	def set_html_text(self, html):
+	def set_text(self, message):
+		"""
+			Attach message in the text portion of multipart/alternative
+		"""
+		from email.mime.text import MIMEText
+		part = MIMEText(message.encode('utf-8'), 'plain', 'utf-8')		
+		self.msg_multipart.attach(part)
+			
+	def set_part_html(self, message):
+		from email.mime.text import MIMEText
+		part = MIMEText(message.encode('utf-8'), 'html', 'utf-8')
+		self.msg_multipart.attach(part)
+
+	def set_html_as_text(self, html):
 		"""return html2text"""
 		import HTMLParser
 		from webnotes.utils.email_lib.html2text import html2text
@@ -122,7 +125,11 @@ class EMail:
 		
 		footer = ""
 		if self.sender == webnotes.session.user:
-			footer = webnotes.conn.get_value("Profile", self.sender, "email_signature") or ""
+			signature = webnotes.conn.get_value("Profile", self.sender, "email_signature") or ""
+			if signature and (not "<br>" in signature) and (not "<p" in signature) \
+				and not "<div" in signature:
+				signature = signature.replace("\n", "<br>\n")
+			footer = signature
 		
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
 		footer += getattr(startup, 'mail_footer', '')

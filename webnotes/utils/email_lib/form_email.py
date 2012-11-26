@@ -122,27 +122,17 @@ class FormEmail:
 		"""
 
 		self.email = EMail(self.sendfrom, self.recipients, self.subject, alternative = 1)
-
-		from webnotes.utils.email_lib.html2text import html2text
-
 		self.make_full_links()
 
 		# message
 		if not self.__dict__.get('message'):
 			self.message = 'Please find attached %s: %s\n' % (self.dt, self.dn)
 
-		html_message = text_message = self.message.replace('\n','<br>')
-		
-		# separator
-		html_message += '<div style="margin:17px 0px; border-bottom:1px solid #AAA"></div>'
-
-		# form itself (only in the html message)
-		html_message += self.body
-
-		# message as text
-		self.email.set_text(html2text(text_message))
-		self.email.set_html(html_message)
-	
+		# body
+		self.email.set_html_as_text(self.message)
+		self.email.set_part_html(self.message.replace('\n','<br>') + "<hr>" \
+			+ self.email.get_footer() + self.body)
+			
 	def make_communication(self):
 		"""make email communication"""
 		from webnotes.model.doc import Document
