@@ -117,10 +117,16 @@ class EMail:
 		self.msg_root.attach(part)
 	
 	def get_footer(self):
-		"""append a footer"""
+		"""append a footer (signature)"""
 		import startup
-		footer = webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
+		
+		footer = ""
+		if self.sender == webnotes.session.user:
+			footer = webnotes.conn.get_value("Profile", self.sender, "email_signature") or ""
+		
+		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
 		footer += getattr(startup, 'mail_footer', '')
+		
 		return footer
 		
 	def attach_file(self, n):
