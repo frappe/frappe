@@ -33,12 +33,8 @@ def import_files(module, dt=None, dn=None):
 		return import_file(module, dt, dn)
 		
 def import_file(module, dt, dn, force=False):
-	"""Sync a file from txt if modifed, return false if not updated"""
-	if dt.lower() == 'doctype':
-		return
-		
+	"""Sync a file from txt if modifed, return false if not updated"""		
 	dt, dn = scrub_dt_dn(dt, dn)
-
 	path = os.path.join(get_module_path(module), 
 		os.path.join(dt, dn, dn + '.txt'))
 		
@@ -50,7 +46,7 @@ def import_file_by_path(path, force=False):
 		
 		with open(path, 'r') as f:
 			doclist = peval_doclist(f.read())
-			
+					
 		if doclist:
 			doc = doclist[0]
 			if not force:

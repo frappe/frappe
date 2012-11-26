@@ -45,15 +45,17 @@ def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 	"""
 		Wrapper function to sync a record
 	"""
+	if doclist[0].doctype == "DocType":
+		from webnotes.model.sync import merge_doctype
+		return merge_doctype(doclist)	
+	
 	global in_transfer
 	dt = doclist[0]['doctype']
 	
 	if webnotes.conn.exists(doclist[0]['doctype'], doclist[0]['name']):	
 		# exists, merge if possible
 		
-		if dt=='DocType':
-			ud = UpdateDocType(doclist)
-		elif dt == 'DocType Mapper':
+		if dt == 'DocType Mapper':
 			ud = UpdateDocTypeMapper(doclist)
 		else:
 			ud = UpdateDocument(doclist)
@@ -64,9 +66,6 @@ def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 	ud.sync()
 	in_transfer = 0
 	return '\n'.join(ud.log)
-
-
-
 
 #
 # Class to sync incoming document
@@ -199,105 +198,6 @@ class UpdateDocumentMerge(UpdateDocument):
 			if ov:
 				d.fields.update(ov)
 
-
-
-class UpdateDocType(UpdateDocumentMerge):
-	"""
-		Import a doctype from txt to database
-	"""
-	def __init__(self, in_doclist):
-		UpdateDocumentMerge.__init__(self, in_doclist)
-		self.to_update_doctype = ['DocType', 'DocField']
-		
-	def to_update(self, d):
-		if (d.fieldtype not in ['Section Break', 'Column Break', 'HTML']) and (d.fieldname or d.label):
-			return 1
-	
-	def get_id(self, d):
-		key = d.fieldname and 'fieldname' or 'label'
-		if d.fields.get(key):
-			return webnotes.conn.sql("""select name, options, permlevel, reqd, print_hide, hidden, fieldtype
-				from tabDocField where %s=%s and parent=%s""" % (key, '%s', '%s'), (d.fields[key], d.parent))
-				
-	def on_save(self):
-		self.renum()
-
-	def child_exists(self, d):
-		if d.doctype=='DocField':
-			return self.get_id(d)
-	
-	def get_orignal_values(self, d):
-		if d.doctype=='DocField':
-			t = self.get_id(d)[0]
-			return {'name': t[0], 'options': t[1], 'fieldtype':t[6]}
-
-		if d.doctype=='DocType':
-			return webnotes.conn.sql("select server_code, client_script from `tabDocType` where name=%s", d.name, as_dict = 1)[0]
-
-	# renumber the indexes	
-	def renum(self):
-		extra = self.get_extra_fields()
-		self.clear_section_breaks()
-		self.add_section_breaks_and_renum()
-		self.fix_extra_fields(extra)
-
-	# get fields not in the incoming list (to preserve order)
-	def get_extra_fields(self):
-		prev_field, prev_field_key, extra = '', '', []
-		
-		# get new fields and labels
-		fieldnames = [d.get('fieldname') for d in self.in_doclist]
-		labels = [d.get('label') for d in self.in_doclist]
-		
-		# check if all existing are present
-		for f in webnotes.conn.sql("select fieldname, label, idx from tabDocField where parent=%s and fieldtype not in ('Section Break', 'Column Break', 'HTML') order by idx asc", self.doc.name):
-			if f[0] and not f[0] in fieldnames:
-				extra.append([f[0], f[1], prev_field, prev_field_key])
-			elif f[1] and not f[1] in labels:
-				extra.append([f[0], f[1], prev_field, prev_field_key])
-				
-			prev_field, prev_field_key = f[0] or f[1], f[0] and 'fieldname' or 'label'
-		
-		return extra
-
-	# clear section breaks
-	def clear_section_breaks(self):
-		webnotes.conn.sql("delete from tabDocField where fieldtype in ('Section Break', 'Column Break', 'HTML') and parent=%s and ifnull(options,'')!='Custom'", self.doc.name)
-
-	# add section breaks
-	def add_section_breaks_and_renum(self):
-		for d in self.in_doclist:
-			if d.get('parentfield')=='fields':
-				if d.get('fieldtype') in ('Section Break', 'Column Break', 'HTML'):
-					tmp = Document(fielddata = d)
-					tmp.fieldname = ''
-					tmp.name = None
-					tmp.save(1, check_links=0)
-				else:
-					webnotes.conn.sql("update tabDocField set idx=%s where %s=%s and parent=%s" % \
-						('%s', d.get('fieldname') and 'fieldname' or 'label', '%s', '%s'), (d.get('idx'), d.get('fieldname') or d.get('label'), self.doc.name))
-
-
-	# adjust the extra fields
-	def fix_extra_fields(self, extra):	
-		# push fields down at new idx
-		for e in extra:
-			# get idx of the prev to extra field
-			idx = 0
-			if e[2]:
-				idx = webnotes.conn.sql("select idx from tabDocField where %s=%s and parent=%s" % (e[3], '%s', '%s'), (e[2], self.doc.name))
-				idx = idx and idx[0][0] or 0
-			
-			if idx:
-				webnotes.conn.sql("update tabDocField set idx=idx+1 where idx>%s and parent=%s", (idx, self.doc.name))	
-				webnotes.conn.sql("update tabDocField set idx=%s where %s=%s and parent=%s" % \
-					('%s', e[0] and 'fieldname' or 'label', '%s', '%s'), (idx+1, e[0] or e[1], self.doc.name))
-
-	def run_on_update(self):
-		from webnotes.model.code import get_obj
-		so = get_obj(doc=self.doc, doclist=self.doclist)
-		if hasattr(so, 'on_update'):
-			so.on_update()
 
 class UpdateDocTypeMapper(UpdateDocumentMerge):
 	"""

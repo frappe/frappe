@@ -21,13 +21,15 @@
 # 
 
 from __future__ import unicode_literals
+
+import webnotes, os
+
 def listfolders(path, only_name=0):
 	"""
 		Returns the list of folders (with paths) in the given path, 
 		If only_name is set, it returns only the folder names
 	"""
 
-	import os
 	out = []
 	for each in os.listdir(path):
 		dirname = each.split(os.path.sep)[-1]
@@ -42,7 +44,6 @@ def switch_module(dt, dn, to, frm=None, export=None):
 		Change the module of the given doctype, if export is true, then also export txt and copy
 		code files from src
 	"""
-	import os
 	webnotes.conn.sql("update `tab"+dt+"` set module=%s where name=%s", (to, dn))
 
 	if export:
@@ -129,7 +130,7 @@ def uncommonify_doclist(dl):
 	"""
 	# first one has common values
 	common_values = dl[0]
-	common_dict = {}
+	common_dict = webnotes.DictObj()
 	final = []
 	idx_dict = {}
 
@@ -141,7 +142,7 @@ def uncommonify_doclist(dl):
 		else:
 			dt = d['doctype']
 			if not dt in idx_dict: idx_dict[dt] = 1;
-			d1 = common_values.copy()
+			d1 = webnotes.DictObj(common_values.copy())
 
 			# update from common and global
 			d1.update(common_dict[dt])

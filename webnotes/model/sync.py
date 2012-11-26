@@ -63,31 +63,36 @@ def sync(module_name, docname, force=0):
 	with open(get_file_path(module_name, docname), 'r') as f:
 		from webnotes.modules.utils import peval_doclist
 		doclist = peval_doclist(f.read())
-		modified = doclist[0]['modified']
-		if not doclist:
-			raise Exception('ModelWrapper could not be evaluated')
-
-		db_modified = str(webnotes.conn.get_value(doclist[0].get('doctype'),
-			doclist[0].get('name'), 'modified'))
-			
-		if modified == db_modified and not force:
-			return
-
-		webnotes.conn.begin()
 		
-		delete_doctype_docfields(doclist)
-		save_doctype_docfields(doclist)
-		save_perms_if_none_exist(doclist)
-		webnotes.conn.sql("""UPDATE `tab{doctype}` 
-			SET modified=%s WHERE name=%s""".format(doctype=doclist[0]['doctype']),
-				(modified, doclist[0]['name']))
-		
-		webnotes.conn.commit()
-		print module_name, '|', docname
+		if merge_doctype(doclist):
+			print module_name, '|', docname
 		
 		#raise Exception
 		return doclist[0].get('name')
+
+def merge_doctype(doclist):
+	modified = doclist[0]['modified']
+	if not doclist:
+		raise Exception('ModelWrapper could not be evaluated')
+
+	db_modified = str(webnotes.conn.get_value(doclist[0].get('doctype'),
+		doclist[0].get('name'), 'modified'))
 		
+	if modified == db_modified and not force:
+		return
+
+	webnotes.conn.begin()
+	
+	delete_doctype_docfields(doclist)
+	save_doctype_docfields(doclist)
+	save_perms_if_none_exist(doclist)
+	webnotes.conn.sql("""UPDATE `tab{doctype}` 
+		SET modified=%s WHERE name=%s""".format(doctype=doclist[0]['doctype']),
+			(modified, doclist[0]['name']))
+	
+	webnotes.conn.commit()
+	return True
+
 def get_file_path(module_name, docname):
 	if not (module_name and docname):
 		raise Exception('No Module Name or DocName specified')
