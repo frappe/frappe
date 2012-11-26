@@ -165,7 +165,7 @@ def connect(db_name=None, password=None):
 	conn = webnotes.db.Database(user=db_name, password=password)
 	
 	global session
-	session = {'user':'Administrator'}
+	session = DictObj({'user':'Administrator'})
 	
 	import webnotes.profile
 	global user
