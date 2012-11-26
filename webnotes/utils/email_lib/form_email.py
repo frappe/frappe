@@ -130,8 +130,8 @@ class FormEmail:
 
 		# body
 		self.email.set_html_as_text(self.message)
-		self.email.set_part_html(self.message.replace('\n','<br>') + "<hr>" \
-			+ self.email.get_footer() + self.body)
+		self.email.set_part_html(self.message.replace('\n','<br>') + "<br><br>" \
+			+ self.email.get_footer() + "<br><br>" + self.body)
 			
 	def make_communication(self):
 		"""make email communication"""
