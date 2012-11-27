@@ -107,7 +107,8 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			// replace links if error has occured
 			if(r.exc || r.error) {
 				r.messages = $.map(r.messages, function(v) {
-					var msg = v.replace("Inserted", "Valid").split("<");
+					var msg = v.replace("Inserted", "Valid")
+						.replace("Updated", "Valid").split("<");
 					if (msg.length > 1) {
 						v = msg[0] + (msg[1].split(">").slice(-1)[0]);
 					} else {
@@ -127,12 +128,12 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 				var $p = $('<p>').html(v).appendTo('#dit-output');
 				if(v.substr(0,5)=='Error') {
 					$p.css('color', 'red');
-				}
-				if(v.substr(0,8)=='Inserted' || v.substr(0,5)=='Valid') {
+				} else if(v.substr(0,8)=='Inserted') {
 					$p.css('color', 'green');
-				}
-				if(v.substr(0,7)=='Updated') {
+				} else if(v.substr(0,7)=='Updated') {
 					$p.css('color', 'green');
+				} else if(v.substr(0,5)=='Valid') {
+					$p.css('color', '#777');
 				}
 			});
 			
