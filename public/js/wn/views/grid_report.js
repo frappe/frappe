@@ -539,7 +539,7 @@ wn.views.GridReport = Class.extend({
 		
 		var build_columns = function(condition) {
 			// add column for each date range
-			for(var i=0; i < date_diff; i++) {
+			for(var i=0; i <= date_diff; i++) {
 				var date = dateutil.add_days(me.from_date, i);
 				if(!condition) condition = function() { return true; }
 				
