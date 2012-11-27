@@ -102,8 +102,10 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		callback: function(r) {
 			$(wrapper).find(".dit-progress-area").toggle(false);
 			
+			if(!r.messages) r.messages = [];
+			
 			// replace links if error has occured
-			if(r.error) {
+			if(r.exc || r.error) {
 				r.messages = $.map(r.messages, function(v) {
 					var msg = v.replace("Inserted", "Valid").split("<");
 					if (msg.length > 1) {
