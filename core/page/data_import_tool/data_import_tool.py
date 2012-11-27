@@ -288,7 +288,8 @@ def import_doc(d, doctype, overwrite, row_idx):
 		if overwrite:
 			doclist = webnotes.model.doc.get(doctype, d['name'])
 			doclist[0].fields.update(d)
-			ModelWrapper(doclist).save()
+			model_wrapper = ModelWrapper(doclist)
+			model_wrapper.save()
 			return 'Updated row (#%d) %s' % (row_idx, getlink(doctype, d['name']))
 		else:
 			return 'Ignored row (#%d) %s (exists)' % (row_idx, 
