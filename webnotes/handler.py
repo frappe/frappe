@@ -92,7 +92,7 @@ def dt_map():
 	from_to_list = form_dict.get('from_to_list')
 	
 	dm = get_obj('DocType Mapper', from_doctype +'-' + to_doctype)
-	dl = dm.dt_map(from_doctype, to_doctype, from_docname, Document(fielddata = dt_list[0]), [], from_to_list)
+	dl = dm.dt_map(from_doctype, to_doctype, from_docname, Document(fielddata = dt_list[0]), (len(dt_list) > 1 and dt_list or []), from_to_list)
 	
 	webnotes.response['docs'] = dl
 
