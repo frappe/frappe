@@ -261,6 +261,10 @@ def generate_hash():
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
 
+def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
+	from webnotes.model.code import get_obj
+	return get_obj(dt, dn, doc, doclist, with_children)
+
 def doc(doctype=None, name=None, fielddata=None):
 	from webnotes.model.doc import Document
 	return Document(doctype, name, fielddata)

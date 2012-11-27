@@ -70,7 +70,10 @@ div.appframe-marker {
 }
 
 .appframe-title {
-	font-size: 160%;
+	font-size: 140%;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 	font-weight: bold;
 	display: inline-block;
 	margin-top: 5px;

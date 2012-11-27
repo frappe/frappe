@@ -227,11 +227,7 @@ def execute_cmd(cmd):
 	if not webnotes.conn.in_transaction:
 		webnotes.conn.begin()
 
-	if 'arg' in webnotes.form_dict:
-		# direct method call
-		ret = method(webnotes.form_dict.get('arg'))
-	else:
-		ret = method()
+	ret = call(method, webnotes.form_dict)
 
 	# returns with a message
 	if ret:
@@ -242,6 +238,14 @@ def execute_cmd(cmd):
 
 	if webnotes.conn.in_transaction:
 		webnotes.conn.commit()
+
+def call(fn, args):
+	import inspect
+	fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+	newargs = {}
+	for a in fnargs:
+		newargs[a] = args.get(a) or (defaults and defaults[fnargs.index(a)]) or None
+	return fn(**newargs)
 
 def get_method(cmd):
 	"""get method object from cmd"""

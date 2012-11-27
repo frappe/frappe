@@ -85,7 +85,7 @@ select, input, textarea {
 
 textarea { 
 	font-family: inherit; 
-	height: 120px; 
+	height: 160px; 
 	width: 90%; 
 	font-size: inherit; 
 	white-space: normal;

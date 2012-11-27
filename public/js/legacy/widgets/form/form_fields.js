@@ -350,7 +350,7 @@ _f.CodeField.prototype.make_input = function() {
 			me.run_trigger();
 		}
 		this.get_value = function() {
-			return me.editor.getContent(); // tinyMCE
+			return me.editor && me.editor.getContent(); // tinyMCE
 		}	
 
 	} else {
