@@ -42,7 +42,7 @@ class ModelWrapper:
 		self.to_docstatus = 0
 		if dt and dn:
 			self.load_from_db(dt, dn)
-		if type(dt) is list:
+		if isinstance(dt, list):
 			self.set_doclist(dt)
 
 	def load_from_db(self, dt=None, dn=None, prefix='tab'):
