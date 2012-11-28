@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-11-02 17:16:41", 
+  "creation": "2012-11-28 15:08:11", 
   "modified_by": "Administrator", 
-  "modified": "2012-11-26 12:52:07"
+  "modified": "2012-11-28 15:17:04"
  }, 
  {
   "istable": 0, 
@@ -37,6 +37,7 @@
   "parent": "Profile", 
   "read": 1, 
   "doctype": "DocPerm", 
+  "write": 1, 
   "parenttype": "DocType", 
   "parentfield": "permissions"
  }, 
@@ -165,7 +166,7 @@
   "options": "\nSystem User\nPartner", 
   "fieldname": "user_type", 
   "fieldtype": "Select", 
-  "permlevel": 0
+  "permlevel": 1
  }, 
  {
   "oldfieldtype": "Select", 
@@ -185,13 +186,62 @@
   "label": "Roles", 
   "fieldname": "sb1", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "permlevel": 1
  }, 
  {
   "doctype": "DocField", 
   "label": "Roles HTML", 
   "fieldname": "roles_html", 
   "fieldtype": "HTML", 
+  "permlevel": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Display Settings", 
+  "fieldname": "display_settings", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "User Image", 
+  "options": "attach_files:", 
+  "fieldname": "user_image", 
+  "fieldtype": "Select", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Background Image", 
+  "options": "attach_files:", 
+  "fieldname": "background_image", 
+  "fieldtype": "Select", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Theme", 
+  "options": "Default\nDesert\nFloral\nOcean\nSky\nSnow\nSunny\nTropic", 
+  "fieldname": "theme", 
+  "fieldtype": "Select", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "cb21", 
+  "fieldtype": "Column Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "user_image_show", 
+  "options": "user_image", 
+  "fieldname": "user_image_show", 
+  "fieldtype": "Image", 
   "permlevel": 0
  }, 
  {
@@ -221,6 +271,8 @@
   "permlevel": 0
  }, 
  {
+  "description": "Pull Emails from the Inbox and attach them as Communication records (for known contacts).", 
+  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Sync Inbox", 
   "fieldname": "sync_inbox", 
@@ -343,22 +395,6 @@
   "permlevel": 1
  }, 
  {
-  "doctype": "DocField", 
-  "label": "User Image", 
-  "fieldname": "user_image", 
-  "fieldtype": "Data", 
-  "hidden": 1, 
-  "permlevel": 0
- }, 
- {
-  "doctype": "DocField", 
-  "label": "Background Image", 
-  "fieldname": "background_image", 
-  "fieldtype": "Data", 
-  "hidden": 1, 
-  "permlevel": 0
- }, 
- {
   "no_copy": 1, 
   "oldfieldtype": "Text", 
   "doctype": "DocField", 
@@ -374,7 +410,6 @@
   "create": 1, 
   "doctype": "DocPerm", 
   "submit": 0, 
-  "write": 1, 
   "role": "Administrator", 
   "cancel": 1, 
   "permlevel": 0
@@ -382,7 +417,6 @@
  {
   "create": 1, 
   "doctype": "DocPerm", 
-  "write": 1, 
   "role": "System Manager", 
   "cancel": 1, 
   "permlevel": 0
@@ -390,17 +424,16 @@
  {
   "doctype": "DocPerm", 
   "role": "All", 
-  "permlevel": 0
+  "permlevel": 0, 
+  "match": "owner"
  }, 
  {
   "doctype": "DocPerm", 
-  "write": 1, 
   "role": "Administrator", 
   "permlevel": 1
  }, 
  {
   "doctype": "DocPerm", 
-  "write": 1, 
   "role": "System Manager", 
   "permlevel": 1
  }

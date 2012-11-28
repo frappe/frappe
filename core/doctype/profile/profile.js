@@ -1,9 +1,14 @@
 cur_frm.cscript.onload = function(doc) {
+	cur_frm.frm_head.appframe.remove_tabs();
 	if(!cur_frm.roles_editor) {
 		var role_area = $('<div style="min-height: 300px">')
 			.appendTo(cur_frm.fields_dict.roles_html.wrapper);
 		cur_frm.roles_editor = new wn.RoleEditor(role_area);
 	}
+}
+
+cur_frm.cscript.user_image = function(doc) {
+	refresh_field("user_image_show");
 }
 
 cur_frm.cscript.refresh = function(doc) {
@@ -13,7 +18,17 @@ cur_frm.cscript.refresh = function(doc) {
 		cur_frm.toggle_display(['sb1', 'sb2', 'sb3'], false);
 	} else {
 		cur_frm.cscript.enabled(doc);
-		cur_frm.roles_editor.show(doc.name)
+		cur_frm.roles_editor.show(doc.name);
+		if(user==doc.name) {
+			// update display settings
+			wn.ui.set_theme(doc.theme);
+			if(doc.background_image) {
+				wn.ui.set_user_background(doc.background_image);				
+			}
+			if(doc.user_image) {
+				wn.boot.user_info[user].image = 'files/' + doc.user_image;
+			}
+		}
 	}
 }
 

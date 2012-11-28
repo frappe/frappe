@@ -54,7 +54,6 @@ wn.views.Container = Class.extend({
 			$(this.page).toggle(true);
 		}
 		this.page._route = window.location.hash;
-		document.title = this.page.label;
 		$(this.page).trigger('show');
 		scroll(0,0);				
 		return this.page;

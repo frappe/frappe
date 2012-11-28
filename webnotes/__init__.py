@@ -280,7 +280,10 @@ def model_wrapper(doctype, name=None):
 def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	import webnotes.model
 	webnotes.model.delete_doc(doctype, name, doclist, force)
-	
+
+def clear_perms(doctype):
+	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
+
 def reload_doc(module, dt=None, dn=None):
 	import webnotes.modules
 	return webnotes.modules.reload_doc(module, dt, dn)
