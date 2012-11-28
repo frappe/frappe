@@ -37,7 +37,7 @@ class DocType:
 		if self.doc.name not in ('Guest','Administrator'):
 			self.doc.email = self.doc.email.strip()
 			if not validate_email_add(self.doc.email):
-				msgprint("%s is not a valid email id" % self.doc.email)
+				webnotes.msgprint("%s is not a valid email id" % self.doc.email)
 				raise Exception
 		
 			self.doc.name = self.doc.email
