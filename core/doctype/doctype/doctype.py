@@ -103,6 +103,18 @@ class DocType:
 	def import_doc(self):
 		from webnotes.modules.import_module import import_from_files
 		import_from_files(record_list=[[self.doc.module, 'doctype', self.doc.name]])		
+
+	def make_controller_template(self):
+		from webnotes.modules import get_doc_path, get_module_path, scrub
+		
+		pypath = os.path.join(get_doc_path(self.doc.module, 
+			self.doc.doctype, self.doc.name), scrub(self.doc.name) + '.py')
+
+		if not os.path.exists(pypath):
+			with open(pypath, 'w') as pyfile:
+				with open(os.path.join(get_module_path("core"), "doctype", "doctype", 
+					"doctype_template.py"), 'r') as srcfile:
+					pyfile.write(srcfile.read())
 	
 	def make_file_list(self):
 		"""

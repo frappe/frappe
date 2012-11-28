@@ -206,17 +206,18 @@ class Profile:
 	      	Return a dictionary of user properites to be stored in the session
 		"""
 		t = webnotes.conn.sql("""select email, first_name, last_name, 
-			recent_documents from tabProfile where name = %s""", self.name)[0]
+			recent_documents, email_signature from tabProfile where name = %s""", self.name)[0]
 
 		if not self.can_read:
 			self.build_permissions()
 
-		d = {}
+		d = webnotes.DictObj({})
 		d['name'] = self.name
 		d['email'] = t[0] or ''
 		d['first_name'] = t[1] or ''
 		d['last_name'] = t[2] or ''
 		d['recent'] = t[3] or ''
+		d.email_signature = t[4]
 		
 		d['hide_tips'] = self.get_hide_tips()
 		
