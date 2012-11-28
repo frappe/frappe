@@ -161,62 +161,15 @@ _f.SectionBreak.prototype.refresh = function(from_form) {
 
 _f.ImageField = function() { this.images = {}; }
 _f.ImageField.prototype = new Field();
-_f.ImageField.prototype.onmake = function() {
-	this.no_img = $a(this.wrapper, 'div','no_img');
-	this.no_img.innerHTML = "No Image";
-	$dh(this.no_img);
-}
-
-_f.ImageField.prototype.get_image_src = function(doc) {
-	if(doc.file_list) {
-		file = doc.file_list.split(',');
-		// if image
-		extn = file[0].split('.');
-		extn = extn[extn.length - 1].toLowerCase();
-		var img_extn_list = ['gif', 'jpg', 'bmp', 'jpeg', 'jp2', 'cgm',  'ief', 'jpm', 'jpx', 'png', 'tiff', 'jpe', 'tif'];
-
-		if(in_list(img_extn_list, extn)) {
-			var src = wn.request.url + "?cmd=downloadfile&file_id="+file[1];
-		}
-	} else {
-		var src = "";
-	}
-	return src;
-}
 _f.ImageField.prototype.onrefresh = function() { 
-	var me = this;
-	if(!this.images[this.docname]) this.images[this.docname] = $a(this.wrapper, 'img');
-	else $di(this.images[this.docname]);
-	
-	var img = this.images[this.docname]
-	
-	// hide all other
-	for(var dn in this.images) if(dn!=this.docname)$dh(this.images[dn]);
-
-	var doc = locals[this.frm.doctype][this.frm.docname];
-	
-	if(!this.df.options) var src = this.get_image_src(doc);
-	else var src = wn.request.url + '?cmd=get_file&fname='+this.df.options+"&__account="+account_id + (__sid150 ? ("&sid150="+__sid150) : '');
-
-	
-	if(src) {
-		$dh(this.no_img);
-		if(img.getAttribute('src')!=src) img.setAttribute('src',src);
-		canvas = this.wrapper;
-		canvas.img = this.images[this.docname];
-		canvas.style.overflow = "auto";
-		$w(canvas, "100%");
-	
-		if(!this.col_break_width)this.col_break_width = '100%';
-		var allow_width = cint(1000 * (cint(this.col_break_width)-10) / 100);
-
-		if((!img.naturalWidth) || cint(img.naturalWidth)>allow_width)
-			$w(img, allow_width + 'px');
-
-	} else {
-		$ds(this.no_img);
+	$(this.label_span).toggle(false);
+	$(this.wrapper).find("img").remove();
+	if(this.df.options && this.frm.doc[this.df.options]) {
+		$("<img src='files/"+this.frm.doc[this.df.options]+"' style='max-width: 70%;'>")
+			.appendTo(this.wrapper);
 	}
 }
+
 _f.ImageField.prototype.set_disp = function (val) { }
 _f.ImageField.prototype.set = function (val) { }
 

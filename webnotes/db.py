@@ -341,23 +341,23 @@ class Database:
 			d.defvalue = val
 			d.save(1)
 	
-	def get_default(self, key):
+	def get_default(self, key, parent="Control Panel"):
 		"""get default value"""
 		ret = self.sql("""select defvalue from \
-			tabDefaultValue where defkey=%s""", key)
+			tabDefaultValue where defkey=%s and parent=%s""", (key, parent))
 		return ret and ret[0][0] or None
 		
-	def get_defaults(self, key=None):
+	def get_defaults(self, key=None, parent="Control Panel"):
 		"""get all defaults"""
 		if key:
-			return self.get_default(key)
+			return self.get_default(key, parent)
 		else:
 			res = self.sql("""select defkey, defvalue from `tabDefaultValue` 
-				where parent = "Control Panel" """)
+				where parent = %s""", parent)
 			d = {}
 			for rec in res: 
 				d[rec[0]] = rec[1] or ''
-			return d		
+			return d
 
 	def begin(self):
 		if not self.in_transaction:

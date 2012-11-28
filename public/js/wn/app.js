@@ -108,6 +108,8 @@ wn.Application = Class.extend({
 			
 		// favicon
 		this.set_favicon();
+		
+		if(user!="Guest") this.set_user_display_settings();
 
 		// trigger app startup
 		$(document).trigger('startup');
@@ -119,6 +121,16 @@ wn.Application = Class.extend({
 		
 		$(document).trigger('app_ready');
 	},
+	
+	set_user_display_settings: function() {
+		if(wn.boot.profile.background_image) {
+			wn.ui.set_user_background(wn.boot.profile.background_image);
+		}
+		if(wn.boot.profile.theme) {
+			wn.ui.set_theme(wn.boot.profile.theme);
+		}		
+	},
+	
 	load_bootinfo: function() {
 		if(wn.boot) {
 			wn.control_panel = wn.boot.control_panel;

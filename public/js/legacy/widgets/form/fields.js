@@ -47,7 +47,8 @@ Field.prototype.make_body = function() {
 	else
 		this.wrapper = document.createElement((this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
 
-	this.label_area = $a(this.wrapper, 'div', '', {margin:'0px 0px 2px 0px', minHeight:'1em'});
+	this.label_area = $a(this.wrapper, 'div', '', 
+		{margin:'0px 0px 2px 0px', minHeight:'1em'});
 
 	if(ischk && !this.in_grid) {
 		this.input_area = $a(this.label_area, 'span', '', {marginRight:'4px'});
@@ -106,15 +107,15 @@ Field.prototype.set_label = function() {
 
 }
 
-Field.prototype.set_description = function() {
-	if(this.df.description) {
+Field.prototype.set_description = function(txt) {
+	if(this.df.description || txt) {
 		// parent
-		var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) ? this.label_area : this.wrapper;
-		this.desc_area = $a(p, 'div', 'help small', '', this.df.description)			
-
-		// padding on the bottom
-		if(in_list(['Text Editor', 'Code'], this.df.fieldtype))
-			$(this.desc_area).addClass('help small');
+		if(!this.desc_area) {
+			var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) 
+				? this.label_area : this.wrapper;
+			this.desc_area = $a(p, 'div', 'help small');
+		}
+		$(this.desc_area).html(this.df.description || txt);
 	}
 }
 
@@ -1079,9 +1080,12 @@ SelectField.prototype.make_input = function() {
 			var fl = fl.split('\n');
 			for(var i in fl) {
 				this.df.options += '\n' + fl[i].split(',')[1];
+				this.set_description("");
 			}
 		} else {
 			this.df.options = ''
+			this.set_description("Please upload file first.")
+			
 		}
 	}
 	this.refresh();

@@ -103,6 +103,7 @@
 			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/wn/ui/field_group.js",
+			"lib/public/js/wn/ui/themes.js",
 			"lib/public/js/wn/ui/search.js",
 			"lib/public/js/wn/ui/tree.js",
 			"lib/public/js/wn/upload.js",

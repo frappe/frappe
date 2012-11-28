@@ -25,12 +25,12 @@ from __future__ import unicode_literals
 import webnotes, os
 from webnotes.modules import scrub, get_module_path, scrub_dt_dn
 
-def import_files(module, dt=None, dn=None):
+def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
 		for m in module:
-			return import_file(m[0], m[1], m[2])
+			return import_file(m[0], m[1], m[2], force)
 	else:
-		return import_file(module, dt, dn)
+		return import_file(module, dt, dn, force)
 		
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""		

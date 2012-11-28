@@ -17,9 +17,10 @@ wn.ui.AppFrame = Class.extend({
 			window.history.back();
 		})
 		
-		if(title) this.title(title);
-		if(module) this.set_marker(module);
-
+		if(title) 
+			this.set_title(title);
+		if(module) 
+			this.set_marker(module);
 	},
 	title: function(txt) {
 		this.set_title(txt);
@@ -42,6 +43,10 @@ wn.ui.AppFrame = Class.extend({
 		opacity && span.css("opacity", opacity);
 		click && span.click(click);
 		return span		
+	},
+	
+	remove_tabs: function() {
+		this.$w.find(".appframe-tab").remove();
 	},
 	
 	add_module_tab: function(module) {
