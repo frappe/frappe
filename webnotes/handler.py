@@ -111,28 +111,7 @@ def load_month_events():
 
 	import webnotes.widgets.event
 	webnotes.response['docs'] = webnotes.widgets.event.get_cal_events(m_st, m_end)
-
-# Data import
-# ------------------------------------------------------------------------------------
-
-@webnotes.whitelist()
-def import_csv():
-	import webnotes.model.import_docs
-	from webnotes.utils import cint
 	
-	i = webnotes.model.import_docs.CSVImport()
-	r = i.import_csv(webnotes.form_dict.get('csv_file'), webnotes.form_dict.get('dateformat'), webnotes.form_dict.get('overwrite', 0) and 1)
-	
-	webnotes.response['type']='iframe'
-	rhead = '''<style>body, html {font-family: Arial; font-size: 12px;}</style>'''
-	webnotes.response['result']= rhead + r
-
-@webnotes.whitelist()
-def get_template():
-	import webnotes.model.import_docs
-	webnotes.model.import_docs.get_template()
-	
-
 # File Upload
 # ------------------------------------------------------------------------------------
 

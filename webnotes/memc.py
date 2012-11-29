@@ -46,7 +46,7 @@ class MClient(memcache.Client):
 			key_list.append(key)
 		self.set(self.n("key_list"), key_list)
 		
-	def flush_keys(self, startswith):
+	def delete_keys(self, startswith=None):
 		"""flush keys from known key_list"""
 		if not startswith:
 			for key in self.get_value('key_list'):

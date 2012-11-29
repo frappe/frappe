@@ -47,5 +47,17 @@ $.extend(wn.meta, {
 		} else {
 			return wn.meta.docfield_map[dt][fn];
 		}
+	},
+	get_print_formats: function(doctype) {
+		// if default print format is given, use it
+		
+		var print_format_list = [locals.DocType[doctype].default_print_format || "Standard"];
+					
+		$.each(wn.model.get("Print Format", {doc_type: doctype}), function(i, d) {
+			if(!in_list(print_format_list, d.name))
+				print_format_list.push(d.name);
+		});
+			
+		return print_format_list;
 	}
 });

@@ -104,6 +104,9 @@ class Document:
 
 	def __str__(self):
 		return str(self.fields)
+		
+	def __eq__(self, other):
+		return self.fields == other.fields		
 
 	# Load Document
 	# ---------------------------------------------------------------------------

@@ -277,27 +277,7 @@ def get_top_field_tags(dt):
 @webnotes.whitelist()
 def get_top_tags(args=''):
 	"returns the top 10 tags for the doctype from fields (7) and users (3)"
-	tl = None
-	dt = webnotes.form_dict['doctype']
-	
-	from webnotes.utils.cache import CacheItem
-	
-	# if not reload, try and load from cache
-	if not cint(webnotes.form_dict.get('refresh')):
-		tl = CacheItem('tags-' + dt).get()
-	
-	if tl:
-		return eval(tl)
-	else:
-		tl = TagCounter(dt).load_top() + get_top_field_tags(dt)
-		if tl:
-			tl.sort(lambda x, y: y[1]-x[1])
-			tl = tl[:20]
-			
-		# set in cache and don't reload for an hour
-		CacheItem('tags-' + dt).set(tl, 3600)
-	
-		return tl
+	return []
 
 def clear_tags(dt, dn):
 	DocTags(dt).remove_all(dn)

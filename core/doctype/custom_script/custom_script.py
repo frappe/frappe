@@ -31,10 +31,8 @@ class DocType:
 
 	def on_update(self):
 		if self.doc.script_type == 'Client':
-			from webnotes.utils.cache import CacheItem
-			CacheItem(self.doc.dt).clear()
+			webnotes.clear_cache(doctype=self.doc.dt)
 	
 	def on_trash(self):
 		if self.doc.script_type == 'Client':
-			from webnotes.utils.cache import CacheItem
-			CacheItem(self.doc.dt).clear()
+			webnotes.clear_cache(doctype=self.doc.dt)

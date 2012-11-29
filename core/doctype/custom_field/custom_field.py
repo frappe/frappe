@@ -41,7 +41,7 @@ class DocType:
 		from webnotes.model.doctype import get
 		self.set_fieldname()
 		
-		temp_doclist = get(self.doc.dt, form=0)
+		temp_doclist = get(self.doc.dt).get_parent_doclist()
 				
 		# set idx
 		if not self.doc.idx:
@@ -51,12 +51,11 @@ class DocType:
 		
 	def on_update(self):
 		# validate field
-		from webnotes.utils.cache import CacheItem
 		from core.doctype.doctype.doctype import validate_fields_for_doctype
 
 		validate_fields_for_doctype(self.doc.dt)
 
-		CacheItem(self.doc.dt).clear()
+		webnotes.clear_cache(doctype=self.doc.dt)
 				
 		# create property setter to emulate insert after
 		self.create_property_setter()
@@ -73,8 +72,7 @@ class DocType:
 			AND field_name = %s""",
 				(self.doc.dt, self.doc.fieldname))
 
-		from webnotes.utils.cache import CacheItem
-		CacheItem(self.doc.dt).clear()
+		webnotes.clear_cache(doctype=self.doc.dt)
 
 	def create_property_setter(self):
 		idx_label_list, field_list = get_fields_label(self.doc.dt, 0)
@@ -115,9 +113,9 @@ def get_fields_label(dt=None, form=1):
 		fieldname = webnotes.form_dict.get('fieldname')
 	if not dt: return ""
 	
-	doclist = webnotes.model.doctype.get(dt, form=0)
-	docfields = sorted((d for d in doclist if d.doctype=='DocField'),
-			key=lambda d: d.idx)
+	doclist = webnotes.model.doctype.get(dt)
+	docfields = sorted(doclist.get({"parent": dt, "doctype": "DocField"}),
+		key=lambda d: d.idx)
 	
 	if fieldname:
 		idx_label_list = [cstr(d.label) or cstr(d.fieldname) or cstr(d.fieldtype)

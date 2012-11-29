@@ -12,9 +12,7 @@ def sync_all(force=0):
 	modules += sync_core_doctypes(force)
 	modules += sync_modules(force)
 	try:
-		webnotes.conn.begin()
-		webnotes.conn.sql("DELETE FROM __CacheItem")
-		webnotes.conn.commit()
+		webnotes.clear_cache()
 	except Exception, e:
 		if e[0]!=1146: raise e
 	return modules
@@ -126,8 +124,7 @@ def update_schema(docname):
 	from webnotes.model.db_schema import updatedb
 	updatedb(docname)
 
-	from webnotes.utils.cache import CacheItem
-	CacheItem(docname).clear()
+	webnotes.clear_cache(doctype=docname)
 
 def save_perms_if_none_exist(doclist):
 	if not webnotes.conn.sql("""select count(*) from tabDocPerm 

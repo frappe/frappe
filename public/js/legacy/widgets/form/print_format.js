@@ -116,6 +116,9 @@ $.extend(_p, {
 			+ only_body
 	*/
 	build: function(fmtname, onload, no_letterhead, only_body) {
+		if(!fmtname) {
+			onload("");
+		}
 		args = {
 			fmtname: fmtname,
 			onload: onload,

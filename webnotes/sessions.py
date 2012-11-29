@@ -39,12 +39,8 @@ def clear(user=None):
 
 def clear_cache(user=None):
 	"""clear cache"""
-	webnotes.cache().flush_keys("bootinfo:")
-	webnotes.cache().flush_keys("doctype:")
-
-	# doctype cache
-	from webnotes.utils.cache import clear
-	clear()
+	webnotes.cache().delete_keys("bootinfo:")
+	webnotes.cache().delete_keys("doctype:")
 
 	# rebuild a cache for guest
 	if webnotes.session:

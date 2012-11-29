@@ -101,7 +101,6 @@ class Installer:
 		import webnotes
 		self.create_sessions_table()
 		self.create_scheduler_log()
-		self.create_cache_item()
 		self.create_auth_table()
 
 		# set the basic passwords
@@ -132,15 +131,6 @@ class Installer:
 			method varchar(200),
 			error text
 		) engine=MyISAM""")
-
-	def create_cache_item(self):
-		import webnotes
-		self.dbman.drop_table('__CacheItem')
-		webnotes.conn.sql("""create table __CacheItem (
-			`key` VARCHAR(180) NOT NULL PRIMARY KEY,
-			`value` LONGTEXT,
-			`expires_on` DATETIME
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 			
 	def create_auth_table(self):
 		import webnotes

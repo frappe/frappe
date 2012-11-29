@@ -48,7 +48,7 @@ def getdoc():
 	# load doctype along with the doc
 	if form.get('getdoctype'):
 		import webnotes.model.doctype
-		doclist += webnotes.model.doctype.get(doctype)
+		doclist += webnotes.model.doctype.get(doctype, processed=True)
 
 	webnotes.response['docs'] = doclist
 
@@ -67,11 +67,11 @@ def getdoctype():
 	if with_parent:
 		parent_dt = webnotes.model.meta.get_parent_dt(dt)
 		if parent_dt:
-			doclist = webnotes.model.doctype.get(parent_dt)
+			doclist = webnotes.model.doctype.get(parent_dt, processed=True)
 			webnotes.response['parent_dt'] = parent_dt
 	
 	if not doclist:
-		doclist = webnotes.model.doctype.get(dt)
+		doclist = webnotes.model.doctype.get(dt, processed=True)
 	
 	# if single, send the record too
 	if doclist[0].issingle:

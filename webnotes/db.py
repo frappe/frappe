@@ -121,7 +121,7 @@ class Database:
 	# ======================================================================================
 	
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, 
-		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0):
+		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None):
 		"""
 		      * Execute a `query`, with given `values`
 		      * returns as a dictionary if as_dict = 1
@@ -156,7 +156,11 @@ class Database:
 
 		# scrub output if required
 		if as_dict:
-			return self.fetch_as_dict(formatted, as_utf8)
+			ret = self.fetch_as_dict(formatted, as_utf8)
+			if update:
+				for r in ret:
+					r.update(update)
+			return ret
 		elif as_list:
 			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
 		elif as_utf8:

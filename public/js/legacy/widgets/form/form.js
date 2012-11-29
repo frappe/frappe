@@ -183,22 +183,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 }
 
 _f.Frm.prototype.setup_print = function() { 
-	var l = []
-	this.default_format = 'Standard';
-	for(var key in locals['Print Format']) {
-		if(locals['Print Format'][key].doc_type == this.meta.name) {
-			l.push(locals['Print Format'][key].name);
-		}
-	}
-
-	// if default print format is given, use it
-	if(this.meta.default_print_format)
-		this.default_format = this.meta.default_print_format;
-
-	l.push('Standard');
+	this.print_formats = wn.meta.get_print_formats(this.meta.name);
 	this.print_sel = $a(null, 'select', '', {width:'160px'});
-	add_sel_options(this.print_sel, l);
-	this.print_sel.value = this.default_format;
+	add_sel_options(this.print_sel, this.print_formats);
+	this.print_sel.value = this.print_formats[0];
 }
 
 _f.Frm.prototype.print_doc = function() {
@@ -444,9 +432,8 @@ _f.Frm.prototype.refresh_print_layout = function() {
 	}
 
 	// create print format here
-	_p.build(this.default_format, print_callback, null, 1);
+	_p.build(this.print_formats[0], print_callback, null, 1);
 }
-
 
 
 // --------------------------------------------------------------------------------------
@@ -1172,6 +1159,12 @@ _f.Frm.prototype.toggle_display = function(fnames, show) {
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
 	$c_obj(cur_frm.get_doclist(), method, args, callback);
+}
+
+_f.Frm.prototype.get_files = function() {
+	return $.map((cur_frm.doc.file_list || "").split("\n"), function(f) {
+		return f.split(",")[0];
+	});
 }
 
 _f.Frm.prototype.set_value = function(field, value) {

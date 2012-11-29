@@ -28,7 +28,7 @@ def get_doctype_options():
 	doctype = webnotes.form_dict['doctype']
 	return [doctype] + filter(None, map(lambda d: \
 		d.doctype=='DocField' and d.fieldtype=='Table' and d.options or None, 
-		webnotes.model.doctype.get(doctype, form=0)))
+		webnotes.model.doctype.get(doctype)))
 
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def get_template():
@@ -182,7 +182,7 @@ def upload():
 	webnotes.conn.begin()
 	
 	overwrite = webnotes.form_dict.get('overwrite')
-	doctype_dl = webnotes.model.doctype.get(doctype, form=0)
+	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
 	if parenttype and overwrite:

@@ -97,8 +97,10 @@ class DocType:
 			* returns the modified doclist
 		"""
 		from webnotes.model.doctype import get
-
-		ref_doclist = get(self.doc.doc_type, form=0)
+		
+		ref_doclist = get(self.doc.doc_type)
+		ref_doclist = webnotes.doclist([ref_doclist[0]] 
+			+ ref_doclist.get({"parent": self.doc.doc_type}))
 
 		return ref_doclist
 
@@ -143,10 +145,9 @@ class DocType:
 		"""
 		if self.doc.doc_type:
 			from webnotes.model import doc
-			from webnotes.model.doctype import get
 			from core.doctype.doctype.doctype import validate_fields_for_doctype
 			
-			this_doclist = [self.doc] + self.doclist
+			this_doclist = webnotes.doclist([self.doc] + self.doclist)
 			ref_doclist = self.get_ref_doclist()
 			dt_doclist = doc.get('DocType', self.doc.doc_type)
 			
@@ -157,9 +158,7 @@ class DocType:
 
 			validate_fields_for_doctype(self.doc.doc_type)
 
-			from webnotes.utils.cache import CacheItem
-			CacheItem(self.doc.doc_type).clear()
-			CacheItem('tags-' + self.doc.doc_type).clear()
+			webnotes.clear_cache(doctype=self.doc.doc_type)
 
 
 	def diff(self, new_dl, ref_dl, dt_dl):
@@ -325,9 +324,7 @@ class DocType:
 				DELETE FROM `tabProperty Setter`
 				WHERE doc_type = %s""", self.doc.doc_type)
 		
-			from webnotes.utils.cache import CacheItem
-			CacheItem(self.doc.doc_type).clear()
-			CacheItem('tags-' + self.doc.doc_type).clear()
+			webnotes.clear_cache(doctype=self.doc.doc_type)
 
 		self.get()
 
