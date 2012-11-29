@@ -42,7 +42,7 @@ def get_customer_supplier(args=None):
 def make(doctype=None, name=None, content=None, subject=None, 
 	sender=None, recipients=None, contact=None, lead=None, 
 	communication_medium="Email", send_email=False, print_html=None,
-	attachments='[]'):
+	attachments='[]', send_me_a_copy=False):
 	# add to Communication
 
 	sent_via = None
@@ -61,10 +61,10 @@ def make(doctype=None, name=None, content=None, subject=None,
 	set_lead_and_contact(d)
 	d.communication_medium = communication_medium
 	if send_email:
-		send_comm_email(d, name, sent_via, print_html, attachments)
-	d.save(1)
+		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
+	d.save(1, ignore_fields=True)
 
-def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]'):
+def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
 	from webnotes.utils.email_lib import sendmail
 	from json import loads
 	
@@ -79,6 +79,9 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]'):
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients.split(","), sender=d.sender, subject=d.subject, 
 		msg=d.content)
+	
+	if send_me_a_copy:
+		mail.cc.append(d.sender)
 	
 	if print_html:
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)

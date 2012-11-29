@@ -108,6 +108,7 @@ wn.views.CommunicationComposer = Class.extend({
 				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Add Reply", fieldtype:"Button"},
 				{label:"Send Email", fieldtype:"Check"},
+				{label:"Send Me A Copy", fieldtype:"Check"},
 				{label:"Attach Document Print", fieldtype:"Check"},
 				{label:"Select Print Format", fieldtype:"Select"},
 				{label:"Select Attachments", fieldtype:"HTML"}
@@ -182,6 +183,7 @@ wn.views.CommunicationComposer = Class.extend({
 						name: me.doc.name,
 						lead: me.doc.lead,
 						contact: me.doc.contact,
+						send_me_a_copy: form_values.send_me_a_copy,
 						send_email: form_values.send_email,
 						print_html: form_values.attach_document_print
 							? print_html : "",
@@ -199,16 +201,20 @@ wn.views.CommunicationComposer = Class.extend({
 		var comm_list = cur_frm.communication_view
 			? cur_frm.communication_view.list
 			: [];
-			
+		var signature = wn.boot.profile.email_signature || "";
+		if(signature.indexOf("<br>")==-1 && signature.indexOf("<p")==-1 
+			&& signature.indexOf("<img")==-1 && signature.indexOf("<div")==-1) {
+			signature = signature.replace(/\n/g, "<br>");
+		}
+		
 		if(comm_list.length > 0) {
 			fields.content.input.set_input("<p></p>"
-				+ (wn.boot.profile.email_signature || "")
+				+ signature
 				+"<p></p>"
 				+"-----In response to-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
-			fields.content.input.set_input("<p></p>"
-				+ (wn.boot.profile.email_signature || ""))
+			fields.content.input.set_input("<p></p>" + signature)
 		}
 	},
 	setup_autosuggest: function() {
@@ -233,9 +239,9 @@ wn.views.CommunicationComposer = Class.extend({
 					wn.call({
 						method:'webnotes.utils.email_lib.get_contact_list',
 						args: {
-							'select': _e.email_as_field, 
-							'from': _e.email_as_dt, 
-							'where': _e.email_as_in, 
+							'select': "email_id", 
+							'from': "Contact", 
+							'where': "email_id", 
 							'txt': extractLast(request.term).value || '%'
 						},
 						callback: function(r) {

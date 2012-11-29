@@ -260,6 +260,7 @@ _f.CodeField.prototype.make_input = function() {
 	this.label_span.innerHTML = this.df.label;
 
 	if(this.df.fieldtype=='Text Editor') {
+		$(this.input_area).css({"min-height":"360px"});
 		this.input = $a(this.input_area, 'text_area', '', {fontSize:'12px'});
 		this.myid = wn.dom.set_unique_id(this.input);
 
