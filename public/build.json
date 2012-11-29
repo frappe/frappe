@@ -137,7 +137,6 @@
 			"lib/public/js/legacy/widgets/form/grid.js",
 			"lib/public/js/legacy/widgets/form/form_grid.js",
 			"lib/public/js/legacy/widgets/form/print_format.js",
-			"lib/public/js/legacy/widgets/form/email.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
 			"lib/public/js/legacy/widgets/form/form_comments.js",
 			"lib/public/js/legacy/wn/widgets/form/sidebar.js",

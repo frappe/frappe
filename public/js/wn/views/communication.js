@@ -160,6 +160,9 @@ wn.views.CommunicationComposer = Class.extend({
 		var me = this;
 		var fields = this.dialog.fields_dict;
 		
+		if(this.attach_document_print)
+			$(fields.attach_document_print.input).attr("checked", "checked")
+
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.add_reply.input).click(function() {
 			var form_values = me.dialog.get_values();

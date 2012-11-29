@@ -203,7 +203,8 @@ _f.Frm.prototype.email_doc = function() {
 	new wn.views.CommunicationComposer({
 		doc: this.doc,
 		subject: get_doctype_label(this.meta.name) + ': ' + this.docname,
-		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email
+		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
+		attach_document_print: true
 	});
 }
 
