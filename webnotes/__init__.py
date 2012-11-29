@@ -46,6 +46,13 @@ class DictObj(dict):
 		return self
 	def __setstate__(self, d): 
 		self.update(d)
+	def update(self, d):
+		"""update and return self -- the missing dict feature in python"""
+		super(DictObj, self).update(d)
+		return self
+		
+def _(s):
+	return s
 
 form_dict = DictObj()
 conn = None
