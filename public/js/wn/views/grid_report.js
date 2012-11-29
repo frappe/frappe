@@ -607,8 +607,11 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 		me.wrapper.bind('make', function() {
 			me.wrapper.on("click", ".plot-check", function() {
 				var checked = $(this).attr("checked");
-				me.item_by_name[$(this).attr("data-id")].checked = checked ? true : false;
-				me.render_plot();			
+				if(me.item_by_name[$(this).attr("data-id")]) {
+					me.item_by_name[$(this).attr("data-id")].checked = checked 
+						? true : false;
+				}
+				me.render_plot();
 			});	
 		});
 	},
