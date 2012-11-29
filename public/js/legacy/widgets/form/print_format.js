@@ -117,8 +117,9 @@ $.extend(_p, {
 	*/
 	build: function(fmtname, onload, no_letterhead, only_body) {
 		if(!fmtname) {
-			onload("");
+			fmtname= "Standard";
 		}
+		
 		args = {
 			fmtname: fmtname,
 			onload: onload,
@@ -134,10 +135,6 @@ $.extend(_p, {
 		// Get current doc (record)
 		var doc = locals[cur_frm.doctype][cur_frm.docname];
 		if(args.fmtname == 'Standard') {
-			/*
-				Render standard print layout
-				The function passed as args onload is then called using these parameters
-			*/
 			args.onload(_p.render({
 				body: _p.print_std(args.no_letterhead),
 				style: _p.print_style,
@@ -146,53 +143,23 @@ $.extend(_p, {
 				no_letterhead: args.no_letterhead,
 				only_body: args.only_body
 			}));
-		} else {			
-			if (!_p.formats[args.fmtname]) {
-				/*
-					If print formats are not loaded, then load them and call the args onload function on callback.
-					I think, this case happens when preview is invoked directly
-				*/
-				var build_args = args;
-				$c(
-					command = 'webnotes.widgets.form.print_format.get',
-					args = { 'name': build_args.fmtname	},
-					fn = function(r, rt) {
-						_p.formats[build_args.fmtname] = r.message;
-						build_args.onload(_p.render({
-							body: _p.formats[build_args.fmtname],
-							style: '',
-							doc: doc,
-							title: doc.name,
-							no_letterhead: build_args.no_letterhead,
-							only_body: build_args.only_body
-						}));						
-					}
-				);			
-			} else {
-				// If print format is already loaded, go ahead with args onload function call
-				args.onload(_p.render({
-					body: _p.formats[args.fmtname],
-					style: '',
-					doc: doc,
-					title: doc.name,
-					no_letterhead: args.no_letterhead,
-					only_body: args.only_body
-				}));			
-			}		
+		} else {
+			var print_format_doc = locals["Print Format"][args.fmtname];
+			if(!print_format_doc) {
+				msgprint("Unknown Print Format: " + args.fmtname);
+				return;
+			}
+			args.onload(_p.render({
+				body: print_format_doc,
+				style: '',
+				doc: doc,
+				title: doc.name,
+				no_letterhead: args.no_letterhead,
+				only_body: args.only_body
+			}));			
 		}
 	},
 	
-	
-	/*
-		args dict can contain:
-			+ body
-			+ style
-			+ doc
-			+ title
-			+ no_letterhead
-			+ only_body
-	
-	*/
 	render: function(args) {
 		var container = document.createElement('div');
 		var stat = '';

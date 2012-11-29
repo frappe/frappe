@@ -26,7 +26,8 @@ wn.ui.FieldGroup = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.make_fields();
-		this.catch_enter_as_submit();
+		if(!this.no_submit_on_enter)
+			this.catch_enter_as_submit();
 	},
 	first_button: false,
 	make_fields: function() {

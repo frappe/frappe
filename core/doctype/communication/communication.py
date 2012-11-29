@@ -41,7 +41,8 @@ def get_customer_supplier(args=None):
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
 	sender=None, recipients=None, contact=None, lead=None, 
-	communication_medium="Email", send_email=False):
+	communication_medium="Email", send_email=False, print_html=None,
+	attachments='[]'):
 	# add to Communication
 
 	sent_via = None
@@ -60,11 +61,12 @@ def make(doctype=None, name=None, content=None, subject=None,
 	set_lead_and_contact(d)
 	d.communication_medium = communication_medium
 	if send_email:
-		send_comm_email(d, sent_via)
+		send_comm_email(d, name, sent_via, print_html, attachments)
 	d.save(1)
 
-def send_comm_email(d, sent_via=None):
+def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]'):
 	from webnotes.utils.email_lib import sendmail
+	from json import loads
 	
 	if sent_via:
 		if hasattr(sent_via, "get_sender"):
@@ -73,13 +75,23 @@ def send_comm_email(d, sent_via=None):
 			d.subject = sent_via.get_subject(d)
 		if hasattr(sent_via, "get_content"):
 			d.content = sent_via.get_content(d)
+
+	from webnotes.utils.email_lib.smtp import get_email
+	mail = get_email(d.recipients.split(","), sender=d.sender, subject=d.subject, 
+		msg=d.content)
 	
-	sendmail(\
-		recipients = d.recipients.split(","), \
-		sender = d.sender, \
-		subject = d.subject, \
-		msg= d.content)
-		
+	if print_html:
+		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)
+
+	for a in loads(attachments):
+		try:
+			mail.attach_file(a)
+		except IOError, e:
+			webnotes.msgprint("""Unable to find attachment %s. Please resend without attaching this file.""" % a,
+				raise_exception=True)
+	
+	mail.send()
+			
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
 

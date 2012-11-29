@@ -5,7 +5,7 @@ wn.views.CommunicationList = Class.extend({
 	init: function(opts) {
 		this.comm_list = [];
 		$.extend(this, opts);
-		
+				
 		if(this.doc.__islocal) {
 			return;
 		}
@@ -50,11 +50,12 @@ wn.views.CommunicationList = Class.extend({
 		this.body = $("<table class='table table-bordered table-hover table-striped'>")
 			.appendTo(this.wrapper);
 	},
+	
 	add_reply: function() {
 		new wn.views.CommunicationComposer({
 			doc: this.doc,
 			subject: this.doc.subject,
-			email: this.email
+			recipients: this.recipients
 		})
 	},
 
@@ -65,14 +66,15 @@ wn.views.CommunicationList = Class.extend({
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
 		if(!doc.sender) doc.sender = "[unknown sender]";
-		doc.sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
+		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc.content = doc.content.split("-----In response to-----")[0];
 		doc.content = doc.content.split("-----Original Message-----")[0];
 	},
+	
 	make_line: function(doc) {
 		var me = this;
 		var comm = $(repl('<tr><td title="Click to Expand / Collapse">\
-				<p><b>%(sender)s on %(when)s</b> \
+				<p><b>%(_sender)s on %(when)s</b> \
 					<a href="#Form/Communication/%(name)s" style="font-size: 90%">\
 						Show Details</a></p>\
 				<div class="comm-content" style="border-top: 1px solid #ddd; \
@@ -99,8 +101,9 @@ wn.views.CommunicationComposer = Class.extend({
 		this.dialog = new wn.ui.Dialog({
 			width: 640,
 			title: "Add Reply: " + (this.subject || ""),
+			no_submit_on_enter: true,
 			fields: [
-				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"sender"},
+				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"recipients"},
 				{label:"Subject", fieldtype:"Data", reqd: 1},
 				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Add Reply", fieldtype:"Button"},
@@ -114,10 +117,12 @@ wn.views.CommunicationComposer = Class.extend({
 	},
 	prepare: function() {
 		this.setup_print();
+		this.setup_attach();
 		this.setup_email();
-		$(this.dialog.fields_dict.sender.input).val(this.email || "").change();
+		this.setup_autosuggest();
+		$(this.dialog.fields_dict.recipients.input).val(this.recipients || "").change();
 		$(this.dialog.fields_dict.subject.input).val(this.subject || "").change();
-		this.setup_earlier_reply();		
+		this.setup_earlier_reply();
 	},
 	setup_print: function() {
 		// print formats
@@ -126,23 +131,28 @@ wn.views.CommunicationComposer = Class.extend({
 		// toggle print format
 		$(fields.attach_document_print.input).click(function() {
 			$(fields.select_print_format.wrapper).toggle($(this).is(":checked"));
-			$(fields.select_attachments.wrapper).toggle($(this).is(":checked"));
 		});
 
 		// select print format
 		$(fields.select_print_format.wrapper).toggle(false);
 		$(fields.select_print_format.input)
 			.empty()
-			.add_options(cur_frm.print_formats);
+			.add_options(cur_frm.print_formats)
+			.val(cur_frm.print_formats[0]);
 			
-		// show attachment list
+	},
+	setup_attach: function() {
+		var fields = this.dialog.fields_dict;
 		var attach = $(fields.select_attachments.wrapper);
-		attach.toggle(false);
 		
-		$.each(cur_frm.get_files(), function(i, f) {
-			$(repl("<p><input type='checkbox' \
-				data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
-		});
+		var files = cur_frm.get_files();
+		if(files) {
+			$("<p><b>Add Attachments:</b></p>").appendTo(attach);
+			$.each(cur_frm.get_files(), function(i, f) {
+				$(repl("<p><input type='checkbox' \
+					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
+			});
+		}
 	},
 	setup_email: function() {
 		// email
@@ -151,28 +161,33 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.add_reply.input).click(function() {
-			var args = me.dialog.get_values();
-			if(!args) return;
-			
+			var form_values = me.dialog.get_values();
+			if(!form_values) return;
+					
+			var selected_attachments = $.map($(me.dialog.wrapper)
+				.find("[data-file-name]:checked"), function(element) {
+					return $(element).attr("data-file-name");
+				})
+						
 			_p.build(args.select_print_format || "", function(print_html) {
-				$(this).set_working();
+				me.dialog.hide();
 				wn.call({
-					method:"support.doctype.communication.communication.make",
+					method:"core.doctype.communication.communication.make",
 					args: {
-						sender: args.sender,
-						subject: args.subject,
-						content: args.content,
+						sender: wn.user_info(user).fullname + " <" + wn.boot.profile.email + ">",
+						recipients: form_values.recipients,
+						subject: form_values.subject,
+						content: form_values.content,
 						doctype: me.doc.doctype,
 						name: me.doc.name,
 						lead: me.doc.lead,
 						contact: me.doc.contact,
-						recipients: me.email,
-						print_html: args.attach_document_print
+						send_email: form_values.send_email,
+						print_html: form_values.attach_document_print
 							? print_html : "",
-						
+						attachments: selected_attachments
 					},
 					callback: function(r) {
-						me.dialog.hide();
 						cur_frm.reload_doc();
 					}
 				});				
@@ -195,5 +210,56 @@ wn.views.CommunicationComposer = Class.extend({
 			fields.content.input.set_input("<p></p>"
 				+ (wn.boot.profile.email_signature || ""))
 		}
+	},
+	setup_autosuggest: function() {
+		var me = this;
+
+		function split( val ) {
+			return val.split( /,\s*/ );
+		}
+		function extractLast( term ) {
+			return split(term).pop();
+		}
+
+		$(this.dialog.fields_dict.recipients.input)
+			.bind( "keydown", function(event) {
+				if (event.keyCode === $.ui.keyCode.TAB &&
+						$(this).data( "autocomplete" ).menu.active ) {
+					event.preventDefault();
+				}
+			})	
+			.autocomplete({
+				source: function(request, response) {
+					wn.call({
+						method:'webnotes.utils.email_lib.get_contact_list',
+						args: {
+							'select': _e.email_as_field, 
+							'from': _e.email_as_dt, 
+							'where': _e.email_as_in, 
+							'txt': extractLast(request.term).value || '%'
+						},
+						callback: function(r) {
+							response($.ui.autocomplete.filter(
+								r.cl || [], extractLast(request.term)));
+						}
+					});
+				},
+				focus: function() {
+					// prevent value inserted on focus
+					return false;
+				},
+				select: function( event, ui ) {
+					var terms = split( this.value );
+					// remove the current input
+					terms.pop();
+					// add the selected item
+					terms.push( ui.item.value );
+					// add placeholder to get the comma-and-space at the end
+					terms.push( "" );
+					this.value = terms.join( ", " );
+					return false;
+				}
+			});		
 	}
-})
+});
+

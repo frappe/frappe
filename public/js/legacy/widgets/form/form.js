@@ -200,36 +200,11 @@ _f.Frm.prototype.print_doc = function() {
 
 // email the form
 _f.Frm.prototype.email_doc = function() {
-	// make selector
-	if(!_e.dialog) _e.make();
-	
-	_e.dialog.widgets['To'].value = '';
-	
-	if (cur_frm.doc && cur_frm.doc.contact_email) {
-		_e.dialog.widgets['To'].value = cur_frm.doc.contact_email;
-	}
-	
-	// set print selector
-	sel = this.print_sel;
-	var c = $td(_e.dialog.rows['Format'].tab,0,1);
-	
-	if(c.cur_sel) {
-		c.removeChild(c.cur_sel);
-		c.cur_sel = null;
-	}
-	c.appendChild(this.print_sel);
-	c.cur_sel = this.print_sel;
-
-	// hide / show attachments
-	_e.dialog.widgets['Send With Attachments'].checked = 0;
-	if(cur_frm.doc.file_list) {
-		$ds(_e.dialog.rows['Send With Attachments']);
-	} else {
-		$dh(_e.dialog.rows['Send With Attachments']);
-	}
-
-	_e.dialog.widgets['Subject'].value = get_doctype_label(this.meta.name) + ': ' + this.docname;
-	_e.dialog.show();
+	new wn.views.CommunicationComposer({
+		doc: this.doc,
+		subject: get_doctype_label(this.meta.name) + ': ' + this.docname,
+		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email
+	});
 }
 
 // notify this form of renamed records

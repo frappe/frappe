@@ -124,12 +124,12 @@ class EMail:
 		import startup
 		
 		footer = ""
-		if self.sender == webnotes.session.user:
-			signature = webnotes.conn.get_value("Profile", self.sender, "email_signature") or ""
-			if signature and (not "<br>" in signature) and (not "<p" in signature) \
-				and not "<div" in signature:
-				signature = signature.replace("\n", "<br>\n")
-			footer = signature
+		# if self.sender == webnotes.session.user:
+		# 	signature = webnotes.conn.get_value("Profile", self.sender, "email_signature") or ""
+		# 	if signature and (not "<br>" in signature) and (not "<p" in signature) \
+		# 		and not "<div" in signature:
+		# 		signature = signature.replace("\n", "<br>\n")
+		# 	footer = signature
 		
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
 		footer += getattr(startup, 'mail_footer', '')
@@ -198,7 +198,7 @@ class EMail:
 			webnotes.msgprint("%s is not a valid email id" % self.reply_to, raise_exception = 1)
 
 		for e in self.recipients + (self.cc or []):
-			if not validate_email_add(e):
+			if e.strip() and not validate_email_add(e):
 				webnotes.msgprint("%s is not a valid email id" % e, raise_exception = 1)
 	
 	def make(self):
