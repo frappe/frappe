@@ -49,7 +49,7 @@ def walk_and_sync(start_path, force=0):
 					if doctype == 'doctype':
 						sync(module_name, name, force)
 					elif doctype in document_type:
-						if reload_doc(module_name, doctype, name):
+						if reload_doc(module_name, doctype, name, force):
 							print module_name + ' | ' + doctype + ' | ' + name
 					
 	return modules
