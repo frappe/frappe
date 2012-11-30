@@ -50,7 +50,6 @@ def add_comment(args=None):
 
 	if args.get('comment'):
 		from webnotes.model.doc import Document
-		from webnotes.utils import nowdate
 		
 		cmt = Document('Comment')
 		for arg in ['comment', 'comment_by', 'comment_by_fullname', 'comment_doctype', \

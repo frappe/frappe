@@ -20,18 +20,12 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
-# Please edit this list and import only required elements
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import cint, flt
-from webnotes.model.doc import Document
-from webnotes.model.code import get_obj
-from webnotes import session, form, msgprint, errprint
+from webnotes import form, msgprint
 
-get_value = webnotes.conn.get_value
 	
-# -----------------------------------------------------------------------------------------
 
 
 class DocType:

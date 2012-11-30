@@ -44,7 +44,7 @@ Design:
 """
 
 import webnotes
-from webnotes.utils import cint, cstr, load_json
+from webnotes.utils import load_json
 
 
 def check_user_tags(dt):

@@ -23,10 +23,6 @@
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import cint, flt
-from webnotes.model.doc import Document
-from webnotes.model.code import get_obj
-from webnotes import session, msgprint, errprint
 
 sql = webnotes.conn.sql
 

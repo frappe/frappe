@@ -42,7 +42,6 @@ def get_bootinfo():
 	# control panel
 	cp = webnotes.model.doc.getsingle('Control Panel')
 
-	from webnotes.utils import cint
 	
 	# system info
 	bootinfo['control_panel'] = cp.copy()

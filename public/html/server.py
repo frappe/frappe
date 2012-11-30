@@ -38,7 +38,6 @@ import webnotes
 import webnotes.handler
 import webnotes.auth
 
-from webnotes.utils import cstr
 
 def init():
 	webnotes.handler.get_cgi_fields()

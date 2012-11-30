@@ -33,7 +33,6 @@ def getdoc():
 	"""
 
 	import webnotes
-	from webnotes.utils import cint
 	
 	form = webnotes.form_dict
 	doctype, docname = form.get('doctype'), form.get('name')

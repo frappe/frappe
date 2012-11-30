@@ -27,7 +27,6 @@ import json
 @webnotes.whitelist()
 def get_data():
 	from startup.report_data_map import data_map
-	from webnotes.utils import cstr
 	import datetime
 	doctypes = json.loads(webnotes.form_dict.get("doctypes"))
 	out = {}

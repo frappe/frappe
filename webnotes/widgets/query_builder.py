@@ -131,9 +131,6 @@ def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[]
 	from webnotes import *
 	from webnotes.utils import *
 	from webnotes.model.doc import *
-	from webnotes.model.wrapper import getlist
-	from webnotes.model.db_schema import updatedb
-	from webnotes.model.code import get_obj
 
 	set = webnotes.conn.set
 	sql = webnotes.conn.sql

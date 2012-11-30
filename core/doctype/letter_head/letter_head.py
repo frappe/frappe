@@ -20,10 +20,8 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
-# Please edit this list and import only required elements
 from __future__ import unicode_literals
 import webnotes
-from webnotes import msgprint
 
 sql = webnotes.conn.sql
 

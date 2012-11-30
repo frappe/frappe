@@ -22,7 +22,6 @@
 from __future__ import unicode_literals
 
 import memcache, conf
-from webnotes.utils import cstr
 
 class MClient(memcache.Client):
 	"""memcache client that will automatically prefix conf.db_name

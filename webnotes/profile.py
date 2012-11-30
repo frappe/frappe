@@ -166,7 +166,6 @@ class Profile:
 		Update the user's `Recent` list with the given `dt` and `dn`
 		"""
 		conn = webnotes.conn
-		from webnotes.utils import cstr
 		import json
 
 	

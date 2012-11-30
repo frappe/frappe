@@ -107,7 +107,6 @@ def delete_doctype_docfields(doclist):
 
 def save_doctype_docfields(doclist):
 	from webnotes.model.doc import Document
-	from webnotes.model.code import get_obj
 	parent_doc = Document(fielddata=doclist[0])
 	parent_doc.save(1, check_links=0,
 			ignore_fields=1)

@@ -16,7 +16,6 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.model.doc import make_autoname
 
 @webnotes.whitelist()
 def get_customer_supplier(args=None):
@@ -65,7 +64,6 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.save(1, ignore_fields=True)
 
 def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
-	from webnotes.utils.email_lib import sendmail
 	from json import loads
 	
 	if sent_via:

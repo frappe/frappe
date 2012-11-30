@@ -20,25 +20,18 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
 
-# Please edit this list and import only required elements
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import cint, cstr, default_fields, flt, formatdate, get_defaults, getdate, now, nowdate, replace_newlines, set_default
+from webnotes.utils import cint, cstr, default_fields, flt
 from webnotes.model import db_exists, default_fields
-from webnotes.model.doc import Document, addchild, getchildren, make_autoname
+from webnotes.model.doc import Document, addchild, make_autoname
 from webnotes.model.wrapper import getlist
-from webnotes.model.code import get_obj
-from webnotes import session, form, msgprint, errprint
+from webnotes import msgprint
 from webnotes.model.doctype import get
 
-set = webnotes.conn.set
 sql = webnotes.conn.sql
-get_value = webnotes.conn.get_value
-in_transaction = webnotes.conn.in_transaction
-convert_to_lists = webnotes.conn.convert_to_lists
 	
-# -----------------------------------------------------------------------------------------
 
 
 class DocType:

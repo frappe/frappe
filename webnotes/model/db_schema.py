@@ -56,7 +56,6 @@ default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docs
 default_shortcuts = ['_Login', '__user', '_Full Name', 'Today', '__today']
 
 
-from webnotes.utils import cint
 
 import _mysql_exceptions
 
