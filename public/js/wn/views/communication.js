@@ -74,16 +74,18 @@ wn.views.CommunicationList = Class.extend({
 	make_line: function(doc) {
 		var me = this;
 		var comm = $(repl('<tr><td title="Click to Expand / Collapse">\
-				<p><b>%(_sender)s on %(when)s</b> \
-					<a href="#Form/Communication/%(name)s" style="font-size: 90%">\
-						Show Details</a></p>\
+				<a href="#Form/Communication/%(name)s" style="font-size: 90%; float: right;">\
+					Show Details</a>\
+				<p class="comm-header"><b>%(_sender)s on %(when)s</b></p>\
 				<div class="comm-content" style="border-top: 1px solid #ddd; \
 					padding: 10px; overflow-x: auto; display: none;"></div>\
 			</td></tr>', doc))
 			.appendTo(this.body)
+			
+		comm.find(".comm-header")
 			.css({"cursor":"pointer"})
 			.click(function() {
-				$(this).find(".comm-content").toggle();
+				$(this).parent().find(".comm-content").toggle();
 			});
 		
 		this.comm_list.push(comm);
@@ -106,8 +108,8 @@ wn.views.CommunicationComposer = Class.extend({
 				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"recipients", 
 					description:"Email addresses, separted by commas"},
 				{label:"Subject", fieldtype:"Data", reqd: 1},
-				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Add Reply", fieldtype:"Button"},
+				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Send Email", fieldtype:"Check"},
 				{label:"Send Me A Copy", fieldtype:"Check"},
 				{label:"Attach Document Print", fieldtype:"Check"},

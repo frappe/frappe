@@ -159,3 +159,65 @@ set_missing_values = function(doc, dict) {
 	
 	if (fields_to_set) { set_multiple(doc.doctype, doc.name, fields_to_set); }
 }
+
+_f.Frm.prototype.get_doc = function() {
+	return locals[this.doctype][this.docname];
+}
+
+_f.Frm.prototype.get_doclist = function() {
+	return make_doclist(this.doctype, this.docname);
+}
+
+_f.Frm.prototype.field_map = function(fnames, fn) {
+	if(typeof fnames=='string') {
+		if(fnames == '*') {
+			fnames = keys(this.fields_dict);
+		} else {
+			fnames = [fnames];			
+		}
+	}
+	$.each(fnames, function(i,f) {
+		//var field = cur_frm.fields_dict[f]; - much better design
+		var field = wn.meta.get_docfield(cur_frm.doctype, f, cur_frm.docname)
+		if(field) {
+			fn(field);
+			cur_frm.refresh_field(f);
+		};
+	})
+	
+}
+
+_f.Frm.prototype.set_df_property = function(fieldname, property, value) {
+	var field = wn.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname)
+	if(field) {
+		field[property] = value;
+		cur_frm.refresh_field(fieldname);
+	};
+}
+
+_f.Frm.prototype.toggle_enable = function(fnames, enable) {
+	cur_frm.field_map(fnames, function(field) { field.disabled = enable ? false : true; });
+}
+
+_f.Frm.prototype.toggle_reqd = function(fnames, mandatory) {
+	cur_frm.field_map(fnames, function(field) { field.reqd = mandatory ? true : false; });
+}
+
+_f.Frm.prototype.toggle_display = function(fnames, show) {
+	cur_frm.field_map(fnames, function(field) { field.hidden = show ? 0 : 1; });
+}
+
+_f.Frm.prototype.call_server = function(method, args, callback) {
+	$c_obj(cur_frm.get_doclist(), method, args, callback);
+}
+
+_f.Frm.prototype.get_files = function() {
+	return $.map((cur_frm.doc.file_list || "").split("\n"), function(f) {
+		return f.split(",")[0] || null;
+	});
+}
+
+_f.Frm.prototype.set_value = function(field, value) {
+	cur_frm.doc[field] = value;
+	cur_frm.fields_dict[field].refresh();
+}
