@@ -408,7 +408,6 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_parent_doclist(self):
 		return webnotes.doclist([self[0]] + self.get({"parent": self[0].name}))
 
-
 def rename_field(doctype, old_fieldname, new_fieldname, lookup_field=None):
 	"""this function assumes that sync is NOT performed"""
 	import webnotes.model

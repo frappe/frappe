@@ -89,23 +89,23 @@ class UpdateDocument:
 			if self.exists:
 				self.delete_existing()
 			self.save()
-			self.update_modified()
 			self.run_on_update()
+			self.update_modified()
 			webnotes.conn.commit()
 	
 	# check modified	
 	def is_modified(self):
 		try:
-			timestamp = webnotes.conn.sql("select modified from `tab%s` where name=%s" % (self.doc.doctype, '%s'), self.doc.name)
+			timestamp = webnotes.conn.get_value(self.doc.doctype, self.doc.name, "modified")
 		except Exception ,e:
 			if(e.args[0]==1146):
 				return
 			else:
 				raise e
-
+		
 		if timestamp:
 			self.exists = 1
-			if str(timestamp[0][0]) == self.doc.modified: 
+			if str(timestamp) == self.doc.modified: 
 				self.log.append('%s %s, No change' % (self.doc.doctype, self.doc.name))
 			else: return 1
 	
@@ -116,7 +116,9 @@ class UpdateDocument:
 
 	# update modified timestamp
 	def update_modified(self):
-		webnotes.conn.set(self.doc, 'modified', self.modified)
+		webnotes.conn.sql("""update `tab{doctype}` 
+			SET modified=%s WHERE name=%s""".format(doctype=self.doc.doctype),
+				(self.modified, self.doc.name))
 		
 	def save(self):
 		# parent

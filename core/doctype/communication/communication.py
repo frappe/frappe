@@ -77,7 +77,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			d.content = sent_via.get_content(d)
 
 	from webnotes.utils.email_lib.smtp import get_email
-	mail = get_email(d.recipients.split(","), sender=d.sender, subject=d.subject, 
+	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
 		msg=d.content)
 	
 	if send_me_a_copy:

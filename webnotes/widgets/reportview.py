@@ -32,7 +32,7 @@ roles = []
 @webnotes.whitelist()
 def get(arg=None):
 	query = build_query(arg)
-	return compress(webnotes.conn.sql(query, as_dict=1))
+	return compress(webnotes.conn.sql(query, as_dict=1, debug=1))
 	
 def build_query(arg=None):
 	"""
@@ -189,7 +189,7 @@ def build_match_conditions(data, conditions):
 	match_conditions = []
 	match = True
 	for d in doctypes[data['doctype']]:
-		if d.doctype == 'DocPerm':
+		if d.doctype == 'DocPerm' and d.parent == data['doctype']:
 			if d.role in roles:
 				if d.match: # role applicable
 					for v in webnotes.user.defaults.get(d.match, ['**No Match**']):
@@ -199,7 +199,7 @@ def build_match_conditions(data, conditions):
 					# don't restrict if another read permission at level 0 
 					# exists without a match restriction
 					match = False
-	
+		
 	if match_conditions and match:
 		conditions.append('('+ ' or '.join(match_conditions) +')')
 

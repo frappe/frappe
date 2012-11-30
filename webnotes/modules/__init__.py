@@ -68,9 +68,9 @@ def get_doc_path(module, doctype, name):
 	dt, dn = scrub_dt_dn(doctype, name)
 	return os.path.join(get_module_path(module), dt, dn)
 
-def reload_doc(module, dt=None, dn=None):
+def reload_doc(module, dt=None, dn=None, force=True):
 	from webnotes.modules.import_file import import_files
-	return import_files(module, dt, dn, force=True)
+	return import_files(module, dt, dn, force)
 
 def export_doc(doctype, name, module=None):
 	"""write out a doc"""
