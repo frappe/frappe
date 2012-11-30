@@ -280,38 +280,25 @@ class ModelWrapper:
 
 # clone
 
-def clone(source_doclist):
+def clone(source_wrapper):
 	""" Copy previous invoice and change dates"""
-	from webnotes.model.doc import Document
-	new_doclist = []
-	new_parent = Document(fielddata = source_doclist.doc.fields.copy())
-	new_parent.name = 'Temp/001'
-	new_parent.fields['__islocal'] = 1
-	new_parent.fields['docstatus'] = 0
-
-	if new_parent.fields.has_key('amended_from'):
-		new_parent.fields['amended_from'] = None
-		new_parent.fields['amendment_date'] = None
-
-	new_parent.save(1)
-
-	new_doclist.append(new_parent)
-
-	for d in source_doclist.doclist[1:]:
-		newd = Document(fielddata = d.fields.copy())
-		newd.name = None
-		newd.fields['__islocal'] = 1
-		newd.fields['docstatus'] = 0
-		newd.parent = new_parent.name
-		new_doclist.append(newd)
+	if isinstance(source_wrapper, list):
+		source_wrapper = ModelWrapper(source_wrapper)
 	
-	doclistobj = ModelWrapper()
-	doclistobj.docs = new_doclist
-	doclistobj.doc = new_doclist[0]
-	doclistobj.doclist = new_doclist
-	doclistobj.children = new_doclist[1:]
-	doclistobj.save()
-	return doclistobj
+	new_wrapper = ModelWrapper(source_wrapper.doclist.copy())
+	new_wrapper.doc.fields.update({
+		"amended_from": None,
+		"amendment_date": None,
+	})
+	
+	for d in new_wrapper.doclist:
+		d.fields.update({
+			"name": None,
+			"__islocal": 1,
+			"docstatus": 0,
+		})
+	
+	return new_wrapper
 
 
 def trigger(method, doc):

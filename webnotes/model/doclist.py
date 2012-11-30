@@ -75,7 +75,9 @@ class DocList(list):
 	def copy(self):
 		out = []
 		for d in self:
-			out.append(Document(d))
+			fielddata = d.fields
+			fielddata.update({"name": None})
+			out.append(Document(fielddata=fielddata))
 		return DocList(out)
 		
 	def filter_valid_fields(self):
@@ -92,7 +94,7 @@ class DocList(list):
 				
 	def append(self, doc):
 		if not isinstance(doc, Document):
-			doc = Document(doc)
+			doc = Document(fielddata=doc)
 			
 		self._prepare_doc(doc)
 
