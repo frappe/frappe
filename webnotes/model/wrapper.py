@@ -173,6 +173,18 @@ class ModelWrapper:
 		if check_links:
 			self.check_links()
 		self.update_timestamps_and_docstatus()
+		self.update_parent_info()
+		
+	def update_parent_info(self):
+		idx_map = {}
+		for i, d in enumerate(self.doclist[1:]):
+			if d.parentfield:
+				d.parenttype = self.doc.doctype
+				d.parent = self.doc.name
+			if not d.idx:
+				d.idx = idx_map.setdefault(d.parentfield, 0) + 1
+			
+			idx_map[d.parentfield] = d.idx
 
 	def run_method(self, method):
 		"""

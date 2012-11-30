@@ -30,13 +30,19 @@ default_fields = ['doctype','name','owner','creation','modified','modified_by','
 #=================================================================================
 
 def insert(doclist):
-	from webnotes.model.wrapper import ModelWrapper
+	if not isinstance(doclist, list):
+		doclist = [doclist]
+
 	for d in doclist:
-		d["__islocal"] = 1
-	dl = ModelWrapper(doclist)
-	dl.save()
+		if isinstance(d, dict):
+			d["__islocal"] = 1
+		else:
+			d.fields["__islocal"] = 1
+		
+	wrapper = webnotes.model_wrapper(doclist)
+	wrapper.save()
 	
-	return dl
+	return wrapper
 
 def check_if_doc_is_linked(dt, dn):
 	"""
