@@ -29,7 +29,7 @@ wn.views.CommunicationList = Class.extend({
 			this.comm_list[0].find('.comm-content').toggle(true);			
 		} else {
 			this.body.remove()
-			$("<div class='alert'>No Communication with this " 
+			$("<div class='alert'>No Communication tagged with this " 
 				+ this.doc.doctype +" yet.</div>").appendTo(this.wrapper);
 		}
 		
@@ -43,7 +43,7 @@ wn.views.CommunicationList = Class.extend({
 			<div style='margin-bottom: 8px;'>\
 				<button class='btn btn-small' \
 					onclick='cur_frm.communication_view.add_reply()'>\
-				<i class='icon-plus'></i> Add Reply</button></div>\
+				<i class='icon-plus'></i> Add Message</button></div>\
 			</div>")
 			.appendTo(this.parent);
 			
@@ -103,7 +103,8 @@ wn.views.CommunicationComposer = Class.extend({
 			title: "Add Reply: " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: [
-				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"recipients"},
+				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"recipients", 
+					description:"Email addresses, separted by commas"},
 				{label:"Subject", fieldtype:"Data", reqd: 1},
 				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Add Reply", fieldtype:"Button"},
@@ -147,9 +148,9 @@ wn.views.CommunicationComposer = Class.extend({
 		var attach = $(fields.select_attachments.wrapper);
 		
 		var files = cur_frm.get_files();
-		if(files) {
+		if(files.length) {
 			$("<p><b>Add Attachments:</b></p>").appendTo(attach);
-			$.each(cur_frm.get_files(), function(i, f) {
+			$.each(files, function(i, f) {
 				$(repl("<p><input type='checkbox' \
 					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
 			});
@@ -205,6 +206,7 @@ wn.views.CommunicationComposer = Class.extend({
 			? cur_frm.communication_view.list
 			: [];
 		var signature = wn.boot.profile.email_signature || "";
+
 		if(signature.indexOf("<br>")==-1 && signature.indexOf("<p")==-1 
 			&& signature.indexOf("<img")==-1 && signature.indexOf("<div")==-1) {
 			signature = signature.replace(/\n/g, "<br>");
@@ -217,7 +219,8 @@ wn.views.CommunicationComposer = Class.extend({
 				+"-----In response to-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
-			fields.content.input.set_input("<p></p>" + signature)
+			fields.content.input.set_input((this.message || "") 
+				+ "<p></p>" + signature)
 		}
 	},
 	setup_autosuggest: function() {

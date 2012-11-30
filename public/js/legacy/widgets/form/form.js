@@ -199,12 +199,13 @@ _f.Frm.prototype.print_doc = function() {
 }
 
 // email the form
-_f.Frm.prototype.email_doc = function() {
+_f.Frm.prototype.email_doc = function(message) {
 	new wn.views.CommunicationComposer({
 		doc: this.doc,
 		subject: get_doctype_label(this.meta.name) + ': ' + this.docname,
 		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
-		attach_document_print: true
+		attach_document_print: true,
+		message: message
 	});
 }
 
@@ -1139,7 +1140,7 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 
 _f.Frm.prototype.get_files = function() {
 	return $.map((cur_frm.doc.file_list || "").split("\n"), function(f) {
-		return f.split(",")[0];
+		return f.split(",")[0] || null;
 	});
 }
 

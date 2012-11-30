@@ -356,9 +356,6 @@ class Document:
 		tmp = webnotes.conn.sql("""SELECT name FROM `tab%s` 
 			WHERE name = %s""" % (dt, '%s'), dn)
 		return tmp and tmp[0][0] or ''# match case
-
-	# Update query
-	# ---------------------------------------------------------------------------
 		
 	def _update_values(self, issingle, link_list, ignore_fields=0, keep_timestamps=False):
 		if issingle:
@@ -567,6 +564,17 @@ class Document:
 			doclist.append(d)
 	
 		return d
+		
+	def get_values(self):
+		"""get non-null fields dict withouth standard fields"""
+		from webnotes.model import default_fields
+		ret = {}
+		for key in self.fields:
+			if key not in default_fields and self.fields[key]:
+				ret[key] = self.fields[key]
+				
+		return ret
+			
 		
 def addchild(parent, fieldname, childtype = '', local=0, doclist=None):
 	"""
