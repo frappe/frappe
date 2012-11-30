@@ -83,7 +83,7 @@ def get_fullnames():
 	ret = webnotes.conn.sql("""select name, 
 		concat(ifnull(first_name, ''), 
 			if(ifnull(last_name, '')!='', ' ', ''), ifnull(last_name, '')), 
-			user_image, gender
+			user_image, gender, email
 		from tabProfile where ifnull(enabled, 0)=1""", as_list=1)
 	d = {}
 	for r in ret:
@@ -92,7 +92,8 @@ def get_fullnames():
 		else:
 			r[2] = 'files/' + r[2]
 			
-		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3]}
+		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3],
+			'email': r[4] or r[0]}
 
 	return d
 		

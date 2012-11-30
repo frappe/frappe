@@ -54,10 +54,10 @@ class EMail:
 		if isinstance(recipients, basestring):
 			recipients = recipients.replace(';', ',').replace('\n', '')
 			recipients = recipients.split(',')
-			
+		
 		# remove null
-		recipients = filter(None, recipients)	
-			
+		recipients = filter(None, (r.strip() for r in recipients))
+		
 		self.sender = sender
 		self.reply_to = reply_to or sender
 		self.recipients = recipients

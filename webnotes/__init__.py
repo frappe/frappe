@@ -290,6 +290,10 @@ def model_wrapper(doctype, name=None):
 
 def get_doclist(doctype, name=None):
 	return model_wrapper(doctype, name).doclist
+	
+def get_doctype(doctype, processed=False):
+	import webnotes.model.doctype
+	return webnotes.model.doctype.get(doctype, processed)
 
 def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	import webnotes.model

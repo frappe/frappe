@@ -77,3 +77,4 @@ def get_user_date_format():
 		global user_date_format
 		user_date_format = webnotes.conn.get_value("Control Panel", None, "date_format")
 	return user_date_format
+	

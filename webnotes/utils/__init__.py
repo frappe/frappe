@@ -92,10 +92,10 @@ def validate_email_add(email_str):
 	#return re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", email_str)
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", s)
 
-def sendmail(recipients, sender='', msg='', subject='[No Subject]', parts=[], cc=[], attach=[]):
+def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	"""Send an email. For more details see :func:`email_lib.sendmail`"""
 	import webnotes.utils.email_lib
-	return email_lib.sendmail(recipients, sender, msg, subject, parts, cc, attach)
+	return email_lib.sendmail(recipients, sender, msg, subject)
 
 def get_request_site_address():
 	"""get app url from request"""
