@@ -164,7 +164,7 @@ wn.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 		
 		if(this.attach_document_print)
-			$(fields.attach_document_print.input).attr("checked", "checked")
+			$(fields.attach_document_print.input).attr("checked", "checked").click();
 
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.add_reply.input).click(function() {
