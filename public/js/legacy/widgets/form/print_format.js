@@ -150,7 +150,7 @@ $.extend(_p, {
 				return;
 			}
 			args.onload(_p.render({
-				body: print_format_doc,
+				body: print_format_doc.html,
 				style: '',
 				doc: doc,
 				title: doc.name,
