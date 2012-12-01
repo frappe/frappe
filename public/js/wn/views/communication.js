@@ -163,8 +163,10 @@ wn.views.CommunicationComposer = Class.extend({
 		var me = this;
 		var fields = this.dialog.fields_dict;
 		
-		if(this.attach_document_print)
-			$(fields.attach_document_print.input).attr("checked", "checked").click();
+		if(this.attach_document_print) {
+			$(fields.send_me_a_copy.input).click();			
+			$(fields.attach_document_print.input).click();			
+		}
 
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.add_reply.input).click(function() {
@@ -176,8 +178,15 @@ wn.views.CommunicationComposer = Class.extend({
 					return $(element).attr("data-file-name");
 				})
 						
-			_p.build(form_values.select_print_format || "", function(print_html) {
+			_p.build(form_values.select_print_format || "", function(print_format_html) {
 				me.dialog.hide();
+				if(form_values.attach_document_print) {
+					var print_html = print_format_html
+					form_values.content = form_values.content 
+						+ "<p></p><hr>" + print_html;
+				} else {
+					print_html = "";
+				}
 				wn.call({
 					method:"core.doctype.communication.communication.make",
 					args: {
@@ -191,8 +200,7 @@ wn.views.CommunicationComposer = Class.extend({
 						contact: me.doc.contact,
 						send_me_a_copy: form_values.send_me_a_copy,
 						send_email: form_values.send_email,
-						print_html: form_values.attach_document_print
-							? print_html : "",
+						print_html: print_html,
 						attachments: selected_attachments
 					},
 					callback: function(r) {
