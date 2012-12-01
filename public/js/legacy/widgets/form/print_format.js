@@ -351,6 +351,16 @@ $.extend(_p, {
 			+ stat
 			+ container.innerHTML.replace(/<div/g, '\n<div').replace(/<td/g, '\n<td')
 			+ footer;
+			
+		// replace relative links by absolute links
+		var prefix = window.location.href.split("app.html")[0]
+		$.each(finished.match(/src=['"]([^'"]*)['"]/) || [], function(i, v) {
+			if(v.substr(0,4)!="src=") {
+				if(v.substr(0,4)!="http")
+					finished = finished.replace(v, prefix + v);
+			}
+		});
+
 		return finished;
 	},
 	

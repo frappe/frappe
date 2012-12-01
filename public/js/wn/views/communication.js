@@ -74,16 +74,18 @@ wn.views.CommunicationList = Class.extend({
 	make_line: function(doc) {
 		var me = this;
 		var comm = $(repl('<tr><td title="Click to Expand / Collapse">\
-				<p><b>%(_sender)s on %(when)s</b> \
-					<a href="#Form/Communication/%(name)s" style="font-size: 90%">\
-						Show Details</a></p>\
+				<a href="#Form/Communication/%(name)s" style="font-size: 90%; float: right;">\
+					Show Details</a>\
+				<p class="comm-header"><b>%(_sender)s on %(when)s</b></p>\
 				<div class="comm-content" style="border-top: 1px solid #ddd; \
 					padding: 10px; overflow-x: auto; display: none;"></div>\
 			</td></tr>', doc))
 			.appendTo(this.body)
+			
+		comm.find(".comm-header")
 			.css({"cursor":"pointer"})
 			.click(function() {
-				$(this).find(".comm-content").toggle();
+				$(this).parent().find(".comm-content").toggle();
 			});
 		
 		this.comm_list.push(comm);
@@ -106,8 +108,8 @@ wn.views.CommunicationComposer = Class.extend({
 				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"recipients", 
 					description:"Email addresses, separted by commas"},
 				{label:"Subject", fieldtype:"Data", reqd: 1},
-				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Add Reply", fieldtype:"Button"},
+				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Send Email", fieldtype:"Check"},
 				{label:"Send Me A Copy", fieldtype:"Check"},
 				{label:"Attach Document Print", fieldtype:"Check"},
@@ -161,8 +163,10 @@ wn.views.CommunicationComposer = Class.extend({
 		var me = this;
 		var fields = this.dialog.fields_dict;
 		
-		if(this.attach_document_print)
-			$(fields.attach_document_print.input).attr("checked", "checked")
+		if(this.attach_document_print) {
+			$(fields.send_me_a_copy.input).click();			
+			$(fields.attach_document_print.input).click();			
+		}
 
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.add_reply.input).click(function() {
@@ -174,8 +178,15 @@ wn.views.CommunicationComposer = Class.extend({
 					return $(element).attr("data-file-name");
 				})
 						
-			_p.build(args.select_print_format || "", function(print_html) {
+			_p.build(form_values.select_print_format || "", function(print_format_html) {
 				me.dialog.hide();
+				if(form_values.attach_document_print) {
+					var print_html = print_format_html
+					form_values.content = form_values.content 
+						+ "<p></p><hr>" + print_html;
+				} else {
+					print_html = "";
+				}
 				wn.call({
 					method:"core.doctype.communication.communication.make",
 					args: {
@@ -189,8 +200,7 @@ wn.views.CommunicationComposer = Class.extend({
 						contact: me.doc.contact,
 						send_me_a_copy: form_values.send_me_a_copy,
 						send_email: form_values.send_email,
-						print_html: form_values.attach_document_print
-							? print_html : "",
+						print_html: print_html,
 						attachments: selected_attachments
 					},
 					callback: function(r) {
