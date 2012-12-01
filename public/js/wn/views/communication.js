@@ -176,7 +176,7 @@ wn.views.CommunicationComposer = Class.extend({
 					return $(element).attr("data-file-name");
 				})
 						
-			_p.build(args.select_print_format || "", function(print_html) {
+			_p.build(form_values.select_print_format || "", function(print_html) {
 				me.dialog.hide();
 				wn.call({
 					method:"core.doctype.communication.communication.make",

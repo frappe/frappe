@@ -32,7 +32,7 @@ roles = []
 @webnotes.whitelist()
 def get(arg=None):
 	query = build_query(arg)
-	return compress(webnotes.conn.sql(query, as_dict=1, debug=1))
+	return compress(webnotes.conn.sql(query, as_dict=1))
 	
 def build_query(arg=None):
 	"""
