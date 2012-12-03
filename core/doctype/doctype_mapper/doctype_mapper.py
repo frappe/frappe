@@ -71,7 +71,7 @@ class DocType:
 			select from_table, to_table, from_field, to_field, match_id, validation_logic
 			from `tabTable Mapper Detail` where parent ="%s" order by match_id""" \
 			% self.doc.name, as_dict=1)
-
+			
 		for t in tbl_list:
 			if [t['from_table'], t['to_table']] in eval(from_to_list):
 				self.map_fields(t, from_doctype, from_docname, to_doc, doclist)
@@ -141,17 +141,17 @@ class DocType:
 		exception_flds = copy.copy(default_fields)
 		exception_flds += [f[1] for f in flds]
 		
-		from_flds = [d.fieldname for d in get(t['from_table'], 0) \
+		from_flds = [d.fieldname for d in get(t['from_table']).get_parent_doclist() \
 			if cint(d.no_copy) == 0 and d.docstatus != 2 and d.fieldname \
 			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')]
 
-		to_flds = [d.fieldname for d in get(t['to_table'], 0) \
+		to_flds = [d.fieldname for d in get(t['to_table']).get_parent_doclist() \
 			if cint(d.no_copy) == 0 and d.docstatus != 2 and d.fieldname \
 			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')]
 
 		similar_flds = [[d, d, 'Yes'] for d in from_flds \
 			if d in to_flds and d not in exception_flds]
-
+			
 		return similar_flds
 		
 	#---------------------------------------------------------------------------
