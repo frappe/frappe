@@ -205,22 +205,11 @@ var rstrip = function(s, chars) {
 	return s;
 }
 
-function repl_all(s, s1, s2) {
-	var idx = s.indexOf(s1);
-	if(cstr(s2).indexOf(s1)!=-1) {
-		console.log("infinite loop in repl = " + s1 + "\n\n" + s2);
-		return s;
-	}
-	
-	while (idx != -1){
-		s = s.replace(s1, s2 || "");
-	 	idx = s.indexOf(s1);
-	}
-	return s;
-}
 function repl(s, dict) {
 	if(s==null)return '';
-	for(key in dict) s = repl_all(s, '%('+key+')s', dict[key]);
+	for(key in dict) {
+		s = s.split("%("+key+")s").join(dict[key]);
+	}
 	return s;
 }
 
