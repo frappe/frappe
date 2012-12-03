@@ -349,7 +349,7 @@ class Document:
 	def _validate_link(self, dt, dn):
 		if not dt: return dn
 		if not dn: return None
-		if dt=="[Select]": return None
+		if dt=="[Select]": return dn
 		if dt.lower().startswith('link:'):
 			dt = dt[5:]
 		if '\n' in dt:
