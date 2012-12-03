@@ -164,10 +164,11 @@ wn.views.CommunicationComposer = Class.extend({
 		var fields = this.dialog.fields_dict;
 		
 		if(this.attach_document_print) {
-			$(fields.send_me_a_copy.input).click();			
-			$(fields.attach_document_print.input).click();			
+			$(fields.send_me_a_copy.input).click();
+			$(fields.attach_document_print.input).click();
+			$(fields.select_print_format.wrapper).toggle(true);
 		}
-
+		
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.add_reply.input).click(function() {
 			var form_values = me.dialog.get_values();
