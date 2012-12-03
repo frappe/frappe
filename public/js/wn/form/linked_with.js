@@ -72,10 +72,16 @@ wn.ui.form.LinkedWith = Class.extend({
 			get_args: function() {
 				return {
 					doctype: me.doctype,
-					fields: [ '`tab' + me.doctype + '`.name', 
+					fields: (!me.is_table
+						? [ '`tab' + me.doctype + '`.name', 
 						'`tab' + me.doctype + '`.modified',
 						'`tab' + me.doctype + '`.modified_by',
-						'`tab' + me.doctype + '`.docstatus'],
+						'`tab' + me.doctype + '`.docstatus']
+						: [ '`tab' + me.doctype + '`.parent', 
+						'`tab' + me.doctype + '`.parenttype',
+						'`tab' + me.doctype + '`.modified_by',
+						'`tab' + me.doctype + '`.docstatus']
+						),
 					filters: me.lst.filter_list.get_filters(),
 					docstatus: ['0','1']
 				}
