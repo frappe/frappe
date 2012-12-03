@@ -1083,3 +1083,12 @@ _f.Frm.prototype.show_comments = function() {
 	cur_frm.comments.show();
 	cur_frm.comments.list.run();
 }
+
+_f.Frm.prototype.call = function(opts) {
+	wn.call({
+		doc: cur_frm.doc,
+		method: opts.method,
+		args: opts.args,
+		callback: opts.callback
+	});
+}

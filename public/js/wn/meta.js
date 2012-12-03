@@ -41,6 +41,7 @@ $.extend(wn.meta, {
 		}
 		wn.meta.docfield_list[df.parent].push(df);
 	},
+	
 	get_docfield: function(dt, fn, dn) {
 		if(dn && local_dt[dt] && local_dt[dt][dn]){
 			return local_dt[dt][dn][fn];
@@ -48,6 +49,7 @@ $.extend(wn.meta, {
 			return wn.meta.docfield_map[dt][fn];
 		}
 	},
+	
 	get_print_formats: function(doctype) {
 		// if default print format is given, use it
 		
@@ -59,5 +61,5 @@ $.extend(wn.meta, {
 		});
 			
 		return print_format_list;
-	}
+	},
 });

@@ -178,7 +178,8 @@ wn.model = {
 				callback: function(r,rt) {
 					d.get_input("rename").done_working();
 					if(!r.exc) {
-						$(document).trigger('rename', [doctype, docname, args.new_name]);
+						$(document).trigger('rename', [doctype, docname,
+							r.message || args.new_name]);
 						if(locals[doctype] && locals[doctype][docname])
 							delete locals[doctype][docname];
 						d.hide();
