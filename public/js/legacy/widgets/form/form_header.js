@@ -44,7 +44,41 @@ _f.FrmHeader = Class.extend({
 		this.appframe.set_title(this.frm.docname);
 		this.refresh_labels();
 		this.refresh_toolbar();
+		this.refresh_timestamps();
 	},
+	refresh_timestamps: function() {
+		this.$w.find(".avatar").remove();
+		
+		var doc = this.frm.doc;
+		if(doc.__islocal || !doc.owner || !doc.modified_by) 
+			return;
+		
+		$(repl('<span class="avatar avatar avatar-small">\
+			<img title="%(created_by)s" src="%(avatar_created)s"/></span>\
+			<span class="avatar avatar avatar-small">\
+			<img title="%(created_by)s" src="%(avatar_created)s"/></span>', {
+				created_by: wn.user_info(doc.owner).fullname,
+				avatar_created: wn.user_info(doc.owner).image,
+				modified_by: wn.user_info(doc.modified_by).fullname,
+				avatar_modified: wn.user_info(doc.modified_by).image,
+		})).insertAfter(this.$w.find(".appframe-title"));
+		
+		this.$w.find(".avatar:eq(0)").popover({
+			trigger:"hover",
+			title: wn._("Created By"),
+			content: wn.user_info(this.frm.doc.owner).fullname.bold() 
+				+" on "+ dateutil.str_to_user(this.frm.doc.creation)
+		});
+
+		this.$w.find(".avatar:eq(1)").popover({
+			trigger:"hover",
+			title: wn._("Modified By"),
+			content: wn.user_info(this.frm.doc.modified_by).fullname.bold() 
+				+" on "+ dateutil.str_to_user(this.frm.doc.modified)
+		});
+		
+		this.$w.find('.avatar img').centerImage();
+	},	
 	refresh_labels: function() {
 		cur_frm.doc = get_local(cur_frm.doc.doctype, cur_frm.doc.name);
 		var labinfo = {

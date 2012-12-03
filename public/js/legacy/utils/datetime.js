@@ -118,13 +118,11 @@ wn.datetime = {
 	str_to_user: function(val, no_time_str) {
 		var user_fmt = dateutil.get_user_fmt();
 		var time_str = '';
-		//alert(user_fmt);
-		
-		
+				
 		if(val==null||val=='')return null;
 		
 		// separate time string if there
-		if(val.search(':')!=-1) {
+		if(val.search(' ')!=-1) {
 			var tmp = val.split(' ');
 			if(tmp[1])
 				time_str = ' ' + tmp[1];
