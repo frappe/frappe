@@ -112,6 +112,30 @@ wn.model = {
 		return wn.utils.filter_dict(locals[doctype], filters);
 	},
 	
+	get_doclist: function(doctype, name, filters) {
+		var doclist = [];
+		if(!locals[doctype]) 
+			return doclist;
+
+		doclist[0] = locals[doctype][name];
+
+		$.each(wn.model.get("DocField", {parent:doctype, fieldtype:"Table"}), 
+			function(i, table_field) {
+				var child_doclist = wn.model.get(table_field.options, {
+					parent:name, parenttype: doctype,
+					parentfield: table_field.fieldname}).sort(
+						function(a, b) { return a.idx - b.idx; });
+				doclist = doclist.concat(child_doclist);
+			}
+		);
+		
+		if(filters) {
+			doclist = wn.utils.filter_dict(doclist, filters);
+		}
+		
+		return doclist;
+	},
+	
 	delete_doc: function(doctype, docname, callback) {
 		wn.confirm("Permanently delete "+ docname + "?", function() {
 			wn.call({
@@ -154,7 +178,8 @@ wn.model = {
 				callback: function(r,rt) {
 					d.get_input("rename").done_working();
 					if(!r.exc) {
-						$(document).trigger('rename', [doctype, docname, args.new_name]);
+						$(document).trigger('rename', [doctype, docname,
+							r.message || args.new_name]);
 						if(locals[doctype] && locals[doctype][docname])
 							delete locals[doctype][docname];
 						d.hide();

@@ -27,7 +27,7 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 	# call on_rename method if exists
 	obj = get_obj(doctype, old)
 	if hasattr(obj, 'on_rename'):
-		obj.on_rename(new, old)
+		new = obj.on_rename(new, old) or new
 		
 	# rename the doc
 	webnotes.conn.sql("update `tab%s` set name=%s where name=%s" \
@@ -71,6 +71,8 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 		# change parenttype for fieldtype Table
 		update_parenttype_values(old, new, debug=debug)
 		if debug: webnotes.errprint("executed update_parenttype_values")
+		
+	return new
 		
 def update_child_docs(old, new, doclist, debug=0):
 	"""

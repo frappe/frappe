@@ -140,11 +140,19 @@ wn.request.call = function(opts) {
 
 // generic server call (call page, object)
 wn.call = function(opts) {
-	var args = $.extend({}, opts.args)
+	var args = $.extend({}, opts.args);
 	
 	// cmd
 	if(opts.module && opts.page) {
-		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method
+		args.cmd = opts.module+'.page.'+opts.page+'.'+opts.page+'.'+opts.method;
+	} else if(opts.doc) {
+		$.extend(args, {
+			cmd: "runserverobj",
+			docs: compress_doclist(wn.model.get_doclist(opts.doc.doctype,
+				opts.doc.name)),
+			method: opts.method,
+			args: opts.args,
+		});	
 	} else if(opts.method) {
 		args.cmd = opts.method;
 	}
