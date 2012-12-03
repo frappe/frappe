@@ -814,10 +814,16 @@ FloatField.prototype.validate = function(v) {
 FloatField.prototype.format_input = function() {
 	if(this.input.value==null) this.input.value='';
 }
+FloatField.prototype.onmake_input = function() {
+	if(!this.input) return;
+	this.input.onfocus = function() {
+		this.select();
+	}
+}
 
 // ======================================================================================
 
-function CurrencyField() { } CurrencyField.prototype = new DataField();
+function CurrencyField() { } CurrencyField.prototype = new FloatField();
 CurrencyField.prototype.format_input = function() { 
 	var v = fmt_money(this.input.value); 
 	if(this.not_in_form) {
@@ -834,12 +840,6 @@ CurrencyField.prototype.validate = function(v) {
 CurrencyField.prototype.set_disp = function(val) { 
 	var v = fmt_money(val); 
 	this.set_disp_html(v);
-}
-CurrencyField.prototype.onmake_input = function() {
-	if(!this.input) return;
-	this.input.onfocus = function() {
-		if(flt(this.value)==0)this.select();
-	}
 }
 
 // ======================================================================================
