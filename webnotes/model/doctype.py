@@ -319,7 +319,7 @@ def add_validators(doctype, doclist):
 		
 def add_search_fields(doclist):
 	"""add search fields found in the doctypes indicated by link fields' options"""
-	for lf in doclist.get({"fieldtype": "Link"}):
+	for lf in doclist.get({"fieldtype": "Link", "options":["!=", "[Select]"]}):
 		if lf.options:
 			search_fields = get(lf.options)[0].search_fields
 			if search_fields:
