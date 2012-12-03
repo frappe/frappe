@@ -207,7 +207,7 @@ var rstrip = function(s, chars) {
 
 function repl_all(s, s1, s2) {
 	var idx = s.indexOf(s1);
-	if(s2 && s2.indexOf(s1)!=-1) {
+	if(cstr(s2).indexOf(s1)!=-1) {
 		console.log("infinite loop in repl = " + s1 + "\n\n" + s2);
 		return s;
 	}
