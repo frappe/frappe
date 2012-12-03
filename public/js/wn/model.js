@@ -110,5 +110,29 @@ wn.model = {
 	get: function(doctype, filters) {
 		if(!locals[doctype]) return [];
 		return wn.utils.filter_dict(locals[doctype], filters);
-	},	
+	},
+	
+	get_doclist: function(doctype, name, filters) {
+		var doclist = [];
+		if(!locals[doctype]) 
+			return doclist;
+
+		doclist[0] = locals[doctype][name];
+
+		$.each(wn.model.get("DocField", {parent:doctype, fieldtype:"Table"}), 
+			function(i, table_field) {
+				var child_doclist = wn.model.get(table_field.options, {
+					parent:name, parenttype: doctype,
+					parentfield: table_field.fieldname}).sort(
+						function(a, b) { return a.idx - b.idx; });
+				doclist = doclist.concat(child_doclist);
+			}
+		);
+		
+		if(filters) {
+			doclist = wn.utils.filter_dict(doclist, filters);
+		}
+		
+		return doclist;
+	},
 }
