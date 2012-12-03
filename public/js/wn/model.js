@@ -110,5 +110,58 @@ wn.model = {
 	get: function(doctype, filters) {
 		if(!locals[doctype]) return [];
 		return wn.utils.filter_dict(locals[doctype], filters);
-	},	
+	},
+	
+	delete_doc: function(doctype, docname, callback) {
+		wn.confirm("Permanently delete "+ docname + "?", function() {
+			wn.call({
+				method: 'webnotes.model.delete_doc',
+				args: {
+					dt:doctype, 
+					dn:docname
+				},
+				callback: function(r, rt) {
+					if(!r.exc) {
+						LocalDB.delete_doc(doctype, docname);
+						if(wn.ui.toolbar.recent) 
+							wn.ui.toolbar.recent.remove(doctype, docname);
+						if(callback) callback(r,rt);
+					}
+				}
+			})
+		})
+	},
+	
+	rename_doc: function(doctype, docname) {
+		var d = new wn.ui.Dialog({
+			title: "Rename " + docname,
+			fields: [
+				{label:"New Name", fieldtype:"Data", reqd:1},
+				{label:"Rename", fieldtype: "Button"}
+			]
+		});
+		d.get_input("rename").on("click", function() {
+			var args = d.get_values();
+			if(!args) return;
+			d.get_input("rename").set_working();
+			wn.call({
+				method:"webnotes.model.rename_doc.rename_doc",
+				args: {
+					doctype: doctype,
+					old: docname,
+					"new": args.new_name
+				},
+				callback: function(r,rt) {
+					d.get_input("rename").done_working();
+					if(!r.exc) {
+						$(document).trigger('rename', [doctype, docname, args.new_name]);
+						if(locals[doctype] && locals[doctype][docname])
+							delete locals[doctype][docname];
+						d.hide();
+					}
+				}
+			});
+		});
+		d.show();
+	}
 }

@@ -60,9 +60,6 @@ def cleanup_docs():
 	if webnotes.response.get('docs') and type(webnotes.response['docs'])!=dict:
 		webnotes.response['docs'] = webnotes.model.utils.compress(webnotes.response['docs'])
 
-# server calls
-# ------------------------------------------------------------------------------------
-
 @webnotes.whitelist()
 def runserverobj(arg=None):
 	import webnotes.widgets.form.run_method
@@ -71,10 +68,6 @@ def runserverobj(arg=None):
 @webnotes.whitelist(allow_guest=True)
 def logout():
 	webnotes.login_manager.logout()
-
-
-# DocType Mapper
-# ------------------------------------------------------------------------------------
 
 @webnotes.whitelist()
 def dt_map():
@@ -97,9 +90,6 @@ def dt_map():
 	
 	webnotes.response['docs'] = dl
 
-# Load Month Events
-# ------------------------------------------------------------------------------------
-
 @webnotes.whitelist()
 def load_month_events():
 	import webnotes
@@ -112,9 +102,6 @@ def load_month_events():
 	import webnotes.widgets.event
 	webnotes.response['docs'] = webnotes.widgets.event.get_cal_events(m_st, m_end)
 	
-# File Upload
-# ------------------------------------------------------------------------------------
-
 @webnotes.whitelist()
 def uploadfile():
 	import webnotes.utils
@@ -224,7 +211,8 @@ def call(fn, args):
 	fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
 	newargs = {}
 	for a in fnargs:
-		newargs[a] = args.get(a) or (defaults and defaults[fnargs.index(a)]) or None
+		if a in args:
+			newargs[a] = args.get(a)
 	return fn(**newargs)
 
 def get_method(cmd):

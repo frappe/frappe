@@ -67,6 +67,9 @@ wn.ui.FieldGroup = Class.extend({
 			}
 		})
 	},
+	get_input: function(fieldname) {
+		return $(this.fields_dict[fieldname].input);
+	},
 	get_values: function() {
 		var ret = {};
 		var errors = [];

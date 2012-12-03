@@ -1,6 +1,7 @@
 from __future__ import unicode_literals
 import webnotes
 
+@webnotes.whitelist()
 def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and 
@@ -9,19 +10,25 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 	import webnotes.utils
 	import webnotes.model.doctype
 	from webnotes.model.code import get_obj
+
+	# get doclist of given doctype
+	doclist = webnotes.model.doctype.get(doctype)
 	
 	if webnotes.conn.exists(doctype, new):
 		webnotes.msgprint("%s: %s exists, select a new, new name." % (doctype, new))
+
+	if not webnotes.has_permission(doctype, "write"):
+		webnotes.msgprint("You need write permission to rename", raise_exception=1)
+
+	if not doclist[0].allow_rename:
+		webnotes.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
 	
 	# without child fields of table type fields (form=0)
 	# call on_rename method if exists
 	obj = get_obj(doctype, old)
 	if hasattr(obj, 'on_rename'):
 		obj.on_rename(new, old)
-
-	# get doclist of given doctype
-	doclist = webnotes.model.doctype.get(doctype)
-	
+		
 	# rename the doc
 	webnotes.conn.sql("update `tab%s` set name=%s where name=%s" \
 		% (doctype, '%s', '%s'), (new, old), debug=debug)
