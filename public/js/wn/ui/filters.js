@@ -45,6 +45,11 @@ wn.ui.FilterList = Class.extend({
 		if(!this.filters.length)
 			this.add_filter();
 	},
+
+	clear_filters: function() {
+		this.filters = [];
+		this.$w.find('.filter_area').empty();
+	},
 	
 	add_filter: function(tablename, fieldname, condition, value) {
 		this.push_new_filter(tablename, fieldname, condition, value);

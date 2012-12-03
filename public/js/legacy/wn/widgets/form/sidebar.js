@@ -37,24 +37,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						},
 						onclick: function() { new_doc(me.form.doctype) }
 					},
-
-					{
-						type: 'link',
-						label: 'List',
-						icon: 'icon-list',
-						display: function() { 
-							return !me.form.meta.issingle && !me.form.meta.read_only; 
-						},
-						onclick: function() { window.location.href="#!List/" + me.form.doctype }
-					},
 					
-					{
-						type: 'link',
-						label: 'Refresh',
-						icon: 'icon-refresh',
-						onclick: function() { me.form.reload_doc() }
-					},
-
 					{
 						type: 'link',
 						label: 'Print',
@@ -104,6 +87,23 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						},
 						icon: 'icon-retweet',
 						onclick: function() { me.form.rename_doc() }
+					},
+					
+					{
+						type: 'link',
+						label: 'Linked With',
+						display: function() { 
+							return !me.form.doc.__islocal;
+						},
+						icon: 'icon-random',
+						onclick: function() { 
+							if(!me.form.linked_with) {
+								me.form.linked_with = new wn.ui.form.LinkedWith({
+									frm: me.form
+								});
+							}
+							me.form.linked_with.show();
+						}
 					}
 					
 				],

@@ -998,14 +998,17 @@ SelectField.prototype.make_input = function() {
 		if(this.file_attach)
 			this.set_attach_options();
 		
-		me.options_list = me.df.options?me.df.options.split('\n'):[''];
+		if(typeof me.df.options=="object")
+			me.options_list = me.df.options
+		else
+			me.options_list = me.df.options?me.df.options.split('\n'):[''];
 		
 		// add options
-		empty_select(this.input);
 		if(me.in_filter && me.options_list[0]!='') {
-			me.options_list = add_lists([''], me.options_list);			
+			me.options_list = add_lists([''], me.options_list);
 		}
-		add_sel_options(this.input, me.options_list);
+		
+		$(this.input).empty().add_options(me.options_list);
 	}
 	
 	// refresh options
@@ -1197,7 +1200,7 @@ function makeinput_popup(me, iconsrc, iconsrc1, iconsrc2) {
 	}
 
 	if(iconsrc2) {
-		var c3 = tab.rows[0].insertCell(3);
+		var c3 = tab.rows[0].insertCell(tab.rows[0].cells.length);
 		$y(c3,{width: '20px'});
 		me.btn2 = $a(c3, 'i', iconsrc2, icon_style)
 		me.btn2.setAttribute('title','Create New');

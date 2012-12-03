@@ -37,7 +37,7 @@ wn.ui.Search = Class.extend({
 						fields: [ '`tab' + me.doctype + '`.name'],
 						filters: me.list.filter_list.get_filters(),
 						docstatus: ['0','1']
-					}					
+					}
 				}
 			},
 			render_row: function(parent, data) {
