@@ -1189,7 +1189,7 @@ function makeinput_popup(me, iconsrc, iconsrc1, iconsrc2) {
 	else // date
 		me.btn.setAttribute('title','Select Date');
 
-	if(iconsrc1) {
+	if(iconsrc1 && me.df.options!='[Select]') {
 		var c2 = tab.rows[0].insertCell(2);
 		$y(c2,{width: '20px'});
 		me.btn1 = $a(c2, 'i', iconsrc1, icon_style)
