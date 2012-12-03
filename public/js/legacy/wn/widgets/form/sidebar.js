@@ -94,7 +94,18 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						},
 						icon: 'icon-remove-sign',
 						onclick: function() { me.form.savetrash() }
+					},
+
+					{
+						type: 'link',
+						label: 'Rename',
+						display: function() { 
+							return me.form.meta.allow_rename && me.form.perm[0][WRITE];
+						},
+						icon: 'icon-retweet',
+						onclick: function() { me.form.rename_doc() }
 					}
+					
 				],
 				display: function() {
 					return me.form.meta.hide_toolbar ? false : true;

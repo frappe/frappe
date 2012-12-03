@@ -12,6 +12,22 @@ wn.messages.waiting = function(parent, msg, bar_percent) {
 		.appendTo(parent);
 }
 
+wn.confirm = function(message, ifyes, ifno) {
+	var d = msgprint("<p>" + message + "</p>\
+		<p style='text-align: right'>\
+			<button class='btn btn-small btn-info btn-yes'>Yes</button>\
+			<button class='btn btn-small btn-no'>No</button>\
+		</p>");
+	$(d.wrapper).find(".btn-yes").click(function() {
+		ifyes();
+		d.hide();
+	});
+	$(d.wrapper).find(".btn-no").click(function() {
+		ifno();
+		d.hide();
+	});
+}
+
 var msg_dialog=null;
 function msgprint(msg, title) {
 	if(!msg) return;

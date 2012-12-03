@@ -34,7 +34,7 @@ _f.FrmHeader = Class.extend({
 		this.frm = frm;
 		
 		if(!frm.meta.issingle) {
-			this.appframe.add_tab(frm.doctype, 0.5, function() {
+			this.appframe.add_tab(frm.doctype + " List", 0.5, function() {
 				wn.set_route("List", frm.doctype);
 			});
 		}
@@ -133,7 +133,7 @@ _f.FrmHeader = Class.extend({
 			
 		// Help
 		if(cur_frm.meta.description) {
-			this.appframe.add_help_button(wn.markdown('## ' + cur_frm.doctype + '\n\n'
+			this.appframe.add_help_button(wn.markdown('#### ' + cur_frm.doctype + '\n\n'
 				+ cur_frm.meta.description));
 		}
 

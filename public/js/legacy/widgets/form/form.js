@@ -66,7 +66,6 @@ _f.Frm = function(doctype, parent, in_form) {
 	// notify on rename
 	var me = this;
 	$(document).bind('rename', function(event, dt, old_name, new_name) {
-		//console.log(arguments)
 		if(dt==me.doctype)
 			me.rename_notify(dt, old_name, new_name)
 	});
@@ -170,7 +169,13 @@ _f.Frm.prototype.setup_std_layout = function() {
 		// module link
 		this.setup_sidebar();
 	}
-		
+	
+	// watermark
+	$('<div style="font-size: 21px; color: #aaa; float: right;\
+		margin-top: -5px; margin-right: -5px; z-index: 5;">' 
+		+ this.doctype + '</div>')
+		.prependTo(this.page_layout.main);
+	
 	// footer
 	this.setup_footer();
 		
@@ -180,6 +185,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 			
 	// create fields
 	this.setup_fields_std();
+	
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -207,6 +213,11 @@ _f.Frm.prototype.email_doc = function(message) {
 		attach_document_print: true,
 		message: message
 	});
+}
+
+// email the form
+_f.Frm.prototype.rename_doc = function() {
+	wn.model.rename_doc(this.doctype, this.docname);
 }
 
 // notify this form of renamed records
@@ -556,13 +567,12 @@ _f.Frm.prototype.refresh = function(docname) {
 				this.refresh_header();
 				this.sidebar && this.sidebar.refresh();
 			}
-			
+
 			// call trigger
 	 		this.runclientscript('refresh');
 			
 			// trigger global trigger
 			// to use this
-			// $(docuemnt).bind('form_refresh', function() { })
 			$(document).trigger('form_refresh');
 						
 			// fields
@@ -1005,22 +1015,9 @@ _f.Frm.prototype.savecancel = function(btn) {
 
 // delete the record
 _f.Frm.prototype.savetrash = function() {
-	var me = this;
-	var answer = confirm("Permanently Delete "+this.docname+"? This action cannot be reversed");
-	if(answer) {
-		$c('webnotes.model.delete_doc', {dt:this.doctype, dn:this.docname}, function(r,rt) {
-			if(r.message=='okay') {
-				// delete from locals
-				LocalDB.delete_doc(me.doctype, me.docname);
-				
-				// delete from recent
-				if(wn.ui.toolbar.recent) wn.ui.toolbar.recent.remove(me.doctype, me.docname);
-				
-				// "close"
-				window.history.back();
-			}
-		})
-	} 
+	wn.model.delete_doc(this.doctype, this.docname, function(r) {
+		window.history.back();
+	})
 }
 
 _f.Frm.prototype.amend_doc = function() {

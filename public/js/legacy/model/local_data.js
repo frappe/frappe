@@ -56,6 +56,7 @@ LocalDB.add=function(dt, dn) {
 
 LocalDB.delete_doc=function(dt, dn) {
 	var doc = get_local(dt, dn);
+	if(!doc) return;
 
 	for(var ndt in locals) { // all doctypes
 		if(locals[ndt]) {
@@ -98,7 +99,6 @@ LocalDB.sync = function(list) {
 
 		if(d.localname) {
 			wn.model.new_names[d.localname] = d.name;
-			//console.log(d.localname);
 			$(document).trigger('rename', [d.doctype, d.localname, d.name]);
 			delete locals[d.doctype][d.localname];
 		}
