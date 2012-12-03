@@ -14,6 +14,20 @@ wn.user_info = function(uid) {
 	return wn.boot.user_info[uid];
 }
 
+wn.avatar = function(user, large, title) {
+	var image = wn.user_info(user).image;
+	var to_size = large ? 72 : 30;
+	if(!title) title = wn.user_info(user).fullname;
+
+	return repl('<span class="avatar" title="%(title)s" style="width: %(len)s; \
+		height: %(len)s; border-radius: %(len)s; overflow: hidden;">\
+		<img src="%(image)s"></span>', {
+			image: image,
+			len: to_size + "px",
+			title: title
+		});	
+}
+
 wn.provide('wn.user');
 
 $.extend(wn.user, {
