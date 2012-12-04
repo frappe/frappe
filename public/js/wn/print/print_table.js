@@ -81,12 +81,12 @@ wn.print.Table = Class.extend({
 		$.each(this.data, function(i, d) {
 			table_data.push(d);
 			if(d.page_break) {
-				this.add_table(table_data);
+				me.add_table(table_data);
 				table_data = [];
 			}
 		});
 		if(table_data)
-			this.add_table(table_data);
+			me.add_table(table_data);
 	},
 	
 	add_table: function(data) {
