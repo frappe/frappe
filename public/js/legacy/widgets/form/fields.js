@@ -252,14 +252,15 @@ Field.prototype.refresh = function() {
 
 	this.set_label();
 	this.refresh_display();
-	
-	// further refresh	
-	if(this.onrefresh) 
-		this.onrefresh(); // called by various fields
-		
+			
 	if(this.input) {
 		if(this.input.refresh) this.input.refresh(this.df);
 	}
+
+	// further refresh	
+	if(this.onrefresh) 
+		this.onrefresh(); // called by various fields
+
 	if(this.wrapper) {
 		this.wrapper.fieldobj = this;
 		$(this.wrapper).trigger('refresh');		
@@ -563,14 +564,13 @@ LinkField.prototype.make_input = function() {
 		me.txt.name = me.df.fieldname;
 		me.setdisabled = function(tf) { me.txt.disabled = tf; }
 			
-		
-		// setup buttons
-		me.setup_buttons();
-
 		me.onrefresh = function() {
 			$(me.btn2).toggle(me.can_create)
 			$(me.btn1).toggle(me.df.options=='[Select]');
-		}
+		}		
+		// setup buttons
+		me.setup_buttons();
+		me.onrefresh();
 	}
 
 
