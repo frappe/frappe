@@ -19,7 +19,7 @@ wn.form.formatters = {
 	},
 	Link: function(value, docfield) {
 		if(!value) return "";
-		if(docfield.options) {
+		if(docfield && docfield.options) {
 			return repl('<a href="#Form/%(doctype)s/%(name)s">\
 				<i class="icon icon-share" title="Open %(name)s" \
 				style="margin-top:-1px"></i></a> %(name)s', {
