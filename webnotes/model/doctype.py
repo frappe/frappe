@@ -73,7 +73,7 @@ def get(doctype, processed=False):
 	#add_validators(doctype, doclist)
 	
 	# add precision
-	#add_precision(doctype, doclist)
+	add_precision(doctype, doclist)
 
 	to_cache(doctype, processed, doclist)
 		
@@ -193,6 +193,7 @@ def add_linked_with(doclist):
 def from_cache(doctype, processed):
 	""" load doclist from cache.
 		sets flag __from_cache in first doc of doclist if loaded from cache"""
+	
 	global doctype_cache
 
 	# from memory
@@ -350,7 +351,7 @@ def update_language(doclist):
 def add_precision(doctype, doclist):
 	type_precision_map = {
 		"Currency": 2,
-		"Float": 6
+		"Float": 4
 	}
 	for df in doclist.get({"doctype": "DocField", 
 			"fieldtype": ["in", type_precision_map.keys()]}):
