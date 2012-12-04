@@ -55,6 +55,7 @@
 			"lib/public/js/wn/assets.js",
 			"lib/public/js/wn/dom.js",
 			"lib/public/js/wn/model.js",
+			"lib/public/js/wn/perm.js",
 			"lib/public/js/wn/meta.js",
 			"lib/public/js/wn/misc/tools.js",
 			"lib/public/js/wn/misc/user.js",

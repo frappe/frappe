@@ -162,7 +162,7 @@ Field.prototype.get_status = function() {
 	}
 	
 	if(cur_frm.editable && a_o_s && cint(cur_frm.doc.docstatus)>0 && !this.df.hidden) {
-		tmp_perm = get_perm(cur_frm.doctype, cur_frm.docname, 1);
+		tmp_perm = wn.perm.get_perm(cur_frm.doctype, cur_frm.docname, 1);
 		if(tmp_perm[this.df.permlevel] && tmp_perm[this.df.permlevel][WRITE]) {
 			ret='Write';
 		}
@@ -252,14 +252,15 @@ Field.prototype.refresh = function() {
 
 	this.set_label();
 	this.refresh_display();
-	
-	// further refresh	
-	if(this.onrefresh) 
-		this.onrefresh(); // called by various fields
-		
+			
 	if(this.input) {
 		if(this.input.refresh) this.input.refresh(this.df);
 	}
+
+	// further refresh	
+	if(this.onrefresh) 
+		this.onrefresh(); // called by various fields
+
 	if(this.wrapper) {
 		this.wrapper.fieldobj = this;
 		$(this.wrapper).trigger('refresh');		
@@ -544,19 +545,32 @@ LinkField.prototype.make_input = function() {
 	var me = this;
 	
 	if(me.df.no_buttons) {
-		this.txt = $a(this.input_area, 'input');
+		this.txt = $("<input type='text'>").appendTo(this.input_area).get(0);
 		this.input = this.txt;	
 	} else {
-		makeinput_popup(this, 'icon-search', 'icon-play', 'icon-plus');
-	
+		me.input = me.input_area;
+
+		'icon-search', 'icon-play', 'icon-plus'
+		me.txt = $('<input type="text">')
+			.css({"width": me.in_filter ? "100px" : "65%"})
+			.appendTo(me.input_area).get(0);
+				
+		me.btn = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-search"\
+			title="Search Link"></i>').appendTo(me.input_area).get(0);
+		me.btn1 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-play"\
+			title="Open Link"></i>').appendTo(me.input_area).get(0);
+		me.btn2 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-plus"\
+			title="Make New"></i>').appendTo(me.input_area).get(0);		
+		me.txt.name = me.df.fieldname;
+		me.setdisabled = function(tf) { me.txt.disabled = tf; }
+			
+		me.onrefresh = function() {
+			$(me.btn2).toggle(me.can_create)
+			$(me.btn1).toggle(me.df.options=='[Select]');
+		}		
 		// setup buttons
 		me.setup_buttons();
-
-		me.onrefresh = function() {
-			if(me.can_create) 
-				$(me.btn2).css('display', 'inline-block');
-			else $dh(me.btn2);
-		}
+		me.onrefresh();
 	}
 
 
@@ -660,7 +674,7 @@ LinkField.prototype.setup_buttons = function() {
 			new_doc(me.df.options); 
 		}
 	} else {
-		$dh(me.btn2); $y($td(me.tab,0,2), {width:'0px'});
+		$dh(me.btn2);
 	}
 }
 
@@ -1157,61 +1171,6 @@ TimeField.prototype.set_disp=function(v) {
 	var t = t[0]+':'+t[1]+' '+t[2];
 	this.set_disp_html(t);
 }
-
-// ======================================================================================
-// Used by date and link fields
-
-function makeinput_popup(me, iconsrc, iconsrc1, iconsrc2) {
-	
-	var icon_style = {cursor: 'pointer', width: '16px', verticalAlign:'middle',
-		marginBottom:'-3px'};
-	
-	me.input = $a(me.input_area, 'div');
-	if(!me.not_in_form)
-		$y(me.input, {width:'80%'});
-		
-	me.input.set_width = function(w) {
-		$y(me.input, {width:(w-2)+'px'});
-	}
-	
-	var tab = $a(me.input, 'table');
-	me.tab = tab;
-	
-	$y(tab, {width:'100%', borderCollapse:'collapse', tableLayout:'fixed'});
-	
-	var c0 = tab.insertRow(0).insertCell(0);
-	var c1 = tab.rows[0].insertCell(1);
-	
-	$y(c1,{width: '20px'});
-	me.txt = $a($a($a(c0, 'div', '', {paddingRight:'8px'}), 'div'), 'input', '', {width:'100%'});
-
-	me.btn = $a(c1, 'i', iconsrc, icon_style)
-
-	if(iconsrc1) // link
-		me.btn.setAttribute('title','Search');
-	else // date
-		me.btn.setAttribute('title','Select Date');
-
-	if(iconsrc1 && me.df.options!='[Select]') {
-		var c2 = tab.rows[0].insertCell(2);
-		$y(c2,{width: '20px'});
-		me.btn1 = $a(c2, 'i', iconsrc1, icon_style)
-		me.btn1.setAttribute('title','Open Link');
-	}
-
-	if(iconsrc2) {
-		var c3 = tab.rows[0].insertCell(tab.rows[0].cells.length);
-		$y(c3,{width: '20px'});
-		me.btn2 = $a(c3, 'i', iconsrc2, icon_style)
-		me.btn2.setAttribute('title','Create New');
-		$dh(me.btn2);
-	}
-		
-	me.txt.name = me.df.fieldname;
-
-	me.setdisabled = function(tf) { me.txt.disabled = tf; }
-}
-
 
 var tmpid = 0;
 
