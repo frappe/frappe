@@ -304,10 +304,13 @@ def delete_items():
 	doctype = webnotes.form_dict.get('doctype')
 	
 	for d in il:
-		dt_obj = get_obj(doctype, d)
-		if hasattr(dt_obj, 'on_trash'):
-			dt_obj.on_trash()
-		delete_doc(doctype, d)
+		try:
+			dt_obj = get_obj(doctype, d)
+			if hasattr(dt_obj, 'on_trash'):
+				dt_obj.on_trash()
+			delete_doc(doctype, d)
+		except Exception, e:
+			pass
 		
 @webnotes.whitelist()
 def get_stats():

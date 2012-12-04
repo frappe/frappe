@@ -160,7 +160,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		// make_new_doc can be overridden so that default values can be prefilled
 		// for example - communication list in customer
-		$(this.wrapper).find('button[list_view_doc="'+me.doctype+'"]').click(function(){
+		$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
 			(me.listview.make_new_doc || me.make_new_doc)(me.doctype);
 		});
 		
@@ -174,7 +174,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		<p><button class="btn btn-info btn-small" list_view_doc="%(doctype)s">\
 			Make a new %(doctype_label)s</button>\
 		</p></div>', {
-			doctype_label: get_doctype_label(this.doctype),
+			doctype_label: wn._(this.doctype),
 			doctype: this.doctype
 		});
 		
@@ -230,22 +230,23 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		});
 		if(!dl.length) 
 			return;
-		if(!confirm('This is PERMANENT action and you cannot undo. Continue?')) {
-			return;
-		}
-		
-		me.set_working(true);
-		wn.call({
-			method: 'webnotes.widgets.reportview.delete_items',
-			args: {
-				items: dl,
-				doctype: me.doctype
-			},
-			callback: function() {
-				me.set_working(false);
-				me.refresh();
+			
+		wn.confirm('This is permanent action and you cannot undo. Continue?',
+			function() {
+				me.set_working(true);
+				wn.call({
+					method: 'webnotes.widgets.reportview.delete_items',
+					args: {
+						items: dl,
+						doctype: me.doctype
+					},
+					callback: function() {
+						me.set_working(false);
+						me.refresh();
+					}
+				})				
 			}
-		})
+		);
 	},
 	init_stats: function() {
 		var me = this
