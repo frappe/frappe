@@ -26,11 +26,15 @@ from __future__ import unicode_literals
 import webnotes
 
 user_time_zone = None
-month_name = ['','Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec']
-month_name_full = ['','January','February','March','April','May','June','July','August','September','October','November','December']
-no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']
-default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
+user_format = None
 
+no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
+	'Button', 'Image', 'Graph']
+default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
+	'parent', 'parentfield', 'parenttype', 'idx', 'docstatus']
+
+# used in import_docs.py
+# TODO: deprecate it
 def getCSVelement(v):
 	"""
 		 Returns the CSV value of `v`, For example: 
@@ -50,12 +54,12 @@ def get_fullname(profile):
 	p = webnotes.conn.sql("""select first_name, last_name from `tabProfile`
 		where name=%s""", profile, as_dict=1)
 	if p:
-		p = p[0]
-		full_name = (p['first_name'] and (p['first_name'] + ' ') or '') + (p['last_name'] or '')
-		return full_name or profile
-	else:
-		return profile
-		
+		profile = " ".join(filter(None, 
+			[p[0].get('first_name'), p[0].get('last_name')])) or profile
+	
+	return profile
+
+# TODO: deprecate it
 def decode_email_header(s):
 	import email.header
 	
@@ -67,30 +71,20 @@ def decode_email_header(s):
 	
 	return " ".join(decoded_list)
 
-def extract_email_id(s):
-	"""
-		Extract email id from email header format
-	"""
-	if '<' in s:
-		s = s.split('<')[1].split('>')[0]
-	if s: 
-		s = s.strip().lower()
-	return s
-	
 def get_email_id(user):
 	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
 	if user == "Administrator":
 		return user
-	
+	from email.utils import formataddr
 	fullname = get_fullname(user)
-	return "%s <%s>" % (fullname, user)
+	return formataddr((fullname, user))
 	
 def validate_email_add(email_str):
 	"""Validates the email string"""
-	s = extract_email_id(email_str)
+	from email.utils import parseaddr
+	real_name, email = parseaddr(email_str)
 	import re
-	#return re.match("^[a-zA-Z0-9._%-]+@[a-zA-Z0-9._%-]+.[a-zA-Z]{2,6}$", email_str)
-	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", s)
+	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email)
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	"""Send an email. For more details see :func:`email_lib.sendmail`"""
@@ -112,9 +106,6 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 
-def db_exists(dt, dn):
-	return webnotes.conn.sql('select name from `tab%s` where name="%s"' % (dt, dn))
-
 def load_json(arg):
 	# already a dictionary?
 	if not isinstance(arg, basestring):
@@ -133,73 +124,67 @@ def getTraceback():
 	import sys, traceback, string
 	exc_type, value, tb = sys.exc_info()
 	
-	trace_list = traceback.format_tb(tb, None) + traceback.format_exception_only(exc_type, value)
+	trace_list = traceback.format_tb(tb, None) + \
+		traceback.format_exception_only(exc_type, value)
 	body = "Traceback (innermost last):\n" + "%-20s %s" % \
 		(unicode((b"").join(trace_list[:-1]), 'utf-8'), unicode(trace_list[-1], 'utf-8'))
 	
 	if webnotes.logger:
-		webnotes.logger.error('Db:'+(webnotes.conn and webnotes.conn.cur_db_name or '') + ' - ' + body)
+		webnotes.logger.error('Db:'+(webnotes.conn and webnotes.conn.cur_db_name or '') \
+			+ ' - ' + body)
 	
 	return body
-
-# Log
-# ==============================================================================
 
 def log(event, details):
 	webnotes.logger.info(details)
 
-# Date and Time
-# ==============================================================================
-
-
+# datetime functions
 def getdate(string_date):
 	"""
 		 Coverts string date (yyyy-mm-dd) to datetime.date object
 	"""
 	import datetime
-
-	if type(string_date)==unicode:
-		string_date = str(string_date)
 	
-	if type(string_date) in (datetime.datetime, datetime.date): 
+	if isinstance(string_date, datetime.date):
 		return string_date
+	elif isinstance(string_date, datetime.datetime):
+		return datetime.date()
 	
-	if ' ' in string_date:
-		string_date = string_date.split(' ')[0]
-	t = string_date.split('-')
-	if len(t)==3:
-		return datetime.date(cint(t[0]), cint(t[1]), cint(t[2]))
-	else:
-		return ''
+	if " " in string_date:
+		string_date = string_date.split(" ")[0]
+	
+	try:	
+		return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
+	except ValueError, e:
+		return ""
 
-def add_days(date, days, format='string'):
-	"""
-		 Adds `days` to the given `string_date`
-	"""
-	import datetime
-	if not date:
-		date = now_datetime()
-
-	if type(date) not in (datetime.datetime, datetime.date): 
+def add_to_date(date, years=0, months=0, days=0):
+	"""Adds `days` to the given date"""
+	format = isinstance(date, basestring)
+	if date:
 		date = getdate(date)
-
-	dt =  date + datetime.timedelta(days)
-	if format=='string':
-		return dt.strftime('%Y-%m-%d')
 	else:
-		return dt
+		raise Exception, "Start date required"
+	
+	from dateutil.relativedelta import relativedelta
+	date += relativedelta(years=years, months=months, days=days)
+	
+	if format:
+		return date.strftime("%Y-%m-%d")
+	else:
+		return date
 
-def add_months(string_date, months):
-	import datetime
-	return webnotes.conn.sql("select DATE_ADD('%s',INTERVAL '%s' MONTH)" % (getdate(string_date),months))[0][0]
+def add_days(date, days):
+	return add_to_date(date, days=days)
 
-def add_years(string_date, years):
-	import datetime
-	return webnotes.conn.sql("select DATE_ADD('%s',INTERVAL '%s' YEAR)" % (getdate(string_date),years))[0][0]
+def add_months(date, months):
+	return add_to_date(date, months=months)
 
-def date_diff(string_ed_date, string_st_date=None):
-	import datetime
-	return webnotes.conn.sql("SELECT DATEDIFF('%s','%s')" %(getdate(string_ed_date), getdate(string_st_date)))[0][0]
+def add_years(date, years):
+	return add_to_date(date, years=years)
+
+def date_diff(string_ed_date, string_st_date):
+	return (getdate(string_ed_date) - getdate(string_st_date)).days
 
 def now_datetime():
 	global user_time_zone
@@ -235,10 +220,13 @@ def get_first_day(dt, d_years=0, d_months=0):
 	 Also adds `d_years` and `d_months` if specified
 	"""
 	import datetime
-	# d_years, d_months are "deltas" to apply to dt
-	y, m = dt.year + d_years, dt.month + d_months
-	a, m = divmod(m-1, 12)
-	return datetime.date(y+a, m+1, 1)
+	dt = getdate(dt)
+
+	# d_years, d_months are "deltas" to apply to dt	
+	overflow_years, month = divmod(dt.month + d_months - 1, 12)
+	year = dt.year + d_years + overflow_years
+
+	return datetime.date(year, month + 1, 1)
 
 def get_last_day(dt):
 	"""
@@ -248,34 +236,48 @@ def get_last_day(dt):
 	import datetime
 	return get_first_day(dt, 0, 1) + datetime.timedelta(-1)
 
-user_format = None
-"""
-	 User format specified in :term:`Control Panel`
-	 
-	 Examples:
-	 
-	 * dd-mm-yyyy
-	 * mm-dd-yyyy
-	 * dd/mm/yyyy
-"""
+def get_datetime(datetime_str):
+	from datetime import datetime
+	if isinstance(datetime_str, datetime):
+		return datetime_str.replace(microsecond=0, tzinfo=None)
+	
+	return datetime.strptime(datetime_str, '%Y-%m-%d %H:%M:%S')
+	
+def get_datetime_str(datetime_obj):
+	if isinstance(datetime_obj, basestring):
+		datetime_obj = get_datetime(datetime_obj)
+	
+	return datetime_obj.strftime('%Y-%m-%d %H:%M:%S')
 
 def formatdate(string_date=None):
 	"""
 	 	Convers the given string date to :data:`user_format`
-	"""
-	global user_format
+		User format specified in :term:`Control Panel`
 
+		 Examples:
+
+		 * dd-mm-yyyy
+		 * mm-dd-yyyy
+		 * dd/mm/yyyy
+	"""
+	if string_date:
+		string_date = getdate(string_date)
+	else:
+		string_date = nowdate()
+	
+	global user_format
 	if not user_format:
 		user_format = webnotes.conn.get_value('Control Panel', None, 'date_format')
-
-	if not string_date:
-		string_date = nowdate()
 		
-	if not isinstance(string_date, basestring):
-		string_date = str(string_date)
-	d = string_date.split('-');
 	out = user_format
-	return out.replace('dd', ('%.2i' % cint(d[2]))).replace('mm', ('%.2i' % cint(d[1]))).replace('yyyy', d[0])
+	return out.replace("dd", string_date.strftime("%d"))\
+		.replace("mm", string_date.strftime("%m"))\
+		.replace("yyyy", string_date.strftime("%Y"))
+		
+def global_date_format(date):
+	"""returns date as 1 January 2012"""
+	formatted_date = getdate(date).strftime("%d %B %Y")
+	return formatted_date.startswith("0") and formatted_date[1:] or formatted_date
 	
 def dict_to_str(args, sep='&'):
 	"""
@@ -301,55 +303,28 @@ def timestamps_equal(t1, t2):
 			return
 	return 1
 
-def global_date_format(date):
-	"""returns date as 1 January 2012"""
-	import datetime
-
-	if isinstance(date, basestring):
-		date = getdate(date)
-	
-	return cstr(cint(date.strftime('%d'))) + ' ' + month_name_full[int(date.strftime('%m'))] \
-		+ ' ' + date.strftime('%Y')
-	
-	
-	
-
-# Datatype
-# ==============================================================================
-
-def isNull(v):
-	"""
-	Returns true if v='' or v is `None`
-	"""
-	return (v=='' or v==None)
-	
 def has_common(l1, l2):
-	"""
-	Returns true if there are common elements in lists l1 and l2
-	"""
-	for l in l1:
-		if l in l2: 
-			return 1
-	return 0
+	"""Returns truthy value if there are common elements in lists l1 and l2"""
+	return set(l1) & set(l2)
 	
-def flt(s):
-	"""
-	Convert to float (ignore commas)
-	"""
-	if isinstance(s, basestring): # if string
+def flt(s, precision=None):
+	"""Convert to float (ignore commas)"""
+	if isinstance(s, basestring):
 		s = s.replace(',','')
-	try: tmp = float(s)
-	except: tmp = 0
-	return tmp
+	try:
+		num = float(s)
+		if precision:
+			num = round(num, precision)
+	except Exception, e:
+		num = 0
+	return num
 
 def cint(s):
-	"""
-	Convert to integer
-	"""
-	try: tmp = int(float(s))
-	except: tmp = 0
-	return tmp
-		
+	"""Convert to integer"""
+	try: num = int(float(s))
+	except: num = 0
+	return num
+
 def cstr(s):
 	if isinstance(s, unicode):
 		return s
@@ -359,20 +334,6 @@ def cstr(s):
 		return unicode(s, 'utf-8')
 	else:
 		return unicode(s)
-
-def str_esc_quote(s):
-	"""
-	Escape quotes
-	"""
-	if s==None:return ''
-	return s.replace("'","\'")
-
-def replace_newlines(s):
-	"""
-	Replace newlines by '<br>'
-	"""
-	if s==None:return ''
-	return s.replace("\n","<br>")
 
 def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
@@ -388,22 +349,16 @@ def encode(obj, encoding="utf-8"):
 	else:
 		return obj
 
-# ==============================================================================
-
 def parse_val(v):
-	"""
-	Converts to simple datatypes from SQL query results
-	"""
+	"""Converts to simple datatypes from SQL query results"""
 	import datetime
 	
-	if type(v)==datetime.date:
-		v = str(v)
-	elif type(v)==datetime.timedelta:
-		v = ':'.join(str(v).split(':')[:2])
-	elif type(v)==datetime.datetime:
-		v = str(v)
-	elif type(v)==long: v=int(v)
-
+	if isinstance(v, (datetime.date, datetime.datetime)):
+		v = unicode(v)
+	elif isinstance(v, datetime.timedelta):
+		v = ":".join(unicode(v).split(":")[:2])
+	elif isinstance(v, long):
+		v = int(v)
 	return v
 
 def fmt_money(amount, precision=2):
@@ -541,36 +496,6 @@ def set_default(key, val):
 	Set / add a default value to :term:`Control Panel`
 	"""
 	return webnotes.conn.set_default(key, val)
-
-#
-# Clear recycle bin
-#
-def clear_recycle_bin():
-	sql = webnotes.conn.sql
-	
-	tl = sql('show tables')
-	total_deleted = 0
-	for t in tl:
-		fl = [i[0] for i in sql('desc `%s`' % t[0])]
-		
-		if 'name' in fl:
-			total_deleted += sql("select count(*) from `%s` where name like '__overwritten:%%'" % t[0])[0][0]
-			sql("delete from `%s` where name like '__overwritten:%%'" % t[0])
-
-		if 'parent' in fl:	
-			total_deleted += sql("select count(*) from `%s` where parent like '__oldparent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like '__oldparent:%%'" % t[0])
-	
-			total_deleted += sql("select count(*) from `%s` where parent like 'oldparent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like 'oldparent:%%'" % t[0])
-
-			total_deleted += sql("select count(*) from `%s` where parent like 'old_parent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like 'old_parent:%%'" % t[0])
-
-	return "%s records deleted" % str(int(total_deleted))
-
-# Dictionary utils
-# ==============================================================================
 
 def remove_blanks(d):
 	"""
