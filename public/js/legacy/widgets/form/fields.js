@@ -564,15 +564,16 @@ LinkField.prototype.make_input = function() {
 		me.txt.name = me.df.fieldname;
 		me.setdisabled = function(tf) { me.txt.disabled = tf; }
 			
-		me.onrefresh = function() {
-			$(me.btn2).toggle(me.can_create)
-			$(me.btn1).toggle(me.df.options=='[Select]');
-		}		
 		// setup buttons
 		me.setup_buttons();
-		me.onrefresh();
 	}
 
+	me.onrefresh = function() {
+		$(me.btn2).toggle(in_list(wn.boot.profile.can_create, me.df.options))
+		$(me.btn1).toggle(me.df.options=='[Select]');
+	}
+
+	me.onrefresh();
 
 	me.txt.field_object = this;		
 	// set onchange triggers

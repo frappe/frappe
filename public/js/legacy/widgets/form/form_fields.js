@@ -279,12 +279,13 @@ _f.CodeField.prototype.make_input = function() {
 			height: '360px',
 	
 			// buttons
-			theme_advanced_buttons1 : "bold,italic,underline,strikethrough,hr,|,justifyleft,justifycenter,justifyright,|,formatselect,fontselect,fontsizeselect,|,image",
-			theme_advanced_buttons2 : "bullist,numlist,|,outdent,indent,|,undo,redo,|,link,unlink,code,|,forecolor,backcolor,|,tablecontrols",
+			theme_advanced_buttons1 : "bold,italic,underline,strikethrough,hr,|,justifyleft,justifycenter,|,formatselect,fontsizeselect,|,bullist,numlist,|,outdent,indent,|,link,unlink,|,forecolor,backcolor,",
+			theme_advanced_buttons2 : "",
 			theme_advanced_buttons3 : "",
 
 			theme_advanced_toolbar_location : "top",
 			theme_advanced_toolbar_align : "left",
+			theme_advanced_statusbar_location: "none",
 			theme_advanced_path: false,
 
 			content_css: "lib/js/lib/tiny_mce_3.5.7/custom_content.css?q=1",

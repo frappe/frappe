@@ -86,6 +86,16 @@ wn.model = {
 		}
 	},
 
+	get_server_module_name: function(doctype) {
+		var dt = wn.model.scrub(doctype)
+		return wn.model.scrub(locals.DocType[doctype].module)
+			+ '.doctype.' + dt + '.' + dt;
+	},
+	
+	scrub: function(txt) {
+		return txt.replace(/ /g, "_").toLowerCase();
+	},
+
 	can_delete: function(doctype) {
 		if(!doctype) return false;
 		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;

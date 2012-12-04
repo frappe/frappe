@@ -42,7 +42,11 @@ $c_get_values = function(args, doc, dt, dn, user_callback) {
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	if(!allow_edit) wn.dom.freeze();
-	$c('runserverobj', args={'method':method, 'docs':compress_doclist(make_doclist(doc.doctype, doc.name)), 'arg':arg},
+	$c('runserverobj', 
+		args={'method':method, 
+				'docs':compress_doclist(make_doclist(doc.doctype, doc.name)), 
+				'arg':arg
+			},
 	function(r, rt) {
 		if (r.message)  {
 			var d = locals[dt][dn];
@@ -62,6 +66,7 @@ get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, 
     }
   );
 }
+
 
 set_multiple = function (dt, dn, dict, table_field) {
 	var d = locals[dt][dn];
@@ -217,16 +222,42 @@ _f.Frm.prototype.get_files = function() {
 	});
 }
 
+_f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
+	var func = (typeof opt1=="function") ? opt1 : opt2;
+	if(opt2) {
+		this.fields_dict[opt1].grid.get_field(fieldname).get_query = func;
+	} else {
+		this.fields_dict[fieldname].get_query = func;
+	}
+}
+
 _f.Frm.prototype.set_value = function(field, value) {
-	cur_frm.doc[field] = value;
-	cur_frm.fields_dict[field].refresh();
+	var me = this;
+	var _set = function(f, v) {
+		me.doc[f] = v;
+		me.fields_dict[f].refresh();		
+	}
+	if(typeof field=="string") {
+		_set(field, value)
+	} else {
+		$.each(field, function(f, v) {
+			_set(f, v);
+		})
+	}
 }
 
 _f.Frm.prototype.call = function(opts) {
-	wn.call({
-		doc: cur_frm.doc,
-		method: opts.method,
-		args: opts.args,
-		callback: opts.callback
-	});
+	var me = this;
+	if(!opts.doc) {
+		opts.method = wn.model.get_server_module_name(me.doctype) + "." + opts.method; 
+		opts.original_callback = opts.callback;
+		opts.callback = function(r) {
+			if(typeof (r.message || "")=="object") {
+				me.set_value(r.message);
+			}
+			opts.original_callback && opts.original_callback(r);
+		}
+	}
+	wn.call(opts);
 }
+
