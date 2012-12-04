@@ -209,6 +209,7 @@ wn.ui.Filter = Class.extend({
 		f.df.single_select = 1;
 		f.not_in_form = 1;
 		f.with_label = 0;
+		f.in_filter = 1;
 		f.refresh();
 		me.field = f;
 		

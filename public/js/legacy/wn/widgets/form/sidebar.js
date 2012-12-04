@@ -93,7 +93,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						type: 'link',
 						label: 'Linked With',
 						display: function() { 
-							return !me.form.doc.__islocal;
+							return !me.form.doc.__islocal && !me.form.meta.issingle;
 						},
 						icon: 'icon-random',
 						onclick: function() { 
