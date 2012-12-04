@@ -30,6 +30,8 @@ import webnotes.model.meta
 
 from webnotes.utils import *
 
+valid_fields_map = {}
+
 class Document:
 	"""
 	   The wn(meta-data)framework equivalent of a Database Record.
@@ -72,6 +74,10 @@ class Document:
 		self._user_defaults = {}
 		self._prefix = prefix
 		
+		if isinstance(doctype, dict):
+			fielddata = doctype
+			doctype = None
+		
 		if fielddata: 
 			self.fields = webnotes.DictObj(fielddata)
 		else: 
@@ -80,9 +86,9 @@ class Document:
 		if not self.fields.has_key('name'):
 			self.fields['name']='' # required on save
 		if not self.fields.has_key('doctype'):
-			self.fields['doctype']='' # required on save			
+			self.fields['doctype']='' # required on save
 		if not self.fields.has_key('owner'):
-			self.fields['owner']='' # required on save			
+			self.fields['owner']='' # required on save
 
 		if doctype:
 			self.fields['doctype'] = doctype
@@ -290,10 +296,11 @@ class Document:
 				self.owner = webnotes.session['user']
 			self.modified_by = webnotes.session['user']
 			self.creation = self.modified = now()
-
-		webnotes.conn.sql("""insert into `tab%(doctype)s` (name, owner, creation, modified, modified_by) 
-		values ('%(name)s', '%(owner)s', '%(creation)s', '%(modified)s', '%(modified_by)s')""" % self.fields)
-
+			
+		webnotes.conn.sql("insert into `tab%(doctype)s`" % self.fields \
+			+ """ (name, owner, creation, modified, modified_by)
+			values (%(name)s, %(owner)s, %(creation)s, %(modified)s,
+				%(modified_by)s)""", self.fields)
 
 	# Update Values
 	# ---------------------------------------------------------------------------
@@ -357,7 +364,7 @@ class Document:
 		tmp = webnotes.conn.sql("""SELECT name FROM `tab%s` 
 			WHERE name = %s""" % (dt, '%s'), dn)
 		return tmp and tmp[0][0] or ''# match case
-		
+	
 	def _update_values(self, issingle, link_list, ignore_fields=0, keep_timestamps=False):
 		if issingle:
 			self._update_single(link_list)
@@ -367,44 +374,59 @@ class Document:
 			if self.modified and not keep_timestamps:
 				self.modified = now()
 				self.modified_by = webnotes.session['user']
-			for f in self.fields.keys():
-				if (not (f in ('doctype', 'name', 'perm', 'localname', 'creation','_user_tags'))) \
-					and (not f.startswith('__')): # fields not saved
+			
+			fields_list = ignore_fields and self.get_valid_fields() or self.fields.keys()
+			
+			for f in fields_list:
+				if (not (f in ('doctype', 'name', 'perm', 'localname',
+						'creation','_user_tags'))) and (not f.startswith('__')): 
+						# fields not saved
 					
 					# validate links
 					if link_list and link_list.get(f):
-						self.fields[f] = self._validate_link(link_list[f][0], self.fields[f])
+						self.fields[f] = self._validate_link(link_list[f][0],
+							self.fields.get(f))
 
-					if self.fields[f]==None or self.fields[f]=='':
+					if self.fields.get(f) is None or self.fields.get(f)=='':
 						update_str.append("`%s`=NULL" % f)
-						if ignore_fields:
-							try: r = webnotes.conn.sql("update `tab%s` set `%s`=NULL where name=%s" % (self.doctype, f, '%s'), self.name)
-							except: pass
 					else:
-						values.append(self.fields[f])
+						values.append(self.fields.get(f))
 						update_str.append("`%s`=%s" % (f, '%s'))
-						if ignore_fields:
-							try: r = webnotes.conn.sql("update `tab%s` set `%s`=%s where name=%s" % (self.doctype, f, '%s', '%s'), (self.fields[f], self.name))
-							except: pass
 			if values:
-				if not ignore_fields:
-					# update all in one query
-					r = webnotes.conn.sql("update `tab%s` set %s where name='%s'" % (self.doctype, ', '.join(update_str), self.name), values)
-
+				values.append(self.name)
+				r = webnotes.conn.sql("update `tab%s` set %s where name=%s" % \
+					(self.doctype, ', '.join(update_str), "%s"), values)
+					
+	def get_valid_fields(self):
+		global valid_fields_map
+		if not valid_fields_map.get(self.doctype):
+			import webnotes.model.doctype
+			if cint(webnotes.conn.get_value("DocType", self.doctype, "issingle")):
+				doctypelist = webnotes.model.doctype.get(self.doctype)
+				valid_fields_map[self.doctype] = doctypelist.get_fieldnames({
+					"fieldtype": ["not in", webnotes.model.no_value_fields]})
+			else:
+				valid_fields_map[self.doctype] = \
+					webnotes.conn.get_table_columns(self.doctype)
+			
+		return valid_fields_map.get(self.doctype)
+	
 	# Save values
 	# ---------------------------------------------------------------------------
 	
-	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname = 1, 
-		keep_timestamps=False):
+	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname=1,
+			keep_timestamps=False):
 		"""
-	      Saves the current record in the database. If new = 1, creates a new instance of the record.
-	      Also clears temperory fields starting with `__`
-	      
-	      * if check_links is set, it validates all `Link` fields
-	      * if ignore_fields is sets, it does not throw an exception for any field that does not exist in the 
-		database table
-		"""	
-		res = webnotes.model.meta.get_dt_values(self.doctype, 'autoname, issingle, istable, name_case', as_dict=1)
+			Saves the current record in the database. 
+			If new = 1, creates a new instance of the record.
+			Also clears temperory fields starting with `__`
+
+			* if check_links is set, it validates all `Link` fields
+			* if ignore_fields is sets, it does not throw an exception 
+				for any field that does not exist in the database table
+		"""
+		res = webnotes.model.meta.get_dt_values(self.doctype,
+			'autoname, issingle, istable, name_case', as_dict=1)
 		res = res and res[0] or {}
 
 		# add missing parentinfo (if reqd)
@@ -422,7 +444,9 @@ class Document:
 				return r
 				
 		# save the values
-		self._update_values(res.get('issingle'), check_links and self.make_link_list() or {}, ignore_fields, keep_timestamps = keep_timestamps)
+		self._update_values(res.get('issingle'), 
+			check_links and self.make_link_list() or {}, ignore_fields=ignore_fields,
+			keep_timestamps=keep_timestamps)
 		self._clear_temp_fields()
 
 	def update_parentinfo(self):
