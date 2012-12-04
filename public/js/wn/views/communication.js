@@ -223,8 +223,13 @@ wn.views.CommunicationComposer = Class.extend({
 			signature = signature.replace(/\n/g, "<br>");
 		}
 		
+		if(this.real_name) {
+			this.message = '<p>Dear ' + this.real_name + ",</p>" + (this.message || "");
+		}
+		
 		if(comm_list.length > 0) {
-			fields.content.input.set_input("<p></p>"
+			fields.content.input.set_input((this.message || "") + 
+				"<p></p>"
 				+ signature
 				+"<p></p>"
 				+"-----In response to-----<p></p>" 
