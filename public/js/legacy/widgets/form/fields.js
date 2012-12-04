@@ -674,7 +674,7 @@ LinkField.prototype.setup_buttons = function() {
 			new_doc(me.df.options); 
 		}
 	} else {
-		$dh(me.btn2); $y($td(me.tab,0,2), {width:'0px'});
+		$dh(me.btn2);
 	}
 }
 
