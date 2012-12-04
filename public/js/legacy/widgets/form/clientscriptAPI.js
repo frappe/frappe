@@ -221,3 +221,12 @@ _f.Frm.prototype.set_value = function(field, value) {
 	cur_frm.doc[field] = value;
 	cur_frm.fields_dict[field].refresh();
 }
+
+_f.Frm.prototype.call = function(opts) {
+	wn.call({
+		doc: cur_frm.doc,
+		method: opts.method,
+		args: opts.args,
+		callback: opts.callback
+	});
+}
