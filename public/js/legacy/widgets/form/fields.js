@@ -991,7 +991,7 @@ SelectField.prototype.make_input = function() {
 	}
 	
 	// refresh options list
-	this.refresh_options = function(options) {		
+	this.refresh_options = function(options) {
 		if(options)
 			me.df.options = options;
 
@@ -999,7 +999,7 @@ SelectField.prototype.make_input = function() {
 			this.set_attach_options();
 		
 		if(typeof me.df.options=="object")
-			me.options_list = me.df.options
+			me.options_list = me.df.options || [""];
 		else
 			me.options_list = me.df.options?me.df.options.split('\n'):[''];
 		

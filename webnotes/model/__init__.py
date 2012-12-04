@@ -164,36 +164,6 @@ def get_link_fields(dt):
 	link_fields = [[lf['parent'], lf['fieldname']] for lf in link_fields]
 	return link_fields
 	
-#=================================================================================
-
-def clear_recycle_bin():
-	"""
-		Clears temporary records that have been deleted
-	"""
-	sql = webnotes.conn.sql
-
-	tl = sql('show tables')
-	total_deleted = 0
-	for t in tl:
-		fl = [i[0] for i in sql('desc `%s`' % t[0])]
-		
-		if 'name' in fl:
-			total_deleted += sql("select count(*) from `%s` where name like '__overwritten:%%'" % t[0])[0][0]
-			sql("delete from `%s` where name like '__overwritten:%%'" % t[0])
-
-		if 'parent' in fl:	
-			total_deleted += sql("select count(*) from `%s` where parent like '__oldparent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like '__oldparent:%%'" % t[0])
-	
-			total_deleted += sql("select count(*) from `%s` where parent like 'oldparent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like 'oldparent:%%'" % t[0])
-
-			total_deleted += sql("select count(*) from `%s` where parent like 'old_parent:%%'" % t[0])[0][0]
-			sql("delete from `%s` where parent like 'old_parent:%%'" % t[0])
-
-	webnotes.msgprint("%s records deleted" % str(int(total_deleted)))
-	
-	
 # Make Table Copy
 #=================================================================================
 

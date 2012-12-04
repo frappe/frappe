@@ -312,3 +312,8 @@ def peval_doclist(txt):
 		return eval(txt)
 
 	return uncommonify_doclist(eval(txt))
+
+def round_doc(doc, precision_map):
+	from webnotes.utils import flt
+	for fieldname, precision in precision_map.items():
+		doc.fields[fieldname] = flt(doc.fields.get(fieldname), precision)

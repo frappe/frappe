@@ -246,6 +246,7 @@ Meta.make_local_dt = function(dt, dn) {
 		if(d.doctype=='DocField') {
 			var key = d.fieldname ? d.fieldname : d.label; 
 			local_dt[dt][dn][key] = copy_dict(d);
+			local_dt[dt][dn][key].__copy = true;
 		}
 	}
 }

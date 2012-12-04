@@ -401,6 +401,9 @@ class Database:
 						(dt['doctype'], " and ".join(conditions)))
 			except:
 				return None
+				
+	def get_table_columns(self, doctype):
+		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
 
 	# ======================================================================================
 	def close(self):
