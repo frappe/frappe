@@ -162,7 +162,7 @@ Field.prototype.get_status = function() {
 	}
 	
 	if(cur_frm.editable && a_o_s && cint(cur_frm.doc.docstatus)>0 && !this.df.hidden) {
-		tmp_perm = get_perm(cur_frm.doctype, cur_frm.docname, 1);
+		tmp_perm = wn.perm.get_perm(cur_frm.doctype, cur_frm.docname, 1);
 		if(tmp_perm[this.df.permlevel] && tmp_perm[this.df.permlevel][WRITE]) {
 			ret='Write';
 		}

@@ -240,7 +240,7 @@ wn.ui.Filter = Class.extend({
 		if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
-		} else if(['Text','Text Editor','Code','Link'].indexOf(df.fieldtype)!=-1) {
+		} else if(['Text','Small Text','Text Editor','Code','Tags'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';				
 		}
 	},
@@ -319,15 +319,17 @@ wn.ui.FieldSelect = Class.extend({
 
 		// main table
 		$.each(std_filters.concat(wn.meta.docfield_list[me.doctype]), function(i, df) {
-			me.add_field_option(df);
+			if(wn.perm.has_perm(me.doctype, df.permlevel, READ))
+				me.add_field_option(df);
 		});
 
 		// child tables
 		$.each(me.table_fields, function(i,table_df) {
 			if(table_df.options) {
 				$.each(wn.meta.docfield_list[table_df.options], function(i, df) {
-					me.add_field_option(df);
-				});				
+					if(wn.perm.has_perm(me.doctype, df.permlevel, READ))
+						me.add_field_option(df);
+				});
 			}
 		});
 	},

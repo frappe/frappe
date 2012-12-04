@@ -1,178 +1,136 @@
-# DocType, Property Setter
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-10-23 11:37:34',
-		u'docstatus': 0,
-		u'modified': '2012-11-17 16:11:48',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'allow_print': 0,
-		'allow_trash': 1,
-		'autoname': u"eval:doc.select_doctype + '-' + (doc.select_item or doc.field_name) + '-' + doc.property",
-		'colour': u'White:FFF',
-		'description': u'Property Setter overrides a standard DocType or Field property',
-		u'doctype': u'DocType',
-		'module': u'Core',
-		u'name': u'__common__',
-		'search_fields': u'doc_name,property',
-		'section_style': u'Simple',
-		'show_in_menu': 0,
-		'subject': u'<b>%(property)s</b> property of %(doc_type)s %(doc_name)s',
-		'tag_fields': u'property',
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		u'name': u'__common__',
-		'parent': u'Property Setter',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'cancel': 1,
-		'create': 1,
-		u'doctype': u'DocPerm',
-		u'name': u'__common__',
-		'parent': u'Property Setter',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1,
-		'write': 1
-	},
-
-	# DocType, Property Setter
-	{
-		u'doctype': u'DocType',
-		u'name': u'Property Setter'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'help',
-		'fieldtype': u'HTML',
-		'label': u'Help',
-		'options': u'<div class="alert">Please don\'t update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'sb0',
-		'fieldtype': u'Section Break'
-	},
-
-	# DocField
-	{
-		'depends_on': u'eval:doc.__islocal',
-		u'doctype': u'DocField',
-		'fieldname': u'doctype_or_field',
-		'fieldtype': u'Select',
-		'label': u'DocType or Field',
-		'no_column': 0,
-		'options': u'\nDocField\nDocType',
-		'reqd': 1
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'description': u'New value to be set',
-		u'doctype': u'DocField',
-		'fieldname': u'value',
-		'fieldtype': u'Text',
-		'label': u'Set Value'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'column_break0',
-		'fieldtype': u'Column Break',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		u'doctype': u'DocField',
-		'fieldname': u'doc_type',
-		'fieldtype': u'Link',
-		'in_filter': 0,
-		'label': u'DocType',
-		'no_column': 0,
-		'options': u'DocType',
-		'reqd': 0,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'depends_on': u"eval:doc.doctype_or_field=='DocField'",
-		'description': u'ID (name) of the entity whose property is to be set',
-		u'doctype': u'DocField',
-		'fieldname': u'field_name',
-		'fieldtype': u'Data',
-		'in_filter': 0,
-		'label': u'Field Name',
-		'reqd': 0,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		u'doctype': u'DocField',
-		'fieldname': u'property',
-		'fieldtype': u'Data',
-		'in_filter': 0,
-		'label': u'Property',
-		'reqd': 1,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		u'doctype': u'DocField',
-		'fieldname': u'property_type',
-		'fieldtype': u'Data',
-		'label': u'Property Type',
-		'no_column': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		u'doctype': u'DocField',
-		'fieldname': u'default_value',
-		'fieldtype': u'Data',
-		'label': u'Default Value',
-		'no_column': 0
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm',
-		'role': u'Administrator'
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm',
-		'role': u'System Manager'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-10-23 11:37:34", 
+  "modified_by": "Administrator", 
+  "modified": "2012-12-04 13:07:26"
+ }, 
+ {
+  "autoname": "eval:doc.doc_type + '-' + (doc.select_item or doc.field_name) + '-' + doc.property", 
+  "description": "Property Setter overrides a standard DocType or Field property", 
+  "allow_print": 0, 
+  "search_fields": "doc_name,property", 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "name": "__common__"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Property Setter", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Property Setter", 
+  "read": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "cancel": 1, 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Property Setter", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Help", 
+  "fieldname": "help", 
+  "fieldtype": "HTML", 
+  "options": "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "sb0", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "depends_on": "eval:doc.__islocal", 
+  "doctype": "DocField", 
+  "label": "DocType or Field", 
+  "fieldname": "doctype_or_field", 
+  "fieldtype": "Select", 
+  "no_column": 0, 
+  "reqd": 1, 
+  "options": "\nDocField\nDocType"
+ }, 
+ {
+  "description": "New value to be set", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Set Value", 
+  "fieldname": "value", 
+  "fieldtype": "Text"
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "fieldname": "column_break0", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "search_index": 1, 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "DocType", 
+  "fieldname": "doc_type", 
+  "fieldtype": "Link", 
+  "no_column": 0, 
+  "reqd": 0, 
+  "options": "DocType", 
+  "in_filter": 0
+ }, 
+ {
+  "description": "ID (name) of the entity whose property is to be set", 
+  "depends_on": "eval:doc.doctype_or_field=='DocField'", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Field Name", 
+  "fieldname": "field_name", 
+  "fieldtype": "Data", 
+  "search_index": 1, 
+  "reqd": 0, 
+  "in_filter": 0
+ }, 
+ {
+  "search_index": 1, 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Property", 
+  "fieldname": "property", 
+  "fieldtype": "Data", 
+  "reqd": 1, 
+  "in_filter": 0
+ }, 
+ {
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Property Type", 
+  "fieldname": "property_type", 
+  "fieldtype": "Data", 
+  "no_column": 0
+ }, 
+ {
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Default Value", 
+  "fieldname": "default_value", 
+  "fieldtype": "Data", 
+  "no_column": 0
+ }, 
+ {
+  "role": "Administrator", 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "role": "System Manager", 
+  "doctype": "DocPerm"
+ }
 ]

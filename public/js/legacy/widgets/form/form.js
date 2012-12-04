@@ -254,7 +254,7 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 
 _f.Frm.prototype.setup_meta = function(doctype) {
 	this.meta = get_local('DocType',this.doctype);
-	this.perm = get_perm(this.doctype); // for create
+	this.perm = wn.perm.get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
 	this.setup_print();
 }
@@ -492,8 +492,8 @@ _f.Frm.prototype.check_doc_perm = function() {
 	// get perm
 	var dt = this.parent_doctype?this.parent_doctype : this.doctype;
 	var dn = this.parent_docname?this.parent_docname : this.docname;
-	this.perm = get_perm(dt, dn);
-	this.orig_perm = get_perm(dt, dn, 1);
+	this.perm = wn.perm.get_perm(dt, dn);
+	this.orig_perm = wn.perm.get_perm(dt, dn, 1);
 				  
 	if(!this.perm[0][READ]) { 
 		if(user=='Guest') {

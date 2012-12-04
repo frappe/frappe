@@ -565,7 +565,7 @@ _r.ReportBuilder.prototype.set_sort_options = function(l) {
 // -------------------------------------------------------------------------------------
 
 _r.ReportBuilder.prototype.validate_permissions = function(onload) {
-	this.perm = get_perm(this.parent_dt ? this.parent_dt : this.doctype);
+	this.perm = wn.perm.get_perm(this.parent_dt ? this.parent_dt : this.doctype);
 	if(!this.perm[0][READ]) {
 		this.forbidden = 1;
 		if(user=='Guest') {
