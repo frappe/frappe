@@ -26,6 +26,18 @@ import webnotes
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+
+	def validate(self):
+		"""delete other property setters on this, if this is new"""
+		if self.doc.fields['__islocal']:
+			webnotes.conn.sql("""delete from `tabProperty Setter` where
+				doctype_or_field = %(doctype_or_field)s
+				and doc_type = %(doc_type)s
+				and ifnull(field_name,'') = ifnull(%(field_name)s, '')
+				and property = %(property)s""", self.doc.fields)
+				
+		# clear cache
+		webnotes.clear_cache(doctype = self.doc.doc_type)
 	
 	def get_property_list(self, dt):
 		return webnotes.conn.sql("""select fieldname, label, fieldtype 

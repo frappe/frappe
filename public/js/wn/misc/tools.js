@@ -71,6 +71,30 @@ wn.slickgrid_tools = {
 			}
 		}
 		return [col_row].concat(res);
-			
-	}
+	},
+	add_property_setter_on_resize: function(grid) {
+		grid.onColumnsResized.subscribe(function(e, args) {
+			$.each(grid.getColumns(), function(i, col) {
+				if(col.docfield && col.previousWidth != col.width && 
+					!in_list(wn.model.std_fields_list, col.docfield.fieldname) ) {
+					wn.call({
+						method:"webnotes.client.make_width_property_setter",
+						args: {
+							doclist: [{
+								doctype:'Property Setter',
+								doctype_or_field: 'DocField',
+								doc_type: col.docfield.parent,
+								field_name: col.docfield.fieldname,
+								property: 'width',
+								value: col.width,
+								"__islocal": 1		
+							}]
+						}
+					})
+					col.previousWidth = col.width;
+					col.docfield.width = col.width;
+				}
+			});
+		});
+	}	
 }
