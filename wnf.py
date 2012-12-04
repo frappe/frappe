@@ -115,6 +115,12 @@ def patch_sync():
 	
 	sync_all()
 	
+	clear_cache()
+	
+def clear_cache():
+	import webnotes.sessions
+	webnotes.sessions.clear_cache()
+	
 def append_future_import():
 	"""appends from __future__ import unicode_literals to py files if necessary"""
 	import os
@@ -168,6 +174,8 @@ def setup_options():
 						
 	parser.add_option("--build_web_cache", default=False, action="store_true",
 						help="build web cache")
+	parser.add_option("--clear_cache", default=False, action="store_true",
+						help="clear cache")
 
 	parser.add_option("--domain", metavar="DOMAIN",
 						help="store domain in Website Settings", nargs=1)
@@ -409,6 +417,9 @@ def run():
 		
 		import website.web_cache
 		website.web_cache.refresh_cache(['Blog'])
+		
+	elif options.clear_cache:
+		clear_cache()
 		
 	elif options.append_future_import:
 		append_future_import()
