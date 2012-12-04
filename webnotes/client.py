@@ -38,3 +38,15 @@ def save():
 	doclistobj.save()
 	
 	return [d.fields for d in doclist]
+	
+@webnotes.whitelist()
+def set_default(key, value, parent=None):
+	"""set a user default value"""
+	webnotes.conn.set_default(key, value, parent or webnotes.session.user)
+	webnotes.clear_cache(user=webnotes.session.user)
+
+@webnotes.whitelist()
+def make_width_property_setter():
+	doclist = json.loads(webnotes.form_dict.doclist)
+	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
+		webnotes.model_wrapper(doclist).save()

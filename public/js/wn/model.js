@@ -26,6 +26,8 @@ wn.model = {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 
  	'Button', 'Image'],
 
+	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
+		'_user_tags', 'docstatus', 'parent', 'parenttype', 'parentfield', 'idx'],
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:'ID'},
 		{fieldname:'owner', fieldtype:'Data', label:'Created By'},

@@ -6,18 +6,18 @@ wn.views.ReportViewPage = Class.extend({
 		this.make_page();
 
 		var me = this;
-		wn.model.with_doctype(doctype, function() {
+		wn.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
-			if(docname) {
-				wn.model.with_doc('Report', docname, function(r) {
-					me.reportview.set_columns_and_filters(JSON.parse(locals['Report'][docname].json));
-					me.reportview.run();
+			if(me.docname) {
+				wn.model.with_doc('Report', me.docname, function(r) {
+					me.page.reportview.set_columns_and_filters(
+						JSON.parse(wn.model.get("Report", me.docname)[0].json));
+					me.page.reportview.run();
 				});
 			} else {
-				me.reportview.run();
+				me.page.reportview.run();
 			}
 		});
-
 	},
 	make_page: function() {
 		this.page = wn.container.add_page(this.page_name);
@@ -26,8 +26,17 @@ wn.views.ReportViewPage = Class.extend({
 		wn.container.change_to(this.page_name);
 	},
 	make_report_view: function() {
-		this.page.appframe.add_module_tab(locals.DocType[this.doctype].module);			
-		this.reportview = new wn.views.ReportView(this.doctype, this.docname, this.page)
+		var module = locals.DocType[this.doctype].module;
+		this.page.appframe.set_title(this.doctype);
+		this.page.appframe.set_marker(module);
+		this.page.appframe.add_module_tab(module);
+
+		this.page.reportview = new wn.views.ReportView({
+			doctype: this.doctype, 
+			docname: this.docname, 
+			page: this.page,
+			wrapper: $(this.page).find(".layout-main")
+		});
 	}
 })
 
@@ -36,9 +45,8 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		var me = this;
 		$(page).find('.layout-main').html('Loading Report...');
 		$(page).find('.layout-main').empty();
-		this.doctype = doctype;
-		this.docname = docname;
-		this.page = page;
+		$.extend(this, opts);
+		this.can_delete = wn.model.can_delete(me.doctype);
 		this.tab_name = '`tab'+doctype+'`';
 		this.setup();
 	},
@@ -53,6 +61,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		});
 		this.columns = columns;
 	},
+
 	setup: function() {
 		var me = this;
 		this.page_title = 'Report: ' + (this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
@@ -68,11 +77,29 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			new_doctype: this.doctype,
 			allow_delete: true,
 		});
+		this.make_delete();
 		this.make_column_picker();
 		this.make_sorter();
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
+		this.set_tag_and_status_filter();
+	},
+
+	set_init_columns: function() {
+		// pre-select mandatory columns
+		var columns = wn.user.get_default("_list_settings:" + this.doctype);
+		if(!columns) {
+			var columns = [['name', this.doctype],];
+			$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
+				if(df.in_filter && df.fieldname!='naming_series'
+					&& !in_list(no_value_fields, df.fieldname)) {
+					columns.push([df.fieldname, df.parent]);
+				}
+			});
+		}
+		
+		this.columns = columns;
 	},
 	
 	// preset columns and filters from saved info
@@ -157,25 +184,67 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	// render data
 	render_list: function() {
 		var me = this;
-		//this.gridid = wn.dom.set_unique_id()
-		var columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40}].concat(this.build_columns());
+		var columns = this.get_columns();
 
 		// add sr in data
 		$.each(this.data, function(i, v) {
 			// add index
 			v._idx = i+1;
+			v.id = v._idx;
 		});
 
 		var options = {
 			enableCellNavigation: true,
-			enableColumnReorder: false
+			enableColumnReorder: false,
 		};
+
+		if(this.slickgrid_options) {
+			$.extend(options, this.slickgrid_options);
+		}
+
+		this.col_defs = columns;
+		this.dataView = new Slick.Data.DataView();
+		this.set_data(this.data);
+
+		var grid_wrapper = this.$w.find('.result-list');
+
+		// set height if not auto
+		if(!options.autoHeight) 
+			grid_wrapper.css('height', '500px');
 		
-		var grid = new Slick.Grid(this.$w.find('.result-list')
-			.css('border', '1px solid grey')
-			.css('height', '500px')
-			.get(0), this.data, 
+		this.grid = new Slick.Grid(grid_wrapper
+			.css('border', '1px solid #ccc')
+			.css('border-top', '0px')
+			.get(0), this.dataView, 
 			columns, options);
+
+			wn.slickgrid_tools.add_property_setter_on_resize(this.grid);
+			if(this.start!=0 && !options.autoHeight) {
+				this.grid.scrollRowIntoView(this.data.length-1);
+			}		
+	},
+	
+	set_data: function() {
+		this.dataView.beginUpdate();
+		this.dataView.setItems(this.data);
+		this.dataView.endUpdate();
+	},
+	
+	get_columns: function() {
+		var std_columns = [{id:'_idx', field:'_idx', name: 'Sr.', width: 40, maxWidth: 40}];
+		if(this.can_delete) {
+			std_columns = std_columns.concat([{
+				id:'_check', field:'_check', name: "", width: 30, maxWidth: 30, 
+					formatter: function(row, cell, value, columnDef, dataContext) {
+						return repl("<input type='checkbox' \
+							data-row='%(row)s' %(checked)s>", {
+								row: row,
+								checked: (dataContext._checked ? "checked" : "")
+							});
+					}
+			}])
+		}
+		return std_columns.concat(this.build_columns());		
 	},
 	
 	// setup column picker
@@ -186,7 +255,22 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			me.column_picker.show(me.columns);
 		}, 'icon-th-list');
 	},
-	
+
+	set_tag_and_status_filter: function() {
+		var me = this;
+		this.$w.find('.result-list').on("click", ".label-info", function() {
+			if($(this).attr("data-label")) {
+				me.set_filter("_user_tags", $(this).attr("data-label"));
+			}
+		});
+		this.$w.find('.result-list').on("click", "[data-workflow-state]", function() {
+			if($(this).attr("data-workflow-state")) {
+				me.set_filter(me.state_fieldname, 
+					$(this).attr("data-workflow-state"));
+			}
+		});
+	},
+		
 	// setup sorter
 	make_sorter: function() {
 		var me = this;
@@ -285,7 +369,44 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				});
 			}, 'icon-upload');
 		}
-	}
+	},
+
+	make_delete: function() {
+		var me = this;
+		if(this.can_delete) {
+			$(this.page).on("click", "input[type='checkbox'][data-row]", function() {
+				me.data[$(this).attr("data-row")]._checked 
+					= this.checked ? true : false;
+			});
+			
+			this.page.appframe.add_button(wn._("Delete"), function() {
+				var delete_list = []
+				$.each(me.data, function(i, d) {
+					if(d._checked) {
+						if(d.name)
+							delete_list.push(d.name);
+					}
+				});
+				
+				if(!delete_list.length) 
+					return;
+				if(wn.confirm(wn._("This is PERMANENT action and you cannot undo. Continue?"),
+					function() {
+						wn.call({
+							method: 'webnotes.widgets.reportview.delete_items',
+							args: {
+								items: delete_list,
+								doctype: me.doctype
+							},
+							callback: function() {
+								me.refresh();
+							}
+						});
+					}));
+				
+			}, 'icon-remove');
+		}
+	},
 });
 
 wn.ui.ColumnPicker = Class.extend({
@@ -295,20 +416,20 @@ wn.ui.ColumnPicker = Class.extend({
 		this.selects = {};
 	},
 	show: function(columns) {
-		wn.require('lib/js/lib/jquery/jquery.ui.sortable.js');
+		wn.require('lib/js/lib/jquery/jquery.ui.interactions.min.js');
 		var me = this;
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
-				title: 'Pick Columns',
+				title: wn._("Pick Columns"),
 				width: '400'
 			});
 		}
-		$(this.dialog.body).html('<div class="help">Drag to sort columns</div>\
+		$(this.dialog.body).html('<div class="help">'+wn._("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
 			<div><button class="btn btn-small btn-add"><i class="icon-plus"></i>\
-				Add Column</button></div>\
+				'+wn._("Add Column")+'</button></div>\
 			<hr>\
-			<div><button class="btn btn-small btn-info">Update</div>');
+			<div><button class="btn btn-small btn-info">'+wn._("Update")+'</div>');
 		
 		// show existing	
 		$.each(columns, function(i, c) {
@@ -326,25 +447,32 @@ wn.ui.ColumnPicker = Class.extend({
 		$(this.dialog.body).find('.btn-info').click(function() {
 			me.dialog.hide();
 			// selected columns as list of [column_name, table_name]
-			me.list.columns = [];
+			var columns = [];
 			$(me.dialog.body).find('select').each(function() {
 				var $selected = $(this).find('option:selected');
-				me.list.columns.push([$selected.attr('fieldname'), 
+				columns.push([$selected.attr('fieldname'), 
 					$selected.attr('table')]);
-			})
+			});
+			wn.user.set_default("_list_settings:" + me.doctype, columns);
+			me.list.columns = columns;
 			me.list.run();
 		});
 		
 		this.dialog.show();
 	},
 	add_column: function(c) {
-		var w = $('<div style="padding: 5px 5px 5px 35px; background-color: #eee; width: 70%; \
-			margin-bottom: 10px; border-radius: 3px; cursor: move;">\
+		var w = $('<div style="padding: 5px; background-color: #eee; \
+			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;">\
+			<img src="lib/images/ui/drag-handle.png" style="margin-right: 10px;">\
 			<a class="close" style="margin-top: 5px;">&times</a>\
 			</div>')
 			.appendTo($(this.dialog.body).find('.column-list'));
+		
 		var fieldselect = new wn.ui.FieldSelect(w, this.doctype);
-		fieldselect.$select.css('width', '90%').val((c[1] || this.doctype) + "." + c[0]);
+		
+		fieldselect.$select
+			.css({width: '70%', 'margin-top':'5px'})
+			.val((c[1] || this.doctype) + "." + c[0]);
 		w.find('.close').click(function() {
 			$(this).parent().remove();
 		});

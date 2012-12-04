@@ -40,6 +40,30 @@ $.extend(wn.user, {
 				return true;
 		}
 	},
+	set_default: function(key, value, callback) {
+		if(typeof value=="string")
+			value = JSON.stringify(value);
+			
+		wn.boot.profile.defaults[key] = value;
+		wn.call({
+			method: "webnotes.client.set_default",
+			args: {
+				key: key,
+				value: value
+			},
+			callback: callback || function(r) {}
+		});
+	},
+	get_default: function(key) {
+		var value = wn.boot.profile.defaults[key];
+		if(value) {
+			try {
+				return JSON.parse(value)
+			} catch(e) {
+				return value;
+			}			
+		}
+	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	}
