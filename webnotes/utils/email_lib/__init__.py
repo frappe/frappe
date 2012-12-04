@@ -34,12 +34,6 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	get_email(recipients, sender, msg, subject).send()
 
 @webnotes.whitelist()
-def send_form():
-	"""Emails a print format (form). Called from form UI"""
-	from webnotes.utils.email_lib.form_email import FormEmail
-	FormEmail().send()
-
-@webnotes.whitelist()
 def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
 	cond = ['`%s` like "%s%%"' % (f, 
