@@ -160,7 +160,7 @@ wn.print.Table = Class.extend({
 	get_tables: function() {
 		if(this.tables.length > 1) {
 			return $.map(this.tables, function(t) {
-				t.get(0);
+				return t.get(0);
 			});
 		} else {
 			return this.tables[0].get(0);
