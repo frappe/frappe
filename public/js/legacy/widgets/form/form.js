@@ -132,6 +132,13 @@ _f.Frm.prototype.setup_print_layout = function() {
 	appframe.add_button("Print", function() {
 		me.print_doc();
 	}, 'icon-print');
+
+	this.$print_view_select = appframe.add_select("Select Preview", this.print_formats)
+		.css({"float":"right"})
+		.val(this.print_formats[0])
+		.change(function() {
+			me.refresh_print_layout();
+		})
 	
 	appframe.add_ripped_paper_effect(this.print_wrapper);
 	
@@ -421,7 +428,7 @@ _f.Frm.prototype.refresh_print_layout = function() {
 	}
 
 	// create print format here
-	_p.build(this.print_formats[0], print_callback, null, 1);
+	_p.build(this.$print_view_select.val(), print_callback, null, 1);
 }
 
 

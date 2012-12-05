@@ -289,21 +289,19 @@ $.extend(_p, {
 
 	// This is used to calculate and substitude values in the HTML
 	run_embedded_js: function(container, doc) {
-		var jslist = container.getElementsByTagName('script');
-		while(jslist && jslist.length > 0) {
-			for(i in jslist) {
-				if(jslist[i] && jslist[i].innerHTML) {
-					var code = jslist[i].innerHTML;
-					var parent = jslist[i].parentNode;
-					var span = $a(parent, 'span');
-					parent.replaceChild(span, jslist[i]);
-					var val = code ? eval(code) : '';
-					if(!val || typeof(val)=='object') { val = ''; }
-					span.innerHTML = val;
-				}
-			}
-			jslist = container.getElementsByTagName('script');
-		}
+		$(container).find("script").each(function(element) {
+			var code = this.innerHTML;
+			var new_html = code ? (eval(code) || "") : "";
+			if(typeof new_html=="string")
+				$(this).replaceWith(new_html);
+
+			// var parent = jslist[i].parentNode;
+			// var span = $a(parent, 'span');
+			// parent.replaceChild(span, jslist[i]);
+			// var val = code ? eval(code) : '';
+			// if(!val || typeof(val)=='object') { val = ''; }
+			// span.innerHTML = val;
+		})
 	},
 	
 	
@@ -645,190 +643,190 @@ $.extend(_p, {
 });
 
 
-print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier, hide_empty) {
-	var me = this;
-	$.extend(this, {
-		flist: (function() {
-			var f_list = [];
-			var fl = wn.meta.docfield_list[tabletype];
-			if(fl) {
-				for(var i=0; i<fl.length; i++) {
-					f_list.push(copy_dict(fl[i]));
-				}
-			}
-			return f_list;
-		})(),
-
-		data: function() {
-			var children = getchildren(
-				tabletype, // child_dt
-				dn, // parent
-				fieldname, // parentfield
-				dt // parenttype
-			);
-			var data = []
-			for(var i=0; i<children.length; i++) {
-				data.push(copy_dict(children[i]));
-			}
-			return data;
-		}(),
-		
-		cell_style: {
-			border: '1px solid #999',
-			padding: '3px',
-			verticalAlign: 'top'	
-		},
-		
-		head_cell_style: {
-			border: '1px solid #999',
-			padding: '3px',
-			verticalAlign: 'top',
-			backgroundColor: '#ddd',
-			fontWeight: 'bold'
-		},
-		
-		table_style: {
-			width: '100%',
-			borderCollapse: 'collapse',
-			marginBottom: '10px',
-			marginTop: '10px'		
-		},
-
-		remove_empty_cols: function(flist) {
-			var non_empty_cols = []
-			for(var i=0; i<me.data.length; i++) {
-				for(var c=0; c<flist.length; c++) {
-					if(flist[c].print_hide || !inList(['', null], me.data[i][flist[c].fieldname])) {
-						if(!inList(non_empty_cols, flist[c])) {
-							non_empty_cols.push(flist[c]);
-						}
-					}
-				}
-			}
-			for(var c=0; c<flist.length; c++) {
-				if(!inList(non_empty_cols, flist[c])) {
-					flist.splice(c, 1);
-					c = c - 1;
-				}
-			}
-		},
-		
-		/*
-			This function prepares a list of columns to be displayed and calls make_print_table to create a table with these columns
-		*/
-		prepare_col_heads: function(flist) {
-			var new_flist = [];
-
-			if(!cols || (cols && cols.length && hide_empty)) {
-				me.remove_empty_cols(flist);
-			}
-			
-			// Make a list of column headings
-			if(cols && cols.length) {
-				// If cols to be displayed are passed in print_table
-				if(cols[0] == 'SR') { new_flist.push('SR') }
-				for(var i = 0; i < cols.length; i++) {
-					for(var j = 0; j < flist.length; j++) {
-						if(flist[j].fieldname == cols[i]) {
-							new_flist.push(flist[j]);
-							break;
-						}
-					}
-				}			
-			} else {
-				// Default action: remove hidden cols
-				new_flist.push('SR');
-				for(var i = 0; i < flist.length; i++) {
-					if(!flist[i].print_hide) {
-						new_flist.push(flist[i]);
-					}
-				}			
-			}
-			
-			// Changing me.flist so that it could be used to hide data
-			me.flist = new_flist;
-		},
-		
-		// This function makes a new table with its heading rows
-		make_print_table: function(flist) {
-			// Make a table
-			var wrapper = document.createElement('div');
-			var table = $a(wrapper, 'table', '', me.table_style);
-			table.wrapper = wrapper;
-			
-			// Make Head Row
-			table.insertRow(0);
-			var col_start = 0;
-			
-			// If 'SR' exists in flist, then create its heading column cell
-			if(flist[0]=='SR') {
-				var cell = table.rows[0].insertCell(0);
-				cell.innerHTML = head_labels?head_labels[0]:'<b>SR</b>';
-				$y(cell, { width: '30px' });
-				$y(cell, me.head_cell_style);
-				col_start++;
-			}
-			
-			for(var c = col_start; c < flist.length; c++) {
-				var cell = table.rows[0].insertCell(c);
-				$y(cell, me.head_cell_style);
-				cell.innerHTML = head_labels?head_labels[c]:flist[c].label;
-				if(flist[c].width) { $y(cell, {width: flist[c].width}); }
-				if(widths) { $y(cell, {width: widths[c]}); }
-				if(in_list(['Currency', 'Float'], flist[c].fieldtype)) {
-					$y(cell, { textAlign: 'right' });
-				}
-			}
-			return table;
-		},
-		
-		// Populate table with data
-		populate_table: function(table, data) {
-			for(var r = 0; r < data.length; r++) {
-				if((!condition) || (condition(data[r]))) {
-					// Check for page break
-					if(data[r].page_break) {
-						table = me.make_print_table(me.flist);
-						me.table_list.push(table.wrapper);
-					}
-					
-					var row = table.insertRow(table.rows.length);
-					
-					// Add serial number if required
-					if(me.flist[0] == 'SR') {
-						var cell = row.insertCell(0);
-						cell.innerHTML = r + 1;
-						$y(cell, me.cell_style);
-					}
-					
-					for(var c=me.flist.indexOf('SR')+1; c<me.flist.length; c++){
-						var cell = row.insertCell(c);
-						$y(cell, me.cell_style);
-						if(modifier && me.flist[c].fieldname in modifier) {
-							data[r][me.flist[c].fieldname] = modifier[me.flist[c].fieldname](data[r]);
-						}
-						$s(cell, data[r][me.flist[c].fieldname],
-							me.flist[c].fieldtype);
-						if(in_list(['Currency', 'Float'], me.flist[c].fieldtype)) {
-							cell.style.textAlign = 'right';
-						}
-					}
-				}			
-			}
-		}
-	});	
-	
-	// If no data, do not create table
-	if(!this.data.length) { return document.createElement('div'); }
-	
-	this.prepare_col_heads(this.flist);
-
-	var table = me.make_print_table(this.flist);
-
-	this.table_list = [table.wrapper];
-
-	this.populate_table(table, this.data);
-
-	// If multiple tables exists, send whole list, else send only one table
-	return (me.table_list.length > 1) ? me.table_list : me.table_list[0];
-}
+// print_table = function(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier, hide_empty) {
+// 	var me = this;
+// 	$.extend(this, {
+// 		flist: (function() {
+// 			var f_list = [];
+// 			var fl = wn.meta.docfield_list[tabletype];
+// 			if(fl) {
+// 				for(var i=0; i<fl.length; i++) {
+// 					f_list.push(copy_dict(fl[i]));
+// 				}
+// 			}
+// 			return f_list;
+// 		})(),
+// 
+// 		data: function() {
+// 			var children = getchildren(
+// 				tabletype, // child_dt
+// 				dn, // parent
+// 				fieldname, // parentfield
+// 				dt // parenttype
+// 			);
+// 			var data = []
+// 			for(var i=0; i<children.length; i++) {
+// 				data.push(copy_dict(children[i]));
+// 			}
+// 			return data;
+// 		}(),
+// 		
+// 		cell_style: {
+// 			border: '1px solid #999',
+// 			padding: '3px',
+// 			verticalAlign: 'top'	
+// 		},
+// 		
+// 		head_cell_style: {
+// 			border: '1px solid #999',
+// 			padding: '3px',
+// 			verticalAlign: 'top',
+// 			backgroundColor: '#ddd',
+// 			fontWeight: 'bold'
+// 		},
+// 		
+// 		table_style: {
+// 			width: '100%',
+// 			borderCollapse: 'collapse',
+// 			marginBottom: '10px',
+// 			marginTop: '10px'		
+// 		},
+// 
+// 		remove_empty_cols: function(flist) {
+// 			var non_empty_cols = []
+// 			for(var i=0; i<me.data.length; i++) {
+// 				for(var c=0; c<flist.length; c++) {
+// 					if(flist[c].print_hide || !inList(['', null], me.data[i][flist[c].fieldname])) {
+// 						if(!inList(non_empty_cols, flist[c])) {
+// 							non_empty_cols.push(flist[c]);
+// 						}
+// 					}
+// 				}
+// 			}
+// 			for(var c=0; c<flist.length; c++) {
+// 				if(!inList(non_empty_cols, flist[c])) {
+// 					flist.splice(c, 1);
+// 					c = c - 1;
+// 				}
+// 			}
+// 		},
+// 		
+// 		/*
+// 			This function prepares a list of columns to be displayed and calls make_print_table to create a table with these columns
+// 		*/
+// 		prepare_col_heads: function(flist) {
+// 			var new_flist = [];
+// 
+// 			if(!cols || (cols && cols.length && hide_empty)) {
+// 				me.remove_empty_cols(flist);
+// 			}
+// 			
+// 			// Make a list of column headings
+// 			if(cols && cols.length) {
+// 				// If cols to be displayed are passed in print_table
+// 				if(cols[0] == 'SR') { new_flist.push('SR') }
+// 				for(var i = 0; i < cols.length; i++) {
+// 					for(var j = 0; j < flist.length; j++) {
+// 						if(flist[j].fieldname == cols[i]) {
+// 							new_flist.push(flist[j]);
+// 							break;
+// 						}
+// 					}
+// 				}			
+// 			} else {
+// 				// Default action: remove hidden cols
+// 				new_flist.push('SR');
+// 				for(var i = 0; i < flist.length; i++) {
+// 					if(!flist[i].print_hide) {
+// 						new_flist.push(flist[i]);
+// 					}
+// 				}			
+// 			}
+// 			
+// 			// Changing me.flist so that it could be used to hide data
+// 			me.flist = new_flist;
+// 		},
+// 		
+// 		// This function makes a new table with its heading rows
+// 		make_print_table: function(flist) {
+// 			// Make a table
+// 			var wrapper = document.createElement('div');
+// 			var table = $a(wrapper, 'table', '', me.table_style);
+// 			table.wrapper = wrapper;
+// 			
+// 			// Make Head Row
+// 			table.insertRow(0);
+// 			var col_start = 0;
+// 			
+// 			// If 'SR' exists in flist, then create its heading column cell
+// 			if(flist[0]=='SR') {
+// 				var cell = table.rows[0].insertCell(0);
+// 				cell.innerHTML = head_labels?head_labels[0]:'<b>SR</b>';
+// 				$y(cell, { width: '30px' });
+// 				$y(cell, me.head_cell_style);
+// 				col_start++;
+// 			}
+// 			
+// 			for(var c = col_start; c < flist.length; c++) {
+// 				var cell = table.rows[0].insertCell(c);
+// 				$y(cell, me.head_cell_style);
+// 				cell.innerHTML = head_labels?head_labels[c]:flist[c].label;
+// 				if(flist[c].width) { $y(cell, {width: flist[c].width}); }
+// 				if(widths) { $y(cell, {width: widths[c]}); }
+// 				if(in_list(['Currency', 'Float'], flist[c].fieldtype)) {
+// 					$y(cell, { textAlign: 'right' });
+// 				}
+// 			}
+// 			return table;
+// 		},
+// 		
+// 		// Populate table with data
+// 		populate_table: function(table, data) {
+// 			for(var r = 0; r < data.length; r++) {
+// 				if((!condition) || (condition(data[r]))) {
+// 					// Check for page break
+// 					if(data[r].page_break) {
+// 						table = me.make_print_table(me.flist);
+// 						me.table_list.push(table.wrapper);
+// 					}
+// 					
+// 					var row = table.insertRow(table.rows.length);
+// 					
+// 					// Add serial number if required
+// 					if(me.flist[0] == 'SR') {
+// 						var cell = row.insertCell(0);
+// 						cell.innerHTML = r + 1;
+// 						$y(cell, me.cell_style);
+// 					}
+// 					
+// 					for(var c=me.flist.indexOf('SR')+1; c<me.flist.length; c++){
+// 						var cell = row.insertCell(c);
+// 						$y(cell, me.cell_style);
+// 						if(modifier && me.flist[c].fieldname in modifier) {
+// 							data[r][me.flist[c].fieldname] = modifier[me.flist[c].fieldname](data[r]);
+// 						}
+// 						$s(cell, data[r][me.flist[c].fieldname],
+// 							me.flist[c].fieldtype);
+// 						if(in_list(['Currency', 'Float'], me.flist[c].fieldtype)) {
+// 							cell.style.textAlign = 'right';
+// 						}
+// 					}
+// 				}			
+// 			}
+// 		}
+// 	});	
+// 	
+// 	// If no data, do not create table
+// 	if(!this.data.length) { return document.createElement('div'); }
+// 	
+// 	this.prepare_col_heads(this.flist);
+// 
+// 	var table = me.make_print_table(this.flist);
+// 
+// 	this.table_list = [table.wrapper];
+// 
+// 	this.populate_table(table, this.data);
+// 
+// 	// If multiple tables exists, send whole list, else send only one table
+// 	return (me.table_list.length > 1) ? me.table_list : me.table_list[0];
+// }
