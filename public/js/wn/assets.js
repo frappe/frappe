@@ -64,7 +64,11 @@ wn.assets = {
 	// localstorage
 	add: function(src, txt) {
 		if('localStorage' in window) {
-			localStorage.setItem(src, txt);
+			try {
+				localStorage.setItem(src, txt);
+			} catch(e) {
+				console.log("Local Storage quota exceeded?")
+			}
 		}
 	},
 	
