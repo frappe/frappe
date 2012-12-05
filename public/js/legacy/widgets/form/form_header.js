@@ -56,7 +56,7 @@ _f.FrmHeader = Class.extend({
 		$(repl('<span class="avatar avatar avatar-small">\
 			<img title="%(created_by)s" src="%(avatar_created)s"/></span>\
 			<span class="avatar avatar avatar-small">\
-			<img title="%(created_by)s" src="%(avatar_created)s"/></span>', {
+			<img title="%(modified_by)s" src="%(avatar_modified)s"/></span>', {
 				created_by: wn.user_info(doc.owner).fullname,
 				avatar_created: wn.user_info(doc.owner).image,
 				modified_by: wn.user_info(doc.modified_by).fullname,

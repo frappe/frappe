@@ -177,7 +177,7 @@ class DocType:
 def validate_fields_for_doctype(doctype):
 	from webnotes.model.doctype import get
 	validate_fields(filter(lambda d: d.doctype=="DocField" and d.parent==doctype, 
-		get(doctype)))
+		get(doctype, cached=False)))
 
 def validate_fields(fields):
 	def check_illegal_characters(fieldname):

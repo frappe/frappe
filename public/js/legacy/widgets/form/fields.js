@@ -569,13 +569,13 @@ LinkField.prototype.make_input = function() {
 	}
 
 	me.onrefresh = function() {
-		$(me.btn2).toggle(in_list(wn.boot.profile.can_create, me.df.options))
-		$(me.btn1).toggle(me.df.options=='[Select]');
+		$(me.btn2).toggle(in_list(wn.boot.profile.can_create, me.df.options));
+		$(me.btn1).toggle(in_list(wn.boot.profile.can_read, me.df.options));
 	}
 
 	me.onrefresh();
 
-	me.txt.field_object = this;		
+	me.txt.field_object = this;
 	// set onchange triggers
 
 	me.input.set_input = function(val) {

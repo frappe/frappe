@@ -42,11 +42,11 @@ import webnotes.model.doclist
 doctype_cache = {}
 docfield_types = None
 
-def get(doctype, processed=False):
+def get(doctype, processed=False, cached=True):
 	"""return doclist"""
-
-	doclist = from_cache(doctype, processed)
-	if doclist: return DocTypeDocList(doclist)
+	if cached:
+		doclist = from_cache(doctype, processed)
+		if doclist: return DocTypeDocList(doclist)
 	
 	load_docfield_types()
 	

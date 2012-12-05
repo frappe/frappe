@@ -102,7 +102,7 @@ wn.print.Table = Class.extend({
 				var df = wn.meta.docfield_map[me.tabletype][fieldname];
 				var label = df ? df.label : fieldname;
 			}
-			$("<th>").html(label)
+			$("<td>").html(label)
 				.appendTo(headrow)
 				.css(me.head_cell_style)
 				.css({"width": me.widths[ci] + "%"});
@@ -170,7 +170,8 @@ wn.print.Table = Class.extend({
 	cell_style: {
 		border: '1px solid #999',
 		padding: '3px',
-		'vertical-align': 'top'	
+		'vertical-align': 'top',
+		'word-wrap': 'break-word',
 	},
 	
 	head_cell_style: {
@@ -178,7 +179,8 @@ wn.print.Table = Class.extend({
 		padding: '3px',
 		'vertical-align': 'top',
 		'background-color': '#ddd',
-		'font-weight': 'bold'
+		'font-weight': 'bold',
+		'word-wrap': 'break-word',
 	},
 	
 	table_style: {
