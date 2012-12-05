@@ -102,11 +102,15 @@ wn.print.Table = Class.extend({
 				var df = wn.meta.docfield_map[me.tabletype][fieldname];
 				var label = df ? df.label : fieldname;
 			}
-			$("<td>").html(label)
+			var td = $("<td>").html(label)
 				.appendTo(headrow)
 				.css(me.head_cell_style)
 				.css({"width": me.widths[ci] + "%"});
-		})
+
+			if(ci==0) {
+				td.css({"min-width": "30px;"});
+			}
+		});
 		
 		$.each(data, function(ri, row) {
 			var allow = true;
@@ -118,7 +122,7 @@ wn.print.Table = Class.extend({
 				
 				$.each(me.columns, function(ci, fieldname) {
 					if(ci==0) 
-						var value = ri + 1;
+						var value = row.idx;
 					else
 						var value = row[fieldname];
 
