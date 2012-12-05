@@ -108,7 +108,7 @@ def run_custom_query(data):
 	query = data['query']
 	if '%(key)s' in query:
 		query = query.replace('%(key)s', 'name')
-	return webnotes.conn.sql(query, as_dict=1, debug=1)
+	return webnotes.conn.sql(query, as_dict=1)
 
 def load_doctypes():
 	"""load all doctypes and roles"""
@@ -192,9 +192,15 @@ def build_match_conditions(data, conditions):
 		if d.doctype == 'DocPerm' and d.parent == data['doctype']:
 			if d.role in roles:
 				if d.match: # role applicable
-					for v in webnotes.user.defaults.get(d.match, ['**No Match**']):
+					if ':' in d.match:
+						document_key, default_key = d.match.split(":")
+					else:
+						default_key = document_key = d.match
+				
+					for v in webnotes.user.defaults.get(default_key, ['**No Match**']):
 						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'],
-							d.match, v))
+							document_key, v))
+							
 				elif d.read == 1 and d.permlevel == 0:
 					# don't restrict if another read permission at level 0 
 					# exists without a match restriction

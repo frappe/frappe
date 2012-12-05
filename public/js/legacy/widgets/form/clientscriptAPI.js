@@ -234,12 +234,14 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 _f.Frm.prototype.set_value = function(field, value) {
 	var me = this;
 	var _set = function(f, v) {
-		me.doc[f] = v;
-		me.fields_dict[f].refresh();		
+		if(me.fields_dict[f]) {
+			me.doc[f] = v;
+			me.fields_dict[f].refresh();
+		}
 	}
 	if(typeof field=="string") {
 		_set(field, value)
-	} else {
+	} else if($.isPlainObject(field)) {
 		$.each(field, function(f, v) {
 			_set(f, v);
 		})
@@ -249,10 +251,11 @@ _f.Frm.prototype.set_value = function(field, value) {
 _f.Frm.prototype.call = function(opts) {
 	var me = this;
 	if(!opts.doc) {
-		opts.method = wn.model.get_server_module_name(me.doctype) + "." + opts.method; 
+		if(opts.method.indexOf(".")==-1)
+			opts.method = wn.model.get_server_module_name(me.doctype) + "." + opts.method; 
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {
-			if(typeof (r.message || "")=="object") {
+			if($.isPlainObject(r.message)) {
 				me.set_value(r.message);
 			}
 			opts.original_callback && opts.original_callback(r);

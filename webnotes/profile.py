@@ -145,7 +145,7 @@ class Profile:
 		res = webnotes.conn.sql("""select defkey, defvalue 
 		from `tabDefaultValue` where parent in ("%s") order by idx""" % '", "'.join(roles))
 	
-		self.defaults = {'owner': [self.name,]}
+		self.defaults = {'owner': [self.name], "user": [self.name]}
 
 		for rec in res: 
 			if not self.defaults.has_key(rec[0]): 

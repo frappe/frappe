@@ -84,16 +84,24 @@ $.extend(wn.perm, {
 		if(!name) return true;
 		var out =false;
 		if(p.match) {
-			if(user_defaults[p.match]) {
-				for(var i=0;i<user_defaults[p.match].length;i++) {
+			if(p.match.indexOf(":")!=-1) {
+				keys = p.match.split(":");
+				var document_key = keys[0];
+				var default_key = keys[1];
+			} else {
+				var document_key = p.match;
+				var default_key = p.match;
+			}
+			if(user_defaults[default_key]) {
+				for(var i=0;i<user_defaults[default_key].length;i++) {
 					 // user must have match field in defaults
-					if(user_defaults[p.match][i]==locals[doctype][name][p.match]) {
+					if(user_defaults[default_key][i]==locals[doctype][name][document_key]) {
 					    // must match document
 			  			return true;
 					}
 				}
 				return false;
-			} else if(!locals[doctype][name][p.match]) { // blanks are true
+			} else if(!locals[doctype][name][document_key]) { // blanks are true
 				return true;
 			} else {
 				return false;
