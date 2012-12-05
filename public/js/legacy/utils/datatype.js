@@ -165,7 +165,7 @@ function flt(v,decimals) {
 	if(isNaN(v))
 		v=0; 
 	if(decimals!=null)
-		return parseFloat(v.toFixed(decimals));
+		return roundNumber(v, decimals);
 	return v; 
 }
 

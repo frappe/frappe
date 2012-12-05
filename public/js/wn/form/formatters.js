@@ -6,7 +6,7 @@ wn.form.formatters = {
 		return value==null ? "" : value
 	},
 	Float: function(value) {
-		return flt(value).toFixed(6);
+		return flt(value, 6);
 	},
 	Int: function(value) {
 		return cint(value);
