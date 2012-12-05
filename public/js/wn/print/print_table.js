@@ -144,7 +144,7 @@ wn.print.Table = Class.extend({
 			this.widths = $.map(this.columns, function(fieldname, ci) {
 				df = wn.meta.docfield_map[me.tabletype][fieldname];
 				return df && df.width || 
-					(fieldname=="Sr" ? 20 : 80);
+					(fieldname=="Sr" ? 30 : 80);
 			})
 		}
 		var sum = 0;
