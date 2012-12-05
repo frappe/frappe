@@ -289,11 +289,15 @@ $.extend(_p, {
 
 	// This is used to calculate and substitude values in the HTML
 	run_embedded_js: function(container, doc) {
-		$(container).find("script").each(function(element) {
-			var code = this.innerHTML;
+		script_list = $(container).find("script");
+		for(var i=0; i<script_list.length; i++) {
+			var element = script_list[i];
+			var code = element.innerHTML;
 			var new_html = code ? (eval(code) || "") : "";
 			if(typeof new_html=="string")
-				$(this).replaceWith(new_html);
+				$(element).replaceWith(new_html);
+		}
+		
 
 			// var parent = jslist[i].parentNode;
 			// var span = $a(parent, 'span');
@@ -301,7 +305,6 @@ $.extend(_p, {
 			// var val = code ? eval(code) : '';
 			// if(!val || typeof(val)=='object') { val = ''; }
 			// span.innerHTML = val;
-		})
 	},
 	
 	
