@@ -176,6 +176,7 @@ def build_filter_conditions(data, filters, conditions):
 		if f[2]=='in':
 			opts = ["'" + t.strip().replace("'", "\'") + "'" for t in f[3].split(',')]
 			f[3] = "(" + ', '.join(opts) + ")"
+			conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
 		else:
 			if isinstance(f[3], basestring):
 				f[3] = "'" + f[3].replace("'", "\'") + "'"	
@@ -183,7 +184,7 @@ def build_filter_conditions(data, filters, conditions):
 			else:
 				conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
 					+ " " + cstr(f[3]))
-
+					
 def build_match_conditions(data, conditions):
 	"""add match conditions if applicable"""
 	match_conditions = []

@@ -96,8 +96,8 @@ wn.print.Table = Class.extend({
 
 		var headrow = $("<tr>").appendTo(table);
 		$.each(me.columns, function(ci, fieldname) {
-			if(this.head_labels) {
-				var label = this.head_labels[i];
+			if(me.head_labels) {
+				var label = me.head_labels[ci];
 			} else {
 				var df = wn.meta.docfield_map[me.tabletype][fieldname];
 				var label = df ? df.label : fieldname;
@@ -110,8 +110,8 @@ wn.print.Table = Class.extend({
 		
 		$.each(data, function(ri, row) {
 			var allow = true;
-			if(this.condition) {
-				allow = this.condition(row);
+			if(me.condition) {
+				allow = me.condition(row);
 			}
 			if(allow) {
 				var tr = $("<tr>").appendTo(table);
@@ -122,8 +122,8 @@ wn.print.Table = Class.extend({
 					else
 						var value = row[fieldname];
 
-					if(this.modifier && this.modifier[fieldname])
-						value = this.modifier[fieldname](row);
+					if(me.modifier && me.modifier[fieldname])
+						value = me.modifier[fieldname](row);
 					
 					var df = wn.meta.docfield_map[me.tabletype][fieldname];
 					value = wn.form.get_formatter(
@@ -144,7 +144,7 @@ wn.print.Table = Class.extend({
 			this.widths = $.map(this.columns, function(fieldname, ci) {
 				df = wn.meta.docfield_map[me.tabletype][fieldname];
 				return df && df.width || 
-					(fieldname=="Sr" ? 20 : 80);
+					(fieldname=="Sr" ? 30 : 80);
 			})
 		}
 		var sum = 0;

@@ -297,7 +297,9 @@ wn.ui.FieldSelect = Class.extend({
 		var me = this;
 		me.table_fields = [];
 		var std_filters = $.map(wn.model.std_fields, function(d) {
-			return $.extend(copy_dict(d), {parent: me.doctype});
+			var opts = {parent: me.doctype}
+			if(d.fieldname=="name") opts.options = me.doctype;
+			return $.extend(copy_dict(d), opts);
 		});
 		
 		// add parenttype column
@@ -307,7 +309,7 @@ wn.ui.FieldSelect = Class.extend({
 				fieldname: 'parent',
 				fieldtype: 'Data',
 				label: 'Parent',
-				parent: me.doctype
+				parent: me.doctype,
 			}]);
 		}
 		
