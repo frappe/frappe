@@ -43,11 +43,11 @@ wn.views.ReportViewPage = Class.extend({
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(opts) {
 		var me = this;
-		$(page).find('.layout-main').html('Loading Report...');
-		$(page).find('.layout-main').empty();
+		$(this.page).find('.layout-main').html('Loading Report...');
+		$(this.page).find('.layout-main').empty();
 		$.extend(this, opts);
 		this.can_delete = wn.model.can_delete(me.doctype);
-		this.tab_name = '`tab'+doctype+'`';
+		this.tab_name = '`tab'+this.doctype+'`';
 		this.setup();
 	},
 
