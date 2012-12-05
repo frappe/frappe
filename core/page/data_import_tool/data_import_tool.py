@@ -153,13 +153,13 @@ def upload():
 	
 	def get_start_row():
 		for i, row in enumerate(rows):
-			if row[0]==data_keys.data_separator:
+			if row and row[0]==data_keys.data_separator:
 				return i+1
 		bad_template()
 				
 	def get_header_row(key):
 		for i, row in enumerate(header):
-			if row[0]==key:
+			if row and row[0]==key:
 				return row
 		return []
 		
