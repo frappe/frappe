@@ -1007,7 +1007,7 @@ _f.Frm.prototype.reload_doc = function() {
 _f.Frm.prototype.savesubmit = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
-		this.save('Submit', function(r) {
+		me.save('Submit', function(r) {
 			if(!r.exc && me.cscript.on_submit) {
 				me.runclientscript('on_submit', me.doctype, me.docname);
 			}
@@ -1018,7 +1018,7 @@ _f.Frm.prototype.savesubmit = function(btn) {
 _f.Frm.prototype.savecancel = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
-		this.save('Cancel', null, btn);
+		me.save('Cancel', null, btn);
 	});
 }
 
