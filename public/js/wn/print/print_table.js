@@ -97,7 +97,7 @@ wn.print.Table = Class.extend({
 		var headrow = $("<tr>").appendTo(table);
 		$.each(me.columns, function(ci, fieldname) {
 			if(me.head_labels) {
-				var label = me.head_labels[i];
+				var label = me.head_labels[ci];
 			} else {
 				var df = wn.meta.docfield_map[me.tabletype][fieldname];
 				var label = df ? df.label : fieldname;
