@@ -256,7 +256,15 @@ _f.Frm.prototype.call = function(opts) {
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {
 			if($.isPlainObject(r.message)) {
-				me.set_value(r.message);
+				if(opts.child) {
+					// update child doc
+					opts.child = locals[opts.child.doctype][opts.child.name];
+					$.extend(opts.child, r.message);
+					me.fields_dict[opts.child.parentfield].refresh();
+				} else {
+					// update parent doc
+					me.set_value(r.message);
+				}
 			}
 			opts.original_callback && opts.original_callback(r);
 		}
