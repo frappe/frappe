@@ -347,7 +347,7 @@ $.extend(_p, {
 		}
 		var finished =  header
 			+ stat
-			+ container.innerHTML.replace(/<div/g, '\n<div').replace(/<td/g, '\n<td')
+			+ container.innerHTML
 			+ footer;
 			
 		// replace relative links by absolute links
