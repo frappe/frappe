@@ -108,7 +108,7 @@ wn.print.Table = Class.extend({
 				.css({"width": me.widths[ci] + "%"});
 
 			if(ci==0) {
-				td.css({"min-width": "30px;"});
+				td.css({"min-width": "30px"});
 			}
 		});
 		
