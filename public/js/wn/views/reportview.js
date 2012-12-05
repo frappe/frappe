@@ -362,7 +362,10 @@ wn.views.ReportView = wn.ui.Listing.extend({
 						})
 					},
 					callback: function(r) {
-						if(r.exc) return;
+						if(r.exc) {
+							msgprint("Report was not saved (there were errors)");
+							return;
+						}
 						if(r.message != me.docname)
 							wn.set_route('Report2', me.doctype, r.message);
 					}
