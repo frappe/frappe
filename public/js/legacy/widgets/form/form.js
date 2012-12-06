@@ -1017,7 +1017,7 @@ _f.Frm.prototype.savesubmit = function(btn) {
 
 _f.Frm.prototype.savecancel = function(btn) {
 	var me = this;
-	wn.confirm("Permanently Submit "+this.docname+"?", function() {
+	wn.confirm("Permanently Cancel "+this.docname+"?", function() {
 		me.save('Cancel', null, btn);
 	});
 }
