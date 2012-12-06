@@ -298,7 +298,7 @@ _f.Frm.prototype.setup_footer = function() {
 
 _f.Frm.prototype.set_intro = function(txt) {
 	if(!this.intro_area) {
-		this.intro_area = $('<div class="alert form-intro-area">')
+		this.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
 			.insertBefore(this.page_layout.body.firstChild);
 	}
 	if(txt) {
@@ -1005,20 +1005,21 @@ _f.Frm.prototype.reload_doc = function() {
 }
 
 _f.Frm.prototype.savesubmit = function(btn) {
-	var answer = confirm("Permanently Submit "+this.docname+"?");
 	var me = this;
-	if(answer) {
-		this.save('Submit', function(r) {
+	wn.confirm("Permanently Submit "+this.docname+"?", function() {
+		me.save('Submit', function(r) {
 			if(!r.exc && me.cscript.on_submit) {
 				me.runclientscript('on_submit', me.doctype, me.docname);
 			}
-		}, btn);
-	}
+		}, btn);		
+	});
 }
 
 _f.Frm.prototype.savecancel = function(btn) {
-	var answer = confirm("Permanently Cancel "+this.docname+"?");
-	if(answer) this.save('Cancel', null, btn);
+	var me = this;
+	wn.confirm("Permanently Submit "+this.docname+"?", function() {
+		me.save('Cancel', null, btn);
+	});
 }
 
 // delete the record

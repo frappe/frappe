@@ -522,14 +522,17 @@ class Document:
 		
 		if has_perm and match and match != -1:
 			for m in match:
-				if self.fields.get(m, 'no value') in self._user_defaults.get(m, 'no default'):
+				if ":" in m:
+					document_key, default_key = m.split(":")
+				else:
+					document_key = default_key = m
+					
+				if self.fields.get(document_key, 'no value') in \
+					self._user_defaults.get(default_key, 'no default'):
 					has_perm = 1
 					break # permission found! break
 				else:
-					has_perm = 0
-					if verbose:
-						webnotes.msgprint("Value not allowed: '%s' for '%s'" % (self.fields.get(m, 'no value'), m))
-	
+					has_perm = 0	
 				
 		return has_perm
 		
