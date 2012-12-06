@@ -96,6 +96,18 @@ wn.model = {
 		return txt.replace(/ /g, "_").toLowerCase();
 	},
 
+	can_create: function(doctype) {
+		return wn.boot.profile.can_create.indexOf(doctype)!=-1;
+	},
+	
+	can_read: function(doctype) {
+		return wn.boot.profile.can_read.indexOf(doctype)!=-1;
+	},
+
+	can_write: function(doctype) {
+		return wn.boot.profile.can_write.indexOf(doctype)!=-1;
+	},
+
 	can_delete: function(doctype) {
 		if(!doctype) return false;
 		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
@@ -168,7 +180,7 @@ wn.model = {
 		})
 	},
 	
-	rename_doc: function(doctype, docname) {
+	rename_doc: function(doctype, docname, callback) {
 		var d = new wn.ui.Dialog({
 			title: "Rename " + docname,
 			fields: [
@@ -195,6 +207,8 @@ wn.model = {
 						if(locals[doctype] && locals[doctype][docname])
 							delete locals[doctype][docname];
 						d.hide();
+						if(callback)
+							callback(r.message);
 					}
 				}
 			});
