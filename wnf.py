@@ -412,7 +412,7 @@ def run():
 		webnotes.cms.make.make()
 		
 		import website.web_cache
-		website.web_cache.clear_cache()
+		website.web_cache.clear_cache(None)
 		
 	elif options.clear_cache:
 		clear_cache()
