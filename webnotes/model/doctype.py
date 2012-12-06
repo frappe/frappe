@@ -302,7 +302,8 @@ def get_property(dt, prop, fieldname=None):
 	"""get a doctype property"""
 	doctypelist = get(dt)
 	if fieldname:
-		return doctypelist.getone({"fieldname":fieldname}).fields.get(prop)
+		field = doctypelist.get_field(fieldname)
+		return field and field.fields.get(prop) or None
 	else:
 		return doctypelist[0].fields.get(prop)
 		
@@ -351,7 +352,7 @@ def update_language(doclist):
 def add_precision(doctype, doclist):
 	type_precision_map = {
 		"Currency": 2,
-		"Float": 4
+		"Float": 6
 	}
 	for df in doclist.get({"doctype": "DocField", 
 			"fieldtype": ["in", type_precision_map.keys()]}):

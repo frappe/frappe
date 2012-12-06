@@ -30,7 +30,7 @@ wn.ui.TreeNode = Class.extend({
 		this.loaded = false;
 		this.expanded = false;
 		this.tree.nodes[this.label] = this;
-		this.$a = $('<a class="tree-link">')
+		this.$a = $('<span class="tree-link">')
 			.click(function() { 
 				if(me.expandable && me.tree.method && !me.loaded) {
 					me.load()
@@ -44,11 +44,12 @@ wn.ui.TreeNode = Class.extend({
 			.appendTo(this.parent);
 		
 		// label with icon
+		var icon_html = '<i class="icon-file"></i>';
 		if(this.expandable) {
-			this.$a.append('<i class="icon-folder-close"></i> ' + this.label);
-		} else {
-			this.$a.append('<i class="icon-file"></i> ' + this.label);
+			icon_html = '<i class="icon-folder-close"></i>';
 		}
+		$(icon_html + ' <a class="tree-label">' + this.label + "</a>").
+			appendTo(this.$a);
 		
 		if(this.tree.onrender) {
 			this.tree.onrender(this);
@@ -69,7 +70,7 @@ wn.ui.TreeNode = Class.extend({
 		}
 		
 		// select this link
-		this.tree.$w.find('a.selected')
+		this.tree.$w.find('.selected')
 			.removeClass('selected');
 		this.$a.toggleClass('selected');
 		this.expanded = !this.expanded;

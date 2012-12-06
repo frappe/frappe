@@ -35,14 +35,13 @@ wn.print.Table = Class.extend({
 		if(!this.columns)
 			this.columns = this.get_columns();
 		this.data = this.get_data();
-		if(!this.show_all)
-			this.remove_empty_cols();
+		this.remove_empty_cols();
 		this.set_widths();
 		this.make();
 	},
 	get_columns: function() {
 		return ['Sr'].concat($.map(wn.meta.docfield_list[this.tabletype], function(df) {
-			return df.print_hide ? null : df.fieldname;
+			return cint(df.print_hide) ? null : df.fieldname;
 		}));
 	},
 	get_data: function() {

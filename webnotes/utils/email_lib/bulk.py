@@ -22,11 +22,12 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.model.doc import Document
 
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 
-def send(recipients=None, sender=None, doctype='Profile', email_field='email', first_name_field="first_name",
-				last_name_field="last_name", subject='[No Subject]', message='[No Content]'):
+def send(recipients=None, sender=None, doctype='Profile', email_field='email',
+		subject='[No Subject]', message='[No Content]'):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
 	import webnotes
 	
@@ -63,18 +64,6 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email', f
 				"email_field": email_field
 			}))
 
-	def full_name(rdata):
-		fname = rdata[0].get(first_name_field, '')
-		lname = rdata[0].get(last_name_field, '')
-		if fname and not lname:
-			return fname
-		elif lname and not fname:
-			return lname
-		elif fname and lname:
-			return fname + ' ' + lname
-		else:
-			return rdata[0][email_field].split('@')[0].title()
-	
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
@@ -89,16 +78,16 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email', f
 		text_content = "[See html attachment]"
 	
 
-	for r in recipients:
+	for r in list(set(recipients)):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), r, as_dict=1)
+		
 		if not is_unsubscribed(rdata):
 			# add to queue
 			add(r, sender, subject, add_unsubscribe_link(r), text_content)
 
 def add(email, sender, subject, message, text_content = None):
 	"""add to bulk mail queue"""
-	from webnotes.model.doc import Document
 	from webnotes.utils.email_lib.smtp import get_email
 	
 	e = Document('Bulk Email')
@@ -108,7 +97,7 @@ def add(email, sender, subject, message, text_content = None):
 		text_content = text_content).as_string()
 	e.status = 'Not Sent'
 	e.save()
-
+	
 @webnotes.whitelist(allow_guest=True)
 def unsubscribe():
 	doctype = webnotes.form_dict.get('type')
