@@ -411,6 +411,9 @@ def run():
 		import webnotes.cms.make
 		webnotes.cms.make.make()
 		
+		import website.web_cache
+		website.web_cache.clear_cache()
+		
 	elif options.clear_cache:
 		clear_cache()
 		
