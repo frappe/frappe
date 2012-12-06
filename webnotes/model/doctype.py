@@ -352,7 +352,7 @@ def update_language(doclist):
 def add_precision(doctype, doclist):
 	type_precision_map = {
 		"Currency": 2,
-		"Float": 4
+		"Float": 6
 	}
 	for df in doclist.get({"doctype": "DocField", 
 			"fieldtype": ["in", type_precision_map.keys()]}):
