@@ -22,13 +22,13 @@ cgitb.enable()
 
 # import libs
 sys.path.append('..')
-sys.path.append('../lib/py')
+sys.path.append('../lib')
+sys.path.append('../app')
 
 import webnotes
 import webnotes.auth
 
 import conf
-sys.path.append(conf.modules_path)
 
 if __name__=='__main__':
 	# webnotes.http_request = webnotes.auth.HTTPRequest()
