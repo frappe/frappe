@@ -294,17 +294,26 @@ $.extend(_p, {
 			var element = script_list[i];
 			var code = element.innerHTML;
 			var new_html = code ? (eval(code) || "") : "";
-			if(typeof new_html=="string")
-				$(element).replaceWith(new_html);
+			if(typeof new_html=="string") {
+				$(element).replaceWith(this.add_span(new_html));
+			}
+		}
+	},
+	
+	add_span: function(html) {
+		var tags = ["<span[^>]>", "<p[^>]>", "<div[^>]>", "<br[^>]>", "<table[^>]>"];
+		var match = false;
+		for(var i=0; i<tags.length; i++) {
+			if(html.match(tags[i])) {
+				match = true;
+			}
 		}
 		
-
-			// var parent = jslist[i].parentNode;
-			// var span = $a(parent, 'span');
-			// parent.replaceChild(span, jslist[i]);
-			// var val = code ? eval(code) : '';
-			// if(!val || typeof(val)=='object') { val = ''; }
-			// span.innerHTML = val;
+		if(!match) {
+			html = "<span>" + html + "</span>";
+		}
+		
+		return html;
 	},
 	
 	
