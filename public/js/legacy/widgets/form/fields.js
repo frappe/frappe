@@ -545,17 +545,18 @@ LinkField.prototype.make_input = function() {
 	var me = this;
 	
 	if(me.df.no_buttons) {
-		this.txt = $("<input type='text'>").appendTo(this.input_area).get(0);
+		this.txt = $("<input type='text'>")
+			.appendTo(this.input_area).get(0);
 		this.input = this.txt;	
 	} else {
 		me.input = me.input_area;
-
-		'icon-search', 'icon-play', 'icon-plus'
+		
 		me.txt = $('<input type="text">')
-			.css({"width": me.in_filter ? "100px" : "65%"})
+			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "65%")})
 			.appendTo(me.input_area).get(0);
 				
-		me.btn = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-search"\
+		me.btn = $('<i style="cursor: pointer; margin-left: 2px;" \
+			class="icon icon-search" \
 			title="Search Link"></i>').appendTo(me.input_area).get(0);
 		me.btn1 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-play"\
 			title="Open Link"></i>').appendTo(me.input_area).get(0);
