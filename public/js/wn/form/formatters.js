@@ -48,6 +48,9 @@ wn.form.formatters = {
 		});
 		return html;
 	},
+	SmallText: function(value) {
+		return wn.formatters.Text(value);
+	},
 	WorkflowState: function(value) {
 		workflow_state = wn.meta.get("Workflow State", value)[0];
 		if(workflow_state) {
@@ -66,5 +69,5 @@ wn.form.formatters = {
 }
 
 wn.form.get_formatter = function(fieldtype) {
-	return wn.form.formatters[fieldtype] || wn.form.formatters.Data;
+	return wn.form.formatters[fieldtype.replace(/ /g, "")] || wn.form.formatters.Data;
 }
