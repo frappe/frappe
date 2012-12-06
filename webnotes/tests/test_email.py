@@ -21,8 +21,8 @@ class TestEmail(unittest.TestCase):
 	def test_bulk(self):
 		from webnotes.utils.email_lib.bulk import send
 		send(recipients = ['rmehta@gmail.com', 'rushabh@erpnext.com'], 
-			doctype='Lead', email_field='email_id', first_name_field='lead_name',
-			last_name_field=None, subject='Testing Bulk', message='This is a bulk mail!')
+			doctype='Lead', email_field='email_id',
+			subject='Testing Bulk', message='This is a bulk mail!')
 		
 		bulk = webnotes.conn.sql("""select * from `tabBulk Email` where status='Not Sent'""", as_dict=1)
 		self.assertEquals(len(bulk), 2)
@@ -50,8 +50,8 @@ class TestEmail(unittest.TestCase):
 		unsubscribe()
 
 		send(recipients = ['rmehta@gmail.com', 'rushabh@erpnext.com'], 
-			doctype='Lead', email_field='email_id', first_name_field='lead_name',
-			last_name_field=None, subject='Testing Bulk', message='This is a bulk mail!')
+			doctype='Lead', email_field='email_id', 
+			subject='Testing Bulk', message='This is a bulk mail!')
 		
 		bulk = webnotes.conn.sql("""select * from `tabBulk Email` where status='Not Sent'""", 
 			as_dict=1)
@@ -62,9 +62,10 @@ class TestEmail(unittest.TestCase):
 	
 	def test_bulk_limit(self):
 		from webnotes.utils.email_lib.bulk import unsubscribe, send, BulkLimitCrossedError
-		self.assertRaises(BulkLimitCrossedError, send, recipients=['rmehta@gmail.com']*1000, 
-				doctype='Lead', email_field='email_id', first_name_field='lead_name',
-				last_name_field=None, subject='Testing Bulk', message='This is a bulk mail!')
+		self.assertRaises(BulkLimitCrossedError, send,
+			recipients=['rmehta@gmail.com']*1000, 
+			doctype='Lead', email_field='email_id',
+			subject='Testing Bulk', message='This is a bulk mail!')
 		
 		
 if __name__=='__main__':
