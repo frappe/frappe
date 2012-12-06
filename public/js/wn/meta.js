@@ -23,6 +23,7 @@
 wn.provide('wn.meta.docfield_map');
 wn.provide('wn.meta.docfield_list');
 wn.provide('wn.meta.doctypes');
+wn.provide("wn.meta.precision_map");
 
 $.extend(wn.meta, {
 	// build docfield_map and docfield_list
@@ -61,5 +62,21 @@ $.extend(wn.meta, {
 		});
 			
 		return print_format_list;
+	},
+	
+	get_precision_map: function(doctype) {
+		if(!wn.meta.precision_map[doctype]) {
+			wn.meta.precision_map[doctype] = {};
+			
+			var fields = wn.model.get("DocField", {parent:doctype, fieldtype: "Currency"})
+				.concat(wn.model.get("DocField", {parent: doctype, fieldtype: "Float"}));
+			
+			
+			$.each(fields, function(i, df) {
+				wn.meta.precision_map[doctype][df.fieldname] = df.precision;
+			});
+		}
+		
+		return wn.meta.precision_map[doctype];
 	},
 });
