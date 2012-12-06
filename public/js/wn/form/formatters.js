@@ -49,7 +49,7 @@ wn.form.formatters = {
 		return html;
 	},
 	SmallText: function(value) {
-		return wn.formatters.Text(value);
+		return wn.form.formatters.Text(value);
 	},
 	WorkflowState: function(value) {
 		workflow_state = wn.meta.get("Workflow State", value)[0];
