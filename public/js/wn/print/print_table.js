@@ -143,21 +143,23 @@ wn.print.Table = Class.extend({
 	
 	set_widths: function() {
 		var me = this;
+		// if widths not passed (like in standard),
+		// get from doctype and redistribute to fit 100%
 		if(!this.widths) {
 			this.widths = $.map(this.columns, function(fieldname, ci) {
 				df = wn.meta.docfield_map[me.tabletype][fieldname];
-				return df && df.width || 
-					(fieldname=="Sr" ? 30 : 80);
-			})
+				return df && df.width || (fieldname=="Sr" ? 30 : 80);
+			});
+			
+			var sum = 0;
+			$.each(this.widths, function(i, w) {
+				sum += cint(w);
+			});
+
+			this.widths = $.map(this.widths, function(w) {
+				return (flt(w) / sum * 100).toFixed(0);
+			});
 		}
-		var sum = 0;
-		$.each(this.widths, function(i, w) {
-			sum += cint(w);
-		});
-		
-		this.widths = $.map(this.widths, function(w) {
-			return (flt(w) / sum * 100).toFixed(0);
-		});		
 	},
 	
 	get_tables: function() {
