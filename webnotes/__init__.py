@@ -305,7 +305,9 @@ def clear_perms(doctype):
 def reload_doc(module, dt=None, dn=None):
 	import webnotes.modules
 	return webnotes.modules.reload_doc(module, dt, dn)
-	
+
+from webnotes.model.rename_doc import rename_doc
+
 def insert(doclist):
 	import webnotes.model
 	return webnotes.model.insert(doclist)
