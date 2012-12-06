@@ -83,10 +83,6 @@ def rebuild():
 	# build js / css
 	from webnotes.utils import bundlejs
 	bundlejs.bundle(False)		
-
-	# build cache
-	import website.web_cache
-	website.web_cache.refresh_cache(['Blog'])
 	
 def apply_latest_patches():
 	import webnotes.modules.patch_handler
@@ -414,9 +410,6 @@ def run():
 		# build wn-web.js and wn-web.css
 		import webnotes.cms.make
 		webnotes.cms.make.make()
-		
-		import website.web_cache
-		website.web_cache.refresh_cache(['Blog'])
 		
 	elif options.clear_cache:
 		clear_cache()
