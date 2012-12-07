@@ -211,7 +211,7 @@ class Profile:
 		if not self.can_read:
 			self.build_permissions()
 
-		d = webnotes.DictObj({})
+		d = webnotes._dict({})
 		d['name'] = self.name
 		d['email'] = t[0] or ''
 		d['first_name'] = t[1] or ''

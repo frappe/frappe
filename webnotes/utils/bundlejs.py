@@ -185,9 +185,9 @@ def bundle(no_compress, cms_make=True):
 
 	if cms_make:
 		# build index.html and app.html
-		import webnotes.cms.make
-		webnotes.cms.make.make()	
-	
+		from website.helpers.make_web_include_files import make
+		make()
+			
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	import time

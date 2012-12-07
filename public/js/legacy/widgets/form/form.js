@@ -521,7 +521,8 @@ _f.Frm.prototype.check_doc_perm = function() {
 _f.Frm.prototype.refresh = function(docname) {
 	// record switch
 	if(docname) {
-		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && !this.meta.istable) 
+		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && 
+			!this.meta.istable) 
 			scroll(0, 0);
 		this.docname = docname;
 	}
@@ -562,7 +563,7 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		this.editable = this.is_editable[this.docname];
 		
-		if(!this.doc.__archived && (this.editable || (!this.editable && this.meta.istable))) {
+		if(this.editable || (!this.editable && this.meta.istable)) {
 			// show form layout (with fields etc)
 			// ----------------------------------
 			if(this.print_wrapper) {
@@ -773,7 +774,7 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	this.runclientscript('onload', this.doctype, this.docname);
 	
 	this.is_editable[docname] = 1;
-	if(this.meta.read_only_onload) this.is_editable[docname] = 0;
+	if(cint(this.meta.read_only_onload)) this.is_editable[docname] = 0;
 		
 	this.opendocs[docname] = true;
 }

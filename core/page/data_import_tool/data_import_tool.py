@@ -9,7 +9,7 @@ from webnotes.model.doc import Document
 from webnotes.utils import encode
 from webnotes.utils import cstr
 
-data_keys = webnotes.DictObj({
+data_keys = webnotes._dict({
 	"data_separator": '----Start entering data below this line----',
 	"main_table": "Table:",
 	"parent_table": "Parent Table:",

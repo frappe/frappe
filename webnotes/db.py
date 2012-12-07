@@ -103,7 +103,7 @@ class Database:
 		result = self._cursor.fetchall()
 		ret = []
 		for r in result:
-			row_dict = webnotes.DictObj({})
+			row_dict = webnotes._dict({})
 			for i in range(len(r)):
 				val = self.convert_to_simple_type(r[i], formatted)
 				if as_utf8 and type(val) is unicode:
@@ -288,7 +288,7 @@ class Database:
 			r = self.sql("select field, value from tabSingles where field in (%s) and \
 				doctype=%s" % (', '.join(['%s']*len(fieldname)), '%s'), tuple(fieldname) + (doctype,), as_dict=False)
 			if as_dict:
-				return r and webnotes.DictObj(r) or None
+				return r and webnotes._dict(r) or None
 			else:
 				return r and (len(r) > 1 and [i[0] for i in r] or r[0][1]) or None
 

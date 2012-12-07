@@ -273,7 +273,7 @@ class Session:
 	def __init__(self, user=None):
 		self.user = user
 		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
-		self.data = webnotes.DictObj({'user':user,'data':{}})
+		self.data = webnotes._dict({'user':user,'data':{}})
 
 		if webnotes.form_dict.get('cmd')=='login':
 			self.start()
@@ -300,7 +300,7 @@ class Session:
 		
 		r = self.get_session_record()
 		if r:
-			self.data = webnotes.DictObj({'data': (r[1] and eval(r[1]) or {}), 
+			self.data = webnotes._dict({'data': (r[1] and eval(r[1]) or {}), 
 					'user':r[0], 'sid': self.sid})
 		else:
 			self.start_as_guest()

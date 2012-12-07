@@ -28,12 +28,10 @@ bootstrap client session
 import webnotes
 import webnotes.model.doc
 import webnotes.widgets.page
-import webnotes.cms
-
 
 def get_bootinfo():
 	"""build and return boot info"""
-	bootinfo = webnotes.DictObj()
+	bootinfo = webnotes._dict()
 	doclist = []
 
 	# profile
@@ -104,7 +102,7 @@ def get_profile(bootinfo):
 def add_home_page(bootinfo, doclist):
 	"""load home page"""
 
-	home_page = webnotes.cms.get_home_page(webnotes.session['user']) or 'Login Page'
+	home_page = webnotes.get_application_home_page(webnotes.session.user)
 
 	try:
 		page_doclist = webnotes.widgets.page.get(home_page)

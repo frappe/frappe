@@ -36,7 +36,7 @@ code_fields_dict = {
 	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
 }
 
-class DictObj(dict):
+class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
 		return self.get(key)
@@ -48,13 +48,13 @@ class DictObj(dict):
 		self.update(d)
 	def update(self, d):
 		"""update and return self -- the missing dict feature in python"""
-		super(DictObj, self).update(d)
+		super(_dict, self).update(d)
 		return self
 		
 def _(s):
 	return s
 
-form_dict = DictObj()
+form_dict = _dict()
 conn = None
 _memc = None
 form = None
@@ -63,7 +63,7 @@ user = None
 incoming_cookies = {}
 add_cookies = {} # append these to outgoing request
 cookies = {}
-response = DictObj({'message':'', 'exc':''})
+response = _dict({'message':'', 'exc':''})
 debug_log = []
 message_log = []
 
@@ -172,7 +172,7 @@ def connect(db_name=None, password=None):
 	conn = webnotes.db.Database(user=db_name, password=password)
 	
 	global session
-	session = DictObj({'user':'Administrator'})
+	session = _dict({'user':'Administrator'})
 	
 	import webnotes.profile
 	global user
@@ -313,3 +313,14 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 def insert(doclist):
 	import webnotes.model
 	return webnotes.model.insert(doclist)
+	
+def get_application_home_page(user='Guest'):
+	"""get home page for user"""
+	hpl = conn.sql("""select home_page 
+		from `tabDefault Home Page`
+		where parent='Control Panel' 
+		and role in ('%s') order by idx asc limit 1""" % "', '".join(get_roles(user)))
+	if hpl:
+		return hpl[0][0]
+	else:
+		return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'	

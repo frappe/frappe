@@ -79,9 +79,9 @@ class Document:
 			doctype = None
 		
 		if fielddata: 
-			self.fields = webnotes.DictObj(fielddata)
+			self.fields = webnotes._dict(fielddata)
 		else: 
-			self.fields = webnotes.DictObj()
+			self.fields = webnotes._dict()
 		
 		if not self.fields.has_key('name'):
 			self.fields['name']='' # required on save

@@ -404,8 +404,8 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		else:
 			filters["parent"] = self[0].name
 		
-		from webnotes import DictObj
-		return DictObj((f.fieldname, f.precision) for f in self.get(filters))
+		from webnotes import _dict
+		return _dict((f.fieldname, f.precision) for f in self.get(filters))
 		
 	def get_parent_doclist(self):
 		return webnotes.doclist([self[0]] + self.get({"parent": self[0].name}))

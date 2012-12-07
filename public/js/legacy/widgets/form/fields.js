@@ -93,7 +93,7 @@ Field.prototype.make_body = function() {
 
 
 Field.prototype.set_max_width = function() {
-	var no_max = ['Code', 'Text Editor', 'Text', 'Table', 'HTML']
+	var no_max = ['Code', 'Text Editor', 'Text', 'Small Text', 'Table', 'HTML']
 	if(this.wrapper && this.layout_cell && this.layout_cell.parentNode.cells 
 		&& this.layout_cell.parentNode.cells.length==1 && !in_list(no_max, this.df.fieldtype)) {
 			$y(this.wrapper, {paddingRight:'50%'});

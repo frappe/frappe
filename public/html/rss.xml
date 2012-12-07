@@ -33,11 +33,11 @@ import conf
 if __name__=='__main__':
 	# webnotes.http_request = webnotes.auth.HTTPRequest()
 	webnotes.connect()
-	from webnotes.cms import feed
+	from website.helpers import blog_feed
 	try:
 		print 'Content-Type: text/xml'
 		print
-		xml = feed.generate()
+		xml = blog_feed.generate()
 		print xml
 	except Exception, e:
 		print 'Content-Type: text/html'

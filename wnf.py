@@ -408,9 +408,9 @@ def run():
 		
 	elif options.build_web_cache:
 		# build wn-web.js and wn-web.css
-		import webnotes.cms.make
-		webnotes.cms.make.make()
-		
+		from website.helpers.make_web_include_files import make
+		make()
+	
 		import website.utils
 		website.utils.clear_cache()
 		

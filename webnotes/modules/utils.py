@@ -130,7 +130,7 @@ def uncommonify_doclist(dl):
 	"""
 	# first one has common values
 	common_values = dl[0]
-	common_dict = webnotes.DictObj()
+	common_dict = webnotes._dict()
 	final = []
 	idx_dict = {}
 
@@ -142,7 +142,7 @@ def uncommonify_doclist(dl):
 		else:
 			dt = d['doctype']
 			if not dt in idx_dict: idx_dict[dt] = 1;
-			d1 = webnotes.DictObj(common_values.copy())
+			d1 = webnotes._dict(common_values.copy())
 
 			# update from common and global
 			d1.update(common_dict[dt])
