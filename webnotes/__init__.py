@@ -323,4 +323,4 @@ def get_application_home_page(user='Guest'):
 	if hpl:
 		return hpl[0][0]
 	else:
-		return webnotes.conn.get_value('Control Panel',None,'home_page') or 'Login Page'	
+		return conn.get_value('Control Panel',None,'home_page') or 'Login Page'	
