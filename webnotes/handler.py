@@ -263,7 +263,8 @@ def print_json():
 	add_cookies()
 
 	eprint("Content-Type: text/html; charset: utf-8")
-	print webnotes.cookies
+	if webnotes.cookies:
+		print webnotes.cookies
 
 	import json
 	print_zip(json.dumps(webnotes.response, default=json_handler, separators=(',',':')))
