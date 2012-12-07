@@ -55,8 +55,10 @@ wn.print.Table = Class.extend({
 		return data;
 	},
 	
-	remove_empty_cols: function(flist) {
-		var cols_with_value = []
+	remove_empty_cols: function() {
+		var cols_with_value = [];
+		var widths = [];
+		var head_labels = [];
 		var me = this;
 		
 		$.each(this.data, function(i, row) {
@@ -65,12 +67,18 @@ wn.print.Table = Class.extend({
 				if((value!==null && value!=="") || ci==0) {
 					if(!in_list(cols_with_value, fieldname)) {
 						cols_with_value.push(fieldname);
+
+						// also prepare a new list of widths and head labels
+						me.widths && widths.push(me.widths[ci]);
+						me.head_labels && head_labels.push(me.head_labels[ci]);
 					}
 				}
-			})
+			});
 		});
 		
 		this.columns = cols_with_value;
+		if(this.widths) this.widths = widths;
+		if(this.head_labels) this.head_labels = head_labels;
 	},
 	
 	make: function() {
