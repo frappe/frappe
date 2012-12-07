@@ -33,7 +33,6 @@ _r.ReportContainer = function() {
 	var page = wn.container.add_page("Report Builder");
 	this.wrapper = $a(page, 'div', 'layout-wrapper', {padding: '0px'});
 	this.appframe = new wn.ui.AppFrame(this.wrapper);
-	this.appframe.$titlebar.append('<span class="report-title">');
 	this.rb_area = $a(this.wrapper, 'div', '', {padding: '15px'});
 			
 	var me = this;
@@ -306,7 +305,7 @@ _r.ReportBuilder.prototype.clear_criteria = function() {
 // -------------------------------------------------------------------------------------
 
 _r.ReportBuilder.prototype.set_main_title = function(title) {
-	_r.rb_con.appframe.$titlebar.find('.report-title').html(title);
+	_r.rb_con.appframe.set_title(title);
 	set_title(title);
 }
 
