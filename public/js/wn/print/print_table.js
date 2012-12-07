@@ -110,10 +110,10 @@ wn.print.Table = Class.extend({
 				var label = df ? df.label : fieldname;
 			}
 			var td = $("<td>").html(label)
-				.appendTo(headrow)
 				.css(me.head_cell_style)
-				.css({"width": me.widths[ci] + "%"});
-
+				.css({"width": me.widths[ci]})
+				.appendTo(headrow)
+			
 			if(ci==0) {
 				td.css({"min-width": "30px"});
 			}
@@ -140,10 +140,15 @@ wn.print.Table = Class.extend({
 					value = wn.form.get_formatter(
 						df && df.fieldtype || "Data")(value);
 
-					$("<td>").html(value)
+					var td = $("<td>").html(value)
 						.css(me.cell_style)
+						.css({width: me.widths[ci]})
 						.appendTo(tr);
-				});				
+						
+					if(ci==0) {
+						td.css({"min-width": "30px"});
+					}
+				});
 			}
 		});
 		this.tables.push(wrapper)
@@ -165,7 +170,7 @@ wn.print.Table = Class.extend({
 			});
 
 			this.widths = $.map(this.widths, function(w) {
-				return (flt(w) / sum * 100).toFixed(0);
+				return (flt(w) / sum * 100).toFixed(0) + "%";
 			});
 		}
 	},
