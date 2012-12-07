@@ -103,10 +103,10 @@ wn.print.Table = Class.extend({
 
 		var headrow = $("<tr>").appendTo(table);
 		$.each(me.columns, function(ci, fieldname) {
+			var df = wn.meta.docfield_map[me.tabletype][fieldname];
 			if(me.head_labels) {
 				var label = me.head_labels[ci];
 			} else {
-				var df = wn.meta.docfield_map[me.tabletype][fieldname];
 				var label = df ? df.label : fieldname;
 			}
 			var td = $("<td>").html(label)
@@ -116,6 +116,10 @@ wn.print.Table = Class.extend({
 			
 			if(ci==0) {
 				td.css({"min-width": "30px"});
+			}
+			
+			if(df && in_list(['Float', 'Currency'], df.fieldtype)) {
+				td.css({"text-align": "right"});
 			}
 		});
 		
@@ -132,14 +136,14 @@ wn.print.Table = Class.extend({
 						var value = row.idx;
 					else
 						var value = row[fieldname];
-
-					if(me.modifier && me.modifier[fieldname])
-						value = me.modifier[fieldname](row);
-					
+						
 					var df = wn.meta.docfield_map[me.tabletype][fieldname];
 					value = wn.form.get_formatter(
 						df && df.fieldtype || "Data")(value);
 
+					if(me.modifier && me.modifier[fieldname])
+						value = me.modifier[fieldname](row);
+					
 					var td = $("<td>").html(value)
 						.css(me.cell_style)
 						.css({width: me.widths[ci]})
@@ -210,7 +214,7 @@ wn.print.Table = Class.extend({
 	},
 })
 
-function print_table(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier, hide_empty) {
+function print_table(dt, dn, fieldname, tabletype, cols, head_labels, widths, condition, cssClass, modifier) {
 	return new wn.print.Table({
 		doctype: dt,
 		docname: dn,

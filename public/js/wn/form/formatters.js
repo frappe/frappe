@@ -6,7 +6,7 @@ wn.form.formatters = {
 		return value==null ? "" : value
 	},
 	Float: function(value) {
-		return flt(value, 6);
+		return "<div style='text-align: right'>" + flt(value, 6) + "</div>";
 	},
 	Int: function(value) {
 		return cint(value);
