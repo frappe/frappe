@@ -243,7 +243,7 @@ def save_report():
 		d.ref_doctype = data['doctype']
 		
 	d.json = data['json']
-	d.save()
+	webnotes.model_wrapper([d]).save()
 	webnotes.msgprint("%s saved." % d.name)
 	return d.name
 
