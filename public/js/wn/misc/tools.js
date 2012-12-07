@@ -1,11 +1,3 @@
-wn.markdown = function(txt) {
-	if(!wn.md2html) {
-		wn.require('lib/js/lib/showdown.js');
-		wn.md2html = new Showdown.converter();
-	}
-	return wn.md2html.makeHtml(txt);
-}
-
 wn.downloadify = function(data, roles, me) {
 	if(roles && roles.length && !has_common(roles, user_roles)) {
 		msgprint("Export not allowed. You need " + wn.utils.comma_or(roles)

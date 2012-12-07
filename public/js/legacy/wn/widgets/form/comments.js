@@ -75,10 +75,6 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 
 		if(cl) {
 			this.msg.innerHTML = cl.length + ' out of ' + f.n_comments[me.docname] + ' comments';
-			if(f.n_comments[me.docname] > cl.length) {
-				this.msg.innerHTML += ' <span class="link_type" \
-					onclick="cur_frm.show_comments()">Show all</span>'
-			}
 			for(var i=0; i< cl.length; i++) {
 				this.render_one_comment(cl[i]);
 			}

@@ -181,13 +181,14 @@ _f.TableField.prototype = new Field();
 _f.TableField.prototype.with_label = 0;
 _f.TableField.prototype.make_body = function() {
 	if(this.perm[this.df.permlevel] && this.perm[this.df.permlevel][READ]) {
+		this.wrapper = $("<div>").appendTo(this.parent).get(0);
 		this.grid = new _f.FormGrid(this);
 		if(this.frm)this.frm.grids[this.frm.grids.length] = this;
 		this.grid.make_buttons();
 		
 		// description
 		if(this.df.description) {
-			this.desc_area = $a(this.parent, 'div', 'help small', 
+			this.desc_area = $a(this.wrapper, 'div', 'help small', 
 				{marginBottom:'9px', marginTop:'0px'}, this.df.description)
 		}
 	}
@@ -231,17 +232,13 @@ _f.TableField.prototype.refresh = function() {
 		}
 	}
 	
-	//if(this.old_status!=st) {
-	if(st=='Write') {
-		// nothing
-		this.grid.show();
-	} else if(st=='Read') {
+	if(st=='Write' || st=="Read") {
+		$(this.wrapper).toggle(true);
 		this.grid.show();
 	} else {
+		$(this.wrapper).toggle(false);
 		this.grid.hide();
 	}
-	//	this.old_status = st; // save this if next time
-	//}
 
 	this.grid.refresh();
 }

@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-12-03 10:13:44", 
+  "creation": "2012-12-06 15:56:49", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-03 11:38:56"
+  "modified": "2012-12-07 14:26:04"
  }, 
  {
   "istable": 0, 
@@ -278,6 +278,7 @@
   "label": "Sync Inbox", 
   "fieldname": "sync_inbox", 
   "fieldtype": "Check", 
+  "hidden": 1, 
   "permlevel": 0
  }, 
  {
@@ -287,6 +288,7 @@
   "label": "Email Host", 
   "fieldname": "email_host", 
   "fieldtype": "Data", 
+  "hidden": 1, 
   "permlevel": 0
  }, 
  {
@@ -294,6 +296,7 @@
   "label": "Email Use SSL", 
   "fieldname": "email_use_ssl", 
   "fieldtype": "Check", 
+  "hidden": 1, 
   "permlevel": 0
  }, 
  {
@@ -301,6 +304,7 @@
   "label": "Email Login", 
   "fieldname": "email_login", 
   "fieldtype": "Data", 
+  "hidden": 1, 
   "permlevel": 0
  }, 
  {
@@ -308,6 +312,7 @@
   "label": "Email Password", 
   "fieldname": "email_password", 
   "fieldtype": "Password", 
+  "hidden": 1, 
   "permlevel": 0
  }, 
  {

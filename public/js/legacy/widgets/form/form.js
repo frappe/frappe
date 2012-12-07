@@ -725,9 +725,7 @@ _f.Frm.prototype.refresh_dependency = function() {
 			} else if(f.df.depends_on.substr(0,3)=='fn:') {
 				f.guardian_has_value = me.runclientscript(f.df.depends_on.substr(3), me.doctype, me.docname);
 			} else {
-				if(v || (v==0 && !v.substr)) { 
-					// guardian has value
-				} else { 
+				if(!v) {
 					f.guardian_has_value = false;
 				}
 			}
