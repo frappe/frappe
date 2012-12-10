@@ -43,7 +43,7 @@ wn.datetime = {
 	str_to_obj: function(d) { 
 		if(typeof d=="object") return d;
 		if(!d) return new Date(); 
-		var tm = [null, null];
+		var tm = [0, 0];
 		if(d.search(' ')!=-1) {
 			var tm = d.split(' ')[1].split(':');
 			var d = d.split(' ')[0];

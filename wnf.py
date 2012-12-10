@@ -324,9 +324,9 @@ def run():
 
 	elif options.commit:
 		os.chdir('lib')
-		os.system('git commit -a -m %s' % (options.commit[0]))
+		os.system('git commit -a -m "%s"' % (options.commit))
 		os.chdir('../app')
-		os.system('git commit -a -m %s' % (options.commit[0]))
+		os.system('git commit -a -m "%s"' % (options.commit))
 
 	elif options.push:
 		os.chdir('lib')

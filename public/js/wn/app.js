@@ -160,11 +160,13 @@ wn.Application = Class.extend({
 		sys_defaults = {};
 	},
 	make_page_container: function() {
-		wn.temp_container = $("<div id='#temp-container' style='display: none;'>")
-			.appendTo("body");
-		wn.container = new wn.views.Container();
-		wn.views.make_403();
-		wn.views.make_404();
+		if($("#body_div").length) {
+			wn.temp_container = $("<div id='#temp-container' style='display: none;'>")
+				.appendTo("body");
+			wn.container = new wn.views.Container();
+			wn.views.make_403();
+			wn.views.make_404();			
+		}
 	},
 	make_nav_bar: function() {
 		// toolbar
