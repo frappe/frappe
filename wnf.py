@@ -186,6 +186,9 @@ def setup_options():
 						metavar = "remote branch",
 						help="git pull (both repos)")
 
+	parser.add_option("--commit", nargs=1, default=False, 
+						metavar = "commit both repos",
+						help="git commit -a -m [comment]")
 	parser.add_option("--push", nargs=2, default=False, 
 						metavar = "remote branch",
 						help="git push (both repos) [remote] [branch]")
@@ -318,6 +321,12 @@ def run():
 
 	if options.pull:
 		pull(options.pull[0], options.pull[1], build=True)
+
+	elif options.commit:
+		os.chdir('lib')
+		os.system('git commit -a -m %s' % (options.commit[0]))
+		os.chdir('../app')
+		os.system('git commit -a -m %s' % (options.commit[0]))
 
 	elif options.push:
 		os.chdir('lib')
