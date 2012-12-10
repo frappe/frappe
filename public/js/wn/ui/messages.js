@@ -19,12 +19,12 @@ wn.confirm = function(message, ifyes, ifno) {
 			<button class='btn btn-small btn-no'>No</button>\
 		</p>");
 	$(d.wrapper).find(".btn-yes").click(function() {
-		ifyes && ifyes();
 		d.hide();
+		ifyes && ifyes();
 	});
 	$(d.wrapper).find(".btn-no").click(function() {
-		ifno && ifno();
 		d.hide();
+		ifno && ifno();	
 	});
 }
 
