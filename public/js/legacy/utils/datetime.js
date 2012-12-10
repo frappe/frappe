@@ -69,7 +69,7 @@ wn.datetime = {
 	get_diff: function(d1, d2) { 
 		if(typeof d1=='string') d1 = dateutil.str_to_obj(d1);
 		if(typeof d2=='string') d2 = dateutil.str_to_obj(d2);
-		return ((d1-d2) / 86400000); 
+		return Math.round((d1-d2) / 86400000); 
 	},
 	
 	get_day_diff: function(d1, d2) {
