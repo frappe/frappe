@@ -57,8 +57,11 @@ $.extend(wn.meta, {
 		if(locals.DocType[doctype].default_print_format)
 			print_format_list.push(locals.DocType[doctype].default_print_format)
 		
-		var print_formats = ["Standard"].concat(wn.model.get("Print Format",
-			{doc_type: doctype}).sort(function(a, b) { return (a > b) ? 1 : -1; }));
+		if(!in_list(print_format_list, "Standard"))
+			print_format_list.push("Standard");
+		
+		var print_formats = wn.model.get("Print Format", {doc_type: doctype})
+			.sort(function(a, b) { return (a > b) ? 1 : -1; });
 		$.each(print_formats, function(i, d) {
 			if(!in_list(print_format_list, d.name))
 				print_format_list.push(d.name);
