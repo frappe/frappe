@@ -116,6 +116,8 @@ wn.print.Table = Class.extend({
 			
 			if(ci==0) {
 				td.css({"min-width": "30px"});
+			} else {
+				td.css({"min-width": "5%"});
 			}
 			
 			if(df && in_list(['Float', 'Currency'], df.fieldtype)) {
@@ -151,6 +153,8 @@ wn.print.Table = Class.extend({
 						
 					if(ci==0) {
 						td.css({"min-width": "30px"});
+					} else {
+						td.css({"min-width": "5%"});
 					}
 				});
 			}

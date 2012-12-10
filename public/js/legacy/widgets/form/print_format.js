@@ -23,7 +23,7 @@
 // default print style
 _p.def_print_style_body = "html, body, div, span, td { \
 		font-family: Arial, Helvetica; \
-		font-size: 10pt; \
+		font-size: 9pt; \
 	}\
 	pre { margin:0; padding:0;}"	
 
@@ -100,7 +100,7 @@ $.extend(_p, {
 			},
 			{
 				cssFloat: 'right',
-				marginBottom: '16px'			
+				marginBottom: '16px'
 			}, '');
 		
 		// Delete previous print format select list and Reload print format list from current form
