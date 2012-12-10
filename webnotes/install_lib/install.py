@@ -39,9 +39,9 @@ class Installer:
 		self.root_password = root_password
 		from webnotes.model.db_schema import DbManager
 		
-		self.conn = webnotes.db.Database(user=root_login, password=root_password)			
+		self.conn = webnotes.db.Database(user=root_login, password=root_password)
 		webnotes.conn=self.conn
-		webnotes.session= {'user':'Administrator'}
+		webnotes.session= webnotes._dict({'user':'Administrator'})
 		self.dbman = DbManager(self.conn)
 
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
@@ -91,12 +91,13 @@ class Installer:
 			sync_install()
 
 		# framework cleanups
-		self.framework_cleanups(target)
+		self.framework_cleanups(target, 
+			hasattr(conf, 'admin_password') and conf.admin_password or password)
 		if verbose: print "Ran framework startups on %s" % target
 		
 		return target	
 
-	def framework_cleanups(self, target):
+	def framework_cleanups(self, target, password):
 		"""create framework internal tables"""
 		import webnotes
 		self.create_sessions_table()
@@ -105,8 +106,8 @@ class Installer:
 
 		# set the basic passwords
 		webnotes.conn.begin()
-		webnotes.conn.sql("""update __Auth set password = password('admin') 
-			where user='Administrator'""")
+		webnotes.conn.sql("""update __Auth set password = password(%s) 
+			where user='Administrator'""", (password,))
 		webnotes.conn.commit()
 
 	def create_sessions_table(self):
