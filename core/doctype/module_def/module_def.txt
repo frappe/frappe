@@ -1,84 +1,63 @@
-# DocType, Module Def
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-04-15 11:01:48',
-		'docstatus': 0,
-		'modified': '2012-04-15 11:13:35',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'autoname': u'field:module_name',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'module': u'Core',
-		'name': '__common__',
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'Module Def',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'amend': 0,
-		'cancel': 1,
-		'create': 1,
-		'doctype': u'DocPerm',
-		'name': '__common__',
-		'parent': u'Module Def',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1,
-		'role': u'Administrator',
-		'submit': 0,
-		'write': 1
-	},
-
-	# DocType, Module Def
-	{
-		'doctype': 'DocType',
-		'name': u'Module Def'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'module_name',
-		'fieldtype': u'Data',
-		'label': u'Module Name',
-		'oldfieldname': u'module_name',
-		'oldfieldtype': u'Data'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'disabled',
-		'fieldtype': u'Select',
-		'label': u'Disabled',
-		'oldfieldname': u'disabled',
-		'oldfieldtype': u'Select',
-		'options': u'No\nYes'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-07-03 13:29:35", 
+  "modified_by": "Administrator", 
+  "modified": "2012-12-10 19:11:05"
+ }, 
+ {
+  "autoname": "field:module_name", 
+  "name": "__common__", 
+  "allow_rename": 1, 
+  "doctype": "DocType", 
+  "module": "Core"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Module Def", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "parent": "Module Def", 
+  "read": 1, 
+  "cancel": 1, 
+  "name": "__common__", 
+  "amend": 0, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "submit": 0, 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "role": "Administrator", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Module Def", 
+  "doctype": "DocType"
+ }, 
+ {
+  "oldfieldtype": "Data", 
+  "doctype": "DocField", 
+  "label": "Module Name", 
+  "oldfieldname": "module_name", 
+  "fieldname": "module_name", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "oldfieldtype": "Select", 
+  "doctype": "DocField", 
+  "label": "Disabled", 
+  "oldfieldname": "disabled", 
+  "fieldname": "disabled", 
+  "fieldtype": "Select", 
+  "options": "No\nYes"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
 ]
