@@ -22,13 +22,23 @@
 
 // default print style
 _p.def_print_style_body = "html, body, div, span, td { \
-		font-family: Arial, Helvetica; font-size: 12px; }\
-		pre { margin:0; padding:0;}"	
+		font-family: Arial, Helvetica; \
+		font-size: 9pt; \
+	}\
+	pre { margin:0; padding:0;}"	
 
 _p.def_print_style_other = "\n.simpletable, .noborder { \
-		border-collapse: collapse; margin-bottom: 10px;}\
-	.simpletable td {border: 1pt solid #777; vertical-align: top; padding: 4px; }\
-	.noborder td { vertical-align: top; }"
+		border-collapse: collapse;\
+		margin-bottom: 10px;\
+	}\
+	.simpletable td {\
+		border: 1pt solid #777;\
+		vertical-align: top;\
+		padding: 4px;\
+	}\
+	.noborder td {\
+		vertical-align: top;\
+	}"
 
 _p.go = function(html) {
 	var d = document.createElement('div')
@@ -90,7 +100,7 @@ $.extend(_p, {
 			},
 			{
 				cssFloat: 'right',
-				marginBottom: '16px'			
+				marginBottom: '16px'
 			}, '');
 		
 		// Delete previous print format select list and Reload print format list from current form
@@ -279,7 +289,6 @@ $.extend(_p, {
 		}
 		
 		// Concatenate all styles
-		//style_concat =  _p.def_print_style_other + args.style + body_style;
 		style_concat =  (args.only_body ? '' : _p.def_print_style_body)
 				+ _p.def_print_style_other + args.style + body_style;
 			
