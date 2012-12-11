@@ -153,10 +153,11 @@ def getdate(string_date):
 	if " " in string_date:
 		string_date = string_date.split(" ")[0]
 	
-	try:	
+	try:
 		return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
 	except ValueError, e:
-		return ""
+		webnotes.msgprint("Cannot understand date - '%s'" % \
+			(string_date,), raise_exception=1)
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
