@@ -31,6 +31,7 @@ wn.ui.form.Attachments = Class.extend({
 		var me = this;
 		this.wrapper = $('<div>\
 			<div class="alert-list"></div>\
+			<button class="btn btn-small">Attach</button>\
 		</div>').appendTo(this.parent);
 		this.$list = this.wrapper.find(".alert-list");
 
@@ -54,6 +55,7 @@ wn.ui.form.Attachments = Class.extend({
 			return;
 		}
 		this.parent.toggle(true);
+		this.parent.find(".btn").toggle(!this.max_reached())
 		
 		this.$list.empty();
 
