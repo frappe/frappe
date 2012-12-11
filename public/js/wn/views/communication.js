@@ -205,9 +205,13 @@ wn.views.CommunicationComposer = Class.extend({
 						attachments: selected_attachments
 					},
 					callback: function(r) {
-						cur_frm.reload_doc();
+						if(!r.exc) {
+							if(form_values.send_email)
+								msgprint("Email sent to " + form_values.recipients);
+							cur_frm.reload_doc();
+						}
 					}
-				});				
+				});
 			})
 		});		
 	},

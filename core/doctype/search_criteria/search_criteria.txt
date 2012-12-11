@@ -14,7 +14,6 @@
 	{
 		'_last_update': u'1307624201',
 		'colour': u'White:FFF',
-		'default_print_format': u'Standard',
 		'doctype': 'DocType',
 		'module': u'Core',
 		'name': '__common__',

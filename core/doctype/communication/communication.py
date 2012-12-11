@@ -92,7 +92,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 				raise_exception=True)
 	
 	mail.send()
-			
+	
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
 
