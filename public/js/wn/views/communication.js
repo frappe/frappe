@@ -206,6 +206,8 @@ wn.views.CommunicationComposer = Class.extend({
 					},
 					callback: function(r) {
 						if(!r.exc) {
+							if(form_values.send_email)
+								msgprint("Email sent to " + form_values.recipients);
 							cur_frm.reload_doc();
 						}
 					}

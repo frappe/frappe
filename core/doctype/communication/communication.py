@@ -93,9 +93,6 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	mail.send()
 	
-	from webnotes.utils import comma_and
-	webnotes.msgprint("Email Sent to %s" % (comma_and(d.recipients),))
-	
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
 
