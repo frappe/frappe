@@ -15,7 +15,6 @@
 		'_last_update': u'1311536932',
 		'autoname': u'CWR/.#####',
 		'colour': u'White:FFF',
-		'default_print_format': u'Standard',
 		u'doctype': u'DocType',
 		'issingle': 0,
 		'module': u'Core',

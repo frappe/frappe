@@ -16,7 +16,6 @@
 		'autoname': u'EV.#####',
 		'client_string': u'---intro_html---\n\n<div style="padding: 8px; background-color: #EEF; border: 1px solid #CCF; margin-bottom: 8px;">\n  %(ref)s\n  <a href="javascript:loadpage(\'_calendar\')">Go To Calendar</a>\n</div>\n\n---ref_html---\n\nReference : <a href="javascript:loaddoc(\'%(dt)s\', \'%(dn)s\')">%(dn)s</a><br><br>',
 		'colour': u'White:FFF',
-		'default_print_format': u'Standard',
 		u'doctype': u'DocType',
 		'in_create': 1,
 		'module': u'Core',
