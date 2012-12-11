@@ -1,230 +1,185 @@
-# DocType, Customize Form
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-05-15 12:14:21',
-		'docstatus': 0,
-		'modified': '2012-12-10 18:30:00',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1326273643',
-		'autoname': u'DL.####',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'hide_toolbar': 0,
-		'issingle': 1,
-		'module': u'Core',
-		'name': '__common__',
-		'search_fields': u'doc_type',
-		'section_style': u'Simple',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'Customize Form',
-		'parentfield': u'fields',
-		'parenttype': u'DocType'
-	},
-
-	# These values are common for all DocPerm
-	{
-		'doctype': u'DocPerm',
-		'name': '__common__',
-		'parent': u'Customize Form',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'read': 1,
-		'role': u'System Manager'
-	},
-
-	# DocType, Customize Form
-	{
-		'doctype': 'DocType',
-		'name': u'Customize Form'
-	},
-
-	# DocPerm
-	{
-		'create': 1,
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'create': 1,
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 2
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'doc_type',
-		'fieldtype': u'Link',
-		'hidden': 0,
-		'label': u'Enter Form Type',
-		'no_copy': 0,
-		'options': u'DocType',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'properties',
-		'fieldtype': u'Section Break',
-		'label': u'Properties',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'column_break0',
-		'fieldtype': u'Column Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'description': u'Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box',
-		'doctype': u'DocField',
-		'fieldname': u'search_fields',
-		'fieldtype': u'Data',
-		'label': u'Search Fields',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'default_print_format',
-		'fieldtype': u'Link',
-		'label': u'Default Print Format',
-		'no_copy': 0,
-		'options': u'Print Format',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'column_break1',
-		'fieldtype': u'Column Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'description': u'Load Print View on opening of an existing form',
-		'doctype': u'DocField',
-		'fieldname': u'read_only_onload',
-		'fieldtype': u'Check',
-		'label': u'Show Print First',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_print',
-		'fieldtype': u'Check',
-		'label': u'Hide Print',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_email',
-		'fieldtype': u'Check',
-		'label': u'Hide Email',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_copy',
-		'fieldtype': u'Check',
-		'label': u'Hide Copy',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'description': u'Note: maximum attachment size = 1mb',
-		'doctype': u'DocField',
-		'fieldname': u'allow_attach',
-		'fieldtype': u'Check',
-		'label': u'Allow Attach',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'depends_on': u'eval:doc.allow_attach',
-		'doctype': u'DocField',
-		'fieldname': u'max_attachments',
-		'fieldtype': u'Int',
-		'label': u'Max Attachments',
-		'no_copy': 0,
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'description': u'Customize Label, Print Hide, Default etc.',
-		'doctype': u'DocField',
-		'fieldname': u'fields_section_break',
-		'fieldtype': u'Section Break',
-		'label': u'Fields',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'default': u'no add rows',
-		'doctype': u'DocField',
-		'fieldname': u'fields',
-		'fieldtype': u'Table',
-		'label': u'Fields',
-		'no_copy': 0,
-		'options': u'Customize Form Field',
-		'permlevel': 1,
-		'search_index': 0
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-05-15 12:14:21", 
+  "modified_by": "Administrator", 
+  "modified": "2012-12-10 18:30:00"
+ }, 
+ {
+  "section_style": "Simple", 
+  "search_fields": "doc_type", 
+  "module": "Core", 
+  "_last_update": "1326273643", 
+  "issingle": 1, 
+  "show_in_menu": 0, 
+  "autoname": "DL.####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "doctype": "DocType", 
+  "version": 1, 
+  "hide_toolbar": 0
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Customize Form", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Customize Form", 
+  "read": 1, 
+  "doctype": "DocPerm", 
+  "parenttype": "DocType", 
+  "role": "System Manager", 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Customize Form", 
+  "doctype": "DocType"
+ }, 
+ {
+  "write": 1, 
+  "create": 1, 
+  "permlevel": 0, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "write": 1, 
+  "create": 1, 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "permlevel": 2, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Enter Form Type", 
+  "permlevel": 0, 
+  "fieldname": "doc_type", 
+  "fieldtype": "Link", 
+  "hidden": 0, 
+  "options": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Properties", 
+  "fieldname": "properties", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break0", 
+  "fieldtype": "Column Break", 
+  "permlevel": 0
+ }, 
+ {
+  "description": "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box", 
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Search Fields", 
+  "fieldname": "search_fields", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Default Print Format", 
+  "permlevel": 0, 
+  "fieldname": "default_print_format", 
+  "fieldtype": "Link", 
+  "options": "Print Format"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break1", 
+  "fieldtype": "Column Break", 
+  "permlevel": 0
+ }, 
+ {
+  "description": "Load Print View on opening of an existing form", 
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Show Print First", 
+  "fieldname": "read_only_onload", 
+  "fieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Hide Print", 
+  "fieldname": "allow_print", 
+  "fieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Hide Email", 
+  "fieldname": "allow_email", 
+  "fieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Hide Copy", 
+  "fieldname": "allow_copy", 
+  "fieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "description": "Note: maximum attachment size = 1mb", 
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Allow Attach", 
+  "fieldname": "allow_attach", 
+  "fieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Max Attachments", 
+  "fieldname": "max_attachments", 
+  "fieldtype": "Int", 
+  "depends_on": "eval:doc.allow_attach", 
+  "permlevel": 0
+ }, 
+ {
+  "description": "Customize Label, Print Hide, Default etc.", 
+  "doctype": "DocField", 
+  "label": "Fields", 
+  "fieldname": "fields_section_break", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "permlevel": 1, 
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Fields", 
+  "default": "no add rows", 
+  "fieldname": "fields", 
+  "fieldtype": "Table", 
+  "options": "Customize Form Field"
+ }
 ]

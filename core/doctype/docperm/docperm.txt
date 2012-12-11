@@ -1,185 +1,156 @@
-# DocType, DocPerm
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-03-27 14:35:36',
-		'docstatus': 0,
-		'modified': '2012-03-27 14:35:36',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'allow_copy': 0,
-		'allow_email': 0,
-		'allow_print': 0,
-		'autoname': u'PERM.#####',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'hide_heading': 0,
-		'hide_toolbar': 0,
-		'issingle': 0,
-		'istable': 1,
-		'module': u'Core',
-		'name': '__common__',
-		'read_only': 0,
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'show_in_menu': 0
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'DocPerm',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# DocType, DocPerm
-	{
-		'doctype': 'DocType',
-		'name': u'DocPerm'
-	},
-
-	# DocField
-	{
-		'default': u'0',
-		'doctype': u'DocField',
-		'fieldname': u'permlevel',
-		'fieldtype': u'Int',
-		'hidden': 0,
-		'label': u'Level',
-		'oldfieldname': u'permlevel',
-		'oldfieldtype': u'Int',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'40px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'role',
-		'fieldtype': u'Link',
-		'hidden': 0,
-		'label': u'Role',
-		'oldfieldname': u'role',
-		'oldfieldtype': u'Link',
-		'options': u'Role',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'150px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'read',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Read',
-		'oldfieldname': u'read',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'32px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'write',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Write',
-		'oldfieldname': u'write',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'32px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'create',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Create',
-		'oldfieldname': u'create',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'32px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'submit',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Submit',
-		'oldfieldname': u'submit',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'32px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'cancel',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Cancel',
-		'oldfieldname': u'cancel',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'32px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'execute',
-		'fieldtype': u'Check',
-		'hidden': 0,
-		'label': u'Execute',
-		'oldfieldname': u'execute',
-		'oldfieldtype': u'Check',
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'32px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'amend',
-		'fieldtype': u'Check',
-		'label': u'Amend',
-		'oldfieldname': u'amend',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'match',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Match',
-		'oldfieldname': u'match',
-		'oldfieldtype': u'Data',
-		'reqd': 0,
-		'search_index': 0
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-03-27 14:35:36", 
+  "modified_by": "Administrator", 
+  "modified": "2012-03-27 14:35:36"
+ }, 
+ {
+  "section_style": "Simple", 
+  "istable": 1, 
+  "allow_print": 0, 
+  "module": "Core", 
+  "server_code_error": " ", 
+  "issingle": 0, 
+  "read_only": 0, 
+  "allow_email": 0, 
+  "hide_heading": 0, 
+  "autoname": "PERM.#####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "doctype": "DocType", 
+  "show_in_menu": 0, 
+  "hide_toolbar": 0, 
+  "allow_copy": 0
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "DocPerm", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "DocPerm", 
+  "doctype": "DocType"
+ }, 
+ {
+  "default": "0", 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Level", 
+  "oldfieldname": "permlevel", 
+  "width": "40px", 
+  "fieldname": "permlevel", 
+  "fieldtype": "Int", 
+  "oldfieldtype": "Int", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Role", 
+  "oldfieldname": "role", 
+  "width": "150px", 
+  "fieldname": "role", 
+  "fieldtype": "Link", 
+  "oldfieldtype": "Link", 
+  "reqd": 0, 
+  "hidden": 0, 
+  "options": "Role"
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Read", 
+  "oldfieldname": "read", 
+  "width": "32px", 
+  "fieldname": "read", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Write", 
+  "oldfieldname": "write", 
+  "width": "32px", 
+  "fieldname": "write", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Create", 
+  "oldfieldname": "create", 
+  "width": "32px", 
+  "fieldname": "create", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Submit", 
+  "oldfieldname": "submit", 
+  "width": "32px", 
+  "fieldname": "submit", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Cancel", 
+  "oldfieldname": "cancel", 
+  "width": "32px", 
+  "fieldname": "cancel", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Execute", 
+  "oldfieldname": "execute", 
+  "width": "32px", 
+  "fieldname": "execute", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "oldfieldtype": "Check", 
+  "doctype": "DocField", 
+  "label": "Amend", 
+  "oldfieldname": "amend", 
+  "fieldname": "amend", 
+  "fieldtype": "Check"
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Match", 
+  "oldfieldname": "match", 
+  "fieldname": "match", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "reqd": 0, 
+  "hidden": 0
+ }
 ]

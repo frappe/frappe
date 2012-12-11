@@ -90,7 +90,8 @@ def commonify_doclist(doclist, with_comments=1):
 		for d in doclist:
 			if not d['doctype'] in common_dict:
 				d1 = d.copy()
-				del d1['name']
+				if d1.has_key("name"):
+					del d1['name']
 				common_dict[d['doctype']] = d1
 			else:
 				common_dict[d['doctype']] = get_common_dict(common_dict[d['doctype']], d)
@@ -106,7 +107,7 @@ def commonify_doclist(doclist, with_comments=1):
 		f['doctype'] = d['doctype'] # keep doctype!
 
 		# strip name for child records (only an auto generated number!)
-		if f['doctype'] != doclist[0]['doctype']:
+		if f['doctype'] != doclist[0]['doctype'] and f.has_key("name"):
 			del f['name']
 
 		if with_comments:

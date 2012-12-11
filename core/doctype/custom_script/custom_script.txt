@@ -1,124 +1,99 @@
-# DocType, Custom Script
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-07-03 13:29:35',
-		u'docstatus': 0,
-		u'modified': '2012-10-26 13:11:06',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1307624201',
-		'autoname': u'CustomScript.####',
-		'colour': u'White:FFF',
-		'description': u'Adds a custom script (client or server) to a DocType',
-		u'doctype': u'DocType',
-		'module': u'Core',
-		u'name': u'__common__',
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		u'name': u'__common__',
-		'parent': u'Custom Script',
-		'parentfield': u'fields',
-		'parenttype': u'DocType'
-	},
-
-	# These values are common for all DocPerm
-	{
-		u'doctype': u'DocPerm',
-		u'name': u'__common__',
-		'parent': u'Custom Script',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'read': 1
-	},
-
-	# DocType, Custom Script
-	{
-		u'doctype': u'DocType',
-		u'name': u'Custom Script'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'dt',
-		'fieldtype': u'Link',
-		'label': u'DocType',
-		'oldfieldname': u'dt',
-		'oldfieldtype': u'Link',
-		'options': u'DocType',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'default': u'Client',
-		u'doctype': u'DocField',
-		'fieldname': u'script_type',
-		'fieldtype': u'Select',
-		'label': u'Script Type',
-		'oldfieldname': u'script_type',
-		'oldfieldtype': u'Select',
-		'options': u'Client\nServer',
-		'permlevel': 1
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'script',
-		'fieldtype': u'Code',
-		'label': u'Script',
-		'oldfieldname': u'script',
-		'oldfieldtype': u'Code',
-		'options': u'Script',
-		'permlevel': 0
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'create': 1,
-		u'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		'create': 1,
-		u'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'Administrator',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'System Manager'
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'Administrator',
-		'write': 1
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-07-03 13:29:35", 
+  "modified_by": "Administrator", 
+  "modified": "2012-10-26 13:11:06"
+ }, 
+ {
+  "section_style": "Simple", 
+  "description": "Adds a custom script (client or server) to a DocType", 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "autoname": "CustomScript.####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "_last_update": "1307624201", 
+  "server_code_error": " ", 
+  "version": 1
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Custom Script", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Custom Script", 
+  "read": 1, 
+  "doctype": "DocPerm", 
+  "parenttype": "DocType", 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Custom Script", 
+  "doctype": "DocType"
+ }, 
+ {
+  "oldfieldtype": "Link", 
+  "doctype": "DocField", 
+  "label": "DocType", 
+  "oldfieldname": "dt", 
+  "permlevel": 0, 
+  "fieldname": "dt", 
+  "fieldtype": "Link", 
+  "options": "DocType"
+ }, 
+ {
+  "default": "Client", 
+  "oldfieldtype": "Select", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Script Type", 
+  "oldfieldname": "script_type", 
+  "permlevel": 1, 
+  "fieldname": "script_type", 
+  "fieldtype": "Select", 
+  "options": "Client\nServer"
+ }, 
+ {
+  "oldfieldtype": "Code", 
+  "doctype": "DocField", 
+  "label": "Script", 
+  "oldfieldname": "script", 
+  "permlevel": 0, 
+  "fieldname": "script", 
+  "fieldtype": "Code", 
+  "options": "Script"
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "System Manager", 
+  "cancel": 1, 
+  "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "Administrator", 
+  "cancel": 1, 
+  "permlevel": 0
+ }, 
+ {
+  "role": "System Manager", 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "write": 1, 
+  "role": "Administrator", 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }
 ]

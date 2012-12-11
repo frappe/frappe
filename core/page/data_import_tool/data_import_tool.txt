@@ -1,44 +1,33 @@
-# Page, data-import-tool
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-06-14 15:07:25',
-		u'docstatus': 0,
-		u'modified': '2012-10-04 16:54:24',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all Page
-	{
-		u'doctype': u'Page',
-		'module': u'Core',
-		u'name': u'__common__',
-		'page_name': u'Data Import Tool',
-		'standard': u'Yes',
-		'title': u'Data Import Tool',
-		'web_page': u'No'
-	},
-
-	# These values are common for all Page Role
-	{
-		u'doctype': u'Page Role',
-		u'name': u'__common__',
-		'parent': u'data-import-tool',
-		'parentfield': u'roles',
-		'parenttype': u'Page',
-		'role': u'System Manager'
-	},
-
-	# Page, data-import-tool
-	{
-		u'doctype': u'Page',
-		u'name': u'data-import-tool'
-	},
-
-	# Page Role
-	{
-		u'doctype': u'Page Role'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-06-14 15:07:25", 
+  "modified_by": "Administrator", 
+  "modified": "2012-10-04 16:54:24"
+ }, 
+ {
+  "name": "__common__", 
+  "title": "Data Import Tool", 
+  "web_page": "No", 
+  "module": "Core", 
+  "doctype": "Page", 
+  "page_name": "Data Import Tool", 
+  "standard": "Yes"
+ }, 
+ {
+  "parent": "data-import-tool", 
+  "name": "__common__", 
+  "doctype": "Page Role", 
+  "parenttype": "Page", 
+  "role": "System Manager", 
+  "parentfield": "roles"
+ }, 
+ {
+  "name": "data-import-tool", 
+  "doctype": "Page"
+ }, 
+ {
+  "doctype": "Page Role"
+ }
 ]

@@ -1,295 +1,246 @@
-# DocType, Customize Form Field
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-05-03 18:41:14',
-		'docstatus': 0,
-		'modified': '2012-08-07 16:34:48',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1326705243',
-		'allow_copy': 0,
-		'allow_email': 0,
-		'allow_print': 0,
-		'autoname': u'DLF.#####',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'hide_heading': 0,
-		'hide_toolbar': 0,
-		'issingle': 0,
-		'istable': 1,
-		'module': u'Core',
-		'name': '__common__',
-		'read_only': 0,
-		'section_style': u'Simple',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'hidden': 0,
-		'name': '__common__',
-		'parent': u'Customize Form Field',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'print_hide': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'doctype': u'DocPerm',
-		'name': '__common__',
-		'parent': u'Customize Form Field',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'read': 1
-	},
-
-	# DocType, Customize Form Field
-	{
-		'doctype': 'DocType',
-		'name': u'Customize Form Field'
-	},
-
-	# DocPerm
-	{
-		'create': 1,
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'create': 1,
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 2,
-		'role': u'System Manager'
-	},
-
-	# DocPerm
-	{
-		'create': 1,
-		'doctype': u'DocPerm',
-		'permlevel': 2,
-		'role': u'Administrator',
-		'write': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'label',
-		'fieldtype': u'Data',
-		'label': u'Label',
-		'oldfieldname': u'label',
-		'oldfieldtype': u'Data',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'fieldtype',
-		'fieldtype': u'Select',
-		'label': u'Type',
-		'oldfieldname': u'fieldtype',
-		'oldfieldtype': u'Select',
-		'options': u'Data\nSelect\nText\nSmall Text\nText Editor\nLink\nInt\nDate\nTime\nCurrency\nTable\nFloat\nCheck\nSection Break\nColumn Break\nButton\nRead Only\nCode\nHTML\nImage\nBlob\nPassword',
-		'permlevel': 1,
-		'reqd': 1,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'fieldname',
-		'fieldtype': u'Data',
-		'label': u'Name',
-		'oldfieldname': u'fieldname',
-		'oldfieldtype': u'Data',
-		'permlevel': 2,
-		'reqd': 0,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'description': u'For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma',
-		'doctype': u'DocField',
-		'fieldname': u'options',
-		'fieldtype': u'Text',
-		'label': u'Options',
-		'oldfieldname': u'options',
-		'oldfieldtype': u'Text',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'default': u'0',
-		'doctype': u'DocField',
-		'fieldname': u'permlevel',
-		'fieldtype': u'Int',
-		'label': u'Perm Level',
-		'oldfieldname': u'permlevel',
-		'oldfieldtype': u'Int',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'width',
-		'fieldtype': u'Data',
-		'label': u'Width',
-		'oldfieldname': u'width',
-		'oldfieldtype': u'Data',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'50px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'reqd',
-		'fieldtype': u'Check',
-		'label': u'Reqd',
-		'oldfieldname': u'reqd',
-		'oldfieldtype': u'Check',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'50px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'in_filter',
-		'fieldtype': u'Check',
-		'label': u'In Filter',
-		'oldfieldname': u'in_filter',
-		'oldfieldtype': u'Check',
-		'permlevel': 1,
-		'reqd': 0,
-		'width': u'50px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'hidden',
-		'fieldtype': u'Check',
-		'label': u'Hidden',
-		'oldfieldname': u'hidden',
-		'oldfieldtype': u'Check',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0,
-		'width': u'50px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'print_hide',
-		'fieldtype': u'Check',
-		'label': u'Print Hide',
-		'oldfieldname': u'print_hide',
-		'oldfieldtype': u'Check',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'doctype': u'DocField',
-		'fieldname': u'report_hide',
-		'fieldtype': u'Check',
-		'label': u'Report Hide',
-		'oldfieldname': u'report_hide',
-		'oldfieldtype': u'Check',
-		'permlevel': 1,
-		'reqd': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'allow_on_submit',
-		'fieldtype': u'Check',
-		'label': u'Allow on Submit',
-		'oldfieldname': u'allow_on_submit',
-		'oldfieldtype': u'Check',
-		'permlevel': 0,
-		'reqd': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'description': u"This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>\nmyfield\neval:doc.myfield=='My Value'<br>\neval:doc.age>18",
-		'doctype': u'DocField',
-		'fieldname': u'depends_on',
-		'fieldtype': u'Data',
-		'label': u'Depends On',
-		'oldfieldname': u'depends_on',
-		'oldfieldtype': u'Data',
-		'permlevel': 1,
-		'reqd': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'description',
-		'fieldtype': u'Text',
-		'label': u'Description',
-		'oldfieldname': u'description',
-		'oldfieldtype': u'Text',
-		'permlevel': 1,
-		'reqd': 0,
-		'width': u'300px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'default',
-		'fieldtype': u'Text',
-		'label': u'Default',
-		'oldfieldname': u'default',
-		'oldfieldtype': u'Text',
-		'permlevel': 1,
-		'reqd': 0,
-		'search_index': 0
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-05-03 18:41:14", 
+  "modified_by": "Administrator", 
+  "modified": "2012-08-07 16:34:48"
+ }, 
+ {
+  "section_style": "Simple", 
+  "istable": 1, 
+  "allow_print": 0, 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "issingle": 0, 
+  "show_in_menu": 0, 
+  "read_only": 0, 
+  "allow_email": 0, 
+  "hide_heading": 0, 
+  "autoname": "DLF.#####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "_last_update": "1326705243", 
+  "version": 1, 
+  "hide_toolbar": 0, 
+  "allow_copy": 0
+ }, 
+ {
+  "print_hide": 0, 
+  "name": "__common__", 
+  "parent": "Customize Form Field", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "hidden": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Customize Form Field", 
+  "read": 1, 
+  "doctype": "DocPerm", 
+  "parenttype": "DocType", 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Customize Form Field", 
+  "doctype": "DocType"
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "System Manager", 
+  "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "System Manager", 
+  "permlevel": 1
+ }, 
+ {
+  "role": "System Manager", 
+  "permlevel": 2, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "Administrator", 
+  "permlevel": 2
+ }, 
+ {
+  "search_index": 1, 
+  "doctype": "DocField", 
+  "label": "Label", 
+  "oldfieldname": "label", 
+  "fieldname": "label", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "search_index": 1, 
+  "doctype": "DocField", 
+  "label": "Type", 
+  "oldfieldname": "fieldtype", 
+  "permlevel": 1, 
+  "fieldname": "fieldtype", 
+  "fieldtype": "Select", 
+  "oldfieldtype": "Select", 
+  "reqd": 1, 
+  "options": "Data\nSelect\nText\nSmall Text\nText Editor\nLink\nInt\nDate\nTime\nCurrency\nTable\nFloat\nCheck\nSection Break\nColumn Break\nButton\nRead Only\nCode\nHTML\nImage\nBlob\nPassword"
+ }, 
+ {
+  "search_index": 1, 
+  "doctype": "DocField", 
+  "label": "Name", 
+  "oldfieldname": "fieldname", 
+  "fieldname": "fieldname", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "reqd": 0, 
+  "permlevel": 2
+ }, 
+ {
+  "description": "For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma", 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Options", 
+  "oldfieldname": "options", 
+  "fieldname": "options", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "default": "0", 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Perm Level", 
+  "oldfieldname": "permlevel", 
+  "fieldname": "permlevel", 
+  "fieldtype": "Int", 
+  "oldfieldtype": "Int", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Width", 
+  "oldfieldname": "width", 
+  "width": "50px", 
+  "fieldname": "width", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Reqd", 
+  "oldfieldname": "reqd", 
+  "width": "50px", 
+  "fieldname": "reqd", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "oldfieldtype": "Check", 
+  "doctype": "DocField", 
+  "label": "In Filter", 
+  "oldfieldname": "in_filter", 
+  "width": "50px", 
+  "fieldname": "in_filter", 
+  "fieldtype": "Check", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Hidden", 
+  "oldfieldname": "hidden", 
+  "width": "50px", 
+  "fieldname": "hidden", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Print Hide", 
+  "oldfieldname": "print_hide", 
+  "fieldname": "print_hide", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "oldfieldtype": "Check", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Report Hide", 
+  "oldfieldname": "report_hide", 
+  "fieldname": "report_hide", 
+  "fieldtype": "Check", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "oldfieldtype": "Check", 
+  "doctype": "DocField", 
+  "label": "Allow on Submit", 
+  "oldfieldname": "allow_on_submit", 
+  "fieldname": "allow_on_submit", 
+  "fieldtype": "Check", 
+  "reqd": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "description": "This field will appear only if the fieldname defined here has value OR the rules are true (examples): <br>\nmyfield\neval:doc.myfield=='My Value'<br>\neval:doc.age>18", 
+  "oldfieldtype": "Data", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Depends On", 
+  "oldfieldname": "depends_on", 
+  "fieldname": "depends_on", 
+  "fieldtype": "Data", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "oldfieldtype": "Text", 
+  "doctype": "DocField", 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "width": "300px", 
+  "fieldname": "description", 
+  "fieldtype": "Text", 
+  "reqd": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Default", 
+  "oldfieldname": "default", 
+  "fieldname": "default", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "reqd": 0, 
+  "permlevel": 1
+ }
 ]

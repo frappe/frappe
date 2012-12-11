@@ -1,60 +1,47 @@
-# DocType, Default Home Page
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-03-27 14:35:35',
-		'docstatus': 0,
-		'modified': '2012-03-27 14:35:35',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'istable': 1,
-		'module': u'Core',
-		'name': '__common__',
-		'section_style': u'Simple',
-		'show_in_menu': 0,
-		'version': 2
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'fieldtype': u'Link',
-		'name': '__common__',
-		'oldfieldtype': u'Link',
-		'parent': u'Default Home Page',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# DocType, Default Home Page
-	{
-		'doctype': 'DocType',
-		'name': u'Default Home Page'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'role',
-		'label': u'Role',
-		'oldfieldname': u'role',
-		'options': u'Role'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'home_page',
-		'label': u'Home Page',
-		'oldfieldname': u'home_page',
-		'options': u'Page'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-03-27 14:35:35", 
+  "modified_by": "Administrator", 
+  "modified": "2012-03-27 14:35:35"
+ }, 
+ {
+  "section_style": "Simple", 
+  "istable": 1, 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "version": 2, 
+  "show_in_menu": 0
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Default Home Page", 
+  "oldfieldtype": "Link", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "fieldtype": "Link", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "Default Home Page", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Role", 
+  "oldfieldname": "role", 
+  "fieldname": "role", 
+  "options": "Role"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Home Page", 
+  "oldfieldname": "home_page", 
+  "fieldname": "home_page", 
+  "options": "Page"
+ }
 ]

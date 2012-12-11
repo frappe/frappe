@@ -1,166 +1,135 @@
-# DocType, Comment
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-05-03 18:41:14',
-		u'docstatus': 0,
-		u'modified': '2012-08-06 15:10:41',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1311536932',
-		'autoname': u'CWR/.#####',
-		'colour': u'White:FFF',
-		u'doctype': u'DocType',
-		'issingle': 0,
-		'module': u'Core',
-		u'name': u'__common__',
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		u'name': u'__common__',
-		'parent': u'Comment',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'create': 1,
-		u'doctype': u'DocPerm',
-		u'name': u'__common__',
-		'parent': u'Comment',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocType, Comment
-	{
-		u'doctype': u'DocType',
-		u'name': u'Comment'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment',
-		'fieldtype': u'Text',
-		'label': u'Comment',
-		'no_copy': 0,
-		'oldfieldname': u'comment',
-		'oldfieldtype': u'Text',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment_by',
-		'fieldtype': u'Data',
-		'label': u'Comment By',
-		'no_copy': 0,
-		'oldfieldname': u'comment_by',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment_by_fullname',
-		'fieldtype': u'Data',
-		'label': u'Comment By Fullname',
-		'no_copy': 0,
-		'oldfieldname': u'comment_by_fullname',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment_date',
-		'fieldtype': u'Date',
-		'label': u'Comment Date',
-		'no_copy': 0,
-		'oldfieldname': u'comment_date',
-		'oldfieldtype': u'Date',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment_time',
-		'fieldtype': u'Data',
-		'label': u'Comment Time',
-		'no_copy': 0,
-		'oldfieldname': u'comment_time',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment_doctype',
-		'fieldtype': u'Data',
-		'label': u'Comment Doctype',
-		'no_copy': 0,
-		'oldfieldname': u'comment_doctype',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'comment_docname',
-		'fieldtype': u'Data',
-		'label': u'Comment Docname',
-		'no_copy': 0,
-		'oldfieldname': u'comment_docname',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'post_topic',
-		'fieldtype': u'Data',
-		'label': u'Post Topic',
-		'no_copy': 0,
-		'oldfieldname': u'post_topic',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'unsubscribed',
-		'fieldtype': u'Check',
-		'label': u'Unsubscribed'
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-05-03 18:41:14", 
+  "modified_by": "Administrator", 
+  "modified": "2012-08-06 15:10:41"
+ }, 
+ {
+  "section_style": "Simple", 
+  "module": "Core", 
+  "_last_update": "1311536932", 
+  "server_code_error": " ", 
+  "doctype": "DocType", 
+  "autoname": "CWR/.#####", 
+  "issingle": 0, 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "show_in_menu": 0, 
+  "version": 1
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Comment", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "parent": "Comment", 
+  "read": 1, 
+  "name": "__common__", 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "role": "System Manager", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Comment", 
+  "doctype": "DocType"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment", 
+  "oldfieldname": "comment", 
+  "fieldname": "comment", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment By", 
+  "oldfieldname": "comment_by", 
+  "fieldname": "comment_by", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment By Fullname", 
+  "oldfieldname": "comment_by_fullname", 
+  "fieldname": "comment_by_fullname", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment Date", 
+  "oldfieldname": "comment_date", 
+  "fieldname": "comment_date", 
+  "fieldtype": "Date", 
+  "oldfieldtype": "Date"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment Time", 
+  "oldfieldname": "comment_time", 
+  "fieldname": "comment_time", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment Doctype", 
+  "oldfieldname": "comment_doctype", 
+  "fieldname": "comment_doctype", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Comment Docname", 
+  "oldfieldname": "comment_docname", 
+  "fieldname": "comment_docname", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Post Topic", 
+  "oldfieldname": "post_topic", 
+  "fieldname": "post_topic", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "unsubscribed", 
+  "fieldtype": "Check", 
+  "label": "Unsubscribed"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
 ]
