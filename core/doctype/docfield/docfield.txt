@@ -2,15 +2,16 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-11-30 18:13:32", 
+  "creation": "2012-12-10 10:25:14", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-07 15:09:55"
+  "modified": "2012-12-11 17:03:59"
  }, 
  {
   "istable": 1, 
   "allow_print": 0, 
   "module": "Core", 
   "autoname": "FL.#####", 
+  "in_dialog": 1, 
   "read_only": 0, 
   "allow_email": 0, 
   "hide_heading": 0, 
@@ -21,6 +22,7 @@
   "allow_copy": 0
  }, 
  {
+  "read_only": 0, 
   "name": "__common__", 
   "parent": "DocField", 
   "doctype": "DocField", 
@@ -106,6 +108,13 @@
   "search_index": 0, 
   "reqd": 0, 
   "hidden": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Read Only", 
+  "width": "50px", 
+  "fieldname": "read_only", 
+  "fieldtype": "Check"
  }, 
  {
   "oldfieldtype": "Data", 

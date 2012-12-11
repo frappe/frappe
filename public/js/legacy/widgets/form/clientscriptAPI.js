@@ -272,3 +272,6 @@ _f.Frm.prototype.call = function(opts) {
 	wn.call(opts);
 }
 
+_f.Frm.prototype.get_field = function(field) {
+	return cur_frm.fields_dict[field];
+}
