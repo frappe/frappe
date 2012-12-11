@@ -205,9 +205,11 @@ wn.views.CommunicationComposer = Class.extend({
 						attachments: selected_attachments
 					},
 					callback: function(r) {
-						cur_frm.reload_doc();
+						if(!r.exc) {
+							cur_frm.reload_doc();
+						}
 					}
-				});				
+				});
 			})
 		});		
 	},
