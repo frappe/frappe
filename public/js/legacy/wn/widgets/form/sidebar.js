@@ -123,8 +123,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			{
 				title: 'Attachments',
 				render: function(wrapper) {
-					if(!me.form.attachments)
-						me.form.attachments = new wn.ui.form.Attachments({parent: $(wrapper), frm:me.form});
+					me.form.attachments = new wn.ui.form.Attachments({parent: $(wrapper), frm:me.form});
 					me.form.attachments.refresh();
 				},
 				display: function() { return me.form.meta.allow_attach }

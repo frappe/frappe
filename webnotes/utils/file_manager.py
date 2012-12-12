@@ -57,7 +57,7 @@ def upload():
 		# with the new modified timestamp
 		webnotes.response['result'] = """
 <script type='text/javascript'>
-wn.ui.form.file_upload_done('%(dt)s', '%(dn)s', '%(fid)s', '%(fname)s', '%(at_id)s', '%(mod)s');
+window.parent.wn.ui.form.file_upload_done('%(dt)s', '%(dn)s', '%(fid)s', '%(fname)s', '%(at_id)s', '%(mod)s');
 window.parent.wn.views.formview['%(dt)s'].frm.show_doc('%(dn)s');
 </script>
 			""" % {
