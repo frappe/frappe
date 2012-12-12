@@ -21,7 +21,8 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+
+import webnotes, json
 
 class Profile:
 	"""
@@ -153,12 +154,6 @@ class Profile:
 			self.defaults[rec[0]].append(rec[1] or '')
 
 		return self.defaults
-		
-	def get_hide_tips(self):
-		try:
-			return webnotes.conn.sql("select hide_tips from tabProfile where name=%s", self.name)[0][0] or 0
-		except:
-			return 0
 			
 	# update recent documents
 	def update_recent(self, dt, dn):
@@ -179,28 +174,20 @@ class Profile:
 		r = webnotes.cache().set_value("recent:" + self.name, rdl)
 			
 	def load_profile(self):
-		t = webnotes.conn.sql("""select email, first_name, last_name, 
-			recent_documents, email_signature, theme, background_image 
-			from tabProfile where name = %s""", self.name)[0]
+		d = webnotes.conn.sql("""select email, first_name, last_name, 
+			ifnull(email_signature,""), theme, ifnull(background_image,"")
+			from tabProfile where name = %s""", self.name, as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
 
-		d = webnotes._dict({})
-		d['name'] = self.name
-		d['email'] = t[0] or ''
-		d['first_name'] = t[1] or ''
-		d['last_name'] = t[2] or ''
-		d['recent'] = t[3] or ''
-		d.email_signature = t[4] or ""
-		d.theme = t[5] or "Default"
-		d.background_image = t[6] or ""
-		
-		d['hide_tips'] = self.get_hide_tips()
-		
-		d['roles'] = self.roles
+		d.name = self.name
+		d.recent = json.dumps(webnotes.cache().get_value("recent:" + self.name) or [])
+		if not d.theme:
+			d.theme = "Default"
+				
+		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()
-		
 		d['can_create'] = self.can_create
 		d['can_write'] = self.can_write
 		d['can_read'] = list(set(self.can_read))
@@ -209,7 +196,6 @@ class Profile:
 		d['allow_modules'] = self.allow_modules
 		d['all_read'] = self.all_read
 		d['can_search'] = list(set(self.can_search))
-		
 		d['in_create'] = self.in_create
 		
 		return d
