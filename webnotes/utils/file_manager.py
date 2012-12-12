@@ -74,7 +74,8 @@ def save_uploaded():
 	fname, content = get_uploaded_content()
 	if content:
 		fid = save_file(fname, content)
-		return fid, fname
+		# fname is not valid
+		return fid, fid
 	else: 
 		return None, fname
 

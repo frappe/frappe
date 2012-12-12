@@ -58,9 +58,9 @@ _f.FrmHeader = Class.extend({
 			<span class="avatar avatar avatar-small">\
 			<img title="%(modified_by)s" src="%(avatar_modified)s"/></span>', {
 				created_by: wn.user_info(doc.owner).fullname,
-				avatar_created: wn.user_info(doc.owner).image,
+				avatar_created: wn.utils.get_file_link(wn.user_info(doc.owner).image),
 				modified_by: wn.user_info(doc.modified_by).fullname,
-				avatar_modified: wn.user_info(doc.modified_by).image,
+				avatar_modified: wn.utils.get_file_link(wn.user_info(doc.modified_by).image),
 		})).insertAfter(this.$w.find(".appframe-title"));
 		
 		this.$w.find(".avatar:eq(0)").popover({
