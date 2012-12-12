@@ -30,6 +30,7 @@ class Profile:
 	The global profile object is `webnotes.user`
 	"""
 	def __init__(self, name=''):
+		self.defaults = None
 		self.name = name or webnotes.session.get('user')
 		self.roles = []
 		
