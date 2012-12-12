@@ -157,7 +157,7 @@ class Profile:
 			
 	# update recent documents
 	def update_recent(self, dt, dn):
-		rdl = webnotes.cache().get_value("recent:" + self.name)		
+		rdl = webnotes.cache().get_value("recent:" + self.name) or []	
 		new_rd = [dt, dn]
 		
 		# clear if exists

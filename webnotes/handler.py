@@ -49,8 +49,6 @@ def get_cgi_fields():
 		if not getattr(webnotes.form[key], 'filename', None):
 			webnotes.form_dict[key] = cstr(webnotes.form.getvalue(key))
 
-# Logs
-
 @webnotes.whitelist(allow_guest=True)
 def startup():
 	webnotes.response.update(webnotes.sessions.get())

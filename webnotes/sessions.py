@@ -43,6 +43,18 @@ def clear_cache(user=None):
 	webnotes.cache().delete_keys("doctype:")
 	webnotes.cache().delete_keys("session:")
 
+def clear_sessions(user=None, keep_current=False):
+	if not user:
+		user = webnotes.session.user
+	for sid in webnotes.conn.sql("""select sid from tabSessions where user=%s""", user):
+		if not (keep_current and webnotes.session.sid == sid[0]):
+			webnotes.cache().delete_value("session:" + sid[0])
+	if keep_current:
+		webnotes.conn.sql('delete from tabSessions where user=%s and sid!=%s', (user, 
+			webnotes.session.sid))
+	else:
+		webnotes.conn.sql('delete from tabSessions where user=%s', user)
+		
 def get():
 	"""get session boot info"""
 	# check if cache exists
@@ -64,6 +76,7 @@ class Session:
 		self.user = user
 		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
 		self.data = webnotes._dict({'user':user,'data': webnotes._dict({})})
+		self.time_diff = None
 
 		if webnotes.form_dict.get('cmd')=='login':
 			self.start()
@@ -146,11 +159,11 @@ class Session:
 		data = webnotes._(webnotes.cache().get_value("session:" + self.sid))
 		if data:
 			session_data = data.get("data", {})
-			time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 
+			self.time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 
 				session_data.get("last_updated"))
 			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
 
-			if time_diff > expiry:
+			if self.time_diff > expiry:
 				self.delete_session()
 				data = None
 				
@@ -192,7 +205,9 @@ class Session:
 		"""extend session expiry"""
 		self.data['data']['last_updated'] = webnotes.utils.now()
 
-		if webnotes.session['user'] != 'Guest':
+		if webnotes.session['user'] != 'Guest' and (self.time_diff and \
+			self.time_diff > 1800):
+			# database persistence is secondary, don't update it too often
 			webnotes.conn.sql("""update tabSessions set sessiondata=%s, 
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
 				self.data['sid']))

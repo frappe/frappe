@@ -43,7 +43,7 @@ class HTTPRequest:
 		webnotes.cookie_manager = CookieManager()
 
 		# set db
-		self.set_db()
+		self.connect()
 		webnotes.conn.begin()
 
 		# login
@@ -76,9 +76,8 @@ class HTTPRequest:
 		"""get database name from conf"""
 		return conf.db_name
 
-	def set_db(self, ac_name = None):
+	def connect(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
-			
 		webnotes.conn = webnotes.db.Database(user = self.get_db_name(), \
 			password = getattr(conf,'db_password', ''))
 
@@ -178,17 +177,16 @@ class LoginManager:
 		self.post_login()
 
 	def logout(self, arg='', user=None):
-		if not user: user = webnotes.session.get('user')
+		if not user: user = webnotes.session.user
 		self.user = user
 		self.run_trigger('on_logout')
 		if user in ['demo@erpnext.com', 'Administrator']:
 			webnotes.conn.sql('delete from tabSessions where sid=%s', webnotes.session.get('sid'))
 			webnotes.cache().delete_value("session:" + webnotes.session.get("sid"))
 		else:
-			for sid in webnotes.conn.sql("""select sid from tabSessions where user=%s""", user):
-				webnotes.cache().delete_value("session:" + sid[0])
-			webnotes.conn.sql('delete from tabSessions where user=%s', user)
-
+			from webnotes.sessions import clear_sessions
+			clear_sessions(user)
+			
 class CookieManager:
 	def __init__(self):
 		import Cookie
