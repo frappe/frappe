@@ -120,7 +120,7 @@ def load_doctypes():
 	for t in tables:
 		if t.startswith('`'):
 			doctype = t[4:-1]
-			if not doctype in webnotes.user.can_get_report:
+			if not webnotes.has_permission(doctype):
 				webnotes.response['403'] = 1
 				raise webnotes.PermissionError
 			doctypes[doctype] = webnotes.model.doctype.get(doctype)

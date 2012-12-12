@@ -41,14 +41,10 @@ def clear_cache(user=None):
 	"""clear cache"""
 	webnotes.cache().delete_keys("bootinfo:")
 	webnotes.cache().delete_keys("doctype:")
-
-	# rebuild a cache for guest
-	if webnotes.session:
-		webnotes.session['data'] = {}
+	webnotes.cache().delete_keys("session:")
 
 def get():
 	"""get session boot info"""
-	
 	# check if cache exists
 	if not getattr(conf,'auto_cache_clear',None):
 		cache = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
@@ -62,3 +58,166 @@ def get():
 	webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 		
 	return bootinfo
+
+class Session:
+	def __init__(self, user=None):
+		self.user = user
+		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
+		self.data = webnotes._dict({'user':user,'data': webnotes._dict({})})
+
+		if webnotes.form_dict.get('cmd')=='login':
+			self.start()
+			return
+			
+		self.load()
+
+	def start(self):
+		"""start a new session"""
+		import os
+		import webnotes
+		import webnotes.utils
+		
+		# generate sid
+		if webnotes.login_manager.user=='Guest':
+			sid = 'Guest'
+		else:
+			sid = webnotes.generate_hash()
+		
+		self.data['user'] = webnotes.login_manager.user
+		self.data['sid'] = sid
+		self.data['data']['user'] = webnotes.login_manager.user
+		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR')
+		self.data['data']['last_updated'] = webnotes.utils.now()
+		self.data['data']['session_expiry'] = self.get_expiry_period()
+
+		# get ipinfo
+		if webnotes.conn.get_global('get_ip_info'):
+			self.get_ipinfo()
+		
+		# insert session
+		self.insert_session_record()
+
+		# update profile
+		webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
+			where name='%s'""" % (webnotes.utils.now(), webnotes.remote_ip, self.data['user']))
+
+		# set cookies to write
+		webnotes.session = self.data
+		webnotes.cookie_manager.set_cookies()
+
+	def insert_session_record(self):
+		webnotes.conn.sql("""insert into tabSessions 
+			(sessiondata, user, lastupdate, sid, status) 
+			values (%s , %s, NOW(), %s, 'Active')""", 
+				(str(self.data['data']), self.data['user'], self.data['sid']))
+				
+		# also add to memcache
+		webnotes.cache().set_value("session:" + self.data.sid, self.data)
+
+	def load(self):
+		"""non-login request: load a session"""
+		import webnotes		
+		data = self.get_session_record()
+		if data:
+			self.data = webnotes._dict({'data': data, 
+				'user':data.user, 'sid': self.sid})
+		else:
+			self.start_as_guest()
+
+	def get_session_record(self):
+		"""get session record, or return the standard Guest Record"""
+		# check in memcache
+		r = self.get_session_data()
+		if not r:
+			webnotes.response["session_expired"] = 1
+			self.sid = "Guest"
+			r = self.get_session_data()
+			
+		return r
+
+	def get_session_data(self):
+		data = self.get_session_data_from_cache()
+		if not data:
+			data = self.get_session_data_from_db()
+		return data
+
+	def get_session_data_from_cache(self):
+		# check if expired
+		data = webnotes._(webnotes.cache().get_value("session:" + self.sid))
+		if data:
+			session_data = data.get("data", {})
+			time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 
+				session_data.get("last_updated"))
+			expiry = self.get_expiry_in_seconds(session_data.get("session_expiry"))
+
+			if time_diff > expiry:
+				self.delete_session()
+				data = None
+				
+		return data and data.data
+
+	def get_session_data_from_db(self):
+		if self.sid=="Guest":
+			rec = webnotes.conn.sql("""select user, sessiondata from 
+				tabSessions where sid='Guest' """)
+		else:
+			rec = webnotes.conn.sql("""select user, sessiondata 
+				from tabSessions where sid=%s and 
+				TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid, 
+					self.get_expiry_period()))
+		if rec:
+			data = webnotes._dict(eval(rec and rec[0][1] or {}))
+			data.user = rec[0][0]
+		else:
+			self.delete_session()
+			data = None
+
+		return data
+
+	def get_expiry_in_seconds(self, expiry):
+		if not expiry: return 3600
+		parts = expiry.split(":")
+		return (int(parts[0]) * 3600) + (int(parts[1]) * 60) + int(parts[2])
+
+	def delete_session(self):
+		webnotes.cache().delete_value("session:" + self.sid)
+		r = webnotes.conn.sql("""delete from tabSessions where sid=%s""", self.sid)
+
+	def start_as_guest(self):
+		"""all guests share the same 'Guest' session"""
+		webnotes.login_manager.login_as_guest()
+		self.start()
+
+	def update(self):
+		"""extend session expiry"""
+		self.data['data']['last_updated'] = webnotes.utils.now()
+
+		if webnotes.session['user'] != 'Guest':
+			webnotes.conn.sql("""update tabSessions set sessiondata=%s, 
+				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
+				self.data['sid']))
+
+		if webnotes.request.cmd!="webnotes.sessions.clear":
+			webnotes.cache().set_value("session:" + self.sid, self.data)
+
+	def get_expiry_period(self):
+		exp_sec = webnotes.conn.get_default("session_expiry") or \
+			webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '06:00:00'
+		
+		# incase seconds is missing
+		if len(exp_sec.split(':')) == 2:
+			exp_sec = exp_sec + ':00'
+	
+		return exp_sec
+
+	def get_ipinfo(self):
+		import os
+		
+		try:
+			import pygeoip
+		except:
+			return
+		
+		gi = pygeoip.GeoIP('data/GeoIP.dat')
+		self.data['data']['ipinfo'] = {'countryName': gi.country_name_by_addr(os.environ.get('REMOTE_ADDR'))}
+		

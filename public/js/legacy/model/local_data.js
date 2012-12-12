@@ -77,9 +77,12 @@ function get_local(dt, dn) { return locals[dt] ? locals[dt][dn] : null; }
 // ======================================================================================
 
 LocalDB.sync = function(list) {
-	if(list._kl)list = expand_doclist(list);
-	if (list) {
+	if(keys(list._kl))
+		list = expand_doclist(list);
+	if(list.length) {
 		LocalDB.clear_locals(list[0].doctype, list[0].name);
+	} else {
+		return;
 	}
 	for(var i=0;i<list.length;i++) {
 		var d = list[i];

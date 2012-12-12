@@ -101,7 +101,7 @@ def load_month_events():
 
 	import webnotes.widgets.event
 	webnotes.response['docs'] = webnotes.widgets.event.get_cal_events(m_st, m_end)
-	
+
 @webnotes.whitelist()
 def uploadfile():
 	import webnotes.utils
