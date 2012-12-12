@@ -533,10 +533,11 @@ DateField.prototype.validate = function(v) {
 		me.input.set_input('');
 		return '';
 	}
-	var t = v.split('-');
+	var t = $.map(v.split('-'), function(part) { return cint(part) ? part : null; });
 	if(t.length!=3) { return this.clear(); }
 	else if(cint(t[1])>12 || cint(t[1])<1) { return this.clear(); }
 	else if(cint(t[2])>31 || cint(t[2])<1) { return this.clear(); }
+	else if(String(cint(t[0])).length!=4) { return this.clear(); } // 4 char for year
 	return v;
 };
 
@@ -1101,7 +1102,7 @@ SelectField.prototype.make_input = function() {
 			this.df.options = '';
 			var fl = fl.split('\n');
 			for(var i in fl) {
-				this.df.options += '\n' + fl[i].split(',')[1];
+				this.df.options += '\n' + fl[i].split(',')[0];
 				this.set_description("");
 			}
 		} else {
