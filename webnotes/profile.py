@@ -134,19 +134,17 @@ class Profile:
 		self.all_read += self.can_read
 
 	def get_defaults(self):
-		"""
-		Get the user's default values based on user and role profile
-		"""
-		roles = self.get_roles() + [self.name]
-		res = webnotes.conn.sql("""select defkey, defvalue 
-		from `tabDefaultValue` where parent in ("%s") order by idx""" % '", "'.join(roles))
+		if not self.defaults:
+			roles = self.get_roles() + [self.name]
+			res = webnotes.conn.sql("""select defkey, defvalue 
+			from `tabDefaultValue` where parent in ("%s") order by idx""" % '", "'.join(roles))
 	
-		self.defaults = {'owner': [self.name], "user": [self.name]}
+			self.defaults = {'owner': [self.name], "user": [self.name]}
 
-		for rec in res: 
-			if not self.defaults.has_key(rec[0]): 
-				self.defaults[rec[0]] = []
-			self.defaults[rec[0]].append(rec[1] or '')
+			for rec in res: 
+				if not self.defaults.has_key(rec[0]): 
+					self.defaults[rec[0]] = []
+				self.defaults[rec[0]].append(rec[1] or '')
 
 		return self.defaults
 			

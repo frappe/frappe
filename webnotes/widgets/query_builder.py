@@ -299,7 +299,7 @@ def runquery(q='', ret=0, from_export=0):
 		if qm.split()[0].lower() != 'select':
 			raise Exception, 'Query (Max) must be a SELECT'
 		if not webnotes.form_dict.get('simple_query'):
-			qm = add_match_conditions(qm, tl, webnotes.user.get_roles(), webnotes.user.defaults)
+			qm = add_match_conditions(qm, tl, webnotes.user.get_roles(), webnotes.user.get_defaults())
 
 		out['n_values'] = webnotes.utils.cint(sql(qm)[0][0])
 
