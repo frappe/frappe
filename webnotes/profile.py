@@ -44,17 +44,12 @@ class Profile:
 		
 		# for doctypes with create permission but are not supposed to be created using New
 		self.in_create = []
-		
-	def _load_roles(self):
-		self.roles = webnotes.get_roles()
-		return self.roles
 
 	def get_roles(self):
 		"""get list of roles"""
-		if self.roles:
-			return self.roles
-			
-		return self._load_roles()
+		if not self.roles:
+			self.roles = webnotes.get_roles()
+		return self.roles
 	
 	def build_doctype_map(self):
 		"""build map of special doctype properties"""

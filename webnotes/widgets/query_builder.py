@@ -250,7 +250,7 @@ def runquery(q='', ret=0, from_export=0):
 		tl = get_sql_tables(q)
 		meta = get_sql_meta(tl)
 
-		q = add_match_conditions(q, tl, webnotes.user.roles, webnotes.user.get_defaults())
+		q = add_match_conditions(q, tl, webnotes.user.get_roles(), webnotes.user.get_defaults())
 		webnotes
 		# replace special variables
 		q = q.replace('__user', session['user'])
@@ -299,7 +299,7 @@ def runquery(q='', ret=0, from_export=0):
 		if qm.split()[0].lower() != 'select':
 			raise Exception, 'Query (Max) must be a SELECT'
 		if not webnotes.form_dict.get('simple_query'):
-			qm = add_match_conditions(qm, tl, webnotes.user.roles, webnotes.user.defaults)
+			qm = add_match_conditions(qm, tl, webnotes.user.get_roles(), webnotes.user.defaults)
 
 		out['n_values'] = webnotes.utils.cint(sql(qm)[0][0])
 
