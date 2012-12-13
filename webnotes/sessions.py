@@ -64,6 +64,9 @@ def get():
 			cache['from_cache'] = 1
 			return cache
 	
+	if not webnotes.cache().get_stats():
+		webnotes.msgprint("memcached is not working / stopped. Please start memcached for best results.")
+	
 	# if not create it
 	from webnotes.boot import get_bootinfo
 	bootinfo = get_bootinfo()
