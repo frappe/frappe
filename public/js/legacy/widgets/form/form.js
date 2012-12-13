@@ -232,7 +232,7 @@ _f.Frm.prototype.rename_doc = function() {
 // notify this form of renamed records
 _f.Frm.prototype.rename_notify = function(dt, old, name) {	
 	// from form
-	if(this.meta.in_dialog && !this.in_form) 
+	if(this.meta.istable) 
 		return;
 	
 	if(this.docname == old)
@@ -253,6 +253,10 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 
 	delete this.opendocs[old];
 	this.opendocs[name] = true;
+	
+	if(this.meta.in_dialog || !this.in_form) {
+		return;
+	}
 	
 	wn.re_route[window.location.hash] = '#Form/' + encodeURIComponent(this.doctype) + '/' + encodeURIComponent(name);
 	wn.set_route('Form', this.doctype, name);
@@ -505,10 +509,11 @@ _f.Frm.prototype.refresh = function(docname) {
 		if (!this.opendocs[this.docname]) {
 			this.check_doctype_conflict(this.docname);
 		} else {
-			if((new Date() - this.doc.__last_sync_on) / 1000 > this.refresh_if_stale_for) {
+			if(this.doc && this.doc.__last_sync_on && 
+				(new Date() - this.doc.__last_sync_on) / 1000 > this.refresh_if_stale_for) {
 				this.reload_doc();
 				return;
-			}			
+			}
 		}
 
 		// do setup
