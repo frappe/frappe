@@ -168,14 +168,14 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	
 	make_no_result: function() {
+		var new_button = wn.boot.profile.can_create.indexOf(this.doctype)!=-1
+			? '<hr><p><button class="btn btn-info btn-small" \
+				list_view_doc="%(doctype)s">Make a new %(doctype_label)s</button></p>'
+			: '';
 		var no_result_message = repl('<div class="well">\
-		<p>No %(doctype_label)s found</p>\
-		<hr>\
-		<p><button class="btn btn-info btn-small" list_view_doc="%(doctype)s">\
-			Make a new %(doctype_label)s</button>\
-		</p></div>', {
+		<p>No %(doctype_label)s found</p>' + new_button + '</div>', {
 			doctype_label: wn._(this.doctype),
-			doctype: this.doctype
+			doctype: this.doctype,
 		});
 		
 		return no_result_message;
