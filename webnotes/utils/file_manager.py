@@ -127,7 +127,7 @@ def save_file(fname, content, module=None):
 		f.file_name = fname
 		f.save(1)
 		# rename new file
-		os.rename(new_fname, os.path.join(get_files_path(), f.name))		
+		os.rename(new_fname, os.path.join(get_files_path(), f.name))
 		return f.name
 
 def check_max_file_size(content):

@@ -201,8 +201,7 @@ class EMail:
 		if not self.sender:
 			# TODO: remove erpnext id
 			self.sender = webnotes.conn.get_value('Email Settings', None,
-				'auto_email_id') or getattr(conf, 'auto_email_id', 
-					'ERPNext Notification <notification@erpnext.com>')
+				'auto_email_id') or getattr(conf, 'auto_email_id')
 				
 		self.sender = _validate(self.sender)
 		self.reply_to = _validate(self.reply_to)
