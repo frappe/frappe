@@ -5,7 +5,7 @@ wn.views.ListView = Class.extend({
 		
 		var t = "`tab"+this.doctype+"`.";
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
-			t + '_user_tags', t + 'modified'];
+			t + '_user_tags', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
 		this.show_hide_check_column();
 
