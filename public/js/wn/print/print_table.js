@@ -115,7 +115,7 @@ wn.print.Table = Class.extend({
 				.appendTo(headrow)
 			
 			if(ci==0) {
-				td.css({"min-width": "30px"});
+				td.css({"min-width": "24pt"});
 			} else {
 				td.css({"min-width": "5%"});
 			}
@@ -152,7 +152,7 @@ wn.print.Table = Class.extend({
 						.appendTo(tr);
 						
 					if(ci==0) {
-						td.css({"min-width": "30px"});
+						td.css({"min-width": "24pt"});
 					} else {
 						td.css({"min-width": "5%"});
 					}
