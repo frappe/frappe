@@ -158,7 +158,7 @@ _f.FormGrid.prototype.insert_row = function() {
 
 _f.FormGrid.prototype.new_row_doc = function() {
 	// create row doc
-	var n = LocalDB.create(this.doctype);
+	var n = wn.model.make_new_doc_and_get_name(this.doctype);
 	var d = locals[this.doctype][n];
 	d.parent = this.field.frm.docname;
 	d.parentfield = this.field.df.fieldname;
@@ -220,7 +220,7 @@ _f.FormGrid.prototype.check_selected = function() {
 
 _f.FormGrid.prototype.delete_row = function(dt, dn) {
 	if(dt && dn) {
-		LocalDB.delete_record(dt, dn);
+		wn.model.clear_doc(dt, dn);
 		this.refresh();
 	} else {
 		if(!this.check_selected()) return;
@@ -230,7 +230,7 @@ _f.FormGrid.prototype.delete_row = function(dt, dn) {
 		var ci = _f.cur_grid_cell.cellIndex;
 		var ri = _f.cur_grid_cell.row.rowIndex;
 		
-		LocalDB.delete_record(this.doctype, r.docname);	
+		wn.model.clear_doc(this.doctype, r.docname);	
 		
 		this.refresh();
 		if(ri < (this.tab.rows.length-1))

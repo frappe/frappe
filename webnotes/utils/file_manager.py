@@ -80,6 +80,10 @@ def save_uploaded():
 		return None, fname
 
 def save_url(file_url):
+	if not (file_url.startswith("http://") or file_url.startswith("https://")):
+		webnotes.msgprint("URL must start with 'http://' or 'https://'")
+		return None, None
+		
 	f = webnotes.doc("File Data")
 	f.file_url = file_url
 	f.file_name = file_url.split('/')[-1]
@@ -93,7 +97,7 @@ def get_uploaded_content():
 		webnotes.uploaded_filename, webnotes.uploaded_content = i.filename, i.file.read()
 		return webnotes.uploaded_filename, webnotes.uploaded_content
 	else:
-		webnotes.msgprint('No File');
+		webnotes.msgprint('No File')
 		return None, None
 
 def save_file(fname, content, module=None):

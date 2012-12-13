@@ -80,7 +80,7 @@ _f.FrmHeader = Class.extend({
 		this.$w.find('.avatar img').centerImage();
 	},	
 	refresh_labels: function() {
-		cur_frm.doc = get_local(cur_frm.doc.doctype, cur_frm.doc.name);
+		cur_frm.doc = wn.model.get_doc(cur_frm.doc.doctype, cur_frm.doc.name);
 		var labinfo = {
 			0: ['Saved', 'label-success'],
 			1: ['Submitted', 'label-info'],
@@ -121,7 +121,7 @@ _f.FrmHeader = Class.extend({
 		}
 		
 		this.appframe.clear_buttons();
-		var p = cur_frm.get_doc_perms();
+		var p = cur_frm.perm[0];
 
 		// Edit
 		if(cur_frm.meta.read_only_onload && !cur_frm.doc.__islocal) {

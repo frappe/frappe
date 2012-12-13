@@ -452,7 +452,7 @@ $.extend(_p, {
 						}
 					}
 					// if not, just have doctype has heading
-					h1.innerHTML = val ? val : get_doctype_label(doctype);
+					h1.innerHTML = val ? val : wn._(doctype);
 				}
 					
 				var h2_style = {

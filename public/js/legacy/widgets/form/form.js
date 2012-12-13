@@ -46,6 +46,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.docname = '';
 	this.doctype = doctype;
 	this.display = 0;
+	this.refresh_if_stale_for = 600;
 		
 	var me = this;
 	this.is_editable = {};
@@ -215,7 +216,7 @@ _f.Frm.prototype.print_doc = function() {
 _f.Frm.prototype.email_doc = function(message) {
 	new wn.views.CommunicationComposer({
 		doc: this.doc,
-		subject: get_doctype_label(this.meta.name) + ': ' + this.docname,
+		subject: wn._(this.meta.name) + ': ' + this.docname,
 		recipients: this.doc.email || this.doc.email_id || this.doc.contact_email,
 		attach_document_print: true,
 		message: message,
@@ -237,7 +238,7 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	if(this.docname == old)
 		this.docname = name;
 	else
-		return; // thats it, not for children!
+		return;
 
 	// editable
 	this.is_editable[name] = this.is_editable[old];
@@ -245,9 +246,9 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 
 	// cleanup
 	if(this && this.opendocs[old]) {
-		// local doctype copy
-		local_dt[dt][name] = local_dt[dt][old];
-		local_dt[dt][old] = null;
+		// delete docfield copy
+		wn.meta.docfield_copy[dt][name] = wn.meta.docfield_copy[dt][old];
+		delete wn.meta.docfield_copy[dt][old];
 	}
 
 	delete this.opendocs[old];
@@ -260,18 +261,15 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 // SETUP
 
 _f.Frm.prototype.setup_meta = function(doctype) {
-	this.meta = get_local('DocType',this.doctype);
+	this.meta = wn.model.get_doc('DocType',this.doctype);
 	this.perm = wn.perm.get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
 	this.setup_print();
 }
 
-
-
 _f.Frm.prototype.setup_sidebar = function() {
 	this.sidebar = new wn.widgets.form.sidebar.Sidebar(this);
 }
-
 
 _f.Frm.prototype.setup_footer = function() {
 	var me = this;
@@ -372,15 +370,12 @@ _f.Frm.prototype.setup_fields_std = function() {
 	}
 }
 
-// --------------------------------------------------------------------------------------
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
 	this.frm_head.appframe.add_button(label, fn, icon);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.frm_head.refresh_toolbar()
 }
-
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 	if(!this.fetch_dict[link_field]) {
@@ -390,8 +385,6 @@ _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 	this.fetch_dict[link_field].fields.push(tar_field);
 }
 
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.setup_client_script = function() {
 	// setup client obj
 
@@ -399,8 +392,6 @@ _f.Frm.prototype.setup_client_script = function() {
 		this.runclientscript('setup', this.doctype, this.docname);
 	}
 }
-
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.refresh_print_layout = function() {
 	$ds(this.print_wrapper);
@@ -432,8 +423,6 @@ _f.Frm.prototype.refresh_print_layout = function() {
 }
 
 
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.show_the_frm = function() {
 	// show the dialog
 	if(this.meta.in_dialog && !this.parent.dialog.display) {
@@ -443,38 +432,15 @@ _f.Frm.prototype.show_the_frm = function() {
 	}	
 }
 
-// --------------------------------------------------------------------------------------
 _f.Frm.prototype.set_print_heading = function(txt) {
 	this.pformat[cur_frm.docname] = txt;
 }
-
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.defocus_rest = function() {
 	// deselect others
 	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect();
 }
 
-// -------- Permissions -------
-// Returns global permissions, at all levels
-// ======================================================================================
-
-_f.Frm.prototype.get_doc_perms = function() {
-	var p = [0,0,0,0,0,0];
-	for(var i=0; i<this.perm.length; i++) {
-		if(this.perm[i]) {
-			if(this.perm[i][READ]) p[READ] = 1;
-			if(this.perm[i][WRITE]) p[WRITE] = 1;
-			if(this.perm[i][SUBMIT]) p[SUBMIT] = 1;
-			if(this.perm[i][CANCEL]) p[CANCEL] = 1;
-			if(this.perm[i][AMEND]) p[AMEND] = 1;
-		}
-	}
-	return p;
-}
-
-// refresh
-// ======================================================================================
 _f.Frm.prototype.refresh_header = function() {
 	// set title
 	// main title
@@ -492,8 +458,6 @@ _f.Frm.prototype.refresh_header = function() {
 	if(wn.ui.toolbar.recent) 
 		wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);	
 }
-
-// --------------------------------------------------------------------------------------
 
 _f.Frm.prototype.check_doc_perm = function() {
 	// get perm
@@ -516,8 +480,6 @@ _f.Frm.prototype.check_doc_perm = function() {
 	return 1
 }
 
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.refresh = function(docname) {
 	// record switch
 	if(docname) {
@@ -535,14 +497,19 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// check permissions
 		if(!this.check_doc_perm()) return;
+
+		// set the doc
+		this.doc = wn.model.get_doc(this.doctype, this.docname);	  
 		
 		// check if doctype is already open
 		if (!this.opendocs[this.docname]) {
 			this.check_doctype_conflict(this.docname);
+		} else {
+			if((new Date() - this.doc.__last_sync_on) / 1000 > this.refresh_if_stale_for) {
+				this.reload_doc();
+				return;
+			}			
 		}
-
-		// set the doc
-		this.doc = get_local(this.doctype, this.docname);	  
 
 		// do setup
 		if(!this.setup_done) this.setup();
@@ -621,13 +588,11 @@ _f.Frm.prototype.refresh = function(docname) {
 	} 
 }
 
-// --------------------------------------------------------------------------------------
-
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
 		if(this.editable && (!this.meta.in_dialog || this.in_form) 
-			&& this.doc.docstatus==0 && !this.meta.istable && this.get_doc_perms()[WRITE]
+			&& this.doc.docstatus==0 && !this.meta.istable && this.perm[0][WRITE]
 			&& (this.fields && this.fields.length > 7)) {
 			f.show_save();
 		} else {
@@ -755,18 +720,14 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 		return;
 	}
 
-	//if(!this.meta)
-	//	this.setup_meta();
-
 	// make a copy of the doctype for client script settings
 	// each record will have its own client script
-	Meta.make_local_dt(this.doctype,docname);
+	wn.meta.make_docfield_copy_for(this.doctype,docname);
 
 	this.docname = docname;
+
 	var me = this;
-	
-	var viewname = docname;
-	if(this.meta.issingle) viewname = this.doctype;
+	var viewname = this.meta.issingle ? this.doctype : docname;
 
 	// Client Script
 	this.runclientscript('onload', this.doctype, this.docname);
@@ -788,82 +749,12 @@ _f.Frm.prototype.show_doc = function(dn) {
 	this.refresh(dn);
 }
 
-// ======================================================================================
-var validated; // bad design :(
-_f.Frm.prototype.save = function(save_action, callback, btn) {
-	// removes focus from a field before save, 
-	// so that its change event gets triggered before saving
-	$(document.activeElement).blur();
-	
-	//alert(save_action);
-	if(!save_action) {
-		if(cint(this.doc.docstatus) > 0) return;
-		save_action = 'Save';
-	}
-
-	if(save_action=='Submit') {
-		locals[this.doctype][this.docname].submitted_on = dateutil.full_str();
-		locals[this.doctype][this.docname].submitted_by = user;
-	}
-	
-	if(save_action=='Trash') {
-		var reason = prompt('Reason for trash (mandatory)', '');
-		if(!strip(reason)) {
-			msgprint('Reason is mandatory, not trashed');
-			return;
-		}
-		locals[this.doctype][this.docname].trash_reason = reason;
-	}
-
-	// run validations
-	if(save_action=='Cancel') {
-		var reason = prompt('Reason for cancellation (mandatory)', '');
-		if(!strip(reason)) {
-			msgprint('Reason is mandatory, not cancelled');
-			return;
-		}
-		locals[this.doctype][this.docname].cancel_reason = reason;
-		locals[this.doctype][this.docname].cancelled_on = dateutil.full_str();
-		locals[this.doctype][this.docname].cancelled_by = user;
-	} else if(save_action=='Update') {
-		// no validation for update
-	} else { // no validation for cancellation
-		validated = true;
-		if(this.cscript.validate)
-			this.runclientscript('validate');
-	
-		if(!validated) {
-			return 'Error';
-		}
-	}
- 	
-	
-	var onsave = function(r) {
-		if(!me.meta.istable && r) {
-			me.refresh(r.docname);
-		}
-		callback && callback(r)
-	}
-
-	var me = this;
-	var onerr = function(r) {
-		var doc = locals[me.doctype][me.docname];
-		onsave(r);
-	}
-	
-	if(this.docname && validated) {
-		// scroll to top
-		scroll(0, 0);
-		return save_doclist(this.doctype, this.docname, save_action, onsave, onerr, btn);
-	}
-}
-
 
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 	var me = this;
 	if(this.docname) {
 		// make doc list
-		var doclist = compress_doclist(make_doclist(this.doctype, this.docname));
+		var doclist = wn.model.compress(make_doclist(this.doctype, this.docname));
 		// send to run
 		if(callingfield)
 			$(callingfield.input).set_working();
@@ -906,7 +797,7 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 
 	if(caller && caller.toLowerCase()=='setup') {
 
-		var doctype = get_local('DocType', this.doctype);
+		var doctype = wn.model.get_doc('DocType', this.doctype);
 		
 		// js
 		var cs = doctype.__js || (doctype.client_script_core + doctype.client_script);
@@ -941,7 +832,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	
 	var dn = this.docname;
 	// copy parent
-	var newdoc = LocalDB.copy(this.doctype, dn, from_amend);
+	var newdoc = wn.model.copy_doc(this.doctype, dn, from_amend);
 
 	// do not copy attachments
 	if(this.meta.allow_attach && newdoc.file_list && !from_amend)
@@ -962,7 +853,7 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 		}
 		
 		if(d1.parent==dn && cint(tf_dict[d1.parentfield].no_copy)!=1) {
-			var ch = LocalDB.copy(d1.doctype, d1.name, from_amend);
+			var ch = wn.model.copy_doc(d1.doctype, d1.name, from_amend);
 			ch.parent = newdoc.name;
 			ch.docstatus = 0;
 			ch.owner = user;
@@ -1003,6 +894,31 @@ _f.Frm.prototype.reload_doc = function() {
 	}
 }
 
+var validated;
+_f.Frm.prototype.save = function(save_action, callback, btn) {
+	$(document.activeElement).blur();
+	var me = this;
+	var doclist = new wn.model.DocList(this.doctype, this.docname);
+	
+	// validate
+	if(save_action!="Cancel") {
+		validated = true;
+		if(this.cscript.validate)
+			this.runclientscript('validate');
+	
+		if(!validated) {
+			return;
+		}
+	}
+	doclist.save(save_action || "Save", function(r) {
+		if(!r.exc) {
+			me.refresh();
+		}
+		callback && callback(r);
+	}, btn);
+}
+
+
 _f.Frm.prototype.savesubmit = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
@@ -1017,7 +933,10 @@ _f.Frm.prototype.savesubmit = function(btn) {
 _f.Frm.prototype.savecancel = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Cancel "+this.docname+"?", function() {
-		me.save('Cancel', null, btn);
+		var doclist = new wn.model.DocList(me.doctype, me.docname);
+		doclist.cancel(function(r) {
+			if(!r.exc) me.refresh();
+		}, btn);
 	});
 }
 

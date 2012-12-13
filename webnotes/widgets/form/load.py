@@ -23,6 +23,7 @@
 from __future__ import unicode_literals
 import webnotes
 import webnotes.model.doc
+import webnotes.utils
 
 @webnotes.whitelist()
 def getdoc():

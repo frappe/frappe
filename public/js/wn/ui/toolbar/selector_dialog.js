@@ -82,7 +82,7 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 	set_values: function(lst) {
 		// convert to labels
 		for(var i=0;i<lst.length;i++) 
-			lst[i]=get_doctype_label(lst[i]);
+			lst[i]=wn._(lst[i]);
 		
 		// set values
 		var sel = this.dialog.fields_dict.doctype.input;

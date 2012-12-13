@@ -15,7 +15,7 @@ wn.views.formview = {
 				
 				if(!(locals[dt] && locals[dt][dn])) {
 					if(dn && dn.substr(0,4)=="New ") {
-						var new_name = LocalDB.create(dt);
+						var new_name = wn.model.make_new_doc_and_get_name(dt);
 						wn.views.formview.show(dt, new_name);
 						return;
 					} else {
@@ -33,7 +33,7 @@ wn.views.formview = {
 		})
 	},
 	create: function(dt) {
-		var new_name = LocalDB.create(dt);
+		var new_name = wn.model.make_new_doc_and_get_name(dt);
 		wn.set_route('Form', dt, new_name);
 	}
 }

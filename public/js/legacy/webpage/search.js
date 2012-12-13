@@ -74,7 +74,7 @@ function makeselector() {
 		}
 		d.style = 'Search';
 		if(d.input) { d.input = null; sel_type = null; }
-		d.sel_type = get_label_doctype(dt);
+		d.sel_type = dt;
 		d.set_title('Quick Search for ' + dt);
 	}
 

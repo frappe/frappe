@@ -45,7 +45,7 @@ wn.views.doclistview.show = function(doctype) {
 wn.views.DocListView = wn.ui.Listing.extend({
 	init: function(doctype) {
 		this.doctype = doctype;
-		this.label = get_doctype_label(doctype);
+		this.label = wn._(doctype);
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	this.label : (this.label + ' List');
 		this.make_page();

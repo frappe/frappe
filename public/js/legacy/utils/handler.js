@@ -44,7 +44,7 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(typeof doclist=='string') 
 		args.doctype = doclist; 
 	else 
-		args.docs = compress_doclist(doclist)
+		args.docs = wn.model.compress(doclist)
 	
 	wn.request.call({
 		args: args,
@@ -84,7 +84,7 @@ function $c_obj_csv(doclist, method, arg) {
 	if(doclist.substr)
 		args.doctype = doclist;		
 	else
-		args.docs = compress_doclist(doclist);
+		args.docs = wn.model.compress(doclist);
 
 	// open
 	open_url_post(wn.request.url, args);

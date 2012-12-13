@@ -286,7 +286,7 @@ def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)
 
-def model_wrapper(doctype, name=None):
+def model_wrapper(doctype=None, name=None):
 	from webnotes.model.wrapper import ModelWrapper
 	return ModelWrapper(doctype, name)
 
