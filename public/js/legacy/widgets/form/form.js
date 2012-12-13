@@ -282,7 +282,7 @@ _f.Frm.prototype.setup_footer = function() {
 	f.help_area = $a(this.page_layout.footer,'div');
 
 	var b = $btn(f.save_area, 'Save',
-		function() { cur_frm.save('Save', this); },{marginLeft:'0px'},'green');
+		function() { cur_frm.save('Save', null, this); },{marginLeft:'0px'},'green');
 	
 	// show / hide save
 	f.show_save = function() {
