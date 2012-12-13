@@ -15,7 +15,7 @@ wn.user_info = function(uid) {
 }
 
 wn.avatar = function(user, large, title) {
-	var image = wn.user_info(user).image;
+	var image = wn.utils.get_file_link(wn.user_info(user).image);
 	var to_size = large ? 72 : 30;
 	if(!title) title = wn.user_info(user).fullname;
 

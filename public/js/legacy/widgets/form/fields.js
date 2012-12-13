@@ -1099,7 +1099,7 @@ SelectField.prototype.make_input = function() {
 			this.df.options = '';
 			var fl = fl.split('\n');
 			for(var i in fl) {
-				this.df.options += '\n' + fl[i].split(',')[1];
+				this.df.options += '\n' + fl[i].split(',')[0];
 				this.set_description("");
 			}
 		} else {

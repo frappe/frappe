@@ -165,7 +165,7 @@ _f.ImageField.prototype.onrefresh = function() {
 	$(this.label_span).toggle(false);
 	$(this.wrapper).find("img").remove();
 	if(this.df.options && this.frm.doc[this.df.options]) {
-		$("<img src='files/"+this.frm.doc[this.df.options]+"' style='max-width: 70%;'>")
+		$("<img src='"+wn.utils.get_file_link(this.frm.doc[this.df.options])+"' style='max-width: 70%;'>")
 			.appendTo(this.wrapper);
 	}
 }

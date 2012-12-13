@@ -107,19 +107,14 @@ def getpage():
 			(doclist[0].title or page, )
 		
 def has_permission(page_doclist):
-	if webnotes.user.name == "Administrator" or "System Manager" in webnotes.user.roles:
-		# free pass for Administrator and System Manager
+	if webnotes.user.name == "Administrator" or "System Manager" in webnotes.user.get_roles():
 		return True
 		
 	page_roles = [d.role for d in page_doclist if d.fields.get("doctype")=="Page Role"]
-	
 	if webnotes.user.name == "Guest" and not (page_roles and "Guest" in page_roles):
-		# stop guest from accessing the page, if not explicitly specified
 		return False
 	
-	elif page_roles and not (set(page_roles) & set(webnotes.user.roles)):
-		# if page roles are defined but no common role are found, then deny
+	elif page_roles and not (set(page_roles) & set(webnotes.user.get_roles())):
 		return False
 
-	# otherwise allow access
 	return True

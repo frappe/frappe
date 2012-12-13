@@ -21,7 +21,8 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+
+import webnotes, json
 
 class Profile:
 	"""
@@ -29,6 +30,7 @@ class Profile:
 	The global profile object is `webnotes.user`
 	"""
 	def __init__(self, name=''):
+		self.defaults = None
 		self.name = name or webnotes.session.get('user')
 		self.roles = []
 		
@@ -43,17 +45,12 @@ class Profile:
 		
 		# for doctypes with create permission but are not supposed to be created using New
 		self.in_create = []
-		
-	def _load_roles(self):
-		self.roles = webnotes.get_roles()
-		return self.roles
 
 	def get_roles(self):
 		"""get list of roles"""
-		if self.roles:
-			return self.roles
-			
-		return self._load_roles()
+		if not self.roles:
+			self.roles = webnotes.get_roles()
+		return self.roles
 	
 	def build_doctype_map(self):
 		"""build map of special doctype properties"""
@@ -138,94 +135,53 @@ class Profile:
 		self.all_read += self.can_read
 
 	def get_defaults(self):
-		"""
-		Get the user's default values based on user and role profile
-		"""
-		roles = self.get_roles() + [self.name]
-		res = webnotes.conn.sql("""select defkey, defvalue 
-		from `tabDefaultValue` where parent in ("%s") order by idx""" % '", "'.join(roles))
+		if not self.defaults:
+			roles = self.get_roles() + [self.name]
+			res = webnotes.conn.sql("""select defkey, defvalue 
+			from `tabDefaultValue` where parent in ("%s") order by idx""" % '", "'.join(roles))
 	
-		self.defaults = {'owner': [self.name], "user": [self.name]}
+			self.defaults = {'owner': [self.name], "user": [self.name]}
 
-		for rec in res: 
-			if not self.defaults.has_key(rec[0]): 
-				self.defaults[rec[0]] = []
-			self.defaults[rec[0]].append(rec[1] or '')
+			for rec in res: 
+				if not self.defaults.has_key(rec[0]): 
+					self.defaults[rec[0]] = []
+				self.defaults[rec[0]].append(rec[1] or '')
 
 		return self.defaults
-		
-	def get_hide_tips(self):
-		try:
-			return webnotes.conn.sql("select hide_tips from tabProfile where name=%s", self.name)[0][0] or 0
-		except:
-			return 0
 			
 	# update recent documents
 	def update_recent(self, dt, dn):
-		"""
-		Update the user's `Recent` list with the given `dt` and `dn`
-		"""
-		conn = webnotes.conn
-		import json
-
-	
-		# get list of child tables, so we know what not to add in the recent list
-		child_tables = [t[0] for t in conn.sql('select name from tabDocType where ifnull(istable,0) = 1')]
+		rdl = webnotes.cache().get_value("recent:" + self.name) or []	
+		new_rd = [dt, dn]
 		
-		if not (dt in ['Print Format', 'Start Page', 'Event', 'ToDo', 'Search Criteria']) \
-			and not (dt in child_tables):
-			r = webnotes.conn.sql("select recent_documents from tabProfile where name=%s", \
-				self.name)[0][0] or ''
+		# clear if exists
+		for i in range(len(rdl)):
+			rd = rdl[i]
+			if rd==new_rd:
+				del rdl[i]
+				break
 
-			if '~~~' in r:
-				r = '[]'
-			
-			rdl = json.loads(r or '[]')
-			new_rd = [dt, dn]
-			
-			# clear if exists
-			for i in range(len(rdl)):
-				rd = rdl[i]
-				if rd==new_rd:
-					del rdl[i]
-					break
-
-			if len(rdl) > 19:
-				rdl = rdl[:19]
-			
-			rdl = [new_rd] + rdl
-			
-			self.recent = json.dumps(rdl)
-						
-			webnotes.conn.sql("""update tabProfile set 
-				recent_documents=%s where name=%s""", (self.recent, self.name))
+		if len(rdl) > 19:
+			rdl = rdl[:19]
+		
+		rdl = [new_rd] + rdl
+		r = webnotes.cache().set_value("recent:" + self.name, rdl)
 			
 	def load_profile(self):
-		"""
-	      	Return a dictionary of user properites to be stored in the session
-		"""
-		t = webnotes.conn.sql("""select email, first_name, last_name, 
-			recent_documents, email_signature, theme, background_image 
-			from tabProfile where name = %s""", self.name)[0]
+		d = webnotes.conn.sql("""select email, first_name, last_name, 
+			email_signature, theme, background_image
+			from tabProfile where name = %s""", self.name, as_dict=1)[0]
 
 		if not self.can_read:
 			self.build_permissions()
 
-		d = webnotes._dict({})
-		d['name'] = self.name
-		d['email'] = t[0] or ''
-		d['first_name'] = t[1] or ''
-		d['last_name'] = t[2] or ''
-		d['recent'] = t[3] or ''
-		d.email_signature = t[4] or ""
-		d.theme = t[5] or "Default"
-		d.background_image = t[6] or ""
-		
-		d['hide_tips'] = self.get_hide_tips()
-		
-		d['roles'] = self.roles
+		d.name = self.name
+		d.recent = json.dumps(webnotes.cache().get_value("recent:" + self.name) or [])
+		if not d.theme:
+			d.theme = "Default"
+				
+		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()
-		
 		d['can_create'] = self.can_create
 		d['can_write'] = self.can_write
 		d['can_read'] = list(set(self.can_read))
@@ -234,28 +190,9 @@ class Profile:
 		d['allow_modules'] = self.allow_modules
 		d['all_read'] = self.all_read
 		d['can_search'] = list(set(self.can_search))
-		
 		d['in_create'] = self.in_create
 		
 		return d
-		
-	def load_from_session(self, d):
-		"""
-		Setup the user profile from the dictionary saved in the session (generated by `load_profile`)
-		"""
-		self.can_create = d['can_create']
-		self.can_read = d['can_read']
-		self.can_write = d['can_write']
-		self.can_search = d['can_search']
-		self.can_cancel = d['can_cancel']
-		self.can_get_report = d['can_get_report']
-		self.allow_modules = d['allow_modules']
-		self.all_read = d['all_read']
-		self.in_create = d['in_create']
-
-		self.roles = d['roles']
-		self.defaults = d['defaults']
-
 
 def get_user_fullname(user):
 	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", user)

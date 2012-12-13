@@ -1,6 +1,14 @@
 wn.provide('wn.utils');
 
 wn.utils = {
+	get_file_link: function(filename) {
+		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) 
+			? filename : 'files/' + filename;
+	},
+	is_url: function(txt) {
+		return txt.toLowerCase().substr(0,7)=='http://'
+			|| txt.toLowerCase().substr(0,8)=='https://'
+	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
 		if(typeof filters=='string') {

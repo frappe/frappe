@@ -26,7 +26,7 @@ cur_frm.cscript.refresh = function(doc) {
 				wn.ui.set_user_background(doc.background_image);				
 			}
 			if(doc.user_image) {
-				wn.boot.user_info[user].image = 'files/' + doc.user_image;
+				wn.boot.user_info[user].image = wn.utils.get_file_link(doc.user_image);
 			}
 		}
 	}

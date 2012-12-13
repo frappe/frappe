@@ -87,7 +87,7 @@ def get_fullnames():
 		if not r[2]:
 			r[2] = 'lib/images/ui/avatar.png'
 		else:
-			r[2] = 'files/' + r[2]
+			r[2] = r[2]
 			
 		d[r[0]]= {'fullname': r[1], 'image': r[2], 'gender': r[3],
 			'email': r[4] or r[0]}
@@ -97,11 +97,13 @@ def get_fullnames():
 def get_profile(bootinfo):
 	"""get profile info"""
 	bootinfo['profile'] = webnotes.user.load_profile()
-	webnotes.session['data']['profile'] = bootinfo['profile']
 	
 def add_home_page(bootinfo, doclist):
 	"""load home page"""
 
+	if webnotes.session.user=="Guest":
+		return
+		
 	home_page = webnotes.get_application_home_page(webnotes.session.user)
 
 	try:
