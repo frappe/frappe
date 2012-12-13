@@ -79,6 +79,12 @@ def get_email_id(user):
 	fullname = get_fullname(user)
 	return formataddr((fullname, user))
 	
+def extract_email_id(email):
+	"""fetch only the email part of the email id"""
+	import re
+	sender_email = re.findall("<([^>]*)>", email)
+	return sender_email and sender_email[0] or ""
+	
 def validate_email_add(email_str):
 	"""Validates the email string"""
 	from email.utils import parseaddr
