@@ -16,6 +16,10 @@ a {
 	Filter:alpha(opacity=100); /* For IE8 and earlier */
 }
 
+.navbar .brand {
+	max-height: 15px;
+}
+
 .navbar #spinner {
 	display: block;
 	float: right;
