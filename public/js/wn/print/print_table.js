@@ -114,12 +114,6 @@ wn.print.Table = Class.extend({
 				.css({"width": me.widths[ci]})
 				.appendTo(headrow)
 			
-			if(ci==0) {
-				td.css({"min-width": "24pt"});
-			} else {
-				td.css({"min-width": "5%"});
-			}
-			
 			if(df && in_list(['Float', 'Currency'], df.fieldtype)) {
 				td.css({"text-align": "right"});
 			}
@@ -150,12 +144,6 @@ wn.print.Table = Class.extend({
 						.css(me.cell_style)
 						.css({width: me.widths[ci]})
 						.appendTo(tr);
-						
-					if(ci==0) {
-						td.css({"min-width": "24pt"});
-					} else {
-						td.css({"min-width": "5%"});
-					}
 				});
 			}
 		});
@@ -178,7 +166,8 @@ wn.print.Table = Class.extend({
 			});
 
 			this.widths = $.map(this.widths, function(w) {
-				return (flt(w) / sum * 100).toFixed(0) + "%";
+				w = (flt(w) / sum * 100).toFixed(0);
+				return (w < 5 ? 5 : w) + "%";
 			});
 		}
 	},
