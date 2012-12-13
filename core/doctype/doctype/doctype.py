@@ -66,7 +66,7 @@ class DocType:
 
 	def validate(self):
 		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.name:
+			if c in self.doc.name:
 				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
 		self.validate_series()
 		self.scrub_field_names()
