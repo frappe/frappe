@@ -238,6 +238,8 @@ _f.FormGrid.prototype.delete_row = function(dt, dn) {
 		else _f.cur_grid_cell = null;	
 	}
 	this.set_unsaved();
+	
+	if(this.on_row_delete) this.on_row_delete(cur_frm.doc, dt, dn);
 }
 
 _f.FormGrid.prototype.move_row = function(up) {
