@@ -931,7 +931,7 @@ _f.Frm.prototype.savesubmit = function(btn) {
 			if(!r.exc && me.cscript.on_submit) {
 				me.runclientscript('on_submit', me.doctype, me.docname);
 			}
-		}, btn);		
+		}, btn);
 	});
 }
 
@@ -964,6 +964,12 @@ _f.Frm.prototype.amend_doc = function() {
 	      newdoc.amendment_date = dateutil.obj_to_str(new Date());
     }
     this.copy_doc(fn, 1);
+}
+
+_f.Frm.prototype.disable_save = function() {
+	cur_frm.save_disabled = true;
+	cur_frm.page_layout.footer.hide_save();
+	cur_frm.frm_head.appframe.buttons.Save.toggle(false);
 }
 
 _f.get_value = function(dt, dn, fn) {
