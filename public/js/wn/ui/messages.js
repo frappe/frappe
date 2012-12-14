@@ -86,10 +86,10 @@ function show_alert(txt, add_class) {
 	var div = $('<div class="alert">\
 		<a class="close">&times;</a>'+ txt +'</div>')
 			.appendTo('#alert-container')
-			.addClass(add_class);
 	div.find('.close').click(function() {
 		$(this).parent().remove();
 		return false;
 	});
+	div.delay(7000).fadeOut(500);
 	return div;
 }

@@ -29,11 +29,28 @@ a {
 	visibility: hidden;
 }
 
+/* alert */
+
+
+#alert-container {
+	position: fixed; 
+	bottom: 8px; 
+	right: 8px;
+	z-index: 10;
+}
+
 #alert-container .alert {
   -webkit-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
      -moz-box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
           box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+		overflow: hidden;
+		max-width: 400px;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 }
+
+/* avatar */
 
 .avatar {
 	display: inline-block; 
@@ -67,9 +84,7 @@ a {
 	width: 72px; 
 }
 
-.layout-main-section h4 {
-	margin-bottom: 3px;
-}
+/* slickgrid */
 
 ..slick-cell { 
 	font-size: 12px; 
