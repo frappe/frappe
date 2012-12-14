@@ -32,6 +32,7 @@ mail_login = None
 mail_password = None
 mail_port = None
 use_ssl = None
+auto_email_id = None
 
 # logging settings
 log_file_name = 'logs/error_log.txt'
