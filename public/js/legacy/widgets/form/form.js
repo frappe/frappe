@@ -967,6 +967,7 @@ _f.Frm.prototype.amend_doc = function() {
 }
 
 _f.Frm.prototype.disable_save = function() {
+	// IMPORTANT: this function should be called in refresh event
 	cur_frm.save_disabled = true;
 	cur_frm.page_layout.footer.hide_save();
 	cur_frm.frm_head.appframe.buttons.Save.toggle(false);
