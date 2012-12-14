@@ -132,7 +132,7 @@ _r.ReportBuilder = function(parent, doctype, onload) {
 		$ds(me.wrapper);
 		
 		// reset main title
-		this.set_main_title('Report: ' + get_doctype_label(me.doctype));
+		this.set_main_title('Report: ' + wn._(me.doctype));
 		
 		if(my_onload)my_onload(me);
 	}
@@ -156,7 +156,7 @@ _r.ReportBuilder.prototype.make_tabs = function() {
 
 _r.ReportBuilder.prototype.make_body = function() {
 
-	this.set_main_title('Report: ' + get_doctype_label(this.doctype));
+	this.set_main_title('Report: ' + wn._(this.doctype));
 	var me = this;
 
 	this.make_save_criteria();	
@@ -204,7 +204,7 @@ _r.ReportBuilder.prototype.save_criteria = function(save_as) {
 		if(!criteria_name)
 			return;
 	
-		var dn = createLocal('Search Criteria');
+		var dn = wn.model.make_new_doc_and_get_name('Search Criteria');
 		var doc = locals['Search Criteria'][dn];
 
 		doc.criteria_name = criteria_name;
@@ -243,12 +243,7 @@ _r.ReportBuilder.prototype.save_criteria = function(save_as) {
 		me.sc_dict[criteria_name] = r.main_doc_name;
 		me.set_criteria_sel(criteria_name);
 	}
-	//if(this.current_loaded && overwrite) {
-	//	msgprint('Filters and Columns Synchronized. You must also "Save" the Search Criteria to update');
-	//	loaddoc('Search Criteria', this.sc_dict[this.current_loaded]);
-	//} else {
-	save_doclist(doc.doctype, doc.name, 'Save', fn); // server-side save
-	//}
+	new wn.model.DocList(doc.doctype, doc.name).save("Save", fn);
 }
 
 // -------------------------------------------------------------------------------------
@@ -292,7 +287,7 @@ _r.ReportBuilder.prototype.clear_criteria = function() {
 	
 	this.set_sort_options();
 	
-	this.set_main_title('Report: ' + get_doctype_label(this.doctype));
+	this.set_main_title('Report: ' + wn._(this.doctype));
 
 	this.current_loaded = null;
 	this.customized_filters = null;
@@ -503,10 +498,10 @@ _r.ReportBuilder.prototype.setup_dt_filters_and_cols = function(fl, dt) {
 
 	// set section headings
 	var lab = $a(me.filter_area,'div','filter_dt_head');
-	lab.innerHTML = 'Filters for ' + get_doctype_label(dt);
+	lab.innerHTML = 'Filters for ' + wn._(dt);
 
 	var lab = $a(me.picker_area,'div','builder_dt_head');
-	lab.innerHTML = 'Select columns for ' + get_doctype_label(dt);
+	lab.innerHTML = 'Select columns for ' + wn._(dt);
 
 	// get fields
 	var dt_fields = wn.meta.docfield_list[dt];
@@ -678,7 +673,7 @@ _r.ReportBuilder.prototype.make_datatable = function() {
 		
 		// get search criteria
 		if(me.current_loaded && me.sc_dict[me.current_loaded]) {
-			var sc = get_local('Search Criteria', me.sc_dict[me.current_loaded]);
+			var sc = wn.model.get_doc('Search Criteria', me.sc_dict[me.current_loaded]);
 		}
 		
 		if(sc) me.dt.search_criteria = sc;
@@ -1221,7 +1216,7 @@ _r.ReportColumnPicker.prototype.set_options = function(s, l) {
 
 	for(var i=0; i<l.length; i++) {
 		var v = l[i].df.parent + '.' + l[i].df.label;
-		var v_label = get_doctype_label(l[i].df.parent) + '.' + l[i].df.label;		
+		var v_label = wn._(l[i].df.parent) + '.' + l[i].df.label;		
 		var o = new Option (v_label, v, false, false);
 		o.field = l[i];
 		if(o.field.is_selected) o.selected = 1;

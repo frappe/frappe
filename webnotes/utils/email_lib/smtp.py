@@ -185,21 +185,29 @@ class EMail:
 	
 	def validate(self):
 		"""validate the email ids"""
+		from webnotes.utils import validate_email_add, extract_email_id
+		def _validate(email):
+			"""validate an email field"""
+			if email:
+				if not validate_email_add(email):
+					# try extracting the email part and set as sender
+					new_email = extract_email_id(email)
+					if not (new_email and validate_email_add(new_email)):
+						webnotes.msgprint("%s is not a valid email id" % email,
+							raise_exception = 1)
+					email = new_email
+			return email
+		
 		if not self.sender:
-			self.sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id') \
-				or getattr(conf, 'auto_email_id', 'ERPNext Notification <notification@erpnext.com>')
-
-		from webnotes.utils import validate_email_add
-		# validate ids
-		if self.sender and (not validate_email_add(self.sender)):
-			webnotes.msgprint("%s is not a valid email id" % self.sender, raise_exception = 1)
-
-		if self.reply_to and (not validate_email_add(self.reply_to)):
-			webnotes.msgprint("%s is not a valid email id" % self.reply_to, raise_exception = 1)
-
+			# TODO: remove erpnext id
+			self.sender = webnotes.conn.get_value('Email Settings', None,
+				'auto_email_id') or getattr(conf, 'auto_email_id')
+				
+		self.sender = _validate(self.sender)
+		self.reply_to = _validate(self.reply_to)
+		
 		for e in self.recipients + (self.cc or []):
-			if e.strip() and not validate_email_add(e):
-				webnotes.msgprint("%s is not a valid email id" % e, raise_exception = 1)
+			_validate(e.strip())
 	
 	def make(self):
 		"""build into msg_root"""

@@ -10,7 +10,7 @@ wn.ui.set_user_background = function(src) {
 wn.ui.themes = {
 	"Default": {
 		sidebar: "#f2f2f2",
-		titlebar: "#dfdfdf",
+		titlebar: "#d2d2d2",
 		toolbar: "#e9e9e9"
 	},
 	Desert: {

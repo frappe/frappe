@@ -2,19 +2,16 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-03-27 14:35:38", 
+  "creation": "2012-07-03 13:30:35", 
   "modified_by": "Administrator", 
-  "modified": "2012-03-27 14:45:52"
+  "modified": "2012-12-13 14:23:53"
  }, 
  {
-  "section_style": "Simple", 
-  "name": "__common__", 
-  "colour": "White:FFF", 
   "is_submittable": 1, 
-  "module": "Core", 
+  "autoname": "_SD.####", 
+  "name": "__common__", 
   "doctype": "DocType", 
-  "version": 2, 
-  "autoname": "_SD.####"
+  "module": "Core"
  }, 
  {
   "name": "__common__", 
@@ -44,9 +41,6 @@
   "doctype": "DocType"
  }, 
  {
-  "doctype": "DocPerm"
- }, 
- {
   "doctype": "DocField", 
   "label": "Test Data", 
   "fieldname": "test_data", 
@@ -55,18 +49,18 @@
  }, 
  {
   "doctype": "DocField", 
+  "label": "Test Link", 
   "options": "Profile", 
   "fieldname": "test_link", 
   "fieldtype": "Link", 
-  "label": "Test Link", 
   "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
+  "label": "Test Select", 
   "options": "A\nB\nC", 
   "fieldname": "test_select", 
   "fieldtype": "Select", 
-  "label": "Test Select", 
   "permlevel": 0
  }, 
  {
@@ -106,9 +100,12 @@
   "no_copy": 1, 
   "doctype": "DocField", 
   "label": "Amended From", 
-  "permlevel": 1, 
+  "options": "Sandbox", 
   "fieldname": "amended_from", 
   "fieldtype": "Link", 
-  "options": "Sales Invoice"
+  "permlevel": 1
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

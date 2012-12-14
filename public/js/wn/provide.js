@@ -40,5 +40,6 @@ wn._ = function(txt) {
 	return txt;
 }
 
-wn.provide('wn.settings');
-wn.provide('wn.ui');
+wn.provide("locals");
+wn.provide("wn.settings");
+wn.provide("wn.ui");

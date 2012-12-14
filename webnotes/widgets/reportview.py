@@ -120,9 +120,9 @@ def load_doctypes():
 	for t in tables:
 		if t.startswith('`'):
 			doctype = t[4:-1]
-			if not doctype in webnotes.user.can_get_report:
+			if not webnotes.has_permission(doctype):
 				webnotes.response['403'] = 1
-				raise webnotes.PermissionError
+				raise webnotes.PermissionError, doctype
 			doctypes[doctype] = webnotes.model.doctype.get(doctype)
 	
 def remove_user_tags(fields):
@@ -198,7 +198,7 @@ def build_match_conditions(data, conditions):
 					else:
 						default_key = document_key = d.match
 				
-					for v in webnotes.user.defaults.get(default_key, ['**No Match**']):
+					for v in webnotes.user.get_defaults().get(default_key, ['**No Match**']):
 						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'],
 							document_key, v))
 							

@@ -22,7 +22,7 @@
 
 wn.provide('wn.model');
 
-wn.model = {
+$.extend(wn.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 
  	'Button', 'Image'],
 
@@ -85,7 +85,7 @@ wn.model = {
 			});
 		}
 	},
-
+	
 	get_server_module_name: function(doctype) {
 		var dt = wn.model.scrub(doctype)
 		return wn.model.scrub(locals.DocType[doctype].module)
@@ -136,6 +136,10 @@ wn.model = {
 		return wn.utils.filter_dict(locals[doctype], filters);
 	},
 	
+	get_doc: function(doctype, name) {
+		return locals[doctype] ? locals[doctype][name] : null;
+	},
+	
 	get_doclist: function(doctype, name, filters) {
 		var doclist = [];
 		if(!locals[doctype]) 
@@ -159,6 +163,47 @@ wn.model = {
 		
 		return doclist;
 	},
+
+	get_children: function(child_dt, parent, parentfield, parenttype) { 
+		if(parenttype) {
+			var l = wn.model.get(child_dt, {parent:parent, 
+				parentfield:parentfield, parenttype:parenttype});
+		} else {
+			var l = wn.model.get(child_dt, {parent:parent, 
+				parentfield:parentfield});				
+		}
+
+		l.sort(function(a,b) { return cint(a.idx) - cint(b.idx) }); 
+		$.each(l, function(i, v) { v.idx = i+1; }); // for chrome bugs ???
+		return l; 
+	},
+
+	clear_doclist: function(doctype, name) {
+		$.each(wn.model.get_doclist(doctype, name), function(i, d) {
+			if(d) wn.model.clear_doc(d.doctype, d.name);
+		});
+	},
+	
+	clear_doc: function(doctype, name) {
+		delete locals[doctype][name];		
+	},	
+
+	copy_doc: function(dt, dn, from_amend) {
+		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
+		var newdoc = wn.model.get_new_doc(dt);
+
+		for(var key in locals[dt][dn]) {
+			// dont copy name and blank fields
+			var df = wn.meta.get_docfield(dt, key);
+			
+			if(key.substr(0,2)!='__' 
+				&& !in_list(no_copy_list, key) 
+				&& !(df && (!from_amend && cint(df.no_copy)==1))) { 
+				newdoc[key] = locals[dt][dn][key];
+			}
+		}
+		return newdoc;
+	},
 	
 	delete_doc: function(doctype, docname, callback) {
 		wn.confirm("Permanently delete "+ docname + "?", function() {
@@ -170,7 +215,7 @@ wn.model = {
 				},
 				callback: function(r, rt) {
 					if(!r.exc) {
-						LocalDB.delete_doc(doctype, docname);
+						wn.model.clear_doclist(doctype, docname);
 						if(wn.ui.toolbar.recent) 
 							wn.ui.toolbar.recent.remove(doctype, docname);
 						if(callback) callback(r,rt);
@@ -215,4 +260,8 @@ wn.model = {
 		});
 		d.show();
 	}
-}
+});
+
+// legacy
+getchildren = wn.model.get_children
+make_doclist = wn.model.get_doclist

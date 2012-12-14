@@ -25,7 +25,7 @@ _p.def_print_style_body = "html, body, div, span, td { \
 		font-family: Arial, Helvetica; \
 		font-size: 9pt; \
 	}\
-	pre { margin:0; padding:0;}"	
+	pre { margin:0; padding:0;}";
 
 _p.def_print_style_other = "\n.simpletable, .noborder { \
 		border-collapse: collapse;\
@@ -38,7 +38,7 @@ _p.def_print_style_other = "\n.simpletable, .noborder { \
 	}\
 	.noborder td {\
 		vertical-align: top;\
-	}"
+	}";
 
 _p.go = function(html) {
 	var d = document.createElement('div')
@@ -452,7 +452,7 @@ $.extend(_p, {
 						}
 					}
 					// if not, just have doctype has heading
-					h1.innerHTML = val ? val : get_doctype_label(doctype);
+					h1.innerHTML = val ? val : wn._(doctype);
 				}
 					
 				var h2_style = {

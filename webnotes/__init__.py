@@ -54,7 +54,7 @@ class _dict(dict):
 def _(s):
 	return s
 
-form_dict = _dict()
+request = form_dict = _dict()
 conn = None
 _memc = None
 form = None
@@ -244,7 +244,7 @@ def clear_cache(user=None, doctype=None):
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
 	if not user:
-		user = session['user']
+		user = session.user
 
 	if user=='Guest':
 		return ['Guest']
@@ -258,8 +258,10 @@ def get_roles(user=None, with_standard=True):
 	
 	return roles
 
-def has_permission(doctype, ptype):
+def has_permission(doctype, ptype="read"):
 	"""check if user has permission"""
+	if conn.get_value("DocType", doctype, "istable"):
+		return True
 	return conn.sql("""select name from tabDocPerm p
 		where p.parent = %s
 		and ifnull(p.`%s`,0) = 1
@@ -284,7 +286,7 @@ def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)
 
-def model_wrapper(doctype, name=None):
+def model_wrapper(doctype=None, name=None):
 	from webnotes.model.wrapper import ModelWrapper
 	return ModelWrapper(doctype, name)
 

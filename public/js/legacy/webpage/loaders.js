@@ -28,7 +28,6 @@ function loadreport(dt, rep_name, onload) {
 }	
 
 function loaddoc(doctype, name, onload) {
-	//doctype = get_label_doctype(doctype);
 	wn.model.with_doctype(doctype, function() {
 		if(locals.DocType[doctype].in_dialog) {
 			_f.edit_record(doctype, name);
@@ -40,10 +39,9 @@ function loaddoc(doctype, name, onload) {
 var load_doc = loaddoc;
 
 function new_doc(doctype, in_form) {
-	doctype = get_label_doctype(doctype);
 	wn.model.with_doctype(doctype, function() {
 		if(!in_form && locals.DocType[doctype].in_dialog) {
-			var new_name = LocalDB.create(doctype);
+			var new_name = wn.model.make_new_doc_and_get_name(doctype);
 			_f.edit_record(doctype, new_name);
 		} else {
 			wn.views.formview.create(doctype);

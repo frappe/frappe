@@ -10,6 +10,8 @@ wn.provide('_r');
 wn.provide('_c');
 wn.provide('_e');
 wn.provide('_startup_data')
+wn.provide('locals')
+wn.provide('locals.DocType')
 
 // setup custom binding for history
 wn.settings.no_history = 1;
@@ -52,6 +54,4 @@ var FILTER_SEP = '\1';
 var frms={};
 var cur_frm=null;
 var pscript = {};
-var validated = true;
-var validation_message = '';
 var tinymce_loaded = null;

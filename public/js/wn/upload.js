@@ -6,7 +6,7 @@ wn.upload = {
 				style="width:0px; height:0px; border:0px"></iframe>\
 			<form method="POST" enctype="multipart/form-data" \
 				action="%(action)s" target="%(id)s">\
-				Upload A File:<br>\
+				Upload a file:<br>\
 				<input type="file" name="filedata" /><br><br>\
 				OR:<br><input type="text" name="file_url" /><br>\
 				<p class="help">e.g. http://example.com/somefile.png</p><br>\

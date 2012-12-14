@@ -36,7 +36,8 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 	this.refresh_latest_comment = function() {
 		var wrapper = cur_frm.page_layout.body;
 		if(!$(wrapper).find(".latest-comment").length) {
-			$('<div class="latest-comment alert alert-info" style="margin-top:20px;">').prependTo(wrapper);
+			$('<div class="latest-comment alert alert-info" style="margin-top:20px; display: none;">')
+				.prependTo(wrapper);
 		}
 		var comment_list = wn.widgets.form.comments.comment_list[me.docname];
 		if(comment_list) {

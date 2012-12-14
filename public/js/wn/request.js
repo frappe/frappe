@@ -54,10 +54,10 @@ wn.request.cleanup = function(opts, r) {
 	if(opts.freeze) wn.dom.unfreeze();
 
 	// session expired?
-	if(wn.boot && wn.boot.sid && wn.get_cookie('sid') != wn.boot.sid) { 
+	if(r.session_expired) { 
 		if(!wn.app.logged_out) {
 			msgprint('Session Expired. Logging you out');
-			wn.app.logout();			
+			wn.app.logout();		
 		}
 		return;
 	}
@@ -87,7 +87,7 @@ wn.request.cleanup = function(opts, r) {
 
 	// sync docs
 	if(r.docs) {
-		LocalDB.sync(r.docs);
+		wn.model.sync(r.docs);
 	}
 	
 	wn.last_response = r;
@@ -148,7 +148,7 @@ wn.call = function(opts) {
 	} else if(opts.doc) {
 		$.extend(args, {
 			cmd: "runserverobj",
-			docs: compress_doclist(wn.model.get_doclist(opts.doc.doctype,
+			docs: wn.model.compress(wn.model.get_doclist(opts.doc.doctype,
 				opts.doc.name)),
 			method: opts.method,
 			args: opts.args,

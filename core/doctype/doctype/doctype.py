@@ -26,9 +26,6 @@ import webnotes
 from webnotes.utils import now, cint
 msgprint = webnotes.msgprint
 
-
-
-
 class DocType:
 	def __init__(self, doc=None, doclist=[]):
 		self.doc = doc
@@ -68,6 +65,9 @@ class DocType:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
 
 	def validate(self):
+		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
+			if c in self.doc.name:
+				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
 		self.validate_series()
 		self.scrub_field_names()
 		validate_fields(filter(lambda d: d.doctype=="DocField", self.doclist))
@@ -182,7 +182,7 @@ def validate_fields_for_doctype(doctype):
 def validate_fields(fields):
 	def check_illegal_characters(fieldname):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$', 
-			'(', ')', '[', ']']:
+			'(', ')', '[', ']', '/']:
 			if c in fieldname:
 				webnotes.msgprint("'%s' not allowed in fieldname (%s)" % (c, fieldname))
 	

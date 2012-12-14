@@ -74,11 +74,16 @@ def save_uploaded():
 	fname, content = get_uploaded_content()
 	if content:
 		fid = save_file(fname, content)
-		return fid, fname
+		# fname is not valid
+		return fid, fid
 	else: 
 		return None, fname
 
 def save_url(file_url):
+	if not (file_url.startswith("http://") or file_url.startswith("https://")):
+		webnotes.msgprint("URL must start with 'http://' or 'https://'")
+		return None, None
+		
 	f = webnotes.doc("File Data")
 	f.file_url = file_url
 	f.file_name = file_url.split('/')[-1]
@@ -92,7 +97,7 @@ def get_uploaded_content():
 		webnotes.uploaded_filename, webnotes.uploaded_content = i.filename, i.file.read()
 		return webnotes.uploaded_filename, webnotes.uploaded_content
 	else:
-		webnotes.msgprint('No File');
+		webnotes.msgprint('No File')
 		return None, None
 
 def save_file(fname, content, module=None):
@@ -122,7 +127,7 @@ def save_file(fname, content, module=None):
 		f.file_name = fname
 		f.save(1)
 		# rename new file
-		os.rename(new_fname, os.path.join(get_files_path(), f.name))		
+		os.rename(new_fname, os.path.join(get_files_path(), f.name))
 		return f.name
 
 def check_max_file_size(content):

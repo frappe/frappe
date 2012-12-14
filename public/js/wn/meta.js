@@ -21,6 +21,7 @@
 //
 
 wn.provide('wn.meta.docfield_map');
+wn.provide('wn.meta.docfield_copy');
 wn.provide('wn.meta.docfield_list');
 wn.provide('wn.meta.doctypes');
 wn.provide("wn.meta.precision_map");
@@ -43,9 +44,21 @@ $.extend(wn.meta, {
 		wn.meta.docfield_list[df.parent].push(df);
 	},
 	
+	make_docfield_copy_for: function(doctype, docname) {
+		var c = wn.meta.docfield_copy;
+		if(!c[doctype]) 
+			c[doctype] = {};
+		if(!c[doctype][docname]) 
+			c[doctype][docname] = {};
+			
+		$.each(wn.meta.docfield_list[doctype], function(i, df) {
+			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
+		})
+	},
+	
 	get_docfield: function(dt, fn, dn) {
-		if(dn && local_dt[dt] && local_dt[dt][dn]){
-			return local_dt[dt][dn][fn];
+		if(dn && wn.meta.docfield_copy[dt] && wn.meta.docfield_copy[dt][dn]){
+			return wn.meta.docfield_copy[dt][dn][fn];
 		} else {
 			return wn.meta.docfield_map[dt][fn];
 		}
@@ -85,4 +98,11 @@ $.extend(wn.meta, {
 		
 		return wn.meta.precision_map[doctype];
 	},
+
+	sync_messages: function(doc) {
+		if(doc.__messages) {
+			$.extend(wn._messages, doc.__messages);
+		}
+	},
+	
 });
