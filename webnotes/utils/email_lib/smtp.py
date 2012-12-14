@@ -199,9 +199,15 @@ class EMail:
 			return email
 		
 		if not self.sender:
-			# TODO: remove erpnext id
 			self.sender = webnotes.conn.get_value('Email Settings', None,
-				'auto_email_id') or getattr(conf, 'auto_email_id')
+				'auto_email_id') or getattr(conf, 'auto_email_id', None)
+			if not self.sender:
+				webnotes.msgprint("""Please specify 'Auto Email Id' \
+					in Setup > Email Settings""")
+				if not hasattr(conf, "expires_on"):
+					webnotes.msgprint("""Alternatively, \
+						you can also specify 'auto_email_id' in conf.py""")
+				raise webnotes.ValidationError
 				
 		self.sender = _validate(self.sender)
 		self.reply_to = _validate(self.reply_to)
