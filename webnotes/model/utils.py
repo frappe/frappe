@@ -21,6 +21,8 @@
 # 
 
 from __future__ import unicode_literals
+import webnotes
+from webnotes.model.doc import Document
 """
 Model utilities, unclassified functions
 """
@@ -198,3 +200,11 @@ def round_doc(doc, precision_map):
 	from webnotes.utils import flt
 	for fieldname, precision in precision_map.items():
 		doc.fields[fieldname] = flt(doc.fields.get(fieldname), precision)
+		
+def set_default(doc, key):
+	if not doc.is_default:
+		webnotes.conn.set(doc, "is_default", 1)
+	
+	webnotes.conn.sql("""update `tab%s` set `is_default`=0
+		where `%s`=%s and name!=%s""" % (doc.doctype, key, "%s", "%s"), 
+		(doc.fields.get(key), doc.name))
