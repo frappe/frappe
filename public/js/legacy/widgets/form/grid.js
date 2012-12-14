@@ -151,6 +151,16 @@ _f.Grid.prototype.set_column_disp = function(fieldname, show) {
 	this.reset_table_width();
 }
 
+_f.Grid.prototype.toggle_reqd = function(fieldname, reqd) {
+	// IMPORTANT: this should be called in refresh event
+	var grid_field = this.get_field(fieldname);
+	grid_field.df.reqd = reqd ? true : false;
+	grid_field.refresh();
+	
+	$(grid_field.grid.head_row).find('[data-grid-fieldname="' + grid_field.grid.doctype 
+		+ '-' + fieldname + '"]').css({ color: reqd ? "#D22" : "black" });
+}
+
 _f.Grid.prototype.append_row = function(idx, docname) { 
 	if(!idx)idx = this.tab.rows.length;
 	var row = this.tab.insertRow(idx);
