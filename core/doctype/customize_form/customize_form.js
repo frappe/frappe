@@ -40,6 +40,7 @@ cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
+	cur_frm.disable_save();
 	cur_frm.frm_head.appframe.clear_buttons();
 
 	cur_frm.add_custom_button('Update', function() {
@@ -49,7 +50,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 					//msgprint(r.exc);
 				} else {
 					if(r.server_messages) { cur_frm.cscript.doc_type(doc, doc.doctype, doc.name); }
-				cur_frm.frm_head.set_label(['Saved', 'label-success']);				
+				cur_frm.frm_head.set_label(['Updated', 'label-success']);				
 				}
 			});	
 		}
@@ -72,9 +73,6 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	}
 
 	cur_frm.cscript.hide_allow_attach(doc, dt, dn);
-	
-	// hide save button at the bottom
-	$(cur_frm.page_layout.footer).toggle(false);
 }
 
 cur_frm.cscript.hide_allow_attach = function(doc, dt, dn) {
