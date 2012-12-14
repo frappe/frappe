@@ -162,7 +162,7 @@ class ModelWrapper:
 
 			d.modified_by = user
 			d.modified = ts
-			if d.docstatus != 2: # don't update deleted
+			if d.docstatus != 2 and self.to_docstatus >= d.docstatus: # don't update deleted
 				d.docstatus = self.to_docstatus
 
 	def prepare_for_save(self, check_links):

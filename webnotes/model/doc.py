@@ -550,6 +550,7 @@ class Document:
 		from webnotes.model.utils import getlist
 		
 		table_list = getlist(doclist, tablefield)
+				
 		delete_list = [d.name for d in table_list]
 		
 		if delete_list:
