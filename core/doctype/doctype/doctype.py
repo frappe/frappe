@@ -21,7 +21,9 @@
 # 
 
 from __future__ import unicode_literals
+
 import webnotes
+import os
 
 from webnotes.utils import now, cint
 msgprint = webnotes.msgprint
@@ -89,6 +91,7 @@ class DocType:
 
 		if (not in_transfer) and getattr(conf,'developer_mode', 0):
 			self.export_doc()
+			self.make_controller_template()
 
 		webnotes.clear_cache(doctype=self.doc.name)
 

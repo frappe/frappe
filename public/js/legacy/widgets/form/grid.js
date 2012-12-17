@@ -250,14 +250,13 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 		$td(t,0,0).innerHTML = cell.row.rowIndex + 1;
 
 		if(cur_frm.editable && this.can_edit) {
-
-			var ed = $a($td(t,0,1),'i','icon-edit',{cursor:'pointer'}); ed.cell = cell; ed.title = 'Edit Row';
-			ed.onclick = function() { 
-				_f.cur_grid = me;
-				_f.cur_grid_ridx = this.cell.row.rowIndex;
-				_f.edit_record(me.doctype, this.cell.row.docname, 1);				
-			}
-			
+			$("<a title='Edit Row'><i class='icon-edit'></i></a>")
+				.click(function() {
+					_f.cur_grid = me;
+					_f.cur_grid_ridx = cell.row.rowIndex;
+					_f.edit_record(me.doctype, cell.row.docname, 1);
+				})
+				.appendTo($td(t,0,1))
 		} else {
 			cell.div.innerHTML = (cell.row.rowIndex + 1);
 			cell.div.style.cursor = 'default';

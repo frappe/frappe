@@ -114,6 +114,13 @@ class Document:
 	def __eq__(self, other):
 		return self.fields == other.fields		
 
+	def __getstate__(self): 
+		return self.fields
+		
+	def __setstate__(self, d): 
+		self.fields = d
+
+
 	# Load Document
 	# ---------------------------------------------------------------------------
 
