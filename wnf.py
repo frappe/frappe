@@ -168,8 +168,8 @@ def setup_options():
 	parser.add_option("--no_cms", default=False, action="store_true",
 						help="do not build wn-web.js and wn-css.js")
 						
-	parser.add_option("--build_web_cache", default=False, action="store_true",
-						help="build web cache")
+	parser.add_option("--clear_web", default=False, action="store_true",
+						help="clear web cache")
 	parser.add_option("--clear_cache", default=False, action="store_true",
 						help="clear cache")
 
@@ -413,7 +413,7 @@ def run():
 		webnotes.conn.commit()
 		print "Domain set to", options.domain
 		
-	elif options.build_web_cache:
+	elif options.clear_web:
 		# build wn-web.js and wn-web.css
 		from website.helpers.make_web_include_files import make
 		make()
