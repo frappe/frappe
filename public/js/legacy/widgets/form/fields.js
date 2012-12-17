@@ -552,16 +552,16 @@ LinkField.prototype.make_input = function() {
 	} else {
 		me.input = me.input_area;
 		
-		me.txt = $('<input type="text">')
+		me.txt = $('<input type="text" style="margin-right: 0px;">')
 			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "65%")})
 			.appendTo(me.input_area).get(0);
 				
-		me.btn = $('<i style="cursor: pointer; margin-left: 2px;" \
+		me.btn = $('<i style="cursor: pointer; margin-left: 5px;" \
 			class="icon icon-search" \
 			title="Search Link"></i>').appendTo(me.input_area).get(0);
-		me.btn1 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-play"\
+		me.btn1 = $('<i style="cursor: pointer; margin-left: 5px;" class="icon icon-play"\
 			title="Open Link"></i>').appendTo(me.input_area).get(0);
-		me.btn2 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-plus"\
+		me.btn2 = $('<i style="cursor: pointer; margin-left: 5px;" class="icon icon-plus"\
 			title="Make New"></i>').appendTo(me.input_area).get(0);		
 		me.txt.name = me.df.fieldname;
 		me.setdisabled = function(tf) { me.txt.disabled = tf; }
