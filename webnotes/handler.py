@@ -138,6 +138,9 @@ def reset_password():
 	from webnotes.utils import random_string
 	
 	user = webnotes.form_dict.get('user', '')
+	if user in ["demo@erpnext.com", "Administrator"]:
+		webnotes.msgprint("Not allowed", raise_exception=1)
+		
 	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
 		new_password = random_string(8)
 		webnotes.conn.sql("""update `__Auth` set password=password(%s)
