@@ -35,15 +35,13 @@ def replace_code(start, txt1, txt2, extn, search=None, force=False):
 		for fn in wt[2]:
 			if fn.split('.')[-1]==extn:
 				fpath = os.path.join(wt[0], fn)
-				if fpath != '/var/www/erpnext/erpnext/patches/jan_mar_2012/rename_dt.py': # temporary
-					with open(fpath, 'r') as f:
-						content = f.read()
-				
-					if re.search(search, content):
-						res = search_replace_with_prompt(fpath, txt1, txt2, force)
-						if res == 'skip':
-							return 'skip'
-
+				with open(fpath, 'r') as f:
+					content = f.read()
+			
+				if re.search(search, content):
+					res = search_replace_with_prompt(fpath, txt1, txt2, force)
+					if res == 'skip':
+						return 'skip'
 
 
 def search_replace_with_prompt(fpath, txt1, txt2, force=False):

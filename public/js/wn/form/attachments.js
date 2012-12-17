@@ -101,6 +101,8 @@ wn.ui.form.Attachments = Class.extend({
 					callback: function(r,rt) {
 						me.frm.doc.modified = r.message;
 						me.remove_fileid(data);
+						me.frm && me.frm.cscript.on_remove_attachment 
+							&& me.frm.cscript.on_remove_attachment(me.frm.doc);
 						me.frm.refresh();
 					}
 				});

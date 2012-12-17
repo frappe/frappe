@@ -115,3 +115,6 @@ $.extend(wn.model, {
 		return JSON.stringify({'_vl':values, '_kl':keys});
 	}	
 });
+
+// legacy
+compress_doclist = wn.model.compress;
