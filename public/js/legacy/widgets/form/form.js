@@ -927,7 +927,7 @@ _f.Frm.prototype.savesubmit = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
 		me.save('Submit', function(r) {
-			if(!r.exc && me.cscript.on_submit) {
+			if(!r.exc) {
 				me.runclientscript('on_submit', me.doctype, me.docname);
 			}
 		}, btn);
