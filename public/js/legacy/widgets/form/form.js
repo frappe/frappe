@@ -908,8 +908,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn) {
 	// validate
 	if(save_action!="Cancel") {
 		validated = true;
-		if(this.cscript.validate)
-			this.runclientscript('validate');
+		this.runclientscript('validate');
 	
 		if(!validated) {
 			return;
