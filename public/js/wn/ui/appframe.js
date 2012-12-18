@@ -72,7 +72,7 @@ wn.ui.AppFrame = Class.extend({
 
 	add_help_button: function(txt) {
 		this.add_toolbar();
-		$('<button class="btn" style="float:right;" button-type="help">\
+		$('<button class="btn" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
