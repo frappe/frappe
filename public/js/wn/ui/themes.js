@@ -51,10 +51,15 @@ wn.ui.themes = {
 }
 
 wn.ui.set_theme = function(theme) {
-	wn.dom.set_style(repl(".layout-wrapper-background { \
+	var t = wn.ui.themes[theme];
+	t.title_gradient = wn.get_gradient_css(t.titlebar);
+	var css = repl(".layout-wrapper-background { \
 		background-color: %(sidebar)s !important; }\
 	.appframe-toolbar { \
 		background-color: %(toolbar)s !important; }\
 	.appframe-titlebar { \
-		background-color: %(titlebar)s !important; }", wn.ui.themes[theme]));
+		%(title_gradient)s \
+	}", t);
+	console.log(css);
+	wn.dom.set_style(css);
 }
