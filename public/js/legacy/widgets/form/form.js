@@ -285,8 +285,8 @@ _f.Frm.prototype.setup_footer = function() {
 	f.save_area = $a(this.page_layout.footer,'div','',{display:'none', marginTop:'11px'});
 	f.help_area = $a(this.page_layout.footer,'div');
 
-	var b = $btn(f.save_area, 'Save',
-		function() { cur_frm.save('Save', null, this); },{marginLeft:'0px'},'green');
+	var b = $("<button class='btn btn-info'><i class='icon-save'></i> Save</button>")
+		.click(function() { me.save("Save", null, me); }).appendTo(f.save_area);
 	
 	// show / hide save
 	f.show_save = function() {
@@ -910,8 +910,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn) {
 	// validate
 	if(save_action!="Cancel") {
 		validated = true;
-		if(this.cscript.validate)
-			this.runclientscript('validate');
+		this.runclientscript('validate');
 	
 		if(!validated) {
 			return;
@@ -930,7 +929,7 @@ _f.Frm.prototype.savesubmit = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
 		me.save('Submit', function(r) {
-			if(!r.exc && me.cscript.on_submit) {
+			if(!r.exc) {
 				me.runclientscript('on_submit', me.doctype, me.docname);
 			}
 		}, btn);

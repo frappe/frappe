@@ -41,7 +41,7 @@ wn.views.CommunicationList = Class.extend({
 			
 		this.wrapper = $("<div><h4>Communication History</h4>\
 			<div style='margin-bottom: 8px;'>\
-				<button class='btn btn-small' \
+				<button class='btn' \
 					onclick='cur_frm.communication_view.add_reply()'>\
 				<i class='icon-plus'></i> Add Message</button></div>\
 			</div>")

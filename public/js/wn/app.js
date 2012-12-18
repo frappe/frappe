@@ -20,63 +20,25 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 //
 
+if(!console) {
+	var console = {
+		log: function(txt) {
+			// suppress
+		}
+	}
+}
+
+$(document).ready(function() {
+	wn.assets.check();
+	wn.provide('wn.app');
+	$.extend(wn.app, new wn.Application());
+});
+
 wn.Application = Class.extend({
 	init: function() {
-		var me = this;
-		if(window.app) {
-			this.load_app_js(function() { me.load_startup() });			
-		} else {
-			this.load_startup();
-		}
+		this.load_startup();
 	},
-	load_app_js: function(callback) {
-		var all_app = localStorage.getItem("all-app");
-		
-		if(all_app) {
-			wn.dom.eval(all_app);
-			callback();
-			return;
-		}
-		
-		var dialog = new wn.ui.Dialog({
-			title: "Loading...",
-			width: 500,
-			user_cannot_cancel: true
-		});
-		
-		dialog.show();
-		
-		wn.messages.waiting(dialog.body, "", 5);
-		var bar = $(dialog.body).find(".bar");
 
-		$.ajax({
-			url: "js/all-app.js",
-			success: function(data, status, xhr) {
-				// add it to localstorage
-				localStorage.setItem('all-app', xhr.responseText);
-				dialog.hide();		
-				callback();
-			},
-			xhr: function() {
-				var xhr = jQuery.ajaxSettings.xhr();
-				interval = setInterval(function() {
-					if(xhr.readyState > 2) {
-				    	var total =  parseInt(xhr.getResponseHeader('Content-Length'));
-				    	var completed = parseInt(xhr.responseText.length);
-						var percent = (100.0 / total * completed).toFixed(2);
-						bar.css('width', (percent < 10 ? 10 : percent) + '%');
-					}
-				}, 50);
-				wn.last_xhr = xhr;
-				return xhr;
-			},
-			error: function(xhr, status, e) {
-				console.log(e.message);
-				eval(xhr.responseText);
-			}
-		});
-		
-	},
 	load_startup: function() {
 		var me = this;
 		if(window.app) {

@@ -48,6 +48,10 @@ def add_comment(args=None):
 	import time
 	if not args: args = webnotes.form_dict
 
+	if webnotes.conn.sql("""select count(*) from tabComment where comment_doctype=%s
+		and comment_docname=%s""", (args.comment_doctype, args.comment_docname))[0][0] >= 50:
+		webnotes.msgprint("Max Comments reached!", raise_exception=True)
+
 	if args.get('comment'):
 		from webnotes.model.doc import Document
 		

@@ -39,14 +39,7 @@ var top_index=91;
 
 // form
 var _f = {};
-
-// print
 var _p = {};
-
-// email
-var _e = {};
-
-// report buidler
 var _r = {};
 var FILTER_SEP = '\1';
 

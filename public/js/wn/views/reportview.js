@@ -287,7 +287,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				<option value="asc">Ascending</option>\
 				<option value="desc">Descending</option>\
 			</select></div><hr>\
-			<div><button class="btn btn-small btn-info">Update</div>');
+			<div><button class="btn btn-info">Update</div>');
 		
 		// first
 		this.sort_by_select = new wn.ui.FieldSelect($(this.sort_dialog.body).find('.sort-column'), 
@@ -429,10 +429,10 @@ wn.ui.ColumnPicker = Class.extend({
 		}
 		$(this.dialog.body).html('<div class="help">'+wn._("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
-			<div><button class="btn btn-small btn-add"><i class="icon-plus"></i>\
+			<div><button class="btn btn-add"><i class="icon-plus"></i>\
 				'+wn._("Add Column")+'</button></div>\
 			<hr>\
-			<div><button class="btn btn-small btn-info">'+wn._("Update")+'</div>');
+			<div><button class="btn btn-info">'+wn._("Update")+'</div>');
 		
 		// show existing	
 		$.each(columns, function(i, c) {

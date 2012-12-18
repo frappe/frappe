@@ -483,7 +483,7 @@ DateField.prototype.make_input = function() {
 	this.user_fmt = sys_defaults.date_format;
 	if(!this.user_fmt)this.user_fmt = 'dd-mm-yy';
 
-	this.input = $a(this.input_area, 'input');
+	this.input = $("<input type='text'>").appendTo(this.input_area).get(0);
 
 	$(this.input).datepicker({
 		dateFormat: me.user_fmt.replace('yyyy','yy'), 
@@ -554,18 +554,19 @@ LinkField.prototype.make_input = function() {
 		this.input = this.txt;	
 	} else {
 		me.input = me.input_area;
+		$(me.input_area).addClass("input-append link-field");
 		
-		me.txt = $('<input type="text">')
-			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "65%")})
+		me.txt = $('<input type="text" style="margin-right: 0px;">')
+			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "60%")})
 			.appendTo(me.input_area).get(0);
 				
-		me.btn = $('<i style="cursor: pointer; margin-left: 2px;" \
-			class="icon icon-search" \
-			title="Search Link"></i>').appendTo(me.input_area).get(0);
-		me.btn1 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-play"\
-			title="Open Link"></i>').appendTo(me.input_area).get(0);
-		me.btn2 = $('<i style="cursor: pointer; margin-left: 2px;" class="icon icon-plus"\
-			title="Make New"></i>').appendTo(me.input_area).get(0);		
+		me.btn = $('<button class="btn" title="Search Link">\
+			<i class="icon-search"></i></button>').appendTo(me.input_area).get(0);
+		me.btn1 = $('<button class="btn" title="Open Link">\
+			<i class="icon-play"></i></button>').appendTo(me.input_area).get(0);
+		me.btn2 = $('<button class="btn" title="Make New">\
+			<i class="icon-plus"></i></button>').appendTo(me.input_area).get(0);	
+
 		me.txt.name = me.df.fieldname;
 		me.setdisabled = function(tf) { me.txt.disabled = tf; }
 			
@@ -574,8 +575,10 @@ LinkField.prototype.make_input = function() {
 	}
 
 	me.onrefresh = function() {
-		$(me.btn2).toggle(in_list(wn.boot.profile.can_create, me.df.options));
-		$(me.btn1).toggle(in_list(wn.boot.profile.can_read, me.df.options));
+		var can_create = in_list(wn.boot.profile.can_create, me.df.options);
+		var can_read = in_list(wn.boot.profile.can_read, me.df.options);
+		if(!can_create) $(this.btn2).remove();
+		if(!can_read) $(this.btn1).remove();
 	}
 
 	me.onrefresh();
@@ -915,10 +918,14 @@ TextField.prototype.make_input = function() {
 		return; // do nothing, text dialog will take over
 	
 	this.input = $a(this.input_area, 'textarea');
-	if(this.df.fieldtype=='Small Text')
-		this.input.style.height = "80px";
-	if(this.df.width)
-		this.input.style.height = cint(this.df.width) + "px";
+
+	if(this.df.fieldtype=='Small Text') {
+		$(this.input).css({height: "80px"});
+	} else if(this.df.width) {
+		$(this.input).css({height: cint(this.df.width) + "px"});
+	} else {
+		$(this.input).css({height: "160px"});
+	}
 	this.input.set_input = function(v) {
 		me.input.value = v;
 	}

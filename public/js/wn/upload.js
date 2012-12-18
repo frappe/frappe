@@ -10,7 +10,7 @@ wn.upload = {
 				<input type="file" name="filedata" /><br><br>\
 				OR:<br><input type="text" name="file_url" /><br>\
 				<p class="help">e.g. http://example.com/somefile.png</p><br>\
-				<input type="submit" class="btn btn-small" value="Attach" />\
+				<input type="submit" class="btn" value="Attach" />\
 			</form>', {
 				id: id,
 				action: wn.request.url

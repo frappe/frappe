@@ -42,4 +42,5 @@ wn._ = function(txt) {
 
 wn.provide("locals");
 wn.provide("wn.settings");
+wn.provide("wn.utils");
 wn.provide("wn.ui");
