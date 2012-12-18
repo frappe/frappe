@@ -169,7 +169,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_no_result: function() {
 		var new_button = wn.boot.profile.can_create.indexOf(this.doctype)!=-1
-			? '<hr><p><button class="btn btn-info btn-small" \
+			? '<hr><p><button class="btn btn-info" \
 				list_view_doc="%(doctype)s">Make a new %(doctype_label)s</button></p>'
 			: '';
 		var no_result_message = repl('<div class="well">\
@@ -264,7 +264,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				
 				// reload button at the end
 				if(me.listview.stats.length) {
-					$('<button class="btn btn-small"><i class="refresh"></i> Refresh</button>')
+					$('<button class="btn"><i class="refresh"></i> Refresh</button>')
 						.click(function() {
 							me.reload_stats();
 						}).appendTo($('<div class="stat-wrapper">')

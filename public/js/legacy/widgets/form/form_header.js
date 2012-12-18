@@ -139,8 +139,9 @@ _f.FrmHeader = Class.extend({
 		// Save
 		if(docstatus==0 && p[WRITE]) {
 			this.appframe.add_button('Save', function() { 
-				cur_frm.save('Save', null, this);}, '');
-			this.appframe.buttons['Save'].addClass('btn-info').text("Save (Ctrl+S)");			
+				cur_frm.save('Save', null, this);}, 'icon-save');
+			this.appframe.buttons['Save'].addClass('btn-info')
+				.html("<i class='icon-save'></i> Save (Ctrl+S)");			
 		}
 		// Submit
 		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
@@ -148,11 +149,10 @@ _f.FrmHeader = Class.extend({
 				cur_frm.savesubmit(this);}, 'icon-lock');
 
 		// Update after sumit
-		if(docstatus==1 && p[SUBMIT]) {
+		if(docstatus==1 && p[SUBMIT] && cur_frm.doc.__unsaved) {
 			this.appframe.add_button('Update', function() { 
 				cur_frm.save('Update', null, this);
 			}, '');
-			if(!cur_frm.doc.__unsaved) this.appframe.buttons['Update'].toggle(false);
 		}
 
 		// Cancel

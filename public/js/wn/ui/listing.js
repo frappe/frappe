@@ -87,9 +87,9 @@ wn.ui.Listing = Class.extend({
 					<div class="show_filters well">\
 						<div class="filter_area"></div>\
 						<div>\
-							<button class="btn btn-small btn-info search-btn">\
+							<button class="btn btn-info search-btn">\
 								<i class="icon-refresh icon-white"></i> Search</button>\
-							<button class="btn btn-small add-filter-btn">\
+							<button class="btn add-filter-btn">\
 								<i class="icon-plus"></i> Add Filter</button>\
 						</div>\
 					</div>\
@@ -112,7 +112,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div class="paging-button">\
-					<button class="btn btn-small btn-more hide">More...</div>\
+					<button class="btn btn-more hide">More...</div>\
 				</div>\
 			</div>\
 		', this.opts));
@@ -131,7 +131,7 @@ wn.ui.Listing = Class.extend({
 		if(this.appframe) {
 			return this.appframe.add_button(label, click, icon)
 		} else {
-			$button = $('<button class="btn btn-small"></button>')
+			$button = $('<button class="btn"></button>')
 				.appendTo(this.$w.find('.list-toolbar'))
 			if(icon) {
 				$('<i>').addClass(icon).appendTo($button);

@@ -10,15 +10,7 @@ body {
 	color: #000;
 }
 
-/* font settings */
-
-h1, h2, h3, h4, h5 {
-	font-family: Arial, sans-serif;
-}
-
 body {
-	font-family: Arial, sans-serif;
-	font-size: 13px;
 	background-color: #eee;
 }
 
@@ -39,53 +31,9 @@ footer {
 	line-height: 1.7;
 }
 
-span, div, td, input, textarea, button, select {
-	font-family: inherit;
-}
-
-button { margin: 2px; margin-left: 0px; }
-
 label {
 	padding-top: 15px;
 	color: #404040;
-}
-
-table { padding: 0px; border-collapse: 'collapse'}
-
-td { 
-	padding:0px; 
-	margin: 0px; 
-	vertical-align: top; 
-}
-
-p {
-	margin: 0px 0px 9px 0px;
-	line-height: 1.5em;
-}
-
-li {
-	line-height: 1.5em;
-}
-
-hr {
-  clear: both;
-  margin: 18px 0;
-  border: 0;
-  border-top: 1px solid #e5e5e5;
-  border-bottom: 1px solid #ffffff;
-}
-
-/* links */
-
-a:active { outline:none; }
-
-a {
-  color: #0088cc;
-  text-decoration: none;
-}
-a:hover {
-  color: #005580;
-  text-decoration: underline;
 }
 
 .link_type {
@@ -196,22 +144,6 @@ div.std-footer-item {
 	-moz-border-radius: 5px;
 	border-radius: 5px;	
 }
-
-/* from bootstrap */
-.container {
-  margin-left: auto;
-  margin-right: auto;
-  zoom: 1;
-}
-.container:before, .container:after {
-  display: table;
-  content: "";
-  zoom: 1;
-}
-.container:after {
-  clear: both;
-}
-
 
 .clear {
 	clear: both;

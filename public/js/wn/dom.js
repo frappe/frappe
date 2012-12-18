@@ -142,6 +142,38 @@ wn.done_loading = function() {
 	}
 }
 
+wn.get_shade = function(color, factor) {
+	var get_int = function(hex) {
+		return parseInt(hex,16); 
+	}
+	var get_hex = function(i) {
+		if(i>255) return 'ff';
+		if(i<0) return '00';
+		i =i .toString(16);
+	    if(i.length==1) i = '0'+r;
+		return i;
+	}
+		
+	return get_hex(get_int(color.substr(1,2)) * factor)
+		+ get_hex(get_int(color.substr(3,4)) * factor)
+		+ get_hex(get_int(color.substr(5,6)) * factor)
+}
+
+$.fn.apply_gradient = function(col) {
+	var col1 = wn.get_shade(col, 1.1);
+	var col2 = wn.get_shade(col, 0.9);
+	
+	this.css({
+		"background": "-moz-linear-gradient(top,  #"+col1+" 0%, #"+col2+" 99%)",
+		"background": "-webkit-gradient(linear, left top, left bottom, color-stop(0%,#"+col1+"), color-stop(99%,#"+col2+"))",
+		"background": "-webkit-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%)",
+		"background": "-o-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%);",
+		"background": "-ms-linear-gradient(top,  #"+col1+" 0%,#"+col2+" 99%);",
+		"background": "linear-gradient(top,  #"+col1+" 0%,#%"+col2+" 99%);",
+		"filter": "progid:DXImageTransform.Microsoft.gradient( startColorstr='#"+col1+"', endColorstr='#"+col1+"',GradientType=0 )"
+	});
+}
+
 wn.get_cookie = function(c) {
 	var clist = (document.cookie+'').split(';');
 	var cookies = {};

@@ -79,7 +79,7 @@ _f.SectionBreak.prototype.make_body = function() {
 		if(!this.df.description) 
 			this.df.description = '';
 		$(this.row.main_head).html(repl('<div class="form-section-head">\
-				<h4 class="head">%(label)s</h4>\
+				<h3 class="head">%(label)s</h3>\
 				<div class="help small" \
 					style="margin-top: 4px; margin-bottom: 8px;">%(description)s</div>\
 			</div>', this.df));
