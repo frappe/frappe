@@ -643,9 +643,11 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	var me = this;
 	if(me.fields_dict['amended_from']) {
 		if (me.doc.amended_from) {
-			unhide_field('amended_from'); unhide_field('amendment_date');
+			unhide_field('amended_from');
+			if (me.fields_dict['amendment_date']) unhide_field('amendment_date');
 		} else {
-			hide_field('amended_from'); hide_field('amendment_date');
+			hide_field('amended_from'); 
+			if (me.fields_dict['amendment_date']) hide_field('amendment_date');
 		}
 	}
 
