@@ -598,7 +598,7 @@ _f.Frm.prototype.refresh_footer = function() {
 	if(f.save_area) {
 		if(this.editable && (!this.meta.in_dialog || this.in_form) 
 			&& this.doc.docstatus==0 && !this.meta.istable && this.perm[0][WRITE]
-			&& (this.fields && this.fields.length > 7)) {
+			&& (this.fields && this.fields.length > 7) && !this.save_disabled) {
 			f.show_save();
 		} else {
 			f.hide_save();
