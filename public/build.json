@@ -169,14 +169,5 @@
 			'lib/public/js/lib/slickgrid/slick.dataview.js',
 		]
 	},
-	
-	{
-		"public/js/fields.js": ["lib/public/js/legacy/widgets/form/fields.js"]
-	},
-
-	{
-		"public/css/fields.css": ["lib/public/css/legacy/fields.css"]
-	}
-
 ]
 

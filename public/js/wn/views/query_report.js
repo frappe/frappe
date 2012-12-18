@@ -147,8 +147,8 @@ wn.views.QueryReport = Class.extend({
 			this.wrapper.find(".no-report-area").toggle(false);
 			wn.model.with_doc("Report", route[1], function(doc) {
 				me.doc = locals["Report"] && locals["Report"][route[1]];
-				if(!me.doc) {
-					msgprint("Bad Report Name");
+				if(!me.doc || !me.doc.is_standard=="No") {
+					msgprint("Bad Report Name / Only standard reports allowed.");
 					return;
 				}
 				me.appframe.title("Query Report: " + me.doc.name);

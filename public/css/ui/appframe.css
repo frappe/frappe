@@ -34,10 +34,9 @@ div.appframe-marker {
 }
 
 div.appframe-toolbar {
-	padding: 4px;
+	padding: 6px;
 	background: #e9e9e9;
 	border-bottom: 1px solid #c2c2c2;
-	min-height: 30px;
 }
 
 div.appframe-titlebar .label {
@@ -55,11 +54,9 @@ div.appframe-titlebar .close {
 	margin: 0px 12px;
 }
 
-div.appframe-toolbar input, div.appframe-toolbar select {
-	margin: 2px 2px;
-}
-div.appframe-toolbar button {
-	padding: 3px 7px !important;
+.appframe-toolbar select, .appframe-toolbar input, .appframe-toolbar .label {
+	margin-bottom: 0px;
+	margin-left: 3px;
 }
 
 span.appframe-tab {

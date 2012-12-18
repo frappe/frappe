@@ -69,7 +69,7 @@ PageHeader.prototype.add_button = function(label, fn, bold, icon, green) {
 
 	iconhtml = icon ? ('<i class="'+icon+'"></i> ') : '';
 
-	var $button = $('<button class="btn btn-small">'+ iconhtml + label +'</button>')
+	var $button = $('<button class="btn">'+ iconhtml + label +'</button>')
 		.click(fn)
 		.appendTo(tb);
 	if(green) {

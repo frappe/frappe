@@ -61,9 +61,9 @@ wn.ui.AppFrame = Class.extend({
 		this.add_toolbar();
 		args = { label: label, icon:'' };
 		if(icon) {
-			args.icon = '<i class="icon '+icon+'"></i>';
+			args.icon = '<i class="'+icon+'"></i>';
 		}
-		this.buttons[label] = $(repl('<button class="btn btn-small">\
+		this.buttons[label] = $(repl('<button class="btn">\
 			%(icon)s %(label)s</button>', args))
 			.click(click)
 			.appendTo(this.toolbar);
@@ -72,7 +72,7 @@ wn.ui.AppFrame = Class.extend({
 
 	add_help_button: function(txt) {
 		this.add_toolbar();
-		$('<button class="btn btn-small" style="float:right;" button-type="help">\
+		$('<button class="btn" style="float:right;" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
@@ -85,28 +85,28 @@ wn.ui.AppFrame = Class.extend({
 
 	add_toolbar: function() {
 		if(!this.toolbar)
-			this.$w.append('<div class="appframe-toolbar"></div>');
-		this.toolbar = this.$w.find('.appframe-toolbar');
+			this.$w.append('<div class="appframe-toolbar"><div class="btn-group"></div></div>');
+		this.toolbar = this.$w.find('.appframe-toolbar .btn-group');
 	},
 	add_label: function(label) {
-		return $("<span class='label'>"+label+" </span>").appendTo(this.toolbar);
+		return $("<span class='label'>"+label+" </span>").appendTo(this.toolbar.parent());
 	},
 	add_select: function(label, options) {
 		this.add_toolbar();
 		return $("<select style='width: 100px;'>")
-			.add_options(options).appendTo(this.toolbar);
+			.add_options(options).appendTo(this.toolbar.parent());
 	},
 	add_data: function(label) {
 		this.add_toolbar();
-		return $("<input style='width: 100px;' placeholder='"+ label +"'>")
-			.appendTo(this.toolbar);
+		return $("<input style='width: 100px;' type='text' placeholder='"+ label +"'>")
+			.appendTo(this.toolbar.parent());
 	}, 
 	add_date: function(label, date) {
 		this.add_toolbar();
-		return $("<input style='width: 80px;'>").datepicker({
+		return $("<input style='width: 80px;' type='text'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
-		}).val(dateutil.str_to_user(date) || "").appendTo(this.toolbar);
+		}).val(dateutil.str_to_user(date) || "").appendTo(this.toolbar.parent());
 	},
 	add_ripped_paper_effect: function(wrapper) {
 		if(!wrapper) var wrapper = wn.container.page;

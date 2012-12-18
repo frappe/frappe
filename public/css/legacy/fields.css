@@ -1,3 +1,7 @@
+
+/*
+ *	lib/public/css/legacy/fields.css
+ */
 /* Documents */
 
 .frm_field_table {
@@ -21,24 +25,19 @@
 	margin-bottom: 3px;
 }
 
-.input_area input, select, textarea { 
-	font-size: 14px;
-	padding: 2px;
-
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
-	border-radius: 3px;
-}
 
 .input_area input { 
 	width: 80%; 
-	margin: 0px; 
 }
 .input_area select { 
 	width: 80%; 
 }
 .input_area textarea { 
 	width: 95%; 
+}
+.link-field .btn { 
+	padding-left: 6px; 
+	padding-right: 6px; 
 }
 
 .disp_area { 
@@ -55,15 +54,6 @@
 }
 .disp_area_no_val { 
 	min-height: 14px; 
-}
-
-.no_img {
-	padding: 40px;
-	width: 100px;
-	height: 20px;
-	color: #888;
-	text-align: center;
-	border: 1px solid #AAA;
 }
 
 .input-mandatory {

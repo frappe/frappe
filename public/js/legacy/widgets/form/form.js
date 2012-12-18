@@ -285,8 +285,8 @@ _f.Frm.prototype.setup_footer = function() {
 	f.save_area = $a(this.page_layout.footer,'div','',{display:'none', marginTop:'11px'});
 	f.help_area = $a(this.page_layout.footer,'div');
 
-	var b = $btn(f.save_area, 'Save',
-		function() { cur_frm.save('Save', null, this); },{marginLeft:'0px'},'green');
+	var b = $("<button class='btn btn-info'><i class='icon-save'></i> Save</button>")
+		.click(function() { me.save("Save", null, me); }).appendTo(f.save_area);
 	
 	// show / hide save
 	f.show_save = function() {
