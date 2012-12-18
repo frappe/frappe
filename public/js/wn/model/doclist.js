@@ -76,10 +76,10 @@ wn.model.DocList = Class.extend({
 			var error_fields = [];
 			
 			$.each(wn.meta.docfield_list[doc.doctype], function(i, docfield) {
-				if(!docfield.fieldname.std_field) {
+				if(docfield.fieldname) {
 					var df = wn.meta.get_docfield(doc.doctype, 
 						docfield.fieldname, me.doclist[0].name);
-							
+
 					if(df.reqd && !wn.model.has_value(doc.doctype, doc.name, df.fieldname)) {
 						has_errors = true;
 						error_fields[error_fields.length] = df.label;
