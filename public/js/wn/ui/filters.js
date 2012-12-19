@@ -204,6 +204,11 @@ wn.ui.Filter = Class.extend({
 		// clear field area and make field
 		me.fieldselect.$select.val(tablename + "." + fieldname);
 		
+		if(me.fieldselect.$select.val() != tablename + "." + fieldname) {
+			msgprint("Field " + df.label + " is not selectable.");
+			return;
+		}
+		
 		var field_area = me.$w.find('.filter_field').empty().get(0);
 		f = make_field(df, null, field_area, null, 0, 1);
 		f.df.single_select = 1;

@@ -43,7 +43,14 @@ $.extend(wn.perm, {
 	get_perm: function(doctype, dn, ignore_submit) {
 		var perm = [[0,0],];
 		if(in_list(user_roles, 'Administrator')) 
-			perm[0][READ] = 1;		
+			perm[0][READ] = 1;
+		
+		if(locals["DocType"][doctype] && locals["DocType"][doctype].istable) {
+			parent_df = wn.model.get("DocField", {fieldtype:"Table", options:doctype});
+			if(parent_df.length) {
+				doctype = parent_df[0].parent;
+			}
+		}
 		
 		$.each(wn.model.get("DocPerm", {parent:doctype}), function(i, p) {
 			var pl = cint(p.permlevel?p.permlevel:0);

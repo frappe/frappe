@@ -680,7 +680,7 @@ LinkField.prototype.setup_buttons = function() {
 			new_doc(me.df.options); 
 		}
 	} else {
-		$dh(me.btn2);
+		$(me.btn2).remove();
 	}
 }
 

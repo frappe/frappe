@@ -367,7 +367,7 @@ wn.ui.Listing = Class.extend({
 				this.filter_list.add_filter(this.doctype, fieldname, 
 					'like', '%' + label);					
 			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);					
+				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
 			}
 		}
 	}	
