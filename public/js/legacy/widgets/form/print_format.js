@@ -303,7 +303,7 @@ $.extend(_p, {
 			var element = script_list[i];
 			var code = element.innerHTML;
 			var new_html = code ? (eval(code) || "") : "";
-			if(typeof new_html=="string") {
+			if(in_list(["string", "number"], typeof new_html)) {
 				$(element).replaceWith(this.add_span(new_html));
 			}
 		}
@@ -376,7 +376,6 @@ $.extend(_p, {
 		$.each(finished.match(/src=['"]([^'"]*)['"]/g) || [], function(i, v) {
 			if(v.substr(0,4)=="src=") {
 				var v = v.substr(5, v.length-6);
-				console.log(v);
 				if(v.substr(0,4)!="http")
 					finished = finished.replace(v, prefix + v);
 			}
