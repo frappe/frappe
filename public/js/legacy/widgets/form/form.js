@@ -39,6 +39,13 @@
 */
 
 wn.provide('_f');
+wn.provide('wn.ui.form');
+
+wn.ui.form.Controller = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts);
+	}
+});
 
 _f.frms = {};
 
@@ -53,7 +60,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.opendocs = {};
 	this.sections = [];
 	this.grids = [];
-	this.cscript = {};
+	this.cscript = new wn.ui.form.Controller({frm:this});
 	this.pformat = {};
 	this.fetch_dict = {};
 	this.parent = parent;

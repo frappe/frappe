@@ -573,7 +573,7 @@ class Document:
 
 			self.fields['__unsaved'] = 1
 		
-		return doclist
+		return webnotes.doclist(doclist)
 
 	def addchild(self, fieldname, childtype = '', local=0, doclist=None):
 		"""

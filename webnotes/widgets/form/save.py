@@ -27,17 +27,17 @@ import webnotes
 def savedocs():
 	"""save / submit / update doclist"""
 	try:
-		doclist = webnotes.model_wrapper()
-		doclist.from_compressed(webnotes.form_dict.docs, webnotes.form_dict.docname)
+		wrapper = webnotes.model_wrapper()
+		wrapper.from_compressed(webnotes.form_dict.docs, webnotes.form_dict.docname)
 
 		# action
 		action = webnotes.form_dict.action
 		if action=='Update': action='update_after_submit'
-		getattr(doclist, action.lower())()
+		getattr(wrapper, action.lower())()
 
 		# update recent documents
-		webnotes.user.update_recent(doclist.doc.doctype, doclist.doc.name)
-		send_updated_docs(doclist)
+		webnotes.user.update_recent(wrapper.doc.doctype, wrapper.doc.name)
+		send_updated_docs(wrapper)
 
 	except Exception, e:
 		webnotes.msgprint(webnotes._('Did not save'))
@@ -48,17 +48,17 @@ def savedocs():
 def cancel(doctype=None, name=None):
 	"""cancel a doclist"""
 	try:
-		doclist = webnotes.model_wrapper(doctype, name)
-		doclist.cancel()
-		send_updated_docs(doclist)
+		wrapper = webnotes.model_wrapper(doctype, name)
+		wrapper.cancel()
+		send_updated_docs(wrapper)
 		
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint(webnotes._("Did not cancel"))
 		raise e
 		
-def send_updated_docs(doclist):
-	webnotes.response['main_doc_name'] = doclist.doc.name
-	webnotes.response['doctype'] = doclist.doc.doctype
-	webnotes.response['docname'] = doclist.doc.name
-	webnotes.response['docs'] = [doclist.doc] + doclist.children
+def send_updated_docs(wrapper):
+	webnotes.response['main_doc_name'] = wrapper.doc.name
+	webnotes.response['doctype'] = wrapper.doc.doctype
+	webnotes.response['docname'] = wrapper.doc.name
+	webnotes.response['docs'] = wrapper.doclist

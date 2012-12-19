@@ -32,7 +32,7 @@ def runserverobj():
 	from webnotes.model.wrapper import ModelWrapper
 	from webnotes.utils import cint
 
-	doclist = None
+	wrapper = None
 	method = webnotes.form_dict.get('method')
 	arg = webnotes.form_dict.get('arg')
 	dt = webnotes.form_dict.get('doctype')
@@ -43,10 +43,10 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		doclist = ModelWrapper()
-		doclist.from_compressed(webnotes.form_dict.get('docs'), dn)
-		so = doclist.make_obj()
-		doclist.check_if_latest()
+		wrapper = ModelWrapper()
+		wrapper.from_compressed(webnotes.form_dict.get('docs'), dn)
+		so = wrapper.make_obj()
+		wrapper.check_if_latest()
 
 	check_guest_access(so.doc)
 	
@@ -59,7 +59,7 @@ def runserverobj():
 			else:
 				webnotes.response['message'] = r
 		
-		webnotes.response['docs'] =[so.doc] + so.doclist
+		webnotes.response['docs'] = so.doclist
 
 def check_guest_access(doc):
 	if webnotes.session['user']=='Guest' and not webnotes.conn.sql("select name from tabDocPerm where role='Guest' and parent=%s and ifnull(`read`,0)=1", doc.doctype):
@@ -87,4 +87,4 @@ def make_csv_output(res, dt):
 						
 	webnotes.response['result'] = unicode(f.read(), 'utf-8')
 	webnotes.response['type'] = 'csv'
-	webnotes.response['doctype'] = dt.replace(' ','')		
+	webnotes.response['doctype'] = dt.replace(' ','')

@@ -98,7 +98,7 @@ class ModelWrapper:
 		if self.obj: return self.obj
 
 		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.children)
+		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
 		return self.obj
 
 	def to_dict(self):
@@ -199,7 +199,7 @@ class ModelWrapper:
 
 		trigger(method, self.obj.doc)
 		
-		self.set_doclist([self.obj.doc] + self.obj.doclist)
+		self.set_doclist(self.doclist)
 
 	def save_main(self):
 		"""
