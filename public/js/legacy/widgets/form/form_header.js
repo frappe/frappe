@@ -166,10 +166,10 @@ _f.FrmHeader = Class.extend({
 				cur_frm.amend_doc() }, 'icon-pencil');
 			
 		// Help
-		if(cur_frm.meta.description) {
-			this.appframe.add_help_button(wn.markdown('#### ' + cur_frm.doctype + '\n\n'
-				+ cur_frm.meta.description));
-		}
+		// if(cur_frm.meta.description) {
+		// 	this.appframe.add_help_button(wn.markdown('#### ' + cur_frm.doctype + '\n\n'
+		// 		+ cur_frm.meta.description));
+		// }
 
 	},
 	show: function() {
