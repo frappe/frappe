@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-11-23 17:59:59", 
+  "creation": "2012-12-03 10:31:00", 
   "modified_by": "Administrator", 
-  "modified": "2012-11-23 18:03:13"
+  "modified": "2012-12-19 15:25:07"
  }, 
  {
   "name": "__common__", 
@@ -32,6 +32,12 @@
  {
   "name": "Report", 
   "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Disabled", 
+  "fieldname": "disabled", 
+  "fieldtype": "Check"
  }, 
  {
   "doctype": "DocField", 

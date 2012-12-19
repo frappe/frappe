@@ -41,6 +41,10 @@ from webnotes.model.doc import Document
 # method so that if there are other processes on import, it can do so
 in_transfer = 0
 
+no_sync = {
+	"Report": ["disabled"]
+}
+
 def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 	"""
 		Wrapper function to sync a record
@@ -67,9 +71,7 @@ def set_doc(doclist, ovr=0, ignore=1, onupdate=1):
 	in_transfer = 0
 	return '\n'.join(ud.log)
 
-#
-# Class to sync incoming document
-#
+
 class UpdateDocument:
 	def __init__(self, in_doclist=[]):
 		self.in_doclist = in_doclist
@@ -112,6 +114,7 @@ class UpdateDocument:
 	# delete existing
 	def delete_existing(self):
 		from webnotes.model import delete_doc
+		self.old_doc = webnotes.doc(self.doc.doctype, self.doc.name)
 		delete_doc(self.doc.doctype, self.doc.name, force=1)
 
 	# update modified timestamp
@@ -122,6 +125,7 @@ class UpdateDocument:
 		
 	def save(self):
 		# parent
+		self.update_no_sync(self.doc)
 		self.doc.save(new = 1, check_links=0)
 		self.doclist = [self.doc]
 		self.save_children()
@@ -129,9 +133,14 @@ class UpdateDocument:
 	def save_children(self):
 		for df in self.in_doclist[1:]:
 			self.save_one_doc(df)
-			
+	
+	def update_no_sync(self, d):
+		if d.doctype in no_sync:
+			for fieldname in no_sync[d.doctype]:
+				d.fields[fieldname] = self.old_doc.fields.get(fieldname)
+	
 	def save_one_doc(self, df, as_new=1):
-		d = Document(fielddata = df)
+		d = Document(fielddata = df)		
 		d.save(new = as_new, check_links=0)
 		self.doclist.append(d)
 
