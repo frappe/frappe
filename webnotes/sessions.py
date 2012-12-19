@@ -208,12 +208,24 @@ class Session:
 		"""extend session expiry"""
 		self.data['data']['last_updated'] = webnotes.utils.now()
 
-		if webnotes.session['user'] != 'Guest' and (self.time_diff and \
-			self.time_diff > 1800):
+		# update session in db
+		time_diff = None
+		last_updated = webnotes.cache().get_value("last_db_session_update:" + self.sid)
+
+		if last_updated:
+			time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 
+				last_updated)
+
+		if webnotes.session['user'] != 'Guest' and \
+			((not time_diff) or (time_diff > 1800)):
 			# database persistence is secondary, don't update it too often
 			webnotes.conn.sql("""update tabSessions set sessiondata=%s, 
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
 				self.data['sid']))
+				
+			# update timestamp of update
+			webnotes.cache().set_value("last_db_session_update:" + self.sid, 
+				webnotes.utils.now())
 
 		if webnotes.request.cmd!="webnotes.sessions.clear":
 			webnotes.cache().set_value("session:" + self.sid, self.data)
