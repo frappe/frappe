@@ -60,6 +60,5 @@ wn.ui.set_theme = function(theme) {
 	.appframe-titlebar { \
 		%(title_gradient)s \
 	}", t);
-	console.log(css);
 	wn.dom.set_style(css);
 }
