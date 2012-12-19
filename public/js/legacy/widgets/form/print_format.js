@@ -304,7 +304,7 @@ $.extend(_p, {
 			var code = element.innerHTML;
 			var new_html = code ? (eval(code) || "") : "";
 			if(in_list(["string", "number"], typeof new_html)) {
-				$(element).replaceWith(this.add_span(new_html));
+				$(element).replaceWith(this.add_span(new_html + ""));
 			}
 		}
 	},
