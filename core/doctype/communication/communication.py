@@ -106,7 +106,7 @@ def set_lead_and_contact(d):
 	if not d.lead:
 		d.lead = webnotes.conn.get_value("Lead", {"email_id": email_addr[1]}, "name") or None
 
-	if not d.lead and not d.contact:
+	if not (d.lead or d.contact):
 		d.lead = make_lead(d, email_addr[0], email_addr[1])
 
 def make_lead(d, real_name, email_id):
