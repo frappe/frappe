@@ -10,10 +10,9 @@ wn.views.CommunicationList = Class.extend({
 			return;
 		}
 		
-		var sortfn = function (a, b) { return new Date(a.modified) > new Date(b.modified) 
-			? -1 : 1}
+		var sortfn = function (a, b) { return (b > a) ? 1 : -1; }
 		this.list = this.list.sort(sortfn);
-				
+
 		this.make();
 	},
 	make: function() {

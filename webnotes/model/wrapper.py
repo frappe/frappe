@@ -118,6 +118,9 @@ class ModelWrapper:
 				SELECT modified FROM `tab%s` WHERE name="%s" for update"""
 				% (self.doc.doctype, self.doc.name))
 
+			if not tmp:
+				webnotes.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
+
 			if tmp and str(tmp[0][0]) != str(self.doc.modified):
 				webnotes.msgprint("""
 				Document has been modified after you have opened it.
