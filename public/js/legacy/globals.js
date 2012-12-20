@@ -31,9 +31,6 @@ var user_img = {};
 var pscript = {};
 var selector=null; 
 
-// ui
-var top_index=91;
-
 // Name Spaces
 // ============
 
