@@ -98,7 +98,7 @@ class ModelWrapper:
 		if self.obj: return self.obj
 
 		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.children)
+		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
 		return self.obj
 
 	def to_dict(self):
@@ -165,7 +165,7 @@ class ModelWrapper:
 
 			d.modified_by = user
 			d.modified = ts
-			if d.docstatus != 2: # don't update deleted
+			if d.docstatus != 2 and self.to_docstatus >= d.docstatus: # don't update deleted
 				d.docstatus = self.to_docstatus
 
 	def prepare_for_save(self, check_links):
@@ -202,7 +202,7 @@ class ModelWrapper:
 
 		trigger(method, self.obj.doc)
 		
-		self.set_doclist([self.obj.doc] + self.obj.doclist)
+		self.set_doclist(self.doclist)
 
 	def save_main(self):
 		"""

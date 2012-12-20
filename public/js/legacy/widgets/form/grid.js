@@ -158,7 +158,6 @@ _f.Grid.prototype.toggle_reqd = function(fieldname, reqd) {
 	var grid_field = this.get_field(fieldname);
 	grid_field.df.reqd = reqd ? true : false;
 	grid_field.refresh();
-	
 	$(grid_field.grid.head_row).find('[data-grid-fieldname="' + grid_field.grid.doctype 
 		+ '-' + fieldname + '"]').css({ color: reqd ? "#D22" : "black" });
 }

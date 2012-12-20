@@ -1,51 +1,40 @@
-# DocType, Event Role
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-03-27 14:35:37',
-		'docstatus': 0,
-		'modified': '2012-03-27 14:35:37',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'autoname': u'__EVR.#####',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'istable': 1,
-		'module': u'Core',
-		'name': '__common__',
-		'section_style': u'Simple',
-		'show_in_menu': 0
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'role',
-		'fieldtype': u'Link',
-		'label': u'Role',
-		'name': '__common__',
-		'oldfieldname': u'role',
-		'oldfieldtype': u'Link',
-		'options': u'Role',
-		'parent': u'Event Role',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# DocType, Event Role
-	{
-		'doctype': 'DocType',
-		'name': u'Event Role'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-03-27 14:35:37", 
+  "modified_by": "Administrator", 
+  "modified": "2012-03-27 14:35:37"
+ }, 
+ {
+  "section_style": "Simple", 
+  "istable": 1, 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "autoname": "__EVR.#####", 
+  "show_in_menu": 0
+ }, 
+ {
+  "parent": "Event Role", 
+  "oldfieldtype": "Link", 
+  "oldfieldname": "role", 
+  "name": "__common__", 
+  "doctype": "DocField", 
+  "label": "Role", 
+  "permlevel": 0, 
+  "parenttype": "DocType", 
+  "fieldname": "role", 
+  "fieldtype": "Link", 
+  "options": "Role", 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "Event Role", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField"
+ }
 ]

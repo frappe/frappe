@@ -58,10 +58,8 @@ cur_frm.fields_dict['dt'].get_query = function(doc, dt, dn) {
 	return 'SELECT name FROM `tabDocType` \
 	WHERE IFNULL(issingle,0)=0 AND \
 	IFNULL(in_create, 0)=0 AND \
-	(module IN ("Accounts", "Buying", "HR", "Knowledge Base", \
-		"Production", "Projects", "Selling", "Stock", "Support") OR \
-		name IN ("Contact", "Address")) AND \
-	name LIKE "%s" ORDER BY name ASC LIMIT 50';
+	module != "Core" AND \
+	name LIKE "%s%%" ORDER BY name ASC LIMIT 50';
 }
 
 cur_frm.cscript.fieldtype = function(doc, dt, dn) {

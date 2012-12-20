@@ -1,325 +1,258 @@
-# DocType, Control Panel
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-04-11 13:16:57',
-		'docstatus': 0,
-		'modified': '2012-04-11 17:15:53',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1327389019',
-		'allow_copy': 0,
-		'allow_email': 0,
-		'allow_print': 0,
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'hide_heading': 0,
-		'hide_toolbar': 0,
-		'in_create': 1,
-		'issingle': 1,
-		'istable': 0,
-		'menu_index': 5,
-		'module': u'Core',
-		'name': '__common__',
-		'read_only': 0,
-		'section_style': u'Tray',
-		'server_code_error': u' ',
-		'show_in_menu': 1,
-		'smallicon': u'controller.png',
-		'version': 27
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'Control Panel',
-		'parentfield': u'fields',
-		'parenttype': u'DocType'
-	},
-
-	# These values are common for all DocPerm
-	{
-		'cancel': 0,
-		'create': 1,
-		'doctype': u'DocPerm',
-		'execute': 0,
-		'name': '__common__',
-		'parent': u'Control Panel',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1,
-		'role': u'Administrator',
-		'submit': 0,
-		'write': 1
-	},
-
-	# DocType, Control Panel
-	{
-		'doctype': 'DocType',
-		'name': u'Control Panel'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'general',
-		'fieldtype': u'Section Break',
-		'label': u'General',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'date_format',
-		'fieldtype': u'Select',
-		'label': u'Date Format',
-		'options': u'yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\nmm/dd/yyyy\nmm-dd-yyyy',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'currency_format',
-		'fieldtype': u'Select',
-		'label': u'Currency Format',
-		'options': u'Millions\nLacs',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'password_expiry_days',
-		'fieldtype': u'Int',
-		'label': u'Password Expires in (days)',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'description': u'Format: hh:mm example for one hour expiry set as 01:00. \nMax expiry will be 72 hours. Default is 24 hours',
-		'doctype': u'DocField',
-		'fieldname': u'session_expiry',
-		'fieldtype': u'Data',
-		'label': u'Session Expires in (time)',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'column_break0',
-		'fieldtype': u'Column Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'title',
-		'fieldtype': u'Data',
-		'label': u'Title',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'account_id',
-		'fieldtype': u'Data',
-		'label': u'Account Id',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'company_name',
-		'fieldtype': u'Data',
-		'label': u'Company Name',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'industry',
-		'fieldtype': u'Data',
-		'label': u'Industry',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'time_zone',
-		'fieldtype': u'Data',
-		'label': u'Time Zone',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'country',
-		'fieldtype': u'Data',
-		'label': u'Country',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'total_sms_sent',
-		'fieldtype': u'Int',
-		'label': u'Total SMS Sent',
-		'permlevel': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'mail_server',
-		'fieldtype': u'Section Break',
-		'label': u'Mail Server',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'description': u'Enter Email Id to receive Error Report sent by users.\nE.g.: support@iwebnotes.com',
-		'doctype': u'DocField',
-		'fieldname': u'support_email_id',
-		'fieldtype': u'Data',
-		'label': u'Support Email Id',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'letter_head_image',
-		'fieldtype': u'Data',
-		'label': u'Letter Head Image',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'column_break1',
-		'fieldtype': u'Column Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'mail_footer',
-		'fieldtype': u'Text',
-		'label': u'Mail Footer',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'defaults',
-		'fieldtype': u'Section Break',
-		'label': u'Defaults',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'system_defaults',
-		'fieldtype': u'Table',
-		'hidden': 0,
-		'label': u'System Defaults',
-		'options': u'DefaultValue',
-		'permlevel': 0,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'banner',
-		'fieldtype': u'Section Break',
-		'label': u'Banner',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'client_name',
-		'fieldtype': u'Text',
-		'label': u'Banner HTML',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'startup',
-		'fieldtype': u'Section Break',
-		'label': u'Startup',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'custom_startup_code',
-		'fieldtype': u'Code',
-		'label': u'Custom Startup Code',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'home_pages',
-		'fieldtype': u'Section Break',
-		'label': u'Home Pages',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'home_page',
-		'fieldtype': u'Link',
-		'label': u'Home Page',
-		'options': u'Page',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'default_home_pages',
-		'fieldtype': u'Table',
-		'label': u'Default Home Pages',
-		'options': u'Default Home Page',
-		'permlevel': 0
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-04-11 13:16:57", 
+  "modified_by": "Administrator", 
+  "modified": "2012-04-11 17:15:53"
+ }, 
+ {
+  "section_style": "Tray", 
+  "istable": 0, 
+  "in_create": 1, 
+  "allow_print": 0, 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "server_code_error": " ", 
+  "read_only": 0, 
+  "allow_email": 0, 
+  "hide_heading": 0, 
+  "issingle": 1, 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "smallicon": "controller.png", 
+  "_last_update": "1327389019", 
+  "show_in_menu": 1, 
+  "version": 27, 
+  "menu_index": 5, 
+  "hide_toolbar": 0, 
+  "allow_copy": 0
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Control Panel", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "parentfield": "fields"
+ }, 
+ {
+  "parent": "Control Panel", 
+  "read": 1, 
+  "cancel": 0, 
+  "execute": 0, 
+  "name": "__common__", 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "submit": 0, 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "role": "Administrator", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Control Panel", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "General", 
+  "fieldname": "general", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "options": "yyyy-mm-dd\ndd-mm-yyyy\ndd/mm/yyyy\nmm/dd/yyyy\nmm-dd-yyyy", 
+  "fieldname": "date_format", 
+  "fieldtype": "Select", 
+  "label": "Date Format", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "options": "Millions\nLacs", 
+  "fieldname": "currency_format", 
+  "fieldtype": "Select", 
+  "label": "Currency Format", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Password Expires in (days)", 
+  "fieldname": "password_expiry_days", 
+  "fieldtype": "Int", 
+  "permlevel": 0
+ }, 
+ {
+  "description": "Format: hh:mm example for one hour expiry set as 01:00. \nMax expiry will be 72 hours. Default is 24 hours", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Session Expires in (time)", 
+  "fieldname": "session_expiry", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break0", 
+  "fieldtype": "Column Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Title", 
+  "fieldname": "title", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Account Id", 
+  "fieldname": "account_id", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Company Name", 
+  "fieldname": "company_name", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Industry", 
+  "fieldname": "industry", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Time Zone", 
+  "fieldname": "time_zone", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Country", 
+  "fieldname": "country", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Total SMS Sent", 
+  "fieldname": "total_sms_sent", 
+  "fieldtype": "Int", 
+  "permlevel": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Mail Server", 
+  "fieldname": "mail_server", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "description": "Enter Email Id to receive Error Report sent by users.\nE.g.: support@iwebnotes.com", 
+  "doctype": "DocField", 
+  "label": "Support Email Id", 
+  "fieldname": "support_email_id", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Letter Head Image", 
+  "fieldname": "letter_head_image", 
+  "fieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break1", 
+  "fieldtype": "Column Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Mail Footer", 
+  "fieldname": "mail_footer", 
+  "fieldtype": "Text", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Defaults", 
+  "fieldname": "defaults", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "System Defaults", 
+  "permlevel": 0, 
+  "fieldname": "system_defaults", 
+  "fieldtype": "Table", 
+  "reqd": 0, 
+  "hidden": 0, 
+  "options": "DefaultValue"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Banner", 
+  "fieldname": "banner", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Banner HTML", 
+  "fieldname": "client_name", 
+  "fieldtype": "Text", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Startup", 
+  "fieldname": "startup", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Custom Startup Code", 
+  "fieldname": "custom_startup_code", 
+  "fieldtype": "Code", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Home Pages", 
+  "fieldname": "home_pages", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "options": "Page", 
+  "fieldname": "home_page", 
+  "fieldtype": "Link", 
+  "label": "Home Page", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "options": "Default Home Page", 
+  "fieldname": "default_home_pages", 
+  "fieldtype": "Table", 
+  "label": "Default Home Pages", 
+  "permlevel": 0
+ }
 ]

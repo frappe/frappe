@@ -1,403 +1,332 @@
-# DocType, Search Criteria
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-06-13 19:03:04',
-		'docstatus': 0,
-		'modified': '2012-06-13 19:12:56',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1307624201',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'module': u'Core',
-		'name': '__common__',
-		'search_fields': u'criteria_name',
-		'section_style': u'Tabbed',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'Search Criteria',
-		'parentfield': u'fields',
-		'parenttype': u'DocType'
-	},
-
-	# These values are common for all DocPerm
-	{
-		'doctype': u'DocPerm',
-		'name': '__common__',
-		'parent': u'Search Criteria',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'read': 1
-	},
-
-	# DocType, Search Criteria
-	{
-		'doctype': 'DocType',
-		'name': u'Search Criteria'
-	},
-
-	# DocPerm
-	{
-		'create': 0,
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'All',
-		'write': 0
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'All'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'Report Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'Report Manager'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'System Manager'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'Administrator',
-		'write': 1
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 1,
-		'role': u'Administrator'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'criteria_name',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Criteria Name',
-		'no_copy': 0,
-		'oldfieldname': u'criteria_name',
-		'oldfieldtype': u'Data',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'disabled',
-		'fieldtype': u'Check',
-		'label': u'Disabled',
-		'no_copy': 0,
-		'oldfieldname': u'disabled',
-		'oldfieldtype': u'Check',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'module',
-		'fieldtype': u'Link',
-		'label': u'Module',
-		'no_copy': 0,
-		'oldfieldname': u'module',
-		'oldfieldtype': u'Link',
-		'options': u'Module Def',
-		'permlevel': 0,
-		'reqd': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'standard',
-		'fieldtype': u'Select',
-		'label': u'Standard',
-		'no_copy': 0,
-		'oldfieldname': u'standard',
-		'oldfieldtype': u'Select',
-		'options': u'\nYes\nNo',
-		'permlevel': 0,
-		'reqd': 0,
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'doc_type',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Doc Type',
-		'no_copy': 0,
-		'oldfieldname': u'doc_type',
-		'oldfieldtype': u'Data',
-		'permlevel': 1,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'filters',
-		'fieldtype': u'Text',
-		'hidden': 1,
-		'label': u'Filters',
-		'no_copy': 0,
-		'oldfieldname': u'filters',
-		'oldfieldtype': u'Text',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'columns',
-		'fieldtype': u'Text',
-		'hidden': 1,
-		'label': u'Columns',
-		'no_copy': 0,
-		'oldfieldname': u'columns',
-		'oldfieldtype': u'Text',
-		'permlevel': 1,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'parent_doc_type',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Parent Doc Type',
-		'no_copy': 0,
-		'oldfieldname': u'parent_doc_type',
-		'oldfieldtype': u'Data',
-		'permlevel': 1,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'add_cond',
-		'fieldtype': u'Text',
-		'hidden': 0,
-		'label': u'Additional Conditions',
-		'no_copy': 0,
-		'oldfieldname': u'add_cond',
-		'oldfieldtype': u'Text',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'add_col',
-		'fieldtype': u'Text',
-		'hidden': 0,
-		'label': u'Additional Columns',
-		'no_copy': 0,
-		'oldfieldname': u'add_col',
-		'oldfieldtype': u'Text',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'add_tab',
-		'fieldtype': u'Text',
-		'hidden': 0,
-		'label': u'Additional Tables',
-		'no_copy': 0,
-		'oldfieldname': u'add_tab',
-		'oldfieldtype': u'Text',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'dis_filters',
-		'fieldtype': u'Text',
-		'hidden': 0,
-		'label': u'Disabled Filters',
-		'no_copy': 0,
-		'oldfieldname': u'dis_filters',
-		'oldfieldtype': u'Text',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'group_by',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Group By',
-		'no_copy': 0,
-		'oldfieldname': u'group_by',
-		'oldfieldtype': u'Data',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'sort_by',
-		'fieldtype': u'Data',
-		'label': u'Sort By',
-		'no_copy': 0,
-		'oldfieldname': u'sort_by',
-		'oldfieldtype': u'Data',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'sort_order',
-		'fieldtype': u'Data',
-		'label': u'Sort Order',
-		'no_copy': 0,
-		'oldfieldname': u'sort_order',
-		'oldfieldtype': u'Data',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'page_len',
-		'fieldtype': u'Int',
-		'label': u'Page Len',
-		'no_copy': 0,
-		'oldfieldname': u'page_len',
-		'oldfieldtype': u'Int',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'client_script',
-		'fieldtype': u'Section Break',
-		'label': u'Client Script',
-		'oldfieldtype': u'Section Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'report_script',
-		'fieldtype': u'Code',
-		'label': u'Report Script',
-		'no_copy': 0,
-		'oldfieldname': u'report_script',
-		'oldfieldtype': u'Code',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'server_script_section_break',
-		'fieldtype': u'Section Break',
-		'label': u'Server Script',
-		'oldfieldtype': u'Section Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'server_script',
-		'fieldtype': u'Code',
-		'label': u'Report Server Script',
-		'no_copy': 0,
-		'oldfieldname': u'server_script',
-		'oldfieldtype': u'Code',
-		'permlevel': 0,
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'overload_query',
-		'fieldtype': u'Section Break',
-		'label': u'Overload Query',
-		'oldfieldtype': u'Section Break',
-		'permlevel': 0
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'custom_query',
-		'fieldtype': u'Code',
-		'label': u'Custom Query',
-		'no_copy': 0,
-		'oldfieldname': u'custom_query',
-		'oldfieldtype': u'Code',
-		'permlevel': 0,
-		'search_index': 0
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-06-13 19:03:04", 
+  "modified_by": "Administrator", 
+  "modified": "2012-06-13 19:12:56"
+ }, 
+ {
+  "section_style": "Tabbed", 
+  "search_fields": "criteria_name", 
+  "module": "Core", 
+  "server_code_error": " ", 
+  "doctype": "DocType", 
+  "_last_update": "1307624201", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "show_in_menu": 0, 
+  "version": 1
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Search Criteria", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Search Criteria", 
+  "read": 1, 
+  "doctype": "DocPerm", 
+  "parenttype": "DocType", 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Search Criteria", 
+  "doctype": "DocType"
+ }, 
+ {
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "write": 0, 
+  "role": "All", 
+  "permlevel": 0
+ }, 
+ {
+  "role": "All", 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "write": 1, 
+  "role": "Report Manager", 
+  "permlevel": 0, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "role": "Report Manager", 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "write": 1, 
+  "role": "System Manager", 
+  "permlevel": 0, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "role": "System Manager", 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "write": 1, 
+  "role": "Administrator", 
+  "permlevel": 0, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "role": "Administrator", 
+  "permlevel": 1, 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Criteria Name", 
+  "oldfieldname": "criteria_name", 
+  "fieldname": "criteria_name", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Disabled", 
+  "oldfieldname": "disabled", 
+  "fieldname": "disabled", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Module", 
+  "oldfieldname": "module", 
+  "options": "Module Def", 
+  "fieldname": "module", 
+  "fieldtype": "Link", 
+  "oldfieldtype": "Link", 
+  "reqd": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 1, 
+  "doctype": "DocField", 
+  "label": "Standard", 
+  "oldfieldname": "standard", 
+  "options": "\nYes\nNo", 
+  "fieldname": "standard", 
+  "fieldtype": "Select", 
+  "oldfieldtype": "Select", 
+  "reqd": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Doc Type", 
+  "oldfieldname": "doc_type", 
+  "fieldname": "doc_type", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Filters", 
+  "oldfieldname": "filters", 
+  "fieldname": "filters", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "hidden": 1, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Columns", 
+  "oldfieldname": "columns", 
+  "fieldname": "columns", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "hidden": 1, 
+  "permlevel": 1
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Parent Doc Type", 
+  "oldfieldname": "parent_doc_type", 
+  "fieldname": "parent_doc_type", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Additional Conditions", 
+  "oldfieldname": "add_cond", 
+  "fieldname": "add_cond", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Additional Columns", 
+  "oldfieldname": "add_col", 
+  "fieldname": "add_col", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Additional Tables", 
+  "oldfieldname": "add_tab", 
+  "fieldname": "add_tab", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Disabled Filters", 
+  "oldfieldname": "dis_filters", 
+  "fieldname": "dis_filters", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Group By", 
+  "oldfieldname": "group_by", 
+  "fieldname": "group_by", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Sort By", 
+  "oldfieldname": "sort_by", 
+  "fieldname": "sort_by", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Sort Order", 
+  "oldfieldname": "sort_order", 
+  "fieldname": "sort_order", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Page Len", 
+  "oldfieldname": "page_len", 
+  "fieldname": "page_len", 
+  "fieldtype": "Int", 
+  "oldfieldtype": "Int", 
+  "permlevel": 0
+ }, 
+ {
+  "oldfieldtype": "Section Break", 
+  "doctype": "DocField", 
+  "label": "Client Script", 
+  "fieldname": "client_script", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Report Script", 
+  "oldfieldname": "report_script", 
+  "fieldname": "report_script", 
+  "fieldtype": "Code", 
+  "oldfieldtype": "Code", 
+  "permlevel": 0
+ }, 
+ {
+  "oldfieldtype": "Section Break", 
+  "doctype": "DocField", 
+  "label": "Server Script", 
+  "fieldname": "server_script_section_break", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Report Server Script", 
+  "oldfieldname": "server_script", 
+  "fieldname": "server_script", 
+  "fieldtype": "Code", 
+  "oldfieldtype": "Code", 
+  "permlevel": 0
+ }, 
+ {
+  "oldfieldtype": "Section Break", 
+  "doctype": "DocField", 
+  "label": "Overload Query", 
+  "fieldname": "overload_query", 
+  "fieldtype": "Section Break", 
+  "permlevel": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Custom Query", 
+  "oldfieldname": "custom_query", 
+  "fieldname": "custom_query", 
+  "fieldtype": "Code", 
+  "oldfieldtype": "Code", 
+  "permlevel": 0
+ }
 ]

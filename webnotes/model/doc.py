@@ -557,6 +557,7 @@ class Document:
 		from webnotes.model.utils import getlist
 		
 		table_list = getlist(doclist, tablefield)
+				
 		delete_list = [d.name for d in table_list]
 		
 		if delete_list:
@@ -572,7 +573,7 @@ class Document:
 
 			self.fields['__unsaved'] = 1
 		
-		return doclist
+		return webnotes.doclist(doclist)
 
 	def addchild(self, fieldname, childtype = '', local=0, doclist=None):
 		"""

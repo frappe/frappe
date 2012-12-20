@@ -1,100 +1,81 @@
-# DocType, Field Mapper Detail
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-03-27 14:35:37',
-		'docstatus': 0,
-		'modified': '2012-03-27 14:35:37',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'autoname': u'FMD/.#####',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'istable': 1,
-		'module': u'Core',
-		'name': '__common__',
-		'section_style': u'Tray',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 10
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'Field Mapper Detail',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# DocType, Field Mapper Detail
-	{
-		'doctype': 'DocType',
-		'name': u'Field Mapper Detail'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'from_field',
-		'fieldtype': u'Data',
-		'label': u'From Field',
-		'oldfieldname': u'from_field',
-		'oldfieldtype': u'Data',
-		'width': u'180px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'to_field',
-		'fieldtype': u'Data',
-		'label': u'To Field',
-		'oldfieldname': u'to_field',
-		'oldfieldtype': u'Data',
-		'width': u'180px'
-	},
-
-	# DocField
-	{
-		'default': u'0',
-		'doctype': u'DocField',
-		'fieldname': u'match_id',
-		'fieldtype': u'Int',
-		'label': u'Match Id',
-		'oldfieldname': u'match_id',
-		'oldfieldtype': u'Int',
-		'width': u'50px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'map',
-		'fieldtype': u'Select',
-		'label': u'Map',
-		'oldfieldname': u'map',
-		'oldfieldtype': u'Select',
-		'options': u'Yes\nNo',
-		'width': u'50px'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'checking_operator',
-		'fieldtype': u'Select',
-		'label': u'Checking Operator (To Fld, Operator, From Fld)',
-		'oldfieldname': u'checking_operator',
-		'oldfieldtype': u'Select',
-		'options': u'\n=\n>\n>=\n<\n<=',
-		'width': u'180px'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-03-27 14:35:37", 
+  "modified_by": "Administrator", 
+  "modified": "2012-03-27 14:35:37"
+ }, 
+ {
+  "section_style": "Tray", 
+  "istable": 1, 
+  "module": "Core", 
+  "server_code_error": " ", 
+  "doctype": "DocType", 
+  "autoname": "FMD/.#####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "show_in_menu": 0, 
+  "version": 10
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Field Mapper Detail", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "Field Mapper Detail", 
+  "doctype": "DocType"
+ }, 
+ {
+  "oldfieldtype": "Data", 
+  "doctype": "DocField", 
+  "label": "From Field", 
+  "oldfieldname": "from_field", 
+  "width": "180px", 
+  "fieldname": "from_field", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "oldfieldtype": "Data", 
+  "doctype": "DocField", 
+  "label": "To Field", 
+  "oldfieldname": "to_field", 
+  "width": "180px", 
+  "fieldname": "to_field", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "default": "0", 
+  "oldfieldtype": "Int", 
+  "doctype": "DocField", 
+  "label": "Match Id", 
+  "oldfieldname": "match_id", 
+  "width": "50px", 
+  "fieldname": "match_id", 
+  "fieldtype": "Int"
+ }, 
+ {
+  "oldfieldtype": "Select", 
+  "doctype": "DocField", 
+  "label": "Map", 
+  "oldfieldname": "map", 
+  "width": "50px", 
+  "fieldname": "map", 
+  "fieldtype": "Select", 
+  "options": "Yes\nNo"
+ }, 
+ {
+  "oldfieldtype": "Select", 
+  "doctype": "DocField", 
+  "label": "Checking Operator (To Fld, Operator, From Fld)", 
+  "oldfieldname": "checking_operator", 
+  "width": "180px", 
+  "fieldname": "checking_operator", 
+  "fieldtype": "Select", 
+  "options": "\n=\n>\n>=\n<\n<="
+ }
 ]

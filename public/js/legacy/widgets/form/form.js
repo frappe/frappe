@@ -39,6 +39,13 @@
 */
 
 wn.provide('_f');
+wn.provide('wn.ui.form');
+
+wn.ui.form.Controller = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts);
+	}
+});
 
 _f.frms = {};
 
@@ -53,7 +60,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.opendocs = {};
 	this.sections = [];
 	this.grids = [];
-	this.cscript = {};
+	this.cscript = new wn.ui.form.Controller({frm:this});
 	this.pformat = {};
 	this.fetch_dict = {};
 	this.parent = parent;
@@ -598,7 +605,7 @@ _f.Frm.prototype.refresh_footer = function() {
 	if(f.save_area) {
 		if(this.editable && (!this.meta.in_dialog || this.in_form) 
 			&& this.doc.docstatus==0 && !this.meta.istable && this.perm[0][WRITE]
-			&& (this.fields && this.fields.length > 7)) {
+			&& (this.fields && this.fields.length > 7) && !this.save_disabled) {
 			f.show_save();
 		} else {
 			f.hide_save();
@@ -643,9 +650,11 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	var me = this;
 	if(me.fields_dict['amended_from']) {
 		if (me.doc.amended_from) {
-			unhide_field('amended_from'); unhide_field('amendment_date');
+			unhide_field('amended_from');
+			if (me.fields_dict['amendment_date']) unhide_field('amendment_date');
 		} else {
-			hide_field('amended_from'); hide_field('amendment_date');
+			hide_field('amended_from'); 
+			if (me.fields_dict['amendment_date']) hide_field('amendment_date');
 		}
 	}
 

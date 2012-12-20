@@ -1,114 +1,89 @@
-# DocType, Role
 [
-
-	# These values are common in all dictionaries
-	{
-		'creation': '2012-03-27 14:35:38',
-		'docstatus': 0,
-		'modified': '2012-03-27 14:35:38',
-		'modified_by': u'Administrator',
-		'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'allow_copy': 0,
-		'allow_email': 0,
-		'allow_print': 0,
-		'autoname': u'field:role_name',
-		'colour': u'White:FFF',
-		'doctype': 'DocType',
-		'hide_heading': 0,
-		'hide_toolbar': 0,
-		'issingle': 0,
-		'istable': 0,
-		'module': u'Core',
-		'name': '__common__',
-		'read_only': 0,
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		'doctype': u'DocField',
-		'name': '__common__',
-		'parent': u'Role',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'cancel': 0,
-		'create': 1,
-		'doctype': u'DocPerm',
-		'name': '__common__',
-		'parent': u'Role',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'read': 1,
-		'submit': 0,
-		'write': 1
-	},
-
-	# DocType, Role
-	{
-		'doctype': 'DocType',
-		'name': u'Role'
-	},
-
-	# DocPerm
-	{
-		'doctype': u'DocPerm',
-		'permlevel': 0,
-		'role': u'Administrator'
-	},
-
-	# DocPerm
-	{
-		'amend': 0,
-		'doctype': u'DocPerm',
-		'role': u'System Manager'
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'module',
-		'fieldtype': u'Select',
-		'label': u'Module',
-		'oldfieldname': u'module',
-		'oldfieldtype': u'Select',
-		'options': u'link:Module Def',
-		'reqd': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'role_name',
-		'fieldtype': u'Data',
-		'label': u'Role Name',
-		'oldfieldname': u'role_name',
-		'oldfieldtype': u'Data',
-		'reqd': 1
-	},
-
-	# DocField
-	{
-		'doctype': u'DocField',
-		'fieldname': u'defaults',
-		'fieldtype': u'Table',
-		'hidden': 0,
-		'label': u'Defaults',
-		'oldfieldname': u'defaults',
-		'oldfieldtype': u'Table',
-		'options': u'DefaultValue',
-		'reqd': 0,
-		'search_index': 0
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-07-03 13:29:36", 
+  "modified_by": "Administrator", 
+  "modified": "2012-12-10 19:11:47"
+ }, 
+ {
+  "istable": 0, 
+  "allow_print": 0, 
+  "module": "Core", 
+  "autoname": "field:role_name", 
+  "read_only": 0, 
+  "allow_email": 0, 
+  "hide_heading": 0, 
+  "issingle": 0, 
+  "name": "__common__", 
+  "allow_rename": 1, 
+  "doctype": "DocType", 
+  "hide_toolbar": 0, 
+  "allow_copy": 0
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Role", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Role", 
+  "read": 1, 
+  "create": 1, 
+  "submit": 0, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "cancel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Role", 
+  "doctype": "DocType"
+ }, 
+ {
+  "oldfieldtype": "Select", 
+  "doctype": "DocField", 
+  "label": "Module", 
+  "oldfieldname": "module", 
+  "fieldname": "module", 
+  "fieldtype": "Select", 
+  "reqd": 1, 
+  "options": "link:Module Def"
+ }, 
+ {
+  "oldfieldtype": "Data", 
+  "doctype": "DocField", 
+  "label": "Role Name", 
+  "oldfieldname": "role_name", 
+  "fieldname": "role_name", 
+  "fieldtype": "Data", 
+  "reqd": 1
+ }, 
+ {
+  "oldfieldtype": "Table", 
+  "doctype": "DocField", 
+  "label": "Defaults", 
+  "oldfieldname": "defaults", 
+  "fieldname": "defaults", 
+  "fieldtype": "Table", 
+  "search_index": 0, 
+  "reqd": 0, 
+  "hidden": 0, 
+  "options": "DefaultValue"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator", 
+  "permlevel": 0
+ }, 
+ {
+  "amend": 0, 
+  "doctype": "DocPerm", 
+  "role": "System Manager"
+ }
 ]

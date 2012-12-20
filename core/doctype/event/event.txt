@@ -1,245 +1,200 @@
-# DocType, Event
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-09-26 15:12:23',
-		u'docstatus': 0,
-		u'modified': '2012-09-28 12:09:33',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1307624201',
-		'autoname': u'EV.#####',
-		'client_string': u'---intro_html---\n\n<div style="padding: 8px; background-color: #EEF; border: 1px solid #CCF; margin-bottom: 8px;">\n  %(ref)s\n  <a href="javascript:loadpage(\'_calendar\')">Go To Calendar</a>\n</div>\n\n---ref_html---\n\nReference : <a href="javascript:loaddoc(\'%(dt)s\', \'%(dn)s\')">%(dn)s</a><br><br>',
-		'colour': u'White:FFF',
-		u'doctype': u'DocType',
-		'in_create': 1,
-		'module': u'Core',
-		u'name': u'__common__',
-		'read_only': 1,
-		'section_style': u'Tabbed',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		u'name': u'__common__',
-		'parent': u'Event',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'create': 1,
-		u'doctype': u'DocPerm',
-		u'name': u'__common__',
-		'parent': u'Event',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1,
-		'write': 1
-	},
-
-	# DocType, Event
-	{
-		u'doctype': u'DocType',
-		u'name': u'Event'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'details',
-		'fieldtype': u'Section Break',
-		'label': u'Details',
-		'oldfieldtype': u'Section Break'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'intro_html',
-		'fieldtype': u'HTML',
-		'label': u'Intro HTML',
-		'oldfieldtype': u'HTML'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'event_date',
-		'fieldtype': u'Date',
-		'label': u'Event Date',
-		'no_copy': 0,
-		'oldfieldname': u'event_date',
-		'oldfieldtype': u'Date',
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'event_hour',
-		'fieldtype': u'Time',
-		'label': u'Event Time',
-		'no_copy': 0,
-		'oldfieldname': u'event_hour',
-		'oldfieldtype': u'Time',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'event_name',
-		'fieldtype': u'Data',
-		'hidden': 1,
-		'label': u'Event Name',
-		'no_copy': 0,
-		'oldfieldname': u'event_name',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'description',
-		'fieldtype': u'Text',
-		'label': u'Description',
-		'no_copy': 0,
-		'oldfieldname': u'description',
-		'oldfieldtype': u'Text',
-		'search_index': 0,
-		'width': u'300px'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'notes',
-		'fieldtype': u'Text',
-		'label': u'Notes',
-		'no_copy': 0,
-		'oldfieldname': u'notes',
-		'oldfieldtype': u'Text',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'event_type',
-		'fieldtype': u'Select',
-		'label': u'Event Type',
-		'no_copy': 0,
-		'oldfieldname': u'event_type',
-		'oldfieldtype': u'Select',
-		'options': u'Private\nPublic\nCancel',
-		'search_index': 1
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'participants',
-		'fieldtype': u'Section Break',
-		'label': u'Participants',
-		'oldfieldtype': u'Section Break'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'individuals',
-		'fieldtype': u'Column Break',
-		'label': u'Individuals',
-		'oldfieldtype': u'Column Break',
-		'width': u'50%'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'event_individuals',
-		'fieldtype': u'Table',
-		'label': u'Event Individuals',
-		'no_copy': 0,
-		'oldfieldname': u'event_individuals',
-		'oldfieldtype': u'Table',
-		'options': u'Event User',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'groups',
-		'fieldtype': u'Column Break',
-		'label': u'Groups',
-		'oldfieldtype': u'Column Break',
-		'width': u'50%'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'event_roles',
-		'fieldtype': u'Table',
-		'label': u'Event Roles',
-		'no_copy': 0,
-		'oldfieldname': u'event_roles',
-		'oldfieldtype': u'Table',
-		'options': u'Event Role',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'ref_type',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Ref Type',
-		'no_copy': 0,
-		'oldfieldname': u'ref_type',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'ref_name',
-		'fieldtype': u'Data',
-		'hidden': 0,
-		'label': u'Ref Name',
-		'no_copy': 0,
-		'oldfieldname': u'ref_name',
-		'oldfieldtype': u'Data',
-		'search_index': 0
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm',
-		'role': u'All'
-	},
-
-	# DocPerm
-	{
-		'cancel': 1,
-		u'doctype': u'DocPerm',
-		'role': u'System Manager'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-09-26 15:12:23", 
+  "modified_by": "Administrator", 
+  "modified": "2012-09-28 12:09:33"
+ }, 
+ {
+  "section_style": "Tabbed", 
+  "in_create": 1, 
+  "module": "Core", 
+  "doctype": "DocType", 
+  "server_code_error": " ", 
+  "client_string": "---intro_html---\n\n<div style=\"padding: 8px; background-color: #EEF; border: 1px solid #CCF; margin-bottom: 8px;\">\n  %(ref)s\n  <a href=\"javascript:loadpage('_calendar')\">Go To Calendar</a>\n</div>\n\n---ref_html---\n\nReference : <a href=\"javascript:loaddoc('%(dt)s', '%(dn)s')\">%(dn)s</a><br><br>", 
+  "read_only": 1, 
+  "autoname": "EV.#####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "_last_update": "1307624201", 
+  "show_in_menu": 0, 
+  "version": 1
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Event", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Event", 
+  "read": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Event", 
+  "doctype": "DocType"
+ }, 
+ {
+  "oldfieldtype": "Section Break", 
+  "doctype": "DocField", 
+  "label": "Details", 
+  "fieldname": "details", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "oldfieldtype": "HTML", 
+  "doctype": "DocField", 
+  "label": "Intro HTML", 
+  "fieldname": "intro_html", 
+  "fieldtype": "HTML"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 1, 
+  "doctype": "DocField", 
+  "label": "Event Date", 
+  "oldfieldname": "event_date", 
+  "fieldname": "event_date", 
+  "fieldtype": "Date", 
+  "oldfieldtype": "Date"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Event Time", 
+  "oldfieldname": "event_hour", 
+  "fieldname": "event_hour", 
+  "fieldtype": "Time", 
+  "oldfieldtype": "Time"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Event Name", 
+  "oldfieldname": "event_name", 
+  "fieldname": "event_name", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 1
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "width": "300px", 
+  "fieldname": "description", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Notes", 
+  "oldfieldname": "notes", 
+  "fieldname": "notes", 
+  "fieldtype": "Text", 
+  "oldfieldtype": "Text"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 1, 
+  "doctype": "DocField", 
+  "label": "Event Type", 
+  "oldfieldname": "event_type", 
+  "fieldname": "event_type", 
+  "fieldtype": "Select", 
+  "oldfieldtype": "Select", 
+  "options": "Private\nPublic\nCancel"
+ }, 
+ {
+  "oldfieldtype": "Section Break", 
+  "doctype": "DocField", 
+  "label": "Participants", 
+  "fieldname": "participants", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "oldfieldtype": "Column Break", 
+  "doctype": "DocField", 
+  "label": "Individuals", 
+  "width": "50%", 
+  "fieldname": "individuals", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Event Individuals", 
+  "oldfieldname": "event_individuals", 
+  "fieldname": "event_individuals", 
+  "fieldtype": "Table", 
+  "oldfieldtype": "Table", 
+  "options": "Event User"
+ }, 
+ {
+  "oldfieldtype": "Column Break", 
+  "doctype": "DocField", 
+  "label": "Groups", 
+  "width": "50%", 
+  "fieldname": "groups", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Event Roles", 
+  "oldfieldname": "event_roles", 
+  "fieldname": "event_roles", 
+  "fieldtype": "Table", 
+  "oldfieldtype": "Table", 
+  "options": "Event Role"
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Ref Type", 
+  "oldfieldname": "ref_type", 
+  "fieldname": "ref_type", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 0
+ }, 
+ {
+  "no_copy": 0, 
+  "search_index": 0, 
+  "doctype": "DocField", 
+  "label": "Ref Name", 
+  "oldfieldname": "ref_name", 
+  "fieldname": "ref_name", 
+  "fieldtype": "Data", 
+  "oldfieldtype": "Data", 
+  "hidden": 0
+ }, 
+ {
+  "role": "All", 
+  "doctype": "DocPerm"
+ }, 
+ {
+  "cancel": 1, 
+  "role": "System Manager", 
+  "doctype": "DocPerm"
+ }
 ]

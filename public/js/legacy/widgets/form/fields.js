@@ -167,6 +167,9 @@ Field.prototype.get_status = function() {
 			ret='Write';
 		}
 	}
+	
+	// make a field read_only if read_only is checked (disregards write permission)
+	if(cint(this.df.read_only) && ret=="Write") ret = "Read";
 
 	return ret;
 }

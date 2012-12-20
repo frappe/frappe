@@ -1,54 +1,43 @@
-# DocType, Event User
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-05-15 12:14:23',
-		u'docstatus': 0,
-		u'modified': '2012-09-28 10:46:15',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'autoname': u'EVP.#####',
-		'colour': u'White:FFF',
-		u'doctype': u'DocType',
-		'istable': 1,
-		'module': u'Core',
-		u'name': u'__common__',
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'show_in_menu': 0,
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'person',
-		'fieldtype': u'Select',
-		'label': u'Person',
-		u'name': u'__common__',
-		'oldfieldname': u'person',
-		'oldfieldtype': u'Select',
-		'options': u'link:Profile',
-		'parent': u'Event User',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'search_index': 1
-	},
-
-	# DocType, Event User
-	{
-		u'doctype': u'DocType',
-		u'name': u'Event User'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-05-15 12:14:23", 
+  "modified_by": "Administrator", 
+  "modified": "2012-09-28 10:46:15"
+ }, 
+ {
+  "section_style": "Simple", 
+  "istable": 1, 
+  "module": "Core", 
+  "server_code_error": " ", 
+  "doctype": "DocType", 
+  "autoname": "EVP.#####", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "show_in_menu": 0, 
+  "version": 1
+ }, 
+ {
+  "parent": "Event User", 
+  "oldfieldtype": "Select", 
+  "oldfieldname": "person", 
+  "name": "__common__", 
+  "doctype": "DocField", 
+  "label": "Person", 
+  "permlevel": 0, 
+  "parenttype": "DocType", 
+  "fieldname": "person", 
+  "fieldtype": "Select", 
+  "search_index": 1, 
+  "options": "link:Profile", 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "Event User", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField"
+ }
 ]

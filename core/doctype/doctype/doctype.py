@@ -141,7 +141,7 @@ class DocType:
 
 	def make_amendable(self):
 		"""
-			if is_submittable is set, add amendment_date and amended_from
+			if is_submittable is set, add amended_from
 			docfields
 		"""
 		if self.doc.is_submittable:
@@ -149,20 +149,6 @@ class DocType:
 			temp_doclist = webnotes.model.doctype.get(self.doc.name)
 			max_idx = max([d.idx for d in temp_doclist if d.idx])
 			max_idx = max_idx and max_idx or 0
-			if 'amendment_date' not in [d.fieldname for d in temp_doclist if \
-					d.doctype=='DocField']:
-				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)
-				new.label = 'Amendment Date'
-				new.fieldtype = 'Date'
-				new.fieldname = 'amendment_date'
-				new.permlevel = 0
-				new.print_hide = 1
-				new.no_copy = 1
-				new.idx = max_idx + 1
-				new.description = "The date at which current entry is corrected in the system."
-				new.depends_on = "eval:doc.amended_from"
-				new.save()
-				max_idx += 1
 			if 'amended_from' not in [d.fieldname for d in temp_doclist if \
 					d.doctype=='DocField']:
 				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)

@@ -149,10 +149,10 @@ _f.FrmHeader = Class.extend({
 				cur_frm.savesubmit(this);}, 'icon-lock');
 
 		// Update after sumit
-		if(docstatus==1 && p[SUBMIT] && cur_frm.doc.__unsaved) {
+		if(docstatus==1 && p[SUBMIT]) {
 			this.appframe.add_button('Update', function() { 
 				cur_frm.save('Update', null, this);
-			}, '');
+			}, '').toggle(false);
 		}
 
 		// Cancel

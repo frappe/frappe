@@ -66,7 +66,7 @@ def check_if_doc_is_linked(dt, dn):
 		else:
 			item = None
 			try:
-				item = sql("select name, parent, parenttype from `tab%s` where `%s`='%s' and docstatus!=2 limit 1" % (link_dt, link_field, dn))
+				item = sql("select name, parent, parenttype from `tab%s` where `%s`='%s' and docstatus!=2 and `%s`!=parent limit 1" % (link_dt, link_field, dn, link_field))
 			except Exception, e:
 				if e.args[0]==1146: pass
 				else: raise e

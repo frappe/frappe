@@ -1,150 +1,121 @@
-# DocType, Letter Head
 [
-
-	# These values are common in all dictionaries
-	{
-		u'creation': '2012-11-19 12:06:53',
-		u'docstatus': 0,
-		u'modified': '2012-11-21 17:39:17',
-		u'modified_by': u'Administrator',
-		u'owner': u'Administrator'
-	},
-
-	# These values are common for all DocType
-	{
-		'_last_update': u'1307340319',
-		'allow_attach': 1,
-		'autoname': u'field:letter_head_name',
-		'colour': u'White:FFF',
-		u'doctype': u'DocType',
-		'max_attachments': 3,
-		'module': u'Core',
-		u'name': u'__common__',
-		'section_style': u'Simple',
-		'server_code_error': u' ',
-		'version': 1
-	},
-
-	# These values are common for all DocField
-	{
-		u'doctype': u'DocField',
-		u'name': u'__common__',
-		'parent': u'Letter Head',
-		'parentfield': u'fields',
-		'parenttype': u'DocType',
-		'permlevel': 0
-	},
-
-	# These values are common for all DocPerm
-	{
-		'create': 1,
-		u'doctype': u'DocPerm',
-		u'name': u'__common__',
-		'parent': u'Letter Head',
-		'parentfield': u'permissions',
-		'parenttype': u'DocType',
-		'permlevel': 0,
-		'read': 1,
-		'role': u'System Manager',
-		'write': 1
-	},
-
-	# DocType, Letter Head
-	{
-		u'doctype': u'DocType',
-		u'name': u'Letter Head'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'letter_head_name',
-		'fieldtype': u'Data',
-		'in_filter': 0,
-		'label': u'Letter Head Name',
-		'oldfieldname': u'letter_head_name',
-		'oldfieldtype': u'Data',
-		'reqd': 1
-	},
-
-	# DocField
-	{
-		'colour': u'White:FFF',
-		'depends_on': u'letter_head_name',
-		u'doctype': u'DocField',
-		'fieldname': u'preview',
-		'fieldtype': u'HTML',
-		'label': u'Preview'
-	},
-
-	# DocField
-	{
-		'depends_on': u'letter_head_name',
-		u'doctype': u'DocField',
-		'fieldname': u'disabled',
-		'fieldtype': u'Check',
-		'label': u'Disabled',
-		'oldfieldname': u'disabled',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'depends_on': u'letter_head_name',
-		'description': u'Check this to make this the default letter head in all prints',
-		u'doctype': u'DocField',
-		'fieldname': u'is_default',
-		'fieldtype': u'Check',
-		'label': u'Is Default',
-		'oldfieldname': u'is_default',
-		'oldfieldtype': u'Check'
-	},
-
-	# DocField
-	{
-		'depends_on': u'letter_head_name',
-		'description': u'To update your HTML from attachment, click here',
-		u'doctype': u'DocField',
-		'fieldname': u'set_from_image',
-		'fieldtype': u'Button',
-		'label': u'Set From Image',
-		'trigger': u'Client'
-	},
-
-	# DocField
-	{
-		'depends_on': u'letter_head_name',
-		'description': u'Your letter head content in HTML.',
-		u'doctype': u'DocField',
-		'fieldname': u'content',
-		'fieldtype': u'Code',
-		'label': u'Content',
-		'oldfieldname': u'content',
-		'oldfieldtype': u'Text Editor'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'url',
-		'fieldtype': u'Data',
-		'hidden': 1,
-		'label': u'URL'
-	},
-
-	# DocField
-	{
-		u'doctype': u'DocField',
-		'fieldname': u'file_list',
-		'fieldtype': u'Text',
-		'hidden': 1,
-		'label': u'File LIst',
-		'oldfieldname': u'file_list',
-		'oldfieldtype': u'Text'
-	},
-
-	# DocPerm
-	{
-		u'doctype': u'DocPerm'
-	}
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-11-19 12:06:53", 
+  "modified_by": "Administrator", 
+  "modified": "2012-11-21 17:39:17"
+ }, 
+ {
+  "section_style": "Simple", 
+  "allow_attach": 1, 
+  "module": "Core", 
+  "_last_update": "1307340319", 
+  "doctype": "DocType", 
+  "autoname": "field:letter_head_name", 
+  "name": "__common__", 
+  "colour": "White:FFF", 
+  "server_code_error": " ", 
+  "max_attachments": 3, 
+  "version": 1
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Letter Head", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "parent": "Letter Head", 
+  "read": 1, 
+  "name": "__common__", 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "role": "System Manager", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Letter Head", 
+  "doctype": "DocType"
+ }, 
+ {
+  "oldfieldtype": "Data", 
+  "doctype": "DocField", 
+  "label": "Letter Head Name", 
+  "oldfieldname": "letter_head_name", 
+  "fieldname": "letter_head_name", 
+  "fieldtype": "Data", 
+  "reqd": 1, 
+  "in_filter": 0
+ }, 
+ {
+  "depends_on": "letter_head_name", 
+  "colour": "White:FFF", 
+  "doctype": "DocField", 
+  "label": "Preview", 
+  "fieldname": "preview", 
+  "fieldtype": "HTML"
+ }, 
+ {
+  "depends_on": "letter_head_name", 
+  "doctype": "DocField", 
+  "label": "Disabled", 
+  "oldfieldname": "disabled", 
+  "fieldname": "disabled", 
+  "fieldtype": "Check", 
+  "oldfieldtype": "Check"
+ }, 
+ {
+  "description": "Check this to make this the default letter head in all prints", 
+  "oldfieldtype": "Check", 
+  "doctype": "DocField", 
+  "label": "Is Default", 
+  "oldfieldname": "is_default", 
+  "fieldname": "is_default", 
+  "fieldtype": "Check", 
+  "depends_on": "letter_head_name"
+ }, 
+ {
+  "description": "To update your HTML from attachment, click here", 
+  "depends_on": "letter_head_name", 
+  "doctype": "DocField", 
+  "label": "Set From Image", 
+  "trigger": "Client", 
+  "fieldname": "set_from_image", 
+  "fieldtype": "Button"
+ }, 
+ {
+  "description": "Your letter head content in HTML.", 
+  "oldfieldtype": "Text Editor", 
+  "doctype": "DocField", 
+  "label": "Content", 
+  "oldfieldname": "content", 
+  "fieldname": "content", 
+  "fieldtype": "Code", 
+  "depends_on": "letter_head_name"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "URL", 
+  "fieldname": "url", 
+  "fieldtype": "Data", 
+  "hidden": 1
+ }, 
+ {
+  "oldfieldtype": "Text", 
+  "doctype": "DocField", 
+  "label": "File LIst", 
+  "oldfieldname": "file_list", 
+  "fieldname": "file_list", 
+  "fieldtype": "Text", 
+  "hidden": 1
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
 ]
