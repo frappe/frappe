@@ -76,6 +76,7 @@ class UpdateDocument:
 	def __init__(self, in_doclist=[]):
 		self.in_doclist = in_doclist
 		self.doc = Document(fielddata = in_doclist[0])
+		self.old_doc = None
 		self.modified = self.doc.modified # make a copy
 		self.doclist = []
 		

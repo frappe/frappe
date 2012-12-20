@@ -50,6 +50,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_module_tab: function(module) {
+		if(!erpnext.modules[module]) return;
 		this.add_tab('<span class="small-module-icons small-module-icons-'+
 			module.toLowerCase()+'"></span>'+' <span>'
 			+ wn._(module) + "</span>", 0.7, function() {
