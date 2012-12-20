@@ -25,7 +25,6 @@
 //
 
 var cur_dialog;
-var top_index=91;
 
 var Dialog = wn.ui.Dialog.extend({
 	init: function(w, h, title, content) {

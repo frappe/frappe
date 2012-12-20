@@ -90,7 +90,7 @@ def validate_email_add(email_str):
 	from email.utils import parseaddr
 	real_name, email = parseaddr(email_str)
 	import re
-	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email)
+	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
 def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	"""Send an email. For more details see :func:`email_lib.sendmail`"""

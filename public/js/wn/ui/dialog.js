@@ -66,10 +66,6 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		// place it at the center
 		this.wrapper.style.left  = (($(window).width() - cint(this.wrapper.style.width))/2) + 'px';
         this.wrapper.style.top = ($(window).scrollTop() + 60) + 'px';
-
-		// place it on top
-		top_index++;
-		$y(this.wrapper,{zIndex:top_index});		
 	},
 	show: function() {
 		// already live, do nothing

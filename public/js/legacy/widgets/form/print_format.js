@@ -303,8 +303,8 @@ $.extend(_p, {
 			var element = script_list[i];
 			var code = element.innerHTML;
 			var new_html = code ? (eval(code) || "") : "";
-			if(typeof new_html=="string") {
-				$(element).replaceWith(this.add_span(new_html));
+			if(in_list(["string", "number"], typeof new_html)) {
+				$(element).replaceWith(this.add_span(new_html + ""));
 			}
 		}
 	},
@@ -373,8 +373,9 @@ $.extend(_p, {
 			
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
-		$.each(finished.match(/src=['"]([^'"]*)['"]/) || [], function(i, v) {
-			if(v.substr(0,4)!="src=") {
+		$.each(finished.match(/src=['"]([^'"]*)['"]/g) || [], function(i, v) {
+			if(v.substr(0,4)=="src=") {
+				var v = v.substr(5, v.length-6);
 				if(v.substr(0,4)!="http")
 					finished = finished.replace(v, prefix + v);
 			}

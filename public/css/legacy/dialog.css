@@ -4,7 +4,7 @@ div.dialog_wrapper {
 	position: absolute;
 	width: 440px;
 	display: none;
-	z-index: 90;
+	z-index: 2;
 	background-color: #FFF;
 	box-shadow:1px 1px 8px #444;
 	-moz-box-shadow: 1px 1px 8px #444;
@@ -40,7 +40,7 @@ div#freeze {
 	right: 0px;
 	background-color: #aaa;
 	opacity: 0.6;
-	z-index: 50;
+	z-index: 1;
 	text-align: center;
 }
 

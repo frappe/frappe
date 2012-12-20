@@ -25,9 +25,18 @@ import webnotes
 import json
 
 @webnotes.whitelist()
-def save():
+def insert(doclist):
+	if isinstance(doclist, basestring):
+		doclist = json.loads(doclist)
+	
+	doclist[0]["__islocal"] = 1
+	return save(doclist)
+
+@webnotes.whitelist()
+def save(doclist):
 	"""insert or update from form query"""
-	doclist = json.loads(webnotes.form_dict.doclist)
+	if isinstance(doclist, basestring):
+		doclist = json.loads(doclist)
 	
 	from webnotes.model.wrapper import ModelWrapper
 	

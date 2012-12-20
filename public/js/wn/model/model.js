@@ -63,7 +63,8 @@ $.extend(wn.model, {
 			wn.call({
 				method:'webnotes.widgets.form.load.getdoctype',
 				args: {
-					doctype: doctype
+					doctype: doctype,
+					with_parent: 1
 				},
 				callback: callback
 			});

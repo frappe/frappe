@@ -66,14 +66,14 @@ _f.FrmHeader = Class.extend({
 		this.$w.find(".avatar:eq(0)").popover({
 			trigger:"hover",
 			title: wn._("Created By"),
-			content: wn.user_info(this.frm.doc.owner).fullname.bold() 
+			content: wn.user_info(this.frm.doc.owner).fullname 
 				+" on "+ dateutil.str_to_user(this.frm.doc.creation)
 		});
 
 		this.$w.find(".avatar:eq(1)").popover({
 			trigger:"hover",
 			title: wn._("Modified By"),
-			content: wn.user_info(this.frm.doc.modified_by).fullname.bold() 
+			content: wn.user_info(this.frm.doc.modified_by).fullname 
 				+" on "+ dateutil.str_to_user(this.frm.doc.modified)
 		});
 		
@@ -166,10 +166,10 @@ _f.FrmHeader = Class.extend({
 				cur_frm.amend_doc() }, 'icon-pencil');
 			
 		// Help
-		if(cur_frm.meta.description) {
-			this.appframe.add_help_button(wn.markdown('#### ' + cur_frm.doctype + '\n\n'
-				+ cur_frm.meta.description));
-		}
+		// if(cur_frm.meta.description) {
+		// 	this.appframe.add_help_button(wn.markdown('#### ' + cur_frm.doctype + '\n\n'
+		// 		+ cur_frm.meta.description));
+		// }
 
 	},
 	show: function() {

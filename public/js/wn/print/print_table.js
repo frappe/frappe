@@ -64,7 +64,7 @@ wn.print.Table = Class.extend({
 		$.each(this.data, function(i, row) {
 			$.each(me.columns, function(ci, fieldname) {
 				var value = row[fieldname];
-				if((value!==null && value!=="") || ci==0) {
+				if(value || ci==0) {
 					if(!in_list(cols_with_value, fieldname)) {
 						cols_with_value.push(fieldname);
 

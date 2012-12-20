@@ -10,10 +10,9 @@ wn.views.CommunicationList = Class.extend({
 			return;
 		}
 		
-		this.list.sort(function(a, b) { return 
-			(new Date(a.modified) > new Date(b.modified)) 
-			? -1 : 1; })
-				
+		var sortfn = function (a, b) { return (b > a) ? 1 : -1; }
+		this.list = this.list.sort(sortfn);
+
 		this.make();
 	},
 	make: function() {
@@ -108,7 +107,7 @@ wn.views.CommunicationComposer = Class.extend({
 				{label:"To", fieldtype:"Data", reqd: 1, fieldname:"recipients", 
 					description:"Email addresses, separted by commas"},
 				{label:"Subject", fieldtype:"Data", reqd: 1},
-				{label:"Add Reply", fieldtype:"Button"},
+				{label:"Send", fieldtype:"Button"},
 				{label:"Message", fieldtype:"Text Editor", reqd: 1, fieldname:"content"},
 				{label:"Send Email", fieldtype:"Check"},
 				{label:"Send Me A Copy", fieldtype:"Check"},
@@ -170,7 +169,7 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		$(fields.send_email.input).attr("checked", "checked")
-		$(fields.add_reply.input).click(function() {
+		$(fields.send.input).click(function() {
 			var form_values = me.dialog.get_values();
 			if(!form_values) return;
 					

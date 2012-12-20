@@ -1,7 +1,7 @@
 [
 	
 	{
-		"public/js/report-legacy.js": [
+		"public/js/report-legacy.min.js": [
 			"lib/public/js/legacy/widgets/tabbedpage.js",
 			"lib/public/js/legacy/widgets/report_builder/report_builder.js",
 			"lib/public/js/legacy/widgets/report_builder/datatable.js",
@@ -48,14 +48,14 @@
 	},
 
 	{
-		"public/js/all-web.js": [
+		"public/js/all-web.min.js": [
 			"lib/public/js/lib/bootstrap.min.js",
 			"lib/public/js/lib/public/json2.js",
 		]
 	},
 	
 	{
-		"public/js/all-app.js": [
+		"public/js/all-app.min.js": [
 			"lib/public/js/lib/jquery/jquery.ui.core.min.js",
 			"lib/public/js/lib/jquery/jquery.ui.datepicker.min.js",
 			"lib/public/js/lib/jquery/jquery.ui.autocomplete.min.js",
