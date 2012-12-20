@@ -65,6 +65,12 @@ div.grid_tbarlinks {
 	border-bottom: 1px solid #AAA;
 	height: 40px;
 	padding: 0px;
+	vertical-align: middle;
+	font-weight: bold;
+	text-align: center;	
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
 
 	background: #eeeeee; /* Old browsers */
 	background: -moz-linear-gradient(top,  #eeeeee 0%, #cccccc 100%); /* FF3.6+ */
@@ -74,14 +80,6 @@ div.grid_tbarlinks {
 	background: -ms-linear-gradient(top,  #eeeeee 0%,#cccccc 100%); /* IE10+ */
 	background: linear-gradient(to bottom,  #eeeeee 0%,#cccccc 100%); /* W3C */
 	filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#eeeeee', endColorstr='#cccccc',GradientType=0 ); /* IE6-9 */
-}
-
-.grid_head_table td div {
-	color: #222;
-	font-weight: bold;
-	overflow: hidden;
-	padding: 2px 0px;
-	text-align: center;	
 }
 
 .grid_selector {

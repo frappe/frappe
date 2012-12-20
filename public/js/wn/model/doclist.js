@@ -51,10 +51,10 @@ wn.model.DocList = Class.extend({
 	
 	check_name: function() {
 		var doc = this.doclist[0];
-		var doctype = doc.doctype;
-		if(doc.__islocal && (doctype && doctype.autoname 
-				&& doctype.autoname.toLowerCase()=='prompt')) {
-			var newname = prompt('Enter the name of the new '+ dt, '');
+		var meta = locals.DocType[doc.doctype];
+		if(doc.__islocal && (meta && meta.autoname 
+				&& meta.autoname.toLowerCase()=='prompt')) {
+			var newname = prompt('Enter the name of the new '+ doc.doctype, '');
 			if(newname) { 
 				doc.__newname = strip(newname);
 			} else {

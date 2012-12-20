@@ -105,7 +105,7 @@ wn.widgets.PageSidebarSection = function(sidebar, opts) {
 	
 	// image
 	this.add_icon = function(parent, icon) {
-		var img = $a(parent, 'i', icon, {marginRight: '7px', marginBottom:'-3px'});
+		var img = $a(parent, 'i', icon, {display:'inline-block', width:'20px'});
 	}
 	
 	this.refresh = function() {
@@ -131,7 +131,7 @@ wn.widgets.PageSidebarLink = function(section, opts, wrapper) {
 	if(opts.icon) {
 		section.add_icon(this.wrapper, opts.icon);
 	}
-	this.ln = $a(this.wrapper, 'span', 'link_type section-link small', opts.style, opts.label);
+	this.ln = $a(this.wrapper, 'span', 'link_type section-link', opts.style, opts.label);
 	this.ln.onclick = function() { me.opts.onclick(me) };
 }
 

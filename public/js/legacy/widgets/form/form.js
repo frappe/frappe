@@ -793,10 +793,12 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 	try {
 		if(this.cscript[caller])
 			ret = this.cscript[caller](doc, cdt, cdn);
-		// for product
+
 		if(this.cscript['custom_'+caller])
 			ret += this.cscript['custom_'+caller](doc, cdt, cdn);
+			
 	} catch(e) {
+		validated = false;
 		console.log(e);
 	}
 
@@ -909,7 +911,6 @@ _f.Frm.prototype.save = function(save_action, callback, btn) {
 	if(save_action!="Cancel") {
 		validated = true;
 		this.runclientscript('validate');
-	
 		if(!validated) {
 			return;
 		}

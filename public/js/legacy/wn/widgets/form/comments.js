@@ -58,14 +58,18 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 		if(this.wrapper) this.wrapper.innerHTML = '';
 		else this.wrapper = $a(parent, 'div', 'sidebar-comment-wrapper');
 
-		this.input = $a_input(this.wrapper, 'text');
-		$(this.input).keydown(function(e) {
+		$("<div class='input-append'><input name='comment' type='text' />\
+			<button class='btn'><i class='icon-plus'></i></button></div>")
+		.appendTo(this.wrapper)
+
+		$(this.wrapper).find('input').keydown(function(e) {
 			if(e.which==13) {
-				$(me.btn).click();
+				$(me.wrapper).find("button").click();
 			}
 		})
-		this.btn = $btn(this.wrapper, 'Post', function() { me.add_comment() }, {marginLeft:'8px'});
-
+		$(this.wrapper).find('button').click(function() {
+			me.add_comment();
+		})
 		this.render_comments()
 
 	}
@@ -93,10 +97,9 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 	}
 	
 	this.add_comment = function() {
-		if(!this.input.value) return;
-		this.btn.set_working();
-		wn.widgets.form.comments.add(this.input, me.doctype, me.docname, function() {
-			me.btn.done_working();
+		var input = $(me.wrapper).find("input").get(0);
+		if(!input.value) return;
+		wn.widgets.form.comments.add(input, me.doctype, me.docname, function() {
 			me.make_body();
 			me.refresh_latest_comment();
 		});

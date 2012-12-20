@@ -95,7 +95,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 						display: function() { 
 							return !me.form.doc.__islocal && !me.form.meta.issingle;
 						},
-						icon: 'icon-random',
+						icon: 'icon-link',
 						onclick: function() { 
 							if(!me.form.linked_with) {
 								me.form.linked_with = new wn.ui.form.LinkedWith({
@@ -113,7 +113,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			},
 
 			{
-				title: 'Assign To',
+				title: 'Assign',
 				render: function(wrapper) {
 					me.form.assign_to = new wn.widgets.form.sidebar.AssignTo(wrapper, me, me.form.doctype, me.form.docname);
 				},
