@@ -136,7 +136,7 @@ class UpdateDocument:
 			self.save_one_doc(df)
 	
 	def update_no_sync(self, d):
-		if d.doctype in no_sync:
+		if d.doctype in no_sync and self.old_doc:
 			for fieldname in no_sync[d.doctype]:
 				d.fields[fieldname] = self.old_doc.fields.get(fieldname)
 	
