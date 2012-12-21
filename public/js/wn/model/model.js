@@ -183,6 +183,10 @@ $.extend(wn.model, {
 		$.each(wn.model.get_doclist(doctype, name), function(i, d) {
 			if(d) wn.model.clear_doc(d.doctype, d.name);
 		});
+	},
+
+	remove_from_locals: function(doctype, name) {
+		this.clear_doclist(doctype, name);
 		if(wn.views.formview[doctype]) {
 			delete wn.views.formview[doctype].frm.opendocs[name];
 		}

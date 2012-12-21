@@ -74,7 +74,7 @@ $.extend(wn.report_dump, {
 		} else {
 			callback();
 		}
-	}
+	},
 });
 
 wn.provide("wn.views");
