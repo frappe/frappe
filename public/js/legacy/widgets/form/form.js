@@ -946,9 +946,13 @@ _f.Frm.prototype.savesubmit = function(btn) {
 _f.Frm.prototype.savecancel = function(btn) {
 	var me = this;
 	wn.confirm("Permanently Cancel "+this.docname+"?", function() {
+		me.runclientscript("before_cancel", me.doctype, me.docname);
 		var doclist = new wn.model.DocList(me.doctype, me.docname);
 		doclist.cancel(function(r) {
-			if(!r.exc) me.refresh();
+			if(!r.exc) {
+				me.refresh();
+			}
+			me.runclientscript("after_cancel", me.doctype, me.docname);
 		}, btn);
 	});
 }
