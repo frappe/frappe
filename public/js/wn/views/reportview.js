@@ -28,7 +28,9 @@ wn.views.ReportViewPage = Class.extend({
 	make_report_view: function() {
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(this.doctype);
-		this.page.appframe.add_module_tab(module);
+		this.page.appframe.add_home_breadcrumb()
+		this.page.appframe.add_module_breadcrumb(module)
+		this.page.appframe.add_breadcrumb("icon-table");
 
 		this.page.reportview = new wn.views.ReportView({
 			doctype: this.doctype, 

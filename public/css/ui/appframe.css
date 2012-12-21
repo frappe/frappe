@@ -3,7 +3,7 @@ div.appframe-titlebar {
 	padding: 6px; 
 	padding-left: 13px;
 	background: #dfdfdf; /* Old browsers */
-	height: 30px;
+	height: 28px;
 	color: #555;
 	border-bottom: 1px solid #c2c2c2;
 	vertical-align: middle;
@@ -17,6 +17,36 @@ div.appframe-titlebar {
 	white-space: nowrap;
 	width: 60%;
 }
+
+span.appframe-breadcrumb { 
+	display: inline-block;
+	margin: 5px 0px 0px 0px; 
+	padding: 0px;
+	float: left;
+}
+span.appframe-breadcrumb span { 
+	display: inline-block;
+	padding: 4px 19px 0px 0px;
+	margin-right: 13px;
+	background: url('../lib/images/ui/navbarsep.png') right no-repeat;
+	margin-top: -4px;
+	color: #777;
+	font-size: 20px;
+}
+
+span.appframe-breadcrumb span:last-child { 
+	background: none;
+}
+
+.appframe-breadcrumb span a {
+	color: #777;
+	text-decoration: none; 
+}
+
+.appframe-breadcrumb span a:hover {
+	color: #999;
+}
+
 
 .appframe-title {
 	font-size: 150%;
@@ -62,7 +92,7 @@ span.appframe-tab {
 	margin-top: -6px;
 	padding: 12px 11px;
 	height: 18px;
-	vertical-align: middle;
+	/*vertical-align: middle;*/
 	cursor: pointer;
 }
 

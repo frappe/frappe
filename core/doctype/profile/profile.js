@@ -1,5 +1,4 @@
 cur_frm.cscript.onload = function(doc) {
-	cur_frm.frm_head.appframe.remove_tabs();
 	if(!cur_frm.roles_editor) {
 		var role_area = $('<div style="min-height: 300px">')
 			.appendTo(cur_frm.fields_dict.roles_html.wrapper);

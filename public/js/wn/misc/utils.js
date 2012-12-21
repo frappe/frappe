@@ -2,7 +2,7 @@ wn.provide('wn.utils');
 
 wn.utils = {
 	get_file_link: function(filename) {
-		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) 
+		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) || (filename.indexOf("files/")!=-1)
 			? filename : 'files/' + filename;
 	},
 	is_url: function(txt) {
