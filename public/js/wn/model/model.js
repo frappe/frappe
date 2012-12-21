@@ -184,7 +184,7 @@ $.extend(wn.model, {
 			if(d) wn.model.clear_doc(d.doctype, d.name);
 		});
 		if(wn.views.formview[doctype]) {
-			delete wn.views.formview[doctype].opendocs[name];
+			delete wn.views.formview[doctype].frm.opendocs[name];
 		}
 	},
 	
