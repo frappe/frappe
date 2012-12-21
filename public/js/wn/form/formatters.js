@@ -34,8 +34,20 @@ wn.form.formatters = {
 		return dateutil.str_to_user(value);
 	},
 	Text: function(value) {
-		if(value && value.indexOf("<br>")==-1 && value.indexOf("<p>")==-1 && value.indexOf("<div")==-1)
-			return replace_newlines(value);
+		if(value) {
+			var tags = ["<p[^>]>", "<div[^>]>", "<br[^>]>"];
+			var match = false;
+
+			for(var i=0; i<tags.length; i++) {
+				if(value.match(tags[i])) {
+					match = true;
+				}
+			}
+
+			if(!match) {
+				return replace_newlines(value);
+			}
+		}
 
 		return wn.form.formatters.Data(value);
 	},

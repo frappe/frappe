@@ -135,11 +135,16 @@ wn.print.Table = Class.extend({
 						
 					var df = wn.meta.docfield_map[me.tabletype][fieldname];
 					value = wn.form.get_formatter(
-						df && df.fieldtype || "Data")(value);
+						df ? df.fieldtype : "Data")(value);
 
+					// set formatted value back into data so that modifer can use it
+					row[fieldname] = value;
+
+					// modifier is called after formatting so that
+					// modifier's changes do not get lost in formatting (eg. 3.45%)
 					if(me.modifier && me.modifier[fieldname])
 						value = me.modifier[fieldname](row);
-					
+
 					var td = $("<td>").html(value)
 						.css(me.cell_style)
 						.css({width: me.widths[ci]})
