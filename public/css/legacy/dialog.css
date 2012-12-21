@@ -10,10 +10,7 @@ div.dialog_wrapper {
 	-moz-box-shadow: 1px 1px 8px #444;
 	-webkit-box-shadow: 1px 1px 8px #444;
 	
-	/*border-radius: 5px;
-	-moz-border-radius: 5px;
-	-webkit-border-radius: 5px;*/
-	
+	border-radius: 5px;	
 	overflow: hidden;
 }
 

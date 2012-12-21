@@ -82,7 +82,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var module = locals.DocType[this.doctype].module;
 		
 		this.appframe.set_title(this.doctype + " List");
-		this.appframe.set_marker(module);
 		this.appframe.add_module_tab(module);		
 	},
 

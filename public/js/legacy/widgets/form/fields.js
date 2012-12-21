@@ -1006,6 +1006,15 @@ SelectField.prototype.make_input = function() {
 		
 		if(this.df.options == 'attach_files:') {
 			this.file_attach = true;
+			$(this.input).css({"width": "70%"});
+			$("<button class='btn' title='Add attachment'\
+				style='margin-bottom: 9px; \
+				padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
+				<i class='icon-plus'></i></button>")
+				.click(function() {
+					cur_frm.attachments.new_attachment();
+				})
+				.appendTo(this.input_area);
 		}
 	}
 
@@ -1114,7 +1123,7 @@ SelectField.prototype.make_input = function() {
 			}
 		} else {
 			this.df.options = ''
-			this.set_description("Please upload file first.")
+			this.set_description("Please attach a file first.")
 			
 		}
 	}

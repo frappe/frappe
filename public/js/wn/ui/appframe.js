@@ -19,8 +19,6 @@ wn.ui.AppFrame = Class.extend({
 		
 		if(title) 
 			this.set_title(title);
-		if(module) 
-			this.set_marker(module);
 	},
 	title: function(txt) {
 		this.set_title(txt);
@@ -29,13 +27,6 @@ wn.ui.AppFrame = Class.extend({
 		if(this.set_document_title) 
 			document.title = txt;
 		this.$titlebar.find(".appframe-title").html(txt);
-	},
-	set_marker: function(module) {
-		var color = wn.get_module_color(module);
-		this.$titlebar.find(".appframe-marker")
-			.css({
-				"background-color": color
-			});
 	},
 	add_tab: function(tab_name, opacity, click) {		
 		var span = $('<span class="appframe-tab"></span>')
@@ -143,5 +134,4 @@ wn.ui.make_app_page = function(opts) {
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.title(opts.title);
-	if(opts.module) opts.parent.appframe.set_marker(opts.module);
 }

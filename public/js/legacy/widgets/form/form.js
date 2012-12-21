@@ -576,7 +576,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.layout) this.layout.show();
 
 			// call onload post render for callbacks to be fired
-			if(cur_frm.cscript.is_onload) {
+			if(this.cscript.is_onload) {
 				this.runclientscript('onload_post_render', this.doctype, this.docname);
 			}
 				
@@ -757,7 +757,6 @@ _f.Frm.prototype.edit_doc = function() {
 	this.is_editable[this.docname] = true;
 	this.refresh();
 }
-
 
 _f.Frm.prototype.show_doc = function(dn) {
 	this.refresh(dn);
