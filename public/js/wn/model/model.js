@@ -183,9 +183,6 @@ $.extend(wn.model, {
 		$.each(wn.model.get_doclist(doctype, name), function(i, d) {
 			if(d) wn.model.clear_doc(d.doctype, d.name);
 		});
-		if(wn.views.formview[doctype]) {
-			delete wn.views.formview[doctype].frm.opendocs[name];
-		}
 	},
 	
 	clear_doc: function(doctype, name) {
