@@ -36,6 +36,8 @@ span.appframe-breadcrumb span {
 
 span.appframe-breadcrumb span:last-child { 
 	background: none;
+	margin-right: 0px;
+	padding-right: 10px;
 }
 
 .appframe-breadcrumb span a {
