@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-12-06 15:56:49", 
+  "creation": "2012-12-07 15:15:20", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-07 14:26:04"
+  "modified": "2012-12-21 12:35:01"
  }, 
  {
   "istable": 0, 
@@ -46,13 +46,6 @@
   "doctype": "DocType"
  }, 
  {
-  "doctype": "DocField", 
-  "label": "Profile Details", 
-  "fieldname": "sb0", 
-  "fieldtype": "Section Break", 
-  "permlevel": 0
- }, 
- {
   "default": "1", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
@@ -77,21 +70,8 @@
   "permlevel": 0
  }, 
  {
-  "oldfieldtype": "Text", 
-  "doctype": "DocField", 
-  "label": "Recent Documents", 
-  "oldfieldname": "recent_documents", 
-  "fieldname": "recent_documents", 
-  "fieldtype": "Text", 
-  "search_index": 0, 
-  "reqd": 0, 
-  "hidden": 1, 
-  "permlevel": 0
- }, 
- {
   "description": "Id of the profile will be the email.", 
   "oldfieldtype": "Data", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Email", 
   "oldfieldname": "email", 
@@ -139,17 +119,6 @@
   "permlevel": 0
  }, 
  {
-  "print_hide": 1, 
-  "description": "Set a new password.", 
-  "colour": "White:FFF", 
-  "doctype": "DocField", 
-  "label": "New Password", 
-  "fieldname": "new_password", 
-  "fieldtype": "Password", 
-  "hidden": 0, 
-  "permlevel": 0
- }, 
- {
   "oldfieldtype": "Date", 
   "doctype": "DocField", 
   "label": "Birth Date", 
@@ -180,20 +149,21 @@
   "permlevel": 0
  }, 
  {
-  "description": "Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
-  "label": "Roles", 
-  "fieldname": "sb1", 
+  "label": "Set New Password", 
+  "fieldname": "change_password", 
   "fieldtype": "Section Break", 
-  "permlevel": 1
+  "permlevel": 0
  }, 
  {
+  "print_hide": 1, 
+  "description": "Set a new password and \"Save\"", 
   "doctype": "DocField", 
-  "label": "Roles HTML", 
-  "fieldname": "roles_html", 
-  "fieldtype": "HTML", 
-  "permlevel": 1
+  "label": "New Password", 
+  "fieldname": "new_password", 
+  "fieldtype": "Password", 
+  "hidden": 0, 
+  "permlevel": 0
  }, 
  {
   "doctype": "DocField", 
@@ -203,7 +173,6 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "User Image", 
   "options": "attach_files:", 
@@ -213,7 +182,6 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Background Image", 
   "options": "attach_files:", 
@@ -245,8 +213,23 @@
   "permlevel": 0
  }, 
  {
+  "description": "Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.", 
   "doctype": "DocField", 
-  "label": "Incoming Email Settings", 
+  "label": "Roles", 
+  "fieldname": "sb1", 
+  "fieldtype": "Section Break", 
+  "permlevel": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Roles HTML", 
+  "fieldname": "roles_html", 
+  "fieldtype": "HTML", 
+  "permlevel": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Email Settings", 
   "fieldname": "incoming_email_settings", 
   "fieldtype": "Section Break", 
   "permlevel": 0
@@ -272,7 +255,6 @@
  }, 
  {
   "description": "Pull Emails from the Inbox and attach them as Communication records (for known contacts).", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Sync Inbox", 
   "fieldname": "sync_inbox", 
@@ -282,7 +264,6 @@
  }, 
  {
   "description": "POP3 Mail Server (e.g. pop.gmail.com)", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Email Host", 
   "fieldname": "email_host", 
@@ -317,7 +298,6 @@
  {
   "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.", 
   "oldfieldtype": "Column Break", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Defaults", 
   "width": "50%", 
@@ -327,7 +307,6 @@
  }, 
  {
   "description": "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to <a href=\"#Form/Customize Form/Customize Form\">Customize Form</a>.", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Profile Defaults", 
   "options": "DefaultValue", 
@@ -345,7 +324,6 @@
  }, 
  {
   "description": "Allow user to login only after this hour (0-24)", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Login After", 
   "fieldname": "login_after", 
@@ -354,7 +332,6 @@
  }, 
  {
   "description": "Allow user to login only before this hour (0-24)", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Login Before", 
   "fieldname": "login_before", 
@@ -363,7 +340,6 @@
  }, 
  {
   "description": "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Restrict IP", 
   "fieldname": "restrict_ip", 
