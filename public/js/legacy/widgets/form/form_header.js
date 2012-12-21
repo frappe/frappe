@@ -110,7 +110,7 @@ _f.FrmHeader = Class.extend({
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
 				lab_class: labinfo[1]
-			})).insertBefore(this.$w.find('.appframe-title'))
+			})).appendTo(this.$w.find('.appframe-subject'))
 	},
 	refresh_toolbar: function() {
 		// clear

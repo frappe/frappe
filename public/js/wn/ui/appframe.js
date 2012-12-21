@@ -41,11 +41,11 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_module_tab: function(module) {
-		if(!erpnext.modules[module]) return;
+		if(!wn.modules[module]) return;
 		this.add_tab('<span class="small-module-icons small-module-icons-'+
 			module.toLowerCase()+'"></span>'+' <span>'
 			+ wn._(module) + "</span>", 0.7, function() {
-				wn.set_route(erpnext.modules[module]);
+				wn.set_route(wn.modules[module].link);
 		});	
 	},
 		

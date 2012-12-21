@@ -44,3 +44,4 @@ wn.provide("locals");
 wn.provide("wn.settings");
 wn.provide("wn.utils");
 wn.provide("wn.ui");
+wn.provide("wn.modules");

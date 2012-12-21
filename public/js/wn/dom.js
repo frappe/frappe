@@ -138,9 +138,10 @@ wn.get_shade = function(color, factor) {
 		+ get_hex(get_int(color.substr(4,2)) + factor)
 }
 
-wn.get_gradient_css = function(col) {
-	var col1 = wn.get_shade(col, 10);
-	var col2 = wn.get_shade(col, -10);
+wn.get_gradient_css = function(col, diff) {
+	if(!diff) diff = 10
+	var col1 = wn.get_shade(col, diff);
+	var col2 = wn.get_shade(col, -diff);
 	return "\nbackground-color: " + col + " !important;"
 		+"\nbackground: -moz-linear-gradient(top,  #"+col1+" 0%, #"+col2+" 99%) !important;"
 		+"\nbackground:-webkit-gradient(linear, left top, left bottom, color-stop(0%,#"+col1+"), color-stop(99%,#"+col2+")) !important;"
