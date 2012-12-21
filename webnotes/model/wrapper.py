@@ -202,7 +202,7 @@ class ModelWrapper:
 
 		trigger(method, self.obj.doc)
 		
-		self.set_doclist(self.doclist)
+		self.set_doclist(self.obj.doclist)
 
 	def save_main(self):
 		"""
