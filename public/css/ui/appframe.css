@@ -81,7 +81,7 @@ div.appframe-titlebar .close {
 	margin: 0px 12px;
 }
 
-.appframe-toolbar select, .appframe-toolbar input, {
+.appframe-toolbar select, .appframe-toolbar input {
 	margin-bottom: 0px;
 	margin-left: 3px;
 }
