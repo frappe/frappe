@@ -64,6 +64,13 @@ $.extend(wn.user, {
 			}			
 		}
 	},
+	get_desktop_items: function() {
+		var user_list = wn.user.get_default("_desktop_items");
+		if(user_list && user_list.length)
+			return user_list;
+		else
+			return wn.boot.modules_list;
+	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	}
