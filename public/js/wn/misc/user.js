@@ -69,7 +69,7 @@ $.extend(wn.user, {
 		if(user_list && user_list.length)
 			return user_list;
 		else
-			return wn.boot.modules_list;
+			return JSON.parse(wn.boot.modules_list);
 	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
