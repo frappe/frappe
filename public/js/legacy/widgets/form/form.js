@@ -982,7 +982,7 @@ _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	cur_frm.save_disabled = true;
 	cur_frm.page_layout.footer.hide_save();
-	cur_frm.frm_head.appframe.buttons.Save.toggle(false);
+	cur_frm.frm_head.appframe.buttons.Save.remove();
 }
 
 _f.get_value = function(dt, dn, fn) {

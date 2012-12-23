@@ -39,7 +39,7 @@ wn.views.ListView = Class.extend({
 			opts.content(parent, data, me);
 		}
 		else if(opts.content=='name') {
-			$(parent).append(repl('<a href="#!Form/%(doctype)s/%(name)s">%(name)s</a>', data));
+			$(parent).append(repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
 			$(parent).append(wn.avatar(data.owner, false, "Created by: " 
@@ -67,7 +67,7 @@ wn.views.ListView = Class.extend({
 			this.render_bar_graph(parent, data, opts.content, opts.label);
 		}
 		else if(opts.type=='link' && opts.doctype) {
-			$(parent).append(repl('<a href="#!Form/'+opts.doctype+'/'
+			$(parent).append(repl('<a href="#Form/'+opts.doctype+'/'
 				+data[opts.content]+'">'+data[opts.content]+'</a>', data));
 		}
 		else if(opts.template) {

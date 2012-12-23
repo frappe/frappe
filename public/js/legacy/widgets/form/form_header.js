@@ -33,12 +33,13 @@ _f.FrmHeader = Class.extend({
 		this.$w = this.appframe.$w;
 		this.frm = frm;
 		
+		this.appframe.add_home_breadcrumb();
+		this.appframe.add_module_breadcrumb(frm.meta.module)
+		
 		if(!frm.meta.issingle) {
-			this.appframe.add_tab(frm.doctype + " List", 0.5, function() {
-				wn.set_route("List", frm.doctype);
-			});
+			this.appframe.add_list_breadcrumb(frm.meta.name)
 		}
-		this.appframe.add_module_tab(frm.meta.module);		
+		this.appframe.add_breadcrumb("icon-file");
 	},
 	refresh: function() {
 		this.appframe.set_title(this.frm.docname);
@@ -110,7 +111,7 @@ _f.FrmHeader = Class.extend({
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
 				lab_class: labinfo[1]
-			})).insertBefore(this.$w.find('.appframe-title'))
+			})).appendTo(this.$w.find('.appframe-subject'))
 	},
 	refresh_toolbar: function() {
 		// clear

@@ -5,7 +5,8 @@ wn.ui.AppFrame = Class.extend({
 		this.$w = $('<div></div>').appendTo(parent);
 				
 		this.$titlebar = $('<div class="appframe-titlebar">\
-			<div class="appframe-marker"></div>\
+			<span class="appframe-breadcrumb">\
+			</span>\
 			<span class="appframe-center">\
 				<span class="appframe-title"></span>\
 				<span class="appframe-subject"></span>\
@@ -19,6 +20,7 @@ wn.ui.AppFrame = Class.extend({
 		
 		if(title) 
 			this.set_title(title);
+			
 	},
 	title: function(txt) {
 		this.set_title(txt);
@@ -28,27 +30,36 @@ wn.ui.AppFrame = Class.extend({
 			document.title = txt;
 		this.$titlebar.find(".appframe-title").html(txt);
 	},
-	add_tab: function(tab_name, opacity, click) {		
-		var span = $('<span class="appframe-tab"></span>')
-			.html(tab_name).insertAfter(this.$titlebar.find(".close"));
-		opacity && span.css("opacity", opacity);
-		click && span.click(click);
-		return span		
+	clear_breadcrumbs: function() {
+		this.$w.find(".appframe-breadcrumb").empty();
 	},
-	
-	remove_tabs: function() {
-		this.$w.find(".appframe-tab").remove();
+	add_breadcrumb: function(icon, link, title) {
+		if(link) {
+			$(repl("<span><a href='#%(link)s' title='%(title)s'><i class='%(icon)s'></i>\
+				</a></span>", {
+				icon: icon,
+				link: link,
+				title: title
+			})).appendTo(this.$w.find(".appframe-breadcrumb"));			
+		} else {
+			$(repl("<span><i class='%(icon)s'></i></span>", {
+				icon: icon,
+			})).appendTo(this.$w.find(".appframe-breadcrumb"));			
+		}
 	},
-	
-	add_module_tab: function(module) {
-		if(!erpnext.modules[module]) return;
-		this.add_tab('<span class="small-module-icons small-module-icons-'+
-			module.toLowerCase()+'"></span>'+' <span>'
-			+ wn._(module) + "</span>", 0.7, function() {
-				wn.set_route(erpnext.modules[module]);
-		});	
+	add_home_breadcrumb: function() {
+		this.add_breadcrumb("icon-home", wn.home_page, "Home");
 	},
-		
+	add_list_breadcrumb: function(doctype) {
+		this.add_breadcrumb("icon-list", "List/" + encodeURIComponent(doctype), doctype + " List");
+	},
+	add_module_breadcrumb: function(module) {
+		var module_info = wn.modules[module];
+		if(module_info) {
+			this.add_breadcrumb(module_info.icon, module_info.link,
+				module_info.label || module);
+		}
+	},
 	add_button: function(label, click, icon) {
 		this.add_toolbar();
 		args = { label: label, icon:'' };
