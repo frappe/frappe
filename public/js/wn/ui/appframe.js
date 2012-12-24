@@ -2,7 +2,7 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div></div>').appendTo(parent);
+		this.$w = $('<div></div>').prependTo(parent);
 				
 		this.$titlebar = $('<div class="appframe-titlebar">\
 			<span class="appframe-breadcrumb">\

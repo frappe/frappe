@@ -64,6 +64,28 @@ $.extend(wn.user, {
 			}			
 		}
 	},
+	get_desktop_items: function() {
+		var user_list = wn.user.get_default("_desktop_items");
+		if(user_list && user_list.length)
+			var modules_list = user_list;
+		else
+			try {
+				var modules_list = JSON.parse(wn.boot.modules_list);
+			} catch(e) {
+				// ?
+			}
+		
+		if(modules_list) {
+			// add missing modules - they will be hidden anyways by the view
+			$.each(wn.modules, function(m, data) {
+				if(modules_list.indexOf(m)==-1) {
+					modules_list.append(m);
+				}
+			});
+		} else
+			modules_list = keys(wn.modules);
+		return modules_list;
+	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	}
