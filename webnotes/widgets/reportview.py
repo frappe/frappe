@@ -317,6 +317,7 @@ def delete_items():
 				dt_obj.on_trash()
 			delete_doc(doctype, d)
 		except Exception, e:
+			webnotes.errprint(webnotes.getTraceback())
 			pass
 		
 @webnotes.whitelist()
