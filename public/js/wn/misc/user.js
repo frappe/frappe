@@ -72,10 +72,18 @@ $.extend(wn.user, {
 			try {
 				var modules_list = JSON.parse(wn.boot.modules_list);
 			} catch(e) {
-				
+				// ?
 			}
 		
-		if(!modules_list) modules_list = keys(wn.modules);
+		if(modules_list) {
+			// add missing modules - they will be hidden anyways by the view
+			$.each(wn.modules, function(m, data) {
+				if(modules_list.indexOf(m)==-1) {
+					modules_list.append(m);
+				}
+			});
+		} else
+			modules_list = keys(wn.modules);
 		return modules_list;
 	},
 	is_report_manager: function() {
