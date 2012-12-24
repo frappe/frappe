@@ -164,7 +164,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 		return
 
 	# permission
-	if not webnotes.has_permission(doctype, "cancel"):
+	if webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
 		webnotes.msgprint("User not allowed to delete.", raise_exception=1)
 
 	tablefields = webnotes.model.meta.get_table_fields(doctype)
