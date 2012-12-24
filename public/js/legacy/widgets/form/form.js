@@ -926,6 +926,9 @@ _f.Frm.prototype.save = function(save_action, callback, btn) {
 	doclist.save(save_action || "Save", function(r) {
 		if(!r.exc) {
 			me.refresh();
+			if(save_action==="Save") {
+				me.runclientscript("after_save", me.doctype, me.docname);
+			}
 		}
 		callback && callback(r);
 	}, btn);
@@ -951,8 +954,8 @@ _f.Frm.prototype.savecancel = function(btn) {
 		doclist.cancel(function(r) {
 			if(!r.exc) {
 				me.refresh();
+				me.runclientscript("after_cancel", me.doctype, me.docname);
 			}
-			me.runclientscript("after_cancel", me.doctype, me.docname);
 		}, btn);
 	});
 }
