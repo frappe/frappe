@@ -97,7 +97,7 @@ class DocType:
 			
 				# Add a row in target table in 'To DocType' and returns obj
 				if t['to_table'] != self.doc.to_doctype:
-					to_doc_obj = addchild(to_doc, t['to_field'], t['to_table'], 1, doclist)
+					to_doc_obj = addchild(to_doc, t['to_field'], t['to_table'], doclist)
 				else:
 					to_doc_obj = to_doc
 

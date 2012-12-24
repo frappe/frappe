@@ -126,7 +126,7 @@ class DocType:
 			temp_doclist = webnotes.model.doctype.get(self.doc.name)
 			if 'file_list' not in [d.fieldname for d in temp_doclist if \
 					d.doctype=='DocField']:
-				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)
+				new = self.doc.addchild('fields', 'DocField', self.doclist)
 				new.label = 'File List'
 				new.fieldtype = 'Text'
 				new.fieldname = 'file_list'
@@ -151,7 +151,7 @@ class DocType:
 			max_idx = max_idx and max_idx or 0
 			if 'amended_from' not in [d.fieldname for d in temp_doclist if \
 					d.doctype=='DocField']:
-				new = self.doc.addchild('fields', 'DocField', 1, self.doclist)
+				new = self.doc.addchild('fields', 'DocField', self.doclist)
 				new.label = 'Amended From'
 				new.fieldtype = 'Link'
 				new.fieldname = 'amended_from'

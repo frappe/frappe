@@ -78,7 +78,8 @@ class DocType:
 
 			for d in self.get_ref_doclist():
 				if d.doctype=='DocField':
-					new = addchild(self.doc, 'fields', 'Customize Form Field', 1, self.doclist)
+					new = addchild(self.doc, 'fields', 'Customize Form Field', 
+						self.doclist)
 					self.set(
 						{
 							'list': self.docfield_properties,

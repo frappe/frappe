@@ -180,7 +180,7 @@ def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfie
 	l = []
 	data = webnotes.model.doc.getchildren(src.name, srctype, srcfield)
 	for d in data:
-		newrow = webnotes.model.doc.addchild(tar, tarfield, tartype, local = 1)
+		newrow = webnotes.model.doc.addchild(tar, tarfield, tartype)
 		newrow.idx = d.idx
 	
 		for i in range(len(srcfields)):
