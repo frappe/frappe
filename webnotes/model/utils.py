@@ -239,7 +239,7 @@ def check_if_doc_is_linked(dt, dn):
 				# this condition ensures that it allows deletion when child table field references parent
 				
 				item = sql("select name, parent, parenttype from `tab%s` where `%s`='%s' and docstatus!=2 and (ifnull(parent, '')='' or `%s`!=`parent`) \
-					limit 1" % (link_dt, link_field, dn, link_field), debug=1)
+					limit 1" % (link_dt, link_field, dn, link_field))
 
 			except Exception, e:
 				if e.args[0]==1146: pass

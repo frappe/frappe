@@ -59,19 +59,3 @@ wn.views.Container = Class.extend({
 		return this.page;
 	}
 });
-
-wn.views.add_module_btn = function(parent, module) {
-	$(parent).append(
-		repl('<span class="label" style="margin-right: 8px; cursor: pointer;"\
-					onclick="wn.set_route(\'%(module_small)s-home\')">\
-					<i class="icon-home icon-white"></i> %(module)s Home\
-				</span>', {module: module, module_small: module.toLowerCase()}));	
-}
-
-wn.views.add_list_btn = function(parent, doctype) {
-	$(parent).append(
-		repl('<span class="label" style="margin-right: 8px; cursor: pointer;"\
-					onclick="wn.set_route(\'List\', \'%(doctype)s\')">\
-					<i class="icon-list icon-white"></i> %(doctype)s List\
-				</span>', {doctype: doctype}));	
-}

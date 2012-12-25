@@ -459,15 +459,8 @@ _f.Frm.prototype.refresh_header = function() {
 		set_title(this.meta.issingle ? this.doctype : this.docname);
 	}	
 	
-	// form title
-	//this.page_layout.main_head.innerHTML = '<h2>'+this.docname+'</h2>';
-
 	// show / hide buttons
-	if(this.frm_head)this.frm_head.refresh();
-	
-	// add to recent
-	if(wn.ui.toolbar.recent) 
-		wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);	
+	if(this.frm_head)this.frm_head.refresh();	
 }
 
 _f.Frm.prototype.check_doc_perm = function() {

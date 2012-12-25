@@ -25,10 +25,11 @@ wn.ui.AppFrame = Class.extend({
 	title: function(txt) {
 		this.set_title(txt);
 	},
-	set_title: function(txt) {
+	set_title: function(txt, full_text) {
 		if(this.set_document_title) 
 			document.title = txt;
-		this.$titlebar.find(".appframe-title").html(txt);
+		this.$titlebar.find(".appframe-title").html(txt)
+			.attr("title", full_text || txt);
 	},
 	clear_breadcrumbs: function() {
 		this.$w.find(".appframe-breadcrumb").empty();

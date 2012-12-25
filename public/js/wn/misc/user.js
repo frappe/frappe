@@ -65,16 +65,11 @@ $.extend(wn.user, {
 		}
 	},
 	get_desktop_items: function() {
+		// get user sequence preference
 		var user_list = wn.user.get_default("_desktop_items");
 		if(user_list && user_list.length)
 			var modules_list = user_list;
-		else
-			try {
-				var modules_list = JSON.parse(wn.boot.modules_list);
-			} catch(e) {
-				// ?
-			}
-		
+
 		if(modules_list) {
 			// add missing modules - they will be hidden anyways by the view
 			$.each(wn.modules, function(m, data) {
@@ -83,7 +78,20 @@ $.extend(wn.user, {
 				}
 			});
 		} else
+			// all modules
 			modules_list = keys(wn.modules);
+
+		// filter hidden modules
+		if(wn.boot.modules_list) {
+			var allowed_list = JSON.parse(wn.boot.modules_list);
+			if(modules_list) {
+				var modules_list = $.map(modules_list, function(m) {
+					if(allowed_list.indexOf(m)!=-1) return m; else return null;
+				});
+			} else {
+				var modules_list = allowed_list;
+			}
+		}	
 		return modules_list;
 	},
 	is_report_manager: function() {

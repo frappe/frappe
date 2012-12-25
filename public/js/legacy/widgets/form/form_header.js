@@ -42,7 +42,11 @@ _f.FrmHeader = Class.extend({
 		this.appframe.add_breadcrumb("icon-file");
 	},
 	refresh: function() {
-		this.appframe.set_title(this.frm.docname);
+		var title = this.frm.docname;
+		if(title.length > 30) {
+			title = title.substr(0,30) + "...";
+		}
+		this.appframe.set_title(title, this.frm.docname);
 		this.refresh_labels();
 		this.refresh_toolbar();
 		this.refresh_timestamps();
