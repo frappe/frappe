@@ -40,8 +40,10 @@ wn.print.Table = Class.extend({
 		this.make();
 	},
 	get_columns: function() {
+		var perms = wn.perm.get_perm(this.doctype, this.docname);
 		return ['Sr'].concat($.map(wn.meta.docfield_list[this.tabletype], function(df) {
-			return cint(df.print_hide) ? null : df.fieldname;
+			return (cint(df.print_hide) || !(perms[df.permlevel] && 
+				perms[df.permlevel][READ])) ? null : df.fieldname;
 		}));
 	},
 	get_data: function() {

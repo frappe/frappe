@@ -83,21 +83,23 @@ _f.FormGrid.prototype.make_tbar_link = function(parent, label, fn, icon) {
 }
 
 _f.FormGrid.prototype.make_columns = function() {
-	var gl = wn.meta.docfield_list[this.field.df.options];
-
-	if(!gl) {
-		alert('Table details not found "'+this.field.df.options+'"');
-	}
-
-	gl.sort(function(a,b) { return a.idx - b.idx});
-
 	var p = this.field.perm;
-	for(var i=0;i<gl.length;i++) {
-		if(p[this.field.df.permlevel] && p[this.field.df.permlevel][READ]) { // if read
+	if(p[this.field.df.permlevel] && p[this.field.df.permlevel][READ]) { // if read
+		var gl = wn.meta.docfield_list[this.field.df.options];
+
+		if(!gl) {
+			alert('Table details not found "'+this.field.df.options+'"');
+		}
+
+		gl.sort(function(a,b) { return a.idx - b.idx});
+		
+		for(var i=0;i<gl.length;i++) {
 			this.insert_column(this.field.df.options, gl[i].fieldname, gl[i].fieldtype, gl[i].label, gl[i].width, gl[i].options, this.field.perm, gl[i].reqd);
+
 			// hide it even if it is hidden at start..
 			// so that it can be brought back once
-			if(gl[i].hidden) {
+			// also, hide column if no permissions found
+			if(gl[i].hidden || !(p[gl[i].permlevel] && p[gl[i].permlevel][READ])) {
 				this.set_column_disp(gl[i].fieldname, false);
 			}
 		}

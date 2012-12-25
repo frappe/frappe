@@ -74,7 +74,7 @@ $.extend(wn.user, {
 			// add missing modules - they will be hidden anyways by the view
 			$.each(wn.modules, function(m, data) {
 				if(modules_list.indexOf(m)==-1) {
-					modules_list.append(m);
+					modules_list.push(m);
 				}
 			});
 		} else

@@ -86,7 +86,7 @@ class ModelWrapper:
 				docs[i] = Document(fielddata=d)
 		
 		self.docs = self.doclist = webnotes.doclist(docs)
-		self.doc, self.children = docs[0], webnotes.doclist(docs[1:])
+		self.doc, self.children = self.doclist[0], self.doclist[1:]
 		if self.obj:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc
@@ -225,9 +225,7 @@ class ModelWrapper:
 		"""
 		child_map = {}
 		for d in self.children:
-			if (d.fields.has_key('parent') and d.fields.get('parent')) or \
-					(d.fields.has_key("parentfield") and d.fields.get("parentfield")):
-				# if d.parent:
+			if d.fields.get("parent") or d.fields.get("parentfield"):
 				d.parent = self.doc.name # rename if reqd
 				d.parenttype = self.doc.doctype
 				

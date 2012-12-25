@@ -449,6 +449,9 @@ class Document:
 				make_autoname, keep_timestamps = keep_timestamps)
 			if r: 
 				return r
+
+		elif not webnotes.conn.exists(self.doctype, self.name):
+			webnotes.msgprint("""This document was updated before your change. Please refresh before saving.""", raise_exception=1)
 				
 		# save the values
 		self._update_values(res.get('issingle'), 
@@ -575,7 +578,7 @@ class Document:
 		
 		return webnotes.doclist(doclist)
 
-	def addchild(self, fieldname, childtype = '', local=0, doclist=None):
+	def addchild(self, fieldname, childtype = '', doclist=None):
 		"""
 	      Returns a child record of the give `childtype`.
 	      
@@ -590,12 +593,8 @@ class Document:
 		d.docstatus = 0;
 		d.name = ''
 		d.owner = webnotes.session['user']
+		d.fields['__islocal'] = 1 # for Client to identify unsaved doc
 		
-		if local:
-			d.fields['__islocal'] = 1 # for Client to identify unsaved doc
-		else: 
-			d.save(new=1)
-	
 		if doclist != None:
 			doclist.append(d)
 	
@@ -612,7 +611,7 @@ class Document:
 		return ret
 			
 		
-def addchild(parent, fieldname, childtype = '', local=0, doclist=None):
+def addchild(parent, fieldname, childtype = '', doclist=None):
 	"""
 	
    Create a child record to the parent doc.
@@ -620,11 +619,11 @@ def addchild(parent, fieldname, childtype = '', local=0, doclist=None):
    Example::
    
      c = Document('Contact','ABC')
-     d = addchild(c, 'contact_updates', 'Contact Update', local = 1)
+     d = addchild(c, 'contact_updates', 'Contact Update')
      d.last_updated = 'Phone call'
      d.save(1)
 	"""
-	return parent.addchild(fieldname, childtype, local, doclist)
+	return parent.addchild(fieldname, childtype, doclist)
 			
 # Naming
 # ------

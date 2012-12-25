@@ -248,7 +248,7 @@ def check_if_doc_is_linked(dt, dn):
 				webnotes.msgprint("Cannot delete %s <b>%s</b> because it is linked in %s <b>%s</b>" % (dt, dn, item[0][2] or link_dt, item[0][1] or item[0][0]), raise_exception=1)
 
 
-def round_doc(doc, precision_map):
+def round_floats_in_doc(doc, precision_map):
 	from webnotes.utils import flt
 	for fieldname, precision in precision_map.items():
 		doc.fields[fieldname] = flt(doc.fields.get(fieldname), precision)
