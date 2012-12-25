@@ -53,6 +53,7 @@ def get_data():
 			out[d]["links"] = args["links"]
 	
 	for d in out:
+		unused_links = []
 		if out[d].get("links"):
 			for link_key in out[d]["links"]:
 				link = out[d]["links"][link_key]
@@ -72,6 +73,11 @@ def get_data():
 						# replace by id
 						if row[col_idx]:
 							row[col_idx] = link_map.get(row[col_idx])
+				else:
+					unused_links.append(link_key)
+	
+		for link in unused_links:
+			del out[d]["links"][link]
 	
 	missing = {}
 	# don't send everything

@@ -346,6 +346,8 @@ wn.views.GridReport = Class.extend({
 			this.init_filter_values();
 		}
 		this.set_default_values();
+		
+		$(this.wrapper).trigger('apply_filters_from_route');
 	},
 	set_route: function() {
 		wn.set_route(wn.container.page.page_name, $.map(this.filter_inputs, function(v) {
@@ -802,4 +804,12 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 			d.indent = indent;
 		});
 	},
+	trigger_refresh_on_change: function(filters) {
+		var me = this;
+		$.each(filters, function(i, f) {
+			me.filter_inputs[f] && me.filter_inputs[f].change(function() {
+				me.filter_inputs.refresh.click()
+			});
+		});
+	}
 });
