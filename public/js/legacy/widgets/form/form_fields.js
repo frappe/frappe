@@ -288,7 +288,7 @@ _f.CodeField.prototype.make_input = function() {
 			valid_elements : "@[id|class|style|title|dir<ltr?rtl|lang|xml::lang|onclick|ondblclick|"
 			+ "onmousedown|onmouseup|onmouseover|onmousemove|onmouseout|onkeypress|"
 			+ "onkeydown|onkeyup],a[rel|rev|charset|hreflang|tabindex|accesskey|type|"
-			+ "name|href|target|title|class|onfocus|onblur],strong/b,em/i,strike,u,"
+			+ "name|href|target|title|class|onfocus|onblur|data-slide],strong/b,em/i,strike,u,"
 			+ "#p,-ol[type|compact],-ul[type|compact],-li,br,img[longdesc|usemap|"
 			+ "src|border|alt=|title|hspace|vspace|width|height|align],-sub,-sup,"
 			+ "-blockquote,-table[border=0|cellspacing|cellpadding|width|frame|rules|"

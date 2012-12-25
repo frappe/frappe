@@ -445,13 +445,15 @@ class Document:
 
 		# if required, make new
 		if new or (not new and self.fields.get('__islocal')) and (not res.get('issingle')):
+			# new
 			r = self.insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
 				make_autoname, keep_timestamps = keep_timestamps)
 			if r: 
 				return r
 
-		elif not webnotes.conn.exists(self.doctype, self.name):
-			webnotes.msgprint("""This document was updated before your change. Please refresh before saving.""", raise_exception=1)
+		else:
+			if not res.get('issingle') and not webnotes.conn.exists(self.doctype, self.name):
+				webnotes.msgprint("""This document was updated before your change. Please refresh before saving.""", raise_exception=1)
 				
 		# save the values
 		self._update_values(res.get('issingle'), 
