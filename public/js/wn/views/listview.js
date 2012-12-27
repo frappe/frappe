@@ -39,7 +39,8 @@ wn.views.ListView = Class.extend({
 			opts.content(parent, data, me);
 		}
 		else if(opts.content=='name') {
-			$(parent).append(repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', data));
+			$(parent).append(repl('<a href="#Form/%(doctype)s/%(name)s" \
+				title=\"%(name)s\">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
 			$(parent).append(wn.avatar(data.owner, false, "Created by: " 
@@ -77,8 +78,14 @@ wn.views.ListView = Class.extend({
 			if(opts.type=="date") {
 				data[opts.content] = wn.datetime.str_to_user(data[opts.content])
 			}
+
 			$(parent).append(repl('<span title="%(title)s"> %(content)s</span>', {
-				"title": opts.title || opts.content, "content": data[opts.content]}));
+				"title": (opts.title || opts.content)
+					+ (data[opts.content].indexOf("<")===-1
+						? ": " + data[opts.content]
+						: ""),
+				"content": data[opts.content]
+			}));
 		}
 		
 	},
