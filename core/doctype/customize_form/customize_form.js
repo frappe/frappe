@@ -49,8 +49,10 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 				if(r.exc) {
 					//msgprint(r.exc);
 				} else {
-					if(r.server_messages) { cur_frm.cscript.doc_type(doc, doc.doctype, doc.name); }
-				cur_frm.frm_head.set_label(['Updated', 'label-success']);				
+					if(r.server_messages) { 
+						cur_frm.cscript.doc_type(doc, doc.doctype, doc.name);
+						cur_frm.frm_head.set_label(['Updated', 'label-success']);
+					}	
 				}
 			});	
 		}

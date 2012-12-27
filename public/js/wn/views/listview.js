@@ -55,14 +55,16 @@ wn.views.ListView = Class.extend({
 			$(parent).find('input').data('name', data.name);			
 		}
 		else if(opts.content=='docstatus') {
-			$(parent).append(repl('<span class="docstatus"><i class="%(docstatus_icon)s" \
+			$(parent).append(repl('<span class="docstatus"> \
+				<i class="%(docstatus_icon)s" \
 				title="%(docstatus_title)s"></i></span>', data));			
 		}
 		else if(opts.content=='tags') {
 			this.add_user_tags(parent, data);
 		}
 		else if(opts.content=='modified') {
-			$(parent).append(data.when);
+			$(parent).append(data.when)
+				.attr("title", "Last Modified On: " + data.when);
 		}
 		else if(opts.type=='bar-graph') {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
@@ -82,7 +84,7 @@ wn.views.ListView = Class.extend({
 			$(parent).append(repl('<span title="%(title)s"> %(content)s</span>', {
 				"title": (opts.title || opts.content)
 					+ (data[opts.content].indexOf("<")===-1
-						? ": " + data[opts.content]
+						? ": " + data[opts.content].replace(/\"/g, '&quot;')
 						: ""),
 				"content": data[opts.content]
 			}));
