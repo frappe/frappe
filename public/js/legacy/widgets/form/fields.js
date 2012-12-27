@@ -47,26 +47,30 @@ Field.prototype.make_body = function() {
 	else
 		this.wrapper = document.createElement((this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
 
+	$(this.wrapper).addClass("field-wrapper");
+	
 	this.label_area = $a(this.wrapper, 'div', '', 
 		{margin:'0px 0px 2px 0px', minHeight:'1em'});
 
+	var label_wrapper = this.label_area;
 	if(ischk && !this.in_grid) {
-		this.input_area = $a(this.label_area, 'span', '', {marginRight:'4px'});
-		this.disp_area = $a(this.label_area, 'span', '', {marginRight:'4px'});
+		var label_wrapper = $("<div style='margin-bottom: 9px'>").appendTo(this.label_area).get(0);
+		this.input_area = $a(label_wrapper, 'span', '', {marginRight:'4px'});
+		this.disp_area = $a(label_wrapper, 'span', '', {marginRight:'4px'});
 	}
 	
 	// label
-	if(this.with_label) {	
-		this.label_span = $a(this.label_area, 'span', 'small')
+	if(this.with_label) {
+			this.label_span = $a(label_wrapper, 'span', 'small')
 	
 		// error icon
 		this.label_icon = $('<i class="icon icon-warning-sign">').toggle(false)
-			.appendTo(this.label_area).css('margin-left','7px')
+			.appendTo(label_wrapper).css('margin-left','7px')
 			.attr("title", "This field is mandatory.");
 
 	} else {
-		this.label_span = $a(this.label_area, 'span', '', {marginRight:'4px'})
-		$dh(this.label_area);
+		this.label_span = $a(label_wrapper, 'span', '', {marginRight:'4px'})
+		$dh(label_wrapper);
 	}
 
 	// make the input areas
@@ -873,15 +877,12 @@ CheckField.prototype.validate = function(v) {
 	return v;
 }; 
 CheckField.prototype.onmake = function() {
-	this.checkimg = $a(this.disp_area, 'div');
-	var img = $a(this.checkimg, 'img');
-	img.src = 'lib/images/ui/tick.gif';
-	$dh(this.checkimg);
+	this.checkimg = $("<i class='icon-check'></i>").appendTo(this.disp_area);
 }
 
 CheckField.prototype.make_input = function() { var me = this;
 	this.input = $a_input(this.input_area,'checkbox');
-	$y(this.input, {width:"16px", border:'0px', margin:'2px'}); // no specs for checkbox
+	$y(this.input, {width:"16px", border:'0px', marginTop:'-2px'}); // no specs for checkbox
 	
 	$(this.input).click(function() {
 		me.set(this.checked?1:0);
@@ -900,8 +901,7 @@ CheckField.prototype.make_input = function() { var me = this;
 
 }
 CheckField.prototype.set_disp = function(val) {
-	if (val){ $ds(this.checkimg); } 
-	else { $dh(this.checkimg); }
+	this.checkimg.toggle(val);
 }
 
 // ======================================================================================

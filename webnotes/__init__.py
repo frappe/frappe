@@ -304,6 +304,10 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 def clear_perms(doctype):
 	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
+def reset_perms(doctype):
+	clear_perms(doctype)
+	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype)
+
 def reload_doc(module, dt=None, dn=None):
 	import webnotes.modules
 	return webnotes.modules.reload_doc(module, dt, dn)

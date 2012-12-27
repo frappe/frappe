@@ -96,7 +96,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div style="margin-bottom:9px" class="list-toolbar-wrapper">\
-					<div class="list-toolbar" style="display:inline-block; margin-right: 10px;">\
+					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 					</div>\
 					<div style="display:inline-block; width: 24px; margin-left: 4px">\
 						<img src="lib/images/ui/button-load.gif" \
@@ -133,10 +133,8 @@ wn.ui.Listing = Class.extend({
 		} else {
 			$button = $('<button class="btn"></button>')
 				.appendTo(this.$w.find('.list-toolbar'))
-			if(icon) {
-				$('<i>').addClass(icon).appendTo($button);
-			}
-			$button.html(label).click(click);
+				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
+				.click(click);
 			return $button
 		}
 	},
@@ -164,7 +162,7 @@ wn.ui.Listing = Class.extend({
 	
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button('Refresh', function() {
+			this.add_button('', function() {
 				me.run();
 			}, 'icon-refresh');
 			
