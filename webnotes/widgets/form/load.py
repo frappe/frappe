@@ -86,10 +86,9 @@ def load_single_doc(dt, dn, user):
 	"""load doc and call onload methods"""
 
 	if not dn: dn = dt
-	dl = webnotes.model.doc.get(dt, dn)
 
 	try:
-		doclist = webnotes.model_wrapper(dt, dn)
+		dl = webnotes.model_wrapper(dt, dn).doclist
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint('Error in script while loading')
