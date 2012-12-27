@@ -40,9 +40,11 @@ class ModelWrapper:
 		self.docs = []
 		self.obj = None
 		self.to_docstatus = 0
+		if isinstance(dt, basestring) and not dn:
+			dn = dt
 		if dt and dn:
 			self.load_from_db(dt, dn)
-		if isinstance(dt, list):
+		elif isinstance(dt, list):
 			self.set_doclist(dt)
 
 	def load_from_db(self, dt=None, dn=None, prefix='tab'):
@@ -65,6 +67,7 @@ class ModelWrapper:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
 		self.set_doclist(doclist)
+		self.run_method("onload")
 
 	def __iter__(self):
 		"""
@@ -200,7 +203,7 @@ class ModelWrapper:
 		if hasattr(self.obj, 'custom_' + method):
 			getattr(self.obj, 'custom_' + method)()
 
-		trigger(method, self.obj.doc)
+		notify(self.obj, method)
 		
 		self.set_doclist(self.obj.doclist)
 
@@ -315,18 +318,26 @@ def clone(source_wrapper):
 	return new_wrapper
 
 
-def trigger(method, doc):
-	"""trigger doctype events"""
+def notify(controller, caller_method):
 	try:
-		import startup.event_handlers
+		from startup.observers import observer_map
 	except ImportError:
 		return
 		
-	if hasattr(startup.event_handlers, method):
-		getattr(startup.event_handlers, method)(doc)
-		
-	if hasattr(startup.event_handlers, 'doclist_all'):
-		startup.event_handlers.doclist_all(doc, method)
+	doctype = controller.doc.doctype
+	
+	def call_observers(key):
+		if key in observer_map:
+			observer_list = observer_map[key]
+			if isinstance(observer_list, basestring):
+				observer_list = [observer_list]
+			for observer_method in observer_list:
+				webnotes.get_method(observer_method)(controller, caller_method)
+	
+	call_observers("*:*")
+	call_observers(doctype + ":*")
+	call_observers("*:" + caller_method)
+	call_observers(doctype + ":" + caller_method)
 
 # for bc
 def getlist(doclist, parentfield):

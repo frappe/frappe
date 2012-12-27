@@ -458,6 +458,9 @@ _f.Frm.prototype.refresh_header = function() {
 	if(!this.meta.in_dialog || this.in_form) {
 		set_title(this.meta.issingle ? this.doctype : this.docname);
 	}	
+
+	if(wn.ui.toolbar.recent)
+		wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);
 	
 	// show / hide buttons
 	if(this.frm_head)this.frm_head.refresh();	

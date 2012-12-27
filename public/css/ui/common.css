@@ -105,3 +105,11 @@ a {
 	-moz-box-sizing: border-box;
 	box-sizing: border-box;
 }
+
+.missing-image {
+	background-color: #eee;
+	padding: 40px;
+	width: 32px;
+	font-size: 32px;
+	color: #888;
+}

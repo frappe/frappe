@@ -16,6 +16,9 @@
 }
 .datainputcell { padding: 2px 0px; }
 
+.field-wrapper .help {
+	margin-top: -5px;
+}
 
 .help ol {
 	padding-left: 19px;
