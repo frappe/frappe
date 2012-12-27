@@ -37,6 +37,7 @@ class DocType:
 			webnotes.clear_cache(doctype=self.old_doc_type)		
 		if self.doc.doc_type:
 			webnotes.clear_cache(doctype=self.doc.doc_type)
+	
 	def on_trash(self):
 		if self.doc.doc_type:
 			webnotes.clear_cache(doctype=self.doc.doc_type)
