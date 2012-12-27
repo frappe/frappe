@@ -68,8 +68,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 	try:
 		log('Executing %s in %s' % (patchmodule or str(methodargs), webnotes.conn.cur_db_name))
 		if patchmodule:
-			patch = __import__(patchmodule, fromlist=True)
-			getattr(patch, 'execute')()
+			webnotes.get_method(patchmodule + ".execute")()
 			update_patch_log(patchmodule)
 		elif method:
 			method(**methodargs)

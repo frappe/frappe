@@ -29,7 +29,7 @@ wn.views.ListView = Class.extend({
 		// multiple content
 		if(opts.content.indexOf && opts.content.indexOf('+')!=-1) {
 			$.map(opts.content.split('+'), function(v) {
-				me.render_column(data, parent, {content:v});
+				me.render_column(data, parent, {content:v, title: opts.title});
 			});
 			return;
 		}
@@ -39,7 +39,8 @@ wn.views.ListView = Class.extend({
 			opts.content(parent, data, me);
 		}
 		else if(opts.content=='name') {
-			$(parent).append(repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', data));
+			$(parent).append(repl('<a href="#Form/%(doctype)s/%(name)s" \
+				title=\"%(name)s\">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
 			$(parent).append(wn.avatar(data.owner, false, "Created by: " 
@@ -54,14 +55,16 @@ wn.views.ListView = Class.extend({
 			$(parent).find('input').data('name', data.name);			
 		}
 		else if(opts.content=='docstatus') {
-			$(parent).append(repl('<span class="docstatus"><i class="%(docstatus_icon)s" \
+			$(parent).append(repl('<span class="docstatus"> \
+				<i class="%(docstatus_icon)s" \
 				title="%(docstatus_title)s"></i></span>', data));			
 		}
 		else if(opts.content=='tags') {
 			this.add_user_tags(parent, data);
 		}
 		else if(opts.content=='modified') {
-			$(parent).append(data.when);
+			$(parent).append(data.when)
+				.attr("title", "Last Modified On: " + data.when);
 		}
 		else if(opts.type=='bar-graph') {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
@@ -77,8 +80,14 @@ wn.views.ListView = Class.extend({
 			if(opts.type=="date") {
 				data[opts.content] = wn.datetime.str_to_user(data[opts.content])
 			}
+
 			$(parent).append(repl('<span title="%(title)s"> %(content)s</span>', {
-				"title": opts.title || opts.content, "content": data[opts.content]}));
+				"title": (opts.title || opts.content)
+					+ (data[opts.content].indexOf("<")===-1
+						? ": " + data[opts.content].replace(/\"/g, '&quot;')
+						: ""),
+				"content": data[opts.content]
+			}));
 		}
 		
 	},

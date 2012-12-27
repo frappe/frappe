@@ -114,13 +114,7 @@ def uploadfile():
 		else:
 			if webnotes.form_dict.get('method'):
 				m = webnotes.form_dict['method']
-				modulename = '.'.join(m.split('.')[:-1])
-				methodname = m.split('.')[-1]
-
-				__import__(modulename)
-				import sys
-				moduleobj = sys.modules[modulename]
-				ret = getattr(moduleobj, methodname)()
+				ret = webnotes.get_method(m)()
 	except Exception, e:
 		webnotes.msgprint(e)
 		webnotes.errprint(webnotes.utils.getTraceback())
@@ -219,11 +213,7 @@ def call(fn, args):
 def get_method(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
-		cmd_parts = cmd.split('.')
-		module_string = ".".join(cmd_parts[:-1])
-		fn_string = cmd_parts[-1]
-		module = __import__(module_string, fromlist=[module_string.split('.')[-1].encode('utf-8')])
-		method = getattr(module, fn_string)
+		method = webnotes.get_method(cmd)
 	else:
 		method = globals()[cmd]
 	return method

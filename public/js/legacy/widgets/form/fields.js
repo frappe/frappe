@@ -62,7 +62,9 @@ Field.prototype.make_body = function() {
 	// label
 	if(this.with_label) {
 			this.label_span = $a(label_wrapper, 'span', 'small')
-	
+			if(wn.boot && wn.boot.developer_mode)
+				$(this.label_span).attr("title", this.df.fieldname);
+					
 		// error icon
 		this.label_icon = $('<i class="icon icon-warning-sign">').toggle(false)
 			.appendTo(label_wrapper).css('margin-left','7px')

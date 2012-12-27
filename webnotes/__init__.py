@@ -319,7 +319,16 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 def insert(doclist):
 	import webnotes.model
 	return webnotes.model.insert(doclist)
-	
+
+def get_method(method_string):
+	modulename = '.'.join(method_string.split('.')[:-1])
+	methodname = method_string.split('.')[-1]
+
+	__import__(modulename)
+	import sys
+	moduleobj = sys.modules[modulename]
+	return getattr(moduleobj, methodname)
+
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""
 	hpl = conn.sql("""select home_page 
