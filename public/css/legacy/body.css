@@ -118,15 +118,6 @@ div.loading_div {
 	border: 1px solid #FF4;
 }
 
-div.std-footer {
-	margin: 13px -15px;
-	border-top: 1px solid #AAA;
-	padding: 13px;
-}
-
-div.std-footer-item {
-	margin: 0px 13px 13px 0px;
-}
 
 .shadow {
 	-moz-box-shadow: 0px 2px 2px #888;

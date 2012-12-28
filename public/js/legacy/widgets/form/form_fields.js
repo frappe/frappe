@@ -166,7 +166,10 @@ _f.ImageField.prototype.onrefresh = function() {
 	$(this.wrapper).find("img").remove();
 	if(this.df.options && this.frm.doc[this.df.options]) {
 		$("<img src='"+wn.utils.get_file_link(this.frm.doc[this.df.options])+"' style='max-width: 70%;'>")
-			.appendTo(this.wrapper);
+			.appendTo($(this.wrapper).empty());
+	} else {
+		$("<div class='missing-image'><i class='icon-camera'></i></div>")
+			.appendTo($(this.wrapper).empty())
 	}
 }
 

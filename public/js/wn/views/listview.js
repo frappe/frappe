@@ -29,7 +29,7 @@ wn.views.ListView = Class.extend({
 		// multiple content
 		if(opts.content.indexOf && opts.content.indexOf('+')!=-1) {
 			$.map(opts.content.split('+'), function(v) {
-				me.render_column(data, parent, {content:v});
+				me.render_column(data, parent, {content:v, title: opts.title});
 			});
 			return;
 		}

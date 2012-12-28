@@ -156,6 +156,8 @@ _f.FormGrid.prototype.insert_row = function() {
 	// refresh
 	this.refresh();
 	this.cell_select('', row_idx, ci);
+
+	if(this.onrowadd) this.onrowadd(cur_frm.doc, d.doctype, d.name);
 }
 
 _f.FormGrid.prototype.new_row_doc = function() {
