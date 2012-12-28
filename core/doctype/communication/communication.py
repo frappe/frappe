@@ -17,6 +17,12 @@
 from __future__ import unicode_literals
 import webnotes
 
+from webnotes.utils import cstr, validate_email_add
+from webnotes.model.doc import Document, addchild
+from webnotes import session, msgprint
+
+sql = webnotes.conn.sql
+
 @webnotes.whitelist()
 def get_customer_supplier(args=None):
 	"""
@@ -117,7 +123,36 @@ def make_lead(d, real_name, email_id):
 	lead.save(1)
 	return lead.name
 
-class DocType():
+from utilities.transaction_base import TransactionBase
+
+class DocType(TransactionBase):
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
+
+	def on_update(self):
+		if self.doc.next_communication_date:
+			self.add_calendar_event()
+		
+	def add_calendar_event(self):
+			# delete any earlier event by this lead and its users entry
+		event=sql("select name from tabEvent where ref_type='Communication' and ref_name=%s",self.doc.name)
+		if event:
+			sql("delete from `tabEvent User` where parent=%s", event[0])
+		sql("delete from tabEvent where ref_type='Communication' and ref_name=%s", self.doc.name)
+		# create new event
+		ev = Document('Event')
+		ev.owner = self.doc.user
+		ev.description = ('Follow ' + cstr(self.doc.name)) + \
+			(self.doc.user and ('. By : ' + cstr(self.doc.user)) or '') + \
+			(self.doc.subject and ('.To Discuss : ' + cstr(self.doc.subject)) or '')
+		ev.event_date = self.doc.next_communication_date
+		ev.event_hour = '10:00'
+		ev.event_type = 'Private'
+		ev.ref_type = 'Communication'
+		ev.ref_name = self.doc.name
+		ev.save(1)
+		
+		event_user = addchild(ev, 'event_individuals', 'Event User')
+		event_user.person = self.doc.user
+		event_user.save()
