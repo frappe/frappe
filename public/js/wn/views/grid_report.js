@@ -309,7 +309,6 @@ wn.views.GridReport = Class.extend({
 		</div>').appendTo(this.wrapper);
 		
 		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
-		this.wrapper.find(".grid-report-print").click(function() { msgprint("Coming Soon"); return false; });
 		
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \
