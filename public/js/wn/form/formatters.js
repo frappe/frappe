@@ -64,7 +64,7 @@ wn.form.formatters = {
 		return wn.form.formatters.Text(value);
 	},
 	WorkflowState: function(value) {
-		workflow_state = wn.meta.get("Workflow State", value)[0];
+		workflow_state = wn.model.get("Workflow State", value)[0];
 		if(workflow_state) {
 			return repl("<span class='label label-%(style)s' \
 				data-workflow-state='%(value)s'\

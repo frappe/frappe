@@ -69,7 +69,7 @@ wn.ui.form.States = Class.extend({
 
 			// set the style
 			this.$wrapper.find(".btn").removeClass()
-				.addClass("btn btn-small dropdown-toggle")
+				.addClass("btn dropdown-toggle")
 				.addClass("btn-" + state_doc.style.toLowerCase());
 			
 			// show actions from that state

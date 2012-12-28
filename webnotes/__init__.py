@@ -260,6 +260,8 @@ def get_roles(user=None, with_standard=True):
 
 def has_permission(doctype, ptype="read"):
 	"""check if user has permission"""
+	if session.user=="Administrator": 
+		return True
 	if conn.get_value("DocType", doctype, "istable"):
 		return True
 	return conn.sql("""select name from tabDocPerm p
