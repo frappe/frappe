@@ -184,12 +184,17 @@ class ModelWrapper:
 		
 	def update_parent_info(self):
 		idx_map = {}
+		is_local = cint(self.doc.fields.get("__islocal"))
+		
 		for i, d in enumerate(self.doclist[1:]):
 			if d.parentfield:
 				d.parenttype = self.doc.doctype
 				d.parent = self.doc.name
 			if not d.idx:
 				d.idx = idx_map.setdefault(d.parentfield, 0) + 1
+			if is_local:
+				# if parent is new, all children should be new
+				d.fields["__islocal"] = 1
 			
 			idx_map[d.parentfield] = d.idx
 
