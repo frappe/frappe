@@ -22,38 +22,28 @@
 
 from __future__ import unicode_literals
 import webnotes
-import json
 
-@webnotes.whitelist()
-def insert(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+workflow_names = {}
+def get_workflow_name(doctype):
+	global workflow_names
+	if not doctype in workflow_names:
+		workflow_name = webnotes.conn.get_value("Workflow", {"document_type": doctype, 
+			"is_active": "1"}, "name")
 	
-	doclist[0]["__islocal"] = 1
-	return save(doclist)
-
-@webnotes.whitelist()
-def save(doclist):
-	"""insert or update from form query"""
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+		# no active? get default workflow
+		if not workflow_name:
+			workflow_name = webnotes.conn.get_value("Workflow", {"document_type": doctype}, 
+			"name")
+				
+		workflow_names[doctype] = workflow_name
+			
+	return workflow_names[doctype]
+	
+def get_default_state(doctype):
+	workflow_name = get_workflow_name(doctype)
+	return webnotes.conn.get_value("Workflow Document State", {"parent":doctype,
+		"idx":1}, "state")
 		
-	if not webnotes.has_permission(doclist[0]["doctype"], "write"):
-		webnotes.msgprint("No Write Permission", raise_exception=True)
-
-	doclistobj = webnotes.model_wrapper(doclist)
-	doclistobj.save()
-	
-	return [d.fields for d in doclist]
-	
-@webnotes.whitelist()
-def set_default(key, value, parent=None):
-	"""set a user default value"""
-	webnotes.conn.set_default(key, value, parent or webnotes.session.user)
-	webnotes.clear_cache(user=webnotes.session.user)
-
-@webnotes.whitelist()
-def make_width_property_setter():
-	doclist = json.loads(webnotes.form_dict.doclist)
-	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		webnotes.model_wrapper(doclist).save()
+def get_state_fieldname(doctype):
+	workflow_name = get_workflow_name(doctype)
+	return webnotes.conn.get_value("Workflow", workflow_name, "workflow_state_field")

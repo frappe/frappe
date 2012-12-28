@@ -1,0 +1,75 @@
+[
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-12-28 10:49:56", 
+  "modified_by": "Administrator", 
+  "modified": "2012-12-28 14:06:23"
+ }, 
+ {
+  "istable": 1, 
+  "description": "Represents the states allowed in one document and role assigned to change the state.", 
+  "doctype": "DocType", 
+  "module": "Core", 
+  "document_type": "Master", 
+  "name": "__common__"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Workflow Document State", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "name": "Workflow Document State", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "State", 
+  "width": "160px", 
+  "fieldname": "state", 
+  "fieldtype": "Link", 
+  "reqd": 1, 
+  "options": "Workflow State"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Doc Status", 
+  "width": "80px", 
+  "fieldname": "doc_status", 
+  "fieldtype": "Select", 
+  "options": "0\n1\n2"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Update Field", 
+  "fieldname": "update_field", 
+  "fieldtype": "Select"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Update Value", 
+  "fieldname": "update_value", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Only Allow Edit For", 
+  "width": "160px", 
+  "fieldname": "allow_edit", 
+  "fieldtype": "Link", 
+  "reqd": 1, 
+  "options": "Role"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Message", 
+  "width": "160px", 
+  "fieldname": "message", 
+  "fieldtype": "Text", 
+  "reqd": 0
+ }
+]

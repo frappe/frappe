@@ -1,0 +1,109 @@
+[
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2012-12-28 10:49:55", 
+  "modified_by": "Administrator", 
+  "modified": "2012-12-28 11:26:45"
+ }, 
+ {
+  "autoname": "field:workflow_name", 
+  "description": "Defines workflow states and rules for a document.", 
+  "doctype": "DocType", 
+  "module": "Core", 
+  "document_type": "Transaction", 
+  "name": "__common__"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Workflow", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "parent": "Workflow", 
+  "read": 1, 
+  "cancel": 1, 
+  "name": "__common__", 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "role": "System Manager", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Workflow", 
+  "doctype": "DocType"
+ }, 
+ {
+  "read_only": 0, 
+  "doctype": "DocField", 
+  "label": "Workflow Name", 
+  "fieldname": "workflow_name", 
+  "fieldtype": "Data", 
+  "reqd": 1
+ }, 
+ {
+  "description": "DocType on which this Workflow is applicable.", 
+  "doctype": "DocField", 
+  "label": "Document Type", 
+  "fieldname": "document_type", 
+  "fieldtype": "Link", 
+  "reqd": 1, 
+  "options": "DocType"
+ }, 
+ {
+  "description": "If checked, all other workflows become inactive.", 
+  "doctype": "DocField", 
+  "label": "Is Active", 
+  "fieldname": "is_active", 
+  "fieldtype": "Check"
+ }, 
+ {
+  "description": "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.", 
+  "doctype": "DocField", 
+  "label": "States", 
+  "fieldname": "states", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "description": "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"", 
+  "doctype": "DocField", 
+  "label": "Workflow Document States", 
+  "fieldname": "workflow_document_states", 
+  "fieldtype": "Table", 
+  "reqd": 1, 
+  "options": "Workflow Document State"
+ }, 
+ {
+  "description": "Rules for how states are transitions, like next state and which role is allowed to change state etc.", 
+  "doctype": "DocField", 
+  "label": "Transition Rules", 
+  "fieldname": "transition_rules", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "description": "Rules defining transition of state in the workflow.", 
+  "doctype": "DocField", 
+  "label": "Workflow Transitions", 
+  "fieldname": "workflow_transitions", 
+  "fieldtype": "Table", 
+  "reqd": 1, 
+  "options": "Workflow Transition"
+ }, 
+ {
+  "description": "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)", 
+  "default": "workflow_state", 
+  "doctype": "DocField", 
+  "label": "Workflow State Field", 
+  "fieldname": "workflow_state_field", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

@@ -39,6 +39,7 @@ wn.PageLayout = function(args) {
 	this.main 			= $a(this.wrapper, 'div', 'layout-main-section');
 	this.sidebar_area 	= $a(this.wrapper, 'div', 'layout-side-section');
 	$a(this.wrapper, 'div', '', {clear:'both'});
+	this.body_header	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
 	this.footer 		= $a(this.main, 'div');
 	if(this.heading) {

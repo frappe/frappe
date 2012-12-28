@@ -2,26 +2,17 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-05-25 14:30:53", 
+  "creation": "2012-09-10 14:50:29", 
   "modified_by": "Administrator", 
-  "modified": "2012-09-10 12:14:04"
+  "modified": "2012-12-28 11:54:12"
  }, 
  {
-  "section_style": "Simple", 
+  "autoname": "eval:doc.dt+\"-\"+doc.fieldname", 
   "description": "Adds a custom field to a DocType", 
-  "tag_fields": "dt,fieldtype", 
   "search_fields": "dt,label,fieldtype,options", 
   "module": "Core", 
   "doctype": "DocType", 
-  "allow_trash": 1, 
-  "server_code_error": " ", 
-  "subject": "%(label)s (%(fieldtype)s) on %(dt)s", 
-  "autoname": "eval:doc.dt+\"-\"+doc.fieldname", 
-  "name": "__common__", 
-  "colour": "White:FFF", 
-  "_last_update": "1305789385", 
-  "show_in_menu": 0, 
-  "version": 1
+  "name": "__common__"
  }, 
  {
   "name": "__common__", 
@@ -43,37 +34,7 @@
   "doctype": "DocType"
  }, 
  {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "role": "Administrator", 
-  "cancel": 1, 
-  "permlevel": 0
- }, 
- {
-  "role": "Administrator", 
-  "permlevel": 1, 
-  "doctype": "DocPerm"
- }, 
- {
-  "role": "Administrator", 
-  "permlevel": 2, 
-  "doctype": "DocPerm"
- }, 
- {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "role": "System Manager", 
-  "cancel": 1, 
-  "permlevel": 0
- }, 
- {
-  "role": "System Manager", 
-  "permlevel": 1, 
-  "doctype": "DocPerm"
- }, 
- {
+  "print_width": "50%", 
   "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
   "label": "Details", 
@@ -84,13 +45,13 @@
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Small Text", 
   "doctype": "DocField", 
   "label": "Trash Reason", 
   "oldfieldname": "trash_reason", 
   "fieldname": "trash_reason", 
   "fieldtype": "Small Text", 
-  "oldfieldtype": "Small Text", 
+  "search_index": 0, 
   "permlevel": 1
  }, 
  {
@@ -100,7 +61,6 @@
   "label": "Document", 
   "oldfieldname": "dt", 
   "permlevel": 0, 
-  "trigger": "Client", 
   "fieldname": "dt", 
   "fieldtype": "Link", 
   "search_index": 1, 
@@ -110,13 +70,13 @@
  }, 
  {
   "no_copy": 1, 
-  "search_index": 0, 
+  "oldfieldtype": "Data", 
   "doctype": "DocField", 
   "label": "Label", 
   "oldfieldname": "label", 
   "fieldname": "label", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data", 
+  "search_index": 0, 
   "reqd": 1, 
   "permlevel": 0, 
   "in_filter": 1
@@ -132,12 +92,10 @@
  {
   "no_copy": 0, 
   "oldfieldtype": "Select", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Field Type", 
   "oldfieldname": "fieldtype", 
   "permlevel": 0, 
-  "trigger": "Client", 
   "fieldname": "fieldtype", 
   "fieldtype": "Select", 
   "search_index": 0, 
@@ -155,28 +113,30 @@
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Text", 
   "doctype": "DocField", 
   "label": "Options", 
   "oldfieldname": "options", 
   "fieldname": "options", 
   "fieldtype": "Text", 
-  "oldfieldtype": "Text", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
+  "print_width": "300px", 
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Text", 
   "doctype": "DocField", 
   "label": "Field Description", 
   "oldfieldname": "description", 
   "width": "300px", 
   "fieldname": "description", 
   "fieldtype": "Text", 
-  "oldfieldtype": "Text", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
+  "print_width": "50%", 
   "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
   "label": "Properties", 
@@ -188,126 +148,169 @@
  {
   "description": "Select the label after which you want to insert new field.", 
   "no_copy": 1, 
-  "search_index": 0, 
-  "colour": "White:FFF", 
+  "oldfieldtype": "Select", 
   "doctype": "DocField", 
   "label": "Insert After", 
   "oldfieldname": "insert_after", 
-  "trigger": "Client", 
   "fieldname": "insert_after", 
   "fieldtype": "Select", 
-  "oldfieldtype": "Select", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Text", 
   "doctype": "DocField", 
   "label": "Default Value", 
   "oldfieldname": "default", 
   "fieldname": "default", 
   "fieldtype": "Text", 
-  "oldfieldtype": "Text", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 1, 
-  "search_index": 0, 
+  "oldfieldtype": "Data", 
   "doctype": "DocField", 
   "label": "Fieldname", 
   "oldfieldname": "fieldname", 
   "fieldname": "fieldname", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data", 
+  "search_index": 0, 
   "permlevel": 2
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Data", 
   "doctype": "DocField", 
   "label": "Width", 
   "oldfieldname": "width", 
   "fieldname": "width", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Is Mandatory Field", 
   "oldfieldname": "reqd", 
   "fieldname": "reqd", 
   "fieldtype": "Check", 
-  "oldfieldtype": "Check", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "In Report Filter", 
   "oldfieldname": "in_filter", 
   "fieldname": "in_filter", 
   "fieldtype": "Check", 
-  "oldfieldtype": "Check", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "No Copy", 
   "oldfieldname": "no_copy", 
   "fieldname": "no_copy", 
   "fieldtype": "Check", 
-  "oldfieldtype": "Check", 
+  "search_index": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Read Only", 
+  "fieldname": "read_only", 
+  "fieldtype": "Check", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Hidden", 
+  "fieldname": "hidden", 
+  "fieldtype": "Check", 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Print Hide", 
   "oldfieldname": "print_hide", 
   "fieldname": "print_hide", 
   "fieldtype": "Check", 
-  "oldfieldtype": "Check", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Report Hide", 
   "oldfieldname": "report_hide", 
   "fieldname": "report_hide", 
   "fieldtype": "Check", 
-  "oldfieldtype": "Check", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
   "no_copy": 0, 
-  "search_index": 0, 
+  "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Allow on Submit", 
   "oldfieldname": "allow_on_submit", 
   "fieldname": "allow_on_submit", 
   "fieldtype": "Check", 
-  "oldfieldtype": "Check", 
+  "search_index": 0, 
   "permlevel": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
+  "default": "0", 
+  "oldfieldtype": "Int", 
   "doctype": "DocField", 
   "label": "Permission Level", 
   "oldfieldname": "permlevel", 
-  "default": "0", 
+  "no_copy": 0, 
   "fieldname": "permlevel", 
   "fieldtype": "Int", 
-  "oldfieldtype": "Int", 
+  "search_index": 0, 
   "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "Administrator", 
+  "cancel": 1, 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator", 
+  "permlevel": 1
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator", 
+  "permlevel": 2
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "write": 1, 
+  "role": "System Manager", 
+  "cancel": 1, 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "System Manager", 
+  "permlevel": 1
  }
 ]

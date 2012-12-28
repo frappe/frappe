@@ -109,7 +109,7 @@ div.grid_tbarlinks {
 	border: 3px solid #abf;
 	height:200px;
 	width: 300px;
-	z-index: 10;
+	z-index: 1;
 	position:absolute;
 }
 

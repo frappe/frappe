@@ -73,7 +73,7 @@ $.extend(wn.model, {
 	},
 	
 	compress: function(doclist) {
-		var keys = {}; var values = [];
+		var all_keys = {}; var values = [];
 		
 		function get_key_list(doctype) {
 			// valid standard keys
@@ -96,13 +96,13 @@ $.extend(wn.model, {
 			var doc = doclist[i];
 			
 			// make keys
-			if(!keys[doc.doctype]) { 
-				keys[doc.doctype] = get_key_list(doc.doctype);
+			if(!all_keys[doc.doctype]) { 
+				all_keys[doc.doctype] = get_key_list(doc.doctype);
 				// doctype must be first
 			}
 			
 			var row = []
-			var key_list = keys[doc.doctype];
+			var key_list = all_keys[doc.doctype];
 			
 			// make data rows
 			for(var j=0;j<key_list.length;j++) {
@@ -112,7 +112,7 @@ $.extend(wn.model, {
 			values.push(row);
 		}
 
-		return JSON.stringify({'_vl':values, '_kl':keys});
+		return JSON.stringify({'_vl':values, '_kl':all_keys});
 	}	
 });
 

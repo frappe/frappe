@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-12-20 17:16:52", 
+  "creation": "2012-12-28 10:34:30", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-28 10:32:57"
+  "modified": "2012-12-28 11:21:09"
  }, 
  {
   "istable": 1, 
@@ -49,6 +49,7 @@
   "doctype": "DocType"
  }, 
  {
+  "print_width": "163", 
   "oldfieldtype": "Data", 
   "doctype": "DocField", 
   "label": "Label", 
@@ -96,6 +97,20 @@
   "hidden": 0
  }, 
  {
+  "print_width": "50px", 
+  "oldfieldtype": "Check", 
+  "doctype": "DocField", 
+  "label": "Mandatory", 
+  "oldfieldname": "reqd", 
+  "width": "50px", 
+  "fieldname": "reqd", 
+  "fieldtype": "Check", 
+  "search_index": 0, 
+  "reqd": 0, 
+  "hidden": 0
+ }, 
+ {
+  "print_width": "50px", 
   "default": "0", 
   "oldfieldtype": "Int", 
   "doctype": "DocField", 
@@ -109,6 +124,7 @@
   "hidden": 0
  }, 
  {
+  "print_width": "50px", 
   "doctype": "DocField", 
   "label": "Read Only", 
   "width": "50px", 
@@ -116,6 +132,7 @@
   "fieldtype": "Check"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Data", 
   "doctype": "DocField", 
   "label": "Width", 
@@ -123,18 +140,6 @@
   "width": "50px", 
   "fieldname": "width", 
   "fieldtype": "Data", 
-  "search_index": 0, 
-  "reqd": 0, 
-  "hidden": 0
- }, 
- {
-  "oldfieldtype": "Check", 
-  "doctype": "DocField", 
-  "label": "Reqd", 
-  "oldfieldname": "reqd", 
-  "width": "50px", 
-  "fieldname": "reqd", 
-  "fieldtype": "Check", 
   "search_index": 0, 
   "reqd": 0, 
   "hidden": 0
@@ -151,6 +156,7 @@
   "hidden": 0
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Hidden", 
@@ -171,6 +177,7 @@
   "fieldtype": "Data"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Print Hide", 
@@ -189,6 +196,7 @@
   "fieldtype": "Data"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "No Copy", 
@@ -198,6 +206,7 @@
   "fieldtype": "Check"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Allow on Submit", 
@@ -207,6 +216,7 @@
   "fieldtype": "Check"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "In Filter", 
@@ -216,6 +226,7 @@
   "fieldtype": "Check"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Report Hide", 
@@ -225,6 +236,7 @@
   "fieldtype": "Check"
  }, 
  {
+  "print_width": "50px", 
   "oldfieldtype": "Check", 
   "doctype": "DocField", 
   "label": "Index", 
@@ -237,6 +249,7 @@
   "hidden": 0
  }, 
  {
+  "print_width": "300px", 
   "oldfieldtype": "Text", 
   "doctype": "DocField", 
   "label": "Description", 

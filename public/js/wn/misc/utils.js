@@ -16,7 +16,17 @@ wn.utils = {
 		}
 		$.each(dict, function(i, d) {
 			for(key in filters) {
-				if(d[key]!=filters[key]) return;
+				if($.isArray(filters[key])) {
+					if(filters[key][0]=="in") {
+						if(filters[key][1].indexOf(d[key])==-1)
+							return;
+					} else if(filters[key][0]=="not in") {
+						if(filters[key][1].indexOf(d[key])!=-1)
+							return;
+					}
+				} else {
+					if(d[key]!=filters[key]) return;
+				}
 			}
 			ret.push(d);
 		});
