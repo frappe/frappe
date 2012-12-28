@@ -1,9 +1,9 @@
 // route urls to their virtual pages
 
 // re-route map (for rename)
-wn.re_route = {
-	
-}
+wn.re_route = {};
+wn.route_titles = {};
+
 wn.route = function() {
 	if(wn.re_route[window.location.hash]) {
 		// after saving a doc, for example,
@@ -45,6 +45,10 @@ wn.route = function() {
 		default:
 			wn.views.pageview.show(route[0]);
 	}
+	
+	if(wn.route_titles[window.location.hash]) {
+		document.title = wn.route_titles[window.location.hash];
+	}
 }
 
 wn.get_route = function(route) {
@@ -78,7 +82,10 @@ wn.set_route = function() {
 wn._cur_route = null;
 
 $(window).bind('hashchange', function() {
-	if(location.hash==wn._cur_route)
+	// save the title
+	wn.route_titles[wn._cur_route] = document.title;
+
+	if(window.location.hash==wn._cur_route)
 		return;	
 	wn.route();
 });
