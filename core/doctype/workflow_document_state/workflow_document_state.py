@@ -18,42 +18,10 @@
 # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 from __future__ import unicode_literals
 import webnotes
-import json
 
-@webnotes.whitelist()
-def insert(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
-	
-	doclist[0]["__islocal"] = 1
-	return save(doclist)
-
-@webnotes.whitelist()
-def save(doclist):
-	"""insert or update from form query"""
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
-		
-	if not webnotes.has_permission(doclist[0]["doctype"], "write"):
-		webnotes.msgprint("No Write Permission", raise_exception=True)
-
-	doclistobj = webnotes.model_wrapper(doclist)
-	doclistobj.save()
-	
-	return [d.fields for d in doclist]
-	
-@webnotes.whitelist()
-def set_default(key, value, parent=None):
-	"""set a user default value"""
-	webnotes.conn.set_default(key, value, parent or webnotes.session.user)
-	webnotes.clear_cache(user=webnotes.session.user)
-
-@webnotes.whitelist()
-def make_width_property_setter():
-	doclist = json.loads(webnotes.form_dict.doclist)
-	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		webnotes.model_wrapper(doclist).save()
+class DocType:
+	def __init__(self, d, dl):
+		self.doc, self.doclist = d, dl

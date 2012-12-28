@@ -87,6 +87,9 @@ def load_single_doc(dt, dn, user):
 
 	if not dn: dn = dt
 
+	if not webnotes.conn.exists(dt, dn):
+		return None
+
 	try:
 		dl = webnotes.model_wrapper(dt, dn).doclist
 	except Exception, e:

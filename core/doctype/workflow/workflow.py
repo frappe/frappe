@@ -18,42 +18,42 @@
 # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
 
 from __future__ import unicode_literals
 import webnotes
-import json
 
-@webnotes.whitelist()
-def insert(doclist):
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
-	
-	doclist[0]["__islocal"] = 1
-	return save(doclist)
-
-@webnotes.whitelist()
-def save(doclist):
-	"""insert or update from form query"""
-	if isinstance(doclist, basestring):
-		doclist = json.loads(doclist)
+class DocType:
+	def __init__(self, d, dl):
+		self.doc, self.doclist = d, dl
 		
-	if not webnotes.has_permission(doclist[0]["doctype"], "write"):
-		webnotes.msgprint("No Write Permission", raise_exception=True)
-
-	doclistobj = webnotes.model_wrapper(doclist)
-	doclistobj.save()
+	def validate(self):
+		self.set_active()
+		self.create_custom_field_for_workflow_state()
 	
-	return [d.fields for d in doclist]
-	
-@webnotes.whitelist()
-def set_default(key, value, parent=None):
-	"""set a user default value"""
-	webnotes.conn.set_default(key, value, parent or webnotes.session.user)
-	webnotes.clear_cache(user=webnotes.session.user)
+	def create_custom_field_for_workflow_state(self):
+		doctypeobj = webnotes.get_doctype(self.doc.document_type)
+		if not doctypeobj.get({"doctype":"DocField", 
+			"fieldname":self.doc.workflow_state_field}):
+			
+			# create custom field
+			webnotes.model_wrapper([{
+				"doctype":"Custom Field",
+				"dt": self.doc.document_type,
+				"__islocal": 1,
+				"fieldname": self.doc.workflow_state_field,
+				"label": self.doc.workflow_state_field.replace("_", " ").title(),
+				"hidden": 1,
+				"fieldtype": "Link",
+				"options": "Workflow State",
+				"insert_after": doctypeobj.get({"doctype":"DocField"})[-1].label
+			}]).save()
+			
+			webnotes.msgprint("Created Custom Field '%s' in '%s'" % (self.doc.workflow_state_field,
+				self.doc.document_type))
 
-@webnotes.whitelist()
-def make_width_property_setter():
-	doclist = json.loads(webnotes.form_dict.doclist)
-	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		webnotes.model_wrapper(doclist).save()
+	def set_active(self):
+		if int(self.doc.is_active or 0):
+			# clear all other
+			webnotes.conn.sql("""update tabWorkflow set is_active=0 
+				where document_type=%s""",
+				self.doc.document_type)
