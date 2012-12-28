@@ -185,6 +185,11 @@ _f.Frm.prototype.setup_std_layout = function() {
 		this.setup_sidebar();
 	}
 	
+	// state
+	this.states = new wn.ui.form.States({
+		frm: this
+	});
+	
 	// watermark
 	$('<div style="font-size: 21px; color: #aaa; float: right;\
 		margin-top: -5px; margin-right: -5px; z-index: 5;">' 
@@ -306,31 +311,11 @@ _f.Frm.prototype.setup_footer = function() {
 }
 
 _f.Frm.prototype.set_intro = function(txt) {
-	if(!this.intro_area) {
-		this.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
-			.insertBefore(this.page_layout.body.firstChild);
-	}
-	if(txt) {
-		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
-		this.intro_area.html(txt);
-	} else {
-		this.intro_area.remove();
-		this.intro_area = null;
-	}
+	wn.utils.set_intro(this, this.page_layout.body, txt);
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
-	if(!this.footnote_area) {
-		this.footnote_area = $('<div class="alert form-intro-area">')
-			.insertAfter(this.page_layout.body.lastChild);
-	}
-	if(txt) {
-		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
-		this.footnote_area.html(txt);
-	} else {
-		this.footnote_area.remove();
-		this.footnote_area = null;
-	}
+	wn.utils.set_footnote(this, this.page_layout.body, txt);
 }
 
 
@@ -343,7 +328,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 		this.layout.addrow(); // default section break
 		if(fl[0].fieldtype!="Column Break") {// without column too
 			var c = this.layout.addcell();
-			$y(c.wrapper, {padding: '8px'});			
+			$y(c.wrapper, {padding: '8px'});
 		}
 	}
 
@@ -805,34 +790,36 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 		validated = false;
 		console.log(e);
 	}
-
 	if(caller && caller.toLowerCase()=='setup') {
-
-		var doctype = wn.model.get_doc('DocType', this.doctype);
-		
-		// js
-		var cs = doctype.__js || (doctype.client_script_core + doctype.client_script);
-		if(cs) {
-			try {
-				var tmp = eval(cs);
-			} catch(e) {
-				console.log(e);
-			}
-		}
-
-		// css
-		if(doctype.__css) set_style(doctype.__css)
-		
-		// ---Client String----
-		if(doctype.client_string) { // split client string
-			this.cstring = {};
-			var elist = doctype.client_string.split('---');
-			for(var i=1;i<elist.length;i=i+2) {
-				this.cstring[strip(elist[i])] = elist[i+1];
-			}
-		}
+		this.setup_client_js();
 	}
 	return ret;
+}
+
+_f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
+	var doctype = wn.model.get_doc('DocType', this.doctype);
+
+	// js
+	var cs = doctype.__js || (doctype.client_script_core + doctype.client_script);
+	if(cs) {
+		try {
+			var tmp = eval(cs);
+		} catch(e) {
+			console.log(e);
+		}
+	}
+
+	// css
+	if(doctype.__css) set_style(doctype.__css)
+
+	// ---Client String----
+	if(doctype.client_string) { // split client string
+		this.cstring = {};
+		var elist = doctype.client_string.split('---');
+		for(var i=1;i<elist.length;i=i+2) {
+			this.cstring[strip(elist[i])] = elist[i+1];
+		}
+	}
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {

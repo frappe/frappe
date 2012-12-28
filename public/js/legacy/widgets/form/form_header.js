@@ -104,10 +104,11 @@ _f.FrmHeader = Class.extend({
 		this.set_label(labinfo);
 		
 		// show update button if unsaved
-		if(cur_frm.doc.__unsaved && cint(cur_frm.doc.docstatus)==1 && this.appframe.buttons['Update']) {
-			this.appframe.buttons['Update'].toggle(true);
+		if(cur_frm.doc.__unsaved && cint(cur_frm.doc.docstatus)==1 && cur_frm.perm[0][SUBMIT]) {
+			this.appframe.add_button('Update', function() { 
+				cur_frm.save('Update', null, this);
+			}, '')
 		}
-		
 	},
 	set_label: function(labinfo) {
 		this.$w.find('.label').remove();
@@ -148,34 +149,23 @@ _f.FrmHeader = Class.extend({
 			this.appframe.buttons['Save'].addClass('btn-info')
 				.html("<i class='icon-save'></i> Save (Ctrl+S)");			
 		}
+
 		// Submit
-		if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
-			this.appframe.add_button('Submit', function() { 
-				cur_frm.savesubmit(this);}, 'icon-lock');
+		if(!wn.model.get("Workflow", {document_type: cur_frm.doctype}).length) {
+			if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
+				this.appframe.add_button('Submit', function() { 
+					cur_frm.savesubmit(this);}, 'icon-lock');
 
-		// Update after sumit
-		if(docstatus==1 && p[SUBMIT]) {
-			this.appframe.add_button('Update', function() { 
-				cur_frm.save('Update', null, this);
-			}, '').toggle(false);
+			// Cancel
+			if(docstatus==1  && p[CANCEL])
+				this.appframe.add_button('Cancel', function() { 
+					cur_frm.savecancel(this) }, 'icon-remove');
+
+			// Amend
+			if(docstatus==2  && p[AMEND])
+				this.appframe.add_button('Amend', function() { 
+					cur_frm.amend_doc() }, 'icon-pencil');
 		}
-
-		// Cancel
-		if(docstatus==1  && p[CANCEL])
-			this.appframe.add_button('Cancel', function() { 
-				cur_frm.savecancel(this) }, 'icon-remove');
-
-		// Amend
-		if(docstatus==2  && p[AMEND])
-			this.appframe.add_button('Amend', function() { 
-				cur_frm.amend_doc() }, 'icon-pencil');
-			
-		// Help
-		// if(cur_frm.meta.description) {
-		// 	this.appframe.add_help_button(wn.markdown('#### ' + cur_frm.doctype + '\n\n'
-		// 		+ cur_frm.meta.description));
-		// }
-
 	},
 	show: function() {
 	},

@@ -41,11 +41,12 @@ def get_data():
 			conditions += " where " + " and ".join(args["conditions"])
 		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
+		table = args.get("from") or ("`tab%s`" % d) 
 		
 		out[d] = {}
 		start = datetime.datetime.now()
-		out[d]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from `tab%s` %s %s""" % (",".join(args["columns"]),
-			d, conditions, order_by))]
+		out[d]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from %s %s %s""" \
+			% (",".join(args["columns"]), table, conditions, order_by))]
 		out[d]["time"] = str(datetime.datetime.now() - start)
 		out[d]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
 		

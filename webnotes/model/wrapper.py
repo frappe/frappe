@@ -184,12 +184,17 @@ class ModelWrapper:
 		
 	def update_parent_info(self):
 		idx_map = {}
+		is_local = cint(self.doc.fields.get("__islocal"))
+		
 		for i, d in enumerate(self.doclist[1:]):
 			if d.parentfield:
 				d.parenttype = self.doc.doctype
 				d.parent = self.doc.name
 			if not d.idx:
 				d.idx = idx_map.setdefault(d.parentfield, 0) + 1
+			if is_local:
+				# if parent is new, all children should be new
+				d.fields["__islocal"] = 1
 			
 			idx_map[d.parentfield] = d.idx
 
@@ -252,36 +257,36 @@ class ModelWrapper:
 					% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
 
 	def save(self, check_links=1):
-		"""
-			Save the list
-		"""
-		self.prepare_for_save(check_links)
-		self.run_method('validate')
-		self.save_main()
-		self.save_children()
-		self.run_method('on_update')
+		if webnotes.has_permission(self.doc.doctype, "write"):
+			self.prepare_for_save(check_links)
+			self.run_method('validate')
+			self.save_main()
+			self.save_children()
+			self.run_method('on_update')
+		else:
+			webnotes.msgprint("No Permission to Write", raise_exception=True)
 
 	def submit(self):
-		"""
-			Save & Submit - set docstatus = 1, run "on_submit"
-		"""
-		if self.doc.docstatus != 0:
-			webnotes.msgprint("Only draft can be submitted", raise_exception=1)
-		self.to_docstatus = 1
-		self.save()
-		self.run_method('on_submit')
+		if webnotes.has_permission(self.doc.doctype, "submit"):
+			if self.doc.docstatus != 0:
+				webnotes.msgprint("Only draft can be submitted", raise_exception=1)
+			self.to_docstatus = 1
+			self.save()
+			self.run_method('on_submit')
+		else:
+			webnotes.msgprint("No Permission to Submit", raise_exception=True)
 
 	def cancel(self):
-		"""
-			Cancel - set docstatus 2, run "on_cancel"
-		"""
-		if self.doc.docstatus != 1:
-			webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
-		self.to_docstatus = 2
-		self.prepare_for_save(1)
-		self.save_main()
-		self.save_children()
-		self.run_method('on_cancel')
+		if webnotes.has_permission(self.doc.doctype, "submit"):
+			if self.doc.docstatus != 1:
+				webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
+			self.to_docstatus = 2
+			self.prepare_for_save(1)
+			self.save_main()
+			self.save_children()
+			self.run_method('on_cancel')
+		else:
+			webnotes.msgprint("No Permission to Cancel", raise_exception=True)
 
 	def update_after_submit(self):
 		"""

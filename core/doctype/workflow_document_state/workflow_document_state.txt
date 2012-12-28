@@ -4,7 +4,7 @@
   "docstatus": 0, 
   "creation": "2012-12-28 10:49:56", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-28 11:37:31"
+  "modified": "2012-12-28 14:06:23"
  }, 
  {
   "istable": 1, 
@@ -18,7 +18,6 @@
   "name": "__common__", 
   "parent": "Workflow Document State", 
   "doctype": "DocField", 
-  "width": "200px", 
   "parenttype": "DocType", 
   "permlevel": 0, 
   "parentfield": "fields"
@@ -30,6 +29,7 @@
  {
   "doctype": "DocField", 
   "label": "State", 
+  "width": "160px", 
   "fieldname": "state", 
   "fieldtype": "Link", 
   "reqd": 1, 
@@ -37,22 +37,37 @@
  }, 
  {
   "doctype": "DocField", 
-  "label": "Allow Edit", 
-  "fieldname": "allow_edit", 
-  "fieldtype": "Link", 
-  "reqd": 0, 
-  "options": "Role"
- }, 
- {
-  "doctype": "DocField", 
   "label": "Doc Status", 
+  "width": "80px", 
   "fieldname": "doc_status", 
   "fieldtype": "Select", 
   "options": "0\n1\n2"
  }, 
  {
   "doctype": "DocField", 
+  "label": "Update Field", 
+  "fieldname": "update_field", 
+  "fieldtype": "Select"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Update Value", 
+  "fieldname": "update_value", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Only Allow Edit For", 
+  "width": "160px", 
+  "fieldname": "allow_edit", 
+  "fieldtype": "Link", 
+  "reqd": 1, 
+  "options": "Role"
+ }, 
+ {
+  "doctype": "DocField", 
   "label": "Message", 
+  "width": "160px", 
   "fieldname": "message", 
   "fieldtype": "Text", 
   "reqd": 0

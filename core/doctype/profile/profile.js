@@ -68,7 +68,7 @@ wn.RoleEditor = Class.extend({
 		for(var i in this.roles) {
 			$(this.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role)s">\
-				<input type="checkbox"> \
+				<input type="checkbox" style="margin-top:0px;"> \
 				<a href="#">%(role)s</a>\
 			</div>', {role: this.roles[i]}));
 		}

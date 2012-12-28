@@ -92,9 +92,9 @@ $.extend(wn.perm, {
 		var out =false;
 		if(p.match) {
 			if(p.match.indexOf(":")!=-1) {
-				keys = p.match.split(":");
-				var document_key = keys[0];
-				var default_key = keys[1];
+				key_list = p.match.split(":");
+				var document_key = key_list[0];
+				var default_key = key_list[1];
 			} else {
 				var document_key = p.match;
 				var default_key = p.match;

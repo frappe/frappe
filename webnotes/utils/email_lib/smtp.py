@@ -189,6 +189,8 @@ class EMail:
 		def _validate(email):
 			"""validate an email field"""
 			if email:
+				if "," in email:
+					email = email.split(",")[-1]
 				if not validate_email_add(email):
 					# try extracting the email part and set as sender
 					new_email = extract_email_id(email)
