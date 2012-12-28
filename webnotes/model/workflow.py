@@ -32,8 +32,8 @@ def get_workflow_name(doctype):
 	
 		# no active? get default workflow
 		if not workflow_name:
-			workflow_name = webnotes.conn.get_value("Workflow", {"document_type": doctype, 
-				"is_custom": "No"}, "name")
+			workflow_name = webnotes.conn.get_value("Workflow", {"document_type": doctype}, 
+			"name")
 				
 		workflow_names[doctype] = workflow_name
 			
