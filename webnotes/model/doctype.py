@@ -66,7 +66,7 @@ def get(doctype, processed=False, cached=True):
 		add_print_formats(doclist)
 		add_search_fields(doclist)
 		add_linked_with(doclist)
-		#add_workflows(doclist)
+		add_workflows(doclist)
 		#update_language(doclist)
 
 	# add validators
