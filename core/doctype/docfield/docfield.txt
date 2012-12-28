@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-12-10 10:25:14", 
+  "creation": "2012-12-20 17:16:52", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-11 17:03:59"
+  "modified": "2012-12-28 10:32:57"
  }, 
  {
   "istable": 1, 
@@ -22,7 +22,6 @@
   "allow_copy": 0
  }, 
  {
-  "read_only": 0, 
   "name": "__common__", 
   "parent": "DocField", 
   "doctype": "DocField", 
@@ -182,6 +181,12 @@
   "search_index": 0, 
   "reqd": 0, 
   "hidden": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Print Width", 
+  "fieldname": "print_width", 
+  "fieldtype": "Data"
  }, 
  {
   "oldfieldtype": "Check", 
