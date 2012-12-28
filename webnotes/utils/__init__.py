@@ -739,14 +739,15 @@ def comma_and(some_list):
 	return comma_sep(some_list, " and ")
 	
 def comma_sep(some_list, sep):
-	if isinstance(some_list, list):
-		# ([] + some_list) is done to preserve the existing list
-		some_list = [unicode(s) for s in ([] + some_list)]
+	if isinstance(some_list, (list, tuple)):
+		# list(some_list) is done to preserve the existing list
+		some_list = [unicode(s) for s in list(some_list)]
 		if not some_list:
 			return ""
 		elif len(some_list) == 1:
 			return some_list[0]
 		else:
+			some_list = ["'%s'" % s for s in some_list]
 			return ", ".join(some_list[:-1]) + sep + some_list[-1]
 	else:
 		return some_list
