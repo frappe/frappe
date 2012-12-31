@@ -129,6 +129,14 @@
  }, 
  {
   "doctype": "DocField", 
+  "label": "Applicant", 
+  "options": "Job Applicant", 
+  "fieldname": "job_applicant", 
+  "fieldtype": "Link", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
   "label": "Contact", 
   "options": "Contact", 
   "fieldname": "contact", 
