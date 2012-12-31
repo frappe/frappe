@@ -72,6 +72,7 @@ class DocType:
 		webnotes.clear_cache(doctype=self.doc.dt)
 
 	def create_property_setter(self):
+		if not self.doc.insert_after: return
 		idx_label_list, field_list = get_fields_label(self.doc.dt, 0)
 		label_index = idx_label_list.index(self.doc.insert_after)
 		if label_index==-1: return

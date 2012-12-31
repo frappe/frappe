@@ -31,9 +31,10 @@ class DocType:
 		self.create_custom_field_for_workflow_state()
 	
 	def create_custom_field_for_workflow_state(self):
+		webnotes.clear_cache(doctype=self.doc.document_type)
 		doctypeobj = webnotes.get_doctype(self.doc.document_type)
-		if not doctypeobj.get({"doctype":"DocField", 
-			"fieldname":self.doc.workflow_state_field}):
+		if not len(doctypeobj.get({"doctype":"DocField", 
+			"fieldname":self.doc.workflow_state_field})):
 			
 			# create custom field
 			webnotes.model_wrapper([{
@@ -45,7 +46,7 @@ class DocType:
 				"hidden": 1,
 				"fieldtype": "Link",
 				"options": "Workflow State",
-				"insert_after": doctypeobj.get({"doctype":"DocField"})[-1].label
+				#"insert_after": doctypeobj.get({"doctype":"DocField"})[-1].fieldname
 			}]).save()
 			
 			webnotes.msgprint("Created Custom Field '%s' in '%s'" % (self.doc.workflow_state_field,
