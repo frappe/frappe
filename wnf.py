@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/env python
 
 # Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
 # 
