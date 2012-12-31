@@ -268,7 +268,7 @@ wn.views.GridReport = Class.extend({
 			if (col.formatter==me.currency_formatter) {
 				item[col.id] = 0;
 			}
-		});		
+		});
 	},
 	
 	refresh: function() {
@@ -302,15 +302,13 @@ wn.views.GridReport = Class.extend({
 		
 		// print / export
 		$('<div style="text-align: right;"> \
-			<div class="processing" style="background-color: #fec; display: none; float: left; margin: 2px"> \
-				Updated! </div>\
-			<a href="#" class="grid-report-print"><i class="icon icon-print"></i> Print</a> \
-			<span style="color: #aaa; margin: 0px 10px;"> | </span> \
-			<a href="#" class="grid-report-export"><i class="icon icon-download-alt"></i> Export</a> \
+			<div class="processing" style="background-color: #fec; display: none; \
+				float: left; margin: 2px">Updated! </div> \
+			<a href="#" class="grid-report-export"> \
+				<i class="icon icon-download-alt"></i> Export</a> \
 		</div>').appendTo(this.wrapper);
 		
 		this.wrapper.find(".grid-report-export").click(function() { return me.export(); });
-		this.wrapper.find(".grid-report-print").click(function() { msgprint("Coming Soon"); return false; });
 		
 		// grid wrapper
 		this.grid_wrapper = $("<div style='height: 500px; border: 1px solid #aaa; \

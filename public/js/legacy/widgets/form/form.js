@@ -313,31 +313,11 @@ _f.Frm.prototype.setup_footer = function() {
 }
 
 _f.Frm.prototype.set_intro = function(txt) {
-	if(!this.intro_area) {
-		this.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
-			.insertBefore(this.page_layout.body.firstChild);
-	}
-	if(txt) {
-		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
-		this.intro_area.html(txt);
-	} else {
-		this.intro_area.remove();
-		this.intro_area = null;
-	}
+	wn.utils.set_intro(this, this.page_layout.body, txt);
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
-	if(!this.footnote_area) {
-		this.footnote_area = $('<div class="alert form-intro-area">')
-			.insertAfter(this.page_layout.body.lastChild);
-	}
-	if(txt) {
-		if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
-		this.footnote_area.html(txt);
-	} else {
-		this.footnote_area.remove();
-		this.footnote_area = null;
-	}
+	wn.utils.set_footnote(this, this.page_layout.body, txt);
 }
 
 
@@ -350,7 +330,7 @@ _f.Frm.prototype.setup_fields_std = function() {
 		this.layout.addrow(); // default section break
 		if(fl[0].fieldtype!="Column Break") {// without column too
 			var c = this.layout.addcell();
-			$y(c.wrapper, {padding: '8px'});			
+			$y(c.wrapper, {padding: '8px'});
 		}
 	}
 

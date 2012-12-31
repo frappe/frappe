@@ -50,5 +50,32 @@ wn.utils = {
 		} else {
 			return list;
 		}
-	}
+	},
+	set_intro: function(me, wrapper, txt) {
+		if(!me.intro_area) {
+			me.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
+				.insertBefore(wrapper.firstChild);
+		}
+		if(txt) {
+			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+			me.intro_area.html(txt);
+		} else {
+			me.intro_area.remove();
+			me.intro_area = null;
+		}
+	},
+	set_footnote: function(me, wrapper, txt) {
+		if(!me.footnote_area) {
+			me.footnote_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
+				.insertAfter(wrapper.lastChild);
+		}
+		
+		if(txt) {
+			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
+			me.footnote_area.html(txt);
+		} else {
+			me.footnote_area.remove();
+			me.footnote_area = null;
+		}
+	},
 }
