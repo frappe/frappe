@@ -4,7 +4,7 @@
   "docstatus": 0, 
   "creation": "2012-12-27 13:29:02", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-27 14:45:02"
+  "modified": "2012-12-31 12:11:56"
  }, 
  {
   "autoname": "naming_series:", 
@@ -38,7 +38,6 @@
  }, 
  {
   "default": "COMM-", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Naming Series", 
   "options": "COMM-", 
@@ -48,7 +47,6 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Subject", 
   "fieldname": "subject", 
@@ -57,7 +55,7 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
+  "print_width": "400", 
   "doctype": "DocField", 
   "label": "Content", 
   "width": "400", 
@@ -112,7 +110,6 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "fieldname": "column_break3", 
   "fieldtype": "Column Break", 
@@ -234,7 +231,6 @@
  }, 
  {
   "default": "__user", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "User", 
   "options": "Profile", 
@@ -259,7 +255,6 @@
  }, 
  {
   "default": "Today", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Date", 
   "fieldname": "communication_date", 
