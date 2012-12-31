@@ -268,7 +268,7 @@ def has_permission(doctype, ptype="read"):
 		where p.parent = %s
 		and ifnull(p.`%s`,0) = 1
 		and ifnull(p.permlevel,0) = 0
-		and p.role in (select `role` from tabUserRole where `parent`=%s)
+		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user))
 
 def generate_hash():
