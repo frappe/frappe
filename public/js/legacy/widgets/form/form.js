@@ -191,10 +191,12 @@ _f.Frm.prototype.setup_std_layout = function() {
 	});
 	
 	// watermark
-	$('<div style="font-size: 21px; color: #aaa; float: right;\
-		margin-top: -5px; margin-right: -5px; z-index: 5;">' 
-		+ this.doctype + '</div>')
-		.prependTo(this.page_layout.main);
+	if(!this.meta.issingle) {
+		$('<div style="font-size: 21px; color: #aaa; float: right;\
+			margin-top: -5px; margin-right: -5px; z-index: 5;">' 
+			+ this.doctype + '</div>')
+			.prependTo(this.page_layout.main);
+	}
 	
 	// footer
 	this.setup_footer();
@@ -604,7 +606,7 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
-		if(this.editable && (!this.meta.in_dialog || this.in_form) 
+		if(this.editable && (!this.meta.hide_toolbar) && (!this.meta.in_dialog || this.in_form) 
 			&& this.doc.docstatus==0 && !this.meta.istable && this.perm[0][WRITE]
 			&& (this.fields && this.fields.length > 7) && !this.save_disabled) {
 			f.show_save();

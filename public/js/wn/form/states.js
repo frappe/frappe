@@ -42,16 +42,16 @@ wn.ui.form.States = Class.extend({
 				</ul>\
 			</div>\
 		</div>').appendTo(this.frm.page_layout.body_header);
+		this.$wrapper.toggle(false);
 	},
 		
 	refresh: function() {
 		// hide if its not yet saved
+		this.$wrapper.toggle(false);
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
-			this.$wrapper.toggle(false);
 			return;
 		}
-		this.$wrapper.toggle(true);
 		
 		// state text
 		var state = this.get_state();
@@ -76,9 +76,9 @@ wn.ui.form.States = Class.extend({
 			this.show_actions(state);
 			
 			// disable if not allowed
-		} else {
-			this.$wrapper.toggle(false);
-		}				
+			if(!this.frm.doc.__islocal)
+				this.$wrapper.toggle(true);
+		}
 	},
 	
 	show_actions: function(state) {

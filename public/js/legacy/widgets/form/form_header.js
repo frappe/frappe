@@ -112,6 +112,7 @@ _f.FrmHeader = Class.extend({
 	},
 	set_label: function(labinfo) {
 		this.$w.find('.label').remove();
+		if(cur_frm.meta.hide_toolbar) return;
 		$(repl('<span class="label %(lab_class)s">\
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
@@ -123,6 +124,7 @@ _f.FrmHeader = Class.extend({
 		
 		if(cur_frm.meta.hide_toolbar) {
 			$('.appframe-toolbar').toggle(false);
+			cur_frm.save_disabled = true;
 			return;
 		}
 		
