@@ -317,7 +317,7 @@ wn.views.GridReport = Class.extend({
 		this.id = wn.dom.set_unique_id(this.grid_wrapper.get(0));
 
 		// zero-value check
-		$('<div style="margin: 10px 0px; text-align: right; display: none" class="show-zero">\
+		$('<div style="margin: 10px 0px; display: none" class="show-zero">\
 				<input type="checkbox"> Show rows with zero values\
 			</div>').appendTo(this.wrapper);
 
