@@ -49,6 +49,7 @@ class DocType:
 			'options',
 			'permlevel',
 			'width',
+			'print_width',
 			'reqd',
 			'in_filter',
 			'hidden',
