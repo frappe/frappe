@@ -463,7 +463,7 @@ wn.views.GridReport = Class.extend({
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
 			_style: dataContext._style || "",
-			value: fmt_money(value)
+			value: dataContext._no_format ? value : fmt_money(value)
 		});
 	},
 	text_formatter: function(row, cell, value, columnDef, dataContext) {
@@ -473,7 +473,7 @@ wn.views.GridReport = Class.extend({
 			value: cstr(value)
 		});
 	},
-	check_formatter: function(row, cell, value, columnDef, dataContext) {					
+	check_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl("<input type='checkbox' data-id='%(id)s' \
 			class='plot-check' %(checked)s>", {
 				"id": dataContext.id,
@@ -604,6 +604,14 @@ wn.views.GridReport = Class.extend({
 				: dateutil.str_to_user(me.to_date);				
 		});		
 	},
+	trigger_refresh_on_change: function(filters) {
+		var me = this;
+		$.each(filters, function(i, f) {
+			me.filter_inputs[f] && me.filter_inputs[f].change(function() {
+				me.filter_inputs.refresh.click()
+			});
+		});
+	}
 });
 
 wn.views.GridReportWithPlot = wn.views.GridReport.extend({
@@ -820,12 +828,4 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 			d.indent = indent;
 		});
 	},
-	trigger_refresh_on_change: function(filters) {
-		var me = this;
-		$.each(filters, function(i, f) {
-			me.filter_inputs[f] && me.filter_inputs[f].change(function() {
-				me.filter_inputs.refresh.click()
-			});
-		});
-	}
 });
