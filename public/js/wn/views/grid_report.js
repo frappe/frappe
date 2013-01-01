@@ -213,6 +213,8 @@ wn.views.GridReport = Class.extend({
 				input = me.appframe.add_label(v.label);
 			} else if(v.fieldtype=='Data') {
 				input = me.appframe.add_data(v.label);
+			} else if(v.fieldtype=='Check') {
+				input = me.appframe.add_check(v.label);
 			}
 
 			if(input) {
@@ -236,7 +238,9 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		$.each(this.filter_inputs, function(i, f) {
 			var opts = f.get(0).opts;
-			if(opts.fieldtype!='Button') {
+			if(opts.fieldtype=='Check') {
+				me[opts.fieldname] = f.attr('checked') == "checked" ? 1 : 0;
+			} else if(opts.fieldtype!='Button') {
 				me[opts.fieldname] = f.val();
 				if(opts.fieldtype=="Date") {
 					me[opts.fieldname] = dateutil.user_to_str(me[opts.fieldname]);
@@ -335,7 +339,17 @@ wn.views.GridReport = Class.extend({
 			$.each(hash.split('/').splice(1).join('/').split('&&'), function(i, f) {
 				var f = f.split("=");
 				if(me.filter_inputs[f[0]]) {
-					me.filter_inputs[f[0]].val(decodeURIComponent(f[1]));
+					var val = decodeURIComponent(f[1]);
+					var opts = me.filter_inputs[f[0]].get(0).opts;
+					if(opts.fieldtype === "Check") {
+						if(cint(val)) {
+							me.filter_inputs[f[0]].attr("checked", "checked");
+						} else {
+							me.filter_inputs[f[0]].removeAttr("checked");
+						}
+					} else {
+						me.filter_inputs[f[0]].val(val);
+					}
 				} else {
 					console.log("Invalid filter: " +f[0]);
 				}
@@ -349,8 +363,12 @@ wn.views.GridReport = Class.extend({
 	},
 	set_route: function() {
 		wn.set_route(wn.container.page.page_name, $.map(this.filter_inputs, function(v) {
-			var val = v.val();
 			var opts = v.get(0).opts;
+			if(opts.fieldtype === "Check") {
+				var val = v.attr("checked") ? 1 : 0;
+			} else {
+				var val = v.val();
+			}
 			if(val && val != opts.default_value)
 				return encodeURIComponent(opts.fieldname) 
 					+ '=' + encodeURIComponent(val);

@@ -112,6 +112,12 @@ wn.ui.AppFrame = Class.extend({
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "").appendTo(this.toolbar.parent());
 	},
+	add_check: function(label) {
+		this.add_toolbar();
+		return $("<label style='display: inline;'><input type='checkbox' /> " + label + "</label>")
+			.appendTo(this.toolbar.parent())
+			.find("input");
+	},
 	add_ripped_paper_effect: function(wrapper) {
 		if(!wrapper) var wrapper = wn.container.page;
 		var layout_main = $(wrapper).find('.layout-main');
