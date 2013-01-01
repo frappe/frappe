@@ -114,7 +114,8 @@ wn.ui.AppFrame = Class.extend({
 	},
 	add_check: function(label) {
 		this.add_toolbar();
-		return $("<label style='display: inline;'><input type='checkbox' /> " + label + "</label>")
+		return $("<label style='display: inline;'><input type='checkbox' \
+			style='margin-top: -2px;'/> " + label + "</label>")
 			.appendTo(this.toolbar.parent())
 			.find("input");
 	},
