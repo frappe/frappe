@@ -1,0 +1,21 @@
+[
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2013-01-01 18:50:55", 
+  "modified_by": "Administrator", 
+  "modified": "2013-01-01 18:50:55"
+ }, 
+ {
+  "name": "__common__", 
+  "title": "User Properties", 
+  "doctype": "Page", 
+  "module": "Core", 
+  "standard": "Yes", 
+  "page_name": "user-properties"
+ }, 
+ {
+  "name": "user-properties", 
+  "doctype": "Page"
+ }
+]

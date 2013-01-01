@@ -72,7 +72,8 @@ class DocType:
 				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
 		self.validate_series()
 		self.scrub_field_names()
-		validate_fields(filter(lambda d: d.doctype=="DocField", self.doclist))
+		validate_fields(self.doclist.get({"doctype":"DocField"}))
+		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
 		self.set_version()
 
 	def on_update(self):
@@ -165,9 +166,9 @@ class DocType:
 
 def validate_fields_for_doctype(doctype):
 	from webnotes.model.doctype import get
-	validate_fields(filter(lambda d: d.doctype=="DocField" and d.parent==doctype, 
-		get(doctype, cached=False)))
-
+	validate_fields(get(doctype, cached=False).get({"parent":doctype, 
+		"doctype":"DocField"}))
+		
 def validate_fields(fields):
 	def check_illegal_characters(fieldname):
 		for c in ['.', ',', ' ', '-', '&', '%', '=', '"', "'", '*', '$', 
@@ -211,4 +212,62 @@ def validate_fields(fields):
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
 		check_hidden_and_mandatory(d)
+
+def validate_permissions_for_doctype(doctype, for_remove=False):
+	from webnotes.model.doctype import get
+	validate_permissions(get(doctype, cached=False).get({"parent":doctype, 
+		"doctype":"DocPerm"}), for_remove)
+
+def validate_permissions(permissions, for_remove=False):
+	def get_txt(d):
+		return "For %s (level %s) in %s:" % (d.role, d.permlevel, d.parent)
+		
+	def check_atleast_one_set(d):
+		if not d.read and not d.write and not d.submit and not d.cancel and not d.create:
+			webnotes.msgprint(get_txt(d) + " Atleast one of Read, Write, Create, Submit, Cancel must be set.",
+			 	raise_exception=True)
+		
+	def check_double(d):
+		similar = permissions.get({
+			"role":d.role,
+			"permlevel":d.permlevel,
+			"match": d.match
+		})
+		
+		if len(similar) > 1:
+			webnotes.msgprint(get_txt(d) + " Only one rule allowed for a particular Role and Level.", 
+				raise_exception=True)
+	
+	def check_level_zero_is_set(d):
+		if d.permlevel > 0 and d.role != 'All':
+			if not permissions.get({"role": d.role, "permlevel": 0}):
+				webnotes.msgprint(get_txt(d) + " Higher level permissions are meaningless if level 0 permission is not set.",
+					raise_exception=True)
+					
+			if d.create: 
+				webnotes.msgprint("Create Permission has no meaning at level " + d.permlevel,
+					raise_exception=True)
+
+			if d.submit: 
+				webnotes.msgprint("Submit Permission has no meaning at level " + d.permlevel,
+					raise_exception=True)
+				
+			if d.cancel: 
+				webnotes.msgprint("Cancel Permission has no meaning at level " + d.permlevel,
+					raise_exception=True)
+
+			if d.amend: 
+				webnotes.msgprint("Amend Permission has no meaning at level " + d.permlevel,
+					raise_exception=True)
+
+			if d.match: 
+				webnotes.msgprint("Match rules have no meaning at level " + d.permlevel,
+					raise_exception=True)
+	
+	for d in permissions:
+		if not d.permlevel: d.permlevel=0
+		check_atleast_one_set(d)
+		if not for_remove:
+			check_double(d)
+		check_level_zero_is_set(d)
 		

@@ -331,19 +331,23 @@ class Database:
 
 		if self.sql("""select defkey from `tabDefaultValue` where 
 			defkey=%s and parent=%s """, (key, parent)):
-			
 			# update
 			self.sql("""update `tabDefaultValue` set defvalue=%s 
 				where parent=%s and defkey=%s""", (val, parent, key))
+			webnotes.clear_cache()
 		else:
-			from webnotes.model.doc import Document
-			d = Document('DefaultValue')
-			d.parent = parent
-			d.parenttype = 'Control Panel' # does not matter
-			d.parentfield = 'system_defaults'
-			d.defkey = key
-			d.defvalue = val
-			d.save(1)
+			self.add_default(key, val, parent)
+			
+		
+	def add_default(self, key, val, parent="Control Panel"):
+		d = webnotes.doc('DefaultValue')
+		d.parent = parent
+		d.parenttype = 'Control Panel' # does not matter
+		d.parentfield = 'system_defaults'
+		d.defkey = key
+		d.defvalue = val
+		d.save(1)
+		webnotes.clear_cache()
 	
 	def get_default(self, key, parent="Control Panel"):
 		"""get default value"""
