@@ -46,14 +46,14 @@ wn.UserProperties = Class.extend({
 						["Select User..."].concat(r.message.users))
 						.css("width", "200px")
 						.change(function() {
-							wn.set_route("user-properties", $(this).val())
+							me.set_route();
 						});
 				me.property_select =
 					me.wrapper.appframe.add_select("links", 
 						["Select Property..."].concat(me.get_link_names()))
 						.css("width", "200px")
 						.change(function() {
-							me.refresh();
+							me.set_route();
 						});
 				me.set_from_route();
 			}
@@ -62,13 +62,17 @@ wn.UserProperties = Class.extend({
 	get_link_names: function() {
 		return $.map(this.options.link_fields, function(l) { return l[0]; });
 	},
+	set_route: function() {
+		wn.set_route("user-properties", this.user_select.val(), 
+			this.property_select.val());
+	},
 	set_from_route: function() {
-		if(wn.get_route()[1] && this.user_select) {
-			this.user_select.val(wn.get_route()[1]);
-			this.refresh();
-		} else {
-			this.refresh();
+		var route = wn.get_route();
+		if((route.length > 1) && this.user_select && this.property_select) {
+			this.user_select.val(route[1]);
+			this.property_select.val(route[2]);
 		}
+		this.refresh();
 	},
 	get_user: function() {
 		var user = this.user_select.val();

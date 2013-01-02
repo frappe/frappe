@@ -28,7 +28,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 		Invoice for example. The final state for such documents is called <b>Submitted</b>.\
 		You can restrict which roles can Submit.</li>\
 	<li><b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.\
-		Cancel permissions also allows the user to delete a document (if it is not linked to any other document).</li>\
+		Cancel permission also allows the user to delete a document (if it is not linked to any other document).</li>\
 	<li>When you <b>Amend</b> a document after cancel and save it, it will get a new number that is\
 		a version of the old number. For example if you cancel and amend 'INV004' it will become a new\
 		document 'INV004-1'. This helps you to keep track of each amendment.</li>\
@@ -65,7 +65,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 			<a href='#List/Custom Field'>Custom Field</a> of type Link.</li>\
 		<li>In the Permission Manager, click on the button in the 'Condition' column\
 			for the Role you want to restrict.</li>\
-		<li>A new pop will open that will ask you to select further conditions. \
+		<li>A new popup will open that will ask you to select further conditions. \
 			If the 'territory' Link Field exists, it will give you an option to select \
 			it.</li>\
 		<li>Go to Setup > <a href='#user-properties'>User Properties</a> to set \
@@ -414,7 +414,7 @@ wn.PermissionEngine = Class.extend({
 			$.each(me.get_link_fields(perm.parent), function(i, d) {
 				$("<label class='radio'>\
 				<input name='perm-rule' type='radio' value='"+d.fieldname
-					+"'><b>"+d.label+"</b> in <b>"+d.parent+"</b> matches <a href='#user-properties'>User Property</a> <b>"
+					+"'><b>"+d.label+"</b> in <b>"+d.parent+"</b> matches <a href='#user-properties//"+d.fieldname+"'>User Property</a> <b>"
 					+d.fieldname+"</b>.\
 				</label>").appendTo(dialog.body);
 			});
