@@ -14,7 +14,7 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_reqd('new_password', doc.__islocal);
 
 	if(doc.__islocal) {
-		cur_frm.toggle_display(['sb1', 'sb2', 'sb3'], false);
+		cur_frm.toggle_display(['sb1', 'sb3'], false);
 	} else {
 		cur_frm.cscript.enabled(doc);
 		cur_frm.roles_editor.show(doc.name);
@@ -37,7 +37,7 @@ cur_frm.cscript.refresh = function(doc) {
 
 cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal) {
-		cur_frm.toggle_display(['sb1', 'sb2'], doc.enabled);	
+		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);	
 		cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'disabled', false);		
 	}

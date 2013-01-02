@@ -255,6 +255,9 @@ def validate_permissions(permissions, for_remove=False):
 		if (d.submit or d.cancel or d.amend) and not d.write:
 			webnotes.msgprint(get_txt(d) + " Cannot set Submit, Cancel, Amend permission if Write is not set.",
 				raise_exception=True)
+		if d.amend and not d.write:
+			webnotes.msgprint(get_txt(d) + " Cannot set Amend if Cancel is not set.",
+				raise_exception=True)
 	
 	for d in permissions:
 		if not d.permlevel: 

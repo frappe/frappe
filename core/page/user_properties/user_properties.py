@@ -5,12 +5,16 @@ import webnotes
 def get_users_and_links():
 	links, all_fields = [], []
 
-	for l in webnotes.conn.sql("""select fieldname, options
-		from tabDocField where fieldtype='Link' 
-		and parent not in ('[Select]', 'DocType', 'Module Def')
+	for l in webnotes.conn.sql("""select tabDocField.fieldname, tabDocField.options
+		from tabDocField, tabDocType 
+		where tabDocField.fieldtype='Link' 
+		and tabDocField.parent = tabDocType.name
+		and ifnull(tabDocType.istable,0)=0
+		and ifnull(tabDocType.issingle,0)=0
+		and tabDocField.parent not in ('[Select]', 'DocType', 'Module Def')
 		""") + webnotes.conn.sql("""select fieldname, options
 		from `tabCustom Field` where fieldtype='Link'"""):
-		if not l[0] in all_fields:
+		if not l[0] in all_fields and not l[0].startswith("default_") and not l[0].startswith("parent_"):
 			links.append([l[0], l[1]])
 			all_fields.append(l[0])
 			

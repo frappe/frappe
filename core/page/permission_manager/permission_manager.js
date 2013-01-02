@@ -35,6 +35,16 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	</ol>\
 	</tr></td>\
 	<tr><td>\
+	<h4><i class='icon-signal'></i> Permission Levels:</h4>\
+	<ol>\
+	<li>Permissions at level 0 are 'Document Level' permissions, i.e. they are primary for access to the document.\
+		If a User does not have access at Level 0, then higher levels are meaningless.</li>\
+	<li>Permissions at higher levels are 'Field Level' permissions. All Fields have a 'Permission Level' set against them\
+		and the rules defined at that permissions apply to the field. This is useful incase you want to hide or make certain field read-only.\
+		You can use <a href='#Form/Customize Form'>Customize Form</a> to set levels on fields.</li>\
+	</ol>\
+	</tr></td>\
+	<tr><td>\
 	<h4><i class='icon-user'></i> Restricting By User:</h4>\
 	<ol>\
 		<li>To restrict a User of a particular Role to documents that are only self-created,\
