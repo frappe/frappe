@@ -244,30 +244,24 @@ def validate_permissions(permissions, for_remove=False):
 				webnotes.msgprint(get_txt(d) + " Higher level permissions are meaningless if level 0 permission is not set.",
 					raise_exception=True)
 					
-			if d.create: 
-				webnotes.msgprint("Create Permission has no meaning at level " + d.permlevel,
-					raise_exception=True)
-
-			if d.submit: 
-				webnotes.msgprint("Submit Permission has no meaning at level " + d.permlevel,
-					raise_exception=True)
-				
-			if d.cancel: 
-				webnotes.msgprint("Cancel Permission has no meaning at level " + d.permlevel,
-					raise_exception=True)
-
-			if d.amend: 
-				webnotes.msgprint("Amend Permission has no meaning at level " + d.permlevel,
-					raise_exception=True)
-
-			if d.match: 
-				webnotes.msgprint("Match rules have no meaning at level " + d.permlevel,
+			if d.create or d.submit or d.cancel or d.amend or d.match: 
+				webnotes.msgprint("Create, Submit, Cancel, Amend, Match has no meaning at level " + d.permlevel,
 					raise_exception=True)
 	
+	def check_permission_dependency(d):
+		if d.write and not d.read:
+			webnotes.msgprint(get_txt(d) + " Cannot set Write permission if Read is not set.",
+				raise_exception=True)
+		if (d.submit or d.cancel or d.amend) and not d.write:
+			webnotes.msgprint(get_txt(d) + " Cannot set Submit, Cancel, Amend permission if Write is not set.",
+				raise_exception=True)
+	
 	for d in permissions:
-		if not d.permlevel: d.permlevel=0
+		if not d.permlevel: 
+			d.permlevel=0
 		check_atleast_one_set(d)
 		if not for_remove:
 			check_double(d)
 		check_level_zero_is_set(d)
+		check_permission_dependency(d)
 		

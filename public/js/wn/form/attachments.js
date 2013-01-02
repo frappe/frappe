@@ -77,7 +77,7 @@ wn.ui.form.Attachments = Class.extend({
 		var me = this;
 		$(repl('<div class="alert alert-info"><span style="display: inline-block; width: 90%;\
 			text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
-				<i class="icon icon-file"></i> <a href="%(href)s"\
+				<i class="icon-file"></i> <a href="%(href)s"\
 					target="_blank" title="%(filename)s">%(filename)s</a></span><a href="#" class="close">&times;</a>\
 			</div>', {
 				filename: filename,

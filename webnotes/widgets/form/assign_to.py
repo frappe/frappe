@@ -76,7 +76,7 @@ def add(args=None):
 	return get(args)
 
 @webnotes.whitelist()
-def remove(args=None):
+def remove(doctype, name, assign_to):
 	"""remove from todo"""
 	if not args:
 		args = webnotes.form_dict
@@ -84,11 +84,15 @@ def remove(args=None):
 	res = webnotes.conn.sql("""\
 		select assigned_by, owner, reference_type, reference_name from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", args)
+		and owner=%(assign_to)s""", locals())
 
 	webnotes.conn.sql("""delete from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		and owner=%(assign_to)s""", args)
+		and owner=%(assign_to)s""", locals())
+		
+	# clear assigned_to if field exists
+	if "assigned_to" in webnotes.conn.get_columns(doctype):
+		webnotes.conn.set_value(doctype, name, "assigned_to", None)
 
 	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
 

@@ -4,7 +4,7 @@
   "docstatus": 0, 
   "creation": "2012-12-07 15:15:20", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-21 12:35:01"
+  "modified": "2013-01-02 14:47:27"
  }, 
  {
   "istable": 0, 
@@ -111,6 +111,7 @@
   "permlevel": 0
  }, 
  {
+  "print_width": "50%", 
   "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
   "width": "50%", 
@@ -297,12 +298,14 @@
  }, 
  {
   "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.", 
+  "print_width": "50%", 
   "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
   "label": "Defaults", 
   "width": "50%", 
   "fieldname": "sb2", 
   "fieldtype": "Section Break", 
+  "hidden": 1, 
   "permlevel": 1
  }, 
  {
@@ -312,6 +315,7 @@
   "options": "DefaultValue", 
   "fieldname": "defaults", 
   "fieldtype": "Table", 
+  "hidden": 1, 
   "permlevel": 0
  }, 
  {
@@ -347,6 +351,7 @@
   "permlevel": 1
  }, 
  {
+  "print_width": "50%", 
   "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
   "width": "50%", 
@@ -409,13 +414,21 @@
   "match": "owner"
  }, 
  {
+  "amend": 0, 
+  "create": 0, 
   "doctype": "DocPerm", 
+  "submit": 0, 
   "role": "Administrator", 
+  "cancel": 0, 
   "permlevel": 1
  }, 
  {
+  "amend": 0, 
+  "create": 0, 
   "doctype": "DocPerm", 
+  "submit": 0, 
   "role": "System Manager", 
+  "cancel": 0, 
   "permlevel": 1
  }
 ]

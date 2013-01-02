@@ -4,6 +4,69 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 		title: 'Permission Manager',
 		single_column: true
 	});
+	$(wrapper).find(".layout-main").html("<div class='perm-engine'></div>\
+	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
+	<tr><td>\
+	<h4><i class='icon-question-sign'></i> Quick Help for Setting Permissions:</h4>\
+	<ol>\
+	<li>Permissions are set on Roles and Document Types (called DocTypes) by restricting \
+		read, write, create, submit, cancel and amend rights.</li>\
+	<li>Permissions translate to Users based on what Role they are assigned.</li>\
+	<li>To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> \
+		and click on the user to assign roles.</li>\
+	<li>The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a>\
+		to set finer permissions.</li>\
+	<li>Permissions are automatically translated to Standard Reports and Searches.</li>\
+	<li>As a best practice, do not assign the same set of permission rule to different Roles\
+		instead set multiple Roles to the User.</li>\
+	</ol>\
+	</tr></td>\
+	<tr><td>\
+	<h4><i class='icon-hand-right'></i> Meaning of Submit, Cancel, Amend:</h4>\
+	<ol>\
+	<li>Certain documents should not be changed once final, like an\
+		Invoice for example. The final state for such documents is called <b>Submitted</b>.\
+		You can restrict which roles can Submit.</li>\
+	<li><b>Cancel</b> allows you change Submitted documents by cancelling them and amending them.\
+		Cancel permissions also allows the user to delete a document (if it is not linked to any other document).</li>\
+	<li>When you <b>Amend</b> a document after cancel and save it, it will get a new number that is\
+		a version of the old number. For example if you cancel and amend 'INV004' it will become a new\
+		document 'INV004-1'. This helps you to keep track of each amendment.</li>\
+	</ol>\
+	</tr></td>\
+	<tr><td>\
+	<h4><i class='icon-user'></i> Restricting By User:</h4>\
+	<ol>\
+		<li>To restrict a User of a particular Role to documents that are only self-created,\
+			Click on button in the 'Condition' column and select the option 'User is the creator of the document'.</li>\
+		<li>To restrict a User of a particular Role to documents that are explicitly assigned to them,\
+			create a Custom Field of type Link (Profile) and then use the 'Condition' settings\
+			to map that field to the Permission rule.\
+	</ol>\
+	</tr></td>\
+	<tr><td>\
+	<h4><i class='icon-cog'></i> Advanced Settings:</h4>\
+	<p>To further restrict permissions based on certain values in a document, use the\
+	'Condition' settings. <br><br>For example: You want to restrict users to transactions marked\
+	with a certain property called 'Territory':</p>\
+	<ol>\
+		<li>Make sure that the transactions you want to restrict have a Link \
+			field 'territory' that maps to a 'Territory' master. If not, create a\
+			<a href='#List/Custom Field'>Custom Field</a> of type Link.</li>\
+		<li>In the Permission Manager, click on the button in the 'Condition' column\
+			for the Role you want to restrict.</li>\
+		<li>A new pop will open that will ask you to select further conditions. \
+			If the 'territory' Link Field exists, it will give you an option to select \
+			it.</li>\
+		<li>Go to Setup > <a href='#user-properties'>User Properties</a> to set \
+			'territory' for diffent Users.</li>\
+	</ol>\
+	<p>Once you have set this, the users will only be able access documents with that property</p>\
+	<hr>\
+	<p>If these instructions where not helpful, please add in your suggestions at\
+	<a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a></p>\
+	</tr></td>\
+	</table>");
 	wrapper.permission_engine = new wn.PermissionEngine(wrapper);
 }
 wn.pages['permission-manager'].refresh = function(wrapper) { 
@@ -13,7 +76,7 @@ wn.pages['permission-manager'].refresh = function(wrapper) {
 wn.PermissionEngine = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
-		this.body = $(this.wrapper).find(".layout-main");
+		this.body = $(this.wrapper).find(".perm-engine");
 		this.make();
 		this.refresh();
 		this.add_check_events();
@@ -68,7 +131,7 @@ wn.PermissionEngine = Class.extend({
 						callback: function() { me.refresh(); }
 					});
 				}));
-			}, 'icon-retweet');
+			}, 'icon-retweet').toggle(false);
 	},
 	get_doctype: function() {
 		var doctype = this.doctype_select.val();
@@ -112,7 +175,6 @@ wn.PermissionEngine = Class.extend({
 			this.show_permission_table(perm_list);
 		}
 		this.show_add_rule();
-		this.show_explain();
 	},
 	show_permission_table: function(perm_list) {
 		var me = this;
@@ -152,7 +214,8 @@ wn.PermissionEngine = Class.extend({
 			if(!d.permlevel) d.permlevel = 0;
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			add_cell(row, d, "parent");
-			add_cell(row, d, "role");
+			me.set_show_users(add_cell(row, d, "role"), d.role);
+			
 			var cell = add_cell(row, d, "permlevel");
 			if(d.permlevel==0) {
 				cell.css("font-weight", "bold");
@@ -169,6 +232,30 @@ wn.PermissionEngine = Class.extend({
 			me.add_match_button(row, d);
 			me.add_delete_button(row, d);
 		});
+	},
+	set_show_users: function(cell, role) {
+		cell.html("<a href='#'>"+role+"</a>")
+			.find("a")
+			.attr("data-role", role)
+			.click(function() {
+				var role = $(this).attr("data-role");
+				wn.call({
+					module: "core",
+					page: "permission_manager",
+					method: "get_users_with_role",
+					args: {
+						role: role
+					},
+					callback: function(r) {
+						r.message = $.map(r.message, function(p) {
+							return '<a href="#Form/Profile/'+p+'">'+p+'</a>';
+						})
+						msgprint("<h4>Users with role "+role+":</h4>" 
+							+ r.message.join("<br>"));
+					}
+				})
+				return false;
+			})
 	},
 	add_match_button: function(row, d) {
 		var me = this;
@@ -231,7 +318,6 @@ wn.PermissionEngine = Class.extend({
 						chk.attr("checked", chk.is(":checked") ? null : "checked");
 					} else {
 						me.get_perm(args.name)[args.ptype]=args.value; 
-						me.show_explain();
 					}
 				}
 			})
@@ -367,79 +453,5 @@ wn.PermissionEngine = Class.extend({
 	get_link_fields: function(doctype) {
 		return link_fields = wn.model.get("DocField", {parent:doctype, 
 			fieldtype:"Link", options:["not in", ["Profile", '[Select]']]});
-	},
-	show_explain: function() {
-		$(".perm-explain").remove();
-		if(!this.get_doctype()) return;
-		var wrapper = $("<div class='perm-explain well'></div>").appendTo(this.body);
-		var doctype = null;
-		var core_finished = false;
-		$.each(this.perm_list, function(i, p) {
-			if(p.parent != doctype) {
-				core_finished = false;
-				doctype = p.parent;
-				$('<h3>For ' + doctype + '</h3><h4>Document Permissions</h4>')
-					.appendTo(wrapper);
-				
-			}
-
-			if(p.permlevel==0) {
-				var perms = $.map(["read", "write", "create", "submit", "cancel", "amend"], function(type) {
-					if(p[type]) return type;
-				}).join(", ");
-				if(!p.match) {
-					var _p = $('<p>').html("A user with role <b>"+p.role + "</b> can " 
-						+ perms + " a document of type <b>" + doctype + "</b>.")
-					
-				} else {
-					if(p.match=="owner") {
-						var _p = $('<p>').html("A user with role <b>"+p.role + "</b> can " 
-							+ perms + " <b>" + doctype + "</b> <u>only if</u> that document is created by that user.");
-					} else if(p.match.indexOf(":")!=-1) {
-						var field = p.match.split(":")[0];
-						var _p = $('<p>').html("A user with role <b>"+p.role + "</b> can " 
-							+ perms + " <b>" + doctype + "</b> <u>only if</u> <b>"+field+"</b> equals User's Id.");
-					} else {
-						var _p = $('<p>').html("A user with role <b>"+p.role + "</b> can " 
-							+ perms + " <b>" + doctype + "</b> <u>only for</u> records with user's <b>"+p.match+"</b> property.");
-					}
-				}
-
-			} else {
-				if(!core_finished) {
-					core_finished = true;
-					$("<br><h4>Field Level Permissions</h4>").appendTo(wrapper);
-				}
-				var perms = $.map(["read", "write"], function(type) {
-					if(p[type]) return type;
-				}).join(", ");
-				var _p = $('<p>').html("A user with role <b>"+p.role + "</b> can only <u>" 
-					+ perms + "</u> fields at level <b>"+ p.permlevel +"</b> in a <b>" + doctype + "</b>.")
-			}
-
-			$("<a>Show Users</a>").appendTo(_p).attr("data-role", p.role)
-				.css("margin-left", "7px")
-				.click(function() {
-					var link = $(this);
-					wn.call({
-						module: "core",
-						page: "permission_manager",
-						method: "get_users_with_role",
-						args: {
-							role: link.attr("data-role"),
-						},
-						callback: function(r) {
-							$.each(r.message, function(i, uid) {
-								msgprint("<a href='#Form/Profile/"+uid+"'>" 
-									+ wn.user_info(uid).fullname + "</a> ("+
-									uid+")");
-							});
-							cur_dialog.set_title("Users with role " 
-								+ link.attr("data-role"));
-						}
-					});
-				});
-			_p.appendTo(wrapper);	
-		})
 	}
 })

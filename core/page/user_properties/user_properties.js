@@ -4,6 +4,21 @@ wn.pages['user-properties'].onload = function(wrapper) {
 		title: 'User Properties',
 		single_column: true
 	});					
+	$(wrapper).find(".layout-main").html("<div class='user-settings'></div>\
+	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
+	<tr><td>\
+	<h4><i class='icon-question-sign'></i> Quick Help for User Properties:</h4>\
+	<ol>\
+	<li>You can set various 'properties' to Users.</li>\
+	<li>These properties are Link Type fields from all Documents.</li>\
+	<li>These properties will appear as values in forms that contain them.</li>\
+	<li>These properties can also be used to 'assign' a particular document, \
+		whose property matches with the User's property to a User. These can be set\
+		using the <a href='#permission-manager'>Permission Manager</a></li>\
+	<li>A user can have multiple values for a property.</li>\
+	</ol>\
+	</tr></td>\
+	</table>");
 	wrapper.user_properties = new wn.UserProperties(wrapper);
 }
 
@@ -14,7 +29,7 @@ wn.pages['user-properties'].refresh = function(wrapper) {
 wn.UserProperties = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
-		this.body = $(this.wrapper).find(".layout-main");
+		this.body = $(this.wrapper).find(".user-settings");
 		this.make();
 		this.refresh();
 	},
@@ -72,11 +87,6 @@ wn.UserProperties = Class.extend({
 			this.show_property_table();
 		}
 		this.show_add_property();
-		$("<div class='well'>User Properties appear as default values in forms.\
-			<br>They are also used to restrict permissions \
-			in the <a href='#permission-manager'>Permission Manager</a>\
-			<br>You can also set multiple values for one property. \
-			If so, the permission rules will apply if any of the values match.</div>").appendTo(this.body);
 	},
 	refresh: function() {
 		var me = this;
@@ -119,7 +129,8 @@ wn.UserProperties = Class.extend({
 		$.each(this.prop_list, function(i, d) {
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			
-			$("<td>").html(d.parent).appendTo(row);
+			$("<td>").html('<a href="#Form/Profile/'+d.parent+'">'
+				+d.parent+'</a>').appendTo(row);
 			$("<td>").html(d.defkey).appendTo(row);
 			$("<td>").html(d.defvalue).appendTo(row);
 			
@@ -184,7 +195,7 @@ wn.UserProperties = Class.extend({
 						if(l[0]==key) return l[1];
 					})[0];
 					return 'select name from `tab'+doctype
-						+'` where name like "%s"'
+						+'` where name like "%s" limit 20'
 				}
 				d.get_input("add").click(function() {
 					var args = d.get_values();

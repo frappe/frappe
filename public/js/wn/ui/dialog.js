@@ -63,9 +63,16 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		this.appframe.$titlebar.find('.appframe-title').html(t || '');
 	},
 	set_postion: function() {
+		this.zindex = 1;
+		if(cur_dialog) {
+			this.zindex = cur_dialog.zindex + 1;
+		}
 		// place it at the center
-		this.wrapper.style.left  = (($(window).width() - cint(this.wrapper.style.width))/2) + 'px';
-        this.wrapper.style.top = ($(window).scrollTop() + 60) + 'px';
+		$(this.wrapper).css({
+			left: (($(window).width() - cint(this.wrapper.style.width))/2) + 'px',
+			top: ($(window).scrollTop() + 60) + 'px',
+			"z-index": this.zindex
+		})
 	},
 	show: function() {
 		// already live, do nothing

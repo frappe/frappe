@@ -72,53 +72,11 @@ class Database:
 		self._conn.select_db(db_name)
 		self.cur_db_name = db_name
 	
-	def check_transaction_status(self, query):
-		"""
-		      Update *in_transaction* and check if "START TRANSACTION" is not called twice
-		"""
-		if self.in_transaction and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create']:
-			raise Exception, 'This statement can cause implicit commit'
-
-		if query and query.strip().lower()=='start transaction':
-			self.in_transaction = 1
-			self.transaction_writes = 0
-			
-		if query and query.strip().split()[0].lower() in ['commit', 'rollback']:
-			self.in_transaction = 0
-
-		if self.in_transaction and query[:6].lower() in ['update', 'insert']:
-			self.transaction_writes += 1
-			if self.transaction_writes > 10000:
-				if self.auto_commit_on_many_writes:
-					webnotes.conn.commit()
-					webnotes.conn.begin()
-				else:
-					webnotes.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
-					raise Exception, 'Bad Query!!! Too many writes'
-	
-	def fetch_as_dict(self, formatted=0, as_utf8=0):
-		"""
-		      Internal - get results as dictionary
-		"""
-		result = self._cursor.fetchall()
-		ret = []
-		for r in result:
-			row_dict = webnotes._dict({})
-			for i in range(len(r)):
-				val = self.convert_to_simple_type(r[i], formatted)
-				if as_utf8 and type(val) is unicode:
-					val = val.encode('utf-8')
-				row_dict[self._cursor.description[i][0]] = val
-			ret.append(row_dict)
-		return ret
-	
 	def validate_query(self, q):
 		cmd = q.strip().lower().split()[0]
 		if cmd in ['alter', 'drop', 'truncate'] and webnotes.user.name != 'Administrator':
 			webnotes.msgprint('Not allowed to execute query')
 			raise Execption
-
-	# ======================================================================================
 	
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, 
 		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None):
@@ -168,14 +126,42 @@ class Database:
 		else:
 			return self._cursor.fetchall()
 
-		
-	def get_description(self):
-		"""
-		      Get metadata of the last query
-		"""
-		return self._cursor.description
+	def check_transaction_status(self, query):
+		if self.in_transaction and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create']:
+			raise Exception, 'This statement can cause implicit commit'
 
-	# ======================================================================================
+		if query and query.strip().lower()=='start transaction':
+			self.in_transaction = 1
+			self.transaction_writes = 0
+			
+		if query and query.strip().split()[0].lower() in ['commit', 'rollback']:
+			self.in_transaction = 0
+
+		if self.in_transaction and query[:6].lower() in ['update', 'insert']:
+			self.transaction_writes += 1
+			if self.transaction_writes > 10000:
+				if self.auto_commit_on_many_writes:
+					webnotes.conn.commit()
+					webnotes.conn.begin()
+				else:
+					webnotes.msgprint('A very long query was encountered. If you are trying to import data, please do so using smaller files')
+					raise Exception, 'Bad Query!!! Too many writes'
+
+	def fetch_as_dict(self, formatted=0, as_utf8=0):
+		result = self._cursor.fetchall()
+		ret = []
+		for r in result:
+			row_dict = webnotes._dict({})
+			for i in range(len(r)):
+				val = self.convert_to_simple_type(r[i], formatted)
+				if as_utf8 and type(val) is unicode:
+					val = val.encode('utf-8')
+				row_dict[self._cursor.description[i][0]] = val
+			ret.append(row_dict)
+		return ret
+				
+	def get_description(self):
+		return self._cursor.description
 
 	def convert_to_simple_type(self, v, formatted=0):
 		import datetime
@@ -211,12 +197,7 @@ class Database:
 		
 		return v
 
-	# ======================================================================================
-
 	def convert_to_lists(self, res, formatted=0, as_utf8=0):
-		"""
-		      Convert the given result set to a list of lists (with cleaned up dates and decimals)
-		"""
 		nres = []
 		for r in res:
 			nr = []
@@ -227,13 +208,8 @@ class Database:
 				nr.append(val)
 			nres.append(nr)
 		return nres
-		
-	# ======================================================================================
 
 	def convert_to_utf8(self, res, formatted=0):
-		"""
-		      Convert the given result set to a list of lists and as utf8 (with cleaned up dates and decimals)
-		"""
 		nres = []
 		for r in res:
 			nr = []
@@ -311,8 +287,6 @@ class Database:
 		self.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
 		doc.fields[field] = val
 
-	# ======================================================================================
-
 	def set_global(self, key, val, user='__global'):
 		res = self.sql('select defkey from `tabDefaultValue` where defkey=%s and parent=%s', (key, user))
 		if res:
@@ -323,8 +297,6 @@ class Database:
 	def get_global(self, key, user='__global'):
 		g = self.sql("select defvalue from tabDefaultValue where defkey=%s and parent=%s", (key, user))
 		return g and g[0][0] or None
-
-	# ======================================================================================
 
 	def set_default(self, key, val, parent="Control Panel"):
 		"""set control panel default (tabDefaultVal)"""
@@ -338,7 +310,6 @@ class Database:
 		else:
 			self.add_default(key, val, parent)
 			
-		
 	def add_default(self, key, val, parent="Control Panel"):
 		d = webnotes.doc('DefaultValue')
 		d.parent = parent
@@ -374,22 +345,13 @@ class Database:
 	def commit(self):
 		self.sql("commit")
 
-
 	def rollback(self):
 		self.sql("ROLLBACK")
 
-	# ======================================================================================
-
 	def field_exists(self, dt, fn):
-		"""
-		      Returns True if `fn` exists in `DocType` `dt`
-		"""	
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
 
 	def exists(self, dt, dn=None):
-		"""
-		      Returns true if the record exists
-		"""	
 		if isinstance(dt, basestring):
 			try:
 				return self.sql('select name from `tab%s` where name=%s' % (dt, '%s'), dn)
@@ -409,11 +371,7 @@ class Database:
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
 
-	# ======================================================================================
 	def close(self):
-		"""
-		      Close my connection
-		"""
 		if self._conn:
 			self._cursor.close()
 			self._conn.close()

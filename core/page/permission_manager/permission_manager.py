@@ -7,7 +7,7 @@ def get_roles_and_doctypes():
 		"doctypes": [d[0] for d in webnotes.conn.sql("""select name from tabDocType where
 			ifnull(istable,0)=0 and
 			ifnull(issingle,0)=0 and
-			module != 'Core' """)],
+			name not in ('DocType')""")],
 		"roles": [d[0] for d in webnotes.conn.sql("""select name from tabRole where name not in
 			('All', 'Guest', 'Administrator')""")]
 	}

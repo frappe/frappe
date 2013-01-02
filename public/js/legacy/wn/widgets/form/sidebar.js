@@ -115,7 +115,11 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			{
 				title: 'Assign',
 				render: function(wrapper) {
-					me.form.assign_to = new wn.widgets.form.sidebar.AssignTo(wrapper, me, me.form.doctype, me.form.docname);
+					me.form.assign_to = new wn.ui.form.AssignTo({
+						parent: $(wrapper),
+						frm: me.form
+					});
+					me.form.assign_to.refresh();
 				},
 				display: function() { return !me.form.doc.__islocal }
 			},
@@ -123,7 +127,10 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			{
 				title: 'Attachments',
 				render: function(wrapper) {
-					me.form.attachments = new wn.ui.form.Attachments({parent: $(wrapper), frm:me.form});
+					me.form.attachments = new wn.ui.form.Attachments({
+						parent: $(wrapper), 
+						frm:me.form
+					});
 					me.form.attachments.refresh();
 				},
 				display: function() { return me.form.meta.allow_attach }
