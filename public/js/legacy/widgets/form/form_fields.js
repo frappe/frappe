@@ -272,6 +272,7 @@ _f.CodeField.prototype.make_input = function() {
 			// General options
 			theme : "advanced",
 			plugins : "style,inlinepopups,table,advimage",
+			extended_valid_elements: "script|embed",
 			
 			// w/h
 			width: '100%',
