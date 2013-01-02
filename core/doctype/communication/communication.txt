@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-11-14 12:25:16", 
+  "creation": "2012-12-27 13:29:02", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-03 17:10:41"
+  "modified": "2012-12-31 12:37:53"
  }, 
  {
   "autoname": "naming_series:", 
@@ -38,7 +38,6 @@
  }, 
  {
   "default": "COMM-", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Naming Series", 
   "options": "COMM-", 
@@ -48,7 +47,6 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Subject", 
   "fieldname": "subject", 
@@ -57,7 +55,7 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
+  "print_width": "400", 
   "doctype": "DocField", 
   "label": "Content", 
   "width": "400", 
@@ -112,7 +110,6 @@
   "permlevel": 0
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "fieldname": "column_break3", 
   "fieldtype": "Column Break", 
@@ -125,6 +122,14 @@
   "fieldname": "lead", 
   "fieldtype": "Link", 
   "hidden": 0, 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Applicant", 
+  "options": "Job Applicant", 
+  "fieldname": "job_applicant", 
+  "fieldtype": "Link", 
   "permlevel": 0
  }, 
  {
@@ -226,7 +231,6 @@
  }, 
  {
   "default": "__user", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "User", 
   "options": "Profile", 
@@ -251,7 +255,6 @@
  }, 
  {
   "default": "Today", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Date", 
   "fieldname": "communication_date", 
@@ -284,7 +287,7 @@
   "doctype": "DocPerm", 
   "submit": 0, 
   "role": "Support Team", 
-  "cancel": 1, 
+  "cancel": 0, 
   "permlevel": 0
  }, 
  {
@@ -293,7 +296,7 @@
   "doctype": "DocPerm", 
   "submit": 0, 
   "role": "Sales Manager", 
-  "cancel": 1, 
+  "cancel": 0, 
   "permlevel": 0
  }, 
  {
@@ -302,7 +305,7 @@
   "doctype": "DocPerm", 
   "submit": 0, 
   "role": "Sales User", 
-  "cancel": 1, 
+  "cancel": 0, 
   "permlevel": 0
  }, 
  {
@@ -320,6 +323,24 @@
   "doctype": "DocPerm", 
   "submit": 0, 
   "role": "Support Manager", 
+  "cancel": 0, 
+  "permlevel": 1
+ }, 
+ {
+  "amend": 0, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "submit": 0, 
+  "role": "Administrator", 
+  "cancel": 1, 
+  "permlevel": 0
+ }, 
+ {
+  "amend": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "submit": 0, 
+  "role": "Administrator", 
   "cancel": 0, 
   "permlevel": 1
  }, 
