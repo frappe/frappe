@@ -22,7 +22,7 @@ wn.ui.form.LinkedWith = Class.extend({
 		}).sort(function(a, b) { return a.label > b.label ? 1 : -1 });
 		
 		this.dialog = new wn.ui.Dialog({
-			width: 640,
+			width: 700,
 			title: wn._("Linked With"),
 			fields: [
 				{ fieldtype: "HTML", label: "help", 
@@ -60,6 +60,7 @@ wn.ui.form.LinkedWith = Class.extend({
 	},
 	make_listing: function() {
 		var me = this;
+		this.listview = wn.views.get_listview(this.doctype, this);
 		this.lst = new wn.ui.Listing({
 			hide_refresh: true,
 			no_loading: true,
@@ -69,34 +70,37 @@ wn.ui.form.LinkedWith = Class.extend({
 			parent: $(this.dialog.fields_dict.list.wrapper).empty().css("min-height", "300px")
 				.get(0),
 			method: 'webnotes.widgets.reportview.get',
+			custom_new_doc: me.listview.make_new_doc || undefined,
 			get_args: function() {
-				return {
-					doctype: me.doctype,
-					fields: (!me.is_table
-						? [ '`tab' + me.doctype + '`.name', 
-						'`tab' + me.doctype + '`.modified',
-						'`tab' + me.doctype + '`.modified_by',
-						'`tab' + me.doctype + '`.docstatus']
-						: [ '`tab' + me.doctype + '`.parent', 
-						'`tab' + me.doctype + '`.parenttype',
-						'`tab' + me.doctype + '`.modified_by',
-						'`tab' + me.doctype + '`.docstatus']
-						),
-					filters: me.lst.filter_list.get_filters(),
-					docstatus: ['0','1']
+				var args = {
+					doctype: this.doctype,
+					fields: this.listview.fields,
+					filters: this.filter_list.get_filters(),
+					docstatus: ['0','1'],
+					order_by: this.listview.order_by || undefined,
+					group_by: this.listview.group_by || undefined,
 				}
+				return args;
+				
+				// return {
+				// 	doctype: me.doctype,
+				// 	fields: (!me.is_table
+				// 		? [ '`tab' + me.doctype + '`.name', 
+				// 		'`tab' + me.doctype + '`.modified',
+				// 		'`tab' + me.doctype + '`.modified_by',
+				// 		'`tab' + me.doctype + '`.docstatus']
+				// 		: [ '`tab' + me.doctype + '`.parent', 
+				// 		'`tab' + me.doctype + '`.parenttype',
+				// 		'`tab' + me.doctype + '`.modified_by',
+				// 		'`tab' + me.doctype + '`.docstatus']
+				// 		),
+				// 	filters: me.lst.filter_list.get_filters(),
+				// 	docstatus: ['0','1']
+				// }
 			},
 			render_row: function(parent, data) {
-				$(parent).html(repl('%(avatar)s \
-					<a href="#Form/%(doctype)s/%(name)s" onclick="cur_dialog.hide()">\
-						%(doctype)s: %(name)s</a>\
-					<span class="help">Last Updated: %(modified)s</span>', {
-						avatar: wn.avatar(data.modified_by, null, 
-							"Last Modified By: " + wn.user_info(data.modified_by).fullname),
-						doctype: me.is_table ? data.parenttype : me.doctype,
-						modified: dateutil.comment_when(data.modified),
-						name: me.is_table ? data.parent : data.name
-					})).find('.avatar img').centerImage();
+				data.doctype = this.doctype;
+				me.listview.render(parent, data, this);
 			},
 			get_no_result_message: function() {
 				return repl("<div class='alert'>%(doctype)s: " + wn._("Not linked") + "</div>", {
@@ -108,5 +112,6 @@ wn.ui.form.LinkedWith = Class.extend({
 		me.lst.filter_list.show_filters(true);
 		me.lst.filter_list.clear_filters();
 		me.lst.set_filter(me.linked_with[me.doctype], me.frm.doc.name);
+		me.lst.listview = me.listview;
 	}
 });

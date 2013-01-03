@@ -129,13 +129,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		}
 	},
 	setup_listview: function() {
-		if(this.meta.__listjs) {
-			eval(this.meta.__listjs);
-			this.listview = new wn.doclistviews[this.doctype](this);
-		} else {
-			this.listview = new wn.views.ListView(this);
-		}
-		this.listview.parent = this;
+		this.listview = wn.views.get_listview(this.doctype, this);
 		this.wrapper = this.$page.find('.wnlist-area');
 		this.page_length = 20;
 		this.allow_delete = true;
@@ -155,7 +149,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			new_doctype: this.doctype,
 			allow_delete: this.allow_delete,
 			no_result_message: this.make_no_result(),
-			columns: this.listview.fields,
 			custom_new_doc: me.listview.make_new_doc || undefined,
 		});
 		
@@ -188,9 +181,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		});
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
-	},	
-	get_query_fields: function() {
-		return this.listview.fields;
 	},
 	get_args: function() {
 		var docstatus_list = this.can_submit ? $.map(this.$page.find('.show-docstatus :checked'), 
@@ -200,7 +190,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		var args = {
 			doctype: this.doctype,
-			fields: this.get_query_fields(),
+			fields: this.listview.fields,
 			filters: this.filter_list.get_filters(),
 			docstatus: docstatus_list,
 			order_by: this.listview.order_by || undefined,
