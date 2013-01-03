@@ -1,0 +1,21 @@
+[
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2013-01-01 11:00:01", 
+  "modified_by": "Administrator", 
+  "modified": "2013-01-01 11:00:01"
+ }, 
+ {
+  "name": "__common__", 
+  "title": "Permission Manager", 
+  "doctype": "Page", 
+  "module": "Core", 
+  "standard": "Yes", 
+  "page_name": "Permission Manager"
+ }, 
+ {
+  "name": "permission-manager", 
+  "doctype": "Page"
+ }
+]

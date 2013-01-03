@@ -86,6 +86,11 @@ $(window).bind('hashchange', function() {
 	wn.route_titles[wn._cur_route] = document.title;
 
 	if(window.location.hash==wn._cur_route)
-		return;	
+		return;
+		
+	// hide open dialog
+	if(cur_dialog) 
+		cur_dialog.hide();
+		
 	wn.route();
 });

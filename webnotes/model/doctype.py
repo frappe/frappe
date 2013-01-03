@@ -291,6 +291,7 @@ def expand_selects(doclist):
 	for d in filter(lambda d: d.fieldtype=='Select' \
 		and (d.options or '').startswith('link:'), doclist):
 		doctype = d.options.split("\n")[0][5:]
+		d.link_doctype = doctype
 		d.options = '\n'.join([''] + [o.name for o in webnotes.conn.sql("""select 
 			name from `tab%s` where docstatus<2 order by name asc""" % doctype, as_dict=1)])
 

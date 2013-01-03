@@ -14,7 +14,7 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_reqd('new_password', doc.__islocal);
 
 	if(doc.__islocal) {
-		cur_frm.toggle_display(['sb1', 'sb2', 'sb3'], false);
+		cur_frm.toggle_display(['sb1', 'sb3'], false);
 	} else {
 		cur_frm.cscript.enabled(doc);
 		cur_frm.roles_editor.show(doc.name);
@@ -22,18 +22,22 @@ cur_frm.cscript.refresh = function(doc) {
 			// update display settings
 			wn.ui.set_theme(doc.theme);
 			if(doc.background_image) {
-				wn.ui.set_user_background(doc.background_image);				
+				wn.ui.set_user_background(doc.background_image);
 			}
 			if(doc.user_image) {
 				wn.boot.user_info[user].image = wn.utils.get_file_link(doc.user_image);
 			}
 		}
 	}
+	
+	cur_frm.add_custom_button("Set Properties", function() {
+		wn.set_route("user-properties", doc.name);
+	})
 }
 
 cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal) {
-		cur_frm.toggle_display(['sb1', 'sb2', 'sb3'], doc.enabled);	
+		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);	
 		cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'disabled', false);		
 	}

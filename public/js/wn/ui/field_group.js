@@ -113,5 +113,8 @@ wn.ui.FieldGroup = Class.extend({
 				f.set_input(f.df['default'] || '');				
 			}
 		}
+	},
+	get_input: function(fieldname) {
+		return $(this.fields_dict[fieldname].input);
 	}
 });
