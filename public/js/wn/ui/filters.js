@@ -209,6 +209,12 @@ wn.ui.Filter = Class.extend({
 			return;
 		}
 		
+		// save old text
+		var old_text = null;
+		if(me.field) {
+			old_text = me.field.get_value();
+		}
+		
 		var field_area = me.$w.find('.filter_field').empty().get(0);
 		f = make_field(df, null, field_area, null, 0, 1);
 		f.df.single_select = 1;
@@ -217,6 +223,7 @@ wn.ui.Filter = Class.extend({
 		f.in_filter = 1;
 		f.refresh();
 		me.field = f;
+		if(old_text) me.field.set_input(old_text);
 		
 		this.set_default_condition(df, fieldtype);
 		
@@ -248,6 +255,8 @@ wn.ui.Filter = Class.extend({
 			df.options='No\nYes';
 		} else if(['Text','Small Text','Text Editor','Code','Tags'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';				
+		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
+			df.fieldtype = 'Data';
 		}
 	},
 	
