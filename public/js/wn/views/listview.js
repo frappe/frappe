@@ -1,3 +1,14 @@
+wn.views.get_listview = function(doctype, parent) {
+	var meta = locals.DocType[doctype];
+	if(meta.__listjs) {
+		eval(meta.__listjs);
+		var listview = new wn.doclistviews[doctype](parent);
+	} else {
+		var listview = new wn.views.ListView(parent);
+	}
+	return listview;
+}
+
 wn.views.ListView = Class.extend({
 	init: function(doclistview) {
 		this.doclistview = doclistview;

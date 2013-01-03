@@ -32,9 +32,7 @@ wn.ui.form.AssignTo = Class.extend({
 		$.extend(this, opts);
 		var me = this;
 		this.wrapper = $('<div>\
-			<button class="btn">\
-				<i class="icon-ok"></i>\
-				'+wn._("Assign To")+'</button>\
+			<button class="btn"><i class="icon-plus"></i></button>\
 			<div class="alert-list"></div>\
 		</div>').appendTo(this.parent);
 
