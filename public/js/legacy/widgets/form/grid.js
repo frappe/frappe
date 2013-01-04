@@ -250,7 +250,7 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 		$y($td(t,0,0),{paddingLeft:'4px'});
 		$td(t,0,0).innerHTML = cell.row.rowIndex + 1;
 
-		if(cur_frm.editable && this.can_edit) {
+		if(this.can_edit) {
 			$("<a title='Edit Row'><i class='icon-edit'></i></a>")
 				.click(function() {
 					_f.cur_grid = me;

@@ -40,7 +40,7 @@ $.extend(wn.perm, {
 			
 		return perms[doctype][level][type];
 	},
-	get_perm: function(doctype, dn, ignore_submit) {
+	get_perm: function(doctype, dn) {
 		var perm = [[0,0],];
 		if(in_list(user_roles, 'Administrator')) 
 			perm[0][READ] = 1;

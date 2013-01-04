@@ -105,9 +105,4 @@ $.extend(wn.meta, {
 		}
 	},
 
-	get_state_fieldname: function(doctype) {
-		var wf = wn.model.get("Workflow", {document_type: doctype});
-		return wf.length ? wf[0].workflow_state_field : null;
-	},
-
 });

@@ -125,9 +125,6 @@ Field.prototype.set_description = function(txt) {
 	}
 }
 
-// Field Refresh
-// --------------------------------------------------------------------------------------------
-
 Field.prototype.get_status = function() {
 	// if used in filters
 	if(this.in_filter) 
@@ -143,39 +140,51 @@ Field.prototype.get_status = function() {
 	var ret;
 
 	// permission level
-	if(cur_frm.editable && p && p[WRITE] && !this.df.disabled)ret='Write';
-	else if(p && p[READ])ret='Read';
-	else ret='None';
-
-	// binary
-	if(this.df.fieldtype=='Binary')
-		ret = 'None'; // no display for binary
+	if(p && p[WRITE] && !this.df.disabled)
+		ret='Write';
+	else if(p && p[READ])
+		ret='Read';
+	else 
+		ret='None';
 
 	// hidden
-	if(cint(this.df.hidden))
+	if(cint(this.df.hidden)) {
 		ret = 'None';
+	}
 
 	// for submit
-	if(ret=='Write' && cint(cur_frm.doc.docstatus) > 0) ret = 'Read';
+	if(ret=='Write' && cint(cur_frm.doc.docstatus) > 0) {
+		ret = 'Read';
+	}
 
 	// allow on submit
 	var a_o_s = cint(this.df.allow_on_submit);
 	
-	if(a_o_s && (this.in_grid || (this.frm && this.frm.not_in_container))) {
+	if(a_o_s && (this.in_grid || (this.frm && this.frm.meta.istable))) {
+		// if grid is allow-on-submit, everything in it is too!
 		a_o_s = null;
-		if(this.in_grid) a_o_s = this.grid.field.df.allow_on_submit; // take from grid
-		if(this.frm && this.frm.not_in_container) { a_o_s = cur_grid.field.df.allow_on_submit;} // take from grid
-	}
-	
-	if(cur_frm.editable && a_o_s && cint(cur_frm.doc.docstatus)>0 && !this.df.hidden) {
-		tmp_perm = wn.perm.get_perm(cur_frm.doctype, cur_frm.docname, 1);
-		if(tmp_perm[this.df.permlevel] && tmp_perm[this.df.permlevel][WRITE]) {
-			ret='Write';
+		if(this.in_grid) 
+			a_o_s = this.grid.field.df.allow_on_submit;
+		if(this.frm.meta.istable) { 
+			a_o_s = cur_grid.field.df.allow_on_submit;
 		}
 	}
 	
-	// make a field read_only if read_only is checked (disregards write permission)
-	if(cint(this.df.read_only) && ret=="Write") ret = "Read";
+	if(ret=="Read" && a_o_s && cint(cur_frm.doc.docstatus)==1 && 
+		cur_frm.perm[this.df.permlevel][WRITE]) {
+			ret='Write';
+	}
+
+	// workflow state
+	if(ret=="Write" && cur_frm.read_only) {
+		ret = 'Read';
+	}
+		
+	// make a field read_only if read_only 
+	// is checked (disregards write permission)
+	if(ret=="Write" && cint(this.df.read_only)) {
+		ret = "Read";
+	}
 
 	return ret;
 }

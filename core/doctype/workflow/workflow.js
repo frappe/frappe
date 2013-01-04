@@ -25,7 +25,8 @@ wn.core.Workflow = wn.ui.form.Controller.extend({
 				fieldtype: ["not in", wn.model.no_value_type]
 			}),
 			function(d) { return d.fieldname; });
-		wn.meta.get_docfield("Workflow Document State", "update_field").options = fields;
+		wn.meta.get_docfield("Workflow Document State", "update_field").options
+			= [""].concat(fields);
 	}
 });
 

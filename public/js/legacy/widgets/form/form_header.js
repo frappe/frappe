@@ -109,6 +109,8 @@ _f.FrmHeader = Class.extend({
 				cur_frm.save('Update', null, this);
 			}, '')
 		}
+		
+		this.set_primary_button();
 	},
 	set_label: function(labinfo) {
 		this.$w.find('.label').remove();
@@ -133,23 +135,19 @@ _f.FrmHeader = Class.extend({
 
 		// Edit
 		if(cur_frm.meta.read_only_onload && !cur_frm.doc.__islocal) {
-			if(!cur_frm.editable)
-				this.appframe.add_button('Edit', function() { 
-					cur_frm.edit_doc();
-				},'icon-pencil');
-			else
-				this.appframe.add_button('Print View', function() { 
-					cur_frm.is_editable[cur_frm.docname] = 0;				
-					cur_frm.refresh(); }, 'icon-print' );	
+			this.appframe.add_button('Print View', function() { 
+				cur_frm.last_view_is_edit[cur_frm.docname] = 0;				
+				cur_frm.refresh(); }, 'icon-print' );	
 		}
 
 		var docstatus = cint(cur_frm.doc.docstatus);
+		
 		// Save
-		if(docstatus==0 && p[WRITE]) {
+		if(docstatus==0 && p[WRITE] && !cur_frm.read_only) {
 			this.appframe.add_button('Save', function() { 
 				cur_frm.save('Save', null, this);}, 'icon-save');
-			this.appframe.buttons['Save'].addClass('btn-info')
-				.html("<i class='icon-save'></i> Save (Ctrl+S)");			
+			this.appframe.buttons['Save'].addClass("btn-save")
+				.html("<i class='icon-save'></i> <u>S</u>ave");
 		}
 
 		// Submit
@@ -168,11 +166,29 @@ _f.FrmHeader = Class.extend({
 				this.appframe.add_button('Amend', function() { 
 					cur_frm.amend_doc() }, 'icon-pencil');
 		}
+		this.set_primary_button();
 	},
-	show: function() {
-	},
-	hide: function() {
-		
+	set_primary_button: function() {
+		if(!this.appframe.toolbar)
+			return;
+
+		var buttons = this.appframe.buttons;
+
+		// highlight save
+		this.appframe.toolbar.find("button").removeClass("btn-info");
+		if(buttons["Save"]) {
+			buttons["Save"].addClass("btn-info");
+		}
+
+		// highlight submit button
+		if(buttons["Submit"] && !cur_frm.doc.__unsaved) {
+			this.appframe.toolbar.find("button").removeClass("btn-info");
+			buttons["Submit"].addClass("btn-info");
+		// highlight update button
+		} else if(buttons["Update"] && cur_frm.doc.__unsaved) {
+			this.appframe.toolbar.find("button").removeClass("btn-info");
+			buttons["Update"].addClass("btn-info");
+		}
 	},
 	hide_close: function() {
 		this.$w.find('.close').toggle(false);

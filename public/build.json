@@ -94,6 +94,7 @@
 			"lib/public/js/wn/model/sync.js",
 			"lib/public/js/wn/model/create_new.js",
 			"lib/public/js/wn/model/perm.js",
+			"lib/public/js/wn/model/workflow.js",
 
 			"lib/public/js/wn/misc/user.js",
 			"lib/public/js/wn/misc/utils.js",

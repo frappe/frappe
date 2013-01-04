@@ -23,7 +23,12 @@
 wn.ui.form.States = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.state_fieldname = wn.meta.get_state_fieldname(this.frm.doctype);
+		this.state_fieldname = wn.workflow.get_state_fieldname(this.frm.doctype);
+		
+		// no workflow?
+		if(!this.state_fieldname)
+			return;
+
 		this.make();
 		this.bind_action();
 
@@ -37,20 +42,47 @@ wn.ui.form.States = Class.extend({
 		this.$wrapper = $('<div class="states" style="margin-bottom: 11px; height: 26px;">\
 			<div class="btn-group">\
 				<button class="btn dropdown-toggle" data-toggle="dropdown">\
-				<i class="icon-small"></i> <span class="state-text"></span> <span class="caret"></span></button>\
+				<i class="icon-small"></i> <span class="state-text"></span> <span class="caret"></span>\
+				</button>\
 				<ul class="dropdown-menu">\
 				</ul>\
 			</div>\
+			<button class="btn btn-help">?</button>\
 		</div>').appendTo(this.frm.page_layout.body_header);
 		this.$wrapper.toggle(false);
+		this.setup_help();
 	},
-		
+
+	setup_help: function() {
+		var me = this;
+		this.$wrapper.find(".btn-help").click(function() {
+			wn.workflow.setup(me.frm.doctype);
+			var state = me.get_state();
+			var d = new wn.ui.Dialog({
+				title: "Workflow: "
+					+ wn.workflow.workflows[me.frm.doctype].name
+			})
+			var next_html = $.map(wn.workflow.get_transitions(me.frm.doctype, state), 
+				function(d) { 
+					return d.action.bold() + " by Role " + d.allowed;
+				}).join(", ") || "None: End of Workflow".bold();
+			
+			$(d.body).html("<p>Current status: " + state.bold() + "</p>"
+				+ "<p>Document is only editable by users of role: " + wn.workflow.get_document_state(me.frm.doctype,
+						state).allow_edit.bold() + "</p>"
+				+ "<p>Next actions: "+ next_html +"</p>"
+				+ (me.frm.doc.__islocal ? "<div class='alert'>Workflow will start after saving</div>" : "")
+				+ "<p class='help'>Note: Other permission rules may also apply</p>"
+				).css({padding: '15px'});
+			d.show();
+		});
+	},
+	
 	refresh: function() {
 		// hide if its not yet saved
 		this.$wrapper.toggle(false);
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
-			return;
 		}
 		
 		// state text
@@ -68,26 +100,25 @@ wn.ui.form.States = Class.extend({
 				.addClass("icon-" + state_doc.icon);
 
 			// set the style
-			this.$wrapper.find(".btn").removeClass()
+			this.$wrapper.find(".btn:first").removeClass()
 				.addClass("btn dropdown-toggle")
 				.addClass("btn-" + state_doc.style.toLowerCase());
 			
 			// show actions from that state
 			this.show_actions(state);
 			
-			// disable if not allowed
-			if(!this.frm.doc.__islocal)
-				this.$wrapper.toggle(true);
+			this.$wrapper.toggle(true);
+			if(this.frm.doc.__islocal) {
+				this.$wrapper.find('.btn:first').attr('disabled', true);
+			}
 		}
 	},
 	
 	show_actions: function(state) {
 		var $ul = this.$wrapper.find("ul");
 		$ul.empty();
-		$.each(wn.model.get("Workflow Transition", {
-			parent: this.frm.doctype,
-			state: state,
-		}), function(i, d) {
+
+		$.each(wn.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
 			if(in_list(user_roles, d.allowed)) {
 				d.icon = wn.model.get("Workflow State", {name:d.next_state})[0].icon;
 				
@@ -96,21 +127,16 @@ wn.ui.form.States = Class.extend({
 					.appendTo($ul);		
 			}
 		});
-		
+
 		// disable the button if user cannot change state
-		this.$wrapper.find('.btn').attr('disabled', $ul.find("li").length ? false : true);
+		this.$wrapper.find('.btn:first')
+			.attr('disabled', $ul.find("li").length ? false : true);
 	},
 
 	set_default_state: function() {
-		var d = wn.model.get("Workflow Document State", {
-			parent: this.frm.doctype,
-			idx: 1
-		});
-		
-		if(d && d.length) {
-			this.frm.set_value_in_locals(this.frm.doctype, this.frm.docname, 
-				this.state_fieldname, d[0].state);
-			refresh_field(this.state_fieldname);
+		var default_state = wn.workflow.get_default_state(this.frm.doctype);
+		if(default_state) {
+			this.frm.set_value(this.state_fieldname, default_state);
 		}
 	},
 	
@@ -125,19 +151,12 @@ wn.ui.form.States = Class.extend({
 		var me = this;
 		$(this.$wrapper).on("click", "[data-action]", function() {
 			var action = $(this).attr("data-action");
-			var next_state = wn.model.get("Workflow Transition", {
-				parent: me.frm.doctype,
-				state: me.frm.doc[me.state_fieldname],
-				action: action,
-			})[0].next_state;
+			var next_state = wn.workflow.get_next_state(me.frm.doc,
+					me.frm.doc[me.state_fieldname], action);
 			
 			me.frm.doc[me.state_fieldname] = next_state;
 			
-			var new_state = wn.model.get("Workflow Document State", {
-				parent: me.frm.doctype,
-				state: next_state
-			})[0];
-
+			var new_state = wn.workflow.get_document_state(me.frm.doctype, next_state);
 			var new_docstatus = new_state.doc_status;
 			
 			// update field and value

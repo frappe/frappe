@@ -56,7 +56,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.refresh_if_stale_for = 600;
 		
 	var me = this;
-	this.is_editable = {};
+	this.last_view_is_edit = {};
 	this.opendocs = {};
 	this.sections = [];
 	this.grids = [];
@@ -254,9 +254,9 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	else
 		return;
 
-	// editable
-	this.is_editable[name] = this.is_editable[old];
-	delete this.is_editable[old];
+	// view_is_edit
+	this.last_view_is_edit[name] = this.last_view_is_edit[old];
+	delete this.last_view_is_edit[old];
 
 	// cleanup
 	if(this && this.opendocs[old]) {
@@ -458,16 +458,8 @@ _f.Frm.prototype.check_doc_perm = function() {
 	var dt = this.parent_doctype?this.parent_doctype : this.doctype;
 	var dn = this.parent_docname?this.parent_docname : this.docname;
 	this.perm = wn.perm.get_perm(dt, dn);
-	this.orig_perm = wn.perm.get_perm(dt, dn, 1);
 				  
 	if(!this.perm[0][READ]) { 
-		if(user=='Guest') {
-			// allow temp access? via encryted akey
-			if(_f.temp_access[dt] && _f.temp_access[dt][dn]) {
-				this.perm = [[1,0,0]]
-				return 1;
-			}
-		}
 		window.history.back();
 		return 0;
 	}
@@ -491,6 +483,9 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// check permissions
 		if(!this.check_doc_perm()) return;
+
+		// read only (workflow)
+		this.read_only = wn.workflow.is_read_only(this.doctype, this.docname);
 
 		// set the doc
 		this.doc = wn.model.get_doc(this.doctype, this.docname);	  
@@ -519,19 +514,19 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.setnewdoc(this.docname); 
 		}
 
-		// editable
+		// view_is_edit
 		if(this.doc.__islocal) 
-			this.is_editable[this.docname] = 1; // new is editable
+			this.last_view_is_edit[this.docname] = 1; // new is view_is_edit
 
-		this.editable = this.is_editable[this.docname];
+		this.view_is_edit = this.last_view_is_edit[this.docname];
 		
-		if(this.editable || (!this.editable && this.meta.istable)) {
-			// show form layout (with fields etc)
-			// ----------------------------------
+		if(this.view_is_edit || (!this.view_is_edit && this.meta.istable)) {
 			if(this.print_wrapper) {
 				$dh(this.print_wrapper);
 				$ds(this.page_layout.wrapper);
 			}
+
+			
 
 			// header
 			if(!this.meta.istable) { 
@@ -570,8 +565,6 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 		
 		} else {
-			// show print layout
-			// ----------------------------------
 			this.refresh_header();
 			if(this.print_wrapper) {
 				this.refresh_print_layout();
@@ -586,9 +579,10 @@ _f.Frm.prototype.refresh = function(docname) {
 _f.Frm.prototype.refresh_footer = function() {
 	var f = this.page_layout.footer;
 	if(f.save_area) {
-		if(this.editable && (!this.meta.hide_toolbar) && (!this.meta.in_dialog || this.in_form) 
-			&& this.doc.docstatus==0 && !this.meta.istable && this.perm[0][WRITE]
-			&& (this.fields && this.fields.length > 7) && !this.save_disabled) {
+		// if save button is there in the header
+		if(this.frm_head && this.frm_head.appframe.toolbar
+			&& this.frm_head.appframe.toolbar.find(".btn-save").length && !this.save_disabled
+			&& (this.fields && this.fields.length > 7)) {
 			f.show_save();
 		} else {
 			f.hide_save();
@@ -729,15 +723,15 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	// Client Script
 	this.runclientscript('onload', this.doctype, this.docname);
 	
-	this.is_editable[docname] = 1;
-	if(cint(this.meta.read_only_onload)) this.is_editable[docname] = 0;
+	this.last_view_is_edit[docname] = 1;
+	if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
 		
 	this.opendocs[docname] = true;
 }
 
 _f.Frm.prototype.edit_doc = function() {
 	// set fields
-	this.is_editable[this.docname] = true;
+	this.last_view_is_edit[this.docname] = true;
 	this.refresh();
 }
 
@@ -996,7 +990,8 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 }
 
 _f.Frm.prototype.set_unsaved = function() {
-	if(cur_frm.doc.__unsaved) return;
+	if(cur_frm.doc.__unsaved) 
+		return;
 	cur_frm.doc.__unsaved = 1;
 	
 	var frm_head;
