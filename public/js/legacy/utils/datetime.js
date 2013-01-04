@@ -66,10 +66,18 @@ wn.datetime = {
 		return dateutil.str_to_user(dateutil.obj_to_str(d)); 
 	},
 	
-	get_diff: function(d1, d2) { 
+	get_ms_diff: function(d1, d2) {
 		if(typeof d1=='string') d1 = dateutil.str_to_obj(d1);
 		if(typeof d2=='string') d2 = dateutil.str_to_obj(d2);
-		return Math.round((d1-d2) / 86400000); 
+		return d1-d2
+	},
+	
+	get_diff: function(d1, d2) { 
+		return Math.round(dateutil.get_ms_diff(d1, d2) / 86400000); 
+	},
+	
+	get_hour_diff: function(d1, d2) {
+		return Math.round(dateutil.get_ms_diff(d1, d2) / 3600000); 
 	},
 	
 	get_day_diff: function(d1, d2) {

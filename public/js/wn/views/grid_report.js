@@ -145,9 +145,13 @@ wn.views.GridReport = Class.extend({
 			me.set_route(); 
 		});
 		
+		// range
 		this.filter_inputs.range && this.filter_inputs.range.change(function() {
 			me.set_route();
 		});
+		
+		// plot check
+		if(this.setup_plot_check) this.setup_plot_check();
 	},
 	set_autocomplete: function($filter, list) {
 		var me = this;
@@ -633,9 +637,16 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 		me.wrapper.bind('make', function() {
 			me.wrapper.on("click", ".plot-check", function() {
 				var checked = $(this).attr("checked");
-				if(me.item_by_name[$(this).attr("data-id")]) {
-					me.item_by_name[$(this).attr("data-id")].checked = checked 
-						? true : false;
+				var id = $(this).attr("data-id");
+				if(me.item_by_name) {
+					if(me.item_by_name[id]) {
+						me.item_by_name[id].checked = checked 
+							? true : false;
+					}
+				} else {
+					$.each(me.data, function(i, d) {
+						if(d.id==id) d.checked = checked;
+					});
 				}
 				me.render_plot();
 			});	
