@@ -45,7 +45,7 @@ def insert(doclist):
 @webnotes.whitelist()
 def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	import webnotes.model.utils
-	webnotes.model.utils.delete_doc(doctype, name, doclist, force)
+	return webnotes.model.utils.delete_doc(doctype, name, doclist, force)
 	
 def get_search_criteria(dt):
 	import webnotes.model.doc
