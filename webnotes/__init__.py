@@ -50,6 +50,8 @@ class _dict(dict):
 		"""update and return self -- the missing dict feature in python"""
 		super(_dict, self).update(d)
 		return self
+	def copy(self):
+		return _dict(super(_dict, self).copy())
 		
 def _(s):
 	return s
