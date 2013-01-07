@@ -25,6 +25,10 @@ import webnotes
 import json
 
 @webnotes.whitelist()
+def get(doctype, name):
+	return [d.fields for d in webnotes.model_wrapper(doctype, name).doclist]
+	
+@webnotes.whitelist()
 def insert(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)

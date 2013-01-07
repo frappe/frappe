@@ -40,38 +40,37 @@ def login(usr=None, pwd=None):
 		raise AuthError
 
 def insert(doclist):
-	if not sid: login()
-	response = requests.post(server, params = {
+	return request({
 		"cmd": "webnotes.client.insert",
 		"doclist": json.dumps(doclist)
-	}, cookies = {"sid": sid})
-	
-	if debug and "exc" in response.json:
-		print response.json["exc"]
-	
-	return response
+	})
 	
 def update(doclist):
-	if not sid: login()
-	response = requests.post(server, params = {
+	return request({
 		"cmd": "webnotes.client.save",
 		"doclist": json.dumps(doclist)
-	}, cookies = {"sid": sid})
-	
-	if debug and "exc" in response.json:
-		print response.json["exc"]
-	
-	return response
-	
+	})
+		
 def delete(doctype, name):
-	if not sid: login()
-	response = requests.post(server, params = {
+	return request({
 		"cmd": "webnotes.model.delete_doc",
 		"doctype": doctype,
 		"name": name
-	}, cookies = {"sid": sid})
+	})
+	
+def get_doc(doctype, name):
+	ret = request({
+		"cmd": "webnotes.client.get",
+		"doctype": doctype,
+		"name": name
+	})
+	return ret
 
-	if debug and "exc" in response.json:
+def request(params):
+	if not sid: login()
+	response = requests.post(server, params = params, cookies = {"sid": sid})
+	
+	if debug and response.json and ("exc" in response.json) and response.json["exc"]:
 		print response.json["exc"]
 
 	return response
@@ -85,8 +84,9 @@ class TestAPI(unittest.TestCase):
 		self.assertRaises(AuthError, login, {"pwd":"--"})
 		sid = None
 		
-	def test_insert(self):
+	def test_all(self):
 		login()
+		delete("Customer", "Import Test Customer")
 		response = insert([{
 			"doctype":"Customer",
 			"customer_name": "Import Test Customer",
@@ -96,6 +96,16 @@ class TestAPI(unittest.TestCase):
 			"company": "Alpha"
 		}])
 		self.assertTrue(response.json["message"][0]["name"]=="Import Test Customer")
+		
+		# get
+		response = get_doc("Customer", "Import Test Customer")
+		
+		doclist = response.json["message"]
+		self.assertTrue(len(doclist)==1)
+		self.assertTrue(doclist[0]["doctype"]=="Customer")
+		self.assertTrue(doclist[0]["customer_group"]=="Standard Group")
+		
+		# delete
 		self.assertTrue(delete("Customer", "Import Test Customer").json["message"]=="okay")
 		
 if __name__=="__main__":
