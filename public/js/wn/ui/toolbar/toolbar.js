@@ -64,14 +64,14 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
-				onclick="return false;">Document<b class="caret"></b></a>\
+				onclick="return false;">'+wn._('Document')+'<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-document">\
 				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
-					<i class="icon-plus"></i> New</a></li>\
+					<i class="icon-plus"></i> '+wn._('New')+'</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">\
-					<i class="icon-search"></i> Search</a></li>\
+					<i class="icon-search"></i> '+wn._('Search')+'</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">\
-					<i class="icon-list"></i> Report</a></li>\
+					<i class="icon-list"></i> '+wn._('Report')+'</a></li>\
 			</ul>\
 		</li>');
 	},
@@ -79,17 +79,19 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make_tools: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				onclick="return false;">Tools<b class="caret"></b></a>\
+				onclick="return false;">'+wn._('Tools')+'<b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
-				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">Clear Cache & Refresh</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">About</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">'
+					+wn._('Clear Cache & Refresh')+'</a></li>\
+				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">'
+					+wn._('About')+'</a></li>\
 			</ul>\
 		</li>');
 		
 		if(has_common(user_roles,['Administrator','System Manager'])) {
 			$('#toolbar-tools').append('<li><a href="#" \
-				onclick="return wn.ui.toolbar.download_backup();">\
-				Download Backup</a></li>');
+				onclick="return wn.ui.toolbar.download_backup();">'
+				+wn._('Download Backup')+'</a></li>');
 		}
 	},
 	set_user_name: function() {
@@ -100,7 +102,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 
 	make_logout: function() {
 		// logout
-		$('#toolbar-user').append('<li><a href="#" onclick="return wn.app.logout();">Logout</a></li>');
+		$('#toolbar-user').append('<li><a href="#" onclick="return wn.app.logout();">'
+			+wn._('Logout')+'</a></li>');
 	}
 });
 
@@ -116,7 +119,7 @@ wn.ui.toolbar.clear_cache = function() {
 }
 
 wn.ui.toolbar.download_backup = function() {
-	msgprint("Your download is being built, this may take a few moments...");
+	msgprint(wn._("Your download is being built, this may take a few moments..."));
 	$c('webnotes.utils.backups.get_backup',{},function(r,rt) {});
 	return false;
 }

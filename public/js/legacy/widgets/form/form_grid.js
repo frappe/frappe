@@ -45,13 +45,13 @@ _f.FormGrid.prototype.setup = function() {
 _f.FormGrid.prototype.make_buttons = function() {
 	var me = this;
 	this.tbar_btns = {};
-	this.tbar_btns['Del'] = this.make_tbar_link($td(this.tbar_tab,0,0),'Del', 
+	this.tbar_btns['Del'] = this.make_tbar_link($td(this.tbar_tab,0,0),wn._('Del'), 
 		function() { me.delete_row(); }, 'icon-remove-sign');
-	this.tbar_btns['Ins'] = this.make_tbar_link($td(this.tbar_tab,0,1),'Ins', 
+	this.tbar_btns['Ins'] = this.make_tbar_link($td(this.tbar_tab,0,1),wn._('Ins'), 
 		function() { me.insert_row(); }, 'icon-plus');
-	this.tbar_btns['Up'] = this.make_tbar_link($td(this.tbar_tab,0,2),'Up', 
+	this.tbar_btns['Up'] = this.make_tbar_link($td(this.tbar_tab,0,2),wn._('Up'), 
 		function() { me.move_row(true); }, 'icon-arrow-up');
-	this.tbar_btns['Dn'] = this.make_tbar_link($td(this.tbar_tab,0,3),'Dn', 
+	this.tbar_btns['Dn'] = this.make_tbar_link($td(this.tbar_tab,0,3),wn._('Dn'), 
 		function() { me.move_row(false); }, 'icon-arrow-down');
 		
 	for(var i in this.btns)
@@ -173,7 +173,7 @@ _f.FormGrid.prototype.new_row_doc = function() {
 _f.FormGrid.prototype.add_newrow = function() {
 	var r = this.tab.rows[this.tab.rows.length - 1];
 	if(!r.is_newrow)
-		show_alert('fn: add_newrow: Adding a row which is not flagged as new');
+		throw 'Adding a row which is not flagged as new';
 
 	var d = this.new_row_doc();
 	d.idx = r.rowIndex + 1;
@@ -212,11 +212,11 @@ _f.FormGrid.prototype.make_newrow = function(from_add_btn) {
 
 _f.FormGrid.prototype.check_selected = function() {
 	if(!_f.cur_grid_cell) {
-		show_alert('Select a cell first');
+		show_alert(wn._('Select a cell first'));
 		return false;
 	}
 	if(_f.cur_grid_cell.grid != this) {
-		show_alert('Select a cell first');
+		show_alert(wn._('Select a cell first'));
 		return false;
 	}
 	return true;

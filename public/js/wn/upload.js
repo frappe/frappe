@@ -6,11 +6,11 @@ wn.upload = {
 				style="width:0px; height:0px; border:0px"></iframe>\
 			<form method="POST" enctype="multipart/form-data" \
 				action="%(action)s" target="%(id)s">\
-				Upload a file:<br>\
+				'+wn._('Upload a file')+':<br>\
 				<input type="file" name="filedata" /><br><br>\
 				OR:<br><input type="text" name="file_url" /><br>\
 				<p class="help">e.g. http://example.com/somefile.png</p><br>\
-				<input type="submit" class="btn" value="Attach" />\
+				<input type="submit" class="btn" value="'+wn._('Attach')+'" />\
 			</form>', {
 				id: id,
 				action: wn.request.url

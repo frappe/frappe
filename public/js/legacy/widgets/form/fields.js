@@ -108,7 +108,8 @@ Field.prototype.set_max_width = function() {
 
 Field.prototype.set_label = function() {
 	if(this.with_label && this.label_area && this.label!=this.df.label) { 
-		this.label_span.innerHTML = this.df.label;this.label = this.df.label; 
+		this.label_span.innerHTML = wn._(this.df.label);
+		this.label = this.df.label; 
 	}
 
 }
@@ -121,7 +122,7 @@ Field.prototype.set_description = function(txt) {
 				? this.label_area : this.wrapper;
 			this.desc_area = $a(p, 'div', 'help small');
 		}
-		$(this.desc_area).html(this.df.description || txt);
+		$(this.desc_area).html(wn._(this.df.description || txt));
 	}
 }
 
@@ -544,7 +545,7 @@ DateField.prototype.validate = function(v) {
 	if(!v) return;
 	var me = this;
 	this.clear = function() {
-		msgprint ("Date must be in format " + this.user_fmt);
+		msgprint (wn._("Date must be in format") + ": " + this.user_fmt);
 		me.input.set_input('');
 		return '';
 	}
@@ -575,11 +576,11 @@ LinkField.prototype.make_input = function() {
 			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "60%")})
 			.appendTo(me.input_area).get(0);
 				
-		me.btn = $('<button class="btn" title="Search Link">\
+		me.btn = $('<button class="btn" title="'+wn._('Search Link')+'">\
 			<i class="icon-search"></i></button>').appendTo(me.input_area).get(0);
-		me.btn1 = $('<button class="btn" title="Open Link">\
+		me.btn1 = $('<button class="btn" title="'+wn._('Open Link')+'">\
 			<i class="icon-play"></i></button>').appendTo(me.input_area).get(0);
-		me.btn2 = $('<button class="btn" title="Make New">\
+		me.btn2 = $('<button class="btn" title="'+wn._('Make New')+'">\
 			<i class="icon-plus"></i></button>').appendTo(me.input_area).get(0);	
 
 		me.txt.name = me.df.fieldname;
@@ -779,9 +780,6 @@ LinkField.prototype.validate_link = function(val, from_selector) {
 
 				me.run_trigger();
 			} else {
-				var astr = '';
-				if(in_list(profile.can_create, me.df.options)) astr = repl('<br><br><span class="link_type" onclick="newdoc(\'%(dt)s\')">Click here</span> to create a new %(dtl)s', {dt:me.df.options, dtl:wn._(me.df.options)})
-				msgprint(repl('error:<b>%(val)s</b> is not a valid %(dt)s.<br><br>You must first create a new %(dt)s <b>%(val)s</b> and then select its value. To find an existing %(dt)s, click on the magnifying glass next to the field.%(add)s', {val:me.txt.value, dt:wn._(me.df.options), add:astr})); 
 				me.txt.value = ''; 
 				me.set('');
 			}
@@ -982,7 +980,7 @@ function make_text_dialog() {
 TextField.prototype.table_refresh = function() {
 	if(!this.text_dialog)
 		make_text_dialog();
-	text_dialog.set_title('Enter text for "'+ this.df.label +'"'); 
+	text_dialog.set_title(wn._('Enter text for')+': "'+ wn._(this.df.label) +'"'); 
 	text_dialog.field = this;
 	text_dialog.show();
 }
@@ -1134,7 +1132,7 @@ SelectField.prototype.make_input = function() {
 			}
 		} else {
 			this.df.options = ''
-			this.set_description("Please attach a file first.")
+			this.set_description(wn._("Please attach a file first."))
 			
 		}
 	}

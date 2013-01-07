@@ -100,7 +100,7 @@ wn.ui.form.AssignTo = Class.extend({
 		var me = this;
 		if(!me.dialog) {
 			me.dialog = new wn.ui.Dialog({
-				title: 'Add to To Do',
+				title: wn._('Add to To Do'),
 				width: 350,
 				fields: [
 					{fieldtype:'Link', fieldname:'assign_to', options:'Profile', 

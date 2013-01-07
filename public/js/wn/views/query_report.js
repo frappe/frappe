@@ -46,7 +46,7 @@ wn.views.QueryReport = Class.extend({
 				<ol>\
 					<li>"datatype" and "width" are optional.\
 					<li>"datatype" can be "Link", "Date", "Float", "Currency".\
-					<li>For Links, use define linked Doctype as "Link/Customer".<br>\
+					<li>'+wn._('For Links, use define linked')+' DocType as "Link/Customer".<br>\
 					Example: "Customer:Link/Customer:120"\
 				</ol>\
 			</div>\
@@ -59,8 +59,8 @@ wn.views.QueryReport = Class.extend({
 			<div class="result-area" style="height:400px; \
 				border: 1px solid #aaa;"></div>\
 			<p class="help"><br>\
-				For comparative filters, start with ">" or "<", e.g. >5 or >01-02-2012\
-				<br>For ranges (values and dates) use ":", \
+				'+wn._('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
+				<br>'+wn._('For ranges')+' ('+wn._('values and dates')+') use ":", \
 					e.g. "5:10" (to filter values between 5 & 10)</p>\
 		</div>').appendTo(this.wrapper);
 
@@ -69,17 +69,17 @@ wn.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.add_button("Run", function() {
+		this.appframe.add_button(wn._("Run"), function() {
 			me.refresh();
 		}).addClass("btn-success");
 		
 		if(wn.user.is_report_manager() && !this.query) {
 			// Edit
-			this.appframe.add_button("Edit", function() {
+			this.appframe.add_button(wn._("Edit"), function() {
 				me.wrapper.find(".query-edit").slideToggle();
 			});
 			// Edit
-			this.appframe.add_button("Export", function() {
+			this.appframe.add_button(wn._("Export"), function() {
 				me.export();
 			});
 		}		
@@ -88,12 +88,12 @@ wn.views.QueryReport = Class.extend({
 		this.query_form = new wn.ui.FieldGroup({
 			parent: $(this.wrapper).find(".query-form").get(0),
 			fields: [
-				{label:"Report Name", reqd: 1, fieldname:"name"},
-				{label:"Based on", fieldtype:"Link", options:"DocType",
+				{label:wn._("Report Name"), reqd: 1, fieldname:"name"},
+				{label:wn._("Based on"), fieldtype:"Link", options:"DocType",
 					fieldname: "ref_doctype",
-					reqd:1, description:"Permissions will be based on this DocType"},
-				{label:"Query", fieldtype: "Text", reqd: 1},
-				{label:"Save", fieldtype:"Button"}
+					reqd:1, description:wn._("Permissions will be based on this DocType")},
+				{label:wn._("Query"), fieldtype: "Text", reqd: 1, fieldname:"query"},
+				{label:wn._("Save"), fieldtype:"Button", fielname:"save"}
 			]
 		});
 		
@@ -128,7 +128,7 @@ wn.views.QueryReport = Class.extend({
 				args: { doclist: [doc] },
 				callback: function(r) {
 					if(!r.exc) {
-						msgprint("Report Saved!")
+						msgprint(wn._("Report Saved"))
 					}
 					wn.provide("locals.Report");
 					me.doc = r.message[0]
@@ -148,10 +148,10 @@ wn.views.QueryReport = Class.extend({
 			wn.model.with_doc("Report", route[1], function(doc) {
 				me.doc = locals["Report"] && locals["Report"][route[1]];
 				if(!me.doc || !me.doc.is_standard=="No") {
-					msgprint("Bad Report Name / Only standard reports allowed.");
+					msgprint(wn._("Not allowed"));
 					return;
 				}
-				me.appframe.title("Query Report: " + me.doc.name);
+				me.appframe.title(wn._("Query Report")+": " + me.doc.name);
 				me.query_form.set_values(me.doc);
 
 				// only administrator can edit standard reports
@@ -163,9 +163,9 @@ wn.views.QueryReport = Class.extend({
 		} else {
 			var msg = "No Report Loaded. "
 			if(in_list(user_roles, "System Manager"))
-				msg += "Click on edit button to start a new report.";
+				msg += wn._("Click on edit button to start a new report.");
 			else
-				msg += "Please click on another report from the menu.";
+				msg += wn._("Please click on another report from the menu.");
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);	
 		}
 	},

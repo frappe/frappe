@@ -47,7 +47,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.doctype = doctype;
 		this.label = wn._(doctype);
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
-		 	this.label : (this.label + ' List');
+		 	wn._(this.label) : (wn._(this.label) + ' ' + wn._('List'));
 		this.make_page();
 		this.setup();
 	},
@@ -65,14 +65,18 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.$page.html('<div class="layout-wrapper layout-wrapper-background">\
 			<div class="appframe-area"></div>\
 			<div class="layout-main-section">\
-				<div class="wnlist-area" style="margin-top: -15px;"><div class="help">Loading...</div></div>\
+				<div class="wnlist-area" style="margin-top: -15px;">\
+					<div class="help">'+wn._('Loading')+'...</div></div>\
 			</div>\
 			<div class="layout-side-section">\
 				<div class="show-docstatus hide section">\
 					<div class="section-head">Show</div>\
-					<div><input data-docstatus="0" type="checkbox" checked="checked" /> Drafts</div>\
-					<div><input data-docstatus="1" type="checkbox" checked="checked" /> Submitted</div>\
-					<div><input data-docstatus="2" type="checkbox" /> Cancelled</div>\
+					<div><input data-docstatus="0" type="checkbox" \
+						checked="checked" /> '+wn._('Drafts')+'</div>\
+					<div><input data-docstatus="1" type="checkbox" \
+						checked="checked" /> '+wn._('Submitted')+'</div>\
+					<div><input data-docstatus="2" type="checkbox" \
+						/> '+wn._('Cancelled')+'</div>\
 				</div>\
 			</div>\
 			<div style="clear: both"></div>\
@@ -103,7 +107,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	make_report_button: function() {
 		var me = this;
 		if(wn.boot.profile.can_get_report.indexOf(this.doctype)!=-1) {
-			this.appframe.add_button('Build Report', function() {
+			this.appframe.add_button(wn._('Build Report'), function() {
 				wn.set_route('Report2', me.doctype);
 			}, 'icon-th')
 		}
@@ -111,8 +115,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	make_help: function() {
 		// Help
 		if(this.meta.description) {
-			this.appframe.add_help_button(wn.markdown('## ' + this.meta.name + '\n\n'
-				+ this.meta.description));
+			this.appframe.add_help_button(this.meta.description);
 		}
 	},
 	setup_docstatus_filter: function() {
@@ -163,8 +166,9 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_no_result: function() {
 		var new_button = wn.boot.profile.can_create.indexOf(this.doctype)!=-1
-			? '<hr><p><button class="btn btn-info" \
-				list_view_doc="%(doctype)s">Make a new %(doctype_label)s</button></p>'
+			? ('<hr><p><button class="btn btn-info" \
+				list_view_doc="%(doctype)s">'+
+				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
 		var no_result_message = repl('<div class="well">\
 		<p>No %(doctype_label)s found</p>' + new_button + '</div>', {
@@ -222,7 +226,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(!dl.length) 
 			return;
 			
-		wn.confirm('This is permanent action and you cannot undo. Continue?',
+		wn.confirm(wn._('This is permanent action and you cannot undo. Continue?'),
 			function() {
 				me.set_working(true);
 				wn.call({
@@ -255,11 +259,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				
 				// reload button at the end
 				if(me.listview.stats.length) {
-					$('<button class="btn"><i class="refresh"></i> Refresh</button>')
+					$('<button class="btn"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
 						.click(function() {
 							me.reload_stats();
 						}).appendTo($('<div class="stat-wrapper">')
-							.appendTo(me.$page.find('.layout-side-section')))					
+							.appendTo(me.$page.find('.layout-side-section')));
 				}
 				
 			}
@@ -271,10 +275,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(!stat || !stat.length) {
 			if(field=='_user_tags') {
 				this.$page.find('.layout-side-section')
-					.append('<div class="stat-wrapper section"><div class="section-head">Tags</div>\
-						<div class="help small"><i>No records tagged.</i><br><br> \
-						To add a tag, open the document and click on \
-						"Add Tag" on the sidebar</div></div>');
+					.append('<div class="stat-wrapper section"><div class="section-head">'
+						+wn._('Tags')+'</div>\
+						<div class="help small"><i>'+wn._('No records tagged.')+'</i><br><br> '
+						+wn._('To add a tag, open the document and click on "Add Tag" on the sidebar')
+						+'</div></div>');
 			}
 			return;
 		}
@@ -285,7 +290,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		// grid
 		var $w = $('<div class="stat-wrapper section">\
-			<div class="section-head">'+ label +'</div>\
+			<div class="section-head">'+ wn._(label) +'</div>\
 			<div class="stat-grid">\
 			</div>\
 		</div>');

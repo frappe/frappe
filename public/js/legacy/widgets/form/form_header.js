@@ -46,7 +46,7 @@ _f.FrmHeader = Class.extend({
 		if(title.length > 30) {
 			title = title.substr(0,30) + "...";
 		}
-		this.appframe.set_title(title, this.frm.docname);
+		this.appframe.set_title(title, wn._(this.frm.docname));
 		this.refresh_labels();
 		this.refresh_toolbar();
 		this.refresh_timestamps();
@@ -87,17 +87,17 @@ _f.FrmHeader = Class.extend({
 	refresh_labels: function() {
 		cur_frm.doc = wn.model.get_doc(cur_frm.doc.doctype, cur_frm.doc.name);
 		var labinfo = {
-			0: ['Saved', 'label-success'],
-			1: ['Submitted', 'label-info'],
-			2: ['Cancelled', 'label-important']
+			0: [wn._('Saved'), 'label-success'],
+			1: [wn._('Submitted'), 'label-info'],
+			2: [wn._('Cancelled'), 'label-important']
 		}[cint(cur_frm.doc.docstatus)];
 		
-		if(labinfo[0]=='Saved' && cur_frm.meta.is_submittable) {
-			labinfo[0]='Saved, to Submit';
+		if(labinfo[0]==wn._('Saved') && cur_frm.meta.is_submittable) {
+			labinfo[0]=wn._('Saved, to Submit');
 		}
 		
 		if(cur_frm.doc.__unsaved || cur_frm.doc.__islocal) {
-			labinfo[0] = 'Not Saved';
+			labinfo[0] = wn._('Not Saved');
 			labinfo[1] = 'label-warning'
 		}
 
@@ -107,7 +107,7 @@ _f.FrmHeader = Class.extend({
 		if(cur_frm.doc.__unsaved && cint(cur_frm.doc.docstatus)==1 && cur_frm.perm[0][SUBMIT]) {
 			this.appframe.add_button('Update', function() { 
 				cur_frm.save('Update', null, this);
-			}, '')
+			}, '').html(wn._('Update'))
 		}
 		
 		this.set_primary_button();
@@ -137,7 +137,7 @@ _f.FrmHeader = Class.extend({
 		if(cur_frm.meta.read_only_onload && !cur_frm.doc.__islocal) {
 			this.appframe.add_button('Print View', function() { 
 				cur_frm.last_view_is_edit[cur_frm.docname] = 0;				
-				cur_frm.refresh(); }, 'icon-print' );	
+				cur_frm.refresh(); }, 'icon-print' ).html(wn._('Print View'));	
 		}
 
 		var docstatus = cint(cur_frm.doc.docstatus);
@@ -147,24 +147,24 @@ _f.FrmHeader = Class.extend({
 			this.appframe.add_button('Save', function() { 
 				cur_frm.save('Save', null, this);}, 'icon-save');
 			this.appframe.buttons['Save'].addClass("btn-save")
-				.html("<i class='icon-save'></i> <u>S</u>ave");
+				.html("<i class='icon-save'></i> "+wn._("Save"));
 		}
 
 		// Submit
 		if(!wn.model.get("Workflow", {document_type: cur_frm.doctype}).length) {
 			if(docstatus==0 && p[SUBMIT] && (!cur_frm.doc.__islocal))
 				this.appframe.add_button('Submit', function() { 
-					cur_frm.savesubmit(this);}, 'icon-lock');
+					cur_frm.savesubmit(this);}, 'icon-lock').html(wn._('Submit'));
 
 			// Cancel
 			if(docstatus==1  && p[CANCEL])
 				this.appframe.add_button('Cancel', function() { 
-					cur_frm.savecancel(this) }, 'icon-remove');
+					cur_frm.savecancel(this) }, 'icon-remove').html(wn._('Cancel'));
 
 			// Amend
 			if(docstatus==2  && p[AMEND])
 				this.appframe.add_button('Amend', function() { 
-					cur_frm.amend_doc() }, 'icon-pencil');
+					cur_frm.amend_doc() }, 'icon-pencil').html(wn._('Amend'));
 		}
 		this.set_primary_button();
 	},

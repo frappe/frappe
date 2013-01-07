@@ -44,7 +44,7 @@ wn.views.ReportViewPage = Class.extend({
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(opts) {
 		var me = this;
-		$(this.page).find('.layout-main').html('Loading Report...');
+		$(this.page).find('.layout-main').html(wn._('Loading Report')+'...');
 		$(this.page).find('.layout-main').empty();
 		$.extend(this, opts);
 		this.can_delete = wn.model.can_delete(me.doctype);
@@ -279,16 +279,16 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		$(this.sort_dialog.body).html('<p class="help">Sort By</p>\
 			<div class="sort-column"></div>\
 			<div><select class="sort-order" style="margin-top: 10px; width: 60%;">\
-				<option value="asc">Ascending</option>\
-				<option value="desc">Descending</option>\
+				<option value="asc">'+wn._('Ascending')+'</option>\
+				<option value="desc">'+wn._('Descending')+'</option>\
 			</select></div>\
-			<hr><p class="help">Then By (optional)</p>\
+			<hr><p class="help">'+wn._('Then By (optional)')+'</p>\
 			<div class="sort-column-1"></div>\
 			<div><select class="sort-order-1" style="margin-top: 10px; width: 60%;">\
-				<option value="asc">Ascending</option>\
-				<option value="desc">Descending</option>\
+				<option value="asc">'+wn._('Ascending')+'</option>\
+				<option value="desc">'+wn._('Descending')+'</option>\
 			</select></div><hr>\
-			<div><button class="btn btn-info">Update</div>');
+			<div><button class="btn btn-info">'+wn._('Update')+'</div>');
 		
 		// first
 		this.sort_by_select = new wn.ui.FieldSelect($(this.sort_dialog.body).find('.sort-column'), 
@@ -324,7 +324,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	make_export: function() {
 		var me = this;
 		if(wn.user.is_report_manager()) {
-			this.page.appframe.add_button('Export', function() {
+			this.page.appframe.add_button(wn._('Export'), function() {
 				var args = me.get_args();
 				args.cmd = 'webnotes.widgets.reportview.export_query'
 				open_url_post(wn.request.url, args);
@@ -336,12 +336,12 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	make_save: function() {
 		var me = this;
 		if(wn.user.is_report_manager()) {
-			this.page.appframe.add_button('Save', function() {
+			this.page.appframe.add_button(wn._('Save'), function() {
 				// name
 				if(me.docname) {
 					var name = me.docname
 				} else {
-					var name = prompt('Select Report Name');
+					var name = prompt(wn._('Select Report Name'));
 					if(!name) {
 						return;
 					}
@@ -364,7 +364,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 					},
 					callback: function(r) {
 						if(r.exc) {
-							msgprint("Report was not saved (there were errors)");
+							msgprint(wn._("Report was not saved (there were errors)"));
 							return;
 						}
 						if(r.message != me.docname)

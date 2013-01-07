@@ -1,0 +1,20 @@
+[
+ "Core", 
+ "Workflow Document States", 
+ "Workflow Name", 
+ "Rules defining transition of state in the workflow.", 
+ "DocType on which this Workflow is applicable.", 
+ "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.", 
+ "Workflow", 
+ "Transition Rules", 
+ "Is Active", 
+ "States", 
+ "Rules for how states are transitions, like next state and which role is allowed to change state etc.", 
+ "If checked, all other workflows become inactive.", 
+ "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"", 
+ "Workflow State Field", 
+ "Defines workflow states and rules for a document.", 
+ "Document Type", 
+ "Workflow Transitions", 
+ "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)"
+]

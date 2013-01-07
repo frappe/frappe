@@ -159,7 +159,7 @@ class Session:
 
 	def get_session_data_from_cache(self):
 		# check if expired
-		data = webnotes._(webnotes.cache().get_value("session:" + self.sid))
+		data = webnotes._dict(webnotes.cache().get_value("session:" + self.sid) or {})
 		if data:
 			session_data = data.get("data", {})
 			self.time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 

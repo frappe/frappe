@@ -194,7 +194,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 	if(!this.meta.issingle) {
 		$('<div style="font-size: 21px; color: #aaa; float: right;\
 			margin-top: -5px; margin-right: -5px; z-index: 5;">' 
-			+ this.doctype + '</div>')
+			+ wn._(this.doctype) + '</div>')
 			.prependTo(this.page_layout.main);
 	}
 	

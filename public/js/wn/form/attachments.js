@@ -87,24 +87,23 @@ wn.ui.form.Attachments = Class.extend({
 			.find(".close")
 			.data("fileid", fileid)
 			.click(function() {
-				var yn = confirm("Are you sure you want to delete the attachment?");
-				if(!yn) return;
-				
-				var data = $(this).data("fileid");
-				wn.call({
-					method: 'webnotes.widgets.form.utils.remove_attach',
-					args: {
-						'fid': data, 
-						dt: me.frm.doctype, 
-						dn: me.frm.docname 
-					},
-					callback: function(r,rt) {
-						me.frm.doc.modified = r.message;
-						me.remove_fileid(data);
-						me.frm && me.frm.cscript.on_remove_attachment 
-							&& me.frm.cscript.on_remove_attachment(me.frm.doc);
-						me.frm.refresh();
-					}
+				wn.confirm(wn._("Are you sure you want to delete the attachment?"), function() {
+					var data = $(this).data("fileid");
+					wn.call({
+						method: 'webnotes.widgets.form.utils.remove_attach',
+						args: {
+							'fid': data, 
+							dt: me.frm.doctype, 
+							dn: me.frm.docname 
+						},
+						callback: function(r,rt) {
+							me.frm.doc.modified = r.message;
+							me.remove_fileid(data);
+							me.frm && me.frm.cscript.on_remove_attachment 
+								&& me.frm.cscript.on_remove_attachment(me.frm.doc);
+							me.frm.refresh();
+						}
+					});
 				});
 				return false;
 			});
@@ -112,7 +111,7 @@ wn.ui.form.Attachments = Class.extend({
 	new_attachment: function() {
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
-				title:'Upload Attachment',
+				title: wn._('Upload Attachment'),
 				width: 400
 			})
 			$y(this.dialog.body, {margin:'13px'})
@@ -160,6 +159,6 @@ wn.ui.form.file_upload_done = function(doctype, docname, fileid, filename, at_id
 	// update file_list
 	var frm = wn.views.formview[doctype].frm;
 	frm.attachments.dialog.hide();
-	msgprint('File Uploaded Sucessfully.');
+	msgprint(wn._('File Uploaded Sucessfully.'));
 	frm.refresh();
 }

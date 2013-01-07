@@ -37,7 +37,7 @@ wn.views.Container = Class.extend({
 			var page = wn.pages[label];			
 		}
 		if(!page) {
-			console.log('Page not found ' + label);
+			console.log(wn._('Page not found')+ ': ' + label);
 			return;
 		}
 		
