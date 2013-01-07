@@ -68,7 +68,7 @@ cookies = {}
 response = _dict({'message':'', 'exc':''})
 debug_log = []
 message_log = []
-lang = 'hi'
+lang = 'en'
 
 # memcache
 
