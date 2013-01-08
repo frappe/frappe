@@ -193,7 +193,7 @@ class Session:
 	def get_expiry_in_seconds(self, expiry):
 		if not expiry: return 3600
 		parts = expiry.split(":")
-		return (int(parts[0]) * 3600) + (int(parts[1]) * 60) + int(parts[2])
+		return (int(parts[0] or 0) * 3600) + (int(parts[1] or 0) * 60) + int(parts[2] or 0)
 
 	def delete_session(self):
 		webnotes.cache().delete_value("session:" + self.sid)
