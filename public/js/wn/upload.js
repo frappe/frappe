@@ -9,7 +9,9 @@ wn.upload = {
 				'+wn._('Upload a file')+':<br>\
 				<input type="file" name="filedata" /><br><br>\
 				OR:<br><input type="text" name="file_url" /><br>\
-				<p class="help">e.g. http://example.com/somefile.png</p><br>\
+				<p class="help">'
+				+ (opts.sample_url || 'e.g. http://example.com/somefile.png') 
+				+ '</p><br>\
 				<input type="submit" class="btn" value="'+wn._('Attach')+'" />\
 			</form>', {
 				id: id,

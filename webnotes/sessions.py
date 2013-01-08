@@ -30,6 +30,7 @@ permission, homepage, control panel variables, system defaults etc
 import webnotes
 import conf
 import json
+from webnotes.utils import cint
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -193,7 +194,7 @@ class Session:
 	def get_expiry_in_seconds(self, expiry):
 		if not expiry: return 3600
 		parts = expiry.split(":")
-		return (int(parts[0]) * 3600) + (int(parts[1]) * 60) + int(parts[2])
+		return (cint(parts[0]) * 3600) + (cint(parts[1]) * 60) + cint(parts[2])
 
 	def delete_session(self):
 		webnotes.cache().delete_value("session:" + self.sid)
