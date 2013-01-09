@@ -737,14 +737,13 @@ LinkField.prototype.set_input_value = function(val) {
 	if(_f.cur_grid_cell)
 		_f.cur_grid_cell.grid.cell_deselect();
 	
-	// run trigger if value is cleared
-	if(locals[me.doctype][me.docname][me.df.fieldname] && !val) {
+	if(val) {
+		// validate only if val is not empty
+		me.validate_link(val, from_selector);
+	} else {
+		// run trigger if value is cleared
 		me.run_trigger();
-		return;
 	}
-
-	// validate only if val is not empty
-	if (val) { me.validate_link(val, from_selector); }
 }
 
 LinkField.prototype.validate_link = function(val, from_selector) {
