@@ -505,14 +505,15 @@ DateField.prototype.make_input = function() {
 		dateFormat: me.user_fmt.replace('yyyy','yy'), 
 		altFormat:'yy-mm-dd', 
 		changeYear: true,
+		yearRange: "-70Y:+10Y",
 		beforeShow: function(input, inst) { 
 			datepicker_active = 1 
 		},
 		onClose: function(dateText, inst) { 
 			datepicker_active = 0;
 			if(_f.cur_grid_cell)
-				_f.cur_grid_cell.grid.cell_deselect();	
-		}
+				_f.cur_grid_cell.grid.cell_deselect();
+		},
 	});
 	
 	var me = this;
