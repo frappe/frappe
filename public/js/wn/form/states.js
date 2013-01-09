@@ -104,9 +104,11 @@ wn.ui.form.States = Class.extend({
 				.addClass("icon-" + state_doc.icon);
 
 			// set the style
-			this.$wrapper.find(".btn:first").removeClass()
-				.addClass("btn dropdown-toggle")
-				.addClass("btn-" + state_doc.style.toLowerCase());
+			var btn = this.$wrapper.find(".btn:first");
+			btn.removeClass().addClass("btn dropdown-toggle")
+
+			if(state_doc && state_doc.style)
+				btn.addClass("btn-" + state_doc.style.toLowerCase());
 			
 			// show actions from that state
 			this.show_actions(state);

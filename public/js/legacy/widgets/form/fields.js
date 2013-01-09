@@ -182,7 +182,8 @@ Field.prototype.get_status = function() {
 			ret = 'Read';
 		}
 		// fields updated by workflow must be read-only
-		if(in_list(cur_frm.states.update_fields, this.df.fieldname)) {
+		if(in_list(cur_frm.states.update_fields, this.df.fieldname) ||
+			this.df.fieldname==cur_frm.states.state_fieldname) {
 			ret = 'Read';
 		}
 	}
