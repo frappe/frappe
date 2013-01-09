@@ -273,3 +273,12 @@ function roundNumber(num, dec) {
 	return result;
 }
 
+function filter_unique(list) {
+	var a = [], l = list.length;
+	for(var i=0; i<l; i++) {
+		for(var j=i+1; j<l; j++)
+			if (list[i] === list[j]) j = ++i;
+		a.push(list[i]);
+	}
+	return a;
+};
