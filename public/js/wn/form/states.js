@@ -175,7 +175,7 @@ wn.ui.form.States = Class.extend({
 			} else if(new_docstatus==0 && me.frm.doc.docstatus==0) {
 				me.frm.save();
 			} else if(new_docstatus==1 && me.frm.doc.docstatus==1) {
-				me.frm.saveupdate();
+				me.frm.save("Update");
 			} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
 				me.frm.savecancel();
 			} else {
