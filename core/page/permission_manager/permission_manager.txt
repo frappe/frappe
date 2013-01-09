@@ -4,7 +4,7 @@
   "docstatus": 0, 
   "creation": "2013-01-01 11:00:01", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-01 11:00:01"
+  "modified": "2013-01-09 17:07:38"
  }, 
  {
   "name": "__common__", 
@@ -15,7 +15,18 @@
   "page_name": "Permission Manager"
  }, 
  {
+  "name": "__common__", 
+  "parent": "permission-manager", 
+  "doctype": "Page Role", 
+  "parenttype": "Page", 
+  "role": "System Manager", 
+  "parentfield": "roles"
+ }, 
+ {
   "name": "permission-manager", 
   "doctype": "Page"
+ }, 
+ {
+  "doctype": "Page Role"
  }
 ]

@@ -23,7 +23,8 @@ wn.views.moduleview.make = function(wrapper, module) {
 	
 	var add_section = function(section) {
 		var table = $(repl("<table class='table table-bordered'>\
-		<thead><tr><th style='font-size: 120%;'><i class='%(icon)s'></i> %(title)s</th></tr></thead>\
+		<thead><tr>\
+			<th style='font-size: 120%;'><i class='%(icon)s'></i> %(title)s</th></tr></thead>\
 		<tbody></tbody>\
 		</table>", section)).appendTo(section.right 
 			? $(wrapper).find(".side-section")

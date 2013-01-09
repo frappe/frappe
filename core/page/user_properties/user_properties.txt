@@ -4,7 +4,7 @@
   "docstatus": 0, 
   "creation": "2013-01-01 18:50:55", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-01 18:50:55"
+  "modified": "2013-01-09 17:07:00"
  }, 
  {
   "name": "__common__", 
@@ -15,7 +15,18 @@
   "page_name": "user-properties"
  }, 
  {
+  "name": "__common__", 
+  "parent": "user-properties", 
+  "doctype": "Page Role", 
+  "parenttype": "Page", 
+  "role": "System Manager", 
+  "parentfield": "roles"
+ }, 
+ {
   "name": "user-properties", 
   "doctype": "Page"
+ }, 
+ {
+  "doctype": "Page Role"
  }
 ]
