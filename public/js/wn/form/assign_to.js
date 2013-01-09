@@ -135,6 +135,17 @@ wn.ui.form.AssignTo = Class.extend({
 					});
 				}
 			}
+			me.dialog.fields_dict.assign_to.get_query = function() {
+				return "select name, concat_ws(' ', first_name, middle_name, last_name) \
+					from `tabProfile` where ifnull(enabled, 0)=1 and docstatus < 2 and \
+					name not in ('Administrator', 'Guest') and (%(key)s like \"%s\" or \
+					concat_ws(' ', first_name, middle_name, last_name) like \"%%%s\") \
+					order by \
+					case when name like \"%s%%\" then 0 else 1 end, \
+					case when concat_ws(' ', first_name, middle_name, last_name) \
+						like \"%s%%\" then 0 else 1 end, \
+					name asc limit 50";
+			};
 		}
 		me.dialog.clear();
 		me.dialog.show();
