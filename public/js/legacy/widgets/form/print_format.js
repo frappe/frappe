@@ -373,14 +373,17 @@ $.extend(_p, {
 			
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
-		$.each(finished.match(/src=['"]([^'"]*)['"]/g) || [], function(i, v) {
+		// find unique matches
+		var matches = filter_unique(finished.match(/src=['"]([^'"]*)['"]/g) || []);
+		
+		$.each(matches, function(i, v) {
 			if(v.substr(0,4)=="src=") {
 				var v = v.substr(5, v.length-6);
 				if(v.substr(0,4)!="http")
-					finished = finished.replace(v, prefix + v);
+					finished = finished.split(v).join(prefix + v);
 			}
 		});
-
+		
 		return finished;
 	},
 	
