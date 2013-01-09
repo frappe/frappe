@@ -92,7 +92,7 @@ wn.workflow = {
 		return false;
 	},
 	get_update_fields: function(doctype) {
-		var update_fields = unique($.map(wn.model.get("Workflow Document State", 
+		var update_fields = $.unique($.map(wn.model.get("Workflow Document State", 
 			{parent:wn.workflow.workflows[doctype].name}), function(d) {
 				return d.update_field;
 			}));

@@ -79,9 +79,3 @@ wn.utils = {
 		}
 	},
 };
-
-var unique = function(a) {
-	return a.filter(function(item,i,a){
-    	return i==a.indexOf(item);
-	});
-}
