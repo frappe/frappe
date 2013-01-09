@@ -63,7 +63,7 @@ wn.workflow = {
 	},
 	get_next_state: function(doctype, state, action) {
 		return wn.model.get("Workflow Transition", {
-			parent: doctype,
+			parent: wn.workflow.workflows[doctype].name,
 			state: state,
 			action: action,
 		})[0].next_state
