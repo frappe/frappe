@@ -74,7 +74,7 @@ wn.ui.form.States = Class.extend({
 				+ "<p>"+wn._("Next actions")+": "+ next_html +"</p>"
 				+ (me.frm.doc.__islocal ? ("<div class='alert'>"
 					+wn._("Workflow will start after saving.")+"</div>") : "")
-				+ "<p class='help'>"+wn_("Note: Other permission rules may also apply")+"</p>"
+				+ "<p class='help'>"+wn._("Note: Other permission rules may also apply")+"</p>"
 				).css({padding: '15px'});
 			d.show();
 		});

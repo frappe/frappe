@@ -1,3 +1,6 @@
+// Copyright 2013 Web Notes Technologies Pvt Ltd
+// License: MIT. See license.txt
+
 wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
 		this.doctype = doctype;

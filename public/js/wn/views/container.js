@@ -1,3 +1,6 @@
+// Copyright 2013 Web Notes Technologies Pvt Ltd
+// License: MIT. See license.txt
+
 // page container
 wn.provide('wn.pages');
 wn.provide('wn.views');

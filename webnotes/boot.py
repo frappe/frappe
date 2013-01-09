@@ -53,6 +53,7 @@ def get_bootinfo():
 		
 	# home page
 	add_home_page(bootinfo, doclist)
+	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
 
 	# ipinfo
@@ -75,6 +76,10 @@ def get_bootinfo():
 	bootinfo['docs'] = compress(bootinfo['docs'])
 	
 	return bootinfo
+
+def add_allowed_pages(bootinfo):
+	bootinfo.allowed_pages = [p[0] for p in webnotes.conn.sql("""select distinct parent from `tabPage Role`
+		where role in ('%s')""" % "', '".join(webnotes.get_roles()))]
 
 def load_translations(bootinfo):
 	if webnotes.lang != 'en':
