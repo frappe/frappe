@@ -103,7 +103,8 @@ _f.Frm.prototype.setup = function() {
 	var me = this;
 	this.fields = [];
 	this.fields_dict = {};
-
+	this.state_fieldname = wn.workflow.get_state_fieldname(this.doctype);
+	
 	// wrapper
 	this.wrapper = this.parent;
 	

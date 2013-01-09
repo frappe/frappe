@@ -466,6 +466,14 @@ $.extend(_p, {
 				}
 				var h2 = $a(me.layout.cur_row.header, 'div', '', h2_style);
 				h2.innerHTML = docname;
+				
+				if(cur_frm.state_fieldname) {
+					$a(h2, 'br');
+					var span = $a(h2, 'span', '', 
+						{padding: "3px", color: "#fff", backgroundColor: "#777", 
+							display:"inline-block"});
+					span.innerHTML = cur_frm.doc[cur_frm.state_fieldname];
+				}
 			},
 			
 			build_data: function(data, doctype, docname) {
