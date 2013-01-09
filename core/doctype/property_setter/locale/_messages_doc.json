@@ -1,0 +1,16 @@
+[
+ "Core", 
+ "Set Value", 
+ "Property", 
+ "Help", 
+ "Property Setter overrides a standard DocType or Field property", 
+ "DocType or Field", 
+ "DocType", 
+ "Field Name", 
+ "ID (name) of the entity whose property is to be set", 
+ "DocField", 
+ "New value to be set", 
+ "Default Value", 
+ "Property Setter", 
+ "Property Type"
+]

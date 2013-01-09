@@ -81,22 +81,6 @@ wn.ui.form.LinkedWith = Class.extend({
 					group_by: this.listview.group_by || undefined,
 				}
 				return args;
-				
-				// return {
-				// 	doctype: me.doctype,
-				// 	fields: (!me.is_table
-				// 		? [ '`tab' + me.doctype + '`.name', 
-				// 		'`tab' + me.doctype + '`.modified',
-				// 		'`tab' + me.doctype + '`.modified_by',
-				// 		'`tab' + me.doctype + '`.docstatus']
-				// 		: [ '`tab' + me.doctype + '`.parent', 
-				// 		'`tab' + me.doctype + '`.parenttype',
-				// 		'`tab' + me.doctype + '`.modified_by',
-				// 		'`tab' + me.doctype + '`.docstatus']
-				// 		),
-				// 	filters: me.lst.filter_list.get_filters(),
-				// 	docstatus: ['0','1']
-				// }
 			},
 			render_row: function(parent, data) {
 				data.doctype = this.doctype;

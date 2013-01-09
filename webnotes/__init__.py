@@ -53,8 +53,10 @@ class _dict(dict):
 	def copy(self):
 		return _dict(super(_dict, self).copy())
 		
-def _(s):
-	return s
+def _(msg):
+	"""translate object in current lang, if exists"""
+	from webnotes.translate import messages
+	return messages.get(lang, {}).get(msg, msg)
 
 request = form_dict = _dict()
 conn = None
@@ -68,6 +70,7 @@ cookies = {}
 response = _dict({'message':'', 'exc':''})
 debug_log = []
 message_log = []
+lang = 'en'
 
 # memcache
 

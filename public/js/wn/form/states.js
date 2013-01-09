@@ -64,15 +64,17 @@ wn.ui.form.States = Class.extend({
 			})
 			var next_html = $.map(wn.workflow.get_transitions(me.frm.doctype, state), 
 				function(d) { 
-					return d.action.bold() + " by Role " + d.allowed;
-				}).join(", ") || "None: End of Workflow".bold();
+					return d.action.bold() + wn._(" by Role ") + d.allowed;
+				}).join(", ") || wn._("None: End of Workflow").bold();
 			
-			$(d.body).html("<p>Current status: " + state.bold() + "</p>"
-				+ "<p>Document is only editable by users of role: " + wn.workflow.get_document_state(me.frm.doctype,
+			$(d.body).html("<p>"+wn._("Current status")+": " + state.bold() + "</p>"
+				+ "<p>"+wn._("Document is only editable by users of role")+": " 
+					+ wn.workflow.get_document_state(me.frm.doctype,
 						state).allow_edit.bold() + "</p>"
-				+ "<p>Next actions: "+ next_html +"</p>"
-				+ (me.frm.doc.__islocal ? "<div class='alert'>Workflow will start after saving</div>" : "")
-				+ "<p class='help'>Note: Other permission rules may also apply</p>"
+				+ "<p>"+wn._("Next actions")+": "+ next_html +"</p>"
+				+ (me.frm.doc.__islocal ? ("<div class='alert'>"
+					+wn._("Workflow will start after saving.")+"</div>") : "")
+				+ "<p class='help'>"+wn._("Note: Other permission rules may also apply")+"</p>"
 				).css({padding: '15px'});
 			d.show();
 		});
@@ -173,8 +175,9 @@ wn.ui.form.States = Class.extend({
 			} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
 				me.frm.savecancel();
 			} else {
-				msgprint("Docstatus transition from " + me.frm.doc.docstatus + " to" + 
-					new_docstatus + " is not allowed.");
+				msgprint(wn._("Document Status transition from ") + me.frm.doc.docstatus + " " 
+					+ wn._("to") + 
+					new_docstatus + " " + wn._("is not allowed."));
 				return;
 			}
 			

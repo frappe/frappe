@@ -258,6 +258,24 @@ def setup_options():
 	parser.add_option("--test", help="Run test", metavar="MODULE", 	
 			nargs=1)
 
+	parser.add_option("--build_message_files", default=False, action="store_true",
+		help="Build message files for translation")
+		
+	parser.add_option('--export_messages', nargs=2, metavar="LANG FILENAME", 
+		help="""Export all messages for a language to translation in a csv file. 
+		Example, lib/wnf.py --export_messages hi hindi.csv""")
+
+	parser.add_option('--import_messages', nargs=2, metavar="LANG FILENAME", 
+		help="""Import messages for a language and make language files. 
+		Example, lib/wnf.py --export_messages hi hindi.csv""")
+
+	parser.add_option('--google_translate', nargs=3, metavar="LANG INFILE OUTFILE", 
+		help="""Auto translate using Google Translate API""")
+
+	parser.add_option('--translate', nargs=1, metavar="LANG", 
+		help="""Rebuild translation for the given langauge and 
+		use Google Translate to tranlate untranslated messages""")
+
 	return parser.parse_args()
 	
 def run():
@@ -441,6 +459,37 @@ def run():
 		# is there a better way?
 		exec ('from %s import *' % module_name) in globals()		
 		unittest.main()
+
+	elif options.build_message_files:
+		import webnotes.translate
+		webnotes.translate.build_message_files()
+		
+	elif options.export_messages:
+		import webnotes.translate
+		webnotes.translate.export_messages(*options.export_messages)
+
+	elif options.import_messages:
+		import webnotes.translate
+		webnotes.translate.import_messages(*options.import_messages)
+	
+	elif options.google_translate:
+		from webnotes.translate import google_translate
+		google_translate(*options.google_translate)
+	
+	elif options.translate:
+		from webnotes.translate import build_message_files, \
+			export_messages, google_translate, import_messages
+		print "Extracting messages..."
+		build_message_files()
+		print "Compiling messages in one file..."
+		export_messages(options.translate, '_lang_tmp.csv')
+		print "Translating via Google Translate..."
+		google_translate(options.translate, '_lang_tmp.csv', '_lang_tmp1.csv')
+		print "Updating language files..."
+		import_messages(options.translate, '_lang_tmp1.csv')
+		print "Deleting temp files..."
+		os.remove('_lang_tmp.csv')
+		os.remove('_lang_tmp1.csv')
 
 if __name__=='__main__':
 	run()

@@ -71,6 +71,7 @@
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",
+			"lib/public/js/wn/translate.js",
 			"lib/public/js/wn/assets.js",
 			"lib/public/js/wn/dom.js",
 			"lib/public/js/wn/ui/messages.js",

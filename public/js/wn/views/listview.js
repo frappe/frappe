@@ -54,11 +54,11 @@ wn.views.ListView = Class.extend({
 				title=\"%(name)s\">%(name)s</a>', data));
 		} 
 		else if(opts.content=='avatar') {
-			$(parent).append(wn.avatar(data.owner, false, "Created by: " 
+			$(parent).append(wn.avatar(data.owner, false, wn._("Created by")+": " 
 				+ wn.user_info(data.owner).fullname));
 		}
 		else if(opts.content=='avatar_modified') {
-			$(parent).append(wn.avatar(data.modified_by, false, "Modified by: " 
+			$(parent).append(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
 				+ wn.user_info(data.modified_by).fullname));
 		}
 		else if(opts.content=='check') {
@@ -75,7 +75,7 @@ wn.views.ListView = Class.extend({
 		}
 		else if(opts.content=='modified') {
 			$(parent).append(data.when)
-				.attr("title", "Last Modified On: " + data.when);
+				.attr("title", wn._("Last Modified On:")+" " + data.when);
 		}
 		else if(opts.type=='bar-graph') {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
@@ -129,13 +129,13 @@ wn.views.ListView = Class.extend({
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
 			data.docstatus_icon = 'icon-pencil';
-			data.docstatus_title = 'Editable';
+			data.docstatus_title = wn._('Editable');
 		} else if(data.docstatus==1) {
 			data.docstatus_icon = 'icon-lock';			
-			data.docstatus_title = 'Submitted';
+			data.docstatus_title = wn._('Submitted');
 		} else if(data.docstatus==2) {
 			data.docstatus_icon = 'icon-remove';			
-			data.docstatus_title = 'Cancelled';
+			data.docstatus_title = wn._('Cancelled');
 		}
 		
 		// nulls as strings
@@ -155,10 +155,10 @@ wn.views.ListView = Class.extend({
 			data.when = dateutil.comment_when(date_str);
 		}
 		if(diff == 1) {
-			data.when = 'Yesterday'
+			data.when = wn._('Yesterday')
 		}
 		if(diff == 2) {
-			data.when = '2 days ago'
+			data.when = wn._('2 days ago')
 		}
 	},
 	

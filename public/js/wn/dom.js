@@ -208,7 +208,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 		for(var i=0; i<options_list.length; i++) {
 			var v = options_list[i];
 			value = v.value || v;
-			label = v.label || v;
+			label = wn._(v.label || v);
 			$('<option>').html(label).attr('value', value).appendTo(this);
 		}
 		// select the first option

@@ -45,7 +45,7 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 			title: this.opts.title,
 			width: 300,
 			fields: [
-				{fieldtype:'Select', fieldname:'doctype', options:'Select...', label:'Select Type'},
+				{fieldtype:'Select', fieldname:'doctype', options:'Select...', label:wn._('Select Type')},
 				{fieldtype:'Button', label:'Go', fieldname:'go'}
 			]
 		});
@@ -86,7 +86,6 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 		
 		// set values
 		var sel = this.dialog.fields_dict.doctype.input;
-		$(sel).empty();
-		add_sel_options(sel, lst.sort());		
+		$(sel).empty().add_options(lst.sort());
 	}
 })

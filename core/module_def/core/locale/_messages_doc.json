@@ -1,0 +1,19 @@
+[
+ "Data Import Tool", 
+ "Adds a custom script (client or server) to a DocType", 
+ "Defines workflow states and rules for a document.", 
+ "Query Report", 
+ "Workflow state represents the current state of a document.", 
+ "Workflow Action Master", 
+ "Property Setter overrides a standard DocType or Field property", 
+ "User Properties", 
+ "Represents the states allowed in one document and role assigned to change the state.", 
+ "Profile Represents a User in the system.", 
+ "Keep a track of all communications", 
+ "Permission Manager", 
+ "Adds a custom field to a DocType", 
+ "Bulk Email records.", 
+ "Defines actions on states and the next step and allowed roles.", 
+ "Login Page", 
+ "DocType is a Table / Form in the application."
+]

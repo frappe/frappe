@@ -236,7 +236,7 @@ wn.views.GridReport = Class.extend({
 		});
 	},
 	make_waiting: function() {
-		this.waiting = wn.messages.waiting(this.wrapper, "Loading Report...", '10');			
+		this.waiting = wn.messages.waiting(this.wrapper, wn._("Loading Report")+"...", '10');			
 	},
 	load_filter_values: function() {
 		var me = this;
@@ -255,7 +255,7 @@ wn.views.GridReport = Class.extend({
 		});
 		
 		if(this.filter_inputs.from_date && this.filter_inputs.to_date && (this.to_date < this.from_date)) {
-			msgprint("From Date must be before To Date");
+			msgprint(wn._("From Date must be before To Date"));
 			return;
 		}
 		
@@ -326,8 +326,8 @@ wn.views.GridReport = Class.extend({
 
 		// zero-value check
 		$('<div style="margin: 10px 0px; display: none" class="show-zero">\
-				<input type="checkbox"> Show rows with zero values\
-			</div>').appendTo(this.wrapper);
+				<input type="checkbox"> '+wn._('Show rows with zero values')
+			+'</div>').appendTo(this.wrapper);
 
 		this.bind_show();
 		

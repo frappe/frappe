@@ -84,6 +84,7 @@ def getdoctype():
 
 def load_single_doc(dt, dn, user):
 	"""load doc and call onload methods"""
+	# ----- REPLACE BY webnotes.client.get ------
 
 	if not dn: dn = dt
 
@@ -101,6 +102,7 @@ def load_single_doc(dt, dn, user):
 		webnotes.user.update_recent(dt, dn)
 
 	# load search criteria ---- if doctype
+	# ----- TO BE DEPRECATED -----
 	if dt=='DocType':
 		dl += get_search_criteria(dt)
 

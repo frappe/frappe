@@ -26,11 +26,11 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	this.opts = {
 		sections: [
 			{
-				title: 'Actions',
+				title: wn._('Actions'),
 				items: [
 					{
 						type: 'link',
-						label: 'New',
+						label: wn._('New'),
 						icon: 'icon-plus',
 						display: function() { 
 							return in_list(profile.can_create, form.doctype) 
@@ -40,7 +40,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					
 					{
 						type: 'link',
-						label: 'Print',
+						label: wn._('Print'),
 						display: function() { 
 							return !(me.form.doc.__islocal || me.form.meta.allow_print);
 						},
@@ -50,7 +50,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 
 					{
 						type: 'link',
-						label: 'Email',
+						label: wn._('Email'),
 						display: function() { 
 							return !(me.form.doc.__islocal || me.form.meta.allow_email);
 						},
@@ -60,7 +60,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 
 					{
 						type: 'link',
-						label: 'Copy',
+						label: wn._('Copy'),
 						display: function() { 
 							return in_list(profile.can_create, me.form.doctype) && !me.form.meta.allow_copy 
 						},
@@ -70,7 +70,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					
 					{
 						type: 'link',
-						label: 'Delete',
+						label: wn._('Delete'),
 						display: function() { 
 							return (cint(me.form.doc.docstatus) != 1) && !me.form.doc.__islocal
 								&& wn.model.can_delete(me.form.doctype);
@@ -81,7 +81,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 
 					{
 						type: 'link',
-						label: 'Rename',
+						label: wn._('Rename'),
 						display: function() { 
 							return me.form.meta.allow_rename && me.form.perm[0][WRITE];
 						},
@@ -91,7 +91,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					
 					{
 						type: 'link',
-						label: 'Linked With',
+						label: wn._('Linked With'),
 						display: function() { 
 							return !me.form.doc.__islocal && !me.form.meta.issingle;
 						},
@@ -113,7 +113,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			},
 
 			{
-				title: 'Assign',
+				title: wn._('Assign'),
 				render: function(wrapper) {
 					me.form.assign_to = new wn.ui.form.AssignTo({
 						parent: $(wrapper),
@@ -125,7 +125,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			},
 			
 			{
-				title: 'Attachments',
+				title: wn._('Attachments'),
 				render: function(wrapper) {
 					me.form.attachments = new wn.ui.form.Attachments({
 						parent: $(wrapper), 
@@ -137,7 +137,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			},
 
 			{
-				title: 'Comments',
+				title: wn._('Comments'),
 				render: function(wrapper) {
 					new wn.widgets.form.sidebar.Comments(wrapper, me, me.form.doctype, me.form.docname);
 				},
@@ -148,7 +148,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 			},
 
 			{
-				title: 'Tags',
+				title: wn._('Tags'),
 				render: function(wrapper) {
 					me.form.taglist = new TagList(wrapper, 
 						me.form.doc._user_tags ? me.form.doc._user_tags.split(',') : [], 

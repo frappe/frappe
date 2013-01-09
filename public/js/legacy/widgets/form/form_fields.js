@@ -33,10 +33,10 @@ _f.ColumnBreak.prototype.make_body = function() {
 	$y(this.cell.wrapper, {padding: '8px'});
 	_f.cur_col_break_width = this.df.width;
 
-	var fn = this.df.fieldname?this.df.fieldname:this.df.label;
+	var fn = this.df.fieldname || this.df.label;
 	// header
 	if(this.df&&this.df.label){
-		this.label = $a(this.cell.wrapper, 'h4', '', '', this.df.label);
+		this.label = $a(this.cell.wrapper, 'h4', '', '', wn._(this.df.label));
 	}
 }
 
@@ -78,10 +78,14 @@ _f.SectionBreak.prototype.make_body = function() {
 	if(this.df.label) {
 		if(!this.df.description) 
 			this.df.description = '';
+		
+		this.df._label = wn._(this.df.label);
+		this.df._description = wn._(this.df.description);
+		
 		$(this.row.main_head).html(repl('<div class="form-section-head">\
-				<h3 class="head">%(label)s</h3>\
+				<h3 class="head">%(_label)s</h3>\
 				<div class="help small" \
-					style="margin-top: 4px; margin-bottom: 8px;">%(description)s</div>\
+					style="margin-top: 4px; margin-bottom: 8px;">%(_description)s</div>\
 			</div>', this.df));
 	} else {
 		// simple

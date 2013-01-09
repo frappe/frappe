@@ -23,7 +23,7 @@
 wn.ui.toolbar.NewDialog = wn.ui.toolbar.SelectorDialog.extend({
 	init: function() {
 		this._super({
-			title: "New Record",
+			title: wn._("New Record"),
 			execute: function(val) {
 				new_doc(val);
 			},

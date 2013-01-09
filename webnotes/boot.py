@@ -53,6 +53,7 @@ def get_bootinfo():
 		
 	# home page
 	add_home_page(bootinfo, doclist)
+	load_translations(bootinfo)
 
 	# ipinfo
 	if webnotes.session['data'].get('ipinfo'):
@@ -74,6 +75,15 @@ def get_bootinfo():
 	bootinfo['docs'] = compress(bootinfo['docs'])
 	
 	return bootinfo
+
+def load_translations(bootinfo):
+	if webnotes.lang != 'en':
+		from webnotes.translate import get_lang_data
+		# framework
+		bootinfo["__messages"] = get_lang_data("../lib/public/js/wn", None, "js")
+		# doctype and module names
+		bootinfo["__messages"].update(get_lang_data('../app/public/js', None, "js"))
+		bootinfo["lang"] = webnotes.lang
 
 def get_fullnames():
 	"""map of user fullnames"""

@@ -114,3 +114,7 @@ class DocType:
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				self.doc.content = f.read()
+				
+		if webnotes.lang != 'en':
+			from webnotes.translate import update_lang_js
+			self.doc.script = update_lang_js(self.doc.script, path)

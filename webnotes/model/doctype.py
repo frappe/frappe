@@ -67,7 +67,7 @@ def get(doctype, processed=False, cached=True):
 		add_search_fields(doclist)
 		add_linked_with(doclist)
 		add_workflows(doclist)
-		#update_language(doclist)
+		update_language(doclist)
 
 	# add validators
 	#add_validators(doctype, doclist)
@@ -333,11 +333,11 @@ def add_search_fields(doclist):
 def update_language(doclist):
 	"""update language"""
 	if webnotes.lang != 'en':
-		from webnotes import _
+		from webnotes.translate import messages
 		from webnotes.modules import get_doc_path
 
 		# load languages for each doctype
-		from webnotes.translate import get_lang_data, update_lang_js
+		from webnotes.translate import get_lang_data
 		_messages = {}
 
 		for d in doclist:
@@ -351,6 +351,10 @@ def update_language(doclist):
 
 		# attach translations to client
 		doc.fields["__messages"] = _messages
+		
+		if not webnotes.lang in messages:
+			messages[webnotes.lang] = webnotes._dict({})
+		messages[webnotes.lang].update(_messages)
 
 def add_precision(doctype, doclist):
 	type_precision_map = {
