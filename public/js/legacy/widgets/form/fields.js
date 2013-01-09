@@ -177,8 +177,15 @@ Field.prototype.get_status = function() {
 	}
 
 	// workflow state
-	if(ret=="Write" && cur_frm.read_only) {
-		ret = 'Read';
+	if(ret=="Write" && cur_frm && cur_frm.states.state_fieldname) {
+		if(cur_frm.read_only) {
+			ret = 'Read';
+		}
+		// fields updated by workflow must be read-only
+		if(in_list(cur_frm.states.update_fields, this.df.fieldname) ||
+			this.df.fieldname==cur_frm.states.state_fieldname) {
+			ret = 'Read';
+		}
 	}
 		
 	// make a field read_only if read_only 

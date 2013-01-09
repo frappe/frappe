@@ -29,6 +29,8 @@ wn.ui.form.States = Class.extend({
 		if(!this.state_fieldname)
 			return;
 
+		this.update_fields = wn.workflow.get_update_fields(this.frm.doctype);
+
 		this.make();
 		this.bind_action();
 
@@ -102,9 +104,11 @@ wn.ui.form.States = Class.extend({
 				.addClass("icon-" + state_doc.icon);
 
 			// set the style
-			this.$wrapper.find(".btn:first").removeClass()
-				.addClass("btn dropdown-toggle")
-				.addClass("btn-" + state_doc.style.toLowerCase());
+			var btn = this.$wrapper.find(".btn:first");
+			btn.removeClass().addClass("btn dropdown-toggle")
+
+			if(state_doc && state_doc.style)
+				btn.addClass("btn-" + state_doc.style.toLowerCase());
 			
 			// show actions from that state
 			this.show_actions(state);
@@ -153,7 +157,7 @@ wn.ui.form.States = Class.extend({
 		var me = this;
 		$(this.$wrapper).on("click", "[data-action]", function() {
 			var action = $(this).attr("data-action");
-			var next_state = wn.workflow.get_next_state(me.frm.doc,
+			var next_state = wn.workflow.get_next_state(me.frm.doctype,
 					me.frm.doc[me.state_fieldname], action);
 			
 			me.frm.doc[me.state_fieldname] = next_state;
@@ -171,7 +175,7 @@ wn.ui.form.States = Class.extend({
 			} else if(new_docstatus==0 && me.frm.doc.docstatus==0) {
 				me.frm.save();
 			} else if(new_docstatus==1 && me.frm.doc.docstatus==1) {
-				me.frm.saveupdate();
+				me.frm.save("Update");
 			} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
 				me.frm.savecancel();
 			} else {
