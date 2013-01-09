@@ -29,6 +29,8 @@ wn.ui.form.States = Class.extend({
 		if(!this.state_fieldname)
 			return;
 
+		this.update_fields = wn.workflow.get_update_fields(this.frm.doctype);
+
 		this.make();
 		this.bind_action();
 
@@ -153,7 +155,7 @@ wn.ui.form.States = Class.extend({
 		var me = this;
 		$(this.$wrapper).on("click", "[data-action]", function() {
 			var action = $(this).attr("data-action");
-			var next_state = wn.workflow.get_next_state(me.frm.doc,
+			var next_state = wn.workflow.get_next_state(me.frm.doc.doctype,
 					me.frm.doc[me.state_fieldname], action);
 			
 			me.frm.doc[me.state_fieldname] = next_state;

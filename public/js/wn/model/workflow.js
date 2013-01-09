@@ -66,7 +66,7 @@ wn.workflow = {
 			parent: doctype,
 			state: state,
 			action: action,
-		})[0].next_state		
+		})[0].next_state
 	},
  	is_read_only: function(doctype, name) {
 		var state_fieldname = wn.workflow.get_state_fieldname(doctype);
@@ -90,5 +90,12 @@ wn.workflow = {
 			}
 		}
 		return false;
+	},
+	get_update_fields: function(doctype) {
+		var update_fields = unique($.map(wn.model.get("Workflow Document State", 
+			{parent:wn.workflow.workflows[doctype].name}), function(d) {
+				return d.update_field;
+			}));
+		return update_fields;
 	}
 }
