@@ -391,7 +391,7 @@ wn.views.GridReport = Class.extend({
 		this.dataView.endUpdate();
 	},
 	export: function() {
-		wn.downloadify(wn.slickgrid_tools.get_view_data(this.columns, this.dataView),
+		wn.tools.downloadify(wn.slickgrid_tools.get_view_data(this.columns, this.dataView),
 			["Report Manager", "System Manager"], this);
 		return false;
 	},

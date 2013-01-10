@@ -380,7 +380,7 @@ wn.views.QueryReport = Class.extend({
 				return [row.splice(1)];
 		});
 		this.title = this.query_form.get_value("name");
-		wn.downloadify(result, ["Report Manager", "System Manager"], this);
+		wn.tools.downloadify(result, ["Report Manager", "System Manager"], this);
 		return false;
 	}
 })
