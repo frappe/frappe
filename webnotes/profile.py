@@ -73,7 +73,7 @@ class Profile:
 		"""build map of permissions at level 0"""
 		
 		self.perm_map = {}
-		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel` 
+		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`, `report` 
 			from tabDocPerm where docstatus=0 
 			and ifnull(permlevel,0)=0
 			and parent not like "old_parent:%%" 
@@ -84,7 +84,7 @@ class Profile:
 			if not dt in  self.perm_map:
 				self.perm_map[dt] = {}
 				
-			for k in ('read', 'write', 'create', 'submit', 'cancel'):
+			for k in ('read', 'write', 'create', 'submit', 'cancel', 'report'):
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 						
@@ -121,8 +121,9 @@ class Profile:
 				self.can_cancel.append(dt)
 
 			if (p.get('read') or p.get('write') or p.get('create')):
-				self.can_get_report.append(dt)
-				self.can_get_report += dtp['child_tables']
+				if p.get('report'):
+					self.can_get_report.append(dt)
+					self.can_get_report += dtp['child_tables']
 				if not dtp.get('istable'):
 					if not dtp.get('issingle') and not dtp.get('read_only'):
 						self.can_search.append(dt)

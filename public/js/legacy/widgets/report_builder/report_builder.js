@@ -78,14 +78,18 @@ _r.ReportContainer = function() {
 	
 	// set a type
 	this.set_dt = function(dt, onload) {
+		if(!wn.model.can_get_report(dt)) {
+			wn.set_route("403");
+			return;
+		};
+
 		my_onload = function(f) {
 			if(!f.forbidden) {
 				me.cur_rb = f;
 				me.cur_rb.mytabs.items['Result'].expand();
 				if(onload)onload(f);
 			}
-		}
-	
+		}	
 		if(me.cur_rb)
 			me.cur_rb.hide();
 		if(me.rb_dict[dt]){
@@ -590,7 +594,6 @@ _r.ReportBuilder.prototype.setup_doctype = function(onload) {
 		}
 		if(!me.validate_permissions()) 
 			return;
-		me.validate_permissions();
 		me.make_body();
 		me.setup_filters_and_cols();
 		if(onload)onload(me);

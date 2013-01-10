@@ -5,6 +5,10 @@ wn.provide('wn.views.pageview');
 
 wn.views.pageview = {
 	with_page: function(name, callback) {
+		if(name=="403" || name=="404") {
+			callback();
+			return;
+		}
 		if((locals.Page && locals.Page[name]) || name==window.page_name) {
 			callback();
 		} else {
@@ -19,7 +23,8 @@ wn.views.pageview = {
 		if(!name) name = (wn.boot ? wn.boot.home_page : window.page_name);
 		wn.views.pageview.with_page(name, function(r) {
 			if(r && r.exc) {
-				if(!r['403'])wn.container.change_to('404');
+				if(!r['403'])
+					wn.container.change_to('404');
 			} else if(!wn.pages[name]) {
 				new wn.views.Page(name);
 			}

@@ -3,6 +3,11 @@
 
 wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
+		if(!wn.model.can_get_report(doctype)) {
+			wn.set_route("403");
+			return;
+		};
+		
 		this.doctype = doctype;
 		this.docname = docname;
 		this.page_name = wn.get_route_str();

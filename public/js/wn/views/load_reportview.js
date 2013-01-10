@@ -3,12 +3,15 @@
 
 wn.views.reportview = {
 	show: function(dt, rep_name) {
-		wn.require('js/report-legacy.js');
+		wn.require('js/report-legacy.min.js');
 
 		if(!_r.rb_con) {
 			// first load
 			_r.rb_con = new _r.ReportContainer();
 		}
+
+		// show
+		wn.container.change_to('Report Builder');
 
 		_r.rb_con.set_dt(dt, function(rb) { 
 			if(rep_name) {
@@ -19,11 +22,6 @@ wn.views.reportview = {
 				if(rb.dt && route_changed) {
 					rb.dt.run();
 				}
-			}
-
-			// show
-			if(!rb.forbidden) {
-				wn.container.change_to('Report Builder');
 			}
 		} );
 	}
