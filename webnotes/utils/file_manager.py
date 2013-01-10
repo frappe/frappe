@@ -220,17 +220,3 @@ def get_files_path():
 		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
 			'public', 'files')
 	return files_path
-	
-def make_thumbnail(blob, size):
-	from PIL import Image
-	from cStringIO import StringIO
-				
-	fobj = StringIO(blob)
-	image = Image.open(fobj)
-	image.thumbnail((tn,tn*2), Image.ANTIALIAS)
-	outfile = cStringIO.StringIO()
-	image.save(outfile, 'JPEG')
-	outfile.seek(0)
-	fcontent = outfile.read()
-	
-	return fcontent
