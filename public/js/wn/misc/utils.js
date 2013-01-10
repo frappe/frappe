@@ -78,10 +78,15 @@ wn.utils = {
 			me.footnote_area = null;
 		}
 	},
+	get_args_dict_from_url: function(txt) {
+		var args = {};
+		$.each(decodeURIComponent(txt).split("&"), function(i, arg) {
+			arg = arg.split("=");
+			args[arg[0]] = arg[1]
+		});
+		return args;
+	},
+	get_url_from_dict: function(args) {
+		return encodeURIComponent($.map(args, function(val, key)  { return key+"="+val; }).join("&") || "");
+	}
 };
-
-var unique = function(a) {
-	return a.filter(function(item,i,a){
-    	return i==a.indexOf(item);
-	});
-}

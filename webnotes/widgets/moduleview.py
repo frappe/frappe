@@ -7,11 +7,13 @@ import webnotes, json
 @webnotes.whitelist()
 def get_data(module, doctypes='[]'):
 	doctypes = json.loads(doctypes)
+	open_count, conditions = get_open_count(doctypes)
 	return {
 		"search_criteria": get_sc_list(module),
 		"reports": get_report_list(module),
 		"item_count": get_count(doctypes),
-		"open_count": get_open_count(doctypes)
+		"open_count": open_count,
+		"conditions": conditions
 	}
 	
 def get_count(doctypes):
@@ -32,19 +34,21 @@ def get_doctype_count_from_table(doctype):
 
 def get_open_count(doctypes):
 	count = {}
+	conditions = {}
 	try:
 		from startup.open_count import queries
 		for d in doctypes:
 			if d in queries:
-				query = queries[d]
-				if query=="docstatus":
-					query = "select count(*) from `tab%s` where docstatus=0" % d
-				count[d] = webnotes.conn.sql(query)[0][0] or ""
+				condition = queries[d]
+				key = condition.keys()[0]
+				query = "select count(*) from `tab%s` where `%s`=%s" % (d, key, '%s')
+				count[d] = webnotes.conn.sql(query, condition[key])[0][0] or ""
+				conditions[d] = condition
 		
 	except ImportError, e:
 		pass
 		
-	return count
+	return count, conditions
 
 def get_doctype_count(doctype):
 	count = webnotes.conn.get_global("item_count:" + doctype)

@@ -2,6 +2,8 @@
 // MIT Licensed. See license.txt
 
 wn.provide("wn.views.moduleview");
+wn.provide("wn.model.open_count_conditions")
+
 wn.views.moduleview.make = function(wrapper, module) {
 	var doctypes = [];
 
@@ -20,6 +22,19 @@ wn.views.moduleview.make = function(wrapper, module) {
 		<div class='span6 main-section'></div>\
 		<div class='span5 side-section'></div>\
 	</div>")
+	
+	$(wrapper).on("click", ".badge-important", function() {
+		var doctype = $(this).parent().attr("data-doctype");
+		var condition = wn.model.open_count_conditions[doctype];
+		if(condition) {
+			wn.set_route("List", doctype, wn.utils.get_url_from_dict(condition));
+		}
+	});
+
+	$(wrapper).on("click", ".badge-count", function() {
+		var doctype = $(this).attr("data-doctype-count");
+		wn.set_route("List", doctype);
+	});
 	
 	var add_section = function(section) {
 		var table = $(repl("<table class='table table-bordered'>\
@@ -131,16 +146,19 @@ wn.views.moduleview.make = function(wrapper, module) {
 					$.each(r.message.item_count, function(doctype, count) {
 						$(wrapper).find("[data-doctype-count='"+doctype+"']")
 							.html(count)
-							.addClass("badge");
+							.addClass("badge badge-count")
+							.css({cursor:"pointer"});
 					})
 				}
 
 				// counts
 				if(r.message.open_count) {
+					$.extend(wn.model.open_count_conditions, r.message.conditions);
+					
 					$.each(r.message.open_count, function(doctype, count) {
 						$(wrapper).find("[data-doctype='"+doctype+"']")
-							.append(" <span class='badge badge-important pull-right'>" 
-								+ count + "</span>")
+							.append(" <span class='badge badge-important pull-right'\
+								style='cursor:pointer'>" + count + "</span>");
 					})
 				}
 			}

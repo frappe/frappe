@@ -5,13 +5,13 @@ wn.provide('wn.views.doclistview');
 wn.provide('wn.doclistviews');
 
 wn.views.doclistview.show = function(doctype) {
-	var page_name = wn.get_route_str();
+	var route = wn.get_route();
+	var page_name = "List/" + route[1];
 	if(wn.pages[page_name]) {
 		wn.container.change_to(wn.pages[page_name]);
 		if(wn.container.page.doclistview)
 			wn.container.page.doclistview.run();
 	} else {
-		var route = wn.get_route();
 		if(route[1]) {
 			wn.model.with_doctype(route[1], function(r) {
 				if(r && r['403']) {
@@ -35,7 +35,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_page: function() {
 		var me = this;
-		var page_name = wn.get_route_str();
+		var page_name = "List/" + this.doctype;
 		var page = wn.container.add_page(page_name);
 		wn.container.change_to(page_name);
 		page.doclistview = this;
@@ -143,6 +143,18 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		});
 		
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
+	},
+	
+	run: function() {
+		// set filter from route
+		var route = wn.get_route();
+		var me = this;
+		if(route[2]) {
+			$.each(wn.utils.get_args_dict_from_url(route[2]), function(key, val) {
+				me.set_filter(key, val);
+			})
+		}
+		this._super();
 	},
 	
 	make_no_result: function() {
@@ -327,7 +339,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	set_filter: function(fieldname, label) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
-			var v = filter.field.get_value();
+			var v = cstr(filter.field.get_value());
 			if(v.indexOf(label)!=-1) {
 				// already set
 				return false;
