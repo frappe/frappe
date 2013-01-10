@@ -3,7 +3,7 @@
 
 wn.views.reportview = {
 	show: function(dt, rep_name) {
-		wn.require('js/report-legacy.js');
+		wn.require('js/report-legacy.min.js');
 
 		if(!_r.rb_con) {
 			// first load
