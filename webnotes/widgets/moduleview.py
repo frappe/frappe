@@ -77,6 +77,6 @@ def get_report_list(module):
 		where tabDocType.module=%s
 			and tabDocType.name = tabReport.ref_doctype
 			and tabReport.docstatus in (0, NULL)
-			and ifnull(tabReport.is_standard, "Yes")="No"
+			and ifnull(tabReport.is_standard, "No")="No"
 			and ifnull(tabReport.disabled,0) != 1
 			order by tabReport.name""", module, as_dict=True)
