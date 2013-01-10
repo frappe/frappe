@@ -722,10 +722,19 @@ def pretty_date(iso_datetime):
 def execute_in_shell(cmd, verbose=0):
 	# using Popen instead of os.system - as recommended by python docs
 	from subprocess import Popen, PIPE
-	p = Popen(cmd, shell=True, stdout=PIPE, stderr=PIPE)
+	import tempfile
+	
+	with tempfile.TemporaryFile() as stdout:
+		with tempfile.TemporaryFile() as stderr:
+			p = Popen(cmd, shell=True, stdout=stdout, stderr=stderr)
+			p.wait()
+			
+			stdout.seek(0)
+			out = stdout.read()
+			
+			stderr.seek(0)
+			err = stderr.read()
 
-	# get err and output
-	err, out = p.stderr.read(), p.stdout.read()
 	if verbose:
 		if err: print err
 		if out: print out
