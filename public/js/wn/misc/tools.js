@@ -18,11 +18,14 @@ wn.tools.downloadify = function(data, roles, me) {
 			return me.title + '.csv';
 		},
 		data: function(){ 
-			return wn.to_csv(data);
+			return wn.tools.to_csv(data);
 		},
 		swf: 'lib/js/lib/downloadify/downloadify.swf',
 		downloadImage: 'lib/js/lib/downloadify/download.png',
-		onComplete: function(){ msgobj.hide(); },
+		onComplete: function(){
+			msgobj.hide(); 
+			msgprint("Saved.");
+		},
 		onCancel: function(){ msgobj.hide(); },
 		onError: function(){ msgobj.hide(); },
 		width: 100,
@@ -32,7 +35,7 @@ wn.tools.downloadify = function(data, roles, me) {
 	});	
 }
 
-wn.to_csv = function(data) {
+wn.tools.to_csv = function(data) {
 	var res = [];
 	$.each(data, function(i, row) {
 		row = $.map(row, function(col) {
