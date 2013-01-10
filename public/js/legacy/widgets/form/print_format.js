@@ -374,7 +374,7 @@ $.extend(_p, {
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
 		// find unique matches
-		var matches = filter_unique(finished.match(/src=['"]([^'"]*)['"]/g) || []);
+		var matches = $.unique(finished.match(/src=['"]([^'"]*)['"]/g) || []);
 		
 		$.each(matches, function(i, v) {
 			if(v.substr(0,4)=="src=") {
