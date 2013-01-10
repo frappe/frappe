@@ -151,8 +151,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var me = this;
 		if(route[2]) {
 			$.each(wn.utils.get_args_dict_from_url(route[2]), function(key, val) {
-				me.set_filter(key, val);
-			})
+				me.set_filter(key, val, true);
+			});
 		}
 		this._super(arg0, arg1);
 	},
@@ -336,7 +336,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			return false;
 		});		
 	},
-	set_filter: function(fieldname, label) {
+	set_filter: function(fieldname, label, no_run) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
 			var v = cstr(filter.field.get_value());
@@ -362,6 +362,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				this.filter_list.add_filter(this.doctype, fieldname, '=', label);					
 			}
 		}
-		this.run();
+		if(!no_run)
+			this.run();
 	}
 });
