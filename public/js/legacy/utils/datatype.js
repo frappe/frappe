@@ -238,6 +238,7 @@ function values(obj) {
 }
 
 function in_list(list, item) {
+	if(!list) return false;
 	for(var i=0; i<list.length; i++)
 		if(list[i]==item) return true;
 	return false;
@@ -272,4 +273,3 @@ function roundNumber(num, dec) {
 	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
 	return result;
 }
-

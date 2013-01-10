@@ -1,26 +1,7 @@
 #!/usr/bin/env python
 
-# Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
-# 
-# MIT License (MIT)
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a 
-# copy of this software and associated documentation files (the "Software"), 
-# to deal in the Software without restriction, including without limitation 
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-# and/or sell copies of the Software, and to permit persons to whom the 
-# Software is furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in 
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
-# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# 
+# Copyright 2013 Web Notes Technologies Pvt Ltd
+# License: MIT. See license.txt
 
 from __future__ import unicode_literals
 import os, sys
@@ -150,21 +131,29 @@ def setup_options():
 	from optparse import OptionParser
 	parser = OptionParser()
 
-	parser.add_option("-d", "--db",
-						dest="db_name",
-						help="Apply the patches on given db")
-	parser.add_option("--password",
-						help="Password for given db", nargs=1)
+	# install
+	parser.add_option('--install', nargs=2, metavar = "NEW_DB_NAME SOURCE_PATH",
+						help="install fresh db")
+	# update
+	parser.add_option("--update", help="Pull, run latest patches and sync all",
+			nargs=2, metavar="ORIGIN BRANCH")
+
+	parser.add_option("--backup", help="Takes backup of database in backup folder",
+		default=False, action="store_true")
 
 	# build
 	parser.add_option("-b", "--build", default=False, action="store_true",
 						help="minify + concat js files")
 	parser.add_option("-w", "--watch", default=False, action="store_true",
 						help="watch and minify + concat js files, if necessary")
-	parser.add_option("--no_compress", default=False, action="store_true",
-						help="do not compress when building js bundle")
 	parser.add_option("--no_cms", default=False, action="store_true",
 						help="do not build wn-web.js and wn-css.js")
+
+	parser.add_option("-d", "--db",
+						dest="db_name",
+						help="Apply the patches on given db")
+	parser.add_option("--password",
+						help="Password for given db", nargs=1)
 						
 	parser.add_option("--clear_web", default=False, action="store_true",
 						help="clear web cache")
@@ -210,9 +199,6 @@ def setup_options():
 	parser.add_option('--export_doc', nargs=2, metavar = "doctype docname",
 						help="export doc")
 
-	# install
-	parser.add_option('--install', nargs=2, metavar = "dbname source",
-						help="install fresh db")
 	
 	# diff
 	parser.add_option('--diff_ref_file', nargs=0, \
@@ -237,9 +223,6 @@ def setup_options():
 	parser.add_option("--sync", help="Synchronize given DocType using txt file",
 			nargs=2, metavar="module doctype (use their folder names)")
 			
-	parser.add_option("--update", help="Pull, run latest patches and sync all",
-			nargs=2, metavar="ORIGIN BRANCH")
-
 	parser.add_option("--patch_sync_build", action="store_true", default=False,
 		help="run latest patches, sync all and rebuild js css")
 
@@ -251,10 +234,7 @@ def setup_options():
 
 	parser.add_option("--append_future_import", default=False, action="store_true", 
 			help="append from __future__ import unicode literals to py files")
-	
-	parser.add_option("--backup", help="Takes backup of database in backup folder",
-		default=False, action="store_true")
-		
+			
 	parser.add_option("--test", help="Run test", metavar="MODULE", 	
 			nargs=1)
 
@@ -292,7 +272,7 @@ def run():
 			cms_make = False
 		else:
 			cms_make = True
-		bundlejs.bundle(options.no_compress, cms_make)
+		bundlejs.bundle(False, cms_make)
 		return
 		
 	elif options.watch:

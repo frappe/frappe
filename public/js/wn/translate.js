@@ -2,6 +2,7 @@
 wn._messages = {};
 wn._ = function(txt) {
 	if(!txt) return txt;
+	if(typeof(txt) != "string") return txt;
 	return wn._messages[txt.replace(/\n/g, "")] || txt;
 };
 wn.translate = function(obj, keys) {

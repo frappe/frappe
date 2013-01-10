@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-07-12 22:19:54", 
+  "creation": "2012-12-20 17:16:49", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-10 19:12:07"
+  "modified": "2013-01-09 17:09:31"
  }, 
  {
   "istable": 0, 
@@ -102,24 +102,6 @@
   "fieldtype": "Section Break"
  }, 
  {
-  "oldfieldtype": "Text Editor", 
-  "doctype": "DocField", 
-  "label": "Content", 
-  "oldfieldname": "content", 
-  "fieldname": "content", 
-  "fieldtype": "Code", 
-  "search_index": 0, 
-  "reqd": 0, 
-  "hidden": 0
- }, 
- {
-  "oldfieldtype": "Section Break", 
-  "doctype": "DocField", 
-  "label": "Permissions", 
-  "fieldname": "permissions", 
-  "fieldtype": "Section Break"
- }, 
- {
   "oldfieldtype": "Table", 
   "doctype": "DocField", 
   "label": "Roles", 
@@ -130,23 +112,6 @@
   "reqd": 0, 
   "hidden": 0, 
   "options": "Page Role"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "section_break1", 
-  "fieldtype": "Section Break"
- }, 
- {
-  "doctype": "DocField", 
-  "label": "Script (JS)", 
-  "fieldname": "script", 
-  "fieldtype": "Code"
- }, 
- {
-  "doctype": "DocField", 
-  "label": "Style (CSS)", 
-  "fieldname": "style", 
-  "fieldtype": "Code"
  }, 
  {
   "doctype": "DocPerm"

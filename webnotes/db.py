@@ -297,6 +297,10 @@ class Database:
 	def get_global(self, key, user='__global'):
 		g = self.sql("select defvalue from tabDefaultValue where defkey=%s and parent=%s", (key, user))
 		return g and g[0][0] or None
+		
+	def get_globals_like(self, key):
+		return [g[0] for g in self.sql("""select defvalue from tabDefaultValue 
+			where defkey like %s and parent='__global'""", key)]
 
 	def set_default(self, key, val, parent="Control Panel"):
 		"""set control panel default (tabDefaultVal)"""

@@ -64,3 +64,5 @@ class MClient(memcache.Client):
 				keys.remove(d)
 			
 			self.set_value("key_list", keys)
+			# in any case, delete it explicitly
+			self.delete(self.n(startswith))

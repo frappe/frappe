@@ -1,4 +1,5 @@
-// render formview
+// Copyright 2013 Web Notes Technologies Pvt Ltd
+// License: MIT. See license.txt
 
 wn.provide('wn.views.formview');
 

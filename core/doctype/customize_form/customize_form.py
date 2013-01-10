@@ -161,6 +161,7 @@ class DocType:
 			validate_fields_for_doctype(self.doc.doc_type)
 
 			webnotes.clear_cache(doctype=self.doc.doc_type)
+			webnotes.msgprint("Updated")
 
 
 	def diff(self, new_dl, ref_dl, dt_dl):

@@ -90,7 +90,7 @@ wn.ui.FilterList = Class.extend({
 	
 	get_filter: function(fieldname) {
 		for(var i in this.filters) {
-			if(this.filters[i].field.df.fieldname==fieldname)
+			if(this.filters[i].field && this.filters[i].field.df.fieldname==fieldname)
 				return this.filters[i];
 		}
 	}
@@ -139,12 +139,19 @@ wn.ui.Filter = Class.extend({
 		this.$w.find('a.close').bind('click', function() { 
 			me.$w.css('display','none');
 			var value = me.field.get_value();
+			var fieldname = me.field.df.fieldname;
 			me.field = null;
+			
+			// hide filter section
 			if(!me.flist.get_filters().length) {
 				me.flist.$w.find('.set_filters').toggle(true);
 				me.flist.$w.find('.show_filters').toggle(false);
 			}
-			if(value) {
+			
+			// remove from route
+			var in_route = me.remove_from_route(fieldname);
+			
+			if(value && !in_route) {
 				me.flist.listobj.run();
 			}
 			me.flist.update_filters();
@@ -171,6 +178,20 @@ wn.ui.Filter = Class.extend({
 			me.set_field(me.doctype, 'name');
 		}	
 
+	},
+	
+	remove_from_route: function(fieldname) {
+		var route = wn.get_route();
+		if(route[2]) {
+			var args = wn.utils.get_args_dict_from_url(route[2]);
+			if(in_list(keys(args), fieldname)) {
+				delete args[fieldname];
+				route[2] = wn.utils.get_url_from_dict(args);
+				wn.set_route(route[0], route[1], route[2]);
+				return true;
+			}
+		}
+		return false;
 	},
 	
 	set_values: function(tablename, fieldname, condition, value) {

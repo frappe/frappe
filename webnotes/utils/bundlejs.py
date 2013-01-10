@@ -57,7 +57,7 @@ class Bundle:
 				# get file type
 				ftype = f.split('.')[-1] 
 
-				data = infile.read()
+				data = unicode(infile.read(), 'utf-8')
 
 			outtxt += ('\n/*\n *\t%s\n */' % f)
 					
@@ -66,15 +66,15 @@ class Bundle:
 				outtxt += '\n' + data + '\n'
 			else:
 				jsm = JavascriptMinify()
-				tmpin = StringIO(data)
+				tmpin = StringIO(data.encode('utf-8'))
 				tmpout = StringIO()
 				jsm.minify(tmpin, tmpout)
-				tmpmin = tmpout.getvalue() or ''
+				tmpmin = unicode(tmpout.getvalue() or '', 'utf-8')
 				tmpmin.strip('\n')
 				outtxt += tmpmin
 						
 		with open(outfile, 'w') as f:
-			f.write(outtxt)
+			f.write(outtxt.encode("utf-8"))
 		
 		print "Wrote %s - %sk" % (outfile, str(int(os.path.getsize(outfile)/1024)))
 
@@ -107,7 +107,7 @@ class Bundle:
 			outfile = builddict.keys()[0]
 			infiles = self.get_infiles(builddict)
 			
-			self.concat(infiles, os.path.relpath(os.path.join(self.path, outfile), os.curdir))						
+			self.concat(infiles, os.path.relpath(os.path.join(self.path, outfile), os.curdir))
 	
 		self.reset_app_html()
 		

@@ -1,36 +1,17 @@
-// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
-// 
-// MIT License (MIT)
-// 
-// Permission is hereby granted, free of charge, to any person obtaining a 
-// copy of this software and associated documentation files (the "Software"), 
-// to deal in the Software without restriction, including without limitation 
-// the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-// and/or sell copies of the Software, and to permit persons to whom the 
-// Software is furnished to do so, subject to the following conditions:
-// 
-// The above copyright notice and this permission notice shall be included in 
-// all copies or substantial portions of the Software.
-// 
-// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-// INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-// PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-// HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-// CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
-// OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-// 
+// Copyright 2013 Web Notes Technologies Pvt Ltd
+// License: MIT. See license.txt
 
 wn.provide('wn.views.doclistview');
 wn.provide('wn.doclistviews');
 
 wn.views.doclistview.show = function(doctype) {
-	var page_name = wn.get_route_str();
+	var route = wn.get_route();
+	var page_name = "List/" + route[1];
 	if(wn.pages[page_name]) {
 		wn.container.change_to(wn.pages[page_name]);
 		if(wn.container.page.doclistview)
 			wn.container.page.doclistview.run();
 	} else {
-		var route = wn.get_route();
 		if(route[1]) {
 			wn.model.with_doctype(route[1], function(r) {
 				if(r && r['403']) {
@@ -54,7 +35,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_page: function() {
 		var me = this;
-		var page_name = wn.get_route_str();
+		var page_name = "List/" + this.doctype;
 		var page = wn.container.add_page(page_name);
 		wn.container.change_to(page_name);
 		page.doclistview = this;
@@ -162,6 +143,18 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		});
 		
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
+	},
+	
+	run: function(arg0, arg1) {
+		// set filter from route
+		var route = wn.get_route();
+		var me = this;
+		if(route[2]) {
+			$.each(wn.utils.get_args_dict_from_url(route[2]), function(key, val) {
+				me.set_filter(key, val, true);
+			});
+		}
+		this._super(arg0, arg1);
 	},
 	
 	make_no_result: function() {
@@ -343,10 +336,10 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			return false;
 		});		
 	},
-	set_filter: function(fieldname, label) {
+	set_filter: function(fieldname, label, no_run) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
-			var v = filter.field.get_value();
+			var v = cstr(filter.field.get_value());
 			if(v.indexOf(label)!=-1) {
 				// already set
 				return false;
@@ -369,6 +362,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				this.filter_list.add_filter(this.doctype, fieldname, '=', label);					
 			}
 		}
-		this.run();
+		if(!no_run)
+			this.run();
 	}
 });

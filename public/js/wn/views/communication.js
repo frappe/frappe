@@ -1,4 +1,5 @@
-// for license information, see license.txt
+// Copyright 2013 Web Notes Technologies Pvt Ltd
+// License: MIT. See license.txt
 
 // opts - parent, list, doc, email
 wn.views.CommunicationList = Class.extend({

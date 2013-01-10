@@ -177,8 +177,15 @@ Field.prototype.get_status = function() {
 	}
 
 	// workflow state
-	if(ret=="Write" && cur_frm.read_only) {
-		ret = 'Read';
+	if(ret=="Write" && cur_frm && cur_frm.state_fieldname) {
+		if(cur_frm.read_only) {
+			ret = 'Read';
+		}
+		// fields updated by workflow must be read-only
+		if(in_list(cur_frm.states.update_fields, this.df.fieldname) ||
+			this.df.fieldname==cur_frm.state_fieldname) {
+			ret = 'Read';
+		}
 	}
 		
 	// make a field read_only if read_only 
@@ -505,14 +512,15 @@ DateField.prototype.make_input = function() {
 		dateFormat: me.user_fmt.replace('yyyy','yy'), 
 		altFormat:'yy-mm-dd', 
 		changeYear: true,
+		yearRange: "-70Y:+10Y",
 		beforeShow: function(input, inst) { 
 			datepicker_active = 1 
 		},
 		onClose: function(dateText, inst) { 
 			datepicker_active = 0;
 			if(_f.cur_grid_cell)
-				_f.cur_grid_cell.grid.cell_deselect();	
-		}
+				_f.cur_grid_cell.grid.cell_deselect();
+		},
 	});
 	
 	var me = this;
@@ -737,14 +745,13 @@ LinkField.prototype.set_input_value = function(val) {
 	if(_f.cur_grid_cell)
 		_f.cur_grid_cell.grid.cell_deselect();
 	
-	// run trigger if value is cleared
-	if(locals[me.doctype][me.docname][me.df.fieldname] && !val) {
+	if(val) {
+		// validate only if val is not empty
+		me.validate_link(val, from_selector);
+	} else {
+		// run trigger if value is cleared
 		me.run_trigger();
-		return;
 	}
-
-	// validate only if val is not empty
-	if (val) { me.validate_link(val, from_selector); }
 }
 
 LinkField.prototype.validate_link = function(val, from_selector) {

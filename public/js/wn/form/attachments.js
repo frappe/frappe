@@ -37,7 +37,7 @@ wn.ui.form.Attachments = Class.extend({
 
 		this.parent.find(".btn").click(function() {
 			me.new_attachment();
-		})
+		});
 	},
 	max_reached: function() {
 		// no of attachments
@@ -55,7 +55,7 @@ wn.ui.form.Attachments = Class.extend({
 			return;
 		}
 		this.parent.toggle(true);
-		this.parent.find(".btn").toggle(!this.max_reached())
+		this.parent.find(".btn").toggle(!this.max_reached());
 		
 		this.$list.empty();
 
@@ -63,16 +63,16 @@ wn.ui.form.Attachments = Class.extend({
 
 		// add attachment objects
 		for(var i=0; i<fl.length; i++) {
-			this.add_attachment(fl[i])
+			this.add_attachment(fl[i]);
 		}
 	},
 	get_filelist: function() {
  		return this.frm.doc.file_list ? this.frm.doc.file_list.split('\n') : [];
 	},
 	add_attachment: function(fileinfo) {
-		fileinfo = fileinfo.split(',')
-		filename = fileinfo[0];
-		fileid = fileinfo[1];
+		fileinfo = fileinfo.split(',');
+		var filename = fileinfo[0];
+		var fileid = fileinfo[1];
 		
 		var me = this;
 		$(repl('<div class="alert alert-info"><span style="display: inline-block; width: 90%;\
@@ -87,24 +87,26 @@ wn.ui.form.Attachments = Class.extend({
 			.find(".close")
 			.data("fileid", fileid)
 			.click(function() {
-				wn.confirm(wn._("Are you sure you want to delete the attachment?"), function() {
-					var data = $(this).data("fileid");
-					wn.call({
-						method: 'webnotes.widgets.form.utils.remove_attach',
-						args: {
-							'fid': data, 
-							dt: me.frm.doctype, 
-							dn: me.frm.docname 
-						},
-						callback: function(r,rt) {
-							me.frm.doc.modified = r.message;
-							me.remove_fileid(data);
-							me.frm && me.frm.cscript.on_remove_attachment 
-								&& me.frm.cscript.on_remove_attachment(me.frm.doc);
-							me.frm.refresh();
-						}
+				var remove_btn = this;
+				wn.confirm(wn._("Are you sure you want to delete the attachment?"),
+					function() {
+						var data = $(remove_btn).data("fileid");
+						wn.call({
+							method: 'webnotes.widgets.form.utils.remove_attach',
+							args: {
+								fid: data, 
+								dt: me.frm.doctype, 
+								dn: me.frm.docname 
+							},
+							callback: function(r,rt) {
+								me.frm.doc.modified = r.message;
+								me.remove_fileid(data);
+								me.frm && me.frm.cscript.on_remove_attachment 
+									&& me.frm.cscript.on_remove_attachment(me.frm.doc);
+								me.frm.refresh();
+							}
+						});
 					});
-				});
 				return false;
 			});
 	},
@@ -113,8 +115,8 @@ wn.ui.form.Attachments = Class.extend({
 			this.dialog = new wn.ui.Dialog({
 				title: wn._('Upload Attachment'),
 				width: 400
-			})
-			$y(this.dialog.body, {margin:'13px'})
+			});
+			$y(this.dialog.body, {margin:'13px'});
 			this.dialog.make();
 		}
 		this.dialog.body.innerHTML = '';
@@ -136,22 +138,23 @@ wn.ui.form.Attachments = Class.extend({
 			if(f.split(',')[1]!=fileid) return f;
 		}).join('\n');		
 	}
-})
+});
 
 
 // this function will be called after the upload is done
 // from webnotes.utils.file_manager
-wn.ui.form.file_upload_done = function(doctype, docname, fileid, filename, at_id, new_timestamp) {
+wn.ui.form.file_upload_done = function(doctype, docname, fileid, filename, at_id,
+		new_timestamp) {
 		
 	// add to file_list
 	var doc = locals[doctype][docname];
 	if(doc.file_list) {
-		var fl = doc.file_list.split('\n')
-		fl.push(filename + ',' + fileid)
+		var fl = doc.file_list.split('\n');
+		fl.push(filename + ',' + fileid);
 		doc.file_list = fl.join('\n');
-	}
-	else
+	} else {
 		doc.file_list = filename + ',' + fileid;
+	}
 	
 	// update timestamp
 	doc.modified = new_timestamp;
@@ -161,4 +164,4 @@ wn.ui.form.file_upload_done = function(doctype, docname, fileid, filename, at_id
 	frm.attachments.dialog.hide();
 	msgprint(wn._('File Uploaded Sucessfully.'));
 	frm.refresh();
-}
+};

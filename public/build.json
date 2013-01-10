@@ -16,8 +16,7 @@
 			"lib/public/css/font-awesome.css",
 			"lib/public/css/legacy/body.css",
 			"lib/public/css/ui/common.css",
-			"lib/public/css/ui/layout.css",
-			"lib/public/css/ui/fonts.css",
+			"lib/public/css/ui/layout.css"
 		]
 	},
 	
@@ -42,7 +41,6 @@
 			"lib/public/css/ui/list.css",
 			"lib/public/css/ui/appframe.css",
 			"lib/public/css/ui/layout.css",
-			"lib/public/css/ui/fonts.css",
 			"lib/public/css/views/tree_grid.css",
 		]
 	},
@@ -117,6 +115,7 @@
 			"lib/public/js/wn/views/container.js",
 			"lib/public/js/wn/views/pageview.js",
 			"lib/public/js/wn/views/doclistview.js",
+			"lib/public/js/wn/views/moduleview.js",
 			"lib/public/js/wn/views/listview.js",
 			"lib/public/js/wn/views/formview.js",
 			"lib/public/js/wn/views/load_reportview.js",

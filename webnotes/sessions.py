@@ -38,12 +38,17 @@ def clear(user=None):
 	clear_cache(user)
 	webnotes.response['message'] = "Cache Cleared"
 
+
 def clear_cache(user=None):
 	"""clear cache"""
 	webnotes.cache().delete_keys("bootinfo:")
 	webnotes.cache().delete_keys("doctype:")
 	webnotes.cache().delete_keys("session:")
-
+	if webnotes.session:
+		webnotes.cache().delete_keys("bootinfo:" + webnotes.session.user)
+		if webnotes.session.sid:
+			webnotes.cache().delete_keys("session:" + webnotes.session.sid)
+	
 def clear_sessions(user=None, keep_current=False):
 	if not user:
 		user = webnotes.session.user

@@ -373,14 +373,17 @@ $.extend(_p, {
 			
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
-		$.each(finished.match(/src=['"]([^'"]*)['"]/g) || [], function(i, v) {
+		// find unique matches
+		var matches = $.unique(finished.match(/src=['"]([^'"]*)['"]/g) || []);
+		
+		$.each(matches, function(i, v) {
 			if(v.substr(0,4)=="src=") {
 				var v = v.substr(5, v.length-6);
 				if(v.substr(0,4)!="http")
-					finished = finished.replace(v, prefix + v);
+					finished = finished.split(v).join(prefix + v);
 			}
 		});
-
+		
 		return finished;
 	},
 	
@@ -466,6 +469,14 @@ $.extend(_p, {
 				}
 				var h2 = $a(me.layout.cur_row.header, 'div', '', h2_style);
 				h2.innerHTML = docname;
+				
+				if(cur_frm.state_fieldname) {
+					$a(h2, 'br');
+					var span = $a(h2, 'span', '', 
+						{padding: "3px", color: "#fff", backgroundColor: "#777", 
+							display:"inline-block"});
+					span.innerHTML = cur_frm.doc[cur_frm.state_fieldname];
+				}
 			},
 			
 			build_data: function(data, doctype, docname) {

@@ -51,15 +51,9 @@ wn.route = function() {
 	}
 }
 
-wn.get_route = function(route) {
-	// route for web [deprecated after cms2]
-	// if(!wn.boot) {
-	// 	return [window.page_name];
-	// }
-	
+wn.get_route = function(route) {	
 	// for app
-	return $.map(wn.get_route_str(route).split('/'), 
-		function(r) { return decodeURIComponent(r); });
+	return wn.get_route_str(route).split('/')
 }
 
 wn.get_route_str = function(route) {
@@ -68,7 +62,11 @@ wn.get_route_str = function(route) {
 
 	if(route.substr(0,1)=='#') route = route.substr(1);
 	if(route.substr(0,1)=='!') route = route.substr(1);
-	return route;	
+	
+	route = $.map(route.split('/'), 
+		function(r) { return decodeURIComponent(r); }).join('/');
+
+	return route;
 }
 
 wn.set_route = function() {

@@ -14,7 +14,9 @@ def sync_all(force=0):
 	try:
 		webnotes.clear_cache()
 	except Exception, e:
-		if e[0]!=1146: raise e
+		if e.args[0]!=1146:
+			print webnotes.getTraceback()
+			raise e
 	return modules
 
 def sync_core_doctypes(force=0):
