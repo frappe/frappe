@@ -238,7 +238,7 @@ def clear_cache(doctype):
 
 		if doctype in doctype_cache:
 			del doctype_cache[dt]
-			
+
 	clear_single(doctype)
 	
 	# clear all parent doctypes
