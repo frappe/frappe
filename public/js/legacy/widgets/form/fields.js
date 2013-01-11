@@ -167,7 +167,7 @@ Field.prototype.get_status = function() {
 		if(this.in_grid) 
 			a_o_s = this.grid.field.df.allow_on_submit;
 		if(this.frm.meta.istable) { 
-			a_o_s = cur_grid.field.df.allow_on_submit;
+			a_o_s = _f.cur_grid.field.df.allow_on_submit;
 		}
 	}
 	
