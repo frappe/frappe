@@ -506,7 +506,7 @@ DateField.prototype.make_input = function() {
 	this.user_fmt = sys_defaults.date_format;
 	if(!this.user_fmt)this.user_fmt = 'dd-mm-yy';
 
-	this.input = $("<input type='text'>").appendTo(this.input_area).get(0);
+	this.input = $("<input type='text' data-fieldtype='Date'>").appendTo(this.input_area).get(0);
 
 	$(this.input).datepicker({
 		dateFormat: me.user_fmt.replace('yyyy','yy'), 
