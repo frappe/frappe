@@ -94,7 +94,10 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		if(this.onshow)this.onshow();
 		
 		// focus on first input
-		$(this.wrapper).find(':input:first').focus();
+		var first = $(this.wrapper).find(':input:first');
+		if(first.attr("data-fieldtype")!="Date") {
+			first.focus();
+		}
 	},
 	hide: function() {
 		// call onhide

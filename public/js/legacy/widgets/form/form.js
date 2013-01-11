@@ -562,7 +562,10 @@ _f.Frm.prototype.refresh = function(docname) {
 			// focus on first input
 			
 			if(this.doc.docstatus==0) {
-				$(this.wrapper).find('.form-layout-row :input:first').focus();
+				var first = $(this.wrapper).find('.form-layout-row :input:first');
+				if(first.attr("data-fieldtype")!="Date") {
+					first.focus();
+				}
 			}
 		
 		} else {
