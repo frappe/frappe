@@ -33,10 +33,10 @@ wn.utils = {
 		return ret;
 	},
 	comma_or: function(list) {
-		return wn.utils.comma_sep(list, " or ");
+		return wn.utils.comma_sep(list, " " + wn._("or") + " ");
 	},
 	comma_and: function(list) {
-		return wn.utils.comma_sep(list, " and ");
+		return wn.utils.comma_sep(list, " " + wn._("and") + " ");
 	},
 	comma_sep: function(list, sep) {
 		if(list instanceof Array) {
@@ -54,7 +54,7 @@ wn.utils = {
 	set_intro: function(me, wrapper, txt) {
 		if(!me.intro_area) {
 			me.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
-				.insertBefore(wrapper.firstChild);
+				.prependTo(wrapper);
 		}
 		if(txt) {
 			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
@@ -88,5 +88,11 @@ wn.utils = {
 	},
 	get_url_from_dict: function(args) {
 		return encodeURIComponent($.map(args, function(val, key)  { return key+"="+val; }).join("&") || "");
+	},
+	disable_export_btn: function(btn) {
+		if(!wn.user.is_report_manager()) {
+			btn.attr("disabled", "disabled").attr("title", 
+				wn._("Can only be exported by users with role 'Report Manager'"));
+		}		
 	}
 };

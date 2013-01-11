@@ -331,15 +331,14 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	// setup export
 	make_export: function() {
 		var me = this;
-		if(wn.user.is_report_manager()) {
-			this.page.appframe.add_button(wn._('Export'), function() {
-				var args = me.get_args();
-				args.cmd = 'webnotes.widgets.reportview.export_query'
-				open_url_post(wn.request.url, args);
-			}, 'icon-download-alt');
-		}
+		var export_btn = this.page.appframe.add_button(wn._('Export'), function() {
+			var args = me.get_args();
+			args.cmd = 'webnotes.widgets.reportview.export_query'
+			open_url_post(wn.request.url, args);
+		}, 'icon-download-alt');
+		wn.utils.disable_export_btn(export_btn);
 	},
-	
+
 	// save
 	make_save: function() {
 		var me = this;
