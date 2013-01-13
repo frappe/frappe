@@ -280,7 +280,7 @@ def validate_permissions(permissions, for_remove=False):
 		check_atleast_one_set(d)
 		if not for_remove:
 			check_double(d)
+			check_permission_dependency(d)
+			check_if_submittable(d)
 		check_level_zero_is_set(d)
-		check_permission_dependency(d)
 		remove_report_if_single(d)
-		check_if_submittable(d)
