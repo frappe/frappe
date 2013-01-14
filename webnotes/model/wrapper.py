@@ -40,6 +40,7 @@ class ModelWrapper:
 		self.docs = []
 		self.obj = None
 		self.to_docstatus = 0
+		self.ignore_permissions = 0
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
 		if dt and dn:
@@ -170,7 +171,8 @@ class ModelWrapper:
 
 	def prepare_for_save(self, check_links):
 		self.check_if_latest()
-		self.check_permission()
+		if not self.ignore_permissions:
+			self.check_permission()
 		if check_links:
 			self.check_links()
 		self.update_timestamps_and_docstatus()
@@ -241,6 +243,10 @@ class ModelWrapper:
 				webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
 					% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
 
+	def insert(self):
+		self.doc.fields["__islocal"] = 1
+		return self.save()
+	
 	def save(self, check_links=1):
 		if webnotes.has_permission(self.doc.doctype, "write"):
 			self.prepare_for_save(check_links)
@@ -250,6 +256,8 @@ class ModelWrapper:
 			self.run_method('on_update')
 		else:
 			webnotes.msgprint("No Permission to Write", raise_exception=True)
+		
+		return self
 
 	def submit(self):
 		if webnotes.has_permission(self.doc.doctype, "submit"):
@@ -260,6 +268,8 @@ class ModelWrapper:
 			self.run_method('on_submit')
 		else:
 			webnotes.msgprint("No Permission to Submit", raise_exception=True)
+			
+		return self
 
 	def cancel(self):
 		if webnotes.has_permission(self.doc.doctype, "submit"):
@@ -272,6 +282,8 @@ class ModelWrapper:
 			self.run_method('on_cancel')
 		else:
 			webnotes.msgprint("No Permission to Cancel", raise_exception=True)
+			
+		return self
 
 	def update_after_submit(self):
 		if self.doc.docstatus != 1:
@@ -281,6 +293,8 @@ class ModelWrapper:
 		self.save_main()
 		self.save_children()
 		self.run_method('on_update_after_submit')
+		
+		return self
 
 # clone
 
