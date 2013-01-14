@@ -40,6 +40,7 @@ class ModelWrapper:
 		self.docs = []
 		self.obj = None
 		self.to_docstatus = 0
+		self.ignore_permissions = 0
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
 		if dt and dn:
@@ -176,7 +177,8 @@ class ModelWrapper:
 			Set owner, modified etc before saving
 		"""
 		self.check_if_latest()
-		self.check_permission()
+		if not self.ignore_permissions:
+			self.check_permission()
 		if check_links:
 			self.check_links()
 		self.update_timestamps_and_docstatus()
