@@ -267,7 +267,7 @@ _f.CodeField.prototype.make_input = function() {
 			height: '360px',
 	
 			// buttons
-			theme_advanced_buttons1 : "bold,italic,underline,hr,|,justifyleft,justifycenter,|,formatselect,fontsizeselect,|,bullist,numlist,|,outdent,indent,|,link,unlink,|,forecolor,backcolor,|,code",
+			theme_advanced_buttons1 : "bold,italic,underline,hr,|,justifyleft,justifycenter,|,formatselect,fontsizeselect,|,bullist,numlist,|,image,|,outdent,indent,|,link,|,forecolor,backcolor,|,code",
 			theme_advanced_buttons2 : "",
 			theme_advanced_buttons3 : "",
 
@@ -280,7 +280,13 @@ _f.CodeField.prototype.make_input = function() {
 
 			content_css: "lib/js/lib/tiny_mce_3.5.7/custom_content.css?q=1",
 
-			oninit: function() { me.init_editor(); }
+			oninit: function() { me.init_editor(); },
+			setup: function(ed) {
+				ed.onChange.add(function(ed, l) {
+					me.set(l.content);
+					me.run_trigger();
+				});
+			}
 		});
 
 		this.input.set_input = function(v) {
@@ -290,10 +296,10 @@ _f.CodeField.prototype.make_input = function() {
 				$(me.input).val(v);
 			}
 		}
-		this.input.onchange = function() {
-			me.set(me.editor.getContent());
-			me.run_trigger();
-		}
+		// this.input.onchange = function() {
+		// 	me.set(me.editor.getContent());
+		// 	me.run_trigger();
+		// }
 		this.get_value = function() {
 			return me.editor && me.editor.getContent(); // tinyMCE
 		}	
