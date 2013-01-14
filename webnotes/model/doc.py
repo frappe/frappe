@@ -417,10 +417,7 @@ class Document:
 					webnotes.conn.get_table_columns(self.doctype)
 			
 		return valid_fields_map.get(self.doctype)
-	
-	# Save values
-	# ---------------------------------------------------------------------------
-	
+		
 	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname=1,
 			keep_timestamps=False):
 		"""
@@ -484,69 +481,6 @@ class Document:
 		self.idx = (webnotes.conn.sql("""select max(idx) from `tab%s` 
 			where parent=%s and parentfield=%s""" % (self.doctype, '%s', '%s'), 
 			(self.parent, self.parentfield))[0][0] or 0) + 1
-
-	# check permissions
-	# ---------------------------------------------------------------------------
-
-	def _get_perms(self):
-		if not self._perms:
-			self._perms = webnotes.conn.sql("""select role, `match` from tabDocPerm
-				where parent=%s and ifnull(`read`,0) = 1 
-				and ifnull(permlevel,0)=0""", self.doctype)
-
-	def _get_roles(self):
-		# check if roles match/
-		if not self._roles:
-			if webnotes.user:
-				self._roles = webnotes.user.get_roles()
-			else:
-				self._roles = ['Guest']
-
-	def _get_user_defaults(self):
-		if not self._user_defaults:
-			if webnotes.user:
-				self._user_defaults = webnotes.user.get_defaults()
-			else:
-				self.defaults = {}
-
-	def check_perm(self, verbose=0):
-		import webnotes
-		
-		# Admin has all permissions
-		if webnotes.session['user']=='Administrator':
-			return 1
-		
-		# find roles with read access for this record at 0
-		self._get_perms()
-		self._get_roles()
-		self._get_user_defaults()
-	
-		has_perm, match = 0, []
-		
-		# loop through everything to find if there is a match
-		for r in self._perms:
-			if r[0] in self._roles:
-				has_perm = 1
-				if r[1] and match != -1:
-					match.append(r[1]) # add to match check
-				else:
-					match = -1 # has permission and no match, so match not required!
-		
-		if has_perm and match and match != -1:
-			for m in match:
-				if ":" in m:
-					document_key, default_key = m.split(":")
-				else:
-					document_key = default_key = m
-					
-				if self.fields.get(document_key, 'no value') in \
-					self._user_defaults.get(default_key, 'no default'):
-					has_perm = 1
-					break # permission found! break
-				else:
-					has_perm = 0	
-				
-		return has_perm
 		
 	def _clear_temp_fields(self):
 		# clear temp stuff
@@ -759,7 +693,7 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 		if dt=='Page' and webnotes.session['user'] == 'Guest':
 			check_page_perm(doc)
 	else:
-		if not doc.check_perm():
+		if not webnotes.has_permission(dt, "read", doc):
 			webnotes.response['403'] = 1
 			raise webnotes.ValidationError, '[WNF] No read permission for %s %s' % (dt, dn)
 

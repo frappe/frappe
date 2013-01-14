@@ -263,18 +263,44 @@ def get_roles(user=None, with_standard=True):
 	
 	return roles
 
-def has_permission(doctype, ptype="read"):
+def has_permission(doctype, ptype="read", doc=None):
 	"""check if user has permission"""
 	if session.user=="Administrator": 
 		return True
 	if conn.get_value("DocType", doctype, "istable"):
 		return True
-	return conn.sql("""select name from tabDocPerm p
+	perms = conn.sql("""select `name`, `match` from tabDocPerm p
 		where p.parent = %s
 		and ifnull(p.`%s`,0) = 1
 		and ifnull(p.permlevel,0) = 0
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
-		""" % ("%s", ptype, "%s"), (doctype, session.user))
+		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
+		
+	if doc:
+		match_failed = {}
+		for p in perms:
+			if p.match:
+				if ":" in p.match:
+					keys = p.match.split(":")
+				else:
+					keys = [p.match, p.match]
+
+				if doc.fields.get(keys[0],"[No Value]") \
+					in conn.get_defaults_as_list(keys[1], session.user):
+					return True
+				else:
+					match_failed[keys[0]] = doc.fields.get(keys[0],"[No Value]")
+			else:
+				# found a permission without a match
+				return True
+
+		# no valid permission found
+		if match_failed:
+			key = match_failed.keys()[0]
+			msgprint(_("Not allowed for: ") + key + "=" + match_failed[key])
+		return False
+	else:
+		return perms and True or False
 
 def generate_hash():
 	"""Generates random hash for session id"""

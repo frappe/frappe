@@ -29,6 +29,7 @@ Group actions like save, etc are performed on doclists
 """
 
 import webnotes
+from webnotes import _
 from webnotes.utils import cint
 from webnotes.model.doc import Document
 
@@ -131,14 +132,6 @@ class ModelWrapper:
 				To maintain the integrity of the data, you will not be able to save your changes.
 				Please refresh this document. [%s/%s]""" % (tmp[0][0], self.doc.modified), raise_exception=1)
 
-	def check_permission(self):
-		"""
-			Raises exception if permission is not valid
-		"""
-		if not self.doc.check_perm(verbose=1):
-			webnotes.msgprint("Not enough permission to save %s" % 
-				self.doc.doctype, raise_exception=1)
-
 	def check_links(self):
 		"""
 			Checks integrity of links (throws exception if links are invalid)
@@ -171,8 +164,6 @@ class ModelWrapper:
 
 	def prepare_for_save(self, check_links):
 		self.check_if_latest()
-		if not self.ignore_permissions:
-			self.check_permission()
 		if check_links:
 			self.check_links()
 		self.update_timestamps_and_docstatus()
@@ -248,31 +239,31 @@ class ModelWrapper:
 		return self.save()
 	
 	def save(self, check_links=1):
-		if webnotes.has_permission(self.doc.doctype, "write") or self.ignore_permissions:
+		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.prepare_for_save(check_links)
 			self.run_method('validate')
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
 		else:
-			webnotes.msgprint("No Permission to Write", raise_exception=True)
+			self.no_permission_to(_("Write"))
 		
 		return self
 
 	def submit(self):
-		if webnotes.has_permission(self.doc.doctype, "submit") or self.ignore_permissions:
+		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "submit", self.doc):
 			if self.doc.docstatus != 0:
 				webnotes.msgprint("Only draft can be submitted", raise_exception=1)
 			self.to_docstatus = 1
 			self.save()
 			self.run_method('on_submit')
 		else:
-			webnotes.msgprint("No Permission to Submit", raise_exception=True)
+			self.no_permission_to(_("Submit"))
 			
 		return self
 
 	def cancel(self):
-		if webnotes.has_permission(self.doc.doctype, "submit") or self.ignore_permissions:
+		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "cancel", self.doc):
 			if self.doc.docstatus != 1:
 				webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
 			self.to_docstatus = 2
@@ -281,20 +272,27 @@ class ModelWrapper:
 			self.save_children()
 			self.run_method('on_cancel')
 		else:
-			webnotes.msgprint("No Permission to Cancel", raise_exception=True)
+			self.no_permission_to(_("Cancel"))
 			
 		return self
 
 	def update_after_submit(self):
 		if self.doc.docstatus != 1:
 			webnotes.msgprint("Only to called after submit", raise_exception=1)
-		self.to_docstatus = 1
-		self.prepare_for_save(1)
-		self.save_main()
-		self.save_children()
-		self.run_method('on_update_after_submit')
+		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
+			self.to_docstatus = 1
+			self.prepare_for_save(1)
+			self.save_main()
+			self.save_children()
+			self.run_method('on_update_after_submit')
+		else:
+			self.no_permission_to(_("Update"))
 		
 		return self
+
+	def no_permission_to(self, ptype):
+		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
+			_("No Permission to ") + ptype, raise_exception=True)
 
 # clone
 

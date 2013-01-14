@@ -169,20 +169,17 @@ class Database:
 
 		# date
 		if type(v)==datetime.date:
-			v = str(v)
+			v = unicode(v)
 			if formatted:
 				v = formatdate(v)
 		
 		# time	
 		elif type(v)==datetime.timedelta:
-			h = int(v.seconds/60/60)
-			v = str(h) + ':' + str(v.seconds/60 - h*60)
-			if v[1]==':': 
-				v='0'+v
+			v = unicode(v)
 		
 		# datetime
 		elif type(v)==datetime.datetime:
-			v = str(v)
+			v = unicode(v)
 		
 		# long
 		elif type(v)==long: 
@@ -326,10 +323,14 @@ class Database:
 	
 	def get_default(self, key, parent="Control Panel"):
 		"""get default value"""
-		ret = self.sql("""select defvalue from \
-			tabDefaultValue where defkey=%s and parent=%s""", (key, parent))
-		return ret and ret[0][0] or None
+		ret = self.get_defaults_as_list(key, parent)
+		return ret and ret[0] or None
 		
+	def get_defaults_as_list(self, key, parent="Control Panel"):
+		ret = [r[0] for r in self.sql("""select defvalue from \
+			tabDefaultValue where defkey=%s and parent=%s""", (key, parent))]
+		return ret
+	
 	def get_defaults(self, key=None, parent="Control Panel"):
 		"""get all defaults"""
 		if key:
