@@ -117,9 +117,11 @@ wn.views.moduleview.make = function(wrapper, module) {
 					$.each(r.message.reports, function(i, item) {
 						if(wn.model.can_read(item.doctype)) {
 							if(item.is_query_report) {
-								item.link = repl("<a href='#query-report/%(name)s'>%(name)s</a>", item);
+								item.link = repl("<a href=\"#query-report/%(name)s\">%(name)s</a>",
+									item);
 							} else {
-								item.link = repl("<a href='#Report2/%(doctype)s/%(name)s'>%(name)s</a>", item);
+								item.link = repl("<a href=\"#Report2/%(doctype)s/%(name)s\">\
+									%(name)s</a>", item);
 							}
 							add_item(item, section);
 						}
@@ -136,8 +138,9 @@ wn.views.moduleview.make = function(wrapper, module) {
 					$.each(r.message.search_criteria, function(i, item) {
 						item.criteria_name_enc = encodeURIComponent(item.criteria_name);
 						if(wn.model.can_read(item.parent_doctype || item.doctype)) {
-							item.link = repl('<a href="#Report/%(doctype)s/%(criteria_name_enc)s">%(criteria_name)s</a>', 
-								item);
+							item.link = repl(
+								"<a href=\"#Report/%(doctype)s/%(criteria_name_enc)s\">\
+								%(criteria_name)s</a>", item);
 							add_item(item, section);
 						}
 					})
