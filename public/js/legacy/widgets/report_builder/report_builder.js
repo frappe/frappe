@@ -326,7 +326,7 @@ _r.ReportBuilder.prototype.load_criteria = function(criteria_name) {
 	this.clear_criteria();
 	
 	if(!this.sc_dict[criteria_name]) {
-		alert(criteria_name + ' could not be loaded. Please Refresh and try again');
+		msgprint(criteria_name + wn._(' could not be loaded. Please Refresh and try again'));
 	}
 	this.sc = locals['Search Criteria'][this.sc_dict[criteria_name]];
 
