@@ -84,18 +84,13 @@ class DocType:
 			AND field_name = %s
 			AND property = 'previous_field'""", (self.doc.dt, self.doc.fieldname))
 		
-		webnotes.model_wrapper([{
-			'doctype': "Property Setter",
-			'doctype_or_field': 'DocField',
-			'doc_type': self.doc.dt,
-			'field_name': self.doc.fieldname,
-			'property': 'previous_field',
-			'value': prev_field,
-			'property_type': 'Data',
-			'select_doctype': self.doc.dt,
-			'__islocal': 1
-		}]).save()
-
+		webnotes.make_property_setter({
+			"doctype":self.doc.dt, 
+			"fieldname": self.doc.fieldname, 
+			"property": "previous_field",
+			"value": prev_field
+		})
+		
 @webnotes.whitelist()
 def get_fields_label(dt=None, form=1):
 	"""

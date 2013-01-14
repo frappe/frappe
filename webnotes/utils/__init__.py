@@ -220,6 +220,9 @@ def nowdate():
 	"""return current date as yyyy-mm-dd"""
 	return now_datetime().strftime('%Y-%m-%d')
 
+def today():
+	return nowdate()
+	
 def nowtime():
 	"""return current time in hh:mm"""
 	return now_datetime().strftime('%H:%M')

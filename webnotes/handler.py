@@ -172,7 +172,6 @@ def handle():
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
-	validate_cmd(cmd)
 	method = get_method(cmd)
 
 	# check if whitelisted
@@ -217,18 +216,7 @@ def get_method(cmd):
 	else:
 		method = globals()[cmd]
 	return method
-	
-def validate_cmd(cmd):
-	# check if there is no direct possibility of malicious script injection
-	if cmd.startswith('webnotes.model.code'):
-		raise Exception, 'Cannot call any methods from webnotes.model.code directly from the handler'
-
-	if cmd.startswith('webnotes.model.db_schema'):
-		raise Exception, 'Cannot call any methods from webnotes.model.db_schema directly from the handler'
-
-	if cmd.startswith('webnotes.conn'):
-		raise Exception, 'Cannot call database connection method directly from the handler'
-		
+			
 def print_response():
 	print_map = {
 		'csv': print_csv,
@@ -336,9 +324,7 @@ def json_handler(obj):
 	import datetime
 	
 	# serialize date
-	if isinstance(obj, datetime.date):
-		return unicode(obj)
-	if isinstance(obj, datetime.timedelta):
+	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
 		return unicode(obj)
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \

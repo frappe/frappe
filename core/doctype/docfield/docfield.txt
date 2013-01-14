@@ -2,9 +2,9 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-12-28 10:34:30", 
+  "creation": "2013-01-10 16:34:01", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-28 11:21:09"
+  "modified": "2013-01-14 12:23:07"
  }, 
  {
   "istable": 1, 
@@ -28,21 +28,6 @@
   "parenttype": "DocType", 
   "permlevel": 0, 
   "parentfield": "fields"
- }, 
- {
-  "parent": "DocField", 
-  "read": 0, 
-  "cancel": 0, 
-  "execute": 0, 
-  "name": "__common__", 
-  "create": 0, 
-  "doctype": "DocPerm", 
-  "submit": 0, 
-  "write": 0, 
-  "parenttype": "DocType", 
-  "role": "Administrator", 
-  "permlevel": 0, 
-  "parentfield": "permissions"
  }, 
  {
   "name": "DocField", 
@@ -71,7 +56,7 @@
   "search_index": 1, 
   "reqd": 1, 
   "hidden": 0, 
-  "options": "Data\nSelect\nText\nSmall Text\nText Editor\nLink\nInt\nDate\nTime\nCurrency\nTable\nFloat\nCheck\nSection Break\nColumn Break\nButton\nRead Only\nCode\nHTML\nImage\nBlob\nPassword"
+  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nPassword\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime"
  }, 
  {
   "oldfieldtype": "Data", 
@@ -277,8 +262,5 @@
   "search_index": 0, 
   "reqd": 0, 
   "hidden": 1
- }, 
- {
-  "doctype": "DocPerm"
  }
 ]

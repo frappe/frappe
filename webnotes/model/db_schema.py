@@ -40,6 +40,7 @@ type_map = {
 	,'code':		('text', '')
 	,'text editor':	('text', '')
 	,'date':		('date', '')
+	,'datetime':	('datetime', '')
 	,'time':		('time', '')
 	,'text':		('text', '')
 	,'data':		('varchar', '180')
@@ -213,11 +214,6 @@ class DbTable:
 		for col in self.set_default:
 			webnotes.conn.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), col.default)
 
-
-# -------------------------------------------------
-# Class database column
-# -------------------------------------------------
-
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options):
 		self.table = table
@@ -320,7 +316,6 @@ class DbManager:
 		except Exception, e:
 			raise e
 
-
 	def delete_user(self,target):
 	# delete user if exists
 		try:
@@ -395,12 +390,6 @@ class DbManager:
 		except Exception,e:
 			raise e
 
-
-
-# -------------------------------------------------
-# validate column name to be code-friendly
-# -------------------------------------------------
-
 def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
 	import re
@@ -409,9 +398,6 @@ def validate_column_name(n):
 		raise Exception
 	return n
 
-# -------------------------------------------------
-# sync table - called from form.py
-# -------------------------------------------------
 
 def updatedb(dt):
 	"""
@@ -429,9 +415,6 @@ def updatedb(dt):
 		tab = DbTable(dt, 'tab')
 		tab.sync()
 		webnotes.conn.begin()
-
-# patch to remove foreign keys
-# ----------------------------
 
 def remove_all_foreign_keys():
 	webnotes.conn.sql("set foreign_key_checks = 0")

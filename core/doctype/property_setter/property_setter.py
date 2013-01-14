@@ -27,6 +27,11 @@ class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
+	def autoname(self):
+		self.doc.name = self.doc.doc_type + "-" \
+			+ (self.doc.field_name and (self.doc.field_name + "-")  or "") \
+			+ self.doc.property
+
 	def validate(self):
 		"""delete other property setters on this, if this is new"""
 		if self.doc.fields['__islocal']:

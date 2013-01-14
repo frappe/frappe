@@ -498,18 +498,9 @@ HTMLField.prototype.onrefresh = function() { if(this.df.options) this.set_disp(t
 // ======================================================================================
 
 var datepicker_active = 0;
-
-function DateField() { } DateField.prototype = new Field();
-DateField.prototype.make_input = function() {
-
-	var me = this;
-	this.user_fmt = sys_defaults.date_format;
-	if(!this.user_fmt)this.user_fmt = 'dd-mm-yy';
-
-	this.input = $("<input type='text' data-fieldtype='Date'>").appendTo(this.input_area).get(0);
-
-	$(this.input).datepicker({
-		dateFormat: me.user_fmt.replace('yyyy','yy'), 
+function get_datepicker_options() {
+	var datepicker_options = {
+		dateFormat: (sys_defaults.date_format || 'yy-mm-dd').replace('yyyy','yy'), 
 		altFormat:'yy-mm-dd', 
 		changeYear: true,
 		yearRange: "-70Y:+10Y",
@@ -521,17 +512,29 @@ DateField.prototype.make_input = function() {
 			if(_f.cur_grid_cell)
 				_f.cur_grid_cell.grid.cell_deselect();
 		},
-	});
+	}
+	return datepicker_options;
+}
+
+function DateField() { } DateField.prototype = new Field();
+DateField.prototype.make_input = function() {
+
+	var me = this;
+	this.input = $("<input type='text' data-fieldtype='Date'>")
+		.appendTo(this.input_area).get(0);
+
+	$(this.input).datepicker(get_datepicker_options());
+	this.setup_input();
 	
+}
+DateField.prototype.setup_input = function() {
 	var me = this;
 
 	me.input.onchange = function() {
 		// input as dd-mm-yyyy
 		if(this.value==null)this.value='';
-
 		if(!this.not_in_form)
 			me.set(dateutil.user_to_str(me.input.value));
-
 		me.run_trigger();
 	}
 	me.input.set_input = function(val) {
@@ -544,28 +547,22 @@ DateField.prototype.make_input = function() {
 			return dateutil.user_to_str(me.input.value);
 	}
 }
+
 DateField.prototype.set_disp = function(val) {
 	var v = dateutil.str_to_user(val);
 	if(v==null)v = '';
 	this.set_disp_html(v);
 }
 DateField.prototype.validate = function(v) {
-	if(!v) return;
-	var me = this;
-	this.clear = function() {
-		msgprint (wn._("Date must be in format") + ": " + this.user_fmt);
-		me.input.set_input('');
+	var v = wn.datetime.validate(v);
+	if(!v) {
+		msgprint (wn._("Date must be in format") + ": " + (sys_defaults.date_format || "yyyy-mm-dd"));
+		this.input.set_input('');
 		return '';
 	}
-	var t = $.map(v.split('-'), function(part) { return cint(part) ? part : null; });
-	if(t.length!=3) { return this.clear(); }
-	else if(cint(t[1])>12 || cint(t[1])<1) { return this.clear(); }
-	else if(cint(t[2])>31 || cint(t[2])<1) { return this.clear(); }
-	else if(String(cint(t[0])).length!=4) { return this.clear(); } // 4 char for year
 	return v;
 };
 
-// ======================================================================================
 
 // reference when a new record is created via link
 function LinkField() { } LinkField.prototype = new Field();
@@ -1149,65 +1146,43 @@ SelectField.prototype.make_input = function() {
 // Time
 // ======================================================================================
 
-function TimeField() { } TimeField.prototype = new Field();
+function TimeField() { } TimeField.prototype = new DataField();
 
-TimeField.prototype.get_time = function() {
-	return time_to_hhmm(sel_val(this.input_hr), sel_val(this.input_mn), sel_val(this.input_am));
-}
-TimeField.prototype.set_time = function(v) {	
-	//show_alert(ret);
-	ret = time_to_ampm(v);
-	this.input_hr.inp.value = ret[0];
-	this.input_mn.inp.value = ret[1];
-	this.input_am.inp.value = ret[2];
+function import_timepicker() {
+	wn.require("lib/js/lib/jquery/jquery.ui.slider.min.js");
+	wn.require("lib/js/lib/jquery/jquery.ui.sliderAccess.js");
+	wn.require("lib/js/lib/jquery/jquery.ui.timepicker-addon.css");
+	wn.require("lib/js/lib/jquery/jquery.ui.timepicker-addon.js");
 }
 
-TimeField.prototype.set_style_mandatory = function() { }
-
-TimeField.prototype.make_input = function() { var me = this;
-	this.input = $a(this.input_area, 'div', 'time_field');
+TimeField.prototype.make_input = function() { 
+	import_timepicker();
+	var me = this;
+	this.input = $('<input type="text">')
+		.appendTo(this.input_area)
+		.timepicker({
+			timeFormat: 'hh:mm:ss',
+		}).get(0);
 	
-	var t = make_table(this.input, 1, 3, '200px');
-
-	var opt_hr = ['1','2','3','4','5','6','7','8','9','10','11','12'];
-	var opt_mn = ['00','05','10','15','20','25','30','35','40','45','50','55'];
-	var opt_am = ['AM','PM'];
-
-	this.input_hr = new SelectWidget($td(t,0,0), opt_hr, '50px');
-	this.input_mn = new SelectWidget($td(t,0,1), opt_mn, '50px');
-	this.input_am = new SelectWidget($td(t,0,2), opt_am, '50px');
-	
-	var onchange_fn = function() {
-		me.set(me.get_time()); 
-		me.run_trigger();
+	this.set_input = function(v) {
+		$(me.input).val(v);
 	}
-	
-	this.input_hr.inp.onchange = onchange_fn;
-	this.input_mn.inp.onchange = onchange_fn;
-	this.input_am.inp.onchange = onchange_fn;
-	
-	this.onrefresh = function() {
-		var v = _f.get_value ? _f.get_value(me.doctype,me.docname,me.df.fieldname) : null;
-		me.set_time(v);
-		if(!v)
-			me.set(me.get_time());
-	}
-	
-	this.input.set_input=function(v) {
-		if(v==null)v='';
-		me.set_time(v);
-	}
-
-	this.get_value = function() {
-		return this.get_time();
-	}
-	this.refresh();
 }
 
-TimeField.prototype.set_disp=function(v) {
-	var t = time_to_ampm(v);
-	var t = t[0]+':'+t[1]+' '+t[2];
-	this.set_disp_html(t);
+function DateTimeField() { } DateTimeField.prototype = new DateField();
+
+DateTimeField.prototype.make_input = function() {
+	import_timepicker();
+	var me = this;
+
+	args = get_datepicker_options();
+	args.timeFormat = "hh:mm:ss";
+
+	this.input = $('<input type="text">')
+		.appendTo(this.input_area)
+		.datetimepicker(args).get(0);
+		
+	this.setup_input();
 }
 
 var tmpid = 0;
@@ -1301,6 +1276,7 @@ function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Fa
 		case 'read only':var f = new ReadOnlyField(); break;
 		case 'link':var f = new LinkField(); break;
 		case 'date':var f = new DateField(); break;
+		case 'datetime':var f = new DateTimeField(); break;
 		case 'time':var f = new TimeField(); break;
 		case 'html':var f = new HTMLField(); break;
 		case 'check':var f = new CheckField(); break;

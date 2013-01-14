@@ -333,6 +333,19 @@ def get_method(method_string):
 	import sys
 	moduleobj = sys.modules[modulename]
 	return getattr(moduleobj, methodname)
+	
+def make_property_setter(args):
+	args = _dict(args)
+	model_wrapper([{
+		'doctype': "Property Setter",
+		'doctype_or_field': args.doctype_or_field or "DocField",
+		'doc_type': args.doctype,
+		'field_name': args.fieldname,
+		'property': args.property,
+		'value': args.value,
+		'property_type': args.property_type or "Data",
+		'__islocal': 1
+	}]).save()
 
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""

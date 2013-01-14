@@ -154,9 +154,6 @@ class ModelWrapper:
 			Please correct and resave. Document Not Saved.""" % ', '.join(err_list), raise_exception=1)
 
 	def update_timestamps_and_docstatus(self):
-		"""
-			Update owner, creation, modified_by, modified, docstatus
-		"""
 		from webnotes.utils import now
 		ts = now()
 		user = webnotes.__dict__.get('session', {}).get('user') or 'Administrator'
@@ -172,9 +169,6 @@ class ModelWrapper:
 				d.docstatus = self.to_docstatus
 
 	def prepare_for_save(self, check_links):
-		"""
-			Set owner, modified etc before saving
-		"""
 		self.check_if_latest()
 		self.check_permission()
 		if check_links:
@@ -199,9 +193,6 @@ class ModelWrapper:
 			idx_map[d.parentfield] = d.idx
 
 	def run_method(self, method):
-		"""
-		Run a method and custom_method
-		"""
 		self.make_obj()
 		if hasattr(self.obj, method):
 			getattr(self.obj, method)()
@@ -213,9 +204,6 @@ class ModelWrapper:
 		self.set_doclist(self.obj.doclist)
 
 	def save_main(self):
-		"""
-			Save the main doc
-		"""
 		try:
 			self.doc.save(cint(self.doc.fields.get('__islocal')))
 		except NameError, e:
@@ -228,9 +216,6 @@ class ModelWrapper:
 			raise e
 
 	def save_children(self):
-		"""
-			Save Children, with the new parent name
-		"""
 		child_map = {}
 		for d in self.children:
 			if d.fields.get("parent") or d.fields.get("parentfield"):
@@ -289,9 +274,6 @@ class ModelWrapper:
 			webnotes.msgprint("No Permission to Cancel", raise_exception=True)
 
 	def update_after_submit(self):
-		"""
-			Update after submit - some values changed after submit
-		"""
 		if self.doc.docstatus != 1:
 			webnotes.msgprint("Only to called after submit", raise_exception=1)
 		self.to_docstatus = 1
