@@ -150,7 +150,7 @@ _r.DataTable.prototype.make_toolbar = function(parent) {
 	.appendTo($td(t,0,5)).get(0);
   $(s).val('50');
 
-  s.inp.onchange = function() { 
+  s.onchange = function() { 
   	me.page_len = flt(this.value);
   }
   this.page_len_sel = s;
