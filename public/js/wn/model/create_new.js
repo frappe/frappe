@@ -59,6 +59,8 @@ $.extend(wn.model, {
 		
 		if(def_vals[df["default"]])
 			return def_vals[df["default"]];
+		else if(df.fieldtype=="Time" && !df["default"] && df.reqd)
+			return dateutil.get_cur_time()
 		else if(df["default"])
 			return df["default"];
 		else if(user_defaults[df.fieldname])

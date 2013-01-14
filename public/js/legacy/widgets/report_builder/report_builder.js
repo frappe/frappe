@@ -406,7 +406,7 @@ _r.ReportBuilder.prototype.set_criteria_sel = function(criteria_name) {
 		sc.sort_order=='ASC' ? this.dt.set_asc() : this.dt.set_desc();
 	}
 	if(sc && sc.page_len) {
-		this.dt.page_len_sel.inp.value = sc.page_len;
+		this.dt.page_len_sel.value = sc.page_len;
 	}
 	
 	this.current_loaded = criteria_name;
@@ -635,7 +635,7 @@ _r.ReportBuilder.prototype.reset_report = function() {
 	this.dt.clear_all();
 	
 	this.dt.sort_sel.value = 'ID';
-	this.dt.page_len_sel.inp.value = '50';
+	this.dt.page_len_sel.value = '50';
 	this.dt.set_no_limit(0);
 	this.dt.set_desc();
 	

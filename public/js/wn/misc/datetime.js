@@ -1,5 +1,14 @@
 wn.provide('wn.datetime');
 
+var double_digit = function(d) {
+	if(cint(d)<10) {
+		return "0" + cint(d);
+	} else {
+		return d + "";
+	}
+}
+
+
 $.extend(wn.datetime, {
 	validate: function(v) {
 		if(!v) return;
@@ -25,12 +34,12 @@ $.extend(wn.datetime, {
 	},
 	now_datetime: function() {
 		var d = new Date();
-		return [d.getFullYear(), d.getMonth()+1, d.getDate()].join("-") + " " 
-			+ [d.getHours(), d.getMinutes(), d.getSeconds()].join(":")
+		return [d.getFullYear(), double_digit(d.getMonth()+1), double_digit(d.getDate())].join("-") + " " 
+			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":")
 	},
 	now_time: function() {
 		var d = new Date();
-		return [d.getHours(), d.getMinutes(), d.getSeconds()].join(":")
-	}
+		return [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":")
+	},
 	
 });

@@ -103,10 +103,10 @@ _r.DataTable.prototype.add_icon = function(parent, imgsrc) {
 _r.DataTable.prototype.set_no_limit = function(v) {
 	if(v) {
 		this.no_limit = 1;
-		$dh(this.page_len_sel.wrapper);
+		$dh(this.page_len_sel);
 	} else {
 		this.no_limit = 0;
-		$ds(this.page_len_sel.wrapper);		
+		$ds(this.page_len_sel);		
 	}
 }
 
@@ -146,8 +146,9 @@ _r.DataTable.prototype.make_toolbar = function(parent) {
   // page len
 
   $td(t,0,4).innerHTML = 'Per Page:'; $y($td(t,0,4),{textAlign:'right',paddingRight:'4px'});  
-  var s = new SelectWidget($td(t,0,5), ['50','100','500','1000'], '70px');
-  s.inp.value = '50';
+  var s = $("<select>").add_options(['50','100','500','1000']).css({width: '70px'})
+	.appendTo($td(t,0,5)).get(0);
+  $(s).val('50');
 
   s.inp.onchange = function() { 
   	me.page_len = flt(this.value);

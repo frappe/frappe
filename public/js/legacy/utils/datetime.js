@@ -215,12 +215,7 @@ wn.datetime = {
 	},
 
 	get_cur_time: function() {
-		// returns current time in hh:mm string
-		var d = new Date();
-		var hh = d.getHours() + ''
-		var mm = cint(d.getMinutes()/5)*5 + ''
-		
-		return (hh.length==1 ? '0'+hh : hh) + ':' + (mm.length==1 ? '0'+mm : mm);
+		return wn.datetime.now_time();
 	}
 }
 
