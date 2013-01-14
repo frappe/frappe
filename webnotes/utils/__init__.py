@@ -760,3 +760,8 @@ def comma_sep(some_list, sep):
 			return ", ".join(some_list[:-1]) + sep + some_list[-1]
 	else:
 		return some_list
+		
+def get_base_path():
+	import conf
+	import os
+	return os.path.dirname(os.path.abspath(conf.__file__))
