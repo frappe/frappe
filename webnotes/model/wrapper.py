@@ -263,7 +263,7 @@ class ModelWrapper:
 		return self.save()
 	
 	def save(self, check_links=1):
-		if webnotes.has_permission(self.doc.doctype, "write"):
+		if webnotes.has_permission(self.doc.doctype, "write") or self.ignore_permissions:
 			self.prepare_for_save(check_links)
 			self.run_method('validate')
 			self.save_main()
@@ -275,7 +275,7 @@ class ModelWrapper:
 		return self
 
 	def submit(self):
-		if webnotes.has_permission(self.doc.doctype, "submit"):
+		if webnotes.has_permission(self.doc.doctype, "submit") or self.ignore_permissions:
 			if self.doc.docstatus != 0:
 				webnotes.msgprint("Only draft can be submitted", raise_exception=1)
 			self.to_docstatus = 1
@@ -287,7 +287,7 @@ class ModelWrapper:
 		return self
 
 	def cancel(self):
-		if webnotes.has_permission(self.doc.doctype, "submit"):
+		if webnotes.has_permission(self.doc.doctype, "submit") or self.ignore_permissions:
 			if self.doc.docstatus != 1:
 				webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
 			self.to_docstatus = 2
