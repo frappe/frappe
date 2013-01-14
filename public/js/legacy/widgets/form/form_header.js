@@ -125,7 +125,7 @@ _f.FrmHeader = Class.extend({
 		// clear
 		
 		if(cur_frm.meta.hide_toolbar) {
-			$('.appframe-toolbar').toggle(false);
+			this.appframe.$w.find('.appframe-toolbar').toggle(false);
 			cur_frm.save_disabled = true;
 			return;
 		}

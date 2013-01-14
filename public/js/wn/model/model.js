@@ -109,6 +109,10 @@ $.extend(wn.model, {
 		return wn.boot.profile.can_write.indexOf(doctype)!=-1;
 	},
 
+	can_get_report: function(doctype) {
+		return wn.boot.profile.can_get_report.indexOf(doctype)!=-1;
+	},
+	
 	can_delete: function(doctype) {
 		if(!doctype) return false;
 		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;

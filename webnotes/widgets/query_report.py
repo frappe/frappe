@@ -34,8 +34,8 @@ def run():
 		webnotes.msgprint("Must specify DocType for permissions.", 
 			raise_exception=1)
 	
-	if not webnotes.has_permission(doctype, "read"):
-		webnotes.msgprint("Must have read permission to access this report.", 
+	if not webnotes.has_permission(doctype, "report"):
+		webnotes.msgprint("Must have report permission to access this report.", 
 			raise_exception=1)
 	
 	if not query.lower().startswith("select"):

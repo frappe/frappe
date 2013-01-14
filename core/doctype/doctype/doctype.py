@@ -219,6 +219,12 @@ def validate_permissions_for_doctype(doctype, for_remove=False):
 		"doctype":"DocPerm"}), for_remove)
 
 def validate_permissions(permissions, for_remove=False):
+	doctype = permissions and permissions[0].parent
+	issingle = issubmittable = False
+	if doctype:
+		issingle = webnotes.conn.get_value("DocType", doctype, "issingle")
+		issubmittable = webnotes.conn.get_value("DocType", doctype, "is_submittable")
+			
 	def get_txt(d):
 		return "For %s (level %s) in %s:" % (d.role, d.permlevel, d.parent)
 		
@@ -259,12 +265,22 @@ def validate_permissions(permissions, for_remove=False):
 			webnotes.msgprint(get_txt(d) + " Cannot set Amend if Cancel is not set.",
 				raise_exception=True)
 	
+	def remove_report_if_single(d):
+		if d.report and issingle:
+			webnotes.msgprint(doctype + " is a single DocType, permission of type Report is meaningless.")
+	
+	def check_if_submittable(d):
+		if d.submit and not issubmittable:
+			webnotes.msgprint(doctype + " is not Submittable, cannot assign submit rights.",
+				raise_exception=True)
+	
 	for d in permissions:
 		if not d.permlevel: 
 			d.permlevel=0
 		check_atleast_one_set(d)
 		if not for_remove:
 			check_double(d)
+			check_permission_dependency(d)
+			check_if_submittable(d)
 		check_level_zero_is_set(d)
-		check_permission_dependency(d)
-		
+		remove_report_if_single(d)

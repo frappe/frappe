@@ -54,16 +54,19 @@ wn.views.QueryReport = Class.extend({
 			me.refresh();
 		}).addClass("btn-success");
 		
-		if(wn.user.is_report_manager() && !this.query) {
-			// Edit
-			this.appframe.add_button(wn._("Edit"), function() {
-				me.wrapper.find(".query-edit").slideToggle();
-			});
-			// Edit
-			this.appframe.add_button(wn._("Export"), function() {
-				me.export();
-			});
-		}		
+		// Edit
+		var edit_btn = this.appframe.add_button(wn._("Edit"), function() {
+			me.wrapper.find(".query-edit").slideToggle();
+		});
+		if(!in_list(user_roles, "System Manager")) {
+			edit_btn.attr("disabled", "disabled")
+				.attr("title", wn._("Only System Manager can create / edit reports"));
+		}
+
+		var export_btn = this.appframe.add_button(wn._("Export"), function() {
+			me.export();
+		});
+		wn.utils.disable_export_btn(export_btn);
 	},
 	make_query_form: function() {
 		this.query_form = new wn.ui.FieldGroup({
@@ -126,9 +129,9 @@ wn.views.QueryReport = Class.extend({
 		this.doc = null;
 		if(route[1]) {
 			this.wrapper.find(".no-report-area").toggle(false);
-			wn.model.with_doc("Report", route[1], function(doc) {
+			wn.model.with_doc("Report", route[1], function(docname) {
 				me.doc = locals["Report"] && locals["Report"][route[1]];
-				if(!me.doc || !me.doc.is_standard=="No") {
+				if(!me.doc) {
 					msgprint(wn._("Not allowed"));
 					return;
 				}

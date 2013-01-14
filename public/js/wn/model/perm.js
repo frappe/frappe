@@ -87,18 +87,34 @@ $.extend(wn.perm, {
 		return perm;
 	},
 	
+	get_match_rule: function(doctype) {
+		var match_rules = {};
+		$.each(wn.model.get("DocPerm", {parent:doctype}), function(i, p) {
+			if(p.permlevel==0 && p.match && in_list(user_roles, p.role)) {
+				match_keys = wn.perm.get_match_keys(p.match);
+				match_rules[match_keys[0]] = user_defaults[match_keys[1]];
+			}
+		});
+		return match_rules;
+	},
+
+	get_match_keys: function(match) {
+		if(match.indexOf(":")!=-1) {
+			key_list = match.split(":");
+		} else {
+			key_list = [match, match];
+		}
+		return key_list;
+	},
+	
 	check_match: function(p, doctype, name) {
 		if(!name) return true;
 		var out =false;
 		if(p.match) {
-			if(p.match.indexOf(":")!=-1) {
-				key_list = p.match.split(":");
-				var document_key = key_list[0];
-				var default_key = key_list[1];
-			} else {
-				var document_key = p.match;
-				var default_key = p.match;
-			}
+			var key_list = wn.perm.get_match_keys(p.match);
+			var document_key = key_list[0];
+			var default_key = key_list[1];
+
 			if(user_defaults[default_key]) {
 				for(var i=0;i<user_defaults[default_key].length;i++) {
 					 // user must have match field in defaults

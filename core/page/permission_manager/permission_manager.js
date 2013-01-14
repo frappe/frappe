@@ -9,10 +9,10 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	<tr><td>\
 	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Setting Permissions")+":</h4>\
 	<ol>\
-	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, write, create, submit, cancel and amend rights.")+"</li>\
+	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.")+"</li>\
 	<li>"+wn._("Permissions translate to Users based on what Role they are assigned")+".</li>\
 	<li>"+wn._("To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.")+"</li>\
-	<li>"+wn._("The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles to set finer permissions")+".</li>\
+	<li>"+wn._("The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions")+".</li>\
 	<li>"+wn._("Permissions are automatically translated to Standard Reports and Searches")+".</li>\
 	<li>"+wn._("As a best practice, do not assign the same set of permission rule to different Roles instead set multiple Roles to the User")+".</li>\
 	</ol>\
@@ -183,8 +183,8 @@ wn.PermissionEngine = Class.extend({
 		</table>").appendTo(this.body);
 		
 		$.each([["Document Type", 150], ["Role", 100], ["Level",50], 
-			["Read", 50], ["Write", 50], ["Create", 50], 
-			["Submit", 50], ["Cancel", 50], ["Amend", 50], 
+			["Read", 50], ["Edit", 50], ["Make New", 50], 
+			["Submit", 50], ["Cancel", 50], ["Amend", 50], ["Report", 50], 
 			["Condition", 150], ["", 50]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -226,6 +226,7 @@ wn.PermissionEngine = Class.extend({
 			add_cell(row, d, "submit", true);
 			add_cell(row, d, "cancel", true);
 			add_cell(row, d, "amend", true);
+			add_cell(row, d, "report", true);
 						
 			// buttons
 			me.add_match_button(row, d);
