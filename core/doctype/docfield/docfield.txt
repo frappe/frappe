@@ -2,22 +2,22 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2013-01-10 16:34:01", 
+  "creation": "2013-01-15 12:23:02", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-14 12:23:07"
+  "modified": "2013-01-15 12:23:21"
  }, 
  {
   "istable": 1, 
   "allow_print": 0, 
   "module": "Core", 
-  "autoname": "FL.#####", 
+  "doctype": "DocType", 
   "in_dialog": 1, 
+  "issingle": 0, 
   "read_only": 0, 
   "allow_email": 0, 
   "hide_heading": 0, 
-  "issingle": 0, 
+  "autoname": "FL.#####", 
   "name": "__common__", 
-  "doctype": "DocType", 
   "hide_toolbar": 0, 
   "allow_copy": 0
  }, 
@@ -56,7 +56,7 @@
   "search_index": 1, 
   "reqd": 1, 
   "hidden": 0, 
-  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nPassword\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime"
+  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nLong Text\nPassword\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime"
  }, 
  {
   "oldfieldtype": "Data", 
