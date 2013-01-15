@@ -21,9 +21,7 @@
 # 
 
 from __future__ import unicode_literals
-"""
-	This module contains classes for managing incoming emails
-"""
+from webnotes.utils import extract_email_id
 
 class IncomingMail:
 	"""
@@ -41,18 +39,21 @@ class IncomingMail:
 		self.html_content = ''
 		self.attachments = []
 		self.parse()
+		self.set_content_and_type()
+		self.from_email = extract_email_id(self.mail["From"])
 
 	def parse(self):
-		"""
-			Extracts text, html and attachments from the mail
-		"""
 		for part in self.mail.walk():
 			self.process_part(part)
 
+	def set_content_and_type(self):
+		self.content, self.content_type = '[Blank Email]', 'text/plain'
+		if self.text_content:
+			self.content, self.content_type = self.text_content, 'text/plain'
+		else:
+			self.content, self.content_type = self.html_content, 'text/html'
+		
 	def process_part(self, part):
-		"""
-			Process a single part of an email
-		"""
 		content_type = part.get_content_type()
 		charset = part.get_content_charset()
 		if not charset: charset = self.get_charset(part)
@@ -67,15 +68,9 @@ class IncomingMail:
 			self.get_attachment(part, charset)
 
 	def get_text_content(self):
-		"""
-			Returns the text parts of the email. If None, then HTML parts
-		"""
 		return self.text_content or self.html_content
 
 	def get_charset(self, part):
-		"""
-			Guesses character set
-		"""
 		charset = part.get_content_charset()
 		if not charset:
 			import chardet
@@ -84,33 +79,27 @@ class IncomingMail:
 		return charset
 			
 	def get_payload(self, part, charset):
-		"""
-			get utf-8 encoded part content
-		"""
 		try:
 			return unicode(part.get_payload(decode=True),str(charset),"ignore")
 		except LookupError, e:
 			return part.get_payload()		
 
 	def get_attachment(self, part, charset):
-		"""
-			Extracts an attachment
-		"""
 		self.attachments.append({
 			'content-type': part.get_content_type(),
 			'filename': part.get_filename(),
 			'content': part.get_payload(decode=True),
 		})
-				
+	
+	def save_attachments_in_doc(self, doc):
+		from webnotes.utils.file_manager import save_file, add_file_list
+		for attachment in self.attachments:
+			fid = save_file(attachment['filename'], attachment['content'])
+			status = add_file_list(doc.doctype, doc.name, fid, fid)
 
 	def get_thread_id(self):
-		"""
-			Extracts thread id of the message between first [] 
-			from the subject
-		"""
 		import re
 		subject = self.mail.get('Subject', '')
-
 		return re.findall('(?<=\[)[\w/-]+', subject)
 
 class POP3Mailbox:
