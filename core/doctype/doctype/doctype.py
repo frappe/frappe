@@ -226,7 +226,7 @@ def validate_permissions(permissions, for_remove=False):
 		issubmittable = webnotes.conn.get_value("DocType", doctype, "is_submittable")
 			
 	def get_txt(d):
-		return "For %s (level %s) in %s:" % (d.role, d.permlevel, d.parent)
+		return "For %s (level %s) in %s row %s:" % (d.role, d.permlevel, d.parent, d.idx)
 		
 	def check_atleast_one_set(d):
 		if not d.read and not d.write and not d.submit and not d.cancel and not d.create:
@@ -245,7 +245,7 @@ def validate_permissions(permissions, for_remove=False):
 				raise_exception=True)
 	
 	def check_level_zero_is_set(d):
-		if d.permlevel > 0 and d.role != 'All':
+		if cint(d.permlevel) > 0 and d.role != 'All':
 			if not permissions.get({"role": d.role, "permlevel": 0}):
 				webnotes.msgprint(get_txt(d) + " Higher level permissions are meaningless if level 0 permission is not set.",
 					raise_exception=True)

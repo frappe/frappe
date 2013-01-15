@@ -1,0 +1,58 @@
+[
+ {
+  "owner": "Administrator", 
+  "docstatus": 0, 
+  "creation": "2013-01-15 12:42:11", 
+  "modified_by": "Administrator", 
+  "modified": "2013-01-15 12:42:31"
+ }, 
+ {
+  "autoname": "SCHLOG.#####", 
+  "description": "Log of Scheduler Errors", 
+  "doctype": "DocType", 
+  "module": "Core", 
+  "document_type": "System", 
+  "name": "__common__"
+ }, 
+ {
+  "name": "__common__", 
+  "parent": "Scheduler Log", 
+  "doctype": "DocField", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "parentfield": "fields"
+ }, 
+ {
+  "parent": "Scheduler Log", 
+  "read": 1, 
+  "cancel": 1, 
+  "name": "__common__", 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "submit": 0, 
+  "write": 1, 
+  "parenttype": "DocType", 
+  "role": "System Manager", 
+  "permlevel": 0, 
+  "parentfield": "permissions"
+ }, 
+ {
+  "name": "Scheduler Log", 
+  "doctype": "DocType"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Method", 
+  "fieldname": "method", 
+  "fieldtype": "Data"
+ }, 
+ {
+  "doctype": "DocField", 
+  "label": "Error", 
+  "fieldname": "error", 
+  "fieldtype": "Text"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]
