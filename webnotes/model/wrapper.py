@@ -48,6 +48,8 @@ class ModelWrapper:
 			self.load_from_db(dt, dn)
 		elif isinstance(dt, list):
 			self.set_doclist(dt)
+		elif isinstance(dt, dict):
+			self.set_doclist([dt])
 
 	def load_from_db(self, dt=None, dn=None, prefix='tab'):
 		"""

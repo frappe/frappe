@@ -100,30 +100,27 @@ class IncomingMail:
 	def get_thread_id(self):
 		import re
 		subject = self.mail.get('Subject', '')
-		return re.findall('(?<=\[)[\w/-]+', subject)
+		l= re.findall('(?<=\[)[\w/-]+', subject)
+		return l and l[0] or None
 
 class POP3Mailbox:
-	"""
-		A simple pop3 mailbox, abstracts connection and mail extraction
-		To use, subclass it and override method process_message(from, subject, text, thread_id)
-	"""
+	def __init__(self):
+		self.setup()
+		self.get_messages()
 	
-	def __init__(self, settings_doc):
-		"""
-			settings_doc must contain
-			use_ssl, host, username, password
-			(by name or object)
-		"""
-		if isinstance(settings_doc, basestring):
-			from webnotes.model.doc import Document
-			self.settings = Document(settings_doc, settings_doc)
-		else:
-			self.settings = settings_doc
+	def setup(self):
+		# overrride
+		self.settings = webnotes._dict()
 
+	def check_mails(self):
+		# overrride
+		return True
+	
+	def process_message(self, mail):
+		# overrride
+		pass
+		
 	def connect(self):
-		"""
-			Connects to the mailbox
-		"""
 		import poplib
 		
 		if self.settings.use_ssl:
@@ -134,10 +131,6 @@ class POP3Mailbox:
 		self.pop.pass_(self.settings.password)
 	
 	def get_messages(self):
-		"""
-			Loads messages from the mailbox and calls
-			process_message for each message
-		"""
 		import webnotes
 		
 		if not self.check_mails():
@@ -179,15 +172,3 @@ class POP3Mailbox:
 		self.pop.quit()
 		webnotes.conn.begin()
 		
-	def check_mails(self):
-		"""
-			To be overridden
-			If mailbox is to be scanned, returns true
-		"""
-		return True
-	
-	def process_message(self, mail):
-		"""
-			To be overriden
-		"""
-		pass
