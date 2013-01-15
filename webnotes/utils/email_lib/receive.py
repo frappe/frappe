@@ -32,6 +32,7 @@ class IncomingMail:
 			Parse the incoming mail content
 		"""
 		import email
+		from email.utils import parseaddr
 		
 		self.mail = email.message_from_string(content)
 		
@@ -41,6 +42,7 @@ class IncomingMail:
 		self.parse()
 		self.set_content_and_type()
 		self.from_email = extract_email_id(self.mail["From"])
+		self.from_real_name = parseaddr(self.mail["From"])[0]
 
 	def parse(self):
 		for part in self.mail.walk():
