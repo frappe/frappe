@@ -44,9 +44,13 @@ class DocType:
 		for d in self.doclist:
 			if d.parent and d.fieldtype:
 				if (not d.fieldname):
-					d.fieldname = d.label.strip().lower().replace(' ','_')
-					if d.fieldname in restricted:
-						d.fieldname = d.fieldname + '1'
+					if d.label:
+						d.fieldname = d.label.strip().lower().replace(' ','_')
+						if d.fieldname in restricted:
+							d.fieldname = d.fieldname + '1'
+					else:
+						d.fieldname = d.fieldtype.lower().replace(" ","_") + "_" + str(d.idx)
+						
 	
 	def set_version(self):
 		self.doc.version = cint(self.doc.version) + 1

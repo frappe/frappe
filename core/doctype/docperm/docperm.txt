@@ -2,21 +2,21 @@
  {
   "owner": "Administrator", 
   "docstatus": 0, 
-  "creation": "2012-11-30 18:13:33", 
+  "creation": "2013-01-11 15:02:24", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-10 15:58:54"
+  "modified": "2013-01-15 16:14:20"
  }, 
  {
   "istable": 1, 
   "allow_print": 0, 
   "module": "Core", 
-  "autoname": "PERM.#####", 
+  "doctype": "DocType", 
+  "issingle": 0, 
   "read_only": 0, 
   "allow_email": 0, 
   "hide_heading": 0, 
-  "issingle": 0, 
+  "autoname": "PERM.#####", 
   "name": "__common__", 
-  "doctype": "DocType", 
   "hide_toolbar": 0, 
   "allow_copy": 0
  }, 
@@ -130,12 +130,14 @@
   "doctype": "DocField", 
   "label": "Amend", 
   "oldfieldname": "amend", 
+  "width": "32px", 
   "fieldname": "amend", 
   "fieldtype": "Check"
  }, 
  {
   "doctype": "DocField", 
   "label": "Report", 
+  "width": "32px", 
   "fieldname": "report", 
   "fieldtype": "Check"
  }, 
