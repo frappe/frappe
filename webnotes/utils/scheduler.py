@@ -101,8 +101,10 @@ def log(method):
 
 	import webnotes.utils
 	webnotes.conn.begin()
-	webnotes.conn.sql("""insert into __SchedulerLog (`timestamp`, method, error) 
-		values (%s, %s, %s)""", (webnotes.utils.now_datetime(), method, traceback))
+	d = webnotes.doc("Scheduler Log")
+	d.method = method
+	d.error = traceback
+	d.save()
 	webnotes.conn.commit()
 
 	return traceback

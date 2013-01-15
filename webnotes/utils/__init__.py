@@ -59,19 +59,7 @@ def get_fullname(profile):
 	
 	return profile
 
-# TODO: deprecate it
-def decode_email_header(s):
-	import email.header
-	
-	# replace double quotes with blank
-	# double quotes in header prohibit decoding of header
-	decoded_header_tuple = email.header.decode_header(s.replace('"', ''))
-	
-	decoded_list = map(lambda h: unicode(h[0], encoding=h[1] or 'utf-8'), decoded_header_tuple)
-	
-	return " ".join(decoded_list)
-
-def get_email_id(user):
+def get_formatted_email(user):
 	"""get email id of user formatted as: John Doe <johndoe@example.com>"""
 	if user == "Administrator":
 		return user
@@ -81,14 +69,15 @@ def get_email_id(user):
 	
 def extract_email_id(email):
 	"""fetch only the email part of the email id"""
-	import re
-	sender_email = re.findall("<([^>]*)>", email)
-	return sender_email and sender_email[0] or ""
+	from email.utils import parseaddr
+	if ',' in email and email.count("@")==1:
+		email = email.split(",")[-1]
+	fullname, email_id = parseaddr(email)
+	return email_id
 	
 def validate_email_add(email_str):
 	"""Validates the email string"""
-	from email.utils import parseaddr
-	real_name, email = parseaddr(email_str)
+	email = extract_email_id(email_str)
 	import re
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 

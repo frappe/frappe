@@ -75,7 +75,7 @@ wn.views.CommunicationList = Class.extend({
 	make_line: function(doc) {
 		var me = this;
 		var comm = $(repl('<tr><td>\
-				<a href="#Form/Communication/%(name)s" style="font-size: 90%; float: right;">'
+				<a href="#Form/Communication/%(name)s" class="show-details" style="font-size: 90%; float: right;">'
 					+wn._('Show Details')+'</a>\
 				<p class="comm-header" title="'+wn._('Click to Expand / Collapse')+'">\
 					<b>%(_sender)s on %(when)s</b></p>\
@@ -83,6 +83,10 @@ wn.views.CommunicationList = Class.extend({
 					padding: 10px; overflow-x: auto; display: none;"></div>\
 			</td></tr>', doc))
 			.appendTo(this.body);
+		
+		if(!doc.name) {
+			comm.find(".show-details").toggle(false);
+		}
 			
 		comm.find(".comm-header")
 			.css({"cursor":"pointer"})
