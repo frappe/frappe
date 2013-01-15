@@ -1164,9 +1164,15 @@ TimeField.prototype.make_input = function() {
 			timeFormat: 'hh:mm:ss',
 		}).get(0);
 	
-	this.set_input = function(v) {
+	this.input.set_input = function(v) {
 		$(me.input).val(v);
-	}
+	};
+	
+	this.input.onchange = function() {
+		if(!this.not_in_form)
+			me.set(me.input.value);
+		me.run_trigger();
+	};
 }
 
 function DateTimeField() { } DateTimeField.prototype = new DateField();
