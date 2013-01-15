@@ -33,7 +33,7 @@ $.extend(wn.model, {
 		{fieldname:'owner', fieldtype:'Data', label:'Created By'},
 		{fieldname:'creation', fieldtype:'Date', label:'Created On'},
 		{fieldname:'modified', fieldtype:'Date', label:'Last Updated On'},
-		{fieldname:'modified_by', fieldtype:'Date', label:'Last Updated By'},
+		{fieldname:'modified_by', fieldtype:'Data', label:'Last Updated By'},
 		{fieldname:'_user_tags', fieldtype:'Data', label:'Tags'},
 		{fieldname:'docstatus', fieldtype:'Int', label:'Document Status'},
 	],
