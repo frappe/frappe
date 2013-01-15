@@ -329,6 +329,8 @@ class Database:
 	def get_defaults_as_list(self, key, parent="Control Panel"):
 		ret = [r[0] for r in self.sql("""select defvalue from \
 			tabDefaultValue where defkey=%s and parent=%s""", (key, parent))]
+		if key=="owner" and webnotes.session:
+			ret.append(webnotes.session.user)
 		return ret
 	
 	def get_defaults(self, key=None, parent="Control Panel"):
