@@ -4,7 +4,7 @@
   "docstatus": 0, 
   "creation": "2013-01-15 12:42:11", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-15 12:42:31"
+  "modified": "2013-01-15 12:49:23"
  }, 
  {
   "autoname": "SCHLOG.#####", 
@@ -33,6 +33,7 @@
   "write": 1, 
   "parenttype": "DocType", 
   "role": "System Manager", 
+  "report": 1, 
   "permlevel": 0, 
   "parentfield": "permissions"
  }, 
