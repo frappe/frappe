@@ -1281,6 +1281,7 @@ function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Fa
 		case 'currency':var f = new CurrencyField(); break;
 		case 'read only':var f = new ReadOnlyField(); break;
 		case 'link':var f = new LinkField(); break;
+		case 'long text': var f = new TextField(); break;
 		case 'date':var f = new DateField(); break;
 		case 'datetime':var f = new DateTimeField(); break;
 		case 'time':var f = new TimeField(); break;
