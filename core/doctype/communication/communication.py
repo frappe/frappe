@@ -75,6 +75,9 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		if hasattr(sent_via, "get_content"):
 			d.content = sent_via.get_content(d)
 
+	if not d.sender:
+		d.sender = webnotes.session.user
+
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
 		msg=d.content)
@@ -102,21 +105,12 @@ def set_lead_and_contact(d):
 	email_addr = email.utils.parseaddr(d.sender)
 	# set contact
 	if not d.contact:
-		d.contact = webnotes.conn.get_value("Contact", {"email_id": email_addr[1]}, "name") or None
+		d.contact = webnotes.conn.get_value("Contact", {"email_id": email_addr[1]}, 
+			"name") or None
 
 	if not d.lead:
-		d.lead = webnotes.conn.get_value("Lead", {"email_id": email_addr[1]}, "name") or None
-
-	if not (d.lead or d.contact):
-		d.lead = make_lead(d, email_addr[0], email_addr[1])
-
-def make_lead(d, real_name, email_id):
-	lead = webnotes.doc("Lead")
-	lead.lead_name = real_name or email_id
-	lead.email_id = email_id
-	lead.source = "Email"
-	lead.save(1)
-	return lead.name
+		d.lead = webnotes.conn.get_value("Lead", {"email_id": email_addr[1]}, 
+			"name") or None
 
 class DocType():
 	def __init__(self, doc, doclist=[]):
