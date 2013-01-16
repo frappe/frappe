@@ -54,9 +54,6 @@ class CustomDocType(DocType):
 
 
 def execute(code, doc=None, doclist=[]):
-	"""
-	Execute the code, if doc is given, then return the instance of the `DocType` class created
-	"""
 	# functions used in server script of DocTypes
 	# --------------------------------------------------	
 	from webnotes.utils import add_days, add_months, add_years, cint, cstr, date_diff, default_fields, flt, fmt_money, formatdate, getTraceback, get_defaults, get_first_day, get_last_day, getdate, has_common, now, nowdate, sendmail, set_default, user_format, validate_email_add
@@ -73,7 +70,7 @@ def execute(code, doc=None, doclist=[]):
 	
 	if webnotes.user:
 		get_roles = webnotes.user.get_roles
-	locals().update({'get_obj':get_obj, 'get_server_obj':get_server_obj, 'run_server_obj':run_server_obj, 'updatedb':updatedb, 'check_syntax':check_syntax})
+	locals().update({'get_obj':get_obj, 'get_server_obj':get_server_obj, 'run_server_obj':run_server_obj})
 
 	exec code in locals()
 	
@@ -88,9 +85,6 @@ def execute(code, doc=None, doclist=[]):
 		return out
 
 def get_custom_script(doctype, script_type):
-	"""
-		Returns custom script if set in doctype `Custom Script`
-	"""
 	import webnotes
 	custom_script = webnotes.conn.sql("""select script from `tabCustom Script` 
 		where dt=%s and script_type=%s""", (doctype, script_type))
@@ -99,9 +93,6 @@ def get_custom_script(doctype, script_type):
 		return custom_script[0][0]
 		
 def get_server_obj(doc, doclist = [], basedoctype = ''):
-	"""
-	Returns the instantiated `DocType` object. Will also manage caching & compiling
-	"""
 	# for test
 	import webnotes
 	from webnotes.modules import scrub
@@ -141,10 +132,6 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 		return DocType(doc, doclist)
 	
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
-	"""
-	   Returns the instantiated `DocType` object. Here you can pass the DocType and name (ID) to get the object.
-	   If with_children is true, then all child records will be laoded and added in the doclist.
-	"""	
 	if dt:
 		import webnotes.model.doc
 		
