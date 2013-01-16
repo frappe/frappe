@@ -117,10 +117,9 @@ def build_for_framework(path, mtype, with_doctype_names = False):
 				
 	# append module & doctype names
 	if with_doctype_names:
-		messages += [m[0] for m in webnotes.conn.sql("""select name from `tabModule Def`""")]
-		messages += [m[0] for m in webnotes.conn.sql("""select name from `tabDocType`""")]
-		messages += [m[0] for m in webnotes.conn.sql("""select name from `tabWorkflow State`""")]
-		messages += [m[0] for m in webnotes.conn.sql("""select name from `tabWorkflow Action`""")]
+		for m in webnotes.conn.sql("""select name, module from `tabDocType`"""):
+			messages.append(m[0])
+			messages.append(m[1])
 	
 	if messages:
 		write_messages_file(path, messages, mtype)

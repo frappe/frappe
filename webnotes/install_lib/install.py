@@ -24,20 +24,22 @@
 # lib/wnf.py --install [rootpassword] [dbname] [source]
 
 from __future__ import unicode_literals
-import os,sys
+
+import os, sys
+import webnotes, conf
+import webnotes.db
+import getpass
+from webnotes.model.db_schema import DbManager
+from webnotes.model.sync import sync_for
 
 class Installer:
 	def __init__(self, root_login, root_password=None):
 
-		import webnotes
-		import webnotes.db
 	
 		if root_login and not root_password:
-			import getpass
-			root_password = getpass.getpass("MySQL root password: ")
+			root_password = 'test123' #getpass.getpass("MySQL root password: ")
 			
 		self.root_password = root_password
-		from webnotes.model.db_schema import DbManager
 		
 		self.conn = webnotes.db.Database(user=root_login, password=root_password)
 		webnotes.conn=self.conn
@@ -47,9 +49,7 @@ class Installer:
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
-		"""
-		import conf
-		
+		"""		
 		# delete user (if exists)
 		self.dbman.delete_user(target)
 
@@ -86,56 +86,59 @@ class Installer:
 
 		# fresh app
 		if 'Framework.sql' in source_path:
-			from webnotes.model.sync import sync_install
-			print "Building tables from all module..."
-			sync_install()
+			print "Installing app..."
+			self.install_app()
 
-		# framework cleanups
-		self.framework_cleanups(target, 
-			hasattr(conf, 'admin_password') and conf.admin_password or password)
+		self.framework_cleanups(hasattr(conf, 'admin_password') \
+			and conf.admin_password or password)
 		if verbose: print "Ran framework startups on %s" % target
 		
-		return target	
+		return target
+		
+	def install_app(self):
+		try:
+			from startup import install
+		except ImportError, e:
+			print "No app install found"
 
-	def framework_cleanups(self, target, password):
-		"""create framework internal tables"""
-		import webnotes
-		self.create_sessions_table()
-		self.create_scheduler_log()
-		self.create_auth_table()
+		sync_for("lib", force=True, sync_everything=True)
+		self.import_core_docs()
+		install.pre_import()
+		sync_for("app", force=True, sync_everything=True)
+		print "Completing App Import..."
+		install.post_import()
 
+	def framework_cleanups(self, password):
 		# set the basic passwords
 		webnotes.conn.begin()
 		webnotes.conn.sql("""update __Auth set password = password(%s) 
 			where user='Administrator'""", (password,))
 		webnotes.conn.commit()
+		
+	def import_core_docs(self):
+		install_docs = [
+			{'doctype':'Module Def', 'name': 'Core', 'module_name':'Core'},
 
-	def create_sessions_table(self):
-		"""create sessions table"""
-		import webnotes
-		self.dbman.drop_table('tabSessions')
-		webnotes.conn.sql("""CREATE TABLE `tabSessions` (
-		  `user` varchar(40) DEFAULT NULL,
-		  `sid` varchar(120) DEFAULT NULL,
-		  `sessiondata` longtext,
-		  `ipaddress` varchar(16) DEFAULT NULL,
-		  `lastupdate` datetime DEFAULT NULL,
-		  `status` varchar(20) DEFAULT NULL,
-		  KEY `sid` (`sid`)
-		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
-	
-	def create_scheduler_log(self):
-		import webnotes
-		self.dbman.drop_table('__SchedulerLog')
-		webnotes.conn.sql("""create table __SchedulerLog (
-			`timestamp` timestamp,
-			method varchar(200),
-			error text
-		) engine=MyISAM""")
-			
-	def create_auth_table(self):
-		import webnotes
-		webnotes.conn.sql("""create table if not exists __Auth (
-			`user` VARCHAR(180) NOT NULL PRIMARY KEY,
-			`password` VARCHAR(180) NOT NULL
-			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
+			# roles
+			{'doctype':'Role', 'role_name': 'Administrator', 'name': 'Administrator'},
+			{'doctype':'Role', 'role_name': 'All', 'name': 'All'},
+			{'doctype':'Role', 'role_name': 'System Manager', 'name': 'System Manager'},
+			{'doctype':'Role', 'role_name': 'Report Manager', 'name': 'Report Manager'},
+			{'doctype':'Role', 'role_name': 'Guest', 'name': 'Guest'},
+
+			# profiles
+			{'doctype':'Profile', 'name':'Administrator', 'first_name':'Administrator', 
+				'email':'admin@localhost', 'enabled':1},
+			{'doctype':'Profile', 'name':'Guest', 'first_name':'Guest',
+				'email':'guest@localhost', 'enabled':1},
+
+			# userroles
+			{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator', 
+				'parenttype':'Profile', 'parentfield':'userroles'},
+			{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest', 
+				'parenttype':'Profile', 'parentfield':'userroles'}
+		]
+		
+		for d in install_docs:
+			doc = webnotes.doc(fielddata=d)
+			doc.insert()

@@ -172,7 +172,7 @@ def peval_doclist(txt):
 		Restore a pretty printed doclist
 	"""
 	from json import loads
-	if txt.startswith("#"):
-		return uncommonify_doclist(eval(txt))
-	else:
+	try:
 		return uncommonify_doclist(loads(txt))
+	except Exception, e:
+		return uncommonify_doclist(eval(txt))

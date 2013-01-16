@@ -76,9 +76,9 @@ def export_doc(doctype, name, module=None):
 	"""write out a doc"""
 	from webnotes.modules.export_file import write_document_file
 	import webnotes.model.doc
+
 	if not module: module = webnotes.conn.get_value(doctype, name, 'module')
-	doclist = [d.fields for d in webnotes.model.doc.get(doctype, name)]
-	write_document_file(doclist, module)
+	write_document_file(webnotes.model.doc.get(doctype, name), module)
 
 			
 		

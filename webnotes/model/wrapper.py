@@ -135,9 +135,6 @@ class ModelWrapper:
 				Please refresh this document. [%s/%s]""" % (tmp[0][0], self.doc.modified), raise_exception=1)
 
 	def check_links(self):
-		"""
-			Checks integrity of links (throws exception if links are invalid)
-		"""
 		ref, err_list = {}, []
 		for d in self.docs:
 			if not ref.get(d.doctype):

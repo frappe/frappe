@@ -6,59 +6,46 @@ from __future__ import unicode_literals
 import webnotes
 import os
 import conf
+from webnotes.modules import reload_doc
 
 def sync_all(force=0):
-	modules = []
-	modules += sync_core_doctypes(force)
-	modules += sync_modules(force)
-	try:
-		webnotes.clear_cache()
-	except Exception, e:
-		if e.args[0]!=1146:
-			print webnotes.getTraceback()
-			raise e
-	return modules
+	sync_from("lib", force)
+	sync_from("app", force)
+	webnotes.clear_cache()
 
-def sync_core_doctypes(force=0):
-	# doctypes
-	return walk_and_sync(os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 'lib'), force)
+def sync_for(folder, force=0, sync_everything = False):
+	return walk_and_sync(os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 
+		folder), force, sync_everything)
 
-def sync_modules(force=0):
-	return walk_and_sync(os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 'app'), force)
-
-def walk_and_sync(start_path, force=0):
+def walk_and_sync(start_path, force=0, sync_everything = False):
 	"""walk and sync all doctypes and pages"""
-	from webnotes.modules import reload_doc
 
 	modules = []
+	
+	document_type = ['doctype', 'page', 'report']
 
-	document_type = ['page', 'workflow', 'module_def', 'report', 'workflow_state', 'workflow_action']
 	for path, folders, files in os.walk(start_path):
-		if os.path.basename(os.path.dirname(path)) in (['doctype'] + document_type):
-			for f in files:				
+		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):
+			for f in files:
 				if f.endswith(".txt"):
-					# great grand-parent folder is module_name
-					module_name = path.split(os.sep)[-3]
-					if not module_name in modules:
-						modules.append(module_name)
-				
-					# grand parent folder is doctype
-					doctype = path.split(os.sep)[-2]
-				
-					# parent folder is the name
-					name = path.split(os.sep)[-1]
-				
-					if doctype == 'doctype':
-						sync(module_name, name, force)
-					elif doctype in document_type:
-						if reload_doc(module_name, doctype, name, force):
-							print module_name + ' | ' + doctype + ' | ' + name
+					doc_name = f.split(".txt")[0]
+					if doc_name == os.path.basename(path):
+
+						module_name = path.split(os.sep)[-3]
+						doctype = path.split(os.sep)[-2]
+						name = path.split(os.sep)[-1]
+												
+						if doctype == 'doctype':
+							sync_doctype(module_name, name, force)
+						else:
+							if reload_doc(module_name, doctype, name, force):
+								print module_name + ' | ' + doctype + ' | ' + name
 					
 	return modules
 
 
 # docname in small letters with underscores
-def sync(module_name, docname, force=0):
+def sync_doctype(module_name, docname, force=0):
 	"""sync doctype from file if modified"""
 	with open(get_file_path(module_name, docname), 'r') as f:
 		from webnotes.modules.utils import peval_doclist
@@ -133,37 +120,3 @@ def save_perms_if_none_exist(doclist):
 		for d in doclist:
 			if d.get('doctype') != 'DocPerm': continue
 			webnotes.doc(fielddata=d).save(1, check_links=0, ignore_fields=1)
-
-def sync_install(force=1):
-	# sync all doctypes
-	modules = sync_all(force)
-	
-	# load install docs
-	load_install_docs(modules)
-
-def load_install_docs(modules):
-	if isinstance(modules, basestring): modules = [modules]
-	
-	for module_name in modules:
-		module = __import__(module_name)
-		if hasattr(module, 'install_docs'):
-			webnotes.conn.begin()
-
-			for data in module.install_docs:
-				if data.get('name'):
-					if not webnotes.conn.exists(data['doctype'], data.get('name')):
-						create_doc(data)
-				elif not webnotes.conn.exists(data):
-					create_doc(data)
-			
-			webnotes.conn.commit()
-			
-		if hasattr(module, 'module_init'):
-			module.module_init()
-
-def create_doc(data):
-	from webnotes.model.doc import Document
-	d = Document(data['doctype'])
-	d.fields.update(data)
-	d.save()
-	print 'Created %(doctype)s %(name)s' % d.fields

@@ -120,10 +120,6 @@ class Document:
 	def __setstate__(self, d): 
 		self.fields = d
 
-
-	# Load Document
-	# ---------------------------------------------------------------------------
-
 	def encode(self, encoding='utf-8'):
 		"""convert all unicode values to utf-8"""
 		for key in self.fields:
@@ -148,9 +144,6 @@ class Document:
 				raise Exception, '[WNF] %s %s does not exist' % (self.doctype, self.name)
 			self._load_values(dataset[0], webnotes.conn.get_description())
 
-	# Load Fields from dataset
-	# ---------------------------------------------------------------------------
-
 	def _load_values(self, data, description):
 		if '__islocal' in self.fields:
 			del self.fields['__islocal']
@@ -164,16 +157,10 @@ class Document:
 			if v: # only if value, over-write
 				self.fields[description[i][0]] = webnotes.conn.convert_to_simple_type(v)
 			
-	# Load Single Type
-	# ---------------------------------------------------------------------------
-
 	def _loadsingle(self):
 		self.name = self.doctype
 		self.fields.update(getsingle(self.doctype))
 
-	# Setter
-	# ---------------------------------------------------------------------------
-			
 	def __setattr__(self, name, value):
 		# normal attribute
 		if not self.__dict__.has_key('_Document__initialized'): 
@@ -185,9 +172,6 @@ class Document:
 			f = self.__dict__['fields']
 			f[name] = value
 
-	# Getter
-	# ---------------------------------------------------------------------------
-
 	def __getattr__(self, name):
 		if self.__dict__.has_key(name):
 			return self.__dict__[name]
@@ -195,9 +179,6 @@ class Document:
 			return self.fields[name]	
 		else:
 			return ''
-
-	# Get Amendement number
-	# ---------------------------------------------------------------------------
 	
 	def _get_amended_name(self):
 		am_id = 1
@@ -207,9 +188,6 @@ class Document:
 			am_prefix = '-'.join(self.amended_from.split('-')[:-1]) # except the last hyphen
 			
 		self.name = am_prefix + '-' + str(am_id)
-
-	# Set Name
-	# ---------------------------------------------------------------------------
 
 	def _set_name(self, autoname, istable):
 		self.localname = self.name
@@ -261,10 +239,7 @@ class Document:
 		# unable to determine a name, use a serial number!
 		if not self.name:
 			self.name = make_autoname('#########', self.doctype)
-		
-	# Validate Name
-	# ---------------------------------------------------------------------------
-	
+			
 	def _validate_name(self, case):
 		if webnotes.conn.sql('select name from `tab%s` where name=%s' % (self.doctype,'%s'), self.name):
 			raise NameError, 'Name %s already exists' % self.name
@@ -285,11 +260,8 @@ class Document:
 		for f in forbidden:
 			if f in self.name:
 				webnotes.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
-		
-	# Insert
-	# ---------------------------------------------------------------------------
-	
-	def insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
+			
+	def _insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
 		# set name
 		if make_autoname:
 			self._set_name(autoname, istable)
@@ -309,9 +281,6 @@ class Document:
 			values (%(name)s, %(owner)s, %(creation)s, %(modified)s,
 				%(modified_by)s)""", self.fields)
 
-	# Update Values
-	# ---------------------------------------------------------------------------
-	
 	def _update_single(self, link_list):
 		update_str = ["(%s, 'modified', %s)",]
 		values = [self.doctype, now()]
@@ -335,9 +304,6 @@ class Document:
 					values.append(f)
 					values.append(self.fields[f])
 		webnotes.conn.sql("insert into tabSingles(doctype, field, value) values %s" % (', '.join(update_str)), values)
-
-	# Validate Links
-	# ---------------------------------------------------------------------------
 
 	def validate_links(self, link_list):
 		err_list = []
@@ -420,18 +386,12 @@ class Document:
 		
 	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname=1,
 			keep_timestamps=False):
-		"""
-			Saves the current record in the database. 
-			If new = 1, creates a new instance of the record.
-			Also clears temperory fields starting with `__`
-
-			* if check_links is set, it validates all `Link` fields
-			* if ignore_fields is sets, it does not throw an exception 
-				for any field that does not exist in the database table
-		"""
 		res = webnotes.model.meta.get_dt_values(self.doctype,
 			'autoname, issingle, istable, name_case', as_dict=1)
 		res = res and res[0] or {}
+
+		if new:
+			self.fields["__islocal"] = 1
 
 		# add missing parentinfo (if reqd)
 		if self.parent and not (self.parenttype and self.parentfield):
@@ -441,9 +401,8 @@ class Document:
 			self.set_idx()
 
 		# if required, make new
-		if new or (not new and self.fields.get('__islocal')) and (not res.get('issingle')):
-			# new
-			r = self.insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
+		if self.fields.get('__islocal') and (not res.get('issingle')):
+			r = self._insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
 				make_autoname, keep_timestamps = keep_timestamps)
 			if r: 
 				return r
@@ -458,6 +417,10 @@ class Document:
 			keep_timestamps=keep_timestamps)
 		self._clear_temp_fields()
 
+	def insert(self):
+		self.fields['__islocal'] = 1
+		self.save()
+		
 	def update_parentinfo(self):
 		"""update parent type and parent field, if not explicitly specified"""
 
@@ -546,7 +509,6 @@ class Document:
 				
 		return ret
 			
-		
 def addchild(parent, fieldname, childtype = '', doclist=None):
 	"""
 	
@@ -561,8 +523,6 @@ def addchild(parent, fieldname, childtype = '', doclist=None):
 	"""
 	return parent.addchild(fieldname, childtype, doclist)
 			
-# Naming
-# ------
 def make_autoname(key, doctype=''):
 	"""
    Creates an autoname from the given key:
@@ -601,8 +561,6 @@ def make_autoname(key, doctype=''):
 		n+=en
 	return n
 
-# Get Series for Autoname
-# -----------------------
 def getseries(key, digits, doctype=''):
 	# series created ?
 	if webnotes.conn.sql("select name from tabSeries where name='%s'" % key):
@@ -619,10 +577,6 @@ def getseries(key, digits, doctype=''):
 		webnotes.conn.sql("insert into tabSeries (name, current) values ('%s', 1)" % key)
 		n = 1
 	return ('%0'+str(digits)+'d') % n
-
-
-# Get Children
-# ------------
 
 def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix='tab'):
 	import webnotes
@@ -648,9 +602,6 @@ def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix
 		l.append(d)
 	
 	return l
-
-# Check if "Guest" is allowed to view this page
-# ---------------------------------------------
 
 def check_page_perm(doc):
 	if doc.name=='Login Page':
