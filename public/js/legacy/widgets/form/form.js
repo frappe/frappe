@@ -496,7 +496,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			this.check_doctype_conflict(this.docname);
 		} else {
 			if(this.doc && this.doc.__last_sync_on && 
-				(new Date() - this.doc.__last_sync_on) / 1000 > this.refresh_if_stale_for) {
+				(new Date() - this.doc.__last_sync_on) > (this.refresh_if_stale_for * 1000)) {
 				this.reload_doc();
 				return;
 			}
