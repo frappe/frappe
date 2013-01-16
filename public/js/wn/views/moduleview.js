@@ -72,7 +72,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			<span"+
 				((item.doctype && item.description) 
 					? " data-doctype='"+item.doctype+"'" : "")
-				+" class='"+(section.right ? 'span4' : 'span2')
+				+" class='"+(section.right ? 'spanf4' : 'span2')
 				+"'>%(link)s</span>\
 			<span class='help "+(section.right ? 'span4' : 'span3')
 				+"'>%(description)s</span>"
@@ -144,7 +144,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 									item.link = repl("<a href=\"#Report2/%(doctype)s/%(name)s\">\
 										%(name)s</a>", item);
 								}
-								add_item(item, section);
+								me.add_item(item, section);
 							}
 						})
 					}
@@ -155,21 +155,21 @@ wn.views.moduleview.ModuleView = Class.extend({
 							right: true,
 							icon: "icon-list-alt",
 						}
-						add_section(section);
+						me.add_section(section);
 						$.each(r.message.search_criteria, function(i, item) {
 							item.criteria_name_enc = encodeURIComponent(item.criteria_name);
 							if(wn.model.can_read(item.parent_doctype || item.doctype)) {
 								item.link = repl(
 									"<a href=\"#Report/%(doctype)s/%(criteria_name_enc)s\">\
 									%(criteria_name)s</a>", item);
-								add_item(item, section);
+								me.add_item(item, section);
 							}
 						})
 					}
 					// counts
 					if(r.message.item_count) {
 						$.each(r.message.item_count, function(doctype, count) {
-							$(wrapper).find("[data-doctype-count='"+doctype+"']")
+							$(me.wrapper).find("[data-doctype-count='"+doctype+"']")
 								.html(count)
 								.addClass("badge badge-count")
 								.css({cursor:"pointer"});
@@ -181,7 +181,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 						$.extend(wn.model.open_count_conditions, r.message.conditions);
 
 						$.each(r.message.open_count, function(doctype, count) {
-							$(wrapper).find("[data-doctype='"+doctype+"']")
+							$(me.wrapper).find("[data-doctype='"+doctype+"']")
 								.append(" <span class='badge badge-important pull-right'\
 									style='cursor:pointer'>" + count + "</span>");
 						})
