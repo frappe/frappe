@@ -41,7 +41,7 @@ from webnotes.utils import add_days, add_months, add_years, cint, cstr, date_dif
 from webnotes.model import db_exists
 from webnotes.model.doc import Document, addchild, getchildren
 from webnotes.model.utils import getlist
-from webnotes.model.code import get_obj, get_server_obj, run_server_obj, updatedb, check_syntax
+from webnotes.model.code import get_obj, get_server_obj, run_server_obj
 from webnotes import session, form, msgprint, errprint
 
 sql = webnotes.conn.sql
