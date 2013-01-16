@@ -327,11 +327,3 @@ class DocTypeNestedSet(object):
 	def on_trash(self):
 		self.doc.fields[self.nsm_parent_field] = ""
 		update_nsm(self)
-		
-	def validate_root_details(self, root, parent_field):
-		#does not exists parent
-		if self.doc.name==root and self.doc.fields.get(parent_field):
-			msgprint("You can not assign parent for root: %s" % (root, ), raise_exception=1)
-	
-		elif self.doc.name!=root and not self.doc.fields.get(parent_field):
-			msgprint("Parent is mandatory for %s" % (self.doc.name, ), raise_exception=1)
