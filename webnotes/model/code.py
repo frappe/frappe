@@ -53,10 +53,6 @@ class CustomDocType(DocType):
 '''
 
 
-#=================================================================================
-# execute a script with a lot of globals - deprecated
-#=================================================================================
-
 def execute(code, doc=None, doclist=[]):
 	"""
 	Execute the code, if doc is given, then return the instance of the `DocType` class created
@@ -90,10 +86,6 @@ def execute(code, doc=None, doclist=[]):
 
 	if locals().get('out'):
 		return out
-
-#=================================================================================
-# load the DocType class from module & return an instance
-#=================================================================================
 
 def get_custom_script(doctype, script_type):
 	"""
@@ -148,10 +140,6 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	else:
 		return DocType(doc, doclist)
 	
-#=================================================================================
-# get object (from dt and/or dn or doclist)
-#=================================================================================
-
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
 	"""
 	   Returns the instantiated `DocType` object. Here you can pass the DocType and name (ID) to get the object.
@@ -163,17 +151,13 @@ def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
 		if not dn:
 			dn = dt
 		if with_children:
-			doclist = webnotes.model.doc.get(dt, dn, from_get_obj=1)
+			doclist = webnotes.model.doc.get(dt, dn, from_controller=1)
 		else:
-			doclist = webnotes.model.doc.get(dt, dn, with_children = 0, from_get_obj=1)
+			doclist = webnotes.model.doc.get(dt, dn, with_children = 0, from_controller=1)
 		return get_server_obj(doclist[0], doclist)
 	else:
 		return get_server_obj(doc, doclist)
 		
-#=================================================================================
-# get object and run method
-#=================================================================================
-
 def run_server_obj(server_obj, method_name, arg=None):
 	"""
 	   Executes a method (`method_name`) from the given object (`server_obj`)
@@ -186,17 +170,6 @@ def run_server_obj(server_obj, method_name, arg=None):
 	else:
 		raise Exception, 'No method %s' % method_name
 
-#=================================================================================
-# deprecated methods to keep v160 apps happy
-#=================================================================================
-
-def updatedb(doctype, userfields = [], args = {}):
-	pass
-
-def check_syntax(code):
-	return ''
-
-#===================================================================================
 def get_code(module, dt, dn, extn, fieldname=None):
 	from webnotes.modules import scrub, get_module_path
 	import os, webnotes

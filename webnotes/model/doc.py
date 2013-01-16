@@ -670,12 +670,7 @@ def get_report_builder_code(doc):
 			doc.report_script = get_code(doc.module, 'Search Criteria', doc.name, 'js')
 			doc.custom_query = get_code(doc.module, 'Search Criteria', doc.name, 'sql')
 
-	
-# called from everywhere
-# load a record and its child records and bundle it in a list - doclist
-# ---------------------------------------------------------------------
-
-def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
+def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	"""
 	Returns a doclist containing the main record and all child records
 	"""	
@@ -688,14 +683,8 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 	# load the main doc
 	doc = Document(dt, dn, prefix=prefix)
 
-	# check permission - for doctypes, pages
-	if (dt in ('DocType', 'Page', 'Control Panel', 'Search Criteria')) or (from_get_obj and webnotes.session.get('user') != 'Guest'):
-		if dt=='Page' and webnotes.session['user'] == 'Guest':
-			check_page_perm(doc)
-	else:
-		if not webnotes.has_permission(dt, "read", doc):
-			webnotes.response['403'] = 1
-			raise webnotes.ValidationError, '[WNF] No read permission for %s %s' % (dt, dn)
+	if dt=='Page' and webnotes.session['user'] == 'Guest':
+		check_page_perm(doc)
 
 	if not with_children:
 		# done
@@ -710,7 +699,7 @@ def get(dt, dn='', with_children = 1, from_get_obj = 0, prefix = 'tab'):
 		doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
 	# import report_builder code
-	if not from_get_obj:
+	if not from_controller:
 		get_report_builder_code(doc)
 
 	return doclist

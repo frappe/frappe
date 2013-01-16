@@ -240,6 +240,9 @@ class ModelWrapper:
 		self.doc.fields["__islocal"] = 1
 		return self.save()
 	
+	def has_read_perm(self):
+		return webnotes.has_permission(self.doc.doctype, "read", self.doc)
+	
 	def save(self, check_links=1):
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.prepare_for_save(check_links)

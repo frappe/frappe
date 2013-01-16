@@ -22,6 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
 
 @webnotes.whitelist()
 def runserverobj():
@@ -45,6 +46,8 @@ def runserverobj():
 	else:
 		wrapper = ModelWrapper()
 		wrapper.from_compressed(webnotes.form_dict.get('docs'), dn)
+		if not wrapper.has_read_perm():
+			webnotes.msgprint(_("No Permission"), raise_exception = True)
 		so = wrapper.make_obj()
 		wrapper.check_if_latest()
 
