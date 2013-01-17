@@ -415,7 +415,7 @@ DataField.prototype.make_input = function() {
 		return v;
 	}
 
-	if (this.df.options.indexOf('mask:') == 0){
+	if ((this.df.options) && (this.df.options.indexOf('mask:') == 0)){
 		mask = this.df.options.substring(5, this.df.options.length);
 		
 		wn.require('/lib/js/lib/imask.js');
@@ -489,7 +489,7 @@ DataField.prototype.validate = function(v) {
 			return '';
 		} else
 			return v;
-	} else if ( this.df.options.indexOf('mask:') == 0 ){
+	} else if ((this.df.options) && (this.df.options.indexOf('mask:') == 0 )){
 		return v.replace(/[^a-zA-Z0-9]/gi, '');		
 	} else {
 		return v;	
