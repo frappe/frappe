@@ -1,0 +1,1945 @@
+{
+ "Canada": {
+  "date_format": "mm-dd-yyyy", 
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/St_Johns", 
+   "America/Halifax", 
+   "America/Glace_Bay", 
+   "America/Moncton", 
+   "America/Goose_Bay", 
+   "America/Blanc-Sablon", 
+   "America/Montreal", 
+   "America/Toronto", 
+   "America/Nipigon", 
+   "America/Thunder_Bay", 
+   "America/Pangnirtung", 
+   "America/Iqaluit", 
+   "America/Atikokan", 
+   "America/Rankin_Inlet", 
+   "America/Winnipeg", 
+   "America/Rainy_River", 
+   "America/Cambridge_Bay", 
+   "America/Regina", 
+   "America/Swift_Current", 
+   "America/Edmonton", 
+   "America/Yellowknife", 
+   "America/Inuvik", 
+   "America/Dawson_Creek", 
+   "America/Vancouver", 
+   "America/Whitehorse", 
+   "America/Dawson"
+  ], 
+  "currency_name": "Canadian Dollar", 
+  "currency": "CAD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Sao Tome and Principe": {
+  "currency_name": "Dobra", 
+  "currency": "STD"
+ }, 
+ "Venezuela, Bolivarian Republic of": {}, 
+ "Guinea-Bissau": {
+  "timezones": [
+   "Africa/Bissau"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Montenegro": {
+  "timezones": [
+   "Europe/Podgorica"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Lithuania": {
+  "date_format": "yyyy-mm-dd", 
+  "currency_fraction": "Centas", 
+  "timezones": [
+   "Europe/Vilnius"
+  ], 
+  "currency_name": "Lithuanian Litas", 
+  "currency": "LTL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Lt"
+ }, 
+ "Cambodia": {
+  "currency_fraction": "Sen", 
+  "timezones": [
+   "Asia/Phnom_Penh"
+  ], 
+  "currency_name": "Riel", 
+  "currency": "KHR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u17db"
+ }, 
+ "Saint Helena, Ascension and Tristan da Cunha": {
+  "currency_name": "Saint Helena Pound", 
+  "currency": "SHP"
+ }, 
+ "Switzerland": {
+  "currency_fraction": "Rappen[K]", 
+  "timezones": [
+   "Europe/Zurich"
+  ], 
+  "currency_name": "Swiss Franc", 
+  "currency": "CHF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Ethiopia": {
+  "timezones": [
+   "Africa/Addis_Ababa"
+  ], 
+  "currency_fraction": "Santim", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Br"
+ }, 
+ "Aruba": {
+  "currency_fraction": "Cent", 
+  "currency_name": "Aruban Guilder", 
+  "currency": "AWG", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0192"
+ }, 
+ "Saint Martin (French part)": {}, 
+ "Argentina": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Argentina/Buenos_Aires", 
+   "America/Argentina/Cordoba", 
+   "America/Argentina/Jujuy", 
+   "America/Argentina/Tucuman", 
+   "America/Argentina/Catamarca", 
+   "America/Argentina/La_Rioja", 
+   "America/Argentina/San_Juan", 
+   "America/Argentina/Mendoza", 
+   "America/Argentina/Rio_Gallegos", 
+   "America/Argentina/Ushuaia"
+  ], 
+  "currency_name": "Argentine Peso", 
+  "currency": "ARS", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Cameroon": {
+  "timezones": [
+   "Africa/Douala"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Burkina Faso": {
+  "timezones": [
+   "Africa/Ouagadougou"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Turkmenistan": {
+  "currency_fraction": "Tennesi", 
+  "timezones": [
+   "Asia/Ashgabat"
+  ], 
+  "currency_name": "Manat", 
+  "currency": "TMM", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "m"
+ }, 
+ "Ghana": {
+  "timezones": [
+   "Africa/Accra"
+  ], 
+  "currency_fraction": "Pesewa", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20b5"
+ }, 
+ "Saudi Arabia": {
+  "currency_fraction": "Halala", 
+  "timezones": [
+   "Asia/Riyadh"
+  ], 
+  "currency_name": "Saudi Riyal", 
+  "currency": "SAR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0631.\u0633"
+ }, 
+ "Rwanda": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "Africa/Kigali"
+  ], 
+  "currency_name": "Rwanda Franc", 
+  "currency": "RWF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Togo": {
+  "timezones": [
+   "Africa/Lome"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Japan": {
+  "currency_fraction": "Sen[G]", 
+  "timezones": [
+   "Asia/Tokyo"
+  ], 
+  "currency_name": "Yen", 
+  "currency": "JPY", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a5"
+ }, 
+ "American Samoa": {}, 
+ "Montserrat": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "United States Minor Outlying Islands": {}, 
+ "Cocos (Keeling) Islands": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Pitcairn": {}, 
+ "Guatemala": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Guatemala"
+  ], 
+  "currency_name": "Quetzal", 
+  "currency": "GTQ", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Q"
+ }, 
+ "Bosnia and Herzegovina": {
+  "timezones": [
+   "Europe/Sarajevo"
+  ], 
+  "currency_fraction": "Fening", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "KM or \u041a\u041c"
+ }, 
+ "Kuwait": {
+  "currency_fraction": "Fils", 
+  "timezones": [
+   "Asia/Kuwait"
+  ], 
+  "currency_name": "Kuwaiti Dinar", 
+  "currency": "KWD", 
+  "currency_fraction_units": 1000, 
+  "currency_symbol": "\u062f.\u0643"
+ }, 
+ "Russian Federation": {
+  "currency_name": "Russian Ruble", 
+  "currency": "RUB"
+ }, 
+ "Jordan": {
+  "currency_fraction": "Piastre[H]", 
+  "timezones": [
+   "Asia/Amman"
+  ], 
+  "currency_name": "Jordanian Dinar", 
+  "currency": "JOD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u062f.\u0627"
+ }, 
+ "Bonaire, Sint Eustatius and Saba": {}, 
+ "Virgin Islands, British": {}, 
+ "Dominica": {
+  "timezones": [
+   "America/Dominica"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Liberia": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Monrovia"
+  ], 
+  "currency_name": "Liberian Dollar", 
+  "currency": "LRD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Korea, Republic of": {
+  "currency_name": "Won", 
+  "currency": "KRW"
+ }, 
+ "Micronesia, Federated States of": {}, 
+ "Jamaica": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/Jamaica"
+  ], 
+  "currency_name": "Jamaican Dollar", 
+  "currency": "JMD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Oman": {
+  "currency_fraction": "Baisa", 
+  "timezones": [
+   "Asia/Muscat"
+  ], 
+  "currency_name": "Rial Omani", 
+  "currency": "OMR", 
+  "currency_fraction_units": 1000, 
+  "currency_symbol": "\u0631.\u0639."
+ }, 
+ "Martinique": {}, 
+ "Christmas Island": {}, 
+ "French Guiana": {}, 
+ "Niue": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Monaco": {
+  "timezones": [
+   "Europe/Monaco"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Wallis and Futuna": {
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "New Zealand": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Pacific/Auckland", 
+   "Pacific/Chatham"
+  ], 
+  "currency_name": "New Zealand Dollar", 
+  "currency": "NZD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Virgin Islands, U.S.": {}, 
+ "Jersey": {
+  "currency_fraction": "Penny", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Andorra": {
+  "timezones": [
+   "Europe/Andorra"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Yemen": {
+  "timezones": [
+   "Asia/Aden"
+  ], 
+  "currency_fraction": "Fils", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\ufdfc"
+ }, 
+ "Albania": {
+  "currency_fraction": "Qindark\u00eb", 
+  "timezones": [
+   "Europe/Tirane"
+  ], 
+  "currency_name": "Lek", 
+  "currency": "ALL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "L"
+ }, 
+ "Samoa": {
+  "currency_fraction": "Sene", 
+  "timezones": [
+   "Pacific/Apia"
+  ], 
+  "currency_name": "Tala", 
+  "currency": "WST", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "T"
+ }, 
+ "Norfolk Island": {}, 
+ "United Arab Emirates": {
+  "currency_fraction": "Fils", 
+  "timezones": [
+   "Asia/Dubai"
+  ], 
+  "currency_name": "UAE Dirham", 
+  "currency": "AED", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u062f.\u0625"
+ }, 
+ "Guam": {}, 
+ "India": {
+  "currency_fraction": "Paisa", 
+  "timezones": [
+   "Asia/Calcutta"
+  ], 
+  "currency_name": "Indian Rupee", 
+  "currency": "INR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20b9"
+ }, 
+ "Azerbaijan": {
+  "timezones": [
+   "Asia/Baku"
+  ], 
+  "currency_fraction": "Q\u0259pik", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": ""
+ }, 
+ "Lesotho": {
+  "currency_fraction": "Sente", 
+  "timezones": [
+   "Africa/Maseru"
+  ], 
+  "currency_name": "Loti", 
+  "currency": "LSL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "L"
+ }, 
+ "Saint Vincent and the Grenadines": {
+  "timezones": [
+   "America/St_Vincent"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Kenya": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Nairobi"
+  ], 
+  "currency_name": "Kenyan Shilling", 
+  "currency": "KES", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Sh"
+ }, 
+ "Macao": {
+  "currency_name": "Pataca", 
+  "currency": "MOP"
+ }, 
+ "Turkey": {
+  "timezones": [
+   "Europe/Istanbul"
+  ], 
+  "currency_fraction": "Kuru\u015f", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": ""
+ }, 
+ "Afghanistan": {
+  "timezones": [
+   "Asia/Kabul"
+  ], 
+  "currency_fraction": "Pul", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u060b"
+ }, 
+ "Bangladesh": {
+  "currency_fraction": "Paisa", 
+  "timezones": [
+   "Asia/Dhaka"
+  ], 
+  "currency_name": "Taka", 
+  "currency": "BDT", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u09f3"
+ }, 
+ "Mauritania": {
+  "currency_fraction": "Khoums", 
+  "timezones": [
+   "Africa/Nouakchott"
+  ], 
+  "currency_name": "Ouguiya", 
+  "currency": "MRO", 
+  "currency_fraction_units": 5, 
+  "currency_symbol": "UM"
+ }, 
+ "Solomon Islands": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Pacific/Guadalcanal"
+  ], 
+  "currency_name": "Solomon Islands Dollar", 
+  "currency": "SBD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Turks and Caicos Islands": {
+  "currency_fraction": "Cent[D]", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Saint Lucia": {
+  "timezones": [
+   "America/St_Lucia"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "San Marino": {
+  "timezones": [
+   "Europe/San_Marino"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "French Polynesia": {
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "France": {
+  "timezones": [
+   "Europe/Paris"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Syrian Arab Republic": {
+  "currency_name": "Syrian Pound", 
+  "currency": "SYP"
+ }, 
+ "Bermuda": {
+  "currency_fraction": "Cent", 
+  "currency_name": "Bermudian Dollar", 
+  "currency": "BMD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Slovakia": {
+  "timezones": [
+   "Europe/Bratislava"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Somalia": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Mogadishu"
+  ], 
+  "currency_name": "Somali Shilling", 
+  "currency": "SOS", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Sh"
+ }, 
+ "Peru": {
+  "currency_fraction": "C\u00e9ntimo", 
+  "timezones": [
+   "America/Lima"
+  ], 
+  "currency_name": "Nuevo Sol", 
+  "currency": "PEN", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "S/."
+ }, 
+ "Swaziland": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Mbabane"
+  ], 
+  "currency_name": "Lilangeni", 
+  "currency": "SZL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "L"
+ }, 
+ "Nauru": {
+  "timezones": [
+   "Pacific/Nauru"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Seychelles": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Indian/Mahe"
+  ], 
+  "currency_name": "Seychelles Rupee", 
+  "currency": "SCR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a8"
+ }, 
+ "Norway": {
+  "currency_fraction": "\u00d8re", 
+  "timezones": [
+   "Europe/Oslo"
+  ], 
+  "currency_name": "Norwegian Krone", 
+  "currency": "NOK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "kr"
+ }, 
+ "Malawi": {
+  "currency_fraction": "Tambala", 
+  "timezones": [
+   "Africa/Blantyre"
+  ], 
+  "currency_name": "Kwacha", 
+  "currency": "MWK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "MK"
+ }, 
+ "Cook Islands": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Benin": {
+  "timezones": [
+   "Africa/Porto-Novo"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Western Sahara": {}, 
+ "Cuba": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Havana"
+  ], 
+  "currency_name": "Cuban Peso", 
+  "currency": "CUP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Iran, Islamic Republic of": {
+  "currency_name": "Iranian Rial", 
+  "currency": "IRR"
+ }, 
+ "Falkland Islands (Malvinas)": {
+  "currency_name": "Falkland Islands Pound", 
+  "currency": "FKP"
+ }, 
+ "Mayotte": {}, 
+ "Heard Island and McDonald Islands": {}, 
+ "China": {
+  "currency_name": "Yuan Renminbi", 
+  "currency": "CNY", 
+  "timezones": [
+   "Asia/Shanghai", 
+   "Asia/Harbin", 
+   "Asia/Chongqing", 
+   "Asia/Urumqi", 
+   "Asia/Kashgar"
+  ], 
+  "date_format": "yyyy-mm-dd"
+ }, 
+ "Armenia": {
+  "currency_fraction": "Luma", 
+  "timezones": [
+   "Asia/Yerevan"
+  ], 
+  "currency_name": "Armenian Dram", 
+  "currency": "AMD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u058f"
+ }, 
+ "Timor-Leste": {}, 
+ "Dominican Republic": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Santo_Domingo"
+  ], 
+  "currency_name": "Dominican Peso", 
+  "currency": "DOP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Ukraine": {
+  "timezones": [
+   "Europe/Kiev", 
+   "Europe/Uzhgorod", 
+   "Europe/Zaporozhye", 
+   "Europe/Simferopol"
+  ], 
+  "currency_fraction": "Kopiyka", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20b4"
+ }, 
+ "Bahrain": {
+  "currency_fraction": "Fils", 
+  "timezones": [
+   "Asia/Bahrain"
+  ], 
+  "currency_name": "Bahraini Dinar", 
+  "currency": "BHD", 
+  "currency_fraction_units": 1000, 
+  "currency_symbol": ".\u062f.\u0628"
+ }, 
+ "Tonga": {
+  "currency_fraction": "Seniti[L]", 
+  "timezones": [
+   "Pacific/Tongatapu"
+  ], 
+  "currency_name": "Pa'anga", 
+  "currency": "TOP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "T$"
+ }, 
+ "Finland": {
+  "timezones": [
+   "Europe/Helsinki"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Libya": {
+  "currency_fraction": "Dirham", 
+  "timezones": [
+   "Africa/Tripoli"
+  ], 
+  "currency_name": "Libyan Dinar", 
+  "currency": "LYD", 
+  "currency_fraction_units": 1000, 
+  "currency_symbol": "\u0644.\u062f"
+ }, 
+ "Cayman Islands": {
+  "currency_fraction": "Cent", 
+  "currency_name": "Cayman Islands Dollar", 
+  "currency": "KYD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Central African Republic": {
+  "timezones": [
+   "Africa/Bangui"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "New Caledonia": {
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Mauritius": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Indian/Mauritius"
+  ], 
+  "currency_name": "Mauritius Rupee", 
+  "currency": "MUR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a8"
+ }, 
+ "Tajikistan": {
+  "timezones": [
+   "Asia/Dushanbe"
+  ], 
+  "currency_fraction": "Diram", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0405\u041c"
+ }, 
+ "Liechtenstein": {
+  "timezones": [
+   "Europe/Vaduz"
+  ], 
+  "currency_fraction": "Rappen", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Australia": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Australia/Lord_Howe", 
+   "Australia/Hobart", 
+   "Australia/Currie", 
+   "Australia/Melbourne", 
+   "Australia/Sydney", 
+   "Australia/Broken_Hill", 
+   "Australia/Brisbane", 
+   "Australia/Lindeman", 
+   "Australia/Adelaide", 
+   "Australia/Darwin", 
+   "Australia/Perth"
+  ], 
+  "currency_name": "Australian Dollar", 
+  "currency": "AUD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Mali": {
+  "timezones": [
+   "Africa/Bamako"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Sweden": {
+  "currency_fraction": "\u00d6re", 
+  "timezones": [
+   "Europe/Stockholm"
+  ], 
+  "currency_name": "Swedish Krona", 
+  "currency": "SEK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "kr"
+ }, 
+ "Bulgaria": {
+  "timezones": [
+   "Europe/Sofia"
+  ], 
+  "currency_fraction": "Stotinka", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u043b\u0432"
+ }, 
+ "United States": {
+  "date_format": "mm-dd-yyyy", 
+  "currency_fraction": "Cent[D]", 
+  "timezones": [
+   "America/New_York", 
+   "America/Detroit", 
+   "America/Kentucky/Louisville", 
+   "America/Kentucky/Monticello", 
+   "America/Indiana/Indianapolis", 
+   "America/Indiana/Marengo", 
+   "America/Indiana/Knox", 
+   "America/Indiana/Vevay", 
+   "America/Chicago", 
+   "America/Indiana/Vincennes", 
+   "America/Indiana/Petersburg", 
+   "America/Menominee", 
+   "America/North_Dakota/Center", 
+   "America/North_Dakota/New_Salem", 
+   "America/Denver", 
+   "America/Boise", 
+   "America/Shiprock", 
+   "America/Phoenix", 
+   "America/Los_Angeles", 
+   "America/Anchorage", 
+   "America/Juneau", 
+   "America/Yakutat", 
+   "America/Nome", 
+   "America/Adak", 
+   "Pacific/Honolulu"
+  ], 
+  "currency_name": "US Dollar", 
+  "currency": "USD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Romania": {
+  "timezones": [
+   "Europe/Bucharest"
+  ], 
+  "currency_fraction": "Ban", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "L"
+ }, 
+ "Angola": {
+  "timezones": [
+   "Africa/Luanda"
+  ], 
+  "currency_fraction": "C\u00eantimo", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Kz"
+ }, 
+ "French Southern Territories": {}, 
+ "Chad": {
+  "timezones": [
+   "Africa/Ndjamena"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "South Africa": {
+  "date_format": "yyyy-mm-dd", 
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Johannesburg"
+  ], 
+  "currency_name": "Rand", 
+  "currency": "ZAR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "R"
+ }, 
+ "Tokelau": {}, 
+ "Cyprus": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Asia/Nicosia"
+  ], 
+  "currency_name": "Cyprus Pound", 
+  "currency": "CYP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "South Georgia and the South Sandwich Islands": {
+  "currency_fraction": "Penny", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Brunei Darussalam": {
+  "currency_name": "Brunei Dollar", 
+  "currency": "BND", 
+  "timezones": [
+   "Asia/Brunei"
+  ]
+ }, 
+ "Qatar": {
+  "currency_fraction": "Dirham", 
+  "timezones": [
+   "Asia/Qatar"
+  ], 
+  "currency_name": "Qatari Rial", 
+  "currency": "QAR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0631.\u0642"
+ }, 
+ "Malaysia": {
+  "currency_fraction": "Sen", 
+  "timezones": [
+   "Asia/Kuala_Lumpur", 
+   "Asia/Kuching"
+  ], 
+  "currency_name": "Malaysian Ringgit", 
+  "currency": "MYR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "RM"
+ }, 
+ "Austria": {
+  "timezones": [
+   "Europe/Vienna"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Mozambique": {
+  "timezones": [
+   "Africa/Maputo"
+  ], 
+  "currency_fraction": "Centavo", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "MT"
+ }, 
+ "Slovenia": {
+  "timezones": [
+   "Europe/Ljubljana"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Uganda": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Kampala"
+  ], 
+  "currency_name": "Uganda Shilling", 
+  "currency": "UGX", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Sh"
+ }, 
+ "Hungary": {
+  "date_format": "yyyy-mm-dd", 
+  "currency_fraction": "Fill\u00e9r", 
+  "timezones": [
+   "Europe/Budapest"
+  ], 
+  "currency_name": "Forint", 
+  "currency": "HUF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Ft"
+ }, 
+ "Niger": {
+  "timezones": [
+   "Africa/Niamey"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Isle of Man": {
+  "currency_fraction": "Penny", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Brazil": {
+  "timezones": [
+   "America/Noronha", 
+   "America/Belem", 
+   "America/Fortaleza", 
+   "America/Recife", 
+   "America/Araguaina", 
+   "America/Maceio", 
+   "America/Bahia", 
+   "America/Sao_Paulo", 
+   "America/Campo_Grande", 
+   "America/Cuiaba", 
+   "America/Porto_Velho", 
+   "America/Boa_Vista", 
+   "America/Manaus", 
+   "America/Eirunepe", 
+   "America/Rio_Branco"
+  ], 
+  "currency_fraction": "Centavo", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "R$"
+ }, 
+ "Netherlands": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Faroe Islands": {
+  "currency_fraction": "\u00d8re", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "kr"
+ }, 
+ "Guinea": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "Africa/Conakry"
+  ], 
+  "currency_name": "Guinea Franc", 
+  "currency": "GNF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Panama": {
+  "timezones": [
+   "America/Panama"
+  ], 
+  "currency_fraction": "Cent\u00e9simo", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "B/."
+ }, 
+ "Guyana": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/Guyana"
+  ], 
+  "currency_name": "Guyana Dollar", 
+  "currency": "GYD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Costa Rica": {
+  "currency_fraction": "C\u00e9ntimo", 
+  "timezones": [
+   "America/Costa_Rica"
+  ], 
+  "currency_name": "Costa Rican Colon", 
+  "currency": "CRC", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a1"
+ }, 
+ "Luxembourg": {
+  "timezones": [
+   "Europe/Luxembourg"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Cape Verde": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "Atlantic/Cape_Verde"
+  ], 
+  "currency_name": "Cape Verde Escudo", 
+  "currency": "CVE", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Esc or $"
+ }, 
+ "Bahamas": {
+  "currency_name": "Bahamian Dollar", 
+  "currency": "BSD", 
+  "timezones": [
+   "America/Nassau"
+  ]
+ }, 
+ "Gibraltar": {
+  "currency_fraction": "Penny", 
+  "currency_name": "Gibraltar Pound", 
+  "currency": "GIP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Ireland": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Pakistan": {
+  "currency_fraction": "Paisa", 
+  "timezones": [
+   "Asia/Karachi"
+  ], 
+  "currency_name": "Pakistan Rupee", 
+  "currency": "PKR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a8"
+ }, 
+ "Palau": {
+  "date_format": "mm-dd-yyyy", 
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Pacific/Palau"
+  ], 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Nigeria": {
+  "currency_fraction": "Kobo", 
+  "timezones": [
+   "Africa/Lagos"
+  ], 
+  "currency_name": "Naira", 
+  "currency": "NGN", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a6"
+ }, 
+ "Ecuador": {
+  "timezones": [
+   "America/Guayaquil", 
+   "Pacific/Galapagos"
+  ], 
+  "currency_fraction": "Cent[D]", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Czech Republic": {
+  "currency_fraction": "Hal\u00e9\u0159", 
+  "timezones": [
+   "Europe/Prague"
+  ], 
+  "currency_name": "Czech Koruna", 
+  "currency": "CZK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "K\u010d"
+ }, 
+ "Macedonia, Republic of": {
+  "currency_fraction": "Deni", 
+  "currency_name": "Denar", 
+  "currency": "MKD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0434\u0435\u043d"
+ }, 
+ "Viet Nam": {
+  "currency_name": "Dong", 
+  "currency": "VND"
+ }, 
+ "Belarus": {
+  "timezones": [
+   "Europe/Minsk"
+  ], 
+  "currency_fraction": "Kapyeyka", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Br"
+ }, 
+ "Vanuatu": {
+  "currency_fraction": "None", 
+  "timezones": [
+   "Pacific/Efate"
+  ], 
+  "currency_name": "Vatu", 
+  "currency": "VUV", 
+  "currency_fraction_units": 0, 
+  "currency_symbol": "Vt"
+ }, 
+ "Algeria": {
+  "currency_fraction": "Santeem", 
+  "timezones": [
+   "Africa/Algiers"
+  ], 
+  "currency_name": "Algerian Dinar", 
+  "currency": "DZD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u062f.\u062c"
+ }, 
+ "Korea, Democratic Peoples Republic of": {
+  "currency_name": "North Korean Won", 
+  "currency": "KPW"
+ }, 
+ "El Salvador": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/El_Salvador"
+  ], 
+  "currency_name": "El Salvador Colon", 
+  "currency": "SVC", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a1"
+ }, 
+ "Tuvalu": {
+  "timezones": [
+   "Pacific/Funafuti"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Saint Pierre and Miquelon": {}, 
+ "Marshall Islands": {
+  "timezones": [
+   "Pacific/Majuro", 
+   "Pacific/Kwajalein"
+  ], 
+  "currency_fraction": "Cent[D]", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Chile": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Santiago", 
+   "Pacific/Easter"
+  ], 
+  "currency_name": "Chilean Peso", 
+  "currency": "CLP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Puerto Rico": {}, 
+ "Belgium": {
+  "timezones": [
+   "Europe/Brussels"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Kiribati": {
+  "timezones": [
+   "Pacific/Tarawa", 
+   "Pacific/Enderbury", 
+   "Pacific/Kiritimati"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Haiti": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "America/Guatemala"
+  ], 
+  "currency_name": "Gourde", 
+  "currency": "HTG", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "G"
+ }, 
+ "Belize": {
+  "date_format": "mm-dd-yyyy", 
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/Belize"
+  ], 
+  "currency_name": "Belize Dollar", 
+  "currency": "BZD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Hong Kong": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Asia/Hong_Kong"
+  ], 
+  "currency_name": "Hong Kong Dollar", 
+  "currency": "HKD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Sierra Leone": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Freetown"
+  ], 
+  "currency_name": "Leone", 
+  "currency": "SLL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Le"
+ }, 
+ "Georgia": {
+  "timezones": [
+   "Asia/Tbilisi"
+  ], 
+  "currency_fraction": "Tetri", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u10da"
+ }, 
+ "Lao Peoples Democratic Republic": {
+  "currency_name": "Kip", 
+  "currency": "LAK"
+ }, 
+ "Gambia": {
+  "currency_name": "Dalasi", 
+  "currency": "GMD"
+ }, 
+ "Philippines": {
+  "date_format": "mm-dd-yyyy", 
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "Asia/Manila"
+  ], 
+  "currency_name": "Philippine Peso", 
+  "currency": "PHP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20b1"
+ }, 
+ "Morocco": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "Africa/Casablanca"
+  ], 
+  "currency_name": "Moroccan Dirham", 
+  "currency": "MAD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u062f.\u0645."
+ }, 
+ "Croatia": {
+  "currency_fraction": "Lipa", 
+  "timezones": [
+   "Europe/Zagreb"
+  ], 
+  "currency_name": "Croatian Kuna", 
+  "currency": "HRK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "kn"
+ }, 
+ "Mongolia": {
+  "date_format": "yyyy-mm-dd", 
+  "currency_fraction": "M\u00f6ng\u00f6", 
+  "timezones": [
+   "Asia/Ulaanbaatar", 
+   "Asia/Hovd", 
+   "Asia/Choibalsan"
+  ], 
+  "currency_name": "Tugrik", 
+  "currency": "MNT", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ae"
+ }, 
+ "Guernsey": {
+  "currency_fraction": "Penny", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Thailand": {
+  "currency_fraction": "Satang", 
+  "timezones": [
+   "Asia/Bangkok"
+  ], 
+  "currency_name": "Baht", 
+  "currency": "THB", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0e3f"
+ }, 
+ "Namibia": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Windhoek"
+  ], 
+  "currency_name": "Namibia Dollar", 
+  "currency": "NAD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Grenada": {
+  "timezones": [
+   "America/Grenada"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Taiwan, Province of China": {
+  "date_format": "yyyy-mm-dd"
+ }, 
+ "\u00c5land Islands": {}, 
+ "Iraq": {
+  "currency_fraction": "Fils", 
+  "timezones": [
+   "Asia/Baghdad"
+  ], 
+  "currency_name": "Iraqi Dinar", 
+  "currency": "IQD", 
+  "currency_fraction_units": 1000, 
+  "currency_symbol": "\u0639.\u062f"
+ }, 
+ "Tanzania, United Republic of": {
+  "currency_name": "Tanzanian Shilling", 
+  "currency": "TZS"
+ }, 
+ "Portugal": {
+  "timezones": [
+   "Europe/Lisbon", 
+   "Atlantic/Madeira", 
+   "Atlantic/Azores"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Estonia": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Europe/Tallinn"
+  ], 
+  "currency_name": "Kroon", 
+  "currency": "EEK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Uruguay": {
+  "currency_fraction": "Cent\u00e9simo", 
+  "timezones": [
+   "America/Montevideo"
+  ], 
+  "currency_name": "Peso Uruguayo", 
+  "currency": "UYU", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Equatorial Guinea": {
+  "timezones": [
+   "Africa/Malabo"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Lebanon": {
+  "currency_fraction": "Piastre", 
+  "timezones": [
+   "Asia/Beirut"
+  ], 
+  "currency_name": "Lebanese Pound", 
+  "currency": "LBP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0644.\u0644"
+ }, 
+ "Svalbard and Jan Mayen": {}, 
+ "Uzbekistan": {
+  "currency_fraction": "Tiyin", 
+  "timezones": [
+   "Asia/Samarkand", 
+   "Asia/Tashkent"
+  ], 
+  "currency_name": "Uzbekistan Sum", 
+  "currency": "UZS", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u043b\u0432"
+ }, 
+ "Tunisia": {
+  "currency_fraction": "Millime", 
+  "timezones": [
+   "Africa/Tunis"
+  ], 
+  "currency_name": "Tunisian Dinar", 
+  "currency": "TND", 
+  "currency_fraction_units": 1000, 
+  "currency_symbol": "\u062f.\u062a"
+ }, 
+ "Djibouti": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "Africa/Djibouti"
+  ], 
+  "currency_name": "Djibouti Franc", 
+  "currency": "DJF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Greenland": {}, 
+ "Antigua and Barbuda": {
+  "timezones": [
+   "America/Antigua"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Spain": {
+  "timezones": [
+   "Europe/Madrid", 
+   "Africa/Ceuta", 
+   "Atlantic/Canary"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Colombia": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Bogota"
+  ], 
+  "currency_name": "Colombian Peso", 
+  "currency": "COP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Burundi": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "Africa/Bujumbura"
+  ], 
+  "currency_name": "Burundi Franc", 
+  "currency": "BIF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Fiji": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Pacific/Fiji"
+  ], 
+  "currency_name": "Fiji Dollar", 
+  "currency": "FJD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Barbados": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/Barbados"
+  ], 
+  "currency_name": "Barbados Dollar", 
+  "currency": "BBD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Madagascar": {
+  "timezones": [
+   "Indian/Antananarivo"
+  ], 
+  "currency_fraction": "Iraimbilanja", 
+  "currency_fraction_units": 5, 
+  "currency_symbol": "Ar"
+ }, 
+ "Italy": {
+  "timezones": [
+   "Europe/Rome"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Bhutan": {
+  "currency_fraction": "Chetrum", 
+  "timezones": [
+   "Asia/Thimphu"
+  ], 
+  "currency_name": "Ngultrum", 
+  "currency": "BTN", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Nu."
+ }, 
+ "Sudan": {
+  "timezones": [
+   "Africa/Khartoum"
+  ], 
+  "currency_fraction": "Piastre", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Bolivia, Plurinational State of": {
+  "currency_name": "Boliviano", 
+  "currency": "BOB"
+ }, 
+ "Nepal": {
+  "currency_fraction": "Paisa", 
+  "timezones": [
+   "Asia/Katmandu"
+  ], 
+  "currency_name": "Nepalese Rupee", 
+  "currency": "NPR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20a8"
+ }, 
+ "Malta": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Europe/Malta"
+  ], 
+  "currency_name": "Maltese Lira", 
+  "currency": "MTL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Maldives": {
+  "currency_fraction": "Laari", 
+  "timezones": [
+   "Indian/Maldives"
+  ], 
+  "currency_name": "Rufiyaa", 
+  "currency": "MVR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": ".\u0783"
+ }, 
+ "Northern Mariana Islands": {}, 
+ "Suriname": {
+  "timezones": [
+   "America/Paramaribo"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Anguilla": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Israel": {
+  "currency_fraction": "Agora", 
+  "timezones": [
+   "Asia/Jerusalem"
+  ], 
+  "currency_name": "New Israeli Sheqel", 
+  "currency": "ILS", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20aa"
+ }, 
+ "R\u00e9union": {}, 
+ "Indonesia": {
+  "currency_fraction": "Sen", 
+  "timezones": [
+   "Asia/Jakarta", 
+   "Asia/Pontianak", 
+   "Asia/Makassar", 
+   "Asia/Jayapura"
+  ], 
+  "currency_name": "Rupiah", 
+  "currency": "IDR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Rp"
+ }, 
+ "Iceland": {
+  "currency_fraction": "Eyrir", 
+  "timezones": [
+   "Atlantic/Reykjavik"
+  ], 
+  "currency_name": "Iceland Krona", 
+  "currency": "ISK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "kr"
+ }, 
+ "Zambia": {
+  "currency_fraction": "Ngwee", 
+  "timezones": [
+   "Africa/Lusaka"
+  ], 
+  "currency_name": "Zambian Kwacha", 
+  "currency": "ZMK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "ZK"
+ }, 
+ "Senegal": {
+  "timezones": [
+   "Africa/Dakar"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Papua New Guinea": {
+  "currency_fraction": "Toea", 
+  "timezones": [
+   "Pacific/Port_Moresby"
+  ], 
+  "currency_name": "Kina", 
+  "currency": "PGK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "K"
+ }, 
+ "Saint Kitts and Nevis": {
+  "timezones": [
+   "America/St_Kitts"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Trinidad and Tobago": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/Port_of_Spain"
+  ], 
+  "currency_name": "Trinidad and Tobago Dollar", 
+  "currency": "TTD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Zimbabwe": {
+  "currency_fraction": "Thebe", 
+  "timezones": [
+   "Africa/Harare"
+  ], 
+  "currency_name": "Zimbabwe Dollar", 
+  "currency": "ZWD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "P"
+ }, 
+ "Germany": {
+  "timezones": [
+   "Europe/Berlin"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Denmark": {
+  "currency_fraction": "\u00d8re", 
+  "timezones": [
+   "Europe/Copenhagen"
+  ], 
+  "currency_name": "Danish Krone", 
+  "currency": "DKK", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "kr"
+ }, 
+ "Kazakhstan": {
+  "currency_fraction": "T\u00ef\u0131n", 
+  "timezones": [
+   "Asia/Almaty", 
+   "Asia/Qyzylorda", 
+   "Asia/Aqtobe", 
+   "Asia/Aqtau", 
+   "Asia/Oral"
+  ], 
+  "currency_name": "Tenge", 
+  "currency": "KZT", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20b8"
+ }, 
+ "Poland": {
+  "timezones": [
+   "Europe/Warsaw"
+  ], 
+  "currency_fraction": "Grosz", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "z\u0142"
+ }, 
+ "Moldova, Republic of": {
+  "currency_name": "Moldovan Leu", 
+  "currency": "MDL"
+ }, 
+ "Eritrea": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Africa/Asmera"
+  ], 
+  "currency_name": "Nakfa", 
+  "currency": "ERN", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Nfk"
+ }, 
+ "Kyrgyzstan": {
+  "currency_fraction": "Tyiyn", 
+  "timezones": [
+   "Asia/Bishkek"
+  ], 
+  "currency_name": "Som", 
+  "currency": "KGS", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u043b\u0432"
+ }, 
+ "Congo, The Democratic Republic of the": {}, 
+ "Saint Barth\u00e9lemy": {}, 
+ "British Indian Ocean Territory": {
+  "currency_fraction": "Cent[D]", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Holy See (Vatican City State)": {}, 
+ "Mexico": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Mexico_City", 
+   "America/Cancun", 
+   "America/Merida", 
+   "America/Monterrey", 
+   "America/Mazatlan", 
+   "America/Chihuahua", 
+   "America/Hermosillo", 
+   "America/Tijuana"
+  ], 
+  "currency_name": "Mexican Peso", 
+  "currency": "MXN", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Sri Lanka": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "Asia/Colombo"
+  ], 
+  "currency_name": "Sri Lanka Rupee", 
+  "currency": "LKR", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Rs"
+ }, 
+ "Latvia": {
+  "currency_fraction": "Sant\u012bms", 
+  "timezones": [
+   "Europe/Riga"
+  ], 
+  "currency_name": "Latvian Lats", 
+  "currency": "LVL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Ls"
+ }, 
+ "South Sudan": {
+  "currency_fraction": "Piastre", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Cura\u00e7ao": {
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0192"
+ }, 
+ "Guadeloupe": {}, 
+ "Ivory Coast": {
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Honduras": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Tegucigalpa"
+  ], 
+  "currency_name": "Lempira", 
+  "currency": "HNL", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "L"
+ }, 
+ "Myanmar": {
+  "currency_name": "Kyat", 
+  "currency": "MMK", 
+  "timezones": [
+   "Asia/Rangoon"
+  ]
+ }, 
+ "Bouvet Island": {}, 
+ "Egypt": {
+  "currency_fraction": "Piastre[F]", 
+  "timezones": [
+   "Africa/Cairo"
+  ], 
+  "currency_name": "Egyptian Pound", 
+  "currency": "EGP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3 or \u062c.\u0645"
+ }, 
+ "Nicaragua": {
+  "currency_fraction": "Centavo", 
+  "timezones": [
+   "America/Managua"
+  ], 
+  "currency_name": "Cordoba Oro", 
+  "currency": "NIO", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "C$"
+ }, 
+ "Singapore": {
+  "currency_fraction": "Sen", 
+  "timezones": [
+   "Asia/Singapore"
+  ], 
+  "currency_name": "Singapore Dollar", 
+  "currency": "SGD", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "$"
+ }, 
+ "Serbia": {
+  "timezones": [
+   "Europe/Belgrade"
+  ], 
+  "currency_fraction": "Para", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u0434\u0438\u043d. or din."
+ }, 
+ "Botswana": {
+  "currency_fraction": "Thebe", 
+  "timezones": [
+   "Africa/Gaborone"
+  ], 
+  "currency_name": "Pula", 
+  "currency": "BWP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "P"
+ }, 
+ "United Kingdom": {
+  "currency_fraction": "Penny", 
+  "timezones": [
+   "Europe/London"
+  ], 
+  "currency_name": "Pound Sterling", 
+  "currency": "GBP", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u00a3"
+ }, 
+ "Antarctica": {}, 
+ "Congo": {}, 
+ "Sint Maarten (Dutch part)": {}, 
+ "Greece": {
+  "timezones": [
+   "Europe/Athens"
+  ], 
+  "currency_fraction": "Cent", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20ac"
+ }, 
+ "Paraguay": {
+  "currency_fraction": "C\u00e9ntimo", 
+  "timezones": [
+   "America/Asuncion"
+  ], 
+  "currency_name": "Guarani", 
+  "currency": "PYG", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "\u20b2"
+ }, 
+ "Gabon": {
+  "timezones": [
+   "Africa/Libreville"
+  ], 
+  "currency_fraction": "Centime", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }, 
+ "Palestinian Territory, Occupied": {}, 
+ "Comoros": {
+  "currency_fraction": "Centime", 
+  "timezones": [
+   "Indian/Comoro"
+  ], 
+  "currency_name": "Comoro Franc", 
+  "currency": "KMF", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Fr"
+ }
+}

@@ -35,21 +35,21 @@ import webnotes
 
 def run_all(patch_list=None):
 	"""run all pending patches"""
-	executed = [p[0] for p in webnotes.conn.sql("""select patch from __PatchLog""")]
+	if webnotes.conn.table_exists("__PatchLog"):
+		executed = [p[0] for p in webnotes.conn.sql("""select patch from `__PatchLog`""")]	
+	else:
+		executed = [p[0] for p in webnotes.conn.sql("""select patch from `tabPatch Log`""")]
 	import patches.patch_list
 	for patch in (patch_list or patches.patch_list.patch_list):
-		pn = patch['patch_module'] + '.' + patch['patch_file']
-		if pn not in executed:
-			if not run_single(patchmodule = pn):
-				return log(pn + ': failed: STOPPED')
+		if patch not in executed:
+			if not run_single(patchmodule = patch):
+				return log(patch + ': failed: STOPPED')
 
 def reload_doc(args):
-	"""relaod a doc args {module, doctype, docname}"""	
 	import webnotes.modules
 	run_single(method = webnotes.modules.reload_doc, methodargs = args)
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
-	"""run a single patch"""
 	import conf
 	
 	# don't write txt files
@@ -97,13 +97,19 @@ def add_to_patch_log(tb):
 		patchlog.write('\n\n' + tb)
 	
 def update_patch_log(patchmodule):
-	"""update patch_file in patch log"""
-	webnotes.conn.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
-		patchmodule)
+	"""update patch_file in patch log"""	
+	if webnotes.conn.table_exists("__PatchLog"):
+		webnotes.conn.sql("""INSERT INTO `__PatchLog` VALUES (%s, now())""", \
+			patchmodule)
+	else:
+		webnotes.doc({"doctype": "Patch Log", "patch": patchmodule}).insert()
 
 def executed(patchmodule):
 	"""return True if is executed"""
-	done = webnotes.conn.sql("""select patch from __PatchLog where patch=%s""", patchmodule)
+	if webnotes.conn.table_exists("__PatchLog"):
+		done = webnotes.conn.sql("""select patch from __PatchLog where patch=%s""", patchmodule)
+	else:
+		done = webnotes.conn.get_value("Patch Log", {"patch": patchmodule})
 	if done:
 		print "Patch %s executed in %s" % (patchmodule, webnotes.conn.cur_db_name)
 	return done

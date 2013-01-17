@@ -131,10 +131,8 @@ class DocType:
 	def update_new_password(self):
 		"""update new password if set"""
 		if self.doc.new_password:
-			webnotes.conn.sql("""insert into __Auth (user, `password`) 
-				values (%s, password(%s)) 
-				on duplicate key update `password`=password(%s)""", (self.doc.name, 
-				self.doc.new_password, self.doc.new_password))
+			from webnotes.auth import update_password
+			update_password(self.doc.name, self.doc.new_password)
 			
 			if not self.is_new:
 				self.password_reset_mail(self.doc.new_password)

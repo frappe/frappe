@@ -896,7 +896,6 @@ var validated;
 _f.Frm.prototype.save = function(save_action, callback, btn) {
 	$(document.activeElement).blur();
 	var me = this;
-	var doclist = new wn.model.DocList(this.doctype, this.docname);
 	
 	// validate
 	if(save_action!="Cancel") {
@@ -906,6 +905,9 @@ _f.Frm.prototype.save = function(save_action, callback, btn) {
 			return;
 		}
 	}
+
+	var doclist = new wn.model.DocList(this.doctype, this.docname);
+
 	doclist.save(save_action || "Save", function(r) {
 		if(!r.exc) {
 			me.refresh();

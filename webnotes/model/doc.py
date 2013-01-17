@@ -420,6 +420,7 @@ class Document:
 	def insert(self):
 		self.fields['__islocal'] = 1
 		self.save()
+		return self
 		
 	def update_parentinfo(self):
 		"""update parent type and parent field, if not explicitly specified"""
@@ -484,6 +485,7 @@ class Document:
 	      * if local is set, it does not save the record
 	      * if doclist is passed, it append the record to the doclist
 		"""
+		from webnotes.model.doc import Document
 		d = Document()
 		d.parent = self.name
 		d.parenttype = self.doctype

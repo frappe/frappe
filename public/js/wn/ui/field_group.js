@@ -31,13 +31,7 @@ wn.ui.FieldGroup = Class.extend({
 	},
 	first_button: false,
 	make_fields: function() {
-		if(!window.make_field) {
-			// called in website, load some libs
-			wn.require('css/fields.css');
-			wn.require('js/fields.js');
-		}
-
-		$(this.parent).css({padding:'11px'});
+		$(this.parent).css({padding:'25px'});
 		this.fields_dict = {}; // reset
 		for(var i=0; i< this.fields.length; i++) {
 			var df = this.fields[i];
@@ -68,7 +62,8 @@ wn.ui.FieldGroup = Class.extend({
 		})
 	},
 	get_input: function(fieldname) {
-		return $(this.fields_dict[fieldname].input);
+		var field = this.fields_dict[fieldname];
+		return $(field.txt ? field.txt : field.input);
 	},
 	get_values: function() {
 		var ret = {};
@@ -114,7 +109,4 @@ wn.ui.FieldGroup = Class.extend({
 			}
 		}
 	},
-	get_input: function(fieldname) {
-		return $(this.fields_dict[fieldname].input);
-	}
 });
