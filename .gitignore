@@ -5,3 +5,5 @@
 user_files
 logs
 defs.py
+.project
+.pydevproject

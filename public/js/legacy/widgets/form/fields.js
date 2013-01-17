@@ -415,40 +415,53 @@ DataField.prototype.make_input = function() {
 		return v;
 	}
 
-	this.input.name = this.df.fieldname;
-	
-	$(this.input).change(function() {
-		//me.set_value(me.get_value && me.get_value() || $(this.input).val());
+	if (this.df.options.indexOf('mask:') == 0){
+		mask = this.df.options.substring(5, this.df.options.length);
 		
-		// fix: allow 0 as value
-		me.set_value(me.get_value ? me.get_value() : $(this.input).val());
-	});
+		wn.require('/lib/js/lib/imask.js');
+		
+		$(this.input).iMask({'type': 'fixed', 'mask': mask, stripMask: false});
+		
+	} else {
+		
+		this.input.name = this.df.fieldname;
 	
-	this.set_value = function(val) {
-		if(!me.last_value)me.last_value='';
-
-		if(me.validate) {
-			val = me.validate(val);
-			me.input.value = val==undefined ? '' : val;
-		}
-
-		me.set(val);
-		if(me.format_input)
-			me.format_input();
-		if(in_list(['Currency','Float','Int'], me.df.fieldtype)) {
-			if(flt(me.last_value)==flt(val)) {
-				me.last_value = val;
-				return; // do not run trigger
+		$(this.input).change(function() {
+			//me.set_value(me.get_value && me.get_value() || $(this.input).val());
+			
+			// fix: allow 0 as value
+			me.set_value(me.get_value ? me.get_value() : $(this.input).val());
+		});
+		
+		this.set_value = function(val) {
+			if(!me.last_value)me.last_value='';
+		
+			if(me.validate) {
+				val = me.validate(val);
+				me.input.value = val==undefined ? '' : val;
 			}
+		
+			me.set(val);
+			if(me.format_input)
+				me.format_input();
+			if(in_list(['Currency','Float','Int'], me.df.fieldtype)) {
+				if(flt(me.last_value)==flt(val)) {
+					me.last_value = val;
+					return; // do not run trigger
+				}
+			}
+			me.last_value = val;
+			me.run_trigger();
 		}
-		me.last_value = val;
-		me.run_trigger();
-	}
-	this.input.set_input = function(val) { 
-		if(val==null)val='';
-		me.input.value = val; 
-		if(me.format_input)me.format_input();
-	}
+		
+		this.input.set_input = function(val) { 
+			if(val==null)val='';
+			me.input.value = val; 
+			if(me.format_input)me.format_input();
+		}
+	
+		
+	}	
 }
 DataField.prototype.validate = function(v) {
 	if(this.df.options == 'Phone') {
@@ -476,6 +489,8 @@ DataField.prototype.validate = function(v) {
 			return '';
 		} else
 			return v;
+	} else if ( this.df.options.indexOf('mask:') == 0 ){
+		return v.replace(/[^a-zA-Z0-9]/gi, '');		
 	} else {
 		return v;	
 	}	
