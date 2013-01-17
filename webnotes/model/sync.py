@@ -9,8 +9,8 @@ import conf
 from webnotes.modules import reload_doc
 
 def sync_all(force=0):
-	sync_from("lib", force)
-	sync_from("app", force)
+	sync_for("lib", force)
+	sync_for("app", force)
 	webnotes.clear_cache()
 
 def sync_for(folder, force=0, sync_everything = False):

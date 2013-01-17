@@ -358,6 +358,9 @@ class Database:
 	def field_exists(self, dt, fn):
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
 
+	def table_exists(self, tablename):
+		return tablename in [d[0] for d in self.sql("show tables")]
+
 	def exists(self, dt, dn=None):
 		if isinstance(dt, basestring):
 			try:

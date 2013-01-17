@@ -37,12 +37,12 @@ def read_csv_content_from_attached_file(doc):
 		from webnotes.utils.file_manager import get_file
 		fid = doc.file_list.split(",")[1]
 		fname, fcontent = get_file(fid)
-		return read_csv_content(fcontent)
+		return read_csv_content(fcontent, webnotes.form_dict.get('ignore_encoding_errors'))
 	except Exception, e:
 		webnotes.msgprint("""Unable to open attached file. Please try again.""")
 		raise Exception
 
-def read_csv_content(fcontent):
+def read_csv_content(fcontent, ignore_encoding=False):
 	import csv
 	from webnotes.utils import cstr
 	rows = []
@@ -54,7 +54,7 @@ def read_csv_content(fcontent):
 		for row in csvrows:
 			newrow = []
 			for val in row:
-				if webnotes.form_dict.get('ignore_encoding_errors'):
+				if ignore_encoding:
 					newrow.append(cstr(val.strip()))
 				else:
 					try:

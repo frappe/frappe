@@ -34,10 +34,11 @@ from webnotes.model.sync import sync_for
 
 class Installer:
 	def __init__(self, root_login, root_password=None):
-
-	
-		if root_login and not root_password:
-			root_password = 'test123' #getpass.getpass("MySQL root password: ")
+		if root_login:
+			if not root_password:
+				root_password = getattr(conf, "root_password", None)
+			if not root_password:
+				root_password = getpass.getpass("MySQL root password: ")
 			
 		self.root_password = root_password
 		
@@ -89,10 +90,8 @@ class Installer:
 			print "Installing app..."
 			self.install_app()
 
-		self.framework_cleanups(hasattr(conf, 'admin_password') \
-			and conf.admin_password or password)
-		if verbose: print "Ran framework startups on %s" % target
-		
+		# update admin password
+		self.update_admin_password(password)
 		return target
 		
 	def install_app(self):
@@ -107,12 +106,13 @@ class Installer:
 		sync_for("app", force=True, sync_everything=True)
 		print "Completing App Import..."
 		install.post_import()
+		print "Updating patches..."
+		self.set_all_patches_as_completed()
 
-	def framework_cleanups(self, password):
-		# set the basic passwords
+	def update_admin_password(self, password):
+		from webnotes.auth import update_password
 		webnotes.conn.begin()
-		webnotes.conn.sql("""update __Auth set password = password(%s) 
-			where user='Administrator'""", (password,))
+		update_password("Administrator", getattr(conf, "admin_password", password))
 		webnotes.conn.commit()
 		
 	def import_core_docs(self):
@@ -139,6 +139,24 @@ class Installer:
 				'parenttype':'Profile', 'parentfield':'userroles'}
 		]
 		
+		webnotes.conn.begin()
 		for d in install_docs:
 			doc = webnotes.doc(fielddata=d)
 			doc.insert()
+		webnotes.conn.commit()
+	
+	def set_all_patches_as_completed(self):
+		try:
+			from patches.patch_list import patch_list
+		except ImportError, e:
+			print "No patches to update."
+			return
+		
+		webnotes.conn.begin()
+		for patch in patch_list:
+			webnotes.doc({
+				"doctype": "Patch Log",
+				"patch": patch
+			}).insert()
+		webnotes.conn.commit()
+			

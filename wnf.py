@@ -133,7 +133,11 @@ def setup_options():
 
 	# install
 	parser.add_option('--install', nargs=2, metavar = "NEW_DB_NAME SOURCE_PATH",
+						help="install db")
+
+	parser.add_option('--install_fresh', nargs=1, metavar = "NEW_DB_NAME",
 						help="install fresh db")
+
 	# update
 	parser.add_option("--update", help="Pull, run latest patches and sync all",
 			nargs=2, metavar="ORIGIN BRANCH")
@@ -312,7 +316,7 @@ def run():
 			webnotes.connect(options.db_name, options.password)
 		else:
 			webnotes.connect(options.db_name)
-	elif not any([options.install, options.pull]):
+	elif not any([options.install, options.pull, options.install_fresh]):
 		webnotes.connect(conf.db_name)
 
 	if options.pull:
@@ -365,9 +369,15 @@ def run():
 	elif options.install:
 		from webnotes.install_lib.install import Installer
 		inst = Installer('root')
-		inst.import_from_db(options.install[0], source_path=options.install[1], \
-			password='admin', verbose = 1)
-	
+		inst.import_from_db(options.install[0], source_path=options.install[1],
+			verbose = 1)
+
+	elif options.install_fresh:
+		from webnotes.install_lib.install import Installer
+		inst = Installer('root')
+		inst.import_from_db(options.install_fresh, source_path="lib/conf/Framework.sql",
+			verbose = 1)
+
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff
 		webnotes.modules.diff.diff_ref_file()
