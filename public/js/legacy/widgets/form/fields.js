@@ -106,12 +106,14 @@ Field.prototype.set_max_width = function() {
 	}
 }
 
-Field.prototype.set_label = function() {
-	if(this.with_label && this.label_area && this.label!=this.df.label) { 
-		this.label_span.innerHTML = wn._(this.df.label);
-		this.label = this.df.label; 
+Field.prototype.set_label = function(label) {
+	if(!label) label = this.df.label;
+	if(this.with_label && this.label_area && this.label!=label) { 
+		this.label_span.innerHTML = wn._(label);
+		
+		// always store this.label as this.df.label, so that custom label does not change back
+		this.label = this.df.label;
 	}
-
 }
 
 Field.prototype.set_description = function(txt) {
