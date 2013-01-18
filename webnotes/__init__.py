@@ -275,7 +275,7 @@ def has_permission(doctype, ptype="read", doc=None):
 		and ifnull(p.permlevel,0) = 0
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
-		
+	
 	if doc:
 		match_failed = {}
 		for p in perms:
@@ -284,7 +284,7 @@ def has_permission(doctype, ptype="read", doc=None):
 					keys = p.match.split(":")
 				else:
 					keys = [p.match, p.match]
-
+					
 				if doc.fields.get(keys[0],"[No Value]") \
 					in conn.get_defaults_as_list(keys[1], session.user):
 					return True
