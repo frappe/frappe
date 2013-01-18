@@ -244,11 +244,19 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 		// Index column
 		cell.div.style.padding = '2px';
 		cell.div.style.textAlign = 'left';
-		cell.innerHTML = '';
-
-		var t = make_table(cell,1,3,'60px',['20px','20px','20px'],{verticalAlign: 'middle', padding:'2px'});
+		
+		cell.div.innerHTML = '';
+		
+		var t = make_table(cell.div,1,3,'60px',['20px','20px','20px'],{verticalAlign: 'middle', padding:'2px'});
 		$y($td(t,0,0),{paddingLeft:'4px'});
 		$td(t,0,0).innerHTML = cell.row.rowIndex + 1;
+		$(cell.div).click(function() {
+			if(me.can_edit) {
+				me.cell_deselect();
+				cell.div.style.border = '2px solid #88F';
+				_f.cur_grid_cell = cell;
+			}
+		});
 
 		if(this.can_edit) {
 			$("<a title='Edit Row'><i class='icon-edit'></i></a>")
@@ -312,6 +320,8 @@ _f.Grid.prototype.cell_select = function(cell, ri, ci) {
 		cell = this.tab.rows[ri].cells[ci];
 
 	var hc = this.head_row.cells[cell.cellIndex];
+	
+	if(!hc.doctype) return;
 	
 	if(!hc.template) {
 		this.make_template(hc);
