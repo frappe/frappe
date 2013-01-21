@@ -165,7 +165,7 @@ def pprint_doclist(doclist, with_comments = 1):
 	"""
 	from json import dumps
 
-	return dumps(commonify_doclist(doclist, False), indent=1)
+	return dumps(commonify_doclist(doclist, False), indent=1, sort_keys=True)
 
 def peval_doclist(txt):
 	"""
