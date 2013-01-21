@@ -22,47 +22,18 @@
 
 wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
 
-
-function fmt_money(v){
-	if(v==null || v=='')return '0.00'; // no nulls
-	v = (v+'').replace(/,/g, ''); // remove existing commas
-	v = parseFloat(v);
-	if(isNaN(v)) {
-		return ''; // not a number
-	} else {
-		var val = 2; // variable used to differentiate other values from Millions
-		if(wn.boot.sysdefaults.currency_format == 'Millions') val = 3;
-		v = v.toFixed(2);
-		var delimiter = ","; // replace comma if desired
-		amount = v+'';
-		var a = amount.split('.',2)
-		var d = a[1];
-		var i = parseInt(a[0]);
-		if(isNaN(i)) { return ''; }
-		var minus = '';
-		if(v < 0) { minus = '-'; }
-		i = Math.abs(i);
-		var n = new String(i);
-		var a = [];
-		if(n.length > 3)
-		{
-			var nn = n.substr(n.length-3);
-			a.unshift(nn);
-			n = n.substr(0,n.length-3);			
-			while(n.length > val)
-			{
-				var nn = n.substr(n.length-val);
-				a.unshift(nn);
-				n = n.substr(0,n.length-val);
-			}
+function fmt_money(v, format){
+	if(!format) {
+		if(wn.boot.sysdefaults.number_format) {
+			format = wn.boot.sysdefaults.number_format;
+		} else if(!wn.boot.sysdefaults.currency) {
+			show_alert("Default Currency Not Set");
+			format = "#,###.##"
+		} else {
+			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format || "#,###.##";
 		}
-		if(n.length > 0) { a.unshift(n); }
-		n = a.join(delimiter);
-		if(d.length < 1) { amount = n; }
-		else { amount = n + '.' + d; }
-		amount = minus + amount;
-		return amount;
 	}
+	return format_number(format, v);
 }
 
 // to title case
@@ -98,8 +69,8 @@ function $s(ele, v, ftype, fopt) {
 		if(v==null)v=''
 		ele.innerHTML = v;
 	} else if(ftype =='Link' && fopt) {
-		ele.innerHTML = '';
-		doc_link(ele, fopt, v);
+		ele.innerHTML = repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', 
+			{doctype: fopt, name:v});
 	} else if(ftype =='Currency') {
 		ele.style.textAlign = 'right';
 		if(is_null(v))
@@ -117,29 +88,12 @@ function $s(ele, v, ftype, fopt) {
 	}
 }
 
-function clean_smart_quotes(s) {
-	if(s) {
-	    s = s.replace( /\u2018/g, "'" );
-	    s = s.replace( /\u2019/g, "'" );
-	    s = s.replace( /\u201c/g, '"' );
-	    s = s.replace( /\u201d/g, '"' );
-	    s = s.replace( /\u2013/g, '-' );
-	    s = s.replace( /\u2014/g, '--' );
-	}
-    return s;
-}
-
 function copy_dict(d) {
 	var n = {};
 	for(var k in d) n[k] = d[k];
 	return n;
 }
 
-function $p(ele,top,left) {
- ele.style.position = 'absolute';
- ele.style.top = top+'px';
- ele.style.left = left+'px';
-}
 function replace_newlines(t) {
 	return t?t.replace(/\n/g, '<br>'):'';
 }
@@ -150,11 +104,12 @@ function cint(v, def) {
 	v=parseInt(v); 
 	if(isNaN(v))v=def?def:0; return v; 
 }
-function validate_email(id) { 
-	if(strip(id.toLowerCase()).search("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?")==-1) return 0; else return 1; }
+function validate_email(txt) { 
+	return wn.utils.validate_type(txt, email);
+}
 function validate_spl_chars(txt) { 
-	if(txt.search(/^[a-zA-Z0-9_\- ]*$/)==-1) return 1; else return 0; }
-	
+	return wn.utils.validate_type(txt, "alphanum")
+}	
 function cstr(s) {
 	if(s==null)return '';
 	return s+'';
@@ -180,7 +135,10 @@ function flt(v,decimals) {
 	return v; 
 }
 
-function esc_quotes(s) { if(s==null)s=''; return s.replace(/'/, "\'");}
+function esc_quotes(s) { 
+	if(s==null)s=''; 
+	return s.replace(/'/, "\'");
+}
 
 var crop = function(s, len) {
 	if(s.length>len)
@@ -224,7 +182,9 @@ function repl(s, dict) {
 	return s;
 }
 
-///// dict type
+function replace_all(s, t1, t2) {
+	return s.split(t1).join(t2);
+}
 
 function keys(obj) { 
 	var mykeys=[];
@@ -253,21 +213,12 @@ function has_common(list1, list2) {
 
 var inList = in_list; // bc
 function add_lists(l1, l2) {
-	var l = [];
-	for(var k in l1) l.push(l1[k]);
-	for(var k in l2) l.push(l2[k]);
-	return l;
+	return [].concat(l1).concat(l2);
 }
 
 function docstring(obj)  {
 	return JSON.stringify(obj);
 }
-
-function DocLink(p, doctype, name, onload) {
-	var a = $a(p,'span','link_type'); a.innerHTML = a.dn = name; a.dt = doctype;
-	a.onclick=function() { loaddoc(this.dt,this.dn,onload) }; return a;
-}
-var doc_link = DocLink;
 
 function roundNumber(num, dec) {
 	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
