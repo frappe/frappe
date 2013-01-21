@@ -46,7 +46,10 @@ def get(doctype, processed=False, cached=True):
 	"""return doclist"""
 	if cached:
 		doclist = from_cache(doctype, processed)
-		if doclist: return DocTypeDocList(doclist)
+		if doclist: 
+			if processed:
+				add_linked_with(doclist)
+			return DocTypeDocList(doclist)
 	
 	load_docfield_types()
 	
@@ -65,7 +68,6 @@ def get(doctype, processed=False, cached=True):
 		expand_selects(doclist)
 		add_print_formats(doclist)
 		add_search_fields(doclist)
-		add_linked_with(doclist)
 		add_workflows(doclist)
 		update_language(doclist)
 
@@ -76,6 +78,9 @@ def get(doctype, processed=False, cached=True):
 	add_precision(doctype, doclist)
 
 	to_cache(doctype, processed, doclist)
+
+	if processed:
+		add_linked_with(doclist)
 		
 	return DocTypeDocList(doclist)
 
