@@ -25,12 +25,13 @@ String.prototype.reverse = function(){return this.split('').reverse().join('')}
 wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
 
 wn.utils.currency_format = (function(){
-	var cache = $.getJSON('/lib/js/lib/currency.json');
-	return function(fmt){
+	var cache; 
+	$.getJSON('/lib/js/lib/currency.json', function(data){ cache = data;});
+	return function currency_format(fmt){
 		if (fmt){
 			fmt = (cache[fmt.toUpperCase()]) ? fmt.toUpperCase() : null;
-		}
-		fmt = (!fmt && cache[wn.boot.sysdefauls.currency_format]) ? cache[wn.boot.sysdefauls.currency_format] : cache[fmt||'default'];  
+		};
+		fmt = (!fmt && cache[wn.boot.sysdefaults.currency]) ? cache[wn.boot.sysdefaults.currency] : cache[fmt||'default'];  
 	
 		// match thousand and decimal separators (respectively) from display format
 		separators = (fmt.display.match(/[^#]/g) || ['', '']);

@@ -420,7 +420,7 @@ DataField.prototype.make_input = function() {
 	if ((this.df.options) && (this.df.options.indexOf('mask:') == 0)){
 		mask = this.df.options.substring(5, this.df.options.length);
 		
-		$(this.input).iMask({'type': 'fixed', 'mask': mask, stripMask: false, maskEmptyChr="_"});
+		$(this.input).iMask({'type': 'fixed', 'mask': mask, 'stripMask': false, 'maskEmptyChr':"_"});
 		
 	} else {
 		
@@ -452,7 +452,7 @@ DataField.prototype.make_input = function() {
 			}
 			if (me.df.fieldtype=='Currency'){
 				
-				fmt = wn.utils.currency_format()
+				fmt = wn.utils.currency_format();
 				
 				$(this.input).iMask({
 					'type': 'number',

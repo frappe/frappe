@@ -1,6 +1,5 @@
-// Display Source http://www.thefinancials.com/Default.aspx?SubSectionID=curformat
 {
-    'default': {
+    "default": {
         "symbol": null,
         "display": "#,###.##"
     },
@@ -89,7 +88,7 @@
         "display": "#,###.##"
     },
     "BRL": {
-        "symbol": 'R$',
+        "symbol": "R$",
         "display": "#.###,##"
     },
     "BSD": {
@@ -669,7 +668,7 @@
         "display": "######"
     },
     "USD": {
-        "symbol": '$',
+        "symbol": "$",
         "display": "#,###.##"
     },
     "UYU": {
