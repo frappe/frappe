@@ -24,7 +24,9 @@ wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln :
 
 function fmt_money(v, format){
 	if(!format) {
-		if(!wn.boot.sysdefaults.currency) {
+		if(wn.boot.sysdefaults.number_format) {
+			format = wn.boot.sysdefaults.number_format;
+		} else if(!wn.boot.sysdefaults.currency) {
 			show_alert("Default Currency Not Set");
 			format = "#,###.##"
 		} else {

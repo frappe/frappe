@@ -80,6 +80,9 @@ window['format_number'] = function( m, v){
 		}
 		v[0] = str.split("").reverse().join("");
 	}
+	if(v[0]+""=="") {
+		v[0]="0";
+	}
 
 	v[1] = (m[1] && v[1])? Decimal+v[1] : "";
 	return (isNegative?'-':'') + v[0] + v[1]; //put back any negation and combine integer and fraction.
