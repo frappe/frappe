@@ -160,17 +160,10 @@ def uncommonify_doclist(dl):
 	return final
 
 def pprint_doclist(doclist, with_comments = 1):
-	"""
-		Pretty Prints a doclist with common keys separated and comments
-	"""
 	from json import dumps
-
 	return dumps(commonify_doclist(doclist, False), indent=1, sort_keys=True)
 
 def peval_doclist(txt):
-	"""
-		Restore a pretty printed doclist
-	"""
 	from json import loads
 	try:
 		return uncommonify_doclist(loads(txt))

@@ -204,6 +204,7 @@
   "timezones": [
    "Europe/Ljubljana"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -249,6 +250,7 @@
   "timezones": [
    "Europe/Berlin"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -281,6 +283,7 @@
   "number_format": "######"
  }, 
  "Netherlands": {
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -352,6 +355,7 @@
   "timezones": [
    "Europe/Monaco"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -602,6 +606,7 @@
   "timezones": [
    "Europe/San_Marino"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -628,6 +633,7 @@
   "timezones": [
    "Europe/Paris"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -658,6 +664,7 @@
   "timezones": [
    "Europe/Bratislava"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -768,6 +775,7 @@
   "timezones": [
    "Europe/Podgorica"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -881,6 +889,7 @@
   "timezones": [
    "Europe/Helsinki"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1096,6 +1105,7 @@
   "timezones": [
    "Europe/Vienna"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1218,6 +1228,7 @@
   "timezones": [
    "Europe/Luxembourg"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1230,6 +1241,7 @@
   "timezones": [
    "Europe/Andorra"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1244,6 +1256,7 @@
   "number_format": "#,###.##"
  }, 
  "Ireland": {
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1253,6 +1266,7 @@
   "timezones": [
    "Europe/Rome"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1385,6 +1399,7 @@
   "timezones": [
    "Europe/Brussels"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1577,6 +1592,7 @@
    "Atlantic/Madeira", 
    "Atlantic/Azores"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -1687,6 +1703,7 @@
    "Africa/Ceuta", 
    "Atlantic/Canary"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
@@ -2189,6 +2206,7 @@
   "timezones": [
    "Europe/Athens"
   ], 
+  "currency": "EUR",
   "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
