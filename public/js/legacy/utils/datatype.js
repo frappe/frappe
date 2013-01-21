@@ -24,14 +24,14 @@ String.prototype.reverse = function(){return this.split('').reverse().join('')}
 
 wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
 
-wn.utils.currency_format = (function(){
+var currency_format = (function(wn){
 	var cache; 
 	$.getJSON('/lib/js/lib/currency.json', function(data){ cache = data;});
 	return function currency_format(fmt){
 		if (fmt){
 			fmt = (cache[fmt.toUpperCase()]) ? fmt.toUpperCase() : null;
 		};
-		fmt = (!fmt && cache[wn.boot.sysdefaults.currency]) ? cache[wn.boot.sysdefaults.currency] : cache[fmt||'default'];  
+		fmt = (!fmt && cache[sys_defaults.currency]) ? cache[sys_defaults.currency] : cache[fmt||'default'];  
 	
 		// match thousand and decimal separators (respectively) from display format
 		separators = (fmt.display.match(/[^#]/g) || ['', '']);
@@ -46,33 +46,33 @@ wn.utils.currency_format = (function(){
 		return {'separators': separators, 'decimal_places': decimal_places, 'symbol': symbol};	
 			
 		}
-})();
+})(wn);
 
-function currency_to_flt(v, fmt){
+function currency_to_flt(v, decimals, fmt){
 	if (v == null || v == '') return 0.00;
-	fmt = wn.utils.currency_format(fmt);
+	fmt = currency_format(fmt);
 	v = new String(v);
 	
-	v.replace(fmt.symbol, '').replace(sep[0], '').replace(sep[1], '').split('');
+	v = v.replace(fmt.symbol, '').replace(fmt.separators[0], '').replace(fmt.separators[1], '').split('');
 	v.splice(v.length - fmt.decimal_places, 0, '.');
 	return parseFloat(v.join(""));
 }
 
 function fmt_money(v, fmt){
-	fmt = wn.utils.currency_format(fmt);
+	fmt = currency_format(fmt);
 	if (v==null || v=='') { v='0.00' };
 	v = parseFloat(v);
-	if (isNAN(v)) {
+	if (isNaN(v)) {
 		return '';
 	} else {
 		var val = 2;
-		if (wn.boot.sysdefaults.currency_format == 'Millions') val = 3;
+		if (sys_defaults.currency == 'Millions') val = 3;
 		v = v.toFixed(fmt.decimal_places);
 		amount = v+'';
 		var a = amount.split('.', 2)
 		var d = a[1];
 		var i = parseInt(a[0]);
-		if (isNAN(i)) { return ''; }
+		if (isNaN(i)) { return ''; }
 		var minus = (v < 0) ? '-' : '';
 		i = Math.abs(i);
 		var n = new String(i);
@@ -97,48 +97,6 @@ function fmt_money(v, fmt){
 	}
 	
 				
-}
-
-function old_fmt_money(v){
-	if(v==null || v=='')return '0.00'; // no nulls
-	v = (v+'').replace(/,/g, ''); // remove existing commas
-	v = parseFloat(v);
-	if(isNaN(v)) {
-		return ''; // not a number
-	} else {
-		var val = 2; // variable used to differentiate other values from Millions
-		if(wn.boot.sysdefaults.currency_format == 'Millions') val = 3;
-		v = v.toFixed(2);
-		var delimiter = ","; // replace comma if desired
-		amount = v+'';
-		var a = amount.split('.',2)
-		var d = a[1];
-		var i = parseInt(a[0]);
-		if(isNaN(i)) { return ''; }
-		var minus = '';
-		if(v < 0) { minus = '-'; }
-		i = Math.abs(i);
-		var n = new String(i);
-		var a = [];
-		if(n.length > 3)
-		{
-			var nn = n.substr(n.length-3);
-			a.unshift(nn);
-			n = n.substr(0,n.length-3);			
-			while(n.length > val)
-			{
-				var nn = n.substr(n.length-val);
-				a.unshift(nn);
-				n = n.substr(0,n.length-val);
-			}
-		}
-		if(n.length > 0) { a.unshift(n); }
-		n = a.join(delimiter);
-		if(d.length < 1) { amount = n; }
-		else { amount = n + '.' + d; }
-		amount = minus + amount;
-		return amount;
-	}
 }
 
 // to title case

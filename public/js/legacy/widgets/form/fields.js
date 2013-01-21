@@ -452,7 +452,7 @@ DataField.prototype.make_input = function() {
 			}
 			if (me.df.fieldtype=='Currency'){
 				
-				fmt = wn.utils.currency_format();
+				fmt = currency_format();
 				
 				$(this.input).iMask({
 					'type': 'number',
