@@ -405,6 +405,8 @@ Field.prototype.activate = function(docname) {
 
 function DataField() { } DataField.prototype = new Field();
 DataField.prototype.make_input = function() {
+	wn.require('/lib/js/lib/imask.js');
+	
 	var me = this;
 	this.input = $a_input(this.input_area, this.df.fieldtype=='Password' ? 'password' : 'text');
 
@@ -418,9 +420,7 @@ DataField.prototype.make_input = function() {
 	if ((this.df.options) && (this.df.options.indexOf('mask:') == 0)){
 		mask = this.df.options.substring(5, this.df.options.length);
 		
-		wn.require('/lib/js/lib/imask.js');
-		
-		$(this.input).iMask({'type': 'fixed', 'mask': mask, stripMask: false});
+		$(this.input).iMask({'type': 'fixed', 'mask': mask, stripMask: false, maskEmptyChr="_"});
 		
 	} else {
 		
@@ -444,12 +444,31 @@ DataField.prototype.make_input = function() {
 			me.set(val);
 			if(me.format_input)
 				me.format_input();
-			if(in_list(['Currency','Float','Int'], me.df.fieldtype)) {
+			if(in_list(['Float','Int'], me.df.fieldtype)) {
 				if(flt(me.last_value)==flt(val)) {
 					me.last_value = val;
 					return; // do not run trigger
 				}
 			}
+			if (me.df.fieldtype=='Currency'){
+				
+				fmt = wn.utils.currency_format()
+				
+				$(this.input).iMask({
+					'type': 'number',
+					'currencySymbol': fmt.symbol,
+					'decDigits': fmt.decimal_places,
+					'groupSymbol': fmt.separators[0],
+					'decSymbol': fmt.separators[1],
+					'groupDigits': 3 
+				});
+				
+				if (currency_to_flt(me.last_value)==currency_to_flt(val)){
+					me.last_value = val;
+					return; // do not run trigger
+				}
+			}
+			
 			me.last_value = val;
 			me.run_trigger();
 		}
@@ -890,7 +909,7 @@ CurrencyField.prototype.format_input = function() {
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
 		return 0;
-	return flt(v,2); 
+	return currency_to_flt(v,2); 
 }
 CurrencyField.prototype.set_disp = function(val) { 
 	var v = fmt_money(val); 

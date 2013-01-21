@@ -20,10 +20,85 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
+String.prototype.reverse = function(){return this.split('').reverse().join('')}
+
 wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
 
+wn.utils.currency_format = (function(){
+	var cache = $.getJSON('/lib/js/lib/currency.json');
+	return function(fmt){
+		if (fmt){
+			fmt = (cache[fmt.toUpperCase()]) ? fmt.toUpperCase() : null;
+		}
+		fmt = (!fmt && cache[wn.boot.sysdefauls.currency_format]) ? cache[wn.boot.sysdefauls.currency_format] : cache[fmt||'default'];  
+	
+		// match thousand and decimal separators (respectively) from display format
+		separators = (fmt.display.match(/[^#]/g) || ['', '']);
+		
+		// determines the length of decimal places from decimal separator, or the size of the display format
+		// the 4 first '#' on display are: 1 thousand place and 3 houndred places.
+		decimal_places = (separators[1]) ? ( fmt.display.split('').reverse().join('').indexOf(separators[1]) || 0) : (fmt.display.match(/[#]/g)) ? fmt.display.match(/[#]/g).length - 4 : 0;
+		
+		// determines the currency symbol
+		symbol = (fmt.symbol) ? fmt.symbol + " " : "";
+		
+		return {'separators': separators, 'decimal_places': decimal_places, 'symbol': symbol};	
+			
+		}
+})();
 
-function fmt_money(v){
+function currency_to_flt(v, fmt){
+	if (v == null || v == '') return 0.00;
+	fmt = wn.utils.currency_format(fmt);
+	v = new String(v);
+	
+	v.replace(fmt.symbol, '').replace(sep[0], '').replace(sep[1], '').split('');
+	v.splice(v.length - fmt.decimal_places, 0, '.');
+	return parseFloat(v.join(""));
+}
+
+function fmt_money(v, fmt){
+	fmt = wn.utils.currency_format(fmt);
+	if (v==null || v=='') { v='0.00' };
+	v = parseFloat(v);
+	if (isNAN(v)) {
+		return '';
+	} else {
+		var val = 2;
+		if (wn.boot.sysdefaults.currency_format == 'Millions') val = 3;
+		v = v.toFixed(fmt.decimal_places);
+		amount = v+'';
+		var a = amount.split('.', 2)
+		var d = a[1];
+		var i = parseInt(a[0]);
+		if (isNAN(i)) { return ''; }
+		var minus = (v < 0) ? '-' : '';
+		i = Math.abs(i);
+		var n = new String(i);
+		var a = [];
+		{
+			var nn = n.substr(n.length-3);
+			a.unshift(nn);
+			n = n.substr(0,n.length-3);			
+			while(n.length > val)
+			{
+				var nn = n.substr(n.length-val);
+				a.unshift(nn);
+				n = n.substr(0,n.length-val);
+			}
+		}
+		if(n.length > 0) { a.unshift(n); }
+		n = a.join(fmt.separators[0]);
+		if(d.length < 1) { amount = n; }
+		else { amount = n + fmt.separators[1] + d; }
+		amount = fmt.symbol + minus + amount;
+		return amount;
+	}
+	
+				
+}
+
+function old_fmt_money(v){
 	if(v==null || v=='')return '0.00'; // no nulls
 	v = (v+'').replace(/,/g, ''); // remove existing commas
 	v = parseFloat(v);

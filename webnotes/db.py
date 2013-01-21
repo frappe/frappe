@@ -37,6 +37,7 @@ class Database:
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or 'localhost'
 		self.user = user or conf.db_name
+		if not password: password = self.user
 
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or conf.db_name
