@@ -36,22 +36,25 @@ import webnotes.model.doctype
 @webnotes.whitelist()
 def clear(user=None):
 	"""clear all cache"""
-	clear_cache(user)
+	clear_cache(webnotes.session.user)
 	webnotes.response['message'] = "Cache Cleared"
 
 
 def clear_cache(user=None):
 	"""clear cache"""
-	webnotes.cache().delete_keys("bootinfo:")
+	cache = webnotes.cache()
 
+	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
 
-	webnotes.cache().delete_keys("session:")
-
-	if webnotes.session:
-		webnotes.cache().delete_keys("bootinfo:" + webnotes.session.user)
-		if webnotes.session.sid:
-			webnotes.cache().delete_keys("session:" + webnotes.session.sid)
+	if user:
+		cache.delete_value("bootinfo:" + user)
+		if webnotes.session and webnotes.session.sid:
+			cache.delete_value("session:" + webnotes.session.sid)
+	else:
+		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
+			cache.delete_value("sesssion:" + sess.sid)
+			cache.delete_value("bootinfo:" + sess.user)
 	
 def clear_sessions(user=None, keep_current=False):
 	if not user:
