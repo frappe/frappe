@@ -436,7 +436,7 @@
   "number_format": "######"
  }, 
  "British Indian Ocean Territory": {
-  "currency_fraction": "Cent[D]", 
+  "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
   "currency_symbol": "$"
@@ -975,7 +975,7 @@
  }, 
  "United States": {
   "date_format": "mm-dd-yyyy", 
-  "currency_fraction": "Cent[D]", 
+  "currency_fraction": "Cent", 
   "timezones": [
    "America/New_York", 
    "America/Detroit", 
@@ -1288,7 +1288,7 @@
    "America/Guayaquil", 
    "Pacific/Galapagos"
   ], 
-  "currency_fraction": "Cent[D]", 
+  "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
   "currency_symbol": "$"
@@ -1375,7 +1375,7 @@
    "Pacific/Majuro", 
    "Pacific/Kwajalein"
   ], 
-  "currency_fraction": "Cent[D]", 
+  "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
   "currency_symbol": "$"
@@ -1732,7 +1732,7 @@
   "number_format": "####"
  }, 
  "Turks and Caicos Islands": {
-  "currency_fraction": "Cent[D]", 
+  "currency_fraction": "Cent", 
   "currency_fraction_units": 100, 
   "number_format": "#,###.##", 
   "currency_symbol": "$"

@@ -8,6 +8,7 @@ wn.views.CommunicationList = Class.extend({
 		$.extend(this, opts);
 				
 		if(this.doc.__islocal) {
+			$(this.parent).empty();
 			return;
 		}
 		
@@ -28,15 +29,17 @@ wn.views.CommunicationList = Class.extend({
 			// show first
 			this.comm_list[0].find('.comm-content').toggle(true);			
 		} else {
-			this.body.remove()
-			$("<div class='alert'>" + wn._("No Communication tagged with this ") 
-				+ this.doc.doctype +" yet.</div>").appendTo(this.wrapper);
+			this.clear_list()
 		}
-		
+	},
+	clear_list: function() {
+		this.body.remove();
+		$("<div class='alert'>" + wn._("No Communication tagged with this ") 
+			+ this.doc.doctype +" yet.</div>").appendTo(this.wrapper);	
 	},
 	make_body: function() {
 		$(this.parent)
-			.html("")
+			.empty()
 			.css({"margin":"10px 0px"});
 			
 		this.wrapper = $("<div><h4>"+wn._("Communication History")+"</h4>\
