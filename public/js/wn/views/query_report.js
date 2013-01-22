@@ -305,8 +305,9 @@ wn.views.QueryReport = Class.extend({
 			cond = "<"
 		} 
 		
-		if(in_list(["Float", "Currency", "Int"])) {
+		if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
 			value = flt(value);
+			filter = flt(filter);
 		}
 		
 		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.fieldtype)) {
