@@ -305,10 +305,6 @@ wn.views.QueryReport = Class.extend({
 			cond = "<"
 		} 
 		
-		if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
-			value = flt(value);
-			filter = flt(filter);
-		}
 		
 		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.fieldtype)) {
 			// non strings
@@ -316,6 +312,12 @@ wn.views.QueryReport = Class.extend({
 				if(columnDef.fieldtype=="Date") {
 					filter = dateutil.user_to_str(filter);
 				}
+
+				if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
+					value = flt(value);
+					filter = flt(filter);
+				}
+
 				out = eval("value" + cond + "filter");
 			} else {
 				// range
@@ -324,6 +326,13 @@ wn.views.QueryReport = Class.extend({
 					filter[0] = dateutil.user_to_str(filter[0]);
 					filter[1] = dateutil.user_to_str(filter[1]);
 				}
+
+				if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
+					value = flt(value);
+					filter[0] = flt(filter[0]);
+					filter[1] = flt(filter[1]);
+				}
+				
 				out = value >= filter[0] && value <= filter[1];
 			}
 		} else {
