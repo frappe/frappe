@@ -35,13 +35,11 @@ import webnotes.model.doctype
 
 @webnotes.whitelist()
 def clear(user=None):
-	"""clear all cache"""
 	clear_cache(webnotes.session.user)
 	webnotes.response['message'] = "Cache Cleared"
 
 
 def clear_cache(user=None):
-	"""clear cache"""
 	cache = webnotes.cache()
 
 	# clear doctype cache
