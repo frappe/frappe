@@ -31,6 +31,7 @@ import webnotes
 import conf
 import json
 from webnotes.utils import cint
+import webnotes.model.doctype
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -42,8 +43,11 @@ def clear(user=None):
 def clear_cache(user=None):
 	"""clear cache"""
 	webnotes.cache().delete_keys("bootinfo:")
-	webnotes.cache().delete_keys("doctype:")
+
+	webnotes.model.doctype.clear_cache()
+
 	webnotes.cache().delete_keys("session:")
+
 	if webnotes.session:
 		webnotes.cache().delete_keys("bootinfo:" + webnotes.session.user)
 		if webnotes.session.sid:
