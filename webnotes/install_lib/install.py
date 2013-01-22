@@ -92,6 +92,7 @@ class Installer:
 
 		# update admin password
 		self.update_admin_password(password)
+		self.create_auth_table()
 		return target
 		
 	def install_app(self):
@@ -159,4 +160,9 @@ class Installer:
 				"patch": patch
 			}).insert()
 		webnotes.conn.commit()
-			
+
+	def create_auth_table(self):
+		webnotes.conn.sql("""create table if not exists __Auth (
+		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
+		`password` VARCHAR(180) NOT NULL
+		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
