@@ -410,7 +410,7 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	if not main_currency:
 		main_currency = d.get('currency', 'INR')
 	if not fraction_currency:
-		fraction_currency = webnotes.conn.get_value("Currency", main_currency, "fraction") or "cent"
+		fraction_currency = webnotes.conn.get_value("Currency", main_currency, "fraction") or "Cent"
 
 	n = "%.2f" % flt(number)
 	main, fraction = n.split('.')
