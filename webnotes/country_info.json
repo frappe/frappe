@@ -39,7 +39,7 @@
  "Sao Tome and Principe": {
   "currency_name": "Dobra", 
   "currency": "STD", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Fiji": {
   "currency_fraction": "Cent", 
@@ -50,7 +50,7 @@
   "currency": "FJD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Guernsey": {
   "currency_fraction": "Penny", 
@@ -67,7 +67,7 @@
   "currency": "TMM", 
   "currency_fraction_units": 100, 
   "currency_symbol": "m", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Iran, Islamic Republic of": {
   "currency_name": "Iranian Rial", 
@@ -95,12 +95,12 @@
   "currency": "KHR", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u17db", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Saint Helena, Ascension and Tristan da Cunha": {
   "currency_name": "Saint Helena Pound", 
   "currency": "SHP", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Ethiopia": {
   "timezones": [
@@ -280,7 +280,7 @@
   "currency": "LRD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Netherlands": {
   "currency": "EUR",
@@ -422,7 +422,7 @@
   "currency": "ALL", 
   "currency_fraction_units": 100, 
   "currency_symbol": "L", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Samoa": {
   "currency_fraction": "Sene", 
@@ -433,7 +433,7 @@
   "currency": "WST", 
   "currency_fraction_units": 100, 
   "currency_symbol": "T", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "British Indian Ocean Territory": {
   "currency_fraction": "Cent", 
@@ -496,7 +496,7 @@
   "currency": "LSL", 
   "currency_fraction_units": 100, 
   "currency_symbol": "L", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Saint Vincent and the Grenadines": {
   "timezones": [
@@ -521,7 +521,7 @@
  "Macao": {
   "currency_name": "Pataca", 
   "currency": "MOP", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Greenland": {
   "number_format": "#,###.##"
@@ -553,7 +553,7 @@
   "currency": "PYG", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20b2", 
-  "number_format": "####"
+  "number_format": "#,###.##"
  }, 
  "Bangladesh": {
   "currency_fraction": "Paisa", 
@@ -575,7 +575,7 @@
   "currency": "ERN", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Nfk", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Solomon Islands": {
   "currency_fraction": "Cent", 
@@ -586,7 +586,7 @@
   "currency": "SBD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Viet Nam": {
   "currency_name": "Dong", 
@@ -642,12 +642,12 @@
  "Korea, Democratic Peoples Republic of": {
   "currency_name": "North Korean Won", 
   "currency": "KPW", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Syrian Arab Republic": {
   "currency_name": "Syrian Pound", 
   "currency": "SYP", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Rwanda": {
   "currency_fraction": "Centime", 
@@ -658,7 +658,7 @@
   "currency": "RWF", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
-  "number_format": "####"
+  "number_format": "#,###.##"
  }, 
  "Slovakia": {
   "timezones": [
@@ -679,7 +679,7 @@
   "currency": "SOS", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Sh", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Peru": {
   "currency_fraction": "C\u00e9ntimo", 
@@ -732,7 +732,7 @@
   "currency": "MWK", 
   "currency_fraction_units": 100, 
   "currency_symbol": "MK", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Cook Islands": {
   "currency_fraction": "Cent", 
@@ -758,7 +758,7 @@
   "currency": "LYD", 
   "currency_fraction_units": 1000, 
   "currency_symbol": "\u0644.\u062f", 
-  "number_format": "#######"
+  "number_format": "#,###.###"
  }, 
  "Cuba": {
   "currency_fraction": "Centavo", 
@@ -790,7 +790,7 @@
   "currency": "DJF", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
-  "number_format": "####"
+  "number_format": "#,###.##"
  }, 
  "Togo": {
   "timezones": [
@@ -942,7 +942,7 @@
   "currency": "GYD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Mali": {
   "timezones": [
@@ -962,7 +962,7 @@
   "currency": "CVE", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Esc or $", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Bulgaria": {
   "timezones": [
@@ -1129,7 +1129,7 @@
   "currency": "UGX", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Sh", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Japan": {
   "currency_fraction": "Sen[G]", 
@@ -1183,7 +1183,7 @@
  "Lao Peoples Democratic Republic": {
   "currency_name": "Kip", 
   "currency": "LAK", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Pitcairn": {
   "number_format": "#,###.##"
@@ -1222,7 +1222,7 @@
   "currency": "QAR", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u0631.\u0642", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Luxembourg": {
   "timezones": [
@@ -1281,7 +1281,7 @@
   "currency": "NGN", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20a6", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Ecuador": {
   "timezones": [
@@ -1342,7 +1342,7 @@
   "currency": "DZD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u062f.\u062c", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "El Salvador": {
   "currency_fraction": "Centavo", 
@@ -1425,7 +1425,7 @@
   "currency": "HTG", 
   "currency_fraction_units": 100, 
   "currency_symbol": "G", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Belize": {
   "date_format": "mm-dd-yyyy", 
@@ -1459,7 +1459,7 @@
   "currency": "SLL", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Le", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Georgia": {
   "timezones": [
@@ -1473,7 +1473,7 @@
  "Gambia": {
   "currency_name": "Dalasi", 
   "currency": "GMD", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Philippines": {
   "date_format": "mm-dd-yyyy", 
@@ -1496,7 +1496,7 @@
   "currency": "MAD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u062f.\u0645.", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Croatia": {
   "currency_fraction": "Lipa", 
@@ -1521,7 +1521,7 @@
   "currency": "MNT", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20ae", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Guinea-Bissau": {
   "timezones": [
@@ -1579,7 +1579,7 @@
   "currency": "SCR", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20a8", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Tanzania, United Republic of": {
   "currency_name": "Tanzanian Shilling", 
@@ -1668,7 +1668,7 @@
   "currency": "UZS", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u043b\u0432", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Egypt": {
   "currency_fraction": "Piastre[F]", 
@@ -1684,7 +1684,7 @@
  "Falkland Islands (Malvinas)": {
   "currency_name": "Falkland Islands Pound", 
   "currency": "FKP", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Bermuda": {
   "currency_fraction": "Cent", 
@@ -1729,7 +1729,7 @@
   "currency": "BIF", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
-  "number_format": "####"
+  "number_format": "#,###.##"
  }, 
  "Turks and Caicos Islands": {
   "currency_fraction": "Cent", 
@@ -1746,7 +1746,7 @@
   "currency": "BBD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Saint Martin (French part)": {
   "number_format": "#,###.##"
@@ -1781,7 +1781,7 @@
   "currency": "BTN", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Nu.", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Sudan": {
   "timezones": [
@@ -1836,7 +1836,7 @@
   "currency": "KMF", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Fr", 
-  "number_format": "####"
+  "number_format": "#,###.##"
  }, 
  "Maldives": {
   "currency_fraction": "Laari", 
@@ -1847,7 +1847,7 @@
   "currency": "MVR", 
   "currency_fraction_units": 100, 
   "currency_symbol": ".\u0783", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Northern Mariana Islands": {
   "number_format": "#,###.##"
@@ -1918,7 +1918,7 @@
   "currency": "ZMK", 
   "currency_fraction_units": 100, 
   "currency_symbol": "ZK", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Senegal": {
   "timezones": [
@@ -1938,7 +1938,7 @@
   "currency": "PGK", 
   "currency_fraction_units": 100, 
   "currency_symbol": "K", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Gabon": {
   "timezones": [
@@ -1996,7 +1996,7 @@
   "currency": "KZT", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u20b8", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Poland": {
   "timezones": [
@@ -2010,7 +2010,7 @@
  "Moldova, Republic of": {
   "currency_name": "Moldovan Leu", 
   "currency": "MDL", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Mauritania": {
   "currency_fraction": "Khoums", 
@@ -2021,7 +2021,7 @@
   "currency": "MRO", 
   "currency_fraction_units": 5, 
   "currency_symbol": "UM", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Kyrgyzstan": {
   "currency_fraction": "Tyiyn", 
@@ -2032,7 +2032,7 @@
   "currency": "KGS", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u043b\u0432", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Congo, The Democratic Republic of the": {
   "number_format": "#,###.##"
@@ -2052,7 +2052,7 @@
   "currency": "IQD", 
   "currency_fraction_units": 1000, 
   "currency_symbol": "\u0639.\u062f", 
-  "number_format": "#######"
+  "number_format": "#,###.###"
  }, 
  "Montserrat": {
   "currency_fraction": "Cent", 
@@ -2075,7 +2075,7 @@
   "currency": "TTD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Latvia": {
   "currency_fraction": "Sant\u012bms", 
@@ -2123,7 +2123,7 @@
  "Myanmar": {
   "currency_name": "Kyat", 
   "currency": "MMK", 
-  "number_format": "######", 
+  "number_format": "#,###.##", 
   "timezones": [
    "Asia/Rangoon"
   ]
@@ -2146,7 +2146,7 @@
   "currency": "TND", 
   "currency_fraction_units": 1000, 
   "currency_symbol": "\u062f.\u062a", 
-  "number_format": "#######"
+  "number_format": "#,###.###"
  }, 
  "Nicaragua": {
   "currency_fraction": "Centavo", 
@@ -2157,7 +2157,7 @@
   "currency": "NIO", 
   "currency_fraction_units": 100, 
   "currency_symbol": "C$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Singapore": {
   "currency_fraction": "Sen", 
@@ -2221,7 +2221,7 @@
   "currency": "LKR", 
   "currency_fraction_units": 100, 
   "currency_symbol": "Rs", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Namibia": {
   "currency_fraction": "Cent", 
@@ -2232,7 +2232,7 @@
   "currency": "NAD", 
   "currency_fraction_units": 100, 
   "currency_symbol": "$", 
-  "number_format": "######"
+  "number_format": "#,###.##"
  }, 
  "Botswana": {
   "currency_fraction": "Thebe", 

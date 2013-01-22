@@ -33,6 +33,9 @@ function fmt_money(v, format){
 			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format || "#,###.##";
 		}
 	}
+	if(format=="####" || format=="######") {
+		format = "#,###.##"
+	}
 	return format_number(format, v);
 }
 
