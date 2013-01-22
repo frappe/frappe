@@ -282,6 +282,4 @@ wn.datetime.comment_when = prettyDate;
 // globals (deprecate)
 var date = dateutil = wn.datetime;
 var get_today = wn.datetime.get_today
-var time_to_ampm = wn.datetime.time_to_ampm;
-var time_to_hhmm = wn.datetime.time_to_hhmm;
 var only_date = wn.datetime.only_date;

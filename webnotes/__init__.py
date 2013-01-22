@@ -238,13 +238,16 @@ def whitelist(allow_guest=False, allow_roles=[]):
 	return innerfn
 	
 def clear_cache(user=None, doctype=None):
-	"""clear boot cache"""
+	"""clear cache"""
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
+	elif user:
+		from webnotes.sessions import clear_cache
+		clear_cache(user)
 	else:
-		from webnotes.sessions import clear
-		clear(user)
+		from webnotes.sessions import clear_cache
+		clear_cache()
 	
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
