@@ -20,7 +20,9 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-wn.utils.full_name = function(fn, ln) { return fn + (ln ? ' ' : '') + (ln ? ln : '') }
+wn.utils.full_name = function(fn, ln) { 
+	return fn + (ln ? ' ' : '') + (ln ? ln : '') 
+}
 
 function fmt_money(v, format){
 	if(!format) {
@@ -33,7 +35,7 @@ function fmt_money(v, format){
 			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format || "#,###.##";
 		}
 	}
-	if(format=="####" || format=="######") {
+	if(format=="####" || format=="######") { // no flat formats!
 		format = "#,###.##"
 	}
 	return format_number(format, v);

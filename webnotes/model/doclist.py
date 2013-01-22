@@ -65,6 +65,10 @@ class DocList(list):
 		
 		return DocList(out)
 
+	def remove_items(self, filters):
+		for d in self.get(filters):
+			self.remove(d)
+
 	def getone(self, filters):
 		return self.get(filters, limit=1)[0]
 

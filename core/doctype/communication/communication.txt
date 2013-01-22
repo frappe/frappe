@@ -1,339 +1,283 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2013-01-10 16:34:00", 
+  "docstatus": 0, 
+  "modified": "2013-01-22 14:55:58", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-15 17:21:46"
+  "owner": "Administrator"
  }, 
  {
-  "autoname": "naming_series:", 
   "allow_attach": 1, 
+  "autoname": "naming_series:", 
   "description": "Keep a track of all communications", 
-  "module": "Core", 
   "doctype": "DocType", 
-  "in_dialog": 0, 
   "document_type": "Master", 
+  "in_dialog": 0, 
+  "module": "Core", 
   "name": "__common__"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Communication", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "parentfield": "fields"
- }, 
- {
   "name": "__common__", 
   "parent": "Communication", 
-  "read": 1, 
-  "submit": 0, 
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "report": 1, 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "parentfield": "permissions"
+  "permlevel": 0
  }, 
  {
-  "name": "Communication", 
-  "doctype": "DocType"
+  "cancel": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Communication", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "submit": 0, 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Communication"
  }, 
  {
   "default": "COMM-", 
   "doctype": "DocField", 
-  "label": "Naming Series", 
-  "options": "COMM-", 
   "fieldname": "naming_series", 
   "fieldtype": "Select", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Naming Series", 
+  "options": "COMM-"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Subject", 
   "fieldname": "subject", 
   "fieldtype": "Data", 
-  "reqd": 1, 
-  "permlevel": 0
+  "label": "Subject", 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "Content", 
-  "width": "400", 
   "fieldname": "content", 
   "fieldtype": "Text Editor", 
+  "label": "Content", 
   "reqd": 0, 
-  "permlevel": 0
+  "width": "400"
  }, 
  {
   "doctype": "DocField", 
-  "options": "simple", 
   "fieldname": "section_break1", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "options": "simple"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Category", 
-  "options": "\nSales\nComplaint\nHelp\nSuggestion\nMiscellaneous\nSent Mail", 
   "fieldname": "category", 
   "fieldtype": "Select", 
-  "reqd": 0, 
-  "permlevel": 0
+  "label": "Category", 
+  "options": "\nSales\nComplaint\nHelp\nSuggestion\nMiscellaneous\nSent Mail", 
+  "reqd": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "column_break2", 
-  "fieldtype": "Column Break", 
-  "permlevel": 0
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Next Communcation On", 
   "fieldname": "next_communication_date", 
   "fieldtype": "Date", 
-  "permlevel": 0
+  "label": "Next Communcation On"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Action", 
-  "options": "\nCreated Opportunity\nSent Quotation\nCreated Support Ticket\nCreated Customer Issue\nNo Action\nSent Mail", 
   "fieldname": "action", 
   "fieldtype": "Select", 
-  "reqd": 0, 
-  "permlevel": 0
+  "label": "Action", 
+  "options": "\nCreated Opportunity\nSent Quotation\nCreated Support Ticket\nCreated Customer Issue\nNo Action\nSent Mail", 
+  "reqd": 0
  }, 
  {
   "doctype": "DocField", 
-  "label": "Additional Info", 
   "fieldname": "additional_info", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Additional Info"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "column_break3", 
-  "fieldtype": "Column Break", 
-  "permlevel": 0
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Lead", 
-  "options": "Lead", 
   "fieldname": "lead", 
   "fieldtype": "Link", 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Lead", 
+  "options": "Lead"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Contact", 
-  "options": "Contact", 
   "fieldname": "contact", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Contact", 
+  "options": "Contact"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Customer", 
-  "options": "Customer", 
   "fieldname": "customer", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Customer", 
+  "options": "Customer"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Supplier", 
-  "options": "Supplier", 
   "fieldname": "supplier", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Supplier", 
+  "options": "Supplier"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Opportunity", 
-  "options": "Opportunity", 
   "fieldname": "opportunity", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Opportunity", 
+  "options": "Opportunity"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Quotation", 
-  "options": "Quotation", 
   "fieldname": "quotation", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Quotation", 
+  "options": "Quotation"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Support Ticket", 
-  "options": "Support Ticket", 
   "fieldname": "support_ticket", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Support Ticket", 
+  "options": "Support Ticket"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Job Applicant", 
-  "options": "Job Applicant", 
   "fieldname": "job_applicant", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Job Applicant", 
+  "options": "Job Applicant"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "column_break1", 
-  "fieldtype": "Column Break", 
-  "permlevel": 0
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Recipients", 
   "fieldname": "recipients", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "Recipients"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Sender", 
   "fieldname": "sender", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "Sender"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Communication Medium", 
-  "options": "\nChat\nPhone\nEmail\nSMS\nVisit\nOther", 
   "fieldname": "communication_medium", 
   "fieldtype": "Select", 
-  "permlevel": 0
+  "label": "Communication Medium", 
+  "options": "\nChat\nPhone\nEmail\nSMS\nVisit\nOther"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Phone No.", 
   "fieldname": "phone_no", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "Phone No."
  }, 
  {
   "doctype": "DocField", 
-  "options": "simple", 
   "fieldname": "section_break2", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "options": "simple"
  }, 
  {
   "doctype": "DocField", 
-  "label": "By", 
   "fieldname": "column_break4", 
   "fieldtype": "Column Break", 
-  "permlevel": 0
+  "label": "By"
  }, 
  {
   "default": "__user", 
   "doctype": "DocField", 
-  "label": "User", 
-  "options": "Profile", 
   "fieldname": "user", 
   "fieldtype": "Link", 
-  "permlevel": 1
+  "label": "User", 
+  "options": "Profile", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "Sales Person", 
-  "options": "Sales Person", 
   "fieldname": "sales_person", 
   "fieldtype": "Link", 
-  "permlevel": 1
+  "label": "Sales Person", 
+  "options": "Sales Person", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "On", 
   "fieldname": "column_break5", 
   "fieldtype": "Column Break", 
-  "permlevel": 0
+  "label": "On"
  }, 
  {
   "default": "Today", 
   "doctype": "DocField", 
-  "label": "Date", 
   "fieldname": "communication_date", 
   "fieldtype": "Date", 
-  "permlevel": 0
+  "label": "Date"
  }, 
  {
-  "print_hide": 1, 
-  "no_copy": 1, 
   "doctype": "DocField", 
-  "label": "File List", 
   "fieldname": "file_list", 
   "fieldtype": "Text", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "File List", 
+  "no_copy": 1, 
+  "print_hide": 1
  }, 
  {
-  "print_hide": 1, 
-  "no_copy": 1, 
   "doctype": "DocField", 
-  "label": "User Tags", 
   "fieldname": "_user_tags", 
   "fieldtype": "Data", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "User Tags", 
+  "no_copy": 1, 
+  "print_hide": 1
  }, 
  {
   "amend": 0, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "role": "Support Team", 
-  "cancel": 1, 
-  "permlevel": 0
+  "role": "Support Team"
  }, 
  {
   "amend": 0, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "role": "Sales Manager", 
-  "cancel": 1, 
-  "permlevel": 0
+  "role": "Sales Manager"
  }, 
  {
   "amend": 0, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "role": "Sales User", 
-  "cancel": 1, 
-  "permlevel": 0
+  "role": "Sales User"
  }, 
  {
-  "amend": 0, 
-  "create": 0, 
   "doctype": "DocPerm", 
-  "role": "Sales Manager", 
-  "cancel": 0, 
-  "permlevel": 1
+  "role": "Support Manager"
  }, 
  {
-  "amend": 0, 
-  "create": 0, 
   "doctype": "DocPerm", 
-  "role": "Support Manager", 
-  "cancel": 0, 
-  "permlevel": 1
- }, 
- {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "role": "Support Manager", 
-  "cancel": 1, 
-  "permlevel": 0
- }, 
- {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "role": "System Manager", 
-  "cancel": 1, 
-  "permlevel": 0
+  "role": "System Manager"
  }
 ]

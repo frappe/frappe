@@ -1,434 +1,386 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "creation": "2012-12-07 15:15:20", 
+  "modified": "2013-01-22 14:56:41", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-02 14:47:27"
+  "owner": "Administrator"
  }, 
  {
-  "istable": 0, 
   "allow_attach": 1, 
-  "allow_print": 0, 
-  "search_fields": "first_name, last_name", 
-  "module": "Core", 
-  "document_type": "System", 
-  "description": "Profile Represents a User in the system.", 
-  "read_only": 0, 
+  "allow_copy": 0, 
   "allow_email": 0, 
-  "hide_heading": 0, 
-  "issingle": 0, 
-  "name": "__common__", 
+  "allow_print": 0, 
   "allow_rename": 1, 
+  "description": "Profile Represents a User in the system.", 
   "doctype": "DocType", 
-  "max_attachments": 5, 
+  "document_type": "System", 
+  "hide_heading": 0, 
   "hide_toolbar": 0, 
-  "allow_copy": 0
+  "issingle": 0, 
+  "istable": 0, 
+  "max_attachments": 5, 
+  "module": "Core", 
+  "name": "__common__", 
+  "read_only": 0, 
+  "search_fields": "first_name, last_name"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Profile", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "parentfield": "fields"
- }, 
- {
   "name": "__common__", 
   "parent": "Profile", 
-  "read": 1, 
-  "doctype": "DocPerm", 
-  "write": 1, 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "parentfield": "permissions"
+  "permlevel": 0
  }, 
  {
-  "name": "Profile", 
-  "doctype": "DocType"
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Profile", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "submit": 0, 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Profile"
  }, 
  {
   "default": "1", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Enabled", 
-  "oldfieldname": "enabled", 
   "fieldname": "enabled", 
   "fieldtype": "Check", 
-  "permlevel": 1
+  "label": "Enabled", 
+  "oldfieldname": "enabled", 
+  "oldfieldtype": "Check", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "sb0_5", 
-  "fieldtype": "Section Break", 
-  "permlevel": 0
+  "fieldtype": "Section Break"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Unsubscribed", 
   "fieldname": "unsubscribed", 
   "fieldtype": "Check", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Unsubscribed"
  }, 
  {
   "description": "Id of the profile will be the email.", 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Email", 
-  "oldfieldname": "email", 
   "fieldname": "email", 
   "fieldtype": "Data", 
-  "search_index": 0, 
-  "reqd": 1, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Email", 
+  "oldfieldname": "email", 
+  "oldfieldtype": "Data", 
+  "reqd": 1, 
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "First Name", 
-  "oldfieldname": "first_name", 
   "fieldname": "first_name", 
   "fieldtype": "Data", 
-  "reqd": 1, 
-  "permlevel": 0
+  "label": "First Name", 
+  "oldfieldname": "first_name", 
+  "oldfieldtype": "Data", 
+  "reqd": 1
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Middle Name (Optional)", 
-  "oldfieldname": "middle_name", 
   "fieldname": "middle_name", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "Middle Name (Optional)", 
+  "oldfieldname": "middle_name", 
+  "oldfieldtype": "Data"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Last Name", 
-  "oldfieldname": "last_name", 
   "fieldname": "last_name", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "Last Name", 
+  "oldfieldname": "last_name", 
+  "oldfieldtype": "Data"
  }, 
  {
-  "print_width": "50%", 
-  "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
-  "width": "50%", 
   "fieldname": "column_break0", 
   "fieldtype": "Column Break", 
-  "permlevel": 0
+  "oldfieldtype": "Column Break", 
+  "print_width": "50%", 
+  "width": "50%"
  }, 
  {
-  "oldfieldtype": "Date", 
   "doctype": "DocField", 
-  "label": "Birth Date", 
-  "oldfieldname": "birth_date", 
   "fieldname": "birth_date", 
   "fieldtype": "Date", 
-  "permlevel": 0
+  "label": "Birth Date", 
+  "oldfieldname": "birth_date", 
+  "oldfieldtype": "Date"
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "User Type", 
-  "oldfieldname": "user_type", 
-  "options": "\nSystem User\nPartner", 
   "fieldname": "user_type", 
   "fieldtype": "Select", 
-  "permlevel": 1
+  "label": "User Type", 
+  "oldfieldname": "user_type", 
+  "oldfieldtype": "Select", 
+  "options": "\nSystem User\nPartner", 
+  "read_only": 1
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "Gender", 
-  "oldfieldname": "gender", 
-  "options": "\nMale\nFemale\nOther", 
   "fieldname": "gender", 
   "fieldtype": "Select", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Gender", 
+  "oldfieldname": "gender", 
+  "oldfieldtype": "Select", 
+  "options": "\nMale\nFemale\nOther", 
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 
-  "label": "Set New Password", 
   "fieldname": "change_password", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Set New Password"
  }, 
  {
-  "print_hide": 1, 
   "description": "Set a new password and \"Save\"", 
   "doctype": "DocField", 
-  "label": "New Password", 
   "fieldname": "new_password", 
   "fieldtype": "Password", 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "New Password", 
+  "print_hide": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "Display Settings", 
   "fieldname": "display_settings", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Display Settings"
  }, 
  {
   "doctype": "DocField", 
-  "label": "User Image", 
-  "options": "attach_files:", 
   "fieldname": "user_image", 
   "fieldtype": "Select", 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "User Image", 
+  "options": "attach_files:"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Background Image", 
-  "options": "attach_files:", 
   "fieldname": "background_image", 
   "fieldtype": "Select", 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Background Image", 
+  "options": "attach_files:"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Theme", 
-  "options": "Default\nDesert\nFloral\nOcean\nSky\nSnow\nSunny\nTropic", 
   "fieldname": "theme", 
   "fieldtype": "Select", 
-  "permlevel": 0
+  "label": "Theme", 
+  "options": "Default\nDesert\nFloral\nOcean\nSky\nSnow\nSunny\nTropic"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "cb21", 
-  "fieldtype": "Column Break", 
-  "permlevel": 0
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 
-  "label": "user_image_show", 
-  "options": "user_image", 
   "fieldname": "user_image_show", 
   "fieldtype": "Image", 
-  "permlevel": 0
+  "label": "user_image_show", 
+  "options": "user_image"
  }, 
  {
   "description": "Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.", 
   "doctype": "DocField", 
-  "label": "Roles", 
   "fieldname": "sb1", 
   "fieldtype": "Section Break", 
-  "permlevel": 1
+  "label": "Roles", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "Roles HTML", 
   "fieldname": "roles_html", 
   "fieldtype": "HTML", 
-  "permlevel": 1
+  "label": "Roles HTML", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "Email Settings", 
   "fieldname": "incoming_email_settings", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Email Settings"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "cb18", 
-  "fieldtype": "Column Break", 
-  "permlevel": 0
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Email Signature", 
   "fieldname": "email_signature", 
   "fieldtype": "Small Text", 
-  "permlevel": 0
+  "label": "Email Signature"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "cb20", 
-  "fieldtype": "Column Break", 
-  "permlevel": 0
+  "fieldtype": "Column Break"
  }, 
  {
   "description": "Pull Emails from the Inbox and attach them as Communication records (for known contacts).", 
   "doctype": "DocField", 
-  "label": "Sync Inbox", 
   "fieldname": "sync_inbox", 
   "fieldtype": "Check", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Sync Inbox"
  }, 
  {
   "description": "POP3 Mail Server (e.g. pop.gmail.com)", 
   "doctype": "DocField", 
-  "label": "Email Host", 
   "fieldname": "email_host", 
   "fieldtype": "Data", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Email Host"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Email Use SSL", 
   "fieldname": "email_use_ssl", 
   "fieldtype": "Check", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Email Use SSL"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Email Login", 
   "fieldname": "email_login", 
   "fieldtype": "Data", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Email Login"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Email Password", 
   "fieldname": "email_password", 
   "fieldtype": "Password", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Email Password"
  }, 
  {
   "description": "These values will be automatically updated in transactions and also will be useful to restrict permissions for this user on transactions containing these values.", 
-  "print_width": "50%", 
-  "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
-  "label": "Defaults", 
-  "width": "50%", 
   "fieldname": "sb2", 
   "fieldtype": "Section Break", 
   "hidden": 1, 
-  "permlevel": 1
+  "label": "Defaults", 
+  "oldfieldtype": "Column Break", 
+  "print_width": "50%", 
+  "read_only": 1, 
+  "width": "50%"
  }, 
  {
   "description": "Enter default value fields (keys) and values. If you add multiple values for a field, the first one will be picked. These defaults are also used to set \"match\" permission rules. To see list of fields, go to <a href=\"#Form/Customize Form/Customize Form\">Customize Form</a>.", 
   "doctype": "DocField", 
-  "label": "Profile Defaults", 
-  "options": "DefaultValue", 
   "fieldname": "defaults", 
   "fieldtype": "Table", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Profile Defaults", 
+  "options": "DefaultValue"
  }, 
  {
-  "oldfieldtype": "Section Break", 
   "doctype": "DocField", 
-  "label": "Security Settings", 
   "fieldname": "sb3", 
   "fieldtype": "Section Break", 
-  "permlevel": 1
+  "label": "Security Settings", 
+  "oldfieldtype": "Section Break", 
+  "read_only": 1
  }, 
  {
   "description": "Allow user to login only after this hour (0-24)", 
   "doctype": "DocField", 
-  "label": "Login After", 
   "fieldname": "login_after", 
   "fieldtype": "Int", 
-  "permlevel": 1
+  "label": "Login After", 
+  "read_only": 1
  }, 
  {
   "description": "Allow user to login only before this hour (0-24)", 
   "doctype": "DocField", 
-  "label": "Login Before", 
   "fieldname": "login_before", 
   "fieldtype": "Int", 
-  "permlevel": 1
+  "label": "Login Before", 
+  "read_only": 1
  }, 
  {
   "description": "Restrict user from this IP address only. Multiple IP addresses can be added by separating with commas. Also accepts partial IP addresses like (111.111.111)", 
   "doctype": "DocField", 
-  "label": "Restrict IP", 
   "fieldname": "restrict_ip", 
   "fieldtype": "Data", 
-  "permlevel": 1
+  "label": "Restrict IP", 
+  "read_only": 1
  }, 
  {
-  "print_width": "50%", 
-  "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
-  "width": "50%", 
   "fieldname": "column_break1", 
   "fieldtype": "Column Break", 
-  "permlevel": 0
+  "oldfieldtype": "Column Break", 
+  "print_width": "50%", 
+  "width": "50%"
  }, 
  {
-  "oldfieldtype": "Read Only", 
   "doctype": "DocField", 
-  "label": "Last Login", 
-  "oldfieldname": "last_login", 
   "fieldname": "last_login", 
   "fieldtype": "Read Only", 
-  "search_index": 0, 
-  "reqd": 0, 
   "hidden": 0, 
-  "permlevel": 1
+  "label": "Last Login", 
+  "oldfieldname": "last_login", 
+  "oldfieldtype": "Read Only", 
+  "read_only": 1, 
+  "reqd": 0, 
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Read Only", 
   "doctype": "DocField", 
-  "label": "Last IP", 
-  "oldfieldname": "last_ip", 
   "fieldname": "last_ip", 
   "fieldtype": "Read Only", 
-  "permlevel": 1
+  "label": "Last IP", 
+  "oldfieldname": "last_ip", 
+  "oldfieldtype": "Read Only", 
+  "read_only": 1
  }, 
  {
-  "no_copy": 1, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "File List", 
-  "oldfieldname": "file_list", 
   "fieldname": "file_list", 
   "fieldtype": "Text", 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "File List", 
+  "no_copy": 1, 
+  "oldfieldname": "file_list", 
+  "oldfieldtype": "Text"
  }, 
  {
-  "execute": 0, 
+  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
-  "submit": 0, 
-  "role": "Administrator", 
-  "cancel": 1, 
-  "permlevel": 0
+  "role": "Administrator"
  }, 
  {
+  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
-  "role": "System Manager", 
-  "cancel": 1, 
-  "permlevel": 0
+  "role": "System Manager"
  }, 
  {
   "doctype": "DocPerm", 
-  "role": "All", 
-  "permlevel": 0, 
-  "match": "owner"
- }, 
- {
-  "amend": 0, 
-  "create": 0, 
-  "doctype": "DocPerm", 
-  "submit": 0, 
-  "role": "Administrator", 
-  "cancel": 0, 
-  "permlevel": 1
- }, 
- {
-  "amend": 0, 
-  "create": 0, 
-  "doctype": "DocPerm", 
-  "submit": 0, 
-  "role": "System Manager", 
-  "cancel": 0, 
-  "permlevel": 1
+  "match": "owner", 
+  "role": "All"
  }
 ]
