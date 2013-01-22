@@ -78,9 +78,11 @@ def get_bootinfo():
 	return bootinfo
 
 def load_country_and_currency(bootinfo, doclist):
-	if bootinfo.control_panel.country:
+	if bootinfo.control_panel.country and \
+		webnotes.conn.exists("Country", bootinfo.control_panel.country):
 		doclist += [webnotes.doc("Country", bootinfo.control_panel.country)]
-	if bootinfo.sysdefaults.currency:
+	if bootinfo.sysdefaults.currency and \
+		webnotes.conn.exists("Currency", bootinfo.sysdefaults.currency):
 		doclist += [webnotes.doc("Currency", bootinfo.sysdefaults.currency)]
 
 def add_allowed_pages(bootinfo):
