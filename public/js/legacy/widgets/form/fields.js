@@ -444,24 +444,34 @@ DataField.prototype.make_input = function() {
 			me.set(val);
 			if(me.format_input)
 				me.format_input();
-			if(in_list(['Float','Int'], me.df.fieldtype)) {
+			if(me.df.fieldtype=='Int') {
 				if(flt(me.last_value)==flt(val)) {
 					me.last_value = val;
 					return; // do not run trigger
 				}
 			}
-			if (me.df.fieldtype=='Currency'){
+			if (in_list(['Currency', 'Float'],me.df.fieldtype)){
 				
 				fmt = currency_format();
-				
-				$(this.input).iMask({
-					'type': 'number',
-					'currencySymbol': fmt.symbol,
-					'decDigits': fmt.decimal_places,
-					'groupSymbol': fmt.separators[0],
-					'decSymbol': fmt.separators[1],
-					'groupDigits': 3 
-				});
+				if (me.df.fieldtype == 'Currency'){
+					$(this.input).iMask({
+						'type': 'number',
+						'currencySymbol': fmt.symbol,
+						'decDigits': fmt.decimal_places,
+						'groupSymbol': fmt.separators[0],
+						'decSymbol': fmt.separators[1],
+						'groupDigits': 3 
+					});
+				} else {
+					$(this.input).iMask({
+						'type': 'number',
+						'currencySymbol': '',
+						'decDigits': fmt.decimal_places,
+						'groupSymbol': fmt.separators[0],
+						'decSymbol': fmt.separators[1],
+						'groupDigits': 3 
+					});
+				}
 				
 				if (currency_to_flt(me.last_value)==currency_to_flt(val)){
 					me.last_value = val;

@@ -58,7 +58,10 @@ function currency_to_flt(v, decimals, fmt){
 	return parseFloat(v.join(""));
 }
 
-function fmt_money(v, fmt){
+function fmt_money(v, fmt, is_flt){
+	if(!is_flt) {
+		is_flt = false;
+	}
 	fmt = currency_format(fmt);
 	if (v==null || v=='') { v='0.00' };
 	v = parseFloat(v);
@@ -92,7 +95,7 @@ function fmt_money(v, fmt){
 		n = a.join(fmt.separators[0]);
 		if(d.length < 1) { amount = n; }
 		else { amount = n + fmt.separators[1] + d; }
-		amount = fmt.symbol + minus + amount;
+		amount = ((!is_flt) ? fmt.symbol : '') + minus + amount;
 		return amount;
 	}
 	
