@@ -1,61 +1,53 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-10 16:34:03", 
   "docstatus": 0, 
-  "creation": "2012-07-03 13:29:35", 
+  "modified": "2013-01-22 17:40:49", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-10 19:11:05"
+  "owner": "Administrator"
  }, 
  {
-  "autoname": "field:module_name", 
-  "name": "__common__", 
   "allow_rename": 1, 
+  "autoname": "field:module_name", 
   "doctype": "DocType", 
-  "module": "Core"
+  "module": "Core", 
+  "name": "__common__"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Module Def", 
   "doctype": "DocField", 
+  "fieldname": "module_name", 
+  "fieldtype": "Data", 
+  "label": "Module Name", 
+  "name": "__common__", 
+  "oldfieldname": "module_name", 
+  "oldfieldtype": "Data", 
+  "parent": "Module Def", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "permlevel": 0
  }, 
  {
-  "parent": "Module Def", 
-  "read": 1, 
-  "cancel": 1, 
-  "name": "__common__", 
   "amend": 0, 
+  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
-  "submit": 0, 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Module Def", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "role": "Administrator", 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "report": 1, 
+  "role": "Administrator", 
+  "submit": 0, 
+  "write": 1
  }, 
  {
-  "name": "Module Def", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Module Def"
  }, 
  {
-  "oldfieldtype": "Data", 
-  "doctype": "DocField", 
-  "label": "Module Name", 
-  "oldfieldname": "module_name", 
-  "fieldname": "module_name", 
-  "fieldtype": "Data"
- }, 
- {
-  "oldfieldtype": "Select", 
-  "doctype": "DocField", 
-  "label": "Disabled", 
-  "oldfieldname": "disabled", 
-  "fieldname": "disabled", 
-  "fieldtype": "Select", 
-  "options": "No\nYes"
+  "doctype": "DocField"
  }, 
  {
   "doctype": "DocPerm"

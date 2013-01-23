@@ -30,14 +30,7 @@ wn.doclistviews['Profile'] = wn.views.ListView.extend({
 	columns: [
 		{width: '3%', content: 'check'},
 		{width: '5%', content: 'avatar'},
-		{width: '3%', content: function(parent, data) {
-			var enabled = cint(data.enabled);
-			$(parent).html(repl('<span class="docstatus"><i class="%(icon)s" \
-				title="%(title)s"></i></span>', {
-					icon: enabled ? "icon-pencil": "icon-exclamation-sign",
-					title: enabled ? "Enabled": "Disabled",
-				}));
-		}},
+		{width: '3%', content: "enabled"},
 		{width: '40%', content: 'name'},
 		{width: '35%', content: 'fullname+tags'},
 		{width: '17%', content:'modified',

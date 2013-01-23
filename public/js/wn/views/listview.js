@@ -73,6 +73,18 @@ wn.views.ListView = Class.extend({
 				<i class="%(docstatus_icon)s" \
 				title="%(docstatus_title)s"></i></span>', data));			
 		}
+		else if(opts.content=='enabled') {
+			data.icon = cint(data.enabled) ? "icon-check" : "icon-check-empty";
+			data.title = cint(data.enabled) ? wn._("Enabled") : wn._("Disabled");
+			$(parent).append(repl('<span class="docstatus"> \
+				<i class="%(icon)s" title="%(title)s"></i></span>', data));			
+		}
+		else if(opts.content=='disabled') {
+			data.icon = cint(data.disabled) ? "icon-check-empty" : "icon-check"
+			data.title = cint(data.disabled) ? wn._("Disabled") : wn._("Enabled");
+			$(parent).append(repl('<span class="docstatus"> \
+				<i class="%(icon)s"></i></span>', data));			
+		}
 		else if(opts.content=='tags') {
 			this.add_user_tags(parent, data);
 		}
