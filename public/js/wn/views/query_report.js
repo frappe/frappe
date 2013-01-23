@@ -211,7 +211,7 @@ wn.views.QueryReport = Class.extend({
 					} else if(opts[1]=="Currency") {
 						col.formatter = function(row, cell, value, columnDef, dataContext) {
 							return repl('<div style="text-align: right;">%(value)s</div>', {
-								value: fmt_money(value)
+								value: format_number(value)
 							});
 						};
 					} else if(opts[1]=="Float") {

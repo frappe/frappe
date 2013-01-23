@@ -12,9 +12,9 @@
 // param: Mask & Value
 ////////////////////////////////////////////////////////////////////////////////
 
-window['format_number'] = function( m, v){ 
+window['format_number'] = function(v, m, decimals){ 
 	if (!m) {
-		return v; //return as it is.
+		m = get_number_format();
 	}
 	//search for separator for grp & decimal, anything not digit, not +/- sign, not #.
 	var result = m.match(/[^\d\-\+#]/g);
@@ -32,16 +32,14 @@ window['format_number'] = function( m, v){
 	
 	//split the decimal for the format string if any.
 	var m = m.split( Decimal);
+
+	if(!decimals) decimals = m[1] && m[1].length;
+
 	//Fix the decimal first, toFixed will auto fill trailing zero.
-	v = v.toFixed( m[1] && m[1].length);
-	// v = +(v) + ''; //convert number to string to trim off *all* trailing decimal zero(es)
-	// 
-	// //fill back any trailing zero according to format
-	// var pos_trail_zero = m[1] && m[1].lastIndexOf('0'); //look for last zero in format
+	v = v.toFixed(decimals);
+
 	var part = v.split('.');
-	// if (!part[1] || part[1] && part[1].length <= pos_trail_zero) {
-	// 	v = (+v).toFixed( pos_trail_zero+1);
-	// }
+
 	var szSep = m[0].split( Group); //look for separator
 	m[0] = szSep.join(''); //join back without separator for counting the pos of any leading 0.
 

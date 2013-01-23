@@ -122,6 +122,10 @@ set_field_options = function(n, txt) {
 	cur_frm.set_df_property(n, 'options', txt)
 }
 
+set_field_permlevel = function(n, level) {
+	cur_frm.set_df_property(n, 'permlevel', level)
+}
+
 toggle_field = function(n, hidden) {
 	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df) {

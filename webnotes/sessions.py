@@ -58,14 +58,12 @@ def clear_sessions(user=None, keep_current=False):
 	if not user:
 		user = webnotes.session.user
 	for sid in webnotes.conn.sql("""select sid from tabSessions where user=%s""", user):
-		if not (keep_current and webnotes.session.sid == sid[0]):
+		if keep_current and webnotes.session.sid==sid[0]:
+			pass
+		else:
 			webnotes.cache().delete_value("session:" + sid[0])
-	if keep_current:
-		webnotes.conn.sql('delete from tabSessions where user=%s and sid!=%s', (user, 
-			webnotes.session.sid))
-	else:
-		webnotes.conn.sql('delete from tabSessions where user=%s', user)
-		
+			webnotes.conn.sql("""delete from tabSessions where sid=%s""", sid[0])
+
 def get():
 	"""get session boot info"""
 	# check if cache exists
@@ -233,12 +231,10 @@ class Session:
 			webnotes.conn.sql("""update tabSessions set sessiondata=%s, 
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
 				self.data['sid']))
-				
-			# update timestamp of update
+
+		if webnotes.request.cmd not in ("webnotes.sessions.clear", "logout"):
 			webnotes.cache().set_value("last_db_session_update:" + self.sid, 
 				webnotes.utils.now())
-
-		if webnotes.request.cmd!="webnotes.sessions.clear":
 			webnotes.cache().set_value("session:" + self.sid, self.data)
 
 	def get_expiry_period(self):

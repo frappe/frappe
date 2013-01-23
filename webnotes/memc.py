@@ -24,8 +24,7 @@ from __future__ import unicode_literals
 import memcache, conf
 
 class MClient(memcache.Client):
-	"""memcache client that will automatically prefix conf.db_name
-	and maintain a key list"""
+	"""memcache client that will automatically prefix conf.db_name"""
 	def n(self, key):
 		return (conf.db_name + ":" + key.replace(" ", "_")).encode('utf-8')
 	

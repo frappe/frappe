@@ -448,7 +448,7 @@ wn.views.GridReport = Class.extend({
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
 			_style: dataContext._style || "",
-			value: dataContext._no_format ? value : fmt_money(value)
+			value: dataContext._no_format ? value : format_number(value)
 		});
 	},
 	text_formatter: function(row, cell, value, columnDef, dataContext) {
@@ -669,7 +669,7 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 	},
 	get_tooltip_text: function(label, x, y) {
 		var date = dateutil.obj_to_user(new Date(x));
-	 	var value = fmt_money(y);
+	 	var value = format_number(y);
 		return value + " on " + date;
 	},
 	get_plot_data: function() {

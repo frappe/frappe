@@ -153,7 +153,7 @@ _p.PrintQuery.prototype.build_table = function(r, start, page_len, has_heading, 
 			}
 			var c = $td(t,ri+has_heading-start,ci + args.has_index)
 			c.div = $a(c, 'div','', {whiteSpace:'normal'});
-			$s(
+			set_value_in(
 				c.div, 
 				r.values[ri][ci],
 				args.coltypes ? args.coltypes[ci + args.has_index] : null

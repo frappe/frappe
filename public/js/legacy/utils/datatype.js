@@ -25,20 +25,28 @@ wn.utils.full_name = function(fn, ln) {
 }
 
 function fmt_money(v, format){
-	if(!format) {
-		if(wn.boot.sysdefaults.number_format) {
-			format = wn.boot.sysdefaults.number_format;
-		} else if(!wn.boot.sysdefaults.currency) {
-			show_alert("Default Currency Not Set");
-			format = "#,###.##"
-		} else {
-			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format || "#,###.##";
-		}
+	return format_number(v, format);
+}
+
+function format_currency(v, currency) {
+	if(!currency) currency = wn.boot.sysdefaults.currency;
+	var symbol = locals.Currency[currency].symbol || currency;
+	return symbol + " " + format_number(v);
+}
+
+function get_number_format() {
+	var default_format = "#,###.##";
+	if(wn.boot.sysdefaults.number_format) {
+		format = wn.boot.sysdefaults.number_format;
+	} else if(!wn.boot.sysdefaults.currency) {
+		format = default_format
+	} else {
+		format = locals["Currency"][wn.boot.sysdefaults.currency].number_format;
 	}
-	if(format=="####" || format=="######") { // no flat formats!
-		format = "#,###.##"
+	if(!format || format=="####" || format=="######") { // no flat formats!
+		format = default_format
 	}
-	return format_number(format, v);
+	return format;
 }
 
 // to title case
@@ -64,33 +72,9 @@ function is_null(v) {
 	}
 }
 
-function $s(ele, v, ftype, fopt) { 	
-	if(v==null)v='';
-					
-	if((ftype =='Text'|| ftype =='Small Text') && typeof(v)=="string") {
-		ele.innerHTML = v?v.replace(/\n/g, '<br>'):'';
-	} else if(ftype =='Date') {
-		v = dateutil.str_to_user(v);
-		if(v==null)v=''
-		ele.innerHTML = v;
-	} else if(ftype =='Link' && fopt) {
-		ele.innerHTML = repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', 
-			{doctype: fopt, name:v});
-	} else if(ftype =='Currency') {
-		ele.style.textAlign = 'right';
-		if(is_null(v))
-			ele.innerHTML = '';
-		else
-			ele.innerHTML = fmt_money(v);
-	} else if(ftype =='Int') {
-		ele.style.textAlign = 'right';
-		ele.innerHTML = v;
-	} else if(ftype == 'Check') {
-		if(v) ele.innerHTML = '<img src="lib/images/ui/tick.gif">';
-		else ele.innerHTML = '';
-	} else {
-		ele.innerHTML = v;
-	}
+function set_value_in(ele, v, ftype, fopt) { 
+	$(ele).html(wn.form.get_formatter(ftype)(v, {options:fopt}));
+	return;
 }
 
 function copy_dict(d) {
@@ -128,7 +112,7 @@ function nth(number) {
 	return number+s;
 }
 
-function flt(v,decimals) { 
+function flt(v, decimals) { 
 	if(v==null || v=='')return 0;
 	v=(v+'').replace(/,/g,'');
 

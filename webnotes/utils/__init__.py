@@ -363,11 +363,27 @@ def parse_val(v):
 		v = int(v)
 	return v
 
-def fmt_money(amount, precision=2):
+def fmt_money(amount, precision=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	curr = webnotes.conn.get_value('Control Panel', None, 'currency_format') or 'Millions'
+	import webnotes, re
+	from webnotes import _
+	
+	curr = webnotes.conn.get_value('Control Panel', None, 
+		'currency_format') or 'Millions'
+	number_format = webnotes.get_default("number_format") or "#,###.##"
+		
+	breaks = re.findall('[^#\d]+', number_format)
+	if len(breaks) < 2:
+		webnotes.msgprint(_("Incorrect Number Format:") + number_format, 
+			raise_exception=True)
+	
+	decimal_str = breaks[-1]
+	comma_str = breaks[0]
+	if not precision:
+		precision = len(number_format.split(decimal_str)[-1]) or 2
+	
 	amount = '%.*f' % (precision, flt(amount))
 	val = 2
 	if curr == 'Millions': val = 3
@@ -379,7 +395,6 @@ def fmt_money(amount, precision=2):
 	minus = ''
 	if flt(amount) < 0: minus = '-'
 
-	amount = ''.join(amount.split(','))
 	amount = cstr(abs(flt(amount))).split('.')[0]
 	
 	# main logic	
@@ -394,7 +409,7 @@ def fmt_money(amount, precision=2):
 	
 	if len(amount) > 0:	l.insert(0,amount)
 
-	amount = ','.join(l)+'.'+temp
+	amount = comma_str.join(l) + decimal_str + temp
 	amount = minus + amount
 	return amount
 

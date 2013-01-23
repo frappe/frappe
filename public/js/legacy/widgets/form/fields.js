@@ -855,14 +855,17 @@ FloatField.prototype.onmake_input = function() {
 		this.select();
 	}
 }
+FloatField.prototype.set_disp = function(val) { 
+	this.set_disp_html(wn.format(val, this.df, locals[this.doctype][this.name]));
+}
 
 // ======================================================================================
 
 function CurrencyField() { } CurrencyField.prototype = new FloatField();
 CurrencyField.prototype.format_input = function() { 
-	var v = fmt_money(this.input.value); 
+	var v = flt(this.input.value); 
 	if(this.not_in_form) {
-		if(!flt(this.input.value)) v = ''; // blank in filter
+		if(!v) v = ''; // blank in filter
 	}
 	this.input.value = v;
 }
@@ -873,8 +876,7 @@ CurrencyField.prototype.validate = function(v) {
 	return flt(v,2); 
 }
 CurrencyField.prototype.set_disp = function(val) { 
-	var v = fmt_money(val); 
-	this.set_disp_html(v);
+	this.set_disp_html(wn.format(val, this.df, locals[this.doctype][this.name]));
 }
 
 // ======================================================================================

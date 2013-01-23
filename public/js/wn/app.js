@@ -125,6 +125,7 @@ wn.Application = Class.extend({
 			callback: function(r) {
 				if(r.exc) {
 					console.log(r.exc);
+					return;
 				}
 				me.redirect_to_login();
 			}

@@ -57,10 +57,10 @@ _r.show_calc = function(tab, colnames, coltypes, add_idx) {
 				if(v > maxv)maxv = v;
 				if(v < minv)minv = v;
 			}
-			d.widgets['Sum'].value = fmt_money(sum);
-			d.widgets['Average'].value = fmt_money(sum / this.datatab.rows.length);
-			d.widgets['Min'].value = fmt_money(minv);
-			d.widgets['Max'].value = fmt_money(maxv);
+			d.widgets['Sum'].value = format_number(sum);
+			d.widgets['Average'].value = format_number(sum / this.datatab.rows.length);
+			d.widgets['Min'].value = format_number(minv);
+			d.widgets['Max'].value = format_number(maxv);
 			_r.calc_dialog = d;
 		}
 		d.onshow = function() {

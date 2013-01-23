@@ -104,5 +104,19 @@ $.extend(wn.meta, {
 			$.extend(wn._messages, doc.__messages);
 		}
 	},
+	
+	get_field_currency: function(df, doc) {
+		var currency = wn.boot.sysdefaults.currency;
+		if(df && df.options) {
+			if(df.options.substr(0,5)=="eval:") {
+				currency = eval(df.options.substr(5))
+			} else if(doc && doc[df.options]) {
+				currency = doc[df.options];
+			} else if(cur_frm && cur_frm.doc[df.options]) {
+				currency = cur_frm.doc[df.options];
+			}
+		}
+		return currency;
+	}
 
 });

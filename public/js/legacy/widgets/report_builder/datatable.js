@@ -474,7 +474,7 @@ _r.DataTable.prototype.make_data_cell = function(ri, ci, val) {
   var me = this;
 
   c.div = $a(c, 'div', '', {width:(cint(w)-7)+'px'});
-  $s(c.div, val, this.coltypes[ci], this.coloptions[ci])
+  set_value_in(c.div, val, this.coltypes[ci], this.coloptions[ci])
 }
 
 _r.DataTable.prototype.do_print = function() {
