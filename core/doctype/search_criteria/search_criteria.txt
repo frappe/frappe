@@ -1,335 +1,293 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2013-01-10 16:34:04", 
+  "docstatus": 0, 
+  "modified": "2013-01-22 14:57:23", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-16 17:01:19"
+  "owner": "Administrator"
  }, 
  {
-  "name": "__common__", 
-  "search_fields": "criteria_name", 
+  "doctype": "DocType", 
   "module": "Core", 
-  "doctype": "DocType"
+  "name": "__common__", 
+  "search_fields": "criteria_name"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Search Criteria", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "parentfield": "fields"
- }, 
- {
   "name": "__common__", 
   "parent": "Search Criteria", 
-  "read": 1, 
-  "submit": 0, 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
   "doctype": "DocPerm", 
-  "report": 1, 
+  "name": "__common__", 
+  "parent": "Search Criteria", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "parentfield": "permissions"
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "submit": 0
  }, 
  {
-  "name": "Search Criteria", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Search Criteria"
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Criteria Name", 
-  "oldfieldname": "criteria_name", 
   "fieldname": "criteria_name", 
   "fieldtype": "Data", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Criteria Name", 
+  "no_copy": 0, 
+  "oldfieldname": "criteria_name", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Disabled", 
-  "oldfieldname": "disabled", 
   "fieldname": "disabled", 
   "fieldtype": "Check", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Disabled", 
+  "no_copy": 0, 
+  "oldfieldname": "disabled", 
+  "oldfieldtype": "Check", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Link", 
   "doctype": "DocField", 
-  "label": "Module", 
-  "oldfieldname": "module", 
-  "options": "Module Def", 
   "fieldname": "module", 
   "fieldtype": "Link", 
-  "search_index": 0, 
+  "label": "Module", 
+  "no_copy": 0, 
+  "oldfieldname": "module", 
+  "oldfieldtype": "Link", 
+  "options": "Module Def", 
   "reqd": 0, 
-  "permlevel": 0
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "Standard", 
-  "oldfieldname": "standard", 
-  "options": "\nYes\nNo", 
   "fieldname": "standard", 
   "fieldtype": "Select", 
-  "search_index": 1, 
+  "label": "Standard", 
+  "no_copy": 0, 
+  "oldfieldname": "standard", 
+  "oldfieldtype": "Select", 
+  "options": "\nYes\nNo", 
   "reqd": 0, 
-  "permlevel": 0
+  "search_index": 1
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Doc Type", 
-  "oldfieldname": "doc_type", 
   "fieldname": "doc_type", 
   "fieldtype": "Data", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 1
+  "label": "Doc Type", 
+  "no_copy": 0, 
+  "oldfieldname": "doc_type", 
+  "oldfieldtype": "Data", 
+  "read_only": 1, 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Filters", 
-  "oldfieldname": "filters", 
   "fieldname": "filters", 
   "fieldtype": "Text", 
-  "search_index": 0, 
   "hidden": 1, 
-  "permlevel": 0
+  "label": "Filters", 
+  "no_copy": 0, 
+  "oldfieldname": "filters", 
+  "oldfieldtype": "Text", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Columns", 
-  "oldfieldname": "columns", 
   "fieldname": "columns", 
   "fieldtype": "Text", 
-  "search_index": 0, 
   "hidden": 1, 
-  "permlevel": 1
+  "label": "Columns", 
+  "no_copy": 0, 
+  "oldfieldname": "columns", 
+  "oldfieldtype": "Text", 
+  "read_only": 1, 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Parent Doc Type", 
-  "oldfieldname": "parent_doc_type", 
   "fieldname": "parent_doc_type", 
   "fieldtype": "Data", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 1
+  "label": "Parent Doc Type", 
+  "no_copy": 0, 
+  "oldfieldname": "parent_doc_type", 
+  "oldfieldtype": "Data", 
+  "read_only": 1, 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Additional Conditions", 
-  "oldfieldname": "add_cond", 
   "fieldname": "add_cond", 
   "fieldtype": "Text", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Additional Conditions", 
+  "no_copy": 0, 
+  "oldfieldname": "add_cond", 
+  "oldfieldtype": "Text", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Additional Columns", 
-  "oldfieldname": "add_col", 
   "fieldname": "add_col", 
   "fieldtype": "Text", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Additional Columns", 
+  "no_copy": 0, 
+  "oldfieldname": "add_col", 
+  "oldfieldtype": "Text", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Additional Tables", 
-  "oldfieldname": "add_tab", 
   "fieldname": "add_tab", 
   "fieldtype": "Text", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Additional Tables", 
+  "no_copy": 0, 
+  "oldfieldname": "add_tab", 
+  "oldfieldtype": "Text", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Disabled Filters", 
-  "oldfieldname": "dis_filters", 
   "fieldname": "dis_filters", 
   "fieldtype": "Text", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Disabled Filters", 
+  "no_copy": 0, 
+  "oldfieldname": "dis_filters", 
+  "oldfieldtype": "Text", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Group By", 
-  "oldfieldname": "group_by", 
   "fieldname": "group_by", 
   "fieldtype": "Data", 
-  "search_index": 0, 
   "hidden": 0, 
-  "permlevel": 0
+  "label": "Group By", 
+  "no_copy": 0, 
+  "oldfieldname": "group_by", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Sort By", 
-  "oldfieldname": "sort_by", 
   "fieldname": "sort_by", 
   "fieldtype": "Data", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Sort By", 
+  "no_copy": 0, 
+  "oldfieldname": "sort_by", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Sort Order", 
-  "oldfieldname": "sort_order", 
   "fieldname": "sort_order", 
   "fieldtype": "Data", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Sort Order", 
+  "no_copy": 0, 
+  "oldfieldname": "sort_order", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Int", 
   "doctype": "DocField", 
-  "label": "Page Len", 
-  "oldfieldname": "page_len", 
   "fieldname": "page_len", 
   "fieldtype": "Int", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Page Len", 
+  "no_copy": 0, 
+  "oldfieldname": "page_len", 
+  "oldfieldtype": "Int", 
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Section Break", 
   "doctype": "DocField", 
-  "label": "Client Script", 
   "fieldname": "client_script", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Client Script", 
+  "oldfieldtype": "Section Break"
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Code", 
   "doctype": "DocField", 
-  "label": "Report Script", 
-  "oldfieldname": "report_script", 
   "fieldname": "report_script", 
   "fieldtype": "Code", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Report Script", 
+  "no_copy": 0, 
+  "oldfieldname": "report_script", 
+  "oldfieldtype": "Code", 
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Section Break", 
   "doctype": "DocField", 
-  "label": "Server Script", 
   "fieldname": "server_script_section_break", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Server Script", 
+  "oldfieldtype": "Section Break"
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Code", 
   "doctype": "DocField", 
-  "label": "Report Server Script", 
-  "oldfieldname": "server_script", 
   "fieldname": "server_script", 
   "fieldtype": "Code", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Report Server Script", 
+  "no_copy": 0, 
+  "oldfieldname": "server_script", 
+  "oldfieldtype": "Code", 
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Section Break", 
   "doctype": "DocField", 
-  "label": "Overload Query", 
   "fieldname": "overload_query", 
   "fieldtype": "Section Break", 
-  "permlevel": 0
+  "label": "Overload Query", 
+  "oldfieldtype": "Section Break"
  }, 
  {
-  "no_copy": 0, 
-  "oldfieldtype": "Code", 
   "doctype": "DocField", 
-  "label": "Custom Query", 
-  "oldfieldname": "custom_query", 
   "fieldname": "custom_query", 
   "fieldtype": "Code", 
-  "search_index": 0, 
-  "permlevel": 0
+  "label": "Custom Query", 
+  "no_copy": 0, 
+  "oldfieldname": "custom_query", 
+  "oldfieldtype": "Code", 
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 
-  "label": "Description", 
   "fieldname": "description", 
   "fieldtype": "Text", 
-  "permlevel": 0
+  "label": "Description"
  }, 
  {
   "create": 0, 
   "doctype": "DocPerm", 
-  "write": 0, 
   "role": "All", 
-  "permlevel": 0
- }, 
- {
-  "doctype": "DocPerm", 
-  "role": "All", 
-  "permlevel": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "role": "Report Manager", 
-  "permlevel": 0
+  "write": 0
  }, 
  {
   "doctype": "DocPerm", 
   "role": "Report Manager", 
-  "permlevel": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "role": "System Manager", 
-  "permlevel": 0
+  "write": 1
  }, 
  {
   "doctype": "DocPerm", 
   "role": "System Manager", 
-  "permlevel": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "role": "Administrator", 
-  "permlevel": 0
+  "write": 1
  }, 
  {
   "doctype": "DocPerm", 
   "role": "Administrator", 
-  "permlevel": 1
+  "write": 1
  }
 ]

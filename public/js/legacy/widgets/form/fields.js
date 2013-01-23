@@ -106,12 +106,14 @@ Field.prototype.set_max_width = function() {
 	}
 }
 
-Field.prototype.set_label = function() {
-	if(this.with_label && this.label_area && this.label!=this.df.label) { 
-		this.label_span.innerHTML = wn._(this.df.label);
-		this.label = this.df.label; 
+Field.prototype.set_label = function(label) {
+	if(!label) label = this.df.label;
+	if(this.with_label && this.label_area && this.label!=label) { 
+		this.label_span.innerHTML = wn._(label);
+		
+		// always store this.label as this.df.label, so that custom label does not change back
+		this.label = this.df.label;
 	}
-
 }
 
 Field.prototype.set_description = function(txt) {
@@ -314,9 +316,6 @@ Field.prototype.refresh_label_icon = function() {
 		this.df.has_error ? true : false);
 }
 
-// Set / display values
-// --------------------------------------------------------------------------------------------
-
 Field.prototype.set = function(val) {
 	// not in form
 	if(this.not_in_form)
@@ -370,9 +369,6 @@ Field.prototype.set_disp = function(val) {
 	this.set_disp_html(val);
 }
 
-// Show in GRID
-// --------------------------------------------------------------------------------------------
-
 // for grids (activate against a particular record in the table
 Field.prototype.activate = function(docname) {
 	this.docname = docname;
@@ -401,7 +397,6 @@ Field.prototype.activate = function(docname) {
 		this.txt.field_object = this;
 	}
 }
-// ======================================================================================
 
 function DataField() { } DataField.prototype = new Field();
 DataField.prototype.make_input = function() {
@@ -1187,9 +1182,6 @@ SelectField.prototype.make_input = function() {
 	this.refresh();
 }
 
-// Time
-// ======================================================================================
-
 function TimeField() { } TimeField.prototype = new DataField();
 
 function import_timepicker() {
@@ -1237,51 +1229,15 @@ DateTimeField.prototype.make_input = function() {
 
 var tmpid = 0;
 
-// ======================================================================================
-
 _f.ButtonField = function() { };
 _f.ButtonField.prototype = new Field();
 _f.ButtonField.prototype.with_label = 0;
-_f.ButtonField.prototype.init = function() {
-	this.prev_button = null;
-	// if previous field is a button, add it to the same div!
-	
-	// button-set structure
-	// + wrapper (1st button)
-	// 		+ input_area
-	//			+ button_area
-	//			+ button_area
-	//			+ button_area
-	
-	if(!this.frm) return;
-	
-	if(cur_frm && 
-		cur_frm.fields[cur_frm.fields.length-1] &&
-			cur_frm.fields[cur_frm.fields.length-1].df.fieldtype=='Button') {
-				
-		this.make_body = function() {
-			this.prev_button = cur_frm.fields[cur_frm.fields.length-1];
-			if(!this.prev_button.prev_button) {
-				// first button, make the button area
-				this.prev_button.button_area = $a(this.prev_button.input_area, 'span');
-			}
-			this.wrapper = this.prev_button.wrapper;
-			this.input_area = this.prev_button.input_area;
-			this.disp_area = this.prev_button.disp_area;
-			
-			// all buttons in the same input_area
-			this.button_area = $a(this.prev_button.input_area, 'span');
-		}
-	}
-}
 _f.ButtonField.prototype.make_input = function() { var me = this;
-	if(!this.prev_button) {
-		$y(this.input_area,{marginTop:'4px', marginBottom: '4px'});
-	}
 
 	// make a button area for one button
 	if(!this.button_area) 
-		this.button_area = $a(this.input_area, 'span','',{marginRight:'4px'});
+		this.button_area = $a(this.input_area, 'div','',{
+				marginBottom:'4px'});
 	
 	// make the input
 	this.input = $btn(this.button_area, 

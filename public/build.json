@@ -66,6 +66,7 @@
 		
 			"lib/public/js/lib/tiny_mce_3.5.7/jquery.tinymce.js:concat",
 			"lib/public/js/lib/mousetrap.min.js",
+			"lib/public/js/lib/number_formatter.js",
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",

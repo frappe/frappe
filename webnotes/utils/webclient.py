@@ -40,36 +40,43 @@ def login(usr=None, pwd=None):
 		raise AuthError
 
 def insert(doclist):
-	return request({
+	return post_request({
 		"cmd": "webnotes.client.insert",
 		"doclist": json.dumps(doclist)
 	})
 	
 def update(doclist):
-	return request({
+	return post_request({
 		"cmd": "webnotes.client.save",
 		"doclist": json.dumps(doclist)
 	})
 		
 def delete(doctype, name):
-	return request({
+	return post_request({
 		"cmd": "webnotes.model.delete_doc",
 		"doctype": doctype,
 		"name": name
 	})
 	
 def get_doc(doctype, name):
-	ret = request({
+	ret = get_request({
 		"cmd": "webnotes.client.get",
 		"doctype": doctype,
 		"name": name
 	})
 	return ret
 
-def request(params):
+def get_request(params):
 	if not sid: login()
-	response = requests.post(server, params = params, cookies = {"sid": sid})
+	response = requests.get(server, params = params, cookies = {"sid": sid})
+	return post_process(response)
+
+def post_request(params):
+	if not sid: login()
+	response = requests.post(server, data = params, cookies = {"sid": sid})
+	return post_process(response)
 	
+def post_process(response):
 	if debug and response.json and ("exc" in response.json) and response.json["exc"]:
 		print response.json["exc"]
 

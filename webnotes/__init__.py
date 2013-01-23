@@ -238,13 +238,16 @@ def whitelist(allow_guest=False, allow_roles=[]):
 	return innerfn
 	
 def clear_cache(user=None, doctype=None):
-	"""clear boot cache"""
+	"""clear cache"""
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
+	elif user:
+		from webnotes.sessions import clear_cache
+		clear_cache(user)
 	else:
-		from webnotes.sessions import clear
-		clear(user)
+		from webnotes.sessions import clear_cache
+		clear_cache()
 	
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
@@ -275,7 +278,7 @@ def has_permission(doctype, ptype="read", doc=None):
 		and ifnull(p.permlevel,0) = 0
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
-		
+	
 	if doc:
 		match_failed = {}
 		for p in perms:
@@ -284,7 +287,7 @@ def has_permission(doctype, ptype="read", doc=None):
 					keys = p.match.split(":")
 				else:
 					keys = [p.match, p.match]
-
+					
 				if doc.fields.get(keys[0],"[No Value]") \
 					in conn.get_defaults_as_list(keys[1], session.user):
 					return True

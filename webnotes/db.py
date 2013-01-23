@@ -329,7 +329,7 @@ class Database:
 	def get_defaults_as_list(self, key, parent="Control Panel"):
 		ret = [r[0] for r in self.sql("""select defvalue from \
 			tabDefaultValue where defkey=%s and parent=%s""", (key, parent))]
-		if key=="owner" and webnotes.session:
+		if key in ["owner", "user"] and webnotes.session:
 			ret.append(webnotes.session.user)
 		return ret
 	
@@ -339,11 +339,18 @@ class Database:
 			return self.get_default(key, parent)
 		else:
 			res = self.sql("""select defkey, defvalue from `tabDefaultValue` 
-				where parent = %s""", parent)
-			d = {}
-			for rec in res: 
-				d[rec[0]] = rec[1] or ''
-			return d
+				where parent = %s""", parent, as_dict=1)
+			defaults = webnotes._dict({})
+			for d in res:
+				if d.defkey in defaults:
+					# listify
+					if isinstance(defaults[d.defkey], basestring):
+						defaults[d.defkey] = [defaults[d.defkey]]
+					defaults[d.defkey].append(d.defvalue)
+				else:		
+					defaults[d.defkey] = d.defvalue
+
+			return defaults
 
 	def begin(self):
 		if not self.in_transaction:

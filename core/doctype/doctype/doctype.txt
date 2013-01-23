@@ -1,67 +1,70 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-15 17:23:52", 
   "docstatus": 0, 
-  "creation": "2012-12-07 15:15:20", 
+  "modified": "2013-01-22 14:56:00", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-24 11:32:25"
+  "owner": "Administrator"
  }, 
  {
-  "istable": 0, 
   "allow_attach": 0, 
+  "allow_copy": 0, 
+  "allow_email": 0, 
   "allow_print": 0, 
-  "search_fields": "autoname", 
-  "module": "Core", 
   "autoname": "Prompt", 
   "description": "DocType is a Table / Form in the application.", 
-  "read_only": 0, 
-  "allow_email": 0, 
-  "hide_heading": 0, 
-  "issingle": 0, 
-  "name": "__common__", 
   "doctype": "DocType", 
+  "hide_heading": 0, 
   "hide_toolbar": 0, 
-  "allow_copy": 0
+  "issingle": 0, 
+  "istable": 0, 
+  "module": "Core", 
+  "name": "__common__", 
+  "read_only": 0, 
+  "search_fields": "autoname"
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "DocType", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "DocType", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
-  "parentfield": "fields"
- }, 
- {
-  "name": "__common__", 
-  "parent": "DocType", 
   "read": 1, 
-  "doctype": "DocPerm", 
-  "parenttype": "DocType", 
-  "parentfield": "permissions"
+  "report": 1, 
+  "submit": 0
  }, 
  {
-  "name": "DocType", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "DocType"
  }, 
  {
-  "oldfieldtype": "Section Break", 
   "doctype": "DocField", 
-  "label": "DocType Details", 
   "fieldname": "sb0", 
   "fieldtype": "Section Break", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "DocType Details", 
+  "oldfieldtype": "Section Break", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Link", 
   "doctype": "DocField", 
-  "label": "Module", 
-  "oldfieldname": "module", 
   "fieldname": "module", 
   "fieldtype": "Link", 
-  "reqd": 1, 
-  "options": "Module Def"
+  "label": "Module", 
+  "oldfieldname": "module", 
+  "oldfieldtype": "Link", 
+  "options": "Module Def", 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
@@ -69,21 +72,21 @@
   "fieldtype": "Column Break"
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "Document Type", 
-  "oldfieldname": "document_type", 
   "fieldname": "document_type", 
   "fieldtype": "Select", 
+  "label": "Document Type", 
+  "oldfieldname": "document_type", 
+  "oldfieldtype": "Select", 
   "options": "\nMaster\nTransaction\nSystem\nOther"
  }, 
  {
   "description": "Is it a Custom DocType created by you?", 
-  "no_copy": 0, 
   "doctype": "DocField", 
-  "label": "Custom?", 
   "fieldname": "custom", 
-  "fieldtype": "Check"
+  "fieldtype": "Check", 
+  "label": "Custom?", 
+  "no_copy": 0
  }, 
  {
   "doctype": "DocField", 
@@ -91,37 +94,37 @@
   "fieldtype": "Section Break"
  }, 
  {
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Description", 
-  "oldfieldname": "description", 
   "fieldname": "description", 
   "fieldtype": "Small Text", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "oldfieldtype": "Text", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Section Break", 
   "doctype": "DocField", 
-  "label": "Fields", 
   "fieldname": "fields_section_break", 
   "fieldtype": "Section Break", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Fields", 
+  "oldfieldtype": "Section Break", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Table", 
   "doctype": "DocField", 
-  "label": "Fields", 
-  "oldfieldname": "fields", 
   "fieldname": "fields", 
   "fieldtype": "Table", 
-  "search_index": 0, 
-  "reqd": 0, 
   "hidden": 0, 
-  "options": "DocField"
+  "label": "Fields", 
+  "oldfieldname": "fields", 
+  "oldfieldtype": "Table", 
+  "options": "DocField", 
+  "reqd": 0, 
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 
@@ -130,91 +133,91 @@
  }, 
  {
   "doctype": "DocField", 
-  "label": "Database", 
   "fieldname": "cb10", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "label": "Database"
  }, 
  {
   "description": "No table is created for Single DocTypes, all values are stored in tabSingles as a tuple.", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Is Single", 
-  "oldfieldname": "issingle", 
   "fieldname": "issingle", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Is Single", 
+  "oldfieldname": "issingle", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
   "description": "Child Tables are shown as a Grid in other DocTypes.", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Is Child Table", 
-  "oldfieldname": "istable", 
   "fieldname": "istable", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Is Child Table", 
+  "oldfieldname": "istable", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
-  "label": "Naming", 
-  "width": "50%", 
   "fieldname": "cb11", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "label": "Naming", 
+  "oldfieldtype": "Column Break", 
+  "width": "50%"
  }, 
  {
   "description": "<a onclick=\"msgprint('<ol>\\\n<li><b>field:[fieldname]</b> - By Field\\\n<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\\\n<li><b>eval:[expression]</b> - Evaluate an expression in python (self is doc)\\\n<li><b>Prompt</b> - Prompt user for a name\\\n<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\\\n</ol>')\">Naming Options</a>", 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Auto Name", 
-  "oldfieldname": "autoname", 
   "fieldname": "autoname", 
   "fieldtype": "Data", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Auto Name", 
+  "oldfieldname": "autoname", 
+  "oldfieldtype": "Data", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "Name Case", 
-  "oldfieldname": "name_case", 
   "fieldname": "name_case", 
   "fieldtype": "Select", 
+  "label": "Name Case", 
+  "oldfieldname": "name_case", 
+  "oldfieldtype": "Select", 
   "options": "\nTitle Case\nUPPER CASE"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Search Fields", 
-  "oldfieldname": "search_fields", 
   "fieldname": "search_fields", 
   "fieldtype": "Data", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Search Fields", 
+  "oldfieldname": "search_fields", 
+  "oldfieldtype": "Data", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 
-  "label": "Permission Rules", 
   "fieldname": "sb2", 
-  "fieldtype": "Section Break"
+  "fieldtype": "Section Break", 
+  "label": "Permission Rules"
  }, 
  {
-  "oldfieldtype": "Table", 
   "doctype": "DocField", 
-  "label": "Permissions", 
-  "oldfieldname": "permissions", 
   "fieldname": "permissions", 
   "fieldtype": "Table", 
-  "search_index": 0, 
-  "reqd": 0, 
   "hidden": 0, 
-  "options": "DocPerm"
+  "label": "Permissions", 
+  "oldfieldname": "permissions", 
+  "oldfieldtype": "Table", 
+  "options": "DocPerm", 
+  "reqd": 0, 
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 
@@ -223,183 +226,174 @@
  }, 
  {
   "doctype": "DocField", 
-  "label": "Permissions Settings", 
   "fieldname": "cb30", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "label": "Permissions Settings"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "in_create", 
+  "fieldtype": "Check", 
   "label": "User Cannot Create", 
   "oldfieldname": "in_create", 
-  "fieldname": "in_create", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "User Cannot Search", 
-  "oldfieldname": "read_only", 
   "fieldname": "read_only", 
   "fieldtype": "Check", 
-  "search_index": 0, 
-  "reqd": 0, 
-  "hidden": 0
- }, 
- {
-  "doctype": "DocField", 
-  "label": "Is Submittable", 
-  "fieldname": "is_submittable", 
-  "fieldtype": "Check"
- }, 
- {
+  "hidden": 0, 
+  "label": "User Cannot Search", 
+  "oldfieldname": "read_only", 
   "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "search_index": 0
+ }, 
+ {
   "doctype": "DocField", 
+  "fieldname": "is_submittable", 
+  "fieldtype": "Check", 
+  "label": "Is Submittable"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "allow_rename", 
+  "fieldtype": "Check", 
   "label": "Allow Rename", 
   "oldfieldname": "allow_rename", 
-  "fieldname": "allow_rename", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Hide Actions", 
   "fieldname": "cb31", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "label": "Hide Actions"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Hide Heading", 
-  "oldfieldname": "hide_heading", 
   "fieldname": "hide_heading", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Hide Heading", 
+  "oldfieldname": "hide_heading", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Hide Toolbar", 
-  "oldfieldname": "hide_toolbar", 
   "fieldname": "hide_toolbar", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Hide Toolbar", 
+  "oldfieldname": "hide_toolbar", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Hide Print", 
-  "oldfieldname": "allow_print", 
   "fieldname": "allow_print", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Hide Print", 
+  "oldfieldname": "allow_print", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Hide Email", 
-  "oldfieldname": "allow_email", 
   "fieldname": "allow_email", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Hide Email", 
+  "oldfieldname": "allow_email", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Hide Copy", 
-  "oldfieldname": "allow_copy", 
   "fieldname": "allow_copy", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Hide Copy", 
+  "oldfieldname": "allow_copy", 
+  "oldfieldtype": "Check", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Column Break", 
   "doctype": "DocField", 
-  "width": "50%", 
   "fieldname": "sb4", 
   "fieldtype": "Section Break", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "oldfieldtype": "Column Break", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0, 
+  "width": "50%"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Display", 
   "fieldname": "cb41", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "label": "Display"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Default Print Format", 
   "fieldname": "default_print_format", 
-  "fieldtype": "Data"
+  "fieldtype": "Data", 
+  "label": "Default Print Format"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "read_only_onload", 
+  "fieldtype": "Check", 
   "label": "Show Print First", 
   "oldfieldname": "read_only_onload", 
-  "fieldname": "read_only_onload", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "in_dialog", 
+  "fieldtype": "Check", 
   "label": "In Dialog", 
   "oldfieldname": "in_dialog", 
-  "fieldname": "in_dialog", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Attachments", 
   "fieldname": "cb42", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "label": "Attachments"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "allow_attach", 
+  "fieldtype": "Check", 
   "label": "Allow Attach", 
   "oldfieldname": "allow_attach", 
-  "fieldname": "allow_attach", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check"
  }, 
  {
-  "oldfieldtype": "Int", 
   "doctype": "DocField", 
-  "label": "Max Attachments", 
-  "oldfieldname": "max_attachments", 
   "fieldname": "max_attachments", 
   "fieldtype": "Int", 
-  "hidden": 1
+  "hidden": 1, 
+  "label": "Max Attachments", 
+  "oldfieldname": "max_attachments", 
+  "oldfieldtype": "Int"
  }, 
  {
   "doctype": "DocPerm", 
-  "role": "System Manager", 
-  "permlevel": 0
+  "role": "System Manager"
  }, 
  {
-  "execute": 0, 
+  "cancel": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
-  "submit": 0, 
-  "write": 1, 
   "role": "Administrator", 
-  "cancel": 0, 
-  "permlevel": 0
- }, 
- {
-  "doctype": "DocPerm", 
-  "role": "Administrator", 
-  "permlevel": 1
+  "write": 1
  }
 ]

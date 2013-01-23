@@ -1,84 +1,71 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "creation": "2012-04-02 16:01:07", 
+  "modified": "2013-01-22 14:57:26", 
   "modified_by": "Administrator", 
-  "modified": "2012-05-02 15:25:21"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
-  "module": "Core", 
   "doctype": "DocType", 
-  "issingle": 1, 
   "document_type": "System", 
-  "name": "__common__", 
-  "colour": "White:FFF", 
-  "_last_update": "1307624201", 
-  "show_in_menu": 1, 
-  "version": 1
+  "issingle": 1, 
+  "module": "Core", 
+  "name": "__common__"
  }, 
  {
-  "name": "__common__", 
-  "parent": "System Console", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "parentfield": "fields"
- }, 
- {
   "name": "__common__", 
   "parent": "System Console", 
-  "read": 1, 
-  "doctype": "DocPerm", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "role": "Administrator", 
-  "parentfield": "permissions"
+  "permlevel": 0
  }, 
  {
-  "name": "System Console", 
-  "doctype": "DocType"
- }, 
- {
-  "write": 1, 
   "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "System Console", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
   "permlevel": 0, 
-  "doctype": "DocPerm"
+  "read": 1, 
+  "report": 1, 
+  "role": "Administrator", 
+  "submit": 0, 
+  "write": 1
  }, 
  {
-  "permlevel": 1, 
-  "doctype": "DocPerm"
+  "doctype": "DocType", 
+  "name": "System Console"
  }, 
  {
   "doctype": "DocField", 
-  "options": "Python", 
   "fieldname": "script", 
   "fieldtype": "Code", 
   "label": "Script", 
-  "permlevel": 0
+  "options": "Python"
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
-  "label": "Server (Python)", 
-  "trigger": "Client", 
   "fieldname": "server_python", 
   "fieldtype": "Button", 
-  "permlevel": 0
+  "label": "Server (Python)"
  }, 
  {
-  "colour": "White:FFF", 
   "doctype": "DocField", 
-  "label": "Client (JS)", 
-  "trigger": "Client", 
   "fieldname": "client_js", 
   "fieldtype": "Button", 
-  "permlevel": 0
+  "label": "Client (JS)"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Error", 
   "fieldname": "response", 
   "fieldtype": "Text", 
-  "permlevel": 1
+  "label": "Error", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

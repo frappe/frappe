@@ -42,8 +42,7 @@ def get_bootinfo():
 
 	
 	# system info
-	bootinfo['control_panel'] = cp.copy()
-	bootinfo['account_name'] = cp.get('account_id')
+	bootinfo['control_panel'] = webnotes._dict(cp.copy())
 	bootinfo['sysdefaults'] = webnotes.utils.get_defaults()
 	bootinfo['server_date'] = webnotes.utils.nowdate()
 
@@ -55,6 +54,7 @@ def get_bootinfo():
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
+	load_country_and_currency(bootinfo, doclist)
 
 	# ipinfo
 	if webnotes.session['data'].get('ipinfo'):
@@ -76,6 +76,14 @@ def get_bootinfo():
 	bootinfo['docs'] = compress(bootinfo['docs'])
 	
 	return bootinfo
+
+def load_country_and_currency(bootinfo, doclist):
+	if bootinfo.control_panel.country and \
+		webnotes.conn.exists("Country", bootinfo.control_panel.country):
+		doclist += [webnotes.doc("Country", bootinfo.control_panel.country)]
+	if bootinfo.sysdefaults.currency and \
+		webnotes.conn.exists("Currency", bootinfo.sysdefaults.currency):
+		doclist += [webnotes.doc("Currency", bootinfo.sysdefaults.currency)]
 
 def add_allowed_pages(bootinfo):
 	bootinfo.allowed_pages = [p[0] for p in webnotes.conn.sql("""select distinct parent from `tabPage Role`

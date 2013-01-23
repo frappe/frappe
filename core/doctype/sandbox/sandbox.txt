@@ -1,109 +1,103 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "creation": "2012-07-03 13:30:35", 
+  "modified": "2013-01-22 14:48:42", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-13 14:23:53"
+  "owner": "Administrator"
  }, 
  {
-  "is_submittable": 1, 
   "autoname": "_SD.####", 
-  "name": "__common__", 
   "doctype": "DocType", 
-  "module": "Core"
+  "is_submittable": 1, 
+  "module": "Core", 
+  "name": "__common__"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Sandbox", 
   "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Sandbox", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "parentfield": "fields"
+  "permlevel": 0
  }, 
  {
-  "parent": "Sandbox", 
-  "read": 1, 
-  "cancel": 1, 
-  "execute": 1, 
-  "name": "__common__", 
   "amend": 1, 
+  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
-  "submit": 1, 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Sandbox", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "role": "Administrator", 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "report": 1, 
+  "role": "Administrator", 
+  "submit": 1, 
+  "write": 1
  }, 
  {
-  "name": "Sandbox", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Sandbox"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Test Data", 
   "fieldname": "test_data", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "Test Data"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Test Link", 
-  "options": "Profile", 
   "fieldname": "test_link", 
   "fieldtype": "Link", 
-  "permlevel": 0
+  "label": "Test Link", 
+  "options": "Profile"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Test Select", 
-  "options": "A\nB\nC", 
   "fieldname": "test_select", 
   "fieldtype": "Select", 
-  "permlevel": 0
+  "label": "Test Select", 
+  "options": "A\nB\nC"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Test Text", 
   "fieldname": "test_text", 
   "fieldtype": "Text", 
-  "permlevel": 0
+  "label": "Test Text"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Test Date", 
   "fieldname": "test_date", 
   "fieldtype": "Date", 
-  "permlevel": 0
+  "label": "Test Date"
  }, 
  {
   "doctype": "DocField", 
-  "label": "to be dropped", 
   "fieldname": "to_be_dropped", 
   "fieldtype": "Data", 
-  "permlevel": 0
+  "label": "to be dropped"
  }, 
  {
-  "print_hide": 1, 
-  "description": "The date at which current entry is corrected in the system.", 
-  "no_copy": 1, 
   "depends_on": "eval:doc.amended_from", 
+  "description": "The date at which current entry is corrected in the system.", 
   "doctype": "DocField", 
-  "label": "Amendment Date", 
   "fieldname": "amendment_date", 
   "fieldtype": "Date", 
-  "permlevel": 0
+  "label": "Amendment Date", 
+  "no_copy": 1, 
+  "print_hide": 1
  }, 
  {
-  "print_hide": 1, 
-  "no_copy": 1, 
   "doctype": "DocField", 
-  "label": "Amended From", 
-  "options": "Sandbox", 
   "fieldname": "amended_from", 
   "fieldtype": "Link", 
-  "permlevel": 1
+  "label": "Amended From", 
+  "no_copy": 1, 
+  "options": "Sandbox", 
+  "print_hide": 1, 
+  "read_only": 1
  }, 
  {
   "doctype": "DocPerm"

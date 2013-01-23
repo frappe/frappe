@@ -53,6 +53,8 @@ def get_template():
 			return 'Valid %s' % docfield.options
 		if docfield.fieldtype in ('Int'):
 			return 'Integer'
+		if docfield.fieldtype == "Check":
+			return "0 or 1"
 		else:
 			return ''
 			

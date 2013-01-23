@@ -1,119 +1,106 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-10 16:34:02", 
   "docstatus": 0, 
-  "creation": "2012-03-27 14:35:37", 
+  "modified": "2013-01-22 14:56:01", 
   "modified_by": "Administrator", 
-  "modified": "2012-03-27 14:35:37"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
-  "module": "Core", 
-  "_last_update": "1307624201", 
-  "server_code_error": " ", 
   "doctype": "DocType", 
   "issingle": 0, 
-  "name": "__common__", 
-  "colour": "White:FFF", 
-  "show_in_menu": 0, 
-  "version": 9, 
-  "menu_index": 12
+  "module": "Core", 
+  "name": "__common__"
  }, 
  {
-  "name": "__common__", 
-  "parent": "DocType Mapper", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
- }, 
- {
   "name": "__common__", 
   "parent": "DocType Mapper", 
-  "read": 1, 
-  "doctype": "DocPerm", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "parentfield": "permissions"
- }, 
- {
-  "name": "DocType Mapper", 
-  "doctype": "DocType"
- }, 
- {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "write": 1, 
-  "role": "Administrator", 
   "permlevel": 0
  }, 
  {
-  "role": "Administrator", 
-  "permlevel": 1, 
-  "doctype": "DocPerm"
- }, 
- {
-  "amend": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "DocType Mapper", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
   "submit": 0, 
-  "write": 1, 
-  "role": "System Manager", 
-  "cancel": 0
+  "write": 1
  }, 
  {
-  "oldfieldtype": "Select", 
+  "doctype": "DocType", 
+  "name": "DocType Mapper"
+ }, 
+ {
   "doctype": "DocField", 
-  "label": "Module", 
-  "oldfieldname": "module", 
   "fieldname": "module", 
   "fieldtype": "Select", 
-  "reqd": 1, 
-  "options": "link:Module Def"
+  "label": "Module", 
+  "oldfieldname": "module", 
+  "oldfieldtype": "Select", 
+  "options": "link:Module Def", 
+  "reqd": 1
  }, 
  {
-  "no_copy": 1, 
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "From DocType", 
-  "oldfieldname": "from_doctype", 
   "fieldname": "from_doctype", 
   "fieldtype": "Select", 
+  "label": "From DocType", 
+  "no_copy": 1, 
+  "oldfieldname": "from_doctype", 
+  "oldfieldtype": "Select", 
   "options": "link:DocType"
  }, 
  {
-  "no_copy": 1, 
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "To DocType", 
-  "oldfieldname": "to_doctype", 
   "fieldname": "to_doctype", 
   "fieldtype": "Select", 
+  "label": "To DocType", 
+  "no_copy": 1, 
+  "oldfieldname": "to_doctype", 
+  "oldfieldtype": "Select", 
   "options": "link:DocType"
  }, 
  {
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "ref_doc_submitted", 
+  "fieldtype": "Check", 
   "label": "Ref Doc should be submitted?", 
   "oldfieldname": "ref_doc_submitted", 
-  "fieldname": "ref_doc_submitted", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check"
  }, 
  {
-  "oldfieldtype": "Table", 
   "doctype": "DocField", 
-  "label": "Field Mapper Details", 
-  "oldfieldname": "field_mapper_details", 
   "fieldname": "field_mapper_details", 
   "fieldtype": "Table", 
+  "label": "Field Mapper Details", 
+  "oldfieldname": "field_mapper_details", 
+  "oldfieldtype": "Table", 
   "options": "Field Mapper Detail"
  }, 
  {
-  "oldfieldtype": "Table", 
   "doctype": "DocField", 
-  "label": "Table Mapper Details", 
-  "oldfieldname": "table_mapper_details", 
   "fieldname": "table_mapper_details", 
   "fieldtype": "Table", 
+  "label": "Table Mapper Details", 
+  "oldfieldname": "table_mapper_details", 
+  "oldfieldtype": "Table", 
   "options": "Table Mapper Detail"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator"
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "doctype": "DocPerm", 
+  "role": "System Manager"
  }
 ]

@@ -46,7 +46,10 @@ def get(doctype, processed=False, cached=True):
 	"""return doclist"""
 	if cached:
 		doclist = from_cache(doctype, processed)
-		if doclist: return DocTypeDocList(doclist)
+		if doclist: 
+			if processed:
+				add_linked_with(doclist)
+			return DocTypeDocList(doclist)
 	
 	load_docfield_types()
 	
@@ -65,7 +68,6 @@ def get(doctype, processed=False, cached=True):
 		expand_selects(doclist)
 		add_print_formats(doclist)
 		add_search_fields(doclist)
-		add_linked_with(doclist)
 		add_workflows(doclist)
 		update_language(doclist)
 
@@ -76,6 +78,9 @@ def get(doctype, processed=False, cached=True):
 	add_precision(doctype, doclist)
 
 	to_cache(doctype, processed, doclist)
+
+	if processed:
+		add_linked_with(doclist)
 		
 	return DocTypeDocList(doclist)
 
@@ -229,7 +234,7 @@ def cache_name(doctype, processed):
 		suffix = ":Raw"
 	return "doctype:" + doctype + suffix
 
-def clear_cache(doctype):
+def clear_cache(doctype=None):
 	global doctype_cache
 
 	def clear_single(dt):
@@ -239,12 +244,18 @@ def clear_cache(doctype):
 		if doctype in doctype_cache:
 			del doctype_cache[dt]
 
-	clear_single(doctype)
+	if doctype:
+		clear_single(doctype)
 	
-	# clear all parent doctypes
-	for dt in webnotes.conn.sql("""select parent from tabDocField 
-		where fieldtype="Table" and options=%s""", doctype):
-		clear_single(dt[0])
+		# clear all parent doctypes
+		for dt in webnotes.conn.sql("""select parent from tabDocField 
+			where fieldtype="Table" and options=%s""", doctype):
+			clear_single(dt[0])
+			
+	else:
+		# clear all
+		for dt in webnotes.conn.sql("""select name from tabDocType"""):
+			clear_single(dt[0])
 
 def add_code(doctype, doclist):
 	import os, conf
