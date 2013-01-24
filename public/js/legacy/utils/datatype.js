@@ -29,24 +29,52 @@ function fmt_money(v, format){
 }
 
 function format_currency(v, currency) {
-	if(!currency) currency = wn.boot.sysdefaults.currency;
-	var symbol = locals.Currency[currency].symbol || currency;
-	return symbol + " " + format_number(v);
+	return get_currency_symbol(currency) + " " + format_number(v);
 }
 
+function get_currency_symbol(currency) {
+	if(!currency) 
+		currency = wn.boot.sysdefaults.currency;
+
+	if(locals.Currency[currency])
+		return locals.Currency[currency].symbol || currency;
+	else
+		return currency;
+}
+
+var global_number_format = null;
 function get_number_format() {
-	var default_format = "#,###.##";
-	if(wn.boot.sysdefaults.number_format) {
-		format = wn.boot.sysdefaults.number_format;
-	} else if(!wn.boot.sysdefaults.currency) {
-		format = default_format
-	} else {
-		format = locals["Currency"][wn.boot.sysdefaults.currency].number_format;
+	if(!global_number_format) {
+		var default_format = "#,###.##";
+		if(wn.boot.sysdefaults.number_format) {
+			format = wn.boot.sysdefaults.number_format;
+		} else if(!wn.boot.sysdefaults.currency) {
+			format = default_format
+		} else {
+			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format;
+		}
+		if(!format || format=="####" || format=="######") { // no flat formats!
+			format = default_format
+		}
+		global_number_format = format;		
 	}
-	if(!format || format=="####" || format=="######") { // no flat formats!
-		format = default_format
+	return global_number_format;
+}
+
+var global_number_format_info = null
+function get_number_format_info(format) {
+	if(!global_number_format_info) {
+		if(!format) 
+			format = get_number_format();
+		var result = format.match(/[^\d\-\+#]/g);
+		var info = {
+			decimal_str: (result && result[result.length-1]) || '.', //treat the right most symbol as decimal 
+			group_sep: (result && result[1] && result[0]) || ',' //treat the left most symbol as group separator
+		}
+		info.precision = format.split(info.decimal_str)[1].length;
+		global_number_format_info = info;		
 	}
-	return format;
+	return global_number_format_info
 }
 
 // to title case
@@ -114,14 +142,39 @@ function nth(number) {
 
 function flt(v, decimals) { 
 	if(v==null || v=='')return 0;
-	v=(v+'').replace(/,/g,'');
+	
+	if(typeof v==="number")
+		return v;
+	
+	v = v + "";
+	
+	// strip currency symbol if exists
+	if(v.indexOf(" ")!=-1) {
+		v = v.split(" ")[1];
+	}
+	
+	// strip groups (,)
+	var info = get_number_format_info();
+	if(info.group_sep==".") {
+		v = v.replace(/\./g,'');
 
-	v=parseFloat(v); 
+		// sanitize decimal separator to .
+		v = v.replace(/,/g, ".");
+	} else {
+		v=v.replace(/,/g,'');
+	}
+
+
+	v=parseFloat(v);
 	if(isNaN(v))
-		v=0; 
+		v=0;
+		
+	if(!decimals)
+		decimals = wn.boot.sysdefaults.float_precision && 
+			parseFloat(wn.boot.sysdefaults.float_precision);
 	if(decimals!=null)
 		return roundNumber(v, decimals);
-	return v; 
+	return v;
 }
 
 function esc_quotes(s) { 

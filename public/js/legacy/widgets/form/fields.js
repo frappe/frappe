@@ -369,6 +369,11 @@ Field.prototype.set_disp = function(val) {
 	this.set_disp_html(val);
 }
 
+Field.prototype.get_input = function() { 
+	return this.txt || this.input;
+}
+
+
 // for grids (activate against a particular record in the table
 Field.prototype.activate = function(docname) {
 	this.docname = docname;
@@ -412,10 +417,7 @@ DataField.prototype.make_input = function() {
 
 	this.input.name = this.df.fieldname;
 	
-	$(this.input).change(function() {
-		//me.set_value(me.get_value && me.get_value() || $(this.input).val());
-		
-		// fix: allow 0 as value
+	$(this.input).blur(function() {
 		me.set_value(me.get_value ? me.get_value() : $(this.input).val());
 	});
 	
@@ -863,20 +865,37 @@ FloatField.prototype.set_disp = function(val) {
 
 function CurrencyField() { } CurrencyField.prototype = new FloatField();
 CurrencyField.prototype.format_input = function() { 
-	var v = flt(this.input.value); 
+	var v = this.get_formatted(this.input.value); 
 	if(this.not_in_form) {
 		if(!v) v = ''; // blank in filter
 	}
 	this.input.value = v;
 }
 
+CurrencyField.prototype.onrefresh = function() {
+	var info = get_number_format_info(get_number_format());
+	$(this.input).iMask({
+		type: "number",
+		decSymbol: info.decimal_str,
+		groupSymbol: info.group_sep,
+		decDigits: info.precision || 2,
+		currencySymbol: get_currency_symbol(wn.meta.get_field_currency(this.df, 
+				locals[this.doctype][this.docname])) + " "
+	})
+}
+
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
 		return 0;
-	return flt(v,2); 
+	return flt(v); 
+}
+CurrencyField.prototype.get_formatted = function(val) {
+	var doc = locals[this.doctype][this.docname];
+	return get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) 
+		+ " " + format_number(val);
 }
 CurrencyField.prototype.set_disp = function(val) { 
-	this.set_disp_html(wn.format(val, this.df, locals[this.doctype][this.name]));
+	this.set_disp_html(this.get_formatted(val));
 }
 
 // ======================================================================================

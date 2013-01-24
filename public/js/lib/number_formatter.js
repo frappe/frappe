@@ -16,11 +16,8 @@ window['format_number'] = function(v, m, decimals){
 	if (!m) {
 		m = get_number_format();
 	}
-	//search for separator for grp & decimal, anything not digit, not +/- sign, not #.
-	var result = m.match(/[^\d\-\+#]/g);
-	var Decimal = (result && result[result.length-1]) || '.'; //treat the right most symbol as decimal 
-	var Group = (result && result[1] && result[0]) || ',';  //treat the left most symbol as group separator
-
+	var info = get_number_format_info(m);
+	
 	if(isNaN(+v)) {
 		v=0;
 	};
@@ -30,17 +27,14 @@ window['format_number'] = function(v, m, decimals){
 	var v = m.charAt(0) == '-'? -v: +v;
 	var isNegative = v<0? v= -v: 0; //process only abs(), and turn on flag.
 	
-	//split the decimal for the format string if any.
-	var m = m.split( Decimal);
-
-	if(!decimals) decimals = m[1] && m[1].length;
-
 	//Fix the decimal first, toFixed will auto fill trailing zero.
+	decimals = decimals || info.precision;
 	v = v.toFixed(decimals);
 
 	var part = v.split('.');
 
-	var szSep = m[0].split( Group); //look for separator
+	m = m.split(info.decimal_str);
+	var szSep = m[0].split( info.group_sep); //look for separator
 	m[0] = szSep.join(''); //join back without separator for counting the pos of any leading 0.
 
 	var pos_lead_zero = m[0] && m[0].indexOf('0');
@@ -64,7 +58,7 @@ window['format_number'] = function(v, m, decimals){
 		var str = '';
 		var offset = integer.length % pos_separator;
 		for (var i=integer.length; i>=0; i--) { 
-			var l = replace_all(str, Group, "").length;
+			var l = replace_all(str, info.group_sep, "").length;
 			if(format=="#,##,###.##" && str.indexOf(",")!=-1) { // INR
 				pos_separator = 2;
 				l += 1;
@@ -73,7 +67,7 @@ window['format_number'] = function(v, m, decimals){
 			str += integer.charAt(i); //ie6 only support charAt for sz.
 			//-pos_separator so that won't trail separator on full length
 			if (l && !((l+1) % pos_separator) && i!=0 ) {
-				str += Group;
+				str += info.group_sep;
 			}
 		}
 		v[0] = str.split("").reverse().join("");
@@ -82,6 +76,6 @@ window['format_number'] = function(v, m, decimals){
 		v[0]="0";
 	}
 
-	v[1] = (m[1] && v[1])? Decimal+v[1] : "";
+	v[1] = (m[1] && v[1])? info.decimal_str+v[1] : "";
 	return (isNegative?'-':'') + v[0] + v[1]; //put back any negation and combine integer and fraction.
 };
