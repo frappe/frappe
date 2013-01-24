@@ -1,0 +1,14 @@
+{
+ "0": "0", 
+ "1": "1", 
+ "2": "2", 
+ "Core": "N\u00facleo", 
+ "Doc Status": "Estado Doc", 
+ "Message": "Mensagem", 
+ "Only Allow Edit For": "Somente permitir editar para", 
+ "Represents the states allowed in one document and role assigned to change the state.": "Representa os estados permitidos em um documento e papel atribu\u00eddo a altera\u00e7\u00f5es do estado.", 
+ "State": "Estado", 
+ "Update Field": "Atualizar campo", 
+ "Update Value": "Atualize Valor", 
+ "Workflow Document State": "Estado Documento de fluxo de trabalho"
+}

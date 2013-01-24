@@ -38,7 +38,7 @@ class HTTPRequest:
 			self.domain = self.domain[4:]
 
 		# language
-		self.set_lang(webnotes.get_env_vars('LANG'))
+		self.set_lang(webnotes.get_env_vars('HTTP_ACCEPT_LANGUAGE'))
 		
 		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
 
@@ -86,10 +86,14 @@ class HTTPRequest:
 			lang = lang.split(",")
 		else:
 			lang = [lang]
-			
+		
+		
 		for l in lang:
-			if l.strip() in lang_list:
-				webnotes.lang = l.strip()
+			code = l.strip()
+			if "-" in code:
+				code = code.split("-")[0]
+			if code in lang_list:
+				webnotes.lang = code
 				return
 
 	def setup_profile(self):
