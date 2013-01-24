@@ -55,9 +55,10 @@ wn.views.moduleview.ModuleView = Class.extend({
 		});		
 	},
 	add_section: function(section) {
+		section._title = wn._(section.title);
 		var table = $(repl("<table class='table table-bordered'>\
 		<thead><tr>\
-			<th style='font-size: 120%;'><i class='%(icon)s'></i> %(title)s</th></tr></thead>\
+			<th style='font-size: 120%;'><i class='%(icon)s'></i> %(_title)s</th></tr></thead>\
 		<tbody></tbody>\
 		</table>", section)).appendTo(section.right 
 			? $(this.wrapper).find(".side-section")
