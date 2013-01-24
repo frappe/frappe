@@ -96,7 +96,7 @@ class Profile:
 		
 		self.build_doctype_map()
 		self.build_perm_map()
-		
+				
 		for dt in self.doctype_map:
 			dtp = self.doctype_map[dt]
 			p = self.perm_map.get(dt, {})

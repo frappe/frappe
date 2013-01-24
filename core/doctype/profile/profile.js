@@ -1,5 +1,5 @@
 cur_frm.cscript.onload = function(doc) {
-	if(!cur_frm.roles_editor) {
+	if(!cur_frm.roles_editor && has_common(user_roles, ["Administrator", "System Manager"])) {
 		var role_area = $('<div style="min-height: 300px">')
 			.appendTo(cur_frm.fields_dict.roles_html.wrapper);
 		cur_frm.roles_editor = new wn.RoleEditor(role_area);
@@ -17,7 +17,7 @@ cur_frm.cscript.refresh = function(doc) {
 		cur_frm.toggle_display(['sb1', 'sb3'], false);
 	} else {
 		cur_frm.cscript.enabled(doc);
-		cur_frm.roles_editor.show(doc.name);
+		cur_frm.roles_editor && cur_frm.roles_editor.show(doc.name);
 		if(user==doc.name) {
 			// update display settings
 			wn.ui.set_theme(doc.theme);
@@ -48,9 +48,11 @@ cur_frm.cscript.enabled = function(doc) {
 }
 
 cur_frm.cscript.validate = function(doc) {
-	doc.__temp = JSON.stringify({
-		roles:cur_frm.roles_editor.get_roles()
-	});
+	if(cur_frm.roles_editor) {
+		doc.__temp = JSON.stringify({
+			roles:cur_frm.roles_editor.get_roles()
+		});
+	}
 }
 
 wn.RoleEditor = Class.extend({

@@ -19,6 +19,7 @@
  "This is permanent action and you cannot undo. Continue?", 
  "For ranges", 
  "Select Report Name", 
+ "Show Filters", 
  "Refresh", 
  "Go back to home", 
  "Cancelled", 
@@ -91,6 +92,7 @@
  "To", 
  "Upload Attachment", 
  "Next actions", 
+ "Select All", 
  "Click on edit button to start a new report.", 
  "and", 
  "For Links, use define linked", 
@@ -110,7 +112,7 @@
  "Your download is being built, this may take a few moments...", 
  "Document is only editable by users of role", 
  "Please click on another report from the menu.", 
- "List of records in which this document is linked", 
+ "To add a tag, open the document and click on \"Add Tag\" on the sidebar", 
  "About", 
  "Report Name", 
  "Edit", 
@@ -128,6 +130,6 @@
  "values and dates", 
  "Assign To", 
  "Export", 
- "To add a tag, open the document and click on \"Add Tag\" on the sidebar", 
+ "List of records in which this document is linked", 
  "Tools"
 ]

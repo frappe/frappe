@@ -107,7 +107,7 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	col.fieldname = fieldname;
 	col.fieldtype = fieldtype;
 	$(col).attr("data-grid-fieldname", doctype + "-" + fieldname);
-	col.innerHTML = label;
+	col.innerHTML = wn._(label);
 	col.title = label;
 	col.label = label;
 	if(reqd)

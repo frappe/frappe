@@ -66,7 +66,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
 		var module = locals.DocType[this.doctype].module;
 		
-		this.appframe.set_title(this.doctype + " List");
+		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
 		this.appframe.add_home_breadcrumb();
 		this.appframe.add_module_breadcrumb(module);
 		this.appframe.add_breadcrumb("icon-list");
@@ -217,8 +217,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	add_delete_option: function() {
 		var me = this;
 		if(this.can_delete) {
-			this.add_button('Delete', function() { me.delete_items(); }, 'icon-remove');
-			this.add_button('Select All', function() { 
+			this.add_button(wn._('Delete'), function() { me.delete_items(); }, 'icon-remove');
+			this.add_button(wn._('Select All'), function() { 
 				var checks = me.$page.find('.list-delete');
 				checks.attr('checked', $(checks.get(0)).attr('checked') ? false : "checked");
 			}, 'icon-ok');
@@ -317,6 +317,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var me = this;
 		var args = {}
 		args.label = v[0];
+		args._label = wn._(v[0]);
 		args.width = flt(v[1]) / max * 100;
 		args.count = v[1];
 		args.field = field;
@@ -330,7 +331,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			</div>\
 			<div class="stat-label">\
 				<a href="#" data-label="%(label)s" data-field="%(field)s">\
-					%(label)s</a> (%(count)s)\
+					%(_label)s</a> (%(count)s)\
 		</div>', args));
 		
 		this.setup_stat_item_click($item);

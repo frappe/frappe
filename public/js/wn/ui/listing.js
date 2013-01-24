@@ -170,14 +170,14 @@ wn.ui.Listing = Class.extend({
 				
 		// new
 		if(this.new_doctype) {
-			this.add_button('New ' + this.new_doctype, function() { 
+			this.add_button(wn._('New') + ' ' + wn._(this.new_doctype), function() { 
 				(me.custom_new_doc || me.make_new_doc)(me.new_doctype);
 			}, 'icon-plus');
 		} 
 		
 		// hide-filter
 		if(me.show_filters) {
-			this.add_button('Show Filters', function() {
+			this.add_button(wn._('Show Filters'), function() {
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}
