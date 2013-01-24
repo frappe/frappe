@@ -144,6 +144,9 @@ class Session:
 		import webnotes		
 		data = self.get_session_record()
 		if data:
+			# set language
+			if data.lang: 
+				webnotes.lang = data.lang
 			self.data = webnotes._dict({'data': data, 
 				'user':data.user, 'sid': self.sid})
 		else:
@@ -216,6 +219,7 @@ class Session:
 	def update(self):
 		"""extend session expiry"""
 		self.data['data']['last_updated'] = webnotes.utils.now()
+		self.data['data']['lang'] = webnotes.lang
 
 		# update session in db
 		time_diff = None

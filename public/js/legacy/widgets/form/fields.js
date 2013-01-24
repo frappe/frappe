@@ -180,7 +180,7 @@ Field.prototype.get_status = function() {
 
 	// workflow state
 	if(ret=="Write" && cur_frm && cur_frm.state_fieldname) {
-		if(cur_frm.read_only) {
+		if(cint(cur_frm.read_only)) {
 			ret = 'Read';
 		}
 		// fields updated by workflow must be read-only
@@ -244,7 +244,8 @@ Field.prototype.refresh_display = function() {
 			if(this.input) { // if there, show it!
 				$ds(this.input_area);
 				$dh(this.disp_area);
-				if(this.input.refresh)this.input.refresh();
+				if(this.input.refresh)
+					this.input.refresh();
 			} else { // no widget
 				$dh(this.input_area);
 				$ds(this.disp_area);
@@ -910,8 +911,9 @@ CheckField.prototype.onmake = function() {
 }
 
 CheckField.prototype.make_input = function() { var me = this;
-	this.input = $a_input(this.input_area,'checkbox');
-	$y(this.input, {width:"16px", border:'0px', marginTop:'-2px'}); // no specs for checkbox
+	this.input = $("<input type='checkbox'>")
+		.appendTo(this.input_area)
+		.css({"border":"0px", "margin-top":"-2px", "width": "16px"}).get(0);
 	
 	$(this.input).click(function() {
 		me.set(this.checked?1:0);

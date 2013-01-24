@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:56:41", 
+  "modified": "2013-01-24 12:22:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -115,6 +115,14 @@
   "oldfieldtype": "Column Break", 
   "print_width": "50%", 
   "width": "50%"
+ }, 
+ {
+  "description": "Language preference for user interface (only if available).", 
+  "doctype": "DocField", 
+  "fieldname": "language", 
+  "fieldtype": "Select", 
+  "label": "Language", 
+  "options": "English\n\u0939\u093f\u0902\u0926\u0940"
  }, 
  {
   "doctype": "DocField", 

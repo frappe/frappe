@@ -39,7 +39,7 @@ cur_frm.cscript.enabled = function(doc) {
 	if(!doc.__islocal) {
 		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);	
 		cur_frm.toggle_enable('*', doc.enabled);
-		cur_frm.set_df_property('enabled', 'disabled', false);		
+		cur_frm.set_df_property('enabled', 'read_only', 0);
 	}
 	
 	if(user!="Administrator") {
