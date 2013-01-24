@@ -802,11 +802,11 @@ _f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
 	// js
 	var cs = doctype.__js || (doctype.client_script_core + doctype.client_script);
 	if(cs) {
-		try {
+		//try {
 			var tmp = eval(cs);
-		} catch(e) {
-			console.log(e);
-		}
+		// } catch(e) {
+		// 	console.log(e);
+		// }
 	}
 
 	// css

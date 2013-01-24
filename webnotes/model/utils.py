@@ -51,10 +51,8 @@ def compress(doclist):
 	   Compress a doclist before sending it to the client side. (Internally used by the request handler)
 
 	"""
-	if doclist and hasattr(doclist[0],'fields'):
-		docs = [d.fields for d in doclist]
-	else:
-		docs = doclist
+	from webnotes.model.doc import Document
+	docs = [isinstance(d, Document) and d.fields or d for d in doclist]
 
 	kl, vl = {}, []
 	forbidden = ['server_code_compiled']

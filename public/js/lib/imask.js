@@ -1,9 +1,555 @@
-/*!
- * jQuery iMask Plugin v0.7.0
- *
- * Licensed under the MIT License
- * Authors: Mark Kahn
- *          Fabio Zendhi Nagao (http://zend.lojcomm.com.br)
- *
- * Date: Wed Aug 24 10:50:49 2011 -0700
- */(function(a){function d(a){this.range=a.getSelectionRange(),this.len=a.domNode.value.length,this.obj=a,this[0]=this.range[0],this[1]=this.range[1]}var b=function(a){return!!a||a===0},c=function(){this.initialize.apply(this,arguments)};c.prototype={options:{maskEmptyChr:" ",validNumbers:"1234567890",validAlphas:"abcdefghijklmnopqrstuvwxyz",validAlphaNums:"abcdefghijklmnopqrstuvwxyz1234567890",groupDigits:3,decDigits:2,currencySymbol:"",groupSymbol:",",decSymbol:".",showMask:!0,stripMask:!1,lastFocus:0,number:{stripMask:!1,showMask:!1}},initialize:function(b,c){this.node=b,this.domNode=b[0],this.options=a.extend({},this.options,this.options[c.type]||{},c);var d=this;c.type=="number"&&this.node.css("text-align","right"),this.node.bind("mousedown click",function(a){a.stopPropagation(),a.preventDefault()}).bind("mouseup",function(){d.onMouseUp.apply(d,arguments)}).bind("keydown",function(){d.onKeyDown.apply(d,arguments)}).bind("keypress",function(){d.onKeyPress.apply(d,arguments)}).bind("focus",function(){d.onFocus.apply(d,arguments)}).bind("blur",function(){d.onBlur.apply(d,arguments)})},isFixed:function(){return this.options.type=="fixed"},isNumber:function(){return this.options.type=="number"},onMouseUp:function(a){a.stopPropagation(),a.preventDefault();if(this.isFixed()){var b=this.getSelectionStart();this.setSelection(b,b+1)}else this.isNumber()&&this.setEnd()},onKeyDown:function(a){if(!(a.ctrlKey||a.altKey||a.metaKey))if(a.which==13)this.node.blur(),this.submitForm(this.node);else if(a.which!=9)if(this.options.type=="fixed"){a.preventDefault();var b=this.getSelectionStart();switch(a.which){case 8:this.updateSelection(this.options.maskEmptyChr),this.selectPrevious();break;case 36:this.selectFirst();break;case 35:this.selectLast();break;case 37:case 38:this.selectPrevious();break;case 39:case 40:this.selectNext();break;case 46:this.updateSelection(this.options.maskEmptyChr),this.selectNext();break;default:var c=this.chrFromEv(a);this.isViableInput(b,c)?(this.updateSelection(a.shiftKey?c.toUpperCase():c),this.node.trigger("valid",a,this.node),this.selectNext()):this.node.trigger("invalid",a,this.node)}}else if(this.options.type=="number")switch(a.which){case 35:case 36:case 37:case 38:case 39:case 40:break;case 8:case 46:var e=this;setTimeout(function(){e.formatNumber()},1);break;default:a.preventDefault();var c=this.chrFromEv(a);if(this.isViableInput(b,c)){var f=new d(this),g=this.sanityTest(f.replaceWith(c));g!==!1&&(this.updateSelection(c),this.formatNumber()),this.node.trigger("valid",a,this.node)}else this.node.trigger("invalid",a,this.node)}},allowKeys:{8:1,9:1,13:1,35:1,36:1,37:1,38:1,39:1,40:1,46:1},onKeyPress:function(a){var b=a.which||a.keyCode;!this.allowKeys[b]&&!(a.ctrlKey||a.altKey||a.metaKey)&&(a.preventDefault(),a.stopPropagation())},onFocus:function(a){a.stopPropagation(),a.preventDefault(),this.options.showMask&&(this.domNode.value=this.wearMask(this.domNode.value)),this.sanityTest(this.domNode.value);var b=this;setTimeout(function(){b[b.options.type==="fixed"?"selectFirst":"setEnd"]()},1)},onBlur:function(a){a.stopPropagation(),a.preventDefault(),this.options.stripMask&&(this.domNode.value=this.stripMask())},selectAll:function(){this.setSelection(0,this.domNode.value.length)},selectFirst:function(){for(var a=0,b=this.options.mask.length;a<b;a++)if(this.isInputPosition(a)){this.setSelection(a,a+1);return}},selectLast:function(){for(var a=this.options.mask.length-1;a>=0;a--)if(this.isInputPosition(a)){this.setSelection(a,a+1);return}},selectPrevious:function(a){b(a)||(a=this.getSelectionStart()),a>0?this.isInputPosition(a-1)?this.setSelection(a-1,a):this.selectPrevious(a-1):this.selectFirst()},selectNext:function(a){b(a)||(a=this.getSelectionEnd());this.isNumber()?this.setSelection(a+1,a+1):a<this.options.mask.length?this.isInputPosition(a)?this.setSelection(a,a+1):this.selectNext(a+1):this.selectLast()},setSelection:function(a,b){a=a.valueOf(),!b&&a.splice&&(b=a[1],a=a[0]);if(this.domNode.setSelectionRange)this.domNode.focus(),this.domNode.setSelectionRange(a,b);else if(this.domNode.createTextRange){var c=this.domNode.createTextRange();c.collapse(),c.moveStart("character",a),c.moveEnd("character",b-a),c.select()}},updateSelection:function(a){var b=this.domNode.value,c=new d(this),e=c.replaceWith(a);this.domNode.value=e,c[0]===c[1]?this.setSelection(c[0]+1,c[0]+1):this.setSelection(c)},setEnd:function(){var a=this.domNode.value.length;this.setSelection(a,a)},getSelectionRange:function(){return[this.getSelectionStart(),this.getSelectionEnd()]},getSelectionStart:function(){var a=0,b=this.domNode.selectionStart;if(b)typeof b=="number"&&(a=b);else if(document.selection){var c=document.selection.createRange().duplicate();c.moveEnd("character",this.domNode.value.length),a=this.domNode.value.lastIndexOf(c.text),c.text==""&&(a=this.domNode.value.length)}return a},getSelectionEnd:function(){var a=0,b=this.domNode.selectionEnd;if(b)typeof b=="number"&&(a=b);else if(document.selection){var c=document.selection.createRange().duplicate();c.moveStart("character",-this.domNode.value.length),a=c.text.length}return a},isInputPosition:function(a){var b=this.options.mask.toLowerCase(),c=b.charAt(a);return!!~"9ax".indexOf(c)},sanityTest:function(b,c){var e=this.options.sanity;if(e instanceof RegExp)return e.test(b);if(a.isFunction(e)){var f=e(b,c);if(typeof f=="boolean")return f;if(typeof f!="undefined"){if(this.isFixed()){var c=this.getSelectionStart();this.domNode.value=this.wearMask(f),this.setSelection(c,c+1),this.selectNext()}else if(this.isNumber()){var g=new d(this);this.domNode.value=f,this.setSelection(g),this.formatNumber()}return!1}}},isViableInput:function(){return this[this.isFixed()?"isViableFixedInput":"isViableNumericInput"].apply(this,arguments)},isViableFixedInput:function(a,b){var c=this.options.mask.toLowerCase(),d=c.charAt(a),e=this.domNode.value.split("");e.splice(a,1,b),e=e.join("");var f=this.sanityTest(e,a);return typeof f=="boolean"?f:({9:this.options.validNumbers,a:this.options.validAlphas,x:this.options.validAlphaNums}[d]||"").indexOf(b)<0?!1:!0},isViableNumericInput:function(a,b){return!!~this.options.validNumbers.indexOf(b)},wearMask:function(a){var b=this.options.mask.toLowerCase(),c="",d={9:"validNumbers",a:"validAlphas",x:"validAlphaNums"};for(var e=0,f=0,g=b.length;e<g;e++)switch(b.charAt(e)){case"9":case"a":case"x":c+=this.options[d[b.charAt(e)]].indexOf(a.charAt(f).toLowerCase())>=0&&a.charAt(f)!=""?a.charAt(f++):this.options.maskEmptyChr;break;default:c+=b.charAt(e),a.charAt(f)==b.charAt(e)&&f++}return c},stripMask:function(){var a=this.domNode.value;if(""==a)return"";var b="";if(this.isFixed())for(var c=0,d=a.length;c<d;c++)a.charAt(c)!=this.options.maskEmptyChr&&this.isInputPosition(c)&&(b+=a.charAt(c));else if(this.isNumber())for(var c=0,d=a.length;c<d;c++)this.options.validNumbers.indexOf(a.charAt(c))>=0&&(b+=a.charAt(c));return b},chrFromEv:function(a){var b="",c=a.which;c>=96&&c<=105&&(c-=48),b=String.fromCharCode(c).toLowerCase();return b},formatNumber:function(){var a=this.domNode.value.length,b=this.stripMask(),c=b.replace(/^0+/,""),e=new d(this);b=c,c="";for(var f=b.length,g=this.options.decDigits;f<=g;f++)c+="0";c+=b,b=c.substr(c.length-this.options.decDigits),c=c.substring(0,c.length-this.options.decDigits);var h=new RegExp("(\\d+)(\\d{"+this.options.groupDigits+"})");while(h.test(c))c=c.replace(h,"$1"+this.options.groupSymbol+"$2");this.domNode.value=this.options.currencySymbol+c+this.options.decSymbol+b,this.setSelection(e)},getObjForm:function(){return this.node.getClosest("form")},submitForm:function(){var a=this.getObjForm();a.trigger("submit")}},d.prototype={valueOf:function(){var a=this.len-this.obj.domNode.value.length;return[this.range[0]-a,this.range[1]-a]},replaceWith:function(a){var b=this.obj.domNode.value,c=this.valueOf();return b.substr(0,c[0])+a+b.substr(c[1])}},a.fn.iMask=function(b){this.each(function(){new c(a(this),b)})}})(jQuery)
+(function($){
+	var $chk = function(obj){
+		return !!(obj || obj === 0);
+	};
+
+	/**
+	 * Masks an input with a pattern
+	 * @class
+	 * @requires jQuery
+	 * @name jQuery.iMask
+	 * @param {Object}    options
+	 * @param {String}    options.type (number|fixed)
+	 * @param {String}    options.mask Mask using 9,a,x notation
+	 * @param {String}   [options.maskEmptyChr=' ']
+	 * @param {String}   [options.validNumbers='1234567890']
+	 * @param {String}   [options.validAlphas='abcdefghijklmnopqrstuvwxyz']
+	 * @param {String}   [options.validAlphaNums='abcdefghijklmnopqrstuvwxyz1234567890']
+	 * @param {Number}   [options.groupDigits=3]
+	 * @param {Number}   [options.decDigits=2]
+	 * @param {String}   [options.currencySymbol]
+	 * @param {String}   [options.groupSymbol=',']
+	 * @param {String}   [options.decSymbol='.']
+	 * @param {Boolean}  [options.showMask=true]
+	 * @param {Boolean}  [options.stripMask=false]
+	 * @param {Function} [options.sanity]
+	 * @param {Object}   [options.number] Override options for when validating numbers only
+	 * @param {Boolean}  [options.number.stripMask=false]
+	 * @param {Boolean}  [options.number.showMask=false]
+	 */
+	var iMask = function(){
+		this.initialize.apply(this, arguments);
+	};
+
+	iMask.prototype = {
+		std_options: {
+			maskEmptyChr   : ' ',
+
+			validNumbers   : "1234567890",
+			validAlphas    : "abcdefghijklmnopqrstuvwxyz",
+			validAlphaNums : "abcdefghijklmnopqrstuvwxyz1234567890",
+
+			groupDigits    : 3,
+			decDigits      : 2,
+			currencySymbol : '',
+			groupSymbol    : ',',
+			decSymbol      : '.',
+			showMask       : true,
+			stripMask      : false,
+
+			lastFocus      : 0,
+
+			number : {
+				stripMask : false,
+				showMask  : false
+			}
+		},
+
+		initialize: function(node, options) {
+			this.node    = node;
+			this.domNode = node[0];
+			this.setOptions(options);
+			var self     = this;
+
+			if(options.type == "number") this.node.css("text-align", "right");
+
+			this.node
+				.bind( "mousedown click", function(ev){
+					ev.stopPropagation(); ev.preventDefault(); } )
+
+				.bind( "mouseup",  function(){ self.onMouseUp .apply(self, arguments); } )
+				.bind( "keydown",  function(){ self.onKeyDown .apply(self, arguments); } )
+				.bind( "keypress", function(){ self.onKeyPress.apply(self, arguments); } )
+				.bind( "focus",    function(){ self.onFocus   .apply(self, arguments); } )
+				//.bind( "blur",     function(){ self.onBlur    .apply(self, arguments); } );
+		},
+		
+		setOptions: function(options) {
+			this.options = $.extend({}, 
+				this.std_options, this.std_options[options.type] || {}, options);
+		},
+
+		isFixed  : function(){ return this.options.type == 'fixed';  },
+		isNumber : function(){ return this.options.type == 'number'; },
+
+		onMouseUp: function( ev ) {
+			ev.stopPropagation();
+			ev.preventDefault();
+
+			if( this.isFixed() ) {
+				var p = this.getSelectionStart();
+				this.setSelection(p, (p + 1));
+			} else if(this.isNumber() ) {
+				this.setEnd();
+			}
+		},
+
+		onKeyDown: function(ev) {
+			if(ev.ctrlKey || ev.altKey || ev.metaKey) {
+				return;
+
+			} else if(ev.which == 13) { // enter
+				this.node.blur();
+
+				this.submitForm(this.node);
+
+			} else if(!(ev.which == 9)) { // tab
+				if(this.options.type == "fixed") {
+					ev.preventDefault();
+
+					var p = this.getSelectionStart();
+					switch(ev.which) {
+						case 8: // Backspace
+							this.updateSelection( this.options.maskEmptyChr );
+							this.selectPrevious();
+							break;
+						case 36: // Home
+							this.selectFirst();
+							break;
+						case 35: // End
+							this.selectLast();
+							break;
+						case 37: // Left
+						case 38: // Up
+							this.selectPrevious();
+							break;
+						case 39: // Right
+						case 40: // Down
+							this.selectNext();
+							break;
+						case 46: // Delete
+							this.updateSelection( this.options.maskEmptyChr );
+							this.selectNext();
+							break;
+						default:
+							var chr = this.chrFromEv(ev);
+							if( this.isViableInput( p, chr ) ) {
+								this.updateSelection( ev.shiftKey ? chr.toUpperCase() : chr );
+								this.node.trigger("valid", ev, this.node);
+								this.selectNext();
+							} else {
+								this.node.trigger("invalid", ev, this.node);
+							}
+							break;
+					}
+				} else if(this.options.type == "number") {
+					switch(ev.which) {
+						case 35: // END
+						case 36: // HOME
+						case 37: // LEFT
+						case 38: // UP
+						case 39: // RIGHT
+						case 40: // DOWN
+							break;
+						case 8:  // backspace
+						case 46: // delete
+							var self = this;
+							setTimeout(function(){
+								self.formatNumber();
+							}, 1);
+							break;
+
+						default:
+							ev.preventDefault();
+
+							var chr = this.chrFromEv( ev );
+							if( this.isViableInput( p, chr ) ) {
+								var range = new Range( this )
+								 ,    val = this.sanityTest( range.replaceWith( chr ) );
+
+								if(val !== false){
+									this.updateSelection( chr );
+									this.formatNumber();
+								}
+								this.node.trigger( "valid", ev, this.node );
+							} else {	
+								this.node.trigger( "invalid", ev, this.node );
+							}
+							break;
+					}
+				}
+			}
+		},
+
+		allowKeys : {
+			   8 : 1 // backspace
+			,  9 : 1 // tab
+			, 13 : 1 // enter
+			, 35 : 1 // end
+			, 36 : 1 // home
+			, 37 : 1 // left
+			, 38 : 1 // up
+			, 39 : 1 // right
+			, 40 : 1 // down
+			, 46 : 1 // delete
+		},
+
+		onKeyPress: function(ev) {
+			var key = ev.which || ev.keyCode;
+
+			if(
+				!( this.allowKeys[ key ] )
+				&& !(ev.ctrlKey || ev.altKey || ev.metaKey)
+			) {
+				ev.preventDefault();
+				ev.stopPropagation();
+			}
+		},
+
+		onFocus: function(ev) {
+			ev.stopPropagation();
+			ev.preventDefault();
+
+			this.options.showMask && (this.domNode.value = this.wearMask(this.domNode.value));
+			this.sanityTest( this.domNode.value );
+
+			var self = this;
+
+			setTimeout( function(){
+				self[ self.options.type === "fixed" ? 'selectFirst' : 'setEnd' ]();
+			}, 1 );
+		},
+
+		onBlur: function(ev) {
+			// ev.stopPropagation();
+			// ev.preventDefault();
+			// 
+			// if(this.options.stripMask)
+			// 	this.domNode.value = this.stripMask();
+		},
+
+		selectAll: function() {
+			this.setSelection(0, this.domNode.value.length);
+		},
+
+		selectFirst: function() {
+			for(var i = 0, len = this.options.mask.length; i < len; i++) {
+				if(this.isInputPosition(i)) {
+					this.setSelection(i, (i + 1));
+					return;
+				}
+			}
+		},
+
+		selectLast: function() {
+			for(var i = (this.options.mask.length - 1); i >= 0; i--) {
+				if(this.isInputPosition(i)) {
+					this.setSelection(i, (i + 1));
+					return;
+				}
+			}
+		},
+
+		selectPrevious: function(p) {
+			if( !$chk(p) ){ p = this.getSelectionStart(); }
+
+			if(p <= 0) {
+				this.selectFirst();
+			} else {
+				if(this.isInputPosition(p - 1)) {
+					this.setSelection(p - 1, p);
+				} else {
+					this.selectPrevious(p - 1);
+				}
+			}
+		},
+
+		selectNext: function(p) {
+			if( !$chk(p) ){ p = this.getSelectionEnd(); }
+
+			if( this.isNumber() ){
+				this.setSelection( p+1, p+1 );
+				return;
+			}
+
+			if( p >= this.options.mask.length) {
+				this.selectLast();
+			} else {
+				if(this.isInputPosition(p)) {
+					this.setSelection(p, (p + 1));
+				} else {
+					this.selectNext(p + 1);
+				}
+			}
+		},
+
+		setSelection: function( a, b ) {
+			a = a.valueOf();
+			if( !b && a.splice ){
+				b = a[1];
+				a = a[0];
+			}
+
+			if(this.domNode.setSelectionRange) {
+				this.domNode.focus();
+				this.domNode.setSelectionRange(a, b);
+			} else if(this.domNode.createTextRange) {
+				var r = this.domNode.createTextRange();
+				r.collapse();
+				r.moveStart("character", a);
+				r.moveEnd("character", (b - a));
+				r.select();
+			}
+		},
+
+		updateSelection: function( chr ) {
+			var value = this.domNode.value
+			 ,  range = new Range( this )
+			 , output = range.replaceWith( chr );
+
+			this.domNode.value = output;
+			if( range[0] === range[1] ){
+				this.setSelection( range[0] + 1, range[0] + 1 );
+			}else{
+				this.setSelection( range );
+			}
+		},
+
+	 	setEnd: function() {
+			var len = this.domNode.value.length;
+			this.setSelection(len, len);
+		},
+
+		getSelectionRange : function(){
+			return [ this.getSelectionStart(), this.getSelectionEnd() ];
+		},
+
+		getSelectionStart: function() {
+			var p = 0,
+			    n = this.domNode.selectionStart;
+
+			if( n ) {
+				if( typeof( n ) == "number" ){
+					p = n;
+				}
+			} else if( document.selection ){
+				var r = document.selection.createRange().duplicate();
+				r.moveEnd( "character", this.domNode.value.length );
+				p = this.domNode.value.lastIndexOf( r.text );
+				if( r.text == "" ){
+					p = this.domNode.value.length;
+				}
+			}
+			return p;
+		},
+
+		getSelectionEnd: function() {
+			var p = 0,
+			    n = this.domNode.selectionEnd;
+
+			if( n ) {
+				if( typeof( n ) == "number"){
+					p = n;
+				}
+			} else if( document.selection ){
+				var r = document.selection.createRange().duplicate();
+				r.moveStart( "character", -this.domNode.value.length );
+				p = r.text.length;
+			}
+			return p;
+		},
+
+		isInputPosition: function(p) {
+			var mask = this.options.mask.toLowerCase();
+			var chr = mask.charAt(p);
+			return !!~"9ax".indexOf(chr);
+		},
+
+		sanityTest: function( str, p ){
+			var sanity = this.options.sanity;
+
+			if(sanity instanceof RegExp){
+				return sanity.test(str);
+			}else if($.isFunction(sanity)){
+				var ret = sanity(str, p);
+				if(typeof(ret) == 'boolean'){
+					return ret;
+				}else if(typeof(ret) != 'undefined'){
+					if( this.isFixed() ){
+						var p = this.getSelectionStart();
+						this.domNode.value = this.wearMask( ret );
+						this.setSelection( p, p+1 );
+						this.selectNext();
+					}else if( this.isNumber() ){
+						var range = new Range( this );
+						this.domNode.value = ret;
+						this.setSelection( range );
+						this.formatNumber();
+					}
+					return false;
+				}
+			}
+		},
+
+		isViableInput: function() {
+			return this[ this.isFixed() ? 'isViableFixedInput' : 'isViableNumericInput' ].apply( this, arguments );
+		},
+
+		isViableFixedInput : function( p, chr ){
+			var mask   = this.options.mask.toLowerCase();
+			var chMask = mask.charAt(p);
+
+			var val = this.domNode.value.split('');
+			val.splice( p, 1, chr );
+			val = val.join('');
+
+			var ret = this.sanityTest( val, p );
+			if(typeof(ret) == 'boolean'){ return ret; }
+
+			if(({
+				'9' : this.options.validNumbers,
+				'a' : this.options.validAlphas,
+				'x' : this.options.validAlphaNums
+			}[chMask] || '').indexOf(chr) >= 0){
+				return true;
+			}
+
+			return false;
+		},
+
+		isViableNumericInput : function( p, chr ){
+			return !!~this.options.validNumbers.indexOf( chr );
+		},
+
+		wearMask: function(str) {
+			var   mask = this.options.mask.toLowerCase()
+			 ,  output = ""
+			 , chrSets = {
+				  '9' : 'validNumbers'
+				, 'a' : 'validAlphas'
+				, 'x' : 'validAlphaNums'
+			};
+
+			for(var i = 0, u = 0, len = mask.length; i < len; i++) {
+				switch(mask.charAt(i)) {
+					case '9':
+					case 'a':
+					case 'x':
+						output += 
+							((this.options[ chrSets[ mask.charAt(i) ] ].indexOf( str.charAt(u).toLowerCase() ) >= 0) && ( str.charAt(u) != ""))
+								? str.charAt( u++ )
+								: this.options.maskEmptyChr;
+						break;
+
+					default:
+						output += mask.charAt(i);
+						if( str.charAt(u) == mask.charAt(i) ){
+							u++;
+						}
+
+						break;
+				}
+			}
+			return output;
+		},
+
+		stripMask: function() {
+			var value = this.domNode.value;
+			if("" == value) return "";
+			var output = "";
+
+			if( this.isFixed() ) {
+				for(var i = 0, len = value.length; i < len; i++) {
+					if((value.charAt(i) != this.options.maskEmptyChr) && (this.isInputPosition(i)))
+						{output += value.charAt(i);}
+				}
+			} else if( this.isNumber() ) {
+				for(var i = 0, len = value.length; i < len; i++) {
+					if(this.options.validNumbers.indexOf(value.charAt(i)) >= 0)
+						{output += value.charAt(i);}
+				}
+			}
+
+			return output;
+		},
+
+		chrFromEv: function(ev) {
+			var chr = '', key = ev.which;
+
+			if(key >= 96 && key <= 105){ key -= 48; }     // shift number-pad numbers to corresponding character codes
+			chr = String.fromCharCode(key).toLowerCase(); // key pressed as a lowercase string
+			return chr;
+		},
+
+		formatNumber: function() {
+			// stripLeadingZeros
+			var olen = this.domNode.value.length
+			 ,  str2 = this.stripMask()
+			 ,  str1 = str2.replace( /^0+/, '' )
+			 , range = new Range(this);
+
+			// wearLeadingZeros
+
+			str2 = str1;
+			str1 = "";
+			for(var len = str2.length, i = this.options.decDigits; len <= i; len++) {
+				str1 += "0";
+			}
+			str1 += str2;
+
+			// decimalSymbol
+			str2 = str1.substr(str1.length - this.options.decDigits)
+			str1 = str1.substring(0, (str1.length - this.options.decDigits))
+
+			// groupSymbols
+			var re = new RegExp("(\\d+)(\\d{"+ this.options.groupDigits +"})");
+			while(re.test(str1)) {
+				str1 = str1.replace(re, "$1"+ this.options.groupSymbol +"$2");
+			}
+
+			this.domNode.value = this.options.currencySymbol + str1 + this.options.decSymbol + str2;
+			this.setSelection( range );
+		},
+
+		getObjForm: function() {
+			return this.node.getClosest('form');
+		},
+
+		submitForm: function() {
+			//var form = this.getObjForm();
+			//form.trigger('submit');
+		}
+	};
+
+	function Range( obj ){
+		this.range = obj.getSelectionRange();
+		this.len   = obj.domNode.value.length
+		this.obj   = obj;
+
+		this['0']  = this.range[0];
+		this['1']  = this.range[1];
+	}
+	Range.prototype = {
+		valueOf : function(){
+			var len = this.len - this.obj.domNode.value.length;
+			return [ this.range[0] - len, this.range[1] - len ];
+		},
+		replaceWith : function( str ){
+			var  val = this.obj.domNode.value
+			 , range = this.valueOf();
+
+			return val.substr( 0, range[0] ) + str + val.substr( range[1] );
+		}
+	};
+
+	$.fn.iMask = function(options){
+		this.each(function(){
+			if(this._imask) {
+				// don't re-initialize, just reset the options dynamically
+				this._imask.setOptions(options);
+			} else {
+				this._imask = new iMask($(this), options);
+			}
+		});
+	};
+})(jQuery);

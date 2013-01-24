@@ -1647,7 +1647,7 @@
   "currency": "LBP", 
   "currency_fraction_units": 100, 
   "currency_symbol": "\u0644.\u0644", 
-  "number_format": "# ###"
+  "number_format": "#,###.##"
  }, 
  "Faroe Islands": {
   "currency_fraction": "\u00d8re", 

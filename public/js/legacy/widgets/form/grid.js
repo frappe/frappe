@@ -187,7 +187,12 @@ _f.Grid.prototype.append_row = function(idx, docname) {
 		if(this.row_height) {
 			cell.div.style.height = this.row_height; }
 		cell.div.cell = cell;
-		cell.div.onclick = function(e) { me.cell_select(this.cell); }
+		$(cell.div).click(function(e) { 
+			me.cell_select(this.cell);
+			// cell selected, don't do anything else
+			// like deselect it
+			e.stopPropagation();
+		});
 
 		if(odd) {
 			$bg(cell, this.alt_row_bg); cell.is_odd = 1;
@@ -225,8 +230,10 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 
 	// show static
 	var hc = this.head_row.cells[cell.cellIndex];
+	if(hc.fieldname)
+		var doc = locals[hc.doctype][cell.row.docname];
 	
-	if(hc.fieldname && locals[hc.doctype][cell.row.docname]) {
+	if(hc.fieldname && doc) {
 		var v = locals[hc.doctype][cell.row.docname][hc.fieldname];
 	} else {
 		var v = (cell.row.rowIndex + 1); // Index
@@ -237,9 +244,10 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	
 	// variations
 	if(cell.cellIndex) {
-		var ft = hc.fieldtype;
-		if(ft=='Link' && cur_frm.doc.docstatus < 1) ft='Data';
-		$s(cell.div, v, ft, hc.options);
+		var df = copy_dict(hc);
+		if(df.fieldtype=="Link") 
+			df.fieldtype=="Data";
+		$(cell.div).html(wn.format(v, hc, doc));
 	} else {
 		// Index column
 		cell.div.style.padding = '2px';
@@ -289,7 +297,7 @@ $(document).bind('click', function(e) {
 		
 		// autosuggest openend
 		//if(wn._autosugg_open) return true;
-				
+
 		return $(e.target).parents().get().indexOf(_f.cur_grid_cell)!=-1;
 	}
 	
@@ -383,15 +391,6 @@ _f.Grid.prototype.remove_template = function(cell) {
 
 	if(!hc.template)return;
 	if(!hc.template.activated)return;
-
-	/*if(hc.template.df.fieldtype=='Date') {
-		// for calendar popup. the value will come after this
-		_f.grid_date_cell = cell;
-		setTimeout('_f.grid_refresh_date()', 100);
-	} else {
-		var input = hc.template.txt || hc.template.input;
-		_f.grid_refresh_field(hc.template, input)
-	}*/
 
 	if(hc.template && hc.template.wrapper.parentNode)
 		cell.div.removeChild(hc.template.wrapper);

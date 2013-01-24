@@ -81,15 +81,25 @@ def load_country_and_currency(bootinfo, doclist):
 	if bootinfo.control_panel.country and \
 		webnotes.conn.exists("Country", bootinfo.control_panel.country):
 		doclist += [webnotes.doc("Country", bootinfo.control_panel.country)]
-	if bootinfo.sysdefaults.currency and \
-		webnotes.conn.exists("Currency", bootinfo.sysdefaults.currency):
-		doclist += [webnotes.doc("Currency", bootinfo.sysdefaults.currency)]
+		
+	doclist += webnotes.conn.sql("""select * from tabCurrency
+		where ifnull(enabled,0)=1""", as_dict=1, update={"doctype":"Currency"})
 
 def add_allowed_pages(bootinfo):
 	bootinfo.allowed_pages = [p[0] for p in webnotes.conn.sql("""select distinct parent from `tabPage Role`
 		where role in ('%s')""" % "', '".join(webnotes.get_roles()))]
 
 def load_translations(bootinfo):
+	try:
+		from startup import lang_list, lang_names
+	except ImportError:
+		return
+		
+	user_lang_pref = webnotes.conn.get_value("Profile", webnotes.session.user, "language")
+	if user_lang_pref:
+		webnotes.lang = lang_names[user_lang_pref]
+		webnotes.user_lang = True
+		
 	if webnotes.lang != 'en':
 		from webnotes.translate import get_lang_data
 		# framework

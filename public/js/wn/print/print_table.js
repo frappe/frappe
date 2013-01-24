@@ -136,8 +136,11 @@ wn.print.Table = Class.extend({
 						var value = row[fieldname];
 						
 					var df = wn.meta.docfield_map[me.tabletype][fieldname];
-					value = wn.form.get_formatter(
-						df ? df.fieldtype : "Data")(value);
+					if(df && df.fieldtype=="Link") {
+						df = copy_dict(df);
+						df.fieldtype = "Data";
+					}
+					value = wn.format(value, df);
 
 					// set formatted value back into data so that modifer can use it
 					row[fieldname] = value;

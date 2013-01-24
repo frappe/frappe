@@ -122,6 +122,10 @@ set_field_options = function(n, txt) {
 	cur_frm.set_df_property(n, 'options', txt)
 }
 
+set_field_permlevel = function(n, level) {
+	cur_frm.set_df_property(n, 'permlevel', level)
+}
+
 toggle_field = function(n, hidden) {
 	var df = wn.meta.get_docfield(cur_frm.doctype, n, cur_frm.docname);
 	if(df) {
@@ -197,7 +201,8 @@ _f.Frm.prototype.set_df_property = function(fieldname, property, value) {
 }
 
 _f.Frm.prototype.toggle_enable = function(fnames, enable) {
-	cur_frm.field_map(fnames, function(field) { field.disabled = enable ? false : true; });
+	cur_frm.field_map(fnames, function(field) { 
+		field.read_only = enable ? 0 : 1; });
 }
 
 _f.Frm.prototype.toggle_reqd = function(fnames, mandatory) {

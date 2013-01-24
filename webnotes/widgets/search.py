@@ -50,9 +50,18 @@ def getsearchfields():
 	webnotes.response['searchfields'] = [['name', 'ID', 'Data', '']] + res
 
 def make_query(fields, dt, key, txt, start, length):
-	query = """SELECT %(fields)s
+	doctype = webnotes.get_doctype(dt)
+
+	enabled_condition = ""
+	if doctype.get({"parent":dt, "fieldname":"enabled", "fieldtype":"Check"}):
+		enabled_condition = " AND ifnull(`tab%s`.`enabled`,0)=1" % dt
+	if doctype.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
+		enabled_condition = " AND ifnull(`tab%s`.`disabled`,0)!=1" % dt
+	
+	query = """select %(fields)s
 		FROM `tab%(dt)s`
-		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' AND `tab%(dt)s`.docstatus != 2
+		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' 
+		AND `tab%(dt)s`.docstatus != 2 %(enabled_condition)s
 		ORDER BY `tab%(dt)s`.`%(key)s`
 		ASC LIMIT %(start)s, %(len)s """ % {
 			'fields': fields,
@@ -60,7 +69,8 @@ def make_query(fields, dt, key, txt, start, length):
 			'key': key,
 			'txt': txt + '%',
 			'start': start,
-			'len': length
+			'len': length,
+			'enabled_condition': enabled_condition
 		}
 	return query
 

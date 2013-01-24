@@ -37,6 +37,9 @@ class HTTPRequest:
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
+		# language
+		self.set_lang(webnotes.get_env_vars('HTTP_ACCEPT_LANGUAGE'))
+		
 		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
 
 		# load cookies
@@ -69,6 +72,30 @@ class HTTPRequest:
 		webnotes.cookie_manager.set_cookies()
 		webnotes.conn.commit()
 
+	def set_lang(self, lang):
+		try:
+			from startup import lang_list
+		except ImportError, e:
+			return
+		
+		if not lang: 
+			return
+		if ";" in lang: # not considering weightage
+			lang = lang.split(";")[0]
+		if "," in lang:
+			lang = lang.split(",")
+		else:
+			lang = [lang]
+		
+		
+		for l in lang:
+			code = l.strip()
+			if "-" in code:
+				code = code.split("-")[0]
+			if code in lang_list:
+				webnotes.lang = code
+				return
+
 	def setup_profile(self):
 		webnotes.user = webnotes.profile.Profile()
 
@@ -80,7 +107,6 @@ class HTTPRequest:
 		"""connect to db, from ac_name or db_name"""
 		webnotes.conn = webnotes.db.Database(user = self.get_db_name(), \
 			password = getattr(conf,'db_password', ''))
-
 
 class LoginManager:
 	def __init__(self):

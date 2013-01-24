@@ -70,6 +70,8 @@ cookies = {}
 response = _dict({'message':'', 'exc':''})
 debug_log = []
 message_log = []
+
+user_lang = False
 lang = 'en'
 
 # memcache

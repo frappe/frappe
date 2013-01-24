@@ -49,6 +49,7 @@ def get(doctype, processed=False, cached=True):
 		if doclist: 
 			if processed:
 				add_linked_with(doclist)
+				update_language(doclist)
 			return DocTypeDocList(doclist)
 	
 	load_docfield_types()
@@ -69,7 +70,6 @@ def get(doctype, processed=False, cached=True):
 		add_print_formats(doclist)
 		add_search_fields(doclist)
 		add_workflows(doclist)
-		update_language(doclist)
 
 	# add validators
 	#add_validators(doctype, doclist)
@@ -81,6 +81,7 @@ def get(doctype, processed=False, cached=True):
 
 	if processed:
 		add_linked_with(doclist)
+		update_language(doclist)
 		
 	return DocTypeDocList(doclist)
 

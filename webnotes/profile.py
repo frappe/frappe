@@ -42,8 +42,6 @@ class Profile:
 		self.can_search = []
 		self.can_get_report = []
 		self.allow_modules = []
-		
-		# for doctypes with create permission but are not supposed to be created using New
 		self.in_create = []
 
 	def get_roles(self):
