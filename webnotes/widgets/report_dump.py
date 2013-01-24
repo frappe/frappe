@@ -34,6 +34,8 @@ def get_data():
 	start = datetime.datetime.now()
 	for d in doctypes:
 		args = data_map[d]
+		dt = d.find("[") != -1 and d[:d.find("[")] or d
+		
 		conditions = order_by = ""
 		if args.get("force_index"):
 			conditions = " force index (%s) " % args["force_index"]
@@ -41,17 +43,17 @@ def get_data():
 			conditions += " where " + " and ".join(args["conditions"])
 		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
-		table = args.get("from") or ("`tab%s`" % d) 
+		table = args.get("from") or ("`tab%s`" % dt) 
 		
-		out[d] = {}
+		out[dt] = {}
 		start = datetime.datetime.now()
-		out[d]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from %s %s %s""" \
+		out[dt]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from %s %s %s""" \
 			% (",".join(args["columns"]), table, conditions, order_by))]
-		out[d]["time"] = str(datetime.datetime.now() - start)
-		out[d]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
+		out[dt]["time"] = str(datetime.datetime.now() - start)
+		out[dt]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
 		
 		if args.get("links"):
-			out[d]["links"] = args["links"]
+			out[dt]["links"] = args["links"]
 	
 	for d in out:
 		unused_links = []
