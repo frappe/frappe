@@ -1,0 +1,14 @@
+{
+ "0": "0", 
+ "1": "1", 
+ "2": "2", 
+ "Core": "C\u0153ur", 
+ "Doc Status": "Statut Doc", 
+ "Message": "Message", 
+ "Only Allow Edit For": "Autoriser uniquement Modifier Pour", 
+ "Represents the states allowed in one document and role assigned to change the state.": "Repr\u00e9sente les \u00e9tats autoris\u00e9s dans un document et le r\u00f4le assign\u00e9 \u00e0 changer l&#39;\u00e9tat.", 
+ "State": "\u00c9tat", 
+ "Update Field": "Mise \u00e0 jour de terrain", 
+ "Update Value": "Mettez \u00e0 jour la valeur", 
+ "Workflow Document State": "Etat du document de workflow"
+}
