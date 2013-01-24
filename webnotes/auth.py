@@ -89,8 +89,11 @@ class HTTPRequest:
 		
 		
 		for l in lang:
-			if l.strip() in lang_list:
-				webnotes.lang = l.strip()
+			code = l.strip()
+			if "-" in code:
+				code = code.split("-")[0]
+			if code in lang_list:
+				webnotes.lang = code
 				return
 
 	def setup_profile(self):
