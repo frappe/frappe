@@ -169,9 +169,6 @@ function flt(v, decimals) {
 	if(isNaN(v))
 		v=0;
 		
-	if(!decimals)
-		decimals = wn.boot.sysdefaults.float_precision && 
-			parseFloat(wn.boot.sysdefaults.float_precision);
 	if(decimals!=null)
 		return roundNumber(v, decimals);
 	return v;
