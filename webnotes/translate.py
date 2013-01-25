@@ -307,7 +307,7 @@ def google_translate(lang, infile, outfile):
 		from csv import writer
 		w = writer(msgfile)
 		for row in data:
-			if not row[1]:
+			if not row[1] and row[0] and row[0].strip():
 				print 'translating: ' + row[0]
 				response = requests.get("""https://www.googleapis.com/language/translate/v2""",
 					params = {

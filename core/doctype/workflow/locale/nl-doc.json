@@ -1,0 +1,20 @@
+{
+ "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"": "Alle mogelijke Workflow Staten en rollen van de workflow. <br> Docstatus Opties: 0 is &quot;Saved&quot;, is 1 &quot;Submitted&quot; en 2 &quot;Cancelled&quot;", 
+ "Core": "Kern", 
+ "Defines workflow states and rules for a document.": "Definieert workflow staten en regels voor een document.", 
+ "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.": "Verschillende &quot;staten&quot; van dit document kan in bestaan \u200b\u200bLike &quot;Open&quot;, &quot;In afwachting van goedkeuring&quot;, enz.", 
+ "DocType on which this Workflow is applicable.": "DOCTYPE waarop dit Workflow toepassing is.", 
+ "Document Type": "Soort document", 
+ "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)": "Veld dat de workflow-status van de transactie vertegenwoordigt (indien veld niet aanwezig is, een nieuwe verborgen Aangepast veld wordt aangemaakt)", 
+ "If checked, all other workflows become inactive.": "Indien aangevinkt, alle andere werkstromen worden inactief.", 
+ "Is Active": "Is actief", 
+ "Rules defining transition of state in the workflow.": "Regels met betrekking tot de overgang van de staat in de workflow.", 
+ "Rules for how states are transitions, like next state and which role is allowed to change state etc.": "Regels voor de manier waarop staten zijn overgangen, zoals naast staat en welke rol mag de staat, enz. te veranderen", 
+ "States": "Staten", 
+ "Transition Rules": "Overgang Regels", 
+ "Workflow": "Workflow", 
+ "Workflow Document States": "Workflow Document Staten", 
+ "Workflow Name": "Werkstroomnaam", 
+ "Workflow State Field": "Workflow State Field", 
+ "Workflow Transitions": "Workflow Overgangen"
+}

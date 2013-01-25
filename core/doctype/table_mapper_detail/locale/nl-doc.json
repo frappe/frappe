@@ -1,0 +1,12 @@
+{
+ "Core": "Kern", 
+ "From Field": "Van Veld", 
+ "From Table": "Uit tabel", 
+ "Match Id": "Match Id", 
+ "Reference DocType Key": "Referentie DocType Key", 
+ "Reference Docname Key": "Referentie Docname Key", 
+ "Table Mapper Detail": "Tabel Mapper Detail", 
+ "To Field": "Om Field", 
+ "To Table": "Tabel", 
+ "Validation Logic": "Validatie Logic"
+}

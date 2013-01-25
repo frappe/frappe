@@ -1,0 +1,16 @@
+{
+ "Core": "Kern", 
+ "Default Value": "Standaardwaarde", 
+ "DocField": "DocField", 
+ "DocType": "DOCTYPE", 
+ "DocType or Field": "DocType of Field", 
+ "Field Name": "Veldnaam", 
+ "Help": "Help", 
+ "ID (name) of the entity whose property is to be set": "ID (naam) van de entiteit waarvan de eigenschap moet worden ingesteld", 
+ "New value to be set": "Nieuwe waarde in te stellen", 
+ "Property": "Eigendom", 
+ "Property Setter": "Onroerend goed Setter", 
+ "Property Setter overrides a standard DocType or Field property": "Onroerend goed Setter heeft voorrang op een standaard DOCTYPE of Field eigendom", 
+ "Property Type": "Type Woning", 
+ "Set Value": "Set Value"
+}

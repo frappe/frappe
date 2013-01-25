@@ -1,0 +1,8 @@
+{
+ "Core": "Kern", 
+ "Default values are set across the role and can be over-ridden by user permissions.": "Standaardwaarden worden ingesteld over de rol en kan overschreven worden door de gebruiker machtigingen.", 
+ "Defaults": "Standaardwaarden", 
+ "Module": "Module", 
+ "Role": "Rol", 
+ "Role Name": "Rolnaam"
+}
