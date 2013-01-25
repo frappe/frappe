@@ -275,11 +275,6 @@ class DocType:
 			d.value = value
 			d.property_type = self.defaults[prop]['fieldtype']
 			#d.default_value = self.defaults[prop]['default']
-			d.select_doctype = self.doc.doc_type
-			d.select_item = ref_d.label and "-".join([
-				cstr(ref_d.label), cstr(ref_d.fieldtype),
-				cstr(ref_d.fieldname)]) or None
-			d.select_property = self.defaults[prop]['label']
 			if delete: d.delete = 1
 			
 			if d.select_item:
