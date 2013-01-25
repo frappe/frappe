@@ -87,6 +87,7 @@ wn.form.formatters = {
 }
 
 wn.form.get_formatter = function(fieldtype) {
+	if(!fieldtype) fieldtype = "Data";
 	return wn.form.formatters[fieldtype.replace(/ /g, "")] || wn.form.formatters.Data;
 }
 
