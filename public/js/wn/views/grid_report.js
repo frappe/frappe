@@ -580,6 +580,7 @@ wn.views.GridReport = Class.extend({
 						return date==v.year_start_date ? true : null;
 					}).length;
 			});
+			
 		}
 		
 		// set label as last date of period
@@ -715,11 +716,13 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 			if(!tmap[v.parent]) tmap[v.parent] = [];
 			tmap[v.parent].push(v);
 		});
-		this.tl = [];
+		if (!this.tl) this.tl = {};
+		if (!this.tl[parent_doctype]) this.tl[parent_doctype] = [];
+		
 		$.each(wn.report_dump.data[parent_doctype], function(i, parent) {
 			if(tmap[parent.name]) {
 				$.each(tmap[parent.name], function(i, d) {
-					me.tl.push($.extend(copy_dict(parent), d));
+					me.tl[parent_doctype].push($.extend(copy_dict(parent), d));
 				});
 			}
 		});
