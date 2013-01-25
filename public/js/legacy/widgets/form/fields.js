@@ -874,14 +874,19 @@ CurrencyField.prototype.format_input = function() {
 }
 
 CurrencyField.prototype.onrefresh = function() {
+	if(this.not_in_form) 
+		return;
 	var info = get_number_format_info(get_number_format());
+	var doc = null;
+	if(this.doctype && this.docname && locals[this.doctype])
+		doc = locals[this.doctype][this.docname];
+		
 	$(this.input).iMask({
 		type: "number",
 		decSymbol: info.decimal_str,
 		groupSymbol: info.group_sep,
 		decDigits: info.precision || 2,
-		currencySymbol: get_currency_symbol(wn.meta.get_field_currency(this.df, 
-				locals[this.doctype][this.docname])) + " "
+		currencySymbol: get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) + " "
 	})
 }
 
@@ -891,7 +896,11 @@ CurrencyField.prototype.validate = function(v) {
 	return flt(v); 
 }
 CurrencyField.prototype.get_formatted = function(val) {
-	var doc = locals[this.doctype][this.docname];
+	if(this.not_in_form) 
+		return val;
+	var doc = null;
+	if(this.doctype && this.docname && locals[this.doctype])
+		doc = locals[this.doctype][this.docname];
 	return get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) 
 		+ " " + format_number(val);
 }
