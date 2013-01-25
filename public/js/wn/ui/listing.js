@@ -69,8 +69,9 @@ wn.ui.Listing = Class.extend({
 			}
 		}
 		if(!this.opts.no_result_message) {
-			this.opts.no_result_message = 'Nothing to show'
+			this.opts.no_result_message = wn._('Nothing to show');
 		}
+		this.opts._more = wn._("More");
 	},
 	make: function(opts) {
 		if(opts) {
@@ -112,7 +113,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div class="paging-button">\
-					<button class="btn btn-more hide">More...</div>\
+					<button class="btn btn-more hide">%(_more)s...</div>\
 				</div>\
 			</div>\
 		', this.opts));

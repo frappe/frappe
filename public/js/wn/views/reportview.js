@@ -73,7 +73,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 
 	setup: function() {
 		var me = this;
-		this.page_title = 'Report: ' + (this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
+		this.page_title = wn._('Report')+ ': ' + wn._(this.docname ? (this.doctype + ' - ' + this.docname) : this.doctype);
 		this.page.appframe.set_title(this.page_title)
 		this.make({
 			appframe: this.page.appframe,
@@ -179,11 +179,11 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				id: c[0],
 				field: c[0],
 				docfield: docfield,
-				name: (docfield ? docfield.label : toTitle(c[0])),
+				name: wn._(docfield ? docfield.label : toTitle(c[0])),
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext) {
 					var docfield = columnDef.docfield;	
-					return wn.form.get_formatter(docfield ? docfield.fieldtype : "Data")(value, docfield);
+					return wn.format(value, docfield);
 				}
 			}
 			return coldef;
@@ -260,7 +260,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	make_column_picker: function() {
 		var me = this;
 		this.column_picker = new wn.ui.ColumnPicker(this);
-		this.page.appframe.add_button('Pick Columns', function() {
+		this.page.appframe.add_button(wn._('Pick Columns'), function() {
 			me.column_picker.show(me.columns);
 		}, 'icon-th-list');
 	},
@@ -318,7 +318,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.sort_order_next_select.val('desc');
 		
 		// button actions
-		this.page.appframe.add_button('Sort By', function() {
+		this.page.appframe.add_button(wn._('Sort By'), function() {
 			me.sort_dialog.show();
 		}, 'icon-arrow-down');
 		

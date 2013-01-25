@@ -245,9 +245,7 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	// variations
 	if(cell.cellIndex) {
 		var df = copy_dict(hc);
-		if(df.fieldtype=="Link") 
-			df.fieldtype=="Data";
-		$(cell.div).html(wn.format(v, hc, doc));
+		$(cell.div).html(wn.format(v, hc, {for_print:true}));
 	} else {
 		// Index column
 		cell.div.style.padding = '2px';
