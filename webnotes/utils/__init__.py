@@ -372,7 +372,7 @@ def fmt_money(amount, precision=None):
 	
 	curr = webnotes.conn.get_value('Control Panel', None, 
 		'currency_format') or 'Millions'
-	number_format = webnotes.get_default("number_format") or "#,###.##"
+	number_format = webnotes.conn.get_default("number_format") or "#,###.##"
 		
 	breaks = re.findall('[^#\d]+', number_format)
 	if len(breaks) < 2:
