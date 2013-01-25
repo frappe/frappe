@@ -865,30 +865,30 @@ FloatField.prototype.set_disp = function(val) {
 // ======================================================================================
 
 function CurrencyField() { } CurrencyField.prototype = new FloatField();
-CurrencyField.prototype.format_input = function() { 
-	var v = this.get_formatted(this.input.value); 
-	if(this.not_in_form) {
-		if(!v) v = ''; // blank in filter
-	}
-	this.input.value = v;
-}
+// CurrencyField.prototype.format_input = function() { 
+// 	var v = this.get_formatted(this.input.value); 
+// 	if(this.not_in_form) {
+// 		if(!v) v = ''; // blank in filter
+// 	}
+// 	this.input.value = v;
+// }
 
-CurrencyField.prototype.onrefresh = function() {
-	if(this.not_in_form) 
-		return;
-	var info = get_number_format_info(get_number_format());
-	var doc = null;
-	if(this.doctype && this.docname && locals[this.doctype])
-		doc = locals[this.doctype][this.docname];
-		
-	$(this.input).iMask({
-		type: "number",
-		decSymbol: info.decimal_str,
-		groupSymbol: info.group_sep,
-		decDigits: info.precision || 2,
-		currencySymbol: get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) + " "
-	})
-}
+// CurrencyField.prototype.onrefresh = function() {
+// 	if(this.not_in_form) 
+// 		return;
+// 	var info = get_number_format_info(get_number_format());
+// 	var doc = null;
+// 	if(this.doctype && this.docname && locals[this.doctype])
+// 		doc = locals[this.doctype][this.docname];
+// 		
+// 	$(this.input).iMask({
+// 		type: "number",
+// 		decSymbol: info.decimal_str,
+// 		groupSymbol: info.group_sep,
+// 		decDigits: info.precision || 2,
+// 		currencySymbol: get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) + " "
+// 	})
+// }
 
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
