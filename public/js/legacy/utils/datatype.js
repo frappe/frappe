@@ -104,6 +104,7 @@ function set_value_in(ele, v, ftype, fopt) {
 	$(ele).html(wn.form.get_formatter(ftype)(v, {options:fopt}));
 	return;
 }
+var $s = set_value_in; // used in print formats
 
 function copy_dict(d) {
 	var n = {};
