@@ -12,7 +12,7 @@ wn.views.ReportViewPage = Class.extend({
 		this.docname = docname;
 		this.page_name = wn.get_route_str();
 		this.make_page();
-
+		
 		var me = this;
 		wn.model.with_doctype(this.doctype, function() {
 			me.make_report_view();
