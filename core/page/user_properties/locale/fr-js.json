@@ -1,0 +1,16 @@
+{
+ "A user can have multiple values for a property.": "Un utilisateur peut avoir plusieurs valeurs pour une propri\u00e9t\u00e9.", 
+ "Add": "Ajouter", 
+ "Add A Property": "Ajouter une propri\u00e9t\u00e9", 
+ "Loading": "Chargement", 
+ "No User Properties found.": "Aucun Propri\u00e9t\u00e9s de l&#39;utilisateur trouv\u00e9.", 
+ "Property": "Propri\u00e9t\u00e9", 
+ "Quick Help for User Properties": "Aide rapide pour Propri\u00e9t\u00e9s de l&#39;utilisateur", 
+ "Select User or Property to start.": "S\u00e9lectionnez l&#39;utilisateur ou d&#39;un bien pour commencer.", 
+ "These properties are Link Type fields from all Documents.": "Ces propri\u00e9t\u00e9s sont des champs de type de lien de tous les documents.", 
+ "These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>": "Ces propri\u00e9t\u00e9s peuvent \u00e9galement \u00eatre utilis\u00e9s pour \u00abattribuer\u00bb un document particulier, dont la propri\u00e9t\u00e9 correspond \u00e0 la propri\u00e9t\u00e9 de l&#39;utilisateur \u00e0 un utilisateur. Ceux-ci peuvent \u00eatre d\u00e9finies \u00e0 l&#39;aide du <a href='#permission-manager'>Gestionnaire d&#39;autorisation</a>", 
+ "These properties will appear as values in forms that contain them.": "Ces propri\u00e9t\u00e9s apparaissent comme des valeurs dans les formes qui les contiennent.", 
+ "User": "Utilisateur", 
+ "Value": "Valeur", 
+ "You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.": "Vous pouvez d\u00e9finir plusieurs \u00abpropri\u00e9t\u00e9s\u00bb aux utilisateurs de d\u00e9finir des valeurs par d\u00e9faut et d&#39;appliquer des r\u00e8gles d&#39;autorisation sur la base de la valeur de ces propri\u00e9t\u00e9s sous diverses formes."
+}

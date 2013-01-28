@@ -479,16 +479,16 @@ def run():
 		build_message_files()
 		for lang in languages:
 			if lang != "en":
+				filename = 'app/translations/'+lang+'.csv'
 				print "For " + lang + ":"
 				print "Compiling messages in one file..."
 				export_messages(lang, '_lang_tmp.csv')
 				print "Translating via Google Translate..."
-				google_translate(lang, '_lang_tmp.csv', '_lang_tmp1.csv')
+				google_translate(lang, '_lang_tmp.csv', filename)
 				print "Updating language files..."
-				import_messages(lang, '_lang_tmp1.csv')
+				import_messages(lang, filename)
 				print "Deleting temp files..."
 				os.remove('_lang_tmp.csv')
-				os.remove('_lang_tmp1.csv')
 
 if __name__=='__main__':
 	run()

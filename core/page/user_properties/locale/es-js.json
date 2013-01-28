@@ -1,0 +1,16 @@
+{
+ "A user can have multiple values for a property.": "Un usuario puede tener varios valores para una propiedad.", 
+ "Add": "A\u00f1adir", 
+ "Add A Property": "Agregue una propiedad", 
+ "Loading": "Carga", 
+ "No User Properties found.": "No encontr\u00f3 Propiedades del usuario.", 
+ "Property": "Propiedad", 
+ "Quick Help for User Properties": "Ayuda r\u00e1pida para las propiedades del usuario", 
+ "Select User or Property to start.": "Seleccionar usuario o propiedad para comenzar.", 
+ "These properties are Link Type fields from all Documents.": "Estas propiedades son campos de tipo de enlace de todos los documentos.", 
+ "These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>": "Estas propiedades tambi\u00e9n se puede utilizar para &quot;asignar&quot; un documento en particular, cuya propiedad corresponde a la propiedad del usuario a un usuario. Estos se pueden establecer mediante el <a href='#permission-manager'>Administrador de autorizaci\u00f3n</a>", 
+ "These properties will appear as values in forms that contain them.": "Estas propiedades aparecer\u00e1 como valores en formas que los contienen.", 
+ "User": "Usuario", 
+ "Value": "Valor", 
+ "You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.": "Puede establecer varias &quot;propiedades&quot; a los usuarios configurar los valores por defecto y aplicar reglas de permisos basados \u200b\u200ben el valor de estas propiedades en diversas formas."
+}

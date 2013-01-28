@@ -2,6 +2,7 @@
  "Client (JS)": "Client (JS)", 
  "Core": "Kern", 
  "Error": "Fout", 
+ "Execute": "Uitvoeren", 
  "Script": "Script", 
  "Server (Python)": "Server (Python)", 
  "System Console": "System Console"

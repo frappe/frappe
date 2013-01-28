@@ -1,8 +1,7 @@
 [
  "Core", 
+ "Execute", 
+ "Error", 
  "System Console", 
- "Client (JS)", 
- "Script", 
- "Server (Python)", 
- "Error"
+ "Script"
 ]
