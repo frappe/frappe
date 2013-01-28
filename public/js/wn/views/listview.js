@@ -214,6 +214,11 @@ wn.views.ListView = Class.extend({
 			me.render_column(data, tr.cells[i], v);
 		});
 	},
+	show_hide_check_column: function() {
+		if(!this.doclistview.can_delete) {
+			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
+		}
+	},
 	prepare_data: function(data) {
 		if(data.modified)
 			this.prepare_when(data, data.modified);
