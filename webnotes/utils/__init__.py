@@ -373,23 +373,16 @@ def fmt_money(amount, precision=None):
 	curr = webnotes.conn.get_value('Control Panel', None, 
 		'currency_format') or 'Millions'
 	number_format = webnotes.conn.get_default("number_format") or "#,###.##"
-		
-	breaks = re.findall('[^#\d]+', number_format)
-	if len(breaks) < 2:
-		webnotes.msgprint(_("Incorrect Number Format:") + number_format, 
-			raise_exception=True)
-	
-	decimal_str = breaks[-1]
-	comma_str = breaks[0]
-	if not precision:
-		precision = len(number_format.split(decimal_str)[-1]) or 2
-	
-	amount = '%.*f' % (precision, flt(amount))
+	decimal_str, comma_str, precision = get_number_format_info(number_format)
 	val = 2
 	if curr == 'Millions': val = 3
+	
+	amount = '%.*f' % (precision, flt(amount))
 
-	if amount.find('.') == -1:	temp = '00'
-	else: temp = amount.split('.')[1]
+	if amount.find('.') == -1:
+		decimals = ''
+	else: 
+		decimals = amount.split('.')[1]
 
 	l = []
 	minus = ''
@@ -409,9 +402,23 @@ def fmt_money(amount, precision=None):
 	
 	if len(amount) > 0:	l.insert(0,amount)
 
-	amount = comma_str.join(l) + decimal_str + temp
+	amount = comma_str.join(l) + decimal_str + decimals
 	amount = minus + amount
 	return amount
+	
+def get_number_format_info(format):
+	if format=="#.###":
+		return "", ".", 0
+	elif format=="#,###":
+		return "", ",", 0
+	elif format=="#,###.##" or format=="#,##,###.##":
+		return ".", ",", 2
+	elif format=="#.###,##":
+		return ",", ".", 2
+	elif format=="# ###.##":
+		return ".", " ", 2
+	else:
+		return ".", ",", 2
 
 #
 # convet currency to words

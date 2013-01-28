@@ -29,7 +29,11 @@ function fmt_money(v, format){
 }
 
 function format_currency(v, currency) {
-	return get_currency_symbol(currency) + " " + format_number(v);
+	var format = get_number_format()
+	if(locals["Currency"][currency] 
+		&& locals["Currency"][currency].number_format)
+		format = locals["Currency"][currency].number_format;
+	return get_currency_symbol(currency) + " " + format_number(v, format);
 }
 
 function get_currency_symbol(currency) {
@@ -61,20 +65,13 @@ function get_number_format() {
 	return global_number_format;
 }
 
-var global_number_format_info = null
-function get_number_format_info(format) {
-	if(!global_number_format_info) {
-		if(!format) 
-			format = get_number_format();
-		var result = format.match(/[^\d\-\+#]/g);
-		var info = {
-			decimal_str: (result && result[result.length-1]) || '.', //treat the right most symbol as decimal 
-			group_sep: (result && result[1] && result[0]) || ',' //treat the left most symbol as group separator
-		}
-		info.precision = format.split(info.decimal_str)[1].length;
-		global_number_format_info = info;		
-	}
-	return global_number_format_info
+var number_format_info = {
+	"#,###.##": {decimal_str:".", group_sep:",", precision:2},
+	"#.###,##": {decimal_str:",", group_sep:".", precision:2},
+	"# ###.##": {decimal_str:".", group_sep:" ", precision:2},
+	"#,##,###.##": {decimal_str:".", group_sep:",", precision:2},
+	"#.###": {decimal_str:"", group_sep:".", precision:0},
+	"#,###": {decimal_str:"", group_sep:",", precision:0},
 }
 
 // to title case
