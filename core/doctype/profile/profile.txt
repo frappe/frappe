@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "modified": "2013-01-28 14:21:07", 
+  "modified": "2013-01-28 14:27:38", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -54,6 +54,7 @@
   "doctype": "DocField", 
   "fieldname": "enabled", 
   "fieldtype": "Check", 
+  "in_list_view": 1, 
   "label": "Enabled", 
   "oldfieldname": "enabled", 
   "oldfieldtype": "Check", 
@@ -87,6 +88,7 @@
   "doctype": "DocField", 
   "fieldname": "first_name", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "First Name", 
   "oldfieldname": "first_name", 
   "oldfieldtype": "Data", 
@@ -104,6 +106,7 @@
   "doctype": "DocField", 
   "fieldname": "last_name", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Last Name", 
   "oldfieldname": "last_name", 
   "oldfieldtype": "Data"

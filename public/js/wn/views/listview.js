@@ -49,7 +49,18 @@ wn.views.ListView = Class.extend({
 		this.columns.push({width: '20%', content:'name'});
 
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			me.columns.push({width:'15%', content: d.fieldname, type:d.fieldtype, df:d});
+			
+			// field width
+			var width = "15%";
+			if(in_list(["Select", "Date", "Int"], d.fieldtype)) {
+				width = "10%";
+			} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
+				width = "5%";
+			} else if(d.fieldname=="subject") { // subjects are longer
+				width = "20%";
+			}
+			me.columns.push({width:width, content: d.fieldname, 
+				type:d.fieldtype, df:d, title:wn._(d.label) });
 		});
 
 		// tags
@@ -84,7 +95,6 @@ wn.views.ListView = Class.extend({
 		else if(opts.content=='name') {
 			$("<a>")
 				.attr("href", "#Form/" + data.doctype + "/" + data.name)
-				.attr("title", data.name)
 				.html(data.name)
 				.appendTo(parent);
 		} 
@@ -122,6 +132,11 @@ wn.views.ListView = Class.extend({
 				.appendTo(parent)
 				.attr("title", wn._("Last Modified On"))
 				.css({"color":"#888"})
+		}
+		else if(opts.content=="file_list") {
+			if(data[opts.content]) {
+				$("<i class='icon-paper-clip'>").appendTo(parent);
+			}
 		}
 		else if(opts.type=='bar-graph') {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
@@ -164,14 +179,19 @@ wn.views.ListView = Class.extend({
 			$(parent).append(format_currency(data[opts.content], opts.df));
 		}
 		else if(data[opts.content]) {
-			$(parent).append(repl('<span title="%(title)s"> %(content)s</span>', {
-				"title": (opts.title || opts.content)
-					+ (data[opts.content].indexOf("<")===-1
-						? ": " + data[opts.content].replace(/\"/g, '&quot;')
-						: ""),
-				"content": data[opts.content]
-			}));
+			$("<span>")
+				.html(data[opts.content])
+				.appendTo(parent)
+		} 
+		
+		// finally
+		if(!data[opts.content]) {
+			$("<span>-</span>").css({color:"#ccc"}).appendTo(parent);
 		}
+		
+		// title
+		$(parent).attr("title", (opts.title || opts.content) + ":" 
+			+ (data[opts.content] || "Not Set"));
 		
 	},
 	render: function(row, data) {

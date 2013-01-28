@@ -33,10 +33,16 @@ function format_currency(v, currency) {
 	if(locals["Currency"][currency] 
 		&& locals["Currency"][currency].number_format)
 		format = locals["Currency"][currency].number_format;
-	return get_currency_symbol(currency) + " " + format_number(v, format);
+	var symbol = get_currency_symbol(currency);
+	if(symbol)
+		return symbol + " " + format_number(v, format);
+	else
+		return format_number(v, format);
 }
 
 function get_currency_symbol(currency) {
+	if(wn.boot.sysdefaults.hide_currency_symbol=="Yes")
+		return null;
 	if(!currency) 
 		currency = wn.boot.sysdefaults.currency;
 
