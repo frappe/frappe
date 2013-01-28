@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "modified": "2013-01-25 11:43:24", 
+  "modified": "2013-01-28 14:21:07", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -122,7 +122,7 @@
   "fieldname": "language", 
   "fieldtype": "Select", 
   "label": "Language", 
-  "options": "\n\u0627\u0644\u0639\u0631\u0628\u064a\u0629\nenglish\nespa\u00f1ol\nfran\u00e7ais\n\u0939\u093f\u0902\u0926\u0940\nnederlands\nportugu\u00eas"
+  "options": "\n\u0627\u0644\u0639\u0631\u0628\u064a\u0629\nenglish\nespa\u00f1ol\nfran\u00e7ais\n\u0939\u093f\u0902\u0926\u0940\nnederlands\nportugu\u00eas\n\u0441\u0440\u043f\u0441\u043a\u0438\n\u0ba4\u0bae\u0bbf\u0bb4\u0bcd"
  }, 
  {
   "doctype": "DocField", 

@@ -118,6 +118,11 @@ $.extend(wn.model, {
 		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
 	},
 	
+	is_submittable: function(doctype) {
+		if(!doctype) return false;
+		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+	},
+	
 	has_value: function(dt, dn, fn) {
 		// return true if property has value
 		var val = locals[dt] && locals[dt][dn] && locals[dt][dn][fn];

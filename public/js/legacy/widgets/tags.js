@@ -123,7 +123,7 @@ TagList.prototype.is_text_okay = function(val) {
 		msgprint("Please type something");
 		return;
 	}
-	if(validate_spl_chars(val)) {
+	if(!validate_spl_chars(val)) {
 		msgprint("Special charaters, commas etc not allowed in tags");
 		return;
 	}

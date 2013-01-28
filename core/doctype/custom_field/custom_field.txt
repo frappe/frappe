@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:55:59", 
+  "modified": "2013-01-28 12:00:03", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,14 +23,18 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Custom Field", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
+  "permlevel": 0, 
   "read": 1, 
   "report": 1, 
-  "submit": 0
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -203,6 +207,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "in_list_view", 
+  "fieldtype": "Check", 
+  "label": "In List View"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "no_copy", 
   "fieldtype": "Check", 
   "label": "No Copy", 
@@ -265,24 +275,11 @@
   "search_index": 0
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "Administrator", 
-  "write": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "permlevel": 2, 
   "role": "Administrator"
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "System Manager", 
-  "write": 1
+  "role": "System Manager"
  }
 ]
