@@ -152,8 +152,7 @@ function flt(v, decimals) {
 	}
 	
 	// strip groups (,)
-	var info = get_number_format_info();
-	if(info.group_sep==".") {
+	if(number_format_info.group_sep==".") {
 		v = v.replace(/\./g,'');
 
 		// sanitize decimal separator to .
