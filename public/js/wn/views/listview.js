@@ -185,7 +185,7 @@ wn.views.ListView = Class.extend({
 		} 
 		
 		// finally
-		if(!data[opts.content]) {
+		if(!$(parent).html()) {
 			$("<span>-</span>").css({color:"#ccc"}).appendTo(parent);
 		}
 		
