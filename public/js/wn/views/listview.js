@@ -13,7 +13,9 @@ wn.views.get_listview = function(doctype, parent) {
 }
 
 wn.views.ListView = Class.extend({
+	columns: [],
 	init: function(doclistview) {
+		var me = this;
 		this.doclistview = doclistview;
 		this.doctype = doclistview.doctype;
 		
@@ -21,19 +23,57 @@ wn.views.ListView = Class.extend({
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
 			t + '_user_tags', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
-		this.show_hide_check_column();
+			
+		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
+			me.fields.push(t + "`" + d.fieldname + "`");
+			if(d.fieldtype=="Select") {
+				me.stats.push(d.fieldname);
+			}
+		});
+			
+		if(!this.columns.length) {
+			this.set_columns();
+		}
 
 	},
-	columns: [
-		{width: '3%', content:'check'},
-		{width: '4%', content:'avatar'},
-		{width: '3%', content:'docstatus', css: {"text-align": "center"}},
-		{width: '35%', content:'name'},
-		{width: '40%', content:'tags', css: {'color':'#aaa'}},
-		{width: '15%', content:'modified', css: {'text-align': 'right', 'color':'#222'}}		
-	],
+	set_columns: function() {
+		var me = this;
+		if(wn.model.can_delete(this.doctype)) {
+			this.columns.push({width: '3%', content:'check'})
+		}
+		this.columns.push({width: '4%', content:'avatar'});
+		if(wn.model.is_submittable(this.doctype)) {
+			this.columns.push({width: '3%', content:'docstatus', 
+				css: {"text-align": "center"}});
+		}
+		this.columns.push({width: '20%', content:'name'});
+
+		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
+			
+			// field width
+			var width = "15%";
+			if(in_list(["Select", "Date", "Int"], d.fieldtype)) {
+				width = "10%";
+			} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
+				width = "5%";
+			} else if(d.fieldname=="subject") { // subjects are longer
+				width = "20%";
+			}
+			me.columns.push({width:width, content: d.fieldname, 
+				type:d.fieldtype, df:d, title:wn._(d.label) });
+		});
+
+		// tags
+		this.columns.push({width: '15%', content:'tags', css: {'color':'#aaa'}}),
+
+		this.columns.push({width: '15%', content:'modified', 
+			css: {'text-align': 'right', 'color':'#222'}});
+
+		
+	},
 	render_column: function(data, parent, opts) {
 		var me = this;
+		if(opts.type) opts.type= opts.type.toLowerCase();
 		
 		// style
 		if(opts.css) {
@@ -53,15 +93,13 @@ wn.views.ListView = Class.extend({
 			opts.content(parent, data, me);
 		}
 		else if(opts.content=='name') {
-			$(parent).append(repl('<a href="#Form/%(doctype)s/%(name)s" \
-				title=\"%(name)s\">%(name)s</a>', data));
+			$("<a>")
+				.attr("href", "#Form/" + data.doctype + "/" + data.name)
+				.html(data.name)
+				.appendTo(parent);
 		} 
-		else if(opts.content=='avatar') {
-			$(parent).append(wn.avatar(data.owner, false, wn._("Created by")+": " 
-				+ wn.user_info(data.owner).fullname));
-		}
-		else if(opts.content=='avatar_modified') {
-			$(parent).append(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
+		else if(opts.content=='avatar' || opts.content=='avatar_modified') {
+			$(parent).append(wn.avatar(data.owner, false, wn._("Modified by")+": " 
 				+ wn.user_info(data.modified_by).fullname));
 		}
 		else if(opts.content=='check') {
@@ -89,32 +127,71 @@ wn.views.ListView = Class.extend({
 			this.add_user_tags(parent, data);
 		}
 		else if(opts.content=='modified') {
-			$(parent).append(data.when)
-				.attr("title", wn._("Last Modified On:")+" " + data.when);
+			$("<span>")
+				.html(data.when)
+				.appendTo(parent)
+				.attr("title", wn._("Last Modified On"))
+				.css({"color":"#888"})
+		}
+		else if(opts.content=="file_list") {
+			if(data[opts.content]) {
+				$("<i class='icon-paper-clip'>").appendTo(parent);
+			}
 		}
 		else if(opts.type=='bar-graph') {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
 		}
-		else if(opts.type=='link' && opts.doctype) {
-			$(parent).append(repl('<a href="#Form/'+opts.doctype+'/'
+		else if(opts.type=='link' && (opts.df ? opts.df.options : opts.doctype)) {
+			var doctype = (opts.df ? opts.df.options : opts.doctype);
+			$(parent).append(repl('<a href="#Form/'+ doctype +'/'
 				+data[opts.content]+'">'+data[opts.content]+'</a>', data));
 		}
 		else if(opts.template) {
 			$(parent).append(repl(opts.template, data));
+		} 
+		else if(opts.type=="date" && data[opts.content]) {
+			$("<span>")
+				.html(wn.datetime.str_to_user(data[opts.content]))
+				.css({"color":"#888"})
+				.appendTo(parent);
+		}
+		else if(opts.type=="select" && data[opts.content]) {
+			
+			var label_class = "";
+			if(in_list(["Open", "Pending"], data[opts.content])) {
+				label_class = "label-important";
+			} else if(in_list(["Closed", "Finished", "Converted"], data[opts.content])) {
+				label_class = "label-success";
+			}
+			
+			$("<span class='label'>" 
+				+ data[opts.content] + "</span>")
+				.css({"cursor":"pointer"})
+				.addClass(label_class)
+				.attr("data-fieldname", opts.content)
+				.click(function() {
+					me.doclistview.set_filter($(this).attr("data-fieldname"), 
+						$(this).text());
+				})
+				.appendTo(parent);
+		}
+		else if(opts.type=="currency") {
+			$(parent).append(format_currency(data[opts.content], opts.df));
 		}
 		else if(data[opts.content]) {
-			if(opts.type=="date") {
-				data[opts.content] = wn.datetime.str_to_user(data[opts.content])
-			}
-
-			$(parent).append(repl('<span title="%(title)s"> %(content)s</span>', {
-				"title": (opts.title || opts.content)
-					+ (data[opts.content].indexOf("<")===-1
-						? ": " + data[opts.content].replace(/\"/g, '&quot;')
-						: ""),
-				"content": data[opts.content]
-			}));
+			$("<span>")
+				.html(data[opts.content])
+				.appendTo(parent)
+		} 
+		
+		// finally
+		if(!$(parent).html()) {
+			$("<span>-</span>").css({color:"#ccc"}).appendTo(parent);
 		}
+		
+		// title
+		$(parent).attr("title", (opts.title || opts.content) + ":" 
+			+ (data[opts.content] || "Not Set"));
 		
 	},
 	render: function(row, data) {
@@ -180,12 +257,9 @@ wn.views.ListView = Class.extend({
 	add_user_tags: function(parent, data) {
 		var me = this;
 		if(data._user_tags) {
-			if($(parent).html().length > 0) {
-				$(parent).append('<br />');
-			}
 			$.each(data._user_tags.split(','), function(i, t) {
 				if(t) {
-					$('<span class="label label-info" style="cursor: pointer; line-height: 200%">' 
+					$('<span class="label" style="cursor: pointer;">' 
 						+ strip(t) + '</span>')
 						.click(function() {
 							me.doclistview.set_filter('_user_tags', $(this).text())
@@ -194,11 +268,6 @@ wn.views.ListView = Class.extend({
 				}
 			});
 		}		
-	},
-	show_hide_check_column: function() {
-		if(!this.doclistview.can_delete) {
-			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
-		}
 	},
 	render_bar_graph: function(parent, data, field, label) {
 		var args = {
@@ -218,6 +287,7 @@ wn.views.ListView = Class.extend({
 	}
 });
 
+// embeddable
 wn.provide('wn.views.RecordListView');
 wn.views.RecordListView = wn.views.DocListView.extend({
 	init: function(doctype, wrapper, ListView) {
@@ -231,19 +301,15 @@ wn.views.RecordListView = wn.views.DocListView.extend({
 	setup: function() {
 		var me = this;
 		me.page_length = 10;
-
 		$(me.wrapper).empty();
-
 		me.init_list();
 	},
 
 	get_args: function() {
 		var args = this._super();
-		
 		$.each((this.default_filters || []), function(i, f) {
 		      args.filters.push(f);
 		});
-		
 		args.docstatus = args.docstatus.concat((this.default_docstatus || []));
 		return args;
 	},

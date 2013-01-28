@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:57:23", 
+  "modified": "2013-01-28 15:28:40", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -40,6 +40,7 @@
   "fieldname": "criteria_name", 
   "fieldtype": "Data", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Criteria Name", 
   "no_copy": 0, 
   "oldfieldname": "criteria_name", 
@@ -85,6 +86,7 @@
   "fieldname": "doc_type", 
   "fieldtype": "Data", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Doc Type", 
   "no_copy": 0, 
   "oldfieldname": "doc_type", 

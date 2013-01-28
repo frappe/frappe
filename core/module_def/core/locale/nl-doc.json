@@ -1,0 +1,21 @@
+{
+ "Adds a custom field to a DocType": "Voegt een aangepast veld aan een DocType", 
+ "Adds a custom script (client or server) to a DocType": "Hiermee wordt een aangepast script (client of server) om een \u200b\u200bDocType", 
+ "Bulk Email records.": "Bulk Email records.", 
+ "Data Import Tool": "Gegevens importeren Tool", 
+ "Defines actions on states and the next step and allowed roles.": "Worden de acties op staten en de volgende stap en liet rollen.", 
+ "Defines workflow states and rules for a document.": "Definieert workflow staten en regels voor een document.", 
+ "DocType is a Table / Form in the application.": "DocType is een tabel / formulier in de applicatie.", 
+ "Keep a track of all communications": "Houd een spoor van alle communicatie", 
+ "List of patches executed": "Lijst van de uitgevoerde stukken", 
+ "Log of Scheduler Errors": "Log van Scheduler fouten", 
+ "Login Page": "Login Pagina", 
+ "Permission Manager": "Toestemming Manager", 
+ "Profile Represents a User in the system.": "Profiel Geeft een gebruiker in het systeem.", 
+ "Property Setter overrides a standard DocType or Field property": "Onroerend goed Setter heeft voorrang op een standaard DOCTYPE of Field eigendom", 
+ "Query Report": "Query Report", 
+ "Represents the states allowed in one document and role assigned to change the state.": "Vertegenwoordigt de staten toegestaan \u200b\u200bin een document en de rol toegewezen aan de staat te veranderen.", 
+ "User Properties": "Gebruikerseigenschappen", 
+ "Workflow Action Master": "Workflow Actie Master", 
+ "Workflow state represents the current state of a document.": "Workflow-status geeft de huidige status van een document."
+}

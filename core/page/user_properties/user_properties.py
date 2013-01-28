@@ -32,7 +32,7 @@ def get_properties(user=None, key=None):
 	return webnotes.conn.sql("""select name, parent, defkey, defvalue 
 		from tabDefaultValue
 		where parent!='Control Panel' 
-		and substr(defkey,0,1)!='_'
+		and substr(defkey,1,1)!='_'
 		%s%s order by parent, defkey""" % (\
 			user and (" and parent='%s'" % user) or "",
 			key and (" and defkey='%s'" % key) or ""), as_dict=True)

@@ -652,12 +652,7 @@ $.extend(_p, {
 				
 				// Add label
 				row.cells[0].innerHTML = f.label ? f.label : f.fieldname;
-				var df = f;
-				if(f.fieldtype=="Link") {
-					df = copy_dict(f);
-					df.fieldtype = "Data";
-				}
-				row.cells[1].innerHTML = wn.format(val, df);
+				row.cells[1].innerHTML = wn.format(val, f, {for_print: true});
 				
 				// left align currency in normal display
 				if(f.fieldtype == 'Currency') {

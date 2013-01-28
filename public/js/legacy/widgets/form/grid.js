@@ -98,16 +98,16 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	
 	var idx = this.head_row.cells.length;
 	if(!width)width = '100px';
-	if((width+'').slice(-2)!='px') {
-		width= width + 'px';
-	}
+	if(fieldtype=="Currency" && cint(width) < 100) width = "100px";
+	width= cint(width) + 'px';
+	
 	var col = this.head_row.insertCell(idx);
 	
 	col.doctype = doctype; // for report (fields may be from diff doctypes)
 	col.fieldname = fieldname;
 	col.fieldtype = fieldtype;
 	$(col).attr("data-grid-fieldname", doctype + "-" + fieldname);
-	col.innerHTML = label;
+	col.innerHTML = wn._(label);
 	col.title = label;
 	col.label = label;
 	if(reqd)
@@ -245,9 +245,7 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	// variations
 	if(cell.cellIndex) {
 		var df = copy_dict(hc);
-		if(df.fieldtype=="Link") 
-			df.fieldtype=="Data";
-		$(cell.div).html(wn.format(v, hc, doc));
+		$(cell.div).html(wn.format(v, hc, {for_print:true}));
 	} else {
 		// Index column
 		cell.div.style.padding = '2px';

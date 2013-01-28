@@ -6,34 +6,43 @@ wn.tools.downloadify = function(data, roles, me) {
 			+ " Role to export.");
 		return;
 	}
-	wn.require("lib/js/lib/downloadify/downloadify.min.js");
-	wn.require("lib/js/lib/downloadify/swfobject.js");
 	
-	var id = wn.dom.set_unique_id();
-	var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to \
-		download this file.</p>');
+	var _get_data = function(){ 
+		return wn.tools.to_csv(data);
+	};
 	
-	Downloadify.create(id ,{
-		filename: function(){
-			return me.title + '.csv';
-		},
-		data: function(){ 
-			return wn.tools.to_csv(data);
-		},
-		swf: 'lib/js/lib/downloadify/downloadify.swf',
-		downloadImage: 'lib/js/lib/downloadify/download.png',
-		onComplete: function(){
-			msgobj.hide(); 
-			msgprint("Saved.");
-		},
-		onCancel: function(){ msgobj.hide(); },
-		onError: function(){ msgobj.hide(); },
-		width: 100,
-		height: 30,
-		transparent: true,
-		append: false			
-	});	
-}
+	// save file > abt 200 kb using server call
+	if(_get_data().length > 200000) {
+		open_url_post("server.py?cmd=webnotes.utils.datautils.send_csv_to_client",
+			{args: {data: data, filename: me.title}}, true);
+	} else {
+		wn.require("lib/js/lib/downloadify/downloadify.min.js");
+		wn.require("lib/js/lib/downloadify/swfobject.js");
+
+		var id = wn.dom.set_unique_id();
+		var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to \
+			download this file.</p>');
+
+		Downloadify.create(id ,{
+			filename: function(){
+				return me.title + '.csv';
+			},
+			data: _get_data,
+			swf: 'lib/js/lib/downloadify/downloadify.swf',
+			downloadImage: 'lib/js/lib/downloadify/download.png',
+			onComplete: function(){
+				msgobj.hide(); 
+				msgprint("Saved.");
+			},
+			onCancel: function(){ msgobj.hide(); },
+			onError: function(){ msgobj.hide(); },
+			width: 100,
+			height: 30,
+			transparent: true,
+			append: false			
+		});
+	}
+};
 
 wn.tools.to_csv = function(data) {
 	var res = [];
@@ -44,7 +53,7 @@ wn.tools.to_csv = function(data) {
 		res.push(row.join(","));
 	});
 	return res.join("\n");
-}
+};
 
 wn.slickgrid_tools = {
 	get_view_data: function(columns, dataView, filter) {
@@ -87,11 +96,11 @@ wn.slickgrid_tools = {
 								"__islocal": 1		
 							}]
 						}
-					})
+					});
 					col.previousWidth = col.width;
 					col.docfield.width = col.width;
 				}
 			});
 		});
 	}	
-}
+};

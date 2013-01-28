@@ -1,13 +1,11 @@
 from __future__ import unicode_literals
 
-import csv, cStringIO
-import webnotes
 import webnotes
 import webnotes.model.doc
 import webnotes.model.doctype
 from webnotes.model.doc import Document
-from webnotes.utils import encode
 from webnotes.utils import cstr
+from webnotes.utils.datautils import UnicodeWriter
 
 data_keys = webnotes._dict({
 	"data_separator": '----Start entering data below this line----',
@@ -302,17 +300,3 @@ def import_doc(d, doctype, overwrite, row_idx):
 		dl.save()
 		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
 			dl.doc.fields['name']))
-
-
-class UnicodeWriter:
-	def __init__(self, encoding="utf-8"):
-		self.encoding = encoding
-		self.queue = cStringIO.StringIO()
-		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
-	
-	def writerow(self, row):
-		row = encode(row, self.encoding)
-		self.writer.writerow(row)
-	
-	def getvalue(self):
-		return self.queue.getvalue()

@@ -65,12 +65,13 @@ wn.ui.Listing = Class.extend({
 			if(wn.boot.profile.can_create.indexOf(this.opts.new_doctype)==-1) {
 				this.opts.new_doctype = null;
 			} else {
-				this.opts.new_doctype = wn._(this.opts.new_doctype);
+				this.opts.new_doctype = this.opts.new_doctype;
 			}
 		}
 		if(!this.opts.no_result_message) {
-			this.opts.no_result_message = 'Nothing to show'
+			this.opts.no_result_message = wn._('Nothing to show');
 		}
+		this.opts._more = wn._("More");
 	},
 	make: function(opts) {
 		if(opts) {
@@ -112,7 +113,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<div class="paging-button">\
-					<button class="btn btn-more hide">More...</div>\
+					<button class="btn btn-more hide">%(_more)s...</div>\
 				</div>\
 			</div>\
 		', this.opts));
@@ -170,14 +171,14 @@ wn.ui.Listing = Class.extend({
 				
 		// new
 		if(this.new_doctype) {
-			this.add_button('New ' + this.new_doctype, function() { 
+			this.add_button(wn._('New') + ' ' + wn._(this.new_doctype), function() { 
 				(me.custom_new_doc || me.make_new_doc)(me.new_doctype);
 			}, 'icon-plus');
 		} 
 		
 		// hide-filter
 		if(me.show_filters) {
-			this.add_button('Show Filters', function() {
+			this.add_button(wn._('Show Filters'), function() {
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}

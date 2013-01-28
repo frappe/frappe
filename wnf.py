@@ -258,7 +258,7 @@ def setup_options():
 
 	parser.add_option('--translate', nargs=1, metavar="LANG", 
 		help="""Rebuild translation for the given langauge and 
-		use Google Translate to tranlate untranslated messages""")
+		use Google Translate to tranlate untranslated messages. use "all" """)
 
 	return parser.parse_args()
 	
@@ -469,17 +469,26 @@ def run():
 	elif options.translate:
 		from webnotes.translate import build_message_files, \
 			export_messages, google_translate, import_messages
+			
+		languages = [options.translate]
+		if options.translate=="all":
+			from startup import lang_list
+			languages = lang_list
+			
 		print "Extracting messages..."
 		build_message_files()
-		print "Compiling messages in one file..."
-		export_messages(options.translate, '_lang_tmp.csv')
-		print "Translating via Google Translate..."
-		google_translate(options.translate, '_lang_tmp.csv', '_lang_tmp1.csv')
-		print "Updating language files..."
-		import_messages(options.translate, '_lang_tmp1.csv')
-		print "Deleting temp files..."
-		os.remove('_lang_tmp.csv')
-		os.remove('_lang_tmp1.csv')
+		for lang in languages:
+			if lang != "en":
+				filename = 'app/translations/'+lang+'.csv'
+				print "For " + lang + ":"
+				print "Compiling messages in one file..."
+				export_messages(lang, '_lang_tmp.csv')
+				print "Translating via Google Translate..."
+				google_translate(lang, '_lang_tmp.csv', filename)
+				print "Updating language files..."
+				import_messages(lang, filename)
+				print "Deleting temp files..."
+				os.remove('_lang_tmp.csv')
 
 if __name__=='__main__':
 	run()

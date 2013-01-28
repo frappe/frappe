@@ -40,7 +40,7 @@ wn.ui.AppFrame = Class.extend({
 				</a></span>", {
 				icon: icon,
 				link: link,
-				title: title
+				title: wn._(title)
 			})).appendTo(this.$w.find(".appframe-breadcrumb"));			
 		} else {
 			$(repl("<span><i class='%(icon)s'></i></span>", {

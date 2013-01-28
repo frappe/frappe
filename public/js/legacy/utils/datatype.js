@@ -25,20 +25,59 @@ wn.utils.full_name = function(fn, ln) {
 }
 
 function fmt_money(v, format){
-	if(!format) {
+	return format_number(v, format);
+}
+
+function format_currency(v, currency) {
+	var format = get_number_format()
+	if(locals["Currency"][currency] 
+		&& locals["Currency"][currency].number_format)
+		format = locals["Currency"][currency].number_format;
+	var symbol = get_currency_symbol(currency);
+	if(symbol)
+		return symbol + " " + format_number(v, format);
+	else
+		return format_number(v, format);
+}
+
+function get_currency_symbol(currency) {
+	if(wn.boot.sysdefaults.hide_currency_symbol=="Yes")
+		return null;
+	if(!currency) 
+		currency = wn.boot.sysdefaults.currency;
+
+	if(locals.Currency[currency])
+		return locals.Currency[currency].symbol || currency;
+	else
+		return currency;
+}
+
+var global_number_format = null;
+function get_number_format() {
+	if(!global_number_format) {
+		var default_format = "#,###.##";
 		if(wn.boot.sysdefaults.number_format) {
 			format = wn.boot.sysdefaults.number_format;
 		} else if(!wn.boot.sysdefaults.currency) {
-			show_alert("Default Currency Not Set");
-			format = "#,###.##"
+			format = default_format
 		} else {
-			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format || "#,###.##";
+			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format;
 		}
+		if(!format || format=="####" || format=="######") { // no flat formats!
+			format = default_format
+		}
+		global_number_format = format;		
 	}
-	if(format=="####" || format=="######") { // no flat formats!
-		format = "#,###.##"
-	}
-	return format_number(format, v);
+	return global_number_format;
+}
+
+var number_format_info = {
+	"#,###.##": {decimal_str:".", group_sep:",", precision:2},
+	"#.###,##": {decimal_str:",", group_sep:".", precision:2},
+	"# ###.##": {decimal_str:".", group_sep:" ", precision:2},
+	"#,##,###.##": {decimal_str:".", group_sep:",", precision:2},
+	"#.###": {decimal_str:"", group_sep:".", precision:0},
+	"#,###": {decimal_str:"", group_sep:",", precision:0},
 }
 
 // to title case
@@ -64,34 +103,11 @@ function is_null(v) {
 	}
 }
 
-function $s(ele, v, ftype, fopt) { 	
-	if(v==null)v='';
-					
-	if((ftype =='Text'|| ftype =='Small Text') && typeof(v)=="string") {
-		ele.innerHTML = v?v.replace(/\n/g, '<br>'):'';
-	} else if(ftype =='Date') {
-		v = dateutil.str_to_user(v);
-		if(v==null)v=''
-		ele.innerHTML = v;
-	} else if(ftype =='Link' && fopt) {
-		ele.innerHTML = repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', 
-			{doctype: fopt, name:v});
-	} else if(ftype =='Currency') {
-		ele.style.textAlign = 'right';
-		if(is_null(v))
-			ele.innerHTML = '';
-		else
-			ele.innerHTML = fmt_money(v);
-	} else if(ftype =='Int') {
-		ele.style.textAlign = 'right';
-		ele.innerHTML = v;
-	} else if(ftype == 'Check') {
-		if(v) ele.innerHTML = '<img src="lib/images/ui/tick.gif">';
-		else ele.innerHTML = '';
-	} else {
-		ele.innerHTML = v;
-	}
+function set_value_in(ele, v, ftype, fopt) { 
+	$(ele).html(wn.form.get_formatter(ftype)(v, {options:fopt}));
+	return;
 }
+var $s = set_value_in; // used in print formats
 
 function copy_dict(d) {
 	var n = {};
@@ -128,16 +144,37 @@ function nth(number) {
 	return number+s;
 }
 
-function flt(v,decimals) { 
+function flt(v, decimals) { 
 	if(v==null || v=='')return 0;
-	v=(v+'').replace(/,/g,'');
+	
+	if(typeof v==="number")
+		return v;
+	
+	v = v + "";
+	
+	// strip currency symbol if exists
+	if(v.indexOf(" ")!=-1) {
+		v = v.split(" ")[1];
+	}
+	
+	// strip groups (,)
+	if(number_format_info.group_sep==".") {
+		v = v.replace(/\./g,'');
 
-	v=parseFloat(v); 
+		// sanitize decimal separator to .
+		v = v.replace(/,/g, ".");
+	} else {
+		v=v.replace(/,/g,'');
+	}
+
+
+	v=parseFloat(v);
 	if(isNaN(v))
-		v=0; 
+		v=0;
+		
 	if(decimals!=null)
 		return roundNumber(v, decimals);
-	return v; 
+	return v;
 }
 
 function esc_quotes(s) { 

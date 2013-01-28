@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:00", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:55:58", 
+  "modified": "2013-01-28 15:29:13", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -13,6 +13,7 @@
   "doctype": "DocType", 
   "document_type": "Master", 
   "in_dialog": 0, 
+  "issingle": 0, 
   "module": "Core", 
   "name": "__common__"
  }, 
@@ -55,6 +56,7 @@
   "doctype": "DocField", 
   "fieldname": "subject", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Subject", 
   "reqd": 1
  }, 
@@ -176,12 +178,14 @@
   "doctype": "DocField", 
   "fieldname": "recipients", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Recipients"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "sender", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Sender"
  }, 
  {
@@ -244,6 +248,7 @@
   "fieldname": "file_list", 
   "fieldtype": "Text", 
   "hidden": 1, 
+  "in_list_view": 1, 
   "label": "File List", 
   "no_copy": 1, 
   "print_hide": 1

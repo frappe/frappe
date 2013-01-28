@@ -1,266 +1,273 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-15 14:56:06", 
   "docstatus": 0, 
-  "creation": "2013-01-15 12:23:02", 
+  "modified": "2013-01-28 12:00:26", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-15 12:23:21"
+  "owner": "Administrator"
  }, 
  {
-  "istable": 1, 
+  "allow_copy": 0, 
+  "allow_email": 0, 
   "allow_print": 0, 
-  "module": "Core", 
+  "autoname": "FL.#####", 
   "doctype": "DocType", 
+  "hide_heading": 0, 
+  "hide_toolbar": 0, 
   "in_dialog": 1, 
   "issingle": 0, 
-  "read_only": 0, 
-  "allow_email": 0, 
-  "hide_heading": 0, 
-  "autoname": "FL.#####", 
+  "istable": 1, 
+  "module": "Core", 
   "name": "__common__", 
-  "hide_toolbar": 0, 
-  "allow_copy": 0
+  "read_only": 0
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "DocField", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "permlevel": 0
  }, 
  {
-  "name": "DocField", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "DocField"
  }, 
  {
-  "print_width": "163", 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Label", 
-  "oldfieldname": "label", 
-  "width": "163", 
   "fieldname": "label", 
   "fieldtype": "Data", 
-  "search_index": 1, 
+  "hidden": 0, 
+  "label": "Label", 
+  "oldfieldname": "label", 
+  "oldfieldtype": "Data", 
+  "print_width": "163", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 1, 
+  "width": "163"
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "Type", 
-  "oldfieldname": "fieldtype", 
   "fieldname": "fieldtype", 
   "fieldtype": "Select", 
-  "search_index": 1, 
-  "reqd": 1, 
   "hidden": 0, 
-  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nLong Text\nPassword\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime"
+  "label": "Type", 
+  "oldfieldname": "fieldtype", 
+  "oldfieldtype": "Select", 
+  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nLong Text\nPassword\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime", 
+  "reqd": 1, 
+  "search_index": 1
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Name", 
-  "oldfieldname": "fieldname", 
   "fieldname": "fieldname", 
   "fieldtype": "Data", 
-  "search_index": 1, 
+  "hidden": 0, 
+  "label": "Name", 
+  "oldfieldname": "fieldname", 
+  "oldfieldtype": "Data", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 1
  }, 
  {
   "description": "For Links, enter the DocType as range\nFor Select, enter list of Options separated by comma", 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Options", 
-  "oldfieldname": "options", 
   "fieldname": "options", 
   "fieldtype": "Text", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Options", 
+  "oldfieldname": "options", 
+  "oldfieldtype": "Text", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Mandatory", 
-  "oldfieldname": "reqd", 
-  "width": "50px", 
   "fieldname": "reqd", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Mandatory", 
+  "oldfieldname": "reqd", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0, 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
   "default": "0", 
-  "oldfieldtype": "Int", 
   "doctype": "DocField", 
-  "label": "Perm Level", 
-  "oldfieldname": "permlevel", 
-  "width": "50px", 
   "fieldname": "permlevel", 
   "fieldtype": "Int", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Perm Level", 
+  "oldfieldname": "permlevel", 
+  "oldfieldtype": "Int", 
+  "print_width": "50px", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0, 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
   "doctype": "DocField", 
-  "label": "Read Only", 
-  "width": "50px", 
   "fieldname": "read_only", 
-  "fieldtype": "Check"
+  "fieldtype": "Check", 
+  "label": "Read Only", 
+  "print_width": "50px", 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "label": "Width", 
-  "oldfieldname": "width", 
-  "width": "50px", 
   "fieldname": "width", 
   "fieldtype": "Data", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Width", 
+  "oldfieldname": "width", 
+  "oldfieldtype": "Data", 
+  "print_width": "50px", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0, 
+  "width": "50px"
  }, 
  {
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
-  "label": "Default", 
-  "oldfieldname": "default", 
   "fieldname": "default", 
   "fieldtype": "Text", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Default", 
+  "oldfieldname": "default", 
+  "oldfieldtype": "Text", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Hidden", 
-  "oldfieldname": "hidden", 
-  "width": "50px", 
   "fieldname": "hidden", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Hidden", 
+  "oldfieldname": "hidden", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0, 
+  "width": "50px"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
+  "fieldname": "depends_on", 
+  "fieldtype": "Data", 
   "label": "Depends On", 
   "oldfieldname": "depends_on", 
-  "fieldname": "depends_on", 
-  "fieldtype": "Data"
+  "oldfieldtype": "Data"
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Print Hide", 
-  "oldfieldname": "print_hide", 
-  "width": "50px", 
   "fieldname": "print_hide", 
   "fieldtype": "Check", 
-  "search_index": 0, 
-  "reqd": 0, 
-  "hidden": 0
- }, 
- {
-  "doctype": "DocField", 
-  "label": "Print Width", 
-  "fieldname": "print_width", 
-  "fieldtype": "Data"
- }, 
- {
-  "print_width": "50px", 
+  "hidden": 0, 
+  "label": "Print Hide", 
+  "oldfieldname": "print_hide", 
   "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "reqd": 0, 
+  "search_index": 0, 
+  "width": "50px"
+ }, 
+ {
   "doctype": "DocField", 
+  "fieldname": "print_width", 
+  "fieldtype": "Data", 
+  "label": "Print Width"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "no_copy", 
+  "fieldtype": "Check", 
   "label": "No Copy", 
   "oldfieldname": "no_copy", 
-  "width": "50px", 
-  "fieldname": "no_copy", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "allow_on_submit", 
+  "fieldtype": "Check", 
   "label": "Allow on Submit", 
   "oldfieldname": "allow_on_submit", 
-  "width": "50px", 
-  "fieldname": "allow_on_submit", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "in_filter", 
+  "fieldtype": "Check", 
   "label": "In Filter", 
   "oldfieldname": "in_filter", 
-  "width": "50px", 
-  "fieldname": "in_filter", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
+  "fieldname": "in_list_view", 
+  "fieldtype": "Check", 
+  "label": "In List View", 
+  "width": "70px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "report_hide", 
+  "fieldtype": "Check", 
   "label": "Report Hide", 
   "oldfieldname": "report_hide", 
-  "width": "50px", 
-  "fieldname": "report_hide", 
-  "fieldtype": "Check"
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
+  "width": "50px"
  }, 
  {
-  "print_width": "50px", 
-  "oldfieldtype": "Check", 
   "doctype": "DocField", 
-  "label": "Index", 
-  "oldfieldname": "search_index", 
-  "width": "50px", 
   "fieldname": "search_index", 
   "fieldtype": "Check", 
-  "search_index": 0, 
+  "hidden": 0, 
+  "label": "Index", 
+  "oldfieldname": "search_index", 
+  "oldfieldtype": "Check", 
+  "print_width": "50px", 
   "reqd": 0, 
-  "hidden": 0
+  "search_index": 0, 
+  "width": "50px"
  }, 
  {
-  "print_width": "300px", 
-  "oldfieldtype": "Text", 
   "doctype": "DocField", 
+  "fieldname": "description", 
+  "fieldtype": "Text", 
   "label": "Description", 
   "oldfieldname": "description", 
-  "width": "300px", 
-  "fieldname": "description", 
-  "fieldtype": "Text"
+  "oldfieldtype": "Text", 
+  "print_width": "300px", 
+  "width": "300px"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "oldfieldname": "oldfieldname", 
   "fieldname": "oldfieldname", 
   "fieldtype": "Data", 
-  "search_index": 0, 
+  "hidden": 1, 
+  "oldfieldname": "oldfieldname", 
+  "oldfieldtype": "Data", 
   "reqd": 0, 
-  "hidden": 1
+  "search_index": 0
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "oldfieldname": "oldfieldtype", 
   "fieldname": "oldfieldtype", 
   "fieldtype": "Data", 
-  "search_index": 0, 
+  "hidden": 1, 
+  "oldfieldname": "oldfieldtype", 
+  "oldfieldtype": "Data", 
   "reqd": 0, 
-  "hidden": 1
+  "search_index": 0
  }
 ]

@@ -22,6 +22,9 @@
 
 from __future__ import unicode_literals
 import webnotes
+import json
+import csv, cStringIO
+from webnotes.utils import encode, cstr
 
 def read_csv_content_from_uploaded_file():
 	from webnotes.utils.file_manager import get_uploaded_content
@@ -71,3 +74,34 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
 		raise e
+
+@webnotes.whitelist()
+def send_csv_to_client(args):
+	if isinstance(args, basestring):
+		args = json.loads(args)
+	
+	args = webnotes._dict(args)
+	
+	webnotes.response["result"] = cstr(to_csv(args.data))
+	webnotes.response["doctype"] = args.filename
+	webnotes.response["type"] = "csv"
+	
+def to_csv(data):
+	writer = UnicodeWriter()
+	for row in data:
+		writer.writerow(row)
+	
+	return writer.getvalue()
+	
+class UnicodeWriter:
+	def __init__(self, encoding="utf-8"):
+		self.encoding = encoding
+		self.queue = cStringIO.StringIO()
+		self.writer = csv.writer(self.queue, quoting=csv.QUOTE_NONNUMERIC)
+	
+	def writerow(self, row):
+		row = encode(row, self.encoding)
+		self.writer.writerow(row)
+	
+	def getvalue(self):
+		return self.queue.getvalue()

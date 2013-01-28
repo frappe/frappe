@@ -206,6 +206,10 @@ def validate_fields(fields):
 		if d.hidden and d.reqd:
 			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd)""" % d.fields,
 				raise_exception=True)
+				
+	def check_width(d):
+		if d.fieldtype == "Currency" and cint(d.width) < 100:
+			webnotes.msgprint("Minimum width for FieldType 'Currency' is 100px", raise_exception=1)
 
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0

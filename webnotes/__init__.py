@@ -265,7 +265,7 @@ def get_roles(user=None, with_standard=True):
 	# filter standard if required
 	if not with_standard:
 		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
-	
+		
 	return roles
 
 def has_permission(doctype, ptype="read", doc=None):

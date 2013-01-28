@@ -7,15 +7,13 @@ wn.pages['user-properties'].onload = function(wrapper) {
 	$(wrapper).find(".layout-main").html("<div class='user-settings'></div>\
 	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
 	<tr><td>\
-	<h4><i class='icon-question-sign'></i> Quick Help for User Properties:</h4>\
+	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for User Properties")+":</h4>\
 	<ol>\
-	<li>You can set various 'properties' to Users.</li>\
-	<li>These properties are Link Type fields from all Documents.</li>\
-	<li>These properties will appear as values in forms that contain them.</li>\
-	<li>These properties can also be used to 'assign' a particular document, \
-		whose property matches with the User's property to a User. These can be set\
-		using the <a href='#permission-manager'>Permission Manager</a></li>\
-	<li>A user can have multiple values for a property.</li>\
+	<li>"+wn._("You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.")+"</li>\
+	<li>"+wn._("These properties are Link Type fields from all Documents.")+"</li>\
+	<li>"+wn._("These properties will appear as values in forms that contain them.")+"</li>\
+	<li>"+wn._("These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>")+"</li>\
+	<li>"+wn._("A user can have multiple values for a property.")+"</li>\
 	</ol>\
 	</tr></td>\
 	</table>");
@@ -86,7 +84,7 @@ wn.UserProperties = Class.extend({
 		this.body.empty();
 		this.prop_list = prop_list;
 		if(!prop_list.length) {
-			this.body.html("<div class='alert'>No User Properties found.</div>");
+			this.body.html("<div class='alert'>"+wn._("No User Properties found.")+"</div>");
 		} else {
 			this.show_property_table();
 		}
@@ -95,11 +93,11 @@ wn.UserProperties = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.user_select) {
-			this.body.html("<div class='alert'>Loading...</div>");
+			this.body.html("<div class='alert'>"+wn._("Loading")+"...</div>");
 			return;
 		}
 		if(!me.get_user() && !me.get_property()) {
-			this.body.html("<div class='alert'>Select User or Property to start.</div>");
+			this.body.html("<div class='alert'>"+wn._("Select User or Property to start.")+"</div>");
 			return;
 		}
 		// get permissions
@@ -123,7 +121,7 @@ wn.UserProperties = Class.extend({
 			<tbody></tbody>\
 		</table>").appendTo(this.body);
 		
-		$.each([["User", 150], ["Property", 150], ["Value",150], ["", 50]], 
+		$.each([[wn._("User"), 150], [wn._("Property"), 150], [wn._("Value"),150], ["", 50]], 
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -170,19 +168,19 @@ wn.UserProperties = Class.extend({
 	
 	show_add_property: function() {
 		var me = this;
-		$("<button class='btn btn-info'>Add A Property</button>")
+		$("<button class='btn btn-info'>"+wn._("Add A Property")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new wn.ui.Dialog({
 					title: "Add New Property",
 					fields: [
-						{fieldtype:"Select", label:"User",
+						{fieldtype:"Select", label:wn._("User"),
 							options:me.options.users, reqd:1, fieldname:"parent"},
-						{fieldtype:"Select", label:"Property", fieldname:"defkey",
+						{fieldtype:"Select", label: wn._("Property"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
-						{fieldtype:"Link", label:"Value", fieldname:"defvalue",
+						{fieldtype:"Link", label:wn._("Value"), fieldname:"defvalue",
 							options:'[Select]', reqd:1},
-						{fieldtype:"Button", label:"Add"},
+						{fieldtype:"Button", label: wn._("Add"), fieldname:"add"},
 					]
 				});
 				if(me.get_user()) {

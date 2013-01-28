@@ -1,0 +1,16 @@
+[
+ "Loading", 
+ "These properties are Link Type fields from all Documents.", 
+ "No User Properties found.", 
+ "Quick Help for User Properties", 
+ "Value", 
+ "Add", 
+ "Add A Property", 
+ "A user can have multiple values for a property.", 
+ "User", 
+ "You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.", 
+ "Property", 
+ "These properties will appear as values in forms that contain them.", 
+ "Select User or Property to start.", 
+ "These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>"
+]

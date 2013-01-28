@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-01-10 16:34:04", 
+  "creation": "2013-01-22 16:50:25", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:57:26", 
+  "modified": "2013-01-25 11:12:47", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -30,7 +30,7 @@
   "parenttype": "DocType", 
   "permlevel": 0, 
   "read": 1, 
-  "report": 1, 
+  "report": 0, 
   "role": "Administrator", 
   "submit": 0, 
   "write": 1
@@ -50,13 +50,7 @@
   "doctype": "DocField", 
   "fieldname": "server_python", 
   "fieldtype": "Button", 
-  "label": "Server (Python)"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "client_js", 
-  "fieldtype": "Button", 
-  "label": "Client (JS)"
+  "label": "Execute"
  }, 
  {
   "doctype": "DocField", 

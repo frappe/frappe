@@ -16,7 +16,10 @@ window['format_number'] = function(v, m, decimals){
 	if (!m) {
 		m = get_number_format();
 	}
-	var info = get_number_format_info(m);
+	var info = number_format_info[m];
+	if(!info) {
+		info = {decimal_str:".", group_sep:",", precision:2};
+	}
 	
 	if(isNaN(+v)) {
 		v=0;
