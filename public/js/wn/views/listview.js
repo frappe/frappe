@@ -10,22 +10,19 @@ wn.views.get_listview = function(doctype, parent) {
 	if(wn.doclistviews[doctype]) {
 		var listview = new wn.doclistviews[doctype](parent);
 	} else {
-		var listview = new wn.views.ListView(parent);
+		var listview = new wn.views.ListView(parent, doctype);
 	}
 	return listview;
 }
 
 wn.provide("wn.listview_settings");
 wn.views.ListView = Class.extend({
-	columns: [],
-	init: function(doclistview) {
+	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
-		this.doctype = doclistview.doctype;
+		this.doctype = doctype;
 		this.settings = wn.listview_settings[this.doctype] || {};		
 		this.set_fields();
-		if(!this.columns.length) {
-			this.set_columns();
-		}
+		this.set_columns();
 		if(this.settings.group_by) 
 			this.group_by = this.settings.group_by;
 	},
@@ -66,6 +63,7 @@ wn.views.ListView = Class.extend({
 		}
 	},
 	set_columns: function() {
+		this.columns = [];
 		var me = this;
 		if(wn.model.can_delete(this.doctype)) {
 			this.columns.push({width: '3%', content:'check'})
@@ -359,7 +357,7 @@ wn.views.RecordListView = wn.views.DocListView.extend({
 	init: function(doctype, wrapper, ListView) {
 		this.doctype = doctype;
 		this.wrapper = wrapper;
-		this.listview = new ListView(this);
+		this.listview = new ListView(this, doctype);
 		this.listview.parent = this;
 		this.setup();
 	},
