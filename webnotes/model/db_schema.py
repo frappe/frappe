@@ -34,6 +34,7 @@ type_map = {
 	'currency':		('decimal', '18,6')
 	,'int':			('int', '11')
 	,'float':		('decimal', '18,6')
+	,'percent':		('decimal', '9,6')
 	,'check':		('int', '1')
 	,'small text':	('text', '')
 	,'long text':	('longtext', '')
@@ -48,7 +49,6 @@ type_map = {
 	,'password':	('varchar', '180')
 	,'select':		('varchar', '180')
 	,'read only':	('varchar', '180')
-	,'blob':		('longblob', '')
 }
 
 default_columns = ['name', 'creation', 'modified', 'modified_by', 'owner', 'docstatus', 'parent',\

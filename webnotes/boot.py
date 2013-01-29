@@ -83,7 +83,7 @@ def load_country_and_currency(bootinfo, doclist):
 		doclist += [webnotes.doc("Country", bootinfo.control_panel.country)]
 		
 	doclist += webnotes.conn.sql("""select * from tabCurrency
-		where ifnull(enabled,0)=1""", as_dict=1, update={"doctype":"Currency"})
+		where ifnull(enabled,0)=1""", as_dict=1, update={"doctype":":Currency"})
 
 def add_allowed_pages(bootinfo):
 	bootinfo.allowed_pages = [p[0] for p in webnotes.conn.sql("""select distinct parent from `tabPage Role`

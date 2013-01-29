@@ -159,7 +159,8 @@ wn.ui.form.States = Class.extend({
 			var action = $(this).attr("data-action");
 			var next_state = wn.workflow.get_next_state(me.frm.doctype,
 					me.frm.doc[me.state_fieldname], action);
-			
+			var current_state = me.frm.doc[me.state_fieldname];
+
 			me.frm.doc[me.state_fieldname] = next_state;
 			
 			var new_state = wn.workflow.get_document_state(me.frm.doctype, next_state);

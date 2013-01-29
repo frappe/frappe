@@ -5,38 +5,65 @@ wn.views.get_listview = function(doctype, parent) {
 	var meta = locals.DocType[doctype];
 	if(meta.__listjs) {
 		eval(meta.__listjs);
+	}
+	
+	if(wn.doclistviews[doctype]) {
 		var listview = new wn.doclistviews[doctype](parent);
 	} else {
-		var listview = new wn.views.ListView(parent);
+		var listview = new wn.views.ListView(parent, doctype);
 	}
 	return listview;
 }
 
+wn.provide("wn.listview_settings");
 wn.views.ListView = Class.extend({
-	columns: [],
-	init: function(doclistview) {
-		var me = this;
+	init: function(doclistview, doctype) {
 		this.doclistview = doclistview;
-		this.doctype = doclistview.doctype;
-		
+		this.doctype = doctype;
+		this.settings = wn.listview_settings[this.doctype] || {};		
+		this.set_fields();
+		this.set_columns();
+		if(this.settings.group_by) 
+			this.group_by = this.settings.group_by;
+	},
+	set_fields: function() {
+		var me = this;
 		var t = "`tab"+this.doctype+"`.";
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
 			t + '_user_tags', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
 			
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			me.fields.push(t + "`" + d.fieldname + "`");
+			if(d.fieldtype=="Image" && d.options) {
+				me.fields.push(t + "`" + d.options + "`");
+			} else {
+				me.fields.push(t + "`" + d.fieldname + "`");
+			}
+			
 			if(d.fieldtype=="Select") {
 				me.stats.push(d.fieldname);
 			}
-		});
-			
-		if(!this.columns.length) {
-			this.set_columns();
-		}
 
+			// currency field for symbol (multi-currency)
+			if(d.fieldtype=="Currency" && d.options) {
+				if(d.options.indexOf(":")!=-1) {
+					me.fields.push(t + "`" + d.options.split(":")[1] + "`");
+				} else {
+					me.fields.push(t + "`" + d.options + "`");
+				};
+			}
+
+		});
+
+		// additional fields
+		if(this.settings.add_fields) {
+			$.each(this.settings.add_fields, function(i, d) {
+				me.fields.push(d);
+			});
+		}
 	},
 	set_columns: function() {
+		this.columns = [];
 		var me = this;
 		if(wn.model.can_delete(this.doctype)) {
 			this.columns.push({width: '3%', content:'check'})
@@ -52,7 +79,9 @@ wn.views.ListView = Class.extend({
 			
 			// field width
 			var width = "15%";
-			if(in_list(["Select", "Date", "Int"], d.fieldtype)) {
+			if(in_list(["Int", "Percent"], d.fieldtype)) {
+				width = "13%";
+			} else if(in_list(["Int", "Percent"], d.fieldtype)) {
 				width = "10%";
 			} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
 				width = "5%";
@@ -63,6 +92,13 @@ wn.views.ListView = Class.extend({
 				type:d.fieldtype, df:d, title:wn._(d.label) });
 		});
 
+		// additional columns
+		if(this.settings.add_columns) {
+			$.each(this.settings.add_columns, function(i, d) {
+				me.columns.push(d);
+			});
+		}
+
 		// tags
 		this.columns.push({width: '15%', content:'tags', css: {'color':'#aaa'}}),
 
@@ -70,6 +106,33 @@ wn.views.ListView = Class.extend({
 			css: {'text-align': 'right', 'color':'#222'}});
 
 		
+	},
+	render: function(row, data) {
+		var me = this;
+		this.prepare_data(data);
+		rowhtml = '';
+				
+		// make table
+		$.each(this.columns, function(i, v) {
+			if(v.content && v.content.substr && v.content.substr(0,6)=="avatar") {
+				rowhtml += repl('<td style="width: 40px;"></td>');				
+			} else {
+				rowhtml += repl('<td style="width: %(width)s"></td>', v);
+			}
+		});
+		var tr = $(row).html('<table class="doclist-row"><tbody><tr>' + rowhtml + '</tr></tbody></table>').find('tr').get(0);
+		
+		// render cells
+		$.each(this.columns, function(i, v) {
+			me.render_column(data, $("<div>")
+				.css({
+					"overflow":"hidden",
+					"white-space": "nowrap",
+					"text-overflow": "ellipsis",
+					"max-height": "30px",
+				})
+				.appendTo(tr.cells[i]).get(0), v);
+		});
 	},
 	render_column: function(data, parent, opts) {
 		var me = this;
@@ -138,7 +201,7 @@ wn.views.ListView = Class.extend({
 				$("<i class='icon-paper-clip'>").appendTo(parent);
 			}
 		}
-		else if(opts.type=='bar-graph') {
+		else if(opts.type=='bar-graph' || opts.type=="percent") {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
 		}
 		else if(opts.type=='link' && (opts.df ? opts.df.options : opts.doctype)) {
@@ -155,13 +218,27 @@ wn.views.ListView = Class.extend({
 				.css({"color":"#888"})
 				.appendTo(parent);
 		}
+		else if(opts.type=="image") {
+			data[opts.content] = data[opts.df.options];
+			if(data[opts.content])
+				$("<img>")
+					.attr("src", wn.utils.get_file_link(data[opts.content]))
+					.css({
+						"max-width": "100px",
+						"max-height": "30px"
+					})
+					.appendTo(parent);
+		}
 		else if(opts.type=="select" && data[opts.content]) {
 			
 			var label_class = "";
-			if(in_list(["Open", "Pending"], data[opts.content])) {
+			if(has_words(["Open", "Pending"], data[opts.content])) {
 				label_class = "label-important";
-			} else if(in_list(["Closed", "Finished", "Converted"], data[opts.content])) {
+			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
+				"Approved", "Yes", "Active"], data[opts.content])) {
 				label_class = "label-success";
+			} else if(has_words(["Submitted"], data[opts.content])) {
+				label_class = "label-info";
 			}
 			
 			$("<span class='label'>" 
@@ -175,14 +252,11 @@ wn.views.ListView = Class.extend({
 				})
 				.appendTo(parent);
 		}
-		else if(opts.type=="currency") {
-			$(parent).append(format_currency(data[opts.content], opts.df));
-		}
 		else if(data[opts.content]) {
 			$("<span>")
-				.html(data[opts.content])
+				.html(wn.format(data[opts.content], opts.df, data))
 				.appendTo(parent)
-		} 
+		}
 		
 		// finally
 		if(!$(parent).html()) {
@@ -190,29 +264,17 @@ wn.views.ListView = Class.extend({
 		}
 		
 		// title
-		$(parent).attr("title", (opts.title || opts.content) + ":" 
-			+ (data[opts.content] || "Not Set"));
+		if(!in_list(["avatar"], opts.content)) {
+			$(parent).attr("title", (opts.title || opts.content) + ": " 
+				+ (data[opts.content] || "Not Set"))
+				.tooltip();
+		}
 		
 	},
-	render: function(row, data) {
-		var me = this;
-		this.prepare_data(data);
-		rowhtml = '';
-				
-		// make table
-		$.each(this.columns, function(i, v) {
-			if(v.content && v.content.substr && v.content.substr(0,6)=="avatar") {
-				rowhtml += repl('<td style="width: 40px;"></td>');				
-			} else {
-				rowhtml += repl('<td style="width: %(width)s"></td>', v);
-			}
-		});
-		var tr = $(row).html('<table class="doclist-row"><tbody><tr>' + rowhtml + '</tr></tbody></table>').find('tr').get(0);
-		
-		// render cells
-		$.each(this.columns, function(i, v) {
-			me.render_column(data, tr.cells[i], v);
-		});
+	show_hide_check_column: function() {
+		if(!this.doclistview.can_delete) {
+			this.columns = $.map(this.columns, function(v, i) { if(v.content!='check') return v });
+		}
 	},
 	prepare_data: function(data) {
 		if(data.modified)
@@ -236,6 +298,10 @@ wn.views.ListView = Class.extend({
 				data[key]='';
 			}
 		}
+
+		// prepare data in settings
+		if(this.settings.prepare_data)
+			this.settings.prepare_data(data);
 	},
 	
 	prepare_when: function(data, date_str) {
@@ -293,7 +359,7 @@ wn.views.RecordListView = wn.views.DocListView.extend({
 	init: function(doctype, wrapper, ListView) {
 		this.doctype = doctype;
 		this.wrapper = wrapper;
-		this.listview = new ListView(this);
+		this.listview = new ListView(this, doctype);
 		this.listview.parent = this;
 		this.setup();
 	},

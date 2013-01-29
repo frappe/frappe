@@ -291,7 +291,7 @@ _f.CodeField.prototype.make_input = function() {
 
 		this.input.set_input = function(v) {
 			if(me.editor) {
-				me.editor.setContent(v);				
+				me.editor.setContent(v || "");
 			} else {
 				$(me.input).val(v);
 			}

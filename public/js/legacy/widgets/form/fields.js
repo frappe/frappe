@@ -300,6 +300,7 @@ Field.prototype.refresh = function() {
 
 	this.refresh_mandatory();	
 	this.set_max_width();
+
 }
 
 Field.prototype.refresh_label_icon = function() {	
@@ -329,18 +330,19 @@ Field.prototype.set = function(val) {
 	if(this.validate)
 		val = this.validate(val);
 
-	cur_frm.set_value_in_locals(this.doctype, this.docname, this.df.fieldname, val);
+	cur_frm.set_value_in_locals(this.doctype, this.docname, 
+		this.df.fieldname, val);
 	this.value = val; // for return
 }
 
 Field.prototype.set_input = function(val) {
 	this.value = val;
-	if(this.input&&this.input.set_input) {
-		if(val==null)this.input.set_input('');
-		else this.input.set_input(val); // in widget
+	if(this.input && this.input.set_input) {
+		this.input.set_input(val); // in widget
 	}
 	var disp_val = val;
-	if(val==null) disp_val = ''; 
+	if(val==null) 
+		disp_val = ''; 
 	this.set_disp(disp_val); // text
 }
 
@@ -863,33 +865,12 @@ FloatField.prototype.set_disp = function(val) {
 	this.set_disp_html(wn.format(val, this.df, locals[this.doctype][this.name]));
 }
 
-// ======================================================================================
+function PercentField() { } PercentField.prototype = new FloatField();
+PercentField.prototype.set_disp = function(val) { 
+	this.set_disp_html(wn.format(val, this.df));
+}
 
 function CurrencyField() { } CurrencyField.prototype = new FloatField();
-// CurrencyField.prototype.format_input = function() { 
-// 	var v = this.get_formatted(this.input.value); 
-// 	if(this.not_in_form) {
-// 		if(!v) v = ''; // blank in filter
-// 	}
-// 	this.input.value = v;
-// }
-
-// CurrencyField.prototype.onrefresh = function() {
-// 	if(this.not_in_form) 
-// 		return;
-// 	var info = get_number_format_info(get_number_format());
-// 	var doc = null;
-// 	if(this.doctype && this.docname && locals[this.doctype])
-// 		doc = locals[this.doctype][this.docname];
-// 		
-// 	$(this.input).iMask({
-// 		type: "number",
-// 		decSymbol: info.decimal_str,
-// 		groupSymbol: info.group_sep,
-// 		decDigits: info.precision || 2,
-// 		currencySymbol: get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) + " "
-// 	})
-// }
 
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
@@ -922,13 +903,13 @@ CheckField.prototype.make_input = function() { var me = this;
 		.appendTo(this.input_area)
 		.css({"border":"0px", "margin-top":"-2px", "width": "16px"}).get(0);
 	
-	$(this.input).click(function() {
+	$(this.input).change(function() {
 		me.set(this.checked ? 1 : 0);
 		me.run_trigger();
 	})
 	
 	this.input.set_input = function(v) {
-		me.input.checked = cint(v);
+		me.input.checked = cint(v) ? true : false;
 	}
 
 	this.get_value= function() {
@@ -1259,6 +1240,7 @@ function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Fa
 		case 'int':var f = new IntField(); break;
 		case 'float':var f = new FloatField(); break;
 		case 'currency':var f = new CurrencyField(); break;
+		case 'percent':var f = new PercentField(); break;
 		case 'read only':var f = new ReadOnlyField(); break;
 		case 'link':var f = new LinkField(); break;
 		case 'long text': var f = new TextField(); break;

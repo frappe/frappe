@@ -206,6 +206,13 @@ def validate_fields(fields):
 		if d.hidden and d.reqd:
 			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd)""" % d.fields,
 				raise_exception=True)
+
+	def check_max_items_in_list(fields):
+		count = 0
+		for d in fields:
+			if d.in_list_view: count+=1
+		if count > 5:
+			webnotes.msgprint("""Max 5 Fields can be set as 'In List View', please unselect a field before selecting a new one.""")
 				
 	def check_width(d):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
