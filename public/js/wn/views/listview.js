@@ -128,7 +128,8 @@ wn.views.ListView = Class.extend({
 				.css({
 					"overflow":"hidden",
 					"white-space": "nowrap",
-					"text-overflow": "ellipsis"
+					"text-overflow": "ellipsis",
+					"max-height": "30px",
 				})
 				.appendTo(tr.cells[i]).get(0), v);
 		});
@@ -223,7 +224,8 @@ wn.views.ListView = Class.extend({
 				$("<img>")
 					.attr("src", wn.utils.get_file_link(data[opts.content]))
 					.css({
-						"width": "100px"
+						"max-width": "100px",
+						"max-height": "30px"
 					})
 					.appendTo(parent);
 		}
