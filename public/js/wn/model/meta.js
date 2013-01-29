@@ -107,9 +107,18 @@ $.extend(wn.meta, {
 	
 	get_field_currency: function(df, doc) {
 		var currency = wn.boot.sysdefaults.currency;
+		
+		if(!doc && cur_frm) 
+			doc = cur_frm.doc;
+			
 		if(df && df.options) {
-			if(df.options.substr(0,5)=="eval:") {
-				currency = eval(df.options.substr(5))
+			if(df.options.indexOf(":")!=-1) {
+				var options = df.options.split(":");
+				if(options.length==3) {
+					// get reference record e.g. Company
+					currency = wn.model.get_value(options[0], doc[options[1]], 
+						options[2]) || currency;
+				}
 			} else if(doc && doc[df.options]) {
 				currency = doc[df.options];
 			} else if(cur_frm && cur_frm.doc[df.options]) {

@@ -29,11 +29,11 @@ function fmt_money(v, format){
 }
 
 function format_currency(v, currency) {
-	var format = get_number_format()
-	if(locals["Currency"][currency] 
-		&& locals["Currency"][currency].number_format)
-		format = locals["Currency"][currency].number_format;
+	var format = wn.model.get_value("Currency", currency, 
+		"number_format") || get_number_format();
+
 	var symbol = get_currency_symbol(currency);
+
 	if(symbol)
 		return symbol + " " + format_number(v, format);
 	else
@@ -43,30 +43,19 @@ function format_currency(v, currency) {
 function get_currency_symbol(currency) {
 	if(wn.boot.sysdefaults.hide_currency_symbol=="Yes")
 		return null;
-	if(!currency) 
+
+	if(!currency)
 		currency = wn.boot.sysdefaults.currency;
 
-	if(locals.Currency[currency])
-		return locals.Currency[currency].symbol || currency;
-	else
-		return currency;
+	return wn.model.get_value("Currency", currency, "symbol") || currency;
 }
 
 var global_number_format = null;
 function get_number_format() {
 	if(!global_number_format) {
-		var default_format = "#,###.##";
-		if(wn.boot.sysdefaults.number_format) {
-			format = wn.boot.sysdefaults.number_format;
-		} else if(!wn.boot.sysdefaults.currency) {
-			format = default_format
-		} else {
-			format = locals["Currency"][wn.boot.sysdefaults.currency].number_format;
-		}
-		if(!format || format=="####" || format=="######") { // no flat formats!
-			format = default_format
-		}
-		global_number_format = format;		
+		global_number_format = wn.boot.sysdefaults.number_format
+			|| wn.model.get("Currency", wn.boot.sysdefaults.currency, "number_format")
+			|| "#,###.##";
 	}
 	return global_number_format;
 }
@@ -75,6 +64,7 @@ var number_format_info = {
 	"#,###.##": {decimal_str:".", group_sep:",", precision:2},
 	"#.###,##": {decimal_str:",", group_sep:".", precision:2},
 	"# ###.##": {decimal_str:".", group_sep:" ", precision:2},
+	"#,###.###": {decimal_str:".", group_sep:",", precision:3},
 	"#,##,###.##": {decimal_str:".", group_sep:",", precision:2},
 	"#.###": {decimal_str:"", group_sep:".", precision:0},
 	"#,###": {decimal_str:"", group_sep:",", precision:0},
@@ -120,10 +110,12 @@ function replace_newlines(t) {
 }
 
 function cint(v, def) { 
+	if(v===true) return 1;
 	v=v+''; 
 	v=lstrip(v, ['0']); 
 	v=parseInt(v); 
-	if(isNaN(v))v=def?def:0; return v; 
+	if(isNaN(v))v=def?def:0; 
+	return v; 
 }
 function validate_email(txt) { 
 	return wn.utils.validate_type(txt, email);
@@ -241,13 +233,24 @@ function values(obj) {
 
 function in_list(list, item) {
 	if(!list) return false;
-	for(var i=0; i<list.length; i++)
+	for(var i=0, j=list.length; i<j; i++)
 		if(list[i]==item) return true;
 	return false;
 }
+
+function has_words(list, item) {
+	if(!item) return true;
+	if(!list) return false;
+	for(var i=0, j=list.length; i<j; i++) {
+		if(item.indexOf(list[i])!=-1)
+			return true;
+	}
+	return false;
+}
+
 function has_common(list1, list2) {
 	if(!list1 || !list2) return false;
-	for(var i=0; i<list1.length; i++) {
+	for(var i=0, j=list1.length; i<j; i++) {
 		if(in_list(list2, list1[i]))return true;
 	}
 	return false;
