@@ -52,6 +52,7 @@ class DocType:
 			'print_width',
 			'reqd',
 			'in_filter',
+			'in_list_view',
 			'hidden',
 			'print_hide',
 			'report_hide',
