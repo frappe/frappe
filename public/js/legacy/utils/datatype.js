@@ -54,7 +54,7 @@ var global_number_format = null;
 function get_number_format() {
 	if(!global_number_format) {
 		global_number_format = wn.boot.sysdefaults.number_format
-			|| wn.model.get("Currency", wn.boot.sysdefaults.currency, "number_format")
+			|| wn.model.get_value("Currency", wn.boot.sysdefaults.currency, "number_format")
 			|| "#,###.##";
 	}
 	return global_number_format;
