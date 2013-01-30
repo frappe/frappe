@@ -336,7 +336,7 @@ _f.CodeField.prototype.make_input = function() {
 			if(me.changing_value) return;
 			
 			me.setting_value = true;
-			me.editor.getSession().setValue(v);
+			me.editor.getSession().setValue(v==null ? "" : v);
 			me.setting_value = false;
 		}
 		

@@ -384,11 +384,17 @@ _r.DataTable.prototype.show_result = function(r, rt) {
 				$w(c0, '30px');
 				$a(c0, 'div', '', {width:'23px'}).innerHTML = start;
 			}
-	      
-			// cells
-			start++;      
+			
+			var doc = {};
 			for(var ci=0;ci < this.rset[vi].length;ci++) {
-				this.make_data_cell(vi, ci, this.rset[vi][ci]);
+				doc[this.colnames[ci]] = this.rset[vi][ci];
+	      	}
+			console.log(doc);
+	
+			// cells
+			start++;
+			for(var ci=0;ci < this.rset[vi].length;ci++) {
+				this.make_data_cell(vi, ci, this.rset[vi][ci], doc);
 			}
 		  
 			if(this.afterrowprint) {
@@ -453,7 +459,7 @@ _r.DataTable.prototype.make_head_tab = function(colnames) {
 	$w(this.tab, this.total_width + 'px');
 }
 
-_r.DataTable.prototype.make_data_cell = function(ri, ci, val) {
+_r.DataTable.prototype.make_data_cell = function(ri, ci, val, doc) {
   var row = this.tab.rows[ri];
   var c = row.insertCell(row.cells.length);
   
@@ -474,7 +480,7 @@ _r.DataTable.prototype.make_data_cell = function(ri, ci, val) {
   var me = this;
 
   c.div = $a(c, 'div', '', {width:(cint(w)-7)+'px'});
-  set_value_in(c.div, val, this.coltypes[ci], this.coloptions[ci])
+  set_value_in(c.div, val, this.coltypes[ci], this.coloptions[ci], doc)
 }
 
 _r.DataTable.prototype.do_print = function() {
