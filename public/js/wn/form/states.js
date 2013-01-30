@@ -157,28 +157,37 @@ wn.ui.form.States = Class.extend({
 		var me = this;
 		$(this.$wrapper).on("click", "[data-action]", function() {
 			var action = $(this).attr("data-action");
-			var next_state = wn.workflow.get_next_state(me.frm.doctype,
-					me.frm.doc[me.state_fieldname], action);
-			var current_state = me.frm.doc[me.state_fieldname];
-
-			me.frm.doc[me.state_fieldname] = next_state;
 			
+			// capture current state
+			var doc_before_action = copy_dict(me.frm.doc);
+
+			// set new state
+			var next_state = wn.workflow.get_next_state(me.frm.doctype,
+					me.frm.doc[me.state_fieldname], action);			
+			me.frm.doc[me.state_fieldname] = next_state;
 			var new_state = wn.workflow.get_document_state(me.frm.doctype, next_state);
 			var new_docstatus = new_state.doc_status;
-			
+
 			// update field and value
 			if(new_state.update_field) {
 				me.frm.set_value(new_state.update_field, new_state.update_value);
 			}
-			
+
+			// revert state on error
+			var on_error = function() {
+				// reset in locals
+				locals[me.frm.doctype][me.frm.docname] = doc_before_action;
+				me.frm.refresh();
+			}
+
 			if(new_docstatus==1 && me.frm.doc.docstatus==0) {
-				me.frm.savesubmit();
+				me.frm.savesubmit(null, on_error);
 			} else if(new_docstatus==0 && me.frm.doc.docstatus==0) {
-				me.frm.save();
+				me.frm.save("Save", null, null, on_error);
 			} else if(new_docstatus==1 && me.frm.doc.docstatus==1) {
-				me.frm.save("Update");
+				me.frm.save("Update", null, null, on_error);
 			} else if(new_docstatus==2 && me.frm.doc.docstatus==1) {
-				me.frm.savecancel();
+				me.frm.savecancel(null, on_error);
 			} else {
 				msgprint(wn._("Document Status transition from ") + me.frm.doc.docstatus + " " 
 					+ wn._("to") + 
