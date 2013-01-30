@@ -58,12 +58,16 @@ def delete(doctype, name):
 		"name": name
 	})
 	
-def get_doc(doctype, name):
-	ret = get_request({
+def get_doc(doctype, name=None, filters=None):
+	params = {
 		"cmd": "webnotes.client.get",
 		"doctype": doctype,
-		"name": name
-	})
+	}
+	if name:
+		params["name"] = name
+	if filters:
+		params["filters"] = json.dumps(filters)
+	ret = get_request(params)
 	return ret
 
 def get_request(params):
@@ -100,20 +104,26 @@ class TestAPI(unittest.TestCase):
 			"customer_type": "Company",
 			"customer_group": "Standard Group",
 			"territory": "Default",
+			"customer_details": "some unique info",
 			"company": "Alpha"
 		}])
 		self.assertTrue(response.json["message"][0]["name"]=="Import Test Customer")
 		
 		# get
 		response = get_doc("Customer", "Import Test Customer")
+		self.check_get(response)
 		
+		response = get_doc("Customer", filters={"customer_details":"some unique info"})
+		self.check_get(response)
+		
+		# delete
+		self.assertTrue(delete("Customer", "Import Test Customer").json["message"]=="okay")
+	
+	def check_get(self, response):
 		doclist = response.json["message"]
 		self.assertTrue(len(doclist)==1)
 		self.assertTrue(doclist[0]["doctype"]=="Customer")
 		self.assertTrue(doclist[0]["customer_group"]=="Standard Group")
-		
-		# delete
-		self.assertTrue(delete("Customer", "Import Test Customer").json["message"]=="okay")
-		
+	
 if __name__=="__main__":
 	unittest.main()

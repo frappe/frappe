@@ -237,8 +237,6 @@ _f.TableField.prototype.refresh = function() {
 _f.TableField.prototype.set = function(v) { }; // nothing
 _f.TableField.prototype.set_input = function(v) { }; // nothing
 
-// ==============================================================
-
 
 _f.CodeField = function() { };
 _f.CodeField.prototype = new Field();
@@ -291,15 +289,11 @@ _f.CodeField.prototype.make_input = function() {
 
 		this.input.set_input = function(v) {
 			if(me.editor) {
-				me.editor.setContent(v || "");
+				me.editor.setContent(v==null ? "" : v);
 			} else {
 				$(me.input).val(v);
 			}
 		}
-		// this.input.onchange = function() {
-		// 	me.set(me.editor.getContent());
-		// 	me.run_trigger();
-		// }
 		this.get_value = function() {
 			return me.editor && me.editor.getContent(); // tinyMCE
 		}	

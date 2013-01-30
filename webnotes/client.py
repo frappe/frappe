@@ -25,7 +25,11 @@ import webnotes
 import json
 
 @webnotes.whitelist()
-def get(doctype, name):
+def get(doctype, name=None, filters=None):
+	if filters and not name:
+		name = webnotes.conn.get_value(doctype, json.loads(filters))
+		if not name:
+			raise Exception, "No document found for given filters"
 	return [d.fields for d in webnotes.model_wrapper(doctype, name).doclist]
 	
 @webnotes.whitelist()
