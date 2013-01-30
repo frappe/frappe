@@ -112,7 +112,7 @@ $.extend(wn.meta, {
 			doc = cur_frm.doc;
 			
 		if(df && df.options) {
-			if(df.options.indexOf(":")!=-1) {
+			if(doc && df.options.indexOf(":")!=-1) {
 				var options = df.options.split(":");
 				if(options.length==3) {
 					// get reference record e.g. Company

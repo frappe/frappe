@@ -942,7 +942,7 @@ TextField.prototype.make_input = function() {
 		$(this.input).css({height: "160px"});
 	}
 	this.input.set_input = function(v) {
-		me.input.value = v;
+		me.input.value = (v==null ? "" : v);
 	}
 	this.input.onchange = function() {
 		me.set(me.input.value); 
