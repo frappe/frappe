@@ -157,6 +157,7 @@ def handle():
 		# login executed in webnotes.auth
 		if webnotes.request_method == "POST":
 			webnotes.conn.begin()
+		
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
