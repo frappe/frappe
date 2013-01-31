@@ -23,6 +23,7 @@ wn.ui.form.LinkedWith = Class.extend({
 		
 		this.dialog = new wn.ui.Dialog({
 			width: 700,
+			hide_on_page_refresh: true,
 			title: wn._("Linked With"),
 			fields: [
 				{ fieldtype: "HTML", label: "help", 
@@ -56,7 +57,7 @@ wn.ui.form.LinkedWith = Class.extend({
 				me.make_listing();
 				me.lst.run();
 			})
-		})
+		});
 	},
 	make_listing: function() {
 		var me = this;
@@ -70,6 +71,7 @@ wn.ui.form.LinkedWith = Class.extend({
 			parent: $(this.dialog.fields_dict.list.wrapper).empty().css("min-height", "300px")
 				.get(0),
 			method: 'webnotes.widgets.reportview.get',
+			type: "GET",
 			custom_new_doc: me.listview.make_new_doc || undefined,
 			get_args: function() {
 				var args = {

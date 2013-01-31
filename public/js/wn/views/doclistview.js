@@ -252,6 +252,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	init_stats: function() {
 		var me = this
 		wn.call({
+			type: "GET",
 			method: 'webnotes.widgets.reportview.get_stats',
 			args: {
 				stats: me.listview.stats,

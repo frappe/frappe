@@ -183,7 +183,7 @@ def date_diff(string_ed_date, string_st_date):
 	return (getdate(string_ed_date) - getdate(string_st_date)).days
 	
 def time_diff_in_seconds(string_ed_date, string_st_date):
-	return (getdate(string_ed_date) - getdate(string_st_date)).seconds
+	return (get_datetime(string_ed_date) - get_datetime(string_st_date)).seconds
 
 def now_datetime():
 	global user_time_zone

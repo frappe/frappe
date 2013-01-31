@@ -52,6 +52,7 @@ wn.ui.form.AssignTo = Class.extend({
 		var me = this;
 		wn.call({
 			method: 'webnotes.widgets.form.assign_to.get',
+			type: "GET",
 			args: {
 				doctype: me.frm.doctype,
 				name: me.frm.docname

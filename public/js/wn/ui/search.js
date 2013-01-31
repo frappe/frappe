@@ -22,6 +22,7 @@ wn.ui.Search = Class.extend({
 			appframe: this.dialog.appframe,
 			new_doctype: this.doctype,
 			doctype: this.doctype,
+			type: "GET",
 			method: 'webnotes.widgets.reportview.get',
 			show_filters: true,
 			style: 'compact',

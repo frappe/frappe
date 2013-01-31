@@ -120,12 +120,14 @@ class Session:
 			self.get_ipinfo()
 		
 		# insert session
+		webnotes.conn.begin()
 		self.insert_session_record()
 
 		# update profile
 		webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
 			where name='%s'""" % (webnotes.utils.now(), webnotes.remote_ip, self.data['user']))
-
+		webnotes.conn.commit()
+		
 		# set cookies to write
 		webnotes.session = self.data
 		webnotes.cookie_manager.set_cookies()
@@ -154,7 +156,6 @@ class Session:
 
 	def get_session_record(self):
 		"""get session record, or return the standard Guest Record"""
-		# check in memcache
 		r = self.get_session_data()
 		if not r:
 			webnotes.response["session_expired"] = 1
@@ -170,7 +171,6 @@ class Session:
 		return data
 
 	def get_session_data_from_cache(self):
-		# check if expired
 		data = webnotes._dict(webnotes.cache().get_value("session:" + self.sid) or {})
 		if data:
 			session_data = data.get("data", {})
@@ -230,9 +230,9 @@ class Session:
 		if last_updated:
 			time_diff = webnotes.utils.time_diff_in_seconds(webnotes.utils.now(), 
 				last_updated)
-
+		
 		if webnotes.session['user'] != 'Guest' and \
-			((not time_diff) or (time_diff > 1800)):
+			((time_diff==None) or (time_diff > 1800)):
 			# database persistence is secondary, don't update it too often
 			webnotes.conn.sql("""update tabSessions set sessiondata=%s, 
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
