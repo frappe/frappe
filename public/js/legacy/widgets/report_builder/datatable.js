@@ -389,7 +389,6 @@ _r.DataTable.prototype.show_result = function(r, rt) {
 			for(var ci=0;ci < this.rset[vi].length;ci++) {
 				doc[this.colnames[ci]] = this.rset[vi][ci];
 	      	}
-			console.log(doc);
 	
 			// cells
 			start++;
