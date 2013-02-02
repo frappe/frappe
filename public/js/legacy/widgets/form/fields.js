@@ -862,7 +862,7 @@ FloatField.prototype.onmake_input = function() {
 	}
 }
 FloatField.prototype.set_disp = function(val) { 
-	this.set_disp_html(wn.format(val, this.df, locals[this.doctype][this.name]));
+	this.set_disp_html(wn.format(val, this.df, null, locals[this.doctype][this.name]));
 }
 
 function PercentField() { } PercentField.prototype = new FloatField();

@@ -183,7 +183,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext) {
 					var docfield = columnDef.docfield;	
-					return wn.format(value, docfield, dataContext);
+					return wn.format(value, docfield, null, dataContext);
 				}
 			}
 			return coldef;

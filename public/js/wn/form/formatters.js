@@ -19,7 +19,7 @@ wn.form.formatters = {
 	Percent: function(value) {
 		return cint(value) + "%";
 	},
-	Currency: function(value, docfield, doc) {
+	Currency: function(value, docfield, options, doc) {
 		var currency = wn.meta.get_field_currency(docfield, doc);
 		return "<div style='text-align: right'>" + format_currency(value, currency) + "</div>";
 	},
@@ -95,7 +95,7 @@ wn.form.get_formatter = function(fieldtype) {
 	return wn.form.formatters[fieldtype.replace(/ /g, "")] || wn.form.formatters.Data;
 }
 
-wn.format = function(value, df, options) {
+wn.format = function(value, df, options, doc) {
 	if(!df) df = {"fieldtype":"Data"};
-	return wn.form.get_formatter(df.fieldtype)(value, df, options);
+	return wn.form.get_formatter(df.fieldtype)(value, df, options, doc);
 }

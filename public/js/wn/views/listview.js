@@ -262,7 +262,7 @@ wn.views.ListView = Class.extend({
 		}
 		else if(data[opts.content]) {
 			$("<span>")
-				.html(wn.format(data[opts.content], opts.df, data))
+				.html(wn.format(data[opts.content], opts.df, null, data))
 				.appendTo(parent)
 		}
 		
