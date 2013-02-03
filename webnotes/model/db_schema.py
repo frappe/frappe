@@ -269,6 +269,8 @@ class DbColumn:
 
 
 	def default_changed(self, current_def):
+		if not current_def.get("default"):
+			return True
 		if "decimal" in current_def['type']:
 			return float(current_def['default'])!=float(self.default)
 		else:
