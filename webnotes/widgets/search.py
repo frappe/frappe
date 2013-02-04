@@ -23,6 +23,9 @@
 # Search
 from __future__ import unicode_literals
 import webnotes
+import webnotes.widgets.query_builder
+from webnotes.utils import cstr
+from startup.query_handlers import standard_queries
 
 # this is called when a new doctype is setup for search - to set the filters
 @webnotes.whitelist()
@@ -48,6 +51,30 @@ def getsearchfields():
 			r[3] = '\n'.join([''] + [o[0] for o in ol])
 
 	webnotes.response['searchfields'] = [['name', 'ID', 'Data', '']] + res
+
+# this is called by the Link Field
+@webnotes.whitelist()
+def search_link(dt, txt, query=None):
+	search_widget(dt, txt, query, page_len=10)
+	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"])
+
+# this is called by the search box
+@webnotes.whitelist()
+def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_len=50):
+		
+	if query and query.split()[0].lower()!="select":
+		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
+			searchfield, start, page_len)
+	elif not query and doctype in standard_queries:
+		search_widget(doctype, txt, standard_queries[doctype], searchfield, start, page_len)
+	else:
+		if query:
+			query = scrub_custom_query(query, searchfield, txt)
+		else:
+			query = make_query(', '.join(get_std_fields_list(doctype, searchfield)), doctype, 
+				searchfield, txt, start, page_len)
+
+		webnotes.widgets.query_builder.runquery(query)
 
 def make_query(fields, dt, key, txt, start, length):
 	doctype = webnotes.get_doctype(dt)
@@ -86,10 +113,7 @@ def get_std_fields_list(dt, key):
 	return ['`tab%s`.`%s`' % (dt, f.strip()) for f in sflist]
 
 def build_for_autosuggest(res):
-	from webnotes.utils import cstr
-
 	results = []
-	
 	for r in res:
 		info = ''
 		if len(r) > 1:
@@ -106,38 +130,3 @@ def scrub_custom_query(query, key, txt):
 	if '%s' in query:
 		query = query.replace('%s', ((txt or '') + '%'))
 	return query
-
-# this is called by the Link Field
-@webnotes.whitelist()
-def search_link():
-	import webnotes.widgets.query_builder
-
-	txt = webnotes.form_dict.get('txt')
-	dt = webnotes.form_dict.get('dt')
-	query = webnotes.form_dict.get('query')
-	
-	if query:
-		res = webnotes.conn.sql(scrub_custom_query(query, 'name', txt))
-	else:
-		q = make_query(', '.join(get_std_fields_list(dt, 'name')), dt, 'name', txt, '0', '10')
-		res = webnotes.widgets.query_builder.runquery(q, ret=1)
-
-	# make output
-	webnotes.response['results'] = build_for_autosuggest(res)
-
-# this is called by the search box
-@webnotes.whitelist()
-def search_widget():
-	import webnotes.widgets.query_builder
-
-	dt = webnotes.form_dict.get('doctype')
-	txt = webnotes.form_dict.get('txt') or ''
-	key = webnotes.form_dict.get('searchfield') or 'name' # key field
-	user_query = webnotes.form_dict.get('query') or ''
-
-	if user_query:
-		query = scrub_custom_query(user_query, key, txt)
-	else:
-		query = make_query(', '.join(get_std_fields_list(dt, key)), dt, key, txt, webnotes.form_dict.get('start') or 0, webnotes.form_dict.get('page_len') or 50)
-
-	webnotes.widgets.query_builder.runquery(query)

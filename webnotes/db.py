@@ -126,6 +126,9 @@ class Database:
 		else:
 			return self._cursor.fetchall()
 
+	def sql_list(self, query, values=()):
+		return [r[0] for r in self.sql(query, values)]
+
 	def check_transaction_status(self, query):
 		if self.in_transaction and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create']:
 			raise Exception, 'This statement can cause implicit commit'
