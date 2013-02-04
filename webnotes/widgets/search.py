@@ -61,7 +61,6 @@ def search_link(dt, txt, query=None):
 # this is called by the search box
 @webnotes.whitelist()
 def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_len=50):
-		
 	if query and query.split()[0].lower()!="select":
 		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
 			searchfield, start, page_len)
@@ -69,12 +68,13 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_le
 		search_widget(doctype, txt, standard_queries[doctype], searchfield, start, page_len)
 	else:
 		if query:
-			query = scrub_custom_query(query, searchfield, txt)
+			webnotes.response["values"] = webnotes.conn.sql(scrub_custom_query(query, 
+				searchfield, txt))
 		else:
 			query = make_query(', '.join(get_std_fields_list(doctype, searchfield)), doctype, 
 				searchfield, txt, start, page_len)
 
-		webnotes.widgets.query_builder.runquery(query)
+			webnotes.widgets.query_builder.runquery(query)
 
 def make_query(fields, dt, key, txt, start, length):
 	doctype = webnotes.get_doctype(dt)
