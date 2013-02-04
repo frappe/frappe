@@ -128,7 +128,7 @@ Field.prototype.set_description = function(txt) {
 	}
 }
 
-Field.prototype.get_status = function() {
+Field.prototype.get_status = function(explain) {
 	// if used in filters
 	if(this.in_filter) 
 		this.not_in_form = this.in_filter;
@@ -150,15 +150,21 @@ Field.prototype.get_status = function() {
 	else 
 		ret='None';
 
+	if(explain) console.log("By Permission:" + ret)
+
 	// hidden
 	if(cint(this.df.hidden)) {
 		ret = 'None';
 	}
 
+	if(explain) console.log("By Hidden:" + ret)
+
 	// for submit
 	if(ret=='Write' && cint(cur_frm.doc.docstatus) > 0) {
 		ret = 'Read';
 	}
+
+	if(explain) console.log("By Submit:" + ret)
 
 	// allow on submit
 	var a_o_s = cint(this.df.allow_on_submit);
@@ -172,11 +178,15 @@ Field.prototype.get_status = function() {
 			a_o_s = _f.cur_grid.field.df.allow_on_submit;
 		}
 	}
+
+	if(explain) console.log("Allow on Submit:" + a_o_s)
 	
 	if(ret=="Read" && a_o_s && cint(cur_frm.doc.docstatus)==1 && 
 		cur_frm.perm[this.df.permlevel][WRITE]) {
 			ret='Write';
 	}
+
+	if(explain) console.log("By Allow on Submt:" + ret)
 
 	// workflow state
 	if(ret=="Write" && cur_frm && cur_frm.state_fieldname) {
@@ -189,12 +199,16 @@ Field.prototype.get_status = function() {
 			ret = 'Read';
 		}
 	}
-		
+	
+	if(explain) console.log("By Workflow:" + ret)
+	
 	// make a field read_only if read_only 
 	// is checked (disregards write permission)
 	if(ret=="Write" && cint(this.df.read_only)) {
 		ret = "Read";
 	}
+
+	if(explain) console.log("By Read Only:" + ret)
 
 	return ret;
 }

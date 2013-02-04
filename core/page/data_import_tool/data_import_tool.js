@@ -10,7 +10,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			<p class="float-column">\
 				<select style="width: 200px" name="dit-doctype">\
 				</select><br><br>\
-				<input type="checkbox" name="dit-with-data">\
+				<input type="checkbox" name="dit-with-data" style="margin-top: -3px">\
 				<span> Download with data</span>\
 			</p>\
 			<p class="float-column" id="dit-download"></p>\
@@ -141,12 +141,14 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	});
 	
 	// add overwrite option
-	$('<input type="checkbox" name="overwrite"><span> Overwrite</span>\
+	$('<input type="checkbox" name="overwrite" style="margin-top: -3px">\
+		<span> Overwrite</span>\
 		<p class="help">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
 
 	// add ignore option
-	$('<input type="checkbox" name="ignore_encoding_errors"><span> Ignore Encoding Errors</span><br><br>')
+	$('<input type="checkbox" name="ignore_encoding_errors" style="margin-top: -3px">\
+		<span> Ignore Encoding Errors</span><br><br>')
 		.insertBefore('#dit-upload-area form input[type="submit"]')
 	
 	// rename button
