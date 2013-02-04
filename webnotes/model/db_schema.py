@@ -34,7 +34,7 @@ type_map = {
 	'currency':		('decimal', '18,6')
 	,'int':			('int', '11')
 	,'float':		('decimal', '18,6')
-	,'percent':		('decimal', '9,6')
+	,'percent':		('decimal', '18,6')
 	,'check':		('int', '1')
 	,'small text':	('text', '')
 	,'long text':	('longtext', '')
@@ -264,9 +264,18 @@ class DbColumn:
 				self.table.add_index.append(self)
 		
 		# default
-		if (self.default and (current_def['default'] != self.default) and (self.default not in default_shortcuts) and not (column_def in ['text','blob'])):
+		if (self.default and self.default_changed(current_def) and (self.default not in default_shortcuts) and not (column_def in ['text','blob'])):
 			self.table.set_default.append(self)
 
+
+	def default_changed(self, current_def):
+		if "decimal" in current_def['type']:
+			try:
+				return float(current_def['default'])!=float(self.default)
+			except TypeError, e:
+				return True
+		else:
+			return current_def['default'] != self.default
 
 class DbManager:
 	"""

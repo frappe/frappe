@@ -103,12 +103,14 @@ wn.views.moduleview.ModuleView = Class.extend({
 
 				// doctype permissions
 				if(item.doctype && !wn.model.can_read(item.doctype)) {
-					item.link = item.label;
+					//item.link = item.label;
+					return;
 				}
 
 				// page permissions
 				if(item.page && !in_list(wn.boot.allowed_pages, item.page)) {
-					item.link = item.label;
+					//item.link = item.label;
+					return;
 				}
 
 				if((item.country && wn.boot.control_panel.country==item.country) 
