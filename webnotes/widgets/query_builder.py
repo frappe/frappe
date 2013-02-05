@@ -29,10 +29,6 @@ out = webnotes.response
 
 from webnotes.utils import cint
 
-
-# Get, scrub metadata
-# ====================================================================
-
 def get_sql_tables(q):
 	if q.find('WHERE') != -1:
 		tl = q.split('FROM')[1].split('WHERE')[0].split(',')
@@ -41,7 +37,6 @@ def get_sql_tables(q):
 	else:
 		tl = q.split('FROM')[1].split('ORDER BY')[0].split(',')
 	return [t.strip().strip('`')[3:] for t in tl]
-
 
 def get_parent_dt(dt):
 	pdt = ''
@@ -79,9 +74,6 @@ def get_sql_meta(tl):
 
 	return meta
 
-# Additional conditions to fulfill match permission rules
-# ====================================================================
-
 def getmatchcondition(dt, ud, ur):
 	res = sql("SELECT `role`, `match` FROM tabDocPerm WHERE parent = '%s' AND (`read`=1) AND permlevel = 0" % dt)
 	cond = []
@@ -118,9 +110,6 @@ def add_match_conditions(q, tl, ur, ud):
 	
 	return q
 
-# execute server-side script from Search Criteria
-# ====================================================================
-
 def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[], filter_values={}, query='', from_export=0):
 	col_idx, i, out, style, header_html, footer_html, page_template = {}, 0, None, [], '', '', ''
 	for c in colnames:
@@ -145,8 +134,6 @@ def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[]
 
 	return res, style, header_html, footer_html, page_template
 
-# ====================================================================
-
 def guess_type(m):
 	"""
 		Returns fieldtype depending on the MySQLdb Description
@@ -169,8 +156,6 @@ def build_description_simple():
 		colwidths.append('100')
 
 	return colnames, coltypes, coloptions, colwidths
-
-# ====================================================================
 
 def build_description_standard(meta, tl):
 
@@ -212,7 +197,6 @@ def build_description_standard(meta, tl):
 		else:
 			# nothing found
 			# guess
-
 			colnames.append(fn)
 			coltypes.append(guess_type(f[1]))
 			coloptions.append('')
@@ -220,10 +204,7 @@ def build_description_standard(meta, tl):
 
 	return colnames, coltypes, coloptions, colwidths
 
-# Entry Point - Run the query
-# ====================================================================
-
-@webnotes.whitelist(allow_guest=True)
+@webnotes.whitelist()
 def runquery(q='', ret=0, from_export=0):
 	import webnotes.utils
 

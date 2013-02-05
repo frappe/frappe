@@ -104,21 +104,7 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	if not module:
 		return
 		
-	module = scrub(module)
-	dt = scrub(doc.doctype)
-
-	try:
-		module = __import__('%s.doctype.%s.%s' % (module, dt, dt), fromlist=[''])
-		DocType = getattr(module, 'DocType')
-	except ImportError, e:
-		from webnotes.utils import cint
-		if not cint(webnotes.conn.get_value("DocType", doc.doctype, "custom")):
-			raise e
-		
-		class DocType:
-			def __init__(self, d, dl):
-				self.doc, self.doclist = d, dl
-		
+	DocType = get_doctype_class(doc.doctype, module)
 
 	# custom?
 	custom_script = get_custom_script(doc.doctype, 'Server')
@@ -130,7 +116,33 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 		return CustomDocType(doc, doclist)
 	else:
 		return DocType(doc, doclist)
-	
+
+def get_doctype_class(doctype, module):
+	from webnotes.utils import cint
+	import webnotes
+
+	module = load_doctype_module(doctype, module)
+	if module:
+		DocType = getattr(module, 'DocType')
+	else:
+		if not cint(webnotes.conn.get_value("DocType", doctype, "custom")):
+			raise e
+		
+		class DocType:
+			def __init__(self, d, dl):
+				self.doc, self.doclist = d, dl
+
+	return DocType
+
+def load_doctype_module(doctype, module):
+	from webnotes.modules import scrub
+	_doctype, _module = scrub(doctype), scrub(module)
+	try:
+		module = __import__('%s.doctype.%s.%s' % (_module, _doctype, _doctype), fromlist=[''])
+		return module
+	except ImportError, e:
+		return None
+
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
 	if dt:
 		import webnotes.model.doc
