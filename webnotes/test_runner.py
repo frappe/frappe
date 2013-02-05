@@ -6,13 +6,12 @@ from webnotes.model.meta import get_link_fields
 from webnotes.model.code import load_doctype_module
 
 test_objects = {}
-
-def run_tests(doctype):
-	load_test_objects(doctype)
-	#clear_dependencies()
 	
-def load_test_objects(doctype):
+def make_test_records(doctype):
 	global test_objects
+	webnotes.mute_emails = True
+	if not webnotes.conn:
+		webnotes.connect()
 	
 	for fieldname, options, label in get_link_fields(doctype):
 		if options.startswith("link:"):
@@ -20,31 +19,37 @@ def load_test_objects(doctype):
 		if options == "[Select]":
 			continue
 		if not options in test_objects:
+			test_objects[options] = []
+			make_test_records(options)
 			moduleobj = load_doctype_module(options, 
 				webnotes.conn.get_value("DocType", options, "module"))
+
 			if hasattr(moduleobj, "make_test_records"):
 				test_objects[options] = moduleobj.make_test_records()
+
 			elif hasattr(moduleobj, "test_records"):
-				test_objects[options] = []
 				for doclist in moduleobj.test_records:
 					d = webnotes.model_wrapper(doclist)
 					d.insert()
-					test_objects[options].append(d.doc.name)
+					if not d.doc.doctype in test_objects:
+						test_objects[d.doc.doctype] = []
+					test_objects[d.doc.doctype].append(d.doc.name)
+
 			else:
-				test_objects[options] = []
 				print "Please setup make_test_records for: " + options
-			
-			make_dependencies(options)
+				print "-" * 60
+				print_mandatory_fields(options)
+				print
 
-def clear_dependencies():
-	global test_objects
-
-	from webnotes.model.utils import delete_doc
-	for doctype in test_objects:
-		for name in test_objects[doctype]:
-			delete_doc(doctype, name)
+def print_mandatory_fields(doctype):
+	doctype_obj = webnotes.get_doctype(doctype)
+	print "Autoname: " + (doctype_obj[0].autoname or "")
+	print "Mandatory Fields: "
+	for d in doctype_obj.get({"reqd":1}):
+		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
 			
 if __name__=="__main__":
+	sys.path.extend(["app", "lib"])
 	webnotes.connect()
-	run_tests(sys.argv[1])
+	make_test_records(sys.argv[1])
 	

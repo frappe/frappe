@@ -30,6 +30,9 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		subject='[No Subject]', message='[No Content]'):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
 	import webnotes
+
+	if webnotes.mute_emails:
+		return
 	
 	def is_unsubscribed(rdata):
 		if not rdata: return 1

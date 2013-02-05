@@ -68,7 +68,8 @@ class DocType:
 		"""logout if disabled"""
 		if not cint(self.doc.enabled):
 			import webnotes
-			webnotes.login_manager.logout(user=self.doc.name)
+			if getattr(webnotes, "login_manager", None):
+				webnotes.login_manager.logout(user=self.doc.name)
 	
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
@@ -273,3 +274,10 @@ def get_perm_info(arg=None):
 def get_defaults(arg=None):
 	return webnotes.conn.sql("""select defkey, defvalue from tabDefaultValue where 
 		parent=%s and parenttype = 'Profile'""", webnotes.form_dict['profile'])
+		
+test_records = [[{
+	"doctype":"Profile",
+	"email": "test@erpnext.com",
+	"first_name": "_Test",
+	"new_password": "testpassword"
+}]]

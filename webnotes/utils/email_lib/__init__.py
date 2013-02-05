@@ -25,11 +25,17 @@ import webnotes
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None):
 	"""send markdown email"""
+	if webnotes.mute_emails:
+		return
+		
 	import markdown2
 	sendmail(recipients, sender, markdown2.markdown(msg), subject)
 			
 def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	"""send an html email as multipart with attachments and all"""
+	if webnotes.mute_emails:
+		return
+
 	from webnotes.utils.email_lib.smtp import get_email
 	get_email(recipients, sender, msg, subject).send()
 
