@@ -127,13 +127,13 @@ _f.FrmHeader = Class.extend({
 	refresh_toolbar: function() {
 		// clear
 		var me = this;
+		this.appframe.clear_buttons();
+
 		if(this.frm.meta.hide_toolbar) {
-			this.appframe.$w.find('.appframe-toolbar').toggle(false);
 			this.frm.save_disabled = true;
 			return;
 		}
 		
-		this.appframe.clear_buttons();
 		var p = this.frm.perm[0];
 
 		// Edit
