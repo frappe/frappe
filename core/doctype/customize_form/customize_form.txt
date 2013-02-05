@@ -1,15 +1,15 @@
 [
  {
-  "creation": "2013-01-10 16:34:01", 
+  "creation": "2013-01-29 17:54:08", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:24:07", 
+  "modified": "2013-02-05 09:05:02", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "autoname": "DL.####", 
   "doctype": "DocType", 
-  "hide_toolbar": 0, 
+  "hide_toolbar": 1, 
   "issingle": 1, 
   "module": "Core", 
   "name": "__common__", 
@@ -24,15 +24,18 @@
   "permlevel": 0
  }, 
  {
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Customize Form", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
+  "permlevel": 0, 
   "read": 1, 
   "report": 0, 
   "role": "System Manager", 
-  "submit": 0
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -151,13 +154,6 @@
   "search_index": 0
  }, 
  {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "write": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "permlevel": 2
+  "doctype": "DocPerm"
  }
 ]

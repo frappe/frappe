@@ -93,7 +93,6 @@ class Profile:
 			in_create => Not in create
 		
 		"""
-		
 		self.build_doctype_map()
 		self.build_perm_map()
 				

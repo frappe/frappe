@@ -117,7 +117,7 @@ $.extend(wn.meta, {
 				if(options.length==3) {
 					// get reference record e.g. Company
 					var docname = doc[options[1]];
-					if(!docname) {
+					if(!docname && cur_frm) {
 						docname = cur_frm.doc[options[1]]
 					}
 					currency = wn.model.get_value(options[0], doc[options[1]], 
