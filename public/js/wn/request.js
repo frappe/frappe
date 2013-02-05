@@ -52,6 +52,7 @@ wn.call = function(opts) {
 	}
 
 	wn.request.call({
+		type: opts.type || "POST",
 		args: args,
 		success: opts.callback,
 		error: opts.error,

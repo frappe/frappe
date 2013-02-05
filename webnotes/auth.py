@@ -45,9 +45,10 @@ class HTTPRequest:
 		# load cookies
 		webnotes.cookie_manager = CookieManager()
 
+		webnotes.request_method = webnotes.get_env_vars("REQUEST_METHOD")
+
 		# set db
 		self.connect()
-		webnotes.conn.begin()
 
 		# login
 		webnotes.login_manager = LoginManager()
@@ -70,7 +71,6 @@ class HTTPRequest:
 
 		# write out cookies
 		webnotes.cookie_manager.set_cookies()
-		webnotes.conn.commit()
 
 	def set_lang(self, lang):
 		try:

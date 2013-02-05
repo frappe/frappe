@@ -155,15 +155,22 @@ def handle():
 
 	if cmd!='login':
 		# login executed in webnotes.auth
+		if webnotes.request_method == "POST":
+			webnotes.conn.begin()
+		
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
-			#webnotes.errprint(webnotes.utils.getTraceback())
 			webnotes.errprint(e)
-			webnotes.conn.rollback()
+			if webnotes.request_method == "POST":
+				webnotes.conn.rollback()
 		except:
 			webnotes.errprint(webnotes.utils.getTraceback())
-			webnotes.conn and webnotes.conn.rollback()
+			if webnotes.request_method == "POST":
+				webnotes.conn and webnotes.conn.rollback()
+
+		if webnotes.request_method == "POST" and webnotes.conn:
+			webnotes.conn.commit()
 				
 	print_response()
 
@@ -185,9 +192,6 @@ def execute_cmd(cmd):
 			webnotes.msgprint('Not Allowed, %s' % str(method))
 			raise Exception, 'Not Allowed, %s' % str(method)
 		
-	if not webnotes.conn.in_transaction:
-		webnotes.conn.begin()
-
 	ret = call(method, webnotes.form_dict)
 
 	# returns with a message
@@ -197,8 +201,6 @@ def execute_cmd(cmd):
 	# update session
 	webnotes.session_obj.update()
 
-	if webnotes.conn.in_transaction:
-		webnotes.conn.commit()
 
 def call(fn, args):
 	import inspect

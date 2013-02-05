@@ -201,7 +201,7 @@ function makeselector() {
 			var l = $a($a(div,'div'),'span','link_type'); 
 			l.innerHTML = r.values[i][0]; 
 			l.link_name = r.values[i][0]; 
-			l.dt = r.coloptions[0];
+			l.dt = r.coloptions && r.coloptions[0];
 
 			if(d.input)
 				l.onclick = function() { setlinkvalue(this.link_name); }

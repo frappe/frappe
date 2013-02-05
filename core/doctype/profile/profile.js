@@ -13,10 +13,14 @@ cur_frm.cscript.user_image = function(doc) {
 cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_reqd('new_password', doc.__islocal);
 
-	if(doc.__islocal) {
-		cur_frm.toggle_display(['sb1', 'sb3'], false);
-	} else {
+	cur_frm.toggle_display(['sb1', 'sb3'], false);
+
+ 	if(!doc.__islocal){		
+		if(has_common(user_roles, ["Administrator", "System Manager"])) {
+			cur_frm.toggle_display(['sb1', 'sb3'], true);
+		}
 		cur_frm.cscript.enabled(doc);
+		
 		cur_frm.roles_editor && cur_frm.roles_editor.show(doc.name);
 		if(user==doc.name) {
 			// update display settings
@@ -36,7 +40,7 @@ cur_frm.cscript.refresh = function(doc) {
 }
 
 cur_frm.cscript.enabled = function(doc) {
-	if(!doc.__islocal) {
+	if(!doc.__islocal && has_common(user_roles, ["Administrator", "System Manager"])) {
 		cur_frm.toggle_display(['sb1', 'sb3'], doc.enabled);	
 		cur_frm.toggle_enable('*', doc.enabled);
 		cur_frm.set_df_property('enabled', 'read_only', 0);

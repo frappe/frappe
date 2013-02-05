@@ -87,7 +87,7 @@ $(window).bind('hashchange', function() {
 		return;
 		
 	// hide open dialog
-	if(cur_dialog) 
+	if(cur_dialog && cur_dialog.hide_on_page_refresh) 
 		cur_dialog.hide();
 		
 	wn.route();

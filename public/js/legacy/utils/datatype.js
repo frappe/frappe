@@ -94,7 +94,7 @@ function is_null(v) {
 }
 
 function set_value_in(ele, v, ftype, fopt, doc) { 
-	$(ele).html(wn.format(v, {fieldtype:ftype, options:fopt}, doc));
+	$(ele).html(wn.format(v, {fieldtype:ftype, options:fopt}, null, doc));
 	return;
 }
 var $s = set_value_in; // used in print formats

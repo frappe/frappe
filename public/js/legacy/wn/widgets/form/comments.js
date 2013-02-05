@@ -26,11 +26,20 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 	this.doctype = doctype; this.docname = docname;
 	
 	this.refresh = function() {
-		$c('webnotes.widgets.form.comments.get_comments', {dt: me.doctype, dn: me.docname, limit: 5}, function(r, rt) {
-			wn.widgets.form.comments.sync(me.doctype, me.docname, r);
-			me.make_body();
-			me.refresh_latest_comment();
-		});
+		wn.call({
+			method: "webnotes.widgets.form.comments.get_comments",
+			type: "GET",
+			args: {
+				dt: me.doctype, 
+				dn: me.docname, 
+				limit: 5
+			},
+			callback: function(r) {
+				wn.widgets.form.comments.sync(me.doctype, me.docname, r);
+				me.make_body();
+				me.refresh_latest_comment();
+			}
+		})
 	}
 	
 	this.refresh_latest_comment = function() {

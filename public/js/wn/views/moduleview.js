@@ -103,18 +103,23 @@ wn.views.moduleview.ModuleView = Class.extend({
 
 				// doctype permissions
 				if(item.doctype && !wn.model.can_read(item.doctype)) {
-					item.link = item.label;
+					//item.link = item.label;
+					return;
 				}
 
 				// page permissions
 				if(item.page && !in_list(wn.boot.allowed_pages, item.page)) {
-					item.link = item.label;
+					//item.link = item.label;
+					return;
 				}
 
 				if((item.country && wn.boot.control_panel.country==item.country) 
 					|| !item.country)
 					me.add_item(item, section)
-			})
+			});
+			if(section.table.find("tr").length==1) {
+				section.table.toggle(false);
+			}
 		});
 	},
 	render_dynamic: function() {

@@ -75,21 +75,29 @@ wn.views.ListView = Class.extend({
 		}
 		this.columns.push({width: '20%', content:'name'});
 
-		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			
-			// field width
-			var width = "15%";
-			if(in_list(["Int", "Percent"], d.fieldtype)) {
-				width = "13%";
-			} else if(in_list(["Int", "Percent"], d.fieldtype)) {
-				width = "10%";
-			} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
-				width = "5%";
-			} else if(d.fieldname=="subject") { // subjects are longer
-				width = "20%";
-			}
-			me.columns.push({width:width, content: d.fieldname, 
-				type:d.fieldtype, df:d, title:wn._(d.label) });
+		// overridden
+		var overridden = $.map(this.settings.add_columns || [], function(d) { 
+			return d.content;
+		});
+		
+		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), 
+			function(i,d) {
+				if(in_list(overridden, d.fieldname)) {
+					return;
+				}
+				// field width
+				var width = "15%";
+				if(in_list(["Int", "Percent"], d.fieldtype)) {
+					width = "13%";
+				} else if(in_list(["Int", "Percent"], d.fieldtype)) {
+					width = "10%";
+				} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
+					width = "5%";
+				} else if(d.fieldname=="subject") { // subjects are longer
+					width = "20%";
+				}
+				me.columns.push({width:width, content: d.fieldname, 
+					type:d.fieldtype, df:d, title:wn._(d.label) });
 		});
 
 		// additional columns
@@ -254,7 +262,7 @@ wn.views.ListView = Class.extend({
 		}
 		else if(data[opts.content]) {
 			$("<span>")
-				.html(wn.format(data[opts.content], opts.df, data))
+				.html(wn.format(data[opts.content], opts.df, null, data))
 				.appendTo(parent)
 		}
 		
