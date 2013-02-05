@@ -116,7 +116,10 @@ wn.views.moduleview.ModuleView = Class.extend({
 				if((item.country && wn.boot.control_panel.country==item.country) 
 					|| !item.country)
 					me.add_item(item, section)
-			})
+			});
+			if(section.table.find("tr").length==1) {
+				section.table.toggle(false);
+			}
 		});
 	},
 	render_dynamic: function() {
