@@ -106,13 +106,14 @@ class IncomingMail:
 		return l and l[0] or None
 
 class POP3Mailbox:
-	def __init__(self):
-		self.setup()
+	def __init__(self, args=None):
+		self.setup(args)
 		self.get_messages()
 	
-	def setup(self):
+	def setup(self, args=None):
 		# overrride
-		self.settings = webnotes._dict()
+		import webnotes
+		self.settings = args or webnotes._dict()
 
 	def check_mails(self):
 		# overrride
