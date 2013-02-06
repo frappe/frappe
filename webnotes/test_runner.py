@@ -21,25 +21,38 @@ def make_test_records(doctype):
 		if not options in test_objects:
 			test_objects[options] = []
 			make_test_records(options)
-			moduleobj = load_doctype_module(options, 
-				webnotes.conn.get_value("DocType", options, "module"))
+			module = webnotes.conn.get_value("DocType", options, "module")
+			
+			# get methods for either [doctype].py or test_[doctype].py
+			doctype_module = load_doctype_module(options, module)
+			test_module = load_doctype_module(options, module, "test_")
 
-			if hasattr(moduleobj, "make_test_records"):
-				test_objects[options] = moduleobj.make_test_records()
+			if hasattr(test_module, "make_test_records"):
+				test_objects[options] = test_module.make_test_records()
 
-			elif hasattr(moduleobj, "test_records"):
-				for doclist in moduleobj.test_records:
-					d = webnotes.model_wrapper(doclist)
-					d.insert()
-					if not d.doc.doctype in test_objects:
-						test_objects[d.doc.doctype] = []
-					test_objects[d.doc.doctype].append(d.doc.name)
+			elif hasattr(doctype_module, "make_test_records"):
+				test_objects[options] = doctype_module.make_test_records()
+
+			elif hasattr(test_module, "test_records"):
+				make_test_objects(test_module)
+
+			elif hasattr(doctype_module, "test_records"):
+				make_test_objects(doctype_module)
 
 			else:
 				print "Please setup make_test_records for: " + options
 				print "-" * 60
 				print_mandatory_fields(options)
 				print
+
+def make_test_objects(moduleobj):
+	global test_objects
+	for doclist in moduleobj.test_records:
+		d = webnotes.model_wrapper(doclist)
+		d.insert()
+		if not d.doc.doctype in test_objects:
+			test_objects[d.doc.doctype] = []
+		test_objects[d.doc.doctype].append(d.doc.name)
 
 def print_mandatory_fields(doctype):
 	doctype_obj = webnotes.get_doctype(doctype)
