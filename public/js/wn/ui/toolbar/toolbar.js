@@ -27,6 +27,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make_home();
 		this.make_document();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
+		wn.ui.toolbar.bookmarks = new wn.ui.toolbar.Bookmarks();
 		this.make_tools();
 		this.set_user_name();
 		this.make_logout();
@@ -64,7 +65,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
-				onclick="return false;">'+wn._('Document')+'<b class="caret"></b></a>\
+				title="'+wn._("Documents")+'"\
+				onclick="return false;"><i class="icon-copy"></i> <b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-document">\
 				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
 					<i class="icon-plus"></i> '+wn._('New')+'</a></li>\
@@ -79,7 +81,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make_tools: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				onclick="return false;">'+wn._('Tools')+'<b class="caret"></b></a>\
+				title="'+wn._("Tools")+'"\
+				onclick="return false;"><i class="icon-wrench"></i> <b class="caret"></b></a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">'
 					+wn._('Clear Cache & Refresh')+'</a></li>\

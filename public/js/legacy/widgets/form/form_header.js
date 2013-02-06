@@ -117,7 +117,6 @@ _f.FrmHeader = Class.extend({
 		this.$w.find('.label').remove();
 		if(this.frm.meta.hide_toolbar || this.frm.save_disabled) 
 			return;
-		console.log(labinfo)
 		$(repl('<span class="label %(lab_class)s">\
 			%(lab_status)s</span>', {
 				lab_status: labinfo[0],
