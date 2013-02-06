@@ -107,12 +107,15 @@ class DocType:
 			user_roles = webnotes.get_roles(self.doc.name)
 			for role in self.temp['roles']['set_roles']:
 				if not role in user_roles:
-					d = Document('UserRole')
-					d.role = role
-					d.parenttype = 'Profile'
-					d.parentfield = 'user_roles'
-					d.parent = self.doc.name
-					d.save()
+					self.add_role(role)
+					
+	def add_role(self, role):
+		d = webnotes.doc('UserRole')
+		d.role = role
+		d.parenttype = 'Profile'
+		d.parentfield = 'user_roles'
+		d.parent = self.doc.name
+		d.save()
 			
 	def check_one_system_manager(self):
 		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager' and docstatus<2 and parent!='Administrator'"""):
@@ -279,5 +282,11 @@ test_records = [[{
 	"doctype":"Profile",
 	"email": "test@erpnext.com",
 	"first_name": "_Test",
+	"new_password": "testpassword"
+}],
+[{
+	"doctype":"Profile",
+	"email": "test1@erpnext.com",
+	"first_name": "_Test1",
 	"new_password": "testpassword"
 }]]
