@@ -42,7 +42,7 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 		}
 
 		// max length
-		if(this.bookmarks.length >= 17) {
+		if(this.bookmarks.length >= 11) {
 			this.remove(this.bookmarks[this.bookmarks.length-1].route);
 		}
 

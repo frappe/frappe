@@ -126,7 +126,7 @@ def get_doctype_class(doctype, module):
 		DocType = getattr(module, 'DocType')
 	else:
 		if not cint(webnotes.conn.get_value("DocType", doctype, "custom")):
-			raise e
+			raise Exception, "Unable to load module for :" + doctype
 		
 		class DocType:
 			def __init__(self, d, dl):
