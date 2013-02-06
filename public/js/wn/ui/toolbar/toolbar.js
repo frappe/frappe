@@ -66,7 +66,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				title="'+wn._("Documents")+'"\
-				onclick="return false;"><i class="icon-copy"></i> <b class="caret"></b></a>\
+				onclick="return false;"><i class="icon-copy"></i></a>\
 			<ul class="dropdown-menu" id="toolbar-document">\
 				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
 					<i class="icon-plus"></i> '+wn._('New')+'</a></li>\
@@ -82,7 +82,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 				title="'+wn._("Tools")+'"\
-				onclick="return false;"><i class="icon-wrench"></i> <b class="caret"></b></a>\
+				onclick="return false;"><i class="icon-wrench"></i></a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">'
 					+wn._('Clear Cache & Refresh')+'</a></li>\
