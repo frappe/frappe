@@ -42,7 +42,6 @@ def insert(doclist):
 
 @webnotes.whitelist()
 def save(doclist):
-	"""insert or update from form query"""
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 		
@@ -51,6 +50,19 @@ def save(doclist):
 
 	doclistobj = webnotes.model_wrapper(doclist)
 	doclistobj.save()
+	
+	return [d.fields for d in doclist]
+
+@webnotes.whitelist()
+def submit(doclist):
+	if isinstance(doclist, basestring):
+		doclist = json.loads(doclist)
+		
+	if not webnotes.has_permission(doclist[0]["doctype"], "submit"):
+		webnotes.msgprint("No Submit Permission", raise_exception=True)
+
+	doclistobj = webnotes.model_wrapper(doclist)
+	doclistobj.submit()
 	
 	return [d.fields for d in doclist]
 	
