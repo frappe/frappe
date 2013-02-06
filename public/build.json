@@ -139,6 +139,7 @@
 			"lib/public/js/wn/ui/toolbar/search.js",
 			"lib/public/js/wn/ui/toolbar/report.js",
 			"lib/public/js/wn/ui/toolbar/recent.js",
+			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
 			"lib/public/js/legacy/widgets/form/fields.js",

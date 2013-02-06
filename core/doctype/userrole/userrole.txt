@@ -1,47 +1,48 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "creation": "2012-07-13 16:53:46", 
+  "modified": "2013-02-06 11:43:05", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-02 12:46:21"
+  "owner": "Administrator"
  }, 
  {
-  "istable": 1, 
-  "allow_print": 0, 
-  "module": "Core", 
-  "autoname": "UR.#####", 
-  "read_only": 0, 
+  "allow_copy": 0, 
   "allow_email": 0, 
-  "hide_heading": 0, 
-  "issingle": 0, 
-  "name": "__common__", 
+  "allow_print": 0, 
+  "autoname": "UR.#####", 
   "doctype": "DocType", 
+  "document_type": "Master", 
+  "hide_heading": 0, 
   "hide_toolbar": 0, 
-  "allow_copy": 0
+  "issingle": 0, 
+  "istable": 1, 
+  "module": "Core", 
+  "name": "__common__", 
+  "read_only": 0
  }, 
  {
-  "parent": "UserRole", 
-  "print_width": "200px", 
-  "oldfieldtype": "Link", 
   "doctype": "DocField", 
-  "oldfieldname": "role", 
-  "reqd": 0, 
-  "name": "__common__", 
-  "label": "Role", 
-  "width": "200px", 
-  "parenttype": "DocType", 
-  "options": "Role", 
   "fieldname": "role", 
   "fieldtype": "Link", 
-  "search_index": 0, 
   "hidden": 0, 
+  "label": "Role", 
+  "name": "__common__", 
+  "oldfieldname": "role", 
+  "oldfieldtype": "Link", 
+  "options": "Role", 
+  "parent": "UserRole", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
   "permlevel": 0, 
-  "parentfield": "fields"
+  "print_width": "200px", 
+  "reqd": 0, 
+  "search_index": 0, 
+  "width": "200px"
  }, 
  {
-  "name": "UserRole", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "UserRole"
  }, 
  {
   "doctype": "DocField"

@@ -631,13 +631,21 @@ LinkField.prototype.make_input = function() {
 
 	$(me.txt).autocomplete({
 		source: function(request, response) {
+			var args = {
+				'txt': request.term, 
+				'dt': me.df.options,
+			};
+			
+			var q = me.get_custom_query();
+			if (typeof(q)==="string") {
+				args.query = q;
+			} else {
+				$.extend(args, q);
+			}
+
 			wn.call({
 				method:'webnotes.widgets.search.search_link',
-				args: {
-					'txt': request.term, 
-					'dt': me.df.options,
-					'query': me.get_custom_query()
-				},
+				args: args,
 				callback: function(r) {
 					response(r.results);
 				},

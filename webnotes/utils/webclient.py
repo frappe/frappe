@@ -50,10 +50,24 @@ def update(doclist):
 		"cmd": "webnotes.client.save",
 		"doclist": json.dumps(doclist)
 	})
-		
+
 def delete(doctype, name):
 	return post_request({
 		"cmd": "webnotes.model.delete_doc",
+		"doctype": doctype,
+		"name": name
+	})
+	
+def submit(doclist):
+	return post_request({
+		"cmd": "webnotes.client.submit",
+		"doclist": json.dumps(doclist)
+	})
+
+
+def cancel(doctype, name):
+	return post_request({
+		"cmd": "webnotes.client.cancel",
 		"doctype": doctype,
 		"name": name
 	})

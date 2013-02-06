@@ -170,9 +170,12 @@ $.extend(wn.model, {
 			function(i, table_field) {
 				var child_doclist = wn.model.get(table_field.options, {
 					parent:name, parenttype: doctype,
-					parentfield: table_field.fieldname}).sort(
-						function(a, b) { return a.idx - b.idx; });
-				doclist = doclist.concat(child_doclist);
+					parentfield: table_field.fieldname});
+				
+				if($.isArray(child_doclist)) {
+					child_doclist.sort(function(a, b) { return a.idx - b.idx; });
+					doclist = doclist.concat(child_doclist);
+				}
 			}
 		);
 		
