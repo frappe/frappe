@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:04", 
   "docstatus": 0, 
-  "modified": "2013-01-28 15:29:20", 
+  "modified": "2013-02-06 11:30:43", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -14,7 +14,7 @@
   "allow_rename": 1, 
   "description": "Profile Represents a User in the system.", 
   "doctype": "DocType", 
-  "document_type": "System", 
+  "document_type": "Master", 
   "hide_heading": 0, 
   "hide_toolbar": 0, 
   "issingle": 0, 

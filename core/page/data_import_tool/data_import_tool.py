@@ -19,7 +19,7 @@ doctype_dl = None
 @webnotes.whitelist()
 def get_doctypes():
     return [r[0] for r in webnotes.conn.sql("""select name from `tabDocType` 
-		where document_type = 'Master'""")]	
+		where document_type = 'Master'""")]
 		
 @webnotes.whitelist()
 def get_doctype_options():
