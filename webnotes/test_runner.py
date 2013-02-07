@@ -1,7 +1,10 @@
 from __future__ import unicode_literals
 
+if __name__=="__main__":
+	import sys
+	sys.path.extend([".", "app", "lib"])
+
 import webnotes
-import sys
 from webnotes.model.meta import get_link_fields
 from webnotes.model.code import load_doctype_module
 
@@ -12,8 +15,11 @@ def make_test_records(doctype):
 	webnotes.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
+		
+	options_list = list(set([options for fieldname, options, label 
+		in get_link_fields(doctype)] + [doctype]))
 	
-	for fieldname, options, label in get_link_fields(doctype):
+	for options in options_list:
 		if options.startswith("link:"):
 			options = options[5:]
 		if options == "[Select]":
@@ -62,7 +68,6 @@ def print_mandatory_fields(doctype):
 		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
 			
 if __name__=="__main__":
-	sys.path.extend(["app", "lib"])
 	webnotes.connect()
 	make_test_records(sys.argv[1])
 	
