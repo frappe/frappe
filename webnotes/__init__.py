@@ -71,6 +71,7 @@ response = _dict({'message':'', 'exc':''})
 debug_log = []
 message_log = []
 mute_emails = False
+test_objects = {}
 
 user_lang = False
 lang = 'en'
