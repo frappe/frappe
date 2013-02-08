@@ -5,36 +5,26 @@ wn.provide("wn.report_dump");
 
 $.extend(wn.report_dump, {
 	data: {},
+	last_modified: {},
 	with_data: function(doctypes, callback, progress_bar) {
-		var missing = [];
-		$.each(doctypes, function(i, v) {
-			if(!wn.report_dump.data[v]) missing.push(v);
-		})
-		if(missing.length) {
-			wn.call({
-				method: "webnotes.widgets.report_dump.get_data",
-				args: {
-					doctypes: doctypes,
-					missing: missing
-				},
-				callback: function(r) {
-					// creating map of data from a list
-					$.each(r.message, function(doctype, doctype_data) {
-						var data = [];
-						$.each(doctype_data.data, function(i, d) {
-							var row = {};
-							$.each(doctype_data.columns, function(idx, col) {
-								row[col] = d[idx];
-							});
-							row.id = row.name || doctype + "-" + i;
-							row.doctype = doctype;
-							data.push(row);
-						});
-						wn.report_dump.data[doctype] = data;
-					});
-					
-					// reverse map names
-					$.each(r.message, function(doctype, doctype_data) {
+		var pre_loaded = keys(wn.report_dump.last_modified);
+		wn.call({
+			method: "webnotes.widgets.report_dump.get_data",
+			type: "GET",
+			args: {
+				doctypes: doctypes,
+				last_modified: wn.report_dump.last_modified
+			},
+			callback: function(r) {
+				// creating map of data from a list
+				$.each(r.message, function(doctype, doctype_data) {
+					wn.report_dump.set_data(doctype, doctype_data);
+				});
+				
+				// reverse map names
+				$.each(r.message, function(doctype, doctype_data) {
+					// only if not pre-loaded
+					if(!in_list(pre_loaded, doctype)) {
 						if(doctype_data.links) {
 							$.each(wn.report_dump.data[doctype], function(row_idx, row) {
 								$.each(doctype_data.links, function(link_key, link) {
@@ -46,16 +36,57 @@ $.extend(wn.report_dump, {
 								})
 							})
 						}
-					});
-					
-					callback();
-				},
-				progress_bar: progress_bar
+					}
+				});
+				
+				callback();
+			},
+			progress_bar: progress_bar
+		})
+	},
+	set_data: function(doctype, doctype_data) {
+		var data = [];
+		var replace_dict = {};
+		var make_row = function(d) {
+			var row = {};
+			$.each(doctype_data.columns, function(idx, col) {
+				row[col] = d[idx];
+			});
+			row.id = row.name;
+			row.doctype = doctype;
+			return row;
+		}
+		if(wn.report_dump.last_modified[doctype]) {
+			// partial loading, make a name dict
+			$.each(doctype_data.data, function(i, d) {
+				var row = make_row(d);
+				replace_dict[row.name] = row;
+			});
+			
+			// replace old data
+			$.each(wn.report_dump.data[doctype], function(i, d) {
+				if(replace_dict[d.name]) {
+					data.push(replace_dict[d.name]);
+					delete replace_dict[d.name];
+				} else {
+					data.push(d);
+				}
+			});
+			
+			// add new records
+			$.each(replace_dict, function(name, d) {
+				data.push(d);
 			})
 		} else {
-			callback();
+			
+			// first loading
+			$.each(doctype_data.data, function(i, d) {
+				data.push(make_row(d));
+			});
 		}
-	},
+		wn.report_dump.last_modified[doctype] = doctype_data.last_modified;
+		wn.report_dump.data[doctype] = data;
+	}
 });
 
 wn.provide("wn.views");
@@ -87,19 +118,24 @@ wn.views.GridReport = Class.extend({
 		$(this.page).bind('show', function() {
 			// reapply filters on show
 			wn.cur_grid_report = me;
-			me.apply_filters_from_route();
-			me.refresh();
+			me.get_data()
 		});
 		
 	},
 	get_data: function() {
 		var me = this;
+		var progress_bar = null;
+		if(!this.setup_filters_done)
+			progress_bar = this.wrapper.find(".progress .bar");
+			
 		wn.report_dump.with_data(this.doctypes, function() {
-			// setup filters
-			me.setup_filters();
+			if(!me.setup_filters_done) {
+				me.setup_filters();
+				me.setup_filters_done = true;
+			}
 			me.apply_filters_from_route();
 			me.refresh();
-		}, this.wrapper.find(".progress .bar"));
+		}, progress_bar);
 	},
 	setup_filters: function() {
 		var me = this;
@@ -132,7 +168,9 @@ wn.views.GridReport = Class.extend({
 		});
 		
 		// plot check
-		if(this.setup_plot_check) this.setup_plot_check();
+		if(this.setup_plot_check) 
+			this.setup_plot_check();
+			
 	},
 	set_autocomplete: function($filter, list) {
 		var me = this;
