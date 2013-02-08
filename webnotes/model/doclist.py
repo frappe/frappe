@@ -72,14 +72,13 @@ class DocList(list):
 	def getone(self, filters):
 		return self.get(filters, limit=1)[0]
 
-	def extend(self, n):
-		list.extend(self, n)
-		return self
-		
 	def copy(self):
 		out = []
 		for d in self:
-			fielddata = d.fields
+			if isinstance(d, dict):
+				fielddata = d
+			else:
+				fielddata = d.fields
 			fielddata.update({"name": None})
 			out.append(Document(fielddata=fielddata))
 		return DocList(out)
@@ -110,6 +109,8 @@ class DocList(list):
 			self._prepare_doc(doc)
 		
 		super(DocList, self).extend(doclist)
+		
+		return self
 		
 	def _prepare_doc(self, doc):
 		if not doc.name:

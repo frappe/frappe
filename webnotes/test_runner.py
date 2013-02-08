@@ -57,10 +57,10 @@ def make_test_objects(obj):
 	else:
 		# obj is a module object
 		test_records = obj.test_records
-
-	records = []	
+		
+	records = []
 	for doclist in test_records:
-		d = webnotes.model_wrapper(doclist)
+		d = webnotes.model_wrapper((webnotes.doclist(doclist)).copy())
 		if webnotes.test_objects.get(d.doc.doctype):
 			# do not create test records, if already exists
 			return []
