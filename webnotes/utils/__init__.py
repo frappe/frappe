@@ -266,12 +266,13 @@ def formatdate(string_date=None):
 		string_date = getdate(string_date)
 	else:
 		string_date = nowdate()
-	
+		
 	global user_format
 	if not user_format:
-		user_format = webnotes.conn.get_value('Control Panel', None, 'date_format')
+		user_format = webnotes.conn.get_default("date_format")
 		
 	out = user_format
+	
 	return out.replace("dd", string_date.strftime("%d"))\
 		.replace("mm", string_date.strftime("%m"))\
 		.replace("yyyy", string_date.strftime("%Y"))
