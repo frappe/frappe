@@ -7,7 +7,10 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 				onclick="return false;"><i class="icon-star"></i></a>\
 			<ul class="dropdown-menu" id="toolbar-bookmarks">\
 				<li class="divider"></li>\
-				<li><a href="#" id="add-bookmark-link">'+wn._('Add Bookmark')+'</a></li>\
+				<li><a href="#" id="add-bookmark-link"><i class="icon-plus"></i> '
+					+wn._('Add Bookmark')+'</a></li>\
+				<li style="display: none" id="remove-bookmark-link"><a href="#"><i class="icon-minus"></i> '
+					+wn._('Remove Bookmark')+'</a></li>\
 			</ul>\
 		</li>');
 		
@@ -28,6 +31,21 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 			return false;
 		})
 
+		$("#remove-bookmark-link").click(function() {
+			me.remove(wn.get_route_str());
+			me.save();
+			me.show_hide_bookmark();
+			return false;
+		});
+
+		$(window).bind('hashchange', function() {
+			me.show_hide_bookmark();
+		});
+		
+		me.show_hide_bookmark();
+	},
+	show_hide_bookmark: function() {
+		$("#remove-bookmark-link").toggle(this.bookmarked(wn.get_route_str()) ? true : false);
 	},
 	add_item: function(route, title) {
 		var html = repl('<li><a href="#%(route)s">%(title)s</a></li>', 
@@ -37,7 +55,7 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 	},
 	add: function(route, title) {
 		// bring to front
-		if(wn.utils.filter_dict(this.bookmarks, {"route": route}).length) {
+		if(this.bookmarked(route)) {
 			this.remove(route);
 		}
 
@@ -47,10 +65,13 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 		}
 
 		this.add_item(route, title);
-
 		this.bookmarks = [{"route":route, "title":title}].concat(this.bookmarks);
-
-		// update server
+		this.save();
+	},
+	bookmarked: function(route) {
+		return wn.utils.filter_dict(this.bookmarks, {"route": route}).length;
+	},
+	save: function() {
 		wn.user.set_default("_bookmarks", this.bookmarks);
 	},
 	remove: function(route) {

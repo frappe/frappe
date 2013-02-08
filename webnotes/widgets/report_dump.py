@@ -25,16 +25,21 @@ import webnotes
 import json
 
 @webnotes.whitelist()
-def get_data():
+def get_data(doctypes, last_modified):
 	from startup.report_data_map import data_map
 	import datetime
-	doctypes = json.loads(webnotes.form_dict.get("doctypes"))
 	out = {}
 	
+	doctypes = json.loads(doctypes)
+	last_modified = json.loads(last_modified)
+		
 	start = datetime.datetime.now()
 	for d in doctypes:
 		args = data_map[d]
 		dt = d.find("[") != -1 and d[:d.find("[")] or d
+
+		if d in last_modified:
+			args['conditions'].append("modified > '" + last_modified[d] + "'")
 		
 		conditions = order_by = ""
 		if args.get("force_index"):
@@ -43,13 +48,16 @@ def get_data():
 			conditions += " where " + " and ".join(args["conditions"])
 		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
-		table = args.get("from") or ("`tab%s`" % dt) 
+		table = args.get("from") or ("`tab%s`" % dt)
 		
 		out[dt] = {}
-		start = datetime.datetime.now()
 		out[dt]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from %s %s %s""" \
 			% (",".join(args["columns"]), table, conditions, order_by))]
-		out[dt]["time"] = str(datetime.datetime.now() - start)
+			
+		# last modified
+		tmp = webnotes.conn.sql("""select `modified` 
+			from %s order by modified desc limit 1""" % table)
+		out[dt]["last_modified"] = tmp and tmp[0][0] or ""
 		out[dt]["columns"] = map(lambda c: c.split(" as ")[-1], args["columns"])
 		
 		if args.get("links"):
@@ -57,7 +65,8 @@ def get_data():
 	
 	for d in out:
 		unused_links = []
-		if out[d].get("links"):
+		# only compress full dumps (not partial)
+		if out[d].get("links") and (not d in last_modified):
 			for link_key in out[d]["links"]:
 				link = out[d]["links"][link_key]
 				if link[0] in out:
@@ -82,12 +91,4 @@ def get_data():
 		for link in unused_links:
 			del out[d]["links"][link]
 	
-	missing = {}
-	# don't send everything
-	# send only missing! 
-	# (but we need to load all to make links)
-	for d in out:
-		if d in webnotes.form_dict.get("missing",[]):
-			missing[d] = out[d]
-	
-	return missing
+	return out

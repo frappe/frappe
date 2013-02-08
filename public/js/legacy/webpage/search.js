@@ -150,7 +150,14 @@ function makeselector() {
 			args.is_simple = 1;
 			if(cur_frm) doc = locals[cur_frm.doctype][cur_frm.docname];
 			var q = d.input.get_query(doc, d.input.doctype, d.input.docname);
+			
 			if(!q) { return ''; }
+			
+			if (typeof(q)==="string") {
+				args.query = q;
+			} else {
+				$.extend(args, q);
+			}
 		}
 
 		// for field type, return field name
@@ -166,22 +173,22 @@ function makeselector() {
 
 		// build args
 		$.extend(args, {
-			'txt':strip(inp.value)
-			,'doctype':d.sel_type
-			,'query':q
-			,'searchfield':get_sf_fieldname(sel_val(field_sel))
+			'txt':strip(inp.value),
+			'doctype':d.sel_type,
+			'searchfield':get_sf_fieldname(sel_val(field_sel))
 		});
 
 		// run the query
-		this.set_working();
-		$c('webnotes.widgets.search.search_widget',
-			args,
-			function(r, rtxt) {
-				btn.done_working();
+		wn.call({
+			method: "webnotes.widgets.search.search_widget",
+			args: args,
+			callback: function(r) {
 				if(r.coltypes)r.coltypes[0]='Link'; // first column must always be selectable even if it is not a link
 				d.values_len = r.values.length;
 				d.set_result(r);
-			}, function() { btn.done_working(); });
+			}, 
+			btn: btn
+		});
 	}
 
 	d.set_result = function(r) {
