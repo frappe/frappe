@@ -54,22 +54,23 @@ def getsearchfields():
 
 # this is called by the Link Field
 @webnotes.whitelist()
-def search_link(dt, txt, query=None, args=None):
-	search_widget(dt, txt, query, page_len=10, args=args)
+def search_link(dt, txt, query=None, filters=None):
+	search_widget(dt, txt, query, page_len=10, filters=filters)
 	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"])
 
 # this is called by the search box
 @webnotes.whitelist()
-def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_len=50, args=None):
-	if isinstance(args, basestring):
+def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_len=50, filters=None):
+	if isinstance(filters, basestring):
 		import json
-		args = json.loads(args)
+		filters = json.loads(filters)
 		
 	if query and query.split()[0].lower()!="select":
 		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
-			searchfield, start, page_len, args)
+			searchfield, start, page_len, filters)
 	elif not query and doctype in standard_queries:
-		search_widget(doctype, txt, standard_queries[doctype], searchfield, start, page_len, args)
+		search_widget(doctype, txt, standard_queries[doctype], 
+			searchfield, start, page_len, filters)
 	else:
 		if query:
 			webnotes.response["values"] = webnotes.conn.sql(scrub_custom_query(query, 

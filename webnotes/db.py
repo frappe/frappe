@@ -76,7 +76,7 @@ class Database:
 		cmd = q.strip().lower().split()[0]
 		if cmd in ['alter', 'drop', 'truncate'] and webnotes.user.name != 'Administrator':
 			webnotes.msgprint('Not allowed to execute query')
-			raise Execption
+			raise Exception
 	
 	def sql(self, query, values=(), as_dict = 0, as_list = 0, formatted = 0, 
 		debug=0, ignore_ddl=0, as_utf8=0, auto_commit=0, update=None):
