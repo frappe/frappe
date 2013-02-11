@@ -41,7 +41,7 @@ def get_customer_supplier(args=None):
 def make(doctype=None, name=None, content=None, subject=None, 
 	sender=None, recipients=None, contact=None, lead=None, 
 	communication_medium="Email", send_email=False, print_html=None,
-	attachments='[]', send_me_a_copy=False, set_lead=True):
+	attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 	# add to Communication
 
 	sent_via = None
@@ -53,6 +53,8 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.recipients = recipients
 	d.lead = lead
 	d.contact = contact
+	if date:
+		d.creation = date
 	if doctype:
 		sent_via = webnotes.get_obj(doctype, name)
 		d.fields[doctype.replace(" ", "_").lower()] = name
