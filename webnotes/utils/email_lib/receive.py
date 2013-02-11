@@ -41,7 +41,7 @@ class IncomingMail:
 		self.parse()
 		self.set_content_and_type()
 		self.from_email = extract_email_id(self.mail["From"])
-		self.from_real_name = email.utils(self.mail["From"])[0]
+		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
 		utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 		self.date = convert_utc_to_user_timezone(utc).strftime('%Y-%m-%d %H:%M:%S')
 
