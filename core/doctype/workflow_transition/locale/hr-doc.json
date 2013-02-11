@@ -1,0 +1,9 @@
+{
+ "Action": "Akcija", 
+ "Allowed": "Dozvoljen", 
+ "Core": "Sr\u017e", 
+ "Defines actions on states and the next step and allowed roles.": "Definira aktivnosti na \u010dlanicama i sljede\u0107i korak i dopu\u0161teni uloge.", 
+ "Next State": "Sljede\u0107a dr\u017eava", 
+ "State": "Dr\u017eava", 
+ "Workflow Transition": "Tijek tranzicije"
+}

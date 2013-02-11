@@ -1,0 +1,20 @@
+{
+ "All possible Workflow States and roles of the workflow. <br>Docstatus Options: 0 is\"Saved\", 1 is \"Submitted\" and 2 is \"Cancelled\"": "Sve mogu\u0107e Workflow Dr\u017eave i uloge tijeka rada. <br> Docstatus Opcije: 0 je &quot;Spremljeno&quot;, jedan je &quot;Zaprimljeno&quot; i 2. &quot;Otkazano&quot;", 
+ "Core": "Sr\u017e", 
+ "Defines workflow states and rules for a document.": "Definira tijeka stanja i pravila za dokument.", 
+ "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.": "Razli\u010dite &quot;Dr\u017eave&quot;, ovaj dokument mo\u017ee postojati u. Kao &quot;Otvoreno&quot;, &quot;na \u010dekanju za odobrenje&quot;, itd.", 
+ "DocType on which this Workflow is applicable.": "DOCTYPE na koje se ovaj tijek je primjenjivo.", 
+ "Document Type": "Document Type", 
+ "Field that represents the Workflow State of the transaction (if field is not present, a new hidden Custom Field will be created)": "Podru\u010dje koje predstavlja tijeka dr\u017eavu transakcije (ako polje nije prisutan, novi skriveno Custom Field \u0107e biti stvoren)", 
+ "If checked, all other workflows become inactive.": "Ako je ozna\u010deno, svi ostali tijekovi postaju neaktivne.", 
+ "Is Active": "Je aktivna", 
+ "Rules defining transition of state in the workflow.": "Pravila definiraju prijelaz stanja u tijek rada.", 
+ "Rules for how states are transitions, like next state and which role is allowed to change state etc.": "Pravila za koliko su dr\u017eave prijelaza, kao i sljede\u0107i dr\u017eave i koja uloga je dozvoljeno da promijeni stanje itd.", 
+ "States": "Dr\u017eave", 
+ "Transition Rules": "Prijelazna pravila", 
+ "Workflow": "Workflow", 
+ "Workflow Document States": "Workflow dokument Dr\u017eave", 
+ "Workflow Name": "Workflow ime", 
+ "Workflow State Field": "Workflow Dr\u017eavna polja", 
+ "Workflow Transitions": "Workflow Prijelazi"
+}
