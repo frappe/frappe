@@ -56,7 +56,7 @@ def make(doctype=None, name=None, content=None, subject=None,
 	if doctype:
 		sent_via = webnotes.get_obj(doctype, name)
 		d.fields[doctype.replace(" ", "_").lower()] = name
-	
+
 	if set_lead:
 		set_lead_and_contact(d)
 	d.communication_medium = communication_medium
