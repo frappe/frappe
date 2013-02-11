@@ -76,10 +76,15 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_le
 			webnotes.response["values"] = webnotes.conn.sql(scrub_custom_query(query, 
 				searchfield, txt))
 		else:
-			query = make_query(', '.join(get_std_fields_list(doctype, searchfield)), doctype, 
-				searchfield, txt, start, page_len)
+			if filters:
+				webnotes.response["values"] = get_query_result(
+					', '.join(get_std_fields_list(doctype, searchfield)), doctype, txt, 
+					searchfield, start, page_len, filters)
+			else:
+				query = make_query(', '.join(get_std_fields_list(doctype, searchfield)), doctype, 
+					searchfield, txt, start, page_len)
 
-			webnotes.widgets.query_builder.runquery(query)
+				webnotes.widgets.query_builder.runquery(query)
 
 def make_query(fields, dt, key, txt, start, length):
 	doctype = webnotes.get_doctype(dt)
@@ -89,7 +94,7 @@ def make_query(fields, dt, key, txt, start, length):
 		enabled_condition = " AND ifnull(`tab%s`.`enabled`,0)=1" % dt
 	if doctype.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
 		enabled_condition = " AND ifnull(`tab%s`.`disabled`,0)!=1" % dt
-	
+		
 	query = """select %(fields)s
 		FROM `tab%(dt)s`
 		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' 
@@ -102,9 +107,48 @@ def make_query(fields, dt, key, txt, start, length):
 			'txt': txt + '%',
 			'start': start,
 			'len': length,
-			'enabled_condition': enabled_condition
+			'enabled_condition': enabled_condition, 
 		}
 	return query
+
+def get_query_result(fields, dt, txt, searchfield, start, page_len, filters):
+	doctype = webnotes.get_doctype(dt)
+
+	enabled_condition = ""
+	if doctype.get({"parent":dt, "fieldname":"enabled", "fieldtype":"Check"}):
+		enabled_condition = " AND ifnull(`enabled`,0)=1 "
+	if doctype.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
+		enabled_condition = " AND ifnull(`disabled`,0)!=1"
+
+	filter_condition, filter_values = build_filter_conditions(filters)
+	
+	args = {
+		'fields': fields,
+		'dt': dt,
+		'key': searchfield,
+		'txt': '%s',
+		'start': start,
+		'len': page_len,
+		'enabled_condition': enabled_condition,
+		'filter_condition': filter_condition
+	}
+		
+	return webnotes.conn.sql("""select %(fields)s FROM `tab%(dt)s`
+		WHERE `%(key)s` LIKE %(txt)s 
+		AND docstatus != 2 %(enabled_condition)s %(filter_condition)s 
+		ORDER BY `%(key)s`
+		ASC LIMIT %(start)s, %(len)s""" % args, 
+		tuple(["%%%s%%" % txt] + filter_values))
+	
+
+def build_filter_conditions(filters):
+	conditions, filter_values = [], []
+	for key in filters:
+		conditions.append('`' + key + '` = %s')
+		filter_values.append(filters[key])
+
+	conditions = conditions and " and " + " and ".join(conditions) or ""
+	return conditions, filter_values
 
 def get_std_fields_list(dt, key):
 	# get additional search fields
