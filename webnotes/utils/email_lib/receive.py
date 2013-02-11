@@ -40,7 +40,6 @@ class IncomingMail:
 		self.set_content_and_type()
 		self.from_email = extract_email_id(self.mail["From"])
 		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
-		self.paredate()
 		
 		utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
 		utc_dt = datetime.datetime.utcfromtimestamp(utc)
