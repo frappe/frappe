@@ -30,8 +30,6 @@ class IncomingMail:
 	def __init__(self, content):
 		import email
 		import time
-		import datetime
-		import email.utils
 		
 		self.mail = email.message_from_string(content)
 		
@@ -42,8 +40,11 @@ class IncomingMail:
 		self.set_content_and_type()
 		self.from_email = extract_email_id(self.mail["From"])
 		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
+		self.paredate()
+		
 		utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
-		self.date = convert_utc_to_user_timezone(utc).strftime('%Y-%m-%d %H:%M:%S')
+		utc_dt = datetime.datetime.utcfromtimestamp(utc)
+		self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
 
 	def parse(self):
 		for part in self.mail.walk():
