@@ -29,6 +29,8 @@ class IncomingMail:
 	"""
 	def __init__(self, content):
 		import email
+		import email.utils
+		import datetime
 		import time
 		
 		self.mail = email.message_from_string(content)
