@@ -30,13 +30,10 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		subject='[No Subject]', message='[No Content]'):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
 	import webnotes
-
-	if webnotes.mute_emails:
-		return
-	
+			
 	def is_unsubscribed(rdata):
 		if not rdata: return 1
-		return rdata[0]['unsubscribed']
+		return rdata.unsubscribed
 
 	def check_bulk_limit(new_mails):
 		import conf, startup
@@ -53,20 +50,22 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,
 				raise_exception=BulkLimitCrossedError)
 
-	def add_unsubscribe_link(email):
+	def update_message(doc):
 		from webnotes.utils import get_request_site_address
 		import urllib
-		return message + """<div style="padding: 7px; border-top: 1px solid #aaa;
+		updated = message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
 			<small><a href="%s/server.py?%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_request_site_address(), 
 			urllib.urlencode({
 				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
-				"email": email,
+				"email": doc.get(email_field),
 				"type": doctype,
 				"email_field": email_field
 			}))
-
+			
+		return updated
+			
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
@@ -85,9 +84,11 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), r, as_dict=1)
 		
-		if not is_unsubscribed(rdata):
+		doc = rdata and rdata[0] or {}
+		
+		if not is_unsubscribed(doc):
 			# add to queue
-			add(r, sender, subject, add_unsubscribe_link(r), text_content)
+			add(r, sender, subject, update_message(doc), text_content)
 
 def add(email, sender, subject, message, text_content = None):
 	"""add to bulk mail queue"""
