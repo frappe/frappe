@@ -14,7 +14,7 @@ def get_users_and_links():
 		and tabDocField.parent not in ('[Select]', 'DocType', 'Module Def')
 		""") + webnotes.conn.sql("""select fieldname, options
 		from `tabCustom Field` where fieldtype='Link'"""):
-		if not l[0] in all_fields and not l[0].startswith("default_") and not l[0].startswith("parent_"):
+		if not l[0] in all_fields:
 			links.append([l[0], l[1]])
 			all_fields.append(l[0])
 			

@@ -21,8 +21,12 @@
 // 
 
 cur_frm.cscript.doc_type = function(doc, dt, dn) {
-	$c_obj(make_doclist(dt, dn), 'get', '', function(r, rt) {
-		cur_frm.refresh();
+	cur_frm.call({
+		method: "get",
+		doc: cur_frm.doc,
+		callback: function(r) {
+			cur_frm.refresh();
+		}
 	});
 }
 
@@ -45,28 +49,28 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	cur_frm.frm_head.appframe.clear_buttons();
 
 	cur_frm.add_custom_button('Update', function() {
-		if(cur_frm.fields_dict['doc_type'].value) {
-			$c_obj(make_doclist(dt, dn), 'post', '', function(r, rt) {
-				if(r.exc) {
-					//msgprint(r.exc);
-				} else {
-					if(r.server_messages) { 
+		if(cur_frm.doc.doc_type) {
+			cur_frm.call({
+				doc: cur_frm.doc,
+				method: "post",
+				callback: function(r) {
+					if(!r.exc && r.server_messages) {
 						cur_frm.cscript.doc_type(doc, doc.doctype, doc.name);
 						cur_frm.frm_head.set_label(['Updated', 'label-success']);
-					}	
+					}
 				}
-			});	
+			});
 		}
-	},1);
+	});
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
 		cur_frm.cscript.doc_type(doc, dt, dn);
-	}, 1);
+	});
 	
 	cur_frm.add_custom_button('Reset to defaults', function() {
 		cur_frm.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
 		+ 'Are you sure you want to <i>reset to defaults</i>?', doc, dt, dn);
-	}, 1);
+	});
 
 	if(!doc.doc_type) {
 		var frm_head = cur_frm.frm_head.appframe;
@@ -112,16 +116,19 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 	$y(button_wrapper, {paddingTop: '15px'});
 	
 	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
-		$c_obj(make_doclist(dt, dn), 'delete', '', function(r, rt) {
-			//console.log(arguments);
-			if(r.exc) {
-				msgprint(r.exc);
-			} else {
-				cur_frm.confirm.dialog.hide();
-				cur_frm.refresh();
-				cur_frm.frm_head.set_label(['Saved', 'label-success']);
+		cur_frm.call({
+			doc: cur_frm.doc,
+			method: "delete",
+			callback: function(r) {
+				if(r.exc) {
+					msgprint(r.exc);
+				} else {
+					cur_frm.confirm.dialog.hide();
+					cur_frm.refresh();
+					cur_frm.frm_head.set_label(['Saved', 'label-success']);
+				}
 			}
-		});	
+		});
 	});
 
 	$y(proceed_btn, {marginRight: '20px', fontWeight: 'bold'});
