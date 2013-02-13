@@ -255,10 +255,10 @@ class Database:
 		"""Get a single / multiple value from a record. 
 		For Single DocType, let filters be = None"""
 		
-		if fieldname!="*" and isinstance(fieldname, basestring):
-			fieldname = "`" + fieldname + "`"
-		
 		if filters is not None and (filters!=doctype or filters=='DocType'):
+			if fieldname!="*" and isinstance(fieldname, basestring):
+				fieldname = "`" + fieldname + "`"
+			
 			fl = isinstance(fieldname, basestring) and fieldname or \
 				("`" + "`, `".join(fieldname) + "`")
 			conditions, filters = self.build_conditions(filters)
