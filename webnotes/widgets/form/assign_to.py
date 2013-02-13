@@ -88,7 +88,8 @@ def remove(doctype, name, assign_to):
 		and owner=%(assign_to)s""", locals())
 		
 	# clear assigned_to if field exists
-	if "assigned_to" in webnotes.conn.get_columns(doctype):
+	from webnotes.model.meta import has_field
+	if has_field(doctype, "assigned_to"):
 		webnotes.conn.set_value(doctype, name, "assigned_to", None)
 
 	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
