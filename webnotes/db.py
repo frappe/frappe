@@ -97,7 +97,11 @@ class Database:
 			if values!=():
 				if isinstance(values, dict):
 					values = dict(values)
-				if debug: webnotes.errprint(query % values)
+				if debug:
+					try:
+						webnotes.errprint(query % values)
+					except TypeError:
+						webnotes.errprint([query, values])
 				self._cursor.execute(query, values)
 				
 			else:
@@ -126,11 +130,15 @@ class Database:
 		else:
 			return self._cursor.fetchall()
 
-	def sql_list(self, query, values=()):
-		return [r[0] for r in self.sql(query, values)]
+	def sql_list(self, query, values=(), debug=False):
+		return [r[0] for r in self.sql(query, values, debug=debug)]
+		
+	def sql_ddl(self, query, values=()):
+		self.commit()
+		self.sql(query)
 
 	def check_transaction_status(self, query):
-		if self.in_transaction and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create']:
+		if self.in_transaction and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
 		if query and query.strip().lower()=='start transaction':
@@ -240,15 +248,23 @@ class Database:
 
 		return " and ".join(conditions), filters
 
+	def get(self, doctype, filters=None, as_dict=False):
+		return self.get_value(doctype, filters, "*", as_dict=as_dict)
+		
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False):
 		"""Get a single / multiple value from a record. 
 		For Single DocType, let filters be = None"""
+		
+		if fieldname!="*" and isinstance(fieldname, basestring):
+			fieldname = "`" + fieldname + "`"
+		
 		if filters is not None and (filters!=doctype or filters=='DocType'):
-			fl = isinstance(fieldname, basestring) and fieldname or "`, `".join(fieldname)
+			fl = isinstance(fieldname, basestring) and fieldname or \
+				("`" + "`, `".join(fieldname) + "`")
 			conditions, filters = self.build_conditions(filters)
 			
 			try:
-				r = self.sql("select `%s` from `tab%s` where %s" % (fl, doctype,
+				r = self.sql("select %s from `tab%s` where %s" % (fl, doctype,
 					conditions), filters, as_dict)
 			except Exception, e:
 				if e.args[0]==1054 and ignore:
@@ -360,7 +376,8 @@ class Database:
 			self.sql("start transaction")
 	
 	def commit(self):
-		self.sql("commit")
+		if self.in_transaction:
+			self.sql("commit")
 
 	def rollback(self):
 		self.sql("ROLLBACK")

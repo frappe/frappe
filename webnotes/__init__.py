@@ -72,7 +72,8 @@ debug_log = []
 message_log = []
 mute_emails = False
 test_objects = {}
-
+request_method = None
+print_messages = False
 user_lang = False
 lang = 'en'
 
@@ -114,19 +115,19 @@ def getTraceback():
 	return utils.getTraceback()
 
 def errprint(msg):
-	"""
-	   Append to the :data:`debug log`
-	"""
+	if not request_method:
+		print repr(msg)
+
 	from utils import cstr
 	debug_log.append(cstr(msg or ''))
 
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
-	"""
-	   Append to the :data:`message_log`
-	"""	
 	from utils import cstr
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
+	
+	if print_messages:
+		print "Message: " + repr(msg)
 	
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
 	if raise_exception:
@@ -137,11 +138,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			raise ValidationError, msg
 	
 def create_folder(path):
-	"""
-	Wrapper function for os.makedirs (does not throw exception if directory exists)
-	"""
 	import os
-	
 	try:
 		os.makedirs(path)
 	except OSError, e:
@@ -149,11 +146,7 @@ def create_folder(path):
 			raise e
 
 def create_symlink(source_path, link_path):
-	"""
-	Wrapper function for os.symlink (does not throw exception if directory exists)
-	"""
 	import os
-	
 	try:
 		os.symlink(source_path, link_path)
 	except OSError, e:
@@ -161,11 +154,7 @@ def create_symlink(source_path, link_path):
 			raise e
 
 def remove_file(path):
-	"""
-	Wrapper function for os.remove (does not throw exception if file/symlink does not exists)
-	"""
 	import os
-	
 	try:
 		os.remove(path)
 	except OSError, e:
@@ -173,9 +162,6 @@ def remove_file(path):
 			raise e
 			
 def connect(db_name=None, password=None):
-	"""
-		Connect to this db (or db), if called from command prompt
-	"""
 	import webnotes.db
 	global conn
 	conn = webnotes.db.Database(user=db_name, password=password)
@@ -185,7 +171,7 @@ def connect(db_name=None, password=None):
 	
 	import webnotes.profile
 	global user
-	user = webnotes.profile.Profile('Administrator')	
+	user = webnotes.profile.Profile('Administrator')
 
 def get_env_vars(env_var):
 	import os
@@ -391,4 +377,5 @@ def get_application_home_page(user='Guest'):
 	if hpl:
 		return hpl[0][0]
 	else:
-		return conn.get_value('Control Panel',None,'home_page') or 'Login Page'	
+		from startup import application_home_page
+		return application_home_page
