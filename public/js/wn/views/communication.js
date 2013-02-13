@@ -55,9 +55,14 @@ wn.views.CommunicationList = Class.extend({
 	},
 	
 	add_reply: function() {
+		var subject = this.doc.subject;
+		if(!subject && this.list.length) {
+			// get subject from previous message
+			subject = this.list[0].subject;
+		}
 		new wn.views.CommunicationComposer({
 			doc: this.doc,
-			subject: this.doc.subject,
+			subject: subject,
 			recipients: this.recipients
 		})
 	},
