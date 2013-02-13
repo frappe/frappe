@@ -12,6 +12,7 @@ wn.number_format_info = {
 }
 
 window.format_number = function(v, format, decimals){ 
+	
 	if (!format) {
 		format = get_number_format();
 	}
@@ -20,17 +21,18 @@ window.format_number = function(v, format, decimals){
 		info = {decimal_str:".", group_sep:",", precision:2};
 	}
 	
-	if(isNaN(+v)) {
+	if(isNaN(+v) || v==null) {
 		v=0;
 	};
 	
 	// remove group separators (if any)
 	if(typeof v=="string") {
-		v = replace_all(info.group_sep, "");
+		v = replace_all(v, info.group_sep, "");
 	}
 
 	if(v<0) var is_negative = true; 
 	v = Math.abs(v);
+
 
 	//Fix the decimal first, toFixed will auto fill trailing zero.
 	decimals = decimals || info.precision;
@@ -38,6 +40,7 @@ window.format_number = function(v, format, decimals){
 	v = v.toFixed(decimals);
 
 	var part = v.split('.');
+
 	
 	// get group position and parts
 	var group_position = info.group_sep ? 3 : 0;
