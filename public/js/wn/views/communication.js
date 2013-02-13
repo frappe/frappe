@@ -59,6 +59,9 @@ wn.views.CommunicationList = Class.extend({
 		if(!subject && this.list.length) {
 			// get subject from previous message
 			subject = this.list[0].subject;
+			if(strip(subject.toLowerCase().split(":")[0])!="re") {
+				subject = "Re: " + subject;
+			}
 		}
 		new wn.views.CommunicationComposer({
 			doc: this.doc,
