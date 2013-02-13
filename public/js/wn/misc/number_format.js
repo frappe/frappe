@@ -23,10 +23,10 @@ window.format_number = function(v, format, decimals){
 	if(isNaN(+v)) {
 		v=0;
 	};
-	
+
 	// remove group separators (if any)
-	if(typeof v=="string") {
-		v = replace_all(info.group_sep, "");
+	if(typeof(v)==="string") {
+		v = replace_all(v, info.group_sep, "");
 	}
 
 	if(v<0) var is_negative = true; 
@@ -64,7 +64,7 @@ window.format_number = function(v, format, decimals){
 	if(part[0]+""=="") {
 		part[0]="0";
 	}
-
+	
 	// join decimal
 	part[1] = part[1] ? (info.decimal_str + part[1]) : "";
 	
