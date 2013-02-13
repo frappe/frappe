@@ -1075,7 +1075,7 @@ SelectField.prototype.make_input = function() {
 			me.options_list = me.df.options || [""];
 		else
 			me.options_list = me.df.options?me.df.options.split('\n'):[''];
-		
+
 		// add options
 		if(me.in_filter && me.options_list[0]!='') {
 			me.options_list = add_lists([''], me.options_list);
@@ -1124,8 +1124,18 @@ SelectField.prototype.make_input = function() {
 						if(me.input.options[i].value && inList(typeof(v)=='string'?v.split(","):v, me.input.options[i].value))
 							me.input.options[i].selected = 1;
 					}
-				} else if(in_list(me.options_list, v)){
-					me.input.value = v;
+				} else {
+					// use option's value if dict, else use string for comparison and setting
+					for(var i in me.options_list) {
+						var option = me.options_list[i];
+						if(typeof(option)!=="string") {
+							option = option.value;
+						}
+						if(option === v) {
+							me.input.value = v;
+							break;
+						}
+					}
 				}
 			}
 		}
