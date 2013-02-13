@@ -32,27 +32,29 @@ wn.views.ListView = Class.extend({
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
 			t + '_user_tags', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
-			
+		
+		
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			if(d.fieldtype=="Image" && d.options) {
-				me.fields.push(t + "`" + d.options + "`");
-			} else {
-				me.fields.push(t + "`" + d.fieldname + "`");
-			}
-			
-			if(d.fieldtype=="Select") {
-				me.stats.push(d.fieldname);
-			}
-
-			// currency field for symbol (multi-currency)
-			if(d.fieldtype=="Currency" && d.options) {
-				if(d.options.indexOf(":")!=-1) {
-					me.fields.push(t + "`" + d.options.split(":")[1] + "`");
-				} else {
+			if(wn.perm.has_perm(me.doctype, d.permlevel, READ)) {
+				if(d.fieldtype=="Image" && d.options) {
 					me.fields.push(t + "`" + d.options + "`");
-				};
-			}
+				} else {
+					me.fields.push(t + "`" + d.fieldname + "`");
+				}
 
+				if(d.fieldtype=="Select") {
+					me.stats.push(d.fieldname);
+				}
+
+				// currency field for symbol (multi-currency)
+				if(d.fieldtype=="Currency" && d.options) {
+					if(d.options.indexOf(":")!=-1) {
+						me.fields.push(t + "`" + d.options.split(":")[1] + "`");
+					} else {
+						me.fields.push(t + "`" + d.options + "`");
+					};
+				}
+			}
 		});
 
 		// additional fields

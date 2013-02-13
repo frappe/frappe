@@ -254,16 +254,4 @@ def get_perm_info(arg=None):
 def get_defaults(arg=None):
 	return webnotes.conn.sql("""select defkey, defvalue from tabDefaultValue where 
 		parent=%s and parenttype = 'Profile'""", webnotes.form_dict['profile'])
-		
-test_records = [[{
-	"doctype":"Profile",
-	"email": "test@erpnext.com",
-	"first_name": "_Test",
-	"new_password": "testpassword"
-}],
-[{
-	"doctype":"Profile",
-	"email": "test1@erpnext.com",
-	"first_name": "_Test1",
-	"new_password": "testpassword"
-}]]
+	

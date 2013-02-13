@@ -5,65 +5,78 @@ if __name__=="__main__":
 	sys.path.extend([".", "app", "lib"])
 
 import webnotes
-from webnotes.model.meta import get_link_fields
-from webnotes.model.code import load_doctype_module
+import unittest
+
+from webnotes.model.meta import get_link_fields, has_field
+from webnotes.model.code import load_doctype_module, get_module_name
+
 
 def make_test_records(doctype, verbose=0):
 	webnotes.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
-	
-	# also include doctype itself
-	options_list = list(set([options for fieldname, options, label 
-		in get_link_fields(doctype)] + [doctype]))
-		
-	for options in options_list:
+
+	for options in get_dependencies(doctype):
+
 		if options.startswith("link:"):
 			options = options[5:]
 		if options == "[Select]":
 			continue
-		
+			
 		if options not in webnotes.test_objects:
 			webnotes.test_objects[options] = []
 			make_test_records(options, verbose)
-			
-			load_module_and_make_records(options, verbose)
-			
-def load_module_and_make_records(options, verbose=0):
-	module = webnotes.conn.get_value("DocType", options, "module")
+			make_test_records_for_doctype(options, verbose)
 
-	# get methods for either [doctype].py or test_[doctype].py
-	doctype_module = load_doctype_module(options, module)
-	test_module = load_doctype_module(options, module, "test_")
+def get_modules(doctype):
+	module = webnotes.conn.get_value("DocType", doctype, "module")
+	test_module = load_doctype_module(doctype, module, "test_")
+
+	return module, test_module
+
+def get_dependencies(doctype):
+	module, test_module = get_modules(doctype)
+
+	options_list = list(set([options for fieldname, options, label 
+		in get_link_fields(doctype)] + [doctype]))
+	
+	if hasattr(test_module, "test_dependencies"):
+		options_list += test_module.test_dependencies
+	
+	if hasattr(test_module, "test_ignore"):
+		for doctype_name in test_module.test_ignore:
+			if doctype_name in options_list:
+				options_list.remove(doctype_name)
+	
+	return options_list
+
+def make_test_records_for_doctype(doctype, verbose=0):
+	module, test_module = get_modules(doctype)
 
 	if hasattr(test_module, "make_test_records"):
-		webnotes.test_objects[options] += test_module.make_test_records(verbose)
-
-	elif hasattr(doctype_module, "make_test_records"):
-		webnotes.test_objects[options] += doctype_module.make_test_records(verbose)
+		webnotes.test_objects[doctype] += test_module.make_test_records(verbose)
 
 	elif hasattr(test_module, "test_records"):
-		webnotes.test_objects[options] += make_test_objects(test_module)
-
-	elif hasattr(doctype_module, "test_records"):
-		webnotes.test_objects[options] += make_test_objects(doctype_module)
+		webnotes.test_objects[doctype] += make_test_objects(doctype, test_module.test_records)
 
 	elif verbose:
-		print_mandatory_fields(options)
+		print_mandatory_fields(doctype)
 
-def make_test_objects(obj):
-	if isinstance(obj, list):
-		test_records = obj
-	else:
-		# obj is a module object
-		test_records = obj.test_records
-		
+
+def make_test_objects(doctype, test_records):		
 	records = []
+		
 	for doclist in test_records:
+		if not "doctype" in doclist[0]:
+			doclist[0]["doctype"] = doctype
 		d = webnotes.model_wrapper((webnotes.doclist(doclist)).copy())
 		if webnotes.test_objects.get(d.doc.doctype):
 			# do not create test records, if already exists
 			return []
+		if has_field(d.doc.doctype, "naming_series"):
+			if not d.doc.naming_series:
+				d.doc.naming_series = "_T-" + d.doc.doctype + "-"
+
 		d.insert()
 		records.append(d.doc.name)
 	return records
@@ -78,6 +91,52 @@ def print_mandatory_fields(doctype):
 		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
 	print
 
+def run_unittest(doctype):
+	module = webnotes.conn.get_value("DocType", doctype, "module")
+	test_module = get_module_name(doctype, module, "test_")
+	make_test_records(args.doctype[0], verbose=True)
+
+	try:
+		exec ('from %s import *' % test_module) in globals()		
+		del sys.argv[1:]
+		unittest.main()
+				
+	except ImportError, e:
+		print "No test module."
+		
+def run_all_tests(verbose):
+	import os, imp
+	from webnotes.modules.utils import peval_doclist
+
+	for path, folders, files in os.walk("."):
+		for filename in files:
+			if filename.startswith("test_") and filename.endswith(".py"):
+				test_suite = unittest.TestSuite()
+				if os.path.basename(os.path.dirname(path))=="doctype":
+					txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
+					with open(txt_file, 'r') as f:
+						doctype_doclist = peval_doclist(f.read())
+					doctype = doctype_doclist[0]["name"]
+					make_test_records(doctype, verbose)
+					
+				module = imp.load_source('test', os.path.join(path, filename))
+				test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
+				unittest.TextTestRunner(verbosity=2).run(test_suite)
+	
 if __name__=="__main__":
-	make_test_records(sys.argv[1], verbose=1)
+	import argparse
+	
+	parser = argparse.ArgumentParser(description='Run tests.')
+	parser.add_argument('-d', '--doctype', nargs=1, metavar = "DOCTYPE",
+		help="test for doctype")
+	parser.add_argument('-v', '--verbose', default=False, action="store_true")
+
+	args = parser.parse_args()
+	webnotes.print_messages = args.verbose
+	
+	if args.doctype:
+		run_unittest(args.doctype[0])
+	else:
+		run_all_tests(args.verbose)
+	
 	
