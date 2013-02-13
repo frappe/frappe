@@ -300,7 +300,7 @@ class ModelWrapper:
 	def no_permission_to(self, ptype):
 		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
 			_("No Permission to ") + ptype, raise_exception=True)
-
+			
 # clone
 
 def clone(source_wrapper):
