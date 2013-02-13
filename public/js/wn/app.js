@@ -107,8 +107,6 @@ wn.Application = Class.extend({
 			wn.temp_container = $("<div id='#temp-container' style='display: none;'>")
 				.appendTo("body");
 			wn.container = new wn.views.Container();
-			wn.views.make_403();
-			wn.views.make_404();			
 		}
 	},
 	make_nav_bar: function() {
