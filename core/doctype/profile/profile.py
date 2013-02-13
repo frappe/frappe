@@ -91,11 +91,15 @@ class DocType:
 						
 	def check_one_system_manager(self):
 		# if adding system manager, do nothing
-		if "System Manager" in [user_role.role for user_role in
-				self.doclist.get({"parentfield": "user_roles"})]:
+		if not cint(self.doc.enabled) or ("System Manager" in [user_role.role for user_role in
+				self.doclist.get({"parentfield": "user_roles"})]):
 			return
 		
-		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager' and docstatus<2 and parent not in ('Administrator', %s)""", (self.doc.name,)):
+		if not webnotes.conn.sql("""select distinct parent from tabUserRole user_role
+				where role='System Manager' and docstatus<2 
+				and parent not in ('Administrator', %s) and exists 
+					(select * from `tabProfile` profile 
+					where profile.name=user_role.parent and enabled=1)""", (self.doc.name,)):
 			webnotes.msgprint("""Adding System Manager Role as there must 
 				be atleast one 'System Manager'.""")
 			self.doclist.append({
