@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-02-06 16:11:18", 
+  "creation": "2013-02-11 12:30:10", 
   "docstatus": 0, 
-  "modified": "2013-02-11 11:43:26", 
+  "modified": "2013-02-13 09:35:48", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -168,6 +168,7 @@
   "fieldtype": "Password", 
   "hidden": 0, 
   "label": "New Password", 
+  "no_copy": 1, 
   "print_hide": 1
  }, 
  {
@@ -376,6 +377,26 @@
   "no_copy": 1, 
   "oldfieldname": "file_list", 
   "oldfieldtype": "Text"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "roles_assigned_to_user", 
+  "fieldtype": "Section Break", 
+  "hidden": 1, 
+  "label": "Roles Assigned To User", 
+  "no_copy": 0, 
+  "print_hide": 1, 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "user_roles", 
+  "fieldtype": "Table", 
+  "hidden": 1, 
+  "label": "Roles Assigned", 
+  "options": "UserRole", 
+  "print_hide": 1, 
+  "read_only": 1
  }, 
  {
   "cancel": 1, 

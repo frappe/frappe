@@ -49,7 +49,7 @@ class DocType:
 			del self.doc.fields['__temp']
 
 		self.validate_max_users()
-		self.update_roles()
+		self.check_one_system_manager()
 		
 		# do not allow disabling administrator/guest
 		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
@@ -88,44 +88,21 @@ class DocType:
 					1. <b>Upgrade to the unlimited users plan</b>, or<br /> \
 					2. <b>Disable one or more of your existing users and try again</b>""" \
 					% {'active_users': active_users}, raise_exception=1)
-	
-	def update_roles(self):
-		"""update roles if set"""		
-
-		if self.temp.get('roles'):
-			from webnotes.model.doc import Document
-
-			# remove roles
-			webnotes.conn.sql("""delete from tabUserRole where parent='%s' 
-				and role in ('%s')""" % (self.doc.name,
-				"','".join(self.temp['roles']['unset_roles'])))
-
-			if "System Manager" in self.temp['roles']['unset_roles']:
-				self.check_one_system_manager()
-
-			# add roles
-			user_roles = webnotes.get_roles(self.doc.name)
-			for role in self.temp['roles']['set_roles']:
-				if not role in user_roles:
-					self.add_role(role)
-					
-	def add_role(self, role):
-		d = webnotes.doc('UserRole')
-		d.role = role
-		d.parenttype = 'Profile'
-		d.parentfield = 'user_roles'
-		d.parent = self.doc.name
-		d.save()
-			
+						
 	def check_one_system_manager(self):
-		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager' and docstatus<2 and parent!='Administrator'"""):
-			if webnotes.conn.sql("""select count(*) from `tabProfile`
-					where name not in ('Administrator', 'Guest')""")[0][0] == 0:
-				self.temp["roles"]["set_roles"].append("System Manager")
-				return
-				
-			webnotes.msgprint("""Cannot un-select as System Manager as there must 
-				be atleast one 'System Manager'.""", raise_exception=1)
+		# if adding system manager, do nothing
+		if "System Manager" in [user_role.role for user_role in
+				self.doclist.get({"parentfield": "user_roles"})]:
+			return
+		
+		if not webnotes.conn.sql("""select parent from tabUserRole where role='System Manager' and docstatus<2 and parent not in ('Administrator', %s)""", (self.doc.name,)):
+			webnotes.msgprint("""Adding System Manager Role as there must 
+				be atleast one 'System Manager'.""")
+			self.doclist.append({
+				"doctype": "UserRole",
+				"parentfield": "user_roles",
+				"role": "System Manager"
+			})
 				
 	def on_update(self):
 		# owner is always name

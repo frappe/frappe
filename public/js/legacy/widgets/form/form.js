@@ -898,6 +898,9 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	$(document.activeElement).blur();
 	var me = this;
 	
+	if((!this.meta.in_dialog || this.in_form) && !this.meta.istable)
+		scroll(0, 0);
+	
 	// validate
 	if(save_action!="Cancel") {
 		validated = true;
