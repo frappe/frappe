@@ -2,13 +2,18 @@
 // License: MIT. See license.txt
 
 wn.provide('wn.views.pageview');
+wn.provide("wn.standard_pages");
 
 wn.views.pageview = {
 	with_page: function(name, callback) {
-		if(name=="403" || name=="404") {
+		if(in_list(keys(wn.standard_pages), name)) {
+			if(!wn.pages[name]) {
+				wn.standard_pages[name]();
+			}
 			callback();
 			return;
 		}
+
 		if((locals.Page && locals.Page[name]) || name==window.page_name) {
 			callback();
 		} else {
@@ -79,20 +84,20 @@ wn.views.Page = Class.extend({
 })
 
 
-wn.views.make_404 = function() {
+wn.standard_pages["404"] = function() {
 	var page = wn.container.add_page('404');
 	$(page).html('<div class="layout-wrapper">\
 		<h3><i class="icon-exclamation-sign"></i> '+wn._('Not Found')+'</h3><br>\
 		<p>'+wn._('Sorry we were unable to find what you were looking for.')+'</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
-		</div>').toggle(false);
+		</div>');
 };
 
-wn.views.make_403 = function() {
+wn.standard_pages["403"] = function() {
 	var page = wn.container.add_page('403');
 	$(page).html('<div class="layout-wrapper">\
 		<h3><i class="icon-minus-sign"></i> '+wn._('Not Permitted')+'</h3><br>\
 		<p>'+wn._('Sorry you are not permitted to view this page.')+'.</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
-		</div>').toggle(false);
+		</div>');
 };
