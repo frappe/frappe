@@ -23,11 +23,14 @@ window.format_number = function(v, format, decimals){
 	if(isNaN(+v)) {
 		v=0;
 	};
-
+	
 	// remove group separators (if any)
 	if(typeof v=="string") {
 		v = replace_all(info.group_sep, "");
 	}
+
+	if(v<0) var is_negative = true; 
+	v = Math.abs(v);
 
 	//Fix the decimal first, toFixed will auto fill trailing zero.
 	decimals = decimals || info.precision;
@@ -66,7 +69,7 @@ window.format_number = function(v, format, decimals){
 	part[1] = part[1] ? (info.decimal_str + part[1]) : "";
 	
 	// join
-	return part[0] + part[1];
+	return (is_negative ? "-" : "") + part[0] + part[1];
 };
 
 function format_currency(v, currency) {

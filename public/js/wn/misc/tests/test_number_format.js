@@ -29,6 +29,7 @@ test("#.###", function() {
 	equal(format_number(100, "#.###"), "100");
 	equal(format_number(1000, "#.###"), "1.000");
 	equal(format_number(10000, "#.###"), "10.000");
+	equal(format_number(-100000, "#.###"), "-100.000");
 	equal(format_number(1000000, "#.###"), "1.000.000");
 	equal(format_number(1000000.345, "#.###"), "1.000.000");
 });
