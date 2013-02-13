@@ -134,6 +134,9 @@ if __name__=="__main__":
 	args = parser.parse_args()
 	webnotes.print_messages = args.verbose
 	
+	if not webnotes.conn:
+		webnotes.connect()
+	
 	if args.doctype:
 		run_unittest(args.doctype[0])
 	else:
