@@ -66,10 +66,14 @@ wn.call = function(opts) {
 
 wn.request.call = function(opts) {
 	wn.request.prepare(opts);
+	
+	// all requests will be post, set _type as POST for commit
+	opts.args._type = opts.type;
+	
 	var ajax_args = {
 		url: opts.url || wn.request.url,
 		data: opts.args,
-		type: opts.type || 'POST',
+		type: 'POST',
 		dataType: opts.dataType || 'json',
 		success: function(r, xhr) {
 			wn.request.cleanup(opts, r);
