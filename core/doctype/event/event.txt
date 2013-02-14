@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-02-14 14:53:12", 
+  "creation": "2013-02-14 18:10:53", 
   "docstatus": 0, 
-  "modified": "2013-02-14 15:21:26", 
+  "modified": "2013-02-14 19:20:21", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -83,7 +83,13 @@
   "fieldname": "ends_on", 
   "fieldtype": "Datetime", 
   "label": "Ends on", 
-  "reqd": 1
+  "reqd": 0
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "all_day", 
+  "fieldtype": "Check", 
+  "label": "All Day"
  }, 
  {
   "doctype": "DocField", 

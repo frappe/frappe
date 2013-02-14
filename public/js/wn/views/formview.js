@@ -24,7 +24,7 @@ wn.views.formview = {
 						wn.views.formview.show(dt, new_name);
 						return;
 					} else {
-						wn.container.change_to('404');
+						wn.set_route('404');
 					}
 					return;
 				}
