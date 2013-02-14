@@ -20,6 +20,11 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-cur_frm.cscript.onload = function(doc, cdt, cdn) {
+cur_frm.cscript.add_list_breadcrumb = function(appframe) {
+	
+	appframe.add_breadcrumb("icon-calendar", "calendar", "Calendar");
+}
+
+cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 
 }

@@ -1,41 +1,37 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2012-10-02 15:11:13", 
   "docstatus": 0, 
-  "creation": "2012-05-15 12:14:23", 
+  "modified": "2013-02-14 16:50:39", 
   "modified_by": "Administrator", 
-  "modified": "2012-09-28 10:46:15"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
+  "autoname": "EVP.#####", 
+  "doctype": "DocType", 
   "istable": 1, 
   "module": "Core", 
-  "server_code_error": " ", 
-  "doctype": "DocType", 
-  "autoname": "EVP.#####", 
-  "name": "__common__", 
-  "colour": "White:FFF", 
-  "show_in_menu": 0, 
-  "version": 1
+  "name": "__common__"
  }, 
  {
-  "parent": "Event User", 
-  "oldfieldtype": "Select", 
-  "oldfieldname": "person", 
-  "name": "__common__", 
   "doctype": "DocField", 
-  "label": "Person", 
-  "permlevel": 0, 
-  "parenttype": "DocType", 
   "fieldname": "person", 
   "fieldtype": "Select", 
-  "search_index": 1, 
+  "label": "Person", 
+  "name": "__common__", 
+  "oldfieldname": "person", 
+  "oldfieldtype": "Select", 
   "options": "link:Profile", 
-  "parentfield": "fields"
+  "parent": "Event User", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "search_index": 1, 
+  "width": "240px"
  }, 
  {
-  "name": "Event User", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Event User"
  }, 
  {
   "doctype": "DocField"

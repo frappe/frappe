@@ -37,7 +37,11 @@ _f.FrmHeader = Class.extend({
 		this.appframe.add_module_breadcrumb(frm.meta.module)
 		
 		if(!frm.meta.issingle) {
-			this.appframe.add_list_breadcrumb(frm.meta.name)
+			if(frm.cscript.add_list_breadcrumb) {
+				frm.cscript.add_list_breadcrumb(this.appframe);
+			} else {
+				this.appframe.add_list_breadcrumb(frm.meta.name);
+			}
 		}
 		this.appframe.add_breadcrumb("icon-file");
 	},

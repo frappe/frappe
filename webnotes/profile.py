@@ -191,7 +191,7 @@ class Profile:
 		d['in_create'] = self.in_create
 		
 		return d
-
+		
 def get_user_fullname(user):
 	fullname = webnotes.conn.sql("SELECT CONCAT_WS(' ', first_name, last_name) FROM `tabProfile` WHERE name=%s", user)
 	return fullname and fullname[0][0] or ''
@@ -206,3 +206,12 @@ def get_system_managers():
 			where ur.parent = p.name and ur.role="System Manager")""")
 	
 	return [p[0] for p in system_managers]
+	
+def add_role(profile, role):
+	profile_wrapper = webnotes.model_wrapper("Profile", profile)
+	profile_wrapper.doclist.append({
+		"doctype": "UserRole",
+		"parentfield": "user_roles",
+		"role": role
+	})
+	profile_wrapper.save()

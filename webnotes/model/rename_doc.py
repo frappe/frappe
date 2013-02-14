@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import webnotes
 
 @webnotes.whitelist()
-def rename_doc(doctype, old, new, is_doctype=0, debug=0):
+def rename_doc(doctype, old, new, is_doctype=0, debug=0, force=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and 
 		updates all linked fields of type "Link" or "Select" with "link:"
@@ -20,7 +20,7 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0):
 	if not webnotes.has_permission(doctype, "write"):
 		webnotes.msgprint("You need write permission to rename", raise_exception=1)
 
-	if not doclist[0].allow_rename:
+	if not force and not doclist[0].allow_rename:
 		webnotes.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
 	
 	# without child fields of table type fields (form=0)

@@ -135,9 +135,9 @@ class Installer:
 
 			# userroles
 			{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator', 
-				'parenttype':'Profile', 'parentfield':'userroles'},
+				'parenttype':'Profile', 'parentfield':'user_roles'},
 			{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest', 
-				'parenttype':'Profile', 'parentfield':'userroles'}
+				'parenttype':'Profile', 'parentfield':'user_roles'}
 		]
 		
 		webnotes.conn.begin()
