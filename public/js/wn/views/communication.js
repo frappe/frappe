@@ -58,7 +58,7 @@ wn.views.CommunicationList = Class.extend({
 		var subject = this.doc.subject;
 		if(!subject && this.list.length) {
 			// get subject from previous message
-			subject = this.list[0].subject;
+			subject = this.list[0].subject || "[No Subject]";
 			if(strip(subject.toLowerCase().split(":")[0])!="re") {
 				subject = "Re: " + subject;
 			}
