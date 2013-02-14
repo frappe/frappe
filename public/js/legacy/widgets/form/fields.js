@@ -343,7 +343,7 @@ Field.prototype.set = function(val) {
 	
 	if(this.validate)
 		val = this.validate(val);
-
+		
 	cur_frm.set_value_in_locals(this.doctype, this.docname, 
 		this.df.fieldname, val);
 	this.value = val; // for return
@@ -1104,16 +1104,26 @@ SelectField.prototype.make_input = function() {
 		this.input.set_input(v);
 	}
 	
+	var _set_value = function(value) {
+		// use option's value if dict, else use string for comparison and setting
+		for(var i in (me.options_list || [""])) {
+			var option = me.options_list[i];
+			if($.isPlainObject(option)){
+				option = option.value;
+			}
+			if(option === value) {
+				me.input.value = value;
+				break;
+			}
+		}
+	}
+	
 	this.input.set_input=function(v) {
 		if(!v) {
 			if(!me.input.multiple) {
 				if(me.docname) { // if called from onload without docname being set on fields
-					if(me.options_list && me.options_list.length) {
-						me.set(me.options_list[0]);
-						me.input.value = me.options_list[0];
-					} else {
-						me.input.value = '';
-					}
+					_set_value(v);
+					me.set(me.get_value());
 				}
 			}
 		} else {
@@ -1125,17 +1135,7 @@ SelectField.prototype.make_input = function() {
 							me.input.options[i].selected = 1;
 					}
 				} else {
-					// use option's value if dict, else use string for comparison and setting
-					for(var i in me.options_list) {
-						var option = me.options_list[i];
-						if(typeof(option)!=="string") {
-							option = option.value;
-						}
-						if(option === v) {
-							me.input.value = v;
-							break;
-						}
-					}
+					_set_value(v);
 				}
 			}
 		}
