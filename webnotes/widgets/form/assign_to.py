@@ -111,8 +111,9 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 	user_info = get_fullnames()
 
 	# Search for email address in description -- i.e. assignee
-	assignment = """<a href="#!Form/%s/%s">%s: %s</a>""" % (doc_type, doc_name,
-			doc_type, doc_name)
+	from webnotes.utils import get_url_to_form
+	assignment = get_url_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+		
 	if action=='CLOSE':
 		if owner == webnotes.session.get('user'):
 			arg = {
