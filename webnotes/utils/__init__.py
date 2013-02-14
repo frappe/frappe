@@ -780,3 +780,15 @@ def get_base_path():
 	import conf
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
+
+def get_url_to_form(doctype, name, base_url=None, label=None):
+	if not base_url:
+		try:
+			from startup import get_url
+			base_url = get_url()
+		except ImportError:
+			base_url = get_request_site_address()
+	
+	if not label: label = name
+	
+	return """<a href="%(base_url)s/app.html#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()

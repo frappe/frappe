@@ -7,8 +7,9 @@ if __name__=="__main__":
 import webnotes
 import unittest
 
-from webnotes.model.meta import get_link_fields, has_field
+from webnotes.model.meta import has_field
 from webnotes.model.code import load_doctype_module, get_module_name
+from webnotes.model.doctype import get_link_fields
 
 
 def make_test_records(doctype, verbose=0):
@@ -37,8 +38,7 @@ def get_modules(doctype):
 def get_dependencies(doctype):
 	module, test_module = get_modules(doctype)
 
-	options_list = list(set([options for fieldname, options, label 
-		in get_link_fields(doctype)] + [doctype]))
+	options_list = list(set([df.options for df in get_link_fields(doctype)] + [doctype]))
 	
 	if hasattr(test_module, "test_dependencies"):
 		options_list += test_module.test_dependencies
@@ -90,11 +90,36 @@ def print_mandatory_fields(doctype):
 	for d in doctype_obj.get({"reqd":1}):
 		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
 	print
+	
+def export_doc(doctype, docname):
+	import json
+	doclist = []
+	ignore_list = ["name", "owner", "creation", "modified", "modified_by", "idx", "naming_series",
+		"parenttype", "parent", "docstatus"]
+	
+	make_test_records(doctype)
+	meta = webnotes.get_doctype(doctype)
+	
+	for d in webnotes.model_wrapper(doctype, docname):
+		new_doc = {}
+		for key, val in d.fields.iteritems():
+			if val and key not in ignore_list:
+				df = meta.get_field(key, d.parent or None, d.parentfield or None)
+				if df and df.fieldtype == "Link":
+					val = (webnotes.test_objects.get(df.options) or [val])[0]
+				elif df and df.fieldtype == "Select" and df.options and df.options.startswith("link:"):
+					val = (webnotes.test_objects.get(df.options[5:]) or [val])[0]
+				if not df or df.reqd == 1:
+					new_doc[key] = val
+		doclist.append(new_doc)
+		
+	print json.dumps(doclist, indent=4, sort_keys=True).replace("    ", "\t")
+		
 
-def run_unittest(doctype):
+def run_unittest(doctype, verbose=False):
 	module = webnotes.conn.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
-	make_test_records(args.doctype[0], verbose=True)
+	make_test_records(args.doctype[0], verbose=verbose)
 
 	try:
 		exec ('from %s import *' % test_module) in globals()		
@@ -121,7 +146,7 @@ def run_all_tests(verbose):
 					
 				module = imp.load_source('test', os.path.join(path, filename))
 				test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
-				unittest.TextTestRunner(verbosity=2).run(test_suite)
+				unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 	
 if __name__=="__main__":
 	import argparse
@@ -130,6 +155,8 @@ if __name__=="__main__":
 	parser.add_argument('-d', '--doctype', nargs=1, metavar = "DOCTYPE",
 		help="test for doctype")
 	parser.add_argument('-v', '--verbose', default=False, action="store_true")
+	parser.add_argument('-e', '--export', nargs=2, metavar="DOCTYPE DOCNAME")
+	parser.add_argument('-a', '--all', default=False, action="store_true")
 
 	args = parser.parse_args()
 	webnotes.print_messages = args.verbose
@@ -138,8 +165,10 @@ if __name__=="__main__":
 		webnotes.connect()
 	
 	if args.doctype:
-		run_unittest(args.doctype[0])
-	else:
+		run_unittest(args.doctype[0], verbose=args.verbose)
+	elif args.all:
 		run_all_tests(args.verbose)
+	elif args.export:
+		export_doc(args.export[0], args.export[1])
 	
 	

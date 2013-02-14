@@ -379,3 +379,14 @@ def get_application_home_page(user='Guest'):
 	else:
 		from startup import application_home_page
 		return application_home_page
+
+def copy_doclist(in_doclist):
+	new_doclist = []
+	for d in in_doclist:
+		if isinstance(d, dict):
+			new_doclist.append(d.copy())
+		else:
+			new_doclist.append(doc(d.fields.copy()))
+
+	return doclist(new_doclist)
+	
