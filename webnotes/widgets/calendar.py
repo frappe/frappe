@@ -20,28 +20,15 @@
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 from __future__ import unicode_literals
-import webnotes
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
+import webnotes
+from webnotes import _
+import json
 
 @webnotes.whitelist()
-def get_events(start, end):
-	roles = webnotes.get_roles()
-	events = webnotes.conn.sql("""select name, subject, 
-		starts_on, ends_on, owner, all_day, event_type
-		from tabEvent where (
-			(starts_on between %s and %s)
-			or (ends_on between %s and %s)
-		)
-		and (event_type='Public' or owner=%s
-		or exists(select * from `tabEvent User` where 
-			`tabEvent User`.parent=tabEvent.name and person=%s)
-		or exists(select * from `tabEvent Role` where 
-			`tabEvent Role`.parent=tabEvent.name 
-			and `tabEvent Role`.role in ('%s')))""" % ('%s', '%s', '%s', '%s', '%s', '%s', 
-			"', '".join(roles)), (start, end, start, end,
-			webnotes.session.user, webnotes.session.user), as_dict=1)
-			
-	return events
+def update_event(args, field_map):
+	args = webnotes._dict(json.loads(args))
+	field_map = webnotes._dict(json.loads(field_map))
+	
+	webnotes.conn.set_value(args.doctype, args.name, field_map.start, args[field_map.start])
+	webnotes.conn.set_value(args.doctype, args.name, field_map.end, args[field_map.end])

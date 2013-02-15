@@ -21,7 +21,6 @@
 // 
 
 cur_frm.cscript.add_list_breadcrumb = function(appframe) {
-	
 	appframe.add_breadcrumb("icon-calendar", "calendar", "Calendar");
 }
 

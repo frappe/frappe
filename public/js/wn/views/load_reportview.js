@@ -42,7 +42,7 @@ wn.views.reportview2 = {
 		} else {
 			var route = wn.get_route();
 			if(route[1]) {
-				new wn.views.ReportViewPage(route[1], route[2]);				
+				new wn.views.ReportViewPage(route[1], route[2]);
 			} else {
 				wn.set_route('404');
 			}

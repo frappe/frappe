@@ -121,6 +121,7 @@
 			"lib/public/js/wn/views/formview.js",
 			"lib/public/js/wn/views/load_reportview.js",
 			"lib/public/js/wn/views/reportview.js",
+			"lib/public/js/wn/views/calendar.js",
 			"lib/public/js/wn/views/grid_report.js",
 			"lib/public/js/wn/views/communication.js",
 			"lib/public/js/wn/views/test_runner.js",

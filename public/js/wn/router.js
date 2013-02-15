@@ -42,6 +42,9 @@ wn.route = function() {
 		case "Report2":
 			wn.views.reportview2.show();
 			break;
+		case "Calendar":
+			wn.views.calendar.show();
+			break;
 		default:
 			wn.views.pageview.show(route[0]);
 	}
