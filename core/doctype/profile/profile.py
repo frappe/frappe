@@ -121,7 +121,7 @@ class DocType:
 			
 			if self.is_new:
 				webnotes.msgprint("New user created. - %s" % self.doc.name)
-				if self.doc.send_invite_email:
+				if cint(self.doc.send_invite_email):
 					webnotes.msgprint("Sent welcome mail.")
 					self.send_welcome_mail(self.doc.new_password)
 			else:
