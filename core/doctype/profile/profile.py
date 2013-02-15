@@ -119,12 +119,14 @@ class DocType:
 			from webnotes.auth import update_password
 			update_password(self.doc.name, self.doc.new_password)
 			
-			if not self.is_new:
+			if self.is_new:
+				webnotes.msgprint("New user created. - %s" % self.doc.name)
+				if self.doc.send_invite_email:
+					webnotes.msgprint("Sent welcome mail.")
+					self.send_welcome_mail(self.doc.new_password)
+			else:
 				self.password_reset_mail(self.doc.new_password)
 				webnotes.msgprint("Password updated.")
-			else:
-				self.send_welcome_mail(self.doc.new_password)
-				webnotes.msgprint("New user created. - %s" % self.doc.name)
 				
 			webnotes.conn.set(self.doc, 'new_password', '')
 
