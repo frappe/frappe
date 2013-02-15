@@ -15,7 +15,18 @@ div.appframe-titlebar {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	width: 74%;
+	width: 65%;
+	float:left;
+}
+
+.appframe-right {
+	display: none;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	float: right;
+	width: 13%;
+	margin-top: 2px;
 }
 
 span.appframe-breadcrumb { 
@@ -67,12 +78,12 @@ div.appframe-toolbar {
 
 div.appframe-titlebar .label {
 	display: inline-block;
-	margin-bottom: 3px;
 	margin-left: 14px;
+	margin-bottom: 8px;
 }
 
 div.appframe-titlebar .avatar {
-	margin-top: -4px;
+	margin-top: -8px;
 	margin-left: 9px;
 	margin-right: -6px;
 }

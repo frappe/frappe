@@ -12,6 +12,11 @@ wn.ui.AppFrame = Class.extend({
 				<span class="appframe-subject"></span>\
 			</span>\
 			<span class="close" style="margin-top: 5px; margin-right: 7px;">&times;</span>\
+			<span class="appframe-right btn-group">\
+				<button class="btn btn-small"><i class="icon-list"></i></button>\
+				<button class="btn btn-small"><i class="icon-calendar"></i></button>\
+				<button class="btn btn-small"><i class="icon-table"></i></button>\
+			</span>\
 		</div>').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {
