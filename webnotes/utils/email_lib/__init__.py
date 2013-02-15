@@ -21,11 +21,11 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, conf
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None):
 	"""send markdown email"""
-	if webnotes.mute_emails:
+	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
 		return
 		
 	import markdown2
@@ -33,7 +33,7 @@ def sendmail_md(recipients, sender=None, msg=None, subject=None):
 			
 def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	"""send an html email as multipart with attachments and all"""
-	if webnotes.mute_emails:
+	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
 		return
 
 	from webnotes.utils.email_lib.smtp import get_email
