@@ -128,6 +128,8 @@ wn.utils = {
 	},
 	guess_style: function(text, default_style) {
 		var style = default_style;
+		if(!text) 
+			return style;
 		if(has_words(["Open", "Pending"], text)) {
 			style = "important";
 		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 

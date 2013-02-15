@@ -70,6 +70,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.appframe.add_home_breadcrumb();
 		this.appframe.add_module_breadcrumb(module);
 		this.appframe.add_breadcrumb("icon-list");
+		this.appframe.set_views_for(this.doctype, "list");
 	},
 
 	setup: function() {
@@ -81,18 +82,9 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		me.setup_listview();
 		me.init_list();
 		me.init_stats();
-		me.make_report_button();
 		me.add_delete_option();
 		me.make_help();
 		me.show_match_help();
-	},
-	make_report_button: function() {
-		var me = this;
-		if(wn.boot.profile.can_get_report.indexOf(this.doctype)!=-1) {
-			this.appframe.add_button(wn._('Build Report'), function() {
-				wn.set_route('Report2', me.doctype);
-			}, 'icon-th')
-		}
 	},
 	show_match_help: function() {
 		var me = this;

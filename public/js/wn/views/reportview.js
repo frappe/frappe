@@ -39,6 +39,7 @@ wn.views.ReportViewPage = Class.extend({
 		this.page.appframe.add_home_breadcrumb()
 		this.page.appframe.add_module_breadcrumb(module)
 		this.page.appframe.add_breadcrumb("icon-table");
+		this.page.appframe.set_views_for(this.doctype, "report");
 
 		this.page.reportview = new wn.views.ReportView({
 			doctype: this.doctype, 

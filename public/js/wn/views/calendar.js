@@ -50,7 +50,8 @@ wn.views.Calendar = Class.extend({
 		this.page.appframe.add_home_breadcrumb()
 		this.page.appframe.add_module_breadcrumb(module)
 		this.page.appframe.add_breadcrumb("icon-calendar");
-		
+
+		this.page.appframe.set_views_for(this.doctype, "calendar");
 	},
 	make: function() {
 		var me = this;
@@ -156,22 +157,26 @@ wn.views.Calendar = Class.extend({
 		}
 	},
 	prepare_events: function(events) {
-		var editable = wn.model.can_write(this.doctype);
 		var me = this;
 		$.each(events, function(i, d) {
 			d.id = d.name;
-			d.editable = editable;
+			d.editable = wn.model.can_write(d.doctype || this.doctype);
 			
 			$.each(me.field_map, function(target, source) {
 				d[target] = d[source];
 			});
 			
+			if(!me.field_map.allDay) 
+				d.allDay = 1;
+			
 			if(d.status) {
 				if(me.style_map) {
 					$.extend(d, me.styles[me.style_map[d.status]] || {});
 				} else {
-					$.extend(d, me.styles[wn.utils.guess_style(d.status)]);
+					$.extend(d, me.styles[wn.utils.guess_style(d.status, "standard")]);
 				}
+			} else {
+				$.extend(d, me.styles["standard"]);
 			}
 		})
 	},

@@ -15,7 +15,7 @@ div.appframe-titlebar {
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	width: 65%;
+	width: 57%;
 	float:left;
 }
 
@@ -26,7 +26,7 @@ div.appframe-titlebar {
 	white-space: nowrap;
 	float: right;
 	width: 13%;
-	margin-top: 2px;
+	margin-top: -1px;
 }
 
 span.appframe-breadcrumb { 
