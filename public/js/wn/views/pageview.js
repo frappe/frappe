@@ -29,7 +29,7 @@ wn.views.pageview = {
 		wn.views.pageview.with_page(name, function(r) {
 			if(r && r.exc) {
 				if(!r['403'])
-					wn.container.change_to('404');
+					wn.set_route('404');
 			} else if(!wn.pages[name]) {
 				new wn.views.Page(name);
 			}

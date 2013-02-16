@@ -18,36 +18,20 @@
 # HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# 
 
 from __future__ import unicode_literals
-import webnotes, conf
 
-def sendmail_md(recipients, sender=None, msg=None, subject=None):
-	"""send markdown email"""
-	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
-		return
-		
-	import markdown2
-	sendmail(recipients, sender, markdown2.markdown(msg), subject)
-			
-def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
-	"""send an html email as multipart with attachments and all"""
-	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
-		return
-
-	from webnotes.utils.email_lib.smtp import get_email
-	get_email(recipients, sender, msg, subject).send()
+import webnotes
+from webnotes import _
+import json
 
 @webnotes.whitelist()
-def get_contact_list():
-	"""Returns contacts (from autosuggest)"""
-	cond = ['`%s` like "%s%%"' % (f, 
-		webnotes.form_dict.get('txt')) for f in webnotes.form_dict.get('where').split(',')]
-	cl = webnotes.conn.sql("select `%s` from `tab%s` where %s" % (
-  			 webnotes.form_dict.get('select')
-			,webnotes.form_dict.get('from')
-			,' OR '.join(cond)
-		)
-	)
-	webnotes.response['cl'] = filter(None, [c[0] for c in cl])
+def update_event(args, field_map):
+	args = webnotes._dict(json.loads(args))
+	field_map = webnotes._dict(json.loads(field_map))
+			
+	w = webnotes.model_wrapper(args.doctype, args.name)
+	w.doc.fields[field_map.start] = args[field_map.start]
+	w.doc.fields[field_map.end] = args[field_map.end]
+	w.save()
+

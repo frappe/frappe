@@ -12,6 +12,7 @@ wn.number_format_info = {
 }
 
 window.format_number = function(v, format, decimals){ 
+	
 	if (!format) {
 		format = get_number_format();
 	}
@@ -20,7 +21,7 @@ window.format_number = function(v, format, decimals){
 		info = {decimal_str:".", group_sep:",", precision:2};
 	}
 	
-	if(isNaN(+v)) {
+	if(isNaN(+v) || v==null) {
 		v=0;
 	};
 
@@ -32,12 +33,14 @@ window.format_number = function(v, format, decimals){
 	if(v<0) var is_negative = true; 
 	v = Math.abs(v);
 
+
 	//Fix the decimal first, toFixed will auto fill trailing zero.
 	decimals = decimals || info.precision;
 	
 	v = v.toFixed(decimals);
 
 	var part = v.split('.');
+
 	
 	// get group position and parts
 	var group_position = info.group_sep ? 3 : 0;

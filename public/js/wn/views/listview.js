@@ -3,9 +3,6 @@
 
 wn.views.get_listview = function(doctype, parent) {
 	var meta = locals.DocType[doctype];
-	if(meta.__listjs) {
-		eval(meta.__listjs);
-	}
 	
 	if(wn.doclistviews[doctype]) {
 		var listview = new wn.doclistviews[doctype](parent);
@@ -242,14 +239,9 @@ wn.views.ListView = Class.extend({
 		else if(opts.type=="select" && data[opts.content]) {
 			
 			var label_class = "";
-			if(has_words(["Open", "Pending"], data[opts.content])) {
-				label_class = "label-important";
-			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
-				"Approved", "Yes", "Active"], data[opts.content])) {
-				label_class = "label-success";
-			} else if(has_words(["Submitted"], data[opts.content])) {
-				label_class = "label-info";
-			}
+
+			var style = wn.utils.guess_style(data[opts.content]);
+			if(style) label_class = "label-" + style;
 			
 			$("<span class='label'>" 
 				+ data[opts.content] + "</span>")

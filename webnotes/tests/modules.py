@@ -102,5 +102,4 @@ class ModuleTest(unittest.TestCase):
 		self.assertTrue(webnotes.conn.sql("show triggers like 'tabSandbox'")[0][0]=='sandbox_trigger')
 		
 	def tearDown(self):
-		if webnotes.conn.in_transaction:
-			webnotes.conn.rollback()
+		webnotes.conn.rollback()

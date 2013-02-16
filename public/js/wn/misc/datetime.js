@@ -33,13 +33,14 @@ $.extend(wn.datetime, {
 		return v + time_part;
 	},
 	now_datetime: function() {
-		var d = new Date();
-		return [d.getFullYear(), double_digit(d.getMonth()+1), double_digit(d.getDate())].join("-") + " " 
-			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":")
+		return wn.datetime.get_datetime_as_string(new Date());
 	},
 	now_time: function() {
 		var d = new Date();
 		return [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":")
 	},
-	
+	get_datetime_as_string: function(d) {
+		return [d.getFullYear(), double_digit(d.getMonth()+1), double_digit(d.getDate())].join("-") + " " 
+			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":");
+	}
 });

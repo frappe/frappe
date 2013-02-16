@@ -44,7 +44,6 @@ class Database:
 		if use_default:
 			self.user = conf.db_name
 
-		self.in_transaction = 0
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
@@ -61,7 +60,8 @@ class Database:
 		"""
 		      Connect to a database
 		"""
-		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, use_unicode=True, charset='utf8')
+		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, 
+			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._cursor = self._conn.cursor()
 	
@@ -89,8 +89,7 @@ class Database:
 		self.check_transaction_status(query)
 		
 		# autocommit
-		if auto_commit and self.in_transaction: self.commit()
-		if auto_commit: self.begin()
+		if auto_commit: self.commit()
 			
 		# execute
 		try:
@@ -138,17 +137,13 @@ class Database:
 		self.sql(query)
 
 	def check_transaction_status(self, query):
-		if self.in_transaction and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
+		if self.transaction_writes and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
-		if query and query.strip().lower()=='start transaction':
-			self.in_transaction = 1
+		if query and query.strip().lower()=='commit':
 			self.transaction_writes = 0
 			
-		if query and query.strip().split()[0].lower() in ['commit', 'rollback']:
-			self.in_transaction = 0
-
-		if self.in_transaction and query[:6].lower() in ['update', 'insert']:
+		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
 			if self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
@@ -372,12 +367,10 @@ class Database:
 			return defaults
 
 	def begin(self):
-		if not self.in_transaction:
-			self.sql("start transaction")
+		return # not required
 	
 	def commit(self):
-		if self.in_transaction:
-			self.sql("commit")
+		self.sql("commit")
 
 	def rollback(self):
 		self.sql("ROLLBACK")

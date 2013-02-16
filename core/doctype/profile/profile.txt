@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-02-11 12:30:10", 
+  "creation": "2013-02-14 17:37:36", 
   "docstatus": 0, 
-  "modified": "2013-02-13 09:35:48", 
+  "modified": "2013-02-15 14:59:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -39,7 +39,6 @@
   "parent": "Profile", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
   "read": 1, 
   "report": 1, 
   "submit": 0, 
@@ -110,6 +109,13 @@
   "label": "Last Name", 
   "oldfieldname": "last_name", 
   "oldfieldtype": "Data"
+ }, 
+ {
+  "default": "1", 
+  "doctype": "DocField", 
+  "fieldname": "send_invite_email", 
+  "fieldtype": "Check", 
+  "label": "Send Invite Email"
  }, 
  {
   "doctype": "DocField", 
@@ -402,17 +408,36 @@
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
   "role": "Administrator"
  }, 
  {
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
   "role": "System Manager"
  }, 
  {
   "doctype": "DocPerm", 
   "match": "owner", 
+  "permlevel": 0, 
   "role": "All"
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
+  "role": "Administrator"
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
+  "role": "System Manager"
  }
 ]

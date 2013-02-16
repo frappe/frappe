@@ -70,6 +70,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.appframe.add_home_breadcrumb();
 		this.appframe.add_module_breadcrumb(module);
 		this.appframe.add_breadcrumb("icon-list");
+		this.appframe.set_views_for(this.doctype, "list");
 	},
 
 	setup: function() {
@@ -81,29 +82,21 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		me.setup_listview();
 		me.init_list();
 		me.init_stats();
-		me.make_report_button();
 		me.add_delete_option();
 		me.make_help();
 		me.show_match_help();
 	},
-	make_report_button: function() {
-		var me = this;
-		if(wn.boot.profile.can_get_report.indexOf(this.doctype)!=-1) {
-			this.appframe.add_button(wn._('Build Report'), function() {
-				wn.set_route('Report2', me.doctype);
-			}, 'icon-th')
-		}
-	},
 	show_match_help: function() {
+		var me = this;
 		var match_rules = wn.perm.get_match_rule(this.doctype);
 		if(keys(match_rules).length) {
 			var match_text = []
 			$.each(match_rules, function(key, values) {
-				match_text.push(key + "=" + wn.utils.comma_or(values));
-			})
-			wn.utils.set_intro(this, this.$page.find(".layout-main-section"), 
+				match_text.push(wn._(wn.meta.get_label(me.doctype, key)) + " = " + wn.utils.comma_or(values));
+			});
+			wn.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
 				wn._("Showing only for") + ": " + match_text.join(" & "));
-			$(this.intro_area).css({"margin-top":"0px", "margin-bottom":"20px"});
+			$(this.footnote_area).css({"margin-top":"0px", "margin-bottom":"20px"});
 		}
 	},
 	make_help: function() {

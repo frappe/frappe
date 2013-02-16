@@ -1215,7 +1215,7 @@ DateTimeField.prototype.make_input = function() {
 	args = get_datepicker_options();
 	args.timeFormat = "hh:mm:ss";
 
-	this.input = $('<input type="text">')
+	this.input = $('<input type="text" data-fieldtype="Datetime">')
 		.appendTo(this.input_area)
 		.datetimepicker(args).get(0);
 		

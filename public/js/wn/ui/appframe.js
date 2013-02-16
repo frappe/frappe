@@ -1,3 +1,8 @@
+// Copyright 2013 Web Notes Technologies Pvt Ltd
+// License: MIT. See license.txt
+
+// wn._("Form")
+
 wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
@@ -12,6 +17,8 @@ wn.ui.AppFrame = Class.extend({
 				<span class="appframe-subject"></span>\
 			</span>\
 			<span class="close" style="margin-top: 5px; margin-right: 7px;">&times;</span>\
+			<span class="appframe-right btn-group">\
+			</span>\
 		</div>').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {
@@ -61,6 +68,68 @@ wn.ui.AppFrame = Class.extend({
 				module_info.label || module);
 		}
 	},
+	
+	set_views_for: function(doctype, active_view) {
+		this.doctype = doctype;
+		var me = this;
+		var views = [{
+				icon: "icon-file-alt",
+				route: "",
+				type: "form",
+				set_route: function() {
+					if(wn.views.formview[me.doctype]) {
+						wn.set_route("Form", me.doctype, wn.views.formview[me.doctype].frm.docname);
+					} else {
+						new_doc(doctype);
+					}
+				}
+			},
+			{
+				icon: "icon-list",
+				route: "List/" + doctype,
+				type: "list"
+			}];
+		if(locals.DocType[doctype].__calendar_js) {
+			views.push({
+				icon: "icon-calendar",
+				route: "Calendar/" + doctype,
+				type: "calendar"
+			})
+		}
+		if(wn.model.can_get_report(doctype)) {
+			views.push({
+				icon: "icon-table",
+				route: "Report2/" + doctype,
+				type: "report"
+			})
+		}
+		this.set_views(views, active_view);
+	},
+	
+	set_views: function(views, active_view) {
+		var me = this;
+		$right = this.$w.find(".appframe-right").css({
+			"display":"inline-block",
+			"width": (39 * views.length) + "px"
+		});
+		$.each(views, function(i, e) {
+			var btn = $(repl('<button class="btn" data-route="%(route)s">\
+				<i class="%(icon)s"></i></button>', e))
+				.click(e.set_route || function() {
+					window.location.hash = "#" + $(this).attr("data-route");
+				})
+				.css({
+					width: "39px"
+				})
+				.attr("title", wn._(toTitle(e.type)))
+				.appendTo($right);
+				
+			if(e.type==active_view) {
+				btn.addClass("btn-inverse");
+			}
+		});
+	},
+	
 	add_button: function(label, click, icon) {
 		this.add_toolbar();
 		args = { label: label, icon:'' };

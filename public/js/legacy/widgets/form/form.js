@@ -79,8 +79,6 @@ _f.Frm = function(doctype, parent, in_form) {
 	});
 }
 
-// ======================================================================================
-
 _f.Frm.prototype.check_doctype_conflict = function(docname) {
 	var me = this;
 	if(this.doctype=='DocType' && docname=='DocType') {
@@ -117,10 +115,11 @@ _f.Frm.prototype.setup = function() {
 	// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 	this.setup_client_script();
 	
+	this.setup_header();
+	
 	this.setup_done = true;
 }
 
-// ======================================================================================
 
 _f.Frm.prototype.setup_print_layout = function() {
 	var me = this;
@@ -158,9 +157,9 @@ _f.Frm.prototype.setup_print_layout = function() {
 }
 
 
-_f.Frm.prototype.onhide = function() { if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect(); }
-
-// ======================================================================================
+_f.Frm.prototype.onhide = function() { 
+	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect(); 
+}
 
 _f.Frm.prototype.setup_std_layout = function() {
 	this.page_layout = new wn.PageLayout({
@@ -201,14 +200,16 @@ _f.Frm.prototype.setup_std_layout = function() {
 	
 	// footer
 	this.setup_footer();
-		
-	// header - no headers for tables and guests
-	if(!(this.meta.istable || (this.meta.in_dialog && !this.in_form))) 
-		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
-			
+					
 	// create fields
 	this.setup_fields_std();
 	
+}
+
+_f.Frm.prototype.setup_header = function() {
+	// header - no headers for tables and guests
+	if(!(this.meta.istable || (this.meta.in_dialog && !this.in_form))) 
+		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -461,7 +462,7 @@ _f.Frm.prototype.check_doc_perm = function() {
 	this.perm = wn.perm.get_perm(dt, dn);
 				  
 	if(!this.perm[0][READ]) { 
-		wn.container.change_to('403');
+		wn.set_route("403");
 		return 0;
 	}
 	return 1
@@ -563,7 +564,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			
 			if(this.doc.docstatus==0) {
 				var first = $(this.wrapper).find('.form-layout-row :input:first');
-				if(first.attr("data-fieldtype")!="Date") {
+				if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 					first.focus();
 				}
 			}
