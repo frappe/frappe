@@ -156,7 +156,10 @@ function makeselector() {
 			if (typeof(q)==="string") {
 				args.query = q;
 			} else {
-				$.extend(args, q);
+				// replaced $.extend(argsm q)
+				$.each(q, function(key, value) {
+					args[key] = value;
+				});
 			}
 		}
 
