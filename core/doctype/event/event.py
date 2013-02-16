@@ -40,7 +40,8 @@ def get_events(start, end):
 			`tabEvent User`.parent=tabEvent.name and person=%s)
 		or exists(select * from `tabEvent Role` where 
 			`tabEvent Role`.parent=tabEvent.name 
-			and `tabEvent Role`.role in ('%s')))""" % ('%s', '%s', '%s', '%s', '%s', '%s', 
+			and `tabEvent Role`.role in ('%s')))
+		order by starts_on""" % ('%s', '%s', '%s', '%s', '%s', '%s', 
 			"', '".join(roles)), (start, end, start, end,
 			webnotes.session.user, webnotes.session.user), as_dict=1)
 			
