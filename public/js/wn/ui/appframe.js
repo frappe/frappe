@@ -113,7 +113,7 @@ wn.ui.AppFrame = Class.extend({
 			"width": (39 * views.length) + "px"
 		});
 		$.each(views, function(i, e) {
-			$btn = $(repl('<button class="btn" data-route="%(route)s">\
+			var btn = $(repl('<button class="btn" data-route="%(route)s">\
 				<i class="%(icon)s"></i></button>', e))
 				.click(e.set_route || function() {
 					window.location.hash = "#" + $(this).attr("data-route");
@@ -125,7 +125,7 @@ wn.ui.AppFrame = Class.extend({
 				.appendTo($right);
 				
 			if(e.type==active_view) {
-				$btn.addClass("btn-inverse");
+				btn.addClass("btn-inverse");
 			}
 		});
 	},
