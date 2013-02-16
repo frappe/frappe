@@ -23,6 +23,7 @@
 from __future__ import unicode_literals
 import webnotes
 import datetime
+from webnotes.utils import get_datetime
 
 # global values -- used for caching
 user_date_format = None
@@ -77,4 +78,12 @@ def get_user_date_format():
 		global user_date_format
 		user_date_format = webnotes.conn.get_value("Control Panel", None, "date_format")
 	return user_date_format
+	
+def datetime_in_user_format(date_time):
+	if isinstance(date_time, basestring):
+		date_time = get_datetime(date_time)
+	from webnotes.utils import formatdate
+	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
+	
+	
 	
