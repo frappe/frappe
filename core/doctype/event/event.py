@@ -25,3 +25,24 @@ import webnotes
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+
+@webnotes.whitelist()
+def get_events(start, end):
+	roles = webnotes.get_roles()
+	events = webnotes.conn.sql("""select name, subject, 
+		starts_on, ends_on, owner, all_day, event_type
+		from tabEvent where (
+			(starts_on between %s and %s)
+			or (ends_on between %s and %s)
+		)
+		and (event_type='Public' or owner=%s
+		or exists(select * from `tabEvent User` where 
+			`tabEvent User`.parent=tabEvent.name and person=%s)
+		or exists(select * from `tabEvent Role` where 
+			`tabEvent Role`.parent=tabEvent.name 
+			and `tabEvent Role`.role in ('%s')))
+		order by starts_on""" % ('%s', '%s', '%s', '%s', '%s', '%s', 
+			"', '".join(roles)), (start, end, start, end,
+			webnotes.session.user, webnotes.session.user), as_dict=1)
+			
+	return events

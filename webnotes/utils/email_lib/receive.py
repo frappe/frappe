@@ -21,18 +21,17 @@
 # 
 
 from __future__ import unicode_literals
-from webnotes.utils import extract_email_id
+from webnotes.utils import extract_email_id, convert_utc_to_user_timezone
 
 class IncomingMail:
 	"""
 		Single incoming email object. Extracts, text / html and attachments from the email
 	"""
 	def __init__(self, content):
-		"""
-			Parse the incoming mail content
-		"""
 		import email
-		from email.utils import parseaddr
+		import email.utils
+		import datetime
+		import time
 		
 		self.mail = email.message_from_string(content)
 		
@@ -42,7 +41,11 @@ class IncomingMail:
 		self.parse()
 		self.set_content_and_type()
 		self.from_email = extract_email_id(self.mail["From"])
-		self.from_real_name = parseaddr(self.mail["From"])[0]
+		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
+		
+		utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
+		utc_dt = datetime.datetime.utcfromtimestamp(utc)
+		self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
 
 	def parse(self):
 		for part in self.mail.walk():

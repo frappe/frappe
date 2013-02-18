@@ -41,7 +41,7 @@ cur_frm.cscript.refresh = function(doc, cdt, cdn) {
 		cur_frm.perm = [[1,0,0]]
 		
 		// make help heading
-		webnotes.msgprint('<b>Cannot Edit DocType directly</b>: \
+		msgprint('<b>Cannot Edit DocType directly</b>: \
 			To edit DocType properties, \
 			create / update <a href="#!List/Custom%20Field">Custom Field</a>, \
 			<a href="#!List/Custom%20Script">Custom Script</a> \

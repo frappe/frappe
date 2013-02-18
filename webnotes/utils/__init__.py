@@ -186,20 +186,20 @@ def time_diff_in_seconds(string_ed_date, string_st_date):
 	return (get_datetime(string_ed_date) - get_datetime(string_st_date)).seconds
 
 def now_datetime():
-	global user_time_zone
 	from datetime import datetime
-	from pytz import timezone
-	
-	# get localtime
+	return convert_utc_to_user_timezone(datetime.utcnow())
+
+def get_user_time_zone():
+	global user_time_zone
 	if not user_time_zone:
 		user_time_zone = webnotes.conn.get_value('Control Panel', None, 'time_zone') \
 			or 'Asia/Calcutta'
+	return user_time_zone
 
-	# convert to UTC
-	utcnow = timezone('UTC').localize(datetime.utcnow())
-
-	# convert to user time zone
-	return utcnow.astimezone(timezone(user_time_zone))
+def convert_utc_to_user_timezone(utc_timestamp):
+	from pytz import timezone
+	utcnow = timezone('UTC').localize(utc_timestamp)
+	return utcnow.astimezone(timezone(get_user_time_zone()))
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
@@ -780,3 +780,15 @@ def get_base_path():
 	import conf
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
+
+def get_url_to_form(doctype, name, base_url=None, label=None):
+	if not base_url:
+		try:
+			from startup import get_url
+			base_url = get_url()
+		except ImportError:
+			base_url = get_request_site_address()
+	
+	if not label: label = name
+	
+	return """<a href="%(base_url)s/app.html#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()

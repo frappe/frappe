@@ -67,7 +67,16 @@ $.extend(wn.model, {
 					doctype: doctype,
 					with_parent: 1
 				},
-				callback: callback
+				callback: function(r) {
+					var meta = locals.DocType[doctype];
+					if(meta.__list_js) {
+						eval(meta.__list_js);
+					}
+					if(meta.__calendar_js) {
+						eval(meta.__calendar_js);
+					}
+					callback(r);
+				}
 			});
 		}
 	},

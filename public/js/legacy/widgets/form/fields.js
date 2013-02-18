@@ -343,7 +343,7 @@ Field.prototype.set = function(val) {
 	
 	if(this.validate)
 		val = this.validate(val);
-
+		
 	cur_frm.set_value_in_locals(this.doctype, this.docname, 
 		this.df.fieldname, val);
 	this.value = val; // for return
@@ -639,10 +639,15 @@ LinkField.prototype.make_input = function() {
 			var q = me.get_custom_query();
 			if (typeof(q)==="string") {
 				args.query = q;
-			} else {
+			} else if($.isPlainObject(q)) {
+				if(q.filters) {
+					$.each(q.filters, function(key, value) {
+						q.filters[key] = value===undefined ? null : value;
+					});
+				}
 				$.extend(args, q);
 			}
-
+			
 			wn.call({
 				method:'webnotes.widgets.search.search_link',
 				args: args,
@@ -1075,7 +1080,7 @@ SelectField.prototype.make_input = function() {
 			me.options_list = me.df.options || [""];
 		else
 			me.options_list = me.df.options?me.df.options.split('\n'):[''];
-		
+
 		// add options
 		if(me.in_filter && me.options_list[0]!='') {
 			me.options_list = add_lists([''], me.options_list);
@@ -1104,16 +1109,26 @@ SelectField.prototype.make_input = function() {
 		this.input.set_input(v);
 	}
 	
+	var _set_value = function(value) {
+		// use option's value if dict, else use string for comparison and setting
+		for(var i in (me.options_list || [""])) {
+			var option = me.options_list[i];
+			if($.isPlainObject(option)){
+				option = option.value;
+			}
+			if(option === value) {
+				me.input.value = value;
+				break;
+			}
+		}
+	}
+	
 	this.input.set_input=function(v) {
 		if(!v) {
 			if(!me.input.multiple) {
 				if(me.docname) { // if called from onload without docname being set on fields
-					if(me.options_list && me.options_list.length) {
-						me.set(me.options_list[0]);
-						me.input.value = me.options_list[0];
-					} else {
-						me.input.value = '';
-					}
+					_set_value(v);
+					me.set(me.get_value());
 				}
 			}
 		} else {
@@ -1124,8 +1139,8 @@ SelectField.prototype.make_input = function() {
 						if(me.input.options[i].value && inList(typeof(v)=='string'?v.split(","):v, me.input.options[i].value))
 							me.input.options[i].selected = 1;
 					}
-				} else if(in_list(me.options_list, v)){
-					me.input.value = v;
+				} else {
+					_set_value(v);
 				}
 			}
 		}
@@ -1205,7 +1220,7 @@ DateTimeField.prototype.make_input = function() {
 	args = get_datepicker_options();
 	args.timeFormat = "hh:mm:ss";
 
-	this.input = $('<input type="text">')
+	this.input = $('<input type="text" data-fieldtype="Datetime">')
 		.appendTo(this.input_area)
 		.datetimepicker(args).get(0);
 		

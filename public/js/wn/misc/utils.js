@@ -66,8 +66,8 @@ wn.utils = {
 	},
 	set_footnote: function(me, wrapper, txt) {
 		if(!me.footnote_area) {
-			me.footnote_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
-				.insertAfter(wrapper.lastChild);
+			me.footnote_area = $('<div class="alert alert-info form-intro-area" style="margin-top: 20px;">')
+				.appendTo(wrapper);
 		}
 		
 		if(txt) {
@@ -125,5 +125,19 @@ wn.utils = {
 
 		// test regExp if not null
 		return '' !== val ? regExp.test( val ) : false;
+	},
+	guess_style: function(text, default_style) {
+		var style = default_style;
+		if(!text) 
+			return style;
+		if(has_words(["Open", "Pending"], text)) {
+			style = "important";
+		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
+			"Approved", "Yes", "Active"], text)) {
+			style = "success";
+		} else if(has_words(["Submitted"], text)) {
+			style = "info";
+		}
+		return style;
 	}
 };

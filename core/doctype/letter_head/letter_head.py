@@ -25,8 +25,6 @@ import webnotes
 
 sql = webnotes.conn.sql
 
-test_records = []
-
 class DocType:
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc

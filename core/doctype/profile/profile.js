@@ -1,8 +1,14 @@
 cur_frm.cscript.onload = function(doc) {
-	if(!cur_frm.roles_editor && has_common(user_roles, ["Administrator", "System Manager"])) {
-		var role_area = $('<div style="min-height: 300px">')
-			.appendTo(cur_frm.fields_dict.roles_html.wrapper);
-		cur_frm.roles_editor = new wn.RoleEditor(role_area);
+	if(has_common(user_roles, ["Administrator", "System Manager"])) {
+		if(!cur_frm.roles_editor) {
+			var role_area = $('<div style="min-height: 300px">')
+				.appendTo(cur_frm.fields_dict.roles_html.wrapper);
+			cur_frm.roles_editor = new wn.RoleEditor(role_area);
+		} else {
+			// called when creating a new profile 
+			// and need to clear previous profile's roles
+			cur_frm.roles_editor.show();
+		}
 	}
 }
 
@@ -21,7 +27,8 @@ cur_frm.cscript.refresh = function(doc) {
 		}
 		cur_frm.cscript.enabled(doc);
 		
-		cur_frm.roles_editor && cur_frm.roles_editor.show(doc.name);
+		cur_frm.roles_editor && cur_frm.roles_editor.show();
+		
 		if(user==doc.name) {
 			// update display settings
 			wn.ui.set_theme(doc.theme);
@@ -53,9 +60,7 @@ cur_frm.cscript.enabled = function(doc) {
 
 cur_frm.cscript.validate = function(doc) {
 	if(cur_frm.roles_editor) {
-		doc.__temp = JSON.stringify({
-			roles:cur_frm.roles_editor.get_roles()
-		});
+		cur_frm.roles_editor.set_roles_in_table()
 	}
 }
 
@@ -69,6 +74,12 @@ wn.RoleEditor = Class.extend({
 			callback: function(r) {
 				me.roles = r.message;
 				me.show_roles();
+				
+				// refresh call could've already happened 
+				// when all role checkboxes weren't created
+				if(cur_frm.doc) {
+					cur_frm.roles_editor.show();
+				}
 			}
 		});
 	},
@@ -90,38 +101,63 @@ wn.RoleEditor = Class.extend({
 			return false;
 		})
 	},
-	show: function(uid) {
+	show: function() {
 		var me = this;
-		this.uid = uid;
-		// set user roles
-		wn.call({
-			method:'core.doctype.profile.profile.get_user_roles',
-			args: {uid:uid},
-			callback: function(r, rt) {
-				$(me.wrapper).find('input[type="checkbox"]').attr('checked', false);
-				for(var i in r.message) {
-					$(me.wrapper)
-						.find('[data-user-role="'+r.message[i]
-							+'"] input[type="checkbox"]').attr('checked',true);
-				}
-			}
-		})
+		
+		// uncheck all roles
+		$(this.wrapper).find('input[type="checkbox"]').removeAttr("checked");
+		
+		// set user roles as checked
+		$.each(wn.model.get("UserRole", {parent: cur_frm.doc.name, 
+			parentfield: "user_roles"}), function(i, user_role) {
+				$(me.wrapper)
+					.find('[data-user-role="'+user_role.role
+						+'"] input[type="checkbox"]').attr('checked', 'checked');
+			});
 	},
+	set_roles_in_table: function() {
+		var opts = this.get_roles();
+		var existing_roles_map = {};
+		var existing_roles_list = [];
+		
+		$.each(wn.model.get("UserRole", {parent: cur_frm.doc.name, 
+			parentfield: "user_roles"}), function(i, user_role) { 
+				existing_roles_map[user_role.role] = user_role.name;
+				existing_roles_list.push(user_role.role);
+			});
+		
+		// remove unchecked roles
+		$.each(opts.unchecked_roles, function(i, role) {
+			if(existing_roles_list.indexOf(role)!=-1) {
+				wn.model.clear_doc("UserRole", existing_roles_map[role]);
+			}
+		});
+		
+		// add new roles that are checked
+		$.each(opts.checked_roles, function(i, role) {
+			if(existing_roles_list.indexOf(role)==-1) {
+				var user_role = wn.model.add_child(cur_frm.doc, "UserRole", "user_roles");
+				user_role.role = role;
+			}
+		});
+		
+		refresh_field("user_roles");
+	},	
 	get_roles: function() {
-		var set_roles = [];
-		var unset_roles = [];
+		var checked_roles = [];
+		var unchecked_roles = [];
 		$(this.wrapper).find('[data-user-role]').each(function() {
 			var $check = $(this).find('input[type="checkbox"]');
 			if($check.attr('checked')) {
-				set_roles.push($(this).attr('data-user-role'));
+				checked_roles.push($(this).attr('data-user-role'));
 			} else {
-				unset_roles.push($(this).attr('data-user-role'));
+				unchecked_roles.push($(this).attr('data-user-role'));
 			}
 		});
 		
 		return {
-			set_roles: set_roles,
-			unset_roles: unset_roles
+			checked_roles: checked_roles,
+			unchecked_roles: unchecked_roles
 		}
 	},
 	show_permissions: function(role) {

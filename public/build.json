@@ -65,8 +65,6 @@
 		
 			"lib/public/js/lib/tiny_mce_3.5.7/jquery.tinymce.js:concat",
 			"lib/public/js/lib/mousetrap.min.js",
-			"lib/public/js/lib/number_formatter.js",
-			"lib/public/js/lib/imask.js",
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",
@@ -101,6 +99,7 @@
 			"lib/public/js/wn/misc/tools.js",
 			"lib/public/js/wn/misc/about.js",
 			"lib/public/js/wn/misc/datetime.js",
+			"lib/public/js/wn/misc/number_format.js",
 
 			"lib/public/js/legacy/utils/handler.js",
 			"lib/public/js/legacy/utils/printElement.js",
@@ -122,8 +121,10 @@
 			"lib/public/js/wn/views/formview.js",
 			"lib/public/js/wn/views/load_reportview.js",
 			"lib/public/js/wn/views/reportview.js",
+			"lib/public/js/wn/views/calendar.js",
 			"lib/public/js/wn/views/grid_report.js",
 			"lib/public/js/wn/views/communication.js",
+			"lib/public/js/wn/views/test_runner.js",
 			"lib/public/js/wn/form/formatters.js",
 
 			"lib/public/js/legacy/webpage/page_header.js",

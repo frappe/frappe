@@ -46,6 +46,11 @@ class HTTPRequest:
 		webnotes.cookie_manager = CookieManager()
 
 		webnotes.request_method = webnotes.get_env_vars("REQUEST_METHOD")
+		
+		# override request method. All request to be of type POST, but if _type == "POST" then commit
+		if webnotes.form_dict.get("_type"):
+			webnotes.request_method = webnotes.form_dict.get("_type")
+			del webnotes.form_dict["_type"]
 
 		# set db
 		self.connect()

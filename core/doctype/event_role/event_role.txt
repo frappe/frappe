@@ -1,38 +1,36 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2012-07-03 13:30:34", 
   "docstatus": 0, 
-  "creation": "2012-03-27 14:35:37", 
+  "modified": "2013-02-14 16:50:50", 
   "modified_by": "Administrator", 
-  "modified": "2012-03-27 14:35:37"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
-  "istable": 1, 
-  "name": "__common__", 
-  "colour": "White:FFF", 
-  "module": "Core", 
-  "doctype": "DocType", 
   "autoname": "__EVR.#####", 
-  "show_in_menu": 0
+  "doctype": "DocType", 
+  "istable": 1, 
+  "module": "Core", 
+  "name": "__common__"
  }, 
  {
-  "parent": "Event Role", 
-  "oldfieldtype": "Link", 
-  "oldfieldname": "role", 
-  "name": "__common__", 
   "doctype": "DocField", 
-  "label": "Role", 
-  "permlevel": 0, 
-  "parenttype": "DocType", 
   "fieldname": "role", 
   "fieldtype": "Link", 
+  "label": "Role", 
+  "name": "__common__", 
+  "oldfieldname": "role", 
+  "oldfieldtype": "Link", 
   "options": "Role", 
-  "parentfield": "fields"
+  "parent": "Event Role", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "width": "240px"
  }, 
  {
-  "name": "Event Role", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Event Role"
  }, 
  {
   "doctype": "DocField"

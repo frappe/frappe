@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-01-10 16:34:04", 
+  "creation": "2013-02-14 17:37:36", 
   "docstatus": 0, 
-  "modified": "2013-02-06 11:30:43", 
+  "modified": "2013-02-15 14:59:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -39,7 +39,6 @@
   "parent": "Profile", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
   "read": 1, 
   "report": 1, 
   "submit": 0, 
@@ -112,6 +111,13 @@
   "oldfieldtype": "Data"
  }, 
  {
+  "default": "1", 
+  "doctype": "DocField", 
+  "fieldname": "send_invite_email", 
+  "fieldtype": "Check", 
+  "label": "Send Invite Email"
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "column_break0", 
   "fieldtype": "Column Break", 
@@ -125,7 +131,7 @@
   "fieldname": "language", 
   "fieldtype": "Select", 
   "label": "Language", 
-  "options": "\n\u0627\u0644\u0639\u0631\u0628\u064a\u0629\nenglish\nespa\u00f1ol\nfran\u00e7ais\n\u0939\u093f\u0902\u0926\u0940\nnederlands\nportugu\u00eas\n\u0441\u0440\u043f\u0441\u043a\u0438\n\u0ba4\u0bae\u0bbf\u0bb4\u0bcd"
+  "options": "\n\u0627\u0644\u0639\u0631\u0628\u064a\u0629\nenglish\nespa\u00f1ol\nfran\u00e7ais\n\u0939\u093f\u0902\u0926\u0940\nHrvatski\nnederlands\nportugu\u00eas\n\u0441\u0440\u043f\u0441\u043a\u0438\n\u0ba4\u0bae\u0bbf\u0bb4\u0bcd"
  }, 
  {
   "doctype": "DocField", 
@@ -168,6 +174,7 @@
   "fieldtype": "Password", 
   "hidden": 0, 
   "label": "New Password", 
+  "no_copy": 1, 
   "print_hide": 1
  }, 
  {
@@ -378,20 +385,59 @@
   "oldfieldtype": "Text"
  }, 
  {
+  "doctype": "DocField", 
+  "fieldname": "roles_assigned_to_user", 
+  "fieldtype": "Section Break", 
+  "hidden": 1, 
+  "label": "Roles Assigned To User", 
+  "no_copy": 0, 
+  "print_hide": 1, 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "user_roles", 
+  "fieldtype": "Table", 
+  "hidden": 1, 
+  "label": "Roles Assigned", 
+  "options": "UserRole", 
+  "print_hide": 1, 
+  "read_only": 1
+ }, 
+ {
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
   "role": "Administrator"
  }, 
  {
   "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
   "role": "System Manager"
  }, 
  {
   "doctype": "DocPerm", 
   "match": "owner", 
+  "permlevel": 0, 
   "role": "All"
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
+  "role": "Administrator"
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "permlevel": 1, 
+  "role": "System Manager"
  }
 ]

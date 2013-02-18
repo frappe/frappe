@@ -3,9 +3,6 @@
 
 wn.views.get_listview = function(doctype, parent) {
 	var meta = locals.DocType[doctype];
-	if(meta.__listjs) {
-		eval(meta.__listjs);
-	}
 	
 	if(wn.doclistviews[doctype]) {
 		var listview = new wn.doclistviews[doctype](parent);
@@ -32,27 +29,29 @@ wn.views.ListView = Class.extend({
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
 			t + '_user_tags', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
-			
+		
+		
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
-			if(d.fieldtype=="Image" && d.options) {
-				me.fields.push(t + "`" + d.options + "`");
-			} else {
-				me.fields.push(t + "`" + d.fieldname + "`");
-			}
-			
-			if(d.fieldtype=="Select") {
-				me.stats.push(d.fieldname);
-			}
-
-			// currency field for symbol (multi-currency)
-			if(d.fieldtype=="Currency" && d.options) {
-				if(d.options.indexOf(":")!=-1) {
-					me.fields.push(t + "`" + d.options.split(":")[1] + "`");
-				} else {
+			if(wn.perm.has_perm(me.doctype, d.permlevel, READ)) {
+				if(d.fieldtype=="Image" && d.options) {
 					me.fields.push(t + "`" + d.options + "`");
-				};
-			}
+				} else {
+					me.fields.push(t + "`" + d.fieldname + "`");
+				}
 
+				if(d.fieldtype=="Select") {
+					me.stats.push(d.fieldname);
+				}
+
+				// currency field for symbol (multi-currency)
+				if(d.fieldtype=="Currency" && d.options) {
+					if(d.options.indexOf(":")!=-1) {
+						me.fields.push(t + "`" + d.options.split(":")[1] + "`");
+					} else {
+						me.fields.push(t + "`" + d.options + "`");
+					};
+				}
+			}
 		});
 
 		// additional fields
@@ -240,14 +239,9 @@ wn.views.ListView = Class.extend({
 		else if(opts.type=="select" && data[opts.content]) {
 			
 			var label_class = "";
-			if(has_words(["Open", "Pending"], data[opts.content])) {
-				label_class = "label-important";
-			} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
-				"Approved", "Yes", "Active"], data[opts.content])) {
-				label_class = "label-success";
-			} else if(has_words(["Submitted"], data[opts.content])) {
-				label_class = "label-info";
-			}
+
+			var style = wn.utils.guess_style(data[opts.content]);
+			if(style) label_class = "label-" + style;
 			
 			$("<span class='label'>" 
 				+ data[opts.content] + "</span>")

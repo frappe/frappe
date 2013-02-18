@@ -78,9 +78,6 @@ def add(args=None):
 @webnotes.whitelist()
 def remove(doctype, name, assign_to):
 	"""remove from todo"""
-	if not args:
-		args = webnotes.form_dict
-	
 	res = webnotes.conn.sql("""\
 		select assigned_by, owner, reference_type, reference_name from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
@@ -91,12 +88,13 @@ def remove(doctype, name, assign_to):
 		and owner=%(assign_to)s""", locals())
 		
 	# clear assigned_to if field exists
-	if "assigned_to" in webnotes.conn.get_columns(doctype):
+	from webnotes.model.meta import has_field
+	if has_field(doctype, "assigned_to"):
 		webnotes.conn.set_value(doctype, name, "assigned_to", None)
 
 	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
 
-	return get(args)
+	return get({"doctype": doctype, "name": name})
 
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', notify=0):
@@ -113,8 +111,9 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 	user_info = get_fullnames()
 
 	# Search for email address in description -- i.e. assignee
-	assignment = """<a href="#!Form/%s/%s">%s: %s</a>""" % (doc_type, doc_name,
-			doc_type, doc_name)
+	from webnotes.utils import get_url_to_form
+	assignment = get_url_to_form(doc_type, doc_name, label="%s: %s" % (doc_type, doc_name))
+		
 	if action=='CLOSE':
 		if owner == webnotes.session.get('user'):
 			arg = {

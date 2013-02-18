@@ -1,0 +1,21 @@
+{
+ "Adds a custom field to a DocType": "Dodaje prilago\u0111eni polja DOCTYPE", 
+ "Adds a custom script (client or server) to a DocType": "Dodaje prilago\u0111eni scenarij (klijent ili poslu\u017eitelj) na DOCTYPE", 
+ "Bulk Email records.": "Bulk Email Records.", 
+ "Data Import Tool": "Uvoz podataka alat", 
+ "Defines actions on states and the next step and allowed roles.": "Definira aktivnosti na \u010dlanicama i sljede\u0107i korak i dopu\u0161teni uloge.", 
+ "Defines workflow states and rules for a document.": "Definira tijeka stanja i pravila za dokument.", 
+ "DocType is a Table / Form in the application.": "DOCTYPE je tablica / Forma u primjeni.", 
+ "Keep a track of all communications": "Dr\u017eite pra\u0107enje svih komunikacija", 
+ "List of patches executed": "Popis zakrpe izvr\u0161enih", 
+ "Log of Scheduler Errors": "Prijavite od Raspore\u0111iva\u010d pogre\u0161aka", 
+ "Login Page": "Prijavite stranicu", 
+ "Permission Manager": "Dopu\u0161tenje Manager", 
+ "Profile Represents a User in the system.": "Profil Predstavlja korisnika u sustavu.", 
+ "Property Setter overrides a standard DocType or Field property": "Nekretnine seter nadja\u010dava standardni DOCTYPE ili polja nekretnine", 
+ "Query Report": "Izvje\u0161\u0107e upita", 
+ "Represents the states allowed in one document and role assigned to change the state.": "Predstavlja stanja dopu\u0161teni u jednom dokumentu i uloge dodijeljene promijeniti stanje.", 
+ "User Properties": "Svojstva korisnika", 
+ "Workflow Action Master": "Workflow Akcija Master", 
+ "Workflow state represents the current state of a document.": "Workflow dr\u017eava predstavlja trenutno stanje dokumenta."
+}

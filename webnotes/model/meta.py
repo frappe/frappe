@@ -25,8 +25,6 @@
 from __future__ import unicode_literals
 import webnotes
 	
-#=================================================================================
-
 def get_dt_values(doctype, fields, as_dict = 0):
 	return webnotes.conn.sql('SELECT %s FROM tabDocType WHERE name="%s"' % (fields, doctype), as_dict = as_dict)
 
@@ -39,20 +37,14 @@ def is_single(doctype):
 	except IndexError, e:
 		raise Exception, 'Cannot determine whether %s is single' % doctype
 
-#=================================================================================
-
 def get_parent_dt(dt):
 	parent_dt = webnotes.conn.sql("""select parent from tabDocField 
 		where fieldtype="Table" and options="%s" and (parent not like "old_parent:%%") 
 		limit 1""" % dt)
 	return parent_dt and parent_dt[0][0] or ''
 
-#=================================================================================
-
 def set_fieldname(field_id, fieldname):
 	webnotes.conn.set_value('DocField', field_id, 'fieldname', fieldname)
-
-#=================================================================================
 
 def get_link_fields(doctype):
 	"""
@@ -71,8 +63,6 @@ def get_link_fields(doctype):
 			)
 	]
 
-#=================================================================================
-
 def get_table_fields(doctype):
 	child_tables = [[d[0], d[1]] for d in webnotes.conn.sql("select options, fieldname from tabDocField \
 		where parent='%s' and fieldtype='Table'" % doctype, as_list=1)]
@@ -81,3 +71,8 @@ def get_table_fields(doctype):
 		where dt='%s' and fieldtype='Table'" % doctype, as_list=1)]
 
 	return child_tables + custom_child_tables
+
+def has_field(doctype, fieldname):
+	doclist = webnotes.model.doctype.get(doctype)
+	return doclist.get({"parent":doctype, "doctype":"DocField", "fieldname":fieldname})
+	

@@ -64,6 +64,10 @@ $.extend(wn.meta, {
 		}
 	},
 	
+	get_label: function(dt, fn, dn) {
+		return this.get_docfield(dt, fn, dn).label || fn;
+	},
+	
 	get_print_formats: function(doctype) {
 		// if default print format is given, use it
 		var print_format_list = [];

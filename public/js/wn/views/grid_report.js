@@ -486,7 +486,7 @@ wn.views.GridReport = Class.extend({
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
 			_style: dataContext._style || "",
-			value: dataContext._no_format ? value : format_number(value)
+			value: format_number(value)
 		});
 	},
 	text_formatter: function(row, cell, value, columnDef, dataContext) {

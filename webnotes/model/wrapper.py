@@ -106,6 +106,7 @@ class ModelWrapper:
 
 		from webnotes.model.code import get_obj
 		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
+		self.controller = self.obj
 		return self.obj
 
 	def to_dict(self):
@@ -194,6 +195,10 @@ class ModelWrapper:
 		notify(self.obj, method)
 		
 		self.set_doclist(self.obj.doclist)
+
+	def get_method(self, method):
+		self.make_obj()
+		return getattr(self.obj, method, None)
 
 	def save_main(self):
 		try:
@@ -295,7 +300,7 @@ class ModelWrapper:
 	def no_permission_to(self, ptype):
 		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
 			_("No Permission to ") + ptype, raise_exception=True)
-
+			
 # clone
 
 def clone(source_wrapper):

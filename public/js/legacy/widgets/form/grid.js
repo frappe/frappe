@@ -244,7 +244,6 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	
 	// variations
 	if(cell.cellIndex) {
-		var df = copy_dict(hc);
 		$(cell.div).html(wn.format(v, hc, {for_print:true}));
 	} else {
 		// Index column

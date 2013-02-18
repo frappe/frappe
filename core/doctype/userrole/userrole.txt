@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-01-10 16:34:04", 
+  "creation": "2013-02-06 11:30:13", 
   "docstatus": 0, 
-  "modified": "2013-02-06 11:43:05", 
+  "modified": "2013-02-13 07:51:57", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -12,7 +12,6 @@
   "allow_print": 0, 
   "autoname": "UR.#####", 
   "doctype": "DocType", 
-  "document_type": "Master", 
   "hide_heading": 0, 
   "hide_toolbar": 0, 
   "issingle": 0, 

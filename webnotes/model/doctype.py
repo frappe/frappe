@@ -274,7 +274,8 @@ def add_code(doctype, doclist):
 		
 	_add_code(scrub(doc.name) + '.js', '__js')
 	_add_code(scrub(doc.name) + '.css', '__css')
-	_add_code('%s_list.js' % scrub(doc.name), '__listjs')
+	_add_code('%s_list.js' % scrub(doc.name), '__list_js')
+	_add_code('%s_calendar.js' % scrub(doc.name), '__calendar_js')
 	add_embedded_js(doc)
 	
 def add_embedded_js(doc):
