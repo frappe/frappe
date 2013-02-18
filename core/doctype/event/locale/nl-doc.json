@@ -1,8 +1,10 @@
 {
+ "All Day": "All Day", 
  "Cancel": "Annuleren", 
  "Core": "Kern", 
  "Description": "Beschrijving", 
  "Details": "Details", 
+ "Ends on": "Eindigt op", 
  "Event": "Evenement", 
  "Event Date": "Evenement Datum", 
  "Event Individuals": "Event Personen", 
@@ -18,5 +20,7 @@
  "Private": "Prive-", 
  "Public": "Publiek", 
  "Ref Name": "Ref Naam", 
- "Ref Type": "Ref Type"
+ "Ref Type": "Ref Type", 
+ "Starts on": "Begint op", 
+ "Subject": "Onderwerp"
 }
