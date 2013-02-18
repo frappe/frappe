@@ -119,10 +119,10 @@ wn.views.Calendar = Class.extend({
 					wn.set_route("Form", me.doctype, event.name);
 			},
 			eventDrop: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
-				me.update_event(event);
+				me.update_event(event, revertFunc);
 			},
 			eventResize: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
-				me.update_event(event);
+				me.update_event(event, revertFunc);
 			},
 			select: function(startDate, endDate, allDay, jsEvent, view) {
 				if(jsEvent.day_clicked && view.name=="month")
@@ -180,7 +180,7 @@ wn.views.Calendar = Class.extend({
 			}
 		})
 	},
-	update_event: function(event) {
+	update_event: function(event, revertFunc) {
 		var me = this;
 		wn.model.remove_from_locals(me.doctype, event.name);
 		wn.call({
@@ -189,6 +189,7 @@ wn.views.Calendar = Class.extend({
 			callback: function(r) {
 				if(r.exc) {
 					show_alert("Unable to update event.")
+					revertFunc();
 				}
 			}
 		});		
