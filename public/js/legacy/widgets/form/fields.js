@@ -639,10 +639,15 @@ LinkField.prototype.make_input = function() {
 			var q = me.get_custom_query();
 			if (typeof(q)==="string") {
 				args.query = q;
-			} else {
+			} else if($.isPlainObject(q)) {
+				if(q.filters) {
+					$.each(q.filters, function(key, value) {
+						q.filters[key] = value===undefined ? null : value;
+					});
+				}
 				$.extend(args, q);
 			}
-
+			
 			wn.call({
 				method:'webnotes.widgets.search.search_link',
 				args: args,
