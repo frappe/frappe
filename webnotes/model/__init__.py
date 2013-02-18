@@ -59,9 +59,9 @@ def get_search_criteria(dt):
 		pass # no search criteria
 	return dl
 
-def rename(doctype, old, new, is_doctype=0, debug=1):
+def rename(doctype, old, new, debug=1):
 	import webnotes.model.rename_doc
-	webnotes.model.rename_doc.rename_doc(doctype, old, new, is_doctype, debug)
+	webnotes.model.rename_doc.rename_doc(doctype, old, new, debug)
 
 def copytables(srctype, src, srcfield, tartype, tar, tarfield, srcfields, tarfields=[]):
 	import webnotes.model.doc

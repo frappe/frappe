@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 import webnotes
 
 @webnotes.whitelist()
-def rename_doc(doctype, old, new, is_doctype=0, debug=0, force=False):
+def rename_doc(doctype, old, new, debug=0, force=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and 
 		updates all linked fields of type "Link" or "Select" with "link:"
@@ -57,22 +57,33 @@ def rename_doc(doctype, old, new, is_doctype=0, debug=0, force=False):
 	if debug: webnotes.errprint("executed update_link_field_values")
 	
 	if doctype=='DocType':
-		# change options for fieldtype Table
-		update_parent_of_fieldtype_table(old, new, debug=debug)
-		if debug: webnotes.errprint("executed update_parent_of_fieldtype_table")
-		
-		# change options where select options are hardcoded i.e. listed
-		select_fields = get_select_fields(old, new, debug=debug)
-		update_link_field_values(select_fields, old, new, debug=debug)
-		if debug: webnotes.errprint("executed update_link_field_values")
-		update_select_field_values(old, new, debug=debug)
-		if debug: webnotes.errprint("executed update_select_field_values")
-		
-		# change parenttype for fieldtype Table
-		update_parenttype_values(old, new, debug=debug)
-		if debug: webnotes.errprint("executed update_parenttype_values")
+		rename_doctype(doctype, old, new, debug, force)
 		
 	return new
+	
+def rename_doctype(doctype, old, new, debug=0, force=False):
+	# change options for fieldtype Table
+	update_parent_of_fieldtype_table(old, new, debug=debug)
+	if debug: webnotes.errprint("executed update_parent_of_fieldtype_table")
+	
+	# change options where select options are hardcoded i.e. listed
+	select_fields = get_select_fields(old, new, debug=debug)
+	update_link_field_values(select_fields, old, new, debug=debug)
+	if debug: webnotes.errprint("executed update_link_field_values")
+	update_select_field_values(old, new, debug=debug)
+	if debug: webnotes.errprint("executed update_select_field_values")
+	
+	# change parenttype for fieldtype Table
+	update_parenttype_values(old, new, debug=debug)
+	if debug: webnotes.errprint("executed update_parenttype_values")
+	
+	# update mapper
+	rename_mapper(new)
+	
+def rename_mapper(new):
+	for mapper in webnotes.conn.sql("""select name, from_doctype, to_doctype 
+			from `tabDocType Mapper` where from_doctype=%s or to_doctype=%s""", (new, new), as_dict=1):
+		rename_doc("DocType Mapper", mapper.name, mapper.from_doctype + "-" + mapper.to_doctype, force=True)
 		
 def update_child_docs(old, new, doclist, debug=0):
 	"""
