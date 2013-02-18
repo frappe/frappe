@@ -155,11 +155,14 @@ function makeselector() {
 			
 			if (typeof(q)==="string") {
 				args.query = q;
-			} else {
-				// replaced $.extend(args, q)
-				$.each(q, function(key, value) {
-					args[key] = value;
-				});
+			} else if($.isPlainObject(q)) {
+				if(q.filters) {
+					$.each(q.filters, function(key, value) {
+						q.filters[key] = value===undefined ? null : value;
+					});
+				}
+				
+				$.extend(args, q);
 			}
 		}
 
