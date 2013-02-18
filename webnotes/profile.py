@@ -208,7 +208,7 @@ def get_system_managers():
 	return [p[0] for p in system_managers]
 	
 def add_role(profile, role):
-	profile_wrapper = webnotes.model_wrapper("Profile", profile)
+	profile_wrapper = webnotes.bean("Profile", profile)
 	profile_wrapper.doclist.append({
 		"doctype": "UserRole",
 		"parentfield": "user_roles",

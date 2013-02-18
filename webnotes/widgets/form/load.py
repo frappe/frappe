@@ -92,7 +92,7 @@ def load_single_doc(dt, dn, user):
 		return None
 
 	try:
-		dl = webnotes.model_wrapper(dt, dn).doclist
+		dl = webnotes.bean(dt, dn).doclist
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint('Error in script while loading')

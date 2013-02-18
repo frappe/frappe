@@ -30,7 +30,7 @@ def runserverobj():
 		Run server objects
 	"""
 	import webnotes.model.code
-	from webnotes.model.wrapper import ModelWrapper
+	from webnotes.model.bean import Bean
 	from webnotes.utils import cint
 
 	wrapper = None
@@ -44,7 +44,7 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		wrapper = ModelWrapper()
+		wrapper = Bean()
 		wrapper.from_compressed(webnotes.form_dict.get('docs'), dn)
 		if not wrapper.has_read_perm():
 			webnotes.msgprint(_("No Permission"), raise_exception = True)

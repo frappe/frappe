@@ -282,21 +282,21 @@ def delete_child_rows(rows, doctype):
 		
 def import_doc(d, doctype, overwrite, row_idx):
 	"""import main (non child) document"""
-	from webnotes.model.wrapper import ModelWrapper
+	from webnotes.model.bean import Bean
 
 	if webnotes.conn.exists(doctype, d['name']):
 		if overwrite:
 			doclist = webnotes.model.doc.get(doctype, d['name'])
 			doclist[0].fields.update(d)
-			model_wrapper = ModelWrapper(doclist)
-			model_wrapper.save()
+			bean = Bean(doclist)
+			bean.save()
 			return 'Updated row (#%d) %s' % (row_idx, getlink(doctype, d['name']))
 		else:
 			return 'Ignored row (#%d) %s (exists)' % (row_idx, 
 				getlink(doctype, d['name']))
 	else:
 		d['__islocal'] = 1
-		dl = ModelWrapper([webnotes.model.doc.Document(fielddata = d)])
+		dl = Bean([webnotes.model.doc.Document(fielddata = d)])
 		dl.save()
 		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
 			dl.doc.fields['name']))

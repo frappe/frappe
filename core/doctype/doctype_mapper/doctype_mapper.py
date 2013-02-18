@@ -26,7 +26,7 @@ import webnotes
 from webnotes.utils import cint, cstr, default_fields, flt
 from webnotes.model import db_exists, default_fields
 from webnotes.model.doc import Document, addchild, make_autoname
-from webnotes.model.wrapper import getlist
+from webnotes.model.bean import getlist
 from webnotes import msgprint
 from webnotes.model.doctype import get
 

@@ -27,7 +27,7 @@ import webnotes
 def savedocs():
 	"""save / submit / update doclist"""
 	try:
-		wrapper = webnotes.model_wrapper()
+		wrapper = webnotes.bean()
 		wrapper.from_compressed(webnotes.form_dict.docs, webnotes.form_dict.docname)
 
 		# action
@@ -48,7 +48,7 @@ def savedocs():
 def cancel(doctype=None, name=None):
 	"""cancel a doclist"""
 	try:
-		wrapper = webnotes.model_wrapper(doctype, name)
+		wrapper = webnotes.bean(doctype, name)
 		wrapper.cancel()
 		send_updated_docs(wrapper)
 		

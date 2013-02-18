@@ -30,7 +30,7 @@ def get(doctype, name=None, filters=None):
 		name = webnotes.conn.get_value(doctype, json.loads(filters))
 		if not name:
 			raise Exception, "No document found for given filters"
-	return [d.fields for d in webnotes.model_wrapper(doctype, name).doclist]
+	return [d.fields for d in webnotes.bean(doctype, name).doclist]
 	
 @webnotes.whitelist()
 def insert(doclist):
@@ -45,7 +45,7 @@ def save(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 
-	doclistobj = webnotes.model_wrapper(doclist)
+	doclistobj = webnotes.bean(doclist)
 	doclistobj.save()
 	
 	return [d.fields for d in doclist]
@@ -55,14 +55,14 @@ def submit(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
 
-	doclistobj = webnotes.model_wrapper(doclist)
+	doclistobj = webnotes.bean(doclist)
 	doclistobj.submit()
 	
 	return [d.fields for d in doclist]
 
 @webnotes.whitelist()
 def cancel(doctype, name):
-	wrapper = webnotes.model_wrapper(doctype, name)
+	wrapper = webnotes.bean(doctype, name)
 	wrapper.cancel()
 	
 	return [d.fields for d in wrapper.doclist]
@@ -77,4 +77,4 @@ def set_default(key, value, parent=None):
 def make_width_property_setter():
 	doclist = json.loads(webnotes.form_dict.doclist)
 	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		webnotes.model_wrapper(doclist).save()
+		webnotes.bean(doclist).save()

@@ -37,7 +37,7 @@ class DocType:
 			"fieldname":self.doc.workflow_state_field})):
 			
 			# create custom field
-			webnotes.model_wrapper([{
+			webnotes.bean([{
 				"doctype":"Custom Field",
 				"dt": self.doc.document_type,
 				"__islocal": 1,

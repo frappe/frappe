@@ -312,12 +312,15 @@ def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)
 
-def model_wrapper(doctype=None, name=None):
-	from webnotes.model.wrapper import ModelWrapper
-	return ModelWrapper(doctype, name)
+def bean(doctype=None, name=None, copy=None):
+	from webnotes.model.bean import Bean
+	if copy:
+		return Bean(copy_doclist(copy))
+	else:
+		return Bean(doctype, name)
 
 def get_doclist(doctype, name=None):
-	return model_wrapper(doctype, name).doclist
+	return bean(doctype, name).doclist
 	
 def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
@@ -357,7 +360,7 @@ def get_method(method_string):
 	
 def make_property_setter(args):
 	args = _dict(args)
-	model_wrapper([{
+	bean([{
 		'doctype': "Property Setter",
 		'doctype_or_field': args.doctype_or_field or "DocField",
 		'doc_type': args.doctype,

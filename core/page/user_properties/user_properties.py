@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import webnotes
+import webnotes.defaults
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def get_users_and_links():
@@ -41,7 +42,8 @@ def get_properties(user=None, key=None):
 def remove(user, name):
 	webnotes.conn.sql("""delete from tabDefaultValue where name=%s""", name)
 	webnotes.clear_cache(user=user)
+	webnotes.defaults(user=user)
 	
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def add(parent, defkey, defvalue):
-	webnotes.conn.add_default(defkey, defvalue, parent)
+	webnotes.defaults.add_user_default(defkey, defvalue, parent)

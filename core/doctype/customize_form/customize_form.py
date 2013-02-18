@@ -144,7 +144,7 @@ class DocType:
 
 	def post(self):
 		"""
-			Save diff between Customize Form ModelWrapper and DocType ModelWrapper as property setter entries
+			Save diff between Customize Form Bean and DocType Bean as property setter entries
 		"""
 		if self.doc.doc_type:
 			from webnotes.model import doc

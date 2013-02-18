@@ -299,15 +299,10 @@ class Database:
 		doc.fields[field] = val
 
 	def set_global(self, key, val, user='__global'):
-		res = self.sql('select defkey from `tabDefaultValue` where defkey=%s and parent=%s', (key, user))
-		if res:
-			self.sql('update `tabDefaultValue` set defvalue=%s where parent=%s and defkey=%s', (str(val), user, key))
-		else:
-			self.sql('insert into `tabDefaultValue` (name, defkey, defvalue, parent) values (%s,%s,%s,%s)', (user+'_'+key, key, str(val), user))
+		self.set_default(key, val, user)
 
 	def get_global(self, key, user='__global'):
-		g = self.sql("select defvalue from tabDefaultValue where defkey=%s and parent=%s", (key, user))
-		return g and g[0][0] or None
+		return self.get_default(key, val, user)
 		
 	def get_globals_like(self, key):
 		return [g[0] for g in self.sql("""select defvalue from tabDefaultValue 
@@ -315,56 +310,31 @@ class Database:
 
 	def set_default(self, key, val, parent="Control Panel"):
 		"""set control panel default (tabDefaultVal)"""
-
-		if self.sql("""select defkey from `tabDefaultValue` where 
-			defkey=%s and parent=%s """, (key, parent)):
-			# update
-			self.sql("""update `tabDefaultValue` set defvalue=%s 
-				where parent=%s and defkey=%s""", (val, parent, key))
-			webnotes.clear_cache()
-		else:
-			self.add_default(key, val, parent)
+		import webnotes.defaults
+		webnotes.defaults.set_default(key, val, parent)
 			
 	def add_default(self, key, val, parent="Control Panel"):
-		d = webnotes.doc('DefaultValue')
-		d.parent = parent
-		d.parenttype = 'Control Panel' # does not matter
-		d.parentfield = 'system_defaults'
-		d.defkey = key
-		d.defvalue = val
-		d.save(1)
-		webnotes.clear_cache()
+		import webnotes.defaults
+		webnotes.defaults.add_default(key, val, parent)
 	
 	def get_default(self, key, parent="Control Panel"):
 		"""get default value"""
-		ret = self.get_defaults_as_list(key, parent)
-		return ret and ret[0] or None
+		import webnotes.defaults
+		d = webnotes.defaults.get_default(key, val, parent)
+		return isinstance(d, list) and d[0] or d
 		
 	def get_defaults_as_list(self, key, parent="Control Panel"):
-		ret = [r[0] for r in self.sql("""select defvalue from \
-			tabDefaultValue where defkey=%s and parent=%s""", (key, parent))]
-		if key in ["owner", "user"] and webnotes.session:
-			ret.append(webnotes.session.user)
-		return ret
+		import webnotes.defaults
+		d = webnotes.defaults.get_default(key, val, parent)
+		return isinstance(d, basestring) and [d] or d
 	
 	def get_defaults(self, key=None, parent="Control Panel"):
 		"""get all defaults"""
+		import webnotes.defaults
 		if key:
-			return self.get_default(key, parent)
+			return webnotes.defaults.get_defaults(parent).get(key)
 		else:
-			res = self.sql("""select defkey, defvalue from `tabDefaultValue` 
-				where parent = %s""", parent, as_dict=1)
-			defaults = webnotes._dict({})
-			for d in res:
-				if d.defkey in defaults:
-					# listify
-					if isinstance(defaults[d.defkey], basestring):
-						defaults[d.defkey] = [defaults[d.defkey]]
-					defaults[d.defkey].append(d.defvalue)
-				else:		
-					defaults[d.defkey] = d.defvalue
-
-			return defaults
+			return webnotes.defaults.get_defaults(parent)
 
 	def begin(self):
 		return # not required
