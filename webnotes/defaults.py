@@ -30,7 +30,7 @@ def get_all_user_defaults(user=None):
 	return globald
 
 def clear_user_default(key, user=None):
-	clear_default(key, user or webnotes.session.user)
+	clear_default(key, parent=user or webnotes.session.user)
 
 # Global
 
@@ -72,21 +72,38 @@ def add_default(key, value, parent):
 	d.insert()
 	clear_cache(parent)
 	
-def clear_default(key, parent="Control Panel"):
-	webnotes.conn.sql("""delete from tabDefaultValue where defkey=%s and parent=%s""", (key, parent))
-	clear_cache(parent)
+def clear_default(key=None, value=None, parent=None, name=None):
+	conditions = []
+	values = []
+
+	if key:
+		conditions.append("defkey=%s")
+		values.append(key)
+	
+	if value:
+		conditions.append("defvalue=%s")
+		values.append(value)
+		
+	if name:
+		conditions.append("name=%s")
+		values.append(name)
+		
+	if parent:
+		conditions.append("parent=%s")
+		values.append(parent)
+	
+	if not conditions:
+		raise Exception, "[clear_default] No key specified."
+	
+	webnotes.conn.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
+	clear_cache()
 	
 def get_defaults(parent="Control Panel"):
 	"""get all defaults"""
 	defaults = webnotes.cache().get_value("__defaults:" + parent)
 	if not defaults:
-		if parent=="Control Panel":
-			res = webnotes.conn.sql("""select defkey, defvalue from `tabDefaultValue` 
-				where parent = %s order by creation""", parent, as_dict=1)
-		else:
-			roles = webnotes.get_roles()
-			res = webnotes.conn.sql("""select defkey, defvalue from `tabDefaultValue` 
-				where parent in ('%s') order by creation""" % ("', '".join(roles)), as_dict=1)
+		res = webnotes.conn.sql("""select defkey, defvalue from `tabDefaultValue` 
+			where parent = %s order by creation""", parent, as_dict=1)
 
 		defaults = webnotes._dict({})
 		for d in res:
@@ -102,6 +119,16 @@ def get_defaults(parent="Control Panel"):
 	
 	return defaults
 
-def clear_cache(parent):
-	webnotes.cache().delete_value("__defaults:" + parent)
+def clear_cache(parent=None):
+	def all_profiles():
+		return webnotes.conn.sql_list("select name from tabProfile") + ["Control Panel"]
+		
+	if parent=="Control Panel" or not parent:
+		parent = all_profiles()
+	elif isinstance(parent, basestring):
+		parent = [parent]
+		
+	for p in parent:
+		webnotes.cache().delete_value("__defaults:" + p)
+
 	webnotes.clear_cache()

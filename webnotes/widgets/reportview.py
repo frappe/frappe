@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 """build query for doclistview and return results"""
 
 import webnotes, json
+import webnotes.defaults
 
 tables = None
 doctypes = {}
@@ -198,7 +199,7 @@ def build_match_conditions(data, conditions):
 					else:
 						default_key = document_key = d.match
 				
-					for v in webnotes.user.get_defaults().get(default_key, ['**No Match**']):
+					for v in webnotes.defaults.get_user_defaults(default_key) or ["** No Match **"]:
 						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'],
 							document_key, v))
 							

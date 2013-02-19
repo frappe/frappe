@@ -40,9 +40,7 @@ def get_properties(user=None, key=None):
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def remove(user, name):
-	webnotes.conn.sql("""delete from tabDefaultValue where name=%s""", name)
-	webnotes.clear_cache(user=user)
-	webnotes.defaults(user=user)
+	webnotes.defaults.clear_default(name=name)
 	
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def add(parent, defkey, defvalue):

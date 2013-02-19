@@ -16,7 +16,7 @@ class TestDefaults(unittest.TestCase):
 
 	def test_user(self):
 		set_user_default("key1", "2value1")
-		self.assertEquals(get_user_default("key1"), "2value1")
+		self.assertEquals(get_user_defaults("key1"), ["2value1"])
 
 		set_user_default("key1", "2value2")
 		self.assertEquals(get_user_default("key1"), "2value2")
@@ -35,3 +35,9 @@ class TestDefaults(unittest.TestCase):
 		clear_user_default("key5")
 		self.assertEquals(get_user_default("key5"), None)
 		
+	def test_clear_global(self):
+		set_global_default("key6", "value6")
+		self.assertEquals(get_user_default("key6"), "value6")
+
+		clear_default("key6", value="value6")
+		self.assertEquals(get_user_default("key6"), None)

@@ -302,12 +302,8 @@ class Database:
 		self.set_default(key, val, user)
 
 	def get_global(self, key, user='__global'):
-		return self.get_default(key, val, user)
-		
-	def get_globals_like(self, key):
-		return [g[0] for g in self.sql("""select defvalue from tabDefaultValue 
-			where defkey like %s and parent='__global'""", key)]
-
+		return self.get_default(key, user)
+	
 	def set_default(self, key, val, parent="Control Panel"):
 		"""set control panel default (tabDefaultVal)"""
 		import webnotes.defaults
@@ -320,12 +316,12 @@ class Database:
 	def get_default(self, key, parent="Control Panel"):
 		"""get default value"""
 		import webnotes.defaults
-		d = webnotes.defaults.get_default(key, val, parent)
+		d = webnotes.defaults.get_defaults(parent).get(key)
 		return isinstance(d, list) and d[0] or d
 		
 	def get_defaults_as_list(self, key, parent="Control Panel"):
 		import webnotes.defaults
-		d = webnotes.defaults.get_default(key, val, parent)
+		d = webnotes.defaults.get_default(key, parent)
 		return isinstance(d, basestring) and [d] or d
 	
 	def get_defaults(self, key=None, parent="Control Panel"):

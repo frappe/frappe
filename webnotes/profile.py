@@ -91,7 +91,6 @@ class Profile:
 		quirks: 
 			read_only => Not in Search
 			in_create => Not in create
-		
 		"""
 		self.build_doctype_map()
 		self.build_perm_map()
@@ -133,18 +132,8 @@ class Profile:
 		self.all_read += self.can_read
 
 	def get_defaults(self):
-		if not self.defaults:
-			roles = self.get_roles() + [self.name]
-			res = webnotes.conn.sql("""select defkey, defvalue 
-			from `tabDefaultValue` where parent in ("%s") order by idx""" % '", "'.join(roles))
-	
-			self.defaults = {'owner': [self.name], "user": [self.name]}
-
-			for rec in res: 
-				if not self.defaults.has_key(rec[0]): 
-					self.defaults[rec[0]] = []
-				self.defaults[rec[0]].append(rec[1] or '')
-
+		import webnotes.defaults
+		self.defaults = webnotes.defaults.get_all_user_defaults(self.name)
 		return self.defaults
 			
 	# update recent documents

@@ -28,6 +28,7 @@ sql = webnotes.conn.sql
 out = webnotes.response
 
 from webnotes.utils import cint
+import webnotes.defaults
 
 def get_sql_tables(q):
 	if q.find('WHERE') != -1:
@@ -74,31 +75,17 @@ def get_sql_meta(tl):
 
 	return meta
 
-def getmatchcondition(dt, ud, ur):
-	res = sql("SELECT `role`, `match` FROM tabDocPerm WHERE parent = '%s' AND (`read`=1) AND permlevel = 0" % dt)
-	cond = []
-	for r in res:
-		if r[0] in ur: # role applicable to user
-			if r[1]:
-				defvalues = ud.get(r[1],['_NA'])
-				for d in defvalues:
-					cond.append('`tab%s`.`%s`="%s"' % (dt, r[1], d))
-			else: # nomatch i.e. full read rights
-				return ''
-
-	return ' OR '.join(cond)
-
-def add_match_conditions(q, tl, ur, ud):
+def add_match_conditions(q, tl):
 	sl = []
+	ur = webnotes.user.get_roles()
 	for dt in tl:
-		s = getmatchcondition(dt, ud, ur)
+		s = getmatchcondition(dt, ur)
 		if s:
 			sl.append(s)
 
 	# insert the conditions
 	if sl:
 		condition_st  = q.find('WHERE')!=-1 and ' AND ' or ' WHERE '
-
 		condition_end = q.find('ORDER BY')!=-1 and 'ORDER BY' or 'LIMIT'
 		condition_end = q.find('GROUP BY')!=-1 and 'GROUP BY' or condition_end
 
@@ -109,6 +96,19 @@ def add_match_conditions(q, tl, ur, ud):
 			q = q + condition_st + '(' + ' OR '.join(sl) + ')'
 	
 	return q
+
+def getmatchcondition(dt, ur):
+	res = sql("SELECT `role`, `match` FROM tabDocPerm WHERE parent = '%s' AND (`read`=1) AND permlevel = 0" % dt)
+	cond = []
+	for r in res:
+		if r[0] in ur: # role applicable to user
+			if r[1]:
+				for d in webnotes.defaults.get_user_defaults(default_key) or ["** No Match **"]:
+					cond.append('`tab%s`.`%s`="%s"' % (dt, r[1], d))
+			else:
+				return ''
+
+	return ' OR '.join(cond)
 
 def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[], filter_values={}, query='', from_export=0):
 	col_idx, i, out, style, header_html, footer_html, page_template = {}, 0, None, [], '', '', ''
@@ -231,7 +231,7 @@ def runquery(q='', ret=0, from_export=0):
 		tl = get_sql_tables(q)
 		meta = get_sql_meta(tl)
 
-		q = add_match_conditions(q, tl, webnotes.user.get_roles(), webnotes.user.get_defaults())
+		q = add_match_conditions(q, tl)
 		webnotes
 		# replace special variables
 		q = q.replace('__user', session['user'])
@@ -280,7 +280,7 @@ def runquery(q='', ret=0, from_export=0):
 		if qm.split()[0].lower() != 'select':
 			raise Exception, 'Query (Max) must be a SELECT'
 		if not webnotes.form_dict.get('simple_query'):
-			qm = add_match_conditions(qm, tl, webnotes.user.get_roles(), webnotes.user.get_defaults())
+			qm = add_match_conditions(qm, tl)
 
 		out['n_values'] = webnotes.utils.cint(sql(qm)[0][0])
 

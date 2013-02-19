@@ -63,10 +63,8 @@ $.extend(wn.model, {
 			return dateutil.get_cur_time()
 		else if(df["default"])
 			return df["default"];
-		else if(user_defaults[df.fieldname])
-			return user_defaults[df.fieldname][0];
-		else if(sys_defaults[df.fieldname])
-			return sys_defaults[df.fieldname];
+		else if(wn.defaults.get_user_default(df.fieldname))
+			return wn.defaults.get_user_default(df.fieldname);
 	},
 	
 	add_child: function(doc, childtype, parentfield) {
