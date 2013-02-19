@@ -115,14 +115,16 @@ wn.views.Calendar = Class.extend({
 			},
 			eventClick: function(event, jsEvent, view) {
 				// edit event description or delete
-				if(wn.model.can_read(me.doctype))
-					wn.set_route("Form", me.doctype, event.name);
+				var doctype = event.doctype || me.doctype;
+				if(wn.model.can_read(doctype)) {
+					wn.set_route("Form", doctype, event.name);
+				}
 			},
 			eventDrop: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
-				me.update_event(event);
+				me.update_event(event, revertFunc);
 			},
 			eventResize: function(event, dayDelta, minuteDelta, allDay, revertFunc) {
-				me.update_event(event);
+				me.update_event(event, revertFunc);
 			},
 			select: function(startDate, endDate, allDay, jsEvent, view) {
 				if(jsEvent.day_clicked && view.name=="month")
@@ -160,15 +162,20 @@ wn.views.Calendar = Class.extend({
 		var me = this;
 		$.each(events, function(i, d) {
 			d.id = d.name;
-			d.editable = wn.model.can_write(d.doctype || this.doctype);
+			d.editable = wn.model.can_write(d.doctype || me.doctype);
 			
+			// do not allow submitted/cancelled events to be moved / extended
+			if(d.docstatus && d.docstatus > 0) {
+				d.editable = false;
+			}
+				
 			$.each(me.field_map, function(target, source) {
 				d[target] = d[source];
 			});
 			
 			if(!me.field_map.allDay) 
 				d.allDay = 1;
-			
+				
 			if(d.status) {
 				if(me.style_map) {
 					$.extend(d, me.styles[me.style_map[d.status]] || {});
@@ -180,7 +187,7 @@ wn.views.Calendar = Class.extend({
 			}
 		})
 	},
-	update_event: function(event) {
+	update_event: function(event, revertFunc) {
 		var me = this;
 		wn.model.remove_from_locals(me.doctype, event.name);
 		wn.call({
@@ -189,6 +196,7 @@ wn.views.Calendar = Class.extend({
 			callback: function(r) {
 				if(r.exc) {
 					show_alert("Unable to update event.")
+					revertFunc();
 				}
 			}
 		});		

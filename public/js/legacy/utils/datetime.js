@@ -165,7 +165,7 @@ wn.datetime = {
 		+ d.getHours()  + ':' + d.getMinutes()   + ':' + d.getSeconds();
 	},
 	
-	user_to_str: function(d) {
+	user_to_str: function(d, no_time_str) {
 		var user_fmt = this.get_user_fmt();
 		
 		var time_str = '';
@@ -193,6 +193,9 @@ wn.datetime = {
 			var d = d.split('-');
 			var val = d[2]+'-'+d[0]+'-'+d[1];
 		}
+		
+		if(no_time_str)time_str = '';
+		
 		return val + time_str;
 	},
 	

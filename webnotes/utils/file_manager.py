@@ -23,6 +23,7 @@
 from __future__ import unicode_literals
 import webnotes
 import os, conf
+from webnotes.utils import cstr
 
 def upload():
 	# get record details
@@ -94,7 +95,7 @@ def get_uploaded_content():
 	# should not be unicode when reading a file, hence using webnotes.form
 	if 'filedata' in webnotes.form:
 		i = webnotes.form['filedata']
-		webnotes.uploaded_filename, webnotes.uploaded_content = i.filename, i.file.read()
+		webnotes.uploaded_filename, webnotes.uploaded_content = cstr(i.filename), i.file.read()
 		return webnotes.uploaded_filename, webnotes.uploaded_content
 	else:
 		webnotes.msgprint('No File')
