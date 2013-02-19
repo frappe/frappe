@@ -41,25 +41,41 @@ def build_query(arg=None):
 	gets doctype, subject, filters
 	limit_start, limit_page_length
 	"""
-	data = webnotes.form_dict
-	global tables
+	data = prepare_data(arg)
 	
 	if 'query' in data:
 		return run_custom_query(data)
 	
-	filters = json.loads(data['filters'])
-	fields = json.loads(data['fields'])
-	tables = get_tables()
-	load_doctypes()
+	query = """select %(fields)s from %(tables)s where %(conditions)s
+		%(group_by)s order by %(order_by)s %(limit)s""" % data
+		
+	return query
 	
-	remove_user_tags(fields)
-	# conditions
-	conditions = build_conditions(filters)
+def prepare_data(arg=None):
+	global tables
+	
+	if arg:
+		data = webnotes._dict(arg)
+	else:
+		data = webnotes._dict(webnotes.form_dict)
+		
+	if 'query' in data:
+		return data
+	
+	if isinstance(data.get("filters"), basestring):
+		data["filters"] = json.loads(data["filters"])
+	if isinstance(data.get("fields"), basestring):
+		data["fields"] = json.loads(data["fields"])
+		
+	tables = get_tables(data)
+	load_doctypes()
+	remove_user_tags(data)
+	conditions = build_conditions(data)
 	
 	# query dict
 	data['tables'] = ', '.join(tables)
 	data['conditions'] = ' and '.join(conditions)
-	data['fields'] = ', '.join(fields)
+	data['fields'] = ', '.join(data.fields)
 	
 	if not data.get('order_by'):
 		data['order_by'] = tables[0] + '.modified desc'
@@ -73,10 +89,7 @@ def build_query(arg=None):
 	
 	add_limit(data)
 	
-	query = """select %(fields)s from %(tables)s where %(conditions)s
-		%(group_by)s order by %(order_by)s %(limit)s""" % data
-		
-	return query
+	return data
 
 def compress(data):
 	"""separate keys and values"""
@@ -125,12 +138,12 @@ def load_doctypes():
 				raise webnotes.PermissionError, doctype
 			doctypes[doctype] = webnotes.model.doctype.get(doctype)
 	
-def remove_user_tags(fields):
+def remove_user_tags(data):
 	"""remove column _user_tags if not in table"""
-	for fld in fields:
+	for fld in data.fields:
 		if '_user_tags' in fld:
-			if not '_user_tags' in get_table_columns(webnotes.form_dict['doctype']):
-				del fields[fields.index(fld)]
+			if not '_user_tags' in get_table_columns(data.doctype):
+				del data.fields[data.fields.index(fld)]
 				break
 
 def add_limit(data):
@@ -139,35 +152,37 @@ def add_limit(data):
 	else:
 		data['limit'] = ''
 		
-def build_conditions(filters):
+def build_conditions(data):
 	"""build conditions"""
-	data = webnotes.form_dict
-	
 	# docstatus condition
-	docstatus = json.loads(data['docstatus'])
-	if docstatus:
-		conditions = [tables[0] + '.docstatus in (' + ','.join(docstatus) + ')']
+	if isinstance(data.docstatus, basestring):
+		data.docstatus = json.loads(data.docstatus)
+	
+	if data.docstatus:
+		conditions = [tables[0] + '.docstatus in (' + ','.join(data.docstatus) + ')']
 	else:
 		# default condition
 		conditions = [tables[0] + '.docstatus < 2']
 	
 	# make conditions from filters
-	build_filter_conditions(data, filters, conditions)
+	build_filter_conditions(data, conditions)
 
 	# join parent, child tables
 	for tname in tables[1:]:
 		conditions.append(tname + '.parent = ' + tables[0] + '.name')
 
 	# match conditions
-	build_match_conditions(data, conditions)
+	match_conditions = build_match_conditions(data)
+	if match_conditions:
+		conditions.append(match_conditions)
 
 	return conditions
 		
-def build_filter_conditions(data, filters, conditions):
+def build_filter_conditions(data, conditions):
 	"""build conditions from user filters"""
 	from webnotes.utils import cstr
 	
-	for f in filters:
+	for f in data.filters:
 		tname = ('`tab' + f[0] + '`')
 		if not tname in tables:
 			tables.append(tname)
@@ -185,10 +200,16 @@ def build_filter_conditions(data, filters, conditions):
 				conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
 					+ " " + cstr(f[3]))
 					
-def build_match_conditions(data, conditions):
+def build_match_conditions(data):
 	"""add match conditions if applicable"""
 	match_conditions = []
 	match = True
+	
+	if not tables or not doctypes:
+		global tables
+		tables = get_tables(data)
+		load_doctypes()
+	
 	for d in doctypes[data['doctype']]:
 		if d.doctype == 'DocPerm' and d.parent == data['doctype']:
 			if d.role in roles:
@@ -208,15 +229,16 @@ def build_match_conditions(data, conditions):
 					match = False
 		
 	if match_conditions and match:
-		conditions.append('('+ ' or '.join(match_conditions) +')')
+		return '('+ ' or '.join(match_conditions) +')'
 
-def get_tables():
+def get_tables(data):
 	"""extract tables from fields"""
-	data = webnotes.form_dict
 	tables = ['`tab' + data['doctype'] + '`']
 
 	# add tables from fields
-	for f in json.loads(data['fields']):
+	for f in data.get('fields') or []:
+		if "." not in f: continue
+		
 		table_name = f.split('.')[0]
 		if table_name.lower().startswith('group_concat('):
 			table_name = table_name[13:]
