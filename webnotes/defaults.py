@@ -12,21 +12,18 @@ def add_user_default(key, value, user=None):
 
 def get_user_default(key, user=None):
 	d = get_defaults(user or webnotes.session.user).get(key, None)
-	if d is None:
-		d = get_global_default(key)
 	return isinstance(d, list) and d[0] or d
 
-def get_user_defaults(key, user=None):
+def get_user_default_as_list(key, user=None):
 	d = get_defaults(user or webnotes.session.user).get(key, None)
-	if d is None:
-		d = get_global_defaults(key)
 	return isinstance(d, basestring) and [d] or d
 	
-def get_all_user_defaults(user=None):
-	userd = get_defaults(user or webnotes.session.user)
-	globald = get_defaults()
+def get_defaults(user=None):
+	userd = get_defaults_for(user or webnotes.session.user)
 	
+	globald = get_defaults_for()
 	globald.update(userd)
+	
 	return globald
 
 def clear_user_default(key, user=None):
@@ -43,10 +40,6 @@ def add_global_default(key, value):
 def get_global_default(key):
 	d = get_defaults().get(key, None)
 	return isinstance(d, list) and d[0] or d
-	
-def get_global_defaults(key):
-	d = get_defaults().get(key, None)
-	return isinstance(d, basestring) and [d] or d
 	
 # Common
 
@@ -98,7 +91,7 @@ def clear_default(key=None, value=None, parent=None, name=None):
 	webnotes.conn.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
 	clear_cache()
 	
-def get_defaults(parent="Control Panel"):
+def get_defaults_for(parent="Control Panel"):
 	"""get all defaults"""
 	defaults = webnotes.cache().get_value("__defaults:" + parent)
 	if not defaults:
@@ -109,9 +102,10 @@ def get_defaults(parent="Control Panel"):
 		for d in res:
 			if d.defkey in defaults:
 				# listify
-				if isinstance(defaults[d.defkey], basestring):
+				if isinstance(defaults[d.defkey], basestring) and defaults[d.defkey] != d.defvalue:
 					defaults[d.defkey] = [defaults[d.defkey]]
-				defaults[d.defkey].append(d.defvalue)
+				if d.defvalue not in defaults[d.defkey]:
+					defaults[d.defkey].append(d.defvalue)
 			else:
 				defaults[d.defkey] = d.defvalue
 

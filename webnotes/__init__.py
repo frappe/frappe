@@ -258,7 +258,7 @@ def get_roles(user=None, with_standard=True):
 
 def has_permission(doctype, ptype="read", doc=None):
 	"""check if user has permission"""
-	from webnotes.defaults import get_user_defaults
+	from webnotes.defaults import get_user_default_as_list
 	if session.user=="Administrator": 
 		return True
 	if conn.get_value("DocType", doctype, "istable"):
@@ -280,7 +280,7 @@ def has_permission(doctype, ptype="read", doc=None):
 					keys = [p.match, p.match]
 					
 				if doc.fields.get(keys[0],"[No Value]") \
-					in get_user_defaults(keys[1], session.user):
+					in get_user_default_as_list(keys[1]):
 					return True
 				else:
 					match_failed[keys[0]] = doc.fields.get(keys[0],"[No Value]")

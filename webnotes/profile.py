@@ -133,7 +133,7 @@ class Profile:
 
 	def get_defaults(self):
 		import webnotes.defaults
-		self.defaults = webnotes.defaults.get_all_user_defaults(self.name)
+		self.defaults = webnotes.defaults.get_defaults(self.name)
 		return self.defaults
 			
 	# update recent documents

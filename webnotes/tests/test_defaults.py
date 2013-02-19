@@ -12,18 +12,19 @@ class TestDefaults(unittest.TestCase):
 
 		add_global_default("key1", "value3")
 		self.assertEquals(get_global_default("key1"), "value2")
-		self.assertEquals(get_global_defaults("key1"), ["value2", "value3"])
+		self.assertEquals(get_defaults()["key1"], ["value2", "value3"])
+		self.assertEquals(get_user_default_as_list("key1"), ["value2", "value3"])
 
 	def test_user(self):
 		set_user_default("key1", "2value1")
-		self.assertEquals(get_user_defaults("key1"), ["2value1"])
+		self.assertEquals(get_user_default_as_list("key1"), ["2value1"])
 
 		set_user_default("key1", "2value2")
 		self.assertEquals(get_user_default("key1"), "2value2")
 
 		add_user_default("key1", "3value3")
 		self.assertEquals(get_user_default("key1"), "2value2")
-		self.assertEquals(get_user_defaults("key1"), ["2value2", "3value3"])
+		self.assertEquals(get_user_default_as_list("key1"), ["2value2", "3value3"])
 		
 	def test_global_if_not_user(self):
 		set_global_default("key4", "value4")

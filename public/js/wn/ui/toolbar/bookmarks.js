@@ -20,7 +20,7 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 	setup: function() {
 		var me = this;
 
-		this.bookmarks = wn.user.get_default("_bookmarks") || [];
+		this.bookmarks = wn.defaults.get_default("_bookmarks") || [];
 		for(var i=this.bookmarks.length-1; i>=0; i--) {
 			var bookmark = this.bookmarks[i];
 			this.add_item(bookmark.route, bookmark.title)
@@ -72,7 +72,7 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 		return wn.utils.filter_dict(this.bookmarks, {"route": route}).length;
 	},
 	save: function() {
-		wn.user.set_default("_bookmarks", this.bookmarks);
+		wn.defaults.set_default("_bookmarks", this.bookmarks);
 	},
 	remove: function(route) {
 		this.bookmarks = $.map(this.bookmarks, function(d) { 

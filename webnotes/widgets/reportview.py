@@ -220,7 +220,7 @@ def build_match_conditions(data):
 					else:
 						default_key = document_key = d.match
 				
-					for v in webnotes.defaults.get_user_defaults(default_key) or ["** No Match **"]:
+					for v in webnotes.defaults.get_user_default_as_list(default_key) or ["** No Match **"]:
 						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'],
 							document_key, v))
 							
