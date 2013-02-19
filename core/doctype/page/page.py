@@ -46,20 +46,6 @@ class DocType:
 					cnt = 1
 				self.doc.name += '-' + str(cnt)
 
-	def validate(self):
-		"""
-			Update $image tags
-		"""
-		import re
-		p = re.compile('\$image\( (?P<name> [^)]*) \)', re.VERBOSE)
-		if self.doc.content:
-			self.doc.content = p.sub(self.replace_by_img, self.doc.content)
-	
-	def replace_by_img(self, match):
-		import webnotes
-		name = match.group('name')
-		return '<img src="cgi-bin/getfile.cgi?ac=%s&name=%s">' % (webnotes.conn.get('Control Panel', None, 'account_id'), name)
-		
 	# export
 	def on_update(self):
 		"""
