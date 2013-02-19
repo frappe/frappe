@@ -77,7 +77,15 @@ def make_test_objects(doctype, test_records):
 			if not d.doc.naming_series:
 				d.doc.naming_series = "_T-" + d.doc.doctype + "-"
 
+		# submit if docstatus is set to 1 for test record
+		docstatus = d.doc.docstatus
+		
+		d.doc.docstatus = 0
 		d.insert()
+
+		if docstatus == 1:
+			d.submit()
+		
 		records.append(d.doc.name)
 	return records
 
