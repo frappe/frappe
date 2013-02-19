@@ -162,6 +162,10 @@ wn.views.Calendar = Class.extend({
 			d.id = d.name;
 			d.editable = wn.model.can_write(d.doctype || this.doctype);
 			
+			// do not allow submitted/cancelled events to be moved / extended
+			if(d.docstatus && d.docstatus > 0)
+				d.editable = false;
+			
 			$.each(me.field_map, function(target, source) {
 				d[target] = d[source];
 			});
