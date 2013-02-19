@@ -32,9 +32,6 @@ def update_event(args, field_map):
 	
 	w = webnotes.model_wrapper(args.doctype, args.name)
 	
-	if w.doc.docstatus == 1:
-		w.no_permission_to(_("Save a submitted document"))
-	
 	w.doc.fields[field_map.start] = args[field_map.start]
 	w.doc.fields[field_map.end] = args[field_map.end]
 	w.save()
