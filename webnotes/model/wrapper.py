@@ -248,9 +248,6 @@ class ModelWrapper:
 	def save(self, check_links=1):
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.prepare_for_save(check_links)
-			if self.doc.docstatus > 0:
-				self.no_permission_to(_("Save submitted document"))
-				
 			self.run_method('validate')
 			self.save_main()
 			self.save_children()
