@@ -19,7 +19,7 @@ doctype_dl = None
 @webnotes.whitelist()
 def get_doctypes():
     return [r[0] for r in webnotes.conn.sql("""select name from `tabDocType` 
-		where document_type = 'Master'""")]
+		where document_type = 'Master' or allow_import = 1""")]
 		
 @webnotes.whitelist()
 def get_doctype_options():
@@ -137,6 +137,9 @@ def getdocfield(fieldname):
 def upload():
 	"""upload data"""
 	global doctype_dl
+	
+	webnotes.mute_emails = True
+	
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
 	
 	def bad_template():
@@ -223,6 +226,8 @@ def upload():
 		webnotes.conn.rollback()		
 	else:
 		webnotes.conn.commit()
+		
+	webnotes.mute_emails = False
 	
 	return {"messages": ret, "error": error}
 	
@@ -298,5 +303,9 @@ def import_doc(d, doctype, overwrite, row_idx):
 		d['__islocal'] = 1
 		dl = ModelWrapper([webnotes.model.doc.Document(fielddata = d)])
 		dl.save()
+		
+		if webnotes.form_dict.get("_submit")=="on":
+			dl.submit()
+		
 		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
 			dl.doc.fields['name']))

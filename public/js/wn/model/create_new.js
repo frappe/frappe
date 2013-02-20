@@ -40,6 +40,11 @@ $.extend(wn.model, {
 			if(!in_list(no_value_fields, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = wn.model.get_default_value(f);
 				if(v) {
+					if(in_list(["Int", "Check"], f.fieldtype))
+						v = cint(v);
+					else if(in_list(["Currency", "Float"], f.fieldtype))
+						v = flt(v);
+					
 					doc[f.fieldname] = v;
 					updated.push(f.fieldname);
 				}

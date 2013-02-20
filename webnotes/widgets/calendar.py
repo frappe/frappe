@@ -29,8 +29,9 @@ import json
 def update_event(args, field_map):
 	args = webnotes._dict(json.loads(args))
 	field_map = webnotes._dict(json.loads(field_map))
-			
+	
 	w = webnotes.model_wrapper(args.doctype, args.name)
+	
 	w.doc.fields[field_map.start] = args[field_map.start]
 	w.doc.fields[field_map.end] = args[field_map.end]
 	w.save()

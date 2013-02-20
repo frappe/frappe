@@ -111,8 +111,17 @@ class Document:
 	def __str__(self):
 		return str(self.fields)
 		
+	def __repr__(self):
+		return repr(self.fields)
+		
+	def __unicode__(self):
+		return unicode(self.fields)
+		
 	def __eq__(self, other):
-		return self.fields == other.fields		
+		if isinstance(other, Document):
+			return self.fields == other.fields
+		else:
+			return False
 
 	def __getstate__(self): 
 		return self.fields
@@ -661,3 +670,14 @@ def getsingle(doctype):
 	"""get single doc as dict"""
 	dataset = webnotes.conn.sql("select field, value from tabSingles where doctype=%s", doctype)
 	return dict(dataset)
+	
+def copy_common_fields(from_doc, to_doc):
+	from webnotes.model import default_fields
+	doctype_list = webnotes.get_doctype(to_doc.doctype)
+	
+	for fieldname, value in from_doc.fields.items():
+		if fieldname in default_fields:
+			continue
+		
+		if doctype_list.get_field(fieldname) and to_doc.fields[fieldname] != value:
+			to_doc.fields[fieldname] = value
