@@ -243,7 +243,7 @@ class Database:
 
 		return " and ".join(conditions), filters
 
-	def get(self, doctype, filters=None, as_dict=False):
+	def get(self, doctype, filters=None, as_dict=True):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict)
 		
 	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False):
