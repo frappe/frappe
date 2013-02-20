@@ -63,7 +63,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		this.appframe.$titlebar.find('.appframe-title').html(t || '');
 	},
 	set_postion: function() {
-		this.zindex = 1;
+		this.zindex = 10;
 		if(cur_dialog) {
 			this.zindex = cur_dialog.zindex + 1;
 		}

@@ -53,7 +53,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.docname = '';
 	this.doctype = doctype;
 	this.display = 0;
-	this.refresh_if_stale_for = 600;
+	this.refresh_if_stale_for = 120;
 		
 	var me = this;
 	this.last_view_is_edit = {};
@@ -881,16 +881,31 @@ _f.Frm.prototype.reload_doc = function() {
 	var me = this;
 	var onsave = function(r, rtxt) {
 		// n tweets and last comment				
-		me.runclientscript('setup', me.doctype, me.docname);
+		//me.runclientscript('setup', me.doctype, me.docname);
 		me.refresh();
 	}
 
 	if(me.doc.__islocal) { 
-		// reload only doctype
-		$c('webnotes.widgets.form.load.getdoctype', {'doctype':me.doctype }, onsave, null, null, 'Refreshing ' + me.doctype + '...');
+		wn.call({
+			method: "webnotes.widgets.form.load.getdoctype",
+			args: {
+				doctype: me.doctype
+			},
+			callback: function(r) {
+				me.refresh();
+			}
+		})
 	} else {
-		// reload doc and docytpe
-		$c('webnotes.widgets.form.load.getdoc', {'name':me.docname, 'doctype':me.doctype, 'getdoctype':1, 'user':user}, onsave, null, null, 'Refreshing ' + me.docname + '...');
+		wn.call({
+			method: "webnotes.widgets.form.load.getdoc",
+			args: {
+				doctype: me.doctype,
+				name: me.docname
+			},
+			callback: function(r) {
+				me.refresh();
+			}
+		});
 	}
 }
 
