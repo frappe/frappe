@@ -4,7 +4,7 @@ import webnotes
 import webnotes.model.doc
 import webnotes.model.doctype
 from webnotes.model.doc import Document
-from webnotes.utils import cstr
+from webnotes.utils import cstr, cint, flt
 from webnotes.utils.datautils import UnicodeWriter
 
 data_keys = webnotes._dict({
@@ -276,6 +276,10 @@ def check_record(d, parenttype):
 					
 			if val and docfield.fieldtype=='Date':
 				d[key] = parse_date(val)
+			elif val and docfield.fieldtype in ["Int", "Check"]:
+				d[key] = cint(val)
+			elif val and docfield.fieldtype in ["Currency", "Float"]:
+				d[key] = flt(val)
 
 def getlink(doctype, name):
 	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
