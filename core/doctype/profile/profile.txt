@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-14 17:37:36", 
   "docstatus": 0, 
-  "modified": "2013-02-21 16:56:24", 
+  "modified": "2013-02-21 17:03:30", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -217,6 +217,19 @@
   "fieldtype": "Image", 
   "label": "user_image_show", 
   "options": "user_image"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "short_bio", 
+  "fieldtype": "Section Break", 
+  "label": "Short Bio"
+ }, 
+ {
+  "description": "Bio will be displayed in blog section etc.", 
+  "doctype": "DocField", 
+  "fieldname": "bio", 
+  "fieldtype": "Small Text", 
+  "label": "Bio"
  }, 
  {
   "description": "Check / Uncheck roles assigned to the Profile. Click on the Role to find out what permissions that Role has.", 
