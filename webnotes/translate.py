@@ -109,7 +109,7 @@ def build_for_doc_from_database(fields):
 
 	for item in webnotes.conn.sql("""select name from `tab%s`""" % fields.doctype, as_dict=1):
 		messages = []
-		doclist = webnotes.model_wrapper(fields.doctype, item.name).doclist
+		doclist = webnotes.bean(fields.doctype, item.name).doclist
 
 		for doc in doclist:
 			if doc.doctype in fields:

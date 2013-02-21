@@ -73,7 +73,7 @@ def dt_map():
 	import webnotes.model.utils
 	from webnotes.model.code import get_obj
 	from webnotes.model.doc import Document
-	from webnotes.model.wrapper import ModelWrapper
+	from webnotes.model.bean import Bean
 	
 	form_dict = webnotes.form_dict
 	
@@ -84,7 +84,7 @@ def dt_map():
 	from_to_list = form_dict.get('from_to_list')
 	
 	dm = get_obj('DocType Mapper', from_doctype +'-' + to_doctype)
-	dl = dm.dt_map(from_doctype, to_doctype, from_docname, Document(fielddata = dt_list[0]), (len(dt_list) > 1) and ModelWrapper(dt_list).doclist or [], from_to_list)
+	dl = dm.dt_map(from_doctype, to_doctype, from_docname, Document(fielddata = dt_list[0]), (len(dt_list) > 1) and Bean(dt_list).doclist or [], from_to_list)
 	
 	webnotes.response['docs'] = dl
 

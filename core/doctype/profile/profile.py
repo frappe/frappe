@@ -255,9 +255,4 @@ def get_perm_info(arg=None):
 		cancel, amend from tabDocPerm where role=%s 
 		and docstatus<2 order by parent, permlevel""", 
 			webnotes.form_dict['role'], as_dict=1)
-
-@webnotes.whitelist()
-def get_defaults(arg=None):
-	return webnotes.conn.sql("""select defkey, defvalue from tabDefaultValue where 
-		parent=%s and parenttype = 'Profile'""", webnotes.form_dict['profile'])
 	

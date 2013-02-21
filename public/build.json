@@ -74,6 +74,7 @@
 			"lib/public/js/wn/request.js",
 			"lib/public/js/wn/router.js",
 			"lib/public/js/wn/app.js",
+			"lib/public/js/wn/defaults.js",
 
 			"lib/public/js/legacy/globals.js",
 			"lib/public/js/legacy/utils/datatype.js",

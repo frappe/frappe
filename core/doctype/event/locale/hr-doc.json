@@ -1,8 +1,10 @@
 {
+ "All Day": "All Day", 
  "Cancel": "Otkazati", 
  "Core": "Sr\u017e", 
  "Description": "Opis", 
  "Details": "Detalji", 
+ "Ends on": "Zavr\u0161ava", 
  "Event": "Doga\u0111aj", 
  "Event Date": "Doga\u0111aj Datum", 
  "Event Individuals": "Doga\u0111aj Pojedinci", 
@@ -18,5 +20,7 @@
  "Private": "Privatan", 
  "Public": "Javni", 
  "Ref Name": "Ref. Ime", 
- "Ref Type": "Ref. Tip"
+ "Ref Type": "Ref. Tip", 
+ "Starts on": "Po\u010dinje na", 
+ "Subject": "Predmet"
 }

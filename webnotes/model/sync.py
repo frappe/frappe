@@ -60,7 +60,7 @@ def sync_doctype(module_name, docname, force=0):
 def merge_doctype(doclist, force=False):
 	modified = doclist[0]['modified']
 	if not doclist:
-		raise Exception('ModelWrapper could not be evaluated')
+		raise Exception('Bean could not be evaluated')
 
 	db_modified = str(webnotes.conn.get_value(doclist[0].get('doctype'),
 		doclist[0].get('name'), 'modified'))

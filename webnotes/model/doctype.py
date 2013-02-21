@@ -132,11 +132,11 @@ def sort_fields(doclist):
 			else:
 				newlist.append(d)
 				pending.remove(d)
-			
+
 	# recurring at end	
 	if pending:
 		newlist += pending
-		
+
 	# renum
 	idx = 1
 	for d in newlist:
