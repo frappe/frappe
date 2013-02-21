@@ -103,7 +103,11 @@ def getmatchcondition(dt, ur):
 	for r in res:
 		if r[0] in ur: # role applicable to user
 			if r[1]:
-				for d in webnotes.defaults.get_user_default_as_list(default_key) or ["** No Match **"]:
+				if ":" in r[1]:
+					keys = r[1].split(":")
+				else:
+					keys = [r[1], r[1]]
+				for d in webnotes.defaults.get_user_default_as_list(keys[0]) or ["** No Match **"]:
 					cond.append('`tab%s`.`%s`="%s"' % (dt, r[1], d))
 			else:
 				return ''
