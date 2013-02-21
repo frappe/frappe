@@ -16,7 +16,7 @@ def get_user_default(key, user=None):
 
 def get_user_default_as_list(key, user=None):
 	d = get_defaults(user or webnotes.session.user).get(key, None)
-	return isinstance(d, basestring) and [d] or d
+	return (not isinstance(d, list)) and [d] or d
 	
 def get_defaults(user=None):
 	userd = get_defaults_for(user or webnotes.session.user)
