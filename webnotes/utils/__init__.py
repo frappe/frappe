@@ -86,12 +86,13 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	import webnotes.utils.email_lib
 	return email_lib.sendmail(recipients, sender, msg, subject)
 
-def get_request_site_address():
+def get_request_site_address(full_address=False):
 	"""get app url from request"""
 	import os
 	try:
 		return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
-			+ os.environ.get('HTTP_HOST')
+			+ os.environ.get('HTTP_HOST')\
+			+ (full_address and (os.environ.get("REQUEST_URI")) or "")
 	except TypeError, e:
 		return 'http://localhost'
 
