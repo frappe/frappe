@@ -40,6 +40,7 @@ $.extend(wn.datetime, {
 		return [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":")
 	},
 	get_datetime_as_string: function(d) {
+		if(!d) return null;
 		return [d.getFullYear(), double_digit(d.getMonth()+1), double_digit(d.getDate())].join("-") + " " 
 			+ [double_digit(d.getHours()), double_digit(d.getMinutes()), double_digit(d.getSeconds())].join(":");
 	}

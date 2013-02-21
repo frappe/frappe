@@ -26,6 +26,7 @@ bootstrap client session
 """
 
 import webnotes
+import webnotes.defaults
 import webnotes.model.doc
 import webnotes.widgets.page
 
@@ -43,7 +44,7 @@ def get_bootinfo():
 	
 	# system info
 	bootinfo['control_panel'] = webnotes._dict(cp.copy())
-	bootinfo['sysdefaults'] = webnotes.utils.get_defaults()
+	bootinfo['sysdefaults'] = webnotes.defaults.get_defaults()
 	bootinfo['server_date'] = webnotes.utils.nowdate()
 
 	if webnotes.session['user'] != 'Guest':

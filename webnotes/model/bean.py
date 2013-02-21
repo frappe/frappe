@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 """
-Transactions are defined as collection of classes, a ModelWrapper represents collection of Document
+Transactions are defined as collection of classes, a Bean represents collection of Document
 objects for a transaction with main and children.
 
 Group actions like save, etc are performed on doclists
@@ -33,7 +33,7 @@ from webnotes import _
 from webnotes.utils import cint
 from webnotes.model.doc import Document
 
-class ModelWrapper:
+class Bean:
 	"""
 	Collection of Documents with one parent and multiple children
 	"""
@@ -247,6 +247,9 @@ class ModelWrapper:
 	
 	def save(self, check_links=1):
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
+			if self.doc.docstatus == 1:
+				self.no_permission_to("Save submitted document")
+
 			self.prepare_for_save(check_links)
 			self.run_method('validate')
 			self.save_main()
@@ -306,9 +309,9 @@ class ModelWrapper:
 def clone(source_wrapper):
 	""" Copy previous invoice and change dates"""
 	if isinstance(source_wrapper, list):
-		source_wrapper = ModelWrapper(source_wrapper)
+		source_wrapper = Bean(source_wrapper)
 	
-	new_wrapper = ModelWrapper(source_wrapper.doclist.copy())
+	new_wrapper = Bean(source_wrapper.doclist.copy())
 	new_wrapper.doc.fields.update({
 		"amended_from": None,
 		"amendment_date": None,

@@ -40,6 +40,11 @@ $.extend(wn.model, {
 			if(!in_list(no_value_fields, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = wn.model.get_default_value(f);
 				if(v) {
+					if(in_list(["Int", "Check"], f.fieldtype))
+						v = cint(v);
+					else if(in_list(["Currency", "Float"], f.fieldtype))
+						v = flt(v);
+					
 					doc[f.fieldname] = v;
 					updated.push(f.fieldname);
 				}
@@ -63,10 +68,8 @@ $.extend(wn.model, {
 			return dateutil.get_cur_time()
 		else if(df["default"])
 			return df["default"];
-		else if(user_defaults[df.fieldname])
-			return user_defaults[df.fieldname][0];
-		else if(sys_defaults[df.fieldname])
-			return sys_defaults[df.fieldname];
+		else if(wn.defaults.get_user_default(df.fieldname))
+			return wn.defaults.get_user_default(df.fieldname);
 	},
 	
 	add_child: function(doc, childtype, parentfield) {

@@ -9,7 +9,7 @@ def get_roles_and_doctypes():
 			ifnull(issingle,0)=0 and
 			name not in ('DocType')""")],
 		"roles": [d[0] for d in webnotes.conn.sql("""select name from tabRole where name not in
-			('All', 'Guest', 'Administrator')""")]
+			('Guest', 'Administrator')""")]
 	}
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])

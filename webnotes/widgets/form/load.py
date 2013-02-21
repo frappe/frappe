@@ -26,7 +26,7 @@ import webnotes.model.doc
 import webnotes.utils
 
 @webnotes.whitelist()
-def getdoc():
+def getdoc(doctype, name, user=None):
 	"""
 	Loads a doclist for a given document. This method is called directly from the client.
 	Requries "doctype", "name" as form variables.
@@ -35,18 +35,15 @@ def getdoc():
 
 	import webnotes
 	
-	form = webnotes.form_dict
-	doctype, docname = form.get('doctype'), form.get('name')
-
-	if not (doctype and docname):
+	if not (doctype and name):
 		raise Exception, 'doctype and name required!'
 	
 	doclist = []
 	# single
-	doclist = load_single_doc(doctype, docname, (form.get('user') or webnotes.session['user']))
+	doclist = load_single_doc(doctype, name, user or webnotes.session.user)
 	
 	# load doctype along with the doc
-	if form.get('getdoctype'):
+	if webnotes.form_dict.get('getdoctype'):
 		import webnotes.model.doctype
 		doclist += webnotes.model.doctype.get(doctype, processed=True)
 
@@ -92,7 +89,7 @@ def load_single_doc(dt, dn, user):
 		return None
 
 	try:
-		dl = webnotes.model_wrapper(dt, dn).doclist
+		dl = webnotes.bean(dt, dn).doclist
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint('Error in script while loading')

@@ -92,7 +92,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(keys(match_rules).length) {
 			var match_text = []
 			$.each(match_rules, function(key, values) {
-				match_text.push(wn._(wn.meta.get_label(me.doctype, key)) + " = " + wn.utils.comma_or(values));
+				if(values.length==0) {
+					match_text.push(wn._(wn.meta.get_label(me.doctype, key)) + wn._(" is not set"));
+				} else if(values.length) {
+					match_text.push(wn._(wn.meta.get_label(me.doctype, key)) + " = " + wn.utils.comma_or(values));
+				}
 			});
 			wn.utils.set_footnote(this, this.$page.find(".layout-main-section"), 
 				wn._("Showing only for") + ": " + match_text.join(" & "));

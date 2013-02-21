@@ -92,7 +92,7 @@ $.extend(wn.perm, {
 		$.each(wn.model.get("DocPerm", {parent:doctype}), function(i, p) {
 			if(p.permlevel==0 && p.match && in_list(user_roles, p.role)) {
 				match_keys = wn.perm.get_match_keys(p.match);
-				match_rules[match_keys[0]] = user_defaults[match_keys[1]];
+				match_rules[match_keys[0]] = wn.defaults.get_user_defaults(match_keys[1]);
 			}
 		});
 		return match_rules;
@@ -115,10 +115,11 @@ $.extend(wn.perm, {
 			var document_key = key_list[0];
 			var default_key = key_list[1];
 
-			if(user_defaults[default_key]) {
-				for(var i=0;i<user_defaults[default_key].length;i++) {
+			var match_values = wn.defaults.get_user_defaults(key)
+			if(match_values) {
+				for(var i=0 ; i<match_values.length;i++) {
 					 // user must have match field in defaults
-					if(user_defaults[default_key][i]==locals[doctype][name][document_key]) {
+					if(match_values[i]==locals[doctype][name][document_key]) {
 					    // must match document
 			  			return true;
 					}

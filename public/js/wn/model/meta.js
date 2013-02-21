@@ -65,7 +65,11 @@ $.extend(wn.meta, {
 	},
 	
 	get_label: function(dt, fn, dn) {
-		return this.get_docfield(dt, fn, dn).label || fn;
+		if(fn==="owner") {
+			return "Owner";
+		} else {
+			return this.get_docfield(dt, fn, dn).label || fn;
+		}
 	},
 	
 	get_print_formats: function(doctype) {

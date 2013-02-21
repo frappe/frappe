@@ -37,7 +37,7 @@ def insert(doclist):
 		else:
 			d.fields["__islocal"] = 1
 		
-	wrapper = webnotes.model_wrapper(doclist)
+	wrapper = webnotes.bean(doclist)
 	wrapper.save()
 	
 	return wrapper

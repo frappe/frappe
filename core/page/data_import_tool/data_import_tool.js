@@ -141,15 +141,23 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	});
 	
 	// add overwrite option
+	var $submit_btn = $('#dit-upload-area form input[type="submit"]');
 	$('<input type="checkbox" name="overwrite" style="margin-top: -3px">\
 		<span> Overwrite</span>\
 		<p class="help">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')
-		.insertBefore('#dit-upload-area form input[type="submit"]')
+		.insertBefore($submit_btn);
+	
+	// add submit option
+	$('<input type="checkbox" name="_submit" style="margin-top: -3px">\
+		<span> Submit</span>\
+		<p class="help">If you are inserting new records (overwrite not checked) \
+			and if you have submit permission, the record will be submitted.</p><br>')
+		.insertBefore($submit_btn);
 
 	// add ignore option
 	$('<input type="checkbox" name="ignore_encoding_errors" style="margin-top: -3px">\
 		<span> Ignore Encoding Errors</span><br><br>')
-		.insertBefore('#dit-upload-area form input[type="submit"]')
+		.insertBefore($submit_btn);
 	
 	// rename button
 	$('#dit-upload-area form input[type="submit"]')
