@@ -26,7 +26,7 @@ import webnotes
 from webnotes.utils import cint, cstr, default_fields, flt
 from webnotes.model import db_exists, default_fields
 from webnotes.model.doc import Document, addchild, make_autoname
-from webnotes.model.wrapper import getlist
+from webnotes.model.bean import getlist
 from webnotes import msgprint
 from webnotes.model.doctype import get
 
@@ -72,8 +72,11 @@ class DocType:
 			from `tabTable Mapper Detail` where parent ="%s" order by match_id""" \
 			% self.doc.name, as_dict=1)
 			
+		if isinstance(from_to_list, basestring):
+			from_to_list = eval(from_to_list)
+		
 		for t in tbl_list:
-			if [t['from_table'], t['to_table']] in eval(from_to_list):
+			if [t['from_table'], t['to_table']] in from_to_list:
 				self.map_fields(t, from_doctype, from_docname, to_doc, doclist)
 		
 		# Doclist is required when called from server side for refreshing table
@@ -143,12 +146,12 @@ class DocType:
 		
 		from_flds = [d.fieldname for d in get(t['from_table']).get_parent_doclist() \
 			if cint(d.no_copy) == 0 and d.docstatus != 2 and d.fieldname \
-			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')]
+			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML', 'Button')]
 
 		to_flds = [d.fieldname for d in get(t['to_table']).get_parent_doclist() \
 			if cint(d.no_copy) == 0 and d.docstatus != 2 and d.fieldname \
-			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML')]
-
+			and d.fieldtype not in ('Table', 'Section Break', 'Column Break', 'HTML', 'Button')]
+		
 		similar_flds = [[d, d, 'Yes'] for d in from_flds \
 			if d in to_flds and d not in exception_flds]
 			

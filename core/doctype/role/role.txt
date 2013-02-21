@@ -1,86 +1,77 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-08 15:50:01", 
   "docstatus": 0, 
-  "creation": "2012-12-20 17:16:48", 
+  "modified": "2013-02-19 10:42:13", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-07 17:09:53"
+  "owner": "Administrator"
  }, 
  {
-  "istable": 0, 
-  "allow_print": 0, 
-  "module": "Core", 
-  "autoname": "field:role_name", 
-  "read_only": 0, 
+  "allow_copy": 0, 
   "allow_email": 0, 
-  "hide_heading": 0, 
-  "issingle": 0, 
-  "name": "__common__", 
+  "allow_print": 0, 
   "allow_rename": 1, 
+  "autoname": "field:role_name", 
   "doctype": "DocType", 
+  "hide_heading": 0, 
   "hide_toolbar": 0, 
-  "allow_copy": 0
+  "issingle": 0, 
+  "istable": 0, 
+  "module": "Core", 
+  "name": "__common__", 
+  "read_only": 0
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "Role", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0, 
-  "parentfield": "fields"
- }, 
- {
-  "parent": "Role", 
-  "read": 1, 
-  "cancel": 0, 
-  "name": "__common__", 
-  "amend": 0, 
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "submit": 0, 
-  "write": 1, 
-  "parenttype": "DocType", 
-  "role": "System Manager", 
-  "permlevel": 0, 
-  "parentfield": "permissions"
- }, 
- {
-  "name": "Role", 
-  "doctype": "DocType"
- }, 
- {
-  "oldfieldtype": "Select", 
-  "doctype": "DocField", 
-  "label": "Module", 
-  "oldfieldname": "module", 
-  "fieldname": "module", 
-  "fieldtype": "Select", 
-  "reqd": 1, 
-  "options": "link:Module Def"
- }, 
- {
-  "oldfieldtype": "Data", 
-  "doctype": "DocField", 
-  "label": "Role Name", 
-  "oldfieldname": "role_name", 
-  "fieldname": "role_name", 
-  "fieldtype": "Data", 
   "reqd": 1
  }, 
  {
-  "description": "Default values are set across the role and can be over-ridden by user permissions.", 
-  "oldfieldtype": "Table", 
-  "doctype": "DocField", 
-  "label": "Defaults", 
-  "oldfieldname": "defaults", 
-  "fieldname": "defaults", 
-  "fieldtype": "Table", 
-  "search_index": 0, 
-  "reqd": 0, 
-  "hidden": 0, 
-  "options": "DefaultValue"
+  "cancel": 0, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Role", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "submit": 0, 
+  "write": 1
  }, 
  {
-  "doctype": "DocPerm"
+  "doctype": "DocType", 
+  "name": "Role"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "module", 
+  "fieldtype": "Select", 
+  "label": "Module", 
+  "oldfieldname": "module", 
+  "oldfieldtype": "Select", 
+  "options": "link:Module Def"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "role_name", 
+  "fieldtype": "Data", 
+  "label": "Role Name", 
+  "oldfieldname": "role_name", 
+  "oldfieldtype": "Data"
+ }, 
+ {
+  "amend": 0, 
+  "doctype": "DocPerm", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator"
  }
 ]

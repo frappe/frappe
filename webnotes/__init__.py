@@ -258,6 +258,7 @@ def get_roles(user=None, with_standard=True):
 
 def has_permission(doctype, ptype="read", doc=None):
 	"""check if user has permission"""
+	from webnotes.defaults import get_user_default_as_list
 	if session.user=="Administrator": 
 		return True
 	if conn.get_value("DocType", doctype, "istable"):
@@ -279,7 +280,7 @@ def has_permission(doctype, ptype="read", doc=None):
 					keys = [p.match, p.match]
 					
 				if doc.fields.get(keys[0],"[No Value]") \
-					in conn.get_defaults_as_list(keys[1], session.user):
+					in get_user_default_as_list(keys[1]):
 					return True
 				else:
 					match_failed[keys[0]] = doc.fields.get(keys[0],"[No Value]")
@@ -312,12 +313,15 @@ def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)
 
-def model_wrapper(doctype=None, name=None):
-	from webnotes.model.wrapper import ModelWrapper
-	return ModelWrapper(doctype, name)
+def bean(doctype=None, name=None, copy=None):
+	from webnotes.model.bean import Bean
+	if copy:
+		return Bean(copy_doclist(copy))
+	else:
+		return Bean(doctype, name)
 
 def get_doclist(doctype, name=None):
-	return model_wrapper(doctype, name).doclist
+	return bean(doctype, name).doclist
 	
 def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
@@ -338,9 +342,9 @@ def reload_doc(module, dt=None, dn=None):
 	import webnotes.modules
 	return webnotes.modules.reload_doc(module, dt, dn)
 
-def rename_doc(doctype, old, new, is_doctype=0, debug=0):
+def rename_doc(doctype, old, new, debug=0, force=False):
 	from webnotes.model.rename_doc import rename_doc
-	rename_doc(doctype, old, new, is_doctype, debug)
+	rename_doc(doctype, old, new, debug, force)
 
 def insert(doclist):
 	import webnotes.model
@@ -357,7 +361,7 @@ def get_method(method_string):
 	
 def make_property_setter(args):
 	args = _dict(args)
-	model_wrapper([{
+	bean([{
 		'doctype': "Property Setter",
 		'doctype_or_field': args.doctype_or_field or "DocField",
 		'doc_type': args.doctype,
@@ -389,4 +393,15 @@ def copy_doclist(in_doclist):
 			new_doclist.append(doc(d.fields.copy()))
 
 	return doclist(new_doclist)
+	
+def map_doclist(from_to_list, from_docname, to_doclist=None):
+	from_doctype, to_doctype = from_to_list[0][0], from_to_list[0][1]
+	if to_doclist:
+		to_doclist = bean(to_doclist).doclist
+	else:
+		to_doclist = bean({"doctype": to_doctype}).doclist
+	
+	mapper = get_obj("DocType Mapper", "-".join(from_to_list[0]))
+	to_doclist = mapper.dt_map(from_doctype, to_doctype, from_docname, to_doclist[0], to_doclist, from_to_list)
+	return to_doclist
 	

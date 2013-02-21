@@ -113,38 +113,6 @@ _f.SectionBreak.prototype.make_body = function() {
 	}
 }
 
-_f.SectionBreak.prototype.has_data = function() {
-	// return true if
-	// 1. any field in the section is mandatory & not set as default
-	// 2. any field in the section has data that is not default
-	// 3. if table, table has rows
-	
-	var me = this;
-	for(var i in me.fields) {
-		var f = me.fields[i];
-		var v = f.get_value ? f.get_value() : null;
-		
-		// value that is not default
-		defaultval = f.df['default'] || sys_defaults[f.fieldname] || user_defaults[f.fieldname];
-		if(v && v != defaultval) {
-			return true;
-		}
-		
-		// unfilled mandatory field
-		if(f.df.reqd && !v) {
-			return true;
-		}
-		
-		// filled table
-		if(f.df.fieldtype=='Table') {
-			if(f.grid.get_children().length || f.df.reqd) {
-				return true;
-			}
-		}
-	}
-	return false;
-}
-
 _f.SectionBreak.prototype.refresh = function(from_form) {
 	var hidden = 0;
 	// we generate section breaks, but hide it based on perms/hidden value

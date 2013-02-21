@@ -266,7 +266,7 @@ def formatdate(string_date=None):
 	if string_date:
 		string_date = getdate(string_date)
 	else:
-		string_date = nowdate()
+		string_date = now_datetime().date()
 		
 	global user_format
 	if not user_format:
