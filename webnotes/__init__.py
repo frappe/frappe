@@ -86,29 +86,14 @@ def cache():
 		_memc = MClient(['localhost:11211'])
 	return _memc
 		
-class ValidationError(Exception):
-	pass
-	
-class AuthenticationError(Exception):
-	pass
-
-class PermissionError(Exception):
-	pass
-	
-class OutgoingEmailError(ValidationError):
-	pass
-
-class UnknownDomainError(Exception):
-	def __init__(self, value):
-		self.value = value
-	def __str__(self):
-		return repr(self.value)	
-
-class SessionStopped(Exception):
-	def __init__(self, value):
-		self.value = value
-	def __str__(self):
-		return repr(self.value)	
+class ValidationError(Exception): pass
+class AuthenticationError(Exception): pass
+class PermissionError(Exception): pass
+class OutgoingEmailError(ValidationError): pass
+class UnknownDomainError(Exception): pass
+class SessionStopped(Exception): pass
+class MappingMismatchError(ValidationError): pass
+class InvalidStatusError(ValidationError): pass
 		
 def getTraceback():
 	import utils
