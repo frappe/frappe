@@ -253,9 +253,9 @@ class DocType:
 				for cl in checklist:
 					if cl['match_id'] == t.match_id:
 						if t.to_field:
-							cur_val = child_obj.fields[cl['to_fld']]
+							cur_val = child_obj.fields.get(cl['to_fld'])
 						else:
-							cur_val = par_obj.fields[cl['to_fld']]
+							cur_val = par_obj.fields.get(cl['to_fld'])
 						
 						if to_flds[cl['to_fld']]['fieldtype'] in ['Currency', 'Float']:
 							cur_val = '%.2f' % flt(cur_val)
