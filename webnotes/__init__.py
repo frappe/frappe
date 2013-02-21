@@ -265,7 +265,7 @@ def has_permission(doctype, ptype="read", doc=None):
 					keys = [p.match, p.match]
 					
 				if doc.fields.get(keys[0],"[No Value]") \
-					in get_user_default_as_list(keys[1]):
+						in get_user_default_as_list(keys[1]):
 					return True
 				else:
 					match_failed[keys[0]] = doc.fields.get(keys[0],"[No Value]")
