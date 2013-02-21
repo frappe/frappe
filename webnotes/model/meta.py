@@ -72,7 +72,9 @@ def get_table_fields(doctype):
 
 	return child_tables + custom_child_tables
 
-def has_field(doctype, fieldname):
-	doclist = webnotes.model.doctype.get(doctype)
-	return doclist.get({"parent":doctype, "doctype":"DocField", "fieldname":fieldname})
-	
+def has_field(doctype, fieldname, parent=None, parentfield=None):
+	return get_field(doctype, fieldname, parent=None, parentfield=None) and True or False
+		
+def get_field(doctype, fieldname, parent=None, parentfield=None):
+	doclist = webnotes.get_doctype(doctype)
+	return doclist.get_field(fieldname, parent, parentfield)
