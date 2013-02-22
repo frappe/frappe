@@ -344,11 +344,10 @@ def delete_items():
 			pass
 		
 @webnotes.whitelist()
-def get_stats():
+def get_stats(stats, doctype):
 	"""get tag info"""
 	import json
-	tags = json.loads(webnotes.form_dict.get('stats'))
-	doctype = webnotes.form_dict['doctype']
+	tags = json.loads(stats)
 	stats = {}
 	
 	columns = get_table_columns(doctype)
