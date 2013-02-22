@@ -120,11 +120,11 @@ TagList.prototype.make_tag_dialog = function() {
 // check if tag text is okay
 TagList.prototype.is_text_okay = function(val) {
 	if(!val) {
-		msgprint("Please type something");
+		msgprint(wn._("Please type something"));
 		return;
 	}
 	if(!validate_spl_chars(val)) {
-		msgprint("Special charaters, commas etc not allowed in tags");
+		msgprint(wn._("Special charaters, spaces, commas etc not allowed in tags"));
 		return;
 	}
 	return 1
