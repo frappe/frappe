@@ -115,6 +115,7 @@
 			"lib/public/js/wn/views/container.js",
 			"lib/public/js/wn/views/pageview.js",
 			"lib/public/js/wn/views/doclistview.js",
+			"lib/public/js/wn/views/sidebar_stats.js",
 			"lib/public/js/wn/views/moduleview.js",
 			"lib/public/js/wn/views/listview.js",
 			"lib/public/js/wn/views/formview.js",

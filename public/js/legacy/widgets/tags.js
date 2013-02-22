@@ -120,11 +120,11 @@ TagList.prototype.make_tag_dialog = function() {
 // check if tag text is okay
 TagList.prototype.is_text_okay = function(val) {
 	if(!val) {
-		msgprint("Please type something");
+		msgprint(wn._("Please type something"));
 		return;
 	}
 	if(!validate_spl_chars(val)) {
-		msgprint("Special charaters, commas etc not allowed in tags");
+		msgprint(wn._("Special charaters, spaces, commas etc not allowed in tags"));
 		return;
 	}
 	return 1
@@ -283,60 +283,3 @@ SingleTag.prototype.remove = function() {
 	$c('webnotes.widgets.tags.remove_tag', {'dt':me.dt, 'dn':me.dn, 'tag':me.label}, callback)
 	$bg(me.body,'#DDD');
 }
-
-// tag cloud
-// render the tag cloud
-// n1 x [tag1]
-// n2 x [tag2]
-
-wn.widgets.TagCloud = function(parent, doctype, onclick) {
-	var me = this;
-		
-	this.make = function(r, rt) {
-		parent.innerHTML = '';
-		if(r.message && r.message.length) {
-			me.tab = make_table(parent, r.message.length, 2, '100%', ['40px', null], {padding:'5px 3px 5px 0px'})
-			$y($td(me.tab, 0, 0), {textAlign:'right'});
-			
-			for(var i=0; i<r.message.length; i++) {
-				new wn.widgets.TagCloud.Tag({
-					parent:$td(me.tab, i, 1),
-					label: r.message[i][0],
-					onclick: onclick,
-					fieldname: r.message[i][2]
-				}, $td(me.tab, i, 0), r.message[i]) 
-			}
-		} else {
-			me.set_no_tags();
-		}
-		
-		me.refresh = $ln($a(parent, 'div'), 'refresh', function() {
-			me.refresh.set_working();
-			me.render(1);
-		}, {fontSize:'11px', margin:'3px 0px', color:'#888'}, 1);
-	}
-	
-	this.set_no_tags = function() {
-		$a(parent, 'div', 'social comment', {fontSize:'11px', margin:'3px 0px'}, '<i>No tags yet!, please start tagging</i>');
-	}
-	
-	this.render = function(refresh) {
-		$c('webnotes.widgets.tags.get_top_tags', {doctype:doctype, refresh:(refresh ? 1 : 0)}, this.make);	
-	}
-	this.render();
-}
-
-// make a single row of a tag
-wn.widgets.TagCloud.Tag = function(args, count_cell, det) {
-	// counter
-	$(count_cell).css('text-align', 'right').html(det[1] + ' x');
-	
-	args.static = 1;
-	
-	// tag
-	this.tag = new SingleTag(args)
-}
-
-
-
-

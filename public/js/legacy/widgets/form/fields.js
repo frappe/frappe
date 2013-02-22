@@ -629,6 +629,10 @@ LinkField.prototype.make_input = function() {
 
 	me.get_value = function() { return me.txt.value; }
 
+	// increasing zindex of input to increase zindex of autosuggest
+	// because of the increase in zindex of dialog_wrapper
+	$(me.txt).css({"z-index": 10});
+	
 	$(me.txt).autocomplete({
 		source: function(request, response) {
 			var args = {
@@ -945,7 +949,7 @@ CheckField.prototype.make_input = function() { var me = this;
 
 }
 CheckField.prototype.set_disp = function(val) {
-	this.checkimg.toggle(val);
+	this.checkimg.toggle(cint(val) ? true : false);
 }
 
 

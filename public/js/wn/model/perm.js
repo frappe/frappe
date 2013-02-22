@@ -115,7 +115,7 @@ $.extend(wn.perm, {
 			var document_key = key_list[0];
 			var default_key = key_list[1];
 
-			var match_values = wn.defaults.get_user_defaults(key)
+			var match_values = wn.defaults.get_user_defaults(default_key);
 			if(match_values) {
 				for(var i=0 ; i<match_values.length;i++) {
 					 // user must have match field in defaults
