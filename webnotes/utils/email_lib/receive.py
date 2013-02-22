@@ -146,7 +146,7 @@ class POP3Mailbox:
 
 		self.connect()
 		num = num_copy = len(self.pop.list()[1])
-
+		
 		# track if errors arised
 		errors = False
 		
@@ -154,7 +154,6 @@ class POP3Mailbox:
 		if num > 20: num = 20
 		for m in xrange(1, num+1):
 			msg = self.pop.retr(m)
-			self.pop.dele(m)
 			
 			try:
 				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
@@ -168,12 +167,12 @@ class POP3Mailbox:
 				errors = True
 				webnotes.conn.rollback()
 		
-		# WARNING: Delete message number 101 onwards from the pop list
+		# WARNING: Mark as read - message number 101 onwards from the pop list
 		# This is to avoid having too many messages entering the system
 		num = num_copy
 		if num > 100 and not errors:
 			for m in xrange(101, num+1):
-				self.pop.dele(m)
+				self.pop.retr(m)
 		
 		self.pop.quit()
 		webnotes.conn.begin()
