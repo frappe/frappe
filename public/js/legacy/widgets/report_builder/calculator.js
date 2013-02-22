@@ -50,7 +50,7 @@ _r.show_calc = function(tab, colnames, coltypes, add_idx) {
 			for(var i=0;i<this.colnames.length;i++) {if(this.colnames[i]==cn){ cidx=i+add_idx; break; } }
 			for(var i=0; i<this.datatab.rows.length; i++) {
 				var c = this.datatab.rows[i].cells[cidx];
-				var v = c.div ? flt(c.div.innerHTML) : flt(c.innerHTML);
+				var v = c._value;
 				sum += v;
 				if(minv == null) minv = v;
 				if(maxv == null) maxv = v;
