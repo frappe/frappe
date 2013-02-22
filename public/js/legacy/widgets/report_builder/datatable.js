@@ -479,6 +479,7 @@ _r.DataTable.prototype.make_data_cell = function(ri, ci, val, doc) {
   var me = this;
 
   c.div = $a(c, 'div', '', {width:(cint(w)-7)+'px'});
+  c._value = val;
   set_value_in(c.div, val, this.coltypes[ci], this.coloptions[ci], doc)
 }
 
