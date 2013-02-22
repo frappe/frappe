@@ -31,66 +31,57 @@ doctypes = {}
 roles = []
 
 @webnotes.whitelist()
-def get(arg=None):
-	query = build_query(arg)
-	return compress(webnotes.conn.sql(query, as_dict=1))
-	
-def build_query(arg=None):
-	"""
-	build query
-	
-	gets doctype, subject, filters
-	limit_start, limit_page_length
-	"""
-	data = prepare_data(arg)
-	
-	if 'query' in data:
-		return run_custom_query(data)
-	
-	query = """select %(fields)s from %(tables)s where %(conditions)s
-		%(group_by)s order by %(order_by)s %(limit)s""" % data
-		
-	return query
-	
-def prepare_data(arg=None):
-	global tables
-	
-	if arg:
-		data = webnotes._dict(arg)
-	else:
-		data = webnotes._dict(webnotes.form_dict)
-		
-	if 'query' in data:
-		return data
-	
+def get():
+	return compress(execute(**get_form_params()))
+
+def get_form_params():
+	data = webnotes._dict(webnotes.form_dict)
+
+	del data["cmd"]
+
 	if isinstance(data.get("filters"), basestring):
 		data["filters"] = json.loads(data["filters"])
 	if isinstance(data.get("fields"), basestring):
 		data["fields"] = json.loads(data["fields"])
+	if isinstance(data.get("docstatus"), basestring):
+		data["docstatus"] = json.loads(data["docstatus"])
 		
-	tables = get_tables(data)
+	return data
+	
+def execute(doctype, query=None, filters=[], fields=None, docstatus=[], 
+		group_by=None, order_by=None, limit_start=0, limit_page_length=50):
+
+	if query:
+		return run_custom_query(query)
+
+	args = prepare_args(doctype, filters, fields, docstatus, group_by, order_by)
+	args.limit = add_limit(limit_start, limit_page_length)
+	
+	query = """select %(fields)s from %(tables)s where %(conditions)s
+		%(group_by)s order by %(order_by)s %(limit)s""" % args
+		
+	return webnotes.conn.sql(query, as_dict=1)
+	
+def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
+	global tables		
+	tables = get_tables(doctype, fields)
 	load_doctypes()
-	remove_user_tags(data)
-	conditions = build_conditions(data)
+	remove_user_tags(doctype, fields)
+	conditions = build_conditions(doctype, fields, filters, docstatus)
+	
+	args = webnotes._dict()
 	
 	# query dict
-	data['tables'] = ', '.join(tables)
-	data['conditions'] = ' and '.join(conditions)
-	data['fields'] = ', '.join(data.fields)
+	args.tables = ', '.join(tables)
+	args.conditions = ' and '.join(conditions)
+	args.fields = ', '.join(fields)
 	
-	if not data.get('order_by'):
-		data['order_by'] = tables[0] + '.modified desc'
+	args.order_by = order_by or tables[0] + '.modified desc'
+	args.group_by = group_by and (" group by " + group_by) or ""
 
-	if data.get('group_by'):
-		data['group_by'] = "group by " + data.get('group_by')
-	else:
-		data['group_by'] = ''
-
-	check_sort_by_table(data.get('order_by'), tables)
-	
-	add_limit(data)
-	
-	return data
+	check_sort_by_table(args.order_by)
+		
+	return args
 
 def compress(data):
 	"""separate keys and values"""
@@ -108,7 +99,7 @@ def compress(data):
 		"values": values
 	}
 	
-def check_sort_by_table(sort_by, tables):
+def check_sort_by_table(sort_by):
 	"""check atleast 1 column selected from the sort by table """
 	tbl = sort_by.split('.')[0]
 	if tbl not in tables:
@@ -117,9 +108,8 @@ def check_sort_by_table(sort_by, tables):
 		webnotes.msgprint("Please select atleast 1 column from '%s' to sort"\
 			% tbl, raise_exception=1)
 
-def run_custom_query(data):
+def run_custom_query(query):
 	"""run custom query"""
-	query = data['query']
 	if '%(key)s' in query:
 		query = query.replace('%(key)s', 'name')
 	return webnotes.conn.sql(query, as_dict=1)
@@ -139,51 +129,47 @@ def load_doctypes():
 				raise webnotes.PermissionError, doctype
 			doctypes[doctype] = webnotes.model.doctype.get(doctype)
 	
-def remove_user_tags(data):
+def remove_user_tags(doctype, fields):
 	"""remove column _user_tags if not in table"""
-	for fld in data.fields:
+	for fld in fields:
 		if '_user_tags' in fld:
-			if not '_user_tags' in get_table_columns(data.doctype):
-				del data.fields[data.fields.index(fld)]
+			if not '_user_tags' in get_table_columns(doctype):
+				del fields[fields.index(fld)]
 				break
 
-def add_limit(data):
-	if 'limit_page_length' in data:
-		data['limit'] = 'limit %(limit_start)s, %(limit_page_length)s' % data
+def add_limit(limit_start, limit_page_length):
+	if limit_page_length:
+		return 'limit %s, %s' % (limit_start, limit_page_length)
 	else:
-		data['limit'] = ''
+		return''
 		
-def build_conditions(data):
-	"""build conditions"""
-	# docstatus condition
-	if isinstance(data.docstatus, basestring):
-		data.docstatus = json.loads(data.docstatus)
-	
-	if data.docstatus:
-		conditions = [tables[0] + '.docstatus in (' + ','.join(data.docstatus) + ')']
+def build_conditions(doctype, fields, filters, docstatus):
+	"""build conditions"""	
+	if docstatus:
+		conditions = [tables[0] + '.docstatus in (' + ','.join(docstatus) + ')']
 	else:
 		# default condition
 		conditions = [tables[0] + '.docstatus < 2']
 	
 	# make conditions from filters
-	build_filter_conditions(data, conditions)
+	build_filter_conditions(filters, conditions)
 
 	# join parent, child tables
 	for tname in tables[1:]:
 		conditions.append(tname + '.parent = ' + tables[0] + '.name')
 
 	# match conditions
-	match_conditions = build_match_conditions(data)
+	match_conditions = build_match_conditions(doctype, fields)
 	if match_conditions:
 		conditions.append(match_conditions)
 
 	return conditions
 		
-def build_filter_conditions(data, conditions):
+def build_filter_conditions(filters, conditions):
 	"""build conditions from user filters"""
 	from webnotes.utils import cstr
 	
-	for f in data.filters:
+	for f in filters:
 		tname = ('`tab' + f[0] + '`')
 		if not tname in tables:
 			tables.append(tname)
@@ -201,18 +187,18 @@ def build_filter_conditions(data, conditions):
 				conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
 					+ " " + cstr(f[3]))
 					
-def build_match_conditions(data):
+def build_match_conditions(doctype, fields=None):
 	"""add match conditions if applicable"""
 	match_conditions = []
 	match = True
 	
 	if not tables or not doctypes:
 		global tables
-		tables = get_tables(data)
+		tables = get_tables(doctype, fields)
 		load_doctypes()
 	
-	for d in doctypes[data['doctype']]:
-		if d.doctype == 'DocPerm' and d.parent == data['doctype']:
+	for d in doctypes[doctype]:
+		if d.doctype == 'DocPerm' and d.parent == doctype:
 			if d.role in roles:
 				if d.match: # role applicable
 					if ':' in d.match:
@@ -221,7 +207,7 @@ def build_match_conditions(data):
 						default_key = document_key = d.match
 				
 					for v in webnotes.defaults.get_user_default_as_list(default_key) or ["** No Match **"]:
-						match_conditions.append('`tab%s`.%s="%s"' % (data['doctype'],
+						match_conditions.append('`tab%s`.%s="%s"' % (doctype,
 							document_key, v))
 							
 				elif d.read == 1 and d.permlevel == 0:
@@ -232,12 +218,12 @@ def build_match_conditions(data):
 	if match_conditions and match:
 		return '('+ ' or '.join(match_conditions) +')'
 
-def get_tables(data):
+def get_tables(doctype, fields):
 	"""extract tables from fields"""
-	tables = ['`tab' + data['doctype'] + '`']
+	tables = ['`tab' + doctype + '`']
 
 	# add tables from fields
-	for f in data.get('fields') or []:
+	for f in fields or []:
 		if "." not in f: continue
 		
 		table_name = f.split('.')[0]
@@ -258,8 +244,8 @@ def save_report():
 	from webnotes.model.doc import Document
 	
 	data = webnotes.form_dict
-	if webnotes.conn.exists('Report', data['name'].title()):
-		d = Document('Report', data['name'].title())
+	if webnotes.conn.exists('Report', data['name']):
+		d = Document('Report', data['name'])
 	else:
 		d = Document('Report')
 		d.name = data['name']
@@ -276,7 +262,8 @@ def export_query():
 	
 	# TODO: validate use is allowed to export
 	verify_export_allowed()
-	ret = webnotes.conn.sql(build_query(), as_dict=1)
+	
+	ret = execute(**get_form_params())
 
 	columns = [x[0] for x in webnotes.conn.get_description()]
 	data = [['Sr'] + get_labels(columns),]
