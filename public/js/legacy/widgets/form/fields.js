@@ -949,7 +949,7 @@ CheckField.prototype.make_input = function() { var me = this;
 
 }
 CheckField.prototype.set_disp = function(val) {
-	this.checkimg.toggle(val);
+	this.checkimg.toggle(cint(val) ? true : false);
 }
 
 
