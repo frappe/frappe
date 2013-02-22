@@ -325,7 +325,9 @@ _f.CodeField.prototype.make_input = function() {
 				}
 			})
 		});
-		
+		this.onrefresh = function() {
+			me.editor && me.editor.resize();
+		}
 	}
 	
 }

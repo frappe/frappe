@@ -94,7 +94,7 @@ _f.FormGrid.prototype.make_columns = function() {
 		gl.sort(function(a,b) { return a.idx - b.idx});
 		
 		for(var i=0;i<gl.length;i++) {
-			this.insert_column(this.field.df.options, gl[i].fieldname, gl[i].fieldtype, gl[i].label, gl[i].width, gl[i].options, this.field.perm, gl[i].reqd);
+			this.insert_column(this.field.df.options, gl[i].fieldname, gl[i].fieldtype, gl[i].label, gl[i].width, gl[i].options, this.field.perm, gl[i].reqd, gl[i]);
 
 			// hide it even if it is hidden at start..
 			// so that it can be brought back once

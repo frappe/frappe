@@ -94,7 +94,7 @@ _f.Grid.prototype.hide = function() {
 	$dh(this.wrapper); $dh(this.tbar_div); 
 }
 
-_f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label, width, options, perm, reqd) {
+_f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label, width, options, perm, reqd, df) {
 	
 	var idx = this.head_row.cells.length;
 	if(!width)width = '100px';
@@ -103,6 +103,7 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	
 	var col = this.head_row.insertCell(idx);
 	
+	col.df = df;
 	col.doctype = doctype; // for report (fields may be from diff doctypes)
 	col.fieldname = fieldname;
 	col.fieldtype = fieldtype;
@@ -244,7 +245,8 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	
 	// variations
 	if(cell.cellIndex) {
-		$(cell.div).html(wn.format(v, hc, {for_print:true}));
+		$(cell.div).html(wn.format(v, hc.df, {for_print: 
+			((doc && doc.docstatus==0 && !cint(hc.df ? hc.df.read_only : 1)) ? true : false)}));
 	} else {
 		// Index column
 		cell.div.style.padding = '2px';

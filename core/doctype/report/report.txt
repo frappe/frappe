@@ -1,12 +1,13 @@
 [
  {
-  "creation": "2013-01-10 16:34:04", 
+  "creation": "2013-01-28 17:07:00", 
   "docstatus": 0, 
-  "modified": "2013-01-28 15:29:26", 
+  "modified": "2013-02-22 15:18:03", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
+  "autoname": "field:report_name", 
   "doctype": "DocType", 
   "document_type": "System", 
   "module": "Core", 
@@ -37,9 +38,19 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "disabled", 
-  "fieldtype": "Check", 
-  "label": "Disabled"
+  "fieldname": "report_name", 
+  "fieldtype": "Data", 
+  "label": "Report Name", 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ref_doctype", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "label": "Ref DocType", 
+  "options": "DocType", 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
@@ -47,41 +58,58 @@
   "fieldtype": "Select", 
   "in_list_view": 1, 
   "label": "Is Standard", 
-  "options": "No\nYes"
+  "options": "No\nYes", 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "column_break_4", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "report_type", 
+  "fieldtype": "Select", 
+  "label": "Report Type", 
+  "options": "Report Builder\nQuery Report\nScript Report", 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "disabled", 
+  "fieldtype": "Check", 
+  "label": "Disabled"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "section_break_6", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "depends_on": "eval:doc.report_type==\"Query Report\"", 
+  "doctype": "DocField", 
   "fieldname": "query", 
-  "fieldtype": "Text", 
+  "fieldtype": "Code", 
   "label": "Query"
  }, 
  {
+  "depends_on": "eval:doc.report_type==\"Report Builder\"", 
   "doctype": "DocField", 
   "fieldname": "json", 
   "fieldtype": "Text", 
-  "label": "JSON"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "ref_doctype", 
-  "fieldtype": "Data", 
-  "in_list_view": 1, 
-  "label": "Ref DocType"
+  "label": "JSON", 
+  "read_only": 1
  }, 
  {
   "cancel": 1, 
-  "doctype": "DocPerm", 
-  "role": "Administrator", 
-  "write": 1
- }, 
- {
-  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
   "role": "System Manager", 
   "write": 1
  }, 
  {
   "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
   "role": "Report Manager", 
   "write": 1
