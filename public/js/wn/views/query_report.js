@@ -16,9 +16,9 @@ wn.standard_pages["query-report"] = function() {
 		parent: wrapper,
 	});
 	
-	wrapper.refresh = function() {
+	$(wrapper).bind("show", function() {
 		wn.query_report.load();
-	}
+	});
 }
 
 wn.views.QueryReport = Class.extend({
@@ -77,12 +77,13 @@ wn.views.QueryReport = Class.extend({
 		// load from route
 		var route = wn.get_route();
 		var me = this;
-		this.report_name = null;
 		if(route[1]) {
-			me.report_name = route[1];
-			this.wrapper.find(".no-report-area").toggle(false);
-			me.appframe.title(wn._("Query Report")+": " + me.report_name);
-			me.refresh();
+			if(me.report_name!=route[1]) {
+				me.report_name = route[1];
+				this.wrapper.find(".no-report-area").toggle(false);
+				me.appframe.title(wn._("Query Report")+": " + me.report_name);
+				me.refresh();
+			}
 		} else {
 			var msg = wn._("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);	
