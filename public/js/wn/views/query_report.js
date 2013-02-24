@@ -228,14 +228,14 @@ wn.views.QueryReport = Class.extend({
 		} 
 		
 		
-		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.fieldtype)) {
+		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.df.fieldtype)) {
 			// non strings
 			if(filter.indexOf(":")==-1) {
-				if(columnDef.fieldtype=="Date") {
+				if(columnDef.df.fieldtype=="Date") {
 					filter = dateutil.user_to_str(filter);
 				}
 
-				if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
+				if(in_list(["Float", "Currency", "Int"], columnDef.df.fieldtype)) {
 					value = flt(value);
 					filter = flt(filter);
 				}
@@ -244,12 +244,12 @@ wn.views.QueryReport = Class.extend({
 			} else {
 				// range
 				filter = filter.split(":");
-				if(columnDef.fieldtype=="Date") {
+				if(columnDef.df.fieldtype=="Date") {
 					filter[0] = dateutil.user_to_str(filter[0]);
 					filter[1] = dateutil.user_to_str(filter[1]);
 				}
 
-				if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
+				if(in_list(["Float", "Currency", "Int"], columnDef.df.fieldtype)) {
 					value = flt(value);
 					filter[0] = flt(filter[0]);
 					filter[1] = flt(filter[1]);
