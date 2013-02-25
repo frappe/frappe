@@ -154,6 +154,9 @@ class POP3Mailbox:
 		if num > 20: num = 20
 		for m in xrange(1, num+1):
 			msg = self.pop.retr(m)
+			# added back dele, as most pop3 servers seem to require msg to be deleted
+			# else it will again be fetched in self.pop.list()
+			self.pop.dele(m)
 			
 			try:
 				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
@@ -172,7 +175,7 @@ class POP3Mailbox:
 		num = num_copy
 		if num > 100 and not errors:
 			for m in xrange(101, num+1):
-				self.pop.retr(m)
+				self.pop.dele(m)
 		
 		self.pop.quit()
 		webnotes.conn.begin()
