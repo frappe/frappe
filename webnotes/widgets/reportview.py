@@ -251,7 +251,7 @@ def save_report():
 		d = Document('Report', data['name'])
 	else:
 		d = Document('Report')
-		d.name = data['name']
+		d.report_name = data['name']
 		d.ref_doctype = data['doctype']
 		
 	d.json = data['json']
