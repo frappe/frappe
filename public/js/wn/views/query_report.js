@@ -6,6 +6,8 @@ wn.provide("wn.views");
 wn.standard_pages["query-report"] = function() {
 	var wrapper = wn.container.add_page('query-report');
 
+	wn.require("js/slickgrid.min.js");
+
 	wn.ui.make_app_page({
 		parent: wrapper,
 		title: 'Query Report',

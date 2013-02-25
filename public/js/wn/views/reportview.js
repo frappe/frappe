@@ -7,6 +7,8 @@ wn.views.ReportViewPage = Class.extend({
 			wn.set_route("403");
 			return;
 		};
+
+		wn.require("js/slickgrid.min.js");
 		
 		this.doctype = doctype;
 		this.docname = docname;
