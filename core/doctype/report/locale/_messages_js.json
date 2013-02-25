@@ -1,0 +1,8 @@
+[
+ "Write a SELECT query. Note result is not paged (all data is sent in one go).", 
+ "To format columns, give column labels in the query.", 
+ "[Label]:[Field Type]/[Options]:[Width]", 
+ "Report Builder reports are managed directly by the report builder. Nothing to do.", 
+ "Write a Python file in the same folder where this is saved and return column and result.", 
+ "Example:"
+]

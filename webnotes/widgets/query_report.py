@@ -21,12 +21,28 @@
 #
 
 from __future__ import unicode_literals
+
 import webnotes
+import os, json
 
 from webnotes import _
+from webnotes.modules import scrub, get_module_path
 
 @webnotes.whitelist()
-def run(report_name):
+def get_script(report_name):
+	report = webnotes.doc("Report", report_name)
+
+	script_path = os.path.join(get_module_path(webnotes.conn.get_value("DocType", report.ref_doctype, "module")),
+		"report", scrub(report.name), scrub(report.name) + ".js") 
+	
+	if os.path.exists(script_path):
+		with open(script_path, "r") as script:
+			return script.read()
+	else:
+		return "wn.query_reports['%s']={}" % report_name
+
+@webnotes.whitelist()
+def run(report_name, filters=None):
 	report = webnotes.doc("Report", report_name)
 
 	if not webnotes.has_permission(report.ref_doctype, "report"):
@@ -44,10 +60,12 @@ def run(report_name):
 		result = [list(t) for t in webnotes.conn.sql(report.query)]
 		columns = [c[0] for c in webnotes.conn.get_description()]
 	else:
-		from webnotes.modules import scrub
+		if filters:
+			filters = json.loads(filters)
+		
 		method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
 			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
-		columns, result = webnotes.get_method(method_name)()
+		columns, result = webnotes.get_method(method_name)(filters or {})
 	
 	return {
 		"result": result,

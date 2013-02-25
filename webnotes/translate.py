@@ -22,6 +22,13 @@
 
 from __future__ import unicode_literals
 
+"""
+Contributing:  
+1. Add the .csv file
+2. Run import
+3. Then run translate
+"""
+
 import webnotes, conf
 import os
 import codecs
