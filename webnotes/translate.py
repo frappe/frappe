@@ -22,10 +22,18 @@
 
 from __future__ import unicode_literals
 
+"""
+Contributing:  
+1. Add the .csv file
+2. Run import
+3. Then run translate
+"""
+
 import webnotes, conf
 import os
 import codecs
 import json
+import re
 
 messages = {}
 
@@ -178,10 +186,13 @@ def write_messages_file(path, messages, mtype):
 		os.makedirs(os.path.join(path, 'locale'))
 	
 	fname = os.path.join(path, 'locale', '_messages_' + mtype + '.json')
-	messages = [m.replace("\n", "") for m in filter(None, messages)]
 	messages = list(set(messages))
+	filtered = []
+	for m in messages:
+		if m and re.search('[a-zA-Z]+', m):
+			filtered.append(m)
 	with open(fname, 'w') as msgfile:
-		msgfile.write(json.dumps(messages, indent=1))
+		msgfile.write(json.dumps(filtered, indent=1))
 		
 def export_messages(lang, outfile):
 	"""get list of all messages"""
@@ -212,6 +223,7 @@ def export_messages(lang, outfile):
 			keys = messages.keys()
 			keys.sort()
 			for m in keys:
+				
 				w.writerow([m.encode('utf-8'), messages.get(m, '').encode('utf-8')])
 	
 def import_messages(lang, infile):
@@ -301,6 +313,7 @@ def google_translate(lang, infile, outfile):
 	"""translate objects using Google API. Add you own API key for translation"""
 	
 	data = get_all_messages_from_file(infile)
+	
 	import requests
 	
 	with open(outfile, 'w') as msgfile:

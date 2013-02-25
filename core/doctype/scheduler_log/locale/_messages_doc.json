@@ -1,7 +1,7 @@
 [
- "Scheduler Log", 
  "Core", 
+ "Scheduler Log", 
+ "Error", 
  "Log of Scheduler Errors", 
- "Method", 
- "Error"
+ "Method"
 ]

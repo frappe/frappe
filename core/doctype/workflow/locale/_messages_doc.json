@@ -1,7 +1,7 @@
 [
- "Core", 
- "Workflow Document States", 
  "Workflow Name", 
+ "Workflow Document States", 
+ "Core", 
  "Rules defining transition of state in the workflow.", 
  "DocType on which this Workflow is applicable.", 
  "Different \"States\" this document can exist in. Like \"Open\", \"Pending Approval\" etc.", 

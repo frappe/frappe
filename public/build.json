@@ -58,7 +58,6 @@
 			"lib/public/js/lib/jquery/jquery.ui.interactions.min.js",
 			"lib/public/js/lib/mousetrap.min.js",
 			"lib/public/js/lib/center_image.js",
-			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/lib/bootstrap.min.js",
 		
 			"lib/public/js/lib/tiny_mce_3.5.7/jquery.tinymce.js:concat",
@@ -161,9 +160,10 @@
 			"lib/public/js/wn/form/states.js",
 			"lib/public/js/wn/form/assign_to.js",
 			"lib/public/js/wn/print/print_table.js",
-
-			'lib/public/js/lib/jquery/jquery.ui.interactions.min.js',
-			
+		]
+	},
+	{
+		"public/js/slickgrid.min.js": [
 			'lib/public/js/lib/slickgrid/jquery.event.drag.min.js',
 			'lib/public/js/lib/slickgrid/plugins/slick.cellrangeselector.js',
 			'lib/public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js',
@@ -175,6 +175,6 @@
 			'lib/public/js/lib/slickgrid/slick.grid.js',
 			'lib/public/js/lib/slickgrid/slick.dataview.js',
 		]
-	},
+	}
 ]
 

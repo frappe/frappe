@@ -2,9 +2,12 @@
 // License: MIT. See license.txt
 
 wn.provide("wn.views");
+wn.provide("wn.query_reports");
 
 wn.standard_pages["query-report"] = function() {
 	var wrapper = wn.container.add_page('query-report');
+
+	wn.require("js/slickgrid.min.js");
 
 	wn.ui.make_app_page({
 		parent: wrapper,
@@ -55,12 +58,14 @@ wn.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.add_button(wn._("Run"), function() {
+		this.appframe.add_button("<i class='icon-refresh' title='"+
+			wn._('Refresh') + "'></i>", function() {
 			me.refresh();
 		}).addClass("btn-success");
 		
 		// Edit
-		var edit_btn = this.appframe.add_button(wn._("Edit"), function() {
+		var edit_btn = this.appframe.add_button("<i class='icon-edit' title='"+
+			wn._('Edit') + "'></i>", function() {
 			wn.set_route("Form", "Report", me.report_name);
 		});
 		if(!in_list(user_roles, "System Manager")) {
@@ -68,7 +73,8 @@ wn.views.QueryReport = Class.extend({
 				.attr("title", wn._("Only System Manager can create / edit reports"));
 		}
 
-		var export_btn = this.appframe.add_button(wn._("Export"), function() {
+		var export_btn = this.appframe.add_button("<i class='icon-download' title='"+
+			wn._('Export') + "'></i>", function() {
 			me.export();
 		});
 		wn.utils.disable_export_btn(export_btn);
@@ -82,22 +88,68 @@ wn.views.QueryReport = Class.extend({
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.title(wn._("Query Report")+": " + me.report_name);
-				me.refresh();
+				
+				if(!wn.query_reports[me.report_name]) {
+					wn.call({
+						method:"webnotes.widgets.query_report.get_script",
+						args: {
+							report_name: me.report_name
+						},
+						callback: function(r) {
+							wn.dom.eval(r.message || "");
+							me.setup_filters();
+							me.refresh();
+						}
+					})
+				} else {
+					me.setup_filters();
+					me.refresh();
+				}
 			}
 		} else {
 			var msg = wn._("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);	
 		}
 	},
+	setup_filters: function() {
+		this.clear_filters();
+		var $filter_wrapper = $("<div class='filters' style='display:inline-block; margin-left: 5px;'>\
+			</div>")
+			.appendTo(this.appframe.$w.find('.appframe-toolbar'));
+		var me = this;
+		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
+			var f = make_field(df, null, $filter_wrapper.get(0), null, 0, 1);
+			f.df.single_select = 1;
+			f.not_in_form = 1;
+			f.with_label = 0;
+			f.in_filter = 1;
+			f.refresh();
+			$(f.wrapper).attr("title", df.label).tooltip();
+			me.filters.push(f);
+			if(df["default"]) {
+				f.set_input(df["default"]);
+			}
+			$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
+		});
+	},
+	clear_filters: function() {
+		this.filters = [];
+		this.appframe.toolbar.find(".filters").remove();
+	},
 	refresh: function() {
 		// Run
 		var me =this;
 		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").toggle(true), 
 			"Loading Report...");
+		var filters = {};
+		$.each(this.filters || [], function(i, f) {
+			filters[f.df.fieldname] = f.get_value();
+		})
 		wn.call({
 			method: "webnotes.widgets.query_report.run",
 			args: {
-				"report_name": me.report_name
+				"report_name": me.report_name,
+				filters: filters
 			},
 			callback: function(r) {
 				me.make_results(r.message.result, r.message.columns);

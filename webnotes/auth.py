@@ -92,14 +92,18 @@ class HTTPRequest:
 		else:
 			lang = [lang]
 		
-		
 		for l in lang:
 			code = l.strip()
-			if "-" in code:
-				code = code.split("-")[0]
 			if code in lang_list:
 				webnotes.lang = code
 				return
+				
+			# check if parent language (pt) is setup, if variant (pt-BR)
+			if "-" in code:
+				code = code.split("-")[0]
+				if code in lang_list:
+					webnotes.lang = code
+					return
 
 	def setup_profile(self):
 		webnotes.user = webnotes.profile.Profile()

@@ -1,0 +1,19 @@
+{
+ "Allow Attach": "Permitir Anexar", 
+ "Core": "N\u00facleo", 
+ "Customize Form": "Personalize Formul\u00e1rio", 
+ "Customize Label, Print Hide, Default etc.": "Personalize Etiquetas, Cabe\u00e7alhos, Padr\u00f5es, etc", 
+ "Default Print Format": "Formato de impress\u00e3o padr\u00e3o", 
+ "Enter Form Type": "Digite o Tipo de Formul\u00e1rio", 
+ "Fields": "Campos", 
+ "Fields separated by comma (,) will be included in the<br /><b>Search By</b> list of Search dialog box": "Campos separados por v\u00edrgula (,) ser\u00e3o inclu\u00eddos na lista <br /> <b>Pesquisa por</b> da caixa de di\u00e1logo Pesquisar", 
+ "Hide Copy": "Ocultar Copia", 
+ "Hide Email": "Ocultar E-mail", 
+ "Hide Print": "Ocultar Impress\u00e3o", 
+ "Load Print View on opening of an existing form": "Carregar a visualiza\u00e7\u00e3o de impress\u00e3o na abertura de um formul\u00e1rio existente", 
+ "Max Attachments": "Anexos Max.", 
+ "Note: maximum attachment size = 1mb": "Nota: tamanho m\u00e1ximo do anexo = 1MB", 
+ "Properties": "Propriedades", 
+ "Search Fields": "Campos de Pesquisa", 
+ "Show Print First": "Mostrar Impress\u00e3o Primeiro"
+}

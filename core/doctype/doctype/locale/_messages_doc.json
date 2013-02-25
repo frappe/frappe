@@ -1,13 +1,12 @@
 [
  "Title Case", 
- "Permission Rules", 
- "<a onclick=\"msgprint('<ol>\\<li><b>field:[fieldname]</b> - By Field\\<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\\<li><b>eval:[expression]</b> - Evaluate an expression in python (self is doc)\\<li><b>Prompt</b> - Prompt user for a name\\<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\\</ol>')\">Naming Options</a>", 
  "System", 
+ "Permission Rules", 
  "Other", 
- "Master", 
- "Hide Toolbar", 
+ "<a onclick=\"msgprint('<ol>\\\n<li><b>field:[fieldname]</b> - By Field\\\n<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\\\n<li><b>eval:[expression]</b> - Evaluate an expression in python (self is doc)\\\n<li><b>Prompt</b> - Prompt user for a name\\\n<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\\\n</ol>')\">Naming Options</a>", 
  "Hide Copy", 
  "DocType Details", 
+ "User Cannot Search", 
  "Core", 
  "Max Attachments", 
  "Description", 
@@ -42,9 +41,10 @@
  "Is Single", 
  "Hide Print", 
  "Allow Import via Data Import Tool", 
- "User Cannot Search", 
+ "Master", 
  "Naming", 
  "Permissions", 
  "Document Type", 
- "Allow Attach"
+ "Allow Attach", 
+ "Hide Toolbar"
 ]
