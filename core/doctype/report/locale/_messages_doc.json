@@ -1,11 +1,16 @@
 [
+ "Script Report", 
  "Core", 
  "Ref DocType", 
- "Is Standard", 
+ "Report Name", 
  "No", 
  "Disabled", 
+ "Report Type", 
  "JSON", 
- "Report", 
+ "Report Builder", 
+ "Query Report", 
  "Query", 
+ "Report", 
+ "Is Standard", 
  "Yes"
 ]

@@ -13,7 +13,7 @@ class DocType:
 		if self.doc.is_standard == "Yes" and webnotes.session.user!="Administrator":
 			webnotes.msgprint(_("Only Administrator can save a standard report. Please rename and save."), 
 				raise_exception=True)
-		if self.doc.report_type in ("Query Report", "Script Report") \
+		if self.doc.report_type in ("Script Report") \
 			and webnotes.session.user!="Administrator":
 			webnotes.msgprint(_("Only Administrator allowed to create Query / Script Reports"),
 				raise_exception=True)

@@ -252,7 +252,7 @@ def setup_options():
 
 	parser.add_option('--import_messages', nargs=2, metavar="LANG FILENAME", 
 		help="""Import messages for a language and make language files. 
-		Example, lib/wnf.py --export_messages hi hindi.csv""")
+		Example, lib/wnf.py --import_messages hi hindi.csv""")
 
 	parser.add_option('--google_translate', nargs=3, metavar="LANG INFILE OUTFILE", 
 		help="""Auto translate using Google Translate API""")

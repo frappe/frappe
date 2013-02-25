@@ -37,6 +37,11 @@ _f.ColumnBreak.prototype.make_body = function() {
 	// header
 	if(this.df&&this.df.label){
 		this.label = $a(this.cell.wrapper, 'h4', '', '', wn._(this.df.label));
+		if(this.df.description)
+			$('<div class="help small" style="margin-top: 4px; margin-bottom: 8px;">'
+				+wn._(this.df.description)+'</div>')
+				.appendTo(this.cell.wrapper)
+		
 	}
 }
 
