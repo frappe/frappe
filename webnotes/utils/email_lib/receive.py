@@ -99,13 +99,17 @@ class IncomingMail:
 	def save_attachments_in_doc(self, doc):
 		from webnotes.utils.file_manager import save_file, add_file_list
 		for attachment in self.attachments:
-			fid = save_file(attachment['filename'], attachment['content'])
-			status = add_file_list(doc.doctype, doc.name, fid, fid)
+			try:
+				fid = save_file(attachment['filename'], attachment['content'])
+				status = add_file_list(doc.doctype, doc.name, fid, fid)
+			except:
+				from webnotes.utils.scheduler import log
+				log("receive.set_attachments_in_doc")
 
 	def get_thread_id(self):
 		import re
 		subject = self.mail.get('Subject', '')
-		l= re.findall('(?<=\[)[\w/-]+', subject)
+		l = re.findall('(?<=\[)[\w/-]+', subject)
 		return l and l[0] or None
 
 class POP3Mailbox:
