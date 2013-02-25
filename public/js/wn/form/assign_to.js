@@ -131,7 +131,11 @@ wn.ui.form.AssignTo = Class.extend({
 							notify: me.dialog.fields_dict.notify.get_value()
 						}, 
 						callback: function(r,rt) {
-							me.render(r.message);
+							if(!r.exc) {
+								if(cint(me.dialog.fields_dict.notify.get_value()))
+									msgprint("Email sent to " + assign_to);
+								me.render(r.message);
+							}
 						}
 					});
 				}
