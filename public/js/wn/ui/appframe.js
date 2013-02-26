@@ -83,12 +83,14 @@ wn.ui.AppFrame = Class.extend({
 						new_doc(doctype);
 					}
 				}
-			},
-			{
+			}]
+		if(!locals.DocType[doctype].issingle) {
+			views.push({
 				icon: "icon-list",
 				route: "List/" + doctype,
 				type: "list"
-			}];
+			});
+		};
 		if(locals.DocType[doctype].__calendar_js) {
 			views.push({
 				icon: "icon-calendar",
