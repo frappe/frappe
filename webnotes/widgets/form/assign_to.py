@@ -58,6 +58,11 @@ def add(args=None):
 		d.date = args.get('date', nowdate())
 		d.assigned_by = args.get('assigned_by', webnotes.user.name)
 		d.save(1)
+		
+		# set assigned_to if field exists
+		from webnotes.model.meta import has_field
+		if has_field(args['doctype'], "assigned_to"):
+			webnotes.conn.set_value(args['doctype'], args['name'], "assigned_to", args['assign_to'])
 
 	# notify
 	if not args.get("no_notification"):

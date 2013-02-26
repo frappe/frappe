@@ -98,31 +98,30 @@ function nth(number) {
 function flt(v, decimals) { 
 	if(v==null || v=='')return 0;
 	
-	if(typeof v==="number")
-		return v;
-	
-	v = v + "";
-	
-	// strip currency symbol if exists
-	if(v.indexOf(" ")!=-1) {
-		v = v.split(" ")[1];
+	if(typeof v!=="number") {
+		v = v + "";
+
+		// strip currency symbol if exists
+		if(v.indexOf(" ")!=-1) {
+			v = v.split(" ")[1];
+		}
+
+		// strip groups (,)
+		if(wn.number_format_info.group_sep==".") {
+			v = v.replace(/\./g,'');
+
+			// sanitize decimal separator to .
+			v = v.replace(/,/g, ".");
+		} else {
+			v=v.replace(/,/g,'');
+		}
+
+
+		v=parseFloat(v);
+		if(isNaN(v))
+			v=0;
 	}
 	
-	// strip groups (,)
-	if(wn.number_format_info.group_sep==".") {
-		v = v.replace(/\./g,'');
-
-		// sanitize decimal separator to .
-		v = v.replace(/,/g, ".");
-	} else {
-		v=v.replace(/,/g,'');
-	}
-
-
-	v=parseFloat(v);
-	if(isNaN(v))
-		v=0;
-		
 	if(decimals!=null)
 		return roundNumber(v, decimals);
 	return v;

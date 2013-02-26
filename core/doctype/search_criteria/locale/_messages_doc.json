@@ -1,6 +1,7 @@
 [
  "Custom Query", 
  "No", 
+ "Search Criteria", 
  "Sort By", 
  "Doc Type", 
  "Columns", 
@@ -18,12 +19,11 @@
  "Parent Doc Type", 
  "Additional Conditions", 
  "Client Script", 
- "Additional Columns", 
  "Module", 
  "Disabled", 
  "Criteria Name", 
  "Report Script", 
- "Search Criteria", 
+ "Additional Columns", 
  "Filters", 
  "Yes"
 ]

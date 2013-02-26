@@ -37,6 +37,11 @@ _f.ColumnBreak.prototype.make_body = function() {
 	// header
 	if(this.df&&this.df.label){
 		this.label = $a(this.cell.wrapper, 'h4', '', '', wn._(this.df.label));
+		if(this.df.description)
+			$('<div class="help small" style="margin-top: 4px; margin-bottom: 8px;">'
+				+wn._(this.df.description)+'</div>')
+				.appendTo(this.cell.wrapper)
+		
 	}
 }
 
@@ -111,38 +116,6 @@ _f.SectionBreak.prototype.make_body = function() {
 		else
 			$(me.row.main_body).slideDown();
 	}
-}
-
-_f.SectionBreak.prototype.has_data = function() {
-	// return true if
-	// 1. any field in the section is mandatory & not set as default
-	// 2. any field in the section has data that is not default
-	// 3. if table, table has rows
-	
-	var me = this;
-	for(var i in me.fields) {
-		var f = me.fields[i];
-		var v = f.get_value ? f.get_value() : null;
-		
-		// value that is not default
-		defaultval = f.df['default'] || sys_defaults[f.fieldname] || user_defaults[f.fieldname];
-		if(v && v != defaultval) {
-			return true;
-		}
-		
-		// unfilled mandatory field
-		if(f.df.reqd && !v) {
-			return true;
-		}
-		
-		// filled table
-		if(f.df.fieldtype=='Table') {
-			if(f.grid.get_children().length || f.df.reqd) {
-				return true;
-			}
-		}
-	}
-	return false;
 }
 
 _f.SectionBreak.prototype.refresh = function(from_form) {
@@ -357,7 +330,9 @@ _f.CodeField.prototype.make_input = function() {
 				}
 			})
 		});
-		
+		this.onrefresh = function() {
+			me.editor && me.editor.resize();
+		}
 	}
 	
 }

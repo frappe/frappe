@@ -7,6 +7,8 @@ wn.views.ReportViewPage = Class.extend({
 			wn.set_route("403");
 			return;
 		};
+
+		wn.require("js/slickgrid.min.js");
 		
 		this.doctype = doctype;
 		this.docname = docname;
@@ -98,7 +100,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 
 	set_init_columns: function() {
 		// pre-select mandatory columns
-		var columns = wn.user.get_default("_list_settings:" + this.doctype);
+		var columns = wn.defaults.get_default("_list_settings:" + this.doctype);
 		if(!columns) {
 			var columns = [['name', this.doctype],];
 			$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
@@ -465,7 +467,7 @@ wn.ui.ColumnPicker = Class.extend({
 				columns.push([$selected.attr('fieldname'), 
 					$selected.attr('table')]);
 			});
-			wn.user.set_default("_list_settings:" + me.doctype, columns);
+			wn.defaults.set_default("_list_settings:" + me.doctype, columns);
 			me.list.columns = columns;
 			me.list.run();
 		});

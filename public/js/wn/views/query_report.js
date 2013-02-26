@@ -2,6 +2,27 @@
 // License: MIT. See license.txt
 
 wn.provide("wn.views");
+wn.provide("wn.query_reports");
+
+wn.standard_pages["query-report"] = function() {
+	var wrapper = wn.container.add_page('query-report');
+
+	wn.require("js/slickgrid.min.js");
+
+	wn.ui.make_app_page({
+		parent: wrapper,
+		title: 'Query Report',
+		single_column: true
+	});
+
+	wn.query_report = new wn.views.QueryReport({
+		parent: wrapper,
+	});
+	
+	$(wrapper).bind("show", function() {
+		wn.query_report.load();
+	});
+}
 
 wn.views.QueryReport = Class.extend({
 	init: function(opts) {
@@ -10,6 +31,7 @@ wn.views.QueryReport = Class.extend({
 		this.appframe = this.parent.appframe;
 		this.parent.query_report = this;
 		this.make();
+		this.load();
 	},
 	slickgrid_options: {
 		enableColumnReorder: false,
@@ -20,20 +42,7 @@ wn.views.QueryReport = Class.extend({
 	},	
 	make: function() {
 		this.wrapper = $("<div>").appendTo($(this.parent).find(".layout-main"));
-		$('<div class="query-edit well" style="display: none;">\
-			<div class="query-form" style="width: 60%; float: left;"></div>\
-			<div class="help" style="width: 30%; float: left; margin-left: 15px;">\
-				<b>Column Rules: "label:datatype:width"</b><br>\
-				<ol>\
-					<li>"datatype" and "width" are optional.\
-					<li>"datatype" can be "Link", "Date", "Float", "Currency".\
-					<li>'+wn._('For Links, use define linked')+' DocType as "Link/Customer".<br>\
-					Example: "Customer:Link/Customer:120"\
-				</ol>\
-			</div>\
-			<div class="clear"></div>\
-		</div>\
-		<div class="waiting-area" style="display: none;"></div>\
+		$('<div class="waiting-area" style="display: none;"></div>\
 		<div class="no-report-area well" style="display: none;">\
 		</div>\
 		<div class="results" style="display: none;">\
@@ -45,124 +54,102 @@ wn.views.QueryReport = Class.extend({
 					e.g. "5:10" (to filter values between 5 & 10)</p>\
 		</div>').appendTo(this.wrapper);
 
-		this.make_query_form();
 		this.make_toolbar();
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.add_button(wn._("Run"), function() {
+		this.appframe.add_button("<i class='icon-refresh' title='"+
+			wn._('Refresh') + "'></i>", function() {
 			me.refresh();
 		}).addClass("btn-success");
 		
 		// Edit
-		var edit_btn = this.appframe.add_button(wn._("Edit"), function() {
-			me.wrapper.find(".query-edit").slideToggle();
+		var edit_btn = this.appframe.add_button("<i class='icon-edit' title='"+
+			wn._('Edit') + "'></i>", function() {
+			wn.set_route("Form", "Report", me.report_name);
 		});
 		if(!in_list(user_roles, "System Manager")) {
 			edit_btn.attr("disabled", "disabled")
 				.attr("title", wn._("Only System Manager can create / edit reports"));
 		}
 
-		var export_btn = this.appframe.add_button(wn._("Export"), function() {
+		var export_btn = this.appframe.add_button("<i class='icon-download' title='"+
+			wn._('Export') + "'></i>", function() {
 			me.export();
 		});
 		wn.utils.disable_export_btn(export_btn);
-	},
-	make_query_form: function() {
-		this.query_form = new wn.ui.FieldGroup({
-			parent: $(this.wrapper).find(".query-form").get(0),
-			fields: [
-				{label:wn._("Report Name"), reqd: 1, fieldname:"name"},
-				{label:wn._("Based on"), fieldtype:"Link", options:"DocType",
-					fieldname: "ref_doctype",
-					reqd:1, description:wn._("Permissions will be based on this DocType")},
-				{label:wn._("Query"), fieldtype: "Text", reqd: 1, fieldname:"query"},
-				{label:wn._("Save"), fieldtype:"Button", fielname:"save"}
-			]
-		});
-		
-		// text style
-		$(this.query_form.fields_dict.query.input).css({
-			width: "100%", 
-			height: "300px",
-			"font-weight": "Normal", 
-			"font-family": "Monaco, Courier, Fixed",
-		});
-		
-		// Save
-		var me = this;
-		$(this.query_form.fields_dict.save.input).click(function() {
-			var doc = me.query_form.get_values();
-			if(!doc) return;
-	
-			// new report
-			if(!me.doc || (me.doc.name != doc.name)) {
-				doc.doctype = "Report";
-				doc.__islocal = 1;
-				if(user=="Administrator") 
-					doc.is_standard="Yes";
-				else 
-					doc.is_standard="No"
-			} else{
-				doc = $.extend(copy_dict(me.doc), doc);
-			}
-			
-			wn.call({
-				method:"webnotes.client.save",
-				args: { doclist: [doc] },
-				callback: function(r) {
-					if(!r.exc) {
-						msgprint(wn._("Report Saved"))
-					}
-					wn.provide("locals.Report");
-					me.doc = r.message[0]
-					locals["Report"][me.doc.name] = r.message[0];
-					wn.set_route("query-report", me.doc.name);
-				}
-			})
-		});
 	},
 	load: function() {
 		// load from route
 		var route = wn.get_route();
 		var me = this;
-		this.doc = null;
 		if(route[1]) {
-			this.wrapper.find(".no-report-area").toggle(false);
-			wn.model.with_doc("Report", route[1], function(docname) {
-				me.doc = locals["Report"] && locals["Report"][route[1]];
-				if(!me.doc) {
-					msgprint(wn._("Not allowed"));
-					return;
+			if(me.report_name!=route[1]) {
+				me.report_name = route[1];
+				this.wrapper.find(".no-report-area").toggle(false);
+				me.appframe.title(wn._("Query Report")+": " + me.report_name);
+				
+				if(!wn.query_reports[me.report_name]) {
+					wn.call({
+						method:"webnotes.widgets.query_report.get_script",
+						args: {
+							report_name: me.report_name
+						},
+						callback: function(r) {
+							wn.dom.eval(r.message || "");
+							me.setup_filters();
+							me.refresh();
+						}
+					})
+				} else {
+					me.setup_filters();
+					me.refresh();
 				}
-				me.appframe.title(wn._("Query Report")+": " + me.doc.name);
-				me.query_form.set_values(me.doc);
-
-				// only administrator can edit standard reports
-				$(me.wrapper).find("query-form :input").attr('disabled',
-					(me.doc.is_standard=="Yes" && user!="Administrator")
-					? "disabled" : null);
-				me.refresh();
-			})
+			}
 		} else {
-			var msg = "No Report Loaded. "
-			if(in_list(user_roles, "System Manager"))
-				msg += wn._("Click on edit button to start a new report.");
-			else
-				msg += wn._("Please click on another report from the menu.");
+			var msg = wn._("No Report Loaded. Please use query-report/[Report Name] to run a report.")
 			this.wrapper.find(".no-report-area").html(msg).toggle(true);	
 		}
+	},
+	setup_filters: function() {
+		this.clear_filters();
+		var $filter_wrapper = $("<div class='filters' style='display:inline-block; margin-left: 5px;'>\
+			</div>")
+			.appendTo(this.appframe.$w.find('.appframe-toolbar'));
+		var me = this;
+		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
+			var f = make_field(df, null, $filter_wrapper.get(0), null, 0, 1);
+			f.df.single_select = 1;
+			f.not_in_form = 1;
+			f.with_label = 0;
+			f.in_filter = 1;
+			f.refresh();
+			$(f.wrapper).attr("title", df.label).tooltip();
+			me.filters.push(f);
+			if(df["default"]) {
+				f.set_input(df["default"]);
+			}
+			$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
+		});
+	},
+	clear_filters: function() {
+		this.filters = [];
+		this.appframe.toolbar.find(".filters").remove();
 	},
 	refresh: function() {
 		// Run
 		var me =this;
 		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").toggle(true), 
 			"Loading Report...");
+		var filters = {};
+		$.each(this.filters || [], function(i, f) {
+			filters[f.df.fieldname] = f.get_value();
+		})
 		wn.call({
 			method: "webnotes.widgets.query_report.run",
 			args: {
-				doctype: me.ref_doctype || me.query_form.get_value("ref_doctype"),
-				query: me.query || me.query_form.get_value("query")
+				"report_name": me.report_name,
+				filters: filters
 			},
 			callback: function(r) {
 				me.make_results(r.message.result, r.message.columns);
@@ -194,46 +181,33 @@ wn.views.QueryReport = Class.extend({
 
 				if(c.indexOf(":")!=-1) {
 					var opts = c.split(":");
-
-					// link
-					if(opts[1].substr(0,4)=="Link") {
-						col.doctype = opts[1].split('/')[1];
-						col.formatter = function(row, cell, value, columnDef, dataContext) {
-							return repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', {
-								doctype: columnDef.doctype,
-								name: value
-							});
-						}
-					} else if(opts[1]=="Date") {
-						col.formatter = function(row, cell, value, columnDef, dataContext) {
-							return dateutil.str_to_user(value);
-						};
-					} else if(opts[1]=="Currency") {
-						col.formatter = function(row, cell, value, columnDef, dataContext) {
-							return repl('<div style="text-align: right;">%(value)s</div>', {
-								value: format_number(value)
-							});
-						};
-					} else if(opts[1]=="Float") {
-						col.formatter = function(row, cell, value, columnDef, dataContext) {
-							return repl('<div style="text-align: right;">%(value)s</div>', {
-								value: flt(value).toFixed(6)
-							});
-						};
-					} else if(opts[1]=="Int") {
-						col.formatter = function(row, cell, value, columnDef, dataContext) {
-							return repl('<div style="text-align: right;">%(value)s</div>', {
-								value: parseInt(value)
-							});
-						};
+					var df = {
+						label: opts[0],
+						fieldtype: opts[1],
+						width: opts[2]
 					}
 					
-					col.name = col.id = col.field = opts[0];
+					if(!df.fieldtype) 
+						df.fieldtype="Data";
+
+					if(df.fieldtype.indexOf("/")!=-1) {
+						var tmp = df.fieldtype.split("/");
+						df.fieldtype = tmp[0];
+						df.options = tmp[1];
+					}
+					
+					col.df = df;
+					col.formatter = function(row, cell, value, columnDef, dataContext) {
+						return wn.format(value, columnDef.df, null, dataContext);
+					}
+					
+					// column parameters
+					col.name = col.id = col.field = df.label;
 					col.fieldtype = opts[1];
 
 					// width
-					if(opts[2]) {
-						col.width=parseInt(opts[2]);
+					if(df.width) {
+						col.width=parseInt(df.width);
 					}		
 				}
 				col.name = toTitle(col.name.replace(/ /g, " "))
@@ -306,14 +280,14 @@ wn.views.QueryReport = Class.extend({
 		} 
 		
 		
-		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.fieldtype)) {
+		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.df.fieldtype)) {
 			// non strings
 			if(filter.indexOf(":")==-1) {
-				if(columnDef.fieldtype=="Date") {
+				if(columnDef.df.fieldtype=="Date") {
 					filter = dateutil.user_to_str(filter);
 				}
 
-				if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
+				if(in_list(["Float", "Currency", "Int"], columnDef.df.fieldtype)) {
 					value = flt(value);
 					filter = flt(filter);
 				}
@@ -322,12 +296,12 @@ wn.views.QueryReport = Class.extend({
 			} else {
 				// range
 				filter = filter.split(":");
-				if(columnDef.fieldtype=="Date") {
+				if(columnDef.df.fieldtype=="Date") {
 					filter[0] = dateutil.user_to_str(filter[0]);
 					filter[1] = dateutil.user_to_str(filter[1]);
 				}
 
-				if(in_list(["Float", "Currency", "Int"], columnDef.fieldtype)) {
+				if(in_list(["Float", "Currency", "Int"], columnDef.df.fieldtype)) {
 					value = flt(value);
 					filter[0] = flt(filter[0]);
 					filter[1] = flt(filter[1]);
@@ -395,7 +369,7 @@ wn.views.QueryReport = Class.extend({
 		 	function(row) {
 				return [row.splice(1)];
 		});
-		this.title = this.query_form.get_value("name");
+		this.title = this.report_name;
 		wn.tools.downloadify(result, ["Report Manager", "System Manager"], this);
 		return false;
 	}

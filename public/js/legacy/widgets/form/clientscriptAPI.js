@@ -276,3 +276,16 @@ _f.Frm.prototype.call = function(opts) {
 _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
 }
+
+_f.Frm.prototype.map = function(from_to_list) {
+	var doctype = from_to_list[0][1];
+	console.log("Making " + doctype);
+	var new_docname = wn.model.make_new_doc_and_get_name(doctype);
+	$c("dt_map", {
+		"docs": wn.model.compress([locals[doctype][new_docname]]),
+		"from_doctype": cur_frm.doc.doctype,
+		"to_doctype": doctype,
+		"from_docname": cur_frm.doc.name,
+		"from_to_list": JSON.stringify(from_to_list),
+	}, function(r, rt) { if(!r.exc) loaddoc(doctype, new_docname); });
+}

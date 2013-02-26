@@ -21,30 +21,53 @@
 #
 
 from __future__ import unicode_literals
+
 import webnotes
+import os, json
+
+from webnotes import _
+from webnotes.modules import scrub, get_module_path
 
 @webnotes.whitelist()
-def run():
-	globals().update(webnotes.form_dict)
+def get_script(report_name):
+	report = webnotes.doc("Report", report_name)
+
+	script_path = os.path.join(get_module_path(webnotes.conn.get_value("DocType", report.ref_doctype, "module")),
+		"report", scrub(report.name), scrub(report.name) + ".js") 
 	
-	if not query:
-		webnotes.msgprint("Must specify a Query to run", raise_exception=1)
+	if os.path.exists(script_path):
+		with open(script_path, "r") as script:
+			return script.read()
+	else:
+		return "wn.query_reports['%s']={}" % report_name
+
+@webnotes.whitelist()
+def run(report_name, filters=None):
+	report = webnotes.doc("Report", report_name)
+
+	if not webnotes.has_permission(report.ref_doctype, "report"):
+		webnotes.msgprint(_("Must have report permission to access this report."), 
+			raise_exception=True)
 	
-	if not doctype:
-		webnotes.msgprint("Must specify DocType for permissions.", 
-			raise_exception=1)
+	if report.report_type=="Query Report":
+		if not report.query:
+			webnotes.msgprint(_("Must specify a Query to run"), raise_exception=True)
 	
-	if not webnotes.has_permission(doctype, "report"):
-		webnotes.msgprint("Must have report permission to access this report.", 
-			raise_exception=1)
 	
-	if not query.lower().startswith("select"):
-		webnotes.msgprint("Query must be a SELECT", raise_exception=True)
+		if not report.query.lower().startswith("select"):
+			webnotes.msgprint(_("Query must be a SELECT"), raise_exception=True)
 		
-	result = [list(t) for t in webnotes.conn.sql(query)]
-	columns = webnotes.conn.get_description()
+		result = [list(t) for t in webnotes.conn.sql(report.query)]
+		columns = [c[0] for c in webnotes.conn.get_description()]
+	else:
+		if filters:
+			filters = json.loads(filters)
+		
+		method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
+			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
+		columns, result = webnotes.get_method(method_name)(filters or {})
 	
 	return {
 		"result": result,
-		"columns": [c[0] for c in columns]
+		"columns": columns
 	}

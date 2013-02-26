@@ -69,7 +69,7 @@ def make_test_objects(doctype, test_records):
 	for doclist in test_records:
 		if not "doctype" in doclist[0]:
 			doclist[0]["doctype"] = doctype
-		d = webnotes.model_wrapper((webnotes.doclist(doclist)).copy())
+		d = webnotes.bean((webnotes.doclist(doclist)).copy())
 		if webnotes.test_objects.get(d.doc.doctype):
 			# do not create test records, if already exists
 			return []
@@ -108,7 +108,7 @@ def export_doc(doctype, docname):
 	make_test_records(doctype)
 	meta = webnotes.get_doctype(doctype)
 	
-	for d in webnotes.model_wrapper(doctype, docname):
+	for d in webnotes.bean(doctype, docname):
 		new_doc = {}
 		for key, val in d.fields.iteritems():
 			if val and key not in ignore_list:
@@ -165,6 +165,7 @@ if __name__=="__main__":
 	parser.add_argument('-v', '--verbose', default=False, action="store_true")
 	parser.add_argument('-e', '--export', nargs=2, metavar="DOCTYPE DOCNAME")
 	parser.add_argument('-a', '--all', default=False, action="store_true")
+	parser.add_argument('-m', '--module', default=1, metavar="MODULE")
 
 	args = parser.parse_args()
 	webnotes.print_messages = args.verbose
@@ -178,5 +179,10 @@ if __name__=="__main__":
 		run_all_tests(args.verbose)
 	elif args.export:
 		export_doc(args.export[0], args.export[1])
+	elif args.module:
+		test_suite = unittest.TestSuite()
+		__import__(args.module)
+		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[args.module]))
+		unittest.TextTestRunner(verbosity=1+(args.verbose and 1 or 0)).run(test_suite)
 	
 	

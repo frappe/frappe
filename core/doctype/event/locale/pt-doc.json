@@ -1,8 +1,10 @@
 {
+ "All Day": "Dia de Todos os", 
  "Cancel": "Cancelar", 
  "Core": "N\u00facleo", 
  "Description": "Descri\u00e7\u00e3o", 
  "Details": "Detalhes", 
+ "Ends on": "Termina em", 
  "Event": "Evento", 
  "Event Date": "Data do Evento", 
  "Event Individuals": "Indiv\u00edduos de eventos", 
@@ -18,5 +20,7 @@
  "Private": "Privado", 
  "Public": "P\u00fablico", 
  "Ref Name": "Nome Ref", 
- "Ref Type": "Tipo Ref"
+ "Ref Type": "Tipo Ref", 
+ "Starts on": "Inicia em", 
+ "Subject": "Assunto"
 }

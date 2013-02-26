@@ -99,13 +99,17 @@ class IncomingMail:
 	def save_attachments_in_doc(self, doc):
 		from webnotes.utils.file_manager import save_file, add_file_list
 		for attachment in self.attachments:
-			fid = save_file(attachment['filename'], attachment['content'])
-			status = add_file_list(doc.doctype, doc.name, fid, fid)
+			try:
+				fid = save_file(attachment['filename'], attachment['content'])
+				status = add_file_list(doc.doctype, doc.name, fid, fid)
+			except:
+				from webnotes.utils.scheduler import log
+				log("receive.set_attachments_in_doc")
 
 	def get_thread_id(self):
 		import re
 		subject = self.mail.get('Subject', '')
-		l= re.findall('(?<=\[)[\w/-]+', subject)
+		l = re.findall('(?<=\[)[\w/-]+', subject)
 		return l and l[0] or None
 
 class POP3Mailbox:
@@ -146,7 +150,7 @@ class POP3Mailbox:
 
 		self.connect()
 		num = num_copy = len(self.pop.list()[1])
-
+		
 		# track if errors arised
 		errors = False
 		
@@ -154,6 +158,8 @@ class POP3Mailbox:
 		if num > 20: num = 20
 		for m in xrange(1, num+1):
 			msg = self.pop.retr(m)
+			# added back dele, as most pop3 servers seem to require msg to be deleted
+			# else it will again be fetched in self.pop.list()
 			self.pop.dele(m)
 			
 			try:
@@ -168,7 +174,7 @@ class POP3Mailbox:
 				errors = True
 				webnotes.conn.rollback()
 		
-		# WARNING: Delete message number 101 onwards from the pop list
+		# WARNING: Mark as read - message number 101 onwards from the pop list
 		# This is to avoid having too many messages entering the system
 		num = num_copy
 		if num > 100 and not errors:

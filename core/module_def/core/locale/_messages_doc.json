@@ -7,6 +7,7 @@
  "Workflow state represents the current state of a document.", 
  "Workflow Action Master", 
  "Property Setter overrides a standard DocType or Field property", 
+ "ToDo", 
  "User Properties", 
  "Represents the states allowed in one document and role assigned to change the state.", 
  "Profile Represents a User in the system.", 

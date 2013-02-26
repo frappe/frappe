@@ -90,7 +90,7 @@ cur_frm.cscript.hide_allow_attach = function(doc, dt, dn) {
 		'Project', 'Profile', 'Production Order', 'Product', 'Print Format',
 		'Price List', 'Purchase Invoice', 'Page', 'Module Def',
 		'Maintenance Visit', 'Maintenance Schedule', 'Letter Head',
-		'Leave Application', 'Lead', 'Journal Voucher', 'Item', 'Purchase Request',
+		'Leave Application', 'Lead', 'Journal Voucher', 'Item', 'Material Request',
 		'Expense Claim', 'Opportunity', 'Employee', 'Delivery Note',
 		'Customer Issue', 'Customer', 'Contact Us Settings', 'Company',
 		'Blog', 'BOM', 'About Us Settings'];

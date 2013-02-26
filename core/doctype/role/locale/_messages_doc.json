@@ -1,8 +1,6 @@
 [
- "Default values are set across the role and can be over-ridden by user permissions.", 
+ "Role Name", 
  "Core", 
  "Module", 
- "Role", 
- "Defaults", 
- "Role Name"
+ "Role"
 ]

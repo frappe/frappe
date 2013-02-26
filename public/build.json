@@ -13,10 +13,8 @@
 	{
 		"public/css/all-web.css": [
 			"lib/public/css/bootstrap.css",
+			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
-			"lib/public/css/legacy/body.css",
-			"lib/public/css/ui/common.css",
-			"lib/public/css/ui/layout.css"
 		]
 	},
 	
@@ -60,7 +58,6 @@
 			"lib/public/js/lib/jquery/jquery.ui.interactions.min.js",
 			"lib/public/js/lib/mousetrap.min.js",
 			"lib/public/js/lib/center_image.js",
-			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/lib/bootstrap.min.js",
 		
 			"lib/public/js/lib/tiny_mce_3.5.7/jquery.tinymce.js:concat",
@@ -76,6 +73,7 @@
 			"lib/public/js/wn/request.js",
 			"lib/public/js/wn/router.js",
 			"lib/public/js/wn/app.js",
+			"lib/public/js/wn/defaults.js",
 
 			"lib/public/js/legacy/globals.js",
 			"lib/public/js/legacy/utils/datatype.js",
@@ -116,12 +114,14 @@
 			"lib/public/js/wn/views/container.js",
 			"lib/public/js/wn/views/pageview.js",
 			"lib/public/js/wn/views/doclistview.js",
+			"lib/public/js/wn/views/sidebar_stats.js",
 			"lib/public/js/wn/views/moduleview.js",
 			"lib/public/js/wn/views/listview.js",
 			"lib/public/js/wn/views/formview.js",
 			"lib/public/js/wn/views/load_reportview.js",
 			"lib/public/js/wn/views/reportview.js",
 			"lib/public/js/wn/views/calendar.js",
+			"lib/public/js/wn/views/query_report.js",
 			"lib/public/js/wn/views/grid_report.js",
 			"lib/public/js/wn/views/communication.js",
 			"lib/public/js/wn/views/test_runner.js",
@@ -160,9 +160,10 @@
 			"lib/public/js/wn/form/states.js",
 			"lib/public/js/wn/form/assign_to.js",
 			"lib/public/js/wn/print/print_table.js",
-
-			'lib/public/js/lib/jquery/jquery.ui.interactions.min.js',
-			
+		]
+	},
+	{
+		"public/js/slickgrid.min.js": [
 			'lib/public/js/lib/slickgrid/jquery.event.drag.min.js',
 			'lib/public/js/lib/slickgrid/plugins/slick.cellrangeselector.js',
 			'lib/public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js',
@@ -174,6 +175,6 @@
 			'lib/public/js/lib/slickgrid/slick.grid.js',
 			'lib/public/js/lib/slickgrid/slick.dataview.js',
 		]
-	},
+	}
 ]
 

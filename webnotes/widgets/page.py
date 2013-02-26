@@ -27,60 +27,6 @@ import webnotes.model.code
 
 conn = webnotes.conn
 
-class Page:
-	"""
-	   A page class helps in loading a Page in the system. On loading
-	   
-	   * Page will import Client Script from other pages where specified by `$import(page_name)`
-	   * Execute dynamic HTML if the `content` starts with `#python`
-	"""	
-	def __init__(self, name):
-		self.name = name
-
-	def get_from_files(self, doc):
-		"""
-			Loads page info from files in module
-		"""
-		from webnotes.modules import get_module_path, scrub
-		import os
-		
-		path = os.path.join(get_module_path(doc.module), 'page', scrub(doc.name))
-
-		# script
-		fpath = os.path.join(path, scrub(doc.name) + '.js')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.fields['__script'] = f.read()
-
-		# css
-		fpath = os.path.join(path, scrub(doc.name) + '.css')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.style = f.read()
-		
-		# html
-		fpath = os.path.join(path, scrub(doc.name) + '.html')
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				doc.content = f.read()
-	
-			
-	def load(self):	
-		"""
-			Returns :term:`doclist` of the `Page`
-		"""		
-		doclist = webnotes.model.doc.get('Page', self.name)
-		doc = doclist[0]
-
-		# load from module
-		if doc.module: 
-			self.get_from_files(doc)
-
-		# process
-		self.process_content(doc)
-		
-		return doclist
-
 @webnotes.whitelist()
 def get(name):
 	"""
