@@ -31,7 +31,13 @@ def get(doctype, name=None, filters=None):
 		if not name:
 			raise Exception, "No document found for given filters"
 	return [d.fields for d in webnotes.bean(doctype, name).doclist]
-	
+
+@webnotes.whitelist()
+def get_value(doctype, fieldname, filters=None):
+	if fieldname and fieldname.startswith("["):
+		fieldname = json.loads(fieldname)
+	return webnotes.conn.get_value(doctype, json.loads(filters), fieldname)
+
 @webnotes.whitelist()
 def insert(doclist):
 	if isinstance(doclist, basestring):
