@@ -220,6 +220,8 @@ def build_match_conditions(doctype, fields=None):
 		
 	if match_conditions and match:
 		return '('+ ' or '.join(match_conditions) +')'
+	else:
+		return ""
 
 def get_tables(doctype, fields):
 	"""extract tables from fields"""

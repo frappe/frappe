@@ -57,7 +57,7 @@ wn.views.Calendar = Class.extend({
 		var me = this;
 		this.$wrapper = $(this.page).find(".layout-main");
 		this.$cal = $("<div>").appendTo(this.$wrapper);
-		wn.utils.set_footnote(this, this.$wrapper, wn._("Select or drag across dates to create a new event."));
+		wn.utils.set_footnote(this, this.$wrapper, wn._("Select or drag across time slots to create a new event."));
 		// 
 		// $('<div class="help"></div>')
 		// 	.html(wn._("Select dates to create a new ") + wn._(me.doctype))
