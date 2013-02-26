@@ -49,7 +49,7 @@ def get_form_params():
 	return data
 	
 def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
-		group_by=None, order_by=None, limit_start=0, limit_page_length=50):
+		group_by=None, order_by=None, limit_start=0, limit_page_length=None):
 
 	if query:
 		return run_custom_query(query)
@@ -144,7 +144,7 @@ def add_limit(limit_start, limit_page_length):
 	if limit_page_length:
 		return 'limit %s, %s' % (limit_start, limit_page_length)
 	else:
-		return''
+		return ''
 		
 def build_conditions(doctype, fields, filters, docstatus):
 	"""build conditions"""	
