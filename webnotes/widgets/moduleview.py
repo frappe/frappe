@@ -41,7 +41,7 @@ def get_open_count(doctypes):
 			if d in queries:
 				condition = queries[d]
 				key = condition.keys()[0]
-				query = "select count(*) from `tab%s` where `%s`=%s" % (d, key, '%s')
+				query = "select count(*) from `tab%s` where `%s`=%s and docstatus<2" % (d, key, '%s')
 				count[d] = webnotes.conn.sql(query, condition[key])[0][0] or ""
 				conditions[d] = condition
 		
