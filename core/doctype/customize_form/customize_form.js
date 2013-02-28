@@ -37,11 +37,12 @@ cur_frm.cscript.onload = function(doc, dt, dn) {
 
 cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 	return 'SELECT name FROM `tabDocType` \
-	WHERE IFNULL(issingle,0)=0 AND \
+	WHERE ((IFNULL(issingle,0)=0 AND \
 	IFNULL(in_create, 0)=0 AND \
 	name not in ("DocType", "DocField", "DocPerm", "Profile", "Role", "UserRole", "Page", \
-		"Page Role", "Module Def", "Print Format", "Report", "Search Criteria") AND \
-	name LIKE "%s%%" ORDER BY name ASC LIMIT 50';
+		"Page Role", "Module Def", "Print Format", "Report", "Search Criteria")) \
+	or name = "Item Group") \
+	AND name LIKE "%s%%" ORDER BY name ASC LIMIT 50';
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
