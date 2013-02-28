@@ -789,7 +789,16 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 			
 	} catch(e) {
 		validated = false;
+		
+		// show error message
+		console.group && console.group();
+		console.log("----- error in client script -----");
+		console.log("method: " + caller);
 		console.log(e);
+		console.log("error message: " + e.message);
+		console.trace && console.trace();
+		console.log("----- end of error message -----");
+		console.group && console.groupEnd();
 	}
 	if(caller && caller.toLowerCase()=='setup') {
 		this.setup_client_js();
