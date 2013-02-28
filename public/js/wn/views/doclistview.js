@@ -78,13 +78,16 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		me.can_delete = wn.model.can_delete(me.doctype);
 		me.meta = locals.DocType[me.doctype];
 		me.$page.find('.wnlist-area').empty(),
-		me.setup_docstatus_filter();
 		me.setup_listview();
+		me.setup_docstatus_filter();
 		me.init_list();
 		me.init_stats();
 		me.add_delete_option();
-		me.make_help();
 		me.show_match_help();
+		if(me.listview.settings.onload) {
+			me.listview.settings.onload(me);
+		}
+		me.make_help();
 	},
 	show_match_help: function() {
 		var me = this;
@@ -213,7 +216,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	add_delete_option: function() {
 		var me = this;
-		if(this.can_delete) {
+		if(this.can_delete || this.listview.settings.selectable) {
 			this.add_button(wn._('Delete'), function() { me.delete_items(); }, 'icon-remove');
 			this.add_button(wn._('Select All'), function() { 
 				var checks = me.$page.find('.list-delete');
@@ -221,11 +224,14 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			}, 'icon-ok');
 		}
 	},
+	get_checked_items: function() {
+		return $.map(this.$page.find('.list-delete:checked'), function(e) {
+			return $(e).data('data');
+		});
+	},
 	delete_items: function() {
 		var me = this;				
-		var dl = $.map(me.$page.find('.list-delete:checked'), function(e) {
-			return $(e).data('name');
-		});
+		var dl = this.get_checked_items();
 		if(!dl.length) 
 			return;
 			
@@ -235,7 +241,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				wn.call({
 					method: 'webnotes.widgets.reportview.delete_items',
 					args: {
-						items: dl,
+						items: $.map(dl, function(d, i) { return d.name }),
 						doctype: me.doctype
 					},
 					callback: function() {

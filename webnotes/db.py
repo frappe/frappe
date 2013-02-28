@@ -245,11 +245,15 @@ class Database:
 
 	def get(self, doctype, filters=None, as_dict=True):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict)
-		
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False):
+
+	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		"""Get a single / multiple value from a record. 
 		For Single DocType, let filters be = None"""
+
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
+		return ret and (len(ret[0]) > 1 and ret[0] or ret[0][0]) or None
 		
+	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if filters is not None and (filters!=doctype or filters=='DocType'):
 			if fieldname!="*" and isinstance(fieldname, basestring):
 				fieldname = "`" + fieldname + "`"
@@ -260,24 +264,27 @@ class Database:
 			
 			try:
 				r = self.sql("select %s from `tab%s` where %s" % (fl, doctype,
-					conditions), filters, as_dict)
+					conditions), filters, as_dict, debug=debug)
 			except Exception, e:
 				if e.args[0]==1054 and ignore:
 					return None
 				else:
 					raise e
 
-			return r and (len(r[0]) > 1 and r[0] or r[0][0]) or None
+			return r
 
 		else:
 			fieldname = isinstance(fieldname, basestring) and [fieldname] or fieldname
 
 			r = self.sql("select field, value from tabSingles where field in (%s) and \
-				doctype=%s" % (', '.join(['%s']*len(fieldname)), '%s'), tuple(fieldname) + (doctype,), as_dict=False)
+				doctype=%s" % (', '.join(['%s']*len(fieldname)), '%s'), tuple(fieldname) + (doctype,), as_dict=False, debug=debug)
 			if as_dict:
-				return r and webnotes._dict(r) or None
+				return r and [webnotes._dict(r)] or []
 			else:
-				return r and (len(r) > 1 and [i[0] for i in r] or r[0][1]) or None
+				if r:
+					return [[i[1] for i in r]]
+				else:
+					return []
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		from webnotes.utils import now
