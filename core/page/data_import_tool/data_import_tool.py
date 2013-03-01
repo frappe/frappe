@@ -129,7 +129,7 @@ def get_template():
 	webnotes.response['doctype'] = doctype
 
 def getdocfield(fieldname):
-	"""get docfield from doclist of doctype"""
+	"""get docfield from doclist of doctype"""		
 	l = [d for d in doctype_dl if d.doctype=='DocField' and d.fieldname==fieldname]
 	return l and l[0] or None
 
@@ -255,6 +255,10 @@ def check_record(d, parenttype):
 	
 	if parenttype and not d.get('parent'):
 		raise Exception, "parent is required."
+
+	global doctype_dl
+	if not doctype_dl:
+		doctype_dl = webnotes.model.doctype.get(d.doctype)
 
 	for key in d:
 		docfield = getdocfield(key)
