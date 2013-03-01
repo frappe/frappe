@@ -255,7 +255,8 @@ def save_report():
 		d = Document('Report')
 		d.report_name = data['name']
 		d.ref_doctype = data['doctype']
-		
+	
+	d.report_type = "Report Builder"
 	d.json = data['json']
 	webnotes.bean([d]).save()
 	webnotes.msgprint("%s saved." % d.name)

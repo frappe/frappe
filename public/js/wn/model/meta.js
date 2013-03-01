@@ -64,6 +64,18 @@ $.extend(wn.meta, {
 		}
 	},
 	
+	has_field: function(dt, fn) {
+		return wn.meta.docfield_map[dt][fn];
+	},
+
+	get_parentfield: function(parent_dt, child_dt) {
+		var df = wn.model.get("DocField", {parent:parent_dt, fieldtype:"Table", 
+			options:child_dt})
+		if(!df.length) 
+			throw "parentfield not found for " + parent_dt + ", " + child_dt;
+		return df[0].fieldname;
+	},
+		
 	get_label: function(dt, fn, dn) {
 		if(fn==="owner") {
 			return "Owner";

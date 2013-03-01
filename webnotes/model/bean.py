@@ -278,6 +278,7 @@ class Bean:
 				webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
 			self.to_docstatus = 2
 			self.prepare_for_save(1)
+			self.run_method('before_cancel')
 			self.save_main()
 			self.save_children()
 			self.run_method('on_cancel')
@@ -292,6 +293,7 @@ class Bean:
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.to_docstatus = 1
 			self.prepare_for_save(1)
+			self.run_method('before_update_after_submit')
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update_after_submit')

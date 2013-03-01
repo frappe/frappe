@@ -57,7 +57,8 @@ wn.views.ListView = Class.extend({
 		// additional fields
 		if(this.settings.add_fields) {
 			$.each(this.settings.add_fields, function(i, d) {
-				me.fields.push(d);
+				if(me.fields.indexOf(d)==-1)
+					me.fields.push(d);
 			});
 		}
 	},

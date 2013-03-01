@@ -652,6 +652,10 @@ _f.Frm.prototype.cleanup_refresh = function() {
 		var fn = me.meta.autoname.substr(6);
 		cur_frm.toggle_display(fn, false);
 	}
+	
+	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
+		cur_frm.toggle_display("naming_series", false);
+	}
 }
 
 // Resolve "depends_on" and show / hide accordingly

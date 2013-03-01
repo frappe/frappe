@@ -21,6 +21,7 @@
 //
 
 wn.provide('wn.model');
+wn.provide("wn.model.map_info");
 
 $.extend(wn.model, {
 	no_value_type: ['Section Break', 'Column Break', 'HTML', 'Table', 
@@ -74,6 +75,9 @@ $.extend(wn.model, {
 					}
 					if(meta.__calendar_js) {
 						eval(meta.__calendar_js);
+					}
+					if(meta.__map_js) {
+						eval(meta.__map_js);
 					}
 					callback(r);
 				}
@@ -228,21 +232,88 @@ $.extend(wn.model, {
 		delete locals[doctype][name];
 	},	
 
-	copy_doc: function(dt, dn, from_amend) {
+	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
+		$.each(wn.model.get("DocField", {parent:doctype}), function(i, df) {
+			if(cint(df.no_copy)) no_copy_list.push(df.fieldname);
+		})
+		return no_copy_list;
+	},
+
+	copy_doc: function(dt, dn, from_amend) {
+		var no_copy_list = wn.model.get_no_copy_list(dt);
 		var newdoc = wn.model.get_new_doc(dt);
 
 		for(var key in locals[dt][dn]) {
-			// dont copy name and blank fields
-			var df = wn.meta.get_docfield(dt, key);
-			
+			// dont copy name and blank fields			
 			if(key.substr(0,2)!='__' 
-				&& !in_list(no_copy_list, key) 
-				&& !(df && (!from_amend && cint(df.no_copy)==1))) { 
+				&& !in_list(no_copy_list, key)) { 
 				newdoc[key] = locals[dt][dn][key];
 			}
 		}
 		return newdoc;
+	},
+	
+	// args: source (doclist), target (doctype), table_map, field_map, callback
+	map: function(args) {
+		wn.model.with_doctype(args.target, function() {
+			var map_info = wn.model.map_info[args.target]
+			if(map_info) 
+				map_info = map_info[args.source[0].doctype];
+			if(!map_info) {
+				map_info = {
+					table_map: {},
+					field_map: {}
+				}
+			}
+			
+			// main
+			var target = wn.model.map_doc(args.source[0], args.target, map_info.field_map[args.target]);
+			
+			// children
+			$.each(map_info.table_map, function(child_target, child_source) {
+				$.each($.map(args.source, function(d) 
+					{ if(d.doctype==child_source) return d; else return null; }), function(i, d) {
+						var child = wn.model.map_doc(d, child_target, map_info.field_map[child_target]);
+						$.extend(child, {
+							parent: target.name,
+							parenttype: target.doctype,
+							parentfield: wn.meta.get_parentfield(target.doctype, child.doctype),
+							idx: i+1
+						});
+				});
+			});
+			
+			if(args.callback) {
+				args.callback(target);
+			} else {
+				wn.set_route("Form", target.doctype, target.name);
+			}
+		});
+	},
+	
+	// map a single doc to a new doc of given DocType and field_map
+	map_doc: function(source, doctype, field_map) {
+		var new_doc = wn.model.get_new_doc(doctype);
+		var no_copy_list = wn.model.get_no_copy_list(doctype);
+		if(!field_map) field_map = {};
+		delete no_copy_list[no_copy_list.indexOf("name")];
+		
+		for(fieldname in wn.meta.docfield_map[doctype]) {
+			var df = wn.meta.docfield_map[doctype][fieldname];
+			if(!df.no_copy) {
+				var source_key = field_map[df.fieldname] || df.fieldname;
+				if(source_key.substr(0,1)=="=") {
+					var value = source_key.substr(1);
+				} else {
+					var value = source[source_key];
+				}
+				if(value!==undefined) {
+					new_doc[df.fieldname] = value;
+				}
+			}
+		}
+		return new_doc;
 	},
 	
 	delete_doc: function(doctype, docname, callback) {
