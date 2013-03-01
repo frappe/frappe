@@ -12,14 +12,10 @@ wn.number_format_info = {
 }
 
 window.format_number = function(v, format, decimals){ 
-	
 	if (!format) {
 		format = get_number_format();
 	}
-	var info = wn.number_format_info[format];
-	if(!info) {
-		info = {decimal_str:".", group_sep:",", precision:2};
-	}
+	info = get_number_format_info(format);
 	
 	if(isNaN(+v) || v==null) {
 		v=0;
@@ -105,4 +101,12 @@ function get_number_format() {
 			|| "#,###.##";
 	}
 	return global_number_format;
+}
+
+function get_number_format_info(format) {
+	var info = wn.number_format_info[format];
+	if(!info) {
+		info = {decimal_str:".", group_sep:",", precision:2};
+	}
+	return info;
 }

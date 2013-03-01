@@ -107,7 +107,7 @@ function flt(v, decimals) {
 		}
 
 		// strip groups (,)
-		if(wn.number_format_info[get_number_format()].group_sep==".") {
+		if(get_number_format_info(get_number_format()).group_sep==".") {
 			v = v.replace(/\./g,'');
 
 			// sanitize decimal separator to .
