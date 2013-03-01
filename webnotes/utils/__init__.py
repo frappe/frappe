@@ -182,9 +182,15 @@ def add_years(date, years):
 
 def date_diff(string_ed_date, string_st_date):
 	return (getdate(string_ed_date) - getdate(string_st_date)).days
+
+def time_diff(string_ed_date, string_st_date):
+	return get_datetime(string_ed_date) - get_datetime(string_st_date)
 	
 def time_diff_in_seconds(string_ed_date, string_st_date):
-	return (get_datetime(string_ed_date) - get_datetime(string_st_date)).seconds
+	return time_diff(string_ed_date, string_st_date).seconds
+
+def time_diff_in_hours(string_ed_date, string_st_date):
+	return round(float(time_diff(string_ed_date, string_st_date).seconds) / 3600, 6)
 
 def now_datetime():
 	from datetime import datetime

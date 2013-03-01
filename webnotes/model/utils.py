@@ -205,7 +205,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 		
 	return 'okay'
 
-def check_if_doc_is_linked(dt, dn):
+def check_if_doc_is_linked(dt, dn, method="Delete"):
 	"""
 		Raises excption if the given doc(dt, dn) is linked in another record.
 	"""

@@ -133,15 +133,15 @@ _f.Frm.prototype.setup_print_layout = function() {
 	});
 	
 	var appframe = this.print_wrapper.appframe;
-	appframe.add_button("View Details", function() {
+	appframe.add_button(wn._("View Details"), function() {
 		me.edit_doc();
 	}).addClass("btn-success");
 	
-	appframe.add_button("Print", function() {
+	appframe.add_button(wn._("Print"), function() {
 		me.print_doc();
 	}, 'icon-print');
 
-	this.$print_view_select = appframe.add_select("Select Preview", this.print_formats)
+	this.$print_view_select = appframe.add_select(wn._("Select Preview"), this.print_formats)
 		.css({"float":"right"})
 		.val(this.print_formats[0])
 		.change(function() {
@@ -652,6 +652,10 @@ _f.Frm.prototype.cleanup_refresh = function() {
 		var fn = me.meta.autoname.substr(6);
 		cur_frm.toggle_display(fn, false);
 	}
+	
+	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
+		cur_frm.toggle_display("naming_series", false);
+	}
 }
 
 // Resolve "depends_on" and show / hide accordingly
@@ -791,14 +795,7 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 		validated = false;
 		
 		// show error message
-		console.group && console.group();
-		console.log("----- error in client script -----");
-		console.log("method: " + caller);
-		console.log(e);
-		console.log("error message: " + e.message);
-		console.trace && console.trace();
-		console.log("----- end of error message -----");
-		console.group && console.groupEnd();
+		this.log_error(caller, e);
 	}
 	if(caller && caller.toLowerCase()=='setup') {
 		this.setup_client_js();
@@ -815,8 +812,8 @@ _f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
 		try {
 			var tmp = eval(cs);
 		} catch(e) {
-			show_alert("Error in Client Script.")
-			console.log(e);
+			show_alert("Error in Client Script.");
+			this.log_error(caller || "setup_client_js", e);
 		}
 	}
 
@@ -831,6 +828,17 @@ _f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
 			this.cstring[strip(elist[i])] = elist[i+1];
 		}
 	}
+}
+
+_f.Frm.prototype.log_error = function(caller, e) {
+	console.group && console.group();
+	console.log("----- error in client script -----");
+	console.log("method: " + caller);
+	console.log(e);
+	console.log("error message: " + e.message);
+	console.trace && console.trace();
+	console.log("----- end of error message -----");
+	console.group && console.groupEnd();
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {

@@ -160,8 +160,9 @@ class DocType:
 				new.label = 'Amended From'
 				new.fieldtype = 'Link'
 				new.fieldname = 'amended_from'
-				new.options = "Sales Invoice"
-				new.permlevel = 1
+				new.options = self.doc.name
+				new.permlevel = 0
+				new.read_only = 1
 				new.print_hide = 1
 				new.no_copy = 1
 				new.idx = max_idx + 1

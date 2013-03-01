@@ -52,7 +52,7 @@ def build_message_files():
 	build_for_framework('lib/public/js/wn', 'js')
 	build_for_framework('app/public/js', 'js', with_doctype_names=True)
 	
-	build_for_modules()
+	#build_for_modules()
 
 def build_for_pages(path):
 	"""make locale files for framework py and js (all)"""
