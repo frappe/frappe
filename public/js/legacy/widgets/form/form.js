@@ -791,14 +791,7 @@ _f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
 		validated = false;
 		
 		// show error message
-		console.group && console.group();
-		console.log("----- error in client script -----");
-		console.log("method: " + caller);
-		console.log(e);
-		console.log("error message: " + e.message);
-		console.trace && console.trace();
-		console.log("----- end of error message -----");
-		console.group && console.groupEnd();
+		this.log_error(caller, e);
 	}
 	if(caller && caller.toLowerCase()=='setup') {
 		this.setup_client_js();
@@ -815,8 +808,8 @@ _f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
 		try {
 			var tmp = eval(cs);
 		} catch(e) {
-			show_alert("Error in Client Script.")
-			console.log(e);
+			show_alert("Error in Client Script.");
+			this.log_error(caller || "setup_client_js", e);
 		}
 	}
 
@@ -831,6 +824,17 @@ _f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
 			this.cstring[strip(elist[i])] = elist[i+1];
 		}
 	}
+}
+
+_f.Frm.prototype.log_error = function(caller, e) {
+	console.group && console.group();
+	console.log("----- error in client script -----");
+	console.log("method: " + caller);
+	console.log(e);
+	console.log("error message: " + e.message);
+	console.trace && console.trace();
+	console.log("----- end of error message -----");
+	console.group && console.groupEnd();
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
