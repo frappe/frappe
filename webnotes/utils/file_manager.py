@@ -25,6 +25,8 @@ import webnotes
 import os, conf
 from webnotes.utils import cstr
 
+class MaxFileSizeReachedError(webnotes.ValidationError): pass
+
 def upload():
 	# get record details
 	dt = webnotes.form_dict.doctype
@@ -135,7 +137,7 @@ def check_max_file_size(content):
 	max_file_size = getattr(conf, 'max_file_size', 1000000)
 
 	if len(content) > max_file_size:
-		raise Exception, 'Maximum File Limit (%s MB) Crossed' % (int(max_file_size / 1000000))
+		raise Exception, MaxFileSizeReachedError
 
 def write_file(content):
 	"""write file to disk with a random name (to compare)"""
