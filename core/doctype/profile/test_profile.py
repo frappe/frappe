@@ -8,6 +8,17 @@ class TestProfile(unittest.TestCase):
 		webnotes.conn.sql("""delete from tabUserRole where role='_Test Role'""")
 		delete_doc("Role","_Test Role")
 		
+		profile = webnotes.bean(copy=test_records[1])
+		profile.doc.email = "_test@example.com"
+		profile.insert()
+		
+		webnotes.bean({"doctype": "ToDo", "description": "_Test"}).insert()
+		
+		delete_doc("Profile", "_test@example.com")
+		
+		self.assertTrue(not webnotes.conn.sql("""select * from `tabToDo` where owner=%s""",
+			"_test@example.com"))
+		
 	def test_get_value(self):
 		self.assertEquals(webnotes.conn.get_value("Profile", "test@example.com"), "test@example.com")
 		self.assertEquals(webnotes.conn.get_value("Profile", {"email":"test@example.com"}), "test@example.com")
