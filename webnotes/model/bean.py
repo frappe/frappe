@@ -104,9 +104,7 @@ class Bean:
 			Create a DocType object
 		"""
 		if self.obj: return self.obj
-
-		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
+		self.obj = webnotes.get_obj(doc=self.doc, doclist=self.doclist)
 		self.controller = self.obj
 		return self.obj
 
@@ -116,7 +114,7 @@ class Bean:
 		"""
 		return [d.fields for d in self.docs]
 
-	def check_if_latest(self, method):
+	def check_if_latest(self, method="save"):
 		"""
 			Raises exception if the modified time is not the same as in the database
 		"""
@@ -151,6 +149,9 @@ class Bean:
 			1: _("Submitted"),
 			2: _("Cancelled")
 		}
+		
+		if not hasattr(self, "to_docstatus"):
+			self.to_docstatus = 0
 		
 		if [db_docstatus, self.to_docstatus] != valid[method]:
 			webnotes.msgprint(_("Cannot change from") + ": " + labels[db_docstatus] + " > " + \
@@ -301,6 +302,7 @@ class Bean:
 			self.save_main()
 			self.save_children()
 			self.run_method('on_cancel')
+			self.check_no_back_links_exist()
 		else:
 			self.no_permission_to(_("Cancel"))
 			
@@ -325,7 +327,10 @@ class Bean:
 		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
 			_("No Permission to ") + ptype, raise_exception=True)
 			
-# clone
+	def check_no_back_links_exist(self):
+		from webnotes.model.utils import check_if_doc_is_linked
+		check_if_doc_is_linked(self.doc.doctype, self.doc.name, method="Cancel")
+
 
 def clone(source_wrapper):
 	""" Copy previous invoice and change dates"""

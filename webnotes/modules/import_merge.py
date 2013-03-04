@@ -42,7 +42,7 @@ from webnotes.model.doc import Document
 in_transfer = 0
 
 no_sync = {
-	"Report": ["disabled"]
+	"Report": ["disabled"],
 }
 
 def set_doc(doclist, ovr=0, ignore=1, onupdate=1):

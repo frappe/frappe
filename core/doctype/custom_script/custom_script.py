@@ -32,7 +32,21 @@ class DocType:
 	def on_update(self):
 		if self.doc.script_type == 'Client':
 			webnotes.clear_cache(doctype=self.doc.dt)
+		else:
+			webnotes.cache().delete_value("_server_script:" + doctype)
 	
 	def on_trash(self):
 		if self.doc.script_type == 'Client':
 			webnotes.clear_cache(doctype=self.doc.dt)
+		else:
+			webnotes.cache().delete_value("_server_script:" + doctype)
+
+def get_custom_server_script(doctype):
+	custom_script = webnotes.cache().get_value("_server_script:" + doctype)
+	if custom_script==None:
+		custom_script = webnotes.conn.get_value("Custom Script", {"dt": doctype, "script_type":"Server"}, 
+			"script") or ""
+		webnotes.cache().set_value("_server_script:" + doctype, custom_script)
+		
+	return custom_script
+
