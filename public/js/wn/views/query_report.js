@@ -209,6 +209,11 @@ wn.views.QueryReport = Class.extend({
 					if(df.width) {
 						col.width=parseInt(df.width);
 					}		
+				} else {
+					col.df = {
+						label: c,
+						fieldtype: "Data"
+					}
 				}
 				col.name = toTitle(col.name.replace(/ /g, " "))
 				return col
@@ -277,8 +282,7 @@ wn.views.QueryReport = Class.extend({
 		} else if(filter[0]=="<") {
 			filter = filter.substr(1);
 			cond = "<"
-		} 
-		
+		}
 		
 		if(in_list(['Float', 'Currency', 'Int', 'Date'], columnDef.df.fieldtype)) {
 			// non strings
@@ -291,7 +295,7 @@ wn.views.QueryReport = Class.extend({
 					value = flt(value);
 					filter = flt(filter);
 				}
-
+				
 				out = eval("value" + cond + "filter");
 			} else {
 				// range
