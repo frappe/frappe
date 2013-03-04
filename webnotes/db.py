@@ -303,7 +303,7 @@ class Database:
 				return values
 				
 			if isinstance(fields, list):
-				return map(lambda d: values[d], fields)
+				return map(lambda d: values.get(d), fields)
 					
 		else:
 			r = self.sql("""select field, value 
