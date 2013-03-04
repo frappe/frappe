@@ -147,7 +147,7 @@ class Session:
 		data = self.get_session_record()
 		if data:
 			# set language
-			if data.lang: 
+			if data.lang and self.user!="demo@erpnext.com": 
 				webnotes.lang = data.lang
 			self.data = webnotes._dict({'data': data, 
 				'user':data.user, 'sid': self.sid})

@@ -33,6 +33,8 @@ from webnotes import _
 from webnotes.utils import cint
 from webnotes.model.doc import Document
 
+class DocstatusTransitionError(webnotes.ValidationError): pass
+
 class Bean:
 	"""
 	Collection of Documents with one parent and multiple children
@@ -40,7 +42,6 @@ class Bean:
 	def __init__(self, dt=None, dn=None):
 		self.docs = []
 		self.obj = None
-		self.to_docstatus = 0
 		self.ignore_permissions = 0
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
@@ -115,7 +116,7 @@ class Bean:
 		"""
 		return [d.fields for d in self.docs]
 
-	def check_if_latest(self):
+	def check_if_latest(self, method="save"):
 		"""
 			Raises exception if the modified time is not the same as in the database
 		"""
@@ -123,17 +124,37 @@ class Bean:
 
 		if (not is_single(self.doc.doctype)) and (not cint(self.doc.fields.get('__islocal'))):
 			tmp = webnotes.conn.sql("""
-				SELECT modified FROM `tab%s` WHERE name="%s" for update"""
-				% (self.doc.doctype, self.doc.name))
+				SELECT modified, docstatus FROM `tab%s` WHERE name="%s" for update"""
+				% (self.doc.doctype, self.doc.name), as_dict=True)
 
 			if not tmp:
 				webnotes.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
 
-			if tmp and str(tmp[0][0]) != str(self.doc.modified):
+			if tmp and str(tmp[0].modified) != str(self.doc.modified):
 				webnotes.msgprint("""
 				Document has been modified after you have opened it.
 				To maintain the integrity of the data, you will not be able to save your changes.
-				Please refresh this document. [%s/%s]""" % (tmp[0][0], self.doc.modified), raise_exception=1)
+				Please refresh this document. [%s/%s]""" % (tmp[0].modified, self.doc.modified), raise_exception=1)
+			
+			self.check_docstatus_transition(tmp[0].docstatus, method)
+			
+	def check_docstatus_transition(self, db_docstatus, method):
+		valid = {
+			"save": [0,0],
+			"submit": [0,1],
+			"cancel": [1,2],
+			"update_after_submit": [1,1]
+		}
+		
+		labels = {
+			0: _("Draft"),
+			1: _("Submitted"),
+			2: _("Cancelled")
+		}
+		
+		if [db_docstatus, self.to_docstatus] != valid[method]:
+			webnotes.msgprint(_("Cannot change from") + ": " + labels[db_docstatus] + " > " + \
+				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
 
 	def check_links(self):
 		ref, err_list = {}, []
@@ -162,13 +183,13 @@ class Bean:
 			if d.docstatus != 2 and self.to_docstatus >= d.docstatus: # don't update deleted
 				d.docstatus = self.to_docstatus
 
-	def prepare_for_save(self, check_links):
-		self.check_if_latest()
-		if check_links:
+	def prepare_for_save(self, method):
+		self.check_if_latest(method)
+		if method != "cancel":
 			self.check_links()
 		self.update_timestamps_and_docstatus()
 		self.update_parent_info()
-		
+
 	def update_parent_info(self):
 		idx_map = {}
 		is_local = cint(self.doc.fields.get("__islocal"))
@@ -247,10 +268,8 @@ class Bean:
 	
 	def save(self, check_links=1):
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
-			if self.doc.docstatus == 1:
-				self.no_permission_to("Save submitted document")
-
-			self.prepare_for_save(check_links)
+			self.to_docstatus = 0
+			self.prepare_for_save("save")
 			self.run_method('validate')
 			self.save_main()
 			self.save_children()
@@ -262,10 +281,12 @@ class Bean:
 
 	def submit(self):
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "submit", self.doc):
-			if self.doc.docstatus != 0:
-				webnotes.msgprint("Only draft can be submitted", raise_exception=1)
 			self.to_docstatus = 1
-			self.save()
+			self.prepare_for_save("submit")
+			self.run_method('validate')
+			self.save_main()
+			self.save_children()
+			self.run_method('on_update')
 			self.run_method('on_submit')
 		else:
 			self.no_permission_to(_("Submit"))
@@ -274,10 +295,9 @@ class Bean:
 
 	def cancel(self):
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "cancel", self.doc):
-			if self.doc.docstatus != 1:
-				webnotes.msgprint("Only submitted can be cancelled", raise_exception=1)
 			self.to_docstatus = 2
-			self.prepare_for_save(1)
+			self.prepare_for_save("cancel")
+			self.run_method('before_cancel')
 			self.save_main()
 			self.save_children()
 			self.run_method('on_cancel')
@@ -291,7 +311,8 @@ class Bean:
 			webnotes.msgprint("Only to called after submit", raise_exception=1)
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.to_docstatus = 1
-			self.prepare_for_save(1)
+			self.prepare_for_save("update_after_submit")
+			self.run_method('before_update_after_submit')
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update_after_submit')

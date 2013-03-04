@@ -369,7 +369,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 							sort_by: me.sort_by_select.val(),
 							sort_order: me.sort_order_select.val(),
 							sort_by_next: me.sort_by_next_select.val(),
-							sort_order_next: me.sort_order_next_select.val()							
+							sort_order_next: me.sort_order_next_select.val()
 						})
 					},
 					callback: function(r) {

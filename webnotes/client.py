@@ -33,10 +33,13 @@ def get(doctype, name=None, filters=None):
 	return [d.fields for d in webnotes.bean(doctype, name).doclist]
 
 @webnotes.whitelist()
-def get_value(doctype, fieldname, filters=None):
+def get_value(doctype, fieldname, filters=None, as_dict=True):
+	if not webnotes.has_permission(doctype):
+		webnotes.msgprint("No Permission", raise_exception=True)
+		
 	if fieldname and fieldname.startswith("["):
 		fieldname = json.loads(fieldname)
-	return webnotes.conn.get_value(doctype, json.loads(filters), fieldname)
+	return webnotes.conn.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict)
 
 @webnotes.whitelist()
 def insert(doclist):
