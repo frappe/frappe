@@ -116,7 +116,7 @@ class Bean:
 		"""
 		return [d.fields for d in self.docs]
 
-	def check_if_latest(self, method):
+	def check_if_latest(self, method="save"):
 		"""
 			Raises exception if the modified time is not the same as in the database
 		"""
