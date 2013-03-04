@@ -80,3 +80,5 @@ def export_doc(doctype, name, module=None):
 	if not module: module = webnotes.conn.get_value(doctype, name, 'module')
 	write_document_file(webnotes.model.doc.get(doctype, name), module)
 
+def get_doctype_module(doctype):
+	return webnotes.conn.get_value('DocType', doctype, 'module')

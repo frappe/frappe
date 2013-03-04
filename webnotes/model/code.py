@@ -83,31 +83,23 @@ def execute(code, doc=None, doclist=[]):
 
 	if locals().get('out'):
 		return out
-
-def get_custom_script(doctype, script_type):
-	import webnotes
-	custom_script = webnotes.conn.sql("""select script from `tabCustom Script` 
-		where dt=%s and script_type=%s""", (doctype, script_type))
-	
-	if custom_script and custom_script[0][0]:
-		return custom_script[0][0]
 		
 def get_server_obj(doc, doclist = [], basedoctype = ''):
 	# for test
 	import webnotes
-	from webnotes.modules import scrub
+	from webnotes.modules import scrub, get_doctype_module
+	from core.doctype.custom_script.custom_script import get_custom_server_script
 
 	# get doctype details
-	module = webnotes.conn.get_value('DocType', doc.doctype, 'module')
-	
-	# no module specified (must be really old), can't get code so quit
+	module = get_doctype_module(doc.doctype)
+		
 	if not module:
 		return
 		
 	DocType = get_doctype_class(doc.doctype, module)
 
 	# custom?
-	custom_script = get_custom_script(doc.doctype, 'Server')
+	custom_script = get_custom_server_script(doc.doctype)
 	if custom_script:
 		global custom_class
 		
@@ -151,7 +143,6 @@ def load_doctype_module(doctype, module, prefix=""):
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
 	if dt:
 		import webnotes.model.doc
-		
 		if not dn:
 			dn = dt
 		if with_children:

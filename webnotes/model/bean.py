@@ -104,9 +104,7 @@ class Bean:
 			Create a DocType object
 		"""
 		if self.obj: return self.obj
-
-		from webnotes.model.code import get_obj
-		self.obj = get_obj(doc=self.doc, doclist=self.doclist)
+		self.obj = webnotes.get_obj(doc=self.doc, doclist=self.doclist)
 		self.controller = self.obj
 		return self.obj
 
@@ -301,6 +299,7 @@ class Bean:
 			self.save_main()
 			self.save_children()
 			self.run_method('on_cancel')
+			self.check_no_back_links_exist()
 		else:
 			self.no_permission_to(_("Cancel"))
 			
@@ -325,7 +324,10 @@ class Bean:
 		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
 			_("No Permission to ") + ptype, raise_exception=True)
 			
-# clone
+	def check_no_back_links_exist(self):
+		from webnotes.model.utils import check_if_doc_is_linked
+		check_if_doc_is_linked(self.doc.doctype, self.doc.name, method="Cancel")
+
 
 def clone(source_wrapper):
 	""" Copy previous invoice and change dates"""

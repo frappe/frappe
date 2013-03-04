@@ -22,6 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
 from webnotes.model.doc import Document
 """
 Model utilities, unclassified functions
@@ -194,7 +195,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 		check_if_doc_is_linked(doctype, name)
 	
 	try:
-		webnotes.conn.sql("delete from `tab%s` where name='%s' limit 1" % (doctype, name))
+		webnotes.conn.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), name)
 		for t in tablefields:
 			webnotes.conn.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), name)
 	except Exception, e:
@@ -204,6 +205,8 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 		raise e
 		
 	return 'okay'
+	
+class LinkExistsError(webnotes.ValidationError): pass
 
 def check_if_doc_is_linked(dt, dn, method="Delete"):
 	"""
@@ -217,30 +220,14 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 
 	for l in link_fields:
 		link_dt, link_field = l
-		issingle = sql("select issingle from tabDocType where name = '%s'" % link_dt)
 
-		# no such doctype (?)
-		if not issingle: continue
-		
-		if issingle[0][0]:
-			item = sql("select doctype from `tabSingles` where field='%s' and value = '%s' and doctype = '%s' " % (link_field, dn, l[0]))
-			if item:
-				webnotes.msgprint("Cannot delete %s <b>%s</b> because it is linked in <b>%s</b>" % (dt, dn, item[0][0]), raise_exception=1)
-			
-		else:
-			item = None
-			try:
-				# (ifnull(parent, '')='' or `%s`!=`parent`)
-				# this condition ensures that it allows deletion when child table field references parent
-				
-				item = sql("select name, parent, parenttype from `tab%s` where `%s`='%s' and docstatus!=2 and (ifnull(parent, '')='' or `%s`!=`parent`) \
-					limit 1" % (link_dt, link_field, dn, link_field))
+		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype"])
 
-			except Exception, e:
-				if e.args[0]==1146: pass
-				else: raise e
-			if item:
-				webnotes.msgprint("Cannot delete %s <b>%s</b> because it is linked in %s <b>%s</b>" % (dt, dn, item[0][2] or link_dt, item[0][1] or item[0][0]), raise_exception=1)
+		if item:
+			webnotes.msgprint(method + " " + _("Error") + ":"+\
+				("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % (item[1] or item[0], 
+					item[1] and item[2] or link_dt),
+				raise_exception=LinkExistsError)
 
 
 def round_floats_in_doc(doc, precision_map):
