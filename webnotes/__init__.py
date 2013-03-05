@@ -389,4 +389,7 @@ def map_doclist(from_to_list, from_docname, to_doclist=None):
 	mapper = get_obj("DocType Mapper", "-".join(from_to_list[0]))
 	to_doclist = mapper.dt_map(from_doctype, to_doctype, from_docname, to_doclist[0], to_doclist, from_to_list)
 	return to_doclist
-	
+
+def compare(val1, condition, val2):
+	import webnotes.utils
+	return webnotes.utils.compare(val1, condition, val2)

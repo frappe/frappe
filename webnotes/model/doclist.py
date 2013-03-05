@@ -30,14 +30,7 @@ class DocList(list):
 		"""pass filters as:
 			{"key": "val", "key": ["!=", "val"],
 			"key": ["in", "val"], "key": ["not in", "val"], "key": "^val"}"""
-		# map reverse operations to set add = False
-		import operator
-		ops_map = {
-			"!=": lambda (a, b): operator.ne(a, b),
-			"in": lambda (a, b): operator.contains(b, a),
-			"not in": lambda (a, b): not operator.contains(b, a)
-		}
-			
+
 		out = []
 		
 		for doc in self:
@@ -45,16 +38,14 @@ class DocList(list):
 			add = True
 			for f in filters:
 				fval = filters[f]
-					
-				if isinstance(fval, list):
-					if fval[0] in ops_map and not ops_map[fval[0]]((d.get(f), fval[1])):
-						add = False
-						break
-				elif isinstance(fval, basestring) and fval.startswith("^"):
-					if not (d.get(f) or "").startswith(fval[1:]):
-						add = False
-						break
-				elif d.get(f)!=fval:
+				
+				if not isinstance(fval, list):
+					if isinstance(fval, basestring) and fval.startswith("^"):
+						fval = ["^", fval[1:]]
+					else:
+						fval = ["=", fval]
+				
+				if not webnotes.compare(d.get(f), fval[0], fval[1]):
 					add = False
 					break
 

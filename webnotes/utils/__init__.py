@@ -81,11 +81,6 @@ def validate_email_add(email_str):
 	import re
 	return re.match("[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\.[a-z0-9!#$%&'*+/=?^_`{|}~-]+)*@(?:[a-z0-9](?:[a-z0-9-]*[a-z0-9])?\.)+[a-z0-9](?:[a-z0-9-]*[a-z0-9])?", email.lower())
 
-def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
-	"""Send an email. For more details see :func:`email_lib.sendmail`"""
-	import webnotes.utils.email_lib
-	return email_lib.sendmail(recipients, sender, msg, subject)
-
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
 	import os
@@ -93,7 +88,7 @@ def get_request_site_address(full_address=False):
 		return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
 			+ os.environ.get('HTTP_HOST')\
 			+ (full_address and (os.environ.get("REQUEST_URI")) or "")
-	except TypeError, e:
+	except TypeError:
 		return 'http://localhost'
 
 def random_string(length):
@@ -117,7 +112,7 @@ def getTraceback():
 	"""
 		 Returns the traceback of the Exception
 	"""
-	import sys, traceback, string
+	import sys, traceback
 	exc_type, value, tb = sys.exc_info()
 	
 	trace_list = traceback.format_tb(tb, None) + \
@@ -151,7 +146,7 @@ def getdate(string_date):
 	
 	try:
 		return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
-	except ValueError, e:
+	except ValueError:
 		webnotes.msgprint("Cannot understand date - '%s'" % \
 			(string_date,), raise_exception=1)
 
@@ -325,7 +320,7 @@ def flt(s, precision=None):
 		num = float(s)
 		if precision:
 			num = round(num, precision)
-	except Exception, e:
+	except Exception:
 		num = 0
 	return num
 
@@ -375,7 +370,7 @@ def fmt_money(amount, precision=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""
-	import webnotes, re
+	import webnotes
 	from webnotes import _
 	
 	curr = webnotes.conn.get_value('Control Panel', None, 
@@ -743,7 +738,7 @@ def pretty_date(iso_datetime):
 		
 def execute_in_shell(cmd, verbose=0):
 	# using Popen instead of os.system - as recommended by python docs
-	from subprocess import Popen, PIPE
+	from subprocess import Popen
 	import tempfile
 	
 	with tempfile.TemporaryFile() as stdout:
@@ -799,3 +794,27 @@ def get_url_to_form(doctype, name, base_url=None, label=None):
 	if not label: label = name
 	
 	return """<a href="%(base_url)s/app.html#!Form/%(doctype)s/%(name)s">%(label)s</a>""" % locals()
+	
+import operator
+operator_map = {
+	# startswith
+	"^": lambda (a, b): (a or "").startswith(b),
+
+	# in or not in a list
+	"in": lambda (a, b): operator.contains(b, a),
+	"not in": lambda (a, b): not operator.contains(b, a),
+
+	# comparison operators
+	"=": lambda (a, b): operator.eq(a, b),
+	"!=": lambda (a, b): operator.ne(a, b),
+	">": lambda (a, b): operator.gt(a, b),
+	"<": lambda (a, b): operator.lt(a, b),
+	">=": lambda (a, b): operator.ge(a, b),
+	"<=": lambda (a, b): operator.le(a, b),
+}
+
+def compare(val1, condition, val2):
+	if condition in operator_map:
+		return operator_map[condition]((val1, val2))
+
+	return False
