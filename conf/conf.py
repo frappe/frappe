@@ -12,7 +12,7 @@ files_path = 'public/files'
 max_file_size = 1000000
 
 # generate schema (.txt files)
-developer_mode = 1
+developer_mode = 0
 
 # clear cache on refresh
 auto_cache_clear = 0

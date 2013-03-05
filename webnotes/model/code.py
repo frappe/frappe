@@ -91,7 +91,7 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	from core.doctype.custom_script.custom_script import get_custom_server_script
 
 	# get doctype details
-	module = get_doctype_module(doc.doctype)
+	module = get_doctype_module(doc.doctype) or "core"
 		
 	if not module:
 		return

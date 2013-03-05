@@ -38,6 +38,7 @@ CREATE TABLE `tabDocField` (
   `default` text,
   `description` text,
   `in_filter` int(1) DEFAULT NULL,
+  `in_list_view` int(1) DEFAULT NULL,
   `no_column` int(1) DEFAULT NULL,
   `read_only` int(1) DEFAULT NULL,
   `print_width` varchar(180) DEFAULT NULL,

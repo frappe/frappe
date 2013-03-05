@@ -14,7 +14,6 @@
   "doctype": "DocType", 
   "autoname": "field:letter_head_name", 
   "name": "__common__", 
-  "colour": "White:FFF", 
   "server_code_error": " ", 
   "max_attachments": 3, 
   "version": 1
@@ -55,7 +54,6 @@
  }, 
  {
   "depends_on": "letter_head_name", 
-  "colour": "White:FFF", 
   "doctype": "DocField", 
   "label": "Preview", 
   "fieldname": "preview", 
