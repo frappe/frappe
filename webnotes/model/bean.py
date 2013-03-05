@@ -42,7 +42,11 @@ class Bean:
 	def __init__(self, dt=None, dn=None):
 		self.docs = []
 		self.obj = None
-		self.ignore_permissions = 0
+		self.ignore_permissions = False
+		self.ignore_children_type = []
+		self.ignore_check_links = False
+		self.ignore_validate = False
+		
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
 		if dt and dn:
@@ -75,15 +79,9 @@ class Bean:
 		self.run_method("onload")
 
 	def __iter__(self):
-		"""
-			Make this iterable
-		"""
 		return self.docs.__iter__()
 
 	def from_compressed(self, data, docname):
-		"""
-			Expand called from client
-		"""
 		from webnotes.model.utils import expand
 		self.docs = expand(data)
 		self.set_doclist(self.docs)
@@ -100,27 +98,18 @@ class Bean:
 			self.obj.doc = self.doc
 
 	def make_obj(self):
-		"""
-			Create a DocType object
-		"""
 		if self.obj: return self.obj
 		self.obj = webnotes.get_obj(doc=self.doc, doclist=self.doclist)
 		self.controller = self.obj
 		return self.obj
 
 	def to_dict(self):
-		"""
-			return as a list of dictionaries
-		"""
 		return [d.fields for d in self.docs]
 
 	def check_if_latest(self, method="save"):
-		"""
-			Raises exception if the modified time is not the same as in the database
-		"""
 		from webnotes.model.meta import is_single
 
-		if (not is_single(self.doc.doctype)) and (not cint(self.doc.fields.get('__islocal'))):
+		if not cint(self.doc.fields.get('__islocal')) and not is_single(self.doc.doctype):
 			tmp = webnotes.conn.sql("""
 				SELECT modified, docstatus FROM `tab%s` WHERE name="%s" for update"""
 				% (self.doc.doctype, self.doc.name), as_dict=True)
@@ -158,6 +147,8 @@ class Bean:
 				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
 
 	def check_links(self):
+		if self.ignore_check_links:
+			return
 		ref, err_list = {}, []
 		for d in self.docs:
 			if not ref.get(d.doctype):
@@ -209,6 +200,7 @@ class Bean:
 
 	def run_method(self, method):
 		self.make_obj()
+		
 		if hasattr(self.obj, method):
 			getattr(self.obj, method)()
 		if hasattr(self.obj, 'custom_' + method):
@@ -224,7 +216,7 @@ class Bean:
 
 	def save_main(self):
 		try:
-			self.doc.save(cint(self.doc.fields.get('__islocal')))
+			self.doc.save(check_links = False)
 		except NameError, e:
 			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 
@@ -241,7 +233,7 @@ class Bean:
 				d.parent = self.doc.name # rename if reqd
 				d.parenttype = self.doc.doctype
 				
-				d.save(new = cint(d.fields.get('__islocal')))
+				d.save(check_links=False)
 			
 			child_map.setdefault(d.doctype, []).append(d.name)
 		
@@ -251,14 +243,15 @@ class Bean:
 		tablefields = webnotes.model.meta.get_table_fields(self.doc.doctype)
 				
 		for dt in tablefields:
-			cnames = child_map.get(dt[0]) or []
-			if cnames:
-				webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
-					name not in (%s)""" % (dt[0], '%s', '%s', ','.join(['%s'] * len(cnames))), 
-						tuple([self.doc.name, self.doc.doctype] + cnames))
-			else:
-				webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
-					% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
+			if dt[0] not in self.ignore_children_type:
+				cnames = child_map.get(dt[0]) or []
+				if cnames:
+					webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+						name not in (%s)""" % (dt[0], '%s', '%s', ','.join(['%s'] * len(cnames))), 
+							tuple([self.doc.name, self.doc.doctype] + cnames))
+				else:
+					webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
+						% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
 
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
@@ -271,7 +264,8 @@ class Bean:
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
-			self.run_method('validate')
+			if not self.ignore_validate:
+				self.run_method('validate')
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')

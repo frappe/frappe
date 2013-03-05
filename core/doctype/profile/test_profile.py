@@ -40,6 +40,17 @@ class TestProfile(unittest.TestCase):
 		webnotes.conn.set_value("Control Panel", "Control Panel", "_test", "_test_val")
 		self.assertEquals(webnotes.conn.get_value("Control Panel", None, "_test"), "_test_val")
 		self.assertEquals(webnotes.conn.get_value("Control Panel", "Control Panel", "_test"), "_test_val")
+		
+	def test_doclist(self):
+		p_meta = webnotes.get_doctype("Profile")
+		
+		self.assertEquals(len(p_meta.get({"doctype": "DocField", "parent": "Profile", "fieldname": "first_name"})), 1)
+		self.assertEquals(len(p_meta.get({"doctype": "DocField", "parent": "Profile", "fieldname": "^first"})), 1)
+		self.assertEquals(len(p_meta.get({"fieldname": ["!=", "first_name"]})), len(p_meta) - 1)
+		self.assertEquals(len(p_meta.get({"fieldname": ["in", ["first_name", "last_name"]]})), 2)
+		self.assertEquals(len(p_meta.get({"fieldname": ["not in", ["first_name", "last_name"]]})), len(p_meta) - 2)
+		
+		
 
 test_records = [[{
 		"doctype":"Profile",

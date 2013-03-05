@@ -22,6 +22,20 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import msgprint, _
+from webnotes.utils import flt, cint, cstr
+
+error_coniditon_map = {
+	"=": "!=",
+	"!=": "=",
+	"<": ">=",
+	">": "<=",
+	">=": "<",
+	"<=": ">",
+	"in": _("not in"),
+	"not in": _("in"),
+	"^": _("cannot start with"),
+}
 
 class DocListController(object):
 	def __init__(self, doc, doclist):
@@ -34,3 +48,25 @@ class DocListController(object):
 		if not hasattr(self, "_meta"):
 			self._meta = webnotes.get_doctype(self.doc.doctype)
 		return self._meta
+		
+	def validate_value(self, fieldname, condition, val2, doc=None):
+		if not doc:
+			doc = self.doc
+		
+		df = self.meta.get_field(fieldname, parent=doc.doctype)
+		
+		val1 = doc.fields.get(fieldname)
+		if df.fieldtype in ("Currency", "Float"):
+			val1 = flt(val1)
+		elif df.fieldtype in ("Int", "Check"):
+			val1 = cint(val1)
+		
+		if not webnotes.compare(val1, condition, val2):
+			msg = _("Error: ")
+			if doc.parentfield:
+				msg += _("Row") + (" # %d: " % doc.idx)
+			
+			msg += _(self.meta.get_label(fieldname, parent=doc.doctype)) \
+				+ " " + error_coniditon_map.get(condition, "") + " " + cstr(val2)
+			
+			msgprint(msg, raise_exception=True)
