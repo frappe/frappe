@@ -215,8 +215,8 @@ def upload():
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
-				ret.append(import_doc(d, doctype, overwrite, row_idx), 
-					webnotes.form_dict.get("_submit")=="on")
+				ret.append(import_doc(d, doctype, overwrite, row_idx, 
+					webnotes.form_dict.get("_submit")=="on"))
 		except Exception, e:
 			error = True
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
