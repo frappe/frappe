@@ -144,6 +144,14 @@ class Installer:
 			doc = webnotes.doc(fielddata=d)
 			doc.insert()
 		webnotes.conn.commit()
+		
+		# from webnotes.modules.import_file import import_files
+		# 
+		# import_files([
+		# 	["core", "doctype", "docperm"],
+		# 	["core", "doctype", "docfield"],
+		# 	["core", "doctype", "doctype"],
+		# ])
 	
 	def set_all_patches_as_completed(self):
 		try:

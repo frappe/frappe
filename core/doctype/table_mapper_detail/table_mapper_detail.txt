@@ -1,109 +1,107 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2012-03-27 14:35:39", 
+  "docstatus": 0, 
+  "modified": "2012-03-27 14:35:39", 
   "modified_by": "Administrator", 
-  "modified": "2012-03-27 14:35:39"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Tray", 
+  "autoname": "TMD/.#######", 
+  "doctype": "DocType", 
   "istable": 1, 
   "module": "Core", 
-  "server_code_error": " ", 
-  "doctype": "DocType", 
-  "autoname": "TMD/.#######", 
   "name": "__common__", 
-  "colour": "White:FFF", 
+  "section_style": "Tray", 
   "show_in_menu": 0, 
   "version": 5
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "Table Mapper Detail", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "permlevel": 0
  }, 
  {
-  "name": "Table Mapper Detail", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Table Mapper Detail"
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "From Table", 
-  "oldfieldname": "from_table", 
-  "width": "140px", 
   "fieldname": "from_table", 
   "fieldtype": "Select", 
+  "label": "From Table", 
+  "oldfieldname": "from_table", 
+  "oldfieldtype": "Select", 
+  "options": "link:DocType", 
   "reqd": 1, 
-  "options": "link:DocType"
+  "width": "140px"
  }, 
  {
-  "oldfieldtype": "Select", 
   "doctype": "DocField", 
-  "label": "To Table", 
-  "oldfieldname": "to_table", 
-  "width": "140px", 
   "fieldname": "to_table", 
   "fieldtype": "Select", 
+  "label": "To Table", 
+  "oldfieldname": "to_table", 
+  "oldfieldtype": "Select", 
+  "options": "link:DocType", 
   "reqd": 1, 
-  "options": "link:DocType"
+  "width": "140px"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
+  "fieldname": "from_field", 
+  "fieldtype": "Data", 
   "label": "From Field", 
   "oldfieldname": "from_field", 
-  "width": "140px", 
-  "fieldname": "from_field", 
-  "fieldtype": "Data"
+  "oldfieldtype": "Data", 
+  "width": "140px"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
+  "fieldname": "to_field", 
+  "fieldtype": "Data", 
   "label": "To Field", 
   "oldfieldname": "to_field", 
-  "width": "140px", 
-  "fieldname": "to_field", 
-  "fieldtype": "Data"
+  "oldfieldtype": "Data", 
+  "width": "140px"
  }, 
  {
-  "oldfieldtype": "Int", 
   "doctype": "DocField", 
-  "label": "Match Id", 
-  "oldfieldname": "match_id", 
-  "width": "60px", 
   "fieldname": "match_id", 
   "fieldtype": "Int", 
-  "reqd": 0
+  "label": "Match Id", 
+  "oldfieldname": "match_id", 
+  "oldfieldtype": "Int", 
+  "reqd": 0, 
+  "width": "60px"
  }, 
  {
-  "oldfieldtype": "Small Text", 
   "doctype": "DocField", 
-  "label": "Validation Logic", 
-  "oldfieldname": "validation_logic", 
-  "width": "150px", 
   "fieldname": "validation_logic", 
   "fieldtype": "Small Text", 
-  "reqd": 1
+  "label": "Validation Logic", 
+  "oldfieldname": "validation_logic", 
+  "oldfieldtype": "Small Text", 
+  "reqd": 1, 
+  "width": "150px"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
+  "fieldname": "reference_doctype_key", 
+  "fieldtype": "Data", 
   "label": "Reference DocType Key", 
   "oldfieldname": "reference_doctype_key", 
-  "fieldname": "reference_doctype_key", 
-  "fieldtype": "Data"
+  "oldfieldtype": "Data"
  }, 
  {
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
+  "fieldname": "reference_key", 
+  "fieldtype": "Data", 
   "label": "Reference Docname Key", 
   "oldfieldname": "reference_key", 
-  "fieldname": "reference_key", 
-  "fieldtype": "Data"
+  "oldfieldtype": "Data"
  }
 ]

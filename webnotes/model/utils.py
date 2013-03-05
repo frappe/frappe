@@ -143,12 +143,11 @@ def getvaluelist(doclist, fieldname):
 		l.append(d.fields[fieldname])
 	return l
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0):
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
 	import webnotes.model.meta
-	sql = webnotes.conn.sql
 
 	# get from form
 	if not doctype:
@@ -162,42 +161,19 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	if not webnotes.conn.exists(doctype, name):
 		return
 
-	# permission
-	if webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
-		webnotes.msgprint("User not allowed to delete.", raise_exception=1)
-
-	tablefields = webnotes.model.meta.get_table_fields(doctype)
-	
-	# check if submitted
-	d = webnotes.conn.sql("select docstatus from `tab%s` where name=%s" % (doctype, '%s'), name)
-	if d and int(d[0][0]) == 1:
-		webnotes.msgprint("Submitted Record '%s' '%s' cannot be deleted" % (doctype, name))
-		raise Exception
-	
-	# call on_trash if required
-	from webnotes.model.code import get_obj
-	if doclist:
-		obj = get_obj(doclist=doclist)
-	else:
-		obj = get_obj(doctype, name)
-
-	if hasattr(obj,'on_trash'):
-		obj.on_trash()
-	
-	if doctype=='DocType':
-		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", name)
-		webnotes.conn.sql("delete from `tabCustom Script` where dt = %s", name)
-		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", name)
-		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", name)
-
-	# check if links exist
-	if not force:
-		check_if_doc_is_linked(doctype, name)
-	
+	if not for_reload:
+		check_permission_and_not_submitted(doctype, name)
+		run_on_trash(doctype, name, doclist)
+		# check if links exist
+		if not force:
+			check_if_doc_is_linked(doctype, name)
+		
 	try:
+		tablefields = webnotes.model.meta.get_table_fields(doctype)
 		webnotes.conn.sql("delete from `tab%s` where name=%s" % (doctype, "%s"), name)
 		for t in tablefields:
-			webnotes.conn.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), name)
+			if t[0] not in ignore_doctypes:
+				webnotes.conn.sql("delete from `tab%s` where parent = %s" % (t[0], '%s'), name)
 	except Exception, e:
 		if e.args[0]==1451:
 			webnotes.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
@@ -205,7 +181,27 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 		raise e
 		
 	return 'okay'
-	
+
+def check_permission_and_not_submitted(doctype, name):
+	# permission
+	if webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
+		webnotes.msgprint(_("User not allowed to delete."), raise_exception=True)
+
+	# check if submitted
+	if webnotes.conn.get_value(doctype, name, "docstatus") == 1:
+		webnotes.msgprint(_("Submitted Record cannot be deleted")+": "+name+"("+doctype+")",
+			raise_exception=True)
+
+def run_on_trash(doctype, name, doclist):
+	# call on_trash if required
+	if doclist:
+		obj = webnotes.get_obj(doclist=doclist)
+	else:
+		obj = webnotes.get_obj(doctype, name)
+
+	if hasattr(obj,'on_trash'):
+		obj.on_trash()
+
 class LinkExistsError(webnotes.ValidationError): pass
 
 def check_if_doc_is_linked(dt, dn, method="Delete"):
@@ -221,14 +217,14 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 	for l in link_fields:
 		link_dt, link_field = l
 
-		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype"])
-
-		if item:
+		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype",
+			"docstatus"])
+		
+		if (method=="Delete" and item) or (method=="Cancel" and item and item[3]==1):
 			webnotes.msgprint(method + " " + _("Error") + ":"+\
 				("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % (item[1] or item[0], 
 					item[1] and item[2] or link_dt),
 				raise_exception=LinkExistsError)
-
 
 def round_floats_in_doc(doc, precision_map):
 	from webnotes.utils import flt

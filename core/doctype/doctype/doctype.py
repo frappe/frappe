@@ -79,28 +79,30 @@ class DocType:
 		validate_fields(self.doclist.get({"doctype":"DocField"}))
 		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
 		self.set_version()
-
-	def on_update(self):
 		self.make_amendable()
 		self.make_file_list()
-		
-		sql = webnotes.conn.sql
-		# make schma changes
+
+	def on_update(self):
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
 
 		self.change_modified_of_parent()
 		
 		import conf
-		from webnotes.modules.import_merge import in_transfer
+		from webnotes.modules.import_file import in_import
 
-		if (not in_transfer) and getattr(conf,'developer_mode', 0):
+		if (not in_import) and getattr(conf,'developer_mode', 0):
 			self.export_doc()
 			self.make_controller_template()
 
 		webnotes.clear_cache(doctype=self.doc.name)
 
-		
+	def on_trash(self):
+		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabCustom Script` where dt = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", self.doc.name)
+	
 	def export_doc(self):
 		from webnotes.modules.export_file import export_to_files
 		export_to_files(record_list=[['DocType', self.doc.name]])
@@ -142,7 +144,6 @@ class DocType:
 				idx_list = [d.idx for d in temp_doclist if d.idx]
 				max_idx = idx_list and max(idx_list) or 0
 				new.idx = max_idx + 1
-				new.save()
 
 	def make_amendable(self):
 		"""
@@ -166,7 +167,6 @@ class DocType:
 				new.print_hide = 1
 				new.no_copy = 1
 				new.idx = max_idx + 1
-				new.save()
 				max_idx += 1
 
 def validate_fields_for_doctype(doctype):
