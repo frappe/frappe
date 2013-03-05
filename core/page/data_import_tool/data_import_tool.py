@@ -201,7 +201,7 @@ def upload():
 		
 		d = dict(zip(columns, row[1:]))
 		d['doctype'] = doctype
-				
+		
 		try:
 			check_record(d, parenttype)
 			if parenttype:
@@ -215,7 +215,8 @@ def upload():
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
-				ret.append(import_doc(d, doctype, overwrite, row_idx))
+				ret.append(import_doc(d, doctype, overwrite, row_idx), 
+					webnotes.form_dict.get("_submit")=="on")
 		except Exception, e:
 			error = True
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
@@ -248,11 +249,10 @@ def get_parent_field(doctype, parenttype):
 	
 	return parentfield
 	
-def check_record(d, parenttype):
+def check_record(d, parenttype=None):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	
 	from webnotes.utils.dateutils import parse_date
-	
 	if parenttype and not d.get('parent'):
 		raise Exception, "parent is required."
 
@@ -293,7 +293,7 @@ def delete_child_rows(rows, doctype):
 	for p in list(set([r[1] for r in rows])):
 		webnotes.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
 		
-def import_doc(d, doctype, overwrite, row_idx):
+def import_doc(d, doctype, overwrite, row_idx, submit=False):
 	"""import main (non child) document"""
 	from webnotes.model.bean import Bean
 
@@ -302,7 +302,10 @@ def import_doc(d, doctype, overwrite, row_idx):
 			doclist = webnotes.model.doc.get(doctype, d['name'])
 			doclist[0].fields.update(d)
 			bean = Bean(doclist)
-			bean.save()
+			if d.get("docstatus") == 1:
+				bean.update_after_submit()
+			else:
+				bean.save()
 			return 'Updated row (#%d) %s' % (row_idx, getlink(doctype, d['name']))
 		else:
 			return 'Ignored row (#%d) %s (exists)' % (row_idx, 
@@ -312,7 +315,7 @@ def import_doc(d, doctype, overwrite, row_idx):
 		dl = Bean([webnotes.model.doc.Document(fielddata = d)])
 		dl.save()
 		
-		if webnotes.form_dict.get("_submit")=="on":
+		if submit:
 			dl.submit()
 		
 		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
