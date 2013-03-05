@@ -1,127 +1,125 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2012-05-03 18:41:14", 
+  "docstatus": 0, 
+  "modified": "2012-08-06 15:10:41", 
   "modified_by": "Administrator", 
-  "modified": "2012-08-06 15:10:41"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
-  "module": "Core", 
   "_last_update": "1311536932", 
-  "server_code_error": " ", 
-  "doctype": "DocType", 
   "autoname": "CWR/.#####", 
+  "doctype": "DocType", 
   "issingle": 0, 
+  "module": "Core", 
   "name": "__common__", 
-  "colour": "White:FFF", 
+  "section_style": "Simple", 
   "show_in_menu": 0, 
   "version": 1
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "Comment", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "permlevel": 0
  }, 
  {
-  "parent": "Comment", 
-  "read": 1, 
-  "name": "__common__", 
   "create": 1, 
   "doctype": "DocPerm", 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Comment", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "role": "System Manager", 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "role": "System Manager", 
+  "write": 1
  }, 
  {
-  "name": "Comment", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Comment"
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment", 
-  "oldfieldname": "comment", 
   "fieldname": "comment", 
   "fieldtype": "Text", 
-  "oldfieldtype": "Text"
+  "label": "Comment", 
+  "no_copy": 0, 
+  "oldfieldname": "comment", 
+  "oldfieldtype": "Text", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment By", 
-  "oldfieldname": "comment_by", 
   "fieldname": "comment_by", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data"
+  "label": "Comment By", 
+  "no_copy": 0, 
+  "oldfieldname": "comment_by", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment By Fullname", 
-  "oldfieldname": "comment_by_fullname", 
   "fieldname": "comment_by_fullname", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data"
+  "label": "Comment By Fullname", 
+  "no_copy": 0, 
+  "oldfieldname": "comment_by_fullname", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment Date", 
-  "oldfieldname": "comment_date", 
   "fieldname": "comment_date", 
   "fieldtype": "Date", 
-  "oldfieldtype": "Date"
+  "label": "Comment Date", 
+  "no_copy": 0, 
+  "oldfieldname": "comment_date", 
+  "oldfieldtype": "Date", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment Time", 
-  "oldfieldname": "comment_time", 
   "fieldname": "comment_time", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data"
+  "label": "Comment Time", 
+  "no_copy": 0, 
+  "oldfieldname": "comment_time", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment Doctype", 
-  "oldfieldname": "comment_doctype", 
   "fieldname": "comment_doctype", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data"
+  "label": "Comment Doctype", 
+  "no_copy": 0, 
+  "oldfieldname": "comment_doctype", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Comment Docname", 
-  "oldfieldname": "comment_docname", 
   "fieldname": "comment_docname", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data"
+  "label": "Comment Docname", 
+  "no_copy": 0, 
+  "oldfieldname": "comment_docname", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
-  "no_copy": 0, 
-  "search_index": 0, 
   "doctype": "DocField", 
-  "label": "Post Topic", 
-  "oldfieldname": "post_topic", 
   "fieldname": "post_topic", 
   "fieldtype": "Data", 
-  "oldfieldtype": "Data"
+  "label": "Post Topic", 
+  "no_copy": 0, 
+  "oldfieldname": "post_topic", 
+  "oldfieldtype": "Data", 
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 

@@ -53,8 +53,8 @@ class DocType:
 			it will write out a .html file
 		"""
 		import conf
-		from webnotes.modules.import_merge import in_transfer
-		if not in_transfer and getattr(conf,'developer_mode', 0) and self.doc.standard=='Yes':
+		from webnotes.modules.import_file import in_import
+		if not in_import and getattr(conf,'developer_mode', 0) and self.doc.standard=='Yes':
 			from webnotes.modules.export_file import export_to_files
 			from webnotes.modules import get_module_path, scrub
 			import os
