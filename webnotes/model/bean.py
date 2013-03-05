@@ -153,7 +153,7 @@ class Bean:
 		if not hasattr(self, "to_docstatus"):
 			self.to_docstatus = 0
 		
-		if [db_docstatus, self.to_docstatus] != valid[method]:
+		if method != "runserverobj" and [db_docstatus, self.to_docstatus] != valid[method]:
 			webnotes.msgprint(_("Cannot change from") + ": " + labels[db_docstatus] + " > " + \
 				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
 

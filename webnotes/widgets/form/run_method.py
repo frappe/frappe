@@ -49,7 +49,7 @@ def runserverobj():
 		if not wrapper.has_read_perm():
 			webnotes.msgprint(_("No Permission"), raise_exception = True)
 		so = wrapper.make_obj()
-		wrapper.check_if_latest()
+		wrapper.check_if_latest(method="runserverobj")
 
 	check_guest_access(so.doc)
 	
