@@ -98,10 +98,10 @@ class DocType:
 		webnotes.clear_cache(doctype=self.doc.name)
 
 	def on_trash(self):
-		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", name)
-		webnotes.conn.sql("delete from `tabCustom Script` where dt = %s", name)
-		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", name)
-		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", name)
+		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabCustom Script` where dt = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", self.doc.name)
 	
 	def export_doc(self):
 		from webnotes.modules.export_file import export_to_files

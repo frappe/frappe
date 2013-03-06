@@ -217,9 +217,10 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 	for l in link_fields:
 		link_dt, link_field = l
 
-		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype"])
-
-		if item:
+		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype",
+			"docstatus"])
+		
+		if (method=="Delete" and item) or (method=="Cancel" and item and item[3]==1):
 			webnotes.msgprint(method + " " + _("Error") + ":"+\
 				("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % (item[1] or item[0], 
 					item[1] and item[2] or link_dt),

@@ -316,6 +316,9 @@ class Bean:
 			self.no_permission_to(_("Update"))
 		
 		return self
+	
+	def delete(self):
+		webnotes.delete_doc(self.doc.doctype, self.doc.name)
 
 	def no_permission_to(self, ptype):
 		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
