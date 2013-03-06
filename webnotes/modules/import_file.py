@@ -103,6 +103,10 @@ def import_doclist(doclist):
 	new_bean.ignore_children_type = ignore
 	new_bean.ignore_check_links = True
 	new_bean.ignore_validate = True
+	
+	if doctype=="DocType" and name in ["DocField", "DocType"]:
+		new_bean.ignore_fields = True
+	
 	new_bean.insert()
 
 def remove_ignored_docs_if_they_already_exist(doclist, ignore, name):

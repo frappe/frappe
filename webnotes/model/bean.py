@@ -46,6 +46,7 @@ class Bean:
 		self.ignore_children_type = []
 		self.ignore_check_links = False
 		self.ignore_validate = False
+		self.ignore_fields = False
 		
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
@@ -216,7 +217,7 @@ class Bean:
 
 	def save_main(self):
 		try:
-			self.doc.save(check_links = False)
+			self.doc.save(check_links = False, ignore_fields = self.ignore_fields)
 		except NameError, e:
 			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 
@@ -233,7 +234,7 @@ class Bean:
 				d.parent = self.doc.name # rename if reqd
 				d.parenttype = self.doc.doctype
 				
-				d.save(check_links=False)
+				d.save(check_links=False, ignore_fields = self.ignore_fields)
 			
 			child_map.setdefault(d.doctype, []).append(d.name)
 		
