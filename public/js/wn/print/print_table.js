@@ -77,13 +77,14 @@ wn.print.Table = Class.extend({
 		// remove empty cols, widths and head labels
 		this.columns = $.map(this.columns, function(fieldname, i) { 
 			if(cols_with_value.indexOf(fieldname)===-1) {
-				if(this.widths) this.widths.splice(i, 1);
-				if(this.head_labels) this.head_labels.splice(i, 1);
+				if(me.widths) me.widths.splice(i, 1);
+				if(me.head_labels) me.head_labels.splice(i, 1);
 				return null;
 			} else {
 				return fieldname;
 			}
 		});
+		
 	},
 	
 	make: function() {
