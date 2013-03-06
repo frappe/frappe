@@ -32,6 +32,7 @@ import conf
 import json
 from webnotes.utils import cint
 import webnotes.model.doctype
+import webnotes.defaults
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -244,8 +245,7 @@ class Session:
 			webnotes.cache().set_value("session:" + self.sid, self.data)
 
 	def get_expiry_period(self):
-		exp_sec = webnotes.conn.get_default("session_expiry") or \
-			webnotes.conn.get_value('Control Panel', None, 'session_expiry') or '06:00:00'
+		exp_sec = webnotes.defaults.get_global_default("session_expiry")
 		
 		# incase seconds is missing
 		if len(exp_sec.split(':')) == 2:

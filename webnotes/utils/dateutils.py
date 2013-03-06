@@ -22,6 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+import webnotes.defaults
 import datetime
 from webnotes.utils import get_datetime
 
@@ -76,7 +77,7 @@ def parse_date(date):
 def get_user_date_format():
 	if not user_date_format:
 		global user_date_format
-		user_date_format = webnotes.conn.get_value("Control Panel", None, "date_format")
+		user_date_format = webnotes.defaults.get_global_default("date_format")
 	return user_date_format
 	
 def datetime_in_user_format(date_time):
