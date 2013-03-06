@@ -182,7 +182,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		
 	return 'okay'
 
-def check_permission_and_not_submitted(self):
+def check_permission_and_not_submitted(doctype, name):
 	# permission
 	if webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
 		webnotes.msgprint(_("User not allowed to delete."), raise_exception=True)
