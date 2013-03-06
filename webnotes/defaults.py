@@ -19,10 +19,14 @@ def get_user_default_as_list(key, user=None):
 	return (not isinstance(d, list)) and [d] or d
 	
 def get_defaults(user=None):
-	if not user:
+	if not user and webnotes.session:
 		user = webnotes.session.user
-	userd = get_defaults_for(user)
-	userd.update({"user": user, "owner": user})
+
+	if user:
+		userd = get_defaults_for(user)
+		userd.update({"user": user, "owner": user})
+	else:
+		userd = {}
 	
 	globald = get_defaults_for()
 	globald.update(userd)
