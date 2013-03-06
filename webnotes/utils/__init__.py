@@ -24,7 +24,6 @@
 
 from __future__ import unicode_literals
 import webnotes
-import webnotes.defaults
 
 user_time_zone = None
 user_format = None
