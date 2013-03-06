@@ -64,7 +64,7 @@ class BackupGenerator:
 			self.set_backup_file_name()
 			self.take_dump()
 			self.zip_files()
-	
+
 	def set_backup_file_name(self):
 		import random
 		todays_date = "".join(str(datetime.date(datetime.today())).split("-"))
@@ -168,13 +168,17 @@ def scheduled_backup(older_than=6):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
+	odb = new_backup(older_than)
+	
+	from webnotes.utils import now
+	print "backup taken -", odb.backup_path_db, "- on", now()
+
+def new_backup(older_than=6):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.get_db_password(webnotes.conn.cur_db_name))
 	odb.get_backup(older_than)
-	
-	from webnotes.utils import now
-	print "backup taken -", odb.backup_path_db, "- on", now()
+	return odb
 
 def delete_temp_backups(older_than=24):
 	"""
