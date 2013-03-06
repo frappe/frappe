@@ -110,22 +110,31 @@ class Bean:
 	def check_if_latest(self, method="save"):
 		from webnotes.model.meta import is_single
 
-		if not cint(self.doc.fields.get('__islocal')) and not is_single(self.doc.doctype):
-			tmp = webnotes.conn.sql("""
-				SELECT modified, docstatus FROM `tab%s` WHERE name="%s" for update"""
-				% (self.doc.doctype, self.doc.name), as_dict=True)
+		conflict = False
+		if not cint(self.doc.fields.get('__islocal')):
+			if is_single(self.doc.doctype):
+				modified = webnotes.conn.get_value(self.doc.doctype, self.doc.name, "modified")
+				if modified != str(self.doc.modified):
+					conflict = True
+			else:
+				tmp = webnotes.conn.sql("""select modified, docstatus from `tab%s` 
+					where name="%s" for update"""
+					% (self.doc.doctype, self.doc.name), as_dict=True)
 
-			if not tmp:
-				webnotes.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
+				if not tmp:
+					webnotes.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
 
-			if tmp and str(tmp[0].modified) != str(self.doc.modified):
-				webnotes.msgprint("""
-				Document has been modified after you have opened it.
-				To maintain the integrity of the data, you will not be able to save your changes.
-				Please refresh this document. [%s/%s]""" % (tmp[0].modified, self.doc.modified), raise_exception=1)
+				modified = str(tmp[0].modified)
+				if modified != str(self.doc.modified):
+					conflict = True
 			
-			self.check_docstatus_transition(tmp[0].docstatus, method)
-			
+				self.check_docstatus_transition(tmp[0].docstatus, method)
+				
+			if conflict:
+				webnotes.msgprint(_("Error: Document has been modified after you have opened it") \
+				+ (" (%s, %s). " % (modified, self.doc.modified)) \
+				+ _("Please refresh to get the latest document."), raise_exception=True)
+				
 	def check_docstatus_transition(self, db_docstatus, method):
 		valid = {
 			"save": [0,0],

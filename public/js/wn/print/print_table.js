@@ -69,10 +69,6 @@ wn.print.Table = Class.extend({
 				if(value || ci==0) {
 					if(!in_list(cols_with_value, fieldname)) {
 						cols_with_value.push(fieldname);
-
-						// also prepare a new list of widths and head labels
-						me.widths && widths.push(me.widths[ci]);
-						me.head_labels && head_labels.push(me.head_labels[ci]);
 					}
 				}
 			});
