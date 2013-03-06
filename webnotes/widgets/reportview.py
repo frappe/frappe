@@ -220,6 +220,8 @@ def build_match_conditions(doctype, fields=None):
 		
 	if match_conditions and match:
 		return '('+ ' or '.join(match_conditions) +')'
+	else:
+		return ""
 
 def get_tables(doctype, fields):
 	"""extract tables from fields"""
@@ -253,7 +255,8 @@ def save_report():
 		d = Document('Report')
 		d.report_name = data['name']
 		d.ref_doctype = data['doctype']
-		
+	
+	d.report_type = "Report Builder"
 	d.json = data['json']
 	webnotes.bean([d]).save()
 	webnotes.msgprint("%s saved." % d.name)

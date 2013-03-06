@@ -33,7 +33,6 @@
   "parent": "Page", 
   "read": 1, 
   "cancel": 0, 
-  "execute": 0, 
   "name": "__common__", 
   "create": 1, 
   "doctype": "DocPerm", 

@@ -97,14 +97,14 @@ class IncomingMail:
 		})
 	
 	def save_attachments_in_doc(self, doc):
-		from webnotes.utils.file_manager import save_file, add_file_list
+		from webnotes.utils.file_manager import save_file, add_file_list, MaxFileSizeReachedError
 		for attachment in self.attachments:
 			try:
 				fid = save_file(attachment['filename'], attachment['content'])
 				status = add_file_list(doc.doctype, doc.name, fid, fid)
-			except:
-				from webnotes.utils.scheduler import log
-				log("receive.set_attachments_in_doc")
+			except MaxFileSizeReachedError:
+				# bypass max file size exception
+				pass
 
 	def get_thread_id(self):
 		import re

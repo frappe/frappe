@@ -133,15 +133,15 @@ _f.Frm.prototype.setup_print_layout = function() {
 	});
 	
 	var appframe = this.print_wrapper.appframe;
-	appframe.add_button("View Details", function() {
+	appframe.add_button(wn._("View Details"), function() {
 		me.edit_doc();
 	}).addClass("btn-success");
 	
-	appframe.add_button("Print", function() {
+	appframe.add_button(wn._("Print"), function() {
 		me.print_doc();
 	}, 'icon-print');
 
-	this.$print_view_select = appframe.add_select("Select Preview", this.print_formats)
+	this.$print_view_select = appframe.add_select(wn._("Select Preview"), this.print_formats)
 		.css({"float":"right"})
 		.val(this.print_formats[0])
 		.change(function() {
@@ -651,6 +651,10 @@ _f.Frm.prototype.cleanup_refresh = function() {
 	if(me.meta.autoname && me.meta.autoname.substr(0,6)=='field:' && !me.doc.__islocal) {
 		var fn = me.meta.autoname.substr(6);
 		cur_frm.toggle_display(fn, false);
+	}
+	
+	if(me.meta.autoname=="naming_series:" && !me.doc.__islocal) {
+		cur_frm.toggle_display("naming_series", false);
 	}
 }
 

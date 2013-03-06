@@ -209,6 +209,19 @@ Thank you,<br>
 		
 		# delete their password
 		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
+		
+		# delete todos
+		webnotes.conn.sql("""delete from `tabToDo` where owner=%s""", self.doc.name)
+		webnotes.conn.sql("""update tabToDo set assigned_by=null where assigned_by=%s""",
+			self.doc.name)
+		
+		# delete events
+		webnotes.conn.sql("""delete from `tabEvent` where owner=%s
+			and event_type='Private'""", self.doc.name)
+			
+		# delete messages
+		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
+			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
 	
 	def on_rename(self,newdn,olddn):
 		# do not allow renaming administrator and guest

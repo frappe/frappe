@@ -27,6 +27,7 @@ from __future__ import unicode_literals
 import MySQLdb
 import webnotes
 import conf
+import datetime
 
 class Database:
 	"""
@@ -156,56 +157,71 @@ class Database:
 	def fetch_as_dict(self, formatted=0, as_utf8=0):
 		result = self._cursor.fetchall()
 		ret = []
+		needs_formatting = self.needs_formatting(result, formatted)
+		
 		for r in result:
 			row_dict = webnotes._dict({})
 			for i in range(len(r)):
-				val = self.convert_to_simple_type(r[i], formatted)
+				if needs_formatting:
+					val = self.convert_to_simple_type(r[i], formatted)
+				else:
+					val = r[i]
+					
 				if as_utf8 and type(val) is unicode:
 					val = val.encode('utf-8')
 				row_dict[self._cursor.description[i][0]] = val
 			ret.append(row_dict)
 		return ret
-				
+	
+	def needs_formatting(self, result, formatted):
+		if result and result[0]:
+			for v in result[0]:
+				if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
+					return True
+				if formatted and isinstance(v, (int, float)):
+					return True
+		
+		return False
+	
 	def get_description(self):
 		return self._cursor.description
 
 	def convert_to_simple_type(self, v, formatted=0):
-		import datetime
 		from webnotes.utils import formatdate, fmt_money
 
-		# date
-		if type(v)==datetime.date:
-			v = unicode(v)
-			if formatted:
-				v = formatdate(v)
+		if isinstance(v, (datetime.date, datetime.timedelta, datetime.datetime, long)):
+			if isinstance(v, datetime.date):
+				v = unicode(v)
+				if formatted:
+					v = formatdate(v)
 		
-		# time	
-		elif type(v)==datetime.timedelta:
-			v = unicode(v)
-		
-		# datetime
-		elif type(v)==datetime.datetime:
-			v = unicode(v)
-		
-		# long
-		elif type(v)==long: 
-			v=int(v)
-		
+			# time
+			elif isinstance(v, (datetime.timedelta, datetime.datetime)):
+				v = unicode(v)
+				
+			# long
+			elif isinstance(v, long): 
+				v=int(v)
+
 		# convert to strings... (if formatted)
 		if formatted:
-			if type(v)==float:
+			if isinstance(v, float):
 				v=fmt_money(v)
-			if type(v)==int:
-				v=str(v)
-		
+			elif isinstance(v, int):
+				v = unicode(v)
+
 		return v
 
 	def convert_to_lists(self, res, formatted=0, as_utf8=0):
 		nres = []
+		needs_formatting = self.needs_formatting(res, formatted)
 		for r in res:
 			nr = []
 			for c in r:
-				val = self.convert_to_simple_type(c, formatted)
+				if needs_formatting:
+					val = self.convert_to_simple_type(c, formatted)
+				else:
+					val = c
 				if as_utf8 and type(val) is unicode:
 					val = val.encode('utf-8')
 				nr.append(val)
@@ -245,39 +261,75 @@ class Database:
 
 	def get(self, doctype, filters=None, as_dict=True):
 		return self.get_value(doctype, filters, "*", as_dict=as_dict)
-		
-	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False):
+
+	def get_value(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		"""Get a single / multiple value from a record. 
 		For Single DocType, let filters be = None"""
+
+		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
+		return ret and (len(ret[0]) > 1 and ret[0] or ret[0][0]) or None
 		
-		if filters is not None and (filters!=doctype or filters=='DocType'):
-			if fieldname!="*" and isinstance(fieldname, basestring):
-				fieldname = "`" + fieldname + "`"
-			
-			fl = isinstance(fieldname, basestring) and fieldname or \
-				("`" + "`, `".join(fieldname) + "`")
-			conditions, filters = self.build_conditions(filters)
-			
-			try:
-				r = self.sql("select %s from `tab%s` where %s" % (fl, doctype,
-					conditions), filters, as_dict)
-			except Exception, e:
-				if e.args[0]==1054 and ignore:
-					return None
-				else:
-					raise e
-
-			return r and (len(r[0]) > 1 and r[0] or r[0][0]) or None
-
-		else:
-			fieldname = isinstance(fieldname, basestring) and [fieldname] or fieldname
-
-			r = self.sql("select field, value from tabSingles where field in (%s) and \
-				doctype=%s" % (', '.join(['%s']*len(fieldname)), '%s'), tuple(fieldname) + (doctype,), as_dict=False)
-			if as_dict:
-				return r and webnotes._dict(r) or None
+	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
+		fields = fieldname
+		if fieldname!="*":
+			if isinstance(fieldname, basestring):
+				fields = [fieldname]
 			else:
-				return r and (len(r) > 1 and [i[0] for i in r] or r[0][1]) or None
+				fields = fieldname
+
+		if (filters is not None) and (filters!=doctype or doctype=="DocType"):
+			try:
+				return self.get_values_from_table(fields, filters, doctype, as_dict, debug)
+			except Exception, e:
+				if e.args[0]!=1146:
+					raise e
+					
+				# not a table, try in singles
+
+		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
+
+	def get_values_from_single(self, fields, filters, doctype, as_dict, debug):
+		if fields=="*" or isinstance(filters, dict):
+			r = self.sql("""select field, value from tabSingles where doctype=%s""", doctype)
+			
+			# check if single doc matches with filters
+			values = webnotes._dict(r)
+			if isinstance(filters, dict):
+				for key, value in filters.items():
+					if values.get(key) != value:
+						return []
+			
+			if as_dict:
+				return values
+				
+			if isinstance(fields, list):
+				return map(lambda d: values.get(d), fields)
+					
+		else:
+			r = self.sql("""select field, value 
+				from tabSingles where field in (%s) and doctype=%s""" \
+					% (', '.join(['%s'] * len(fields)), '%s'), 
+					tuple(fields) + (doctype,), as_dict=False, debug=debug)
+
+			if as_dict:
+				return r and [webnotes._dict(r)] or []
+			else:
+				if r:
+					return [[i[1] for i in r]]
+				else:
+					return []
+	
+	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
+		fl = fields
+		if fields!="*":
+			fl = ("`" + "`, `".join(fields) + "`")	
+
+		conditions, filters = self.build_conditions(filters)
+	
+		r = self.sql("select %s from `tab%s` where %s" % (fl, doctype,
+			conditions), filters, as_dict=as_dict, debug=debug)
+
+		return r
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		from webnotes.utils import now

@@ -89,13 +89,18 @@ $.extend(wn.perm, {
 	
 	get_match_rule: function(doctype) {
 		var match_rules = {};
+		var match = true;
 		$.each(wn.model.get("DocPerm", {parent:doctype}), function(i, p) {
-			if(p.permlevel==0 && p.match && in_list(user_roles, p.role)) {
-				match_keys = wn.perm.get_match_keys(p.match);
-				match_rules[match_keys[0]] = wn.defaults.get_user_defaults(match_keys[1]);
+			if(p.permlevel==0 && in_list(user_roles, p.role)) {
+				if(p.match) {
+					match_keys = wn.perm.get_match_keys(p.match);
+					match_rules[match_keys[0]] = wn.defaults.get_user_defaults(match_keys[1]);
+				} else {
+					match = false;
+				}
 			}
 		});
-		return match_rules;
+		return match ? match_rules : {};
 	},
 
 	get_match_keys: function(match) {

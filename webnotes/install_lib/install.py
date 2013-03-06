@@ -41,7 +41,7 @@ class Installer:
 				root_password = getpass.getpass("MySQL root password: ")
 			
 		self.root_password = root_password
-		
+				
 		self.conn = webnotes.db.Database(user=root_login, password=root_password)
 		webnotes.conn=self.conn
 		webnotes.session= webnotes._dict({'user':'Administrator'})
@@ -55,8 +55,7 @@ class Installer:
 		self.dbman.delete_user(target)
 
 		# create user and db
-		self.dbman.create_user(target, 
-			hasattr(conf, 'db_password') and conf.db_password or password)
+		self.dbman.create_user(target, conf.db_password)
 			
 		if verbose: print "Created user %s" % target
 	
@@ -82,7 +81,7 @@ class Installer:
 			source_given = False
 			source_path = os.path.join(os.path.sep.join(os.path.abspath(webnotes.__file__).split(os.path.sep)[:-3]), 'data', 'Framework.sql')
 
-		self.dbman.restore_database(target, source_path, self.root_password)
+		self.dbman.restore_database(target, source_path, target, conf.db_password)
 		if verbose: print "Imported from database %s" % source_path
 
 		# fresh app
@@ -91,8 +90,8 @@ class Installer:
 			self.install_app()
 
 		# update admin password
-		self.update_admin_password(password)
 		self.create_auth_table()
+		self.update_admin_password(password)
 		return target
 		
 	def install_app(self):
@@ -145,6 +144,14 @@ class Installer:
 			doc = webnotes.doc(fielddata=d)
 			doc.insert()
 		webnotes.conn.commit()
+		
+		# from webnotes.modules.import_file import import_files
+		# 
+		# import_files([
+		# 	["core", "doctype", "docperm"],
+		# 	["core", "doctype", "docfield"],
+		# 	["core", "doctype", "doctype"],
+		# ])
 	
 	def set_all_patches_as_completed(self):
 		try:

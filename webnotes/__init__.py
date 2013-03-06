@@ -286,7 +286,7 @@ def generate_hash():
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
 
-def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
+def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
 	from webnotes.model.code import get_obj
 	return get_obj(dt, dn, doc, doclist, with_children)
 
@@ -312,9 +312,9 @@ def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
 	return webnotes.model.doctype.get(doctype, processed)
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0):
-	import webnotes.model
-	webnotes.model.delete_doc(doctype, name, doclist, force)
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False):
+	import webnotes.model.utils
+	webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload)
 
 def clear_perms(doctype):
 	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
@@ -389,4 +389,7 @@ def map_doclist(from_to_list, from_docname, to_doclist=None):
 	mapper = get_obj("DocType Mapper", "-".join(from_to_list[0]))
 	to_doclist = mapper.dt_map(from_doctype, to_doctype, from_docname, to_doclist[0], to_doclist, from_to_list)
 	return to_doclist
-	
+
+def compare(val1, condition, val2):
+	import webnotes.utils
+	return webnotes.utils.compare(val1, condition, val2)

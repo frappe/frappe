@@ -1,51 +1,49 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2012-07-09 11:17:17", 
+  "docstatus": 0, 
+  "modified": "2012-07-09 14:19:39", 
   "modified_by": "Administrator", 
-  "modified": "2012-07-09 14:19:39"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
-  "module": "Core", 
-  "server_code_error": " ", 
-  "doctype": "DocType", 
   "autoname": "field:tag_name", 
+  "doctype": "DocType", 
+  "module": "Core", 
   "name": "__common__", 
-  "colour": "White:FFF", 
-  "show_in_menu": 0, 
   "name_case": "Title Case", 
+  "section_style": "Simple", 
+  "show_in_menu": 0, 
   "version": 1
  }, 
  {
-  "parent": "Tag", 
-  "oldfieldtype": "Data", 
   "doctype": "DocField", 
-  "oldfieldname": "tag_name", 
-  "name": "__common__", 
-  "label": "Tag Name", 
-  "parenttype": "DocType", 
   "fieldname": "tag_name", 
   "fieldtype": "Data", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "label": "Tag Name", 
+  "name": "__common__", 
+  "oldfieldname": "tag_name", 
+  "oldfieldtype": "Data", 
+  "parent": "Tag", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
  }, 
  {
-  "parent": "Tag", 
-  "read": 1, 
-  "name": "__common__", 
   "create": 1, 
   "doctype": "DocPerm", 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Tag", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "role": "System Manager", 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "role": "System Manager", 
+  "write": 1
  }, 
  {
-  "name": "Tag", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Tag"
  }, 
  {
   "doctype": "DocPerm"

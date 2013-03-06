@@ -1,47 +1,46 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2012-03-27 14:35:35", 
+  "docstatus": 0, 
+  "modified": "2012-03-27 14:35:35", 
   "modified_by": "Administrator", 
-  "modified": "2012-03-27 14:35:35"
+  "owner": "Administrator"
  }, 
  {
-  "section_style": "Simple", 
-  "istable": 1, 
-  "name": "__common__", 
-  "colour": "White:FFF", 
-  "module": "Core", 
   "doctype": "DocType", 
-  "version": 2, 
-  "show_in_menu": 0
- }, 
- {
+  "istable": 1, 
+  "module": "Core", 
   "name": "__common__", 
-  "parent": "Default Home Page", 
-  "oldfieldtype": "Link", 
+  "section_style": "Simple", 
+  "show_in_menu": 0, 
+  "version": 2
+ }, 
+ {
   "doctype": "DocField", 
-  "parenttype": "DocType", 
   "fieldtype": "Link", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "name": "__common__", 
+  "oldfieldtype": "Link", 
+  "parent": "Default Home Page", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
  }, 
  {
-  "name": "Default Home Page", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Default Home Page"
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "role", 
   "label": "Role", 
   "oldfieldname": "role", 
-  "fieldname": "role", 
   "options": "Role"
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "home_page", 
   "label": "Home Page", 
   "oldfieldname": "home_page", 
-  "fieldname": "home_page", 
   "options": "Page"
  }
 ]

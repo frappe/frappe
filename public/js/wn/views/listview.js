@@ -57,17 +57,18 @@ wn.views.ListView = Class.extend({
 		// additional fields
 		if(this.settings.add_fields) {
 			$.each(this.settings.add_fields, function(i, d) {
-				me.fields.push(d);
+				if(me.fields.indexOf(d)==-1)
+					me.fields.push(d);
 			});
 		}
 	},
 	set_columns: function() {
 		this.columns = [];
 		var me = this;
-		if(wn.model.can_delete(this.doctype)) {
-			this.columns.push({width: '3%', content:'check'})
+		if(wn.model.can_delete(this.doctype) || this.settings.selectable) {
+			this.columns.push({width: '4%', content:'check'})
 		}
-		this.columns.push({width: '4%', content:'avatar'});
+		this.columns.push({width: '7%', content:'avatar'});
 		if(wn.model.is_submittable(this.doctype)) {
 			this.columns.push({width: '3%', content:'docstatus', 
 				css: {"text-align": "center"}});
@@ -173,8 +174,10 @@ wn.views.ListView = Class.extend({
 				+ wn.user_info(data.modified_by).fullname));
 		}
 		else if(opts.content=='check') {
-			$(parent).append('<input class="list-delete" type="checkbox">');
-			$(parent).find('input').data('name', data.name);			
+			$('<input class="list-delete" type="checkbox">')
+				.data('name', data.name)
+				.data('data', data)
+				.appendTo(parent)
 		}
 		else if(opts.content=='docstatus') {
 			$(parent).append(repl('<span class="docstatus"> \
@@ -266,7 +269,7 @@ wn.views.ListView = Class.extend({
 		}
 		
 		// title
-		if(!in_list(["avatar"], opts.content)) {
+		if(!in_list(["avatar", "_user_tags", "check"], opts.content)) {
 			$(parent).attr("title", (opts.title || opts.content) + ": " 
 				+ (data[opts.content] || "Not Set"))
 				.tooltip();

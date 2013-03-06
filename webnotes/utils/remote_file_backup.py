@@ -21,52 +21,51 @@
 # 
 
 from __future__ import unicode_literals
+import os
 import webnotes
-from webnotes import msgprint, _
-from webnotes.utils import flt, cint, cstr
 
-error_coniditon_map = {
-	"=": "!=",
-	"!=": "=",
-	"<": ">=",
-	">": "<=",
-	">=": "<",
-	"<=": ">",
-	"in": _("not in"),
-	"not in": _("in"),
-	"^": _("cannot start with"),
-}
-
-class DocListController(object):
-	def __init__(self, doc, doclist):
-		self.doc, self.doclist = doc, doclist
-		if hasattr(self, "setup"):
-			self.setup()
+def upload_to_dropbox():
+	from dropbox import client, rest, session
+	from conf import dropbox_access_key, dropbox_secret_key
 	
-	@property
-	def meta(self):
-		if not hasattr(self, "_meta"):
-			self._meta = webnotes.get_doctype(self.doc.doctype)
-		return self._meta
+	from webnotes.utils.backups import new_backup
+	print "Taking backup..."
+	webnotes.connect()
+	backup = new_backup()
+	filename = backup.backup_path_db
+	print os.path.basename(filename)
+	
+	print "Starting session..."
+	sess = session.DropboxSession(dropbox_access_key, dropbox_secret_key, "app_folder")
+
+	sess.set_token('rl8hpbk775mb77b','snmegusva4jt9t2')
+	client = client.DropboxClient(sess)
+	size = os.stat(filename).st_size
+	f = open(filename,'r')
+	
+	# create folder
+	print "Creating folder..."
+	try:
+		client.file_create_folder("erpnext")
+	except rest.ErrorResponse, e:
+		if e.status!=403:
+			raise e
 		
-	def validate_value(self, fieldname, condition, val2, doc=None):
-		if not doc:
-			doc = self.doc
-		
-		df = self.meta.get_field(fieldname, parent=doc.doctype)
-		
-		val1 = doc.fields.get(fieldname)
-		if df.fieldtype in ("Currency", "Float"):
-			val1 = flt(val1)
-		elif df.fieldtype in ("Int", "Check"):
-			val1 = cint(val1)
-		
-		if not webnotes.compare(val1, condition, val2):
-			msg = _("Error: ")
-			if doc.parentfield:
-				msg += _("Row") + (" # %d: " % doc.idx)
-			
-			msg += _(self.meta.get_label(fieldname, parent=doc.doctype)) \
-				+ " " + error_coniditon_map.get(condition, "") + " " + cstr(val2)
-			
-			msgprint(msg, raise_exception=True)
+	
+	if size > 4194304:
+		print "Uploading (chunked)..."
+		uploader = client.get_chunked_uploader(f, size)
+		while uploader.offset < size:
+			try:
+				uploader.upload_chunked()
+			except rest.ErrorResponse, e:
+				pass
+	else:
+		print "Uploading..."
+		response = client.put_file('erpnext/' + os.path.basename(filename), f, overwrite=True)
+
+
+if __name__=="__main__":
+	upload_to_dropbox()
+	
+	
