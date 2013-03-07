@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2012-10-02 15:11:13", 
+  "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-02-14 16:50:39", 
+  "modified": "2013-03-07 07:03:21", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -26,6 +26,7 @@
   "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0, 
+  "print_width": "240px", 
   "search_index": 1, 
   "width": "240px"
  }, 

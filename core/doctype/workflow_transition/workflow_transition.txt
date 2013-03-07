@@ -1,55 +1,56 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-02-22 01:27:36", 
   "docstatus": 0, 
-  "creation": "2012-12-28 10:49:56", 
+  "modified": "2013-03-07 07:03:34", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-28 11:25:03"
+  "owner": "Administrator"
  }, 
  {
-  "istable": 1, 
   "description": "Defines actions on states and the next step and allowed roles.", 
   "doctype": "DocType", 
+  "istable": 1, 
   "module": "Core", 
   "name": "__common__"
  }, 
  {
+  "doctype": "DocField", 
+  "fieldtype": "Link", 
   "name": "__common__", 
   "parent": "Workflow Transition", 
-  "doctype": "DocField", 
-  "width": "200px", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "fieldtype": "Link", 
-  "reqd": 1, 
   "permlevel": 0, 
-  "parentfield": "fields"
+  "print_width": "200px", 
+  "reqd": 1, 
+  "width": "200px"
  }, 
  {
-  "name": "Workflow Transition", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Workflow Transition"
  }, 
  {
   "doctype": "DocField", 
-  "label": "State", 
   "fieldname": "state", 
+  "label": "State", 
   "options": "Workflow State"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Action", 
   "fieldname": "action", 
+  "label": "Action", 
   "options": "Workflow Action"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Next State", 
   "fieldname": "next_state", 
+  "label": "Next State", 
   "options": "Workflow State"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Allowed", 
   "fieldname": "allowed", 
+  "label": "Allowed", 
   "options": "Role"
  }
 ]
