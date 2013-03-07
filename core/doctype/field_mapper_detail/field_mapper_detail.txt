@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2012-03-27 14:35:37", 
+  "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2012-03-27 14:35:37", 
+  "modified": "2013-03-07 07:03:21", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -11,10 +11,7 @@
   "doctype": "DocType", 
   "istable": 1, 
   "module": "Core", 
-  "name": "__common__", 
-  "section_style": "Tray", 
-  "show_in_menu": 0, 
-  "version": 10
+  "name": "__common__"
  }, 
  {
   "doctype": "DocField", 
@@ -35,6 +32,7 @@
   "label": "From Field", 
   "oldfieldname": "from_field", 
   "oldfieldtype": "Data", 
+  "print_width": "180px", 
   "width": "180px"
  }, 
  {
@@ -44,6 +42,7 @@
   "label": "To Field", 
   "oldfieldname": "to_field", 
   "oldfieldtype": "Data", 
+  "print_width": "180px", 
   "width": "180px"
  }, 
  {
@@ -54,6 +53,7 @@
   "label": "Match Id", 
   "oldfieldname": "match_id", 
   "oldfieldtype": "Int", 
+  "print_width": "50px", 
   "width": "50px"
  }, 
  {
@@ -64,6 +64,7 @@
   "oldfieldname": "map", 
   "oldfieldtype": "Select", 
   "options": "Yes\nNo", 
+  "print_width": "50px", 
   "width": "50px"
  }, 
  {
@@ -74,6 +75,7 @@
   "oldfieldname": "checking_operator", 
   "oldfieldtype": "Select", 
   "options": "\n=\n>\n>=\n<\n<=", 
+  "print_width": "180px", 
   "width": "180px"
  }
 ]

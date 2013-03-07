@@ -114,7 +114,7 @@ class Bean:
 		if not cint(self.doc.fields.get('__islocal')):
 			if is_single(self.doc.doctype):
 				modified = webnotes.conn.get_value(self.doc.doctype, self.doc.name, "modified")
-				if modified != str(self.doc.modified):
+				if str(modified) != str(self.doc.modified):
 					conflict = True
 			else:
 				tmp = webnotes.conn.sql("""select modified, docstatus from `tab%s` 

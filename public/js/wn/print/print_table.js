@@ -58,32 +58,36 @@ wn.print.Table = Class.extend({
 	},
 	
 	remove_empty_cols: function() {
-		var cols_with_value = [];
-		var widths = [];
-		var head_labels = [];
 		var me = this;
+		
+		var cols_with_value = [];
 		
 		$.each(this.data, function(i, row) {
 			$.each(me.columns, function(ci, fieldname) {
 				var value = row[fieldname];
 				if(value || ci==0) {
-					if(!in_list(cols_with_value, fieldname)) {
-						cols_with_value.push(fieldname);
+					if(cols_with_value.indexOf(ci)===-1) {
+						cols_with_value.push(ci);
 					}
 				}
 			});
 		});
 		
-		// remove empty cols, widths and head labels
-		this.columns = $.map(this.columns, function(fieldname, i) { 
-			if(cols_with_value.indexOf(fieldname)===-1) {
-				if(this.widths) this.widths.splice(i, 1);
-				if(this.head_labels) this.head_labels.splice(i, 1);
-				return null;
-			} else {
-				return fieldname;
-			}
+		var columns = [],
+			widths = [],
+			head_labels = [];
+		
+		// make new arrays to remove empty cols, widths and head labels
+		$.each(cols_with_value, function(i, col_idx) {
+			columns.push(me.columns[col_idx]);
+			me.widths && widths.push(me.widths[col_idx]);
+			me.head_labels && head_labels.push(me.head_labels[col_idx]);
 		});
+		
+		this.columns = columns;
+		if(this.widths) this.widths = widths;
+		if(this.head_labels) this.head_labels = head_labels;
+		
 	},
 	
 	make: function() {
