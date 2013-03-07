@@ -107,12 +107,16 @@ def unsubscribe():
 	doctype = webnotes.form_dict.get('type')
 	field = webnotes.form_dict.get('email_field')
 	email = webnotes.form_dict.get('email')
+
 	webnotes.conn.sql("""update `tab%s` set unsubscribed=1
 		where `%s`=%s""" % (doctype, field, '%s'), email)
-	
-	webnotes.unsubscribed_email = email
+	webnotes.conn.commit()
+
+	webnotes.message_title = "Unsubscribe"
+	webnotes.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
+
 	webnotes.response['type'] = 'page'
-	webnotes.response['page_name'] = 'unsubscribed.html'
+	webnotes.response['page_name'] = 'message.html'
 	
 def flush():
 	"""flush email queue, every time: called from scheduler"""

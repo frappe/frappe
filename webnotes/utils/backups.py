@@ -64,7 +64,7 @@ class BackupGenerator:
 			self.set_backup_file_name()
 			self.take_dump()
 			self.zip_files()
-	
+
 	def set_backup_file_name(self):
 		import random
 		todays_date = "".join(str(datetime.date(datetime.today())).split("-"))
@@ -100,33 +100,18 @@ class BackupGenerator:
 			for item in self.__dict__.copy().items())
 		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_path_db)s""" % args		
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
-	
-	def get_recipients(self):
-		"""
-			Get recepient's email address
-		"""
-		#import webnotes.db
-		#webnotes.conn = webnotes.db.Database(use_default=1)
-		recipient_list = webnotes.conn.sql(\
-				   """SELECT parent FROM tabUserRole 
-					  WHERE role='System Manager' 
-					  AND parent!='Administrator' 
-					  AND parent IN 
-							 (SELECT email FROM tabProfile WHERE enabled=1)""")
-		return [i[0] for i in recipient_list]
-		
 		
 	def send_email(self):
 		"""
 			Sends the link to backup file located at erpnext/backups
 		"""
-		from webnotes.utils.email_lib import sendmail
+		from webnotes.utils.email_lib import sendmail, get_system_managers
 
 		backup_url = webnotes.conn.get_value('Website Settings',
 			'Website Settings', 'subdomain') or ''
 		backup_url = os.path.join('http://' + backup_url, 'backups')		
 		
-		recipient_list = self.get_recipients()
+		recipient_list = get_system_managers()
 		
 		msg = """<p>Hello,</p>
 		<p>Your backups are ready to be downloaded.</p>
@@ -168,13 +153,17 @@ def scheduled_backup(older_than=6):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
+	odb = new_backup(older_than)
+	
+	from webnotes.utils import now
+	print "backup taken -", odb.backup_path_db, "- on", now()
+
+def new_backup(older_than=6):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.get_db_password(webnotes.conn.cur_db_name))
 	odb.get_backup(older_than)
-	
-	from webnotes.utils import now
-	print "backup taken -", odb.backup_path_db, "- on", now()
+	return odb
 
 def delete_temp_backups(older_than=24):
 	"""

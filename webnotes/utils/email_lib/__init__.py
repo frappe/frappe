@@ -51,3 +51,10 @@ def get_contact_list():
 		)
 	)
 	webnotes.response['cl'] = filter(None, [c[0] for c in cl])
+
+def get_system_managers():
+	return webnotes.conn.sql_list("""select parent FROM tabUserRole 
+				  WHERE role='System Manager' 
+				  AND parent!='Administrator' 
+				  AND parent IN 
+						 (SELECT email FROM tabProfile WHERE enabled=1)""")

@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-01-28 15:28:07", 
+  "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-01-29 17:10:31", 
+  "modified": "2013-03-07 07:03:20", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -215,6 +215,7 @@
   "fieldname": "in_list_view", 
   "fieldtype": "Check", 
   "label": "In List View", 
+  "print_width": "70px", 
   "width": "70px"
  }, 
  {

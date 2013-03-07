@@ -339,9 +339,13 @@ class Database:
 				(val, modified or now(), modified_by or webnotes.session["user"], dn))
 		else:
 			if self.sql("select value from tabSingles where field=%s and doctype=%s", (field, dt)):
-				self.sql("update tabSingles set value=%s where field=%s and doctype=%s", (val, field, dt))
+				self.sql("""update tabSingles set value=%s where field=%s and doctype=%s""", 
+					(val, field, dt))
+				self.sql("""update tabSingles set value=%s where field="modified" and doctype=%s""", 
+					(now(), dt))
 			else:
-				self.sql("insert into tabSingles(doctype, field, value) values (%s, %s, %s)", (dt, field, val))
+				self.sql("""insert into tabSingles(doctype, field, value) 
+					values (%s, %s, %s), (%s, "modified", %s)""", (dt, field, val, dt, modified or now()))
 				
 	def set(self, doc, field, val):
 		from webnotes.utils import now
