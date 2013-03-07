@@ -68,6 +68,9 @@ $.extend(wn.report_dump, {
 				if(replace_dict[d.name]) {
 					data.push(replace_dict[d.name]);
 					delete replace_dict[d.name];
+				} else if(doctype_data.modified_names.indexOf(d.name)!==-1) {
+					// if modified but not in replace_dict, then assume it as cancelled
+					// don't push in data
 				} else {
 					data.push(d);
 				}
@@ -155,13 +158,13 @@ wn.views.GridReport = Class.extend({
 
 		// refresh
 		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() { 
-			me.set_route(); 
+			me.get_data();
 		});
 		
 		// reset filters
 		this.filter_inputs.reset_filters && this.filter_inputs.reset_filters.click(function() { 
 			me.init_filter_values(); 
-			me.set_route(); 
+			me.set_route();
 		});
 		
 		// range
@@ -387,7 +390,8 @@ wn.views.GridReport = Class.extend({
 		$(this.wrapper).trigger('apply_filters_from_route');
 	},
 	set_route: function() {
-		wn.set_route(wn.container.page.page_name, $.map(this.filter_inputs, function(v) {
+		var page_name = wn.container.page.page_name;
+		var filters_route = $.map(this.filter_inputs, function(v) {
 			var opts = v.get(0).opts;
 			if(opts.fieldtype === "Check") {
 				var val = v.attr("checked") ? 1 : 0;
@@ -397,7 +401,9 @@ wn.views.GridReport = Class.extend({
 			if(val && val != opts.default_value)
 				return encodeURIComponent(opts.fieldname) 
 					+ '=' + encodeURIComponent(val);
-		}).join('&&'));
+		}).join('&&');
+
+		wn.set_route(page_name, filters_route);
 	},
 	options: {
 		editable: false,
@@ -634,7 +640,7 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		$.each(filters, function(i, f) {
 			me.filter_inputs[f] && me.filter_inputs[f].change(function() {
-				me.filter_inputs.refresh.click()
+				me.set_route();
 			});
 		});
 	}
