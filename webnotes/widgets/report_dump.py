@@ -37,27 +37,30 @@ def get_data(doctypes, last_modified):
 	for d in doctypes:
 		args = data_map[d]
 		dt = d.find("[") != -1 and d[:d.find("[")] or d
+		out[dt] = {}
 
 		if args.get("from"):
 			modified_table = "item."
 		else:
 			modified_table = ""
+			
+		conditions = order_by = ""
+		table = args.get("from") or ("`tab%s`" % dt)
 
 		if d in last_modified:
 			if not args.get("conditions"):
 				args['conditions'] = []
 			args['conditions'].append(modified_table + "modified > '" + last_modified[d] + "'")
+			out[dt]["modified_names"] = webnotes.conn.sql_list("""select name from %s
+				where modified > %s""" % (table, "%s"), last_modified[d])
 		
-		conditions = order_by = ""
 		if args.get("force_index"):
 			conditions = " force index (%s) " % args["force_index"]
 		if args.get("conditions"):
 			conditions += " where " + " and ".join(args["conditions"])
 		if args.get("order_by"):
 			order_by = " order by " + args["order_by"]
-		table = args.get("from") or ("`tab%s`" % dt)
 		
-		out[dt] = {}
 		out[dt]["data"] = [list(t) for t in webnotes.conn.sql("""select %s from %s %s %s""" \
 			% (",".join(args["columns"]), table, conditions, order_by))]
 			

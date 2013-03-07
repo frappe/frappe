@@ -399,8 +399,7 @@ def run():
 		sync_all(options.force or 0)
 
 	elif options.sync is not None:
-		import webnotes.model.sync
-		webnotes.model.sync.sync(options.sync[0], options.sync[1], options.force or 0)
+		webnotes.reload_doc(options.sync[0], "doctype", options.sync[1])
 	
 	elif options.update:
 		update_erpnext(options.update[0], options.update[1])
