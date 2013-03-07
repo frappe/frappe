@@ -76,7 +76,7 @@ def get_template():
 	w.writerow(['For updating, you can update only selective columns.'])
 	w.writerow(['If you are uploading new records, leave the "name" (ID) column blank.'])
 	w.writerow(['If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
-	w.writerow(['You can only upload 500 records in one go.'])
+	w.writerow(['You can only upload upto 5000 records in one go. (may be less in some cases)'])
 	if key == "parent":
 		w.writerow(['"Parent" signifies the parent table in which this row must be added'])
 		w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
@@ -147,7 +147,7 @@ def upload():
 			raise_exception=1)
 			
 	def check_data_length():
-		max_rows = 500
+		max_rows = 5000
 		if not data:
 			webnotes.msgprint("No data found", raise_exception=True)
 		elif len(data) > max_rows:
