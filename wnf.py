@@ -435,7 +435,7 @@ def run():
 
 	elif options.backup:
 		from webnotes.utils.backups import scheduled_backup
-		scheduled_backup()
+		scheduled_backup(ignore_files = True)
 		
 	# print messages
 	if webnotes.message_log:
