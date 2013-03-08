@@ -74,7 +74,8 @@ def sync_all(force=0):
 
 def update_erpnext(remote='origin', branch='master'):
 	pull(remote, branch)
-	patch_sync_build()
+	from webnotes.utils import execute_in_shell
+	execute_in_shell("lib/wnf.py --patch_sync_build", verbose=1)
 	
 def patch_sync_build():
 	patch_sync()
@@ -434,7 +435,7 @@ def run():
 
 	elif options.backup:
 		from webnotes.utils.backups import scheduled_backup
-		scheduled_backup()
+		scheduled_backup(ignore_files = True)
 		
 	# print messages
 	if webnotes.message_log:

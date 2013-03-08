@@ -52,7 +52,7 @@ class BackupGenerator:
 		self.backup_path_files = None
 		self.backup_path_db = None
 
-	def get_backup(self, older_than=24):
+	def get_backup(self, older_than=24, ignore_files=False):
 		"""
 			Takes a new dump if existing file is old
 			and sends the link to the file as email
@@ -63,7 +63,8 @@ class BackupGenerator:
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
 			self.take_dump()
-			self.zip_files()
+			if not ignore_files:
+				self.zip_files()
 
 	def set_backup_file_name(self):
 		import random
@@ -149,20 +150,20 @@ def get_backup():
 	to you shortly on the following email address:
 	%s""" % (', '.join(recipient_list)))
 	
-def scheduled_backup(older_than=6):
+def scheduled_backup(older_than=6, ignore_files=False):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than)
+	odb = new_backup(older_than, ignore_files)
 	
 	from webnotes.utils import now
 	print "backup taken -", odb.backup_path_db, "- on", now()
 
-def new_backup(older_than=6):
+def new_backup(older_than=6, ignore_files=False):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.get_db_password(webnotes.conn.cur_db_name))
-	odb.get_backup(older_than)
+	odb.get_backup(older_than, ignore_files)
 	return odb
 
 def delete_temp_backups(older_than=24):
