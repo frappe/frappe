@@ -30,7 +30,7 @@ Group actions like save, etc are performed on doclists
 
 import webnotes
 from webnotes import _
-from webnotes.utils import cint
+from webnotes.utils import cint, cstr
 from webnotes.model.doc import Document
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
@@ -114,7 +114,7 @@ class Bean:
 		if not cint(self.doc.fields.get('__islocal')):
 			if is_single(self.doc.doctype):
 				modified = webnotes.conn.get_value(self.doc.doctype, self.doc.name, "modified")
-				if str(modified) != str(self.doc.modified):
+				if cstr(modified) and cstr(modified) != cstr(self.doc.modified):
 					conflict = True
 			else:
 				tmp = webnotes.conn.sql("""select modified, docstatus from `tab%s` 
@@ -124,8 +124,8 @@ class Bean:
 				if not tmp:
 					webnotes.msgprint("""This record does not exist. Please refresh.""", raise_exception=1)
 
-				modified = str(tmp[0].modified)
-				if modified != str(self.doc.modified):
+				modified = cstr(tmp[0].modified)
+				if modified and modified != cstr(self.doc.modified):
 					conflict = True
 			
 				self.check_docstatus_transition(tmp[0].docstatus, method)
