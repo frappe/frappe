@@ -11,6 +11,9 @@ def rename_doc(doctype, old, new, debug=0, force=False):
 	import webnotes.model.doctype
 	from webnotes.model.code import get_obj
 
+	if not webnotes.conn.exists(doctype, old):
+		return
+		
 	# get doclist of given doctype
 	doclist = webnotes.model.doctype.get(doctype)
 	
