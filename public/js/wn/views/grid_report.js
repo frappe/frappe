@@ -158,7 +158,16 @@ wn.views.GridReport = Class.extend({
 
 		// refresh
 		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() { 
-			me.get_data();
+			var old_route = wn.get_route_str();
+			
+			// set route from filters
+			// if route has changed, set route calls get data
+			me.set_route();
+			
+			// if route hasn't changed, call get data
+			if(wn.get_route_str()===old_route) {
+				me.get_data();
+			}
 		});
 		
 		// reset filters
