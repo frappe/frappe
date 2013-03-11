@@ -77,6 +77,10 @@ def rename_doctype(doctype, old, new, debug=0, force=False):
 	update_parenttype_values(old, new, debug=debug)
 	if debug: webnotes.errprint("executed update_parenttype_values")
 	
+	# rename comments
+	webnotes.conn.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
+		(new, old))
+	
 	# update mapper
 	rename_mapper(new)
 	
