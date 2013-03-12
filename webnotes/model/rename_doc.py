@@ -11,6 +11,9 @@ def rename_doc(doctype, old, new, debug=0, force=False):
 	import webnotes.model.doctype
 	from webnotes.model.code import get_obj
 
+	if not webnotes.conn.exists(doctype, old):
+		return
+		
 	# get doclist of given doctype
 	doclist = webnotes.model.doctype.get(doctype)
 	
@@ -76,6 +79,10 @@ def rename_doctype(doctype, old, new, debug=0, force=False):
 	# change parenttype for fieldtype Table
 	update_parenttype_values(old, new, debug=debug)
 	if debug: webnotes.errprint("executed update_parenttype_values")
+	
+	# rename comments
+	webnotes.conn.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
+		(new, old))
 	
 	# update mapper
 	rename_mapper(new)
