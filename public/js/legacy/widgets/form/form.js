@@ -44,6 +44,7 @@ wn.provide('wn.ui.form');
 wn.ui.form.Controller = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.setup && this.setup();
 	}
 });
 

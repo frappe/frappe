@@ -246,6 +246,16 @@ _f.FormGrid.prototype.delete_row = function(dt, dn) {
 	if(this.on_row_delete) this.on_row_delete(cur_frm.doc, dt, dn);
 }
 
+_f.FormGrid.prototype.clear_table = function() {
+	var me = this;
+	$.each(this.get_children(), function(i, d) {
+		wn.model.clear_doc(d.doctype, d.name);
+		if(me.on_row_delete) me.on_row_delete(cur_frm.doc, d.doctype, d.name);
+	});
+	this.refresh();
+	this.set_unsaved();
+}
+
 _f.FormGrid.prototype.move_row = function(up) {
 	
 	if(!this.check_selected()) return;
