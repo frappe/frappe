@@ -50,6 +50,8 @@ class DocListController(object):
 		return self._meta
 		
 	def validate_value(self, fieldname, condition, val2, doc=None):
+		"""check that value of fieldname should be 'condition' val2
+			else throw exception"""
 		if not doc:
 			doc = self.doc
 		

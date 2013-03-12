@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 import webnotes
 import os, conf
 from webnotes.utils import cstr
+from webnotes import _
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
 
@@ -137,7 +138,8 @@ def check_max_file_size(content):
 	max_file_size = getattr(conf, 'max_file_size', 1000000)
 
 	if len(content) > max_file_size:
-		raise Exception, MaxFileSizeReachedError
+		webnotes.msgprint(_("File size exceeded the maximum allowed size"),
+			raise_exception=MaxFileSizeReachedError)
 
 def write_file(content):
 	"""write file to disk with a random name (to compare)"""
