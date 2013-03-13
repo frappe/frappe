@@ -373,12 +373,11 @@ def fmt_money(amount, precision=None):
 	import webnotes
 	from webnotes import _
 	
-	curr = webnotes.conn.get_value('Control Panel', None, 
-		'currency_format') or 'Millions'
 	number_format = webnotes.conn.get_default("number_format") or "#,###.##"
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
+	
 	val = 2
-	if curr == 'Millions': val = 3
+	if number_format == "#,##,###.##": val = 3
 	
 	amount = '%.*f' % (precision, flt(amount))
 
@@ -441,22 +440,26 @@ def money_in_words(number, main_currency = None, fraction_currency=None):
 	main, fraction = n.split('.')
 	if len(fraction)==1: fraction += '0'
 	
-	out = main_currency + ' ' + in_words(main).title()
+	
+	number_format = webnotes.conn.get_value("Currency", main_currency, "number_format") or \
+		webnotes.conn.get_default("number_format") or "#,###.##"
+	
+	in_million = True
+	if number_format == "#,##,###.##": in_million = False
+	
+	out = main_currency + ' ' + in_words(main, in_million).title()
 	if cint(fraction):
-		out = out + ' and ' + in_words(fraction).title() + ' ' + fraction_currency
+		out = out + ' and ' + in_words(fraction, in_million).title() + ' ' + fraction_currency
 
 	return out + ' only.'
 
 #
 # convert number to words
 #
-def in_words(integer):
+def in_words(integer, in_million=True):
 	"""
 	Returns string in words for the given integer.
 	"""
-
-	in_million = webnotes.conn.get_default('currency_format')=='Millions' and 1 or 0
-
 	n=int(integer)
 	known = {0: 'zero', 1: 'one', 2: 'two', 3: 'three', 4: 'four', 5: 'five', 6: 'six', 7: 'seven', 8: 'eight', 9: 'nine', 10: 'ten',
 		11: 'eleven', 12: 'twelve', 13: 'thirteen', 14: 'fourteen', 15: 'fifteen', 16: 'sixteen', 17: 'seventeen', 18: 'eighteen',
