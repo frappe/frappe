@@ -87,8 +87,8 @@ def load_country_and_currency(bootinfo, doclist):
 		where ifnull(enabled,0)=1""", as_dict=1, update={"doctype":":Currency"})
 
 def add_allowed_pages(bootinfo):
-	bootinfo.allowed_pages = [p[0] for p in webnotes.conn.sql("""select distinct parent from `tabPage Role`
-		where role in ('%s')""" % "', '".join(webnotes.get_roles()))]
+	bootinfo.page_info = dict(webnotes.conn.sql("""select distinct parent, modified from `tabPage Role`
+		where role in ('%s')""" % "', '".join(webnotes.get_roles())))
 
 def load_translations(bootinfo):
 	try:

@@ -17,18 +17,10 @@ window.format_number = function(v, format, decimals){
 	}
 	info = get_number_format_info(format);
 	
-	if(isNaN(+v) || v==null) {
-		v=0;
-	};
-
-	// remove group separators (if any)
-	if(typeof(v)==="string") {
-		v = replace_all(v, info.group_sep, "");
-	}
+	v = flt(v, null, format);
 
 	if(v<0) var is_negative = true; 
 	v = Math.abs(v);
-
 
 	//Fix the decimal first, toFixed will auto fill trailing zero.
 	decimals = decimals || info.precision;
@@ -36,7 +28,6 @@ window.format_number = function(v, format, decimals){
 	v = v.toFixed(decimals);
 
 	var part = v.split('.');
-
 	
 	// get group position and parts
 	var group_position = info.group_sep ? 3 : 0;
@@ -72,9 +63,8 @@ window.format_number = function(v, format, decimals){
 };
 
 function format_currency(v, currency) {
-	var format = wn.model.get_value("Currency", currency, 
-		"number_format") || get_number_format();
-
+	var format = get_number_format(currency);
+		
 	var symbol = get_currency_symbol(currency);
 
 	if(symbol)
@@ -94,13 +84,20 @@ function get_currency_symbol(currency) {
 }
 
 var global_number_format = null;
-function get_number_format() {
+function get_number_format(currency) {
 	if(!global_number_format) {
 		global_number_format = wn.boot.sysdefaults.number_format
 			|| wn.model.get_value("Currency", wn.boot.sysdefaults.currency, "number_format")
 			|| "#,###.##";
 	}
-	return global_number_format;
+	
+	var number_format;
+	if(currency) {
+		number_format = wn.model.get_value("Currency", currency, 
+			"number_format");
+	}
+	
+	return number_format || global_number_format;
 }
 
 function get_number_format_info(format) {
