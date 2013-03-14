@@ -42,40 +42,31 @@ def getdoc(doctype, name, user=None):
 	# single
 	doclist = load_single_doc(doctype, name, user or webnotes.session.user)
 	
-	# load doctype along with the doc
-	if webnotes.form_dict.get('getdoctype'):
-		import webnotes.model.doctype
-		doclist += webnotes.model.doctype.get(doctype, processed=True)
-
 	webnotes.response['docs'] = doclist
 
 @webnotes.whitelist()
-def getdoctype():
+def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	"""load doctype"""
 	import webnotes.model.doctype
 	import webnotes.model.meta
 	
 	doclist = []
 	
-	dt = webnotes.form_dict.get('doctype')
-	with_parent = webnotes.form_dict.get('with_parent')
-
 	# with parent (called from report builder)
 	if with_parent:
-		parent_dt = webnotes.model.meta.get_parent_dt(dt)
+		parent_dt = webnotes.model.meta.get_parent_dt(doctype)
 		if parent_dt:
 			doclist = webnotes.model.doctype.get(parent_dt, processed=True)
 			webnotes.response['parent_dt'] = parent_dt
 	
 	if not doclist:
-		doclist = webnotes.model.doctype.get(dt, processed=True)
+		doclist = webnotes.model.doctype.get(doctype, processed=True)
 	
-	# if single, send the record too
-	if doclist[0].issingle:
-		doclist += webnotes.model.doc.get(dt)
-
+	if cached_timestamp and doclist[0].modified==cached_timestamp:
+		return "use_cache"
+	
 	# load search criteria for reports (all)
-	doclist +=get_search_criteria(dt)
+	doclist +=get_search_criteria(doctype)
 
 	webnotes.response['docs'] = doclist
 
@@ -97,11 +88,6 @@ def load_single_doc(dt, dn, user):
 
 	if dl and not dn.startswith('_'):
 		webnotes.user.update_recent(dt, dn)
-
-	# load search criteria ---- if doctype
-	# ----- TO BE DEPRECATED -----
-	if dt=='DocType':
-		dl += get_search_criteria(dt)
 
 	return dl
 
