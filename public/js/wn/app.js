@@ -78,6 +78,8 @@ wn.Application = Class.extend({
 		if(wn.boot) {
 			wn.control_panel = wn.boot.control_panel;
 			this.set_globals();
+			this.sync_pages();
+			
 		} else {
 			this.set_as_guest();
 		}
@@ -91,6 +93,22 @@ wn.Application = Class.extend({
 		user_roles = profile.roles;
 		user_email = profile.email;
 		sys_defaults = wn.boot.sysdefaults;		
+	},
+	sync_pages: function() {
+		// clear cached pages if timestamp is not found
+		if(localStorage["page_info"]) {
+			wn.boot.allowed_pages = [];
+			page_info = JSON.parse(localStorage["page_info"]);
+			$.each(wn.boot.page_info, function(name, modified) {
+				if(page_info[name]!=modified) {
+					delete localStorage["_page:" + name];
+				}
+				wn.boot.allowed_pages.push(name);
+			});
+		} else {
+			wn.boot.allowed_pages = keys(wn.boot.page_info);
+		}
+		localStorage["page_info"] = JSON.stringify(wn.boot.page_info);
 	},
 	set_as_guest: function() {
 		// for backward compatibility

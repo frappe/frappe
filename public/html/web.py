@@ -36,7 +36,6 @@ import conf
 def init():
 	import webnotes.handler
 	webnotes.handler.get_cgi_fields()
-	webnotes.connect()
 
 def respond():
 	import webnotes

@@ -15,12 +15,21 @@ wn.views.pageview = {
 		}
 
 		if((locals.Page && locals.Page[name]) || name==window.page_name) {
+			// already loaded
+			callback();
+		} if(localStorage["_page:" + name]) {
+			// cached in local storage
+			wn.model.sync(JSON.parse(localStorage["_page:" + name]));
 			callback();
 		} else {
+			// get fresh
 			wn.call({
 				method: 'webnotes.widgets.page.getpage', 
 				args: {'name':name },
-				callback: callback
+				callback: function(r) {
+					localStorage["_page:" + name] = JSON.stringify(r.docs);
+					callback();
+				}
 			});
 		}		
 	},
