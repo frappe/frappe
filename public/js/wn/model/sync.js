@@ -54,6 +54,8 @@ $.extend(wn.model, {
 				delete sync_in[d.doctype][d.localname];
 			}
 		});
+		
+		return doclist;
 	},
 	
 	expand: function(data) {

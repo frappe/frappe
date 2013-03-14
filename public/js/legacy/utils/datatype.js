@@ -95,7 +95,7 @@ function nth(number) {
 	return number+s;
 }
 
-function flt(v, decimals) { 
+function flt(v, decimals, number_format) { 
 	if(v==null || v=='')return 0;
 	
 	if(typeof v!=="number") {
@@ -106,16 +106,7 @@ function flt(v, decimals) {
 			v = v.split(" ")[1];
 		}
 
-		// strip groups (,)
-		if(get_number_format_info(get_number_format()).group_sep==".") {
-			v = v.replace(/\./g,'');
-
-			// sanitize decimal separator to .
-			v = v.replace(/,/g, ".");
-		} else {
-			v=v.replace(/,/g,'');
-		}
-
+		v = strip_number_groups(v, number_format);
 
 		v=parseFloat(v);
 		if(isNaN(v))
@@ -124,6 +115,22 @@ function flt(v, decimals) {
 	
 	if(decimals!=null)
 		return roundNumber(v, decimals);
+	return v;
+}
+
+function strip_number_groups(v, number_format) {
+	if(!number_format) number_format = get_number_format();
+	
+	// strip groups (,)
+	if(get_number_format_info(number_format).group_sep==".") {
+		v = v.replace(/\./g,'');
+
+		// sanitize decimal separator to .
+		v = v.replace(/,/g, ".");
+	} else {
+		v=v.replace(/,/g,'');
+	}
+	
 	return v;
 }
 

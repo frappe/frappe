@@ -878,13 +878,19 @@ IntField.prototype.format_input = function() {
 
 function FloatField() { } FloatField.prototype = new DataField();
 FloatField.prototype.validate = function(v) {
-	var v= parseFloat(v); 
-	if(isNaN(v))
+	if(isNaN(parseFloat(v)))
 		return null;
+	else
+		v = flt(v);
 	return v;
 };
 FloatField.prototype.format_input = function() {
 	if(this.input.value==null) this.input.value='';
+	else {
+		var format;
+		if(this.get_field_currency) format = get_number_format(this.get_field_currency());
+		this.input.value = format_number(parseFloat(this.input.value), format);
+	}
 }
 FloatField.prototype.onmake_input = function() {
 	if(!this.input) return;
@@ -906,18 +912,25 @@ function CurrencyField() { } CurrencyField.prototype = new FloatField();
 CurrencyField.prototype.validate = function(v) { 
 	if(v==null || v=='')
 		return 0;
-	return flt(v); 
+	
+	return flt(v, null, get_number_format(this.get_field_currency())); 
 }
-CurrencyField.prototype.get_formatted = function(val) {
-	if(this.not_in_form) 
-		return val;
+
+CurrencyField.prototype.get_field_currency = function() {
 	var doc = null;
 	if(this.doctype && this.docname && locals[this.doctype])
 		doc = locals[this.doctype][this.docname];
-	return get_currency_symbol(wn.meta.get_field_currency(this.df, doc)) 
-		+ " " + format_number(val);
+		
+	return wn.meta.get_field_currency(this.df, doc);
+};
+
+CurrencyField.prototype.get_formatted = function(val) {
+	if(this.not_in_form) 
+		return val;
+		
+	return format_currency(val, this.get_field_currency());
 }
-CurrencyField.prototype.set_disp = function(val) { 
+CurrencyField.prototype.set_disp = function(val) {
 	this.set_disp_html(this.get_formatted(val));
 }
 

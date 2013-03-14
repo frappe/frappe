@@ -61,28 +61,43 @@ $.extend(wn.model, {
 		if(locals.DocType[doctype]) {
 			callback();
 		} else {
+			var cached_timestamp = null;
+			if(localStorage["_doctype:" + doctype]) {
+				var cached_doclist = JSON.parse(localStorage["_doctype:" + doctype]);
+				cached_timestamp = cached_doclist[0].modified;
+			}
 			wn.call({
 				method:'webnotes.widgets.form.load.getdoctype',
 				type: "GET",
 				args: {
 					doctype: doctype,
-					with_parent: 1
+					with_parent: 1,
+					cached_timestamp: cached_timestamp
 				},
 				callback: function(r) {
-					var meta = locals.DocType[doctype];
-					if(meta.__list_js) {
-						eval(meta.__list_js);
+					if(r.message=="use_cache") {
+						wn.model.sync(cached_doclist);
+					} else {
+						localStorage["_doctype:" + doctype] = JSON.stringify(r.docs);
 					}
-					if(meta.__calendar_js) {
-						eval(meta.__calendar_js);
-					}
-					if(meta.__map_js) {
-						eval(meta.__map_js);
-					}
+					wn.model.init_doctype(doctype);
 					callback(r);
 				}
 			});
 		}
+	},
+	
+	init_doctype: function(doctype) {
+		var meta = locals.DocType[doctype];
+		if(meta.__list_js) {
+			eval(meta.__list_js);
+		}
+		if(meta.__calendar_js) {
+			eval(meta.__calendar_js);
+		}
+		if(meta.__map_js) {
+			eval(meta.__map_js);
+		}		
 	},
 	
 	with_doc: function(doctype, name, callback) {

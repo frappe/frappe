@@ -903,27 +903,11 @@ _f.Frm.prototype.reload_doc = function() {
 		me.refresh();
 	}
 
-	if(me.doc.__islocal) { 
-		wn.call({
-			method: "webnotes.widgets.form.load.getdoctype",
-			args: {
-				doctype: me.doctype
-			},
-			callback: function(r) {
-				me.refresh();
-			}
+	if(!me.doc.__islocal) { 
+		wn.model.remove_from_locals(me.doctype, me.docname);
+		wn.model.with_doc(me.doctype, me.docname, function() {
+			me.refresh();
 		})
-	} else {
-		wn.call({
-			method: "webnotes.widgets.form.load.getdoc",
-			args: {
-				doctype: me.doctype,
-				name: me.docname
-			},
-			callback: function(r) {
-				me.refresh();
-			}
-		});
 	}
 }
 

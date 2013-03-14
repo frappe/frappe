@@ -268,12 +268,15 @@ def check_record(d, parenttype=None):
 				raise Exception, "%s is mandatory." % key
 
 			if docfield.fieldtype=='Select' and val:
-				if docfield.options and docfield.options.startswith('link:'):
+				if not docfield.options:
+					raise Exception, "Select options are missing for %s"
+				elif docfield.options.startswith('link:'):
 					link_doctype = docfield.options.split(':')[1]
 					if not webnotes.conn.exists(link_doctype, val):
 						raise Exception, "%s must be a valid %s" % (key, link_doctype)
-				elif not docfield.options:
-					raise Exception, "Select options are missing for %s"
+				elif docfield.options == "attach_files:":
+					pass
+					
 				elif val not in docfield.options.split('\n'):
 					raise Exception, "%s must be one of: %s" % (key, 
 						", ".join(filter(None, docfield.options.split("\n"))))
