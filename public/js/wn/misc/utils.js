@@ -139,5 +139,22 @@ wn.utils = {
 			style = "info";
 		}
 		return style;
-	}
+	},
+	
+	sort: function(list, key, compare_type, reverse) {
+		var sort_fn = {
+			"string": function(a, b) {
+				return cstr(a[key]).localeCompare(cstr(b[key]));
+			},
+			"number": function(a, b) {
+				return flt(a[key]) - flt(b[key]);
+			}
+		};
+		
+		list.sort(sort_fn[compare_type]);
+		
+		if(reverse) { list.reverse(); }
+		
+		return list;
+	},
 };

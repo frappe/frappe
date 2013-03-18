@@ -356,15 +356,17 @@ wn.ui.FieldSelect = Class.extend({
 		}
 
 		// main table
-		$.each(std_filters.concat(wn.meta.docfield_list[me.doctype]), function(i, df) {
+		var main_table_fields = std_filters.concat(wn.meta.docfield_list[me.doctype]);
+		$.each(wn.utils.sort(main_table_fields, "label", "string"), function(i, df) {
 			if(wn.perm.has_perm(me.doctype, df.permlevel, READ))
 				me.add_field_option(df);
 		});
 
 		// child tables
-		$.each(me.table_fields, function(i,table_df) {
+		$.each(me.table_fields, function(i, table_df) {
 			if(table_df.options) {
-				$.each(wn.meta.docfield_list[table_df.options], function(i, df) {
+				var child_table_fields = [].concat(wn.meta.docfield_list[table_df.options]);
+				$.each(wn.utils.sort(child_table_fields, "label", "string"), function(i, df) {
 					if(wn.perm.has_perm(me.doctype, df.permlevel, READ))
 						me.add_field_option(df);
 				});
@@ -392,5 +394,5 @@ wn.ui.FieldSelect = Class.extend({
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;	
 		}
-	}
+	},
 })
