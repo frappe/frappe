@@ -259,6 +259,20 @@ def get_perm_info(arg=None):
 		cancel, amend from tabDocPerm where role=%s 
 		and docstatus<2 order by parent, permlevel""", 
 			webnotes.form_dict['role'], as_dict=1)
+
+@webnotes.whitelist()
+def update_profile(fullname, password=None):
+	if not fullname:
+		return _("Name is required")
+	
+	webnotes.conn.set_value("Profile", webnotes.session.user, "first_name", fullname)
+	webnotes.add_cookies["full_name"] = fullname
+		
+	if password:
+		from webnotes.auth import update_password
+		update_password(webnotes.session.user, password)
+
+	return _("Updated")
 	
 @webnotes.whitelist(allow_guest=True)
 def sign_up(email, full_name):
