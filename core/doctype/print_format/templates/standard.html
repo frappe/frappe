@@ -3,3 +3,14 @@
 </style>
 
 <h1>{{ doc.name }}</h1>
+
+{% macro make_section(sb) %}
+<h3 style="color: blue;">{{ sb.label }}</h3>
+{% for cb in sb.columns %}
+	<h4>{{ cb.label }}</h4>
+{% endfor %}
+{% endmacro %}
+
+{% for sb in doctype_structure %}
+{{ make_section(sb) }}	
+{% endfor %}

@@ -55,6 +55,70 @@ class DocType:
 		if self.doc.doc_type:
 			webnotes.clear_cache(doctype=self.doc.doc_type)
 
+def get_args():
+	if not webnotes.form_dict.doctype or not webnotes.form_dict.name \
+		or not webnotes.form_dict.format:
+		return {
+			"body": """<h1>Error</h1>
+				<p>Parameters doctype, name and format required</p>
+				<pre>%s</pre>""" % repr(webnotes.form_dict)
+		}
+		
+	obj = webnotes.get_obj(webnotes.form_dict.doctype, webnotes.form_dict.name)
+	return {
+		"body": get_html(obj.doc, obj.doclist)
+	}
+
+def get_html(doc, doclist):
+	from jinja2 import Environment
+	from core.doctype.print_style.print_style import get_print_style
+	from core.doctype.print_format.print_format import get_print_format
+
+	template = Environment().from_string(get_print_format(webnotes.form_dict.format))
+	doctype = webnotes.get_doctype(doc.doctype)
+	
+	args = {
+		"doc": doc,
+		"doclist": doclist,
+		"print_style": get_print_style(),
+		"doctype_structure": make_doctype_structure(doctype),
+		"doctype": doctype
+	}
+	html = template.render(args)
+	return html
+
+def make_doctype_structure(doctype):
+	s = []
+	fields = doctype.get({"doctype":"DocField"})
+		
+	# first get all section breaks
+	for docfield in fields:
+		if docfield.fieldtype=="Section Break":
+			s.append(docfield)
+	
+	if s[0].idx != 1:
+		s = [webnotes._dict({"fieldtype":"Section Break", "idx":-1})] + s
+		
+	# then get columns in inside section break
+	for sb in s:
+		sb.columns = []
+				
+		for docfield in fields:
+			if docfield.idx > sb.idx:
+				# missing first column break
+				if docfield.idx == sb.idx + 1 and docfield.fieldtype!="Column Break":
+					sb.columns.append(webnotes._dict({"fieldtype":"Column Break", 
+						"idx":sb.idx}))
+				elif docfield.fieldtype=="Column Break":
+					sb.columns.append(docfield)
+				elif docfield.fieldtype=="Section Break":
+					break
+					
+		for cb in sb.columns:
+			cb.fields = []
+
+	return s
+
 def get_print_format(name):
 	html = webnotes.conn.get_value("Print Format", name, "html")
 	if html: 
@@ -68,3 +132,4 @@ def get_print_format(name):
 			return pffile.read()
 	else:
 		return ""
+
