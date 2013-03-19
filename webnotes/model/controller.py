@@ -49,7 +49,7 @@ class DocListController(object):
 			self._meta = webnotes.get_doctype(self.doc.doctype)
 		return self._meta
 		
-	def validate_value(self, fieldname, condition, val2, doc=None):
+	def validate_value(self, fieldname, condition, val2, doc=None, raise_exception=None):
 		"""check that value of fieldname should be 'condition' val2
 			else throw exception"""
 		if not doc:
@@ -71,4 +71,5 @@ class DocListController(object):
 			msg += _(self.meta.get_label(fieldname, parent=doc.doctype)) \
 				+ " " + error_coniditon_map.get(condition, "") + " " + cstr(val2)
 			
-			msgprint(msg, raise_exception=True)
+			# raise passed exception or True
+			msgprint(msg, raise_exception=raise_exception or True)
