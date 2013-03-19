@@ -1,0 +1,52 @@
+[
+ {
+  "creation": "2013-03-19 11:23:14", 
+  "docstatus": 0, 
+  "modified": "2013-03-19 11:23:14", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "Prompt", 
+  "description": "Stylesheet for Print Format (Server)", 
+  "doctype": "DocType", 
+  "module": "Core", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "css", 
+  "fieldtype": "Code", 
+  "label": "CSS", 
+  "name": "__common__", 
+  "parent": "Print Style", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Print Style", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "System Manager", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Print Style"
+ }, 
+ {
+  "doctype": "DocField"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

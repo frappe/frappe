@@ -21,7 +21,8 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes, conf
+import webnotes, conf, os
+from webnotes.utils import get_base_path
 
 class DocType:
 	def __init__(self, d, dl):
@@ -53,3 +54,17 @@ class DocType:
 	def on_trash(self):
 		if self.doc.doc_type:
 			webnotes.clear_cache(doctype=self.doc.doc_type)
+
+def get_print_format(name):
+	html = webnotes.conn.get_value("Print Format", name, "html")
+	if html: 
+		return html
+
+	# server, find template
+	path = os.path.join(get_base_path(), "lib", "core", "doctype", "print_format", 
+		"templates", name.lower() + ".html")
+	if os.path.exists(path):
+		with open(path, "r") as pffile:
+			return pffile.read()
+	else:
+		return ""
