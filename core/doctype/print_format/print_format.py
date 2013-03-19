@@ -88,6 +88,7 @@ def get_html(doc, doclist):
 	return html
 
 def make_doctype_structure(doctype):
+	"""wip"""
 	s = []
 	fields = doctype.get({"doctype":"DocField"})
 		
