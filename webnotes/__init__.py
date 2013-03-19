@@ -393,3 +393,11 @@ def map_doclist(from_to_list, from_docname, to_doclist=None):
 def compare(val1, condition, val2):
 	import webnotes.utils
 	return webnotes.utils.compare(val1, condition, val2)
+	
+def repsond_as_web_page(title, html):
+	global message, message_title, response
+	message_title = title
+	message = "<h3>" + title + "</h3>" + html
+	response['type'] = 'page'
+	response['page_name'] = 'message.html'
+	

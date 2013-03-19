@@ -123,14 +123,7 @@ class EMail:
 		"""append a footer (signature)"""
 		import startup
 		
-		footer = ""
-		# if self.sender == webnotes.session.user:
-		# 	signature = webnotes.conn.get_value("Profile", self.sender, "email_signature") or ""
-		# 	if signature and (not "<br>" in signature) and (not "<p" in signature) \
-		# 		and not "<div" in signature:
-		# 		signature = signature.replace("\n", "<br>\n")
-		# 	footer = signature
-		
+		footer = ""		
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
 		footer += getattr(startup, 'mail_footer', '')
 		
