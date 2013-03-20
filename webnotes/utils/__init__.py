@@ -471,7 +471,9 @@ def in_words(integer, in_million=True):
 		bestguess, remainder = str(n), 0
 
 		if n<=20:
-			print >>sys.stderr, n, "How did this happen?"
+			webnotes.msgprint(sys.stderr)
+			webnotes.msgprint(n)  
+			webnotes.msgprint("How did this happen?")
 			assert 0
 		elif n < 100:
 			bestguess= xpsn((n//10)*10, known, xpsn) + '-' + xpsn(n%10, known, xpsn)
