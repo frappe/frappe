@@ -77,7 +77,7 @@ function cint(v, def) {
 	return v; 
 }
 function validate_email(txt) { 
-	return wn.utils.validate_type(txt, email);
+	return wn.utils.validate_type(txt, "email");
 }
 function validate_spl_chars(txt) { 
 	return wn.utils.validate_type(txt, "alphanum")
