@@ -38,7 +38,9 @@ def runserverobj():
 	arg = webnotes.form_dict.get('arg')
 	dt = webnotes.form_dict.get('doctype')
 	dn = webnotes.form_dict.get('docname')
-
+	
+	webnotes.response["docs"] = []
+	
 	if dt: # not called from a doctype (from a page)
 		if not dn: dn = dt # single
 		so = webnotes.model.code.get_obj(dt, dn)
@@ -62,7 +64,7 @@ def runserverobj():
 			else:
 				webnotes.response['message'] = r
 		
-		webnotes.response['docs'] = so.doclist
+		webnotes.response['docs'] += so.doclist
 
 def check_guest_access(doc):
 	if webnotes.session['user']=='Guest' and not webnotes.conn.sql("select name from tabDocPerm where role='Guest' and parent=%s and ifnull(`read`,0)=1", doc.doctype):

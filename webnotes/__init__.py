@@ -94,6 +94,7 @@ class UnknownDomainError(Exception): pass
 class SessionStopped(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
+class DoesNotExistError(ValidationError): pass
 		
 def getTraceback():
 	import utils
