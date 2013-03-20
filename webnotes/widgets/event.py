@@ -53,18 +53,3 @@ def get_cal_events(m_st, m_end):
 			rl.append(r)
 	
 	return doclist
-
-
-# Load Month Events
-# -----------------
-
-@webnotes.whitelist()
-def load_month_events():
-	from webnotes.utils import cint
-
-	mm = webnotes.form_dict.get('month')
-	yy = webnotes.form_dict.get('year')
-	m_st = str(yy) + '-%.2i' % cint(mm) + '-01'
-	m_end = str(yy) + '-%.2i' % cint(mm) + '-31'
-
-	webnotes.response['docs'] = get_cal_events(m_st, m_end)
