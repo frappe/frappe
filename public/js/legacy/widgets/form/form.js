@@ -961,7 +961,14 @@ _f.Frm.prototype.savesubmit = function(btn, on_error) {
 _f.Frm.prototype.savecancel = function(btn, on_error) {
 	var me = this;
 	wn.confirm("Permanently Cancel "+this.docname+"?", function() {
+		validated = true;
 		me.runclientscript("before_cancel", me.doctype, me.docname);
+		if(!validated) {
+			if(on_error) 
+				on_error();
+			return;
+		}
+		
 		var doclist = new wn.model.DocList(me.doctype, me.docname);
 		doclist.cancel(function(r) {
 			if(!r.exc) {
