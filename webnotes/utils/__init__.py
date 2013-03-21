@@ -369,43 +369,41 @@ def parse_val(v):
 def fmt_money(amount, precision=None):
 	"""
 	Convert to string with commas for thousands, millions etc
-	"""
-	import webnotes
-	from webnotes import _
-	
+	"""	
 	number_format = webnotes.conn.get_default("number_format") or "#,###.##"
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
 	
-	val = 2
-	if number_format == "#,##,###.##": val = 3
 	
 	amount = '%.*f' % (precision, flt(amount))
-
 	if amount.find('.') == -1:
 		decimals = ''
 	else: 
 		decimals = amount.split('.')[1]
 
-	l = []
+	parts = []
 	minus = ''
-	if flt(amount) < 0: minus = '-'
+	if flt(amount) < 0: 
+		minus = '-'
 
 	amount = cstr(abs(flt(amount))).split('.')[0]
-	
-	# main logic	
-	if len(amount) > 3:
-		nn = amount[len(amount)-3:]
-		l.append(nn)
-		amount = amount[0:len(amount)-3]
-		while len(amount) > val:
-			nn = amount[len(amount)-val:]
-			l.insert(0,nn)
-			amount = amount[0:len(amount)-val]
-	
-	if len(amount) > 0:	l.insert(0,amount)
 
-	amount = comma_str.join(l) + decimal_str + decimals
+	if len(amount) > 3:
+		parts.append(amount[-3:])
+		amount = amount[:-3]
+
+		val = number_format=="#,##,###.##" and 2 or 3
+
+		while len(amount) > val:
+			parts.append(amount[-val:])
+			amount = amount[:-val]
+
+	parts.append(amount)
+
+	parts.reverse()
+
+	amount = comma_str.join(parts) + (precision and (decimal_str + decimals) or "")
 	amount = minus + amount
+
 	return amount
 	
 def get_number_format_info(format):
