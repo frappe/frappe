@@ -66,10 +66,17 @@ def get_args():
 				<pre>%s</pre>""" % repr(webnotes.form_dict)
 		}
 		
-	obj = webnotes.bean(webnotes.form_dict.doctype, webnotes.form_dict.name)
+	bean = webnotes.bean(webnotes.form_dict.doctype, webnotes.form_dict.name)
+	if not bean.has_read_perm():
+		return {
+			"body": """<h1>Error</h1>
+				<p>No read permission</p>"""
+		}
+	
 	return {
-		"body": get_html(obj.doc, obj.doclist),
-		"css": get_print_style(webnotes.form_dict.style)
+		"body": get_html(bean.doc, bean.doclist),
+		"css": get_print_style(webnotes.form_dict.style),
+		"comment": webnotes.session.user
 	}
 
 def get_html(doc, doclist):
