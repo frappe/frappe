@@ -1,5 +1,11 @@
+@media screen {
+	body {
+		width: 8.3in;
+	}
+}
 body {
-  margin: 0;
+  padding: 10px;
+  margin: auto;
   font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
   font-size: 13px;
   line-height: 20px;
@@ -76,6 +82,10 @@ table {
   background-color: transparent;
   border-collapse: collapse;
   border-spacing: 0;
+}
+
+td {
+  vertical-align: top;
 }
 
 .table {

@@ -1,0 +1,97 @@
+@media screen {
+	body {
+		width: 8.3in;
+	}
+}
+
+html, body, div, span, td {
+	font-family: "Helvetica", "Arial", sans-serif;
+	font-size: 12px;
+}
+
+body {
+	padding: 10px;
+	margin: auto;
+	font-size: 12px;
+	line-height: 150%;
+}
+
+.common {
+	font-family: "Helvetica", "Arial", sans-serif !important;
+	font-size: 12px;
+	padding: 10px 0px;
+}
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+	vertical-align: top;
+	border-style: none !important;
+}
+
+table td {
+	padding: 2px 0px;
+	border-style: none !important;
+}
+
+table.table-bordered td,
+table.table-bordered th {
+	padding: 2px;
+	vertical-align: top;
+}
+
+table h1, h2, h3, h4, h5, h6 {
+	padding: 0px;
+	margin: 0px;
+}
+
+table.header-table td {
+	vertical-align: top;
+}
+
+table.header-table h1 {
+	text-transform: uppercase;
+	color: white;
+	font-size: 55px;
+	font-style: italic;
+}
+
+table.header-table thead tr:nth-child(1) td {
+	height: 24px;
+	background-color: #696969;
+	vertical-align: middle;
+	padding: 12px 0px 0px 0px;
+	width: 100%;
+}
+
+div.page-body table td:nth-child(6),
+div.page-body table td:nth-child(7) {
+	text-align: right;
+}
+
+div.page-body table tr td {
+	background-color: #DCDCDC !important;
+}
+
+div.page-body table th {
+	background-color: #696969 !important;
+	color: white !important;
+}
+
+table.footer-table td {
+	vertical-align: top;
+}
+
+table.footer-table td table td:nth-child(2),
+table.footer-table td table td:nth-child(3) {
+	text-align: right;
+}
+
+table.footer-table tfoot td {
+	background-color: #696969;
+	height: 10px;
+}
+
+.imp-details {
+	background-color: #DCDCDC;
+}

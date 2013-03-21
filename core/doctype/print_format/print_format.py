@@ -22,7 +22,9 @@
 
 from __future__ import unicode_literals
 import webnotes, conf, os
+import webnotes.utils
 from webnotes.utils import get_base_path
+from webnotes.modules import get_doc_path
 
 class DocType:
 	def __init__(self, d, dl):
@@ -64,73 +66,54 @@ def get_args():
 				<pre>%s</pre>""" % repr(webnotes.form_dict)
 		}
 		
-	obj = webnotes.get_obj(webnotes.form_dict.doctype, webnotes.form_dict.name)
+	obj = webnotes.bean(webnotes.form_dict.doctype, webnotes.form_dict.name)
 	return {
-		"body": get_html(obj.doc, obj.doclist)
+		"body": get_html(obj.doc, obj.doclist),
+		"css": get_print_style(webnotes.form_dict.style)
 	}
 
 def get_html(doc, doclist):
 	from jinja2 import Environment
-	from core.doctype.print_style.print_style import get_print_style
 	from core.doctype.print_format.print_format import get_print_format
 
-	template = Environment().from_string(get_print_format(webnotes.form_dict.format))
+	template = Environment().from_string(get_print_format(doc.doctype, webnotes.form_dict.format))
 	doctype = webnotes.get_doctype(doc.doctype)
 	
 	args = {
 		"doc": doc,
 		"doclist": doclist,
-		"print_style": get_print_style(),
-		"doctype_structure": make_doctype_structure(doctype),
-		"doctype": doctype
+		"doctype": doctype,
+		"webnotes": webnotes,
+		"utils": webnotes.utils
 	}
 	html = template.render(args)
 	return html
 
-def make_doctype_structure(doctype):
-	"""wip"""
-	s = []
-	fields = doctype.get({"doctype":"DocField"})
-		
-	# first get all section breaks
-	for docfield in fields:
-		if docfield.fieldtype=="Section Break":
-			s.append(docfield)
-	
-	if s[0].idx != 1:
-		s = [webnotes._dict({"fieldtype":"Section Break", "idx":-1})] + s
-		
-	# then get columns in inside section break
-	for sb in s:
-		sb.columns = []
-				
-		for docfield in fields:
-			if docfield.idx > sb.idx:
-				# missing first column break
-				if docfield.idx == sb.idx + 1 and docfield.fieldtype!="Column Break":
-					sb.columns.append(webnotes._dict({"fieldtype":"Column Break", 
-						"idx":sb.idx}))
-				elif docfield.fieldtype=="Column Break":
-					sb.columns.append(docfield)
-				elif docfield.fieldtype=="Section Break":
-					break
-					
-		for cb in sb.columns:
-			cb.fields = []
-
-	return s
-
-def get_print_format(name):
-	html = webnotes.conn.get_value("Print Format", name, "html")
-	if html: 
-		return html
-
+def get_print_format(doctype, format):
 	# server, find template
-	path = os.path.join(get_base_path(), "lib", "core", "doctype", "print_format", 
-		"templates", name.lower() + ".html")
+	path = os.path.join(get_doc_path(webnotes.conn.get_value("DocType", doctype, "module"), 
+		"Print Format", format), format + ".html")
 	if os.path.exists(path):
 		with open(path, "r") as pffile:
 			return pffile.read()
 	else:
-		return ""
+		html = webnotes.conn.get_value("Print Format", format, "html")
+		if html:
+			return html
+		else:
+			return "No template found.\npath: " + path
 
+def get_print_style(style=None):
+	if not style:
+		style = webnotes.conn.get_default("print_style") or "Standard"
+	path = os.path.join(get_doc_path("Core", "DocType", "Print Format"), "styles", 
+		style.lower() + ".css")
+	if not os.path.exists(path):
+		if style!="Standard":
+			return get_print_style("Standard")
+		else:
+			return "/* Standard Style Missing ?? */"
+	else:
+		with open(path, 'r') as sfile:
+			return sfile.read() + """ \* test *\ """
+	
