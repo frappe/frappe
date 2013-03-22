@@ -113,7 +113,7 @@ wn.views.QueryReport = Class.extend({
 	},
 	setup_filters: function() {
 		this.clear_filters();
-		var $filter_wrapper = $("<div class='filters' style='display:inline-block; margin-left: 5px;'>\
+		var $filter_wrapper = $("<div class='filters' style='display:inline-block;'>\
 			</div>")
 			.appendTo(this.appframe.$w.find('.appframe-toolbar'));
 		var me = this;
@@ -124,12 +124,22 @@ wn.views.QueryReport = Class.extend({
 			f.with_label = 0;
 			f.in_filter = 1;
 			f.refresh();
-			$(f.wrapper).attr("title", df.label).tooltip();
+			$(f.wrapper)
+				.css({
+					"display": "inline-block",
+					"margin-left": "5px",
+					"margin-bottom": "2px"
+				})
+				.attr("title", df.label).tooltip();
 			me.filters.push(f);
 			if(df["default"]) {
 				f.set_input(df["default"]);
 			}
-			$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
+			
+			if(f.df.fieldtype == "Link")
+				$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
+			else if(f.df.fieldtype == "Date")
+				$(f.wrapper).css({"margin-right":"-15px"});
 		});
 	},
 	clear_filters: function() {

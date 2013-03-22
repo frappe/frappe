@@ -99,13 +99,18 @@ class Database:
 					values = dict(values)
 				if debug:
 					try:
+						self.explain_query(query, values)
 						webnotes.errprint(query % values)
 					except TypeError:
 						webnotes.errprint([query, values])
+				
 				self._cursor.execute(query, values)
 				
 			else:
-				if debug: webnotes.errprint(query)
+				if debug:
+					self.explain_query(query)
+					webnotes.errprint(query)
+					
 				self._cursor.execute(query)	
 		except Exception, e:
 			# ignore data definition errors
@@ -129,6 +134,16 @@ class Database:
 			return self.convert_to_lists(self._cursor.fetchall(), formatted, as_utf8)
 		else:
 			return self._cursor.fetchall()
+			
+	def explain_query(self, query, values=None):
+		webnotes.errprint("--- query explain ---")
+		if values is None:
+			self._cursor.execute("explain " + query)
+		else:
+			self._cursor.execute("explain " + query, values)
+		import json
+		webnotes.errprint(json.dumps(self.fetch_as_dict(), indent=1))
+		webnotes.errprint("--- query explain end ---")
 
 	def sql_list(self, query, values=(), debug=False):
 		return [r[0] for r in self.sql(query, values, debug=debug)]
