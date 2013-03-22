@@ -1,6 +1,46 @@
 // Copyright 2013 Web Notes Technologies Pvt Ltd
 // MIT Licensed. See license.txt
 
+function flt(v, decimals, number_format) { 
+	if(v==null || v=='')return 0;
+	
+	if(typeof v!=="number") {
+		v = v + "";
+
+		// strip currency symbol if exists
+		if(v.indexOf(" ")!=-1) {
+			v = v.split(" ")[1];
+		}
+
+		v = strip_number_groups(v, number_format);
+
+		v=parseFloat(v);
+		if(isNaN(v))
+			v=0;
+	}
+	
+	if(decimals!=null)
+		return roundNumber(v, decimals);
+	return v;
+}
+
+function strip_number_groups(v, number_format) {
+	if(!number_format) number_format = get_number_format();
+	
+	// strip groups (,)
+	if(get_number_format_info(number_format).group_sep==".") {
+		v = v.replace(/\./g,'');
+
+		// sanitize decimal separator to .
+		v = v.replace(/,/g, ".");
+	} else {
+		v=v.replace(/,/g,'');
+	}
+	
+	return v;
+}
+
+
 wn.number_format_info = {
 	"#,###.##": {decimal_str:".", group_sep:",", precision:2},
 	"#.###,##": {decimal_str:",", group_sep:".", precision:2},
@@ -64,7 +104,6 @@ window.format_number = function(v, format, decimals){
 
 function format_currency(v, currency) {
 	var format = get_number_format(currency);
-		
 	var symbol = get_currency_symbol(currency);
 
 	if(symbol)
@@ -74,13 +113,18 @@ function format_currency(v, currency) {
 }
 
 function get_currency_symbol(currency) {
-	if(wn.boot.sysdefaults.hide_currency_symbol=="Yes")
-		return null;
+	if(wn.boot) {
+		if(wn.boot.sysdefaults.hide_currency_symbol=="Yes")
+			return null;
 
-	if(!currency)
-		currency = wn.boot.sysdefaults.currency;
+		if(!currency)
+			currency = wn.boot.sysdefaults.currency;
 
-	return wn.model.get_value("Currency", currency, "symbol") || currency;
+		return wn.model.get_value("Currency", currency, "symbol") || currency;
+	} else {
+		// load in template
+		return wn.currency_symbols[currency];
+	}
 }
 
 var global_number_format = null;
@@ -92,7 +136,7 @@ function get_number_format(currency) {
 	}
 	
 	var number_format;
-	if(currency) {
+	if(currency && wn.boot) {
 		number_format = wn.model.get_value("Currency", currency, 
 			"number_format");
 	}

@@ -95,45 +95,6 @@ function nth(number) {
 	return number+s;
 }
 
-function flt(v, decimals, number_format) { 
-	if(v==null || v=='')return 0;
-	
-	if(typeof v!=="number") {
-		v = v + "";
-
-		// strip currency symbol if exists
-		if(v.indexOf(" ")!=-1) {
-			v = v.split(" ")[1];
-		}
-
-		v = strip_number_groups(v, number_format);
-
-		v=parseFloat(v);
-		if(isNaN(v))
-			v=0;
-	}
-	
-	if(decimals!=null)
-		return roundNumber(v, decimals);
-	return v;
-}
-
-function strip_number_groups(v, number_format) {
-	if(!number_format) number_format = get_number_format();
-	
-	// strip groups (,)
-	if(get_number_format_info(number_format).group_sep==".") {
-		v = v.replace(/\./g,'');
-
-		// sanitize decimal separator to .
-		v = v.replace(/,/g, ".");
-	} else {
-		v=v.replace(/,/g,'');
-	}
-	
-	return v;
-}
-
 function esc_quotes(s) { 
 	if(s==null)s=''; 
 	return s.replace(/'/, "\'");
