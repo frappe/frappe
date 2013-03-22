@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes, json
-from webnotes.utils import cint
+from webnotes.utils import cint, now
 from webnotes import _
 
 class DocType:
@@ -283,6 +283,9 @@ def sign_up(email, full_name):
 		else:
 			return _("Already Registered")
 	else:
+		if webnotes.conn.sql("""select count(*) from tabProfile where 
+			TIMEDIFF(%s, modified) > '1:00:00' """, now())[0][0] > 200:
+			raise Exception, "Too Many New Profiles"
 		from webnotes.utils import random_string
 		profile = webnotes.bean({
 			"doctype":"Profile",
@@ -293,6 +296,7 @@ def sign_up(email, full_name):
 			"user_type": "Partner",
 			"send_invite_email": 1
 		})
+		profile.ignore_permissions = True
 		profile.insert()
 		return _("Registration Details Emailed.")
 				
