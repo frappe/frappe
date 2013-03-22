@@ -190,8 +190,3 @@ function add_lists(l1, l2) {
 function docstring(obj)  {
 	return JSON.stringify(obj);
 }
-
-function roundNumber(num, dec) {
-	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
-	return result;
-}

@@ -151,3 +151,8 @@ function get_number_format_info(format) {
 	}
 	return info;
 }
+
+function roundNumber(num, dec) {
+	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
+	return result;
+}
