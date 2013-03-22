@@ -17,13 +17,13 @@ window.format_number = function(v, format, decimals){
 	}
 	info = get_number_format_info(format);
 	
-	v = flt(v, null, format);
+	//Fix the decimal first, toFixed will auto fill trailing zero.
+	decimals = decimals || info.precision;
+	
+	v = flt(v, decimals, format);
 
 	if(v<0) var is_negative = true; 
 	v = Math.abs(v);
-
-	//Fix the decimal first, toFixed will auto fill trailing zero.
-	decimals = decimals || info.precision;
 	
 	v = v.toFixed(decimals);
 
