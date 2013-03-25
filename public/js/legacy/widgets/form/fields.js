@@ -441,15 +441,17 @@ DataField.prototype.make_input = function() {
 	
 	this.set_value = function(val) {
 		if(!me.last_value)me.last_value='';
-
+		
 		if(me.validate) {
 			val = me.validate(val);
-			me.input.value = val==undefined ? '' : val;
-		}
+			if(me.last_value === val) return;
+			me.input.value = (val==undefined) ? '' : val;
+		} else if(me.last_value === val) { return; }
 
 		me.set(val);
 		if(me.format_input)
 			me.format_input();
+			
 		if(in_list(['Currency','Float','Int'], me.df.fieldtype)) {
 			if(flt(me.last_value)==flt(val)) {
 				me.last_value = val;
