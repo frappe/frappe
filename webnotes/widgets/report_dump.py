@@ -51,8 +51,8 @@ def get_data(doctypes, last_modified):
 			if not args.get("conditions"):
 				args['conditions'] = []
 			args['conditions'].append(modified_table + "modified > '" + last_modified[d] + "'")
-			out[dt]["modified_names"] = webnotes.conn.sql_list("""select name from %s
-				where modified > %s""" % (table, "%s"), last_modified[d])
+			out[dt]["modified_names"] = webnotes.conn.sql_list("""select %sname from %s
+				where %smodified > %s""" % (modified_table, table, modified_table, "%s"), last_modified[d])
 		
 		if args.get("force_index"):
 			conditions = " force index (%s) " % args["force_index"]
