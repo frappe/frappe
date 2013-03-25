@@ -24,10 +24,7 @@ from __future__ import unicode_literals
 import webnotes, conf
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None):
-	"""send markdown email"""
-	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
-		return
-		
+	"""send markdown email"""		
 	import markdown2
 	sendmail(recipients, sender, markdown2.markdown(msg), subject)
 			

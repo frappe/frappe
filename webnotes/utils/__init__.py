@@ -366,7 +366,7 @@ def parse_val(v):
 		v = int(v)
 	return v
 
-def fmt_money(amount, precision=None):
+def fmt_money(amount, precision=None, currency=None):
 	"""
 	Convert to string with commas for thousands, millions etc
 	"""	
@@ -403,6 +403,11 @@ def fmt_money(amount, precision=None):
 
 	amount = comma_str.join(parts) + (precision and (decimal_str + decimals) or "")
 	amount = minus + amount
+	
+	if currency:
+		symbol = webnotes.conn.get_value("Currency", currency, "symbol")
+		if symbol:
+			amount = symbol + " " + amount
 
 	return amount
 	

@@ -67,6 +67,13 @@ def runserverobj(arg=None):
 def logout():
 	webnotes.login_manager.logout()
 
+@webnotes.whitelist(allow_guest=True)
+def web_logout():
+	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
+		<p><a href='index'>Back to Home</a></p>""")
+	webnotes.login_manager.logout()
+
+
 @webnotes.whitelist()
 def dt_map():
 	import webnotes
@@ -115,13 +122,13 @@ def uploadfile():
 			json.dumps(ret))
 
 @webnotes.whitelist(allow_guest=True)
-def reset_password():
+def reset_password(user):
 	from webnotes.model.code import get_obj
 	from webnotes.utils import random_string
 	
 	user = webnotes.form_dict.get('user', '')
 	if user in ["demo@erpnext.com", "Administrator"]:
-		webnotes.msgprint("Not allowed", raise_exception=1)
+		return "Not allowed"
 		
 	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
 		new_password = random_string(8)
@@ -132,9 +139,9 @@ def reset_password():
 		webnotes.session["user"] = "Administrator"
 		profile = get_obj("Profile", user)
 		profile.password_reset_mail(new_password)
-		webnotes.msgprint("Password has been reset and sent to your email id.")
+		return "Password has been reset and sent to your email id."
 	else:
-		webnotes.msgprint("No such user (%s)" % user)
+		return "No such user (%s)" % user
 
 
 def handle():
@@ -220,6 +227,8 @@ def print_response():
 
 def print_page():
 	"""print web page"""
+	print_cookie_header()
+
 	from website.utils import render
 	render(webnotes.response['page_name'])
 
@@ -229,11 +238,9 @@ def eprint(content):
 def print_json():	
 	make_logs()
 	cleanup_docs()
-	add_cookies()
+	print_cookie_header()
 
 	eprint("Content-Type: text/html; charset: utf-8")
-	if webnotes.cookies:
-		print webnotes.cookies
 
 	import json
 	print_zip(json.dumps(webnotes.response, default=json_handler, separators=(',',':')))
@@ -289,12 +296,15 @@ def make_logs():
 	if webnotes.message_log:
 		webnotes.response['server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
 
-def add_cookies():
+def print_cookie_header():
 	"""if there ar additional cookies defined during the request, add them"""
 	if webnotes.cookies or webnotes.add_cookies:
 		for c in webnotes.add_cookies.keys():
 			webnotes.cookies[c.encode('utf-8')] = \
 				webnotes.add_cookies[c].encode('utf-8')
+
+	if webnotes.cookies:
+		print webnotes.cookies
 
 def print_zip(response):
 	response = response.encode('utf-8')

@@ -22,7 +22,8 @@
 
 from __future__ import unicode_literals
 import webnotes, json
-from webnotes.utils import cint
+from webnotes.utils import cint, now
+from webnotes import _
 
 class DocType:
 	def __init__(self, doc, doclist):
@@ -43,34 +44,24 @@ class DocType:
 			self.doc.name = self.doc.email
 
 	def validate(self):
-		self.temp = {}
-		if self.doc.fields.get('__temp'):
-			self.temp = json.loads(self.doc.fields['__temp'])
-			del self.doc.fields['__temp']
-
+		self.in_insert = self.doc.fields.get("__islocal")
 		self.validate_max_users()
 		self.check_one_system_manager()
-		
+		self.check_enable_disable()
+
+		if self.doc.fields.get('__islocal') and not self.doc.new_password:
+			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
+
+	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
 		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
 			webnotes.msgprint("Hey! You cannot disable user: %s" % self.doc.name,
 				raise_exception=1)
 		
-		self.logout_if_disabled()
+		# clear sessions if disabled
+		if not cint(self.doc.enabled) and getattr(webnotes, "login_manager", None):
+			webnotes.login_manager.logout(user=self.doc.name)
 		
-		if self.doc.fields.get('__islocal') and not self.doc.new_password:
-			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
-		
-		# this is used in on_update call
-		self.is_new = self.doc.fields.get("__islocal")
-		
-	def logout_if_disabled(self):
-		"""logout if disabled"""
-		if not cint(self.doc.enabled):
-			import webnotes
-			if getattr(webnotes, "login_manager", None):
-				webnotes.login_manager.logout(user=self.doc.name)
-	
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
 		import conf
@@ -119,7 +110,7 @@ class DocType:
 			from webnotes.auth import update_password
 			update_password(self.doc.name, self.doc.new_password)
 			
-			if self.is_new:
+			if self.in_insert:
 				webnotes.msgprint("New user created. - %s" % self.doc.name)
 				if cint(self.doc.send_invite_email):
 					webnotes.msgprint("Sent welcome mail.")
@@ -166,8 +157,8 @@ Dear %(first_name)s,
 
 A new account has been created for you, here are your details:
 
-login-id: %(user)s<br>
-password: %(password)s
+Login Id: %(user)s<br>
+Password: %(password)s
 
 To login to your new %(product)s account, please go to:
 
@@ -218,6 +209,7 @@ Thank you,<br>
 		# delete events
 		webnotes.conn.sql("""delete from `tabEvent` where owner=%s
 			and event_type='Private'""", self.doc.name)
+		webnotes.conn.sql("""delete from `tabEvent User` where person=%s""", self.doc.name)
 			
 		# delete messages
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
@@ -268,4 +260,44 @@ def get_perm_info(arg=None):
 		cancel, amend from tabDocPerm where role=%s 
 		and docstatus<2 order by parent, permlevel""", 
 			webnotes.form_dict['role'], as_dict=1)
+
+@webnotes.whitelist()
+def update_profile(fullname, password=None):
+	if not fullname:
+		return _("Name is required")
 	
+	webnotes.conn.set_value("Profile", webnotes.session.user, "first_name", fullname)
+	webnotes.add_cookies["full_name"] = fullname
+		
+	if password:
+		from webnotes.auth import update_password
+		update_password(webnotes.session.user, password)
+
+	return _("Updated")
+	
+@webnotes.whitelist(allow_guest=True)
+def sign_up(email, full_name):
+	profile = webnotes.conn.get("Profile", {"email": email})
+	if profile:
+		if profile.disabled:
+			return _("Registered but disabled.")
+		else:
+			return _("Already Registered")
+	else:
+		if webnotes.conn.sql("""select count(*) from tabProfile where 
+			TIMEDIFF(%s, modified) > '1:00:00' """, now())[0][0] > 200:
+			raise Exception, "Too Many New Profiles"
+		from webnotes.utils import random_string
+		profile = webnotes.bean({
+			"doctype":"Profile",
+			"email": email,
+			"first_name": full_name,
+			"enabled": 1,
+			"new_password": random_string(10),
+			"user_type": "Partner",
+			"send_invite_email": 1
+		})
+		profile.ignore_permissions = True
+		profile.insert()
+		return _("Registration Details Emailed.")
+				

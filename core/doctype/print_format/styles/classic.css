@@ -1,0 +1,82 @@
+/*
+	common style for whole page
+	This should include:
+	+ page size related settings
+	+ font family settings
+	+ line spacing settings
+*/
+@media screen {
+	body {
+		width: 8.3in;
+	}
+}
+
+html, body, div, span, td {
+	font-family: "Georgia", serif;
+	font-size: 12px;
+}
+
+body {
+	padding: 10px;
+	margin: auto;
+	font-size: 12px;
+	line-height: 150%;
+}
+
+.common {
+	font-family: "Georgia", serif !important;
+	font-size: 12px;
+	padding: 10px 0px;
+}
+
+table {
+	border-collapse: collapse;
+	width: 100%;
+	vertical-align: top;
+}
+
+table td {
+	padding: 2px 0px;
+}
+
+table.table-bordered td,
+table.table-bordered th {
+	border: 1px solid #000;
+	padding: 2px;
+	vertical-align: top;
+}
+
+table h1, h2, h3, h4, h5, h6 {
+	padding: 0px;
+	margin: 0px;
+}
+
+table.header-table td {
+	vertical-align: top;
+}
+
+table.header-table thead {
+	border-bottom: 1px solid black;
+}
+
+table.header-table h3 {
+	color: gray;
+}
+
+table.header-table thead td {
+	padding: 5px 0px;
+}
+
+div.page-body table td:nth-child(6),
+div.page-body table td:nth-child(7) {
+	text-align: right;
+}
+
+table.footer-table td {
+	vertical-align: top;
+}
+
+table.footer-table td table td:nth-child(2),
+table.footer-table td table td:nth-child(3) {
+	text-align: right;
+}

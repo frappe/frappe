@@ -174,7 +174,7 @@ $.extend(wn.model, {
 	get: function(doctype, filters) {
 		var src = locals[doctype] || locals[":" + doctype] || [];
 		if($.isEmptyObject(src)) 
-			return src;
+			return [];
 		return wn.utils.filter_dict(src, filters);
 	},
 	

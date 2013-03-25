@@ -122,11 +122,18 @@ class LoginManager:
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
 			from webnotes.sessions import clear_cache
-			clear_cache(webnotes.form_dict.get('usr'))				
+			clear_cache(webnotes.form_dict.get('usr'))
 
 			self.authenticate()
 			self.post_login()
-			webnotes.response['message'] = 'Logged In'
+			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
+			if info.user_type=="Partner":
+				webnotes.response["message"] = "No App"
+				full_name = " ".join(filter(None, [info.first_name, info.last_name]))
+				webnotes.response["full_name"] = full_name
+				webnotes.add_cookies["full_name"] = full_name
+			else:
+				webnotes.response['message'] = 'Logged In'
 	
 	def post_login(self):
 		self.run_trigger()
@@ -221,6 +228,8 @@ class LoginManager:
 		else:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
+		webnotes.add_cookies["full_name"] = ""
+			
 			
 class CookieManager:
 	def __init__(self):

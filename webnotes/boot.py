@@ -46,6 +46,8 @@ def get_bootinfo():
 	bootinfo['control_panel'] = webnotes._dict(cp.copy())
 	bootinfo['sysdefaults'] = webnotes.defaults.get_defaults()
 	bootinfo['server_date'] = webnotes.utils.nowdate()
+	bootinfo["send_print_in_body_and_attachment"] = webnotes.conn.get_value("Email Settings", 
+		None, "send_print_in_body_and_attachment")
 
 	if webnotes.session['user'] != 'Guest':
 		bootinfo['user_info'] = get_fullnames()
@@ -66,10 +68,8 @@ def get_bootinfo():
 	
 	# plugins
 	try:
-		from startup import event_handlers
-		if getattr(event_handlers, 'boot_session', None):
-			event_handlers.boot_session(bootinfo)
-
+		import startup.boot
+		startup.boot.boot_session(bootinfo)
 	except ImportError:
 		pass
 	
