@@ -209,6 +209,7 @@ Thank you,<br>
 		# delete events
 		webnotes.conn.sql("""delete from `tabEvent` where owner=%s
 			and event_type='Private'""", self.doc.name)
+		webnotes.conn.sql("""delete from `tabEvent User` where person=%s""", self.doc.name)
 			
 		# delete messages
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'

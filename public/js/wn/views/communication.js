@@ -208,8 +208,13 @@ wn.views.CommunicationComposer = Class.extend({
 				me.dialog.hide();
 				if(form_values.attach_document_print) {
 					var print_html = print_format_html
-					form_values.content = form_values.content 
-						+ "<p></p><hr>" + print_html;
+					if(cint(wn.boot.send_print_in_body_and_attachment)) {
+						form_values.content = form_values.content 
+							+ "<p></p><hr>" + print_html;
+					} else {
+						form_values.content = form_values.content + "<p>"
+							+ "Please see attachment for document details.</p>"
+					}
 				} else {
 					print_html = "";
 				}
