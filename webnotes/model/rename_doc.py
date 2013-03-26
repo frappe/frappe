@@ -1,23 +1,56 @@
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
+import webnotes.utils
+import webnotes.model.doctype
 
 @webnotes.whitelist()
-def rename_doc(doctype, old, new, debug=0, force=False):
+def rename_doc(doctype, old, new, force=False, merge=False):
 	"""
 		Renames a doc(dt, old) to doc(dt, new) and 
 		updates all linked fields of type "Link" or "Select" with "link:"
 	"""
-	import webnotes.utils
-	import webnotes.model.doctype
-	from webnotes.model.code import get_obj
-
 	if not webnotes.conn.exists(doctype, old):
 		return
 		
 	# get doclist of given doctype
 	doclist = webnotes.model.doctype.get(doctype)
 	
-	if webnotes.conn.exists(doctype, new):
+	validate_rename(doctype, new, doclist, merge, force)
+
+	# call on_rename
+	obj = webnotes.get_obj(doctype, old)
+	if hasattr(obj, 'on_rename'):
+		new = obj.on_rename(new, old) or new
+		
+	if not merge:
+		rename_parent_and_child(doctype, old, new, doclist)
+			
+	# update link fields' values
+	link_fields = get_link_fields(doctype)
+	update_link_field_values(link_fields, old, new)
+	
+	if doctype=='DocType':
+		rename_doctype(doctype, old, new, force)
+	
+	if merge:
+		webnotes.delete_doc(doctype, old)
+		
+	return new
+	
+def rename_parent_and_child(doctype, old, new, doclist):
+	# rename the doc
+	webnotes.conn.sql("update `tab%s` set name=%s where name=%s" \
+		% (doctype, '%s', '%s'), (new, old))
+
+	update_child_docs(old, new, doclist)
+
+def validate_rename(doctype, new, doclist, merge, force):
+	exists = webnotes.conn.exists(doctype, new)
+	if merge and not exists:
+		webnotes.msgprint("%s: %s does not exist, select a new target to merge." % (doctype, new), raise_exception=1)
+		
+	if not merge and exists:
 		webnotes.msgprint("%s: %s exists, select a new, new name." % (doctype, new), raise_exception=1)
 
 	if not webnotes.has_permission(doctype, "write"):
@@ -25,60 +58,18 @@ def rename_doc(doctype, old, new, debug=0, force=False):
 
 	if not force and not doclist[0].allow_rename:
 		webnotes.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
-	
-	# without child fields of table type fields (form=0)
-	# call on_rename method if exists
-	obj = get_obj(doctype, old)
-	if hasattr(obj, 'on_rename'):
-		new = obj.on_rename(new, old) or new
-		
-	# rename the doc
-	webnotes.conn.sql("update `tab%s` set name=%s where name=%s" \
-		% (doctype, '%s', '%s'), (new, old), debug=debug)
-	
-	update_child_docs(old, new, doclist, debug=debug)
-	if debug: webnotes.errprint("executed update_child_docs")
-	
-	if doctype=='DocType':
-		# rename the table or change doctype of singles
-		issingle = webnotes.conn.sql("""\
-			select ifnull(issingle, 0) from `tabDocType`
-			where name=%s""", new)
 
-		if issingle and webnotes.utils.cint(issingle[0][0]) or 0:
-			webnotes.conn.sql("""\
-				update tabSingles set doctype=%s
-				where doctype=%s""", (new, old))
-		else:
-			webnotes.conn.sql("rename table `tab%s` to `tab%s`" % (old, new))
-		if debug: webnotes.errprint("executed rename table")
-	
-	# update link fields' values
-	link_fields = get_link_fields(doctype)
-	if debug: webnotes.errprint(link_fields)
-	update_link_field_values(link_fields, old, new, debug=debug)
-	if debug: webnotes.errprint("executed update_link_field_values")
-	
-	if doctype=='DocType':
-		rename_doctype(doctype, old, new, debug, force)
-		
-	return new
-	
-def rename_doctype(doctype, old, new, debug=0, force=False):
+def rename_doctype(doctype, old, new, force=False):
 	# change options for fieldtype Table
-	update_parent_of_fieldtype_table(old, new, debug=debug)
-	if debug: webnotes.errprint("executed update_parent_of_fieldtype_table")
+	update_parent_of_fieldtype_table(old, new)
 	
 	# change options where select options are hardcoded i.e. listed
-	select_fields = get_select_fields(old, new, debug=debug)
-	update_link_field_values(select_fields, old, new, debug=debug)
-	if debug: webnotes.errprint("executed update_link_field_values")
-	update_select_field_values(old, new, debug=debug)
-	if debug: webnotes.errprint("executed update_select_field_values")
+	select_fields = get_select_fields(old, new)
+	update_link_field_values(select_fields, old, new)
+	update_select_field_values(old, new)
 	
 	# change parenttype for fieldtype Table
-	update_parenttype_values(old, new, debug=debug)
-	if debug: webnotes.errprint("executed update_parenttype_values")
+	update_parenttype_values(old, new)
 	
 	# rename comments
 	webnotes.conn.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
@@ -92,23 +83,16 @@ def rename_mapper(new):
 			from `tabDocType Mapper` where from_doctype=%s or to_doctype=%s""", (new, new), as_dict=1):
 		rename_doc("DocType Mapper", mapper.name, mapper.from_doctype + "-" + mapper.to_doctype, force=True)
 		
-def update_child_docs(old, new, doclist, debug=0):
-	"""
-		updates 'parent' field of child documents
-	"""
-	# generator of a list of child doctypes
+def update_child_docs(old, new, doclist):
+	# update "parent"
 	child_doctypes = (d.options for d in doclist 
 		if d.doctype=='DocField' and d.fieldtype=='Table')
 	
 	for child in child_doctypes:
 		webnotes.conn.sql("update `tab%s` set parent=%s where parent=%s" \
-			% (child, '%s', '%s'), (new, old), debug=debug)
+			% (child, '%s', '%s'), (new, old))
 
-def update_link_field_values(link_fields, old, new, debug=0):
-	"""
-		updates values in tables where current doc is stored as a 
-		link field or select field
-	"""	
+def update_link_field_values(link_fields, old, new):
 	update_list = []
 	
 	# update values
@@ -121,18 +105,16 @@ def update_link_field_values(link_fields, old, new, debug=0):
 			webnotes.conn.sql("""\
 				update `tabSingles` set value=%s
 				where doctype=%s and field=%s and value=%s""",
-				(new, field['parent'], field['fieldname'], old),
-				debug=debug)
+				(new, field['parent'], field['fieldname'], old))
 		else:
 			webnotes.conn.sql("""\
 				update `tab%s` set `%s`=%s
 				where `%s`=%s""" \
 				% (field['parent'], field['fieldname'], '%s',
 					field['fieldname'], '%s'),
-				(new, old),
-				debug=debug)
+				(new, old))
 			
-def get_link_fields(doctype, debug=0):
+def get_link_fields(doctype):
 	# get link fields from tabDocField
 	link_fields = webnotes.conn.sql("""\
 		select parent, fieldname,
@@ -143,7 +125,7 @@ def get_link_fields(doctype, debug=0):
 			df.parent not like "old%%%%" and df.parent != '0' and
 			((df.options=%s and df.fieldtype='Link') or
 			(df.options='link:%s' and df.fieldtype='Select'))""" \
-		% ('%s', doctype), doctype, as_dict=1, debug=debug)
+		% ('%s', doctype), doctype, as_dict=1)
 	
 	# get link fields from tabCustom Field
 	custom_link_fields = webnotes.conn.sql("""\
@@ -155,7 +137,7 @@ def get_link_fields(doctype, debug=0):
 			df.dt not like "old%%%%" and df.dt != '0' and
 			((df.options=%s and df.fieldtype='Link') or
 			(df.options='link:%s' and df.fieldtype='Select'))""" \
-		% ('%s', doctype), doctype, as_dict=1, debug=debug)
+		% ('%s', doctype), doctype, as_dict=1)
 	
 	# add custom link fields list to link fields list
 	link_fields += custom_link_fields
@@ -170,26 +152,26 @@ def get_link_fields(doctype, debug=0):
 			ps.property_type='options' and
 			ps.field_name is not null and
 			(ps.value=%s or ps.value='link:%s')""" \
-		% ('%s', doctype), doctype, as_dict=1, debug=debug)
+		% ('%s', doctype), doctype, as_dict=1)
 		
 	link_fields += property_setter_link_fields
 	
 	return link_fields
 	
-def update_parent_of_fieldtype_table(old, new, debug=0):
+def update_parent_of_fieldtype_table(old, new):
 	webnotes.conn.sql("""\
 		update `tabDocField` set options=%s
-		where fieldtype='Table' and options=%s""", (new, old), debug=debug)
+		where fieldtype='Table' and options=%s""", (new, old))
 	
 	webnotes.conn.sql("""\
 		update `tabCustom Field` set options=%s
-		where fieldtype='Table' and options=%s""", (new, old), debug=debug)
+		where fieldtype='Table' and options=%s""", (new, old))
 		
 	webnotes.conn.sql("""\
 		update `tabProperty Setter` set value=%s
-		where property='options' and value=%s""", (new, old), debug=debug)
+		where property='options' and value=%s""", (new, old))
 		
-def get_select_fields(old, new, debug=0):
+def get_select_fields(old, new):
 	"""
 		get select type fields where doctype's name is hardcoded as
 		new line separated list
@@ -205,7 +187,7 @@ def get_select_fields(old, new, debug=0):
 			df.parent != %s and df.fieldtype = 'Select' and
 			df.options not like "link:%%%%" and
 			(df.options like "%%%%%s%%%%")""" \
-		% ('%s', old), new, as_dict=1, debug=debug)
+		% ('%s', old), new, as_dict=1)
 	
 	# get link fields from tabCustom Field
 	custom_select_fields = webnotes.conn.sql("""\
@@ -218,7 +200,7 @@ def get_select_fields(old, new, debug=0):
 			df.dt != %s and df.fieldtype = 'Select' and
 			df.options not like "link:%%%%" and
 			(df.options like "%%%%%s%%%%")""" \
-		% ('%s', old), new, as_dict=1, debug=debug)
+		% ('%s', old), new, as_dict=1)
 	
 	# add custom link fields list to link fields list
 	select_fields += custom_select_fields
@@ -235,20 +217,20 @@ def get_select_fields(old, new, debug=0):
 			ps.field_name is not null and
 			ps.value not like "link:%%%%" and
 			(ps.value like "%%%%%s%%%%")""" \
-		% ('%s', old), new, as_dict=1, debug=debug)
+		% ('%s', old), new, as_dict=1)
 		
 	select_fields += property_setter_select_fields
 	
 	return select_fields
 	
-def update_select_field_values(old, new, debug=0):
+def update_select_field_values(old, new):
 	webnotes.conn.sql("""\
 		update `tabDocField` set options=replace(options, %s, %s)
 		where
 			parent != %s and parent not like "old%%%%" and
 			fieldtype = 'Select' and options not like "link:%%%%" and
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
-		('%s', '%s', '%s', old, old), (old, new, new), debug=debug)
+		('%s', '%s', '%s', old, old), (old, new, new))
 
 	webnotes.conn.sql("""\
 		update `tabCustom Field` set options=replace(options, %s, %s)
@@ -256,7 +238,7 @@ def update_select_field_values(old, new, debug=0):
 			dt != %s and dt not like "old%%%%" and
 			fieldtype = 'Select' and options not like "link:%%%%" and
 			(options like "%%%%\\n%s%%%%" or options like "%%%%%s\\n%%%%")""" % \
-		('%s', '%s', '%s', old, old), (old, new, new), debug=debug)
+		('%s', '%s', '%s', old, old), (old, new, new))
 
 	webnotes.conn.sql("""\
 		update `tabProperty Setter` set value=replace(value, %s, %s)
@@ -264,16 +246,16 @@ def update_select_field_values(old, new, debug=0):
 			doc_type != %s and field_name is not null and
 			property='options' and value not like "link%%%%" and
 			(value like "%%%%\\n%s%%%%" or value like "%%%%%s\\n%%%%")""" % \
-		('%s', '%s', '%s', old, old), (old, new, new), debug=debug)
+		('%s', '%s', '%s', old, old), (old, new, new))
 		
-def update_parenttype_values(old, new, debug=0):
+def update_parenttype_values(old, new):
 	child_doctypes = webnotes.conn.sql("""\
 		select options, fieldname from `tabDocField`
-		where parent=%s and fieldtype='Table'""", new, as_dict=1, debug=debug)
+		where parent=%s and fieldtype='Table'""", new, as_dict=1)
 
 	custom_child_doctypes = webnotes.conn.sql("""\
 		select options, fieldname from `tabCustom Field`
-		where dt=%s and fieldtype='Table'""", new, as_dict=1, debug=debug)
+		where dt=%s and fieldtype='Table'""", new, as_dict=1)
 
 	child_doctypes += custom_child_doctypes
 	fields = [d['fieldname'] for d in child_doctypes]
@@ -282,7 +264,7 @@ def update_parenttype_values(old, new, debug=0):
 		select value as options from `tabProperty Setter`
 		where doc_type=%s and property='options' and
 		field_name in ("%s")""" % ('%s', '", "'.join(fields)),
-		new, debug=debug)
+		new)
 		
 	child_doctypes += property_setter_child_doctypes
 	child_doctypes = (d['options'] for d in child_doctypes)
@@ -291,4 +273,4 @@ def update_parenttype_values(old, new, debug=0):
 		webnotes.conn.sql("""\
 			update `tab%s` set parenttype=%s
 			where parenttype=%s""" % (doctype, '%s', '%s'),
-		(new, old), debug=debug)
+		(new, old))
