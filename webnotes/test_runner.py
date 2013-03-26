@@ -52,6 +52,9 @@ def get_dependencies(doctype):
 
 def make_test_records_for_doctype(doctype, verbose=0):
 	module, test_module = get_modules(doctype)
+	
+	if verbose:
+		print "Making for " + doctype
 
 	if hasattr(test_module, "make_test_records"):
 		webnotes.test_objects[doctype] += test_module.make_test_records(verbose)
@@ -64,8 +67,6 @@ def make_test_records_for_doctype(doctype, verbose=0):
 
 
 def make_test_objects(doctype, test_records, verbose=None):
-	if verbose:
-		print "Making for " + doctype
 	records = []
 		
 	for doclist in test_records:
