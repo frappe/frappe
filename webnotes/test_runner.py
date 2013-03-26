@@ -18,7 +18,6 @@ def make_test_records(doctype, verbose=0):
 		webnotes.connect()
 
 	for options in get_dependencies(doctype):
-
 		if options.startswith("link:"):
 			options = options[5:]
 		if options == "[Select]":
@@ -187,5 +186,3 @@ if __name__=="__main__":
 		__import__(args.module)
 		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[args.module]))
 		unittest.TextTestRunner(verbosity=1+(args.verbose and 1 or 0)).run(test_suite)
-	
-	
