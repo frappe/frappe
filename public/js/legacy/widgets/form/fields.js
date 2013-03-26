@@ -633,7 +633,10 @@ LinkField.prototype.make_input = function() {
 
 	// increasing zindex of input to increase zindex of autosuggest
 	// because of the increase in zindex of dialog_wrapper
-	$(me.txt).css({"z-index": 10});
+	if(cur_dialog) {
+		console.log(cint($(cur_dialog.wrapper).css("z-index")) + 1)
+		$(me.txt).css({"z-index": cint($(cur_dialog.wrapper).css("z-index")) + 1});
+	}
 	
 	$(me.txt).autocomplete({
 		source: function(request, response) {
