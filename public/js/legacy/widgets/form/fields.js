@@ -887,11 +887,14 @@ FloatField.prototype.validate = function(v) {
 	return v;
 };
 FloatField.prototype.format_input = function() {
-	if(this.input.value==null) this.input.value='';
+	if(this.input.value==null || this.input.value=='') 
+		this.input.value='';
 	else {
 		var format;
-		if(this.get_field_currency) format = get_number_format(this.get_field_currency());
-		this.input.value = format_number(parseFloat(this.input.value), format);
+		if(this.get_field_currency) 
+			format = get_number_format(this.get_field_currency());
+		this.input.value = 
+			format_number(parseFloat(this.input.value), format);
 	}
 }
 FloatField.prototype.onmake_input = function() {
