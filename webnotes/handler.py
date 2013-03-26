@@ -108,8 +108,7 @@ def uploadfile():
 			webnotes.utils.file_manager.upload()
 		else:
 			if webnotes.form_dict.get('method'):
-				m = webnotes.form_dict['method']
-				ret = webnotes.get_method(m)()
+				ret = webnotes.get_method(webnotes.form_dict.method)()
 	except Exception, e:
 		webnotes.msgprint(e)
 		webnotes.errprint(webnotes.utils.getTraceback())
