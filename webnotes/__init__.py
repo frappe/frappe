@@ -330,7 +330,7 @@ def reload_doc(module, dt=None, dn=None):
 
 def rename_doc(doctype, old, new, debug=0, force=False):
 	from webnotes.model.rename_doc import rename_doc
-	rename_doc(doctype, old, new, debug, force)
+	rename_doc(doctype, old, new, force=force)
 
 def insert(doclist):
 	import webnotes.model
