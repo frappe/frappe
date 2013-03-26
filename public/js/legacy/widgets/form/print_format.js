@@ -355,16 +355,16 @@ $.extend(_p, {
 		var header = '<div class="page-settings">\n';
 		var footer = '\n</div>';
 		if(!args.only_body) {
-			header = '<!DOCTYPE html>\n\
-					<html>\
-						<head>\
-							<title>' + args.title + '</title>\
-							<style>' + style + '</style>\
-						</head>\
-						<body>\n' + header;
-			
+			header = '<!DOCTYPE html>\
+<html>\n\
+	<head>\n\
+		<meta charset="utf-8" />\
+		<title>' + args.title + '</title>\n\
+		<style>' + style + '</style>\n\
+	</head>\
+	<body>\n' + header;
 			footer = footer + '\n</body>\n\
-					</html>';
+</html>';
 		}
 		var finished =  header
 			+ stat

@@ -157,7 +157,9 @@ class EMail:
 		maintype, subtype = content_type.split('/', 1)
 		if maintype == 'text':
 			# Note: we should handle calculating the charset
-			part = MIMEText(fcontent, _subtype=subtype, _charset='utf-8')
+			if isinstance(fcontent, unicode):
+				fcontent = fcontent.encode("utf-8")
+			part = MIMEText(fcontent, _subtype=subtype, _charset="utf-8")
 		elif maintype == 'image':
 			part = MIMEImage(fcontent, _subtype=subtype)
 		elif maintype == 'audio':
