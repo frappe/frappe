@@ -27,10 +27,15 @@ wn.upload = {
 		// add request parameters
 		for(key in opts.args) {
 			if(opts.args[key]) {
+				if(typeof val==="function") {
+					var val = opts.args[key]();
+				} else {
+					var val = opts.args[key];
+				}
 				$('<input type="hidden">')
 					.attr('name', key)
-					.attr('value', opts.args[key])
-					.appendTo($(opts.parent).find('form'));				
+					.attr('value', val)
+					.appendTo($(opts.parent).find('form'));
 			}
 		}
 		

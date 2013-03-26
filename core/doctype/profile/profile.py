@@ -196,7 +196,8 @@ Thank you,<br>
 				
 		# disable the user and log him/her out
 		self.doc.enabled = 0
-		self.logout_if_disabled()
+		if getattr(webnotes, "login_manager"):
+			webnotes.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
 		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)

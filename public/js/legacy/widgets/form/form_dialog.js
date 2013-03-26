@@ -121,13 +121,13 @@ _f.edit_record = function(dt, dn) {
 			d.dn = dn;
 			d.table_form = f.meta.istable;
 
+			d.dialog.show();
+
 			// show the form
 			f.refresh(dn);
 
 			$(f.page_layout.wrapper).removeClass('layout-wrapper')
 				.removeClass('layout-wrapper-background').toggle(true);
-			
-			d.dialog.show();
 		})
 	})
 }

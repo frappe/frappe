@@ -18,7 +18,7 @@ def rename_doc(doctype, old, new, debug=0, force=False):
 	doclist = webnotes.model.doctype.get(doctype)
 	
 	if webnotes.conn.exists(doctype, new):
-		webnotes.msgprint("%s: %s exists, select a new, new name." % (doctype, new))
+		webnotes.msgprint("%s: %s exists, select a new, new name." % (doctype, new), raise_exception=1)
 
 	if not webnotes.has_permission(doctype, "write"):
 		webnotes.msgprint("You need write permission to rename", raise_exception=1)

@@ -633,7 +633,10 @@ LinkField.prototype.make_input = function() {
 
 	// increasing zindex of input to increase zindex of autosuggest
 	// because of the increase in zindex of dialog_wrapper
-	$(me.txt).css({"z-index": 10});
+	if(cur_dialog) {
+		console.log(cint($(cur_dialog.wrapper).css("z-index")) + 1)
+		$(me.txt).css({"z-index": cint($(cur_dialog.wrapper).css("z-index")) + 1});
+	}
 	
 	$(me.txt).autocomplete({
 		source: function(request, response) {
@@ -887,11 +890,14 @@ FloatField.prototype.validate = function(v) {
 	return v;
 };
 FloatField.prototype.format_input = function() {
-	if(this.input.value==null) this.input.value='';
+	if(this.input.value==null || this.input.value=='') 
+		this.input.value='';
 	else {
 		var format;
-		if(this.get_field_currency) format = get_number_format(this.get_field_currency());
-		this.input.value = format_number(parseFloat(this.input.value), format);
+		if(this.get_field_currency) 
+			format = get_number_format(this.get_field_currency());
+		this.input.value = 
+			format_number(parseFloat(this.input.value), format);
 	}
 }
 FloatField.prototype.onmake_input = function() {
