@@ -23,6 +23,7 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.model.doc import Document
+from webnotes.utils import cint
 
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 
@@ -33,7 +34,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			
 	def is_unsubscribed(rdata):
 		if not rdata: return 1
-		return rdata.unsubscribed
+		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
 		import conf, startup
@@ -79,7 +80,6 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"
 	
-
 	for r in list(set(recipients)):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), r, as_dict=1)
@@ -110,7 +110,9 @@ def unsubscribe():
 
 	webnotes.conn.sql("""update `tab%s` set unsubscribed=1
 		where `%s`=%s""" % (doctype, field, '%s'), email)
-	webnotes.conn.commit()
+	
+	if not webnotes.form_dict.get("from_test"):
+		webnotes.conn.commit()
 
 	webnotes.message_title = "Unsubscribe"
 	webnotes.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
@@ -118,12 +120,14 @@ def unsubscribe():
 	webnotes.response['type'] = 'page'
 	webnotes.response['page_name'] = 'message.html'
 	
-def flush():
+def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
 	import webnotes
 	from webnotes.utils.email_lib.smtp import SMTPServer, get_email
 	
 	smptserver = SMTPServer()
+	
+	auto_commit = not from_test
 
 	for i in xrange(500):		
 		email = webnotes.conn.sql("""select * from `tabBulk Email` where 
@@ -134,14 +138,17 @@ def flush():
 			break
 			
 		webnotes.conn.sql("""update `tabBulk Email` set status='Sending' where name=%s""", 
-			email["name"], auto_commit=True)
+			email["name"], auto_commit=auto_commit)
 		try:
-			smptserver.sess.sendmail(email["sender"], email["recipient"], email["message"])
+			if not from_test:
+				smptserver.sess.sendmail(email["sender"], email["recipient"], email["message"])
+
 			webnotes.conn.sql("""update `tabBulk Email` set status='Sent' where name=%s""", 
-				email["name"], auto_commit=True)
+				email["name"], auto_commit=auto_commit)
+
 		except Exception, e:
 			webnotes.conn.sql("""update `tabBulk Email` set status='Error', error=%s 
-				where name=%s""", (unicode(e), email["name"]), auto_commit=True)
+				where name=%s""", (unicode(e), email["name"]), auto_commit=auto_commit)
 
 def clear_outbox():
 	"""remove mails older than 30 days in Outbox"""

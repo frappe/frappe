@@ -36,7 +36,7 @@ def get_modules(doctype):
 
 def get_dependencies(doctype):
 	module, test_module = get_modules(doctype)
-
+	
 	options_list = list(set([df.options for df in get_link_fields(doctype)] + [doctype]))
 	
 	if hasattr(test_module, "test_dependencies"):
@@ -140,24 +140,38 @@ def run_unittest(doctype, verbose=False):
 		print "No test module."
 		
 def run_all_tests(verbose):
-	import os, imp
-	from webnotes.modules.utils import peval_doclist
+	import os
 
 	for path, folders, files in os.walk("."):
+		# print path
 		for filename in files:
 			if filename.startswith("test_") and filename.endswith(".py"):
-				test_suite = unittest.TestSuite()
-				if os.path.basename(os.path.dirname(path))=="doctype":
-					txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
-					with open(txt_file, 'r') as f:
-						doctype_doclist = peval_doclist(f.read())
-					doctype = doctype_doclist[0]["name"]
-					make_test_records(doctype, verbose)
-					
-				module = imp.load_source('test', os.path.join(path, filename))
-				test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
-				unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+				print filename[:-3]
+				webnotes.session.user = "Administrator"
+				
+				_run_test(path, filename, verbose)
+				
+				webnotes.conn.rollback()
+				webnotes.test_objects = {}
+				
+				print
+
+def _run_test(path, filename, verbose):
+	import os, imp
+	from webnotes.modules.utils import peval_doclist
 	
+	test_suite = unittest.TestSuite()
+	if os.path.basename(os.path.dirname(path))=="doctype":
+		txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
+		with open(txt_file, 'r') as f:
+			doctype_doclist = peval_doclist(f.read())
+		doctype = doctype_doclist[0]["name"]
+		make_test_records(doctype, verbose)
+	
+	module = imp.load_source(filename[:-3], os.path.join(path, filename))
+	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
+	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
 if __name__=="__main__":
 	import argparse
 	

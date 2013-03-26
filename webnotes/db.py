@@ -412,6 +412,7 @@ class Database:
 
 	def rollback(self):
 		self.sql("ROLLBACK")
+		self.transaction_writes = 0
 
 	def field_exists(self, dt, fn):
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
