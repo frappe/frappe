@@ -51,7 +51,6 @@ class TestProfile(unittest.TestCase):
 		self.assertEquals(len(p_meta.get({"fieldname": ["not in", ["first_name", "last_name"]]})), len(p_meta) - 2)
 		
 		
-
 test_records = [[{
 		"doctype":"Profile",
 		"email": "test@example.com",

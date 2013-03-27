@@ -356,6 +356,7 @@ $.extend(wn.model, {
 			title: "Rename " + docname,
 			fields: [
 				{label:"New Name", fieldtype:"Data", reqd:1},
+				{label:"Merge with existing", fieldtype:"Check", fieldname:"merge"},
 				{label:"Rename", fieldtype: "Button"}
 			]
 		});
@@ -368,7 +369,8 @@ $.extend(wn.model, {
 				args: {
 					doctype: doctype,
 					old: docname,
-					"new": args.new_name
+					"new": args.new_name,
+					"merge": args.merge
 				},
 				callback: function(r,rt) {
 					d.get_input("rename").done_working();
