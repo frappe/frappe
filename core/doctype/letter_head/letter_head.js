@@ -65,7 +65,7 @@ cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
 		return;
 	}
 
-	img_link = '<div><img src="'+ wn.urllib.get_file_url(file_name) + '"/></div>'
+	img_link = '<div><img src="files/'+ file_name + '"/></div>'
 	
 	doc.content = img_link;
 	refresh_field('content');

@@ -346,13 +346,6 @@ wn.urllib = {
 		var url= window.location.href.split('#')[0].split('?')[0].split('app.html')[0];
 		if(url.substr(url.length-1, 1)=='/') url = url.substr(0, url.length-1)
 		return url
-	},
-	
-	// return the relative http url for
-	// a file upload / attachment
-	// by file id / name
-	get_file_url: function(file_id) {
-		return repl('files/%(fn)s', {fn:file_id})
 	}	
 }
 

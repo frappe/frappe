@@ -1072,7 +1072,7 @@ SelectField.prototype.make_input = function() {
 		}
 		
 		if(this.df.options == 'attach_files:') {
-			this.file_attach = true;
+			this.attach_files = true;
 			$(this.input).css({"width": "70%"});
 			$("<button class='btn' title='Add attachment'\
 				style='margin-bottom: 9px; \
@@ -1098,7 +1098,7 @@ SelectField.prototype.make_input = function() {
 		if(options)
 			me.df.options = options;
 
-		if(this.file_attach)
+		if(this.attach_files)
 			this.set_attach_options();
 		
 		if(typeof me.df.options=="object")
@@ -1195,9 +1195,12 @@ SelectField.prototype.make_input = function() {
 			this.df.options = '';
 			var fl = fl.split('\n');
 			for(var i in fl) {
-				this.df.options += '\n' + fl[i].split(',')[0];
-				this.set_description("");
+				var fname = fl[i].split(',')[0];
+				if(fname.substr(0,4)!="http")
+					fname = "files/" + fname;
+				this.df.options += '\n' + fname;
 			}
+			this.set_description("");
 		} else {
 			this.df.options = ''
 			this.set_description(wn._("Please attach a file first."))
