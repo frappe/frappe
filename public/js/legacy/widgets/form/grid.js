@@ -99,6 +99,7 @@ _f.Grid.prototype.insert_column = function(doctype, fieldname, fieldtype, label,
 	var idx = this.head_row.cells.length;
 	if(!width)width = '100px';
 	if(fieldtype=="Currency" && cint(width) < 100) width = "100px";
+	if(fieldtype=="Link" && cint(width) < 150) width = "150px";
 	width= cint(width) + 'px';
 	
 	var col = this.head_row.insertCell(idx);

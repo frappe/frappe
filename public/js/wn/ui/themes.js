@@ -3,7 +3,7 @@
 wn.provide("wn.ui");
 
 wn.ui.set_user_background = function(src) {
-	set_style(repl('#body_div { background: url("files/%(src)s") repeat fixed;}',
+	set_style(repl('#body_div { background: url("%(src)s") repeat fixed;}',
 		{src:src}))
 }
 

@@ -170,6 +170,8 @@ def handle():
 
 	if webnotes.conn:
 		webnotes.conn.close()
+	if webnotes._memc:
+		webnotes._memc.disconnect_all()
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
