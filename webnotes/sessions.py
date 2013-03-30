@@ -195,7 +195,7 @@ class Session:
 				TIMEDIFF(NOW(), lastupdate) < TIME(%s)""", (self.sid, 
 					self.get_expiry_period()))
 		if rec:
-			data = webnotes._dict(eval(rec and rec[0][1] or {}))
+			data = webnotes._dict(eval(rec and rec[0][1] or '{}'))
 			data.user = rec[0][0]
 		else:
 			self.delete_session()
