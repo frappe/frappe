@@ -27,7 +27,7 @@ $.extend(wn.model, {
 		if(doclist._kl)
 			doclist = wn.model.expand(doclist);
 		
-		if(doclist && sync_in==locals)
+		if(doclist && doclist.length && sync_in==locals)
 			wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
 
 		$.each(doclist, function(i, d) {
