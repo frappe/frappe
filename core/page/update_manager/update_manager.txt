@@ -10,20 +10,20 @@
   "doctype": "Page", 
   "module": "Core", 
   "name": "__common__", 
-  "page_name": "update-this-app", 
+  "page_name": "update-manager", 
   "standard": "Yes", 
   "title": "Update This Application"
  }, 
  {
   "doctype": "Page Role", 
   "name": "__common__", 
-  "parent": "update-this-app", 
+  "parent": "update-manager", 
   "parentfield": "roles", 
   "parenttype": "Page"
  }, 
  {
   "doctype": "Page", 
-  "name": "update-this-app"
+  "name": "update-manager"
  }, 
  {
   "doctype": "Page Role", 

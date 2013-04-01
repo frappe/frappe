@@ -1,4 +1,4 @@
-wn.pages['update-this-app'].onload = function(wrapper) { 
+wn.pages['update-manager'].onload = function(wrapper) { 
 	wn.ui.make_app_page({
 		parent: wrapper,
 		title: 'Update This Application',
@@ -26,12 +26,12 @@ wn.UpdateThisApp = Class.extend({
 				wn._('This feature is only applicable to self hosted instances'));
 			
 		} else {
-			this.wrapper.appframe.add_button("Get Latest Updates", 
+			this.wrapper.appframe.add_button(wn._("Get Latest Updates"), 
 				function() { me.update_this_app(this); }, "icon-rss");
 
 			this.wrapper.update_output = $('<pre class="well update-output"></pre>')
 				.appendTo(this.body.append("<div></div>"));
-			this.wrapper.update_output.text("Click - Get Latest Updates");
+			this.wrapper.update_output.text(wn._('Click on "Get Latest Updates"'));
 		}
 		
 	},
@@ -40,7 +40,7 @@ wn.UpdateThisApp = Class.extend({
 		var me = this;
 		wn.call({
 			module: "core",
-			page: "update_this_app",
+			page: "update_manager",
 			method: "update_this_app",
 			callback: function(r) {
 				me.wrapper.update_output.text(r.message);
