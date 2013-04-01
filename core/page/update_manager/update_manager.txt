@@ -1,0 +1,36 @@
+[
+ {
+  "creation": "2013-04-01 11:07:42", 
+  "docstatus": 0, 
+  "modified": "2013-04-01 11:07:42", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "Page", 
+  "module": "Core", 
+  "name": "__common__", 
+  "page_name": "update-manager", 
+  "standard": "Yes", 
+  "title": "Update This Application"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "name": "__common__", 
+  "parent": "update-manager", 
+  "parentfield": "roles", 
+  "parenttype": "Page"
+ }, 
+ {
+  "doctype": "Page", 
+  "name": "update-manager"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "role": "Administrator"
+ }
+]
