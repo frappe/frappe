@@ -83,28 +83,32 @@ wn.ui.AppFrame = Class.extend({
 						new_doc(doctype);
 					}
 				}
-			}]
+			}];
+		
 		if(!locals.DocType[doctype].issingle) {
 			views.push({
 				icon: "icon-list",
 				route: "List/" + doctype,
 				type: "list"
 			});
-		};
+		}
+		
 		if(locals.DocType[doctype].__calendar_js) {
 			views.push({
 				icon: "icon-calendar",
 				route: "Calendar/" + doctype,
 				type: "calendar"
-			})
+			});
 		}
+		
 		if(wn.model.can_get_report(doctype)) {
 			views.push({
 				icon: "icon-table",
 				route: "Report2/" + doctype,
 				type: "report"
-			})
+			});
 		}
+		
 		this.set_views(views, active_view);
 	},
 	

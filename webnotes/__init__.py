@@ -182,7 +182,7 @@ def get_db_password(db_name):
 
 whitelisted = []
 guest_methods = []
-def whitelist(allow_guest=False, allow_roles=[]):
+def whitelist(allow_guest=False, allow_roles=None):
 	"""
 	decorator for whitelisting a function
 	
