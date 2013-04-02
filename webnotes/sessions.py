@@ -245,7 +245,7 @@ class Session:
 			webnotes.cache().set_value("session:" + self.sid, self.data)
 
 	def get_expiry_period(self):
-		exp_sec = webnotes.defaults.get_global_default("session_expiry")
+		exp_sec = webnotes.defaults.get_global_default("session_expiry") or "06:00:00"
 		
 		# incase seconds is missing
 		if len(exp_sec.split(':')) == 2:
