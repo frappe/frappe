@@ -63,7 +63,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		%(group_by)s order by %(order_by)s %(limit)s""" % args
 		
-	return webnotes.conn.sql(query, as_dict=1)
+	return webnotes.conn.sql(query, as_dict=1, debug=1)
 	
 def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
 	global tables		
@@ -156,7 +156,7 @@ def build_conditions(doctype, fields, filters, docstatus):
 	
 	# make conditions from filters
 	build_filter_conditions(filters, conditions)
-
+	
 	# join parent, child tables
 	for tname in tables[1:]:
 		conditions.append(tname + '.parent = ' + tables[0] + '.name')
@@ -179,12 +179,12 @@ def build_filter_conditions(filters, conditions):
 		
 		# prepare in condition
 		if f[2]=='in':
-			opts = ["'" + t.strip().replace("'", "\'") + "'" for t in f[3].split(',')]
+			opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
 			f[3] = "(" + ', '.join(opts) + ")"
 			conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
 		else:
 			if isinstance(f[3], basestring):
-				f[3] = "'" + f[3].replace("'", "\'") + "'"	
+				f[3] = "'" + f[3].replace("'", "\\'") + "'"	
 				conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
 			else:
 				conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
