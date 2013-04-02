@@ -2244,5 +2244,16 @@
   "currency_fraction_units": 100, 
   "currency_symbol": "P", 
   "number_format": "#,###.##"
+ },
+ "Aruba": {
+  "currency_fraction": "Cent", 
+  "timezones": [
+   "America/Aruba"
+  ], 
+  "currency_name": "Aruban Florin", 
+  "currency": "AWG", 
+  "currency_fraction_units": 100, 
+  "currency_symbol": "Afl", 
+  "number_format": "#,###.##"
  }
 }
