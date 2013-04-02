@@ -424,8 +424,8 @@ def run():
 		from website.helpers.make_web_include_files import make
 		make()
 	
-		import website.utils
-		website.utils.clear_cache()
+		import webnotes.webutils
+		webnotes.webutils.clear_cache()
 		
 	elif options.clear_cache:
 		clear_cache()

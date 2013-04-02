@@ -39,8 +39,8 @@ def init():
 
 def respond():
 	import webnotes
-	import website.utils
-	return website.utils.render(webnotes.form_dict.get('page'))
+	import webnotes.webutils
+	return webnotes.webutils.render(webnotes.form_dict.get('page'))
 
 if __name__=="__main__":
 	init()

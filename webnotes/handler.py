@@ -230,7 +230,7 @@ def print_page():
 	"""print web page"""
 	print_cookie_header()
 
-	from website.utils import render
+	from webnotes.webutils import render
 	render(webnotes.response['page_name'])
 
 def eprint(content):
