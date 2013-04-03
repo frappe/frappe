@@ -120,6 +120,7 @@ wn.views.QueryReport = Class.extend({
 		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
 			var f = make_field(df, null, $filter_wrapper.get(0), null, 0, 1);
 			f.df.single_select = 1;
+			f.df.placeholder = df.label;
 			f.not_in_form = 1;
 			f.with_label = 0;
 			f.in_filter = 1;
