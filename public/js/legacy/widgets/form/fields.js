@@ -894,10 +894,16 @@ FloatField.prototype.format_input = function() {
 		this.input.value='';
 	else {
 		var format;
-		if(this.get_field_currency) 
+		if(this.get_field_currency) {
 			format = get_number_format(this.get_field_currency());
-		this.input.value = 
-			format_number(parseFloat(this.input.value), format);
+			this.input.value = 
+				format_number(parseFloat(this.input.value), format);
+		} else {
+			var decimals = wn.boot.sysdefaults.float_precision ? 
+				parseInt(wn.boot.sysdefaults.float_precision) : null;
+				
+			this.input.value = format_number(parseFloat(this.input.value), null, decimals);
+		}
 	}
 }
 FloatField.prototype.onmake_input = function() {
