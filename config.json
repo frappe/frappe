@@ -1,0 +1,32 @@
+{
+	"modules": {
+		"Activity": {
+			"type": "page",
+			"link": "activity",
+			"color": "#633501",
+			"icon": "icon-play",
+			"label": "Activity"
+		},
+		"To Do": {
+			"type": "page",
+			"link": "todo",
+			"color": "#febf04",
+			"label": "To Do",
+			"icon": "icon-check"
+		},
+		"Calendar": {
+			"type": "view",
+			"link": "Calendar/Event",
+			"color": "#026584",
+			"label": "Calendar",
+			"icon": "icon-calendar"
+		},
+		"Messages": {
+			"type": "page",
+			"link": "messages",
+			"color": "#8d016e",
+			"label": "Messages",
+			"icon": "icon-comments"
+		}
+	}
+}

@@ -42,7 +42,7 @@ erpnext.desktop.render = function() {
 	// modules
 	var modules_list = wn.user.get_desktop_items();
 	$.each(modules_list, function(i, m) {
-		if(!in_list(['Setup', 'Core'], m) && wn.boot.profile.allow_modules.indexOf(m)!=-1)
+		if(m!="Setup")
 			add_icon(m);
 	})
 

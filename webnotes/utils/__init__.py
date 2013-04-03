@@ -785,6 +785,10 @@ def comma_sep(some_list, sep):
 	else:
 		return some_list
 		
+def get_path(*path):
+	import os
+	return os.path.join(get_base_path(), *path)
+	
 def get_base_path():
 	import conf
 	import os
