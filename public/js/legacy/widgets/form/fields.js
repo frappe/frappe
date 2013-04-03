@@ -425,7 +425,9 @@ function DataField() { } DataField.prototype = new Field();
 DataField.prototype.make_input = function() {
 	var me = this;
 	this.input = $a_input(this.input_area, this.df.fieldtype=='Password' ? 'password' : 'text');
-
+	
+	if(this.df.placeholder) $(this.input).attr("placeholder", this.df.placeholder);
+	
 	this.get_value= function() {
 		var v = this.input.value;
 		if(this.validate)
