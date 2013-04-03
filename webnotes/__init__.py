@@ -401,17 +401,24 @@ def repsond_as_web_page(title, html):
 	response['type'] = 'page'
 	response['page_name'] = 'message.html'
 
+_config = None
 def get_config():
-	import webnotes.utils, json
+	global _config
+	if not _config:
+		import webnotes.utils, json
 	
-	config = _dict({"modules": {}})
-	with open(webnotes.utils.get_path("lib", "config.json"), "r") as configf:
-		framework_config = json.loads(configf.read())
-		config.modules.update(framework_config["modules"])
+		_config = _dict({"modules": {}, "web": _dict({"pages": {}, "generators": {}})})
+		with open(webnotes.utils.get_path("lib", "config.json"), "r") as configf:
+			framework_config = json.loads(configf.read())
+			_config.modules.update(framework_config["modules"])
+			_config.web.pages.update(framework_config["web"]["pages"])
+			_config.web.generators.update(framework_config["web"]["generators"])
 		
-	with open(webnotes.utils.get_path("app", "config.json"), "r") as configf:
-		app_config = json.loads(configf.read())
-		config.modules.update(app_config["modules"])
+		with open(webnotes.utils.get_path("app", "config.json"), "r") as configf:
+			app_config = json.loads(configf.read())
+			_config.modules.update(app_config["modules"])
+			_config.web.pages.update(app_config["web"]["pages"])
+			_config.web.generators.update(app_config["web"]["generators"])
 		
-	return config
+	return _config
 		
