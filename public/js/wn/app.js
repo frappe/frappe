@@ -77,6 +77,7 @@ wn.Application = Class.extend({
 	load_bootinfo: function() {
 		if(wn.boot) {
 			wn.control_panel = wn.boot.control_panel;
+			wn.modules = wn.boot.modules;
 			this.set_globals();
 			this.sync_pages();
 			

@@ -53,29 +53,49 @@ $.extend(wn.user, {
 					modules_list.push(m);
 				}
 			});
-		} else
-			// all modules
-			modules_list = keys(wn.modules);
-
+		}
+		
 		// filter hidden modules
-		if(wn.boot.modules_list) {
-			var allowed_list = JSON.parse(wn.boot.modules_list);
-			if(modules_list) {
-				var modules_list = $.map(modules_list, function(m) {
-					if(allowed_list.indexOf(m)!=-1) return m; else return null;
-				});
-			} else {
-				var modules_list = allowed_list;
-			}
+		if(wn.boot.hidden_modules && modules_list) {
+			var hidden_list = JSON.parse(wn.boot.hidden_modules);
+			var modules_list = $.map(modules_list, function(m) {
+				if(hidden_list.indexOf(m)==-1) return m; else return null;
+			});
 		}	
+
+		if(!modules_list || !modules_list.length) {
+			// all modules
+			modules_list = keys(wn.modules).sort();
+		}
+
+		// hide based on permission
+		modules_list = $.map(modules_list, function(m) {
+			var type = wn.modules[m] && wn.modules[m].type;
+			var ret = null;
+			switch(type) {
+				case "module":
+					if(wn.boot.profile.allow_modules.indexOf(m)!=-1)
+						ret = m;
+					break;
+				case "page":
+					if(wn.boot.allowed_pages.indexOf(wn.modules[m].link)!=-1)
+						ret = m;
+					break;
+				case "view", "setup":
+					ret = m;
+					break;
+				default:
+					ret = null;
+			}
+			return ret;
+		})
+
 		return modules_list;
 	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
 	}
 })
-
-// wn.session_alive is true if user shows mouse movement in 30 seconds
 
 wn.session_alive = true;
 $(document).bind('mousemove', function() {

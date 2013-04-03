@@ -76,8 +76,8 @@ def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""
 	webnotes.conn.set(doc, "page_name", page_name(title))
 	
-	if doc.page_name in standard_pages:
-		webnotes.conn.sql("""Page Name cannot be one of %s""" % ', '.join(standard_pages))
+	if doc.page_name in get_standard_pages():
+		webnotes.conn.sql("""Page Name cannot be one of %s""" % ', '.join(get_standard_pages()))
 	
 	res = webnotes.conn.sql("""\
 		select count(*) from `tab%s`
@@ -103,26 +103,35 @@ def build_html(args):
 
 	args["len"] = len
 	
-	jenv = Environment(loader = FileSystemLoader(get_templates_path()))
-	html = jenv.get_template(args['template']).render(args)
+	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
+	template_name = args['template']
+	if not template_name.endswith(".html"):
+		template_name = template_name + ".html"
+	html = jenv.get_template(template_name).render(args)
 	
 	return html
+	
+def get_standard_pages():
+	return webnotes.get_config()["web"]["pages"].keys()
 	
 def prepare_args(page_name):
 	if page_name == 'index':
 		page_name = get_home_page()
 	
-	if page_name in standard_pages:
+	pages = get_page_settings()
+	
+	if page_name in pages:
+		page_info = pages[page_name]
 		args = webnotes._dict({
-			'template': 'pages/%s.html' % page_name,
+			'template': page_info["template"],
 			'name': page_name,
 		})
-		if page_name in page_settings_map:
-			target = page_settings_map[page_name]
-			if "." in target:
-				args.update(webnotes.get_method(target)())
-			else:
-				args.obj = webnotes.bean(page_settings_map[page_name]).obj
+
+		# additional args
+		if "args_method" in page_info:
+			args.update(webnotes.get_method(page_info["args_method"])())
+		elif "args_doctype" in page_info:
+			args.obj = webnotes.bean(page_info["args_doctype"]).obj
 
 	else:
 		args = get_doc_fields(page_name)
@@ -145,7 +154,7 @@ def get_doc_fields(page_name):
 		obj.prepare_template_args()
 
 	args = obj.doc.fields
-	args['template'] = page_map[doc_type].template
+	args['template'] = get_generators()[doc_type]["template"]
 	args['obj'] = obj
 	args['int'] = int
 	
@@ -153,10 +162,10 @@ def get_doc_fields(page_name):
 
 def get_source_doc(page_name):
 	"""get source doc for the given page name"""
-	for doctype in page_map:
+	for doctype in get_generators():
 		name = webnotes.conn.sql("""select name from `tab%s` where 
 			page_name=%s and ifnull(%s, 0)=1""" % (doctype, "%s", 
-			page_map[doctype].condition_field), page_name)
+			get_generators()[doctype]["condition_field"]), page_name)
 		if name:
 			return doctype, name[0][0]
 
@@ -171,9 +180,8 @@ def clear_cache(page_name=None):
 			cache.delete_value("page:" + p)
 
 def get_all_pages():
-	all_pages = standard_pages
-	all_pages += page_settings_map.keys()
-	for doctype in page_map:
+	all_pages = get_standard_pages()
+	for doctype in get_generators():
 		all_pages += [p[0] for p in webnotes.conn.sql("""select distinct page_name 
 			from `tab%s`""" % doctype) if p[0]]
 
@@ -208,4 +216,14 @@ def get_hex_shade(color, percent):
 		percent = percent * 2
 	
 	return p(r) + p(g) + p(b)
+
+def get_standard_pages():
+	return webnotes.get_config()["web"]["pages"].keys()
 	
+def get_generators():
+	return webnotes.get_config()["web"]["generators"]
+	
+def get_page_settings():
+	return webnotes.get_config()["web"]["pages"]
+	
+

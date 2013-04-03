@@ -1,0 +1,32 @@
+[
+ {
+  "creation": "2012-10-04 18:45:29", 
+  "docstatus": 0, 
+  "modified": "2013-04-03 12:19:56", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "Page", 
+  "module": "Core", 
+  "name": "__common__", 
+  "page_name": "modules_setup", 
+  "standard": "Yes", 
+  "title": "Modules Setup"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "name": "__common__", 
+  "parent": "modules_setup", 
+  "parentfield": "roles", 
+  "parenttype": "Page", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "Page", 
+  "name": "modules_setup"
+ }, 
+ {
+  "doctype": "Page Role"
+ }
+]

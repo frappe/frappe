@@ -8,7 +8,7 @@ from webnotes.utils import cstr, cint, flt
 from webnotes.utils.datautils import UnicodeWriter
 
 data_keys = webnotes._dict({
-	"data_separator": '::: Start entering data below this line :::',
+	"data_separator": 'Start entering data below this line',
 	"main_table": "Table:",
 	"parent_table": "Parent Table:",
 	"columns": "Column Name:"
@@ -68,7 +68,7 @@ def get_template():
 	else:
 		w.writerow([''])
 	
-	w.writerow([':::'])
+	w.writerow([''])
 	w.writerow(['Notes:'])
 	w.writerow(['Please do not change the template headings.'])
 	w.writerow(['First data column must be blank.'])
@@ -80,7 +80,7 @@ def get_template():
 	if key == "parent":
 		w.writerow(['"Parent" signifies the parent table in which this row must be added'])
 		w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
-	w.writerow([':::'])
+	w.writerow([''])
 	labelrow = ["Column Labels", "ID"]
 	fieldrow = [data_keys.columns, key]
 	mandatoryrow = ['Mandatory:', 'Yes']

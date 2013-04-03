@@ -1,0 +1,11 @@
+{% extends "lib/templates/base.html" %}
+
+{% set title=webnotes.message_title %}
+
+{% block block %}
+<div class="container">
+	<div class="outer well">
+		{{ webnotes.message }}
+	</div>
+</div>
+{% endblock %}
