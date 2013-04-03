@@ -593,15 +593,18 @@ def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix
 	import webnotes
 	from webnotes.model.doclist import DocList
 	
-	tmp = ''
+	condition = ""
+	values = []
 	
 	if field: 
-		tmp = ' and parentfield="%s" ' % field
+		condition += ' and parentfield=%s '
+		values.append(field)
 	if parenttype:
-		tmp = ' and parenttype="%s" ' % parenttype
+		condition += ' and parenttype=%s '
+		values.append(parenttype)
 
-	dataset = webnotes.conn.sql("select * from `%s%s` where parent='%s' %s order by idx" \
-		% (prefix, childtype, name, tmp))
+	dataset = webnotes.conn.sql("""select * from `%s%s` where parent=%s %s order by idx""" \
+		% (prefix, childtype, "%s", condition), tuple([name]+values))
 	desc = webnotes.conn.get_description()
 
 	l = DocList()

@@ -8,7 +8,7 @@ from webnotes.utils import cstr, cint, flt
 from webnotes.utils.datautils import UnicodeWriter
 
 data_keys = webnotes._dict({
-	"data_separator": '::: Start entering data below this line :::',
+	"data_separator": 'Start entering data below this line',
 	"main_table": "Table:",
 	"parent_table": "Parent Table:",
 	"columns": "Column Name:"
@@ -68,7 +68,7 @@ def get_template():
 	else:
 		w.writerow([''])
 	
-	w.writerow([':::'])
+	w.writerow([''])
 	w.writerow(['Notes:'])
 	w.writerow(['Please do not change the template headings.'])
 	w.writerow(['First data column must be blank.'])
@@ -80,7 +80,7 @@ def get_template():
 	if key == "parent":
 		w.writerow(['"Parent" signifies the parent table in which this row must be added'])
 		w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
-	w.writerow([':::'])
+	w.writerow([''])
 	labelrow = ["Column Labels", "ID"]
 	fieldrow = [data_keys.columns, key]
 	mandatoryrow = ['Mandatory:', 'Yes']
@@ -267,10 +267,8 @@ def check_record(d, parenttype=None):
 			if docfield.reqd and (val=='' or val==None):
 				raise Exception, "%s is mandatory." % key
 
-			if docfield.fieldtype=='Select' and val:
-				if not docfield.options:
-					raise Exception, "Select options are missing for %s"
-				elif docfield.options.startswith('link:'):
+			if docfield.fieldtype=='Select' and val and docfield.options:
+				if docfield.options.startswith('link:'):
 					link_doctype = docfield.options.split(':')[1]
 					if not webnotes.conn.exists(link_doctype, val):
 						raise Exception, "%s must be a valid %s" % (key, link_doctype)

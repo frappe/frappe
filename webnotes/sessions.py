@@ -248,8 +248,11 @@ class Session:
 		exp_sec = webnotes.defaults.get_global_default("session_expiry")
 		
 		# incase seconds is missing
-		if len(exp_sec.split(':')) == 2:
-			exp_sec = exp_sec + ':00'
+		if exp_sec:
+			if len(exp_sec.split(':')) == 2:
+				exp_sec = exp_sec + ':00'
+		else:
+			exp_sec = "2:00:00"
 	
 		return exp_sec
 

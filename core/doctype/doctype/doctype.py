@@ -81,6 +81,7 @@ class DocType:
 		self.set_version()
 		self.make_amendable()
 		self.make_file_list()
+		self.check_link_replacement_error()
 
 	def on_update(self):
 		from webnotes.model.db_schema import updatedb
@@ -96,6 +97,13 @@ class DocType:
 			self.make_controller_template()
 
 		webnotes.clear_cache(doctype=self.doc.name)
+
+	def check_link_replacement_error(self):
+		for d in self.doclist.get({"doctype":"DocField", "fieldtype":"Select"}):
+			if (webnotes.conn.get_value("DocField", d.name, "options") or "").startswith("link:") \
+				and not d.options.startswith("link:"):
+				webnotes.msgprint("link: type Select fields are getting replaced. Please check for %s" % d.label,
+					raise_exception=True)
 
 	def on_trash(self):
 		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)

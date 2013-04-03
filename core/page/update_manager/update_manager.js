@@ -29,20 +29,34 @@ wn.UpdateThisApp = Class.extend({
 			this.wrapper.appframe.add_button(wn._("Get Latest Updates"), 
 				function() { me.update_this_app(this); }, "icon-rss");
 
-			this.wrapper.update_output = $('<pre class="well update-output"></pre>')
-				.appendTo(this.body.append("<div></div>"));
-			this.wrapper.update_output.text(wn._('Click on "Get Latest Updates"'));
+			this.wrapper.update_output = $('<pre class="update-output"></pre>')
+				.appendTo(this.body);
+			this.wrapper.update_output.toggle(false);
+			
+			this.wrapper.progress_bar = $('<div class="app-update-progress-bar well"></div>')
+				.appendTo(this.body);
+			this.wrapper.progress_bar.text(wn._('Click on "Get Latest Updates"'));
 		}
 		
 	},
 	
 	update_this_app: function(btn) {
 		var me = this;
+		
+		me.wrapper.update_output.toggle(false);
+		me.wrapper.progress_bar.empty().toggle(true);
+		this.wrapper.progress_bar.html('<div class="progress progress-striped active"> \
+			    <div class="bar" style="width: 100%;"></div> \
+		    </div> \
+			<div>' + wn._("Update is in progress. This may take some time.") + '</div>');
+		
 		wn.call({
 			module: "core",
 			page: "update_manager",
 			method: "update_this_app",
 			callback: function(r) {
+				me.wrapper.update_output.toggle(true);
+				me.wrapper.progress_bar.empty().toggle(false);
 				me.wrapper.update_output.text(r.message);
 			},
 			btn: btn,
