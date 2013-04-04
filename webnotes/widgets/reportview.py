@@ -63,7 +63,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		%(group_by)s order by %(order_by)s %(limit)s""" % args
 		
-	return webnotes.conn.sql(query, as_dict=1, debug=1)
+	return webnotes.conn.sql(query, as_dict=1)
 	
 def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
 	global tables		
