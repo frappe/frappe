@@ -30,6 +30,8 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		$.extend(this, opts);
 		this.make();
 		
+		this.dialog_wrapper = this.wrapper;
+		
 		// init fields
 		if(this.fields) {
 			this.parent = this.body
