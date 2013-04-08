@@ -613,7 +613,7 @@ LinkField.prototype.make_input = function() {
 		// setup buttons
 		me.setup_buttons();
 	}
-
+	
 	me.onrefresh = function() {
 		var can_create = in_list(wn.boot.profile.can_create, me.df.options);
 		var can_read = in_list(wn.boot.profile.can_read, me.df.options);
@@ -632,12 +632,13 @@ LinkField.prototype.make_input = function() {
 	}
 
 	me.get_value = function() { return me.txt.value; }
-
+	
 	// increasing zindex of input to increase zindex of autosuggest
 	// because of the increase in zindex of dialog_wrapper
-	if(cur_dialog) {
-		console.log(cint($(cur_dialog.wrapper).css("z-index")) + 1)
-		$(me.txt).css({"z-index": cint($(cur_dialog.wrapper).css("z-index")) + 1});
+	if(cur_dialog || me.dialog_wrapper) {
+		var $dialog_wrapper = $(cur_dialog ? cur_dialog.wrapper : me.dialog_wrapper)
+		var zindex = cint($dialog_wrapper.css("z-index"));
+		$(me.txt).css({"z-index": (zindex >= 10 ? zindex : 10) + 1});
 	}
 	
 	$(me.txt).autocomplete({
@@ -1139,6 +1140,7 @@ SelectField.prototype.make_input = function() {
 			else
 				var v = null;
 		}
+		
 		this.input.set_input(v);
 	}
 	
