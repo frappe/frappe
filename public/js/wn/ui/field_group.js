@@ -43,6 +43,7 @@ wn.ui.FieldGroup = Class.extend({
 			var div = $a(this.parent, 'div', '', {margin:'6px 0px'})
 			f = make_field(df, null, div, null);
 			f.not_in_form = 1;
+			f.dialog_wrapper = this.dialog_wrapper || null;
 			this.fields_dict[df.fieldname] = f
 			f.refresh();
 			
