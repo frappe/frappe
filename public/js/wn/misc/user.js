@@ -54,7 +54,6 @@ $.extend(wn.user, {
 				}
 			});
 		}
-		
 		// filter hidden modules
 		if(wn.boot.hidden_modules && modules_list) {
 			var hidden_list = JSON.parse(wn.boot.hidden_modules);
@@ -81,7 +80,10 @@ $.extend(wn.user, {
 					if(wn.boot.allowed_pages.indexOf(wn.modules[m].link)!=-1)
 						ret = m;
 					break;
-				case "view", "setup":
+				case "view":
+					ret = m;
+					break;
+				case "setup":
 					ret = m;
 					break;
 				default:
