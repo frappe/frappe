@@ -1,0 +1,32 @@
+[
+ {
+  "creation": "2012-06-14 18:44:56", 
+  "docstatus": 0, 
+  "modified": "2013-04-03 14:48:57", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "doctype": "Page", 
+  "module": "Core", 
+  "name": "__common__", 
+  "page_name": "messages", 
+  "standard": "Yes", 
+  "title": "Messages"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "name": "__common__", 
+  "parent": "messages", 
+  "parentfield": "roles", 
+  "parenttype": "Page", 
+  "role": "All"
+ }, 
+ {
+  "doctype": "Page", 
+  "name": "messages"
+ }, 
+ {
+  "doctype": "Page Role"
+ }
+]
