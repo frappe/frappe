@@ -179,7 +179,6 @@ def get_db_password(db_name):
 	else:
 		return db_name
 
-
 whitelisted = []
 guest_methods = []
 def whitelist(allow_guest=False, allow_roles=None):
@@ -401,4 +400,25 @@ def repsond_as_web_page(title, html):
 	message = "<h3>" + title + "</h3>" + html
 	response['type'] = 'page'
 	response['page_name'] = 'message.html'
+
+_config = None
+def get_config():
+	global _config
+	if not _config:
+		import webnotes.utils, json
 	
+		_config = _dict({"modules": {}, "web": _dict({"pages": {}, "generators": {}})})
+		with open(webnotes.utils.get_path("lib", "config.json"), "r") as configf:
+			framework_config = json.loads(configf.read())
+			_config.modules.update(framework_config["modules"])
+			_config.web.pages.update(framework_config["web"]["pages"])
+			_config.web.generators.update(framework_config["web"]["generators"])
+		
+		with open(webnotes.utils.get_path("app", "config.json"), "r") as configf:
+			app_config = json.loads(configf.read())
+			_config.modules.update(app_config["modules"])
+			_config.web.pages.update(app_config["web"]["pages"])
+			_config.web.generators.update(app_config["web"]["generators"])
+		
+	return _config
+		

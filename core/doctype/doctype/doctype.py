@@ -144,7 +144,7 @@ class DocType:
 			if allow_attach is checked and the column file_list doesn't exist,
 			create a new field 'file_list'
 		"""
-		if self.doc.allow_attach:
+		if self.doc.allow_attach and not self.doc.fields.get("__islocal"):
 			import webnotes.model.doctype
 			temp_doclist = webnotes.model.doctype.get(self.doc.name)
 			if 'file_list' not in [d.fieldname for d in temp_doclist if \

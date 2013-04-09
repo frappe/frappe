@@ -29,6 +29,7 @@ import webnotes
 import webnotes.defaults
 import webnotes.model.doc
 import webnotes.widgets.page
+import json
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -54,6 +55,8 @@ def get_bootinfo():
 		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
+	bootinfo.modules = webnotes.get_config().modules
+	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
