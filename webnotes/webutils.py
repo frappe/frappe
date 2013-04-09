@@ -192,7 +192,6 @@ def delete_page_cache(page_name):
 		webnotes.cache().delete_value("page:" + page_name)
 			
 def get_hex_shade(color, percent):
-	
 	def p(c):
 		v = int(c, 16) + int(int('ff', 16) * (float(percent)/100))
 		if v < 0: 
