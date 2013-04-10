@@ -115,10 +115,28 @@ def get_defaults_for(parent="Control Panel"):
 					defaults[d.defkey].append(d.defvalue)
 			else:
 				defaults[d.defkey] = d.defvalue
+		
+		if parent == webnotes.session.user:
+			defaults.update(get_defaults_for_match(defaults))
 
 		webnotes.cache().set_value("__defaults:" + parent, defaults)
 	
 	return defaults
+
+def get_defaults_for_match(userd):
+	"""	if a profile based match condition exists for a user's role 
+		and no user property is specified for that match key,
+		set default value as user's profile for that match key"""
+	user_roles = webnotes.get_roles()
+	out = {}
+	
+	for role, match in webnotes.conn.sql("""select distinct role, `match`
+		from `tabDocPerm` where ifnull(permlevel, 0)=0 and `read`=1 
+		and `match` like "%:user" """):
+			if role in user_roles and match.split(":")[0] not in userd:
+				out[match.split(":")[0]] = webnotes.session.user
+
+	return out
 
 def clear_cache(parent=None):
 	def all_profiles():
