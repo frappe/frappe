@@ -182,9 +182,12 @@ def write_file(content):
 
 def remove_all(dt, dn):
 	"""remove all files in a transaction"""
-	for fid in webnotes.conn.sql_list("""select name from `tabFile Data` where
-		attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
-		remove_file(fid)
+	try:
+		for fid in webnotes.conn.sql_list("""select name from `tabFile Data` where
+			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
+			remove_file(fid)
+	except Exception, e:
+		if e.args[0]!=1054: raise e # (temp till for patched)
 
 def remove_file(fid):
 	"""Remove file and File Data entry"""	
