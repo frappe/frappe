@@ -1,5 +1,6 @@
 from __future__ import unicode_literals
 import webnotes
+import webnotes.defaults
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def get_roles_and_doctypes():
@@ -22,8 +23,13 @@ def get_permissions(doctype=None, role=None):
 			
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def remove(doctype, name):
+	match = webnotes.conn.get_value("DocPerm", name, "match")
+	
 	webnotes.conn.sql("""delete from tabDocPerm where name=%s""", name)
 	validate_and_reset(doctype, for_remove=True)
+	
+	if match:
+		webnotes.defaults.clear_cache()
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def add(parent, role, permlevel):
@@ -46,11 +52,15 @@ def update(name, doctype, ptype, value=0):
 	 	% (ptype, '%s', '%s'), (value, name))
 	validate_and_reset(doctype)
 	
+	if ptype == "read" and webnotes.conn.get_value("DocPerm", name, "match"):
+		webnotes.defaults.clear_cache()
+	
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def update_match(name, doctype, match=""):
 	webnotes.conn.sql("""update tabDocPerm set `match`=%s where name=%s""",
 		(match, name))
 	validate_and_reset(doctype)
+	webnotes.defaults.clear_cache()
 	
 def validate_and_reset(doctype, for_remove=False):
 	from core.doctype.doctype.doctype import validate_permissions_for_doctype
@@ -61,6 +71,7 @@ def validate_and_reset(doctype, for_remove=False):
 def reset(doctype):
 	webnotes.reset_perms(doctype)
 	webnotes.clear_cache(doctype=doctype)
+	webnotes.defaults.clear_cache()
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def get_users_with_role(role):
