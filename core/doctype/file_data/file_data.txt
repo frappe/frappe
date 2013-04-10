@@ -2,12 +2,12 @@
  {
   "creation": "2012-12-12 11:19:22", 
   "docstatus": 0, 
-  "modified": "2013-04-10 10:16:26", 
+  "modified": "2013-04-10 13:34:29", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
-  "autoname": "FileData/.#####", 
+  "autoname": "File.######", 
   "doctype": "DocType", 
   "module": "Core", 
   "name": "__common__", 
@@ -19,7 +19,20 @@
   "parent": "File Data", 
   "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0
+  "permlevel": 0, 
+  "read_only": 1
+ }, 
+ {
+  "cancel": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "File Data", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "role": "System Manager", 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -37,19 +50,34 @@
   "doctype": "DocField", 
   "fieldname": "file_url", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "File URL"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "attached_to_doctype", 
   "fieldtype": "Link", 
+  "in_list_view": 1, 
   "label": "Attached To DocType", 
-  "options": "DocType"
+  "options": "DocType", 
+  "search_index": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "attached_to_name", 
   "fieldtype": "Data", 
-  "label": "Attached To Name"
+  "in_list_view": 1, 
+  "label": "Attached To Name", 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "file_size", 
+  "fieldtype": "Int", 
+  "in_list_view": 1, 
+  "label": "File Size"
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

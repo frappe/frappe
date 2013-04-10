@@ -33,11 +33,21 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	if doctype=='DocType':
 		rename_doctype(doctype, old, new, force)
 	
+	update_attachments(doctype, old, new)
+	
 	if merge:
 		webnotes.delete_doc(doctype, old)
 		
 	return new
-	
+
+def update_attachments(doctype, old, new):
+	try:
+		webnotes.conn.sql("""update `tabFile Data` set attached_to_name=%s
+			where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
+	except Exception, e:
+		if e.args[0]!=1054: # in patch?
+			raise e 
+
 def rename_parent_and_child(doctype, old, new, doclist):
 	# rename the doc
 	webnotes.conn.sql("update `tab%s` set name=%s where name=%s" \

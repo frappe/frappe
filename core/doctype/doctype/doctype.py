@@ -40,7 +40,8 @@ class DocType:
 			sql('UPDATE tabDocType SET modified="%s" WHERE `name`="%s"' % (now(), p[0]))
 
 	def scrub_field_names(self):
-		restricted = ('name','parent','idx','owner','creation','modified','modified_by','parentfield','parenttype')
+		restricted = ('name','parent','idx','owner','creation','modified','modified_by',
+			'parentfield','parenttype',"file_list")
 		for d in self.doclist:
 			if d.parent and d.fieldtype:
 				if (not d.fieldname):
@@ -80,7 +81,6 @@ class DocType:
 		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
 		self.set_version()
 		self.make_amendable()
-		self.make_file_list()
 		self.check_link_replacement_error()
 
 	def on_update(self):
@@ -139,28 +139,6 @@ class DocType:
 					"doctype_template.py"), 'r') as srcfile:
 					pyfile.write(srcfile.read())
 	
-	def make_file_list(self):
-		"""
-			if allow_attach is checked and the column file_list doesn't exist,
-			create a new field 'file_list'
-		"""
-		if self.doc.allow_attach and not self.doc.fields.get("__islocal"):
-			import webnotes.model.doctype
-			temp_doclist = webnotes.model.doctype.get(self.doc.name)
-			if 'file_list' not in [d.fieldname for d in temp_doclist if \
-					d.doctype=='DocField']:
-				new = self.doc.addchild('fields', 'DocField', self.doclist)
-				new.label = 'File List'
-				new.fieldtype = 'Text'
-				new.fieldname = 'file_list'
-				new.hidden = 1
-				new.permlevel = 0
-				new.print_hide = 1
-				new.no_copy = 1
-				idx_list = [d.idx for d in temp_doclist if d.idx]
-				max_idx = idx_list and max(idx_list) or 0
-				new.idx = max_idx + 1
-
 	def make_amendable(self):
 		"""
 			if is_submittable is set, add amended_from

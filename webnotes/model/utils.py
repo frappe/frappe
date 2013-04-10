@@ -180,6 +180,10 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		
 		raise e
 		
+	# delete attachments
+	from webnotes.utils.file_manager import remove_all
+	remove_all(doctype, name)
+		
 	return 'okay'
 
 def check_permission_and_not_submitted(doctype, name):

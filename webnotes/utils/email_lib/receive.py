@@ -100,8 +100,8 @@ class IncomingMail:
 		from webnotes.utils.file_manager import save_file, add_file_list, MaxFileSizeReachedError
 		for attachment in self.attachments:
 			try:
-				fid = save_file(attachment['filename'], attachment['content'])
-				status = add_file_list(doc.doctype, doc.name, fid, fid)
+				fid = save_file(attachment['filename'], attachment['content'], 
+					doc.doctype, doc.name)
 			except MaxFileSizeReachedError:
 				# bypass max file size exception
 				pass

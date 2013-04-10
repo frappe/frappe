@@ -99,7 +99,10 @@ wn.ui.form.Attachments = Class.extend({
 								dn: me.frm.docname 
 							},
 							callback: function(r,rt) {
-								me.frm.doc.modified = r.message;
+								if(r.exc) {
+									msgprint("There were errors.");
+									return;
+								}
 								me.remove_fileid(data);
 								me.frm && me.frm.cscript.on_remove_attachment 
 									&& me.frm.cscript.on_remove_attachment(me.frm.doc);
@@ -131,7 +134,6 @@ wn.ui.form.Attachments = Class.extend({
 			},
 			callback: wn.ui.form.file_upload_done
 		});
-			
 	},
 	remove_fileid: function(fileid) {
 		this.frm.doc.file_list = $.map(this.get_filelist(), function(f) {
