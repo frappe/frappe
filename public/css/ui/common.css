@@ -115,7 +115,7 @@ a {
 }
 
 .wysiwyg-editor {
-	min-height: 400px;
+	height: 400px;
 	background-color: white;
 	border-collapse: separate; 
 	border: 1px solid rgb(204, 204, 204); 
