@@ -116,7 +116,7 @@ def get_defaults_for(parent="Control Panel"):
 			else:
 				defaults[d.defkey] = d.defvalue
 		
-		if parent == webnotes.session.user:
+		if webnotes.session and parent == webnotes.session.user:
 			defaults.update(get_defaults_for_match(defaults))
 
 		webnotes.cache().set_value("__defaults:" + parent, defaults)
