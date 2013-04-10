@@ -144,46 +144,41 @@ class DocType:
 			if allow_attach is checked and the column file_list doesn't exist,
 			create a new field 'file_list'
 		"""
-		if self.doc.allow_attach and not self.doc.fields.get("__islocal"):
-			import webnotes.model.doctype
-			temp_doclist = webnotes.model.doctype.get(self.doc.name)
-			if 'file_list' not in [d.fieldname for d in temp_doclist if \
-					d.doctype=='DocField']:
-				new = self.doc.addchild('fields', 'DocField', self.doclist)
-				new.label = 'File List'
-				new.fieldtype = 'Text'
-				new.fieldname = 'file_list'
-				new.hidden = 1
-				new.permlevel = 0
-				new.print_hide = 1
-				new.no_copy = 1
-				idx_list = [d.idx for d in temp_doclist if d.idx]
-				max_idx = idx_list and max(idx_list) or 0
-				new.idx = max_idx + 1
+		if self.doc.allow_attach:
+			if not webnotes.conn.sql("""select name from tabDocField 
+				where fieldname = 'file_list' and parent = %s""", self.doc.name):
+					new = self.doc.addchild('fields', 'DocField', self.doclist)
+					new.label = 'File List'
+					new.fieldtype = 'Text'
+					new.fieldname = 'file_list'
+					new.hidden = 1
+					new.permlevel = 0
+					new.print_hide = 1
+					new.no_copy = 1
+					new.idx = self.get_max_idx() + 1
 
 	def make_amendable(self):
 		"""
-			if is_submittable is set, add amended_from
-			docfields
+			if is_submittable is set, add amended_from docfields
 		"""
 		if self.doc.is_submittable:
-			import webnotes.model.doctype
-			temp_doclist = webnotes.model.doctype.get(self.doc.name)
-			max_idx = max([d.idx for d in temp_doclist if d.idx])
-			max_idx = max_idx and max_idx or 0
-			if 'amended_from' not in [d.fieldname for d in temp_doclist if \
-					d.doctype=='DocField']:
-				new = self.doc.addchild('fields', 'DocField', self.doclist)
-				new.label = 'Amended From'
-				new.fieldtype = 'Link'
-				new.fieldname = 'amended_from'
-				new.options = self.doc.name
-				new.permlevel = 0
-				new.read_only = 1
-				new.print_hide = 1
-				new.no_copy = 1
-				new.idx = max_idx + 1
-				max_idx += 1
+			if not webnotes.conn.sql("""select name from tabDocField 
+				where fieldname = 'amended_from' and parent = %s""", self.doc.name):
+					new = self.doc.addchild('fields', 'DocField', self.doclist)
+					new.label = 'Amended From'
+					new.fieldtype = 'Link'
+					new.fieldname = 'amended_from'
+					new.options = self.doc.name
+					new.permlevel = 0
+					new.read_only = 1
+					new.print_hide = 1
+					new.no_copy = 1
+					new.idx = self.get_max_idx() + 1
+				
+	def get_max_idx(self):
+		max_idx = webnotes.conn.sql("""select max(idx) from `tabDocField` where parent = %s""", 
+			self.doc.name)
+		return max_idx and max_idx[0][0] or 0
 
 def validate_fields_for_doctype(doctype):
 	from webnotes.model.doctype import get
