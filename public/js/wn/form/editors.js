@@ -13,7 +13,6 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	init: function(opts) {
 		wn.require("lib/js/lib/jquery/jquery.hotkeys.js");
 		wn.require("lib/js/lib/bootstrap-wysiwyg.js");
-		wn.require("lib/js/lib/beautify-html.js");
 		this.opts = opts;
 		this.make_body();
 		this.make_bindings();
@@ -130,6 +129,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		this.current_editor = this.$editor;
 		this.$parent.find(".btn-html").click(function() {
 			if($(this).attr("disabled")=="disabled") return;
+			wn.require("lib/js/lib/beautify-html.js");
 			me.$textarea.val(html_beautify(me.$editor.html()));
 			me.$parent.find(".for-rich-text").toggle(false);
 			me.$parent.find(".for-html").toggle(true);

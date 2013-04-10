@@ -609,29 +609,9 @@
       return multi_parser.output.join('');
     }
 
-    if (typeof define === "function") {
-        // Add support for require.js
-        define(function(require, exports, module) {
-            var js_beautify  = require('./beautify.js').js_beautify;
-            var css_beautify = require('./beautify-css.js').css_beautify;
+    // If we're running a web page and don't have either of the above, add our one global
+    window.html_beautify = function(html_source, options) {
+        return style_html(html_source, options, window.js_beautify, window.css_beautify);
+    };
 
-            exports.html_beautify = function(html_source, options) {
-                return style_html(html_source, options, js_beautify, css_beautify);
-            };
-        });
-    } else if (typeof exports !== "undefined") {
-        // Add support for CommonJS. Just put this file somewhere on your require.paths
-        // and you will be able to `var html_beautify = require("beautify").html_beautify`.
-        var js_beautify  = require('./beautify.js').js_beautify;
-        var css_beautify = require('./beautify-css.js').css_beautify;
-
-        exports.html_beautify = function(html_source, options) {
-            return style_html(html_source, options, js_beautify, css_beautify);
-        };
-    } else if (typeof window !== "undefined") {
-        // If we're running a web page and don't have either of the above, add our one global
-        window.html_beautify = function(html_source, options) {
-            return style_html(html_source, options, window.js_beautify, window.css_beautify);
-        };;
-    }
 }());
