@@ -275,8 +275,12 @@ def has_permission(doctype, ptype="read", doc=None):
 
 		# no valid permission found
 		if match_failed:
+			from utils import cstr
 			key = match_failed.keys()[0]
-			msgprint(_("Not allowed for: ") + key + "=" + match_failed[key])
+			msg = _("Not allowed for: ")
+			for key in match_failed:
+				msg += "\n" + key + " = " + (match_failed[key] or "None")
+			msgprint(msg)
 		return False
 	else:
 		return perms and True or False
