@@ -237,6 +237,9 @@ _f.CodeField.prototype.make_input = function() {
 			field: this
 		});
 	}
+	this.get_value = function() {
+		return this.input.get_value();
+	}
 }
 
 _f.CodeField.prototype.set_value_and_run_trigger = function(value) {
