@@ -34,17 +34,12 @@ def upload():
 	dn = webnotes.form_dict.docname
 	at_id = webnotes.form_dict.at_id
 	file_url = webnotes.form_dict.file_url
-	filename = webnotes.form['filedata'].filename
+	filename = webnotes.form_dict.filename
 	
-	webnotes.response['type'] = 'iframe'
 	if not filename and not file_url:
-		webnotes.response['result']	= """
-		<script type='text/javascript'>
-		window.parent.wn.views.fomrview['%s'].frm.attachments.dialog.hide();
-		window.parent.msgprint("Please upload a file or copy-paste a link (http://...)");
-		</script>""" % dt
-		return
-		
+		webnotes.msgprint(_("Please select a file or url"),
+			raise_exception=True)
+
 	# save
 	if filename:
 		fid, fname = save_uploaded(dt, dn)
@@ -52,24 +47,9 @@ def upload():
 		fid, fname = save_url(file_url, dt, dn)
 
 	if fid:
-		# refesh the form!
-		# with the new modified timestamp
-		webnotes.response['result'] = """
-<script type='text/javascript'>
-window.parent.wn.ui.form.file_upload_done('%(dt)s', '%(dn)s', '%(fid)s', '%(fname)s', '%(at_id)s', '%(mod)s');
-window.parent.wn.views.formview['%(dt)s'].frm.show_doc('%(dn)s');
-</script>
-			""" % {
-				'dt': dt,
-				'dn': dn,
-				'fid': fid,
-				'fname': fname.replace("'", "\\'"),
-				'at_id': at_id,
-				'mod': webnotes.conn.get_value(dt, dn, 'modified')
-			}
+		return fid
 
 def save_uploaded(dt, dn):	
-	webnotes.response['type'] = 'iframe'
 	fname, content = get_uploaded_content()
 	if content:
 		fid = save_file(fname, content, dt, dn)
@@ -92,9 +72,10 @@ def save_url(file_url, dt, dn):
 
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
-	if 'filedata' in webnotes.form:
-		i = webnotes.form['filedata']
-		webnotes.uploaded_filename, webnotes.uploaded_content = cstr(i.filename), i.file.read()
+	if 'filedata' in webnotes.form_dict:
+		import base64
+		webnotes.uploaded_content = base64.b64decode(webnotes.form_dict.filedata)
+		webnotes.uploaded_filename = webnotes.form_dict.filename
 		return webnotes.uploaded_filename, webnotes.uploaded_content
 	else:
 		webnotes.msgprint('No File')
@@ -127,7 +108,7 @@ def save_file(fname, content, dt, dn):
 	f.file_name = fname
 	f.attached_to_doctype = dt
 	f.attached_to_name = dn
-	f.fize_size = file_size
+	f.file_size = file_size
 	f.save(1)
 
 	return f.name

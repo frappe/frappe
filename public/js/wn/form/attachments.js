@@ -114,6 +114,7 @@ wn.ui.form.Attachments = Class.extend({
 			});
 	},
 	new_attachment: function() {
+		var me = this;
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
 				title: wn._('Upload Attachment'),
@@ -132,8 +133,23 @@ wn.ui.form.Attachments = Class.extend({
 				doctype: this.frm.doctype,
 				docname: this.frm.docname
 			},
-			callback: wn.ui.form.file_upload_done
+			callback: function(fileid, filename) {
+				me.add_to_file_list(fileid, filename);
+				me.dialog.hide();
+				me.refresh();
+			}
 		});
+	},
+	add_to_file_list: function(fileid, filename) {
+		var doc = this.frm.doc;
+		if(doc.file_list) {
+			var fl = doc.file_list.split('\n');
+			fl.push(filename + ',' + fileid);
+			doc.file_list = fl.join('\n');
+		} else {
+			doc.file_list = filename + ',' + fileid;
+		}
+		
 	},
 	remove_fileid: function(fileid) {
 		this.frm.doc.file_list = $.map(this.get_filelist(), function(f) {
@@ -141,29 +157,3 @@ wn.ui.form.Attachments = Class.extend({
 		}).join('\n');		
 	}
 });
-
-
-// this function will be called after the upload is done
-// from webnotes.utils.file_manager
-wn.ui.form.file_upload_done = function(doctype, docname, fileid, filename, at_id,
-		new_timestamp) {
-		
-	// add to file_list
-	var doc = locals[doctype][docname];
-	if(doc.file_list) {
-		var fl = doc.file_list.split('\n');
-		fl.push(filename + ',' + fileid);
-		doc.file_list = fl.join('\n');
-	} else {
-		doc.file_list = filename + ',' + fileid;
-	}
-	
-	// update timestamp
-	doc.modified = new_timestamp;
-	
-	// update file_list
-	var frm = wn.views.formview[doctype].frm;
-	frm.attachments.dialog.hide();
-	msgprint(wn._('File Uploaded Sucessfully.'));
-	frm.refresh();
-};
