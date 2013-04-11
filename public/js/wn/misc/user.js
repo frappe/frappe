@@ -54,17 +54,18 @@ $.extend(wn.user, {
 				}
 			});
 		}
+		
+		if(!modules_list || !modules_list.length) {
+			// all modules
+			modules_list = keys(wn.modules).sort();
+		}
+		
 		// filter hidden modules
 		if(wn.boot.hidden_modules && modules_list) {
 			var hidden_list = JSON.parse(wn.boot.hidden_modules);
 			var modules_list = $.map(modules_list, function(m) {
 				if(hidden_list.indexOf(m)==-1) return m; else return null;
 			});
-		}	
-
-		if(!modules_list || !modules_list.length) {
-			// all modules
-			modules_list = keys(wn.modules).sort();
 		}
 
 		// hide based on permission
