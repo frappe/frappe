@@ -62,7 +62,7 @@ wn.upload = {
 					if(r.exc) {
 						msgprint("There were errors in uploading.");
 					}
-					callback(r.message, fileobj.name);
+					callback(r.message, fileobj.name, r);
 				}
 			});
 		}

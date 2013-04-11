@@ -41,7 +41,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	max_reached: function() {
 		// no of attachments
-		var n = this.frm.doc.file_list ? this.frm.doc.file_list.split('\n').length : 0;
+		var n = keys(this.get_file_list()).length;
 		
 		// button if the number of attachments is less than max
 		if(n < this.frm.meta.max_attachments || !this.frm.meta.max_attachments) {
@@ -50,7 +50,8 @@ wn.ui.form.Attachments = Class.extend({
 		return true;
 	},
 	refresh: function() {
-		if(this.frm.doc.__islocal || !this.frm.meta.allow_attach) {
+		var doc = this.frm.doc;
+		if(doc.__islocal || !this.frm.meta.allow_attach) {
 			this.parent.toggle(false);
 			return;
 		}
@@ -59,20 +60,19 @@ wn.ui.form.Attachments = Class.extend({
 		
 		this.$list.empty();
 
-		var fl = this.get_filelist();
+		var file_list = this.get_file_list();
+		var file_names = keys(file_list).sort();
 
 		// add attachment objects
-		for(var i=0; i<fl.length; i++) {
-			this.add_attachment(fl[i]);
+		for(var i=0; i<file_names.length; i++) {
+			this.add_attachment(file_names[i], file_list);
 		}
 	},
-	get_filelist: function() {
- 		return this.frm.doc.file_list ? this.frm.doc.file_list.split('\n') : [];
+	get_file_list: function() {
+ 		return this.frm.doc.file_list ? JSON.parse(this.frm.doc.file_list) : {};
 	},
-	add_attachment: function(fileinfo) {
-		fileinfo = fileinfo.split(',');
-		var filename = fileinfo[0];
-		var fileid = fileinfo[1];
+	add_attachment: function(filename, file_list) {
+		var fileid = file_list[filename];
 		
 		var me = this;
 		$(repl('<div class="alert alert-info"><span style="display: inline-block; width: 90%;\
@@ -125,7 +125,7 @@ wn.ui.form.Attachments = Class.extend({
 		}
 		this.dialog.body.innerHTML = '';
 		this.dialog.show();
-			
+
 		wn.upload.make({
 			parent: this.dialog.body,
 			args: {
@@ -133,27 +133,31 @@ wn.ui.form.Attachments = Class.extend({
 				doctype: this.frm.doctype,
 				docname: this.frm.docname
 			},
-			callback: function(fileid, filename) {
-				me.add_to_file_list(fileid, filename);
-				me.dialog.hide();
-				me.refresh();
+			callback: function(fileid, filename, r) {
+				me.update_attachment(fileid, filename, r);
 			}
 		});
 	},
+	update_attachment: function(fileid, filename, r) {
+		this.dialog && this.dialog.hide();
+		if(fileid) {
+			this.add_to_file_list(fileid, filename);
+			this.refresh();
+		}
+	},
 	add_to_file_list: function(fileid, filename) {
 		var doc = this.frm.doc;
-		if(doc.file_list) {
-			var fl = doc.file_list.split('\n');
-			fl.push(filename + ',' + fileid);
-			doc.file_list = fl.join('\n');
-		} else {
-			doc.file_list = filename + ',' + fileid;
-		}
-		
+		var file_list = doc.file_list ? this.get_file_list() : {};
+		file_list[filename] = fileid;
+		doc.file_list = JSON.stringify(file_list);
 	},
 	remove_fileid: function(fileid) {
-		this.frm.doc.file_list = $.map(this.get_filelist(), function(f) {
-			if(f.split(',')[1]!=fileid) return f;
-		}).join('\n');		
+		var file_list = this.get_file_list();
+		var new_file_list = {};
+		$.each(file_list, function(key, value) {
+			if(value!=fileid)
+				new_file_list[key] = value;
+		});
+		this.frm.doc.file_list = JSON.stringify(new_file_list);
 	}
 });

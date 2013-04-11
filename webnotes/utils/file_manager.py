@@ -62,13 +62,15 @@ def save_url(file_url, dt, dn):
 		webnotes.msgprint("URL must start with 'http://' or 'https://'")
 		return None, None
 		
-	f = webnotes.doc("File Data")
-	f.file_url = file_url
-	f.file_name = file_url.split('/')[-1]
-	f.attached_to_doctype = dt
-	f.attached_to_name = dn
-	f.save(new=1)
-	return f.name, file_url
+	f = webnotes.bean({
+		"doctype": "File Data",
+		"file_url": file_url,
+		"attached_to_doctype": dt,
+		"attached_to_name": dn
+	})
+	f.ignore_permissions = True
+	f.insert();
+	return f.doc.name, file_url
 
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
@@ -104,14 +106,17 @@ def save_file(fname, content, dt, dn):
 		# rename new file
 		os.rename(temp_fname, os.path.join(files_path, fname))
 
-	f = webnotes.doc('File Data')
-	f.file_name = fname
-	f.attached_to_doctype = dt
-	f.attached_to_name = dn
-	f.file_size = file_size
-	f.save(1)
+	f = webnotes.bean({
+		"doctype": "File Data",
+		"file_name": fname,
+		"attached_to_doctype": dt,
+		"attached_to_name": dn,
+		"file_size": file_size
+	})
+	f.ignore_permissions = True
+	f.insert();
 
-	return f.name
+	return f.doc.name
 
 def get_new_fname_based_on_version(files_path, fname):
 	# new version of the file is being uploaded, add a revision number?

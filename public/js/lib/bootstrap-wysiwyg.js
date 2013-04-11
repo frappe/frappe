@@ -6,12 +6,18 @@ jQuery(function ($) {
 	var readFileIntoDataUrl = function (fileInfo) {
 		var loader = $.Deferred(),
 			fReader = new FileReader();
-		fReader.onload = function (e) {
-			loader.resolve(e.target.result);
-		};
-		fReader.onerror = loader.reject;
-		fReader.onprogress = loader.notify;
-		fReader.readAsDataURL(fileInfo);
+
+		wn.upload.upload_file(fileInfo, {
+			from_form: 1,
+			doctype: cur_frm.doctype, 
+			docname: cur_frm.docname
+		}, function(fileid, filename, r) {
+			if(!r.exc) {
+				if(fileid) 
+					cur_frm.attachments.update_attachment(fileid, filename);
+				loader.resolve("files/" + filename);
+			}
+		});
 		return loader.promise();
 	};
 	$.fn.cleanHtml = function () {

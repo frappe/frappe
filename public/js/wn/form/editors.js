@@ -51,7 +51,10 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	      <div class="btn-group">\
 	        <a class="btn" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>\
 	        <a class="btn" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
-	        <a class="btn" data-edit="justifyfull" title="Justify (Ctrl/Cmd+J)"><i class="icon-align-justify"></i></a>\
+	      </div>\
+	      <div class="btn-group">\
+	        <a class="btn" title="Insert picture (or just drag & drop)" id="pictureBtn-'+this.myid+'"><i class="icon-picture"></i></a>\
+	        <input type="file" data-role="magic-overlay" data-target="#pictureBtn-'+this.myid+'" data-edit="insertImage" />\
 	      </div>\
 	      <div class="btn-group">\
 	        <a class="btn" data-edit="insertHorizontalRule" title="Horizontal Line Break">-</a>\
@@ -105,11 +108,12 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 				this.value='';$(this).change();
 			});
 
+		// magic-overlay
 		this.$parent.find('[data-role=magic-overlay]').each(function () { 
 			var overlay = $(this), target = $(overlay.data('target')); 
 			overlay.css('opacity', 0).css('position', 'absolute')
 				.offset(target.offset())
-				.width(target.outerWidth()).height(target.outerHeight());
+				.width(40).height(30);
 		});
 		
 		this.$editor

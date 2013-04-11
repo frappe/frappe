@@ -103,7 +103,12 @@ def uploadfile():
 
 	try:
 		if webnotes.form_dict.get('from_form'):
-			ret = webnotes.utils.file_manager.upload()
+			try:
+				ret = webnotes.utils.file_manager.upload()
+			except webnotes.DuplicateEntryError, e:
+				# ignore pass
+				ret = None
+				webnotes.conn.rollback()
 		else:
 			if webnotes.form_dict.get('method'):
 				ret = webnotes.get_method(webnotes.form_dict.method)()
