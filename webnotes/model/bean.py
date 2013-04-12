@@ -34,6 +34,7 @@ from webnotes.utils import cint, cstr
 from webnotes.model.doc import Document
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
+class BeanPermissionError(webnotes.ValidationError): pass
 
 class Bean:
 	"""
@@ -334,7 +335,7 @@ class Bean:
 
 	def no_permission_to(self, ptype):
 		webnotes.msgprint(("%s (%s): " % (self.doc.name, _(self.doc.doctype))) + \
-			_("No Permission to ") + ptype, raise_exception=True)
+			_("No Permission to ") + ptype, raise_exception=BeanPermissionError)
 			
 	def check_no_back_links_exist(self):
 		from webnotes.model.utils import check_if_doc_is_linked
