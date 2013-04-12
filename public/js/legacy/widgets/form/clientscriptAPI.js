@@ -219,7 +219,7 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 }
 
 _f.Frm.prototype.get_files = function() {
-	return cur_frm.attachments.get_file_list().keys().sort();
+	return keys(cur_frm.attachments.get_file_list()).sort();
 }
 
 _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
