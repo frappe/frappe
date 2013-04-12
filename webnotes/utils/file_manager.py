@@ -98,7 +98,7 @@ def save_file(fname, content, dt, dn):
 			os.remove(temp_fname)
 		else:
 			# get_new_version name
-			fname = get_new_fname_based_on_version(file_path, fname)
+			fname = get_new_fname_based_on_version(files_path, fname)
 			
 			# rename
 			os.rename(temp_fname, os.path.join(files_path, fname))
