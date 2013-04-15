@@ -275,9 +275,11 @@ def has_permission(doctype, ptype="read", doc=None):
 
 		# no valid permission found
 		if match_failed:
+			doctypelist = get_doctype(doctype)
 			msg = _("Not allowed for: ")
 			for key in match_failed:
-				msg += "\n" + key + " = " + (match_failed[key] or "None")
+				msg += "\n" + (doctypelist.get_field(key) and doctypelist.get_label(key) or key) \
+					+ " = " + (match_failed[key] or "None")
 			msgprint(msg)
 		return False
 	else:

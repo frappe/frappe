@@ -47,7 +47,7 @@ class Profile:
 	def get_roles(self):
 		"""get list of roles"""
 		if not self.roles:
-			self.roles = webnotes.get_roles()
+			self.roles = webnotes.get_roles(self.name)
 		return self.roles
 	
 	def build_doctype_map(self):

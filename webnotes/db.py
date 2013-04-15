@@ -260,18 +260,28 @@ class Database:
 				filter's key is passed by map function
 				build conditions like:
 					* ifnull(`fieldname`, default_value) = %(fieldname)s
-					* `fieldname` = %(fieldname)s
+					* `fieldname` [=, !=, >, >=, <, <=] %(fieldname)s
 			"""
+			_operator = "="
+			value = filters.get(key)
+			if isinstance(value, (list, tuple)):
+				_operator = value[0]
+				filters[key] = value[1]
+			
+			if _operator not in ["=", "!=", ">", ">=", "<", "<=", "like"]:
+				_operator = "="
+			
 			if "[" in key:
 				split_key = key.split("[")
-				return "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") = %(" + key + ")s"
+				return "ifnull(`" + split_key[0] + "`, " + split_key[1][:-1] + ") " \
+					+ _operator + " %(" + key + ")s"
 			else:
-				return "`" + key + "` = %(" + key + ")s"
+				return "`" + key + "` " + _operator + " %(" + key + ")s"
 
 		if isinstance(filters, basestring):
 			filters = { "name": filters }
 		conditions = map(_build_condition, filters)
-
+		
 		return " and ".join(conditions), filters
 
 	def get(self, doctype, filters=None, as_dict=True):
@@ -282,7 +292,8 @@ class Database:
 		For Single DocType, let filters be = None"""
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
-		return ret and (len(ret[0]) > 1 and ret[0] or ret[0][0]) or None
+		
+		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
 		
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		fields = fieldname
