@@ -52,7 +52,6 @@ def compress(doclist):
 	   Compress a doclist before sending it to the client side. (Internally used by the request handler)
 
 	"""
-	from webnotes.model.doc import Document
 	docs = [isinstance(d, Document) and d.fields or d for d in doclist]
 
 	kl, vl = {}, []
@@ -99,7 +98,6 @@ def copy_doclist(doclist, no_copy = []):
       Save & return a copy of the given doclist
       Pass fields that are not to be copied in `no_copy`
 	"""
-	from webnotes.model.doc import Document
 
 	cl = []
 
@@ -208,8 +206,6 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 	"""
 		Raises excption if the given doc(dt, dn) is linked in another record.
 	"""
-	sql = webnotes.conn.sql
-
 	from webnotes.model.rename_doc import get_link_fields
 	link_fields = get_link_fields(dt)
 	link_fields = [[lf['parent'], lf['fieldname']] for lf in link_fields]
@@ -218,12 +214,13 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 		link_dt, link_field = l
 
 		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype",
-			"docstatus"])
+			"docstatus"], as_dict=True)
 		
-		if (method=="Delete" and item) or (method=="Cancel" and item and item[3]==1):
+		if item and item.parent != dn and (method=="Delete" or 
+				(method=="Cancel" and item.docstatus==1)):
 			webnotes.msgprint(method + " " + _("Error") + ":"+\
-				("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % (item[1] or item[0], 
-					item[1] and item[2] or link_dt),
+				("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % 
+				(item.parent or item.name, item.parent and item.parenttype or link_dt),
 				raise_exception=LinkExistsError)
 
 def round_floats_in_doc(doc, precision_map):
