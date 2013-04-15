@@ -1,9 +1,14 @@
+.appframe {
+	-moz-box-shadow: 0px 0px 3px rgba(0,0,0,0.9);
+	-webkit-box-shadow: 0px 0px 3px rgba(0,0,0,0.9);
+	box-shadow: 0px 0px 3px rgba(0,0,0,0.9);
+	background-color: #fff;
+	border-radius: 5px;
+}
 
 div.appframe-titlebar {
-	padding: 6px; 
-	padding-left: 13px;
+	padding: 6px 0px; 
 	background: #dfdfdf; /* Old browsers */
-	height: 28px;
 	color: #555;
 	border-bottom: 1px solid #c2c2c2;
 	vertical-align: middle;
@@ -11,31 +16,28 @@ div.appframe-titlebar {
 }
 
 .appframe-center {
-	display: inline-block;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	width: 57%;
-	float:left;
+	text-align: center;
 }
 
 .appframe-right {
-	display: none;
+	text-align: right;
 	overflow: hidden;
 	text-overflow: ellipsis;
 	white-space: nowrap;
-	float: right;
-	width: 13%;
 	margin-top: -1px;
 }
 
-span.appframe-breadcrumb { 
-	display: inline-block;
-	margin: 5px 0px 0px 0px; 
-	padding: 0px;
-	float: left;
+.appframe-right .close {
+	margin: 5px 12px 0px 15px;
 }
-span.appframe-breadcrumb span { 
+
+.appframe-breadcrumb { 
+	padding-top: 4px;
+}
+.appframe-breadcrumb span { 
 	display: inline-block;
 	padding: 4px 19px 0px 0px;
 	margin-right: 13px;
@@ -45,7 +47,11 @@ span.appframe-breadcrumb span {
 	font-size: 20px;
 }
 
-span.appframe-breadcrumb span:last-child { 
+.appframe-breadcrumb span:first-child { 
+	margin-left: 15px;
+}
+
+.appframe-breadcrumb span:last-child { 
 	background: none;
 	margin-right: 0px;
 	padding-right: 10px;
@@ -59,7 +65,6 @@ span.appframe-breadcrumb span:last-child {
 .appframe-breadcrumb span a:hover {
 	color: #999;
 }
-
 
 .appframe-title {
 	font-size: 150%;
@@ -78,18 +83,12 @@ div.appframe-toolbar {
 
 div.appframe-titlebar .label {
 	display: inline-block;
-	margin-left: 14px;
-	margin-bottom: 8px;
 }
 
 div.appframe-titlebar .avatar {
 	margin-top: -8px;
 	margin-left: 9px;
 	margin-right: -6px;
-}
-
-div.appframe-titlebar .close {
-	margin: 0px 12px;
 }
 
 .appframe-toolbar select, .appframe-toolbar input {
@@ -120,9 +119,7 @@ span.appframe-tab span {
 div.ripped-paper-border {
 	background: url('../lib/images/ui/ripped-border.png') top repeat-x;
 	position: absolute;
-	margin-left: -15px;
 	margin-top: -25px;
-	padding-right: 30px;
 	height: 15px;
 }
 

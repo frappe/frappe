@@ -142,7 +142,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					new wn.widgets.form.sidebar.Comments(wrapper, me, me.form.doctype, me.form.docname);
 				},
 				display: function() { 
-					$(cur_frm.page_layout.body).find(".latest-comment").toggle(false);
+					$(cur_frm.body).find(".latest-comment").toggle(false);
 					return !me.form.doc.__islocal;
 				}
 			},
@@ -161,7 +161,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	}
 	
 	this.refresh = function() {
-		var parent = this.form.page_layout.sidebar_area;
+		var parent = this.form.sidebar_area;
 		if(!this.sidebar) {
 			//$y(parent, {paddingTop:'37px'})
 			this.sidebar = new wn.widgets.PageSidebar(parent, this.opts);

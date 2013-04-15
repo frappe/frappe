@@ -39,18 +39,25 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse">\
 			<div class="navbar-inner">\
 			<div class="container">\
+				<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">\
+					<span class="icon-bar"></span>\
+					<span class="icon-bar"></span>\
+					<span class="icon-bar"></span>\
+				</button>\
 				<a class="brand"></a>\
-				<ul class="nav">\
-				</ul>\
-				<img src="lib/images/ui/spinner.gif" id="spinner"/>\
-				<ul class="nav pull-right">\
-					<li class="dropdown">\
-						<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-							onclick="return false;" id="toolbar-user-link"></a>\
-						<ul class="dropdown-menu" id="toolbar-user">\
-						</ul>\
-					</li>\
-				</ul>\
+				<div class="nav-collapse collapse">\
+					<ul class="nav">\
+					</ul>\
+					<img src="lib/images/ui/spinner.gif" id="spinner"/>\
+					<ul class="nav pull-right">\
+						<li class="dropdown">\
+							<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+								onclick="return false;" id="toolbar-user-link"></a>\
+							<ul class="dropdown-menu" id="toolbar-user">\
+							</ul>\
+						</li>\
+					</ul>\
+				</div>\
 			</div>\
 			</div>\
 			</div>');		

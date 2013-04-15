@@ -25,6 +25,7 @@
 			"lib/public/js/lib/slickgrid/slick-default-theme.css",
 
 			"lib/public/css/bootstrap.css",
+			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
 			"lib/public/css/legacy/body.css",
 			"lib/public/css/legacy/forms.css",

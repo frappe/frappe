@@ -29,7 +29,7 @@
 
 _f.FrmHeader = Class.extend({
 	init: function(parent, frm) {
-		this.appframe = new wn.ui.AppFrame(parent, null, frm.meta.module)
+		this.appframe = frm.appframe;
 		this.$w = this.appframe.$w;
 		this.frm = frm;
 		

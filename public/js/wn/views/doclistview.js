@@ -43,27 +43,26 @@ wn.views.DocListView = wn.ui.Listing.extend({
 
 		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
 		
-		this.$page.html('<div class="layout-wrapper layout-wrapper-background">\
-			<div class="appframe-area"></div>\
-			<div class="layout-main-section">\
-				<div class="wnlist-area" style="margin-top: -15px;">\
-					<div class="help">'+wn._('Loading')+'...</div></div>\
-			</div>\
-			<div class="layout-side-section">\
-				<div class="show-docstatus hide section">\
-					<div class="section-head">Show</div>\
-					<div><input data-docstatus="0" type="checkbox" \
-						checked="checked" /> '+wn._('Drafts')+'</div>\
-					<div><input data-docstatus="1" type="checkbox" \
-						checked="checked" /> '+wn._('Submitted')+'</div>\
-					<div><input data-docstatus="2" type="checkbox" \
-						/> '+wn._('Cancelled')+'</div>\
-				</div>\
-			</div>\
-			<div style="clear: both"></div>\
-		</div>');
-				
-		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
+		wn.ui.make_app_page({
+			parent: page
+		})
+		
+		$('<div class="wnlist-area">\
+			<div class="help">'+wn._('Loading')+'...</div></div>')
+			.appendTo(this.$page.find(".layout-main-section"));
+			
+		$('<div class="show-docstatus hide section">\
+			<div class="section-head">Show</div>\
+			<div><input data-docstatus="0" type="checkbox" \
+				checked="checked" /> '+wn._('Drafts')+'</div>\
+			<div><input data-docstatus="1" type="checkbox" \
+				checked="checked" /> '+wn._('Submitted')+'</div>\
+			<div><input data-docstatus="2" type="checkbox" \
+				/> '+wn._('Cancelled')+'</div>\
+		</div>')
+			.appendTo(this.$page.find(".layout-side-section"));
+								
+		this.appframe = page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		
 		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
@@ -185,10 +184,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		return no_result_message;
 	},
 	render_row: function(row, data) {
-		$(row).css({
-			"margin-left": "-15px",
-			"margin-right": "-15px"
-		});
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
 	},

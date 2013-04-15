@@ -7,13 +7,13 @@ wn.provide('wn.views');
 
 wn.views.Container = Class.extend({
 	init: function() {
-		this.container = $('#body_div').get(0);
+		this.container = $('#body_div').addClass("container").get(0);
 		this.page = null; // current page
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;		
 	},
 	add_page: function(label, onshow, onhide) {
-		var page = $('<div class="content"></div>')
+		var page = $('<div class="content row"></div>')
 			.attr('id', "page-" + label)
 			.toggle(false)
 			.appendTo(this.container).get(0);

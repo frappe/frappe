@@ -50,7 +50,7 @@ wn.ui.form.States = Class.extend({
 				</ul>\
 			</div>\
 			<button class="btn btn-help">?</button>\
-		</div>').appendTo(this.frm.page_layout.body_header);
+		</div>').appendTo(this.frm.body_header);
 		this.$wrapper.toggle(false);
 		this.setup_help();
 	},

@@ -7,18 +7,21 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div></div>').prependTo(parent);
+		this.$w = $('<div class="span12"></div>').prependTo(parent);
 				
 		this.$titlebar = $('<div class="appframe-titlebar">\
-			<span class="appframe-breadcrumb">\
-			</span>\
-			<span class="appframe-center">\
-				<span class="appframe-title"></span>\
-				<span class="appframe-subject"></span>\
-			</span>\
-			<span class="close" style="margin-top: 5px; margin-right: 7px;">&times;</span>\
-			<span class="appframe-right btn-group">\
-			</span>\
+			<div class="row">\
+				<span class="appframe-breadcrumb span3">\
+				</span>\
+				<span class="appframe-center span6">\
+					<span class="appframe-title"></span>\
+					<span class="appframe-subject"></span>\
+				</span>\
+				<span class="appframe-right span3">\
+					<span class="btn-group"></span>\
+					<span class="close">&times;</span>\
+				</span>\
+			</div>\
 		</div>').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {
@@ -114,10 +117,7 @@ wn.ui.AppFrame = Class.extend({
 	
 	set_views: function(views, active_view) {
 		var me = this;
-		$right = this.$w.find(".appframe-right").css({
-			"display":"inline-block",
-			"width": (39 * views.length) + "px"
-		});
+		$right = this.$w.find(".appframe-right .btn-group");
 		$.each(views, function(i, e) {
 			var btn = $(repl('<button class="btn" data-route="%(route)s">\
 				<i class="%(icon)s"></i></button>', e))
@@ -212,17 +212,18 @@ wn.ui.AppFrame = Class.extend({
 
 wn.ui.make_app_page = function(opts) {
 	if(opts.single_column) {
-		$(opts.parent).html('<div class="layout-wrapper layout-wrapper-appframe">\
-			<div class="layout-appframe"></div>\
+		$('<div class="appframe span12">\
+			<div class="layout-appframe row"></div>\
 			<div class="layout-main"></div>\
-		</div>');			
+		</div>').appendTo(opts.parent);
 	} else {
-		$(opts.parent).html('<div class="layout-wrapper layout-wrapper-background">\
-			<div class="layout-appframe"></div>\
-			<div class="layout-main-section"></div>\
-			<div class="layout-side-section"></div>\
-			<div class="clear"></div>\
-		</div>');			
+		$('<div class="appframe span12">\
+			<div class="layout-appframe row"></div>\
+			<div class="row">\
+				<div class="layout-main-section span9"></div>\
+				<div class="layout-side-section span3"></div>\
+			</div>\
+		</div>').appendTo(opts.parent);
 	}
 	opts.parent.appframe = new wn.ui.AppFrame($(opts.parent).find('.layout-appframe'));
 	if(opts.set_document_title!==undefined)

@@ -5,7 +5,8 @@ html {
 
 body {	
 	margin: 0px;
-	padding: 0px;
+	padding-top: 70px;
+	padding-bottom: 50px;
 	font-size: 14px;
 	color: #000;
 	background-color: #eee;
@@ -52,14 +53,7 @@ div.comment { color: #444; }
 
 div#body_div {
 	padding-right: 7px;
-	padding-top: 70px;
-	padding-bottom: 50px;
 	min-height: 400px;
-}
-
-.content {
-	margin: auto;
-	width: 900px;
 }
 
 .background-fade-in {
@@ -67,32 +61,6 @@ div#body_div {
     -moz-transition: background 1s ease-in;
     -o-transition: background 1s ease-in;
     transition: background 1s ease-in;
-}
-
-header .container {
-	width: 900px;
-	margin: auto;
-}
-
-@media (max-width: 1200px) {
-	header .container, .content {
-		width: 900px;
-	}
-}
-
-@media (min-width: 1200px) and (max-width: 1599px) {
-	header .container, .content {
-		width: 1100px;
-	}
-}
-
-@media (min-width: 1600px) {
-	header .container, .content {
-		width: 1100px;
-	}
-	div#body_div {
-		min-height: 900px;
-	}
 }
 
 div.no_script {

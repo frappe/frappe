@@ -25,15 +25,13 @@
 	+ this.parent (either FormContainer or Dialog)
  		+ this.wrapper
  			+ this.content
-				+ wn.PageLayout	(this.page_layout)
-				+ this.wrapper
-					+ this.wtab (table)
-						+ this.main
-							+ this.head
-							+ this.body
-								+ this.layout
-								+ this.footer
-						+ this.sidebar
+				+ this.form_wrapper
+					+ this.main
+						+ this.head
+						+ this.body
+							+ this.layout
+							+ this.footer
+					+ this.sidebar
 				+ this.print_wrapper
 					+ this.head
 */
@@ -163,24 +161,33 @@ _f.Frm.prototype.onhide = function() {
 }
 
 _f.Frm.prototype.setup_std_layout = function() {
-	this.page_layout = new wn.PageLayout({
-		parent: this.wrapper,
-		main_width: (this.meta.in_dialog && !this.in_form) ? '100%' : '75%',
-		sidebar_width: (this.meta.in_dialog && !this.in_form) ? '0%' : '25%'
-	})	
+	this.form_wrapper = $("<div>").appendTo(this.parent).get(0);
+	wn.ui.make_app_page({
+		parent: this.form_wrapper
+	});
+	$parent = $(this.form_wrapper);
+	this.head = $parent.find(".layout-appframe").get(0);
+	this.main = $parent.find(".layout-main-section").get(0);
+	this.sidebar_area = $parent.find(".layout-side-section").get(0);
+	this.appframe = this.form_wrapper.appframe;
+	this.body_header	= $a(this.main, 'div');
+	this.body 			= $a(this.main, 'div');
+	this.footer 		= $a(this.main, 'div');
+
+	if(this.heading) {
+		this.page_head = new PageHeader(this.head, this);
+	}
 
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
 	
 	// layout
-	this.layout = new Layout(this.page_layout.body, '100%');
+	this.layout = new Layout(this.body, '100%');
 	
 	// sidebar
 	if(this.meta.in_dialog && !this.in_form) {
 		// hide sidebar
-		$(this.page_layout.wrapper).removeClass('layout-wrapper-background');
-		$(this.page_layout.main).removeClass('layout-main-section');
-		$(this.page_layout.sidebar_area).toggle(false);
+		$(this.sidebar_area).toggle(false);
 	} else {
 		// module link
 		this.setup_sidebar();
@@ -196,7 +203,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 		$('<div style="font-size: 21px; color: #aaa; float: right;\
 			margin-top: -5px; margin-right: -5px; z-index: 5;">' 
 			+ wn._(this.doctype) + '</div>')
-			.prependTo(this.page_layout.main);
+			.prependTo(this.main);
 	}
 	
 	// footer
@@ -210,7 +217,7 @@ _f.Frm.prototype.setup_std_layout = function() {
 _f.Frm.prototype.setup_header = function() {
 	// header - no headers for tables and guests
 	if(!(this.meta.istable || (this.meta.in_dialog && !this.in_form))) 
-		this.frm_head = new _f.FrmHeader(this.page_layout.head, this);
+		this.frm_head = new _f.FrmHeader(this.head, this);
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -296,31 +303,31 @@ _f.Frm.prototype.setup_footer = function() {
 	var me = this;
 	
 	// footer toolbar
-	var f = this.page_layout.footer;
+	var f = this.footer;
 
 	// save buttom
-	f.save_area = $a(this.page_layout.footer,'div','',{display:'none', marginTop:'11px'});
-	f.help_area = $a(this.page_layout.footer,'div');
+	f.save_area = $a(this.footer,'div','',{display:'none', marginTop:'11px'});
+	f.help_area = $a(this.footer,'div');
 
 	var b = $("<button class='btn btn-info'><i class='icon-save'></i> Save</button>")
 		.click(function() { me.save("Save", null, me); }).appendTo(f.save_area);
 	
 	// show / hide save
 	f.show_save = function() {
-		$ds(me.page_layout.footer.save_area);
+		$ds(me.footer.save_area);
 	}
 
 	f.hide_save = function() {
-		$dh(me.page_layout.footer.save_area);
+		$dh(me.footer.save_area);
 	}
 }
 
 _f.Frm.prototype.set_intro = function(txt) {
-	wn.utils.set_intro(this, this.page_layout.body, txt);
+	wn.utils.set_intro(this, this.body, txt);
 }
 
 _f.Frm.prototype.set_footnote = function(txt) {
-	wn.utils.set_footnote(this, this.page_layout.body, txt);
+	wn.utils.set_footnote(this, this.body, txt);
 }
 
 
@@ -396,7 +403,7 @@ _f.Frm.prototype.setup_client_script = function() {
 
 _f.Frm.prototype.refresh_print_layout = function() {
 	$ds(this.print_wrapper);
-	$dh(this.page_layout.wrapper);
+	$dh(this.form_wrapper);
 
 	var me = this;
 	var print_callback = function(print_html) {
@@ -526,7 +533,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		if(this.view_is_edit || (!this.view_is_edit && this.meta.istable)) {
 			if(this.print_wrapper) {
 				$dh(this.print_wrapper);
-				$ds(this.page_layout.wrapper);
+				$ds(this.form_wrapper);
 			}
 
 			
@@ -564,7 +571,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			// focus on first input
 			
 			if(this.doc.docstatus==0) {
-				var first = $(this.wrapper).find('.form-layout-row :input:first');
+				var first = $(this.form_wrapper).find('.form-layout-row :input:first');
 				if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 					first.focus();
 				}
@@ -583,7 +590,7 @@ _f.Frm.prototype.refresh = function(docname) {
 }
 
 _f.Frm.prototype.refresh_footer = function() {
-	var f = this.page_layout.footer;
+	var f = this.footer;
 	if(f.save_area) {
 		// if save button is there in the header
 		if(this.frm_head && this.frm_head.appframe.toolbar
@@ -1003,7 +1010,7 @@ _f.Frm.prototype.amend_doc = function() {
 _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	cur_frm.save_disabled = true;
-	cur_frm.page_layout.footer.hide_save();
+	cur_frm.footer.hide_save();
 	cur_frm.frm_head.appframe.buttons.Save.remove();
 }
 
