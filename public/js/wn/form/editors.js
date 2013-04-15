@@ -132,7 +132,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		this.$parent.find(".btn-html").click(function() {
 			if($(this).attr("disabled")=="disabled") return;
 			wn.require("lib/js/lib/beautify-html.js");
-			me.$textarea.val(html_beautify(me.$editor.html()));
+			me.$textarea.val(html_beautify(me.$editor.cleanHtml()));
 			me.$parent.find(".for-rich-text").toggle(false);
 			me.$parent.find(".for-html").toggle(true);
 			me.$parent.find(".btn-html").addClass("btn-info").attr("disabled", "disabled");
@@ -160,7 +160,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	},
 	get_value: function() {
 		if(this.current_editor==this.$editor)
-			return this.$editor.html();
+			return this.$editor.cleanHtml();
 		else
 			return this.$textarea.val();
 	}
