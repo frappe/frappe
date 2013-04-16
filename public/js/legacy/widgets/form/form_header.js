@@ -47,14 +47,15 @@ _f.FrmHeader = Class.extend({
 		this.appframe.add_breadcrumb("icon-file");
 	},
 	refresh: function() {
+		var me = this;
 		var title = this.frm.docname;
 		if(title.length > 30) {
 			title = title.substr(0,30) + "...";
 		}
 		this.appframe.set_title(title, wn._(this.frm.docname));
-		this.refresh_labels();
-		this.refresh_toolbar();
-		this.refresh_timestamps();
+		this.appframe.set_sub_title(this.frm.doc.__islocal ? "Not Saved" 
+			: "Last Updated on " + dateutil.str_to_user(this.frm.doc.modified) + " by " + this.frm.doc.modified_by)
+		//this.refresh_timestamps();
 	},
 	refresh_timestamps: function() {
 		this.$w.find(".avatar").remove();
@@ -89,114 +90,6 @@ _f.FrmHeader = Class.extend({
 		
 		this.$w.find('.avatar img').centerImage();
 	},	
-	refresh_labels: function() {
-		var me = this;
-		this.frm.doc = wn.model.get_doc(this.frm.doc.doctype, this.frm.doc.name);
-		var labinfo = {
-			0: [wn._('Saved'), 'label-success'],
-			1: [wn._('Submitted'), 'label-info'],
-			2: [wn._('Cancelled'), 'label-important']
-		}[cint(this.frm.doc.docstatus)];
-		
-		if(labinfo[0]==wn._('Saved') && this.frm.meta.is_submittable) {
-			labinfo[0]=wn._('Saved, to Submit');
-		}
-		
-		if(this.frm.doc.__unsaved || this.frm.doc.__islocal) {
-			labinfo[0] = wn._('Not Saved');
-			labinfo[1] = 'label-warning'
-		}
-
-		this.set_label(labinfo);
-		
-		// show update button if unsaved
-		if(this.frm.doc.__unsaved && cint(this.frm.doc.docstatus)==1 && this.frm.perm[0][SUBMIT]) {
-			this.appframe.add_button('Update', function() { 
-				me.frm.save('Update', null, this);
-			}, '').html(wn._('Update'))
-		}
-		
-		this.set_primary_button();
-	},
-	set_label: function(labinfo) {
-		this.$w.find('.label').remove();
-		if(this.frm.meta.hide_toolbar || this.frm.save_disabled) 
-			return;
-		$(repl('<span class="label %(lab_class)s">\
-			%(lab_status)s</span>', {
-				lab_status: labinfo[0],
-				lab_class: labinfo[1]
-			})).appendTo(this.$w.find('.appframe-subject'))
-	},
-	refresh_toolbar: function() {
-		// clear
-		var me = this;
-		this.appframe.clear_buttons();
-
-		if(this.frm.meta.hide_toolbar) {
-			this.frm.save_disabled = true;
-			return;
-		}
-		
-		var p = this.frm.perm[0];
-
-		// Edit
-		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal) {
-			this.appframe.add_button('Print View', function() { 
-				me.frm.last_view_is_edit[me.frm.docname] = 0;				
-				me.frm.refresh(); }, 'icon-print' ).html(wn._('Print View'));	
-		}
-
-		var docstatus = cint(this.frm.doc.docstatus);
-		
-		// Save
-		if(docstatus==0 && p[WRITE] && !this.read_only) {
-			this.appframe.add_button('Save', function() { 
-				me.frm.save('Save', null, this);}, 'icon-save');
-			this.appframe.buttons['Save'].addClass("btn-save")
-				.html("<i class='icon-save'></i> "+wn._("Save"));
-		}
-
-		// Submit
-		if(!wn.model.get("Workflow", {document_type: me.frm.doctype}).length) {
-			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal))
-				this.appframe.add_button('Submit', function() { 
-					me.frm.savesubmit(this);}, 'icon-lock').html(wn._('Submit'));
-
-			// Cancel
-			if(docstatus==1  && p[CANCEL])
-				this.appframe.add_button('Cancel', function() { 
-					me.frm.savecancel(this) }, 'icon-remove').html(wn._('Cancel'));
-
-			// Amend
-			if(docstatus==2  && p[AMEND])
-				this.appframe.add_button('Amend', function() { 
-					me.frm.amend_doc() }, 'icon-pencil').html(wn._('Amend'));
-		}
-		this.set_primary_button();
-	},
-	set_primary_button: function() {
-		if(!this.appframe.toolbar)
-			return;
-
-		var buttons = this.appframe.buttons;
-
-		// highlight save
-		this.appframe.toolbar.find("button").removeClass("btn-info");
-		if(buttons["Save"]) {
-			buttons["Save"].addClass("btn-info");
-		}
-
-		// highlight submit button
-		if(buttons["Submit"] && !this.frm.doc.__unsaved) {
-			this.appframe.toolbar.find("button").removeClass("btn-info");
-			buttons["Submit"].addClass("btn-info");
-		// highlight update button
-		} else if(buttons["Update"] && this.frm.doc.__unsaved) {
-			this.appframe.toolbar.find("button").removeClass("btn-info");
-			buttons["Update"].addClass("btn-info");
-		}
-	},
 	hide_close: function() {
 		this.$w.find('.close').toggle(false);
 	}

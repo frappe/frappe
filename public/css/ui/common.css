@@ -1,3 +1,9 @@
+body {	
+	margin: 0px;
+	padding-top: 70px;
+	padding-bottom: 50px;
+}
+
 a {
 	cursor: pointer;
 }
@@ -27,6 +33,10 @@ a {
 	margin-bottom: -5px;
 	margin-top: 10px;
 	visibility: hidden;
+}
+
+.btn [class^="icon-"], .nav [class^="icon-"], .btn [class*=" icon-"], .nav [class*=" icon-"] {
+	display: inline-block;
 }
 
 /* alert */

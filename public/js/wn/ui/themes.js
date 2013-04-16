@@ -3,8 +3,8 @@
 wn.provide("wn.ui");
 
 wn.ui.set_user_background = function(src) {
-	set_style(repl('body { background: url("%(src)s") repeat fixed;}',
-		{src:src}))
+	//set_style(repl('body { background: url("%(src)s") repeat fixed;}',
+	//	{src:src}))
 }
 
 wn.ui.themes = {
@@ -53,12 +53,7 @@ wn.ui.themes = {
 wn.ui.set_theme = function(theme) {
 	var t = wn.ui.themes[theme];
 	t.title_gradient = wn.get_gradient_css(t.titlebar);
-	var css = repl(".appframe { \
-		background-color: %(sidebar)s !important; }\
-	.appframe-toolbar { \
-		background-color: %(toolbar)s !important; }\
-	.appframe-titlebar { \
-		%(title_gradient)s \
-	}", t);
+	var css = repl(".appframe-toolbar { \
+		background-color: %(toolbar)s !important; }", t);
 	wn.dom.set_style(css);
 }

@@ -45,15 +45,16 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 	this.refresh_latest_comment = function() {
 		var wrapper = cur_frm.body;
 		if(!$(wrapper).find(".latest-comment").length) {
-			$('<div class="latest-comment alert alert-info" style="margin-top:20px; display: none;">')
+			$('<div class="latest-comment alert alert-info" style="display: none;">')
 				.prependTo(wrapper);
 		}
 		var comment_list = wn.widgets.form.comments.comment_list[me.docname];
 		if(comment_list) {
 			$(wrapper).find(".latest-comment")
-				.html(repl('<div style="width: 70%; float:left;">\
+				.html(repl('<div class="row">\
+					<div class="span6">\
 					Last Comment: <b>%(comment)s</b></div>\
-					<div style="width: 25%; float:right; text-align: right; font-size: 90%">\
+					<div class="span2" style="text-align: right; font-size: 90%">\
 						by %(comment_by_fullname)s</div>\
 					<div class="clear"></div>', comment_list[0]))					
 				.toggle(true);

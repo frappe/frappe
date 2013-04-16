@@ -56,13 +56,13 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		var me = this;
 		this.appframe = new wn.ui.AppFrame(this.wrapper);
 		this.appframe.set_document_title = false;
-		this.appframe.$titlebar.find('.close').unbind('click').click(function() {
-			if(me.oncancel)me.oncancel(); me.hide();
-		});
+		// this.appframe.$titlebar.find('.close').unbind('click').click(function() {
+		// 	if(me.oncancel)me.oncancel(); me.hide();
+		// });
 		this.set_title(this.title);
 	},
 	set_title: function(t) {
-		this.appframe.$titlebar.find('.appframe-title').html(t || '');
+		this.appframe.set_title(t);
 	},
 	set_postion: function() {
 		this.zindex = 10;

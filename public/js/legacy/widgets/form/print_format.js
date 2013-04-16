@@ -21,9 +21,13 @@
 // 
 
 // default print style
-_p.def_print_style_body = "html, body, div, span, td { \
-		font-family: Arial, Helvetica; \
-		font-size: 9pt; \
+_p.def_print_style_body = "html, body, div, span, td, p { \
+		font-family: inherit; \
+		font-size: inherit; \
+	}\
+	.page-settings {\
+		font-family: Arial, Helvetica Neue, Sans;\
+		font-size: 9pt;\
 	}\
 	pre { margin:0; padding:0;}";
 
@@ -352,25 +356,31 @@ $.extend(_p, {
 	
 	// called by _p.render for final render of print
 	render_final: function(style, stat, container, args) {
-		var header = '<div class="page-settings">\n';
-		var footer = '\n</div>';
 		if(!args.only_body) {
-			header = '<!DOCTYPE html>\
-<html>\n\
-	<head>\n\
+			var header = '<!DOCTYPE html>\
+<html>\
+	<head>\
 		<meta charset="utf-8" />\
-		<title>' + args.title + '</title>\n\
-		<style>' + style + '</style>\n\
+		<title>' + args.title + '</title>\
+		<style>' + style + '</style>\
 	</head>\
-	<body>\n' + header;
-			footer = footer + '\n</body>\n\
+	<body>';
+			var footer = '\
+	</body>\
 </html>';
+		} else {
+			var header = '';
+			var footer = '';
 		}
 		var finished =  header
+			+ '<div class="page-settings">'
 			+ stat
 			+ container.innerHTML
+			+ '</div>'
 			+ footer;
 			
+			
+		console.log(finished)
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
 		// find unique matches

@@ -24,16 +24,16 @@
 
 	+ this.parent (either FormContainer or Dialog)
  		+ this.wrapper
- 			+ this.content
-				+ this.form_wrapper
-					+ this.main
-						+ this.head
-						+ this.body
-							+ this.layout
-							+ this.footer
-					+ this.sidebar
-				+ this.print_wrapper
+			+ this.toolbar
+			+ this.form_wrapper
+				+ this.main
 					+ this.head
+					+ this.body
+						+ this.layout
+						+ this.footer
+				+ this.sidebar
+			+ this.print_wrapper
+				+ this.head
 */
 
 wn.provide('_f');
@@ -104,6 +104,18 @@ _f.Frm.prototype.setup = function() {
 	
 	// wrapper
 	this.wrapper = this.parent;
+	wn.ui.make_app_page({
+		parent: this.wrapper,
+		single_column: true
+	});
+	this.appframe = this.wrapper.appframe;
+	this.layout_main = $(this.wrapper).find(".layout-main").get(0);
+	
+	this.toolbar = new wn.ui.form.Toolbar({
+		frm: this,
+		appframe: this.appframe
+	})
+	
 	
 	// create area for print fomrat
 	this.setup_print_layout();
@@ -121,37 +133,30 @@ _f.Frm.prototype.setup = function() {
 
 
 _f.Frm.prototype.setup_print_layout = function() {
-	var me = this;
-	this.print_wrapper = $a(this.wrapper, 'div');
-	wn.ui.make_app_page({
-		parent: this.print_wrapper,
-		single_column: true,
-		set_document_title: false,
-		title: me.doctype + ": Print View",
-		module: me.meta.module
-	});
-	
-	var appframe = this.print_wrapper.appframe;
-	appframe.add_button(wn._("View Details"), function() {
+	var me = this;	
+	this.print_wrapper = $('<div>\
+		<form class="form-inline">\
+			<select class="span2 preview-select"></select> \
+			<button class="btn btn-edit"><i class="icon-edit"></i> Edit</button>\
+		</form>\
+		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\
+		</div>').appendTo(this.layout_main).get(0);
+		
+	$(this.print_wrapper).find(".btn-edit").click(function() {
 		me.edit_doc();
-	}).addClass("btn-success");
+		return false;
+	})
 	
-	appframe.add_button(wn._("Print"), function() {
-		me.print_doc();
-	}, 'icon-print');
-
-	this.$print_view_select = appframe.add_select(wn._("Select Preview"), this.print_formats)
-		.css({"float":"right"})
+	
+	this.$print_view_select = $(this.print_wrapper).find(".preview-select")
+		.add_options(this.print_formats)
 		.val(this.print_formats[0])
 		.change(function() {
 			me.refresh_print_layout();
 		})
 	
-	appframe.add_ripped_paper_effect(this.print_wrapper);
-	
-	var layout_main = $(this.print_wrapper).find(".layout-main");
-	this.print_body = $("<div style='margin: 25px'>").appendTo(layout_main)
-		.css("min-height", "400px").get(0);
+	//appframe.add_ripped_paper_effect(this.print_wrapper);
+	this.print_body = $(this.print_wrapper).find(".print-format-area").get(0);
 		
 }
 
@@ -161,15 +166,10 @@ _f.Frm.prototype.onhide = function() {
 }
 
 _f.Frm.prototype.setup_std_layout = function() {
-	this.form_wrapper = $("<div>").appendTo(this.parent).get(0);
-	wn.ui.make_app_page({
-		parent: this.form_wrapper
-	});
+	this.form_wrapper = $('<div></div>').appendTo(this.layout_main).get(0);
 	$parent = $(this.form_wrapper);
 	this.head = $parent.find(".layout-appframe").get(0);
-	this.main = $parent.find(".layout-main-section").get(0);
-	this.sidebar_area = $parent.find(".layout-side-section").get(0);
-	this.appframe = this.form_wrapper.appframe;
+	this.main = this.form_wrapper;
 	this.body_header	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
 	this.footer 		= $a(this.main, 'div');
@@ -184,28 +184,12 @@ _f.Frm.prototype.setup_std_layout = function() {
 	// layout
 	this.layout = new Layout(this.body, '100%');
 	
-	// sidebar
-	if(this.meta.in_dialog && !this.in_form) {
-		// hide sidebar
-		$(this.sidebar_area).toggle(false);
-	} else {
-		// module link
-		this.setup_sidebar();
-	}
 	
 	// state
 	this.states = new wn.ui.form.States({
 		frm: this
 	});
-	
-	// watermark
-	if(!this.meta.issingle) {
-		$('<div style="font-size: 21px; color: #aaa; float: right;\
-			margin-top: -5px; margin-right: -5px; z-index: 5;">' 
-			+ wn._(this.doctype) + '</div>')
-			.prependTo(this.main);
-	}
-	
+		
 	// footer
 	this.setup_footer();
 					
@@ -218,6 +202,11 @@ _f.Frm.prototype.setup_header = function() {
 	// header - no headers for tables and guests
 	if(!(this.meta.istable || (this.meta.in_dialog && !this.in_form))) 
 		this.frm_head = new _f.FrmHeader(this.head, this);
+		
+	this.toolbar = new wn.ui.form.Toolbar({
+		frm: this,
+		appframe: this.appframe
+	})
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -293,10 +282,6 @@ _f.Frm.prototype.setup_meta = function(doctype) {
 	this.perm = wn.perm.get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
 	this.setup_print();
-}
-
-_f.Frm.prototype.setup_sidebar = function() {
-	this.sidebar = new wn.widgets.form.sidebar.Sidebar(this);
 }
 
 _f.Frm.prototype.setup_footer = function() {
@@ -379,10 +364,11 @@ _f.Frm.prototype.setup_fields_std = function() {
 }
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	this.frm_head.appframe.add_button(label, fn, icon);
+	this.toolbar.make_actions_menu();
+	this.appframe.add_dropdown_button("Actions", label, fn, icon);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
-	this.frm_head.refresh_toolbar()
+	this.toolbar.refresh()
 }
 
 _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
@@ -460,7 +446,10 @@ _f.Frm.prototype.refresh_header = function() {
 		wn.ui.toolbar.recent.add(this.doctype, this.docname, 1);
 	
 	// show / hide buttons
-	if(this.frm_head)this.frm_head.refresh();	
+	if(this.frm_head) {
+		this.frm_head.refresh();
+		this.toolbar.refresh();
+	}
 }
 
 _f.Frm.prototype.check_doc_perm = function() {
@@ -536,12 +525,9 @@ _f.Frm.prototype.refresh = function(docname) {
 				$ds(this.form_wrapper);
 			}
 
-			
-
 			// header
 			if(!this.meta.istable) { 
 				this.refresh_header();
-				this.sidebar && this.sidebar.refresh();
 			}
 
 			// call trigger
@@ -593,8 +579,8 @@ _f.Frm.prototype.refresh_footer = function() {
 	var f = this.footer;
 	if(f.save_area) {
 		// if save button is there in the header
-		if(this.frm_head && this.frm_head.appframe.toolbar
-			&& this.frm_head.appframe.toolbar.find(".btn-save").length && !this.save_disabled
+		if(this.frm_head && this.appframe.toolbar
+			&& this.appframe.buttons.Save && !this.save_disabled
 			&& (this.fields && this.fields.length > 7)) {
 			f.show_save();
 		} else {
@@ -1011,7 +997,8 @@ _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	cur_frm.save_disabled = true;
 	cur_frm.footer.hide_save();
-	cur_frm.frm_head.appframe.buttons.Save.remove();
+	cur_frm.form_wrapper.appframe.buttons.Save.remove();
+	delete cur_frm.form_wrapper.appframe.buttons.Save
 }
 
 _f.get_value = function(dt, dn, fn) {
@@ -1030,26 +1017,12 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 
 	if(changed) {
 		d[fn] = v;
+		d.__unsaved = 1;
 		if(d.parenttype)
-			d.__unsaved = 1;
-		this.set_unsaved();
+			locals[d.parenttype][d.parent].__unsaved = 1;
+			
+		$(this.wrapper).trigger("dirty");
 	}
-}
-
-_f.Frm.prototype.set_unsaved = function() {
-	if(cur_frm.doc.__unsaved) 
-		return;
-	cur_frm.doc.__unsaved = 1;
-	
-	var frm_head;
-	if(cur_frm.frm_head) {
-		frm_head = cur_frm.frm_head;
-	} else if(wn.container.page.frm && wn.container.page.frm.frm_head) {
-		frm_head = wn.container.page.frm.frm_head
-	}
-	
-	if(frm_head) frm_head.refresh_labels();
-	
 }
 
 _f.Frm.prototype.show_comments = function() {
