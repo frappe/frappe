@@ -224,7 +224,10 @@ class Document:
 			if not self.naming_series:
 				# pick default naming series
 				from webnotes.model.doctype import get_property
-				self.naming_series = get_property(self.doctype, "options", "naming_series").split("\n")
+				self.naming_series = get_property(self.doctype, "options", "naming_series")
+				if not self.naming_series:
+					webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
+				self.naming_series = self.naming_series.split("\n")
 				self.naming_series = self.naming_series[0] or self.naming_series[1]
 			self.name = make_autoname(self.naming_series+'.#####')
 			
