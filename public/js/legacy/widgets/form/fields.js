@@ -1202,14 +1202,15 @@ SelectField.prototype.make_input = function() {
 		if(!cur_frm) return;
 		var fl = cur_frm.doc.file_list;
 		if(fl) {
+			fl = JSON.parse(fl);
 			this.df.options = '';
-			var fl = fl.split('\n');
-			for(var i in fl) {
-				var fname = fl[i].split(',')[0];
+
+			for(var fname in fl) {
 				if(fname.substr(0,4)!="http")
 					fname = "files/" + fname;
 				this.df.options += '\n' + fname;
 			}
+
 			this.set_description("");
 		} else {
 			this.df.options = ''
