@@ -105,6 +105,9 @@ class IncomingMail:
 			except MaxFileSizeReachedError:
 				# bypass max file size exception
 				pass
+			except webnotes.DuplicateEntryError:
+				# same file attached twice??
+				pass
 
 	def get_thread_id(self):
 		import re
