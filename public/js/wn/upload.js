@@ -4,9 +4,6 @@
 // parent, args, callback
 wn.upload = {
 	make: function(opts) {
-		var id = wn.dom.set_unique_id();
-		$(opts.parent).append();
-	
 		var $upload = $("<div class='file-upload'>" + repl(wn._('Upload a file')+':<br>\
 			<input type="file" name="filedata" /><br><br>\
 			OR:<br><input type="text" name="file_url" /><br>\
@@ -15,9 +12,8 @@ wn.upload = {
 			+ '</p><br>\
 			<input type="submit" class="btn btn-info btn-upload" value="'
 				+wn._('Attach')+'" /></div>', {
-				id: id,
 				action: wn.request.url
-			})).appendTo(opts.parent)
+			})).appendTo(opts.parent);
 	
 
 		// get the first file
@@ -43,16 +39,12 @@ wn.upload = {
 		})
 	},
 	upload_file: function(fileobj, args, callback) {
-		if(!fileobj &&  !args.file_url) {
+		if(!fileobj && !args.file_url) {
 			msgprint(_("Please attach a file or set a URL"));
 			return;
 		}
-
-		var freader = new FileReader();
 		
-		freader.onload = function() {
-			args.filedata = freader.result.split(",")[1];
-			args.filename = fileobj.name;
+		var _upload_file = function() {
 			var msgbox = msgprint(wn._("Uploading..."));
 			wn.call({
 				"method": "uploadfile",
@@ -62,10 +54,23 @@ wn.upload = {
 					if(r.exc) {
 						msgprint("There were errors in uploading.");
 					}
-					callback(r.message, fileobj.name, r);
+					callback(r.message, args.filename || args.file_url, r);
 				}
 			});
 		}
-		freader.readAsDataURL(fileobj);
+		
+		if(args.file_url) {
+			_upload_file();
+		} else {
+			var freader = new FileReader();
+
+			freader.onload = function() {
+				args.filename = fileobj.name;
+				args.filedata = freader.result.split(",")[1];
+				_upload_file();
+			};
+			
+			freader.readAsDataURL(fileobj);
+		}
 	}
 }
