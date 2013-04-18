@@ -74,9 +74,13 @@ wn.views.moduleview.ModuleView = Class.extend({
 		$(repl("<tr><td><div class='row'>\
 			<span"+
 				((item.doctype && item.description) 
-					? " data-doctype='"+item.doctype+"'" : "")
-				+" class='span2'>%(link)s</span>\
-			<span class='help span3'>%(description)s</span>"
+					? " data-doctype='"+item.doctype+"'" 
+					: "")
+				+" class='span"+
+				+ (item.description ? "2" : "5") + "'>%(link)s</span>"
+				+ (item.description 
+					? "<span class='help span3'>%(description)s</span>" 
+					: "")
 			+ ((section.right || !item.doctype) 
 				? ''
 				: '<span data-doctype-count="%(doctype)s"></span>')
