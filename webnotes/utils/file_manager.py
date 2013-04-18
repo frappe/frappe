@@ -124,7 +124,7 @@ def get_new_fname_based_on_version(files_path, fname):
 
 	versions.sort()
 	if "-" in versions[-1]:
-		version = int(versions.split("-")[-1]) or 1
+		version = int(versions[-1].split("-")[-1]) or 1
 	else:
 		version = 1
 	
