@@ -42,10 +42,7 @@ Field.prototype.make_body = function() {
 	var ischk = (this.df.fieldtype=='Check' ? 1 : 0);
 	
 	// parent element
-	if(this.parent)
-		this.wrapper = $a(this.parent, (this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
-	else
-		this.wrapper = document.createElement((this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
+	this.wrapper = this.parent;
 
 	$(this.wrapper).addClass("field-wrapper");
 	
@@ -117,15 +114,7 @@ Field.prototype.set_label = function(label) {
 }
 
 Field.prototype.set_description = function(txt) {
-	if(this.df.description || txt) {
-		// parent
-		if(!this.desc_area) {
-			var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) 
-				? this.label_area : this.wrapper;
-			this.desc_area = $a(p, 'div', 'help small');
-		}
-		$(this.desc_area).html(wn._(this.df.description || txt));
-	}
+	$(this.wrapper).attr("title", txt).tooltip();
 }
 
 Field.prototype.get_status = function(explain) {
@@ -1334,8 +1323,6 @@ function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Fa
 		case 'code':var f = new _f.CodeField(); break;
 		case 'text editor':var f = new _f.CodeField(); break;
 		case 'table':var f = new _f.TableField(); break;
-		case 'section break':var f= new _f.SectionBreak(); break;
-		case 'column break':var f= new _f.ColumnBreak(); break;
 		case 'image':var f= new _f.ImageField(); break;
 	}
 

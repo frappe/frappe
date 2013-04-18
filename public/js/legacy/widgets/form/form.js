@@ -182,8 +182,11 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.meta.section_style='Simple'; // always simple!
 	
 	// layout
-	this.layout = new Layout(this.body, '100%');
-	
+	this.layout = new wn.ui.form.Layout({
+		parent: this.body,
+		doctype: this.doctype,
+		frm: this,
+	})	
 	
 	// state
 	this.states = new wn.ui.form.States({
@@ -192,10 +195,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 		
 	// footer
 	this.setup_footer();
-					
-	// create fields
-	this.setup_fields_std();
-	
 }
 
 _f.Frm.prototype.setup_header = function() {
@@ -315,53 +314,6 @@ _f.Frm.prototype.set_footnote = function(txt) {
 	wn.utils.set_footnote(this, this.body, txt);
 }
 
-
-_f.Frm.prototype.setup_fields_std = function() {
-	var fl = wn.meta.docfield_list[this.doctype]; 
-
-	fl.sort(function(a,b) { return a.idx - b.idx});
-
-	if(fl[0]&&fl[0].fieldtype!="Section Break" || get_url_arg('embed')) {
-		this.layout.addrow(); // default section break
-		if(fl[0].fieldtype!="Column Break") {// without column too
-			var c = this.layout.addcell();
-			$y(c.wrapper, {padding: '8px'});
-		}
-	}
-
-	var sec;
-	for(var i=0;i<fl.length;i++) {
-		var f=fl[i];
-				
-		// if section break and next item 
-		// is a section break then ignore
-		if(f.fieldtype=='Section Break' && fl[i+1] && fl[i+1].fieldtype=='Section Break') 
-			continue;
-		
-		var fn = f.fieldname?f.fieldname:f.label;
-				
-		var fld = make_field(f, this.doctype, this.layout.cur_cell, this);
-
-		this.fields[this.fields.length] = fld;
-		this.fields_dict[fn] = fld;
-
-		if(sec && ['Section Break', 'Column Break'].indexOf(f.fieldtype)==-1) {
-			fld.parent_section = sec;
-			sec.fields.push(fld);	
-		}
-		
-		if(f.fieldtype=='Section Break') {
-			sec = fld;
-			this.sections.push(fld);
-		}
-		
-		// default col-break after sec-break
-		if((f.fieldtype=='Section Break')&&(fl[i+1])&&(fl[i+1].fieldtype!='Column Break')) {
-			var c = this.layout.addcell();
-			$y(c.wrapper, {padding: '8px'});
-		}
-	}
-}
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
 	this.toolbar.make_actions_menu();
@@ -546,9 +498,6 @@ _f.Frm.prototype.refresh = function(docname) {
 			// footer
 			this.refresh_footer();
 			
-			// layout
-			if(this.layout) this.layout.show();
-
 			// call onload post render for callbacks to be fired
 			if(this.cscript.is_onload) {
 				this.runclientscript('onload_post_render', this.doctype, this.docname);
