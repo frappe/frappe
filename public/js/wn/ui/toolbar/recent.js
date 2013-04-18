@@ -62,7 +62,7 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		return locals.DocType[dt] && locals.DocType[dt].istable || false;
 	},
 	remove: function(dt, dn) {
-		$(repl('#toolbar-recent li[data-docref="%(dt)s/%(dn)s"]', {dt:dt, dn:dn})).remove();
+		$(repl('#toolbar-recent li[data-docref="%(dt)s/%(dn)s"]', {dt:dt, dn:dn})).remove();			
 	},
 	setup: function() {
 		// add menu items
@@ -74,7 +74,11 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 			var rd = rlist[i]
 			if(rd[1]) {
 				var dt = rd[0]; var dn = rd[1];
-				this.add(dt, dn, 0);
+				try {
+					this.add(dt, dn, 0);
+				} catch(e) {
+					// don't crash
+				}
 			}
 		}		
 	}
