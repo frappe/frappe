@@ -234,7 +234,7 @@ class DbColumn:
 		if d[1]:
 			ret += '(' + d[1] + ')'
 		if with_default and self.default and (self.default not in default_shortcuts) \
-			and d[0] not in ['text', 'longblob']:
+			and not self.default.startswith(":") and d[0] not in ['text', 'longblob']:
 			ret += ' default "' + self.default.replace('"', '\"') + '"'
 		return ret
 		
@@ -264,7 +264,7 @@ class DbColumn:
 				self.table.add_index.append(self)
 		
 		# default
-		if (self.default and self.default_changed(current_def) and (self.default not in default_shortcuts) and not (column_def in ['text','blob'])):
+		if (self.default and self.default_changed(current_def) and (self.default not in default_shortcuts) and not self.default.startswith(":") and not (column_def in ['text','blob'])):
 			self.table.set_default.append(self)
 
 

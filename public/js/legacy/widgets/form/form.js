@@ -508,7 +508,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		if(!this.setup_done) this.setup();
 
 		// set customized permissions for this record
-		this.runclientscript('set_perm',this.doctype, this.docname);
+		this.runclientscript('set_perm', this.doctype, this.docname);
 		
 		// load the record for the first time, if not loaded (call 'onload')
 		cur_frm.cscript.is_onload = false;
@@ -528,8 +528,6 @@ _f.Frm.prototype.refresh = function(docname) {
 				$dh(this.print_wrapper);
 				$ds(this.page_layout.wrapper);
 			}
-
-			
 
 			// header
 			if(!this.meta.istable) { 
