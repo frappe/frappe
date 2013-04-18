@@ -26,15 +26,15 @@ wn.ui.form.Layout = Class.extend({
 				case "Table":
 				case "Text Editor":
 				case "Code":
-					var fieldwrapper = $('<div class="span12">').appendTo(me.section);
+					var fieldwrapper = $('<div class="col-span-12">').appendTo(me.section);
 					me.make_field(df, fieldwrapper);
 					break;
 				case "Text":
-					var fieldwrapper = $('<div class="span8">').appendTo(me.section);
+					var fieldwrapper = $('<div class="col-span-8">').appendTo(me.section);
 					me.make_field(df, fieldwrapper);
 					break;
 				default:
-					var fieldwrapper = $('<div class="span4" \
+					var fieldwrapper = $('<div class="col-span-4" \
 						style="height: 60px; overflow: hidden;">')
 						.appendTo(me.section);
 					me.make_field(df, fieldwrapper);
@@ -54,10 +54,10 @@ wn.ui.form.Layout = Class.extend({
 		this.frm.sections.push(this.section);
 		if(df) {
 			if(df.label) {
-				$('<div class="span12"><h4>' + df.label + "</h4></div>").appendTo(this.section);
+				$('<div class="col-span-12"><h4>' + df.label + "</h4></div>").appendTo(this.section);
 			}
 			if(df.description) {
-				$('<div class="span12 small muted">' + df.description + '</div>').appendTo(this.section);
+				$('<div class="col-span-12 small muted">' + df.description + '</div>').appendTo(this.section);
 			}
 			this.frm.fields_dict[df.fieldname] = this.section;
 		}

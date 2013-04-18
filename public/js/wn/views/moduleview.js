@@ -39,8 +39,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 		var wrapper = this.wrapper;
 		// make columns
 		$(wrapper).find(".layout-main").html("<div class='row'>\
-			<div class='span6 main-section'></div>\
-			<div class='span6 side-section'></div>\
+			<div class='col-span-6 main-section'></div>\
+			<div class='col-span-6 side-section'></div>\
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {
@@ -79,7 +79,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 				+" class='span"+
 				+ (item.description ? "2" : "5") + "'>%(link)s</span>"
 				+ (item.description 
-					? "<span class='help span3'>%(description)s</span>" 
+					? "<span class='help col-span-3'>%(description)s</span>" 
 					: "")
 			+ ((section.right || !item.doctype) 
 				? ''

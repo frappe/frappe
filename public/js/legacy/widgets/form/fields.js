@@ -583,18 +583,19 @@ LinkField.prototype.make_input = function() {
 		this.input = this.txt;	
 	} else {
 		me.input = me.input_area;
-		$(me.input_area).addClass("input-append link-field");
-		
+		me.input_group = $('<div class="input-group link-field col-span-12">').appendTo(me.input_area);
+			
 		me.txt = $('<input type="text" style="margin-right: 0px;">')
-			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "60%")})
-			.appendTo(me.input_area).get(0);
+			.appendTo(me.input_group).get(0);
+			
+		me.input_group_btn = $('<div class="input-group-btn">').appendTo(me.input_group);
 				
 		me.btn = $('<button class="btn" title="'+wn._('Search Link')+'">\
-			<i class="icon-search"></i></button>').appendTo(me.input_area).get(0);
+			<i class="icon-search"></i></button>').appendTo(me.input_group_btn).get(0);
 		me.btn1 = $('<button class="btn" title="'+wn._('Open Link')+'">\
-			<i class="icon-play"></i></button>').appendTo(me.input_area).get(0);
+			<i class="icon-play"></i></button>').appendTo(me.input_group_btn).get(0);
 		me.btn2 = $('<button class="btn" title="'+wn._('Make New')+'">\
-			<i class="icon-plus"></i></button>').appendTo(me.input_area).get(0);	
+			<i class="icon-plus"></i></button>').appendTo(me.input_group_btn).get(0);	
 
 		me.txt.name = me.df.fieldname;
 		me.setdisabled = function(tf) { me.txt.disabled = tf; }

@@ -29,15 +29,6 @@
 }
 
 
-.input_area input { 
-	width: 80%; 
-}
-.input_area select { 
-	width: 80%; 
-}
-.input_area textarea { 
-	width: 95%; 
-}
 .link-field .btn { 
 	padding-left: 6px; 
 	padding-right: 6px; 

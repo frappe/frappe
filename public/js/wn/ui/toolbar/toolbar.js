@@ -37,15 +37,14 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	},
 	make: function() {
 		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse">\
-			<div class="navbar-inner">\
 			<div class="container">\
-				<button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">\
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">\
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\
 				</button>\
-				<a class="brand"></a>\
-				<div class="nav-collapse collapse">\
+				<a class="navbar-brand"></a>\
+				<div class="nav-collapse collapse navbar-responsive-collapse">\
 					<ul class="nav">\
 					</ul>\
 					<img src="lib/images/ui/spinner.gif" id="spinner"/>\
@@ -59,11 +58,10 @@ wn.ui.toolbar.Toolbar = Class.extend({
 					</ul>\
 				</div>\
 			</div>\
-			</div>\
 			</div>');		
 	},
 	make_home: function() {
-		$('.navbar .brand').attr('href', "#");
+		$('.navbar-brand').attr('href', "#");
 	},
 
 	make_document: function() {

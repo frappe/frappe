@@ -2,15 +2,15 @@
 	border-radius: 10px;
 	-moz-border-radius: 10px;
 	-webkit-border-radius: 10px;
-	width: 32px;
-	height: 32px;
 	padding: 12px;
+	display: inline-block;
 	border: 2px solid white;
 	box-shadow: 0 0 4px 1px black;
 	-moz-box-shadow: 0 0 4px 1px black;
 	-webkit-box-shadow: 0 0 4px 1px black;
 	-o-box-shadow: 0 0 4px 1px black;
 	margin: auto;
+	text-align: center;
 }
 
 .case-wrapper {
@@ -22,7 +22,9 @@
 
 .case-wrapper i {
 	font-size: 32px;
+	min-width: 32px;
 	color: #f8f8f8;
+	display: inline-block;
 }
 
 .case-label {
@@ -60,14 +62,12 @@
 	border-radius: 30px;
 	-moz-border-radius: 30px;
 	-webkit-border-radius: 30px;
-	height: 15px;
 	line-height: 12px;
-	min-width: 15px;
 	background: #B00D07;
 	padding: 3px;
 	float: right;
 	margin-top: -12px;
-	margin-right: 10px;
+	margin-left: -50%;
 	border: 2px solid white;
 	box-shadow: 0 0 4px 1px black;
 	-moz-box-shadow: 0 0 4px 1px black;
@@ -80,4 +80,5 @@
 	text-align: center;
 	display: inline-block;
 	margin-top: 1px;
+	min-width: 15px;
 }

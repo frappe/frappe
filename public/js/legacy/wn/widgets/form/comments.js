@@ -52,9 +52,9 @@ wn.widgets.form.sidebar.Comments = function(parent, sidebar, doctype, docname) {
 		if(comment_list) {
 			$(wrapper).find(".latest-comment")
 				.html(repl('<div class="row">\
-					<div class="span6">\
+					<div class="col-span-6">\
 					Last Comment: <b>%(comment)s</b></div>\
-					<div class="span2" style="text-align: right; font-size: 90%">\
+					<div class="col-span-2" style="text-align: right; font-size: 90%">\
 						by %(comment_by_fullname)s</div>\
 					<div class="clear"></div>', comment_list[0]))					
 				.toggle(true);

@@ -7,19 +7,21 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div class="span12"></div>').prependTo(parent);
+		this.$w = $('<div class="col-span-12"></div>').prependTo(parent);
 				
-		$('<div>\
+		$('<!-- div>\
 			<ul class="breadcrumb" style="height: 32px;">\
 				<span class="appframe-right pull-right">\
 					<span class="btn-group"></span>\
 				</span>\
 			</ul>\
 		</div>\
+		<div class="toolbar-area"></div -->\
 		<div class="title-button-area pull-right" style="margin-top: 10px;"></div>\
 		<div class="title-area"></div>\
 		<div class="sub-title-area muted small" \
 			style="margin-top: -15px; margin-bottom: 5px;"></div>\
+		<hr>\
 		').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {
@@ -160,7 +162,7 @@ wn.ui.AppFrame = Class.extend({
 			    <ul class="nav">\
 			    </ul>\
 			  </div>\
-			</div>').appendTo(this.$w).find(".nav");
+			</div>').appendTo(this.$w.find(".toolbar-area")).find(".nav");
 		}
 	},
 	add_button: function(label, click, icon) {
@@ -214,18 +216,18 @@ wn.ui.AppFrame = Class.extend({
 	},
 	add_select: function(label, options) {
 		this.add_toolbar();
-		return $("<select class='span2' style='margin-top: 5px;'>")
+		return $("<select class='col-span-2' style='margin-top: 5px;'>")
 			.add_options(options)
 			.appendTo($("<li>").appendTo(this.toolbar));
 	},
 	add_data: function(label) {
 		this.add_toolbar();
-		return $("<input class='span2' style='margin-top: 5px;' type='text' placeholder='"+ label +"'>")
+		return $("<input class='col-span-2' style='margin-top: 5px;' type='text' placeholder='"+ label +"'>")
 			.appendTo($("<li>").appendTo(this.toolbar));
 	}, 
 	add_date: function(label, date) {
 		this.add_toolbar();
-		return $("<input class='span2' style='margin-top: 5px;' type='text'>").datepicker({
+		return $("<input class='col-span-2' style='margin-top: 5px;' type='text'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "")
@@ -256,16 +258,16 @@ wn.ui.AppFrame = Class.extend({
 
 wn.ui.make_app_page = function(opts) {
 	if(opts.single_column) {
-		$('<div class="appframe span12">\
+		$('<div class="appframe col-span-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="layout-main"></div>\
 		</div>').appendTo(opts.parent);
 	} else {
-		$('<div class="appframe span12">\
+		$('<div class="appframe col-span-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="row">\
-				<div class="layout-main-section span9"></div>\
-				<div class="layout-side-section span3"></div>\
+				<div class="layout-main-section col-span-9"></div>\
+				<div class="layout-side-section col-span-3"></div>\
 			</div>\
 		</div>').appendTo(opts.parent);
 	}

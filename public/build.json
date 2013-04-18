@@ -13,7 +13,6 @@
 	{
 		"public/css/all-web.css": [
 			"lib/public/css/bootstrap.css",
-			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
 		]
 	},

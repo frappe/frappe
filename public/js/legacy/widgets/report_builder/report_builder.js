@@ -32,7 +32,7 @@ _r.ReportContainer = function() {
 	}
 	var page = wn.container.add_page("Report Builder");
 	this.wrapper = $a(page, 'div', 'appframe', {padding: '0px'});
-	$(this.wrapper).addClass("span12")
+	$(this.wrapper).addClass("col-span-12")
 	this.appframe = new wn.ui.AppFrame(this.wrapper);
 	this.rb_area = $a(this.wrapper, 'div', '', {padding: '15px'});
 			

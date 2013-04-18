@@ -116,7 +116,6 @@ _f.Frm.prototype.setup = function() {
 		appframe: this.appframe
 	})
 	
-	
 	// create area for print fomrat
 	this.setup_print_layout();
 	
@@ -136,7 +135,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	var me = this;	
 	this.print_wrapper = $('<div>\
 		<form class="form-inline">\
-			<select class="span2 preview-select"></select> \
+			<select class="col-span-2 preview-select"></select> \
 			<button class="btn btn-edit"><i class="icon-edit"></i> Edit</button>\
 		</form>\
 		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\

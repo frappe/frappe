@@ -62,6 +62,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	        <a class="btn btn-small" data-edit="redo" title="Redo (Ctrl/Cmd+Y)"><i class="icon-repeat"></i></a>\
 	      </div>\
 	    </div>\
+		<br />\
 	    <div id="'+this.myid+'" class="wysiwyg-editor">\
 	    </div>\
 	   </div>\
@@ -70,6 +71,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
            font-family: Monaco, Menlo, Consolas, Courier, monospace;\
            font-size: 11px;"></textarea>\
 	   </div>\
+		<br />\
 	     <div class="btn-toolbar pull-right">\
 	       <div class="btn-group">\
 	         <a class="btn btn-small btn-info btn-rich-text" title="Rich Text" disabled="disabled"><i class="icon-reorder"></i></a>\
