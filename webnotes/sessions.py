@@ -115,10 +115,7 @@ class Session:
 		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR')
 		self.data['data']['last_updated'] = webnotes.utils.now()
 		self.data['data']['session_expiry'] = self.get_expiry_period()
-
-		# get ipinfo
-		if webnotes.conn.get_global('get_ip_info'):
-			self.get_ipinfo()
+		self.data['data']['session_country'] = get_geo_ip_country(os.environ.get('REMOTE_ADDR'))
 		
 		# insert session
 		webnotes.conn.begin()
@@ -131,7 +128,6 @@ class Session:
 		
 		# set cookies to write
 		webnotes.session = self.data
-		webnotes.cookie_manager.set_cookies()
 
 	def insert_session_record(self):
 		webnotes.conn.sql("""insert into tabSessions 
@@ -255,15 +251,17 @@ class Session:
 			exp_sec = "2:00:00"
 	
 		return exp_sec
+		
+def get_geo_ip_country(ip_addr):
+	try:
+		import pygeoip
+	except ImportError:
+		return
+	
+	import os
+	from webnotes.utils import get_base_path
 
-	def get_ipinfo(self):
-		import os
-		
-		try:
-			import pygeoip
-		except:
-			return
-		
-		gi = pygeoip.GeoIP('data/GeoIP.dat')
-		self.data['data']['ipinfo'] = {'countryName': gi.country_name_by_addr(os.environ.get('REMOTE_ADDR'))}
-		
+	geo_ip_file = os.path.join(get_base_path(), "lib", "data", "GeoIP.dat")
+	geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
+
+	return geo_ip.country_name_by_addr(ip_addr)
