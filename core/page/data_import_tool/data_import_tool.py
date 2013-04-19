@@ -6,6 +6,7 @@ import webnotes.model.doctype
 from webnotes.model.doc import Document
 from webnotes.utils import cstr, cint, flt
 from webnotes.utils.datautils import UnicodeWriter
+from webnotes import _
 
 data_keys = webnotes._dict({
 	"data_separator": 'Start entering data below this line',
@@ -166,13 +167,25 @@ def upload():
 				return row
 		return []
 		
+	def filter_empty_columns(columns):
+		empty_cols = filter(lambda x: x in ("", None), columns)
+		if columns[-1*len(empty_cols):] == empty_cols:
+			# filter empty columns if they exist at the end
+			columns = columns[:-1*len(empty_cols)]
+		else:
+			webnotes.msgprint(_("Please make sure that there are no empty columns in the file."),
+				raise_exception=1)
+		
+		return columns
+		
 	# header
 	rows = read_csv_content_from_uploaded_file()
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
 	doctype = get_header_row(data_keys.main_table)[1]
-	columns = get_header_row(data_keys.columns)[1:]
+	columns = filter_empty_columns(get_header_row(data_keys.columns)[1:])
+
 	parenttype = get_header_row(data_keys.parent_table)
 	
 	if len(parenttype) > 1:
