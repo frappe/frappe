@@ -13,7 +13,7 @@ wn.UpdateThisApp = Class.extend({
 		this.wrapper = wrapper;
 		this.body = $(this.wrapper).find(".layout-main");
 		this.wrapper.appframe.add_home_breadcrumb();
-		this.wrapper.appframe.add_module_breadcrumb("Setup");
+		this.wrapper.appframe.add_module_icon("Setup");
 		this.wrapper.appframe.add_breadcrumb("icon-magnet");
 		this.make();
 	},

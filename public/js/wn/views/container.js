@@ -57,6 +57,9 @@ wn.views.Container = Class.extend({
 			//$(this.page).fadeIn();
 			$(this.page).toggle(true);
 		}
+		
+		$(document).trigger("page-change");
+		
 		this.page._route = window.location.hash;
 		$(this.page).trigger('show');
 		scroll(0,0);				

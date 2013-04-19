@@ -24,8 +24,10 @@
 wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		this.make();
-		this.make_home();
-		this.make_document();
+		this.make_erpnext();
+		this.make_file();
+		//this.make_view();
+		//this.make_actions();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		wn.ui.toolbar.bookmarks = new wn.ui.toolbar.Bookmarks();
 		this.make_tools();
@@ -34,6 +36,11 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.dropdown-toggle').dropdown();
 		
 		$(document).trigger('toolbar_setup');
+		
+		// clear all custom menus on page change
+		$(document).on("page-change", function() {
+			$("header .navbar .custom-menu").remove();
+		})
 	},
 	make: function() {
 		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse">\
@@ -43,7 +50,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\
 				</button>\
-				<a class="navbar-brand"></a>\
 				<div class="nav-collapse collapse navbar-responsive-collapse">\
 					<ul class="nav">\
 					</ul>\
@@ -64,21 +70,58 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-brand').attr('href', "#");
 	},
 
-	make_document: function() {
+	make_erpnext: function() {
+		$('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#"\
+				title="'+wn._("ERPNext")+'"\
+				onclick="return false;"><b>ERPNext</b></a>\
+			<ul class="dropdown-menu modules">\
+			</ul>\
+			</li>').prependTo('.navbar .nav:first');
+
+		var modules_list = wn.user.get_desktop_items().sort();
+
+		var _get_list_item = function(m) {
+			args = {
+				module: m,
+				module_page: wn.modules[m].link,
+				module_label: wn._(wn.modules[m].label || m),
+				icon: wn.modules[m].icon
+			}
+
+			return repl('<li><a href="#!%(module_page)s" \
+				data-module="%(module)s"><i class="%(icon)s" style="display: inline-block; \
+					width: 21px; margin-top: -2px; margin-left: -7px;"></i>\
+				%(module_label)s</a></li>', args);
+		}
+
+		// add to dropdown
+		$.each(modules_list,function(i, m) {
+			if(m!='Setup') {
+				$('.navbar .modules').append(_get_list_item(m));			
+			}
+		})
+
+		// setup for system manager
+		if(user_roles.indexOf("System Manager")!=-1) {
+			$('.navbar .modules').append('<li class="divider">' + _get_list_item("Setup"));
+		}
+	},
+	make_file: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
 		wn.ui.toolbar.report = new wn.ui.toolbar.Report();
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
-				title="'+wn._("Documents")+'"\
-				onclick="return false;"><i class="icon-copy"></i></a>\
-			<ul class="dropdown-menu" id="toolbar-document">\
+				title="'+wn._("File")+'"\
+				onclick="return false;">File</a>\
+			<ul class="dropdown-menu" id="navbar-file">\
 				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
-					<i class="icon-plus"></i> '+wn._('New')+'</a></li>\
+					<i class="icon-plus"></i> '+wn._('New')+'...</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.search.show();">\
-					<i class="icon-search"></i> '+wn._('Search')+'</a></li>\
+					<i class="icon-search"></i> '+wn._('Search')+'...</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">\
-					<i class="icon-list"></i> '+wn._('Report')+'</a></li>\
+					<i class="icon-list"></i> '+wn._('Report')+'...</a></li>\
 			</ul>\
 		</li>');
 	},
@@ -87,7 +130,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 				title="'+wn._("Tools")+'"\
-				onclick="return false;"><i class="icon-wrench"></i></a>\
+				onclick="return false;">Tools</a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">'
 					+wn._('Clear Cache & Refresh')+'</a></li>\

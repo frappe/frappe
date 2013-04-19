@@ -4,7 +4,7 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 				title="'+wn._("Bookmarks")+'"\
-				onclick="return false;"><i class="icon-star"></i></a>\
+				onclick="return false;">Bookmarks</a>\
 			<ul class="dropdown-menu" id="toolbar-bookmarks">\
 				<li class="divider"></li>\
 				<li><a href="#" id="add-bookmark-link"><i class="icon-plus"></i> '

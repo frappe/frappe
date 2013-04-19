@@ -27,7 +27,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			title: wn._(wn.modules[module].label || module)
 		});
 		wrapper.appframe.add_home_breadcrumb();
-		wrapper.appframe.add_breadcrumb(wn.modules[module].icon);
+		wrapper.appframe.add_module_icon(module);
 		this.wrapper = wrapper;
 		this.module = module;
 		this.make_body();
@@ -44,7 +44,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {
-			var doctype = $(this).parent().attr("data-doctype");
+			var doctype = $(this).parent().find("[data-doctype]").attr("data-doctype");
 			var condition = wn.model.open_count_conditions[doctype];
 			if(condition) {
 				wn.set_route("List", doctype, wn.utils.get_url_from_dict(condition));
@@ -58,34 +58,34 @@ wn.views.moduleview.ModuleView = Class.extend({
 	},
 	add_section: function(section) {
 		section._title = wn._(section.title);
-		var table = $(repl("<table class='table table-bordered'>\
-		<thead><tr>\
-			<th style='font-size: 120%;'><i class='%(icon)s'></i> %(_title)s</th></tr></thead>\
-		<tbody></tbody>\
-		</table>", section)).appendTo(section.right 
+		var list_group = $('<ul class="list-group">\
+			<li class="list-group-item">\
+				<h4 class="list-group-item-heading"><i class="'
+					+ section.icon+'"></i> '
+					+ wn._(section.title) +'</h4>\
+			</li>\
+		</ul>"').appendTo(section.right 
 			? $(this.wrapper).find(".side-section")
 			: $(this.wrapper).find(".main-section"));
-		section.table = table;
+		section.list_group = list_group;
 	},
 	add_item: function(item, section) {
 		if(!item.description) item.description = "";
 		if(item.count==null) item.count = "";
-		
-		$(repl("<tr><td><div class='row'>\
-			<span"+
+				
+		$(repl('<li class="list-group-item">\
+			<span' +
 				((item.doctype && item.description) 
 					? " data-doctype='"+item.doctype+"'" 
-					: "")
-				+" class='span"+
-				+ (item.description ? "2" : "5") + "'>%(link)s</span>"
+					: "") + ">%(link)s</span>"
 				+ (item.description 
-					? "<span class='help col-span-3'>%(description)s</span>" 
+					? " <span class='text-muted small'>%(description)s</span>" 
 					: "")
 			+ ((section.right || !item.doctype) 
 				? ''
-				: '<span data-doctype-count="%(doctype)s"></span>')
-			+ "</div></td></tr>", item))
-		.appendTo(section.table.find("tbody"));
+				: '<span data-doctype-count="%(doctype)s" style="margin-left: 17px;"></span>')
+			+ "</li>", item))
+		.appendTo(section.list_group);
 	},
 	render_static: function() {
 		// render sections
@@ -121,8 +121,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 					|| !item.country)
 					me.add_item(item, section)
 			});
-			if(section.table.find("tr").length==1) {
-				section.table.toggle(false);
+			if(section.list_group.find("li").length==1) {
+				section.list_group.toggle(false);
 			}
 		});
 	},
@@ -192,8 +192,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 
 						$.each(r.message.open_count, function(doctype, count) {
 							$(me.wrapper).find("[data-doctype='"+doctype+"']")
-								.append(" <span class='badge badge-important pull-right'\
-									style='cursor:pointer'>" + count + "</span>");
+								.parent()
+								.append(" <span class='badge badge-important'\
+									style='cursor:pointer; background-color: #b94a48'>" + count + "</span>");
 						})
 					}
 				}

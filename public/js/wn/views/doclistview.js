@@ -67,7 +67,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
 		this.appframe.add_home_breadcrumb();
-		this.appframe.add_module_breadcrumb(module);
+		this.appframe.add_module_icon(module);
 		this.appframe.add_breadcrumb("icon-list");
 		this.appframe.set_views_for(this.doctype, "list");
 	},

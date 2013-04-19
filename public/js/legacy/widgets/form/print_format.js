@@ -380,7 +380,6 @@ $.extend(_p, {
 			+ footer;
 			
 			
-		console.log(finished)
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
 		// find unique matches

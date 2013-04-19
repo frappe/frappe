@@ -34,7 +34,7 @@ _f.FrmHeader = Class.extend({
 		this.frm = frm;
 		
 		this.appframe.add_home_breadcrumb();
-		this.appframe.add_module_breadcrumb(frm.meta.module)
+		this.appframe.add_module_icon(frm.meta.module)
 		this.appframe.set_views_for(frm.meta.name, "form");
 		
 		if(!frm.meta.issingle) {

@@ -27,7 +27,7 @@ wn.ui.form.Toolbar = Class.extend({
 
 		// New
 		if(p[CREATE]) {
-			this.appframe.add_dropdown_button("File", "New", function() { 
+			this.appframe.add_dropdown_button("File", "New " + me.frm.doctype, function() { 
 				new_doc(me.frm.doctype);}, 'icon-plus');
 		}
 

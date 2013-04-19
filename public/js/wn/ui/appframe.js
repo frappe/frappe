@@ -18,9 +18,10 @@ wn.ui.AppFrame = Class.extend({
 		</div>\
 		<div class="toolbar-area"></div -->\
 		<div class="title-button-area pull-right" style="margin-top: 10px;"></div>\
-		<div class="title-area"></div>\
-		<div class="sub-title-area muted small" \
-			style="margin-top: -15px; margin-bottom: 5px;"></div>\
+		<div class="title-area"><h3 style="display: inline-block">\
+			<span class="title-icon"></span><span class="title-text"></span></h3></div>\
+		<div class="sub-title-area text-muted small" \
+			style="margin-top: -10px;"></div>\
 		<hr>\
 		').appendTo(this.$w);
 		
@@ -38,8 +39,7 @@ wn.ui.AppFrame = Class.extend({
 	set_title: function(txt, full_text) {
 		this.title = txt;
 		this.$w.find(".breadcrumb .appframe-title").html(txt);
-		$("<h3 style='display: inline-block'>")
-			.html(txt).appendTo(this.get_title_area().empty());
+		this.$w.find(".title-text").html(txt);
 	},
 	set_sub_title: function(txt) {
 		this.$w.find(".sub-title-area").html(txt);
@@ -70,11 +70,16 @@ wn.ui.AppFrame = Class.extend({
 	add_list_breadcrumb: function(doctype) {
 		this.add_breadcrumb("icon-list", "List/" + encodeURIComponent(doctype), doctype + " List");
 	},
-	add_module_breadcrumb: function(module) {
+	add_module_icon: function(module) {
 		var module_info = wn.modules[module];
 		if(module_info) {
-			this.add_breadcrumb(module_info.icon, module_info.link,
-				module_info.label || module);
+			this.$w.find(".title-icon").html('<i class="'
+				+module_info.icon+' text-muted"></i> ')
+				.css({"cursor":"pointer"})
+				.attr("module-name", module)
+				.click(function() {
+					wn.set_route(wn.modules[$(this).attr("module-name")].link);
+				});
 		}
 	},
 	
@@ -153,6 +158,7 @@ wn.ui.AppFrame = Class.extend({
 
 	clear_buttons: function() {
 		this.toolbar && this.toolbar.empty();
+		$(".custom-menu").remove();
 	},
 
 	add_toolbar: function() {
@@ -201,8 +207,13 @@ wn.ui.AppFrame = Class.extend({
 		
 	},
 	add_dropdown_button: function(parent, label, click, icon) {
-		var menu = this.buttons[parent].find(".dropdown-menu");
-		return $('<li><a><i class="'+icon+'"></i> '+label+'</a></li>')
+		var menu = $("#navbar-" + parent.toLowerCase());
+		if(!menu.find(".divider").length) {
+			$('<li class="divider custom-menu"></li>').appendTo(menu);
+		}
+
+		return $('<li class="custom-menu"><a><i class="'
+			+icon+'"></i> '+label+'</a></li>')
 			.appendTo(menu)
 			.find("a")
 			.click(function() {
