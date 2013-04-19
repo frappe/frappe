@@ -3,8 +3,8 @@
 wn.provide("wn.ui");
 
 wn.ui.set_user_background = function(src) {
-	//set_style(repl('body { background: url("%(src)s") repeat fixed;}',
-	//	{src:src}))
+	set_style(repl('body { background: url("%(src)s") repeat fixed;}',
+		{src:src}))
 }
 
 wn.ui.themes = {
@@ -51,6 +51,7 @@ wn.ui.themes = {
 }
 
 wn.ui.set_theme = function(theme) {
+	return;
 	var t = wn.ui.themes[theme];
 	t.title_gradient = wn.get_gradient_css(t.titlebar);
 	var css = repl(".appframe-toolbar { \

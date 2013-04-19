@@ -80,6 +80,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</li>').prependTo('.navbar .nav:first');
 
 		var modules_list = wn.user.get_desktop_items().sort();
+		var menu_list = $(".navbar .modules");
 
 		var _get_list_item = function(m) {
 			args = {
@@ -89,23 +90,29 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				icon: wn.modules[m].icon
 			}
 
-			return repl('<li><a href="#!%(module_page)s" \
+			return repl('<li><a href="#%(module_page)s" \
 				data-module="%(module)s"><i class="%(icon)s" style="display: inline-block; \
 					width: 21px; margin-top: -2px; margin-left: -7px;"></i>\
 				%(module_label)s</a></li>', args);
 		}
 
+		// desktop
+		$('<li><a href="#desktop"><i class="icon-th"></i> '
+			+ wn._("Desktop") + '</a></li>\
+			<li class="divider"></li>').appendTo(menu_list) 
+
 		// add to dropdown
 		$.each(modules_list,function(i, m) {
 			if(m!='Setup') {
-				$('.navbar .modules').append(_get_list_item(m));			
+				menu_list.append(_get_list_item(m));			
 			}
 		})
 
 		// setup for system manager
 		if(user_roles.indexOf("System Manager")!=-1) {
-			$('.navbar .modules').append('<li class="divider">' + _get_list_item("Setup"));
+			menu_list.append('<li class="divider">' + _get_list_item("Setup"));
 		}
+	
 	},
 	make_file: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();

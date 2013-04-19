@@ -42,6 +42,7 @@ Field.prototype.make_body = function() {
 	var ischk = (this.df.fieldtype=='Check' ? 1 : 0);
 	
 	// parent element
+	if(!this.parent) this.parent = $("<div>").get(0);
 	this.wrapper = this.parent;
 
 	$(this.wrapper).addClass("field-wrapper");

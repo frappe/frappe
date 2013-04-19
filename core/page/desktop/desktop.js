@@ -94,8 +94,10 @@ erpnext.desktop.show_pending_notifications = function() {
 
 }
 
-pscript.onload_desktop = function() {
+pscript.onload_desktop = function(wrapper) {
 	// load desktop
 	erpnext.desktop.refresh();
+	$(wrapper).css({"background-color": "transparent", "box-shadow":"none"});
+	
 }
 

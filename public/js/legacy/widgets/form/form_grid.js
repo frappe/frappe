@@ -140,7 +140,7 @@ _f.FormGrid.prototype.refresh = function() {
 
 _f.FormGrid.prototype.set_unsaved = function() {
 	// set unsaved
-	cur_frm.set_unsaved();
+	cur_frm.dirty();
 }
 
 _f.FormGrid.prototype.insert_row = function() {

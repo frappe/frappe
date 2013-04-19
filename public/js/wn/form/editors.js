@@ -57,10 +57,6 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	        <input type="file" data-role="magic-overlay" data-target="#pictureBtn-'+this.myid+'" data-edit="insertImage" />\
 	        <a class="btn btn-small" data-edit="insertHorizontalRule" title="Horizontal Line Break">-</a>\
 	      </div>\
-	      <div class="btn-group">\
-	        <a class="btn btn-small" data-edit="undo" title="Undo (Ctrl/Cmd+Z)"><i class="icon-undo"></i></a>\
-	        <a class="btn btn-small" data-edit="redo" title="Redo (Ctrl/Cmd+Y)"><i class="icon-repeat"></i></a>\
-	      </div>\
 	    </div>\
 		<br />\
 	    <div id="'+this.myid+'" class="wysiwyg-editor">\

@@ -49,13 +49,18 @@ _f.TableField.prototype.with_label = 0;
 _f.TableField.prototype.make_body = function() {
 	if(this.perm[this.df.permlevel] && this.perm[this.df.permlevel][READ]) {
 		this.wrapper = $("<div>").appendTo(this.parent).get(0);
-		this.grid = new _f.FormGrid(this);
-		if(this.frm)this.frm.grids[this.frm.grids.length] = this;
-		this.grid.make_buttons();
-		
+		this.grid = new wn.ui.form.Grid({
+			frm: this.frm,
+			df: this.df,
+			parent: $("<div>").appendTo(this.wrapper)
+		})
+		if(this.frm)
+			this.frm.grids[this.frm.grids.length] = this;
+
 		// description
 		if(this.df.description) {
-			$('<p class="muted small">' + this.df.description + '</p>');
+			$('<p class="text-muted small">' + this.df.description + '</p>')
+				.appendTo(this.wrapper);
 		}
 	}
 }
@@ -82,14 +87,7 @@ _f.TableField.prototype.refresh = function() {
 		}
 	}
 	
-	if(st=='Write' || st=="Read") {
-		$(this.wrapper).toggle(true);
-		this.grid.show();
-	} else {
-		$(this.wrapper).toggle(false);
-		this.grid.hide();
-	}
-
+	$(this.wrapper).toggle(st=='Write' || st=="Read");
 	this.grid.refresh();
 }
 

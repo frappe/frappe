@@ -94,7 +94,7 @@ wn.RoleEditor = Class.extend({
 			</div>', {role: this.roles[i]}));
 		}
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
-			cur_frm.set_unsaved();
+			cur_frm.dirty();
 		});
 		$(this.wrapper).find('.user-role a').click(function() {
 			me.show_permissions($(this).parent().attr('data-user-role'))

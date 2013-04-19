@@ -255,9 +255,8 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 		
 		cell.div.innerHTML = '';
 		
-		var t = make_table(cell.div,1,3,'60px',['20px','20px','20px'],{verticalAlign: 'middle', padding:'2px'});
-		$y($td(t,0,0),{paddingLeft:'4px'});
-		$td(t,0,0).innerHTML = cell.row.rowIndex + 1;
+		$("<span>").html(cell.row.rowIndex + 1).appendTo(cell.div);
+		
 		$(cell.div).click(function() {
 			if(me.can_edit) {
 				me.cell_deselect();
@@ -273,11 +272,8 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 					_f.cur_grid_ridx = cell.row.rowIndex;
 					_f.edit_record(me.doctype, cell.row.docname, 1);
 				})
-				.appendTo($td(t,0,1))
-		} else {
-			cell.div.innerHTML = (cell.row.rowIndex + 1);
-			cell.div.style.cursor = 'default';
-			cell.div.onclick = function() { }
+				.css({"margin-left": "4px"})
+				.appendTo(cell.div)
 		}
 	}
 }

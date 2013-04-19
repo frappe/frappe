@@ -138,6 +138,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 			<select class="col-span-2 preview-select"></select> \
 			<button class="btn btn-edit"><i class="icon-edit"></i> Edit</button>\
 		</form>\
+		<hr>\
 		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\
 		</div>').appendTo(this.layout_main).get(0);
 		
@@ -969,8 +970,12 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 		if(d.parenttype)
 			locals[d.parenttype][d.parent].__unsaved = 1;
 			
-		$(this.wrapper).trigger("dirty");
+		this.dirty();
 	}
+}
+
+_f.Frm.prototype.dirty = function() {
+	
 }
 
 _f.Frm.prototype.show_comments = function() {

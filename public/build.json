@@ -155,9 +155,11 @@
 			"lib/public/js/legacy/widgets/form/form_comments.js",
 			"lib/public/js/legacy/wn/widgets/form/sidebar.js",
 			"lib/public/js/legacy/wn/widgets/form/comments.js",
+
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/form/editors.js",
+			"lib/public/js/wn/form/grid.js",
 			"lib/public/js/wn/form/attachments.js",
 			"lib/public/js/wn/form/linked_with.js",
 			"lib/public/js/wn/form/states.js",

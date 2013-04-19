@@ -130,9 +130,10 @@ wn.ui.form.Toolbar = Class.extend({
 			// show update button if unsaved
 			var docstatus = cint(me.frm.doc.docstatus);
 			if(me.frm.doc.__unsaved && docstatus==1 && me.frm.perm[0][SUBMIT]) {
-				me.appframe.add_dropdown_button("File", "Update", function() { 
+				me.appframe.$w.find(".title-button-area").empty();
+				me.appframe.add_title_button("Update", function() { 
 					me.frm.save('Update', null, me);
-				}, '').html(wn._('Update'))
+				}, 'icon-save')
 			}
 		})
 	},

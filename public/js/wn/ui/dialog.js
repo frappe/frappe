@@ -38,57 +38,42 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 			this._super({});
 		}
 	},
-	make: function() {
-		if(!$('#dialog-container').length) {
-			$('<div id="dialog-container">').appendTo('body');
-		}
-		
-		this.wrapper = $('<div class="dialog_wrapper">')
-			.appendTo('#dialog-container').get(0);
-
-		if(this.width)
-			this.wrapper.style.width = this.width + 'px';
+	make: function() {		
+		this.$wrapper = $('<div class="modal fade in" style="overflow: auto;">\
+			<div class="modal-dialog">\
+				<div class="modal-content">\
+					<div class="modal-header">\
+						<button type="button" class="close" \
+							data-dismiss="modal" aria-hidden="true">&times;</button>\
+						<h4 class="modal-title"></h4>\
+					</div>\
+					<div class="modal-body">\
+					</div>\
+				</div>\
+			</div>\
+			</div>')
+			.appendTo(document.body);
+		this.wrapper = this.$wrapper.find('.modal-dialog').get(0);
 
 		this.make_head();
-		this.body = $a(this.wrapper, 'div', 'dialog_body');	
+		this.body = this.$wrapper.find(".modal-body").get(0);	
 	},
 	make_head: function() {
 		var me = this;
-		this.appframe = new wn.ui.AppFrame(this.wrapper);
-		this.appframe.set_document_title = false;
-		// this.appframe.$titlebar.find('.close').unbind('click').click(function() {
-		// 	if(me.oncancel)me.oncancel(); me.hide();
-		// });
+		//this.appframe = new wn.ui.AppFrame(this.wrapper);
+		//this.appframe.set_document_title = false;
 		this.set_title(this.title);
 	},
 	set_title: function(t) {
-		this.appframe.set_title(t);
-	},
-	set_postion: function() {
-		this.zindex = 10;
-		if(cur_dialog) {
-			this.zindex = cur_dialog.zindex + 1;
-		}
-		// place it at the center
-		$(this.wrapper).css({
-			left: (($(window).width() - cint(this.wrapper.style.width))/2) + 'px',
-			top: ($(window).scrollTop() + 60) + 'px',
-			"z-index": this.zindex
-		})
+		this.$wrapper.find(".modal-title").html(t);
 	},
 	show: function() {
 		// already live, do nothing
 		if(this.display) return;
 
-		// set position
-		this.set_postion()
-
 		// show it
-		$ds(this.wrapper);
+		this.$wrapper.modal("show");
 		
-		// hide background
-		wn.dom.freeze();
-
 		this.display = true;
 		cur_dialog = this;
 
@@ -106,8 +91,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		if(this.onhide) this.onhide();
 
 		// hide
-		wn.dom.unfreeze();
-		$dh(this.wrapper);
+		this.$wrapper.modal("hide");
 
 		// flags
 		this.display = false;
