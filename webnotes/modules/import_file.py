@@ -25,8 +25,6 @@ from __future__ import unicode_literals
 import webnotes, os
 from webnotes.modules import scrub, get_module_path, scrub_dt_dn
 
-in_import = False
-
 def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
 		for m in module:
@@ -36,14 +34,13 @@ def import_files(module, dt=None, dn=None, force=False):
 		
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
-	global in_import
-	in_import = True
+	webnotes.in_import = True
 	dt, dn = scrub_dt_dn(dt, dn)
 	path = os.path.join(get_module_path(module), 
 		os.path.join(dt, dn, dn + '.txt'))
 		
 	ret = import_file_by_path(path, force)
-	in_import = False
+	webnotes.in_import = False
 	return ret
 
 def import_file_by_path(path, force=False):

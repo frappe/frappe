@@ -76,6 +76,7 @@ request_method = None
 print_messages = False
 user_lang = False
 lang = 'en'
+in_import = False
 
 # memcache
 

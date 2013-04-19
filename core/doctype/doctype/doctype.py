@@ -90,9 +90,7 @@ class DocType:
 		self.change_modified_of_parent()
 		
 		import conf
-		from webnotes.modules.import_file import in_import
-
-		if (not in_import) and getattr(conf,'developer_mode', 0):
+		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
 			self.export_doc()
 			self.make_controller_template()
 
