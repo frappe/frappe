@@ -23,7 +23,7 @@
 from __future__ import unicode_literals
 from webnotes.utils.minify import JavascriptMinify
 
-import os, sys
+import os, sys, webnotes
 
 class Bundle:
 	"""
@@ -53,25 +53,30 @@ class Bundle:
 			self.timestamps[f] = os.path.getmtime(f)
 			
 			# get datas
-			with open(f, 'r') as infile:			
-				# get file type
-				ftype = f.split('.')[-1] 
+			try:
+				with open(f, 'r') as infile:			
+					# get file type
+					ftype = f.split('.')[-1] 
 
-				data = unicode(infile.read(), 'utf-8')
+					data = unicode(infile.read(), 'utf-8', errors='ignore')
 
-			outtxt += ('\n/*\n *\t%s\n */' % f)
+				outtxt += ('\n/*\n *\t%s\n */' % f)
 					
-			# append
-			if suffix=='concat' or out_type != 'js' or self.no_compress or ('.min.' in f):
-				outtxt += '\n' + data + '\n'
-			else:
-				jsm = JavascriptMinify()
-				tmpin = StringIO(data.encode('utf-8'))
-				tmpout = StringIO()
-				jsm.minify(tmpin, tmpout)
-				tmpmin = unicode(tmpout.getvalue() or '', 'utf-8')
-				tmpmin.strip('\n')
-				outtxt += tmpmin
+				# append
+				if suffix=='concat' or out_type != 'js' or self.no_compress or ('.min.' in f):
+					outtxt += '\n' + data + '\n'
+				else:
+					jsm = JavascriptMinify()
+					tmpin = StringIO(data.encode('utf-8'))
+					tmpout = StringIO()
+					
+					jsm.minify(tmpin, tmpout)
+					tmpmin = unicode(tmpout.getvalue() or '', 'utf-8')
+					tmpmin.strip('\n')
+					outtxt += tmpmin
+			except Exception, e:
+				print "--Error in:" + f + "--"
+				print webnotes.getTraceback()
 						
 		with open(outfile, 'w') as f:
 			f.write(outtxt.encode("utf-8"))

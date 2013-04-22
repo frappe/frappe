@@ -38,7 +38,7 @@ $.extend(wn.model, {
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
 			if(!in_list(no_value_fields, f.fieldtype) && doc[f.fieldname]==null) {
-				var v = wn.model.get_default_value(f);
+				var v = wn.model.get_default_value(f, doc);
 				if(v) {
 					if(in_list(["Int", "Check"], f.fieldtype))
 						v = cint(v);
@@ -53,7 +53,7 @@ $.extend(wn.model, {
 		return updated;
 	},
 	
-	get_default_value: function(df) {
+	get_default_value: function(df, doc) {
 		var def_vals = {
 			"_Login": user,
 			"__user": user,
@@ -66,10 +66,25 @@ $.extend(wn.model, {
 			return def_vals[df["default"]];
 		else if(df.fieldtype=="Time" && (!df["default"]))
 			return dateutil.get_cur_time()
-		else if(df["default"])
+		else if(df["default"] && df["default"][0]!==":")
 			return df["default"];
 		else if(wn.defaults.get_user_default(df.fieldname))
 			return wn.defaults.get_user_default(df.fieldname);
+		else if(df["default"] && df["default"][0]===":")
+			return wn.model.get_default_from_boot_docs(df, doc);
+	},
+	
+	get_default_from_boot_docs: function(df, doc) {
+		// set default from partial docs passed during boot like ":Profile"
+		if(wn.model.get(df["default"]).length > 0) {
+			var ref_fieldname = df["default"].slice(1).toLowerCase().replace(" ", "_");
+			var ref_value = (doc && doc[ref_fieldname]) || (cur_frm && cur_frm.doc[ref_fieldname]);
+			var ref_doc = ref_value ? wn.model.get_doc(df["default"], ref_value) : null;
+			
+			if(ref_doc && ref_doc[df.fieldname]) {
+				return ref_doc[df.fieldname];
+			}
+		}
 	},
 	
 	add_child: function(doc, childtype, parentfield) {

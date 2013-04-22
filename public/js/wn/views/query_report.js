@@ -181,6 +181,14 @@ wn.views.QueryReport = Class.extend({
 		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, 
 			this.slickgrid_options);
+
+		this.grid.setSelectionModel(new Slick.CellSelectionModel());
+		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+			dataItemColumnValueExtractor: function(item, columnDef, value) {
+				return item[columnDef.field];
+			}
+		}));
+
 		this.setup_header_row();
 		this.grid.init();
 		this.setup_sort();

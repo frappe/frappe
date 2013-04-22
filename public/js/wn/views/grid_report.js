@@ -423,6 +423,13 @@ wn.views.GridReport = Class.extend({
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.dataview_columns, this.options);
 		var me = this;
 
+		this.grid.setSelectionModel(new Slick.CellSelectionModel());
+		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+			dataItemColumnValueExtractor: function(item, columnDef, value) {
+				return item[columnDef.field];
+			}
+		}));
+
 		// bind events
 		this.dataView.onRowsChanged.subscribe(function (e, args) {
 			me.grid.invalidateRows(args.rows);
