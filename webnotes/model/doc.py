@@ -252,34 +252,13 @@ class Document:
 		if not self.name:
 			self.name = make_autoname('#########', self.doctype)
 			
-	def _validate_name(self, case):
-		if webnotes.conn.sql('select name from `tab%s` where name=%s' % (self.doctype,'%s'), self.name):
-			raise NameError, 'Name %s already exists' % self.name
-		
-		# no name
-		if not self.name: return 'No Name Specified for %s' % self.doctype
-		
-		# new..
-		if self.name.startswith('New '+self.doctype):
-			raise NameError, 'There were some errors setting the name, please contact the administrator'
-		
-		if case=='Title Case': self.name = self.name.title()
-		if case=='UPPER CASE': self.name = self.name.upper()
-		
-		self.name = self.name.strip() # no leading and trailing blanks
-
-		forbidden = ['%', "'", '"', '#', '*', '?', '`']
-		for f in forbidden:
-			if f in self.name:
-				webnotes.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
-			
 	def _insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
 		# set name
 		if make_autoname:
 			self._set_name(autoname, istable)
 		
 		# validate name
-		self._validate_name(case)
+		validate_name(self.doctype, self.name, case)
 				
 		# insert!
 		if not keep_timestamps:
@@ -687,3 +666,26 @@ def copy_common_fields(from_doc, to_doc):
 		
 		if doctype_list.get_field(fieldname) and to_doc.fields[fieldname] != value:
 			to_doc.fields[fieldname] = value
+			
+def validate_name(doctype, name, case=None):
+	if webnotes.conn.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), name):
+		raise NameError, 'Name %s already exists' % name
+	
+	# no name
+	if not name: return 'No Name Specified for %s' % doctype
+	
+	# new..
+	if name.startswith('New '+doctype):
+		raise NameError, 'There were some errors setting the name, please contact the administrator'
+	
+	if case=='Title Case': name = name.title()
+	if case=='UPPER CASE': name = name.upper()
+	
+	name = name.strip() # no leading and trailing blanks
+
+	forbidden = ['%', "'", '"', '#', '*', '?', '`']
+	for f in forbidden:
+		if f in name:
+			webnotes.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
+			
+	return name
