@@ -562,8 +562,8 @@ _f.Frm.prototype.refresh_fields = function() {
 	}
 
 	// refresh sections
-	$.each(this.sections, function(i, f) {
-		f.refresh(true);
+	$.each(this.sections, function(i, section) {
+		section.toggle(!(section[0].df && section[0].df.hidden));
 	})
 
 	// cleanup activities after refresh

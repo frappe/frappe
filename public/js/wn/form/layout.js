@@ -53,6 +53,7 @@ wn.ui.form.Layout = Class.extend({
 		}
 		this.section = $('<div class="row">').appendTo(this.wrapper);
 		this.frm.sections.push(this.section);
+		this.section[0].df = df;
 		if(df) {
 			if(df.label) {
 				$('<div class="col-span-12"><h4>' + df.label + "</h4></div>").appendTo(this.section);

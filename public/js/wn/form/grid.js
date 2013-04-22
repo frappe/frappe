@@ -22,18 +22,12 @@ wn.ui.form.Grid = Class.extend({
 		var me = this;
 		$(this.parent).find(".grid-row").remove();
 		$.each(this.get_data() || [], function(ri, d) {
-			var panel = $('<div class="panel grid-row">').appendTo(me.parent);
-			$('<div class="panel-heading">Row #'+ ri +'</div>').appendTo(panel);
-			row = $('<div class="row">').appendTo(panel);
-			$.each(me.docfields, function(ci, df) {
-				if(!df.hidden) {
-					var fieldwrapper = $('<div class="col-span-3" \
-						style="height: 60px; overflow: hidden;">').appendTo(row);
-					var fieldobj = make_field(df, me.df.options, 
-						fieldwrapper.get(0), this.frm);
-					fieldobj.docname = d.name;
-					fieldobj.refresh();
-				}
+			new wn.ui.form.GridRow({
+				parent: me.parent,
+				parent_df: me.df,
+				docfields: me.docfields,
+				doc: d,
+				frm: me.frm
 			});
 		})
 	},
@@ -45,7 +39,13 @@ wn.ui.form.Grid = Class.extend({
 		});
 		data.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 });
 		return data;
-	}
+	},
+	set_column_disp: function() {
+		// return
+	},
+	get_field: function(fieldname) {
+		return {};
+	},
 	// make_table: function() {
 	// 	$(this.parent).find("table").remove();
 	// 	this.table = $("<table class='table table-bordered'>\
@@ -83,4 +83,46 @@ wn.ui.form.Grid = Class.extend({
 	// get_field: function(fieldname) {
 	// 	return {}
 	// }
-})
+});
+
+wn.ui.form.GridRow = Class.extend({
+	init: function(opts) {
+		$.extend(this, opts);
+		this.show = false;
+		this.make();
+	},
+	make: function() {
+		var me = this;
+		var panel = $('<div class="panel grid-row">')
+			.appendTo(me.parent)
+			.css({"cursor": "pointer"})
+			.click(function() {
+				me.toggle();
+			});
+		$('<div class="panel-heading">Row #'+ this.doc.idx +'</div>').appendTo(panel);
+		this.row = $('<div class="row">').appendTo(panel)
+			.css({"display":"none"});
+	},
+	toggle: function(show) {
+		this.show = show===undefined ? 
+			show = !this.show :
+			show
+		this.row.toggle(this.show);
+		this.show ? 
+			this.render_form() :
+			$(this.row).empty();
+	},
+	render_form: function() {
+		var me = this;
+		$.each(me.docfields, function(ci, df) {
+			if(!df.hidden) {
+				var fieldwrapper = $('<div class="col-span-3" \
+					style="height: 60px; overflow: hidden;">').appendTo(me.row);
+				var fieldobj = make_field(df, me.parent_df.options, 
+					fieldwrapper.get(0), me.frm);
+				fieldobj.docname = me.doc.name;
+				fieldobj.refresh();
+			}
+		});
+	}
+});
