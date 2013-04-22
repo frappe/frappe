@@ -90,8 +90,9 @@ def get_template():
 	columns = [key]
 	
 	def append_row(t, mandatory):
-		docfield = getdocfield(t)
-		if docfield and ((mandatory and docfield.reqd) or (not mandatory and not docfield.reqd)) \
+		docfield = doctype_dl.get_field(t)
+		
+		if docfield and ((mandatory and docfield.reqd) or not (mandatory or docfield.reqd)) \
 			and (t not in ('parenttype', 'trash_reason', 'file_list')) and not docfield.hidden:
 			fieldrow.append(t)
 			labelrow.append(docfield.label)
@@ -129,11 +130,6 @@ def get_template():
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = doctype
 
-def getdocfield(fieldname):
-	"""get docfield from doclist of doctype"""		
-	l = [d for d in doctype_dl if d.doctype=='DocField' and d.fieldname==fieldname]
-	return l and l[0] or None
-
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def upload():
 	"""upload data"""
@@ -169,12 +165,14 @@ def upload():
 		
 	def filter_empty_columns(columns):
 		empty_cols = filter(lambda x: x in ("", None), columns)
-		if columns[-1*len(empty_cols):] == empty_cols:
-			# filter empty columns if they exist at the end
-			columns = columns[:-1*len(empty_cols)]
-		else:
-			webnotes.msgprint(_("Please make sure that there are no empty columns in the file."),
-				raise_exception=1)
+		
+		if empty_cols:
+			if columns[-1*len(empty_cols):] == empty_cols:
+				# filter empty columns if they exist at the end
+				columns = columns[:-1*len(empty_cols)]
+			else:
+				webnotes.msgprint(_("Please make sure that there are no empty columns in the file."),
+					raise_exception=1)
 		
 		return columns
 		
@@ -274,7 +272,7 @@ def check_record(d, parenttype=None):
 		doctype_dl = webnotes.model.doctype.get(d.doctype)
 
 	for key in d:
-		docfield = getdocfield(key)
+		docfield = doctype_dl.get_field(key)
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val=='' or val==None):
