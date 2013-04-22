@@ -270,9 +270,11 @@ wn.views.ListView = Class.extend({
 		
 		// title
 		if(!in_list(["avatar", "_user_tags", "check"], opts.content)) {
-			$(parent).attr("title", (opts.title || opts.content) + ": " 
-				+ (data[opts.content] || "Not Set"))
-				.tooltip();
+			if($(parent).attr("title")==undefined) {
+				$(parent).attr("title", (opts.title || opts.content) + ": " 
+					+ (data[opts.content] || "Not Set"))
+			}
+			$(parent).tooltip();
 		}
 		
 	},
@@ -347,10 +349,10 @@ wn.views.ListView = Class.extend({
 			label: label
 		}
 		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right" \
-			title="%(percent)s% %(label)s">\
 			<span class="bar-inner %(fully_delivered)s" \
 				style="width: %(percent)s%;"></span>\
 		</span>', args));
+		$(parent).attr("title", repl("%(percent)s% %(label)s", args));
 	},
 	render_icon: function(parent, icon_class, label) {
 		var icon_html = "<i class='%(icon_class)s' title='%(label)s'></i>";
