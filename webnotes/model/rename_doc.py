@@ -3,6 +3,7 @@ import webnotes
 from webnotes import _
 import webnotes.utils
 import webnotes.model.doctype
+from webnotes.model.doc import validate_name
 
 @webnotes.whitelist()
 def rename_doc(doctype, old, new, force=False, merge=False):
@@ -16,7 +17,7 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	# get doclist of given doctype
 	doclist = webnotes.model.doctype.get(doctype)
 	
-	validate_rename(doctype, new, doclist, merge, force)
+	new = validate_rename(doctype, new, doclist, merge, force)
 
 	# call on_rename
 	obj = webnotes.get_obj(doctype, old)
@@ -57,6 +58,7 @@ def rename_parent_and_child(doctype, old, new, doclist):
 
 def validate_rename(doctype, new, doclist, merge, force):
 	exists = webnotes.conn.exists(doctype, new)
+
 	if merge and not exists:
 		webnotes.msgprint("%s: %s does not exist, select a new target to merge." % (doctype, new), raise_exception=1)
 		
@@ -68,6 +70,11 @@ def validate_rename(doctype, new, doclist, merge, force):
 
 	if not force and not doclist[0].allow_rename:
 		webnotes.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
+	
+	# validate naming like it's done in doc.py
+	new = validate_name(doctype, new)
+
+	return new
 
 def rename_doctype(doctype, old, new, force=False):
 	# change options for fieldtype Table
