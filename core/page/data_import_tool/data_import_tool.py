@@ -169,12 +169,14 @@ def upload():
 		
 	def filter_empty_columns(columns):
 		empty_cols = filter(lambda x: x in ("", None), columns)
-		if columns[-1*len(empty_cols):] == empty_cols:
-			# filter empty columns if they exist at the end
-			columns = columns[:-1*len(empty_cols)]
-		else:
-			webnotes.msgprint(_("Please make sure that there are no empty columns in the file."),
-				raise_exception=1)
+		
+		if empty_cols:
+			if columns[-1*len(empty_cols):] == empty_cols:
+				# filter empty columns if they exist at the end
+				columns = columns[:-1*len(empty_cols)]
+			else:
+				webnotes.msgprint(_("Please make sure that there are no empty columns in the file."),
+					raise_exception=1)
 		
 		return columns
 		
