@@ -28,6 +28,7 @@
       _grid = grid;
       _canvas = _grid.getCanvasNode();
       _grid.onActiveCellChanged.subscribe(handleActiveCellChange);
+      _grid.onKeyDown.subscribe(handleKeyDown);
       grid.registerPlugin(_selector);
       _selector.onCellRangeSelected.subscribe(handleCellRangeSelected);
       _selector.onBeforeCellRangeSelected.subscribe(handleBeforeCellRangeSelected);
@@ -35,6 +36,7 @@
 
     function destroy() {
       _grid.onActiveCellChanged.unsubscribe(handleActiveCellChange);
+      _grid.onKeyDown.unsubscribe(handleKeyDown);
       _selector.onCellRangeSelected.unsubscribe(handleCellRangeSelected);
       _selector.onBeforeCellRangeSelected.unsubscribe(handleBeforeCellRangeSelected);
       _grid.unregisterPlugin(_selector);
@@ -74,9 +76,60 @@
     }
 
     function handleActiveCellChange(e, args) {
-      if (_options.selectActiveCell) {
+      if (_options.selectActiveCell && args.row != null && args.cell != null) {
         setSelectedRanges([new Slick.Range(args.row, args.cell)]);
       }
+    }
+    
+    function handleKeyDown(e) {
+      var ranges, last;
+      var active = _grid.getActiveCell(); 
+
+      if ( active && e.shiftKey && !e.ctrlKey && !e.altKey && 
+          (e.which == 37 || e.which == 39 || e.which == 38 || e.which == 40) ) {
+      
+        ranges = getSelectedRanges();
+        if (!ranges.length)
+         ranges.push(new Slick.Range(active.row, active.cell));
+         
+        // keyboard can work with last range only          
+        last = ranges.pop();
+        
+        // can't handle selection out of active cell
+        if (!last.contains(active.row, active.cell))
+          last = new Slick.Range(active.row, active.cell);
+        
+        var dRow = last.toRow - last.fromRow,
+            dCell = last.toCell - last.fromCell,
+            // walking direction
+            dirRow = active.row == last.fromRow ? 1 : -1,
+            dirCell = active.cell == last.fromCell ? 1 : -1;
+                 
+        if (e.which == 37) {
+          dCell -= dirCell; 
+        } else if (e.which == 39) {
+          dCell += dirCell ; 
+        } else if (e.which == 38) {
+          dRow -= dirRow; 
+        } else if (e.which == 40) {
+          dRow += dirRow; 
+        }
+        
+        // define new selection range 
+        var new_last = new Slick.Range(active.row, active.cell, active.row + dirRow*dRow, active.cell + dirCell*dCell);
+        if (removeInvalidRanges([new_last]).length) {
+          ranges.push(new_last);
+         _grid.scrollRowIntoView(dirRow > 0 ? new_last.toRow : new_last.fromRow);
+         _grid.scrollCellIntoView(new_last.fromRow, dirCell > 0 ? new_last.toCell : new_last.fromCell);
+        }
+        else 
+          ranges.push(last);
+
+        setSelectedRanges(ranges);  
+       
+        e.preventDefault();
+        e.stopPropagation();        
+      }           
     }
 
     $.extend(this, {
