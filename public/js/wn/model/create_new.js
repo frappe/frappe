@@ -66,15 +66,15 @@ $.extend(wn.model, {
 			return def_vals[df["default"]];
 		else if(df.fieldtype=="Time" && (!df["default"]))
 			return dateutil.get_cur_time()
-		else if(df["default"] && df["default"].indexOf(":")!==0)
+		else if(df["default"] && df["default"][0]!==":")
 			return df["default"];
 		else if(wn.defaults.get_user_default(df.fieldname))
 			return wn.defaults.get_user_default(df.fieldname);
-		else if(df["default"] && df["default"].indexOf(":")===0)
-			return wn.model.get_default_from_boot_specs(df, doc);
+		else if(df["default"] && df["default"][0]===":")
+			return wn.model.get_default_from_boot_docs(df, doc);
 	},
 	
-	get_default_from_boot_specs: function(df, doc) {
+	get_default_from_boot_docs: function(df, doc) {
 		// set default from partial docs passed during boot like ":Profile"
 		if(wn.model.get(df["default"]).length > 0) {
 			var ref_fieldname = df["default"].slice(1).toLowerCase().replace(" ", "_");

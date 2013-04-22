@@ -111,7 +111,7 @@
 
 
     function handleBodyMouseDown(e) {
-      if ($menu && !$.contains($menu[0], e.target)) {
+      if ($menu && $menu[0] != e.target && !$.contains($menu[0], e.target)) {
         hideMenu();
       }
     }

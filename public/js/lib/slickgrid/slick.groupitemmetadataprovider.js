@@ -26,6 +26,7 @@
     var _grid;
     var _defaults = {
       groupCssClass: "slick-group",
+      groupTitleCssClass: "slick-group-title",
       totalsCssClass: "slick-group-totals",
       groupFocusable: true,
       totalsFocusable: false,
@@ -43,9 +44,15 @@
         return item.title;
       }
 
+      var indentation = item.level * 15 + "px";
+
       return "<span class='" + options.toggleCssClass + " " +
           (item.collapsed ? options.toggleCollapsedCssClass : options.toggleExpandedCssClass) +
-          "'></span>" + item.title;
+          "' style='margin-left:" + indentation +"'>" +
+          "</span>" +
+          "<span class='" + options.groupTitleCssClass + "' level='" + item.level + "'>" +
+            item.title +
+          "</span>";
     }
 
     function defaultTotalsCellFormatter(row, cell, value, columnDef, item) {
@@ -71,10 +78,9 @@
       var item = this.getDataItem(args.row);
       if (item && item instanceof Slick.Group && $(e.target).hasClass(options.toggleCssClass)) {
         if (item.collapsed) {
-          this.getData().expandGroup(item.value);
-        }
-        else {
-          this.getData().collapseGroup(item.value);
+          this.getData().expandGroup(item.groupingKey);
+        } else {
+          this.getData().collapseGroup(item.groupingKey);
         }
 
         e.stopImmediatePropagation();
@@ -90,10 +96,9 @@
           var item = this.getDataItem(activeCell.row);
           if (item && item instanceof Slick.Group) {
             if (item.collapsed) {
-              this.getData().expandGroup(item.value);
-            }
-            else {
-              this.getData().collapseGroup(item.value);
+              this.getData().expandGroup(item.groupingKey);
+            } else {
+              this.getData().collapseGroup(item.groupingKey);
             }
 
             e.stopImmediatePropagation();

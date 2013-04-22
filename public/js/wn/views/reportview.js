@@ -229,11 +229,17 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			.css('border-top', '0px')
 			.get(0), this.dataView, 
 			columns, options);
-
-			wn.slickgrid_tools.add_property_setter_on_resize(this.grid);
-			if(this.start!=0 && !options.autoHeight) {
-				this.grid.scrollRowIntoView(this.data.length-1);
-			}		
+		
+		this.grid.setSelectionModel(new Slick.CellSelectionModel());
+		this.grid.registerPlugin(new Slick.CellExternalCopyManager({
+			dataItemColumnValueExtractor: function(item, columnDef, value) {
+				return item[columnDef.field];
+			}
+		}));
+		wn.slickgrid_tools.add_property_setter_on_resize(this.grid);
+		if(this.start!=0 && !options.autoHeight) {
+			this.grid.scrollRowIntoView(this.data.length-1);
+		}
 	},
 	
 	set_data: function() {
