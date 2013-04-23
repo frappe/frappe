@@ -438,11 +438,11 @@ DataField.prototype.make_input = function() {
 	this.input.name = this.df.fieldname;
 	
 	$(this.input).blur(function() {
-		me.set_value(me.get_value ? me.get_value() : $(this.input).val());
+		me.set_value(me.get_value ? me.get_value() : $(this).val());
 	});
 	
 	this.set_value = function(val) {
-		if(!me.last_value)me.last_value='';
+		if(!me.last_value) me.last_value=undefined;
 		
 		if(me.validate) {
 			val = me.validate(val);
