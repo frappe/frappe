@@ -17,7 +17,7 @@ def render(page_name):
 		html = get_html('error')
 
 	from webnotes.handler import eprint, print_zip
-	eprint("Content-Type: text/html")
+	eprint("Content-Type: text/html; charset: utf-8")
 	print_zip(html)
 
 def get_html(page_name):
