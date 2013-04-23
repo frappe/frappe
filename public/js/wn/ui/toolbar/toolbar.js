@@ -45,7 +45,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make: function() {
 		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse">\
 			<div class="container">\
-				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">\
+				<button type="button" class="navbar-toggle" data-toggle="collapse" \
+					data-target=".navbar-responsive-collapse">\
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\

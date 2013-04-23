@@ -89,16 +89,24 @@ $.extend(wn.model, {
 	
 	add_child: function(parent_doc, doctype, parentfield, idx) {
 		// create row doc
-		if(!idx)
-			idx = wn.model.get_children(doctype, parent_doc.name, parentfield, 
-				parent_doc.doctype).length;
+		idx = idx ?
+			idx - 0.1 :
+			wn.model.get_children(doctype, parent_doc.name, parentfield, 
+				parent_doc.doctype).length + 1;
+
 		var d = wn.model.get_new_doc(doctype);
 		$.extend(d, {
 			parent: parent_doc.name,
 			parentfield: parentfield,
 			parenttype: parent_doc.doctype,
-			idx: idx + 1
+			idx: idx
 		});
+		
+		// renum for fraction
+		idx != cint(idx) && 
+			wn.model.get_children(doctype, parent_doc.name, parentfield, 
+				parent_doc.doctype);
+			
 		return d;
 	},
 	
