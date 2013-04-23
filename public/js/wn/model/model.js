@@ -214,17 +214,19 @@ $.extend(wn.model, {
 		return doclist;
 	},
 
-	get_children: function(child_dt, parent, parentfield, parenttype) { 
+	get_children: function(doctype, parent, parentfield, parenttype) { 
 		if(parenttype) {
-			var l = wn.model.get(child_dt, {parent:parent, 
+			var l = wn.model.get(doctype, {parent:parent, 
 				parentfield:parentfield, parenttype:parenttype});
 		} else {
-			var l = wn.model.get(child_dt, {parent:parent, 
-				parentfield:parentfield});				
+			var l = wn.model.get(doctype, {parent:parent, 
+				parentfield:parentfield});
 		}
 
 		if(l.length) {
 			l.sort(function(a,b) { return cint(a.idx) - cint(b.idx) }); 
+			
+			// renumber
 			$.each(l, function(i, v) { v.idx = i+1; }); // for chrome bugs ???
 		}
 		return l; 
@@ -244,9 +246,18 @@ $.extend(wn.model, {
 	},
 	
 	clear_doc: function(doctype, name) {
+		var doc = locals[doctype][name];
+		
+		if(doc && doc.parenttype) {
+			var parent = doc.parent,
+				parenttype = doc.parenttype,
+				parentfield = doc.parentfield;
+		}
 		delete locals[doctype][name];
-	},	
-
+		if(parent)
+			wn.model.get_children(doctype, parent, parentfield, parenttype);
+	},
+	
 	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 		$.each(wn.model.get("DocField", {parent:doctype}), function(i, df) {

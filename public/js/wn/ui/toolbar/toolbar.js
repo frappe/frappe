@@ -26,8 +26,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make();
 		this.make_erpnext();
 		this.make_file();
-		//this.make_view();
-		//this.make_actions();
+		this.make_view();
+		this.make_actions();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		wn.ui.toolbar.bookmarks = new wn.ui.toolbar.Bookmarks();
 		this.make_tools();
@@ -121,7 +121,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
 				title="'+wn._("File")+'"\
-				onclick="return false;">File</a>\
+				onclick="return false;">'+wn._("File")+'</a>\
 			<ul class="dropdown-menu" id="navbar-file">\
 				<li><a href="#" onclick="return wn.ui.toolbar.new_dialog.show();">\
 					<i class="icon-plus"></i> '+wn._('New')+'...</a></li>\
@@ -129,6 +129,26 @@ wn.ui.toolbar.Toolbar = Class.extend({
 					<i class="icon-search"></i> '+wn._('Search')+'...</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.report.show();">\
 					<i class="icon-list"></i> '+wn._('Report')+'...</a></li>\
+			</ul>\
+		</li>');
+	},
+
+	make_view: function() {
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+				title="'+wn._("View")+'"\
+				onclick="return false;">'+wn._("View")+'</a>\
+			<ul class="dropdown-menu" id="navbar-view">\
+			</ul>\
+		</li>');
+	},
+
+	make_actions: function() {
+		$('.navbar .nav:first').append('<li class="dropdown">\
+			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+				title="'+wn._("Actions")+'"\
+				onclick="return false;">'+wn._("Actions")+'</a>\
+			<ul class="dropdown-menu" id="navbar-actions">\
 			</ul>\
 		</li>');
 	},

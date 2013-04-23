@@ -987,11 +987,11 @@ TextField.prototype.make_input = function() {
 	this.input = $a(this.input_area, 'textarea');
 
 	if(this.df.fieldtype=='Small Text') {
-		$(this.input).css({height: "80px"});
+		$(this.input).css({height: "60px"});
 	} else if(this.df.width) {
 		$(this.input).css({height: cint(this.df.width) + "px"});
 	} else {
-		$(this.input).css({height: "160px"});
+		$(this.input).css({height: "60px"});
 	}
 	this.input.set_input = function(v) {
 		me.input.value = (v==null ? "" : v);

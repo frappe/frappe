@@ -81,6 +81,7 @@ $.extend(_p, {
 		//d.widgets['No Letterhead'].checked = 1;
 		
 		// Print Button
+		$(d.widgets.Buttons).css({"height": "60px"})
 		$btn(d.widgets.Buttons, 'Print', function() {
 				_p.build(
 					sel_val(cur_frm.print_sel), // fmtname
@@ -91,7 +92,7 @@ $.extend(_p, {
 			{
 					cssFloat: 'right',
 					marginBottom: '16px',
-					marginLeft: '7px'
+					marginLeft: '7px',
 			}, 'green');
 		
 		// Print Preview

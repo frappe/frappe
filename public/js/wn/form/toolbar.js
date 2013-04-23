@@ -21,7 +21,6 @@ wn.ui.form.Toolbar = Class.extend({
 	},
 	make_file_menu: function() {
 		var me = this;
-		var menu = this.get_dropdown_menu("File");
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);
 
@@ -71,7 +70,6 @@ wn.ui.form.Toolbar = Class.extend({
 	},
 	make_view_menu: function() {
 		var me = this;
-		var menu = this.get_dropdown_menu("View");
 		// Edit
 		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal) {
 			this.appframe.add_dropdown_button("View", 'Print View', function() { 
@@ -129,7 +127,7 @@ wn.ui.form.Toolbar = Class.extend({
 			
 			// show update button if unsaved
 			var docstatus = cint(me.frm.doc.docstatus);
-			if(me.frm.doc.__unsaved && docstatus==1 && me.frm.perm[0][SUBMIT]) {
+			if(docstatus==1 && me.frm.perm[0][SUBMIT]) {
 				me.appframe.$w.find(".title-button-area").empty();
 				me.appframe.add_title_button("Update", function() { 
 					me.frm.save('Update', null, me);
@@ -138,11 +136,8 @@ wn.ui.form.Toolbar = Class.extend({
 		})
 	},
 	show_title_as_dirty: function() {
-		if(this.frm.doc.__unsaved) {
-			this.appframe.get_title_area().addClass("text-warning");
-		} else {
-			this.appframe.get_title_area().removeClass("text-warning");
-		}
+		this.appframe.get_title_area()
+			.toggleClass("text-warning", this.frm.doc.__unsaved);
 	},
 	make_actions_menu: function() {
 		if(this.actions_setup) return;

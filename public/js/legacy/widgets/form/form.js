@@ -761,7 +761,7 @@ _f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
 	}
 
 	// css
-	if(doctype.__css) set_style(doctype.__css)
+	if(doctype.__css) wn.dom.set_style(doctype.__css);
 
 	// ---Client String----
 	if(doctype.client_string) { // split client string
@@ -966,15 +966,13 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 
 	if(changed) {
 		d[fn] = v;
-		d.__unsaved = 1;
-		if(d.parenttype)
-			locals[d.parenttype][d.parent].__unsaved = 1;
-			
 		this.dirty();
 	}
 }
 
 _f.Frm.prototype.dirty = function() {
+	this.doc.__unsaved = 1;
+	$(this.wrapper).trigger('dirty')
 	
 }
 

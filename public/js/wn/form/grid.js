@@ -5,31 +5,65 @@ wn.ui.form.Grid = Class.extend({
 		this.docfields.sort(function(a, b)  { return a.idx > b.idx ? 1 : -1 });
 		this.make();
 	},
-	refresh: function() {
-		this.make_table();
-	},
 	make: function() {
-		$("<h5>").html(this.df.label).appendTo(this.parent);
-		$('<div class="btn-group" style="margin-bottom: 10px;">\
-			<button class="btn"><i class="icon-plus"></i> </button>\
-			<button class="btn"><i class="icon-remove-sign"></i> </button>\
-			<button class="btn"><i class="icon-arrow-up"></i> </button>\
-			<button class="btn"><i class="icon-arrow-down"></i> </button>\
-		</div>').appendTo(this.parent);
-		this.make_table();
-	},
-	make_table: function() {
 		var me = this;
-		$(this.parent).find(".grid-row").remove();
+		
+		this.wrapper = $('<div>\
+		<div class="panel">\
+			<div class="panel-heading"></div>\
+			<div class="rows"></div>\
+		</div>\
+		<div class="btn-group" style="margin-bottom: 10px;">\
+			<button class="btn grid-add-row"><i class="icon-plus"></i> Add Row</button>\
+		</div>\
+		</div>').appendTo(this.parent);
+
+		$(this.wrapper).find(".grid-add-row").click(function() {
+			wn.model.add_child(me.frm.doc, me.df.options, me.df.fieldname);
+			me.refresh();
+		})
+		
+		this.make_head();
+	},
+	make_head: function() {
+		// labels
+		new wn.ui.form.GridRow({
+			parent: $(this.parent).find(".panel-heading"),
+			parent_df: this.df,
+			docfields: this.docfields,
+			frm: this.frm
+		});	
+	},
+	refresh: function() {
+		var me = this,
+			$rows = $(me.parent).find(".rows");	
+		
+		$rows.find(".grid-row").remove();
+
 		$.each(this.get_data() || [], function(ri, d) {
 			new wn.ui.form.GridRow({
-				parent: me.parent,
+				parent: $rows,
 				parent_df: me.df,
 				docfields: me.docfields,
 				doc: d,
-				frm: me.frm
+				frm: me.frm,
+				grid: me
 			});
-		})
+		});
+		this.make_sortable($rows);
+	},
+	make_sortable: function($rows) {
+		var me =this;
+		$rows.sortable({
+			update: function(event, ui) {
+				$rows.find(".grid-row").each(function(i, item) {
+					var doc = $(item).data("doc");
+					doc.idx = i + 1;
+					$(this).find(".row-index").html(i + 1);
+					me.frm.dirty();
+				})
+			}
+		});
 	},
 	get_data: function() {
 		var data = wn.model.get(this.df.options, {
@@ -46,43 +80,6 @@ wn.ui.form.Grid = Class.extend({
 	get_field: function(fieldname) {
 		return {};
 	},
-	// make_table: function() {
-	// 	$(this.parent).find("table").remove();
-	// 	this.table = $("<table class='table table-bordered'>\
-	// 		<thead></thead>\
-	// 	</table>")
-	// 		.appendTo(this.parent);
-	// 	this.tbody = this.table.find("tbody");
-	// 	this.make_table_head();
-	// 	this.make_table_rows();
-	// },
-	// make_table_head: function() {
-	// 	var row = $("<tr>").appendTo(this.table.find("thead"))
-	// 	$("<th style='width: 40px;'>Sr</th>").appendTo(row);
-	// 	$.each(this.docfields || [], function(i, df) {
-	// 		$("<th>")
-	// 			.html(df.label)
-	// 			.css({"width": df.width ? df.width : "110px"})
-	// 			.appendTo(row);
-	// 	})
-	// },
-	// make_table_rows: function() {
-	// 	var me = this;
-	// 	var data = this.get_data();
-	// 	
-	// 	$.each(data || [], function(ri, d) {
-	// 		var row = $("<tr>").appendTo(me.tbody);
-	// 		$("<td>" + (ri + 1) + "</td>").appendTo(row);
-	// 		$.each(me.docfields || [], function(ci, df) {
-	// 			$("<td>")
-	// 				.html(wn.format(d[df.fieldname], df, null, d))
-	// 				.appendTo(row)
-	// 		});
-	// 	})
-	// },
-	// get_field: function(fieldname) {
-	// 	return {}
-	// }
 });
 
 wn.ui.form.GridRow = Class.extend({
@@ -93,36 +90,116 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		var panel = $('<div class="panel grid-row">')
-			.appendTo(me.parent)
-			.css({"cursor": "pointer"})
-			.click(function() {
-				me.toggle();
+		this.wrapper = $('<div class="grid-row">\
+			<div class="header">\
+				<div class="row"></div>\
+				<div class="toolbar" style="display: none; height: 40px;">\
+					Editing Row #<span class="row-index"></span>\
+					<button class="btn pull-right" style="margin-left: 7px;">\
+						<i class="icon-ok"></i></button>\
+					<button class="btn pull-right" style="margin-left: 7px;">\
+						<i class="icon-plus"></i></button>\
+					<button class="btn btn-danger pull-right"><i class="icon-trash"></i></button>\
+				</div>\
+			</div>\
+			<div class="form-area" style="display: none;"></div>\
+		</div>').appendTo(this.parent);
+
+		if(this.doc) {
+			this.wrapper.css({
+				"margin-bottom": "10px",
+				"cursor": "pointer", 
+			})
+			.find(".row-index").html(this.doc.idx)
+		}
+
+		if(me.doc) {
+			this.wrapper.find(".header")
+				.click(function() {
+					me.toggle();
+				});
+		}
+		this.toolbar = this.wrapper.find(".toolbar");
+		this.row = this.wrapper.find(".row");
+		this.form_area = this.wrapper.find(".form-area");
+		this.wrapper.find(".btn-danger").click(function() {
+			me.wrapper.fadeOut(function() {
+				wn.model.clear_doc(me.doc.doctype, me.doc.name);
+				me.frm.dirty();
+				me.grid.refresh();
 			});
-		$('<div class="panel-heading">Row #'+ this.doc.idx +'</div>').appendTo(panel);
-		this.row = $('<div class="row">').appendTo(panel)
-			.css({"display":"none"});
+			return false;
+		})
+
+		this.make_columns();
+		if(this.doc) {
+			this.set_data();
+		}
+	},
+	make_columns: function() {
+		var me = this,
+			total_colsize = 1;
+		me.row.empty();
+		col = $('<div class="col-span-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
+			.appendTo(me.row)
+		$.each(me.docfields, function(ci, df) {
+			if(!df.hidden && !df.print_hide) {
+				var colsize = 2;
+				switch(df.fieldtype) {
+					case "Text":
+						colsize = 3;
+						break;
+					case "Check":
+						colsize = 1;
+						break;
+				}
+				total_colsize += colsize
+				if(total_colsize > 12) 
+					return false;
+				$('<div class="col-span-'+colsize+'">' 
+					+ (me.doc ? me.doc[df.fieldname] : df.label)+ '</div>')
+					.appendTo(me.row)
+			}
+		});
 	},
 	toggle: function(show) {
 		this.show = show===undefined ? 
 			show = !this.show :
 			show
-		this.row.toggle(this.show);
+		this.form_area.toggle(this.show);
+		this.toolbar.toggle(this.show);
+
+		this.row.toggle(!this.show);
+		this.wrapper.toggleClass("alert");
+
 		this.show ? 
 			this.render_form() :
-			$(this.row).empty();
+			$(this.form_area).empty();
+		this.make_columns();
 	},
 	render_form: function() {
-		var me = this;
+		var me = this,
+			cnt = 0;
+			
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden) {
-				var fieldwrapper = $('<div class="col-span-3" \
-					style="height: 60px; overflow: hidden;">').appendTo(me.row);
+				if(cnt % 4==0)
+					form_row = $('<div class="row">').appendTo(me.form_area);
+					
+				var fieldwrapper = $('<div class="col-span-3">').appendTo(form_row);
 				var fieldobj = make_field(df, me.parent_df.options, 
 					fieldwrapper.get(0), me.frm);
 				fieldobj.docname = me.doc.name;
 				fieldobj.refresh();
+				fieldobj.input &&
+					$(fieldobj.input).css({"max-height": "60px"});
+				cnt++;
 			}
 		});
+	},
+	set_data: function() {
+		this.wrapper.data({
+			"doc": this.doc
+		})
 	}
 });

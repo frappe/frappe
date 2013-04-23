@@ -26,17 +26,15 @@ wn.ui.form.Layout = Class.extend({
 				case "Table":
 				case "Text Editor":
 				case "Code":
+				case "Text":
+				case "Small Text":
 				case "HTML":
 					var fieldwrapper = $('<div class="col-span-12">').appendTo(me.section);
 					me.make_field(df, fieldwrapper);
 					break;
-				case "Text":
-					var fieldwrapper = $('<div class="col-span-8">').appendTo(me.section);
-					me.make_field(df, fieldwrapper);
-					break;
 				default:
 					var fieldwrapper = $('<div class="col-span-4" \
-						style="height: 60px; overflow: hidden;">')
+						style="height: 57px; overflow: hidden;">')
 						.appendTo(me.section);
 					me.make_field(df, fieldwrapper);
 			}

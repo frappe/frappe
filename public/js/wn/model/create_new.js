@@ -87,14 +87,17 @@ $.extend(wn.model, {
 		}
 	},
 	
-	add_child: function(doc, childtype, parentfield) {
+	add_child: function(parent_doc, doctype, parentfield, idx) {
 		// create row doc
-		var d = wn.model.get_new_doc(childtype);
+		if(!idx)
+			idx = wn.model.get_children(doctype, parent_doc.name, parentfield, 
+				parent_doc.doctype).length;
+		var d = wn.model.get_new_doc(doctype);
 		$.extend(d, {
-			parent: doc.name,
+			parent: parent_doc.name,
 			parentfield: parentfield,
-			parenttype: doc.doctype,
-			idx: getchildren(childtype, d.parent, d.parentfield, d.parenttype).length 
+			parenttype: parent_doc.doctype,
+			idx: idx + 1
 		});
 		return d;
 	},

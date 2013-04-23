@@ -214,7 +214,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	add_dropdown_button: function(parent, label, click, icon) {
 		var menu = $("#navbar-" + parent.toLowerCase());
-		if(!menu.find(".divider").length) {
+		if(menu.find("li:not(.custom-menu)").length && !menu.find(".divider").length) {
 			$('<li class="divider custom-menu"></li>').appendTo(menu);
 		}
 
@@ -224,7 +224,6 @@ wn.ui.AppFrame = Class.extend({
 			.find("a")
 			.click(function() {
 				click();
-				return false;
 			});
 	},
 	add_label: function(label) {
