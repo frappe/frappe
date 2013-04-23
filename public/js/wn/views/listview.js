@@ -348,11 +348,10 @@ wn.views.ListView = Class.extend({
 			fully_delivered: (data[field] > 99 ? 'bar-complete' : ''),
 			label: label
 		}
-		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right" \
-			<span class="bar-inner %(fully_delivered)s" \
+		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right"> \
+			<span class="bar-inner %(fully_delivered)s" title="%(percent)s% %(label)s" \
 				style="width: %(percent)s%;"></span>\
 		</span>', args));
-		$(parent).attr("title", repl("%(percent)s% %(label)s", args));
 	},
 	render_icon: function(parent, icon_class, label) {
 		var icon_html = "<i class='%(icon_class)s' title='%(label)s'></i>";
