@@ -380,6 +380,9 @@ class Document:
 		res = webnotes.model.meta.get_dt_values(self.doctype,
 			'autoname, issingle, istable, name_case', as_dict=1)
 		res = res and res[0] or {}
+		
+		doctypelist = webnotes.get_doctype(self.doctype)
+		res = doctypelist and doctypelist[0].fields or {}
 
 		if new:
 			self.fields["__islocal"] = 1
