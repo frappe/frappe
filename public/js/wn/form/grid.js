@@ -51,9 +51,12 @@ wn.ui.form.Grid = Class.extend({
 			});
 		});
 		
-		this.wrapper.find(".grid-add-row").toggle(false);
-		if(wn.perm.get_field_display_status(this.df, this.frm.doc, this.perm)=="Write") {
-			this.wrapper.find(".grid-add-row").toggle(true);
+		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
+			this.perm);
+
+		console.log(this.display_status);
+		this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write");
+		if(this.display_status=="Write") {
 			this.make_sortable($rows);
 		}
 	},
@@ -131,11 +134,11 @@ wn.ui.form.GridRow = Class.extend({
 					me.toggle_view();
 					return false;
 				});
+			this.set_button_events();
 		}
 		this.form_panel = this.wrapper.find(".panel");
 		this.row = this.wrapper.find(".data-row");
 		this.form_area = this.wrapper.find(".form-area");
-		this.set_button_events();
 
 		this.make_columns();
 		if(this.doc) {
@@ -144,6 +147,12 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	set_button_events: function() {
 		var me = this;
+		
+		if(this.grid.display_status!="Write") {
+			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
+			return;
+		}
+		
 		this.wrapper.find(".btn-danger").click(function() {
 			me.wrapper.fadeOut(function() {
 				wn.model.clear_doc(me.doc.doctype, me.doc.name);
