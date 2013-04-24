@@ -111,7 +111,7 @@ refresh_field = function(n, docname, table_field) {
 			if(g && hc && hc.fieldname==n && g.row.docname==docname) {
 				hc.template.refresh(); // if active
 			} else if (cur_frm.fields_dict[table_field]) {
-				cur_frm.fields_dict[table_field].grid.refresh_cell(docname, n);
+				cur_frm.fields_dict[table_field].grid.refresh();
 			}
 		}
 	} else if(cur_frm) {

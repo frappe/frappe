@@ -52,6 +52,7 @@ _f.TableField.prototype.make_body = function() {
 		this.grid = new wn.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,
+			perm: this.perm,
 			parent: $("<div>").appendTo(this.wrapper)
 		})
 		if(this.frm)

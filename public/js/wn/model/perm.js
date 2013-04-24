@@ -139,5 +139,84 @@ $.extend(wn.perm, {
 			return true;
 		}
 	},	
-	
+	get_field_display_status: function(df, doc, perm, explain) {
+		if(!doc) return "Write"
+
+		if(!df.permlevel) df.permlevel = 0;
+
+		perm = perm || wn.perm.get_perm(doc.doctype, doc.name);
+		var p = perm[df.permlevel],
+			ret = null;
+
+		// permission level
+		if(p && p[WRITE] && !df.disabled)
+			ret='Write';
+		else if(p && p[READ])
+			ret='Read';
+		else 
+			ret='None';
+
+		if(explain) console.log("By Permission:" + ret)
+
+		// hidden
+		if(cint(df.hidden)) {
+			ret = 'None';
+		}
+
+		if(explain) console.log("By Hidden:" + ret)
+
+		// for submit
+		if(ret=='Write' && cint(doc.docstatus) > 0) {
+			ret = 'Read';
+		}
+
+		if(explain) console.log("By Submit:" + ret)
+
+		// allow on submit
+		var allow_on_submit = cint(df.allow_on_submit);
+
+		// if(allow_on_submit && doc.parent) {
+		// 	parent_df = wn.model.get("DocField", {
+		// 		"parent": doc.parenttype,
+		// 		"fieldname": doc.parentfield
+		// 	});
+		// 	allow_on_submit = parent_df ? 
+		// 		parent_df[0].allow_on_submit :
+		// 		0;
+		// }
+
+		if(explain) console.log("Allow on Submit:" + allow_on_submit)
+
+		if(ret=="Read" && allow_on_submit && cint(doc.docstatus)==1 && 
+			perm[df.permlevel][WRITE]) {
+			ret='Write';
+		}
+
+		if(explain) console.log("By Allow on Submt:" + ret)
+
+		// workflow state
+		if(ret=="Write" && cur_frm && cur_frm.state_fieldname) {
+			if(cint(cur_frm.read_only)) {
+				ret = 'Read';
+			}
+			// fields updated by workflow must be read-only
+			if(in_list(cur_frm.states.update_fields, df.fieldname) ||
+				df.fieldname==cur_frm.state_fieldname) {
+				ret = 'Read';
+			}
+		}
+
+		if(explain) console.log("By Workflow:" + ret)
+
+		// make a field read_only if read_only 
+		// is checked (disregards write permission)
+		if(ret=="Write" && cint(df.read_only)) {
+			ret = "Read";
+		}
+
+		if(explain) console.log("By Read Only:" + ret)
+
+		return ret;
+		
+	}
 });

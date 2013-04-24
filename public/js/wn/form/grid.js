@@ -50,7 +50,12 @@ wn.ui.form.Grid = Class.extend({
 				grid: me
 			});
 		});
-		this.make_sortable($rows);
+		
+		this.wrapper.find(".grid-add-row").toggle(false);
+		if(wn.perm.get_field_display_status(this.df, this.frm.doc, this.perm)=="Write") {
+			this.wrapper.find(".grid-add-row").toggle(true);
+			this.make_sortable($rows);
+		}
 	},
 	make_sortable: function($rows) {
 		var me =this;

@@ -119,88 +119,9 @@ Field.prototype.set_description = function(txt) {
 }
 
 Field.prototype.get_status = function(explain) {
-	// if used in filters
-	if(this.in_filter) 
-		this.not_in_form = this.in_filter;
-	
-	if(this.not_in_form) {
-		return 'Write';
-	}
-
-	if(!this.df.permlevel) this.df.permlevel = 0;
-
-	var p = this.perm[this.df.permlevel];
-	var ret;
-
-	// permission level
-	if(p && p[WRITE] && !this.df.disabled)
-		ret='Write';
-	else if(p && p[READ])
-		ret='Read';
-	else 
-		ret='None';
-
-	if(explain) console.log("By Permission:" + ret)
-
-	// hidden
-	if(cint(this.df.hidden)) {
-		ret = 'None';
-	}
-
-	if(explain) console.log("By Hidden:" + ret)
-
-	// for submit
-	if(ret=='Write' && cint(cur_frm.doc.docstatus) > 0) {
-		ret = 'Read';
-	}
-
-	if(explain) console.log("By Submit:" + ret)
-
-	// allow on submit
-	var a_o_s = cint(this.df.allow_on_submit);
-	
-	if(a_o_s && (this.in_grid || (this.frm && this.frm.meta.istable))) {
-		// if grid is allow-on-submit, everything in it is too!
-		a_o_s = null;
-		if(this.in_grid) 
-			a_o_s = this.grid.field.df.allow_on_submit;
-		if(this.frm.meta.istable) { 
-			a_o_s = _f.cur_grid.field.df.allow_on_submit;
-		}
-	}
-
-	if(explain) console.log("Allow on Submit:" + a_o_s)
-	
-	if(ret=="Read" && a_o_s && cint(cur_frm.doc.docstatus)==1 && 
-		cur_frm.perm[this.df.permlevel][WRITE]) {
-			ret='Write';
-	}
-
-	if(explain) console.log("By Allow on Submt:" + ret)
-
-	// workflow state
-	if(ret=="Write" && cur_frm && cur_frm.state_fieldname) {
-		if(cint(cur_frm.read_only)) {
-			ret = 'Read';
-		}
-		// fields updated by workflow must be read-only
-		if(in_list(cur_frm.states.update_fields, this.df.fieldname) ||
-			this.df.fieldname==cur_frm.state_fieldname) {
-			ret = 'Read';
-		}
-	}
-	
-	if(explain) console.log("By Workflow:" + ret)
-	
-	// make a field read_only if read_only 
-	// is checked (disregards write permission)
-	if(ret=="Write" && cint(this.df.read_only)) {
-		ret = "Read";
-	}
-
-	if(explain) console.log("By Read Only:" + ret)
-
-	return ret;
+	if(!this.doctype) 
+		return "Write";
+	return wn.perm.get_field_display_status(this.df, locals[this.doctype][this.docname], this.perm, explain)
 }
 
 Field.prototype.set_style_mandatory = function(add) {
