@@ -220,10 +220,10 @@ Field.prototype.run_trigger = function() {
 
 Field.prototype.set_disp_html = function(t) {
 	if(this.disp_area){
-		$(this.disp_area).addClass('disp_area');
+		$(this.disp_area).addClass('disp-area');
 
 		this.disp_area.innerHTML = (t==null ? '' : t);
-		if(!t) $(this.disp_area).addClass('disp_area_no_val');
+		if(!t) $(this.disp_area).addClass('disp-area-no-val');
 	}
 }
 

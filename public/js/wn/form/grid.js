@@ -9,7 +9,7 @@ wn.ui.form.Grid = Class.extend({
 		
 		this.wrapper = $('<div>\
 		<div class="panel">\
-			<div class="panel-heading"></div>\
+			<div class="panel-heading" style="font-size: 15px;"></div>\
 			<div class="rows"></div>\
 			<div style="margin-top: 5px; margin-bottom: -5px;">\
 				<a href="#" class="grid-add-row">+ '+wn._("Add new row")+'.</a>\

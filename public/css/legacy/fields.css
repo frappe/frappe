@@ -19,12 +19,12 @@
 	padding-right: 6px; 
 }
 
-.disp_area { 
+.disp-area { 
 	background-color: #eee;
 	padding: 3px;
 	margin-bottom: 7px;
 	border-radius: 3px;	
 }
-.disp_area_no_val { 
+.disp-area-no-val { 
 	min-height: 17px; 
 }
