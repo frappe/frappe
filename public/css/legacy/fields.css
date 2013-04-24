@@ -4,21 +4,6 @@
  */
 /* Documents */
 
-.frm_field_table {
-        width: 100%;
-        border-collapse: collapse;
-}
-
-.datalabelcell { 
-        padding: 2px 0px; 
-        width: 160px; 
-        vertical-align: top; 
-}
-.datainputcell { padding: 2px 0px; }
-
-.field-wrapper .help {
-	margin-top: -5px;
-}
 
 .help ol {
 	padding-left: 19px;
@@ -35,30 +20,11 @@
 }
 
 .disp_area { 
-	width: 80%; 
-	padding: 2px 0px; 
-	font-size: 12px; 
 	background-color: #eee;
-	padding: 2px;
-	border: 1px solid #ddd;
+	padding: 3px;
 	margin-bottom: 7px;
-	
-	-webkit-border-radius: 3px;
-	-moz-border-radius: 3px;
 	border-radius: 3px;	
 }
 .disp_area_no_val { 
-	min-height: 14px; 
-}
-
-.input-mandatory {
-	font-size: 14px !important;
-}
-
-.field-to-update {
-	background-color:#FEE;
-}
-
-.field-has-error {
-	border: 2px solid #C00;
+	min-height: 17px; 
 }

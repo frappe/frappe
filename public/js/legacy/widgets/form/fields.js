@@ -42,55 +42,20 @@ Field.prototype.make_body = function() {
 	var ischk = (this.df.fieldtype=='Check' ? 1 : 0);
 	
 	// parent element
-	if(!this.parent) this.parent = $("<div>").get(0);
-	this.wrapper = this.parent;
-
-	$(this.wrapper).addClass("field-wrapper");
+	this.$wrapper = $('<div class="control-group">\
+		<label class="control-label"></label>\
+		<div class="controls">\
+			<div class="control-value"></div>\
+		</div>\
+	</div>').appendTo(this.parent);
+	this.wrapper = this.$wrapper.get(0);
 	
-	this.label_area = $a(this.wrapper, 'div', '', 
-		{margin:'0px 0px 2px 0px', minHeight:'1em'});
+	this.label_area = this.label_span = this.$wrapper.find(".control-label").get(0);
+	this.input_area = this.$wrapper.find(".controls").get(0);
+	this.disp_area = this.$wrapper.find(".control-value").get(0);
 
-	var label_wrapper = this.label_area;
-	if(ischk && !this.in_grid) {
-		var label_wrapper = $("<div style='margin-bottom: 9px'>").appendTo(this.label_area).get(0);
-		this.input_area = $a(label_wrapper, 'span', '', {marginRight:'4px'});
-		this.disp_area = $a(label_wrapper, 'span', '', {marginRight:'4px'});
-	}
-	
-	// label
-	if(this.with_label) {
-			this.label_span = $a(label_wrapper, 'span', 'small')
-			if(wn.boot && wn.boot.developer_mode)
-				$(this.label_span).attr("title", this.df.fieldname);
-					
-		// error icon
-		this.label_icon = $('<i class="icon icon-warning-sign">').toggle(false)
-			.appendTo(label_wrapper).css('margin-left','7px')
-			.attr("title", "This field is mandatory.");
-
-	} else {
-		this.label_span = $a(label_wrapper, 'span', '', {marginRight:'4px'})
-		$dh(label_wrapper);
-	}
-
-	// make the input areas
-	if(!this.input_area) {
-		this.input_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
-		this.disp_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
-	}
-
-	// apply style
-	if(this.in_grid) { 
-		if(this.label_area) $dh(this.label_area);
-	} else {
-		this.input_area.className = 'input_area';
-		$y(this.wrapper,{marginBottom:'9px'});
-		
-		// set description
-		this.set_description();	
-	}
-	
-	// bind label refresh
+	// set description
+	this.set_description();	
 
 	if(this.onmake)this.onmake();
 }
@@ -105,50 +70,24 @@ Field.prototype.set_max_width = function() {
 }
 
 Field.prototype.set_label = function(label) {
-	if(!label) label = this.df.label;
-	if(this.with_label && this.label_area && this.label!=label) { 
-		this.label_span.innerHTML = wn._(label);
-		
-		// always store this.label as this.df.label, so that custom label does not change back
-		this.label = this.df.label;
-	}
+	this.label_span.innerHTML = wn._(label || this.df.label);
 }
 
 Field.prototype.set_description = function(txt) {
-	$(this.wrapper).attr("title", txt).tooltip();
+	this.$wrapper.find(":input").attr("title", txt).tooltip();
 }
 
 Field.prototype.get_status = function(explain) {
 	if(!this.doctype) 
 		return "Write";
-	return wn.perm.get_field_display_status(this.df, locals[this.doctype][this.docname], this.perm, explain)
-}
-
-Field.prototype.set_style_mandatory = function(add) {
-	if(add) {
-		$(this.txt ? this.txt : this.input).addClass('input-mandatory');
-		if(this.disp_area) $(this.disp_area).addClass('input-mandatory');		
-	} else {
-		$(this.txt ? this.txt : this.input).removeClass('input-mandatory');
-		if(this.disp_area) $(this.disp_area).removeClass('input-mandatory');		
-	}
+	return wn.perm.get_field_display_status(this.df, 
+		locals[this.doctype][this.docname], this.perm, explain)
 }
 
 Field.prototype.refresh_mandatory = function() { 
 	if(this.in_filter)return;
-
-	// mandatory changes
-	if(this.df.reqd) {
-		if(this.label_area) this.label_area.style.color= "#d22";
-		this.set_style_mandatory(1);
-	} else {
-		if(this.label_area) this.label_area.style.color= "#222";
-		this.set_style_mandatory(0);
-
-	}
-	
+	//this.$wrapper.toggleClass("has-warning", cint(this.df.reqd) ? true : false);
 	this.refresh_label_icon()
-	this.set_reqd = this.df.reqd;
 }
 
 Field.prototype.refresh_display = function() {
@@ -234,13 +173,7 @@ Field.prototype.refresh_label_icon = function() {
 	if(this.df.reqd && this.get_value && is_null(this.get_value())) 
 		to_update = true;
 		
-	if(!to_update && this.df.has_error) this.df.has_error = false;
-
-	if(this.label_icon) this.label_icon.css("display", (to_update ? "inline-block" : "none"));
-	$(this.txt ? this.txt : this.input).toggleClass('field-to-update', to_update);
-	
-	$(this.txt ? this.txt : this.input).toggleClass('field-has-error', 
-		this.df.has_error ? true : false);
+	this.$wrapper.toggleClass("has-error", to_update);
 }
 
 Field.prototype.set = function(val) {
@@ -418,12 +351,23 @@ ReadOnlyField.prototype = new Field();
 
 // ======================================================================================
 
-function HTMLField() { } 
-HTMLField.prototype = new Field();
-HTMLField.prototype.with_label = 0;
-HTMLField.prototype.set_disp = function(val) { if(this.disp_area) this.disp_area.innerHTML = val; }
-HTMLField.prototype.set_input = function(val) { if(val) this.set_disp(val); }
-HTMLField.prototype.onrefresh = function() { if(this.df.options) this.set_disp(this.df.options); }
+function HTMLField() { 
+	var me = this;
+	this.make_body = function() {
+		me.wrapper = $("<div>").appendTo(me.parent);
+	}
+	this.set_disp = function(val) {
+		if(val)
+			$(me.wrapper).html(val);
+	}
+	this.set_input = function(val) {
+		me.set_disp(val);
+	}
+	this.onrefresh = function() {
+		if(me.df.options)
+			me.set_disp(me.df.options);
+	}
+} 
 
 // ======================================================================================
 
@@ -874,7 +818,7 @@ CheckField.prototype.onmake = function() {
 CheckField.prototype.make_input = function() { var me = this;
 	this.input = $("<input type='checkbox'>")
 		.appendTo(this.input_area)
-		.css({"border":"0px", "margin-top":"-2px", "width": "16px"}).get(0);
+		.get(0);
 	
 	$(this.input).change(function() {
 		me.set(this.checked ? 1 : 0);
@@ -1182,7 +1126,7 @@ var tmpid = 0;
 
 _f.ButtonField = function() { };
 _f.ButtonField.prototype = new Field();
-_f.ButtonField.prototype.with_label = 0;
+_f.ButtonField.prototype.set_label = function(label) { };
 _f.ButtonField.prototype.make_input = function() { var me = this;
 
 	// make a button area for one button

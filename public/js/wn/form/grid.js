@@ -238,10 +238,10 @@ wn.ui.form.GridRow = Class.extend({
 			
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden) {
-				if(cnt % 4==0)
+				if(cnt % 2==0)
 					form_row = $('<div class="row">').appendTo(me.form_area);
 					
-				var fieldwrapper = $('<div class="col-span-3">')
+				var fieldwrapper = $('<div class="col-span-6">')
 					.appendTo(form_row)
 				var fieldobj = make_field(df, me.parent_df.options, 
 					fieldwrapper.get(0), me.frm);
