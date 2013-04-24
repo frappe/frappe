@@ -544,27 +544,7 @@ _f.Frm.prototype.refresh_field = function(fname) {
 }
 
 _f.Frm.prototype.refresh_fields = function() {
-	// refresh fields
-	for(var i=0; i<this.fields.length; i++) {
-		var f = this.fields[i];
-		f.perm = this.perm;
-		f.docname = this.docname;
-		
-		// if field is identifiable (not blank section or column break)
-		// get the "customizable" parameters for this record
-		var fn = f.df.fieldname || f.df.label;
-		if(fn)
-			f.df = wn.meta.get_docfield(this.doctype, fn, this.docname);
-			
-		if(f.df.fieldtype!='Section Break' && f.refresh) {
-			f.refresh();
-		}
-	}
-
-	// refresh sections
-	$.each(this.sections, function(i, section) {
-		section.toggle(!(section[0].df && section[0].df.hidden));
-	})
+	this.layout.refresh();
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);

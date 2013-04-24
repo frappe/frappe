@@ -152,12 +152,12 @@ a {
 	border-bottom: 1px solid #dddddd;
 }
 
-.rows .grid-row:last-child .divider {
+/*.rows .grid-row:last-child .divider {
 	border-bottom: 0px;
 	margin-bottom: 0px;
 	padding-bottom: 0px;
 }
-
+*/
 .rows .grid-row .data-row, .rows .grid-row .panel-heading {
 	cursor: pointer;
 }

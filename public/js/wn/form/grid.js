@@ -3,7 +3,6 @@ wn.ui.form.Grid = Class.extend({
 		$.extend(this, opts);
 		this.docfields = wn.meta.docfield_list[this.df.options];
 		this.docfields.sort(function(a, b)  { return a.idx > b.idx ? 1 : -1 });
-		this.make();
 	},
 	make: function() {
 		var me = this;
@@ -12,18 +11,18 @@ wn.ui.form.Grid = Class.extend({
 		<div class="panel">\
 			<div class="panel-heading"></div>\
 			<div class="rows"></div>\
-		</div>\
-		<div class="btn-group" style="margin-bottom: 10px;">\
-			<button class="btn grid-add-row"><i class="icon-plus"></i> Add Row</button>\
+			<div style="margin-top: 5px; margin-bottom: -5px;">\
+				<a href="#" class="grid-add-row">+ '+wn._("Add new row")+'</a></div>\
 		</div>\
 		</div>').appendTo(this.parent);
 
 		$(this.wrapper).find(".grid-add-row").click(function() {
 			wn.model.add_child(me.frm.doc, me.df.options, me.df.fieldname);
 			me.refresh();
+			me.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true);
+			return false;
 		})
 		
-		this.make_head();
 	},
 	make_head: function() {
 		// labels
@@ -31,14 +30,17 @@ wn.ui.form.Grid = Class.extend({
 			parent: $(this.parent).find(".panel-heading"),
 			parent_df: this.df,
 			docfields: this.docfields,
-			frm: this.frm
+			frm: this.frm,
+			grid: this
 		});	
 	},
 	refresh: function() {
+		!this.wrapper && this.make();
 		var me = this,
 			$rows = $(me.parent).find(".rows");	
-		
-		$rows.find(".grid-row").remove();
+
+		this.wrapper.find(".grid-row").remove();
+		this.make_head();
 
 		$.each(this.get_data() || [], function(ri, d) {
 			new wn.ui.form.GridRow({
@@ -54,7 +56,6 @@ wn.ui.form.Grid = Class.extend({
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
 
-		console.log(this.display_status);
 		this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write");
 		if(this.display_status=="Write") {
 			this.make_sortable($rows);
@@ -179,7 +180,7 @@ wn.ui.form.GridRow = Class.extend({
 		col = $('<div class="col-span-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row)
 		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && !df.print_hide) {
+			if(!df.hidden && !df.print_hide && me.grid.perm[df.permlevel][READ]) {
 				var colsize = 2,
 					txt = me.doc ? 
 						wn.format(me.doc[df.fieldname], df.fieldtype, me.doc) : 
