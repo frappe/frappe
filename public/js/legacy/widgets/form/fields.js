@@ -45,13 +45,14 @@ Field.prototype.make_body = function() {
 	this.$wrapper = $('<div class="control-group">\
 		<label class="control-label"></label>\
 		<div class="controls">\
+			<div class="control-input"></div>\
 			<div class="control-value"></div>\
 		</div>\
 	</div>').appendTo(this.parent);
 	this.wrapper = this.$wrapper.get(0);
 	
 	this.label_area = this.label_span = this.$wrapper.find(".control-label").get(0);
-	this.input_area = this.$wrapper.find(".controls").get(0);
+	this.input_area = this.$wrapper.find(".control-input").get(0);
 	this.disp_area = this.$wrapper.find(".control-value").get(0);
 
 	// set description
@@ -449,7 +450,7 @@ LinkField.prototype.make_input = function() {
 		this.input = this.txt;	
 	} else {
 		me.input = me.input_area;
-		me.input_group = $('<div class="input-group link-field col-span-12">').appendTo(me.input_area);
+		me.input_group = $('<div class="input-group link-field">').appendTo(me.input_area);
 			
 		me.txt = $('<input type="text" style="margin-right: 0px;">')
 			.appendTo(me.input_group).get(0);

@@ -149,12 +149,7 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	set_button_events: function() {
 		var me = this;
-		
-		if(this.grid.display_status!="Write") {
-			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
-			return;
-		}
-		
+				
 		this.wrapper.find(".btn-danger").click(function() {
 			me.wrapper.fadeOut(function() {
 				wn.model.clear_doc(me.doc.doctype, me.doc.name);
@@ -252,6 +247,11 @@ wn.ui.form.GridRow = Class.extend({
 				cnt++;
 			}
 		});
+
+		if(this.grid.display_status!="Write") {
+			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
+			return;
+		}		
 	},
 	set_data: function() {
 		this.wrapper.data({

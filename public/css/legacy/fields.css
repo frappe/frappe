@@ -21,10 +21,10 @@
 
 .disp-area { 
 	background-color: #eee;
-	padding: 3px;
+	padding: 6px;
 	margin-bottom: 7px;
 	border-radius: 3px;	
 }
 .disp-area-no-val { 
-	min-height: 17px; 
+	height: 30px; 
 }

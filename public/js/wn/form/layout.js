@@ -43,9 +43,11 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make_column: function(df) {
 		this.column = $('<div class="form-column">\
-			<form class="form-horizontal" action="javascript:false;">\
+			<form class="form-horizontal">\
 			</form>\
-		</div>').appendTo(this.section).find("form");
+		</div>').appendTo(this.section)
+			.find("form")
+			.on("submit", function() { return false; });
 		
 		// distribute all columns equally
 		var colspan = cint(12 / this.section.find(".form-column").length);
