@@ -6,14 +6,18 @@
     }
   });
 
-  function RowMoveManager() {
+  function RowMoveManager(options) {
     var _grid;
     var _canvas;
     var _dragging;
     var _self = this;
     var _handler = new Slick.EventHandler();
+    var _defaults = {
+      cancelEditOnDrag: false
+    };
 
     function init(grid) {
+      options = $.extend(true, {}, _defaults, options);
       _grid = grid;
       _canvas = _grid.getCanvasNode();
       _handler
@@ -34,6 +38,11 @@
 
     function handleDragStart(e, dd) {
       var cell = _grid.getCellFromEvent(e);
+
+      if (options.cancelEditOnDrag && _grid.getEditorLock().isActive()) {
+        _grid.getEditorLock().cancelCurrentEdit();
+      }
+
       if (_grid.getEditorLock().isActive() || !/move|selectAndMove/.test(_grid.getColumns()[cell.cell].behavior)) {
         return false;
       }

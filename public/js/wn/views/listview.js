@@ -270,9 +270,11 @@ wn.views.ListView = Class.extend({
 		
 		// title
 		if(!in_list(["avatar", "_user_tags", "check"], opts.content)) {
-			$(parent).attr("title", (opts.title || opts.content) + ": " 
-				+ (data[opts.content] || "Not Set"))
-				.tooltip();
+			if($(parent).attr("title")==undefined) {
+				$(parent).attr("title", (opts.title || opts.content) + ": " 
+					+ (data[opts.content] || "Not Set"))
+			}
+			$(parent).tooltip();
 		}
 		
 	},
@@ -346,9 +348,8 @@ wn.views.ListView = Class.extend({
 			fully_delivered: (data[field] > 99 ? 'bar-complete' : ''),
 			label: label
 		}
-		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right" \
-			title="%(percent)s% %(label)s">\
-			<span class="bar-inner %(fully_delivered)s" \
+		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right"> \
+			<span class="bar-inner %(fully_delivered)s" title="%(percent)s% %(label)s" \
 				style="width: %(percent)s%;"></span>\
 		</span>', args));
 	},
