@@ -107,6 +107,12 @@ a {
 	font-size: 12px; 
 }
 
+.slick-header * {
+  -webkit-box-sizing: content-box;
+     -moz-box-sizing: content-box;
+          box-sizing: content-box;
+}
+
 .slick-headerrow-column {
 	background: #87ceeb;
 	text-overflow: clip;

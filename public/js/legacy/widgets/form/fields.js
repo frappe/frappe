@@ -364,7 +364,7 @@ function HTMLField() {
 	this.set_input = function(val) {
 		me.set_disp(val);
 	}
-	this.onrefresh = function() {
+	this.refresh = function() {
 		if(me.df.options)
 			me.set_disp(me.df.options);
 	}

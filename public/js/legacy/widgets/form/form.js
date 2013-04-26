@@ -316,8 +316,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	this.toolbar.make_actions_menu();
-	this.appframe.add_dropdown_button("Actions", label, fn, icon);
+	this.appframe.add_button(label, fn, icon, true);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.toolbar.refresh()

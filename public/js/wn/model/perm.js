@@ -173,8 +173,10 @@ $.extend(wn.perm, {
 		if(explain) console.log("By Submit:" + ret)
 
 		// allow on submit
-		var allow_on_submit = cint(df.allow_on_submit);
-
+		var allow_on_submit = df.fieldtype!= "Table" ? 
+			cint(df.allow_on_submit) :
+			0;
+		
 		// if(allow_on_submit && doc.parent) {
 		// 	parent_df = wn.model.get("DocField", {
 		// 		"parent": doc.parenttype,

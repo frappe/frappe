@@ -27,7 +27,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make_erpnext();
 		this.make_file();
 		this.make_view();
-		this.make_actions();
+		//this.make_actions();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		wn.ui.toolbar.bookmarks = new wn.ui.toolbar.Bookmarks();
 		this.make_tools();
@@ -144,15 +144,15 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		</li>');
 	},
 
-	make_actions: function() {
-		$('.navbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				title="'+wn._("Actions")+'"\
-				onclick="return false;">'+wn._("Actions")+'</a>\
-			<ul class="dropdown-menu" id="navbar-actions">\
-			</ul>\
-		</li>');
-	},
+	// make_actions: function() {
+	// 	$('.navbar .nav:first').append('<li class="dropdown">\
+	// 		<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
+	// 			title="'+wn._("Actions")+'"\
+	// 			onclick="return false;">'+wn._("Actions")+'</a>\
+	// 		<ul class="dropdown-menu" id="navbar-actions">\
+	// 		</ul>\
+	// 	</li>');
+	// },
 
 	make_tools: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\

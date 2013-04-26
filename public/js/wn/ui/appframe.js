@@ -17,17 +17,21 @@ wn.ui.AppFrame = Class.extend({
 			</ul>\
 		</div>\
 		<div class="toolbar-area"></div -->\
-		<div class="title-button-area pull-right" style="margin-top: 10px;"></div>\
+		<div class="title-button-area btn-group pull-right" style="margin-top: 10px;"></div>\
 		<div class="title-area"><h3 style="display: inline-block">\
 			<span class="title-icon"></span><span class="title-text"></span></h3></div>\
 		<div class="sub-title-area text-muted small" \
 			style="margin-top: -10px;"></div>\
+		<div class="btn-group appframe-toolbar" \
+			style="display: none; margin-top: 15px;"></div>\
 		<hr>\
 		').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {
 			window.history.back();
 		})
+		
+		this.toolbar = this.$w.find(".appframe-toolbar");
 		
 		if(title) 
 			this.set_title(title);
@@ -154,7 +158,6 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_help_button: function(txt) {
-		this.add_toolbar();
 		$('<button class="btn" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
@@ -163,59 +166,36 @@ wn.ui.AppFrame = Class.extend({
 	},
 
 	clear_buttons: function() {
-		this.toolbar && this.toolbar.empty();
+		this.toolbar && this.toolbar.empty().toggle(false);
 		$(".custom-menu").remove();
 	},
 
-	add_toolbar: function() {
-		if(!this.toolbar) {
-			this.toolbar = $('<div class="navbar">\
-			  <div class="navbar-inner">\
-			    <ul class="nav">\
-			    </ul>\
-			  </div>\
-			</div>').appendTo(this.$w.find(".toolbar-area")).find(".nav");
-		}
-	},
-	add_button: function(label, click, icon) {
-		this.add_toolbar();
-		args = { label: label, icon:'' };
-		if(icon) {
-			args.icon = '<i class="'+icon+'"></i>';
-		}
-		this.buttons[label] = $(repl('<li><a>\
-			%(icon)s %(label)s</a></li>', args))
-			.appendTo(this.toolbar)
-			.find("a")
-			.click(click);
-		return this.buttons[label];
-	},
-	add_title_button: function(label, click, icon) {
-		args = { label: label, icon:'' };
-		if(icon) {
-			args.icon = '<i class="'+icon+'"></i>';
-		}
-		this.buttons[label] = $(repl('<button class="btn btn-primary">\
-			%(icon)s %(label)s</button>', args))
-			.appendTo(this.$w.find(".title-button-area"))
-			.click(click);
-		return this.buttons[label];
-	},
-	add_dropdown: function(label) {
-		this.add_toolbar();
-		this.buttons[label] = $('<li class="dropdown">\
-			<a href="#" class="dropdown-toggle" data-toggle="dropdown">'
-			+label+' <b class="caret"></b></a>\
-			<ul class="dropdown-menu"></ul>')
-			.appendTo(this.toolbar);
-		this.buttons[label].find(".dropdown-toggle").dropdown();
-		return this.buttons[label];
+	add_button: function(label, click, icon, title_toolbar) {
+		!title_toolbar && this.toolbar.toggle(true);
 		
+		args = { label: label, icon:'' };
+		if(icon) {
+			args.icon = '<i class="'+icon+'"></i>';
+		}
+		this.buttons[label] = $(repl('<button class="btn">\
+			%(icon)s %(label)s</button>', args))
+			.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar)
+			.click(click);
+		return this.buttons[label];
+	},
+	get_menu: function(label) {
+		return $("#navbar-" + label.toLowerCase());
+	},
+	add_menu_divider: function(menu) {
+		menu = typeof menu == "string" ?
+			this.get_menu(menu) : menu;
+			
+		$('<li class="divider custom-menu"></li>').appendTo(menu);
 	},
 	add_dropdown_button: function(parent, label, click, icon) {
-		var menu = $("#navbar-" + parent.toLowerCase());
+		var menu = this.get_menu(parent);
 		if(menu.find("li:not(.custom-menu)").length && !menu.find(".divider").length) {
-			$('<li class="divider custom-menu"></li>').appendTo(menu);
+			this.add_menu_divider(menu);
 		}
 
 		return $('<li class="custom-menu"><a><i class="'
