@@ -140,7 +140,7 @@ def get_defaults_for_match(userd):
 
 def clear_cache(parent=None):
 	def all_profiles():
-		return webnotes.conn.sql_list("select name from tabProfile") + ["Control Panel"]
+		return webnotes.conn.sql_list("select name from tabProfile") + ["Control Panel", "__global"]
 		
 	if parent=="Control Panel" or not parent:
 		parent = all_profiles()

@@ -164,6 +164,8 @@ def setup_options():
 						help="clear web cache")
 	parser.add_option("--clear_cache", default=False, action="store_true",
 						help="clear cache")
+	parser.add_option("--clear_defaults", default=False, action="store_true",
+						help="clear cache of defaults")
 
 	parser.add_option("--domain", metavar="DOMAIN",
 						help="store domain in Website Settings", nargs=1)
@@ -429,6 +431,11 @@ def run():
 		
 	elif options.clear_cache:
 		clear_cache()
+		
+	elif options.clear_defaults:
+		import webnotes.defaults
+		webnotes.defaults.clear_cache()
+		webnotes.clear_cache()
 		
 	elif options.append_future_import:
 		append_future_import()

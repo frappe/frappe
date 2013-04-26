@@ -211,6 +211,7 @@ def get_method(cmd):
 		method = webnotes.get_method(cmd)
 	else:
 		method = globals()[cmd]
+	webnotes.log("method:" + cmd)
 	return method
 			
 def print_response():
@@ -255,7 +256,7 @@ def print_iframe():
 	eprint("")
 	eprint(webnotes.response.get('result') or '')
 	
-	if webnotes.debug_log:
+	if webnotes.error_log:
 		import json
 		eprint("""\
 			<script>
@@ -273,7 +274,7 @@ def print_iframe():
 				}
 			</script>""" % {
 				'messages': json.dumps(webnotes.message_log).replace("'", "\\'"),
-				'errors': json.dumps(webnotes.debug_log).replace("'", "\\'"),
+				'errors': json.dumps(webnotes.error_log).replace("'", "\\'"),
 			})
 
 def print_raw():
@@ -287,13 +288,16 @@ def print_raw():
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
-	import json
+	import json, conf
 	from webnotes.utils import cstr
-	if webnotes.debug_log:
-		webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.debug_log]))
+	if webnotes.error_log:
+		webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
 
 	if webnotes.message_log:
-		webnotes.response['server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
+		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
+	
+	if webnotes.debug_log and getattr(conf, "logging", False):
+		webnotes.response['_debug_messages'] = json.dumps(webnotes.debug_log)
 
 def print_cookie_header():
 	"""if there ar additional cookies defined during the request, add them"""
