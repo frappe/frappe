@@ -171,6 +171,8 @@ wn.request.cleanup = function(opts, r) {
 	// debug messages
 	if(r._debug_messages) {
 		$.each(JSON.parse(r._debug_messages), function(i, v) { console.log(v); });
+		console.log("Response:");
+		console.log(r);
 	}
 	
 	if(r['403']) {
