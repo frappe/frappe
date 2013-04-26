@@ -68,6 +68,7 @@ incoming_cookies = {}
 add_cookies = {} # append these to outgoing request
 cookies = {}
 response = _dict({'message':'', 'exc':''})
+error_log = []
 debug_log = []
 message_log = []
 mute_emails = False
@@ -105,7 +106,16 @@ def errprint(msg):
 		print repr(msg)
 
 	from utils import cstr
-	debug_log.append(cstr(msg or ''))
+	error_log.append(repr(msg))
+
+def log(msg):
+	if not request_method:
+		import conf
+		if getattr(conf, "logging", False):
+			print repr(msg)
+
+	from utils import cstr
+	debug_log.append(cstr(msg))
 
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	from utils import cstr
