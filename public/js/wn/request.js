@@ -153,7 +153,7 @@ wn.request.cleanup = function(opts, r) {
 	// show messages
 	if(r._server_messages) {
 		r._server_messages = JSON.parse(r._server_messages)
-		msgprint(r.server_messages);
+		msgprint(r._server_messages);
 	}
 	
 	// show errors
