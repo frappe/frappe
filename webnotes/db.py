@@ -103,6 +103,12 @@ class Database:
 						webnotes.errprint(query % values)
 					except TypeError:
 						webnotes.errprint([query, values])
+				if getattr(conf, "logging", False)==2:
+					webnotes.log("<<<< query")
+					webnotes.log(query)
+					webnotes.log("with values:")
+					webnotes.log(values)
+					webnotes.log(">>>>")
 				
 				self._cursor.execute(query, values)
 				
@@ -110,6 +116,10 @@ class Database:
 				if debug:
 					self.explain_query(query)
 					webnotes.errprint(query)
+				if getattr(conf, "logging", False)==2:
+					webnotes.log("<<<< query")
+					webnotes.log(query)
+					webnotes.log(">>>>")
 					
 				self._cursor.execute(query)	
 		except Exception, e:
