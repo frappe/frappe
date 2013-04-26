@@ -151,8 +151,8 @@ wn.request.cleanup = function(opts, r) {
 	}
 	
 	// show messages
-	if(r.server_messages) {
-		r.server_messages = JSON.parse(r.server_messages)
+	if(r._server_messages) {
+		r._server_messages = JSON.parse(r._server_messages)
 		msgprint(r.server_messages);
 	}
 	
@@ -164,9 +164,14 @@ wn.request.cleanup = function(opts, r) {
 				if(v)console.log(v);
 			})
 		} else {
-			console.log(r.exc); 			
+			console.log(r.exc);
 		}
 	};
+	
+	// debug messages
+	if(r._debug_messages) {
+		$.each(JSON.parse(r._debug_messages), function(i, v) { console.log(v); });
+	}
 	
 	if(r['403']) {
 		wn.set_route('403');
