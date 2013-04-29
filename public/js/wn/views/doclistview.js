@@ -114,7 +114,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	setup_docstatus_filter: function() {
 		var me = this;
-		this.can_submit = $.map(locals.DocPerm, function(d) { 
+		this.can_submit = $.map(locals.DocPerm || [], function(d) { 
 			if(d.parent==me.meta.name && d.submit) return 1
 			else return null; 
 		}).length;

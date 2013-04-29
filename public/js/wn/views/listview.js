@@ -123,7 +123,7 @@ wn.views.ListView = Class.extend({
 		// make table
 		$.each(this.columns, function(i, v) {
 			if(v.content && v.content.substr && v.content.substr(0,6)=="avatar") {
-				rowhtml += repl('<td style="max-width: 40px;"></td>');				
+				rowhtml += repl('<td style="width: 7%;"></td>');				
 			} else {
 				rowhtml += repl('<td style="width: %(width)s"></td>', v);
 			}

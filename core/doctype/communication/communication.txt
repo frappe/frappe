@@ -1,6 +1,6 @@
 [
  {
-  "creation": "2013-01-10 16:34:00", 
+  "creation": "2013-01-28 17:06:59", 
   "docstatus": 0, 
   "modified": "2013-01-28 15:29:13", 
   "modified_by": "Administrator", 
@@ -26,14 +26,11 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Communication", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
   "read": 1, 
   "report": 1, 
   "submit": 0, 
@@ -245,16 +242,6 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "file_list", 
-  "fieldtype": "Text", 
-  "hidden": 1, 
-  "in_list_view": 1, 
-  "label": "File List", 
-  "no_copy": 1, 
-  "print_hide": 1
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "_user_tags", 
   "fieldtype": "Data", 
   "hidden": 1, 
@@ -263,26 +250,53 @@
   "print_hide": 1
  }, 
  {
-  "amend": 0, 
+  "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
   "role": "Support Team"
  }, 
  {
-  "amend": 0, 
+  "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "role": "Sales Manager"
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "role": "Sales User"
+ }, 
+ {
+  "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
+  "doctype": "DocPerm", 
+  "match": "", 
+  "permlevel": 1, 
   "role": "Sales Manager"
  }, 
  {
   "amend": 0, 
+  "cancel": 0, 
+  "create": 0, 
   "doctype": "DocPerm", 
-  "role": "Sales User"
- }, 
- {
-  "doctype": "DocPerm", 
+  "match": "", 
+  "permlevel": 1, 
   "role": "Support Manager"
  }, 
  {
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
+  "permlevel": 0, 
+  "role": "Support Manager"
+ }, 
+ {
+  "cancel": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "permlevel": 0, 
   "role": "System Manager"
  }
 ]

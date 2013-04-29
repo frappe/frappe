@@ -1,6 +1,6 @@
 [
  {
-  "creation": "2013-02-14 17:37:36", 
+  "creation": "2013-03-07 12:26:21", 
   "docstatus": 0, 
   "modified": "2013-03-01 10:18:03", 
   "modified_by": "Administrator", 
@@ -386,16 +386,6 @@
   "oldfieldname": "last_ip", 
   "oldfieldtype": "Read Only", 
   "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "file_list", 
-  "fieldtype": "Text", 
-  "hidden": 1, 
-  "label": "File List", 
-  "no_copy": 1, 
-  "oldfieldname": "file_list", 
-  "oldfieldtype": "Text"
  }, 
  {
   "doctype": "DocField", 
