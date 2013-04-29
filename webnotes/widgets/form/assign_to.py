@@ -100,7 +100,11 @@ def remove(doctype, name, assign_to):
 	if res and res[0]: notify_assignment(res[0][0], res[0][1], res[0][2], res[0][3])
 
 	return get({"doctype": doctype, "name": name})
-
+	
+def clear(doctype, name):
+	for assign_to in webnotes.conn.sql_list("""select owner from `tabToDo`
+		where reference_type=%(doctype)s and reference_name=%(name)s""", locals()):
+			remove(doctype, name, assign_to)
 
 def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', notify=0):
 	"""
