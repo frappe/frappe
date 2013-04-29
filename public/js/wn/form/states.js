@@ -31,9 +31,6 @@ wn.ui.form.States = Class.extend({
 
 		this.update_fields = wn.workflow.get_update_fields(this.frm.doctype);
 
-		this.make();
-		this.bind_action();
-
 		var me = this;
 		$(this.frm.wrapper).bind("render_complete", function() {
 			me.refresh();
@@ -41,23 +38,22 @@ wn.ui.form.States = Class.extend({
 	},
 	
 	make: function() {
-		this.$wrapper = $('<div class="states" style="margin-bottom: 11px; height: 26px;">\
-			<div class="btn-group">\
-				<button class="btn dropdown-toggle" data-toggle="dropdown">\
-				<i class="icon-small"></i> <span class="state-text"></span> <span class="caret"></span>\
-				</button>\
-				<ul class="dropdown-menu">\
-				</ul>\
-			</div>\
-			<button class="btn btn-help">?</button>\
-		</div>').appendTo(this.frm.body_header);
-		this.$wrapper.toggle(false);
+		var parent = this.frm.appframe.$w.find(".title-button-area");
+		
+		this.workflow_button = $('<button class="btn dropdown-toggle">\
+			<i class="icon-small"></i> <span class="state-text"></span>\
+			<span class="caret"></span></button>')
+			.appendTo(parent).dropdown();
+		this.dropdown = $('<ul class="dropdown-menu">').insertAfter(this.workflow_button);
+		this.help_btn = $('<button class="btn"><i class="icon-question-sign"></i></button').
+			insertBefore(this.workflow_button);
 		this.setup_help();
+		this.bind_action();
 	},
 
 	setup_help: function() {
 		var me = this;
-		this.$wrapper.find(".btn-help").click(function() {
+		this.help_btn.click(function() {
 			wn.workflow.setup(me.frm.doctype);
 			var state = me.get_state();
 			var d = new wn.ui.Dialog({
@@ -84,44 +80,44 @@ wn.ui.form.States = Class.extend({
 	
 	refresh: function() {
 		// hide if its not yet saved
-		this.$wrapper.toggle(false);
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
+			return;
 		}
+
+		this.make();
 		
 		// state text
 		var state = this.get_state();
 		
 		if(state) {
 			// show current state on the button
-			this.$wrapper.find(".state-text").text(state);
+			this.workflow_button.find(".state-text").text(state);
 			
 			var state_doc = wn.model.get("Workflow State", {name:state})[0];
 
 			// set the icon
-			this.$wrapper.find('.icon-small').removeClass()
-				.addClass("icon-small icon-white")
+			this.workflow_button.find('i').removeClass()
+				.addClass("icon-white")
 				.addClass("icon-" + state_doc.icon);
 
 			// set the style
-			var btn = this.$wrapper.find(".btn:first");
-			btn.removeClass().addClass("btn dropdown-toggle")
+			this.workflow_button.removeClass().addClass("btn dropdown-toggle")
 
 			if(state_doc && state_doc.style)
-				btn.addClass("btn-" + state_doc.style.toLowerCase());
+				this.workflow_button.addClass("btn-" + state_doc.style.toLowerCase());
 			
 			// show actions from that state
 			this.show_actions(state);
 			
-			this.$wrapper.toggle(true);
 			if(this.frm.doc.__islocal) {
-				this.$wrapper.find('.btn:first').attr('disabled', true);
+				this.workflow_button.attr('disabled', true);
 			}
 		}
 	},
 	
 	show_actions: function(state) {
-		var $ul = this.$wrapper.find("ul");
+		var $ul = this.dropdown;
 		$ul.empty();
 
 		$.each(wn.workflow.get_transitions(this.frm.doctype, state), function(i, d) {
@@ -135,7 +131,7 @@ wn.ui.form.States = Class.extend({
 		});
 
 		// disable the button if user cannot change state
-		this.$wrapper.find('.btn:first')
+		this.workflow_button
 			.attr('disabled', $ul.find("li").length ? false : true);
 	},
 
@@ -155,9 +151,8 @@ wn.ui.form.States = Class.extend({
 	
 	bind_action: function() {
 		var me = this;
-		$(this.$wrapper).on("click", "[data-action]", function() {
+		this.dropdown.on("click", "[data-action]", function() {
 			var action = $(this).attr("data-action");
-			
 			// capture current state
 			var doc_before_action = copy_dict(me.frm.doc);
 
@@ -166,7 +161,7 @@ wn.ui.form.States = Class.extend({
 					me.frm.doc[me.state_fieldname], action);			
 			me.frm.doc[me.state_fieldname] = next_state;
 			var new_state = wn.workflow.get_document_state(me.frm.doctype, next_state);
-			var new_docstatus = new_state.doc_status;
+			var new_docstatus = cint(new_state.doc_status);
 
 			// update field and value
 			if(new_state.update_field) {
@@ -192,11 +187,11 @@ wn.ui.form.States = Class.extend({
 				msgprint(wn._("Document Status transition from ") + me.frm.doc.docstatus + " " 
 					+ wn._("to") + 
 					new_docstatus + " " + wn._("is not allowed."));
-				return;
+				return false;
 			}
 			
 			// hide dropdown
-			$(this).parents(".dropdown-menu").prev().dropdown('toggle');
+			$(this).parents(".dropdown-menu:first").prev().dropdown('toggle');
 			
 			return false;
 		})

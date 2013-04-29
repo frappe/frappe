@@ -104,7 +104,7 @@ wn.ui.Listing = Class.extend({
 						class="img-load"/></div>\
 				</div><div style="clear:both"></div>\
 				\
-				<div class="no-result help hide">\
+				<div class="no-result" style="display: none;">\
 					%(no_result_message)s\
 				</div>\
 				\

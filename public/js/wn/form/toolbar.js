@@ -115,15 +115,17 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.$w.find(".title-button-area").empty();
 		var docstatus = cint(this.frm.doc.docstatus);
 		var p = this.frm.perm[0];
+		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
 
-		if(!wn.model.get("Workflow", {document_type: me.frm.doctype}).length) {
+		if(has_workflow && this.frm.doc.__islocal) {
+			this.make_save_button();
+		} else if(!has_workflow) {
 			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal)) {
 				this.appframe.add_button('Submit', function() { 
 					me.frm.savesubmit(this);}, 'icon-lock', true).addClass("btn-primary");
 			}
 			else if(docstatus==0) {
-				this.appframe.add_button('Save', function() { 
-					me.frm.save('Save', null, this);}, 'icon-save', true).addClass("btn-primary");
+				this.make_save_button();
 			}
 			else if(docstatus==1  && p[CANCEL]) {
 				this.appframe.add_dropdown_button("File", 'Cancel', function() { 
@@ -134,6 +136,11 @@ wn.ui.form.Toolbar = Class.extend({
 					me.frm.amend_doc() }, 'icon-pencil', true);
 			}
 		}
+	},
+	make_save_button: function() {
+		var me = this;
+		this.appframe.add_button('Save', function() { 
+			me.frm.save('Save', null, this);}, 'icon-save', true).addClass("btn-primary");
 	},
 	add_update_button_on_dirty: function() {
 		var me = this;

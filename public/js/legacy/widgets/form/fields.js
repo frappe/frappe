@@ -75,7 +75,14 @@ Field.prototype.set_label = function(label) {
 }
 
 Field.prototype.set_description = function(txt) {
-	this.$wrapper.find(":input").attr("title", txt).tooltip();
+	if(txt) {
+		if(!this.$wrapper.find(".help-box").length) {
+			$('<p class="help-box small"></p>').appendTo(this.input_area);
+		}
+		this.$wrapper.find(".help-box").html(txt);
+	} else {
+		this.$wrapper.find(".help-box").empty().toggle(false);
+	}
 }
 
 Field.prototype.get_status = function(explain) {
