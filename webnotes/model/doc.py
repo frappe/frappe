@@ -343,7 +343,7 @@ class Document:
 			
 			for f in fields_list:
 				if (not (f in ('doctype', 'name', 'perm', 'localname',
-						'creation','_user_tags'))) and (not f.startswith('__')): 
+						'creation','_user_tags', "file_list"))) and (not f.startswith('__')): 
 						# fields not saved
 					
 					# validate links

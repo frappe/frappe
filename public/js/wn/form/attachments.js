@@ -41,7 +41,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	max_reached: function() {
 		// no of attachments
-		var n = this.frm.doc.file_list ? this.frm.doc.file_list.split('\n').length : 0;
+		var n = keys(this.get_file_list()).length;
 		
 		// button if the number of attachments is less than max
 		if(n < this.frm.meta.max_attachments || !this.frm.meta.max_attachments) {
@@ -50,7 +50,8 @@ wn.ui.form.Attachments = Class.extend({
 		return true;
 	},
 	refresh: function() {
-		if(this.frm.doc.__islocal || !this.frm.meta.allow_attach) {
+		var doc = this.frm.doc;
+		if(doc.__islocal || !this.frm.meta.allow_attach) {
 			this.parent.toggle(false);
 			return;
 		}
@@ -59,20 +60,19 @@ wn.ui.form.Attachments = Class.extend({
 		
 		this.$list.empty();
 
-		var fl = this.get_filelist();
+		var file_list = this.get_file_list();
+		var file_names = keys(file_list).sort();
 
 		// add attachment objects
-		for(var i=0; i<fl.length; i++) {
-			this.add_attachment(fl[i]);
+		for(var i=0; i<file_names.length; i++) {
+			this.add_attachment(file_names[i], file_list);
 		}
 	},
-	get_filelist: function() {
- 		return this.frm.doc.file_list ? this.frm.doc.file_list.split('\n') : [];
+	get_file_list: function() {
+ 		return this.frm.doc.file_list ? JSON.parse(this.frm.doc.file_list) : {};
 	},
-	add_attachment: function(fileinfo) {
-		fileinfo = fileinfo.split(',');
-		var filename = fileinfo[0];
-		var fileid = fileinfo[1];
+	add_attachment: function(filename, file_list) {
+		var fileid = file_list[filename];
 		
 		var me = this;
 		$(repl('<div class="alert alert-info"><span style="display: inline-block; width: 90%;\
@@ -99,7 +99,10 @@ wn.ui.form.Attachments = Class.extend({
 								dn: me.frm.docname 
 							},
 							callback: function(r,rt) {
-								me.frm.doc.modified = r.message;
+								if(r.exc) {
+									msgprint("There were errors.");
+									return;
+								}
 								me.remove_fileid(data);
 								me.frm && me.frm.cscript.on_remove_attachment 
 									&& me.frm.cscript.on_remove_attachment(me.frm.doc);
@@ -111,6 +114,7 @@ wn.ui.form.Attachments = Class.extend({
 			});
 	},
 	new_attachment: function() {
+		var me = this;
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
 				title: wn._('Upload Attachment'),
@@ -121,7 +125,7 @@ wn.ui.form.Attachments = Class.extend({
 		}
 		this.dialog.body.innerHTML = '';
 		this.dialog.show();
-			
+
 		wn.upload.make({
 			parent: this.dialog.body,
 			args: {
@@ -129,39 +133,31 @@ wn.ui.form.Attachments = Class.extend({
 				doctype: this.frm.doctype,
 				docname: this.frm.docname
 			},
-			callback: wn.ui.form.file_upload_done
+			callback: function(fileid, filename, r) {
+				me.update_attachment(fileid, filename, r);
+			}
 		});
-			
+	},
+	update_attachment: function(fileid, filename, r) {
+		this.dialog && this.dialog.hide();
+		if(fileid) {
+			this.add_to_file_list(fileid, filename);
+			this.refresh();
+		}
+	},
+	add_to_file_list: function(fileid, filename) {
+		var doc = this.frm.doc;
+		var file_list = doc.file_list ? this.get_file_list() : {};
+		file_list[filename] = fileid;
+		doc.file_list = JSON.stringify(file_list);
 	},
 	remove_fileid: function(fileid) {
-		this.frm.doc.file_list = $.map(this.get_filelist(), function(f) {
-			if(f.split(',')[1]!=fileid) return f;
-		}).join('\n');		
+		var file_list = this.get_file_list();
+		var new_file_list = {};
+		$.each(file_list, function(key, value) {
+			if(value!=fileid)
+				new_file_list[key] = value;
+		});
+		this.frm.doc.file_list = JSON.stringify(new_file_list);
 	}
 });
-
-
-// this function will be called after the upload is done
-// from webnotes.utils.file_manager
-wn.ui.form.file_upload_done = function(doctype, docname, fileid, filename, at_id,
-		new_timestamp) {
-		
-	// add to file_list
-	var doc = locals[doctype][docname];
-	if(doc.file_list) {
-		var fl = doc.file_list.split('\n');
-		fl.push(filename + ',' + fileid);
-		doc.file_list = fl.join('\n');
-	} else {
-		doc.file_list = filename + ',' + fileid;
-	}
-	
-	// update timestamp
-	doc.modified = new_timestamp;
-	
-	// update file_list
-	var frm = wn.views.formview[doctype].frm;
-	frm.attachments.dialog.hide();
-	msgprint(wn._('File Uploaded Sucessfully.'));
-	frm.refresh();
-};

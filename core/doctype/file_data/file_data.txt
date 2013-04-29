@@ -1,51 +1,83 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2012-12-12 11:19:22", 
   "docstatus": 0, 
-  "creation": "2012-11-30 18:13:34", 
+  "modified": "2013-04-10 13:34:29", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-11 14:56:34"
+  "owner": "Administrator"
  }, 
  {
-  "read_only": 0, 
-  "autoname": "FileData/.#####", 
-  "name": "__common__", 
+  "autoname": "File.######", 
   "doctype": "DocType", 
-  "module": "Core"
+  "module": "Core", 
+  "name": "__common__", 
+  "read_only": 0
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "File Data", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
   "permlevel": 0, 
-  "parentfield": "fields"
+  "read_only": 1
  }, 
  {
-  "name": "File Data", 
-  "doctype": "DocType"
+  "cancel": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "File Data", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "role": "System Manager", 
+  "write": 1
  }, 
  {
-  "oldfieldtype": "Data", 
+  "doctype": "DocType", 
+  "name": "File Data"
+ }, 
+ {
   "doctype": "DocField", 
+  "fieldname": "file_name", 
+  "fieldtype": "Data", 
   "label": "File Name", 
   "oldfieldname": "file_name", 
-  "fieldname": "file_name", 
-  "fieldtype": "Data"
+  "oldfieldtype": "Data"
  }, 
  {
   "doctype": "DocField", 
-  "label": "File URL", 
   "fieldname": "file_url", 
-  "fieldtype": "Data"
+  "fieldtype": "Data", 
+  "in_list_view": 1, 
+  "label": "File URL"
  }, 
  {
-  "oldfieldtype": "Link", 
   "doctype": "DocField", 
-  "label": "Module", 
-  "oldfieldname": "module", 
-  "fieldname": "module", 
+  "fieldname": "attached_to_doctype", 
   "fieldtype": "Link", 
-  "options": "Module Def"
+  "in_list_view": 1, 
+  "label": "Attached To DocType", 
+  "options": "DocType", 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "attached_to_name", 
+  "fieldtype": "Data", 
+  "in_list_view": 1, 
+  "label": "Attached To Name", 
+  "search_index": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "file_size", 
+  "fieldtype": "Int", 
+  "in_list_view": 1, 
+  "label": "File Size"
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

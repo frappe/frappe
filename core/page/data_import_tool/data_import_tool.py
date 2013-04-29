@@ -93,7 +93,7 @@ def get_template():
 		docfield = doctype_dl.get_field(t)
 		
 		if docfield and ((mandatory and docfield.reqd) or not (mandatory or docfield.reqd)) \
-			and (t not in ('parenttype', 'trash_reason', 'file_list')) and not docfield.hidden:
+			and (t not in ('parenttype', 'trash_reason')) and not docfield.hidden:
 			fieldrow.append(t)
 			labelrow.append(docfield.label)
 			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')

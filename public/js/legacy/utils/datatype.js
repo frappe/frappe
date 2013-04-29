@@ -148,12 +148,12 @@ function replace_all(s, t1, t2) {
 
 function keys(obj) { 
 	var mykeys=[];
-	for (key in obj) mykeys[mykeys.length]=key;
+	for (var key in obj) mykeys[mykeys.length]=key;
 	return mykeys;
 }
 function values(obj) { 
 	var myvalues=[];
-	for (key in obj) myvalues[myvalues.length]=obj[key];
+	for (var key in obj) myvalues[myvalues.length]=obj[key];
 	return myvalues;
 }
 

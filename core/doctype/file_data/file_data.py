@@ -27,45 +27,28 @@ record of files
 naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
-import webnotes
+import webnotes, webnotes.utils, os
 
 class DocType():
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 		
-	def autoname(self):
-		"""save file by its name"""
-		if not self.doc.file_name:
-			raise Exception, 'file name missing'
-
-		if not '.' in self.doc.file_name:
-			raise Exception, 'file name must have extension (.)'
-
-		self.doc.file_name = self.doc.file_name.replace('-', '')
-
-		parts = self.doc.file_name.split('.')
-
-		same = webnotes.conn.sql("""select name from `tabFile Data` 
-			where name=%s""", self.doc.file_name)
-		
-		if same:
-			# check for more
-			other_list = webnotes.conn.sql("""select name from `tabFile Data` 
-				where name like '%s-%%.%s'""" % (parts[0], '.'.join(parts[1:])))
+	def on_update(self):
+		# check duplicate assignement
+		n_records = webnotes.conn.sql("""select count(*) from `tabFile Data`
+			where file_name=%s 
+			and attached_to_doctype=%s 
+			and attached_to_name=%s""", (self.doc.file_name, self.doc.attached_to_doctype,
+				self.doc.attached_to_name))[0][0]
+		webnotes.msgprint(n_records)
+		if n_records > 1:
+			webnotes.msgprint(webnotes._("Same file has already been attached to the record"))
+			raise webnotes.DuplicateEntryError
 			
-			if other_list:
-				from webnotes.utils import cint
-				# gets the max number from format like name-###.ext
-				last_num = max(
-						(cint(other[0].split('.')[0].split('-')[-1])
-						for other in other_list)
-					)
-			else:
-				last_num = 0
-			
-			new_id = "%03d" % (last_num + 1)
-					
-			# new name	
-			self.doc.file_name = parts[0] + '-' + new_id + '.' + '.'.join(parts[1:])
+	def on_trash(self):
+		if webnotes.conn.sql("""select count(*) from `tabFile Data`
+			where file_name=%s""", self.doc.file_name)[0][0]==1:
+			path = webnotes.utils.get_path("public", "files", self.doc.file_name)
+			if os.path.exists(path):
+				os.remove(path)
 		
-		self.doc.name = self.doc.file_name
