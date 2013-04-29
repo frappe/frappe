@@ -131,8 +131,10 @@ wn.ui.form.States = Class.extend({
 		});
 
 		// disable the button if user cannot change state
+		var is_final = !$ul.find("li").length;
 		this.workflow_button
-			.attr('disabled', $ul.find("li").length ? false : true);
+			.attr('disabled', is_final);
+		this.workflow_button.find(".caret").toggle(is_final ? false : true)
 	},
 
 	set_default_state: function() {

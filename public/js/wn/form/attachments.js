@@ -30,10 +30,10 @@ wn.ui.form.Attachments = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div>\
-			<div class="alert-list"></div>\
+			<div class="attachment-list"></div>\
 			<button class="btn btn-small"><i class="icon-plus"></i></button>\
 		</div>').appendTo(this.parent);
-		this.$list = this.wrapper.find(".alert-list");
+		this.$list = this.wrapper.find(".attachment-list");
 
 		this.parent.find(".btn").click(function() {
 			me.new_attachment();
@@ -51,7 +51,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	refresh: function() {
 		var doc = this.frm.doc;
-		if(doc.__islocal || !this.frm.meta.allow_attach) {
+		if(doc.__islocal) {
 			this.parent.toggle(false);
 			return;
 		}

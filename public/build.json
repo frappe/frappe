@@ -149,7 +149,6 @@
 			"lib/public/js/legacy/widgets/form/form_fields.js",
 			"lib/public/js/legacy/widgets/form/print_format.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
-			"lib/public/js/legacy/widgets/form/form_comments.js",
 			"lib/public/js/legacy/wn/widgets/form/sidebar.js",
 			"lib/public/js/legacy/wn/widgets/form/comments.js",
 
@@ -158,6 +157,8 @@
 			"lib/public/js/wn/form/editors.js",
 			"lib/public/js/wn/form/grid.js",
 			"lib/public/js/wn/form/attachments.js",
+			"lib/public/js/wn/form/footer.js",
+			"lib/public/js/wn/form/comments.js",
 			"lib/public/js/wn/form/linked_with.js",
 			"lib/public/js/wn/form/states.js",
 			"lib/public/js/wn/form/assign_to.js",

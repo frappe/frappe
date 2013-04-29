@@ -14,10 +14,20 @@ wn.ui.form.Toolbar = Class.extend({
 		this.make_file_menu();
 		this.make_view_menu();
 		this.set_title_button();
+		this.set_title_image();
 		this.show_title_as_dirty();
 	},
 	get_dropdown_menu: function(label) {
 		return this.appframe.add_dropdown(label);
+	},
+	set_title_image: function() {
+		var img = this.frm.appframe.$w.find('.title-status-img').toggle(false);
+		if(this.frm.doc.docstatus==1) {
+			img.attr("src", "lib/images/ui/submitted.png").toggle(true);
+		}
+		else if(this.frm.doc.docstatus==2) {
+			img.attr("src", "lib/images/ui/cancelled.png").toggle(true);
+		}
 	},
 	make_file_menu: function() {
 		var me = this;

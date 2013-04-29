@@ -30,10 +30,10 @@
 					+ this.head
 					+ this.body
 						+ this.layout
-						+ this.footer
 				+ this.sidebar
 			+ this.print_wrapper
 				+ this.head
+			+ this.footer
 */
 
 wn.provide('_f');
@@ -127,6 +127,11 @@ _f.Frm.prototype.setup = function() {
 	
 	this.setup_header();
 	
+	this.footer = new wn.ui.form.Footer({
+		frm: this,
+		parent: this.layout_main
+	})
+	
 	this.setup_done = true;
 }
 
@@ -136,7 +141,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	this.print_wrapper = $('<div>\
 		<form class="form-inline">\
 			<select class="col-span-2 preview-select"></select> \
-			<button class="btn btn-edit"><i class="icon-edit"></i> Edit</button>\
+			<button class="btn btn-edit btn-info"><i class="icon-edit"></i> Edit</button>\
 		</form>\
 		<hr>\
 		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\
@@ -172,7 +177,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.main = this.form_wrapper;
 	this.body_header	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
-	this.footer 		= $a(this.main, 'div');
 
 	if(this.heading) {
 		this.page_head = new PageHeader(this.head, this);
@@ -192,9 +196,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.states = new wn.ui.form.States({
 		frm: this
 	});
-		
-	// footer
-	this.setup_footer();
 }
 
 _f.Frm.prototype.setup_header = function() {
@@ -283,28 +284,6 @@ _f.Frm.prototype.setup_meta = function(doctype) {
 	this.setup_print();
 }
 
-_f.Frm.prototype.setup_footer = function() {
-	var me = this;
-	
-	// footer toolbar
-	var f = this.footer;
-
-	// save buttom
-	f.save_area = $a(this.footer,'div','',{display:'none', marginTop:'11px'});
-	f.help_area = $a(this.footer,'div');
-
-	var b = $("<button class='btn btn-info'><i class='icon-save'></i> Save</button>")
-		.click(function() { me.save("Save", null, me); }).appendTo(f.save_area);
-	
-	// show / hide save
-	f.show_save = function() {
-		$ds(me.footer.save_area);
-	}
-
-	f.hide_save = function() {
-		$dh(me.footer.save_area);
-	}
-}
 
 _f.Frm.prototype.set_intro = function(txt) {
 	wn.utils.set_intro(this, this.body, txt);
@@ -493,9 +472,6 @@ _f.Frm.prototype.refresh = function(docname) {
 			
 			// dependent fields
 			this.refresh_dependency();
-
-			// footer
-			this.refresh_footer();
 			
 			// call onload post render for callbacks to be fired
 			if(this.cscript.is_onload) {
@@ -521,20 +497,6 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		$(cur_frm.wrapper).trigger('render_complete');
 	} 
-}
-
-_f.Frm.prototype.refresh_footer = function() {
-	var f = this.footer;
-	if(f.save_area) {
-		// if save button is there in the header
-		if(this.frm_head && this.appframe.toolbar
-			&& this.appframe.buttons.Save && !this.save_disabled
-			&& (this.fields && this.fields.length > 7)) {
-			f.show_save();
-		} else {
-			f.hide_save();
-		}
-	}
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {

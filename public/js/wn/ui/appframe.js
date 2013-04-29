@@ -17,6 +17,8 @@ wn.ui.AppFrame = Class.extend({
 			</ul>\
 		</div>\
 		<div class="toolbar-area"></div -->\
+		<img class="title-status-img hidden-phone"\
+			style="position: absolute; top: 10px; left: 40%; width: 160px; display:none" />\
 		<div class="title-button-area btn-group pull-right" style="margin-top: 10px;"></div>\
 		<div class="title-area"><h3 style="display: inline-block">\
 			<span class="title-icon"></span><span class="title-text"></span></h3></div>\
