@@ -65,9 +65,6 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	if cached_timestamp and doclist[0].modified==cached_timestamp:
 		return "use_cache"
 	
-	# load search criteria for reports (all)
-	doclist +=get_search_criteria(doctype)
-
 	webnotes.response['docs'] = doclist
 
 def load_single_doc(dt, dn, user):
@@ -83,6 +80,7 @@ def load_single_doc(dt, dn, user):
 		dl = webnotes.bean(dt, dn).doclist
 		# add file list
 		add_file_list(dt, dn, dl)
+		add_comments(dt, dn, dl)
 		
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
@@ -104,13 +102,9 @@ def add_file_list(dt, dn, dl):
 	if file_list:
 		dl[0].file_list = json.dumps(file_list)
 		
-def get_search_criteria(dt):
-	"""bundle search criteria with doctype"""
-	import webnotes.model.doc
-	# load search criteria for reports (all)
-	dl = []
-	sc_list = webnotes.conn.sql("select name from `tabSearch Criteria` where doc_type = '%s' or parent_doc_type = '%s' and (disabled!=1 OR disabled IS NULL)" % (dt, dt))
-	for sc in sc_list:
-		if sc[0]:
-			dl += webnotes.model.doc.get('Search Criteria', sc[0])
-	return dl
+def add_comments(dt, dn, dl, limit=20):
+	cl = webnotes.conn.sql("""select name, comment, comment_by, creation from `tabComment` 
+		where comment_doctype=%s and comment_docname=%s 
+		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
+		
+	dl[0].fields["__comments"] = json.dumps(cl)

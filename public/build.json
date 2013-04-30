@@ -45,7 +45,6 @@
 	{
 		"public/js/all-web.min.js": [
 			"lib/public/js/lib/bootstrap.min.js",
-			"lib/public/js/lib/public/json2.js",
 		]
 	},
 	
@@ -150,7 +149,6 @@
 			"lib/public/js/legacy/widgets/form/print_format.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
 			"lib/public/js/legacy/wn/widgets/form/sidebar.js",
-			"lib/public/js/legacy/wn/widgets/form/comments.js",
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/layout.js",
