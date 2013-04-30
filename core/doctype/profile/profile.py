@@ -187,7 +187,10 @@ Thank you,<br>
 			'product': startup.product_name,
 			'user_fullname': get_user_fullname(webnotes.session['user'])
 		}
-		sendmail_md(self.doc.email, subject=subject, msg=txt % args)
+		
+		sender = webnotes.session.user != "Administrator" and webnotes.session.user or None
+		
+		sendmail_md(recipients=self.doc.email, sender=sender, subject=subject, msg=txt % args)
 		
 	def on_trash(self):
 		if self.doc.name in ["Administrator", "Guest"]:

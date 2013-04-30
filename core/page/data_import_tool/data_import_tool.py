@@ -176,8 +176,12 @@ def upload():
 		
 		return columns
 		
+	# extra input params
+	import json
+	params = json.loads(webnotes.form_dict.get("params") or '{}')
+	
 	# header
-	rows = read_csv_content_from_uploaded_file()
+	rows = read_csv_content_from_uploaded_file(params.get("ignore_encoding_errors"))
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
@@ -195,7 +199,7 @@ def upload():
 	
 	webnotes.conn.begin()
 	
-	overwrite = webnotes.form_dict.get('overwrite')
+	overwrite = params.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
@@ -226,8 +230,7 @@ def upload():
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
-				ret.append(import_doc(d, doctype, overwrite, row_idx, 
-					webnotes.form_dict.get("_submit")=="on"))
+				ret.append(import_doc(d, doctype, overwrite, row_idx, params.get("_submit")))
 		except Exception, e:
 			error = True
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
@@ -307,13 +310,10 @@ def delete_child_rows(rows, doctype):
 		
 def import_doc(d, doctype, overwrite, row_idx, submit=False):
 	"""import main (non child) document"""
-	from webnotes.model.bean import Bean
-
 	if webnotes.conn.exists(doctype, d['name']):
 		if overwrite:
-			doclist = webnotes.model.doc.get(doctype, d['name'])
-			doclist[0].fields.update(d)
-			bean = Bean(doclist)
+			bean = webnotes.bean(doctype, d['name'])
+			bean.doc.fields.update(d)
 			if d.get("docstatus") == 1:
 				bean.update_after_submit()
 			else:
@@ -323,12 +323,11 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False):
 			return 'Ignored row (#%d) %s (exists)' % (row_idx, 
 				getlink(doctype, d['name']))
 	else:
-		d['__islocal'] = 1
-		dl = Bean([webnotes.model.doc.Document(fielddata = d)])
-		dl.save()
+		bean = webnotes.bean([d])
+		bean.insert()
 		
 		if submit:
-			dl.submit()
+			bean.submit()
 		
 		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
-			dl.doc.fields['name']))
+			bean.doc.fields['name']))

@@ -85,7 +85,7 @@ wn.request.call = function(opts) {
 			opts.error && opts.error(xhr)
 		}
 	};
-
+	
 	if(opts.progress_bar) {
 		var interval = null;
 		$.extend(ajax_args, {
@@ -109,7 +109,7 @@ wn.request.call = function(opts) {
 			}
 		})
 	}
-		
+	
 	$.ajax(ajax_args);
 }
 
