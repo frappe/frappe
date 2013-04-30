@@ -107,14 +107,14 @@ def errprint(msg):
 		print repr(msg)
 
 	from utils import cstr
-	error_log.append(repr(msg))
+	error_log.append(cstr(msg))
 
 def log(msg):
 	if not request_method:
 		import conf
 		if getattr(conf, "logging", False):
 			print repr(msg)
-
+	
 	from utils import cstr
 	debug_log.append(cstr(msg))
 
