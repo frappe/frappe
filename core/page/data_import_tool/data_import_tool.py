@@ -176,8 +176,12 @@ def upload():
 		
 		return columns
 		
+	# extra input params
+	import json
+	params = json.loads(webnotes.form_dict.get("params") or '{}')
+	
 	# header
-	rows = read_csv_content_from_uploaded_file(webnotes.form_dict.get("ignore_encoding_errors"))
+	rows = read_csv_content_from_uploaded_file(params.get("ignore_encoding_errors"))
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
@@ -195,7 +199,7 @@ def upload():
 	
 	webnotes.conn.begin()
 	
-	overwrite = webnotes.form_dict.get('overwrite')
+	overwrite = params.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
@@ -226,8 +230,7 @@ def upload():
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
 			else:
-				ret.append(import_doc(d, doctype, overwrite, row_idx, 
-					webnotes.form_dict.get("_submit")))
+				ret.append(import_doc(d, doctype, overwrite, row_idx, params.get("_submit")))
 		except Exception, e:
 			error = True
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 

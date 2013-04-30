@@ -25,14 +25,15 @@ wn.upload = {
 			}
 			
 			// add other inputs in the div as arguments
+			opts.args.params = {};
 			$upload.find("input[name]").each(function() {
 				var key = $(this).attr("name");
 				var type = $(this).attr("type");
 				if(key!="filedata" && key!="file_url") {
 					if(type === "checkbox") {
-						opts.args[key] = $(this).is(":checked");
+						opts.args.params[key] = $(this).is(":checked");
 					} else {
-						opts.args[key] = $(this).val();	
+						opts.args.params[key] = $(this).val();	
 					}
 				}
 			})
