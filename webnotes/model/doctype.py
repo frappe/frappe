@@ -33,11 +33,11 @@ Get metadata (main doctype with fields and permissions with all table doctypes)
 from __future__ import unicode_literals
 
 # imports
-import conf
 import webnotes
 import webnotes.model
 import webnotes.model.doc
 import webnotes.model.doclist
+from webnotes.utils import cint
 
 doctype_cache = {}
 docfield_types = None
@@ -210,7 +210,6 @@ def from_cache(doctype, processed):
 
 	doclist = webnotes.cache().get_value(cache_name(doctype, processed))
 	if doclist:
-		import json
 		from webnotes.model.doclist import DocList
 		doclist = DocList([webnotes.model.doc.Document(fielddata=d)
 				for d in doclist])
@@ -219,9 +218,7 @@ def from_cache(doctype, processed):
 
 def to_cache(doctype, processed, doclist):
 	global doctype_cache
-	import json
-	from webnotes.handler import json_handler
-	
+
 	webnotes.cache().set_value(cache_name(doctype, processed), 
 		[d.fields for d in doclist])
 
@@ -259,7 +256,7 @@ def clear_cache(doctype=None):
 			clear_single(dt[0])
 
 def add_code(doctype, doclist):
-	import os, conf
+	import os
 	from webnotes.modules import scrub, get_module_path
 	
 	doc = doclist[0]
@@ -373,7 +370,7 @@ def update_language(doclist):
 def add_precision(doctype, doclist):
 	type_precision_map = {
 		"Currency": 2,
-		"Float": 6
+		"Float": cint(webnotes.conn.get_default("float_precision")) or 6
 	}
 	for df in doclist.get({"doctype": "DocField", 
 			"fieldtype": ["in", type_precision_map.keys()]}):
