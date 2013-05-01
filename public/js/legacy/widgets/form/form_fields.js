@@ -218,143 +218,36 @@ _f.CodeField.prototype.make_input = function() {
 
 	this.label_span.innerHTML = this.df.label;
 
+	$(this.input_area).css({"min-height":"360px"});
+
 	if(this.df.fieldtype=='Text Editor') {
-		$(this.input_area).css({"min-height":"360px"});
-		this.input = $a(this.input_area, 'text_area', '', {fontSize:'12px'});
-		this.myid = wn.dom.set_unique_id(this.input);
-
-		// setup tiny mce
-		$(me.input).tinymce({
-			// Location of TinyMCE script
-			script_url : 'lib/js/lib/tiny_mce_3.5.7/tiny_mce.js',
-
-			// General options
-			theme : "advanced",
-			plugins : "style,inlinepopups,table,advimage",
-			extended_valid_elements: "script|embed",
-			
-			// w/h
-			width: '100%',
-			height: '360px',
-	
-			// buttons
-			theme_advanced_buttons1 : "bold,italic,underline,hr,|,justifyleft,justifycenter,|,formatselect,fontsizeselect,|,bullist,numlist,|,image,|,outdent,indent,|,link,|,forecolor,backcolor,|,code",
-			theme_advanced_buttons2 : "",
-			theme_advanced_buttons3 : "",
-
-			theme_advanced_toolbar_location : "top",
-			theme_advanced_toolbar_align : "left",
-			theme_advanced_statusbar_location: "none",
-			theme_advanced_path: false,
-
-			valid_elements : "*[*]",
-
-			content_css: "lib/js/lib/tiny_mce_3.5.7/custom_content.css?q=1",
-
-			oninit: function() { me.init_editor(); },
-			setup: function(ed) {
-				ed.onChange.add(function(ed, l) {
-					me.set(l.content);
-					me.run_trigger();
-				});
-			}
+		this.input = new wn.editors.BootstrapWYSIWYG({
+			parent: this.input_area,
+			change: function(value) {
+				me.set_value_and_run_trigger(value);
+			},
+			field: this
 		});
-
-		this.input.set_input = function(v) {
-			if(me.editor) {
-				me.editor.setContent(v==null ? "" : v);
-			} else {
-				$(me.input).val(v);
-			}
-		}
-		this.get_value = function() {
-			return me.editor && me.editor.getContent(); // tinyMCE
-		}	
-
 	} else {
-		// setup ace
-		wn.require('lib/js/lib/ace/ace.js');
-		
-		$(this.input_area).css('border','1px solid #aaa');
-		this.pre = $("<pre style='position: relative; height: 400px; \
-			width: 100%; padding: 0px; border-radius: 0px;\
-			margin: 0px; background-color: #fff;'>").appendTo(this.input_area).get(0);
-
-		this.input = {};
-		this.myid = wn.dom.set_unique_id(this.pre);
-		this.editor = ace.edit(this.myid);
-
-		if(me.df.options=='Markdown' || me.df.options=='HTML') {
-			wn.require('lib/js/lib/ace/mode-html.js');	
-			var HTMLMode = require("ace/mode/html").Mode;
-		    me.editor.getSession().setMode(new HTMLMode());
-		}
-
-		else if(me.df.options=='Javascript') {
-			wn.require('lib/js/lib/ace/mode-javascript.js');	
-			var JavascriptMode = require("ace/mode/javascript").Mode;
-		    me.editor.getSession().setMode(new JavascriptMode());
-		}
-
-		else if(me.df.options=='Python') {
-			wn.require('lib/js/lib/ace/mode-python.js');	
-			var PythonMode = require("ace/mode/python").Mode;
-		    me.editor.getSession().setMode(new PythonMode());
-		}
-		
-		this.input.set_input = function(v) {
-			// during field refresh in run trigger, set_input is called
-			// if called during on_change, setting doesn't make sense
-			// and causes cursor to shift back to first position
-			if(me.changing_value) return;
-			
-			me.setting_value = true;
-			me.editor.getSession().setValue(v==null ? "" : v);
-			me.setting_value = false;
-		}
-		
-		this.get_value = function() {
-			return me.editor.getSession().getValue(); // tinyMCE
-		}
-		$(cur_frm.wrapper).bind('render_complete', function() {
-			me.editor.resize();
-			me.editor.getSession().on('change', function() {
-				if(me.setting_value) return;
-				var val = me.get_value();
-				if(locals[cur_frm.doctype][cur_frm.docname][me.df.fieldname] != val) {
-					me.set(me.get_value());
-
-					me.changing_value = true;
-					me.run_trigger();
-					me.changing_value = false;
-				}
-			})
+		this.input = new wn.editors.ACE({
+			parent: this.input_area,
+			change: function(value) {
+				me.set_value_and_run_trigger(value);
+			},
+			field: this
 		});
-		this.onrefresh = function() {
-			me.editor && me.editor.resize();
-		}
 	}
-	
+	this.get_value = function() {
+		return this.input.get_value();
+	}
 }
 
-_f.CodeField.prototype.init_editor = function() {
-	// attach onchange methods
-	var me = this;
-	this.editor = tinymce.get(this.myid);
-	this.editor.onKeyUp.add(function(ed, e) { 
-		me.set(ed.getContent()); 
-	});
-	this.editor.onPaste.add(function(ed, e) { 
-		me.set(ed.getContent());
-	});
-	this.editor.onSetContent.add(function(ed, e) { 
-		me.set(ed.getContent()); 
-	});
-	
-	// reset content
-	var c = locals[cur_frm.doctype][cur_frm.docname][this.df.fieldname];
-	if(cur_frm && c) {
-		this.editor.setContent(c);
+_f.CodeField.prototype.set_value_and_run_trigger = function(value) {
+	if(locals[cur_frm.doctype][cur_frm.docname][this.df.fieldname] != value) {
+		this.set(value);
+		this.changing_value = true;
+		this.run_trigger();
+		this.changing_value = false;
 	}
 }
 
@@ -363,7 +256,8 @@ _f.CodeField.prototype.set_disp = function(val) {
 	if(this.df.fieldtype=='Text Editor') {
 		this.disp_area.innerHTML = val;
 	} else {
-		this.disp_area.innerHTML = '<textarea class="code_text" readonly=1>'+val+'</textarea>';
+		this.disp_area.innerHTML = '<textarea class="code_text" readonly=1>'
+			+val+'</textarea>';
 	}
 }
 

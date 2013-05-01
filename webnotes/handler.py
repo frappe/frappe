@@ -101,25 +101,23 @@ def uploadfile():
 	import webnotes.utils.file_manager
 	import json
 
-	ret = []
-
 	try:
 		if webnotes.form_dict.get('from_form'):
-			webnotes.utils.file_manager.upload()
+			try:
+				ret = webnotes.utils.file_manager.upload()
+			except webnotes.DuplicateEntryError, e:
+				# ignore pass
+				ret = None
+				webnotes.conn.rollback()
 		else:
 			if webnotes.form_dict.get('method'):
 				ret = webnotes.get_method(webnotes.form_dict.method)()
 	except Exception, e:
-		webnotes.msgprint(e)
 		webnotes.errprint(webnotes.utils.getTraceback())
+		ret = None
 
-	webnotes.response['type'] = 'iframe'
-	if not webnotes.response.get('result'):
-		webnotes.response['result'] = """<script>
-			window.parent.wn.upload.callback("%s", %s);
-		</script>""" % (webnotes.form_dict.get('_id'),
-			json.dumps(ret))
-
+	return ret
+	
 @webnotes.whitelist(allow_guest=True)
 def reset_password(user):
 	from webnotes.model.code import get_obj
@@ -293,7 +291,8 @@ def make_logs():
 	import json, conf
 	from webnotes.utils import cstr
 	if webnotes.error_log:
-		webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
+		# webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
+		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.error_log])
 
 	if webnotes.message_log:
 		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])

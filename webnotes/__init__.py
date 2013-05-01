@@ -87,6 +87,7 @@ def cache():
 		_memc = MClient(['localhost:11211'])
 	return _memc
 		
+class DuplicateEntryError(Exception): pass
 class ValidationError(Exception): pass
 class AuthenticationError(Exception): pass
 class PermissionError(Exception): pass
@@ -106,14 +107,14 @@ def errprint(msg):
 		print repr(msg)
 
 	from utils import cstr
-	error_log.append(repr(msg))
+	error_log.append(cstr(msg))
 
 def log(msg):
 	if not request_method:
 		import conf
 		if getattr(conf, "logging", False):
 			print repr(msg)
-
+	
 	from utils import cstr
 	debug_log.append(cstr(msg))
 

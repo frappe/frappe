@@ -26,20 +26,21 @@ import json
 import csv, cStringIO
 from webnotes.utils import encode, cstr
 
-def read_csv_content_from_uploaded_file():
+def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	from webnotes.utils.file_manager import get_uploaded_content
 	fname, fcontent = get_uploaded_content()
-	return read_csv_content(fcontent)
+	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
-	if not doc.file_list:
+	fileid = webnotes.conn.get_value("File Data", {"attached_to_doctype": doc.doctype,
+		"attached_to_name":doc.name}, "name")
+	if not fileid:
 		msgprint("File not attached!")
 		raise Exception
 
 	try:
 		from webnotes.utils.file_manager import get_file
-		fid = doc.file_list.split(",")[1]
-		fname, fcontent = get_file(fid)
+		fname, fcontent = get_file(fileid)
 		return read_csv_content(fcontent, webnotes.form_dict.get('ignore_encoding_errors'))
 	except Exception, e:
 		webnotes.msgprint("""Unable to open attached file. Please try again.""")

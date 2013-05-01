@@ -57,8 +57,10 @@ cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
 		if(!confirm('Are you sure you want to overwrite the existing HTML?'))
 			return;
 	}
+	
+	
 
-	var file_name = doc.file_list.split(',')[1]
+	var file_name = cur_frm.get_files()[0];
 
 	if(!in_list(['gif','jpg','jpeg','png'], file_name.split('.')[1].toLowerCase())) {
 		msgprint("Please upload a web friendly (GIF, JPG or PNG) image file for the letter head");

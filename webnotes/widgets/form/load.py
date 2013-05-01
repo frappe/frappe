@@ -21,7 +21,7 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, json
 import webnotes.model.doc
 import webnotes.utils
 
@@ -81,6 +81,9 @@ def load_single_doc(dt, dn, user):
 
 	try:
 		dl = webnotes.bean(dt, dn).doclist
+		# add file list
+		add_file_list(dt, dn, dl)
+		
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint('Error in script while loading')
@@ -90,8 +93,17 @@ def load_single_doc(dt, dn, user):
 		webnotes.user.update_recent(dt, dn)
 
 	return dl
+	
+def add_file_list(dt, dn, dl):
+	file_list = {}
+	for f in webnotes.conn.sql("""select name, file_name, file_url from
+		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""", 
+			(dn, dt), as_dict=True):
+		file_list[f.file_url or f.file_name] = f.name
 
-
+	if file_list:
+		dl[0].file_list = json.dumps(file_list)
+		
 def get_search_criteria(dt):
 	"""bundle search criteria with doctype"""
 	import webnotes.model.doc
