@@ -45,6 +45,7 @@ $.extend(wn.model, {
 	],
 
 	new_names: {},
+	events: {},
 
 	get_std_field: function(fieldname) {
 		var docfield = $.map([].concat(wn.model.std_fields).concat(wn.model.std_fields_table), 
@@ -179,8 +180,35 @@ $.extend(wn.model, {
 	},
 	
 	get_value: function(doctype, filters, fieldname) {
-		var l = wn.model.get(doctype, filters);
-		return (l.length && l[0]) ? l[0][fieldname] : null;
+		if(typeof filters==="string") {
+			return locals[doctype] && locals[doctype][filters] 
+				&& locals[doctype][filters][fieldname];
+		} else {
+			var l = wn.model.get(doctype, filters);
+			return (l.length && l[0]) ? l[0][fieldname] : null;
+		}
+	},
+	
+	set_value: function(doctype, name, fieldname, value) {
+		var doc = locals[doctype] && locals[doctype][name];
+		if(doc) {
+			doc[fieldname] = value;
+			wn.model.trigger(doctype, name, fieldname, value);
+		}
+	},
+	
+	on: function(doctype, name, fieldname, fn) {
+		wn.provide("locals." + doctype + "." + name + "." + fieldname);
+		locals[doctype][name][fieldname] = fn;
+	},
+	
+	trigger: function(doctype, name, fieldname, value) {
+		if(wn.model.events[doctype] && wn.model.events[doctype][name]) {
+			var ev = wn.model.events[doctype][name];
+			
+			ev[fieldname] && ev[fieldname](value, doctype, name, fieldname);
+			ev["*"] && ev["*"](value, doctype, name, fieldname);
+		}
 	},
 	
 	get_doc: function(doctype, name) {

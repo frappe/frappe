@@ -7,8 +7,14 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div class="col-span-12"></div>').prependTo(parent);
-				
+		this.$w = $('<div class="col-span-12">\
+			<div class="row appframe-header">\
+				<div class="col-span-12"></div>\
+			</div>\
+			</div>')
+			.prependTo(parent)
+			.find(".appframe-header div");
+
 		$('<!-- div>\
 			<ul class="breadcrumb" style="height: 32px;">\
 				<span class="appframe-right pull-right">\
@@ -26,7 +32,6 @@ wn.ui.AppFrame = Class.extend({
 			style="margin-top: -10px;"></div>\
 		<div class="btn-group appframe-toolbar" \
 			style="display: none; margin-top: 15px;"></div>\
-		<hr>\
 		').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {

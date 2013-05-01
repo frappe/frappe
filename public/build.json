@@ -152,6 +152,7 @@
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/layout.js",
+			"lib/public/js/wn/form/control.js",
 			"lib/public/js/wn/form/editors.js",
 			"lib/public/js/wn/form/grid.js",
 			"lib/public/js/wn/form/attachments.js",

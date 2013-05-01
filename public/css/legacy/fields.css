@@ -18,13 +18,3 @@
 	padding-left: 6px; 
 	padding-right: 6px; 
 }
-
-.disp-area { 
-	background-color: #eee;
-	padding: 6px;
-	margin-bottom: 7px;
-	border-radius: 3px;	
-}
-.disp-area-no-val { 
-	height: 30px; 
-}

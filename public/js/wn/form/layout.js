@@ -64,7 +64,7 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make_section: function(df) {
 		if(this.section) {
-			$("<hr>").appendTo(this.wrapper);
+			//$("<hr>").appendTo(this.wrapper);
 		}
 		this.section = $('<div class="row">').appendTo(this.wrapper);
 		this.frm.sections.push(this.section);

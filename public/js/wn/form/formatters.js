@@ -7,11 +7,9 @@ wn.form.formatters = {
 		return value==null ? "" : value
 	},
 	Float: function(value, docfield) {
-		var decimals = wn.boot.sysdefaults.float_precision ? 
-			parseInt(wn.boot.sysdefaults.float_precision) : null;
-
-		return "<div style='text-align: right'>" + 
-			format_number(value, null, decimals) + "</div>";
+		var decimals = cint(wn.boot.sysdefaults.float_precision, null);
+		return "<div style='text-align: right'>" + format_number(value, null, decimals) 
+			+ "</div>";
 	},
 	Int: function(value) {
 		return cint(value);

@@ -224,7 +224,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 			ele.loading_img = $('<img src="lib/images/ui/button-load.gif" \
 				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
 				.insertAfter(ele);
-		}		
+		}
 	}
 	$.fn.done_working = function() {
 		var ele = this.get(0);

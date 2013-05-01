@@ -152,6 +152,21 @@ a {
 	outline: none;	
 }
 
+/* appframe header */
+
+.appframe-header {
+	background-color: #eee;
+	padding-bottom: 10px;
+	margin-bottom: 15px;
+	border-bottom: 1px solid #ddd;
+}
+
+/* form */
+
+textarea[data-fieldtype="Small Text"] {
+	height: 60px;
+}
+
 /* form grid */
 
 .rows .grid-row .divider {
@@ -179,4 +194,12 @@ a {
 	border: 1px dashed #ddd;
 	padding: 15px;
 	padding-top: 0px;
+}
+
+.like-disabled-input {
+	background-color: #eee;
+	padding: 6px;
+	margin-bottom: 7px;
+	border-radius: 3px;	
+	min-height: 30px;
 }
