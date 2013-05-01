@@ -146,14 +146,17 @@ class Database:
 			return self._cursor.fetchall()
 			
 	def explain_query(self, query, values=None):
-		webnotes.errprint("--- query explain ---")
-		if values is None:
-			self._cursor.execute("explain " + query)
-		else:
-			self._cursor.execute("explain " + query, values)
-		import json
-		webnotes.errprint(json.dumps(self.fetch_as_dict(), indent=1))
-		webnotes.errprint("--- query explain end ---")
+		try:
+			webnotes.errprint("--- query explain ---")
+			if values is None:
+				self._cursor.execute("explain " + query)
+			else:
+				self._cursor.execute("explain " + query, values)
+			import json
+			webnotes.errprint(json.dumps(self.fetch_as_dict(), indent=1))
+			webnotes.errprint("--- query explain end ---")
+		except:
+			webnotes.errprint("error in query explain")
 
 	def sql_list(self, query, values=(), debug=False):
 		return [r[0] for r in self.sql(query, values, debug=debug)]
@@ -336,10 +339,10 @@ class Database:
 						return []
 			
 			if as_dict:
-				return values
+				return values and [values] or []
 				
 			if isinstance(fields, list):
-				return map(lambda d: values.get(d), fields)
+				return [map(lambda d: values.get(d), fields)]
 					
 		else:
 			r = self.sql("""select field, value 
@@ -350,10 +353,7 @@ class Database:
 			if as_dict:
 				return r and [webnotes._dict(r)] or []
 			else:
-				if r:
-					return [[i[1] for i in r]]
-				else:
-					return []
+				return r and [[i[1] for i in r]] or []
 	
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
 		fl = fields
