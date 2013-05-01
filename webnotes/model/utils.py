@@ -214,9 +214,7 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 	link_fields = get_link_fields(dt)
 	link_fields = [[lf['parent'], lf['fieldname']] for lf in link_fields]
 
-	for l in link_fields:
-		link_dt, link_field = l
-
+	for link_dt, link_field in link_fields:
 		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype",
 			"docstatus"], as_dict=True)
 		

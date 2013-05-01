@@ -194,8 +194,11 @@ def now_datetime():
 def get_user_time_zone():
 	global user_time_zone
 	if not user_time_zone:
+		user_time_zone = webnotes.cache().get_value("time_zone")
+	if not user_time_zone:
 		user_time_zone = webnotes.conn.get_value('Control Panel', None, 'time_zone') \
 			or 'Asia/Calcutta'
+		webnotes.cache().set_value("time_zone", user_time_zone)
 	return user_time_zone
 
 def convert_utc_to_user_timezone(utc_timestamp):
