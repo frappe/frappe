@@ -28,7 +28,7 @@ def get_html(page_name):
 	
 	# load from cache, if auto cache clear is falsy
 	if not (hasattr(conf, 'auto_cache_clear') and conf.auto_cache_clear or 0):
-		if not get_page_settings().get("page_name", {}).get("no_cache", None):
+		if not get_page_settings().get(page_name, {}).get("no_cache"):
 			html = webnotes.cache().get_value("page:" + page_name)
 			from_cache = True
 
