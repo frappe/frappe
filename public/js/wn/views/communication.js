@@ -205,7 +205,6 @@ wn.views.CommunicationComposer = Class.extend({
 				})
 						
 			_p.build(form_values.select_print_format || "", function(print_format_html) {
-				me.dialog.hide();
 				if(form_values.attach_document_print) {
 					var print_html = print_format_html
 					if(cint(wn.boot.send_print_in_body_and_attachment)) {
@@ -238,7 +237,10 @@ wn.views.CommunicationComposer = Class.extend({
 						if(!r.exc) {
 							if(form_values.send_email)
 								msgprint("Email sent to " + form_values.recipients);
+							me.dialog.hide();
 							cur_frm.reload_doc();
+						} else {
+							msgprint("There were errors while sending email. Please try again.")
 						}
 					}
 				});

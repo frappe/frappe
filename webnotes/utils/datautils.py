@@ -26,10 +26,10 @@ import json
 import csv, cStringIO
 from webnotes.utils import encode, cstr
 
-def read_csv_content_from_uploaded_file():
+def read_csv_content_from_uploaded_file(ignore_encoding=False):
 	from webnotes.utils.file_manager import get_uploaded_content
 	fname, fcontent = get_uploaded_content()
-	return read_csv_content(fcontent)
+	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
 	fileid = webnotes.conn.get_value("File Data", {"attached_to_doctype": doc.doctype,

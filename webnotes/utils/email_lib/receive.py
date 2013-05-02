@@ -21,6 +21,7 @@
 # 
 
 from __future__ import unicode_literals
+import webnotes
 from webnotes.utils import extract_email_id, convert_utc_to_user_timezone
 
 class IncomingMail:
@@ -31,7 +32,6 @@ class IncomingMail:
 		import email
 		import email.utils
 		import datetime
-		import time
 		
 		self.mail = email.message_from_string(content)
 		
@@ -104,6 +104,9 @@ class IncomingMail:
 					doc.doctype, doc.name)
 			except MaxFileSizeReachedError:
 				# bypass max file size exception
+				pass
+			except webnotes.DuplicateEntryError:
+				# same file attached twice??
 				pass
 
 	def get_thread_id(self):

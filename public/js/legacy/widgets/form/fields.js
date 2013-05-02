@@ -634,6 +634,44 @@ LinkField.prototype.set_disp = function(val) {
 
 var tmpid = 0;
 
+_f.ButtonField = function() { };
+_f.ButtonField.prototype = new Field();
+_f.ButtonField.prototype.with_label = 0;
+_f.ButtonField.prototype.make_input = function() { var me = this;
+
+	// make a button area for one button
+	if(!this.button_area) 
+		this.button_area = $a(this.input_area, 'div','',{
+				marginBottom:'4px'});
+	
+	// make the input
+	this.input = $btn(this.button_area, 
+		me.df.label, null, 
+		{fontWeight:'bold'}, null, 1)
+
+	$(this.input).click(function() {
+		if(me.not_in_form) return;
+		
+		if(cur_frm.cscript[me.df.fieldname] && (!me.in_filter)) {
+			cur_frm.runclientscript(me.df.fieldname, me.doctype, me.docname);
+		} else {
+			cur_frm.runscript(me.df.options, me);
+		}
+	});
+}
+
+_f.ButtonField.prototype.hide = function() { 
+	$dh(this.wrapper);
+};
+
+_f.ButtonField.prototype.show = function() { 
+	$ds(this.wrapper);
+};
+
+
+_f.ButtonField.prototype.set = function(v) { }; // No Setter
+_f.ButtonField.prototype.set_disp = function(val) {  } // No Disp on readonly
+
 function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
 	
 	if(["Data", "Int", "Float", "Currency", "HTML", "Date", "Time", "DateTime",

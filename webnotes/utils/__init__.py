@@ -825,6 +825,8 @@ operator_map = {
 	"<": lambda (a, b): operator.lt(a, b),
 	">=": lambda (a, b): operator.ge(a, b),
 	"<=": lambda (a, b): operator.le(a, b),
+	"not None": lambda (a, b): a and True or False,
+	"None": lambda (a, b): (not a) and True or False
 }
 
 def compare(val1, condition, val2):

@@ -141,15 +141,14 @@ wn.views.QueryReport = Class.extend({
 				$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
 			else if(f.df.fieldtype == "Date")
 				$(f.wrapper).css({"margin-right":"-15px"});
-				
+	
 			if(df.get_query) f.get_query = df.get_query;
 		});
-		
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.appframe.toolbar.find(".filters").remove();
+		this.appframe.$w.find('.appframe-toolbar').find(".filters").remove();
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};

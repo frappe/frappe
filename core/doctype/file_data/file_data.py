@@ -40,7 +40,6 @@ class DocType():
 			and attached_to_doctype=%s 
 			and attached_to_name=%s""", (self.doc.file_name, self.doc.attached_to_doctype,
 				self.doc.attached_to_name))[0][0]
-		webnotes.msgprint(n_records)
 		if n_records > 1:
 			webnotes.msgprint(webnotes._("Same file has already been attached to the record"))
 			raise webnotes.DuplicateEntryError

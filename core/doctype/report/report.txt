@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-02-25 13:11:50", 
+  "creation": "2013-03-09 15:45:57", 
   "docstatus": 0, 
-  "modified": "2013-02-25 14:18:36", 
+  "modified": "2013-04-30 17:50:00", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -41,6 +41,7 @@
   "fieldname": "report_name", 
   "fieldtype": "Data", 
   "label": "Report Name", 
+  "read_only": 0, 
   "reqd": 1
  }, 
  {
@@ -50,6 +51,7 @@
   "in_list_view": 1, 
   "label": "Ref DocType", 
   "options": "DocType", 
+  "read_only": 0, 
   "reqd": 1
  }, 
  {
@@ -59,12 +61,20 @@
   "in_list_view": 1, 
   "label": "Is Standard", 
   "options": "No\nYes", 
+  "read_only": 0, 
   "reqd": 1
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "add_total_row", 
+  "fieldtype": "Check", 
+  "label": "Add Total Row"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "column_break_4", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "read_only": 0
  }, 
  {
   "doctype": "DocField", 
@@ -72,25 +82,29 @@
   "fieldtype": "Select", 
   "label": "Report Type", 
   "options": "Report Builder\nQuery Report\nScript Report", 
+  "read_only": 0, 
   "reqd": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "disabled", 
   "fieldtype": "Check", 
-  "label": "Disabled"
+  "label": "Disabled", 
+  "read_only": 0
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "section_break_6", 
-  "fieldtype": "Section Break"
+  "fieldtype": "Section Break", 
+  "read_only": 0
  }, 
  {
   "depends_on": "eval:doc.report_type==\"Query Report\"", 
   "doctype": "DocField", 
   "fieldname": "query", 
   "fieldtype": "Code", 
-  "label": "Query"
+  "label": "Query", 
+  "read_only": 0
  }, 
  {
   "depends_on": "eval:doc.report_type==\"Report Builder\"", 

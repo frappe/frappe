@@ -114,7 +114,7 @@ def log(msg):
 		import conf
 		if getattr(conf, "logging", False):
 			print repr(msg)
-
+	
 	from utils import cstr
 	debug_log.append(cstr(msg))
 
