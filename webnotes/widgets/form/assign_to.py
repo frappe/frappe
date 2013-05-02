@@ -66,7 +66,7 @@ def add(args=None):
 
 	# notify
 	if not args.get("no_notification"):
-		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', notify=args.get('notify'))
+		notify_assignment(d.assigned_by, d.owner, d.reference_type, d.reference_name, action='ASSIGN', description=args.get("description"), notify=args.get('notify'))
 		
 	# update feeed
 	try:
@@ -106,7 +106,8 @@ def clear(doctype, name):
 		where reference_type=%(doctype)s and reference_name=%(name)s""", locals()):
 			remove(doctype, name, assign_to)
 
-def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', notify=0):
+def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', 
+	description=None, notify=0):
 	"""
 		Notify assignee that there is a change in assignment
 	"""	
@@ -143,9 +144,10 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE', no
 	else:
 		arg = {
 			'contact': owner,
-			'txt': "A new task, %s, has been assigned to you by %s." \
+			'txt': "A new task, %s, has been assigned to you by %s. %s" \
 				% (assignment,
-				user_info.get(webnotes.session.get('user'), {}).get('fullname')),
+				user_info.get(webnotes.session.get('user'), {}).get('fullname'),
+				description and ("<p>Description: " + description + "</p>") or ""),
 			'notify': notify
 		}
 		
