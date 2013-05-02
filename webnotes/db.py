@@ -310,7 +310,7 @@ class Database:
 		
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if isinstance(filters, list):
-			return self.get_value_for_many_names(doctype, filters, fieldname, debug)
+			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 			
 		fields = fieldname
 		if fieldname!="*":
@@ -375,8 +375,7 @@ class Database:
 		
 		if names:
 			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
-				% (field, doctype, ", ".join(map(lambda n: "'%s'" % n.replace("'", "\'"), names))), 
-				debug))
+				% (field, doctype, ", ".join(["%s"]*len(names))), names, debug=debug))
 		else:
 			return {}
 
