@@ -68,7 +68,7 @@ def run(report_name, filters=None):
 			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
 		columns, result = webnotes.get_method(method_name)(filters or {})
 	
-	if cint(report.add_total_row):
+	if cint(report.add_total_row) and result:
 		result = add_total_row(result, columns)
 	
 	return {
