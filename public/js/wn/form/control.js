@@ -16,6 +16,9 @@ wn.ui.form.Control = Class.extend({
 		this.$wrapper = $("<div>").appendTo(this.parent);
 		this.wrapper = this.$wrapper.get(0);
 	},
+	
+	// returns "Read", "Write" or "None" 
+	// as strings based on permissions
 	get_status: function(explain) {
 		if(!this.doctype) 
 			return "Write";
@@ -319,13 +322,8 @@ wn.ui.form.ControlText = wn.ui.form.ControlData.extend({
 	html_element: "textarea"
 });
 
-wn.ui.form.ControlLongText = wn.ui.form.ControlData.extend({
-	html_element: "textarea"
-});
-
-wn.ui.form.ControlSmallText = wn.ui.form.ControlText.extend({
-	html_element: "textarea"
-});
+wn.ui.form.ControlLongText = wn.ui.form.ControlText;
+wn.ui.form.ControlSmallText = wn.ui.form.ControlText;
 
 wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
