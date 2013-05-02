@@ -26,7 +26,7 @@ cur_frm.cscript['server_python'] = function(doc, dt, dn) {
 	$c_obj(make_doclist(doc.doctype, doc.name), 'execute_server', '', function(r, rt) {
 		doc = locals[doc.doctype][doc.name];
 		if(r.exc) {
-			doc.response = r.exc;
+			doc.response = (r.exc || []).join("\n");
 		} else {
 			doc.response = 'Worked!'.bold()
 		}

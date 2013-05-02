@@ -536,11 +536,14 @@ def make_autoname(key, doctype=''):
 	"""
 	n = ''
 	l = key.split('.')
+	series_set = False
 	for e in l:
 		en = ''
 		if e.startswith('#'):
-			digits = len(e)
-			en = getseries(n, digits, doctype)
+			if not series_set:
+				digits = len(e)
+				en = getseries(n, digits, doctype)
+				series_set = True
 		elif e=='YY': 
 			import time
 			en = time.strftime('%y')

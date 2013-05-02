@@ -52,14 +52,19 @@ def execute():
 	
 	out = []
 
-	# if first task of the day execute daily tasks
 	nowtime = webnotes.utils.now_datetime()
 	last = webnotes.conn.get_global('scheduler_last_event')
+	
+	# set scheduler last event
+	webnotes.conn.begin()
+	webnotes.conn.set_global('scheduler_last_event', nowtime.strftime(format))
+	webnotes.conn.commit()
+	
 	if last:
 		last = datetime.strptime(last, format)
 
 		if nowtime.day != last.day:
-
+			# if first task of the day execute daily tasks
 			out.append('daily:' + trigger('execute_daily'))
 
 			if nowtime.month != last.month:
@@ -72,10 +77,6 @@ def execute():
 			out.append('hourly:' + trigger('execute_hourly'))
 
 	out.append('all:' + trigger('execute_all'))
-	
-	webnotes.conn.begin()
-	webnotes.conn.set_global('scheduler_last_event', nowtime.strftime(format))
-	webnotes.conn.commit()
 	
 	return '\n'.join(out)
 	
@@ -90,12 +91,16 @@ def trigger(method):
 			webnotes.conn.commit()
 			return 'ok'
 		
-	except Exception, e:
+	except Exception:
 		return log(method)
 
 def log(method):
 	"""log error in patch_log"""
 	import webnotes
+	
+	if not (webnotes.conn and webnotes.conn._conn):
+		webnotes.connect()
+	
 	webnotes.conn.rollback()
 	traceback = webnotes.getTraceback()
 

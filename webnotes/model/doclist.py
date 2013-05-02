@@ -29,7 +29,8 @@ class DocList(list):
 	def get(self, filters, limit=0):
 		"""pass filters as:
 			{"key": "val", "key": ["!=", "val"],
-			"key": ["in", "val"], "key": ["not in", "val"], "key": "^val"}"""
+			"key": ["in", "val"], "key": ["not in", "val"], "key": "^val",
+			"key" : True (exists), "key": False (does not exist) }"""
 
 		out = []
 		
@@ -39,7 +40,11 @@ class DocList(list):
 			for f in filters:
 				fval = filters[f]
 				
-				if not isinstance(fval, list):
+				if fval==True:
+					fval = ["not None", fval]
+				elif fval==False:
+					fval = ["None", fval]
+				elif not isinstance(fval, list):
 					if isinstance(fval, basestring) and fval.startswith("^"):
 						fval = ["^", fval[1:]]
 					else:
@@ -55,6 +60,9 @@ class DocList(list):
 					break
 		
 		return DocList(out)
+		
+	def get_distinct_values(self, fieldname):
+		return list(set(map(lambda d: d.fields.get(fieldname), self)))
 
 	def remove_items(self, filters):
 		for d in self.get(filters):

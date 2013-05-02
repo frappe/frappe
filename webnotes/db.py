@@ -146,14 +146,17 @@ class Database:
 			return self._cursor.fetchall()
 			
 	def explain_query(self, query, values=None):
-		webnotes.errprint("--- query explain ---")
-		if values is None:
-			self._cursor.execute("explain " + query)
-		else:
-			self._cursor.execute("explain " + query, values)
-		import json
-		webnotes.errprint(json.dumps(self.fetch_as_dict(), indent=1))
-		webnotes.errprint("--- query explain end ---")
+		try:
+			webnotes.errprint("--- query explain ---")
+			if values is None:
+				self._cursor.execute("explain " + query)
+			else:
+				self._cursor.execute("explain " + query, values)
+			import json
+			webnotes.errprint(json.dumps(self.fetch_as_dict(), indent=1))
+			webnotes.errprint("--- query explain end ---")
+		except:
+			webnotes.errprint("error in query explain")
 
 	def sql_list(self, query, values=(), debug=False):
 		return [r[0] for r in self.sql(query, values, debug=debug)]
@@ -306,6 +309,9 @@ class Database:
 		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
 		
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
+		if isinstance(filters, list):
+			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
+			
 		fields = fieldname
 		if fieldname!="*":
 			if isinstance(fieldname, basestring):
@@ -336,10 +342,10 @@ class Database:
 						return []
 			
 			if as_dict:
-				return values
+				return values and [values] or []
 				
 			if isinstance(fields, list):
-				return map(lambda d: values.get(d), fields)
+				return [map(lambda d: values.get(d), fields)]
 					
 		else:
 			r = self.sql("""select field, value 
@@ -350,10 +356,7 @@ class Database:
 			if as_dict:
 				return r and [webnotes._dict(r)] or []
 			else:
-				if r:
-					return [[i[1] for i in r]]
-				else:
-					return []
+				return r and [[i[1] for i in r]] or []
 	
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
 		fl = fields
@@ -366,6 +369,15 @@ class Database:
 			conditions), filters, as_dict=as_dict, debug=debug)
 
 		return r
+
+	def get_value_for_many_names(self, doctype, names, field, debug=False):
+		names = filter(None, names)
+		
+		if names:
+			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
+				% (field, doctype, ", ".join(["%s"]*len(names))), names, debug=debug))
+		else:
+			return {}
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		from webnotes.utils import now

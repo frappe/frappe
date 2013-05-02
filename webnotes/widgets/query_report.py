@@ -27,6 +27,7 @@ import os, json
 
 from webnotes import _
 from webnotes.modules import scrub, get_module_path
+from webnotes.utils import flt, cint
 
 @webnotes.whitelist()
 def get_script(report_name):
@@ -67,7 +68,23 @@ def run(report_name, filters=None):
 			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
 		columns, result = webnotes.get_method(method_name)(filters or {})
 	
+	if cint(report.add_total_row) and result:
+		result = add_total_row(result, columns)
+	
 	return {
 		"result": result,
 		"columns": columns
 	}
+	
+def add_total_row(result, columns):
+	total_row = [""]*len(columns)
+	for row in result:
+		for i, col in enumerate(columns):
+			if col.split(":")[1] in ["Currency", "Int", "Float"] and flt(row[i]):
+				total_row[i] = flt(total_row[i]) + flt(row[i])
+				
+	if columns[0].split(":")[1] not in ["Currency", "Int", "Float"]:
+		total_row[0] = "Total"
+		
+	result.append(total_row)
+	return result

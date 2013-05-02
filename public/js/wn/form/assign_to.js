@@ -136,7 +136,8 @@ wn.ui.form.AssignTo = Class.extend({
 									msgprint("Email sent to " + assign_to);
 								me.render(r.message);
 							}
-						}
+						},
+						btn: this
 					});
 				}
 			}

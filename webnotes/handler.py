@@ -291,7 +291,8 @@ def make_logs():
 	import json, conf
 	from webnotes.utils import cstr
 	if webnotes.error_log:
-		webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
+		# webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
+		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.error_log])
 
 	if webnotes.message_log:
 		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
