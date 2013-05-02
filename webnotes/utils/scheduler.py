@@ -96,6 +96,10 @@ def trigger(method):
 def log(method):
 	"""log error in patch_log"""
 	import webnotes
+	
+	if not (webnotes.conn and webnotes.conn._conn):
+		webnotes.connect()
+	
 	webnotes.conn.rollback()
 	traceback = webnotes.getTraceback()
 
