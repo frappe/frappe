@@ -309,6 +309,9 @@ class Database:
 		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
 		
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
+		if isinstance(filters, list):
+			return self.get_value_for_many_names(doctype, filters, fieldname)
+			
 		fields = fieldname
 		if fieldname!="*":
 			if isinstance(fieldname, basestring):
@@ -366,6 +369,11 @@ class Database:
 			conditions), filters, as_dict=as_dict, debug=debug)
 
 		return r
+
+	def get_value_for_many_names(self, doctype, names, field):
+		names = filter(None, names)
+		return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
+			% (field, doctype, ", ".join(map(lambda n: "'%s'" % n.replace("'", "\'"), names)))))
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		from webnotes.utils import now
