@@ -206,7 +206,7 @@ wn.editors.ACE = Class.extend({
 		// during field refresh in run trigger, set_input is called
 		// if called during on_change, setting doesn't make sense
 		// and causes cursor to shift back to first position
-		if(this.opts.field.changing_value) return;
+		if(this.opts.field.inside_change_event) return;
 		
 		this.setting_value = true;
 		this.editor.getSession().setValue(value==null ? "" : value);

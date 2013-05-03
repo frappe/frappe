@@ -673,25 +673,15 @@ _f.ButtonField.prototype.set = function(v) { }; // No Setter
 _f.ButtonField.prototype.set_disp = function(val) {  } // No Disp on readonly
 
 function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
-	
-	if(["Data", "Int", "Float", "Currency", "HTML", "Date", "Time", "DateTime",
-		"Text", "Small Text", "Long Text", "Check", "Button", "Select",
-		"Password", "Read Only"].indexOf(docfield.fieldtype)!=-1) {
-		return new wn.ui.form.make_control({
-			df: docfield,
-			doctype: doctype,
-			parent: parent,
-			hide_label: hide_label,
-			frm: frm
-		});
-	}
+	return new wn.ui.form.make_control({
+		df: docfield,
+		doctype: doctype,
+		parent: parent,
+		hide_label: hide_label,
+		frm: frm
+	});
 
-	switch(docfield.fieldtype.toLowerCase()) {
-		
-		// general fields
-		case 'percent':var f = new PercentField(); break;
-		case 'link':var f = new LinkField(); break;
-		
+	switch(docfield.fieldtype.toLowerCase()) {		
 		// form fields
 		case 'code':var f = new _f.CodeField(); break;
 		case 'text editor':var f = new _f.CodeField(); break;

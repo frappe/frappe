@@ -123,7 +123,9 @@ _f.Frm.prototype.setup = function() {
 	this.setup_std_layout();
 
 	// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
-	this.setup_client_script();
+	this.script_manager = new wn.ui.form.ScriptManager({
+		frm: this
+	})
 	
 	this.setup_header();
 	
@@ -308,14 +310,6 @@ _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 	this.fetch_dict[link_field].fields.push(tar_field);
 }
 
-_f.Frm.prototype.setup_client_script = function() {
-	// setup client obj
-
-	if(this.meta.client_script_core || this.meta.client_script || this.meta.__js) {
-		this.runclientscript('setup', this.doctype, this.docname);
-	}
-}
-
 _f.Frm.prototype.refresh_print_layout = function() {
 	$ds(this.print_wrapper);
 	$dh(this.form_wrapper);
@@ -431,9 +425,6 @@ _f.Frm.prototype.refresh = function(docname) {
 
 		// do setup
 		if(!this.setup_done) this.setup();
-
-		// set customized permissions for this record
-		this.runclientscript('set_perm', this.doctype, this.docname);
 		
 		// load the record for the first time, if not loaded (call 'onload')
 		cur_frm.cscript.is_onload = false;
@@ -460,7 +451,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 
 			// call trigger
-	 		this.runclientscript('refresh');
+			this.script_manager.trigger("refresh");
 			
 			// trigger global trigger
 			// to use this
@@ -474,7 +465,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			
 			// call onload post render for callbacks to be fired
 			if(this.cscript.is_onload) {
-				this.runclientscript('onload_post_render', this.doctype, this.docname);
+				this.script_manager.trigger("onload_post_render");
 			}
 				
 			// focus on first input
@@ -491,7 +482,6 @@ _f.Frm.prototype.refresh = function(docname) {
 			if(this.print_wrapper) {
 				this.refresh_print_layout();
 			}
-			this.runclientscript('edit_status_changed');
 		}
 
 		$(cur_frm.wrapper).trigger('render_complete');
@@ -571,7 +561,7 @@ _f.Frm.prototype.refresh_dependency = function() {
 			if(f.df.depends_on.substr(0,5)=='eval:') {
 				f.guardian_has_value = eval(f.df.depends_on.substr(5));
 			} else if(f.df.depends_on.substr(0,3)=='fn:') {
-				f.guardian_has_value = me.runclientscript(f.df.depends_on.substr(3), me.doctype, me.docname);
+				f.guardian_has_value = me.script_manager.trigger(f.df.depends_on.substr(3), me.doctype, me.docname);
 			} else {
 				if(!v) {
 					f.guardian_has_value = false;
@@ -613,7 +603,7 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	var viewname = this.meta.issingle ? this.doctype : docname;
 
 	// Client Script
-	this.runclientscript('onload', this.doctype, this.docname);
+	this.script_manager.trigger("onload");
 	
 	this.last_view_is_edit[docname] = 1;
 	if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
@@ -659,69 +649,6 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 			}
 		);
 	}
-}
-
-_f.Frm.prototype.runclientscript = function(caller, cdt, cdn) {
-	if(!cdt)cdt = this.doctype;
-	if(!cdn)cdn = this.docname;
-
-	var ret = null;
-	var doc = locals[cur_frm.doc.doctype][cur_frm.doc.name];
-	try {
-		if(this.cscript[caller])
-			ret = this.cscript[caller](doc, cdt, cdn);
-
-		if(this.cscript['custom_'+caller])
-			ret += this.cscript['custom_'+caller](doc, cdt, cdn);
-			
-	} catch(e) {
-		validated = false;
-		
-		// show error message
-		this.log_error(caller, e);
-	}
-	if(caller && caller.toLowerCase()=='setup') {
-		this.setup_client_js();
-	}
-	return ret;
-}
-
-_f.Frm.prototype.setup_client_js = function(caller, cdt, cdn) {
-	var doctype = wn.model.get_doc('DocType', this.doctype);
-
-	// js
-	var cs = doctype.__js || (doctype.client_script_core + doctype.client_script);
-	if(cs) {
-		try {
-			var tmp = eval(cs);
-		} catch(e) {
-			show_alert("Error in Client Script.");
-			this.log_error(caller || "setup_client_js", e);
-		}
-	}
-
-	// css
-	if(doctype.__css) wn.dom.set_style(doctype.__css);
-
-	// ---Client String----
-	if(doctype.client_string) { // split client string
-		this.cstring = {};
-		var elist = doctype.client_string.split('---');
-		for(var i=1;i<elist.length;i=i+2) {
-			this.cstring[strip(elist[i])] = elist[i+1];
-		}
-	}
-}
-
-_f.Frm.prototype.log_error = function(caller, e) {
-	console.group && console.group();
-	console.log("----- error in client script -----");
-	console.log("method: " + caller);
-	console.log(e);
-	console.log("error message: " + e.message);
-	console.trace && console.trace();
-	console.log("----- end of error message -----");
-	console.group && console.groupEnd();
 }
 
 _f.Frm.prototype.copy_doc = function(onload, from_amend) {
@@ -780,8 +707,6 @@ _f.Frm.prototype.reload_doc = function() {
 
 	var me = this;
 	var onsave = function(r, rtxt) {
-		// n tweets and last comment				
-		//me.runclientscript('setup', me.doctype, me.docname);
 		me.refresh();
 	}
 
@@ -804,7 +729,7 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	// validate
 	if(save_action!="Cancel") {
 		validated = true;
-		this.runclientscript('validate');
+		this.script_manager.trigger("validate");
 		if(!validated) {
 			if(on_error) 
 				on_error();
@@ -817,9 +742,6 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 	doclist.save(save_action || "Save", function(r) {
 		if(!r.exc) {
 			me.refresh();
-			if(save_action==="Save") {
-				me.runclientscript("after_save", me.doctype, me.docname);
-			}
 		} else {
 			if(on_error)
 				on_error();
@@ -834,7 +756,7 @@ _f.Frm.prototype.savesubmit = function(btn, on_error) {
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
 		me.save('Submit', function(r) {
 			if(!r.exc) {
-				me.runclientscript('on_submit', me.doctype, me.docname);
+				me.script_manager.trigger("on_submit");
 			}
 		}, btn, on_error);
 	});
@@ -844,7 +766,7 @@ _f.Frm.prototype.savecancel = function(btn, on_error) {
 	var me = this;
 	wn.confirm("Permanently Cancel "+this.docname+"?", function() {
 		validated = true;
-		me.runclientscript("before_cancel", me.doctype, me.docname);
+		me.script_manager.trigger("before_cancel");
 		if(!validated) {
 			if(on_error) 
 				on_error();
@@ -855,7 +777,7 @@ _f.Frm.prototype.savecancel = function(btn, on_error) {
 		doclist.cancel(function(r) {
 			if(!r.exc) {
 				me.refresh();
-				me.runclientscript("after_cancel", me.doctype, me.docname);
+				me.script_manager.trigger("after_cancel");
 			}
 		}, btn, on_error);
 	});

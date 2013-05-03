@@ -47,6 +47,24 @@ wn.ui.form.ControlHTML = wn.ui.form.Control.extend({
 	}
 });
 
+wn.ui.form.ControlImage = wn.ui.form.Control.extend({
+	make: function() {
+		this._super();
+		var me = this;
+		this.$wrapper.on("refresh", function() {
+			me.$wrapper.empty();
+			if(me.df.options && me.frm.doc[me.df.options]) {
+				$("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
+					.appendTo(me.$wrapper);
+			} else {
+				$("<div class='missing-image'><i class='icon-camera'></i></div>")
+					.appendTo(me.$wrapper)
+			}
+			return false;
+		})
+	}
+});
+
 wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
@@ -61,6 +79,16 @@ wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
 wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	make: function() {
 		// parent element
+		this.make_wrapper();
+		this.wrapper = this.$wrapper.get(0);
+		this.wrapper.fieldobj = this; // reference for event handlers
+		this.set_input_areas();
+		
+		// set description
+		this.set_max_width();
+		this.setup_update_on_refresh();
+	},
+	make_wrapper: function() {
 		this.$wrapper = $('<div class="control-group">\
 			<label class="control-label"></label>\
 			<div class="controls">\
@@ -68,16 +96,11 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				<div class="control-value like-disabled-input" style="display: none;"></div>\
 			</div>\
 		</div>').appendTo(this.parent);
-		this.wrapper = this.$wrapper.get(0);
-		this.wrapper.fieldobj = this; // reference for event handlers
-
-		this.label_area = this.label_span = this.$wrapper.find(".control-label").get(0);
+	},
+	set_input_areas: function() {
+		this.label_area = this.label_span = this.$wrapper.find("label").get(0);
 		this.input_area = this.$wrapper.find(".control-input").get(0);
-		this.disp_area = this.$wrapper.find(".control-value").get(0);
-
-		// set description
-		this.set_max_width();
-		this.setup_update_on_refresh();
+		this.disp_area = this.$wrapper.find(".control-value").get(0);	
 	},
 	set_max_width: function() {
 		if(['Code', 'Text Editor', 'Text', 'Small Text', 'Table', 'HTML']
@@ -116,6 +139,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				me.set_description();
 				me.set_label();
 				me.set_mandatory();
+				return false;
 			}
 			
 		})
@@ -145,7 +169,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	set_model_value: function(value) {
 		wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);
 		this.frm && this.frm.dirty();
-	}
+	},
 });
 
 wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
@@ -164,17 +188,21 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	},
 	bind_change_event: function() {
 		var me = this;
-		this.$input.on("change", this.change || function() {
-			if(me.doctype && me.docname && me.get_value) {
-				var value = me.parse ? 
-					me.parse(me.get_value()) :
-					me.get_value();
+		this.$input.on("change", this.change || function() { 
+			me.doctype && me.docname && me.get_value 
+				&& me.parse_validate_and_set_in_model(me.get_value()); } );
+	},
+	parse_validate_and_set_in_model: function(value) {
+		var me = this;
+		this.inside_change_event = true;
+		if(this.parse) value = this.parse(value);
 
-				me.validate ?
-				 	me.validate(value, function() { me.set_model_value(value); }) :
-					me.set_model_value(value);
-			}
-		});
+		var set = function(value) {
+			me.set_model_value(value); 
+			me.inside_change_event = false;
+		}
+
+		this.validate ? this.validate(value, set) : set(value);
 	},
 	set_input: function(val) {
 		this.$input.val(this.format_for_input(val));
@@ -327,6 +355,23 @@ wn.ui.form.ControlSmallText = wn.ui.form.ControlText;
 
 wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
+	make_wrapper: function() {
+		this.$wrapper = $('<div class="checkbox">\
+			<label class="input-area">\
+				<span class="disp-area" style="display:none;"></span>\
+				<span class="label-area"></span>\
+			</label>\
+		</div>').appendTo(this.parent)
+	},
+	set_input_areas: function() {
+		this.label_area = this.label_span = this.$wrapper.find(".label-area").get(0);
+		this.input_area = this.$wrapper.find(".input-area").get(0);
+		this.disp_area = this.$wrapper.find(".disp-area").get(0);	
+	},
+	make_input: function() {
+		this._super();
+		this.$input.removeClass("col-span-12");
+	},
 	parse: function(value) {
 		return this.input.checked ? 1 : 0;
 	},
@@ -346,7 +391,7 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 			.on("click", function() {
 				if(me.frm && me.frm.cscript) {
 					if(me.frm.cscript[me.df.fieldname]) {
-						me.frm.runclientscript(me.df.fieldname, me.doctype, me.docname);
+						me.frm.script_manager.trigger(me.df.fieldname, me.doctype, me.docname);
 					} else {
 						me.frm.runscript(me.df.options, me);
 					}
@@ -427,3 +472,204 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		}
 	}
 });
+
+// special features for link
+// buttons
+// autocomplete
+// link validation
+// custom queries
+// add_fetches
+wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
+	make_input: function() {
+		$('<div class="input-group link-field">\
+			<input type="text" data-fieldtype="Link">\
+			<div class="input-group-btn">\
+				<button class="btn btn-search" title="Search Link">\
+					<i class="icon-search"></i>\
+				</button>\
+				<button class="btn btn-open" title="Open Link">\
+					<i class="icon-play"></i>\
+				</button><button class="btn btn-new" title="Make New">\
+					<i class="icon-plus"></i>\
+				</button>\
+			</div>\
+		</div>').appendTo(this.input_area);
+		this.$input_area = $(this.input_area);
+		this.$input = this.$input_area.find('input');
+		this.input = this.$input.get(0);
+		this.has_input = true;
+		this.bind_change_event();
+		this.setup_buttons();
+		this.setup_autocomplete();
+	},
+	setup_buttons: function() {
+		var me = this;
+
+		// magnifier - search
+		this.$input_area.find(".btn-search").on("click", function() {
+			selector.set(me, me.df.options, me.df.label);
+			selector.show(me.txt);
+		});
+
+		// open
+		if(wn.model.can_read(me.df.options)) {
+			this.$input_area.find(".btn-open").on("click", function() {
+				var value = me.get_value();
+				if(value && me.df.options) wn.set_route("Form", me.df.options, value);
+			});
+		} else {
+			this.$input_area.find(".btn-open").remove();
+		}
+		
+		// new
+		if(wn.model.can_create(me.df.options)) {
+			this.$input_area.find(".btn-new").on("click", function() {
+				new_doc(me.df.options)
+			});
+		} else {
+			this.$input_area.find(".btn-new").remove();
+		}
+	},
+	setup_autocomplete: function() {
+		var me = this;
+		// increasing zindex of input to increase zindex of autosuggest
+		// because of the increase in zindex of dialog_wrapper
+		if(cur_dialog || me.dialog_wrapper) {
+			var $dialog_wrapper = $(cur_dialog ? cur_dialog.wrapper : me.dialog_wrapper)
+			var zindex = cint($dialog_wrapper.css("z-index"));
+			this.$input.css({"z-index": (zindex >= 10 ? zindex : 10) + 1});
+		}
+
+		this.$input.autocomplete({
+			source: function(request, response) {
+				var args = {
+					'txt': request.term, 
+					'dt': me.df.options,
+				};
+
+				var q = me.get_custom_query();
+				if (typeof(q)==="string") {
+					args.query = q;
+				} else if($.isPlainObject(q)) {
+					if(q.filters) {
+						$.each(q.filters, function(key, value) {
+							q.filters[key] = value===undefined ? null : value;
+						});
+					}
+					$.extend(args, q);
+				}
+
+				wn.call({
+					method:'webnotes.widgets.search.search_link',
+					args: args,
+					callback: function(r) {
+						response(r.results);
+					},
+				});
+			},
+			select: function(event, ui) {
+				me.set_model_value(ui.item.value);
+			}
+		}).data('autocomplete')._renderItem = function(ul, item) {
+			return $('<li></li>')
+				.data('item.autocomplete', item)
+				.append(repl('<a><span style="font-weight: bold;">%(label)s</span><br>\
+					<span style="font-size:10px;">%(info)s</span></a>',
+					item))
+				.appendTo(ul);
+		};
+	},
+	get_custom_query: function() {
+		if(this.get_query && this.doctype) {
+			return this.get_query(this.frm.doc, this.doctype, this.docname);
+		}
+	},
+	validate: function(value, callback) {
+		// validate the value just entered
+		var me = this;
+
+		if(this.df.options=="[Select]") {
+			callback(value);
+		}
+
+		var fetch = '';
+		if(me.frm.fetch_dict[me.df.fieldname])
+			fetch = me.frm.fetch_dict[me.df.fieldname].columns.join(', ');
+
+		wn.call({
+			method:'webnotes.widgets.form.utils.validate_link',
+			args: {
+				'value': value, 
+				'options':me.df.options, 
+				'fetch': fetch
+			}, 
+			callback: function(r) {
+				if(r.message=='Ok') {
+					callback(value);
+					if(r.fetch_values) 
+						me.set_fetch_values(r.fetch_values);
+				} else {
+					callback("")
+				}
+			}
+		});
+	},
+	set_fetch_values: function() {
+		var fl = this.frm.fetch_dict[this.df.fieldname].fields;
+		var changed_fields = [];
+		for(var i=0; i< fl.length; i++) {
+			wn.model.set_value(this.doctype, this.docname. fl[i], fetch_values[i]);
+		}
+	}
+});
+
+wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
+	editor_name: "ACE",
+	make_input: function() {
+		$(this.input_area).css({"min-height":"360px"});
+		var me = this;
+		this.editor = new wn.editors[this.editor_name]({
+			parent: this.input_area,
+			change: function(value) {
+				me.parse_validate_and_set_in_model(value);
+			},
+			field: this
+		});
+	},
+	get_value: function() {
+		this.editor.get_value();
+	},
+	set_input: function(value) {
+		this.editor.set_input(value);
+	}
+});
+
+wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
+	editor_name: "BootstrapWYSIWYG"
+});
+
+wn.ui.form.ControlTable = wn.ui.form.Control.extend({
+	make: function() {
+		this._super();
+		this.grid = new wn.ui.form.Grid({
+			frm: this.frm,
+			df: this.df,
+			perm: this.perm,
+			parent: this.wrapper
+		})
+		if(this.frm)
+			this.frm.grids[this.frm.grids.length] = this;
+
+		// description
+		if(this.df.description) {
+			$('<p class="text-muted small">' + this.df.description + '</p>')
+				.appendTo(this.wrapper);
+		}
+		
+		var me = this;
+		this.$wrapper.on("refresh", function() {
+			me.grid.refresh();
+			return false;
+		});
+	}
+})

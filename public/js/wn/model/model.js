@@ -197,18 +197,26 @@ $.extend(wn.model, {
 		}
 	},
 	
-	on: function(doctype, name, fieldname, fn) {
-		wn.provide("locals." + doctype + "." + name + "." + fieldname);
-		locals[doctype][name][fieldname] = fn;
+	on: function(doctype, fieldname, fn) {
+		wn.provide("wn.model.events." + doctype + "." + fieldname);
+		wn.model.events[doctype][fieldname] = fn;
 	},
 	
 	trigger: function(doctype, name, fieldname, value) {
-		if(wn.model.events[doctype] && wn.model.events[doctype][name]) {
-			var ev = wn.model.events[doctype][name];
+		var run = function(fn) {
+			fn && fn(value, doctype, name, fieldname)
+		};
+		if(wn.model.events[doctype]) {
+			// doctype-level
+			if(wn.model.events[doctype]['*']) {
+				wn.model.events[doctype]['*'](value, doctype, name, fieldname);
+			};
 			
-			ev[fieldname] && ev[fieldname](value, doctype, name, fieldname);
-			ev["*"] && ev["*"](value, doctype, name, fieldname);
-		}
+			// field-level
+			if(wn.model.events[doctype][fieldname]) {
+				wn.model.events[doctype][fieldname](value, doctype, name, fieldname);
+			};
+		};
 	},
 	
 	get_doc: function(doctype, name) {

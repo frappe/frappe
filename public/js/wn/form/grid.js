@@ -1,6 +1,7 @@
 wn.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this.fieldinfo = {};
 		this.docfields = wn.meta.docfield_list[this.df.options];
 		this.docfields.sort(function(a, b)  { return a.idx > b.idx ? 1 : -1 });
 	},
@@ -57,8 +58,9 @@ wn.ui.form.Grid = Class.extend({
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
 
-		this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write");
-		if(this.display_status=="Write") {
+		this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write" 
+			&& !this.static_rows);
+		if(this.display_status=="Write" && !this.static_rows) {
 			this.make_sortable($rows);
 		}
 	},
@@ -88,7 +90,9 @@ wn.ui.form.Grid = Class.extend({
 		// return
 	},
 	get_field: function(fieldname) {
-		return {};
+		if(!this.fieldinfo[fieldname])
+			this.fieldinfo[fieldname] = {}
+		return this.fieldinfo[fieldname];
 	},
 });
 
@@ -176,10 +180,10 @@ wn.ui.form.GridRow = Class.extend({
 		col = $('<div class="col-span-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row)
 		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && !df.print_hide && me.grid.perm[df.permlevel][READ]) {
+			if(!df.hidden && !df.print_hide && me.grid.frm.perm[df.permlevel][READ]) {
 				var colsize = 2,
 					txt = me.doc ? 
-						wn.format(me.doc[df.fieldname], df.fieldtype, me.doc) : 
+						wn.format(me.doc[df.fieldname], df, null, me.doc) : 
 						df.label;
 				switch(df.fieldtype) {
 					case "Text":
@@ -229,29 +233,38 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	render_form: function() {
 		var me = this,
-			cnt = 0;
-			
+			cnt = 0,
+			row = $('<div class="row">').appendTo(me.form_area),
+			col1 = $('<div class="col-span-6"></div>').appendTo(row),
+			col2 = $('<div class="col-span-6"></div>').appendTo(row),
+			len = $.map(me.docfields, function(d) { 
+				return !d.hidden ? true : null }).length;
+
+		len = (len + len % 2) / 2;
+		
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden) {
-				if(cnt % 2==0)
-					form_row = $('<div class="row">').appendTo(me.form_area);
-					
-				var fieldwrapper = $('<div class="col-span-6">')
-					.appendTo(form_row)
+				var fieldwrapper = $('<div>')
+					.appendTo(ci <= len ? col1 : col2)
 				var fieldobj = make_field(df, me.parent_df.options, 
 					fieldwrapper.get(0), me.frm);
 				fieldobj.docname = me.doc.name;
 				fieldobj.refresh();
 				fieldobj.input &&
-					$(fieldobj.input).css({"max-height": "60px"});
+					$(fieldobj.input).css({"max-height": "100px"});
+					
+				// set field properties
+				// used for setting custom get queries in links
+				if(me.grid.fieldinfo[df.fieldname])
+					$.extend(fieldobj, me.grid.fieldinfo[df.fieldname]);
 				cnt++;
 			}
 		});
 
-		if(this.grid.display_status!="Write") {
+		if(this.grid.display_status!="Write" || this.grid.static_rows) {
 			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
 			return;
-		}		
+		}
 	},
 	set_data: function() {
 		this.wrapper.data({

@@ -27,7 +27,7 @@ search_fields = {};
 
 function setlinkvalue(name) {
 	//selector.input.set(name);// in local - this will be set onchange
-	selector.input.set_input_value(name); // on screen
+	selector.input.set_input(name); // on screen
 	selector.hide();
 }
 
@@ -99,12 +99,10 @@ function makeselector() {
 		}
 
 		inp.value = '';
-		if(d.input && d.input.txt.value) {
-			inp.value = d.input.txt.value;
+		if(d.input && d.get_value) {
+			inp.value = d.get_value();
 		}
 		try{inp.focus();} catch(e){}
-
-		if(d.input) d.input.set_get_query();
 
 		// temp function to strip labels from search fields
 		var get_sf_list = function(dt) {
