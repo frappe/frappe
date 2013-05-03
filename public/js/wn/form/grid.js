@@ -39,13 +39,15 @@ wn.ui.form.Grid = Class.extend({
 	refresh: function() {
 		!this.wrapper && this.make();
 		var me = this,
-			$rows = $(me.parent).find(".rows");	
+		$rows = $(me.parent).find(".rows");	
+
+		var open_row = $(".grid-row-open").data("grid_row");
 
 		this.wrapper.find(".grid-row").remove();
 		this.make_head();
 
 		$.each(this.get_data() || [], function(ri, d) {
-			new wn.ui.form.GridRow({
+			var grid_row = new wn.ui.form.GridRow({
 				parent: $rows,
 				parent_df: me.df,
 				docfields: me.docfields,
@@ -53,8 +55,13 @@ wn.ui.form.Grid = Class.extend({
 				frm: me.frm,
 				grid: me
 			});
+			
+			// open if last open
+			if(open_row && d.name===open_row.doc.name) {
+				open_row.toggle_view(true);
+			}
 		});
-		
+
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
 
@@ -63,6 +70,7 @@ wn.ui.form.Grid = Class.extend({
 		if(this.display_status=="Write" && !this.static_rows) {
 			this.make_sortable($rows);
 		}
+		
 	},
 	make_sortable: function($rows) {
 		var me =this;
@@ -105,7 +113,7 @@ wn.ui.form.GridRow = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div class="grid-row">\
-			<div class="data-row"></div>\
+			<div class="data-row" style="min-height: 15px;"></div>\
 			<div class="panel panel-warning" style="display: none;">\
 				<div class="panel-heading">\
 					<div class="toolbar" style="height: 36px;">\

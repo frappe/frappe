@@ -33,13 +33,30 @@ wn.ui.form.Control = Class.extend({
 	get_doc: function() {
 		return this.doctype && this.docname 
 			&& locals[this.doctype] && locals[this.doctype][this.docname] || {};
-	}
+	},
+	parse_validate_and_set_in_model: function(value) {
+		var me = this;
+		this.inside_change_event = true;
+		if(this.parse) value = this.parse(value);
+
+		var set = function(value) {
+			me.set_model_value(value); 
+			me.inside_change_event = false;
+		}
+
+		this.validate ? this.validate(value, set) : set(value);
+	},
+	set_model_value: function(value) {
+		wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);
+		this.frm && this.frm.dirty();
+	},
 });
 
 wn.ui.form.ControlHTML = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
+		this.disp_area = this.wrapper;
 		this.$wrapper.on("refresh", function() {
 			if(me.df.options)
 				me.$wrapper.html(me.df.options);
@@ -166,10 +183,6 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		this.$wrapper.toggleClass("has-error", (this.df.reqd 
 			&& (this.value==null || this.value=="")) ? true : false);
 	},
-	set_model_value: function(value) {
-		wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);
-		this.frm && this.frm.dirty();
-	},
 });
 
 wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
@@ -191,18 +204,6 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 		this.$input.on("change", this.change || function() { 
 			me.doctype && me.docname && me.get_value 
 				&& me.parse_validate_and_set_in_model(me.get_value()); } );
-	},
-	parse_validate_and_set_in_model: function(value) {
-		var me = this;
-		this.inside_change_event = true;
-		if(this.parse) value = this.parse(value);
-
-		var set = function(value) {
-			me.set_model_value(value); 
-			me.inside_change_event = false;
-		}
-
-		this.validate ? this.validate(value, set) : set(value);
 	},
 	set_input: function(val) {
 		this.$input.val(this.format_for_input(val));
@@ -414,18 +415,22 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			this.setup_attachment();
 		}
 		this.set_options();
-		this.$wrapper.on("refresh", function() {
-			me.set_options();
-			var value = wn.model.get_value(me.doctype, me.docname, me.fieldname);
-			if(me.doctype && me.docname) {
-				
-				// model value is not an option,
-				// set the default option (displayed)
-				if(me.$input.val() != value) {
-					me.set_model_value(me.$input.val());
-				}
+	},
+	set_input: function(value) {
+		// refresh options first - (new ones??)
+		this.set_options();
+
+		this.$input.val(value);
+		
+		// not a possible option, repair
+		if(this.doctype && this.docname) {
+			// model value is not an option,
+			// set the default option (displayed)
+			var model_value = wn.model.get_value(this.doctype, this.docname, this.df.fieldname);
+			if(this.$input.val() != model_value) {
+				this.set_model_value(this.$input.val());
 			}
-		})
+		}
 	},
 	setup_attachment: function() {
 		var me = this;
@@ -635,6 +640,7 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			},
 			field: this
 		});
+		this.has_input = true;
 	},
 	get_value: function() {
 		this.editor.get_value();

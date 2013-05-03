@@ -190,7 +190,7 @@ $.extend(wn.model, {
 	},
 	
 	set_value: function(doctype, name, fieldname, value) {
-		var doc = locals[doctype] && locals[doctype][name];
+		var doc = locals[doctype] && locals[doctype][name] || null;
 		if(doc) {
 			doc[fieldname] = value;
 			wn.model.trigger(doctype, name, fieldname, value);

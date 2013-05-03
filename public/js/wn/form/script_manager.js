@@ -45,14 +45,14 @@ wn.ui.form.ScriptManager = Class.extend({
 			try {
 				var tmp = eval(cs);
 			} catch(e) {
-				this.log_error(caller || "setup_client_js", e);
+				this.log_error("eval", e);
 			}
 		}
 
 		// css
 		doctype.__css && wn.dom.set_style(doctype.__css);
 	},
-	log_error: function(e) {
+	log_error: function(caller, e) {
 		show_alert("Error in Client Script.");
 		console.group && console.group();
 		console.log("----- error in client script -----");

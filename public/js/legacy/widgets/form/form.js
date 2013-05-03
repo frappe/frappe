@@ -459,7 +459,7 @@ _f.Frm.prototype.refresh = function(docname) {
 						
 			// fields
 			this.refresh_fields();
-			
+						
 			// dependent fields
 			this.refresh_dependency();
 			
