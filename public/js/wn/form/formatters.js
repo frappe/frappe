@@ -11,7 +11,8 @@ wn.form.formatters = {
 			parseInt(wn.boot.sysdefaults.float_precision) : null;
 
 		return "<div style='text-align: right'>" + 
-			format_number(value, null, decimals) + "</div>";
+			((value==null || value==="") ? "" :
+				format_number(value, null, decimals)) + "</div>";
 	},
 	Int: function(value) {
 		return cint(value);

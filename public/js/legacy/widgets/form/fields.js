@@ -1295,11 +1295,11 @@ _f.ButtonField.prototype.make_input = function() { var me = this;
 }
 
 _f.ButtonField.prototype.hide = function() { 
-	$dh(this.button_area);
+	$dh(this.wrapper);
 };
 
 _f.ButtonField.prototype.show = function() { 
-	$ds(this.button_area);
+	$ds(this.wrapper);
 };
 
 

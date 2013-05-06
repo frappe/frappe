@@ -129,7 +129,8 @@ wn.views.QueryReport = Class.extend({
 				.css({
 					"display": "inline-block",
 					"margin-left": "5px",
-					"margin-bottom": "2px"
+					"margin-bottom": "4px",
+					"margin-top": "4px"
 				})
 				.attr("title", df.label).tooltip();
 			me.filters.push(f);
