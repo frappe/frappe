@@ -99,21 +99,11 @@ set_field_tip = function(n,txt) {
 
 refresh_field = function(n, docname, table_field) {
 	// multiple
-	if(typeof n==typeof []) refresh_many(n, docname, table_field);
+	if(typeof n==typeof []) 
+		refresh_many(n, docname, table_field);
 	
 	if(table_field) { // for table
-		if(_f.frm_dialog && _f.frm_dialog.display) {
-			_f.frm_dialog.cur_frm.refresh_field(n);
-		} else {
-			var g = _f.cur_grid_cell;
-			if(g) var hc = g.grid.head_row.cells[g.cellIndex];
-			
-			if(g && hc && hc.fieldname==n && g.row.docname==docname) {
-				hc.template.refresh(); // if active
-			} else if (cur_frm.fields_dict[table_field]) {
-				cur_frm.fields_dict[table_field].grid.refresh();
-			}
-		}
+		cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
 	} else if(cur_frm) {
 		cur_frm.refresh_field(n)
 	}

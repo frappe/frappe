@@ -1,24 +1,7 @@
 wn.ui.form.ScriptManager = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.setup();
-		
-		var me = this;
-
-		// watch model updates
-
-		// on main doc
-		wn.model.on(me.frm.doctype, "*", function(value, doctype, name, fieldname) {
-			me.trigger(fieldname, doctype, name);
-		})
-		
-		// on table fields
-		$.each(wn.model.get("DocField", {fieldtype:"Table", parent: me.frm.doctype}), function(i, df) {
-			wn.model.on(df.options, "*", function(value, doctype, name, fieldname) {
-				me.trigger(fieldname, doctype, name);
-			})
-		})
-		
+		this.setup();		
 	},
 	trigger: function(event_name, doctype, name) {
 		doctype = doctype || this.frm.doctype;

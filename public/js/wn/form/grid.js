@@ -39,38 +39,61 @@ wn.ui.form.Grid = Class.extend({
 	refresh: function() {
 		!this.wrapper && this.make();
 		var me = this,
-		$rows = $(me.parent).find(".rows");	
-
-		var open_row = $(".grid-row-open").data("grid_row");
-
-		this.wrapper.find(".grid-row").remove();
-		this.make_head();
-
-		$.each(this.get_data() || [], function(ri, d) {
-			var grid_row = new wn.ui.form.GridRow({
-				parent: $rows,
-				parent_df: me.df,
-				docfields: me.docfields,
-				doc: d,
-				frm: me.frm,
-				grid: me
-			});
-			
-			// open if last open
-			if(open_row && d.name===open_row.doc.name) {
-				open_row.toggle_view(true);
-			}
-		});
-
+			$rows = $(me.parent).find(".rows"),
+			data = this.get_data();	
+		
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
 
-		this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write" 
-			&& !this.static_rows);
-		if(this.display_status=="Write" && !this.static_rows) {
-			this.make_sortable($rows);
+		if(this.data_rows_are_same(data)) {
+			// soft refresh
+			$.each(this.grid_rows, function(i, g) {
+				g.refresh();
+			});
+		} else {
+			// redraw
+			this.wrapper.find(".grid-row").remove();
+			this.make_head();
+			this.grid_rows = [];
+			this.grid_rows_by_docname = {};
+			$.each(data || [], function(ri, d) {
+				var grid_row = new wn.ui.form.GridRow({
+					parent: $rows,
+					parent_df: me.df,
+					docfields: me.docfields,
+					doc: d,
+					frm: me.frm,
+					grid: me
+				});
+				me.grid_rows.push(grid_row)
+				me.grid_rows_by_docname[d.name] = grid_row;
+			});
+
+			this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write" 
+				&& !this.static_rows);
+			if(this.display_status=="Write" && !this.static_rows) {
+				this.make_sortable($rows);
+			}
+
+			this.last_display_status = this.display_status;
+			this.last_docname = this.frm.docname;
 		}
-		
+	},
+	refresh_row: function(docname) {
+		this.grid_rows_by_docname[docname] && 
+			this.grid_rows_by_docname[docname].refresh();
+	},
+	data_rows_are_same: function(data) {
+		if(this.grid_rows) {
+			var same = data.length==this.grid_rows.length 
+				&& this.display_status==this.last_display_status
+				&& this.frm.docname==this.last_docname
+				&& !$.map(this.grid_rows, function(g, i) {
+					return g.doc.name==data[i].name ? null : true;
+				}).length; 
+				
+			return same;
+		}
 	},
 	make_sortable: function($rows) {
 		var me =this;
@@ -102,6 +125,9 @@ wn.ui.form.Grid = Class.extend({
 			this.fieldinfo[fieldname] = {}
 		return this.fieldinfo[fieldname];
 	},
+	set_value: function(fieldname, value, doc) {
+		this.grid_rows_by_docname[doc.name].set_value(fieldname, value);
+	}
 });
 
 wn.ui.form.GridRow = Class.extend({
@@ -118,7 +144,7 @@ wn.ui.form.GridRow = Class.extend({
 				<div class="panel-heading">\
 					<div class="toolbar" style="height: 36px;">\
 						Editing Row #<span class="row-index"></span>\
-						<button class="btn pull-right" \
+						<button class="btn btn-success pull-right" \
 							title="'+wn._("Close")+'"\
 							style="margin-left: 7px;">\
 							<i class="icon-ok"></i></button>\
@@ -181,6 +207,19 @@ wn.ui.form.GridRow = Class.extend({
 			return false;
 		})
 	},
+	refresh: function() {
+		this.doc = locals[this.doc.doctype][this.doc.name];
+		
+		// re write columns
+		this.make_columns();
+		
+		// refersh form fields
+		if(this.show) {
+			$.each(this.fields, function(i, f) {
+				f.refresh();
+			});
+		} 
+	},
 	make_columns: function() {
 		var me = this,
 			total_colsize = 1;
@@ -205,20 +244,26 @@ wn.ui.form.GridRow = Class.extend({
 				if(total_colsize > 12) 
 					return false;
 				$('<div class="col-span-'+colsize+'">' 
-					+ (txt)+ '</div>')
+					+ txt + '</div>')
 					.css({
 						"overflow": "hidden",
 						"text-overflow": "ellipsis",
 						"white-space": "nowrap"
 					})
+					.attr("data-fieldname", df.fieldname)
+					.data("df", df)
 					.appendTo(me.row)
 			}
 		});
 	},
 	toggle_view: function(show) {
+		this.doc = locals[this.doc.doctype][this.doc.name];
 		// hide other
 		var open_row = $(".grid-row-open").data("grid_row"),
 			me = this;
+
+		this.fields = [];
+		this.fields_dict = {};
 		
 		open_row && open_row != this && open_row.toggle_view(false);
 		
@@ -265,6 +310,9 @@ wn.ui.form.GridRow = Class.extend({
 				// used for setting custom get queries in links
 				if(me.grid.fieldinfo[df.fieldname])
 					$.extend(fieldobj, me.grid.fieldinfo[df.fieldname]);
+
+				me.fields.push(fieldobj);
+				me.fields_dict[df.fieldname] = fieldobj;
 				cnt++;
 			}
 		});
@@ -278,5 +326,27 @@ wn.ui.form.GridRow = Class.extend({
 		this.wrapper.data({
 			"doc": this.doc
 		})
-	}
+	},
+	set_value: function(fieldname, value) {
+		// in row
+		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
+		$col.length && $col.html(wn.format(value, $col.data("df"), null, this.doc));
+		
+		// in form
+		if(this.fields_dict && this.fields_dict[fieldname]) {
+			this.fields_dict[fieldname].set_input(value);
+		}
+	},
+	refresh_field: function(fieldname) {
+		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
+		if($col.length) {
+			var value = wn.model.get_value(this.doc.doctype, this.doc.name, fieldname);
+			$col.html(wn.format(value, $col.data("df"), null, this.doc));
+		}
+		
+		// in form
+		if(this.fields_dict && this.fields_dict[fieldname]) {
+			this.fields_dict[fieldname].refresh();
+		}	
+	},	
 });

@@ -13,7 +13,6 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.clear_buttons();
 		this.make_file_menu();
 		this.make_view_menu();
-		this.set_title_button();
 		this.set_title_image();
 		this.show_title_as_dirty();
 	},
@@ -127,10 +126,11 @@ wn.ui.form.Toolbar = Class.extend({
 		var p = this.frm.perm[0];
 		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
 
-		if(has_workflow && this.frm.doc.__islocal) {
+		if(has_workflow && (this.frm.doc.__islocal || this.frm.doc.__unsaved)) {
 			this.make_save_button();
 		} else if(!has_workflow) {
-			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal)) {
+			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal) 
+				&& (!me.frm.doc.__unsaved)) {
 				this.appframe.add_button('Submit', function() { 
 					me.frm.savesubmit(this);}, 'icon-lock', true).addClass("btn-primary");
 			}
@@ -169,7 +169,8 @@ wn.ui.form.Toolbar = Class.extend({
 	},
 	show_title_as_dirty: function() {
 		this.appframe.get_title_area()
-			.toggleClass("text-warning", this.frm.doc.__unsaved);
+			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
+		this.set_title_button();
 	},
 	make_actions_menu: function() {
 		if(this.actions_setup) return;

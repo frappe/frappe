@@ -191,9 +191,10 @@ $.extend(wn.model, {
 	
 	set_value: function(doctype, name, fieldname, value) {
 		var doc = locals[doctype] && locals[doctype][name] || null;
-		if(doc) {
+		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
-			wn.model.trigger(doctype, name, fieldname, value);
+			console.log([fieldname, value])
+			wn.model.trigger(fieldname, value, doc);
 		}
 	},
 	
@@ -202,19 +203,19 @@ $.extend(wn.model, {
 		wn.model.events[doctype][fieldname] = fn;
 	},
 	
-	trigger: function(doctype, name, fieldname, value) {
+	trigger: function(fieldname, value, doc) {
 		var run = function(fn) {
-			fn && fn(value, doctype, name, fieldname)
+			fn && fn(fieldname, value, doc)
 		};
-		if(wn.model.events[doctype]) {
+		if(wn.model.events[doc.doctype]) {
 			// doctype-level
-			if(wn.model.events[doctype]['*']) {
-				wn.model.events[doctype]['*'](value, doctype, name, fieldname);
+			if(wn.model.events[doc.doctype]['*']) {
+				wn.model.events[doc.doctype]['*'](fieldname, value, doc);
 			};
 			
 			// field-level
-			if(wn.model.events[doctype][fieldname]) {
-				wn.model.events[doctype][fieldname](value, doctype, name, fieldname);
+			if(wn.model.events[doc.doctype][fieldname]) {
+				wn.model.events[doc.doctype][fieldname](fieldname, value, doc);
 			};
 		};
 	},

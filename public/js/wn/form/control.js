@@ -47,8 +47,11 @@ wn.ui.form.Control = Class.extend({
 		this.validate ? this.validate(value, set) : set(value);
 	},
 	set_model_value: function(value) {
-		wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);
-		this.frm && this.frm.dirty();
+		if(this.last_value!==value) {
+			wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);
+			this.frm && this.frm.dirty();
+			this.last_value = value;
+		}
 	},
 });
 
@@ -207,6 +210,7 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	},
 	set_input: function(val) {
 		this.$input.val(this.format_for_input(val));
+		this.last_value = val;
 	},
 	get_value: function() {
 		return this.$input.val();
@@ -381,6 +385,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	},
 	set_input: function(value) {
 		this.input.checked = value ? 1 : 0;
+		this.last_value = value;
 	}
 });
 
@@ -427,8 +432,10 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			// model value is not an option,
 			// set the default option (displayed)
 			var model_value = wn.model.get_value(this.doctype, this.docname, this.df.fieldname);
-			if(this.$input.val() != model_value) {
+			if(this.$input.val() != (model_value || "")) {
 				this.set_model_value(this.$input.val());
+			} else {
+				this.last_value = value;
 			}
 		}
 	},
@@ -503,7 +510,15 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		this.$input = this.$input_area.find('input');
 		this.input = this.$input.get(0);
 		this.has_input = true;
-		this.bind_change_event();
+		//this.bind_change_event();
+		var me = this;
+		this.$input.on("blur", function() { 
+			if(me.doctype && me.docname && !me.autocomplete_open) {
+				var value = me.get_value();
+				if(value!==me.last_value) {
+					me.parse_validate_and_set_in_model(value);
+				}
+			}});
 		this.setup_buttons();
 		this.setup_autocomplete();
 	},
@@ -572,6 +587,12 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					},
 				});
 			},
+			open: function(event, ui) {
+				me.autocomplete_open = true;
+			},
+			close: function(event, ui) {
+				me.autocomplete_open = false;
+			},
 			select: function(event, ui) {
 				me.set_model_value(ui.item.value);
 			}
@@ -621,7 +642,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	},
 	set_fetch_values: function() {
 		var fl = this.frm.fetch_dict[this.df.fieldname].fields;
-		var changed_fields = [];
 		for(var i=0; i< fl.length; i++) {
 			wn.model.set_value(this.doctype, this.docname. fl[i], fetch_values[i]);
 		}
@@ -647,6 +667,7 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 	},
 	set_input: function(value) {
 		this.editor.set_input(value);
+		this.last_value = value;
 	}
 });
 

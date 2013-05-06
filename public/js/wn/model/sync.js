@@ -21,37 +21,34 @@
 //
 
 $.extend(wn.model, {
-	sync: function(doclist, sync_in) {		
-		if(!sync_in) 
-			sync_in = locals;
+	sync: function(doclist) {		
 		if(doclist._kl)
 			doclist = wn.model.expand(doclist);
-		
-		if(doclist && doclist.length && sync_in==locals)
+
+		if(doclist && doclist.length)
 			wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
 
 		$.each(doclist, function(i, d) {
 			if(!d.name) // get name (local if required)
 				d.name = wn.model.get_new_name(d.doctype);
 				
-			if(!sync_in[d.doctype])
-				sync_in[d.doctype] = {};
+			if(!locals[d.doctype])
+				locals[d.doctype] = {};
 
-			sync_in[d.doctype][d.name] = d;
+			locals[d.doctype][d.name] = d;
 			d.__last_sync_on = new Date();
-			
+
 			if(cur_frm && cur_frm.doctype==d.doctype && cur_frm.docname==d.name) {
 				cur_frm.doc = d;
 			}
 
 			if(d.doctype=='DocField') wn.meta.add_field(d);
 			if(d.doctype=='DocType') wn.meta.sync_messages(d);
-			
-			
+
 			if(d.localname) {
 				wn.model.new_names[d.localname] = d.name;
 				$(document).trigger('rename', [d.doctype, d.localname, d.name]);
-				delete sync_in[d.doctype][d.localname];
+				delete locals[d.doctype][d.localname];
 			}
 		});
 		

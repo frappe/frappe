@@ -126,6 +126,7 @@ _f.Frm.prototype.setup = function() {
 	this.script_manager = new wn.ui.form.ScriptManager({
 		frm: this
 	})
+	this.watch_model_updates();
 	
 	this.setup_header();
 	
@@ -134,9 +135,35 @@ _f.Frm.prototype.setup = function() {
 		parent: this.layout_main
 	})
 	
+	
 	this.setup_done = true;
 }
 
+_f.Frm.prototype.watch_model_updates = function() {
+	// watch model updates
+	var me = this;
+
+	// on main doc
+	wn.model.on(me.doctype, "*", function(fieldname, value, doc) {
+		// set input
+		if(doc.name===me.docname) {
+			me.fields_dict[fieldname] 
+				&& me.fields_dict[fieldname].set_input(value);
+			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+		}
+	})
+	
+	// on table fields
+	$.each(wn.model.get("DocField", {fieldtype:"Table", parent: me.doctype}), function(i, df) {
+		wn.model.on(df.options, "*", function(fieldname, value, doc) {
+			if(doc.parent===me.docname) {
+				me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
+				me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			}
+		})
+	})
+	
+}
 
 _f.Frm.prototype.setup_print_layout = function() {
 	var me = this;	
