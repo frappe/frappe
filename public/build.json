@@ -123,6 +123,7 @@
 			"lib/public/js/wn/views/grid_report.js",
 			"lib/public/js/wn/views/communication.js",
 			"lib/public/js/wn/views/test_runner.js",
+			"lib/public/js/wn/views/docs.js",
 			"lib/public/js/wn/form/formatters.js",
 
 			"lib/public/js/legacy/webpage/page_header.js",

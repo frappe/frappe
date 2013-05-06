@@ -260,6 +260,13 @@ wn.ui.AppFrame = Class.extend({
 // standard page with appframe
 
 wn.ui.make_app_page = function(opts) {
+	/* help: make a standard page layout with a toolbar and title */
+	/* options: [
+			"parent: [HTMLElement] parent element",
+			"single_column: [Boolean] false/true",
+			"title: [optional] set this title"
+		] 
+	*/
 	if(opts.single_column) {
 		$('<div class="appframe col-span-12">\
 			<div class="layout-appframe row"></div>\

@@ -15,6 +15,13 @@ $(document).ready(function() {
 	$.extend(wn.app, new wn.Application());
 });
 
+wn._toc = [
+	"wn.model",
+	"wn.ui",
+	"wn.utils",
+	"wn.views"
+]
+
 wn.Application = Class.extend({
 	init: function() {
 		this.load_startup();

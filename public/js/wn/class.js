@@ -67,6 +67,7 @@ To subclass, use:
 		
 		// Populate our constructed prototype object
 		Class.prototype = prototype;
+		Class._type = "class";
 		
 		// Enforce the constructor to be what we expect
 		Class.prototype.constructor = Class;
