@@ -1,5 +1,13 @@
 /*
 
+Todo:
+- add DocTypes
+- separate pages for classes
+- decorage python objects
+- make tocs
+- write docs
+- export html files (with clean links)
+
 Documentation API
 
 Every module (namespace) / class will have a page
@@ -88,10 +96,25 @@ wn.docs.DocsPage = Class.extend({
 	init: function(opts) {
 		/* docs: create js documentation */
 		$.extend(this, opts);
-		this.make();
+		
+		var obj = wn.provide(this.namespace),
+			me = this;
+
+		if($.isEmptyObject(obj)) {
+			wn.call({
+				"method": "webnotes.utils.docs.get_docs",
+				args: {
+					"module_name": this.namespace
+				},
+				callback: function(r) {
+					me.make(r.message);
+				}
+			})
+		} else {
+			this.make(obj);
+		}
 	},
-	make: function() {
-		var obj = wn.provide(this.namespace);
+	make: function(obj) {
 		$("<h2>").html(obj._label || this.namespace).appendTo(this.parent);
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
@@ -138,7 +161,7 @@ wn.docs.DocsPage = Class.extend({
 		var me = this,
 			classes = {}
 		$.each(obj, function(name, value) {
-			if(value._type=="class") {
+			if(value && value._type=="class") {
 				classes[name] = value;
 			};
 		})
@@ -161,8 +184,8 @@ wn.docs.DocsPage = Class.extend({
 	get_functions: function(obj) {
 		var functions = {};
 		$.each(obj, function(name, value) {
-			if(typeof value=="function" 
-				&& (value._type || "function")=="function") 
+			if(value && ((typeof value==="function" && typeof value.init !== "function")
+				|| value._type === "function")) 
 					functions[name] = value;
 		});
 		return functions;
@@ -187,23 +210,18 @@ wn.docs.DocsPage = Class.extend({
 			namespace = namespace + ".";
 			
 		if(code.indexOf("/* options")===-1) {
-			var args = code.split("function")[1].split("(")[1].split(")")[0];
+			var args = this.get_args(value);
+				options = this.make_parameters("Parameters", 
+					JSON.parse(this.get_property(value, "parameters") || "{}"));
 		} else {
 			var args = "options",
-				options = JSON.parse(code.split("/* options:")[1].split("*/")[0]);
-
-			options = "<h5>Options: </h5><table class='table table-bordered'><tbody>" 
-				+ $.map(options, function(o, i) {
-					var i = o.indexOf(":");
-					return repl('<tr>\
-						<td style="width: 30%">%(key)s</td>\
-						<td>%(value)s</td></tr>', {
-							key: o.slice(0, i),
-							value: o.slice(i+1)
-						})
-				}).join("") + "</tbody></table>";
-			
+				options = this.make_parameters("Options", 
+					JSON.parse(this.get_property(value, "options") || "{}"));
 		}
+		
+		var example = this.get_property(value, "example");
+		example = example ? ("<h5>Example</h5><pre>" + example.replace(/\t/g, "") + "</pre>") : "";
+		
 		var help = code.split("/* help:")[1]
 			if(help) help = help.split("*/")[0];
 		$(repl('<tr>\
@@ -212,15 +230,45 @@ wn.docs.DocsPage = Class.extend({
 				%(help)s\
 				<h5>Usage:</h5>\
 				<pre>%(namespace)s%(name)s(%(args)s)</pre>\
-				%(options)s\
+				%(options)s%(example)s\
 			</td>\
 		</tr>', {
 			name: name,
 			namespace: namespace,
 			args: args,
+			example: example || "",
 			options: options || "",
 			help: help ? ("<p>" + help + "</p>") : ""
 		})).appendTo(parent)
+	},
+	get_args: function(obj) {
+		if(obj._args) 
+			return obj._args.join(", ");
+		else
+			return obj.toString().split("function")[1].split("(")[1].split(")")[0];
+	},
+	get_property: function(obj, property) {
+		if(obj["_" + property])
+			return obj["_" + property];
+		var code = obj.toString();
+		if(code.indexOf("/* " + property + ":")!==-1) {
+			return code.split("/* " + property + ":")[1].split("*/")[0]
+		}
+		return "";
+	},
+	make_parameters: function(title, options) {
+		if($.isEmptyObject(options)) 
+			return "";
+		return  "<h5>"+title+"</h5><table class='table table-bordered'><tbody>" 
+			+ $.map(options, function(o, i) {
+				var i = o.indexOf(":");
+				return repl('<tr>\
+					<td style="width: 30%">%(key)s</td>\
+					<td>%(value)s</td></tr>', {
+						key: o.slice(0, i),
+						value: o.slice(i+1)
+					})
+			}).join("") + "</tbody></table>";
 		
 	}
 })

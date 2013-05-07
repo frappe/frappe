@@ -19,12 +19,12 @@
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
-from __future__ import unicode_literals
 """
 globals attached to webnotes module
 + some utility functions that should probably be moved
 """
+
+from __future__ import unicode_literals
 
 code_fields_dict = {
 	'Page':[('script', 'js'), ('content', 'html'), ('style', 'css'), ('static_content', 'html'), ('server_code', 'py')],
@@ -314,6 +314,7 @@ def doclist(lst=None):
 	return DocList(lst)
 
 def bean(doctype=None, name=None, copy=None):
+	"""return an instance of the object, wrapped as a Bean (webnotes.model.bean)"""
 	from webnotes.model.bean import Bean
 	if copy:
 		return Bean(copy_doclist(copy))

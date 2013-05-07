@@ -202,6 +202,12 @@ $.extend(wn.model, {
 		/* help: Attach a trigger on change of a particular field.
 		To trigger on any change in a particular doctype, use fieldname as "*"
 		*/
+		/* example: wn.model.on("Customer", "age", function(fieldname, value, doc) {
+		  if(doc.age < 16) {
+		    msgprint("Warning, Customer must atleast be 16 years old.");
+		    raise "CustomerAgeError";
+		  }
+		}) */
 		wn.provide("wn.model.events." + doctype + "." + fieldname);
 		wn.model.events[doctype][fieldname] = fn;
 	},

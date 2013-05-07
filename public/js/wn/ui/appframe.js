@@ -49,6 +49,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	set_title: function(txt, full_text) {
 		this.title = txt;
+		document.title = txt;
 		this.$w.find(".breadcrumb .appframe-title").html(txt);
 		this.$w.find(".title-text").html(txt);
 	},
