@@ -942,9 +942,9 @@ CurrencyField.prototype.get_field_currency = function() {
 };
 
 CurrencyField.prototype.get_formatted = function(val) {
-	if(this.not_in_form) 
+	if(!this.doctype) 
 		return val;
-		
+	
 	return format_currency(val, this.get_field_currency());
 }
 CurrencyField.prototype.set_disp = function(val) {

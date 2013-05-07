@@ -127,7 +127,6 @@ $.extend(wn.meta, {
 	
 	get_field_currency: function(df, doc) {
 		var currency = wn.boot.sysdefaults.currency;
-		
 		if(!doc && cur_frm) 
 			doc = cur_frm.doc;
 			
@@ -145,8 +144,6 @@ $.extend(wn.meta, {
 				}
 			} else if(doc && doc[df.options]) {
 				currency = doc[df.options];
-			} else if(cur_frm && cur_frm.doc[df.options]) {
-				currency = cur_frm.doc[df.options];
 			}
 		}
 		return currency;
