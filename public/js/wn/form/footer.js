@@ -19,6 +19,7 @@ wn.ui.form.Footer = Class.extend({
 					<button class="btn btn-save btn-primary">\
 						<i class="icon-save"></i> Save</button>\
 				</div>\
+				<div class="help-area"></div>\
 			</div>\
 			<div class="col-span-8">\
 				<div class="form-comments">\
@@ -35,6 +36,7 @@ wn.ui.form.Footer = Class.extend({
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);
 		})
+		this.help_area = this.wrapper.find(".help-area").get(0);
 	},
 	make_attachments: function() {
 		this.frm.attachments = new wn.ui.form.Attachments({

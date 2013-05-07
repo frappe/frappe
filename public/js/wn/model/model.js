@@ -190,15 +190,18 @@ $.extend(wn.model, {
 	},
 	
 	set_value: function(doctype, name, fieldname, value) {
+		/* help: Set a value locally (if changed) and execute triggers */
 		var doc = locals[doctype] && locals[doctype][name] || null;
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
-			console.log([fieldname, value])
 			wn.model.trigger(fieldname, value, doc);
 		}
 	},
 	
 	on: function(doctype, fieldname, fn) {
+		/* help: Attach a trigger on change of a particular field.
+		To trigger on any change in a particular doctype, use fieldname as "*"
+		*/
 		wn.provide("wn.model.events." + doctype + "." + fieldname);
 		wn.model.events[doctype][fieldname] = fn;
 	},

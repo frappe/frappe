@@ -15,6 +15,18 @@ a {
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 }
 
+.col-small-span-50 {
+	width: 4.16666666666%;
+	padding-right: 0px;
+}
+
+@media screen and (min-width: 768px) {
+	.col-span-50 {
+		width: 4.16666666666%;
+		padding-right: 0px;
+	}
+}
+
 .navbar-icon-home {
 	vertical-align: middle;
 	opacity: 0.4;

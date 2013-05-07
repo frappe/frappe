@@ -66,14 +66,13 @@ wn.views.ListView = Class.extend({
 		this.columns = [];
 		var me = this;
 		if(wn.model.can_delete(this.doctype) || this.settings.selectable) {
-			this.columns.push({width: '4%', content:'check'})
+			this.columns.push({colspan: 0.5, content:'check'})
 		}
-		this.columns.push({width: '7%', content:'avatar'});
+		this.columns.push({colspan: 1, content:'avatar'});
 		if(wn.model.is_submittable(this.doctype)) {
-			this.columns.push({width: '3%', content:'docstatus', 
-				css: {"text-align": "center"}});
+			this.columns.push({colspan: 0.5, content:'docstatus'});
 		}
-		this.columns.push({width: '20%', content:'name'});
+		this.columns.push({colspan: 2, content:'name'});
 
 		// overridden
 		var overridden = $.map(this.settings.add_columns || [], function(d) { 
@@ -86,17 +85,15 @@ wn.views.ListView = Class.extend({
 					return;
 				}
 				// field width
-				var width = "15%";
+				var colspan = "2";
 				if(in_list(["Int", "Percent"], d.fieldtype)) {
-					width = "13%";
-				} else if(in_list(["Int", "Percent"], d.fieldtype)) {
-					width = "10%";
+					colspan = "1";
 				} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
-					width = "5%";
+					colspan = "1";
 				} else if(d.fieldname=="subject") { // subjects are longer
-					width = "20%";
+					colspan = "3";
 				}
-				me.columns.push({width:width, content: d.fieldname, 
+				me.columns.push({colspan: colspan, content: d.fieldname, 
 					type:d.fieldtype, df:d, title:wn._(d.label) });
 		});
 
@@ -108,39 +105,50 @@ wn.views.ListView = Class.extend({
 		}
 
 		// tags
-		this.columns.push({width: '15%', content:'tags', css: {'color':'#aaa'}}),
+		this.columns.push({colspan: 2, content:'tags', css: {'color':'#aaa'}}),
 
-		this.columns.push({width: '15%', content:'modified', 
+		this.columns.push({colspan: 2, content:'modified', 
 			css: {'text-align': 'right', 'color':'#222'}});
 
 		
 	},
 	render: function(row, data) {
-		var me = this;
 		this.prepare_data(data);
-		rowhtml = '';
-				
+		var body = $("<div class='row doclist-row'></div>")
+			.appendTo(row).css({"padding": "5px 0px"}),
+			colspans = 0,
+			me = this;
+			
 		// make table
 		$.each(this.columns, function(i, v) {
-			if(v.content && v.content.substr && v.content.substr(0,6)=="avatar") {
-				rowhtml += repl('<td style="width: 7%;"></td>');				
-			} else {
-				rowhtml += repl('<td style="width: %(width)s"></td>', v);
+			var colspan = v.colspan || 2;
+			colspans = colspans + flt(colspan)
+			
+			if(colspans <= 8) {
+				var col = me.make_column(body, flt(colspan) > 1 ? flt(colspan) * 2 : colspan)
+					.addClass("visible-phone");
+				me.render_column(data, col, v);
+			}
+			
+			if(colspans <= 12) {
+				var col = me.make_column(body, colspan)
+					.addClass("hidden-phone");
+				me.render_column(data, col, v);
 			}
 		});
-		var tr = $(row).html('<table class="doclist-row"><tbody><tr>' + rowhtml + '</tr></tbody></table>').find('tr').get(0);
-		
-		// render cells
-		$.each(this.columns, function(i, v) {
-			me.render_column(data, $("<div>")
-				.css({
-					"overflow":"hidden",
-					"white-space": "nowrap",
-					"text-overflow": "ellipsis",
-					"max-height": "30px",
-				})
-				.appendTo(tr.cells[i]).get(0), v);
-		});
+	},
+	make_column: function(body, colspan) {
+		colspan = colspan==0.5 ? "50" : colspan;
+		var col = $("<div>")
+			.appendTo(body)
+			.addClass("col-small-span-" + colspan)
+			.css({
+				"white-space": "nowrap",
+				"text-overflow": "ellipsis",
+				"max-height": "30px",
+				"padding-right": "0px"
+			})
+		return col;
 	},
 	render_column: function(data, parent, opts) {
 		var me = this;
@@ -167,11 +175,12 @@ wn.views.ListView = Class.extend({
 			$("<a>")
 				.attr("href", "#Form/" + data.doctype + "/" + data.name)
 				.html(data.name)
-				.appendTo(parent);
+				.appendTo(parent.css({"overflow":"hidden"}));
 		} 
 		else if(opts.content=='avatar' || opts.content=='avatar_modified') {
 			$(parent).append(wn.avatar(data.owner, false, wn._("Modified by")+": " 
-				+ wn.user_info(data.modified_by).fullname));
+				+ wn.user_info(data.modified_by).fullname))
+				.css({"margin-top": "-5px"});
 		}
 		else if(opts.content=='check') {
 			$('<input class="list-delete" type="checkbox">')
@@ -181,20 +190,8 @@ wn.views.ListView = Class.extend({
 		}
 		else if(opts.content=='docstatus') {
 			$(parent).append(repl('<span class="docstatus"> \
-				<i class="%(docstatus_icon)s" \
+				<i class="%(docstatus_icon)s" style="font-size: 120%;" \
 				title="%(docstatus_title)s"></i></span>', data));			
-		}
-		else if(opts.content=='enabled') {
-			data.icon = cint(data.enabled) ? "icon-check" : "icon-check-empty";
-			data.title = cint(data.enabled) ? wn._("Enabled") : wn._("Disabled");
-			$(parent).append(repl('<span class="docstatus"> \
-				<i class="%(icon)s" title="%(title)s"></i></span>', data));			
-		}
-		else if(opts.content=='disabled') {
-			data.icon = cint(data.disabled) ? "icon-check-empty" : "icon-check"
-			data.title = cint(data.disabled) ? wn._("Disabled") : wn._("Enabled");
-			$(parent).append(repl('<span class="docstatus"> \
-				<i class="%(icon)s"></i></span>', data));			
 		}
 		else if(opts.content=='tags') {
 			this.add_user_tags(parent, data);
@@ -206,18 +203,8 @@ wn.views.ListView = Class.extend({
 				.attr("title", wn._("Last Modified On"))
 				.css({"color":"#888"})
 		}
-		else if(opts.content=="file_list") {
-			if(data[opts.content]) {
-				$("<i class='icon-paper-clip'>").appendTo(parent);
-			}
-		}
 		else if(opts.type=='bar-graph' || opts.type=="percent") {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
-		}
-		else if(opts.type=='link' && (opts.df ? opts.df.options : opts.doctype)) {
-			var doctype = (opts.df ? opts.df.options : opts.doctype);
-			$(parent).append(repl('<a href="#Form/'+ doctype +'/'
-				+data[opts.content]+'">'+data[opts.content]+'</a>', data));
 		}
 		else if(opts.template) {
 			$(parent).append(repl(opts.template, data));
@@ -255,12 +242,12 @@ wn.views.ListView = Class.extend({
 					me.doclistview.set_filter($(this).attr("data-fieldname"), 
 						$(this).text());
 				})
-				.appendTo(parent);
+				.appendTo(parent.css({"overflow":"hidden"}));
 		}
 		else if(data[opts.content]) {
 			$("<span>")
 				.html(wn.format(data[opts.content], opts.df, null, data))
-				.appendTo(parent)
+				.appendTo(parent.css({"overflow":"hidden"}))
 		}
 		
 		// finally
@@ -289,7 +276,7 @@ wn.views.ListView = Class.extend({
 		
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
-			data.docstatus_icon = 'icon-pencil';
+			data.docstatus_icon = '';
 			data.docstatus_title = wn._('Editable');
 		} else if(data.docstatus==1) {
 			data.docstatus_icon = 'icon-lock';			

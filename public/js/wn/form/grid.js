@@ -243,16 +243,19 @@ wn.ui.form.GridRow = Class.extend({
 				total_colsize += colsize
 				if(total_colsize > 12) 
 					return false;
-				$('<div class="col-span-'+colsize+'">' 
+				$col = $('<div class="col-span-'+colsize+'">' 
 					+ txt + '</div>')
 					.css({
 						"overflow": "hidden",
 						"text-overflow": "ellipsis",
-						"white-space": "nowrap"
+						"white-space": "nowrap",
+						"padding-right": "0px"
 					})
 					.attr("data-fieldname", df.fieldname)
 					.data("df", df)
 					.appendTo(me.row)
+				if(in_list(["Int", "Currency", "Float"], df.fieldtype))
+					$col.css({"text-align": "right"})
 			}
 		});
 	},

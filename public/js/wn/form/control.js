@@ -27,8 +27,9 @@ wn.ui.form.Control = Class.extend({
 	},
 	refresh: function() {
 		this.disp_status = this.get_status();
-		this.$wrapper && this.$wrapper.toggle(this.disp_status!="None");
-		this.$wrapper && this.$wrapper.trigger("refresh");
+		this.$wrapper 
+			&& this.$wrapper.toggle(this.disp_status!="None")
+			&& this.$wrapper.trigger("refresh");
 	},
 	get_doc: function() {
 		return this.doctype && this.docname 
@@ -109,18 +110,26 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		this.setup_update_on_refresh();
 	},
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="control-group">\
-			<label class="control-label"></label>\
-			<div class="controls">\
-				<div class="control-input"></div>\
-				<div class="control-value like-disabled-input" style="display: none;"></div>\
-			</div>\
-		</div>').appendTo(this.parent);
+		if(this.only_input) {
+			this.$wrapper = $("<span>").appendTo(this.parent);
+		} else {
+			this.$wrapper = $('<div class="control-group">\
+				<label class="control-label"></label>\
+				<div class="controls">\
+					<div class="control-input"></div>\
+					<div class="control-value like-disabled-input" style="display: none;"></div>\
+				</div>\
+			</div>').appendTo(this.parent);
+		}
 	},
 	set_input_areas: function() {
-		this.label_area = this.label_span = this.$wrapper.find("label").get(0);
-		this.input_area = this.$wrapper.find(".control-input").get(0);
-		this.disp_area = this.$wrapper.find(".control-value").get(0);	
+		if(this.only_input) {
+			this.input_area = this.wrapper;
+		} else {
+			this.label_area = this.label_span = this.$wrapper.find("label").get(0);
+			this.input_area = this.$wrapper.find(".control-input").get(0);
+			this.disp_area = this.$wrapper.find(".control-value").get(0);	
+		}
 	},
 	set_max_width: function() {
 		if(['Code', 'Text Editor', 'Text', 'Small Text', 'Table', 'HTML']
@@ -138,22 +147,23 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			
 			if(me.disp_status != "None") {
 				// refresh value
-				if(me.docname && me.set_input) {
+				if(me.doctype && me.docname) {
 					me.value = wn.model.get_value(me.doctype, me.docname, me.df.fieldname);
+				}
 
-					if(me.disp_status=="Write") {
-						$(me.disp_area).toggle(false);
-						$(me.input_area).toggle(true);
-						!me.has_input && me.make_input();
+				if(me.disp_status=="Write") {
+					me.disp_area && $(me.disp_area).toggle(false);
+					$(me.input_area).toggle(true);
+					!me.has_input && me.make_input();
+					if(me.doctype && me.docname)
 						me.set_input(me.value);
-					} else {
-						$(me.input_area).toggle(false);
-						me.disp_area && $(me.disp_area)
-							.toggle(true)
-							.html(
-								wn.format(me.value, me.df, null, locals[me.doctype][me.name])
-							);
-					}
+				} else {
+					$(me.input_area).toggle(false);
+					me.disp_area && $(me.disp_area)
+						.toggle(true)
+						.html(
+							wn.format(me.value, me.df, null, locals[me.doctype][me.name])
+						);
 				}
 
 				me.set_description();
@@ -165,13 +175,14 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		})
 	},
 	set_label: function() {
-		if(this.df.label==this._description) 
+		if(this.only_input || this.df.label==this._label) 
 			return;
 		this.label_span.innerHTML = wn._(this.df.label);
 		this._label = this.df.label;
 	},
 	set_description: function() {
-		if(this.df.description==this._description) return;
+		if(this.only_input || this.df.description==this._description) 
+			return;
 		if(this.df.description) {
 			if(!this.$wrapper.find(".help-box").length) {
 				$('<p class="help-box small text-muted"></p>').appendTo(this.input_area);
@@ -336,7 +347,7 @@ wn.ui.form.ControlTime = wn.ui.form.ControlData.extend({
 	}
 });
 
-wn.ui.form.ControlDateTime = wn.ui.form.ControlDate.extend({
+wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
 			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy')

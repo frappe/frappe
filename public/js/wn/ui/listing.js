@@ -85,13 +85,15 @@ wn.ui.Listing = Class.extend({
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters well">\
+					<div class="show_filters well" style="display: none;">\
 						<div class="filter_area"></div>\
 						<div>\
 							<button class="btn btn-info search-btn">\
-								<i class="icon-refresh icon-white"></i> Search</button>\
+								<i class="icon-refresh icon-white"></i> \
+								<span class="hidden-phone">Search</span></button>\
 							<button class="btn add-filter-btn">\
-								<i class="icon-plus"></i> Add Filter</button>\
+								<i class="icon-plus"></i> \
+								<span class="hidden-phone">Add Filter</span></button>\
 						</div>\
 					</div>\
 				</div>\
@@ -112,9 +114,9 @@ wn.ui.Listing = Class.extend({
 					<div class="result-list"></div>\
 				</div>\
 				\
-				<div class="paging-button">\
-					<button class="btn btn-more hide">%(_more)s...</div>\
-				</div>\
+				<p class="paging-button" style="text-align: center;">\
+					<button class="btn btn-more" style="display: none; margin: 15px 0px;">%(_more)s...</div>\
+				</p>\
 			</div>\
 		', this.opts));
 		this.$w = $(this.parent).find('.wnlist');

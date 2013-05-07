@@ -91,9 +91,10 @@ wn.views.SidebarStats = Class.extend({
 		args.bar_style = "";
 		
 		$item = $(repl('<div class="progress">\
-				<div class="bar %(bar_style)s" style="width: %(width)s%"></div>\
+				<div class="progress-bar %(bar_style)s" style="width: %(width)s%"></div>\
 			</div>\
-			<div class="stat-label">\
+			<div class="stat-label" style="margin-top: -19px; text-align: center; \
+				margin-bottom: 5px; font-size: 80%;">\
 				<a href="#" data-label="%(label)s" data-field="%(field)s">\
 					%(_label)s</a> (%(count)s)\
 		</div>', args));

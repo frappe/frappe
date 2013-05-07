@@ -21,7 +21,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		this.myid = "editor-" + wn.dom.set_unique_id();
 		$('<div class="for-rich-text">\
 		<div class="btn-toolbar" data-role="editor-toolbar" data-target="#'+ this.myid +'">\
-	      <div class="btn-group">\
+	      <div class="btn-group hidden-phone">\
 	        <a class="btn btn-small dropdown-toggle" data-toggle="dropdown" title="Font"><i class="icon-font"></i><b class="caret"></b></a>\
 	          <ul class="dropdown-menu">\
 	          </ul>\
@@ -48,11 +48,11 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	        <a class="btn btn-small" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>\
 	        <a class="btn btn-small" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>\
 	      </div>\
-	      <div class="btn-group">\
+	      <div class="btn-group hidden-phone">\
 	        <a class="btn btn-small" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>\
 	        <a class="btn btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
 	      </div>\
-	      <div class="btn-group">\
+	      <div class="btn-group hidden-phone">\
 	        <a class="btn btn-small" title="Insert picture (or just drag & drop)" id="pictureBtn-'+this.myid+'"><i class="icon-picture"></i></a>\
 	        <input type="file" data-role="magic-overlay" data-target="#pictureBtn-'+this.myid+'" data-edit="insertImage" />\
 	        <a class="btn btn-small" data-edit="insertHorizontalRule" title="Horizontal Line Break">-</a>\

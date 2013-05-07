@@ -106,20 +106,25 @@ wn.ui.Filter = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		this.flist.$w.find('.filter_area').append('<div class="list_filter">\
-		<span class="fieldname_select_area"></span>\
-		<select class="condition">\
-			<option value="=">Equals</option>\
-			<option value="like">Like</option>\
-			<option value=">=">Greater or equals</option>\
-			<option value="<=">Less or equals</option>\
-			<option value=">">Greater than</option>\
-			<option value="<">Less than</option>\
-			<option value="in">In</option>\
-			<option value="!=">Not equals</option>\
-		</select>\
-		<span class="filter_field"></span>\
-		<a class="close">&times;</a>\
+		this.flist.$w.find('.filter_area').append('<div class="list_filter row"\
+			style="margin-bottom: 10px;">\
+		<div class="fieldname_select_area col-span-4" style="padding-right: 0px;"></div>\
+		<div class="col-span-3" style="padding-right: 0px;">\
+			<select class="condition">\
+				<option value="=">Equals</option>\
+				<option value="like">Like</option>\
+				<option value=">=">Greater or equals</option>\
+				<option value="<=">Less or equals</option>\
+				<option value=">">Greater than</option>\
+				<option value="<">Less than</option>\
+				<option value="in">In</option>\
+				<option value="!=">Not equals</option>\
+			</select>\
+		</div>\
+		<div class="filter_field col-span-4" style="padding-right: 0px;"></div>\
+		<div class="col-span-1" style="margin-top: 8px;">\
+			<a class="close">&times;</a>\
+		</div>\
 		</div>');
 		this.$w = this.flist.$w.find('.list_filter:last-child');
 	},
@@ -237,14 +242,16 @@ wn.ui.Filter = Class.extend({
 		}
 		
 		var field_area = me.$w.find('.filter_field').empty().get(0);
-		f = make_field(df, null, field_area, null, 0, 1);
-		f.df.single_select = 1;
-		f.not_in_form = 1;
-		f.with_label = 0;
-		f.in_filter = 1;
+		var f = wn.ui.form.make_control({
+			df: df,
+			parent: field_area,
+			only_input: true,
+		})
 		f.refresh();
+		
 		me.field = f;
-		if(old_text) me.field.set_input(old_text);
+		if(old_text) 
+			me.field.set_input(old_text);
 		
 		this.set_default_condition(df, fieldtype);
 		

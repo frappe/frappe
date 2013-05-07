@@ -323,7 +323,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	this.appframe.add_button(label, fn, icon, true);
+	this.appframe.add_button(label, fn, icon || "icon-arrow-right", true);
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.toolbar.refresh()

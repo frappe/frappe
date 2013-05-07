@@ -17,8 +17,12 @@ wn.ui.Search = Class.extend({
 			title: this.doctype + ' Search',
 			width: 500
 		});
+		var parent = $('<div class="row"><div class="col-span-12"></div></div>')
+			.appendTo(this.dialog.body)
+			.find(".col-span-12")
+			.css({"padding": "0px"});
 		this.list = new wn.ui.Listing({
-			parent: $(this.dialog.body),
+			parent: parent,
 			appframe: this.dialog.appframe,
 			new_doctype: this.doctype,
 			doctype: this.doctype,

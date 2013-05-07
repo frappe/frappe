@@ -180,13 +180,14 @@ wn.ui.AppFrame = Class.extend({
 	add_button: function(label, click, icon, title_toolbar) {
 		!title_toolbar && this.toolbar.toggle(true);
 		
-		args = { label: label, icon:'' };
+		args = { label: wn._(label), icon:'' };
 		if(icon) {
 			args.icon = '<i class="'+icon+'"></i>';
 		}
 		this.buttons[label] = $(repl('<button class="btn">\
-			%(icon)s %(label)s</button>', args))
+			%(icon)s <span class="hidden-phone">%(label)s</span></button>', args))
 			.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar)
+			.attr("title", wn._(label))
 			.click(click);
 		return this.buttons[label];
 	},

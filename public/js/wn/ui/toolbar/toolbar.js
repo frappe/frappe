@@ -43,7 +43,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		})
 	},
 	make: function() {
-		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse">\
+		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse" style="min-height: 50px;">\
 			<div class="container">\
 				<button type="button" class="navbar-toggle" data-toggle="collapse" \
 					data-target=".navbar-responsive-collapse">\
@@ -51,6 +51,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\
 				</button>\
+				<a class="navbar-brand" href="#"></a>\
 				<div class="nav-collapse collapse navbar-responsive-collapse">\
 					<ul class="nav">\
 					</ul>\
@@ -74,8 +75,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make_erpnext: function() {
 		$('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#"\
-				title="'+wn._("ERPNext")+'"\
-				onclick="return false;"><b>ERPNext</b></a>\
+				title="'+wn._("Modules")+'"\
+				onclick="return false;">'+wn._("Modules")+'</a>\
 			<ul class="dropdown-menu modules">\
 			</ul>\
 			</li>').prependTo('.navbar .nav:first');
