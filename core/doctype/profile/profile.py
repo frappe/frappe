@@ -32,19 +32,14 @@ class DocType:
 		
 	def autoname(self):
 		"""set name as email id"""
-		import re
-		from webnotes.utils import validate_email_add
-
 		if self.doc.name not in ('Guest','Administrator'):
-			self.doc.email = self.doc.email.strip()
-			if not validate_email_add(self.doc.email):
-				webnotes.msgprint("%s is not a valid email id" % self.doc.email)
-				raise Exception
-		
+			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
+		if self.doc.name not in ('Guest','Administrator'):
+			self.validate_email_type(self.doc.email)
 		self.validate_max_users()
 		self.check_one_system_manager()
 		self.check_enable_disable()
@@ -220,10 +215,7 @@ Thank you,<br>
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
 	
 	def on_rename(self,newdn,olddn):
-		# do not allow renaming administrator and guest
-		if olddn in ["Administrator", "Guest"]:
-			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
-				(olddn, ), raise_exception=1)
+		self.validate_rename(newdn, olddn)
 			
 		tables = webnotes.conn.sql("show tables")
 		for tab in tables:
@@ -245,6 +237,22 @@ Thank you,<br>
 		
 		# update __Auth table
 		webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
+		
+	def validate_rename(self, newdn, olddn):
+		# do not allow renaming administrator and guest
+		if olddn in ["Administrator", "Guest"]:
+			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
+				(olddn, ), raise_exception=1)
+		
+		self.validate_email_type(newdn)
+	
+	def validate_email_type(self, email):
+		from webnotes.utils import validate_email_add
+	
+		email = email.strip()
+		if not validate_email_add(email):
+			webnotes.msgprint("%s is not a valid email id" % email)
+			raise Exception
 						
 @webnotes.whitelist()
 def get_all_roles(arg=None):
