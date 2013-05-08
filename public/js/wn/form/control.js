@@ -538,8 +538,11 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 
 		// magnifier - search
 		this.$input_area.find(".btn-search").on("click", function() {
-			selector.set(me, me.df.options, me.df.label);
-			selector.show(me.txt);
+			new wn.ui.form.LinkSelector({
+				doctype: me.df.options,
+				target: me,
+				txt: me.$input.val()
+			});
 		});
 
 		// open
@@ -617,8 +620,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		};
 	},
 	get_custom_query: function() {
-		if(this.get_query && this.doctype) {
-			return this.get_query(this.frm.doc, this.doctype, this.docname);
+		if(this.get_query) {
+			return this.get_query(this.frm && this.frm.doc, this.doctype, this.docname);
 		}
 	},
 	validate: function(value, callback) {
@@ -627,6 +630,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 
 		if(this.df.options=="[Select]") {
 			callback(value);
+			return;
 		}
 
 		var fetch = '';

@@ -30,8 +30,9 @@ wn.ui.AppFrame = Class.extend({
 			<span class="title-icon"></span><span class="title-text"></span></h2></div>\
 		<div class="sub-title-area text-muted small" \
 			style="margin-top: -10px;"></div>\
-		<div class="btn-group appframe-toolbar" \
-			style="display: none; margin-top: 15px;"></div>\
+		<div class="appframe-toolbar" \
+			style="display: none; margin-top: 15px;">\
+			<span class="btn-group" style="display: inline-block; margin-right: 5px;"></span></div>\
 		').appendTo(this.$w);
 		
 		this.$w.find('.close').click(function() {
@@ -187,7 +188,7 @@ wn.ui.AppFrame = Class.extend({
 		}
 		this.buttons[label] = $(repl('<button class="btn">\
 			%(icon)s <span class="hidden-phone">%(label)s</span></button>', args))
-			.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar)
+			.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
 			.attr("title", wn._(label))
 			.click(click);
 		return this.buttons[label];
@@ -216,33 +217,29 @@ wn.ui.AppFrame = Class.extend({
 			});
 	},
 	add_label: function(label) {
-		return $("<span class='label'>"+label+" </span>")
-			.appendTo($("<li>").appendTo(this.toolbar));
+		return $("<span class='label col-span-1'>"+label+" </span>")
+			.appendTo(this.toolbar.toggle(true));
 	},
 	add_select: function(label, options) {
-		this.add_toolbar();
-		return $("<select class='col-span-2' style='margin-top: 5px;'>")
+		return $("<select class='col-span-2' style='margin-right: 5px;'>")
 			.add_options(options)
-			.appendTo($("<li>").appendTo(this.toolbar));
+			.appendTo(this.toolbar.toggle(true));
 	},
 	add_data: function(label) {
-		this.add_toolbar();
-		return $("<input class='col-span-2' style='margin-top: 5px;' type='text' placeholder='"+ label +"'>")
-			.appendTo($("<li>").appendTo(this.toolbar));
+		return $("<input class='col-span-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
+			.appendTo(this.toolbar.toggle(true));
 	}, 
 	add_date: function(label, date) {
-		this.add_toolbar();
-		return $("<input class='col-span-2' style='margin-top: 5px;' type='text'>").datepicker({
+		return $("<input class='col-span-2' style='margin-right: 5px;' type='text'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "")
-			.appendTo($("<li>").appendTo(this.toolbar));
+			.appendTo(this.toolbar.toggle(true));
 	},
 	add_check: function(label) {
-		this.add_toolbar();
 		return $("<label style='display: inline;'><input type='checkbox' \
-			style='margin-top: 5px;'/> " + label + "</label>")
-			.appendTo($("<li>").appendTo(this.toolbar))
+			style='margin-right: 5px;'/> " + label + "</label>")
+			.appendTo(this.toolbar.toggle(true))
 			.find("input");
 	},
 	add_ripped_paper_effect: function(wrapper) {

@@ -92,7 +92,6 @@ wn.ui.FieldGroup = Class.extend({
 		var f = this.fields_dict[key];
 		if(f) {
 			f.set_input(val);
-			f.refresh_mandatory();
 		}		
 	},
 	set_values: function(dict) {	
