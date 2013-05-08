@@ -62,7 +62,7 @@ wn.ui.form.Attachments = Class.extend({
 
 		var file_list = this.get_file_list();
 		var file_names = keys(file_list).sort();
-
+		
 		// add attachment objects
 		for(var i=0; i<file_names.length; i++) {
 			this.add_attachment(file_names[i], file_list);
@@ -113,7 +113,7 @@ wn.ui.form.Attachments = Class.extend({
 				return false;
 			});
 	},
-	new_attachment: function() {
+	new_attachment: function(fieldname) {
 		var me = this;
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
@@ -125,7 +125,7 @@ wn.ui.form.Attachments = Class.extend({
 		}
 		this.dialog.body.innerHTML = '';
 		this.dialog.show();
-
+		
 		wn.upload.make({
 			parent: this.dialog.body,
 			args: {
@@ -134,15 +134,19 @@ wn.ui.form.Attachments = Class.extend({
 				docname: this.frm.docname
 			},
 			callback: function(fileid, filename, r) {
-				me.update_attachment(fileid, filename, r);
+				me.update_attachment(fileid, filename, fieldname, r);
 			}
 		});
 	},
-	update_attachment: function(fileid, filename, r) {
+	update_attachment: function(fileid, filename, fieldname, r) {
 		this.dialog && this.dialog.hide();
 		if(fileid) {
 			this.add_to_file_list(fileid, filename);
 			this.refresh();
+			if(fieldname) {
+				this.frm.set_value(fieldname, "files/"+filename);
+				this.frm.cscript[fieldname] && this.frm.cscript[fieldname](this.frm.doc);
+			}
 		}
 	},
 	add_to_file_list: function(fileid, filename) {
@@ -166,7 +170,7 @@ wn.ui.form.Attachments = Class.extend({
 			if(this.frm.fields[i].attach_files) {
 				var fieldname = this.frm.fields[i].df.fieldname;
 				refresh_field(fieldname);
-				if(!inList(this.frm.fields[i].df.options.split("\n"), this.frm.doc[fieldname])) {
+				if(this.frm.doc[fieldname]!=undefined && !inList(this.frm.fields[i].df.options.split("\n"), this.frm.doc[fieldname])) {
 					this.frm.cscript.on_remove_attachment && this.frm.cscript.on_remove_attachment(this.frm.doc);
 					this.frm.set_value(fieldname, "");
 				}
