@@ -67,6 +67,9 @@ wn.ui.form.Attachments = Class.extend({
 		for(var i=0; i<file_names.length; i++) {
 			this.add_attachment(file_names[i], file_list);
 		}
+		
+		// refresh select fields with options attach_files:
+		this.refresh_attachment_select_fields();
 	},
 	get_file_list: function() {
  		return this.frm.doc.file_list ? JSON.parse(this.frm.doc.file_list) : {};
@@ -104,9 +107,6 @@ wn.ui.form.Attachments = Class.extend({
 									return;
 								}
 								me.remove_fileid(data);
-								me.frm && me.frm.cscript.on_remove_attachment 
-									&& me.frm.cscript.on_remove_attachment(me.frm.doc);
-								me.frm.refresh();
 							}
 						});
 					});
@@ -159,5 +159,18 @@ wn.ui.form.Attachments = Class.extend({
 				new_file_list[key] = value;
 		});
 		this.frm.doc.file_list = JSON.stringify(new_file_list);
+		this.refresh();
+	},
+	refresh_attachment_select_fields: function() {
+		for(var i=0; i<this.frm.fields.length; i++) {
+			if(this.frm.fields[i].attach_files) {
+				var fieldname = this.frm.fields[i].df.fieldname;
+				refresh_field(fieldname);
+				if(!inList(this.frm.fields[i].df.options.split("\n"), this.frm.doc[fieldname])) {
+					this.frm.cscript.on_remove_attachment && this.frm.cscript.on_remove_attachment(this.frm.doc);
+					this.frm.set_value(fieldname, "");
+				}
+			}
+		}
 	}
 });
