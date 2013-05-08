@@ -1,12 +1,11 @@
 /*
 
 Todo:
-- add DocTypes
-- separate pages for classes
-- decorage python objects
-- make tocs
-- write docs
-- export html files (with clean links)
+- modules / doctypes (export)
+- auto breadcrumbs
+- make global toc
+- help / comments in markdown
+- jinja template for docs
 
 Documentation API
 
@@ -21,6 +20,7 @@ Every module (namespace) / class will have a page
 
 wn.standard_pages["docs"] = function() {
 	var wrapper = wn.container.add_page('docs');
+	wn.require("lib/js/lib/beautify-html.js");
 
 	wn.ui.make_app_page({
 		parent: wrapper,
@@ -29,15 +29,7 @@ wn.standard_pages["docs"] = function() {
 	});
 	
 	var body = $(wrapper).find(".layout-main");
-	
-	$(wrapper).on("show", function() {
-		body.empty();
-		new wn.docs.DocsPage({
-			namespace: wn.get_route()[1] || "docs",
-			parent: body,
-			wrapper: wrapper
-		});
-	});
+	wn.docs.generate_all($('<div class="well"></div>').appendTo(body));
 };
 
 wn.provide("docs");
@@ -64,13 +56,6 @@ $.extend(docs, {
 			_label: "Server Side - Python",
 			_toc: [
 				"webnotes",
-				"webnotes.auth",
-				"webnotes.boot",
-				"webnotes.db",
-				"webnotes.client",
-				"webnotes.model",
-				"webnotes.utils",
-				"webnotes.widgets"
 			]
 		},
 		"client": {
@@ -92,6 +77,36 @@ $.extend(docs, {
 	}
 });
 
+wn.docs.generate_all = function(logarea) {
+	var pages = [],
+		body = $("<div class='docs'>");
+		make_page = function(name) {
+			body.empty();
+			var page = new wn.docs.DocsPage({
+				namespace: name,
+				parent: body,
+			});
+			logarea.append(".");
+			page.write();
+			
+			// recurse
+			if(page.obj._toc) {
+				$.each(page.obj._toc, function(i, name) {
+					make_page(name);
+				})
+			}
+		}
+	
+		wn.call({
+			"method": "webnotes.utils.docs.get_docs",
+			callback: function(r) {
+				window.webnotes = r.message.webnotes;
+				make_page("docs");
+			}
+		});
+	
+}
+
 wn.docs.DocsPage = Class.extend({
 	init: function(opts) {
 		/* docs: create js documentation */
@@ -100,26 +115,17 @@ wn.docs.DocsPage = Class.extend({
 		var obj = wn.provide(this.namespace),
 			me = this;
 
-		if($.isEmptyObject(obj)) {
-			wn.call({
-				"method": "webnotes.utils.docs.get_docs",
-				args: {
-					"module_name": this.namespace
-				},
-				callback: function(r) {
-					me.make(r.message);
-				}
-			})
-		} else {
-			this.make(obj);
-		}
+		obj = (obj._type == "class" && obj.prototype) ? obj.prototype : obj;
+		
+		this.obj = obj;
+		this.make(obj);
 	},
 	make: function(obj) {
 		$("<h2>").html(obj._label || this.namespace).appendTo(this.parent);
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
-		this.make_classes(obj);
+		//this.make_classes(obj);
 		this.make_functions(obj);
 	},
 	make_breadcrumbs: function(obj) {
@@ -127,7 +133,7 @@ wn.docs.DocsPage = Class.extend({
 		if(obj._path) {
 			var ul = $('<ul class="breadcrumb">').appendTo(this.parent);
 			$.each(obj._path, function(i, p) {
-				$(repl('<li><a href="#docs/%(name)s">%(label)s</a></li>', {
+				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
 					name: p,
 					label: wn.provide(p)._label || p
 				})).appendTo(ul)
@@ -149,7 +155,7 @@ wn.docs.DocsPage = Class.extend({
 			$("<h4>Contents</h4>").appendTo(body);
 			var ol = $("<ol>").appendTo(body);
 			$.each(obj._toc, function(i, name) {
-				$(repl('<li><a href="#docs/%(name)s">%(label)s</a></li>', {
+				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
 						name: name,
 						label: wn.provide(name)._label || name
 					}))
@@ -183,7 +189,8 @@ wn.docs.DocsPage = Class.extend({
 	},
 	get_functions: function(obj) {
 		var functions = {};
-		$.each(obj, function(name, value) {
+
+		$.each(obj || {}, function(name, value) {
 			if(value && ((typeof value==="function" && typeof value.init !== "function")
 				|| value._type === "function")) 
 					functions[name] = value;
@@ -269,6 +276,17 @@ wn.docs.DocsPage = Class.extend({
 						value: o.slice(i+1)
 					})
 			}).join("") + "</tbody></table>";
-		
+	},
+	write: function() {
+		wn.call({
+			method: "webnotes.utils.docs.write_doc_file",
+			args: {
+				name: this.namespace,
+				html: html_beautify(this.parent.html())
+			},
+			callback: function(r) {
+				
+			}
+		});
 	}
 })

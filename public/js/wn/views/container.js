@@ -5,7 +5,17 @@
 wn.provide('wn.pages');
 wn.provide('wn.views');
 
+wn.views._toc = [
+	"wn.views.Container",
+	"wn.views.Calendar",
+	"wn.views.DocListView",
+	"wn.views.FormView",
+	"wn.views.ReportView",
+]
+
 wn.views.Container = Class.extend({
+	_intro: "Container contains pages inside `#container` and manages \
+			page creation, switching",
 	init: function() {
 		this.container = $('#body_div').addClass("container").get(0);
 		this.page = null; // current page

@@ -25,6 +25,8 @@ from __future__ import unicode_literals
 Contains the Document class representing an object / record
 """
 
+_toc = ["webnotes.model.doc.Document"]
+
 import webnotes
 import webnotes.model.meta
 

@@ -24,6 +24,8 @@
 from __future__ import unicode_literals
 import webnotes
 
+_toc = ["webnotes.model.doc"]
+
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']
 default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
 
