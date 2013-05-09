@@ -258,7 +258,7 @@ class Document:
 			self._set_name(autoname, istable)
 		
 		# validate name
-		validate_name(self.doctype, self.name, case)
+		self.name = validate_name(self.doctype, self.name, case)
 				
 		# insert!
 		if not keep_timestamps:
