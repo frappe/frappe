@@ -864,16 +864,3 @@ _f.Frm.prototype.dirty = function() {
 	$(this.wrapper).trigger('dirty')
 	
 }
-
-_f.Frm.prototype.show_comments = function() {
-	if(!cur_frm.comments) {
-		cur_frm.comments = new Dialog(540, 400, 'Comments');
-		cur_frm.comments.comment_body = $a(cur_frm.comments.body, 'div', 'dialog_frm');
-		$y(cur_frm.comments.body, {backgroundColor:'#EEE'});
-		cur_frm.comments.list = new CommentList(cur_frm.comments.comment_body);
-	}
-	cur_frm.comments.list.dt = cur_frm.doctype;
-	cur_frm.comments.list.dn = cur_frm.docname;
-	cur_frm.comments.show();
-	cur_frm.comments.list.run();
-}

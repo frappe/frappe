@@ -124,7 +124,6 @@
 			"lib/public/js/legacy/widgets/layout.js",
 			"lib/public/js/legacy/widgets/tags.js",
 			"lib/public/js/legacy/widgets/export_query.js",
-			"lib/public/js/legacy/webpage/search.js",
 			"lib/public/js/legacy/wn/page_layout.js",
 			"lib/public/js/legacy/wn/widgets/page_sidebar.js",
 			

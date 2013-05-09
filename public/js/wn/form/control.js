@@ -581,17 +581,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					'dt': me.df.options,
 				};
 
-				var q = me.get_custom_query();
-				if (typeof(q)==="string") {
-					args.query = q;
-				} else if($.isPlainObject(q)) {
-					if(q.filters) {
-						$.each(q.filters, function(key, value) {
-							q.filters[key] = value===undefined ? null : value;
-						});
-					}
-					$.extend(args, q);
-				}
+				me.set_custom_query(args);
 
 				wn.call({
 					method:'webnotes.widgets.search.search_link',
@@ -619,9 +609,20 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				.appendTo(ul);
 		};
 	},
-	get_custom_query: function() {
+	set_custom_query: function(args) {
 		if(this.get_query) {
-			return this.get_query(this.frm && this.frm.doc, this.doctype, this.docname);
+			var q = this.get_query(this.frm && this.frm.doc, this.doctype, this.docname);
+
+			if (typeof(q)==="string") {
+				args.query = q;
+			} else if($.isPlainObject(q)) {
+				if(q.filters) {
+					$.each(q.filters, function(key, value) {
+						q.filters[key] = value===undefined ? null : value;
+					});
+				}
+				$.extend(args, q);
+			}
 		}
 	},
 	validate: function(value, callback) {

@@ -23,34 +23,10 @@
 # Search
 from __future__ import unicode_literals
 import webnotes
+import webnotes.widgets.reportview
 import webnotes.widgets.query_builder
 from webnotes.utils import cstr
 from startup.query_handlers import standard_queries
-
-# this is called when a new doctype is setup for search - to set the filters
-@webnotes.whitelist()
-def getsearchfields():
-	sf = webnotes.conn.sql("""\
-		SELECT value FROM `tabProperty Setter`
-		WHERE doc_type=%s AND property='search_fields'""", \
-		(webnotes.form_dict.get("doctype")))
-	if not (sf and len(sf)>0 and sf[0][0]):
-		sf = webnotes.conn.sql("select search_fields from tabDocType where name=%s", webnotes.form_dict.get("doctype"))
-	sf = sf and sf[0][0] or ''
-	sf = [s.strip() for s in sf.split(',')]
-	if sf and sf[0]:
-		res =  webnotes.conn.sql("select fieldname, label, fieldtype, options from tabDocField where parent='%s' and fieldname in (%s)" % (webnotes.form_dict.get("doctype","_NA"), '"'+'","'.join(sf)+'"'))
-	else:
-		res = []
-
-	res = [[c or '' for c in r] for r in res]
-	for r in res:
-		if r[2]=='Select' and r[3] and r[3].startswith('link:'):
-			dt = r[3][5:]
-			ol = webnotes.conn.sql("select name from `tab%s` where docstatus!=2 order by name asc" % dt)
-			r[3] = '\n'.join([''] + [o[0] for o in ol])
-
-	webnotes.response['searchfields'] = [['name', 'ID', 'Data', '']] + res
 
 # this is called by the Link Field
 @webnotes.whitelist()
@@ -60,106 +36,48 @@ def search_link(dt, txt, query=None, filters=None):
 
 # this is called by the search box
 @webnotes.whitelist()
-def search_widget(doctype, txt, query=None, searchfield="name", start=0, page_len=50, filters=None):
+def search_widget(doctype, txt, query=None, searchfield="name", start=0, 
+	page_len=50, filters=[]):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
-		
+
+	meta = webnotes.get_doctype(doctype)
+	
 	if query and query.split()[0].lower()!="select":
+		# by method
 		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
 			searchfield, start, page_len, filters)
 	elif not query and doctype in standard_queries:
+		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype], 
 			searchfield, start, page_len, filters)
 	else:
 		if query:
+			# custom query
 			webnotes.response["values"] = webnotes.conn.sql(scrub_custom_query(query, 
 				searchfield, txt))
 		else:
-			if filters:
-				webnotes.response["values"] = get_query_result(
-					', '.join(get_std_fields_list(doctype, searchfield)), doctype, txt, 
-					searchfield, start, page_len, filters)
-			else:
-				query = make_query(', '.join(get_std_fields_list(doctype, searchfield)), doctype, 
-					searchfield, txt, start, page_len)
+			# build from doctype
+			if txt:
+				filters.append([searchfield, "like", txt])
+			if meta.get({"parent":dt, "fieldname":"enabled", "fieldtype":"Check"}):
+				filters.append(["ifnull(enabled, 0)", "=", 1])
+			if meta.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
+				filters.append(["ifnull(disabled, 0)", "!=", 1])
 
-				webnotes.widgets.query_builder.runquery(query)
+			webnotes.response["values"] = webnotes.widgets.reportview.execute(doctype,
+				filters=filters, fields = get_std_fields_list(meta, searchfield), 
+				limit_start = start, limit_page_length=page_len)
 
-def make_query(fields, dt, key, txt, start, length):
-	doctype = webnotes.get_doctype(dt)
-
-	enabled_condition = ""
-	if doctype.get({"parent":dt, "fieldname":"enabled", "fieldtype":"Check"}):
-		enabled_condition = " AND ifnull(`tab%s`.`enabled`,0)=1" % dt
-	if doctype.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
-		enabled_condition = " AND ifnull(`tab%s`.`disabled`,0)!=1" % dt
-		
-	query = """select %(fields)s
-		FROM `tab%(dt)s`
-		WHERE `tab%(dt)s`.`%(key)s` LIKE '%(txt)s' 
-		AND `tab%(dt)s`.docstatus != 2 %(enabled_condition)s
-		ORDER BY `tab%(dt)s`.`%(key)s`
-		ASC LIMIT %(start)s, %(len)s """ % {
-			'fields': fields,
-			'dt': dt,
-			'key': key,
-			'txt': txt + '%',
-			'start': start,
-			'len': length,
-			'enabled_condition': enabled_condition, 
-		}
-	return query
-
-def get_query_result(fields, dt, txt, searchfield, start, page_len, filters):
-	doctype = webnotes.get_doctype(dt)
-
-	enabled_condition = ""
-	if doctype.get({"parent":dt, "fieldname":"enabled", "fieldtype":"Check"}):
-		enabled_condition = " AND ifnull(`enabled`,0)=1 "
-	if doctype.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
-		enabled_condition = " AND ifnull(`disabled`,0)!=1"
-
-	filter_condition, filter_values = build_filter_conditions(filters)
-	
-	args = {
-		'fields': fields,
-		'dt': dt,
-		'key': searchfield,
-		'txt': '%s',
-		'start': start,
-		'len': page_len,
-		'enabled_condition': enabled_condition,
-		'filter_condition': filter_condition
-	}
-		
-	return webnotes.conn.sql("""select %(fields)s FROM `tab%(dt)s`
-		WHERE `%(key)s` LIKE %(txt)s 
-		AND docstatus != 2 %(enabled_condition)s %(filter_condition)s 
-		ORDER BY `%(key)s`
-		ASC LIMIT %(start)s, %(len)s""" % args, 
-		tuple(["%%%s%%" % txt] + filter_values))
-	
-
-def build_filter_conditions(filters):
-	conditions, filter_values = [], []
-	for key in filters:
-		conditions.append('`' + key + '` = %s')
-		filter_values.append(filters[key])
-
-	conditions = conditions and " and " + " and ".join(conditions) or ""
-	return conditions, filter_values
-
-def get_std_fields_list(dt, key):
+def get_std_fields_list(meta, key):
 	# get additional search fields
-	sflist = webnotes.conn.sql("select search_fields from tabDocType where name = '%s'" % dt)
-	sflist = sflist and sflist[0][0] and sflist[0][0].split(',') or []
-
+	sflist = meta.doc.search_fields and meta.doc.search_fields.split(",") or []
 	sflist = ['name'] + sflist
 	if not key in sflist:
 		sflist = sflist + [key]
 
-	return ['`tab%s`.`%s`' % (dt, f.strip()) for f in sflist]
+	return ['`tab%s`.`%s`' % (meta.doc.name, f.strip()) for f in sflist]
 
 def build_for_autosuggest(res):
 	results = []

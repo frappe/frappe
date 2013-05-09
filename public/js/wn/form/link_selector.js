@@ -15,7 +15,7 @@ wn.ui.form.LinkSelector = Class.extend({
 	},
 	make: function() {
 		this.dialog = new wn.ui.Dialog({
-			"title": "Select " + this.doctype,
+			"title": "Select " + (this.doctype=='[Select]' ? "Value" : this.doctype),
 			"fields": [
 				{
 					fieldtype: "Data", fieldname: "txt", label: "Beginning with",
@@ -32,15 +32,66 @@ wn.ui.form.LinkSelector = Class.extend({
 				}
 			]
 		});
-		var search_fields = wn.model.get_value("DocType", this.doctype, "search_fields");
+		var search_fields = wn.model.get_value("DocType", this.doctype, "search_fields"),
+			me = this;
+		
+		// add search fields
 		if(this.doctype!="[Select]" && search_fields) {
-			this.dialog.fields_dict.search_field.$input.add_options(search_fields.split(","));
+			var search_fields = search_fields.split(",");
+			
+			this.dialog.fields_dict.search_field.$input.add_options(
+				[{value:"name", label:"ID"}].concat(
+				$.map(search_fields, function(fieldname) {
+					fieldname = strip(fieldname);
+					var df = wn.meta.docfield_map[me.doctype][fieldname];
+					return {
+						value: fieldname, 
+						label: df ? df.label : fieldname
+					}
+				})));
 		} else {
 			this.dialog.fields_dict.search_field.$wrapper.toggle(false);
 		}
 		this.dialog.fields_dict.search.$input.on("click", function() {
-			
-		})
+			me.search(this);
+		});
 		this.dialog.show();
+	},
+	search: function(btn) {
+		var args = {
+				txt: this.dialog.fields_dict.txt.get_value(),
+				doctype: this.target.doctype,
+				searchfield: this.dialog.fields_dict.search_field.get_value()
+			},
+			me = this;
+
+		this.target.set_custom_query(args);
+		
+		wn.call({
+			method: "webnotes.widgets.search.search_widget",
+			args: args,
+			callback: function(r) {
+				var parent = me.dialog.fields_dict.results.$wrapper;
+				parent.empty();
+				$.each(r.values, function(i, v) {
+					var row = $(repl('<p><a href="#" data-value="%(name)s">%(name)s</a> \
+						<span class="text-muted">%(values)s</span></p>', {
+							name: v[0],
+							values: v.splice(1).join(", ")
+						})).appendTo(parent);
+						
+					row.find("a").click(function() {
+						var value = $(this).attr("data-value");
+						if(me.target.doctype) 
+							me.target.set_model_value(value);
+						else
+							me.target.set_input(value);
+						me.dialog.hide();
+						return false;
+					})
+				})
+			}, 
+			btn: btn
+		});
 	}
 })
