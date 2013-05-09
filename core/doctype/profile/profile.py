@@ -236,7 +236,8 @@ Thank you,<br>
 			where name=%s""", (newdn, newdn))
 		
 		# update __Auth table
-		webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
+		if not merge:
+			webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
 		
 	def validate_rename(self, newdn, olddn):
 		# do not allow renaming administrator and guest
