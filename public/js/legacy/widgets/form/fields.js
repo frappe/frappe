@@ -631,6 +631,398 @@ LinkField.prototype.set_disp = function(val) {
 }
 
 
+function IntField() { } IntField.prototype = new DataField();
+IntField.prototype.validate = function(v) {
+	if(isNaN(parseInt(v)))return null;
+	return cint(v);
+}; 
+IntField.prototype.format_input = function() {
+	if(this.input.value==null) this.input.value='';
+}
+
+// ======================================================================================
+
+function FloatField() { } FloatField.prototype = new DataField();
+FloatField.prototype.validate = function(v) {
+	if(isNaN(parseFloat(v)))
+		return null;
+	else
+		v = flt(v);
+	return v;
+};
+FloatField.prototype.format_input = function() {
+	if(this.input.value==null || this.input.value=='') 
+		this.input.value='';
+	else {
+		var format;
+		if(this.get_field_currency) {
+			format = get_number_format(this.get_field_currency());
+			this.input.value = 
+				format_number(parseFloat(this.input.value), format);
+		} else {
+			var decimals = wn.boot.sysdefaults.float_precision ? 
+				parseInt(wn.boot.sysdefaults.float_precision) : null;
+				
+			this.input.value = format_number(parseFloat(this.input.value), null, decimals);
+		}
+	}
+}
+FloatField.prototype.onmake_input = function() {
+	if(!this.input) return;
+	this.input.onfocus = function() {
+		this.select();
+	}
+}
+FloatField.prototype.set_disp = function(val) { 
+	this.set_disp_html(wn.format(val, this.df, null, locals[this.doctype][this.name]));
+}
+
+function PercentField() { } PercentField.prototype = new FloatField();
+PercentField.prototype.set_disp = function(val) { 
+	this.set_disp_html(wn.format(val, this.df));
+}
+
+function CurrencyField() { } CurrencyField.prototype = new FloatField();
+
+CurrencyField.prototype.validate = function(v) { 
+	if(v==null || v=='')
+		return 0;
+	
+	return flt(v, null, get_number_format(this.get_field_currency())); 
+}
+
+CurrencyField.prototype.get_field_currency = function() {
+	var doc = null;
+	if(this.doctype && this.docname && locals[this.doctype])
+		doc = locals[this.doctype][this.docname];
+		
+	return wn.meta.get_field_currency(this.df, doc);
+};
+
+CurrencyField.prototype.get_formatted = function(val) {
+	if(!this.doctype) 
+		return val;
+	
+	return format_currency(val, this.get_field_currency());
+}
+CurrencyField.prototype.set_disp = function(val) {
+	this.set_disp_html(this.get_formatted(val));
+}
+
+function CheckField() { } CheckField.prototype = new Field();
+CheckField.prototype.validate = function(v) {
+	return cint(v);
+}; 
+CheckField.prototype.onmake = function() {
+	this.checkimg = $("<i class='icon-check'></i>").appendTo(this.disp_area);
+}
+
+CheckField.prototype.make_input = function() { var me = this;
+	this.input = $("<input type='checkbox'>")
+		.appendTo(this.input_area)
+		.css({"border":"0px", "margin-top":"-2px", "width": "16px"}).get(0);
+	
+	$(this.input).change(function() {
+		me.set(this.checked ? 1 : 0);
+		me.run_trigger();
+	})
+	
+	this.input.set_input = function(v) {
+		me.input.checked = cint(v) ? true : false;
+	}
+
+	this.get_value= function() {
+		return this.input.checked ? 1 : 0;
+	}
+
+}
+CheckField.prototype.set_disp = function(val) {
+	this.checkimg.toggle(cint(val) ? true : false);
+}
+
+
+function TextField() { } TextField.prototype = new Field();
+TextField.prototype.set_disp = function(val) { 
+	this.disp_area.innerHTML = replace_newlines(val);
+}
+TextField.prototype.make_input = function() {
+	var me = this; 
+	
+	if(this.in_grid)
+		return; // do nothing, text dialog will take over
+	
+	this.input = $a(this.input_area, 'textarea');
+
+	if(this.df.fieldtype=='Small Text') {
+		$(this.input).css({height: "80px"});
+	} else if(this.df.width) {
+		$(this.input).css({height: cint(this.df.width) + "px"});
+	} else {
+		$(this.input).css({height: "160px"});
+	}
+	this.input.set_input = function(v) {
+		me.input.value = (v==null ? "" : v);
+	}
+	this.input.onchange = function() {
+		me.set(me.input.value); 
+		me.run_trigger();
+	}
+	this.get_value= function() {
+		return this.input.value;
+	}
+}
+
+// text dialog
+var text_dialog;
+function make_text_dialog() {
+	var d = new Dialog(520,410,'Edit Text');
+	d.make_body([
+		['Text', 'Enter Text'],
+		['HTML', 'Description'],
+		['Button', 'Update']
+	]);
+	d.widgets['Update'].onclick = function() {
+		var t = this.dialog;
+		t.field.set(t.widgets['Enter Text'].value);
+		t.hide();
+	}
+	d.onshow = function() {
+		this.widgets['Enter Text'].style.height = '300px';
+		var v = _f.get_value(this.field.doctype,this.field.docname,this.field.df.fieldname);
+		this.widgets['Enter Text'].value = v==null?'':v;
+		this.widgets['Enter Text'].focus();
+		this.widgets['Description'].innerHTML = ''
+		if(this.field.df.description)
+			$a(this.widgets['Description'], 'div', 'help small', '', this.field.df.description);
+	}
+	d.onhide = function() {
+		if(_f.cur_grid_cell)
+			_f.cur_grid_cell.grid.cell_deselect();
+	}
+	text_dialog = d;
+}
+
+TextField.prototype.table_refresh = function() {
+	if(!this.text_dialog)
+		make_text_dialog();
+	text_dialog.set_title(wn._('Enter text for')+': "'+ wn._(this.df.label) +'"'); 
+	text_dialog.field = this;
+	text_dialog.show();
+}
+
+
+// Select
+// ======================================================================================
+
+function SelectField() { } SelectField.prototype = new Field();
+SelectField.prototype.make_input = function() { 
+	var me = this;
+	var opt=[];
+	
+	if(this.in_filter && (!this.df.single_select)) {
+		// multiple select
+		this.input = $a(this.input_area, 'select');
+		this.input.multiple = true;
+		this.input.style.height = '4em';
+		this.input.lab = $a(this.input_area, 'div', {fontSize:'9px',color:'#999'});
+		this.input.lab.innerHTML = '(Use Ctrl+Click to select multiple or de-select)'
+	} else {
+
+		// Single select
+		this.input = $a(this.input_area, 'select');
+		
+		this.input.onchange = function() {
+			if(me.validate)
+				me.validate();
+			me.set(sel_val(this));
+			me.run_trigger();
+		}
+		
+		if(this.df.options == 'attach_files:') {
+			this.attach_files = true;
+			$(this.input).css({"width": "70%"});
+			$("<button class='btn' title='Add attachment'\
+				style='margin-bottom: 9px; \
+				padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
+				<i class='icon-plus'></i></button>")
+				.click(function() {
+					cur_frm.attachments.new_attachment(me.df.fieldname);
+				})
+				.appendTo(this.input_area);
+		}
+	}
+
+	// set as single (to be called from report builder)
+	this.set_as_single = function() {
+		var i = this.input;
+		i.multiple = false;
+		i.style.height = null;
+		if(i.lab)$dh(i.lab)
+	}
+	
+	// refresh options list
+	this.refresh_options = function(options) {
+		if(options)
+			me.df.options = options;
+
+		if(this.attach_files)
+			this.set_attach_options();
+		
+		if(typeof me.df.options=="object")
+			me.options_list = me.df.options || [""];
+		else
+			me.options_list = me.df.options?me.df.options.split('\n'):[''];
+
+		// add options
+		if(me.in_filter && me.options_list[0]!='') {
+			me.options_list = add_lists([''], me.options_list);
+		}
+		
+		$(this.input).empty().add_options(me.options_list);
+	}
+	
+	// refresh options
+	this.onrefresh = function() {
+		this.refresh_options();
+
+		if(this.not_in_form) {
+			this.input.value = '';
+			return;
+		}
+		
+		if(_f.get_value)
+			var v = _f.get_value(this.doctype,this.docname,this.df.fieldname);
+		else {
+			if(this.options_list && this.options_list.length)
+				var v = this.options_list[0];
+			else
+				var v = null;
+		}
+		
+		this.input.set_input(v);
+	}
+	
+	var _set_value = function(value) {
+		// use option's value if dict, else use string for comparison and setting
+		for(var i in (me.options_list || [""])) {
+			var option = me.options_list[i];
+			if($.isPlainObject(option)){
+				option = option.value;
+			}
+			if(option === value) {
+				me.input.value = value;
+				break;
+			}
+		}
+	}
+	
+	this.input.set_input=function(v) {
+		if(!v) {
+			if(!me.input.multiple) {
+				if(me.docname) { // if called from onload without docname being set on fields
+					_set_value(v);
+					me.set(me.get_value());
+				}
+			}
+		} else {
+			if(me.options_list) {
+				if(me.input.multiple) {
+					for(var i=0; i<me.input.options.length; i++) {
+						me.input.options[i].selected = 0;
+						if(me.input.options[i].value && inList(typeof(v)=='string'?v.split(","):v, me.input.options[i].value))
+							me.input.options[i].selected = 1;
+					}
+				} else {
+					_set_value(v);
+				}
+			}
+		}
+	}
+	this.get_value= function() {
+		if(me.input.multiple) {
+			var l = [];
+			for(var i=0;i<me.input.options.length; i++ ) {
+				if(me.input.options[i].selected)l[l.length] = me.input.options[i].value;
+			}
+			return l;
+		} else {
+			if(me.input.options) {
+				var val = sel_val(me.input);
+				if(!val && !me.input.selectedIndex)
+					val = me.input.options[0].value;
+				return val;
+			}
+			return me.input.value;
+		}
+	}
+	
+	this.set_attach_options = function() {
+		if(!cur_frm) return;
+		var fl = cur_frm.doc.file_list;
+		if(fl) {
+			fl = JSON.parse(fl);
+			this.df.options = '';
+
+			for(var fname in fl) {
+				if(fname.substr(0,4)!="http")
+					fname = "files/" + fname;
+				this.df.options += '\n' + fname;
+			}
+
+			this.set_description("");
+		} else {
+			this.df.options = ''
+			this.set_description(wn._("Please attach a file first."))
+			
+		}
+	}
+	this.refresh();
+}
+
+function TimeField() { } TimeField.prototype = new DataField();
+
+function import_timepicker() {
+	wn.require("lib/js/lib/jquery/jquery.ui.slider.min.js");
+	wn.require("lib/js/lib/jquery/jquery.ui.sliderAccess.js");
+	wn.require("lib/js/lib/jquery/jquery.ui.timepicker-addon.css");
+	wn.require("lib/js/lib/jquery/jquery.ui.timepicker-addon.js");
+}
+
+TimeField.prototype.make_input = function() { 
+	import_timepicker();
+	var me = this;
+	this.input = $('<input type="text">')
+		.appendTo(this.input_area)
+		.timepicker({
+			timeFormat: 'hh:mm:ss',
+		}).get(0);
+	
+	this.input.set_input = function(v) {
+		$(me.input).val(v);
+	};
+	
+	this.input.onchange = function() {
+		if(!this.not_in_form)
+			me.set(me.input.value);
+		me.run_trigger();
+	};
+}
+
+function DateTimeField() { } DateTimeField.prototype = new DateField();
+
+DateTimeField.prototype.make_input = function() {
+	import_timepicker();
+	var me = this;
+
+	args = get_datepicker_options();
+	args.timeFormat = "hh:mm:ss";
+
+	this.input = $('<input type="text" data-fieldtype="Datetime">')
+		.appendTo(this.input_area)
+		.datetimepicker(args).get(0);
+		
+	this.setup_input();
+}
 
 var tmpid = 0;
 

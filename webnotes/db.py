@@ -312,7 +312,7 @@ class Database:
 		
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if isinstance(filters, list):
-			return self.get_value_for_many_names(doctype, filters, fieldname)
+			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
 			
 		fields = fieldname
 		if fieldname!="*":
@@ -372,10 +372,14 @@ class Database:
 
 		return r
 
-	def get_value_for_many_names(self, doctype, names, field):
+	def get_value_for_many_names(self, doctype, names, field, debug=False):
 		names = filter(None, names)
-		return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
-			% (field, doctype, ", ".join(map(lambda n: "'%s'" % n.replace("'", "\'"), names)))))
+		
+		if names:
+			return dict(self.sql("select name, `%s` from `tab%s` where name in (%s)" \
+				% (field, doctype, ", ".join(["%s"]*len(names))), names, debug=debug))
+		else:
+			return {}
 
 	def set_value(self, dt, dn, field, val, modified=None, modified_by=None):
 		from webnotes.utils import now
