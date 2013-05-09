@@ -24,7 +24,7 @@ wn.modules_setup = {
 			if(m!="Setup") {
 				var $chk = $("<input type='checkbox' data-module='"+m+"' style='margin-top: -2px'>")
 					.prependTo($('<p><span> '+m+'</span></p>').appendTo("#modules-list"));
-				if(wn.boot.hidden_modules.indexOf(m)==-1) {
+				if(!wn.boot.hidden_modules || wn.boot.hidden_modules.indexOf(m)==-1) {
 					$chk.attr("checked", true);
 				}
 			}
