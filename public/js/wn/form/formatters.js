@@ -7,15 +7,14 @@ wn.form.formatters = {
 		return value==null ? "" : value
 	},
 	Float: function(value, docfield) {
-		var decimals = wn.boot.sysdefaults.float_precision ? 
-			parseInt(wn.boot.sysdefaults.float_precision) : null;
+		var decimals = cint(docfield.options, null) || cint(wn.boot.sysdefaults.float_precision, null);
 
 		return "<div style='text-align: right'>" + 
 			((value==null || value==="") ? "" :
 				format_number(value, null, decimals)) + "</div>";
 	},
 	Int: function(value) {
-		return cint(value);
+		return value==null ? "": cint(value);
 	},
 	Percent: function(value) {
 		return flt(value, 2) + "%";
