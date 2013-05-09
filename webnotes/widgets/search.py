@@ -41,6 +41,8 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
+	if isinstance(filters, dict):
+		filters = map(lambda f: [doctype, f[0], "=", f[1]], filters.items())
 
 	meta = webnotes.get_doctype(doctype)
 	
@@ -60,24 +62,24 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 		else:
 			# build from doctype
 			if txt:
-				filters.append([searchfield, "like", txt])
-			if meta.get({"parent":dt, "fieldname":"enabled", "fieldtype":"Check"}):
-				filters.append(["ifnull(enabled, 0)", "=", 1])
-			if meta.get({"parent":dt, "fieldname":"disabled", "fieldtype":"Check"}):
-				filters.append(["ifnull(disabled, 0)", "!=", 1])
+				filters.append([doctype, searchfield, "like", txt + "%"])
+			if meta.get({"parent":doctype, "fieldname":"enabled", "fieldtype":"Check"}):
+				filters.append([doctype, "enabled", "=", 1])
+			if meta.get({"parent":doctype, "fieldname":"disabled", "fieldtype":"Check"}):
+				filters.append([doctype, "disabled", "!=", 1])
 
 			webnotes.response["values"] = webnotes.widgets.reportview.execute(doctype,
 				filters=filters, fields = get_std_fields_list(meta, searchfield), 
-				limit_start = start, limit_page_length=page_len)
+				limit_start = start, limit_page_length=page_len, as_list=True, debug=True)
 
 def get_std_fields_list(meta, key):
 	# get additional search fields
-	sflist = meta.doc.search_fields and meta.doc.search_fields.split(",") or []
+	sflist = meta[0].search_fields and meta[0].search_fields.split(",") or []
 	sflist = ['name'] + sflist
 	if not key in sflist:
 		sflist = sflist + [key]
 
-	return ['`tab%s`.`%s`' % (meta.doc.name, f.strip()) for f in sflist]
+	return ['`tab%s`.`%s`' % (meta[0].name, f.strip()) for f in sflist]
 
 def build_for_autosuggest(res):
 	results = []

@@ -49,11 +49,12 @@ def get_form_params():
 	return data
 	
 def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
-		group_by=None, order_by=None, limit_start=0, limit_page_length=None):
+		group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+		as_list=False, debug=False):
 
 	if query:
 		return run_custom_query(query)
-		
+				
 	if not filters: filters = []
 	if not docstatus: docstatus = []
 
@@ -63,7 +64,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		%(group_by)s order by %(order_by)s %(limit)s""" % args
 		
-	return webnotes.conn.sql(query, as_dict=1)
+	return webnotes.conn.sql(query, as_dict=not as_list, debug=debug)
 	
 def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
 	global tables		

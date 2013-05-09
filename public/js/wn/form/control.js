@@ -604,6 +604,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				me.set_custom_query(args);
 
 				wn.call({
+					type: "GET",
 					method:'webnotes.widgets.search.search_link',
 					args: args,
 					callback: function(r) {
@@ -660,6 +661,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 
 		wn.call({
 			method:'webnotes.widgets.form.utils.validate_link',
+			type: "GET",
 			args: {
 				'value': value, 
 				'options':me.df.options, 

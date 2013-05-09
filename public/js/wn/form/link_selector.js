@@ -60,7 +60,7 @@ wn.ui.form.LinkSelector = Class.extend({
 	search: function(btn) {
 		var args = {
 				txt: this.dialog.fields_dict.txt.get_value(),
-				doctype: this.target.doctype,
+				doctype: this.doctype,
 				searchfield: this.dialog.fields_dict.search_field.get_value()
 			},
 			me = this;
@@ -69,6 +69,7 @@ wn.ui.form.LinkSelector = Class.extend({
 		
 		wn.call({
 			method: "webnotes.widgets.search.search_widget",
+			type: "GET",
 			args: args,
 			callback: function(r) {
 				var parent = me.dialog.fields_dict.results.$wrapper;
