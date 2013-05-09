@@ -9,6 +9,7 @@ wn.ui.form.Layout = Class.extend({
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		this.fields = wn.meta.docfield_list[this.doctype];
 		this.fields.sort(function(a,b) { return a.idx - b.idx});
+		this.setup_tabbing();
 	},
 	refresh: function() {
 		var me = this;
@@ -80,5 +81,84 @@ wn.ui.form.Layout = Class.extend({
 		}
 		this.column = null;
 		return this.section;
-	}
+	},
+	setup_tabbing: function() {
+		var me = this;
+		this.wrapper.on("keydown", function(ev) {
+			if(ev.which==9) {
+				var current = $(ev.target),
+					doctype = current.attr("data-doctype"),
+					fieldname = current.attr("data-fieldname");
+				if(doctype)
+					return me.handle_tab(doctype, fieldname);
+			}
+		})
+	},
+	handle_tab: function(doctype, fieldname) {
+		var me = this,
+			grid_row = null;
+			next = null,
+			fields = me.frm.fields,
+			in_grid = false;
+			
+		// in grid
+		if(doctype != me.frm.doctype) {
+			grid_row =me.get_open_grid_row() 
+			fields = grid_row.fields;
+		}
+								
+		for(var i=0, len=fields.length; i < len; i++) {
+			if(fields[i].df.fieldname==fieldname) {
+				if(i==len-1) {
+					// last field in this group
+					if(grid_row) {
+						// in grid
+						if(grid_row.doc.idx==grid_row.grid.grid_rows.length) {
+							// last row, close it and find next field
+							grid_row.toggle_view(false, function() {
+								me.handle_tab(grid_row.grid.df.parent, grid_row.grid.df.fieldname);
+							})
+						} else {
+							// next row
+							grid_row.grid.grid_rows[grid_row.doc.idx].toggle_view(true);
+						}
+					} else {
+						// last field - to title buttons
+					}
+				} else {
+					me.focus_on_next_field(i, fields);
+				}
+				
+				break;
+			}
+		}
+		return false;
+	},
+	focus_on_next_field: function(start_idx, fields) {
+		// loop to find next eligible fields
+		for(var ii= start_idx + 1, len = fields.length; ii < len; ii++) {
+			if(fields[ii].disp_status=="Write") {
+				var next = fields[ii];
+
+				// next is table, show the table
+				if(next.df.fieldtype=="Table") {
+					if(!next.grid.grid_rows.length) {
+						next.grid.add_new_row(1);
+					} else {
+						next.grid.grid_rows[0].toggle_view(true);
+					}
+				}
+				else if(next.editor) {
+					next.editor.set_focus();
+				}
+				else if(next.$input) {
+					next.$input.focus();
+				}
+				break;
+			}
+		}
+	},
+	get_open_grid_row: function() {
+		return $(".grid-row-open").data("grid_row");
+	},
 })

@@ -7,6 +7,17 @@ wn.ui.form.make_control = function(opts) {
 	}
 }
 
+// old style
+function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
+	return new wn.ui.form.make_control({
+		df: docfield,
+		doctype: doctype,
+		parent: parent,
+		hide_label: hide_label,
+		frm: frm
+	});
+}
+
 wn.ui.form.Control = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -205,13 +216,21 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	make_input: function() {
 		this.$input = $("<"+ this.html_element +">")
 			.attr("type", this.input_type)
-			.attr("placeholder", this.df.placeholder || "")
-			.attr("data-fieldtype", this.df.fieldtype)
 			.addClass("col-span-12")
 			.prependTo(this.input_area)
+		
+		this.set_input_attributes();
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.bind_change_event();
+	},
+	set_input_attributes: function() {
+		this.$input
+			.attr("data-fieldtype", this.df.fieldtype)
+			.attr("data-fieldname", this.df.fieldname)
+			.attr("placeholder", this.df.placeholder || "")
+		if(this.doctype)
+			this.$input.attr("data-doctype", this.doctype);
 	},
 	bind_change_event: function() {
 		var me = this;
@@ -505,7 +524,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		$('<div class="input-group link-field">\
-			<input type="text" data-fieldtype="Link">\
+			<input type="text">\
 			<div class="input-group-btn">\
 				<button class="btn btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
@@ -519,6 +538,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		</div>').appendTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
+		this.set_input_attributes();
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		//this.bind_change_event();

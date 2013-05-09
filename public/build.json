@@ -94,7 +94,6 @@
 			"lib/public/js/legacy/utils/handler.js",
 			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/legacy/widgets/dialog.js",
-			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/legacy/webpage/loaders.js",
 
 			"lib/public/js/wn/upload.js",
@@ -135,7 +134,6 @@
 			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
-			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/legacy/widgets/form/form_dialog.js",
 			"lib/public/js/legacy/widgets/form/form_header.js",
 			"lib/public/js/legacy/widgets/form/form.js",

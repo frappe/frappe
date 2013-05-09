@@ -37,7 +37,7 @@ $.extend(wn.model, {
 		
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
-			if(!in_list(no_value_fields, f.fieldtype) && doc[f.fieldname]==null) {
+			if(!in_list(wn.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = wn.model.get_default_value(f, doc);
 				if(v) {
 					if(in_list(["Int", "Check"], f.fieldtype))

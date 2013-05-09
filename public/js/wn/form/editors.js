@@ -80,6 +80,9 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		this.$textarea = this.$parent.find(".html-editor");
 		this.input = this.$editor.get(0);
 	},
+	set_focus: function() {
+		this.$editor.focus();
+	},
 	make_bindings: function() {
 		var me = this;
 		var fonts = ['Serif', 'Sans', 'Arial', 'Arial Black', 'Courier', 
@@ -215,6 +218,9 @@ wn.editors.ACE = Class.extend({
 	get_value: function() {
 		return this.editor.getSession().getValue();
 	},
+	set_focus: function() {
+		this.editor.focus();
+	},
 	bind_form_load: function() {
 		var me = this;
 		if(cur_frm) {
@@ -226,5 +232,8 @@ wn.editors.ACE = Class.extend({
 				})
 			});
 		}
-	}
+	},
+	set_focus: function() {
+		this.$editor.focus();
+	},
 })

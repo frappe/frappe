@@ -127,6 +127,13 @@ wn.ui.form.Grid = Class.extend({
 	},
 	set_value: function(fieldname, value, doc) {
 		this.grid_rows_by_docname[doc.name].set_value(fieldname, value);
+	},
+	add_new_row: function(idx, callback) {
+		wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
+		this.refresh();
+		// show
+		this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
+			.toggle_view(true, callback);
 	}
 });
 
@@ -200,10 +207,7 @@ wn.ui.form.GridRow = Class.extend({
 		this.wrapper.find(".grid-insert-row").click(function() {
 			var idx = me.doc.idx;
 			me.toggle_view(false);
-			wn.model.add_child(me.frm.doc, me.grid.df.options, me.grid.df.fieldname, 
-				me.doc.idx);
-			me.grid.refresh();
-			me.grid.wrapper.find("[data-idx='"+idx+"']").data("grid_row").toggle_view(true);
+			me.grid.add_new_row(idx);
 			return false;
 		})
 	},
@@ -259,7 +263,7 @@ wn.ui.form.GridRow = Class.extend({
 			}
 		});
 	},
-	toggle_view: function(show) {
+	toggle_view: function(show, callback) {
 		this.doc = locals[this.doc.doctype][this.doc.name];
 		// hide other
 		var open_row = $(".grid-row-open").data("grid_row"),
@@ -267,12 +271,21 @@ wn.ui.form.GridRow = Class.extend({
 
 		this.fields = [];
 		this.fields_dict = {};
-		
-		open_row && open_row != this && open_row.toggle_view(false);
-		
+				
 		this.show = show===undefined ? 
 			show = !this.show :
 			show
+
+		if(show && open_row) {
+			if(open_row==this) {
+				// already open, do nothing
+				callback();
+				return;
+			} else {
+				// close other views
+				open_row.toggle_view(false);
+			}
+		}
 
 		this.make_columns();
 		this.wrapper.toggleClass("grid-row-open", this.show);
@@ -281,10 +294,13 @@ wn.ui.form.GridRow = Class.extend({
 		this.show && this.row.toggle(false);
 
 		this.form_panel.slideToggle(this.show, function() {
-			if(!me.show) {
+			if(me.show) {
+				me.form_area.find(":input:first").focus();
+			} else {
 				$(me.form_area).empty();
 				me.row.toggle(true);
 			}
+			callback && callback();
 		});
 	},
 	render_form: function() {
