@@ -214,7 +214,7 @@ Thank you,<br>
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
 	
-	def on_rename(self,newdn,olddn):
+	def on_rename(self,newdn,olddn, merge=False):
 		self.validate_rename(newdn, olddn)
 			
 		tables = webnotes.conn.sql("show tables")
