@@ -1088,7 +1088,7 @@ SelectField.prototype.make_input = function() {
 				padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
 				<i class='icon-plus'></i></button>")
 				.click(function() {
-					cur_frm.attachments.new_attachment();
+					cur_frm.attachments.new_attachment(me.df.fieldname);
 				})
 				.appendTo(this.input_area);
 		}

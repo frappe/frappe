@@ -670,9 +670,10 @@ def copy_common_fields(from_doc, to_doc):
 		if doctype_list.get_field(fieldname) and to_doc.fields[fieldname] != value:
 			to_doc.fields[fieldname] = value
 			
-def validate_name(doctype, name, case=None):
-	if webnotes.conn.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), name):
-		raise NameError, 'Name %s already exists' % name
+def validate_name(doctype, name, case=None, merge=False):
+	if not merge:
+		if webnotes.conn.sql('select name from `tab%s` where name=%s' % (doctype,'%s'), name):
+			raise NameError, 'Name %s already exists' % name
 	
 	# no name
 	if not name: return 'No Name Specified for %s' % doctype
