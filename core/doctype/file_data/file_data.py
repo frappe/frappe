@@ -45,7 +45,7 @@ class DocType():
 			raise webnotes.DuplicateEntryError
 			
 	def on_trash(self):
-		if webnotes.conn.sql("""select count(*) from `tabFile Data`
+		if self.doc.file_name and webnotes.conn.sql("""select count(*) from `tabFile Data`
 			where file_name=%s""", self.doc.file_name)[0][0]==1:
 			path = webnotes.utils.get_path("public", "files", self.doc.file_name)
 			if os.path.exists(path):

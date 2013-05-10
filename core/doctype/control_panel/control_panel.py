@@ -25,9 +25,6 @@ import webnotes
 
 from webnotes import form, msgprint
 
-	
-
-
 class DocType:
 	def __init__(self, doc, doclist):
 		self.doc = doc

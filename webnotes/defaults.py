@@ -109,11 +109,12 @@ def get_defaults_for(parent="Control Panel"):
 		for d in res:
 			if d.defkey in defaults:
 				# listify
-				if isinstance(defaults[d.defkey], basestring) and defaults[d.defkey] != d.defvalue:
+				if not isinstance(defaults[d.defkey], list) and defaults[d.defkey] != d.defvalue:
 					defaults[d.defkey] = [defaults[d.defkey]]
+				
 				if d.defvalue not in defaults[d.defkey]:
 					defaults[d.defkey].append(d.defvalue)
-			else:
+			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 		
 		if webnotes.session and parent == webnotes.session.user:

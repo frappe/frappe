@@ -247,7 +247,8 @@ _f.Grid.prototype.set_cell_value = function(cell) {
 	// variations
 	if(cell.cellIndex) {
 		$(cell.div).html(wn.format(v, hc.df, {for_print: 
-			((doc && doc.docstatus==0 && !cint(hc.df ? hc.df.read_only : 1)) ? true : false)}));
+			((doc && doc.docstatus==0 && !cint(hc.df ? hc.df.read_only : 1)) 
+				? true : false)}, doc));
 	} else {
 		// Index column
 		cell.div.style.padding = '2px';

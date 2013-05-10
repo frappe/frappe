@@ -64,6 +64,9 @@ def runserverobj():
 			else:
 				webnotes.response['message'] = r
 		
+		from webnotes.widgets.form.load import add_file_list
+		add_file_list(so.doc.doctype, so.doc.name, so.doclist)
+		
 		webnotes.response['docs'] += so.doclist
 
 def check_guest_access(doc):
