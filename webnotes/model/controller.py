@@ -78,9 +78,9 @@ class DocListController(object):
 	def round_floats_in_doc(self, doc, parentfield=None):
 		for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype, 
 			"fieldtype": ["in", ["Currency", "Float"]]}):
-			doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname), self.precision_of(df.fieldname, parentfield))
+			doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname), self.precision(df.fieldname, parentfield))
 
-	def precision_of(self, fieldname, parentfield=None):
+	def precision(self, fieldname, parentfield=None):
 		if not hasattr(self, "_precision"):
 			self._precision = webnotes._dict({
 				"default_precision": cint(webnotes.conn.get_default("float_precision")) or 6,
