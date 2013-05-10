@@ -225,11 +225,6 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 				(item.parent or item.name, item.parent and item.parenttype or link_dt),
 				raise_exception=LinkExistsError)
 
-def round_floats_in_doc(doc, precision_map):
-	from webnotes.utils import flt
-	for fieldname, precision in precision_map.items():
-		doc.fields[fieldname] = flt(doc.fields.get(fieldname), precision)
-
 def set_default(doc, key):
 	if not doc.is_default:
 		webnotes.conn.set(doc, "is_default", 1)
@@ -237,5 +232,3 @@ def set_default(doc, key):
 	webnotes.conn.sql("""update `tab%s` set `is_default`=0
 		where `%s`=%s and name!=%s""" % (doc.doctype, key, "%s", "%s"), 
 		(doc.fields.get(key), doc.name))
-		
-		

@@ -153,6 +153,7 @@ function get_number_format_info(format) {
 }
 
 function roundNumber(num, dec) {
+	dec = cint(dec);
 	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
 	return result;
 }

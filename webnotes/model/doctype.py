@@ -74,9 +74,6 @@ def get(doctype, processed=False, cached=True):
 	# add validators
 	#add_validators(doctype, doclist)
 	
-	# add precision
-	add_precision(doctype, doclist)
-
 	to_cache(doctype, processed, doclist)
 
 	if processed:
@@ -146,7 +143,6 @@ def sort_fields(doclist):
 	doclist.get({"doctype":["!=", "DocField"]}).extend(newlist)
 			
 def apply_property_setters(doctype, doclist):		
-	from webnotes.utils import cint
 	for ps in webnotes.conn.sql("""select * from `tabProperty Setter` where
 		doc_type=%s""", doctype, as_dict=1):
 		if ps['doctype_or_field']=='DocType':
@@ -367,15 +363,6 @@ def update_language(doclist):
 			messages[webnotes.lang] = webnotes._dict({})
 		messages[webnotes.lang].update(_messages)
 
-def add_precision(doctype, doclist):
-	type_precision_map = {
-		"Currency": 2,
-		"Float": cint(webnotes.conn.get_default("float_precision")) or 6
-	}
-	for df in doclist.get({"doctype": "DocField", 
-			"fieldtype": ["in", type_precision_map.keys()]}):
-		df.precision = type_precision_map[df.fieldtype]
-
 class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_field(self, fieldname, parent=None, parentfield=None):
 		filters = {"doctype":"DocField"}
@@ -411,19 +398,6 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		
 	def get_table_fields(self):
 		return self.get({"doctype": "DocField", "fieldtype": "Table"})
-		
-	def get_precision_map(self, parent=None, parentfield=None):
-		"""get a map of fields of type 'currency' or 'float' with precision values"""
-		filters = {"doctype": "DocField", "fieldtype": ["in", ["Currency", "Float"]]}
-		if parentfield:
-			parent = self.get_options(parentfield)
-		if parent:
-			filters["parent"] = parent
-		else:
-			filters["parent"] = self[0].name
-		
-		from webnotes import _dict
-		return _dict((f.fieldname, f.precision) for f in self.get(filters))
 		
 	def get_parent_doclist(self):
 		return webnotes.doclist([self[0]] + self.get({"parent": self[0].name}))

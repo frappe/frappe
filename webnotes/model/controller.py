@@ -24,6 +24,7 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes import msgprint, _
 from webnotes.utils import flt, cint, cstr
+from webnotes.model.meta import get_field_precision
 
 error_coniditon_map = {
 	"=": "!=",
@@ -73,3 +74,26 @@ class DocListController(object):
 			
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
+			
+	def round_floats_in_doc(self, doc, parentfield=None):
+		for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype, 
+			"fieldtype": ["in", ["Currency", "Float"]]}):
+			doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname), self.precision_of(df.fieldname, parentfield))
+
+	def precision_of(self, fieldname, parentfield=None):
+		if not hasattr(self, "_precision"):
+			self._precision = webnotes._dict({
+				"default_precision": cint(webnotes.conn.get_default("float_precision")) or 6,
+				"options": {}
+			})
+			
+		if self._precision.setdefault(parentfield or "main", {}).get(fieldname) is None:
+			df = self.meta.get_field(fieldname, parentfield=parentfield)
+			
+			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
+				self._precision.options[df.options] = get_field_precision(df, self.doc)
+			
+			self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
+				self._precision.default_precision
+		
+		return self._precision[parentfield or "main"][fieldname]
