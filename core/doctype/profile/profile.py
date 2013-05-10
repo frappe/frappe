@@ -183,7 +183,7 @@ Thank you,<br>
 			'user_fullname': get_user_fullname(webnotes.session['user'])
 		}
 		
-		sender = webnotes.session.user != "Administrator" and webnotes.session.user or None
+		sender = webnotes.session.user not in ("Administrator", "Guest") and webnotes.session.user or None
 		
 		sendmail_md(recipients=self.doc.email, sender=sender, subject=subject, msg=txt % args)
 		
