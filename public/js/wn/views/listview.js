@@ -165,7 +165,7 @@ wn.views.ListView = Class.extend({
 		}
 		else if(opts.content=='name') {
 			$("<a>")
-				.attr("href", "#Form/" + data.doctype + "/" + data.name)
+				.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
 				.html(data.name)
 				.appendTo(parent);
 		} 

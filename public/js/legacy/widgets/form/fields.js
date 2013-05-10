@@ -942,9 +942,9 @@ CurrencyField.prototype.get_field_currency = function() {
 };
 
 CurrencyField.prototype.get_formatted = function(val) {
-	if(this.not_in_form) 
+	if(!this.doctype) 
 		return val;
-		
+	
 	return format_currency(val, this.get_field_currency());
 }
 CurrencyField.prototype.set_disp = function(val) {
@@ -1088,7 +1088,7 @@ SelectField.prototype.make_input = function() {
 				padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
 				<i class='icon-plus'></i></button>")
 				.click(function() {
-					cur_frm.attachments.new_attachment();
+					cur_frm.attachments.new_attachment(me.df.fieldname);
 				})
 				.appendTo(this.input_area);
 		}

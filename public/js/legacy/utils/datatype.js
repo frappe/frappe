@@ -73,7 +73,7 @@ function cint(v, def) {
 	v=v+''; 
 	v=lstrip(v, ['0']); 
 	v=parseInt(v); 
-	if(isNaN(v))v=def?def:0; 
+	if(isNaN(v))v=def===undefined?0:def;
 	return v; 
 }
 function validate_email(txt) { 

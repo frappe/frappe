@@ -111,7 +111,7 @@ class DocType:
 		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
 		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", self.doc.name)
 	
-	def on_rename(self, new, old):
+	def on_rename(self, new, old, merge=False):
 		if self.doc.issingle:
 			webnotes.conn.sql("""\
 				update tabSingles set doctype=%s

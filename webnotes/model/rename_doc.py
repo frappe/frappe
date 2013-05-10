@@ -1,7 +1,7 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes import _
-import webnotes.utils
+from webnotes.utils import cint
 import webnotes.model.doctype
 from webnotes.model.doc import validate_name
 
@@ -13,16 +13,19 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	"""
 	if not webnotes.conn.exists(doctype, old):
 		return
-		
+	
+	force = cint(force)
+	merge = cint(merge)
+	
 	# get doclist of given doctype
 	doclist = webnotes.model.doctype.get(doctype)
 	
-	new = validate_rename(doctype, new, doclist, merge, force)
-
 	# call on_rename
 	obj = webnotes.get_obj(doctype, old)
 	if hasattr(obj, 'on_rename'):
-		new = obj.on_rename(new, old) or new
+		new = obj.on_rename(new, old, merge) or new
+		
+	new = validate_rename(doctype, new, doclist, merge, force)
 		
 	if not merge:
 		rename_parent_and_child(doctype, old, new, doclist)
@@ -61,8 +64,8 @@ def validate_rename(doctype, new, doclist, merge, force):
 
 	if merge and not exists:
 		webnotes.msgprint("%s: %s does not exist, select a new target to merge." % (doctype, new), raise_exception=1)
-		
-	if not merge and exists:
+	
+	if (not merge) and exists:
 		webnotes.msgprint("%s: %s exists, select a new, new name." % (doctype, new), raise_exception=1)
 
 	if not webnotes.has_permission(doctype, "write"):
@@ -72,7 +75,7 @@ def validate_rename(doctype, new, doclist, merge, force):
 		webnotes.msgprint("%s cannot be renamed" % doctype, raise_exception=1)
 	
 	# validate naming like it's done in doc.py
-	new = validate_name(doctype, new)
+	new = validate_name(doctype, new, merge=merge)
 
 	return new
 
