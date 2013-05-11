@@ -148,6 +148,17 @@ $.extend(wn.meta, {
 			}
 		}
 		return currency;
-	}
+	},
+	
+	get_field_precision: function(df, doc) {
+		var precision = wn.defaults.get_default("float_precision") || 6;
+		if(df.fieldtype === "Currency") {
+			var currency = this.get_field_currency(df, doc);
+			var number_format = get_number_format(currency);
+			var number_format_info = get_number_format_info(number_format);
+			precision = number_format_info.precision || precision;
+		}
+		return precision;
+	},
 
 });
