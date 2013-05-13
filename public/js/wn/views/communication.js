@@ -196,6 +196,7 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.send.input).click(function() {
+			var btn = this;
 			var form_values = me.dialog.get_values();
 			if(!form_values) return;
 					
@@ -233,6 +234,7 @@ wn.views.CommunicationComposer = Class.extend({
 						print_html: print_html,
 						attachments: selected_attachments
 					},
+					btn: btn,
 					callback: function(r) {
 						if(!r.exc) {
 							if(form_values.send_email)
