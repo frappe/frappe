@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes, json
-from webnotes.utils import cint, now
+from webnotes.utils import cint, now, cstr
 from webnotes import _
 
 class DocType:
@@ -62,9 +62,11 @@ class DocType:
 		import conf
 		# check only when enabling a user
 		if hasattr(conf, 'max_users') and self.doc.enabled and \
-				self.doc.name not in ["Administrator", "Guest"]:
+				self.doc.name not in ["Administrator", "Guest"] and \
+				cstr(self.doc.user_type).strip() in ("", "System User"):
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
+				and ifnull(user_type, "System User") = "System User"
 				and name not in ('Administrator', 'Guest', %s)""", (self.doc.name,))[0][0]
 			if active_users >= conf.max_users and conf.max_users:
 				webnotes.msgprint("""
