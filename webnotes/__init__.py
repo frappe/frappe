@@ -220,7 +220,7 @@ def whitelist(allow_guest=False, allow_roles=None):
 				raise PermissionError, "Method not allowed"
 
 		return fn
-
+	
 	return innerfn
 	
 def clear_cache(user=None, doctype=None):
