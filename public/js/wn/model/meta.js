@@ -127,7 +127,6 @@ $.extend(wn.meta, {
 	
 	get_field_currency: function(df, doc) {
 		var currency = wn.boot.sysdefaults.currency;
-		
 		if(!doc && cur_frm) 
 			doc = cur_frm.doc;
 			
@@ -138,10 +137,9 @@ $.extend(wn.meta, {
 					// get reference record e.g. Company
 					var docname = doc[options[1]];
 					if(!docname && cur_frm) {
-						docname = cur_frm.doc[options[1]]
+						docname = cur_frm.doc[options[1]];
 					}
-					currency = wn.model.get_value(options[0], doc[options[1]], 
-						options[2]) || currency;
+					currency = wn.model.get_value(options[0], docname, options[2]) || currency;
 				}
 			} else if(doc && doc[df.options]) {
 				currency = doc[df.options];

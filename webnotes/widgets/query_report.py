@@ -80,10 +80,11 @@ def add_total_row(result, columns):
 	total_row = [""]*len(columns)
 	for row in result:
 		for i, col in enumerate(columns):
-			if col.split(":")[1] in ["Currency", "Int", "Float"] and flt(row[i]):
+			col = col.split(":")
+			if len(col) > 1 and col[1] in ["Currency", "Int", "Float"] and flt(row[i]):
 				total_row[i] = flt(total_row[i]) + flt(row[i])
-				
-	if columns[0].split(":")[1] not in ["Currency", "Int", "Float"]:
+	first_col = columns[0].split(":")
+	if len(first_col) > 1 and first_col[1] not in ["Currency", "Int", "Float"]:
 		total_row[0] = "Total"
 		
 	result.append(total_row)

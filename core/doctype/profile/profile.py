@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes, json
-from webnotes.utils import cint, now
+from webnotes.utils import cint, now, cstr
 from webnotes import _
 
 class DocType:
@@ -32,19 +32,14 @@ class DocType:
 		
 	def autoname(self):
 		"""set name as email id"""
-		import re
-		from webnotes.utils import validate_email_add
-
 		if self.doc.name not in ('Guest','Administrator'):
-			self.doc.email = self.doc.email.strip()
-			if not validate_email_add(self.doc.email):
-				webnotes.msgprint("%s is not a valid email id" % self.doc.email)
-				raise Exception
-		
+			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
+		if self.doc.name not in ('Guest','Administrator'):
+			self.validate_email_type(self.doc.email)
 		self.validate_max_users()
 		self.check_one_system_manager()
 		self.check_enable_disable()
@@ -67,9 +62,11 @@ class DocType:
 		import conf
 		# check only when enabling a user
 		if hasattr(conf, 'max_users') and self.doc.enabled and \
-				self.doc.name not in ["Administrator", "Guest"]:
+				self.doc.name not in ["Administrator", "Guest"] and \
+				cstr(self.doc.user_type).strip() in ("", "System User"):
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
 				where ifnull(enabled, 0)=1 and docstatus<2
+				and ifnull(user_type, "System User") = "System User"
 				and name not in ('Administrator', 'Guest', %s)""", (self.doc.name,))[0][0]
 			if active_users >= conf.max_users and conf.max_users:
 				webnotes.msgprint("""
@@ -188,7 +185,7 @@ Thank you,<br>
 			'user_fullname': get_user_fullname(webnotes.session['user'])
 		}
 		
-		sender = webnotes.session.user != "Administrator" and webnotes.session.user or None
+		sender = webnotes.session.user not in ("Administrator", "Guest") and webnotes.session.user or None
 		
 		sendmail_md(recipients=self.doc.email, sender=sender, subject=subject, msg=txt % args)
 		
@@ -219,11 +216,8 @@ Thank you,<br>
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
 	
-	def on_rename(self,newdn,olddn):
-		# do not allow renaming administrator and guest
-		if olddn in ["Administrator", "Guest"]:
-			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
-				(olddn, ), raise_exception=1)
+	def on_rename(self,newdn,olddn, merge=False):
+		self.validate_rename(newdn, olddn)
 			
 		tables = webnotes.conn.sql("show tables")
 		for tab in tables:
@@ -244,7 +238,24 @@ Thank you,<br>
 			where name=%s""", (newdn, newdn))
 		
 		# update __Auth table
-		webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
+		if not merge:
+			webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
+		
+	def validate_rename(self, newdn, olddn):
+		# do not allow renaming administrator and guest
+		if olddn in ["Administrator", "Guest"]:
+			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
+				(olddn, ), raise_exception=1)
+		
+		self.validate_email_type(newdn)
+	
+	def validate_email_type(self, email):
+		from webnotes.utils import validate_email_add
+	
+		email = email.strip()
+		if not validate_email_add(email):
+			webnotes.msgprint("%s is not a valid email id" % email)
+			raise Exception
 						
 @webnotes.whitelist()
 def get_all_roles(arg=None):
