@@ -104,6 +104,9 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			
 			if(!r.messages) r.messages = [];
 			
+			// clear output area
+			$("#dit-output").empty();
+			
 			// replace links if error has occured
 			if(r.exc || r.error) {
 				r.messages = $.map(r.messages, function(v) {
