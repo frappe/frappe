@@ -57,7 +57,6 @@ login.do_login = function(){
 		data: args,
 		dataType: "json",
 		success: function(data) {
-			$("input").val("");
 			$("#login-spinner").toggle(false);
 			$('#login_btn').attr("disabled", false);
 			if(data.message=="Logged In") {

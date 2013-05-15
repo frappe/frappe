@@ -277,8 +277,8 @@ $.extend(wn.model, {
 				map_info = map_info[args.source[0].doctype];
 			if(!map_info) {
 				map_info = {
-					table_map: {},
-					field_map: {}
+					table_map: args.table_map || {},
+					field_map: args.field_map || {}
 				}
 			}
 			
