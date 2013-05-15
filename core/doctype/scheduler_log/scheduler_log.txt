@@ -1,57 +1,58 @@
 [
  {
-  "owner": "Administrator", 
+  "creation": "2013-01-16 13:09:40", 
   "docstatus": 0, 
-  "creation": "2013-01-15 12:42:11", 
+  "modified": "2013-05-15 12:08:15", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-15 12:49:23"
+  "owner": "Administrator"
  }, 
  {
   "autoname": "SCHLOG.#####", 
   "description": "Log of Scheduler Errors", 
   "doctype": "DocType", 
-  "module": "Core", 
   "document_type": "System", 
+  "module": "Core", 
   "name": "__common__"
  }, 
  {
+  "doctype": "DocField", 
   "name": "__common__", 
   "parent": "Scheduler Log", 
-  "doctype": "DocField", 
+  "parentfield": "fields", 
   "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "permlevel": 0
  }, 
  {
-  "parent": "Scheduler Log", 
-  "read": 1, 
   "cancel": 1, 
-  "name": "__common__", 
   "create": 1, 
   "doctype": "DocPerm", 
-  "submit": 0, 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Scheduler Log", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "role": "System Manager", 
-  "report": 1, 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "report": 1, 
+  "role": "System Manager", 
+  "submit": 0, 
+  "write": 1
  }, 
  {
-  "name": "Scheduler Log", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Scheduler Log"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Method", 
   "fieldname": "method", 
-  "fieldtype": "Data"
+  "fieldtype": "Data", 
+  "in_list_view": 1, 
+  "label": "Method"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Error", 
   "fieldname": "error", 
-  "fieldtype": "Text"
+  "fieldtype": "Text", 
+  "label": "Error"
  }, 
  {
   "doctype": "DocPerm"
