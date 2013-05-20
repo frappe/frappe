@@ -43,6 +43,7 @@ def get_docs_for(docs, name):
 	mydocs["_intro"] = getattr(obj, "__doc__", "")
 	mydocs["_toc"] = getattr(obj, "_toc", "")
 	mydocs["_type"] = inspect.isclass(obj) and "class" or "module"
+	mydocs["_is_server_api"] = 1
 	
 	for name in dir(obj):
 		value = getattr(obj, name)

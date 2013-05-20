@@ -46,46 +46,7 @@ wn.standard_pages["docs"] = function() {
 };
 
 wn.provide("docs");
-wn.provide("wn.docs")
-
-$.extend(docs, {
-	_label: "Documentation",
-	_description: "Complete Application Documentation",
-	_toc: [
-		"docs.quickstart",
-		"docs.framework",
-		"docs.modules"
-	],
-	"framework": {
-		_label: "Framework API",
-		_intro: "Detailed documentation of all functions and Classes for both client\
-			and server side development.",
-		_toc: [
-			"docs.framework.server",
-			"docs.framework.client"
-		],
-		"server": {
-			_label: "Server Side - Python",
-			_toc: [
-				"webnotes",
-			]
-		},
-		"client": {
-			_label: "Client Side - JavaScript",
-			_toc: [
-				"wn", 
-				"wn.model", 
-				"wn.ui", 
-				"wn.views", 
-				"wn.utils"
-			]
-		}
-	},
-	"modules": {
-		_type: "Application",
-		_label: "Application Modules"
-	}
-});
+wn.provide("wn.docs");
 
 wn.docs.generate_all = function(logarea) {
 	var pages = [],
@@ -102,7 +63,7 @@ wn.docs.generate_all = function(logarea) {
 				// recurse
 				if(page.obj._toc) {
 					$.each(page.obj._toc, function(i, name) {
-						make_page(name);
+						make_page(wn.docs.get_full_name(name));
 					})
 				}
 			});
@@ -112,13 +73,21 @@ wn.docs.generate_all = function(logarea) {
 		wn.call({
 			"method": "webnotes.utils.docs.get_docs",
 			callback: function(r) {
-				window.webnotes = r.message.webnotes;
+				
+				// append
 				docs.modules = r.message.modules;
+				wn.provide("docs.framework.server").webnotes = r.message.webnotes;
+				wn.provide("docs.framework.client").wn = wn;
 				
 				// append static pages to the "docs" object
 				$.each(r.message.pages, function(n, content) {
 					var parts = content.split("---");
-					var obj = JSON.parse(parts.splice(0, 2)[1]);
+					try {
+						var headers = parts.splice(0, 2)[1];
+						var obj = JSON.parse(headers);
+					} catch(e) {
+						msgprint("header parsing error in " + n);
+					}
 					obj._intro = parts.join("---");
 					$.extend(wn.provide(n), obj);
 				});
@@ -127,6 +96,26 @@ wn.docs.generate_all = function(logarea) {
 			}
 		});
 	
+}
+
+wn.docs.get_full_name = function(name) {
+	/* docs:
+	Get full name with docs namespace
+	*/
+	var link_name = name;
+	if(name.substr(0,2)==="wn") {
+		link_name = "docs.framework.client." + name;
+	}
+	if(name.substr(0,8)==="webnotes") {
+		link_name = "docs.framework.server." + name;
+	}
+	return link_name;	
+}
+
+wn.docs.get_short_name = function(namespace) {
+	namespace = namespace.replace("docs.framework.server.", "")
+	namespace = namespace.replace("docs.framework.client.", "")
+	return namespace;
 }
 
 wn.docs.DocsPage = Class.extend({
@@ -143,7 +132,8 @@ wn.docs.DocsPage = Class.extend({
 		this.make(obj);
 	},
 	make: function(obj) {
-		$("<h2>").html(obj._label || this.namespace).appendTo(this.parent);
+		$("<h2>").html(obj._label || wn.docs.get_short_name(this.namespace))
+			.appendTo(this.parent);
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
@@ -157,13 +147,6 @@ wn.docs.DocsPage = Class.extend({
 
 		if(name==="docs") return;
 			
-		if(name==="wn" || name.substr(0,3)==="wn.") {
-			name = "docs.framework.client." + name;
-		}
-		if(name==="webnotes" || name.substr(0,9)==="webnotes.") {
-			name = "docs.framework.server." + name;
-		}
-
 		var parts = name.split("."),
 			ul = $('<ul class="breadcrumb">').appendTo(this.parent),
 			fullname = "";
@@ -197,9 +180,10 @@ wn.docs.DocsPage = Class.extend({
 			$("<h4>Contents</h4>").appendTo(body);
 			var ol = $("<ol>").appendTo(body);
 			$.each(obj._toc, function(i, name) {
-				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
-						name: name,
-						label: wn.provide(name)._label || name
+				var link_name = wn.docs.get_full_name(name);
+				$(repl('<li><a href="%(link_name)s.html">%(label)s</a></li>', {
+						link_name: link_name,
+						label: wn.provide(link_name)._label || name
 					}))
 					.appendTo(ol)
 			})
@@ -268,6 +252,10 @@ wn.docs.DocsPage = Class.extend({
 			code = value.toString();
 			
 		namespace = namespace===undefined ? this.namespace : "";
+
+		if(namespace!=="") {
+			namespace = wn.docs.get_short_name(namespace);
+		}
 
 		if(namespace!=="" && namespace[namespace.length-1]!==".")
 			namespace = namespace + ".";
