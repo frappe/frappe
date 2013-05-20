@@ -16,11 +16,14 @@ def get_docs():
 def get_pages():
 	mydocs = {}
 	for repo in ("lib", "app"):
-		for fname in os.listdir(os.path.join("..", repo, "docs")):
-			if fname.endswith(".md"):
-				fpath = os.path.join("..", repo, "docs", fname)
-				with open(fpath, "r") as docfile:
-					mydocs[fname[:-3]] = docfile.read()
+		for path, folders, files in os.walk(os.path.join("..", repo)):
+			if os.path.basename(path)=="docs":
+				# docs folder
+				for fname in files:
+					if fname.endswith(".md"):
+						fpath = os.path.join("..", repo, "docs", fname)
+						with open(fpath, "r") as docfile:
+							mydocs[fname[:-3]] = docfile.read()
 	
 	return mydocs
 
@@ -43,7 +46,6 @@ def get_docs_for(docs, name):
 	mydocs["_intro"] = getattr(obj, "__doc__", "")
 	mydocs["_toc"] = getattr(obj, "_toc", "")
 	mydocs["_type"] = inspect.isclass(obj) and "class" or "module"
-	mydocs["_is_server_api"] = 1
 	
 	for name in dir(obj):
 		value = getattr(obj, name)
@@ -155,10 +157,25 @@ docs_template = """
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>-->
 	<link type="text/css" rel="stylesheet" href="css/bootstrap.css">
 	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
+	<style>
+		@import url(http://fonts.googleapis.com/css?family=Arvo:400,700);
+		h1 {
+			font-family: Arvo, Serif;
+			font-weight: bold;
+		}
+	</style>
 </head>
 <body>
-	<div class="container" style="max-width: 767px;">
-		{{ content }}
+	<div class="container" style="max-width: 767px; margin-top: 30px;">
+	<div class="navbar" style="background-color: #EDE6DA; margin-bottom: 30px;">
+		<a class="navbar-brand" href="docs.html">erpnext.org</a>
+		<ul class="nav navbar-nav">
+			<li><a href="docs.user.html">User</a></li>
+			<li><a href="docs.dev.html">Developer</a></li>
+		</ul>
+	</div>
+		
+	{{ content }}
 	</div>
 	<script type="text/javascript">
 	  $(".dropdown-toggle").dropdown();

@@ -2,8 +2,8 @@
 {
 	"_label": "Framework API",
 	"_toc": [
-		"docs.framework.server",
-		"docs.framework.client"
+		"docs.dev.framework.server",
+		"docs.dev.framework.client"
 	]
 }
 ---

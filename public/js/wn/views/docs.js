@@ -58,8 +58,8 @@ wn.docs.generate_all = function(logarea) {
 				parent: body,
 			});
 			page.write(function() {
-				//logarea.append("Writing " + name + "...<br>");
-				logarea.append(".");
+				logarea.append("Writing " + name + "...<br>");
+				//logarea.append(".");
 				// recurse
 				if(page.obj._toc) {
 					$.each(page.obj._toc, function(i, name) {
@@ -76,8 +76,8 @@ wn.docs.generate_all = function(logarea) {
 				
 				// append
 				docs.modules = r.message.modules;
-				wn.provide("docs.framework.server").webnotes = r.message.webnotes;
-				wn.provide("docs.framework.client").wn = wn;
+				wn.provide("docs.dev.framework.server").webnotes = r.message.webnotes;
+				wn.provide("docs.dev.framework.client").wn = wn;
 				
 				// append static pages to the "docs" object
 				$.each(r.message.pages, function(n, content) {
@@ -104,17 +104,17 @@ wn.docs.get_full_name = function(name) {
 	*/
 	var link_name = name;
 	if(name.substr(0,2)==="wn") {
-		link_name = "docs.framework.client." + name;
+		link_name = "docs.dev.framework.client." + name;
 	}
 	if(name.substr(0,8)==="webnotes") {
-		link_name = "docs.framework.server." + name;
+		link_name = "docs.dev.framework.server." + name;
 	}
 	return link_name;	
 }
 
 wn.docs.get_short_name = function(namespace) {
-	namespace = namespace.replace("docs.framework.server.", "")
-	namespace = namespace.replace("docs.framework.client.", "")
+	namespace = namespace.replace("docs.dev.framework.server.", "")
+	namespace = namespace.replace("docs.dev.framework.client.", "")
 	return namespace;
 }
 
@@ -132,8 +132,10 @@ wn.docs.DocsPage = Class.extend({
 		this.make(obj);
 	},
 	make: function(obj) {
-		$("<h2>").html(obj._label || wn.docs.get_short_name(this.namespace))
-			.appendTo(this.parent);
+		if(!obj._no_title) {
+			$("<h1>").html(obj._label || wn.docs.get_short_name(this.namespace))
+				.appendTo(this.parent);
+		}
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
@@ -165,7 +167,7 @@ wn.docs.DocsPage = Class.extend({
 		});
 
 		$(repl('<li class="active">%(label)s</li>', {
-			label: obj._label || this.namespace
+			label: obj._label || wn.docs.get_short_name(this.namespace)
 		})).appendTo(ul)
 	},
 	make_intro: function(obj) {
