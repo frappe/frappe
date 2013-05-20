@@ -835,8 +835,8 @@ _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	cur_frm.save_disabled = true;
 	cur_frm.footer.hide_save();
-	cur_frm.form_wrapper.appframe.buttons.Save.remove();
-	delete cur_frm.form_wrapper.appframe.buttons.Save
+	cur_frm.appframe.buttons.Save.remove();
+	delete cur_frm.appframe.buttons.Save
 }
 
 _f.get_value = function(dt, dn, fn) {

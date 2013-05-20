@@ -58,6 +58,11 @@ wn.ui.form.Control = Class.extend({
 
 		this.validate ? this.validate(value, set) : set(value);
 	},
+	get_parsed_value: function() {
+		return this.get_value ? 
+			(this.parse ? this.parse(this.get_value()) : this.get_value()) : 
+			undefined;
+	},
 	set_model_value: function(value) {
 		if(this.last_value!==value) {
 			wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);

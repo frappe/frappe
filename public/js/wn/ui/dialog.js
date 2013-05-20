@@ -69,10 +69,13 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 	},
 	show: function() {
 		// already live, do nothing
+		var me = this;
 		if(this.display) return;
 
 		// show it
-		this.$wrapper.modal("show");
+		this.$wrapper.modal("show").on("hide", function() {
+			me.hide(true);
+		});
 		
 		this.display = true;
 		cur_dialog = this;
@@ -86,12 +89,13 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 			first.focus();
 		}
 	},
-	hide: function() {
+	hide: function(from_event) {
 		// call onhide
 		if(this.onhide) this.onhide();
 
 		// hide
-		this.$wrapper.modal("hide");
+		if(!from_event)
+			this.$wrapper.modal("hide");
 
 		// flags
 		this.display = false;

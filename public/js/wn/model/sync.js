@@ -83,7 +83,7 @@ $.extend(wn.model, {
 
 			for(key in wn.meta.docfield_map[doctype]) { // all other values
 				if(!in_list(key_list, key) 
-					&& !in_list(no_value_fields, wn.meta.docfield_map[doctype][key].fieldtype)
+					&& !in_list(wn.model.no_value_type, wn.meta.docfield_map[doctype][key].fieldtype)
 					&& !wn.meta.docfield_map[doctype][key].no_column) {
 						key_list[key_list.length] = key
 					}

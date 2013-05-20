@@ -8,32 +8,25 @@ wn.ui.AppFrame = Class.extend({
 		this.set_document_title = true;
 		this.buttons = {};
 		this.$w = $('<div class="col-span-12">\
-			<div class="row appframe-header">\
-				<div class="col-span-12"></div>\
-			</div>\
 			</div>')
 			.prependTo(parent)
-			.find(".appframe-header div");
 
-		$('<!-- div>\
-			<ul class="breadcrumb" style="height: 32px;">\
-				<span class="appframe-right pull-right">\
-					<span class="btn-group"></span>\
-				</span>\
-			</ul>\
-		</div>\
-		<div class="toolbar-area"></div -->\
-		<img class="title-status-img hidden-phone"\
+		this.$body = $('<div class="row appframe-header">\
+				<div class="col-span-12"></div>\
+			</div>\
+			<div class="appframe-toolbar" \
+				style="display: none; margin-top: 15px; margin-bottom: 15px;">\
+				<span class="btn-group" style="display: inline-block; margin-right: 5px;"></span></div>\
+		').appendTo(this.$w).find(".col-span-12");
+
+		$('<img class="title-status-img hidden-phone"\
 			style="position: absolute; top: 10px; left: 40%; width: 160px; display:none" />\
 		<div class="title-button-area btn-group pull-right" style="margin-top: 10px;"></div>\
 		<div class="title-area"><h2 style="display: inline-block">\
 			<span class="title-icon"></span><span class="title-text"></span></h2></div>\
 		<div class="sub-title-area text-muted small" \
 			style="margin-top: -10px;"></div>\
-		<div class="appframe-toolbar" \
-			style="display: none; margin-top: 15px;">\
-			<span class="btn-group" style="display: inline-block; margin-right: 5px;"></span></div>\
-		').appendTo(this.$w);
+		').appendTo(this.$body);
 		
 		this.$w.find('.close').click(function() {
 			window.history.back();

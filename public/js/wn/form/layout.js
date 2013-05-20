@@ -8,7 +8,7 @@ wn.ui.form.Layout = Class.extend({
 	make: function() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		this.fields = wn.meta.docfield_list[this.doctype];
-		this.fields.sort(function(a,b) { return a.idx - b.idx});
+		this.fields.sort(function(a,b) { return a.idx > b.idx ? 1 : -1 });
 		this.setup_tabbing();
 	},
 	refresh: function() {

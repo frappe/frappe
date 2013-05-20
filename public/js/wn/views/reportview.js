@@ -105,7 +105,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			var columns = [['name', this.doctype],];
 			$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
 				if(df.in_filter && df.fieldname!='naming_series'
-					&& !in_list(no_value_fields, df.fieldname)) {
+					&& !in_list(wn.model.no_value_type, df.fieldname)) {
 					columns.push([df.fieldname, df.parent]);
 				}
 			});

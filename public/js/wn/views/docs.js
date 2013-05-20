@@ -1,11 +1,20 @@
 /*
 
 Todo:
-- modules / doctypes (export)
-- auto breadcrumbs
 - make global toc
+- static pages in markdown (in sources folder)
+	- web interface
+	- building an application
+	- customizing an application
+	- generating web pages
+	
 - help / comments in markdown
-- jinja template for docs
+- pages
+- doctype
+	- links
+	- properties
+	- methods
+	- events (server, client)
 
 Documentation API
 
@@ -28,8 +37,12 @@ wn.standard_pages["docs"] = function() {
 		title: wn._("Docs")
 	});
 	
-	var body = $(wrapper).find(".layout-main");
-	wn.docs.generate_all($('<div class="well"></div>').appendTo(body));
+	var body = $(wrapper).find(".layout-main"),
+		logarea = $('<div class="well"></div>').appendTo(body);
+	
+	wrapper.appframe.add_button("Make Docs", function() {
+		wn.docs.generate_all(logarea);
+	})
 };
 
 wn.provide("docs");
@@ -39,15 +52,14 @@ $.extend(docs, {
 	_label: "Documentation",
 	_description: "Complete Application Documentation",
 	_toc: [
+		"docs.quickstart",
 		"docs.framework",
-		"docs.core",
 		"docs.modules"
 	],
 	"framework": {
 		_label: "Framework API",
 		_intro: "Detailed documentation of all functions and Classes for both client\
 			and server side development.",
-		_path: ["docs"],
 		_toc: [
 			"docs.framework.server",
 			"docs.framework.client"
@@ -69,11 +81,9 @@ $.extend(docs, {
 			]
 		}
 	},
-	"core": {
-		_type: "Module",
-	},
 	"modules": {
-		_type: "Application"
+		_type: "Application",
+		_label: "Application Modules"
 	}
 });
 
@@ -86,21 +96,33 @@ wn.docs.generate_all = function(logarea) {
 				namespace: name,
 				parent: body,
 			});
-			logarea.append(".");
-			page.write();
-			
-			// recurse
-			if(page.obj._toc) {
-				$.each(page.obj._toc, function(i, name) {
-					make_page(name);
-				})
-			}
+			page.write(function() {
+				//logarea.append("Writing " + name + "...<br>");
+				logarea.append(".");
+				// recurse
+				if(page.obj._toc) {
+					$.each(page.obj._toc, function(i, name) {
+						make_page(name);
+					})
+				}
+			});
 		}
 	
+		logarea.empty().append("Downloading server docs...<br>");
 		wn.call({
 			"method": "webnotes.utils.docs.get_docs",
 			callback: function(r) {
 				window.webnotes = r.message.webnotes;
+				docs.modules = r.message.modules;
+				
+				// append static pages to the "docs" object
+				$.each(r.message.pages, function(n, content) {
+					var parts = content.split("---");
+					var obj = JSON.parse(parts.splice(0, 2)[1]);
+					obj._intro = parts.join("---");
+					$.extend(wn.provide(n), obj);
+				});
+				
 				make_page("docs");
 			}
 		});
@@ -125,27 +147,47 @@ wn.docs.DocsPage = Class.extend({
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
-		//this.make_classes(obj);
+		if(obj._type==="doctype")
+			this.make_docfields(obj);
 		this.make_functions(obj);
 	},
 	make_breadcrumbs: function(obj) {
-		var me = this;
-		if(obj._path) {
-			var ul = $('<ul class="breadcrumb">').appendTo(this.parent);
-			$.each(obj._path, function(i, p) {
-				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
-					name: p,
-					label: wn.provide(p)._label || p
-				})).appendTo(ul)
-			});
-			$(repl('<li class="active">%(label)s</li>', {
-				label: obj._label || this.namespace
-			})).appendTo(ul)
+		var me = this,
+			name = this.namespace
+
+		if(name==="docs") return;
+			
+		if(name==="wn" || name.substr(0,3)==="wn.") {
+			name = "docs.framework.client." + name;
 		}
+		if(name==="webnotes" || name.substr(0,9)==="webnotes.") {
+			name = "docs.framework.server." + name;
+		}
+
+		var parts = name.split("."),
+			ul = $('<ul class="breadcrumb">').appendTo(this.parent),
+			fullname = "";
+					
+		$.each(parts, function(i, p) {
+			if(i!=parts.length-1) {
+				if(fullname) 
+					fullname = fullname + "." + p
+				else 
+					fullname = p
+				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
+					name: fullname,
+					label: wn.provide(fullname)._label || p
+				})).appendTo(ul);
+			}
+		});
+
+		$(repl('<li class="active">%(label)s</li>', {
+			label: obj._label || this.namespace
+		})).appendTo(ul)
 	},
 	make_intro: function(obj) {
 		if(obj._intro) {
-			$("<p>").html(obj._intro).appendTo(this.parent);
+			$("<p>").html(wn.markdown(obj._intro)).appendTo(this.parent);
 		}
 	},
 	make_toc: function(obj) {
@@ -163,33 +205,40 @@ wn.docs.DocsPage = Class.extend({
 			})
 		}
 	},
-	make_classes: function(obj) {
+	make_docfields: function(obj) {
 		var me = this,
-			classes = {}
+			docfields = [];
 		$.each(obj, function(name, value) {
-			if(value && value._type=="class") {
-				classes[name] = value;
+			if(value && value._type=="docfield") {
+				docfields.push(value);
 			};
 		})
-		if(!$.isEmptyObject(classes)) {
-			$("<h3>").html("Classes").appendTo(this.parent);
-			$.each(classes, function(name, value) {
-				$("<h4>").html("Class: " + name).appendTo(me.parent);
-				me.make_function_table(me.get_functions(value.prototype), "");
-				$("<hr>").appendTo(me.parent);
-			})
-		}
+		if(docfields.length) {
+			this.h3("DocFields");
+			var tbody = this.get_tbody();
+			docfields = docfields.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 })
+			$.each(docfields, function(i, df) {
+				$(repl('<tr>\
+					<td style="width: 10%;">%(idx)s</td>\
+					<td style="width: 25%;">%(fieldname)s</td>\
+					<td style="width: 20%;">%(label)s</td>\
+					<td style="width: 25%;">%(fieldtype)s</td>\
+					<td style="width: 20%;">%(options)s</td>\
+				</tr>', df)).appendTo(tbody);
+			});
+		};
 	},
 	make_functions: function(obj) {
 		var functions = this.get_functions(obj);
 		if(!$.isEmptyObject(functions)) {
-			$("<h3>").html("Functions").appendTo(this.parent);
+			this.h3("Functions");
 			this.make_function_table(functions);
 		}
 	},
 	get_functions: function(obj) {
-		var functions = {};
-
+		var functions = {},
+			tbody = this.get_tbody();
+		
 		$.each(obj || {}, function(name, value) {
 			if(value && ((typeof value==="function" && typeof value.init !== "function")
 				|| value._type === "function")) 
@@ -199,13 +248,20 @@ wn.docs.DocsPage = Class.extend({
 	},
 	make_function_table: function(functions, namespace) {
 		var me = this,
-			table = $("<table class='table table-bordered'><tbody></tbody>\
-			</table>").appendTo(this.parent),
-			tbody = table.find("tbody");
-
+			tbody = this.get_tbody();
+			
 		$.each(functions, function(name, value) {
 			me.render_function(name, value, tbody, namespace)
 		});
+	},
+	get_tbody: function() {
+		table = $("<table class='table table-bordered'><tbody></tbody>\
+		</table>").appendTo(this.parent),
+		tbody = table.find("tbody");
+		return tbody;
+	},
+	h3: function(txt) {
+		$("<h3>").html(txt).appendTo(this.parent);
 	},
 	render_function: function(name, value, parent, namespace) {
 		var me = this,
@@ -277,7 +333,7 @@ wn.docs.DocsPage = Class.extend({
 					})
 			}).join("") + "</tbody></table>";
 	},
-	write: function() {
+	write: function(callback) {
 		wn.call({
 			method: "webnotes.utils.docs.write_doc_file",
 			args: {
@@ -285,7 +341,7 @@ wn.docs.DocsPage = Class.extend({
 				html: html_beautify(this.parent.html())
 			},
 			callback: function(r) {
-				
+				callback();
 			}
 		});
 	}

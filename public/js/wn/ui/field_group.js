@@ -71,7 +71,7 @@ wn.ui.FieldGroup = Class.extend({
 		var errors = [];
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			var v = f.get_value ? f.get_value() : null;
+			var v = f.get_parsed_value();
 
 			if(f.df.reqd && !v) 
 				errors.push(f.df.label + ' is mandatory');
@@ -92,7 +92,7 @@ wn.ui.FieldGroup = Class.extend({
 		var f = this.fields_dict[key];
 		if(f) {
 			f.set_input(val);
-		}		
+		}
 	},
 	set_values: function(dict) {	
 		for(var key in dict) {
