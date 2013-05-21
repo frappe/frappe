@@ -157,4 +157,15 @@ wn.utils = {
 		
 		return list;
 	},
+	unique: function(list) {
+		var dict = {},
+			arr = [];
+		for(var i=0, l=list.length; i < l; i++) {
+			if(!dict.hasOwnProperty(list[i])) {
+				dict[list[i]] = null;
+				arr.push(list[i]);
+			}
+		}
+		return arr;
+	},
 };
