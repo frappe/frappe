@@ -115,13 +115,9 @@ def set_lead_and_contact(d):
 			"name") or None
 			
 	if not d.company:
-		if d.lead:
-			company = webnotes.conn.get_value("Lead", d.lead, "company")
-		elif d.contact:
-			company = webnotes.conn.get_value("Contact", d.contact, "company")
+		d.company = webnotes.conn.get_value("Lead", d.lead, "company") or \
+			webnotes.conn.get_default("company")
 		
-		d.company = company or webnotes.conn.get_default("company")
-
 class DocType():
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
