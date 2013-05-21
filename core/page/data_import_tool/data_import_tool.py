@@ -202,6 +202,7 @@ def upload():
 
 	ret = []
 	error = False
+	parent_list = []
 	for i, row in enumerate(data):
 		# bypass empty rows
 		if not row: continue
@@ -223,6 +224,7 @@ def upload():
 				doc.save()
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
+				parent_list.append(doc.parent)
 			else:
 				ret.append(import_doc(d, doctype, overwrite, row_idx, params.get("_submit")))
 		except Exception, e:
@@ -230,6 +232,8 @@ def upload():
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
 				len(row)>1 and row[1] or "", cstr(e)))
 			webnotes.errprint(webnotes.getTraceback())
+	
+	ret, error = validate_parent(parent_list, parenttype, ret, error)
 	
 	if error:
 		webnotes.conn.rollback()		
@@ -239,6 +243,21 @@ def upload():
 	webnotes.mute_emails = False
 	
 	return {"messages": ret, "error": error}
+	
+def validate_parent(parent_list, parenttype, ret, error):
+	if parent_list:
+		parent_list = list(set(parent_list))
+		for p in parent_list:
+			try:
+				obj = webnotes.bean(parenttype, p)
+				obj.run_method("validate")
+				obj.run_method("on_update")
+			except Exception, e:
+				error = True
+				ret.append('Validation Error for %s %s: %s' % (parenttype, p, cstr(e)))
+				webnotes.errprint(webnotes.getTraceback())
+				
+	return ret, error
 	
 def get_parent_field(doctype, parenttype):
 	parentfield = None
