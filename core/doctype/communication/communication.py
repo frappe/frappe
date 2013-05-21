@@ -39,11 +39,10 @@ def get_customer_supplier(args=None):
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
-	sender=None, recipients=None, contact=None, lead=None, 
+	sender=None, recipients=None, contact=None, lead=None, company=None, 
 	communication_medium="Email", send_email=False, print_html=None,
 	attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 	# add to Communication
-
 	sent_via = None
 	
 	d = webnotes.doc('Communication')
@@ -53,6 +52,7 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.recipients = recipients
 	d.lead = lead
 	d.contact = contact
+	d.company = company
 	if date:
 		d.creation = date
 	if doctype:
@@ -113,6 +113,14 @@ def set_lead_and_contact(d):
 	if not d.lead:
 		d.lead = webnotes.conn.get_value("Lead", {"email_id": email_addr[1]}, 
 			"name") or None
+			
+	if not d.company:
+		if d.lead:
+			company = webnotes.conn.get_value("Lead", d.lead, "company")
+		elif d.contact:
+			company = webnotes.conn.get_value("Contact", d.contact, "company")
+		
+		d.company = company or webnotes.conn.get_default("company")
 
 class DocType():
 	def __init__(self, doc, doclist=[]):
