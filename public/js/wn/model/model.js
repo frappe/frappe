@@ -387,7 +387,17 @@ $.extend(wn.model, {
 			});
 		});
 		d.show();
-	}
+	},
+	
+	round_floats_in: function(doc, fieldnames) {
+		if(!fieldnames) {
+			fieldnames = wn.meta.get_fieldnames(doc.doctype, doc.name, 
+				{"fieldtype": ["in", ["Currency", "Float"]]});
+		}
+		$.each(fieldnames, function(i, fieldname) {
+			doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
+		});
+	},
 });
 
 // legacy

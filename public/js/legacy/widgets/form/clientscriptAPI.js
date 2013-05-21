@@ -241,6 +241,7 @@ _f.Frm.prototype.set_value = function(field, value) {
 			me.fields_dict[f].refresh();
 		}
 	}
+	
 	if(typeof field=="string") {
 		_set(field, value)
 	} else if($.isPlainObject(field)) {

@@ -76,10 +76,13 @@ class DocListController(object):
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
 			
-	def round_floats_in(self, doc):
-		for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype, 
-			"fieldtype": ["in", ["Currency", "Float"]]}):
-			doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname), self.precision(df.fieldname, doc.parentfield))
+	def round_floats_in(self, doc, fieldnames=None):
+		if not fieldnames:
+			fieldnames = [df.fieldname for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype, 
+				"fieldtype": ["in", ["Currency", "Float"]]})]
+		
+		for fieldname in fieldnames:
+			doc.fields[fieldname] = flt(doc.fields.get(fieldname), self.precision(fieldname, doc.parentfield))
 			
 	def _process(self, parentfield):
 		from webnotes.model.doc import Document
