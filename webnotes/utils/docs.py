@@ -1,4 +1,5 @@
 """Documentation Generation"""
+from __future__ import unicode_literals
 
 import webnotes
 import inspect, importlib, os
@@ -71,9 +72,9 @@ def get_modules():
 		"_label": "Modules"
 	}
 	modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name limit 1")
-	docs["_toc"] = ["docs.modules." + d for d in modules]
+	docs["_toc"] = ["docs.dev.modules." + d for d in modules]
 	for m in modules:
-		prefix = "docs.modules." + m
+		prefix = "docs.dev.modules." + m
 		docs[m] = {
 			"_label": m,
 			"_toc": [
@@ -98,7 +99,7 @@ def get_doctypes(m):
 		tabDocType where module=%s order by name limit 1""", m)
 	docs = {
 		"_label": "DocTypes for " + m,
-		"_toc": ["docs.modules." + m + ".doctype." + d for d in doctypes]
+		"_toc": ["docs.dev.modules." + m + ".doctype." + d for d in doctypes]
 	}
 	
 	for d in doctypes:
@@ -125,7 +126,7 @@ def get_doctypes(m):
 	return docs
 
 @webnotes.whitelist()
-def write_doc_file(name, html):
+def write_doc_file(name, html, title):
 	if not os.path.exists("docs"):
 		os.mkdir("docs")
 		os.mkdir("docs/css")
@@ -138,11 +139,12 @@ def write_doc_file(name, html):
 		os.system("cp ../lib/public/css/fonts/* docs/css/fonts")
 	
 	with open(os.path.join("docs", name + ".html"), "w") as docfile:
-		docfile.write(Template(docs_template).render({
-			"title": name,
+		html = Template(docs_template).render({
+			"title": title,
 			"content": html,
-			"description": name
-		}))
+			"description": title
+		})
+		docfile.write(html.encode("utf-8", errors="ignore"))
 			
 docs_template = """
 <!DOCTYPE html>
@@ -157,25 +159,77 @@ docs_template = """
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>-->
 	<link type="text/css" rel="stylesheet" href="css/bootstrap.css">
 	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
-	<style>
-		@import url(http://fonts.googleapis.com/css?family=Arvo:400,700);
+	<style>		
+		body {
+			background-color: #FDFFF9;
+		}
+		
+		body {
+			font-family: Georgia, Serif;
+			font-size: 16px;
+			line-height: 25px;
+			text-rendering: optimizeLegibility;
+		}
+
 		h1 {
-			font-family: Arvo, Serif;
 			font-weight: bold;
 		}
+		
+		h1, h2, h3, h4, .logo {
+			font-family: Helvetica Neue, Arial, Sans;
+		}
+		
+		li {
+			line-height: inherit;
+		}
+				
+		.content img {
+			border-radius: 5px;
+		}
+
+		blockquote {
+		  padding: 10px 0 10px 15px;
+		  margin: 0 0 20px;
+		  background-color: #FFFCED;
+		}
+
+		blockquote p {
+		  margin-bottom: 0;
+		  font-size: 16px;
+		  font-weight: normal;
+		  line-height: 1.25;
+		}
+		
 	</style>
 </head>
 <body>
 	<div class="container" style="max-width: 767px; margin-top: 30px;">
+	<div class="logo" style="margin-bottom: 15px; height: 71px;">
+		<a href="docs.html">
+			<img src="img/erpnext-2013.png" style="width: 71px; margin-top: -10px;" />
+		</a>
+		<span style="font-size: 37px; color: #888; display: inline-block; 
+			margin-left: 8px;">erpnext</span>
+	</div>
 	<div class="navbar" style="background-color: #EDE6DA; margin-bottom: 30px;">
-		<a class="navbar-brand" href="docs.html">erpnext.org</a>
+		<a class="navbar-brand" href="docs.html">Home</a>
 		<ul class="nav navbar-nav">
 			<li><a href="docs.user.html">User</a></li>
 			<li><a href="docs.dev.html">Developer</a></li>
+			<li><a href="docs.download.html">Download</a></li>
+			<li><a href="docs.community.html">Community</a></li>
+			<li><a href="docs.blog.html">Blog</a></li>
 		</ul>
 	</div>
-		
+	<div class="content">
 	{{ content }}
+	</div>
+	<hr>
+	<div class="footer text-muted" style="font-size: 90%;">
+	&copy; Web Notes Technologies Pvt Ltd.<br>
+	ERPNext is an open source project under the GNU/GPL License.
+	</div>
+	<p>&nbsp;</p>
 	</div>
 	<script type="text/javascript">
 	  $(".dropdown-toggle").dropdown();

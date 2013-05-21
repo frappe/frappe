@@ -75,7 +75,7 @@ wn.docs.generate_all = function(logarea) {
 			callback: function(r) {
 				
 				// append
-				docs.modules = r.message.modules;
+				wn.provide("docs.dev").modules = r.message.modules;
 				wn.provide("docs.dev.framework.server").webnotes = r.message.webnotes;
 				wn.provide("docs.dev.framework.client").wn = wn;
 				
@@ -222,9 +222,8 @@ wn.docs.DocsPage = Class.extend({
 		}
 	},
 	get_functions: function(obj) {
-		var functions = {},
-			tbody = this.get_tbody();
-		
+		var functions = {};
+				
 		$.each(obj || {}, function(name, value) {
 			if(value && ((typeof value==="function" && typeof value.init !== "function")
 				|| value._type === "function")) 
@@ -328,6 +327,7 @@ wn.docs.DocsPage = Class.extend({
 			method: "webnotes.utils.docs.write_doc_file",
 			args: {
 				name: this.namespace,
+				title: this.obj._label || wn.docs.get_short_name(this.namespace),
 				html: html_beautify(this.parent.html())
 			},
 			callback: function(r) {
