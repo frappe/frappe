@@ -264,14 +264,14 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		if(comm_list.length > 0) {
-			fields.content.input.set_input((this.message || "") + 
+			fields.content.set_input((this.message || "") + 
 				"<p></p>"
 				+ signature
 				+"<p></p>"
 				+"-----"+wn._("In response to")+"-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
-			fields.content.input.set_input((this.message || "") 
+			fields.content.set_input((this.message || "") 
 				+ "<p></p>" + signature)
 		}
 	},
