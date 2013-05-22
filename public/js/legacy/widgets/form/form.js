@@ -166,31 +166,13 @@ _f.Frm.prototype.watch_model_updates = function() {
 }
 
 _f.Frm.prototype.setup_print_layout = function() {
-	var me = this;	
+	var me = this;
 	this.print_wrapper = $('<div>\
-		<form class="form-inline" style="margin-bottom: 10px;">\
-			<select class="col col-lg-2 preview-select"></select> \
-			<button class="btn btn-edit btn-info"><i class="icon-edit"></i> Edit</button>\
-		</form>\
 		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\
 		</div>').appendTo(this.layout_main).get(0);
 		
-	$(this.print_wrapper).find(".btn-edit").click(function() {
-		me.edit_doc();
-		return false;
-	})
-	
-	
-	this.$print_view_select = $(this.print_wrapper).find(".preview-select")
-		.add_options(this.print_formats)
-		.val(this.print_formats[0])
-		.change(function() {
-			me.refresh_print_layout();
-		})
-	
 	//appframe.add_ripped_paper_effect(this.print_wrapper);
 	this.print_body = $(this.print_wrapper).find(".print-format-area").get(0);
-		
 }
 
 

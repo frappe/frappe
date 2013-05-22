@@ -75,7 +75,7 @@ wn.ui.form.Layout = Class.extend({
 				$('<h3 class="col col-lg-12">' + df.label + "</h3>").appendTo(this.section);
 			}
 			if(df.description) {
-				$('<div class="col col-lg-12 small muted">' + df.description + '</div>').appendTo(this.section);
+				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
 			}
 			this.frm.fields_dict[df.fieldname] = this.section;
 		}

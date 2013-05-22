@@ -115,7 +115,10 @@ wn.views.ListView = Class.extend({
 	render: function(row, data) {
 		this.prepare_data(data);
 		var body = $("<div class='row doclist-row'></div>")
-			.appendTo(row).css({"padding": "5px 0px"}),
+			.appendTo(row).css({"padding": "5px 0px", 
+				"margin-bottom": "7px", 
+				"border-bottom": "1px solid #f2f2f2"
+			}),
 			colspans = 0,
 			me = this;
 			

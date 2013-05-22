@@ -15,6 +15,23 @@ wn.ui.form.Toolbar = Class.extend({
 		this.make_view_menu();
 		this.set_title_image();
 		this.show_title_as_dirty();
+		if(!this.frm.view_is_edit) {
+			// print view
+			this.show_print_toolbar();
+		}
+	},
+	show_print_toolbar: function() {
+		var me = this;
+		this.appframe.add_button("Edit", function() {
+			me.frm.edit_doc();
+			return false;
+		})
+		this.frm.$print_view_select = 
+			this.appframe.add_select("Print Format", this.frm.print_formats)
+				.val(this.frm.print_formats[0])
+				.change(function() {
+					me.frm.refresh_print_layout();
+				});
 	},
 	get_dropdown_menu: function(label) {
 		return this.appframe.add_dropdown(label);
@@ -121,11 +138,13 @@ wn.ui.form.Toolbar = Class.extend({
 	},
 	set_title_button: function() {
 		var me = this;
-		this.appframe.$w.find(".title-button-area").empty();
 		var docstatus = cint(this.frm.doc.docstatus);
 		var p = this.frm.perm[0];
 		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
 
+		// remove existing title buttons
+		this.appframe.toolbar.find(".btn-title").remove();
+		
 		if(has_workflow && (this.frm.doc.__islocal || this.frm.doc.__unsaved)) {
 			this.make_save_button();
 		} else if(!has_workflow) {

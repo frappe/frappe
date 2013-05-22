@@ -47,7 +47,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			parent: page
 		})
 		
-		$('<div class="wnlist-area">\
+		$('<div class="wnlist-area" style="margin-bottom: 25px;">\
 			<div class="help">'+wn._('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 			

@@ -7,33 +7,32 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div class="col col-lg-12">\
-			</div>')
-			.prependTo(parent)
 
-		this.$body = $('<div class="row appframe-header">\
-				<div class="col col-lg-12"></div>\
+		this.$w = $('\
+		<div class="appframe-header col col-lg-12">\
+			<div class="row appframe-title">\
+				<div class="col col-lg-12">\
+					<img class="title-status-img hidden-sm"\
+						style="position: absolute; top: 10px; left: 40%; width: 160px; display:none" />\
+					<div class="title-button-area btn-group pull-right" style="margin-top: 10px;"></div>\
+					<div class="title-area"><h2 style="display: inline-block">\
+						<span class="title-icon"></span><span class="title-text"></span></h2></div>\
+					<div class="sub-title-area text-muted small" \
+						style="margin-top: -10px;"></div>\
+				</div>\
 			</div>\
-			<div class="appframe-toolbar" \
-				style="display: none; margin-top: 15px; margin-bottom: 15px;">\
-				<span class="btn-group" style="display: inline-block; margin-right: 5px;"></span></div>\
-		').appendTo(this.$w).find(".col-lg-12");
+			<div class="navbar" style="display: none;">\
+				<div class="navbar-form pull-left">\
+					<div class="btn-group"></div>\
+				</div>\
+			</div>\
+		<div>').prependTo(parent);
 
-		$('<img class="title-status-img hidden-phone"\
-			style="position: absolute; top: 10px; left: 40%; width: 160px; display:none" />\
-		<div class="title-button-area btn-group pull-right" style="margin-top: 10px;"></div>\
-		<div class="title-area"><h2 style="display: inline-block">\
-			<span class="title-icon"></span><span class="title-text"></span></h2></div>\
-		<div class="sub-title-area text-muted small" \
-			style="margin-top: -10px;"></div>\
-		').appendTo(this.$body);
-		
 		this.$w.find('.close').click(function() {
 			window.history.back();
 		})
 		
-		this.toolbar = this.$w.find(".appframe-toolbar");
-		
+		this.toolbar = this.$w.find(".navbar-form");
 		if(title) 
 			this.set_title(title);
 			
@@ -140,7 +139,7 @@ wn.ui.AppFrame = Class.extend({
 	
 	set_views: function(views, active_view) {
 		var me = this;
-		$right = this.$w.find(".appframe-right .btn-group");
+		$right = this.$w.find(".title-button-area");
 		$.each(views, function(i, e) {
 			var btn = $(repl('<button class="btn btn-default" data-route="%(route)s">\
 				<i class="%(icon)s"></i></button>', e))
@@ -154,7 +153,7 @@ wn.ui.AppFrame = Class.extend({
 				.appendTo($right);
 				
 			if(e.type==active_view) {
-				btn.addClass("btn-inverse");
+				btn.addClass("btn-info");
 			}
 		});
 	},
@@ -167,23 +166,37 @@ wn.ui.AppFrame = Class.extend({
 			.appendTo(this.toolbar);			
 	},
 
+	show_toolbar: function() {
+		this.toolbar.parent().toggle(true);
+	},
+
 	clear_buttons: function() {
-		this.toolbar && this.toolbar.empty().toggle(false);
+		this.toolbar && this.toolbar
+			.html('<div class="btn-group"></div>')
+			.parent()
+			.toggle(false);
 		$(".custom-menu").remove();
 	},
 
-	add_button: function(label, click, icon, title_toolbar) {
-		!title_toolbar && this.toolbar.toggle(true);
+	add_button: function(label, click, icon, is_title) {
+		this.show_toolbar();
 		
 		args = { label: wn._(label), icon:'' };
 		if(icon) {
 			args.icon = '<i class="'+icon+'"></i>';
 		}
+		
+		this.buttons[label] && this.buttons[label].remove();
+		
 		this.buttons[label] = $(repl('<button class="btn btn-default">\
-			%(icon)s <span class="hidden-phone">%(label)s</span></button>', args))
-			.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
+			%(icon)s %(label)s</button>', args))
+			.appendTo(this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
+			//.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
 			.attr("title", wn._(label))
 			.click(click);
+		if(is_title) {
+			this.buttons[label].addClass("btn-title");
+		}
 		return this.buttons[label];
 	},
 	get_menu: function(label) {
@@ -210,29 +223,34 @@ wn.ui.AppFrame = Class.extend({
 			});
 	},
 	add_label: function(label) {
-		return $("<span class='label col col-lg-1'>"+label+" </span>")
-			.appendTo(this.toolbar.toggle(true));
+		this.show_toolbar();
+		return $("<label class='col-lg-1'>"+label+" </label>")
+			.appendTo(this.toolbar);
 	},
 	add_select: function(label, options) {
-		return $("<select class='col col-lg-2' style='margin-right: 5px;'>")
+		this.show_toolbar();
+		return $("<select class='col-lg-2' style='margin-right: 5px;'>")
 			.add_options(options)
-			.appendTo(this.toolbar.toggle(true));
+			.appendTo(this.toolbar);
 	},
 	add_data: function(label) {
-		return $("<input class='col col-lg-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
-			.appendTo(this.toolbar.toggle(true));
+		this.show_toolbar();
+		return $("<input class='col-lg-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
+			.appendTo(this.toolbar);
 	}, 
 	add_date: function(label, date) {
-		return $("<input class='col col-lg-2' style='margin-right: 5px;' type='text'>").datepicker({
+		this.show_toolbar();
+		return $("<input class='col-lg-2' style='margin-right: 5px;' type='text'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "")
-			.appendTo(this.toolbar.toggle(true));
+			.appendTo(this.toolbar);
 	},
 	add_check: function(label) {
+		this.show_toolbar();
 		return $("<label style='display: inline;'><input type='checkbox' \
 			style='margin-right: 5px;'/> " + label + "</label>")
-			.appendTo(this.toolbar.toggle(true))
+			.appendTo(this.toolbar)
 			.find("input");
 	},
 	add_ripped_paper_effect: function(wrapper) {

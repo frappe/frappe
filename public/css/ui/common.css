@@ -27,6 +27,42 @@ a {
 	}
 }
 
+/* appframe header */
+
+.appframe-header {
+	margin-bottom: 20px;
+}
+
+.appframe-title {
+	background-color: #fff;
+	padding-bottom: 10px;
+	border-bottom: 1px solid #ddd;
+}
+
+/* fixed navbar in appframe */
+
+.appframe .navbar {
+	margin-left: -15px;
+	margin-right: -15px;
+	margin-bottom: 0px;
+	border-radius: 0px;
+	border-bottom: 1px solid #ddd;
+}
+
+.appframe .navbar-form select,
+.appframe .navbar-form input,
+.appframe .navbar-form button,
+.appframe .navbar-form label {
+	margin-bottom: 5px;
+}
+
+.appframe .navbar-form {
+	margin-bottom: 2px;
+	width: 100%;
+}
+
+/* home icon in main nav */
+
 .navbar-icon-home {
 	vertical-align: middle;
 	opacity: 0.4;
@@ -164,15 +200,6 @@ a {
 	outline: none;	
 }
 
-/* appframe header */
-
-.appframe-header {
-	background-color: #eee;
-	padding-bottom: 10px;
-	margin-bottom: 15px;
-	border-bottom: 1px solid #ddd;
-}
-
 /* form */
 
 textarea[data-fieldtype="Small Text"] {
@@ -209,7 +236,7 @@ textarea[data-fieldtype="Small Text"] {
 }
 
 .like-disabled-input {
-	background-color: #eee;
+	background-color: #f8f8f8;
 	padding: 6px;
 	margin-bottom: 7px;
 	border-radius: 3px;	
