@@ -31,7 +31,7 @@ wn.ui.form.Attachments = Class.extend({
 		var me = this;
 		this.wrapper = $('<div>\
 			<div class="attachment-list"></div>\
-			<button class="btn btn-small"><i class="icon-plus"></i></button>\
+			<button class="btn btn-default btn-small"><i class="icon-plus"></i></button>\
 		</div>').appendTo(this.parent);
 		this.$list = this.wrapper.find(".attachment-list");
 

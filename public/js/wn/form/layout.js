@@ -54,7 +54,7 @@ wn.ui.form.Layout = Class.extend({
 		var colspan = cint(12 / this.section.find(".form-column").length);
 		this.section.find(".form-column").removeClass()
 			.addClass("form-column")
-			.addClass("col-span-" + colspan);
+			.addClass("col col-lg-" + colspan);
 	},
 	make_field: function(df, colspan) {
 		!this.column && this.make_column();
@@ -72,10 +72,10 @@ wn.ui.form.Layout = Class.extend({
 		this.section[0].df = df;
 		if(df) {
 			if(df.label) {
-				$('<h3 class="col-span-12">' + df.label + "</h3>").appendTo(this.section);
+				$('<h3 class="col col-lg-12">' + df.label + "</h3>").appendTo(this.section);
 			}
 			if(df.description) {
-				$('<div class="col-span-12 small muted">' + df.description + '</div>').appendTo(this.section);
+				$('<div class="col col-lg-12 small muted">' + df.description + '</div>').appendTo(this.section);
 			}
 			this.frm.fields_dict[df.fieldname] = this.section;
 		}

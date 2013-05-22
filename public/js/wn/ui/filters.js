@@ -108,8 +108,8 @@ wn.ui.Filter = Class.extend({
 	make: function() {
 		this.flist.$w.find('.filter_area').append('<div class="list_filter row"\
 			style="margin-bottom: 10px;">\
-		<div class="fieldname_select_area col-span-4" style="padding-right: 0px;"></div>\
-		<div class="col-span-3" style="padding-right: 0px;">\
+		<div class="fieldname_select_area col col-lg-4" style="padding-right: 0px;"></div>\
+		<div class="col col-lg-3" style="padding-right: 0px;">\
 			<select class="condition">\
 				<option value="=">Equals</option>\
 				<option value="like">Like</option>\
@@ -121,8 +121,8 @@ wn.ui.Filter = Class.extend({
 				<option value="!=">Not equals</option>\
 			</select>\
 		</div>\
-		<div class="filter_field col-span-4" style="padding-right: 0px;"></div>\
-		<div class="col-span-1" style="margin-top: 8px;">\
+		<div class="filter_field col col-lg-4" style="padding-right: 0px;"></div>\
+		<div class="col col-lg-1" style="margin-top: 8px;">\
 			<a class="close">&times;</a>\
 		</div>\
 		</div>');

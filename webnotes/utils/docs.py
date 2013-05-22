@@ -132,11 +132,18 @@ def write_doc_file(name, html, title):
 		os.mkdir("docs/css")
 		os.mkdir("docs/css/fonts")
 		os.mkdir("docs/js")
-		os.system("cp ../lib/public/js/bootstrap.min.js docs/js")
-		os.system("cp ../lib/public/js/jquery.min.js docs/js")
+		os.system("cp ../lib/public/js/lib/bootstrap.min.js docs/js")
+		os.system("cp ../lib/public/js/lib/jquery/jquery.min.js docs/js")
 		os.system("cp ../lib/public/css/bootstrap.css docs/css")
 		os.system("cp ../lib/public/css/font-awesome.css docs/css")
 		os.system("cp ../lib/public/css/fonts/* docs/css/fonts")
+		
+		# clean links in font-awesome
+		with open("docs/css/font-awesome.css", "r") as fontawesome:
+			t = fontawesome.read()
+			t = t.replace("../lib/css/", "")
+		with open("docs/css/font-awesome.css", "w") as fontawesome:
+			fontawesome.write(t)
 	
 	with open(os.path.join("docs", name + ".html"), "w") as docfile:
 		html = Template(docs_template).render({
@@ -155,11 +162,11 @@ docs_template = """
 	<title>{{ title }}</title>
 	<meta name="description" content="{{ description }}">	
 	<meta name="generator" content="wnframework">
-	<!--<script type="text/javascript" src="js/jquery.min.js"></script>
-	<script type="text/javascript" src="js/bootstrap.min.js"></script>-->
+	<script type="text/javascript" src="js/jquery.min.js"></script>
+	<script type="text/javascript" src="js/bootstrap.min.js"></script>
 	<link type="text/css" rel="stylesheet" href="css/bootstrap.css">
 	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
-	<style>		
+	<style>
 		body {
 			background-color: #FDFFF9;
 		}
@@ -224,7 +231,8 @@ docs_template = """
 	<div class="content">
 	{{ content }}
 	</div>
-	<hr>
+	<div class="clearfix"></div>
+	<hr />
 	<div class="footer text-muted" style="font-size: 90%;">
 	&copy; Web Notes Technologies Pvt Ltd.<br>
 	ERPNext is an open source project under the GNU/GPL License.

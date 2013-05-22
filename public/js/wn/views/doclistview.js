@@ -171,7 +171,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_no_result: function() {
 		var new_button = wn.boot.profile.can_create.indexOf(this.doctype)!=-1
-			? ('<hr><p><button class="btn btn-info" \
+			? ('<hr><p><button class="btn btn-default btn-info" \
 				list_view_doc="%(doctype)s">'+
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';

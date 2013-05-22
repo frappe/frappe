@@ -53,10 +53,10 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				</button>\
 				<a class="navbar-brand" href="#"></a>\
 				<div class="nav-collapse collapse navbar-responsive-collapse">\
-					<ul class="nav">\
+					<ul class="nav navbar-nav">\
 					</ul>\
 					<img src="lib/images/ui/spinner.gif" id="spinner"/>\
-					<ul class="nav pull-right">\
+					<ul class="nav navbar-nav pull-right">\
 						<li class="dropdown">\
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 								onclick="return false;" id="toolbar-user-link"></a>\

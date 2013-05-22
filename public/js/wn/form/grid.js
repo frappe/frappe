@@ -228,7 +228,7 @@ wn.ui.form.GridRow = Class.extend({
 		var me = this,
 			total_colsize = 1;
 		me.row.empty();
-		col = $('<div class="col-span-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
+		col = $('<div class="col col-lg-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row)
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden && !df.print_hide && me.grid.frm.perm[df.permlevel][READ]) {
@@ -247,7 +247,7 @@ wn.ui.form.GridRow = Class.extend({
 				total_colsize += colsize
 				if(total_colsize > 12) 
 					return false;
-				$col = $('<div class="col-span-'+colsize+'">' 
+				$col = $('<div class="col col-lg-'+colsize+'">' 
 					+ txt + '</div>')
 					.css({
 						"overflow": "hidden",
@@ -307,8 +307,8 @@ wn.ui.form.GridRow = Class.extend({
 		var me = this,
 			cnt = 0,
 			row = $('<div class="row">').appendTo(me.form_area),
-			col1 = $('<div class="col-span-6"></div>').appendTo(row),
-			col2 = $('<div class="col-span-6"></div>').appendTo(row),
+			col1 = $('<div class="col col-lg-6"></div>').appendTo(row),
+			col2 = $('<div class="col col-lg-6"></div>').appendTo(row),
 			len = $.map(me.docfields, function(d) { 
 				return !d.hidden ? true : null }).length;
 

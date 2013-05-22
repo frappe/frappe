@@ -39,8 +39,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 		var wrapper = this.wrapper;
 		// make columns
 		$(wrapper).find(".layout-main").html("<div class='row'>\
-			<div class='col-span-6 main-section'></div>\
-			<div class='col-span-6 side-section'></div>\
+			<div class='col col-lg-6 main-section'></div>\
+			<div class='col col-lg-6 side-section'></div>\
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {

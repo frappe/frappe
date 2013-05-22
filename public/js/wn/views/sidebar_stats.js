@@ -32,7 +32,7 @@ wn.views.SidebarStats = Class.extend({
 				
 				// reload button at the end
 				if(me.stats.length) {
-					$('<button class="btn"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
+					$('<button class="btn btn-default"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
 						.click(function() {
 							me.reload_stats();
 						}).appendTo($('<div class="stat-wrapper">')

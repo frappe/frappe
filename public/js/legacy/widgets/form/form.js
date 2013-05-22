@@ -169,7 +169,7 @@ _f.Frm.prototype.setup_print_layout = function() {
 	var me = this;	
 	this.print_wrapper = $('<div>\
 		<form class="form-inline" style="margin-bottom: 10px;">\
-			<select class="col-span-2 preview-select"></select> \
+			<select class="col col-lg-2 preview-select"></select> \
 			<button class="btn btn-edit btn-info"><i class="icon-edit"></i> Edit</button>\
 		</form>\
 		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\

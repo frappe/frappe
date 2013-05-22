@@ -88,10 +88,10 @@ wn.ui.Listing = Class.extend({
 					<div class="show_filters well" style="display: none;">\
 						<div class="filter_area"></div>\
 						<div>\
-							<button class="btn btn-info search-btn">\
+							<button class="btn btn-default btn-info search-btn">\
 								<i class="icon-refresh icon-white"></i> \
 								<span class="hidden-phone">Search</span></button>\
-							<button class="btn add-filter-btn">\
+							<button class="btn btn-default add-filter-btn">\
 								<i class="icon-plus"></i> \
 								<span class="hidden-phone">Add Filter</span></button>\
 						</div>\
@@ -115,7 +115,7 @@ wn.ui.Listing = Class.extend({
 				</div>\
 				\
 				<p class="paging-button" style="text-align: center;">\
-					<button class="btn btn-more" style="display: none; margin: 15px 0px;">%(_more)s...</div>\
+					<button class="btn btn-default btn-more" style="display: none; margin: 15px 0px;">%(_more)s...</div>\
 				</p>\
 			</div>\
 		', this.opts));

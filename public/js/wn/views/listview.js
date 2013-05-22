@@ -126,13 +126,13 @@ wn.views.ListView = Class.extend({
 			
 			if(colspans <= 8) {
 				var col = me.make_column(body, flt(colspan) > 1 ? flt(colspan) * 2 : colspan)
-					.addClass("visible-phone");
+					.addClass("visible-sm");
 				me.render_column(data, col, v);
 			}
 			
 			if(colspans <= 12) {
 				var col = me.make_column(body, colspan)
-					.addClass("hidden-phone");
+					.addClass("hidden-sm");
 				me.render_column(data, col, v);
 			}
 		});
@@ -141,7 +141,7 @@ wn.views.ListView = Class.extend({
 		colspan = colspan==0.5 ? "50" : colspan;
 		var col = $("<div>")
 			.appendTo(body)
-			.addClass("col-small-span-" + colspan)
+			.addClass("col col-lg-" + colspan)
 			.css({
 				"white-space": "nowrap",
 				"text-overflow": "ellipsis",

@@ -221,7 +221,7 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	make_input: function() {
 		this.$input = $("<"+ this.html_element +">")
 			.attr("type", this.input_type)
-			.addClass("col-span-12")
+			.addClass("col col-lg-12")
 			.prependTo(this.input_area)
 		
 		this.set_input_attributes();
@@ -410,7 +410,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	},
 	make_input: function() {
 		this._super();
-		this.$input.removeClass("col-span-12");
+		this.$input.removeClass("col col-lg-12");
 	},
 	parse: function(value) {
 		return this.input.checked ? 1 : 0;
@@ -427,7 +427,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		this.$input = $('<button class="btn">')
+		this.$input = $('<button class="btn btn-default">')
 			.prependTo(me.input_area)
 			.on("click", function() {
 				if(me.frm && me.frm.cscript) {
@@ -477,7 +477,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	setup_attachment: function() {
 		var me = this;
 		$(this.input).css({"width": "70%"});
-		$("<button class='btn' title='"+ wn._("Add attachment") + "'\
+		$("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
 			style='margin-bottom: 9px; \
 			padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
 			<i class='icon-plus'></i></button>")
@@ -531,12 +531,12 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		$('<div class="input-group link-field">\
 			<input type="text">\
 			<div class="input-group-btn">\
-				<button class="btn btn-search" title="Search Link">\
+				<button class="btn btn-default btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
 				</button>\
-				<button class="btn btn-open" title="Open Link">\
+				<button class="btn btn-default btn-open" title="Open Link">\
 					<i class="icon-play"></i>\
-				</button><button class="btn btn-new" title="Make New">\
+				</button><button class="btn btn-default btn-new" title="Make New">\
 					<i class="icon-plus"></i>\
 				</button>\
 			</div>\

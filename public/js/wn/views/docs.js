@@ -51,20 +51,27 @@ wn.provide("wn.docs");
 wn.docs.generate_all = function(logarea) {
 	var pages = [],
 		body = $("<div class='docs'>");
-		make_page = function(name) {
+		make_page = function(name, links) {
 			body.empty();
 			var page = new wn.docs.DocsPage({
 				namespace: name,
 				parent: body,
+				links: links
 			});
 			page.write(function() {
 				logarea.append("Writing " + name + "...<br>");
 				//logarea.append(".");
 				// recurse
 				if(page.obj._toc) {
-					$.each(page.obj._toc, function(i, name) {
-						make_page(wn.docs.get_full_name(name));
-					})
+					$.each(page.obj._toc, function(i, child_name) {
+						var child_links = {
+							parent: name
+						};
+						if(i < page.obj._toc.length-1) {
+							child_links.next_sibling = page.obj._toc[i+1];
+						}
+						make_page(wn.docs.get_full_name(child_name), child_links);
+					});
 				}
 			});
 		}
@@ -118,6 +125,11 @@ wn.docs.get_short_name = function(namespace) {
 	return namespace;
 }
 
+wn.docs.get_title = function(namespace) {
+	var obj = wn.provide(namespace);
+	return obj._label || wn.docs.get_short_name(namespace)
+}
+
 wn.docs.DocsPage = Class.extend({
 	init: function(opts) {
 		/* docs: create js documentation */
@@ -132,16 +144,62 @@ wn.docs.DocsPage = Class.extend({
 		this.make(obj);
 	},
 	make: function(obj) {
-		if(!obj._no_title) {
-			$("<h1>").html(obj._label || wn.docs.get_short_name(this.namespace))
-				.appendTo(this.parent);
-		}
+		this.make_title(obj);
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
 		if(obj._type==="doctype")
 			this.make_docfields(obj);
 		this.make_functions(obj);
+		if(this.links) {
+			this.make_links();
+		}
+	},
+	make_links: function() {
+		if(this.links.parent) {
+			var btn_group = $('<div class="btn-group pull-right" \
+				style="margin: 15px 0px;">')
+				.appendTo(this.parent)
+			$("<a class='btn'>")
+				.html('<i class="icon-arrow-up"></i> ' + wn.docs.get_title(this.links.parent))
+				.attr("href", this.links.parent + ".html")
+				.appendTo(btn_group)
+			if(this.links.next_sibling) {
+				$("<a class='btn'>")
+					.html('<i class="icon-arrow-right"></i> ' + wn.docs.get_title(this.links.next_sibling))
+					.attr("href", this.links.next_sibling + ".html")
+					.appendTo(btn_group)
+			}
+		}
+	},
+	make_title: function(obj) {
+		if(!obj._no_title) {
+			if(obj._title_image) {
+				var outer = $("<div>")
+					.css({
+						"background-image": "url(docs/" + obj._title_image + ")",
+						"background-size": "100%",
+						"margin-bottom": "30px",
+						"border-radius": "5px"
+					})
+					.appendTo(this.parent)
+				var inner = $("<div>")
+					.appendTo(outer)
+					.css({
+						"text-align": "center",
+						"padding": "80px 20px",
+						"background-color": "rgba(0,0,0,0.4)",
+						"color": "white",
+						"border-radius": "5px"
+					})
+				$("<h1>")
+					.appendTo(inner)
+					.html(obj._label || wn.docs.get_short_name(this.namespace))
+			} else {
+				$("<h1>").html(obj._label || wn.docs.get_short_name(this.namespace))
+					.appendTo(this.parent);
+			}
+		}
 	},
 	make_breadcrumbs: function(obj) {
 		var me = this,

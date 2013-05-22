@@ -22,12 +22,12 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		$('<div class="for-rich-text">\
 		<div class="btn-toolbar" data-role="editor-toolbar" data-target="#'+ this.myid +'">\
 	      <div class="btn-group hidden-phone">\
-	        <a class="btn btn-small dropdown-toggle" data-toggle="dropdown" title="Font"><i class="icon-font"></i><b class="caret"></b></a>\
+	        <a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" title="Font"><i class="icon-font"></i><b class="caret"></b></a>\
 	          <ul class="dropdown-menu">\
 	          </ul>\
 	        </div>\
 	      <div class="btn-group">\
-	        <a class="btn btn-small dropdown-toggle" data-toggle="dropdown" title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
+	        <a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
 	          <ul class="dropdown-menu">\
 	          <li><a data-edit="formatBlock &lt;p&gt;"><p>Paragraph</p></a></li>\
 	          <li><a data-edit="formatBlock &lt;h1&gt;"><h1>Heading 1</h1></a></li>\
@@ -38,24 +38,24 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 	          </ul>\
 	      </div>\
 	      <div class="btn-group">\
-	        <a class="btn btn-small" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>\
-	        <a class="btn btn-small" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i class="icon-italic"></i></a>\
-	        <a class="btn btn-small" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i class="icon-underline"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i class="icon-italic"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i class="icon-underline"></i></a>\
 	      </div>\
 	      <div class="btn-group">\
-	        <a class="btn btn-small" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>\
-	        <a class="btn btn-small" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>\
-	        <a class="btn btn-small" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>\
-	        <a class="btn btn-small" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>\
 	      </div>\
 	      <div class="btn-group hidden-phone">\
-	        <a class="btn btn-small" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>\
-	        <a class="btn btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>\
+	        <a class="btn btn-default btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
 	      </div>\
 	      <div class="btn-group hidden-phone">\
-	        <a class="btn btn-small" title="Insert picture (or just drag & drop)" id="pictureBtn-'+this.myid+'"><i class="icon-picture"></i></a>\
+	        <a class="btn btn-default btn-small" title="Insert picture (or just drag & drop)" id="pictureBtn-'+this.myid+'"><i class="icon-picture"></i></a>\
 	        <input type="file" data-role="magic-overlay" data-target="#pictureBtn-'+this.myid+'" data-edit="insertImage" />\
-	        <a class="btn btn-small" data-edit="insertHorizontalRule" title="Horizontal Line Break">-</a>\
+	        <a class="btn btn-default btn-small" data-edit="insertHorizontalRule" title="Horizontal Line Break">-</a>\
 	      </div>\
 	    </div>\
 		<br />\
@@ -70,8 +70,8 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		<br />\
 	     <div class="btn-toolbar pull-right">\
 	       <div class="btn-group">\
-	         <a class="btn btn-small btn-info btn-rich-text" title="Rich Text" disabled="disabled"><i class="icon-reorder"></i></a>\
-	         <a class="btn btn-small btn-html" title="HTML"><i class="icon-wrench"></i></a>\
+	         <a class="btn btn-default btn-small btn-info btn-rich-text" title="Rich Text" disabled="disabled"><i class="icon-reorder"></i></a>\
+	         <a class="btn btn-default btn-small btn-html" title="HTML"><i class="icon-wrench"></i></a>\
 	       </div>\
 		 </div>\
 	').appendTo(this.opts.parent);

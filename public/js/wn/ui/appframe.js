@@ -7,17 +7,17 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div class="col-span-12">\
+		this.$w = $('<div class="col col-lg-12">\
 			</div>')
 			.prependTo(parent)
 
 		this.$body = $('<div class="row appframe-header">\
-				<div class="col-span-12"></div>\
+				<div class="col col-lg-12"></div>\
 			</div>\
 			<div class="appframe-toolbar" \
 				style="display: none; margin-top: 15px; margin-bottom: 15px;">\
 				<span class="btn-group" style="display: inline-block; margin-right: 5px;"></span></div>\
-		').appendTo(this.$w).find(".col-span-12");
+		').appendTo(this.$w).find(".col-lg-12");
 
 		$('<img class="title-status-img hidden-phone"\
 			style="position: absolute; top: 10px; left: 40%; width: 160px; display:none" />\
@@ -142,7 +142,7 @@ wn.ui.AppFrame = Class.extend({
 		var me = this;
 		$right = this.$w.find(".appframe-right .btn-group");
 		$.each(views, function(i, e) {
-			var btn = $(repl('<button class="btn" data-route="%(route)s">\
+			var btn = $(repl('<button class="btn btn-default" data-route="%(route)s">\
 				<i class="%(icon)s"></i></button>', e))
 				.click(e.set_route || function() {
 					window.location.hash = "#" + $(this).attr("data-route");
@@ -160,7 +160,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_help_button: function(txt) {
-		$('<button class="btn" button-type="help">\
+		$('<button class="btn btn-default" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
@@ -179,7 +179,7 @@ wn.ui.AppFrame = Class.extend({
 		if(icon) {
 			args.icon = '<i class="'+icon+'"></i>';
 		}
-		this.buttons[label] = $(repl('<button class="btn">\
+		this.buttons[label] = $(repl('<button class="btn btn-default">\
 			%(icon)s <span class="hidden-phone">%(label)s</span></button>', args))
 			.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
 			.attr("title", wn._(label))
@@ -210,20 +210,20 @@ wn.ui.AppFrame = Class.extend({
 			});
 	},
 	add_label: function(label) {
-		return $("<span class='label col-span-1'>"+label+" </span>")
+		return $("<span class='label col col-lg-1'>"+label+" </span>")
 			.appendTo(this.toolbar.toggle(true));
 	},
 	add_select: function(label, options) {
-		return $("<select class='col-span-2' style='margin-right: 5px;'>")
+		return $("<select class='col col-lg-2' style='margin-right: 5px;'>")
 			.add_options(options)
 			.appendTo(this.toolbar.toggle(true));
 	},
 	add_data: function(label) {
-		return $("<input class='col-span-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
+		return $("<input class='col col-lg-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
 			.appendTo(this.toolbar.toggle(true));
 	}, 
 	add_date: function(label, date) {
-		return $("<input class='col-span-2' style='margin-right: 5px;' type='text'>").datepicker({
+		return $("<input class='col col-lg-2' style='margin-right: 5px;' type='text'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
 		}).val(dateutil.str_to_user(date) || "")
@@ -260,16 +260,16 @@ wn.ui.make_app_page = function(opts) {
 		] 
 	*/
 	if(opts.single_column) {
-		$('<div class="appframe col-span-12">\
+		$('<div class="appframe col col-lg-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="layout-main"></div>\
 		</div>').appendTo(opts.parent);
 	} else {
-		$('<div class="appframe col-span-12">\
+		$('<div class="appframe col col-lg-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="row">\
-				<div class="layout-main-section col-span-9"></div>\
-				<div class="layout-side-section col-span-3"></div>\
+				<div class="layout-main-section col col-lg-9"></div>\
+				<div class="layout-side-section col col-lg-3"></div>\
 			</div>\
 		</div>').appendTo(opts.parent);
 	}

@@ -14,19 +14,19 @@ wn.ui.form.Footer = Class.extend({
 		this.wrapper = $('<div class="form-footer row">\
 			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
 				display: block; margin-left: 15px; color: #888;"></i-->\
-			<div class="col-span-12">\
+			<div class="col col-lg-12">\
 				<div class="save-area">\
 					<button class="btn btn-save btn-primary">\
 						<i class="icon-save"></i> Save</button>\
 				</div>\
 				<div class="help-area"></div>\
 			</div>\
-			<div class="col-span-8">\
+			<div class="col col-lg-8">\
 				<div class="form-comments">\
 					<h4><i class="icon-comments"></i> Comments</h4>\
 				</div>\
 			</div>\
-			<div class="col-span-4">\
+			<div class="col col-lg-4">\
 				<div class="form-attachments">\
 					<h5><i class="icon-paper-clip"></i> Attachments</h5>\
 				</div>\
