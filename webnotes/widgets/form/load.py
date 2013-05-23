@@ -81,6 +81,7 @@ def load_single_doc(dt, dn, user):
 		# add file list
 		add_file_list(dt, dn, dl)
 		add_comments(dt, dn, dl)
+		add_assignments(dt, dn, dl)
 		
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
@@ -108,3 +109,13 @@ def add_comments(dt, dn, dl, limit=20):
 		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
 		
 	dl[0].fields["__comments"] = json.dumps(cl)
+	
+def add_assignments(dt, dn, dl):
+	cl = webnotes.conn.sql_list("""select owner from `tabToDo`
+		where reference_type=%(doctype)s and reference_name=%(name)s
+		order by modified desc limit 5""", {
+			"doctype": dt,
+			"name": dn
+		})
+		
+	dl[0].fields["__assign_to"] = json.dumps(cl)

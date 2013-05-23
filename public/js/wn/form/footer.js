@@ -3,6 +3,7 @@ wn.ui.form.Footer = Class.extend({
 		var me = this;
 		$.extend(this, opts);
 		this.make();
+		this.make_assignments();
 		this.make_attachments();
 		this.make_comments();
 		// render-complete
@@ -27,8 +28,19 @@ wn.ui.form.Footer = Class.extend({
 				</div>\
 			</div>\
 			<div class="col col-lg-4">\
+				<div class="form-assignments" style="margin-bottom: 7px;">\
+					<h4>\
+						<i class="icon-ok-sign"></i> Assigned To: \
+						<button class="btn btn-small btn-default pull-right"\
+							style="margin-top:-7px;">Add</button>\
+					</h4>\
+				</div><hr>\
 				<div class="form-attachments">\
-					<h5><i class="icon-paper-clip"></i> Attachments</h5>\
+					<h4>\
+						<i class="icon-paper-clip"></i> Attachments:\
+						<button class="btn btn-small btn-default pull-right"\
+							style="margin-top:-7px;">Add</button>\
+					</h4>\
 				</div>\
 			</div>\
 		</div>')
@@ -41,6 +53,12 @@ wn.ui.form.Footer = Class.extend({
 	make_attachments: function() {
 		this.frm.attachments = new wn.ui.form.Attachments({
 			parent: this.wrapper.find(".form-attachments"), 
+			frm: this.frm
+		});
+	},
+	make_assignments: function() {
+		this.frm.assign_to = new wn.ui.form.AssignTo({
+			parent: this.wrapper.find(".form-assignments"),
 			frm: this.frm
 		});
 	},
@@ -60,6 +78,7 @@ wn.ui.form.Footer = Class.extend({
 		this.toggle_save();
 		this.frm.attachments.refresh();
 		this.frm.comments.refresh();
+		this.frm.assign_to.refresh();
 		// show save?
 	},
 	toggle_save: function() {

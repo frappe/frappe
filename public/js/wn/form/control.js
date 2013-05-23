@@ -130,10 +130,10 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			this.$wrapper = $("<span>").appendTo(this.parent);
 		} else {
 			this.$wrapper = $('<div class="control-group">\
-				<label class="control-label"></label>\
-				<div class="controls">\
-					<div class="control-input"></div>\
-					<div class="control-value like-disabled-input" style="display: none;"></div>\
+				<label></label>\
+				<div class="control-input"></div>\
+				<div class="control-value like-disabled-input" style="display: none;"></div>\
+				<p class="help-box small text-muted">&nbsp;</p>\
 				</div>\
 			</div>').appendTo(this.parent);
 		}

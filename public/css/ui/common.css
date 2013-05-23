@@ -115,6 +115,8 @@ a {
 		white-space: nowrap;
 }
 
+/* modal - no fade transition */
+
 /* avatar */
 
 .avatar {
@@ -229,12 +231,12 @@ textarea[data-fieldtype="Small Text"] {
 	color: #888;
 }
 
-.form-attachments {
+/*.form-attachments, .form-assignments {
 	border: 1px dashed #ddd;
 	padding: 15px;
 	padding-top: 0px;
 }
-
+*/
 .like-disabled-input {
 	background-color: #f8f8f8;
 	padding: 6px;

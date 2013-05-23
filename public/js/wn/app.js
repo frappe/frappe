@@ -160,10 +160,7 @@ wn.Application = Class.extend({
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
-		var favicon ='\
-			<link rel="shortcut icon" href="' + link + '" type="image/x-icon"> \
-			<link rel="icon" href="' + link + '" type="image/x-icon">'
-
-		$(favicon).appendTo('head');
+		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head")
+		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head")
 	}
 })

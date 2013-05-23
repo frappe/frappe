@@ -37,12 +37,14 @@ def search_link(dt, txt, query=None, filters=None):
 # this is called by the search box
 @webnotes.whitelist()
 def search_widget(doctype, txt, query=None, searchfield="name", start=0, 
-	page_len=50, filters=[]):
+	page_len=50, filters=None):
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
 	if isinstance(filters, dict):
 		filters = map(lambda f: [doctype, f[0], "=", f[1]], filters.items())
+	if filters==None:
+		filters = []
 
 	meta = webnotes.get_doctype(doctype)
 	
@@ -70,7 +72,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 			webnotes.response["values"] = webnotes.widgets.reportview.execute(doctype,
 				filters=filters, fields = get_std_fields_list(meta, searchfield), 
-				limit_start = start, limit_page_length=page_len, as_list=True, debug=True)
+				limit_start = start, limit_page_length=page_len, as_list=True)
 
 def get_std_fields_list(meta, key):
 	# get additional search fields

@@ -38,14 +38,18 @@ wn.ui.form.States = Class.extend({
 	},
 	
 	make: function() {
-		var parent = this.frm.appframe.$w.find(".title-button-area");
+		this.parent = this.frm.appframe.$w
+			.find(".title-button-area-1")
+			.empty()
+			.toggle(true)
+			.css({"margin-right":"5px"});
 		
-		this.workflow_button = $('<button class="btn dropdown-toggle">\
+		this.workflow_button = $('<button class="btn btn-default dropdown-toggle">\
 			<i class="icon-small"></i> <span class="state-text"></span>\
 			<span class="caret"></span></button>')
-			.appendTo(parent).dropdown();
+			.appendTo(this.parent).dropdown();
 		this.dropdown = $('<ul class="dropdown-menu">').insertAfter(this.workflow_button);
-		this.help_btn = $('<button class="btn"><i class="icon-question-sign"></i></button').
+		this.help_btn = $('<button class="btn btn-default"><i class="icon-question-sign"></i></button').
 			insertBefore(this.workflow_button);
 		this.setup_help();
 		this.bind_action();
@@ -82,6 +86,7 @@ wn.ui.form.States = Class.extend({
 		// hide if its not yet saved
 		if(this.frm.doc.__islocal) {
 			this.set_default_state();
+			this.parent.toggle(false);
 			return;
 		}
 
@@ -102,7 +107,7 @@ wn.ui.form.States = Class.extend({
 				.addClass("icon-" + state_doc.icon);
 
 			// set the style
-			this.workflow_button.removeClass().addClass("btn dropdown-toggle")
+			this.workflow_button.removeClass().addClass("btn btn-default dropdown-toggle")
 
 			if(state_doc && state_doc.style)
 				this.workflow_button.addClass("btn-" + state_doc.style.toLowerCase());

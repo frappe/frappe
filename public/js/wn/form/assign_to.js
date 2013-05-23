@@ -32,15 +32,15 @@ wn.ui.form.AssignTo = Class.extend({
 		$.extend(this, opts);
 		var me = this;
 		this.wrapper = $('<div>\
-			<button class="btn btn-small"><i class="icon-plus"></i></button>\
-			<div class="alert-list"></div>\
+			<div class="alert-list" style="margin-bottom: 7px;"></div>\
 		</div>').appendTo(this.parent);
-
+		
 		this.$list = this.wrapper.find(".alert-list");
 		
-		this.wrapper.find(".btn").click(function() {
+		this.parent.find(".btn").click(function() {
 			me.add();
 		});
+		this.refresh();
 	},
 	refresh: function() {
 		if(this.frm.doc.__islocal) {
@@ -48,35 +48,25 @@ wn.ui.form.AssignTo = Class.extend({
 			return;
 		}
 		this.parent.toggle(true);
-
-		var me = this;
-		wn.call({
-			method: 'webnotes.widgets.form.assign_to.get',
-			type: "GET",
-			args: {
-				doctype: me.frm.doctype,
-				name: me.frm.docname
-			},
-			callback: function(r) {
-				me.render(r.message)
-			}
-		})
+		this.render(JSON.parse(this.frm.doc.__assign_to || "[]"));
 	},
 	render: function(d) {
 		var me = this;
+		this.frm.doc.__assign_to = JSON.stringify(d);		
 		this.$list.empty();
 		if(this.dialog) {
 			this.dialog.hide();			
 		}
-				
+
 		for(var i=0; i<d.length; i++) {	
-			$.extend(d[i], wn.user_info(d[i].owner));
-			d[i].avatar = wn.avatar(d[i].owner);
+			var info = wn.user_info(d[i]);
+			info.owner = d[i];
+			info.avatar = wn.avatar(d[i]);
 			
-			$(repl('<div class="alert alert-success" style="height: 19px; margin-top: 3px">\
+			$(repl('<div class="alert alert-success" style="margin-bottom: 7px;">\
 				%(avatar)s %(fullname)s \
 				<a class="close" href="#" style="top: 1px;"\
-					data-owner="%(owner)s">&times;</a></div>', d[i]))
+					data-owner="%(owner)s">&times;</a></div>', info))
 				.appendTo(this.$list);
 				
 			this.$list.find(".avatar").css("margin-top", "-7px")
@@ -92,7 +82,9 @@ wn.ui.form.AssignTo = Class.extend({
 					name: me.frm.docname,
 					assign_to: $(this).attr('data-owner')	
 				}, 
-				callback:function(r,rt) {me.render(r.message);}
+				callback:function(r,rt) {
+					me.render(r.message);
+				}
 			});
 			return false;
 		});
@@ -111,7 +103,8 @@ wn.ui.form.AssignTo = Class.extend({
 					{fieldtype:'Date', fieldname:'date', label: wn._("Complete By")}, 
 					{fieldtype:'Select', fieldname:'priority', label: wn._("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
-					{fieldtype:'Check', fieldname:'notify', label: wn._("Notify By Email")},
+					{fieldtype:'Check', fieldname:'notify', 
+						label: wn._("Notify By Email"), "default": 1},
 					{fieldtype:'Button', label:wn._("Add"), fieldname:'add_btn'}
 				]
 			});
@@ -132,8 +125,6 @@ wn.ui.form.AssignTo = Class.extend({
 						}, 
 						callback: function(r,rt) {
 							if(!r.exc) {
-								if(cint(me.dialog.fields_dict.notify.get_value()))
-									msgprint("Email sent to " + assign_to);
 								me.render(r.message);
 							}
 						},

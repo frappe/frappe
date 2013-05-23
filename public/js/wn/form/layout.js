@@ -44,11 +44,13 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make_column: function(df) {
 		this.column = $('<div class="form-column">\
-			<form class="form-horizontal">\
+			<form>\
+				<fieldset></fieldset>\
 			</form>\
 		</div>').appendTo(this.section)
 			.find("form")
-			.on("submit", function() { return false; });
+			.on("submit", function() { return false; })
+			.find("fieldset");
 		
 		// distribute all columns equally
 		var colspan = cint(12 / this.section.find(".form-column").length);
@@ -79,6 +81,8 @@ wn.ui.form.Layout = Class.extend({
 			}
 			this.frm.fields_dict[df.fieldname] = this.section;
 		}
+		// for bc
+		this.section.row = {wrapper: this.section};
 		this.column = null;
 		return this.section;
 	},

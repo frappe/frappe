@@ -25,13 +25,17 @@ wn.provide('wn.ui');
 wn.ui.FieldGroup = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.make_fields();
-		if(!this.no_submit_on_enter)
-			this.catch_enter_as_submit();
+	},
+	make: function() {
+		if(this.fields) {
+			this.make_fields();
+			if(!this.no_submit_on_enter)
+				this.catch_enter_as_submit();
+		}
 	},
 	first_button: false,
 	make_fields: function() {
-		$(this.parent).css({padding:'25px'});
+		$(this.body).css({padding:'25px'});
 		this.fields_dict = {}; // reset
 		for(var i=0; i< this.fields.length; i++) {
 			var df = this.fields[i];
@@ -40,10 +44,10 @@ wn.ui.FieldGroup = Class.extend({
 			}
 			if(!df.fieldtype) df.fieldtype="Data";
 			
-			var div = $a(this.parent, 'div', '', {margin:'6px 0px'})
+			var div = $a(this.body, 'div', '', {margin:'6px 0px'})
 			f = make_field(df, null, div, null);
 			f.not_in_form = 1;
-			f.dialog_wrapper = this.dialog_wrapper || null;
+			f.dialog_wrapper = this.wrapper || null;
 			this.fields_dict[df.fieldname] = f
 			f.refresh();
 			
@@ -56,9 +60,9 @@ wn.ui.FieldGroup = Class.extend({
 	},
 	catch_enter_as_submit: function() {
 		var me = this;
-		$(this.parent).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
+		$(this.body).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				$(me.parent).find('.btn-info:first').click();
+				$(me.body).find('.btn-info:first').click();
 			}
 		})
 	},

@@ -29,22 +29,14 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 
 		$.extend(this, opts);
 		this.make();
-		
-		this.dialog_wrapper = this.wrapper;
-		
-		// init fields
-		if(this.fields) {
-			this.parent = this.body
-			this._super({});
-		}
 	},
 	make: function() {		
-		this.$wrapper = $('<div class="modal fade in" style="overflow: auto;">\
+		this.$wrapper = $('<div class="modal fade" style="overflow: auto;">\
 			<div class="modal-dialog">\
 				<div class="modal-content">\
 					<div class="modal-header">\
-						<button type="button" class="close" \
-							data-dismiss="modal" aria-hidden="true">&times;</button>\
+						<a type="button" class="close" \
+							data-dismiss="modal" aria-hidden="true">&times;</a>\
 						<h4 class="modal-title"></h4>\
 					</div>\
 					<div class="modal-body">\
@@ -54,9 +46,31 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 			</div>')
 			.appendTo(document.body);
 		this.wrapper = this.$wrapper.find('.modal-dialog').get(0);
-
 		this.make_head();
-		this.body = this.$wrapper.find(".modal-body").get(0);	
+		this.body = this.$wrapper.find(".modal-body").get(0);
+		
+		// make fields (if any)
+		this._super();
+		
+		var me = this;
+		this.$wrapper
+			.on("hide.bs.modal", function() {
+				me.display = false;
+				if(cur_dialog===me) 
+					cur_dialog = null;
+				me.onhide && me.onhide();
+			})
+			.on("shown.bs.modal", function() {
+				// focus on first input
+				me.display = true;
+				var first = me.$wrapper.find(':input:first');
+				if(first.attr("data-fieldtype")!="Date") {
+					first.get(0).focus();
+				}
+				me.onshow && me.onshow();
+			})
+		
+		
 	},
 	make_head: function() {
 		var me = this;
@@ -68,38 +82,12 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		this.$wrapper.find(".modal-title").html(t);
 	},
 	show: function() {
-		// already live, do nothing
-		var me = this;
-		if(this.display) return;
-
 		// show it
-		this.$wrapper.modal("show").on("hide", function() {
-			me.hide(true);
-		});
-		
-		this.display = true;
-		cur_dialog = this;
-
-		// call onshow
-		if(this.onshow)this.onshow();
-		
-		// focus on first input
-		var first = $(this.wrapper).find(':input:first');
-		if(first.attr("data-fieldtype")!="Date") {
-			first.focus();
-		}
+		this.$wrapper.modal("show");
 	},
 	hide: function(from_event) {
-		// call onhide
-		if(this.onhide) this.onhide();
+		this.$wrapper.modal("hide");
 
-		// hide
-		if(!from_event)
-			this.$wrapper.modal("hide");
-
-		// flags
-		this.display = false;
-		cur_dialog = null;
 	},
 	no_cancel: function() {
 		this.appframe.$titlebar.find('.close').toggle(false);

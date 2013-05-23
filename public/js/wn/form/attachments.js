@@ -31,7 +31,6 @@ wn.ui.form.Attachments = Class.extend({
 		var me = this;
 		this.wrapper = $('<div>\
 			<div class="attachment-list"></div>\
-			<button class="btn btn-default btn-small"><i class="icon-plus"></i></button>\
 		</div>').appendTo(this.parent);
 		this.$list = this.wrapper.find(".attachment-list");
 
@@ -78,8 +77,9 @@ wn.ui.form.Attachments = Class.extend({
 		var fileid = file_list[filename];
 		
 		var me = this;
-		$(repl('<div class="alert alert-info"><span style="display: inline-block; width: 90%;\
-			text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
+		$(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
+			<span style="display: inline-block; width: 90%; \
+				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
 				<i class="icon-file"></i> <a href="%(href)s"\
 					target="_blank" title="%(filename)s">%(filename)s</a></span><a href="#" class="close">&times;</a>\
 			</div>', {

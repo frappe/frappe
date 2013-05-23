@@ -21,7 +21,6 @@
 // 
 
 // new re-factored Listing object
-// uses FieldGroup for rendering filters
 // removed rarely used functionality
 //
 // opts:
@@ -101,7 +100,7 @@ wn.ui.Listing = Class.extend({
 				<div style="margin-bottom:9px" class="list-toolbar-wrapper">\
 					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 					</div>\
-					<div style="display:inline-block; width: 24px; margin-left: 4px">\
+					<div style="display: none; width: 24px; margin-left: 4px">\
 						<img src="lib/images/ui/button-load.gif" \
 						class="img-load"/></div>\
 				</div><div style="clear:both"></div>\
@@ -134,7 +133,7 @@ wn.ui.Listing = Class.extend({
 		if(this.appframe) {
 			return this.appframe.add_button(label, click, icon)
 		} else {
-			$button = $('<button class="btn"></button>')
+			$button = $('<button class="btn btn-default"></button>')
 				.appendTo(this.$w.find('.list-toolbar'))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
 				.click(click);

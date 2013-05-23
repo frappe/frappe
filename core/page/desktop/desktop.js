@@ -25,8 +25,7 @@ erpnext.desktop.render = function() {
 		module.gradient_css = wn.get_gradient_css(module.color, 45);
 		module._link = module.link.toLowerCase().replace("/", "-");
 		
-		$module_icon = $(repl('\
-			<div id="module-icon-%(_link)s" class="case-wrapper" \
+		$module_icon = $(repl('<div id="module-icon-%(_link)s" class="case-wrapper" \
 				data-name="%(name)s" data-link="%(link)s">\
 				<div class="case-border" style="%(gradient_css)s">\
 					<i class="%(icon)s"></i>\

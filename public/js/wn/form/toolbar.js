@@ -121,20 +121,6 @@ wn.ui.form.Toolbar = Class.extend({
 				me.frm.linked_with.show();
 			}, "icon-link")
 		}
-		
-		if(!this.frm.meta.issingle) {
-			this.appframe.add_menu_divider("View");
-			this.appframe.add_dropdown_button("View", 
-				wn._(this.frm.doctype) + ' ' + wn._('List'), function() { 
-					wn.set_route("List", me.frm.doctype);
-				}, 'icon-list');
-
-			this.appframe.add_dropdown_button("View", 
-				wn._(this.frm.doctype) + ' ' + wn._('Report View'), function() { 
-					wn.set_route("Report2", me.frm.doctype);
-				}, 'icon-table');
-		}
-		
 	},
 	set_title_button: function() {
 		var me = this;
