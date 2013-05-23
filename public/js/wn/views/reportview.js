@@ -320,7 +320,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.sort_order_next_select = $(this.sort_dialog.body).find('.sort-order-1');
 		
 		// initial values
-		this.sort_by_select.val('modified');
+		this.sort_by_select.val(this.doctype + '.modified');
 		this.sort_order_select.val('desc');
 		
 		this.sort_by_next_select.val('');

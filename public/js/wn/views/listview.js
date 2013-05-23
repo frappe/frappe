@@ -30,6 +30,12 @@ wn.views.ListView = Class.extend({
 			t + '_user_tags', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
 		
+		// add workflow field (as priority)
+		this.workflow_state_fieldname = wn.workflow.get_state_fieldname(this.doctype);
+		if(this.workflow_state_fieldname) {
+			this.fields.push(t + this.workflow_state_fieldname);
+			this.stats.push(this.workflow_state_fieldname);
+		}
 		
 		$.each(wn.model.get("DocField", {"parent":this.doctype, "in_list_view":1}), function(i,d) {
 			if(wn.perm.has_perm(me.doctype, d.permlevel, READ)) {
@@ -73,6 +79,14 @@ wn.views.ListView = Class.extend({
 			this.columns.push({colspan: 0.5, content:'docstatus'});
 		}
 		this.columns.push({colspan: 2, content:'name'});
+
+		if(this.workflow_state_fieldname) {
+			this.columns.push({
+				colspan: 2, 
+				content: this.workflow_state_fieldname, 
+				type:"select"
+			});
+		}
 
 		// overridden
 		var overridden = $.map(this.settings.add_columns || [], function(d) { 
