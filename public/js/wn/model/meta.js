@@ -137,13 +137,14 @@ $.extend(wn.meta, {
 					// get reference record e.g. Company
 					var docname = doc[options[1]];
 					if(!docname && cur_frm) {
-						docname = cur_frm.doc[options[1]]
+						docname = cur_frm.doc[options[1]];
 					}
-					currency = wn.model.get_value(options[0], doc[options[1]], 
-						options[2]) || currency;
+					currency = wn.model.get_value(options[0], docname, options[2]) || currency;
 				}
 			} else if(doc && doc[df.options]) {
 				currency = doc[df.options];
+			} else if(cur_frm && cur_frm.doc[df.options]) {
+				currency = cur_frm.doc[df.options];
 			}
 		}
 		return currency;

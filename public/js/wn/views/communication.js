@@ -196,6 +196,7 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		$(fields.send_email.input).attr("checked", "checked")
 		$(fields.send.input).click(function() {
+			var btn = this;
 			var form_values = me.dialog.get_values();
 			if(!form_values) return;
 					
@@ -228,11 +229,13 @@ wn.views.CommunicationComposer = Class.extend({
 						name: me.doc.name,
 						lead: me.doc.lead,
 						contact: me.doc.contact,
+						company: me.doc.company || sys_defaults.company,
 						send_me_a_copy: form_values.send_me_a_copy,
 						send_email: form_values.send_email,
 						print_html: print_html,
 						attachments: selected_attachments
 					},
+					btn: btn,
 					callback: function(r) {
 						if(!r.exc) {
 							if(form_values.send_email)

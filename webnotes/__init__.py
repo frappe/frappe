@@ -228,7 +228,7 @@ def whitelist(allow_guest=False, allow_roles=None):
 				raise PermissionError, "Method not allowed"
 
 		return fn
-
+	
 	return innerfn
 	
 def clear_cache(user=None, doctype=None):
@@ -351,9 +351,9 @@ def reload_doc(module, dt=None, dn=None):
 	import webnotes.modules
 	return webnotes.modules.reload_doc(module, dt, dn)
 
-def rename_doc(doctype, old, new, debug=0, force=False):
+def rename_doc(doctype, old, new, debug=0, force=False, merge=False):
 	from webnotes.model.rename_doc import rename_doc
-	rename_doc(doctype, old, new, force=force)
+	rename_doc(doctype, old, new, force=force, merge=merge)
 
 def insert(doclist):
 	import webnotes.model

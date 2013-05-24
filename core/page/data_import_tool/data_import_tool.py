@@ -4,8 +4,8 @@ import webnotes
 import webnotes.model.doc
 import webnotes.model.doctype
 from webnotes.model.doc import Document
-from webnotes.utils import cstr, cint, flt
-from webnotes.utils.datautils import UnicodeWriter
+from webnotes.utils import cstr
+from webnotes.utils.datautils import UnicodeWriter, check_record, import_doc, getlink
 from webnotes import _
 
 data_keys = webnotes._dict({
@@ -14,8 +14,6 @@ data_keys = webnotes._dict({
 	"parent_table": "Parent Table:",
 	"columns": "Column Name:"
 })
-
-doctype_dl = None
 
 @webnotes.whitelist()
 def get_doctypes():
@@ -31,8 +29,6 @@ def get_doctype_options():
 
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def get_template():
-	global doctype_dl
-
 	doctype = webnotes.form_dict['doctype']
 	parenttype = webnotes.form_dict.get('parent_doctype')
 	
@@ -133,8 +129,6 @@ def get_template():
 @webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
 def upload():
 	"""upload data"""
-	global doctype_dl
-	
 	webnotes.mute_emails = True
 	
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
@@ -208,17 +202,18 @@ def upload():
 
 	ret = []
 	error = False
+	parent_list = []
 	for i, row in enumerate(data):
 		# bypass empty rows
 		if not row: continue
 		
 		row_idx = (i + 1) + start_row
 		
-		d = dict(zip(columns, row[1:]))
+		d = webnotes._dict(zip(columns, row[1:]))
 		d['doctype'] = doctype
 		
 		try:
-			check_record(d, parenttype)
+			check_record(d, parenttype, doctype_dl)
 			if parenttype:
 				# child doc
 				doc = Document(doctype)
@@ -229,6 +224,7 @@ def upload():
 				doc.save()
 				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
 					doc.parent), unicode(doc.idx)))
+				parent_list.append(doc.parent)
 			else:
 				ret.append(import_doc(d, doctype, overwrite, row_idx, params.get("_submit")))
 		except Exception, e:
@@ -236,6 +232,8 @@ def upload():
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
 				len(row)>1 and row[1] or "", cstr(e)))
 			webnotes.errprint(webnotes.getTraceback())
+	
+	ret, error = validate_parent(parent_list, parenttype, ret, error)
 	
 	if error:
 		webnotes.conn.rollback()		
@@ -245,6 +243,21 @@ def upload():
 	webnotes.mute_emails = False
 	
 	return {"messages": ret, "error": error}
+	
+def validate_parent(parent_list, parenttype, ret, error):
+	if parent_list:
+		parent_list = list(set(parent_list))
+		for p in parent_list:
+			try:
+				obj = webnotes.bean(parenttype, p)
+				obj.run_method("validate")
+				obj.run_method("on_update")
+			except Exception, e:
+				error = True
+				ret.append('Validation Error for %s %s: %s' % (parenttype, p, cstr(e)))
+				webnotes.errprint(webnotes.getTraceback())
+				
+	return ret, error
 	
 def get_parent_field(doctype, parenttype):
 	parentfield = None
@@ -262,72 +275,8 @@ def get_parent_field(doctype, parenttype):
 			raise Exception
 	
 	return parentfield
-	
-def check_record(d, parenttype=None):
-	"""check for mandatory, select options, dates. these should ideally be in doclist"""
-	
-	from webnotes.utils.dateutils import parse_date
-	if parenttype and not d.get('parent'):
-		raise Exception, "parent is required."
-
-	global doctype_dl
-	if not doctype_dl:
-		doctype_dl = webnotes.model.doctype.get(d.doctype)
-
-	for key in d:
-		docfield = doctype_dl.get_field(key)
-		val = d[key]
-		if docfield:
-			if docfield.reqd and (val=='' or val==None):
-				raise Exception, "%s is mandatory." % key
-
-			if docfield.fieldtype=='Select' and val and docfield.options:
-				if docfield.options.startswith('link:'):
-					link_doctype = docfield.options.split(':')[1]
-					if not webnotes.conn.exists(link_doctype, val):
-						raise Exception, "%s must be a valid %s" % (key, link_doctype)
-				elif docfield.options == "attach_files:":
-					pass
-					
-				elif val not in docfield.options.split('\n'):
-					raise Exception, "%s must be one of: %s" % (key, 
-						", ".join(filter(None, docfield.options.split("\n"))))
-					
-			if val and docfield.fieldtype=='Date':
-				d[key] = parse_date(val)
-			elif val and docfield.fieldtype in ["Int", "Check"]:
-				d[key] = cint(val)
-			elif val and docfield.fieldtype in ["Currency", "Float"]:
-				d[key] = flt(val)
-
-def getlink(doctype, name):
-	return '<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>' % locals()
 
 def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
 	for p in list(set([r[1] for r in rows])):
 		webnotes.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
-		
-def import_doc(d, doctype, overwrite, row_idx, submit=False):
-	"""import main (non child) document"""
-	if webnotes.conn.exists(doctype, d['name']):
-		if overwrite:
-			bean = webnotes.bean(doctype, d['name'])
-			bean.doc.fields.update(d)
-			if d.get("docstatus") == 1:
-				bean.update_after_submit()
-			else:
-				bean.save()
-			return 'Updated row (#%d) %s' % (row_idx, getlink(doctype, d['name']))
-		else:
-			return 'Ignored row (#%d) %s (exists)' % (row_idx, 
-				getlink(doctype, d['name']))
-	else:
-		bean = webnotes.bean([d])
-		bean.insert()
-		
-		if submit:
-			bean.submit()
-		
-		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
-			bean.doc.fields['name']))

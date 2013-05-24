@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-01-28 17:06:59", 
+  "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-01-28 15:29:13", 
+  "modified": "2013-05-21 12:19:45", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -26,14 +26,14 @@
   "permlevel": 0
  }, 
  {
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Communication", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
+  "permlevel": 0, 
   "read": 1, 
-  "report": 1, 
-  "submit": 0, 
   "write": 1
  }, 
  {
@@ -53,7 +53,6 @@
   "doctype": "DocField", 
   "fieldname": "subject", 
   "fieldtype": "Data", 
-  "in_list_view": 1, 
   "label": "Subject", 
   "reqd": 1
  }, 
@@ -175,14 +174,12 @@
   "doctype": "DocField", 
   "fieldname": "recipients", 
   "fieldtype": "Data", 
-  "in_list_view": 1, 
   "label": "Recipients"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "sender", 
   "fieldtype": "Data", 
-  "in_list_view": 1, 
   "label": "Sender"
  }, 
  {
@@ -234,6 +231,13 @@
   "label": "On"
  }, 
  {
+  "doctype": "DocField", 
+  "fieldname": "company", 
+  "fieldtype": "Link", 
+  "label": "Company", 
+  "options": "Company"
+ }, 
+ {
   "default": "Today", 
   "doctype": "DocField", 
   "fieldname": "communication_date", 
@@ -250,53 +254,46 @@
   "print_hide": 1
  }, 
  {
-  "create": 1, 
+  "amend": 0, 
+  "cancel": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "Support Team"
- }, 
- {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "Sales Manager"
- }, 
- {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "Sales User"
+  "report": 1, 
+  "role": "Support Team", 
+  "submit": 0
  }, 
  {
   "amend": 0, 
-  "cancel": 0, 
-  "create": 0, 
+  "cancel": 1, 
   "doctype": "DocPerm", 
-  "match": "", 
-  "permlevel": 1, 
-  "role": "Sales Manager"
+  "report": 1, 
+  "role": "Sales Manager", 
+  "submit": 0
  }, 
  {
   "amend": 0, 
-  "cancel": 0, 
-  "create": 0, 
+  "cancel": 1, 
   "doctype": "DocPerm", 
-  "match": "", 
-  "permlevel": 1, 
-  "role": "Support Manager"
+  "report": 1, 
+  "role": "Sales User", 
+  "submit": 0
  }, 
  {
   "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "Support Manager"
+  "report": 1, 
+  "role": "Support Manager", 
+  "submit": 0
  }, 
  {
   "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "System Manager"
+  "report": 1, 
+  "role": "System Manager", 
+  "submit": 0
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "match": "owner", 
+  "role": "Sales Representative"
  }
 ]

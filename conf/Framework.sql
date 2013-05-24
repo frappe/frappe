@@ -213,3 +213,31 @@ CREATE TABLE `__Auth` (
   `password` VARCHAR(180) NOT NULL,
   KEY `user` (`user`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `tabFile Data`
+--
+
+DROP TABLE IF EXISTS `tabFile Data`;
+CREATE TABLE `tabFile Data` (
+  `name` varchar(120) NOT NULL,
+  `creation` datetime DEFAULT NULL,
+  `modified` datetime DEFAULT NULL,
+  `modified_by` varchar(40) DEFAULT NULL,
+  `owner` varchar(40) DEFAULT NULL,
+  `docstatus` int(1) DEFAULT '0',
+  `parent` varchar(120) DEFAULT NULL,
+  `parentfield` varchar(120) DEFAULT NULL,
+  `parenttype` varchar(120) DEFAULT NULL,
+  `idx` int(8) DEFAULT NULL,
+  `file_name` varchar(180) DEFAULT NULL,
+  `file_url` varchar(180) DEFAULT NULL,
+  `module` varchar(180) DEFAULT NULL,
+  `attached_to_name` varchar(180) DEFAULT NULL,
+  `file_size` int(11) DEFAULT NULL,
+  `attached_to_doctype` varchar(180) DEFAULT NULL,
+  PRIMARY KEY (`name`),
+  KEY `parent` (`parent`),
+  KEY `attached_to_name` (`attached_to_name`),
+  KEY `attached_to_doctype` (`attached_to_doctype`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

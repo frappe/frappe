@@ -219,12 +219,12 @@ wn.views.ListView = Class.extend({
 		}
 		else if(opts.content=='name') {
 			$("<a>")
-				.attr("href", "#Form/" + data.doctype + "/" + data.name)
+				.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
 				.html(data.name)
 				.appendTo(parent.css({"overflow":"hidden"}));
 		} 
 		else if(opts.content=='avatar' || opts.content=='avatar_modified') {
-			$(parent).append(wn.avatar(data.owner, false, wn._("Modified by")+": " 
+			$(parent).append(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
 				+ wn.user_info(data.modified_by).fullname))
 				.css({"margin-top": "-5px"});
 		}

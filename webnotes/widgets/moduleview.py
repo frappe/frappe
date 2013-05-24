@@ -72,7 +72,8 @@ def get_report_list(module):
 	"""return list on new style reports for modules"""	
 	return webnotes.conn.sql("""
 		select distinct tabReport.name, tabReport.ref_doctype as doctype, 
-			if(ifnull(tabReport.query, '')!='', 1, 0) as is_query_report
+			if((tabReport.report_type='Query Report' or 
+				tabReport.report_type='Script Report'), 1, 0) as is_query_report
 		from `tabReport`, `tabDocType`
 		where tabDocType.module=%s
 			and tabDocType.name = tabReport.ref_doctype

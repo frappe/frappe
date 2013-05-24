@@ -907,7 +907,7 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 					if(with_groups && (item.group_or_ledger == "Group" || item.is_group)) {
 						return true;
 					}
-					if(with_ledgers && (item.group_or_ledger == "Ledger" || !item.is_group)) {
+					if(with_ledgers && (item.group_or_ledger != "Group" && !item.is_group)) {
 						return true;
 					}
 				
