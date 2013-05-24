@@ -77,7 +77,7 @@ ul.tagit input[type="text"] {
 /* in list */
 
 .list-tag ul.tagit li.tagit-choice {
-	background-color: #fff;
+	background-color: transparent;
 	text-decoration: underline;
 	color: #aaa;
 	cursor: pointer;

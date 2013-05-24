@@ -139,9 +139,8 @@ wn.views.ListView = Class.extend({
 			var colspan = v.colspan || 2;
 			colspans = colspans + flt(colspan)
 			
-			if(colspans <= 8) {
-				var col = me.make_column(body, flt(colspan) > 1 ? flt(colspan) * 2 : colspan)
-					.addClass("visible-sm");
+			if(colspans <= 6) {
+				var col = me.make_column(body, flt(colspan) * 2, true).addClass("visible-sm");
 				me.render_column(data, col, v);
 			}
 			
@@ -160,16 +159,16 @@ wn.views.ListView = Class.extend({
 			docname: data.name,
 			user_tags: data._user_tags
 		});
-		tag_editor.$w.on("click", ".tagit-label", function() {
+		tag_editor.$w.addClass("hidden-sm").on("click", ".tagit-label", function() {
 			me.doclistview.set_filter("_user_tags", 
 				$(this).text());
 		})
 	},
-	make_column: function(body, colspan) {
+	make_column: function(body, colspan, is_small) {
 		colspan = colspan==0.5 ? "50" : colspan;
 		var col = $("<div>")
 			.appendTo(body)
-			.addClass("col col-lg-" + colspan)
+			.addClass(is_small ? ("col col-sm-" + cint(colspan)) : ("col col-lg-" + cint(colspan)))
 			.css({
 				"white-space": "nowrap",
 				"text-overflow": "ellipsis",

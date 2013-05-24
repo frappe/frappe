@@ -491,6 +491,9 @@ class Document:
 		
 		if doclist != None:
 			doclist.append(d)
+			
+		if doclist:
+			d.idx = max([(d.idx or 0) for d in doclist if d.doctype==childtype]) + 1
 	
 		return d
 		

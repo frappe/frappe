@@ -11,6 +11,7 @@ $.extend(wn.model, {
 			doctype: doctype,
 			name: wn.model.get_new_name(doctype),
 			__islocal: 1,
+			__unsaved: 1,
 			owner: user
 		};
 		wn.model.set_default_values(doc);

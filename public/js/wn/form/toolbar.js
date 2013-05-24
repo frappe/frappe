@@ -8,6 +8,7 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {
+		this.appframe.clear_buttons();
 		this.set_title();
 		this.set_title_image();
 		this.show_title_as_dirty();
@@ -17,7 +18,6 @@ wn.ui.form.Toolbar = Class.extend({
 			return;
 		}
 
-		this.appframe.clear_buttons();
 		this.make_file_menu();
 		this.make_view_menu();
 		if(!this.frm.view_is_edit) {
@@ -37,6 +37,10 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.set_title(title, wn._(this.frm.docname));
 	},
 	show_infobar: function() {
+		/* docs:
+		Render info bar that shows timestamp, # of comments, # of attachments etc.
+		only if saved doc. (doc.__islocal is falsy)
+		*/
 		var me = this;
 		this.appframe.clear_infobar();
 		if(this.frm.doc.__islocal)
