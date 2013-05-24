@@ -12,7 +12,7 @@ wn.provide('wn.views');
 wn.views.SidebarStats = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $("<div>").appendTo(this.parent);
+		this.wrapper = $("<div>").css({"padding-bottom": "15px"}).appendTo(this.parent);
 		this.get_stats();
 	},
 	get_stats: function() {

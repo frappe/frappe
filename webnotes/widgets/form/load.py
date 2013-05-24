@@ -85,7 +85,7 @@ def load_single_doc(dt, dn, user):
 		
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
-		webnotes.msgprint('Error in script while loading')
+		webnotes.msgprint('Did not load.')
 		raise e
 
 	if dl and not dn.startswith('_'):

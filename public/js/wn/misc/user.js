@@ -92,6 +92,10 @@ $.extend(wn.user, {
 					if(wn.boot.allowed_pages.indexOf(wn.modules[m].link)!=-1)
 						ret = m;
 					break;
+				case "list":
+					if(wn.model.can_read(wn.modules[m].doctype))
+						ret = m;
+					break;
 				case "view":
 					ret = m;
 					break;

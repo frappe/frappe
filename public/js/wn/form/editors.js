@@ -76,7 +76,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 				<a class="btn btn-default btn-small btn-info btn-rich-text" title="Rich Text" disabled="disabled"><i class="icon-reorder"></i></a>\
 				<a class="btn btn-default btn-small btn-html" title="HTML"><i class="icon-wrench"></i></a>\
 			</div>\
-		</div>').appendTo(this.opts.parent);
+		</div><div class="clearfix"></div>').appendTo(this.opts.parent);
 		this.$parent = $(this.opts.parent);
 		this.$editor = $("#" + this.myid);
 		this.$parent.find(".btn-add-link").click(function() {
@@ -131,17 +131,6 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 				fontName + '</a></li>'));
 		});
 		
-		//this.$parent.find('a[title]').tooltip({container:'body'});
-		
-		this.$parent.find('.dropdown-menu input').click(function() {return false;})
-			.change(function () {
-				$(this).parent('.dropdown-menu').siblings('.dropdown-toggle')
-					.dropdown('toggle');
-			})
-			.keydown('esc', function () {
-				this.value='';$(this).change();
-			});
-
 		// magic-overlay
 		this.$parent.find('[data-role=magic-overlay]').each(function () { 
 			var overlay = $(this), target = $(overlay.data('target')); 
@@ -188,6 +177,9 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 
 	},
 	set_input: function(value) {
+		if(this.opts.field.inside_change_event)
+			return;
+			
 		if(this.value!=value) {
 			this.value = value==null ? "" : value;
 			this.$editor.html(this.value);

@@ -78,6 +78,7 @@ wn.views.ListView = Class.extend({
 		if(wn.model.is_submittable(this.doctype)) {
 			this.columns.push({colspan: 0.5, content:'docstatus'});
 		}
+		
 		this.columns.push({colspan: 2, content:'name'});
 
 		if(this.workflow_state_fieldname) {
@@ -104,7 +105,9 @@ wn.views.ListView = Class.extend({
 					colspan = "1";
 				} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
 					colspan = "1";
-				} else if(d.fieldname=="subject") { // subjects are longer
+				} else if(d.fieldname=="subject" || d.fieldname=="title") { // subjects are longer
+					colspan = "3";
+				} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
 					colspan = "3";
 				}
 				me.columns.push({colspan: colspan, content: d.fieldname, 
@@ -118,9 +121,13 @@ wn.views.ListView = Class.extend({
 			});
 		}
 
-		this.columns.push({colspan: 2, content:'modified', 
-			css: {'text-align': 'right', 'color':'#222'}});
-
+		// expand "name" if there are few columns
+		var total_colspan = 0;
+		$.each(this.columns, function(i, c) { total_colspan += c.colspan });
+		if(total_colspan < 8) {
+			$.each(this.columns, 
+				function(i, c) { if(c.content==="name") { c.colspan = 4; return false; } });
+		}
 		
 	},
 	render: function(row, data) {
@@ -129,7 +136,7 @@ wn.views.ListView = Class.extend({
 			.appendTo(row).css({"padding": "5px 0px", 
 				"padding-bottom": "0px",
 				"margin-bottom": "5px", 
-				"border-bottom": "1px solid #f2f2f2"
+				"border-bottom": "1px solid #eee"
 			}),
 			colspans = 0,
 			me = this;
@@ -151,18 +158,30 @@ wn.views.ListView = Class.extend({
 			}
 		});
 		
+		// row #2
+		var row2 = $('<div class="col col-lg-12 hidden-sm">\
+			<div class="row">\
+				<div class="col col-lg-6 col-offset-3 list-tag"></div>\
+				<div class="col col-lg-3" style="font-size: 90%; padding-right: 0px;\
+					color: #aaa; margin-top: -3px; text-align: right;">\
+				</div>\
+			</div>\
+		</div>').appendTo(body);
+		
+		// modified
+		row2.find(".col-lg-3").html(comment_when(data.modified));
+		
 		// add tags
-		var tag_col = $('<div class="col col-lg-12 col-offset-4 list-tag"></div>').appendTo(body);
 		var tag_editor = new wn.ui.TagEditor({
-			parent: tag_col,
+			parent: row2.find(".list-tag"),
 			doctype: this.doctype,
 			docname: data.name,
 			user_tags: data._user_tags
 		});
-		tag_editor.$w.addClass("hidden-sm").on("click", ".tagit-label", function() {
+		tag_editor.$w.on("click", ".tagit-label", function() {
 			me.doclistview.set_filter("_user_tags", 
 				$(this).text());
-		})
+		});
 	},
 	make_column: function(body, colspan, is_small) {
 		colspan = colspan==0.5 ? "50" : colspan;

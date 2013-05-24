@@ -174,7 +174,6 @@ _f.Frm.prototype.setup_print_layout = function() {
 	this.print_body = $(this.print_wrapper).find(".print-format-area").get(0);
 }
 
-
 _f.Frm.prototype.onhide = function() { 
 	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect(); 
 }
@@ -333,7 +332,7 @@ _f.Frm.prototype.refresh_print_layout = function() {
 	}
 
 	// create print format here
-	_p.build(this.$print_view_select.val(), print_callback, null, 1);
+	_p.build(this.$print_view_select.val(), print_callback, false, true, true);
 }
 
 
