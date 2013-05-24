@@ -179,7 +179,7 @@ wn.ui.Listing = Class.extend({
 		
 		// hide-filter
 		if(me.show_filters) {
-			this.add_button(wn._('Show Filters'), function() {
+			this.add_button(wn._('Filter'), function() {
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}

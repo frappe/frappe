@@ -47,12 +47,11 @@ wn.views.SidebarStats = Class.extend({
 
 		if(!stat || !stat.length) {
 			if(field=='_user_tags') {
-				this.parent
-					.append('<div class="stat-wrapper section"><div class="section-head">'
-						+wn._('Tags')+'</div>\
-						<div class="help small"><i>'+wn._('No records tagged.')+'</i><br><br> '
-						+wn._('To add a tag, open the document and click on "Add Tag" on the sidebar')
-						+'</div></div>');
+				$('<div class="stat-wrapper section"><div class="section-head">'
+					+wn._('Tags')+'</div>\
+					<div class="help small"><i>'+wn._('No records tagged.')+'</i><br><br> '
+					+wn._('To add a tag, open the document and click on "Add Tag" on the sidebar')
+					+'</div></div>').appendTo(this.wrapper);
 			}
 			return;
 		}

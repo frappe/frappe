@@ -633,7 +633,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			select: function(event, ui) {
 				me.set_model_value(ui.item.value);
 			}
-		}).data('autocomplete')._renderItem = function(ul, item) {
+		}).data('uiAutocomplete')._renderItem = function(ul, item) {
 			return $('<li></li>')
 				.data('item.autocomplete', item)
 				.append(repl('<a><span style="font-weight: bold;">%(label)s</span><br>\
@@ -641,6 +641,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					item))
 				.appendTo(ul);
 		};
+		// remove accessibility span (for now)
+		this.$wrapper.find(".ui-helper-hidden-accessible").remove();
 	},
 	set_custom_query: function(args) {
 		if(this.get_query) {
