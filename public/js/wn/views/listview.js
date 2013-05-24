@@ -71,14 +71,7 @@ wn.views.ListView = Class.extend({
 	set_columns: function() {
 		this.columns = [];
 		var me = this;
-		if(wn.model.can_delete(this.doctype) || this.settings.selectable) {
-			this.columns.push({colspan: 0.5, content:'check'})
-		}
-		this.columns.push({colspan: 1, content:'avatar'});
-		if(wn.model.is_submittable(this.doctype)) {
-			this.columns.push({colspan: 0.5, content:'docstatus'});
-		}
-		
+		this.columns.push({colspan: 1, content:'avatar'});		
 		this.columns.push({colspan: 2, content:'name'});
 
 		if(this.workflow_state_fieldname) {
@@ -123,11 +116,13 @@ wn.views.ListView = Class.extend({
 
 		// expand "name" if there are few columns
 		var total_colspan = 0;
-		$.each(this.columns, function(i, c) { total_colspan += c.colspan });
+		$.each(this.columns, function(i, c) { total_colspan += cint(c.colspan); });
 		if(total_colspan < 8) {
 			$.each(this.columns, 
 				function(i, c) { if(c.content==="name") { c.colspan = 4; return false; } });
 		}
+		
+		console.log(this.columns);
 		
 	},
 	render: function(row, data) {
@@ -184,7 +179,6 @@ wn.views.ListView = Class.extend({
 		});
 	},
 	make_column: function(body, colspan, is_small) {
-		colspan = colspan==0.5 ? "50" : colspan;
 		var col = $("<div>")
 			.appendTo(body)
 			.addClass(is_small ? ("col col-sm-" + cint(colspan)) : ("col col-lg-" + cint(colspan)))
@@ -218,33 +212,31 @@ wn.views.ListView = Class.extend({
 			opts.content(parent, data, me);
 		}
 		else if(opts.content=='name') {
+			if(wn.model.is_submittable(this.doctype)) {
+				$(parent).append(repl('<span class="docstatus" style="margin-right: 3px;"> \
+					<i class="%(docstatus_icon)s" \
+					title="%(docstatus_title)s"></i></span>', data));			
+			}
+			
 			$("<a>")
 				.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
 				.html(data.name)
 				.appendTo(parent.css({"overflow":"hidden"}));
 		} 
 		else if(opts.content=='avatar' || opts.content=='avatar_modified') {
+			if(wn.model.can_delete(this.doctype) || this.settings.selectable) {
+				$('<input class="list-delete" type="checkbox">')
+					.data('name', data.name)
+					.data('data', data)
+					.css({"margin-right": "5px", "margin-left": "-2px"})
+					.appendTo(parent)
+			}
+
 			$(parent).append(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
 				+ wn.user_info(data.modified_by).fullname))
 				.css({"margin-top": "-5px"});
 		}
 		else if(opts.content=='check') {
-			$('<input class="list-delete" type="checkbox">')
-				.data('name', data.name)
-				.data('data', data)
-				.appendTo(parent)
-		}
-		else if(opts.content=='docstatus') {
-			$(parent).append(repl('<span class="docstatus"> \
-				<i class="%(docstatus_icon)s" style="font-size: 120%;" \
-				title="%(docstatus_title)s"></i></span>', data));			
-		}
-		else if(opts.content=='modified') {
-			$("<span>")
-				.html(data.when)
-				.appendTo(parent)
-				.attr("title", wn._("Last Modified On"))
-				.css({"color":"#888"})
 		}
 		else if(opts.type=='bar-graph' || opts.type=="percent") {
 			this.render_bar_graph(parent, data, opts.content, opts.label);
@@ -319,7 +311,7 @@ wn.views.ListView = Class.extend({
 		
 		// docstatus
 		if(data.docstatus==0 || data.docstatus==null) {
-			data.docstatus_icon = '';
+			data.docstatus_icon = 'icon-check-empty';
 			data.docstatus_title = wn._('Editable');
 		} else if(data.docstatus==1) {
 			data.docstatus_icon = 'icon-lock';			
@@ -360,11 +352,10 @@ wn.views.ListView = Class.extend({
 	render_bar_graph: function(parent, data, field, label) {
 		var args = {
 			percent: data[field],
-			fully_delivered: (data[field] > 99 ? 'bar-complete' : ''),
 			label: label
 		}
-		$(parent).append(repl('<span class="bar-outer" style="width: 30px; float: right"> \
-			<span class="bar-inner %(fully_delivered)s" title="%(percent)s% %(label)s" \
+		$(parent).append(repl('<span class="progress" style="width: 100%; float: left;"> \
+			<span class="progress-bar" title="%(percent)s% %(label)s" \
 				style="width: %(percent)s%;"></span>\
 		</span>', args));
 	},

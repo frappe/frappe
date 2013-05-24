@@ -51,7 +51,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 					<span class="icon-bar"></span>\
 					<span class="icon-bar"></span>\
 				</button>\
-				<a class="navbar-brand visible-sm" href="#"></a>\
+				<a class="navbar-brand" href="#"></a>\
 				<div class="nav-collapse collapse navbar-responsive-collapse">\
 					<ul class="nav navbar-nav">\
 					</ul>\

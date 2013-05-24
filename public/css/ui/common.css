@@ -15,18 +15,6 @@ a {
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 }
 
-.col-lg-50 {
-	width: 4.16666666666%;
-	padding-right: 0px;
-}
-
-@media screen and (min-width: 768px) {
-	.col-lg-50 {
-		width: 4.16666666666%;
-		padding-right: 0px;
-	}
-}
-
 /* appframe header */
 
 .appframe-header {
