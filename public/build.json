@@ -23,6 +23,7 @@
 			"lib/public/js/lib/slickgrid/slick.grid.css",
 			"lib/public/js/lib/slickgrid/slick-default-theme.css",
 
+			"lib/public/css/tag-it.css",
 			"lib/public/css/bootstrap.css",
 			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
@@ -48,6 +49,7 @@
 			"lib/public/js/lib/jquery/jquery.ui.datepicker.min.js",
 			"lib/public/js/lib/jquery/jquery.ui.autocomplete.min.js",
 			"lib/public/js/lib/jquery/jquery.ui.interactions.min.js",
+			"lib/public/js/lib/tag-it.min.js",
 			"lib/public/js/lib/mousetrap.min.js",
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
@@ -101,6 +103,7 @@
 			"lib/public/js/wn/ui/filters.js",
 			"lib/public/js/wn/ui/search.js",
 			"lib/public/js/wn/ui/tree.js",
+			"lib/public/js/wn/ui/tags.js",
 
 			"lib/public/js/wn/views/container.js",
 			"lib/public/js/wn/views/pageview.js",
@@ -121,7 +124,6 @@
 
 			"lib/public/js/legacy/webpage/page_header.js",
 			"lib/public/js/legacy/widgets/layout.js",
-			"lib/public/js/legacy/widgets/tags.js",
 			"lib/public/js/legacy/widgets/export_query.js",
 			"lib/public/js/legacy/wn/page_layout.js",
 			"lib/public/js/legacy/wn/widgets/page_sidebar.js",
@@ -135,7 +137,6 @@
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
 			"lib/public/js/legacy/widgets/form/form_dialog.js",
-			"lib/public/js/legacy/widgets/form/form_header.js",
 			"lib/public/js/legacy/widgets/form/form.js",
 			"lib/public/js/legacy/widgets/form/print_format.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",

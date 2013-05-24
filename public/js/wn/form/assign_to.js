@@ -84,6 +84,7 @@ wn.ui.form.AssignTo = Class.extend({
 				}, 
 				callback:function(r,rt) {
 					me.render(r.message);
+					me.frm.toolbar.show_infobar();
 				}
 			});
 			return false;
@@ -126,6 +127,7 @@ wn.ui.form.AssignTo = Class.extend({
 						callback: function(r,rt) {
 							if(!r.exc) {
 								me.render(r.message);
+								me.frm.toolbar.show_infobar();
 							}
 						},
 						btn: this

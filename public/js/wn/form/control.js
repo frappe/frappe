@@ -197,21 +197,21 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		this._label = this.df.label;
 	},
 	set_description: function() {
-		if(this.only_input || this.df.description==this._description) 
+		if(this.only_input || this.df.description===this._description) 
 			return;
 		if(this.df.description) {
-			if(!this.$wrapper.find(".help-box").length) {
-				$('<p class="help-box small text-muted"></p>').appendTo(this.input_area);
-			}
 			this.$wrapper.find(".help-box").html(this.df.description);
 		} else {
-			this.$wrapper.find(".help-box").empty().toggle(false);
+			this.set_empty_description();
 		}
 		this._description = this.df.description;
 	},
+	set_empty_description: function() {
+		this.$wrapper.find(".help-box").html("&nbsp;");		
+	},
 	set_mandatory: function() {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd 
-			&& (this.value==null || this.value=="")) ? true : false);
+			&& (this.value==null || this.value==="")) ? true : false);
 	},
 });
 
@@ -440,6 +440,13 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 			});
 		this.input = this.$input.get(0);
 		this.has_input = true;
+	},
+	set_input_areas: function() {
+		this._super();
+		$(this.disp_area).removeClass();
+	},
+	set_empty_description: function() {
+		this.$wrapper.find(".help-box").empty().toggle(false);
 	},
 	set_label: function() {
 		this.$input && this.$input.html(this.df.label);

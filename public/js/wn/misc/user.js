@@ -32,6 +32,17 @@ wn.provide('wn.user');
 
 $.extend(wn.user, {
 	name: (wn.boot ? wn.boot.profile.name : 'Guest'),
+	full_name: function(uid) {
+		return uid===user ?
+			"You" :
+			wn.user_info(uid).fullname;
+	},
+	image: function(uid) {
+		return wn.user_info(uid).image;
+	},
+	avatar: function(uid, large) {
+		return wn.avatar(uid, large);
+	},
 	has_role: function(rl) {
 		if(typeof rl=='string') 
 			rl = [rl];

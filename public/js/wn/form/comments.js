@@ -53,7 +53,7 @@ wn.ui.form.Comments = Class.extend({
 				</div>', c))
 				.appendTo(me.list)
 				.on("click", ".close", function() {
-					var name = $(this).parent().attr("data-name");
+					var name = $(this).parents(".comment:first").attr("data-name");
 					me.delete_comment(name);
 					return false;
 				})
@@ -81,6 +81,7 @@ wn.ui.form.Comments = Class.extend({
 					if(!r.exc) {
 						var comments = JSON.parse(me.frm.doc.__comments || "[]");
 						me.frm.doc.__comments = JSON.stringify(r.message.concat(comments));
+						me.frm.toolbar.show_infobar();
 						me.input.val("");
 						me.refresh();
 					}
@@ -107,6 +108,7 @@ wn.ui.form.Comments = Class.extend({
 						)
 					);
 					me.refresh();
+					me.frm.toolbar.show_infobar();
 				}
 			}
 		});		

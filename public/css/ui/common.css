@@ -61,6 +61,33 @@ a {
 	width: 100%;
 }
 
+.appframe .info-bar {
+	padding: 7px;
+	border-bottom: 1px solid #ddd;
+	margin-left: -15px;
+	margin-right: -15px;
+}
+
+.appframe .info-bar {
+	padding: 7px;
+}
+
+.appframe .info-bar ul {
+	list-style: none;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
+}
+
+.appframe .info-bar li {
+	display: inline-block;
+	padding-left: 15px;
+	padding-right: 15px;
+}
+
+.appframe .info-bar li.bold a {
+	font-weight: bold;
+}
+
 /* home icon in main nav */
 
 .navbar-icon-home {
@@ -114,8 +141,6 @@ a {
 		text-overflow: ellipsis;
 		white-space: nowrap;
 }
-
-/* modal - no fade transition */
 
 /* avatar */
 

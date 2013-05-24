@@ -107,6 +107,7 @@ wn.ui.form.Attachments = Class.extend({
 									return;
 								}
 								me.remove_fileid(data);
+								me.frm.toolbar.show_infobar();
 							}
 						});
 					});
@@ -135,6 +136,7 @@ wn.ui.form.Attachments = Class.extend({
 			},
 			callback: function(fileid, filename, r) {
 				me.update_attachment(fileid, filename, fieldname, r);
+				me.frm.toolbar.show_infobar();
 			}
 		});
 	},

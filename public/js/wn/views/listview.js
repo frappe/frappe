@@ -118,9 +118,6 @@ wn.views.ListView = Class.extend({
 			});
 		}
 
-		// tags
-		this.columns.push({colspan: 2, content:'tags', css: {'color':'#aaa'}}),
-
 		this.columns.push({colspan: 2, content:'modified', 
 			css: {'text-align': 'right', 'color':'#222'}});
 
@@ -130,7 +127,8 @@ wn.views.ListView = Class.extend({
 		this.prepare_data(data);
 		var body = $("<div class='row doclist-row'></div>")
 			.appendTo(row).css({"padding": "5px 0px", 
-				"margin-bottom": "7px", 
+				"padding-bottom": "0px",
+				"margin-bottom": "5px", 
 				"border-bottom": "1px solid #f2f2f2"
 			}),
 			colspans = 0,
@@ -153,6 +151,19 @@ wn.views.ListView = Class.extend({
 				me.render_column(data, col, v);
 			}
 		});
+		
+		// add tags
+		var tag_col = $('<div class="col col-lg-12 col-offset-4 list-tag"></div>').appendTo(body);
+		var tag_editor = new wn.ui.TagEditor({
+			parent: tag_col,
+			doctype: this.doctype,
+			docname: data.name,
+			user_tags: data._user_tags
+		});
+		tag_editor.$w.on("click", ".tagit-label", function() {
+			me.doclistview.set_filter("_user_tags", 
+				$(this).text());
+		})
 	},
 	make_column: function(body, colspan) {
 		colspan = colspan==0.5 ? "50" : colspan;
@@ -209,9 +220,6 @@ wn.views.ListView = Class.extend({
 			$(parent).append(repl('<span class="docstatus"> \
 				<i class="%(docstatus_icon)s" style="font-size: 120%;" \
 				title="%(docstatus_title)s"></i></span>', data));			
-		}
-		else if(opts.content=='tags') {
-			this.add_user_tags(parent, data);
 		}
 		else if(opts.content=='modified') {
 			$("<span>")
@@ -331,21 +339,6 @@ wn.views.ListView = Class.extend({
 		}
 	},
 	
-	add_user_tags: function(parent, data) {
-		var me = this;
-		if(data._user_tags) {
-			$.each(data._user_tags.split(','), function(i, t) {
-				if(t) {
-					$('<span class="label" style="cursor: pointer;">' 
-						+ strip(t) + '</span>')
-						.click(function() {
-							me.doclistview.set_filter('_user_tags', $(this).text())
-						})
-						.appendTo(parent);
-				}
-			});
-		}		
-	},
 	render_bar_graph: function(parent, data, field, label) {
 		var args = {
 			percent: data[field],

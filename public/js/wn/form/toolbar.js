@@ -4,21 +4,82 @@ wn.ui.form.Toolbar = Class.extend({
 		$.extend(this, opts);
 		this.make();
 		this.add_update_button_on_dirty();
+		this.appframe.add_module_icon(this.frm.meta.module);
+		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {
+		this.set_title();
+		this.set_title_image();
+		this.show_title_as_dirty();
+
 		if(this.frm.meta.hide_toolbar) {
 			this.frm.save_disabled = true;
 			return;
 		}
+
 		this.appframe.clear_buttons();
 		this.make_file_menu();
 		this.make_view_menu();
-		this.set_title_image();
-		this.show_title_as_dirty();
 		if(!this.frm.view_is_edit) {
 			// print view
 			this.show_print_toolbar();
 		}
+		this.show_infobar();
+	},
+	refresh: function() {
+		this.make();
+	},
+	set_title: function() {
+		var title = this.frm.docname;
+		if(title.length > 30) {
+			title = title.substr(0,30) + "...";
+		}
+		this.appframe.set_title(title, wn._(this.frm.docname));
+	},
+	show_infobar: function() {
+		var me = this;
+		this.appframe.clear_infobar();
+		if(this.frm.doc.__islocal)
+			return;
+		this.appframe.add_infobar(
+			wn.user.full_name(this.frm.doc.modified_by) + " / " + comment_when(this.frm.doc.modified), function() {
+			msgprint("Created By: " + wn.user.full_name(me.frm.doc.owner) + "<br>" +
+				"Created On: " + dateutil.str_to_user(me.frm.doc.creation) + "<br>" +
+				"Last Modified By: " + wn.user.full_name(me.frm.doc.modified_by) + "<br>" +
+				"Last Modifed On: " + dateutil.str_to_user(me.frm.doc.modified), "History");
+		})
+
+		var comments = JSON.parse(this.frm.doc.__comments || "[]").length,
+			attachments = keys(JSON.parse(this.frm.doc.file_list || "{}")).length,
+			assignments = JSON.parse(this.frm.doc.__assign_to || "[]").length;
+			
+		var $li1 = this.appframe.add_infobar(comments + " " + (comments===1 ? 
+			wn._("Comment") : wn._("Comments")),
+			function() {
+				$('html, body').animate({
+					scrollTop: $(me.frm.wrapper).find(".form-comments").offset().top
+				}, 2000);
+			});
+		comments > 0 && $li1.addClass("bold");
+
+		var $li2 = this.appframe.add_infobar(attachments + " " + (attachments===1 ? 
+			wn._("Attachment") : wn._("Attachments")),
+			function() {
+				$('html, body').animate({
+					scrollTop: $(me.frm.wrapper).find(".form-attachments").offset().top
+				}, 2000);
+			});
+		attachments > 0 && $li2.addClass("bold");
+		
+		var $li3 = this.appframe.add_infobar(assignments + " " + (assignments===1 ? 
+			wn._("Assignment") : wn._("Assignments")),
+			function() {
+				$('html, body').animate({
+					scrollTop: $(me.frm.wrapper).find(".form-assignments").offset().top
+				}, 2000);
+			})
+		assignments > 0 && $li3.addClass("bold");
+		
 	},
 	show_print_toolbar: function() {
 		var me = this;
@@ -181,8 +242,5 @@ wn.ui.form.Toolbar = Class.extend({
 		if(this.actions_setup) return;
 		var menu = this.get_dropdown_menu("Actions");
 		this.actions_setup = true;
-	},
-	refresh: function() {
-		this.make();
 	}
 })

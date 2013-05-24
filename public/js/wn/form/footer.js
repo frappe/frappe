@@ -5,6 +5,7 @@ wn.ui.form.Footer = Class.extend({
 		this.make();
 		this.make_assignments();
 		this.make_attachments();
+		this.make_tags();
 		this.make_comments();
 		// render-complete
 		$(this.frm.wrapper).on("render_complete", function() {
@@ -22,25 +23,31 @@ wn.ui.form.Footer = Class.extend({
 				</div>\
 				<div class="help-area"></div>\
 			</div>\
-			<div class="col col-lg-8">\
-				<div class="form-comments">\
-					<h4><i class="icon-comments"></i> Comments</h4>\
+			<div class="after-save">\
+				<div class="col col-lg-8">\
+					<div class="form-tags">\
+						<h4 style="display: inline-block"><i class="icon-tag"></i> Tags</h4>\
+						<span class="tag-area"></span><br>\
+					</div>\
+					<div class="form-comments">\
+						<h4><i class="icon-comments"></i> Comments</h4>\
+					</div>\
 				</div>\
-			</div>\
-			<div class="col col-lg-4">\
-				<div class="form-assignments" style="margin-bottom: 7px;">\
-					<h4>\
-						<i class="icon-ok-sign"></i> Assigned To: \
-						<button class="btn btn-small btn-default pull-right"\
-							style="margin-top:-7px;">Add</button>\
-					</h4>\
-				</div><hr>\
-				<div class="form-attachments">\
-					<h4>\
-						<i class="icon-paper-clip"></i> Attachments:\
-						<button class="btn btn-small btn-default pull-right"\
-							style="margin-top:-7px;">Add</button>\
-					</h4>\
+				<div class="col col-lg-4">\
+					<div class="form-assignments" style="margin-bottom: 7px;">\
+						<h4>\
+							<i class="icon-ok-sign"></i> Assigned To: \
+							<button class="btn btn-small btn-default pull-right"\
+								style="margin-top:-7px;">Add</button>\
+						</h4>\
+					</div><hr>\
+					<div class="form-attachments">\
+						<h4>\
+							<i class="icon-paper-clip"></i> Attachments:\
+							<button class="btn btn-small btn-default pull-right"\
+								style="margin-top:-7px;">Add</button>\
+						</h4>\
+					</div>\
 				</div>\
 			</div>\
 		</div>')
@@ -49,6 +56,13 @@ wn.ui.form.Footer = Class.extend({
 			me.frm.save('Save', null, this);
 		})
 		this.help_area = this.wrapper.find(".help-area").get(0);
+	},
+	make_tags: function() {
+		this.frm.tags = new wn.ui.TagEditor({
+			parent: this.wrapper.find(".tag-area"),
+			doctype: this.frm.doctype,
+			docname: this.frm.docname
+		})
 	},
 	make_attachments: function() {
 		this.frm.attachments = new wn.ui.form.Attachments({
@@ -76,10 +90,15 @@ wn.ui.form.Footer = Class.extend({
 	},
 	refresh: function() {
 		this.toggle_save();
-		this.frm.attachments.refresh();
-		this.frm.comments.refresh();
-		this.frm.assign_to.refresh();
-		// show save?
+		if(this.frm.doc.__islocal) {
+			this.wrapper.find(".after-save").toggle(false);
+		} else {
+			this.wrapper.find(".after-save").toggle(true);
+			this.frm.attachments.refresh();
+			this.frm.comments.refresh();
+			this.frm.assign_to.refresh();
+			this.frm.tags.refresh();
+		}
 	},
 	toggle_save: function() {
 		if(this.frm_head && this.appframe.toolbar

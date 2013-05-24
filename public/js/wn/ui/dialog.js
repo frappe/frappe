@@ -64,7 +64,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 				// focus on first input
 				me.display = true;
 				var first = me.$wrapper.find(':input:first');
-				if(first.attr("data-fieldtype")!="Date") {
+				if(first.length && first.attr("data-fieldtype")!="Date") {
 					first.get(0).focus();
 				}
 				me.onshow && me.onshow();

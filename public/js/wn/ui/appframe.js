@@ -23,6 +23,7 @@ wn.ui.AppFrame = Class.extend({
 						style="margin-top: -10px;"></div>\
 				</div>\
 			</div>\
+			<div class="info-bar" style="display: none;"><ul></ul></div>\
 			<div class="navbar" style="display: none;">\
 				<div class="navbar-form pull-left">\
 					<div class="btn-group"></div>\
@@ -51,32 +52,22 @@ wn.ui.AppFrame = Class.extend({
 	set_sub_title: function(txt) {
 		this.$w.find(".sub-title-area").html(txt);
 	},
-	clear_breadcrumbs: function() {
-		this.$w.find(".breadcrumb").empty();
+	
+	add_infobar: function(label, onclick) {
+		var $ul = this.$w.find(".info-bar").toggle(true).find("ul"),
+			$li = $('<li><a href="#">' + label + '</a></li>')
+				.appendTo($ul)
+				.click(function() {
+					onclick();
+					return false;
+				})
+		return $li;
 	},
-	add_breadcrumb: function(icon, link, title) {
-		if(link) {
-			$(repl('<li style="margin-top: 5px;"><a href="#%(link)s" title="%(title)s"><i class="%(icon)s"></i></a>\
-			  	<span class="divider">/</span></li>', {
-				icon: icon,
-				link: link,
-				title: wn._(title)
-			})).appendTo(this.$w.find(".breadcrumb"));
-		} else {
-			$(repl("<li style='margin-top: 5px;' class='active'><i class='%(icon)s'></i> \
-				<span class='appframe-title'></span>\
-				<span class='appframe-subject'></span></li>", {
-				icon: icon,
-			})).appendTo(this.$w.find(".breadcrumb"));
-			if(this.title) this.set_title(this.title);
-		}
+	
+	clear_infobar: function() {
+		this.$w.find(".info-bar").toggle(false).find("ul").empty();
 	},
-	add_home_breadcrumb: function() {
-		this.add_breadcrumb("icon-home", wn.home_page, "Home");
-	},
-	add_list_breadcrumb: function(doctype) {
-		this.add_breadcrumb("icon-list", "List/" + encodeURIComponent(doctype), doctype + " List");
-	},
+	
 	add_module_icon: function(module) {
 		var module_info = wn.modules[module];
 		if(module_info) {
@@ -265,7 +256,20 @@ wn.ui.AppFrame = Class.extend({
 		$('<div class="ripped-paper-border"></div>')
 			.prependTo(layout_main)
 			.css({"width": $(layout_main).width()});
-	}
+	},
+	/* deprecated */
+	clear_breadcrumbs: function() {
+		this.$w.find(".breadcrumb").empty();
+	},
+	add_breadcrumb: function(icon, link, title) {
+		return; // bc
+	},
+	add_home_breadcrumb: function() {
+		this.add_breadcrumb("icon-home", wn.home_page, "Home");
+	},
+	add_list_breadcrumb: function(doctype) {
+		this.add_breadcrumb("icon-list", "List/" + encodeURIComponent(doctype), doctype + " List");
+	},
 });
 
 // parent, title, single_column

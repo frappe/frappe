@@ -114,7 +114,8 @@ _f.Frm.prototype.setup = function() {
 	this.toolbar = new wn.ui.form.Toolbar({
 		frm: this,
 		appframe: this.appframe
-	})
+	});
+	this.frm_head = this.toolbar;
 	
 	// create area for print fomrat
 	this.setup_print_layout();
@@ -127,9 +128,7 @@ _f.Frm.prototype.setup = function() {
 		frm: this
 	})
 	this.watch_model_updates();
-	
-	this.setup_header();
-	
+		
 	this.footer = new wn.ui.form.Footer({
 		frm: this,
 		parent: this.layout_main
@@ -206,17 +205,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.states = new wn.ui.form.States({
 		frm: this
 	});
-}
-
-_f.Frm.prototype.setup_header = function() {
-	// header - no headers for tables and guests
-	if(!(this.meta.istable || (this.meta.in_dialog && !this.in_form))) 
-		this.frm_head = new _f.FrmHeader(this.head, this);
-		
-	this.toolbar = new wn.ui.form.Toolbar({
-		frm: this,
-		appframe: this.appframe
-	})
 }
 
 _f.Frm.prototype.setup_print = function() { 
@@ -380,7 +368,6 @@ _f.Frm.prototype.refresh_header = function() {
 	// show / hide buttons
 	if(this.frm_head) {
 		this.frm_head.refresh();
-		this.toolbar.refresh();
 	}
 }
 
