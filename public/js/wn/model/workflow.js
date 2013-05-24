@@ -51,7 +51,7 @@ wn.workflow = {
 		wn.workflow.setup(doctype);
 		return wn.model.get("Workflow Transition", {
 			parent: wn.workflow.workflows[doctype].name,
-			state: state,
+			state: state
 		});
 	},
 	get_document_state: function(doctype, state) {
@@ -65,8 +65,8 @@ wn.workflow = {
 		return wn.model.get("Workflow Transition", {
 			parent: wn.workflow.workflows[doctype].name,
 			state: state,
-			action: action,
-		})[0].next_state
+			action: action
+		})[0].next_state;
 	},
  	is_read_only: function(doctype, name) {
 		var state_fieldname = wn.workflow.get_state_fieldname(doctype);
@@ -79,11 +79,13 @@ wn.workflow = {
 			var state = locals[doctype][name][state_fieldname] || 
 				wn.workflow.get_default_state(doctype);
 
-			var allow_edit = wn.model.get("Workflow Document State", 
+			var workflow_doc_state = wn.model.get("Workflow Document State", 
 				{
 					parent: wn.workflow.workflows[doctype].name, 
-					state:state
-				})[0].allow_edit;
+					state: state
+				});
+			var allow_edit = workflow_doc_state.length ? 
+				workflow_doc_state[0].allow_edit : null;
 
 			if(user_roles.indexOf(allow_edit)==-1) {
 				return true;
@@ -98,4 +100,4 @@ wn.workflow = {
 			}));
 		return update_fields;
 	}
-}
+};
