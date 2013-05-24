@@ -267,7 +267,10 @@ class Document:
 			if not self.owner: 
 				self.owner = webnotes.session['user']
 			self.modified_by = webnotes.session['user']
-			self.creation = self.modified = now()
+			if not self.creation:
+				self.creation = self.modified = now()
+			else:
+				self.modified = now()
 			
 		webnotes.conn.sql("insert into `tab%(doctype)s`" % self.fields \
 			+ """ (name, owner, creation, modified, modified_by)
