@@ -18,6 +18,7 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		this.make_bindings();
 	},
 	make_body: function() {
+		var me = this;
 		this.myid = "editor-" + wn.dom.set_unique_id();
 		$('<div class="for-rich-text">\
 			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;"\
@@ -53,6 +54,10 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 					<a class="btn btn-default btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
 				</div>\
 				<div class="btn-group hidden-sm">\
+					<a class="btn btn-default btn-small btn-add-link" title="Insert Link">\
+						<i class="icon-link"></i></a>\
+					<a class="btn btn-default btn-small" title="Remove Link" data-edit="unlink">\
+						<i class="icon-unlink"></i></a>\
 					<a class="btn btn-default btn-small" title="Insert picture (or just drag & drop)" id="pictureBtn-'+this.myid+'"><i class="icon-picture"></i></a>\
 					<input type="file" data-role="magic-overlay" data-target="#pictureBtn-'+this.myid+'" data-edit="insertImage" />\
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" title="Horizontal Line Break">-</a>\
@@ -73,12 +78,45 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 			</div>\
 		</div>').appendTo(this.opts.parent);
 		this.$parent = $(this.opts.parent);
-		this.$editor = $("#" + this.myid)
+		this.$editor = $("#" + this.myid);
+		this.$parent.find(".btn-add-link").click(function() {
+			me.show_link_dialog();
+			return false;
+		})
+		this.$editor.on("keyup", function() { me.save_selection() });
+		this.$editor.on("mouseup", function() { me.save_selection() });
 		this.$textarea = this.$parent.find(".html-editor");
 		this.input = this.$editor.get(0);
 	},
 	set_focus: function() {
 		this.$editor.focus();
+	},
+	save_selection: function() {
+		this.saved_selection = wn.dom.save_selection();
+	},
+	show_link_dialog: function() {
+		var me = this;
+		var d = new wn.ui.Dialog({
+				title: "Add Link",
+				fields: [
+					{fieldtype: "Data", label:"Link", fieldname: "link", reqd: 1,
+						description:"example: http://example.com"},
+					{fieldtype: "Button", label:"Add", fieldname: "add"},
+				]
+			});
+		d.show();
+		d.fields_dict.link.set_input("http://");
+		$(d.fields_dict.add.input).click(function() {
+			var values = d.get_values();
+			if(values) {
+				d.hide();
+				wn.dom.restore_selection(me.saved_selection);
+				document.execCommand("CreateLink", false, values.link);
+			}
+		});
+		d.onhide = function() {
+			wn.dom.restore_selection(me.saved_selection);
+		}
 	},
 	make_bindings: function() {
 		var me = this;
