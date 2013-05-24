@@ -156,15 +156,15 @@ wn.views.ListView = Class.extend({
 		// row #2
 		var row2 = $('<div class="col col-lg-12 hidden-sm">\
 			<div class="row">\
-				<div class="col col-lg-6 col-offset-3 list-tag"></div>\
-				<div class="col col-lg-3" style="font-size: 90%; padding-right: 0px;\
+				<div class="col col-lg-7 col-offset-3 list-tag"></div>\
+				<div class="col col-lg-2 timestamp" style="font-size: 90%; padding-right: 0px;\
 					color: #aaa; margin-top: -3px; text-align: right;">\
 				</div>\
 			</div>\
 		</div>').appendTo(body);
 		
 		// modified
-		row2.find(".col-lg-3").html(comment_when(data.modified));
+		row2.find(".timestamp").html(comment_when(data.modified));
 		
 		// add tags
 		var tag_editor = new wn.ui.TagEditor({

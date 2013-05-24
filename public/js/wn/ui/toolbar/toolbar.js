@@ -76,7 +76,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#"\
 				title="'+wn._("Modules")+'"\
-				onclick="return false;">'+wn._("Modules")+'</a>\
+				onclick="return false;">erpnext</a>\
 			<ul class="dropdown-menu modules">\
 			</ul>\
 			</li>').prependTo('.navbar .nav:first');
