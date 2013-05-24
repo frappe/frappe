@@ -40,10 +40,6 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 				</div>\
 				<div class="btn-group">\
 					<a class="btn btn-default btn-small" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="italic" title="Italic (Ctrl/Cmd+I)"><i class="icon-italic"></i></a>\
-					<a class="btn btn-default btn-small" data-edit="underline" title="Underline (Ctrl/Cmd+U)"><i class="icon-underline"></i></a>\
-				</div>\
-				<div class="btn-group">\
 					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>\
@@ -52,8 +48,6 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 				<div class="btn-group hidden-sm">\
 					<a class="btn btn-default btn-small" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
-				</div>\
-				<div class="btn-group hidden-sm">\
 					<a class="btn btn-default btn-small btn-add-link" title="Insert Link">\
 						<i class="icon-link"></i></a>\
 					<a class="btn btn-default btn-small" title="Remove Link" data-edit="unlink">\

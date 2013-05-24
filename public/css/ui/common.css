@@ -72,7 +72,16 @@ a {
 	padding: 7px;
 }
 
+.appframe .info-bar .form-icon {
+	margin-top: 4px;
+	margin-right: 4px;
+	color: #888;
+	cursor: pointer;
+}
+
 .appframe .info-bar ul {
+	width: 80%;
+	display: inline-block;
 	list-style: none;
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;

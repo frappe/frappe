@@ -84,6 +84,22 @@ wn.ui.form.Toolbar = Class.extend({
 			})
 		assignments > 0 && $li3.addClass("bold");
 		
+		this.appframe.$w.find(".form-icon").remove();
+		if(!me.frm.meta.allow_print) {
+			$('<i class="icon-print pull-right form-icon" title="Print" style="margin-right: 10px;"></i>')
+				.click(function() {
+					me.frm.print_doc();
+				})
+				.appendTo(this.appframe.$w.find(".info-bar"));
+		}
+		
+		if(!me.frm.meta.allow_email) {
+			$('<i class="icon-envelope pull-right form-icon" title="Email"></i>')
+				.click(function() {
+					me.frm.email_doc();
+				})
+				.appendTo(this.appframe.$w.find(".info-bar"));		
+		}
 	},
 	show_print_toolbar: function() {
 		var me = this;
