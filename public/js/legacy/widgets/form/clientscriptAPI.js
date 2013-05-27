@@ -102,7 +102,7 @@ refresh_field = function(n, docname, table_field) {
 	if(typeof n==typeof []) 
 		refresh_many(n, docname, table_field);
 	
-	if(table_field) { // for table
+	if(table_field && cur_frm.fields_dict[table_field].grid.grid_rows_by_docname) { // for table
 		cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
 	} else if(cur_frm) {
 		cur_frm.refresh_field(n)
