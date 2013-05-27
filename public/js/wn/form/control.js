@@ -64,8 +64,7 @@ wn.ui.form.Control = Class.extend({
 			undefined;
 	},
 	set_model_value: function(value) {
-		if(this.last_value!==value) {
-			wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value);
+		if(wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value)) {
 			this.frm && this.frm.dirty();
 			this.last_value = value;
 		}
@@ -473,8 +472,9 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		if(this.doctype && this.docname) {
 			// model value is not an option,
 			// set the default option (displayed)
+			var input_value = this.$input.val();
 			var model_value = wn.model.get_value(this.doctype, this.docname, this.df.fieldname);
-			if(this.$input.val() != (model_value || "")) {
+			if(input_value != (model_value || "")) {
 				this.set_model_value(this.$input.val());
 			} else {
 				this.last_value = value;

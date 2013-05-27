@@ -195,6 +195,7 @@ $.extend(wn.model, {
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
 			wn.model.trigger(fieldname, value, doc);
+			return true;
 		}
 	},
 	
