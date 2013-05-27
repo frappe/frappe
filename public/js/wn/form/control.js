@@ -475,7 +475,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			var input_value = this.$input.val();
 			var model_value = wn.model.get_value(this.doctype, this.docname, this.df.fieldname);
 			if(input_value != (model_value || "")) {
-				this.set_model_value(this.$input.val());
+				this.set_model_value(input_value);
 			} else {
 				this.last_value = value;
 			}
@@ -513,7 +513,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		if(fl) {
 			this.set_description("");
 			var fl = JSON.parse(fl),
-				options = [];
+				options = [""];
 			for(var fname in fl) {
 				if(fname.substr(0,4)!="http")
 					fname = "files/" + fname;
