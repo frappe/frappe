@@ -343,15 +343,17 @@ class Bean:
 
 
 def clone(source_wrapper):
-	""" Copy previous invoice and change dates"""
+	""" make a clone of a document"""
 	if isinstance(source_wrapper, list):
 		source_wrapper = Bean(source_wrapper)
 	
 	new_wrapper = Bean(source_wrapper.doclist.copy())
-	new_wrapper.doc.fields.update({
-		"amended_from": None,
-		"amendment_date": None,
-	})
+	
+	if new_wrapper.doc.fields.get("amended_from"):
+		new_wrapper.doc.fields["amended_from"] = None
+
+	if new_wrapper.doc.fields.get("amendment_date"):
+		new_wrapper.doc.fields["amendment_date"] = None
 	
 	for d in new_wrapper.doclist:
 		d.fields.update({
