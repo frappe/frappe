@@ -598,14 +598,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	},
 	setup_autocomplete: function() {
 		var me = this;
-		// increasing zindex of input to increase zindex of autosuggest
-		// because of the increase in zindex of dialog_wrapper
-		if(cur_dialog || me.dialog_wrapper) {
-			var $dialog_wrapper = $(cur_dialog ? cur_dialog.wrapper : me.dialog_wrapper)
-			var zindex = cint($dialog_wrapper.css("z-index"));
-			this.$input.css({"z-index": (zindex >= 10 ? zindex : 10) + 1});
-		}
-
 		this.$input.autocomplete({
 			source: function(request, response) {
 				var args = {
@@ -625,6 +617,10 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				});
 			},
 			open: function(event, ui) {
+				if(cur_dialog) {
+					var zindex = cint(cur_dialog.$wrapper.css("z-index")) + 1
+					$(this).autocomplete("widget").css("z-index", zindex);
+				}
 				me.autocomplete_open = true;
 			},
 			close: function(event, ui) {
