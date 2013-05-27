@@ -26,7 +26,7 @@ from webnotes import msgprint, _
 from webnotes.utils import flt, cint, cstr
 from webnotes.model.meta import get_field_precision
 
-error_coniditon_map = {
+error_condition_map = {
 	"=": "!=",
 	"!=": "=",
 	"<": ">=",
@@ -71,7 +71,7 @@ class DocListController(object):
 				msg += _("Row") + (" # %d: " % doc.idx)
 			
 			msg += _(self.meta.get_label(fieldname, parent=doc.doctype)) \
-				+ " " + error_coniditon_map.get(condition, "") + " " + cstr(val2)
+				+ " " + error_condition_map.get(condition, "") + " " + cstr(val2)
 			
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
