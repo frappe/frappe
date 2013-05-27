@@ -90,7 +90,7 @@ wn.ui.FieldGroup = Class.extend({
 	},
 	get_value: function(key) {
 		var f = this.fields_dict[key];
-		return f && (f.get_value ? f.get_value() : null);
+		return f && (f.get_parsed_value ? f.get_parsed_value() : null);
 	},
 	set_value: function(key, val){
 		var f = this.fields_dict[key];

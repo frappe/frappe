@@ -715,7 +715,7 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 		this.has_input = true;
 	},
 	get_value: function() {
-		this.editor.get_value();
+		return this.editor.get_value();
 	},
 	set_input: function(value) {
 		this.editor.set_input(value);

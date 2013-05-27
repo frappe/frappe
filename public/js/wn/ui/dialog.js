@@ -22,6 +22,9 @@
 
 wn.provide('wn.ui');
 
+var cur_dialog;
+
+wn.ui.open_dialogs = [];
 wn.ui.Dialog = wn.ui.FieldGroup.extend({
 	init: function(opts) {
 		this.display = false;
@@ -56,16 +59,27 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		this.$wrapper
 			.on("hide.bs.modal", function() {
 				me.display = false;
-				if(cur_dialog===me) 
-					cur_dialog = null;
+				if(wn.ui.open_dialogs[wn.ui.open_dialogs.length-1]===me) {
+					wn.ui.open_dialogs.pop();
+					if(wn.ui.open_dialogs.length)
+						cur_dialog = wn.ui.open_dialogs[wn.ui.open_dialogs.length-1];
+					else
+						cur_dialog = null;
+				}
 				me.onhide && me.onhide();
 			})
 			.on("shown.bs.modal", function() {
 				// focus on first input
 				me.display = true;
+				cur_dialog = me;
+				wn.ui.open_dialogs.push(me);
 				var first = me.$wrapper.find(':input:first');
 				if(first.length && first.attr("data-fieldtype")!="Date") {
-					first.get(0).focus();
+					try {
+						first.get(0).focus();
+					} catch(e) {
+						console.log("Dialog: unable to focus on first input: " + e);
+					}
 				}
 				me.onshow && me.onshow();
 			})
