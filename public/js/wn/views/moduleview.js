@@ -83,7 +83,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 					: "")
 			+ ((section.right || !item.doctype) 
 				? ''
-				: '<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>')
+				: '<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>\
+					<span class="clearfix"></span>')
 			+ "</li>", item))
 		.appendTo(section.list_group);
 	},
@@ -191,16 +192,17 @@ wn.views.moduleview.ModuleView = Class.extend({
 						$.extend(wn.model.open_count_conditions, r.message.conditions);
 
 						$.each(r.message.open_count, function(doctype, count) {
-							$(me.wrapper).find("[data-doctype='"+doctype+"']")
-								.parent()
-								.css({"padding-right": "50px"})
-								.append(" <span class='badge badge-important'\
+							$("<span class='badge badge-important'\
 									style='cursor:pointer;\
-										margin-right: 0px;\
-										background-color: #b94a48'>" + count + "</span>")
-								.find(".badge-count")
-									.css({"margin-right": "-35px"})
+									margin-right: 0px;\
+									background-color: #b94a48'>" + count + "</span>").
+								insertAfter($(me.wrapper)
+									.find("[data-doctype-count='"+doctype+"']"));
 						})
+					}
+					
+					if(r.message.item_count) {
+						console.log($(me.wrapper).find("[data-doctype='"+doctype+"']").parent());
 					}
 				}
 			}
