@@ -131,7 +131,7 @@ wn.utils = {
 		if(!text) 
 			return style;
 		if(has_words(["Open", "Pending"], text)) {
-			style = "important";
+			style = "danger";
 		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
 			"Approved", "Yes", "Active"], text)) {
 			style = "success";
