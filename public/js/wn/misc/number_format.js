@@ -160,6 +160,6 @@ function roundNumber(num, dec) {
 
 function precision(fieldname, doc) {
 	if(!doc) doc = cur_frm.doc;
-	var df = wn.meta.get_docfield(doc.doctype, fieldname, doc.name);
+	var df = wn.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
 	return wn.meta.get_field_precision(df, doc);
 }

@@ -454,9 +454,6 @@ _f.Frm.prototype.refresh = function(docname) {
 						
 			// fields
 			this.refresh_fields();
-						
-			// dependent fields
-			this.refresh_dependency();
 			
 			// call onload post render for callbacks to be fired
 			if(this.cscript.is_onload) {
@@ -493,6 +490,9 @@ _f.Frm.prototype.refresh_fields = function() {
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
+	
+	// dependent fields
+	this.refresh_dependency();
 }
 
 
@@ -591,10 +591,6 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 		this.docname=docname;
 		return;
 	}
-
-	// make a copy of the doctype for client script settings
-	// each record will have its own client script
-	wn.meta.make_docfield_copy_for(this.doctype,docname);
 
 	this.docname = docname;
 

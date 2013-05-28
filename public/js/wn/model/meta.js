@@ -57,20 +57,11 @@ $.extend(wn.meta, {
 	},
 	
 	get_docfield: function(dt, fn, dn) {
-		if(dn && wn.meta.docfield_copy[dt] && wn.meta.docfield_copy[dt][dn]){
-			return wn.meta.docfield_copy[dt][dn][fn];
-		} else {
-			return wn.meta.docfield_map[dt][fn];
-		}
+		return wn.meta.get_docfield_copy(dt, dn)[fn];
 	},
 	
 	get_docfields: function(doctype, name, filters) {
-		var docfield_map;
-		if(name && wn.meta.docfield_copy[doctype] && wn.meta.docfield_copy[doctype][name]) {
-			docfield_map = wn.meta.docfield_copy[doctype][name];
-		} else {
-			docfield_map = wn.meta.docfield_map[doctype];
-		}
+		var docfield_map = wn.meta.get_docfield_copy(doctype, name);
 		
 		var docfields = values(docfield_map).sort(function(a, b) { return a.idx - b.idx });
 		
@@ -79,6 +70,16 @@ $.extend(wn.meta, {
 		}
 		
 		return docfields;
+	},
+	
+	get_docfield_copy: function(doctype, name) {
+		if(!name) return wn.meta.docfield_map[doctype];
+		
+		if(!(wn.meta.docfield_copy[doctype] && wn.meta.docfield_copy[doctype][name])) {
+			wn.meta.make_docfield_copy_for(doctype, name);
+		}
+		
+		return wn.meta.docfield_copy[doctype][name];
 	},
 	
 	get_fieldnames: function(doctype, name, filters) {

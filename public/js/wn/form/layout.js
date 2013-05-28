@@ -7,8 +7,7 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make: function() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.fields = wn.meta.docfield_list[this.doctype];
-		this.fields.sort(function(a,b) { return a.idx > b.idx ? 1 : -1 });
+		this.fields = wn.meta.get_docfields(this.frm.doctype);
 		this.setup_tabbing();
 	},
 	refresh: function() {
@@ -28,8 +27,7 @@ wn.ui.form.Layout = Class.extend({
 		if(this.fields[0] && this.fields[0].fieldtype!="Section Break") {
 			this.make_section();
 		}
-		$.each(this.fields, function(i, std_df) {
-			var df = wn.meta.get_docfield(me.frm.doctype, std_df.fieldname, me.frm.docname);
+		$.each(this.fields, function(i, df) {
 			switch(df.fieldtype) {
 				case "Section Break":
 					me.make_section(df);

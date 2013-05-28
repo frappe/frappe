@@ -16,7 +16,7 @@ def make_test_records(doctype, verbose=0):
 	webnotes.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
-
+	
 	for options in get_dependencies(doctype):
 		if options.startswith("link:"):
 			options = options[5:]
