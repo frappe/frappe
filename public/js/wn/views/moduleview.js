@@ -200,10 +200,6 @@ wn.views.moduleview.ModuleView = Class.extend({
 									.find("[data-doctype-count='"+doctype+"']"));
 						})
 					}
-					
-					if(r.message.item_count) {
-						console.log($(me.wrapper).find("[data-doctype='"+doctype+"']").parent());
-					}
 				}
 			}
 		});	

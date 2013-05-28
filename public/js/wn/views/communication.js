@@ -117,6 +117,7 @@ wn.views.CommunicationComposer = Class.extend({
 		this.dialog.show();
 	},
 	make: function() {
+		var me = this;
 		this.dialog = new wn.ui.Dialog({
 			width: 640,
 			title: wn._("Add Reply") + ": " + (this.subject || ""),
@@ -142,6 +143,26 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"select_attachments"}
 			]
 		});
+		$(document).on("upload_complete", function(event, filename, fileurl) {
+			if(me.dialog.display) {
+				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
+
+				// find already checked items
+				var checked_items = wrapper.find('[data-file-name]:checked').map(function() {
+					return $(this).attr("data-file-name");
+				});
+				
+				// reset attachment list
+				me.setup_attach();
+				
+				// check latest added
+				checked_items.push(filename);
+				
+				$.each(checked_items, function(i, filename) {
+					wrapper.find('[data-file-name="'+ filename +'"]').get(0).checked=true;
+				});
+			}
+		})
 		this.prepare();
 	},
 	prepare: function() {
@@ -176,7 +197,7 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		var files = cur_frm.get_files();
 		if(files.length) {
-			$("<p><b>"+wn._("Add Attachments")+":</b></p>").appendTo(attach);
+			$("<p><b>"+wn._("Add Attachments")+":</b></p>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				$(repl("<p><input type='checkbox' \
 					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)

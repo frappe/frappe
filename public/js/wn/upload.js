@@ -59,8 +59,11 @@ wn.upload = {
 					msgbox.hide();
 					if(r.exc) {
 						msgprint("There were errors in uploading.");
+						return;
 					}
 					callback(r.message, args.filename || args.file_url, r);
+					$(document).trigger("upload_complete", 
+						[args.filename, args.file_url]);
 				}
 			});
 		}

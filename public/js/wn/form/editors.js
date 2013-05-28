@@ -127,10 +127,11 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		
 		// magic-overlay
 		this.$parent.find('[data-role=magic-overlay]').each(function () { 
-			var overlay = $(this), target = $(overlay.data('target')); 
+			var overlay = $(this), target = $(overlay.data('target'));
 			overlay.css('opacity', 0).css('position', 'absolute')
-				.offset(target.offset())
-				.width(40).height(30);
+				//.offset(target.offset())
+				.css("left", 130) // use this because in dialogs, can't find the offset
+				.width(35).height(30);
 		});
 		
 		this.$editor
