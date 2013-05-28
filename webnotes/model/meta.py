@@ -83,3 +83,32 @@ def has_field(doctype, fieldname, parent=None, parentfield=None):
 def get_field(doctype, fieldname, parent=None, parentfield=None):
 	doclist = webnotes.get_doctype(doctype)
 	return doclist.get_field(fieldname, parent, parentfield)
+	
+def get_field_currency(df, doc):
+	"""get currency based on DocField options and fieldvalue in doc"""
+	currency = None
+	
+	if ":" in df.options:
+		split_opts = df.options.split(":")
+		if len(split_opts)==3:
+			currency = webnotes.conn.get_value(split_opts[0], doc.fields.get(split_opts[1]), 
+				split_opts[2])
+	else:
+		currency = doc.fields.get(df.options)
+
+	return currency or webnotes.conn.get_default("currency")
+	
+def get_field_precision(df, doc):
+	"""get precision based on DocField options and fieldvalue in doc"""
+	from webnotes.utils import get_number_format_info
+	
+	number_format = None
+	currency = get_field_currency(df, doc)
+	
+	if currency:
+		number_format = webnotes.conn.get_value("Currency", currency, "number_format")
+			
+	decimal_str, comma_str, precision = get_number_format_info(number_format or \
+		webnotes.conn.get_default("number_format") or "#,###.##")
+
+	return precision

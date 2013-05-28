@@ -10,6 +10,11 @@ wn.messages.waiting = function(parent, msg, bar_percent) {
 				msg: msg
 			}))
 		.appendTo(parent);
+};
+
+wn.throw = function(msg) {
+	msgprint(msg);
+	throw msg;
 }
 
 wn.confirm = function(message, ifyes, ifno) {

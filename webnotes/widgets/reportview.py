@@ -193,11 +193,11 @@ def build_filter_conditions(filters, conditions):
 					
 def build_match_conditions(doctype, fields=None):
 	"""add match conditions if applicable"""
+	global tables
 	match_conditions = []
 	match = True
 	
 	if not tables or not doctypes:
-		global tables
 		tables = get_tables(doctype, fields)
 		load_doctypes()
 	

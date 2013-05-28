@@ -168,4 +168,8 @@ wn.utils = {
 		}
 		return arr;
 	},
+	
+	sum: function(list) {
+		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
+	},
 };
