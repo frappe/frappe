@@ -686,6 +686,7 @@ $.extend(_p, {
 		row.insertCell(0);
 		row.insertCell(1);
 		row.cells[0].className = 'datalabelcell';
+		row.cells[0].style.width = "38%";
 		row.cells[1].className = 'datainputcell';
 		return row;
 	}
