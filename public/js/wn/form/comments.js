@@ -33,8 +33,10 @@ wn.ui.form.Comments = Class.extend({
 		this.list.empty();
 		var comments = JSON.parse(this.frm.doc.__comments || "[]");
 		$.each(comments, function(i, c) {
-			if(c.comment_by==user) {
+			if(wn.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close" href="#">&times;</a>';
+			} else {
+				c["delete"] = "";
 			}
 			c.image = wn.user_info(c.comment_by).image;
 			c.comment_on = dateutil.comment_when(c.creation);
@@ -57,6 +59,7 @@ wn.ui.form.Comments = Class.extend({
 					me.delete_comment(name);
 					return false;
 				})
+				
 		});
 	},
 	add_comment: function() {
@@ -73,7 +76,7 @@ wn.ui.form.Comments = Class.extend({
 			};
 			
 			wn.call({
-				method: "webnotes.client.insert",
+				method: "webnotes.widgets.form.utils.add_comment",
 				args: {
 					doclist:[comment]
 				},

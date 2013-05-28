@@ -21,7 +21,7 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, json
 
 @webnotes.whitelist()
 def remove_attach():
@@ -70,3 +70,17 @@ def validate_link():
 					% (fetch, options, '%s'), value)[0]]
 	
 		webnotes.response['message'] = 'Ok'
+
+@webnotes.whitelist()
+def add_comment(doclist):
+	"""allow any logged user to post a comment"""
+	doclist = json.loads(doclist)
+	
+	doclist[0]["__islocal"] = 1
+	doclistobj = webnotes.bean(doclist)
+	doclistobj.ignore_permissions = True
+	doclistobj.save()
+	
+	return [d.fields for d in doclist]
+
+	return save(doclist)
