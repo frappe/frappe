@@ -492,6 +492,13 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 				me.frm.attachments.new_attachment();
 			})
 			.appendTo(this.input_area);
+			
+		$(document).on("upload_complete", function(event, filename, file_url) {
+			if(cur_frm === me.frm) {
+				me.set_options();
+				me.set_input(filename ? ("files/" + filename) : file_url);
+			}
+		})
 	},
 	set_options: function() {
 		var options = this.df.options || [];

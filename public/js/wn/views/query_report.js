@@ -87,7 +87,7 @@ wn.views.QueryReport = Class.extend({
 			if(me.report_name!=route[1]) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.title(wn._("Query Report")+": " + me.report_name);
+				me.appframe.set_title(wn._("Query Report")+": " + me.report_name);
 				
 				if(!wn.query_reports[me.report_name]) {
 					wn.call({

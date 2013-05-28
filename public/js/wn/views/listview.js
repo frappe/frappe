@@ -121,9 +121,6 @@ wn.views.ListView = Class.extend({
 			$.each(this.columns, 
 				function(i, c) { if(c.content==="name") { c.colspan = 4; return false; } });
 		}
-		
-		console.log(this.columns);
-		
 	},
 	render: function(row, data) {
 		this.prepare_data(data);

@@ -64,6 +64,7 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.communication_medium = communication_medium
 	if send_email:
 		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
+	webnotes.msgprint(d.fields)
 	d.save(1, ignore_fields=True)
 
 def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
