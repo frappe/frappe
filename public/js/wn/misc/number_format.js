@@ -153,6 +153,13 @@ function get_number_format_info(format) {
 }
 
 function roundNumber(num, dec) {
+	dec = cint(dec);
 	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
 	return result;
+}
+
+function precision(fieldname, doc) {
+	if(!doc) doc = cur_frm.doc;
+	var df = wn.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
+	return wn.meta.get_field_precision(df, doc);
 }

@@ -57,11 +57,34 @@ $.extend(wn.meta, {
 	},
 	
 	get_docfield: function(dt, fn, dn) {
-		if(dn && wn.meta.docfield_copy[dt] && wn.meta.docfield_copy[dt][dn]){
-			return wn.meta.docfield_copy[dt][dn][fn];
-		} else {
-			return wn.meta.docfield_map[dt][fn];
+		return wn.meta.get_docfield_copy(dt, dn)[fn];
+	},
+	
+	get_docfields: function(doctype, name, filters) {
+		var docfield_map = wn.meta.get_docfield_copy(doctype, name);
+		
+		var docfields = values(docfield_map).sort(function(a, b) { return a.idx - b.idx });
+		
+		if(filters) {
+			docfields = wn.utils.filter_dict(docfields, filters);
 		}
+		
+		return docfields;
+	},
+	
+	get_docfield_copy: function(doctype, name) {
+		if(!name) return wn.meta.docfield_map[doctype];
+		
+		if(!(wn.meta.docfield_copy[doctype] && wn.meta.docfield_copy[doctype][name])) {
+			wn.meta.make_docfield_copy_for(doctype, name);
+		}
+		
+		return wn.meta.docfield_copy[doctype][name];
+	},
+	
+	get_fieldnames: function(doctype, name, filters) {
+		return $.map(wn.meta.get_docfields(doctype, name, filters), 
+			function(df) { return df.fieldname; });
 	},
 	
 	has_field: function(dt, fn) {
@@ -103,22 +126,6 @@ $.extend(wn.meta, {
 		return print_format_list;
 	},
 	
-	get_precision_map: function(doctype) {
-		if(!wn.meta.precision_map[doctype]) {
-			wn.meta.precision_map[doctype] = {};
-			
-			var fields = wn.model.get("DocField", {parent:doctype, fieldtype: "Currency"})
-				.concat(wn.model.get("DocField", {parent: doctype, fieldtype: "Float"}));
-			
-			
-			$.each(fields, function(i, df) {
-				wn.meta.precision_map[doctype][df.fieldname] = df.precision;
-			});
-		}
-		
-		return wn.meta.precision_map[doctype];
-	},
-
 	sync_messages: function(doc) {
 		if(doc.__messages) {
 			$.extend(wn._messages, doc.__messages);
@@ -148,6 +155,16 @@ $.extend(wn.meta, {
 			}
 		}
 		return currency;
-	}
-
+	},
+	
+	get_field_precision: function(df, doc) {
+		var precision = wn.defaults.get_default("float_precision") || 6;
+		if(df.fieldtype === "Currency") {
+			var currency = this.get_field_currency(df, doc);
+			var number_format = get_number_format(currency);
+			var number_format_info = get_number_format_info(number_format);
+			precision = number_format_info.precision || precision;
+		}
+		return precision;
+	},
 });

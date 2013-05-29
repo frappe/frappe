@@ -2,8 +2,7 @@ wn.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.fieldinfo = {};
-		this.docfields = wn.meta.docfield_list[this.df.options];
-		this.docfields.sort(function(a, b)  { return a.idx > b.idx ? 1 : -1 });
+		this.doctype = this.df.options;
 	},
 	make: function() {
 		var me = this;
@@ -40,8 +39,9 @@ wn.ui.form.Grid = Class.extend({
 		!this.wrapper && this.make();
 		var me = this,
 			$rows = $(me.parent).find(".rows"),
-			data = this.get_data();	
+			data = this.get_data();
 		
+		this.docfields = wn.meta.get_docfields(this.doctype, this.frm.docname);
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
 
@@ -117,10 +117,12 @@ wn.ui.form.Grid = Class.extend({
 		data.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 });
 		return data;
 	},
-	set_column_disp: function() {
-		// return
+	set_column_disp: function(fieldname, show) {
+		wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = !show;
+		this.refresh();
 	},
 	get_field: function(fieldname) {
+		// Note: workaround for get_query
 		if(!this.fieldinfo[fieldname])
 			this.fieldinfo[fieldname] = {}
 		return this.fieldinfo[fieldname];
