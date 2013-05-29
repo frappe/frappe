@@ -24,9 +24,8 @@
 wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		this.make();
-		this.make_erpnext();
+		//this.make_modules();
 		this.make_file();
-		this.make_view();
 		//this.make_actions();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		wn.ui.toolbar.bookmarks = new wn.ui.toolbar.Bookmarks();
@@ -72,11 +71,11 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar-brand').attr('href', "#");
 	},
 
-	make_erpnext: function() {
+	make_modules: function() {
 		$('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#"\
 				title="'+wn._("Modules")+'"\
-				onclick="return false;">erpnext</a>\
+				onclick="return false;">'+wn._("Modules")+'</a>\
 			<ul class="dropdown-menu modules">\
 			</ul>\
 			</li>').prependTo('.navbar .nav:first');
@@ -135,15 +134,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		</li>');
 	},
 
-	make_view: function() {
-		$('.navbar .nav:first').append('<li class="dropdown">\
-			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				title="'+wn._("View")+'"\
-				onclick="return false;">'+wn._("View")+'</a>\
-			<ul class="dropdown-menu" id="navbar-view">\
-			</ul>\
-		</li>');
-	},
 
 	// make_actions: function() {
 	// 	$('.navbar .nav:first').append('<li class="dropdown">\
