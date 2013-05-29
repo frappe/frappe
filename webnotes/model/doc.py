@@ -549,7 +549,10 @@ def make_autoname(key, doctype=''):
 			en = time.strftime('%y')
 		elif e=='MM': 
 			import time
-			en = time.strftime('%m')		
+			en = time.strftime('%m')
+		elif e=='DD':
+			import time
+			en = time.strftime("%d")
 		elif e=='YYYY': 
 			import time
 			en = time.strftime('%Y')		
