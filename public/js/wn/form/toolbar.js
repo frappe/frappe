@@ -196,6 +196,13 @@ wn.ui.form.Toolbar = Class.extend({
 		// remove existing title buttons
 		this.appframe.toolbar.find(".btn-title").remove();
 		
+		// Print Preview
+		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal && this.frm.view_is_edit) {
+			this.appframe.add_button(wn._('Preview'), function() { 
+				me.frm.last_view_is_edit[me.frm.docname] = 0;
+				me.frm.refresh(); }, 'icon-print');
+		}
+		
 		if(has_workflow && (this.frm.doc.__islocal || this.frm.doc.__unsaved)) {
 			this.make_save_button();
 		} else if(!has_workflow) {
