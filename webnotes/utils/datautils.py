@@ -112,7 +112,7 @@ def check_record(d, parenttype=None, doctype_dl=None):
 	
 	from webnotes.utils.dateutils import parse_date
 	if parenttype and not d.get('parent'):
-		raise Exception, "parent is required."
+		webnotes.msgprint(_("Parent is required."), raise_exception=1)
 
 	if not doctype_dl:
 		doctype_dl = webnotes.model.doctype.get(d.doctype)
@@ -122,19 +122,20 @@ def check_record(d, parenttype=None, doctype_dl=None):
 		val = d[key]
 		if docfield:
 			if docfield.reqd and (val=='' or val==None):
-				raise Exception, "%s is mandatory." % key
+				webnotes.msgprint("%s is mandatory." % docfield.label, raise_exception=1)
 
 			if docfield.fieldtype=='Select' and val and docfield.options:
 				if docfield.options.startswith('link:'):
 					link_doctype = docfield.options.split(':')[1]
 					if not webnotes.conn.exists(link_doctype, val):
-						raise Exception, "%s must be a valid %s" % (key, link_doctype)
+						webnotes.msgprint("%s must be a valid %s" % (docfield.label, link_doctype), 
+							raise_exception=1)
 				elif docfield.options == "attach_files:":
 					pass
 					
 				elif val not in docfield.options.split('\n'):
-					raise Exception, "%s must be one of: %s" % (key, 
-						", ".join(filter(None, docfield.options.split("\n"))))
+					webnotes.msgprint("%s must be one of: %s" % (docfield.label, 
+						", ".join(filter(None, docfield.options.split("\n")))), raise_exception=1)
 					
 			if val and docfield.fieldtype=='Date':
 				d[key] = parse_date(val)
