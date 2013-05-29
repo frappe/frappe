@@ -187,7 +187,7 @@ wn.ui.form.GridRow = Class.extend({
 		this.row = this.wrapper.find(".data-row");
 		this.form_area = this.wrapper.find(".form-area");
 
-		this.make_columns();
+		this.make_static_display();
 		if(this.doc) {
 			this.set_data();
 		}
@@ -215,7 +215,7 @@ wn.ui.form.GridRow = Class.extend({
 		this.doc = locals[this.doc.doctype][this.doc.name];
 		
 		// re write columns
-		this.make_columns();
+		this.make_static_display();
 		
 		// refersh form fields
 		if(this.show) {
@@ -224,14 +224,15 @@ wn.ui.form.GridRow = Class.extend({
 			});
 		} 
 	},
-	make_columns: function() {
+	make_static_display: function() {
 		var me = this,
 			total_colsize = 1;
 		me.row.empty();
 		col = $('<div class="col col-lg-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row)
 		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && !df.print_hide && me.grid.frm.perm[df.permlevel][READ]) {
+			if(!df.hidden && !df.print_hide && me.grid.frm.perm[df.permlevel][READ]
+				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
 				var colsize = 2,
 					txt = me.doc ? 
 						wn.format(me.doc[df.fieldname], df, null, me.doc) : 
@@ -287,7 +288,7 @@ wn.ui.form.GridRow = Class.extend({
 			}
 		}
 
-		this.make_columns();
+		this.make_static_display();
 		this.wrapper.toggleClass("grid-row-open", this.show);
 
 		this.show && this.render_form()
@@ -305,19 +306,29 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	render_form: function() {
 		var me = this,
-			cnt = 0,
-			row = $('<div class="row">').appendTo(me.form_area),
-			col1 = $('<div class="col col-lg-6"></div>').appendTo(row),
-			col2 = $('<div class="col col-lg-6"></div>').appendTo(row),
-			len = $.map(me.docfields, function(d) { 
-				return !d.hidden ? true : null }).length;
-
-		len = (len + len % 2) / 2;
+			make_row = function(label) {
+				var row = $('<div class="row">').appendTo(me.form_area);
+				
+				if(label)
+					$('<div class="col col-lg-12"><h4>'+ label +'</h4></div>')
+						.appendTo(row);
+				
+				var col1 = $('<div class="col col-lg-6"></div>').appendTo(row),
+					col2 = $('<div class="col col-lg-6"></div>').appendTo(row);
+				
+				return [col1, col2];
+			},
+			cols = make_row(),
+			cnt = 0;
 		
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden) {
+				if(df.fieldtype=="Section Break") {
+					cols = make_row(df.label);
+					cnt = 0;
+				}
 				var fieldwrapper = $('<div>')
-					.appendTo(ci <= len ? col1 : col2)
+					.appendTo(cols[cnt % 2])
 				var fieldobj = make_field(df, me.parent_df.options, 
 					fieldwrapper.get(0), me.frm);
 				fieldobj.docname = me.doc.name;
@@ -362,7 +373,7 @@ wn.ui.form.GridRow = Class.extend({
 			var value = wn.model.get_value(this.doc.doctype, this.doc.name, fieldname);
 			$col.html(wn.format(value, $col.data("df"), null, this.doc));
 		}
-		
+
 		// in form
 		if(this.fields_dict && this.fields_dict[fieldname]) {
 			this.fields_dict[fieldname].refresh();
