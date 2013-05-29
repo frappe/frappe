@@ -38,9 +38,24 @@ def getdoc(doctype, name, user=None):
 	if not (doctype and name):
 		raise Exception, 'doctype and name required!'
 	
-	doclist = []
-	# single
-	doclist = load_single_doc(doctype, name, user or webnotes.session.user)
+	if not name: 
+		name = doctype
+
+	if not webnotes.conn.exists(doctype, name):
+		return []
+
+	try:
+		doclist = webnotes.bean(doctype, name).doclist
+		# add file list
+		set_docinfo(doctype, name)
+		
+	except Exception, e:
+		webnotes.errprint(webnotes.utils.getTraceback())
+		webnotes.msgprint('Did not load.')
+		raise e
+
+	if doclist and not name.startswith('_'):
+		webnotes.user.update_recent(doctype, name)
 	
 	webnotes.response['docs'] = doclist
 
@@ -67,50 +82,30 @@ def getdoctype(doctype, with_parent=False, cached_timestamp=None):
 	
 	webnotes.response['docs'] = doclist
 
-def load_single_doc(dt, dn, user):
-	"""load doc and call onload methods"""
-	# ----- REPLACE BY webnotes.client.get ------
+def set_docinfo(doctype, name):
+	webnotes.response["docinfo"] = {
+		"attachments": add_attachments(doctype, name),
+		"comments": add_comments(doctype, name),
+		"assignments": add_assignments(doctype, name)
+	}
 
-	if not dn: dn = dt
-
-	if not webnotes.conn.exists(dt, dn):
-		return None
-
-	try:
-		dl = webnotes.bean(dt, dn).doclist
-		# add file list
-		add_file_list(dt, dn, dl)
-		add_comments(dt, dn, dl)
-		add_assignments(dt, dn, dl)
-		
-	except Exception, e:
-		webnotes.errprint(webnotes.utils.getTraceback())
-		webnotes.msgprint('Did not load.')
-		raise e
-
-	if dl and not dn.startswith('_'):
-		webnotes.user.update_recent(dt, dn)
-
-	return dl
-	
-def add_file_list(dt, dn, dl):
-	file_list = {}
+def add_attachments(dt, dn):
+	attachments = {}
 	for f in webnotes.conn.sql("""select name, file_name, file_url from
 		`tabFile Data` where attached_to_name=%s and attached_to_doctype=%s""", 
 			(dn, dt), as_dict=True):
-		file_list[f.file_url or f.file_name] = f.name
+		attachments[f.file_url or f.file_name] = f.name
 
-	if file_list:
-		dl[0].file_list = json.dumps(file_list)
+	return attachments
 		
-def add_comments(dt, dn, dl, limit=20):
+def add_comments(dt, dn, limit=20):
 	cl = webnotes.conn.sql("""select name, comment, comment_by, creation from `tabComment` 
 		where comment_doctype=%s and comment_docname=%s 
 		order by creation desc limit %s""" % ('%s','%s', limit), (dt, dn), as_dict=1)
 		
-	dl[0].fields["__comments"] = json.dumps(cl)
+	return cl
 	
-def add_assignments(dt, dn, dl):
+def add_assignments(dt, dn):
 	cl = webnotes.conn.sql_list("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		order by modified desc limit 5""", {
@@ -118,4 +113,4 @@ def add_assignments(dt, dn, dl):
 			"name": dn
 		})
 		
-	dl[0].fields["__assign_to"] = json.dumps(cl)
+	return cl

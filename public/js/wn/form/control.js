@@ -516,11 +516,10 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	},
 	get_file_attachment_list: function() {
 		if(!this.frm) return;
-		var fl = this.frm.doc.file_list;
+		var fl = wn.model.docinfo[this.frm.doctype][this.frm.docname];
 		if(fl) {
 			this.set_description("");
-			var fl = JSON.parse(fl),
-				options = [""];
+			var options = [""];
 			for(var fname in fl) {
 				if(fname.substr(0,4)!="http")
 					fname = "files/" + fname;

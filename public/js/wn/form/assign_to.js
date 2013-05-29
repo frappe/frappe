@@ -48,11 +48,11 @@ wn.ui.form.AssignTo = Class.extend({
 			return;
 		}
 		this.parent.toggle(true);
-		this.render(JSON.parse(this.frm.doc.__assign_to || "[]"));
+		this.render(this.frm.get_docinfo().assignments);
 	},
 	render: function(d) {
 		var me = this;
-		this.frm.doc.__assign_to = JSON.stringify(d);		
+		this.frm.get_docinfo().assignments = d;
 		this.$list.empty();
 		if(this.dialog) {
 			this.dialog.hide();			

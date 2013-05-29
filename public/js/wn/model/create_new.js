@@ -16,6 +16,7 @@ $.extend(wn.model, {
 		};
 		wn.model.set_default_values(doc);
 		locals[doctype][doc.name] = doc;
+		wn.provide("wn.model.docinfo." + doctype + "." + doc.name);
 		return doc;		
 	},
 	

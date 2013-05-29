@@ -52,9 +52,10 @@ wn.ui.form.Toolbar = Class.extend({
 				"Last Modifed On: " + dateutil.str_to_user(me.frm.doc.modified), "History");
 		})
 
-		var comments = JSON.parse(this.frm.doc.__comments || "[]").length,
-			attachments = keys(JSON.parse(this.frm.doc.file_list || "{}")).length,
-			assignments = JSON.parse(this.frm.doc.__assign_to || "[]").length;
+		var docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];
+		var comments = docinfo.comments.length,
+			attachments = keys(docinfo.attachments).length,
+			assignments = docinfo.assignments.length;
 			
 		var $li1 = this.appframe.add_infobar(comments + " " + (comments===1 ? 
 			wn._("Comment") : wn._("Comments")),

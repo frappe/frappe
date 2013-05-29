@@ -655,10 +655,6 @@ _f.Frm.prototype.copy_doc = function(onload, from_amend) {
 	var dn = this.docname;
 	// copy parent
 	var newdoc = wn.model.copy_doc(this.doctype, dn, from_amend);
-
-	// do not copy attachments
-	if(this.meta.allow_attach && newdoc.file_list && !from_amend)
-		newdoc.file_list = null;
 	
 	// copy chidren
 	var dl = make_doclist(this.doctype, dn);
@@ -830,5 +826,8 @@ _f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
 _f.Frm.prototype.dirty = function() {
 	this.doc.__unsaved = 1;
 	$(this.wrapper).trigger('dirty')
-	
+}
+
+_f.Frm.prototype.get_docinfo = function() {
+	return wn.model.docinfo[this.doctype][this.docname];
 }

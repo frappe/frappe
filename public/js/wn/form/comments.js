@@ -23,6 +23,9 @@ wn.ui.form.Comments = Class.extend({
 		this.list = $('<div class="comments" style="margin-top: 15px;"></div>')
 			.appendTo(this.parent);
 	},
+	get_comments: function() {
+		return this.frm.get_docinfo().comments;
+	},
 	refresh: function() {
 		var me = this;
 		if(this.frm.doc.__islocal) {
@@ -31,7 +34,7 @@ wn.ui.form.Comments = Class.extend({
 		}
 		this.wrapper.toggle(true);
 		this.list.empty();
-		var comments = JSON.parse(this.frm.doc.__comments || "[]");
+		var comments = this.get_comments();
 		$.each(comments, function(i, c) {
 			if(wn.model.can_delete("Comment")) {
 				c["delete"] = '<a class="close" href="#">&times;</a>';
@@ -82,8 +85,8 @@ wn.ui.form.Comments = Class.extend({
 				},
 				callback: function(r) {
 					if(!r.exc) {
-						var comments = JSON.parse(me.frm.doc.__comments || "[]");
-						me.frm.doc.__comments = JSON.stringify(r.message.concat(comments));
+						me.frm.get_docinfo().comments = 
+							r.message.concat(me.get_comments());
 						me.frm.toolbar.show_infobar();
 						me.input.val("");
 						me.refresh();
@@ -102,14 +105,13 @@ wn.ui.form.Comments = Class.extend({
 			},
 			callback: function(r) {
 				if(!r.exc) {
-					me.frm.doc.__comments = JSON.stringify(
-						$.map(JSON.parse(me.frm.doc.__comments || "[]"), 
+					me.frm.get_docinfo().comments = 
+						$.map(me.frm.get_docinfo().comments, 
 							function(v) { 
 								if(v.name==name) return null; 
 								else return v; 
 							}
-						)
-					);
+						);
 					me.refresh();
 					me.frm.toolbar.show_infobar();
 				}
