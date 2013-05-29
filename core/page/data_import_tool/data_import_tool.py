@@ -229,9 +229,11 @@ def upload():
 				ret.append(import_doc(d, doctype, overwrite, row_idx, params.get("_submit")))
 		except Exception, e:
 			error = True
+			err_msg = webnotes.message_log and "<br>".join(webnotes.message_log) or cstr(e)
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
-				len(row)>1 and row[1] or "", cstr(e)))
+				len(row)>1 and row[1] or "", err_msg))
 			webnotes.errprint(webnotes.getTraceback())
+			webnotes.message_log = []
 	
 	ret, error = validate_parent(parent_list, parenttype, ret, error)
 	
