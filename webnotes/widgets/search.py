@@ -41,10 +41,6 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 	if isinstance(filters, basestring):
 		import json
 		filters = json.loads(filters)
-	if isinstance(filters, dict):
-		filters = map(lambda f: [doctype, f[0], "=", f[1]], filters.items())
-	if filters==None:
-		filters = []
 
 	meta = webnotes.get_doctype(doctype)
 	
@@ -62,6 +58,11 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 			webnotes.response["values"] = webnotes.conn.sql(scrub_custom_query(query, 
 				searchfield, txt))
 		else:
+			if isinstance(filters, dict):
+				filters = map(lambda f: [doctype, f[0], "=", f[1]], filters.items())
+			if filters==None:
+				filters = []
+			
 			# build from doctype
 			if txt:
 				filters.append([doctype, searchfield, "like", txt + "%"])
