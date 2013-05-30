@@ -54,6 +54,7 @@ wn.ui.form.Control = Class.extend({
 		var set = function(value) {
 			me.set_model_value(value); 
 			me.inside_change_event = false;
+			me.set_mandatory && me.set_mandatory(value);
 		}
 
 		this.validate ? this.validate(value, set) : set(value);
@@ -129,7 +130,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			this.$wrapper = $("<span>").appendTo(this.parent);
 		} else {
 			this.$wrapper = $('<div class="control-group">\
-				<label></label>\
+				<label class="control-label"></label>\
 				<div class="control-input"></div>\
 				<div class="control-value like-disabled-input" style="display: none;"></div>\
 				<p class="help-box small text-muted">&nbsp;</p>\
@@ -183,7 +184,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 
 				me.set_description();
 				me.set_label();
-				me.set_mandatory();
+				me.set_mandatory(me.value);
 				return false;
 			}
 			
@@ -208,9 +209,9 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	set_empty_description: function() {
 		this.$wrapper.find(".help-box").html("&nbsp;");		
 	},
-	set_mandatory: function() {
+	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd 
-			&& (this.value==null || this.value==="")) ? true : false);
+			&& (value==null || value==="")) ? true : false);
 	},
 });
 
@@ -220,7 +221,7 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	make_input: function() {
 		this.$input = $("<"+ this.html_element +">")
 			.attr("type", this.input_type)
-			.addClass("col col-lg-12")
+			.addClass("col col-lg-12 input-with-feedback")
 			.prependTo(this.input_area)
 		
 		this.set_input_attributes();
@@ -245,9 +246,10 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	set_input: function(val) {
 		this.$input.val(this.format_for_input(val));
 		this.last_value = val;
+		this.set_mandatory && this.set_mandatory(val);
 	},
 	get_value: function() {
-		return this.$input.val();
+		return this.$input ? this.$input.val() : undefined;
 	},
 	format_for_input: function(val) {
 		return val==null ? "" : val;
@@ -542,7 +544,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		$('<div class="input-group link-field">\
-			<input type="text">\
+			<input type="text" class="input-with-feedback">\
 			<div class="input-group-btn">\
 				<button class="btn btn-default btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
