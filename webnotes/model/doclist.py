@@ -40,9 +40,9 @@ class DocList(list):
 			for f in filters:
 				fval = filters[f]
 				
-				if fval==True:
+				if fval is True:
 					fval = ["not None", fval]
-				elif fval==False:
+				elif fval is False:
 					fval = ["None", fval]
 				elif not isinstance(fval, list):
 					if isinstance(fval, basestring) and fval.startswith("^"):
