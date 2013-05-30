@@ -74,7 +74,7 @@ wn.views.CommunicationList = Class.extend({
 		//doc.when = comment_when(this.doc.modified);
 		doc.when = doc.modified;
 		if(!doc.content) doc.content = "[no content]";
-		if(doc.content.indexOf("<br>")== -1 && doc.content.indexOf("<p>")== -1) {
+		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
 		if(!doc.sender) doc.sender = "[unknown sender]";
@@ -278,8 +278,7 @@ wn.views.CommunicationComposer = Class.extend({
 			: [];
 		var signature = wn.boot.profile.email_signature || "";
 
-		if(signature.indexOf("<br>")==-1 && signature.indexOf("<p")==-1 
-			&& signature.indexOf("<img")==-1 && signature.indexOf("<div")==-1) {
+		if(!wn.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 		

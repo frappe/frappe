@@ -21,7 +21,14 @@
 //
 
 $.extend(wn.model, {
-	sync: function(doclist) {		
+	docinfo: {},
+	sync: function(r) {
+		/* docs:
+			extract doclist, docinfo (attachments, comments, assignments)
+			from incoming request and set in `locals` and `wn.model.docinfo`
+		*/
+		var doclist = r.docs ? r.docs : r;
+
 		if(doclist._kl)
 			doclist = wn.model.expand(doclist);
 
@@ -49,8 +56,22 @@ $.extend(wn.model, {
 				wn.model.new_names[d.localname] = d.name;
 				$(document).trigger('rename', [d.doctype, d.localname, d.name]);
 				delete locals[d.doctype][d.localname];
+				
+				// update docinfo to new dict keys
+				if(i===0) {
+					wn.model.docinfo[d.doctype][d.name] = wn.model.docinfo[d.doctype][d.localname];
+					wn.model.docinfo[d.doctype][d.localname] = undefined;
+				}
 			}
 		});
+		
+		// set docinfo
+		if(r.docinfo) {
+			var doc = doclist[0]
+			if(!wn.model.docinfo[doc.doctype])
+				wn.model.docinfo[doc.doctype] = {};
+			wn.model.docinfo[doc.doctype][doc.name] = r.docinfo;
+		}
 		
 		return doclist;
 	},

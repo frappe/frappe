@@ -193,7 +193,7 @@ wn.request.cleanup = function(opts, r) {
 	}
 
 	if(r.docs) {
-		r.docs = wn.model.sync(r.docs);
+		r.docs = wn.model.sync(r);
 	}
 	if(r.__messages) {
 		$.extend(wn._messages, r.__messages);

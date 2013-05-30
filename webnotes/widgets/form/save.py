@@ -58,8 +58,8 @@ def cancel(doctype=None, name=None):
 		raise e
 		
 def send_updated_docs(wrapper):
-	from load import add_file_list
-	add_file_list(wrapper.doc.doctype, wrapper.doc.name, wrapper.doclist)
+	from load import set_docinfo
+	set_docinfo(wrapper.doc.doctype, wrapper.doc.name)
 	
 	webnotes.response['main_doc_name'] = wrapper.doc.name
 	webnotes.response['doctype'] = wrapper.doc.doctype

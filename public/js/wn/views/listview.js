@@ -96,7 +96,7 @@ wn.views.ListView = Class.extend({
 				var colspan = "2";
 				if(in_list(["Int", "Percent"], d.fieldtype)) {
 					colspan = "1";
-				} else if(d.fieldtype=="Check" || d.fieldname=="file_list") {
+				} else if(d.fieldtype=="Check") {
 					colspan = "1";
 				} else if(d.fieldname=="subject" || d.fieldname=="title") { // subjects are longer
 					colspan = "3";

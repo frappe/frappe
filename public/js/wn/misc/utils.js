@@ -5,6 +5,13 @@ wn.utils = {
 		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) || (filename.indexOf("files/")!=-1)
 			? filename : 'files/' + filename;
 	},
+	is_html: function(txt) {
+		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 
+			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
+			return false;
+		}
+		return true;
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'

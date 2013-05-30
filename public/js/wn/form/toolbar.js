@@ -19,7 +19,6 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 
 		this.make_file_menu();
-		this.make_view_menu();
 		if(!this.frm.view_is_edit) {
 			// print view
 			this.show_print_toolbar();
@@ -53,9 +52,10 @@ wn.ui.form.Toolbar = Class.extend({
 				"Last Modifed On: " + dateutil.str_to_user(me.frm.doc.modified), "History");
 		})
 
-		var comments = JSON.parse(this.frm.doc.__comments || "[]").length,
-			attachments = keys(JSON.parse(this.frm.doc.file_list || "{}")).length,
-			assignments = JSON.parse(this.frm.doc.__assign_to || "[]").length;
+		var docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];
+		var comments = docinfo.comments.length,
+			attachments = keys(docinfo.attachments).length,
+			assignments = docinfo.assignments.length;
 			
 		var $li1 = this.appframe.add_infobar(comments + " " + (comments===1 ? 
 			wn._("Comment") : wn._("Comments")),
@@ -155,10 +155,22 @@ wn.ui.form.Toolbar = Class.extend({
 			this.appframe.add_dropdown_button("File", wn._("Email..."), function() { 
 				me.frm.email_doc();}, 'icon-envelope');
 		}
+
+		// Linked With
+		if(!me.frm.doc.__islocal && !me.frm.meta.issingle) {
+			this.appframe.add_dropdown_button("File", wn._('Linked With'), function() { 
+				if(!me.frm.linked_with) {
+					me.frm.linked_with = new wn.ui.form.LinkedWith({
+						frm: me.frm
+					});
+				}
+				me.frm.linked_with.show();
+			}, "icon-link")
+		}
 		
 		// copy
 		if(in_list(profile.can_create, me.frm.doctype) && !me.frm.meta.allow_copy) {
-			this.appframe.add_dropdown_button("File", wn._("Make Copy"), function() { 
+			this.appframe.add_dropdown_button("File", wn._("Copy"), function() { 
 				me.frm.copy_doc();}, 'icon-file');
 		}
 		
@@ -176,33 +188,6 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 		
 	},
-	make_view_menu: function() {
-		var me = this;
-		// Edit
-		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal) {
-			this.appframe.add_dropdown_button("View", wn._('Print View'), function() { 
-				me.frm.last_view_is_edit[me.frm.docname] = 0;
-				me.frm.refresh(); }, 'icon-print');
-		}
-
-		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal) {
-			this.appframe.add_dropdown_button("View", wn._('Edit'), function() { 
-				me.frm.last_view_is_edit[me.frm.docname] = 1;
-				me.frm.refresh(); }, 'icon-edit');
-		}
-		
-		// Linked With
-		if(!me.frm.doc.__islocal && !me.frm.meta.issingle) {
-			this.appframe.add_dropdown_button("View", wn._('Linked With'), function() { 
-				if(!me.frm.linked_with) {
-					me.frm.linked_with = new wn.ui.form.LinkedWith({
-						frm: me.frm
-					});
-				}
-				me.frm.linked_with.show();
-			}, "icon-link")
-		}
-	},
 	set_title_button: function() {
 		var me = this;
 		var docstatus = cint(this.frm.doc.docstatus);
@@ -211,6 +196,13 @@ wn.ui.form.Toolbar = Class.extend({
 
 		// remove existing title buttons
 		this.appframe.toolbar.find(".btn-title").remove();
+		
+		// Print Preview
+		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal && this.frm.view_is_edit) {
+			this.appframe.add_button(wn._('Preview'), function() { 
+				me.frm.last_view_is_edit[me.frm.docname] = 0;
+				me.frm.refresh(); }, 'icon-print');
+		}
 		
 		if(has_workflow && (this.frm.doc.__islocal || this.frm.doc.__unsaved)) {
 			this.make_save_button();
