@@ -22,8 +22,6 @@
 
 wn.ui.FilterList = Class.extend({
 	init: function(opts) {
-		if(!window.make_field)
-			wn.require('js/fields.js');
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
