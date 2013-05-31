@@ -22,8 +22,6 @@
 
 wn.ui.FilterList = Class.extend({
 	init: function(opts) {
-		if(!window.make_field)
-			wn.require('js/fields.js');
 		$.extend(this, opts);
 		this.filters = [];
 		this.$w = this.$parent;
@@ -74,7 +72,7 @@ wn.ui.FilterList = Class.extend({
 		var values = [];
 		$.each(this.filters, function(i, f) {
 			if(f.field)
-				values.push(f.get_value());
+				values.push(f.get_parsed_value());
 		})
 		return values;
 	},
@@ -143,7 +141,7 @@ wn.ui.Filter = Class.extend({
 
 		this.$w.find('a.close').bind('click', function() { 
 			me.$w.css('display','none');
-			var value = me.field.get_value();
+			var value = me.field.get_parsed_value();
 			var fieldname = me.field.df.fieldname;
 			me.field = null;
 			
@@ -238,7 +236,7 @@ wn.ui.Filter = Class.extend({
 		// save old text
 		var old_text = null;
 		if(me.field) {
-			old_text = me.field.get_value();
+			old_text = me.field.get_parsed_value();
 		}
 		
 		var field_area = me.$w.find('.filter_field').empty().get(0);
@@ -301,7 +299,7 @@ wn.ui.Filter = Class.extend({
 	
 	get_value: function() {
 		var me = this;
-		var val = me.field.get_value();
+		var val = me.field.get_parsed_value();
 		var cond = me.$w.find('.condition').val();
 		
 		if(me.field.df.original_type == 'Check') {

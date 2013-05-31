@@ -39,7 +39,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var page = wn.container.add_page(page_name);
 		wn.container.change_to(page_name);
 		page.doclistview = this;
-		this.$page = $(page);
+		this.$page = $(page).css({"min-height": "400px"});
 
 		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
 		
@@ -261,7 +261,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	set_filter: function(fieldname, label, no_run) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
-			var v = cstr(filter.field.get_value());
+			var v = cstr(filter.field.get_parsed_value());
 			if(v.indexOf(label)!=-1) {
 				// already set
 				return false;

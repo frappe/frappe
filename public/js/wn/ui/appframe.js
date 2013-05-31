@@ -246,6 +246,26 @@ wn.ui.AppFrame = Class.extend({
 			.appendTo(this.toolbar)
 			.find("input");
 	},
+	add_field: function(df) {
+		this.show_toolbar();
+		var f = wn.ui.form.make_control({
+			df: df,
+			parent: this.toolbar,
+			only_input: true,
+		})
+		f.refresh();
+		$(f.wrapper)
+			.addClass('col-lg-2')
+			.css({
+				"display": "inline-block",
+				"margin-top": "0px",
+				"margin-bottom": "-17px",
+				"margin-left": "4px"
+			})
+			.attr("title", df.label).tooltip();
+		
+		return f;
+	},
 	add_ripped_paper_effect: function(wrapper) {
 		if(!wrapper) var wrapper = wn.container.page;
 		var layout_main = $(wrapper).find('.layout-main');
