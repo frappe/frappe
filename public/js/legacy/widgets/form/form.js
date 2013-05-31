@@ -635,9 +635,6 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 				// fields
 				me.refresh_fields();
 				
-				// dependent fields
-				me.refresh_dependency();
-
 				// enable button
 				if(callingfield)
 					$(callingfield.input).done_working();
