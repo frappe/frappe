@@ -112,18 +112,15 @@ wn.ui.form.AssignTo = Class.extend({
 			me.dialog.fields_dict.add_btn.input.onclick = function() {
 				
 				var assign_to = me.dialog.fields_dict.assign_to.get_value();
+				var args = me.dialog.get_values();
 				if(assign_to) {
 					wn.call({
 						method:'webnotes.widgets.form.assign_to.add', 
-						args: {
+						args: $.extend(args, {
 							doctype: me.frm.doctype,
 							name: me.frm.docname,
 							assign_to: assign_to,
-							description: me.dialog.fields_dict.description.get_value(),
-							priority: me.dialog.fields_dict.priority.get_value(),
-							date: me.dialog.fields_dict.date.get_value(),
-							notify: me.dialog.fields_dict.notify.get_value()
-						}, 
+						}), 
 						callback: function(r,rt) {
 							if(!r.exc) {
 								me.render(r.message);

@@ -346,7 +346,7 @@ wn.ui.Listing = Class.extend({
 		var filter = this.filter_list.get_filter(fieldname);
 		//this.filter_list.show_filters(true);
 		if(filter) {
-			var v = filter.field.get_value();
+			var v = filter.field.get_parsed_value();
 			if(v.indexOf(label)!=-1) {
 				// already set
 				return false;

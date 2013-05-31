@@ -340,7 +340,7 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 		this.$input.datepicker(this.datepicker_options);
 	},
 	parse: function(value) {
-		return dateutil.user_to_str(value);
+		return value ? dateutil.user_to_str(value) : value;
 	},
 	format_for_input: function(value) {
 		return dateutil.str_to_user(value);
