@@ -72,7 +72,7 @@ _f.Frm = function(doctype, parent, in_form) {
 	
 	// notify on rename
 	var me = this;
-	$(document).bind('rename', function(event, dt, old_name, new_name) {
+	$(document).on('rename', function(event, dt, old_name, new_name) {
 		if(dt==me.doctype)
 			me.rename_notify(dt, old_name, new_name)
 	});
@@ -149,6 +149,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 			me.fields_dict[fieldname] 
 				&& me.fields_dict[fieldname].set_input(value);
 			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
+			me.refresh_dependency();
 		}
 	})
 	
@@ -806,21 +807,6 @@ _f.Frm.prototype.disable_save = function() {
 _f.get_value = function(dt, dn, fn) {
 	if(locals[dt] && locals[dt][dn]) 
 		return locals[dt][dn][fn];
-}
-
-_f.Frm.prototype.set_value_in_locals = function(dt, dn, fn, v) {
-	var d = locals[dt][dn];
-
-	if (!d) return;
-	
-	var changed = d[fn] != v;
-	if(changed && (d[fn]==null || v==null) && (cstr(d[fn])==cstr(v))) 
-		changed = false;
-
-	if(changed) {
-		d[fn] = v;
-		this.dirty();
-	}
 }
 
 _f.Frm.prototype.dirty = function() {
