@@ -31,20 +31,28 @@ wn.model.DocList = Class.extend({
 	save: function(action, callback, btn) {
 		this.check_name();
 		if(this.check_mandatory()) {
+			var me = this;
 			this._call({
 				method: "webnotes.widgets.form.save.savedocs",
 				args: { docs: wn.model.compress(this.doclist), action:action},
-				callback: callback,
+				callback: function(r) {
+					$(document).trigger("save", me.doc);
+					callback(r);
+				},
 				btn: btn
 			});
 		}
 	},
 	
 	cancel: function(callback, btn) {
+		var me = this;
 		this._call({
 			method: "webnotes.widgets.form.save.cancel",
 			args: { doctype: this.doctype, name: this.name },
-			callback: callback,
+			callback: function(r) {
+				$(document).trigger("save", wn.model.get_doc(me.doctype, me.name));
+				callback(r);
+			},
 			btn: btn
 		});
 	},

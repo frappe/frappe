@@ -9,7 +9,7 @@ wn.views.doclistview.show = function(doctype) {
 	var page_name = "List/" + route[1];
 	if(wn.pages[page_name]) {
 		wn.container.change_to(wn.pages[page_name]);
-		if(wn.container.page.doclistview)
+		if(wn.container.page.doclistview && wn.container.page.doclistview.dirty)
 			wn.container.page.doclistview.run();
 	} else {
 		if(route[1]) {
@@ -23,10 +23,19 @@ wn.views.doclistview.show = function(doctype) {
 	}
 }
 
+$(document).on("save", function(event, doc) {
+	var list_page = "List/" + doc.doctype;
+	if(wn.pages[list_page]) {
+		if(wn.pages[list_page].doclistview)
+			wn.pages[list_page].doclistview.dirty = true;
+	}
+})
+
 wn.views.DocListView = wn.ui.Listing.extend({
 	init: function(doctype) {
 		this.doctype = doctype;
 		this.label = wn._(doctype);
+		this.dirty = true;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	wn._(this.label) : (wn._(this.label) + ' ' + wn._('List'));
 		this.make_page();
@@ -71,7 +80,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.appframe.add_breadcrumb("icon-list");
 		this.appframe.set_views_for(this.doctype, "list");
 	},
-
+	
 	setup: function() {
 		var me = this;
 		me.can_delete = wn.model.can_delete(me.doctype);

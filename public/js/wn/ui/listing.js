@@ -229,8 +229,10 @@ wn.ui.Listing = Class.extend({
 			type: "GET",
 			args: this.get_call_args(a0),
 			callback: function(r) { 
-				if(!me.opts.no_loading)me.set_working(false);
-				me.render_results(r) 
+				if(!me.opts.no_loading)
+					me.set_working(false);
+				me.dirty = false;
+				me.render_results(r);
 			},
 			no_spinner: this.opts.no_loading
 		});

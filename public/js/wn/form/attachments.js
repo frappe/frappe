@@ -63,8 +63,12 @@ wn.ui.form.Attachments = Class.extend({
 		var file_names = keys(attachments).sort();
 		
 		// add attachment objects
-		for(var i=0; i<file_names.length; i++) {
-			this.add_attachment(file_names[i], attachments);
+		if(file_names.length) {
+			for(var i=0; i<file_names.length; i++) {
+				this.add_attachment(file_names[i], attachments);
+			}
+		} else {
+			$('<p class="text-muted">' + wn._("None") + '</p>').appendTo(this.$list);
 		}
 		
 		// refresh select fields with options attach_files:

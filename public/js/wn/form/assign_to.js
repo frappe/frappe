@@ -58,37 +58,41 @@ wn.ui.form.AssignTo = Class.extend({
 			this.dialog.hide();			
 		}
 
-		for(var i=0; i<d.length; i++) {	
-			var info = wn.user_info(d[i]);
-			info.owner = d[i];
-			info.avatar = wn.avatar(d[i]);
-			
-			$(repl('<div class="alert alert-success" style="margin-bottom: 7px;">\
-				%(avatar)s %(fullname)s \
-				<a class="close" href="#" style="top: 1px;"\
-					data-owner="%(owner)s">&times;</a></div>', info))
-				.appendTo(this.$list);
-				
-			this.$list.find(".avatar").css("margin-top", "-7px")
-			this.$list.find('.avatar img').centerImage();
-		}
+		if(d.length) {
+			for(var i=0; i<d.length; i++) {	
+				var info = wn.user_info(d[i]);
+				info.owner = d[i];
+				info.avatar = wn.avatar(d[i]);
 
-		// set remove
-		this.$list.find('a.close').click(function() {
-			wn.call({
-				method:'webnotes.widgets.form.assign_to.remove', 
-				args: {
-					doctype: me.frm.doctype,
-					name: me.frm.docname,
-					assign_to: $(this).attr('data-owner')	
-				}, 
-				callback:function(r,rt) {
-					me.render(r.message);
-					me.frm.toolbar.show_infobar();
-				}
+				$(repl('<div class="alert alert-success" style="margin-bottom: 7px;">\
+					%(avatar)s %(fullname)s \
+					<a class="close" href="#" style="top: 1px;"\
+						data-owner="%(owner)s">&times;</a></div>', info))
+					.appendTo(this.$list);
+
+				this.$list.find(".avatar").css("margin-top", "-7px")
+				this.$list.find('.avatar img').centerImage();
+			}
+
+			// set remove
+			this.$list.find('a.close').click(function() {
+				wn.call({
+					method:'webnotes.widgets.form.assign_to.remove', 
+					args: {
+						doctype: me.frm.doctype,
+						name: me.frm.docname,
+						assign_to: $(this).attr('data-owner')	
+					}, 
+					callback:function(r,rt) {
+						me.render(r.message);
+						me.frm.toolbar.show_infobar();
+					}
+				});
+				return false;
 			});
-			return false;
-		});
+		} else {
+			$('<p class="text-muted">' + wn._("No one") + '</p>').appendTo(this.$list);
+		}
 	},
 	add: function() {
 		var me = this;

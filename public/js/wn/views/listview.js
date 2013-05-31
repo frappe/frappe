@@ -151,10 +151,11 @@ wn.views.ListView = Class.extend({
 		});
 		
 		// row #2
-		var row2 = $('<div class="col col-lg-12 hidden-sm">\
+		var row2 = $('<div class="col col-lg-12">\
 			<div class="row">\
-				<div class="col col-lg-7 col-offset-3 list-tag"></div>\
-				<div class="col col-lg-2 timestamp" style="font-size: 90%; padding-right: 0px;\
+				<div class="col col-lg-7 col-offset-3">\
+					<div class="list-tag hidden-sm"></div></div>\
+				<div class="col col-lg-2 timestamp" style="font-size: 90%; padding-right: 4px;\
 					color: #aaa; margin-top: -3px; text-align: right;">\
 				</div>\
 			</div>\

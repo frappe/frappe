@@ -182,7 +182,7 @@ wn.ui.AppFrame = Class.extend({
 		this.buttons[label] && this.buttons[label].remove();
 		
 		this.buttons[label] = $(repl('<button class="btn btn-default">\
-			%(icon)s %(label)s</button>', args))
+			%(icon)s <span class="btn-text">%(label)s</span></button>', args))
 			.appendTo(this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
 			//.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
 			.attr("title", wn._(label))

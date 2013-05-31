@@ -28,7 +28,7 @@ wn.ui.form.Footer = Class.extend({
 					<div class="form-tags">\
 						<h4 style="display: inline-block"><i class="icon-tag"></i> Tags</h4>\
 						<span class="tag-area"></span><br>\
-					</div>\
+					</div><hr>\
 					<div class="form-comments">\
 						<h4><i class="icon-comments"></i> Comments</h4>\
 					</div>\
