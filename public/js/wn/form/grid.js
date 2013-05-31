@@ -298,7 +298,8 @@ wn.ui.form.GridRow = Class.extend({
 
 		this.form_panel.slideToggle(this.show, function() {
 			if(me.show) {
-				me.form_area.find(":input:first").focus();
+				if(me.frm.doc.docstatus===0)
+					me.form_area.find(":input:first").focus();
 			} else {
 				$(me.form_area).empty();
 				me.row.toggle(true);

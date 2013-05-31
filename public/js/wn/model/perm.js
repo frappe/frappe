@@ -48,6 +48,7 @@ $.extend(wn.perm, {
 		if(locals["DocType"][doctype] && locals["DocType"][doctype].istable) {
 			parent_df = wn.model.get("DocField", {fieldtype:"Table", options:doctype});
 			if(parent_df.length) {
+				dn = locals[doctype][dn].parent;
 				doctype = parent_df[0].parent;
 			}
 		}
