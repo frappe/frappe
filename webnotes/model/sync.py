@@ -25,6 +25,9 @@ def walk_and_sync(start_path, force=0, sync_everything = False):
 	document_type = ['doctype', 'page', 'report']
 
 	for path, folders, files in os.walk(start_path):
+		# sort folders so that doctypes are synced before pages or reports
+		folders.sort()
+
 		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):
 			for f in files:
 				if f.endswith(".txt"):
