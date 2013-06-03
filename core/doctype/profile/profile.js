@@ -148,8 +148,7 @@ wn.RoleEditor = Class.extend({
 		var checked_roles = [];
 		var unchecked_roles = [];
 		$(this.wrapper).find('[data-user-role]').each(function() {
-			var $check = $(this).find('input[type="checkbox"]');
-			if($check.attr('checked')) {
+			if($(this).find('input[type="checkbox"]:checked').length) {
 				checked_roles.push($(this).attr('data-user-role'));
 			} else {
 				unchecked_roles.push($(this).attr('data-user-role'));
