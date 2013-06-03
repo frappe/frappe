@@ -106,7 +106,7 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.add_button("Edit", function() {
 			me.frm.edit_doc();
 			return false;
-		})
+		}, 'icon-pencil')
 		this.frm.$print_view_select = 
 			this.appframe.add_select("Print Format", this.frm.print_formats)
 				.val(this.frm.print_formats[0])
@@ -216,7 +216,7 @@ wn.ui.form.Toolbar = Class.extend({
 				this.make_save_button();
 			}
 			else if(docstatus==1  && p[CANCEL]) {
-				this.appframe.add_dropdown_button("File", 'Cancel', function() { 
+				this.appframe.add_button('Cancel', function() { 
 					me.frm.savecancel(this) }, 'icon-remove');
 			}
 			else if(docstatus==2  && p[AMEND]) {
