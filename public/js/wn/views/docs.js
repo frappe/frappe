@@ -139,6 +139,8 @@ wn.docs.DocsPage = Class.extend({
 			me = this;
 
 		obj = (obj._type == "class" && obj.prototype) ? obj.prototype : obj;
+		if(obj._toc && this.links)
+			this.links.first_child = obj._toc[0];
 		
 		this.obj = obj;
 		this.make(obj);
@@ -148,8 +150,10 @@ wn.docs.DocsPage = Class.extend({
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
-		if(obj._type==="doctype")
+		if(obj._type==="model")
 			this.make_docfields(obj);
+		if(obj._type==="controller_client")
+			this.make_obj_from_cur_frm(obj);
 		this.make_functions(obj);
 		if(this.links) {
 			this.make_links();
@@ -160,14 +164,23 @@ wn.docs.DocsPage = Class.extend({
 			var btn_group = $('<div class="btn-group pull-right" \
 				style="margin: 15px 0px;">')
 				.appendTo(this.parent)
-			$("<a class='btn'>")
-				.html('<i class="icon-arrow-up"></i> ' + wn.docs.get_title(this.links.parent))
+			$("<a class='btn btn-default'>")
+				.html('<i class="icon-arrow-up"></i> ' 
+					+ wn.docs.get_title(this.links.parent))
 				.attr("href", this.links.parent + ".html")
 				.appendTo(btn_group)
 			if(this.links.next_sibling) {
-				$("<a class='btn'>")
-					.html('<i class="icon-arrow-right"></i> ' + wn.docs.get_title(this.links.next_sibling))
-					.attr("href", this.links.next_sibling + ".html")
+				$("<a class='btn btn-info'>")
+					.html('<i class="icon-arrow-right"></i> ' 
+						+ wn.docs.get_title(this.links.next_sibling))
+					.attr("href", wn.docs.get_full_name(this.links.next_sibling) + ".html")
+					.appendTo(btn_group)
+			} 
+			if (this.links.first_child) {
+				$("<a class='btn btn-info'>")
+					.html('<i class="icon-arrow-down"></i> ' 
+						+ wn.docs.get_title(this.links.first_child))
+					.attr("href", wn.docs.get_full_name(this.links.first_child) + ".html")
 					.appendTo(btn_group)
 			}
 		}
@@ -179,26 +192,25 @@ wn.docs.DocsPage = Class.extend({
 					.css({
 						"background-image": "url(docs/" + obj._title_image + ")",
 						"background-size": "100%",
+						"background-position": "center-top",
 						"margin-bottom": "30px",
 						"border-radius": "5px"
 					})
 					.appendTo(this.parent)
-				var inner = $("<div>")
-					.appendTo(outer)
-					.css({
-						"text-align": "center",
-						"padding": "80px 20px",
-						"background-color": "rgba(0,0,0,0.4)",
-						"color": "white",
-						"border-radius": "5px"
-					})
-				$("<h1>")
-					.appendTo(inner)
-					.html(obj._label || wn.docs.get_short_name(this.namespace))
+		 			var inner = $("<div>")
+						.appendTo(outer)
+						.css({
+							"text-align": "center",
+							"background-color": "rgba(0,0,0,0.4)",
+							"color": "white",
+							"padding": "240px 20px 220px 20px"
+						})
+					var head = $("<h1>").appendTo(inner);
 			} else {
-				$("<h1>").html(obj._label || wn.docs.get_short_name(this.namespace))
-					.appendTo(this.parent);
+				var head = $("<h1>").appendTo(this.parent);
 			}
+			
+			head.html(obj._label || wn.docs.get_short_name(this.namespace))
 		}
 	},
 	make_breadcrumbs: function(obj) {
@@ -272,10 +284,24 @@ wn.docs.DocsPage = Class.extend({
 			});
 		};
 	},
+	make_obj_from_cur_frm: function(obj) {
+		var me = this;
+		obj._fetches = [];
+		cur_frm = {
+			cscript: {},
+			add_fetch: function() {
+				obj._fetches.push(arguments)
+			},
+			fields_dict: {}
+		};
+		$.each(obj._fields, function(i, f) { cur_frm.fields_dict[f] = {}});
+		eval(obj._code);
+		$.extend(obj, cur_frm.cscript);
+	},
 	make_functions: function(obj) {
 		var functions = this.get_functions(obj);
 		if(!$.isEmptyObject(functions)) {
-			this.h3("Functions");
+			this.h3(obj._type === "class" ? "Methods" : "Functions");
 			this.make_function_table(functions);
 		}
 	},
@@ -298,7 +324,7 @@ wn.docs.DocsPage = Class.extend({
 		});
 	},
 	get_tbody: function() {
-		table = $("<table class='table table-bordered'><tbody></tbody>\
+		table = $("<table class='table table-bordered' style='table-layout: fixed;'><tbody></tbody>\
 		</table>").appendTo(this.parent),
 		tbody = table.find("tbody");
 		return tbody;
@@ -309,8 +335,11 @@ wn.docs.DocsPage = Class.extend({
 	render_function: function(name, value, parent, namespace) {
 		var me = this,
 			code = value.toString();
-			
-		namespace = namespace===undefined ? this.namespace : "";
+		
+		namespace = namespace===undefined ? 
+			((this.obj._type==="class" || this.obj._type==="controller_client") ? 
+				"" : this.namespace) 
+			: "";
 
 		if(namespace!=="") {
 			namespace = wn.docs.get_short_name(namespace);
@@ -318,37 +347,35 @@ wn.docs.DocsPage = Class.extend({
 
 		if(namespace!=="" && namespace[namespace.length-1]!==".")
 			namespace = namespace + ".";
-			
-		if(code.indexOf("/* options")===-1) {
-			var args = this.get_args(value);
-				options = this.make_parameters("Parameters", 
-					JSON.parse(this.get_property(value, "parameters") || "{}"));
-		} else {
-			var args = "options",
-				options = this.make_parameters("Options", 
-					JSON.parse(this.get_property(value, "options") || "{}"));
+
+		var args = this.get_args(value);
+		
+		var help = value._help || code.split("/* docs:")[1];
+		if(help && help.indexOf("*/")!==-1) help = help.split("*/")[0];
+		
+		var source = ""
+		if(code.substr(0, 8)==="function") {
+			source = "<p style='font-size: 90%;'><a href='#' data-toggle='"+ name +"'>View Source</a></p>\
+				<pre data-target='"+ name 
+					+"' style='display: none; font-size: 11px; white-space: pre; \
+						background-color: white; border-radius: 0px;\
+						overflow-x: auto; word-wrap: normal;'>" + code + "</pre>";
 		}
 		
-		var example = this.get_property(value, "example");
-		example = example ? ("<h5>Example</h5><pre>" + example.replace(/\t/g, "") + "</pre>") : "";
-		
-		var help = code.split("/* help:")[1]
-			if(help) help = help.split("*/")[0];
 		$(repl('<tr>\
 			<td style="width: 30%;">%(name)s</td>\
 			<td>\
-				%(help)s\
 				<h5>Usage:</h5>\
 				<pre>%(namespace)s%(name)s(%(args)s)</pre>\
-				%(options)s%(example)s\
+				%(help)s\
+				%(source)s\
 			</td>\
 		</tr>', {
 			name: name,
 			namespace: namespace,
 			args: args,
-			example: example || "",
-			options: options || "",
-			help: help ? ("<p>" + help + "</p>") : ""
+			help: help ? wn.markdown(help) : "",
+			source: source
 		})).appendTo(parent)
 	},
 	get_args: function(obj) {
@@ -356,29 +383,6 @@ wn.docs.DocsPage = Class.extend({
 			return obj._args.join(", ");
 		else
 			return obj.toString().split("function")[1].split("(")[1].split(")")[0];
-	},
-	get_property: function(obj, property) {
-		if(obj["_" + property])
-			return obj["_" + property];
-		var code = obj.toString();
-		if(code.indexOf("/* " + property + ":")!==-1) {
-			return code.split("/* " + property + ":")[1].split("*/")[0]
-		}
-		return "";
-	},
-	make_parameters: function(title, options) {
-		if($.isEmptyObject(options)) 
-			return "";
-		return  "<h5>"+title+"</h5><table class='table table-bordered'><tbody>" 
-			+ $.map(options, function(o, i) {
-				var i = o.indexOf(":");
-				return repl('<tr>\
-					<td style="width: 30%">%(key)s</td>\
-					<td>%(value)s</td></tr>', {
-						key: o.slice(0, i),
-						value: o.slice(i+1)
-					})
-			}).join("") + "</tbody></table>";
 	},
 	write: function(callback) {
 		wn.call({

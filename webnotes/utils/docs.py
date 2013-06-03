@@ -4,17 +4,17 @@ from __future__ import unicode_literals
 import webnotes
 import inspect, importlib, os
 from jinja2 import Template
-from webnotes.modules import get_doc_path, get_module_path
+from webnotes.modules import get_doc_path, get_module_path, scrub
 
 @webnotes.whitelist()
 def get_docs():
 	docs = {}
 	get_docs_for(docs, "webnotes")
 	docs["modules"] = get_modules()
-	docs["pages"] = get_pages()
+	docs["pages"] = get_static_pages()
 	return docs
 
-def get_pages():
+def get_static_pages():
 	mydocs = {}
 	for repo in ("lib", "app"):
 		for path, folders, files in os.walk(os.path.join("..", repo)):
@@ -44,25 +44,28 @@ def get_docs_for(docs, name):
 		module = importlib.import_module(name)
 		obj = getattr(module, classname)
 	
-	mydocs["_intro"] = getattr(obj, "__doc__", "")
-	mydocs["_toc"] = getattr(obj, "_toc", "")
-	mydocs["_type"] = inspect.isclass(obj) and "class" or "module"
-	
-	for name in dir(obj):
-		value = getattr(obj, name)
-		if (mydocs["_type"]=="class" and inspect.ismethod(value)) or \
-			(mydocs["_type"]=="module" and inspect.isfunction(value)):
-			mydocs[name] = {
-				"_type": "function",
-				"_args": inspect.getargspec(value)[0],
-				"_help": getattr(value, "__doc__", "")
-			}
+	inspect_object_and_update_docs(mydocs, obj)
 	
 	if mydocs["_toc"]:
 		for name in mydocs["_toc"]:
 			get_docs_for(mydocs, name)
 	
 	return mydocs
+
+def inspect_object_and_update_docs(mydocs, obj):
+	mydocs["_toc"] = getattr(obj, "_toc", "")
+	mydocs["_type"] = "module" if inspect.ismodule(obj) else "class"
+	if not mydocs.get("_intro"):
+		mydocs["_intro"] = getattr(obj, "__doc__", "")
+	
+	for name in dir(obj):
+		value = getattr(obj, name)
+		if inspect.ismethod(value) or inspect.isfunction(value):
+			mydocs[name] = {
+				"_type": "function",
+				"_args": inspect.getargspec(value)[0],
+				"_help": getattr(value, "__doc__", "")
+			}
 
 def get_modules():
 	# readme.md
@@ -83,68 +86,135 @@ def get_modules():
 				prefix + ".report"
 			],
 			"doctype": get_doctypes(m),
-			"page": {},
+			"page": get_pages(m),
 			"report": {}
 		}
 
-		readme_path = os.path.join(get_module_path(m), "README.md")
-		if os.path.exists(readme_path):
-			with open(readme_path, "r") as readmefile:
-				docs[m]["_intro"] = readmefile.read()
+		docs[m]["_intro"] = get_readme(m)
+
+	return docs
+
+def get_pages(m):
+	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s limit 1""", m)
+	prefix = "docs.dev.modules." + m + ".page."
+	docs = {
+		"_label": "Pages for " + m,
+		"_toc": [prefix + d for d in pages]
+	}
+	for p in pages:
+		page = webnotes.doc("Page", p)
+		mydocs = docs[p] = {
+			"_label": page.title or p,
+			"_type": "page",
+			"_intro": get_readme(m, "Page", p) or ""
+		}
+
+		# controller
+		page_name = scrub(p)
+		page_controller = importlib.import_module(scrub(m) + ".page." +  page_name + "." + page_name)
+		inspect_object_and_update_docs(mydocs, page_controller)
 
 	return docs
 
 def get_doctypes(m):
 	doctypes = webnotes.conn.sql_list("""select name from 
 		tabDocType where module=%s order by name limit 1""", m)
+	prefix = "docs.dev.modules." + m + ".doctype."
 	docs = {
 		"_label": "DocTypes for " + m,
-		"_toc": ["docs.dev.modules." + m + ".doctype." + d for d in doctypes]
+		"_toc": [prefix + d for d in doctypes]
 	}
 	
 	for d in doctypes:
 		try:
 			meta = webnotes.get_doctype(d)
+			meta_p = webnotes.get_doctype(d, True)
 				
 			mydocs = docs[d] = {
 				"_label": d,
-				"_type": "doctype"
+				"_type": "doctype",
+				"_toc": [
+					prefix + d + ".model",
+					prefix + d + ".permissions",
+					prefix + d + ".controller_server",
+					prefix + d + ".controller_client",
+				]
 			}
 
-			readme_path = os.path.join(get_doc_path(m, "DocType", d), "README.md")
-			if os.path.exists(readme_path):
-				with open(readme_path, "r") as readmefile:
-					mydocs["_intro"] = readmefile.read()
+			mydocs["_intro"] = get_readme(m, "DocType", d) or ""
 
+			# model
+			modeldocs = mydocs["model"] = {
+				"_label": d + " Model",
+				"_type": "model",
+				"_intro": "Properties and fields for " + d
+			}
 			for df in meta.get({"doctype": "DocField"}):
 				df = df.fields
 				df["_type"] = "docfield"
-				mydocs[df.fieldname] = df
+				modeldocs[df.fieldname] = df
+			
+			# permissions
+			
+			# server controller
+			controller_docs = mydocs["controller_server"] = {
+				"_label": d + " Server Controller",
+				"_type": "_class",
+			}
+			
+			b = webnotes.bean([{"doctype": d}])
+			b.make_obj()
+			if not getattr(b.obj, "__doc__"):
+				b.obj.__doc__ = "Controller Class for handling server-side events for " + d
+			inspect_object_and_update_docs(controller_docs, b.obj)
+			
+			# client controller
+			client_controller = mydocs["controller_client"] = {
+				"_label": d + " Client Controller",
+				"_type": "controller_client",
+				"_intro": "Client side triggers and functions for " + d,
+				"_code": meta_p[0].fields["__js"],
+				"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
+			}
+
 		except Exception, e:
-			pass
+			raise e
 			
 	return docs
+
+def get_readme(module, doctype=None, name=None):
+	if doctype:
+		readme_path = os.path.join(get_doc_path(module, doctype, name), "README.md")
+	else:
+		readme_path = os.path.join(get_module_path(module), "README.md")
+		
+	if os.path.exists(readme_path):
+		with open(readme_path, "r") as readmefile:
+			return readmefile.read()
 
 @webnotes.whitelist()
 def write_doc_file(name, html, title):
 	if not os.path.exists("docs"):
 		os.mkdir("docs")
+	if not os.path.exists("docs/css"):
 		os.mkdir("docs/css")
 		os.mkdir("docs/css/fonts")
-		os.mkdir("docs/js")
-		os.system("cp ../lib/public/js/lib/bootstrap.min.js docs/js")
-		os.system("cp ../lib/public/js/lib/jquery/jquery.min.js docs/js")
 		os.system("cp ../lib/public/css/bootstrap.css docs/css")
 		os.system("cp ../lib/public/css/font-awesome.css docs/css")
 		os.system("cp ../lib/public/css/fonts/* docs/css/fonts")
-		
 		# clean links in font-awesome
 		with open("docs/css/font-awesome.css", "r") as fontawesome:
 			t = fontawesome.read()
 			t = t.replace("../lib/css/", "")
 		with open("docs/css/font-awesome.css", "w") as fontawesome:
 			fontawesome.write(t)
-	
+
+	if not os.path.exists("docs/js"):
+		os.mkdir("docs/js")
+		os.system("cp ../lib/public/js/lib/bootstrap.min.js docs/js")
+		os.system("cp ../lib/public/js/lib/jquery/jquery.min.js docs/js")
+		
+
 	with open(os.path.join("docs", name + ".html"), "w") as docfile:
 		html = Template(docs_template).render({
 			"title": title,
@@ -168,11 +238,11 @@ docs_template = """
 	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
 	<style>
 		body {
-			background-color: #FDFFF9;
+			/*background-color: #FDFFF9;*/
 		}
 		
 		body {
-			font-family: Georgia, Serif;
+			font-family: Arial, Sans Serif;
 			font-size: 16px;
 			line-height: 25px;
 			text-rendering: optimizeLegibility;
@@ -183,7 +253,8 @@ docs_template = """
 		}
 		
 		h1, h2, h3, h4, .logo {
-			font-family: Helvetica Neue, Arial, Sans;
+			font-family: Arial, Sans;
+			font-weight: bold;
 		}
 		
 		li {
@@ -210,47 +281,67 @@ docs_template = """
 	</style>
 </head>
 <body>
-	<div class="container" style="max-width: 767px; margin-top: 30px;">
-	<div class="logo" style="margin-bottom: 15px; height: 71px;">
-		<a href="docs.html">
-			<img src="img/erpnext-2013.png" style="width: 71px; margin-top: -10px;" />
-		</a>
-		<span style="font-size: 37px; color: #888; display: inline-block; 
-			margin-left: 8px;">erpnext</span>
-	</div>
-	<div class="navbar" style="background-color: #EDE6DA; margin-bottom: 30px;">
-		<a class="navbar-brand" href="docs.html">Home</a>
-		<ul class="nav navbar-nav">
-			<li><a href="docs.user.html">User</a></li>
-			<li><a href="docs.dev.html">Developer</a></li>
-			<li><a href="docs.download.html">Download</a></li>
-			<li><a href="docs.community.html">Community</a></li>
-			<li><a href="docs.blog.html">Blog</a></li>
-		</ul>
-	</div>
-	<div class="content">
-	{{ content }}
-	</div>
-	<div class="clearfix"></div>
-	<hr />
-	<div class="footer text-muted" style="font-size: 90%;">
-	&copy; Web Notes Technologies Pvt Ltd.<br>
-	ERPNext is an open source project under the GNU/GPL License.
-	</div>
-	<p>&nbsp;</p>
+	<header>
+		<div class="navbar navbar-fixed-top navbar-inverse">
+			<div class="container">
+				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+					<span class="icon-bar"></span>
+				</button>
+				<a class="navbar-brand" href="docs.html">Home</a>
+				<div class="nav-collapse collapse navbar-responsive-collapse">
+					<ul class="nav navbar-nav">
+						<li><a href="docs.user.html">User</a></li>
+						<li><a href="docs.dev.html">Developer</a></li>
+						<li><a href="docs.download.html">Download</a></li>
+						<li><a href="docs.community.html">Community</a></li>
+						<li><a href="docs.blog.html">Blog</a></li>
+					</ul>
+				</div>
+			</div>
+		</div>
+	</header>
+	<div class="container" style=" margin-top: 70px;">
+		<!-- div class="logo" style="margin-bottom: 15px; height: 71px;">
+			<a href="docs.html">
+				<img src="img/erpnext-2013.png" style="width: 71px; margin-top: -10px;" />
+			</a>
+			<span style="font-size: 37px; color: #888; display: inline-block; 
+				margin-left: 8px;">erpnext</span>
+		</div -->
+		<div class="content row">
+			<div class="col col-lg-12">
+		{{ content }}
+			</div>
+		</div>
+		<div class="clearfix"></div>
+		<hr />
+		<div class="footer text-muted" style="font-size: 90%;">
+		&copy; Web Notes Technologies Pvt Ltd.<br>
+		ERPNext is an open source project under the GNU/GPL License.
+		</div>
+		<p>&nbsp;</p>
 	</div>
 	<script type="text/javascript">
-	  $(".dropdown-toggle").dropdown();
+		$(document).ready(function() {
+			$("[data-toggle]").on("click", function() {
+				$("[data-target='"+ $(this).attr("data-toggle") +"']").toggle();
+				return false;
+			});
+		});
+		$(".dropdown-toggle").dropdown();
+	</script>
+	<!-- script type="text/javascript">
 	  var _gaq = _gaq || [];
 	  _gaq.push(['_setAccount', 'UA-8911157-9']);
 	  _gaq.push(['_trackPageview']);
-
 	  (function() {
 	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
 	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
 	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
 	  })();
-	</script>
+	</script -->
 </body>
 </html>
 """
@@ -258,4 +349,4 @@ docs_template = """
 if __name__=="__main__":
 	webnotes.connect()
 	#print get_docs()
-	print get_pages()
+	print get_static_pages()
