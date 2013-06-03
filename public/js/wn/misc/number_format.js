@@ -120,7 +120,7 @@ function get_currency_symbol(currency) {
 		if(!currency)
 			currency = wn.boot.sysdefaults.currency;
 
-		return wn.model.get_value("Currency", currency, "symbol") || currency;
+		return wn.model.get_value(":Currency", currency, "symbol") || currency;
 	} else {
 		// load in template
 		return wn.currency_symbols[currency];
@@ -161,5 +161,6 @@ function roundNumber(num, dec) {
 function precision(fieldname, doc) {
 	if(!doc) doc = cur_frm.doc;
 	var df = wn.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
+	if(!df) console.log(fieldname + ": could not find docfield in method precision()");
 	return wn.meta.get_field_precision(df, doc);
 }

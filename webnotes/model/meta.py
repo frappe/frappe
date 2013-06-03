@@ -24,6 +24,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.utils import cstr
 	
 def get_dt_values(doctype, fields, as_dict = 0):
 	return webnotes.conn.sql('SELECT %s FROM tabDocType WHERE name="%s"' % (fields, doctype), as_dict = as_dict)
@@ -88,7 +89,7 @@ def get_field_currency(df, doc):
 	"""get currency based on DocField options and fieldvalue in doc"""
 	currency = None
 	
-	if ":" in df.options:
+	if ":" in cstr(df.options):
 		split_opts = df.options.split(":")
 		if len(split_opts)==3:
 			currency = webnotes.conn.get_value(split_opts[0], doc.fields.get(split_opts[1]), 

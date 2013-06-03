@@ -70,9 +70,8 @@ wn.ui.FilterList = Class.extend({
 	get_filters: function() {
 		// get filter values as dict
 		var values = [];
-		$.each(this.filters, function(i, f) {
-			if(f.field)
-				values.push(f.get_parsed_value());
+		$.each(this.filters, function(i, filter) {
+			values.push(filter.get_value());
 		})
 		return values;
 	},
