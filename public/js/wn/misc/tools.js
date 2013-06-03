@@ -7,12 +7,11 @@ wn.tools.downloadify = function(data, roles, me) {
 		return;
 	}
 	
-	var _get_data = function(){ 
-		return wn.tools.to_csv(data);
-	};
+	var _get_data = function() { return wn.tools.to_csv(data); };
+	var flash_disabled = (navigator.mimeTypes["application/x-shockwave-flash"] == undefined);
 	
 	// save file > abt 200 kb using server call
-	if(_get_data().length > 200000) {
+	if((_get_data().length > 200000) || flash_disabled) {
 		open_url_post("server.py?cmd=webnotes.utils.datautils.send_csv_to_client",
 			{args: {data: data, filename: me.title}}, true);
 	} else {
@@ -20,8 +19,7 @@ wn.tools.downloadify = function(data, roles, me) {
 		wn.require("lib/js/lib/downloadify/swfobject.js");
 
 		var id = wn.dom.set_unique_id();
-		var msgobj = msgprint('<p id="'+ id +'">You must have Flash 10 installed to \
-			download this file.</p>');
+		var msgobj = msgprint('<p id="'+ id +'"></p>');
 
 		Downloadify.create(id ,{
 			filename: function(){
