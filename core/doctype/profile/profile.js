@@ -105,14 +105,15 @@ wn.RoleEditor = Class.extend({
 		var me = this;
 		
 		// uncheck all roles
-		$(this.wrapper).find('input[type="checkbox"]').removeAttr("checked");
+		$(this.wrapper).find('input[type="checkbox"]')
+			.each(function(i, checkbox) { checkbox.checked = false; });
 		
 		// set user roles as checked
 		$.each(wn.model.get("UserRole", {parent: cur_frm.doc.name, 
 			parentfield: "user_roles"}), function(i, user_role) {
-				$(me.wrapper)
-					.find('[data-user-role="'+user_role.role
-						+'"] input[type="checkbox"]').attr('checked', 'checked');
+				var checkbox = $(me.wrapper)
+					.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
+				if(checkbox) checkbox.checked = true;
 			});
 	},
 	set_roles_in_table: function() {
