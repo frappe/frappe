@@ -491,14 +491,13 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
-				me.frm.attachments.new_attachment();
+				me.frm.attachments.new_attachment(me.df.fieldname);
 			})
 			.appendTo(this.input_area);
 			
 		$(document).on("upload_complete", function(event, filename, file_url) {
 			if(cur_frm === me.frm) {
 				me.set_options();
-				me.set_input(filename ? ("files/" + filename) : file_url);
 			}
 		})
 	},
@@ -513,13 +512,18 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		if(this.in_filter && options[0] != "") {
 			options = add_lists([''], options);
 		}
-
+		
+		var selected = this.$input.find(":selected").val();
+		
 		this.$input.empty().add_options(options || []);
+		
+		if(selected) this.$input.val(selected);
 	},
 	get_file_attachment_list: function() {
 		if(!this.frm) return;
 		var fl = wn.model.docinfo[this.frm.doctype][this.frm.docname];
-		if(fl) {
+		if(fl && fl.attachments) {
+			fl = fl.attachments;
 			this.set_description("");
 			var options = [""];
 			for(var fname in fl) {
