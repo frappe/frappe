@@ -63,10 +63,11 @@ def read_csv_content(fcontent, ignore_encoding=False):
 					try:
 						newrow.append(unicode(val.strip(), 'utf-8'))
 					except UnicodeDecodeError, e:
-						raise Exception, """Some character(s) in row #%s, column #%s are
+						webnotes.msgprint("""Some character(s) in row #%s, column #%s are
 							not readable by utf-8. Ignoring them. If you are importing a non
 							english language, please make sure your file is saved in the 'utf-8'
-							encoding.""" % (csvrows.index(row)+1, row.index(val)+1)
+							encoding.""" % (csvrows.index(row)+1, row.index(val)+1))
+						raise Exception
 					
 			rows.append(newrow)
 		
