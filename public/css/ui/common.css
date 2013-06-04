@@ -4,6 +4,10 @@ body {
 	padding-bottom: 50px;
 }
 
+h1, h2, h3, h4, h5 {
+	font-weight: 500;
+}
+
 a {
 	cursor: pointer;
 }
@@ -115,6 +119,26 @@ a {
 .appframe .info-bar li.bold a {
 	font-weight: bold;
 }
+
+.appframe .title-icon {
+	cursor: pointer;
+	display: inline-block;
+	padding: 14px;
+	width: 55px;
+	color: white;
+	text-align: center;
+	margin-right: 10px;
+	border-radius: 5px;
+	margin-top: -10px;
+	font-size: 24px;
+}
+
+.appframe .title-icon:active {
+	-webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+			box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+
+}
+
 
 /* home icon in main nav */
 

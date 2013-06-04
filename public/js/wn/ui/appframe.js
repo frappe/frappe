@@ -72,17 +72,13 @@ wn.ui.AppFrame = Class.extend({
 		if(module_info) {
 			this.$w.find(".title-icon").html('<i class="'
 				+module_info.icon+'"></i> ')
-				.css({"cursor":"pointer"})
+				.css({
+					"background-color": module_info.color,
+				})
 				.attr("module-name", module)
 				.click(function() {
 					wn.set_route(wn.modules[$(this).attr("module-name")].link);
 				});
-			this.$w.prepend("<div>").css({
-				"border-top": "7px solid " + module_info.color
-			});
-			// this.$w.find(".title-area").css({
-			// 	"border-left": "5px solid " + module_info.color
-			// })
 		}
 	},
 	

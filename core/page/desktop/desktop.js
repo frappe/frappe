@@ -61,24 +61,6 @@ erpnext.desktop.show_pending_notifications = function() {
 			repl('<div id="%(id)s" class="circle" title="%(title)s" style="display: None">\
 					<span class="circle-text"></span>\
 				 </div>', {id: id, title: wn._(title)}));
-		
-		var case_border = module.find('.case-border');
-		var circle = module.find('.circle');
-
-		var add_hover_and_click = function(primary, secondary, hover_class, click_class) {
-			primary
-			.hover(
-				function() { secondary.addClass(hover_class); },
-				function() { secondary.removeClass(hover_class); })
-			.mousedown(function() { secondary.addClass(click_class); })
-			.mouseup(function() { secondary.removeClass(click_class); })
-			.focusin(function() { $(this).mousedown(); })
-			.focusout(function() { $(this).mouseup(); })
-		}
-		
-		add_hover_and_click(case_border, circle, 'hover-effect', 'circle-click');
-		add_hover_and_click(circle, case_border, 'hover-effect', 'case-border-click');
-
 	}
 
 	add_circle('module-icon-messages', 'unread_messages', 'Unread Messages');

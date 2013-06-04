@@ -47,9 +47,7 @@ wn.views.Calendar = Class.extend({
 
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(wn._("Calendar") + " - " + wn._(this.doctype));
-		this.page.appframe.add_home_breadcrumb()
-		this.page.appframe.add_module_icon(module)
-		this.page.appframe.add_breadcrumb("icon-calendar");
+		this.page.appframe.add_module_icon(module==="Core" ? "Calendar" : module)
 
 		this.page.appframe.set_views_for(this.doctype, "calendar");
 	},

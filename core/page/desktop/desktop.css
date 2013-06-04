@@ -33,7 +33,7 @@
 }
 
 /* Hover and click effects */
-.case-border:hover, .circle:hover, .hover-effect {
+.case-border:hover, .hover-effect {
 	box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
 	-moz-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
 	-webkit-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
@@ -52,14 +52,6 @@
 
 }
 
-.circle:active, .circle:focus, .circle-click {
-	transform: scale(1, 1);
-	-ms-transform: scale(1, 1); /* IE 9 */
-	-webkit-transform: scale(1, 1); /* Safari and Chrome */
-	-o-transform: scale(1, 1); /* Opera */
-	-moz-transform: scale(1, 1); /* Firefox */
-}
-
 .circle {
 	position: absolute;
 	top: -10px;
@@ -70,6 +62,7 @@
 	line-height: 12px;
 	background: #e74c3c;
 	padding: 7px;
+	z-index: 5;
 }
 
 .circle-text {
