@@ -152,27 +152,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 									item.link = repl("<a href=\"#query-report/%(name)s\">%(name)s</a>",
 										item);
 								} else {
-									item.link = repl("<a href=\"#Report2/%(doctype)s/%(name)s\">\
+									item.link = repl("<a href=\"#Report/%(doctype)s/%(name)s\">\
 										%(name)s</a>", item);
 								}
-								me.add_item(item, section);
-							}
-						})
-					}
-					// search criteria
-					if(r.message.search_criteria.length) {
-						var section = {
-							title: wn._("Old Style Reports"),
-							right: true,
-							icon: "icon-list-alt",
-						}
-						me.add_section(section);
-						$.each(r.message.search_criteria, function(i, item) {
-							item.criteria_name_enc = encodeURIComponent(item.criteria_name);
-							if(wn.model.can_read(item.parent_doctype || item.doctype)) {
-								item.link = repl(
-									"<a href=\"#Report/%(doctype)s/%(criteria_name_enc)s\">\
-									%(criteria_name)s</a>", item);
 								me.add_item(item, section);
 							}
 						})

@@ -384,7 +384,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 							return;
 						}
 						if(r.message != me.docname)
-							wn.set_route('Report2', me.doctype, r.message);
+							wn.set_route('Report', me.doctype, r.message);
 					}
 				});
 			}, 'icon-upload');

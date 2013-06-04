@@ -122,7 +122,7 @@ wn.ui.AppFrame = Class.extend({
 		if(wn.model.can_get_report(doctype)) {
 			views.push({
 				icon: "icon-table",
-				route: "Report2/" + doctype,
+				route: "Report/" + doctype,
 				type: "report"
 			});
 		}
