@@ -47,7 +47,7 @@ erpnext.todo.refresh = function() {
 erpnext.todo.ToDoItem = Class.extend({
 	init: function(todo) {
 		label_map = {
-			'High': 'label-important',
+			'High': 'label-danger',
 			'Medium': 'label-info',
 			'Low':''
 		}
