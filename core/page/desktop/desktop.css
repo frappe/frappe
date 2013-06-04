@@ -1,15 +1,12 @@
 .case-border {
-	border-radius: 10px;
-	-moz-border-radius: 10px;
-	-webkit-border-radius: 10px;
-	padding: 12px;
+	border-radius: 5px;
+	padding: 20px;
 	display: inline-block;
-	border: 2px solid white;
-	box-shadow: 0 0 4px 1px black;
+/*	box-shadow: 0 0 4px 1px black;
 	-moz-box-shadow: 0 0 4px 1px black;
 	-webkit-box-shadow: 0 0 4px 1px black;
 	-o-box-shadow: 0 0 4px 1px black;
-	margin: auto;
+*/	margin: auto;
 	text-align: center;
 }
 
@@ -37,18 +34,22 @@
 
 /* Hover and click effects */
 .case-border:hover, .circle:hover, .hover-effect {
-	box-shadow: 0 0 2px 0px black, 0 0 4px 1px white !important;
-	-moz-box-shadow: 0 0 2px 0px black, 0 0 4px 1px white !important;
-	-webkit-box-shadow: 0 0 2px 0px black, 0 0 4px 1px white !important;
-	-o-box-shadow: 0 0 2px 0px black, 0 0 10px 1px white !important;
+	box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
+	-moz-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
+	-webkit-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
+	-o-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
 }
 
 .case-border:active, .case-border:focus, .case-border-click {
+  -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+          box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+
 	transform: scale(0.98, 0.98);
 	-ms-transform: scale(0.98, 0.98); /* IE 9 */
 	-webkit-transform: scale(0.98, 0.98); /* Safari and Chrome */
 	-o-transform: scale(0.98, 0.98); /* Opera */
 	-moz-transform: scale(0.98, 0.98); /* Firefox */
+
 }
 
 .circle:active, .circle:focus, .circle-click {
@@ -62,18 +63,13 @@
 .circle {
 	position: absolute;
 	top: -10px;
-	right: 10px;
+	right: 5px;
 	border-radius: 30px;
 	-moz-border-radius: 30px;
 	-webkit-border-radius: 30px;
 	line-height: 12px;
-	background: #B00D07;
-	padding: 3px;
-	border: 2px solid white;
-	box-shadow: 0 0 4px 1px black;
-	-moz-box-shadow: 0 0 4px 1px black;
-	-webkit-box-shadow: 0 0 4px 1px black;
-	-o-box-shadow: 0 0 4px 1px black;
+	background: #e74c3c;
+	padding: 7px;
 }
 
 .circle-text {

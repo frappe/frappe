@@ -90,24 +90,29 @@ wn.ui.AppFrame = Class.extend({
 		this.doctype = doctype;
 		var me = this,
 			meta = locals.DocType[doctype],
-			views = [
-			{
-				icon: wn.modules[meta.module].icon,
-				route: wn.modules[meta.module].link,
+			views = [],
+			module_info = wn.modules[meta.module];
+			
+		if(module_info) {
+			views.push({
+				icon: module_info.icon,
+				route: module_info.link,
 				type: "module"
-			},
-			{
-				icon: "icon-file-alt",
-				route: "",
-				type: "form",
-				set_route: function() {
-					if(wn.views.formview[me.doctype]) {
-						wn.set_route("Form", me.doctype, wn.views.formview[me.doctype].frm.docname);
-					} else {
-						new_doc(doctype);
-					}
+			})
+		}
+
+		views.push({
+			icon: "icon-file-alt",
+			route: "",
+			type: "form",
+			set_route: function() {
+				if(wn.views.formview[me.doctype]) {
+					wn.set_route("Form", me.doctype, wn.views.formview[me.doctype].frm.docname);
+				} else {
+					new_doc(doctype);
 				}
-			}];
+			}
+		});
 
 		
 		if(!meta.issingle) {

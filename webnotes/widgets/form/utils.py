@@ -89,10 +89,16 @@ def add_comment(doclist):
 
 @webnotes.whitelist()
 def get_next(doctype, name, prev):
-	order = ["<", "desc"] if int(prev) else [">", "asc"]
-	res = webnotes.conn.sql("""select name from `tab%s` 
-		where name %s %s order by name %s limit 1""" % (doctype, 
-			order[0], "%s", order[1]), name)
+	import webnotes.widgets.reportview
+	
+	prev = int(prev)
+	field = "`tab%s`.name" % doctype
+	res = webnotes.widgets.reportview.execute(doctype,
+		fields = [field], 
+		filters = [[doctype, "name", "<" if prev else ">", name]],
+		order_by = field + " " + ("desc" if prev else "asc"),
+		limit_start=0, limit_page_length=1, as_list=True)
+
 	if not res:
 		webnotes.msgprint(_("No further records"))
 		return None

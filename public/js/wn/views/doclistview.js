@@ -175,7 +175,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				me.set_filter(key, val, true);
 			});
 		}
-		this.listview.run();
+		this.listview && this.listview.run();
 		this._super(arguments[0], arguments[1]);
 	},
 	
