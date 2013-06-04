@@ -130,6 +130,7 @@ wn.Application = Class.extend({
 	},
 	make_page_container: function() {
 		if($("#body_div").length) {
+			$(".splash").remove();
 			wn.temp_container = $("<div id='temp-container' style='display: none;'>")
 				.appendTo("body");
 			wn.container = new wn.views.Container();

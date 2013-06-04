@@ -15,6 +15,25 @@ a {
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 }
 
+.splash {
+	position: absolute;
+	top: 0px;
+	left: 0px;
+	right: 0px;
+	bottom: 0px;
+	background-color: #eee;
+	color: #888;
+	text-align: center;
+	padding-top: 250px;
+}
+
+/* listing */
+
+.list-row {
+	padding: 5px;
+	border-bottom: 1px solid #eee;
+}
+
 /* appframe header */
 
 .appframe-header {
