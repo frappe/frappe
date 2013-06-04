@@ -166,7 +166,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
 	},
 	
-	run: function(arg0, arg1) {
+	run: function() {
 		// set filter from route
 		var route = wn.get_route();
 		var me = this;
@@ -175,7 +175,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				me.set_filter(key, val, true);
 			});
 		}
-		this._super(arg0, arg1);
+		this.listview.run();
+		this._super(arguments[0], arguments[1]);
 	},
 	
 	make_no_result: function() {
@@ -201,7 +202,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			function(inp) { 
 				return $(inp).attr('data-docstatus'); 
 			}) : []
-		
+				
 		var args = {
 			doctype: this.doctype,
 			fields: this.listview.fields,

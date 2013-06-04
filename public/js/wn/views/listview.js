@@ -23,6 +23,10 @@ wn.views.ListView = Class.extend({
 		if(this.settings.group_by) 
 			this.group_by = this.settings.group_by;
 	},
+	run: function() {
+		if(this.doclistview.start===0)
+			this.id_list = [];
+	},
 	set_fields: function() {
 		var me = this;
 		var t = "`tab"+this.doctype+"`.";
@@ -72,7 +76,7 @@ wn.views.ListView = Class.extend({
 		this.columns = [];
 		var me = this;
 		this.columns.push({colspan: 1, content:'avatar'});		
-		this.columns.push({colspan: 2, content:'name'});
+		this.columns.push({colspan: 3, content:'name'});
 
 		if(this.workflow_state_fieldname) {
 			this.columns.push({
@@ -98,7 +102,7 @@ wn.views.ListView = Class.extend({
 					colspan = "1";
 				} else if(d.fieldtype=="Check") {
 					colspan = "1";
-				} else if(d.fieldname=="subject" || d.fieldname=="title") { // subjects are longer
+				} else if(in_list(["name", "subject", "title"], d.fieldname)) { // subjects are longer
 					colspan = "3";
 				} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
 					colspan = "3";
@@ -124,6 +128,15 @@ wn.views.ListView = Class.extend({
 	},
 	render: function(row, data) {
 		this.prepare_data(data);
+		$(row).removeClass("list-row");
+		
+		// maintain id_list to avoid duplication incase
+		// of filtering by child table
+		if(in_list(this.id_list, data.name))
+			return;
+		else 
+			this.id_list.push(data.name);
+		
 		var body = $("<div class='row doclist-row'></div>")
 			.appendTo(row).css({"padding": "5px 0px", 
 				"padding-bottom": "0px",
@@ -304,6 +317,7 @@ wn.views.ListView = Class.extend({
 		}
 	},
 	prepare_data: function(data) {
+		
 		if(data.modified)
 			this.prepare_when(data, data.modified);
 		

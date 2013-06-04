@@ -71,7 +71,8 @@ wn.ui.FilterList = Class.extend({
 		// get filter values as dict
 		var values = [];
 		$.each(this.filters, function(i, filter) {
-			values.push(filter.get_value());
+			if(filter.field)
+				values.push(filter.get_value());
 		})
 		return values;
 	},

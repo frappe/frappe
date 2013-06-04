@@ -65,14 +65,14 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 			
 			# build from doctype
 			if txt:
-				filters.append([doctype, searchfield, "like", txt + "%"])
+				filters.append([doctype, searchfield or "name", "like", txt + "%"])
 			if meta.get({"parent":doctype, "fieldname":"enabled", "fieldtype":"Check"}):
 				filters.append([doctype, "enabled", "=", 1])
 			if meta.get({"parent":doctype, "fieldname":"disabled", "fieldtype":"Check"}):
 				filters.append([doctype, "disabled", "!=", 1])
 
 			webnotes.response["values"] = webnotes.widgets.reportview.execute(doctype,
-				filters=filters, fields = get_std_fields_list(meta, searchfield), 
+				filters=filters, fields = get_std_fields_list(meta, searchfield or "name"), 
 				limit_start = start, limit_page_length=page_len, as_list=True)
 
 def get_std_fields_list(meta, key):
