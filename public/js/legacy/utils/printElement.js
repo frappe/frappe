@@ -25,12 +25,6 @@
     var $ = window["jQuery"];
     $.fn["printElement"] = function (options) {
         var mainOptions = $.extend({}, $.fn["printElement"]["defaults"], options);
-        //iframe mode is not supported for opera and chrome 3.0 (it prints the entire page).
-        //http://www.google.com/support/forum/p/Webmasters/thread?tid=2cb0f08dce8821c3&hl=en
-        if (mainOptions["printMode"] == 'iframe') {
-            if ($.browser.opera || (/chrome/.test(navigator.userAgent.toLowerCase())))
-                mainOptions["printMode"] = 'popup';
-        }
         //Remove previously printed iframe if exists
         $("[id^='printElement_']").remove();
 
@@ -111,31 +105,6 @@
 
     function _getElementHTMLIncludingFormElements(element) {
         var $element = $(element);
-        //Radiobuttons and checkboxes
-        /*$(":checked", $element).each(function () {
-            this.setAttribute('checked', 'checked');
-        });
-        //simple text inputs
-        $("input[type='text']", $element).each(function () {
-            this.setAttribute('value', $(this).val());
-        });
-        $("select", $element).each(function () {
-            var $select = $(this);
-            $("option", $select).each(function () {
-                if ($select.val() == $(this).val())
-                    this.setAttribute('selected', 'selected');
-            });
-        });
-        $("textarea", $element).each(function () {
-            //Thanks http://blog.ekini.net/2009/02/24/jquery-getting-the-latest-textvalue-inside-a-textarea/
-            var value = $(this).attr('value');
-            //fix for issue 7 (http://plugins.jquery.com/node/13503 and http://github.com/erikzaadi/jQueryPlugins/issues#issue/7)
-            if ($.browser.mozilla && this.firstChild)
-                this.firstChild.textContent = value;
-            else
-                this.innerHTML = value;
-        });*/
-        //http://dbj.org/dbj/?p=91
         var elementHtml = $('<div></div>').append($element.clone()).html();
         return elementHtml;
     }
@@ -151,29 +120,12 @@
 
         var html = new Array();
         html.push('<html><head><title>' + opts["pageTitle"] + '</title>');
-        // if (opts["overrideElementCSS"]) {
-        //     if (opts["overrideElementCSS"].length > 0) {
-        //         for (var x = 0; x < opts["overrideElementCSS"].length; x++) {
-        //             var current = opts["overrideElementCSS"][x];
-        //             if (typeof (current) == 'string')
-        //                 html.push('<link type="text/css" rel="stylesheet" href="' + current + '" >');
-        //             else
-        //                 html.push('<link type="text/css" rel="stylesheet" href="' + current["href"] + '" media="' + current["media"] + '" >');
-        //         }
-        //     }
-        // }
-        // else {
-        //     $("link", document).filter(function () {
-        //         return $(this).attr("rel").toLowerCase() == "stylesheet";
-        //     }).each(function () {
-        //         html.push('<link type="text/css" rel="stylesheet" href="' + $(this).attr("href") + '" media="' + $(this).attr('media') + '" >');
-        //     });
-        // }
         //Ensure that relative links work
         html.push('<base href="' + _getBaseHref() + '" />');
         html.push('</head><body style="' + opts["printBodyOptions"]["styleToAdd"] + '" class="' + opts["printBodyOptions"]["classNameToAdd"] + '">');
         html.push('<div class="' + $element.attr('class') + '">' + elementHtml + '</div>');
-        html.push('<script type="text/javascript">function printPage(){focus();print();' + ((!$.browser.opera && !opts["leaveOpen"] && opts["printMode"].toLowerCase() == 'popup') ? 'close();' : '') + '}</script>');
+        html.push('<script type="text/javascript">function printPage(){focus();print();' 
+			+ ((!opts["leaveOpen"] && opts["printMode"].toLowerCase() == 'popup') ? 'close();' : '') + '}</script>');
         html.push('</body></html>');
 
         return html.join('');
