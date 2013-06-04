@@ -537,6 +537,8 @@ def make_autoname(key, doctype=''):
 	n = ''
 	l = key.split('.')
 	series_set = False
+	today = now_datetime()
+	
 	for e in l:
 		en = ''
 		if e.startswith('#'):
@@ -545,17 +547,13 @@ def make_autoname(key, doctype=''):
 				en = getseries(n, digits, doctype)
 				series_set = True
 		elif e=='YY': 
-			import time
-			en = time.strftime('%y')
+			en = today.strftime('%y')
 		elif e=='MM': 
-			import time
-			en = time.strftime('%m')
+			en = today.strftime('%m')
 		elif e=='DD':
-			import time
-			en = time.strftime("%d")
+			en = today.strftime("%d")
 		elif e=='YYYY': 
-			import time
-			en = time.strftime('%Y')		
+			en = today.strftime('%Y')		
 		else: en = e
 		n+=en
 	return n
