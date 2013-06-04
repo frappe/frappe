@@ -14,10 +14,30 @@ a {
 
 .content {
 	background-color: #fff;
-	-moz-box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 	-webkit-box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 }
+
+@-webkit-keyframes pulse {
+  from {
+    opacity: 0.7;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  from {
+    opacity: 0.7;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
 
 .splash {
 	position: absolute;
@@ -25,11 +45,25 @@ a {
 	left: 0px;
 	right: 0px;
 	bottom: 0px;
-	background-color: #eee;
+	background-image: none, url("../app/images/erpnext-2013.svg");
+	background-position: center;
+	background-repeat: no-repeat;
+	background-size: 160px;
 	color: #888;
 	text-align: center;
 	padding-top: 250px;
+	animation-duration: 1s;
+	animation-name: pulse;
+	animation-iteration-count: infinite;
+	animation-direction: alternate;
+
+	-webkit-animation-duration: 1s;
+	-webkit-animation-name: pulse;
+	-webkit-animation-iteration-count: infinite;
+	-webkit-animation-direction: alternate;
+
 }
+
 
 /* listing */
 
