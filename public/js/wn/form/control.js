@@ -293,7 +293,12 @@ wn.ui.form.ControlPassword = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlInt = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		this._super();
-		this.$input.css({"text-align": "right"})
+		this.$input
+			.css({"text-align": "right"})
+			.on("focus", function() {
+				this.select();
+				return false;
+			})
 	},
 	validate: function(value, callback) {
 		return callback(cint(value, null));
@@ -430,6 +435,7 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		var me = this;
 		this.$input = $('<button class="btn btn-default">')
 			.prependTo(me.input_area)
+			.css({"margin-bottom": "7px"})
 			.on("click", function() {
 				if(me.frm && me.frm.cscript) {
 					if(me.frm.cscript[me.df.fieldname]) {

@@ -11,8 +11,6 @@ wn.ui.AppFrame = Class.extend({
 		this.$w = $('<div class="appframe-header col col-lg-12">\
 			<div class="row appframe-title">\
 				<div class="col col-lg-12">\
-					<img class="title-status-img"\
-						style="position: absolute; top: 10px; left: 40%; width: 160px; display:none" />\
 					<div class="title-button-area btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
 					<div class="title-button-area-1 btn-group pull-right" \
@@ -21,9 +19,10 @@ wn.ui.AppFrame = Class.extend({
 						<span class="title-icon"></span><span class="title-text"></span></h2></div>\
 					<div class="sub-title-area text-muted small" \
 						style="margin-top: -10px;"></div>\
+					<div class="status-bar"></div>\
 				</div>\
 			</div>\
-			<div class="info-bar" style="display: none;"><ul></ul></div>\
+			<div class="info-bar" style="display: none;"><ul class="hidden-sm-inline"></ul></div>\
 			<div class="navbar" style="display: none;">\
 				<div class="navbar-form pull-left">\
 					<div class="btn-group"></div>\
@@ -89,8 +88,15 @@ wn.ui.AppFrame = Class.extend({
 	
 	set_views_for: function(doctype, active_view) {
 		this.doctype = doctype;
-		var me = this;
-		var views = [{
+		var me = this,
+			meta = locals.DocType[doctype],
+			views = [
+			{
+				icon: wn.modules[meta.module].icon,
+				route: wn.modules[meta.module].link,
+				type: "module"
+			},
+			{
 				icon: "icon-file-alt",
 				route: "",
 				type: "form",
@@ -102,8 +108,9 @@ wn.ui.AppFrame = Class.extend({
 					}
 				}
 			}];
+
 		
-		if(!locals.DocType[doctype].issingle) {
+		if(!meta.issingle) {
 			views.push({
 				icon: "icon-list",
 				route: "List/" + doctype,
@@ -111,7 +118,7 @@ wn.ui.AppFrame = Class.extend({
 			});
 		}
 		
-		if(locals.DocType[doctype].__calendar_js) {
+		if(meta.__calendar_js) {
 			views.push({
 				icon: "icon-calendar",
 				route: "Calendar/" + doctype,
@@ -182,7 +189,7 @@ wn.ui.AppFrame = Class.extend({
 		this.buttons[label] && this.buttons[label].remove();
 		
 		this.buttons[label] = $(repl('<button class="btn btn-default">\
-			%(icon)s <span class="btn-text">%(label)s</span></button>', args))
+			%(icon)s <span class="hidden-sm-inline">%(label)s</span></button>', args))
 			.appendTo(this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
 			//.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
 			.attr("title", wn._(label))

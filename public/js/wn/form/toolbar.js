@@ -10,19 +10,19 @@ wn.ui.form.Toolbar = Class.extend({
 	make: function() {
 		this.appframe.clear_buttons();
 		this.set_title();
-		this.set_title_image();
+
+		if(!this.frm.view_is_edit) {
+			// print view
+			this.show_print_toolbar();
+		}
+
 		this.show_title_as_dirty();
 
 		if(this.frm.meta.hide_toolbar) {
 			this.frm.save_disabled = true;
 			return;
 		}
-
 		this.make_file_menu();
-		if(!this.frm.view_is_edit) {
-			// print view
-			this.show_print_toolbar();
-		}
 		this.show_infobar();
 	},
 	refresh: function() {
@@ -52,8 +52,13 @@ wn.ui.form.Toolbar = Class.extend({
 				"Last Modifed On: " + dateutil.str_to_user(me.frm.doc.modified), "History");
 		})
 
-		var docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];
-		var comments = docinfo.comments.length,
+		this.make_infobar_docinfo_links();
+		this.make_infobar_side_icons();
+	},
+	make_infobar_docinfo_links: function() {
+		var me = this,
+			docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname],
+			comments = docinfo.comments.length,
 			attachments = keys(docinfo.attachments).length,
 			assignments = docinfo.assignments.length;
 			
@@ -84,9 +89,25 @@ wn.ui.form.Toolbar = Class.extend({
 			})
 		assignments > 0 && $li3.addClass("bold");
 		
+	},
+	make_infobar_side_icons: function() {
+		var me = this;
 		this.appframe.$w.find(".form-icon").remove();
+
+		$('<i class="icon-arrow-right pull-right form-icon" title="Next Record"></i>')
+			.click(function() {
+				me.go_prev_next(false);
+			})
+			.appendTo(this.appframe.$w.find(".info-bar"));		
+
+		$('<i class="icon-arrow-left pull-right form-icon" title="Previous Record"></i>')
+			.click(function() {
+				me.go_prev_next(true);
+			})
+			.appendTo(this.appframe.$w.find(".info-bar"));		
+
 		if(!me.frm.meta.allow_print) {
-			$('<i class="icon-print pull-right form-icon" title="Print" style="margin-right: 10px;"></i>')
+			$('<i class="icon-print pull-right form-icon" title="Print"></i>')
 				.click(function() {
 					me.frm.print_doc();
 				})
@@ -100,6 +121,7 @@ wn.ui.form.Toolbar = Class.extend({
 				})
 				.appendTo(this.appframe.$w.find(".info-bar"));		
 		}
+		
 	},
 	show_print_toolbar: function() {
 		var me = this;
@@ -117,13 +139,25 @@ wn.ui.form.Toolbar = Class.extend({
 	get_dropdown_menu: function(label) {
 		return this.appframe.add_dropdown(label);
 	},
-	set_title_image: function() {
-		var img = this.frm.appframe.$w.find('.title-status-img').toggle(false);
-		if(this.frm.doc.docstatus==1) {
-			img.attr("src", "lib/images/ui/submitted.png").toggle(true);
-		}
-		else if(this.frm.doc.docstatus==2) {
-			img.attr("src", "lib/images/ui/cancelled.png").toggle(true);
+	set_docstatus_label: function() {
+		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
+			var status_bar = $("<h4>")
+				.appendTo(this.frm.appframe.$w.find(".status-bar").empty());
+
+			switch(this.frm.doc.docstatus) {
+				case 0:
+					$('<span class="label label-warning"><i class="icon-unlock"> To Submit</span>')
+						.appendTo(status_bar);
+					break;
+				case 1:
+					$('<span class="label label-success"><i class="icon-lock"> Submitted</span>')
+						.appendTo(status_bar);
+					break;
+				case 2:
+					$('<span class="label label-danger"><i class="icon-remove"> Cancelled</span>')
+						.appendTo(status_bar);
+					break;
+			}
 		}
 	},
 	make_file_menu: function() {
@@ -249,10 +283,27 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.get_title_area()
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
 		this.set_title_button();
+		this.set_docstatus_label();
 	},
 	make_actions_menu: function() {
 		if(this.actions_setup) return;
 		var menu = this.get_dropdown_menu("Actions");
 		this.actions_setup = true;
-	}
+	},
+	go_prev_next: function(prev) {
+		var me = this;
+		wn.call({
+			method: "webnotes.widgets.form.utils.get_next",
+			args: {
+				doctype: me.frm.doctype,
+				name: me.frm.docname,
+				prev: prev ? 1 : 0
+			},
+			callback: function(r) {
+				if(r.message)
+					wn.set_route("Form", me.frm.doctype, r.message);
+			}
+		});
+	},
+	
 })

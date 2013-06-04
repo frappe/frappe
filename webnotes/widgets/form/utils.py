@@ -23,6 +23,8 @@
 from __future__ import unicode_literals
 import webnotes, json
 
+from webnotes import _
+
 @webnotes.whitelist()
 def remove_attach():
 	"""remove attachment"""
@@ -84,3 +86,15 @@ def add_comment(doclist):
 	return [d.fields for d in doclist]
 
 	return save(doclist)
+
+@webnotes.whitelist()
+def get_next(doctype, name, prev):
+	order = ["<", "desc"] if int(prev) else [">", "asc"]
+	res = webnotes.conn.sql("""select name from `tab%s` 
+		where name %s %s order by name %s limit 1""" % (doctype, 
+			order[0], "%s", order[1]), name)
+	if not res:
+		webnotes.msgprint(_("No further records"))
+		return None
+	else:
+		return res[0][0]

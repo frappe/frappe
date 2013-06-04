@@ -13,6 +13,7 @@ wn.ui.form.Footer = Class.extend({
 		})
 	},
 	make: function() {
+		var me = this;
 		this.wrapper = $('<div class="form-footer row">\
 			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
 				display: block; margin-left: 15px; color: #888;"></i-->\
@@ -55,6 +56,7 @@ wn.ui.form.Footer = Class.extend({
 		this.wrapper.find(".btn-save").click(function() {
 			me.frm.save('Save', null, this);
 		})
+		
 		this.help_area = this.wrapper.find(".help-area").get(0);
 	},
 	make_tags: function() {

@@ -46,6 +46,10 @@ a {
 	border-bottom: 1px solid #ddd;
 }
 
+.appframe-header .status-bar {
+	text-align: right;
+}
+
 /* fixed navbar in appframe */
 
 .appframe .navbar {
@@ -77,6 +81,7 @@ a {
 
 .appframe .info-bar {
 	padding: 7px;
+	height: 35px;
 }
 
 .appframe .info-bar .form-icon {
@@ -86,9 +91,16 @@ a {
 	cursor: pointer;
 }
 
+.appframe .info-bar .form-icon:hover {
+	color: #444;
+}
+
+.appframe .info-bar .form-icon:active {
+	color: #5bc0de;
+}
+
 .appframe .info-bar ul {
 	width: 80%;
-	display: inline-block;
 	list-style: none;
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;
@@ -286,12 +298,12 @@ textarea[data-fieldtype="Small Text"] {
 	display: inline;
 }
 
-.btn-text {
+.hidden-sm-inline {
 	display: none;
 }
 
 @media (min-width: 768px) {
-	.btn-text {
+	.hidden-sm-inline {
 		display: inline;
 	}
 }
