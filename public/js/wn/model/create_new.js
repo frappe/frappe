@@ -11,10 +11,12 @@ $.extend(wn.model, {
 			doctype: doctype,
 			name: wn.model.get_new_name(doctype),
 			__islocal: 1,
+			__unsaved: 1,
 			owner: user
 		};
 		wn.model.set_default_values(doc);
 		locals[doctype][doc.name] = doc;
+		wn.provide("wn.model.docinfo." + doctype + "." + doc.name);
 		return doc;		
 	},
 	
@@ -37,7 +39,7 @@ $.extend(wn.model, {
 		
 		for(var fid=0;fid<docfields.length;fid++) {
 			var f = docfields[fid];
-			if(!in_list(no_value_fields, f.fieldtype) && doc[f.fieldname]==null) {
+			if(!in_list(wn.model.no_value_type, f.fieldtype) && doc[f.fieldname]==null) {
 				var v = wn.model.get_default_value(f, doc);
 				if(v) {
 					if(in_list(["Int", "Check"], f.fieldtype))
@@ -87,15 +89,26 @@ $.extend(wn.model, {
 		}
 	},
 	
-	add_child: function(doc, childtype, parentfield) {
+	add_child: function(parent_doc, doctype, parentfield, idx) {
 		// create row doc
-		var d = wn.model.get_new_doc(childtype);
+		idx = idx ?
+			idx - 0.1 :
+			wn.model.get_children(doctype, parent_doc.name, parentfield, 
+				parent_doc.doctype).length + 1;
+
+		var d = wn.model.get_new_doc(doctype);
 		$.extend(d, {
-			parent: doc.name,
+			parent: parent_doc.name,
 			parentfield: parentfield,
-			parenttype: doc.doctype,
-			idx: getchildren(childtype, d.parent, d.parentfield, d.parenttype).length 
+			parenttype: parent_doc.doctype,
+			idx: idx
 		});
+		
+		// renum for fraction
+		idx != cint(idx) && 
+			wn.model.get_children(doctype, parent_doc.name, parentfield, 
+				parent_doc.doctype);
+			
 		return d;
 	},
 	

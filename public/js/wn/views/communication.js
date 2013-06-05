@@ -44,7 +44,7 @@ wn.views.CommunicationList = Class.extend({
 			
 		this.wrapper = $("<div><h4>"+wn._("Communication History")+"</h4>\
 			<div style='margin-bottom: 8px;'>\
-				<button class='btn' \
+				<button class='btn btn-default' \
 					onclick='cur_frm.communication_view.add_reply()'>\
 				<i class='icon-plus'></i> "+wn._("Add Message")+"</button></div>\
 			</div>")
@@ -74,7 +74,7 @@ wn.views.CommunicationList = Class.extend({
 		//doc.when = comment_when(this.doc.modified);
 		doc.when = doc.modified;
 		if(!doc.content) doc.content = "[no content]";
-		if(doc.content.indexOf("<br>")== -1 && doc.content.indexOf("<p>")== -1) {
+		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
 		if(!doc.sender) doc.sender = "[unknown sender]";
@@ -117,6 +117,7 @@ wn.views.CommunicationComposer = Class.extend({
 		this.dialog.show();
 	},
 	make: function() {
+		var me = this;
 		this.dialog = new wn.ui.Dialog({
 			width: 640,
 			title: wn._("Add Reply") + ": " + (this.subject || ""),
@@ -142,6 +143,26 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"select_attachments"}
 			]
 		});
+		$(document).on("upload_complete", function(event, filename, fileurl) {
+			if(me.dialog.display) {
+				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
+
+				// find already checked items
+				var checked_items = wrapper.find('[data-file-name]:checked').map(function() {
+					return $(this).attr("data-file-name");
+				});
+				
+				// reset attachment list
+				me.setup_attach();
+				
+				// check latest added
+				checked_items.push(filename);
+				
+				$.each(checked_items, function(i, filename) {
+					wrapper.find('[data-file-name="'+ filename +'"]').get(0).checked=true;
+				});
+			}
+		})
 		this.prepare();
 	},
 	prepare: function() {
@@ -176,7 +197,7 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		var files = cur_frm.get_files();
 		if(files.length) {
-			$("<p><b>"+wn._("Add Attachments")+":</b></p>").appendTo(attach);
+			$("<p><b>"+wn._("Add Attachments")+":</b></p>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				$(repl("<p><input type='checkbox' \
 					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
@@ -257,8 +278,7 @@ wn.views.CommunicationComposer = Class.extend({
 			: [];
 		var signature = wn.boot.profile.email_signature || "";
 
-		if(signature.indexOf("<br>")==-1 && signature.indexOf("<p")==-1 
-			&& signature.indexOf("<img")==-1 && signature.indexOf("<div")==-1) {
+		if(!wn.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 		
@@ -267,14 +287,14 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		if(comm_list.length > 0) {
-			fields.content.input.set_input((this.message || "") + 
+			fields.content.set_input((this.message || "") + 
 				"<p></p>"
 				+ signature
 				+"<p></p>"
 				+"-----"+wn._("In response to")+"-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
-			fields.content.input.set_input((this.message || "") 
+			fields.content.set_input((this.message || "") 
 				+ "<p></p>" + signature)
 		}
 	},

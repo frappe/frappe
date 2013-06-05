@@ -13,7 +13,6 @@
 	{
 		"public/css/all-web.css": [
 			"lib/public/css/bootstrap.css",
-			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
 		]
 	},
@@ -24,21 +23,16 @@
 			"lib/public/js/lib/slickgrid/slick.grid.css",
 			"lib/public/js/lib/slickgrid/slick-default-theme.css",
 
+			"lib/public/css/tag-it.css",
 			"lib/public/css/bootstrap.css",
+			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
-			"lib/public/css/legacy/body.css",
 			"lib/public/css/legacy/forms.css",
 			"lib/public/css/legacy/fields.css",
-			"lib/public/css/legacy/grid.css",
-			"lib/public/css/legacy/listing.css",
-			"lib/public/css/legacy/report.css",
 			"lib/public/css/legacy/dialog.css",
 			"lib/public/css/legacy/tabs.css",
 			"lib/public/css/legacy/sidebar.css",
 			"lib/public/css/ui/common.css",
-			"lib/public/css/ui/list.css",
-			"lib/public/css/ui/appframe.css",
-			"lib/public/css/ui/layout.css",
 			"lib/public/css/views/tree_grid.css",
 		]
 	},
@@ -46,16 +40,13 @@
 	{
 		"public/js/all-web.min.js": [
 			"lib/public/js/lib/bootstrap.min.js",
-			"lib/public/js/lib/public/json2.js",
 		]
 	},
 	
 	{
 		"public/js/all-app.min.js": [
-			"lib/public/js/lib/jquery/jquery.ui.core.min.js",
-			"lib/public/js/lib/jquery/jquery.ui.datepicker.min.js",
-			"lib/public/js/lib/jquery/jquery.ui.autocomplete.min.js",
-			"lib/public/js/lib/jquery/jquery.ui.interactions.min.js",
+			"lib/public/js/lib/jquery/jquery.ui.min.js",
+			"lib/public/js/lib/tag-it.min.js",
 			"lib/public/js/lib/mousetrap.min.js",
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
@@ -102,7 +93,6 @@
 			"lib/public/js/legacy/utils/handler.js",
 			"lib/public/js/legacy/utils/printElement.js",
 			"lib/public/js/legacy/widgets/dialog.js",
-			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/legacy/webpage/loaders.js",
 
 			"lib/public/js/wn/upload.js",
@@ -110,6 +100,7 @@
 			"lib/public/js/wn/ui/filters.js",
 			"lib/public/js/wn/ui/search.js",
 			"lib/public/js/wn/ui/tree.js",
+			"lib/public/js/wn/ui/tags.js",
 
 			"lib/public/js/wn/views/container.js",
 			"lib/public/js/wn/views/pageview.js",
@@ -125,13 +116,12 @@
 			"lib/public/js/wn/views/grid_report.js",
 			"lib/public/js/wn/views/communication.js",
 			"lib/public/js/wn/views/test_runner.js",
+			"lib/public/js/wn/views/docs.js",
 			"lib/public/js/wn/form/formatters.js",
 
 			"lib/public/js/legacy/webpage/page_header.js",
 			"lib/public/js/legacy/widgets/layout.js",
-			"lib/public/js/legacy/widgets/tags.js",
 			"lib/public/js/legacy/widgets/export_query.js",
-			"lib/public/js/legacy/webpage/search.js",
 			"lib/public/js/legacy/wn/page_layout.js",
 			"lib/public/js/legacy/wn/widgets/page_sidebar.js",
 			
@@ -143,22 +133,24 @@
 			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
-			"lib/public/js/legacy/widgets/form/fields.js",
 			"lib/public/js/legacy/widgets/form/form_dialog.js",
-			"lib/public/js/legacy/widgets/form/form_header.js",
 			"lib/public/js/legacy/widgets/form/form.js",
-			"lib/public/js/legacy/widgets/form/form_fields.js",
-			"lib/public/js/legacy/widgets/form/grid.js",
-			"lib/public/js/legacy/widgets/form/form_grid.js",
 			"lib/public/js/legacy/widgets/form/print_format.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
-			"lib/public/js/legacy/widgets/form/form_comments.js",
 			"lib/public/js/legacy/wn/widgets/form/sidebar.js",
-			"lib/public/js/legacy/wn/widgets/form/comments.js",
+
+			"lib/public/js/wn/form/toolbar.js",
+			"lib/public/js/wn/form/layout.js",
+			"lib/public/js/wn/form/script_manager.js",
+			"lib/public/js/wn/form/control.js",
+			"lib/public/js/wn/form/link_selector.js",
 			"lib/public/js/wn/form/editors.js",
+			"lib/public/js/wn/form/grid.js",
 			"lib/public/js/wn/form/attachments.js",
+			"lib/public/js/wn/form/footer.js",
+			"lib/public/js/wn/form/comments.js",
 			"lib/public/js/wn/form/linked_with.js",
-			"lib/public/js/wn/form/states.js",
+			"lib/public/js/wn/form/workflow.js",
 			"lib/public/js/wn/form/assign_to.js",
 			"lib/public/js/wn/print/print_table.js",
 		]

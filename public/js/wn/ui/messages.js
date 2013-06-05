@@ -10,13 +10,18 @@ wn.messages.waiting = function(parent, msg, bar_percent) {
 				msg: msg
 			}))
 		.appendTo(parent);
+};
+
+wn.throw = function(msg) {
+	msgprint(msg);
+	throw msg;
 }
 
 wn.confirm = function(message, ifyes, ifno) {
 	var d = msgprint("<p>" + message + "</p>\
 		<p style='text-align: right'>\
 			<button class='btn btn-info btn-yes'>Yes</button>\
-			<button class='btn btn-no'>No</button>\
+			<button class='btn btn-default btn-no'>No</button>\
 		</p>");
 	$(d.wrapper).find(".btn-yes").click(function() {
 		d.hide();

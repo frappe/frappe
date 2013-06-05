@@ -39,7 +39,7 @@ wn.views.ReportViewPage = Class.extend({
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(wn._(this.doctype));
 		this.page.appframe.add_home_breadcrumb()
-		this.page.appframe.add_module_breadcrumb(module)
+		this.page.appframe.add_module_icon(module)
 		this.page.appframe.add_breadcrumb("icon-table");
 		this.page.appframe.set_views_for(this.doctype, "report");
 
@@ -105,7 +105,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			var columns = [['name', this.doctype],];
 			$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
 				if(df.in_filter && df.fieldname!='naming_series'
-					&& !in_list(no_value_fields, df.fieldname)) {
+					&& !in_list(wn.model.no_value_type, df.fieldname)) {
 					columns.push([df.fieldname, df.parent]);
 				}
 			});
@@ -320,7 +320,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.sort_order_next_select = $(this.sort_dialog.body).find('.sort-order-1');
 		
 		// initial values
-		this.sort_by_select.val('modified');
+		this.sort_by_select.val(this.doctype + '.modified');
 		this.sort_order_select.val('desc');
 		
 		this.sort_by_next_select.val('');
@@ -384,7 +384,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 							return;
 						}
 						if(r.message != me.docname)
-							wn.set_route('Report2', me.doctype, r.message);
+							wn.set_route('Report', me.doctype, r.message);
 					}
 				});
 			}, 'icon-upload');

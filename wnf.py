@@ -262,6 +262,9 @@ def setup_options():
 	parser.add_option('--translate', nargs=1, metavar="LANG", 
 		help="""Rebuild translation for the given langauge and 
 		use Google Translate to tranlate untranslated messages. use "all" """)
+		
+	parser.add_option("--reset_perms", default=False, action="store_true",
+		help="Reset permissions for all doctypes.")
 
 	return parser.parse_args()
 	
@@ -496,6 +499,13 @@ def run():
 				import_messages(lang, filename)
 				print "Deleting temp files..."
 				os.remove('_lang_tmp.csv')
+				
+	elif options.reset_perms:
+		for d in webnotes.conn.sql_list("""select name from `tabDocType`
+			where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
+				webnotes.reset_perms(d)
+				webnotes.clear_cache(doctype=d)
+		
 
 if __name__=='__main__':
 	run()

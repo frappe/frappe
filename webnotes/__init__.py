@@ -19,12 +19,12 @@
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
-from __future__ import unicode_literals
 """
 globals attached to webnotes module
 + some utility functions that should probably be moved
 """
+
+from __future__ import unicode_literals
 
 code_fields_dict = {
 	'Page':[('script', 'js'), ('content', 'html'), ('style', 'css'), ('static_content', 'html'), ('server_code', 'py')],
@@ -77,8 +77,17 @@ request_method = None
 print_messages = False
 user_lang = False
 lang = 'en'
+in_import = False
 
 # memcache
+
+_toc = [
+	"webnotes.auth", 
+	"webnotes.boot", 
+	"webnotes.client", 
+	"webnotes.db", 
+	"webnotes.model"
+]
 
 def cache():
 	global _memc
@@ -103,10 +112,10 @@ def getTraceback():
 	return utils.getTraceback()
 
 def errprint(msg):
-	if not request_method:
-		print repr(msg)
-
 	from utils import cstr
+	if not request_method:
+		print cstr(msg)
+
 	error_log.append(cstr(msg))
 
 def log(msg):
@@ -314,6 +323,7 @@ def doclist(lst=None):
 	return DocList(lst)
 
 def bean(doctype=None, name=None, copy=None):
+	"""return an instance of the object, wrapped as a Bean (webnotes.model.bean)"""
 	from webnotes.model.bean import Bean
 	if copy:
 		return Bean(copy_doclist(copy))

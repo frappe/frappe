@@ -24,7 +24,6 @@
 // Dialog - old style dialog - deprecated
 //
 
-var cur_dialog;
 
 var Dialog = wn.ui.Dialog.extend({
 	init: function(w, h, title, content) {

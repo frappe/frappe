@@ -180,8 +180,10 @@ class Bean:
 
 		for d in self.docs:
 			if self.doc.fields.get('__islocal'):
-				d.owner = user
-				d.creation = ts
+				if not d.owner:
+					d.owner = user
+				if not d.creation:
+					d.creation = ts
 
 			d.modified_by = user
 			d.modified = ts

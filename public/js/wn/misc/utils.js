@@ -5,6 +5,13 @@ wn.utils = {
 		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) || (filename.indexOf("files/")!=-1)
 			? filename : 'files/' + filename;
 	},
+	is_html: function(txt) {
+		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 
+			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
+			return false;
+		}
+		return true;
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
@@ -131,7 +138,7 @@ wn.utils = {
 		if(!text) 
 			return style;
 		if(has_words(["Open", "Pending"], text)) {
-			style = "important";
+			style = "danger";
 		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
 			"Approved", "Yes", "Active"], text)) {
 			style = "success";
@@ -167,5 +174,9 @@ wn.utils = {
 			}
 		}
 		return arr;
+	},
+	
+	sum: function(list) {
+		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},
 };

@@ -23,6 +23,7 @@
 // provide a namespace
 if(!window.wn)wn = {}
 wn.provide = function(namespace) {
+	// docs: create a namespace //
 	var nsl = namespace.split('.');
 	var l = nsl.length;
 	var parent = window;
@@ -33,6 +34,7 @@ wn.provide = function(namespace) {
 		}
 		parent = parent[n];
 	}
+	return parent;
 }
 
 wn.provide("locals");

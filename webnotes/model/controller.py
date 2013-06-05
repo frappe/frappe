@@ -24,8 +24,9 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes import msgprint, _
 from webnotes.utils import flt, cint, cstr
+from webnotes.model.meta import get_field_precision
 
-error_coniditon_map = {
+error_condition_map = {
 	"=": "!=",
 	"!=": "=",
 	"<": ">=",
@@ -40,6 +41,7 @@ error_coniditon_map = {
 class DocListController(object):
 	def __init__(self, doc, doclist):
 		self.doc, self.doclist = doc, doclist
+		
 		if hasattr(self, "setup"):
 			self.setup()
 	
@@ -69,7 +71,45 @@ class DocListController(object):
 				msg += _("Row") + (" # %d: " % doc.idx)
 			
 			msg += _(self.meta.get_label(fieldname, parent=doc.doctype)) \
-				+ " " + error_coniditon_map.get(condition, "") + " " + cstr(val2)
+				+ " " + error_condition_map.get(condition, "") + " " + cstr(val2)
 			
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
+			
+	def round_floats_in(self, doc, fieldnames=None):
+		if not fieldnames:
+			fieldnames = [df.fieldname for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype, 
+				"fieldtype": ["in", ["Currency", "Float"]]})]
+		
+		for fieldname in fieldnames:
+			doc.fields[fieldname] = flt(doc.fields.get(fieldname), self.precision(fieldname, doc.parentfield))
+			
+	def _process(self, parentfield):
+		from webnotes.model.doc import Document
+		if isinstance(parentfield, Document):
+			parentfield = parentfield.parentfield
+			
+		elif isinstance(parentfield, dict):
+			parentfield = parentfield.get("parentfield")
+			
+		return parentfield
+
+	def precision(self, fieldname, parentfield=None):
+		parentfield = self._process(parentfield)
+		
+		if not hasattr(self, "_precision"):
+			self._precision = webnotes._dict({
+				"default": cint(webnotes.conn.get_default("float_precision")) or 6,
+				"options": {}
+			})
+		
+		if self._precision.setdefault(parentfield or "main", {}).get(fieldname) is None:
+			df = self.meta.get_field(fieldname, parentfield=parentfield)
+			
+			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
+				self._precision.options[df.options] = get_field_precision(df, self.doc)
+			
+			self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
+				self._precision.default
+		
+		return self._precision[parentfield or "main"][fieldname]

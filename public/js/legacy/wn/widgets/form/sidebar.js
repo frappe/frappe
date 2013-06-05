@@ -25,92 +25,6 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	this.form = form;
 	this.opts = {
 		sections: [
-			{
-				title: wn._('Actions'),
-				items: [
-					{
-						type: 'link',
-						label: wn._('New'),
-						icon: 'icon-plus',
-						display: function() { 
-							return in_list(profile.can_create, form.doctype) 
-						},
-						onclick: function() { new_doc(me.form.doctype) }
-					},
-					
-					{
-						type: 'link',
-						label: wn._('Print'),
-						display: function() { 
-							return !(me.form.doc.__islocal || me.form.meta.allow_print);
-						},
-						icon: 'icon-print',
-						onclick: function() { me.form.print_doc() }
-					},
-
-					{
-						type: 'link',
-						label: wn._('Email'),
-						display: function() { 
-							return !(me.form.doc.__islocal || me.form.meta.allow_email);
-						},
-						icon: 'icon-envelope',
-						onclick: function() { me.form.email_doc() }
-					},
-
-					{
-						type: 'link',
-						label: wn._('Copy'),
-						display: function() { 
-							return in_list(profile.can_create, me.form.doctype) && !me.form.meta.allow_copy 
-						},
-						icon: 'icon-file',
-						onclick: function() { me.form.copy_doc() }
-					},
-					
-					{
-						type: 'link',
-						label: wn._('Delete'),
-						display: function() { 
-							return (cint(me.form.doc.docstatus) != 1) && !me.form.doc.__islocal
-								&& wn.model.can_delete(me.form.doctype);
-						},
-						icon: 'icon-remove-sign',
-						onclick: function() { me.form.savetrash() }
-					},
-
-					{
-						type: 'link',
-						label: wn._('Rename'),
-						display: function() { 
-							return me.form.meta.allow_rename && me.form.perm[0][WRITE];
-						},
-						icon: 'icon-retweet',
-						onclick: function() { me.form.rename_doc() }
-					},
-					
-					{
-						type: 'link',
-						label: wn._('Linked With'),
-						display: function() { 
-							return !me.form.doc.__islocal && !me.form.meta.issingle;
-						},
-						icon: 'icon-link',
-						onclick: function() { 
-							if(!me.form.linked_with) {
-								me.form.linked_with = new wn.ui.form.LinkedWith({
-									frm: me.form
-								});
-							}
-							me.form.linked_with.show();
-						}
-					}
-					
-				],
-				display: function() {
-					return me.form.meta.hide_toolbar ? false : true;
-				}
-			},
 
 			{
 				title: wn._('Assign'),
@@ -142,7 +56,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 					new wn.widgets.form.sidebar.Comments(wrapper, me, me.form.doctype, me.form.docname);
 				},
 				display: function() { 
-					$(cur_frm.page_layout.body).find(".latest-comment").toggle(false);
+					$(cur_frm.body).find(".latest-comment").toggle(false);
 					return !me.form.doc.__islocal;
 				}
 			},
@@ -161,7 +75,7 @@ wn.widgets.form.sidebar = { Sidebar: function(form) {
 	}
 	
 	this.refresh = function() {
-		var parent = this.form.page_layout.sidebar_area;
+		var parent = this.form.sidebar_area;
 		if(!this.sidebar) {
 			//$y(parent, {paddingTop:'37px'})
 			this.sidebar = new wn.widgets.PageSidebar(parent, this.opts);

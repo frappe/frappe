@@ -32,15 +32,15 @@ wn.ui.form.AssignTo = Class.extend({
 		$.extend(this, opts);
 		var me = this;
 		this.wrapper = $('<div>\
-			<button class="btn btn-small"><i class="icon-plus"></i></button>\
-			<div class="alert-list"></div>\
+			<div class="alert-list" style="margin-bottom: 7px;"></div>\
 		</div>').appendTo(this.parent);
-
+		
 		this.$list = this.wrapper.find(".alert-list");
 		
-		this.wrapper.find(".btn").click(function() {
+		this.parent.find(".btn").click(function() {
 			me.add();
 		});
+		this.refresh();
 	},
 	refresh: function() {
 		if(this.frm.doc.__islocal) {
@@ -48,54 +48,51 @@ wn.ui.form.AssignTo = Class.extend({
 			return;
 		}
 		this.parent.toggle(true);
-
-		var me = this;
-		wn.call({
-			method: 'webnotes.widgets.form.assign_to.get',
-			type: "GET",
-			args: {
-				doctype: me.frm.doctype,
-				name: me.frm.docname
-			},
-			callback: function(r) {
-				me.render(r.message)
-			}
-		})
+		this.render(this.frm.get_docinfo().assignments);
 	},
 	render: function(d) {
 		var me = this;
+		this.frm.get_docinfo().assignments = d;
 		this.$list.empty();
 		if(this.dialog) {
 			this.dialog.hide();			
 		}
-				
-		for(var i=0; i<d.length; i++) {	
-			$.extend(d[i], wn.user_info(d[i].owner));
-			d[i].avatar = wn.avatar(d[i].owner);
-			
-			$(repl('<div class="alert alert-success" style="height: 19px; margin-top: 3px">\
-				%(avatar)s %(fullname)s \
-				<a class="close" href="#" style="top: 1px;"\
-					data-owner="%(owner)s">&times;</a></div>', d[i]))
-				.appendTo(this.$list);
-				
-			this.$list.find(".avatar").css("margin-top", "-7px")
-			this.$list.find('.avatar img').centerImage();
-		}
 
-		// set remove
-		this.$list.find('a.close').click(function() {
-			wn.call({
-				method:'webnotes.widgets.form.assign_to.remove', 
-				args: {
-					doctype: me.frm.doctype,
-					name: me.frm.docname,
-					assign_to: $(this).attr('data-owner')	
-				}, 
-				callback:function(r,rt) {me.render(r.message);}
+		if(d.length) {
+			for(var i=0; i<d.length; i++) {	
+				var info = wn.user_info(d[i]);
+				info.owner = d[i];
+				info.avatar = wn.avatar(d[i]);
+
+				$(repl('<div class="alert alert-success" style="margin-bottom: 7px;">\
+					%(avatar)s %(fullname)s \
+					<a class="close" href="#" style="top: 1px;"\
+						data-owner="%(owner)s">&times;</a></div>', info))
+					.appendTo(this.$list);
+
+				this.$list.find(".avatar").css("margin-top", "-7px")
+				this.$list.find('.avatar img').centerImage();
+			}
+
+			// set remove
+			this.$list.find('a.close').click(function() {
+				wn.call({
+					method:'webnotes.widgets.form.assign_to.remove', 
+					args: {
+						doctype: me.frm.doctype,
+						name: me.frm.docname,
+						assign_to: $(this).attr('data-owner')	
+					}, 
+					callback:function(r,rt) {
+						me.render(r.message);
+						me.frm.toolbar.show_infobar();
+					}
+				});
+				return false;
 			});
-			return false;
-		});
+		} else {
+			$('<p class="text-muted">' + wn._("No one") + '</p>').appendTo(this.$list);
+		}
 	},
 	add: function() {
 		var me = this;
@@ -111,30 +108,27 @@ wn.ui.form.AssignTo = Class.extend({
 					{fieldtype:'Date', fieldname:'date', label: wn._("Complete By")}, 
 					{fieldtype:'Select', fieldname:'priority', label: wn._("Priority"),
 						options:'Low\nMedium\nHigh', 'default':'Medium'},
-					{fieldtype:'Check', fieldname:'notify', label: wn._("Notify By Email")},
+					{fieldtype:'Check', fieldname:'notify', 
+						label: wn._("Notify By Email"), "default": 1},
 					{fieldtype:'Button', label:wn._("Add"), fieldname:'add_btn'}
 				]
 			});
 			me.dialog.fields_dict.add_btn.input.onclick = function() {
 				
 				var assign_to = me.dialog.fields_dict.assign_to.get_value();
+				var args = me.dialog.get_values();
 				if(assign_to) {
 					wn.call({
 						method:'webnotes.widgets.form.assign_to.add', 
-						args: {
+						args: $.extend(args, {
 							doctype: me.frm.doctype,
 							name: me.frm.docname,
 							assign_to: assign_to,
-							description: me.dialog.fields_dict.description.get_value(),
-							priority: me.dialog.fields_dict.priority.get_value(),
-							date: me.dialog.fields_dict.date.get_value(),
-							notify: me.dialog.fields_dict.notify.get_value()
-						}, 
+						}), 
 						callback: function(r,rt) {
 							if(!r.exc) {
-								if(cint(me.dialog.fields_dict.notify.get_value()))
-									msgprint("Email sent to " + assign_to);
 								me.render(r.message);
+								me.frm.toolbar.show_infobar();
 							}
 						},
 						btn: this

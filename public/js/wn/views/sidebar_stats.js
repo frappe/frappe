@@ -12,7 +12,7 @@ wn.provide('wn.views');
 wn.views.SidebarStats = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.wrapper = $("<div>").appendTo(this.parent);
+		this.wrapper = $("<div>").css({"padding-bottom": "15px"}).appendTo(this.parent);
 		this.get_stats();
 	},
 	get_stats: function() {
@@ -32,7 +32,7 @@ wn.views.SidebarStats = Class.extend({
 				
 				// reload button at the end
 				if(me.stats.length) {
-					$('<button class="btn"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
+					$('<button class="btn btn-default"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
 						.click(function() {
 							me.reload_stats();
 						}).appendTo($('<div class="stat-wrapper">')
@@ -47,12 +47,11 @@ wn.views.SidebarStats = Class.extend({
 
 		if(!stat || !stat.length) {
 			if(field=='_user_tags') {
-				this.parent
-					.append('<div class="stat-wrapper section"><div class="section-head">'
-						+wn._('Tags')+'</div>\
-						<div class="help small"><i>'+wn._('No records tagged.')+'</i><br><br> '
-						+wn._('To add a tag, open the document and click on "Add Tag" on the sidebar')
-						+'</div></div>');
+				$('<div class="stat-wrapper section"><div class="section-head">'
+					+wn._('Tags')+'</div>\
+					<div class="help small"><i>'+wn._('No records tagged.')+'</i><br><br> '
+					+wn._('To add a tag, open the document and click on "Add Tag" on the sidebar')
+					+'</div></div>').appendTo(this.wrapper);
 			}
 			return;
 		}
@@ -91,9 +90,10 @@ wn.views.SidebarStats = Class.extend({
 		args.bar_style = "";
 		
 		$item = $(repl('<div class="progress">\
-				<div class="bar %(bar_style)s" style="width: %(width)s%"></div>\
+				<div class="progress-bar %(bar_style)s" style="width: %(width)s%"></div>\
 			</div>\
-			<div class="stat-label">\
+			<div class="stat-label" style="margin-top: -19px; text-align: center; \
+				margin-bottom: 5px; font-size: 80%;">\
 				<a href="#" data-label="%(label)s" data-field="%(field)s">\
 					%(_label)s</a> (%(count)s)\
 		</div>', args));

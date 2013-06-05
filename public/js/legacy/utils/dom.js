@@ -260,12 +260,6 @@ function $yt(tab, r, c, s) { /// set style on tables with wildcards
 	}
 }
 
-// add css classes etc
-
-function set_style(txt) {
-	wn.dom.set_style(txt);
-}
-
 // Make table
 
 function make_table(parent, nr, nc, table_width, widths, cell_style, table_style) {

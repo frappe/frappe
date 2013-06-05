@@ -31,7 +31,8 @@ _r.ReportContainer = function() {
 		return;
 	}
 	var page = wn.container.add_page("Report Builder");
-	this.wrapper = $a(page, 'div', 'layout-wrapper', {padding: '0px'});
+	this.wrapper = $a(page, 'div', 'appframe', {padding: '0px'});
+	$(this.wrapper).addClass("col col-lg-12")
 	this.appframe = new wn.ui.AppFrame(this.wrapper);
 	this.rb_area = $a(this.wrapper, 'div', '', {padding: '15px'});
 			

@@ -73,6 +73,9 @@ wn.form.formatters = {
 	SmallText: function(value) {
 		return wn.form.formatters.Text(value);
 	},
+	Code: function(value) {
+		return "<pre>" + (value==null ? "" : value) + "</pre>"
+	},
 	WorkflowState: function(value) {
 		workflow_state = wn.model.get("Workflow State", value)[0];
 		if(workflow_state) {

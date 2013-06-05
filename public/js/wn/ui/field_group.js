@@ -25,13 +25,17 @@ wn.provide('wn.ui');
 wn.ui.FieldGroup = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.make_fields();
-		if(!this.no_submit_on_enter)
-			this.catch_enter_as_submit();
+	},
+	make: function() {
+		if(this.fields) {
+			this.make_fields();
+			if(!this.no_submit_on_enter)
+				this.catch_enter_as_submit();
+		}
 	},
 	first_button: false,
 	make_fields: function() {
-		$(this.parent).css({padding:'25px'});
+		$(this.body).css({padding:'25px'});
 		this.fields_dict = {}; // reset
 		for(var i=0; i< this.fields.length; i++) {
 			var df = this.fields[i];
@@ -40,10 +44,10 @@ wn.ui.FieldGroup = Class.extend({
 			}
 			if(!df.fieldtype) df.fieldtype="Data";
 			
-			var div = $a(this.parent, 'div', '', {margin:'6px 0px'})
+			var div = $a(this.body, 'div', '', {margin:'6px 0px'})
 			f = make_field(df, null, div, null);
 			f.not_in_form = 1;
-			f.dialog_wrapper = this.dialog_wrapper || null;
+			f.dialog_wrapper = this.wrapper || null;
 			this.fields_dict[df.fieldname] = f
 			f.refresh();
 			
@@ -56,9 +60,9 @@ wn.ui.FieldGroup = Class.extend({
 	},
 	catch_enter_as_submit: function() {
 		var me = this;
-		$(this.parent).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
+		$(this.body).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				$(me.parent).find('.btn-info:first').click();
+				$(me.body).find('.btn-info:first').click();
 			}
 		})
 	},
@@ -71,7 +75,7 @@ wn.ui.FieldGroup = Class.extend({
 		var errors = [];
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			var v = f.get_value ? f.get_value() : null;
+			var v = f.get_parsed_value();
 
 			if(f.df.reqd && !v) 
 				errors.push(f.df.label + ' is mandatory');
@@ -86,14 +90,13 @@ wn.ui.FieldGroup = Class.extend({
 	},
 	get_value: function(key) {
 		var f = this.fields_dict[key];
-		return f && (f.get_value ? f.get_value() : null);
+		return f && (f.get_parsed_value ? f.get_parsed_value() : null);
 	},
 	set_value: function(key, val){
 		var f = this.fields_dict[key];
 		if(f) {
 			f.set_input(val);
-			f.refresh_mandatory();
-		}		
+		}
 	},
 	set_values: function(dict) {	
 		for(var key in dict) {

@@ -27,7 +27,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			title: wn._(wn.modules[module].label || module)
 		});
 		wrapper.appframe.add_home_breadcrumb();
-		wrapper.appframe.add_breadcrumb(wn.modules[module].icon);
+		wrapper.appframe.add_module_icon(module);
 		this.wrapper = wrapper;
 		this.module = module;
 		this.make_body();
@@ -39,12 +39,12 @@ wn.views.moduleview.ModuleView = Class.extend({
 		var wrapper = this.wrapper;
 		// make columns
 		$(wrapper).find(".layout-main").html("<div class='row'>\
-			<div class='span6 main-section'></div>\
-			<div class='span5 side-section'></div>\
+			<div class='col col-lg-6 main-section'></div>\
+			<div class='col col-lg-6 side-section'></div>\
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {
-			var doctype = $(this).parent().attr("data-doctype");
+			var doctype = $(this).parent().find("[data-doctype]").attr("data-doctype");
 			var condition = wn.model.open_count_conditions[doctype];
 			if(condition) {
 				wn.set_route("List", doctype, wn.utils.get_url_from_dict(condition));
@@ -58,32 +58,35 @@ wn.views.moduleview.ModuleView = Class.extend({
 	},
 	add_section: function(section) {
 		section._title = wn._(section.title);
-		var table = $(repl("<table class='table table-bordered'>\
-		<thead><tr>\
-			<th style='font-size: 120%;'><i class='%(icon)s'></i> %(_title)s</th></tr></thead>\
-		<tbody></tbody>\
-		</table>", section)).appendTo(section.right 
+		var list_group = $('<ul class="list-group">\
+			<li class="list-group-item">\
+				<h4 class="list-group-item-heading"><i class="'
+					+ section.icon+'"></i> '
+					+ wn._(section.title) +'</h4>\
+			</li>\
+		</ul>"').appendTo(section.right 
 			? $(this.wrapper).find(".side-section")
 			: $(this.wrapper).find(".main-section"));
-		section.table = table;
+		section.list_group = list_group;
 	},
 	add_item: function(item, section) {
 		if(!item.description) item.description = "";
 		if(item.count==null) item.count = "";
-		
-		$(repl("<tr><td><div class='row'>\
-			<span"+
+				
+		$(repl('<li class="list-group-item">\
+			<span' +
 				((item.doctype && item.description) 
-					? " data-doctype='"+item.doctype+"'" : "")
-				+" class='"+(section.right ? 'spanf4' : 'span2')
-				+"'>%(link)s</span>\
-			<span class='help "+(section.right ? 'span4' : 'span3')
-				+"'>%(description)s</span>"
+					? " data-doctype='"+item.doctype+"'" 
+					: "") + ">%(link)s</span>"
+				+ (item.description 
+					? " <span class='text-muted small'>%(description)s</span>" 
+					: "")
 			+ ((section.right || !item.doctype) 
 				? ''
-				: '<span data-doctype-count="%(doctype)s"></span>')
-			+ "</div></td></tr>", item))
-		.appendTo(section.table.find("tbody"));
+				: '<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>\
+					<span class="clearfix"></span>')
+			+ "</li>", item))
+		.appendTo(section.list_group);
 	},
 	render_static: function() {
 		// render sections
@@ -119,8 +122,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 					|| !item.country)
 					me.add_item(item, section)
 			});
-			if(section.table.find("tr").length==1) {
-				section.table.toggle(false);
+			if(section.list_group.find("li").length==1) {
+				section.list_group.toggle(false);
 			}
 		});
 	},
@@ -149,27 +152,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 									item.link = repl("<a href=\"#query-report/%(name)s\">%(name)s</a>",
 										item);
 								} else {
-									item.link = repl("<a href=\"#Report2/%(doctype)s/%(name)s\">\
+									item.link = repl("<a href=\"#Report/%(doctype)s/%(name)s\">\
 										%(name)s</a>", item);
 								}
-								me.add_item(item, section);
-							}
-						})
-					}
-					// search criteria
-					if(r.message.search_criteria.length) {
-						var section = {
-							title: wn._("Old Style Reports"),
-							right: true,
-							icon: "icon-list-alt",
-						}
-						me.add_section(section);
-						$.each(r.message.search_criteria, function(i, item) {
-							item.criteria_name_enc = encodeURIComponent(item.criteria_name);
-							if(wn.model.can_read(item.parent_doctype || item.doctype)) {
-								item.link = repl(
-									"<a href=\"#Report/%(doctype)s/%(criteria_name_enc)s\">\
-									%(criteria_name)s</a>", item);
 								me.add_item(item, section);
 							}
 						})
@@ -189,9 +174,12 @@ wn.views.moduleview.ModuleView = Class.extend({
 						$.extend(wn.model.open_count_conditions, r.message.conditions);
 
 						$.each(r.message.open_count, function(doctype, count) {
-							$(me.wrapper).find("[data-doctype='"+doctype+"']")
-								.append(" <span class='badge badge-important pull-right'\
-									style='cursor:pointer'>" + count + "</span>");
+							$("<span class='badge badge-important'\
+									style='cursor:pointer;\
+									margin-right: 0px;\
+									background-color: #b94a48'>" + count + "</span>").
+								insertAfter($(me.wrapper)
+									.find("[data-doctype-count='"+doctype+"']"));
 						})
 					}
 				}

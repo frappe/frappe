@@ -32,6 +32,17 @@ wn.provide('wn.user');
 
 $.extend(wn.user, {
 	name: (wn.boot ? wn.boot.profile.name : 'Guest'),
+	full_name: function(uid) {
+		return uid===user ?
+			"You" :
+			wn.user_info(uid).fullname;
+	},
+	image: function(uid) {
+		return wn.user_info(uid).image;
+	},
+	avatar: function(uid, large) {
+		return wn.avatar(uid, large);
+	},
 	has_role: function(rl) {
 		if(typeof rl=='string') 
 			rl = [rl];
@@ -79,6 +90,10 @@ $.extend(wn.user, {
 					break;
 				case "page":
 					if(wn.boot.allowed_pages.indexOf(wn.modules[m].link)!=-1)
+						ret = m;
+					break;
+				case "list":
+					if(wn.model.can_read(wn.modules[m].doctype))
 						ret = m;
 					break;
 				case "view":

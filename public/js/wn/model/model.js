@@ -45,6 +45,7 @@ $.extend(wn.model, {
 	],
 
 	new_names: {},
+	events: {},
 
 	get_std_field: function(fieldname) {
 		var docfield = $.map([].concat(wn.model.std_fields).concat(wn.model.std_fields_table), 
@@ -179,8 +180,54 @@ $.extend(wn.model, {
 	},
 	
 	get_value: function(doctype, filters, fieldname) {
-		var l = wn.model.get(doctype, filters);
-		return (l.length && l[0]) ? l[0][fieldname] : null;
+		if(typeof filters==="string") {
+			return locals[doctype] && locals[doctype][filters] 
+				&& locals[doctype][filters][fieldname];
+		} else {
+			var l = wn.model.get(doctype, filters);
+			return (l.length && l[0]) ? l[0][fieldname] : null;
+		}
+	},
+	
+	set_value: function(doctype, name, fieldname, value) {
+		/* help: Set a value locally (if changed) and execute triggers */
+		var doc = locals[doctype] && locals[doctype][name] || null;
+		if(doc && doc[fieldname] !== value) {
+			doc[fieldname] = value;
+			wn.model.trigger(fieldname, value, doc);
+			return true;
+		}
+	},
+	
+	on: function(doctype, fieldname, fn) {
+		/* help: Attach a trigger on change of a particular field.
+		To trigger on any change in a particular doctype, use fieldname as "*"
+		*/
+		/* example: wn.model.on("Customer", "age", function(fieldname, value, doc) {
+		  if(doc.age < 16) {
+		    msgprint("Warning, Customer must atleast be 16 years old.");
+		    raise "CustomerAgeError";
+		  }
+		}) */
+		wn.provide("wn.model.events." + doctype + "." + fieldname);
+		wn.model.events[doctype][fieldname] = fn;
+	},
+	
+	trigger: function(fieldname, value, doc) {
+		var run = function(fn) {
+			fn && fn(fieldname, value, doc)
+		};
+		if(wn.model.events[doc.doctype]) {
+			// doctype-level
+			if(wn.model.events[doc.doctype]['*']) {
+				wn.model.events[doc.doctype]['*'](fieldname, value, doc);
+			};
+			
+			// field-level
+			if(wn.model.events[doc.doctype][fieldname]) {
+				wn.model.events[doc.doctype][fieldname](fieldname, value, doc);
+			};
+		};
 	},
 	
 	get_doc: function(doctype, name) {
@@ -214,17 +261,19 @@ $.extend(wn.model, {
 		return doclist;
 	},
 
-	get_children: function(child_dt, parent, parentfield, parenttype) { 
+	get_children: function(doctype, parent, parentfield, parenttype) { 
 		if(parenttype) {
-			var l = wn.model.get(child_dt, {parent:parent, 
+			var l = wn.model.get(doctype, {parent:parent, 
 				parentfield:parentfield, parenttype:parenttype});
 		} else {
-			var l = wn.model.get(child_dt, {parent:parent, 
-				parentfield:parentfield});				
+			var l = wn.model.get(doctype, {parent:parent, 
+				parentfield:parentfield});
 		}
 
 		if(l.length) {
 			l.sort(function(a,b) { return cint(a.idx) - cint(b.idx) }); 
+			
+			// renumber
 			$.each(l, function(i, v) { v.idx = i+1; }); // for chrome bugs ???
 		}
 		return l; 
@@ -244,9 +293,18 @@ $.extend(wn.model, {
 	},
 	
 	clear_doc: function(doctype, name) {
+		var doc = locals[doctype][name];
+		
+		if(doc && doc.parenttype) {
+			var parent = doc.parent,
+				parenttype = doc.parenttype,
+				parentfield = doc.parentfield;
+		}
 		delete locals[doctype][name];
-	},	
-
+		if(parent)
+			wn.model.get_children(doctype, parent, parentfield, parenttype);
+	},
+	
 	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 		$.each(wn.model.get("DocField", {parent:doctype}), function(i, df) {
@@ -387,7 +445,17 @@ $.extend(wn.model, {
 			});
 		});
 		d.show();
-	}
+	},
+	
+	round_floats_in: function(doc, fieldnames) {
+		if(!fieldnames) {
+			fieldnames = wn.meta.get_fieldnames(doc.doctype, doc.name, 
+				{"fieldtype": ["in", ["Currency", "Float"]]});
+		}
+		$.each(fieldnames, function(i, fieldname) {
+			doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
+		});
+	},
 });
 
 // legacy

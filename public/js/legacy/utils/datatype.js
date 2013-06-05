@@ -69,8 +69,11 @@ function replace_newlines(t) {
 }
 
 function cint(v, def) { 
-	if(v===true) return 1;
-	v=v+''; 
+	if(v===true) 
+		return 1;
+	if(v===false)
+		return 0;
+	v=v+'';
 	v=lstrip(v, ['0']); 
 	v=parseInt(v); 
 	if(isNaN(v))v=def===undefined?0:def;

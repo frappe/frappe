@@ -17,6 +17,7 @@
 wn.provide('erpnext.todo');
 
 erpnext.todo.refresh = function() {
+	
 	wn.call({
 		method: 'core.page.todo.todo.get',
 		callback: function(r,rt) {
@@ -46,7 +47,7 @@ erpnext.todo.refresh = function() {
 erpnext.todo.ToDoItem = Class.extend({
 	init: function(todo) {
 		label_map = {
-			'High': 'label-important',
+			'High': 'label-danger',
 			'Medium': 'label-info',
 			'Low':''
 		}
@@ -184,9 +185,19 @@ erpnext.todo.save = function(btn) {
 
 wn.pages.todo.onload = function(wrapper) {
 	// create app frame
-	wrapper.appframe = new wn.ui.AppFrame($(wrapper).find('.appframe-area'), 'To Do');
-	wrapper.appframe.add_home_breadcrumb();
-	wrapper.appframe.add_breadcrumb(wn.modules["To Do"].icon);
+	wn.ui.make_app_page({
+		parent: wrapper,
+		single_column: true,
+		title: "To Do"
+	});
+
+	$(wrapper)
+		.css({"background-color": "#FFFDC9", "min-height": "300px"})
+		.find(".layout-main").html('<div id="todo-list">\
+		<div class="todo-content"></div>\
+	</div>');
+		
+	wrapper.appframe.add_module_icon("To Do");
 	wrapper.appframe.add_button('Refresh', erpnext.todo.refresh, 'icon-refresh');
 	wrapper.appframe.add_button('Add', function() {
 		erpnext.todo.make_dialog({

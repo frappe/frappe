@@ -24,6 +24,8 @@
 from __future__ import unicode_literals
 import webnotes
 
+_toc = ["webnotes.model.doc"]
+
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']
 default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
 
@@ -59,7 +61,7 @@ def get_search_criteria(dt):
 		pass # no search criteria
 	return dl
 
-def rename(doctype, old, new, debug=1):
+def rename(doctype, old, new, debug=False):
 	import webnotes.model.rename_doc
 	webnotes.model.rename_doc.rename_doc(doctype, old, new, debug)
 

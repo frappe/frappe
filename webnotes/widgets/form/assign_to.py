@@ -30,9 +30,9 @@ def get(args=None):
 	"""get assigned to"""
 	if not args:
 		args = webnotes.form_dict
-	return webnotes.conn.sql("""select owner from `tabToDo`
+	return webnotes.conn.sql_list("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
-		order by modified desc limit 5""", args, as_dict=1)
+		order by modified desc limit 5""", args)
 		
 @webnotes.whitelist()
 def add(args=None):
@@ -43,7 +43,7 @@ def add(args=None):
 	if webnotes.conn.sql("""select owner from `tabToDo`
 		where reference_type=%(doctype)s and reference_name=%(name)s
 		and owner=%(assign_to)s""", args):
-		webnotes.msgprint("Already in todo")
+		webnotes.msgprint("Already in todo", raise_exception=True)
 		return
 	else:
 		from webnotes.model.doc import Document
@@ -53,7 +53,7 @@ def add(args=None):
 		d.owner = args['assign_to']
 		d.reference_type = args['doctype']
 		d.reference_name = args['name']
-		d.description = args['description']
+		d.description = args.get('description')
 		d.priority = args.get('priority', 'Medium')
 		d.date = args.get('date', nowdate())
 		d.assigned_by = args.get('assigned_by', webnotes.user.name)
@@ -76,7 +76,6 @@ def add(args=None):
 			'[%s] Assigned to %s' % (d.priority, get_fullname(d.owner)), '#C78F58')
 	except ImportError, e:
 		pass
-	
 	
 	return get(args)
 

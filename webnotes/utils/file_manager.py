@@ -32,7 +32,6 @@ def upload():
 	# get record details
 	dt = webnotes.form_dict.doctype
 	dn = webnotes.form_dict.docname
-	at_id = webnotes.form_dict.at_id
 	file_url = webnotes.form_dict.file_url
 	filename = webnotes.form_dict.filename
 	

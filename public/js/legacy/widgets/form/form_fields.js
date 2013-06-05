@@ -20,119 +20,6 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-//
-// Form Input
-// ======================================================================================
-
-_f.ColumnBreak = function() {
-	this.set_input = function() { };
-}
-
-_f.ColumnBreak.prototype.make_body = function() {
-	this.cell = this.frm.layout.addcell(this.df.width);
-	$y(this.cell.wrapper, {padding: '8px'});
-	_f.cur_col_break_width = this.df.width;
-
-	var fn = this.df.fieldname || this.df.label;
-	// header
-	if(this.df&&this.df.label){
-		this.label = $a(this.cell.wrapper, 'h4', '', '', wn._(this.df.label));
-		if(this.df.description)
-			$('<div class="help small" style="margin-top: 4px; margin-bottom: 8px;">'
-				+wn._(this.df.description)+'</div>')
-				.appendTo(this.cell.wrapper)
-		
-	}
-}
-
-_f.ColumnBreak.prototype.refresh = function(layout) {
-	//if(!this.cell)return; // no perm
-	
-	var hidden = 0;
-	// we generate column breaks, but hide it based on perms/hidden value
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || 
-		this.df.hidden) {
-		// do not display, as no permission
-		hidden = 1;
-	}
-	
-	// hidden
-	if(this.set_hidden!=hidden) {
-		if(hidden)
-			this.cell.hide();
-		else
-			this.cell.show();
-		this.set_hidden = hidden;
-	}
-}
-
-// ======================================================================================
-
-_f.SectionBreak = function() {
-	this.fields = [];
-	this.set_input = function() { };
-	this.make_row = function() {
-		this.row = this.df.label ? this.frm.layout.addrow() : this.frm.layout.addsubrow();		
-	}
-}
-
-_f.SectionBreak.prototype.make_body = function() {
-	var me = this;
-	this.make_row();
-
-	if(this.df.label) {
-		if(!this.df.description) 
-			this.df.description = '';
-		
-		this.df._label = wn._(this.df.label);
-		this.df._description = wn._(this.df.description);
-		
-		$(this.row.main_head).html(repl('<div class="form-section-head">\
-				<h3 class="head">%(_label)s</h3>\
-				<div class="help small" \
-					style="margin-top: 4px; margin-bottom: 8px;">%(_description)s</div>\
-			</div>', this.df));
-	} else {
-		// simple
-		$(this.wrapper).html('<div class="form-section-head"></div>');
-	}
-
-	// collapse section
-	this.section_collapse = function() {
-		$(me.row.main_head).find('.head')
-			.html('<i class="icon-chevron-right"></i> \
-				<a href="#" onclick="return false;">Show "' + me.df.label + '"</a>');
-		$(me.row.main_body).toggle(false);
-		
-	}
-	
-	// expand section
-	this.section_expand = function(no_animation) {
-		$(me.row.main_head).find('.head')
-			.html('<h3><i class="icon-chevron-down" style="vertical-align: middle; margin-bottom: 2px"></i> ' 
-				+ me.df.label + '</h3>');
-		if(no_animation)
-			$(me.row.main_body).toggle(true);
-		else
-			$(me.row.main_body).slideDown();
-	}
-}
-
-_f.SectionBreak.prototype.refresh = function(from_form) {
-	var hidden = 0;
-	// we generate section breaks, but hide it based on perms/hidden value
-	if((!this.perm[this.df.permlevel]) || (!this.perm[this.df.permlevel][READ]) || this.df.hidden) {
-		// no display
-		hidden = 1;
-	}
-
-	if(hidden) {
-		if(this.row)this.row.hide();
-	} else {
-		if(this.row)this.row.show();
-	}
-}
-
 // Image field definition
 // ======================================================================================
 
@@ -162,14 +49,19 @@ _f.TableField.prototype.with_label = 0;
 _f.TableField.prototype.make_body = function() {
 	if(this.perm[this.df.permlevel] && this.perm[this.df.permlevel][READ]) {
 		this.wrapper = $("<div>").appendTo(this.parent).get(0);
-		this.grid = new _f.FormGrid(this);
-		if(this.frm)this.frm.grids[this.frm.grids.length] = this;
-		this.grid.make_buttons();
-		
+		this.grid = new wn.ui.form.Grid({
+			frm: this.frm,
+			df: this.df,
+			perm: this.perm,
+			parent: $("<div>").appendTo(this.wrapper)
+		})
+		if(this.frm)
+			this.frm.grids[this.frm.grids.length] = this;
+
 		// description
 		if(this.df.description) {
-			this.desc_area = $a(this.wrapper, 'div', 'help small', 
-				{marginBottom:'9px', marginTop:'0px'}, this.df.description)
+			$('<p class="text-muted small">' + this.df.description + '</p>')
+				.appendTo(this.wrapper);
 		}
 	}
 }
@@ -196,14 +88,7 @@ _f.TableField.prototype.refresh = function() {
 		}
 	}
 	
-	if(st=='Write' || st=="Read") {
-		$(this.wrapper).toggle(true);
-		this.grid.show();
-	} else {
-		$(this.wrapper).toggle(false);
-		this.grid.hide();
-	}
-
+	$(this.wrapper).toggle(st=='Write' || st=="Read");
 	this.grid.refresh();
 }
 
@@ -260,6 +145,3 @@ _f.CodeField.prototype.set_disp = function(val) {
 			+val+'</textarea>';
 	}
 }
-
-// ======================================================================================
-

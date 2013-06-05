@@ -93,7 +93,7 @@ _f.FrmDialog = function() {
 		
 		// hide the form
 		//console.log(me.cur_frm.wrapper);
-		$(me.cur_frm.page_layout.wrapper).toggle(false);
+		$(me.cur_frm.wrapper).toggle(false);
 	}
 	this.dialog = d;
 }
@@ -126,7 +126,7 @@ _f.edit_record = function(dt, dn) {
 			// show the form
 			f.refresh(dn);
 
-			$(f.page_layout.wrapper).removeClass('layout-wrapper')
+			$(f.wrapper).removeClass('layout-wrapper')
 				.removeClass('layout-wrapper-background').toggle(true);
 		})
 	})

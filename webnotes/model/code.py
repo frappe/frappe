@@ -134,12 +134,14 @@ def get_module_name(doctype, module, prefix):
 	return '%s.doctype.%s.%s%s' % (_module, _doctype, prefix, _doctype)
 
 def load_doctype_module(doctype, module, prefix=""):
+	import webnotes
 	from webnotes.modules import scrub
 	_doctype, _module = scrub(doctype), scrub(module)
 	try:
 		module = __import__(get_module_name(doctype, module, prefix), fromlist=[''])
 		return module
 	except ImportError, e:
+		# webnotes.errprint(webnotes.getTraceback())
 		return None
 
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):

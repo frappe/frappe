@@ -31,7 +31,7 @@ cur_frm.cscript.doc_type = function(doc, dt, dn) {
 }
 
 cur_frm.cscript.onload = function(doc, dt, dn) {
-	$('div.grid_tbarlinks').parent().toggle(false);
+	cur_frm.fields_dict.fields.grid.static_rows = true;
 	cur_frm.add_fields_help();
 }
 

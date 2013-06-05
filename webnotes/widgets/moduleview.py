@@ -9,7 +9,6 @@ def get_data(module, doctypes='[]'):
 	doctypes = json.loads(doctypes)
 	open_count, conditions = get_open_count(doctypes)
 	return {
-		"search_criteria": get_sc_list(module),
 		"reports": get_report_list(module),
 		"item_count": get_count(doctypes),
 		"open_count": open_count,
@@ -57,17 +56,6 @@ def get_doctype_count(doctype):
 		webnotes.conn.set_global("item_count:" + doctype, count)
 	return count
 	
-def get_sc_list(module):
-	"""return list of reports for the given module module"""
-	
-	return webnotes.conn.sql("""
-		select distinct criteria_name, doc_type as doctype, parent_doc_type as parent_doctype
-		from `tabSearch Criteria` 
-		where module=%s 
-			and docstatus in (0, NULL)
-			and ifnull(disabled, 0) = 0 
-			order by criteria_name""", module, as_dict=True)
-
 def get_report_list(module):
 	"""return list on new style reports for modules"""	
 	return webnotes.conn.sql("""

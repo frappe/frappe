@@ -33,11 +33,7 @@ wn.provide('wn.ui.toolbar');
 wn.ui.toolbar.SelectorDialog = Class.extend({
 	init: function(opts) {
 		this.opts = opts;
-		try{
-			this.make_dialog();			
-		} catch(e) {
-			console.log(e);
-		}
+		this.make_dialog();			
 		this.bind_events();
 	},
 	make_dialog: function() {

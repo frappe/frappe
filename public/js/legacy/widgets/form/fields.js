@@ -38,61 +38,23 @@ function Field() {
 	this.with_label = 1;
 }
 
-Field.prototype.make_body = function() { 
-	var ischk = (this.df.fieldtype=='Check' ? 1 : 0);
-	
+Field.prototype.make_body = function() { 	
 	// parent element
-	if(this.parent)
-		this.wrapper = $a(this.parent, (this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
-	else
-		this.wrapper = document.createElement((this.with_label || this.df.fieldtype=="HTML" ? 'div' : 'span'));
-
-	$(this.wrapper).addClass("field-wrapper");
+	this.$wrapper = $('<div class="control-group" style="max-width: 600px;">\
+		<label class="control-label"></label>\
+		<div class="controls">\
+			<div class="control-input"></div>\
+			<div class="control-value"></div>\
+		</div>\
+	</div>').appendTo(this.parent);
+	this.wrapper = this.$wrapper.get(0);
 	
-	this.label_area = $a(this.wrapper, 'div', '', 
-		{margin:'0px 0px 2px 0px', minHeight:'1em'});
+	this.label_area = this.label_span = this.$wrapper.find(".control-label").get(0);
+	this.input_area = this.$wrapper.find(".control-input").get(0);
+	this.disp_area = this.$wrapper.find(".control-value").get(0);
 
-	var label_wrapper = this.label_area;
-	if(ischk && !this.in_grid) {
-		var label_wrapper = $("<div style='margin-bottom: 9px'>").appendTo(this.label_area).get(0);
-		this.input_area = $a(label_wrapper, 'span', '', {marginRight:'4px'});
-		this.disp_area = $a(label_wrapper, 'span', '', {marginRight:'4px'});
-	}
-	
-	// label
-	if(this.with_label) {
-			this.label_span = $a(label_wrapper, 'span', 'small')
-			if(wn.boot && wn.boot.developer_mode)
-				$(this.label_span).attr("title", this.df.fieldname);
-					
-		// error icon
-		this.label_icon = $('<i class="icon icon-warning-sign">').toggle(false)
-			.appendTo(label_wrapper).css('margin-left','7px')
-			.attr("title", "This field is mandatory.");
-
-	} else {
-		this.label_span = $a(label_wrapper, 'span', '', {marginRight:'4px'})
-		$dh(label_wrapper);
-	}
-
-	// make the input areas
-	if(!this.input_area) {
-		this.input_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
-		this.disp_area = $a(this.wrapper, (this.with_label ? 'div' : 'span'));
-	}
-
-	// apply style
-	if(this.in_grid) { 
-		if(this.label_area) $dh(this.label_area);
-	} else {
-		this.input_area.className = 'input_area';
-		$y(this.wrapper,{marginBottom:'9px'});
-		
-		// set description
-		this.set_description();	
-	}
-	
-	// bind label refresh
+	// set description
+	this.set_description();	
 
 	if(this.onmake)this.onmake();
 }
@@ -107,137 +69,31 @@ Field.prototype.set_max_width = function() {
 }
 
 Field.prototype.set_label = function(label) {
-	if(!label) label = this.df.label;
-	if(this.with_label && this.label_area && this.label!=label) { 
-		this.label_span.innerHTML = wn._(label);
-		
-		// always store this.label as this.df.label, so that custom label does not change back
-		this.label = this.df.label;
-	}
+	this.label_span.innerHTML = wn._(label || this.df.label);
 }
 
 Field.prototype.set_description = function(txt) {
-	if(this.df.description || txt) {
-		// parent
-		if(!this.desc_area) {
-			var p = in_list(['Text Editor', 'Code', 'Check'], this.df.fieldtype) 
-				? this.label_area : this.wrapper;
-			this.desc_area = $a(p, 'div', 'help small');
+	if(txt) {
+		if(!this.$wrapper.find(".help-box").length) {
+			$('<p class="help-box small"></p>').appendTo(this.input_area);
 		}
-		$(this.desc_area).html(wn._(this.df.description || txt));
+		this.$wrapper.find(".help-box").html(txt);
+	} else {
+		this.$wrapper.find(".help-box").empty().toggle(false);
 	}
 }
 
 Field.prototype.get_status = function(explain) {
-	// if used in filters
-	if(this.in_filter) 
-		this.not_in_form = this.in_filter;
-	
-	if(this.not_in_form) {
-		return 'Write';
-	}
-
-	if(!this.df.permlevel) this.df.permlevel = 0;
-
-	var p = this.perm[this.df.permlevel];
-	var ret;
-
-	// permission level
-	if(p && p[WRITE] && !this.df.disabled)
-		ret='Write';
-	else if(p && p[READ])
-		ret='Read';
-	else 
-		ret='None';
-
-	if(explain) console.log("By Permission:" + ret)
-
-	// hidden
-	if(cint(this.df.hidden)) {
-		ret = 'None';
-	}
-
-	if(explain) console.log("By Hidden:" + ret)
-
-	// for submit
-	if(ret=='Write' && cint(cur_frm.doc.docstatus) > 0) {
-		ret = 'Read';
-	}
-
-	if(explain) console.log("By Submit:" + ret)
-
-	// allow on submit
-	var a_o_s = cint(this.df.allow_on_submit);
-	
-	if(a_o_s && (this.in_grid || (this.frm && this.frm.meta.istable))) {
-		// if grid is allow-on-submit, everything in it is too!
-		a_o_s = null;
-		if(this.in_grid) 
-			a_o_s = this.grid.field.df.allow_on_submit;
-		if(this.frm.meta.istable) { 
-			a_o_s = _f.cur_grid.field.df.allow_on_submit;
-		}
-	}
-
-	if(explain) console.log("Allow on Submit:" + a_o_s)
-	
-	if(ret=="Read" && a_o_s && cint(cur_frm.doc.docstatus)==1 && 
-		cur_frm.perm[this.df.permlevel][WRITE]) {
-			ret='Write';
-	}
-
-	if(explain) console.log("By Allow on Submt:" + ret)
-
-	// workflow state
-	if(ret=="Write" && cur_frm && cur_frm.state_fieldname) {
-		if(cint(cur_frm.read_only)) {
-			ret = 'Read';
-		}
-		// fields updated by workflow must be read-only
-		if(in_list(cur_frm.states.update_fields, this.df.fieldname) ||
-			this.df.fieldname==cur_frm.state_fieldname) {
-			ret = 'Read';
-		}
-	}
-	
-	if(explain) console.log("By Workflow:" + ret)
-	
-	// make a field read_only if read_only 
-	// is checked (disregards write permission)
-	if(ret=="Write" && cint(this.df.read_only)) {
-		ret = "Read";
-	}
-
-	if(explain) console.log("By Read Only:" + ret)
-
-	return ret;
-}
-
-Field.prototype.set_style_mandatory = function(add) {
-	if(add) {
-		$(this.txt ? this.txt : this.input).addClass('input-mandatory');
-		if(this.disp_area) $(this.disp_area).addClass('input-mandatory');		
-	} else {
-		$(this.txt ? this.txt : this.input).removeClass('input-mandatory');
-		if(this.disp_area) $(this.disp_area).removeClass('input-mandatory');		
-	}
+	if(!this.doctype) 
+		return "Write";
+	return wn.perm.get_field_display_status(this.df, 
+		locals[this.doctype][this.docname], this.perm, explain)
 }
 
 Field.prototype.refresh_mandatory = function() { 
 	if(this.in_filter)return;
-
-	// mandatory changes
-	if(this.df.reqd) {
-		if(this.label_area) this.label_area.style.color= "#d22";
-		this.set_style_mandatory(1);
-	} else {
-		if(this.label_area) this.label_area.style.color= "#222";
-		this.set_style_mandatory(0);
-
-	}
-	
+	//this.$wrapper.toggleClass("has-warning", cint(this.df.reqd) ? true : false);
 	this.refresh_label_icon()
-	this.set_reqd = this.df.reqd;
 }
 
 Field.prototype.refresh_display = function() {
@@ -323,13 +179,7 @@ Field.prototype.refresh_label_icon = function() {
 	if(this.df.reqd && this.get_value && is_null(this.get_value())) 
 		to_update = true;
 		
-	if(!to_update && this.df.has_error) this.df.has_error = false;
-
-	if(this.label_icon) this.label_icon.css("display", (to_update ? "inline-block" : "none"));
-	$(this.txt ? this.txt : this.input).toggleClass('field-to-update', to_update);
-	
-	$(this.txt ? this.txt : this.input).toggleClass('field-has-error', 
-		this.df.has_error ? true : false);
+	this.$wrapper.toggleClass("has-error", to_update);
 }
 
 Field.prototype.set = function(val) {
@@ -376,10 +226,10 @@ Field.prototype.run_trigger = function() {
 
 Field.prototype.set_disp_html = function(t) {
 	if(this.disp_area){
-		$(this.disp_area).addClass('disp_area');
+		$(this.disp_area).addClass('disp-area');
 
 		this.disp_area.innerHTML = (t==null ? '' : t);
-		if(!t) $(this.disp_area).addClass('disp_area_no_val');
+		if(!t) $(this.disp_area).addClass('disp-area-no-val');
 	}
 }
 
@@ -391,35 +241,6 @@ Field.prototype.get_input = function() {
 	return this.txt || this.input;
 }
 
-
-// for grids (activate against a particular record in the table
-Field.prototype.activate = function(docname) {
-	this.docname = docname;
-	this.refresh();
-
-	if(this.input) {
-		var v = _f.get_value(this.doctype, this.docname, this.df.fieldname);
-		this.last_value=v;
-		// set input value
-
-		if(this.input.onchange && this.input.get_value && this.input.get_value() !=v) {
-			if(this.validate)
-				this.input.set_value(this.validate(v));
-			else 
-				this.input.set_value((v==null)?'':v);
-			if(this.format_input)
-				this.format_input();
-		}
-		
-		if(this.input.focus){
-			try{this.input.focus();} catch(e){} // IE Fix - Unexpected call???
-		}
-	}
-	if(this.txt) {
-		try{this.txt.focus();} catch(e){} // IE Fix - Unexpected call???
-		this.txt.field_object = this;
-	}
-}
 
 function DataField() { } DataField.prototype = new Field();
 DataField.prototype.make_input = function() {
@@ -502,86 +323,23 @@ DataField.prototype.validate = function(v) {
 
 // ======================================================================================
 
-function ReadOnlyField() { }
-ReadOnlyField.prototype = new Field();
-
-// ======================================================================================
-
-function HTMLField() { } 
-HTMLField.prototype = new Field();
-HTMLField.prototype.with_label = 0;
-HTMLField.prototype.set_disp = function(val) { if(this.disp_area) this.disp_area.innerHTML = val; }
-HTMLField.prototype.set_input = function(val) { if(val) this.set_disp(val); }
-HTMLField.prototype.onrefresh = function() { if(this.df.options) this.set_disp(this.df.options); }
-
-// ======================================================================================
-
-var datepicker_active = 0;
-function get_datepicker_options() {
-	var datepicker_options = {
-		dateFormat: (sys_defaults.date_format || 'yy-mm-dd').replace('yyyy','yy'), 
-		altFormat:'yy-mm-dd', 
-		changeYear: true,
-		yearRange: "-70Y:+10Y",
-		beforeShow: function(input, inst) { 
-			datepicker_active = 1 
-		},
-		onClose: function(dateText, inst) { 
-			datepicker_active = 0;
-			if(_f.cur_grid_cell)
-				_f.cur_grid_cell.grid.cell_deselect();
-		},
-	}
-	return datepicker_options;
-}
-
-function DateField() { } DateField.prototype = new Field();
-DateField.prototype.make_input = function() {
-
+function HTMLField() { 
 	var me = this;
-	this.input = $("<input type='text' data-fieldtype='Date'>")
-		.appendTo(this.input_area).get(0);
-
-	$(this.input).datepicker(get_datepicker_options());
-	this.setup_input();
-	
-}
-DateField.prototype.setup_input = function() {
-	var me = this;
-
-	me.input.onchange = function() {
-		// input as dd-mm-yyyy
-		if(this.value==null)this.value='';
-		if(!this.not_in_form)
-			me.set(dateutil.user_to_str(me.input.value));
-		me.run_trigger();
+	this.make_body = function() {
+		me.wrapper = $("<div>").appendTo(me.parent);
 	}
-	me.input.set_input = function(val) {
-		if(val==null)val='';
-		else val=dateutil.str_to_user(val);
-		me.input.value = val;
+	this.set_disp = function(val) {
+		if(val)
+			$(me.wrapper).html(val);
 	}
-	me.get_value = function() {
-		if(me.input.value)
-			return dateutil.user_to_str(me.input.value);
+	this.set_input = function(val) {
+		me.set_disp(val);
 	}
-}
-
-DateField.prototype.set_disp = function(val) {
-	var v = dateutil.str_to_user(val);
-	if(v==null)v = '';
-	this.set_disp_html(v);
-}
-DateField.prototype.validate = function(v) {
-	var v = wn.datetime.validate(v);
-	if(!v) {
-		msgprint (wn._("Date must be in format") + ": " + (sys_defaults.date_format || "yyyy-mm-dd"));
-		this.input.set_input('');
-		return '';
+	this.refresh = function() {
+		if(me.df.options)
+			me.set_disp(me.df.options);
 	}
-	return v;
-};
-
+} 
 
 // reference when a new record is created via link
 function LinkField() { } LinkField.prototype = new Field();
@@ -594,18 +352,19 @@ LinkField.prototype.make_input = function() {
 		this.input = this.txt;	
 	} else {
 		me.input = me.input_area;
-		$(me.input_area).addClass("input-append link-field");
-		
+		me.input_group = $('<div class="input-group link-field">').appendTo(me.input_area);
+			
 		me.txt = $('<input type="text" style="margin-right: 0px;">')
-			.css({"width": me.in_filter ? "100px" : (me.in_grid ? "35%" : "60%")})
-			.appendTo(me.input_area).get(0);
+			.appendTo(me.input_group).get(0);
+			
+		me.input_group_btn = $('<div class="input-group-btn">').appendTo(me.input_group);
 				
 		me.btn = $('<button class="btn" title="'+wn._('Search Link')+'">\
-			<i class="icon-search"></i></button>').appendTo(me.input_area).get(0);
+			<i class="icon-search"></i></button>').appendTo(me.input_group_btn).get(0);
 		me.btn1 = $('<button class="btn" title="'+wn._('Open Link')+'">\
-			<i class="icon-play"></i></button>').appendTo(me.input_area).get(0);
+			<i class="icon-play"></i></button>').appendTo(me.input_group_btn).get(0);
 		me.btn2 = $('<button class="btn" title="'+wn._('Make New')+'">\
-			<i class="icon-plus"></i></button>').appendTo(me.input_area).get(0);	
+			<i class="icon-plus"></i></button>').appendTo(me.input_group_btn).get(0);	
 
 		me.txt.name = me.df.fieldname;
 		me.setdisabled = function(tf) { me.txt.disabled = tf; }
@@ -871,7 +630,6 @@ LinkField.prototype.set_disp = function(val) {
 	this.set_disp_html(t);
 }
 
-// ======================================================================================
 
 function IntField() { } IntField.prototype = new DataField();
 IntField.prototype.validate = function(v) {
@@ -1307,37 +1065,23 @@ _f.ButtonField.prototype.set = function(v) { }; // No Setter
 _f.ButtonField.prototype.set_disp = function(val) {  } // No Disp on readonly
 
 function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
+	return new wn.ui.form.make_control({
+		df: docfield,
+		doctype: doctype,
+		parent: parent,
+		hide_label: hide_label,
+		frm: frm
+	});
 
-	switch(docfield.fieldtype.toLowerCase()) {
-		
-		// general fields
-		case 'data':var f = new DataField(); break;
-		case 'password':var f = new DataField(); break;
-		case 'int':var f = new IntField(); break;
-		case 'float':var f = new FloatField(); break;
-		case 'currency':var f = new CurrencyField(); break;
-		case 'percent':var f = new PercentField(); break;
-		case 'read only':var f = new ReadOnlyField(); break;
-		case 'link':var f = new LinkField(); break;
-		case 'long text': var f = new TextField(); break;
-		case 'date':var f = new DateField(); break;
-		case 'datetime':var f = new DateTimeField(); break;
-		case 'time':var f = new TimeField(); break;
-		case 'html':var f = new HTMLField(); break;
-		case 'check':var f = new CheckField(); break;
-		case 'text':var f = new TextField(); break;
-		case 'small text':var f = new TextField(); break;
-		case 'select':var f = new SelectField(); break;
-		case 'button':var f = new _f.ButtonField(); break;
-		
+	switch(docfield.fieldtype.toLowerCase()) {		
 		// form fields
 		case 'code':var f = new _f.CodeField(); break;
 		case 'text editor':var f = new _f.CodeField(); break;
 		case 'table':var f = new _f.TableField(); break;
-		case 'section break':var f= new _f.SectionBreak(); break;
-		case 'column break':var f= new _f.ColumnBreak(); break;
 		case 'image':var f= new _f.ImageField(); break;
 	}
+	
+	if(!f) console.log(docfield.fieldtype)
 
 	f.parent 	= parent;
 	f.doctype 	= doctype;

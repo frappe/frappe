@@ -21,9 +21,13 @@
 // 
 
 // default print style
-_p.def_print_style_body = "html, body, div, span, td { \
-		font-family: Arial, Helvetica; \
-		font-size: 9pt; \
+_p.def_print_style_body = "html, body, div, span, td, p { \
+		font-family: inherit; \
+		font-size: inherit; \
+	}\
+	.page-settings {\
+		font-family: Arial, Helvetica Neue, Sans;\
+		font-size: 9pt;\
 	}\
 	pre { margin:0; padding:0;}";
 
@@ -77,6 +81,7 @@ $.extend(_p, {
 		//d.widgets['No Letterhead'].checked = 1;
 		
 		// Print Button
+		$(d.widgets.Buttons).css({"height": "60px"})
 		$btn(d.widgets.Buttons, 'Print', function() {
 				_p.build(
 					sel_val(cur_frm.print_sel), // fmtname
@@ -87,7 +92,7 @@ $.extend(_p, {
 			{
 					cssFloat: 'right',
 					marginBottom: '16px',
-					marginLeft: '7px'
+					marginLeft: '7px',
 			}, 'green');
 		
 		// Print Preview
@@ -125,7 +130,7 @@ $.extend(_p, {
 			+ no_letterhead
 			+ only_body
 	*/
-	build: function(fmtname, onload, no_letterhead, only_body) {
+	build: function(fmtname, onload, no_letterhead, only_body, no_heading) {
 		if(!fmtname) {
 			fmtname= "Standard";
 		}
@@ -146,11 +151,12 @@ $.extend(_p, {
 		var doc = locals[cur_frm.doctype][cur_frm.docname];
 		if(args.fmtname == 'Standard') {
 			args.onload(_p.render({
-				body: _p.print_std(args.no_letterhead),
+				body: _p.print_std(args.no_letterhead, no_heading),
 				style: _p.print_style,
 				doc: doc,
 				title: doc.name,
 				no_letterhead: args.no_letterhead,
+				no_heading: no_heading,
 				only_body: args.only_body
 			}));
 		} else {
@@ -165,6 +171,7 @@ $.extend(_p, {
 				doc: doc,
 				title: doc.name,
 				no_letterhead: args.no_letterhead,
+				no_heading: no_heading,
 				only_body: args.only_body
 			}));			
 		}
@@ -174,10 +181,12 @@ $.extend(_p, {
 		var container = document.createElement('div');
 		var stat = '';
 		
-		// if draft/archived, show draft/archived banner
-		stat += _p.show_draft(args);		
-		stat += _p.show_archived(args);
-		stat += _p.show_cancelled(args);
+		if(!args.no_heading) {
+			// if draft/archived, show draft/archived banner
+			stat += _p.show_draft(args);		
+			stat += _p.show_archived(args);
+			stat += _p.show_cancelled(args);
+		}
 		
 		// Append args.body's content as a child of container
 		container.innerHTML = args.body;
@@ -352,24 +361,29 @@ $.extend(_p, {
 	
 	// called by _p.render for final render of print
 	render_final: function(style, stat, container, args) {
-		var header = '<div class="page-settings">\n';
-		var footer = '\n</div>';
 		if(!args.only_body) {
-			header = '<!DOCTYPE html>\
-<html>\n\
-	<head>\n\
+			var header = '<!DOCTYPE html>\
+<html>\
+	<head>\
 		<meta charset="utf-8" />\
-		<title>' + args.title + '</title>\n\
-		<style>' + style + '</style>\n\
+		<title>' + args.title + '</title>\
+		<style>' + style + '</style>\
 	</head>\
-	<body>\n' + header;
-			footer = footer + '\n</body>\n\
+	<body>';
+			var footer = '\
+	</body>\
 </html>';
+		} else {
+			var header = '';
+			var footer = '';
 		}
 		var finished =  header
+			+ '<div class="page-settings">'
 			+ stat
 			+ container.innerHTML
+			+ '</div>'
 			+ footer;
+			
 			
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
@@ -423,7 +437,7 @@ $.extend(_p, {
 			margin: 8px 0px; \
 			}",
 	
-	print_std: function(no_letterhead) {
+	print_std: function(no_letterhead, no_heading) {
 		// Get doctype, docname, layout for a doctype
 		var docname = cur_frm.docname;
 		var doctype = cur_frm.doctype;
@@ -587,7 +601,9 @@ $.extend(_p, {
 			}
 		});
 		
-		this.build_head(data, doctype, docname);
+		if(!no_heading) {
+			this.build_head(data, doctype, docname);
+		}
 
 		this.build_data(data, doctype, docname);
 
@@ -670,6 +686,7 @@ $.extend(_p, {
 		row.insertCell(0);
 		row.insertCell(1);
 		row.cells[0].className = 'datalabelcell';
+		row.cells[0].style.width = "38%";
 		row.cells[1].className = 'datainputcell';
 		return row;
 	}

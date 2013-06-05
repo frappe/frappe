@@ -25,6 +25,8 @@ from __future__ import unicode_literals
 Contains the Document class representing an object / record
 """
 
+_toc = ["webnotes.model.doc.Document"]
+
 import webnotes
 import webnotes.model.meta
 
@@ -265,7 +267,10 @@ class Document:
 			if not self.owner: 
 				self.owner = webnotes.session['user']
 			self.modified_by = webnotes.session['user']
-			self.creation = self.modified = now()
+			if not self.creation:
+				self.creation = self.modified = now()
+			else:
+				self.modified = now()
 			
 		webnotes.conn.sql("insert into `tab%(doctype)s`" % self.fields \
 			+ """ (name, owner, creation, modified, modified_by)
@@ -489,6 +494,9 @@ class Document:
 		
 		if doclist != None:
 			doclist.append(d)
+			
+		if doclist:
+			d.idx = max([(d.idx or 0) for d in doclist if d.doctype==childtype]) + 1
 	
 		return d
 		

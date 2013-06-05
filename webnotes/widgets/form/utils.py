@@ -21,7 +21,9 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, json
+
+from webnotes import _
 
 @webnotes.whitelist()
 def remove_attach():
@@ -70,3 +72,35 @@ def validate_link():
 					% (fetch, options, '%s'), value)[0]]
 	
 		webnotes.response['message'] = 'Ok'
+
+@webnotes.whitelist()
+def add_comment(doclist):
+	"""allow any logged user to post a comment"""
+	doclist = json.loads(doclist)
+	
+	doclist[0]["__islocal"] = 1
+	doclistobj = webnotes.bean(doclist)
+	doclistobj.ignore_permissions = True
+	doclistobj.save()
+	
+	return [d.fields for d in doclist]
+
+	return save(doclist)
+
+@webnotes.whitelist()
+def get_next(doctype, name, prev):
+	import webnotes.widgets.reportview
+	
+	prev = int(prev)
+	field = "`tab%s`.name" % doctype
+	res = webnotes.widgets.reportview.execute(doctype,
+		fields = [field], 
+		filters = [[doctype, "name", "<" if prev else ">", name]],
+		order_by = field + " " + ("desc" if prev else "asc"),
+		limit_start=0, limit_page_length=1, as_list=True)
+
+	if not res:
+		webnotes.msgprint(_("No further records"))
+		return None
+	else:
+		return res[0][0]

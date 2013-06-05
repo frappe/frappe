@@ -30,10 +30,9 @@ wn.ui.form.Attachments = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div>\
-			<div class="alert-list"></div>\
-			<button class="btn btn-small"><i class="icon-plus"></i></button>\
+			<div class="attachment-list"></div>\
 		</div>').appendTo(this.parent);
-		this.$list = this.wrapper.find(".alert-list");
+		this.$list = this.wrapper.find(".attachment-list");
 
 		this.parent.find(".btn").click(function() {
 			me.new_attachment();
@@ -41,7 +40,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	max_reached: function() {
 		// no of attachments
-		var n = keys(this.get_file_list()).length;
+		var n = keys(this.get_attachments()).length;
 		
 		// button if the number of attachments is less than max
 		if(n < this.frm.meta.max_attachments || !this.frm.meta.max_attachments) {
@@ -51,7 +50,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	refresh: function() {
 		var doc = this.frm.doc;
-		if(doc.__islocal || !this.frm.meta.allow_attach) {
+		if(doc.__islocal) {
 			this.parent.toggle(false);
 			return;
 		}
@@ -60,26 +59,31 @@ wn.ui.form.Attachments = Class.extend({
 		
 		this.$list.empty();
 
-		var file_list = this.get_file_list();
-		var file_names = keys(file_list).sort();
+		var attachments = this.get_attachments();
+		var file_names = keys(attachments).sort();
 		
 		// add attachment objects
-		for(var i=0; i<file_names.length; i++) {
-			this.add_attachment(file_names[i], file_list);
+		if(file_names.length) {
+			for(var i=0; i<file_names.length; i++) {
+				this.add_attachment(file_names[i], attachments);
+			}
+		} else {
+			$('<p class="text-muted">' + wn._("None") + '</p>').appendTo(this.$list);
 		}
 		
 		// refresh select fields with options attach_files:
 		this.refresh_attachment_select_fields();
 	},
-	get_file_list: function() {
- 		return this.frm.doc.file_list ? JSON.parse(this.frm.doc.file_list) : {};
+	get_attachments: function() {
+		return this.frm.get_docinfo().attachments;
 	},
-	add_attachment: function(filename, file_list) {
-		var fileid = file_list[filename];
+	add_attachment: function(filename, attachments) {
+		var fileid = attachments[filename];
 		
 		var me = this;
-		$(repl('<div class="alert alert-info"><span style="display: inline-block; width: 90%;\
-			text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
+		$(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
+			<span style="display: inline-block; width: 90%; \
+				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
 				<i class="icon-file"></i> <a href="%(href)s"\
 					target="_blank" title="%(filename)s">%(filename)s</a></span><a href="#" class="close">&times;</a>\
 			</div>', {
@@ -107,6 +111,7 @@ wn.ui.form.Attachments = Class.extend({
 									return;
 								}
 								me.remove_fileid(data);
+								me.frm.toolbar.show_infobar();
 							}
 						});
 					});
@@ -135,13 +140,14 @@ wn.ui.form.Attachments = Class.extend({
 			},
 			callback: function(fileid, filename, r) {
 				me.update_attachment(fileid, filename, fieldname, r);
+				me.frm.toolbar.show_infobar();
 			}
 		});
 	},
 	update_attachment: function(fileid, filename, fieldname, r) {
 		this.dialog && this.dialog.hide();
 		if(fileid) {
-			this.add_to_file_list(fileid, filename);
+			this.add_to_attachments(fileid, filename);
 			this.refresh();
 			if(fieldname) {
 				this.frm.set_value(fieldname, "files/"+filename);
@@ -149,20 +155,17 @@ wn.ui.form.Attachments = Class.extend({
 			}
 		}
 	},
-	add_to_file_list: function(fileid, filename) {
-		var doc = this.frm.doc;
-		var file_list = doc.file_list ? this.get_file_list() : {};
-		file_list[filename] = fileid;
-		doc.file_list = JSON.stringify(file_list);
+	add_to_attachments: function(fileid, filename) {
+		this.get_attachments()[filename] = fileid;
 	},
 	remove_fileid: function(fileid) {
-		var file_list = this.get_file_list();
-		var new_file_list = {};
-		$.each(file_list, function(key, value) {
+		var attachments = this.get_attachments();
+		var new_attachments = {};
+		$.each(attachments, function(key, value) {
 			if(value!=fileid)
-				new_file_list[key] = value;
+				new_attachments[key] = value;
 		});
-		this.frm.doc.file_list = JSON.stringify(new_file_list);
+		this.frm.get_docinfo().attachments = new_attachments;
 		this.refresh();
 	},
 	refresh_attachment_select_fields: function() {

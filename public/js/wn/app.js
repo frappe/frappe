@@ -15,6 +15,13 @@ $(document).ready(function() {
 	$.extend(wn.app, new wn.Application());
 });
 
+wn._toc = [
+	"wn.model",
+	"wn.ui",
+	"wn.utils",
+	"wn.views"
+]
+
 wn.Application = Class.extend({
 	init: function() {
 		this.load_startup();
@@ -123,6 +130,7 @@ wn.Application = Class.extend({
 	},
 	make_page_container: function() {
 		if($("#body_div").length) {
+			$(".splash").remove();
 			wn.temp_container = $("<div id='temp-container' style='display: none;'>")
 				.appendTo("body");
 			wn.container = new wn.views.Container();
@@ -153,10 +161,7 @@ wn.Application = Class.extend({
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
-		var favicon ='\
-			<link rel="shortcut icon" href="' + link + '" type="image/x-icon"> \
-			<link rel="icon" href="' + link + '" type="image/x-icon">'
-
-		$(favicon).appendTo('head');
+		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head")
+		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head")
 	}
 })
