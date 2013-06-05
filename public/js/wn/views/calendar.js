@@ -3,27 +3,21 @@
 
 wn.provide("wn.views.calendar");
 
-wn.views.calendar = {
-	show: function() {
-		var page_name = wn.get_route_str();
-		if(wn.pages[page_name]) {
-			wn.container.change_to(wn.pages[page_name]);
-		} else {
-			var route = wn.get_route();
-			if(route[1]) {
-				var doctype = route[1];
-				wn.model.with_doctype(doctype, function() {
-					var calendar_class = wn.views.calendar[doctype] || wn.views.Calendar;
-					new calendar_class({
-						doctype: doctype
-					});
-				})
-			} else {
-				wn.set_route('404');
-			}
-		}
+wn.views.CalendarFactory = wn.views.Factory.extend({
+	make: function(route) {
+		var me = this;
+		wn.model.with_doctype(route[1], function() {
+			var options = {
+				doctype: route[1],
+				page: me.make_page()
+			};
+			$.extend(options, wn.views.calendar[route[1]] || {});
+			
+			new wn.views.Calendar(options);
+		});
 	}
-}
+});
+
 
 wn.views.Calendar = Class.extend({
 	init: function(options) {
@@ -37,18 +31,9 @@ wn.views.Calendar = Class.extend({
 		this.make();
 	},
 	make_page: function() {
-		var page_name = wn.get_route_str();
-		this.page = wn.container.add_page(page_name);
-		wn.ui.make_app_page({
-			parent:this.page, 
-			single_column:true
-		});
-		wn.container.change_to(page_name);
-
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(wn._("Calendar") + " - " + wn._(this.doctype));
 		this.page.appframe.add_module_icon(module==="Core" ? "Calendar" : module)
-
 		this.page.appframe.set_views_for(this.doctype, "calendar");
 	},
 	make: function() {

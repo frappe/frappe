@@ -33,6 +33,12 @@
 
 /* === LEFT PANEL === */
 
+.fn-gantt * {
+	-webkit-box-sizing: content-box;
+	   -moz-box-sizing: content-box;
+	        box-sizing: content-box;
+}
+
 .fn-gantt .leftPanel {
     float: left;
     width: 225px;
@@ -42,11 +48,12 @@
     z-index: 20;
 }
 
-.fn-gantt .row {
+.fn-gantt .row, .row .fn-gantt .row {
     float: left;
     height: 24px;
     line-height: 24px;
     margin-left: -24px;
+	margin-right: 0px;
 }
 
 .fn-gantt .leftPanel .fn-label {
@@ -84,7 +91,7 @@
 }
 
 .fn-gantt .spacer {
-    margin: -2px 0 1px 0;
+    margin: -2px 0 1px 0 !important;
     border-bottom: none;
     background-color: #f6f6f6;
 }
@@ -108,11 +115,11 @@
 .fn-gantt .day, .fn-gantt .date {
     overflow: visible;
     width: 24px;
-    line-height: 24px;
+    line-height: 23px;
     text-align: center;
     border-left: 1px solid #DDD;
     border-bottom: 1px solid #DDD;
-    margin: -1px 0 0 -1px;
+    margin: 0 0 0 -1px !important;
     font-size: 11px;
     color: #484a4d;
     text-shadow: 0 1px 0 rgba(255,255,255,0.75);

@@ -4,24 +4,17 @@
 wn.provide('wn.views.doclistview');
 wn.provide('wn.doclistviews');
 
-wn.views.doclistview.show = function(doctype) {
-	var route = wn.get_route();
-	var page_name = "List/" + route[1];
-	if(wn.pages[page_name]) {
-		wn.container.change_to(wn.pages[page_name]);
-		if(wn.container.page.doclistview && wn.container.page.doclistview.dirty)
-			wn.container.page.doclistview.run();
-	} else {
-		if(route[1]) {
-			wn.model.with_doctype(route[1], function(r) {
-				if(r && r['403']) {
-					return;
-				}
-				new wn.views.DocListView(route[1]);
+wn.views.ListFactory = wn.views.Factory.extend({
+	make: function(route) {
+		var me = this;
+		wn.model.with_doctype(route[1], function() {
+			new wn.views.DocListView({
+				doctype: route[1], 
+				page: me.make_page(true)
 			});
-		}
+		});
 	}
-}
+});
 
 $(document).on("save", function(event, doc) {
 	var list_page = "List/" + doc.doctype;
@@ -32,30 +25,28 @@ $(document).on("save", function(event, doc) {
 })
 
 wn.views.DocListView = wn.ui.Listing.extend({
-	init: function(doctype) {
-		this.doctype = doctype;
-		this.label = wn._(doctype);
+	init: function(opts) {
+		$.extend(this, opts)
+		this.label = wn._(this.doctype);
 		this.dirty = true;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	wn._(this.label) : (wn._(this.label) + ' ' + wn._('List'));
 		this.make_page();
 		this.setup();
+		
+		var me = this;
+		$(this.page).on("show", function() {
+			me.dirty && me.run();
+		});
 	},
 	
 	make_page: function() {
 		var me = this;
-		var page_name = "List/" + this.doctype;
-		var page = wn.container.add_page(page_name);
-		wn.container.change_to(page_name);
-		page.doclistview = this;
-		this.$page = $(page).css({"min-height": "400px"});
+		this.page.doclistview = this;
+		this.$page = $(this.page).css({"min-height": "400px"});
 
 		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
-		
-		wn.ui.make_app_page({
-			parent: page
-		})
-		
+				
 		$('<div class="wnlist-area" style="margin-bottom: 25px;">\
 			<div class="help">'+wn._('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
@@ -71,13 +62,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
 								
-		this.appframe = page.appframe;
+		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		
 		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
-		this.appframe.add_home_breadcrumb();
 		this.appframe.add_module_icon(module);
-		this.appframe.add_breadcrumb("icon-list");
 		this.appframe.set_views_for(this.doctype, "list");
 	},
 	

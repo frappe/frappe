@@ -40,12 +40,8 @@ var load_doc = loaddoc;
 
 function new_doc(doctype, in_form) {
 	wn.model.with_doctype(doctype, function() {
-		if(!in_form && locals.DocType[doctype].in_dialog) {
-			var new_name = wn.model.make_new_doc_and_get_name(doctype);
-			_f.edit_record(doctype, new_name);
-		} else {
-			wn.views.formview.create(doctype);
-		}
+		var new_name = wn.model.make_new_doc_and_get_name(doctype);
+		wn.set_route("Form", doctype, new_name);
 	})
 }
 var newdoc = new_doc;

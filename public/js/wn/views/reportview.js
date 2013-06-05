@@ -1,6 +1,12 @@
 // Copyright 2013 Web Notes Technologies Pvt Ltd
 // License: MIT. See license.txt
 
+wn.views.ReportFactory = wn.views.Factory.extend({
+	make: function(route) {
+		new wn.views.ReportViewPage(route[1], route[2]);
+	}
+});
+
 wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
 		if(!wn.model.can_get_report(doctype)) {
@@ -38,9 +44,7 @@ wn.views.ReportViewPage = Class.extend({
 	make_report_view: function() {
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(wn._(this.doctype));
-		this.page.appframe.add_home_breadcrumb()
 		this.page.appframe.add_module_icon(module)
-		this.page.appframe.add_breadcrumb("icon-table");
 		this.page.appframe.set_views_for(this.doctype, "report");
 
 		this.page.reportview = new wn.views.ReportView({

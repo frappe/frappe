@@ -20,6 +20,7 @@ wn.views.ListView = Class.extend({
 		this.settings = wn.listview_settings[this.doctype] || {};		
 		this.set_fields();
 		this.set_columns();
+		this.id_list = [];
 		if(this.settings.group_by) 
 			this.group_by = this.settings.group_by;
 			

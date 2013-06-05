@@ -1,4 +1,4 @@
-wn.views.calendar["Event"] = wn.views.Calendar.extend({
+wn.views.calendar["Event"] = {
 	field_map: {
 		"start": "starts_on",
 		"end": "ends_on",
@@ -12,4 +12,4 @@ wn.views.calendar["Event"] = wn.views.Calendar.extend({
 		"Private": "info"
 	},
 	get_events_method: "core.doctype.event.event.get_events"
-})
+}

@@ -392,10 +392,8 @@ _f.Frm.prototype.refresh = function(docname) {
 			scroll(0, 0);
 		this.docname = docname;
 	}
-	if(!this.meta.istable) {
-		cur_frm = this;
-		this.parent.cur_frm = this;
-	}
+
+	cur_frm = this;
 	
 	if(this.docname) { // document to show
 
@@ -612,11 +610,6 @@ _f.Frm.prototype.edit_doc = function() {
 	this.last_view_is_edit[this.docname] = true;
 	this.refresh();
 }
-
-_f.Frm.prototype.show_doc = function(dn) {
-	this.refresh(dn);
-}
-
 
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 	var me = this;
