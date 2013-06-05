@@ -209,25 +209,20 @@ wn.ui.Listing = Class.extend({
 		this.$w.find('.no-result').toggle(false);
 		this.start = 0;
 	},
-	run: function() {
-		// in old - arguments: 0 = callback, 1 = append
+	run: function(more) {
 		var me = this;
-		var a0 = arguments[0]; var a1 = arguments[1];
-		
-		if(a0 && typeof a0=='function')
-			this.onrun = a0;
-		if(a0 && a0.callback)
-			this.onrun = a0.callback;
-		if(!a1 && !(a0 && a0.append)) 
+		if(!more) {
 			this.start = 0;
-
+			if(this.onreset) this.onreset();
+		}
+			
 		if(!me.opts.no_loading)
 			me.set_working(true);
 			
 		wn.call({
 			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
 			type: "GET",
-			args: this.get_call_args(a0),
+			args: this.get_call_args(),
 			callback: function(r) { 
 				if(!me.opts.no_loading)
 					me.set_working(false);
@@ -240,7 +235,7 @@ wn.ui.Listing = Class.extend({
 	set_working: function(flag) {
 		this.$w.find('.img-load').toggle(flag);
 	},
-	get_call_args: function(opts) {
+	get_call_args: function() {
 		// load query
 		if(!this.method) {
 			var query = this.get_query ? this.get_query() : this.query;
@@ -262,12 +257,12 @@ wn.ui.Listing = Class.extend({
 			$.extend(args, this.args)
 			
 		if(this.get_args) {
-			$.extend(args, this.get_args(opts));
+			$.extend(args, this.get_args());
 		}
 		return args;		
 	},
 	render_results: function(r) {
-		if(this.start==0) this.clear();
+		if(this.start===0) this.clear();
 		
 		this.$w.find('.btn-more').toggle(false);
 
@@ -280,7 +275,7 @@ wn.ui.Listing = Class.extend({
 			this.render_list(r.values);
 			this.update_paging(r.values);
 		} else {
-			if(this.start==0) {
+			if(this.start===0) {
 				this.$w.find('.result').toggle(false);
 
 				var msg = this.get_no_result_message

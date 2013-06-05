@@ -166,7 +166,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if((auto_run !== false) && (auto_run !== 0)) this.run();
 	},
 	
-	run: function() {
+	run: function(more) {
 		// set filter from route
 		var route = wn.get_route();
 		var me = this;
@@ -175,8 +175,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				me.set_filter(key, val, true);
 			});
 		}
-		this.listview && this.listview.run();
-		this._super(arguments[0], arguments[1]);
+		this._super(more);
 	},
 	
 	make_no_result: function() {

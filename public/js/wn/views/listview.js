@@ -22,10 +22,11 @@ wn.views.ListView = Class.extend({
 		this.set_columns();
 		if(this.settings.group_by) 
 			this.group_by = this.settings.group_by;
-	},
-	run: function() {
-		if(this.doclistview.start===0)
-			this.id_list = [];
+			
+		var me = this;
+		this.doclistview.onreset = function() {
+			me.id_list = [];
+		}
 	},
 	set_fields: function() {
 		var me = this;

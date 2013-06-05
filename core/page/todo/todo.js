@@ -197,7 +197,7 @@ wn.pages.todo.onload = function(wrapper) {
 		<div class="todo-content"></div>\
 	</div>');
 		
-	wrapper.appframe.add_breadcrumb(wn.modules["To Do"].icon);
+	wrapper.appframe.add_module_icon("To Do");
 	wrapper.appframe.add_button('Refresh', erpnext.todo.refresh, 'icon-refresh');
 	wrapper.appframe.add_button('Add', function() {
 		erpnext.todo.make_dialog({

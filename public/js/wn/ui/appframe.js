@@ -16,7 +16,8 @@ wn.ui.AppFrame = Class.extend({
 					<div class="title-button-area-1 btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
 					<div class="title-area"><h2 style="display: inline-block">\
-						<span class="title-icon"></span><span class="title-text"></span></h2></div>\
+						<span class="title-icon" style="display: none"></span>\
+						<span class="title-text"></span></h2></div>\
 					<div class="sub-title-area text-muted small" \
 						style="margin-top: -10px;"></div>\
 					<div class="status-bar"></div>\
@@ -69,9 +70,10 @@ wn.ui.AppFrame = Class.extend({
 	
 	add_module_icon: function(module) {
 		var module_info = wn.modules[module];
-		if(module_info) {
+		if(module_info && module_info.icon) {
 			this.$w.find(".title-icon").html('<i class="'
 				+module_info.icon+'"></i> ')
+				.toggle(true)
 				.css({
 					"background-color": module_info.color,
 				})
