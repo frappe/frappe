@@ -131,7 +131,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 						</span> \
 					</div> \
 					<div class="input-group col col-lg-7" style="width: 300px; margin: 20px 10px;">\
-						<input type="text" id="go-search-input"></input>\
+						<input type="text" id="go-search-input" \
+							placeholder="keep empty to open list view"></input>\
 						<span class="input-group-btn">\
 							<button class="btn btn-default" type="button" id="go-search-btn">\
 								<span class="icon icon-search"></span></button>\
