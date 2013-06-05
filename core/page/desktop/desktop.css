@@ -34,14 +34,14 @@
 
 /* Hover and click effects */
 .case-border:hover, .hover-effect {
-	box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
-	-moz-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
-	-webkit-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
-	-o-box-shadow: 0 0 1px 0px black, 0 0 2px 1px white ;
+    -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+		 -o-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
+            box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.2);
 }
 
 .case-border:active, .case-border:focus, .case-border-click {
   -webkit-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
+	   -o-box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
           box-shadow: inset 0 3px 5px rgba(0, 0, 0, 0.3);
 
 	transform: scale(0.98, 0.98);

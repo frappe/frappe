@@ -121,10 +121,10 @@ class Bundle:
 
 		if os.path.exists("public/app.html"):
 			os.remove("public/app.html")
-					
+		
 		with open('lib/public/html/app.html', 'r') as app_html:
 			data = app_html.read()
-			data = data % {"_version_number": webnotes.generate_hash() }
+			data = data % {"_version_number": webnotes.generate_hash()}
 			with open('public/app.html', 'w') as new_app_html:
 				new_app_html.write(data)
 	

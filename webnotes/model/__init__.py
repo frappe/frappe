@@ -61,7 +61,7 @@ def get_search_criteria(dt):
 		pass # no search criteria
 	return dl
 
-def rename(doctype, old, new, debug=1):
+def rename(doctype, old, new, debug=False):
 	import webnotes.model.rename_doc
 	webnotes.model.rename_doc.rename_doc(doctype, old, new, debug)
 
