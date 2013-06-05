@@ -503,8 +503,11 @@ def run():
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`
 			where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
-				webnotes.reset_perms(d)
-				webnotes.clear_cache(doctype=d)
+				try:
+					webnotes.clear_cache(doctype=d)
+					webnotes.reset_perms(d)
+				except:
+					pass
 		
 
 if __name__=='__main__':
