@@ -33,4 +33,6 @@ class DocType:
 	def execute_server(self, arg=''):
 		if webnotes.user.name=='Guest':
 			raise Exception, 'Guest cannot call execute test!'
-		exec(self.doc.script)
+
+		if webnotes.session.user == "Administrator":
+			exec(self.doc.script)
