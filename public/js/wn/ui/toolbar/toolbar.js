@@ -25,7 +25,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	init: function() {
 		this.make();
 		//this.make_modules();
-		this.make_quick_search();
 		this.make_file();
 		//this.make_actions();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
@@ -115,86 +114,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			menu_list.append('<li class="divider">' + _get_list_item("Setup"));
 		}
 	
-	},
-	make_quick_search: function() {
-		$('.navbar .nav:first').append('<li class="dropdown" id="go-dropdown"> \
-			<a class="dropdown-toggle" href="#"  data-toggle="dropdown"\
-				title="'+wn._("Go")+'"\
-				onclick="return false;">'+wn._("Go")+'</a>\
-			<ul class="dropdown-menu" id="navbar-doctype">\
-				<li><form>\
-					<div class="input-group col col-lg-7" style="width: 300px; margin: 20px 10px;">\
-						<select id="go-doctype-list"></select>\
-						<span class="input-group-btn">\
-							<button class="btn btn-default" type="button" id="go-new-btn">\
-								<span class="icon icon-plus"></span></button>\
-						</span> \
-					</div> \
-					<div class="input-group col col-lg-7" style="width: 300px; margin: 20px 10px;">\
-						<input type="text" id="go-search-input" \
-							placeholder="keep empty to open list view"></input>\
-						<span class="input-group-btn">\
-							<button class="btn btn-default" type="button" id="go-search-btn">\
-								<span class="icon icon-search"></span></button>\
-						</span> \
-					</div> \
-				</form></li>\
-			</ul>\
-			</li>');
-		
-		this.bind_quick_search_events();
-	},
-	
-	bind_quick_search_events: function() {
-		// render searchable doctype list
-		$("#go-doctype-list")
-			.empty().add_options(wn.boot.profile.can_search.sort())
-			.on("change", function() {
-				if(wn.boot.profile.can_create.indexOf($(this).val()) === -1) {
-					$("#go-new-btn").attr("disabled", "disabled");
-				} else {
-					$("#go-new-btn").removeAttr("disabled");
-				}
-			})
-			.trigger("change");
-			
-		$("#go-search-input").keypress(function(ev){
-			if(ev.which==13) { $("#go-search-btn").trigger("click"); }
-		});
-		
-		// new button
-		$("#go-new-btn").on("click", function() {
-			$("#go-dropdown").removeClass("open");
-			new_doc($("#go-doctype-list").val());
-		});
-		
-		// search button
-		$("#go-search-btn").on("click", function() {
-			var doctype = doctype = $("#go-doctype-list").val(),
-				search_string = $("#go-search-input").val();
-				
-			if(search_string) {
-				wn.call({
-					type: "GET",
-					method: 'webnotes.client.get_value',
-					args: {
-						doctype: doctype,
-						fieldname: "name",
-						filters: {name: ["like", "%" + search_string + "%"]}
-					},
-					callback: function(r) {
-						if(!r.exc && r.message && r.message.name) {
-							console.log("opening " + doctype + " " + r.message.name);
-							$("#go-dropdown").removeClass("open");
-							wn.set_route("Form", doctype, r.message.name);
-						}
-					}
-				});
-			} else {
-				$("#go-dropdown").removeClass("open");
-				wn.set_route("List", $("#go-doctype-list").val());
-			}
-		});
 	},
 	
 	make_file: function() {
