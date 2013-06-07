@@ -156,6 +156,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 					+wn._('Clear Cache & Refresh')+'</a></li>\
 				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">'
 					+wn._('About')+'</a></li>\
+				<li><a href="#attributions">'
+					+wn._('Attributions')+'</a></li>\
 			</ul>\
 		</li>');
 		
