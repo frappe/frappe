@@ -28,6 +28,11 @@ wn.avatar = function(user, large, title) {
 		});	
 }
 
+wn.ui.set_user_background = function(src) {
+	wn.dom.set_style(repl('body { background: url("%(src)s") repeat fixed;}',
+		{src:src}))
+}
+
 wn.provide('wn.user');
 
 $.extend(wn.user, {

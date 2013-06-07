@@ -31,7 +31,6 @@ cur_frm.cscript.refresh = function(doc) {
 		
 		if(user==doc.name) {
 			// update display settings
-			wn.ui.set_theme(doc.theme);
 			if(doc.background_image) {
 				wn.ui.set_user_background(doc.background_image);
 			}
