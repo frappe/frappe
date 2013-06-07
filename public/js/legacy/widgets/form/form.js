@@ -156,7 +156,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 	// on table fields
 	$.each(wn.model.get("DocField", {fieldtype:"Table", parent: me.doctype}), function(i, df) {
 		wn.model.on(df.options, "*", function(fieldname, value, doc) {
-			if(doc.parent===me.docname) {
+			if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
 				me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
 				me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			}
