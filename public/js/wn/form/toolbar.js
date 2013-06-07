@@ -140,9 +140,10 @@ wn.ui.form.Toolbar = Class.extend({
 		return this.appframe.add_dropdown(label);
 	},
 	set_docstatus_label: function() {
+		var status_bar_parent = this.frm.appframe.$w.find(".status-bar").empty();
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
 			var status_bar = $("<h4>")
-				.appendTo(this.frm.appframe.$w.find(".status-bar").empty());
+				.appendTo(status_bar_parent);
 
 			switch(this.frm.doc.docstatus) {
 				case 0:
