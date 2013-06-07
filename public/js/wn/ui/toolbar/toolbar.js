@@ -115,6 +115,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		}
 	
 	},
+	
 	make_file: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
 		wn.ui.toolbar.search = new wn.ui.toolbar.Search();
