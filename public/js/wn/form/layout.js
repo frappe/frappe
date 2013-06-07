@@ -82,6 +82,9 @@ wn.ui.form.Layout = Class.extend({
 		// for bc
 		this.section.row = {wrapper: this.section};
 		this.column = null;
+		if(df && df.hidden) {
+			this.section.toggle(false);
+		}
 		return this.section;
 	},
 	setup_tabbing: function() {

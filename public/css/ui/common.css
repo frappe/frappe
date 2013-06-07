@@ -49,6 +49,7 @@ a {
 	margin-bottom: 0px;
 	border-radius: 0px;
 	border-bottom: 1px solid #ddd;
+	min-height: 51px;
 }
 
 .appframe .navbar-form select,

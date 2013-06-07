@@ -156,7 +156,7 @@ class Profile:
 			
 	def load_profile(self):
 		d = webnotes.conn.sql("""select email, first_name, last_name, 
-			email_signature, theme, background_image
+			email_signature, background_image
 			from tabProfile where name = %s""", self.name, as_dict=1)[0]
 
 		if not self.can_read:
@@ -164,8 +164,6 @@ class Profile:
 
 		d.name = self.name
 		d.recent = json.dumps(webnotes.cache().get_value("recent:" + self.name) or [])
-		if not d.theme:
-			d.theme = "Default"
 				
 		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()

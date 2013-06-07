@@ -47,7 +47,7 @@ wn.views.FormFactory = wn.views.Factory.extend({
 			}
 
 			wn.container.change_to("Form/" + dt);
-			me.page.frm.refresh(dn);
+			wn.views.formview[dt].frm.refresh(dn);
 		});
 		
 	}

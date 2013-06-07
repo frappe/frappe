@@ -76,9 +76,6 @@ wn.Application = Class.extend({
 		if(wn.boot.profile.background_image) {
 			wn.ui.set_user_background(wn.boot.profile.background_image);
 		}
-		if(wn.boot.profile.theme) {
-			wn.ui.set_theme(wn.boot.profile.theme);
-		}		
 	},
 	
 	load_bootinfo: function() {

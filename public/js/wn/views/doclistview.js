@@ -36,7 +36,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		var me = this;
 		$(this.page).on("show", function() {
-			me.dirty && me.run();
+			me.refresh();
 		});
 	},
 	
@@ -152,7 +152,27 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			(me.listview.make_new_doc || me.make_new_doc)(me.doctype);
 		});
 		
-		if((auto_run !== false) && (auto_run !== 0)) this.run();
+		if((auto_run !== false) && (auto_run !== 0)) 
+			this.refresh();
+	},
+	
+	refresh: function() {
+		var me = this;
+		if(wn.route_options) {
+			me.filter_list.clear_filters();
+			$.each(wn.route_options, function(key, value) {
+				me.filter_list.add_filter(me.doctype, key, "=", value);
+			})
+			wn.route_options = null;
+			me.run();
+		} else if(me.dirty) {
+			me.run();
+		} else {
+			if(new Date() - (me.last_updated_on || 0) > 30000) {
+				// older than 5 mins, refresh
+				me.run();
+			}
+		}
 	},
 	
 	run: function(more) {
@@ -164,6 +184,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				me.set_filter(key, val, true);
 			});
 		}
+		this.last_updated_on = new Date();
 		this._super(more);
 	},
 	

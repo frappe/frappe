@@ -3,6 +3,7 @@
 // re-route map (for rename)
 wn.re_route = {};
 wn.route_titles = {};
+wn.route_history = [];
 wn.view_factory = {};
 wn.view_factories = [];
 
@@ -27,6 +28,7 @@ wn.route = function() {
 	wn._cur_route = window.location.hash;
 
 	route = wn.get_route();
+	wn.route_history.push(route);
 	
 	if(route[0] && wn.views[route[0] + "Factory"]) {
 		// has a view generator, generate!

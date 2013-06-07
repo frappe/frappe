@@ -96,7 +96,6 @@
 			"lib/public/js/legacy/webpage/loaders.js",
 
 			"lib/public/js/wn/upload.js",
-			"lib/public/js/wn/ui/themes.js",
 			"lib/public/js/wn/ui/filters.js",
 			"lib/public/js/wn/ui/search.js",
 			"lib/public/js/wn/ui/tree.js",

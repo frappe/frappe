@@ -100,8 +100,10 @@ class Bean:
 			self.obj.doc = self.doc
 
 	def make_obj(self):
-		if self.obj: return self.obj
+		if self.obj: 
+			return self.obj
 		self.obj = webnotes.get_obj(doc=self.doc, doclist=self.doclist)
+		self.obj.bean = self
 		self.controller = self.obj
 		return self.obj
 

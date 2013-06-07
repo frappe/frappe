@@ -45,7 +45,7 @@
     overflow: hidden;
     border-right: 1px solid #DDD;
     position: relative;
-    z-index: 20;
+    z-index: 2;
 }
 
 .fn-gantt .row, .row .fn-gantt .row {
@@ -178,7 +178,7 @@
     padding: 10px;
     position: absolute;
     display: none;
-    z-index: 11;
+    z-index: 2;
         -webkit-border-radius: 4px;
         -moz-border-radius: 4px;
         border-radius: 4px;
@@ -189,7 +189,7 @@
     height: 18px;
     margin: 4px 3px 3px 3px;
     position: absolute;
-    z-index: 10;
+    z-index: 1;
     text-align: center;
         -webkit-box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
         -moz-box-shadow: 0 0 1px rgba(0,0,0,0.25) inset;
