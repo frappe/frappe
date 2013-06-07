@@ -7,6 +7,7 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
+		this.fields_dict = {};
 
 		this.$w = $('<div class="appframe-header col col-lg-12">\
 			<div class="row appframe-title">\
@@ -121,14 +122,22 @@ wn.ui.AppFrame = Class.extend({
 			});
 		}
 		
-		if(meta.__calendar_js) {
+		if(wn.views.calendar[doctype]) {
 			views.push({
 				icon: "icon-calendar",
 				route: "Calendar/" + doctype,
 				type: "calendar"
 			});
 		}
-		
+
+		if(wn.views.calendar[doctype] && wn.views.calendar[doctype]) {
+			views.push({
+				icon: "icon-tasks",
+				route: "Gantt/" + doctype,
+				type: "gantt"
+			});
+		}
+
 		if(wn.model.can_get_report(doctype)) {
 			views.push({
 				icon: "icon-table",
@@ -273,7 +282,9 @@ wn.ui.AppFrame = Class.extend({
 				"margin-left": "4px"
 			})
 			.attr("title", df.label).tooltip();
-		
+		if(df["default"])
+			f.set_input(df["default"])
+		this.fields_dict[df.fieldname || df.label] = f;
 		return f;
 	},
 	add_ripped_paper_effect: function(wrapper) {

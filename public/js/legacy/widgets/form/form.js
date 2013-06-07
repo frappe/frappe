@@ -293,7 +293,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	this.appframe.add_button(label, fn, icon || "icon-arrow-right", true);
+	this.appframe.add_button(label, fn, icon || "icon-arrow-right");
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.toolbar.refresh()
@@ -440,9 +440,7 @@ _f.Frm.prototype.refresh = function(docname) {
 			}
 
 			// header
-			if(!this.meta.istable) { 
-				this.refresh_header();
-			}
+			this.refresh_header();
 
 			// call trigger
 			this.script_manager.trigger("refresh");

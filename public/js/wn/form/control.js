@@ -236,6 +236,8 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 			.attr("placeholder", this.df.placeholder || "")
 		if(this.doctype)
 			this.$input.attr("data-doctype", this.doctype);
+		if(this.df.input_css)
+			this.$input.css(this.df.input_css);
 	},
 	bind_change_event: function() {
 		var me = this;
