@@ -209,24 +209,26 @@ $.extend(wn.model, {
 		    raise "CustomerAgeError";
 		  }
 		}) */
-		wn.provide("wn.model.events." + doctype + "." + fieldname);
-		wn.model.events[doctype][fieldname] = fn;
+		wn.provide("wn.model.events." + doctype);
+		if(!wn.model.events[doctype][fieldname]) {
+			wn.model.events[doctype][fieldname] = [];
+		}
+		wn.model.events[doctype][fieldname].push(fn);
 	},
 	
 	trigger: function(fieldname, value, doc) {
-		var run = function(fn) {
-			fn && fn(fieldname, value, doc)
+		var run = function(events) {
+			$.each(events || [], function(i, fn) {
+				fn && fn(fieldname, value, doc);
+			});
 		};
+		
 		if(wn.model.events[doc.doctype]) {
 			// doctype-level
-			if(wn.model.events[doc.doctype]['*']) {
-				wn.model.events[doc.doctype]['*'](fieldname, value, doc);
-			};
+			run(wn.model.events[doc.doctype]['*']);
 			
 			// field-level
-			if(wn.model.events[doc.doctype][fieldname]) {
-				wn.model.events[doc.doctype][fieldname](fieldname, value, doc);
-			};
+			run(wn.model.events[doc.doctype][fieldname]);
 		};
 	},
 	
