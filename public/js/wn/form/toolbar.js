@@ -94,17 +94,19 @@ wn.ui.form.Toolbar = Class.extend({
 		var me = this;
 		this.appframe.$w.find(".form-icon").remove();
 
-		$('<i class="icon-arrow-right pull-right form-icon" title="Next Record"></i>')
-			.click(function() {
-				me.go_prev_next(false);
-			})
-			.appendTo(this.appframe.$w.find(".info-bar"));		
+		if(!this.frm.meta.issingle) {
+			$('<i class="icon-arrow-right pull-right form-icon" title="Next Record"></i>')
+				.click(function() {
+					me.go_prev_next(false);
+				})
+				.appendTo(this.appframe.$w.find(".info-bar"));		
 
-		$('<i class="icon-arrow-left pull-right form-icon" title="Previous Record"></i>')
-			.click(function() {
-				me.go_prev_next(true);
-			})
-			.appendTo(this.appframe.$w.find(".info-bar"));		
+			$('<i class="icon-arrow-left pull-right form-icon" title="Previous Record"></i>')
+				.click(function() {
+					me.go_prev_next(true);
+				})
+				.appendTo(this.appframe.$w.find(".info-bar"));		
+		}
 
 		if(!me.frm.meta.allow_print) {
 			$('<i class="icon-print pull-right form-icon" title="Print"></i>')
