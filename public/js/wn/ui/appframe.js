@@ -200,10 +200,11 @@ wn.ui.AppFrame = Class.extend({
 		
 		this.buttons[label] && this.buttons[label].remove();
 		
+		var append_or_prepend = is_title ? "prependTo" : "appendTo";
+		
 		this.buttons[label] = $(repl('<button class="btn btn-default">\
 			%(icon)s <span class="hidden-sm-inline">%(label)s</span></button>', args))
-			.appendTo(this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
-			//.appendTo(title_toolbar ? this.$w.find(".title-button-area") : this.toolbar.find(".btn-group"))
+			[append_or_prepend](this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
 			.attr("title", wn._(label))
 			.click(click);
 		if(is_title) {
