@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-02-14 18:10:53", 
+  "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-02-14 19:20:21", 
+  "modified": "2013-06-10 13:40:12", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -165,6 +165,7 @@
   "no_copy": 0, 
   "oldfieldname": "ref_type", 
   "oldfieldtype": "Data", 
+  "read_only": 1, 
   "search_index": 0
  }, 
  {
@@ -176,6 +177,7 @@
   "no_copy": 0, 
   "oldfieldname": "ref_name", 
   "oldfieldtype": "Data", 
+  "read_only": 1, 
   "search_index": 0
  }, 
  {
