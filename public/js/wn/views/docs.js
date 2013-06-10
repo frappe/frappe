@@ -41,7 +41,9 @@ wn.standard_pages["docs"] = function() {
 		logarea = $('<div class="well"></div>').appendTo(body);
 	
 	wrapper.appframe.add_button("Make Docs", function() {
-		wn.docs.generate_all(logarea);
+		wn.model.with_doctype("DocType", function() {
+			wn.docs.generate_all(logarea);
+		})
 	})
 };
 
@@ -150,8 +152,12 @@ wn.docs.DocsPage = Class.extend({
 		this.make_breadcrumbs(obj);
 		this.make_intro(obj);
 		this.make_toc(obj);
-		if(obj._type==="model")
+		if(obj._type==="model") {
+			this.make_docproperties(obj);
 			this.make_docfields(obj);
+		}
+		if(obj._type=="permissions")
+			this.make_docperms(obj);
 		if(obj._type==="controller_client")
 			this.make_obj_from_cur_frm(obj);
 		this.make_functions(obj);
@@ -187,7 +193,7 @@ wn.docs.DocsPage = Class.extend({
 	},
 	make_title: function(obj) {
 		if(!obj._no_title) {
-			if(obj._title_image) {
+			if(obj._title_image && false) {
 				var outer = $("<div>")
 					.css({
 						"background-image": "url(docs/" + obj._title_image + ")",
@@ -261,26 +267,88 @@ wn.docs.DocsPage = Class.extend({
 			})
 		}
 	},
+	
+	make_docproperties: function(obj) {
+		var me = this;
+
+		this.h3("Properties");
+		var tbody = this.get_tbody([
+				{label:"Property", width: "25%"},
+				{label:"Value", width: "25%"},
+				{label:"Description", width: "50%"},
+			]);
+			
+		$.each(wn.model.get("DocField", {parent:"DocType"}), function(i, df) {
+			if(wn.model.no_value_type.indexOf(df.fieldtype)===-1) {
+				if(!df.description) df.description = "";
+				df.value = obj._properties[df.fieldname] || "";
+				$(repl('<tr>\
+					<td>%(label)s</td>\
+					<td>%(value)s</td>\
+					<td>%(description)s</td>\
+				</tr>', df)).appendTo(tbody);
+			}
+		});
+	},
+	
 	make_docfields: function(obj) {
 		var me = this,
-			docfields = [];
-		$.each(obj, function(name, value) {
-			if(value && value._type=="docfield") {
-				docfields.push(value);
-			};
-		})
+			docfields = obj._fields;
+
 		if(docfields.length) {
 			this.h3("DocFields");
-			var tbody = this.get_tbody();
+			var tbody = this.get_tbody([
+					{label:"Sr", width: "10%"},
+					{label:"Fieldname", width: "25%"},
+					{label:"Label", width: "20%"},
+					{label:"Field Type", width: "25%"},
+					{label:"Options", width: "20%"},
+				]);
 			docfields = docfields.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 })
 			$.each(docfields, function(i, df) {
 				$(repl('<tr>\
-					<td style="width: 10%;">%(idx)s</td>\
-					<td style="width: 25%;">%(fieldname)s</td>\
-					<td style="width: 20%;">%(label)s</td>\
-					<td style="width: 25%;">%(fieldtype)s</td>\
-					<td style="width: 20%;">%(options)s</td>\
+					<td>%(idx)s</td>\
+					<td>%(fieldname)s</td>\
+					<td>%(label)s</td>\
+					<td>%(fieldtype)s</td>\
+					<td>%(options)s</td>\
 				</tr>', df)).appendTo(tbody);
+			});
+		};
+	},
+	make_docperms: function(obj) {
+		var me = this;
+		if(obj._permissions.length) {
+			this.h3("Permissions");
+			var tbody = this.get_tbody([
+					{label:"Sr", width: "8%"},
+					{label:"Role", width: "20%"},
+					{label:"Level", width: "7%"},
+					{label:"Read", width: "7%"},
+					{label:"Write", width: "8%"},
+					{label:"Create", width: "8%"},
+					{label:"Submit", width: "8%"},
+					{label:"Cancel", width: "8%"},
+					{label:"Amend", width: "8%"},
+					{label:"Report", width: "8%"},
+					{label:"Match", width: "10%"},
+				]);
+			obj._permissions = obj._permissions.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 })
+			$.each(obj._permissions, function(i, perm) {
+				if(!perm.match) perm.match = "";
+				$(repl('<tr>\
+					<td>%(idx)s</td>\
+					<td>%(role)s</td>\
+					<td>%(permlevel)s</td>\
+					<td>%(read)s</td>\
+					<td>%(write)s</td>\
+					<td>%(create)s</td>\
+					<td>%(submit)s</td>\
+					<td>%(cancel)s</td>\
+					<td>%(amend)s</td>\
+					<td>%(report)s</td>\
+					<td>%(match)s</td>\
+				</tr>', perm)).appendTo(tbody);
 			});
 		};
 	},
@@ -323,11 +391,20 @@ wn.docs.DocsPage = Class.extend({
 			me.render_function(name, value, tbody, namespace)
 		});
 	},
-	get_tbody: function() {
-		table = $("<table class='table table-bordered' style='table-layout: fixed;'><tbody></tbody>\
-		</table>").appendTo(this.parent),
-		tbody = table.find("tbody");
-		return tbody;
+	get_tbody: function(columns) {
+		table = $("<table class='table table-bordered' style='table-layout: fixed;'>\
+			<thead></thead>\
+			<tbody></tbody>\
+		</table>").appendTo(this.parent);
+		if(columns) {
+			$.each(columns, function(i, c) {
+				$("<th>")
+					.css({"width": c.width})
+					.html(c.label)
+					.appendTo(table.find("thead"))
+			});
+		}
+		return table.find("tbody");
 	},
 	h3: function(txt) {
 		$("<h3>").html(txt).appendTo(this.parent);

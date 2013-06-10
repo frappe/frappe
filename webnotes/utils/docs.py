@@ -98,7 +98,7 @@ def get_pages(m):
 	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s limit 1""", m)
 	prefix = "docs.dev.modules." + m + ".page."
 	docs = {
-		"_label": "Pages for " + m,
+		"_label": "Pages",
 		"_toc": [prefix + d for d in pages]
 	}
 	for p in pages:
@@ -121,64 +121,70 @@ def get_doctypes(m):
 		tabDocType where module=%s order by name limit 1""", m)
 	prefix = "docs.dev.modules." + m + ".doctype."
 	docs = {
-		"_label": "DocTypes for " + m,
+		"_label": "DocTypes",
 		"_toc": [prefix + d for d in doctypes]
 	}
 	
 	for d in doctypes:
-		try:
-			meta = webnotes.get_doctype(d)
-			meta_p = webnotes.get_doctype(d, True)
-				
-			mydocs = docs[d] = {
-				"_label": d,
-				"_type": "doctype",
-				"_toc": [
-					prefix + d + ".model",
-					prefix + d + ".permissions",
-					prefix + d + ".controller_server",
-					prefix + d + ".controller_client",
-				]
-			}
+		meta = webnotes.get_doctype(d)
+		meta_p = webnotes.get_doctype(d, True)
+			
+		mydocs = docs[d] = {
+			"_label": d,
+			"_type": "doctype",
+			"_toc": [
+				prefix + d + ".model",
+				prefix + d + ".permissions",
+				prefix + d + ".controller_server",
+				prefix + d + ".controller_client",
+			]
+		}
 
-			mydocs["_intro"] = get_readme(m, "DocType", d) or ""
+		mydocs["_intro"] = get_readme(m, "DocType", d) or ""
 
-			# model
-			modeldocs = mydocs["model"] = {
-				"_label": d + " Model",
-				"_type": "model",
-				"_intro": "Properties and fields for " + d
-			}
-			for df in meta.get({"doctype": "DocField"}):
-				df = df.fields
-				df["_type"] = "docfield"
-				modeldocs[df.fieldname] = df
+		# model
+		modeldocs = mydocs["model"] = {
+			"_label": d + " Model",
+			"_type": "model",
+			"_intro": "Properties and fields for " + d,
+			"_fields": [df.fields for df in meta.get({"doctype": "DocField"})],
+			"_properties": meta[0].fields
+		}
+		
+		# permissions
+		from webnotes.modules.utils import peval_doclist
+		with open(os.path.join(get_doc_path(meta[0].module, "DocType", d), 
+			scrub(d) + ".txt"), "r") as txtfile:
+			doclist = peval_doclist(txtfile.read())
 			
-			# permissions
+		permission_docs = mydocs["permissions"] = {
+			"_label": d + " Permissions",
+			"_type": "permissions",
+			"_intro": "Standard Permissions for " + d + ". These can be changed by the user.",
+			"_permissions": [p for p in doclist if p.doctype=="DocPerm"]
+		}
 			
-			# server controller
-			controller_docs = mydocs["controller_server"] = {
-				"_label": d + " Server Controller",
-				"_type": "_class",
-			}
-			
-			b = webnotes.bean([{"doctype": d}])
-			b.make_obj()
-			if not getattr(b.obj, "__doc__"):
-				b.obj.__doc__ = "Controller Class for handling server-side events for " + d
-			inspect_object_and_update_docs(controller_docs, b.obj)
-			
-			# client controller
-			client_controller = mydocs["controller_client"] = {
-				"_label": d + " Client Controller",
-				"_type": "controller_client",
-				"_intro": "Client side triggers and functions for " + d,
-				"_code": meta_p[0].fields["__js"],
-				"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
-			}
-
-		except Exception, e:
-			raise e
+		# server controller
+		controller_docs = mydocs["controller_server"] = {
+			"_label": d + " Server Controller",
+			"_type": "_class",
+		}
+		
+		
+		b = webnotes.bean([{"doctype": d}])
+		b.make_obj()
+		if not getattr(b.obj, "__doc__"):
+			b.obj.__doc__ = "Controller Class for handling server-side events for " + d
+		inspect_object_and_update_docs(controller_docs, b.obj)
+		
+		# client controller
+		client_controller = mydocs["controller_client"] = {
+			"_label": d + " Client Controller",
+			"_type": "controller_client",
+			"_intro": "Client side triggers and functions for " + d,
+			"_code": meta_p[0].fields["__js"],
+			"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
+		}
 			
 	return docs
 
@@ -266,9 +272,10 @@ docs_template = """
 		}
 
 		blockquote {
-		  padding: 10px 0 10px 15px;
-		  margin: 0 0 20px;
-		  background-color: #FFFCED;
+			padding: 10px 0 10px 15px;
+			margin: 0 0 20px;
+			background-color: #FFFCED;
+			border-left: 5px solid #fbeed5;
 		}
 
 		blockquote p {
