@@ -182,6 +182,9 @@ def get_message_list(path):
 	
 def write_messages_file(path, messages, mtype):
 	"""write messages to translation file"""
+	if not os.path.exists(path):
+		return
+		
 	if not os.path.exists(os.path.join(path, 'locale')):
 		os.makedirs(os.path.join(path, 'locale'))
 	
