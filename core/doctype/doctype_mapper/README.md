@@ -1,0 +1,1 @@
+Define Field and Table Mappings between to main DocTypes (non child) so that records can be copied over easily from one DocType to another.
