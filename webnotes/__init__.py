@@ -329,7 +329,12 @@ def get_doctype(doctype, processed=False):
 
 def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False):
 	import webnotes.model.utils
-	webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload)
+	
+	if isinstance(name, list):
+		for n in name:
+			webnotes.model.utils.delete_doc(doctype, n)
+	else:
+		webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload)
 
 def clear_perms(doctype):
 	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
