@@ -27,7 +27,7 @@ from __future__ import unicode_literals
 import webnotes, os, conf
 
 transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper',
-	'GL Mapper','Search Criteria', 'Patch', 'Report']
+	'Search Criteria', 'Patch', 'Report']
 	
 lower_case_files_for = ['DocType', 'Page', 'Search Criteria', 'Report', 
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action']
