@@ -26,16 +26,6 @@ globals attached to webnotes module
 
 from __future__ import unicode_literals
 
-code_fields_dict = {
-	'Page':[('script', 'js'), ('content', 'html'), ('style', 'css'), ('static_content', 'html'), ('server_code', 'py')],
-	'DocType':[('server_code_core', 'py'), ('client_script_core', 'js')],
-	'Search Criteria':[('report_script', 'js'), ('server_script', 'py'), ('custom_query', 'sql')],
-	'Patch':[('patch_code', 'py')],
-	'Stylesheet':['stylesheet', 'css'],
-	'Page Template':['template', 'html'],
-	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
-}
-
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):

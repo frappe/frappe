@@ -40,7 +40,7 @@ cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 	WHERE ((IFNULL(issingle,0)=0 AND \
 	IFNULL(in_create, 0)=0 AND \
 	name not in ("DocType", "DocField", "DocPerm", "Profile", "Role", "UserRole", "Page", \
-		"Page Role", "Module Def", "Print Format", "Report", "Search Criteria")) \
+		"Page Role", "Module Def", "Print Format", "Report")) \
 	or name = "Item Group") \
 	AND name LIKE "%s%%" ORDER BY name ASC LIMIT 50';
 }

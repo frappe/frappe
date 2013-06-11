@@ -621,14 +621,6 @@ def check_page_perm(doc):
 		webnotes.response['403'] = 1
 		raise webnotes.PermissionError, '[WNF] No read permission for %s %s' % ('Page', doc.name)
 
-def get_report_builder_code(doc):
-	if doc.doctype=='Search Criteria':
-		from webnotes.model.code import get_code
-				
-		if doc.standard != 'No':
-			doc.report_script = get_code(doc.module, 'Search Criteria', doc.name, 'js')
-			doc.custom_query = get_code(doc.module, 'Search Criteria', doc.name, 'sql')
-
 def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	"""
 	Returns a doclist containing the main record and all child records
@@ -656,10 +648,6 @@ def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	doclist = DocList([doc,])
 	for t in tablefields:
 		doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
-
-	# import report_builder code
-	if not from_controller:
-		get_report_builder_code(doc)
 
 	return doclist
 
