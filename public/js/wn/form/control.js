@@ -110,7 +110,7 @@ wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
 			var value = wn.model.get_value(me.doctype, me.docname, me.fieldname);
 			me.$wrapper.html(value);
 		})
-	}
+	},
 });
 
 wn.ui.form.ControlInput = wn.ui.form.Control.extend({
@@ -475,8 +475,8 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	set_input: function(value) {
 		// refresh options first - (new ones??)
 		this.set_options();
-
-		this.$input.val(value);
+		
+		this._super(value);
 		
 		// not a possible option, repair
 		if(this.doctype && this.docname) {
@@ -516,15 +516,15 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		} else if(typeof this.df.options==="string") {
 			options = this.df.options.split("\n");
 		}
-		
+	
 		if(this.in_filter && options[0] != "") {
 			options = add_lists([''], options);
 		}
-		
+	
 		var selected = this.$input.find(":selected").val();
-		
+
 		this.$input.empty().add_options(options || []);
-		
+
 		if(selected) this.$input.val(selected);
 	},
 	get_file_attachment_list: function() {
@@ -647,7 +647,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			select: function(event, ui) {
-				me.set_model_value(ui.item.value);
+				me.parse_validate_and_set_in_model(ui.item.value);
 			}
 		}).data('uiAutocomplete')._renderItem = function(ul, item) {
 			return $('<li></li>')
@@ -708,10 +708,11 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			}
 		});
 	},
-	set_fetch_values: function() {
+	set_fetch_values: function(fetch_values) {
 		var fl = this.frm.fetch_dict[this.df.fieldname].fields;
-		for(var i=0; i< fl.length; i++) {
-			wn.model.set_value(this.doctype, this.docname. fl[i], fetch_values[i]);
+		for(var i=0; i < fl.length; i++) {
+			console.log([this.doctype, this.docname, fl[i], fetch_values[i]]);
+			wn.model.set_value(this.doctype, this.docname, fl[i], fetch_values[i]);
 		}
 	}
 });
