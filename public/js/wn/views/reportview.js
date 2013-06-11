@@ -450,7 +450,7 @@ wn.ui.ColumnPicker = Class.extend({
 		}
 		$(this.dialog.body).html('<div class="help">'+wn._("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
-			<div><button class="btn btn-add"><i class="icon-plus"></i>\
+			<div><button class="btn btn-default btn-add"><i class="icon-plus"></i>\
 				'+wn._("Add Column")+'</button></div>\
 			<hr>\
 			<div><button class="btn btn-info">'+wn._("Update")+'</div>');
