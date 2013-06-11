@@ -21,7 +21,7 @@ wn.views.FormFactory = wn.views.Factory.extend({
 	},
 	show_doc: function(route) {
 		var dt = route[1],
-			dn = route[2],
+			dn = route.slice(2).join("/"),
 			me = this;
 
 		if(wn.model.new_names[dn]) {

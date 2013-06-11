@@ -162,7 +162,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			me.filter_list.clear_filters();
 			$.each(wn.route_options, function(key, value) {
 				me.filter_list.add_filter(me.doctype, key, "=", value);
-			})
+			});
 			wn.route_options = null;
 			me.run();
 		} else if(me.dirty) {
