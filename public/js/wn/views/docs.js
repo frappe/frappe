@@ -418,6 +418,9 @@ wn.docs.DocsPage = Class.extend({
 				"" : this.namespace) 
 			: "";
 
+		if(this.obj._function_namespace)
+			namespace = this.obj._function_namespace;
+
 		if(namespace!=="") {
 			namespace = wn.docs.get_short_name(namespace);
 		}
@@ -429,14 +432,15 @@ wn.docs.DocsPage = Class.extend({
 		
 		var help = value._help || code.split("/* docs:")[1];
 		if(help && help.indexOf("*/")!==-1) help = help.split("*/")[0];
-		
-		var source = ""
-		if(code.substr(0, 8)==="function") {
+
+		var source = "";
+		if(code.substr(0, 8)==="function" || value._source) {
 			source = "<p style='font-size: 90%;'><a href='#' data-toggle='"+ name +"'>View Source</a></p>\
 				<pre data-target='"+ name 
 					+"' style='display: none; font-size: 11px; white-space: pre; \
 						background-color: white; border-radius: 0px;\
-						overflow-x: auto; word-wrap: normal;'>" + code + "</pre>";
+						overflow-x: auto; word-wrap: normal;'>" + (value._source || code) 
+							+ "</pre>";
 		}
 		
 		$(repl('<tr>\

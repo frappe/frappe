@@ -60,12 +60,14 @@ def inspect_object_and_update_docs(mydocs, obj):
 	
 	for name in dir(obj):
 		value = getattr(obj, name)
-		if inspect.ismethod(value) or inspect.isfunction(value):
-			mydocs[name] = {
-				"_type": "function",
-				"_args": inspect.getargspec(value)[0],
-				"_help": getattr(value, "__doc__", "")
-			}
+		if inspect.getmodule(value)==obj:
+			if inspect.ismethod(value) or inspect.isfunction(value):
+				mydocs[name] = {
+					"_type": "function",
+					"_args": inspect.getargspec(value)[0],
+					"_help": getattr(value, "__doc__", ""),
+					"_source": inspect.getsource(value)
+				}
 
 def get_modules():
 	# readme.md
@@ -78,20 +80,50 @@ def get_modules():
 	docs["_toc"] = ["docs.dev.modules." + d for d in modules]
 	for m in modules:
 		prefix = "docs.dev.modules." + m
-		docs[m] = {
+		mydocs = docs[m] = {
 			"_label": m,
 			"_toc": [
 				prefix + ".doctype",
 				prefix + ".page",
-				prefix + ".report"
+				prefix + ".report",
+				prefix + ".py_modules"
 			],
 			"doctype": get_doctypes(m),
 			"page": get_pages(m),
-			"report": {}
+			"report": {},
+			"py_modules": {
+				"_label": "Independant Python Modules for " + m,
+				"_toc": []
+			}
 		}
+		
+		# add stand alone modules
+		module_path = get_module_path(m)
+		prefix = prefix + ".py_modules."
+		for basepath, folders, files in os.walk(module_path):
+			for f in files:
+				if f.endswith(".py") and \
+					(not f.split(".")[0] in os.path.split(basepath)) and \
+					(not f.startswith("__")):
+				
+					module_name = ".".join(os.path.relpath(os.path.join(basepath, f), 
+						"../app").split(os.path.sep))[:-3]
 
+					# import module
+					module = importlib.import_module(module_name)
+					
+					# create a new namespace for the module
+					module_docs = mydocs["py_modules"][f.split(".")[0]] = {}
+					
+					# add to toc
+					mydocs["py_modules"]["_toc"].append(prefix + f.split(".")[0])
+					
+					inspect_object_and_update_docs(module_docs, module)
+					module_docs["_label"] = module_name
+					module_docs["_function_namespace"] = module_name
+				
 		docs[m]["_intro"] = get_readme(m)
-
+		
 	return docs
 
 def get_pages(m):
