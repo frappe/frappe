@@ -228,13 +228,13 @@ wn.views.CommunicationComposer = Class.extend({
 					return $(element).attr("data-file-name");
 				})
 			
-			// if(form_values.attach_document_print) {
+			if(form_values.attach_document_print) {
 				_p.build(form_values.select_print_format || "", function(print_format_html) {
 					me.send_email(btn, form_values, selected_attachments, print_format_html);
 				});
-			// } else {
-			// 	me.send_email(btn, form_values, selected_attachments);
-			// }
+			} else {
+				me.send_email(btn, form_values, selected_attachments);
+			}
 		});
 	},
 	
