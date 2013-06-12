@@ -29,6 +29,8 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 		});
 		
 		if(hide_list.length < field_list.length) hide_field(hide_list);
+		
+		doc.content = wn.utils.escape_script_and_style(doc.content);
 	}
 }
 

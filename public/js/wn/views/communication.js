@@ -77,6 +77,8 @@ wn.views.CommunicationList = Class.extend({
 		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
+		doc.content = wn.utils.escape_script_and_style(doc.content);
+
 		if(!doc.sender) doc.sender = "[unknown sender]";
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc.content = doc.content.split("-----"+wn._("In response to")+"-----")[0];

@@ -16,6 +16,10 @@ wn.utils = {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
 	},
+	escape_script_and_style: function(txt) {
+		return (!txt || (txt.indexOf("<script>")===-1 && txt.indexOf("<style>")===-1)) ? txt :
+			"<pre>" + $("<div>").text(txt).html() + "</pre>";
+	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
 		if(typeof filters=='string') {
