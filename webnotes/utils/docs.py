@@ -6,11 +6,13 @@ import inspect, importlib, os
 from jinja2 import Template
 from webnotes.modules import get_doc_path, get_module_path, scrub
 
+gh_prefix = "https://github.com/webnotes/"
+
 @webnotes.whitelist()
 def get_docs():
 	docs = {}
-	get_docs_for(docs, "webnotes")
-	docs["modules"] = get_modules()
+	#get_docs_for(docs, "webnotes")
+	#docs["modules"] = get_modules()
 	docs["pages"] = get_static_pages()
 	return docs
 
@@ -54,7 +56,13 @@ def get_docs_for(docs, name):
 
 def inspect_object_and_update_docs(mydocs, obj):
 	mydocs["_toc"] = getattr(obj, "_toc", "")
-	mydocs["_type"] = "module" if inspect.ismodule(obj) else "class"
+	if inspect.ismodule(obj):
+		mydocs["_type"] = "module"
+		mydocs["_gh_source"] = get_gh_url(obj)
+	else:
+		mydocs["_type"] = "class"
+		mydocs["_gh_source"] = get_gh_url(inspect.getmodule(obj))
+		
 	if not mydocs.get("_intro"):
 		mydocs["_intro"] = getattr(obj, "__doc__", "")
 	
@@ -72,6 +80,14 @@ def inspect_object_and_update_docs(mydocs, obj):
 					"_help": getattr(value, "__doc__", ""),
 					"_source": inspect.getsource(value)
 				}
+				
+def get_gh_url(module):
+	path = module.__file__
+	sep = "/lib/" if "/lib/" in path else "/app/"
+	url = gh_prefix + ("wnframwork" if sep=="/lib/" else "erpnext") + "/blob/master/" + path.split(sep)[1]
+	if url.endswith(".pyc"):
+		url = url[:-1]
+	return url
 
 def get_modules():
 	# readme.md
@@ -192,10 +208,10 @@ def get_doctypes(m):
 					links.append(df.parent)
 				
 		if parents:
-			mydocs["_intro"] += "\n\n#### Child Table Of:\n\n- " + "\n- ".join(parents) + "\n\n"
+			mydocs["_intro"] += "\n\n#### Child Table Of:\n\n- " + "\n- ".join(list(set(parents))) + "\n\n"
 
 		if links:
-			mydocs["_intro"] += "\n\n#### Linked In:\n\n- " + "\n- ".join(links) + "\n\n"
+			mydocs["_intro"] += "\n\n#### Linked In:\n\n- " + "\n- ".join(list(set(links))) + "\n\n"
 			
 		if meta[0].issingle:
 			mydocs["_intro"] += "\n\n#### Single DocType\n\nThere is no table for this DocType and the values of the Single instance are stored in `tabSingles`"
@@ -283,6 +299,13 @@ def write_doc_file(name, html, title):
 		os.system("cp ../lib/public/js/lib/jquery/jquery.min.js docs/js")
 		os.system("cp ../lib/public/js/lib/prism.js docs/js")
 
+	if not os.path.exists("docs/img/splash.svg"):
+		if not os.path.exists("docs/img"):
+			os.mkdir("docs/img")
+		os.system("cp ../app/public/images/splash.svg docs/img")
+		
+	if name=="docs": name = "index"
+
 	with open(os.path.join("docs", name + ".html"), "w") as docfile:
 		html = Template(docs_template).render({
 			"title": title,
@@ -308,14 +331,22 @@ docs_template = """
 	<link type="text/css" rel="stylesheet" href="css/prism.css">
 	<style>
 		body {
-			/*background-color: #FDFFF9;*/
-		}
-		
-		body {
 			font-family: Arial, Sans Serif;
 			font-size: 16px;
 			line-height: 25px;
 			text-rendering: optimizeLegibility;
+			color: #555555;
+		}
+
+		.navbar-inverse {
+			background-color: #2980b9;
+		}
+
+		.navbar-inverse .navbar-text,
+		.navbar-inverse .navbar-brand,
+		.navbar-inverse .navbar-nav > li > a
+		{
+			color: #eeeeee;
 		}
 
 		h1 {
@@ -349,18 +380,30 @@ docs_template = """
 		  line-height: 1.25;
 		}
 		
+		.erpnext-logo {
+			width: 32px; 
+			height: 32px; 
+			margin: -11px 0px;
+		}
+
+		.erpnext-logo rect {
+			fill: #ffffff !important;
+		}
 	</style>
 </head>
 <body>
 	<header>
 		<div class="navbar navbar-fixed-top navbar-inverse">
 			<div class="container">
-				<button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-responsive-collapse">
+				<button type="button" class="navbar-toggle" 
+					data-toggle="collapse" data-target=".navbar-responsive-collapse">
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 					<span class="icon-bar"></span>
 				</button>
-				<a class="navbar-brand" href="docs.html">Home</a>
+				<a class="navbar-brand" href="index.html">
+					<object data="img/splash.svg" class="erpnext-logo" 
+						type="image/svg+xml"></object> erpnext</a>
 				<div class="nav-collapse collapse navbar-responsive-collapse">
 					<ul class="nav navbar-nav">
 						<li><a href="docs.user.html">User</a></li>

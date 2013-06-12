@@ -42,15 +42,21 @@ wn.standard_pages["docs"] = function() {
 	
 	wrapper.appframe.add_button("Make Docs", function() {
 		wn.model.with_doctype("DocType", function() {
-			wn.docs.generate_all(logarea);
+			wn.docs.generate_all(logarea, wrapper.appframe.fields_dict.namespace.get_value());
 		})
-	})
+	});
+	
+	wrapper.appframe.add_field({
+		fieldname:"namespace",
+		fieldtype:"Data",
+		label: "Namespace"
+	});
 };
 
 wn.provide("docs");
 wn.provide("wn.docs");
 
-wn.docs.generate_all = function(logarea) {
+wn.docs.generate_all = function(logarea, for_namespace) {
 	var pages = [],
 		body = $("<div class='docs'>");
 		make_page = function(name, links) {
@@ -75,7 +81,7 @@ wn.docs.generate_all = function(logarea) {
 						make_page(wn.docs.get_full_name(child_name), child_links);
 					});
 				}
-			});
+			}, for_namespace);
 		}
 	
 		logarea.empty().append("Downloading server docs...<br>");
@@ -161,8 +167,18 @@ wn.docs.DocsPage = Class.extend({
 		if(obj._type==="controller_client")
 			this.make_obj_from_cur_frm(obj);
 		this.make_functions(obj);
+		this.make_footer();
 		if(this.links) {
 			this.make_links();
+		}
+	},
+	make_footer: function() {
+		if(this.obj._gh_source) {
+			$("<br>").appendTo(this.parent);
+			$(repl('<p><a href="%(source)s" target="_blank">\
+				<i class="icon-github"></i> Source on GitHub</i></a></p>', {
+					source: this.obj._gh_source
+				})).appendTo(this.parent);
 		}
 	},
 	make_links: function() {
@@ -235,8 +251,9 @@ wn.docs.DocsPage = Class.extend({
 					fullname = fullname + "." + p
 				else 
 					fullname = p
+									
 				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
-					name: fullname,
+					name: (fullname==="docs" ? "index" : fullname),
 					label: wn.provide(fullname)._label || p
 				})).appendTo(ul);
 			}
@@ -481,8 +498,8 @@ wn.docs.DocsPage = Class.extend({
 				source: source
 			})).appendTo(parent)
 		} catch(e) {
+			console.log("Possible html embedded in: " + name)
 			console.log(e);
-			console.log(code);
 		}
 	},
 	get_args: function(obj) {
@@ -491,7 +508,8 @@ wn.docs.DocsPage = Class.extend({
 		else
 			return obj.toString().split("function")[1].split("(")[1].split(")")[0];
 	},
-	write: function(callback) {
+	write: function(callback, for_namespace) {
+		if(for_namespace && for_namespace!==this.namespace) return;
 		wn.call({
 			method: "webnotes.utils.docs.write_doc_file",
 			args: {
