@@ -227,52 +227,64 @@ wn.views.CommunicationComposer = Class.extend({
 				.find("[data-file-name]:checked"), function(element) {
 					return $(element).attr("data-file-name");
 				})
-						
-			_p.build(form_values.select_print_format || "", function(print_format_html) {
-				if(form_values.attach_document_print) {
-					var print_html = print_format_html
-					if(cint(wn.boot.send_print_in_body_and_attachment)) {
-						form_values.content = form_values.content 
-							+ "<p></p><hr>" + print_html;
-					} else {
-						form_values.content = form_values.content + "<p>"
-							+ "Please see attachment for document details.</p>"
-					}
-				} else {
-					print_html = "";
-				}
-				wn.call({
-					method:"core.doctype.communication.communication.make",
-					args: {
-						sender: wn.user_info(user).fullname + " <" + wn.boot.profile.email + ">",
-						recipients: form_values.recipients,
-						subject: form_values.subject,
-						content: form_values.content,
-						doctype: me.doc.doctype,
-						name: me.doc.name,
-						lead: me.doc.lead,
-						contact: me.doc.contact,
-						company: me.doc.company || sys_defaults.company,
-						send_me_a_copy: form_values.send_me_a_copy,
-						send_email: form_values.send_email,
-						print_html: print_html,
-						attachments: selected_attachments
-					},
-					btn: btn,
-					callback: function(r) {
-						if(!r.exc) {
-							if(form_values.send_email)
-								msgprint("Email sent to " + form_values.recipients);
-							me.dialog.hide();
-							cur_frm.reload_doc();
-						} else {
-							msgprint("There were errors while sending email. Please try again.")
-						}
-					}
+			
+			// if(form_values.attach_document_print) {
+				_p.build(form_values.select_print_format || "", function(print_format_html) {
+					me.send_email(btn, form_values, selected_attachments, print_format_html);
 				});
-			})
-		});		
+			// } else {
+			// 	me.send_email(btn, form_values, selected_attachments);
+			// }
+		});
 	},
+	
+	send_email: function(btn, form_values, selected_attachments, print_format_html) {
+		var me = this;
+		
+		if(form_values.attach_document_print) {
+			var print_html = print_format_html;
+			if(cint(wn.boot.send_print_in_body_and_attachment)) {
+				form_values.content = form_values.content 
+					+ "<p></p><hr>" + print_html;
+			} else {
+				form_values.content = form_values.content + "<p>"
+					+ "Please see attachment for document details.</p>"
+			}
+		} else {
+			var print_html = "";
+		}
+		
+		wn.call({
+			method:"core.doctype.communication.communication.make",
+			args: {
+				sender: wn.user_info(user).fullname + " <" + wn.boot.profile.email + ">",
+				recipients: form_values.recipients,
+				subject: form_values.subject,
+				content: form_values.content,
+				doctype: me.doc.doctype,
+				name: me.doc.name,
+				lead: me.doc.lead,
+				contact: me.doc.contact,
+				company: me.doc.company || sys_defaults.company,
+				send_me_a_copy: form_values.send_me_a_copy,
+				send_email: form_values.send_email,
+				print_html: print_html,
+				attachments: selected_attachments
+			},
+			btn: btn,
+			callback: function(r) {
+				if(!r.exc) {
+					if(form_values.send_email)
+						msgprint("Email sent to " + form_values.recipients);
+					me.dialog.hide();
+					cur_frm.reload_doc();
+				} else {
+					msgprint("There were errors while sending email. Please try again.")
+				}
+			}
+		});
+	},
+	
 	setup_earlier_reply: function() {
 		var fields = this.dialog.fields_dict;
 		var comm_list = cur_frm.communication_view

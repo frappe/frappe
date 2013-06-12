@@ -71,14 +71,11 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	if sent_via:
 		if hasattr(sent_via, "get_sender"):
-			d.sender = sent_via.get_sender(d)
+			d.sender = sent_via.get_sender(d) or d.sender
 		if hasattr(sent_via, "get_subject"):
 			d.subject = sent_via.get_subject(d)
 		if hasattr(sent_via, "get_content"):
 			d.content = sent_via.get_content(d)
-
-	if not d.sender:
-		d.sender = webnotes.session.user
 
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
