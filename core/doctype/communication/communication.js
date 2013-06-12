@@ -17,6 +17,9 @@ cur_frm.cscript.onload = function(doc) {
 	
 	cur_frm.fields_dict.customer.get_query = erpnext.utils.customer_query;
 	cur_frm.fields_dict.supplier.get_query = erpnext.utils.supplier_query;
+	
+	if(doc.content)
+		doc.content = wn.utils.escape_script_and_style(doc.content);
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {

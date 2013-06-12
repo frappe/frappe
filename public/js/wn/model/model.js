@@ -103,7 +103,7 @@ $.extend(wn.model, {
 	
 	with_doc: function(doctype, name, callback) {
 		if(!name) name = doctype; // single type
-		if(locals[doctype] && locals[doctype][name]) {
+		if(locals[doctype] && locals[doctype][name] && wn.model.get_docinfo(doctype, name)) {
 			callback(name);
 		} else {
 			wn.call({
@@ -116,6 +116,10 @@ $.extend(wn.model, {
 				callback: function(r) { callback(name, r); }
 			});
 		}
+	},
+	
+	get_docinfo: function(doctype, name) {
+		return wn.model.docinfo[doctype] && wn.model.docinfo[doctype][name] || null;
 	},
 	
 	get_server_module_name: function(doctype) {

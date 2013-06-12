@@ -231,6 +231,10 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""
+		if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+			webnotes.msgprint("Emails are muted")
+			return
+		
 		import smtplib
 		try:
 			SMTPServer().sess.sendmail(self.sender, self.recipients + (self.cc or []),

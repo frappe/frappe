@@ -128,7 +128,7 @@ wn.ui.form.Grid = Class.extend({
 		return this.fieldinfo[fieldname];
 	},
 	set_value: function(fieldname, value, doc) {
-		this.grid_rows_by_docname[doc.name].set_value(fieldname, value);
+		this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 	},
 	add_new_row: function(idx, callback) {
 		wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
@@ -352,23 +352,14 @@ wn.ui.form.GridRow = Class.extend({
 
 		if(this.grid.display_status!="Write" || this.grid.static_rows) {
 			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
-			return;
 		}
+		
+		this.grid.open_grid_row = this;
 	},
 	set_data: function() {
 		this.wrapper.data({
 			"doc": this.doc
 		})
-	},
-	set_value: function(fieldname, value) {
-		// in row
-		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
-		$col.length && $col.html(wn.format(value, $col.data("df"), null, this.doc));
-		
-		// in form
-		if(this.fields_dict && this.fields_dict[fieldname]) {
-			this.fields_dict[fieldname].set_input(value);
-		}
 	},
 	refresh_field: function(fieldname) {
 		var $col = this.row.find("[data-fieldname='"+fieldname+"']");
@@ -380,6 +371,6 @@ wn.ui.form.GridRow = Class.extend({
 		// in form
 		if(this.fields_dict && this.fields_dict[fieldname]) {
 			this.fields_dict[fieldname].refresh();
-		}	
+		}
 	},	
 });
