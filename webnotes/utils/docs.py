@@ -59,9 +59,13 @@ def inspect_object_and_update_docs(mydocs, obj):
 		mydocs["_intro"] = getattr(obj, "__doc__", "")
 	
 	for name in dir(obj):
-		value = getattr(obj, name)
-		if inspect.getmodule(value)==obj:
-			if inspect.ismethod(value) or inspect.isfunction(value):
+		try:
+			value = getattr(obj, name)
+		except AttributeError, e:
+			value = None
+			
+		if value:
+			if inspect.ismethod(value) or (inspect.isfunction(value) and inspect.getmodule(value)==obj):
 				mydocs[name] = {
 					"_type": "function",
 					"_args": inspect.getargspec(value)[0],
@@ -76,7 +80,7 @@ def get_modules():
 	docs = {
 		"_label": "Modules"
 	}
-	modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name limit 1")
+	modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name limit 3")
 	docs["_toc"] = ["docs.dev.modules." + d for d in modules]
 	for m in modules:
 		prefix = "docs.dev.modules." + m
@@ -127,7 +131,7 @@ def get_modules():
 	return docs
 
 def get_pages(m):
-	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s limit 1""", m)
+	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s limit 3""", m)
 	prefix = "docs.dev.modules." + m + ".page."
 	docs = {
 		"_label": "Pages",
@@ -143,14 +147,17 @@ def get_pages(m):
 
 		# controller
 		page_name = scrub(p)
-		page_controller = importlib.import_module(scrub(m) + ".page." +  page_name + "." + page_name)
-		inspect_object_and_update_docs(mydocs, page_controller)
+		try:
+			page_controller = importlib.import_module(scrub(m) + ".page." +  page_name + "." + page_name)
+			inspect_object_and_update_docs(mydocs, page_controller)
+		except ImportError, e:
+			pass
 
 	return docs
 
 def get_doctypes(m):
 	doctypes = webnotes.conn.sql_list("""select name from 
-		tabDocType where module=%s order by name limit 1""", m)
+		tabDocType where module=%s order by name limit 3""", m)
 	prefix = "docs.dev.modules." + m + ".doctype."
 	docs = {
 		"_label": "DocTypes",
@@ -173,6 +180,25 @@ def get_doctypes(m):
 		}
 
 		mydocs["_intro"] = get_readme(m, "DocType", d) or ""
+
+		# parents and links
+		links, parents = [], []
+		for df in webnotes.conn.sql("""select * from tabDocField where options=%s""", 
+			d, as_dict=True):
+			if df.parent:
+				if df.fieldtype=="Table":
+					parents.append(df.parent)
+				if df.fieldtype=="Link":
+					links.append(df.parent)
+				
+		if parents:
+			mydocs["_intro"] += "\n\n#### Child Table Of:\n\n- " + "\n- ".join(parents) + "\n\n"
+
+		if links:
+			mydocs["_intro"] += "\n\n#### Linked In:\n\n- " + "\n- ".join(links) + "\n\n"
+			
+		if meta[0].issingle:
+			mydocs["_intro"] += "\n\n#### Single DocType\n\nThere is no table for this DocType and the values of the Single instance are stored in `tabSingles`"
 
 		# model
 		modeldocs = mydocs["model"] = {
@@ -217,6 +243,8 @@ def get_doctypes(m):
 			"_code": meta_p[0].fields["__js"],
 			"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
 		}
+		
+		# children and links
 			
 	return docs
 
@@ -240,6 +268,8 @@ def write_doc_file(name, html, title):
 		os.system("cp ../lib/public/css/bootstrap.css docs/css")
 		os.system("cp ../lib/public/css/font-awesome.css docs/css")
 		os.system("cp ../lib/public/css/fonts/* docs/css/fonts")
+		os.system("cp ../lib/public/css/prism.css docs/css")
+		
 		# clean links in font-awesome
 		with open("docs/css/font-awesome.css", "r") as fontawesome:
 			t = fontawesome.read()
@@ -251,7 +281,7 @@ def write_doc_file(name, html, title):
 		os.mkdir("docs/js")
 		os.system("cp ../lib/public/js/lib/bootstrap.min.js docs/js")
 		os.system("cp ../lib/public/js/lib/jquery/jquery.min.js docs/js")
-		
+		os.system("cp ../lib/public/js/lib/prism.js docs/js")
 
 	with open(os.path.join("docs", name + ".html"), "w") as docfile:
 		html = Template(docs_template).render({
@@ -272,8 +302,10 @@ docs_template = """
 	<meta name="generator" content="wnframework">
 	<script type="text/javascript" src="js/jquery.min.js"></script>
 	<script type="text/javascript" src="js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="js/prism.js"></script>
 	<link type="text/css" rel="stylesheet" href="css/bootstrap.css">
 	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
+	<link type="text/css" rel="stylesheet" href="css/prism.css">
 	<style>
 		body {
 			/*background-color: #FDFFF9;*/

@@ -333,9 +333,14 @@ wn.docs.DocsPage = Class.extend({
 					{label:"Report", width: "8%"},
 					{label:"Match", width: "10%"},
 				]);
-			obj._permissions = obj._permissions.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 })
+			obj._permissions = obj._permissions.sort(function(a, b) { 
+				return a.idx > b.idx ? 1 : -1 
+			})
 			$.each(obj._permissions, function(i, perm) {
 				if(!perm.match) perm.match = "";
+				$.each(perm, function(key, val) {
+					if(val==null) perm[key] = "";
+				});
 				$(repl('<tr>\
 					<td>%(idx)s</td>\
 					<td>%(role)s</td>\
@@ -356,14 +361,26 @@ wn.docs.DocsPage = Class.extend({
 		var me = this;
 		obj._fetches = [];
 		cur_frm = {
+			set_query: function() {
+				
+			},
 			cscript: {},
+			pformat: {},
 			add_fetch: function() {
 				obj._fetches.push(arguments)
 			},
 			fields_dict: {}
 		};
-		$.each(obj._fields, function(i, f) { cur_frm.fields_dict[f] = {}});
-		eval(obj._code);
+		$.each(obj._fields, function(i, f) { 
+			cur_frm.fields_dict[f] = {
+				grid: {
+					get_field: function(fieldname) {
+						return {}
+					}
+				}
+			}}
+		);
+		var tmp = eval(obj._code);
 		$.extend(obj, cur_frm.cscript);
 	},
 	make_functions: function(obj) {
@@ -435,29 +452,38 @@ wn.docs.DocsPage = Class.extend({
 
 		var source = "";
 		if(code.substr(0, 8)==="function" || value._source) {
-			source = "<p style='font-size: 90%;'><a href='#' data-toggle='"+ name +"'>View Source</a></p>\
-				<pre data-target='"+ name 
-					+"' style='display: none; font-size: 11px; white-space: pre; \
+			source = repl('<p style="font-size: 90%;">\
+				<a href="#" data-toggle="%(name)s">View Source</a></p>\
+				<pre data-target="%(name)s" style="display: none; font-size: 11px; \
 						background-color: white; border-radius: 0px;\
-						overflow-x: auto; word-wrap: normal;'>" + (value._source || code) 
-							+ "</pre>";
+						overflow-x: auto; word-wrap: normal;"><code class="language-%(lang)s">\
+%(code)s</code></pre>', {
+				name: name,
+				code: value._source || code,
+				lang: (value._source ? "python" : "javascript")
+			});
 		}
 		
-		$(repl('<tr>\
-			<td style="width: 30%;">%(name)s</td>\
-			<td>\
-				<h5>Usage:</h5>\
-				<pre>%(namespace)s%(name)s(%(args)s)</pre>\
-				%(help)s\
-				%(source)s\
-			</td>\
-		</tr>', {
-			name: name,
-			namespace: namespace,
-			args: args,
-			help: help ? wn.markdown(help) : "",
-			source: source
-		})).appendTo(parent)
+		try {
+			$(repl('<tr>\
+				<td style="width: 30%;">%(name)s</td>\
+				<td>\
+					<h5>Usage:</h5>\
+					<pre>%(namespace)s%(name)s(%(args)s)</pre>\
+					%(help)s\
+					%(source)s\
+				</td>\
+			</tr>', {
+				name: name,
+				namespace: namespace,
+				args: args,
+				help: help ? wn.markdown(help) : "",
+				source: source
+			})).appendTo(parent)
+		} catch(e) {
+			console.log(e);
+			console.log(code);
+		}
 	},
 	get_args: function(obj) {
 		if(obj._args) 
