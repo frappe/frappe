@@ -1,9 +1,9 @@
 [
  "Core", 
+ "Represents the states allowed in one document and role assigned to change the state.", 
  "Update Value", 
  "State", 
  "Only Allow Edit For", 
- "Represents the states allowed in one document and role assigned to change the state.", 
  "Update Field", 
  "Doc Status", 
  "Message", 

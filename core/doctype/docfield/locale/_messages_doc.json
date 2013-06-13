@@ -13,6 +13,7 @@
  "Core", 
  "Long Text", 
  "Print Hide", 
+ "Depends On", 
  "In Filter", 
  "Small Text", 
  "HTML", 
@@ -41,7 +42,6 @@
  "Float", 
  "Datetime", 
  "Currency", 
- "Depends On", 
  "Table", 
  "Check", 
  "Select"

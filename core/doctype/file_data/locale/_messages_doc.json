@@ -2,6 +2,8 @@
  "Core", 
  "File URL", 
  "File Name", 
- "Module", 
- "File Data"
+ "Attached To Name", 
+ "File Data", 
+ "File Size", 
+ "Attached To DocType"
 ]

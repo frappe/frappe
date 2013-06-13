@@ -1,7 +1,6 @@
 [
  "Custom Query", 
  "No", 
- "Search Criteria", 
  "Sort By", 
  "Doc Type", 
  "Columns", 
@@ -9,6 +8,7 @@
  "Core", 
  "Description", 
  "Server Script", 
+ "Report Script", 
  "Standard", 
  "Group By", 
  "Disabled Filters", 
@@ -19,11 +19,11 @@
  "Parent Doc Type", 
  "Additional Conditions", 
  "Client Script", 
+ "Additional Columns", 
  "Module", 
  "Disabled", 
  "Criteria Name", 
- "Report Script", 
- "Additional Columns", 
+ "Search Criteria", 
  "Filters", 
  "Yes"
 ]

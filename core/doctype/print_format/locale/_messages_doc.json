@@ -1,11 +1,14 @@
 [
  "Core", 
+ "HTML", 
  "No", 
  "Print Format", 
  "DocType", 
  "Module", 
  "Standard", 
- "HTML", 
+ "Print Format Type", 
+ "Client", 
  "Associate a DocType to the Print Format", 
+ "Server", 
  "Yes"
 ]
