@@ -141,6 +141,9 @@ wn.ui.form.Attachments = Class.extend({
 			callback: function(fileid, filename, r) {
 				me.update_attachment(fileid, filename, fieldname, r);
 				me.frm.toolbar.show_infobar();
+			},
+			onerror: function() {
+				me.dialog.hide();
 			}
 		});
 	},

@@ -686,7 +686,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		}
 
 		var fetch = '';
-		if(me.frm.fetch_dict[me.df.fieldname])
+		if(me.frm && me.frm.fetch_dict[me.df.fieldname])
 			fetch = me.frm.fetch_dict[me.df.fieldname].columns.join(', ');
 
 		wn.call({

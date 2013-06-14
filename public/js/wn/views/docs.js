@@ -67,16 +67,20 @@ wn.docs.generate_all = function(logarea, for_namespace) {
 				links: links
 			});
 			page.write(function() {
-				logarea.append("Writing " + name + "...<br>");
+				if(!for_namespace || (for_namespace===name))
+					logarea.append("Writing " + name + "...<br>");
 				//logarea.append(".");
 				// recurse
-				if(page.obj._toc) {
-					$.each(page.obj._toc, function(i, child_name) {
+				var pages = (page.obj._toc || []).concat(page.obj._links || []);
+				if(pages && pages.length) {
+					$.each(pages, function(i, child_name) {
 						var child_links = {
 							parent: name
 						};
-						if(i < page.obj._toc.length-1) {
-							child_links.next_sibling = page.obj._toc[i+1];
+						if(page.obj._toc) {
+							if(i < page.obj._toc.length-1) {
+								child_links.next_sibling = page.obj._toc[i+1];
+							}
 						}
 						make_page(wn.docs.get_full_name(child_name), child_links);
 					});
@@ -509,7 +513,10 @@ wn.docs.DocsPage = Class.extend({
 			return obj.toString().split("function")[1].split("(")[1].split(")")[0];
 	},
 	write: function(callback, for_namespace) {
-		if(for_namespace && for_namespace!==this.namespace) return;
+		if(for_namespace && for_namespace!==this.namespace) {
+			callback();
+			return;
+		}
 		wn.call({
 			method: "webnotes.utils.docs.write_doc_file",
 			args: {
