@@ -41,10 +41,10 @@ wn.upload = {
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
 
 			var fileobj = $upload.find(":file").get(0).files[0];
-			wn.upload.upload_file(fileobj, opts.args, opts.callback);
+			wn.upload.upload_file(fileobj, opts.args, opts.callback, opts.onerror);
 		})
 	},
-	upload_file: function(fileobj, args, callback) {
+	upload_file: function(fileobj, args, callback, onerror) {
 		if(!fileobj && !args.file_url) {
 			msgprint(_("Please attach a file or set a URL"));
 			return;
@@ -56,11 +56,11 @@ wn.upload = {
 				"method": "uploadfile",
 				args: args,
 				callback: function(r) {
-					msgbox.hide();
 					if(r.exc) {
-						msgprint("There were errors in uploading.");
+						onerror();
 						return;
 					}
+					msgbox.hide();
 					callback(r.message, args.filename || args.file_url, r);
 					$(document).trigger("upload_complete", 
 						[args.filename, args.file_url]);

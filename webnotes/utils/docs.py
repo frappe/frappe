@@ -333,11 +333,11 @@ docs_template = """
 		body {
 			font-family: Arial, Sans Serif;
 			font-size: 16px;
-			line-height: 25px;
 			text-rendering: optimizeLegibility;
 			color: #555555;
+			line-height: 25px;
 		}
-
+		
 		.navbar-inverse {
 			background-color: #2980b9;
 		}
@@ -377,7 +377,7 @@ docs_template = """
 		  margin-bottom: 0;
 		  font-size: 16px;
 		  font-weight: normal;
-		  line-height: 1.25;
+		  line-height: 25px;
 		}
 		
 		.erpnext-logo {

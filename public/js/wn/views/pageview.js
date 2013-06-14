@@ -64,7 +64,8 @@ wn.views.Page = Class.extend({
 			this.wrapper.page_name = this.pagedoc.name;
 		
 			// set content, script and style
-			this.wrapper.innerHTML = this.pagedoc.content;
+			if(this.pagedoc.content)
+				this.wrapper.innerHTML = this.pagedoc.content;
 			wn.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
 			wn.dom.set_style(this.pagedoc.style || '');
 		}
