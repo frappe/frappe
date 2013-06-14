@@ -196,7 +196,13 @@ if __name__=="__main__":
 	elif args.export:
 		export_doc(args.export[0], args.export[1])
 	elif args.module:
+		import importlib
+		
 		test_suite = unittest.TestSuite()
-		__import__(args.module)
+		module = importlib.import_module(args.module)
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype, verbose=args.verbose)
+		
 		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[args.module]))
 		unittest.TextTestRunner(verbosity=1+(args.verbose and 1 or 0)).run(test_suite)

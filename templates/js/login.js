@@ -62,7 +62,7 @@ login.do_login = function(){
 			if(data.message=="Logged In") {
 				window.location.href = "app.html";
 			} else if(data.message=="No App") {
-				window.location.href = "index";
+				window.location.href = get_url_arg("from") || "index";
 			} else {
 				login.set_message(data.message);
 			}
