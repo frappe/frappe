@@ -160,7 +160,6 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	setup_update_on_refresh: function() {
 		var me = this;
 		this.$wrapper.on("refresh", function() {
-			
 			if(me.disp_status != "None") {
 				// refresh value
 				if(me.doctype && me.docname) {
@@ -181,7 +180,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 							wn.format(me.value, me.df, null, locals[me.doctype][me.name])
 						);
 				}
-
+				
 				me.set_description();
 				me.set_label();
 				me.set_mandatory(me.value);
@@ -312,17 +311,17 @@ wn.ui.form.ControlFloat = wn.ui.form.ControlInt.extend({
 		return callback(isNaN(parseFloat(value)) ? null : flt(value));
 	},
 	format_for_input: function(value) {
-		value = format_number(parseFloat(value), 
+		var formatted_value = format_number(parseFloat(value), 
 			null, cint(wn.boot.sysdefaults.float_precision, null));
-		return isNaN(value) ? "" : value;
+		return isNaN(parseFloat(value)) ? "" : formatted_value;
 	}
 });
 
 wn.ui.form.ControlCurrency = wn.ui.form.ControlFloat.extend({
 	format_for_input: function(value) {
-		value = format_number(parseFloat(value), 
+		var formatted_value = format_number(parseFloat(value), 
 			get_number_format(this.get_currency()));
-		return isNaN(value) ? "" : value;
+		return isNaN(parseFloat(value)) ? "" : formatted_value;
 	},
 	get_currency: function() {
 		return wn.meta.get_field_currency(this.df, this.get_doc());
@@ -711,7 +710,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	set_fetch_values: function(fetch_values) {
 		var fl = this.frm.fetch_dict[this.df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {
-			console.log([this.doctype, this.docname, fl[i], fetch_values[i]]);
 			wn.model.set_value(this.doctype, this.docname, fl[i], fetch_values[i]);
 		}
 	}
