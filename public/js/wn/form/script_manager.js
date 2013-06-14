@@ -6,18 +6,11 @@ wn.ui.form.ScriptManager = Class.extend({
 	trigger: function(event_name, doctype, name) {
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
-		try {
-			if(this.frm.cscript[event_name])
-				this.frm.cscript[event_name](this.frm.doc, doctype, name);
-			
-			if(this.frm.cscript["custom_" + event_name])
-				this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name);
-		} catch(e) {
-			validated = false;
-
-			// show error message
-			this.log_error(event_name, e);
-		}
+		if(this.frm.cscript[event_name])
+			this.frm.cscript[event_name](this.frm.doc, doctype, name);
+		
+		if(this.frm.cscript["custom_" + event_name])
+			this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name);
 	},
 	setup: function() {
 		var doctype = this.frm.meta;
