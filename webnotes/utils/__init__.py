@@ -787,6 +787,10 @@ def comma_sep(some_list, sep):
 	else:
 		return some_list
 		
+def filter_strip_join(some_list, sep):
+	"""given a list, filter None values, strip spaces and join"""
+	return (cstr(sep)).join((cstr(a).strip() for a in filter(None, some_list)))
+		
 def get_path(*path):
 	import os
 	return os.path.join(get_base_path(), *path)
