@@ -11,7 +11,6 @@ wn.provide("wn.editors");
 
 wn.editors.BootstrapWYSIWYG = Class.extend({
 	init: function(opts) {
-		wn.require("lib/js/lib/jquery/jquery.hotkeys.js");
 		wn.require("lib/js/lib/bootstrap-wysiwyg.js");
 		this.opts = opts;
 		this.make_body();

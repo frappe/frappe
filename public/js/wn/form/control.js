@@ -189,6 +189,21 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			
 		})
 	},
+	bind_change_event: function() {
+		var me = this;
+		this.$input && this.$input.on("change", this.change || function() { 
+			me.doctype && me.docname && me.get_value 
+				&& me.parse_validate_and_set_in_model(me.get_value()); } );
+	},
+	bind_save_event: function() {
+		if(this.frm && this.$input) {
+			var me = this;
+			this.$input.keydown("ctrl+s meta+s", function(e) {
+				me.frm.save_or_update();
+				return false;
+			})
+		}
+	},
 	set_label: function() {
 		if(this.only_input || this.df.label==this._label) 
 			return;
@@ -227,6 +242,7 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		this.bind_change_event();
+		this.bind_save_event();
 	},
 	set_input_attributes: function() {
 		this.$input
@@ -237,12 +253,6 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 			this.$input.attr("data-doctype", this.doctype);
 		if(this.df.input_css)
 			this.$input.css(this.df.input_css);
-	},
-	bind_change_event: function() {
-		var me = this;
-		this.$input.on("change", this.change || function() { 
-			me.doctype && me.docname && me.get_value 
-				&& me.parse_validate_and_set_in_model(me.get_value()); } );
 	},
 	set_input: function(val) {
 		this.$input.val(this.format_for_input(val));
@@ -581,6 +591,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					me.parse_validate_and_set_in_model(value);
 				}
 			}});
+		this.bind_save_event();
 		this.setup_buttons();
 		this.setup_autocomplete();
 	},
@@ -728,6 +739,9 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			field: this
 		});
 		this.has_input = true;
+		this.editor.$editor.keypress("ctrl+s meta+s", function() {
+			me.frm.save_or_update();
+		})
 	},
 	get_value: function() {
 		return this.editor.get_value();

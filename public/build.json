@@ -36,7 +36,7 @@
 		"public/js/all-app.min.js": [
 			"lib/public/js/lib/jquery/jquery.ui.min.js",
 			"lib/public/js/lib/tag-it.min.js",
-			"lib/public/js/lib/mousetrap.min.js",
+			"lib/public/js/lib/jquery/jquery.hotkeys.js",
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
 		
