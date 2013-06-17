@@ -792,6 +792,16 @@ _f.Frm.prototype.disable_save = function() {
 	delete cur_frm.appframe.buttons.Save
 }
 
+_f.Frm.prototype.save_or_update = function() {
+	if(this.save_disabled) return;
+
+	if(this.doc.docstatus===0) {
+		this.save();
+	} else if(this.doc.docstatus===1 && this.doc.__unsaved) {
+		this.frm_head.appframe.buttons['Update'].click();
+	}
+}
+
 _f.get_value = function(dt, dn, fn) {
 	if(locals[dt] && locals[dt][dn]) 
 		return locals[dt][dn][fn];
