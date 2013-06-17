@@ -23,7 +23,46 @@
 from __future__ import unicode_literals
 from webnotes.utils.minify import JavascriptMinify
 
+"""
+Build the `public` folders and setup languages
+"""
+
 import os, sys, webnotes
+
+
+def bundle(no_compress, cms_make=True):
+	"""concat / minify js files"""
+	# build js files
+	check_public()
+	check_lang()
+	bundle = Bundle()
+	bundle.no_compress = no_compress
+	bundle.make()
+
+	if cms_make:
+		# build index.html and app.html
+		from website.helpers.make_web_include_files import make
+		make()
+			
+def watch(no_compress):
+	"""watch and rebuild if necessary"""
+	import time
+	bundle = Bundle()
+	bundle.no_compress = no_compress
+
+	while True:
+		if bundle.dirty():
+			bundle.make()
+		
+		time.sleep(3)
+
+def check_public():
+	from webnotes.install_lib.setup_public_folder import make
+	make()
+
+def check_lang():
+	from webnotes.translate import update_translations
+	update_translations()
 
 class Bundle:
 	"""
@@ -184,32 +223,3 @@ class Bundle:
 		self.appfiles = appfiles
 		self.bdata = bdata
 
-def check_public():
-	from webnotes.install_lib.setup_public_folder import make
-	make()
-
-def bundle(no_compress, cms_make=True):
-	"""concat / minify js files"""
-	# build js files
-	check_public()
-	bundle = Bundle()
-	bundle.no_compress = no_compress
-	bundle.make()
-
-	if cms_make:
-		# build index.html and app.html
-		from website.helpers.make_web_include_files import make
-		make()
-			
-def watch(no_compress):
-	"""watch and rebuild if necessary"""
-	import time
-	bundle = Bundle()
-	bundle.no_compress = no_compress
-
-	while True:
-		if bundle.dirty():
-			bundle.make()
-		
-		time.sleep(3)
-			
