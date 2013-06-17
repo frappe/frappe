@@ -61,7 +61,7 @@ def check_public():
 	make()
 
 def check_lang():
-	from webnotes.tranlate import update_translations
+	from webnotes.translate import update_translations
 	update_translations()
 
 class Bundle:
