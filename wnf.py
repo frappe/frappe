@@ -60,8 +60,8 @@ def pull(remote, branch, build=False):
 	
 def rebuild():
 	# build js / css
-	from webnotes.utils import bundlejs
-	bundlejs.bundle(False)		
+	from webnotes import build
+	build.bundle(False)		
 	
 def apply_latest_patches():
 	import webnotes.modules.patch_handler
@@ -277,17 +277,17 @@ def run():
 	
 	# build
 	if options.build:
-		from webnotes.utils import bundlejs
+		from webnotes import build
 		if options.no_cms:
 			cms_make = False
 		else:
 			cms_make = True
-		bundlejs.bundle(False, cms_make)
+		build.bundle(False, cms_make)
 		return
 		
 	elif options.watch:
-		from webnotes.utils import bundlejs
-		bundlejs.watch(True)
+		from webnotes import build
+		build.watch(True)
 		return
 
 	# code replace
@@ -477,29 +477,9 @@ def run():
 		google_translate(*options.google_translate)
 	
 	elif options.translate:
-		from webnotes.translate import build_message_files, \
-			export_messages, google_translate, import_messages
-			
-		languages = [options.translate]
-		if options.translate=="all":
-			from startup import lang_list
-			languages = lang_list
-			
-		print "Extracting messages..."
-		build_message_files()
-		for lang in languages:
-			if lang != "en":
-				filename = 'app/translations/'+lang+'.csv'
-				print "For " + lang + ":"
-				print "Compiling messages in one file..."
-				export_messages(lang, '_lang_tmp.csv')
-				print "Translating via Google Translate..."
-				google_translate(lang, '_lang_tmp.csv', filename)
-				print "Updating language files..."
-				import_messages(lang, filename)
-				print "Deleting temp files..."
-				os.remove('_lang_tmp.csv')
-				
+		from webnotes.translate import translate
+		translate(options.translate)
+
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`
 			where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):

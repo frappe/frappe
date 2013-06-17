@@ -37,6 +37,53 @@ import re
 
 messages = {}
 
+def translate(lang=None):
+	languages = [lang]
+	if lang=="all" or lang==None:
+		languages = get_all_languages()
+
+	print "Extracting messages..."
+	build_message_files()
+	
+	export_messages(lang, '_lang_tmp.csv')
+	
+	for lang in languages:
+		if lang != "en":
+			filename = 'app/translations/'+lang+'.csv'
+			print "For " + lang + ":"
+			print "Compiling messages in one file..."
+			print "Translating via Google Translate..."
+			google_translate(lang, '_lang_tmp.csv', filename)
+			print "Updating language files..."
+			import_messages(lang, filename)
+			print "Deleting temp files..."
+	
+	os.remove('_lang_tmp.csv')
+
+def get_all_languages():
+	return [f[:-4] for f in os.listdir("app/translations") if f.endswith(".csv")]
+
+def update_translations():
+	"""
+	compare language file timestamps with last updated timestamps in `.wnf-lang-status`
+	if timestamps are missing / changed, build new `.json` files in the `lang folders`
+	"""
+	langstatus = {}
+	languages = get_all_languages()
+	if os.path.exists(".wnf-lang-status"):
+		with open(".erpnext-lang-status", "r") as langstatusfile:
+			langstatus = eval(langstatusfile.read())
+			
+	for lang in languages:
+		filename = 'app/translations/'+lang+'.csv'
+		if langstatus.get(lang, None)!=os.path.getmtime(filename):
+			print "Setting up lang files for " + lang + "..."
+			import_messages(lang, filename)
+			langstatus[lang] = os.path.getmtime(filename)
+	
+	with open(".wnf-lang-status", "w") as langstatusfile:
+		langstatus = langstatusfile.write(str(langstatus))
+
 def build_message_files():
 	"""build from doctypes, pages, database and framework"""
 	build_for_pages('lib/core')
