@@ -327,12 +327,15 @@ def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
 	return webnotes.model.doctype.get(doctype, processed)
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False):
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None, for_reload=False):
 	import webnotes.model.utils
+
+	if not ignore_doctypes: 
+		ignore_doctypes = []
 	
 	if isinstance(name, list):
 		for n in name:
-			webnotes.model.utils.delete_doc(doctype, n)
+			webnotes.model.utils.delete_doc(doctype, n, doclist, force, ignore_doctypes, for_reload)
 	else:
 		webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload)
 
