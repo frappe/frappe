@@ -467,6 +467,7 @@ DataField.prototype.make_input = function() {
 		if(val==null)val='';
 		me.input.value = val; 
 		if(me.format_input)me.format_input();
+		me.last_value = val;
 	}
 }
 DataField.prototype.validate = function(v) {
@@ -560,6 +561,7 @@ DateField.prototype.setup_input = function() {
 		if(val==null)val='';
 		else val=dateutil.str_to_user(val);
 		me.input.value = val;
+		me.last_value = val;
 	}
 	me.get_value = function() {
 		if(me.input.value)
@@ -629,6 +631,7 @@ LinkField.prototype.make_input = function() {
 	me.input.set_input = function(val) {
 		if(val==undefined)val='';
 		me.txt.value = val;
+		me.last_value = val;
 	}
 
 	me.get_value = function() { return me.txt.value; }
@@ -971,6 +974,7 @@ CheckField.prototype.make_input = function() { var me = this;
 	
 	this.input.set_input = function(v) {
 		me.input.checked = cint(v) ? true : false;
+		me.last_value = v;
 	}
 
 	this.get_value= function() {
@@ -1004,6 +1008,7 @@ TextField.prototype.make_input = function() {
 	}
 	this.input.set_input = function(v) {
 		me.input.value = (v==null ? "" : v);
+		me.last_value = v;
 	}
 	this.input.onchange = function() {
 		me.set(me.input.value); 
@@ -1153,6 +1158,7 @@ SelectField.prototype.make_input = function() {
 			}
 			if(option === value) {
 				me.input.value = value;
+				me.last_value = value;
 				break;
 			}
 		}
@@ -1241,6 +1247,7 @@ TimeField.prototype.make_input = function() {
 	
 	this.input.set_input = function(v) {
 		$(me.input).val(v);
+		me.last_value = v;
 	};
 	
 	this.input.onchange = function() {
