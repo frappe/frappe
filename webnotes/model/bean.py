@@ -41,7 +41,6 @@ class Bean:
 	Collection of Documents with one parent and multiple children
 	"""
 	def __init__(self, dt=None, dn=None):
-		self.docs = []
 		self.obj = None
 		self.ignore_permissions = False
 		self.ignore_children_type = []
@@ -81,34 +80,36 @@ class Bean:
 		self.run_method("onload")
 
 	def __iter__(self):
-		return self.docs.__iter__()
+		return self.doclist.__iter__()
 
 	def from_compressed(self, data, docname):
 		from webnotes.model.utils import expand
-		self.docs = expand(data)
-		self.set_doclist(self.docs)
+		self.set_doclist(expand(data))
 		
-	def set_doclist(self, docs):
-		for i, d in enumerate(docs):
+	def set_doclist(self, doclist):
+		for i, d in enumerate(doclist):
 			if isinstance(d, dict):
-				docs[i] = Document(fielddata=d)
+				doclist[i] = Document(fielddata=d)
 		
-		self.docs = self.doclist = webnotes.doclist(docs)
-		self.doc, self.children = self.doclist[0], self.doclist[1:]
+		self.doclist = webnotes.doclist(doclist)
+		self.doc = self.doclist[0]
 		if self.obj:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc
 
 	def make_obj(self):
-		if self.obj: 
+		if self.obj:
+			# update doclist before running any method
+			self.obj.doclist = self.doclist
 			return self.obj
+		
 		self.obj = webnotes.get_obj(doc=self.doc, doclist=self.doclist)
 		self.obj.bean = self
 		self.controller = self.obj
 		return self.obj
 
 	def to_dict(self):
-		return [d.fields for d in self.docs]
+		return [d.fields for d in self.doclist]
 
 	def check_if_latest(self, method="save"):
 		from webnotes.model.meta import is_single
@@ -165,7 +166,7 @@ class Bean:
 		if self.ignore_check_links:
 			return
 		ref, err_list = {}, []
-		for d in self.docs:
+		for d in self.doclist:
 			if not ref.get(d.doctype):
 				ref[d.doctype] = d.make_link_list()
 
@@ -180,7 +181,7 @@ class Bean:
 		ts = now()
 		user = webnotes.__dict__.get('session', {}).get('user') or 'Administrator'
 
-		for d in self.docs:
+		for d in self.doclist:
 			if self.doc.fields.get('__islocal'):
 				if not d.owner:
 					d.owner = user
@@ -225,7 +226,7 @@ class Bean:
 
 		notify(self.obj, method)
 		
-		self.set_doclist(self.obj.doclist)
+		self.doclist = self.obj.doclist
 
 	def get_method(self, method):
 		self.make_obj()
@@ -245,7 +246,7 @@ class Bean:
 
 	def save_children(self):
 		child_map = {}
-		for d in self.children:
+		for d in self.doclist[1:]:
 			if d.fields.get("parent") or d.fields.get("parentfield"):
 				d.parent = self.doc.name # rename if reqd
 				d.parenttype = self.doc.doctype
