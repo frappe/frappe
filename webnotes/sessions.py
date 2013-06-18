@@ -69,12 +69,14 @@ def get():
 	"""get session boot info"""
 	from webnotes.widgets.notification import get_notification_info_for_boot
 
+	bootinfo = None
 	if not getattr(conf,'auto_cache_clear',None):
 		# check if cache exists
 		bootinfo = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-	else:
+			
+	if not bootinfo:
 		if not webnotes.cache().get_stats():
 			webnotes.msgprint("memcached is not working / stopped. Please start memcached for best results.")
 	
