@@ -195,7 +195,7 @@ wn.ui.toolbar.update_notifications = function() {
 		var count = wn.boot.notification_info.open_count_module[module];
 		if(count) {
 			$(repl('<li><a>\
-				<span class="badge badge-important pull-right">\
+				<span class="badge pull-right">\
 					%(count)s</span> \
 				%(module)s </a></li>', {
 					module: module,
@@ -220,7 +220,7 @@ wn.ui.toolbar.update_notifications = function() {
 		var count = wn.boot.notification_info.open_count_doctype[doctype];
 		if(count) {
 			$(repl('<li><a>\
-				<span class="badge badge-important pull-right">\
+				<span class="badge pull-right">\
 					%(count)s</span> \
 				%(doctype)s </a></li>', {
 					doctype: doctype,
