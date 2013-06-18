@@ -2,7 +2,6 @@
 // MIT Licensed. See license.txt
 
 wn.provide("wn.views.moduleview");
-wn.provide("wn.model.open_count_conditions");
 wn.provide("wn.module_page");
 wn.home_page = "desktop";
 
@@ -13,6 +12,20 @@ wn.views.moduleview.make = function(wrapper, module) {
 		// remake on refresh
 		if((new Date() - wrapper.module_view.created_on) > (180 * 1000)) {
 			wrapper.module_view = new wn.views.moduleview.ModuleView(wrapper, module);
+		}
+	}
+}
+
+wn.views.show_open_count_list = function(element) {
+	var doctype = $(element).attr("data-doctype");
+	var condition = wn.boot.notification_info.conditions[doctype];
+	if(condition) {
+		wn.route_options = condition;
+		var route = wn.get_route()
+		if(route[0]==="List" && route[1]===doctype) {
+			wn.pages["List/" + doctype].doclistview.refresh();
+		} else {
+			wn.set_route("List", doctype);
 		}
 	}
 }
@@ -34,6 +47,11 @@ wn.views.moduleview.ModuleView = Class.extend({
 		this.render_static();
 		this.render_dynamic();
 		this.created_on = new Date();
+
+		var me = this;
+		$(document).on("notification-update", function() {
+			me.update_open_count();
+		});
 	},
 	make_body: function() {
 		var wrapper = this.wrapper;
@@ -44,11 +62,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {
-			var doctype = $(this).parent().find("[data-doctype]").attr("data-doctype");
-			var condition = wn.model.open_count_conditions[doctype];
-			if(condition) {
-				wn.set_route("List", doctype, wn.utils.get_url_from_dict(condition));
-			}
+			wn.views.show_open_count_list(this);
 		});
 
 		$(wrapper).on("click", ".badge-count", function() {
@@ -169,21 +183,30 @@ wn.views.moduleview.ModuleView = Class.extend({
 						})
 					}
 
-					// counts
-					if(r.message.open_count) {
-						$.extend(wn.model.open_count_conditions, r.message.conditions);
-
-						$.each(r.message.open_count, function(doctype, count) {
-							$("<span class='badge badge-important'\
-									style='cursor:pointer;\
-									margin-right: 0px;\
-									background-color: #b94a48'>" + count + "</span>").
-								insertAfter($(me.wrapper)
-									.find("[data-doctype-count='"+doctype+"']"));
-						})
-					}
+					// open-counts
+					me.update_open_count();
 				}
 			}
 		});	
+	},
+	update_open_count: function() {
+		var me = this;
+		$(me.wrapper).find(".badge-important").remove();
+		if(wn.boot.notification_info.open_count_doctype) {
+			$.each(wn.boot.notification_info.open_count_doctype, function(doctype, count) {
+				if(in_list(me.doctypes, doctype)) {
+					$('<span>')
+						.css({
+							"cursor": "pointer",
+							"margin-right": "0px"
+						})
+						.addClass("badge badge-important")
+						.html(count)
+						.attr("data-doctype", doctype)
+						.insertAfter($(me.wrapper)
+							.find("[data-doctype-count='"+doctype+"']"));
+				}
+			})
+		}
 	}
 });

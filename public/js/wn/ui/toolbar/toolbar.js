@@ -26,12 +26,13 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		this.make();
 		//this.make_modules();
 		this.make_file();
-		//this.make_actions();
 		wn.ui.toolbar.recent = new wn.ui.toolbar.RecentDocs();
 		wn.ui.toolbar.bookmarks = new wn.ui.toolbar.Bookmarks();
 		this.make_tools();
 		this.set_user_name();
 		this.make_logout();
+		this.make_notification();
+		
 		$('.dropdown-toggle').dropdown();
 		
 		$(document).trigger('toolbar_setup');
@@ -70,51 +71,65 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	make_home: function() {
 		$('.navbar-brand').attr('href', "#");
 	},
-
-	make_modules: function() {
-		$('<li class="dropdown">\
-			<a class="dropdown-toggle" data-toggle="dropdown" href="#"\
-				title="'+wn._("Modules")+'"\
-				onclick="return false;">'+wn._("Modules")+'</a>\
-			<ul class="dropdown-menu modules">\
-			</ul>\
-			</li>').prependTo('.navbar .nav:first');
-
-		var modules_list = wn.user.get_desktop_items().sort();
-		var menu_list = $(".navbar .modules");
-
-		var _get_list_item = function(m) {
-			args = {
-				module: m,
-				module_page: wn.modules[m].link,
-				module_label: wn._(wn.modules[m].label || m),
-				icon: wn.modules[m].icon
-			}
-
-			return repl('<li><a href="#%(module_page)s" \
-				data-module="%(module)s"><i class="%(icon)s" style="display: inline-block; \
-					width: 21px; margin-top: -2px; margin-left: -7px;"></i>\
-				%(module_label)s</a></li>', args);
-		}
-
-		// desktop
-		$('<li><a href="#desktop"><i class="icon-th"></i> '
-			+ wn._("Desktop") + '</a></li>\
-			<li class="divider"></li>').appendTo(menu_list) 
-
-		// add to dropdown
-		$.each(modules_list,function(i, m) {
-			if(m!='Setup') {
-				menu_list.append(_get_list_item(m));			
-			}
-		})
-
-		// setup for system manager
-		if(user_roles.indexOf("System Manager")!=-1) {
-			menu_list.append('<li class="divider">' + _get_list_item("Setup"));
-		}
 	
+	make_notification: function() {
+		$('.navbar .pull-right').append('<li class="dropdown">\
+			<a class="dropdown-toggl" href="#"  data-toggle="dropdown"\
+				title="'+wn._("Unread Messages")+'"\
+				onclick="return false;"><span class="navbar-new-comments">0</span></a>\
+			<ul class="dropdown-menu" id="navbar-notification">\
+			</ul>\
+		</li>');
+
+		$(document).on("notification-update", function() {
+			wn.ui.toolbar.update_notifications();
+		})
 	},
+
+	// make_modules: function() {
+	// 	$('<li class="dropdown">\
+	// 		<a class="dropdown-toggle" data-toggle="dropdown" href="#"\
+	// 			title="'+wn._("Modules")+'"\
+	// 			onclick="return false;">'+wn._("Modules")+'</a>\
+	// 		<ul class="dropdown-menu modules">\
+	// 		</ul>\
+	// 		</li>').prependTo('.navbar .nav:first');
+	// 
+	// 	var modules_list = wn.user.get_desktop_items().sort();
+	// 	var menu_list = $(".navbar .modules");
+	// 
+	// 	var _get_list_item = function(m) {
+	// 		args = {
+	// 			module: m,
+	// 			module_page: wn.modules[m].link,
+	// 			module_label: wn._(wn.modules[m].label || m),
+	// 			icon: wn.modules[m].icon
+	// 		}
+	// 
+	// 		return repl('<li><a href="#%(module_page)s" \
+	// 			data-module="%(module)s"><i class="%(icon)s" style="display: inline-block; \
+	// 				width: 21px; margin-top: -2px; margin-left: -7px;"></i>\
+	// 			%(module_label)s</a></li>', args);
+	// 	}
+	// 
+	// 	// desktop
+	// 	$('<li><a href="#desktop"><i class="icon-th"></i> '
+	// 		+ wn._("Desktop") + '</a></li>\
+	// 		<li class="divider"></li>').appendTo(menu_list) 
+	// 
+	// 	// add to dropdown
+	// 	$.each(modules_list,function(i, m) {
+	// 		if(m!='Setup') {
+	// 			menu_list.append(_get_list_item(m));			
+	// 		}
+	// 	})
+	// 
+	// 	// setup for system manager
+	// 	if(user_roles.indexOf("System Manager")!=-1) {
+	// 		menu_list.append('<li class="divider">' + _get_list_item("Setup"));
+	// 	}
+	// 
+	// },
 	
 	make_file: function() {
 		wn.ui.toolbar.new_dialog = new wn.ui.toolbar.NewDialog();
@@ -134,17 +149,6 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			</ul>\
 		</li>');
 	},
-
-
-	// make_actions: function() {
-	// 	$('.navbar .nav:first').append('<li class="dropdown">\
-	// 		<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-	// 			title="'+wn._("Actions")+'"\
-	// 			onclick="return false;">'+wn._("Actions")+'</a>\
-	// 		<ul class="dropdown-menu" id="navbar-actions">\
-	// 		</ul>\
-	// 	</li>');
-	// },
 
 	make_tools: function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
@@ -179,6 +183,65 @@ wn.ui.toolbar.Toolbar = Class.extend({
 			+wn._('Logout')+'</a></li>');
 	}
 });
+
+wn.ui.toolbar.update_notifications = function() {
+	var total = 0;
+	var doctypes = keys(wn.boot.notification_info.open_count_doctype).sort();
+	var modules = keys(wn.boot.notification_info.open_count_module).sort();
+	
+	$("#navbar-notification").empty();
+
+	$.each(modules, function(i, module) {
+		var count = wn.boot.notification_info.open_count_module[module];
+		if(count) {
+			$(repl('<li><a>\
+				<span class="badge badge-important pull-right">\
+					%(count)s</span> \
+				%(module)s </a></li>', {
+					module: module,
+					count: count
+				}))
+				.appendTo("#navbar-notification")
+					.find("a")
+					.attr("data-module", module)
+					.css({"min-width":"200px"})
+					.on("click", function() {
+						wn.set_route(wn.modules[$(this).attr("data-module")].link);
+					});
+			total += count;
+		}
+	});
+	
+	if(total) {
+		$('<li class="divider"></li>').appendTo("#navbar-notification");
+	}
+	
+	$.each(doctypes, function(i, doctype) {
+		var count = wn.boot.notification_info.open_count_doctype[doctype];
+		if(count) {
+			$(repl('<li><a>\
+				<span class="badge badge-important pull-right">\
+					%(count)s</span> \
+				%(doctype)s </a></li>', {
+					doctype: doctype,
+					count: count
+				}))
+				.appendTo("#navbar-notification")
+					.find("a")
+					.attr("data-doctype", doctype)
+					.css({"min-width":"200px"})
+					.on("click", function() {
+						wn.views.show_open_count_list(this);
+					});
+			total += count;
+		}
+	});
+	
+	$(".navbar-new-comments")
+		.html(total)
+		.toggleClass("navbar-new-comments-true", total ? true : false);
+	
+}
 
 wn.ui.toolbar.clear_cache = function() {
 	localStorage && localStorage.clear();

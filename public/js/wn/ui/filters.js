@@ -150,14 +150,10 @@ wn.ui.Filter = Class.extend({
 				me.flist.$w.find('.set_filters').toggle(true);
 				me.flist.$w.find('.show_filters').toggle(false);
 			}
-			
-			// remove from route
-			var in_route = me.remove_from_route(fieldname);
-			
-			if(value && !in_route) {
-				me.flist.listobj.run();
-			}
+						
 			me.flist.update_filters();
+			me.flist.listobj.dirty = true;
+			me.flist.listobj.run();
 			return false;
 		});
 
@@ -182,27 +178,12 @@ wn.ui.Filter = Class.extend({
 		}	
 
 	},
-	
-	remove_from_route: function(fieldname) {
-		var route = wn.get_route();
-		if(route[2]) {
-			var args = wn.utils.get_args_dict_from_url(route[2]);
-			if(in_list(keys(args), fieldname)) {
-				delete args[fieldname];
-				route[2] = wn.utils.get_url_from_dict(args);
-				wn.set_route(route[0], route[1], route[2]);
-				return true;
-			}
-		}
-		return false;
-	},
-	
+		
 	set_values: function(tablename, fieldname, condition, value) {
 		// presents given (could be via tags!)
 		this.set_field(tablename, fieldname);
 		if(condition) this.$w.find('.condition').val(condition).change();
-		if(value) this.field.set_input(value)
-		
+		if(value!=null) this.field.set_input(value);
 	},
 	
 	set_field: function(tablename, fieldname, fieldtype) {

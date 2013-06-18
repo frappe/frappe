@@ -153,7 +153,13 @@ class Profile:
 		
 		rdl = [new_rd] + rdl
 		r = webnotes.cache().set_value("recent:" + self.name, rdl)
-			
+	
+	def get_can_read(self):
+		"""return list of doctypes that the user can read"""
+		if not self.can_read:
+			self.build_permissions()
+		return self.can_read
+	
 	def load_profile(self):
 		d = webnotes.conn.sql("""select email, first_name, last_name, 
 			email_signature, background_image

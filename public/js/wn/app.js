@@ -68,6 +68,8 @@ wn.Application = Class.extend({
 			// route to home page
 			wn.route();	
 		}
+
+		this.start_notification_updates();
 		
 		$(document).trigger('app_ready');
 	},
@@ -89,6 +91,32 @@ wn.Application = Class.extend({
 			this.set_as_guest();
 		}
 	},
+	
+	start_notification_updates: function() {
+		var me = this;
+		setInterval(function() {
+			me.refresh_notifications();
+		}, 30000);
+		
+		// first time loaded in boot
+		$(document).trigger("notification-update");
+	},
+	
+	refresh_notifications: function() {
+		if(wn.session_alive) {
+			wn.call({
+				method: "webnotes.widgets.notification.get",
+				callback: function(r) {
+					if(r.message) {
+						$.extend(wn.boot.notification_info, r.message);
+						$(document).trigger("notification-update");
+					}
+				},
+				no_spinner: true
+			});
+		}
+	},
+	
 	set_globals: function() {
 		// for backward compatibility
 		profile = wn.boot.profile;

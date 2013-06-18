@@ -57,6 +57,7 @@ def get_bootinfo():
 	# home page
 	bootinfo.modules = webnotes.get_config().modules
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
+
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
@@ -80,7 +81,7 @@ def get_bootinfo():
 	bootinfo['docs'] = compress(bootinfo['docs'])
 	
 	return bootinfo
-
+	
 def load_country_and_currency(bootinfo, doclist):
 	if bootinfo.control_panel.country and \
 		webnotes.conn.exists("Country", bootinfo.control_panel.country):
