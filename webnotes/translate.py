@@ -29,7 +29,7 @@ Contributing:
 3. Then run translate
 """
 
-import webnotes, conf
+import webnotes
 import os
 import codecs
 import json
@@ -375,7 +375,7 @@ def google_translate(lang, infile, outfile):
 	
 	data = get_all_messages_from_file(infile)
 	
-	import requests
+	import requests, conf
 	
 	with open(outfile, 'w') as msgfile:
 		from csv import writer
