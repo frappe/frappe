@@ -34,7 +34,7 @@
 							<td>&nbsp;</td>
 							<td>
 								<button type="submit" id="login_btn" 
-									class="btn btn-small btn-primary">Login</button>
+									class="btn btn-primary">Login</button>
 								<img src="lib/images/ui/button-load.gif" id="login-spinner" 
 									style="display: none;">
 							</td>
@@ -43,15 +43,8 @@
 				</table>
 			</form>
 			<br>
-			<p style="text-align: center" id="forgot-wrapper">
-				<a id="forgot-password" style="cursor:pointer"
-				onclick="return login.show_forgot_password()">Forgot Password</a></p>
 			
-			{% if not disable_signup %}
-			<p style="text-align: center" id="sign-up-wrapper">
-				New user? <a id="sign-up" style="cursor:pointer"
-				onclick="return login.sign_up()">Sign Up</a></p>
-			{% endif %}
+			<p style="text-align: center" id="switch-view"></p>
 		</div>
 	</div>
 	<div class="web-footer login-footer container">
