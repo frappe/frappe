@@ -29,6 +29,10 @@ Every module (namespace) / class will have a page
 
 wn.require("lib/public/js/lib/beautify-html.js");
 
+cur_frm.cscript.onload = function(doc) {
+	wn.docs.build_client_app_toc(wn, "wn");
+}
+
 cur_frm.cscript.refresh = function(doc) {
 	cur_frm.disable_save();
 
@@ -43,6 +47,7 @@ wn.provide("docs");
 wn.provide("wn.docs");
 
 wn.docs.generate_all = function(logarea) {
+	wn.docs.to_write = {};
 	var pages = [],
 		body = $("<div class='docs'>"),
 		doc = cur_frm.doc;
@@ -58,31 +63,28 @@ wn.docs.generate_all = function(logarea) {
 				doc.build_pages ? doc.page_name : 
 					(doc.build_modules ? null : (
 						doc.build_server_api ? doc.python_module_name : null)));
-
-			console.log(for_namespace);
 			
-			page.write(function() {
-				if(!for_namespace || (for_namespace===name))
-					logarea.append("Wrote " + name + "...<br>");
-
-				var pages = (page.obj._toc || []).concat(page.obj._links || []);
-				if(pages && pages.length) {
-					$.each(pages, function(i, child_name) {
-						var child_links = {
-							parent: name
-						};
-						if(page.obj._toc) {
-							if(i < page.obj._toc.length-1) {
-								child_links.next_sibling = page.obj._toc[i+1];
-							}
+			page.write(for_namespace);
+			
+			// make_page for _toc items
+			var pages = (page.obj._toc || []).concat(page.obj._links || []);
+			if(pages && pages.length) {
+				$.each(pages, function(i, child_name) {
+					var child_links = {
+						parent: name
+					};
+					if(page.obj._toc) {
+						if(i < page.obj._toc.length-1) {
+							child_links.next_sibling = page.obj._toc[i+1];
 						}
-						make_page(wn.docs.get_full_name(child_name), child_links);
-					});
-				}
-			}, for_namespace);
+					}
+					make_page(wn.docs.get_full_name(child_name), child_links);
+				});
+			}
 		}
 	
 		logarea.empty().append("Downloading server docs...<br>");
+		
 		wn.call({
 			"method": "core.doctype.documentation_tool.documentation_tool.get_docs",
 			args: {options: cur_frm.doc},
@@ -94,22 +96,64 @@ wn.docs.generate_all = function(logarea) {
 				wn.provide("docs.dev.framework.client").wn = wn;
 				
 				// append static pages to the "docs" object
-				$.each(r.message.pages || [], function(n, content) {
-					var parts = content.split("---");
-					try {
-						var headers = parts.splice(0, 2)[1];
-						var obj = JSON.parse(headers);
-					} catch(e) {
-						msgprint("header parsing error in " + n);
-					}
-					obj._intro = parts.join("---");
+				$.each(r.message.pages || [], function(n, obj) {
 					$.extend(wn.provide(n), obj);
 				});
 				
+				logarea.append("Preparing html...<br>");
+				
 				make_page("docs");
+
+				logarea.append("Writing...<br>");
+				wn.call({
+					method: "core.doctype.documentation_tool.documentation_tool.write_docs",
+					args: {
+						data: JSON.stringify(wn.docs.to_write)
+					},
+					callback: function(r) {
+						logarea.append("Wrote " + keys(wn.docs.to_write).length + " pages.");
+					}
+				});
 			}
 		});
-	
+}
+
+wn.docs.build_client_app_toc = function(obj, obj_name) {
+	var is_module = function(value) {
+		return value
+			&& $.isPlainObject(value)
+			&& value._type !== "instance" 
+			&& has_function_or_class(value)
+	}
+	var has_function_or_class = function(value) {
+		var ret = false;
+		$.each(value, function(name, prop) {
+			if(prop && 
+				(typeof prop === "function"
+					|| prop._type === "class")
+				&& prop._type !== "instance") {
+					ret = true;
+					return false;
+				}
+		})
+		return ret
+	}
+	if($.isPlainObject(obj)) {
+		var toc = [];
+		$.each(obj, function(name, value) {
+			if(value) {
+				if(is_module(value) || value._type==="class")
+					toc.push(obj_name + "." + name);
+			}
+		});
+		if(toc.length) {
+			obj._toc = toc;
+			$.each(toc, function(i, full_name) {
+				var name = full_name.split(".").slice(-1)[0];
+				wn.docs.build_client_app_toc(obj[name], full_name);
+			})
+		}
+	}
 }
 
 wn.docs.get_full_name = function(name) {
@@ -153,19 +197,30 @@ wn.docs.DocsPage = Class.extend({
 		this.make(obj);
 	},
 	make: function(obj) {
+		var has_docs = false;
 		this.make_title(obj);
 		this.make_breadcrumbs(obj);
-		this.make_intro(obj);
-		this.make_toc(obj);
+		has_docs = this.make_intro(obj);
+		has_docs = this.make_toc(obj) || has_docs;
 		if(obj._type==="model") {
 			this.make_docproperties(obj);
 			this.make_docfields(obj);
+			has_docs = true;
 		}
-		if(obj._type=="permissions")
+		if(obj._type=="permissions") {
 			this.make_docperms(obj);
-		if(obj._type==="controller_client")
+			has_docs = true;
+		}
+		if(obj._type==="controller_client") {
 			this.make_obj_from_cur_frm(obj);
-		this.make_functions(obj);
+		}
+
+		has_docs = this.make_functions(obj) || has_docs;
+		
+		if(!has_docs) {
+			$('<h4 class="text-muted">No docs</h4>').appendTo(this.parent);
+		}
+		
 		this.make_footer();
 		if(this.links) {
 			this.make_links();
@@ -265,6 +320,7 @@ wn.docs.DocsPage = Class.extend({
 	make_intro: function(obj) {
 		if(obj._intro) {
 			$("<p>").html(wn.markdown(obj._intro)).appendTo(this.parent);
+			return true;
 		}
 	},
 	make_toc: function(obj) {
@@ -280,7 +336,8 @@ wn.docs.DocsPage = Class.extend({
 						label: wn.provide(link_name)._label || name
 					}))
 					.appendTo(ol)
-			})
+			});
+			return true;
 		}
 	},
 	
@@ -354,8 +411,9 @@ wn.docs.DocsPage = Class.extend({
 			})
 			$.each(obj._permissions, function(i, perm) {
 				if(!perm.match) perm.match = "";
-				$.each(perm, function(key, val) {
-					if(val==null) perm[key] = "";
+				$.each(["permlevel", "read", "write", "cancel", "create", "submit", 
+					"amend", "report", "match"], function(i, key) {
+					if(perm[key]==null) perm[key] = "";
 				});
 				$(repl('<tr>\
 					<td>%(idx)s</td>\
@@ -404,6 +462,7 @@ wn.docs.DocsPage = Class.extend({
 		if(!$.isEmptyObject(functions)) {
 			this.h3(obj._type === "class" ? "Methods" : "Functions");
 			this.make_function_table(functions);
+			return true;
 		}
 	},
 	get_functions: function(obj) {
@@ -470,7 +529,7 @@ wn.docs.DocsPage = Class.extend({
 		if(code.substr(0, 8)==="function" || value._source) {
 			source = repl('<p style="font-size: 90%;">\
 				<a href="#" data-toggle="%(name)s">View Source</a></p>\
-				<pre data-target="%(name)s" style="display: none; font-size: 11px; \
+				<pre data-target="%(name)s" style="display: none; font-size: 12px; \
 						background-color: white; border-radius: 0px;\
 						overflow-x: auto; word-wrap: normal;"><code class="language-%(lang)s">\
 %(code)s</code></pre>', {
@@ -512,16 +571,10 @@ wn.docs.DocsPage = Class.extend({
 			callback();
 			return;
 		}
-		wn.call({
-			method: "webnotes.utils.docs.write_doc_file",
-			args: {
-				name: this.namespace,
-				title: this.obj._label || wn.docs.get_short_name(this.namespace),
-				html: html_beautify(this.parent.html())
-			},
-			callback: function(r) {
-				callback();
-			}
-		});
+		
+		wn.docs.to_write[this.namespace] = {
+			title: wn.app.name + ": " + this.obj._label || wn.docs.get_short_name(this.namespace),
+			content: html_beautify(this.parent.html())
+		}
 	}
 })

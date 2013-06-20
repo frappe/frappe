@@ -10,6 +10,9 @@ from webnotes.modules import get_doc_path, get_module_path, scrub
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+		
+	def onload(self):
+		prepare_docs()
 
 gh_prefix = "https://github.com/webnotes/"
 
@@ -35,8 +38,13 @@ def get_static_pages():
 					if fname.endswith(".md"):
 						fpath = os.path.join("..", repo, "docs", fname)
 						with open(fpath, "r") as docfile:
-							mydocs[fname[:-3]] = docfile.read()
-	
+							src = unicode(docfile.read(), "utf-8")
+							temp, headers, body = src.split("---", 2)
+							d = json.loads(headers)
+							d["_intro"] = body
+							d["_gh_source"] = get_gh_url(fpath)
+							mydocs[fname[:-3]] = d
+
 	return mydocs
 
 def get_docs_for(docs, name):
@@ -83,10 +91,10 @@ def inspect_object_and_update_docs(mydocs, obj):
 	mydocs["_toc"] = getattr(obj, "_toc", "")
 	if inspect.ismodule(obj):
 		mydocs["_type"] = "module"
-		mydocs["_gh_source"] = get_gh_url(obj)
+		mydocs["_gh_source"] = get_gh_url(obj.__file__)
 	else:
 		mydocs["_type"] = "class"
-		mydocs["_gh_source"] = get_gh_url(inspect.getmodule(obj))
+		mydocs["_gh_source"] = get_gh_url(inspect.getmodule(obj).__file__)
 		
 	if not mydocs.get("_intro"):
 		mydocs["_intro"] = getattr(obj, "__doc__", "")
@@ -106,10 +114,12 @@ def inspect_object_and_update_docs(mydocs, obj):
 					"_source": inspect.getsource(value)
 				}
 				
-def get_gh_url(module):
-	path = module.__file__
+def get_gh_url(path):
 	sep = "/lib/" if "/lib/" in path else "/app/"
-	url = gh_prefix + ("wnframework" if sep=="/lib/" else "erpnext") + "/blob/master/" + path.split(sep)[1]
+	url = gh_prefix \
+		+ ("wnframework" if sep=="/lib/" else "erpnext") \
+		+ ("/blob" if "." in path else "/tree") \
+		+"/master/" + path.split(sep)[1]
 	if url.endswith(".pyc"):
 		url = url[:-1]
 	return url
@@ -121,7 +131,7 @@ def get_modules(for_module=None):
 	if for_module:
 		modules = [for_module]
 	else:
-		modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name limit 3")
+		modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name")
 	
 	docs["_toc"] = ["docs.dev.modules." + d for d in modules]
 	for m in modules:
@@ -136,7 +146,7 @@ def get_modules(for_module=None):
 			],
 			"doctype": get_doctypes(m),
 			"page": get_pages(m),
-			"report": {},
+			#"report": {},
 			"py_modules": {
 				"_label": "Independant Python Modules for " + m,
 				"_toc": []
@@ -156,24 +166,28 @@ def get_modules(for_module=None):
 						"../app").split(os.path.sep))[:-3]
 
 					# import module
-					module = importlib.import_module(module_name)
+					try:
+						module = importlib.import_module(module_name)
+						# create a new namespace for the module
+						module_docs = mydocs["py_modules"][f.split(".")[0]] = {}
+
+						# add to toc
+						mydocs["py_modules"]["_toc"].append(prefix + f.split(".")[0])
+
+						inspect_object_and_update_docs(module_docs, module)
+					except TypeError, e:
+						webnotes.errprint("TypeError in importing " + module_name)
 					
-					# create a new namespace for the module
-					module_docs = mydocs["py_modules"][f.split(".")[0]] = {}
-					
-					# add to toc
-					mydocs["py_modules"]["_toc"].append(prefix + f.split(".")[0])
-					
-					inspect_object_and_update_docs(module_docs, module)
 					module_docs["_label"] = module_name
 					module_docs["_function_namespace"] = module_name
 				
 		docs[m]["_intro"] = get_readme(m)
+		docs[m]["_gh_docs"] = get_gh_url(module_path)
 		
 	return docs
 
 def get_pages(m):
-	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s limit 3""", m)
+	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s""", m)
 	prefix = "docs.dev.modules." + m + ".page."
 	docs = {
 		"_label": "Pages",
@@ -199,7 +213,7 @@ def get_pages(m):
 
 def get_doctypes(m):
 	doctypes = webnotes.conn.sql_list("""select name from 
-		tabDocType where module=%s order by name limit 3""", m)
+		tabDocType where module=%s order by name""", m)
 	prefix = "docs.dev.modules." + m + ".doctype."
 	docs = {
 		"_label": "DocTypes",
@@ -209,16 +223,17 @@ def get_doctypes(m):
 	for d in doctypes:
 		meta = webnotes.get_doctype(d)
 		meta_p = webnotes.get_doctype(d, True)
-			
+		doc_path = get_doc_path(m, "DocType", d)
+		
 		mydocs = docs[d] = {
 			"_label": d,
 			"_type": "doctype",
+			"_gh_source": get_gh_url(doc_path),
 			"_toc": [
 				prefix + d + ".model",
 				prefix + d + ".permissions",
-				prefix + d + ".controller_server",
-				prefix + d + ".controller_client",
-			]
+				prefix + d + ".controller_server"
+			],
 		}
 
 		mydocs["_intro"] = get_readme(m, "DocType", d) or ""
@@ -247,19 +262,21 @@ def get_doctypes(m):
 			"_label": d + " Model",
 			"_type": "model",
 			"_intro": "Properties and fields for " + d,
+			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
 			"_fields": [df.fields for df in meta.get({"doctype": "DocField"})],
 			"_properties": meta[0].fields
 		}
 		
 		# permissions
 		from webnotes.modules.utils import peval_doclist
-		with open(os.path.join(get_doc_path(meta[0].module, "DocType", d), 
+		with open(os.path.join(doc_path, 
 			scrub(d) + ".txt"), "r") as txtfile:
 			doclist = peval_doclist(txtfile.read())
 			
 		permission_docs = mydocs["permissions"] = {
 			"_label": d + " Permissions",
 			"_type": "permissions",
+			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
 			"_intro": "Standard Permissions for " + d + ". These can be changed by the user.",
 			"_permissions": [p for p in doclist if p.doctype=="DocPerm"]
 		}
@@ -268,6 +285,7 @@ def get_doctypes(m):
 		controller_docs = mydocs["controller_server"] = {
 			"_label": d + " Server Controller",
 			"_type": "_class",
+			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".py"))
 		}
 		
 		
@@ -276,18 +294,19 @@ def get_doctypes(m):
 		if not getattr(b.obj, "__doc__"):
 			b.obj.__doc__ = "Controller Class for handling server-side events for " + d
 		inspect_object_and_update_docs(controller_docs, b.obj)
-		
+
 		# client controller
-		client_controller = mydocs["controller_client"] = {
-			"_label": d + " Client Controller",
-			"_type": "controller_client",
-			"_intro": "Client side triggers and functions for " + d,
-			"_code": meta_p[0].fields["__js"],
-			"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
-		}
-		
-		# children and links
-			
+		if meta_p[0].fields.get("__js"):
+			mydocs["_toc"].append(prefix + d + ".controller_client")
+			client_controller = mydocs["controller_client"] = {
+				"_label": d + " Client Controller",
+				"_type": "controller_client",
+				"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".js")),
+				"_intro": "Client side triggers and functions for " + d,
+				"_code": meta_p[0].fields["__js"],
+				"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
+			}
+
 	return docs
 
 def get_readme(module, doctype=None, name=None):
@@ -300,8 +319,7 @@ def get_readme(module, doctype=None, name=None):
 		with open(readme_path, "r") as readmefile:
 			return readmefile.read()
 
-@webnotes.whitelist()
-def write_doc_file(name, html, title):
+def prepare_docs():
 	if not os.path.exists("docs"):
 		os.mkdir("docs")
 	if not os.path.exists("docs/css"):
@@ -311,6 +329,9 @@ def write_doc_file(name, html, title):
 		os.system("cp ../lib/public/css/font-awesome.css docs/css")
 		os.system("cp ../lib/public/css/fonts/* docs/css/fonts")
 		os.system("cp ../lib/public/css/prism.css docs/css")
+		
+	if not os.path.exists("docs/css/docs.css"):
+		os.system("cp ../lib/core/doctype/documentation_tool/docs.css docs/css")
 		
 		# clean links in font-awesome
 		with open("docs/css/font-awesome.css", "r") as fontawesome:
@@ -329,16 +350,22 @@ def write_doc_file(name, html, title):
 		if not os.path.exists("docs/img"):
 			os.mkdir("docs/img")
 		os.system("cp ../app/public/images/splash.svg docs/img")
-		
-	if name=="docs": name = "index"
 
-	with open(os.path.join("docs", name + ".html"), "w") as docfile:
-		html = Template(docs_template).render({
-			"title": title,
-			"content": html,
-			"description": title
-		})
-		docfile.write(html.encode("utf-8", errors="ignore"))
+@webnotes.whitelist(allow_roles=["Administrator"])
+def write_docs(data):
+	data = json.loads(data)
+	template = Template(docs_template)
+	data["index"] = data["docs"]
+	data["docs"] = None
+	for name in data:
+		if data[name]:
+			with open(os.path.join("docs", name + ".html"), "w") as docfile:
+				html = template.render({
+					"title": data[name]["title"],
+					"content": data[name]["content"],
+					"description": data[name]["title"]
+				})
+				docfile.write(html.encode("utf-8", errors="ignore"))
 			
 docs_template = """
 <!DOCTYPE html>
@@ -355,67 +382,7 @@ docs_template = """
 	<link type="text/css" rel="stylesheet" href="css/bootstrap.css">
 	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
 	<link type="text/css" rel="stylesheet" href="css/prism.css">
-	<style>
-		body {
-			font-family: Arial, Sans Serif;
-			font-size: 16px;
-			text-rendering: optimizeLegibility;
-			color: #555555;
-			line-height: 25px;
-		}
-		
-		.navbar-inverse {
-			background-color: #2980b9;
-		}
-
-		.navbar-inverse .navbar-text,
-		.navbar-inverse .navbar-brand,
-		.navbar-inverse .navbar-nav > li > a
-		{
-			color: #eeeeee;
-		}
-
-		h1 {
-			font-weight: bold;
-		}
-		
-		h1, h2, h3, h4, .logo {
-			font-family: Arial, Sans;
-			font-weight: bold;
-		}
-		
-		li {
-			line-height: inherit;
-		}
-				
-		.content img {
-			border-radius: 5px;
-		}
-
-		blockquote {
-			padding: 10px 0 10px 15px;
-			margin: 0 0 20px;
-			background-color: #FFFCED;
-			border-left: 5px solid #fbeed5;
-		}
-
-		blockquote p {
-		  margin-bottom: 0;
-		  font-size: 16px;
-		  font-weight: normal;
-		  line-height: 25px;
-		}
-		
-		.erpnext-logo {
-			width: 32px; 
-			height: 32px; 
-			margin: -11px 0px;
-		}
-
-		.erpnext-logo rect {
-			fill: #ffffff !important;
-		}
-	</style>
+	<link type="text/css" rel="stylesheet" href="css/docs.css">
 </head>
 <body>
 	<header>
