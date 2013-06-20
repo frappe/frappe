@@ -71,14 +71,6 @@ in_import = False
 
 # memcache
 
-_toc = [
-	"webnotes.auth", 
-	"webnotes.boot", 
-	"webnotes.client", 
-	"webnotes.db", 
-	"webnotes.model"
-]
-
 def cache():
 	global _memc
 	if not _memc:

@@ -17,7 +17,7 @@ gh_prefix = "https://github.com/webnotes/"
 def get_docs(options):
 	docs = {}
 	options = webnotes._dict(json.loads(options))
-	if options.build_webnotes:
+	if options.build_server_api:
 		get_docs_for(docs, "webnotes")
 	if options.build_modules:
 		docs["modules"] = get_modules(options.module_name)
@@ -40,6 +40,7 @@ def get_static_pages():
 	return mydocs
 
 def get_docs_for(docs, name):
+	"""build docs for python module"""
 	classname = ""
 	parts = name.split(".")
 
@@ -57,7 +58,22 @@ def get_docs_for(docs, name):
 	
 	inspect_object_and_update_docs(mydocs, obj)
 	
-	if mydocs["_toc"]:
+	# if filename is __init__, list python files and folders with init in folder as _toc
+	if hasattr(obj, "__file__") and os.path.basename(obj.__file__).split(".")[0]=="__init__":
+		mydocs["_toc"] = []
+		dirname = os.path.dirname(obj.__file__)
+		for fname in os.listdir(dirname):
+			fpath = os.path.join(dirname, fname)
+			if os.path.isdir(fpath):
+				# append if package
+				if "__init__.py" in os.listdir(fpath):
+					mydocs["_toc"].append(name + "." + fname)
+			elif fname.endswith(".py") and not fname.startswith("__init__") and \
+				not fname.startswith("test_"):
+				# append if module
+				mydocs["_toc"].append(name + "." + fname.split(".")[0])
+		
+	if mydocs.get("_toc"):
 		for name in mydocs["_toc"]:
 			get_docs_for(mydocs, name)
 	
@@ -93,7 +109,7 @@ def inspect_object_and_update_docs(mydocs, obj):
 def get_gh_url(module):
 	path = module.__file__
 	sep = "/lib/" if "/lib/" in path else "/app/"
-	url = gh_prefix + ("wnframwork" if sep=="/lib/" else "erpnext") + "/blob/master/" + path.split(sep)[1]
+	url = gh_prefix + ("wnframework" if sep=="/lib/" else "erpnext") + "/blob/master/" + path.split(sep)[1]
 	if url.endswith(".pyc"):
 		url = url[:-1]
 	return url

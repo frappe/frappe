@@ -94,7 +94,7 @@ wn.docs.generate_all = function(logarea) {
 				wn.provide("docs.dev.framework.client").wn = wn;
 				
 				// append static pages to the "docs" object
-				$.each(r.message.pages, function(n, content) {
+				$.each(r.message.pages || [], function(n, content) {
 					var parts = content.split("---");
 					try {
 						var headers = parts.splice(0, 2)[1];
@@ -420,7 +420,7 @@ wn.docs.DocsPage = Class.extend({
 		var me = this,
 			tbody = this.get_tbody();
 			
-		$.each(functions, function(name, value) {
+		$.each(functions || {}, function(name, value) {
 			me.render_function(name, value, tbody, namespace)
 		});
 	},
@@ -430,7 +430,7 @@ wn.docs.DocsPage = Class.extend({
 			<tbody></tbody>\
 		</table>").appendTo(this.parent);
 		if(columns) {
-			$.each(columns, function(i, c) {
+			$.each(columns || [], function(i, c) {
 				$("<th>")
 					.css({"width": c.width})
 					.html(c.label)
