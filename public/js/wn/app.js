@@ -100,6 +100,11 @@ wn.Application = Class.extend({
 		
 		// first time loaded in boot
 		$(document).trigger("notification-update");
+		
+		// refresh notifications if user is back after sometime
+		$(document).on("session_alive", function() {
+			me.refresh_notifications();
+		})
 	},
 	
 	refresh_notifications: function() {

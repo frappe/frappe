@@ -122,6 +122,9 @@ $.extend(wn.user, {
 
 wn.session_alive = true;
 $(document).bind('mousemove', function() {
+	if(wn.session_alive===false) {
+		$(document).trigger("session_alive");
+	}
 	wn.session_alive = true;
 	if(wn.session_alive_timeout) 
 		clearTimeout(wn.session_alive_timeout);
