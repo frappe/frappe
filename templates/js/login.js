@@ -1,8 +1,10 @@
-
+var disable_signup = {{ disable_signup and "true" or "false" }};
 var login = {};
 
 $(document).ready(function(wrapper) {
-	$('#login_btn').click(login.do_login)
+	login.show_login();
+	
+	$('#login_btn').click(login.do_login);
 		
 	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').val()) {
@@ -62,7 +64,12 @@ login.do_login = function(){
 			if(data.message=="Logged In") {
 				window.location.href = "app.html";
 			} else if(data.message=="No App") {
-				window.location.href = get_url_arg("from") || "index";
+				if(localStorage) {
+					window.location.href = localStorage.getItem("last_visited") || "index";
+					localStorage.removeItem("last_visited");
+				} else {
+					window.location.href = "index";
+				}
 			} else {
 				login.set_message(data.message);
 			}
@@ -72,22 +79,40 @@ login.do_login = function(){
 	return false;
 }
 
-login.sign_up = function() {
+login.show_login = function() {
+	$("#login_wrapper h3").html("Login");
+	$("#login-label").html("Email Id");
+	$("#password-row").toggle(true);
+	$("#full-name-row, #login_message").toggle(false);
+	$("#login_btn").html("Login").removeClass("btn-success");
+	$("#switch-view").html('<a style="margin-left: -35px;" \
+		onclick="return login.show_forgot_password()">Forgot Password?</a>');
+	
+	if(!disable_signup) {
+		$("#switch-view").append('<hr><div>\
+			New User? <button class="btn btn-success" style="margin-left: 10px; margin-top: -2px;"\
+				onclick="return login.show_sign_up()">Sign Up</button></div>');
+	}
+
+	window.is_login = true;
+}
+
+login.show_sign_up = function() {
 	$("#login_wrapper h3").html("Sign Up");
 	$("#login-label").html("Email Id");
-	$("#password-row, #sign-up-wrapper, #login_message").toggle(false);
+	$("#password-row, #login_message").toggle(false);
 	$("#full-name-row").toggle(true);
-	$("#login_btn").html("Register");
-	$("#forgot-wrapper").html("<a onclick='location.reload()' href='#'>Login</a>")
+	$("#login_btn").html("Sign Up").addClass("btn-success");
+	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
 	window.is_sign_up = true;
 }
 
 login.show_forgot_password = function() {
 	$("#login_wrapper h3").html("Forgot");
 	$("#login-label").html("Email Id");
-	$("#password-row, #sign-up-wrapper, #login_message").toggle(false);
-	$("#login_btn").html("Send Password");
-	$("#forgot-wrapper").html("<a onclick='location.reload()' href='#'>Login</a>")
+	$("#password-row, #login_message, #full-name-row").toggle(false);
+	$("#login_btn").html("Send Password").removeClass("btn-success");
+	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
 	window.is_forgot = true;
 }
 

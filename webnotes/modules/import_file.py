@@ -86,7 +86,7 @@ def import_doclist(doclist):
 			old_doc = webnotes.doc(doctype, name)
 
 	# delete old
-	webnotes.delete_doc(doctype, name, force=1, ignore_doctypes =ignore, for_reload=True)
+	webnotes.delete_doc(doctype, name, force=1, ignore_doctypes=ignore, for_reload=True)
 	
 	# don't overwrite ignored docs
 	doclist1 = remove_ignored_docs_if_they_already_exist(doclist, ignore, name)
@@ -100,6 +100,7 @@ def import_doclist(doclist):
 	new_bean.ignore_children_type = ignore
 	new_bean.ignore_check_links = True
 	new_bean.ignore_validate = True
+	new_bean.ignore_permissions = True
 	
 	if doctype=="DocType" and name in ["DocField", "DocType"]:
 		new_bean.ignore_fields = True

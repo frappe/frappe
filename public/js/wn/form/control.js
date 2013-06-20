@@ -739,9 +739,12 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			field: this
 		});
 		this.has_input = true;
-		this.editor.$editor.keypress("ctrl+s meta+s", function() {
-			me.frm.save_or_update();
-		})
+		
+		if(this.editor.$editor) {
+			this.editor.$editor.keypress("ctrl+s meta+s", function() {
+				me.frm.save_or_update();
+			});
+		}
 	},
 	get_value: function() {
 		return this.editor.get_value();
