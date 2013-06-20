@@ -1,0 +1,105 @@
+[
+ {
+  "creation": "2013-06-20 10:40:02", 
+  "docstatus": 0, 
+  "modified": "2013-06-20 12:12:33", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "custom": 0, 
+  "description": "Documentation Generator Console", 
+  "doctype": "DocType", 
+  "hide_heading": 0, 
+  "hide_toolbar": 1, 
+  "issingle": 1, 
+  "module": "Core", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Documentation Tool", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Documentation Tool", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "role": "Administrator", 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Documentation Tool"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "build_pages", 
+  "fieldtype": "Check", 
+  "label": "Build Pages"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "build_modules", 
+  "fieldtype": "Check", 
+  "label": "Build Modules"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "build_server_api", 
+  "fieldtype": "Check", 
+  "label": "Build Server API"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_4", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "depends_on": "build_pages", 
+  "doctype": "DocField", 
+  "fieldname": "page_name", 
+  "fieldtype": "Data", 
+  "label": "Page Name"
+ }, 
+ {
+  "depends_on": "build_modules", 
+  "doctype": "DocField", 
+  "fieldname": "module_name", 
+  "fieldtype": "Data", 
+  "hidden": 0, 
+  "label": "Module Name", 
+  "read_only": 0, 
+  "reqd": 0
+ }, 
+ {
+  "depends_on": "build_server_api", 
+  "doctype": "DocField", 
+  "fieldname": "python_module_name", 
+  "fieldtype": "Data", 
+  "label": "Python Module Name"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "log", 
+  "fieldtype": "Section Break", 
+  "label": "Log"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "out", 
+  "fieldtype": "HTML", 
+  "label": "Out"
+ }, 
+ {
+  "doctype": "DocPerm"
+ }
+]

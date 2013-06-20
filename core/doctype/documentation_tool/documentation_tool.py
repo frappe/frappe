@@ -1,19 +1,28 @@
-"""Documentation Generation"""
-from __future__ import unicode_literals
+# For license information, please see license.txt
 
+from __future__ import unicode_literals
+		
 import webnotes
-import inspect, importlib, os
+import inspect, importlib, os, json
 from jinja2 import Template
 from webnotes.modules import get_doc_path, get_module_path, scrub
+
+class DocType:
+	def __init__(self, d, dl):
+		self.doc, self.doclist = d, dl
 
 gh_prefix = "https://github.com/webnotes/"
 
 @webnotes.whitelist()
-def get_docs():
+def get_docs(options):
 	docs = {}
-	#get_docs_for(docs, "webnotes")
-	#docs["modules"] = get_modules()
-	docs["pages"] = get_static_pages()
+	options = webnotes._dict(json.loads(options))
+	if options.build_webnotes:
+		get_docs_for(docs, "webnotes")
+	if options.build_modules:
+		docs["modules"] = get_modules(options.module_name)
+	if options.build_pages:
+		docs["pages"] = get_static_pages()
 	return docs
 
 def get_static_pages():
@@ -89,14 +98,15 @@ def get_gh_url(module):
 		url = url[:-1]
 	return url
 
-def get_modules():
-	# readme.md
-	# _toc [doctypes, pages, reports]
-	# in doctype
+def get_modules(for_module=None):
 	docs = {
 		"_label": "Modules"
 	}
-	modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name limit 3")
+	if for_module:
+		modules = [for_module]
+	else:
+		modules = webnotes.conn.sql_list("select name from `tabModule Def` order by name limit 3")
+	
 	docs["_toc"] = ["docs.dev.modules." + d for d in modules]
 	for m in modules:
 		prefix = "docs.dev.modules." + m
@@ -459,8 +469,3 @@ docs_template = """
 </body>
 </html>
 """
-
-if __name__=="__main__":
-	webnotes.connect()
-	#print get_docs()
-	print get_static_pages()

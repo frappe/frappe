@@ -27,38 +27,25 @@ Every module (namespace) / class will have a page
 - [list of functions / objects / classes]
 */
 
-wn.standard_pages["docs"] = function() {
-	var wrapper = wn.container.add_page('docs');
-	wn.require("lib/js/lib/beautify-html.js");
+wn.require("lib/public/js/lib/beautify-html.js");
 
-	wn.ui.make_app_page({
-		parent: wrapper,
-		single_column: true,
-		title: wn._("Docs")
-	});
-	
-	var body = $(wrapper).find(".layout-main"),
-		logarea = $('<div class="well"></div>').appendTo(body);
-	
-	wrapper.appframe.add_button("Make Docs", function() {
+cur_frm.cscript.refresh = function(doc) {
+	cur_frm.disable_save();
+
+	cur_frm.add_custom_button("Make Docs", function() {
 		wn.model.with_doctype("DocType", function() {
-			wn.docs.generate_all(logarea, wrapper.appframe.fields_dict.namespace.get_value());
+			wn.docs.generate_all($(cur_frm.fields_dict.out.wrapper));
 		})
 	});
-	
-	wrapper.appframe.add_field({
-		fieldname:"namespace",
-		fieldtype:"Data",
-		label: "Namespace"
-	});
-};
+}
 
 wn.provide("docs");
 wn.provide("wn.docs");
 
-wn.docs.generate_all = function(logarea, for_namespace) {
+wn.docs.generate_all = function(logarea) {
 	var pages = [],
-		body = $("<div class='docs'>");
+		body = $("<div class='docs'>"),
+		doc = cur_frm.doc;
 		make_page = function(name, links) {
 			body.empty();
 			var page = new wn.docs.DocsPage({
@@ -66,11 +53,18 @@ wn.docs.generate_all = function(logarea, for_namespace) {
 				parent: body,
 				links: links
 			});
+			
+			var for_namespace = (
+				doc.build_pages ? doc.page_name : 
+					(doc.build_modules ? null : (
+						doc.build_server_api ? doc.python_module_name : null)));
+
+			console.log(for_namespace);
+			
 			page.write(function() {
 				if(!for_namespace || (for_namespace===name))
-					logarea.append("Writing " + name + "...<br>");
-				//logarea.append(".");
-				// recurse
+					logarea.append("Wrote " + name + "...<br>");
+
 				var pages = (page.obj._toc || []).concat(page.obj._links || []);
 				if(pages && pages.length) {
 					$.each(pages, function(i, child_name) {
@@ -90,7 +84,8 @@ wn.docs.generate_all = function(logarea, for_namespace) {
 	
 		logarea.empty().append("Downloading server docs...<br>");
 		wn.call({
-			"method": "webnotes.utils.docs.get_docs",
+			"method": "core.doctype.documentation_tool.documentation_tool.get_docs",
+			args: {options: cur_frm.doc},
 			callback: function(r) {
 				
 				// append

@@ -263,6 +263,8 @@ wn.ui.form.Toolbar = Class.extend({
 		}
 	},
 	make_save_button: function() {
+		if(this.frm.save_disabled)
+			return;
 		var me = this;
 		this.appframe.add_button('Save', function() { 
 			me.frm.save('Save', null, this);}, 'icon-save', true).addClass("btn-primary");
@@ -283,6 +285,9 @@ wn.ui.form.Toolbar = Class.extend({
 		})
 	},
 	show_title_as_dirty: function() {
+		if(this.frm.save_disabled)
+			return;
+
 		this.appframe.get_title_area()
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
 		this.set_title_button();

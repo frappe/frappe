@@ -280,14 +280,14 @@ def add_embedded_js(doc):
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	doc.fields['__js'] = (doc.fields.get('__js') or '') + '\n' + custom	
+	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
 	
 	def _sub(match):
 		fpath = os.path.join(os.path.dirname(conf.__file__), \
 			re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				return '\n' + f.read() + '\n'
+				return '\n' + unicode(f.read(), "utf-8") + '\n'
 		else:
 			return '\n// no file "%s" found \n' % fpath
 	
