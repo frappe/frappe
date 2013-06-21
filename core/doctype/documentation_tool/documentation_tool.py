@@ -118,7 +118,7 @@ def get_gh_url(path):
 	sep = "/lib/" if "/lib/" in path else "/app/"
 	url = gh_prefix \
 		+ ("wnframework" if sep=="/lib/" else "erpnext") \
-		+ ("/blob" if "." in path else "/tree") \
+		+ ("/blob" if ("." in path) else "/tree") \
 		+"/master/" + path.split(sep)[1]
 	if url.endswith(".pyc"):
 		url = url[:-1]

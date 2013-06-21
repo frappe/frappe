@@ -78,7 +78,10 @@ wn.docs.generate_all = function(logarea) {
 							child_links.next_sibling = page.obj._toc[i+1];
 						}
 					}
-					make_page(wn.docs.get_full_name(child_name), child_links);
+					var docs_full_name = wn.docs.get_full_name(child_name);
+					if(!wn.docs.to_write[docs_full_name]) {
+						make_page(docs_full_name, child_links);
+					}
 				});
 			}
 		}
@@ -94,10 +97,13 @@ wn.docs.generate_all = function(logarea) {
 				wn.provide("docs.dev").modules = r.message.modules;
 				wn.provide("docs.dev.framework.server").webnotes = r.message.webnotes;
 				wn.provide("docs.dev.framework.client").wn = wn;
+				if(!docs._links) docs._links = [];
 				
 				// append static pages to the "docs" object
 				$.each(r.message.pages || [], function(n, obj) {
 					$.extend(wn.provide(n), obj);
+					if(n!=="docs")
+						docs._links.push(n); // to build page (if not in  _toc)
 				});
 				
 				logarea.append("Preparing html...<br>");
@@ -229,8 +235,8 @@ wn.docs.DocsPage = Class.extend({
 	make_footer: function() {
 		if(this.obj._gh_source) {
 			$("<br>").appendTo(this.parent);
-			$(repl('<p><a href="%(source)s" target="_blank">\
-				<i class="icon-github"></i> Source on GitHub</i></a></p>', {
+			$(repl('<p><a class="btn btn-default" href="%(source)s" target="_blank">\
+				<i class="icon-github"></i> Improve this doc</i></a></p>', {
 					source: this.obj._gh_source
 				})).appendTo(this.parent);
 		}
