@@ -70,13 +70,17 @@ wn.docs.generate_all = function(logarea) {
 			var pages = (page.obj._toc || []).concat(page.obj._links || []);
 			if(pages && pages.length) {
 				$.each(pages, function(i, child_name) {
-					var child_links = {
-						parent: name
-					};
-					if(page.obj._toc) {
-						if(i < page.obj._toc.length-1) {
-							child_links.next_sibling = page.obj._toc[i+1];
+					var parent_name = child_name.split(".").slice(0,-1).join("."),
+						child_links = {
+							parent: parent_name
 						}
+						parentobj = wn.provide(parent_name);
+						
+					if(parentobj._toc) {
+						$.each(parentobj._toc, function(name, siblings) {
+							if(name===child_name && i!==parentobj._toc.length-1)
+								child_links.next_sibling = parentobj._toc[i+1];	
+						})
 					}
 					var docs_full_name = wn.docs.get_full_name(child_name);
 					if(!wn.docs.to_write[docs_full_name]) {
@@ -114,7 +118,9 @@ wn.docs.generate_all = function(logarea) {
 				wn.call({
 					method: "core.doctype.documentation_tool.documentation_tool.write_docs",
 					args: {
-						data: JSON.stringify(wn.docs.to_write)
+						data: JSON.stringify(wn.docs.to_write),
+						build_sitemap: doc.build_sitemap,
+						domain: doc.sitemap_domain
 					},
 					callback: function(r) {
 						logarea.append("Wrote " + keys(wn.docs.to_write).length + " pages.");
@@ -218,7 +224,12 @@ wn.docs.DocsPage = Class.extend({
 			has_docs = true;
 		}
 		if(obj._type==="controller_client") {
-			this.make_obj_from_cur_frm(obj);
+			try {
+				this.make_obj_from_cur_frm(obj); 
+			} catch(e) {
+				console.log("Failed: " + obj._label);
+				console.log(e);
+			}
 		}
 
 		has_docs = this.make_functions(obj) || has_docs;
@@ -238,6 +249,12 @@ wn.docs.DocsPage = Class.extend({
 			$(repl('<p><a class="btn btn-default" href="%(source)s" target="_blank">\
 				<i class="icon-github"></i> Improve this doc</i></a></p>', {
 					source: this.obj._gh_source
+				})).appendTo(this.parent);
+		}
+		if(this.obj._modified) {
+			$(repl('<p class="text-muted" style="margin-top: 10px; font-size: 90%;">\
+				Last Updated: %(modified)s</p>', {
+					modified: wn.datetime.global_date_format(this.obj._modified)
 				})).appendTo(this.parent);
 		}
 	},
@@ -359,13 +376,16 @@ wn.docs.DocsPage = Class.extend({
 			
 		$.each(wn.model.get("DocField", {parent:"DocType"}), function(i, df) {
 			if(wn.model.no_value_type.indexOf(df.fieldtype)===-1) {
-				if(!df.description) df.description = "";
-				df.value = obj._properties[df.fieldname] || "";
-				$(repl('<tr>\
-					<td>%(label)s</td>\
-					<td>%(value)s</td>\
-					<td>%(description)s</td>\
-				</tr>', df)).appendTo(tbody);
+				if(!df.description) 
+					df.description = "";
+				df.value = obj._properties[df.fieldname]==null || "";
+				if(df.value!=="") {
+					$(repl('<tr>\
+						<td>%(label)s</td>\
+						<td>%(value)s</td>\
+						<td>%(description)s</td>\
+					</tr>', df)).appendTo(tbody);
+				}
 			}
 		});
 	},
@@ -449,7 +469,10 @@ wn.docs.DocsPage = Class.extend({
 			add_fetch: function() {
 				obj._fetches.push(arguments)
 			},
-			fields_dict: {}
+			fields_dict: {},
+			call: function() {
+				
+			}
 		};
 		$.each(obj._fields, function(i, f) { 
 			cur_frm.fields_dict[f] = {

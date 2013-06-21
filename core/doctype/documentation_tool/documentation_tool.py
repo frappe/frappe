@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 		
 import webnotes
-import inspect, importlib, os, json
+import inspect, importlib, os, json, datetime
 from jinja2 import Template
 from webnotes.modules import get_doc_path, get_module_path, scrub
 
@@ -43,6 +43,7 @@ def get_static_pages():
 							d = json.loads(headers)
 							d["_intro"] = body
 							d["_gh_source"] = get_gh_url(fpath)
+							d["_modified"] = get_timestamp(fpath)
 							mydocs[fname[:-3]] = d
 
 	return mydocs
@@ -90,11 +91,14 @@ def get_docs_for(docs, name):
 def inspect_object_and_update_docs(mydocs, obj):
 	mydocs["_toc"] = getattr(obj, "_toc", "")
 	if inspect.ismodule(obj):
+		obj_module = obj
 		mydocs["_type"] = "module"
-		mydocs["_gh_source"] = get_gh_url(obj.__file__)
 	else:
+		obj_module = inspect.getmodule(obj)
 		mydocs["_type"] = "class"
-		mydocs["_gh_source"] = get_gh_url(inspect.getmodule(obj).__file__)
+
+	mydocs["_gh_source"] = get_gh_url(obj_module.__file__)
+	mydocs["_modified"] = get_timestamp(obj_module.__file__)
 		
 	if not mydocs.get("_intro"):
 		mydocs["_intro"] = getattr(obj, "__doc__", "")
@@ -180,9 +184,9 @@ def get_modules(for_module=None):
 					
 					module_docs["_label"] = module_name
 					module_docs["_function_namespace"] = module_name
-				
-		docs[m]["_intro"] = get_readme(m)
-		docs[m]["_gh_docs"] = get_gh_url(module_path)
+		
+		update_readme(docs[m], m)
+		docs[m]["_gh_source"] = get_gh_url(module_path)
 		
 	return docs
 
@@ -198,8 +202,9 @@ def get_pages(m):
 		mydocs = docs[p] = {
 			"_label": page.title or p,
 			"_type": "page",
-			"_intro": get_readme(m, "Page", p) or ""
 		}
+		update_readme(mydocs, m, "page", p)
+		mydocs["_modified"] = page.modified
 
 		# controller
 		page_name = scrub(p)
@@ -236,7 +241,7 @@ def get_doctypes(m):
 			],
 		}
 
-		mydocs["_intro"] = get_readme(m, "DocType", d) or ""
+		update_readme(mydocs, m, "DocType", d)
 
 		# parents and links
 		links, parents = [], []
@@ -264,7 +269,8 @@ def get_doctypes(m):
 			"_intro": "Properties and fields for " + d,
 			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
 			"_fields": [df.fields for df in meta.get({"doctype": "DocField"})],
-			"_properties": meta[0].fields
+			"_properties": meta[0].fields,
+			"_modified": meta[0].modified
 		}
 		
 		# permissions
@@ -278,16 +284,17 @@ def get_doctypes(m):
 			"_type": "permissions",
 			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
 			"_intro": "Standard Permissions for " + d + ". These can be changed by the user.",
-			"_permissions": [p for p in doclist if p.doctype=="DocPerm"]
+			"_permissions": [p for p in doclist if p.doctype=="DocPerm"],
+			"_modified": doclist[0]["modified"]
 		}
 			
 		# server controller
+		server_controller_path = os.path.join(doc_path, scrub(d) + ".py")
 		controller_docs = mydocs["controller_server"] = {
 			"_label": d + " Server Controller",
 			"_type": "_class",
-			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".py"))
+			"_gh_source": get_gh_url(server_controller_path)
 		}
-		
 		
 		b = webnotes.bean([{"doctype": d}])
 		b.make_obj()
@@ -298,26 +305,32 @@ def get_doctypes(m):
 		# client controller
 		if meta_p[0].fields.get("__js"):
 			mydocs["_toc"].append(prefix + d + ".controller_client")
-			client_controller = mydocs["controller_client"] = {
-				"_label": d + " Client Controller",
-				"_type": "controller_client",
-				"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".js")),
-				"_intro": "Client side triggers and functions for " + d,
-				"_code": meta_p[0].fields["__js"],
-				"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
-			}
+			client_controller_path = os.path.join(doc_path, scrub(d) + ".js")
+			if(os.path.exists(client_controller_path)):
+				client_controller = mydocs["controller_client"] = {
+					"_label": d + " Client Controller",
+					"_type": "controller_client",
+					"_gh_source": get_gh_url(client_controller_path),
+					"_modified": get_timestamp(client_controller_path),
+					"_intro": "Client side triggers and functions for " + d,
+					"_code": meta_p[0].fields["__js"],
+					"_fields": [d.fieldname for d in meta_p if d.doctype=="DocField"]
+				}
 
 	return docs
 
-def get_readme(module, doctype=None, name=None):
+def update_readme(mydocs, module, doctype=None, name=None):
 	if doctype:
 		readme_path = os.path.join(get_doc_path(module, doctype, name), "README.md")
 	else:
 		readme_path = os.path.join(get_module_path(module), "README.md")
-		
+	
+	mydocs["_intro"] = ""
+	
 	if os.path.exists(readme_path):
 		with open(readme_path, "r") as readmefile:
-			return readmefile.read()
+			mydocs["_intro"] = readmefile.read()
+		mydocs["_modified"] = get_timestamp(readme_path)
 
 def prepare_docs():
 	if not os.path.exists("docs"):
@@ -352,7 +365,7 @@ def prepare_docs():
 		os.system("cp ../app/public/images/splash.svg docs/img")
 
 @webnotes.whitelist(allow_roles=["Administrator"])
-def write_docs(data):
+def write_docs(data, build_sitemap=None, domain=None):
 	data = json.loads(data)
 	template = Template(docs_template)
 	data["index"] = data["docs"]
@@ -366,7 +379,31 @@ def write_docs(data):
 					"description": data[name]["title"]
 				})
 				docfile.write(html.encode("utf-8", errors="ignore"))
-			
+				
+	if build_sitemap and domain:
+		if not domain.endswith("/"):
+			domain = domain + "/"
+		content = ""
+		for fname in os.listdir("docs"):
+			if fname.endswith(".html"):
+				content += sitemap_link_xml % (domain + fname + ".html", 
+					get_timestamp(os.path.join("docs", fname)))
+					
+		with open(os.path.join("docs", "sitemap.xml"), "w") as sitemap:
+			sitemap.write(sitemap_frame_xml % content)
+		
+
+def get_timestamp(path):
+	return datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d")
+		
+		
+sitemap_frame_xml = """<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">%s
+</urlset>"""
+
+sitemap_link_xml = """\n<url><loc>%s</loc><lastmod>%s</lastmod></url>"""
+
+
 docs_template = """
 <!DOCTYPE html>
 <html lang="en">
@@ -425,8 +462,14 @@ docs_template = """
 		<div class="clearfix"></div>
 		<hr />
 		<div class="footer text-muted" style="font-size: 90%;">
-		&copy; Web Notes Technologies Pvt Ltd.<br>
-		ERPNext is an open source project under the GNU/GPL License.
+			<div class="content row">
+				<div class="col col-lg-12">
+				&copy; <a href="https://erpnext.com">Web Notes Technologies Pvt Ltd.</a><br>
+				ERPNext is an <a href="https://github.com/webnotes/erpnext" target="_blank">
+					open source project</a> under the GNU/GPL License.<br>
+				<a href="https://erpnext.com/contact">Have comments? Get in touch</a>
+				</div>
+			</div>
 		</div>
 		<p>&nbsp;</p>
 	</div>

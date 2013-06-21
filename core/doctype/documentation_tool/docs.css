@@ -6,6 +6,10 @@ body {
 	line-height: 25px;
 }
 
+.container {
+	max-width: 767px;
+}
+
 .navbar-inverse {
 	background-color: #2980b9;
 }
