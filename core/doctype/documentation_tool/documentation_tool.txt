@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-20 10:40:02", 
   "docstatus": 0, 
-  "modified": "2013-06-20 12:12:33", 
+  "modified": "2013-06-21 16:38:00", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -59,6 +59,23 @@
   "label": "Build Server API"
  }, 
  {
+  "allow_on_submit": 0, 
+  "description": "Write sitemap.xml", 
+  "doctype": "DocField", 
+  "fieldname": "build_sitemap", 
+  "fieldtype": "Check", 
+  "hidden": 0, 
+  "in_filter": 0, 
+  "in_list_view": 0, 
+  "label": "Build Sitemap", 
+  "no_copy": 0, 
+  "print_hide": 0, 
+  "read_only": 0, 
+  "report_hide": 0, 
+  "reqd": 0, 
+  "search_index": 0
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "column_break_4", 
   "fieldtype": "Column Break"
@@ -86,6 +103,14 @@
   "fieldname": "python_module_name", 
   "fieldtype": "Data", 
   "label": "Python Module Name"
+ }, 
+ {
+  "depends_on": "build_sitemap", 
+  "description": "example: http://help.erpnext.com", 
+  "doctype": "DocField", 
+  "fieldname": "sitemap_domain", 
+  "fieldtype": "Data", 
+  "label": "Sitemap Domain"
  }, 
  {
   "doctype": "DocField", 

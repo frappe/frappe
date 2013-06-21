@@ -1,0 +1,63 @@
+body {
+	font-family: Arial, Sans Serif;
+	font-size: 16px;
+	text-rendering: optimizeLegibility;
+	color: #555555;
+	line-height: 25px;
+}
+
+.container {
+	max-width: 767px;
+}
+
+.navbar-inverse {
+	background-color: #2980b9;
+}
+
+.navbar-inverse .navbar-text,
+.navbar-inverse .navbar-brand,
+.navbar-inverse .navbar-nav > li > a
+{
+	color: #eeeeee;
+}
+
+h1 {
+	font-weight: bold;
+}
+
+h1, h2, h3, h4, .logo {
+	font-family: Arial, Sans;
+	font-weight: bold;
+}
+
+li {
+	line-height: inherit;
+}
+		
+.content img {
+	border-radius: 5px;
+}
+
+blockquote {
+	padding: 10px 0 10px 15px;
+	margin: 0 0 20px;
+	background-color: #FFFCED;
+	border-left: 5px solid #fbeed5;
+}
+
+blockquote p {
+  margin-bottom: 0;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 25px;
+}
+
+.erpnext-logo {
+	width: 32px; 
+	height: 32px; 
+	margin: -11px 0px;
+}
+
+.erpnext-logo rect {
+	fill: #ffffff !important;
+}

@@ -63,6 +63,7 @@ To subclass, use:
 			// All construction is actually done in the init method
 			if ( !initializing && this.init )
 				this.init.apply(this, arguments);
+			this._type = "instance";
 		}
 		
 		// Populate our constructed prototype object

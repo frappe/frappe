@@ -2,11 +2,7 @@
 {
 	"_label": "Client Side - JavaScript",
 	"_toc": [
-		"wn", 
-		"wn.model", 
-		"wn.ui", 
-		"wn.views", 
-		"wn.utils"
+		"wn"
 	]
 }
 ---
