@@ -41,8 +41,7 @@ class DocType:
 		if self.doc.name not in ('Guest','Administrator'):
 			self.validate_email_type(self.doc.email)
 		self.validate_max_users()
-		self.check_one_system_manager()
-		self.check_enable_disable()
+		self.add_system_manager_role()
 
 		if self.doc.fields.get('__islocal') and not self.doc.new_password:
 			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
@@ -52,6 +51,9 @@ class DocType:
 		if not cint(self.doc.enabled) and self.doc.name in ["Administrator", "Guest"]:
 			webnotes.msgprint("Hey! You cannot disable user: %s" % self.doc.name,
 				raise_exception=1)
+				
+		if not cint(self.doc.enabled):
+			self.a_system_manager_should_exist()
 		
 		# clear sessions if disabled
 		if not cint(self.doc.enabled) and getattr(webnotes, "login_manager", None):
@@ -77,17 +79,13 @@ class DocType:
 					2. <b>Disable one or more of your existing users and try again</b>""" \
 					% {'active_users': active_users}, raise_exception=1)
 						
-	def check_one_system_manager(self):
+	def add_system_manager_role(self):
 		# if adding system manager, do nothing
 		if not cint(self.doc.enabled) or ("System Manager" in [user_role.role for user_role in
 				self.doclist.get({"parentfield": "user_roles"})]):
 			return
 		
-		if not webnotes.conn.sql("""select distinct parent from tabUserRole user_role
-				where role='System Manager' and docstatus<2 
-				and parent not in ('Administrator', %s) and exists 
-					(select * from `tabProfile` profile 
-					where profile.name=user_role.parent and enabled=1)""", (self.doc.name,)):
+		if not self.get_other_system_managers():
 			webnotes.msgprint("""Adding System Manager Role as there must 
 				be atleast one 'System Manager'.""")
 			self.doclist.append({
@@ -100,6 +98,8 @@ class DocType:
 		# owner is always name
 		webnotes.conn.set(self.doc, 'owner', self.doc.name)
 		self.update_new_password()
+		
+		self.check_enable_disable()
 
 	def update_new_password(self):
 		"""update new password if set"""
@@ -117,6 +117,13 @@ class DocType:
 				webnotes.msgprint("Password updated.")
 				
 			webnotes.conn.set(self.doc, 'new_password', '')
+			
+	def get_other_system_managers(self):
+		return webnotes.conn.sql("""select distinct parent from tabUserRole user_role
+			where role='System Manager' and docstatus<2
+			and parent not in ('Administrator', %s) and exists 
+				(select * from `tabProfile` profile 
+				where profile.name=user_role.parent and enabled=1)""", (self.doc.name,))
 
 	def get_fullname(self):
 		"""get first_name space last_name"""
@@ -189,10 +196,17 @@ Thank you,<br>
 		
 		sendmail_md(recipients=self.doc.email, sender=sender, subject=subject, msg=txt % args)
 		
+	def a_system_manager_should_exist(self):
+		if not self.get_other_system_managers():
+			webnotes.msgprint(_("""Hey! There should remain at least one System Manager"""),
+				raise_exception=True)
+		
 	def on_trash(self):
 		if self.doc.name in ["Administrator", "Guest"]:
 			webnotes.msgprint("""Hey! You cannot delete user: %s""" % (self.name, ),
 				raise_exception=1)
+		
+		self.a_system_manager_should_exist()
 				
 		# disable the user and log him/her out
 		self.doc.enabled = 0
