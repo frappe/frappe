@@ -134,6 +134,7 @@ wn.ui.form.Grid = Class.extend({
 		wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
 		this.refresh();
 		// show
+		
 		this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
 			.toggle_view(true, callback);
 	}

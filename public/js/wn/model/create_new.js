@@ -103,9 +103,9 @@ $.extend(wn.model, {
 			parenttype: parent_doc.doctype,
 			idx: idx
 		});
-		
+				
 		// renum for fraction
-		idx != cint(idx) && 
+		idx !== cint(idx) && 
 			wn.model.get_children(doctype, parent_doc.name, parentfield, 
 				parent_doc.doctype);
 			

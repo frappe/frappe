@@ -277,7 +277,7 @@ $.extend(wn.model, {
 		}
 
 		if(l.length) {
-			l.sort(function(a,b) { return cint(a.idx) - cint(b.idx) }); 
+			l.sort(function(a,b) { return flt(a.idx) - flt(b.idx) }); 
 			
 			// renumber
 			$.each(l, function(i, v) { v.idx = i+1; }); // for chrome bugs ???

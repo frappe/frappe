@@ -44,6 +44,7 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.clear_infobar();
 		if(this.frm.doc.__islocal)
 			return;
+
 		this.appframe.add_infobar(
 			wn.user.full_name(this.frm.doc.modified_by) + " / " + comment_when(this.frm.doc.modified), function() {
 			msgprint("Created By: " + wn.user.full_name(me.frm.doc.owner) + "<br>" +
