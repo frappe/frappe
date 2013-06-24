@@ -77,8 +77,8 @@ wn.docs.generate_all = function(logarea) {
 						parentobj = wn.provide(parent_name);
 						
 					if(parentobj._toc) {
-						$.each(parentobj._toc, function(name, siblings) {
-							if(name===child_name && i!==parentobj._toc.length-1)
+						$.each(parentobj._toc, function(j, sibling) {
+							if(sibling===child_name && j!==parentobj._toc.length-1)
 								child_links.next_sibling = parentobj._toc[i+1];	
 						})
 					}
@@ -101,13 +101,14 @@ wn.docs.generate_all = function(logarea) {
 				wn.provide("docs.dev").modules = r.message.modules;
 				wn.provide("docs.dev.framework.server").webnotes = r.message.webnotes;
 				wn.provide("docs.dev.framework.client").wn = wn;
+
 				if(!docs._links) docs._links = [];
 				
 				// append static pages to the "docs" object
 				$.each(r.message.pages || [], function(n, obj) {
 					$.extend(wn.provide(n), obj);
-					if(n!=="docs")
-						docs._links.push(n); // to build page (if not in  _toc)
+					// if(n!=="docs")
+					// 	docs._links.push(n); // to build page (if not in  _toc)
 				});
 				
 				logarea.append("Preparing html...<br>");
@@ -267,20 +268,22 @@ wn.docs.DocsPage = Class.extend({
 				.html('<i class="icon-arrow-up"></i> ' 
 					+ wn.docs.get_title(this.links.parent))
 				.attr("href", this.links.parent + ".html")
-				.appendTo(btn_group)
+				.appendTo(btn_group);
+				
 			if(this.links.next_sibling) {
 				$("<a class='btn btn-info'>")
 					.html('<i class="icon-arrow-right"></i> ' 
 						+ wn.docs.get_title(this.links.next_sibling))
 					.attr("href", wn.docs.get_full_name(this.links.next_sibling) + ".html")
-					.appendTo(btn_group)
+					.appendTo(btn_group);
 			} 
+			
 			if (this.links.first_child) {
 				$("<a class='btn btn-info'>")
 					.html('<i class="icon-arrow-down"></i> ' 
 						+ wn.docs.get_title(this.links.first_child))
 					.attr("href", wn.docs.get_full_name(this.links.first_child) + ".html")
-					.appendTo(btn_group)
+					.appendTo(btn_group);
 			}
 		}
 	},
@@ -306,6 +309,16 @@ wn.docs.DocsPage = Class.extend({
 						})
 					var head = $("<h1>").appendTo(inner);
 			} else {
+				var page_icon = obj._icon;
+				if(!obj._icon) {
+					if(this.namespace.indexOf(".wn.")!==-1)
+						page_icon = "code";
+					else
+						page_icon = "file-text-alt";
+				}
+				var icon = $('<h1 class="pull-right text-muted"><i class="icon-'+
+					page_icon +'"></i></h1>')
+					.appendTo(this.parent);
 				var head = $("<h1>").appendTo(this.parent);
 			}
 			
@@ -347,7 +360,7 @@ wn.docs.DocsPage = Class.extend({
 		}
 	},
 	make_toc: function(obj) {
-		if(obj._toc) {
+		if(obj._toc && !obj._no_toc) {
 			var body = $("<div class='well'>")
 				.appendTo(this.parent);
 			$("<h4>Contents</h4>").appendTo(body);

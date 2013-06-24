@@ -97,6 +97,7 @@ def inspect_object_and_update_docs(mydocs, obj):
 		obj_module = inspect.getmodule(obj)
 		mydocs["_type"] = "class"
 
+	mydocs["_icon"] = "code"
 	mydocs["_gh_source"] = get_gh_url(obj_module.__file__)
 	mydocs["_modified"] = get_timestamp(obj_module.__file__)
 		
@@ -141,6 +142,7 @@ def get_modules(for_module=None):
 	for m in modules:
 		prefix = "docs.dev.modules." + m
 		mydocs = docs[m] = {
+			"_icon": "th",
 			"_label": m,
 			"_toc": [
 				prefix + ".doctype",
@@ -194,6 +196,7 @@ def get_pages(m):
 	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s""", m)
 	prefix = "docs.dev.modules." + m + ".page."
 	docs = {
+		"_icon": "file-alt",
 		"_label": "Pages",
 		"_toc": [prefix + d for d in pages]
 	}
@@ -221,6 +224,7 @@ def get_doctypes(m):
 		tabDocType where module=%s order by name""", m)
 	prefix = "docs.dev.modules." + m + ".doctype."
 	docs = {
+		"_icon": "th",
 		"_label": "DocTypes",
 		"_toc": [prefix + d for d in doctypes]
 	}
@@ -232,6 +236,7 @@ def get_doctypes(m):
 		
 		mydocs = docs[d] = {
 			"_label": d,
+			"_icon": "sitemap",
 			"_type": "doctype",
 			"_gh_source": get_gh_url(doc_path),
 			"_toc": [
@@ -265,6 +270,7 @@ def get_doctypes(m):
 		# model
 		modeldocs = mydocs["model"] = {
 			"_label": d + " Model",
+			"_icon": "sitemap",
 			"_type": "model",
 			"_intro": "Properties and fields for " + d,
 			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
@@ -282,6 +288,7 @@ def get_doctypes(m):
 		permission_docs = mydocs["permissions"] = {
 			"_label": d + " Permissions",
 			"_type": "permissions",
+			"_icon": "shield",
 			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
 			"_intro": "Standard Permissions for " + d + ". These can be changed by the user.",
 			"_permissions": [p for p in doclist if p.doctype=="DocPerm"],
@@ -309,6 +316,7 @@ def get_doctypes(m):
 			if(os.path.exists(client_controller_path)):
 				client_controller = mydocs["controller_client"] = {
 					"_label": d + " Client Controller",
+					"_icon": "code",
 					"_type": "controller_client",
 					"_gh_source": get_gh_url(client_controller_path),
 					"_modified": get_timestamp(client_controller_path),
@@ -337,10 +345,10 @@ def prepare_docs():
 		os.mkdir("docs")
 	if not os.path.exists("docs/css"):
 		os.mkdir("docs/css")
-		os.mkdir("docs/css/fonts")
+		os.mkdir("docs/css/font")
 		os.system("cp ../lib/public/css/bootstrap.css docs/css")
 		os.system("cp ../lib/public/css/font-awesome.css docs/css")
-		os.system("cp ../lib/public/css/fonts/* docs/css/fonts")
+		os.system("cp ../lib/public/css/font/* docs/css/font")
 		os.system("cp ../lib/public/css/prism.css docs/css")
 		
 	if not os.path.exists("docs/css/docs.css"):
@@ -386,7 +394,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 		content = ""
 		for fname in os.listdir("docs"):
 			if fname.endswith(".html"):
-				content += sitemap_link_xml % (domain + fname + ".html", 
+				content += sitemap_link_xml % (domain + fname, 
 					get_timestamp(os.path.join("docs", fname)))
 					
 		with open(os.path.join("docs", "sitemap.xml"), "w") as sitemap:
@@ -461,13 +469,16 @@ docs_template = """
 		</div>
 		<div class="clearfix"></div>
 		<hr />
-		<div class="footer text-muted" style="font-size: 90%;">
+		<div class="footer text-muted" style="font-size: 80%;">
 			<div class="content row">
 				<div class="col col-lg-12">
 				&copy; <a href="https://erpnext.com">Web Notes Technologies Pvt Ltd.</a><br>
 				ERPNext is an <a href="https://github.com/webnotes/erpnext" target="_blank">
-					open source project</a> under the GNU/GPL License.<br>
-				<a href="https://erpnext.com/contact">Have comments? Get in touch</a>
+					open source project</a>. Code licensed under the 
+						<a href="https://www.gnu.org/licenses/gpl.html">GNU/GPL License</a>. 
+						Documentation Licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.<br>
+				<a href="docs.user.help.html">Get Help</a> / <a href="https://erpnext.com/contact">Get in touch</a> /
+				<a href="https://erpnext.com">Buy Hosting or Support Services</a>
 				</div>
 			</div>
 		</div>
