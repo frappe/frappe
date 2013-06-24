@@ -24,7 +24,7 @@ from __future__ import unicode_literals
 import webnotes
 
 from webnotes.utils import cint, cstr, default_fields, flt
-from webnotes.model import db_exists, default_fields
+from webnotes.model import default_fields
 from webnotes.model.doc import Document, addchild, make_autoname
 from webnotes.model.bean import getlist
 from webnotes import msgprint
@@ -154,7 +154,7 @@ class DocType:
 		
 		similar_flds = [[d, d, 'Yes'] for d in from_flds \
 			if d in to_flds and d not in exception_flds]
-			
+						
 		return similar_flds
 		
 	#---------------------------------------------------------------------------
