@@ -418,6 +418,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 				<span class="disp-area" style="display:none;"></span>\
 				<span class="label-area"></span>\
 			</label>\
+			<p class="help-box small text-muted">&nbsp;</p>\
 		</div>').appendTo(this.parent)
 	},
 	set_input_areas: function() {
