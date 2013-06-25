@@ -6,7 +6,7 @@ from __future__ import unicode_literals
 import webnotes
 import os
 import conf
-from webnotes.modules import reload_doc
+from webnotes.modules.import_file import import_file
 
 def sync_all(force=0):
 	sync_for("lib", force)
@@ -38,9 +38,9 @@ def walk_and_sync(start_path, force=0, sync_everything = False):
 						doctype = path.split(os.sep)[-2]
 						name = path.split(os.sep)[-1]
 						
-								
-						if reload_doc(module_name, doctype, name, force):
+						if import_file(module_name, doctype, name, force):
 							print module_name + ' | ' + doctype + ' | ' + name
+
 						webnotes.conn.commit()
 					
 	return modules

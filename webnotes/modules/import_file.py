@@ -27,8 +27,10 @@ from webnotes.modules import scrub, get_module_path, scrub_dt_dn
 
 def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
+		out = []
 		for m in module:
-			return import_file(m[0], m[1], m[2], force)
+			out.append(import_file(m[0], m[1], m[2], force))
+		return out
 	else:
 		return import_file(module, dt, dn, force)
 		
@@ -49,20 +51,24 @@ def import_file_by_path(path, force=False):
 		
 		with open(path, 'r') as f:
 			doclist = peval_doclist(f.read())
-					
+		
 		if doclist:
 			doc = doclist[0]
+			
 			if not force:
 				# check if timestamps match
 				if doc['modified']== str(webnotes.conn.get_value(doc['doctype'], doc['name'], 'modified')):
 					return False
+			
+			original_modified = doc["modified"]
 			
 			import_doclist(doclist)
 
 			# since there is a new timestamp on the file, update timestamp in
 			webnotes.conn.sql("update `tab%s` set modified=%s where name=%s" % \
 				(doc['doctype'], '%s', '%s'), 
-				(doc['modified'],doc['name']))
+				(original_modified, doc['name']))
+
 			return True
 	else:
 		raise Exception, '%s missing' % path

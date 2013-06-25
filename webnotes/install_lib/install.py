@@ -104,6 +104,7 @@ class Installer:
 		self.import_core_docs()
 		install.pre_import()
 		sync_for("app", force=True, sync_everything=True)
+
 		print "Completing App Import..."
 		install.post_import()
 		print "Updating patches..."
@@ -169,7 +170,8 @@ class Installer:
 		webnotes.conn.commit()
 
 	def create_auth_table(self):
-		webnotes.conn.sql("""create table if not exists __Auth (
+		webnotes.conn.sql("""drop table if exists __Auth""")
+		webnotes.conn.sql("""create table __Auth (
 		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 		`password` VARCHAR(180) NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")

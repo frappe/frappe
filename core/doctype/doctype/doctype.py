@@ -34,10 +34,13 @@ class DocType:
 		self.doclist = doclist
 
 	def change_modified_of_parent(self):
-		sql = webnotes.conn.sql
-		parent_list = sql('SELECT parent from tabDocField where fieldtype="Table" and options="%s"' % self.doc.name)
+		if webnotes.in_import:
+			return
+		parent_list = webnotes.conn.sql("""SELECT parent 
+			from tabDocField where fieldtype="Table" and options="%s" """ % self.doc.name)
 		for p in parent_list:
-			sql('UPDATE tabDocType SET modified="%s" WHERE `name`="%s"' % (now(), p[0]))
+			webnotes.conn.sql('''UPDATE tabDocType SET modified="%s" 
+				WHERE `name`="%s"''' % (now(), p[0]))
 
 	def scrub_field_names(self):
 		restricted = ('name','parent','idx','owner','creation','modified','modified_by',
