@@ -307,7 +307,16 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		$.each(this.columns, function(i, col) {
 			if (col.formatter==me.currency_formatter) {
-				item[col.id] = 0;
+				item[col.id] = 0.0;
+			}
+		});
+	},
+	
+	round_item_values: function(item) {
+		var me = this;
+		$.each(this.columns, function(i, col) {
+			if (col.formatter==me.currency_formatter) {
+				item[col.id] = flt(item[col.id], wn.defaults.get_default("float_precision") || 6);
 			}
 		});
 	},
