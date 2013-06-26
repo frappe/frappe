@@ -29,7 +29,7 @@ class IncomingMail:
 		Single incoming email object. Extracts, text / html and attachments from the email
 	"""
 	def __init__(self, content):
-		import email, email.utils, email.header
+		import email, email.utils
 		import datetime
 		
 		self.mail = email.message_from_string(content)
@@ -53,6 +53,7 @@ class IncomingMail:
 			self.process_part(part)
 
 	def set_subject(self):
+		import email.header
 		_subject = email.header.decode_header(self.mail.get("Subject", "No Subject"))
 		self.subject = _subject[0][0]
 		if _subject[0][1]:
