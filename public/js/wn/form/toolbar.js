@@ -150,7 +150,7 @@ wn.ui.form.Toolbar = Class.extend({
 
 			switch(this.frm.doc.docstatus) {
 				case 0:
-					$('<span class="label label-warning"><i class="icon-unlock"> To Submit</span>')
+					$('<span class="label"><i class="icon-unlock"> To Submit</span>')
 						.appendTo(status_bar);
 					break;
 				case 1:

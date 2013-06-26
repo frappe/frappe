@@ -49,8 +49,19 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		method:'core.page.data_import_tool.data_import_tool.get_doctypes',
 		callback: function(r) {
 			$select.add_options(['Select...'].concat(r.message));
+			wrapper.doctypes = r.message;
+			wrapper.set_route_options();
 		}
 	});
+	
+	wrapper.set_route_options = function() {
+		if(wn.route_options
+			&& wn.route_options.doctype
+			&& in_list(wrapper.doctypes, wn.route_options.doctype)) {
+				$select.val(wn.route_options.doctype).change();
+				wn.route_options = null;
+		}
+	}
 	
 	// load options
 	$select.change(function() {
@@ -169,4 +180,8 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			$('#dit-output').empty();
 			$(wrapper).find(".dit-progress-area").toggle(true);
 		});
+}
+
+wn.pages['data-import-tool'].onshow = function(wrapper) { 
+	wrapper.set_route_options && wrapper.set_route_options();
 }

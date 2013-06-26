@@ -109,7 +109,10 @@ _f.Frm.prototype.setup = function() {
 		single_column: true
 	});
 	this.appframe = this.wrapper.appframe;
-	this.layout_main = $(this.wrapper).find(".layout-main").get(0);
+	this.layout_main = $(this.wrapper)
+		.find(".layout-main")
+		.css({"padding-bottom": "0px"})
+		.get(0);
 	
 	this.toolbar = new wn.ui.form.Toolbar({
 		frm: this,

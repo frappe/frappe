@@ -39,7 +39,6 @@ wn.views.moduleview.ModuleView = Class.extend({
 			single_column: true,
 			title: wn._(wn.modules[module].label || module)
 		});
-		wrapper.appframe.add_home_breadcrumb();
 		wrapper.appframe.add_module_icon(module);
 		this.wrapper = wrapper;
 		this.module = module;

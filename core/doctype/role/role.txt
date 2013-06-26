@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-08 15:50:01", 
   "docstatus": 0, 
-  "modified": "2013-02-19 10:42:13", 
+  "modified": "2013-06-26 15:34:52", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,7 +23,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "role_name", 
+  "fieldtype": "Data", 
+  "label": "Role Name", 
   "name": "__common__", 
+  "oldfieldname": "role_name", 
+  "oldfieldtype": "Data", 
   "parent": "Role", 
   "parentfield": "fields", 
   "parenttype": "DocType", 
@@ -49,21 +54,7 @@
   "name": "Role"
  }, 
  {
-  "doctype": "DocField", 
-  "fieldname": "module", 
-  "fieldtype": "Select", 
-  "label": "Module", 
-  "oldfieldname": "module", 
-  "oldfieldtype": "Select", 
-  "options": "link:Module Def"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "role_name", 
-  "fieldtype": "Data", 
-  "label": "Role Name", 
-  "oldfieldname": "role_name", 
-  "oldfieldtype": "Data"
+  "doctype": "DocField"
  }, 
  {
   "amend": 0, 
