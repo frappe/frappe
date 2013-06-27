@@ -27,7 +27,7 @@ wn.ui.form.Grid = Class.extend({
 	},
 	make_head: function() {
 		// labels
-		new wn.ui.form.GridRow({
+		this.header_row = new wn.ui.form.GridRow({
 			parent: $(this.parent).find(".panel-heading"),
 			parent_df: this.df,
 			docfields: this.docfields,
@@ -47,6 +47,7 @@ wn.ui.form.Grid = Class.extend({
 
 		if(this.data_rows_are_same(data)) {
 			// soft refresh
+			this.header_row.refresh();
 			$.each(this.grid_rows, function(i, g) {
 				g.refresh();
 			});
@@ -121,10 +122,15 @@ wn.ui.form.Grid = Class.extend({
 		wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = !show;
 		this.refresh();
 	},
+	toggle_reqd: function(fieldname, reqd) {
+		wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).reqd = reqd;
+		this.refresh();
+	},
 	get_field: function(fieldname) {
 		// Note: workaround for get_query
 		if(!this.fieldinfo[fieldname])
-			this.fieldinfo[fieldname] = {}
+			this.fieldinfo[fieldname] = {
+			}
 		return this.fieldinfo[fieldname];
 	},
 	set_value: function(fieldname, value, doc) {
@@ -215,7 +221,8 @@ wn.ui.form.GridRow = Class.extend({
 		})
 	},
 	refresh: function() {
-		this.doc = locals[this.doc.doctype][this.doc.name];
+		if(this.doc)
+			this.doc = locals[this.doc.doctype][this.doc.name];
 		
 		// re write columns
 		this.make_static_display();

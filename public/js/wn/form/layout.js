@@ -69,7 +69,9 @@ wn.ui.form.Layout = Class.extend({
 		}
 		this.section = $('<div class="row">').appendTo(this.wrapper);
 		this.frm.sections.push(this.section);
-		this.section[0].df = df;
+		
+		var section = this.section[0];
+		section.df = df;
 		if(df) {
 			if(df.label) {
 				$('<h3 class="col col-lg-12">' + df.label + "</h3>").appendTo(this.section);
@@ -77,10 +79,16 @@ wn.ui.form.Layout = Class.extend({
 			if(df.description) {
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
 			}
-			this.frm.fields_dict[df.fieldname] = this.section;
+			this.frm.fields_dict[df.fieldname] = section;
+			this.frm.fields.push(section);
 		}
 		// for bc
-		this.section.row = {wrapper: this.section};
+		section.row = {
+			wrapper: section
+		};
+		section.refresh = function() {
+			$(this).toggle(!this.df.hidden)
+		}
 		this.column = null;
 		if(df && df.hidden) {
 			this.section.toggle(false);
