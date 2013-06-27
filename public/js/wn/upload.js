@@ -56,11 +56,11 @@ wn.upload = {
 				"method": "uploadfile",
 				args: args,
 				callback: function(r) {
+					msgbox.hide();
 					if(r.exc) {
-						onerror();
+						onerror(r);
 						return;
 					}
-					msgbox.hide();
 					callback(r.message, args.filename || args.file_url, r);
 					$(document).trigger("upload_complete", 
 						[args.filename, args.file_url]);
