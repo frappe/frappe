@@ -97,7 +97,7 @@ class Bean:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc
 
-	def make_obj(self):
+	def make_controller(self):
 		if self.obj:
 			# update doclist before running any method
 			self.obj.doclist = self.doclist
@@ -217,20 +217,20 @@ class Bean:
 			idx_map[d.parentfield] = d.idx
 
 	def run_method(self, method):
-		self.make_obj()
+		self.make_controller()
 		
-		if hasattr(self.obj, method):
-			getattr(self.obj, method)()
-		if hasattr(self.obj, 'custom_' + method):
-			getattr(self.obj, 'custom_' + method)()
+		if hasattr(self.controller, method):
+			getattr(self.controller, method)()
+		if hasattr(self.controller, 'custom_' + method):
+			getattr(self.controller, 'custom_' + method)()
 
-		notify(self.obj, method)
+		notify(self.controller, method)
 		
-		self.doclist = self.obj.doclist
+		self.doclist = self.controller.doclist
 
 	def get_method(self, method):
-		self.make_obj()
-		return getattr(self.obj, method, None)
+		self.make_controller()
+		return getattr(self.controller, method, None)
 
 	def save_main(self):
 		try:

@@ -29,8 +29,7 @@ wn.tools.downloadify = function(data, roles, me) {
 			swf: 'lib/js/lib/downloadify/downloadify.swf',
 			downloadImage: 'lib/js/lib/downloadify/download.png',
 			onComplete: function(){
-				msgobj.hide(); 
-				msgprint("Saved.");
+				$(msgobj.msg_area).html("<p>Saved</p>")
 			},
 			onCancel: function(){ msgobj.hide(); },
 			onError: function(){ msgobj.hide(); },

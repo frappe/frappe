@@ -90,6 +90,12 @@ class DocType:
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
 
+		# update index
+		bean = webnotes.bean({"doctype":"Stock Ledger Entry"})
+		bean.make_controller()
+		if hasattr(bean.obj, "on_doctype_update"):
+			bean.controller.on_doctype_update()
+
 		self.change_modified_of_parent()
 		
 		import conf

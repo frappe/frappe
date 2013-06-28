@@ -304,10 +304,10 @@ def get_doctypes(m):
 		}
 		
 		b = webnotes.bean([{"doctype": d}])
-		b.make_obj()
-		if not getattr(b.obj, "__doc__"):
-			b.obj.__doc__ = "Controller Class for handling server-side events for " + d
-		inspect_object_and_update_docs(controller_docs, b.obj)
+		b.make_controller()
+		if not getattr(b.controller, "__doc__"):
+			b.controller.__doc__ = "Controller Class for handling server-side events for " + d
+		inspect_object_and_update_docs(controller_docs, b.controller)
 
 		# client controller
 		if meta_p[0].fields.get("__js"):

@@ -46,12 +46,12 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		wrapper = Bean()
-		wrapper.from_compressed(webnotes.form_dict.get('docs'), dn)
-		if not wrapper.has_read_perm():
+		bean = Bean()
+		bean.from_compressed(webnotes.form_dict.get('docs'), dn)
+		if not bean.has_read_perm():
 			webnotes.msgprint(_("No Permission"), raise_exception = True)
-		so = wrapper.make_obj()
-		wrapper.check_if_latest(method="runserverobj")
+		so = bean.make_controller()
+		bean.check_if_latest(method="runserverobj")
 
 	check_guest_access(so.doc)
 	
