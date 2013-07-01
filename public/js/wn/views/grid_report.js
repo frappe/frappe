@@ -100,6 +100,7 @@ wn.views.GridReport = Class.extend({
 		this.filter_inputs = {};
 		this.preset_checks = [];
 		this.tree_grid = {show: false};
+		var me = this;
 		$.extend(this, opts);
 		
 		this.wrapper = $('<div>').appendTo(this.parent);
@@ -109,8 +110,10 @@ wn.views.GridReport = Class.extend({
 		}
 		this.make_waiting();
 		
-		var me = this;
-		this.get_data();
+		this.get_data(function() {
+			me.apply_filters_from_route();
+			me.refresh();
+		});
 	},
 	bind_show: function() {
 		// bind show event to reset cur_report_grid
@@ -123,11 +126,14 @@ wn.views.GridReport = Class.extend({
 		$(this.page).bind('show', function() {
 			// reapply filters on show
 			wn.cur_grid_report = me;
-			me.get_data()
+			me.get_data(function() {
+				me.apply_filters_from_route();
+				me.refresh();
+			})
 		});
 		
 	},
-	get_data: function() {
+	get_data: function(callback) {
 		var me = this;
 		var progress_bar = null;
 		if(!this.setup_filters_done)
@@ -138,8 +144,7 @@ wn.views.GridReport = Class.extend({
 				me.setup_filters();
 				me.setup_filters_done = true;
 			}
-			me.apply_filters_from_route();
-			me.refresh();
+			callback();
 		}, progress_bar);
 	},
 	setup_filters: function() {
@@ -387,22 +392,21 @@ wn.views.GridReport = Class.extend({
 		this.bind_show();
 		
 		wn.cur_grid_report = this;
-		this.apply_filters_from_route();
 		$(this.wrapper).trigger('make');
 		
 	},
 	apply_filters_from_route: function() {
-		var hash = decodeURIComponent(window.location.hash);
 		var me = this;
 		if(wn.route_options) {
 			$.each(wn.route_options, function(key, value) {
 				me.set_filter(key, value);
 			});
+			wn.route_options = null;
 		} else {
 			this.init_filter_values();
 		}
 		this.set_default_values();
-		
+
 		$(this.wrapper).trigger('apply_filters_from_route');
 	},
 	options: {
@@ -455,7 +459,9 @@ wn.views.GridReport = Class.extend({
 		if(item._show) return true;
 		
 		for (i in filters) {
-			if(!this.apply_filter(item, i)) return false;
+			if(!this.apply_filter(item, i)) {
+				return false;
+			}
 		}
 		
 		return true;
