@@ -81,14 +81,10 @@ wn.views.Page = Class.extend({
 	},
 	trigger: function(eventname) {
 		var me = this;
-		try {
-			if(pscript[eventname+'_'+this.name]) {
-				pscript[eventname+'_'+this.name](me.wrapper);				
-			} else if(me.wrapper[eventname]) {
-				me.wrapper[eventname](me.wrapper);
-			}
-		} catch(e) { 
-			console.log(e); 
+		if(pscript[eventname+'_'+this.name]) {
+			pscript[eventname+'_'+this.name](me.wrapper);				
+		} else if(me.wrapper[eventname]) {
+			me.wrapper[eventname](me.wrapper);
 		}
 	}
 })
