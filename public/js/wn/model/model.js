@@ -290,6 +290,14 @@ $.extend(wn.model, {
 			if(d) wn.model.clear_doc(d.doctype, d.name);
 		});
 	},
+	
+	clear_table: function(doctype, parenttype, parent, parentfield) {
+		$.each(locals[doctype] || {}, function(i, d) {
+			if(d.parent===parent && d.parenttype===parenttype && d.parentfield===parentfield) {
+				delete locals[doctype][d.name];
+			}
+		})
+	},
 
 	remove_from_locals: function(doctype, name) {
 		this.clear_doclist(doctype, name);
@@ -297,7 +305,7 @@ $.extend(wn.model, {
 			delete wn.views.formview[doctype].frm.opendocs[name];
 		}
 	},
-	
+
 	clear_doc: function(doctype, name) {
 		var doc = locals[doctype][name];
 		

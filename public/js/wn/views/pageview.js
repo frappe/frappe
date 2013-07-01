@@ -17,7 +17,7 @@ wn.views.pageview = {
 		if((locals.Page && locals.Page[name]) || name==window.page_name) {
 			// already loaded
 			callback();
-		} if(localStorage["_page:" + name]) {
+		} else if(localStorage["_page:" + name]) {
 			// cached in local storage
 			wn.model.sync(JSON.parse(localStorage["_page:" + name]));
 			callback();
@@ -81,14 +81,10 @@ wn.views.Page = Class.extend({
 	},
 	trigger: function(eventname) {
 		var me = this;
-		try {
-			if(pscript[eventname+'_'+this.name]) {
-				pscript[eventname+'_'+this.name](me.wrapper);				
-			} else if(me.wrapper[eventname]) {
-				me.wrapper[eventname](me.wrapper);
-			}
-		} catch(e) { 
-			console.log(e); 
+		if(pscript[eventname+'_'+this.name]) {
+			pscript[eventname+'_'+this.name](me.wrapper);				
+		} else if(me.wrapper[eventname]) {
+			me.wrapper[eventname](me.wrapper);
 		}
 	}
 })

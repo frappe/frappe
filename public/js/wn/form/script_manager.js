@@ -18,11 +18,7 @@ wn.ui.form.ScriptManager = Class.extend({
 		// js
 		var cs = doctype.__js;
 		if(cs) {
-			try {
-				var tmp = eval(cs);
-			} catch(e) {
-				this.log_error("eval", e);
-			}
+			var tmp = eval(cs);
 		}
 
 		// css

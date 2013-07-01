@@ -146,6 +146,7 @@ wn.ui.form.Toolbar = Class.extend({
 		var status_bar_parent = this.frm.appframe.$w.find(".status-bar").empty();
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
 			var status_bar = $("<h4>")
+				.css({"margin": "0px"})
 				.appendTo(status_bar_parent);
 
 			switch(this.frm.doc.docstatus) {

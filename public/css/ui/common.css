@@ -45,6 +45,41 @@ a {
 	text-align: right;
 }
 
+/* module */
+
+.module-top .alert {
+	padding-right: 15px;
+	margin-bottom: 10px;
+}
+
+.module-top a, .module-top a:hover {
+	color: black;
+	font-size: 120%; 
+	font-weight: bold;
+}
+
+.module-top .badge {
+	margin-top: 3px;
+}
+
+.module-item-progress {
+	margin-bottom: 10px;
+	height: 17px;
+}
+
+.module-item-progress-total {
+	height: 7px;
+	background-color: #999999;
+	width: 0px;
+}
+
+.module-item-progress-open {
+	height: 7px;
+	background-color: red;
+	width: 0px;
+}
+
+
 /* fixed navbar in appframe */
 
 .appframe .navbar {

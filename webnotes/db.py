@@ -329,10 +329,10 @@ class Database:
 			try:
 				return self.get_values_from_table(fields, filters, doctype, as_dict, debug)
 			except Exception, e:
-				if e.args[0]!=1146:
+				if ignore and e.args[0] in (1146, 1054):
+					return None
+				else:
 					raise e
-					
-				# not a table, try in singles
 
 		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
 

@@ -212,8 +212,8 @@ _f.Frm.prototype.setup_std_layout = function() {
 
 _f.Frm.prototype.setup_print = function() { 
 	this.print_formats = wn.meta.get_print_formats(this.meta.name);
-	this.print_sel = $a(null, 'select', '', {width:'160px'});
-	add_sel_options(this.print_sel, this.print_formats);
+	this.print_sel = $("<select>")
+		.css({"width": "160px"}).add_options(this.print_formats).get(0);
 	this.print_sel.value = this.print_formats[0];
 }
 
@@ -413,7 +413,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		if (!this.opendocs[this.docname]) {
 			this.check_doctype_conflict(this.docname);
 		} else {
-			if(this.doc && this.doc.__last_sync_on && 
+			if(this.doc && (!this.doc.__unsaved) && this.doc.__last_sync_on && 
 				(new Date() - this.doc.__last_sync_on) > (this.refresh_if_stale_for * 1000)) {
 				this.reload_doc();
 				return;

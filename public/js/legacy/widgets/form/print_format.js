@@ -115,7 +115,9 @@ $.extend(_p, {
 				c.removeChild(c.cur_sel);
 			}
 			c.appendChild(cur_frm.print_sel);
-			c.cur_sel = cur_frm.print_sel;	
+			c.cur_sel = cur_frm.print_sel;
+			if(cur_frm.$print_view_select && cur_frm.$print_view_select.val())
+				c.cur_sel.value= cur_frm.$print_view_select.val();
 		}
 		
 		_p.dialog = d;
