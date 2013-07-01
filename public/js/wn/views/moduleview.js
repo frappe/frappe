@@ -94,7 +94,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(!item.description) item.description = "";
 		if(item.count==null) item.count = "";
 		if(section.top) {
-			var $parent = $(repl('<div class="col col-lg-3">\
+			var $parent = $(repl('<div class="col col-lg-4">\
 				<div class="alert"></div>\
 				<div>\
 					<div class="module-item-progress" data-doctype="%(doctype)s">\
