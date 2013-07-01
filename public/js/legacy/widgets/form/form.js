@@ -413,7 +413,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		if (!this.opendocs[this.docname]) {
 			this.check_doctype_conflict(this.docname);
 		} else {
-			if(this.doc && this.doc.__last_sync_on && 
+			if(this.doc && (!this.doc.__unsaved) && this.doc.__last_sync_on && 
 				(new Date() - this.doc.__last_sync_on) > (this.refresh_if_stale_for * 1000)) {
 				this.reload_doc();
 				return;

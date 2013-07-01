@@ -31,7 +31,6 @@ wn.views.FormFactory = wn.views.Factory.extend({
 		}
 
 		wn.model.with_doc(dt, dn, function(dn, r) {
-
 			if(r && r['403']) return; // not permitted
 			
 			if(!(locals[dt] && locals[dt][dn])) {

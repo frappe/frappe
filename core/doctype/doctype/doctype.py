@@ -91,7 +91,7 @@ class DocType:
 		updatedb(self.doc.name)
 
 		# update index
-		bean = webnotes.bean({"doctype":"Stock Ledger Entry"})
+		bean = webnotes.bean({"doctype": self.doc.name})
 		bean.make_controller()
 		if hasattr(bean.obj, "on_doctype_update"):
 			bean.controller.on_doctype_update()
