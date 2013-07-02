@@ -416,6 +416,16 @@ def repsond_as_web_page(title, html):
 	response['type'] = 'page'
 	response['page_name'] = 'message.html'
 
+def load_json(obj):
+	if isinstance(obj, basestring):
+		import json
+		try:
+			obj = json.loads(obj)
+		except ValueError:
+			pass
+		
+	return obj
+
 _config = None
 def get_config():
 	global _config
