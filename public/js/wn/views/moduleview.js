@@ -33,6 +33,8 @@ wn.views.show_open_count_list = function(element) {
 wn.views.moduleview.ModuleView = Class.extend({
 	init: function(wrapper, module) {
 		this.doctypes = [];
+		this.top_item_total = {};
+		this.top_item_open = {};
 		$(wrapper).empty();
 		wn.ui.make_app_page({
 			parent: wrapper,
@@ -55,7 +57,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 	make_body: function() {
 		var wrapper = this.wrapper;
 		// make columns
-		$(wrapper).find(".layout-main").html("<div class='row'>\
+		$(wrapper).find(".layout-main").html("<div class='row module-top'></div>\
+		<div class='row'>\
 			<div class='col col-lg-6 main-section'></div>\
 			<div class='col col-lg-6 side-section'></div>\
 		</div>")
@@ -71,35 +74,83 @@ wn.views.moduleview.ModuleView = Class.extend({
 	},
 	add_section: function(section) {
 		section._title = wn._(section.title);
-		var list_group = $('<ul class="list-group">\
-			<li class="list-group-item">\
-				<h4 class="list-group-item-heading"><i class="'
-					+ section.icon+'"></i> '
-					+ wn._(section.title) +'</h4>\
-			</li>\
-		</ul>"').appendTo(section.right 
-			? $(this.wrapper).find(".side-section")
-			: $(this.wrapper).find(".main-section"));
+		if(section.top) {
+			var list_group = $('<div>')
+				.appendTo($(this.wrapper).find(".module-top"));
+		} else {
+			var list_group = $('<ul class="list-group">\
+				<li class="list-group-item">\
+					<h4 class="list-group-item-heading"><i class="'
+						+ section.icon+'"></i> '
+						+ wn._(section.title) +'</h4>\
+				</li>\
+			</ul>"').appendTo(section.right 
+				? $(this.wrapper).find(".side-section")
+				: $(this.wrapper).find(".main-section"));
+		}
 		section.list_group = list_group;
 	},
 	add_item: function(item, section) {
 		if(!item.description) item.description = "";
 		if(item.count==null) item.count = "";
+		if(section.top) {
+			var $parent = $(repl('<div class="col col-lg-4">\
+				<div class="alert"></div>\
+				<div>\
+					<div class="module-item-progress" data-doctype="%(doctype)s">\
+						<div class="module-item-progress-total">\
+							<div class="module-item-progress-open">\
+							</div>\
+						</div>\
+					</div>\
+				</div>\
+				</div>', {doctype:item.doctype}))
+				.appendTo(section.list_group)
+				.find(".alert");
+			this.top_item_total[item.doctype] = 0;
+		} else {
+			var $parent = $('<li class="list-group-item">').appendTo(section.list_group);
+		}
 				
-		$(repl('<li class="list-group-item">\
-			<span' +
+		$(repl('<span' +
 				((item.doctype && item.description) 
 					? " data-doctype='"+item.doctype+"'" 
 					: "") + ">%(link)s</span>"
-				+ (item.description 
+				+ ((item.description && !section.top)
 					? " <span class='text-muted small'>%(description)s</span>" 
 					: "")
 			+ ((section.right || !item.doctype) 
 				? ''
-				: '<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>\
-					<span class="clearfix"></span>')
-			+ "</li>", item))
-		.appendTo(section.list_group);
+				: '<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>'), item))
+		.appendTo($parent);
+		
+		if(!section.top) {
+			$('<span class="clearfix"></span>').appendTo($parent);
+		}
+	},
+	set_top_item_count: function(doctype, count, open_count) {
+		var me = this;
+		if(this.top_item_total[doctype]!=null) {
+
+			if(count!=null)
+				this.top_item_total[doctype] = count;
+			if(open_count!=null)
+				this.top_item_open[doctype] = open_count;
+				
+			var maxtop = Math.max.apply(this, values(this.top_item_total));
+
+			$.each(this.top_item_total, function(doctype, item_count) {
+				$(me.wrapper).find(".module-item-progress[data-doctype='"+ doctype +"']")
+					.find(".module-item-progress-total")
+					.css("width", cint(flt(item_count)/maxtop*100) + "%")
+			})
+
+			$.each(this.top_item_open, function(doctype, item_count) {
+				$(me.wrapper).find(".module-item-progress[data-doctype='"+ doctype +"']")
+					.find(".module-item-progress-open")
+					.css("width", cint(flt(item_count)/me.top_item_total[doctype]*100) + "%")
+			})
+		}
 	},
 	render_static: function() {
 		// render sections
@@ -177,8 +228,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 						$.each(r.message.item_count, function(doctype, count) {
 							$(me.wrapper).find("[data-doctype-count='"+doctype+"']")
 								.html(count)
-								.addClass("badge badge-count")
+								.addClass("badge badge-count pull-right")
 								.css({cursor:"pointer"});
+							me.set_top_item_count(doctype, count)
 						})
 					}
 
@@ -194,12 +246,13 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(wn.boot.notification_info.open_count_doctype) {
 			$.each(wn.boot.notification_info.open_count_doctype, function(doctype, count) {
 				if(in_list(me.doctypes, doctype)) {
+					me.set_top_item_count(doctype, null, count);
 					$('<span>')
 						.css({
 							"cursor": "pointer",
 							"margin-right": "0px"
 						})
-						.addClass("badge badge-important")
+						.addClass("badge badge-important pull-right")
 						.html(count)
 						.attr("data-doctype", doctype)
 						.insertAfter($(me.wrapper)
