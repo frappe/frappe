@@ -75,8 +75,10 @@ wn.views.moduleview.ModuleView = Class.extend({
 	add_section: function(section) {
 		section._title = wn._(section.title);
 		if(section.top) {
+			var module_top = $(this.wrapper).find(".module-top");
 			var list_group = $('<div>')
-				.appendTo($(this.wrapper).find(".module-top"));
+				.appendTo(module_top);
+			$('<div class="col col-lg-12"><hr /></div>').appendTo(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
 				<li class="list-group-item">\
@@ -95,16 +97,16 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(item.count==null) item.count = "";
 		if(section.top) {
 			var $parent = $(repl('<div class="col col-lg-4">\
-				<div class="alert"></div>\
-				<div>\
-					<div class="module-item-progress" data-doctype="%(doctype)s">\
-						<div class="module-item-progress-total">\
-							<div class="module-item-progress-open">\
-							</div>\
-						</div>\
-					</div>\
-				</div>\
-				</div>', {doctype:item.doctype}))
+				<div class="alert alert-badge"></div>'
+				// <div>\
+				// 	<div class="module-item-progress" data-doctype="%(doctype)s">\
+				// 		<div class="module-item-progress-total">\
+				// 			<div class="module-item-progress-open">\
+				// 			</div>\
+				// 		</div>\
+				// 	</div>\
+				// </div>\
+				+'</div>', {doctype:item.doctype}))
 				.appendTo(section.list_group)
 				.find(".alert");
 			this.top_item_total[item.doctype] = 0;
@@ -129,6 +131,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		}
 	},
 	set_top_item_count: function(doctype, count, open_count) {
+		return;
 		var me = this;
 		if(this.top_item_total[doctype]!=null) {
 

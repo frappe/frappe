@@ -47,20 +47,32 @@ a {
 
 /* module */
 
-.module-top .alert {
+.alert-badge {
 	padding-right: 15px;
-	margin-bottom: 10px;
 }
 
-.module-top a, .module-top a:hover {
+.alert-badge a, .alert-badge a:hover {
 	color: black;
 	font-size: 120%; 
 	font-weight: bold;
 }
 
-.module-top .badge {
+.alert-badge .badge {
 	margin-top: 3px;
 }
+
+.form-headline {
+	margin-bottom: 10px;
+	font-size: 130%;
+	text-align: right;
+}
+
+.form-dashboard {
+	display: none;
+	border-bottom: 1px solid #eee;
+}
+
+/* module */
 
 .module-item-progress {
 	margin-bottom: 10px;
@@ -384,4 +396,35 @@ textarea[data-fieldtype="Small Text"] {
 	.hidden-sm-inline {
 		display: inline;
 	}
+}
+
+/* buttons */
+.btn-default {
+  color: #ffffff;
+  background-color: #a7a9aa;
+  border-color: #a7a9aa;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active {
+  background-color: #9a9c9d;
+  border-color: #8d9091;
+}
+
+.btn-default.disabled:hover,
+.btn-default[disabled]:hover,
+fieldset[disabled] .btn-default:hover,
+.btn-default.disabled:focus,
+.btn-default[disabled]:focus,
+fieldset[disabled] .btn-default:focus,
+.btn-default.disabled:active,
+.btn-default[disabled]:active,
+fieldset[disabled] .btn-default:active,
+.btn-default.disabled.active,
+.btn-default[disabled].active,
+fieldset[disabled] .btn-default.active {
+  background-color: #a7a9aa;
+  border-color: #a7a9aa;
 }

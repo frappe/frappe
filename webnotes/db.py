@@ -365,9 +365,16 @@ class Database:
 				return r and [[i[1] for i in r]] or []
 	
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
-		fl = fields
-		if fields!="*":
-			fl = ("`" + "`, `".join(fields) + "`")	
+		fl = []
+		if isinstance(fields, (list, tuple)):
+			for f in fields:
+				if "(" in f: # function
+					fl.append(f)
+				else:
+					fl.append("`" + f + "`")
+			fl = ", ".join(fields)
+		else:
+			fl = fields
 
 		conditions, filters = self.build_conditions(filters)
 	

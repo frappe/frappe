@@ -1,5 +1,6 @@
 wn.ui.form.Layout = Class.extend({
 	init: function(opts) {
+		this.labelled_section_count = 0;
 		this.ignore_types = ["Section Break", "Column Break"];
 		$.extend(this, opts);
 		this.make();
@@ -7,6 +8,7 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make: function() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
+		this.dashboard = $('<div class="row form-dashboard">').appendTo(this.wrapper);
 		this.fields = wn.meta.get_docfields(this.frm.doctype);
 		this.setup_tabbing();
 	},
@@ -67,14 +69,21 @@ wn.ui.form.Layout = Class.extend({
 		if(this.section) {
 			//$("<hr>").appendTo(this.wrapper);
 		}
-		this.section = $('<div class="row">').appendTo(this.wrapper);
+		this.section = $('<div class="row">')
+			.appendTo(this.wrapper);
 		this.frm.sections.push(this.section);
 		
 		var section = this.section[0];
 		section.df = df;
 		if(df) {
 			if(df.label) {
-				$('<h3 class="col col-lg-12">' + df.label + "</h3>").appendTo(this.section);
+				this.labelled_section_count++;
+				$('<h3 class="col col-lg-12">' + this.labelled_section_count 
+					+ ". " + df.label + "</h3>")
+					.css({"font-weight": "bold", "margin-bottom": "15px"})
+					.appendTo(this.section);
+				if(this.frm.sections.length > 1)
+					this.section.css({"margin-top": "15px", "border-top": "1px solid #eee"});
 			}
 			if(df.description) {
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
@@ -173,5 +182,39 @@ wn.ui.form.Layout = Class.extend({
 	},
 	get_open_grid_row: function() {
 		return $(".grid-row-open").data("grid_row");
+	},
+	
+	// dashboard
+	clear_dashboard: function() {
+		this.dashboard.empty();
+	},
+	add_doctype_badge: function(label, doctype, fieldname) {
+		if(wn.model.can_read(doctype)) {
+			this.add_badge(label, function() {
+				wn.route_options = {};
+				wn.route_options[fieldname] = cur_frm.doc.name;
+				wn.set_route("List", doctype);
+			}).attr("data-doctype", doctype);
+		}
+	},
+	add_badge: function(label, onclick) {
+		var badge = $(repl('<div class="col col-lg-4">\
+			<div class="alert alert-badge">\
+				<a class="badge-link">%(label)s</a>\
+				<span class="badge pull-right">-</span>\
+			</div></div>', {label:label}))
+				.appendTo(this.dashboard)
+				
+		badge.find(".badge-link").click(onclick);
+				
+		return badge.find(".alert-badge");
+	},
+	set_badge_count: function(data) {
+		var me = this;
+		$.each(data, function(doctype, count) {
+			$(me.dashboard)
+				.find(".alert-badge[data-doctype='"+doctype+"'] .badge")
+				.html(cint(count));
+		});
 	},
 })

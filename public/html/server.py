@@ -41,7 +41,6 @@ import webnotes.auth
 
 def init():
 	webnotes.handler.get_cgi_fields()
-	
 	# init request
 	try:
 		webnotes.http_request = webnotes.auth.HTTPRequest()

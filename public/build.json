@@ -20,7 +20,6 @@
 			"lib/public/css/legacy/fields.css",
 			"lib/public/css/legacy/dialog.css",
 			"lib/public/css/legacy/tabs.css",
-			"lib/public/css/legacy/sidebar.css",
 			"lib/public/css/ui/common.css",
 			"lib/public/css/views/tree_grid.css",
 		]
@@ -110,7 +109,6 @@
 			"lib/public/js/legacy/widgets/layout.js",
 			"lib/public/js/legacy/widgets/export_query.js",
 			"lib/public/js/legacy/wn/page_layout.js",
-			"lib/public/js/legacy/wn/widgets/page_sidebar.js",
 			
 			"lib/public/js/wn/ui/toolbar/selector_dialog.js",
 			"lib/public/js/wn/ui/toolbar/new.js",
@@ -124,7 +122,6 @@
 			"lib/public/js/legacy/widgets/form/form.js",
 			"lib/public/js/legacy/widgets/form/print_format.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
-			"lib/public/js/legacy/wn/widgets/form/sidebar.js",
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/layout.js",

@@ -173,7 +173,7 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.add_button(wn._('New') + ' ' + wn._(this.new_doctype), function() { 
-				(me.custom_new_doc || me.make_new_doc)(me.new_doctype);
+				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');
 		} 
 		
@@ -189,8 +189,18 @@ wn.ui.Listing = Class.extend({
 		}
 	},
 	
-	make_new_doc: function(new_doctype) {
-		new_doc(new_doctype);
+	make_new_doc: function(doctype) {
+		var me = this;
+		wn.model.with_doctype(doctype, function() {
+			var doc = wn.model.get_new_doc(doctype);
+			if(me.filter_list) {
+				$.each(me.filter_list.get_filters(), function(i, f) {
+					if(f[0]===doctype && f[2]==="=")
+						doc[f[1]]=f[3];
+				})
+			}
+			wn.set_route("Form", doctype, doc.name);
+		});
 	},
 
 	make_filters: function() {
