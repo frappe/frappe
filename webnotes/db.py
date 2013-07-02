@@ -324,7 +324,11 @@ class Database:
 				return self.get_values_from_table(fields, filters, doctype, as_dict, debug)
 			except Exception, e:
 				if ignore and e.args[0] in (1146, 1054):
+					# table or column not found, return None
 					return None
+				elif (not ignore) and e.args[0]==1146:
+					# table not found, look in singles
+					pass
 				else:
 					raise e
 
