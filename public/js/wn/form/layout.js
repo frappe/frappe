@@ -8,7 +8,6 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make: function() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.dashboard = $('<div class="row form-dashboard">').appendTo(this.wrapper);
 		this.fields = wn.meta.get_docfields(this.frm.doctype);
 		this.setup_tabbing();
 	},
@@ -78,12 +77,24 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				$('<h3 class="col col-lg-12">' + this.labelled_section_count 
-					+ ". " + df.label + "</h3>")
-					.css({"font-weight": "bold", "margin-bottom": "15px"})
+				$('<h3 class="col col-lg-12">' 
+					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
+					+ this.labelled_section_count + ". " 
+					+ df.label 
+					+ "</h3>")
+					.css({
+						"margin-bottom": "15px", 
+						"font-weight": "bold",
+						// "color": "white",
+						// "background-color": "#16a085",
+						// "padding": "7px"
+					})
 					.appendTo(this.section);
 				if(this.frm.sections.length > 1)
-					this.section.css({"margin-top": "15px", "border-top": "1px solid #eee"});
+					this.section.css({
+						"margin-top": "15px", 
+						"border-top": "1px solid #ddd"
+					});
 			}
 			if(df.description) {
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
@@ -188,9 +199,9 @@ wn.ui.form.Layout = Class.extend({
 	clear_dashboard: function() {
 		this.dashboard.empty();
 	},
-	add_doctype_badge: function(label, doctype, fieldname) {
+	add_doctype_badge: function(doctype, fieldname) {
 		if(wn.model.can_read(doctype)) {
-			this.add_badge(label, function() {
+			this.add_badge(wn._(doctype), function() {
 				wn.route_options = {};
 				wn.route_options[fieldname] = cur_frm.doc.name;
 				wn.set_route("List", doctype);

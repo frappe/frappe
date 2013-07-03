@@ -53,7 +53,7 @@ wn.ui.FieldGroup = Class.extend({
 			
 			// first button primary ?
 			if(df.fieldtype=='Button' && !this.first_button) {
-				$(f.input).addClass('btn-info');
+				$(f.input).removeClass("btn-default").addClass('btn-info');
 				this.first_button = true;
 			}
 		}

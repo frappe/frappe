@@ -190,10 +190,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.body_header	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
 
-	if(this.heading) {
-		this.page_head = new PageHeader(this.head, this);
-	}
-
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
 	
@@ -203,6 +199,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 		doctype: this.doctype,
 		frm: this,
 	})	
+
+	this.dashboard = new wn.ui.form.Dashboard({
+		frm: this,
+	})
 	
 	// state
 	this.states = new wn.ui.form.States({
@@ -534,7 +534,6 @@ _f.Frm.prototype.refresh_dependency = function() {
 	}
 	
 	if(!has_dep)return;
-
 
 	// show / hide based on values
 	for(var i=me.fields.length-1;i>=0;i--) { 

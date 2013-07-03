@@ -64,12 +64,11 @@ a {
 .form-headline {
 	margin-bottom: 10px;
 	font-size: 130%;
-	text-align: right;
 }
 
 .form-dashboard {
 	display: none;
-	border-bottom: 1px solid #eee;
+	border-bottom: 1px solid #ddd;
 }
 
 /* module */
