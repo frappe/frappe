@@ -260,6 +260,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 					},
 					callback: function() {
 						me.set_working(false);
+						me.dirty = true;
 						me.refresh();
 					}
 				})				

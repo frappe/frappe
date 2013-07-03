@@ -68,59 +68,46 @@ $.extend(_p, {
 	},
 	
 	make_dialog: function() {
-		// Prepare Dialog Box Layout		
-		var d = new Dialog(
-			360, // w
-			140, // h
-			'Print Formats', // title
-			[ // content
-				['HTML', 'Select'],
-				['Check', 'No Letterhead'],
-				['HTML', 'Buttons']				
-			]);
-		//d.widgets['No Letterhead'].checked = 1;
+		// Prepare Dialog Box Layout
+		var dialog = new wn.ui.Dialog({
+			title: "Print Formats",
+			fields: [
+				{fieldtype:"Select", label:"Print Format", fieldname:"print_format", reqd:1},
+				{fieldtype:"Check", label:"No Letter Head", fieldname:"no_letterhead"},
+				{fieldtype:"HTML", options: '<p style="text-align: right;">\
+					<button class="btn btn-primary btn-print">Print</button>\
+					<button class="btn btn-default btn-preview">Preview</button>\
+				</p>'},
+			]
+		})
 		
-		// Print Button
-		$(d.widgets.Buttons).css({"height": "60px"})
-		$btn(d.widgets.Buttons, 'Print', function() {
-				_p.build(
-					sel_val(cur_frm.print_sel), // fmtname
-					_p.go, // onload
-					d.widgets['No Letterhead'].checked // no_letterhead
-				);
-			},
-			{
-					cssFloat: 'right',
-					marginBottom: '16px',
-					marginLeft: '7px',
-			}, 'green');
+		dialog.$wrapper.find(".btn-print").click(function() {
+			var args = dialog.get_values();
+			_p.build(
+				args.print_format, // fmtname
+				_p.go, // onload
+				args.no_letterhead // no_letterhead
+			);
+		});
+
+		dialog.$wrapper.find(".btn-preview").click(function() {
+			var args = dialog.get_values();
+			_p.build(
+				args.print_format, // fmtname
+				_p.preview, // onload
+				args.no_letterhead // no_letterhead
+			);
+		});
 		
-		// Print Preview
-		$btn(d.widgets.Buttons, 'Preview', function() {
-				_p.build(
-					sel_val(cur_frm.print_sel), // fmtname
-					_p.preview, // onload
-					d.widgets['No Letterhead'].checked // no_letterhead
-				);
-			},
-			{
-				cssFloat: 'right',
-				marginBottom: '16px'
-			}, '');
-		
-		// Delete previous print format select list and Reload print format list from current form
-		d.onshow = function() {
-			var c = _p.dialog.widgets['Select'];
-			if(c.cur_sel && c.cur_sel.parentNode == c) {
-				c.removeChild(c.cur_sel);
-			}
-			c.appendChild(cur_frm.print_sel);
-			c.cur_sel = cur_frm.print_sel;
+		dialog.onshow = function() {
+			var $print = dialog.fields_dict.print_format.$input;
+			$print.add_options(cur_frm.print_formats);
+			
 			if(cur_frm.$print_view_select && cur_frm.$print_view_select.val())
-				c.cur_sel.value= cur_frm.$print_view_select.val();
+				$print.val(cur_frm.$print_view_select.val());
 		}
-		
-		_p.dialog = d;
+				
+		_p.dialog = dialog;
 	},
 	
 	// Define formats dict

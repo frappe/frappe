@@ -8,7 +8,6 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make: function() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.dashboard = $('<div class="row form-dashboard">').appendTo(this.wrapper);
 		this.fields = wn.meta.get_docfields(this.frm.doctype);
 		this.setup_tabbing();
 	},
@@ -83,10 +82,19 @@ wn.ui.form.Layout = Class.extend({
 					+ this.labelled_section_count + ". " 
 					+ df.label 
 					+ "</h3>")
-					.css({"font-weight": "bold", "margin-bottom": "15px"})
+					.css({
+						"margin-bottom": "15px", 
+						"font-weight": "bold",
+						// "color": "white",
+						// "background-color": "#16a085",
+						// "padding": "7px"
+					})
 					.appendTo(this.section);
 				if(this.frm.sections.length > 1)
-					this.section.css({"margin-top": "15px", "border-top": "1px solid #eee"});
+					this.section.css({
+						"margin-top": "15px", 
+						"border-top": "1px solid #ddd"
+					});
 			}
 			if(df.description) {
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);

@@ -37,7 +37,7 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 		
 	args = {
 		cmd:'runserverobj',
-		arg: arg,
+		args: arg,
 		method: method
 	};
 	

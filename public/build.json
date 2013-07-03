@@ -55,9 +55,13 @@
 			"lib/public/js/wn/defaults.js",
 
 			"lib/public/js/legacy/globals.js",
-			"lib/public/js/legacy/utils/datatype.js",
-			"lib/public/js/legacy/utils/datetime.js",
-			"lib/public/js/legacy/utils/dom.js",
+			"lib/public/js/legacy/datatype.js",
+			"lib/public/js/legacy/datetime.js",
+			"lib/public/js/legacy/dom.js",
+			"lib/public/js/legacy/handler.js",
+			"lib/public/js/legacy/printElement.js",
+			"lib/public/js/legacy/loaders.js",
+
 			"lib/public/js/wn/ui/appframe.js",
 			"lib/public/js/wn/ui/field_group.js",
 			"lib/public/js/wn/ui/dialog.js",
@@ -77,11 +81,6 @@
 			"lib/public/js/wn/misc/about.js",
 			"lib/public/js/wn/misc/datetime.js",
 			"lib/public/js/wn/misc/number_format.js",
-
-			"lib/public/js/legacy/utils/handler.js",
-			"lib/public/js/legacy/utils/printElement.js",
-			"lib/public/js/legacy/widgets/dialog.js",
-			"lib/public/js/legacy/webpage/loaders.js",
 
 			"lib/public/js/wn/upload.js",
 			"lib/public/js/wn/ui/filters.js",
@@ -105,10 +104,7 @@
 			"lib/public/js/wn/views/test_runner.js",
 			"lib/public/js/wn/form/formatters.js",
 
-			"lib/public/js/legacy/webpage/page_header.js",
 			"lib/public/js/legacy/widgets/layout.js",
-			"lib/public/js/legacy/widgets/export_query.js",
-			"lib/public/js/legacy/wn/page_layout.js",
 			
 			"lib/public/js/wn/ui/toolbar/selector_dialog.js",
 			"lib/public/js/wn/ui/toolbar/new.js",
@@ -125,6 +121,7 @@
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/layout.js",
+			"lib/public/js/wn/form/dashboard.js",
 			"lib/public/js/wn/form/script_manager.js",
 			"lib/public/js/wn/form/control.js",
 			"lib/public/js/wn/form/link_selector.js",

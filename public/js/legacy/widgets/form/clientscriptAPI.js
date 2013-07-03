@@ -244,7 +244,7 @@ _f.Frm.prototype.set_value = function(field, value) {
 _f.Frm.prototype.call = function(opts) {
 	var me = this;
 	if(!opts.doc) {
-		if(opts.method.indexOf(".")==-1)
+		if(opts.method.indexOf(".")===-1)
 			opts.method = wn.model.get_server_module_name(me.doctype) + "." + opts.method; 
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {

@@ -65,7 +65,8 @@ wn.ui.form.Control = Class.extend({
 			undefined;
 	},
 	set_model_value: function(value) {
-		if(wn.model.set_value(this.doctype, this.docname, this.df.fieldname, value)) {
+		if(wn.model.set_value(this.doctype, this.docname, this.df.fieldname, 
+			value, this.df.fieldtype)) {
 			this.frm && this.frm.dirty();
 			this.last_value = value;
 		}

@@ -193,13 +193,17 @@ $.extend(wn.model, {
 		}
 	},
 	
-	set_value: function(doctype, name, fieldname, value) {
+	set_value: function(doctype, name, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
 		var doc = locals[doctype] && locals[doctype][name] || null;
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;
 			wn.model.trigger(fieldname, value, doc);
 			return true;
+		} else {
+			// execute link triggers (want to reselect to execute triggers)
+			if(fieldtype=="Link")
+				wn.model.trigger(fieldname, value, doc);
 		}
 	},
 	
