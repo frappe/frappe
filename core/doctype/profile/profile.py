@@ -148,11 +148,12 @@ To login to %(product)s, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Your ERPNext password has been reset", txt, password)
+		import startup
+		self.send_login_mail("Your " +startup.product_name + " password has been reset", txt, password)
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
-		import startup
+
 		
 		txt = """
 ## %(company)s
