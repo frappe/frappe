@@ -149,7 +149,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		// make_new_doc can be overridden so that default values can be prefilled
 		// for example - communication list in customer
 		$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
-			(me.listview.make_new_doc || me.make_new_doc)(me.doctype);
+			(me.listview.make_new_doc || me.make_new_doc).apply(me, [me.doctype]);
 		});
 		
 		if((auto_run !== false) && (auto_run !== 0)) 
@@ -190,7 +190,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	
 	make_no_result: function() {
 		var new_button = wn.boot.profile.can_create.indexOf(this.doctype)!=-1
-			? ('<hr><p><button class="btn btn-default btn-info" \
+			? ('<hr><p><button class="btn btn-primary" \
 				list_view_doc="%(doctype)s">'+
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';

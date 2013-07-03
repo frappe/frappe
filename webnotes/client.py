@@ -90,4 +90,6 @@ def set_default(key, value, parent=None):
 def make_width_property_setter():
 	doclist = json.loads(webnotes.form_dict.doclist)
 	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		webnotes.bean(doclist).save()
+		bean = webnotes.bean(doclist)
+		bean.ignore_permissions = True
+		bean.insert()

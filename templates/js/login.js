@@ -95,6 +95,7 @@ login.show_login = function() {
 	}
 
 	window.is_login = true;
+	window.is_signup = false;
 }
 
 login.show_sign_up = function() {

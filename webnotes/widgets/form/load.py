@@ -45,7 +45,11 @@ def getdoc(doctype, name, user=None):
 		return []
 
 	try:
-		doclist = webnotes.bean(doctype, name).doclist
+		bean = webnotes.bean(doctype, name)
+		bean.run_method("onload")
+
+		doclist = bean.doclist
+
 		# add file list
 		set_docinfo(doctype, name)
 		
@@ -54,7 +58,7 @@ def getdoc(doctype, name, user=None):
 		webnotes.msgprint('Did not load.')
 		raise e
 
-	if doclist and not name.startswith('_'):
+	if bean and not name.startswith('_'):
 		webnotes.user.update_recent(doctype, name)
 	
 	webnotes.response['docs'] = doclist
@@ -114,3 +118,14 @@ def add_assignments(dt, dn):
 		})
 		
 	return cl
+	
+@webnotes.whitelist()
+def get_badge_info(doctypes, filters):
+	filters = json.loads(filters)
+	doctypes = json.loads(doctypes)
+	filters["docstatus"] = ["!=", 2]
+	out = {}
+	for doctype in doctypes:
+		out[doctype] = webnotes.conn.get_value(doctype, filters, "count(*)")
+
+	return out

@@ -339,16 +339,6 @@ _f.Frm.prototype.refresh_print_layout = function() {
 	_p.build(this.$print_view_select.val(), print_callback, false, true, true);
 }
 
-
-_f.Frm.prototype.show_the_frm = function() {
-	// show the dialog
-	if(this.meta.in_dialog && !this.parent.dialog.display) {
-		if(!this.meta.istable)
-			this.parent.table_form = false;
-		this.parent.dialog.show();
-	}	
-}
-
 _f.Frm.prototype.set_print_heading = function(txt) {
 	this.pformat[cur_frm.docname] = txt;
 }
@@ -579,9 +569,6 @@ _f.Frm.prototype.refresh_dependency = function() {
 	}
 }
 
-// setnewdoc is called when a record is loaded for the first time
-// ======================================================================================
-
 _f.Frm.prototype.setnewdoc = function(docname) {
 	// moved this call to refresh function
 	// this.check_doctype_conflict(docname);
@@ -601,7 +588,7 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	this.script_manager.trigger("onload");
 	
 	this.last_view_is_edit[docname] = 1;
-	if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
+	//if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
 		
 	this.opendocs[docname] = true;
 }

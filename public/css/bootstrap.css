@@ -325,9 +325,13 @@ a:focus {
 }
 
 img {
+  vertical-align: middle;
+}
+
+.img-responsive {
+  display: inline-block;
   height: auto;
   max-width: 100%;
-  vertical-align: middle;
 }
 
 .img-rounded {
@@ -1482,6 +1486,11 @@ input[type="checkbox"]:focus {
   outline-offset: -2px;
 }
 
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  height: auto;
+}
+
 input:-moz-placeholder,
 textarea:-moz-placeholder {
   color: #999999;
@@ -1601,6 +1610,7 @@ input[type="color"].input-small {
   border-radius: 3px;
 }
 
+.has-warning .help-block,
 .has-warning .control-label {
   color: #c09853;
 }
@@ -1624,6 +1634,7 @@ input[type="color"].input-small {
   border-color: #c09853;
 }
 
+.has-error .help-block,
 .has-error .control-label {
   color: #b94a48;
 }
@@ -1647,6 +1658,7 @@ input[type="color"].input-small {
   border-color: #b94a48;
 }
 
+.has-success .help-block,
 .has-success .control-label {
   color: #468847;
 }
@@ -2322,6 +2334,11 @@ input[type="button"].btn-block {
   border-bottom-left-radius: 4px;
 }
 
+.list-group-item > .badge {
+  float: right;
+  margin-right: -15px;
+}
+
 .list-group-item-heading {
   margin-top: 0;
   margin-bottom: 5px;
@@ -2359,16 +2376,6 @@ a.list-group-item.active .list-group-item-heading {
 
 a.list-group-item.active .list-group-item-text {
   color: #e1edf7;
-}
-
-.list-group-item > .badge,
-.list-group-item > .glyphicon-chevron-right {
-  float: right;
-  margin-right: -15px;
-}
-
-.list-group-item > .glyphicon + .badge {
-  margin-right: 5px;
 }
 
 .panel {
@@ -3206,11 +3213,6 @@ button.close {
   padding-left: 8px;
 }
 
-.btn-group > .btn-mini + .dropdown-toggle {
-  padding-right: 5px;
-  padding-left: 5px;
-}
-
 .btn-group > .btn-large + .dropdown-toggle {
   padding-right: 12px;
   padding-left: 12px;
@@ -3304,6 +3306,7 @@ button.close {
 
 .pagination {
   display: inline-block;
+  padding-left: 0;
   margin: 20px 0;
   border-radius: 4px;
 }
@@ -3395,6 +3398,7 @@ button.close {
 }
 
 .pager {
+  padding-left: 0;
   margin: 20px 0;
   text-align: center;
   list-style: none;
@@ -3962,8 +3966,11 @@ button.close {
   display: block;
 }
 
+.thumbnail > img,
 .img-thumbnail {
   display: inline-block;
+  height: auto;
+  max-width: 100%;
 }
 
 a.thumbnail:hover,
@@ -3972,8 +3979,6 @@ a.thumbnail:focus {
 }
 
 .thumbnail > img {
-  display: block;
-  max-width: 100%;
   margin-right: auto;
   margin-left: auto;
 }
@@ -4015,7 +4020,7 @@ a.thumbnail:focus {
 }
 
 .media-list {
-  margin-left: 0;
+  padding-left: 0;
   list-style: none;
 }
 
@@ -4106,10 +4111,6 @@ a.badge:focus {
 .btn .badge {
   position: relative;
   top: -1px;
-}
-
-.btn-mini .badge {
-  top: 0;
 }
 
 a.list-group-item.active > .badge,
@@ -4279,9 +4280,6 @@ a.list-group-item.active > .badge,
 .accordion-heading .accordion-toggle {
   display: block;
   padding: 8px 15px;
-}
-
-.accordion-toggle {
   cursor: pointer;
 }
 
@@ -4311,7 +4309,9 @@ a.list-group-item.active > .badge,
 
 .carousel-inner > .item > img,
 .carousel-inner > .item > a > img {
-  display: block;
+  display: inline-block;
+  height: auto;
+  max-width: 100%;
   line-height: 1;
 }
 
@@ -4418,24 +4418,26 @@ a.list-group-item.active > .badge,
   z-index: 15;
   width: 100px;
   padding-left: 0;
-  margin: 0 0 0 -50px;
+  margin-left: -50px;
   text-align: center;
   list-style: none;
 }
 
 .carousel-indicators li {
   display: inline-block;
-  width: 8px;
-  height: 8px;
-  margin-right: 0;
-  margin-left: 0;
+  width: 10px;
+  height: 10px;
+  margin: 1px;
   text-indent: -999px;
   cursor: pointer;
   border: 1px solid #fff;
-  border-radius: 5px;
+  border-radius: 10px;
 }
 
 .carousel-indicators .active {
+  width: 12px;
+  height: 12px;
+  margin: 0;
   background-color: #fff;
 }
 
@@ -4574,11 +4576,38 @@ td.visible-sm {
   display: none !important;
 }
 
+tr.visible-md {
+  display: none !important;
+}
+
+th.visible-md,
+td.visible-md {
+  display: none !important;
+}
+
 .visible-lg {
   display: none !important;
 }
 
+tr.visible-lg {
+  display: none !important;
+}
+
+th.visible-lg,
+td.visible-lg {
+  display: none !important;
+}
+
 .hidden-sm {
+  display: none !important;
+}
+
+tr.hidden-sm {
+  display: none !important;
+}
+
+th.hidden-sm,
+td.hidden-sm {
   display: none !important;
 }
 
@@ -4612,6 +4641,13 @@ td.hidden-lg {
   .visible-sm {
     display: none !important;
   }
+  tr.visible-sm {
+    display: none !important;
+  }
+  th.visible-sm,
+  td.visible-sm {
+    display: none !important;
+  }
   .visible-md {
     display: block !important;
   }
@@ -4625,6 +4661,13 @@ td.hidden-lg {
   .visible-lg {
     display: none !important;
   }
+  tr.visible-lg {
+    display: none !important;
+  }
+  th.visible-lg,
+  td.visible-lg {
+    display: none !important;
+  }
   .hidden-sm {
     display: block !important;
   }
@@ -4636,6 +4679,13 @@ td.hidden-lg {
     display: table-cell !important;
   }
   .hidden-md {
+    display: none !important;
+  }
+  tr.hidden-md {
+    display: none !important;
+  }
+  th.hidden-md,
+  td.hidden-md {
     display: none !important;
   }
   .hidden-lg {
@@ -4654,7 +4704,21 @@ td.hidden-lg {
   .visible-sm {
     display: none !important;
   }
+  tr.visible-sm {
+    display: none !important;
+  }
+  th.visible-sm,
+  td.visible-sm {
+    display: none !important;
+  }
   .visible-md {
+    display: none !important;
+  }
+  tr.visible-md {
+    display: none !important;
+  }
+  th.visible-md,
+  td.visible-md {
     display: none !important;
   }
   .visible-lg {
@@ -4690,9 +4754,25 @@ td.hidden-lg {
   .hidden-lg {
     display: none !important;
   }
+  tr.hidden-lg {
+    display: none !important;
+  }
+  th.hidden-lg,
+  td.hidden-lg {
+    display: none !important;
+  }
 }
 
 .visible-print {
+  display: none !important;
+}
+
+tr.visible-print {
+  display: none !important;
+}
+
+th.visible-print,
+td.visible-print {
   display: none !important;
 }
 
@@ -4708,6 +4788,13 @@ td.hidden-lg {
     display: table-cell !important;
   }
   .hidden-print {
+    display: none !important;
+  }
+  tr.hidden-print {
+    display: none !important;
+  }
+  th.hidden-print,
+  td.hidden-print {
     display: none !important;
   }
 }

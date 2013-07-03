@@ -27,13 +27,6 @@ def get_doctype_count_from_table(doctype):
 		else: 
 			raise e
 	return count
-
-def get_doctype_count(doctype):
-	count = webnotes.conn.get_global("item_count:" + doctype)
-	if count is None:
-		count = get_doctype_count_from_table(doctype)
-		webnotes.conn.set_global("item_count:" + doctype, count)
-	return count
 	
 def get_report_list(module):
 	"""return list on new style reports for modules"""	

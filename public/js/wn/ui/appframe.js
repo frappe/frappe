@@ -165,7 +165,7 @@ wn.ui.AppFrame = Class.extend({
 				.appendTo($right);
 				
 			if(e.type==active_view) {
-				btn.addClass("btn-info");
+				btn.removeClass("btn-default").addClass("btn-info");
 			}
 		});
 	},
