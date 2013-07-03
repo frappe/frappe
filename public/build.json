@@ -17,9 +17,6 @@
 			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
 			"lib/public/css/legacy/forms.css",
-			"lib/public/css/legacy/fields.css",
-			"lib/public/css/legacy/dialog.css",
-			"lib/public/css/legacy/tabs.css",
 			"lib/public/css/ui/common.css",
 			"lib/public/css/views/tree_grid.css",
 		]
@@ -38,9 +35,6 @@
 			"lib/public/js/lib/jquery/jquery.hotkeys.js",
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
-		
-			"lib/public/js/lib/tiny_mce_3.5.7/jquery.tinymce.js:concat",
-			"lib/public/js/lib/mousetrap.min.js",
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",

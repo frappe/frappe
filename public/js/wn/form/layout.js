@@ -46,7 +46,7 @@ wn.ui.form.Layout = Class.extend({
 			<form>\
 				<fieldset></fieldset>\
 			</form>\
-		</div>').appendTo(this.section)
+		</div>').appendTo(this.section.body)
 			.find("form")
 			.on("submit", function() { return false; })
 			.find("fieldset");
@@ -83,11 +83,7 @@ wn.ui.form.Layout = Class.extend({
 					+ df.label 
 					+ "</h3>")
 					.css({
-						"margin-bottom": "15px", 
 						"font-weight": "bold",
-						// "color": "white",
-						// "background-color": "#16a085",
-						// "padding": "7px"
 					})
 					.appendTo(this.section);
 				if(this.frm.sections.length > 1)
@@ -99,10 +95,16 @@ wn.ui.form.Layout = Class.extend({
 			if(df.description) {
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
 			}
+			if(df.label || df.description) {
+				$('<div class="col col-lg-12"></div>')
+					.appendTo(this.section)
+					.css({"height": "20px"});
+			}
 			this.frm.fields_dict[df.fieldname] = section;
 			this.frm.fields.push(section);
 		}
 		// for bc
+		this.section.body = $('<div style="padding: 0px 3%">').appendTo(this.section);
 		section.row = {
 			wrapper: section
 		};
