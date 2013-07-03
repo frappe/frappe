@@ -78,8 +78,11 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				$('<h3 class="col col-lg-12">' + this.labelled_section_count 
-					+ ". " + df.label + "</h3>")
+				$('<h3 class="col col-lg-12">' 
+					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
+					+ this.labelled_section_count + ". " 
+					+ df.label 
+					+ "</h3>")
 					.css({"font-weight": "bold", "margin-bottom": "15px"})
 					.appendTo(this.section);
 				if(this.frm.sections.length > 1)
@@ -188,9 +191,9 @@ wn.ui.form.Layout = Class.extend({
 	clear_dashboard: function() {
 		this.dashboard.empty();
 	},
-	add_doctype_badge: function(label, doctype, fieldname) {
+	add_doctype_badge: function(doctype, fieldname) {
 		if(wn.model.can_read(doctype)) {
-			this.add_badge(label, function() {
+			this.add_badge(wn._(doctype), function() {
 				wn.route_options = {};
 				wn.route_options[fieldname] = cur_frm.doc.name;
 				wn.set_route("List", doctype);

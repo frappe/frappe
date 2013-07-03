@@ -273,6 +273,8 @@ wn.ui.form.GridRow = Class.extend({
 					$col.css({"text-align": "right"})
 			}
 		});
+
+		$(this.frm.wrapper).trigger("grid-row-render", [this]);
 	},
 	toggle_view: function(show, callback) {
 		this.doc = locals[this.doc.doctype][this.doc.name];
