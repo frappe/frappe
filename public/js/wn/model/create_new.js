@@ -142,6 +142,22 @@ $.extend(wn.model, {
 				}
 			}
 		})
+	},
+
+	map_current_doc: function(opts) {
+		wn.call({
+			type: "GET",
+			method: opts.method,
+			args: {
+				"source_name": opts.source_name,
+				"target_doclist": wn.model.get_doclist(cur_frm.doc.doctype, cur_frm.doc.name)
+			},
+			callback: function(r) {
+				if(!r.exc) {
+					var doclist = wn.model.sync(r.message);
+					cur_frm.refresh();
+				}
+			}
+		});
 	}
-	
 })
