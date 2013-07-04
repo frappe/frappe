@@ -22,6 +22,21 @@ a {
 	padding-bottom: 10px;
 }
 
+/* freeze */
+
+div#freeze {
+	position: fixed;
+	display: none;
+	top: 0px;
+	left: 0px;
+	bottom: 0px;
+	right: 0px;
+	background-color: #aaa;
+	opacity: 0.6;
+	z-index: 1;
+	text-align: center;
+}
+
 /* listing */
 
 .list-row {

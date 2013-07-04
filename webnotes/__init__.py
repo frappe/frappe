@@ -300,6 +300,10 @@ def doc(doctype=None, name=None, fielddata=None):
 	from webnotes.model.doc import Document
 	return Document(doctype, name, fielddata)
 
+def new_doc(doctype):
+	from webnotes.model.create_new import get_new_doc
+	return get_new_doc(doctype)
+
 def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)

@@ -151,8 +151,8 @@ _f.Frm.prototype.watch_model_updates = function() {
 		if(doc.name===me.docname) {
 			me.fields_dict[fieldname] 
 				&& me.fields_dict[fieldname].refresh(fieldname);
-			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			me.refresh_dependency();
+			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 		}
 	})
 	

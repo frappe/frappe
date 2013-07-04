@@ -36,8 +36,10 @@ $.extend(wn.model, {
 			wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
 
 		$.each(doclist, function(i, d) {
-			if(!d.name) // get name (local if required)
+			if(!d.name) { // get name (local if required)
 				d.name = wn.model.get_new_name(d.doctype);
+				wn.provide("wn.model.docinfo." + d.doctype + "." + d.name);	
+			}
 				
 			if(!locals[d.doctype])
 				locals[d.doctype] = {};
