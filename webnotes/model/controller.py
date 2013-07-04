@@ -38,6 +38,8 @@ error_condition_map = {
 	"^": _("cannot start with"),
 }
 
+class EmptyTableError(webnotes.ValidationError): pass
+
 class DocListController(object):
 	def __init__(self, doc, doclist):
 		self.doc, self.doclist = doc, doclist
@@ -66,7 +68,7 @@ class DocListController(object):
 			val1 = cint(val1)
 		
 		if not webnotes.compare(val1, condition, val2):
-			msg = _("Error: ")
+			msg = _("Error") + ": "
 			if doc.parentfield:
 				msg += _("Row") + (" # %d: " % doc.idx)
 			
@@ -75,6 +77,12 @@ class DocListController(object):
 			
 			# raise passed exception or True
 			msgprint(msg, raise_exception=raise_exception or True)
+			
+	def validate_table_has_rows(self, parentfield, raise_exception=None):
+		if not self.doclist.get({"parentfield": parentfield}):
+			label = self.meta.get_label(parentfield)
+			msgprint(_("Error") + ": " + _(label) + " " + _("cannot be empty"),
+				raise_exception=raise_exception or EmptyTableError)
 			
 	def round_floats_in(self, doc, fieldnames=None):
 		if not fieldnames:

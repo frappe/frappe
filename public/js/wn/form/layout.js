@@ -7,7 +7,7 @@ wn.ui.form.Layout = Class.extend({
 	},
 	make: function() {
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.fields = wn.meta.get_docfields(this.frm.doctype);
+		this.fields = wn.meta.get_docfields(this.frm.doctype, this.frm.docname);
 		this.setup_tabbing();
 	},
 	refresh: function() {

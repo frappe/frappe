@@ -61,7 +61,7 @@ class Bean:
 		"""
 			Load doclist from dt
 		"""
-		from webnotes.model.doc import Document, getchildren
+		from webnotes.model.doc import getchildren
 
 		if not dt: dt = self.doc.doctype
 		if not dn: dn = self.doc.name

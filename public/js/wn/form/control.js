@@ -204,7 +204,9 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			})
 		}
 	},
-	set_label: function() {
+	set_label: function(label) {
+		if(label) this.df.label = label;
+		
 		if(this.only_input || this.df.label==this._label) 
 			return;
 		this.label_span.innerHTML = wn._(this.df.label);
