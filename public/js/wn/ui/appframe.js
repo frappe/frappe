@@ -19,8 +19,7 @@ wn.ui.AppFrame = Class.extend({
 					<div class="title-area"><h2 style="display: inline-block">\
 						<span class="title-icon" style="display: none"></span>\
 						<span class="title-text"></span></h2></div>\
-					<div class="sub-title-area text-muted small" \
-						style="margin-top: -10px;"></div>\
+					<div class="sub-title-area text-muted small">&nbsp;</div>\
 					<div class="status-bar"></div>\
 				</div>\
 			</div>\
@@ -71,6 +70,13 @@ wn.ui.AppFrame = Class.extend({
 	
 	add_module_icon: function(module) {
 		var module_info = wn.modules[module];
+		if(!module_info) {
+			module_info = {
+				icon: "icon-question-sign",
+				color: "#eeeeee"
+			}
+		}
+		
 		if(module_info && module_info.icon) {
 			this.$w.find(".title-icon").html('<i class="'
 				+module_info.icon+'"></i> ')
@@ -80,7 +86,8 @@ wn.ui.AppFrame = Class.extend({
 				})
 				.attr("module-name", module)
 				.click(function() {
-					wn.set_route(wn.modules[$(this).attr("module-name")].link);
+					var module_info = wn.modules[$(this).attr("module-name")];
+					wn.set_route(module_info ? module_info.link : "desktop");
 				});
 		}
 	},

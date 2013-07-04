@@ -165,7 +165,7 @@ _f.Frm.prototype.get_doclist = function() {
 }
 
 _f.Frm.prototype.field_map = function(fnames, fn) {
-	if(typeof fnames=='string') {
+	if(typeof fnames==='string') {
 		if(fnames == '*') {
 			fnames = keys(this.fields_dict);
 		} else {

@@ -34,6 +34,7 @@ wn.ui.form.Toolbar = Class.extend({
 			title = title.substr(0,30) + "...";
 		}
 		this.appframe.set_title(title, wn._(this.frm.docname));
+		this.appframe.set_sub_title(wn._(this.frm.doctype));
 	},
 	show_infobar: function() {
 		/* docs:
@@ -148,7 +149,7 @@ wn.ui.form.Toolbar = Class.extend({
 		var status_bar_parent = this.frm.appframe.$w.find(".status-bar").empty();
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
 			var status_bar = $("<h4>")
-				.css({"margin": "0px"})
+				.css({"margin": "0px", "margin-top": "-15px"})
 				.appendTo(status_bar_parent);
 
 			switch(this.frm.doc.docstatus) {
