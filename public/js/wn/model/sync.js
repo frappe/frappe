@@ -35,12 +35,20 @@ $.extend(wn.model, {
 		if(doclist && doclist.length)
 			wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
 
+		var last_parent_name = null;
 		$.each(doclist, function(i, d) {
-			if(!d.name) { // get name (local if required)
+			if(!d.name && d.__islocal) { // get name (local if required)
 				d.name = wn.model.get_new_name(d.doctype);
 				wn.provide("wn.model.docinfo." + d.doctype + "." + d.name);	
+				if(!d.parenttype)
+					last_parent_name = d.name;
 			}
-				
+
+			// set parent for subsequent orphans
+			if(d.parenttype && !d.parent && d.__islocal) {
+				d.parent = last_parent_name;
+			}
+
 			if(!locals[d.doctype])
 				locals[d.doctype] = {};
 

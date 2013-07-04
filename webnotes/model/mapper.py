@@ -21,44 +21,76 @@
 # 
 
 from __future__ import unicode_literals
-import webnotes
+import webnotes, json
+from webnotes import _
+from webnotes.utils import cstr
+from webnotes.model import default_fields
 
 def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]):
+	
 	if not webnotes.has_permission(from_doctype, from_docname):
 		webnotes.msgprint("No Permission", raise_exception=webnotes.PermissionError)
 
-	from webnotes.model import default_fields
 	source = webnotes.bean(from_doctype, from_docname)
-		
+
+	source_meta = webnotes.get_doctype(from_doctype)
+	target_meta = webnotes.get_doctype(table_maps[from_doctype]["doctype"])
+	
 	# main
 	if target_doclist:
 		target_doc = webnotes.doc(target_doclist[0])
 	else:
 		target_doc = webnotes.new_doc(table_maps[from_doctype]["doctype"])
 	
-	no_copy_fields = set(get_no_copy_fields(from_doctype) \
-		+ get_no_copy_fields(table_maps[from_doctype]["doctype"]) \
+	map_doc(source.doc, target_doc, table_maps[source.doc.doctype], source_meta, target_meta)
+	doclist = [target_doc]
+
+	# children
+	for source_d in source.doclist[1:]:
+		target_doctype = table_maps[source_d.doctype]["doctype"]
+		parentfield = target_meta.get({
+				"parent": target_doc.doctype, 
+				"doctype": "DocField",
+				"fieldtype": "Table", 
+				"options": target_doctype
+			})[0].fieldname
+		
+		target_d = webnotes.new_doc(target_doctype, target_doc, parentfield)
+		map_doc(source_d, target_d, table_maps[source_d.doctype], source_meta, target_meta)
+		doclist.append(target_d)
+	
+	return doclist
+
+def map_doc(source_doc, target_doc, table_map, source_meta, target_meta):
+	no_copy_fields = set(\
+		  [d.fieldname for d in source_meta.get({"no_copy": 1, 
+			"parent": source_doc.doctype})] \
+		+ [d.fieldname for d in target_meta.get({"no_copy": 1, 
+			"parent": target_doc.doctype})] \
 		+ default_fields)
 
+	if table_map.get("validation"):
+		for key, condition in table_map["validation"].items():
+			if condition[0]=="=":
+				if source_doc.fields.get(key) != condition[1]:
+					webnotes.msgprint(_("Cannot map because following condition fails: ")
+						+ key + "=" + cstr(condition[1]), raise_exception=webnotes.ValidationError)
+
 	# map same fields
-	for key in target_doc.fields:
+	target_fields = target_meta.get({"doctype": "DocField", "parent": target_doc.doctype})
+	for key in [d.fieldname for d in target_fields]:
 		if key not in no_copy_fields:
-			val = source.doc.fields.get(key)
+			val = source_doc.fields.get(key)
 			if val not in (None, ""):
 				target_doc.fields[key] = val
+				
 
 	# map other fields
-	for source_key, target_key in table_maps[from_doctype].get("field_map", {}).items():
-		val = source.doc.fields.get(source_key)
+	for source_key, target_key in table_map.get("field_map", {}).items():
+		val = source_doc.fields.get(source_key)
 		if val not in (None, ""):
 			target_doc.fields[target_key] = val
 
-	return [target_doc]
-
-def get_no_copy_fields(doctype):
-	meta = webnotes.get_doctype(doctype)
-	no_copy_fields = []
-	for d in meta.get({"doctype":"DocField", "no_copy": 1}):
-		no_copy_fields.append(d.fieldname)
-		
-	return no_copy_fields
+	# map idx
+	if source_doc.idx:
+		target_doc.idx = source_doc.idx
