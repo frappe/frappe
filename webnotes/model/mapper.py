@@ -28,7 +28,7 @@ from webnotes.model import default_fields
 
 def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[], postprocess=None):
 	if isinstance(target_doclist, basestring):
-		target_doclist = json.loads(basestring)
+		target_doclist = json.loads(target_doclist)
 	
 	if not webnotes.has_permission(from_doctype, from_docname):
 		webnotes.msgprint("No Permission", raise_exception=webnotes.PermissionError)
@@ -99,3 +99,6 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta):
 	# map idx
 	if source_doc.idx:
 		target_doc.idx = source_doc.idx
+		
+	if "postprocess" in table_map:
+		table_map["postprocess"](source_doc, target_doc)
