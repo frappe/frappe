@@ -165,7 +165,7 @@ _f.Frm.prototype.get_doclist = function() {
 }
 
 _f.Frm.prototype.field_map = function(fnames, fn) {
-	if(typeof fnames=='string') {
+	if(typeof fnames==='string') {
 		if(fnames == '*') {
 			fnames = keys(this.fields_dict);
 		} else {
@@ -244,7 +244,7 @@ _f.Frm.prototype.set_value = function(field, value) {
 _f.Frm.prototype.call = function(opts) {
 	var me = this;
 	if(!opts.doc) {
-		if(opts.method.indexOf(".")==-1)
+		if(opts.method.indexOf(".")===-1)
 			opts.method = wn.model.get_server_module_name(me.doctype) + "." + opts.method; 
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {

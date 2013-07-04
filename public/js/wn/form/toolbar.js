@@ -34,6 +34,7 @@ wn.ui.form.Toolbar = Class.extend({
 			title = title.substr(0,30) + "...";
 		}
 		this.appframe.set_title(title, wn._(this.frm.docname));
+		this.appframe.set_sub_title(wn._(this.frm.doctype));
 	},
 	show_infobar: function() {
 		/* docs:
@@ -63,8 +64,10 @@ wn.ui.form.Toolbar = Class.extend({
 			attachments = keys(docinfo.attachments).length,
 			assignments = docinfo.assignments.length;
 			
-		var $li1 = this.appframe.add_infobar(comments + " " + (comments===1 ? 
-			wn._("Comment") : wn._("Comments")),
+		var $li1 = this.appframe.add_infobar(
+			  (comments ? '<i class="icon-comments" style="font-size: 120%; color: orange"></i> ' : '')
+			+ comments + " " 
+			+ (comments===1 ? wn._("Comment") : wn._("Comments")),
 			function() {
 				$('html, body').animate({
 					scrollTop: $(me.frm.wrapper).find(".form-comments").offset().top
@@ -146,7 +149,7 @@ wn.ui.form.Toolbar = Class.extend({
 		var status_bar_parent = this.frm.appframe.$w.find(".status-bar").empty();
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
 			var status_bar = $("<h4>")
-				.css({"margin": "0px"})
+				.css({"margin": "0px", "margin-top": "-15px"})
 				.appendTo(status_bar_parent);
 
 			switch(this.frm.doc.docstatus) {
@@ -249,7 +252,9 @@ wn.ui.form.Toolbar = Class.extend({
 			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal) 
 				&& (!me.frm.doc.__unsaved)) {
 				this.appframe.add_button('Submit', function() { 
-					me.frm.savesubmit(this);}, 'icon-lock', true).addClass("btn-primary");
+					me.frm.savesubmit(this);}, 'icon-lock', true)
+						.removeClass("btn-default")
+						.addClass("btn-primary");
 			}
 			else if(docstatus==0) {
 				this.make_save_button();
@@ -269,7 +274,9 @@ wn.ui.form.Toolbar = Class.extend({
 			return;
 		var me = this;
 		this.appframe.add_button('Save', function() { 
-			me.frm.save('Save', null, this);}, 'icon-save', true).addClass("btn-primary");
+			me.frm.save('Save', null, this);}, 'icon-save', true)
+				.removeClass("btn-default")
+				.addClass("btn-primary");
 	},
 	add_update_button_on_dirty: function() {
 		var me = this;
@@ -282,7 +289,9 @@ wn.ui.form.Toolbar = Class.extend({
 				&& !me.appframe.$w.find(".action-update").length) {
 				me.appframe.add_button("Update", function() { 
 					me.frm.save('Update', null, me);
-				}, 'icon-save', true).addClass("btn-primary action-update");
+				}, 'icon-save', true)
+					.removeClass("btn-default")
+					.addClass("btn-primary action-update");
 			}
 		})
 	},

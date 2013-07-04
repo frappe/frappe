@@ -160,7 +160,7 @@ def connect(db_name=None, password=None):
 	import webnotes.profile
 	global user
 	user = webnotes.profile.Profile('Administrator')
-
+	
 def get_env_vars(env_var):
 	import os
 	return os.environ.get(env_var,'None')
@@ -299,6 +299,10 @@ def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
 def doc(doctype=None, name=None, fielddata=None):
 	from webnotes.model.doc import Document
 	return Document(doctype, name, fielddata)
+
+def new_doc(doctype, parent_doc=None, parentfield=None):
+	from webnotes.model.create_new import get_new_doc
+	return get_new_doc(doctype, parent_doc, parentfield)
 
 def doclist(lst=None):
 	from webnotes.model.doclist import DocList

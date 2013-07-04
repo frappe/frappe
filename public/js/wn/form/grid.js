@@ -163,7 +163,7 @@ wn.ui.form.GridRow = Class.extend({
 						<button class="btn btn-success pull-right" \
 							title="'+wn._("Close")+'"\
 							style="margin-left: 7px;">\
-							<i class="icon-ok"></i></button>\
+							<i class="icon-chevron-up"></i></button>\
 						<button class="btn btn-default pull-right grid-insert-row" \
 							title="'+wn._("Insert Row")+'"\
 							style="margin-left: 7px;">\
@@ -273,6 +273,8 @@ wn.ui.form.GridRow = Class.extend({
 					$col.css({"text-align": "right"})
 			}
 		});
+
+		$(this.frm.wrapper).trigger("grid-row-render", [this]);
 	},
 	toggle_view: function(show, callback) {
 		this.doc = locals[this.doc.doctype][this.doc.name];

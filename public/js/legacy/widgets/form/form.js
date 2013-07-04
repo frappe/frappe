@@ -151,8 +151,8 @@ _f.Frm.prototype.watch_model_updates = function() {
 		if(doc.name===me.docname) {
 			me.fields_dict[fieldname] 
 				&& me.fields_dict[fieldname].refresh(fieldname);
-			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			me.refresh_dependency();
+			me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 		}
 	})
 	
@@ -190,10 +190,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.body_header	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
 
-	if(this.heading) {
-		this.page_head = new PageHeader(this.head, this);
-	}
-
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
 	
@@ -201,6 +197,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.layout = new wn.ui.form.Layout({
 		parent: this.body,
 		doctype: this.doctype,
+		frm: this,
+	});
+
+	this.dashboard = new wn.ui.form.Dashboard({
 		frm: this,
 	});
 	
@@ -337,16 +337,6 @@ _f.Frm.prototype.refresh_print_layout = function() {
 
 	// create print format here
 	_p.build(this.$print_view_select.val(), print_callback, false, true, true);
-}
-
-
-_f.Frm.prototype.show_the_frm = function() {
-	// show the dialog
-	if(this.meta.in_dialog && !this.parent.dialog.display) {
-		if(!this.meta.istable)
-			this.parent.table_form = false;
-		this.parent.dialog.show();
-	}	
 }
 
 _f.Frm.prototype.set_print_heading = function(txt) {
@@ -546,7 +536,6 @@ _f.Frm.prototype.refresh_dependency = function() {
 	
 	if(!has_dep)return;
 
-
 	// show / hide based on values
 	for(var i=me.fields.length-1;i>=0;i--) { 
 		var f = me.fields[i];
@@ -580,9 +569,6 @@ _f.Frm.prototype.refresh_dependency = function() {
 	}
 }
 
-// setnewdoc is called when a record is loaded for the first time
-// ======================================================================================
-
 _f.Frm.prototype.setnewdoc = function(docname) {
 	// moved this call to refresh function
 	// this.check_doctype_conflict(docname);
@@ -602,7 +588,7 @@ _f.Frm.prototype.setnewdoc = function(docname) {
 	this.script_manager.trigger("onload");
 	
 	this.last_view_is_edit[docname] = 1;
-	if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
+	//if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
 		
 	this.opendocs[docname] = true;
 }

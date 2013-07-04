@@ -306,3 +306,4 @@ class DocType:
 		if hasattr(conf, 'developer_mode') and conf.developer_mode:
 			from webnotes.modules.export_file import export_to_files
 			export_to_files(record_list=[[self.doc.doctype, self.doc.name]])		
+

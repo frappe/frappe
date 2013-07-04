@@ -1,5 +1,6 @@
 wn.ui.form.Layout = Class.extend({
 	init: function(opts) {
+		this.labelled_section_count = 0;
 		this.ignore_types = ["Section Break", "Column Break"];
 		$.extend(this, opts);
 		this.make();
@@ -45,7 +46,7 @@ wn.ui.form.Layout = Class.extend({
 			<form>\
 				<fieldset></fieldset>\
 			</form>\
-		</div>').appendTo(this.section)
+		</div>').appendTo(this.section.body)
 			.find("form")
 			.on("submit", function() { return false; })
 			.find("fieldset");
@@ -67,22 +68,43 @@ wn.ui.form.Layout = Class.extend({
 		if(this.section) {
 			//$("<hr>").appendTo(this.wrapper);
 		}
-		this.section = $('<div class="row">').appendTo(this.wrapper);
+		this.section = $('<div class="row">')
+			.appendTo(this.wrapper);
 		this.frm.sections.push(this.section);
 		
 		var section = this.section[0];
 		section.df = df;
 		if(df) {
 			if(df.label) {
-				$('<h3 class="col col-lg-12">' + df.label + "</h3>").appendTo(this.section);
+				this.labelled_section_count++;
+				$('<h3 class="col col-lg-12">' 
+					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
+					+ this.labelled_section_count + ". " 
+					+ df.label 
+					+ "</h3>")
+					.css({
+						"font-weight": "bold",
+					})
+					.appendTo(this.section);
+				if(this.frm.sections.length > 1)
+					this.section.css({
+						"margin-top": "15px", 
+						"border-top": "1px solid #ddd"
+					});
 			}
 			if(df.description) {
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
+			}
+			if(df.label || df.description) {
+				$('<div class="col col-lg-12"></div>')
+					.appendTo(this.section)
+					.css({"height": "20px"});
 			}
 			this.frm.fields_dict[df.fieldname] = section;
 			this.frm.fields.push(section);
 		}
 		// for bc
+		this.section.body = $('<div style="padding: 0px 3%">').appendTo(this.section);
 		section.row = {
 			wrapper: section
 		};
@@ -173,5 +195,39 @@ wn.ui.form.Layout = Class.extend({
 	},
 	get_open_grid_row: function() {
 		return $(".grid-row-open").data("grid_row");
+	},
+	
+	// dashboard
+	clear_dashboard: function() {
+		this.dashboard.empty();
+	},
+	add_doctype_badge: function(doctype, fieldname) {
+		if(wn.model.can_read(doctype)) {
+			this.add_badge(wn._(doctype), function() {
+				wn.route_options = {};
+				wn.route_options[fieldname] = cur_frm.doc.name;
+				wn.set_route("List", doctype);
+			}).attr("data-doctype", doctype);
+		}
+	},
+	add_badge: function(label, onclick) {
+		var badge = $(repl('<div class="col col-lg-4">\
+			<div class="alert alert-badge">\
+				<a class="badge-link">%(label)s</a>\
+				<span class="badge pull-right">-</span>\
+			</div></div>', {label:label}))
+				.appendTo(this.dashboard)
+				
+		badge.find(".badge-link").click(onclick);
+				
+		return badge.find(".alert-badge");
+	},
+	set_badge_count: function(data) {
+		var me = this;
+		$.each(data, function(doctype, count) {
+			$(me.dashboard)
+				.find(".alert-badge[data-doctype='"+doctype+"'] .badge")
+				.html(cint(count));
+		});
 	},
 })

@@ -77,7 +77,6 @@ class Bean:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
 		self.set_doclist(doclist)
-		self.run_method("onload")
 
 	def __iter__(self):
 		return self.doclist.__iter__()

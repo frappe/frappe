@@ -23,6 +23,13 @@
 // -------------
 // Menu Display
 // -------------
+
+$(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
+	if(grid_row.doc && grid_row.doc.fieldtype=="Section Break") {
+		$(grid_row.row).css({"font-weight": "bold"});
+	}
+})
+
 cur_frm.cscript.allow_attach = function(doc, cdt, cdn) {
 	if(doc.allow_attach) {
 		unhide_field('max_attachments');

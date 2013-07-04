@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-03-07 07:03:20", 
+  "modified": "2013-07-03 10:03:56", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -93,6 +93,16 @@
   "reqd": 0, 
   "search_index": 0, 
   "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "description", 
+  "fieldtype": "Text", 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "oldfieldtype": "Text", 
+  "print_width": "300px", 
+  "width": "300px"
  }, 
  {
   "default": "0", 
@@ -240,16 +250,6 @@
   "reqd": 0, 
   "search_index": 0, 
   "width": "50px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "description", 
-  "fieldtype": "Text", 
-  "label": "Description", 
-  "oldfieldname": "description", 
-  "oldfieldtype": "Text", 
-  "print_width": "300px", 
-  "width": "300px"
  }, 
  {
   "doctype": "DocField", 
