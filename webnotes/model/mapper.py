@@ -26,7 +26,9 @@ from webnotes import _
 from webnotes.utils import cstr
 from webnotes.model import default_fields
 
-def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]):
+def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[], postprocess=None):
+	if isinstance(target_doclist, basestring):
+		target_doclist = json.loads(basestring)
 	
 	if not webnotes.has_permission(from_doctype, from_docname):
 		webnotes.msgprint("No Permission", raise_exception=webnotes.PermissionError)
@@ -58,6 +60,9 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 		target_d = webnotes.new_doc(target_doctype, target_doc, parentfield)
 		map_doc(source_d, target_d, table_maps[source_d.doctype], source_meta, target_meta)
 		doclist.append(target_d)
+	
+	if postprocess:
+		postprocess(source, doclist)
 	
 	return doclist
 
