@@ -49,7 +49,11 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 
 	# children
 	for source_d in source.doclist[1:]:
-		target_doctype = table_maps[source_d.doctype]["doctype"]
+		table_map = table_maps[source_d.doctype]
+		if "condition" in table_map:
+			if not table_map["condition"](source_d):
+				continue
+		target_doctype = table_map["doctype"]
 		parentfield = target_meta.get({
 				"parent": target_doc.doctype, 
 				"doctype": "DocField",
@@ -58,7 +62,7 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 			})[0].fieldname
 		
 		target_d = webnotes.new_doc(target_doctype, target_doc, parentfield)
-		map_doc(source_d, target_d, table_maps[source_d.doctype], source_meta, target_meta)
+		map_doc(source_d, target_d, table_map, source_meta, target_meta)
 		doclist.append(target_d)
 	
 	if postprocess:
