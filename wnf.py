@@ -140,11 +140,9 @@ def setup_options():
 						help="install fresh db")
 
 	# update
-	parser.add_option("-u", "--update_origin_branch", 
-		help="Pull, run latest patches and sync all", action="store_true", default=False)
-			
-	parser.add_option("--update", help="Pull, run latest patches and sync all",
-			nargs=2, metavar="ORIGIN BRANCH")
+	parser.add_option("-u", "--update", 
+		help="Pull, run latest patches and sync all",
+		default=False, action="store_true", metavar="ORIGIN BRANCH")
 
 	parser.add_option("--backup", help="Takes backup of database in backup folder",
 		default=False, action="store_true")
@@ -183,10 +181,10 @@ def setup_options():
 						metavar = "remote branch",
 						help="git pull (both repos)")
 
-	parser.add_option("--commit", nargs=1, default=False, 
+	parser.add_option("-c", "--commit", nargs=1, default=False, 
 						metavar = "commit both repos",
 						help="git commit -a -m [comment]")
-	parser.add_option("--push", default=False, 
+	parser.add_option("-p", "--push", default=False, 
 						action="store_true",
 						metavar = "remote branch",
 						help="git push (both repos) [remote] [branch]")
@@ -199,9 +197,10 @@ def setup_options():
 						help="Apply the latest patches")
 
 	# patch
-	parser.add_option("-p", "--patch", nargs=1, dest="patch_list", metavar='patch_module',
-						action="append",
-						help="Apply patch")
+	parser.add_option("--patch", nargs=1, dest="patch_list",
+		metavar='patch_module',
+		action="append",
+		help="Apply patch")
 	parser.add_option("-f", "--force",
 						action="store_true", dest="force", default=False,
 						help="Force Apply all patches specified using option -p or --patch")
@@ -414,11 +413,11 @@ def run():
 		webnotes.reload_doc(options.sync[0], "doctype", options.sync[1])
 	
 	elif options.update:
-		update_erpnext(options.update[0], options.update[1])
+		if not args:
+			args = ["origin", conf.branch]
+			
+		update_erpnext(args[0], args[1])
 		
-	elif options.update_origin_branch:
-		update_erpnext("origin", conf.branch)
-	
 	elif options.patch_sync_build:
 		patch_sync_build()
 	
