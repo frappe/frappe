@@ -4,7 +4,7 @@ wn.ui.form.Toolbar = Class.extend({
 		$.extend(this, opts);
 		this.make();
 		this.add_update_button_on_dirty();
-		this.appframe.add_module_icon(this.frm.meta.module);
+		this.appframe.add_module_icon(this.frm.meta.module, this.frm.doctype);
 		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {

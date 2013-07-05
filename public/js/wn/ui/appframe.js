@@ -68,28 +68,29 @@ wn.ui.AppFrame = Class.extend({
 		this.$w.find(".info-bar").toggle(false).find("ul").empty();
 	},
 	
-	add_module_icon: function(module) {
+	add_module_icon: function(module, doctype) {
 		var module_info = wn.modules[module];
 		if(!module_info) {
 			module_info = {
 				icon: "icon-question-sign",
-				color: "#eeeeee"
+				color: "#ddd"
 			}
 		}
+		var icon = wn.boot.doctype_icons[doctype] || module_info.icon;
 		
-		if(module_info && module_info.icon) {
-			this.$w.find(".title-icon").html('<i class="'
-				+module_info.icon+'"></i> ')
-				.toggle(true)
-				.css({
-					"background-color": module_info.color,
-				})
-				.attr("module-name", module)
-				.click(function() {
-					var module_info = wn.modules[$(this).attr("module-name")];
-					wn.set_route(module_info ? module_info.link : "desktop");
-				});
-		}
+		this.$w.find(".title-icon").html('<i class="'+icon+'"></i> ')
+			.toggle(true)
+			.css({
+				"background-color": module_info.color,
+			})
+			.attr("doctype-name", doctype)
+			.click(function() {
+				if($(this).attr("doctype-name")) {
+					wn.set_route("List", $(this).attr("doctype-name"))
+				} else {
+					wn.set_route("");
+				}
+			});
 	},
 	
 	set_views_for: function(doctype, active_view) {

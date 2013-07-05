@@ -49,9 +49,10 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		this.remove(dt, dn);
 		var html = repl('<li data-docref="%(dt)s/%(dn)s">\
 			<a href="#Form/%(dt)s/%(dn)s">\
-				%(dn)s <span style="font-size: 10px">(%(dt)s)</span>\
+				<i class="icon-fixed-width %(icon)s"></i> \
+				%(dn)s</span>\
 			</a></li>', 
-			{dt:dt, dn:dn});
+			{dt:dt, dn:dn, icon:wn.boot.doctype_icons[dt]});
 		if(on_top) {
 			$('#toolbar-recent').prepend(html);
 		} else {

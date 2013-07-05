@@ -210,7 +210,16 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		
 		if(this.only_input || this.df.label==this._label) 
 			return;
-		this.label_span.innerHTML = wn._(this.df.label);
+		
+		var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
+		if(this.df.fieldtype==="Link") {
+			icon = wn.boot.doctype_icons[this.df.options];
+		} else if(this.df.link_doctype) {
+			icon = wn.boot.doctype_icons[this.df.link_doctype];
+		}
+					
+		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") + 
+			wn._(this.df.label);
 		this._label = this.df.label;
 	},
 	set_description: function() {
@@ -788,3 +797,11 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 		});
 	}
 })
+
+wn.ui.form.fieldtype_icons = {
+	"Date": "icon-calendar",
+	"Time": "icon-time",
+	"Datetime": "icon-time",
+	"Code": "icon-code",
+	"Select": "icon-flag"
+};

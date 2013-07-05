@@ -66,7 +66,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var module = locals.DocType[this.doctype].module;
 		
 		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
-		this.appframe.add_module_icon(module);
+		this.appframe.add_module_icon(module, this.doctype);
 		this.appframe.set_views_for(this.doctype, "list");
 	},
 	

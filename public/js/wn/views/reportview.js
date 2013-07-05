@@ -44,7 +44,7 @@ wn.views.ReportViewPage = Class.extend({
 	make_report_view: function() {
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(wn._(this.doctype));
-		this.page.appframe.add_module_icon(module)
+		this.page.appframe.add_module_icon(module, this.doctype)
 		this.page.appframe.set_views_for(this.doctype, "report");
 
 		this.page.reportview = new wn.views.ReportView({
