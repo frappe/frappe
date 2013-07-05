@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-06-07 15:06:00", 
+  "modified": "2013-07-05 14:51:22", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -17,6 +17,7 @@
   "document_type": "Master", 
   "hide_heading": 0, 
   "hide_toolbar": 0, 
+  "icon": "icon-user", 
   "issingle": 0, 
   "istable": 0, 
   "max_attachments": 5, 

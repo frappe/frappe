@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:03", 
   "docstatus": 0, 
-  "modified": "2013-01-22 17:40:49", 
+  "modified": "2013-07-05 14:46:33", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -10,6 +10,7 @@
   "allow_rename": 1, 
   "autoname": "field:module_name", 
   "doctype": "DocType", 
+  "icon": "icon-sitemap", 
   "module": "Core", 
   "name": "__common__"
  }, 

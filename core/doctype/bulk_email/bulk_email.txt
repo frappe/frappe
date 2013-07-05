@@ -1,49 +1,41 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2012-08-02 15:17:28", 
+  "docstatus": 0, 
+  "modified": "2013-07-05 14:29:33", 
   "modified_by": "Administrator", 
-  "modified": "2012-08-02 15:17:29"
+  "owner": "Administrator"
  }, 
  {
-  "read_only": 1, 
   "description": "Bulk Email records.", 
-  "module": "Core", 
   "doctype": "DocType", 
-  "version": 1, 
-  "in_create": 1, 
   "document_type": "System", 
-  "name": "__common__"
+  "icon": "icon-envelope", 
+  "in_create": 1, 
+  "module": "Core", 
+  "name": "__common__", 
+  "read_only": 1
  }, 
  {
-  "name": "__common__", 
-  "parent": "Bulk Email", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
- }, 
- {
   "name": "__common__", 
   "parent": "Bulk Email", 
-  "read": 1, 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
   "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Bulk Email", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1
  }, 
  {
-  "name": "Bulk Email", 
-  "doctype": "DocType"
- }, 
- {
-  "role": "Administrator", 
-  "doctype": "DocPerm"
- }, 
- {
-  "role": "System Manager", 
-  "doctype": "DocPerm"
+  "doctype": "DocType", 
+  "name": "Bulk Email"
  }, 
  {
   "doctype": "DocField", 
@@ -74,5 +66,13 @@
   "fieldname": "error", 
   "fieldtype": "Text", 
   "label": "Error"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "Administrator"
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "System Manager"
  }
 ]

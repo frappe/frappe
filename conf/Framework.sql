@@ -142,6 +142,7 @@ CREATE TABLE `tabDocType` (
   `allow_trash` int(1) DEFAULT NULL,
   `in_dialog` int(1) DEFAULT NULL,
   `document_type` varchar(180) DEFAULT NULL,
+  `icon` varchar(180) DEFAULT NULL,
   `tag_fields` varchar(180) DEFAULT NULL,
   `subject` varchar(180) DEFAULT NULL,
   `_last_update` varchar(32) DEFAULT NULL,

@@ -1,50 +1,51 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2013-01-10 16:34:04", 
+  "docstatus": 0, 
+  "modified": "2013-07-05 14:51:46", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-14 12:16:31"
+  "owner": "Administrator"
  }, 
  {
-  "description": "Property Setter overrides a standard DocType or Field property", 
   "allow_print": 0, 
-  "search_fields": "doc_name,property", 
-  "module": "Core", 
+  "description": "Property Setter overrides a standard DocType or Field property", 
   "doctype": "DocType", 
-  "name": "__common__"
+  "icon": "icon-glass", 
+  "module": "Core", 
+  "name": "__common__", 
+  "search_fields": "doc_name,property"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Property Setter", 
   "doctype": "DocField", 
-  "parenttype": "DocType", 
-  "permlevel": 0, 
-  "parentfield": "fields"
- }, 
- {
-  "report": 1, 
   "name": "__common__", 
   "parent": "Property Setter", 
-  "read": 1, 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
-  "submit": 0, 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Property Setter", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "cancel": 1, 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "report": 1, 
+  "submit": 0, 
+  "write": 1
  }, 
  {
-  "name": "Property Setter", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Property Setter"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Help", 
   "fieldname": "help", 
   "fieldtype": "HTML", 
+  "label": "Help", 
   "options": "<div class=\"alert\">Please don't update it as it can mess up your form. Use the Customize Form View and Custom Fields to set properties!</div>"
  }, 
  {
@@ -55,73 +56,73 @@
  {
   "depends_on": "eval:doc.__islocal", 
   "doctype": "DocField", 
-  "label": "DocType or Field", 
   "fieldname": "doctype_or_field", 
   "fieldtype": "Select", 
-  "reqd": 1, 
-  "options": "\nDocField\nDocType"
+  "label": "DocType or Field", 
+  "options": "\nDocField\nDocType", 
+  "reqd": 1
  }, 
  {
   "description": "New value to be set", 
   "doctype": "DocField", 
-  "label": "Set Value", 
   "fieldname": "value", 
-  "fieldtype": "Text"
+  "fieldtype": "Text", 
+  "label": "Set Value"
  }, 
  {
-  "search_index": 0, 
   "doctype": "DocField", 
   "fieldname": "column_break0", 
-  "fieldtype": "Column Break"
+  "fieldtype": "Column Break", 
+  "search_index": 0
  }, 
  {
-  "search_index": 1, 
   "doctype": "DocField", 
-  "label": "DocType", 
   "fieldname": "doc_type", 
   "fieldtype": "Link", 
-  "reqd": 0, 
+  "in_filter": 0, 
+  "label": "DocType", 
   "options": "DocType", 
-  "in_filter": 0
+  "reqd": 0, 
+  "search_index": 1
  }, 
  {
-  "description": "ID (name) of the entity whose property is to be set", 
   "depends_on": "eval:doc.doctype_or_field=='DocField'", 
+  "description": "ID (name) of the entity whose property is to be set", 
   "doctype": "DocField", 
-  "label": "Field Name", 
   "fieldname": "field_name", 
   "fieldtype": "Data", 
-  "search_index": 1, 
+  "in_filter": 0, 
+  "label": "Field Name", 
   "reqd": 0, 
-  "in_filter": 0
+  "search_index": 1
  }, 
  {
-  "search_index": 1, 
   "doctype": "DocField", 
-  "label": "Property", 
   "fieldname": "property", 
   "fieldtype": "Data", 
+  "in_filter": 0, 
+  "label": "Property", 
   "reqd": 1, 
-  "in_filter": 0
+  "search_index": 1
  }, 
  {
   "doctype": "DocField", 
-  "label": "Property Type", 
   "fieldname": "property_type", 
-  "fieldtype": "Data"
+  "fieldtype": "Data", 
+  "label": "Property Type"
  }, 
  {
   "doctype": "DocField", 
-  "label": "Default Value", 
   "fieldname": "default_value", 
-  "fieldtype": "Data"
+  "fieldtype": "Data", 
+  "label": "Default Value"
  }, 
  {
-  "role": "Administrator", 
-  "doctype": "DocPerm"
+  "doctype": "DocPerm", 
+  "role": "Administrator"
  }, 
  {
-  "role": "System Manager", 
-  "doctype": "DocPerm"
+  "doctype": "DocPerm", 
+  "role": "System Manager"
  }
 ]

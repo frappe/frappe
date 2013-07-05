@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-02-18 17:19:42", 
+  "modified": "2013-07-05 14:35:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -16,6 +16,7 @@
   "doctype": "DocType", 
   "hide_heading": 0, 
   "hide_toolbar": 0, 
+  "icon": "icon-bolt", 
   "issingle": 0, 
   "istable": 0, 
   "module": "Core", 
@@ -346,6 +347,12 @@
   "fieldname": "cb41", 
   "fieldtype": "Column Break", 
   "label": "Display"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "icon", 
+  "fieldtype": "Data", 
+  "label": "Icon"
  }, 
  {
   "doctype": "DocField", 

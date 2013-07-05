@@ -2,13 +2,14 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-06-10 13:40:12", 
+  "modified": "2013-07-05 14:36:46", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "autoname": "EV.#####", 
   "doctype": "DocType", 
+  "icon": "icon-calendar", 
   "in_create": 1, 
   "module": "Core", 
   "name": "__common__", 
