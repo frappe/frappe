@@ -35,7 +35,7 @@ wn.form.formatters = {
 			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', {
 				doctype: docfield.options,
 				name: value,
-				icon: options.no_icon ? "" :
+				icon: (options && options.no_icon) ? "" :
 					('<i class="icon-fixed-width '+wn.boot.doctype_icons[docfield.options]+'"></i> ')
 			});
 		} else {
