@@ -100,9 +100,9 @@ class DocType:
 		# update index
 		if not self.doc.custom:
 			from webnotes.modules import scrub
-			import importlib
 			doctype = scrub(self.doc.name)
-			module = importlib.import_module(scrub(self.doc.module) + ".doctype." + doctype + "." + doctype)
+			module = __import__(scrub(self.doc.module) + ".doctype." + doctype + "." + doctype,
+				fromlist=[""])
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
 		
