@@ -32,7 +32,7 @@
 from __future__ import unicode_literals
 
 import webnotes, unittest
-from webnotes import msgprint
+from webnotes import msgprint, _
 from webnotes.model.bean import Bean
 from webnotes.model.doc import Document
 
@@ -327,3 +327,13 @@ class DocTypeNestedSet(object):
 	def on_trash(self):
 		self.doc.fields[self.nsm_parent_field] = ""
 		update_nsm(self)
+		
+	def on_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
+		if merge:
+			is_group = webnotes.conn.get_value(self.doc.doctype, newdn, group_fname)
+			if self.doc.fields[group_fname] != is_group:
+				msgprint(_("""Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger"""), raise_exception=1)
+				
+			parent_field = "parent_" + self.doc.doctype.replace(" ", "_").lower()
+			rebuild_tree(self.doc.doctype, parent_field)
