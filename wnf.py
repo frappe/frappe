@@ -140,6 +140,9 @@ def setup_options():
 						help="install fresh db")
 
 	# update
+	parser.add_option("-u", "--update_origin_branch", 
+		help="Pull, run latest patches and sync all", action="store_true", default=False)
+			
 	parser.add_option("--update", help="Pull, run latest patches and sync all",
 			nargs=2, metavar="ORIGIN BRANCH")
 
@@ -408,6 +411,9 @@ def run():
 	
 	elif options.update:
 		update_erpnext(options.update[0], options.update[1])
+		
+	elif options.update_origin_branch:
+		update_erpnext("origin", conf.branch)
 	
 	elif options.patch_sync_build:
 		patch_sync_build()
