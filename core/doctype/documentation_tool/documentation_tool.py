@@ -3,7 +3,7 @@
 from __future__ import unicode_literals
 		
 import webnotes
-import inspect, importlib, os, json, datetime
+import inspect, os, json, datetime
 from jinja2 import Template
 from webnotes.modules import get_doc_path, get_module_path, scrub
 
@@ -50,6 +50,7 @@ def get_static_pages():
 
 def get_docs_for(docs, name):
 	"""build docs for python module"""
+	import importlib
 	classname = ""
 	parts = name.split(".")
 
@@ -130,6 +131,7 @@ def get_gh_url(path):
 	return url
 
 def get_modules(for_module=None):
+	import importlib
 	docs = {
 		"_label": "Modules"
 	}
@@ -193,6 +195,7 @@ def get_modules(for_module=None):
 	return docs
 
 def get_pages(m):
+	import importlib
 	pages = webnotes.conn.sql_list("""select name from tabPage where module=%s""", m)
 	prefix = "docs.dev.modules." + m + ".page."
 	docs = {
