@@ -188,7 +188,6 @@ wn.ui.form.GridRow = Class.extend({
 			this.wrapper.find(".data-row, .panel-heading")
 				.click(function() {
 					me.toggle_view();
-					return false;
 				});
 			this.set_button_events();
 		}
@@ -288,6 +287,9 @@ wn.ui.form.GridRow = Class.extend({
 		this.show = show===undefined ? 
 			show = !this.show :
 			show
+		
+		// call blur
+		document.activeElement && document.activeElement.blur()
 
 		if(show && open_row) {
 			if(open_row==this) {
