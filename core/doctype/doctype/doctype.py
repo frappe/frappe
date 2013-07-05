@@ -23,10 +23,10 @@
 from __future__ import unicode_literals
 
 import webnotes
+from webnotes import msgprint
 import os
 
 from webnotes.utils import now, cint
-msgprint = webnotes.msgprint
 
 class DocType:
 	def __init__(self, doc=None, doclist=[]):
@@ -96,14 +96,16 @@ class DocType:
 		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
 			self.export_doc()
 			self.make_controller_template()
-			
-		# update index
-		bean = webnotes.bean({"doctype": self.doc.name})
 		
-		bean.make_controller()
-		if hasattr(bean.obj, "on_doctype_update"):
-			bean.controller.on_doctype_update()
-
+		# update index
+		if not self.doc.custom:
+			from webnotes.modules import scrub
+			import importlib
+			doctype = scrub(self.doc.name)
+			module = importlib.import_module(scrub(self.doc.module) + ".doctype." + doctype + "." + doctype)
+			if hasattr(module, "on_doctype_update"):
+				module.on_doctype_update()
+		
 		webnotes.clear_cache(doctype=self.doc.name)
 
 	def check_link_replacement_error(self):
