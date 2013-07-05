@@ -198,11 +198,11 @@ _f.Frm.prototype.setup_std_layout = function() {
 		parent: this.body,
 		doctype: this.doctype,
 		frm: this,
-	})	
+	});
 
 	this.dashboard = new wn.ui.form.Dashboard({
 		frm: this,
-	})
+	});
 	
 	// state
 	this.states = new wn.ui.form.States({
@@ -381,8 +381,9 @@ _f.Frm.prototype.refresh = function(docname) {
 	// record switch
 	if(docname) {
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && 
-			!this.meta.istable) 
-			scroll(0, 0);
+			!this.meta.istable) {
+				scroll(0, 0);
+			}
 		this.docname = docname;
 	}
 

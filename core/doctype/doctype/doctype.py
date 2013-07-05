@@ -90,18 +90,19 @@ class DocType:
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
 
-		# update index
-		bean = webnotes.bean({"doctype": self.doc.name})
-		bean.make_controller()
-		if hasattr(bean.obj, "on_doctype_update"):
-			bean.controller.on_doctype_update()
-
 		self.change_modified_of_parent()
 		
 		import conf
 		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
 			self.export_doc()
 			self.make_controller_template()
+			
+		# update index
+		bean = webnotes.bean({"doctype": self.doc.name})
+		
+		bean.make_controller()
+		if hasattr(bean.obj, "on_doctype_update"):
+			bean.controller.on_doctype_update()
 
 		webnotes.clear_cache(doctype=self.doc.name)
 
