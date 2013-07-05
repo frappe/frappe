@@ -30,10 +30,10 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 	if isinstance(target_doclist, basestring):
 		target_doclist = json.loads(target_doclist)
 	
-	if not webnotes.has_permission(from_doctype, from_docname):
-		webnotes.msgprint("No Permission", raise_exception=webnotes.PermissionError)
-
 	source = webnotes.bean(from_doctype, from_docname)
+
+	if not webnotes.has_permission(from_doctype, doc=source.doc):
+		webnotes.msgprint("No Permission", raise_exception=webnotes.PermissionError)
 
 	source_meta = webnotes.get_doctype(from_doctype)
 	target_meta = webnotes.get_doctype(table_maps[from_doctype]["doctype"])

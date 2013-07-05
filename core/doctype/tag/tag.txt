@@ -2,19 +2,17 @@
  {
   "creation": "2012-07-09 11:17:17", 
   "docstatus": 0, 
-  "modified": "2012-07-09 14:19:39", 
+  "modified": "2013-07-05 14:57:22", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "autoname": "field:tag_name", 
   "doctype": "DocType", 
+  "icon": "icon-tag", 
   "module": "Core", 
   "name": "__common__", 
-  "name_case": "Title Case", 
-  "section_style": "Simple", 
-  "show_in_menu": 0, 
-  "version": 1
+  "name_case": "Title Case"
  }, 
  {
   "doctype": "DocField", 
@@ -46,9 +44,9 @@
   "name": "Tag"
  }, 
  {
-  "doctype": "DocPerm"
+  "doctype": "DocField"
  }, 
  {
-  "doctype": "DocField"
+  "doctype": "DocPerm"
  }
 ]

@@ -155,7 +155,7 @@ wn.ui.form.GridRow = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div class="grid-row">\
-			<div class="data-row" style="min-height: 15px;"></div>\
+			<div class="data-row" style="min-height: 20px;"></div>\
 			<div class="panel panel-warning" style="display: none;">\
 				<div class="panel-heading">\
 					<div class="toolbar" style="height: 36px;">\
@@ -188,7 +188,6 @@ wn.ui.form.GridRow = Class.extend({
 			this.wrapper.find(".data-row, .panel-heading")
 				.click(function() {
 					me.toggle_view();
-					return false;
 				});
 			this.set_button_events();
 		}
@@ -288,6 +287,9 @@ wn.ui.form.GridRow = Class.extend({
 		this.show = show===undefined ? 
 			show = !this.show :
 			show
+		
+		// call blur
+		document.activeElement && document.activeElement.blur()
 
 		if(show && open_row) {
 			if(open_row==this) {

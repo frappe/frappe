@@ -64,7 +64,7 @@ wn.utils = {
 	},
 	set_intro: function(me, wrapper, txt) {
 		if(!me.intro_area) {
-			me.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
+			me.intro_area = $('<div class="alert alert-info form-intro-area">')
 				.prependTo(wrapper);
 		}
 		if(txt) {

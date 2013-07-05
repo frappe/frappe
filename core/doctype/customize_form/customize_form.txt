@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 17:54:08", 
   "docstatus": 0, 
-  "modified": "2013-02-05 09:05:02", 
+  "modified": "2013-07-05 14:34:41", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -10,6 +10,7 @@
   "autoname": "DL.####", 
   "doctype": "DocType", 
   "hide_toolbar": 1, 
+  "icon": "icon-glass", 
   "issingle": 1, 
   "module": "Core", 
   "name": "__common__", 

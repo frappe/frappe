@@ -2,13 +2,14 @@
  {
   "creation": "2012-08-08 10:40:11", 
   "docstatus": 0, 
-  "modified": "2013-05-28 13:08:22", 
+  "modified": "2013-07-05 14:30:01", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "autoname": "CWR/.#####", 
   "doctype": "DocType", 
+  "icon": "icon-comments", 
   "issingle": 0, 
   "module": "Core", 
   "name": "__common__"

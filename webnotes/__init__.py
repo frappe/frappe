@@ -233,7 +233,7 @@ def get_roles(user=None, with_standard=True):
 
 	if user=='Guest':
 		return ['Guest']
-		
+	
 	roles = [r[0] for r in conn.sql("""select role from tabUserRole 
 		where parent=%s and role!='All'""", user)] + ['All']
 		
