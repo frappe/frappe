@@ -153,7 +153,7 @@ Thank you,<br>
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
-
+		import startup
 		
 		txt = """
 ## %(company)s
