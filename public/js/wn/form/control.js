@@ -178,7 +178,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 					me.disp_area && $(me.disp_area)
 						.toggle(true)
 						.html(
-							wn.format(me.value, me.df, null, locals[me.doctype][me.name])
+							wn.format(me.value, me.df, {no_icon:true}, locals[me.doctype][me.name])
 						);
 				}
 				
