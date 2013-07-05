@@ -20,7 +20,6 @@ wn.ui.Search = Class.extend({
 		var parent = $('<div class="row"><div class="col col-lg-12"></div></div>')
 			.appendTo(this.dialog.body)
 			.find(".col-lg-12")
-			.css({"padding": "0px"});
 		this.list = new wn.ui.Listing({
 			parent: parent,
 			appframe: this.dialog.appframe,
