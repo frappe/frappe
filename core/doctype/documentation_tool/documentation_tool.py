@@ -372,8 +372,11 @@ def prepare_docs():
 			os.mkdir("docs/img")
 		os.system("cp ../app/public/images/splash.svg docs/img")
 
-@webnotes.whitelist(allow_roles=["Administrator"])
+@webnotes.whitelist()
 def write_docs(data, build_sitemap=None, domain=None):
+	if webnotes.session.user != "Administrator":
+		raise webnotes.PermissionError
+		
 	data = json.loads(data)
 	template = Template(docs_template)
 	data["index"] = data["docs"]
