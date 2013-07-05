@@ -27,19 +27,20 @@ wn.ui.form.Dashboard = Class.extend({
 	},
 	add_doctype_badge: function(doctype, fieldname) {
 		if(wn.model.can_read(doctype)) {
-			this.add_badge(wn._(doctype), function() {
+			this.add_badge(wn._(doctype), doctype, function() {
 				wn.route_options = {};
 				wn.route_options[fieldname] = cur_frm.doc.name;
 				wn.set_route("List", doctype);
 			}).attr("data-doctype", doctype);
 		}
 	},
-	add_badge: function(label, onclick) {
+	add_badge: function(label, doctype, onclick) {
 		var badge = $(repl('<div class="col col-lg-4">\
 			<div class="alert alert-badge">\
+				<i class="icon-fixed-width %(icon)s"></i> \
 				<a class="badge-link">%(label)s</a>\
 				<span class="badge pull-right">-</span>\
-			</div></div>', {label:label}))
+			</div></div>', {label:label, icon: wn.boot.doctype_icons[doctype]}))
 				.appendTo(this.body)
 				
 		badge.find(".badge-link").click(onclick);

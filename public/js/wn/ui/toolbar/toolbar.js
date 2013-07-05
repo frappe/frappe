@@ -222,8 +222,9 @@ wn.ui.toolbar.update_notifications = function() {
 			$(repl('<li><a>\
 				<span class="badge pull-right">\
 					%(count)s</span> \
-				%(doctype)s </a></li>', {
+				<i class="icon-fixed-width %(icon)s"></i> %(doctype)s </a></li>', {
 					doctype: doctype,
+					icon: wn.boot.doctype_icons[doctype],
 					count: count
 				}))
 				.appendTo("#navbar-notification")

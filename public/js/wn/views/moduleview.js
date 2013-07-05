@@ -81,9 +81,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 			$('<div class="col col-lg-12"><hr /></div>').appendTo(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
-				<li class="list-group-item">\
-					<h4 class="list-group-item-heading"><i class="'
-						+ section.icon+'"></i> '
+				<li class="list-group-item" style="background-color: #eee">\
+					<h4 class="list-group-item-heading" style="margin-bottom: 0px;">\
+						<i class="text-muted '+ section.icon+'"></i> '
 						+ wn._(section.title) +'</h4>\
 				</li>\
 			</ul>"').appendTo(section.right 
@@ -95,18 +95,10 @@ wn.views.moduleview.ModuleView = Class.extend({
 	add_item: function(item, section) {
 		if(!item.description) item.description = "";
 		if(item.count==null) item.count = "";
+		if(!item.icon) item.icon = "";
 		if(section.top) {
 			var $parent = $(repl('<div class="col col-lg-4">\
-				<div class="alert alert-badge"></div>'
-				// <div>\
-				// 	<div class="module-item-progress" data-doctype="%(doctype)s">\
-				// 		<div class="module-item-progress-total">\
-				// 			<div class="module-item-progress-open">\
-				// 			</div>\
-				// 		</div>\
-				// 	</div>\
-				// </div>\
-				+'</div>', {doctype:item.doctype}))
+				<div class="alert alert-badge"></div></div>'))
 				.appendTo(section.list_group)
 				.find(".alert");
 			this.top_item_total[item.doctype] = 0;
@@ -114,7 +106,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			var $parent = $('<li class="list-group-item">').appendTo(section.list_group);
 		}
 				
-		$(repl('<span' +
+		$(repl('%(icon)s<span' +
 				((item.doctype && item.description) 
 					? " data-doctype='"+item.doctype+"'" 
 					: "") + ">%(link)s</span>"
@@ -161,8 +153,10 @@ wn.views.moduleview.ModuleView = Class.extend({
 		$.each(wn.module_page[this.module], function(i, section) {
 			me.add_section(section);
 			$.each(section.items, function(i, item) {
-				if(item.doctype) 
+				if(item.doctype) {
 					me.doctypes.push(item.doctype);
+					item.icon = '<i class="icon-fixed-width '+ wn.boot.doctype_icons[item.doctype] + '"></i> ';
+				}
 				if(item.doctype && !item.route) {
 					item.route = "List/" + encodeURIComponent(item.doctype);
 				}

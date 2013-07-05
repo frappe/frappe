@@ -48,8 +48,14 @@ wn.ui.toolbar.Bookmarks = Class.extend({
 		$("#remove-bookmark-link").toggle(this.bookmarked(wn.get_route_str()) ? true : false);
 	},
 	add_item: function(route, title) {
-		var html = repl('<li><a href="#%(route)s">%(title)s</a></li>', 
-			{route: route, title: title});
+		var route_parts = decodeURIComponent(route).split("/");
+		if(route_parts[0]==="List" || route_parts[0]==="Form") {
+			var icon = wn.boot.doctype_icons[route_parts[1]];
+		} else {
+			var icon = "icon-play";
+		}
+		var html = repl('<li><a href="#%(route)s"><i class="icon-fixed-width %(icon)s"></i> %(title)s</a></li>', 
+			{route: route, title: title, icon: icon});
 		$('#toolbar-bookmarks').prepend(html);
 		
 	},
