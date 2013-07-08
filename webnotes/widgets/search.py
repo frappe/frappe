@@ -59,7 +59,14 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 				searchfield, txt))
 		else:
 			if isinstance(filters, dict):
-				filters = map(lambda f: [doctype, f[0], "=", f[1]], filters.items())
+				filters_items = filters.items()
+				filters = []
+				for f in filters_items:
+					if isinstance(f[1], (list, tuple)):
+						filters.append([doctype, f[0], f[1][0], f[1][1]])
+					else:
+						filters.append([doctype, f[0], "=", f[1]])
+
 			if filters==None:
 				filters = []
 			
