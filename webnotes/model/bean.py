@@ -228,7 +228,7 @@ class Bean:
 
 		notify(self.controller, method)
 		
-		self.doclist = self.controller.doclist
+		self.set_doclist(self.controller.doclist)
 
 	def get_method(self, method):
 		self.make_controller()
