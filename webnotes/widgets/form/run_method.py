@@ -35,7 +35,7 @@ def runserverobj():
 
 	wrapper = None
 	method = webnotes.form_dict.get('method')
-	arg = webnotes.form_dict.get('args')
+	arg = webnotes.form_dict.get('args', webnotes.form_dict.get("arg"))
 	dt = webnotes.form_dict.get('doctype')
 	dn = webnotes.form_dict.get('docname')
 	
