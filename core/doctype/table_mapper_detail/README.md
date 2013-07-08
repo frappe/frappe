@@ -1,1 +1,0 @@
-Mapping of child tables between two main DocTypes of DocType Mapper

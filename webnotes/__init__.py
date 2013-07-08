@@ -397,17 +397,6 @@ def copy_doclist(in_doclist):
 			new_doclist.append(doc(d.fields.copy()))
 
 	return doclist(new_doclist)
-	
-def map_doclist(from_to_list, from_docname, to_doclist=None):
-	from_doctype, to_doctype = from_to_list[0][0], from_to_list[0][1]
-	if to_doclist:
-		to_doclist = bean(to_doclist).doclist
-	else:
-		to_doclist = bean({"doctype": to_doctype}).doclist
-	
-	mapper = get_obj("DocType Mapper", "-".join(from_to_list[0]))
-	to_doclist = mapper.dt_map(from_doctype, to_doctype, from_docname, to_doclist[0], to_doclist, from_to_list)
-	return to_doclist
 
 def compare(val1, condition, val2):
 	import webnotes.utils
