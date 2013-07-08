@@ -319,7 +319,7 @@ wn.ui.form.ControlInt = wn.ui.form.ControlData.extend({
 		this.$input
 			.css({"text-align": "right"})
 			.on("focus", function() {
-				this.select();
+				setTimeout(function() { document.activeElement.select() }, 100);
 				return false;
 			})
 	},
@@ -371,7 +371,7 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 		return value ? dateutil.user_to_str(value) : value;
 	},
 	format_for_input: function(value) {
-		return dateutil.str_to_user(value);
+		return value ? dateutil.str_to_user(value) : "";
 	},
 	validate: function(value, callback) {
 		var value = wn.datetime.validate(value);
@@ -461,13 +461,16 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 			.prependTo(me.input_area)
 			.css({"margin-bottom": "7px"})
 			.on("click", function() {
-				if(me.frm && me.frm.cscript) {
+				if(me.frm && me.frm.doc && me.frm.cscript) {
 					if(me.frm.cscript[me.df.fieldname]) {
 						me.frm.script_manager.trigger(me.df.fieldname, me.doctype, me.docname);
 					} else {
 						me.frm.runscript(me.df.options, me);
 					}
-				} 
+				}
+				else if(me.df.click) {
+					me.df.click();
+				}
 			});
 		this.input = this.$input.get(0);
 		this.has_input = true;
@@ -670,7 +673,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			select: function(event, ui) {
-				me.parse_validate_and_set_in_model(ui.item.value);
+				if(me.frm && me.frm.doc)
+					me.parse_validate_and_set_in_model(ui.item.value);
 			}
 		}).data('uiAutocomplete')._renderItem = function(ul, item) {
 			return $('<li></li>')
@@ -684,15 +688,17 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		this.$wrapper.find(".ui-helper-hidden-accessible").remove();
 	},
 	set_custom_query: function(args) {
-		if(this.get_query) {
-			var q = this.get_query(this.frm && this.frm.doc, this.doctype, this.docname);
+		if(this.get_query || this.df.get_query) {
+			var q = (this.get_query || this.df.get_query)(this.frm && this.frm.doc, this.doctype, this.docname);
 
 			if (typeof(q)==="string") {
 				args.query = q;
 			} else if($.isPlainObject(q)) {
 				if(q.filters) {
 					$.each(q.filters, function(key, value) {
-						q.filters[key] = value===undefined ? null : value;
+						if(value!==undefined) {
+							q.filters[key] = value || null;
+						}
 					});
 				}
 				$.extend(args, q);

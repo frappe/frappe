@@ -43,7 +43,7 @@ wn.form.formatters = {
 		}
 	},
 	Date: function(value) {
-		return dateutil.str_to_user(value);
+		return value ? dateutil.str_to_user(value) : "";
 	},
 	Text: function(value) {
 		if(value) {
