@@ -5,6 +5,7 @@ Create a new document with defaults set
 
 import webnotes
 from webnotes.utils import nowdate, nowtime, cint, flt
+import webnotes.defaults
 
 def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	doc = webnotes.doc({
@@ -17,10 +18,12 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	if parent_doc:
 		doc.parent = parent_doc.name
 		doc.parenttype = parent_doc.doctype
+	
+	if parentfield:
 		doc.parentfield = parentfield
 	
 	for d in meta.get({"doctype":"DocField", "parent": doctype}):
-		default = webnotes.conn.get_default(d.fieldname)
+		default = webnotes.defaults.get_user_default(d.fieldname)
 		if default:
 			doc.fields[d.fieldname] = default
 		elif d.fields.get("default"):

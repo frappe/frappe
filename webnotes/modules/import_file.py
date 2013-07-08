@@ -107,6 +107,7 @@ def import_doclist(doclist):
 	new_bean.ignore_check_links = True
 	new_bean.ignore_validate = True
 	new_bean.ignore_permissions = True
+	new_bean.ignore_mandatory = True
 	
 	if doctype=="DocType" and name in ["DocField", "DocType"]:
 		new_bean.ignore_fields = True

@@ -24,7 +24,11 @@ def get_defaults(user=None):
 
 	if user:
 		userd = get_defaults_for(user)
-		userd.update({"user": user, "owner": user})
+		
+		if user in ["__global", "Control Panel"]:
+			userd.update({"user": webnotes.session.user, "owner": webnotes.session.user})
+		else:
+			userd.update({"user": user, "owner": user})
 	else:
 		userd = {}
 	
