@@ -47,6 +47,11 @@ wn.views.Container = Class.extend({
 			return;
 		}
 		
+		// hide dialog
+		if(cur_dialog && cur_dialog.display) {
+			cur_dialog.hide();
+		}
+		
 		// hide current
 		if(this.page && this.page != page) {
 			$(this.page).toggle(false);

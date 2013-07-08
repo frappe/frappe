@@ -34,7 +34,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		this.make();
 	},
 	make: function() {		
-		this.$wrapper = $('<div class="modal fade" style="overflow: auto;">\
+		this.$wrapper = $('<div class="modal" style="overflow: auto;">\
 			<div class="modal-dialog">\
 				<div class="modal-content">\
 					<div class="modal-header">\

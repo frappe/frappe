@@ -430,6 +430,10 @@ textarea[data-fieldtype="Small Text"] {
 	}
 }
 
+.modal-backdrop {
+  opacity: 0.5;
+}
+
 /* buttons */
 .btn-default {
   color: #ffffff;
