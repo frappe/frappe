@@ -51,6 +51,7 @@ wn.views.Calendar = Class.extend({
 		// $('<div class="help"></div>')
 		// 	.html(wn._("Select dates to create a new ") + wn._(me.doctype))
 		// 	.appendTo(this.$wrapper);
+
 		this.$cal.fullCalendar(this.cal_options);
 	},
 	field_map: {
