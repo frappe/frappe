@@ -325,7 +325,11 @@ class DocTypeNestedSet(object):
 		update_nsm(self)
 		
 	def on_trash(self):
-		self.doc.fields[self.nsm_parent_field] = ""
+		parent = self.doc.fields[self.nsm_parent_field]
+		if not parent:
+			msgprint(_("Root ") + self.doc.doctype + _(" cannot be deleted."), raise_exception=1)
+
+		parent = ""
 		update_nsm(self)
 		
 	def on_rename(self, newdn, olddn, merge=False, group_fname="is_group"):

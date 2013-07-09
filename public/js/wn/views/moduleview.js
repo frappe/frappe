@@ -39,7 +39,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		wn.ui.make_app_page({
 			parent: wrapper,
 			single_column: true,
-			title: wn._(wn.modules[module].label || module)
+			title: wn._(wn.modules[module] && wn.modules[module].label || module)
 		});
 		wrapper.appframe.add_module_icon(module);
 		this.wrapper = wrapper;
