@@ -29,7 +29,7 @@ Group actions like save, etc are performed on doclists
 """
 
 import webnotes
-from webnotes import _
+from webnotes import _, msgprint
 from webnotes.utils import cint, cstr
 from webnotes.model.doc import Document
 
@@ -47,6 +47,7 @@ class Bean:
 		self.ignore_check_links = False
 		self.ignore_validate = False
 		self.ignore_fields = False
+		self.ignore_mandatory = False
 		
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
@@ -194,8 +195,10 @@ class Bean:
 
 	def prepare_for_save(self, method):
 		self.check_if_latest(method)
+		
 		if method != "cancel":
 			self.check_links()
+		
 		self.update_timestamps_and_docstatus()
 		self.update_parent_info()
 
@@ -225,7 +228,7 @@ class Bean:
 
 		notify(self.controller, method)
 		
-		self.doclist = self.controller.doclist
+		self.set_doclist(self.controller.doclist)
 
 	def get_method(self, method):
 		self.make_controller()
@@ -272,6 +275,11 @@ class Bean:
 
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
+		
+		if webnotes.in_test:
+			if webnotes.get_doctype(self.doc.doctype).get_field("naming_series"):
+				self.doc.naming_series = "_T-" + self.doc.doctype + "-"
+		
 		return self.save()
 	
 	def has_read_perm(self):
@@ -283,6 +291,8 @@ class Bean:
 			self.prepare_for_save("save")
 			if not self.ignore_validate:
 				self.run_method('validate')
+			if not self.ignore_mandatory:
+				self.check_mandatory()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
@@ -296,6 +306,7 @@ class Bean:
 			self.to_docstatus = 1
 			self.prepare_for_save("submit")
 			self.run_method('validate')
+			self.check_mandatory()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
@@ -344,8 +355,33 @@ class Bean:
 	def check_no_back_links_exist(self):
 		from webnotes.model.utils import check_if_doc_is_linked
 		check_if_doc_is_linked(self.doc.doctype, self.doc.name, method="Cancel")
+		
+	def check_mandatory(self):
+		missing = []
+		from webnotes.model.meta import get_mandatory_fields
+		for doc in self.doclist:
+			for fieldname, label, fieldtype in get_mandatory_fields(doc.doctype):
+				msg = ""
+				if fieldtype == "Table":
+					if not self.doclist.get({"parentfield": fieldname}):
+						msg = _("Error") + ": " + _("Data missing in table") + ": " + _(label)
+				
+				elif doc.fields.get(fieldname) is None:
+					msg = _("Error") + ": "
+					if doc.parentfield:
+						msg += _("Row") + (" # %d: " % doc.idx)
+			
+					msg += _("Value missing for") + ": " + _(label)
+					
+				if msg:
+					missing.append([msg, fieldname])
+		
+		if missing:		
+			for msg, fieldname in missing:
+				msgprint(msg)
 
-
+			raise webnotes.MandatoryError, ", ".join([fieldname for msg, fieldname in missing])
+					
 def clone(source_wrapper):
 	""" make a clone of a document"""
 	if isinstance(source_wrapper, list):

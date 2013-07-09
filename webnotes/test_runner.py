@@ -71,7 +71,8 @@ def make_test_objects(doctype, test_records, verbose=None):
 	for doclist in test_records:
 		if not "doctype" in doclist[0]:
 			doclist[0]["doctype"] = doctype
-		d = webnotes.bean((webnotes.doclist(doclist)).copy())
+		d = webnotes.bean(copy=doclist)
+		
 		if webnotes.test_objects.get(d.doc.doctype):
 			# do not create test records, if already exists
 			return []
@@ -185,6 +186,8 @@ if __name__=="__main__":
 
 	args = parser.parse_args()
 	webnotes.print_messages = args.verbose
+	
+	webnotes.in_test = True
 	
 	if not webnotes.conn:
 		webnotes.connect()

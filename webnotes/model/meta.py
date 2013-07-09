@@ -24,7 +24,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.utils import cstr
+from webnotes.utils import cstr, cint
 	
 def get_dt_values(doctype, fields, as_dict = 0):
 	return webnotes.conn.sql('SELECT %s FROM tabDocType WHERE name="%s"' % (fields, doctype), as_dict = as_dict)
@@ -113,3 +113,15 @@ def get_field_precision(df, doc):
 		webnotes.conn.get_default("number_format") or "#,###.##")
 
 	return precision
+
+doctype_mandatory_fields = {}
+def get_mandatory_fields(doctype, parenttype=None):
+	if not doctype_mandatory_fields.get(doctype):
+		doctype_mandatory_fields[doctype] = []
+
+		meta = webnotes.get_doctype(parenttype or doctype)
+		for df in meta.get({"doctype": "DocField", "parent": doctype}):
+			if cint(df.reqd):
+				doctype_mandatory_fields[doctype].append((df.fieldname, df.label, df.fieldtype))
+		
+	return doctype_mandatory_fields[doctype]

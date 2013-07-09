@@ -66,6 +66,8 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 			map_doc(source_d, target_d, table_map, source_meta, target_meta, source.doclist[0])
 			doclist.append(target_d)
 	
+	doclist = webnotes.doclist(doclist)
+	
 	if postprocess:
 		postprocess(source, doclist)
 	

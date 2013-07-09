@@ -68,6 +68,7 @@ print_messages = False
 user_lang = False
 lang = 'en'
 in_import = False
+in_test = False
 
 # memcache
 
@@ -88,6 +89,7 @@ class SessionStopped(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class DoesNotExistError(ValidationError): pass
+class MandatoryError(ValidationError): pass
 		
 def getTraceback():
 	import utils
@@ -303,7 +305,7 @@ def doc(doctype=None, name=None, fielddata=None):
 def new_doc(doctype, parent_doc=None, parentfield=None):
 	from webnotes.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield)
-
+	
 def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)
@@ -390,11 +392,22 @@ def get_application_home_page(user='Guest'):
 
 def copy_doclist(in_doclist):
 	new_doclist = []
-	for d in in_doclist:
+	parent_doc = None
+	for i, d in enumerate(in_doclist):
+		is_dict = False
 		if isinstance(d, dict):
-			new_doclist.append(d.copy())
+			is_dict = True
+			values = _dict(d.copy())
 		else:
-			new_doclist.append(doc(d.fields.copy()))
+			values = _dict(d.fields.copy())
+		
+		newd = new_doc(values.doctype, parent_doc=(None if i==0 else parent_doc), parentfield=values.parentfield)
+		newd.fields.update(values)
+		
+		if i==0:
+			parent_doc = newd
+		
+		new_doclist.append(newd.fields if is_dict else newd)
 
 	return doclist(new_doclist)
 
