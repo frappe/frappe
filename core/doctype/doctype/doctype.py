@@ -27,6 +27,7 @@ from webnotes import msgprint
 import os
 
 from webnotes.utils import now, cint
+from webnotes.model import no_value_fields
 
 class DocType:
 	def __init__(self, doc=None, doclist=[]):
@@ -222,6 +223,10 @@ def validate_fields(fields):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
 			webnotes.msgprint("Minimum width for FieldType 'Currency' is 100px", raise_exception=1)
 
+	def check_in_list_view(d):
+		if d.in_list_view and d.fieldtype in no_value_fields:
+			webnotes.msgprint("'In List View' not allowed for field of type '%s'" % d.fieldtype, raise_exception=1)
+
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
@@ -231,6 +236,7 @@ def validate_fields(fields):
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
 		check_hidden_and_mandatory(d)
+		check_in_list_view(d)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	from webnotes.model.doctype import get

@@ -24,7 +24,7 @@
 from __future__ import unicode_literals
 import webnotes
 
-no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']
+no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image']
 default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
 
 def insert(doclist):
