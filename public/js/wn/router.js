@@ -65,7 +65,14 @@ wn.get_route_str = function(route) {
 }
 
 wn.set_route = function() {
-	route = $.map(arguments, function(a) { return a ? encodeURIComponent(a) : null; }).join('/');
+	route = $.map(arguments, function(a) { 
+		if($.isPlainObject(a)) {
+			wn.route_options = a;
+			return null;
+		} else {
+			return a ? encodeURIComponent(a) : null; 
+		}
+	}).join('/');
 	
 	window.location.hash = route;
 	

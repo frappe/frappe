@@ -79,7 +79,7 @@ wn.ui.form.Layout = Class.extend({
 				this.labelled_section_count++;
 				$('<h3 class="col col-lg-12">' 
 					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
-					+ this.labelled_section_count + ". " 
+					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ df.label 
 					+ "</h3>")
 					.css({
@@ -96,6 +96,7 @@ wn.ui.form.Layout = Class.extend({
 				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
 			}
 			if(df.label || df.description) {
+				// spacer
 				$('<div class="col col-lg-12"></div>')
 					.appendTo(this.section)
 					.css({"height": "20px"});
@@ -116,6 +117,11 @@ wn.ui.form.Layout = Class.extend({
 			this.section.toggle(false);
 		}
 		return this.section;
+	},
+	refresh_section_count: function() {
+		this.wrapper.find(".section-count-label:visible").each(function(i) {
+			$(this).html(i+1);
+		});
 	},
 	setup_tabbing: function() {
 		var me = this;

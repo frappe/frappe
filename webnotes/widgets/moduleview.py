@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes, json
+from webnotes.widgets import reportview
 
 @webnotes.whitelist()
 def get_data(module, doctypes='[]'):
@@ -20,7 +21,7 @@ def get_count(doctypes):
 
 def get_doctype_count_from_table(doctype):
 	try:
-		count = webnotes.conn.sql("""select count(*) from `tab%s`""" % doctype)[0][0]
+		count = reportview.execute(doctype, fields=["count(*)"], as_list=True)[0][0]
 	except Exception, e:
 		if e.args[0]==1146: 
 			count = None

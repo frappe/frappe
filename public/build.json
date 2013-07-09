@@ -108,7 +108,6 @@
 			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
-			"lib/public/js/legacy/widgets/form/form_dialog.js",
 			"lib/public/js/legacy/widgets/form/form.js",
 			"lib/public/js/legacy/widgets/form/print_format.js",
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",

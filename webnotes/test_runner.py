@@ -173,7 +173,7 @@ def _run_test(path, filename, verbose):
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
-if __name__=="__main__":
+def main():
 	import argparse
 	
 	parser = argparse.ArgumentParser(description='Run tests.')
@@ -209,3 +209,6 @@ if __name__=="__main__":
 		
 		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[args.module]))
 		unittest.TextTestRunner(verbosity=1+(args.verbose and 1 or 0)).run(test_suite)
+
+if __name__=="__main__":
+	main()

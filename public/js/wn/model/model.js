@@ -195,6 +195,7 @@ $.extend(wn.model, {
 	
 	set_value: function(doctype, name, fieldname, value, fieldtype) {
 		/* help: Set a value locally (if changed) and execute triggers */
+		if(!name) name = doctype;
 		var doc = locals[doctype] && locals[doctype][name] || null;
 		if(doc && doc[fieldname] !== value) {
 			doc[fieldname] = value;

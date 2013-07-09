@@ -392,7 +392,7 @@ class Document:
 		# add missing parentinfo (if reqd)
 		if self.parent and not (self.parenttype and self.parentfield):
 			self.update_parentinfo()
-			
+
 		if self.parent and not self.idx:
 			self.set_idx()
 

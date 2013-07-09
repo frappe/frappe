@@ -245,9 +245,6 @@ def setup_options():
 	parser.add_option("--append_future_import", default=False, action="store_true", 
 			help="append from __future__ import unicode literals to py files")
 			
-	parser.add_option("--test", help="Run test", metavar="MODULE", 	
-			nargs=1)
-
 	parser.add_option("--build_message_files", default=False, action="store_true",
 		help="Build message files for translation")
 		
@@ -460,15 +457,6 @@ def run():
 	if webnotes.message_log:
 		print '\n'.join(webnotes.message_log)
 		
-	if options.test is not None:
-		module_name = options.test
-		import unittest
-
-		del sys.argv[1:]
-		# is there a better way?
-		exec ('from %s import *' % module_name) in globals()		
-		unittest.main()
-
 	elif options.build_message_files:
 		import webnotes.translate
 		webnotes.translate.build_message_files()

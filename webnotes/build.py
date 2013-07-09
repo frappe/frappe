@@ -43,6 +43,10 @@ def bundle(no_compress, cms_make=True):
 		# build index.html and app.html
 		from website.helpers.make_web_include_files import make
 		make()
+	
+	if not no_compress:
+		from home.page.latest_updates import latest_updates
+		latest_updates.make()
 			
 def watch(no_compress):
 	"""watch and rebuild if necessary"""

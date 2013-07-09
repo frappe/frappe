@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.widgets import reportview
 
 @webnotes.whitelist()
 def get():
@@ -19,11 +20,12 @@ def get():
 		if d in can_read:
 			condition = for_doctype[d]
 			key = condition.keys()[0]
-			query = "select count(*) from `tab%s` where `%s`=%s and docstatus<2" % (d, key, '%s')
-			result = webnotes.conn.sql(query, condition[key])[0][0]
+
+			result = reportview.execute(d, fields=["count(*)"], 
+				filters=[[d, key, "=", condition[key]]], as_list=True)[0][0]
 			if result:
 				open_count_doctype[d] = result
-				
+
 	for m in for_module:
 		open_count_module[m] = for_module[m]()
 

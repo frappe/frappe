@@ -237,6 +237,21 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				checks.attr('checked', $(checks.get(0)).attr('checked') ? false : "checked");
 			}, 'icon-ok');
 		}
+		if(in_list(user_roles, "System Manager")) {
+			var meta = locals.DocType[this.doctype];
+			if(meta.allow_import || meta.document_type==="Master") {
+				this.add_button(wn._("Import"), function() {
+					wn.set_route("data-import-tool", {
+						doctype: me.doctype
+					})
+				}, "icon-upload")
+			};
+			this.add_button(wn._("Customize"), function() {
+				wn.set_route("Form", "Customize Form", {
+					doctype: me.doctype
+				})
+			}, "icon-glass");
+		}
 	},
 	get_checked_items: function() {
 		return $.map(this.$page.find('.list-delete:checked'), function(e) {
