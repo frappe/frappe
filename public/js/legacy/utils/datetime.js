@@ -93,6 +93,7 @@ wn.datetime = {
 	
 	add_months: function(d, months) {
 		dt = dateutil.str_to_obj(d)
+		months = cint(months);
 		new_dt = new Date(dt.getFullYear(), dt.getMonth()+months, dt.getDate())
 		if(new_dt.getDate() != dt.getDate()) {
 			// month has changed, go the last date of prev month

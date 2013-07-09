@@ -38,20 +38,25 @@ wn.views.Calendar = Class.extend({
 	},
 	make_page: function() {
 		var page_name = wn.get_route_str();
-		this.page = wn.container.add_page(page_name);
-		wn.ui.make_app_page({
-			parent:this.page, 
-			single_column:true
-		});
-		wn.container.change_to(page_name);
 
-		var module = locals.DocType[this.doctype].module;
-		this.page.appframe.set_title(wn._("Calendar") + " - " + wn._(this.doctype));
-		this.page.appframe.add_home_breadcrumb()
-		this.page.appframe.add_module_breadcrumb(module)
-		this.page.appframe.add_breadcrumb("icon-calendar");
+		if(!wn.pages[page_name]) {
+			this.page = wn.container.add_page(page_name);
+			wn.ui.make_app_page({
+				parent:this.page, 
+				single_column:true
+			});
+			wn.container.change_to(page_name);
 
-		this.page.appframe.set_views_for(this.doctype, "calendar");
+			var module = locals.DocType[this.doctype].module;
+			this.page.appframe.set_title(wn._("Calendar") + " - " + wn._(this.doctype));
+			this.page.appframe.add_home_breadcrumb()
+			this.page.appframe.add_module_breadcrumb(module)
+			this.page.appframe.add_breadcrumb("icon-calendar");
+
+			this.page.appframe.set_views_for(this.doctype, "calendar");
+		} else {
+			this.page = wn.pages[page_name];
+		}
 	},
 	make: function() {
 		var me = this;
@@ -62,6 +67,7 @@ wn.views.Calendar = Class.extend({
 		// $('<div class="help"></div>')
 		// 	.html(wn._("Select dates to create a new ") + wn._(me.doctype))
 		// 	.appendTo(this.$wrapper);
+
 		this.$cal.fullCalendar(this.cal_options);
 	},
 	field_map: {
