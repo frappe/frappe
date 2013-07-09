@@ -567,6 +567,8 @@ _f.Frm.prototype.refresh_dependency = function() {
 			}
 		}
 	}
+	
+	this.layout.refresh_section_count();
 }
 
 _f.Frm.prototype.setnewdoc = function(docname) {
