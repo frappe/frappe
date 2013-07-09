@@ -2,6 +2,7 @@
 // License: MIT. See license.txt
 
 wn.provide("wn.views.calendar");
+wn.provide("wn.views.calendars");
 
 wn.views.CalendarFactory = wn.views.Factory.extend({
 	make: function(route) {
@@ -13,7 +14,7 @@ wn.views.CalendarFactory = wn.views.Factory.extend({
 			};
 			$.extend(options, wn.views.calendar[route[1]] || {});
 			
-			new wn.views.Calendar(options);
+			wn.views.calendars[route[1]] = new wn.views.Calendar(options);
 		});
 	}
 });
@@ -35,6 +36,11 @@ wn.views.Calendar = Class.extend({
 		this.page.appframe.set_title(wn._("Calendar") + " - " + wn._(this.doctype));
 		this.page.appframe.add_module_icon(module==="Core" ? "Calendar" : module)
 		this.page.appframe.set_views_for(this.doctype, "calendar");
+		
+		var me = this;
+		$(this.page).on("show", function() {
+			me.$cal.fullCalendar("refetchEvents");
+		})
 	},
 	make: function() {
 		var me = this;
