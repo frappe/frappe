@@ -780,7 +780,8 @@ _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
 	cur_frm.save_disabled = true;
 	cur_frm.footer.hide_save();
-	cur_frm.appframe.buttons.Save.remove();
+	if(cur_frm.appframe.buttons.Save)
+		cur_frm.appframe.buttons.Save.remove();
 	delete cur_frm.appframe.buttons.Save
 }
 
