@@ -174,22 +174,25 @@ def build_filter_conditions(filters, conditions):
 	from webnotes.utils import cstr
 	
 	for f in filters:
-		tname = ('`tab' + f[0] + '`')
-		if not tname in tables:
-			tables.append(tname)
-		
-		# prepare in condition
-		if f[2]=='in':
-			opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
-			f[3] = "(" + ', '.join(opts) + ")"
-			conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
+		if isinstance(f, basestring):
+			conditions.append(f)
 		else:
-			if isinstance(f[3], basestring):
-				f[3] = "'" + f[3].replace("'", "\\'") + "'"	
+			tname = ('`tab' + f[0] + '`')
+			if not tname in tables:
+				tables.append(tname)
+		
+			# prepare in condition
+			if f[2]=='in':
+				opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
+				f[3] = "(" + ', '.join(opts) + ")"
 				conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
 			else:
-				conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
-					+ " " + cstr(f[3]))
+				if isinstance(f[3], basestring):
+					f[3] = "'" + f[3].replace("'", "\\'") + "'"	
+					conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
+				else:
+					conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
+						+ " " + cstr(f[3]))
 					
 def build_match_conditions(doctype, fields=None):
 	"""add match conditions if applicable"""
@@ -235,7 +238,6 @@ def get_tables(doctype, fields):
 		table_name = f.split('.')[0]
 		if table_name.lower().startswith('group_concat('):
 			table_name = table_name[13:]
-		# check if ifnull function is used
 		if table_name.lower().startswith('ifnull('):
 			table_name = table_name[7:]
 		if not table_name[0]=='`':
@@ -347,10 +349,8 @@ def get_stats(stats, doctype):
 	columns = get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = webnotes.conn.sql("""select %(tag)s, count(*) 
-			from `tab%(doctype)s` 
-			where ifnull(%(tag)s, '')!=''
-			group by %(tag)s;""" % locals(), as_list=1)
+		tagcount = execute(doctype, fields=[tag, "count(*)"], 
+			filters=["ifnull(%s,'')!=''" % tag], group_by=tag, as_list=True)
 			
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)
