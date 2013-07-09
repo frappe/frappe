@@ -235,10 +235,16 @@ class EMail:
 			webnotes.msgprint("Emails are muted")
 			return
 		
+		
 		import smtplib
 		try:
-			SMTPServer().sess.sendmail(self.sender, self.recipients + (self.cc or []),
+			smtpserver = SMTPServer()
+			if getattr(smtpserver, "always_use_login_id_as_sender"):
+				self.sender = smtpserver.login
+			
+			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),
 				self.as_string())
+				
 		except smtplib.SMTPSenderRefused, e:
 			webnotes.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
 				Please rectify and try again.""",
@@ -265,6 +271,7 @@ class SMTPServer:
 			self.use_ssl = cint(es.use_ssl)
 			self.login = es.mail_login
 			self.password = es.mail_password
+			self.always_use_login_id_as_sender = es.always_use_login_id_as_sender
 		else:
 			self.server = getattr(conf, "mail_server", "")
 			self.port = getattr(conf, "mail_port", None)
