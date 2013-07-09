@@ -103,8 +103,8 @@ def load_translations(bootinfo):
 		return
 		
 	user_lang_pref = webnotes.conn.get_value("Profile", webnotes.session.user, "language")
-	if user_lang_pref and (user_lang_pref in lang_names):
-		webnotes.lang = lang_names[user_lang_pref]
+	if user_lang_pref and (user_lang_pref.lower() in lang_names):
+		webnotes.lang = lang_names[user_lang_pref.lower()]
 		webnotes.user_lang = True
 		
 	if webnotes.lang != 'en':

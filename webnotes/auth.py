@@ -91,7 +91,7 @@ class HTTPRequest:
 			lang = lang.split(",")
 		else:
 			lang = [lang]
-		
+				
 		for l in lang:
 			code = l.strip()
 			if code in lang_list:
