@@ -37,10 +37,13 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 
 	source_meta = webnotes.get_doctype(from_doctype)
 	target_meta = webnotes.get_doctype(table_maps[from_doctype]["doctype"])
-	
+
 	# main
 	if target_doclist:
-		target_doc = webnotes.doc(target_doclist[0])
+		if isinstance(target_doclist[0], dict):
+			target_doc = webnotes.doc(fielddata=target_doclist[0])
+		else:
+			target_doc = target_doclist[0]
 	else:
 		target_doc = webnotes.new_doc(table_maps[from_doctype]["doctype"])
 	
