@@ -30,7 +30,7 @@ Group actions like save, etc are performed on doclists
 
 import webnotes
 from webnotes import _, msgprint
-from webnotes.utils import cint, cstr
+from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
@@ -68,7 +68,7 @@ class Bean:
 		if not dn: dn = self.doc.name
 
 		doc = Document(dt, dn, prefix=prefix)
-
+		
 		# get all children types
 		tablefields = webnotes.model.meta.get_table_fields(dt)
 
@@ -78,6 +78,9 @@ class Bean:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
 		self.set_doclist(doclist)
+		
+		if dt == dn:
+			self.convert_type(self.doc)
 
 	def __iter__(self):
 		return self.doclist.__iter__()
@@ -219,7 +222,7 @@ class Bean:
 			if d.parentfield:
 				if not webnotes.in_import:
 					if not d.parentfield in parentfields:
-						webnotes.msgprint("Bad parentfield %s" % parentfield, 
+						webnotes.msgprint("Bad parentfield %s" % d.parentfield, 
 							raise_exception=True)
 				d.parenttype = self.doc.doctype
 				d.parent = self.doc.name
@@ -377,7 +380,7 @@ class Bean:
 					msg = ""
 					if df.fieldtype == "Table":
 						if not self.doclist.get({"parentfield": df.fieldname}):
-							msg = _("Error") + ": " + _("Data missing in table") + ": " + _(label)
+							msg = _("Error") + ": " + _("Data missing in table") + ": " + _(df.label)
 				
 					elif doc.fields.get(df.fieldname) is None:
 						msg = _("Error") + ": "
@@ -394,6 +397,15 @@ class Bean:
 				msgprint(msg)
 
 			raise webnotes.MandatoryError, ", ".join([fieldname for msg, fieldname in missing])
+			
+	def convert_type(self, doc):
+		for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype}):
+			if df.fieldtype in ("Int", "Check"):
+				doc.fields[df.fieldname] = cint(doc.fields.get(df.fieldname))
+			elif df.fieldtype in ("Float", "Currency"):
+				doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname))
+				
+		doc.docstatus = cint(doc.docstatus)
 					
 def clone(source_wrapper):
 	""" make a clone of a document"""

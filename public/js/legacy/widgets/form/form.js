@@ -787,7 +787,7 @@ _f.Frm.prototype.disable_save = function() {
 
 _f.Frm.prototype.save_or_update = function() {
 	if(this.save_disabled) return;
-
+	
 	if(this.doc.docstatus===0) {
 		this.save();
 	} else if(this.doc.docstatus===1 && this.doc.__unsaved) {

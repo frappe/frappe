@@ -229,6 +229,7 @@ class LoginManager:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
 		webnotes.add_cookies["full_name"] = ""
+		webnotes.add_cookies["sid"] = ""
 			
 			
 class CookieManager:

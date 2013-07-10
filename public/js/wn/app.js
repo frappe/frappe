@@ -202,9 +202,9 @@ wn.Application = Class.extend({
 		$(document).keydown("meta+s ctrl+s", function(e) {
 			if(cur_frm) {
 				cur_frm.save_or_update();
-			}
-			else if(wn.container.page.save_action)
+			} else if(wn.container.page.save_action) {
 				wn.container.page.save_action();
+			}
 			return false;
 		});
 	},
