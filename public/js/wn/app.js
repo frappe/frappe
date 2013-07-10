@@ -53,14 +53,19 @@ wn.Application = Class.extend({
 		this.set_favicon();
 		
 		if(user!="Guest") this.set_user_display_settings();
-
-		// trigger app startup
-		$(document).trigger('startup');
 		
+		this.setup_keyboard_shortcuts();
+		
+		// control panel startup code
+		this.run_custom_startup_code();
+
 		if(wn.boot) {
 			// route to home page
 			wn.route();	
 		}
+		
+		// trigger app startup
+		$(document).trigger('startup');
 
 		this.start_notification_updates();
 		
@@ -186,5 +191,26 @@ wn.Application = Class.extend({
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
 		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head")
 		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head")
+	},
+	
+	setup_keyboard_shortcuts: function() {
+		$(document).keydown("meta+g ctrl+g", function(e) {
+			wn.ui.toolbar.search.show();
+			return false;
+		});
+
+		$(document).keydown("meta+s ctrl+s", function(e) {
+			if(cur_frm) {
+				cur_frm.save_or_update();
+			}
+			else if(wn.container.page.save_action)
+				wn.container.page.save_action();
+			return false;
+		});
+	},
+	
+	run_custom_startup_code: function() {
+		if(wn.control_panel.custom_startup_code)
+			eval(wn.control_panel.custom_startup_code);
 	}
 })
