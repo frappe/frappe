@@ -119,3 +119,29 @@ class DocType():
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
+
+def get_user(doctype, txt, searchfield, start, page_len, filters):
+	from controllers.queries import get_match_cond
+	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
+			from `tabProfile` 
+			where ifnull(enabled, 0)=1 
+				and docstatus < 2 
+				and (%(key)s like "%(txt)s" 
+					or concat_ws(' ', first_name, middle_name, last_name) like "%(txt)s")
+				%(mcond)s 
+			limit %(start)s, %(page_len)s """ % {'key': searchfield, 
+			'txt': "%%%s%%" % txt, 'mcond':get_match_cond(doctype, searchfield),
+			'start': start, 'page_len': page_len})
+
+def get_lead(doctype, txt, searchfield, start, page_len, filters):
+	from controllers.queries import get_match_cond
+	return webnotes.conn.sql(""" select name, lead_name from `tabLead` 
+			where docstatus < 2 
+				and (%(key)s like "%(txt)s" 
+					or lead_name like "%(txt)s" 
+					or company_name like "%(txt)s") 
+				%(mcond)s 
+			order by lead_name asc 
+			limit %(start)s, %(page_len)s """ % {'key': searchfield,'txt': "%%%s%%" % txt, 
+			'mcond':get_match_cond(doctype, searchfield), 'start': start, 
+			'page_len': page_len})
