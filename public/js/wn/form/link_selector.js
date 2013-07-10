@@ -61,7 +61,7 @@ wn.ui.form.LinkSelector = Class.extend({
 		var args = {
 				txt: this.dialog.fields_dict.txt.get_value(),
 				doctype: this.doctype,
-				searchfield: this.dialog.fields_dict.search_field.get_value()
+				searchfield: this.dialog.fields_dict.search_field.get_value() || "name"
 			},
 			me = this;
 

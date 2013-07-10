@@ -655,7 +655,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			source: function(request, response) {
 				var args = {
 					'txt': request.term, 
-					'dt': me.df.options,
+					'doctype': me.df.options,
 				};
 
 				me.set_custom_query(args);
