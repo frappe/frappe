@@ -323,11 +323,13 @@ wn.ui.form.GridRow = Class.extend({
 	render_form: function() {
 		var me = this,
 			make_row = function(label) {
-				var row = $('<div class="row">').appendTo(me.form_area);
-				
 				if(label)
-					$('<div class="col col-lg-12"><h4>'+ label +'</h4></div>')
-						.appendTo(row);
+					$('<div><h4><b>'+ label +'</b></h4><hr></div>')
+						.appendTo(me.form_area);
+
+				var row = $('<div class="row">')
+					.css({"padding": "0px 15px"})
+					.appendTo(me.form_area);
 				
 				var col1 = $('<div class="col col-lg-6"></div>').appendTo(row),
 					col2 = $('<div class="col col-lg-6"></div>').appendTo(row);
@@ -342,6 +344,7 @@ wn.ui.form.GridRow = Class.extend({
 				if(df.fieldtype=="Section Break") {
 					cols = make_row(df.label);
 					cnt = 0;
+					return;
 				}
 				var fieldwrapper = $('<div>')
 					.appendTo(cols[cnt % 2])
