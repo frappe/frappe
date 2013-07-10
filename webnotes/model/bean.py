@@ -211,12 +211,16 @@ class Bean:
 	def update_parent_info(self):
 		idx_map = {}
 		is_local = cint(self.doc.fields.get("__islocal"))
-		parentfields = [d.fieldname for d in self.meta.get({"doctype": "DocField", "fieldtype": "Table"})]
+		
+		if not webnotes.in_import:
+			parentfields = [d.fieldname for d in self.meta.get({"doctype": "DocField", "fieldtype": "Table"})]
+			
 		for i, d in enumerate(self.doclist[1:]):
 			if d.parentfield:
-				if not d.parentfield in parentfields:
-					webnotes.msgprint("Bad parentfield %s" % parentfield, 
-						raise_exception=True)
+				if not webnotes.in_import:
+					if not d.parentfield in parentfields:
+						webnotes.msgprint("Bad parentfield %s" % parentfield, 
+							raise_exception=True)
 				d.parenttype = self.doc.doctype
 				d.parent = self.doc.name
 			if not d.idx:
