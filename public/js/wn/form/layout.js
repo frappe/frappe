@@ -80,7 +80,7 @@ wn.ui.form.Layout = Class.extend({
 				$('<h3 class="col col-lg-12">' 
 					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
-					+ df.label 
+					+ wn._(df.label)
 					+ "</h3>")
 					.css({
 						"font-weight": "bold",

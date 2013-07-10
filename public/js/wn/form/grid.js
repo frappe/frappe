@@ -257,7 +257,7 @@ wn.ui.form.GridRow = Class.extend({
 				var colsize = 2,
 					txt = me.doc ? 
 						wn.format(me.doc[df.fieldname], df, null, me.doc) : 
-						df.label;
+						wn._(df.label);
 				switch(df.fieldtype) {
 					case "Text":
 						colsize = 3;
@@ -265,6 +265,8 @@ wn.ui.form.GridRow = Class.extend({
 					case "Check":
 						colsize = 1;
 						break;
+					case "Select":
+						txt = wn._(txt)
 				}
 				total_colsize += colsize
 				if(total_colsize > 12) 
