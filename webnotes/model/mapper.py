@@ -101,10 +101,19 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 				
 
 	# map other fields
-	for source_key, target_key in table_map.get("field_map", {}).items():
-		val = source_doc.fields.get(source_key)
-		if val not in (None, ""):
-			target_doc.fields[target_key] = val
+	field_map = table_map.get("field_map")
+	
+	if field_map:
+		if isinstance(field_map, dict):
+			for source_key, target_key in field_map.items():
+				val = source_doc.fields.get(source_key)
+				if val not in (None, ""):
+					target_doc.fields[target_key] = val
+		else:
+			for fmap in field_map:
+				val = source_doc.fields.get(fmap[0])
+				if val not in (None, ""):
+					target_doc.fields[fmap[1]] = val
 
 	# map idx
 	if source_doc.idx:
