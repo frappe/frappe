@@ -172,6 +172,8 @@ def build_conditions(doctype, fields, filters, docstatus):
 def build_filter_conditions(filters, conditions):
 	"""build conditions from user filters"""
 	from webnotes.utils import cstr
+	global tables
+	if not tables: tables = []
 	
 	for f in filters:
 		if isinstance(f, basestring):
@@ -182,7 +184,7 @@ def build_filter_conditions(filters, conditions):
 				tables.append(tname)
 		
 			# prepare in condition
-			if f[2]=='in':
+			if f[2] in ['in', 'not in']:
 				opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
 				f[3] = "(" + ', '.join(opts) + ")"
 				conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	

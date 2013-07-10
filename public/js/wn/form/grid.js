@@ -174,6 +174,12 @@ wn.ui.form.GridRow = Class.extend({
 					</div>\
 				</div>\
 				<div class="form-area"></div>\
+				<div class="toolbar footer-toolbar" style="height: 36px;">\
+					<button class="btn btn-success pull-right" \
+						title="'+wn._("Close")+'"\
+						style="margin-left: 7px;">\
+						<i class="icon-chevron-up"></i></button>\
+				</div>\
 			</div>\
 			<div class="divider row"></div>\
 		</div>')
@@ -203,7 +209,12 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	set_button_events: function() {
 		var me = this;
-				
+
+		this.wrapper.find(".btn-success").click(function() {
+			me.toggle_view();
+			return false;
+		});
+		
 		this.wrapper.find(".btn-danger").click(function() {
 			me.wrapper.fadeOut(function() {
 				wn.model.clear_doc(me.doc.doctype, me.doc.name);
@@ -241,12 +252,12 @@ wn.ui.form.GridRow = Class.extend({
 		col = $('<div class="col col-lg-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row)
 		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && !df.print_hide && me.grid.frm.perm[df.permlevel][READ]
+			if(!df.hidden && df.in_list_view && me.grid.frm.perm[df.permlevel][READ]
 				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
 				var colsize = 2,
 					txt = me.doc ? 
 						wn.format(me.doc[df.fieldname], df, null, me.doc) : 
-						df.label;
+						wn._(df.label);
 				switch(df.fieldtype) {
 					case "Text":
 						colsize = 3;
@@ -254,6 +265,8 @@ wn.ui.form.GridRow = Class.extend({
 					case "Check":
 						colsize = 1;
 						break;
+					case "Select":
+						txt = wn._(txt)
 				}
 				total_colsize += colsize
 				if(total_colsize > 12) 
@@ -323,11 +336,13 @@ wn.ui.form.GridRow = Class.extend({
 	render_form: function() {
 		var me = this,
 			make_row = function(label) {
-				var row = $('<div class="row">').appendTo(me.form_area);
-				
 				if(label)
-					$('<div class="col col-lg-12"><h4>'+ label +'</h4></div>')
-						.appendTo(row);
+					$('<div><h4><b>'+ label +'</b></h4><hr></div>')
+						.appendTo(me.form_area);
+
+				var row = $('<div class="row">')
+					.css({"padding": "0px 15px"})
+					.appendTo(me.form_area);
 				
 				var col1 = $('<div class="col col-lg-6"></div>').appendTo(row),
 					col2 = $('<div class="col col-lg-6"></div>').appendTo(row);
@@ -342,6 +357,7 @@ wn.ui.form.GridRow = Class.extend({
 				if(df.fieldtype=="Section Break") {
 					cols = make_row(df.label);
 					cnt = 0;
+					return;
 				}
 				var fieldwrapper = $('<div>')
 					.appendTo(cols[cnt % 2])
@@ -366,6 +382,8 @@ wn.ui.form.GridRow = Class.extend({
 		if(this.grid.display_status!="Write" || this.grid.static_rows) {
 			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
 		}
+		
+		this.wrapper.find(".footer-toolbar").toggle(me.fields.length > 6);
 		
 		this.grid.open_grid_row = this;
 	},

@@ -33,15 +33,18 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 	
 	source = webnotes.bean(from_doctype, from_docname)
 
-	if not ignore_permissions and not webnotes.has_permission(from_doctype, doc=source.doc):
+	if not ignore_permissions and not webnotes.has_permission(from_doctype, "read", source.doc):
 		webnotes.msgprint("No Permission", raise_exception=webnotes.PermissionError)
 
 	source_meta = webnotes.get_doctype(from_doctype)
 	target_meta = webnotes.get_doctype(table_maps[from_doctype]["doctype"])
-	
+
 	# main
 	if target_doclist:
-		target_doc = webnotes.doc(target_doclist[0])
+		if isinstance(target_doclist[0], dict):
+			target_doc = webnotes.doc(fielddata=target_doclist[0])
+		else:
+			target_doc = target_doclist[0]
 	else:
 		target_doc = webnotes.new_doc(table_maps[from_doctype]["doctype"])
 	
@@ -99,10 +102,19 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 				
 
 	# map other fields
-	for source_key, target_key in table_map.get("field_map", {}).items():
-		val = source_doc.fields.get(source_key)
-		if val not in (None, ""):
-			target_doc.fields[target_key] = val
+	field_map = table_map.get("field_map")
+	
+	if field_map:
+		if isinstance(field_map, dict):
+			for source_key, target_key in field_map.items():
+				val = source_doc.fields.get(source_key)
+				if val not in (None, ""):
+					target_doc.fields[target_key] = val
+		else:
+			for fmap in field_map:
+				val = source_doc.fields.get(fmap[0])
+				if val not in (None, ""):
+					target_doc.fields[fmap[1]] = val
 
 	# map idx
 	if source_doc.idx:

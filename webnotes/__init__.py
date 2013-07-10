@@ -245,13 +245,16 @@ def get_roles(user=None, with_standard=True):
 		
 	return roles
 
-def has_permission(doctype, ptype="read", doc=None):
+def has_permission(doctype, ptype="read", refdoc=None):
 	"""check if user has permission"""
 	from webnotes.defaults import get_user_default_as_list
 	if session.user=="Administrator": 
 		return True
 	if conn.get_value("DocType", doctype, "istable"):
 		return True
+	if isinstance(refdoc, basestring):
+		refdoc = doc(doctype, refdoc)
+		
 	perms = conn.sql("""select `name`, `match` from tabDocPerm p
 		where p.parent = %s
 		and ifnull(p.`%s`,0) = 1
@@ -259,7 +262,7 @@ def has_permission(doctype, ptype="read", doc=None):
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
 	
-	if doc:
+	if refdoc:
 		match_failed = {}
 		for p in perms:
 			if p.match:
@@ -268,11 +271,11 @@ def has_permission(doctype, ptype="read", doc=None):
 				else:
 					keys = [p.match, p.match]
 					
-				if doc.fields.get(keys[0],"[No Value]") \
+				if refdoc.fields.get(keys[0],"[No Value]") \
 						in get_user_default_as_list(keys[1]):
 					return True
 				else:
-					match_failed[keys[0]] = doc.fields.get(keys[0],"[No Value]")
+					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
 			else:
 				# found a permission without a match
 				return True

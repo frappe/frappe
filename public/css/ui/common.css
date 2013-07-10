@@ -395,6 +395,10 @@ textarea[data-fieldtype="Small Text"] {
 	cursor: pointer;
 }
 
+.grid-row .panel {
+	background-color: #fffff8;
+}
+
 /* form footer */
 
 .form-footer {
