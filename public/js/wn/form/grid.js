@@ -174,6 +174,12 @@ wn.ui.form.GridRow = Class.extend({
 					</div>\
 				</div>\
 				<div class="form-area"></div>\
+				<div class="toolbar footer-toolbar" style="height: 36px;">\
+					<button class="btn btn-success pull-right" \
+						title="'+wn._("Close")+'"\
+						style="margin-left: 7px;">\
+						<i class="icon-chevron-up"></i></button>\
+				</div>\
 			</div>\
 			<div class="divider row"></div>\
 		</div>')
@@ -203,7 +209,12 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	set_button_events: function() {
 		var me = this;
-				
+
+		this.wrapper.find(".btn-success").click(function() {
+			me.toggle_view();
+			return false;
+		});
+		
 		this.wrapper.find(".btn-danger").click(function() {
 			me.wrapper.fadeOut(function() {
 				wn.model.clear_doc(me.doc.doctype, me.doc.name);
@@ -241,7 +252,7 @@ wn.ui.form.GridRow = Class.extend({
 		col = $('<div class="col col-lg-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row)
 		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && !df.print_hide && me.grid.frm.perm[df.permlevel][READ]
+			if(!df.hidden && df.in_list_view && me.grid.frm.perm[df.permlevel][READ]
 				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
 				var colsize = 2,
 					txt = me.doc ? 
@@ -369,6 +380,8 @@ wn.ui.form.GridRow = Class.extend({
 		if(this.grid.display_status!="Write" || this.grid.static_rows) {
 			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
 		}
+		
+		this.wrapper.find(".footer-toolbar").toggle(me.fields.length > 6);
 		
 		this.grid.open_grid_row = this;
 	},
