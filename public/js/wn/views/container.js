@@ -48,7 +48,7 @@ wn.views.Container = Class.extend({
 		}
 		
 		// hide dialog
-		if(cur_dialog && cur_dialog.display) {
+		if(cur_dialog && cur_dialog.display && !cur_dialog.keep_open) {
 			cur_dialog.hide();
 		}
 		
