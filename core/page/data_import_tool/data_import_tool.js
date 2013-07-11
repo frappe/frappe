@@ -1,7 +1,8 @@
 wn.pages['data-import-tool'].onload = function(wrapper) { 
 	wrapper.app_page = wn.ui.make_app_page({
 		parent: wrapper,
-		title: "Data Import Tool"
+		title: "Data Import Tool",
+		icon: "data-import-tool"
 	});
 	
 	$(wrapper).find('.layout-main-section').append('<h3>1. Download Template</h3>\

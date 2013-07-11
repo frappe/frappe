@@ -245,7 +245,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	add_label: function(label) {
 		this.show_toolbar();
-		return $("<label class='col-lg-1'>"+label+" </label>")
+		return $("<label class='col-lg-1' style='margin-top: 0.8%;'>"+label+" </label>")
 			.appendTo(this.toolbar);
 	},
 	add_select: function(label, options) {
@@ -351,4 +351,5 @@ wn.ui.make_app_page = function(opts) {
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.set_title(opts.title);
+	if(opts.icon) opts.parent.appframe.add_module_icon(null, opts.icon);
 }

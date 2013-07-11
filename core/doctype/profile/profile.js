@@ -85,6 +85,15 @@ wn.RoleEditor = Class.extend({
 	show_roles: function() {
 		var me = this;
 		$(this.wrapper).empty();
+		var add_all_roles = $('<p><button class="btn btn-default">Add all roles</button></p>').appendTo($(this.wrapper));
+		add_all_roles.find("button").on("click", function() {
+			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+				if(!$(check).is(":checked")) {
+					check.checked = true;
+				}
+			});
+		});
+		
 		for(var i in this.roles) {
 			$(this.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role)s">\
@@ -98,7 +107,7 @@ wn.RoleEditor = Class.extend({
 		$(this.wrapper).find('.user-role a').click(function() {
 			me.show_permissions($(this).parent().attr('data-user-role'))
 			return false;
-		})
+		});
 	},
 	show: function() {
 		var me = this;
