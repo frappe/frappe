@@ -129,7 +129,8 @@ _f.Frm.prototype.setup = function() {
 	// client script must be called after "setup" - there are no fields_dict attached to the frm otherwise
 	this.script_manager = new wn.ui.form.ScriptManager({
 		frm: this
-	})
+	});
+	this.script_manager.setup();
 	this.watch_model_updates();
 		
 	this.footer = new wn.ui.form.Footer({

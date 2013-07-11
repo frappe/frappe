@@ -1,7 +1,9 @@
 wn.ui.form.ScriptManager = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
-		this.setup();		
+	},
+	make: function(ControllerClass) {
+		this.frm.cscript = $.extend(this.frm.cscript, new ControllerClass({frm: this.frm}));
 	},
 	trigger: function(event_name, doctype, name) {
 		doctype = doctype || this.frm.doctype;
