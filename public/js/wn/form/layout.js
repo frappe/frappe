@@ -187,9 +187,9 @@ wn.ui.form.Layout = Class.extend({
 	},
 	focus_on_next_field: function(start_idx, fields) {
 		// loop to find next eligible fields
-		for(var ii= start_idx + 1, len = fields.length; ii < len; ii++) {
-			if(fields[ii].disp_status==="Write") {
-				this.set_focus(fields[ii]);
+		for(var i= start_idx + 1, len = fields.length; i < len; i++) {
+			if(fields[i].disp_status==="Write" && !in_list(wn.model.no_value_type, fields[i].df.fieldtype)) {
+				this.set_focus(fields[i]);
 				break;
 			}
 		}

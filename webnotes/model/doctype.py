@@ -48,7 +48,6 @@ def get(doctype, processed=False, cached=True):
 		doclist = from_cache(doctype, processed)
 		if doclist: 
 			if processed:
-				add_linked_with(doclist)
 				update_language(doclist)
 			return DocTypeDocList(doclist)
 	
@@ -70,16 +69,13 @@ def get(doctype, processed=False, cached=True):
 		add_print_formats(doclist)
 		add_search_fields(doclist)
 		add_workflows(doclist)
-
-	# add validators
-	#add_validators(doctype, doclist)
+		add_linked_with(doclist)
 	
 	to_cache(doctype, processed, doclist)
 
 	if processed:
-		add_linked_with(doclist)
 		update_language(doclist)
-		
+
 	return DocTypeDocList(doclist)
 
 def load_docfield_types():
@@ -188,11 +184,27 @@ def add_linked_with(doclist):
 	links = webnotes.conn.sql("""select parent, fieldname from tabDocField
 		where (fieldtype="Link" and options=%s)
 		or (fieldtype="Select" and options=%s)""", (doctype, "link:"+ doctype))
-	links += webnotes.conn.sql("""select dt, fieldname from `tabCustom Field`
+	links += webnotes.conn.sql("""select dt as parent, fieldname from `tabCustom Field`
 		where (fieldtype="Link" and options=%s)
 		or (fieldtype="Select" and options=%s)""", (doctype, "link:"+ doctype))
+
+	links = dict(links)
+
+	ret = {}
+
+	for dt in links:
+		ret[dt] = { "fieldname": links[dt] }
+
+	for grand_parent, options in webnotes.conn.sql("""select parent, options from tabDocField 
+		where fieldtype="Table" 
+			and options in (select name from tabDocType 
+				where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
+
+		ret[grand_parent] = {"child_doctype": options, "fieldname": links[options] }
+		if options in ret:
+			del ret[options]
 		
-	doclist[0].fields["__linked_with"] = dict(list(set(links)))
+	doclist[0].fields["__linked_with"] = ret
 
 def from_cache(doctype, processed):
 	""" load doclist from cache.

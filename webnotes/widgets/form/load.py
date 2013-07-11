@@ -118,7 +118,7 @@ def add_assignments(dt, dn):
 		})
 		
 	return cl
-	
+
 @webnotes.whitelist()
 def get_badge_info(doctypes, filters):
 	filters = json.loads(filters)

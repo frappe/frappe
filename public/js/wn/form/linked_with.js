@@ -17,10 +17,16 @@ wn.ui.form.LinkedWith = Class.extend({
 	make_dialog: function() {
 		var me = this;
 		this.linked_with = this.frm.meta.__linked_with;
-		var links = $.map(keys(this.linked_with), function(v) {
-			return in_list(wn.boot.profile.can_get_report, v) ? {value:v, label:wn._(v)} : null
-		}).sort(function(a, b) { return a.label > b.label ? 1 : -1 });
+
+		var links = [];
+		$.each(this.linked_with, function(doctype, tmp) {
+			if(wn.model.can_get_report(doctype)) {
+				links.push({label: wn._(doctype), value: doctype});
+			}
+		});
 		
+		links = wn.utils.sort(links, "label");
+				
 		this.dialog = new wn.ui.Dialog({
 			width: 700,
 			hide_on_page_refresh: true,
@@ -50,8 +56,6 @@ wn.ui.form.LinkedWith = Class.extend({
 		
 		this.dialog.get_input("list_by").change(function() {
 			me.doctype = me.dialog.get_input("list_by").val();
-			me.is_table = (!in_list(wn.boot.profile.can_read, me.doctype) &&
-				in_list(wn.boot.profile.can_get_report, me.doctype))
 			
 			wn.model.with_doctype(me.doctype, function(r) {
 				me.make_listing();
@@ -97,7 +101,10 @@ wn.ui.form.LinkedWith = Class.extend({
 		});
 		me.lst.filter_list.show_filters(true);
 		me.lst.filter_list.clear_filters();
-		me.lst.set_filter(me.linked_with[me.doctype], me.frm.doc.name);
+		
+		var link_doctype = me.linked_with[me.doctype].child_doctype || me.doctype;
+		
+		me.lst.set_filter(me.linked_with[me.doctype].fieldname, me.frm.doc.name, link_doctype);
 		me.lst.listview = me.listview;
 	}
 });

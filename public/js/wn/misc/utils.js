@@ -153,6 +153,9 @@ wn.utils = {
 	},
 	
 	sort: function(list, key, compare_type, reverse) {
+		if(list.length < 2)
+			return list;
+
 		var sort_fn = {
 			"string": function(a, b) {
 				return cstr(a[key]).localeCompare(cstr(b[key]));
@@ -161,6 +164,9 @@ wn.utils = {
 				return flt(a[key]) - flt(b[key]);
 			}
 		};
+				
+		if(!compare_type)
+		 	compare_type = typeof list[0][key]==="string" ? "string" : "number";
 		
 		list.sort(sort_fn[compare_type]);
 		

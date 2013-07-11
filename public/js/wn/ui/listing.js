@@ -349,9 +349,9 @@ wn.ui.Listing = Class.extend({
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
 		return query
 	},
-	set_filter: function(fieldname, label) {
+	set_filter: function(fieldname, label, doctype) {
+		if(!doctype) doctype = this.doctype;
 		var filter = this.filter_list.get_filter(fieldname);
-		//this.filter_list.show_filters(true);
 		if(filter) {
 			var v = filter.field.get_parsed_value();
 			if(v.indexOf(label)!=-1) {
@@ -361,21 +361,21 @@ wn.ui.Listing = Class.extend({
 				// second filter set for this field
 				if(fieldname=='_user_tags') {
 					// and for tags
-					this.filter_list.add_filter(this.doctype, fieldname, 
+					this.filter_list.add_filter(doctype, fieldname, 
 						'like', '%' + label);
 				} else {
 					// or for rest using "in"
-					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
+					filter.set_values(doctype, fieldname, 'in', v + ', ' + label);
 				}
 			}
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname=='_user_tags') {
-				this.filter_list.add_filter(this.doctype, fieldname, 
-					'like', '%' + label);					
+			if(fieldname==='_user_tags') {
+				this.filter_list.add_filter(doctype, fieldname, 
+					'like', '%' + label);
 			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
+				this.filter_list.add_filter(doctype, fieldname, '=', label);
 			}
 		}
 	}	
