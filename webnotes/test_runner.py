@@ -60,7 +60,6 @@ def make_test_records_for_doctype(doctype, verbose=0):
 
 	elif hasattr(test_module, "test_records"):
 		webnotes.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)
-
 	elif verbose:
 		print_mandatory_fields(doctype)
 
@@ -130,7 +129,7 @@ def export_doc(doctype, docname):
 def run_unittest(doctype, verbose=False):
 	module = webnotes.conn.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
-	make_test_records(args.doctype[0], verbose=verbose)
+	make_test_records(doctype, verbose=verbose)
 
 	try:
 		exec ('from %s import *' % test_module) in globals()		
