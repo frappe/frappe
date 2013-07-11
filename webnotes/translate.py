@@ -34,6 +34,7 @@ import os
 import codecs
 import json
 import re
+from csv import reader
 
 messages = {}
 
@@ -358,7 +359,6 @@ def update_lang_js(jscode, path):
 		
 def get_all_messages_from_file(path):
 	with codecs.open(path, 'r', 'utf-8') as msgfile:
-		from csv import reader
 		data = msgfile.read()
 		data = reader([r.encode('utf-8') for r in data.splitlines()])
 		newdata = []
@@ -372,30 +372,42 @@ def get_all_messages_from_file(path):
 
 def google_translate(lang, infile, outfile):
 	"""translate objects using Google API. Add you own API key for translation"""
-	
 	data = get_all_messages_from_file(infile)
-	
+		
 	import requests, conf
 	
+	# update existing translations
+	if os.path.exists(outfile):
+		with codecs.open(outfile, "r", "utf-8") as oldfile:
+			old_data = oldfile.read()
+			old_translations = dict(reader([r.encode('utf-8').strip() for r in old_data.splitlines()]))
+		
 	with open(outfile, 'w') as msgfile:
 		from csv import writer
 		w = writer(msgfile)
 		for row in data:
-			if not row[1] and row[0] and row[0].strip():
-				print 'translating: ' + row[0]
-				response = requests.get("""https://www.googleapis.com/language/translate/v2""",
-					params = {
-						"key": conf.google_api_key,
-						"source": "en",
-						"target": lang,
-						"q": row[0]
-					})
+			if row[0] and row[0].strip():
+				if old_translations.get(row[0].strip()):
+					row[1] = old_translations[row[0].strip()]
+				else:
+					print 'translating: ' + row[0]
+					response = requests.get("""https://www.googleapis.com/language/translate/v2""",
+						params = {
+							"key": conf.google_api_key,
+							"source": "en",
+							"target": lang,
+							"q": row[0]
+						})
 			
-				row[1] = response.json["data"]["translations"][0]["translatedText"]
-				if not row[1]:
-					row[1] = row[0] # google unable to translate!
+					if "error" in response.json:
+						print response.json
+					
+					row[1] = response.json["data"]["translations"][0]["translatedText"]
+					if not row[1]:
+						row[1] = row[0] # google unable to translate!
 			
-			row[0] = row[0].encode('utf-8')
-			row[1] = row[1].encode('utf-8')
-			w.writerow(row)
+					row[1] = row[1].encode('utf-8')
+
+				row[0] = row[0].encode('utf-8')
+				w.writerow(row)
 
