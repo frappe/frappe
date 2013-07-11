@@ -224,7 +224,7 @@ def validate_fields(fields):
 			webnotes.msgprint("Minimum width for FieldType 'Currency' is 100px", raise_exception=1)
 
 	def check_in_list_view(d):
-		if d.in_list_view and d.fieldtype in no_value_fields:
+		if d.in_list_view and d.fieldtype!="Image" and (d.fieldtype in no_value_fields):
 			webnotes.msgprint("'In List View' not allowed for field of type '%s'" % d.fieldtype, raise_exception=1)
 
 	for d in fields:

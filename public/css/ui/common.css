@@ -332,7 +332,7 @@ div#freeze {
 	font-size: 12px; 
 }
 
-.slick-header, .slick-header * {
+.slick-header-column {
   -webkit-box-sizing: content-box;
      -moz-box-sizing: content-box;
           box-sizing: content-box;
@@ -341,8 +341,6 @@ div#freeze {
 .slick-headerrow-column {
 	background: #87ceeb;
 	text-overflow: clip;
-	-moz-box-sizing: border-box;
-	     box-sizing: border-box;
 }
 
 .slick-headerrow-column input {
@@ -350,8 +348,6 @@ div#freeze {
 	padding: 0;
 	width: 100%;
 	min-height: 20px;
-	-moz-box-sizing: border-box;
-	     box-sizing: border-box;
 }
 
 .missing-image {

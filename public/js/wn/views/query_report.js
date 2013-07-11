@@ -169,7 +169,7 @@ wn.views.QueryReport = Class.extend({
 	render: function(result, columns) {
 		this.columnFilters = {};
 		this.make_dataview();
-		this.id = wn.dom.set_unique_id($(this.wrapper.find(".result-area")).get(0));
+		this.id = wn.dom.set_unique_id(this.wrapper.find(".result-area").get(0));
 		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, 
 			this.slickgrid_options);
