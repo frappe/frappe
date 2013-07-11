@@ -2,12 +2,13 @@
  {
   "creation": "2012-10-04 18:45:29", 
   "docstatus": 0, 
-  "modified": "2013-04-03 12:19:56", 
+  "modified": "2013-07-11 14:43:37", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "doctype": "Page", 
+  "icon": "icon-cog", 
   "module": "Core", 
   "name": "__common__", 
   "page_name": "modules_setup", 

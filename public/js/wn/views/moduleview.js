@@ -163,6 +163,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 				if(item.page && !item.route) {
 					item.route = item.page;
 				}
+				if(item.page) {
+					item.icon = '<i class="icon-fixed-width '+ wn.boot.doctype_icons[item.page] + '"></i> ';
+				}
 
 				// link
 				item.link = repl("<a href='#%(route)s'>%(label)s</a>", item);

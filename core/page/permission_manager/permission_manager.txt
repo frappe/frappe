@@ -1,30 +1,31 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2013-01-01 11:00:01", 
+  "docstatus": 0, 
+  "modified": "2013-07-11 14:43:42", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-09 17:07:38"
+  "owner": "Administrator"
  }, 
  {
-  "name": "__common__", 
-  "title": "Permission Manager", 
   "doctype": "Page", 
+  "icon": "icon-lock", 
   "module": "Core", 
+  "name": "__common__", 
+  "page_name": "Permission Manager", 
   "standard": "Yes", 
-  "page_name": "Permission Manager"
+  "title": "Permission Manager"
  }, 
  {
+  "doctype": "Page Role", 
   "name": "__common__", 
   "parent": "permission-manager", 
-  "doctype": "Page Role", 
+  "parentfield": "roles", 
   "parenttype": "Page", 
-  "role": "System Manager", 
-  "parentfield": "roles"
+  "role": "System Manager"
  }, 
  {
-  "name": "permission-manager", 
-  "doctype": "Page"
+  "doctype": "Page", 
+  "name": "permission-manager"
  }, 
  {
   "doctype": "Page Role"

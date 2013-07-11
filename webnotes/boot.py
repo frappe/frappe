@@ -59,6 +59,8 @@ def get_bootinfo():
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))
+	bootinfo.doctype_icons.update(dict(webnotes.conn.sql("""select name, icon from 
+		tabPage where ifnull(icon,'')!=''""")))
 
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)

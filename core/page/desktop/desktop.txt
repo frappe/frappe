@@ -2,12 +2,13 @@
  {
   "creation": "2013-02-14 17:37:37", 
   "docstatus": 0, 
-  "modified": "2013-04-03 11:38:05", 
+  "modified": "2013-07-11 14:41:56", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "doctype": "Page", 
+  "icon": "icon-th", 
   "module": "Core", 
   "name": "__common__", 
   "page_name": "desktop", 

@@ -16,7 +16,10 @@ def get_data(module, doctypes='[]'):
 def get_count(doctypes):
 	count = {}
 	for d in doctypes:
-		count[d] = get_doctype_count_from_table(d)
+		try:
+			count[d] = get_doctype_count_from_table(d)
+		except webnotes.PermissionError, e:
+			pass
 	return count
 
 def get_doctype_count_from_table(doctype):
