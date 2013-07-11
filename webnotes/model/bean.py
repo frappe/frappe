@@ -399,14 +399,15 @@ class Bean:
 			raise webnotes.MandatoryError, ", ".join([fieldname for msg, fieldname in missing])
 			
 	def convert_type(self, doc):
-		for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype}):
-			if df.fieldtype in ("Int", "Check"):
-				doc.fields[df.fieldname] = cint(doc.fields.get(df.fieldname))
-			elif df.fieldtype in ("Float", "Currency"):
-				doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname))
+		if doc.doctype==doc.name and doc.doctype!="DocType":
+			for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype}):
+				if df.fieldtype in ("Int", "Check"):
+					doc.fields[df.fieldname] = cint(doc.fields.get(df.fieldname))
+				elif df.fieldtype in ("Float", "Currency"):
+					doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname))
 				
-		doc.docstatus = cint(doc.docstatus)
-					
+			doc.docstatus = cint(doc.docstatus)
+
 def clone(source_wrapper):
 	""" make a clone of a document"""
 	if isinstance(source_wrapper, list):

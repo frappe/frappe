@@ -190,6 +190,9 @@ def add_linked_with(doclist):
 
 	links = dict(links)
 
+	if not links: 
+		return {}
+
 	ret = {}
 
 	for dt in links:
