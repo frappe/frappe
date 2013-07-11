@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import os
 import conf
-from startup.website import *
+from startup.webutils import *
 import webnotes
 import webnotes.utils
 

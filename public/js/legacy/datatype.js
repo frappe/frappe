@@ -68,17 +68,6 @@ function replace_newlines(t) {
 	return t?t.replace(/\n/g, '<br>'):'';
 }
 
-function cint(v, def) { 
-	if(v===true) 
-		return 1;
-	if(v===false)
-		return 0;
-	v=v+'';
-	v=lstrip(v, ['0']); 
-	v=parseInt(v); 
-	if(isNaN(v))v=def===undefined?0:def;
-	return v; 
-}
 function validate_email(txt) { 
 	return wn.utils.validate_type(txt, "email");
 }
@@ -116,17 +105,6 @@ var strip = function(s, chars) {
 	return s;
 }
 
-var lstrip = function(s, chars) {
-	if(!chars) chars = ['\n', '\t', ' '];
-	// strip left
-	var first_char = s.substr(0,1);
-	while(in_list(chars, first_char)) {
-		var s = s.substr(1);
-		first_char = s.substr(0,1);
-	}
-	return s;
-}
-
 var rstrip = function(s, chars) {
 	if(!chars) chars = ['\n', '\t', ' '];
 	var last_char = s.substr(s.length-1);
@@ -158,13 +136,6 @@ function values(obj) {
 	var myvalues=[];
 	for (var key in obj) myvalues[myvalues.length]=obj[key];
 	return myvalues;
-}
-
-function in_list(list, item) {
-	if(!list) return false;
-	for(var i=0, j=list.length; i<j; i++)
-		if(list[i]==item) return true;
-	return false;
 }
 
 function has_words(list, item) {
