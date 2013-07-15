@@ -53,4 +53,7 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 		elif d.fieldtype == "Time":
 			doc.fields[d.fieldname] = nowtime()
 			
+	if meta.get_field("naming_series") and not doc.naming_series:
+		doc.set_naming_series()
+			
 	return doc
