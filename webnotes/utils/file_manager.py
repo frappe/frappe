@@ -118,8 +118,11 @@ def save_file(fname, content, dt, dn):
 	return f.doc.name
 
 def get_new_fname_based_on_version(files_path, fname):
-	# new version of the file is being uploaded, add a revision number?
-	versions = filter(lambda f: f.startswith(fname), os.listdir(files_path))
+	fname_parts = fname.split(".", -1)
+	fname = ".".join(fname_parts[:-1])
+	extn = fname_parts[-1]
+
+	versions = filter(lambda f: f.startswith(fname) and f.endswith(extn), os.listdir(files_path))
 
 	versions.sort()
 	if "-" in versions[-1]:
@@ -127,12 +130,12 @@ def get_new_fname_based_on_version(files_path, fname):
 	else:
 		version = 1
 	
-	new_fname = fname + "-" + str(version)
+	new_fname = fname + "-" + str(version) + "." + extn
 	while os.path.exists(os.path.join(files_path, new_fname)):
 		version += 1
-		new_fname = fname + "-" + str(version)
+		new_fname = fname + "-" + str(version) + "." + extn
 		if version > 100:
-			break # let there be an exception
+			webnotes.msgprint("Too many versions", raise_exception=True)
 			
 	return new_fname
 
