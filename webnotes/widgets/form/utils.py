@@ -29,9 +29,7 @@ from webnotes import _
 def remove_attach():
 	"""remove attachment"""
 	import webnotes.utils.file_manager
-	
 	fid = webnotes.form_dict.get('fid')
-		
 	webnotes.utils.file_manager.remove_file(fid)
 
 @webnotes.whitelist()

@@ -56,14 +56,15 @@ wn.upload = {
 				"method": "uploadfile",
 				args: args,
 				callback: function(r) {
-					msgbox.hide();
+					if(!r._server_messages)
+						msgbox.hide();
 					if(r.exc) {
 						onerror(r);
 						return;
 					}
-					callback(r.message, args.filename || args.file_url, r);
+					callback(r.message.fileid, r.message.filename, r);
 					$(document).trigger("upload_complete", 
-						[args.filename, args.file_url]);
+						[r.message.fileid, r.message.filename]);
 				}
 			});
 		}

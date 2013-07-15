@@ -1,32 +1,3 @@
-/*
-
-Todo:
-- make global toc
-- static pages in markdown (in sources folder)
-	- web interface
-	- building an application
-	- customizing an application
-	- generating web pages
-	
-- help / comments in markdown
-- pages
-- doctype
-	- links
-	- properties
-	- methods
-	- events (server, client)
-
-Documentation API
-
-Every module (namespace) / class will have a page
-- _toc
-- _path
-- _label
-- _intro
-- _type (class, function, module, doctype etc)
-- [list of functions / objects / classes]
-*/
-
 wn.require("lib/public/js/lib/beautify-html.js");
 
 cur_frm.cscript.onload = function(doc) {
@@ -50,6 +21,7 @@ wn.docs.generate_all = function(logarea) {
 	wn.docs.to_write = {};
 	var pages = [],
 		body = $("<div class='docs'>"),
+		original_cur_frm = cur_frm;
 		doc = cur_frm.doc;
 		make_page = function(name, links) {
 			body.empty();
@@ -125,6 +97,7 @@ wn.docs.generate_all = function(logarea) {
 					},
 					callback: function(r) {
 						logarea.append("Wrote " + keys(wn.docs.to_write).length + " pages.");
+						cur_frm = original_cur_frm;
 					}
 				});
 			}
@@ -316,6 +289,9 @@ wn.docs.DocsPage = Class.extend({
 					else
 						page_icon = "file-text-alt";
 				}
+				
+				if(page_icon.substr(0,5)==="icon-") page_icon = page_icon.substr(5);
+				
 				var icon = $('<h1 class="pull-right text-muted"><i class="icon-'+
 					page_icon +'"></i></h1>')
 					.appendTo(this.parent);
@@ -615,7 +591,7 @@ wn.docs.DocsPage = Class.extend({
 		}
 		
 		wn.docs.to_write[this.namespace] = {
-			title: wn.app.name + ": " + this.obj._label || wn.docs.get_short_name(this.namespace),
+			title: wn.app.name + ": " + (this.obj._label || wn.docs.get_short_name(this.namespace)),
 			content: html_beautify(this.parent.html())
 		}
 	}

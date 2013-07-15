@@ -104,7 +104,7 @@ def inspect_object_and_update_docs(mydocs, obj):
 		
 	if not mydocs.get("_intro"):
 		mydocs["_intro"] = getattr(obj, "__doc__", "")
-	
+		
 	for name in dir(obj):
 		try:
 			value = getattr(obj, name)
@@ -112,13 +112,19 @@ def inspect_object_and_update_docs(mydocs, obj):
 			value = None
 			
 		if value:
-			if inspect.ismethod(value) or (inspect.isfunction(value) and inspect.getmodule(value)==obj):
-				mydocs[name] = {
-					"_type": "function",
-					"_args": inspect.getargspec(value)[0],
-					"_help": getattr(value, "__doc__", ""),
-					"_source": inspect.getsource(value)
-				}
+			if (mydocs["_type"]=="module" and inspect.getmodule(value)==obj)\
+				or (mydocs["_type"]=="class" and getattr(value, "im_class", None)==obj):
+				if inspect.ismethod(value) or inspect.isfunction(value):
+					mydocs[name] = {
+						"_type": "function",
+						"_args": inspect.getargspec(value)[0],
+						"_help": getattr(value, "__doc__", ""),
+						"_source": inspect.getsource(value)
+					}
+				elif inspect.isclass(value):
+					if not mydocs.get("_toc"):
+						mydocs["_toc"] = []
+					mydocs["_toc"].append(obj.__name__ + "." + value.__name__)
 				
 def get_gh_url(path):
 	sep = "/lib/" if "/lib/" in path else "/app/"
@@ -149,14 +155,13 @@ def get_modules(for_module=None):
 			"_toc": [
 				prefix + ".doctype",
 				prefix + ".page",
-				prefix + ".report",
 				prefix + ".py_modules"
 			],
 			"doctype": get_doctypes(m),
 			"page": get_pages(m),
 			#"report": {},
 			"py_modules": {
-				"_label": "Independant Python Modules for " + m,
+				"_label": "Independent Python Modules for " + m,
 				"_toc": []
 			}
 		}
@@ -239,7 +244,7 @@ def get_doctypes(m):
 		
 		mydocs = docs[d] = {
 			"_label": d,
-			"_icon": "sitemap",
+			"_icon": meta[0].icon,
 			"_type": "doctype",
 			"_gh_source": get_gh_url(doc_path),
 			"_toc": [
@@ -273,7 +278,7 @@ def get_doctypes(m):
 		# model
 		modeldocs = mydocs["model"] = {
 			"_label": d + " Model",
-			"_icon": "sitemap",
+			"_icon": meta[0].icon,
 			"_type": "model",
 			"_intro": "Properties and fields for " + d,
 			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
@@ -291,7 +296,7 @@ def get_doctypes(m):
 		permission_docs = mydocs["permissions"] = {
 			"_label": d + " Permissions",
 			"_type": "permissions",
-			"_icon": "shield",
+			"_icon": meta[0].icon,
 			"_gh_source": get_gh_url(os.path.join(doc_path, scrub(d) + ".txt")),
 			"_intro": "Standard Permissions for " + d + ". These can be changed by the user.",
 			"_permissions": [p for p in doclist if p.doctype=="DocPerm"],
@@ -314,12 +319,12 @@ def get_doctypes(m):
 
 		# client controller
 		if meta_p[0].fields.get("__js"):
-			mydocs["_toc"].append(prefix + d + ".controller_client")
 			client_controller_path = os.path.join(doc_path, scrub(d) + ".js")
 			if(os.path.exists(client_controller_path)):
+				mydocs["_toc"].append(prefix + d + ".controller_client")
 				client_controller = mydocs["controller_client"] = {
 					"_label": d + " Client Controller",
-					"_icon": "code",
+					"_icon": meta[0].icon,
 					"_type": "controller_client",
 					"_gh_source": get_gh_url(client_controller_path),
 					"_modified": get_timestamp(client_controller_path),
@@ -379,7 +384,10 @@ def prepare_docs():
 def write_docs(data, build_sitemap=None, domain=None):
 	if webnotes.session.user != "Administrator":
 		raise webnotes.PermissionError
-		
+	
+	with open(os.path.join(os.path.dirname(__file__), "docs.html"), "r") as docshtml:
+		docs_template = docshtml.read()
+	
 	data = json.loads(data)
 	template = Template(docs_template)
 	data["index"] = data["docs"]
@@ -416,99 +424,3 @@ sitemap_frame_xml = """<?xml version="1.0" encoding="UTF-8"?>
 </urlset>"""
 
 sitemap_link_xml = """\n<url><loc>%s</loc><lastmod>%s</lastmod></url>"""
-
-
-docs_template = """
-<!DOCTYPE html>
-<html lang="en">
-<head>
-	<meta charset="utf-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<title>{{ title }}</title>
-	<meta name="description" content="{{ description }}">	
-	<meta name="generator" content="wnframework">
-	<script type="text/javascript" src="js/jquery.min.js"></script>
-	<script type="text/javascript" src="js/bootstrap.min.js"></script>
-	<script type="text/javascript" src="js/prism.js"></script>
-	<link type="text/css" rel="stylesheet" href="css/bootstrap.css">
-	<link type="text/css" rel="stylesheet" href="css/font-awesome.css">
-	<link type="text/css" rel="stylesheet" href="css/prism.css">
-	<link type="text/css" rel="stylesheet" href="css/docs.css">
-</head>
-<body>
-	<header>
-		<div class="navbar navbar-fixed-top navbar-inverse">
-			<div class="container">
-				<button type="button" class="navbar-toggle" 
-					data-toggle="collapse" data-target=".navbar-responsive-collapse">
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="index.html">
-					<object data="img/splash.svg" class="erpnext-logo" 
-						type="image/svg+xml"></object> erpnext</a>
-				<div class="nav-collapse collapse navbar-responsive-collapse">
-					<ul class="nav navbar-nav">
-						<li><a href="docs.user.html">User</a></li>
-						<li><a href="docs.dev.html">Developer</a></li>
-						<li><a href="docs.download.html">Download</a></li>
-						<li><a href="docs.community.html">Community</a></li>
-						<li><a href="docs.blog.html">Blog</a></li>
-					</ul>
-				</div>
-			</div>
-		</div>
-	</header>
-	<div class="container" style=" margin-top: 70px;">
-		<!-- div class="logo" style="margin-bottom: 15px; height: 71px;">
-			<a href="docs.html">
-				<img src="img/erpnext-2013.png" style="width: 71px; margin-top: -10px;" />
-			</a>
-			<span style="font-size: 37px; color: #888; display: inline-block; 
-				margin-left: 8px;">erpnext</span>
-		</div -->
-		<div class="content row">
-			<div class="col col-lg-12">
-		{{ content }}
-			</div>
-		</div>
-		<div class="clearfix"></div>
-		<hr />
-		<div class="footer text-muted" style="font-size: 80%;">
-			<div class="content row">
-				<div class="col col-lg-12">
-				&copy; <a href="https://erpnext.com">Web Notes Technologies Pvt Ltd.</a><br>
-				ERPNext is an <a href="https://github.com/webnotes/erpnext" target="_blank">
-					open source project</a>. Code licensed under the 
-						<a href="https://www.gnu.org/licenses/gpl.html">GNU/GPL License</a>. 
-						Documentation Licensed under <a href="http://creativecommons.org/licenses/by/3.0/">CC BY 3.0</a>.<br>
-				<a href="docs.user.help.html">Get Help</a> / <a href="https://erpnext.com/contact">Get in touch</a> /
-				<a href="https://erpnext.com">Buy Hosting or Support Services</a>
-				</div>
-			</div>
-		</div>
-		<p>&nbsp;</p>
-	</div>
-	<script type="text/javascript">
-		$(document).ready(function() {
-			$("[data-toggle]").on("click", function() {
-				$("[data-target='"+ $(this).attr("data-toggle") +"']").toggle();
-				return false;
-			});
-		});
-		$(".dropdown-toggle").dropdown();
-	</script>
-	<!-- script type="text/javascript">
-	  var _gaq = _gaq || [];
-	  _gaq.push(['_setAccount', 'UA-8911157-9']);
-	  _gaq.push(['_trackPageview']);
-	  (function() {
-	    var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
-	    ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
-	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
-	  })();
-	</script -->
-</body>
-</html>
-"""
