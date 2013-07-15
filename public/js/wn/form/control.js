@@ -22,6 +22,12 @@ wn.ui.form.Control = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.make();
+
+		// if developer_mode=1, show fieldname as tooltip
+		if(wn.boot.profile && wn.boot.profile.name==="Administrator" &&
+			wn.boot.developer_mode===1 && this.$wrapper) {
+				this.$wrapper.tooltip({title: this.df.fieldname});
+		}
 	},
 	make: function() {
 		this.$wrapper = $("<div>").appendTo(this.parent);
