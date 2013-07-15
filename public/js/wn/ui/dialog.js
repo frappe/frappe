@@ -26,6 +26,18 @@ var cur_dialog;
 
 wn.ui.open_dialogs = [];
 wn.ui.Dialog = wn.ui.FieldGroup.extend({
+	_intro:'	usage:\n\
+		\n\
+		var dialog = new wn.ui.Dialog({\n\
+			title: "Dialog Title",\n\
+			fields: [\n\
+				{fieldname:"field1", fieldtype:"Data", reqd:1, label: "Test 1"},\n\
+				{fieldname:"field2", fieldtype:"Link", reqd:1, label: "Test 1", options:"Some DocType"},\n\
+				{fieldname:"mybutton", fieldtype:"Button", reqd:1, label: "Submit"},\n\
+			]\n\
+		})\n\
+		dialog.get_input("mybutton").click(function() { /* do something; */ dialog.hide(); });\n\
+		dialog.show()',
 	init: function(opts) {
 		this.display = false;
 		if(!opts.width) opts.width = 480;

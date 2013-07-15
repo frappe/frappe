@@ -23,7 +23,7 @@
 from __future__ import unicode_literals
 import webnotes
 import os, conf
-from webnotes.utils import cstr, get_path
+from webnotes.utils import cstr, get_path, cint
 from webnotes import _
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
@@ -123,7 +123,7 @@ def get_new_fname_based_on_version(files_path, fname):
 
 	versions.sort()
 	if "-" in versions[-1]:
-		version = int(versions[-1].split("-")[-1]) or 1
+		version = cint(versions[-1].split("-")[-1]) or 1
 	else:
 		version = 1
 	

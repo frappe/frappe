@@ -6,19 +6,22 @@ body {
 	line-height: 25px;
 }
 
+img {
+	max-width: 100%;
+}
+
 .container {
 	max-width: 767px;
 }
 
-.navbar-inverse {
-	background-color: #2980b9;
+.navbar {
+	background-color: #ffffff;
+	border-bottom: 1px solid #dddddd;
 }
 
-.navbar-inverse .navbar-text,
-.navbar-inverse .navbar-brand,
-.navbar-inverse .navbar-nav > li > a
+.navbar .navbar-nav > li > a:hover
 {
-	color: #eeeeee;
+	color: #444444;
 }
 
 h1 {
@@ -61,3 +64,34 @@ blockquote p {
 .erpnext-logo rect {
 	fill: #ffffff !important;
 }
+
+.btn-default {
+  color: #ffffff;
+  background-color: #a7a9aa;
+  border-color: #a7a9aa;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active {
+  background-color: #9a9c9d;
+  border-color: #8d9091;
+}
+
+.btn-default.disabled:hover,
+.btn-default[disabled]:hover,
+fieldset[disabled] .btn-default:hover,
+.btn-default.disabled:focus,
+.btn-default[disabled]:focus,
+fieldset[disabled] .btn-default:focus,
+.btn-default.disabled:active,
+.btn-default[disabled]:active,
+fieldset[disabled] .btn-default:active,
+.btn-default.disabled.active,
+.btn-default[disabled].active,
+fieldset[disabled] .btn-default.active {
+  background-color: #a7a9aa;
+  border-color: #a7a9aa;
+}
+

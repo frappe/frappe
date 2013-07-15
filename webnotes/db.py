@@ -29,8 +29,6 @@ import webnotes
 import conf
 import datetime
 
-_toc = ["webnotes.db.Database"]
-
 class Database:
 	"""
 	   Open a database connection with the given parmeters, if use_default is True, use the
