@@ -141,7 +141,7 @@ def getvaluelist(doclist, fieldname):
 		l.append(d.fields[fieldname])
 	return l
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False):
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False, ignore_permissions=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -160,7 +160,8 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		return
 
 	if not for_reload:
-		check_permission_and_not_submitted(doctype, name)
+		check_permission_and_not_submitted(doctype, name, ignore_permissions)
+		
 		run_on_trash(doctype, name, doclist)
 		# check if links exist
 		if not force:
@@ -184,9 +185,9 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		
 	return 'okay'
 
-def check_permission_and_not_submitted(doctype, name):
+def check_permission_and_not_submitted(doctype, name, ignore_permissions=False):
 	# permission
-	if webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
+	if not ignore_permissions and webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
 		webnotes.msgprint(_("User not allowed to delete."), raise_exception=True)
 
 	# check if submitted
