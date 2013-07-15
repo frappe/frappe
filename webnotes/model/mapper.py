@@ -26,8 +26,8 @@ from webnotes import _
 from webnotes.utils import cstr
 from webnotes.model import default_fields
 
-def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[], postprocess=None,
-		ignore_permissions=False):
+def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[], 
+		postprocess=None, ignore_permissions=False):
 	if isinstance(target_doclist, basestring):
 		target_doclist = json.loads(target_doclist)
 	
@@ -38,7 +38,7 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 
 	source_meta = webnotes.get_doctype(from_doctype)
 	target_meta = webnotes.get_doctype(table_maps[from_doctype]["doctype"])
-
+	
 	# main
 	if target_doclist:
 		if isinstance(target_doclist[0], dict):
@@ -49,8 +49,11 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 		target_doc = webnotes.new_doc(table_maps[from_doctype]["doctype"])
 	
 	map_doc(source.doc, target_doc, table_maps[source.doc.doctype], source_meta, target_meta)
-	doclist = [target_doc]
-
+	if target_doclist:
+		target_doclist[0] = target_doc
+	else:
+		target_doclist = [target_doc]
+	
 	# children
 	for source_d in source.doclist[1:]:
 		table_map = table_maps.get(source_d.doctype)
@@ -65,17 +68,20 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 					"fieldtype": "Table", 
 					"options": target_doctype
 				})[0].fieldname
+			
+			if table_map.get("add_if_empty") and row_exists_in_target(parentfield, target_doclist):
+				continue
 		
 			target_d = webnotes.new_doc(target_doctype, target_doc, parentfield)
 			map_doc(source_d, target_d, table_map, source_meta, target_meta, source.doclist[0])
-			doclist.append(target_d)
+			target_doclist.append(target_d)
 	
-	doclist = webnotes.doclist(doclist)
+	target_doclist = webnotes.doclist(target_doclist)
 	
 	if postprocess:
-		postprocess(source, doclist)
+		postprocess(source, target_doclist)
 	
-	return doclist
+	return target_doclist
 
 def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_parent=None):
 	no_copy_fields = set(\
@@ -122,3 +128,13 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 		
 	if "postprocess" in table_map:
 		table_map["postprocess"](source_doc, target_doc, source_parent)
+
+row_exists_for_parentfield = {}
+def row_exists_in_target(parentfield, target_doclist):
+	global row_exists_for_parentfield
+	
+	if parentfield not in row_exists_for_parentfield:
+		row_exists_for_parentfield[parentfield] = True if \
+			webnotes.doclist(target_doclist).get({"parentfield": parentfield}) else False
+
+	return row_exists_for_parentfield[parentfield]
