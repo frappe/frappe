@@ -97,8 +97,13 @@ def add(email, sender, subject, message, text_content = None):
 	e = Document('Bulk Email')
 	e.sender = sender
 	e.recipient = email
-	e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
-		text_content = text_content).as_string()
+	try:
+		e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
+			text_content = text_content).as_string()
+	except webnotes.ValidationError, e:
+		# bad email id - don't add to queue
+		return
+		
 	e.status = 'Not Sent'
 	e.save()
 	
