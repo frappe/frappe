@@ -116,7 +116,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 
 	},
 	no_cancel: function() {
-		this.appframe.$w.find('.close').toggle(false);
+		this.$wrapper.find('.close').toggle(false);
 	}
 });
 
