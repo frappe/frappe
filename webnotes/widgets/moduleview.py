@@ -17,7 +17,7 @@ def get_count(doctypes):
 	count = {}
 	can_read = webnotes.user.get_can_read()
 	for d in doctypes:
-		if doctype in can_read:
+		if d in can_read:
 			count[d] = get_doctype_count_from_table(d)
 	return count
 
