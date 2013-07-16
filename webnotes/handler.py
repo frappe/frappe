@@ -131,7 +131,12 @@ def handle():
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
-			webnotes.errprint(e)
+			webnotes.errprint(webnotes.utils.getTraceback())
+			if webnotes.request_method == "POST":
+				webnotes.conn.rollback()
+		except webnotes.PermissionError, e:
+			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.response['403'] = 1
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except:
