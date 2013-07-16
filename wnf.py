@@ -384,8 +384,7 @@ def run():
 	elif options.install_fresh:
 		from webnotes.install_lib.install import Installer
 		inst = Installer('root')
-		inst.import_from_db(options.install_fresh, source_path="lib/conf/Framework.sql",
-			verbose = 1)
+		inst.import_from_db(options.install_fresh, verbose = 1)
 
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff
