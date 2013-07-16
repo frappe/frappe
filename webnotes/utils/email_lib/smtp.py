@@ -239,7 +239,7 @@ class EMail:
 		import smtplib
 		try:
 			smtpserver = SMTPServer()
-			if getattr(smtpserver, "always_use_login_id_as_sender"):
+			if hasattr(smtpserver, "always_use_login_id_as_sender") and smtpserver.always_use_login_id_as_sender:
 				self.sender = smtpserver.login
 			
 			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),
