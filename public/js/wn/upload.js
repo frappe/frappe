@@ -62,9 +62,9 @@ wn.upload = {
 						onerror(r);
 						return;
 					}
-					callback(r.message.fileid, r.message.filename, r);
+					callback(r.message.fid, r.message.filename, r);
 					$(document).trigger("upload_complete", 
-						[r.message.fileid, r.message.filename]);
+						[r.message.fid, r.message.filename]);
 				}
 			});
 		}

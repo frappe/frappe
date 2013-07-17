@@ -173,7 +173,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	refresh_attachment_select_fields: function() {
 		for(var i=0; i<this.frm.fields.length; i++) {
-			if(this.frm.fields[i].attach_files) {
+			if(this.frm.fields[i].df.options=="attach_files:") {
 				var fieldname = this.frm.fields[i].df.fieldname;
 				refresh_field(fieldname);
 				if(this.frm.doc[fieldname]!=undefined && !inList(this.frm.fields[i].df.options.split("\n"), this.frm.doc[fieldname])) {
