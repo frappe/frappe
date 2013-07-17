@@ -115,7 +115,7 @@ wn.ui.form.Grid = Class.extend({
 			"parentfield": this.df.fieldname,
 			"parent": this.frm.docname
 		});
-		data.sort(function(a, b) { return a.idx > b.idx ? 1 : -1 });
+		data.sort(function(a, b) { return a.idx - b.idx});
 		return data;
 	},
 	set_column_disp: function(fieldname, show) {
