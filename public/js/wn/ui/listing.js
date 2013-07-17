@@ -195,7 +195,7 @@ wn.ui.Listing = Class.extend({
 			var doc = wn.model.get_new_doc(doctype);
 			if(me.filter_list) {
 				$.each(me.filter_list.get_filters(), function(i, f) {
-					if(f[0]===doctype && f[2]==="=")
+					if(f[0]===doctype && f[2]==="=" && f[1]!=="name")
 						doc[f[1]]=f[3];
 				})
 			}
