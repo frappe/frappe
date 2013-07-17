@@ -347,9 +347,9 @@ def reset_perms(doctype):
 	clear_perms(doctype)
 	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype)
 
-def reload_doc(module, dt=None, dn=None):
+def reload_doc(module, dt=None, dn=None, force=False):
 	import webnotes.modules
-	return webnotes.modules.reload_doc(module, dt, dn)
+	return webnotes.modules.reload_doc(module, dt, dn, force)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False):
 	from webnotes.model.rename_doc import rename_doc
