@@ -80,10 +80,10 @@ def get_data(doctypes, last_modified):
 	for d in out:
 		unused_links = []
 		# only compress full dumps (not partial)
-		if out[d].get("links") and (not d in last_modified):
+		if out[d].get("links") and (d not in last_modified):
 			for link_key in out[d]["links"]:
 				link = out[d]["links"][link_key]
-				if link[0] in out:
+				if link[0] in out and (link[0] not in last_modified):
 					
 					# make a map of link ids
 					# to index
@@ -93,7 +93,7 @@ def get_data(doctypes, last_modified):
 					for row_idx in xrange(len(doctype_data["data"])):
 						row = doctype_data["data"][row_idx]
 						link_map[row[col_idx]] = row_idx
-						
+					
 					for row in out[d]["data"]:
 						col_idx = out[d]["columns"].index(link_key)
 						# replace by id
