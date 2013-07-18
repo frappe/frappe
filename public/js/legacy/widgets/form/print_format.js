@@ -45,12 +45,7 @@ _p.def_print_style_other = "\n.simpletable, .noborder { \
 	}";
 
 _p.go = function(html) {
-	var w = window.open();
-	if(!w) {
-		msgprint(_("Please enable pop-ups"));
-		return;
-	}
-	w.document.write(html);
+	var w = _p.preview(html);
 	w.print();
 	w.close();
 }
@@ -62,6 +57,7 @@ _p.preview = function(html) {
 		return;
 	}
 	w.document.write(html);
+	return w
 }
 
 
