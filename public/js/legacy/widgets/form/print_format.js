@@ -45,16 +45,23 @@ _p.def_print_style_other = "\n.simpletable, .noborder { \
 	}";
 
 _p.go = function(html) {
-	var d = document.createElement('div')
-	d.innerHTML = html
-	$(d).printElement();
+	var w = window.open();
+	if(!w) {
+		msgprint(_("Please enable pop-ups"));
+		return;
+	}
+	w.document.write(html);
+	w.print();
+	w.close();
 }
 
 _p.preview = function(html) {
-	var w = window.open('');
-	if(!w) return;
-	w.document.write(html)
-	w.document.close();
+	var w = window.open();
+	if(!w) {
+		msgprint(_("Please enable pop-ups"));
+		return;
+	}
+	w.document.write(html);
 }
 
 
