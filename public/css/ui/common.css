@@ -215,8 +215,8 @@ div#freeze {
 
 .navbar-icon-home {
 	vertical-align: middle;
-	opacity: 0.4;
-	Filter:alpha(opacity=40); /* For IE8 and earlier */
+	opacity: 0.7;
+	Filter:alpha(opacity=70); /* For IE8 and earlier */
 }
 
 .navbar-icon-home:hover,
