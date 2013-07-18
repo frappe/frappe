@@ -69,7 +69,7 @@ def run(report_name, filters=None):
 		method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
 			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
 		columns, result = webnotes.get_method(method_name)(filters or {})
-
+	
 	result = get_filtered_data(report.ref_doctype, columns, result)
 	
 	if cint(report.add_total_row) and result:
@@ -120,8 +120,9 @@ def get_linked_doctypes(columns):
 	linked_doctypes = {}
 
 	for idx, col in enumerate(columns):
-		if "Link" in col:
-			link_dt = col.split(":")[1].split("/")[1]
+		col = col.split(":")
+		if len(col) > 1 and col[1].startswith("Link"):
+			link_dt = col[1].split("/")[1]
 			linked_doctypes[link_dt] = idx
 
 	return linked_doctypes
