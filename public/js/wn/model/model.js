@@ -475,6 +475,13 @@ $.extend(wn.model, {
 			doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
 		});
 	},
+	
+	validate_missing: function(doc, fieldname) {
+		if(!doc[fieldname]) {
+			wn.throw(wn._("Please specify") + ": " + 
+				wn._(wn.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name)));
+		}
+	}
 });
 
 // legacy
