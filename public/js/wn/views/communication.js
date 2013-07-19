@@ -257,7 +257,7 @@ wn.views.CommunicationComposer = Class.extend({
 		wn.call({
 			method:"core.doctype.communication.communication.make",
 			args: {
-				sender: wn.user_info(user).fullname + " <" + wn.boot.profile.email + ">",
+				sender: [wn.user_info(user).fullname, wn.boot.profile.email],
 				recipients: form_values.recipients,
 				subject: form_values.subject,
 				content: form_values.content,

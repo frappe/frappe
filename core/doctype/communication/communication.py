@@ -45,6 +45,12 @@ def make(doctype=None, name=None, content=None, subject=None,
 	# add to Communication
 	sent_via = None
 	
+	# since we are using fullname and email, 
+	# if the fullname has any incompatible characters,formataddr can deal with it
+	if isinstance(sender, (tuple, list)) and len(sender)==2:
+		from email.utils import formataddr
+		sender = formataddr(sender)
+	
 	d = webnotes.doc('Communication')
 	d.subject = subject
 	d.content = content
