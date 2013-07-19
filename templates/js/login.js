@@ -19,11 +19,11 @@ $(document).ready(function(wrapper) {
 
 // Login
 login.do_login = function(){
-    var args = {};
+	var args = {};
 	if(window.is_sign_up) {
 		args.cmd = "core.doctype.profile.profile.sign_up";
-		args.email = $("#login_id").val();
-	    args.full_name = $("#full_name").val();
+		args.email = ($("#login_id").val() || "").trim();
+		args.full_name = ($("#full_name").val() || "").trim();
 
 		if(!args.email || !valid_email(args.email) || !args.full_name) {
 			login.set_message("Valid email and name required.");
@@ -31,7 +31,7 @@ login.do_login = function(){
 		}
 	} else if(window.is_forgot) {
 		args.cmd = "reset_password";
-		args.user = $("#login_id").val();
+		args.user = ($("#login_id").val() || "").trim();
 		
 		if(!args.user) {
 			login.set_message("Valid Login Id required.");
@@ -40,8 +40,8 @@ login.do_login = function(){
 
 	} else {
 		args.cmd = "login"
-	    args.usr = $("#login_id").val();
-	    args.pwd = $("#password").val();
+		args.usr = ($("#login_id").val() || "").trim();
+		args.pwd = $("#password").val();
 
 		if(!args.usr || !args.pwd) {
 			login.set_message("Both login and password required.");
@@ -118,5 +118,5 @@ login.show_forgot_password = function() {
 }
 
 login.set_message = function(message, color) {
-    $('#login_message').html(message).toggle(true);	
+	$('#login_message').html(message).toggle(true);	
 }

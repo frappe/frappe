@@ -189,8 +189,8 @@ wn.Application = Class.extend({
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
-		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head")
-		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head")
+		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
+		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
 	},
 	
 	setup_keyboard_shortcuts: function() {
