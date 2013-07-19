@@ -1,7 +1,7 @@
 wn.pages['update-manager'].onload = function(wrapper) { 
 	wn.ui.make_app_page({
 		parent: wrapper,
-		title: 'Update This Application',
+		title: 'Update ' + wn.app.name,
 		single_column: true
 	});					
 	
@@ -26,7 +26,7 @@ wn.UpdateThisApp = Class.extend({
 				wn._('This feature is only applicable to self hosted instances'));
 			
 		} else {
-			this.wrapper.appframe.add_button(wn._("Get Latest Updates"), 
+			this.wrapper.appframe.add_button(wn._("Update"), 
 				function() { me.update_this_app(this); }, "icon-rss");
 
 			this.wrapper.update_output = $('<pre class="update-output"></pre>')
