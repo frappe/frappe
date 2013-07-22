@@ -546,12 +546,11 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 				me.set_options();
 			}
 		})
-		
+
 		this.$wrapper.on("refresh", function() {
 			console.log(me.frm.doc.__islocal);
 			me.$attach.toggle(!me.frm.doc.__islocal);
 		});
-	
 	},
 	set_options: function() {
 		var options = this.df.options || [];
