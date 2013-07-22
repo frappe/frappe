@@ -22,6 +22,10 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
  	if(!doc.__islocal){		
+		cur_frm.add_custom_button("Set Properties", function() {
+			wn.set_route("user-properties", doc.name);
+		})
+
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
 			cur_frm.toggle_display(['sb1', 'sb3'], true);
 		}
@@ -39,10 +43,6 @@ cur_frm.cscript.refresh = function(doc) {
 			}
 		}
 	}
-	
-	cur_frm.add_custom_button("Set Properties", function() {
-		wn.set_route("user-properties", doc.name);
-	})
 }
 
 cur_frm.cscript.enabled = function(doc) {

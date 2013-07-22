@@ -315,7 +315,7 @@ wn.PermissionEngine = Class.extend({
 				callback: function(r) {
 					if(r.exc) {
 						// exception: reverse
-						chk.attr("checked", chk.is(":checked") ? null : "checked");
+						chk.get(0).checked = !chk.is(":checked");
 					} else {
 						me.get_perm(args.name)[args.ptype]=args.value; 
 					}

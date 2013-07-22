@@ -81,7 +81,7 @@ wn.ui.form.Attachments = Class.extend({
 		var fileid = attachments[filename];
 		
 		var me = this;
-		$(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
+		var $attach = $(repl('<div class="alert alert-info" style="margin-bottom: 7px">\
 			<span style="display: inline-block; width: 90%; \
 				text-overflow: ellipsis; white-space: nowrap; overflow: hidden;">\
 				<i class="icon-file"></i> <a href="%(href)s"\
@@ -91,7 +91,9 @@ wn.ui.form.Attachments = Class.extend({
 				href: wn.utils.get_file_link(filename)
 			}))
 			.appendTo(this.$list)
-			.find(".close")
+			
+		var $close =
+			$attach.find(".close")
 			.data("fileid", fileid)
 			.click(function() {
 				var remove_btn = this;
@@ -107,7 +109,8 @@ wn.ui.form.Attachments = Class.extend({
 							},
 							callback: function(r,rt) {
 								if(r.exc) {
-									msgprint("There were errors.");
+									if(!r._server_messages)
+										msgprint("There were errors.");
 									return;
 								}
 								me.remove_fileid(data);
@@ -117,6 +120,10 @@ wn.ui.form.Attachments = Class.extend({
 					});
 				return false;
 			});
+			
+		if(!wn.model.can_write(this.frm.doctype, this.frm.name)) {
+			$close.remove();
+		}
 	},
 	new_attachment: function(fieldname) {
 		var me = this;

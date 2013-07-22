@@ -51,3 +51,10 @@ class DocType():
 			if os.path.exists(path):
 				os.remove(path)
 		
+		if self.doc.attached_to_name:
+			# check persmission
+			if not webnotes.has_permission(self.doc.attached_to_doctype, 
+				"write", self.doc.attached_to_name):
+				webnotes.msgprint(webnotes._("No permission to write / remove."), 
+				raise_exception=True)
+				
