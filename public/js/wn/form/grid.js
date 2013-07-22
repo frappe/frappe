@@ -288,7 +288,29 @@ wn.ui.form.GridRow = Class.extend({
 				if(in_list(["Int", "Currency", "Float"], df.fieldtype))
 					$col.css({"text-align": "right"})
 			}
+			
 		});
+
+		// redistribute if total-col size is less than 12
+		var passes = 0;
+		while(total_colsize < 12 && passes < 12) {
+			me.row.find(".col").each(function() {
+				var $col = $(this);
+				if(!$col.hasClass("col-lg-1") 
+					&& !in_list(["Int", "Currency", "Float"], $col.data("df").fieldtype)) {
+					for(var i=2; i<12; i++) {
+						if($col.hasClass("col-lg-" + i)) {
+							$col.removeClass("col-lg-" + i).addClass("col-lg-" + (i+1));
+							total_colsize++;
+							break;
+						}
+					}
+				}
+				if(total_colsize >= 12) 
+					return false;
+			});
+			passes++;
+		}
 
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
 	},

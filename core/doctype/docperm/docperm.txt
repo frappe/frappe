@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-07-10 14:54:08", 
+  "modified": "2013-07-22 17:01:58", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -123,6 +123,7 @@
   "fieldname": "cancel", 
   "fieldtype": "Check", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Cancel", 
   "oldfieldname": "cancel", 
   "oldfieldtype": "Check", 
@@ -154,6 +155,7 @@
   "fieldname": "match", 
   "fieldtype": "Data", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Match", 
   "oldfieldname": "match", 
   "oldfieldtype": "Data", 
