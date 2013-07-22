@@ -50,6 +50,8 @@ wn.upload = {
 			return;
 		}
 		
+		
+		
 		var _upload_file = function() {
 			var msgbox = msgprint(wn._("Uploading..."));
 			wn.call({
