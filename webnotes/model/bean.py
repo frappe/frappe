@@ -376,7 +376,7 @@ class Bean:
 		missing = []
 		for doc in self.doclist:
 			for df in self.meta:
-				if df.doctype=="DocField" and df.reqd and df.parent==doc.doctype:
+				if df.doctype=="DocField" and df.reqd and df.parent==doc.doctype and df.fieldname!="naming_series":
 					msg = ""
 					if df.fieldtype == "Table":
 						if not self.doclist.get({"parentfield": df.fieldname}):

@@ -224,6 +224,8 @@ class Document:
 			
 		elif autoname and autoname.startswith("naming_series:"):
 			self.set_naming_series()
+			if not self.naming_series:
+				webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
 			self.name = make_autoname(self.naming_series+'.#####')
 			
 		# based on expression
@@ -252,10 +254,9 @@ class Document:
 			# pick default naming series
 			from webnotes.model.doctype import get_property
 			self.naming_series = get_property(self.doctype, "options", "naming_series")
-			if not self.naming_series:
-				webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
-			self.naming_series = self.naming_series.split("\n")
-			self.naming_series = self.naming_series[0] or self.naming_series[1]
+			if self.naming_series:
+				self.naming_series = self.naming_series.split("\n")
+				self.naming_series = self.naming_series[0] or self.naming_series[1]
 			
 	def _insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
 		# set name
