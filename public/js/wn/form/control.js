@@ -726,36 +726,9 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			callback(value);
 			return;
 		}
-
-		var fetch = '';
-		if(me.frm && me.frm.fetch_dict[me.df.fieldname])
-			fetch = me.frm.fetch_dict[me.df.fieldname].columns.join(', ');
-
-		wn.call({
-			method:'webnotes.widgets.form.utils.validate_link',
-			type: "GET",
-			args: {
-				'value': value, 
-				'options':me.df.options, 
-				'fetch': fetch
-			}, 
-			callback: function(r) {
-				if(r.message=='Ok') {
-					callback(value);
-					if(r.fetch_values) 
-						me.set_fetch_values(r.fetch_values);
-				} else {
-					callback("")
-				}
-			}
-		});
+		
+		this.frm.script_manager.validate_link_and_fetch(this.df, this.docname, value, callback);
 	},
-	set_fetch_values: function(fetch_values) {
-		var fl = this.frm.fetch_dict[this.df.fieldname].fields;
-		for(var i=0; i < fl.length; i++) {
-			wn.model.set_value(this.doctype, this.docname, fl[i], fetch_values[i]);
-		}
-	}
 });
 
 wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({

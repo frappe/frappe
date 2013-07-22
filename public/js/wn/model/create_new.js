@@ -107,7 +107,7 @@ $.extend(wn.model, {
 		idx !== cint(idx) && 
 			wn.model.get_children(doctype, parent_doc.name, parentfield, 
 				parent_doc.doctype);
-			
+				
 		return d;
 	},
 	

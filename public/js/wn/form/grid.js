@@ -18,9 +18,7 @@ wn.ui.form.Grid = Class.extend({
 		</div>').appendTo(this.parent);
 
 		$(this.wrapper).find(".grid-add-row").click(function() {
-			wn.model.add_child(me.frm.doc, me.df.options, me.df.fieldname);
-			me.refresh();
-			me.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true);
+			me.add_new_row();
 			return false;
 		})
 		
@@ -137,12 +135,17 @@ wn.ui.form.Grid = Class.extend({
 		this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 	},
 	add_new_row: function(idx, callback) {
-		wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
+		var d = wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
+		this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 		this.refresh();
 		// show
 		
-		this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
-			.toggle_view(true, callback);
+		if(idx) {
+			this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
+				.toggle_view(true, callback);
+		} else {
+			this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
+		}
 	}
 });
 
