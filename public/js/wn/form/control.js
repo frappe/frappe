@@ -532,7 +532,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	setup_attachment: function() {
 		var me = this;
 		$(this.input).css({"width": "70%"});
-		$("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
+		this.$attach = $("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
 			style='margin-bottom: 9px; \
 			padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
 			<i class='icon-plus'></i></button>")
@@ -546,6 +546,12 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 				me.set_options();
 			}
 		})
+		
+		this.$wrapper.on("refresh", function() {
+			console.log(me.frm.doc.__islocal);
+			me.$attach.toggle(!me.frm.doc.__islocal);
+		});
+	
 	},
 	set_options: function() {
 		var options = this.df.options || [];
