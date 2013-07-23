@@ -182,11 +182,14 @@ wn.ui.form.Attachments = Class.extend({
 		for(var i=0; i<this.frm.fields.length; i++) {
 			if(this.frm.fields[i].df.options=="attach_files:") {
 				var fieldname = this.frm.fields[i].df.fieldname;
-				refresh_field(fieldname);
-				if(this.frm.doc[fieldname]!=undefined && !inList(this.frm.fields[i].df.options.split("\n"), this.frm.doc[fieldname])) {
-					this.frm.cscript.on_remove_attachment && this.frm.cscript.on_remove_attachment(this.frm.doc);
+				var selected_option = this.frm.fields[i].$input.find("option:selected").val();
+				
+				if(this.frm.doc[fieldname]!=null && selected_option!==this.frm.doc[fieldname]) {
+					this.frm.script_manager.trigger(fieldname);
 					this.frm.set_value(fieldname, "");
 				}
+				
+				this.frm.fields[i].refresh();
 			}
 		}
 	}
