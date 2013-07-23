@@ -1,6 +1,6 @@
 ---
 {
-	"_label": "Framework API",
+	"_label": "Framework",
 	"_toc": [
 		"docs.dev.framework.server",
 		"docs.dev.framework.client"

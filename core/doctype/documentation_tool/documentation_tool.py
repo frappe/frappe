@@ -40,7 +40,10 @@ def get_static_pages():
 						with open(fpath, "r") as docfile:
 							src = unicode(docfile.read(), "utf-8")
 							temp, headers, body = src.split("---", 2)
-							d = json.loads(headers)
+							try:
+								d = json.loads(headers)
+							except Exception, e:
+								webnotes.msgprint("Bad Headers in: " + fname)
 							d["_intro"] = body
 							d["_gh_source"] = get_gh_url(fpath)
 							d["_modified"] = get_timestamp(fpath)

@@ -216,18 +216,20 @@ wn.docs.DocsPage = Class.extend({
 		}
 	},
 	make_footer: function() {
+		$("<br>").appendTo(this.parent);
+		$p = $('<p style="font-size: 80%;" class="text-muted pull-right"></p>').appendTo(this.parent);
+		$('<div class="clearfix">').appendTo(this.parent);
+
 		if(this.obj._gh_source) {
-			$("<br>").appendTo(this.parent);
-			$(repl('<p><a href="%(source)s" target="_blank">\
-				<i class="icon-github"></i> Source: Improve this doc</i></a></p>', {
+			$(repl('<a href="%(source)s" target="_blank">\
+				<i class="icon-github"></i> Source</i></a>', {
 					source: this.obj._gh_source
-				})).appendTo(this.parent);
+				})).appendTo($p);
 		}
 		if(this.obj._modified) {
-			$(repl('<p class="text-muted" style="margin-top: 10px; font-size: 90%;">\
-				Last Updated: %(modified)s</p>', {
+			$(repl("<span>" + (this.obj._gh_source ? " | " : "") + 'Last Updated: %(modified)s</span>', {
 					modified: wn.datetime.global_date_format(this.obj._modified)
-				})).appendTo(this.parent);
+				})).appendTo($p);
 		}
 	},
 	make_links: function() {

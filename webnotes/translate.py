@@ -111,8 +111,6 @@ def build_message_files():
 	build_for_framework('lib/public/js/wn', 'js')
 	build_for_framework('app/public/js', 'js', with_doctype_names=True)
 	
-	#build_for_modules()
-
 def build_for_pages(path):
 	"""make locale files for framework py and js (all)"""
 	messages = []
@@ -128,27 +126,6 @@ def build_for_pages(path):
 				write_messages_file(basepath, messages_js, "js")
 			if messages_py:
 				write_messages_file(basepath, messages_py, "py")
-
-def build_for_modules():
-	"""doctype descriptions, module names, etc for each module"""
-	from webnotes.modules import get_module_path, get_doc_path
-	
-	for m in webnotes.conn.sql("""select name from `tabModule Def`"""):
-		module_path = get_module_path(m[0])
-		if os.path.exists(module_path):
-			messages = []
-			messages += [t[0] for t in webnotes.conn.sql("""select description from tabDocType 
-				where module=%s""", m[0])]
-			for t in webnotes.conn.sql("""select 
-				if(ifnull(title,'')='',name,title)
-				from tabPage where module=%s 
-				and ifnull(standard,'No')='Yes' """, m[0]):
-				messages.append(t[0])
-			messages += [t[0] for t in webnotes.conn.sql("""select t1.name from 
-				tabReport t1, tabDocType t2 where
-				t1.ref_doctype = t2.name and
-				t1.is_standard = "Yes" and
-				t2.module = %s""", m[0])]
 
 			doctype_path = get_doc_path(m[0], 'Module Def', m[0])
 			write_messages_file(doctype_path, messages, 'doc')
@@ -206,6 +183,12 @@ def build_for_framework(path, mtype, with_doctype_names = False):
 		for m in webnotes.conn.sql("""select name, module from `tabDocType`"""):
 			messages.append(m[0])
 			messages.append(m[1])
+			
+	# append labels from config.json
+	config = webnotes.get_config()
+	for m in config["modules"]:
+		if m.get("label"):
+			messages.append(m["label"])
 	
 	if messages:
 		write_messages_file(path, messages, mtype)
