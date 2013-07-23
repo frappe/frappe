@@ -2,7 +2,7 @@
  {
   "creation": "2012-11-22 17:45:46", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:45:37", 
+  "modified": "2013-07-23 12:21:13", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -24,8 +24,6 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Letter Head", 
@@ -33,10 +31,7 @@
   "parenttype": "DocType", 
   "permlevel": 0, 
   "read": 1, 
-  "report": 1, 
-  "role": "System Manager", 
-  "submit": 0, 
-  "write": 1
+  "report": 1
  }, 
  {
   "doctype": "DocType", 
@@ -104,6 +99,15 @@
   "label": "URL"
  }, 
  {
-  "doctype": "DocPerm"
+  "cancel": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "role": "System Manager", 
+  "submit": 0, 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "All"
  }
 ]

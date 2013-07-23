@@ -57,7 +57,7 @@ def import_file_by_path(path, force=False):
 			
 			if not force:
 				# check if timestamps match
-				if doc['modified']== str(webnotes.conn.get_value(doc['doctype'], doc['name'], 'modified')):
+				if doc['modified']==str(webnotes.conn.get_value(doc['doctype'], doc['name'], 'modified')):
 					return False
 			
 			original_modified = doc["modified"]
