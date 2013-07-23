@@ -233,8 +233,8 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.add_button(wn._('Delete'), function() { me.delete_items(); }, 'icon-remove');
 			this.add_button(wn._('Select All'), function() { 
-				var checks = me.$page.find('.list-delete');
-				checks.attr('checked', $(checks.get(0)).attr('checked') ? false : "checked");
+				me.$page.find('.list-delete').prop("checked", 
+					me.$page.find('.list-delete:checked').length ? false : true);
 			}, 'icon-ok');
 		}
 		if(in_list(user_roles, "System Manager")) {
