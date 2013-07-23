@@ -110,10 +110,7 @@ wn.views.GridReport = Class.extend({
 		}
 		this.make_waiting();
 		
-		this.get_data(function() {
-			me.apply_filters_from_route();
-			me.refresh();
-		});
+		this.get_data_and_refresh();
 	},
 	bind_show: function() {
 		// bind show event to reset cur_report_grid
@@ -126,12 +123,16 @@ wn.views.GridReport = Class.extend({
 		$(this.page).bind('show', function() {
 			// reapply filters on show
 			wn.cur_grid_report = me;
-			me.get_data(function() {
-				me.apply_filters_from_route();
-				me.refresh();
-			})
+			me.get_data_and_refresh();
 		});
 		
+	},
+	get_data_and_refresh: function() {
+		var me = this;
+		this.get_data(function() {
+			me.apply_filters_from_route();
+			me.refresh();
+		});
 	},
 	get_data: function(callback) {
 		var me = this;
@@ -163,11 +164,9 @@ wn.views.GridReport = Class.extend({
 
 		// refresh
 		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() { 
-			var old_route = wn.get_route_str();
-			
-			// set route from filters
-			// if route has changed, set route calls get data
-			me.refresh();
+			me.get_data(function() {
+				me.refresh();
+			});
 		});
 		
 		// reset filters
@@ -177,7 +176,7 @@ wn.views.GridReport = Class.extend({
 		});
 		
 		// range
-		this.filter_inputs.range && this.filter_inputs.range.change(function() {
+		this.filter_inputs.range && this.filter_inputs.range.on("change", function() {
 			me.refresh();
 		});
 		
@@ -294,7 +293,7 @@ wn.views.GridReport = Class.extend({
 		$.each(this.filter_inputs, function(i, f) {
 			var opts = f.get(0).opts;
 			if(opts.fieldtype=='Check') {
-				me[opts.fieldname] = f.attr('checked') == "checked" ? 1 : 0;
+				me[opts.fieldname] = f.is(':checked') ? 1 : 0;
 			} else if(opts.fieldtype!='Button') {
 				me[opts.fieldname] = f.val();
 				if(opts.fieldtype=="Date") {
@@ -507,7 +506,7 @@ wn.views.GridReport = Class.extend({
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
 			_style: dataContext._style || "",
-			value: format_number(value)
+			value: ((value==null || value==="") ? "" : format_number(value))
 		});
 	},
 	text_formatter: function(row, cell, value, columnDef, dataContext) {
@@ -651,7 +650,7 @@ wn.views.GridReport = Class.extend({
 	trigger_refresh_on_change: function(filters) {
 		var me = this;
 		$.each(filters, function(i, f) {
-			me.filter_inputs[f] && me.filter_inputs[f].change(function() {
+			me.filter_inputs[f] && me.filter_inputs[f].on("change", function() {
 				me.refresh();
 			});
 		});
