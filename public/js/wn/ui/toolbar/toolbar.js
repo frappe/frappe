@@ -154,7 +154,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 				title="'+wn._("Tools")+'"\
-				onclick="return false;">Tools</a>\
+				onclick="return false;">'+wn._("Tools")+'</a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
 				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">'
 					+wn._('Clear Cache & Refresh')+'</a></li>\

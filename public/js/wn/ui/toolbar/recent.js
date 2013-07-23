@@ -26,7 +26,7 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 				title="'+wn._("History")+'"\
-				onclick="return false;">History</i></a>\
+				onclick="return false;">'+wn._("History")+'</i></a>\
 			<ul class="dropdown-menu" id="toolbar-recent"></ul>\
 		</li>');
 		this.setup();
