@@ -77,6 +77,10 @@ def cancel(doctype, name):
 	return [d.fields for d in wrapper.doclist]
 
 @webnotes.whitelist()
+def delete(doctype, name):
+	webnotes.delete_doc(doctype, name)
+
+@webnotes.whitelist()
 def set_default(key, value, parent=None):
 	"""set a user default value"""
 	webnotes.conn.set_default(key, value, parent or webnotes.session.user)
@@ -86,4 +90,6 @@ def set_default(key, value, parent=None):
 def make_width_property_setter():
 	doclist = json.loads(webnotes.form_dict.doclist)
 	if doclist[0]["doctype"]=="Property Setter" and doclist[0]["property"]=="width":
-		webnotes.bean(doclist).save()
+		bean = webnotes.bean(doclist)
+		bean.ignore_permissions = True
+		bean.insert()

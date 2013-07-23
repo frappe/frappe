@@ -7,85 +7,122 @@ wn.ui.AppFrame = Class.extend({
 	init: function(parent, title, module) {
 		this.set_document_title = true;
 		this.buttons = {};
-		this.$w = $('<div></div>').prependTo(parent);
-				
-		this.$titlebar = $('<div class="appframe-titlebar">\
-			<span class="appframe-breadcrumb">\
-			</span>\
-			<span class="appframe-center">\
-				<span class="appframe-title"></span>\
-				<span class="appframe-subject"></span>\
-			</span>\
-			<span class="close" style="margin-top: 5px; margin-right: 7px;">&times;</span>\
-			<span class="appframe-right btn-group">\
-			</span>\
-		</div>').appendTo(this.$w);
-		
+		this.fields_dict = {};
+
+		this.$w = $('<div class="appframe-header col col-lg-12">\
+			<div class="row appframe-title">\
+				<div class="col col-lg-12">\
+					<div class="title-button-area btn-group pull-right" \
+						style="margin-top: 10px;"></div>\
+					<div class="title-button-area-1 btn-group pull-right" \
+						style="margin-top: 10px;"></div>\
+					<div class="title-area"><h2 style="display: inline-block">\
+						<span class="title-icon" style="display: none"></span>\
+						<span class="title-text"></span></h2></div>\
+					<div class="sub-title-area text-muted small">&nbsp;</div>\
+					<div class="status-bar"></div>\
+				</div>\
+			</div>\
+			<div class="info-bar" style="display: none;"><ul class="hidden-sm-inline"></ul></div>\
+			<div class="navbar" style="display: none;">\
+				<div class="navbar-form pull-left">\
+					<div class="btn-group"></div>\
+				</div>\
+			</div>\
+		<div>').prependTo(parent);
+
 		this.$w.find('.close').click(function() {
 			window.history.back();
 		})
 		
+		this.toolbar = this.$w.find(".navbar-form");
 		if(title) 
 			this.set_title(title);
 			
 	},
-	title: function(txt) {
-		this.set_title(txt);
+	get_title_area: function() {
+		return this.$w.find(".title-area");
 	},
 	set_title: function(txt, full_text) {
-		if(this.set_document_title) 
-			document.title = txt;
-		this.$titlebar.find(".appframe-title").html(txt)
-			.attr("title", full_text || txt);
+		this.title = txt;
+		document.title = txt;
+		this.$w.find(".breadcrumb .appframe-title").html(txt);
+		this.$w.find(".title-text").html(txt);
 	},
-	clear_breadcrumbs: function() {
-		this.$w.find(".appframe-breadcrumb").empty();
+	set_sub_title: function(txt) {
+		this.$w.find(".sub-title-area").html(txt);
 	},
-	add_breadcrumb: function(icon, link, title) {
-		if(link) {
-			$(repl("<span><a href='#%(link)s' title='%(title)s'><i class='%(icon)s'></i>\
-				</a></span>", {
-				icon: icon,
-				link: link,
-				title: wn._(title)
-			})).appendTo(this.$w.find(".appframe-breadcrumb"));			
-		} else {
-			$(repl("<span><i class='%(icon)s'></i></span>", {
-				icon: icon,
-			})).appendTo(this.$w.find(".appframe-breadcrumb"));			
-		}
+	
+	add_infobar: function(label, onclick) {
+		var $ul = this.$w.find(".info-bar").toggle(true).find("ul"),
+			$li = $('<li><a href="#">' + label + '</a></li>')
+				.appendTo($ul)
+				.click(function() {
+					onclick();
+					return false;
+				})
+		return $li;
 	},
-	add_home_breadcrumb: function() {
-		this.add_breadcrumb("icon-home", wn.home_page, "Home");
+	
+	clear_infobar: function() {
+		this.$w.find(".info-bar").toggle(false).find("ul").empty();
 	},
-	add_list_breadcrumb: function(doctype) {
-		this.add_breadcrumb("icon-list", "List/" + encodeURIComponent(doctype), doctype + " List");
-	},
-	add_module_breadcrumb: function(module) {
+	
+	add_module_icon: function(module, doctype) {
 		var module_info = wn.modules[module];
-		if(module_info) {
-			this.add_breadcrumb(module_info.icon, module_info.link,
-				module_info.label || module);
+		if(!module_info) {
+			module_info = {
+				icon: "icon-question-sign",
+				color: "#ddd"
+			}
 		}
+		var icon = wn.boot.doctype_icons[doctype] || module_info.icon;
+		
+		this.$w.find(".title-icon").html('<i class="'+icon+'"></i> ')
+			.toggle(true)
+			.css({
+				"background-color": module_info.color,
+			})
+			.attr("doctype-name", doctype)
+			.click(function() {
+				if($(this).attr("doctype-name")) {
+					wn.set_route("List", $(this).attr("doctype-name"))
+				} else {
+					wn.set_route("");
+				}
+			});
 	},
 	
 	set_views_for: function(doctype, active_view) {
 		this.doctype = doctype;
-		var me = this;
-		var views = [{
-				icon: "icon-file-alt",
-				route: "",
-				type: "form",
-				set_route: function() {
-					if(wn.views.formview[me.doctype]) {
-						wn.set_route("Form", me.doctype, wn.views.formview[me.doctype].frm.docname);
-					} else {
-						new_doc(doctype);
-					}
+		var me = this,
+			meta = locals.DocType[doctype],
+			views = [],
+			module_info = wn.modules[meta.module];
+			
+		if(module_info) {
+			views.push({
+				icon: module_info.icon,
+				route: module_info.link,
+				type: "module"
+			})
+		}
+
+		views.push({
+			icon: "icon-file-alt",
+			route: "",
+			type: "form",
+			set_route: function() {
+				if(wn.views.formview[me.doctype]) {
+					wn.set_route("Form", me.doctype, wn.views.formview[me.doctype].frm.docname);
+				} else {
+					new_doc(doctype);
 				}
-			}];
+			}
+		});
+
 		
-		if(!locals.DocType[doctype].issingle) {
+		if(!meta.issingle) {
 			views.push({
 				icon: "icon-list",
 				route: "List/" + doctype,
@@ -93,18 +130,26 @@ wn.ui.AppFrame = Class.extend({
 			});
 		}
 		
-		if(locals.DocType[doctype].__calendar_js) {
+		if(wn.views.calendar[doctype]) {
 			views.push({
 				icon: "icon-calendar",
 				route: "Calendar/" + doctype,
 				type: "calendar"
 			});
 		}
-		
+
+		if(wn.views.calendar[doctype] && wn.views.calendar[doctype]) {
+			views.push({
+				icon: "icon-tasks",
+				route: "Gantt/" + doctype,
+				type: "gantt"
+			});
+		}
+
 		if(wn.model.can_get_report(doctype)) {
 			views.push({
 				icon: "icon-table",
-				route: "Report2/" + doctype,
+				route: "Report/" + doctype,
 				type: "report"
 			});
 		}
@@ -114,12 +159,9 @@ wn.ui.AppFrame = Class.extend({
 	
 	set_views: function(views, active_view) {
 		var me = this;
-		$right = this.$w.find(".appframe-right").css({
-			"display":"inline-block",
-			"width": (39 * views.length) + "px"
-		});
+		$right = this.$w.find(".title-button-area");
 		$.each(views, function(i, e) {
-			var btn = $(repl('<button class="btn" data-route="%(route)s">\
+			var btn = $(repl('<button class="btn btn-default" data-route="%(route)s">\
 				<i class="%(icon)s"></i></button>', e))
 				.click(e.set_route || function() {
 					window.location.hash = "#" + $(this).attr("data-route");
@@ -131,68 +173,128 @@ wn.ui.AppFrame = Class.extend({
 				.appendTo($right);
 				
 			if(e.type==active_view) {
-				btn.addClass("btn-inverse");
+				btn.removeClass("btn-default").addClass("btn-info");
 			}
 		});
 	},
 	
-	add_button: function(label, click, icon) {
-		this.add_toolbar();
-		args = { label: label, icon:'' };
-		if(icon) {
-			args.icon = '<i class="'+icon+'"></i>';
-		}
-		this.buttons[label] = $(repl('<button class="btn">\
-			%(icon)s %(label)s</button>', args))
-			.click(click)
-			.appendTo(this.toolbar);
-		return this.buttons[label];
-	},
-
 	add_help_button: function(txt) {
-		this.add_toolbar();
-		$('<button class="btn" button-type="help">\
+		$('<button class="btn btn-default" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
 			.appendTo(this.toolbar);			
 	},
 
-	clear_buttons: function() {
-		this.toolbar && this.toolbar.empty();
+	show_toolbar: function() {
+		this.toolbar.parent().toggle(true);
 	},
 
-	add_toolbar: function() {
-		if(!this.toolbar)
-			this.$w.append('<div class="appframe-toolbar"><div class="btn-group"></div></div>');
-		this.toolbar = this.$w.find('.appframe-toolbar .btn-group');
+	clear_buttons: function() {
+		this.toolbar && this.toolbar
+			.html('<div class="btn-group"></div>')
+			.parent()
+			.toggle(false);
+		$(".custom-menu").remove();
+	},
+
+	add_button: function(label, click, icon, is_title) {
+		this.show_toolbar();
+		
+		args = { label: wn._(label), icon:'' };
+		if(icon) {
+			args.icon = '<i class="'+icon+'"></i>';
+		}
+		
+		this.buttons[label] && this.buttons[label].remove();
+		
+		var append_or_prepend = is_title ? "prependTo" : "appendTo";
+		
+		this.buttons[label] = $(repl('<button class="btn btn-default">\
+			%(icon)s <span class="hidden-sm-inline">%(label)s</span></button>', args))
+			[append_or_prepend](this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
+			.attr("title", wn._(label))
+			.click(click);
+		if(is_title) {
+			this.buttons[label].addClass("btn-title");
+		}
+		return this.buttons[label];
+	},
+	get_menu: function(label) {
+		return $("#navbar-" + label.toLowerCase());
+	},
+	add_menu_divider: function(menu) {
+		menu = typeof menu == "string" ?
+			this.get_menu(menu) : menu;
+			
+		$('<li class="divider custom-menu"></li>').appendTo(menu);
+	},
+	add_dropdown_button: function(parent, label, click, icon) {
+		var menu = this.get_menu(parent);
+		if(menu.find("li:not(.custom-menu)").length && !menu.find(".divider").length) {
+			this.add_menu_divider(menu);
+		}
+
+		return $('<li class="custom-menu"><a><i class="'
+			+icon+'"></i> '+label+'</a></li>')
+			.appendTo(menu)
+			.find("a")
+			.click(function() {
+				click();
+			});
 	},
 	add_label: function(label) {
-		return $("<span class='label'>"+label+" </span>").appendTo(this.toolbar.parent());
+		this.show_toolbar();
+		return $("<label class='col-lg-1' style='margin-top: 0.8%;'>"+label+" </label>")
+			.appendTo(this.toolbar);
 	},
 	add_select: function(label, options) {
-		this.add_toolbar();
-		return $("<select style='width: 100px;'>")
-			.add_options(options).appendTo(this.toolbar.parent());
+		this.show_toolbar();
+		return $("<select class='col-lg-2' style='margin-right: 5px;'>")
+			.add_options(options)
+			.appendTo(this.toolbar);
 	},
 	add_data: function(label) {
-		this.add_toolbar();
-		return $("<input style='width: 100px;' type='text' placeholder='"+ label +"'>")
-			.appendTo(this.toolbar.parent());
+		this.show_toolbar();
+		return $("<input class='col-lg-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
+			.appendTo(this.toolbar);
 	}, 
 	add_date: function(label, date) {
-		this.add_toolbar();
-		return $("<input style='width: 80px;' type='text'>").datepicker({
+		this.show_toolbar();
+		return $("<input class='col-lg-2' style='margin-right: 5px;' type='text'>").datepicker({
 			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
 			changeYear: true,
-		}).val(dateutil.str_to_user(date) || "").appendTo(this.toolbar.parent());
+		}).val(dateutil.str_to_user(date) || "")
+			.appendTo(this.toolbar);
 	},
 	add_check: function(label) {
-		this.add_toolbar();
+		this.show_toolbar();
 		return $("<label style='display: inline;'><input type='checkbox' \
-			style='margin-top: -2px;'/> " + label + "</label>")
-			.appendTo(this.toolbar.parent())
+			style='margin-right: 5px;'/> " + label + "</label>")
+			.appendTo(this.toolbar)
 			.find("input");
+	},
+	add_field: function(df) {
+		this.show_toolbar();
+		var f = wn.ui.form.make_control({
+			df: df,
+			parent: this.toolbar,
+			only_input: true,
+		})
+		f.refresh();
+		$(f.wrapper)
+			.addClass('col-lg-2')
+			.css({
+				"display": "inline-block",
+				"margin-top": "0px",
+				"margin-bottom": "-17px",
+				"margin-left": "4px"
+			})
+			.attr("title", df.label).tooltip();
+		if(df["default"])
+			f.set_input(df["default"])
+		this.fields_dict[df.fieldname || df.label] = f;
+		return f;
 	},
 	add_ripped_paper_effect: function(wrapper) {
 		if(!wrapper) var wrapper = wn.container.page;
@@ -204,28 +306,50 @@ wn.ui.AppFrame = Class.extend({
 		$('<div class="ripped-paper-border"></div>')
 			.prependTo(layout_main)
 			.css({"width": $(layout_main).width()});
-	}
+	},
+	/* deprecated */
+	clear_breadcrumbs: function() {
+		this.$w.find(".breadcrumb").empty();
+	},
+	add_breadcrumb: function(icon, link, title) {
+		return; // bc
+	},
+	add_home_breadcrumb: function() {
+		this.add_breadcrumb("icon-home", wn.home_page, "Home");
+	},
+	add_list_breadcrumb: function(doctype) {
+		this.add_breadcrumb("icon-list", "List/" + encodeURIComponent(doctype), doctype + " List");
+	},
 });
 
 // parent, title, single_column
 // standard page with appframe
 
 wn.ui.make_app_page = function(opts) {
+	/* help: make a standard page layout with a toolbar and title */
+	/* options: [
+			"parent: [HTMLElement] parent element",
+			"single_column: [Boolean] false/true",
+			"title: [optional] set this title"
+		] 
+	*/
 	if(opts.single_column) {
-		$(opts.parent).html('<div class="layout-wrapper layout-wrapper-appframe">\
-			<div class="layout-appframe"></div>\
+		$('<div class="appframe col col-lg-12">\
+			<div class="layout-appframe row"></div>\
 			<div class="layout-main"></div>\
-		</div>');			
+		</div>').appendTo(opts.parent);
 	} else {
-		$(opts.parent).html('<div class="layout-wrapper layout-wrapper-background">\
-			<div class="layout-appframe"></div>\
-			<div class="layout-main-section"></div>\
-			<div class="layout-side-section"></div>\
-			<div class="clear"></div>\
-		</div>');			
+		$('<div class="appframe col col-lg-12">\
+			<div class="layout-appframe row"></div>\
+			<div class="row">\
+				<div class="layout-main-section col col-lg-9"></div>\
+				<div class="layout-side-section col col-lg-3"></div>\
+			</div>\
+		</div>').appendTo(opts.parent);
 	}
 	opts.parent.appframe = new wn.ui.AppFrame($(opts.parent).find('.layout-appframe'));
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
-	if(opts.title) opts.parent.appframe.title(opts.title);
+	if(opts.title) opts.parent.appframe.set_title(opts.title);
+	if(opts.icon) opts.parent.appframe.add_module_icon(null, opts.icon);
 }

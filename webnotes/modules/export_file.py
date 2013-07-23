@@ -24,8 +24,7 @@ from __future__ import unicode_literals
 
 import webnotes, os
 import webnotes.model.doc
-from webnotes.modules import scrub, get_module_path, lower_case_files_for, \
-	code_fields_dict, scrub_dt_dn
+from webnotes.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn
 
 def export_doc(doc):
 	export_to_files([[doc.doctype, doc.name]])
@@ -34,8 +33,7 @@ def export_to_files(record_list=[], record_module=None, verbose=0):
 	"""
 		Export record_list to files. record_list is a list of lists ([doctype],[docname] )  ,
 	"""
-	from webnotes.modules.import_file import in_import
-	if in_import:
+	if webnotes.in_import:
 		return
 			
 	module_doclist =[]
@@ -55,9 +53,6 @@ def write_document_file(doclist, record_module=None):
 	# create folder
 	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'], code_type)
 	
-	# separate code files
-	clear_code_fields(doclist, folder, code_type)
-		
 	# write the data file	
 	fname = (code_type and scrub(doclist[0]['name'])) or doclist[0]['name']
 	with open(os.path.join(folder, fname +'.txt'),'w+') as txtfile:
@@ -121,11 +116,3 @@ def create_init_py(module_path, dt, dn):
 	create_if_not_exists(os.path.join(module_path))
 	create_if_not_exists(os.path.join(module_path, dt))
 	create_if_not_exists(os.path.join(module_path, dt, dn))
-
-
-def clear_code_fields(doclist, folder, code_type):
-	code_fields = code_fields_dict.get(doclist[0]['doctype'], [])
-	for code_field in code_fields:
-		if doclist[0].get(code_field[0]):
-			doclist[0][code_field[0]] = None
-

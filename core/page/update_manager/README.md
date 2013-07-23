@@ -1,0 +1,1 @@
+Interface to trigger system updates (via GitHub). Only works if the web user has write permissions on the repository folders.

@@ -2,7 +2,7 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.add_custom_button("Show Report", function() {
 		switch(doc.report_type) {
 			case "Report Builder":
-				wn.set_route("Report2", doc.name);
+				wn.set_route("Report", doc.name);
 				break;
 			case "Query Report":
 				wn.set_route("query-report", doc.name);

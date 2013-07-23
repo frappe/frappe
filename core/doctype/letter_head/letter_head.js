@@ -23,19 +23,21 @@
 cur_frm.cscript.refresh = function(doc) {	
 	if (doc.docstatus) hide_field('steps');
 	
+	var has_attachments = !$.isEmptyObject(cur_frm.attachments.get_attachments());
+	
 	cur_frm.set_intro("");
 	if(doc.__islocal) {
 		cur_frm.set_intro("Step 1: Set the name and save.");
 	} else {
-		if(!doc.file_list) {
+		if(has_attachments) {
 			cur_frm.set_intro("Step 2: Upload your letter head image / set html content directly");
 			cur_frm.add_custom_button("Upload", function() {
 				cur_frm.attachments.add_attachment();
-			}, 'icon-upload');			
+			}, 'icon-upload');
 		}
 	}
 	
-	if(doc.file_list && !doc.content) {
+	if(has_attachments && !doc.content) {
 		cur_frm.cscript['set_from_image'](doc);
 	}
 	
@@ -49,7 +51,7 @@ cur_frm.cscript.content = function(doc) {
 }
 
 cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
-	if(!doc.file_list) {
+	if(!cur_frm.get_files().length) {
 		msgprint('Please attach an image file first');
 		return;
 	}

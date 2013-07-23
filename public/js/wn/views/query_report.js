@@ -87,7 +87,7 @@ wn.views.QueryReport = Class.extend({
 			if(me.report_name!=route[1]) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.title(wn._("Query Report")+": " + me.report_name);
+				me.appframe.set_title(wn._("Query Report")+": " + me.report_name);
 				
 				if(!wn.query_reports[me.report_name]) {
 					wn.call({
@@ -113,26 +113,9 @@ wn.views.QueryReport = Class.extend({
 	},
 	setup_filters: function() {
 		this.clear_filters();
-		var $filter_wrapper = $("<div class='filters' style='display:inline-block;'>\
-			</div>")
-			.appendTo(this.appframe.$w.find('.appframe-toolbar'));
 		var me = this;
 		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
-			var f = make_field(df, null, $filter_wrapper.get(0), null, 0, 1);
-			f.df.single_select = 1;
-			f.df.placeholder = df.label;
-			f.not_in_form = 1;
-			f.with_label = 0;
-			f.in_filter = 1;
-			f.refresh();
-			$(f.wrapper)
-				.css({
-					"display": "inline-block",
-					"margin-left": "5px",
-					"margin-bottom": "4px",
-					"margin-top": "4px"
-				})
-				.attr("title", df.label).tooltip();
+			var f = me.appframe.add_field(df);
 			me.filters.push(f);
 			if(df["default"]) {
 				f.set_input(df["default"]);
@@ -140,8 +123,6 @@ wn.views.QueryReport = Class.extend({
 			
 			if(f.df.fieldtype == "Link")
 				$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
-			else if(f.df.fieldtype == "Date")
-				$(f.wrapper).css({"margin-right":"-15px"});
 	
 			if(df.get_query) f.get_query = df.get_query;
 		});
@@ -165,7 +146,7 @@ wn.views.QueryReport = Class.extend({
 			"Loading Report...");
 		var filters = {};
 		$.each(this.filters || [], function(i, f) {
-			filters[f.df.fieldname] = f.get_value();
+			filters[f.df.fieldname] = f.get_parsed_value();
 		})
 		wn.call({
 			method: "webnotes.widgets.query_report.run",
@@ -188,7 +169,7 @@ wn.views.QueryReport = Class.extend({
 	render: function(result, columns) {
 		this.columnFilters = {};
 		this.make_dataview();
-		this.id = wn.dom.set_unique_id($(this.wrapper.find(".result-area")).get(0));
+		this.id = wn.dom.set_unique_id(this.wrapper.find(".result-area").get(0));
 		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, 
 			this.slickgrid_options);

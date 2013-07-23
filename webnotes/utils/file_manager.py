@@ -23,7 +23,7 @@
 from __future__ import unicode_literals
 import webnotes
 import os, conf
-from webnotes.utils import cstr, get_path
+from webnotes.utils import cstr, get_path, cint
 from webnotes import _
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
@@ -32,7 +32,6 @@ def upload():
 	# get record details
 	dt = webnotes.form_dict.doctype
 	dn = webnotes.form_dict.docname
-	at_id = webnotes.form_dict.at_id
 	file_url = webnotes.form_dict.file_url
 	filename = webnotes.form_dict.filename
 	
@@ -42,18 +41,16 @@ def upload():
 
 	# save
 	if filename:
-		fid, fname = save_uploaded(dt, dn)
+		filedata = save_uploaded(dt, dn)
 	elif file_url:
-		fid, fname = save_url(file_url, dt, dn)
+		filedata = save_url(file_url, dt, dn)
+		
+	return {"fid": filedata.name, "filename": filedata.file_name or filedata.file_url }
 
-	if fid:
-		return fid
-
-def save_uploaded(dt, dn):	
+def save_uploaded(dt, dn):
 	fname, content = get_uploaded_content()
 	if content:
-		fid = save_file(fname, content, dt, dn)
-		return fid, fname
+		return save_file(fname, content, dt, dn)
 	else: 
 		raise Exception
 
@@ -70,7 +67,7 @@ def save_url(file_url, dt, dn):
 	})
 	f.ignore_permissions = True
 	f.insert();
-	return f.doc.name, file_url
+	return f.doc
 
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
@@ -91,14 +88,25 @@ def save_file(fname, content, dt, dn):
 	temp_fname = write_file(content)
 	fname = scrub_file_name(fname)	
 	fpath = os.path.join(files_path, fname)
+
+	fname_parts = fname.split(".", -1)
+	main = ".".join(fname_parts[:-1])
+	extn = fname_parts[-1]
+	versions = get_file_versions(files_path, main, extn)
 	
-	if os.path.exists(fpath):
-		if cmp(fpath, temp_fname):
-			# remove new file, already exists!
-			os.remove(temp_fname)
-		else:
+	if versions:
+		found_match = False
+		for version in versions:
+			if cmp(os.path.join(files_path, version), temp_fname):
+				# remove new file, already exists!
+				os.remove(temp_fname)
+				fname = version
+				found_match = True
+				break
+				
+		if not found_match:
 			# get_new_version name
-			fname = get_new_fname_based_on_version(files_path, fname)
+			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
 			
 			# rename
 			os.rename(temp_fname, os.path.join(files_path, fname))
@@ -116,24 +124,24 @@ def save_file(fname, content, dt, dn):
 	f.ignore_permissions = True
 	f.insert();
 
-	return f.doc.name
+	return f.doc
 
-def get_new_fname_based_on_version(files_path, fname):
-	# new version of the file is being uploaded, add a revision number?
-	versions = filter(lambda f: f.startswith(fname), os.listdir(files_path))
+def get_file_versions(files_path, main, extn):
+	return filter(lambda f: f.startswith(main) and f.endswith(extn), os.listdir(files_path))
 
+def get_new_fname_based_on_version(files_path, main, extn, versions):
 	versions.sort()
 	if "-" in versions[-1]:
-		version = int(versions[-1].split("-")[-1]) or 1
+		version = cint(versions[-1].split("-")[-1]) or 1
 	else:
 		version = 1
 	
-	new_fname = fname + "-" + str(version)
+	new_fname = main + "-" + str(version) + "." + extn
 	while os.path.exists(os.path.join(files_path, new_fname)):
 		version += 1
-		new_fname = fname + "-" + str(version)
+		new_fname = main + "-" + str(version) + "." + extn
 		if version > 100:
-			break # let there be an exception
+			webnotes.msgprint("Too many versions", raise_exception=True)
 			
 	return new_fname
 

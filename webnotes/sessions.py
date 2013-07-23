@@ -67,20 +67,25 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	# check if cache exists
+	from webnotes.widgets.notification import get_notification_info_for_boot
+
+	bootinfo = None
 	if not getattr(conf,'auto_cache_clear',None):
-		cache = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
-		if cache:
-			cache['from_cache'] = 1
-			return cache
+		# check if cache exists
+		bootinfo = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
+		if bootinfo:
+			bootinfo['from_cache'] = 1
+			
+	if not bootinfo:
+		if not webnotes.cache().get_stats():
+			webnotes.msgprint("memcached is not working / stopped. Please start memcached for best results.")
 	
-	if not webnotes.cache().get_stats():
-		webnotes.msgprint("memcached is not working / stopped. Please start memcached for best results.")
+		# if not create it
+		from webnotes.boot import get_bootinfo
+		bootinfo = get_bootinfo()
+		webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 	
-	# if not create it
-	from webnotes.boot import get_bootinfo
-	bootinfo = get_bootinfo()
-	webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
+	bootinfo["notification_info"] = get_notification_info_for_boot()
 		
 	return bootinfo
 

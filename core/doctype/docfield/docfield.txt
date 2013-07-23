@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-03-07 07:03:20", 
+  "modified": "2013-07-10 14:54:08", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -38,6 +38,7 @@
   "fieldname": "label", 
   "fieldtype": "Data", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Label", 
   "oldfieldname": "label", 
   "oldfieldtype": "Data", 
@@ -51,6 +52,7 @@
   "fieldname": "fieldtype", 
   "fieldtype": "Select", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Type", 
   "oldfieldname": "fieldtype", 
   "oldfieldtype": "Select", 
@@ -63,6 +65,7 @@
   "fieldname": "fieldname", 
   "fieldtype": "Data", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Name", 
   "oldfieldname": "fieldname", 
   "oldfieldtype": "Data", 
@@ -75,6 +78,7 @@
   "fieldname": "options", 
   "fieldtype": "Text", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Options", 
   "oldfieldname": "options", 
   "oldfieldtype": "Text", 
@@ -86,6 +90,7 @@
   "fieldname": "reqd", 
   "fieldtype": "Check", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Mandatory", 
   "oldfieldname": "reqd", 
   "oldfieldtype": "Check", 
@@ -93,6 +98,17 @@
   "reqd": 0, 
   "search_index": 0, 
   "width": "50px"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "description", 
+  "fieldtype": "Text", 
+  "in_list_view": 1, 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "oldfieldtype": "Text", 
+  "print_width": "300px", 
+  "width": "300px"
  }, 
  {
   "default": "0", 
@@ -240,16 +256,6 @@
   "reqd": 0, 
   "search_index": 0, 
   "width": "50px"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "description", 
-  "fieldtype": "Text", 
-  "label": "Description", 
-  "oldfieldname": "description", 
-  "oldfieldtype": "Text", 
-  "print_width": "300px", 
-  "width": "300px"
  }, 
  {
   "doctype": "DocField", 

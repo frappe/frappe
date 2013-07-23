@@ -1,8 +1,8 @@
 [
  {
-  "creation": "2013-03-07 12:26:21", 
+  "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-03-01 10:18:03", 
+  "modified": "2013-07-22 16:06:31", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -17,6 +17,7 @@
   "document_type": "Master", 
   "hide_heading": 0, 
   "hide_toolbar": 0, 
+  "icon": "icon-user", 
   "issingle": 0, 
   "istable": 0, 
   "max_attachments": 5, 
@@ -178,6 +179,7 @@
   "print_hide": 1
  }, 
  {
+  "depends_on": "eval:!doc.__islocal", 
   "doctype": "DocField", 
   "fieldname": "display_settings", 
   "fieldtype": "Section Break", 
@@ -198,13 +200,6 @@
   "hidden": 0, 
   "label": "Background Image", 
   "options": "attach_files:"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "theme", 
-  "fieldtype": "Select", 
-  "label": "Theme", 
-  "options": "Default\nDesert\nFloral\nOcean\nSky\nSnow\nSunny\nTropic"
  }, 
  {
   "doctype": "DocField", 

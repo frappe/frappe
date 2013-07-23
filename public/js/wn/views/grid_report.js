@@ -100,6 +100,7 @@ wn.views.GridReport = Class.extend({
 		this.filter_inputs = {};
 		this.preset_checks = [];
 		this.tree_grid = {show: false};
+		var me = this;
 		$.extend(this, opts);
 		
 		this.wrapper = $('<div>').appendTo(this.parent);
@@ -109,8 +110,7 @@ wn.views.GridReport = Class.extend({
 		}
 		this.make_waiting();
 		
-		var me = this;
-		this.get_data();
+		this.get_data_and_refresh();
 	},
 	bind_show: function() {
 		// bind show event to reset cur_report_grid
@@ -123,11 +123,18 @@ wn.views.GridReport = Class.extend({
 		$(this.page).bind('show', function() {
 			// reapply filters on show
 			wn.cur_grid_report = me;
-			me.get_data()
+			me.get_data_and_refresh();
 		});
 		
 	},
-	get_data: function() {
+	get_data_and_refresh: function() {
+		var me = this;
+		this.get_data(function() {
+			me.apply_filters_from_route();
+			me.refresh();
+		});
+	},
+	get_data: function(callback) {
 		var me = this;
 		var progress_bar = null;
 		if(!this.setup_filters_done)
@@ -138,8 +145,7 @@ wn.views.GridReport = Class.extend({
 				me.setup_filters();
 				me.setup_filters_done = true;
 			}
-			me.apply_filters_from_route();
-			me.refresh();
+			callback();
 		}, progress_bar);
 	},
 	setup_filters: function() {
@@ -158,33 +164,44 @@ wn.views.GridReport = Class.extend({
 
 		// refresh
 		this.filter_inputs.refresh && this.filter_inputs.refresh.click(function() { 
-			var old_route = wn.get_route_str();
-			
-			// set route from filters
-			// if route has changed, set route calls get data
-			me.set_route();
-			
-			// if route hasn't changed, call get data
-			if(wn.get_route_str()===old_route) {
-				me.get_data();
-			}
+			me.get_data(function() {
+				me.refresh();
+			});
 		});
 		
 		// reset filters
 		this.filter_inputs.reset_filters && this.filter_inputs.reset_filters.click(function() { 
 			me.init_filter_values(); 
-			me.set_route();
+			me.refresh();
 		});
 		
 		// range
-		this.filter_inputs.range && this.filter_inputs.range.change(function() {
-			me.set_route();
+		this.filter_inputs.range && this.filter_inputs.range.on("change", function() {
+			me.refresh();
 		});
 		
 		// plot check
 		if(this.setup_plot_check) 
 			this.setup_plot_check();
-			
+	},
+	set_filter: function(key, value) {
+		var filters = this.filter_inputs[key];
+		if(filters) {
+			var opts = filters.get(0).opts;
+			if(opts.fieldtype === "Check") {
+				if(cint(value)) {
+					filters.attr("checked", "checked");
+				} else {
+					filters.removeAttr("checked");
+				}
+			} if(opts.fieldtype=="Date") {
+				filters.val(wn.datetime.str_to_user(value));
+			} else {
+				filters.val(value);
+			}
+		} else {
+			msgprint("Invalid Filter: " + key)
+		}
 	},
 	set_autocomplete: function($filter, list) {
 		var me = this;
@@ -192,7 +209,7 @@ wn.views.GridReport = Class.extend({
 			source: list,
 			select: function(event, ui) {
 				$filter.val(ui.item.value);
-				me.set_route();
+				me.refresh();
 			}
 		});
 	},
@@ -261,7 +278,7 @@ wn.views.GridReport = Class.extend({
 				}
 				input.keypress(function(e) {
 					if(e.which==13) {
-						me.set_route();
+						me.refresh();
 					}
 				})
 			}
@@ -276,7 +293,7 @@ wn.views.GridReport = Class.extend({
 		$.each(this.filter_inputs, function(i, f) {
 			var opts = f.get(0).opts;
 			if(opts.fieldtype=='Check') {
-				me[opts.fieldname] = f.attr('checked') == "checked" ? 1 : 0;
+				me[opts.fieldname] = f.is(':checked') ? 1 : 0;
 			} else if(opts.fieldtype!='Button') {
 				me[opts.fieldname] = f.val();
 				if(opts.fieldtype=="Date") {
@@ -307,7 +324,16 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		$.each(this.columns, function(i, col) {
 			if (col.formatter==me.currency_formatter) {
-				item[col.id] = 0;
+				item[col.id] = 0.0;
+			}
+		});
+	},
+	
+	round_item_values: function(item) {
+		var me = this;
+		$.each(this.columns, function(i, col) {
+			if (col.formatter==me.currency_formatter) {
+				item[col.id] = flt(item[col.id], wn.defaults.get_default("float_precision") || 6);
 			}
 		});
 	},
@@ -365,54 +391,22 @@ wn.views.GridReport = Class.extend({
 		this.bind_show();
 		
 		wn.cur_grid_report = this;
-		this.apply_filters_from_route();
 		$(this.wrapper).trigger('make');
 		
 	},
 	apply_filters_from_route: function() {
-		var hash = decodeURIComponent(window.location.hash);
 		var me = this;
-		if(hash.indexOf('/') != -1) {
-			$.each(hash.split('/').splice(1).join('/').split('&&'), function(i, f) {
-				var f = f.split("=");
-				if(me.filter_inputs[f[0]]) {
-					var val = decodeURIComponent(f[1]);
-					var opts = me.filter_inputs[f[0]].get(0).opts;
-					if(opts.fieldtype === "Check") {
-						if(cint(val)) {
-							me.filter_inputs[f[0]].attr("checked", "checked");
-						} else {
-							me.filter_inputs[f[0]].removeAttr("checked");
-						}
-					} else {
-						me.filter_inputs[f[0]].val(val);
-					}
-				} else {
-					console.log("Invalid filter: " +f[0]);
-				}
+		if(wn.route_options) {
+			$.each(wn.route_options, function(key, value) {
+				me.set_filter(key, value);
 			});
+			wn.route_options = null;
 		} else {
 			this.init_filter_values();
 		}
 		this.set_default_values();
-		
-		$(this.wrapper).trigger('apply_filters_from_route');
-	},
-	set_route: function() {
-		var page_name = wn.container.page.page_name;
-		var filters_route = $.map(this.filter_inputs, function(v) {
-			var opts = v.get(0).opts;
-			if(opts.fieldtype === "Check") {
-				var val = v.attr("checked") ? 1 : 0;
-			} else {
-				var val = v.val();
-			}
-			if(val && val != opts.default_value)
-				return encodeURIComponent(opts.fieldname) 
-					+ '=' + encodeURIComponent(val);
-		}).join('&&');
 
-		wn.set_route(page_name, filters_route);
+		$(this.wrapper).trigger('apply_filters_from_route');
 	},
 	options: {
 		editable: false,
@@ -464,7 +458,9 @@ wn.views.GridReport = Class.extend({
 		if(item._show) return true;
 		
 		for (i in filters) {
-			if(!this.apply_filter(item, i)) return false;
+			if(!this.apply_filter(item, i)) {
+				return false;
+			}
 		}
 		
 		return true;
@@ -510,7 +506,7 @@ wn.views.GridReport = Class.extend({
 	currency_formatter: function(row, cell, value, columnDef, dataContext) {
 		return repl('<div style="text-align: right; %(_style)s">%(value)s</div>', {
 			_style: dataContext._style || "",
-			value: format_number(value)
+			value: ((value==null || value==="") ? "" : format_number(value))
 		});
 	},
 	text_formatter: function(row, cell, value, columnDef, dataContext) {
@@ -550,9 +546,8 @@ wn.views.GridReport = Class.extend({
 					var link_formatter = me.dataview_columns[cell].link_formatter;
 					if (link_formatter.filter_input) {
 						var html = repl('<a href="#" \
-							onclick="wn.cur_grid_report.filter_inputs \
-								.%(col_name)s.val(\'%(value)s\'); \
-								wn.cur_grid_report.set_route(); return false;">\
+							onclick="wn.cur_grid_report.set_filter(\'%(col_name)s\', \'%(value)s\'); \
+								wn.cur_grid_report.refresh(); return false;">\
 							%(value)s</a>', {
 								value: value,
 								col_name: link_formatter.filter_input,
@@ -655,8 +650,8 @@ wn.views.GridReport = Class.extend({
 	trigger_refresh_on_change: function(filters) {
 		var me = this;
 		$.each(filters, function(i, f) {
-			me.filter_inputs[f] && me.filter_inputs[f].change(function() {
-				me.set_route();
+			me.filter_inputs[f] && me.filter_inputs[f].on("change", function() {
+				me.refresh();
 			});
 		});
 	}

@@ -33,7 +33,11 @@ def get_template():
 	parenttype = webnotes.form_dict.get('parent_doctype')
 	
 	doctype_dl = webnotes.model.doctype.get(doctype)
-	tablecolumns = [f[0] for f in webnotes.conn.sql('desc `tab%s`' % doctype)]
+
+	tablecolumns = filter(None, 
+		[doctype_dl.get_field(f[0]) for f in webnotes.conn.sql('desc `tab%s`' % doctype)])
+		
+	tablecolumns.sort(lambda a, b: a.idx - b.idx)
 	
 	def getinforow(docfield):
 		"""make info comment"""
@@ -85,17 +89,15 @@ def get_template():
 	inforow = ['Info:', '']
 	columns = [key]
 	
-	def append_row(t, mandatory):
-		docfield = doctype_dl.get_field(t)
-		
+	def append_row(docfield, mandatory):
 		if docfield and ((mandatory and docfield.reqd) or not (mandatory or docfield.reqd)) \
-			and (t not in ('parenttype', 'trash_reason')) and not docfield.hidden:
-			fieldrow.append(t)
+			and (docfield.fieldname not in ('parenttype', 'trash_reason')) and not docfield.hidden:
+			fieldrow.append(docfield.fieldname)
 			labelrow.append(docfield.label)
 			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
 			typerow.append(docfield.fieldtype)
 			inforow.append(getinforow(docfield))
-			columns.append(t)
+			columns.append(docfield.fieldname)
 	
 	# get all mandatory fields
 	for t in tablecolumns:
@@ -213,6 +215,7 @@ def upload():
 		d['doctype'] = doctype
 		
 		try:
+			webnotes.message_log = []
 			check_record(d, parenttype, doctype_dl)
 			if parenttype:
 				# child doc
@@ -233,7 +236,6 @@ def upload():
 			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
 				len(row)>1 and row[1] or "", err_msg))
 			webnotes.errprint(webnotes.getTraceback())
-			webnotes.message_log = []
 	
 	ret, error = validate_parent(parent_list, parenttype, ret, error)
 	

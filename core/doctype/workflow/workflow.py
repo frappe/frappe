@@ -29,6 +29,10 @@ class DocType:
 	def validate(self):
 		self.set_active()
 		self.create_custom_field_for_workflow_state()
+		self.update_default_workflow_status()
+		
+	def on_update(self):
+		webnotes.clear_cache(doctype=self.doc.document_type)
 	
 	def create_custom_field_for_workflow_state(self):
 		webnotes.clear_cache(doctype=self.doc.document_type)
@@ -52,6 +56,17 @@ class DocType:
 			webnotes.msgprint("Created Custom Field '%s' in '%s'" % (self.doc.workflow_state_field,
 				self.doc.document_type))
 
+	def update_default_workflow_status(self):
+		docstatus_map = {}
+		states = self.doclist.get({"doctype": "Workflow Document State"})
+		states.sort(lambda x, y: x.idx - y.idx)
+		for d in self.doclist.get({"doctype": "Workflow Document State"}):
+			if not d.doc_status in docstatus_map:
+				webnotes.conn.sql("""update `tab%s` set `%s` = %s where \
+					ifnull(`%s`, '')='' and docstatus=%s""" % (self.doc.document_type, self.doc.workflow_state_field,
+						'%s', self.doc.workflow_state_field, "%s"), (d.state, d.doc_status))
+				docstatus_map[d.doc_status] = d.state
+		
 	def set_active(self):
 		if int(self.doc.is_active or 0):
 			# clear all other

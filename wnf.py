@@ -60,8 +60,8 @@ def pull(remote, branch, build=False):
 	
 def rebuild():
 	# build js / css
-	from webnotes.utils import bundlejs
-	bundlejs.bundle(False)		
+	from webnotes import build
+	build.bundle(False)		
 	
 def apply_latest_patches():
 	import webnotes.modules.patch_handler
@@ -140,8 +140,9 @@ def setup_options():
 						help="install fresh db")
 
 	# update
-	parser.add_option("--update", help="Pull, run latest patches and sync all",
-			nargs=2, metavar="ORIGIN BRANCH")
+	parser.add_option("-u", "--update", 
+		help="Pull, run latest patches and sync all",
+		default=False, action="store_true", metavar="ORIGIN BRANCH")
 
 	parser.add_option("--backup", help="Takes backup of database in backup folder",
 		default=False, action="store_true")
@@ -180,10 +181,11 @@ def setup_options():
 						metavar = "remote branch",
 						help="git pull (both repos)")
 
-	parser.add_option("--commit", nargs=1, default=False, 
+	parser.add_option("-c", "--commit", nargs=1, default=False, 
 						metavar = "commit both repos",
 						help="git commit -a -m [comment]")
-	parser.add_option("--push", nargs=2, default=False, 
+	parser.add_option("-p", "--push", default=False, 
+						action="store_true",
 						metavar = "remote branch",
 						help="git push (both repos) [remote] [branch]")
 	parser.add_option("--checkout", nargs=1, default=False, 
@@ -195,9 +197,10 @@ def setup_options():
 						help="Apply the latest patches")
 
 	# patch
-	parser.add_option("-p", "--patch", nargs=1, dest="patch_list", metavar='patch_module',
-						action="append",
-						help="Apply patch")
+	parser.add_option("--patch", nargs=1, dest="patch_list",
+		metavar='patch_module',
+		action="append",
+		help="Apply patch")
 	parser.add_option("-f", "--force",
 						action="store_true", dest="force", default=False,
 						help="Force Apply all patches specified using option -p or --patch")
@@ -242,9 +245,6 @@ def setup_options():
 	parser.add_option("--append_future_import", default=False, action="store_true", 
 			help="append from __future__ import unicode literals to py files")
 			
-	parser.add_option("--test", help="Run test", metavar="MODULE", 	
-			nargs=1)
-
 	parser.add_option("--build_message_files", default=False, action="store_true",
 		help="Build message files for translation")
 		
@@ -262,6 +262,9 @@ def setup_options():
 	parser.add_option('--translate', nargs=1, metavar="LANG", 
 		help="""Rebuild translation for the given langauge and 
 		use Google Translate to tranlate untranslated messages. use "all" """)
+		
+	parser.add_option("--reset_perms", default=False, action="store_true",
+		help="Reset permissions for all doctypes.")
 
 	return parser.parse_args()
 	
@@ -274,17 +277,17 @@ def run():
 	
 	# build
 	if options.build:
-		from webnotes.utils import bundlejs
+		from webnotes import build
 		if options.no_cms:
 			cms_make = False
 		else:
 			cms_make = True
-		bundlejs.bundle(False, cms_make)
+		build.bundle(False, cms_make)
 		return
 		
 	elif options.watch:
-		from webnotes.utils import bundlejs
-		bundlejs.watch(True)
+		from webnotes import build
+		build.watch(True)
 		return
 
 	# code replace
@@ -332,10 +335,13 @@ def run():
 		os.system('git commit -a -m "%s"' % (options.commit))
 
 	elif options.push:
+		if not args:
+			args = ["origin", conf.branch]
+		
 		os.chdir('lib')
-		os.system('git push %s %s' % (options.push[0], options.push[1]))
+		os.system('git push %s %s' % (args[0], args[1]))
 		os.chdir('../app')
-		os.system('git push %s %s' % (options.push[0], options.push[1]))
+		os.system('git push %s %s' % (args[0], args[1]))
 				
 	elif options.checkout:
 		os.chdir('lib')
@@ -378,8 +384,7 @@ def run():
 	elif options.install_fresh:
 		from webnotes.install_lib.install import Installer
 		inst = Installer('root')
-		inst.import_from_db(options.install_fresh, source_path="lib/conf/Framework.sql",
-			verbose = 1)
+		inst.import_from_db(options.install_fresh, verbose = 1)
 
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff
@@ -404,8 +409,11 @@ def run():
 		webnotes.reload_doc(options.sync[0], "doctype", options.sync[1])
 	
 	elif options.update:
-		update_erpnext(options.update[0], options.update[1])
-	
+		if not args:
+			args = ["origin", conf.branch]
+			
+		update_erpnext(args[0], args[1])
+		
 	elif options.patch_sync_build:
 		patch_sync_build()
 	
@@ -448,15 +456,6 @@ def run():
 	if webnotes.message_log:
 		print '\n'.join(webnotes.message_log)
 		
-	if options.test is not None:
-		module_name = options.test
-		import unittest
-
-		del sys.argv[1:]
-		# is there a better way?
-		exec ('from %s import *' % module_name) in globals()		
-		unittest.main()
-
 	elif options.build_message_files:
 		import webnotes.translate
 		webnotes.translate.build_message_files()
@@ -474,28 +473,18 @@ def run():
 		google_translate(*options.google_translate)
 	
 	elif options.translate:
-		from webnotes.translate import build_message_files, \
-			export_messages, google_translate, import_messages
-			
-		languages = [options.translate]
-		if options.translate=="all":
-			from startup import lang_list
-			languages = lang_list
-			
-		print "Extracting messages..."
-		build_message_files()
-		for lang in languages:
-			if lang != "en":
-				filename = 'app/translations/'+lang+'.csv'
-				print "For " + lang + ":"
-				print "Compiling messages in one file..."
-				export_messages(lang, '_lang_tmp.csv')
-				print "Translating via Google Translate..."
-				google_translate(lang, '_lang_tmp.csv', filename)
-				print "Updating language files..."
-				import_messages(lang, filename)
-				print "Deleting temp files..."
-				os.remove('_lang_tmp.csv')
+		from webnotes.translate import translate
+		translate(options.translate)
+
+	elif options.reset_perms:
+		for d in webnotes.conn.sql_list("""select name from `tabDocType`
+			where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
+				try:
+					webnotes.clear_cache(doctype=d)
+					webnotes.reset_perms(d)
+				except:
+					pass
+		
 
 if __name__=='__main__':
 	run()

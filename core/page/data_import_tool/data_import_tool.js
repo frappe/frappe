@@ -1,7 +1,8 @@
 wn.pages['data-import-tool'].onload = function(wrapper) { 
 	wrapper.app_page = wn.ui.make_app_page({
 		parent: wrapper,
-		title: "Data Import Tool"
+		title: "Data Import Tool",
+		icon: "data-import-tool"
 	});
 	
 	$(wrapper).find('.layout-main-section').append('<h3>1. Download Template</h3>\
@@ -49,8 +50,19 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		method:'core.page.data_import_tool.data_import_tool.get_doctypes',
 		callback: function(r) {
 			$select.add_options(['Select...'].concat(r.message));
+			wrapper.doctypes = r.message;
+			wrapper.set_route_options();
 		}
 	});
+	
+	wrapper.set_route_options = function() {
+		if(wn.route_options
+			&& wn.route_options.doctype
+			&& in_list(wrapper.doctypes, wn.route_options.doctype)) {
+				$select.val(wn.route_options.doctype).change();
+				wn.route_options = null;
+		}
+	}
 	
 	// load options
 	$select.change(function() {
@@ -93,53 +105,53 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		}
 	});
 	
+	write_messages = function(r) {
+		$(wrapper).find(".dit-progress-area").toggle(false);
+		$("#dit-output").empty();
+
+		$.each(r.messages, function(i, v) {
+			var $p = $('<p>').html(v).appendTo('#dit-output');
+			if(v.substr(0,5)=='Error') {
+				$p.css('color', 'red');
+			} else if(v.substr(0,8)=='Inserted') {
+				$p.css('color', 'green');
+			} else if(v.substr(0,7)=='Updated') {
+				$p.css('color', 'green');
+			} else if(v.substr(0,5)=='Valid') {
+				$p.css('color', '#777');
+			}
+		});
+	}
+	
 	// upload
 	wn.upload.make({
 		parent: $('#dit-upload-area'),
 		args: {
 			method: 'core.page.data_import_tool.data_import_tool.upload'
 		},
-		callback: function(r) {
-			$(wrapper).find(".dit-progress-area").toggle(false);
-			
-			if(!r.messages) r.messages = [];
-			
-			// clear output area
-			$("#dit-output").empty();
-			
-			// replace links if error has occured
-			if(r.exc || r.error) {
-				r.messages = $.map(r.messages, function(v) {
-					var msg = v.replace("Inserted", "Valid")
-						.replace("Updated", "Valid").split("<");
-					if (msg.length > 1) {
-						v = msg[0] + (msg[1].split(">").slice(-1)[0]);
-					} else {
-						v = msg[0];
-					}
-					return v;
-				});
-				
-				r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
-					.concat(r.messages)
-			} else {
-				r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
-					concat(r.messages)
-			}
-			
-			$.each(r.messages, function(i, v) {
-				var $p = $('<p>').html(v).appendTo('#dit-output');
-				if(v.substr(0,5)=='Error') {
-					$p.css('color', 'red');
-				} else if(v.substr(0,8)=='Inserted') {
-					$p.css('color', 'green');
-				} else if(v.substr(0,7)=='Updated') {
-					$p.css('color', 'green');
-				} else if(v.substr(0,5)=='Valid') {
-					$p.css('color', '#777');
+		onerror: function(r) {
+			r.messages = $.map(r.message.messages, function(v) {
+				var msg = v.replace("Inserted", "Valid")
+					.replace("Updated", "Valid").split("<");
+				if (msg.length > 1) {
+					v = msg[0] + (msg[1].split(">").slice(-1)[0]);
+				} else {
+					v = msg[0];
 				}
+				return v;
 			});
 			
+			r.messages = ["<h4 style='color:red'>Import Failed!</h4>"]
+				.concat(r.messages);
+				
+			write_messages(r);
+		},
+		callback: function(r) {
+			// replace links if error has occured
+			r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
+				concat(r.messages)
+			
+			write_messages(r);
 		}
 	});
 	
@@ -169,4 +181,8 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			$('#dit-output').empty();
 			$(wrapper).find(".dit-progress-area").toggle(true);
 		});
+}
+
+wn.pages['data-import-tool'].onshow = function(wrapper) { 
+	wrapper.set_route_options && wrapper.set_route_options();
 }

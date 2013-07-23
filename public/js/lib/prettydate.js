@@ -25,7 +25,7 @@ function prettyDate(time){
 		day_diff < 7 && day_diff + " days ago" ||
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago" ||
 		day_diff < 365 && Math.ceil( day_diff / 30) + " months ago" ||
-		"more than " + Math.floor( day_diff / 365 ) + " year(s) ago";
+		"> " + Math.floor( day_diff / 365 ) + " year(s) ago";
 }
 
 // If jQuery is included in the page, adds a jQuery plugin to handle it as well

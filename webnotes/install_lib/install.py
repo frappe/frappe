@@ -79,7 +79,7 @@ class Installer:
 		source_given = True
 		if not source_path:
 			source_given = False
-			source_path = os.path.join(os.path.sep.join(os.path.abspath(webnotes.__file__).split(os.path.sep)[:-3]), 'data', 'Framework.sql')
+			source_path = os.path.join(os.path.dirname(webnotes.__file__), "..", 'conf', 'Framework.sql')
 
 		self.dbman.restore_database(target, source_path, target, conf.db_password)
 		if verbose: print "Imported from database %s" % source_path
@@ -104,6 +104,7 @@ class Installer:
 		self.import_core_docs()
 		install.pre_import()
 		sync_for("app", force=True, sync_everything=True)
+
 		print "Completing App Import..."
 		install.post_import()
 		print "Updating patches..."
@@ -169,7 +170,8 @@ class Installer:
 		webnotes.conn.commit()
 
 	def create_auth_table(self):
-		webnotes.conn.sql("""create table if not exists __Auth (
+		webnotes.conn.sql("""drop table if exists __Auth""")
+		webnotes.conn.sql("""create table __Auth (
 		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 		`password` VARCHAR(180) NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")

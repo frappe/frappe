@@ -248,18 +248,6 @@ def runquery(q='', ret=0, from_export=0):
 	# run server script
 	# -----------------
 	style, header_html, footer_html, page_template = '', '', '', ''
-	if webnotes.form_dict.get('sc_id'):
-		sc_id = webnotes.form_dict.get('sc_id')
-		from webnotes.model.code import get_code
-		sc_details = webnotes.conn.sql("select module, standard, server_script from `tabSearch Criteria` where name=%s", sc_id)[0]
-		if sc_details[1]!='No':
-			code = get_code(sc_details[0], 'Search Criteria', sc_id, 'py')
-		else:
-			code = sc_details[2]
-
-		if code:
-			filter_values = eval(webnotes.form_dict.get('filter_values','')) or {}
-			res, style, header_html, footer_html, page_template = exec_report(code, res, colnames, colwidths, coltypes, coloptions, filter_values, q, from_export)
 
 	out['colnames'] = colnames
 	out['coltypes'] = coltypes

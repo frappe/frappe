@@ -17,7 +17,7 @@ wn.views.pageview = {
 		if((locals.Page && locals.Page[name]) || name==window.page_name) {
 			// already loaded
 			callback();
-		} if(localStorage["_page:" + name]) {
+		} else if(localStorage["_page:" + name]) {
 			// cached in local storage
 			wn.model.sync(JSON.parse(localStorage["_page:" + name]));
 			callback();
@@ -64,7 +64,8 @@ wn.views.Page = Class.extend({
 			this.wrapper.page_name = this.pagedoc.name;
 		
 			// set content, script and style
-			this.wrapper.innerHTML = this.pagedoc.content;
+			if(this.pagedoc.content)
+				this.wrapper.innerHTML = this.pagedoc.content;
 			wn.dom.eval(this.pagedoc.__script || this.pagedoc.script || '');
 			wn.dom.set_style(this.pagedoc.style || '');
 		}
@@ -80,14 +81,10 @@ wn.views.Page = Class.extend({
 	},
 	trigger: function(eventname) {
 		var me = this;
-		try {
-			if(pscript[eventname+'_'+this.name]) {
-				pscript[eventname+'_'+this.name](me.wrapper);				
-			} else if(me.wrapper[eventname]) {
-				me.wrapper[eventname](me.wrapper);
-			}
-		} catch(e) { 
-			console.log(e); 
+		if(pscript[eventname+'_'+this.name]) {
+			pscript[eventname+'_'+this.name](me.wrapper);				
+		} else if(me.wrapper[eventname]) {
+			me.wrapper[eventname](me.wrapper);
 		}
 	}
 })
@@ -95,7 +92,7 @@ wn.views.Page = Class.extend({
 
 wn.standard_pages["404"] = function() {
 	var page = wn.container.add_page('404');
-	$(page).html('<div class="layout-wrapper">\
+	$(page).html('<div class="appframe col col-lg-12">\
 		<h3><i class="icon-exclamation-sign"></i> '+wn._('Not Found')+'</h3><br>\
 		<p>'+wn._('Sorry we were unable to find what you were looking for.')+'</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
@@ -104,7 +101,7 @@ wn.standard_pages["404"] = function() {
 
 wn.standard_pages["403"] = function() {
 	var page = wn.container.add_page('403');
-	$(page).html('<div class="layout-wrapper">\
+	$(page).html('<div class="appframe col col-lg-12">\
 		<h3><i class="icon-minus-sign"></i> '+wn._('Not Permitted')+'</h3><br>\
 		<p>'+wn._('Sorry you are not permitted to view this page.')+'.</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\

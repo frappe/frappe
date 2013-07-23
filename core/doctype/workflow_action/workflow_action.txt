@@ -1,46 +1,47 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2012-12-28 10:49:56", 
+  "docstatus": 0, 
+  "modified": "2013-07-05 15:03:56", 
   "modified_by": "Administrator", 
-  "modified": "2012-12-28 11:34:48"
+  "owner": "Administrator"
  }, 
  {
   "autoname": "field:workflow_action_name", 
   "description": "Workflow Action Master", 
   "doctype": "DocType", 
+  "icon": "icon-flag", 
   "module": "Core", 
   "name": "__common__"
  }, 
  {
-  "parent": "Workflow Action", 
   "doctype": "DocField", 
-  "reqd": 1, 
-  "name": "__common__", 
-  "label": "Workflow Action Name", 
-  "parenttype": "DocType", 
   "fieldname": "workflow_action_name", 
   "fieldtype": "Data", 
+  "label": "Workflow Action Name", 
+  "name": "__common__", 
+  "parent": "Workflow Action", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
   "permlevel": 0, 
-  "parentfield": "fields"
+  "reqd": 1
  }, 
  {
-  "parent": "Workflow Action", 
-  "read": 1, 
   "cancel": 1, 
-  "name": "__common__", 
   "create": 1, 
   "doctype": "DocPerm", 
-  "write": 1, 
+  "name": "__common__", 
+  "parent": "Workflow Action", 
+  "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "role": "System Manager", 
   "permlevel": 0, 
-  "parentfield": "permissions"
+  "read": 1, 
+  "role": "System Manager", 
+  "write": 1
  }, 
  {
-  "name": "Workflow Action", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Workflow Action"
  }, 
  {
   "doctype": "DocField"

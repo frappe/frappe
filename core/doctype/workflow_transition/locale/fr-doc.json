@@ -1,9 +1,0 @@
-{
- "Action": "Action", 
- "Allowed": "Permis", 
- "Core": "C\u0153ur", 
- "Defines actions on states and the next step and allowed roles.": "D\u00e9finit les actions sur les \u00c9tats et l&#39;\u00e9tape suivante et r\u00f4les autoris\u00e9s.", 
- "Next State": "\u00c9tat Suivante", 
- "State": "\u00c9tat", 
- "Workflow Transition": "Transition de workflow"
-}

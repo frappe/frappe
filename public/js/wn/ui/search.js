@@ -17,8 +17,11 @@ wn.ui.Search = Class.extend({
 			title: this.doctype + ' Search',
 			width: 500
 		});
+		var parent = $('<div class="row"><div class="col col-lg-12"></div></div>')
+			.appendTo(this.dialog.body)
+			.find(".col-lg-12")
 		this.list = new wn.ui.Listing({
-			parent: $(this.dialog.body),
+			parent: parent,
 			appframe: this.dialog.appframe,
 			new_doctype: this.doctype,
 			doctype: this.doctype,
@@ -35,7 +38,7 @@ wn.ui.Search = Class.extend({
 				} else {
 					return {
 						doctype: me.doctype,
-						fields: [ '`tab' + me.doctype + '`.name'],
+						fields: me.get_fields(),
 						filters: me.list.filter_list.get_filters(),
 						docstatus: ['0','1']
 					}
@@ -54,6 +57,16 @@ wn.ui.Search = Class.extend({
 							wn.set_route('Form', me.doctype, val);
 						return false;
 					});
+					
+				// other values
+				$.each(data, function(key, value) {
+					if(key!=="name") {
+						$("<span>")
+							.html(value)
+							.css({"margin-left": "15px", "display": "block"})
+							.appendTo(parent);
+					}
+				})
 				if(this.data.length==1) {
 					$ln.click();
 				}
@@ -61,5 +74,17 @@ wn.ui.Search = Class.extend({
 		});
 		this.list.filter_list.add_filter(this.doctype, 'name', 'like');
 		this.list.run();
+	},
+	get_fields: function() {
+		var me = this;
+		var fields = [ '`tab' + me.doctype + '`.name'];
+		$.each((wn.model.get("DocType", me.doctype)[0].search_fields || "").split(","), 
+			function(i, field) {
+				if(strip(field)) {
+					fields.push('`tab' + me.doctype + '`.' + strip(field));
+				}
+			}
+		)
+		return fields;
 	}
 })

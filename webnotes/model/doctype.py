@@ -33,11 +33,11 @@ Get metadata (main doctype with fields and permissions with all table doctypes)
 from __future__ import unicode_literals
 
 # imports
-import conf
 import webnotes
 import webnotes.model
 import webnotes.model.doc
 import webnotes.model.doclist
+from webnotes.utils import cint
 
 doctype_cache = {}
 docfield_types = None
@@ -48,7 +48,6 @@ def get(doctype, processed=False, cached=True):
 		doclist = from_cache(doctype, processed)
 		if doclist: 
 			if processed:
-				add_linked_with(doclist)
 				update_language(doclist)
 			return DocTypeDocList(doclist)
 	
@@ -70,19 +69,13 @@ def get(doctype, processed=False, cached=True):
 		add_print_formats(doclist)
 		add_search_fields(doclist)
 		add_workflows(doclist)
-
-	# add validators
-	#add_validators(doctype, doclist)
+		add_linked_with(doclist)
 	
-	# add precision
-	add_precision(doctype, doclist)
-
 	to_cache(doctype, processed, doclist)
 
 	if processed:
-		add_linked_with(doclist)
 		update_language(doclist)
-		
+
 	return DocTypeDocList(doclist)
 
 def load_docfield_types():
@@ -146,7 +139,6 @@ def sort_fields(doclist):
 	doclist.get({"doctype":["!=", "DocField"]}).extend(newlist)
 			
 def apply_property_setters(doctype, doclist):		
-	from webnotes.utils import cint
 	for ps in webnotes.conn.sql("""select * from `tabProperty Setter` where
 		doc_type=%s""", doctype, as_dict=1):
 		if ps['doctype_or_field']=='DocType':
@@ -192,11 +184,30 @@ def add_linked_with(doclist):
 	links = webnotes.conn.sql("""select parent, fieldname from tabDocField
 		where (fieldtype="Link" and options=%s)
 		or (fieldtype="Select" and options=%s)""", (doctype, "link:"+ doctype))
-	links += webnotes.conn.sql("""select dt, fieldname from `tabCustom Field`
+	links += webnotes.conn.sql("""select dt as parent, fieldname from `tabCustom Field`
 		where (fieldtype="Link" and options=%s)
 		or (fieldtype="Select" and options=%s)""", (doctype, "link:"+ doctype))
+
+	links = dict(links)
+
+	if not links: 
+		return {}
+
+	ret = {}
+
+	for dt in links:
+		ret[dt] = { "fieldname": links[dt] }
+
+	for grand_parent, options in webnotes.conn.sql("""select parent, options from tabDocField 
+		where fieldtype="Table" 
+			and options in (select name from tabDocType 
+				where istable=1 and name in (%s))""" % ", ".join(["%s"] * len(links)) ,tuple(links)):
+
+		ret[grand_parent] = {"child_doctype": options, "fieldname": links[options] }
+		if options in ret:
+			del ret[options]
 		
-	doclist[0].fields["__linked_with"] = dict(list(set(links)))
+	doclist[0].fields["__linked_with"] = ret
 
 def from_cache(doctype, processed):
 	""" load doclist from cache.
@@ -210,7 +221,6 @@ def from_cache(doctype, processed):
 
 	doclist = webnotes.cache().get_value(cache_name(doctype, processed))
 	if doclist:
-		import json
 		from webnotes.model.doclist import DocList
 		doclist = DocList([webnotes.model.doc.Document(fielddata=d)
 				for d in doclist])
@@ -219,9 +229,7 @@ def from_cache(doctype, processed):
 
 def to_cache(doctype, processed, doclist):
 	global doctype_cache
-	import json
-	from webnotes.handler import json_handler
-	
+
 	webnotes.cache().set_value(cache_name(doctype, processed), 
 		[d.fields for d in doclist])
 
@@ -259,7 +267,7 @@ def clear_cache(doctype=None):
 			clear_single(dt[0])
 
 def add_code(doctype, doclist):
-	import os, conf
+	import os
 	from webnotes.modules import scrub, get_module_path
 	
 	doc = doclist[0]
@@ -287,14 +295,14 @@ def add_embedded_js(doc):
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	doc.fields['__js'] = (doc.fields.get('__js') or '') + '\n' + custom	
+	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
 	
 	def _sub(match):
 		fpath = os.path.join(os.path.dirname(conf.__file__), \
 			re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
-				return '\n' + f.read() + '\n'
+				return '\n' + unicode(f.read(), "utf-8") + '\n'
 		else:
 			return '\n// no file "%s" found \n' % fpath
 	
@@ -370,15 +378,6 @@ def update_language(doclist):
 			messages[webnotes.lang] = webnotes._dict({})
 		messages[webnotes.lang].update(_messages)
 
-def add_precision(doctype, doclist):
-	type_precision_map = {
-		"Currency": 2,
-		"Float": 6
-	}
-	for df in doclist.get({"doctype": "DocField", 
-			"fieldtype": ["in", type_precision_map.keys()]}):
-		df.precision = type_precision_map[df.fieldtype]
-
 class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_field(self, fieldname, parent=None, parentfield=None):
 		filters = {"doctype":"DocField"}
@@ -414,19 +413,6 @@ class DocTypeDocList(webnotes.model.doclist.DocList):
 		
 	def get_table_fields(self):
 		return self.get({"doctype": "DocField", "fieldtype": "Table"})
-		
-	def get_precision_map(self, parent=None, parentfield=None):
-		"""get a map of fields of type 'currency' or 'float' with precision values"""
-		filters = {"doctype": "DocField", "fieldtype": ["in", ["Currency", "Float"]]}
-		if parentfield:
-			parent = self.get_options(parentfield)
-		if parent:
-			filters["parent"] = parent
-		else:
-			filters["parent"] = self[0].name
-		
-		from webnotes import _dict
-		return _dict((f.fieldname, f.precision) for f in self.get(filters))
 		
 	def get_parent_doclist(self):
 		return webnotes.doclist([self[0]] + self.get({"parent": self[0].name}))

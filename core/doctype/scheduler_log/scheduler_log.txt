@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-16 13:09:40", 
   "docstatus": 0, 
-  "modified": "2013-05-15 12:08:15", 
+  "modified": "2013-07-05 14:54:45", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -11,6 +11,7 @@
   "description": "Log of Scheduler Errors", 
   "doctype": "DocType", 
   "document_type": "System", 
+  "icon": "icon-warning-sign", 
   "module": "Core", 
   "name": "__common__"
  }, 

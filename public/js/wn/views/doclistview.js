@@ -4,75 +4,72 @@
 wn.provide('wn.views.doclistview');
 wn.provide('wn.doclistviews');
 
-wn.views.doclistview.show = function(doctype) {
-	var route = wn.get_route();
-	var page_name = "List/" + route[1];
-	if(wn.pages[page_name]) {
-		wn.container.change_to(wn.pages[page_name]);
-		if(wn.container.page.doclistview)
-			wn.container.page.doclistview.run();
-	} else {
-		if(route[1]) {
-			wn.model.with_doctype(route[1], function(r) {
-				if(r && r['403']) {
-					return;
-				}
-				new wn.views.DocListView(route[1]);
+wn.views.ListFactory = wn.views.Factory.extend({
+	make: function(route) {
+		var me = this;
+		wn.model.with_doctype(route[1], function() {
+			new wn.views.DocListView({
+				doctype: route[1], 
+				page: me.make_page(true)
 			});
-		}
+		});
 	}
-}
+});
+
+$(document).on("save", function(event, doc) {
+	var list_page = "List/" + doc.doctype;
+	if(wn.pages[list_page]) {
+		if(wn.pages[list_page].doclistview)
+			wn.pages[list_page].doclistview.dirty = true;
+	}
+})
 
 wn.views.DocListView = wn.ui.Listing.extend({
-	init: function(doctype) {
-		this.doctype = doctype;
-		this.label = wn._(doctype);
+	init: function(opts) {
+		$.extend(this, opts)
+		this.label = wn._(this.doctype);
+		this.dirty = true;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	wn._(this.label) : (wn._(this.label) + ' ' + wn._('List'));
 		this.make_page();
 		this.setup();
+		
+		var me = this;
+		$(this.page).on("show", function() {
+			me.refresh();
+		});
 	},
 	
 	make_page: function() {
 		var me = this;
-		var page_name = "List/" + this.doctype;
-		var page = wn.container.add_page(page_name);
-		wn.container.change_to(page_name);
-		page.doclistview = this;
-		this.$page = $(page);
+		this.page.doclistview = this;
+		this.$page = $(this.page).css({"min-height": "400px"});
 
 		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
-		
-		this.$page.html('<div class="layout-wrapper layout-wrapper-background">\
-			<div class="appframe-area"></div>\
-			<div class="layout-main-section">\
-				<div class="wnlist-area" style="margin-top: -15px;">\
-					<div class="help">'+wn._('Loading')+'...</div></div>\
-			</div>\
-			<div class="layout-side-section">\
-				<div class="show-docstatus hide section">\
-					<div class="section-head">Show</div>\
-					<div><input data-docstatus="0" type="checkbox" \
-						checked="checked" /> '+wn._('Drafts')+'</div>\
-					<div><input data-docstatus="1" type="checkbox" \
-						checked="checked" /> '+wn._('Submitted')+'</div>\
-					<div><input data-docstatus="2" type="checkbox" \
-						/> '+wn._('Cancelled')+'</div>\
-				</div>\
-			</div>\
-			<div style="clear: both"></div>\
-		</div>');
 				
-		this.appframe = new wn.ui.AppFrame(this.$page.find('.appframe-area'));
+		$('<div class="wnlist-area" style="margin-bottom: 25px;">\
+			<div class="help">'+wn._('Loading')+'...</div></div>')
+			.appendTo(this.$page.find(".layout-main-section"));
+			
+		$('<div class="show-docstatus hide section">\
+			<div class="section-head">Show</div>\
+			<div><input data-docstatus="0" type="checkbox" \
+				checked="checked" /> '+wn._('Drafts')+'</div>\
+			<div><input data-docstatus="1" type="checkbox" \
+				checked="checked" /> '+wn._('Submitted')+'</div>\
+			<div><input data-docstatus="2" type="checkbox" \
+				/> '+wn._('Cancelled')+'</div>\
+		</div>')
+			.appendTo(this.$page.find(".layout-side-section"));
+								
+		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		
 		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
-		this.appframe.add_home_breadcrumb();
-		this.appframe.add_module_breadcrumb(module);
-		this.appframe.add_breadcrumb("icon-list");
+		this.appframe.add_module_icon(module, this.doctype);
 		this.appframe.set_views_for(this.doctype, "list");
 	},
-
+	
 	setup: function() {
 		var me = this;
 		me.can_delete = wn.model.can_delete(me.doctype);
@@ -152,13 +149,33 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		// make_new_doc can be overridden so that default values can be prefilled
 		// for example - communication list in customer
 		$(this.wrapper).on("click", 'button[list_view_doc="'+me.doctype+'"]', function(){
-			(me.listview.make_new_doc || me.make_new_doc)(me.doctype);
+			(me.listview.make_new_doc || me.make_new_doc).apply(me, [me.doctype]);
 		});
 		
-		if((auto_run !== false) && (auto_run !== 0)) this.run();
+		if((auto_run !== false) && (auto_run !== 0)) 
+			this.refresh();
 	},
 	
-	run: function(arg0, arg1) {
+	refresh: function() {
+		var me = this;
+		if(wn.route_options) {
+			me.filter_list.clear_filters();
+			$.each(wn.route_options, function(key, value) {
+				me.filter_list.add_filter(me.doctype, key, "=", value);
+			});
+			wn.route_options = null;
+			me.run();
+		} else if(me.dirty) {
+			me.run();
+		} else {
+			if(new Date() - (me.last_updated_on || 0) > 30000) {
+				// older than 5 mins, refresh
+				me.run();
+			}
+		}
+	},
+	
+	run: function(more) {
 		// set filter from route
 		var route = wn.get_route();
 		var me = this;
@@ -167,12 +184,13 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				me.set_filter(key, val, true);
 			});
 		}
-		this._super(arg0, arg1);
+		this.last_updated_on = new Date();
+		this._super(more);
 	},
 	
 	make_no_result: function() {
 		var new_button = wn.boot.profile.can_create.indexOf(this.doctype)!=-1
-			? ('<hr><p><button class="btn btn-info" \
+			? ('<hr><p><button class="btn btn-primary" \
 				list_view_doc="%(doctype)s">'+
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
@@ -185,10 +203,6 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		return no_result_message;
 	},
 	render_row: function(row, data) {
-		$(row).css({
-			"margin-left": "-15px",
-			"margin-right": "-15px"
-		});
 		data.doctype = this.doctype;
 		this.listview.render(row, data, this);
 	},
@@ -197,7 +211,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			function(inp) { 
 				return $(inp).attr('data-docstatus'); 
 			}) : []
-		
+				
 		var args = {
 			doctype: this.doctype,
 			fields: this.listview.fields,
@@ -219,9 +233,24 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.add_button(wn._('Delete'), function() { me.delete_items(); }, 'icon-remove');
 			this.add_button(wn._('Select All'), function() { 
-				var checks = me.$page.find('.list-delete');
-				checks.attr('checked', $(checks.get(0)).attr('checked') ? false : "checked");
+				me.$page.find('.list-delete').prop("checked", 
+					me.$page.find('.list-delete:checked').length ? false : true);
 			}, 'icon-ok');
+		}
+		if(in_list(user_roles, "System Manager")) {
+			var meta = locals.DocType[this.doctype];
+			if(meta.allow_import || meta.document_type==="Master") {
+				this.add_button(wn._("Import"), function() {
+					wn.set_route("data-import-tool", {
+						doctype: me.doctype
+					})
+				}, "icon-upload")
+			};
+			this.add_button(wn._("Customize"), function() {
+				wn.set_route("Form", "Customize Form", {
+					doctype: me.doctype
+				})
+			}, "icon-glass");
 		}
 	},
 	get_checked_items: function() {
@@ -246,6 +275,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 					},
 					callback: function() {
 						me.set_working(false);
+						me.dirty = true;
 						me.refresh();
 					}
 				})				
@@ -266,7 +296,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	set_filter: function(fieldname, label, no_run) {
 		var filter = this.filter_list.get_filter(fieldname);
 		if(filter) {
-			var v = cstr(filter.field.get_value());
+			var v = cstr(filter.field.get_parsed_value());
 			if(v.indexOf(label)!=-1) {
 				// already set
 				return false;

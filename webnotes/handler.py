@@ -73,28 +73,6 @@ def web_logout():
 		<p><a href='index'>Back to Home</a></p>""")
 	webnotes.login_manager.logout()
 
-
-@webnotes.whitelist()
-def dt_map():
-	import webnotes
-	import webnotes.model.utils
-	from webnotes.model.code import get_obj
-	from webnotes.model.doc import Document
-	from webnotes.model.bean import Bean
-	
-	form_dict = webnotes.form_dict
-	
-	dt_list = webnotes.model.utils.expand(form_dict.get('docs'))
-	from_doctype = form_dict.get('from_doctype')
-	to_doctype = form_dict.get('to_doctype')
-	from_docname = form_dict.get('from_docname')
-	from_to_list = form_dict.get('from_to_list')
-	
-	dm = get_obj('DocType Mapper', from_doctype +'-' + to_doctype)
-	dl = dm.dt_map(from_doctype, to_doctype, from_docname, Document(fielddata = dt_list[0]), (len(dt_list) > 1) and Bean(dt_list).doclist or [], from_to_list)
-	
-	webnotes.response['docs'] = dl
-
 @webnotes.whitelist()
 def uploadfile():
 	import webnotes.utils
@@ -153,7 +131,12 @@ def handle():
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
-			webnotes.errprint(e)
+			webnotes.errprint(webnotes.utils.getTraceback())
+			if webnotes.request_method == "POST":
+				webnotes.conn.rollback()
+		except webnotes.PermissionError, e:
+			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.response['403'] = 1
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except:

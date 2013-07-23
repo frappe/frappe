@@ -1,22 +1,24 @@
 cur_frm.cscript.onload = function(doc) {
 	cur_frm.fields_dict.user.get_query = function() {
-		return "select name, concat_ws(' ', first_name, middle_name, last_name) \
-			from `tabProfile` where ifnull(enabled, 0)=1 and docstatus < 2 and \
-			(%(key)s like \"%s\" or \
-			concat_ws(' ', first_name, middle_name, last_name) like \"%%%s\") \
-			limit 50";
+		return {
+			query: "core.doctype.communication.communication.get_user"
+		}
 	};
 	
 	cur_frm.fields_dict.lead.get_query = function() {
-		return "select name, lead_name from `tabLead` \
-			where docstatus < 2 and \
-			(%(key)s like \"%s\" or lead_name like \"%%%s\" or \
-			company_name like \"%%%s\") \
-			order by lead_name asc limit 50";
+		return {
+			query: "core.doctype.communication.communication.get_user"
+		}
 	};
 	
-	cur_frm.fields_dict.customer.get_query = erpnext.utils.customer_query;
-	cur_frm.fields_dict.supplier.get_query = erpnext.utils.supplier_query;
+	cur_frm.fields_dict.customer.get_query = function(doc,cdt,cdn) {
+		return{	query:"controllers.queries.customer_query" } }
+
+	cur_frm.fields_dict.supplier.get_query = function(doc,cdt,cdn) {
+		return{ query:"controllers.queries.supplier_query" } }
+	
+	if(doc.content)
+		doc.content = wn.utils.escape_script_and_style(doc.content);
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {

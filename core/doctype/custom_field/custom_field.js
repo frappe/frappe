@@ -55,10 +55,12 @@ cur_frm.cscript.label = function(doc){
 
 
 cur_frm.fields_dict['dt'].get_query = function(doc, dt, dn) {
-	return 'SELECT name FROM `tabDocType` \
-	WHERE IFNULL(issingle,0)=0 AND \
-	module != "Core" AND \
-	name LIKE "%s%%" ORDER BY name ASC LIMIT 50';
+	return{
+		filters:[
+			['DocType', 'issingle', '=', 0],
+			['DocType', 'module', '!=', 'Core']
+		]
+	}
 }
 
 cur_frm.cscript.fieldtype = function(doc, dt, dn) {

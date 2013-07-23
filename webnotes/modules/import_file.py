@@ -25,25 +25,24 @@ from __future__ import unicode_literals
 import webnotes, os
 from webnotes.modules import scrub, get_module_path, scrub_dt_dn
 
-in_import = False
-
 def import_files(module, dt=None, dn=None, force=False):
 	if type(module) is list:
+		out = []
 		for m in module:
-			return import_file(m[0], m[1], m[2], force)
+			out.append(import_file(m[0], m[1], m[2], force))
+		return out
 	else:
 		return import_file(module, dt, dn, force)
 		
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
-	global in_import
-	in_import = True
+	webnotes.in_import = True
 	dt, dn = scrub_dt_dn(dt, dn)
 	path = os.path.join(get_module_path(module), 
 		os.path.join(dt, dn, dn + '.txt'))
 		
 	ret = import_file_by_path(path, force)
-	in_import = False
+	webnotes.in_import = False
 	return ret
 
 def import_file_by_path(path, force=False):
@@ -52,20 +51,24 @@ def import_file_by_path(path, force=False):
 		
 		with open(path, 'r') as f:
 			doclist = peval_doclist(f.read())
-					
+		
 		if doclist:
 			doc = doclist[0]
+			
 			if not force:
 				# check if timestamps match
-				if doc['modified']== str(webnotes.conn.get_value(doc['doctype'], doc['name'], 'modified')):
+				if doc['modified']==str(webnotes.conn.get_value(doc['doctype'], doc['name'], 'modified')):
 					return False
+			
+			original_modified = doc["modified"]
 			
 			import_doclist(doclist)
 
 			# since there is a new timestamp on the file, update timestamp in
 			webnotes.conn.sql("update `tab%s` set modified=%s where name=%s" % \
 				(doc['doctype'], '%s', '%s'), 
-				(doc['modified'],doc['name']))
+				(original_modified, doc['name']))
+
 			return True
 	else:
 		raise Exception, '%s missing' % path
@@ -89,7 +92,7 @@ def import_doclist(doclist):
 			old_doc = webnotes.doc(doctype, name)
 
 	# delete old
-	webnotes.delete_doc(doctype, name, force=1, ignore_doctypes =ignore, for_reload=True)
+	webnotes.delete_doc(doctype, name, force=1, ignore_doctypes=ignore, for_reload=True)
 	
 	# don't overwrite ignored docs
 	doclist1 = remove_ignored_docs_if_they_already_exist(doclist, ignore, name)
@@ -103,6 +106,8 @@ def import_doclist(doclist):
 	new_bean.ignore_children_type = ignore
 	new_bean.ignore_check_links = True
 	new_bean.ignore_validate = True
+	new_bean.ignore_permissions = True
+	new_bean.ignore_mandatory = True
 	
 	if doctype=="DocType" and name in ["DocField", "DocType"]:
 		new_bean.ignore_fields = True

@@ -263,18 +263,18 @@ wn.PermissionEngine = Class.extend({
 			$("<td>-</td>").appendTo(row);
 			return;
 		}
-		var btn = $("<button class='btn btn-small'></button>")
+		var btn = $("<button class='btn btn-default btn-small'></button>")
 			.html(d.match ? d.match : wn._("For All Users"))
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.click(function() {
 				me.show_match_manager($(this).attr("data-name"));
 			});
-		if(d.match) btn.addClass("btn-inverse");
+		if(d.match) btn.addClass("btn-info");
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-small'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-default btn-small'><i class='icon-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-doctype", d.parent)
@@ -315,7 +315,7 @@ wn.PermissionEngine = Class.extend({
 				callback: function(r) {
 					if(r.exc) {
 						// exception: reverse
-						chk.attr("checked", chk.is(":checked") ? null : "checked");
+						chk.get(0).checked = !chk.is(":checked");
 					} else {
 						me.get_perm(args.name)[args.ptype]=args.value; 
 					}
@@ -325,7 +325,7 @@ wn.PermissionEngine = Class.extend({
 	},
 	show_add_rule: function() {
 		var me = this;
-		$("<button class='btn btn-info'>"+wn._("Add A New Rule")+"</button>")
+		$("<button class='btn btn-default btn-info'>"+wn._("Add A New Rule")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new wn.ui.Dialog({
@@ -410,7 +410,7 @@ wn.PermissionEngine = Class.extend({
 			});
 			
 			// button
-			$("<button class='btn btn-info'>Update</button>")
+			$("<button class='btn btn-default btn-info'>Update</button>")
 				.appendTo($("<p>").appendTo(dialog.body))
 				.attr("data-name", perm.name)
 				.click(function() {

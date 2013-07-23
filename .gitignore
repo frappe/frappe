@@ -2,8 +2,5 @@
 *.py~
 *.comp.js
 *.DS_Store
-user_files
-logs
-defs.py
-.project
-.pydevproject
+locale
+.wnf-lang-status

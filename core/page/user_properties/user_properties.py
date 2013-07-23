@@ -45,3 +45,7 @@ def remove(user, name):
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def add(parent, defkey, defvalue):
 	webnotes.defaults.add_user_default(defkey, defvalue, parent)
+	
+def get_defvalue(doctype, txt, searchfield, start, page_len, filters):
+	return webnotes.conn.sql("""select name from `tab%s` where name like %s limit 20""" % 
+		(filters.get("doctype"), "%s"), "%s%%" % (txt,))

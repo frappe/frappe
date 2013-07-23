@@ -29,6 +29,7 @@ Syncs a database table to the `DocType` (metadata)
 """
 import os
 import webnotes
+from webnotes.utils import cstr
 
 type_map = {
 	'currency':		('decimal', '18,6')
@@ -212,7 +213,7 @@ class DbTable:
 					webnotes.conn.sql("alter table `%s` drop index `%s`" % (self.name, col.fieldname))
 
 		for col in self.set_default:
-			webnotes.conn.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), col.default)
+			webnotes.conn.sql("alter table `%s` alter column `%s` set default %s" % (self.name, col.fieldname, '%s'), (col.default,))
 
 class DbColumn:
 	def __init__(self, table, fieldname, fieldtype, length, default, set_index, options):
@@ -264,7 +265,7 @@ class DbColumn:
 				self.table.add_index.append(self)
 		
 		# default
-		if (self.default and self.default_changed(current_def) and (self.default not in default_shortcuts) and not self.default.startswith(":") and not (column_def in ['text','blob'])):
+		if (self.default_changed(current_def) and (self.default not in default_shortcuts) and not cstr(self.default).startswith(":") and not (column_def in ['text','blob'])):
 			self.table.set_default.append(self)
 
 

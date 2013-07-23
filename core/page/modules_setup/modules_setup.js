@@ -7,7 +7,7 @@ wn.pages['modules_setup'].onload = function(wrapper) {
 	});
 	
 	wrapper.appframe.add_button("Update", function() {
-		wn.modules_setup.update();
+		wn.modules_setup.update(this);
 	})
 	
 	$('<div class="alert">Select modules to be shown.</div>').appendTo($(wrapper).find(".layout-main"));
@@ -30,7 +30,7 @@ wn.modules_setup = {
 			}
 		});
 	},
-	update: function() {
+	update: function(btn) {
 		var ml = [];
 		$('#modules-list [data-module]:checkbox:not(:checked)').each(function() {
 			ml.push($(this).attr('data-module'));
@@ -44,7 +44,7 @@ wn.modules_setup = {
 			callback: function(r) {
 				if(r.exc) msgprint("There were errors.")
 			},
-			btn: this
+			btn: btn
 		});
 	}
 	

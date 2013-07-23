@@ -57,6 +57,11 @@ def get_bootinfo():
 	# home page
 	bootinfo.modules = webnotes.get_config().modules
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
+	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
+		tabDocType where ifnull(icon,'')!=''"""))
+	bootinfo.doctype_icons.update(dict(webnotes.conn.sql("""select name, icon from 
+		tabPage where ifnull(icon,'')!=''""")))
+
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
 	load_translations(bootinfo)
@@ -80,7 +85,7 @@ def get_bootinfo():
 	bootinfo['docs'] = compress(bootinfo['docs'])
 	
 	return bootinfo
-
+	
 def load_country_and_currency(bootinfo, doclist):
 	if bootinfo.control_panel.country and \
 		webnotes.conn.exists("Country", bootinfo.control_panel.country):
@@ -100,8 +105,8 @@ def load_translations(bootinfo):
 		return
 		
 	user_lang_pref = webnotes.conn.get_value("Profile", webnotes.session.user, "language")
-	if user_lang_pref and (user_lang_pref in lang_names):
-		webnotes.lang = lang_names[user_lang_pref]
+	if user_lang_pref and (user_lang_pref.lower() in lang_names):
+		webnotes.lang = lang_names[user_lang_pref.lower()]
 		webnotes.user_lang = True
 		
 	if webnotes.lang != 'en':

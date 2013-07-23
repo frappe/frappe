@@ -5,9 +5,20 @@ wn.utils = {
 		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) || (filename.indexOf("files/")!=-1)
 			? filename : 'files/' + filename;
 	},
+	is_html: function(txt) {
+		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 
+			&& txt.indexOf("<img")==-1 && txt.indexOf("<div")==-1) {
+			return false;
+		}
+		return true;
+	},
 	is_url: function(txt) {
 		return txt.toLowerCase().substr(0,7)=='http://'
 			|| txt.toLowerCase().substr(0,8)=='https://'
+	},
+	escape_script_and_style: function(txt) {
+		return (!txt || (txt.indexOf("<script>")===-1 && txt.indexOf("<style>")===-1)) ? txt :
+			"<pre>" + $("<div>").text(txt).html() + "</pre>";
 	},
 	filter_dict: function(dict, filters) {
 		var ret = [];
@@ -53,7 +64,7 @@ wn.utils = {
 	},
 	set_intro: function(me, wrapper, txt) {
 		if(!me.intro_area) {
-			me.intro_area = $('<div class="alert form-intro-area" style="margin-top: 20px;">')
+			me.intro_area = $('<div class="alert alert-info form-intro-area">')
 				.prependTo(wrapper);
 		}
 		if(txt) {
@@ -131,7 +142,7 @@ wn.utils = {
 		if(!text) 
 			return style;
 		if(has_words(["Open", "Pending"], text)) {
-			style = "important";
+			style = "danger";
 		} else if(has_words(["Closed", "Finished", "Converted", "Completed", "Confirmed", 
 			"Approved", "Yes", "Active"], text)) {
 			style = "success";
@@ -142,6 +153,9 @@ wn.utils = {
 	},
 	
 	sort: function(list, key, compare_type, reverse) {
+		if(list.length < 2)
+			return list;
+
 		var sort_fn = {
 			"string": function(a, b) {
 				return cstr(a[key]).localeCompare(cstr(b[key]));
@@ -150,6 +164,9 @@ wn.utils = {
 				return flt(a[key]) - flt(b[key]);
 			}
 		};
+				
+		if(!compare_type)
+		 	compare_type = typeof list[0][key]==="string" ? "string" : "number";
 		
 		list.sort(sort_fn[compare_type]);
 		
@@ -167,5 +184,9 @@ wn.utils = {
 			}
 		}
 		return arr;
+	},
+	
+	sum: function(list) {
+		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},
 };

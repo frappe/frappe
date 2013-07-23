@@ -141,7 +141,7 @@ def getvaluelist(doclist, fieldname):
 		l.append(d.fields[fieldname])
 	return l
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False):
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False, ignore_permissions=False):
 	"""
 		Deletes a doc(dt, dn) and validates if it is not submitted and not linked in a live record
 	"""
@@ -160,7 +160,8 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		return
 
 	if not for_reload:
-		check_permission_and_not_submitted(doctype, name)
+		check_permission_and_not_submitted(doctype, name, ignore_permissions)
+		
 		run_on_trash(doctype, name, doclist)
 		# check if links exist
 		if not force:
@@ -184,9 +185,9 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		
 	return 'okay'
 
-def check_permission_and_not_submitted(doctype, name):
+def check_permission_and_not_submitted(doctype, name, ignore_permissions=False):
 	# permission
-	if webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
+	if not ignore_permissions and webnotes.session.user!="Administrator" and not webnotes.has_permission(doctype, "cancel"):
 		webnotes.msgprint(_("User not allowed to delete."), raise_exception=True)
 
 	# check if submitted
@@ -212,23 +213,19 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 	"""
 	from webnotes.model.rename_doc import get_link_fields
 	link_fields = get_link_fields(dt)
-	link_fields = [[lf['parent'], lf['fieldname']] for lf in link_fields]
+	link_fields = [[lf['parent'], lf['fieldname'], lf['issingle']] for lf in link_fields]
 
-	for link_dt, link_field in link_fields:
-		item = webnotes.conn.get_value(link_dt, {link_field:dn}, ["name", "parent", "parenttype",
-			"docstatus"], as_dict=True)
+	for link_dt, link_field, issingle in link_fields:
+		if not issingle:
+			item = webnotes.conn.get_value(link_dt, {link_field:dn}, 
+				["name", "parent", "parenttype", "docstatus"], as_dict=True)
 		
-		if item and item.parent != dn and (method=="Delete" or 
-				(method=="Cancel" and item.docstatus==1)):
-			webnotes.msgprint(method + " " + _("Error") + ":"+\
-				("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % 
-				(item.parent or item.name, item.parent and item.parenttype or link_dt),
-				raise_exception=LinkExistsError)
-
-def round_floats_in_doc(doc, precision_map):
-	from webnotes.utils import flt
-	for fieldname, precision in precision_map.items():
-		doc.fields[fieldname] = flt(doc.fields.get(fieldname), precision)
+			if item and item.parent != dn and (method=="Delete" or 
+					(method=="Cancel" and item.docstatus==1)):
+				webnotes.msgprint(method + " " + _("Error") + ":"+\
+					("%s (%s) " % (dn, dt)) + _("is linked in") + (" %s (%s)") % 
+					(item.parent or item.name, item.parent and item.parenttype or link_dt),
+					raise_exception=LinkExistsError)
 
 def set_default(doc, key):
 	if not doc.is_default:
@@ -237,5 +234,3 @@ def set_default(doc, key):
 	webnotes.conn.sql("""update `tab%s` set `is_default`=0
 		where `%s`=%s and name!=%s""" % (doc.doctype, key, "%s", "%s"), 
 		(doc.fields.get(key), doc.name))
-		
-		

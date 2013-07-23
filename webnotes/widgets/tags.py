@@ -89,17 +89,8 @@ class DocTags:
 		"""returns tag for a particular item"""
 		return webnotes.conn.get_value(self.dt, dn, '_user_tags', ignore=1) or ''
 
-	def create(self, tag):
-		try:
-			webnotes.conn.sql("insert into tabTag(name) values (%s) on duplicate key ignore", tag)
-		except Exception, e:
-			if e.args[0]==1147:
-				self.setup_tag_master()
-				self.create(tag)
-
 	def add(self, dn, tag):
 		"""add a new user tag"""
-		self.create(tag)
 		tl = self.get_tags(dn).split(',')
 		if not tag in tl:
 			tl.append(tag)
@@ -134,13 +125,6 @@ class DocTags:
 				self.setup()
 				self.update(dn, tl)
 			else: raise e
-
-	def setup_tags(self):
-		"""creates the tabTag table if not exists"""
-		webnotes.conn.commit()
-		from webnotes.modules import reload_doc
-		reload_doc('core','doctype','tag')
-		webnotes.conn.begin()
 		
 	def setup(self):
 		"""adds the _user_tags column if not exists"""

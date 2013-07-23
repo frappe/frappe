@@ -21,9 +21,13 @@
 // 
 
 // default print style
-_p.def_print_style_body = "html, body, div, span, td { \
-		font-family: Arial, Helvetica; \
-		font-size: 9pt; \
+_p.def_print_style_body = "html, body, div, span, td, p { \
+		font-family: inherit; \
+		font-size: inherit; \
+	}\
+	.page-settings {\
+		font-family: Arial, Helvetica Neue, Sans;\
+		font-size: 9pt;\
 	}\
 	pre { margin:0; padding:0;}";
 
@@ -41,16 +45,19 @@ _p.def_print_style_other = "\n.simpletable, .noborder { \
 	}";
 
 _p.go = function(html) {
-	var d = document.createElement('div')
-	d.innerHTML = html
-	$(d).printElement();
+	var w = _p.preview(html);
+	w.print();
+	w.close();
 }
 
 _p.preview = function(html) {
-	var w = window.open('');
-	if(!w) return;
-	w.document.write(html)
-	w.document.close();
+	var w = window.open();
+	if(!w) {
+		msgprint(_("Please enable pop-ups"));
+		return;
+	}
+	w.document.write(html);
+	return w
 }
 
 
@@ -64,56 +71,46 @@ $.extend(_p, {
 	},
 	
 	make_dialog: function() {
-		// Prepare Dialog Box Layout		
-		var d = new Dialog(
-			360, // w
-			140, // h
-			'Print Formats', // title
-			[ // content
-				['HTML', 'Select'],
-				['Check', 'No Letterhead'],
-				['HTML', 'Buttons']				
-			]);
-		//d.widgets['No Letterhead'].checked = 1;
+		// Prepare Dialog Box Layout
+		var dialog = new wn.ui.Dialog({
+			title: "Print Formats",
+			fields: [
+				{fieldtype:"Select", label:"Print Format", fieldname:"print_format", reqd:1},
+				{fieldtype:"Check", label:"No Letter Head", fieldname:"no_letterhead"},
+				{fieldtype:"HTML", options: '<p style="text-align: right;">\
+					<button class="btn btn-primary btn-print">Print</button>\
+					<button class="btn btn-default btn-preview">Preview</button>\
+				</p>'},
+			]
+		})
 		
-		// Print Button
-		$btn(d.widgets.Buttons, 'Print', function() {
-				_p.build(
-					sel_val(cur_frm.print_sel), // fmtname
-					_p.go, // onload
-					d.widgets['No Letterhead'].checked // no_letterhead
-				);
-			},
-			{
-					cssFloat: 'right',
-					marginBottom: '16px',
-					marginLeft: '7px'
-			}, 'green');
+		dialog.$wrapper.find(".btn-print").click(function() {
+			var args = dialog.get_values();
+			_p.build(
+				args.print_format, // fmtname
+				_p.go, // onload
+				args.no_letterhead // no_letterhead
+			);
+		});
+
+		dialog.$wrapper.find(".btn-preview").click(function() {
+			var args = dialog.get_values();
+			_p.build(
+				args.print_format, // fmtname
+				_p.preview, // onload
+				args.no_letterhead // no_letterhead
+			);
+		});
 		
-		// Print Preview
-		$btn(d.widgets.Buttons, 'Preview', function() {
-				_p.build(
-					sel_val(cur_frm.print_sel), // fmtname
-					_p.preview, // onload
-					d.widgets['No Letterhead'].checked // no_letterhead
-				);
-			},
-			{
-				cssFloat: 'right',
-				marginBottom: '16px'
-			}, '');
-		
-		// Delete previous print format select list and Reload print format list from current form
-		d.onshow = function() {
-			var c = _p.dialog.widgets['Select'];
-			if(c.cur_sel && c.cur_sel.parentNode == c) {
-				c.removeChild(c.cur_sel);
-			}
-			c.appendChild(cur_frm.print_sel);
-			c.cur_sel = cur_frm.print_sel;	
+		dialog.onshow = function() {
+			var $print = dialog.fields_dict.print_format.$input;
+			$print.add_options(cur_frm.print_formats);
+			
+			if(cur_frm.$print_view_select && cur_frm.$print_view_select.val())
+				$print.val(cur_frm.$print_view_select.val());
 		}
-		
-		_p.dialog = d;
+				
+		_p.dialog = dialog;
 	},
 	
 	// Define formats dict
@@ -125,7 +122,7 @@ $.extend(_p, {
 			+ no_letterhead
 			+ only_body
 	*/
-	build: function(fmtname, onload, no_letterhead, only_body) {
+	build: function(fmtname, onload, no_letterhead, only_body, no_heading) {
 		if(!fmtname) {
 			fmtname= "Standard";
 		}
@@ -146,11 +143,12 @@ $.extend(_p, {
 		var doc = locals[cur_frm.doctype][cur_frm.docname];
 		if(args.fmtname == 'Standard') {
 			args.onload(_p.render({
-				body: _p.print_std(args.no_letterhead),
+				body: _p.print_std(args.no_letterhead, no_heading),
 				style: _p.print_style,
 				doc: doc,
 				title: doc.name,
 				no_letterhead: args.no_letterhead,
+				no_heading: no_heading,
 				only_body: args.only_body
 			}));
 		} else {
@@ -165,6 +163,7 @@ $.extend(_p, {
 				doc: doc,
 				title: doc.name,
 				no_letterhead: args.no_letterhead,
+				no_heading: no_heading,
 				only_body: args.only_body
 			}));			
 		}
@@ -174,10 +173,12 @@ $.extend(_p, {
 		var container = document.createElement('div');
 		var stat = '';
 		
-		// if draft/archived, show draft/archived banner
-		stat += _p.show_draft(args);		
-		stat += _p.show_archived(args);
-		stat += _p.show_cancelled(args);
+		if(!args.no_heading) {
+			// if draft/archived, show draft/archived banner
+			stat += _p.show_draft(args);		
+			stat += _p.show_archived(args);
+			stat += _p.show_cancelled(args);
+		}
 		
 		// Append args.body's content as a child of container
 		container.innerHTML = args.body;
@@ -352,24 +353,29 @@ $.extend(_p, {
 	
 	// called by _p.render for final render of print
 	render_final: function(style, stat, container, args) {
-		var header = '<div class="page-settings">\n';
-		var footer = '\n</div>';
 		if(!args.only_body) {
-			header = '<!DOCTYPE html>\
-<html>\n\
-	<head>\n\
+			var header = '<!DOCTYPE html>\
+<html>\
+	<head>\
 		<meta charset="utf-8" />\
-		<title>' + args.title + '</title>\n\
-		<style>' + style + '</style>\n\
+		<title>' + args.title + '</title>\
+		<style>' + style + '</style>\
 	</head>\
-	<body>\n' + header;
-			footer = footer + '\n</body>\n\
+	<body>';
+			var footer = '\
+	</body>\
 </html>';
+		} else {
+			var header = '';
+			var footer = '';
 		}
 		var finished =  header
+			+ '<div class="page-settings">'
 			+ stat
 			+ container.innerHTML
+			+ '</div>'
 			+ footer;
+			
 			
 		// replace relative links by absolute links
 		var prefix = window.location.href.split("app.html")[0]
@@ -423,7 +429,7 @@ $.extend(_p, {
 			margin: 8px 0px; \
 			}",
 	
-	print_std: function(no_letterhead) {
+	print_std: function(no_letterhead, no_heading) {
 		// Get doctype, docname, layout for a doctype
 		var docname = cur_frm.docname;
 		var doctype = cur_frm.doctype;
@@ -587,7 +593,9 @@ $.extend(_p, {
 			}
 		});
 		
-		this.build_head(data, doctype, docname);
+		if(!no_heading) {
+			this.build_head(data, doctype, docname);
+		}
 
 		this.build_data(data, doctype, docname);
 
@@ -670,6 +678,7 @@ $.extend(_p, {
 		row.insertCell(0);
 		row.insertCell(1);
 		row.cells[0].className = 'datalabelcell';
+		row.cells[0].style.width = "38%";
 		row.cells[1].className = 'datainputcell';
 		return row;
 	}

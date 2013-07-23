@@ -22,99 +22,101 @@
 
 wn.provide('wn.ui');
 
+var cur_dialog;
+
+wn.ui.open_dialogs = [];
 wn.ui.Dialog = wn.ui.FieldGroup.extend({
+	_intro:'	usage:\n\
+		\n\
+		var dialog = new wn.ui.Dialog({\n\
+			title: "Dialog Title",\n\
+			fields: [\n\
+				{fieldname:"field1", fieldtype:"Data", reqd:1, label: "Test 1"},\n\
+				{fieldname:"field2", fieldtype:"Link", reqd:1, label: "Test 1", options:"Some DocType"},\n\
+				{fieldname:"mybutton", fieldtype:"Button", reqd:1, label: "Submit"},\n\
+			]\n\
+		})\n\
+		dialog.get_input("mybutton").click(function() { /* do something; */ dialog.hide(); });\n\
+		dialog.show()',
 	init: function(opts) {
 		this.display = false;
 		if(!opts.width) opts.width = 480;
 
 		$.extend(this, opts);
 		this.make();
-		
-		this.dialog_wrapper = this.wrapper;
-		
-		// init fields
-		if(this.fields) {
-			this.parent = this.body
-			this._super({});
-		}
 	},
-	make: function() {
-		if(!$('#dialog-container').length) {
-			$('<div id="dialog-container">').appendTo('body');
-		}
-		
-		this.wrapper = $('<div class="dialog_wrapper">')
-			.appendTo('#dialog-container').get(0);
-
-		if(this.width)
-			this.wrapper.style.width = this.width + 'px';
-
+	make: function() {		
+		this.$wrapper = $('<div class="modal" style="overflow: auto;">\
+			<div class="modal-dialog">\
+				<div class="modal-content">\
+					<div class="modal-header">\
+						<a type="button" class="close" \
+							data-dismiss="modal" aria-hidden="true">&times;</a>\
+						<h4 class="modal-title"></h4>\
+					</div>\
+					<div class="modal-body">\
+					</div>\
+				</div>\
+			</div>\
+			</div>')
+			.appendTo(document.body);
+		this.wrapper = this.$wrapper.find('.modal-dialog').get(0);
 		this.make_head();
-		this.body = $a(this.wrapper, 'div', 'dialog_body');	
+		this.body = this.$wrapper.find(".modal-body").get(0);
+		
+		// make fields (if any)
+		this._super();
+		
+		var me = this;
+		this.$wrapper
+			.on("hide.bs.modal", function() {
+				me.display = false;
+				if(wn.ui.open_dialogs[wn.ui.open_dialogs.length-1]===me) {
+					wn.ui.open_dialogs.pop();
+					if(wn.ui.open_dialogs.length)
+						cur_dialog = wn.ui.open_dialogs[wn.ui.open_dialogs.length-1];
+					else
+						cur_dialog = null;
+				}
+				me.onhide && me.onhide();
+			})
+			.on("shown.bs.modal", function() {
+				// focus on first input
+				me.display = true;
+				cur_dialog = me;
+				wn.ui.open_dialogs.push(me);
+				var first = me.$wrapper.find(':input:first');
+				if(first.length && first.attr("data-fieldtype")!="Date") {
+					try {
+						first.get(0).focus();
+					} catch(e) {
+						console.log("Dialog: unable to focus on first input: " + e);
+					}
+				}
+				me.onshow && me.onshow();
+			})
+		
+		
 	},
 	make_head: function() {
 		var me = this;
-		this.appframe = new wn.ui.AppFrame(this.wrapper);
-		this.appframe.set_document_title = false;
-		this.appframe.$titlebar.find('.close').unbind('click').click(function() {
-			if(me.oncancel)me.oncancel(); me.hide();
-		});
+		//this.appframe = new wn.ui.AppFrame(this.wrapper);
+		//this.appframe.set_document_title = false;
 		this.set_title(this.title);
 	},
 	set_title: function(t) {
-		this.appframe.$titlebar.find('.appframe-title').html(t || '');
-	},
-	set_postion: function() {
-		this.zindex = 10;
-		if(cur_dialog) {
-			this.zindex = cur_dialog.zindex + 1;
-		}
-		// place it at the center
-		$(this.wrapper).css({
-			left: (($(window).width() - cint(this.wrapper.style.width))/2) + 'px',
-			top: ($(window).scrollTop() + 60) + 'px',
-			"z-index": this.zindex
-		})
+		this.$wrapper.find(".modal-title").html(t);
 	},
 	show: function() {
-		// already live, do nothing
-		if(this.display) return;
-
-		// set position
-		this.set_postion()
-
 		// show it
-		$ds(this.wrapper);
-		
-		// hide background
-		wn.dom.freeze();
-
-		this.display = true;
-		cur_dialog = this;
-
-		// call onshow
-		if(this.onshow)this.onshow();
-		
-		// focus on first input
-		var first = $(this.wrapper).find(':input:first');
-		if(first.attr("data-fieldtype")!="Date") {
-			first.focus();
-		}
+		this.$wrapper.modal("show");
 	},
-	hide: function() {
-		// call onhide
-		if(this.onhide) this.onhide();
+	hide: function(from_event) {
+		this.$wrapper.modal("hide");
 
-		// hide
-		wn.dom.unfreeze();
-		$dh(this.wrapper);
-
-		// flags
-		this.display = false;
-		cur_dialog = null;
 	},
 	no_cancel: function() {
-		this.appframe.$titlebar.find('.close').toggle(false);
+		this.$wrapper.find('.close').toggle(false);
 	}
 });
 

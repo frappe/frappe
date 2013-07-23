@@ -42,9 +42,9 @@ wn.views.CommunicationList = Class.extend({
 			.empty()
 			.css({"margin":"10px 0px"});
 			
-		this.wrapper = $("<div><h4>"+wn._("Communication History")+"</h4>\
+		this.wrapper = $("<div>\
 			<div style='margin-bottom: 8px;'>\
-				<button class='btn' \
+				<button class='btn btn-default' \
 					onclick='cur_frm.communication_view.add_reply()'>\
 				<i class='icon-plus'></i> "+wn._("Add Message")+"</button></div>\
 			</div>")
@@ -74,9 +74,11 @@ wn.views.CommunicationList = Class.extend({
 		//doc.when = comment_when(this.doc.modified);
 		doc.when = doc.modified;
 		if(!doc.content) doc.content = "[no content]";
-		if(doc.content.indexOf("<br>")== -1 && doc.content.indexOf("<p>")== -1) {
+		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
 		}
+		doc.content = wn.utils.escape_script_and_style(doc.content);
+
 		if(!doc.sender) doc.sender = "[unknown sender]";
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc.content = doc.content.split("-----"+wn._("In response to")+"-----")[0];
@@ -117,6 +119,7 @@ wn.views.CommunicationComposer = Class.extend({
 		this.dialog.show();
 	},
 	make: function() {
+		var me = this;
 		this.dialog = new wn.ui.Dialog({
 			width: 640,
 			title: wn._("Add Reply") + ": " + (this.subject || ""),
@@ -142,6 +145,26 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"select_attachments"}
 			]
 		});
+		$(document).on("upload_complete", function(event, filename, fileurl) {
+			if(me.dialog.display) {
+				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
+
+				// find already checked items
+				var checked_items = wrapper.find('[data-file-name]:checked').map(function() {
+					return $(this).attr("data-file-name");
+				});
+				
+				// reset attachment list
+				me.setup_attach();
+				
+				// check latest added
+				checked_items.push(filename);
+				
+				$.each(checked_items, function(i, filename) {
+					wrapper.find('[data-file-name="'+ filename +'"]').get(0).checked=true;
+				});
+			}
+		})
 		this.prepare();
 	},
 	prepare: function() {
@@ -176,7 +199,7 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		var files = cur_frm.get_files();
 		if(files.length) {
-			$("<p><b>"+wn._("Add Attachments")+":</b></p>").appendTo(attach);
+			$("<p><b>"+wn._("Add Attachments")+":</b></p>").appendTo(attach.empty());
 			$.each(files, function(i, f) {
 				$(repl("<p><input type='checkbox' \
 					data-file-name='%(file)s'> %(file)s</p>", {file:f})).appendTo(attach)
@@ -204,52 +227,64 @@ wn.views.CommunicationComposer = Class.extend({
 				.find("[data-file-name]:checked"), function(element) {
 					return $(element).attr("data-file-name");
 				})
-						
-			_p.build(form_values.select_print_format || "", function(print_format_html) {
-				if(form_values.attach_document_print) {
-					var print_html = print_format_html
-					if(cint(wn.boot.send_print_in_body_and_attachment)) {
-						form_values.content = form_values.content 
-							+ "<p></p><hr>" + print_html;
-					} else {
-						form_values.content = form_values.content + "<p>"
-							+ "Please see attachment for document details.</p>"
-					}
-				} else {
-					print_html = "";
-				}
-				wn.call({
-					method:"core.doctype.communication.communication.make",
-					args: {
-						sender: wn.user_info(user).fullname + " <" + wn.boot.profile.email + ">",
-						recipients: form_values.recipients,
-						subject: form_values.subject,
-						content: form_values.content,
-						doctype: me.doc.doctype,
-						name: me.doc.name,
-						lead: me.doc.lead,
-						contact: me.doc.contact,
-						company: me.doc.company || sys_defaults.company,
-						send_me_a_copy: form_values.send_me_a_copy,
-						send_email: form_values.send_email,
-						print_html: print_html,
-						attachments: selected_attachments
-					},
-					btn: btn,
-					callback: function(r) {
-						if(!r.exc) {
-							if(form_values.send_email)
-								msgprint("Email sent to " + form_values.recipients);
-							me.dialog.hide();
-							cur_frm.reload_doc();
-						} else {
-							msgprint("There were errors while sending email. Please try again.")
-						}
-					}
+			
+			if(form_values.attach_document_print) {
+				_p.build(form_values.select_print_format || "", function(print_format_html) {
+					me.send_email(btn, form_values, selected_attachments, print_format_html);
 				});
-			})
-		});		
+			} else {
+				me.send_email(btn, form_values, selected_attachments);
+			}
+		});
 	},
+	
+	send_email: function(btn, form_values, selected_attachments, print_format_html) {
+		var me = this;
+		
+		if(form_values.attach_document_print) {
+			var print_html = print_format_html;
+			if(cint(wn.boot.send_print_in_body_and_attachment)) {
+				form_values.content = form_values.content 
+					+ "<p></p><hr>" + print_html;
+			} else {
+				form_values.content = form_values.content + "<p>"
+					+ "Please see attachment for document details.</p>"
+			}
+		} else {
+			var print_html = "";
+		}
+		
+		wn.call({
+			method:"core.doctype.communication.communication.make",
+			args: {
+				sender: [wn.user_info(user).fullname, wn.boot.profile.email],
+				recipients: form_values.recipients,
+				subject: form_values.subject,
+				content: form_values.content,
+				doctype: me.doc.doctype,
+				name: me.doc.name,
+				lead: me.doc.lead,
+				contact: me.doc.contact,
+				company: me.doc.company || sys_defaults.company,
+				send_me_a_copy: form_values.send_me_a_copy,
+				send_email: form_values.send_email,
+				print_html: print_html,
+				attachments: selected_attachments
+			},
+			btn: btn,
+			callback: function(r) {
+				if(!r.exc) {
+					if(form_values.send_email)
+						msgprint("Email sent to " + form_values.recipients);
+					me.dialog.hide();
+					cur_frm.reload_doc();
+				} else {
+					msgprint("There were errors while sending email. Please try again.")
+				}
+			}
+		});
+	},
+	
 	setup_earlier_reply: function() {
 		var fields = this.dialog.fields_dict;
 		var comm_list = cur_frm.communication_view
@@ -257,8 +292,7 @@ wn.views.CommunicationComposer = Class.extend({
 			: [];
 		var signature = wn.boot.profile.email_signature || "";
 
-		if(signature.indexOf("<br>")==-1 && signature.indexOf("<p")==-1 
-			&& signature.indexOf("<img")==-1 && signature.indexOf("<div")==-1) {
+		if(!wn.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
 		
@@ -267,14 +301,14 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		if(comm_list.length > 0) {
-			fields.content.input.set_input((this.message || "") + 
+			fields.content.set_input((this.message || "") + 
 				"<p></p>"
 				+ signature
 				+"<p></p>"
 				+"-----"+wn._("In response to")+"-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
-			fields.content.input.set_input((this.message || "") 
+			fields.content.set_input((this.message || "") 
 				+ "<p></p>" + signature)
 		}
 	},

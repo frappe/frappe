@@ -92,7 +92,36 @@ wn.dom = {
 		if(!wn.dom.freeze_count) {
 			$('#freeze').toggle(false);
 		}		
-	}
+	},
+	save_selection: function() {
+		// via http://stackoverflow.com/questions/5605401/insert-link-in-contenteditable-element
+		if (window.getSelection) {
+			sel = window.getSelection();
+			if (sel.getRangeAt && sel.rangeCount) {
+				var ranges = [];
+				for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+					ranges.push(sel.getRangeAt(i));
+				}
+				return ranges;
+			}
+		} else if (document.selection && document.selection.createRange) {
+			return document.selection.createRange();
+		}
+		return null;
+	},
+	restore_selection: function(savedSel) {
+		if (savedSel) {
+			if (window.getSelection) {
+				sel = window.getSelection();
+				sel.removeAllRanges();
+				for (var i = 0, len = savedSel.length; i < len; ++i) {
+					sel.addRange(savedSel[i]);
+				}
+			} else if (document.selection && savedSel.select) {
+				savedSel.select();
+			}
+		}
+	}	
 }
 
 var pending_req = 0
@@ -115,7 +144,7 @@ var get_hex = function(i) {
 	if(i>255) return 'ff';
 	if(i<0) return '00';
 	i =i .toString(16);
-    if(i.length==1) i = '0'+i;
+	if(i.length==1) i = '0'+i;
 	return i;
 }
 
@@ -224,7 +253,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 			ele.loading_img = $('<img src="lib/images/ui/button-load.gif" \
 				style="margin-left: 4px; margin-bottom: -2px; display: inline;" />')
 				.insertAfter(ele);
-		}		
+		}
 	}
 	$.fn.done_working = function() {
 		var ele = this.get(0);

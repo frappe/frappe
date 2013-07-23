@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:34", 
   "docstatus": 0, 
-  "modified": "2013-03-07 07:03:26", 
+  "modified": "2013-07-10 14:54:11", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -25,6 +25,7 @@
   "fieldname": "role", 
   "fieldtype": "Link", 
   "hidden": 0, 
+  "in_list_view": 1, 
   "label": "Role", 
   "name": "__common__", 
   "oldfieldname": "role", 

@@ -1,6 +1,12 @@
 // Copyright 2013 Web Notes Technologies Pvt Ltd
 // License: MIT. See license.txt
 
+wn.views.ReportFactory = wn.views.Factory.extend({
+	make: function(route) {
+		new wn.views.ReportViewPage(route[1], route[2]);
+	}
+});
+
 wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
 		if(!wn.model.can_get_report(doctype)) {
@@ -38,9 +44,7 @@ wn.views.ReportViewPage = Class.extend({
 	make_report_view: function() {
 		var module = locals.DocType[this.doctype].module;
 		this.page.appframe.set_title(wn._(this.doctype));
-		this.page.appframe.add_home_breadcrumb()
-		this.page.appframe.add_module_breadcrumb(module)
-		this.page.appframe.add_breadcrumb("icon-table");
+		this.page.appframe.add_module_icon(module, this.doctype)
 		this.page.appframe.set_views_for(this.doctype, "report");
 
 		this.page.reportview = new wn.views.ReportView({
@@ -105,7 +109,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			var columns = [['name', this.doctype],];
 			$.each(wn.meta.docfield_list[this.doctype], function(i, df) {
 				if(df.in_filter && df.fieldname!='naming_series'
-					&& !in_list(no_value_fields, df.fieldname)) {
+					&& !in_list(wn.model.no_value_type, df.fieldname)) {
 					columns.push([df.fieldname, df.parent]);
 				}
 			});
@@ -320,7 +324,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.sort_order_next_select = $(this.sort_dialog.body).find('.sort-order-1');
 		
 		// initial values
-		this.sort_by_select.val('modified');
+		this.sort_by_select.val(this.doctype + '.modified');
 		this.sort_order_select.val('desc');
 		
 		this.sort_by_next_select.val('');
@@ -384,7 +388,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 							return;
 						}
 						if(r.message != me.docname)
-							wn.set_route('Report2', me.doctype, r.message);
+							wn.set_route('Report', me.doctype, r.message);
 					}
 				});
 			}, 'icon-upload');
@@ -446,7 +450,7 @@ wn.ui.ColumnPicker = Class.extend({
 		}
 		$(this.dialog.body).html('<div class="help">'+wn._("Drag to sort columns")+'</div>\
 			<div class="column-list"></div>\
-			<div><button class="btn btn-add"><i class="icon-plus"></i>\
+			<div><button class="btn btn-default btn-add"><i class="icon-plus"></i>\
 				'+wn._("Add Column")+'</button></div>\
 			<hr>\
 			<div><button class="btn btn-info">'+wn._("Update")+'</div>');

@@ -35,7 +35,7 @@ def runserverobj():
 
 	wrapper = None
 	method = webnotes.form_dict.get('method')
-	arg = webnotes.form_dict.get('arg')
+	arg = webnotes.form_dict.get('args', webnotes.form_dict.get("arg"))
 	dt = webnotes.form_dict.get('doctype')
 	dn = webnotes.form_dict.get('docname')
 	
@@ -46,12 +46,12 @@ def runserverobj():
 		so = webnotes.model.code.get_obj(dt, dn)
 
 	else:
-		wrapper = Bean()
-		wrapper.from_compressed(webnotes.form_dict.get('docs'), dn)
-		if not wrapper.has_read_perm():
+		bean = Bean()
+		bean.from_compressed(webnotes.form_dict.get('docs'), dn)
+		if not bean.has_read_perm():
 			webnotes.msgprint(_("No Permission"), raise_exception = True)
-		so = wrapper.make_obj()
-		wrapper.check_if_latest(method="runserverobj")
+		so = bean.make_controller()
+		bean.check_if_latest(method="runserverobj")
 
 	check_guest_access(so.doc)
 	
@@ -63,9 +63,6 @@ def runserverobj():
 				make_csv_output(r, so.doc.doctype)
 			else:
 				webnotes.response['message'] = r
-		
-		from webnotes.widgets.form.load import add_file_list
-		add_file_list(so.doc.doctype, so.doc.name, so.doclist)
 		
 		webnotes.response['docs'] += so.doclist
 

@@ -29,8 +29,7 @@ wn.tools.downloadify = function(data, roles, me) {
 			swf: 'lib/js/lib/downloadify/downloadify.swf',
 			downloadImage: 'lib/js/lib/downloadify/download.png',
 			onComplete: function(){
-				msgobj.hide(); 
-				msgprint("Saved.");
+				$(msgobj.msg_area).html("<p>Saved</p>")
 			},
 			onCancel: function(){ msgobj.hide(); },
 			onError: function(){ msgobj.hide(); },
@@ -41,6 +40,37 @@ wn.tools.downloadify = function(data, roles, me) {
 		});
 	}
 };
+
+wn.markdown = function(txt) {
+	if(!wn.md2html) {
+		wn.require('lib/js/lib/showdown.js');
+		wn.md2html = new Showdown.converter();
+	}
+	
+	while(txt.substr(0,1)==="\n") {
+		txt = txt.substr(1);
+	}
+	
+	// remove leading tab (if they exist in the first line)
+	var whitespace_len = 0,
+		first_line = txt.split("\n")[0];
+
+	while([" ", "\n", "\t"].indexOf(first_line.substr(0,1))!== -1) {
+		whitespace_len++;
+		first_line = first_line.substr(1);
+	}
+		
+	if(whitespace_len && whitespace_len != first_line.length) {
+		var txt1 = [];
+		$.each(txt.split("\n"), function(i, t) {
+			txt1.push(t.substr(whitespace_len));
+		})
+		txt = txt1.join("\n");
+	}
+	
+	return wn.md2html.makeHtml(txt);
+}
+
 
 wn.tools.to_csv = function(data) {
 	var res = [];

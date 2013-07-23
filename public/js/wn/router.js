@@ -3,6 +3,9 @@
 // re-route map (for rename)
 wn.re_route = {};
 wn.route_titles = {};
+wn.route_history = [];
+wn.view_factory = {};
+wn.view_factories = [];
 
 wn.route = function() {
 	if(wn.re_route[window.location.hash]) {
@@ -24,31 +27,20 @@ wn.route = function() {
 
 	wn._cur_route = window.location.hash;
 
-	route = wn.get_route();	
+	route = wn.get_route();
+	wn.route_history.push(route);
 	
-	switch (route[0]) {
-		case "List":
-			wn.views.doclistview.show(route[1]);
-			break;
-		case "Form":
-			if(route.length>3) {
-				route[2] = route.splice(2).join('/');
-			}
-			wn.views.formview.show(route[1], route[2]);
-			break;
-		case "Report":
-			wn.views.reportview.show(route[1], route[2]);
-			break;
-		case "Report2":
-			wn.views.reportview2.show();
-			break;
-		case "Calendar":
-			wn.views.calendar.show();
-			break;
-		default:
-			wn.views.pageview.show(route[0]);
+	if(route[0] && wn.views[route[0] + "Factory"]) {
+		// has a view generator, generate!
+		if(!wn.view_factory[route[0]])
+			wn.view_factory[route[0]] = new wn.views[route[0] + "Factory"]();
+			
+		wn.view_factory[route[0]].show();
+	} else {
+		// show page
+		wn.views.pageview.show(route[0]);
 	}
-	
+
 	if(wn.route_titles[window.location.hash]) {
 		document.title = wn.route_titles[window.location.hash];
 	}
@@ -73,7 +65,14 @@ wn.get_route_str = function(route) {
 }
 
 wn.set_route = function() {
-	route = $.map(arguments, function(a) { return a ? encodeURIComponent(a) : null; }).join('/');
+	route = $.map(arguments, function(a) { 
+		if($.isPlainObject(a)) {
+			wn.route_options = a;
+			return null;
+		} else {
+			return a ? encodeURIComponent(a) : null; 
+		}
+	}).join('/');
 	
 	window.location.hash = route;
 	

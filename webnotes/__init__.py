@@ -19,22 +19,12 @@
 # CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
 # OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 # 
-
-from __future__ import unicode_literals
 """
 globals attached to webnotes module
 + some utility functions that should probably be moved
 """
 
-code_fields_dict = {
-	'Page':[('script', 'js'), ('content', 'html'), ('style', 'css'), ('static_content', 'html'), ('server_code', 'py')],
-	'DocType':[('server_code_core', 'py'), ('client_script_core', 'js')],
-	'Search Criteria':[('report_script', 'js'), ('server_script', 'py'), ('custom_query', 'sql')],
-	'Patch':[('patch_code', 'py')],
-	'Stylesheet':['stylesheet', 'css'],
-	'Page Template':['template', 'html'],
-	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
-}
+from __future__ import unicode_literals
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -77,6 +67,8 @@ request_method = None
 print_messages = False
 user_lang = False
 lang = 'en'
+in_import = False
+in_test = False
 
 # memcache
 
@@ -97,16 +89,17 @@ class SessionStopped(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class DoesNotExistError(ValidationError): pass
+class MandatoryError(ValidationError): pass
 		
 def getTraceback():
 	import utils
 	return utils.getTraceback()
 
 def errprint(msg):
-	if not request_method:
-		print repr(msg)
-
 	from utils import cstr
+	if not request_method:
+		print cstr(msg)
+
 	error_log.append(cstr(msg))
 
 def log(msg):
@@ -169,7 +162,7 @@ def connect(db_name=None, password=None):
 	import webnotes.profile
 	global user
 	user = webnotes.profile.Profile('Administrator')
-
+	
 def get_env_vars(env_var):
 	import os
 	return os.environ.get(env_var,'None')
@@ -242,7 +235,7 @@ def get_roles(user=None, with_standard=True):
 
 	if user=='Guest':
 		return ['Guest']
-		
+	
 	roles = [r[0] for r in conn.sql("""select role from tabUserRole 
 		where parent=%s and role!='All'""", user)] + ['All']
 		
@@ -252,13 +245,16 @@ def get_roles(user=None, with_standard=True):
 		
 	return roles
 
-def has_permission(doctype, ptype="read", doc=None):
+def has_permission(doctype, ptype="read", refdoc=None):
 	"""check if user has permission"""
 	from webnotes.defaults import get_user_default_as_list
 	if session.user=="Administrator": 
 		return True
 	if conn.get_value("DocType", doctype, "istable"):
 		return True
+	if isinstance(refdoc, basestring):
+		refdoc = doc(doctype, refdoc)
+		
 	perms = conn.sql("""select `name`, `match` from tabDocPerm p
 		where p.parent = %s
 		and ifnull(p.`%s`,0) = 1
@@ -266,7 +262,7 @@ def has_permission(doctype, ptype="read", doc=None):
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
 	
-	if doc:
+	if refdoc:
 		match_failed = {}
 		for p in perms:
 			if p.match:
@@ -275,11 +271,11 @@ def has_permission(doctype, ptype="read", doc=None):
 				else:
 					keys = [p.match, p.match]
 					
-				if doc.fields.get(keys[0],"[No Value]") \
+				if refdoc.fields.get(keys[0],"[No Value]") \
 						in get_user_default_as_list(keys[1]):
 					return True
 				else:
-					match_failed[keys[0]] = doc.fields.get(keys[0],"[No Value]")
+					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
 			else:
 				# found a permission without a match
 				return True
@@ -309,11 +305,16 @@ def doc(doctype=None, name=None, fielddata=None):
 	from webnotes.model.doc import Document
 	return Document(doctype, name, fielddata)
 
+def new_doc(doctype, parent_doc=None, parentfield=None):
+	from webnotes.model.create_new import get_new_doc
+	return get_new_doc(doctype, parent_doc, parentfield)
+	
 def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)
 
 def bean(doctype=None, name=None, copy=None):
+	"""return an instance of the object, wrapped as a Bean (webnotes.model.bean)"""
 	from webnotes.model.bean import Bean
 	if copy:
 		return Bean(copy_doclist(copy))
@@ -327,7 +328,7 @@ def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
 	return webnotes.model.doctype.get(doctype, processed)
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None, for_reload=False):
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None, for_reload=False, ignore_permissions=False):
 	import webnotes.model.utils
 
 	if not ignore_doctypes: 
@@ -335,20 +336,20 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 	
 	if isinstance(name, list):
 		for n in name:
-			webnotes.model.utils.delete_doc(doctype, n, doclist, force, ignore_doctypes, for_reload)
+			webnotes.model.utils.delete_doc(doctype, n, doclist, force, ignore_doctypes, for_reload, ignore_permissions)
 	else:
-		webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload)
+		webnotes.model.utils.delete_doc(doctype, name, doclist, force, ignore_doctypes, for_reload, ignore_permissions)
 
 def clear_perms(doctype):
 	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
 def reset_perms(doctype):
 	clear_perms(doctype)
-	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype)
+	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype, force=True)
 
-def reload_doc(module, dt=None, dn=None):
+def reload_doc(module, dt=None, dn=None, force=False):
 	import webnotes.modules
-	return webnotes.modules.reload_doc(module, dt, dn)
+	return webnotes.modules.reload_doc(module, dt, dn, force)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False):
 	from webnotes.model.rename_doc import rename_doc
@@ -394,24 +395,24 @@ def get_application_home_page(user='Guest'):
 
 def copy_doclist(in_doclist):
 	new_doclist = []
-	for d in in_doclist:
+	parent_doc = None
+	for i, d in enumerate(in_doclist):
+		is_dict = False
 		if isinstance(d, dict):
-			new_doclist.append(d.copy())
+			is_dict = True
+			values = _dict(d.copy())
 		else:
-			new_doclist.append(doc(d.fields.copy()))
+			values = _dict(d.fields.copy())
+		
+		newd = new_doc(values.doctype, parent_doc=(None if i==0 else parent_doc), parentfield=values.parentfield)
+		newd.fields.update(values)
+		
+		if i==0:
+			parent_doc = newd
+		
+		new_doclist.append(newd.fields if is_dict else newd)
 
 	return doclist(new_doclist)
-	
-def map_doclist(from_to_list, from_docname, to_doclist=None):
-	from_doctype, to_doctype = from_to_list[0][0], from_to_list[0][1]
-	if to_doclist:
-		to_doclist = bean(to_doclist).doclist
-	else:
-		to_doclist = bean({"doctype": to_doctype}).doclist
-	
-	mapper = get_obj("DocType Mapper", "-".join(from_to_list[0]))
-	to_doclist = mapper.dt_map(from_doctype, to_doctype, from_docname, to_doclist[0], to_doclist, from_to_list)
-	return to_doclist
 
 def compare(val1, condition, val2):
 	import webnotes.utils
@@ -424,24 +425,33 @@ def repsond_as_web_page(title, html):
 	response['type'] = 'page'
 	response['page_name'] = 'message.html'
 
+def load_json(obj):
+	if isinstance(obj, basestring):
+		import json
+		try:
+			obj = json.loads(obj)
+		except ValueError:
+			pass
+		
+	return obj
+
 _config = None
 def get_config():
 	global _config
 	if not _config:
 		import webnotes.utils, json
 	
+		def update_config(path):
+			with open(path, "r") as configfile:
+				this_config = json.loads(configfile.read())
+				_config.modules.update(this_config["modules"])
+				_config.web.pages.update(this_config["web"]["pages"])
+				_config.web.generators.update(this_config["web"]["generators"])
+	
 		_config = _dict({"modules": {}, "web": _dict({"pages": {}, "generators": {}})})
-		with open(webnotes.utils.get_path("lib", "config.json"), "r") as configf:
-			framework_config = json.loads(configf.read())
-			_config.modules.update(framework_config["modules"])
-			_config.web.pages.update(framework_config["web"]["pages"])
-			_config.web.generators.update(framework_config["web"]["generators"])
 		
-		with open(webnotes.utils.get_path("app", "config.json"), "r") as configf:
-			app_config = json.loads(configf.read())
-			_config.modules.update(app_config["modules"])
-			_config.web.pages.update(app_config["web"]["pages"])
-			_config.web.generators.update(app_config["web"]["generators"])
-		
+		update_config(webnotes.utils.get_path("lib", "config.json"))
+		update_config(webnotes.utils.get_path("app", "config.json"))
+				
 	return _config
 		

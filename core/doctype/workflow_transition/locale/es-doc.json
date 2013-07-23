@@ -1,9 +1,0 @@
-{
- "Action": "Acci\u00f3n", 
- "Allowed": "Animales", 
- "Core": "N\u00facleo", 
- "Defines actions on states and the next step and allowed roles.": "Define las acciones que los Estados y el siguiente paso y los roles permitidos.", 
- "Next State": "Pr\u00f3ximo estado", 
- "State": "Estado", 
- "Workflow Transition": "La transici\u00f3n de flujo de trabajo"
-}
