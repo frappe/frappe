@@ -345,7 +345,7 @@ def clear_perms(doctype):
 
 def reset_perms(doctype):
 	clear_perms(doctype)
-	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype)
+	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype, force=True)
 
 def reload_doc(module, dt=None, dn=None, force=False):
 	import webnotes.modules
