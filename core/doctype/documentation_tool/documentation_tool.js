@@ -79,8 +79,6 @@ wn.docs.generate_all = function(logarea) {
 				// append static pages to the "docs" object
 				$.each(r.message.pages || [], function(n, obj) {
 					$.extend(wn.provide(n), obj);
-					// if(n!=="docs")
-					// 	docs._links.push(n); // to build page (if not in  _toc)
 				});
 				
 				logarea.append("Preparing html...<br>");
@@ -220,8 +218,8 @@ wn.docs.DocsPage = Class.extend({
 	make_footer: function() {
 		if(this.obj._gh_source) {
 			$("<br>").appendTo(this.parent);
-			$(repl('<p><a class="btn btn-default" href="%(source)s" target="_blank">\
-				<i class="icon-github"></i> Improve this doc</i></a></p>', {
+			$(repl('<p><a href="%(source)s" target="_blank">\
+				<i class="icon-github"></i> Source: Improve this doc</i></a></p>', {
 					source: this.obj._gh_source
 				})).appendTo(this.parent);
 		}
