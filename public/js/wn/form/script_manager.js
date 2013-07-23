@@ -53,19 +53,20 @@ wn.ui.form.ScriptManager = Class.extend({
 			}, 
 			callback: function(r) {
 				if(r.message=='Ok') {
-					if(callback) callback(value);
 					if(r.fetch_values) 
 						me.set_fetch_values(df, docname, r.fetch_values);
+					if(callback) callback(value);
 				} else {
 					if(callback) callback("");
 				}
+				console.log(me.frm.doc.tin_no)
 			}
 		});
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
 		for(var i=0; i < fl.length; i++) {
-			wn.model.set_value(df.parent, docname, fl[i], fetch_values[i]);
+			wn.model.set_value(df.parent, docname, fl[i], fetch_values[i], df.fieldtype);
 		}
 	},
 	copy_from_first_row: function(parentfield, current_row, fieldnames) {
