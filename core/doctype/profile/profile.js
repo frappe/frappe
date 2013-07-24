@@ -22,6 +22,10 @@ cur_frm.cscript.refresh = function(doc) {
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
  	if(!doc.__islocal){		
+		cur_frm.add_custom_button("Set Properties", function() {
+			wn.set_route("user-properties", doc.name);
+		})
+
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {
 			cur_frm.toggle_display(['sb1', 'sb3'], true);
 		}
@@ -31,7 +35,6 @@ cur_frm.cscript.refresh = function(doc) {
 		
 		if(user==doc.name) {
 			// update display settings
-			wn.ui.set_theme(doc.theme);
 			if(doc.background_image) {
 				wn.ui.set_user_background(doc.background_image);
 			}
@@ -40,10 +43,6 @@ cur_frm.cscript.refresh = function(doc) {
 			}
 		}
 	}
-	
-	cur_frm.add_custom_button("Set Properties", function() {
-		wn.set_route("user-properties", doc.name);
-	})
 }
 
 cur_frm.cscript.enabled = function(doc) {
@@ -86,6 +85,15 @@ wn.RoleEditor = Class.extend({
 	show_roles: function() {
 		var me = this;
 		$(this.wrapper).empty();
+		var add_all_roles = $('<p><button class="btn btn-default">Add all roles</button></p>').appendTo($(this.wrapper));
+		add_all_roles.find("button").on("click", function() {
+			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+				if(!$(check).is(":checked")) {
+					check.checked = true;
+				}
+			});
+		});
+		
 		for(var i in this.roles) {
 			$(this.wrapper).append(repl('<div class="user-role" \
 				data-user-role="%(role)s">\
@@ -94,25 +102,26 @@ wn.RoleEditor = Class.extend({
 			</div>', {role: this.roles[i]}));
 		}
 		$(this.wrapper).find('input[type="checkbox"]').change(function() {
-			cur_frm.set_unsaved();
+			cur_frm.dirty();
 		});
 		$(this.wrapper).find('.user-role a').click(function() {
 			me.show_permissions($(this).parent().attr('data-user-role'))
 			return false;
-		})
+		});
 	},
 	show: function() {
 		var me = this;
 		
 		// uncheck all roles
-		$(this.wrapper).find('input[type="checkbox"]').removeAttr("checked");
+		$(this.wrapper).find('input[type="checkbox"]')
+			.each(function(i, checkbox) { checkbox.checked = false; });
 		
 		// set user roles as checked
 		$.each(wn.model.get("UserRole", {parent: cur_frm.doc.name, 
 			parentfield: "user_roles"}), function(i, user_role) {
-				$(me.wrapper)
-					.find('[data-user-role="'+user_role.role
-						+'"] input[type="checkbox"]').attr('checked', 'checked');
+				var checkbox = $(me.wrapper)
+					.find('[data-user-role="'+user_role.role+'"] input[type="checkbox"]').get(0);
+				if(checkbox) checkbox.checked = true;
 			});
 	},
 	set_roles_in_table: function() {
@@ -147,8 +156,7 @@ wn.RoleEditor = Class.extend({
 		var checked_roles = [];
 		var unchecked_roles = [];
 		$(this.wrapper).find('[data-user-role]').each(function() {
-			var $check = $(this).find('input[type="checkbox"]');
-			if($check.attr('checked')) {
+			if($(this).find('input[type="checkbox"]:checked').length) {
 				checked_roles.push($(this).attr('data-user-role'));
 			} else {
 				unchecked_roles.push($(this).attr('data-user-role'));

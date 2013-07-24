@@ -16,7 +16,7 @@ def make_test_records(doctype, verbose=0):
 	webnotes.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
-
+	
 	for options in get_dependencies(doctype):
 		if options.startswith("link:"):
 			options = options[5:]
@@ -60,7 +60,6 @@ def make_test_records_for_doctype(doctype, verbose=0):
 
 	elif hasattr(test_module, "test_records"):
 		webnotes.test_objects[doctype] += make_test_objects(doctype, test_module.test_records, verbose)
-
 	elif verbose:
 		print_mandatory_fields(doctype)
 
@@ -71,7 +70,8 @@ def make_test_objects(doctype, test_records, verbose=None):
 	for doclist in test_records:
 		if not "doctype" in doclist[0]:
 			doclist[0]["doctype"] = doctype
-		d = webnotes.bean((webnotes.doclist(doclist)).copy())
+		d = webnotes.bean(copy=doclist)
+		
 		if webnotes.test_objects.get(d.doc.doctype):
 			# do not create test records, if already exists
 			return []
@@ -129,7 +129,7 @@ def export_doc(doctype, docname):
 def run_unittest(doctype, verbose=False):
 	module = webnotes.conn.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
-	make_test_records(args.doctype[0], verbose=verbose)
+	make_test_records(doctype, verbose=verbose)
 
 	try:
 		exec ('from %s import *' % test_module) in globals()		
@@ -172,7 +172,7 @@ def _run_test(path, filename, verbose):
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
 	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
-if __name__=="__main__":
+def main():
 	import argparse
 	
 	parser = argparse.ArgumentParser(description='Run tests.')
@@ -186,6 +186,8 @@ if __name__=="__main__":
 	args = parser.parse_args()
 	webnotes.print_messages = args.verbose
 	
+	webnotes.in_test = True
+	
 	if not webnotes.conn:
 		webnotes.connect()
 	
@@ -196,7 +198,16 @@ if __name__=="__main__":
 	elif args.export:
 		export_doc(args.export[0], args.export[1])
 	elif args.module:
+		import importlib
+		
 		test_suite = unittest.TestSuite()
-		__import__(args.module)
+		module = importlib.import_module(args.module)
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype, verbose=args.verbose)
+		
 		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[args.module]))
 		unittest.TextTestRunner(verbosity=1+(args.verbose and 1 or 0)).run(test_suite)
+
+if __name__=="__main__":
+	main()

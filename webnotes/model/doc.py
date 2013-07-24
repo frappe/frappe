@@ -25,6 +25,8 @@ from __future__ import unicode_literals
 Contains the Document class representing an object / record
 """
 
+_toc = ["webnotes.model.doc.Document"]
+
 import webnotes
 import webnotes.model.meta
 
@@ -221,14 +223,9 @@ class Document:
 			self.name = n.strip()
 			
 		elif autoname and autoname.startswith("naming_series:"):
+			self.set_naming_series()
 			if not self.naming_series:
-				# pick default naming series
-				from webnotes.model.doctype import get_property
-				self.naming_series = get_property(self.doctype, "options", "naming_series")
-				if not self.naming_series:
-					webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
-				self.naming_series = self.naming_series.split("\n")
-				self.naming_series = self.naming_series[0] or self.naming_series[1]
+				webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
 			self.name = make_autoname(self.naming_series+'.#####')
 			
 		# based on expression
@@ -252,6 +249,15 @@ class Document:
 		if not self.name:
 			self.name = make_autoname('#########', self.doctype)
 			
+	def set_naming_series(self):
+		if not self.naming_series:
+			# pick default naming series
+			from webnotes.model.doctype import get_property
+			self.naming_series = get_property(self.doctype, "options", "naming_series")
+			if self.naming_series:
+				self.naming_series = self.naming_series.split("\n")
+				self.naming_series = self.naming_series[0] or self.naming_series[1]
+			
 	def _insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
 		# set name
 		if make_autoname:
@@ -265,7 +271,10 @@ class Document:
 			if not self.owner: 
 				self.owner = webnotes.session['user']
 			self.modified_by = webnotes.session['user']
-			self.creation = self.modified = now()
+			if not self.creation:
+				self.creation = self.modified = now()
+			else:
+				self.modified = now()
 			
 		webnotes.conn.sql("insert into `tab%(doctype)s`" % self.fields \
 			+ """ (name, owner, creation, modified, modified_by)
@@ -387,7 +396,7 @@ class Document:
 		# add missing parentinfo (if reqd)
 		if self.parent and not (self.parenttype and self.parentfield):
 			self.update_parentinfo()
-			
+
 		if self.parent and not self.idx:
 			self.set_idx()
 
@@ -489,6 +498,9 @@ class Document:
 		
 		if doclist != None:
 			doclist.append(d)
+			
+		if doclist:
+			d.idx = max([(d.idx or 0) for d in doclist if d.doctype==childtype]) + 1
 	
 		return d
 		
@@ -613,14 +625,6 @@ def check_page_perm(doc):
 		webnotes.response['403'] = 1
 		raise webnotes.PermissionError, '[WNF] No read permission for %s %s' % ('Page', doc.name)
 
-def get_report_builder_code(doc):
-	if doc.doctype=='Search Criteria':
-		from webnotes.model.code import get_code
-				
-		if doc.standard != 'No':
-			doc.report_script = get_code(doc.module, 'Search Criteria', doc.name, 'js')
-			doc.custom_query = get_code(doc.module, 'Search Criteria', doc.name, 'sql')
-
 def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	"""
 	Returns a doclist containing the main record and all child records
@@ -648,10 +652,6 @@ def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	doclist = DocList([doc,])
 	for t in tablefields:
 		doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
-
-	# import report_builder code
-	if not from_controller:
-		get_report_builder_code(doc)
 
 	return doclist
 

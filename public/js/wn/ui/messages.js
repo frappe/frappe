@@ -5,18 +5,23 @@ wn.messages.waiting = function(parent, msg, bar_percent) {
 	return $(repl('<div class="well" style="width: 63%; margin: 30px auto;">\
 		<p style="text-align: center;">%(msg)s</p>\
 		<div class="progress progress-striped active">\
-			<div class="bar" style="width: %(bar_percent)s%"></div></div>', {
+			<div class="progress-bar progress-bar-info" style="width: %(bar_percent)s%"></div></div>', {
 				bar_percent: bar_percent,
 				msg: msg
 			}))
 		.appendTo(parent);
+};
+
+wn.throw = function(msg) {
+	msgprint(msg);
+	throw msg;
 }
 
 wn.confirm = function(message, ifyes, ifno) {
 	var d = msgprint("<p>" + message + "</p>\
 		<p style='text-align: right'>\
 			<button class='btn btn-info btn-yes'>Yes</button>\
-			<button class='btn btn-no'>No</button>\
+			<button class='btn btn-default btn-no'>No</button>\
 		</p>");
 	$(d.wrapper).find(".btn-yes").click(function() {
 		d.hide();

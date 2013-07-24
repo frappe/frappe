@@ -24,6 +24,18 @@ function flt(v, decimals, number_format) {
 	return v;
 }
 
+function cint(v, def) { 
+	if(v===true) 
+		return 1;
+	if(v===false)
+		return 0;
+	v=v+'';
+	v=lstrip(v, ['0']); 
+	v=parseInt(v); 
+	if(isNaN(v))v=def===undefined?0:def;
+	return v; 
+}
+
 function strip_number_groups(v, number_format) {
 	if(!number_format) number_format = get_number_format();
 	
@@ -120,7 +132,7 @@ function get_currency_symbol(currency) {
 		if(!currency)
 			currency = wn.boot.sysdefaults.currency;
 
-		return wn.model.get_value("Currency", currency, "symbol") || currency;
+		return wn.model.get_value(":Currency", currency, "symbol") || currency;
 	} else {
 		// load in template
 		return wn.currency_symbols[currency];
@@ -153,6 +165,32 @@ function get_number_format_info(format) {
 }
 
 function roundNumber(num, dec) {
+	dec = cint(dec);
 	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
 	return result;
+}
+
+function precision(fieldname, doc) {
+	if(!doc) doc = cur_frm.doc;
+	var df = wn.meta.get_docfield(doc.doctype, fieldname, doc.parent || doc.name);
+	if(!df) console.log(fieldname + ": could not find docfield in method precision()");
+	return wn.meta.get_field_precision(df, doc);
+}
+
+var lstrip = function(s, chars) {
+	if(!chars) chars = ['\n', '\t', ' '];
+	// strip left
+	var first_char = s.substr(0,1);
+	while(in_list(chars, first_char)) {
+		var s = s.substr(1);
+		first_char = s.substr(0,1);
+	}
+	return s;
+}
+
+function in_list(list, item) {
+	if(!list) return false;
+	for(var i=0, j=list.length; i<j; i++)
+		if(list[i]==item) return true;
+	return false;
 }

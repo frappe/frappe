@@ -2,7 +2,7 @@
  {
   "creation": "2012-11-22 17:45:46", 
   "docstatus": 0, 
-  "modified": "2012-11-21 17:39:17", 
+  "modified": "2013-07-23 12:21:13", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -10,6 +10,7 @@
   "allow_attach": 1, 
   "autoname": "field:letter_head_name", 
   "doctype": "DocType", 
+  "icon": "icon-font", 
   "max_attachments": 3, 
   "module": "Core", 
   "name": "__common__"
@@ -23,8 +24,6 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Letter Head", 
@@ -32,10 +31,7 @@
   "parenttype": "DocType", 
   "permlevel": 0, 
   "read": 1, 
-  "report": 1, 
-  "role": "System Manager", 
-  "submit": 0, 
-  "write": 1
+  "report": 1
  }, 
  {
   "doctype": "DocType", 
@@ -103,6 +99,15 @@
   "label": "URL"
  }, 
  {
-  "doctype": "DocPerm"
+  "cancel": 1, 
+  "create": 1, 
+  "doctype": "DocPerm", 
+  "role": "System Manager", 
+  "submit": 0, 
+  "write": 1
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "All"
  }
 ]

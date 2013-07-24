@@ -19,19 +19,36 @@ wn.avatar = function(user, large, title) {
 	var to_size = large ? 72 : 30;
 	if(!title) title = wn.user_info(user).fullname;
 
-	return repl('<span class="avatar" title="%(title)s" style="width: %(len)s; \
+	return repl('<span class="avatar %(small_or_large)s" title="%(title)s" style="width: %(len)s; \
 		height: %(len)s; border-radius: %(len)s; overflow: hidden;">\
 		<img src="%(image)s"></span>', {
 			image: image,
 			len: to_size + "px",
-			title: title
+			title: title,
+			small_or_large: large ? "avatar-large" : "avatar-small"
 		});	
+}
+
+wn.ui.set_user_background = function(src) {
+	wn.dom.set_style(repl('body { background: url("%(src)s") repeat fixed;}',
+		{src:src}))
 }
 
 wn.provide('wn.user');
 
 $.extend(wn.user, {
 	name: (wn.boot ? wn.boot.profile.name : 'Guest'),
+	full_name: function(uid) {
+		return uid===user ?
+			"You" :
+			wn.user_info(uid).fullname;
+	},
+	image: function(uid) {
+		return wn.user_info(uid).image;
+	},
+	avatar: function(uid, large) {
+		return wn.avatar(uid, large);
+	},
 	has_role: function(rl) {
 		if(typeof rl=='string') 
 			rl = [rl];
@@ -81,6 +98,10 @@ $.extend(wn.user, {
 					if(wn.boot.allowed_pages.indexOf(wn.modules[m].link)!=-1)
 						ret = m;
 					break;
+				case "list":
+					if(wn.model.can_read(wn.modules[m].doctype))
+						ret = m;
+					break;
 				case "view":
 					ret = m;
 					break;
@@ -102,6 +123,9 @@ $.extend(wn.user, {
 
 wn.session_alive = true;
 $(document).bind('mousemove', function() {
+	if(wn.session_alive===false) {
+		$(document).trigger("session_alive");
+	}
 	wn.session_alive = true;
 	if(wn.session_alive_timeout) 
 		clearTimeout(wn.session_alive_timeout);

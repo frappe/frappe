@@ -99,21 +99,11 @@ set_field_tip = function(n,txt) {
 
 refresh_field = function(n, docname, table_field) {
 	// multiple
-	if(typeof n==typeof []) refresh_many(n, docname, table_field);
+	if(typeof n==typeof []) 
+		refresh_many(n, docname, table_field);
 	
-	if(table_field) { // for table
-		if(_f.frm_dialog && _f.frm_dialog.display) {
-			_f.frm_dialog.cur_frm.refresh_field(n);
-		} else {
-			var g = _f.cur_grid_cell;
-			if(g) var hc = g.grid.head_row.cells[g.cellIndex];
-			
-			if(g && hc && hc.fieldname==n && g.row.docname==docname) {
-				hc.template.refresh(); // if active
-			} else if (cur_frm.fields_dict[table_field]) {
-				cur_frm.fields_dict[table_field].grid.refresh_cell(docname, n);
-			}
-		}
+	if(table_field && cur_frm.fields_dict[table_field].grid.grid_rows_by_docname) { // for table
+		cur_frm.fields_dict[table_field].grid.grid_rows_by_docname[docname].refresh_field(n);
 	} else if(cur_frm) {
 		cur_frm.refresh_field(n)
 	}
@@ -175,7 +165,7 @@ _f.Frm.prototype.get_doclist = function() {
 }
 
 _f.Frm.prototype.field_map = function(fnames, fn) {
-	if(typeof fnames=='string') {
+	if(typeof fnames==='string') {
 		if(fnames == '*') {
 			fnames = keys(this.fields_dict);
 		} else {
@@ -220,7 +210,7 @@ _f.Frm.prototype.call_server = function(method, args, callback) {
 
 _f.Frm.prototype.get_files = function() {
 	return cur_frm.attachments 
-		? keys(cur_frm.attachments.get_file_list()).sort()
+		? keys(cur_frm.attachments.get_attachments()).sort()
 		: [] ;
 }
 
@@ -241,6 +231,7 @@ _f.Frm.prototype.set_value = function(field, value) {
 			me.fields_dict[f].refresh();
 		}
 	}
+	
 	if(typeof field=="string") {
 		_set(field, value)
 	} else if($.isPlainObject(field)) {
@@ -253,7 +244,7 @@ _f.Frm.prototype.set_value = function(field, value) {
 _f.Frm.prototype.call = function(opts) {
 	var me = this;
 	if(!opts.doc) {
-		if(opts.method.indexOf(".")==-1)
+		if(opts.method.indexOf(".")===-1)
 			opts.method = wn.model.get_server_module_name(me.doctype) + "." + opts.method; 
 		opts.original_callback = opts.callback;
 		opts.callback = function(r) {
@@ -276,17 +267,4 @@ _f.Frm.prototype.call = function(opts) {
 
 _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
-}
-
-_f.Frm.prototype.map = function(from_to_list) {
-	var doctype = from_to_list[0][1];
-	console.log("Making " + doctype);
-	var new_docname = wn.model.make_new_doc_and_get_name(doctype);
-	$c("dt_map", {
-		"docs": wn.model.compress([locals[doctype][new_docname]]),
-		"from_doctype": cur_frm.doc.doctype,
-		"to_doctype": doctype,
-		"from_docname": cur_frm.doc.name,
-		"from_to_list": JSON.stringify(from_to_list),
-	}, function(r, rt) { if(!r.exc) loaddoc(doctype, new_docname); });
 }

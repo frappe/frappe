@@ -45,6 +45,7 @@ $.extend(wn.model, {
 	],
 
 	new_names: {},
+	events: {},
 
 	get_std_field: function(fieldname) {
 		var docfield = $.map([].concat(wn.model.std_fields).concat(wn.model.std_fields_table), 
@@ -102,7 +103,7 @@ $.extend(wn.model, {
 	
 	with_doc: function(doctype, name, callback) {
 		if(!name) name = doctype; // single type
-		if(locals[doctype] && locals[doctype][name]) {
+		if(locals[doctype] && locals[doctype][name] && wn.model.get_docinfo(doctype, name)) {
 			callback(name);
 		} else {
 			wn.call({
@@ -115,6 +116,10 @@ $.extend(wn.model, {
 				callback: function(r) { callback(name, r); }
 			});
 		}
+	},
+	
+	get_docinfo: function(doctype, name) {
+		return wn.model.docinfo[doctype] && wn.model.docinfo[doctype][name] || null;
 	},
 	
 	get_server_module_name: function(doctype) {
@@ -179,8 +184,61 @@ $.extend(wn.model, {
 	},
 	
 	get_value: function(doctype, filters, fieldname) {
-		var l = wn.model.get(doctype, filters);
-		return (l.length && l[0]) ? l[0][fieldname] : null;
+		if(typeof filters==="string") {
+			return locals[doctype] && locals[doctype][filters] 
+				&& locals[doctype][filters][fieldname];
+		} else {
+			var l = wn.model.get(doctype, filters);
+			return (l.length && l[0]) ? l[0][fieldname] : null;
+		}
+	},
+	
+	set_value: function(doctype, name, fieldname, value, fieldtype) {
+		/* help: Set a value locally (if changed) and execute triggers */
+		if(!name) name = doctype;
+		var doc = locals[doctype] && locals[doctype][name] || null;
+		if(doc && doc[fieldname] !== value) {
+			doc[fieldname] = value;
+			wn.model.trigger(fieldname, value, doc);
+			return true;
+		} else {
+			// execute link triggers (want to reselect to execute triggers)
+			if(fieldtype=="Link")
+				wn.model.trigger(fieldname, value, doc);
+		}
+	},
+	
+	on: function(doctype, fieldname, fn) {
+		/* help: Attach a trigger on change of a particular field.
+		To trigger on any change in a particular doctype, use fieldname as "*"
+		*/
+		/* example: wn.model.on("Customer", "age", function(fieldname, value, doc) {
+		  if(doc.age < 16) {
+		    msgprint("Warning, Customer must atleast be 16 years old.");
+		    raise "CustomerAgeError";
+		  }
+		}) */
+		wn.provide("wn.model.events." + doctype);
+		if(!wn.model.events[doctype][fieldname]) {
+			wn.model.events[doctype][fieldname] = [];
+		}
+		wn.model.events[doctype][fieldname].push(fn);
+	},
+	
+	trigger: function(fieldname, value, doc) {
+		var run = function(events) {
+			$.each(events || [], function(i, fn) {
+				fn && fn(fieldname, value, doc);
+			});
+		};
+		
+		if(wn.model.events[doc.doctype]) {
+			// doctype-level
+			run(wn.model.events[doc.doctype]['*']);
+			
+			// field-level
+			run(wn.model.events[doc.doctype][fieldname]);
+		};
 	},
 	
 	get_doc: function(doctype, name) {
@@ -214,17 +272,19 @@ $.extend(wn.model, {
 		return doclist;
 	},
 
-	get_children: function(child_dt, parent, parentfield, parenttype) { 
+	get_children: function(doctype, parent, parentfield, parenttype) { 
 		if(parenttype) {
-			var l = wn.model.get(child_dt, {parent:parent, 
+			var l = wn.model.get(doctype, {parent:parent, 
 				parentfield:parentfield, parenttype:parenttype});
 		} else {
-			var l = wn.model.get(child_dt, {parent:parent, 
-				parentfield:parentfield});				
+			var l = wn.model.get(doctype, {parent:parent, 
+				parentfield:parentfield});
 		}
 
 		if(l.length) {
-			l.sort(function(a,b) { return cint(a.idx) - cint(b.idx) }); 
+			l.sort(function(a,b) { return flt(a.idx) - flt(b.idx) }); 
+			
+			// renumber
 			$.each(l, function(i, v) { v.idx = i+1; }); // for chrome bugs ???
 		}
 		return l; 
@@ -235,6 +295,14 @@ $.extend(wn.model, {
 			if(d) wn.model.clear_doc(d.doctype, d.name);
 		});
 	},
+	
+	clear_table: function(doctype, parenttype, parent, parentfield) {
+		$.each(locals[doctype] || {}, function(i, d) {
+			if(d.parent===parent && d.parenttype===parenttype && d.parentfield===parentfield) {
+				delete locals[doctype][d.name];
+			}
+		})
+	},
 
 	remove_from_locals: function(doctype, name) {
 		this.clear_doclist(doctype, name);
@@ -242,11 +310,20 @@ $.extend(wn.model, {
 			delete wn.views.formview[doctype].frm.opendocs[name];
 		}
 	},
-	
-	clear_doc: function(doctype, name) {
-		delete locals[doctype][name];
-	},	
 
+	clear_doc: function(doctype, name) {
+		var doc = locals[doctype][name];
+		
+		if(doc && doc.parenttype) {
+			var parent = doc.parent,
+				parenttype = doc.parenttype,
+				parentfield = doc.parentfield;
+		}
+		delete locals[doctype][name];
+		if(parent)
+			wn.model.get_children(doctype, parent, parentfield, parenttype);
+	},
+	
 	get_no_copy_list: function(doctype) {
 		var no_copy_list = ['name','amended_from','amendment_date','cancel_reason'];
 		$.each(wn.model.get("DocField", {parent:doctype}), function(i, df) {
@@ -387,6 +464,23 @@ $.extend(wn.model, {
 			});
 		});
 		d.show();
+	},
+	
+	round_floats_in: function(doc, fieldnames) {
+		if(!fieldnames) {
+			fieldnames = wn.meta.get_fieldnames(doc.doctype, doc.name, 
+				{"fieldtype": ["in", ["Currency", "Float"]]});
+		}
+		$.each(fieldnames, function(i, fieldname) {
+			doc[fieldname] = flt(doc[fieldname], precision(fieldname, doc));
+		});
+	},
+	
+	validate_missing: function(doc, fieldname) {
+		if(!doc[fieldname]) {
+			wn.throw(wn._("Please specify") + ": " + 
+				wn._(wn.meta.get_label(doc.doctype, fieldname, doc.parent || doc.name)));
+		}
 	}
 });
 

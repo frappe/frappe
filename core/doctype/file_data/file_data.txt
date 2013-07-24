@@ -2,13 +2,14 @@
  {
   "creation": "2012-12-12 11:19:22", 
   "docstatus": 0, 
-  "modified": "2013-04-10 13:34:29", 
+  "modified": "2013-07-05 14:38:16", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "autoname": "File.######", 
   "doctype": "DocType", 
+  "icon": "icon-file", 
   "module": "Core", 
   "name": "__common__", 
   "read_only": 0

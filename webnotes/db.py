@@ -307,7 +307,11 @@ class Database:
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
 		
 		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
-		
+	
+	def get_single_value(self, doctype, fieldname):
+		values = self.get_values_from_single(doctype, None, fieldname)
+		return values[0] if values else None
+	
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if isinstance(filters, list):
 			return self.get_value_for_many_names(doctype, filters, fieldname, debug=debug)
@@ -334,7 +338,7 @@ class Database:
 
 		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
 
-	def get_values_from_single(self, fields, filters, doctype, as_dict, debug):
+	def get_values_from_single(self, fields, filters, doctype, as_dict=False, debug=False):
 		if fields=="*" or isinstance(filters, dict):
 			r = self.sql("""select field, value from tabSingles where doctype=%s""", doctype)
 			
@@ -363,9 +367,16 @@ class Database:
 				return r and [[i[1] for i in r]] or []
 	
 	def get_values_from_table(self, fields, filters, doctype, as_dict, debug):
-		fl = fields
-		if fields!="*":
-			fl = ("`" + "`, `".join(fields) + "`")	
+		fl = []
+		if isinstance(fields, (list, tuple)):
+			for f in fields:
+				if "(" in f: # function
+					fl.append(f)
+				else:
+					fl.append("`" + f + "`")
+			fl = ", ".join(fields)
+		else:
+			fl = fields
 
 		conditions, filters = self.build_conditions(filters)
 	

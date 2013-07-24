@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-09 15:45:57", 
   "docstatus": 0, 
-  "modified": "2013-04-30 17:50:00", 
+  "modified": "2013-07-05 14:53:03", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -10,6 +10,7 @@
   "autoname": "field:report_name", 
   "doctype": "DocType", 
   "document_type": "System", 
+  "icon": "icon-table", 
   "module": "Core", 
   "name": "__common__"
  }, 

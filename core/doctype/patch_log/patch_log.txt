@@ -1,33 +1,34 @@
 [
  {
-  "owner": "Administrator", 
-  "docstatus": 0, 
   "creation": "2013-01-17 11:36:45", 
+  "docstatus": 0, 
+  "modified": "2013-07-05 14:48:05", 
   "modified_by": "Administrator", 
-  "modified": "2013-01-17 11:36:45"
+  "owner": "Administrator"
  }, 
  {
   "autoname": "PATCHLOG.#####", 
   "description": "List of patches executed", 
   "doctype": "DocType", 
-  "module": "Core", 
   "document_type": "System", 
+  "icon": "icon-cog", 
+  "module": "Core", 
   "name": "__common__"
  }, 
  {
-  "name": "__common__", 
-  "parent": "Patch Log", 
-  "label": "Patch", 
-  "parenttype": "DocType", 
+  "doctype": "DocField", 
   "fieldname": "patch", 
   "fieldtype": "Data", 
-  "doctype": "DocField", 
-  "permlevel": 0, 
-  "parentfield": "fields"
+  "label": "Patch", 
+  "name": "__common__", 
+  "parent": "Patch Log", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
  }, 
  {
-  "name": "Patch Log", 
-  "doctype": "DocType"
+  "doctype": "DocType", 
+  "name": "Patch Log"
  }, 
  {
   "doctype": "DocField"

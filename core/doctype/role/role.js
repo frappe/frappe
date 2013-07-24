@@ -20,5 +20,9 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-//test3456
-//do not remove the above line - used in webnotes/tests/modules.py
+cur_frm.cscript.refresh = function(doc) {
+	cur_frm.add_custom_button("Permission Manager", function() {
+		wn.route_options = {"role": doc.name};
+		wn.set_route("permission-manager");
+	})
+}

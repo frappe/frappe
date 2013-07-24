@@ -32,16 +32,18 @@ wn.form.formatters = {
 		if(!value) 
 			return "";
 		if(docfield && docfield.options) {
-			return repl('<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', {
+			return repl('%(icon)s<a href="#Form/%(doctype)s/%(name)s">%(name)s</a>', {
 				doctype: docfield.options,
-				name: value
-			});			
+				name: value,
+				icon: (options && options.no_icon) ? "" :
+					('<i class="icon-fixed-width '+wn.boot.doctype_icons[docfield.options]+'"></i> ')
+			});
 		} else {
 			return value;
 		}
 	},
 	Date: function(value) {
-		return dateutil.str_to_user(value);
+		return value ? dateutil.str_to_user(value) : "";
 	},
 	Text: function(value) {
 		if(value) {
@@ -72,6 +74,9 @@ wn.form.formatters = {
 	},
 	SmallText: function(value) {
 		return wn.form.formatters.Text(value);
+	},
+	Code: function(value) {
+		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"
 	},
 	WorkflowState: function(value) {
 		workflow_state = wn.model.get("Workflow State", value)[0];

@@ -94,16 +94,7 @@ def rename_doctype(doctype, old, new, force=False):
 	# rename comments
 	webnotes.conn.sql("""update tabComment set comment_doctype=%s where comment_doctype=%s""",
 		(new, old))
-	
-	# update mapper
-	rename_mapper(new)
-	
-def rename_mapper(new):
-	for mapper in webnotes.conn.sql("""select name, from_doctype, to_doctype 
-			from `tabDocType Mapper` where from_doctype=%s or to_doctype=%s""", (new, new), as_dict=1):
-		if not webnotes.conn.exists("DocType Mapper", mapper.from_doctype + "-" + mapper.to_doctype):
-			rename_doc("DocType Mapper", mapper.name, mapper.from_doctype + "-" + mapper.to_doctype, force=True)
-		
+
 def update_child_docs(old, new, doclist):
 	# update "parent"
 	child_doctypes = (d.options for d in doclist 

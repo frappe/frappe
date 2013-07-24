@@ -26,21 +26,8 @@ from __future__ import unicode_literals
 """
 import webnotes, os, conf
 
-transfer_types = ['Role', 'Print Format','DocType','Page','DocType Mapper',
-	'GL Mapper','Search Criteria', 'Patch', 'Report']
-	
-lower_case_files_for = ['DocType', 'Page', 'Search Criteria', 'Report', 
+lower_case_files_for = ['DocType', 'Page', 'Report', 
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action']
-
-code_fields_dict = {
-	'Page':[('script', 'js'), ('content', 'html'), ('style', 'css'), ('static_content', 'html'), ('server_code', 'py')],
-	'DocType':[('server_code_core', 'py'), ('client_script_core', 'js')],
-	'Search Criteria':[('report_script', 'js'), ('server_script', 'py'), ('custom_query', 'sql')],
-	'Patch':[('patch_code', 'py')],
-	'Stylesheet':['stylesheet', 'css'],
-	'Page Template':['template', 'html'],
-	'Control Panel':[('startup_code', 'js'), ('startup_css', 'css')]
-}
 
 def scrub(txt):
 	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()

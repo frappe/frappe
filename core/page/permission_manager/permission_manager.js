@@ -197,7 +197,7 @@ wn.PermissionEngine = Class.extend({
 					cell.html("-");
 				} else {
 					var input = $("<input type='checkbox'>")
-						.attr("checked", d[fieldname] ? "checked": null)
+						.prop("checked", d[fieldname] ? true: false)
 						.attr("data-ptype", fieldname)
 						.attr("data-name", d.name)
 						.attr("data-doctype", d.parent)
@@ -263,18 +263,18 @@ wn.PermissionEngine = Class.extend({
 			$("<td>-</td>").appendTo(row);
 			return;
 		}
-		var btn = $("<button class='btn btn-small'></button>")
+		var btn = $("<button class='btn btn-default btn-small'></button>")
 			.html(d.match ? d.match : wn._("For All Users"))
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.click(function() {
 				me.show_match_manager($(this).attr("data-name"));
 			});
-		if(d.match) btn.addClass("btn-inverse");
+		if(d.match) btn.addClass("btn-info");
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-small'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-default btn-small'><i class='icon-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-doctype", d.parent)
@@ -305,7 +305,7 @@ wn.PermissionEngine = Class.extend({
 				name: chk.attr("data-name"),
 				doctype: chk.attr("data-doctype"),
 				ptype: chk.attr("data-ptype"),
-				value: chk.is(":checked") ? 1 : 0
+				value: chk.prop("checked") ? 1 : 0
 			}
 			wn.call({
 				module: "core",
@@ -315,7 +315,7 @@ wn.PermissionEngine = Class.extend({
 				callback: function(r) {
 					if(r.exc) {
 						// exception: reverse
-						chk.attr("checked", chk.is(":checked") ? null : "checked");
+						chk.prop("checked", !chk.prop("checked"));
 					} else {
 						me.get_perm(args.name)[args.ptype]=args.value; 
 					}
@@ -325,7 +325,7 @@ wn.PermissionEngine = Class.extend({
 	},
 	show_add_rule: function() {
 		var me = this;
-		$("<button class='btn btn-info'>"+wn._("Add A New Rule")+"</button>")
+		$("<button class='btn btn-default btn-info'>"+wn._("Add A New Rule")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new wn.ui.Dialog({
@@ -410,7 +410,7 @@ wn.PermissionEngine = Class.extend({
 			});
 			
 			// button
-			$("<button class='btn btn-info'>Update</button>")
+			$("<button class='btn btn-default btn-info'>Update</button>")
 				.appendTo($("<p>").appendTo(dialog.body))
 				.attr("data-name", perm.name)
 				.click(function() {
@@ -435,9 +435,9 @@ wn.PermissionEngine = Class.extend({
 			
 			// select
 			if(perm.match) {
-				$(dialog.wrapper).find("[value='"+perm.match+"']").attr("checked", "checked").focus();
+				$(dialog.wrapper).find("[value='"+perm.match+"']").prop("checked", true).focus();
 			} else {
-				$(dialog.wrapper).find('[value=""]').attr("checked", "checked").focus();
+				$(dialog.wrapper).find('[value=""]').prop("checked", true).focus();
 			}
 		});
 	},

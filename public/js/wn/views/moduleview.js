@@ -2,7 +2,6 @@
 // MIT Licensed. See license.txt
 
 wn.provide("wn.views.moduleview");
-wn.provide("wn.model.open_count_conditions");
 wn.provide("wn.module_page");
 wn.home_page = "desktop";
 
@@ -17,38 +16,55 @@ wn.views.moduleview.make = function(wrapper, module) {
 	}
 }
 
+wn.views.show_open_count_list = function(element) {
+	var doctype = $(element).attr("data-doctype");
+	var condition = wn.boot.notification_info.conditions[doctype];
+	if(condition) {
+		wn.route_options = condition;
+		var route = wn.get_route()
+		if(route[0]==="List" && route[1]===doctype) {
+			wn.pages["List/" + doctype].doclistview.refresh();
+		} else {
+			wn.set_route("List", doctype);
+		}
+	}
+}
+
 wn.views.moduleview.ModuleView = Class.extend({
 	init: function(wrapper, module) {
 		this.doctypes = [];
+		this.top_item_total = {};
+		this.top_item_open = {};
 		$(wrapper).empty();
 		wn.ui.make_app_page({
 			parent: wrapper,
 			single_column: true,
 			title: wn._(wn.modules[module] && wn.modules[module].label || module)
 		});
-		wrapper.appframe.add_home_breadcrumb();
-		wrapper.appframe.add_breadcrumb(wn.modules[module].icon);
+		wrapper.appframe.add_module_icon(module);
 		this.wrapper = wrapper;
 		this.module = module;
 		this.make_body();
 		this.render_static();
 		this.render_dynamic();
 		this.created_on = new Date();
+
+		var me = this;
+		$(document).on("notification-update", function() {
+			me.update_open_count();
+		});
 	},
 	make_body: function() {
 		var wrapper = this.wrapper;
 		// make columns
-		$(wrapper).find(".layout-main").html("<div class='row'>\
-			<div class='span6 main-section'></div>\
-			<div class='span5 side-section'></div>\
+		$(wrapper).find(".layout-main").html("<div class='row module-top'></div>\
+		<div class='row'>\
+			<div class='col col-lg-6 main-section'></div>\
+			<div class='col col-lg-6 side-section'></div>\
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {
-			var doctype = $(this).parent().attr("data-doctype");
-			var condition = wn.model.open_count_conditions[doctype];
-			if(condition) {
-				wn.set_route("List", doctype, wn.utils.get_url_from_dict(condition));
-			}
+			wn.views.show_open_count_list(this);
 		});
 
 		$(wrapper).on("click", ".badge-count", function() {
@@ -58,32 +74,78 @@ wn.views.moduleview.ModuleView = Class.extend({
 	},
 	add_section: function(section) {
 		section._title = wn._(section.title);
-		var table = $(repl("<table class='table table-bordered'>\
-		<thead><tr>\
-			<th style='font-size: 120%;'><i class='%(icon)s'></i> %(_title)s</th></tr></thead>\
-		<tbody></tbody>\
-		</table>", section)).appendTo(section.right 
-			? $(this.wrapper).find(".side-section")
-			: $(this.wrapper).find(".main-section"));
-		section.table = table;
+		if(section.top) {
+			var module_top = $(this.wrapper).find(".module-top");
+			var list_group = $('<div>')
+				.appendTo(module_top);
+			$('<div class="col col-lg-12"><hr /></div>').appendTo(module_top);
+		} else {
+			var list_group = $('<ul class="list-group">\
+				<li class="list-group-item" style="background-color: #eee">\
+					<h4 class="list-group-item-heading" style="margin-bottom: 0px;">\
+						<i class="text-muted '+ section.icon+'"></i> '
+						+ wn._(section.title) +'</h4>\
+				</li>\
+			</ul>"').appendTo(section.right 
+				? $(this.wrapper).find(".side-section")
+				: $(this.wrapper).find(".main-section"));
+		}
+		section.list_group = list_group;
 	},
 	add_item: function(item, section) {
 		if(!item.description) item.description = "";
 		if(item.count==null) item.count = "";
-		
-		$(repl("<tr><td><div class='row'>\
-			<span"+
+		if(!item.icon) item.icon = "";
+		if(section.top) {
+			var $parent = $(repl('<div class="col col-lg-4">\
+				<div class="alert alert-badge"></div></div>'))
+				.appendTo(section.list_group)
+				.find(".alert");
+			this.top_item_total[item.doctype] = 0;
+		} else {
+			var $parent = $('<li class="list-group-item">').appendTo(section.list_group);
+		}
+				
+		$(repl('%(icon)s<span' +
 				((item.doctype && item.description) 
-					? " data-doctype='"+item.doctype+"'" : "")
-				+" class='"+(section.right ? 'spanf4' : 'span2')
-				+"'>%(link)s</span>\
-			<span class='help "+(section.right ? 'span4' : 'span3')
-				+"'>%(description)s</span>"
+					? " data-doctype='"+item.doctype+"'" 
+					: "") + ">%(link)s</span>"
+				+ ((item.description && !section.top)
+					? " <span class='text-muted small'>%(description)s</span>" 
+					: "")
 			+ ((section.right || !item.doctype) 
 				? ''
-				: '<span data-doctype-count="%(doctype)s"></span>')
-			+ "</div></td></tr>", item))
-		.appendTo(section.table.find("tbody"));
+				: '<span data-doctype-count="%(doctype)s" style="margin-left: 2px;"></span>'), item))
+		.appendTo($parent);
+		
+		if(!section.top) {
+			$('<span class="clearfix"></span>').appendTo($parent);
+		}
+	},
+	set_top_item_count: function(doctype, count, open_count) {
+		return;
+		var me = this;
+		if(this.top_item_total[doctype]!=null) {
+
+			if(count!=null)
+				this.top_item_total[doctype] = count;
+			if(open_count!=null)
+				this.top_item_open[doctype] = open_count;
+				
+			var maxtop = Math.max.apply(this, values(this.top_item_total));
+
+			$.each(this.top_item_total, function(doctype, item_count) {
+				$(me.wrapper).find(".module-item-progress[data-doctype='"+ doctype +"']")
+					.find(".module-item-progress-total")
+					.css("width", cint(flt(item_count)/maxtop*100) + "%")
+			})
+
+			$.each(this.top_item_open, function(doctype, item_count) {
+				$(me.wrapper).find(".module-item-progress[data-doctype='"+ doctype +"']")
+					.find(".module-item-progress-open")
+					.css("width", cint(flt(item_count)/me.top_item_total[doctype]*100) + "%")
+			})
+		}
 	},
 	render_static: function() {
 		// render sections
@@ -91,13 +153,18 @@ wn.views.moduleview.ModuleView = Class.extend({
 		$.each(wn.module_page[this.module], function(i, section) {
 			me.add_section(section);
 			$.each(section.items, function(i, item) {
-				if(item.doctype) 
+				if(item.doctype) {
 					me.doctypes.push(item.doctype);
+					item.icon = '<i class="icon-fixed-width '+ wn.boot.doctype_icons[item.doctype] + '"></i> ';
+				}
 				if(item.doctype && !item.route) {
 					item.route = "List/" + encodeURIComponent(item.doctype);
 				}
 				if(item.page && !item.route) {
 					item.route = item.page;
+				}
+				if(item.page) {
+					item.icon = '<i class="icon-fixed-width '+ wn.boot.doctype_icons[item.page] + '"></i> ';
 				}
 
 				// link
@@ -119,8 +186,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 					|| !item.country)
 					me.add_item(item, section)
 			});
-			if(section.table.find("tr").length==1) {
-				section.table.toggle(false);
+			if(section.list_group.find("li").length==1) {
+				section.list_group.toggle(false);
 			}
 		});
 	},
@@ -149,27 +216,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 									item.link = repl("<a href=\"#query-report/%(name)s\">%(name)s</a>",
 										item);
 								} else {
-									item.link = repl("<a href=\"#Report2/%(doctype)s/%(name)s\">\
+									item.link = repl("<a href=\"#Report/%(doctype)s/%(name)s\">\
 										%(name)s</a>", item);
 								}
-								me.add_item(item, section);
-							}
-						})
-					}
-					// search criteria
-					if(r.message.search_criteria.length) {
-						var section = {
-							title: wn._("Old Style Reports"),
-							right: true,
-							icon: "icon-list-alt",
-						}
-						me.add_section(section);
-						$.each(r.message.search_criteria, function(i, item) {
-							item.criteria_name_enc = encodeURIComponent(item.criteria_name);
-							if(wn.model.can_read(item.parent_doctype || item.doctype)) {
-								item.link = repl(
-									"<a href=\"#Report/%(doctype)s/%(criteria_name_enc)s\">\
-									%(criteria_name)s</a>", item);
 								me.add_item(item, section);
 							}
 						})
@@ -179,23 +228,37 @@ wn.views.moduleview.ModuleView = Class.extend({
 						$.each(r.message.item_count, function(doctype, count) {
 							$(me.wrapper).find("[data-doctype-count='"+doctype+"']")
 								.html(count)
-								.addClass("badge badge-count")
+								.addClass("badge badge-count pull-right")
 								.css({cursor:"pointer"});
+							me.set_top_item_count(doctype, count)
 						})
 					}
 
-					// counts
-					if(r.message.open_count) {
-						$.extend(wn.model.open_count_conditions, r.message.conditions);
-
-						$.each(r.message.open_count, function(doctype, count) {
-							$(me.wrapper).find("[data-doctype='"+doctype+"']")
-								.append(" <span class='badge badge-important pull-right'\
-									style='cursor:pointer'>" + count + "</span>");
-						})
-					}
+					// open-counts
+					me.update_open_count();
 				}
 			}
 		});	
+	},
+	update_open_count: function() {
+		var me = this;
+		$(me.wrapper).find(".badge-important").remove();
+		if(wn.boot.notification_info.open_count_doctype) {
+			$.each(wn.boot.notification_info.open_count_doctype, function(doctype, count) {
+				if(in_list(me.doctypes, doctype)) {
+					me.set_top_item_count(doctype, null, count);
+					$('<span>')
+						.css({
+							"cursor": "pointer",
+							"margin-right": "0px"
+						})
+						.addClass("badge badge-important pull-right")
+						.html(count)
+						.attr("data-doctype", doctype)
+						.insertAfter($(me.wrapper)
+							.find("[data-doctype-count='"+doctype+"']"));
+				}
+			})
+		}
 	}
 });

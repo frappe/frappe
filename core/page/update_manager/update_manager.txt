@@ -2,12 +2,13 @@
  {
   "creation": "2013-04-01 11:07:42", 
   "docstatus": 0, 
-  "modified": "2013-04-01 11:07:42", 
+  "modified": "2013-07-11 14:45:15", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "doctype": "Page", 
+  "icon": "icon-rss", 
   "module": "Core", 
   "name": "__common__", 
   "page_name": "update-manager", 

@@ -321,7 +321,7 @@ def flt(s, precision=None):
 		s = s.replace(',','')
 	try:
 		num = float(s)
-		if precision:
+		if precision is not None:
 			num = round(num, precision)
 	except Exception:
 		num = 0
@@ -413,20 +413,19 @@ def fmt_money(amount, precision=None, currency=None):
 			amount = symbol + " " + amount
 
 	return amount
-	
+
+number_format_info = {
+	"#.###": ("", ".", 0),
+	"#,###": ("", ",", 0),
+	"#,###.##": (".", ",", 2),
+	"#,##,###.##": (".", ",", 2),
+	"#.###,##": (",", ".", 2),
+	"# ###.##": (".", " ", 2),
+	"#,###.###": (".", ",", 3),
+}
+
 def get_number_format_info(format):
-	if format=="#.###":
-		return "", ".", 0
-	elif format=="#,###":
-		return "", ",", 0
-	elif format=="#,###.##" or format=="#,##,###.##":
-		return ".", ",", 2
-	elif format=="#.###,##":
-		return ",", ".", 2
-	elif format=="# ###.##":
-		return ".", " ", 2
-	else:
-		return ".", ",", 2
+	return number_format_info.get(format) or (".", ",", 2) 
 
 #
 # convet currency to words
@@ -787,6 +786,10 @@ def comma_sep(some_list, sep):
 			return ", ".join(some_list[:-1]) + sep + some_list[-1]
 	else:
 		return some_list
+		
+def filter_strip_join(some_list, sep):
+	"""given a list, filter None values, strip spaces and join"""
+	return (cstr(sep)).join((cstr(a).strip() for a in filter(None, some_list)))
 		
 def get_path(*path):
 	import os

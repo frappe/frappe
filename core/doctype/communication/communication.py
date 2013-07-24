@@ -45,6 +45,18 @@ def make(doctype=None, name=None, content=None, subject=None,
 	# add to Communication
 	sent_via = None
 	
+	# since we are using fullname and email, 
+	# if the fullname has any incompatible characters,formataddr can deal with it
+	try:
+		import json
+		sender = json.loads(sender)
+	except ValueError:
+		pass
+	
+	if isinstance(sender, (tuple, list)) and len(sender)==2:
+		from email.utils import formataddr
+		sender = formataddr(sender)
+	
 	d = webnotes.doc('Communication')
 	d.subject = subject
 	d.content = content
@@ -71,14 +83,11 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	if sent_via:
 		if hasattr(sent_via, "get_sender"):
-			d.sender = sent_via.get_sender(d)
+			d.sender = sent_via.get_sender(d) or d.sender
 		if hasattr(sent_via, "get_subject"):
 			d.subject = sent_via.get_subject(d)
 		if hasattr(sent_via, "get_content"):
 			d.content = sent_via.get_content(d)
-
-	if not d.sender:
-		d.sender = webnotes.session.user
 
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
@@ -122,3 +131,29 @@ class DocType():
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
+
+def get_user(doctype, txt, searchfield, start, page_len, filters):
+	from controllers.queries import get_match_cond
+	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
+			from `tabProfile` 
+			where ifnull(enabled, 0)=1 
+				and docstatus < 2 
+				and (%(key)s like "%(txt)s" 
+					or concat_ws(' ', first_name, middle_name, last_name) like "%(txt)s")
+				%(mcond)s 
+			limit %(start)s, %(page_len)s """ % {'key': searchfield, 
+			'txt': "%%%s%%" % txt, 'mcond':get_match_cond(doctype, searchfield),
+			'start': start, 'page_len': page_len})
+
+def get_lead(doctype, txt, searchfield, start, page_len, filters):
+	from controllers.queries import get_match_cond
+	return webnotes.conn.sql(""" select name, lead_name from `tabLead` 
+			where docstatus < 2 
+				and (%(key)s like "%(txt)s" 
+					or lead_name like "%(txt)s" 
+					or company_name like "%(txt)s") 
+				%(mcond)s 
+			order by lead_name asc 
+			limit %(start)s, %(page_len)s """ % {'key': searchfield,'txt': "%%%s%%" % txt, 
+			'mcond':get_match_cond(doctype, searchfield), 'start': start, 
+			'page_len': page_len})

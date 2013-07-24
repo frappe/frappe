@@ -1,8 +1,10 @@
-
+var disable_signup = {{ disable_signup and "true" or "false" }};
 var login = {};
 
 $(document).ready(function(wrapper) {
-	$('#login_btn').click(login.do_login)
+	login.show_login();
+	
+	$('#login_btn').click(login.do_login);
 		
 	$('#password').keypress(function(ev){
 		if(ev.which==13 && $('#password').val()) {
@@ -17,11 +19,11 @@ $(document).ready(function(wrapper) {
 
 // Login
 login.do_login = function(){
-    var args = {};
+	var args = {};
 	if(window.is_sign_up) {
 		args.cmd = "core.doctype.profile.profile.sign_up";
-		args.email = $("#login_id").val();
-	    args.full_name = $("#full_name").val();
+		args.email = ($("#login_id").val() || "").trim();
+		args.full_name = ($("#full_name").val() || "").trim();
 
 		if(!args.email || !valid_email(args.email) || !args.full_name) {
 			login.set_message("Valid email and name required.");
@@ -29,7 +31,7 @@ login.do_login = function(){
 		}
 	} else if(window.is_forgot) {
 		args.cmd = "reset_password";
-		args.user = $("#login_id").val();
+		args.user = ($("#login_id").val() || "").trim();
 		
 		if(!args.user) {
 			login.set_message("Valid Login Id required.");
@@ -38,8 +40,8 @@ login.do_login = function(){
 
 	} else {
 		args.cmd = "login"
-	    args.usr = $("#login_id").val();
-	    args.pwd = $("#password").val();
+		args.usr = ($("#login_id").val() || "").trim();
+		args.pwd = $("#password").val();
 
 		if(!args.usr || !args.pwd) {
 			login.set_message("Both login and password required.");
@@ -62,7 +64,12 @@ login.do_login = function(){
 			if(data.message=="Logged In") {
 				window.location.href = "app.html";
 			} else if(data.message=="No App") {
-				window.location.href = "index";
+				if(localStorage) {
+					window.location.href = localStorage.getItem("last_visited") || "index";
+					localStorage.removeItem("last_visited");
+				} else {
+					window.location.href = "index";
+				}
 			} else {
 				login.set_message(data.message);
 			}
@@ -72,25 +79,44 @@ login.do_login = function(){
 	return false;
 }
 
-login.sign_up = function() {
+login.show_login = function() {
+	$("#login_wrapper h3").html("Login");
+	$("#login-label").html("Email Id");
+	$("#password-row").toggle(true);
+	$("#full-name-row, #login_message").toggle(false);
+	$("#login_btn").html("Login").removeClass("btn-success");
+	$("#switch-view").html('<a style="margin-left: -35px;" \
+		onclick="return login.show_forgot_password()">Forgot Password?</a>');
+	
+	if(!disable_signup) {
+		$("#switch-view").append('<hr><div>\
+			New User? <button class="btn btn-success" style="margin-left: 10px; margin-top: -2px;"\
+				onclick="return login.show_sign_up()">Sign Up</button></div>');
+	}
+
+	window.is_login = true;
+	window.is_sign_up = false;
+}
+
+login.show_sign_up = function() {
 	$("#login_wrapper h3").html("Sign Up");
 	$("#login-label").html("Email Id");
-	$("#password-row, #sign-up-wrapper, #login_message").toggle(false);
+	$("#password-row, #login_message").toggle(false);
 	$("#full-name-row").toggle(true);
-	$("#login_btn").html("Register");
-	$("#forgot-wrapper").html("<a onclick='location.reload()' href='#'>Login</a>")
+	$("#login_btn").html("Sign Up").addClass("btn-success");
+	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
 	window.is_sign_up = true;
 }
 
 login.show_forgot_password = function() {
 	$("#login_wrapper h3").html("Forgot");
 	$("#login-label").html("Email Id");
-	$("#password-row, #sign-up-wrapper, #login_message").toggle(false);
-	$("#login_btn").html("Send Password");
-	$("#forgot-wrapper").html("<a onclick='location.reload()' href='#'>Login</a>")
+	$("#password-row, #login_message, #full-name-row").toggle(false);
+	$("#login_btn").html("Send Password").removeClass("btn-success");
+	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
 	window.is_forgot = true;
 }
 
 login.set_message = function(message, color) {
-    $('#login_message').html(message).toggle(true);	
+	$('#login_message').html(message).toggle(true);	
 }

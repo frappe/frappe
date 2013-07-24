@@ -25,8 +25,8 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 	init:function() {
 		$('.navbar .nav:first').append('<li class="dropdown">\
 			<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
-				title="'+wn._("Recent")+'"\
-				onclick="return false;"><i class="icon-arrow-left"></i></a>\
+				title="'+wn._("History")+'"\
+				onclick="return false;">'+wn._("History")+'</i></a>\
 			<ul class="dropdown-menu" id="toolbar-recent"></ul>\
 		</li>');
 		this.setup();
@@ -49,9 +49,10 @@ wn.ui.toolbar.RecentDocs = Class.extend({
 		this.remove(dt, dn);
 		var html = repl('<li data-docref="%(dt)s/%(dn)s">\
 			<a href="#Form/%(dt)s/%(dn)s">\
-				%(dn)s <span style="font-size: 10px">(%(dt)s)</span>\
+				<i class="icon-fixed-width %(icon)s"></i> \
+				%(dn)s</span>\
 			</a></li>', 
-			{dt:dt, dn:dn});
+			{dt:dt, dn:dn, icon:wn.boot.doctype_icons[dt]});
 		if(on_top) {
 			$('#toolbar-recent').prepend(html);
 		} else {

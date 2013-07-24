@@ -191,14 +191,22 @@ wn.UserProperties = Class.extend({
 					d.set_value("defkey", me.get_property());
 					d.get_input("defkey").attr("disabled", true);
 				}
+				
 				d.fields_dict["defvalue"].get_query = function(txt) {
 					var key = d.get_value("defkey");
 					var doctype = $.map(me.options.link_fields, function(l) {
 						if(l[0]==key) return l[1];
 					})[0];
-					return 'select name from `tab'+doctype
-						+'` where name like "%s" limit 20'
-				}
+					
+					return {
+						query: "core.page.user_properties.user_properties.get_defvalue",
+						filters: {
+							doctype: doctype
+						},
+						doctype: doctype,
+					}
+				};
+				
 				d.get_input("add").click(function() {
 					var args = d.get_values();
 					if(!args) {

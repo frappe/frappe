@@ -1,0 +1,97 @@
+body {
+	font-family: Arial, Sans Serif;
+	font-size: 16px;
+	text-rendering: optimizeLegibility;
+	color: #555555;
+	line-height: 25px;
+}
+
+img {
+	max-width: 100%;
+}
+
+.container {
+	max-width: 767px;
+}
+
+.navbar {
+	background-color: #f8f8f8;
+	border-bottom: 1px solid #dddddd;
+}
+
+.navbar .navbar-nav > li > a:hover
+{
+	color: #444444;
+}
+
+h1 {
+	font-weight: bold;
+}
+
+h1, h2, h3, h4, .logo {
+	font-family: Arial, Sans;
+	font-weight: bold;
+}
+
+li {
+	line-height: inherit;
+}
+		
+.content img {
+	border-radius: 5px;
+}
+
+blockquote {
+	padding: 10px 0 10px 15px;
+	margin: 0 0 20px;
+	background-color: #FFFCED;
+	border-left: 5px solid #fbeed5;
+}
+
+blockquote p {
+  margin-bottom: 0;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 25px;
+}
+
+.erpnext-logo {
+	width: 32px; 
+	height: 32px; 
+	margin: -11px 0px;
+}
+
+.erpnext-logo rect {
+	fill: #ffffff !important;
+}
+
+.btn-default {
+  color: #ffffff;
+  background-color: #a7a9aa;
+  border-color: #a7a9aa;
+}
+
+.btn-default:hover,
+.btn-default:focus,
+.btn-default:active,
+.btn-default.active {
+  background-color: #9a9c9d;
+  border-color: #8d9091;
+}
+
+.btn-default.disabled:hover,
+.btn-default[disabled]:hover,
+fieldset[disabled] .btn-default:hover,
+.btn-default.disabled:focus,
+.btn-default[disabled]:focus,
+fieldset[disabled] .btn-default:focus,
+.btn-default.disabled:active,
+.btn-default[disabled]:active,
+fieldset[disabled] .btn-default:active,
+.btn-default.disabled.active,
+.btn-default[disabled].active,
+fieldset[disabled] .btn-default.active {
+  background-color: #a7a9aa;
+  border-color: #a7a9aa;
+}
+

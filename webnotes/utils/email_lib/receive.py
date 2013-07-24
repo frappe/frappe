@@ -29,17 +29,18 @@ class IncomingMail:
 		Single incoming email object. Extracts, text / html and attachments from the email
 	"""
 	def __init__(self, content):
-		import email
-		import email.utils
+		import email, email.utils
 		import datetime
 		
 		self.mail = email.message_from_string(content)
 		
 		self.text_content = ''
 		self.html_content = ''
-		self.attachments = []
+		self.attachments = []	
 		self.parse()
 		self.set_content_and_type()
+		self.set_subject()
+
 		self.from_email = extract_email_id(self.mail["From"])
 		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
 		
@@ -50,6 +51,13 @@ class IncomingMail:
 	def parse(self):
 		for part in self.mail.walk():
 			self.process_part(part)
+
+	def set_subject(self):
+		import email.header
+		_subject = email.header.decode_header(self.mail.get("Subject", "No Subject"))
+		self.subject = _subject[0][0]
+		if _subject[0][1]:
+			self.subject = _subject[0][0].decode(_subject[0][1])
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'
@@ -111,8 +119,7 @@ class IncomingMail:
 
 	def get_thread_id(self):
 		import re
-		subject = self.mail.get('Subject', '')
-		l = re.findall('(?<=\[)[\w/-]+', subject)
+		l = re.findall('(?<=\[)[\w/-]+', self.subject)
 		return l and l[0] or None
 
 class POP3Mailbox:

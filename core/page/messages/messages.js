@@ -27,13 +27,12 @@ wn.pages.messages.onload = function(wrapper) {
 		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
 	</div><hr>\
 	<div id="post-message">\
-	<textarea style="width: 100%; height: 24px;"></textarea>\
-	<div><button class="btn">Post</button></div><hr>\
+	<textarea style="width: 100%; height: 64px; margin-bottom: 7px;"></textarea>\
+	<div><button class="btn btn-default">Post</button></div><hr>\
 	</div>\
 	<div class="all-messages"></div>').appendTo($(wrapper).find('.layout-main-section'));
 
-	wrapper.appframe.add_home_breadcrumb();
-	wrapper.appframe.add_breadcrumb(wn.modules["Messages"].icon);
+	wrapper.appframe.add_module_icon("Messages");
 	
 	erpnext.messages = new erpnext.Messages(wrapper);
 	erpnext.toolbar.set_new_comments(0);
@@ -45,7 +44,7 @@ $(wn.pages.messages).bind('show', function() {
 	
 	erpnext.toolbar.set_new_comments(0);	
 	erpnext.messages.show();
-	setTimeout("erpnext.messages.refresh()", 17000);
+	setTimeout("erpnext.messages.refresh()", 5000);
 })
 
 erpnext.Messages = Class.extend({
@@ -58,12 +57,6 @@ erpnext.Messages = Class.extend({
 	},
 	make_post_message: function() {
 		var me = this;
-		$('#post-message textarea').keydown(function(e) {
-			if(e.which==13) {
-				$('#post-message .btn').click();
-				return false;
-			}
-		});
 		
 		$('#post-message .btn').click(function() {
 			var txt = $('#post-message textarea').val();
@@ -88,12 +81,12 @@ erpnext.Messages = Class.extend({
 	show: function() {
 		var contact = this.get_contact() || this.contact || user;
 
-		$('#message-title').html(contact==user ? "Everyone" :
+		$('#message-title').html(contact===user ? "Everyone" :
 			wn.user_info(contact).fullname)
 
 		$('#avatar-image').attr("src", wn.utils.get_file_link(wn.user_info(contact).image));
 
-		$("#show-everyone").toggle(contact!=user);
+		$("#show-everyone").toggle(contact!==user);
 		
 		$("#post-message button").text(contact==user ? "Post Publicly" : "Post to user")
 		
@@ -104,8 +97,11 @@ erpnext.Messages = Class.extend({
 	},
 	// check for updates every 5 seconds if page is active
 	refresh: function() {
-		setTimeout("erpnext.messages.refresh()", 17000);
-		if(wn.container.page.label != 'Messages') return;
+		setTimeout("erpnext.messages.refresh()", 5000);
+		if(wn.container.page.label != 'Messages') 
+			return;
+		if(!wn.session_alive) 
+			return;
 		this.show();
 	},
 	get_contact: function() {
@@ -185,9 +181,12 @@ erpnext.Messages = Class.extend({
 				var $body = $(me.wrapper).find('.layout-side-section');
 				$('<h4>Users</h4><hr>\
 					<div id="show-everyone">\
-						<a href="#messages/'+user+'" class="btn">\
-							Show messages from everyone</a><hr></div>\
+						<a href="#messages/'+user+'" class="btn btn-default">\
+							Messages from everyone</a><hr></div>\
 				').appendTo($body);
+
+				$("#show-everyone").toggle(me.contact!==user);
+				
 				r.message.sort(function(a, b) { return b.has_session - a.has_session; });
 				for(var i in r.message) {
 					var p = r.message[i];

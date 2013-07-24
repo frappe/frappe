@@ -2,12 +2,13 @@
  {
   "creation": "2012-06-14 18:44:56", 
   "docstatus": 0, 
-  "modified": "2013-04-03 14:48:57", 
+  "modified": "2013-07-11 14:43:32", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
   "doctype": "Page", 
+  "icon": "icon-envelope", 
   "module": "Core", 
   "name": "__common__", 
   "page_name": "messages", 

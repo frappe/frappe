@@ -3,21 +3,21 @@
 		"To Do": {
 			"type": "page",
 			"link": "todo",
-			"color": "#febf04",
+			"color": "#f1c40f",
 			"label": "To Do",
 			"icon": "icon-check"
 		},
 		"Calendar": {
 			"type": "view",
 			"link": "Calendar/Event",
-			"color": "#026584",
+			"color": "#2980b9",
 			"label": "Calendar",
 			"icon": "icon-calendar"
 		},
 		"Messages": {
 			"type": "page",
 			"link": "messages",
-			"color": "#8d016e",
+			"color": "#9b59b6",
 			"label": "Messages",
 			"icon": "icon-comments"
 		}

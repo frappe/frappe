@@ -49,11 +49,12 @@ def get_form_params():
 	return data
 	
 def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
-		group_by=None, order_by=None, limit_start=0, limit_page_length=None):
+		group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+		as_list=False, debug=False):
 
 	if query:
 		return run_custom_query(query)
-		
+				
 	if not filters: filters = []
 	if not docstatus: docstatus = []
 
@@ -63,7 +64,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	query = """select %(fields)s from %(tables)s where %(conditions)s
 		%(group_by)s order by %(order_by)s %(limit)s""" % args
 		
-	return webnotes.conn.sql(query, as_dict=1)
+	return webnotes.conn.sql(query, as_dict=not as_list, debug=debug)
 	
 def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
 	global tables		
@@ -128,7 +129,6 @@ def load_doctypes():
 		if t.startswith('`'):
 			doctype = t[4:-1]
 			if not webnotes.has_permission(doctype):
-				webnotes.response['403'] = 1
 				raise webnotes.PermissionError, doctype
 			doctypes[doctype] = webnotes.model.doctype.get(doctype)
 	
@@ -171,33 +171,38 @@ def build_conditions(doctype, fields, filters, docstatus):
 def build_filter_conditions(filters, conditions):
 	"""build conditions from user filters"""
 	from webnotes.utils import cstr
+	global tables
+	if not tables: tables = []
 	
 	for f in filters:
-		tname = ('`tab' + f[0] + '`')
-		if not tname in tables:
-			tables.append(tname)
-		
-		# prepare in condition
-		if f[2]=='in':
-			opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
-			f[3] = "(" + ', '.join(opts) + ")"
-			conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
+		if isinstance(f, basestring):
+			conditions.append(f)
 		else:
-			if isinstance(f[3], basestring):
-				f[3] = "'" + f[3].replace("'", "\\'") + "'"	
+			tname = ('`tab' + f[0] + '`')
+			if not tname in tables:
+				tables.append(tname)
+		
+			# prepare in condition
+			if f[2] in ['in', 'not in']:
+				opts = ["'" + t.strip().replace("'", "\\'") + "'" for t in f[3].split(',')]
+				f[3] = "(" + ', '.join(opts) + ")"
 				conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
 			else:
-				conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
-					+ " " + cstr(f[3]))
+				if isinstance(f[3], basestring):
+					f[3] = "'" + f[3].replace("'", "\\'") + "'"	
+					conditions.append(tname + '.' + f[1] + " " + f[2] + " " + f[3])	
+				else:
+					conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
+						+ " " + cstr(f[3]))
 					
 def build_match_conditions(doctype, fields=None, as_condition=True, match_filters={}):
 	"""add match conditions if applicable"""
-	global roles
+	global tables, roles
+	
 	match_conditions = []
 	match = True
 	
 	if not tables or not doctypes:
-		global tables
 		tables = get_tables(doctype, fields)
 		load_doctypes()
 
@@ -248,7 +253,6 @@ def get_tables(doctype, fields):
 		table_name = f.split('.')[0]
 		if table_name.lower().startswith('group_concat('):
 			table_name = table_name[13:]
-		# check if ifnull function is used
 		if table_name.lower().startswith('ifnull('):
 			table_name = table_name[7:]
 		if not table_name[0]=='`':
@@ -303,7 +307,6 @@ def export_query():
 
 	f = StringIO()
 	writer = csv.writer(f)
-	from webnotes.utils import cstr
 	for r in data:
 		# encode only unicode type strings and not int, floats etc.
 		writer.writerow(map(lambda v: isinstance(v, unicode) and v.encode('utf-8') or v, r))
@@ -360,10 +363,8 @@ def get_stats(stats, doctype):
 	columns = get_table_columns(doctype)
 	for tag in tags:
 		if not tag in columns: continue
-		tagcount = webnotes.conn.sql("""select %(tag)s, count(*) 
-			from `tab%(doctype)s` 
-			where ifnull(%(tag)s, '')!=''
-			group by %(tag)s;""" % locals(), as_list=1)
+		tagcount = execute(doctype, fields=[tag, "count(*)"], 
+			filters=["ifnull(%s,'')!=''" % tag], group_by=tag, as_list=True)
 			
 		if tag=='_user_tags':
 			stats[tag] = scrub_user_tags(tagcount)

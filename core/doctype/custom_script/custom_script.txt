@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:55:59", 
+  "modified": "2013-07-05 14:34:02", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -10,6 +10,7 @@
   "autoname": "CustomScript.####", 
   "description": "Adds a custom script (client or server) to a DocType", 
   "doctype": "DocType", 
+  "icon": "icon-glass", 
   "module": "Core", 
   "name": "__common__"
  }, 

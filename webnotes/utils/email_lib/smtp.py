@@ -29,6 +29,7 @@ Allows easy adding of Attachments of "File" objects
 import webnotes	
 import conf
 from webnotes import msgprint
+from webnotes.utils import cint
 import email
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None):
@@ -231,10 +232,20 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""
+		if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+			webnotes.msgprint("Emails are muted")
+			return
+		
+		
 		import smtplib
 		try:
-			SMTPServer().sess.sendmail(self.sender, self.recipients + (self.cc or []),
+			smtpserver = SMTPServer()
+			if hasattr(smtpserver, "always_use_login_id_as_sender") and cint(smtpserver.always_use_login_id_as_sender):
+				self.sender = smtpserver.login
+			
+			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),
 				self.as_string())
+				
 		except smtplib.SMTPSenderRefused, e:
 			webnotes.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
 				Please rectify and try again.""",
@@ -261,6 +272,7 @@ class SMTPServer:
 			self.use_ssl = cint(es.use_ssl)
 			self.login = es.mail_login
 			self.password = es.mail_password
+			self.always_use_login_id_as_sender = es.always_use_login_id_as_sender
 		else:
 			self.server = getattr(conf, "mail_server", "")
 			self.port = getattr(conf, "mail_port", None)

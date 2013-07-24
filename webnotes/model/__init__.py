@@ -24,7 +24,7 @@
 from __future__ import unicode_literals
 import webnotes
 
-no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable', 'Button', 'Image', 'Graph']
+no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'Button', 'Image']
 default_fields = ['doctype','name','owner','creation','modified','modified_by','parent','parentfield','parenttype','idx','docstatus']
 
 def insert(doclist):
@@ -47,19 +47,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0):
 	import webnotes.model.utils
 	return webnotes.model.utils.delete_doc(doctype, name, doclist, force)
 	
-def get_search_criteria(dt):
-	import webnotes.model.doc
-	# load search criteria for reports (all)
-	dl = []
-	try: # bc
-		sc_list = webnotes.conn.sql("select name from `tabSearch Criteria` where doc_type = '%s' or parent_doc_type = '%s' and (disabled!=1 OR disabled IS NULL)" % (dt, dt))
-		for sc in sc_list:
-			dl += webnotes.model.doc.get('Search Criteria', sc[0])
-	except Exception, e:
-		pass # no search criteria
-	return dl
-
-def rename(doctype, old, new, debug=1):
+def rename(doctype, old, new, debug=False):
 	import webnotes.model.rename_doc
 	webnotes.model.rename_doc.rename_doc(doctype, old, new, debug)
 

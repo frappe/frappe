@@ -23,10 +23,11 @@
 from __future__ import unicode_literals
 
 import webnotes
+from webnotes import msgprint
 import os
 
 from webnotes.utils import now, cint
-msgprint = webnotes.msgprint
+from webnotes.model import no_value_fields
 
 class DocType:
 	def __init__(self, doc=None, doclist=[]):
@@ -34,10 +35,13 @@ class DocType:
 		self.doclist = doclist
 
 	def change_modified_of_parent(self):
-		sql = webnotes.conn.sql
-		parent_list = sql('SELECT parent from tabDocField where fieldtype="Table" and options="%s"' % self.doc.name)
+		if webnotes.in_import:
+			return
+		parent_list = webnotes.conn.sql("""SELECT parent 
+			from tabDocField where fieldtype="Table" and options="%s" """ % self.doc.name)
 		for p in parent_list:
-			sql('UPDATE tabDocType SET modified="%s" WHERE `name`="%s"' % (now(), p[0]))
+			webnotes.conn.sql('''UPDATE tabDocType SET modified="%s" 
+				WHERE `name`="%s"''' % (now(), p[0]))
 
 	def scrub_field_names(self):
 		restricted = ('name','parent','idx','owner','creation','modified','modified_by',
@@ -90,12 +94,19 @@ class DocType:
 		self.change_modified_of_parent()
 		
 		import conf
-		from webnotes.modules.import_file import in_import
-
-		if (not in_import) and getattr(conf,'developer_mode', 0):
+		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
 			self.export_doc()
 			self.make_controller_template()
-
+		
+		# update index
+		if not self.doc.custom:
+			from webnotes.modules import scrub
+			doctype = scrub(self.doc.name)
+			module = __import__(scrub(self.doc.module) + ".doctype." + doctype + "." + doctype,
+				fromlist=[""])
+			if hasattr(module, "on_doctype_update"):
+				module.on_doctype_update()
+		
 		webnotes.clear_cache(doctype=self.doc.name)
 
 	def check_link_replacement_error(self):
@@ -109,7 +120,7 @@ class DocType:
 		webnotes.conn.sql("delete from `tabCustom Field` where dt = %s", self.doc.name)
 		webnotes.conn.sql("delete from `tabCustom Script` where dt = %s", self.doc.name)
 		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
-		webnotes.conn.sql("delete from `tabSearch Criteria` where doc_type = %s", self.doc.name)
+		webnotes.conn.sql("delete from `tabReport` where ref_doctype=%s", self.doc.name)
 	
 	def on_rename(self, new, old, merge=False):
 		if self.doc.issingle:
@@ -212,6 +223,10 @@ def validate_fields(fields):
 		if d.fieldtype == "Currency" and cint(d.width) < 100:
 			webnotes.msgprint("Minimum width for FieldType 'Currency' is 100px", raise_exception=1)
 
+	def check_in_list_view(d):
+		if d.in_list_view and d.fieldtype!="Image" and (d.fieldtype in no_value_fields):
+			webnotes.msgprint("'In List View' not allowed for field of type '%s'" % d.fieldtype, raise_exception=1)
+
 	for d in fields:
 		if not d.permlevel: d.permlevel = 0
 		if not d.fieldname:
@@ -221,6 +236,7 @@ def validate_fields(fields):
 		check_illegal_mandatory(d)
 		check_link_table_options(d)
 		check_hidden_and_mandatory(d)
+		check_in_list_view(d)
 
 def validate_permissions_for_doctype(doctype, for_remove=False):
 	from webnotes.model.doctype import get

@@ -2,7 +2,7 @@ from __future__ import unicode_literals
 
 import os
 import conf
-from startup.website import *
+from startup.webutils import *
 import webnotes
 import webnotes.utils
 
@@ -131,7 +131,10 @@ def prepare_args(page_name):
 		if "args_method" in page_info:
 			args.update(webnotes.get_method(page_info["args_method"])())
 		elif "args_doctype" in page_info:
-			args.obj = webnotes.bean(page_info["args_doctype"]).obj
+			bean = webnotes.bean(page_info["args_doctype"])
+			bean.run_method("onload")
+			args.obj = bean.make_controller()
+			
 
 	else:
 		args = get_doc_fields(page_name)

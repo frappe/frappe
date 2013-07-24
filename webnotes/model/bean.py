@@ -29,8 +29,8 @@ Group actions like save, etc are performed on doclists
 """
 
 import webnotes
-from webnotes import _
-from webnotes.utils import cint, cstr
+from webnotes import _, msgprint
+from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
@@ -41,13 +41,13 @@ class Bean:
 	Collection of Documents with one parent and multiple children
 	"""
 	def __init__(self, dt=None, dn=None):
-		self.docs = []
 		self.obj = None
 		self.ignore_permissions = False
 		self.ignore_children_type = []
 		self.ignore_check_links = False
 		self.ignore_validate = False
 		self.ignore_fields = False
+		self.ignore_mandatory = False
 		
 		if isinstance(dt, basestring) and not dn:
 			dn = dt
@@ -62,13 +62,13 @@ class Bean:
 		"""
 			Load doclist from dt
 		"""
-		from webnotes.model.doc import Document, getchildren
+		from webnotes.model.doc import getchildren
 
 		if not dt: dt = self.doc.doctype
 		if not dn: dn = self.doc.name
 
 		doc = Document(dt, dn, prefix=prefix)
-
+		
 		# get all children types
 		tablefields = webnotes.model.meta.get_table_fields(dt)
 
@@ -78,35 +78,47 @@ class Bean:
 			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
 
 		self.set_doclist(doclist)
-		self.run_method("onload")
+		
+		if dt == dn:
+			self.convert_type(self.doc)
 
 	def __iter__(self):
-		return self.docs.__iter__()
+		return self.doclist.__iter__()
+
+	@property
+	def meta(self):
+		if not hasattr(self, "_meta"):
+			self._meta = webnotes.get_doctype(self.doc.doctype)
+		return self._meta
 
 	def from_compressed(self, data, docname):
 		from webnotes.model.utils import expand
-		self.docs = expand(data)
-		self.set_doclist(self.docs)
+		self.set_doclist(expand(data))
 		
-	def set_doclist(self, docs):
-		for i, d in enumerate(docs):
+	def set_doclist(self, doclist):
+		for i, d in enumerate(doclist):
 			if isinstance(d, dict):
-				docs[i] = Document(fielddata=d)
+				doclist[i] = Document(fielddata=d)
 		
-		self.docs = self.doclist = webnotes.doclist(docs)
-		self.doc, self.children = self.doclist[0], self.doclist[1:]
+		self.doclist = webnotes.doclist(doclist)
+		self.doc = self.doclist[0]
 		if self.obj:
 			self.obj.doclist = self.doclist
 			self.obj.doc = self.doc
 
-	def make_obj(self):
-		if self.obj: return self.obj
+	def make_controller(self):
+		if self.obj:
+			# update doclist before running any method
+			self.obj.doclist = self.doclist
+			return self.obj
+		
 		self.obj = webnotes.get_obj(doc=self.doc, doclist=self.doclist)
+		self.obj.bean = self
 		self.controller = self.obj
 		return self.obj
 
 	def to_dict(self):
-		return [d.fields for d in self.docs]
+		return [d.fields for d in self.doclist]
 
 	def check_if_latest(self, method="save"):
 		from webnotes.model.meta import is_single
@@ -163,7 +175,7 @@ class Bean:
 		if self.ignore_check_links:
 			return
 		ref, err_list = {}, []
-		for d in self.docs:
+		for d in self.doclist:
 			if not ref.get(d.doctype):
 				ref[d.doctype] = d.make_link_list()
 
@@ -178,10 +190,12 @@ class Bean:
 		ts = now()
 		user = webnotes.__dict__.get('session', {}).get('user') or 'Administrator'
 
-		for d in self.docs:
+		for d in self.doclist:
 			if self.doc.fields.get('__islocal'):
-				d.owner = user
-				d.creation = ts
+				if not d.owner:
+					d.owner = user
+				if not d.creation:
+					d.creation = ts
 
 			d.modified_by = user
 			d.modified = ts
@@ -190,8 +204,10 @@ class Bean:
 
 	def prepare_for_save(self, method):
 		self.check_if_latest(method)
+		
 		if method != "cancel":
 			self.check_links()
+		
 		self.update_timestamps_and_docstatus()
 		self.update_parent_info()
 
@@ -199,8 +215,15 @@ class Bean:
 		idx_map = {}
 		is_local = cint(self.doc.fields.get("__islocal"))
 		
+		if not webnotes.in_import:
+			parentfields = [d.fieldname for d in self.meta.get({"doctype": "DocField", "fieldtype": "Table"})]
+			
 		for i, d in enumerate(self.doclist[1:]):
 			if d.parentfield:
+				if not webnotes.in_import:
+					if not d.parentfield in parentfields:
+						webnotes.msgprint("Bad parentfield %s" % d.parentfield, 
+							raise_exception=True)
 				d.parenttype = self.doc.doctype
 				d.parent = self.doc.name
 			if not d.idx:
@@ -212,20 +235,20 @@ class Bean:
 			idx_map[d.parentfield] = d.idx
 
 	def run_method(self, method):
-		self.make_obj()
+		self.make_controller()
 		
-		if hasattr(self.obj, method):
-			getattr(self.obj, method)()
-		if hasattr(self.obj, 'custom_' + method):
-			getattr(self.obj, 'custom_' + method)()
+		if hasattr(self.controller, method):
+			getattr(self.controller, method)()
+		if hasattr(self.controller, 'custom_' + method):
+			getattr(self.controller, 'custom_' + method)()
 
-		notify(self.obj, method)
+		notify(self.controller, method)
 		
-		self.set_doclist(self.obj.doclist)
+		self.set_doclist(self.controller.doclist)
 
 	def get_method(self, method):
-		self.make_obj()
-		return getattr(self.obj, method, None)
+		self.make_controller()
+		return getattr(self.controller, method, None)
 
 	def save_main(self):
 		try:
@@ -241,7 +264,7 @@ class Bean:
 
 	def save_children(self):
 		child_map = {}
-		for d in self.children:
+		for d in self.doclist[1:]:
 			if d.fields.get("parent") or d.fields.get("parentfield"):
 				d.parent = self.doc.name # rename if reqd
 				d.parenttype = self.doc.doctype
@@ -268,6 +291,11 @@ class Bean:
 
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
+		
+		if webnotes.in_test:
+			if self.meta.get_field("naming_series"):
+				self.doc.naming_series = "_T-" + self.doc.doctype + "-"
+		
 		return self.save()
 	
 	def has_read_perm(self):
@@ -279,6 +307,8 @@ class Bean:
 			self.prepare_for_save("save")
 			if not self.ignore_validate:
 				self.run_method('validate')
+			if not self.ignore_mandatory:
+				self.check_mandatory()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
@@ -292,6 +322,7 @@ class Bean:
 			self.to_docstatus = 1
 			self.prepare_for_save("submit")
 			self.run_method('validate')
+			self.check_mandatory()
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
@@ -340,7 +371,42 @@ class Bean:
 	def check_no_back_links_exist(self):
 		from webnotes.model.utils import check_if_doc_is_linked
 		check_if_doc_is_linked(self.doc.doctype, self.doc.name, method="Cancel")
+		
+	def check_mandatory(self):
+		missing = []
+		for doc in self.doclist:
+			for df in self.meta:
+				if df.doctype=="DocField" and df.reqd and df.parent==doc.doctype and df.fieldname!="naming_series":
+					msg = ""
+					if df.fieldtype == "Table":
+						if not self.doclist.get({"parentfield": df.fieldname}):
+							msg = _("Error") + ": " + _("Data missing in table") + ": " + _(df.label)
+				
+					elif doc.fields.get(df.fieldname) is None:
+						msg = _("Error") + ": "
+						if doc.parentfield:
+							msg += _("Row") + (" # %d: " % doc.idx)
+			
+						msg += _("Value missing for") + ": " + _(df.label)
+					
+					if msg:
+						missing.append([msg, df.fieldname])
+		
+		if missing:
+			for msg, fieldname in missing:
+				msgprint(msg)
 
+			raise webnotes.MandatoryError, ", ".join([fieldname for msg, fieldname in missing])
+			
+	def convert_type(self, doc):
+		if doc.doctype==doc.name and doc.doctype!="DocType":
+			for df in self.meta.get({"doctype": "DocField", "parent": doc.doctype}):
+				if df.fieldtype in ("Int", "Check"):
+					doc.fields[df.fieldname] = cint(doc.fields.get(df.fieldname))
+				elif df.fieldtype in ("Float", "Currency"):
+					doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname))
+				
+			doc.docstatus = cint(doc.docstatus)
 
 def clone(source_wrapper):
 	""" make a clone of a document"""

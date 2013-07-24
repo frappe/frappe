@@ -58,25 +58,21 @@ wn.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.add_button("<i class='icon-refresh' title='"+
-			wn._('Refresh') + "'></i>", function() {
-			me.refresh();
-		}).addClass("btn-success");
+		this.appframe.add_button(wn._('Refresh'), function() { me.refresh(); }, "icon-refresh")
+			.addClass("btn-success");
 		
 		// Edit
-		var edit_btn = this.appframe.add_button("<i class='icon-edit' title='"+
-			wn._('Edit') + "'></i>", function() {
+		var edit_btn = this.appframe.add_button(wn._('Edit'), function() {
 			wn.set_route("Form", "Report", me.report_name);
-		});
+		}, "icon-edit");
+		
 		if(!in_list(user_roles, "System Manager")) {
 			edit_btn.attr("disabled", "disabled")
 				.attr("title", wn._("Only System Manager can create / edit reports"));
 		}
 
-		var export_btn = this.appframe.add_button("<i class='icon-download' title='"+
-			wn._('Export') + "'></i>", function() {
-			me.export_report();
-		});
+		var export_btn = this.appframe.add_button(wn._('Export'), function() { me.export_report(); }, 
+			"icon-download");
 		wn.utils.disable_export_btn(export_btn);
 	},
 	load: function() {
@@ -87,7 +83,7 @@ wn.views.QueryReport = Class.extend({
 			if(me.report_name!=route[1]) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.title(wn._("Query Report")+": " + me.report_name);
+				me.appframe.set_title(wn._("Query Report")+": " + me.report_name);
 				
 				if(!wn.query_reports[me.report_name]) {
 					wn.call({
@@ -113,43 +109,22 @@ wn.views.QueryReport = Class.extend({
 	},
 	setup_filters: function() {
 		this.clear_filters();
-		var $filter_wrapper = $("<div class='filters' style='display:inline-block;'>\
-			</div>")
-			.appendTo(this.appframe.$w.find('.appframe-toolbar'));
 		var me = this;
 		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
-			var f = make_field(df, null, $filter_wrapper.get(0), null, 0, 1);
-			f.df.single_select = 1;
-			f.df.placeholder = df.label;
-			f.not_in_form = 1;
-			f.with_label = 0;
-			f.in_filter = 1;
-			f.refresh();
-			$(f.wrapper)
-				.css({
-					"display": "inline-block",
-					"margin-left": "5px",
-					"margin-bottom": "4px",
-					"margin-top": "4px"
-				})
-				.attr("title", df.label).tooltip();
+			var f = me.appframe.add_field(df);
+			$(f.wrapper).addClass("filters pull-left");
 			me.filters.push(f);
 			if(df["default"]) {
 				f.set_input(df["default"]);
 			}
 			
-			if(f.df.fieldtype == "Link")
-				$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
-			else if(f.df.fieldtype == "Date")
-				$(f.wrapper).css({"margin-right":"-15px"});
-	
 			if(df.get_query) f.get_query = df.get_query;
 		});
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.appframe.$w.find('.appframe-toolbar').find(".filters").remove();
+		this.appframe.$w.find('.navbar .filters').remove();
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};
@@ -165,7 +140,7 @@ wn.views.QueryReport = Class.extend({
 			"Loading Report...");
 		var filters = {};
 		$.each(this.filters || [], function(i, f) {
-			filters[f.df.fieldname] = f.get_value();
+			filters[f.df.fieldname] = f.get_parsed_value();
 		})
 		wn.call({
 			method: "webnotes.widgets.query_report.run",
@@ -188,7 +163,7 @@ wn.views.QueryReport = Class.extend({
 	render: function(result, columns) {
 		this.columnFilters = {};
 		this.make_dataview();
-		this.id = wn.dom.set_unique_id($(this.wrapper.find(".result-area")).get(0));
+		this.id = wn.dom.set_unique_id(this.wrapper.find(".result-area").get(0));
 		
 		this.grid = new Slick.Grid("#"+this.id, this.dataView, this.columns, 
 			this.slickgrid_options);

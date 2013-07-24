@@ -331,3 +331,13 @@ class DocTypeNestedSet(object):
 
 		parent = ""
 		update_nsm(self)
+		
+	def on_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
+		if merge:
+			is_group = webnotes.conn.get_value(self.doc.doctype, newdn, group_fname)
+			if self.doc.fields[group_fname] != is_group:
+				msgprint(_("""Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger"""), raise_exception=1)
+				
+			parent_field = "parent_" + self.doc.doctype.replace(" ", "_").lower()
+			rebuild_tree(self.doc.doctype, parent_field)

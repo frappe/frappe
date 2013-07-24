@@ -53,14 +53,21 @@ wn.Application = Class.extend({
 		this.set_favicon();
 		
 		if(user!="Guest") this.set_user_display_settings();
-
-		// trigger app startup
-		$(document).trigger('startup');
 		
+		this.setup_keyboard_shortcuts();
+		
+		// control panel startup code
+		this.run_custom_startup_code();
+
 		if(wn.boot) {
 			// route to home page
 			wn.route();	
 		}
+		
+		// trigger app startup
+		$(document).trigger('startup');
+
+		this.start_notification_updates();
 		
 		$(document).trigger('app_ready');
 	},
@@ -69,9 +76,6 @@ wn.Application = Class.extend({
 		if(wn.boot.profile.background_image) {
 			wn.ui.set_user_background(wn.boot.profile.background_image);
 		}
-		if(wn.boot.profile.theme) {
-			wn.ui.set_theme(wn.boot.profile.theme);
-		}		
 	},
 	
 	load_bootinfo: function() {
@@ -85,6 +89,37 @@ wn.Application = Class.extend({
 			this.set_as_guest();
 		}
 	},
+	
+	start_notification_updates: function() {
+		var me = this;
+		setInterval(function() {
+			me.refresh_notifications();
+		}, 30000);
+		
+		// first time loaded in boot
+		$(document).trigger("notification-update");
+		
+		// refresh notifications if user is back after sometime
+		$(document).on("session_alive", function() {
+			me.refresh_notifications();
+		})
+	},
+	
+	refresh_notifications: function() {
+		if(wn.session_alive) {
+			wn.call({
+				method: "webnotes.widgets.notification.get",
+				callback: function(r) {
+					if(r.message) {
+						$.extend(wn.boot.notification_info, r.message);
+						$(document).trigger("notification-update");
+					}
+				},
+				no_spinner: true
+			});
+		}
+	},
+	
 	set_globals: function() {
 		// for backward compatibility
 		profile = wn.boot.profile;
@@ -123,6 +158,7 @@ wn.Application = Class.extend({
 	},
 	make_page_container: function() {
 		if($("#body_div").length) {
+			$(".splash").remove();
 			wn.temp_container = $("<div id='temp-container' style='display: none;'>")
 				.appendTo("body");
 			wn.container = new wn.views.Container();
@@ -153,10 +189,28 @@ wn.Application = Class.extend({
 	},
 	set_favicon: function() {
 		var link = $('link[type="image/x-icon"]').remove().attr("href");
-		var favicon ='\
-			<link rel="shortcut icon" href="' + link + '" type="image/x-icon"> \
-			<link rel="icon" href="' + link + '" type="image/x-icon">'
+		$('<link rel="shortcut icon" href="' + link + '" type="image/x-icon">').appendTo("head");
+		$('<link rel="icon" href="' + link + '" type="image/x-icon">').appendTo("head");
+	},
+	
+	setup_keyboard_shortcuts: function() {
+		$(document).keydown("meta+g ctrl+g", function(e) {
+			wn.ui.toolbar.search.show();
+			return false;
+		});
 
-		$(favicon).appendTo('head');
+		$(document).keydown("meta+s ctrl+s", function(e) {
+			if(cur_frm) {
+				cur_frm.save_or_update();
+			} else if(wn.container.page.save_action) {
+				wn.container.page.save_action();
+			}
+			return false;
+		});
+	},
+	
+	run_custom_startup_code: function() {
+		if(wn.control_panel.custom_startup_code)
+			eval(wn.control_panel.custom_startup_code);
 	}
 })

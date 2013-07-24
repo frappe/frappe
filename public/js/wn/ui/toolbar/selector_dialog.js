@@ -33,11 +33,7 @@ wn.provide('wn.ui.toolbar');
 wn.ui.toolbar.SelectorDialog = Class.extend({
 	init: function(opts) {
 		this.opts = opts;
-		try{
-			this.make_dialog();			
-		} catch(e) {
-			console.log(e);
-		}
+		this.make_dialog();			
 		this.bind_events();
 	},
 	make_dialog: function() {
@@ -82,10 +78,11 @@ wn.ui.toolbar.SelectorDialog = Class.extend({
 	set_values: function(lst) {
 		// convert to labels
 		for(var i=0;i<lst.length;i++) 
-			lst[i]=wn._(lst[i]);
+			lst[i]={label:wn._(lst[i]), value:lst[i]};
 		
 		// set values
 		var sel = this.dialog.fields_dict.doctype.input;
-		$(sel).empty().add_options(lst.sort());
+		$(sel).empty().add_options(lst.sort(function(a, b) { 
+			return (a.label > b.label ? 1 : -1) }));
 	}
 })

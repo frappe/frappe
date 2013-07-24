@@ -30,7 +30,7 @@ class DocType:
 		self.doc = doc
 		self.doclist = doclist
 	
-	def on_update(self):
+	def validate(self):
 		self.set_as_default()
 		
 		# clear the cache so that the new letter head is uploaded
@@ -38,6 +38,9 @@ class DocType:
 		
 	def set_as_default(self):
 		from webnotes.utils import set_default
+		if not self.doc.is_default:
+			if not sql("""select count(*) from `tabLetter Head` where ifnull(is_default,0)=1"""):
+				self.doc.is_default = 1
 		if self.doc.is_default:
 			sql("update `tabLetter Head` set is_default=0 where name != %s",
 				self.doc.name)

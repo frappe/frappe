@@ -21,7 +21,6 @@
 // 
 
 // new re-factored Listing object
-// uses FieldGroup for rendering filters
 // removed rarely used functionality
 //
 // opts:
@@ -85,13 +84,15 @@ wn.ui.Listing = Class.extend({
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters well">\
+					<div class="show_filters well" style="display: none;">\
 						<div class="filter_area"></div>\
 						<div>\
-							<button class="btn btn-info search-btn">\
-								<i class="icon-refresh icon-white"></i> Search</button>\
-							<button class="btn add-filter-btn">\
-								<i class="icon-plus"></i> Add Filter</button>\
+							<button class="btn btn-default btn-info search-btn">\
+								<i class="icon-refresh icon-white"></i> \
+								<span class="hidden-phone">Search</span></button>\
+							<button class="btn btn-default add-filter-btn">\
+								<i class="icon-plus"></i> \
+								<span class="hidden-phone">Add Filter</span></button>\
 						</div>\
 					</div>\
 				</div>\
@@ -99,12 +100,12 @@ wn.ui.Listing = Class.extend({
 				<div style="margin-bottom:9px" class="list-toolbar-wrapper">\
 					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 					</div>\
-					<div style="display:inline-block; width: 24px; margin-left: 4px">\
+					<div style="display: none; width: 24px; margin-left: 4px">\
 						<img src="lib/images/ui/button-load.gif" \
 						class="img-load"/></div>\
 				</div><div style="clear:both"></div>\
 				\
-				<div class="no-result help hide">\
+				<div class="no-result" style="display: none;">\
 					%(no_result_message)s\
 				</div>\
 				\
@@ -112,9 +113,9 @@ wn.ui.Listing = Class.extend({
 					<div class="result-list"></div>\
 				</div>\
 				\
-				<div class="paging-button">\
-					<button class="btn btn-more hide">%(_more)s...</div>\
-				</div>\
+				<p class="paging-button" style="text-align: center;">\
+					<button class="btn btn-default btn-more" style="display: none; margin: 15px 0px;">%(_more)s...</div>\
+				</p>\
 			</div>\
 		', this.opts));
 		this.$w = $(this.parent).find('.wnlist');
@@ -132,7 +133,7 @@ wn.ui.Listing = Class.extend({
 		if(this.appframe) {
 			return this.appframe.add_button(label, click, icon)
 		} else {
-			$button = $('<button class="btn"></button>')
+			$button = $('<button class="btn btn-default"></button>')
 				.appendTo(this.$w.find('.list-toolbar'))
 				.html((icon ? ("<i class='"+icon+"'></i> ") : "") + label)
 				.click(click);
@@ -172,13 +173,13 @@ wn.ui.Listing = Class.extend({
 		// new
 		if(this.new_doctype) {
 			this.add_button(wn._('New') + ' ' + wn._(this.new_doctype), function() { 
-				(me.custom_new_doc || me.make_new_doc)(me.new_doctype);
+				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');
 		} 
 		
 		// hide-filter
 		if(me.show_filters) {
-			this.add_button(wn._('Show Filters'), function() {
+			this.add_button(wn._('Filter'), function() {
 				me.filter_list.show_filters();
 			}, 'icon-search').addClass('btn-filter');
 		}
@@ -188,8 +189,18 @@ wn.ui.Listing = Class.extend({
 		}
 	},
 	
-	make_new_doc: function(new_doctype) {
-		new_doc(new_doctype);
+	make_new_doc: function(doctype) {
+		var me = this;
+		wn.model.with_doctype(doctype, function() {
+			var doc = wn.model.get_new_doc(doctype);
+			if(me.filter_list) {
+				$.each(me.filter_list.get_filters(), function(i, f) {
+					if(f[0]===doctype && f[2]==="=" && f[1]!=="name")
+						doc[f[1]]=f[3];
+				})
+			}
+			wn.set_route("Form", doctype, doc.name);
+		});
 	},
 
 	make_filters: function() {
@@ -208,28 +219,25 @@ wn.ui.Listing = Class.extend({
 		this.$w.find('.no-result').toggle(false);
 		this.start = 0;
 	},
-	run: function() {
-		// in old - arguments: 0 = callback, 1 = append
+	run: function(more) {
 		var me = this;
-		var a0 = arguments[0]; var a1 = arguments[1];
-		
-		if(a0 && typeof a0=='function')
-			this.onrun = a0;
-		if(a0 && a0.callback)
-			this.onrun = a0.callback;
-		if(!a1 && !(a0 && a0.append)) 
+		if(!more) {
 			this.start = 0;
-
+			if(this.onreset) this.onreset();
+		}
+			
 		if(!me.opts.no_loading)
 			me.set_working(true);
 			
 		wn.call({
 			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
 			type: "GET",
-			args: this.get_call_args(a0),
+			args: this.get_call_args(),
 			callback: function(r) { 
-				if(!me.opts.no_loading)me.set_working(false);
-				me.render_results(r) 
+				if(!me.opts.no_loading)
+					me.set_working(false);
+				me.dirty = false;
+				me.render_results(r);
 			},
 			no_spinner: this.opts.no_loading
 		});
@@ -237,7 +245,7 @@ wn.ui.Listing = Class.extend({
 	set_working: function(flag) {
 		this.$w.find('.img-load').toggle(flag);
 	},
-	get_call_args: function(opts) {
+	get_call_args: function() {
 		// load query
 		if(!this.method) {
 			var query = this.get_query ? this.get_query() : this.query;
@@ -259,12 +267,12 @@ wn.ui.Listing = Class.extend({
 			$.extend(args, this.args)
 			
 		if(this.get_args) {
-			$.extend(args, this.get_args(opts));
+			$.extend(args, this.get_args());
 		}
 		return args;		
 	},
 	render_results: function(r) {
-		if(this.start==0) this.clear();
+		if(this.start===0) this.clear();
 		
 		this.$w.find('.btn-more').toggle(false);
 
@@ -277,7 +285,7 @@ wn.ui.Listing = Class.extend({
 			this.render_list(r.values);
 			this.update_paging(r.values);
 		} else {
-			if(this.start==0) {
+			if(this.start===0) {
 				this.$w.find('.result').toggle(false);
 
 				var msg = this.get_no_result_message
@@ -341,11 +349,11 @@ wn.ui.Listing = Class.extend({
 		query += ' LIMIT ' + this.start + ',' + (this.page_length+1);
 		return query
 	},
-	set_filter: function(fieldname, label) {
+	set_filter: function(fieldname, label, doctype) {
+		if(!doctype) doctype = this.doctype;
 		var filter = this.filter_list.get_filter(fieldname);
-		//this.filter_list.show_filters(true);
 		if(filter) {
-			var v = filter.field.get_value();
+			var v = filter.field.get_parsed_value();
 			if(v.indexOf(label)!=-1) {
 				// already set
 				return false;
@@ -353,21 +361,21 @@ wn.ui.Listing = Class.extend({
 				// second filter set for this field
 				if(fieldname=='_user_tags') {
 					// and for tags
-					this.filter_list.add_filter(this.doctype, fieldname, 
+					this.filter_list.add_filter(doctype, fieldname, 
 						'like', '%' + label);
 				} else {
 					// or for rest using "in"
-					filter.set_values(this.doctype, fieldname, 'in', v + ', ' + label);
+					filter.set_values(doctype, fieldname, 'in', v + ', ' + label);
 				}
 			}
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname=='_user_tags') {
-				this.filter_list.add_filter(this.doctype, fieldname, 
-					'like', '%' + label);					
+			if(fieldname==='_user_tags') {
+				this.filter_list.add_filter(doctype, fieldname, 
+					'like', '%' + label);
 			} else {
-				this.filter_list.add_filter(this.doctype, fieldname, '=', label);
+				this.filter_list.add_filter(doctype, fieldname, '=', label);
 			}
 		}
 	}	

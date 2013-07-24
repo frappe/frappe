@@ -55,11 +55,16 @@ test_records = [[{
 		"doctype":"Profile",
 		"email": "test@example.com",
 		"first_name": "_Test",
-		"new_password": "testpassword"
+		"new_password": "testpassword",
+		"enabled": 1
 	}, {
 		"doctype":"UserRole",
 		"parentfield":"user_roles",
 		"role": "_Test Role"
+	}, {
+		"doctype":"UserRole",
+		"parentfield":"user_roles",
+		"role": "System Manager"
 	}],
 	[{
 		"doctype":"Profile",

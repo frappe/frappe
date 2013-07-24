@@ -14,10 +14,5 @@ $(document).bind('ready', function() {
 
 $(document).bind('toolbar_setup', function() {
 	$('.brand').html('yourbrand\
-		<i class="icon-home icon-white navbar-icon-home" ></i>')
-	.hover(function() {
-		$(this).find('.icon-home').addClass('navbar-icon-home-hover');
-	}, function() {
-		$(this).find('.icon-home').removeClass('navbar-icon-home-hover');
-	});
+		<i class="icon-home icon-white navbar-icon-home" ></i>');
 });
