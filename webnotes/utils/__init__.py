@@ -85,9 +85,14 @@ def get_request_site_address(full_address=False):
 	"""get app url from request"""
 	import os
 	try:
-		return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
+		site_address = 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
 			+ os.environ.get('HTTP_HOST')\
 			+ (full_address and (os.environ.get("REQUEST_URI")) or "")
+
+		# if host_name is defined in conf file then return that other wise return the actual requested url. Below is useful when proxy is setup.
+		return getattr(conf, "host_name",site_address)
+
+
 	except TypeError:
 		return 'http://localhost'
 
