@@ -43,16 +43,59 @@
 		</div>
 	</header>
 	<div class="container" style=" margin-top: 30px;">
-		<!-- div class="logo" style="margin-bottom: 15px; height: 71px;">
-			<a href="docs.html">
-				<img src="img/erpnext-2013.png" style="width: 71px; margin-top: -10px;" />
-			</a>
-			<span style="font-size: 37px; color: #888; display: inline-block; 
-				margin-left: 8px;">erpnext</span>
-		</div -->
 		<div class="content row">
 			<div class="col col-lg-12">
-		{{ content }}
+				{%- if not _no_title %}
+				<h1 class="pull-right text-muted"><i class="{{ _icon }}"></i></h1>
+				<h1>{{ _label }}</h1>
+				<ul class="breadcrumb">
+					{%- for b in _breadcrumbs -%}
+					<li><a href="{{ b.link }}">{{ b.label }}</a></li>
+					{%- endfor -%}
+					<li class="active">{{ _label }}</li>
+				</ul>
+				{%- if _toc_links and not _no_toc %}
+				<!-- toc -->
+				<div class="well">
+					<h4>Contents</h4>
+					<ol>
+						{%- for t in _toc_links %}
+							<li><a href="{{ t.link }}">{{ t.label }}</a></li>
+						{% endfor -%}
+					</ol>
+				</div>
+				<!-- end toc -->
+				{%- endif -%}
+				{% endif -%}
+				{{ content }}
+				<br>
+				<!-- footer -->
+				<p style="font-size: 80%;" class="text-muted pull-right">
+					{% if _gh_source -%}
+					<a href="{{ _gh_source }}" target="_blank"><i class="icon-github"></i> Source</i></a>
+					{%- endif -%}
+					{% if _modified -%}
+					{%- if _gh_source %} | {% endif -%}
+					<span>Last Updated: {{ _modified }}</span>
+					{%- endif %}
+				</p>
+				<div class="clearfix"></div>
+				<!-- footer navigation -->
+				{%- if _parent_title -%}
+				<div class="btn-group pull-right" style="margin: 15px 0px;">
+					<a class='btn btn-default' href="{{ _parent_page }}">
+						<i class="icon-arrow-up"></i> {{ _parent_title }}</a>
+					{% if _next_title -%}
+					<a class='btn btn-default' href="{{ _next_page }}">
+						<i class="icon-arrow-right"></i> {{ _next_title }}</a>
+					{%- endif -%}
+					{% if _child_title -%}
+					<a class='btn btn-default' href="{{ _child_page }}">
+						<i class="icon-arrow-down"></i> {{ _child_title }}</a>
+					{%- endif -%}
+				</div>
+				{%- endif -%}
+				<!-- end footer -->
 			</div>
 		</div>
 		<div class="clearfix"></div>

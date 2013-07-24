@@ -210,95 +210,38 @@ wn.docs.DocsPage = Class.extend({
 			$('<h4 class="text-muted">No docs</h4>').appendTo(this.parent);
 		}
 		
-		this.make_footer();
 		if(this.links) {
 			this.make_links();
 		}
 	},
-	make_footer: function() {
-		$("<br>").appendTo(this.parent);
-		$p = $('<p style="font-size: 80%;" class="text-muted pull-right"></p>').appendTo(this.parent);
-		$('<div class="clearfix">').appendTo(this.parent);
-
-		if(this.obj._gh_source) {
-			$(repl('<a href="%(source)s" target="_blank">\
-				<i class="icon-github"></i> Source</i></a>', {
-					source: this.obj._gh_source
-				})).appendTo($p);
-		}
-		if(this.obj._modified) {
-			$(repl("<span>" + (this.obj._gh_source ? " | " : "") + 'Last Updated: %(modified)s</span>', {
-					modified: wn.datetime.global_date_format(this.obj._modified)
-				})).appendTo($p);
-		}
-	},
 	make_links: function() {
 		if(this.links.parent) {
-			var btn_group = $('<div class="btn-group pull-right" \
-				style="margin: 15px 0px;">')
-				.appendTo(this.parent)
-			$("<a class='btn btn-default'>")
-				.html('<i class="icon-arrow-up"></i> ' 
-					+ wn.docs.get_title(this.links.parent))
-				.attr("href", this.links.parent + ".html")
-				.appendTo(btn_group);
+			this.obj._parent_title = wn.docs.get_title(this.links.parent);
+			this.obj._parent_page = wn.docs.get_full_name(this.links.parent) + ".html";
+			
 				
 			if(this.links.next_sibling) {
-				$("<a class='btn btn-info'>")
-					.html('<i class="icon-arrow-right"></i> ' 
-						+ wn.docs.get_title(this.links.next_sibling))
-					.attr("href", wn.docs.get_full_name(this.links.next_sibling) + ".html")
-					.appendTo(btn_group);
+				this.obj._next_title = wn.docs.get_title(this.links.next_sibling);
+				this.obj._next_page = wn.docs.get_full_name(this.links.next_sibling) + ".html";
 			} 
 			
 			if (this.links.first_child) {
-				$("<a class='btn btn-info'>")
-					.html('<i class="icon-arrow-down"></i> ' 
-						+ wn.docs.get_title(this.links.first_child))
-					.attr("href", wn.docs.get_full_name(this.links.first_child) + ".html")
-					.appendTo(btn_group);
+				this.obj._child_title = wn.docs.get_title(this.links.first_child);
+				this.obj._child_page = wn.docs.get_full_name(this.links.first_child) + ".html";
 			}
 		}
 	},
 	make_title: function(obj) {
 		if(!obj._no_title) {
-			if(obj._title_image && false) {
-				var outer = $("<div>")
-					.css({
-						"background-image": "url(docs/" + obj._title_image + ")",
-						"background-size": "100%",
-						"background-position": "center-top",
-						"margin-bottom": "30px",
-						"border-radius": "5px"
-					})
-					.appendTo(this.parent)
-		 			var inner = $("<div>")
-						.appendTo(outer)
-						.css({
-							"text-align": "center",
-							"background-color": "rgba(0,0,0,0.4)",
-							"color": "white",
-							"padding": "240px 20px 220px 20px"
-						})
-					var head = $("<h1>").appendTo(inner);
-			} else {
-				var page_icon = obj._icon;
-				if(!obj._icon) {
-					if(this.namespace.indexOf(".wn.")!==-1)
-						page_icon = "code";
-					else
-						page_icon = "file-text-alt";
-				}
-				
-				if(page_icon.substr(0,5)==="icon-") page_icon = page_icon.substr(5);
-				
-				var icon = $('<h1 class="pull-right text-muted"><i class="icon-'+
-					page_icon +'"></i></h1>')
-					.appendTo(this.parent);
-				var head = $("<h1>").appendTo(this.parent);
+			var page_icon = obj._icon;
+			if(!obj._icon) {
+				if(this.namespace.indexOf(".wn.")!==-1)
+					obj._icon = "code";
+				else
+					obj._icon = "file-text-alt";
 			}
 			
-			head.html(obj._label || wn.docs.get_short_name(this.namespace))
+			if(!obj._label) obj._label = wn.docs.get_short_name(this.namespace)
 		}
 	},
 	make_breadcrumbs: function(obj) {
@@ -306,28 +249,22 @@ wn.docs.DocsPage = Class.extend({
 			name = this.namespace
 
 		if(name==="docs") return;
-			
-		var parts = name.split("."),
-			ul = $('<ul class="breadcrumb">').appendTo(this.parent),
-			fullname = "";
+		
+		obj._breadcrumbs = [];
 					
+		var parts = name.split("."),
+			fullname = "";
+
 		$.each(parts, function(i, p) {
 			if(i!=parts.length-1) {
-				if(fullname) 
-					fullname = fullname + "." + p
-				else 
-					fullname = p
-									
-				$(repl('<li><a href="%(name)s.html">%(label)s</a></li>', {
-					name: (fullname==="docs" ? "index" : fullname),
+				fullname = fullname + (fullname ? "." : "") + p;
+				
+				obj._breadcrumbs.push({
+					link: (fullname==="docs" ? "index" : fullname) + ".html",
 					label: wn.provide(fullname)._label || p
-				})).appendTo(ul);
+				})
 			}
 		});
-
-		$(repl('<li class="active">%(label)s</li>', {
-			label: obj._label || wn.docs.get_short_name(this.namespace)
-		})).appendTo(ul)
 	},
 	make_intro: function(obj) {
 		if(obj._intro) {
@@ -337,17 +274,13 @@ wn.docs.DocsPage = Class.extend({
 	},
 	make_toc: function(obj) {
 		if(obj._toc && !obj._no_toc) {
-			var body = $("<div class='well'>")
-				.appendTo(this.parent);
-			$("<h4>Contents</h4>").appendTo(body);
-			var ol = $("<ol>").appendTo(body);
+			obj._toc_links = [];
 			$.each(obj._toc, function(i, name) {
 				var link_name = wn.docs.get_full_name(name);
-				$(repl('<li><a href="%(link_name)s.html">%(label)s</a></li>', {
-						link_name: link_name,
-						label: wn.provide(link_name)._label || name
-					}))
-					.appendTo(ol)
+				obj._toc_links.push({
+					link: link_name + ".html",
+					label: wn.provide(link_name)._label || name
+				});
 			});
 			return true;
 		}
@@ -585,14 +518,22 @@ wn.docs.DocsPage = Class.extend({
 			return obj.toString().split("function")[1].split("(")[1].split(")")[0];
 	},
 	write: function(callback, for_namespace) {
+		var me = this;
 		if(for_namespace && for_namespace!==this.namespace) {
 			callback();
 			return;
 		}
 		
-		wn.docs.to_write[this.namespace] = {
-			title: wn.app.name + ": " + (this.obj._label || wn.docs.get_short_name(this.namespace)),
-			content: html_beautify(this.parent.html())
-		}
+		var args = {};
+		$.each(["_label", "_gh_source", "_modified", "_parent_title", "_parent_page",
+			"_next_title", "_next_page", "_child_title", "_child_page", "_no_title",
+			"_breadcrumbs", "_toc_links"], function(i, key) {
+				if(me.obj[key])
+					args[key] = me.obj[key]
+			})
+		
+		args.content = html_beautify(this.parent.html())
+		
+		wn.docs.to_write[this.namespace] = args;
 	}
 })
