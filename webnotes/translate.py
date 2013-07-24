@@ -35,6 +35,7 @@ import codecs
 import json
 import re
 from csv import reader
+from webnotes.modules import get_doc_path
 
 messages = {}
 
@@ -127,9 +128,6 @@ def build_for_pages(path):
 			if messages_py:
 				write_messages_file(basepath, messages_py, "py")
 
-			doctype_path = get_doc_path(m[0], 'Module Def', m[0])
-			write_messages_file(doctype_path, messages, 'doc')
-
 def build_from_database():
 	"""make doctype labels, names, options, descriptions"""
 	def get_select_options(doc):
@@ -149,8 +147,6 @@ def build_from_database():
 	}))
 
 def build_for_doc_from_database(fields):
-	from webnotes.modules import get_doc_path
-
 	for item in webnotes.conn.sql("""select name from `tab%s`""" % fields.doctype, as_dict=1):
 		messages = []
 		doclist = webnotes.bean(fields.doctype, item.name).doclist
@@ -186,9 +182,9 @@ def build_for_framework(path, mtype, with_doctype_names = False):
 			
 	# append labels from config.json
 	config = webnotes.get_config()
-	for m in config["modules"]:
-		if m.get("label"):
-			messages.append(m["label"])
+	for moduleinfo in config["modules"].values():
+		if moduleinfo.get("label"):
+			messages.append(moduleinfo["label"])
 	
 	if messages:
 		write_messages_file(path, messages, mtype)
@@ -304,7 +300,6 @@ def import_messages(lang, infile):
 			_update_lang_file('py')
 
 def get_doc_messages(module, doctype, name):
-	from webnotes.modules import get_doc_path
 	return get_lang_data(get_doc_path(module, doctype, name), None, 'doc')
 
 def get_lang_data(basepath, lang, mtype):
