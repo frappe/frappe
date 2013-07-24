@@ -161,7 +161,7 @@ wn.views.CommunicationComposer = Class.extend({
 				checked_items.push(filename);
 				
 				$.each(checked_items, function(i, filename) {
-					wrapper.find('[data-file-name="'+ filename +'"]').get(0).checked=true;
+					wrapper.find('[data-file-name="'+ filename +'"]').prop("checked", true);
 				});
 			}
 		})
@@ -182,7 +182,7 @@ wn.views.CommunicationComposer = Class.extend({
 		
 		// toggle print format
 		$(fields.attach_document_print.input).click(function() {
-			$(fields.select_print_format.wrapper).toggle($(this).is(":checked"));
+			$(fields.select_print_format.wrapper).toggle($(this).prop("checked"));
 		});
 
 		// select print format
@@ -217,7 +217,7 @@ wn.views.CommunicationComposer = Class.extend({
 			$(fields.select_print_format.wrapper).toggle(true);
 		}
 		
-		$(fields.send_email.input).attr("checked", "checked")
+		$(fields.send_email.input).prop("checked", true)
 		$(fields.send.input).click(function() {
 			var btn = this;
 			var form_values = me.dialog.get_values();

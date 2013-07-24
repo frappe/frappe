@@ -197,7 +197,7 @@ wn.PermissionEngine = Class.extend({
 					cell.html("-");
 				} else {
 					var input = $("<input type='checkbox'>")
-						.attr("checked", d[fieldname] ? "checked": null)
+						.prop("checked", d[fieldname] ? true: false)
 						.attr("data-ptype", fieldname)
 						.attr("data-name", d.name)
 						.attr("data-doctype", d.parent)
@@ -305,7 +305,7 @@ wn.PermissionEngine = Class.extend({
 				name: chk.attr("data-name"),
 				doctype: chk.attr("data-doctype"),
 				ptype: chk.attr("data-ptype"),
-				value: chk.is(":checked") ? 1 : 0
+				value: chk.prop("checked") ? 1 : 0
 			}
 			wn.call({
 				module: "core",
@@ -315,7 +315,7 @@ wn.PermissionEngine = Class.extend({
 				callback: function(r) {
 					if(r.exc) {
 						// exception: reverse
-						chk.get(0).checked = !chk.is(":checked");
+						chk.prop("checked", !chk.prop("checked"));
 					} else {
 						me.get_perm(args.name)[args.ptype]=args.value; 
 					}
@@ -435,9 +435,9 @@ wn.PermissionEngine = Class.extend({
 			
 			// select
 			if(perm.match) {
-				$(dialog.wrapper).find("[value='"+perm.match+"']").attr("checked", "checked").focus();
+				$(dialog.wrapper).find("[value='"+perm.match+"']").prop("checked", true).focus();
 			} else {
-				$(dialog.wrapper).find('[value=""]').attr("checked", "checked").focus();
+				$(dialog.wrapper).find('[value=""]').prop("checked", true).focus();
 			}
 		});
 	},

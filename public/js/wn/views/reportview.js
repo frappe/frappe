@@ -261,10 +261,10 @@ wn.views.ReportView = wn.ui.Listing.extend({
 						return repl("<input type='checkbox' \
 							data-row='%(row)s' %(checked)s>", {
 								row: row,
-								checked: (dataContext._checked ? "checked" : "")
+								checked: (dataContext._checked ? "checked=\"checked\"" : "")
 							});
 					}
-			}])
+			}]);
 		}
 		return std_columns.concat(this.build_columns());		
 	},
