@@ -59,7 +59,6 @@ wn.ui.form.ScriptManager = Class.extend({
 				} else {
 					if(callback) callback("");
 				}
-				console.log(me.frm.doc.tin_no)
 			}
 		});
 	},

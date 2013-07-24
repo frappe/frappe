@@ -26,7 +26,8 @@ wn.ui.AppFrame = Class.extend({
 			<div class="info-bar" style="display: none;"><ul class="hidden-sm-inline"></ul></div>\
 			<div class="navbar" style="display: none;">\
 				<div class="navbar-form pull-left">\
-					<div class="btn-group"></div>\
+					<div class="btn-group pull-left"></div>\
+					<div class="form-inline"></div>\
 				</div>\
 			</div>\
 		<div>').prependTo(parent);
@@ -278,17 +279,16 @@ wn.ui.AppFrame = Class.extend({
 		this.show_toolbar();
 		var f = wn.ui.form.make_control({
 			df: df,
-			parent: this.toolbar,
+			parent: this.toolbar.find(".form-inline"),
 			only_input: true,
 		})
 		f.refresh();
 		$(f.wrapper)
 			.addClass('col-lg-2')
 			.css({
-				"display": "inline-block",
-				"margin-top": "0px",
-				"margin-bottom": "-17px",
-				"margin-left": "4px"
+				"padding-left": "0px", 
+				"padding-right": "0px",
+				"margin-right": "5px"
 			})
 			.attr("title", df.label).tooltip();
 		if(df["default"])

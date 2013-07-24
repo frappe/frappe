@@ -220,7 +220,6 @@ class LoginManager:
 
 	def logout(self, arg='', user=None):
 		if not user: user = webnotes.session.user
-		self.user = user
 		self.run_trigger('on_logout')
 		if user in ['demo@erpnext.com', 'Administrator']:
 			webnotes.conn.sql('delete from tabSessions where sid=%s', webnotes.session.get('sid'))
@@ -228,10 +227,11 @@ class LoginManager:
 		else:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
-		webnotes.add_cookies["full_name"] = ""
-		webnotes.add_cookies["sid"] = ""
 			
-			
+		if user == webnotes.session.user:
+			webnotes.add_cookies["full_name"] = ""
+			webnotes.add_cookies["sid"] = ""
+		
 class CookieManager:
 	def __init__(self):
 		import Cookie
