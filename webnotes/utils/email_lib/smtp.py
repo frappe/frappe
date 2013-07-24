@@ -29,6 +29,7 @@ Allows easy adding of Attachments of "File" objects
 import webnotes	
 import conf
 from webnotes import msgprint
+from webnotes.utils import cint
 import email
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None):
@@ -239,7 +240,7 @@ class EMail:
 		import smtplib
 		try:
 			smtpserver = SMTPServer()
-			if hasattr(smtpserver, "always_use_login_id_as_sender") and smtpserver.always_use_login_id_as_sender:
+			if hasattr(smtpserver, "always_use_login_id_as_sender") and cint(smtpserver.always_use_login_id_as_sender):
 				self.sender = smtpserver.login
 			
 			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),

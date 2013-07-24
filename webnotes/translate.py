@@ -114,6 +114,7 @@ def build_message_files():
 	
 def build_for_pages(path):
 	"""make locale files for framework py and js (all)"""
+	from webnotes.modules import get_doc_path
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
 		if os.path.basename(os.path.dirname(basepath))=="page":
