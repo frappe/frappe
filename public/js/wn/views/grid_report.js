@@ -189,11 +189,7 @@ wn.views.GridReport = Class.extend({
 		if(filters) {
 			var opts = filters.get(0).opts;
 			if(opts.fieldtype === "Check") {
-				if(cint(value)) {
-					filters.attr("checked", "checked");
-				} else {
-					filters.removeAttr("checked");
-				}
+				filters.prop("checked", cint(value) ? true : false);
 			} if(opts.fieldtype=="Date") {
 				filters.val(wn.datetime.str_to_user(value));
 			} else {
@@ -293,7 +289,7 @@ wn.views.GridReport = Class.extend({
 		$.each(this.filter_inputs, function(i, f) {
 			var opts = f.get(0).opts;
 			if(opts.fieldtype=='Check') {
-				me[opts.fieldname] = f.is(':checked') ? 1 : 0;
+				me[opts.fieldname] = f.prop('checked') ? 1 : 0;
 			} else if(opts.fieldtype!='Button') {
 				me[opts.fieldname] = f.val();
 				if(opts.fieldtype=="Date") {
@@ -517,10 +513,10 @@ wn.views.GridReport = Class.extend({
 		});
 	},
 	check_formatter: function(row, cell, value, columnDef, dataContext) {
-		return repl("<input type='checkbox' data-id='%(id)s' \
-			class='plot-check' %(checked)s>", {
+		return repl('<input type="checkbox" data-id="%(id)s" \
+			class="plot-check" %(checked)s>', {
 				"id": dataContext.id,
-				"checked": dataContext.checked ? "checked" : ""
+				"checked": dataContext.checked ? 'checked="checked"' : ""
 			})
 	},
 	apply_link_formatters: function() {
@@ -675,12 +671,11 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 		var me = this;
 		me.wrapper.bind('make', function() {
 			me.wrapper.on("click", ".plot-check", function() {
-				var checked = $(this).attr("checked");
+				var checked = $(this).prop("checked");
 				var id = $(this).attr("data-id");
 				if(me.item_by_name) {
 					if(me.item_by_name[id]) {
-						me.item_by_name[id].checked = checked 
-							? true : false;
+						me.item_by_name[id].checked = checked ? true : false;
 					}
 				} else {
 					$.each(me.data, function(i, d) {
@@ -883,15 +878,15 @@ wn.views.TreeGridReport = wn.views.GridReportWithPlot.extend({
 	
 	export: function() {
 		var msgbox = msgprint('<p>Select To Download:</p>\
-			<p><input type="checkbox" name="with_groups" checked> With Groups</p>\
-			<p><input type="checkbox" name="with_ledgers" checked> With Ledgers</p>\
+			<p><input type="checkbox" name="with_groups" checked="checked"> With Groups</p>\
+			<p><input type="checkbox" name="with_ledgers" checked="checked"> With Ledgers</p>\
 			<p><button class="btn btn-info">Download</button>');
 
 		var me = this;
 
 		$(msgbox.body).find("button").click(function() {
-			var with_groups = $(msgbox.body).find("[name='with_groups']").is(":checked");
-			var with_ledgers = $(msgbox.body).find("[name='with_ledgers']").is(":checked");
+			var with_groups = $(msgbox.body).find("[name='with_groups']").prop("checked");
+			var with_ledgers = $(msgbox.body).find("[name='with_ledgers']").prop("checked");
 
 			var data = wn.slickgrid_tools.get_view_data(me.columns, me.dataView, 
 				function(row, item) {

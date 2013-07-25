@@ -201,6 +201,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 				doctypes: me.doctypes
 			},
 			callback: function(r) {
+				console.log(r);
 				if(r.message) {
 					// reports
 					if(r.message.reports.length) {
@@ -212,6 +213,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 						me.add_section(section);
 						$.each(r.message.reports, function(i, item) {
 							if(wn.model.can_read(item.doctype)) {
+								item.icon = '<i class="icon-fixed-width '
+									+ wn.boot.doctype_icons[item.doctype] + '"></i> ';
 								if(item.is_query_report) {
 									item.link = repl("<a href=\"#query-report/%(name)s\">%(name)s</a>",
 										item);

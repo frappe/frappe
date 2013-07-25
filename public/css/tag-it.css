@@ -26,7 +26,7 @@ ul.tagit li.tagit-choice {
 	border: none;
 	box-shadow: none;
 	border-radius: 4px;
-	background-color: #ddd;
+	background-color: #bbb;
 }
 
 ul.tagit li.tagit-new {
@@ -75,14 +75,6 @@ ul.tagit input[type="text"] {
 }
 
 /* in list */
-
-.list-tag ul.tagit li.tagit-choice {
-	background-color: transparent;
-	text-decoration: underline;
-	color: #aaa;
-	cursor: pointer;
-	font-size: 90%;
-}
 
 .list-tag ul.tagit {
 	margin-top: -5px;

@@ -62,10 +62,13 @@ class DocListController(object):
 		df = self.meta.get_field(fieldname, parent=doc.doctype)
 		
 		val1 = doc.fields.get(fieldname)
+		
 		if df.fieldtype in ("Currency", "Float"):
-			val1 = flt(val1)
+			val1 = flt(val1, self.precision(df.fieldname, doc.parentfield or None))
+			val2 = flt(val2, self.precision(df.fieldname, doc.parentfield or None))
 		elif df.fieldtype in ("Int", "Check"):
 			val1 = cint(val1)
+			val2 = cint(val2)
 		
 		if not webnotes.compare(val1, condition, val2):
 			msg = _("Error") + ": "

@@ -21,57 +21,10 @@
 // 
 
 cur_frm.cscript.refresh = function(doc) {	
-	if (doc.docstatus) hide_field('steps');
-	
-	var has_attachments = !$.isEmptyObject(cur_frm.attachments.get_attachments());
-	
 	cur_frm.set_intro("");
 	if(doc.__islocal) {
-		cur_frm.set_intro("Step 1: Set the name and save.");
-	} else {
-		if(has_attachments) {
-			cur_frm.set_intro("Step 2: Upload your letter head image / set html content directly");
-			cur_frm.add_custom_button("Upload", function() {
-				cur_frm.attachments.add_attachment();
-			}, 'icon-upload');
-		}
+		cur_frm.set_intro(wn._("Step 1: Set the name and save."));
+	} else if(!cur_frm.doc.content) {
+		cur_frm.set_intro(wn._("Step 2: Set Letterhead content."));
 	}
-	
-	if(has_attachments && !doc.content) {
-		cur_frm.cscript['set_from_image'](doc);
-	}
-	
-	if(doc.content) {
-		cur_frm.cscript.content(doc);
-	}
-}
-
-cur_frm.cscript.content = function(doc) {
-	$(cur_frm.fields_dict.preview.wrapper).html("<p>Preview:</p><hr>" + doc.content + "<hr>");	
-}
-
-cur_frm.cscript['set_from_image'] = function(doc, dt, dn) {
-	if(!cur_frm.get_files().length) {
-		msgprint('Please attach an image file first');
-		return;
-	}
-	if(doc.content) {
-		if(!confirm('Are you sure you want to overwrite the existing HTML?'))
-			return;
-	}
-	
-	
-
-	var file_name = cur_frm.get_files()[0];
-
-	if(!in_list(['gif','jpg','jpeg','png'], file_name.split('.')[1].toLowerCase())) {
-		msgprint("Please upload a web friendly (GIF, JPG or PNG) image file for the letter head");
-		return;
-	}
-
-	img_link = '<div><img src="files/'+ file_name + '"/></div>'
-	
-	doc.content = img_link;
-	refresh_field('content');
-	cur_frm.cscript.content(doc);
 }

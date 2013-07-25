@@ -58,25 +58,21 @@ wn.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.add_button("<i class='icon-refresh' title='"+
-			wn._('Refresh') + "'></i>", function() {
-			me.refresh();
-		}).addClass("btn-success");
+		this.appframe.add_button(wn._('Refresh'), function() { me.refresh(); }, "icon-refresh")
+			.addClass("btn-success");
 		
 		// Edit
-		var edit_btn = this.appframe.add_button("<i class='icon-edit' title='"+
-			wn._('Edit') + "'></i>", function() {
+		var edit_btn = this.appframe.add_button(wn._('Edit'), function() {
 			wn.set_route("Form", "Report", me.report_name);
-		});
+		}, "icon-edit");
+		
 		if(!in_list(user_roles, "System Manager")) {
 			edit_btn.attr("disabled", "disabled")
 				.attr("title", wn._("Only System Manager can create / edit reports"));
 		}
 
-		var export_btn = this.appframe.add_button("<i class='icon-download' title='"+
-			wn._('Export') + "'></i>", function() {
-			me.export_report();
-		});
+		var export_btn = this.appframe.add_button(wn._('Export'), function() { me.export_report(); }, 
+			"icon-download");
 		wn.utils.disable_export_btn(export_btn);
 	},
 	load: function() {
@@ -116,21 +112,19 @@ wn.views.QueryReport = Class.extend({
 		var me = this;
 		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
 			var f = me.appframe.add_field(df);
+			$(f.wrapper).addClass("filters pull-left");
 			me.filters.push(f);
 			if(df["default"]) {
 				f.set_input(df["default"]);
 			}
 			
-			if(f.df.fieldtype == "Link")
-				$(f.wrapper).find("input, button").css({"margin-top":"-4px"});
-	
 			if(df.get_query) f.get_query = df.get_query;
 		});
 		this.set_filters_by_name();
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.appframe.$w.find('.appframe-toolbar').find(".filters").remove();
+		this.appframe.$w.find('.navbar .filters').remove();
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};

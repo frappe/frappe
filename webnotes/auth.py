@@ -127,7 +127,7 @@ class LoginManager:
 			self.authenticate()
 			self.post_login()
 			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
-			if info.user_type=="Partner":
+			if info.user_type=="Website User":
 				webnotes.response["message"] = "No App"
 				full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 				webnotes.response["full_name"] = full_name
@@ -220,7 +220,6 @@ class LoginManager:
 
 	def logout(self, arg='', user=None):
 		if not user: user = webnotes.session.user
-		self.user = user
 		self.run_trigger('on_logout')
 		if user in ['demo@erpnext.com', 'Administrator']:
 			webnotes.conn.sql('delete from tabSessions where sid=%s', webnotes.session.get('sid'))
@@ -228,10 +227,11 @@ class LoginManager:
 		else:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
-		webnotes.add_cookies["full_name"] = ""
-		webnotes.add_cookies["sid"] = ""
 			
-			
+		if user == webnotes.session.user:
+			webnotes.add_cookies["full_name"] = ""
+			webnotes.add_cookies["sid"] = ""
+		
 class CookieManager:
 	def __init__(self):
 		import Cookie

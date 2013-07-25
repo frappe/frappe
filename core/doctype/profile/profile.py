@@ -85,7 +85,7 @@ class DocType:
 				self.doclist.get({"parentfield": "user_roles"})]):
 			return
 		
-		if not self.get_other_system_managers():
+		if self.doc.user_type == "System User" and not self.get_other_system_managers():
 			webnotes.msgprint("""Adding System Manager Role as there must 
 				be atleast one 'System Manager'.""")
 			self.doclist.append({
@@ -324,7 +324,7 @@ def sign_up(email, full_name):
 			"first_name": full_name,
 			"enabled": 1,
 			"new_password": random_string(10),
-			"user_type": "Partner",
+			"user_type": "Website User",
 			"send_invite_email": 1
 		})
 		profile.ignore_permissions = True

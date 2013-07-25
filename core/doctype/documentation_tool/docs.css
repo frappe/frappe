@@ -1,5 +1,10 @@
+@import url(http://fonts.googleapis.com/css?family=PT+Sans);
+
+body, h1, h2, h3, h4 {
+	font-family: "PT Sans", Arial;
+}
+
 body {
-	font-family: Arial, Sans Serif;
 	font-size: 16px;
 	text-rendering: optimizeLegibility;
 	color: #555555;
@@ -15,7 +20,7 @@ img {
 }
 
 .navbar {
-	background-color: #ffffff;
+	background-color: #f8f8f8;
 	border-bottom: 1px solid #dddddd;
 }
 
@@ -24,12 +29,11 @@ img {
 	color: #444444;
 }
 
-h1 {
+h1, h2, h3 {
 	font-weight: bold;
 }
 
-h1, h2, h3, h4, .logo {
-	font-family: Arial, Sans;
+ .logo {
 	font-weight: bold;
 }
 
