@@ -146,10 +146,10 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 				
 			write_messages(r);
 		},
-		callback: function(r) {
+		callback: function(fid, filename, r) {
 			// replace links if error has occured
 			r.messages = ["<h4 style='color:green'>Import Successful!</h4>"].
-				concat(r.messages)
+				concat(r.message.messages)
 			
 			write_messages(r);
 		}
