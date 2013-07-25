@@ -149,12 +149,13 @@ Thank you,<br>
 %(user_fullname)s
 		"""
 		import startup
-		self.send_login_mail("Your " +startup.product_name + " password has been reset", txt, password)
+		import conf
+		self.send_login_mail("Your " + getattr(conf, "product_name",startup.product_name) + " password has been reset", txt, password)
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
 		import startup
-		
+		import conf
 		txt = """
 ## %(company)s
 
@@ -172,13 +173,14 @@ To login to your new %(product)s account, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Welcome to " + startup.product_name, txt, password)
+		self.send_login_mail("Welcome to " + getattr(conf, "product_name",startup.product_name), txt, password)
 
 	def send_login_mail(self, subject, txt, password):
 		"""send mail with login details"""
 		import os
 	
 		import startup
+		import conf
 		from webnotes.utils.email_lib import sendmail_md
 		from webnotes.profile import get_user_fullname
 		from webnotes.utils import get_request_site_address
@@ -189,7 +191,7 @@ Thank you,<br>
 			'password': password,
 			'company': webnotes.conn.get_default('company') or startup.product_name,
 			'login_url': get_request_site_address(),
-			'product': startup.product_name,
+			'product': getattr(conf, "product_name",startup.product_name),
 			'user_fullname': get_user_fullname(webnotes.session['user'])
 		}
 		
