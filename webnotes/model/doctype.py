@@ -307,7 +307,7 @@ def add_embedded_js(doc):
 			return '\n// no file "%s" found \n' % fpath
 	
 	if doc.fields.get('__js'):
-		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
+		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'].decode('utf-8'))
 		
 def expand_selects(doclist):
 	for d in filter(lambda d: d.fieldtype=='Select' \

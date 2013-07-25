@@ -214,7 +214,7 @@ _f.Frm.prototype.get_files = function() {
 		: [] ;
 }
 
-_f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
+/*_f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 	var func = (typeof opt1=="function") ? opt1 : opt2;
 	if(opt2) {
 		this.fields_dict[opt1].grid.get_field(fieldname).get_query = func;
@@ -222,6 +222,33 @@ _f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
 		this.fields_dict[fieldname].get_query = func;
 	}
 }
+*/
+_f.Frm.prototype._on_available = function(fieldname, func){
+	var self = this, timer;
+	if ((typeof self['fields_dict'] !== 'undefined') && (typeof self.fields_dict[fieldname] !== 'undefined')){
+		func();
+	} else {
+		timer = setInterval(function(){
+			if ((typeof self['fields_dict'] !== 'undefined') && (typeof self.fields_dict[fieldname] !== 'undefined')){
+				func();
+				clearInterval(timer);
+			}
+		}, 100);
+	}
+}
+
+_f.Frm.prototype.set_query = function(fieldname, opt1, opt2) {
+	var func = (typeof opt1=="function") ? opt1 : opt2, self=this;
+	function query_setter(){
+		if(opt2) {
+			self.fields_dict[opt1].grid.get_field(fieldname).get_query = func;
+		} else {
+			self.fields_dict[fieldname].get_query = func;
+		}
+	}
+	this._on_available((opt2) ? opt1 : fieldname, query_setter)
+}
+
 
 _f.Frm.prototype.set_value = function(field, value) {
 	var me = this;
