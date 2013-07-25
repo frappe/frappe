@@ -59,7 +59,7 @@ def get_active_users(arg=None):
 	 	from tabProfile 
 		where ifnull(enabled,0)=1 and
 		docstatus < 2 and 
-		ifnull(user_type, '')!='Partner' and 
+		ifnull(user_type, '')!='Website User' and 
 		name not in ('Administrator', 'Guest')
 		order by first_name""", as_dict=1)
 

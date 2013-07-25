@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-07-22 16:06:31", 
+  "modified": "2013-07-25 17:14:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -143,14 +143,16 @@
   "oldfieldtype": "Date"
  }, 
  {
+  "default": "System User", 
   "doctype": "DocField", 
   "fieldname": "user_type", 
   "fieldtype": "Select", 
   "label": "User Type", 
   "oldfieldname": "user_type", 
   "oldfieldtype": "Select", 
-  "options": "\nSystem User\nPartner", 
-  "read_only": 1
+  "options": "System User\nWebsite User", 
+  "read_only": 1, 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
