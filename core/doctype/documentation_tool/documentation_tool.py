@@ -483,6 +483,7 @@ def write_static():
 		page["content"] = markdown(page["_intro"])
 	
 	write_docs(pages)
+	prepare_docs()
 	
 def get_timestamp(path):
 	return datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d")
