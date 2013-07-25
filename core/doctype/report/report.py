@@ -8,6 +8,8 @@ class DocType:
 		
 	def validate(self):
 		"""only administrator can save standard report"""
+		if not self.doc.is_standard:
+			self.doc.is_standard = "No"
 		if webnotes.session.user=="Administrator" and getattr(conf, 'developer_mode',0)==1:
 			self.doc.is_standard = "Yes"
 		if self.doc.is_standard == "Yes" and webnotes.session.user!="Administrator":
