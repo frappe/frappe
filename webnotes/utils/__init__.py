@@ -83,13 +83,19 @@ def validate_email_add(email_str):
 
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
-	import os
-	try:
-		return 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://' \
-			+ os.environ.get('HTTP_HOST')\
-			+ (full_address and (os.environ.get("REQUEST_URI")) or "")
-	except TypeError:
-		return 'http://localhost'
+	import os, conf
+	if hasattr(conf, "host_name"):
+		return conf.host_name
+	else:
+		try:
+			protocol = 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://'
+			host = os.environ.get('HTTP_HOST')
+			if full_address:
+				return protocol + host + os.environ.get("REQUEST_URI")
+			else:
+				return protocol + host
+		except TypeError:
+			return 'http://localhost'
 
 def random_string(length):
 	"""generate a random string"""
