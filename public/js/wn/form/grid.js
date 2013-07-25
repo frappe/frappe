@@ -263,6 +263,7 @@ wn.ui.form.GridRow = Class.extend({
 						wn._(df.label);
 				switch(df.fieldtype) {
 					case "Text":
+					case "Small Text":
 						colsize = 3;
 						break;
 					case "Check":
@@ -276,15 +277,25 @@ wn.ui.form.GridRow = Class.extend({
 					return false;
 				$col = $('<div class="col col-lg-'+colsize+'">' 
 					+ txt + '</div>')
-					.css({
+					.attr("data-fieldname", df.fieldname)
+					.data("df", df)
+					.appendTo(me.row)
+				
+				if(["Text", "Small Text"].indexOf(df.fieldtype)!==-1) {
+					$col.css({
+						"word-wrap": "break-word",
+						"overflow": "hidden",
+						"padding-right": "0px"
+					});
+				} else {
+					$col.css({
 						"overflow": "hidden",
 						"text-overflow": "ellipsis",
 						"white-space": "nowrap",
 						"padding-right": "0px"
-					})
-					.attr("data-fieldname", df.fieldname)
-					.data("df", df)
-					.appendTo(me.row)
+					});
+				}
+					
 				if(in_list(["Int", "Currency", "Float"], df.fieldtype))
 					$col.css({"text-align": "right"})
 			}
