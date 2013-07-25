@@ -113,6 +113,7 @@
 			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
 
 			"lib/public/js/wn/form/toolbar.js",
+			"lib/public/js/wn/form/infobar.js",
 			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/form/dashboard.js",
 			"lib/public/js/wn/form/script_manager.js",
