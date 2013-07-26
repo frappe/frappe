@@ -265,7 +265,7 @@ wn.views.CommunicationComposer = Class.extend({
 				name: me.doc.name,
 				lead: me.doc.lead,
 				contact: me.doc.contact,
-				company: me.doc.company || sys_defaults.company,
+				company: me.doc.company || wn.defaults.get_default("company"),
 				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
