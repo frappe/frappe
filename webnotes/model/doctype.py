@@ -295,7 +295,7 @@ def add_embedded_js(doc):
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
+	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).decode("utf-8")
 	
 	def _sub(match):
 		fpath = os.path.join(os.path.dirname(conf.__file__), \
