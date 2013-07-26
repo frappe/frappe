@@ -79,7 +79,9 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[]
 	target_doclist = webnotes.doclist(target_doclist)
 	
 	if postprocess:
-		postprocess(source, target_doclist)
+		new_target_doclist = postprocess(source, target_doclist)
+		if new_target_doclist:
+			target_doclist = new_target_doclist
 	
 	return target_doclist
 
