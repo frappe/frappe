@@ -299,11 +299,22 @@ def import_messages(lang, infile):
 			_update_lang_file('js')
 			_update_lang_file('py')
 
+docs_loaded = []
 def load_doc_messages(module, doctype, name):
 	if webnotes.lang=="en":
 		return {}
+
+	global docs_loaded
+	doc_path = get_doc_path(module, doctype, name)
+
+	# don't repload the same doc again
+	if (webnotes.lang + ":" + doc_path) in docs_loaded:
+		return
+
+	docs_loaded.append(webnotes.lang + ":" + doc_path)
+
 	global messages
-	messages.update(get_lang_data(get_doc_path(module, doctype, name), None, 'doc'))
+	messages.update(get_lang_data(doc_path, None, 'doc'))
 
 def get_lang_data(basepath, lang, mtype):
 	"""get language dict from langfile"""

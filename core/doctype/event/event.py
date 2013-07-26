@@ -29,6 +29,10 @@ weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", 
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+		
+	def validate(self):
+		if self.doc.starts_on > self.doc.ends_on:
+			webnotes.msgprint(webnotes._("Event Start must be after End"), raise_exception=True)
 
 def send_event_digest():
 	today = nowdate()
@@ -43,6 +47,8 @@ def send_event_digest():
 
 			text = "<h3>" + webnotes._("Events In Today's Calendar") + "</h3>"
 			for e in events:
+				if e.all_day:
+					e.starts_on = "All Day"
 				text += "<h4>%(starts_on)s: %(subject)s</h4><p>%(description)s</p>" % e
 
 			text += '<p style="color: #888; font-size: 80%; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">'\
@@ -63,6 +69,7 @@ def get_events(start, end, user=None, for_reminder=False):
 		from tabEvent where ((
 			(starts_on between '%(start)s 00:00:00' and '%(end)s 23:59:59')
 			or (ends_on between '%(start)s 00:00:00' and '%(end)s 23:59:59')
+			or (starts_on <= '%(start)s' and ends_on >= '%(end)s')
 		) or (
 			starts_on <= '%(start)s 00:00:00' and ifnull(repeat_this_event,0)=1 and
 			ifnull(repeat_till, "3000-01-01 00:00:00") > '%(start)s'
