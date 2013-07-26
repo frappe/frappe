@@ -299,8 +299,11 @@ def import_messages(lang, infile):
 			_update_lang_file('js')
 			_update_lang_file('py')
 
-def get_doc_messages(module, doctype, name):
-	return get_lang_data(get_doc_path(module, doctype, name), None, 'doc')
+def load_doc_messages(module, doctype, name):
+	if webnotes.lang=="en":
+		return {}
+	global messages
+	messages.update(get_lang_data(get_doc_path(module, doctype, name), None, 'doc'))
 
 def get_lang_data(basepath, lang, mtype):
 	"""get language dict from langfile"""

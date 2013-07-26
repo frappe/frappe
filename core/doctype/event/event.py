@@ -22,7 +22,7 @@
 from __future__ import unicode_literals
 import webnotes
 
-from webnotes.utils import getdate, cint, add_months, date_diff, add_days
+from webnotes.utils import getdate, cint, add_months, date_diff, add_days, nowdate
 
 weekdays = ["monday", "tuesday", "wednesday", "thursday", "friday", "saturday", "sunday"]
 
@@ -30,19 +30,44 @@ class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
+def send_event_digest():
+	today = nowdate()
+	for user in webnotes.conn.sql("""select name, email, language 
+		from tabProfile where ifnull(enabled,0)=1 
+		and user_type='System User' and name not in ('Guest', 'Administrator')""", as_dict=1):
+		events = get_events(today, today, user.name, for_reminder=True)
+		if events:
+			text = ""
+			webnotes.set_user_lang(user.name, user.language)
+			webnotes.load_translations("core", "doctype", "event")
+
+			text = "<h3>" + webnotes._("Events In Today's Calendar") + "</h3>"
+			for e in events:
+				text += "<h4>%(starts_on)s: %(subject)s</h4><p>%(description)s</p>" % e
+
+			text += '<p style="color: #888; font-size: 80%; margin-top: 20px; padding-top: 10px; border-top: 1px solid #eee;">'\
+				+ webnotes._("Daily Event Digest is sent for Calendar Events where reminders are set.")+'</p>'
+
+			from webnotes.utils.email_lib import sendmail
+			sendmail(recipients=user.email, subject=webnotes._("Upcoming Events for Today"),
+				msg = text)
+				
 @webnotes.whitelist()
-def get_events(start, end):
-	roles = webnotes.get_roles()
-	events = webnotes.conn.sql("""select name, subject, 
+def get_events(start, end, user=None, for_reminder=False):
+	if not user:
+		user = webnotes.session.user
+	roles = webnotes.get_roles(user)
+	events = webnotes.conn.sql("""select name, subject, description,
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
-		from tabEvent where (
-			(starts_on between '%(start)s' and '%(end)s')
-			or (ends_on between '%(start)s' and '%(end)s')
+		from tabEvent where ((
+			(starts_on between '%(start)s 00:00:00' and '%(end)s 23:59:59')
+			or (ends_on between '%(start)s 00:00:00' and '%(end)s 23:59:59')
 		) or (
-			starts_on < '%(start)s' and ifnull(repeat_this_event,0)=1 and
+			starts_on <= '%(start)s 00:00:00' and ifnull(repeat_this_event,0)=1 and
 			ifnull(repeat_till, "3000-01-01 00:00:00") > '%(start)s'
-		)
+		))
+		%(reminder_condition)s
 		and (event_type='Public' or owner='%(user)s'
 		or exists(select * from `tabEvent User` where 
 			`tabEvent User`.parent=tabEvent.name and person='%(user)s')
@@ -52,10 +77,11 @@ def get_events(start, end):
 		order by starts_on""" % {
 			"start": start,
 			"end": end,
-			"user": webnotes.session.user,
+			"reminder_condition": "and ifnull(send_reminder,0)=1" if for_reminder else "",
+			"user": user,
 			"roles": "', '".join(roles)
 		}, as_dict=1)
-		
+			
 	# process recurring events
 	start = start.split(" ")[0]
 	end = end.split(" ")[0]
@@ -117,8 +143,16 @@ def get_events(start, end):
 			if e.repeat_on=="Every Day":				
 				for cnt in xrange(date_diff(end, start) + 1):
 					date = add_days(start, cnt)
-					if date <= end and e[weekdays[getdate(date).weekday()]]:
+					if date >= event_start and date <= end \
+						and e[weekdays[getdate(date).weekday()]]:
 						add_event(e, date)
 				events.remove(e)
 
-	return events + add_events
+	events = events + add_events
+	
+	for e in events:
+		# remove weekday properties (to reduce message size)
+		for w in weekdays:
+			del e[w]
+			
+	return events
