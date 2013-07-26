@@ -33,7 +33,7 @@ wn.ui.form.Grid = Class.extend({
 			grid: this
 		});	
 	},
-	refresh: function() {
+	refresh: function(force) {
 		!this.wrapper && this.make();
 		var me = this,
 			$rows = $(me.parent).find(".rows"),
@@ -43,7 +43,7 @@ wn.ui.form.Grid = Class.extend({
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
 
-		if(this.data_rows_are_same(data)) {
+		if(!force && this.data_rows_are_same(data)) {
 			// soft refresh
 			this.header_row.refresh();
 			$.each(this.grid_rows, function(i, g) {
@@ -117,8 +117,16 @@ wn.ui.form.Grid = Class.extend({
 		return data;
 	},
 	set_column_disp: function(fieldname, show) {
-		wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = !show;
-		this.refresh();
+		if($.isArray(fieldname)) {
+			var me = this;
+			$.each(fieldname, function(i, fname) {
+				wn.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = !show;
+			});
+		} else {
+			wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = !show;
+		}
+		
+		this.refresh(true);
 	},
 	toggle_reqd: function(fieldname, reqd) {
 		wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).reqd = reqd;

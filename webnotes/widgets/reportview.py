@@ -195,10 +195,11 @@ def build_filter_conditions(filters, conditions):
 					conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
 						+ " " + cstr(f[3]))
 					
-def build_match_conditions(doctype, fields=None, as_condition=True, match_filters={}):
+def build_match_conditions(doctype, fields=None, as_condition=True, match_filters=None):
 	"""add match conditions if applicable"""
 	global tables, roles
 	
+	if not match_filters: match_filters = {}
 	match_conditions = []
 	match = True
 	

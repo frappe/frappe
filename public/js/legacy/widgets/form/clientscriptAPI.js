@@ -288,6 +288,14 @@ _f.Frm.prototype.call = function(opts) {
 			}
 			opts.original_callback && opts.original_callback(r);
 		}
+	} else {
+		opts.original_callback = opts.callback;
+		opts.callback = function(r) {
+			if(!r.exc) me.refresh_fields();
+			
+			opts.original_callback && opts.original_callback(r);
+		}
+		
 	}
 	wn.call(opts);
 }

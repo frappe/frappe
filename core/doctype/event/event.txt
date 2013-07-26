@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:36:46", 
+  "modified": "2013-07-26 13:19:41", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -74,6 +74,12 @@
  }, 
  {
   "doctype": "DocField", 
+  "fieldname": "all_day", 
+  "fieldtype": "Check", 
+  "label": "All Day"
+ }, 
+ {
+  "doctype": "DocField", 
   "fieldname": "starts_on", 
   "fieldtype": "Datetime", 
   "label": "Starts on", 
@@ -88,9 +94,84 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "all_day", 
+  "fieldname": "section_break_8", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "repeat_this_event", 
   "fieldtype": "Check", 
-  "label": "All Day"
+  "label": "Repeat this Event"
+ }, 
+ {
+  "depends_on": "repeat_this_event", 
+  "doctype": "DocField", 
+  "fieldname": "repeat_on", 
+  "fieldtype": "Select", 
+  "label": "Repeat On", 
+  "options": "\nEvery Day\nEvery Week\nEvery Month\nEvery Year"
+ }, 
+ {
+  "depends_on": "repeat_this_event", 
+  "description": "Leave blank if you have not decided the end date.", 
+  "doctype": "DocField", 
+  "fieldname": "repeat_till", 
+  "fieldtype": "Date", 
+  "label": "Repeat Till"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_11", 
+  "fieldtype": "Column Break"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "monday", 
+  "fieldtype": "Check", 
+  "label": "Monday"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "tuesday", 
+  "fieldtype": "Check", 
+  "label": "Tuesday"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "wednesday", 
+  "fieldtype": "Check", 
+  "label": "Wednesday"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "thursday", 
+  "fieldtype": "Check", 
+  "label": "Thursday"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "friday", 
+  "fieldtype": "Check", 
+  "label": "Friday"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "saturday", 
+  "fieldtype": "Check", 
+  "label": "Saturday"
+ }, 
+ {
+  "depends_on": "eval:doc.repeat_this_event && doc.repeat_on===\"Every Day\"", 
+  "doctype": "DocField", 
+  "fieldname": "sunday", 
+  "fieldtype": "Check", 
+  "label": "Sunday"
  }, 
  {
   "doctype": "DocField", 

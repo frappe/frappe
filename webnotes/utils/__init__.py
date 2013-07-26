@@ -84,18 +84,20 @@ def validate_email_add(email_str):
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
 	import os, conf
+	
 	if hasattr(conf, "host_name"):
-		return conf.host_name
+		host_name = conf.host_name
 	else:
 		try:
 			protocol = 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://'
-			host = os.environ.get('HTTP_HOST')
-			if full_address:
-				return protocol + host + os.environ.get("REQUEST_URI")
-			else:
-				return protocol + host
+			host_name = protocol + os.environ.get('HTTP_HOST')
 		except TypeError:
 			return 'http://localhost'
+
+	if full_address:
+		return host_name + os.environ.get("REQUEST_URI", "")
+	else:
+		return host_name
 
 def random_string(length):
 	"""generate a random string"""
@@ -150,11 +152,7 @@ def getdate(string_date):
 	if " " in string_date:
 		string_date = string_date.split(" ")[0]
 	
-	try:
-		return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
-	except ValueError:
-		webnotes.msgprint("Cannot understand date - '%s'" % \
-			(string_date,), raise_exception=1)
+	return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
@@ -163,7 +161,7 @@ def add_to_date(date, years=0, months=0, days=0):
 		date = getdate(date)
 	else:
 		raise Exception, "Start date required"
-	
+
 	from dateutil.relativedelta import relativedelta
 	date += relativedelta(years=years, months=months, days=days)
 	

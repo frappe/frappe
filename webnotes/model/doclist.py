@@ -120,7 +120,7 @@ class DocList(list):
 			if not doc.parent:
 				doc.parent = self[0].name
 			if not doc.idx:
-				siblings = [d.idx for d in self.get({"parentfield": doc.parentfield})]
+				siblings = [int(d.idx or 0) for d in self.get({"parentfield": doc.parentfield})]
 				doc.idx = (max(siblings) + 1) if siblings else 1
 
 def load(doctype, name):	

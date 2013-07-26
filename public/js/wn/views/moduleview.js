@@ -201,7 +201,6 @@ wn.views.moduleview.ModuleView = Class.extend({
 				doctypes: me.doctypes
 			},
 			callback: function(r) {
-				console.log(r);
 				if(r.message) {
 					// reports
 					if(r.message.reports.length) {
