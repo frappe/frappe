@@ -156,18 +156,20 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				title="'+wn._("Tools")+'"\
 				onclick="return false;">'+wn._("Tools")+'</a>\
 			<ul class="dropdown-menu" id="toolbar-tools">\
-				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">'
+				<li><a href="#" onclick="return wn.ui.toolbar.clear_cache();">\
+					<i class="icon-fixed-width icon-refresh"></i> '
 					+wn._('Clear Cache & Refresh')+'</a></li>\
-				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">'
+				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">\
+					<i class="icon-fixed-width icon-info-sign"></i> '
 					+wn._('About')+'</a></li>\
-				<li><a href="#attributions">'
+				<li><a href="http://erpnext.org/docs.attributions.html"><i class="icon-fixed-width icon-heart"></i> '
 					+wn._('Attributions')+'</a></li>\
 			</ul>\
 		</li>');
 		
 		if(has_common(user_roles,['Administrator','System Manager'])) {
 			$('#toolbar-tools').append('<li><a href="#" \
-				onclick="return wn.ui.toolbar.download_backup();">'
+				onclick="return wn.ui.toolbar.download_backup();"><i class="icon-fixed-width icon-download"></i> '
 				+wn._('Download Backup')+'</a></li>');
 		}
 	},
@@ -179,8 +181,8 @@ wn.ui.toolbar.Toolbar = Class.extend({
 
 	make_logout: function() {
 		// logout
-		$('#toolbar-user').append('<li><a href="#" onclick="return wn.app.logout();">'
-			+wn._('Logout')+'</a></li>');
+		$('#toolbar-user').append('<li><a href="#" onclick="return wn.app.logout();">\
+			<i class="icon-fixed-width icon-signout"></i> '+wn._('Logout')+'</a></li>');
 	}
 });
 
