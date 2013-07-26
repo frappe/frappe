@@ -152,11 +152,7 @@ def getdate(string_date):
 	if " " in string_date:
 		string_date = string_date.split(" ")[0]
 	
-	try:
-		return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
-	except ValueError:
-		webnotes.msgprint("Cannot understand date - '%s'" % \
-			(string_date,), raise_exception=1)
+	return datetime.datetime.strptime(string_date, "%Y-%m-%d").date()
 
 def add_to_date(date, years=0, months=0, days=0):
 	"""Adds `days` to the given date"""
@@ -165,7 +161,7 @@ def add_to_date(date, years=0, months=0, days=0):
 		date = getdate(date)
 	else:
 		raise Exception, "Start date required"
-	
+
 	from dateutil.relativedelta import relativedelta
 	date += relativedelta(years=years, months=months, days=days)
 	
