@@ -155,6 +155,10 @@ def setup_options():
 	parser.add_option("--no_cms", default=False, action="store_true",
 						help="do not build wn-web.js and wn-css.js")
 
+	parser.add_option("--docs", default=False, action="store_true",
+						help="Build docs")
+
+
 	parser.add_option("-d", "--db",
 						dest="db_name",
 						help="Apply the patches on given db")
@@ -475,6 +479,10 @@ def run():
 	elif options.translate:
 		from webnotes.translate import translate
 		translate(options.translate)
+		
+	elif options.docs:
+		from core.doctype.documentation_tool.documentation_tool import write_static
+		write_static()
 
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`
