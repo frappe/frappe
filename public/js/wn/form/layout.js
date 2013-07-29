@@ -1,5 +1,6 @@
 wn.ui.form.Layout = Class.extend({
 	init: function(opts) {
+		this.views = {};
 		this.labelled_section_count = 0;
 		this.ignore_types = ["Section Break", "Column Break"];
 		$.extend(this, opts);
@@ -10,6 +11,21 @@ wn.ui.form.Layout = Class.extend({
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		this.fields = wn.meta.get_docfields(this.frm.doctype, this.frm.docname);
 		this.setup_tabbing();
+	},
+	add_view: function(label) {
+		var view = $('<div class="form-add-view">').appendTo(this.parent).toggle(false);
+		this.views[label] = view;
+	},
+	set_view: function(label) {
+		if(this.cur_view) this.cur_view.toggle(false);
+		if(label) {
+			this.wrapper.toggle(false);
+			if(!this.views[label])
+				this.add_view(label);
+			this.cur_view = this.views[label].toggle(true);
+		} else {
+			this.wrapper.toggle(true);
+		}
 	},
 	refresh: function() {
 		var me = this;
