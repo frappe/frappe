@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-07-26 13:19:41", 
+  "modified": "2013-07-26 14:41:43", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -68,6 +68,13 @@
   "search_index": 1
  }, 
  {
+  "default": "1", 
+  "doctype": "DocField", 
+  "fieldname": "send_reminder", 
+  "fieldtype": "Check", 
+  "label": "Send an email reminder in the morning"
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "column_break_4", 
   "fieldtype": "Column Break"
@@ -102,6 +109,12 @@
   "fieldname": "repeat_this_event", 
   "fieldtype": "Check", 
   "label": "Repeat this Event"
+ }, 
+ {
+  "depends_on": "repeat_this_event", 
+  "doctype": "DocField", 
+  "fieldname": "section_break_11", 
+  "fieldtype": "Section Break"
  }, 
  {
   "depends_on": "repeat_this_event", 

@@ -228,7 +228,7 @@ wn.ui.AppFrame = Class.extend({
 		menu = typeof menu == "string" ?
 			this.get_menu(menu) : menu;
 			
-		$('<li class="divider custom-menu"></li>').appendTo(menu);
+		$('<li class="divider custom-menu"></li>').prependTo(menu);
 	},
 	add_dropdown_button: function(parent, label, click, icon) {
 		var menu = this.get_menu(parent);
@@ -238,7 +238,7 @@ wn.ui.AppFrame = Class.extend({
 
 		return $('<li class="custom-menu"><a><i class="'
 			+icon+'"></i> '+label+'</a></li>')
-			.appendTo(menu)
+			.insertBefore(menu.find(".divider"))
 			.find("a")
 			.click(function() {
 				click();

@@ -97,19 +97,24 @@ def get_field_currency(df, doc):
 	else:
 		currency = doc.fields.get(df.options)
 
-	return currency or webnotes.conn.get_default("currency")
+	return currency
 	
 def get_field_precision(df, doc):
 	"""get precision based on DocField options and fieldvalue in doc"""
 	from webnotes.utils import get_number_format_info
 	
 	number_format = None
-	currency = get_field_currency(df, doc)
-	
-	if currency:
-		number_format = webnotes.conn.get_value("Currency", currency, "number_format")
-			
-	decimal_str, comma_str, precision = get_number_format_info(number_format or \
-		webnotes.conn.get_default("number_format") or "#,###.##")
+	if df.fieldtype == "Currency":
+		currency = get_field_currency(df, doc)
+		if currency:
+			number_format = webnotes.conn.get_value("Currency", currency, "number_format")
+		
+	if not number_format:
+		number_format = webnotes.conn.get_default("number_format") or "#,###.##"
+		
+	decimal_str, comma_str, precision = get_number_format_info(number_format)
+
+	if df.fieldtype == "Float":
+		precision = cint(webnotes.conn.get_default("float_precision")) or 6
 
 	return precision
