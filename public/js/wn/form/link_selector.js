@@ -85,8 +85,10 @@ wn.ui.form.LinkSelector = Class.extend({
 						var value = $(this).attr("data-value");
 						if(me.target.doctype) 
 							me.target.parse_validate_and_set_in_model(value);
-						else
+						else {
 							me.target.set_input(value);
+							me.target.$input.trigger("change");
+						}
 						me.dialog.hide();
 						return false;
 					})

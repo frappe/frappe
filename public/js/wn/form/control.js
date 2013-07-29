@@ -9,7 +9,7 @@ wn.ui.form.make_control = function(opts) {
 
 // old style
 function make_field(docfield, doctype, parent, frm, in_grid, hide_label) { // Factory
-	return new wn.ui.form.make_control({
+	return wn.ui.form.make_control({
 		df: docfield,
 		doctype: doctype,
 		parent: parent,
@@ -691,8 +691,13 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				me.autocomplete_open = false;
 			},
 			select: function(event, ui) {
-				if(me.frm && me.frm.doc)
+				me.autocomplete_open = false;
+				if(me.frm && me.frm.doc) {
 					me.parse_validate_and_set_in_model(ui.item.value);
+				} else {
+					me.$input.val(ui.item.value);
+					me.$input.trigger("change");
+				}
 			}
 		}).data('uiAutocomplete')._renderItem = function(ul, item) {
 			return $('<li></li>')

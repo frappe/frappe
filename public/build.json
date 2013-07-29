@@ -98,7 +98,7 @@
 			"lib/public/js/wn/views/test_runner.js",
 			"lib/public/js/wn/form/formatters.js",
 
-			"lib/public/js/legacy/widgets/layout.js",
+			"lib/public/js/legacy/layout.js",
 			
 			"lib/public/js/wn/ui/toolbar/selector_dialog.js",
 			"lib/public/js/wn/ui/toolbar/new.js",
@@ -108,9 +108,9 @@
 			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
 			
-			"lib/public/js/legacy/widgets/form/form.js",
-			"lib/public/js/legacy/widgets/form/print_format.js",
-			"lib/public/js/legacy/widgets/form/clientscriptAPI.js",
+			"lib/public/js/legacy/form.js",
+			"lib/public/js/legacy/print_format.js",
+			"lib/public/js/legacy/clientscriptAPI.js",
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/infobar.js",
