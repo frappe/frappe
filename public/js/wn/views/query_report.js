@@ -86,7 +86,7 @@ wn.views.QueryReport = Class.extend({
 				me.appframe.set_title(wn._("Query Report")+": " + me.report_name);
 				
 				if(!wn.query_reports[me.report_name]) {
-					wn.call({
+					return wn.call({
 						method:"webnotes.widgets.query_report.get_script",
 						args: {
 							report_name: me.report_name
@@ -142,7 +142,7 @@ wn.views.QueryReport = Class.extend({
 		$.each(this.filters || [], function(i, f) {
 			filters[f.df.fieldname] = f.get_parsed_value();
 		})
-		wn.call({
+		return wn.call({
 			method: "webnotes.widgets.query_report.run",
 			args: {
 				"report_name": me.report_name,

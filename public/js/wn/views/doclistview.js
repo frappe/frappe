@@ -267,7 +267,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		wn.confirm(wn._('This is permanent action and you cannot undo. Continue?'),
 			function() {
 				me.set_working(true);
-				wn.call({
+				return wn.call({
 					method: 'webnotes.widgets.reportview.delete_items',
 					args: {
 						items: $.map(dl, function(d, i) { return d.name }),

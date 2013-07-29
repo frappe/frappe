@@ -194,7 +194,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 	render_dynamic: function() {
 		// render reports
 		var me = this;
-		wn.call({
+		return wn.call({
 			method: "webnotes.widgets.moduleview.get_data",
 			args: {
 				module: me.module,

@@ -75,7 +75,7 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 		set_field_options('insert_after', '');
 		return;
 	}
-	wn.call({
+	return wn.call({
 		method: 'core.doctype.custom_field.custom_field.get_fields_label',
 		args: { doctype: doc.dt, fieldname: doc.fieldname },
 		callback: function(r, rt) {

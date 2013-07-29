@@ -8,7 +8,7 @@ $.extend(wn.report_dump, {
 	last_modified: {},
 	with_data: function(doctypes, callback, progress_bar) {
 		var pre_loaded = keys(wn.report_dump.last_modified);
-		wn.call({
+		return wn.call({
 			method: "webnotes.widgets.report_dump.get_data",
 			type: "GET",
 			args: {

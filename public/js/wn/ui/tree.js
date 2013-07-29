@@ -104,7 +104,7 @@ wn.ui.TreeNode = Class.extend({
 
 		$(me.$a).set_working();
 
-		wn.call({
+		return wn.call({
 			method: this.tree.method,
 			args: args,
 			callback: function(r) {

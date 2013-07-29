@@ -20,29 +20,9 @@
 // OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 // 
 
-// Client Side Scripting API
-// ======================================================================================
-
-$c_get_values = function(args, doc, dt, dn, user_callback) {
-	var call_back = function(r,rt) {
-		if(!r.message)return;
-		if(user_callback) user_callback(r.message);
-		
-		var fl = args.fields.split(',');
-		for(var i in fl) {
-			locals[dt][dn][fl[i]] = r.message[fl[i]]; // set value
-			if(args.table_field)
-				refresh_field(fl[i], dn, args.table_field);
-			else
-				refresh_field(fl[i]);
-		}
-	}
-	$c('webnotes.widgets.form.utils.get_fields',args,call_back);
-}
-
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
 	wn.dom.freeze();
-	$c('runserverobj', 
+	return $c('runserverobj', 
 		args={'method':method, 
 				'docs':wn.model.compress(make_doclist(doc.doctype, doc.name)), 
 				'arg':arg
@@ -205,7 +185,7 @@ _f.Frm.prototype.toggle_display = function(fnames, show) {
 }
 
 _f.Frm.prototype.call_server = function(method, args, callback) {
-	$c_obj(cur_frm.get_doclist(), method, args, callback);
+	return $c_obj(cur_frm.get_doclist(), method, args, callback);
 }
 
 _f.Frm.prototype.get_files = function() {
@@ -270,7 +250,7 @@ _f.Frm.prototype.call = function(opts) {
 		}
 		
 	}
-	wn.call(opts);
+	return wn.call(opts);
 }
 
 _f.Frm.prototype.get_field = function(field) {

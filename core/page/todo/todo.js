@@ -18,7 +18,7 @@ wn.provide('erpnext.todo');
 
 erpnext.todo.refresh = function() {
 	
-	wn.call({
+	return wn.call({
 		method: 'core.page.todo.todo.get',
 		callback: function(r,rt) {
 			var todo_list = $('#todo-list div.todo-content');
@@ -117,7 +117,7 @@ erpnext.todo.ToDoItem = Class.extend({
 			.data('name', todo.name)
 			.click(function() {
 				$(this).parent().css('opacity', 0.5);
-				wn.call({
+				return wn.call({
 					method:'core.page.todo.todo.delete',
 					args: {name: $(this).data('name')},
 					callback: function() {
@@ -172,7 +172,7 @@ erpnext.todo.save = function(btn) {
 	}
 	
 	det.name = d.det.name || '';
-	wn.call({
+	return wn.call({
 		method:'core.page.todo.todo.edit',
 		args: det,
 		btn: btn,

@@ -92,7 +92,7 @@ wn.views.Calendar = Class.extend({
 			selectable: true,
 			selectHelper: true,
 			events: function(start, end, callback) {
-				wn.call({
+				return wn.call({
 					method: me.get_events_method || "webnotes.widgets.calendar.get_events",
 					type: "GET",
 					args: me.get_args(start, end),
@@ -180,7 +180,7 @@ wn.views.Calendar = Class.extend({
 	update_event: function(event, revertFunc) {
 		var me = this;
 		wn.model.remove_from_locals(me.doctype, event.name);
-		wn.call({
+		return wn.call({
 			method: me.update_event_method || "webnotes.widgets.calendar.update_event",
 			args: me.get_update_args(event),
 			callback: function(r) {

@@ -23,7 +23,7 @@ wn.Application = Class.extend({
 	load_startup: function() {
 		var me = this;
 		if(window.app) {
-			wn.call({
+			return wn.call({
 				method: 'startup',
 				callback: function(r, rt) {
 					wn.provide('wn.boot');
@@ -109,7 +109,7 @@ wn.Application = Class.extend({
 	
 	refresh_notifications: function() {
 		if(wn.session_alive) {
-			wn.call({
+			return wn.call({
 				method: "webnotes.widgets.notification.get",
 				callback: function(r) {
 					if(r.message) {
@@ -175,7 +175,7 @@ wn.Application = Class.extend({
 	logout: function() {
 		var me = this;
 		me.logged_out = true;
-		wn.call({
+		return wn.call({
 			method:'logout',
 			callback: function(r) {
 				if(r.exc) {
