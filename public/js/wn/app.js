@@ -75,6 +75,8 @@ wn.Application = Class.extend({
 	set_user_display_settings: function() {
 		if(wn.boot.profile.background_image) {
 			wn.ui.set_user_background(wn.boot.profile.background_image);
+		} else {
+			$("body").css("background-color", "#F5EFE6")
 		}
 	},
 	
