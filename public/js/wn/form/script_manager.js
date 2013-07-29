@@ -39,28 +39,34 @@ wn.ui.form.ScriptManager = Class.extend({
 	},
 	validate_link_and_fetch: function(df, docname, value, callback) {
 		var me = this;
-		var fetch = '';
-		if(this.frm && this.frm.fetch_dict[df.fieldname])
-			fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
-
-		wn.call({
-			method:'webnotes.widgets.form.utils.validate_link',
-			type: "GET",
-			args: {
-				'value': value, 
-				'options': df.options, 
-				'fetch': fetch
-			}, 
-			callback: function(r) {
-				if(r.message=='Ok') {
-					if(r.fetch_values) 
-						me.set_fetch_values(df, docname, r.fetch_values);
-					if(callback) callback(value);
-				} else {
-					if(callback) callback("");
+		
+		if(value) {
+			var fetch = '';
+		
+			if(this.frm && this.frm.fetch_dict[df.fieldname])
+				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
+			
+			wn.call({
+				method:'webnotes.widgets.form.utils.validate_link',
+				type: "GET",
+				args: {
+					'value': value, 
+					'options': df.options, 
+					'fetch': fetch
+				}, 
+				callback: function(r) {
+					if(r.message=='Ok') {
+						if(r.fetch_values) 
+							me.set_fetch_values(df, docname, r.fetch_values);
+						if(callback) callback(value);
+					} else {
+						if(callback) callback("");
+					}
 				}
-			}
-		});
+			});
+		} else if(callback) {
+			callback(value);
+		}
 	},
 	set_fetch_values: function(df, docname, fetch_values) {
 		var fl = this.frm.fetch_dict[df.fieldname].fields;
