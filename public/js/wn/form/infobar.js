@@ -108,4 +108,19 @@ wn.ui.form.InfoBar = Class.extend({
 		}
 		
 	},
+	go_prev_next: function(prev) {
+		var me = this;
+		wn.call({
+			method: "webnotes.widgets.form.utils.get_next",
+			args: {
+				doctype: me.frm.doctype,
+				name: me.frm.docname,
+				prev: prev ? 1 : 0
+			},
+			callback: function(r) {
+				if(r.message)
+					wn.set_route("Form", me.frm.doctype, r.message);
+			}
+		});
+	},
 })
