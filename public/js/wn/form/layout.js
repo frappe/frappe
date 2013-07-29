@@ -34,7 +34,8 @@ wn.ui.form.Layout = Class.extend({
 			fieldobj.df = wn.meta.get_docfield(me.frm.doctype, 
 				fieldobj.df.fieldname, me.frm.docname);
 			fieldobj.refresh && fieldobj.refresh();
-		})
+		});
+		$(this.frm.wrapper).trigger("refresh-fields");
 	},
 	render: function() {
 		var me = this;
