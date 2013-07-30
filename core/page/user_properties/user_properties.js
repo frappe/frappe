@@ -33,7 +33,7 @@ wn.UserProperties = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		wn.call({
+		return wn.call({
 			module:"core",
 			page:"user_properties",
 			method: "get_users_and_links",
@@ -101,7 +101,7 @@ wn.UserProperties = Class.extend({
 			return;
 		}
 		// get permissions
-		wn.call({
+		return wn.call({
 			module: "core",
 			page: "user_properties",
 			method: "get_properties",
@@ -147,7 +147,7 @@ wn.UserProperties = Class.extend({
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)
 			.click(function() {
-				wn.call({
+				return wn.call({
 					module: "core",
 					page: "user_properties",
 					method: "remove",

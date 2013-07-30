@@ -36,7 +36,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 
 cur_frm.cscript.contact = function(doc, dt, dn) {
 	if (doc.contact) {
-		wn.call({
+		return wn.call({
 			method: 'support.doctype.communication.communication.get_customer_supplier',
 			args: {
 				contact: doc.contact

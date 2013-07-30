@@ -260,7 +260,7 @@ wn.ui.toolbar.clear_cache = function() {
 
 wn.ui.toolbar.download_backup = function() {
 	msgprint(wn._("Your download is being built, this may take a few moments..."));
-	$c('webnotes.utils.backups.get_backup',{},function(r,rt) {});
+	return $c('webnotes.utils.backups.get_backup',{},function(r,rt) {});
 	return false;
 }
 

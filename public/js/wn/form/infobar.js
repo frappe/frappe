@@ -110,7 +110,7 @@ wn.ui.form.InfoBar = Class.extend({
 	},
 	go_prev_next: function(prev) {
 		var me = this;
-		wn.call({
+		return wn.call({
 			method: "webnotes.widgets.form.utils.get_next",
 			args: {
 				doctype: me.frm.doctype,

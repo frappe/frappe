@@ -248,18 +248,20 @@ def get_tables(doctype, fields):
 	tables = ['`tab' + doctype + '`']
 
 	# add tables from fields
-	for f in fields or []:
-		if "." not in f: continue
+	if fields:
+		for f in fields:
+			if "." not in f: continue
 		
-		table_name = f.split('.')[0]
-		if table_name.lower().startswith('group_concat('):
-			table_name = table_name[13:]
-		if table_name.lower().startswith('ifnull('):
-			table_name = table_name[7:]
-		if not table_name[0]=='`':
-			table_name = '`' + table_name + '`'
-		if not table_name in tables:
-			tables.append(table_name)	
+			table_name = f.split('.')[0]
+			if table_name.lower().startswith('group_concat('):
+				table_name = table_name[13:]
+			if table_name.lower().startswith('ifnull('):
+				table_name = table_name[7:]
+			if not table_name[0]=='`':
+				table_name = '`' + table_name + '`'
+			if not table_name in tables:
+				tables.append(table_name)	
+
 	return tables
 
 @webnotes.whitelist()

@@ -17,7 +17,7 @@ wn.views.SidebarStats = Class.extend({
 	},
 	get_stats: function() {
 		var me = this
-		wn.call({
+		return wn.call({
 			type: "GET",
 			method: 'webnotes.widgets.reportview.get_stats',
 			args: {

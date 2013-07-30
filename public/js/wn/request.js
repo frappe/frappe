@@ -51,7 +51,7 @@ wn.call = function(opts) {
 		}
 	}
 
-	wn.request.call({
+	return wn.request.call({
 		type: opts.type || "POST",
 		args: args,
 		success: opts.callback,
@@ -110,7 +110,7 @@ wn.request.call = function(opts) {
 		})
 	}
 	
-	$.ajax(ajax_args);
+	return $.ajax(ajax_args);
 }
 
 // call execute serverside request

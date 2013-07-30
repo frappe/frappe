@@ -21,7 +21,7 @@
 // 
 
 function $c(command, args, callback, error, no_spinner, freeze_msg, btn) {
-	wn.request.call({
+	return wn.request.call({
 		args: $.extend(args, {cmd: command}),
 		success: callback,
 		error: error,
@@ -46,7 +46,7 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 	else 
 		args.docs = wn.model.compress(doclist)
 	
-	wn.request.call({
+	return wn.request.call({
 		args: args,
 		success: callback,
 		btn: btn,
@@ -58,7 +58,7 @@ function $c_obj(doclist, method, arg, callback, no_spinner, freeze_msg, btn) {
 // For call a page metho
 function $c_page(module, page, method, arg, callback, no_spinner, freeze_msg, btn) {
 	if(arg && typeof arg!='string') arg = JSON.stringify(arg);
-	wn.request.call({
+	return wn.request.call({
 		args: {
 			cmd: module+'.page.'+page+'.'+page+'.'+method,
 			arg: arg,

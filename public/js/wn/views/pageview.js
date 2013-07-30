@@ -23,7 +23,7 @@ wn.views.pageview = {
 			callback();
 		} else {
 			// get fresh
-			wn.call({
+			return wn.call({
 				method: 'webnotes.widgets.page.getpage', 
 				args: {'name':name },
 				callback: function(r) {

@@ -124,7 +124,7 @@ wn.model.DocList = Class.extend({
 		// 	btn: btn
 		// }
 		$(opts.btn).attr("disabled", true);
-		wn.call({
+		return wn.call({
 			freeze: true,
 			method: opts.method,
 			args: opts.args,

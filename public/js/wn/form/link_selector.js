@@ -67,7 +67,7 @@ wn.ui.form.LinkSelector = Class.extend({
 
 		this.target.set_custom_query(args);
 		
-		wn.call({
+		return wn.call({
 			method: "webnotes.widgets.search.search_widget",
 			type: "GET",
 			args: args,

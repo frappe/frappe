@@ -67,7 +67,7 @@ $.extend(wn.model, {
 				var cached_doclist = JSON.parse(localStorage["_doctype:" + doctype]);
 				cached_timestamp = cached_doclist[0].modified;
 			}
-			wn.call({
+			return wn.call({
 				method:'webnotes.widgets.form.load.getdoctype',
 				type: "GET",
 				args: {
@@ -106,7 +106,7 @@ $.extend(wn.model, {
 		if(locals[doctype] && locals[doctype][name] && wn.model.get_docinfo(doctype, name)) {
 			callback(name);
 		} else {
-			wn.call({
+			return wn.call({
 				method: 'webnotes.widgets.form.load.getdoc',
 				type: "GET",
 				args: {
@@ -410,7 +410,7 @@ $.extend(wn.model, {
 	
 	delete_doc: function(doctype, docname, callback) {
 		wn.confirm("Permanently delete "+ docname + "?", function() {
-			wn.call({
+			return wn.call({
 				method: 'webnotes.model.delete_doc',
 				args: {
 					dt:doctype, 
@@ -441,7 +441,7 @@ $.extend(wn.model, {
 			var args = d.get_values();
 			if(!args) return;
 			d.get_input("rename").set_working();
-			wn.call({
+			return wn.call({
 				method:"webnotes.model.rename_doc.rename_doc",
 				args: {
 					doctype: doctype,

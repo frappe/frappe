@@ -368,7 +368,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				}
 				
 				// callback
-				wn.call({
+				return wn.call({
 					method: 'webnotes.widgets.reportview.save_report',
 					args: {
 						name: name,
@@ -416,7 +416,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 					return;
 				if(wn.confirm(wn._("This is PERMANENT action and you cannot undo. Continue?"),
 					function() {
-						wn.call({
+						return wn.call({
 							method: 'webnotes.widgets.reportview.delete_items',
 							args: {
 								items: delete_list,

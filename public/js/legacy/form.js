@@ -611,7 +611,7 @@ _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
 		if(callingfield)
 			$(callingfield.input).set_working();
 
-		$c('runserverobj', {'docs':doclist, 'method':scriptname }, 
+		return $c('runserverobj', {'docs':doclist, 'method':scriptname }, 
 			function(r, rtxt) { 
 				// run refresh
 				if(onrefresh)
