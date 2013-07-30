@@ -262,6 +262,11 @@ def get_roles(user=None, with_standard=True):
 		
 	return roles
 
+def check_admin_or_system_manager():
+	if ("System Manager" not in get_roles()) or\
+	 	(session.user!="Administrator"):
+		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
+
 def has_permission(doctype, ptype="read", refdoc=None):
 	"""check if user has permission"""
 	from webnotes.defaults import get_user_default_as_list

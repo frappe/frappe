@@ -31,8 +31,8 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def validate(self):
-		if self.doc.starts_on > self.doc.ends_on:
-			webnotes.msgprint(webnotes._("Event Start must be after End"), raise_exception=True)
+		if self.doc.starts_on and self.doc.ends_on and self.doc.starts_on > self.doc.ends_on:
+			webnotes.msgprint(webnotes._("Event End must be after Start"), raise_exception=True)
 
 def send_event_digest():
 	today = nowdate()
