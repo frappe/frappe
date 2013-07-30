@@ -1,7 +1,8 @@
 [
- "Registration Details Emailed.", 
  "Name is required", 
  "Registered but disabled.", 
+ "Registration Details Emailed.", 
  "Updated", 
- "Already Registered"
+ "Already Registered", 
+ "Hey! There should remain at least one System Manager"
 ]
