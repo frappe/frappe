@@ -75,8 +75,8 @@ def parse_date(date):
 	return parsed_date
 		
 def get_user_date_format():
+	global user_date_format
 	if not user_date_format:
-		global user_date_format
 		user_date_format = webnotes.defaults.get_global_default("date_format")
 	return user_date_format
 	
