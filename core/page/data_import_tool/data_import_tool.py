@@ -27,8 +27,9 @@ def get_doctype_options():
 		d.doctype=='DocField' and d.fieldtype=='Table' and d.options or None, 
 		webnotes.model.doctype.get(doctype)))
 
-@webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
+@webnotes.whitelist()
 def get_template():
+	webnotes.check_admin_or_system_manager()
 	doctype = webnotes.form_dict['doctype']
 	parenttype = webnotes.form_dict.get('parent_doctype')
 	
@@ -128,10 +129,11 @@ def get_template():
 	webnotes.response['type'] = 'csv'
 	webnotes.response['doctype'] = doctype
 
-@webnotes.whitelist(allow_roles=['System Manager', 'Administrator'])
+@webnotes.whitelist()
 def upload():
 	"""upload data"""
 	webnotes.mute_emails = True
+	webnotes.check_admin_or_system_manager()
 	
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
 	

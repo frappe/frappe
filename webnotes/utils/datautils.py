@@ -28,8 +28,12 @@ import csv, cStringIO
 from webnotes.utils import encode, cstr, cint, flt
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
-	from webnotes.utils.file_manager import get_uploaded_content
-	fname, fcontent = get_uploaded_content()
+	if webnotes.uploaded_file:
+		with open(webnotes.uploaded_file, "r") as upfile:
+			fcontent = upfile.read()
+	else:
+		from webnotes.utils.file_manager import get_uploaded_content
+		fname, fcontent = get_uploaded_content()
 	return read_csv_content(fcontent, ignore_encoding)
 
 def read_csv_content_from_attached_file(doc):
@@ -129,7 +133,7 @@ def check_record(d, parenttype=None, doctype_dl=None):
 				if docfield.options.startswith('link:'):
 					link_doctype = docfield.options.split(':')[1]
 					if not webnotes.conn.exists(link_doctype, val):
-						webnotes.msgprint("%s must be a valid %s" % (docfield.label, link_doctype), 
+						webnotes.msgprint("%s: %s must be a valid %s" % (docfield.label, val, link_doctype), 
 							raise_exception=1)
 				elif docfield.options == "attach_files:":
 					pass
@@ -147,7 +151,7 @@ def check_record(d, parenttype=None, doctype_dl=None):
 
 def import_doc(d, doctype, overwrite, row_idx, submit=False):
 	"""import main (non child) document"""
-	if webnotes.conn.exists(doctype, d['name']):
+	if d.get("name") and webnotes.conn.exists(doctype, d['name']):
 		if overwrite:
 			bean = webnotes.bean(doctype, d['name'])
 			bean.doc.fields.update(d)
