@@ -42,6 +42,7 @@ def get_static_pages():
 						d = json.loads(headers)
 					except Exception, e:
 						webnotes.msgprint("Bad Headers in: " + fname)
+						continue
 					d["_intro"] = body
 					d["_gh_source"] = get_gh_url(fpath)
 					d["_modified"] = get_timestamp(fpath)
@@ -411,7 +412,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 				d["_icon"] = "icon-" + d["_icon"]
 			if d.get("_modified"):
 				d["_modified"] = global_date_format(d["_modified"])
-				
+
 			with open(get_path("public", "docs", name + ".html"), "w") as docfile:
 				if not d.get("description"):
 					d["description"] = "Help pages for " + d["title"]
