@@ -619,7 +619,11 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		//this.bind_change_event();
 		var me = this;
 		this.$input.on("blur", function() { 
-			if(me.doctype && me.docname && !me.autocomplete_open) {
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			if(me.doctype && me.docname) {
 				var value = me.get_value();
 				if(value!==me.last_value) {
 					me.parse_validate_and_set_in_model(value);
@@ -671,7 +675,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 
 				me.set_custom_query(args);
 
-				wn.call({
+				return wn.call({
 					type: "GET",
 					method:'webnotes.widgets.search.search_link',
 					args: args,
@@ -693,6 +697,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			select: function(event, ui) {
 				me.autocomplete_open = false;
 				if(me.frm && me.frm.doc) {
+					me.selected = true;
 					me.parse_validate_and_set_in_model(ui.item.value);
 				} else {
 					me.$input.val(ui.item.value);

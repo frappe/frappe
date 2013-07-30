@@ -65,7 +65,7 @@ wn.views.Gantt = Class.extend({
 			.html('<div class="alert">Loading...</div>');
 		
 		var me = this;
-		wn.call({
+		return wn.call({
 			method: this.get_events_method,
 			type: "GET",
 			args: {

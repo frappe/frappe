@@ -64,7 +64,7 @@ wn.docs.generate_all = function(logarea) {
 	
 		logarea.empty().append("Downloading server docs...<br>");
 		
-		wn.call({
+		return wn.call({
 			"method": "core.doctype.documentation_tool.documentation_tool.get_docs",
 			args: {options: cur_frm.doc},
 			callback: function(r) {
@@ -86,7 +86,7 @@ wn.docs.generate_all = function(logarea) {
 				make_page("docs");
 
 				logarea.append("Writing...<br>");
-				wn.call({
+				return wn.call({
 					method: "core.doctype.documentation_tool.documentation_tool.write_docs",
 					args: {
 						data: JSON.stringify(wn.docs.to_write),

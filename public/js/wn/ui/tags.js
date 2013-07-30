@@ -17,14 +17,14 @@ wn.ui.TagEditor = Class.extend({
 			placeholderText: 'Add Tag',
 			onTagAdded: function(ev, tag) {
 				if(me.initialized) {
-					wn.call({
+					return wn.call({
 						method: 'webnotes.widgets.tags.add_tag',
 						args: me.get_args(tag.find('.tagit-label').text())
 					});					
 				}
 			},
 			onTagRemoved: function(ev, tag) {
-				wn.call({
+				return wn.call({
 					method: 'webnotes.widgets.tags.remove_tag',
 					args: me.get_args(tag.find('.tagit-label').text())
 				});

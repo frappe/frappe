@@ -68,7 +68,7 @@ wn.RoleEditor = Class.extend({
 		var me = this;
 		this.wrapper = wrapper;
 		$(wrapper).html('<div class="help">Loading...</div>')
-		wn.call({
+		return wn.call({
 			method:'core.doctype.profile.profile.get_all_roles',
 			callback: function(r) {
 				me.roles = r.message;
@@ -174,7 +174,7 @@ wn.RoleEditor = Class.extend({
 		if(!this.perm_dialog)
 			this.make_perm_dialog()
 		$(this.perm_dialog.body).empty();
-		wn.call({
+		return wn.call({
 			method:'core.doctype.profile.profile.get_perm_info',
 			args: {role: role},
 			callback: function(r) {

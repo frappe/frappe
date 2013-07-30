@@ -84,7 +84,7 @@ wn.PermissionEngine = Class.extend({
 		var me = this;
 		
 		me.make_reset_button();
-		wn.call({
+		return wn.call({
 			module:"core",
 			page:"permission_manager",
 			method: "get_roles_and_doctypes",
@@ -120,7 +120,7 @@ wn.PermissionEngine = Class.extend({
 		var me = this;
 		me.reset_button = me.wrapper.appframe.add_button("Reset Permissions", function() {
 			if(wn.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
-					wn.call({
+					return wn.call({
 						module:"core",
 						page:"permission_manager",
 						method:"reset",
@@ -279,7 +279,7 @@ wn.PermissionEngine = Class.extend({
 			.attr("data-name", d.name)
 			.attr("data-doctype", d.parent)
 			.click(function() {
-				wn.call({
+				return wn.call({
 					module: "core",
 					page: "permission_manager",
 					method: "remove",
@@ -307,7 +307,7 @@ wn.PermissionEngine = Class.extend({
 				ptype: chk.attr("data-ptype"),
 				value: chk.prop("checked") ? 1 : 0
 			}
-			wn.call({
+			return wn.call({
 				module: "core",
 				page: "permission_manager",
 				method: "update",
@@ -416,7 +416,7 @@ wn.PermissionEngine = Class.extend({
 				.click(function() {
 					var match_value = $(dialog.wrapper).find(":radio:checked").val();
 					var perm = me.get_perm($(this).attr('data-name'))
-					wn.call({
+					return wn.call({
 						module: "core",
 						page: "permission_manager",
 						method: "update_match",

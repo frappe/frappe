@@ -27,7 +27,7 @@ $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
 })
 
 cur_frm.cscript.doc_type = function(doc, dt, dn) {
-	cur_frm.call({
+	return cur_frm.call({
 		method: "get",
 		doc: cur_frm.doc,
 		callback: function(r) {
@@ -58,7 +58,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 
 	cur_frm.add_custom_button('Update', function() {
 		if(cur_frm.doc.doc_type) {
-			cur_frm.call({
+			return cur_frm.call({
 				doc: cur_frm.doc,
 				method: "post",
 				callback: function(r) {
@@ -129,7 +129,7 @@ cur_frm.confirm = function(msg, doc, dt, dn) {
 	$y(button_wrapper, {paddingTop: '15px'});
 	
 	var proceed_btn = $btn(button_wrapper, 'Proceed', function() {
-		cur_frm.call({
+		return cur_frm.call({
 			doc: cur_frm.doc,
 			method: "delete",
 			callback: function(r) {

@@ -100,7 +100,7 @@ wn.ui.form.Attachments = Class.extend({
 				wn.confirm(wn._("Are you sure you want to delete the attachment?"),
 					function() {
 						var data = $(remove_btn).data("fileid");
-						wn.call({
+						return wn.call({
 							method: 'webnotes.widgets.form.utils.remove_attach',
 							args: {
 								fid: data, 

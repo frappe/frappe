@@ -129,7 +129,7 @@ $.extend(wn.model, {
 	},
 	
 	open_mapped_doc: function(opts) {
-		wn.call({
+		return wn.call({
 			type: "GET",
 			method: opts.method,
 			args: {
@@ -151,7 +151,7 @@ $.extend(wn.model, {
 			}
 		}
 		var _map = function() {
-			wn.call({
+			return wn.call({
 				type: "GET",
 				method: opts.method,
 				args: {

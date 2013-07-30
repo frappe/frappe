@@ -50,7 +50,7 @@ wn.UpdateThisApp = Class.extend({
 		    </div> \
 			<div>' + wn._("Update is in progress. This may take some time.") + '</div>');
 		
-		wn.call({
+		return wn.call({
 			module: "core",
 			page: "update_manager",
 			method: "update_this_app",

@@ -6,13 +6,17 @@ wn.ui.form.ScriptManager = Class.extend({
 		this.frm.cscript = $.extend(this.frm.cscript, new ControllerClass({frm: this.frm}));
 	},
 	trigger: function(event_name, doctype, name) {
+		var me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
-		if(this.frm.cscript[event_name])
-			this.frm.cscript[event_name](this.frm.doc, doctype, name);
-		
-		if(this.frm.cscript["custom_" + event_name])
+		if(this.frm.cscript[event_name]) {
+			$.when(this.frm.cscript[event_name](this.frm.doc, doctype, name)).then(function() {
+				if(me.frm.cscript["custom_" + event_name])
+					me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name);
+			});
+		} else if(this.frm.cscript["custom_" + event_name]) {
 			this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name);
+		}
 	},
 	setup: function() {
 		var doctype = this.frm.meta;
@@ -46,7 +50,7 @@ wn.ui.form.ScriptManager = Class.extend({
 			if(this.frm && this.frm.fetch_dict[df.fieldname])
 				fetch = this.frm.fetch_dict[df.fieldname].columns.join(', ');
 			
-			wn.call({
+			return wn.call({
 				method:'webnotes.widgets.form.utils.validate_link',
 				type: "GET",
 				args: {
