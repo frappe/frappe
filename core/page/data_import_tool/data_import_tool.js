@@ -46,7 +46,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		"Performing hardcore import process....", 100);
 	
 	// load doctypes
-	return wn.call({
+	wn.call({
 		method:'core.page.data_import_tool.data_import_tool.get_doctypes',
 		callback: function(r) {
 			$select.add_options(['Select...'].concat(r.message));

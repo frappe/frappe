@@ -212,7 +212,7 @@ wn.UserProperties = Class.extend({
 					if(!args) {
 						return;
 					}
-					return wn.call({
+					wn.call({
 						module: "core",
 						page: "user_properties",
 						method: "add",

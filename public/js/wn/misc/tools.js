@@ -111,7 +111,7 @@ wn.slickgrid_tools = {
 			$.each(grid.getColumns(), function(i, col) {
 				if(col.docfield && col.previousWidth != col.width && 
 					!in_list(wn.model.std_fields_list, col.docfield.fieldname) ) {
-					return wn.call({
+					wn.call({
 						method:"webnotes.client.make_width_property_setter",
 						args: {
 							doclist: [{

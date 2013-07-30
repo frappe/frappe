@@ -151,7 +151,7 @@ wn.PermissionEngine = Class.extend({
 			return;
 		}
 		// get permissions
-		return wn.call({
+		wn.call({
 			module: "core",
 			page: "permission_manager",
 			method: "get_permissions",
@@ -239,7 +239,7 @@ wn.PermissionEngine = Class.extend({
 			.attr("data-role", role)
 			.click(function() {
 				var role = $(this).attr("data-role");
-				return wn.call({
+				wn.call({
 					module: "core",
 					page: "permission_manager",
 					method: "get_users_with_role",
@@ -355,7 +355,7 @@ wn.PermissionEngine = Class.extend({
 					if(!args) {
 						return;
 					}
-					return wn.call({
+					wn.call({
 						module: "core",
 						page: "permission_manager",
 						method: "add",

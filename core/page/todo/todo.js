@@ -117,7 +117,7 @@ erpnext.todo.ToDoItem = Class.extend({
 			.data('name', todo.name)
 			.click(function() {
 				$(this).parent().css('opacity', 0.5);
-				return wn.call({
+				wn.call({
 					method:'core.page.todo.todo.delete',
 					args: {name: $(this).data('name')},
 					callback: function() {
