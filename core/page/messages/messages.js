@@ -61,7 +61,7 @@ erpnext.Messages = Class.extend({
 		$('#post-message .btn').click(function() {
 			var txt = $('#post-message textarea').val();
 			if(txt) {
-				wn.call({
+				return wn.call({
 					module:'core',
 					page:'messages',
 					method:'post',
@@ -163,7 +163,7 @@ erpnext.Messages = Class.extend({
 	},
 	delete: function(ele) {
 		$(ele).parent().css('opacity', 0.6);
-		wn.call({
+		return wn.call({
 			method:'core.page.messages.messages.delete',
 			args: {name : $(ele).attr('data-name')},
 			callback: function() {
@@ -173,7 +173,7 @@ erpnext.Messages = Class.extend({
 	},
 	show_active_users: function() {
 		var me = this;
-		wn.call({
+		return wn.call({
 			module:'core',
 			page:'messages',
 			method:'get_active_users',

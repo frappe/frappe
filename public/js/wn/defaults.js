@@ -24,7 +24,7 @@ wn.defaults = {
 			value = JSON.stringify(value);
 			
 		wn.boot.profile.defaults[key] = value;
-		wn.call({
+		return wn.call({
 			method: "webnotes.client.set_default",
 			args: {
 				key: key,

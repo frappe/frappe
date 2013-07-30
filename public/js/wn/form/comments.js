@@ -78,7 +78,7 @@ wn.ui.form.Comments = Class.extend({
 				comment_by: user
 			};
 			
-			wn.call({
+			return wn.call({
 				method: "webnotes.widgets.form.utils.add_comment",
 				args: {
 					doclist:[comment]
@@ -97,7 +97,7 @@ wn.ui.form.Comments = Class.extend({
 	},
 	delete_comment: function(name) {
 		var me = this;
-		wn.call({
+		return wn.call({
 			method: "webnotes.client.delete",
 			args: {
 				doctype: "Comment",

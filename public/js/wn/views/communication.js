@@ -254,7 +254,7 @@ wn.views.CommunicationComposer = Class.extend({
 			var print_html = "";
 		}
 		
-		wn.call({
+		return wn.call({
 			method:"core.doctype.communication.communication.make",
 			args: {
 				sender: [wn.user_info(user).fullname, wn.boot.profile.email],
@@ -331,7 +331,7 @@ wn.views.CommunicationComposer = Class.extend({
 			})	
 			.autocomplete({
 				source: function(request, response) {
-					wn.call({
+					return wn.call({
 						method:'webnotes.utils.email_lib.get_contact_list',
 						args: {
 							'select': "email_id", 

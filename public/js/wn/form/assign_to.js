@@ -118,7 +118,7 @@ wn.ui.form.AssignTo = Class.extend({
 				var assign_to = me.dialog.fields_dict.assign_to.get_value();
 				var args = me.dialog.get_values();
 				if(assign_to) {
-					wn.call({
+					return wn.call({
 						method:'webnotes.widgets.form.assign_to.add', 
 						args: $.extend(args, {
 							doctype: me.frm.doctype,

@@ -229,7 +229,7 @@ wn.ui.Listing = Class.extend({
 		if(!me.opts.no_loading)
 			me.set_working(true);
 			
-		wn.call({
+		return wn.call({
 			method: this.opts.method || 'webnotes.widgets.query_builder.runquery',
 			type: "GET",
 			args: this.get_call_args(),

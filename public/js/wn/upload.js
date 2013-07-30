@@ -54,7 +54,7 @@ wn.upload = {
 		
 		var _upload_file = function() {
 			var msgbox = msgprint(wn._("Uploading..."));
-			wn.call({
+			return wn.call({
 				"method": "uploadfile",
 				args: args,
 				callback: function(r) {

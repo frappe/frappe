@@ -36,7 +36,7 @@ wn.modules_setup = {
 			ml.push($(this).attr('data-module'));
 		});
 		
-		wn.call({
+		return wn.call({
 			method: 'core.page.modules_setup.modules_setup.update',
 			args: {
 				ml: ml
