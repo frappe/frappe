@@ -35,6 +35,7 @@ from webnotes.model.doc import Document
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
 class BeanPermissionError(webnotes.ValidationError): pass
+class TimestampMismatchError(webnotes.ValidationError): pass
 
 class Bean:
 	"""
@@ -148,7 +149,7 @@ class Bean:
 			if conflict:
 				webnotes.msgprint(_("Error: Document has been modified after you have opened it") \
 				+ (" (%s, %s). " % (modified, self.doc.modified)) \
-				+ _("Please refresh to get the latest document."), raise_exception=True)
+				+ _("Please refresh to get the latest document."), raise_exception=TimestampMismatchError)
 				
 	def check_docstatus_transition(self, db_docstatus, method):
 		valid = {
@@ -199,7 +200,7 @@ class Bean:
 
 			d.modified_by = user
 			d.modified = ts
-			if d.docstatus != 2 and self.to_docstatus >= d.docstatus: # don't update deleted
+			if d.docstatus != 2 and self.to_docstatus >= int(d.docstatus): # don't update deleted
 				d.docstatus = self.to_docstatus
 
 	def prepare_for_save(self, method):

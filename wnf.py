@@ -319,7 +319,8 @@ def run():
 	import conf
 	from webnotes.db import Database
 	import webnotes.modules.patch_handler
-
+	webnotes.print_messages = True
+	
 	# connect
 	if options.db_name is not None:
 		if options.password:
