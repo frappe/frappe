@@ -28,7 +28,7 @@ import csv, cStringIO
 from webnotes.utils import encode, cstr, cint, flt
 
 def read_csv_content_from_uploaded_file(ignore_encoding=False):
-	if webnotes.uploaded_file:
+	if getattr(webnotes, "uploaded_file", None):
 		with open(webnotes.uploaded_file, "r") as upfile:
 			fcontent = upfile.read()
 	else:

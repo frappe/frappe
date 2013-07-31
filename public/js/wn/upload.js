@@ -61,7 +61,8 @@ wn.upload = {
 					if(!r._server_messages)
 						msgbox.hide();
 					if(r.exc) {
-						onerror(r);
+						// if no onerror, assume callback will handle errors
+						onerror ? onerror(r) : callback(null, null, r);
 						return;
 					}
 					callback(r.message.fid, r.message.filename, r);
