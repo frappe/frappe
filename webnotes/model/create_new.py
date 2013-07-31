@@ -11,7 +11,8 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	doc = webnotes.doc({
 		"doctype": doctype,
 		"__islocal": 1,
-		"owner": webnotes.session.user
+		"owner": webnotes.session.user,
+		"docstatus": 0
 	})
 	
 	meta = webnotes.get_doctype(doctype)
