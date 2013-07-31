@@ -309,6 +309,7 @@
   "currency_fraction": "Centavo", 
   "currency_fraction_units": 100, 
   "currency_symbol": "R$", 
+  "date_format": "dd/mm/yyyy",
   "number_format": "#,###.##", 
   "timezones": [
    "America/Araguaina", 
