@@ -263,7 +263,7 @@ def get_roles(user=None, with_standard=True):
 	return roles
 
 def check_admin_or_system_manager():
-	if ("System Manager" not in get_roles()) or\
+	if ("System Manager" not in get_roles()) and \
 	 	(session.user!="Administrator"):
 		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
 
