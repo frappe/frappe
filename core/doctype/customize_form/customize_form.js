@@ -52,7 +52,7 @@ cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 	}
 }
 
-cur_frm.cscript.refresh = function(doc, dt, dn) {
+cur_frm.cscript.refresh = function() {
 	cur_frm.disable_save();
 	cur_frm.frm_head.appframe.clear_buttons();
 
@@ -63,7 +63,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 				method: "post",
 				callback: function(r) {
 					if(!r.exc && r.server_messages) {
-						cur_frm.cscript.doc_type(doc, doc.doctype, doc.name);
+						cur_frm.script_manager.trigger("doc_type");
 						cur_frm.frm_head.set_label(['Updated', 'label-success']);
 					}
 				}
@@ -72,22 +72,22 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	});
 	
 	cur_frm.add_custom_button('Refresh Form', function() {
-		cur_frm.cscript.doc_type(doc, dt, dn);
+		cur_frm.script_manager.trigger("doc_type");
 	});
 	
 	cur_frm.add_custom_button('Reset to defaults', function() {
 		cur_frm.confirm('This will <b>remove the customizations</b> defined for this form.<br /><br />' 
-		+ 'Are you sure you want to <i>reset to defaults</i>?', doc, dt, dn);
+		+ 'Are you sure you want to <i>reset to defaults</i>?', cur_frm.doc, cur_frm.doctype, cur_frm.docname);
 	});
 
-	if(!doc.doc_type) {
+	if(!cur_frm.doc.doc_type) {
 		var frm_head = cur_frm.frm_head.appframe;
 		$(frm_head.buttons['Update']).attr('disabled', true);
 		$(frm_head.buttons['Refresh Form']).attr('disabled', true);
 		$(frm_head.buttons['Reset to defaults']).attr('disabled', true);
 	}
 
-	cur_frm.cscript.hide_allow_attach(doc, dt, dn);
+	cur_frm.cscript.hide_allow_attach(cur_frm.doc);
 	
 	if(wn.route_options) {
 		wn.model.set_value("Customize Form", null, "doc_type", wn.route_options.doctype)
@@ -95,7 +95,7 @@ cur_frm.cscript.refresh = function(doc, dt, dn) {
 	}
 }
 
-cur_frm.cscript.hide_allow_attach = function(doc, dt, dn) {
+cur_frm.cscript.hide_allow_attach = function(doc) {
 	var allow_attach_list = ['Website Settings', 'Web Page', 'Timesheet', 'Ticket',
 		'Support Ticket', 'Supplier', 'Style Settings', 'Stock Reconciliation',
 		'Stock Entry', 'Serial No', 'Sales Order', 'Sales Invoice',
