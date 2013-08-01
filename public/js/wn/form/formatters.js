@@ -75,6 +75,9 @@ wn.form.formatters = {
 	SmallText: function(value) {
 		return wn.form.formatters.Text(value);
 	},
+	TextEditor: function(value) {
+		return wn.form.formatters.Text(wn.utils.remove_script_and_style(value));
+	},
 	Code: function(value) {
 		return "<pre>" + (value==null ? "" : $("<div>").text(value).html()) + "</pre>"
 	},
