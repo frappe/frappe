@@ -45,13 +45,12 @@ def get_template():
 			doctypes.append(d[0])
 			doctype_parentfield[d[0]] = d[1]
 	
-	def add_main_header(key):
+	def add_main_header():
 		w.writerow(['Data Import Template'])
 		w.writerow([data_keys.main_table, doctype])
 		
 		if parenttype != doctype:
 			w.writerow([data_keys.parent_table, parenttype])
-			key = 'parent'
 		else:
 			w.writerow([''])
 
@@ -194,9 +193,9 @@ def get_template():
 					w.writerow(row)
 	
 	w = UnicodeWriter()
-	key = 'name'
+	key = 'parent' if parenttype != doctype else 'name'
 	
-	add_main_header(key)
+	add_main_header()
 
 	w.writerow([''])
 	tablerow = [data_keys.doctype, ""]

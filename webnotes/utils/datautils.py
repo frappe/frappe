@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes import msgprint
+from webnotes import msgprint, _
 import json
 import csv, cStringIO
 from webnotes.utils import encode, cstr, cint, flt
