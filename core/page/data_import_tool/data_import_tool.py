@@ -34,7 +34,7 @@ def get_template():
 	webnotes.check_admin_or_system_manager()
 	doctype = webnotes.form_dict.doctype
 	parenttype = webnotes.form_dict.parent_doctype
-	all_doctypes = webnotes.form_dict.all_doctypes
+	all_doctypes = webnotes.form_dict.all_doctypes=="Yes"
 	with_data = webnotes.form_dict.with_data
 	column_start_end = {}
 	
@@ -167,7 +167,7 @@ def get_template():
 	def add_data():
 		def add_data_row(row_group, dt, d, rowidx):
 			if len(row_group) < rowidx + 1:
-				row_group.append([""] * len(columns))
+				row_group.append([""] * (len(columns) + 1))
 			row = row_group[rowidx]
 			for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
 				row[column_start_end[dt].start + i + 1] = d.get(c, "")
@@ -177,14 +177,14 @@ def get_template():
 				% doctype, as_dict=1)
 			for doc in data:
 				# add main table
-				
-				# add extra quote to modified timestamp to preserve formatting
-				doc.modified = '"'+ doc.modified+'"'
 				row_group = []
 				add_data_row(row_group, doctype, doc, 0)
 				
-				# add child tables
 				if all_doctypes:
+					# add extra quote to modified timestamp to preserve formatting
+					doc.modified = '"'+ doc.modified+'"'
+
+					# add child tables
 					for child_doctype in doctypes[1:]:
 						for ci, child in enumerate(webnotes.conn.sql("""select * from `tab%s` 
 							where parent=%s""" % (child_doctype, "%s"), doc.name, as_dict=1)):
@@ -314,7 +314,7 @@ def upload():
 				
 			return doclist
 		else:
-			d = webnotes._dict(zip(columns, rows[idx][1:]))
+			d = webnotes._dict(zip(columns, rows[start_idx][1:]))
 			d['doctype'] = doctype
 			return [d]
 

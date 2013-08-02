@@ -111,7 +111,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 					});
 					
 					if(r.message.length > 1) {
-						$('<br><span>All Tables:</span><br>').appendTo('#dit-download');
+						$('<br><span>All Tables (Main + Child Tables):</span><br>').appendTo('#dit-download');
 						var link = wrapper
 							.add_template_download_link(r.message[0])
 							.data('all_doctypes', "Yes")
