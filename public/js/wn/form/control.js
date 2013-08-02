@@ -191,10 +191,9 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				me.set_description();
 				me.set_label();
 				me.set_mandatory(me.value);
-				return false;
 			}
-			
-		})
+			return false;
+		});
 	},
 	bind_change_event: function() {
 		var me = this;
