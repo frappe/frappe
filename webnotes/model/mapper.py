@@ -26,8 +26,11 @@ from webnotes import _
 from webnotes.utils import cstr
 from webnotes.model import default_fields
 
-def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=[], 
+def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=None, 
 		postprocess=None, ignore_permissions=False):
+	if target_doclist is None:
+		target_doclist = []
+		
 	if isinstance(target_doclist, basestring):
 		target_doclist = json.loads(target_doclist)
 	

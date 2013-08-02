@@ -282,8 +282,8 @@ class Document:
 				%(modified_by)s)""", self.fields)
 
 	def _update_single(self, link_list):
-		update_str = ["(%s, 'modified', %s)",]
-		values = [self.doctype, now()]
+		self.modified = now()
+		update_str, values = [], []
 		
 		webnotes.conn.sql("delete from tabSingles where doctype='%s'" % self.doctype)
 		for f in self.fields.keys():

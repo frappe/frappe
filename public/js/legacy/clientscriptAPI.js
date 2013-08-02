@@ -140,8 +140,8 @@ _f.Frm.prototype.get_doc = function() {
 	return locals[this.doctype][this.docname];
 }
 
-_f.Frm.prototype.get_doclist = function() {
-	return make_doclist(this.doctype, this.docname);
+_f.Frm.prototype.get_doclist = function(filters) {
+	return wn.model.get_doclist(this.doctype, this.docname, filters);
 }
 
 _f.Frm.prototype.field_map = function(fnames, fn) {
@@ -255,8 +255,4 @@ _f.Frm.prototype.call = function(opts) {
 
 _f.Frm.prototype.get_field = function(field) {
 	return cur_frm.fields_dict[field];
-}
-
-_f.Frm.prototype.get_doclist = function() {
-	return wn.model.get_doclist(this.doctype, this.docname);
-}
+};

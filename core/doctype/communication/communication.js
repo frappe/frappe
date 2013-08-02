@@ -18,7 +18,7 @@ cur_frm.cscript.onload = function(doc) {
 		return{ query:"controllers.queries.supplier_query" } }
 	
 	if(doc.content)
-		doc.content = wn.utils.escape_script_and_style(doc.content);
+		doc.content = wn.utils.remove_script_and_style(doc.content);
 }
 
 cur_frm.cscript.refresh = function(doc, dt, dn) {
