@@ -64,6 +64,28 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		}
 	}
 	
+	wrapper.add_template_download_link = function(doctype) {
+		return $('<a style="cursor: pointer">')
+			.html(doctype)
+			.data('doctype', doctype)
+			.data('all_doctypes', "No")
+			.click(function() {
+				window.location.href = repl(wn.request.url 
+					+ '?cmd=%(cmd)s&doctype=%(doctype)s'
+					+ '&parent_doctype=%(parent_doctype)s'
+					+ '&with_data=%(with_data)s'
+					+ '&all_doctypes=%(all_doctypes)s',
+					{ 
+						cmd: 'core.page.data_import_tool.data_import_tool.get_template',
+						doctype: $(this).data('doctype'),
+						parent_doctype: $('[name="dit-doctype"]').val(),
+						with_data: $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No',
+						all_doctypes: $(this).data('all_doctypes')
+					});
+			})
+			.appendTo('#dit-download');
+	}
+	
 	// load options
 	$select.change(function() {
 		var val = $(this).val()
@@ -83,23 +105,17 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 							$('<span>Main Table:</span><br>').appendTo('#dit-download');
 						if(i==1)
 							$('<br><span>Child Tables:</span><br>').appendTo('#dit-download');
-						$('<a style="cursor: pointer">')
-							.html(v)
-							.data('doctype', v)
-							.click(function() {
-								window.location.href = repl(wn.request.url 
-									+ '?cmd=%(cmd)s&doctype=%(doctype)s'
-									+ '&parent_doctype=%(parent_doctype)s&with_data=%(with_data)s',
-									{ 
-										cmd: 'core.page.data_import_tool.data_import_tool.get_template',
-										doctype: $(this).data('doctype'),
-										parent_doctype: $('[name="dit-doctype"]').val(),
-										with_data: $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No'
-									});
-							})
-							.appendTo('#dit-download');
+							
+						wrapper.add_template_download_link(v);
 						$('#dit-download').append('<br>');
-					})
+					});
+					
+					if(r.message.length > 1) {
+						$('<br><span>All Tables (Main + Child Tables):</span><br>').appendTo('#dit-download');
+						var link = wrapper
+							.add_template_download_link(r.message[0])
+							.data('all_doctypes', "Yes")
+					}
 				}
 			})
 		}
@@ -154,9 +170,11 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			write_messages(r);
 		}
 	});
-	
+		
 	// add overwrite option
-	var $submit_btn = $('#dit-upload-area input[type="submit"]');
+	var $submit_btn = $('#dit-upload-area input[type="submit"]')
+		.attr("value", wn._("Upload and Import"));
+		
 	$('<input type="checkbox" name="overwrite" style="margin-top: -3px">\
 		<span> Overwrite</span>\
 		<p class="help">If you are uploading a child table (for example Item Price), the all the entries of that table will be deleted (for that parent record) and new entries will be made.</p><br>')

@@ -282,8 +282,8 @@ class Document:
 				%(modified_by)s)""", self.fields)
 
 	def _update_single(self, link_list):
-		update_str = ["(%s, 'modified', %s)",]
-		values = [self.doctype, now()]
+		self.modified = now()
+		update_str, values = [], []
 		
 		webnotes.conn.sql("delete from tabSingles where doctype='%s'" % self.doctype)
 		for f in self.fields.keys():
@@ -497,10 +497,7 @@ class Document:
 		d.fields['__islocal'] = 1 # for Client to identify unsaved doc
 		
 		if doclist != None:
-			doclist.append(d)
-			
-		if doclist:
-			d.idx = max([(d.idx or 0) for d in doclist if d.doctype==childtype]) + 1
+			doclist.append(d)	
 	
 		return d
 		

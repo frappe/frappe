@@ -122,48 +122,6 @@ class DocList(list):
 			if not doc.idx:
 				siblings = [int(d.idx or 0) for d in self.get({"parentfield": doc.parentfield})]
 				doc.idx = (max(siblings) + 1) if siblings else 1
-
-def load(doctype, name):	
-	# load main doc
-	return objectify(load_doclist(doctype, name))
-
-def load_doclist(doctype, name):
-	doclist = DocList([load_main(doctype, name)])
-	
-	# load children
-	table_fields = map(lambda f: (f.options, name, f.fieldname, doctype),
-		webnotes.conn.get_table_fields(doctype))
-
-	for args in table_fields:
-		children = load_children(*args)
-		if children: doclist += children
-		
-	return doclist
-
-def load_main(doctype, name):
-	"""retrieves doc from database"""
-	if webnotes.conn.is_single(doctype):
-		doc = webnotes.conn.sql("""select field, value from `tabSingles`
-			where doctype=%s""", doctype, as_list=1)
-		doc = dict(doc)
-		doc["name"] = doctype
-	else:
-		doc  = webnotes.conn.sql("""select * from `tab%s` where name = %s""" % \
-			(doctype, "%s"), name, as_dict=1)
-		if not doc:
-			raise NameError, """%s: "%s" does not exist""" % (doctype, name)
-		doc = doc[0]
-
-	doc["doctype"] = doctype
-	return doc
-
-def load_children(options, parent, parentfield, parenttype):
-	"""load children based on options, parentfield, parenttype and parent"""
-	options = options.split("\n")[0].strip()
-		
-	return webnotes.conn.sql("""select *, "%s" as doctype from `tab%s` where parent = %s 
-		and parentfield = %s and parenttype = %s order by idx""" % (options, options, "%s", "%s", "%s"),
-		(parent, parentfield, parenttype), as_dict=1)
 		
 def objectify(doclist):
 	from webnotes.model.doc import Document

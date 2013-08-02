@@ -22,7 +22,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes import msgprint
+from webnotes import msgprint, _
 import json
 import csv, cStringIO
 from webnotes.utils import encode, cstr, cint, flt
@@ -159,9 +159,9 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False):
 				bean.update_after_submit()
 			else:
 				bean.save()
-			return 'Updated row (#%d) %s' % (row_idx, getlink(doctype, d['name']))
+			return 'Updated row (#%d) %s' % (row_idx + 1, getlink(doctype, d['name']))
 		else:
-			return 'Ignored row (#%d) %s (exists)' % (row_idx, 
+			return 'Ignored row (#%d) %s (exists)' % (row_idx + 1, 
 				getlink(doctype, d['name']))
 	else:
 		bean = webnotes.bean([d])
@@ -170,7 +170,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False):
 		if submit:
 			bean.submit()
 		
-		return 'Inserted row (#%d) %s' % (row_idx, getlink(doctype,
+		return 'Inserted row (#%d) %s' % (row_idx + 1, getlink(doctype,
 			bean.doc.fields['name']))
 			
 def getlink(doctype, name):
