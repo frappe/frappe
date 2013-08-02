@@ -178,12 +178,12 @@ def get_template():
 			for doc in data:
 				# add main table
 				row_group = []
+				if all_doctypes:
+					doc.modified = '"'+ doc.modified+'"'
+					
 				add_data_row(row_group, doctype, doc, 0)
 				
 				if all_doctypes:
-					# add extra quote to modified timestamp to preserve formatting
-					doc.modified = '"'+ doc.modified+'"'
-
 					# add child tables
 					for child_doctype in doctypes[1:]:
 						for ci, child in enumerate(webnotes.conn.sql("""select * from `tab%s` 
@@ -371,7 +371,7 @@ def upload():
 			webnotes.message_log = []
 			if len(doclist) > 1:
 				bean = webnotes.bean(doclist)
-				if overwrite:
+				if overwrite and bean.doc.modified:
 					# remove the extra quotes added to preserve date formatting
 					bean.doc.modified = bean.doc.modified[1:-1]
 					bean.save()
