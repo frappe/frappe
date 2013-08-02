@@ -497,10 +497,7 @@ class Document:
 		d.fields['__islocal'] = 1 # for Client to identify unsaved doc
 		
 		if doclist != None:
-			doclist.append(d)
-			
-		if doclist:
-			d.idx = max([(d.idx or 0) for d in doclist if d.doctype==childtype]) + 1
+			doclist.append(d)	
 	
 		return d
 		

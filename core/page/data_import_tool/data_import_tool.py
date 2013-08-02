@@ -1,8 +1,9 @@
 from __future__ import unicode_literals
 
-import webnotes
+import webnotes, json
 import webnotes.model.doc
 import webnotes.model.doctype
+from webnotes.model.meta import get_table_fields
 from webnotes.model.doc import Document
 from webnotes.utils import cstr
 from webnotes.utils.datautils import UnicodeWriter, check_record, import_doc, getlink
@@ -12,7 +13,8 @@ data_keys = webnotes._dict({
 	"data_separator": 'Start entering data below this line',
 	"main_table": "Table:",
 	"parent_table": "Parent Table:",
-	"columns": "Column Name:"
+	"columns": "Column Name:",
+	"doctype": "DocType:"
 })
 
 @webnotes.whitelist()
@@ -30,18 +32,111 @@ def get_doctype_options():
 @webnotes.whitelist()
 def get_template():
 	webnotes.check_admin_or_system_manager()
-	doctype = webnotes.form_dict['doctype']
-	parenttype = webnotes.form_dict.get('parent_doctype')
+	doctype = webnotes.form_dict.doctype
+	parenttype = webnotes.form_dict.parent_doctype
+	all_doctypes = webnotes.form_dict.all_doctypes
+	with_data = webnotes.form_dict.with_data
+	column_start_end = {}
 	
-	doctype_dl = webnotes.model.doctype.get(doctype)
-
-	tablecolumns = filter(None, 
-		[doctype_dl.get_field(f[0]) for f in webnotes.conn.sql('desc `tab%s`' % doctype)])
+	if all_doctypes:
+		doctype_parentfield = {}
+		doctypes = []
+		for d in get_table_fields(doctype):
+			doctypes.append(d[0])
+			doctype_parentfield[d[0]] = d[1]
+	
+	def add_main_header(key):
+		w.writerow(['Data Import Template'])
+		w.writerow([data_keys.main_table, doctype])
 		
-	tablecolumns.sort(lambda a, b: a.idx - b.idx)
-	
+		if parenttype != doctype:
+			w.writerow([data_keys.parent_table, parenttype])
+			key = 'parent'
+		else:
+			w.writerow([''])
+
+		w.writerow([''])
+		w.writerow(['Notes:'])
+		w.writerow(['Please do not change the template headings.'])
+		w.writerow(['First data column must be blank.'])
+		w.writerow(['Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
+		w.writerow(['For updating, you can update only selective columns.'])
+		w.writerow(['If you are uploading new records, leave the "name" (ID) column blank.'])
+		w.writerow(['If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
+		w.writerow(['You can only upload upto 5000 records in one go. (may be less in some cases)'])
+		if key == "parent":
+			w.writerow(['"Parent" signifies the parent table in which this row must be added'])
+			w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
+
+	def build_field_columns(dt):
+		doctype_dl = webnotes.model.doctype.get(dt)
+
+		tablecolumns = filter(None, 
+			[doctype_dl.get_field(f[0]) for f in webnotes.conn.sql('desc `tab%s`' % dt)])
+
+		tablecolumns.sort(lambda a, b: a.idx - b.idx)
+
+		if dt==doctype:
+			column_start_end[dt] = webnotes._dict({"start": 0})
+			
+			if all_doctypes and with_data:
+				append_field_column(webnotes._dict({
+					"fieldname": "modified",
+					"label": "Last Updated On",
+					"fieldtype": "Data",
+					"reqd": 1,
+					"idx": 0,
+					"info": "Don't change!"
+				}), True)
+			
+		else:
+			column_start_end[dt] = webnotes._dict({"start": len(columns)})
+			
+			append_field_column(webnotes._dict({
+				"fieldname": "name",
+				"label": "ID",
+				"fieldtype": "Data",
+				"reqd": 1,
+				"idx": 0,
+				"info": "Leave blank for new records"
+			}), True)
+			
+		for docfield in tablecolumns:
+			append_field_column(docfield, True)
+
+		# all non mandatory fields
+		for docfield in tablecolumns:
+			append_field_column(docfield, False)
+
+		# append DocType name
+		tablerow[column_start_end[dt].start + 1] = dt
+		if dt!=doctype:
+			tablerow[column_start_end[dt].start + 2] = doctype_parentfield[dt]
+
+		column_start_end[dt].end = len(columns) + 1
+			
+	def append_field_column(docfield, mandatory):
+		if docfield and ((mandatory and docfield.reqd) or not (mandatory or docfield.reqd)) \
+			and (docfield.fieldname not in ('parenttype', 'trash_reason')) and not docfield.hidden:
+			tablerow.append("")
+			fieldrow.append(docfield.fieldname)
+			labelrow.append(docfield.label)
+			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
+			typerow.append(docfield.fieldtype)
+			inforow.append(getinforow(docfield))
+			columns.append(docfield.fieldname)
+			
+	def append_empty_field_column():
+		tablerow.append("-")
+		fieldrow.append("-")
+		labelrow.append("-")
+		mandatoryrow.append("-")
+		typerow.append("-")
+		inforow.append("-")
+		columns.append("-")
+
 	def getinforow(docfield):
-		"""make info comment"""
+		"""make info comment for options, links etc."""
 		if docfield.fieldtype == 'Select':
 			if not docfield.options:
 				return ''
@@ -49,81 +144,78 @@ def get_template():
 				return 'Valid %s' % docfield.options[5:]
 			else:
 				return 'One of: %s' % ', '.join(filter(None, docfield.options.split('\n')))
-		if docfield.fieldtype == 'Link':
+		elif docfield.fieldtype == 'Link':
 			return 'Valid %s' % docfield.options
-		if docfield.fieldtype in ('Int'):
+		elif docfield.fieldtype in ('Int'):
 			return 'Integer'
-		if docfield.fieldtype == "Check":
+		elif docfield.fieldtype == "Check":
 			return "0 or 1"
+		elif docfield.info:
+			return docfield.info
 		else:
 			return ''
-			
+
+	def add_field_headings():
+		w.writerow(tablerow)
+		w.writerow(labelrow)
+		w.writerow(fieldrow)
+		w.writerow(mandatoryrow)
+		w.writerow(typerow)
+		w.writerow(inforow)
+		w.writerow([data_keys.data_separator])
+
+	def add_data():
+		def add_data_row(row_group, dt, d, rowidx):
+			if len(row_group) < rowidx + 1:
+				row_group.append([""] * len(columns))
+			row = row_group[rowidx]
+			for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
+				row[column_start_end[dt].start + i + 1] = d.get(c, "")
+
+		if with_data=='Yes':
+			data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" \
+				% doctype, as_dict=1)
+			for doc in data:
+				# add main table
+				
+				# add extra quote to modified timestamp to preserve formatting
+				doc.modified = '"'+ doc.modified+'"'
+				row_group = []
+				add_data_row(row_group, doctype, doc, 0)
+				
+				# add child tables
+				if all_doctypes:
+					for child_doctype in doctypes[1:]:
+						for ci, child in enumerate(webnotes.conn.sql("""select * from `tab%s` 
+							where parent=%s""" % (child_doctype, "%s"), doc.name, as_dict=1)):
+							add_data_row(row_group, child_doctype, child, ci)
+					
+				for row in row_group:
+					w.writerow(row)
+	
 	w = UnicodeWriter()
 	key = 'name'
+	
+	add_main_header(key)
 
-	w.writerow(['Data Import Template'])	
-	w.writerow([data_keys.main_table, doctype])
-	
-	if parenttype != doctype:
-		w.writerow([data_keys.parent_table, parenttype])
-		key = 'parent'
-	else:
-		w.writerow([''])
-	
 	w.writerow([''])
-	w.writerow(['Notes:'])
-	w.writerow(['Please do not change the template headings.'])
-	w.writerow(['First data column must be blank.'])
-	w.writerow(['Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
-	w.writerow(['For updating, you can update only selective columns.'])
-	w.writerow(['If you are uploading new records, leave the "name" (ID) column blank.'])
-	w.writerow(['If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
-	w.writerow(['You can only upload upto 5000 records in one go. (may be less in some cases)'])
-	if key == "parent":
-		w.writerow(['"Parent" signifies the parent table in which this row must be added'])
-		w.writerow(['If you are updating, please select "Overwrite" else existing rows will not be deleted.'])
-	w.writerow([''])
-	labelrow = ["Column Labels", "ID"]
+	tablerow = [data_keys.doctype, ""]
+	labelrow = ["Column Labels:", "ID"]
 	fieldrow = [data_keys.columns, key]
 	mandatoryrow = ['Mandatory:', 'Yes']
 	typerow = ['Type:', 'Data (text)']
 	inforow = ['Info:', '']
 	columns = [key]
+
+	build_field_columns(doctype)
+	if all_doctypes:
+		for d in doctypes[1:]:
+			append_empty_field_column()
+			build_field_columns(d)
 	
-	def append_row(docfield, mandatory):
-		if docfield and ((mandatory and docfield.reqd) or not (mandatory or docfield.reqd)) \
-			and (docfield.fieldname not in ('parenttype', 'trash_reason')) and not docfield.hidden:
-			fieldrow.append(docfield.fieldname)
-			labelrow.append(docfield.label)
-			mandatoryrow.append(docfield.reqd and 'Yes' or 'No')
-			typerow.append(docfield.fieldtype)
-			inforow.append(getinforow(docfield))
-			columns.append(docfield.fieldname)
+	add_field_headings()
+	add_data()
 	
-	# get all mandatory fields
-	for t in tablecolumns:
-		append_row(t, True)
-
-	# all non mandatory fields
-	for t in tablecolumns:
-		append_row(t, False)
-
-	w.writerow(labelrow)
-	w.writerow(fieldrow)
-	w.writerow(mandatoryrow)
-	w.writerow(typerow)
-	w.writerow(inforow)
-	
-	w.writerow([data_keys.data_separator])
-
-	if webnotes.form_dict.get('with_data')=='Yes':
-		data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" % doctype, as_dict=1)
-		for d in data:
-			row = [""]
-			for c in columns:
-				row.append(d.get(c, ""))
-			w.writerow(row)
-
 	# write out response as a type csv
 	webnotes.response['result'] = cstr(w.getvalue())
 	webnotes.response['type'] = 'csv'
@@ -134,13 +226,13 @@ def upload():
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
-	
+
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
-	
+
 	def bad_template():
 		webnotes.msgprint("Please do not change the rows above '%s'" % data_keys.data_separator,
 			raise_exception=1)
-			
+
 	def check_data_length():
 		max_rows = 5000
 		if not data:
@@ -148,19 +240,22 @@ def upload():
 		elif len(data) > max_rows:
 			webnotes.msgprint("Please upload only upto %d %ss at a time" % \
 				(max_rows, doctype), raise_exception=True)
-	
+
 	def get_start_row():
 		for i, row in enumerate(rows):
 			if row and row[0]==data_keys.data_separator:
 				return i+1
 		bad_template()
-				
+
 	def get_header_row(key):
+		return get_header_row_and_idx(key)[0]
+
+	def get_header_row_and_idx(key):
 		for i, row in enumerate(header):
 			if row and row[0]==key:
-				return row
-		return []
-		
+				return row, i
+		return [], -1
+
 	def filter_empty_columns(columns):
 		empty_cols = filter(lambda x: x in ("", None), columns)
 		
@@ -171,13 +266,65 @@ def upload():
 			else:
 				webnotes.msgprint(_("Please make sure that there are no empty columns in the file."),
 					raise_exception=1)
-		
+
 		return columns
+
+	def make_column_map():
+		doctype_row, row_idx = get_header_row_and_idx(data_keys.doctype)
+		if row_idx == -1: # old style
+			return
+			
+		dt = None
+		for i, d in enumerate(doctype_row[1:]):
+			if d != "-":
+				if d: # value in doctype_row
+					if doctype_row[i]==dt:
+						# prev column is doctype (in case of parentfield)
+						doctype_parentfield[dt] = doctype_row[i+1]
+					else:
+						dt = d
+						doctypes.append(d)
+						column_idx_to_fieldname[dt] = {}
+				if dt:
+					column_idx_to_fieldname[dt][i+1] = rows[row_idx + 2][i+1]
+
+	def get_doclist(start_idx):
+		if doctypes:
+			doclist = []
+			for idx in xrange(start_idx, len(rows)):
+				if (not len(doclist)) or main_doc_empty(rows[idx]):
+					for dt in doctypes:
+						d = {}
+						for column_idx in column_idx_to_fieldname[dt]:
+							try:
+								d[column_idx_to_fieldname[dt][column_idx]] = rows[idx][column_idx]
+							except IndexError, e:
+								pass
+
+						if sum([0 if val=='' else 1 for val in d.values()]):
+							d['doctype'] = dt
+							if dt != doctype:
+								if not overwrite:
+									d['parent'] = doclist[0]["name"]
+								d['parenttype'] = doctype
+								d['parentfield'] = doctype_parentfield[dt]
+							doclist.append(d)
+				else:
+					break
+				
+			return doclist
+		else:
+			d = webnotes._dict(zip(columns, rows[idx][1:]))
+			d['doctype'] = doctype
+			return [d]
+
+	def main_doc_empty(row):
+		return not (row and len(row) > 2 and (row[1] or row[2]))
 		
 	# extra input params
 	import json
 	params = json.loads(webnotes.form_dict.get("params") or '{}')
-	
+
 	# header
 	rows = read_csv_content_from_uploaded_file(params.get("ignore_encoding_errors"))
 	start_row = get_start_row()
@@ -185,6 +332,9 @@ def upload():
 	data = rows[start_row:]
 	doctype = get_header_row(data_keys.main_table)[1]
 	columns = filter_empty_columns(get_header_row(data_keys.columns)[1:])
+	doctypes = []
+	doctype_parentfield = {}
+	column_idx_to_fieldname = {}
 
 	parenttype = get_header_row(data_keys.parent_table)
 	
@@ -194,6 +344,7 @@ def upload():
 		
 	# allow limit rows to be uploaded
 	check_data_length()
+	make_column_map()
 	
 	webnotes.conn.begin()
 	
@@ -209,33 +360,51 @@ def upload():
 	parent_list = []
 	for i, row in enumerate(data):
 		# bypass empty rows
-		if not row: continue
+		if main_doc_empty(row):
+			continue
 		
-		row_idx = (i + 1) + start_row
+		row_idx = i + start_row
+		bean = None
 		
-		d = webnotes._dict(zip(columns, row[1:]))
-		d['doctype'] = doctype
-		
+		doclist = get_doclist(row_idx)
 		try:
 			webnotes.message_log = []
-			check_record(d, parenttype, doctype_dl)
-			if parenttype:
-				# child doc
-				doc = Document(doctype)
-				doc.fields.update(d)
-				if parenttype:
-					doc.parenttype = parenttype
-					doc.parentfield = parentfield
-				doc.save()
-				ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
-					doc.parent), unicode(doc.idx)))
-				parent_list.append(doc.parent)
+			if len(doclist) > 1:
+				bean = webnotes.bean(doclist)
+				if overwrite:
+					# remove the extra quotes added to preserve date formatting
+					bean.doc.modified = bean.doc.modified[1:-1]
+					bean.save()
+					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
+				else:
+					bean.insert()
+					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
+				if params.get("_submit"):
+					bean.submit()
+					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 			else:
-				ret.append(import_doc(d, doctype, overwrite, row_idx, params.get("_submit")))
+				check_record(doclist[0], parenttype, doctype_dl)
+
+				if parenttype:
+					# child doc
+					doc = Document(doctype)
+					doc.fields.update(doclist[0])
+					if parenttype:
+						doc.parenttype = parenttype
+						doc.parentfield = parentfield
+					doc.save()
+					ret.append('Inserted row for %s at #%s' % (getlink(parenttype,
+						doc.parent), unicode(doc.idx)))
+					parent_list.append(doc.parent)
+				else:
+					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, params.get("_submit")))
+
 		except Exception, e:
 			error = True
+			if bean:
+				webnotes.errprint(bean.doclist)
 			err_msg = webnotes.message_log and "<br>".join(webnotes.message_log) or cstr(e)
-			ret.append('Error for row (#%d) %s : %s' % (row_idx, 
+			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1, 
 				len(row)>1 and row[1] or "", err_msg))
 			webnotes.errprint(webnotes.getTraceback())
 	
