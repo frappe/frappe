@@ -124,6 +124,9 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			raise raise_exception, msg
 		else:
 			raise ValidationError, msg
+
+def throw(msg, exc=ValidationError):
+	msgprint(msg, raise_exception=exc)
 	
 def create_folder(path):
 	import os
