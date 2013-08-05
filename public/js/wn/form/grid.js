@@ -120,10 +120,10 @@ wn.ui.form.Grid = Class.extend({
 		if($.isArray(fieldname)) {
 			var me = this;
 			$.each(fieldname, function(i, fname) {
-				wn.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = !show;
+				wn.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = show ? 0 : 1;
 			});
 		} else {
-			wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = !show;
+			wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = show ? 0 : 1;
 		}
 		
 		this.refresh(true);
