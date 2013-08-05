@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.provide("wn.ui.form");
 wn.ui.form.Toolbar = Class.extend({
 	init: function(opts) {

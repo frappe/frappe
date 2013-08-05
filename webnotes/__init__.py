@@ -1,24 +1,5 @@
-# Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
-# 
-# MIT License (MIT)
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a 
-# copy of this software and associated documentation files (the "Software"), 
-# to deal in the Software without restriction, including without limitation 
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-# and/or sell copies of the Software, and to permit persons to whom the 
-# Software is furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in 
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
-# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# 
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# MIT License. See license.txt 
 """
 globals attached to webnotes module
 + some utility functions that should probably be moved
@@ -143,6 +124,9 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			raise raise_exception, msg
 		else:
 			raise ValidationError, msg
+
+def throw(msg, exc=ValidationError):
+	msgprint(msg, raise_exception=exc)
 	
 def create_folder(path):
 	import os
@@ -461,6 +445,13 @@ def build_match_conditions(doctype, fields=None, as_condition=True, match_filter
 	import webnotes.widgets.reportview
 	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition, match_filters)
 
+def get_list(doctype, filters=None, fields=None, docstatus=None, 
+			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+			as_list=False, debug=False):
+	import webnotes.widgets.reportview
+	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
+				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
+				as_list=as_list, debug=debug)
 _config = None
 def get_config():
 	global _config

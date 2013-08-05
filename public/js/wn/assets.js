@@ -1,5 +1,5 @@
-// Copyright 2013 Web Notes Technologies Pvt Ltd
-// License: MIT. See license.txt
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
 
 // library to mange assets (js, css, models, html) etc in the app.
 // will try and get from localStorge if latest are available

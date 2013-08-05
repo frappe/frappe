@@ -1,5 +1,5 @@
-// Copyright 2013 Web Notes Technologies Pvt Ltd
-// MIT Licensed. See license.txt
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
 
 wn.provide("wn.views.moduleview");
 wn.provide("wn.module_page");

@@ -1,24 +1,5 @@
-# Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
-# 
-# MIT License (MIT)
-# 
-# Permission is hereby granted, free of charge, to any person obtaining a 
-# copy of this software and associated documentation files (the "Software"), 
-# to deal in the Software without restriction, including without limitation 
-# the rights to use, copy, modify, merge, publish, distribute, sublicense, 
-# and/or sell copies of the Software, and to permit persons to whom the 
-# Software is furnished to do so, subject to the following conditions:
-# 
-# The above copyright notice and this permission notice shall be included in 
-# all copies or substantial portions of the Software.
-# 
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, 
-# INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A 
-# PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT 
-# HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF 
-# CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE 
-# OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-# 
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# MIT License. See license.txt 
 
 # Tree (Hierarchical) Nested Set Model (nsm)
 # 
@@ -31,154 +12,10 @@
 # ------------------------------------------
 from __future__ import unicode_literals
 
-import webnotes, unittest
+import webnotes
 from webnotes import msgprint, _
 from webnotes.model.bean import Bean
 from webnotes.model.doc import Document
-
-class TestNSM(unittest.TestCase):
-	def setUp(self):
-		webnotes.conn.sql("delete from `tabItem Group`")
-		self.data = [
-			["t1", None, 1, 20], 
-				["c0", "t1", 2, 3],
-				["c1", "t1", 4, 11],
-					["gc1", "c1", 5, 6],
-					["gc2", "c1", 7, 8],
-					["gc3", "c1", 9, 10],
-				["c2", "t1", 12, 17],
-					["gc4", "c2", 13, 14],
-					["gc5", "c2", 15, 16],
-				["c3", "t1", 18, 19]
-		]
-		
-		for d in self.data:
-			self.__dict__[d[0]] = Bean([Document(fielddata = {
-				"doctype": "Item Group", "item_group_name": d[0], "parent_item_group": d[1],
-				"__islocal": 1
-			})])
-			
-		self.save_all()
-		self.reload_all()
-
-	def save_all(self):
-		for d in self.data:
-			self.__dict__[d[0]].save()
-
-	def reload_all(self, data=None):
-		for d in data or self.data:
-			self.__dict__[d[0]].load_from_db()
-			
-	def test_basic_tree(self, data=None):
-		for d in data or self.data:
-			self.assertEquals(self.__dict__[d[0]].doc.lft, d[2])
-			self.assertEquals(self.__dict__[d[0]].doc.rgt, d[3])
-			
-	def test_move_group(self):
-		self.c1.doc.parent_item_group = 'c2'
-		self.c1.save()
-		self.reload_all()
-		
-		new_tree = [
-			["t1", None, 1, 20], 
-				["c0", "t1", 2, 3],
-				["c2", "t1", 4, 17],
-					["gc4", "c2", 5, 6],
-					["gc5", "c2", 7, 8],
-					["c1", "t1", 9, 16],
-						["gc1", "c1", 10, 11],
-						["gc2", "c1", 12, 13],
-						["gc3", "c1", 14, 15],
-				["c3", "t1", 18, 19]
-		]
-		self.test_basic_tree(new_tree)
-		
-		# Move back
-		
-		self.c1.doc.parent_item_group = 'gc4'
-		self.c1.save()
-		self.reload_all()
-		
-		new_tree = [
-			["t1", None, 1, 20], 
-				["c0", "t1", 2, 3],
-				["c2", "t1", 4, 17],
-					["gc4", "c2", 5, 14],
-						["c1", "t1", 6, 13],
-							["gc1", "c1", 7, 8],
-							["gc2", "c1", 9, 10],
-							["gc3", "c1", 11, 12],
-					["gc5", "c2", 15, 16],
-				["c3", "t1", 18, 19]
-		]
-		self.test_basic_tree(new_tree)
-
-		# Move to root
-		
-		self.c1.doc.parent_item_group = ''
-		self.c1.save()
-		self.reload_all()
-		
-		new_tree = [
-			["t1", None, 1, 12],
-				["c0", "t1", 2, 3],
-				["c2", "t1", 4, 9],
-					["gc4", "c2", 5, 6],
-					["gc5", "c2", 7, 8],
-				["c3", "t1", 10, 11],
-			["c1", "t1", 13, 20],
-				["gc1", "c1", 14, 15],
-				["gc2", "c1", 16, 17],
-				["gc3", "c1", 18, 19],
-		]
-		self.test_basic_tree(new_tree)
-		
-		# move leaf
-		self.gc3.doc.parent_item_group = 'c2'
-		self.gc3.save()
-		self.reload_all()
-		
-		new_tree = [
-			["t1", None, 1, 14],
-				["c0", "t1", 2, 3],
-				["c2", "t1", 4, 11],
-					["gc4", "c2", 5, 6],
-					["gc5", "c2", 7, 8],
-					["gc3", "c1", 9, 10],
-				["c3", "t1", 12, 13],
-			["c1", "t1", 15, 20],
-				["gc1", "c1", 16, 17],
-				["gc2", "c1", 18, 19],
-		]
-		self.test_basic_tree(new_tree)
-		
-		# delete leaf
-		from webnotes.model import delete_doc
-		delete_doc(self.gc2.doc.doctype, self.gc2.doc.name)
-		
-		new_tree = [
-			["t1", None, 1, 14],
-				["c0", "t1", 2, 3],
-				["c2", "t1", 4, 11],
-					["gc4", "c2", 5, 6],
-					["gc5", "c2", 7, 8],
-					["gc3", "c1", 9, 10],
-				["c3", "t1", 12, 13],
-			["c1", "t1", 15, 18],
-				["gc1", "c1", 16, 17],
-		]
-		
-		del self.__dict__["gc2"]
-		self.reload_all(new_tree)
-		self.test_basic_tree(new_tree)
-
-		# for testing
-		# for d in new_tree:
-		# 	doc = self.__dict__[d[0]].doc
-		# 	print doc.name, doc.lft, doc.rgt
-	
-	def tearDown(self):
-		webnotes.conn.rollback()
 
 # called in the on_update method
 def update_nsm(doc_obj):
@@ -202,19 +39,59 @@ def update_nsm(doc_obj):
 	
 	# has parent changed (?) or parent is None (root)
 	if not d.lft and not d.rgt:
-		update_add_node(d.doctype, d.name, p or '', pf)
+		update_add_node(d, p or '', pf)
 	elif op != p:
 		update_move_node(d, pf)
 
 	# set old parent
-	webnotes.conn.set(d, opf, p or '')
+	d.fields[opf] = p
+	webnotes.conn.set_value(d.doctype, d.name, opf, p or '')
 
 	# reload
 	d._loadfromdb()
+
+def update_add_node(doc, parent, parent_field):
+	"""
+		insert a new node
+	"""
+	from webnotes.utils import now
+	n = now()
 	
+	doctype = doc.doctype
+	name = doc.name
+
+	# get the last sibling of the parent
+	if parent:
+		left, right = webnotes.conn.sql("select lft, rgt from `tab%s` where name=%s" \
+			% (doctype, "%s"), parent)[0]
+		validate_loop(doc.doctype, doc.name, left, right)
+	else: # root
+		right = webnotes.conn.sql("select ifnull(max(rgt),0)+1 from `tab%s` where ifnull(`%s`,'') =''" % (doctype, parent_field))[0][0]
+	right = right or 1
+		
+	# update all on the right
+	webnotes.conn.sql("update `tab%s` set rgt = rgt+2, modified='%s' where rgt >= %s" %(doctype,n,right))
+	webnotes.conn.sql("update `tab%s` set lft = lft+2, modified='%s' where lft >= %s" %(doctype,n,right))
+	
+	# update index of new node
+	if webnotes.conn.sql("select * from `tab%s` where lft=%s or rgt=%s"% (doctype, right, right+1)):
+		webnotes.msgprint("Nested set error. Please send mail to support")
+		raise Exception
+
+	webnotes.conn.sql("update `tab%s` set lft=%s, rgt=%s, modified='%s' where name='%s'" % (doctype,right,right+1,n,name))
+	return right
+
+
 def update_move_node(doc, parent_field):
-	# move to dark side
 	parent = doc.fields.get(parent_field)
+	
+	if parent:
+		new_parent = webnotes.conn.sql("""select lft, rgt from `tab%s` 
+			where name = %s""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
+		
+		validate_loop(doc.doctype, doc.name, new_parent.lft, new_parent.rgt)
+		
+	# move to dark side
 	webnotes.conn.sql("""update `tab%s` set lft = -lft, rgt = -rgt 
 		where lft >= %s and rgt <= %s"""% (doc.doctype, '%s', '%s'), (doc.lft, doc.rgt))
 				
@@ -231,6 +108,7 @@ def update_move_node(doc, parent_field):
 	if parent:
 		new_parent = webnotes.conn.sql("""select lft, rgt from `tab%s` 
 			where name = %s""" % (doc.doctype, '%s'), parent, as_dict=1)[0]
+	
 	
 		# set parent lft, rgt
 		webnotes.conn.sql("""update `tab%s` set rgt = rgt + %s 
@@ -257,7 +135,6 @@ def update_move_node(doc, parent_field):
 	webnotes.conn.sql("""update `tab%s` set lft = -lft + %s, rgt = -rgt + %s 
 		where lft < 0"""% (doc.doctype, '%s', '%s'), (new_diff, new_diff))
 		
-	
 def rebuild_tree(doctype, parent_field):
 	"""
 		call rebuild_node for all root nodes
@@ -294,31 +171,12 @@ def rebuild_node(doctype, parent, left, parent_field):
 	#return the right value of this node + 1
 	return right+1
 	
-def update_add_node(doctype, name, parent, parent_field):
-	"""
-		insert a new node
-	"""
-	from webnotes.utils import now
-	n = now()
 
-	# get the last sibling of the parent
-	if parent:
-		right = webnotes.conn.sql("select rgt from `tab%s` where name='%s'" % (doctype, parent))[0][0]
-	else: # root
-		right = webnotes.conn.sql("select ifnull(max(rgt),0)+1 from `tab%s` where ifnull(`%s`,'') =''" % (doctype, parent_field))[0][0]
-	right = right or 1
-		
-	# update all on the right
-	webnotes.conn.sql("update `tab%s` set rgt = rgt+2, modified='%s' where rgt >= %s" %(doctype,n,right))
-	webnotes.conn.sql("update `tab%s` set lft = lft+2, modified='%s' where lft >= %s" %(doctype,n,right))
-	
-	# update index of new node
-	if webnotes.conn.sql("select * from `tab%s` where lft=%s or rgt=%s"% (doctype, right, right+1)):
-		webnotes.msgprint("Nested set error. Please send mail to support")
-		raise Exception
-
-	webnotes.conn.sql("update `tab%s` set lft=%s, rgt=%s, modified='%s' where name='%s'" % (doctype,right,right+1,n,name))
-	return right
+def validate_loop(doctype, name, lft, rgt):
+	"""check if item not an ancestor (loop)"""
+	if name in webnotes.conn.sql_list("""select name from `tab%s` where lft <= %s and rgt >= %s""" % (doctype, 
+		"%s", "%s"), (lft, rgt)):
+		webnotes.throw("""Item cannot be added to its own descendents.""")
 
 class DocTypeNestedSet(object):
 	def on_update(self):
@@ -329,7 +187,7 @@ class DocTypeNestedSet(object):
 		if not parent:
 			msgprint(_("Root ") + self.doc.doctype + _(" cannot be deleted."), raise_exception=1)
 
-		parent = ""
+		self.doc.fields[self.nsm_parent_field] = ""
 		update_nsm(self)
 		
 	def on_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
@@ -341,3 +199,9 @@ class DocTypeNestedSet(object):
 				
 			parent_field = "parent_" + self.doc.doctype.replace(" ", "_").lower()
 			rebuild_tree(self.doc.doctype, parent_field)
+		
+	def validate_one_root(self):
+		if not self.doc.fields[self.nsm_parent_field]:
+			if webnotes.conn.sql("""select count(*) from `tab%s` where
+				ifnull(%s, '')=''""" % (self.doc.doctype, self.nsm_parent_field))[0][0] > 1:
+				webnotes.throw(_("""Multiple root nodes not allowed."""))

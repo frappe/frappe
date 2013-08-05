@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 // for license information please see license.txt
 
 // constructor: parent, label, method, args

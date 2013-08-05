@@ -1,5 +1,5 @@
-// Copyright 2013 Web Notes Technologies Pvt Ltd
-// MIT Licensed. See license.txt
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
 
 function flt(v, decimals, number_format) { 
 	if(v==null || v=='')return 0;

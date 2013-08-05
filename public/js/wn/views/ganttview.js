@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.provide("wn.views.calendar");
 
 wn.views.GanttFactory = wn.views.Factory.extend({
@@ -83,8 +86,8 @@ wn.views.Gantt = Class.extend({
 					gantt_area.gantt({
 						source: me.get_source(r),
 						navigate: "scroll",
-						scale: "day",
-						minScale: "day",
+						scale: "days",
+						minScale: "hours",
 						maxScale: "months",
 						onItemClick: function(data) {
 							wn.set_route('Form', me.doctype, data.name);

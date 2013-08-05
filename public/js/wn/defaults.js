@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.defaults = {
 	get_user_default: function(key) {
 		var d = wn.boot.profile.defaults[key];

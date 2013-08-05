@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.ui.form.ScriptManager = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
