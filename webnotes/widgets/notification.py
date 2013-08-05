@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.widgets import reportview
 
 @webnotes.whitelist()
 def get():
@@ -21,7 +20,7 @@ def get():
 			condition = for_doctype[d]
 			key = condition.keys()[0]
 
-			result = reportview.execute(d, fields=["count(*)"], 
+			result = webnotes.get_list(d, fields=["count(*)"], 
 				filters=[[d, key, "=", condition[key]]], as_list=True)[0][0]
 			if result:
 				open_count_doctype[d] = result

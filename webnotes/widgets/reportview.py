@@ -86,12 +86,13 @@ def compress(data):
 	
 def check_sort_by_table(sort_by):
 	"""check atleast 1 column selected from the sort by table """
-	tbl = sort_by.split('.')[0]
-	if tbl not in tables:
-		if tbl.startswith('`'):
-			tbl = tbl[4:-1]
-		webnotes.msgprint("Please select atleast 1 column from '%s' to sort"\
-			% tbl, raise_exception=1)
+	if "." in sort_by:
+		tbl = sort_by.split('.')[0]
+		if tbl not in tables:
+			if tbl.startswith('`'):
+				tbl = tbl[4:-1]
+			webnotes.msgprint("Please select atleast 1 column from '%s' to sort"\
+				% tbl, raise_exception=1)
 
 def run_custom_query(query):
 	"""run custom query"""

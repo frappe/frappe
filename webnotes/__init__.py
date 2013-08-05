@@ -442,6 +442,13 @@ def build_match_conditions(doctype, fields=None, as_condition=True, match_filter
 	import webnotes.widgets.reportview
 	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition, match_filters)
 
+def get_list(doctype, filters=None, fields=None, docstatus=None, 
+			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+			as_list=False, debug=False):
+	import webnotes.widgets.reportview
+	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
+				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
+				as_list=as_list, debug=debug)
 _config = None
 def get_config():
 	global _config
