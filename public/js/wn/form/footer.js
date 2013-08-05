@@ -62,8 +62,7 @@ wn.ui.form.Footer = Class.extend({
 	make_tags: function() {
 		this.frm.tags = new wn.ui.TagEditor({
 			parent: this.wrapper.find(".tag-area"),
-			doctype: this.frm.doctype,
-			docname: this.frm.docname
+			frm: this.frm,
 		})
 	},
 	make_attachments: function() {

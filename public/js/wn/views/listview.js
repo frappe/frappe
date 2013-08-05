@@ -182,8 +182,10 @@ wn.views.ListView = Class.extend({
 		// add tags
 		var tag_editor = new wn.ui.TagEditor({
 			parent: row2.find(".list-tag"),
-			doctype: this.doctype,
-			docname: data.name,
+			frm: {
+				doctype: this.doctype,
+				docname: data.name
+			},
 			user_tags: data._user_tags
 		});
 		tag_editor.$w.on("click", ".tagit-label", function() {
