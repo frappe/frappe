@@ -170,63 +170,27 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $('<div class="grid-row">\
-			<div class="data-row" style="min-height: 26px;"></div>\
-			<div class="panel panel-warning" style="display: none;">\
-				<div class="panel-heading">\
-					<div class="toolbar" style="height: 36px;">\
-						Editing Row #<span class="row-index"></span>\
-						<button class="btn btn-success pull-right" \
-							title="'+wn._("Close")+'"\
-							style="margin-left: 7px;">\
-							<i class="icon-chevron-up"></i></button>\
-						<button class="btn btn-default pull-right grid-insert-row" \
-							title="'+wn._("Insert Row")+'"\
-							style="margin-left: 7px;">\
-							<i class="icon-plus grid-insert-row"></i></button>\
-						<button class="btn btn-default pull-right grid-delete-row"\
-							title="'+wn._("Delete Row")+'"\
-							><i class="icon-trash grid-delete-row"></i></button>\
-					</div>\
-				</div>\
-				<div class="form-area"></div>\
-				<div class="toolbar footer-toolbar" style="height: 36px;">\
-					<button class="btn btn-success pull-right" \
-						title="'+wn._("Close")+'"\
-						style="margin-left: 7px;">\
-						<i class="icon-chevron-up"></i></button>\
-				</div>\
-			</div>\
-			<div class="divider row"></div>\
-		</div>')
-			.appendTo(this.parent)
-			.data("grid_row", this);
-
+		this.wrapper = $('<div class="grid-row"></div>').appendTo(this.parent).data("grid_row", this);
+		this.row = $('<div class="data-row" style="min-height: 26px;"></div>').appendTo(this.wrapper)
+			.on("click", function() { 
+				me.toggle_view();
+				return false;
+			});
+		
+		this.form_panel = $('<div class="panel panel-warning" style="display: none;"></div>').appendTo(this.wrapper);
+		
+		$('<div class="divider row"></div>').appendTo(this.wrapper);
+		
 		if(this.doc) {
 			this.wrapper
 				.attr("data-idx", this.doc.idx)
 				.find(".row-index").html(this.doc.idx)
-			this.set_events();
 		}
-		this.form_panel = this.wrapper.find(".panel");
-		this.row = this.wrapper.find(".data-row");
-		this.form_area = this.wrapper.find(".form-area");
-
+		
 		this.make_static_display();
 		if(this.doc) {
 			this.set_data();
 		}
-	},
-	set_events: function() {
-		var me = this;
-		this.wrapper.find(".grid-delete-row")
-			.click(function() { me.remove(); return false; })
-		this.wrapper.find(".grid-insert-row")
-			.click(function() { me.insert(true); return false; })
-		this.wrapper.find(".data-row, .panel-heading").click(function() { 
-				me.toggle_view();
-				return false;
-			});
 	},
 	remove: function() {
 		var me = this;
@@ -260,7 +224,8 @@ wn.ui.form.GridRow = Class.extend({
 			total_colsize = 1;
 		me.row.empty();
 		col = $('<div class="col col-lg-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
-			.appendTo(me.row)
+			.appendTo(me.row);
+		
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden && df.in_list_view && me.grid.frm.perm[df.permlevel][READ]
 				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
@@ -282,29 +247,20 @@ wn.ui.form.GridRow = Class.extend({
 				total_colsize += colsize
 				if(total_colsize > 11) 
 					return false;
-				$col = $('<div class="col col-lg-'+colsize+'">' 
-					+ txt + '</div>')
+				$col = $('<div class="col col-lg-'+colsize+'"></div>')
+					.html(txt)
 					.attr("data-fieldname", df.fieldname)
 					.data("df", df)
 					.appendTo(me.row)
 				
 				if(["Text", "Small Text"].indexOf(df.fieldtype)!==-1) {
-					$col.css({
-						"word-wrap": "break-word",
-						"overflow": "hidden",
-						"padding-right": "0px"
-					});
+					$col.addClass("grid-overflow-no-ellipsis");
 				} else {
-					$col.css({
-						"overflow": "hidden",
-						"text-overflow": "ellipsis",
-						"white-space": "nowrap",
-						"padding-right": "0px"
-					});
+					$col.addClass("grid-overflow-ellipsis");
 				}
 					
 				if(in_list(["Int", "Currency", "Float"], df.fieldtype))
-					$col.css({"text-align": "right"})
+					$col.addClass("text-right");
 			}
 			
 		});
@@ -332,19 +288,22 @@ wn.ui.form.GridRow = Class.extend({
 		
 		// append button column
 		if(me.doc) {
-			$col = $('<div class="col col-lg-1" \
-				style="text-align: right; padding-right: 5px;">\
-				<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
-					<i class="icon icon-plus-sign"></i></button>\
-				<button class="btn btn-small btn-default grid-delete-row" style="padding: 4px;">\
-					<i class="icon icon-trash"></i></button>\
-			</div>').appendTo(me.row);
+			if(!me.grid.$row_actions) {
+				me.grid.$row_actions = $('<div class="col col-lg-1" \
+					style="text-align: right; padding-right: 5px;">\
+					<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
+						<i class="icon icon-plus-sign"></i></button>\
+					<button class="btn btn-small btn-default grid-delete-row" style="padding: 4px;">\
+						<i class="icon icon-trash"></i></button>\
+				</div>');
+			}
+			$col = me.grid.$row_actions.clone().appendTo(me.row);
 
-			$col.find(".grid-insert-row").click(function() { me.insert(); return false; })
-			$col.find(".grid-delete-row").click(function() { me.remove(); return false; })
+			$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
+			$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
+			
+			this.toggle_add_delete_button_display($col);
 		}
-
-		this.toggle_add_delete_button_display()
 
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
 	},
@@ -386,17 +345,19 @@ wn.ui.form.GridRow = Class.extend({
 				if(me.frm.doc.docstatus===0)
 					me.form_area.find(":input:first").focus();
 			} else {
-				$(me.form_area).empty();
 				me.row.toggle(true);
 			}
 			callback && callback();
 		});
 	},
-	toggle_add_delete_button_display: function() {
-		this.wrapper.find(".grid-delete-row, .grid-insert-row")
+	toggle_add_delete_button_display: function($parent) {
+		$parent.find(".grid-delete-row, .grid-insert-row")
 			.toggle(this.grid.display_status=="Write" && !this.grid.static_rows);
 	},
 	render_form: function() {
+		this.make_form();
+		this.form_area.empty();
+		
 		var me = this,
 			make_row = function(label) {
 				if(label)
@@ -415,7 +376,7 @@ wn.ui.form.GridRow = Class.extend({
 			},
 			cols = make_row(),
 			cnt = 0;
-		
+			
 		$.each(me.docfields, function(ci, df) {
 			if(!df.hidden) {
 				if(df.fieldtype=="Section Break") {
@@ -445,7 +406,49 @@ wn.ui.form.GridRow = Class.extend({
 		
 		this.wrapper.find(".footer-toolbar").toggle(me.fields.length > 6);
 		
+		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
+		
 		this.grid.open_grid_row = this;
+	},
+	make_form: function() {
+		if(!this.form_area) {
+			$('<div class="panel-heading">\
+				<div class="toolbar" style="height: 36px;">\
+					Editing Row #<span class="row-index"></span>\
+					<button class="btn btn-success pull-right" \
+						title="'+wn._("Close")+'"\
+						style="margin-left: 7px;">\
+						<i class="icon-chevron-up"></i></button>\
+					<button class="btn btn-default pull-right grid-insert-row" \
+						title="'+wn._("Insert Row")+'"\
+						style="margin-left: 7px;">\
+						<i class="icon-plus grid-insert-row"></i></button>\
+					<button class="btn btn-default pull-right grid-delete-row"\
+						title="'+wn._("Delete Row")+'"\
+						><i class="icon-trash grid-delete-row"></i></button>\
+				</div>\
+			</div>\
+			<div class="form-area"></div>\
+			<div class="toolbar footer-toolbar" style="height: 36px;">\
+				<button class="btn btn-success pull-right" \
+					title="'+wn._("Close")+'"\
+					style="margin-left: 7px;">\
+					<i class="icon-chevron-up"></i></button>\
+			</div>').appendTo(this.form_panel);
+			this.form_area = this.wrapper.find(".form-area");
+			this.set_form_events();
+		}
+	},
+	set_form_events: function() {
+		var me = this;
+		this.form_panel.find(".grid-delete-row")
+			.click(function() { me.remove(); return false; })
+		this.form_panel.find(".grid-insert-row")
+			.click(function() { me.insert(true); return false; })
+		this.form_panel.find(".panel-heading").on("click", function() { 
+				me.toggle_view();
+				return false;
+			});
 	},
 	set_data: function() {
 		this.wrapper.data({
