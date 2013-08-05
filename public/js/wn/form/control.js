@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.ui.form.make_control = function(opts) {
 	var control_class_name = "Control" + opts.df.fieldtype.replace(/ /g, "");
 	if(wn.ui.form[control_class_name]) {

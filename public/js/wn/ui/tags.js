@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.ui.TagEditor = Class.extend({
 	init: function(opts) {
 		/* docs:
@@ -16,7 +19,7 @@ wn.ui.TagEditor = Class.extend({
 			allowSpaces: true,
 			placeholderText: 'Add Tag',
 			onTagAdded: function(ev, tag) {
-				if(me.initialized) {
+				if(me.initialized && !me.refreshing) {
 					return wn.call({
 						method: 'webnotes.widgets.tags.add_tag',
 						args: me.get_args(tag.find('.tagit-label').text())
@@ -24,10 +27,12 @@ wn.ui.TagEditor = Class.extend({
 				}
 			},
 			onTagRemoved: function(ev, tag) {
-				return wn.call({
-					method: 'webnotes.widgets.tags.remove_tag',
-					args: me.get_args(tag.find('.tagit-label').text())
-				});
+				if(!me.refreshing) {
+					return wn.call({
+						method: 'webnotes.widgets.tags.remove_tag',
+						args: me.get_args(tag.find('.tagit-label').text())
+					});
+				}
 			}
 		});	
 		this.refresh(this.user_tags);
@@ -36,20 +41,25 @@ wn.ui.TagEditor = Class.extend({
 	get_args: function(tag) {
 		return {
 			tag: tag,
-			dt: this.doctype,
-			dn: this.docname,
+			dt: this.frm.doctype,
+			dn: this.frm.docname,
 		}
 	},
 	refresh: function(user_tags) {
 		var me = this;
-		
-		if(!user_tags) 
-			user_tags = wn.model.get_value(this.doctype, this.docname, "_user_tags");
+
+		me.refreshing = true;
+		me.$tags.tagit("removeAll");
+
+		if(!user_tags && this.frm) 
+			user_tags = wn.model.get_value(this.frm.doctype, this.frm.docname, "_user_tags");
 		
 		if(user_tags) {
 			$.each(user_tags.split(','), function(i, v) {
 				me.$tags.tagit("createTag", v);
 			});
 		}
+		me.refreshing = false;
+		
 	}
 })

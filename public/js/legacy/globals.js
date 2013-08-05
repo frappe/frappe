@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.provide('wn.widgets.form');
 wn.provide('wn.widgets.report');
 wn.provide('wn.utils');

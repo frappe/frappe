@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 // recent document list
 wn.ui.toolbar.Bookmarks = Class.extend({
 	init:function() {

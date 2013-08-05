@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.ui.form.Grid = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
@@ -97,6 +100,7 @@ wn.ui.form.Grid = Class.extend({
 	make_sortable: function($rows) {
 		var me =this;
 		$rows.sortable({
+			handle: ".data-row, .panel-heading",
 			update: function(event, ui) {
 				$rows.find(".grid-row").each(function(i, item) {
 					var doc = $(item).data("doc");

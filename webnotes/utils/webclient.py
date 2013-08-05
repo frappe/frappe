@@ -1,3 +1,6 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# MIT License. See license.txt
+
 # Simple Web service client for wnframework (ERPNext)
 # License MIT
 #
