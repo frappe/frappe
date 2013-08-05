@@ -97,6 +97,7 @@ wn.ui.form.Grid = Class.extend({
 	make_sortable: function($rows) {
 		var me =this;
 		$rows.sortable({
+			handle: ".data-row, .panel-heading",
 			update: function(event, ui) {
 				$rows.find(".grid-row").each(function(i, item) {
 					var doc = $(item).data("doc");
