@@ -473,3 +473,16 @@ fieldset[disabled] .btn-default.active {
   background-color: #a7a9aa;
   border-color: #a7a9aa;
 }
+
+.grid-overflow-no-ellipsis {
+	word-wrap: break-word;
+	overflow: hidden;
+	padding-right: 0px;
+}
+
+.grid-overflow-ellipsis {
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	padding-right: 0px;
+}
