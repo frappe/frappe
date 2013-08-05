@@ -1,5 +1,5 @@
-// Copyright 2013 Web Notes Technologies Pvt Ltd
-// License: MIT. See license.txt
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
 
 wn.views.ReportFactory = wn.views.Factory.extend({
 	make: function(route) {

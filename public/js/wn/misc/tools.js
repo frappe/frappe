@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.provide("wn.tools");
 
 wn.tools.downloadify = function(data, roles, me) {

@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.ui.form.Footer = Class.extend({
 	init: function(opts) {
 		var me = this;

@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.provide("wn.views.calendar");
 
 wn.views.GanttFactory = wn.views.Factory.extend({

@@ -1,3 +1,6 @@
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt
+
 wn.ui.form.LinkSelector = Class.extend({
 	_help: "Dialog box to select a Link Value",
 	init: function(opts) {
