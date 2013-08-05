@@ -18,7 +18,7 @@ wn.ui.form.Grid = Class.extend({
 		</div>').appendTo(this.parent);
 
 		$(this.wrapper).find(".grid-add-row").click(function() {
-			me.add_new_row();
+			me.add_new_row(null, null, true);
 			return false;
 		})
 		
@@ -120,10 +120,10 @@ wn.ui.form.Grid = Class.extend({
 		if($.isArray(fieldname)) {
 			var me = this;
 			$.each(fieldname, function(i, fname) {
-				wn.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = !show;
+				wn.meta.get_docfield(me.doctype, fname, me.frm.docname).hidden = show ? 0 : 1;
 			});
 		} else {
-			wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = !show;
+			wn.meta.get_docfield(this.doctype, fieldname, this.frm.docname).hidden = show ? 0 : 1;
 		}
 		
 		this.refresh(true);
@@ -142,17 +142,18 @@ wn.ui.form.Grid = Class.extend({
 	set_value: function(fieldname, value, doc) {
 		this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 	},
-	add_new_row: function(idx, callback) {
+	add_new_row: function(idx, callback, show) {
 		var d = wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
 		this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
 		this.refresh();
-		// show
 		
-		if(idx) {
-			this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
-				.toggle_view(true, callback);
-		} else {
-			this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
+		if(show) {
+			if(idx) {
+				this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
+					.toggle_view(true, callback);
+			} else {
+				this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
+			}
 		}
 	}
 });
@@ -166,7 +167,7 @@ wn.ui.form.GridRow = Class.extend({
 	make: function() {
 		var me = this;
 		this.wrapper = $('<div class="grid-row">\
-			<div class="data-row" style="min-height: 20px;"></div>\
+			<div class="data-row" style="min-height: 26px;"></div>\
 			<div class="panel panel-warning" style="display: none;">\
 				<div class="panel-heading">\
 					<div class="toolbar" style="height: 36px;">\
@@ -178,10 +179,10 @@ wn.ui.form.GridRow = Class.extend({
 						<button class="btn btn-default pull-right grid-insert-row" \
 							title="'+wn._("Insert Row")+'"\
 							style="margin-left: 7px;">\
-							<i class="icon-plus"></i></button>\
-						<button class="btn btn-danger pull-right"\
+							<i class="icon-plus grid-insert-row"></i></button>\
+						<button class="btn btn-default pull-right grid-delete-row"\
 							title="'+wn._("Delete Row")+'"\
-							><i class="icon-trash"></i></button>\
+							><i class="icon-trash grid-delete-row"></i></button>\
 					</div>\
 				</div>\
 				<div class="form-area"></div>\
@@ -201,13 +202,7 @@ wn.ui.form.GridRow = Class.extend({
 			this.wrapper
 				.attr("data-idx", this.doc.idx)
 				.find(".row-index").html(this.doc.idx)
-
-			this.wrapper.find(".data-row, .panel-heading")
-				.click(function() {
-					me.toggle_view();
-					return false;
-				});
-			this.set_button_events();
+			this.set_events();
 		}
 		this.form_panel = this.wrapper.find(".panel");
 		this.row = this.wrapper.find(".data-row");
@@ -218,29 +213,29 @@ wn.ui.form.GridRow = Class.extend({
 			this.set_data();
 		}
 	},
-	set_button_events: function() {
+	set_events: function() {
 		var me = this;
-
-		this.wrapper.find(".btn-success").click(function() {
-			me.toggle_view();
-			return false;
-		});
-		
-		this.wrapper.find(".btn-danger").click(function() {
-			me.wrapper.fadeOut(function() {
-				wn.model.clear_doc(me.doc.doctype, me.doc.name);
-				me.frm.dirty();
-				me.grid.refresh();
+		this.wrapper.find(".grid-delete-row")
+			.click(function() { me.remove(); return false; })
+		this.wrapper.find(".grid-insert-row")
+			.click(function() { me.insert(true); return false; })
+		this.wrapper.find(".data-row, .panel-heading").click(function() { 
+				me.toggle_view();
+				return false;
 			});
-			return false;
+	},
+	remove: function() {
+		var me = this;
+		me.wrapper.fadeOut(function() {
+			wn.model.clear_doc(me.doc.doctype, me.doc.name);
+			me.frm.dirty();
+			me.grid.refresh();
 		});
-		
-		this.wrapper.find(".grid-insert-row").click(function() {
-			var idx = me.doc.idx;
-			me.toggle_view(false);
-			me.grid.add_new_row(idx);
-			return false;
-		})
+	},
+	insert: function(show) {
+		var idx = this.doc.idx;
+		this.toggle_view(false);
+		this.grid.add_new_row(idx, null, show);
 	},
 	refresh: function() {
 		if(this.doc)
@@ -281,7 +276,7 @@ wn.ui.form.GridRow = Class.extend({
 						txt = wn._(txt)
 				}
 				total_colsize += colsize
-				if(total_colsize > 12) 
+				if(total_colsize > 11) 
 					return false;
 				$col = $('<div class="col col-lg-'+colsize+'">' 
 					+ txt + '</div>')
@@ -312,7 +307,7 @@ wn.ui.form.GridRow = Class.extend({
 
 		// redistribute if total-col size is less than 12
 		var passes = 0;
-		while(total_colsize < 12 && passes < 12) {
+		while(total_colsize < 11 && passes < 10) {
 			me.row.find(".col").each(function() {
 				var $col = $(this);
 				if(!$col.hasClass("col-lg-1") 
@@ -325,11 +320,27 @@ wn.ui.form.GridRow = Class.extend({
 						}
 					}
 				}
-				if(total_colsize >= 12) 
+				if(total_colsize >= 11) 
 					return false;
 			});
 			passes++;
 		}
+		
+		// append button column
+		if(me.doc) {
+			$col = $('<div class="col col-lg-1" \
+				style="text-align: right; padding-right: 5px;">\
+				<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
+					<i class="icon icon-plus-sign"></i></button>\
+				<button class="btn btn-small btn-default grid-delete-row" style="padding: 4px;">\
+					<i class="icon icon-trash"></i></button>\
+			</div>').appendTo(me.row);
+
+			$col.find(".grid-insert-row").click(function() { me.insert(); return false; })
+			$col.find(".grid-delete-row").click(function() { me.remove(); return false; })
+		}
+
+		this.toggle_add_delete_button_display()
 
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
 	},
@@ -377,11 +388,16 @@ wn.ui.form.GridRow = Class.extend({
 			callback && callback();
 		});
 	},
+	toggle_add_delete_button_display: function() {
+		this.wrapper.find(".grid-delete-row, .grid-insert-row")
+			.toggle(this.grid.display_status=="Write" && !this.grid.static_rows);
+	},
 	render_form: function() {
 		var me = this,
 			make_row = function(label) {
 				if(label)
-					$('<div><h4><b>'+ label +'</b></h4><hr></div>')
+					$('<div><h4 style="margin-bottom: 0px;"><b>'+ label +'</b></h4>\
+						<hr style="margin-top: 10px;"></div>')
 						.appendTo(me.form_area);
 
 				var row = $('<div class="row">')
@@ -422,10 +438,6 @@ wn.ui.form.GridRow = Class.extend({
 				cnt++;
 			}
 		});
-
-		if(this.grid.display_status!="Write" || this.grid.static_rows) {
-			this.wrapper.find(".btn-danger, .grid-insert-row").toggle(false);
-		}
 		
 		this.wrapper.find(".footer-toolbar").toggle(me.fields.length > 6);
 		
