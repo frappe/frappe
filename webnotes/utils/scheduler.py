@@ -112,6 +112,17 @@ def log(method):
 	d.save()
 	webnotes.conn.commit()
 
+	from webnotes.utils.email_lib import sendmail_to_system_managers
+	sendmail_to_system_managers("ERPNext Scheduler Failed", """
+<p>Dear System Managers,</p>
+<p>Reporting ERPNext failed scheduler event:</p>
+<p>Time: %(time)s</p>
+<pre><code>%(trace)s</code></pre>
+""" % {
+	"time": webnotes.utils.now(),
+	"trace": traceback
+})
+	
 	return traceback
 
 if __name__=='__main__':

@@ -33,6 +33,10 @@ def sendmail(recipients, sender='', msg='', subject='[No Subject]'):
 	from webnotes.utils.email_lib.smtp import get_email
 	get_email(recipients, sender, msg, subject).send()
 
+def sendmail_to_system_managers(subject, content):
+	from webnotes.utils.email_lib.smtp import get_email
+	get_email(get_system_managers(), None, content, subject).send()
+
 @webnotes.whitelist()
 def get_contact_list():
 	"""Returns contacts (from autosuggest)"""
