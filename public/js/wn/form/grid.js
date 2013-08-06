@@ -415,7 +415,7 @@ wn.ui.form.GridRow = Class.extend({
 			$('<div class="panel-heading">\
 				<div class="toolbar" style="height: 36px;">\
 					Editing Row #<span class="row-index"></span>\
-					<button class="btn btn-success pull-right" \
+					<button class="btn btn-success pull-right grid-toggle-row" \
 						title="'+wn._("Close")+'"\
 						style="margin-left: 7px;">\
 						<i class="icon-chevron-up"></i></button>\
@@ -430,7 +430,7 @@ wn.ui.form.GridRow = Class.extend({
 			</div>\
 			<div class="form-area"></div>\
 			<div class="toolbar footer-toolbar" style="height: 36px;">\
-				<button class="btn btn-success pull-right" \
+				<button class="btn btn-success pull-right grid-toggle-row" \
 					title="'+wn._("Close")+'"\
 					style="margin-left: 7px;">\
 					<i class="icon-chevron-up"></i></button>\
@@ -445,7 +445,7 @@ wn.ui.form.GridRow = Class.extend({
 			.click(function() { me.remove(); return false; })
 		this.form_panel.find(".grid-insert-row")
 			.click(function() { me.insert(true); return false; })
-		this.form_panel.find(".panel-heading").on("click", function() { 
+		this.form_panel.find(".panel-heading, .grid-toggle-row").on("click", function() { 
 				me.toggle_view();
 				return false;
 			});
