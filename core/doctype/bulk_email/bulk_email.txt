@@ -2,7 +2,7 @@
  {
   "creation": "2012-08-02 15:17:28", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:29:33", 
+  "modified": "2013-08-06 15:36:00", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -31,7 +31,8 @@
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
-  "read": 1
+  "read": 1, 
+  "role": "System Manager"
  }, 
  {
   "doctype": "DocType", 
@@ -68,11 +69,23 @@
   "label": "Error"
  }, 
  {
-  "doctype": "DocPerm", 
-  "role": "Administrator"
+  "doctype": "DocField", 
+  "fieldname": "ref_doctype", 
+  "fieldtype": "Link", 
+  "label": "Reference DocType", 
+  "options": "DocType", 
+  "read_only": 1, 
+  "reqd": 1
  }, 
  {
-  "doctype": "DocPerm", 
-  "role": "System Manager"
+  "doctype": "DocField", 
+  "fieldname": "ref_docname", 
+  "fieldtype": "Data", 
+  "label": "Reference DocName", 
+  "read_only": 1, 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]
