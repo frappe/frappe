@@ -139,7 +139,7 @@ $.extend(wn.meta, {
 	},
 	
 	get_field_precision: function(df, doc) {
-		var precision = wn.defaults.get_default("float_precision") || 6;
+		var precision = wn.defaults.get_default("float_precision") || 3;
 		if(df && df.fieldtype === "Currency") {
 			var currency = this.get_field_currency(df, doc);
 			var number_format = get_number_format(currency);
