@@ -71,9 +71,8 @@ wn.ui.form.Grid = Class.extend({
 				me.grid_rows_by_docname[d.name] = grid_row;
 			});
 
-			this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write" 
-				&& !this.static_rows);
-			if(this.display_status=="Write" && !this.static_rows) {
+			this.wrapper.find(".grid-add-row").toggle(this.is_editable());
+			if(this.is_editable()) {
 				this.make_sortable($rows);
 			}
 
@@ -159,7 +158,10 @@ wn.ui.form.Grid = Class.extend({
 				this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
 			}
 		}
-	}
+	},
+	is_editable: function() {
+		return this.display_status=="Write" && !this.static_rows
+	},
 });
 
 wn.ui.form.GridRow = Class.extend({
@@ -287,9 +289,9 @@ wn.ui.form.GridRow = Class.extend({
 		}
 		
 		// append button column
-		if(me.doc && this.is_editable()) {
+		if(me.doc && this.grid.is_editable()) {
 			if(!me.grid.$row_actions) {
-				me.grid.$row_actions = $('<div class="col col-lg-1" \
+				me.grid.$row_actions = $('<div class="col col-lg-1 pull-right" \
 					style="text-align: right; padding-right: 5px;">\
 					<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
 						<i class="icon icon-plus-sign"></i></button>\
@@ -298,6 +300,7 @@ wn.ui.form.GridRow = Class.extend({
 				</div>');
 			}
 			$col = me.grid.$row_actions.clone().appendTo(me.row);
+			console.log($col.width());
 			
 			if($col.width() < 50) {
 				$col.remove();
@@ -336,7 +339,6 @@ wn.ui.form.GridRow = Class.extend({
 			}
 		}
 
-		this.make_static_display();
 		this.wrapper.toggleClass("grid-row-open", this.show);
 
 		this.show && this.render_form()
@@ -348,16 +350,14 @@ wn.ui.form.GridRow = Class.extend({
 					me.form_area.find(":input:first").focus();
 			} else {
 				me.row.toggle(true);
+				me.make_static_display();
 			}
 			callback && callback();
 		});
 	},
-	is_editable: function() {
-		return this.grid.display_status=="Write" && !this.grid.static_rows
-	},
 	toggle_add_delete_button_display: function($parent) {
 		$parent.find(".grid-delete-row, .grid-insert-row")
-			.toggle(this.is_editable());
+			.toggle(this.grid.is_editable());
 	},
 	render_form: function() {
 		this.make_form();
