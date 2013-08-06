@@ -6,7 +6,7 @@ import webnotes.model
 from webnotes.model.doc import Document
 
 class DocList(list):
-	"""DocList object as a wrapper around a list"""	
+	"""DocList object as a wrapper around a list"""
 	def get(self, filters, limit=0):
 		"""pass filters as:
 			{"key": "val", "key": ["!=", "val"],
@@ -63,6 +63,12 @@ class DocList(list):
 			out.append(Document(fielddata=fielddata))
 		return DocList(out)
 		
+	def get_item_value(self, d, name):
+		if isinstance(d, dict):
+			return d[name]
+		else:
+			return d.fields[name]
+		
 	def filter_valid_fields(self):
 		import webnotes.model
 		fieldnames = {}
@@ -101,7 +107,7 @@ class DocList(list):
 			if not doc.parent:
 				doc.parent = self[0].name
 			if not doc.idx:
-				siblings = [int(d.idx or 0) for d in self.get({"parentfield": doc.parentfield})]
+				siblings = [int(self.get_item_value(d, "idx") or 0) for d in self.get({"parentfield": doc.parentfield})]
 				doc.idx = (max(siblings) + 1) if siblings else 1
 		
 def objectify(doclist):

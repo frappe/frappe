@@ -373,6 +373,9 @@ div#freeze {
 	outline: none;	
 }
 
+.wysiwyg-editor img {
+	max-width: 100%;
+}
 /* form */
 
 textarea[data-fieldtype="Small Text"] {

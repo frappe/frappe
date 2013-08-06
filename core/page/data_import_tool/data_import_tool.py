@@ -61,10 +61,10 @@ def get_template():
 		w.writerow(['Notes:'])
 		w.writerow(['Please do not change the template headings.'])
 		w.writerow(['First data column must be blank.'])
-		w.writerow(['Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
-		w.writerow(['For updating, you can update only selective columns.'])
 		w.writerow(['If you are uploading new records, leave the "name" (ID) column blank.'])
 		w.writerow(['If you are uploading new records, "Naming Series" becomes mandatory, if present.'])
+		w.writerow(['Only mandatory fields are necessary for new records. You can delete non-mandatory columns if you wish.'])
+		w.writerow(['For updating, you can update only selective columns.'])
 		w.writerow(['You can only upload upto 5000 records in one go. (may be less in some cases)'])
 		if key == "parent":
 			w.writerow(['"Parent" signifies the parent table in which this row must be added'])

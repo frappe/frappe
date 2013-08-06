@@ -38,6 +38,8 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=No
 	else:
 		target_doclist = [target_doc]
 	
+	target_doclist = webnotes.doclist(target_doclist)
+	
 	# children
 	for source_d in source.doclist[1:]:
 		table_map = table_maps.get(source_d.doctype)
@@ -58,8 +60,9 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=No
 		
 			target_d = webnotes.new_doc(target_doctype, target_doc, parentfield)
 			map_doc(source_d, target_d, table_map, source_meta, target_meta, source.doclist[0])
+			target_d.idx = None
 			target_doclist.append(target_d)
-	
+
 	target_doclist = webnotes.doclist(target_doclist)
 	
 	if postprocess:
