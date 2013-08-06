@@ -65,9 +65,9 @@ class DocList(list):
 		
 	def get_item_value(self, d, name):
 		if isinstance(d, dict):
-			return d[name]
+			return d.get(name)
 		else:
-			return d.fields[name]
+			return d.fields.get(name)
 		
 	def filter_valid_fields(self):
 		import webnotes.model

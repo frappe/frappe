@@ -91,7 +91,7 @@ class DocListController(object):
 		
 		if not hasattr(self, "_precision"):
 			self._precision = webnotes._dict({
-				"default": cint(webnotes.conn.get_default("float_precision")) or 6,
+				"default": cint(webnotes.conn.get_default("float_precision")) or 3,
 				"options": {}
 			})
 		

@@ -37,17 +37,8 @@ class Profile:
 		self.doctype_map = {}
 		for r in webnotes.conn.sql("""select name, in_create, issingle, istable, 
 			read_only, module from tabDocType""", as_dict=1):
-			r['child_tables'] = []
 			self.doctype_map[r['name']] = r
 			
-		for r in webnotes.conn.sql("""select parent, options from tabDocField 
-			where fieldtype="Table"
-			and parent not like "old_parent:%%" 
-			and ifnull(docstatus,0)=0
-			"""):
-			if r[0] in self.doctype_map:
-				self.doctype_map[r[0]]['child_tables'].append(r[1])
-	
 	def build_perm_map(self):
 		"""build map of permissions at level 0"""
 		
@@ -100,7 +91,6 @@ class Profile:
 			if (p.get('read') or p.get('write') or p.get('create')):
 				if p.get('report'):
 					self.can_get_report.append(dt)
-					self.can_get_report += dtp['child_tables']
 				if not dtp.get('istable'):
 					if not dtp.get('issingle') and not dtp.get('read_only'):
 						self.can_search.append(dt)

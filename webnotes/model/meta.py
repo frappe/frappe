@@ -96,6 +96,6 @@ def get_field_precision(df, doc):
 	decimal_str, comma_str, precision = get_number_format_info(number_format)
 
 	if df.fieldtype == "Float":
-		precision = cint(webnotes.conn.get_default("float_precision")) or 6
+		precision = cint(webnotes.conn.get_default("float_precision")) or 3
 
 	return precision
