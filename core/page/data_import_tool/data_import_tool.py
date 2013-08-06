@@ -43,11 +43,11 @@ def get_template():
 	
 	if all_doctypes:
 		doctype_parentfield = {}
-		doctypes = []
+		child_doctypes = []
 		for d in get_table_fields(doctype):
-			doctypes.append(d[0])
+			child_doctypes.append(d[0])
 			doctype_parentfield[d[0]] = d[1]
-	
+		
 	def add_main_header():
 		w.writerow(['Data Import Template'])
 		w.writerow([data_keys.main_table, doctype])
@@ -187,9 +187,9 @@ def get_template():
 				
 				if all_doctypes:
 					# add child tables
-					for child_doctype in doctypes[1:]:
+					for child_doctype in child_doctypes:
 						for ci, child in enumerate(webnotes.conn.sql("""select * from `tab%s` 
-							where parent=%s""" % (child_doctype, "%s"), doc.name, as_dict=1)):
+							where parent=%s order by idx""" % (child_doctype, "%s"), doc.name, as_dict=1)):
 							add_data_row(row_group, child_doctype, child, ci)
 					
 				for row in row_group:
@@ -211,7 +211,7 @@ def get_template():
 
 	build_field_columns(doctype)
 	if all_doctypes:
-		for d in doctypes[1:]:
+		for d in child_doctypes:
 			append_empty_field_column()
 			build_field_columns(d)
 	

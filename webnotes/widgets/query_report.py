@@ -80,7 +80,7 @@ def get_filtered_data(ref_doctype, columns, data):
 
 	linked_doctypes = get_linked_doctypes(columns)
 	match_filters = get_user_match_filters(linked_doctypes, ref_doctype)
-	
+		
 	if match_filters:
 		matched_columns = get_matched_columns(linked_doctypes, match_filters)
 		for row in data:
@@ -122,8 +122,8 @@ def get_user_match_filters(doctypes, ref_doctype):
 	webnotes.widgets.reportview.doctypes = doctypes_meta
 
 	for dt in doctypes:
-		match_filters = webnotes.widgets.reportview.build_match_conditions(dt, 
-			None, False, match_filters)
+		match_filters.update(webnotes.widgets.reportview.build_match_conditions(dt, 
+			None, False))
 
 	return match_filters
 

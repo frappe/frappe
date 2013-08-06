@@ -29,7 +29,7 @@ wn.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(wn.boot.profile && wn.boot.profile.name==="Administrator" &&
 			wn.boot.developer_mode===1 && this.$wrapper) {
-				this.$wrapper.tooltip({title: this.df.fieldname});
+				this.$wrapper.attr("title", this.df.fieldname);
 		}
 	},
 	make: function() {

@@ -139,6 +139,9 @@ def setup_options():
 	parser.add_option('--install_fresh', nargs=1, metavar = "NEW_DB_NAME",
 						help="install fresh db")
 
+	parser.add_option('--make_demo', default=False, action="store_true",
+						help="install in database 'demo'")
+
 	# update
 	parser.add_option("-u", "--update", 
 		help="Pull, run latest patches and sync all",
@@ -390,6 +393,10 @@ def run():
 		from webnotes.install_lib.install import Installer
 		inst = Installer('root')
 		inst.import_from_db(options.install_fresh, verbose = 1)
+
+	elif options.make_demo:
+		import utilities.make_demo
+		utilities.make_demo.make()
 
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff

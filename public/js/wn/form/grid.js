@@ -287,7 +287,7 @@ wn.ui.form.GridRow = Class.extend({
 		}
 		
 		// append button column
-		if(me.doc) {
+		if(me.doc && this.is_editable()) {
 			if(!me.grid.$row_actions) {
 				me.grid.$row_actions = $('<div class="col col-lg-1" \
 					style="text-align: right; padding-right: 5px;">\
@@ -298,11 +298,13 @@ wn.ui.form.GridRow = Class.extend({
 				</div>');
 			}
 			$col = me.grid.$row_actions.clone().appendTo(me.row);
-
-			$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
-			$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
 			
-			this.toggle_add_delete_button_display($col);
+			if($col.width() < 50) {
+				$col.remove();
+			} else {
+				$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
+				$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
+			}
 		}
 
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
@@ -350,9 +352,12 @@ wn.ui.form.GridRow = Class.extend({
 			callback && callback();
 		});
 	},
+	is_editable: function() {
+		return this.grid.display_status=="Write" && !this.grid.static_rows
+	},
 	toggle_add_delete_button_display: function($parent) {
 		$parent.find(".grid-delete-row, .grid-insert-row")
-			.toggle(this.grid.display_status=="Write" && !this.grid.static_rows);
+			.toggle(this.is_editable());
 	},
 	render_form: function() {
 		this.make_form();
