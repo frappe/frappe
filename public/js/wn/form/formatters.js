@@ -20,7 +20,7 @@ wn.form.formatters = {
 		return value==null ? "": cint(value);
 	},
 	Percent: function(value) {
-		return flt(value, 2) + "%";
+		return "<div style='text-align: right'>" + flt(value, 2) + "%" + "</div>";
 	},
 	Currency: function(value, docfield, options, doc) {
 		var currency = wn.meta.get_field_currency(docfield, doc);

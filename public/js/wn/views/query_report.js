@@ -144,6 +144,7 @@ wn.views.QueryReport = Class.extend({
 		})
 		return wn.call({
 			method: "webnotes.widgets.query_report.run",
+			type: "GET",
 			args: {
 				"report_name": me.report_name,
 				filters: filters
