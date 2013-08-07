@@ -273,6 +273,7 @@ class Bean:
 
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
+		self.set_defaults()
 		
 		if webnotes.in_test:
 			if self.meta.get_field("naming_series"):
@@ -280,6 +281,23 @@ class Bean:
 		
 		return self.save()
 	
+	def set_defaults(self):
+		if webnotes.in_import:
+			return
+			
+		new_docs = {}
+		new_doclist = []
+		
+		for d in self.doclist:
+			if not d.doctype in new_docs:
+				new_docs[d.doctype] = webnotes.new_doc(d.doctype)
+				
+			newd = webnotes.doc(new_docs[d.doctype].fields.copy())
+			newd.fields.update(d.fields)
+			new_doclist.append(newd)
+			
+		self.set_doclist(new_doclist)
+
 	def has_read_perm(self):
 		return webnotes.has_permission(self.doc.doctype, "read", self.doc)
 	

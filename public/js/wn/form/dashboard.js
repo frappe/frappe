@@ -60,35 +60,45 @@ wn.ui.form.Dashboard = Class.extend({
 		});
 	},
 	add_progress: function(title, percent) {
-		var width = cint(percent) < 1 ? 1 : percent;
+		var progress_chart = this.make_progress_chart(title);
 		
-		var progress_class = "";
-		if(width < 10)
-			progress_class = "progress-bar-danger";
-		if(width > 99.9)
-			progress_class = "progress-bar-success";
+		if(!$.isArray(percent)) {
+			var width = cint(percent) < 1 ? 1 : percent;
+			var progress_class = "";
+			if(width < 10)
+				progress_class = "progress-bar-danger";
+			if(width > 99.9)
+				progress_class = "progress-bar-success";
+				
+			percent = [{
+				title: title,
+				width: width,
+				progress_class: progress_class
+			}];
+		}
 		
+		var progress = $('<div class="progress"></div>').appendTo(progress_chart);
+		$.each(percent, function(i, opts) {
+			$(repl('<div class="progress-bar %(progress_class)s" style="width: %(width)s%" \
+				title="%(title)s"></div>', opts)).appendTo(progress);
+		});
+				
+		this.wrapper.toggle(true);
+	},
+	make_progress_chart: function(title) {
 		var progress_area = this.body.find(".progress-area");
 		if(!progress_area.length) {
 			progress_area = $('<div class="progress-area">').appendTo(this.body);
 		}
-		$(repl('<div class="progress-chart">\
-			<h5>%(title)s</h5>\
-			<div class="progress">\
-				<div class="progress-bar %(progress_class)s" style="width: %(width)s%"></div>\
-			</div>\
-		</div>', {
-			title:title,
-			width: width,
-			progress_class: progress_class
-		})).appendTo(progress_area);
+		var progress_chart = $('<div class="progress-chart"><h5>'+title+'</h5></div>')
+			.appendTo(progress_area);
 		
 		var n_charts = progress_area.find(".progress-chart").length,
 			cols = Math.floor(12 / n_charts);
-		
+	
 		progress_area.find(".progress-chart")
 			.removeClass().addClass("progress-chart col col-lg-" + cols);
-		this.wrapper.toggle(true);
+		
+		return progress_chart;
 	}
-	
-})
+});

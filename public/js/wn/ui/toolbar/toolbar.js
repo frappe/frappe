@@ -143,7 +143,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">\
 					<i class="icon-fixed-width icon-info-sign"></i> '
 					+wn._('About')+'</a></li>\
-				<li><a href="http://erpnext.org/docs.attributions.html"><i class="icon-fixed-width icon-heart"></i> '
+				<li><a href="http://erpnext.org/docs.attributions.html" target="_blank"><i class="icon-fixed-width icon-heart"></i> '
 					+wn._('Attributions')+'</a></li>\
 			</ul>\
 		</li>');

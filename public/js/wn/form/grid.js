@@ -71,9 +71,8 @@ wn.ui.form.Grid = Class.extend({
 				me.grid_rows_by_docname[d.name] = grid_row;
 			});
 
-			this.wrapper.find(".grid-add-row").toggle(this.display_status=="Write" 
-				&& !this.static_rows);
-			if(this.display_status=="Write" && !this.static_rows) {
+			this.wrapper.find(".grid-add-row").toggle(this.is_editable());
+			if(this.is_editable()) {
 				this.make_sortable($rows);
 			}
 
@@ -159,7 +158,10 @@ wn.ui.form.Grid = Class.extend({
 				this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
 			}
 		}
-	}
+	},
+	is_editable: function() {
+		return this.display_status=="Write" && !this.static_rows
+	},
 });
 
 wn.ui.form.GridRow = Class.extend({
@@ -287,9 +289,9 @@ wn.ui.form.GridRow = Class.extend({
 		}
 		
 		// append button column
-		if(me.doc) {
+		if(me.doc && this.grid.is_editable()) {
 			if(!me.grid.$row_actions) {
-				me.grid.$row_actions = $('<div class="col col-lg-1" \
+				me.grid.$row_actions = $('<div class="col col-lg-1 pull-right" \
 					style="text-align: right; padding-right: 5px;">\
 					<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
 						<i class="icon icon-plus-sign"></i></button>\
@@ -298,11 +300,14 @@ wn.ui.form.GridRow = Class.extend({
 				</div>');
 			}
 			$col = me.grid.$row_actions.clone().appendTo(me.row);
-
-			$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
-			$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
+			console.log($col.width());
 			
-			this.toggle_add_delete_button_display($col);
+			if($col.width() < 50) {
+				$col.remove();
+			} else {
+				$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
+				$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
+			}
 		}
 
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
@@ -334,7 +339,6 @@ wn.ui.form.GridRow = Class.extend({
 			}
 		}
 
-		this.make_static_display();
 		this.wrapper.toggleClass("grid-row-open", this.show);
 
 		this.show && this.render_form()
@@ -346,13 +350,14 @@ wn.ui.form.GridRow = Class.extend({
 					me.form_area.find(":input:first").focus();
 			} else {
 				me.row.toggle(true);
+				me.make_static_display();
 			}
 			callback && callback();
 		});
 	},
 	toggle_add_delete_button_display: function($parent) {
 		$parent.find(".grid-delete-row, .grid-insert-row")
-			.toggle(this.grid.display_status=="Write" && !this.grid.static_rows);
+			.toggle(this.grid.is_editable());
 	},
 	render_form: function() {
 		this.make_form();
@@ -415,7 +420,7 @@ wn.ui.form.GridRow = Class.extend({
 			$('<div class="panel-heading">\
 				<div class="toolbar" style="height: 36px;">\
 					Editing Row #<span class="row-index"></span>\
-					<button class="btn btn-success pull-right" \
+					<button class="btn btn-success pull-right grid-toggle-row" \
 						title="'+wn._("Close")+'"\
 						style="margin-left: 7px;">\
 						<i class="icon-chevron-up"></i></button>\
@@ -430,7 +435,7 @@ wn.ui.form.GridRow = Class.extend({
 			</div>\
 			<div class="form-area"></div>\
 			<div class="toolbar footer-toolbar" style="height: 36px;">\
-				<button class="btn btn-success pull-right" \
+				<button class="btn btn-success pull-right grid-toggle-row" \
 					title="'+wn._("Close")+'"\
 					style="margin-left: 7px;">\
 					<i class="icon-chevron-up"></i></button>\
@@ -445,7 +450,7 @@ wn.ui.form.GridRow = Class.extend({
 			.click(function() { me.remove(); return false; })
 		this.form_panel.find(".grid-insert-row")
 			.click(function() { me.insert(true); return false; })
-		this.form_panel.find(".panel-heading").on("click", function() { 
+		this.form_panel.find(".panel-heading, .grid-toggle-row").on("click", function() { 
 				me.toggle_view();
 				return false;
 			});

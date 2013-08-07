@@ -9,7 +9,7 @@ from webnotes.utils import cint
 class BulkLimitCrossedError(webnotes.ValidationError): pass
 
 def send(recipients=None, sender=None, doctype='Profile', email_field='email',
-		subject='[No Subject]', message='[No Content]'):
+		subject='[No Subject]', message='[No Content]', ref_doctype=None, ref_docname=None):
 	"""send bulk mail if not unsubscribed and within conf.bulk_mail_limit"""
 	import webnotes
 			
@@ -69,9 +69,9 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		
 		if not is_unsubscribed(doc):
 			# add to queue
-			add(r, sender, subject, update_message(doc), text_content)
+			add(r, sender, subject, update_message(doc), text_content, ref_doctype, ref_docname)
 
-def add(email, sender, subject, message, text_content = None):
+def add(email, sender, subject, message, text_content=None, ref_doctype=None, ref_docname=None):
 	"""add to bulk mail queue"""
 	from webnotes.utils.email_lib.smtp import get_email
 	
@@ -86,6 +86,8 @@ def add(email, sender, subject, message, text_content = None):
 		return
 		
 	e.status = 'Not Sent'
+	e.ref_doctype = ref_doctype
+	e.ref_docname = ref_docname
 	e.save()
 	
 @webnotes.whitelist(allow_guest=True)
@@ -108,12 +110,16 @@ def unsubscribe():
 	
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
-	import webnotes
+	import webnotes, conf
 	from webnotes.utils.email_lib.smtp import SMTPServer, get_email
-	
+
 	smptserver = SMTPServer()
 	
 	auto_commit = not from_test
+	
+	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+		webnotes.msgprint("Emails are muted")
+		from_test = True
 
 	for i in xrange(500):		
 		email = webnotes.conn.sql("""select * from `tabBulk Email` where 

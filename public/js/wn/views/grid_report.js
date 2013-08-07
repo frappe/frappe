@@ -329,7 +329,7 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		$.each(this.columns, function(i, col) {
 			if (col.formatter==me.currency_formatter) {
-				item[col.id] = flt(item[col.id], wn.defaults.get_default("float_precision") || 6);
+				item[col.id] = flt(item[col.id], wn.defaults.get_default("float_precision") || 3);
 			}
 		});
 	},

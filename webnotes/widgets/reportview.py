@@ -177,11 +177,11 @@ def build_filter_conditions(filters, conditions):
 					conditions.append('ifnull(' + tname + '.' + f[1] + ",0) " + f[2] \
 						+ " " + cstr(f[3]))
 					
-def build_match_conditions(doctype, fields=None, as_condition=True, match_filters=None):
+def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
 	global tables, roles
 	
-	if not match_filters: match_filters = {}
+	match_filters = {}
 	match_conditions = []
 	match = True
 	
@@ -215,6 +215,7 @@ def build_match_conditions(doctype, fields=None, as_condition=True, match_filter
 					# don't restrict if another read permission at level 0 
 					# exists without a match restriction
 					match = False
+					match_filters = {}
 		
 	if as_condition:
 		if match_conditions and match:
