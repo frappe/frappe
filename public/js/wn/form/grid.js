@@ -300,7 +300,6 @@ wn.ui.form.GridRow = Class.extend({
 				</div>');
 			}
 			$col = me.grid.$row_actions.clone().appendTo(me.row);
-			console.log($col.width());
 			
 			if($col.width() < 50) {
 				$col.remove();
