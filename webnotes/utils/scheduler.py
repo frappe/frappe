@@ -92,22 +92,22 @@ def log(method):
 	d.error = traceback
 	d.save()
 	webnotes.conn.commit()
-
-	from webnotes.utils.email_lib import sendmail_to_system_managers
-	from startup import get_url
-	sendmail_to_system_managers("ERPNext Scheduler Failed", """
-<p>Dear System Managers,</p>
-<p>Reporting ERPNext failed scheduler event:</p>
-<p>URL: <a href="%(url)s" target="_blank">%(url)s</a></p>
-<p>Time: %(time)s</p>
-<pre><code>%(trace)s</code></pre>
-""" % {
-	"time": webnotes.utils.now(),
-	"trace": traceback,
-	"url": get_url()
-})
 	
 	return traceback
+
+def report_errors():
+	from webnotes.utils.email_lib import sendmail_to_system_managers
+	from startup import get_url
+	
+	errors = [("""<p>Time: %(modified)s</p>
+<pre><code>%(error)s</code></pre>""" % d) for d in webnotes.conn.sql("""select modified, error 
+		from `tabScheduler Log` where DATEDIFF(modified, NOW()) < 1 limit 10""", as_dict=True)]
+		
+	if errors:
+		sendmail_to_system_managers("ERPNext Scheduler Failure Report", ("""
+	<p>Dear System Managers,</p>
+	<p>Reporting ERPNext failed scheduler events for the day (max 10):</p>
+	<p>URL: <a href="%(url)s" target="_blank">%(url)s</a></p><hr>""" % {"url":get_url()}) + "<hr>".join(errors))
 
 if __name__=='__main__':
 	execute()
