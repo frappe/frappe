@@ -144,7 +144,8 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			fields: $.map(this.columns, function(v) { return me.get_full_column_name(v) }),
 			order_by: this.get_order_by(),
 			filters: this.filter_list.get_filters(),
-			docstatus: ['0','1','2']
+			docstatus: ['0','1','2'],
+			with_childnames: 1
 		}
 	},
 	
@@ -244,6 +245,62 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		if(this.start!=0 && !options.autoHeight) {
 			this.grid.scrollRowIntoView(this.data.length-1);
 		}
+		
+		this.grid.onDblClick.subscribe(function(e, args) {
+			var row = me.dataView.getItem(args.row);
+			var cell = me.grid.getColumns()[args.cell];
+			me.edit_cell(row, cell.docfield);
+		});
+		
+		this.dataView.onRowsChanged.subscribe(function (e, args) {
+			me.grid.invalidateRows(args.rows);
+			me.grid.render();
+		});
+	},
+	
+	edit_cell: function(row, docfield) {
+		if(wn.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
+			wn.throw(wn._("Cannot edit standard fields"));
+		}
+		var me = this;
+		var d = new wn.ui.Dialog({
+			title: wn._("Edit") + " " + wn._(docfield.label),
+			fields: [docfield, {"fieldtype": "Button", "label": "Update"}],
+		});
+		d.get_input(docfield.fieldname).val(row[docfield.fieldname]);
+		d.get_input("update").on("click", function() {
+			wn.call({
+				method: "webnotes.client.set_value",
+				args: {
+					doctype: docfield.parent,
+					docname: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+					fieldname: docfield.fieldname,
+					value: d.get_value(docfield.fieldname)
+				},
+				callback: function(r) {
+					if(!r.exc) {
+						d.hide();
+						var doclist = r.message;
+						$.each(me.dataView.getItems(), function(i, item) {
+							if (item.name === doclist[0].name) {
+								var new_item = $.extend({}, item, doclist[0]);
+								$.each(doclist, function(i, doc) {
+									if(item[doc.doctype + ":name"]===doc.name) {
+										$.each(doc, function(k, v) {
+											if(wn.model.std_fields_list.indexOf(k)===-1) {
+												new_item[k] = v;
+											}
+										})
+									}
+								});
+								me.dataView.updateItem(item.id, new_item);
+							}
+						});
+					}
+				}
+			});
+		});
+		d.show();
 	},
 	
 	set_data: function() {

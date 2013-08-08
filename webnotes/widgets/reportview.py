@@ -31,7 +31,7 @@ def get_form_params():
 	
 def execute(doctype, query=None, filters=None, fields=None, docstatus=None, 
 		group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
-		as_list=False, debug=False):
+		as_list=False, with_childnames=False, debug=False):
 
 	if query:
 		return run_custom_query(query)
@@ -39,7 +39,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	if not filters: filters = []
 	if not docstatus: docstatus = []
 
-	args = prepare_args(doctype, filters, fields, docstatus, group_by, order_by)
+	args = prepare_args(doctype, filters, fields, docstatus, group_by, order_by, with_childnames)
 	args.limit = add_limit(limit_start, limit_page_length)
 	
 	query = """select %(fields)s from %(tables)s where %(conditions)s
@@ -47,7 +47,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 		
 	return webnotes.conn.sql(query, as_dict=not as_list, debug=debug)
 	
-def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
+def prepare_args(doctype, filters, fields, docstatus, group_by, order_by, with_childnames):
 	global tables		
 	tables = get_tables(doctype, fields)
 	load_doctypes()
@@ -55,6 +55,11 @@ def prepare_args(doctype, filters, fields, docstatus, group_by, order_by):
 	conditions = build_conditions(doctype, fields, filters, docstatus)
 	
 	args = webnotes._dict()
+	
+	if with_childnames:
+		for t in tables:
+			if t != "`tab" + doctype + "`":
+				fields.append(t + ".name as '%s:name'" % t[4:-1])
 	
 	# query dict
 	args.tables = ', '.join(tables)
