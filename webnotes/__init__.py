@@ -60,6 +60,7 @@ error_log = []
 debug_log = []
 message_log = []
 mute_emails = False
+mute_messages = False
 test_objects = {}
 request_method = None
 print_messages = False
@@ -110,6 +111,8 @@ def log(msg):
 	debug_log.append(cstr(msg))
 
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
+	if mute_messages: 
+		return
 	from utils import cstr
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
@@ -314,7 +317,11 @@ def doc(doctype=None, name=None, fielddata=None):
 def new_doc(doctype, parent_doc=None, parentfield=None):
 	from webnotes.model.create_new import get_new_doc
 	return get_new_doc(doctype, parent_doc, parentfield)
-	
+
+def new_bean(doctype):
+	from webnotes.model.create_new import get_new_doc
+	return bean([get_new_doc(doctype)])
+
 def doclist(lst=None):
 	from webnotes.model.doclist import DocList
 	return DocList(lst)

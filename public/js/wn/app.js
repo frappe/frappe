@@ -196,19 +196,49 @@ wn.Application = Class.extend({
 	},
 	
 	setup_keyboard_shortcuts: function() {
-		$(document).keydown("meta+g ctrl+g", function(e) {
-			wn.ui.toolbar.search.show();
-			return false;
-		});
+		$(document)
+			.keydown("meta+g ctrl+g", function(e) {
+				wn.ui.toolbar.search.show();
+				return false;
+			})
+			.keydown("meta+s ctrl+s", function(e) {
+				if(cur_frm) {
+					cur_frm.save_or_update();
+				} else if(wn.container.page.save_action) {
+					wn.container.page.save_action();
+				}
+				return false;
+			})
+			.keydown("esc", function(e) {
+				var open_row = $(".grid-row-open");
+				if(open_row.length) {
+					var grid_row = open_row.data("grid_row");
+					grid_row.toggle_view(false);
+				}
+			})
+			.keydown("ctrl+down meta+down", function(e) {
+				var open_row = $(".grid-row-open");
+				if(open_row.length) {
+					var grid_row = open_row.data("grid_row");
+					grid_row.toggle_view(false, function() { grid_row.open_next() });
+				}
+			})
+			.keydown("ctrl+up meta+up", function(e) {
+				var open_row = $(".grid-row-open");
+				if(open_row.length) {
+					var grid_row = open_row.data("grid_row");
+					grid_row.toggle_view(false, function() { grid_row.open_prev() });
+				}
+			})
+			.keydown("ctrl+n meta+n", function(e) {
+				var open_row = $(".grid-row-open");
+				if(open_row.length) {
+					var grid_row = open_row.data("grid_row");
+					grid_row.toggle_view(false, function() { grid_row.grid.add_new_row(grid_row.doc.idx, null, true); });
+				}
+				return false;
+			})
 
-		$(document).keydown("meta+s ctrl+s", function(e) {
-			if(cur_frm) {
-				cur_frm.save_or_update();
-			} else if(wn.container.page.save_action) {
-				wn.container.page.save_action();
-			}
-			return false;
-		});
 	},
 	
 	run_custom_startup_code: function() {

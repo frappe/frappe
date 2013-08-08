@@ -196,11 +196,10 @@ wn.ui.form.GridRow = Class.extend({
 	},
 	remove: function() {
 		var me = this;
-		me.wrapper.fadeOut(function() {
-			wn.model.clear_doc(me.doc.doctype, me.doc.name);
-			me.frm.dirty();
-			me.grid.refresh();
-		});
+		me.wrapper.toggle(false);
+		wn.model.clear_doc(me.doc.doctype, me.doc.name);
+		me.frm.dirty();
+		me.grid.refresh();
 	},
 	insert: function(show) {
 		var idx = this.doc.idx;
@@ -343,16 +342,29 @@ wn.ui.form.GridRow = Class.extend({
 		this.show && this.render_form()
 		this.show && this.row.toggle(false);
 
-		this.form_panel.slideToggle(this.show, function() {
-			if(me.show) {
-				if(me.frm.doc.docstatus===0)
-					me.form_area.find(":input:first").focus();
-			} else {
-				me.row.toggle(true);
-				me.make_static_display();
-			}
-			callback && callback();
-		});
+		this.form_panel.toggle(this.show);
+		if(me.show) {
+			if(me.frm.doc.docstatus===0)
+				me.form_area.find(":input:first").focus();
+		} else {
+			me.row.toggle(true);
+			me.make_static_display();
+		}
+		callback && callback();
+		
+		return this;
+	},
+	open_prev: function() {
+		if(this.grid.grid_rows[this.doc.idx-2]) {
+			this.grid.grid_rows[this.doc.idx-2].toggle_view(true);
+		}
+	},
+	open_next: function() {
+		if(this.grid.grid_rows[this.doc.idx]) {
+			this.grid.grid_rows[this.doc.idx].toggle_view(true);
+		} else {
+			this.grid.add_new_row(null, null, true);
+		}
 	},
 	toggle_add_delete_button_display: function($parent) {
 		$parent.find(".grid-delete-row, .grid-insert-row")
@@ -407,9 +419,7 @@ wn.ui.form.GridRow = Class.extend({
 				cnt++;
 			}
 		});
-		
-		this.wrapper.find(".footer-toolbar").toggle(me.fields.length > 6);
-		
+				
 		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
 		
 		this.grid.open_grid_row = this;
@@ -434,6 +444,7 @@ wn.ui.form.GridRow = Class.extend({
 			</div>\
 			<div class="form-area"></div>\
 			<div class="toolbar footer-toolbar" style="height: 36px;">\
+				<span class="text-muted">Move Up: Ctrl+<i class="icon-arrow-up"></i>, Move Down: Ctrl+<i class="icon-arrow-down"></i>, Close: Esc</span>\
 				<button class="btn btn-success pull-right grid-toggle-row" \
 					title="'+wn._("Close")+'"\
 					style="margin-left: 7px;">\
