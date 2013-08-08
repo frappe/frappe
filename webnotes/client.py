@@ -3,6 +3,8 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
+import webnotes.model
 import json
 
 @webnotes.whitelist()
@@ -21,6 +23,24 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	if fieldname and fieldname.startswith("["):
 		fieldname = json.loads(fieldname)
 	return webnotes.conn.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
+
+@webnotes.whitelist()
+def set_value(doctype, docname, fieldname, value):
+	if fieldname in webnotes.model.default_fields:
+		webnotes.throw(_("Cannot edit standard fields"))
+		
+	doc = webnotes.conn.get_value(doctype, docname, ["parenttype", "parent"], as_dict=True)
+	if doc.parent:
+		bean = webnotes.bean(doc.parenttype, doc.parent)
+		child = bean.doclist.getone({"doctype": doctype, "name": docname})
+		child.fields[fieldname] = value
+	else:
+		bean = webnotes.bean(doctype, docname)
+		bean.doc.fields[fieldname] = value
+		
+	bean.save()
+	
+	return [d.fields for d in bean.doclist]
 
 @webnotes.whitelist()
 def insert(doclist):
