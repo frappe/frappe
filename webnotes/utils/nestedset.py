@@ -181,6 +181,7 @@ def validate_loop(doctype, name, lft, rgt):
 class DocTypeNestedSet(object):
 	def on_update(self):
 		update_nsm(self)
+		self.validate_ledger()
 		
 	def on_trash(self):
 		parent = self.doc.fields[self.nsm_parent_field]
@@ -205,3 +206,11 @@ class DocTypeNestedSet(object):
 			if webnotes.conn.sql("""select count(*) from `tab%s` where
 				ifnull(%s, '')=''""" % (self.doc.doctype, self.nsm_parent_field))[0][0] > 1:
 				webnotes.throw(_("""Multiple root nodes not allowed."""))
+
+	def validate_ledger(self, group_identifier="is_group"):
+		if self.doc.fields.get(group_identifier) == "No":
+			if webnotes.conn.sql("""select name from `tab%s` where %s=%s and docstatus!=2""" % 
+				(self.doc.doctype, self.nsm_parent_field, '%s'), (self.doc.name)):
+					webnotes.throw(self.doc.doctype + ": " + self.doc.name + 
+						_(" can not be marked as a ledger as it has existing child"))
+				
