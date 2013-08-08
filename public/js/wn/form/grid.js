@@ -449,6 +449,10 @@ wn.ui.form.GridRow = Class.extend({
 					title="'+wn._("Close")+'"\
 					style="margin-left: 7px;">\
 					<i class="icon-chevron-up"></i></button>\
+				<button class="btn btn-default pull-right grid-append-row" \
+					title="'+wn._("Insert Below")+'"\
+					style="margin-left: 7px;">\
+					<i class="icon-plus"></i></button>\
 			</div>').appendTo(this.form_panel);
 			this.form_area = this.wrapper.find(".form-area");
 			this.set_form_events();
@@ -460,6 +464,12 @@ wn.ui.form.GridRow = Class.extend({
 			.click(function() { me.remove(); return false; })
 		this.form_panel.find(".grid-insert-row")
 			.click(function() { me.insert(true); return false; })
+		this.form_panel.find(".grid-append-row")
+			.click(function() { 
+				me.toggle_view(false); 
+				me.grid.add_new_row(me.doc.idx+1, null, true);
+				return false;
+		})
 		this.form_panel.find(".panel-heading, .grid-toggle-row").on("click", function() { 
 				me.toggle_view();
 				return false;

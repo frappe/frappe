@@ -111,8 +111,18 @@ def log(msg):
 	debug_log.append(cstr(msg))
 
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
-	if mute_messages: 
+	def _raise_exception():
+		if raise_exception:
+			import inspect
+			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
+				raise raise_exception, msg
+			else:
+				raise ValidationError, msg
+
+	if mute_messages:
+		_raise_exception()
 		return
+
 	from utils import cstr
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
@@ -121,12 +131,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 		print "Message: " + repr(msg)
 	
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
-	if raise_exception:
-		import inspect
-		if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
-			raise raise_exception, msg
-		else:
-			raise ValidationError, msg
+	_raise_exception()
 
 def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
