@@ -494,7 +494,7 @@ fieldset[disabled] .btn-default.active {
 	margin-top: -20px;
 	margin-bottom: 20px;
 	text-align: center;
-	background-color: rgb(255, 255, 204);
+	background-color: #fcf8e3;
 	padding: 7px;
 	z-index: 1;
 }
