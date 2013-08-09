@@ -489,3 +489,12 @@ fieldset[disabled] .btn-default.active {
 	white-space: nowrap;
 	padding-right: 0px;
 }
+
+.toolbar-banner {
+	margin-top: -20px;
+	margin-bottom: 20px;
+	text-align: center;
+	background-color: rgb(255, 255, 204);
+	padding: 7px;
+	z-index: 1;
+}
