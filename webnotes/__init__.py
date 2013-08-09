@@ -339,6 +339,10 @@ def bean(doctype=None, name=None, copy=None):
 	else:
 		return Bean(doctype, name)
 
+def set_value(doctype, docname, fieldname, value):
+	import webnotes.client
+	return webnotes.client.set_value(doctype, docname, fieldname, value)
+
 def get_doclist(doctype, name=None):
 	return bean(doctype, name).doclist
 	
