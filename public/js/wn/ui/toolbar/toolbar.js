@@ -253,3 +253,7 @@ wn.ui.toolbar.show_about = function() {
 	}
 	return false;
 }
+
+wn.ui.toolbar.show_banner = function(msg) {
+	return $('<div class="toolbar-banner"></div>').html(msg).appendTo($('header'));
+}
