@@ -101,7 +101,10 @@ class DocListController(object):
 			if df.fieldtype == "Currency" and df.options and not self._precision.options.get(df.options):
 				self._precision.options[df.options] = get_field_precision(df, self.doc)
 			
-			self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
-				self._precision.default
+			if df.fieldtype == "Currency":
+				self._precision[parentfield or "main"][fieldname] = cint(self._precision.options.get(df.options)) or \
+					self._precision.default
+			elif df.fieldtype == "Float":
+				self._precision[parentfield or "main"][fieldname] = self._precision.default
 		
 		return self._precision[parentfield or "main"][fieldname]
