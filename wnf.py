@@ -142,6 +142,9 @@ def setup_options():
 	parser.add_option('--make_demo', default=False, action="store_true",
 						help="install in database 'demo'")
 
+	parser.add_option('--make_demo_fresh', default=False, action="store_true",
+						help="install in database 'demo'")
+
 	# update
 	parser.add_option("-u", "--update", 
 		help="Pull, run latest patches and sync all",
@@ -397,6 +400,10 @@ def run():
 	elif options.make_demo:
 		import utilities.make_demo
 		utilities.make_demo.make()
+
+	elif options.make_demo_fresh:
+		import utilities.make_demo
+		utilities.make_demo.make(True)
 
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff

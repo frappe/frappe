@@ -30,7 +30,7 @@ def set_value(doctype, docname, fieldname, value):
 		webnotes.throw(_("Cannot edit standard fields"))
 		
 	doc = webnotes.conn.get_value(doctype, docname, ["parenttype", "parent"], as_dict=True)
-	if doc.parent:
+	if doc and doc.parent:
 		bean = webnotes.bean(doc.parenttype, doc.parent)
 		child = bean.doclist.getone({"doctype": doctype, "name": docname})
 		child.fields[fieldname] = value

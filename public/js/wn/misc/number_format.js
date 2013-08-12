@@ -116,14 +116,14 @@ window.format_number = function(v, format, decimals){
 	return (is_negative ? "-" : "") + part[0] + part[1];
 };
 
-function format_currency(v, currency) {
+function format_currency(v, currency, decimals) {
 	var format = get_number_format(currency);
 	var symbol = get_currency_symbol(currency);
 
 	if(symbol)
-		return symbol + " " + format_number(v, format);
+		return symbol + " " + format_number(v, format, decimals);
 	else
-		return format_number(v, format);
+		return format_number(v, format, decimals);
 }
 
 function get_currency_symbol(currency) {

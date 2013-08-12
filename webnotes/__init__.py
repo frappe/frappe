@@ -118,6 +118,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 				raise raise_exception, msg
 			else:
 				raise ValidationError, msg
+			conn.rollback()
 
 	if mute_messages:
 		_raise_exception()
@@ -338,6 +339,10 @@ def bean(doctype=None, name=None, copy=None):
 		return Bean(copy_doclist(copy))
 	else:
 		return Bean(doctype, name)
+
+def set_value(doctype, docname, fieldname, value):
+	import webnotes.client
+	return webnotes.client.set_value(doctype, docname, fieldname, value)
 
 def get_doclist(doctype, name=None):
 	return bean(doctype, name).doclist

@@ -26,7 +26,7 @@ $(cur_frm.wrapper).on("grid-row-render", function(e, grid_row) {
 	}
 })
 
-cur_frm.cscript.doc_type = function(doc, dt, dn) {
+cur_frm.cscript.doc_type = function() {
 	return cur_frm.call({
 		method: "get",
 		doc: cur_frm.doc,

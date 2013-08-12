@@ -334,6 +334,13 @@ wn.views.GridReport = Class.extend({
 		});
 	},
 	
+	round_off_data: function() {
+		var me = this;
+		$.each(this.data, function(i, d) {
+			me.round_item_values(d);
+		});
+	},
+	
 	refresh: function() {
 		this.waiting.toggle(false);
 		if(!this.grid_wrapper) 
@@ -344,6 +351,7 @@ wn.views.GridReport = Class.extend({
 		this.setup_dataview_columns();
 		this.apply_link_formatters();
 		this.prepare_data();
+		this.round_off_data();
 		this.prepare_data_view();
 		// plot might need prepared data
 		this.wrapper.find(".processing").toggle(true);
