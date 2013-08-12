@@ -12,7 +12,7 @@ from startup.query_handlers import standard_queries
 # this is called by the Link Field
 @webnotes.whitelist()
 def search_link(doctype, txt, query=None, filters=None):
-	search_widget(doctype, txt, query, page_len=10, filters=filters)
+	search_widget(doctype, txt, query, page_len=20, filters=filters)
 	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"])
 
 # this is called by the search box
