@@ -118,6 +118,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 				raise raise_exception, msg
 			else:
 				raise ValidationError, msg
+			conn.rollback()
 
 	if mute_messages:
 		_raise_exception()
