@@ -261,6 +261,8 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	edit_cell: function(row, docfield) {
 		if(wn.model.std_fields_list.indexOf(docfield.fieldname)!==-1) {
 			wn.throw(wn._("Cannot edit standard fields"));
+		} else if(wn.boot.profile.can_write.indexOf(this.doctype)===-1) {
+			wn.throw(wn._("No permission to edit"));
 		}
 		var me = this;
 		var d = new wn.ui.Dialog({
