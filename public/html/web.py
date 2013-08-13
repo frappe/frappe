@@ -20,6 +20,20 @@ sys.path.append('../app')
 
 import conf
 
+session_stopped = """<!DOCTYPE html>
+<html lang="en">
+<head>
+	<title>Session Stopped</title>
+</head>
+<body style="background-color: #eee; font-family: Arial, Sans Serif;">
+<div style="margin: 30px auto; width: 500px; background-color: #fff; 
+	border: 1px solid #aaa; padding: 20px; text-align: center">
+	<b>Upgrading...</b>
+	<p>We will be back in a few moments.</p>
+</div>
+</body>
+</html>"""
+
 def init():
 	import webnotes.handler
 	webnotes.handler.get_cgi_fields()
@@ -27,7 +41,12 @@ def init():
 def respond():
 	import webnotes
 	import webnotes.webutils
-	return webnotes.webutils.render(webnotes.form_dict.get('page'))
+	try:
+		return webnotes.webutils.render(webnotes.form_dict.get('page'))
+	except webnotes.SessionStopped:
+		print "Content-type: text/html"
+		print
+		print session_stopped
 
 if __name__=="__main__":
 	init()
