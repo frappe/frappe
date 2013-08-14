@@ -25,7 +25,7 @@ $.extend(wn.model, {
 				if(!d.parenttype)
 					last_parent_name = d.name;
 					
-				if(!dirty.indexOf(d.parenttype || d.doctype)) dirty.push(d.parenttype || d.doctype);
+				if(dirty.indexOf(d.parenttype || d.doctype)===-1) dirty.push(d.parenttype || d.doctype);
 			}
 
 			// set parent for subsequent orphans
@@ -67,7 +67,7 @@ $.extend(wn.model, {
 			wn.model.docinfo[doc.doctype][doc.name] = r.docinfo;
 		}
 		
-		if(cur_frm && dirty.indexOf(cur_frm.doctype)) cur_frm.dirty();
+		if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
 		
 		return doclist;
 	},
