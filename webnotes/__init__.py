@@ -68,6 +68,7 @@ user_lang = False
 lang = 'en'
 in_import = False
 in_test = False
+rollback_on_exception = False
 
 # memcache
 
@@ -113,7 +114,8 @@ def log(msg):
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	def _raise_exception():
 		if raise_exception:
-			conn.rollback()
+			if rollback_on_exception:
+				conn.rollback()
 			import inspect
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
 				raise raise_exception, msg
