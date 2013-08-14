@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-09 15:45:57", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:53:03", 
+  "modified": "2013-08-13 19:31:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -106,6 +106,14 @@
   "fieldtype": "Code", 
   "label": "Query", 
   "read_only": 0
+ }, 
+ {
+  "depends_on": "eval:doc.report_type==\"Query Report\"", 
+  "description": "JavaScript Format: wn.query_reports['REPORTNAME'] = {}", 
+  "doctype": "DocField", 
+  "fieldname": "javascript", 
+  "fieldtype": "Code", 
+  "label": "Javascript"
  }, 
  {
   "depends_on": "eval:doc.report_type==\"Report Builder\"", 

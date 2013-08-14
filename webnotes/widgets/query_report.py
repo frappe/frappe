@@ -15,19 +15,24 @@ import webnotes.widgets.reportview
 @webnotes.whitelist()
 def get_script(report_name):
 	report = webnotes.doc("Report", report_name)
-
+	
 	script_path = os.path.join(get_module_path(webnotes.conn.get_value("DocType", report.ref_doctype, "module")),
 		"report", scrub(report.name), scrub(report.name) + ".js") 
 	
 	if os.path.exists(script_path):
 		with open(script_path, "r") as script:
 			return script.read()
+	elif report.javascript:
+		return report.javascript
 	else:
 		return "wn.query_reports['%s']={}" % report_name
 
 @webnotes.whitelist()
 def run(report_name, filters=None):
 	report = webnotes.doc("Report", report_name)
+	
+	if filters:
+		filters = json.loads(filters)
 
 	if not webnotes.has_permission(report.ref_doctype, "report"):
 		webnotes.msgprint(_("Must have report permission to access this report."), 
@@ -41,12 +46,9 @@ def run(report_name, filters=None):
 		if not report.query.lower().startswith("select"):
 			webnotes.msgprint(_("Query must be a SELECT"), raise_exception=True)
 		
-		result = [list(t) for t in webnotes.conn.sql(report.query)]
+		result = [list(t) for t in webnotes.conn.sql(report.query, filters)]
 		columns = [c[0] for c in webnotes.conn.get_description()]
 	else:
-		if filters:
-			filters = json.loads(filters)
-		
 		method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
 			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
 		columns, result = webnotes.get_method(method_name)(filters or {})
