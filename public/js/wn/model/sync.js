@@ -17,12 +17,15 @@ $.extend(wn.model, {
 			wn.model.clear_doclist(doclist[0].doctype, doclist[0].name)
 
 		var last_parent_name = null;
+		var dirty = [];
 		$.each(doclist, function(i, d) {
 			if(!d.name && d.__islocal) { // get name (local if required)
 				d.name = wn.model.get_new_name(d.doctype);
 				wn.provide("wn.model.docinfo." + d.doctype + "." + d.name);	
 				if(!d.parenttype)
 					last_parent_name = d.name;
+					
+				if(dirty.indexOf(d.parenttype || d.doctype)===-1) dirty.push(d.parenttype || d.doctype);
 			}
 
 			// set parent for subsequent orphans
@@ -63,6 +66,8 @@ $.extend(wn.model, {
 				wn.model.docinfo[doc.doctype] = {};
 			wn.model.docinfo[doc.doctype][doc.name] = r.docinfo;
 		}
+		
+		if(cur_frm && dirty.indexOf(cur_frm.doctype)!==-1) cur_frm.dirty();
 		
 		return doclist;
 	},

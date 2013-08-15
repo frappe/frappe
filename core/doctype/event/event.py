@@ -49,12 +49,12 @@ def get_events(start, end, user=None, for_reminder=False):
 		starts_on, ends_on, owner, all_day, event_type, repeat_this_event, repeat_on,
 		monday, tuesday, wednesday, thursday, friday, saturday, sunday
 		from tabEvent where ((
-			(starts_on between '%(start)s 00:00:00' and '%(end)s 23:59:59')
-			or (ends_on between '%(start)s 00:00:00' and '%(end)s 23:59:59')
-			or (starts_on <= '%(start)s' and ends_on >= '%(end)s')
+			(date(starts_on) between date('%(start)s') and date('%(end)s'))
+			or (date(ends_on) between date('%(start)s') and date('%(end)s'))
+			or (date(starts_on) <= date('%(start)s') and date(ends_on) >= date('%(end)s'))
 		) or (
-			starts_on <= '%(start)s 00:00:00' and ifnull(repeat_this_event,0)=1 and
-			ifnull(repeat_till, "3000-01-01 00:00:00") > '%(start)s'
+			date(starts_on) <= date('%(start)s') and ifnull(repeat_this_event,0)=1 and
+			ifnull(repeat_till, "3000-01-01") > date('%(start)s')
 		))
 		%(reminder_condition)s
 		and (event_type='Public' or owner='%(user)s'
@@ -75,6 +75,7 @@ def get_events(start, end, user=None, for_reminder=False):
 	start = start.split(" ")[0]
 	end = end.split(" ")[0]
 	add_events = []
+	remove_events = []
 	
 	def add_event(e, date):
 		new_event = e.copy()
@@ -93,9 +94,10 @@ def get_events(start, end, user=None, for_reminder=False):
 				# repeat for all years in period
 				for year in range(start_year, end_year+1):
 					date = str(year) + "-" + event_start
-					if date > start and date < end:
+					if date >= start and date <= end:
 						add_event(e, date)
-				events.remove(e)
+						
+				remove_events.append(e)
 
 			if e.repeat_on=="Every Month":
 				date = start.split("-")[0] + "-" + start.split("-")[1] + "-" + event_start.split("-")[2]
@@ -112,7 +114,8 @@ def get_events(start, end, user=None, for_reminder=False):
 					if date >= start and date <= end and date >= event_start:
 						add_event(e, date)
 					date = add_months(start_from, i+1)
-				events.remove(e)
+
+				remove_events.append(e)
 
 			if e.repeat_on=="Every Week":
 				weekday = getdate(event_start).weekday()
@@ -127,7 +130,8 @@ def get_events(start, end, user=None, for_reminder=False):
 						add_event(e, date)
 
 					date = add_days(date, 7)
-				events.remove(e)
+				
+				remove_events.append(e)
 
 			if e.repeat_on=="Every Day":				
 				for cnt in xrange(date_diff(end, start) + 1):
@@ -135,8 +139,11 @@ def get_events(start, end, user=None, for_reminder=False):
 					if date >= event_start and date <= end \
 						and e[weekdays[getdate(date).weekday()]]:
 						add_event(e, date)
-				events.remove(e)
+				remove_events.append(e)
 
+	for e in remove_events:
+		events.remove(e)
+		
 	events = events + add_events
 	
 	for e in events:

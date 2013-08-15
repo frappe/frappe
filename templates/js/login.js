@@ -96,6 +96,7 @@ login.show_login = function() {
 
 	window.is_login = true;
 	window.is_sign_up = false;
+	window.is_forgot = false;
 }
 
 login.show_sign_up = function() {
@@ -115,6 +116,7 @@ login.show_forgot_password = function() {
 	$("#login_btn").html("Send Password").removeClass("btn-success");
 	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
 	window.is_forgot = true;
+	window.is_sign_up = false;
 }
 
 login.set_message = function(message, color) {
