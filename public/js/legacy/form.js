@@ -790,3 +790,7 @@ _f.Frm.prototype.dirty = function() {
 _f.Frm.prototype.get_docinfo = function() {
 	return wn.model.docinfo[this.doctype][this.docname];
 }
+
+_f.Frm.prototype.get_perm = function(permlevel, access_type) {
+	return this.perm[permlevel] ? this.perm[permlevel][access_type] : null;
+}
