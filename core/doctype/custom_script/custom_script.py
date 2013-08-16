@@ -10,17 +10,15 @@ class DocType:
 	def autoname(self):
 		self.doc.name = self.doc.dt + "-" + self.doc.script_type
 
+	def validate(self):
+		if self.doc.script_type=="Server" and webnotes.session.user!="Administrator":
+			webnotes.throw("Only Administrator is allowed to edit Server Script")
+
 	def on_update(self):
-		if self.doc.script_type == 'Client':
-			webnotes.clear_cache(doctype=self.doc.dt)
-		else:
-			webnotes.cache().delete_value("_server_script:" + self.doc.dt)
+		webnotes.clear_cache(doctype=self.doc.dt)
 	
 	def on_trash(self):
-		if self.doc.script_type == 'Client':
-			webnotes.clear_cache(doctype=self.doc.dt)
-		else:
-			webnotes.cache().delete_value("_server_script:" + self.doc.dt)
+		webnotes.clear_cache(doctype=self.doc.dt)
 
 def get_custom_server_script(doctype):
 	custom_script = webnotes.cache().get_value("_server_script:" + doctype)
