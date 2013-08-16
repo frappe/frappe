@@ -228,7 +228,7 @@ wn.ui.form.GridRow = Class.extend({
 			.appendTo(me.row);
 		
 		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && df.in_list_view && me.grid.frm.perm[df.permlevel][READ]
+			if(!df.hidden && df.in_list_view && me.grid.frm.get_perm(df.permlevel, READ)
 				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
 				var colsize = 2,
 					txt = me.doc ? 
