@@ -427,6 +427,7 @@ wn.ui.form.GridRow = Class.extend({
 		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
 		
 		this.grid.open_grid_row = this;
+		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered", this);
 	},
 	make_form: function() {
 		if(!this.form_area) {

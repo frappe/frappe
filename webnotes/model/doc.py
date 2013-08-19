@@ -524,6 +524,9 @@ def make_autoname(key, doctype=''):
          * DE/./.YY./.MM./.##### will create a series like
            DE/09/01/0001 where 09 is the year, 01 is the month and 0001 is the series
 	"""
+	if not "#" in key:
+		key = key + ".#####"
+	
 	n = ''
 	l = key.split('.')
 	series_set = False
