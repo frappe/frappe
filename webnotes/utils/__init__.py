@@ -307,7 +307,7 @@ def flt(s, precision=None):
 	try:
 		num = float(s)
 		if precision is not None:
-			num = round(num, precision)
+			num = _round(num, precision)
 	except Exception:
 		num = 0
 	return num
@@ -327,6 +327,25 @@ def cstr(s):
 		return unicode(s, 'utf-8')
 	else:
 		return unicode(s)
+		
+def _round(num, precision=0):
+	"""round method for round halfs to nearest even algorithm"""
+	precision = cint(precision)
+	multiplier = 10 ** precision
+
+	# avoid rounding errors
+	num = round(num * multiplier if precision else num, 8)
+	
+	import math
+	floor = math.floor(num)
+	decimal_part = num - floor
+	
+	if decimal_part == 0.5:
+		num = floor if (floor % 2 == 0) else floor + 1
+	else:
+		num = round(num)
+		
+	return (num / multiplier) if precision else num
 
 def encode(obj, encoding="utf-8"):
 	if isinstance(obj, list):
