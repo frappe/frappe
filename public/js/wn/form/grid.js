@@ -146,16 +146,18 @@ wn.ui.form.Grid = Class.extend({
 		this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 	},
 	add_new_row: function(idx, callback, show) {
-		var d = wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
-		this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
-		this.refresh();
+		if(this.is_editable()) {
+			var d = wn.model.add_child(this.frm.doc, this.df.options, this.df.fieldname, idx);
+			this.frm.script_manager.trigger(this.df.fieldname + "_add", d.doctype, d.name);
+			this.refresh();
 		
-		if(show) {
-			if(idx) {
-				this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
-					.toggle_view(true, callback);
-			} else {
-				this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
+			if(show) {
+				if(idx) {
+					this.wrapper.find("[data-idx='"+idx+"']").data("grid_row")
+						.toggle_view(true, callback);
+				} else {
+					this.wrapper.find(".grid-row:last").data("grid_row").toggle_view(true, callback);
+				}
 			}
 		}
 	},
@@ -183,15 +185,17 @@ wn.ui.form.GridRow = Class.extend({
 		
 		$('<div class="divider row"></div>').appendTo(this.wrapper);
 		
+		this.set_row_index();
+		this.make_static_display();
+		if(this.doc) {
+			this.set_data();
+		}
+	},
+	set_row_index: function() {
 		if(this.doc) {
 			this.wrapper
 				.attr("data-idx", this.doc.idx)
 				.find(".row-index").html(this.doc.idx)
-		}
-		
-		this.make_static_display();
-		if(this.doc) {
-			this.set_data();
 		}
 	},
 	remove: function() {
@@ -367,7 +371,7 @@ wn.ui.form.GridRow = Class.extend({
 		}
 	},
 	toggle_add_delete_button_display: function($parent) {
-		$parent.find(".grid-delete-row, .grid-insert-row")
+		$parent.find(".grid-delete-row, .grid-insert-row, .grid-append-row")
 			.toggle(this.grid.is_editable());
 	},
 	render_form: function() {
@@ -419,10 +423,11 @@ wn.ui.form.GridRow = Class.extend({
 				cnt++;
 			}
 		});
-				
+		
 		this.toggle_add_delete_button_display(this.wrapper.find(".panel:first"));
 		
 		this.grid.open_grid_row = this;
+		this.frm.script_manager.trigger(this.doc.parentfield + "_on_form_rendered", this);
 	},
 	make_form: function() {
 		if(!this.form_area) {
@@ -455,6 +460,7 @@ wn.ui.form.GridRow = Class.extend({
 					<i class="icon-plus"></i></button>\
 			</div>').appendTo(this.form_panel);
 			this.form_area = this.wrapper.find(".form-area");
+			this.set_row_index();
 			this.set_form_events();
 		}
 	},

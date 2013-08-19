@@ -215,12 +215,14 @@ wn.Application = Class.extend({
 					var grid_row = open_row.data("grid_row");
 					grid_row.toggle_view(false);
 				}
+				return false;
 			})
 			.keydown("ctrl+down meta+down", function(e) {
 				var open_row = $(".grid-row-open");
 				if(open_row.length) {
 					var grid_row = open_row.data("grid_row");
 					grid_row.toggle_view(false, function() { grid_row.open_next() });
+					return false;
 				}
 			})
 			.keydown("ctrl+up meta+up", function(e) {
@@ -228,6 +230,7 @@ wn.Application = Class.extend({
 				if(open_row.length) {
 					var grid_row = open_row.data("grid_row");
 					grid_row.toggle_view(false, function() { grid_row.open_prev() });
+					return false;
 				}
 			})
 			.keydown("ctrl+n meta+n", function(e) {
@@ -235,8 +238,8 @@ wn.Application = Class.extend({
 				if(open_row.length) {
 					var grid_row = open_row.data("grid_row");
 					grid_row.toggle_view(false, function() { grid_row.grid.add_new_row(grid_row.doc.idx, null, true); });
+					return false;
 				}
-				return false;
 			})
 
 	},
