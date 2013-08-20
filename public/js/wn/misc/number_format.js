@@ -20,7 +20,7 @@ function flt(v, decimals, number_format) {
 	}
 	
 	if(decimals!=null)
-		return roundNumber(v, decimals);
+		return _round(v, decimals);
 	return v;
 }
 
@@ -166,10 +166,18 @@ function get_number_format_info(format) {
 	return info;
 }
 
-function roundNumber(num, dec) {
-	dec = cint(dec);
-	var result = Math.round(num*Math.pow(10,dec))/Math.pow(10,dec);
-	return result;
+function _round(num, precision) {
+    var d = cint(precision);
+    var m = Math.pow(10, d);
+    var n = +(d ? num * m : num).toFixed(8); // Avoid rounding errors
+    var i = Math.floor(n), f = n - i;
+    var r = (f == 0.5) ? ((i % 2 == 0) ? i : i + 1) : Math.round(n);
+    return d ? r / m : r;
+}
+
+function roundNumber(num, precision) {
+	// backward compatibility
+	return _round(num, precision);
 }
 
 function precision(fieldname, doc) {

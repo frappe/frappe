@@ -312,7 +312,7 @@ def upload():
 							except IndexError, e:
 								pass
 
-						if sum([0 if val=='' else 1 for val in d.values()]):
+						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
 							if dt != doctype:
 								if not overwrite:

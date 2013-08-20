@@ -62,6 +62,8 @@ def get_user_date_format():
 	return user_date_format
 	
 def datetime_in_user_format(date_time):
+	if not date_time:
+		return ""
 	if isinstance(date_time, basestring):
 		date_time = get_datetime(date_time)
 	from webnotes.utils import formatdate
