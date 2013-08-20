@@ -553,6 +553,8 @@ wn.ui.ColumnPicker = Class.extend({
 		
 		var fieldselect = new wn.ui.FieldSelect(w, this.doctype);
 		
+		fieldselect.$select.css({"display": "inline"});
+		
 		fieldselect.$select
 			.css({width: '70%', 'margin-top':'5px'})
 			.val((c[1] || this.doctype) + "." + c[0]);
