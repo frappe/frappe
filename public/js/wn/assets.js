@@ -18,7 +18,7 @@ wn.require = function(items) {
 		wn.assets.execute(src);
 		//}
 	}
-}
+};
 
 wn.assets = {
 	// keep track of executed assets
@@ -28,7 +28,7 @@ wn.assets = {
 		// if version is different then clear localstorage
 		if(window._version_number != localStorage.getItem("_version_number")) {
 			localStorage.clear();
-			localStorage.setItem("_version_number", window._version_number)
+			localStorage.setItem("_version_number", window._version_number);
 			console.log("Cleared App Cache.");
 		}
 	},
@@ -38,7 +38,7 @@ wn.assets = {
 	exists: function(src) {
 		if('localStorage' in window
 			&& localStorage.getItem(src) && (wn.boot ? !wn.boot.developer_mode : true))
-			return true
+			return true;
 	},
 	
 	// add the asset to
@@ -48,7 +48,11 @@ wn.assets = {
 			try {
 				localStorage.setItem(src, txt);
 			} catch(e) {
-				console.log("Local Storage quota exceeded?")
+				// if quota is exceeded, clear local storage and set item
+				localStorage.clear();
+				console.log("Local Storage cleared");
+				
+				localStorage.setItem(src, txt);
 			}
 		}
 	},
@@ -111,4 +115,4 @@ wn.assets = {
 			wn.dom.set_style(txt);
 		}
 	}
-}
+};
