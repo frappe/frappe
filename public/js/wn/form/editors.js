@@ -25,11 +25,11 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		$('<div class="for-rich-text">\
 			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;"\
 				data-target="#'+ this.myid +'">\
-				<div class="btn-group hidden-sm">\
+				<div class="btn-group hidden-xs form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" title="Font"><i class="icon-font"></i><b class="caret"></b></a>\
 					<ul class="dropdown-menu"></ul>\
 				</div>\
-				<div class="btn-group">\
+				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
 					<ul class="dropdown-menu">\
 						<li><a data-edit="formatBlock &lt;p&gt;"><p>Paragraph</p></a></li>\
@@ -40,14 +40,14 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 						<li><a data-edit="formatBlock &lt;h5&gt;"><h5>Heading 5</h5></a></li>\
 					</ul>\
 				</div>\
-				<div class="btn-group">\
+				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small" data-edit="bold" title="Bold (Ctrl/Cmd+B)"><i class="icon-bold"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertunorderedlist" title="Bullet list"><i class="icon-list-ul"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="insertorderedlist" title="Number list"><i class="icon-list-ol"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="outdent" title="Reduce indent (Shift+Tab)"><i class="icon-indent-left"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="indent" title="Indent (Tab)"><i class="icon-indent-right"></i></a>\
 				</div>\
-				<div class="btn-group hidden-sm">\
+				<div class="btn-group hidden-xs form-group">\
 					<a class="btn btn-default btn-small" data-edit="justifyleft" title="Align Left (Ctrl/Cmd+L)"><i class="icon-align-left"></i></a>\
 					<a class="btn btn-default btn-small" data-edit="justifycenter" title="Center (Ctrl/Cmd+E)"><i class="icon-align-center"></i></a>\
 					<a class="btn btn-default btn-small btn-add-link" title="Insert Link">\
@@ -132,8 +132,8 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 			var overlay = $(this), target = $(overlay.data('target'));
 			overlay.css('opacity', 0).css('position', 'absolute')
 				//.offset(target.offset())
-				.css("left", 130) // use this because in dialogs, can't find the offset
-				.width(35).height(30);
+				.css("left", 157) // use this because in dialogs, can't find the offset
+				.width(38).height(33);
 		});
 		
 		this.$editor

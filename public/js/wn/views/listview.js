@@ -132,6 +132,7 @@ wn.views.ListView = Class.extend({
 		this.prepare_data(data);
 		$(row).removeClass("list-row");
 		
+		
 		// maintain id_list to avoid duplication incase
 		// of filtering by child table
 		if(in_list(this.id_list, data.name))
@@ -139,12 +140,8 @@ wn.views.ListView = Class.extend({
 		else 
 			this.id_list.push(data.name);
 		
-		var body = $("<div class='row doclist-row'></div>")
-			.appendTo(row).css({"padding": "5px 0px", 
-				"padding-bottom": "0px",
-				"margin-bottom": "5px", 
-				"border-bottom": "1px solid #eee"
-			}),
+		
+		var body = $('<div class="doclist-row row">').appendTo(row),
 			colspans = 0,
 			me = this;
 			
@@ -152,29 +149,23 @@ wn.views.ListView = Class.extend({
 		$.each(this.columns, function(i, v) {
 			var colspan = v.colspan || 2;
 			colspans = colspans + flt(colspan)
-			
-			if(colspans <= 6) {
-				var col = me.make_column(body, flt(colspan) * 2, true).addClass("visible-sm");
-				me.render_column(data, col, v);
-			}
-			
+						
 			if(colspans <= 12) {
-				var col = me.make_column(body, colspan)
-					.addClass("hidden-sm");
+				var col = me.make_column(body, colspan);
 				me.render_column(data, col, v);
 			}
 		});
 		
 		// row #2
-		var row2 = $('<div class="col col-lg-12">\
-			<div class="row">\
-				<div class="col col-lg-7 col-offset-3">\
-					<div class="list-tag hidden-sm"></div></div>\
-				<div class="col col-lg-2 timestamp" style="font-size: 90%; padding-right: 4px;\
+		var row2 = $('<div class="row">\
+			<div class="col-xs-12">\
+				<div class="col-xs-7 col-md-offset-3">\
+					<div class="list-tag hidden-sm hidden-xs"></div></div>\
+				<div class="col-xs-2 timestamp" style="font-size: 90%; padding-right: 4px;\
 					color: #aaa; margin-top: -3px; text-align: right;">\
 				</div>\
 			</div>\
-		</div>').appendTo(body);
+		</div>').appendTo(row);
 		
 		// modified
 		row2.find(".timestamp").html(comment_when(data.modified));
@@ -193,15 +184,14 @@ wn.views.ListView = Class.extend({
 				$(this).text());
 		});
 	},
-	make_column: function(body, colspan, is_small) {
-		var col = $("<div>")
+	make_column: function(body, colspan) {
+		var col = $("<div class='col'>")
 			.appendTo(body)
-			.addClass(is_small ? ("col col-sm-" + cint(colspan)) : ("col col-lg-" + cint(colspan)))
+			.addClass("col-xs-" + cint(colspan))
 			.css({
 				"white-space": "nowrap",
 				"text-overflow": "ellipsis",
 				"max-height": "30px",
-				"padding-right": "0px"
 			})
 		return col;
 	},
@@ -246,10 +236,11 @@ wn.views.ListView = Class.extend({
 					.css({"margin-right": "5px", "margin-left": "-2px"})
 					.appendTo(parent)
 			}
-
-			$(parent).append(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
+			
+			var $avatar = $(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
 				+ wn.user_info(data.modified_by).fullname))
-				.css({"margin-top": "-5px"});
+					.appendTo($(parent).css({"margin-top": "-5px"}))
+					.css({"max-width": "100%"})
 		}
 		else if(opts.content=='check') {
 		}
@@ -271,21 +262,22 @@ wn.views.ListView = Class.extend({
 				$("<img>")
 					.attr("src", wn.utils.get_file_link(data[opts.content]))
 					.css({
-						"max-width": "100px",
+						"max-width": "100%",
 						"max-height": "30px"
 					})
 					.appendTo(parent);
 		}
 		else if(opts.type=="select" && data[opts.content]) {
 			
-			var label_class = "";
+			var label_class = "label-default";
 
 			var style = wn.utils.guess_style(data[opts.content]);
 			if(style) label_class = "label-" + style;
 			
-			$("<span class='label'>" 
+			$("<span>" 
 				+ data[opts.content] + "</span>")
 				.css({"cursor":"pointer"})
+				.addClass("label")
 				.addClass(label_class)
 				.attr("data-fieldname", opts.content)
 				.click(function() {

@@ -16,9 +16,10 @@
 			"lib/public/css/bootstrap.css",
 			"lib/public/css/bootstrap-responsive.css",
 			"lib/public/css/font-awesome.css",
-			"lib/public/css/legacy/forms.css",
-			"lib/public/css/ui/common.css",
-			"lib/public/css/views/tree_grid.css",
+			"lib/public/css/forms.css",
+			"lib/public/css/common.css",
+			"lib/public/css/tree_grid.css",
+			"lib/public/css/nprogress.css",
 		]
 	},
 
@@ -35,6 +36,7 @@
 			"lib/public/js/lib/jquery/jquery.hotkeys.js",
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
+			"lib/public/js/lib/nprogress.js",
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",

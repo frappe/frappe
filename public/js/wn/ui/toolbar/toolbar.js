@@ -24,20 +24,23 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		})
 	},
 	make: function() {
-		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse" style="min-height: 50px;">\
+		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse" \
+			style="min-height: 50px;" role="navigation">\
 			<div class="container">\
-				<button type="button" class="navbar-toggle" data-toggle="collapse" \
-					data-target=".navbar-responsive-collapse">\
-					<span class="icon-bar"></span>\
-					<span class="icon-bar"></span>\
-					<span class="icon-bar"></span>\
-				</button>\
-				<a class="navbar-brand" href="#"></a>\
-				<div class="nav-collapse collapse navbar-responsive-collapse">\
-					<ul class="nav navbar-nav">\
+				<div class="navbar-header">\
+					<button type="button" class="navbar-toggle" data-toggle="collapse" \
+						data-target=".navbar-responsive-collapse">\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+						<span class="icon-bar"></span>\
+					</button>\
+					<a class="navbar-brand" href="#"></a>\
+				</div>\
+				<div class="collapse navbar-collapse navbar-responsive-collapse">\
+					<ul class="nav navbar-nav navbar-left">\
 					</ul>\
 					<img src="lib/images/ui/spinner.gif" id="spinner"/>\
-					<ul class="nav navbar-nav pull-right">\
+					<ul class="nav navbar-nav navbar-right">\
 						<li class="dropdown">\
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#" \
 								onclick="return false;" id="toolbar-user-link"></a>\

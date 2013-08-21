@@ -20,7 +20,7 @@ wn.ui.form.Footer = Class.extend({
 		this.wrapper = $('<div class="form-footer row">\
 			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
 				display: block; margin-left: 15px; color: #888;"></i-->\
-			<div class="col col-lg-12">\
+			<div class="col-md-12">\
 				<div class="save-area">\
 					<button class="btn btn-save btn-primary">\
 						<i class="icon-save"></i> Save</button>\
@@ -28,7 +28,7 @@ wn.ui.form.Footer = Class.extend({
 				<div class="help-area"></div>\
 			</div>\
 			<div class="after-save">\
-				<div class="col col-lg-8">\
+				<div class="col-md-8">\
 					<div class="form-tags">\
 						<h4 style="display: inline-block"><i class="icon-tag"></i> Tags</h4>\
 						<span class="tag-area"></span><br>\
@@ -37,7 +37,7 @@ wn.ui.form.Footer = Class.extend({
 						<h4><i class="icon-comments"></i> Comments</h4>\
 					</div>\
 				</div>\
-				<div class="col col-lg-4">\
+				<div class="col-md-4">\
 					<div class="form-assignments" style="margin-bottom: 7px;">\
 						<h4>\
 							<i class="icon-ok-sign"></i> Assigned To: \

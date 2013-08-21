@@ -9,7 +9,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		<div style="min-height: 150px">\
 			<p class="help">Download a template for importing a table.</p>\
 			<p class="float-column">\
-				<select style="width: 200px" name="dit-doctype">\
+				<select class="form-control" style="width: 200px" name="dit-doctype">\
 				</select><br><br>\
 				<input type="checkbox" name="dit-with-data" style="margin-top: -3px">\
 				<span> Download with data</span>\

@@ -92,7 +92,7 @@ wn.views.Page = Class.extend({
 
 wn.standard_pages["404"] = function() {
 	var page = wn.container.add_page('404');
-	$(page).html('<div class="appframe col col-lg-12">\
+	$(page).html('<div class="appframe col-md-12">\
 		<h3><i class="icon-exclamation-sign"></i> '+wn._('Not Found')+'</h3><br>\
 		<p>'+wn._('Sorry we were unable to find what you were looking for.')+'</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
@@ -101,7 +101,7 @@ wn.standard_pages["404"] = function() {
 
 wn.standard_pages["403"] = function() {
 	var page = wn.container.add_page('403');
-	$(page).html('<div class="appframe col col-lg-12">\
+	$(page).html('<div class="appframe col-md-12">\
 		<h3><i class="icon-minus-sign"></i> '+wn._('Not Permitted')+'</h3><br>\
 		<p>'+wn._('Sorry you are not permitted to view this page.')+'.</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\

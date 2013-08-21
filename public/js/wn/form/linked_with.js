@@ -48,7 +48,7 @@ wn.ui.form.LinkedWith = Class.extend({
 		this.dialog.get_input("list_by").val(links[0].value);
 		
 		if(!links) {
-			this.dialog.fields_dict.list.$wrapper.html("<div class='alert'>"
+			this.dialog.fields_dict.list.$wrapper.html("<div class='alert alert-warning'>"
 			+ this.frm.doctype + ": "
 			+ (this.linked_with ? wn._("Not Linked to any record.") : wn._("Not enough permission to see links."))
 			+ "</div>")
@@ -96,7 +96,7 @@ wn.ui.form.LinkedWith = Class.extend({
 				me.listview.render(parent, data, this);
 			},
 			get_no_result_message: function() {
-				return repl("<div class='alert'>%(doctype)s: " + wn._("Not linked") + "</div>", {
+				return repl("<div class='alert alert-info'>%(doctype)s: " + wn._("Not linked") + "</div>", {
 					name: me.frm.doc.name,
 					doctype: wn._(me.doctype)
 				})

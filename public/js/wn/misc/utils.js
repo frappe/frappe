@@ -71,7 +71,6 @@ wn.utils = {
 				.prependTo(wrapper);
 		}
 		if(txt) {
-			if(txt.search(/<p>/)==-1) txt = '<p>' + txt + '</p>';
 			me.intro_area.html(txt);
 		} else {
 			me.intro_area.remove();

@@ -75,7 +75,7 @@ wn.ui.form.Layout = Class.extend({
 		var colspan = cint(12 / this.section.find(".form-column").length);
 		this.section.find(".form-column").removeClass()
 			.addClass("form-column")
-			.addClass("col col-lg-" + colspan);
+			.addClass("col-md-" + colspan);
 	},
 	make_field: function(df, colspan) {
 		!this.column && this.make_column();
@@ -97,7 +97,7 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				$('<h3 class="col col-lg-12">' 
+				$('<h3 class="col-md-12">' 
 					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ wn._(df.label)
@@ -113,11 +113,11 @@ wn.ui.form.Layout = Class.extend({
 					});
 			}
 			if(df.description) {
-				$('<div class="col col-lg-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
+				$('<div class="col-md-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
 			}
 			if(df.label || df.description) {
 				// spacer
-				$('<div class="col col-lg-12"></div>')
+				$('<div class="col-md-12"></div>')
 					.appendTo(this.section)
 					.css({"height": "20px"});
 			}
@@ -248,8 +248,8 @@ wn.ui.form.Layout = Class.extend({
 		}
 	},
 	add_badge: function(label, onclick) {
-		var badge = $(repl('<div class="col col-lg-4">\
-			<div class="alert alert-badge">\
+		var badge = $(repl('<div class="col-md-4">\
+			<div class="alert alert-warning alert-badge">\
 				<a class="badge-link">%(label)s</a>\
 				<span class="badge pull-right">-</span>\
 			</div></div>', {label:label}))

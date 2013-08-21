@@ -87,9 +87,9 @@ wn.ui.Filter = Class.extend({
 	make: function() {
 		this.flist.$w.find('.filter_area').append('<div class="list_filter row"\
 			style="margin-bottom: 10px;">\
-		<div class="fieldname_select_area col col-lg-4" style="padding-right: 0px;"></div>\
-		<div class="col col-lg-3" style="padding-right: 0px;">\
-			<select class="condition">\
+		<div class="fieldname_select_area col-sm-4 form-group"></div>\
+		<div class="col-sm-3 form-group">\
+			<select class="condition form-control">\
 				<option value="=">Equals</option>\
 				<option value="like">Like</option>\
 				<option value=">=">Greater or equals</option>\
@@ -100,8 +100,8 @@ wn.ui.Filter = Class.extend({
 				<option value="!=">Not equals</option>\
 			</select>\
 		</div>\
-		<div class="filter_field col col-lg-4" style="padding-right: 0px;"></div>\
-		<div class="col col-lg-1" style="margin-top: 8px;">\
+		<div class="filter_field col-sm-4 col-xs-11"></div>\
+		<div class="col-sm-1 col-xs-1" style="margin-top: 8px;">\
 			<a class="close">&times;</a>\
 		</div>\
 		</div>');
@@ -287,7 +287,7 @@ wn.ui.FieldSelect = Class.extend({
 		this.doctype = doctype;
 		this.fields_by_name = {};
 		this.with_blank = with_blank;
-		this.$select = $('<select>').appendTo(parent);
+		this.$select = $('<select class="form-control">').appendTo(parent);
 		if(filter_fields) {
 			for(var i in filter_fields)
 				this.add_field_option(this.filter_fields[i])			

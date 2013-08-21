@@ -50,10 +50,18 @@ div#freeze {
 	margin-bottom: 20px;
 }
 
+.appframe-toolbar {
+	margin: 0px -15px;
+	padding: 7px 15px;
+	padding-bottom: 0px;
+	background-color: #f8f8f8;
+	border-bottom: 1px solid #e7e7e7;
+}
+
 .appframe-title {
 	background-color: #fff;
 	padding-bottom: 10px;
-	border-bottom: 1px solid #ddd;
+	border-bottom: 1px solid #e7e7e7;
 }
 
 .appframe-header .status-bar {
@@ -64,6 +72,7 @@ div#freeze {
 
 .alert-badge {
 	padding-right: 15px;
+	margin-bottom: 0px;
 }
 
 .alert-badge a, .alert-badge a:hover {
@@ -98,6 +107,29 @@ div#freeze {
 	padding-left: 6px;
 	padding-right: 6px;
 }
+
+/* list */
+
+.doclist-row {
+	padding-top: 5px; 
+	padding-bottom: 0px;
+	margin-bottom: 5px; 
+	border-bottom: "1px solid #eee";
+}
+
+.doclist-row .col {
+	padding-left: 7px;
+	padding-right: 7px;
+}
+
+.doclist-row .col:first-child {
+	padding-left: 15px;
+}
+
+.doclist-row .col:last-child {
+	padding-right: 15px;
+}
+
 /* module */
 
 .module-item-progress {
@@ -298,32 +330,23 @@ div#freeze {
 	display: inline-block; 
 	vertical-align: middle;
 	overflow: hidden;
+}
+
+.avatar img {
 	background-color: #ddd;
 	border: 1px solid #eee;
+	border-radius: 50%;
+	width: 100%; 
 }
 
 .avatar-small {
 	margin-right: 5px;
 	width: 30px;
-	height: 30px;
-	border-radius: 30px;
-	-moz-border-radius: 30px;
-	-webkit-border-radius: 30px;
-}
-.avatar-small img {
-	width: 30px; 
 }
 
 .avatar-large {
 	margin-right: 10px;
 	width: 72px;
-	height: 72px;
-	border-radius: 72px;
-	-moz-border-radius: 72px;
-	-webkit-border-radius: 72px;
-}
-.avatar-large img {
-	width: 72px; 
 }
 
 /* slickgrid */
@@ -439,26 +462,26 @@ textarea[data-fieldtype="Small Text"] {
 
 /* buttons */
 
-.input-group-btn > .btn {
-  float: none;
-}
-
-.input-group-btn > .btn:first-child {
-  margin-right: -3px;
-}
-
 .btn-default {
   color: #ffffff;
   background-color: #a7a9aa;
   border-color: #a7a9aa;
 }
 
+.dropup .btn-default .caret,
+.btn-default .caret {
+	border-bottom-color: #ffffff;
+	border-top-color: #ffffff;
+}
+
 .btn-default:hover,
 .btn-default:focus,
 .btn-default:active,
-.btn-default.active {
+.btn-default.active,
+.open .dropdown-toggle.btn-default {
   background-color: #9a9c9d;
   border-color: #8d9091;
+  color: #ffffff;
 }
 
 .btn-default.disabled:hover,
@@ -498,3 +521,8 @@ fieldset[disabled] .btn-default.active {
 	padding: 7px;
 	z-index: 1;
 }
+
+.form-group {
+	margin-bottom: 7px;
+}
+

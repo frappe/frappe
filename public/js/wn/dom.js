@@ -108,15 +108,19 @@ wn.dom = {
 var pending_req = 0
 wn.set_loading = function() {
 	pending_req++;
-	$('#spinner').css('visibility', 'visible');
+	//$('#spinner').css('visibility', 'visible');
 	$('body').css('cursor', 'progress');
+	NProgress.start();
 }
 
 wn.done_loading = function() {
 	pending_req--;
 	if(!pending_req){
 		$('body').css('cursor', 'default');
-		$('#spinner').css('visibility', 'hidden');
+		//$('#spinner').css('visibility', 'hidden');
+		NProgress.done();
+	} else {
+		NProgress.inc();
 	}
 }
 

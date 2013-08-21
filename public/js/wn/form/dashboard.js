@@ -17,13 +17,13 @@ wn.ui.form.Dashboard = Class.extend({
 	set_headline: function(html) {
 		if(!this.headline)
 			this.headline = 
-				$('<div class="form-headline col col-lg-12">').prependTo(this.body);
+				$('<div class="form-headline col-md-12">').prependTo(this.body);
 		this.headline.html(html);
 		this.wrapper.toggle(true);
 	},
 	set_headline_alert: function(text, alert_class, icon) {
 		this.set_headline(repl('<div class="alert %(alert_class)s">%(icon)s%(text)s</div>', {
-			"alert_class": alert_class || "",
+			"alert_class": alert_class || "alert-info",
 			"icon": icon ? '<i class="'+icon+'" /> ' : "",
 			"text": text 
 		}));
@@ -38,8 +38,8 @@ wn.ui.form.Dashboard = Class.extend({
 		}
 	},
 	add_badge: function(label, doctype, onclick) {
-		var badge = $(repl('<div class="col col-lg-4">\
-			<div class="alert alert-badge">\
+		var badge = $(repl('<div class="col-md-4">\
+			<div class="alert alert-warning alert-badge">\
 				<i class="icon-fixed-width %(icon)s"></i> \
 				<a class="badge-link">%(label)s</a>\
 				<span class="badge pull-right">-</span>\
@@ -97,7 +97,7 @@ wn.ui.form.Dashboard = Class.extend({
 			cols = Math.floor(12 / n_charts);
 	
 		progress_area.find(".progress-chart")
-			.removeClass().addClass("progress-chart col col-lg-" + cols);
+			.removeClass().addClass("progress-chart col-md-" + cols);
 		
 		return progress_chart;
 	}

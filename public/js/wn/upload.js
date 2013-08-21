@@ -5,8 +5,8 @@
 wn.upload = {
 	make: function(opts) {
 		var $upload = $("<div class='file-upload'>" + repl(wn._('Upload a file')+':<br>\
-			<input type="file" name="filedata" /><br><br>\
-			OR:<br><input type="text" name="file_url" /><br>\
+			<input class="alert alert-info" style="padding: 7px; margin-top: 7px;" type="file" name="filedata" />\
+			OR:<br><input class="form-control" style="max-width: 300px;" type="text" name="file_url" /><br>\
 			<p class="help">'
 			+ (opts.sample_url || 'e.g. http://example.com/somefile.png') 
 			+ '</p><br>\
