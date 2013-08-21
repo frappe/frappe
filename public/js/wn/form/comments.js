@@ -10,12 +10,12 @@ wn.ui.form.Comments = Class.extend({
 		var me = this;
 		this.wrapper =this.parent;
 		this.row = $("<div class='row'>").appendTo(this.parent);
-		this.input = $('<div class="col col-lg-10">\
-			<textarea rows="3"></textarea></div>')
+		this.input = $('<div class="col-md-10">\
+			<textarea rows="3" class="form-control"></textarea></div>')
 			.appendTo(this.row)
 			.find("textarea");
-		this.button = $('<div class="col col-lg-1">\
-			<button class="btn btn-default btn-go" class="col col-lg-1">\
+		this.button = $('<div class="col-md-1">\
+			<button class="btn btn-default btn-go" class="col-md-1">\
 				<i class="icon-ok"></i></button>\
 			</div>')
 			.appendTo(this.row)
@@ -48,12 +48,12 @@ wn.ui.form.Comments = Class.extend({
 			c.comment_on = dateutil.comment_when(c.creation);
 			c.fullname = wn.user_info(c.comment_by).fullname;
 			
-			$(repl('<div class="comment alert col col-lg-10" data-name="%(name)s">\
+			$(repl('<div class="comment alert col-md-10" data-name="%(name)s">\
 				<div class="row">\
-					<div class="col col-lg-1">\
+					<div class="col-md-1">\
 						<span class="avatar avatar-small"><img src="%(image)s"></span>\
 					</div>\
-					<div class="col col-lg-11">\
+					<div class="col-md-11">\
 						%(comment)s%(delete)s<br>\
 						<span class="small text-muted">%(fullname)s / %(comment_on)s</span>\
 					</div>\

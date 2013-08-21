@@ -91,7 +91,7 @@ function show_alert(txt, add_class) {
 		$('<div id="alert-container"></div>').appendTo('#dialog-container');
 	}
 
-	var div = $('<div class="alert">\
+	var div = $('<div class="alert alert-warning">\
 		<a class="close">&times;</a>'+ txt +'</div>')
 			.appendTo('#alert-container')
 	div.find('.close').click(function() {

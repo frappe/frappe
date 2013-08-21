@@ -128,6 +128,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		// parent element
 		this.make_wrapper();
 		this.wrapper = this.$wrapper.get(0);
+		if(!this.wrapper) console.log(this.parent);
 		this.wrapper.fieldobj = this; // reference for event handlers
 		this.set_input_areas();
 		
@@ -137,14 +138,13 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 	},
 	make_wrapper: function() {
 		if(this.only_input) {
-			this.$wrapper = $("<span>").appendTo(this.parent);
+			this.$wrapper = $('<div class="form-group">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="control-group">\
+			this.$wrapper = $('<div class="form-group">\
 				<label class="control-label"></label>\
 				<div class="control-input"></div>\
 				<div class="control-value like-disabled-input" style="display: none;"></div>\
 				<p class="help-box small text-muted">&nbsp;</p>\
-				</div>\
 			</div>').appendTo(this.parent);
 		}
 	},
@@ -246,7 +246,7 @@ wn.ui.form.ControlData = wn.ui.form.ControlInput.extend({
 	make_input: function() {
 		this.$input = $("<"+ this.html_element +">")
 			.attr("type", this.input_type)
-			.addClass("col col-lg-12 input-with-feedback")
+			.addClass("col-md-12 input-with-feedback form-control")
 			.prependTo(this.input_area)
 		
 		this.set_input_attributes();
@@ -445,7 +445,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	},
 	make_input: function() {
 		this._super();
-		this.$input.removeClass("col col-lg-12");
+		this.$input.removeClass("col-md-12 form-control");
 	},
 	parse: function(value) {
 		return this.input.checked ? 1 : 0;
@@ -523,10 +523,9 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	},
 	setup_attachment: function() {
 		var me = this;
-		$(this.input).css({"width": "70%"});
+		$(this.input).css({"width": "85%", "display": "inline-block"});
 		this.$attach = $("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
-			style='margin-bottom: 9px; \
-			padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
+			style='padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
 				me.frm.attachments.new_attachment(me.df.fieldname);
@@ -590,8 +589,8 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		$('<div class="input-group link-field">\
-			<input type="text" class="input-with-feedback">\
-			<div class="input-group-btn">\
+			<input type="text" class="input-with-feedback form-control">\
+			<span class="input-group-btn">\
 				<button class="btn btn-default btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
 				</button>\
@@ -600,7 +599,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				</button><button class="btn btn-default btn-new" title="Make New">\
 					<i class="icon-plus"></i>\
 				</button>\
-			</div>\
+			</span>\
 		</div>').appendTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');

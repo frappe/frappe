@@ -9,9 +9,9 @@ wn.ui.AppFrame = Class.extend({
 		this.buttons = {};
 		this.fields_dict = {};
 
-		this.$w = $('<div class="appframe-header col col-lg-12">\
+		this.$w = $('<div class="appframe-header col-md-12">\
 			<div class="row appframe-title">\
-				<div class="col col-lg-12">\
+				<div class="col-md-12">\
 					<div class="title-button-area btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
 					<div class="title-button-area-1 btn-group pull-right" \
@@ -24,11 +24,7 @@ wn.ui.AppFrame = Class.extend({
 				</div>\
 			</div>\
 			<div class="info-bar" style="display: none;"><ul class="hidden-sm-inline"></ul></div>\
-			<div class="navbar" style="display: none;">\
-				<div class="navbar-form pull-left">\
-					<div class="btn-group pull-left"></div>\
-					<div class="form-inline"></div>\
-				</div>\
+			<div class="appframe-toolbar" style="display: none;">\
 			</div>\
 		<div>').prependTo(parent);
 
@@ -36,10 +32,16 @@ wn.ui.AppFrame = Class.extend({
 			window.history.back();
 		})
 		
-		this.toolbar = this.$w.find(".navbar-form");
+		this.toolbar = this.$w.find(".appframe-toolbar");
+		this.setup_toolbar();
 		if(title) 
 			this.set_title(title);
 			
+	},
+	setup_toolbar: function() {
+		$('<div class="btn-group form-group pull-left"></div>\
+			<div class="appframe-form"></div>\
+			<div class="clearfix"></div>').appendTo(this.toolbar.toggle(false));
 	},
 	get_title_area: function() {
 		return this.$w.find(".title-area");
@@ -180,22 +182,20 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_help_button: function(txt) {
-		$('<button class="btn btn-default" button-type="help">\
+		$('<button class="btn btn-default pull-right" button-type="help">\
 			<b>?</b></button>')
 			.data('help-text', txt)
 			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
-			.appendTo(this.toolbar);			
+			.insertBefore(this.toolbar.find(".clearfix"));
 	},
 
 	show_toolbar: function() {
-		this.toolbar.parent().toggle(true);
+		this.toolbar.toggle(true);
 	},
 
 	clear_buttons: function() {
-		this.toolbar && this.toolbar
-			.html('<div class="btn-group"></div>')
-			.parent()
-			.toggle(false);
+		this.toolbar.empty();
+		this.setup_toolbar();
 		$(".custom-menu").remove();
 	},
 
@@ -246,45 +246,37 @@ wn.ui.AppFrame = Class.extend({
 	},
 	add_label: function(label) {
 		this.show_toolbar();
-		return $("<label class='col-lg-1' style='margin-top: 0.8%;'>"+label+" </label>")
-			.appendTo(this.toolbar);
+		return $("<label style='margin-top: 0.8%; margin-left: 5px; margin-right: 5px; float: left;'>"+label+" </label>")
+			.appendTo(this.toolbar.find(".appframe-form"));
 	},
 	add_select: function(label, options) {
-		this.show_toolbar();
-		return $("<select class='col-lg-2' style='margin-right: 5px;'>")
-			.add_options(options)
-			.appendTo(this.toolbar);
+		var field = this.add_field({label:label, fieldtype:"Select"})
+		return field.$wrapper.find("select").empty().add_options(options);
 	},
 	add_data: function(label) {
-		this.show_toolbar();
-		return $("<input class='col-lg-2' style='margin-right: 5px;' type='text' placeholder='"+ label +"'>")
-			.appendTo(this.toolbar);
+		var field = this.add_field({label: label, fieldtype: "Data"});
+		return field.$wrapper.find("input").attr("placeholder", label);
 	}, 
 	add_date: function(label, date) {
-		this.show_toolbar();
-		return $("<input class='col-lg-2' style='margin-right: 5px;' type='text'>").datepicker({
-			dateFormat: sys_defaults.date_format.replace("yyyy", "yy"),
-			changeYear: true,
-		}).val(dateutil.str_to_user(date) || "")
-			.appendTo(this.toolbar);
+		var field = this.add_field({label: label, fieldtype: "Date", "default": date});
+		return field.$wrapper.find("input").attr("placeholder", label);		
 	},
 	add_check: function(label) {
 		this.show_toolbar();
-		return $("<label style='display: inline;'><input type='checkbox' \
-			style='margin-right: 5px;'/> " + label + "</label>")
-			.appendTo(this.toolbar)
+		return $("<div class='checkbox' style='margin-right: 10px; margin-top: 7px; float: left;'><label><input type='checkbox'>" + label + "</label></div>")
+			.appendTo(this.toolbar.find(".appframe-form"))
 			.find("input");
 	},
 	add_field: function(df) {
 		this.show_toolbar();
 		var f = wn.ui.form.make_control({
 			df: df,
-			parent: this.toolbar.find(".form-inline"),
+			parent: this.toolbar.find(".appframe-form"),
 			only_input: true,
 		})
 		f.refresh();
 		$(f.wrapper)
-			.addClass('col-lg-2')
+			.addClass('col-md-2 form-group')
 			.css({
 				"padding-left": "0px", 
 				"padding-right": "0px",
@@ -334,16 +326,16 @@ wn.ui.make_app_page = function(opts) {
 		] 
 	*/
 	if(opts.single_column) {
-		$('<div class="appframe col col-lg-12">\
+		$('<div class="appframe col-md-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="layout-main"></div>\
 		</div>').appendTo(opts.parent);
 	} else {
-		$('<div class="appframe col col-lg-12">\
+		$('<div class="appframe col-md-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="row">\
-				<div class="layout-main-section col col-lg-9"></div>\
-				<div class="layout-side-section col col-lg-3"></div>\
+				<div class="layout-main-section col-md-9"></div>\
+				<div class="layout-side-section col-md-3"></div>\
 			</div>\
 		</div>').appendTo(opts.parent);
 	}

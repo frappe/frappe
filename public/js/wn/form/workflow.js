@@ -55,7 +55,7 @@ wn.ui.form.States = Class.extend({
 					+ wn.workflow.get_document_state(me.frm.doctype,
 						state).allow_edit.bold() + "</p>"
 				+ "<p>"+wn._("Next actions")+": "+ next_html +"</p>"
-				+ (me.frm.doc.__islocal ? ("<div class='alert'>"
+				+ (me.frm.doc.__islocal ? ("<div class='alert alert-info'>"
 					+wn._("Workflow will start after saving.")+"</div>") : "")
 				+ "<p class='help'>"+wn._("Note: Other permission rules may also apply")+"</p>"
 				).css({padding: '15px'});

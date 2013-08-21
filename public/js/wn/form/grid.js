@@ -11,12 +11,14 @@ wn.ui.form.Grid = Class.extend({
 		var me = this;
 		
 		this.wrapper = $('<div>\
-		<div class="panel">\
+		<div class="panel panel-default">\
 			<div class="panel-heading" style="font-size: 15px;"></div>\
-			<div class="rows"></div>\
-			<div style="margin-top: 5px; margin-bottom: -5px;">\
-				<a href="#" class="grid-add-row">+ '+wn._("Add new row")+'.</a>\
-				<span class="text-muted">Click on row to edit.</span></div>\
+			<div class="panel-body">\
+				<div class="rows"></div>\
+				<div style="margin-top: 5px; margin-bottom: -5px;">\
+					<a href="#" class="grid-add-row">+ '+wn._("Add new row")+'.</a>\
+					<span class="text-muted">Click on row to edit.</span></div>\
+			</div>\
 		</div>\
 		</div>').appendTo(this.parent);
 
@@ -228,7 +230,7 @@ wn.ui.form.GridRow = Class.extend({
 		var me = this,
 			total_colsize = 1;
 		me.row.empty();
-		col = $('<div class="col col-lg-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
+		col = $('<div class="col col-xs-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
 			.appendTo(me.row);
 		
 		$.each(me.docfields, function(ci, df) {
@@ -252,7 +254,7 @@ wn.ui.form.GridRow = Class.extend({
 				total_colsize += colsize
 				if(total_colsize > 11) 
 					return false;
-				$col = $('<div class="col col-lg-'+colsize+'"></div>')
+				$col = $('<div class="col col-xs-'+colsize+'"></div>')
 					.html(txt)
 					.attr("data-fieldname", df.fieldname)
 					.data("df", df)
@@ -275,11 +277,11 @@ wn.ui.form.GridRow = Class.extend({
 		while(total_colsize < 11 && passes < 10) {
 			me.row.find(".col").each(function() {
 				var $col = $(this);
-				if(!$col.hasClass("col-lg-1") 
+				if(!$col.hasClass("col-xs-1") 
 					&& !in_list(["Int", "Currency", "Float"], $col.data("df").fieldtype)) {
 					for(var i=2; i<12; i++) {
-						if($col.hasClass("col-lg-" + i)) {
-							$col.removeClass("col-lg-" + i).addClass("col-lg-" + (i+1));
+						if($col.hasClass("col-xs-" + i)) {
+							$col.removeClass("col-xs-" + i).addClass("col-xs-" + (i+1));
 							total_colsize++;
 							break;
 						}
@@ -294,7 +296,7 @@ wn.ui.form.GridRow = Class.extend({
 		// append button column
 		if(me.doc && this.grid.is_editable()) {
 			if(!me.grid.$row_actions) {
-				me.grid.$row_actions = $('<div class="col col-lg-1 pull-right" \
+				me.grid.$row_actions = $('<div class="col-md-1 pull-right" \
 					style="text-align: right; padding-right: 5px;">\
 					<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
 						<i class="icon icon-plus-sign"></i></button>\
@@ -389,8 +391,12 @@ wn.ui.form.GridRow = Class.extend({
 					.css({"padding": "0px 15px"})
 					.appendTo(me.form_area);
 				
-				var col1 = $('<div class="col col-lg-6"></div>').appendTo(row),
-					col2 = $('<div class="col col-lg-6"></div>').appendTo(row);
+				var col_spans = 6;
+				if(row.parents(".form-column:first").hasClass("col-md-6"))
+					col_spans = 12;
+				
+				var col1 = $('<div class="col-md-'+col_spans+'"></div>').appendTo(row),
+					col2 = $('<div class="col-md-'+col_spans+'"></div>').appendTo(row);
 				
 				return [col1, col2];
 			},
@@ -433,7 +439,7 @@ wn.ui.form.GridRow = Class.extend({
 		if(!this.form_area) {
 			$('<div class="panel-heading">\
 				<div class="toolbar" style="height: 36px;">\
-					Editing Row #<span class="row-index"></span>\
+					<span class="panel-title">Editing Row #<span class="row-index"></span></span>\
 					<button class="btn btn-success pull-right grid-toggle-row" \
 						title="'+wn._("Close")+'"\
 						style="margin-left: 7px;">\
@@ -447,17 +453,19 @@ wn.ui.form.GridRow = Class.extend({
 						><i class="icon-trash grid-delete-row"></i></button>\
 				</div>\
 			</div>\
-			<div class="form-area"></div>\
-			<div class="toolbar footer-toolbar" style="height: 36px;">\
-				<span class="text-muted">Move Up: Ctrl+<i class="icon-arrow-up"></i>, Move Down: Ctrl+<i class="icon-arrow-down"></i>, Close: Esc</span>\
-				<button class="btn btn-success pull-right grid-toggle-row" \
-					title="'+wn._("Close")+'"\
-					style="margin-left: 7px;">\
-					<i class="icon-chevron-up"></i></button>\
-				<button class="btn btn-default pull-right grid-append-row" \
-					title="'+wn._("Insert Below")+'"\
-					style="margin-left: 7px;">\
-					<i class="icon-plus"></i></button>\
+			<div class="panel-body">\
+				<div class="form-area"></div>\
+				<div class="toolbar footer-toolbar" style="height: 36px;">\
+					<span class="text-muted"><a href="#" class="shortcuts"><i class="icon-keyboard"></i> Shortcuts</a></span>\
+					<button class="btn btn-success pull-right grid-toggle-row" \
+						title="'+wn._("Close")+'"\
+						style="margin-left: 7px;">\
+						<i class="icon-chevron-up"></i></button>\
+					<button class="btn btn-default pull-right grid-append-row" \
+						title="'+wn._("Insert Below")+'"\
+						style="margin-left: 7px;">\
+						<i class="icon-plus"></i></button>\
+				</div>\
 			</div>').appendTo(this.form_panel);
 			this.form_area = this.wrapper.find(".form-area");
 			this.set_row_index();
@@ -480,6 +488,12 @@ wn.ui.form.GridRow = Class.extend({
 				me.toggle_view();
 				return false;
 			});
+		this.form_panel.find(".shortcuts").on("click", function() {
+			msgprint('Move Up: Ctrl+<i class="icon-arrow-up"></i>');
+			msgprint('Move Down: Ctrl+<i class="icon-arrow-down"></i>');
+			msgprint('Close: Esc');
+			return false;
+		})
 	},
 	set_data: function() {
 		this.wrapper.data({

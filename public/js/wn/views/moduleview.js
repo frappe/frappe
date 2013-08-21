@@ -59,8 +59,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 		// make columns
 		$(wrapper).find(".layout-main").html("<div class='row module-top'></div>\
 		<div class='row'>\
-			<div class='col col-lg-6 main-section'></div>\
-			<div class='col col-lg-6 side-section'></div>\
+			<div class='col-md-6 main-section'></div>\
+			<div class='col-md-6 side-section'></div>\
 		</div>")
 
 		$(wrapper).on("click", ".badge-important", function() {
@@ -78,7 +78,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			var module_top = $(this.wrapper).find(".module-top");
 			var list_group = $('<div>')
 				.appendTo(module_top);
-			$('<div class="col col-lg-12"><hr /></div>').appendTo(module_top);
+			$('<hr>').insertAfter(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
 				<li class="list-group-item" style="background-color: #eee">\
@@ -97,8 +97,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(item.count==null) item.count = "";
 		if(!item.icon) item.icon = "";
 		if(section.top) {
-			var $parent = $(repl('<div class="col col-lg-4">\
-				<div class="alert alert-badge"></div></div>'))
+			var $parent = $(repl('<div class="col-md-4">\
+				<div class="alert alert-warning alert-badge"></div></div>'))
 				.appendTo(section.list_group)
 				.find(".alert");
 			this.top_item_total[item.doctype] = 0;

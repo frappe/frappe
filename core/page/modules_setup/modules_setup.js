@@ -10,7 +10,7 @@ wn.pages['modules_setup'].onload = function(wrapper) {
 		wn.modules_setup.update(this);
 	})
 	
-	$('<div class="alert">Select modules to be shown.</div>').appendTo($(wrapper).find(".layout-main"));
+	$('<div class="alert alert-info">Select modules to be shown.</div>').appendTo($(wrapper).find(".layout-main"));
 	$('<div id="modules-list">').appendTo($(wrapper).find(".layout-main"));
 	
 	wn.modules_setup.refresh_page();

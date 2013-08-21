@@ -65,7 +65,7 @@ wn.views.Gantt = Class.extend({
 			.find(".layout-main")
 			.empty()
 			.css('min-height', '300px')
-			.html('<div class="alert">Loading...</div>');
+			.html('<div class="alert alert-info">Loading...</div>');
 		
 		var me = this;
 		return wn.call({
@@ -80,7 +80,7 @@ wn.views.Gantt = Class.extend({
 			callback: function(r) {
 				$(parent).empty();
 				if(!r.message.length) {
-					$(parent).html('<div class="alert">Nothing to show.</div>');
+					$(parent).html('<div class="alert alert-info">Nothing to show.</div>');
 				} else {
 					var gantt_area = $('<div class="gantt">').appendTo(parent);
 					gantt_area.gantt({

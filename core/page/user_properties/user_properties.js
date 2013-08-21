@@ -84,7 +84,7 @@ wn.UserProperties = Class.extend({
 		this.body.empty();
 		this.prop_list = prop_list;
 		if(!prop_list.length) {
-			this.body.html("<div class='alert'>"+wn._("No User Properties found.")+"</div>");
+			this.body.html("<div class='alert alert-info'>"+wn._("No User Properties found.")+"</div>");
 		} else {
 			this.show_property_table();
 		}
@@ -93,11 +93,11 @@ wn.UserProperties = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.user_select) {
-			this.body.html("<div class='alert'>"+wn._("Loading")+"...</div>");
+			this.body.html("<div class='alert alert-info'>"+wn._("Loading")+"...</div>");
 			return;
 		}
 		if(!me.get_user() && !me.get_property()) {
-			this.body.html("<div class='alert'>"+wn._("Select User or Property to start.")+"</div>");
+			this.body.html("<div class='alert alert-warning'>"+wn._("Select User or Property to start.")+"</div>");
 			return;
 		}
 		// get permissions

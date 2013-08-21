@@ -22,11 +22,9 @@ wn.avatar = function(user, large, title) {
 	var to_size = large ? 72 : 30;
 	if(!title) title = wn.user_info(user).fullname;
 
-	return repl('<span class="avatar %(small_or_large)s" title="%(title)s" style="width: %(len)s; \
-		height: %(len)s; border-radius: %(len)s; overflow: hidden;">\
+	return repl('<span class="avatar %(small_or_large)s" title="%(title)s">\
 		<img src="%(image)s"></span>', {
 			image: image,
-			len: to_size + "px",
 			title: title,
 			small_or_large: large ? "avatar-large" : "avatar-small"
 		});	

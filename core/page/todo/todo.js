@@ -28,7 +28,7 @@ erpnext.todo.refresh = function() {
 			
 			var nothing_to_do = function() {
 				$('#todo-list div.todo-content')
-					.html('<div class="alert">Nothing to do :)</div>');
+					.html('<div class="alert alert-success">Nothing to do :)</div>');
 			}
 			
 			

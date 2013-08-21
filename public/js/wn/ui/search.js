@@ -20,9 +20,9 @@ wn.ui.Search = Class.extend({
 			title: this.doctype + ' Search',
 			width: 500
 		});
-		var parent = $('<div class="row"><div class="col col-lg-12"></div></div>')
+		var parent = $('<div class="row"><div class="col-md-12"></div></div>')
 			.appendTo(this.dialog.body)
-			.find(".col-lg-12")
+			.find(".col-md-12")
 		this.list = new wn.ui.Listing({
 			parent: parent,
 			appframe: this.dialog.appframe,

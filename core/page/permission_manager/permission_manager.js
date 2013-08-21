@@ -143,11 +143,11 @@ wn.PermissionEngine = Class.extend({
 	refresh: function() {
 		var me = this;
 		if(!me.doctype_select) {
-			this.body.html("<div class='alert'>Loading...</div>");
+			this.body.html("<div class='alert alert-info'>Loading...</div>");
 			return;
 		}
 		if(!me.get_doctype() && !me.get_role()) {
-			this.body.html("<div class='alert'>"+wn._("Select Document Type or Role to start.")+"</div>");
+			this.body.html("<div class='alert alert-info'>"+wn._("Select Document Type or Role to start.")+"</div>");
 			return;
 		}
 		// get permissions
@@ -169,7 +169,7 @@ wn.PermissionEngine = Class.extend({
 		this.body.empty();
 		this.perm_list = perm_list;
 		if(!perm_list.length) {
-			this.body.html("<div class='alert'>"+wn._("No Permissions set for this criteria.")+"</div>");
+			this.body.html("<div class='alert alert-warning'>"+wn._("No Permissions set for this criteria.")+"</div>");
 		} else {
 			this.show_permission_table(perm_list);
 		}
