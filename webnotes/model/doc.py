@@ -273,7 +273,7 @@ class Document:
 
 				# validate links
 				if link_list and link_list.get(f):
-					self.fields[f] = self._validate_link(link_list[f][0], self.fields[f])
+					self.fields[f] = self._validate_link(link_list, f)
 
 				if self.fields[f]==None:
 					update_str.append("(%s,%s,NULL)")
@@ -292,7 +292,7 @@ class Document:
 			# validate links
 			old_val = self.fields[f]
 			if link_list and link_list.get(f):
-				self.fields[f] = self._validate_link(link_list[f][0], self.fields[f])
+				self.fields[f] = self._validate_link(link_list, f)
 
 			if old_val and not self.fields[f]:
 				s = link_list[f][1] + ': ' + old_val
@@ -307,7 +307,13 @@ class Document:
 		for i in res: link_list[i[0]] = (i[1], i[2]) # options, label
 		return link_list
 	
-	def _validate_link(self, dt, dn):
+	def _validate_link(self, link_list, f):
+		dt = link_list[f][0]
+		dn = self.fields.get(f)
+		
+		if not dt:
+			webnotes.throw("Options not set for link field: " + f)
+		
 		if not dt: return dn
 		if not dn: return None
 		if dt=="[Select]": return dn
@@ -338,8 +344,7 @@ class Document:
 					
 					# validate links
 					if link_list and link_list.get(f):
-						self.fields[f] = self._validate_link(link_list[f][0],
-							self.fields.get(f))
+						self.fields[f] = self._validate_link(link_list, f)
 
 					if self.fields.get(f) is None or self.fields.get(f)=='':
 						update_str.append("`%s`=NULL" % f)
