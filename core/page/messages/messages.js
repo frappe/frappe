@@ -27,7 +27,7 @@ wn.pages.messages.onload = function(wrapper) {
 		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
 	</div><hr>\
 	<div id="post-message">\
-	<textarea style="width: 100%; height: 64px; margin-bottom: 7px;"></textarea>\
+	<textarea class="form-control" rows=3 style="margin-bottom: 15px;"></textarea>\
 	<div><button class="btn btn-default">Post</button></div><hr>\
 	</div>\
 	<div class="all-messages"></div>').appendTo($(wrapper).find('.layout-main-section'));
