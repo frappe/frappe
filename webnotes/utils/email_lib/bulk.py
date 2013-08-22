@@ -50,7 +50,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
-		sender = webnotes.conn.get_value('Email Settings', None, 'auto_mail_id')
+		sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id')
 	check_bulk_limit(len(recipients))
 
 	import HTMLParser
