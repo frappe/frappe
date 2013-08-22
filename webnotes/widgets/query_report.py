@@ -31,7 +31,7 @@ def get_script(report_name):
 def run(report_name, filters=None):
 	report = webnotes.doc("Report", report_name)
 	
-	if filters:
+	if filters and isinstance(filters, basestring):
 		filters = json.loads(filters)
 
 	if not webnotes.has_permission(report.ref_doctype, "report"):
