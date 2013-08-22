@@ -28,13 +28,14 @@ wn.Application = Class.extend({
 				callback: function(r, rt) {
 					wn.provide('wn.boot');
 					wn.boot = r;
-					if(wn.boot.profile.name=='Guest') {
+					if(wn.boot.profile.name=='Guest' ||
+						(wn.boot.profile.roles.length===1 && wn.boot.profile.roles[0]==="All")) {
 						window.location = 'index.html';
 						return;
 					}
 					me.startup();
 				}
-			})
+			});
 		} else {
 			this.startup();
 		}		
