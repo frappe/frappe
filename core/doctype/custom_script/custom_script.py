@@ -2,6 +2,7 @@
 # MIT License. See license.txt 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.utils import cstr
 
 class DocType:
 	def __init__(self, d, dl):
@@ -22,10 +23,10 @@ class DocType:
 
 def get_custom_server_script(doctype):
 	custom_script = webnotes.cache().get_value("_server_script:" + doctype)
-	if custom_script==None:
+	if not custom_script:
 		custom_script = webnotes.conn.get_value("Custom Script", {"dt": doctype, "script_type":"Server"}, 
 			"script") or ""
 		webnotes.cache().set_value("_server_script:" + doctype, custom_script)
-		
+	
 	return custom_script
 
