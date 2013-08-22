@@ -198,8 +198,8 @@ erpnext.Messages = Class.extend({
 						p.status = p.has_session ? "Online" : "Offline";
 						$(repl('<p>\
 							<span class="avatar avatar-small" \
-								style="border: 3px solid %(status_color)s" \
-								title="%(status)s"><img src="%(image)s"></span>\
+								title="%(status)s"><img src="%(image)s"\
+									style="border: 3px solid %(status_color)s"></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
 							.appendTo($body);						

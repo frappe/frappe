@@ -72,7 +72,6 @@ div#freeze {
 
 .alert-badge {
 	padding-right: 15px;
-	margin-bottom: 0px;
 }
 
 .alert-badge a, .alert-badge a:hover {
@@ -336,7 +335,8 @@ div#freeze {
 	background-color: #ddd;
 	border: 1px solid #eee;
 	border-radius: 50%;
-	width: 100%; 
+	width: 100%;
+	height: auto;
 }
 
 .avatar-small {
@@ -528,4 +528,3 @@ fieldset[disabled] .btn-default.active {
 .form-group {
 	margin-bottom: 7px;
 }
-
