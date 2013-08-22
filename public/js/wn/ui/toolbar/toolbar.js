@@ -57,7 +57,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 	},
 	
 	make_notification: function() {
-		$('.navbar .pull-right').append('<li class="dropdown">\
+		$('.navbar .navbar-right').append('<li class="dropdown">\
 			<a class="dropdown-toggl" href="#"  data-toggle="dropdown"\
 				title="'+wn._("Unread Messages")+'"\
 				onclick="return false;"><span class="navbar-new-comments">0</span></a>\
