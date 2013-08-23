@@ -101,7 +101,7 @@ _f.Frm.prototype.setup = function() {
 	});
 	this.frm_head = this.toolbar;
 	
-	// create area for print fomrat
+	// create area for print format
 	this.setup_print_layout();
 	
 	// 2 column layout
