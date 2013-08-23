@@ -227,15 +227,17 @@ wn.views.QueryReport = Class.extend({
 	},
 	make_data: function(result, columns) {
 		var me = this;
-		this.data = $.map(result, function(row, row_idx) {
+		this.data = [];
+		for(var row_idx=0, l=result.length; row_idx < l; row_idx++) {
+			var row = result[row_idx];
 			var newrow = {};
-			for(var i=1, j=me.columns.length; i<j; i++) {
-				newrow[me.columns[i].field] = row[i-1];
+			for(var i=1, j=this.columns.length; i<j; i++) {
+				newrow[this.columns[i].field] = row[i-1];
 			};
 			newrow._id = row_idx + 1;
 			newrow.id = newrow.name ? newrow.name : ("_" + newrow._id);
-			return newrow;
-		});
+			this.data.push(newrow);
+		}
 	},
 	make_dataview: function() {
 		// initialize the model

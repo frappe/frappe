@@ -375,8 +375,11 @@ div#freeze {
 
 .missing-image {
 	background-color: #eee;
-	padding: 40px;
-	width: 112px;
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+	width: 140px;
+	height: 140px;
 	font-size: 32px;
 	color: #888;
 }
