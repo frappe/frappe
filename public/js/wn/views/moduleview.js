@@ -78,7 +78,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 			var module_top = $(this.wrapper).find(".module-top");
 			var list_group = $('<div>')
 				.appendTo(module_top);
-			$('<hr>').insertAfter(module_top);
+			$('<hr>').css({"margin-top": "0px"})
+				.insertAfter(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
 				<li class="list-group-item" style="background-color: #eee">\
