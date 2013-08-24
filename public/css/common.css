@@ -72,7 +72,6 @@ div#freeze {
 
 .alert-badge {
 	padding-right: 15px;
-	margin-bottom: 0px;
 }
 
 .alert-badge a, .alert-badge a:hover {
@@ -336,7 +335,8 @@ div#freeze {
 	background-color: #ddd;
 	border: 1px solid #eee;
 	border-radius: 50%;
-	width: 100%; 
+	width: 100%;
+	height: auto;
 }
 
 .avatar-small {
@@ -375,8 +375,11 @@ div#freeze {
 
 .missing-image {
 	background-color: #eee;
-	padding: 40px;
-	width: 112px;
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
+	width: 140px;
+	height: 140px;
 	font-size: 32px;
 	color: #888;
 }
@@ -484,6 +487,9 @@ textarea[data-fieldtype="Small Text"] {
   color: #ffffff;
 }
 
+.btn-default.disabled,
+.btn-default[disabled],
+fieldset[disabled] .btn-default,
 .btn-default.disabled:hover,
 .btn-default[disabled]:hover,
 fieldset[disabled] .btn-default:hover,
@@ -525,4 +531,3 @@ fieldset[disabled] .btn-default.active {
 .form-group {
 	margin-bottom: 7px;
 }
-

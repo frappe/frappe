@@ -101,6 +101,7 @@ class DocList(list):
 	def _prepare_doc(self, doc):
 		if not doc.name:
 			doc.fields["__islocal"] = 1
+			doc.docstatus = 0
 		if doc.parentfield:
 			if not doc.parenttype:
 				doc.parenttype = self[0].doctype

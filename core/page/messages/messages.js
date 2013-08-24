@@ -27,7 +27,7 @@ wn.pages.messages.onload = function(wrapper) {
 		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
 	</div><hr>\
 	<div id="post-message">\
-	<textarea style="width: 100%; height: 64px; margin-bottom: 7px;"></textarea>\
+	<textarea class="form-control" rows=3 style="margin-bottom: 15px;"></textarea>\
 	<div><button class="btn btn-default">Post</button></div><hr>\
 	</div>\
 	<div class="all-messages"></div>').appendTo($(wrapper).find('.layout-main-section'));
@@ -198,8 +198,8 @@ erpnext.Messages = Class.extend({
 						p.status = p.has_session ? "Online" : "Offline";
 						$(repl('<p>\
 							<span class="avatar avatar-small" \
-								style="border: 3px solid %(status_color)s" \
-								title="%(status)s"><img src="%(image)s"></span>\
+								title="%(status)s"><img src="%(image)s"\
+									style="border: 3px solid %(status_color)s"></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
 							.appendTo($body);						

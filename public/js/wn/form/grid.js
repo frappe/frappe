@@ -201,11 +201,14 @@ wn.ui.form.GridRow = Class.extend({
 		}
 	},
 	remove: function() {
-		var me = this;
-		me.wrapper.toggle(false);
-		wn.model.clear_doc(me.doc.doctype, me.doc.name);
-		me.frm.dirty();
-		me.grid.refresh();
+		if(this.grid.is_editable()) {
+			var me = this;
+			me.wrapper.toggle(false);
+			wn.model.clear_doc(me.doc.doctype, me.doc.name);
+			me.frm.script_manager.trigger(me.grid.df.fieldname + "_remove", me.doc.doctype, me.doc.name);
+			me.frm.dirty();
+			me.grid.refresh();
+		}
 	},
 	insert: function(show) {
 		var idx = this.doc.idx;
