@@ -279,6 +279,9 @@ def validate_permissions(permissions, for_remove=False):
 		if d.submit and not issubmittable:
 			webnotes.msgprint(doctype + " is not Submittable, cannot assign submit rights.",
 				raise_exception=True)
+		elif d.amend and not issubmittable:
+			webnotes.msgprint(doctype + " is not Submittable, cannot assign amend rights.",
+				raise_exception=True)
 	
 	for d in permissions:
 		if not d.permlevel: 
