@@ -342,11 +342,13 @@ div#freeze {
 .avatar-small {
 	margin-right: 5px;
 	width: 30px;
+	max-height: 30px;
 }
 
 .avatar-large {
 	margin-right: 10px;
 	width: 72px;
+	max-height: 72px;
 }
 
 /* slickgrid */
