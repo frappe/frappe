@@ -159,16 +159,20 @@ wn.views.ListView = Class.extend({
 		// row #2
 		var row2 = $('<div class="row">\
 			<div class="col-xs-12">\
-				<div class="col-xs-7 col-md-offset-3">\
-					<div class="list-tag hidden-sm hidden-xs"></div></div>\
-				<div class="col-xs-2 timestamp" style="font-size: 90%; padding-right: 4px;\
-					color: #aaa; margin-top: -3px; text-align: right;">\
+				<div class="col-xs-3"></div>\
+				<div class="col-xs-7">\
+					<div class="list-tag hidden-xs"></div>\
+					<div class="list-last-modified visible-xs text-muted small"></div>\
+					</div>\
+				<div class="col-xs-2 timestamp small text-muted" style="padding-right: 4px;\
+					margin-top: -3px; text-align: right;">\
 				</div>\
 			</div>\
 		</div>').appendTo(row);
 		
 		// modified
 		row2.find(".timestamp").html(comment_when(data.modified));
+		row2.find(".list-last-modified").html(wn._("Last updated by") + ": " + wn.user_info(data.modified_by).fullname);		
 		
 		// add tags
 		var tag_editor = new wn.ui.TagEditor({
@@ -241,6 +245,7 @@ wn.views.ListView = Class.extend({
 				+ wn.user_info(data.modified_by).fullname))
 					.appendTo($(parent).css({"margin-top": "-5px"}))
 					.css({"max-width": "100%"})
+					.addClass("hidden-xs-inline-block")
 		}
 		else if(opts.content=='check') {
 		}

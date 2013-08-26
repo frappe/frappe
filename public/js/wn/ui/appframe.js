@@ -23,7 +23,7 @@ wn.ui.AppFrame = Class.extend({
 					<div class="status-bar"></div>\
 				</div>\
 			</div>\
-			<div class="info-bar" style="display: none;"><ul class="hidden-sm-inline"></ul></div>\
+			<div class="info-bar" style="display: none;"><ul class="hidden-xs-inline"></ul></div>\
 			<div class="appframe-toolbar" style="display: none;">\
 			</div>\
 		<div>').prependTo(parent);
@@ -212,7 +212,7 @@ wn.ui.AppFrame = Class.extend({
 		var append_or_prepend = is_title ? "prependTo" : "appendTo";
 		
 		this.buttons[label] = $(repl('<button class="btn btn-default">\
-			%(icon)s <span class="hidden-sm-inline">%(label)s</span></button>', args))
+			%(icon)s <span class="hidden-xs-inline">%(label)s</span></button>', args))
 			[append_or_prepend](this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
 			.attr("title", wn._(label))
 			.click(click);
