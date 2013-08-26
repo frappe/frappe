@@ -83,9 +83,10 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 
 	# custom?
 	custom_script = get_custom_server_script(doc.doctype)
+		
 	if custom_script:
 		global custom_class
-		
+				
 		exec custom_class + custom_script.replace('\t','  ') in locals()
 			
 		return CustomDocType(doc, doclist)

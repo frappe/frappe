@@ -93,14 +93,12 @@ wn.PermissionEngine = Class.extend({
 				me.doctype_select 
 					= me.wrapper.appframe.add_select("doctypes", 
 						[wn._("Select Document Type")+"..."].concat(r.message.doctypes))
-						.css("width", "200px")
 						.change(function() {
 							wn.set_route("permission-manager", $(this).val())
 						});
 				me.role_select 
 					= me.wrapper.appframe.add_select("roles", 
 						[wn._("Select Role")+"..."].concat(r.message.roles))
-						.css("width", "200px")
 						.change(function() {
 							me.refresh();
 						});

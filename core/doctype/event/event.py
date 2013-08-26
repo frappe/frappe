@@ -80,7 +80,8 @@ def get_events(start, end, user=None, for_reminder=False):
 	def add_event(e, date):
 		new_event = e.copy()
 		new_event.starts_on = date + " " + e.starts_on.split(" ")[1]
-		new_event.ends_on = date + " " + e.ends_on.split(" ")[1]
+		if e.ends_on:
+			new_event.ends_on = date + " " + e.ends_on.split(" ")[1]
 		add_events.append(new_event)
 	
 	for e in events:

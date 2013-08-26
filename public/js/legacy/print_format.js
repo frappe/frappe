@@ -63,7 +63,7 @@ $.extend(_p, {
 					<button class="btn btn-default btn-preview">Preview</button>\
 				</p>'},
 			]
-		})
+		});
 		
 		dialog.$wrapper.find(".btn-print").click(function() {
 			var args = dialog.get_values();
@@ -85,7 +85,7 @@ $.extend(_p, {
 		
 		dialog.onshow = function() {
 			var $print = dialog.fields_dict.print_format.$input;
-			$print.add_options(cur_frm.print_formats);
+			$print.empty().add_options(cur_frm.print_formats);
 			
 			if(cur_frm.$print_view_select && cur_frm.$print_view_select.val())
 				$print.val(cur_frm.$print_view_select.val());

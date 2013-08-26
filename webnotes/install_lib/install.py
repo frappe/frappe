@@ -31,7 +31,7 @@ class Installer:
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
 		"""
 		a very simplified version, just for the time being..will eventually be deprecated once the framework stabilizes.
-		"""		
+		"""
 		# delete user (if exists)
 		self.dbman.delete_user(target)
 
@@ -73,6 +73,7 @@ class Installer:
 		# update admin password
 		self.create_auth_table()
 		self.update_admin_password(password)
+
 		return target
 		
 	def install_app(self):

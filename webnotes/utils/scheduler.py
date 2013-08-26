@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 """
 Scheduler will call the following events from the module
-`startup.schedule_handler`
+`startup.schedule_handler` and Control Panel (for server scripts)
 
 execute_always
 execute_daily
@@ -72,6 +72,12 @@ def trigger(method):
 			webnotes.conn.commit()
 			return 'ok'
 		
+	except Exception:
+		return log(method)
+		
+	try:
+		cp = webnotes.bean("Control Panel", "Control Panel")
+		cp.run_method(method)
 	except Exception:
 		return log(method)
 

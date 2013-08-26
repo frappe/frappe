@@ -40,7 +40,7 @@ wn.ui.form.Control = Class.extend({
 	// returns "Read", "Write" or "None" 
 	// as strings based on permissions
 	get_status: function(explain) {
-		if(!this.doctype) 
+		if(!this.doctype)
 			return "Write";
 		return wn.perm.get_field_display_status(this.df, 
 			locals[this.doctype][this.docname], this.perm, explain);

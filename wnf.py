@@ -398,12 +398,12 @@ def run():
 		inst.import_from_db(options.install_fresh, verbose = 1)
 
 	elif options.make_demo:
-		import utilities.make_demo
-		utilities.make_demo.make()
+		import utilities.demo.make_demo
+		utilities.demo.make_demo.make()
 
 	elif options.make_demo_fresh:
-		import utilities.make_demo
-		utilities.make_demo.make(True)
+		import utilities.demo.make_demo
+		utilities.demo.make_demo.make(True)
 
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff

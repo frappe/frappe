@@ -156,9 +156,11 @@ class LoginManager:
 			from startup import event_handlers
 			if hasattr(event_handlers, method):
 				getattr(event_handlers, method)(self)
-			return
 		except ImportError, e:
 			pass
+	
+		cp = webnotes.bean("Control Panel", "Control Panel")
+		cp.run_method(method)
 	
 	def validate_ip_address(self):
 		"""check if IP Address is valid"""

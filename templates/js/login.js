@@ -6,12 +6,9 @@ $(document).ready(function(wrapper) {
 	
 	$('#login_btn').click(login.do_login);
 		
-	$('#password').keypress(function(ev){
-		if(ev.which==13 && $('#password').val()) {
-			$('form').submit(function() {
-				login.do_login();
-				return false;
-			});
+	$('#pass').keypress(function(ev){
+		if(ev.which==13 && $('#pass').val()) {
+			$("#login_btn").click();
 		}
 	});
 	$(document).trigger('login_rendered');
@@ -41,7 +38,7 @@ login.do_login = function(){
 	} else {
 		args.cmd = "login"
 		args.usr = ($("#login_id").val() || "").trim();
-		args.pwd = $("#password").val();
+		args.pwd = $("#pass").val();
 
 		if(!args.usr || !args.pwd) {
 			login.set_message("Both login and password required.");
@@ -85,7 +82,7 @@ login.show_login = function() {
 	$("#password-row").toggle(true);
 	$("#full-name-row, #login_message").toggle(false);
 	$("#login_btn").html("Login").removeClass("btn-success");
-	$("#switch-view").html('<a style="margin-left: -35px;" \
+	$("#switch-view").html('<a \
 		onclick="return login.show_forgot_password()">Forgot Password?</a>');
 	
 	if(!disable_signup) {
