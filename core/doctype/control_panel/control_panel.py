@@ -14,17 +14,3 @@ class DocType:
 	def on_update(self):
 		# clear cache on save
 		webnotes.clear_cache()
-
-	def upload_many(self,form):
-		pass
-
-	def upload_callback(self,form):
-		pass
-		
-	def execute_test(self, arg=''):
-		if webnotes.user.name=='Guest':
-			raise Exception, 'Guest cannot call execute test!'
-		out = ''
-		exec(arg and arg or self.doc.test_code)
-		webnotes.msgprint('that worked!')
-		return out

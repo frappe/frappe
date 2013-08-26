@@ -28,7 +28,7 @@ session_stopped = """<!DOCTYPE html>
 <body style="background-color: #eee; font-family: Arial, Sans Serif;">
 <div style="margin: 30px auto; width: 500px; background-color: #fff; 
 	border: 1px solid #aaa; padding: 20px; text-align: center">
-	<b>Upgrading...</b>
+	<b>%(app_name)s Upgrading...</b>
 	<p>We will be back in a few moments.</p>
 </div>
 </body>
@@ -41,12 +41,21 @@ def init():
 def respond():
 	import webnotes
 	import webnotes.webutils
+	import MySQLdb
+	
 	try:
 		return webnotes.webutils.render(webnotes.form_dict.get('page'))
 	except webnotes.SessionStopped:
 		print "Content-type: text/html"
 		print
 		print session_stopped
+	except MySQLdb.ProgrammingError, e:
+		if e.args[0]==1146:
+			print "Content-type: text/html"
+			print
+			print session_stopped % {"app_name": webnotes.get_config().app_name}
+		else:
+			raise e
 
 if __name__=="__main__":
 	init()
