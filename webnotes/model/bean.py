@@ -99,6 +99,9 @@ class Bean:
 		self.controller = self.obj
 		return self.obj
 
+	def get_controller(self):
+		return self.make_controller()
+
 	def to_dict(self):
 		return [d.fields for d in self.doclist]
 

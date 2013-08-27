@@ -252,7 +252,17 @@ Thank you,<br>
 		if not validate_email_add(email):
 			webnotes.msgprint("%s is not a valid email id" % email)
 			raise Exception
-						
+			
+	def add_roles(self, *roles):
+		for role in roles:
+			self.bean.doclist.append({
+				"doctype": "UserRole",
+				"parentfield": "user_roles",
+				"role": role
+			})
+			
+		self.bean.save()
+
 @webnotes.whitelist()
 def get_all_roles(arg=None):
 	"""return all roles"""
