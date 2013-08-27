@@ -345,10 +345,7 @@ wn.views.CommunicationComposer = Class.extend({
 						}
 					});
 				},
-				open: function(event, ui) {
-					var zindex = cint(me.dialog.$wrapper.css("z-index")) + 1
-					$(this).autocomplete("widget").css("z-index", zindex);
-				},
+				appendTo: this.dialog.$wrapper,
 				focus: function() {
 					// prevent value inserted on focus
 					return false;
