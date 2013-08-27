@@ -673,7 +673,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					},
 				});
 			},
-			appendTo: cur_dialog ? cur_dialog.$wrapper : null,
 			open: function(event, ui) {
 				me.autocomplete_open = true;
 			},
