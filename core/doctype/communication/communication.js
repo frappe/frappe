@@ -5,12 +5,6 @@ cur_frm.cscript.onload = function(doc) {
 		}
 	};
 	
-	cur_frm.fields_dict.lead.get_query = function() {
-		return {
-			query: "core.doctype.communication.communication.get_user"
-		}
-	};
-	
 	cur_frm.fields_dict.customer.get_query = function(doc,cdt,cdn) {
 		return{	query:"controllers.queries.customer_query" } }
 
