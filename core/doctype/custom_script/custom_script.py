@@ -17,9 +17,11 @@ class DocType:
 
 	def on_update(self):
 		webnotes.clear_cache(doctype=self.doc.dt)
+		webnotes.cache().delete_value("_server_script:" + self.doc.dt)
 	
 	def on_trash(self):
 		webnotes.clear_cache(doctype=self.doc.dt)
+		webnotes.cache().delete_value("_server_script:" + self.doc.dt)
 
 def get_custom_server_script(doctype):
 	custom_script = webnotes.cache().get_value("_server_script:" + doctype)

@@ -228,8 +228,8 @@ def validate_permissions(permissions, for_remove=False):
 	doctype = permissions and permissions[0].parent
 	issingle = issubmittable = False
 	if doctype:
-		issingle = webnotes.conn.get_value("DocType", doctype, "issingle")
-		issubmittable = webnotes.conn.get_value("DocType", doctype, "is_submittable")
+		issingle = cint(webnotes.conn.get_value("DocType", doctype, "issingle"))
+		issubmittable = cint(webnotes.conn.get_value("DocType", doctype, "is_submittable"))
 			
 	def get_txt(d):
 		return "For %s (level %s) in %s row %s:" % (d.role, d.permlevel, d.parent, d.idx)
@@ -278,6 +278,9 @@ def validate_permissions(permissions, for_remove=False):
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:
 			webnotes.msgprint(doctype + " is not Submittable, cannot assign submit rights.",
+				raise_exception=True)
+		elif d.amend and not issubmittable:
+			webnotes.msgprint(doctype + " is not Submittable, cannot assign amend rights.",
 				raise_exception=True)
 	
 	for d in permissions:

@@ -8,6 +8,7 @@ import webnotes
 
 user_time_zone = None
 user_format = None
+current_date = None
 
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
@@ -193,7 +194,10 @@ def convert_utc_to_user_timezone(utc_timestamp):
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
-	return now_datetime().strftime('%Y-%m-%d %H:%M:%S')
+	if current_date:
+		return getdate(current_date).strftime("%Y-%m-%d") + " " + now_datetime().strftime('%H:%M:%S')
+	else:
+		return now_datetime().strftime('%Y-%m-%d %H:%M:%S')
 	
 def nowdate():
 	"""return current date as yyyy-mm-dd"""

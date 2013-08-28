@@ -7,7 +7,7 @@ cur_frm.cscript.onload = function(doc) {
 	
 	cur_frm.fields_dict.lead.get_query = function() {
 		return {
-			query: "core.doctype.communication.communication.get_user"
+			query: "core.doctype.communication.communication.get_lead"
 		}
 	};
 	
