@@ -674,10 +674,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				});
 			},
 			open: function(event, ui) {
-				if(cur_dialog) {
-					var zindex = cint(cur_dialog.$wrapper.css("z-index")) + 1
-					$(this).autocomplete("widget").css("z-index", zindex);
-				}
 				me.autocomplete_open = true;
 			},
 			close: function(event, ui) {

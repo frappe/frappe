@@ -129,13 +129,13 @@ def get_template():
 			columns.append(docfield.fieldname)
 			
 	def append_empty_field_column():
-		tablerow.append("-")
-		fieldrow.append("-")
-		labelrow.append("-")
-		mandatoryrow.append("-")
-		typerow.append("-")
-		inforow.append("-")
-		columns.append("-")
+		tablerow.append("~")
+		fieldrow.append("~")
+		labelrow.append("")
+		mandatoryrow.append("")
+		typerow.append("")
+		inforow.append("")
+		columns.append("")
 
 	def getinforow(docfield):
 		"""make info comment for options, links etc."""
@@ -278,7 +278,7 @@ def upload():
 			
 		dt = None
 		for i, d in enumerate(doctype_row[1:]):
-			if d != "-":
+			if d not in ("~", "-"):
 				if d: # value in doctype_row
 					if doctype_row[i]==dt:
 						# prev column is doctype (in case of parentfield)

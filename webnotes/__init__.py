@@ -479,6 +479,7 @@ def get_config():
 		def update_config(path):
 			with open(path, "r") as configfile:
 				this_config = json.loads(configfile.read())
+				_config.app_name = this_config.get("app_name")
 				_config.modules.update(this_config["modules"])
 				_config.web.pages.update(this_config["web"]["pages"])
 				_config.web.generators.update(this_config["web"]["generators"])
