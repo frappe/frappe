@@ -21,8 +21,12 @@ class DocType():
 	
 	def on_update(self):
 		"""update status of parent Lead or Contact based on who is replying"""
+		if self.doc.support_ticket:
+			# do nothing - handled by support ticket
+			return
+			
 		parent = self.get_parent_bean()
-
+		
 		if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
 			parent.doc.status = "Replied"
 		else:
