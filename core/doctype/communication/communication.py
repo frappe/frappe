@@ -28,8 +28,8 @@ class DocType():
 		else:
 			parent.doc.status = "Open"
 		
-		parent.bean.ignore_permissions = True
-		parent.bean.save()
+		parent.ignore_permissions = True
+		parent.save()
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
