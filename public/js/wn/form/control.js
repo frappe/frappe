@@ -225,7 +225,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input || this.df.description===this._description) 
 			return;
 		if(this.df.description) {
-			this.$wrapper.find(".help-box").html(this.df.description);
+			this.$wrapper.find(".help-box").html(wn._(this.df.description));
 		} else {
 			this.set_empty_description();
 		}
