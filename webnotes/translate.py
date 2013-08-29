@@ -350,6 +350,7 @@ def google_translate(lang, infile, outfile):
 	import requests, conf
 	
 	# update existing translations
+	old_translations = {}
 	if os.path.exists(outfile):
 		with codecs.open(outfile, "r", "utf-8") as oldfile:
 			old_data = oldfile.read()

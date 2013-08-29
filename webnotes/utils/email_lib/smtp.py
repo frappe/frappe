@@ -295,7 +295,6 @@ class SMTPServer:
 				self._sess.ehlo()
 
 			if self.login:
-				webnotes.msgprint(self.login + " " + self.password)
 				ret = self._sess.login((self.login or "").encode('utf-8'), 
 					(self.password or "").encode('utf-8'))
 
@@ -308,12 +307,7 @@ class SMTPServer:
 			
 		except _socket.error, e:
 			# Invalid mail server -- due to refusing connection
-			msg = "use_SSL? %r\n" % self.use_ssl
-			msg += "port? %r\n" % self.port
-			msg += "server? %r\n" % self.server
-			msg += "login? %r\n" % self.login
-			msg += "password? %r\n" % self.password
-			webnotes.msgprint(msg+'\nInvalid Outgoing Mail Server or Port. Please rectify and try again.')
+			webnotes.msgprint('Invalid Outgoing Mail Server or Port. Please rectify and try again.')
 			raise webnotes.OutgoingEmailError, e
 		except smtplib.SMTPAuthenticationError, e:
 			webnotes.msgprint("Invalid Outgoing Mail Server's Login Id or Password. \
