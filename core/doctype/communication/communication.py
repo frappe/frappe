@@ -71,6 +71,8 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.communication_medium = communication_medium
 	if send_email:
 		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
+	
+	comm.ignore_permissions = True
 	comm.insert()
 
 @webnotes.whitelist()
