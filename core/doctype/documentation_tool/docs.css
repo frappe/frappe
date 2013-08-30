@@ -1,14 +1,16 @@
-@import url(http://fonts.googleapis.com/css?family=PT+Sans);
-
-body, h1, h2, h3, h4 {
-	font-family: "PT Sans", Arial;
-}
+@import url(http://fonts.googleapis.com/css?family=Noticia+Text);
+@import url(http://fonts.googleapis.com/css?family=Open+Sans);
 
 body {
+	font-family: "Noticia Text", Serif;
 	font-size: 16px;
 	text-rendering: optimizeLegibility;
-	color: #555555;
-	line-height: 25px;
+	color: #222;
+	line-height: 1.8;
+}
+
+h1, h2, h3, h4, .navbar {
+	font-family: "Open Sans", Sans-Serif;
 }
 
 img {
@@ -20,8 +22,9 @@ img {
 }
 
 .navbar {
-	background-color: #f8f8f8;
-	border-bottom: 1px solid #dddddd;
+	background-color: #ffffff;
+	border-bottom: 5px solid #c0392b;
+	border-radius: 0px;
 }
 
 .navbar .navbar-nav > li > a:hover
@@ -68,34 +71,3 @@ blockquote p {
 .erpnext-logo rect {
 	fill: #ffffff !important;
 }
-
-.btn-default {
-  color: #ffffff;
-  background-color: #a7a9aa;
-  border-color: #a7a9aa;
-}
-
-.btn-default:hover,
-.btn-default:focus,
-.btn-default:active,
-.btn-default.active {
-  background-color: #9a9c9d;
-  border-color: #8d9091;
-}
-
-.btn-default.disabled:hover,
-.btn-default[disabled]:hover,
-fieldset[disabled] .btn-default:hover,
-.btn-default.disabled:focus,
-.btn-default[disabled]:focus,
-fieldset[disabled] .btn-default:focus,
-.btn-default.disabled:active,
-.btn-default[disabled]:active,
-fieldset[disabled] .btn-default:active,
-.btn-default.disabled.active,
-.btn-default[disabled].active,
-fieldset[disabled] .btn-default.active {
-  background-color: #a7a9aa;
-  border-color: #a7a9aa;
-}
-

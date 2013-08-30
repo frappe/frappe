@@ -36,6 +36,7 @@ class DocType():
 				parent.doc.status = "Open"
 		
 			parent.ignore_permissions = True
+			parent.ignore_mandatory = True
 			parent.save()
 
 @webnotes.whitelist()

@@ -195,6 +195,8 @@ def get_modules(for_module=None):
 						inspect_object_and_update_docs(module_docs, module)
 					except TypeError, e:
 						webnotes.errprint("TypeError in importing " + module_name)
+					except IndentationError, e:
+						continue
 					
 					module_docs["_label"] = module_name
 					module_docs["_function_namespace"] = module_name
