@@ -10,14 +10,16 @@ class DocType():
 		self.doclist = doclist
 	
 	def get_parent_bean(self):
+		parent_doctype = None
 		if self.doc.contact:
 			parent_doctype = "Contact"
 			parent_name = self.doc.contact
-		else:
+		elif self.doc.lead:
 			parent_doctype = "Lead"
 			parent_name = self.doc.lead
-			
-		return webnotes.bean(parent_doctype, parent_name)
+		
+		if parent_doctype:
+			return webnotes.bean(parent_doctype, parent_name)
 	
 	def on_update(self):
 		"""update status of parent Lead or Contact based on who is replying"""
@@ -27,13 +29,14 @@ class DocType():
 			
 		parent = self.get_parent_bean()
 		
-		if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
-			parent.doc.status = "Replied"
-		else:
-			parent.doc.status = "Open"
+		if parent:
+			if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
+				parent.doc.status = "Replied"
+			else:
+				parent.doc.status = "Open"
 		
-		parent.ignore_permissions = True
-		parent.save()
+			parent.ignore_permissions = True
+			parent.save()
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
