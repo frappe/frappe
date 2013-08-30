@@ -71,7 +71,9 @@ def make(doctype=None, name=None, content=None, subject=None,
 		d.creation = date
 	if doctype:
 		sent_via = webnotes.get_obj(doctype, name)
-		d.fields[doctype.replace(" ", "_").lower()] = name
+		fieldname = doctype.replace(" ", "_").lower()
+		if comm.meta.get_field(fieldname):
+			d.fields[fieldname] = name
 
 	if set_lead:
 		set_lead_and_contact(d)
