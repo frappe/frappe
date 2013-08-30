@@ -152,23 +152,23 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 		
 		this.current_editor = this.$editor;
 		this.$parent.find(".btn-html").click(function() {
-			if($(this).attr("disabled")=="disabled") return;
+			if($(this).prop("disabled")==true) return;
 			wn.require("lib/js/lib/beautify-html.js");
 			me.$textarea.val(html_beautify(me.$editor.cleanHtml()));
 			me.$parent.find(".for-rich-text").toggle(false);
 			me.$parent.find(".for-html").toggle(true);
-			me.$parent.find(".btn-html").addClass("btn-info").attr("disabled", "disabled");
-			me.$parent.find(".btn-rich-text").removeClass("btn-info").attr("disabled", false);
+			me.$parent.find(".btn-html").addClass("btn-info").prop("disabled", true);
+			me.$parent.find(".btn-rich-text").removeClass("btn-info").prop("disabled", false);
 			me.current_editor = me.$textarea;
 		});
 
 		this.$parent.find(".btn-rich-text").click(function() {
-			if($(this).attr("disabled")=="disabled") return;
+			if($(this).prop("disabled")==true) return;
 			me.$editor.html(me.$textarea.val());
 			me.$parent.find(".for-rich-text").toggle(true);
 			me.$parent.find(".for-html").toggle(false);
-			me.$parent.find(".btn-html").removeClass("btn-info").attr("disabled", false);
-			me.$parent.find(".btn-rich-text").addClass("btn-info").attr("disabled", "disabled");
+			me.$parent.find(".btn-html").removeClass("btn-info").prop("disabled", false);
+			me.$parent.find(".btn-rich-text").addClass("btn-info").prop("disabled", true);
 			me.current_editor = me.$editor;
 		});
 

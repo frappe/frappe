@@ -82,9 +82,9 @@ cur_frm.cscript.refresh = function() {
 
 	if(!cur_frm.doc.doc_type) {
 		var frm_head = cur_frm.frm_head.appframe;
-		$(frm_head.buttons['Update']).attr('disabled', true);
-		$(frm_head.buttons['Refresh Form']).attr('disabled', true);
-		$(frm_head.buttons['Reset to defaults']).attr('disabled', true);
+		$(frm_head.buttons['Update']).prop('disabled', true);
+		$(frm_head.buttons['Refresh Form']).prop('disabled', true);
+		$(frm_head.buttons['Reset to defaults']).prop('disabled', true);
 	}
 
 	cur_frm.cscript.hide_allow_attach(cur_frm.doc);

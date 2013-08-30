@@ -97,7 +97,7 @@ wn.ui.form.States = Class.extend({
 			this.show_actions(state);
 			
 			if(this.frm.doc.__islocal) {
-				this.workflow_button.attr('disabled', true);
+				this.workflow_button.prop('disabled', true);
 			}
 		}
 	},
@@ -119,7 +119,7 @@ wn.ui.form.States = Class.extend({
 		// disable the button if user cannot change state
 		var is_final = !$ul.find("li").length;
 		this.workflow_button
-			.attr('disabled', is_final);
+			.prop('disabled', is_final);
 		this.workflow_button.find(".caret").toggle(is_final ? false : true)
 	},
 

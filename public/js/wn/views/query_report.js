@@ -67,7 +67,7 @@ wn.views.QueryReport = Class.extend({
 		}, "icon-edit");
 		
 		if(!in_list(user_roles, "System Manager")) {
-			edit_btn.attr("disabled", "disabled")
+			edit_btn.prop("disabled", true)
 				.attr("title", wn._("Only System Manager can create / edit reports"));
 		}
 
