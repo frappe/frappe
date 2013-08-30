@@ -35,6 +35,7 @@ class DocType():
 			else:
 				parent.doc.status = "Open"
 		
+			
 			parent.ignore_permissions = True
 			parent.ignore_mandatory = True
 			parent.save()
@@ -72,7 +73,9 @@ def make(doctype=None, name=None, content=None, subject=None,
 		d.creation = date
 	if doctype:
 		sent_via = webnotes.get_obj(doctype, name)
-		d.fields[doctype.replace(" ", "_").lower()] = name
+		fieldname = doctype.replace(" ", "_").lower()
+		if comm.meta.get_field(fieldname):
+			d.fields[fieldname] = name
 
 	if set_lead:
 		set_lead_and_contact(d)
@@ -135,10 +138,14 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
-
+		
 def set_lead_and_contact(d):
 	import email.utils
 	email_addr = email.utils.parseaddr(d.sender)
+	
+	if webnotes.conn.get_value("Profile", email_addr[1], "user_type")=="System User":
+		email_addr = email.utils.parseaddr(d.recipients)
+	
 	# set contact
 	if not d.contact:
 		d.contact = webnotes.conn.get_value("Contact", {"email_id": email_addr[1]}, 
