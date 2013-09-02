@@ -12,7 +12,7 @@ wn.views.CommunicationList = Class.extend({
 			return;
 		}
 		
-		var sortfn = function (a, b) { return (b.communication_date > a.communication_date) ? 1 : -1; }
+		var sortfn = function (a, b) { return (b.creation > a.creation) ? 1 : -1; }
 		this.list = this.list.sort(sortfn);
 
 		this.make();
@@ -72,7 +72,7 @@ wn.views.CommunicationList = Class.extend({
 
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
-		doc.when = doc.communication_date;
+		doc.when = doc.creation;
 		if(!doc.content) doc.content = "[no content]";
 		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
