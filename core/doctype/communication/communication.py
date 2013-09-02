@@ -10,20 +10,12 @@ class DocType():
 		self.doclist = doclist
 	
 	def get_parent_bean(self):
-		parent_doctype = None
-		if self.doc.contact:
-			parent_doctype = "Contact"
-			parent_name = self.doc.contact
-		elif self.doc.lead:
-			parent_doctype = "Lead"
-			parent_name = self.doc.lead
-		
-		if parent_doctype:
-			return webnotes.bean(parent_doctype, parent_name)
-	
+		if self.doc.doctype:
+			return webnotes.bean(self.doc.parenttype, self.doc.parent)
+			
 	def on_update(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		if self.doc.support_ticket:
+		if self.doc.parenttype=="Support Ticket"
 			# do nothing - handled by support ticket
 			return
 			
