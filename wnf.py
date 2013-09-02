@@ -403,7 +403,7 @@ def run():
 
 	elif options.make_demo_fresh:
 		import utilities.demo.make_demo
-		utilities.demo.make_demo.make(True)
+		utilities.demo.make_demo.make(reset=True)
 
 	elif options.diff_ref_file is not None:
 		import webnotes.modules.diff

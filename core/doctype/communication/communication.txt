@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-08-08 14:21:55", 
+  "modified": "2013-09-02 18:16:52", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -109,73 +109,6 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "column_break3", 
-  "fieldtype": "Column Break"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "lead", 
-  "fieldtype": "Link", 
-  "hidden": 0, 
-  "label": "Lead", 
-  "options": "Lead"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "contact", 
-  "fieldtype": "Link", 
-  "label": "Contact", 
-  "options": "Contact"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "customer", 
-  "fieldtype": "Link", 
-  "label": "Customer", 
-  "options": "Customer"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "supplier", 
-  "fieldtype": "Link", 
-  "label": "Supplier", 
-  "options": "Supplier"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "opportunity", 
-  "fieldtype": "Link", 
-  "label": "Opportunity", 
-  "options": "Opportunity"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "quotation", 
-  "fieldtype": "Link", 
-  "label": "Quotation", 
-  "options": "Quotation"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "support_ticket", 
-  "fieldtype": "Link", 
-  "label": "Support Ticket", 
-  "options": "Support Ticket"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "job_applicant", 
-  "fieldtype": "Link", 
-  "label": "Job Applicant", 
-  "options": "Job Applicant"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "column_break1", 
-  "fieldtype": "Column Break"
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "recipients", 
   "fieldtype": "Data", 
   "label": "Recipients"
@@ -235,17 +168,10 @@
   "label": "On"
  }, 
  {
-  "doctype": "DocField", 
-  "fieldname": "company", 
-  "fieldtype": "Link", 
-  "label": "Company", 
-  "options": "Company"
- }, 
- {
   "default": "Today", 
   "doctype": "DocField", 
   "fieldname": "communication_date", 
-  "fieldtype": "Date", 
+  "fieldtype": "Datetime", 
   "label": "Date"
  }, 
  {

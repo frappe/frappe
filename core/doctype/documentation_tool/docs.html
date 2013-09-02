@@ -16,37 +16,13 @@
 </head>
 <body>
 	<header>
-		<div class="navbar">
-			<div class="container">
-				<button type="button" class="navbar-toggle" 
-					data-toggle="collapse" data-target=".navbar-responsive-collapse">
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-					<span class="icon-bar"></span>
-				</button>
-				<a class="navbar-brand" href="index.html">
-					<object data="img/splash.svg" class="erpnext-logo" 
-						type="image/svg+xml"></object> erpnext.org</a>
-				<div class="nav-collapse collapse navbar-responsive-collapse">
-					<ul class="nav navbar-nav">
-						<li><a href="docs.user.html">User</a></li>
-						<li><a href="docs.dev.html">Developer</a></li>
-						<li><a href="docs.download.html">Download</a></li>
-						<li><a href="docs.community.html">Community</a></li>
-						<li><a href="docs.blog.html">Blog</a></li>
-					</ul>
-					<ul class="nav navbar-nav pull-right">
-						<li><a href="docs.about.html">About</a></li>
-					</ul>
-				</div>
-			</div>
-		</div>
+	{% block navbar %}{% endblock %}
 	</header>
 	<div class="container" style=" margin-top: 30px;">
 		<div class="content row">
 			<div class="col-md-12">
 				{%- if not _no_title %}
-				<h1 class="pull-right text-muted"><i class="{{ _icon }}"></i></h1>
+				<h1 class="pull-right text-muted" style="margin-top:0px;"><i class="{{ _icon }}"></i></h1>
 				<h1>{{ _label }}</h1>
 				<ul class="breadcrumb">
 					{%- for b in _breadcrumbs -%}
@@ -99,25 +75,7 @@
 			</div>
 		</div>
 		<div class="clearfix"></div>
-		<hr />
-		<div class="footer text-muted" style="font-size: 80%;">
-			<div class="content row">
-				<div class="col-md-12">
-				&copy; <a href="https://erpnext.com">Web Notes</a> | 
-				<a href="docs.user.help.html">Help</a> | 
-				<a href="https://github.com/webnotes/erpnext" target="_blank">Code</a> |  
-				<a href="docs.attributions.html">Attributions</a> | 
-				<a href="https://erpnext.com">Buy Hosting</a> | 
-				<a href="https://erpnext.com/partners">Find a Partner</a> | 
-				<a href="https://erpnext.com/donate">Donate</a>
-				<br>
-				<p>
-				Code License: <a href="https://www.gnu.org/licenses/gpl.html">GNU/GPL 3</a>.
-				Documentation License: <a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA-3.0</a>.
-				</p>
-				</div>
-			</div>
-		</div>
+		{% block footer %}{% endblock %}
 		<p>&nbsp;</p>
 	</div>
 	<script type="text/javascript">
