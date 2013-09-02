@@ -12,7 +12,7 @@ wn.views.CommunicationList = Class.extend({
 			return;
 		}
 		
-		var sortfn = function (a, b) { return (b.creation > a.creation) ? 1 : -1; }
+		var sortfn = function (a, b) { return (b.communication_date > a.communication_date) ? 1 : -1; }
 		this.list = this.list.sort(sortfn);
 
 		this.make();
@@ -72,7 +72,7 @@ wn.views.CommunicationList = Class.extend({
 
 	prepare: function(doc) {
 		//doc.when = comment_when(this.doc.modified);
-		doc.when = doc.modified;
+		doc.when = doc.communication_date;
 		if(!doc.content) doc.content = "[no content]";
 		if(!wn.utils.is_html(doc.content)) {
 			doc.content = doc.content.replace(/\n/g, "<br>");
@@ -263,9 +263,6 @@ wn.views.CommunicationComposer = Class.extend({
 				content: form_values.content,
 				doctype: me.doc.doctype,
 				name: me.doc.name,
-				lead: me.doc.lead,
-				contact: me.doc.contact,
-				company: me.doc.company || wn.defaults.get_default("company"),
 				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
