@@ -111,7 +111,7 @@ $.extend(wn.model, {
 			wn.model.get_children(doctype, parent_doc.name, parentfield, 
 				parent_doc.doctype);
 
-		cur_frm.dirty();
+		cur_frm && cur_frm.dirty();
 				
 		return d;
 	},
