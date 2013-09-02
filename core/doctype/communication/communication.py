@@ -10,26 +10,35 @@ class DocType():
 		self.doclist = doclist
 	
 	def get_parent_bean(self):
+		parent_doctype = None
 		if self.doc.contact:
 			parent_doctype = "Contact"
 			parent_name = self.doc.contact
-		else:
+		elif self.doc.lead:
 			parent_doctype = "Lead"
 			parent_name = self.doc.lead
-			
-		return webnotes.bean(parent_doctype, parent_name)
+		
+		if parent_doctype:
+			return webnotes.bean(parent_doctype, parent_name)
 	
 	def on_update(self):
 		"""update status of parent Lead or Contact based on who is replying"""
+		if self.doc.support_ticket:
+			# do nothing - handled by support ticket
+			return
+			
 		parent = self.get_parent_bean()
-
-		if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
-			parent.doc.status = "Replied"
-		else:
-			parent.doc.status = "Open"
 		
-		parent.ignore_permissions = True
-		parent.save()
+		if parent:
+			if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
+				parent.doc.status = "Replied"
+			else:
+				parent.doc.status = "Open"
+		
+			
+			parent.ignore_permissions = True
+			parent.ignore_mandatory = True
+			parent.save()
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
@@ -64,7 +73,9 @@ def make(doctype=None, name=None, content=None, subject=None,
 		d.creation = date
 	if doctype:
 		sent_via = webnotes.get_obj(doctype, name)
-		d.fields[doctype.replace(" ", "_").lower()] = name
+		fieldname = doctype.replace(" ", "_").lower()
+		if comm.meta.get_field(fieldname):
+			d.fields[fieldname] = name
 
 	if set_lead:
 		set_lead_and_contact(d)
@@ -127,10 +138,14 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
-
+		
 def set_lead_and_contact(d):
 	import email.utils
 	email_addr = email.utils.parseaddr(d.sender)
+	
+	if webnotes.conn.get_value("Profile", email_addr[1], "user_type")=="System User":
+		email_addr = email.utils.parseaddr(d.recipients)
+	
 	# set contact
 	if not d.contact:
 		d.contact = webnotes.conn.get_value("Contact", {"email_id": email_addr[1]}, 

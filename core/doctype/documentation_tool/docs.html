@@ -16,7 +16,7 @@
 </head>
 <body>
 	<header>
-		<div class="navbar">
+		<div class="navbar navbar-default" style="border-bottom: 2px solid #c0392b">
 			<div class="container">
 				<button type="button" class="navbar-toggle" 
 					data-toggle="collapse" data-target=".navbar-responsive-collapse">
@@ -27,13 +27,13 @@
 				<a class="navbar-brand" href="index.html">
 					<object data="img/splash.svg" class="erpnext-logo" 
 						type="image/svg+xml"></object> erpnext.org</a>
-				<div class="nav-collapse collapse navbar-responsive-collapse">
+				<div class="collapse navbar-collapse navbar-responsive-collapse">
 					<ul class="nav navbar-nav">
 						<li><a href="docs.user.html">User</a></li>
 						<li><a href="docs.dev.html">Developer</a></li>
+						<li><a href="docs.user.help.html">Help</a></li>
 						<li><a href="docs.download.html">Download</a></li>
-						<li><a href="docs.community.html">Community</a></li>
-						<li><a href="docs.blog.html">Blog</a></li>
+						<li><a href="https://erpnext.com" target="_blank">Cloud</a></li>
 					</ul>
 					<ul class="nav navbar-nav pull-right">
 						<li><a href="docs.about.html">About</a></li>
@@ -46,7 +46,7 @@
 		<div class="content row">
 			<div class="col-md-12">
 				{%- if not _no_title %}
-				<h1 class="pull-right text-muted"><i class="{{ _icon }}"></i></h1>
+				<h1 class="pull-right text-muted" style="margin-top:0px;"><i class="{{ _icon }}"></i></h1>
 				<h1>{{ _label }}</h1>
 				<ul class="breadcrumb">
 					{%- for b in _breadcrumbs -%}
@@ -107,7 +107,7 @@
 				<a href="docs.user.help.html">Help</a> | 
 				<a href="https://github.com/webnotes/erpnext" target="_blank">Code</a> |  
 				<a href="docs.attributions.html">Attributions</a> | 
-				<a href="https://erpnext.com">Buy Hosting</a> | 
+				<a href="https://erpnext.com">ERPNext Cloud</a> | 
 				<a href="https://erpnext.com/partners">Find a Partner</a> | 
 				<a href="https://erpnext.com/donate">Donate</a>
 				<br>
