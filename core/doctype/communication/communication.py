@@ -65,7 +65,6 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.content = content
 	d.sender = sender or webnotes.conn.get_value("Profile", webnotes.session.user, "email")
 	d.recipients = recipients
-	d.company = company
 	
 	# add as child
 	sent_via = webnotes.get_obj(doctype, name)
