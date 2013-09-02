@@ -36,9 +36,12 @@ class IncomingMail:
 	def set_subject(self):
 		import email.header
 		_subject = email.header.decode_header(self.mail.get("Subject", "No Subject"))
-		self.subject = _subject[0][0]
+		self.subject = _subject[0][0] or ""
 		if _subject[0][1]:
-			self.subject = _subject[0][0].decode(_subject[0][1])
+			self.subject = self.subject.decode(_subject[0][1])
+		else:
+			# assume that the encoding is utf-8
+			self.subject = self.subject.decode("utf-8")
 
 	def set_content_and_type(self):
 		self.content, self.content_type = '[Blank Email]', 'text/plain'

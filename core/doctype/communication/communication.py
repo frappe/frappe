@@ -4,25 +4,41 @@
 from __future__ import unicode_literals
 import webnotes
 
-@webnotes.whitelist()
-def get_customer_supplier(args=None):
-	"""
-		Get Customer/Supplier, given a contact, if a unique match exists
-	"""
-	import webnotes
-	if not args: args = webnotes.form_dict
-	if not args.get('contact'):
-		raise Exception, "Please specify a contact to fetch Customer/Supplier"
-	result = webnotes.conn.sql("""\
-		select customer, supplier
-		from `tabContact`
-		where name = %s""", args.get('contact'), as_dict=1)
-	if result and len(result)==1 and (result[0]['customer'] or result[0]['supplier']):
-		return {
-			'fieldname': result[0]['customer'] and 'customer' or 'supplier',
-			'value': result[0]['customer'] or result[0]['supplier']
-		}
-	return {}
+class DocType():
+	def __init__(self, doc, doclist=[]):
+		self.doc = doc
+		self.doclist = doclist
+	
+	def get_parent_bean(self):
+		parent_doctype = None
+		if self.doc.contact:
+			parent_doctype = "Contact"
+			parent_name = self.doc.contact
+		elif self.doc.lead:
+			parent_doctype = "Lead"
+			parent_name = self.doc.lead
+		
+		if parent_doctype:
+			return webnotes.bean(parent_doctype, parent_name)
+	
+	def on_update(self):
+		"""update status of parent Lead or Contact based on who is replying"""
+		if self.doc.support_ticket:
+			# do nothing - handled by support ticket
+			return
+			
+		parent = self.get_parent_bean()
+		
+		if parent:
+			if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
+				parent.doc.status = "Replied"
+			else:
+				parent.doc.status = "Open"
+		
+			
+			parent.ignore_permissions = True
+			parent.ignore_mandatory = True
+			parent.save()
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
@@ -44,7 +60,8 @@ def make(doctype=None, name=None, content=None, subject=None,
 		from email.utils import formataddr
 		sender = formataddr(sender)
 	
-	d = webnotes.doc('Communication')
+	comm = webnotes.new_bean('Communication')
+	d = comm.doc
 	d.subject = subject
 	d.content = content
 	d.sender = sender or webnotes.conn.get_value("Profile", webnotes.session.user, "email")
@@ -56,14 +73,38 @@ def make(doctype=None, name=None, content=None, subject=None,
 		d.creation = date
 	if doctype:
 		sent_via = webnotes.get_obj(doctype, name)
-		d.fields[doctype.replace(" ", "_").lower()] = name
+		fieldname = doctype.replace(" ", "_").lower()
+		if comm.meta.get_field(fieldname):
+			d.fields[fieldname] = name
 
 	if set_lead:
 		set_lead_and_contact(d)
 	d.communication_medium = communication_medium
 	if send_email:
 		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
-	d.save(1, ignore_fields=True)
+	
+	comm.ignore_permissions = True
+	comm.insert()
+
+@webnotes.whitelist()
+def get_customer_supplier(args=None):
+	"""
+		Get Customer/Supplier, given a contact, if a unique match exists
+	"""
+	import webnotes
+	if not args: args = webnotes.form_dict
+	if not args.get('contact'):
+		raise Exception, "Please specify a contact to fetch Customer/Supplier"
+	result = webnotes.conn.sql("""\
+		select customer, supplier
+		from `tabContact`
+		where name = %s""", args.get('contact'), as_dict=1)
+	if result and len(result)==1 and (result[0]['customer'] or result[0]['supplier']):
+		return {
+			'fieldname': result[0]['customer'] and 'customer' or 'supplier',
+			'value': result[0]['customer'] or result[0]['supplier']
+		}
+	return {}
 
 def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
 	from json import loads
@@ -97,10 +138,14 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
-
+		
 def set_lead_and_contact(d):
 	import email.utils
 	email_addr = email.utils.parseaddr(d.sender)
+	
+	if webnotes.conn.get_value("Profile", email_addr[1], "user_type")=="System User":
+		email_addr = email.utils.parseaddr(d.recipients)
+	
 	# set contact
 	if not d.contact:
 		d.contact = webnotes.conn.get_value("Contact", {"email_id": email_addr[1]}, 
@@ -114,11 +159,6 @@ def set_lead_and_contact(d):
 		d.company = webnotes.conn.get_value("Lead", d.lead, "company") or \
 			webnotes.conn.get_default("company")
 		
-class DocType():
-	def __init__(self, doc, doclist=[]):
-		self.doc = doc
-		self.doclist = doclist
-
 def get_user(doctype, txt, searchfield, start, page_len, filters):
 	from controllers.queries import get_match_cond
 	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 

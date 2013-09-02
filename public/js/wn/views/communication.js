@@ -345,6 +345,7 @@ wn.views.CommunicationComposer = Class.extend({
 						}
 					});
 				},
+				appendTo: this.dialog.$wrapper,
 				focus: function() {
 					// prevent value inserted on focus
 					return false;

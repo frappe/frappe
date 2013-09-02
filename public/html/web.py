@@ -28,7 +28,7 @@ session_stopped = """<!DOCTYPE html>
 <body style="background-color: #eee; font-family: Arial, Sans Serif;">
 <div style="margin: 30px auto; width: 500px; background-color: #fff; 
 	border: 1px solid #aaa; padding: 20px; text-align: center">
-	<b>%(app_name)s Upgrading...</b>
+	<b>%(app_name)s: Upgrading...</b>
 	<p>We will be back in a few moments.</p>
 </div>
 </body>

@@ -225,7 +225,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input || this.df.description===this._description) 
 			return;
 		if(this.df.description) {
-			this.$wrapper.find(".help-box").html(this.df.description);
+			this.$wrapper.find(".help-box").html(wn._(this.df.description));
 		} else {
 			this.set_empty_description();
 		}
@@ -674,10 +674,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				});
 			},
 			open: function(event, ui) {
-				if(cur_dialog) {
-					var zindex = cint(cur_dialog.$wrapper.css("z-index")) + 1
-					$(this).autocomplete("widget").css("z-index", zindex);
-				}
 				me.autocomplete_open = true;
 			},
 			close: function(event, ui) {
