@@ -15,7 +15,7 @@ class DocType():
 			
 	def on_update(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		if self.doc.parenttype=="Support Ticket"
+		if self.doc.parenttype=="Support Ticket":
 			# do nothing - handled by support ticket
 			return
 			
