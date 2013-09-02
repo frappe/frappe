@@ -1,7 +1,5 @@
-// Copyright (c) 2012 Web Notes Technologies Pvt Ltd (http://erpnext.com)
-// 
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
-// MIT License. See license.txt 
+// MIT License. See license.txt
 
 wn.ui.toolbar.Search = wn.ui.toolbar.SelectorDialog.extend({
 	init: function() {
