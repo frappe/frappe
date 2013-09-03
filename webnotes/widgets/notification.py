@@ -36,7 +36,10 @@ def get():
 def get_notification_info_for_boot():
 	out = get()
 	
-	from startup.open_count import for_doctype
+	try:
+		from startup.open_count import for_doctype
+	except ImportError:
+		return out
 	
 	can_read = webnotes.user.get_can_read()
 	conditions = {}
