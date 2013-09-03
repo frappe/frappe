@@ -10,20 +10,12 @@ class DocType():
 		self.doclist = doclist
 	
 	def get_parent_bean(self):
-		parent_doctype = None
-		if self.doc.contact:
-			parent_doctype = "Contact"
-			parent_name = self.doc.contact
-		elif self.doc.lead:
-			parent_doctype = "Lead"
-			parent_name = self.doc.lead
-		
-		if parent_doctype:
-			return webnotes.bean(parent_doctype, parent_name)
-	
+		if self.doc.doctype:
+			return webnotes.bean(self.doc.parenttype, self.doc.parent)
+			
 	def on_update(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		if self.doc.support_ticket:
+		if self.doc.parenttype=="Support Ticket":
 			# do nothing - handled by support ticket
 			return
 			
@@ -42,9 +34,8 @@ class DocType():
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
-	sender=None, recipients=None, contact=None, lead=None, company=None, 
-	communication_medium="Email", send_email=False, print_html=None,
-	attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
+	sender=None, recipients=None, communication_medium="Email", send_email=False, 
+	print_html=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 	# add to Communication
 	sent_via = None
 	
@@ -66,20 +57,19 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.content = content
 	d.sender = sender or webnotes.conn.get_value("Profile", webnotes.session.user, "email")
 	d.recipients = recipients
-	d.lead = lead
-	d.contact = contact
-	d.company = company
-	if date:
-		d.creation = date
-	if doctype:
-		sent_via = webnotes.get_obj(doctype, name)
-		fieldname = doctype.replace(" ", "_").lower()
-		if comm.meta.get_field(fieldname):
-			d.fields[fieldname] = name
+	
+	# add as child
+	sent_via = webnotes.get_obj(doctype, name)
+	d.parent = name
+	d.parenttype = doctype
+	d.parentfield = "communications"
 
-	if set_lead:
-		set_lead_and_contact(d)
+	if date:
+		d.communication_date = date
+	
+
 	d.communication_medium = communication_medium
+	
 	if send_email:
 		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
 	
@@ -138,27 +128,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 	
 	if sent_via and hasattr(sent_via, 'on_communication_sent'):
 		sent_via.on_communication_sent(d)
-		
-def set_lead_and_contact(d):
-	import email.utils
-	email_addr = email.utils.parseaddr(d.sender)
-	
-	if webnotes.conn.get_value("Profile", email_addr[1], "user_type")=="System User":
-		email_addr = email.utils.parseaddr(d.recipients)
-	
-	# set contact
-	if not d.contact:
-		d.contact = webnotes.conn.get_value("Contact", {"email_id": email_addr[1]}, 
-			"name") or None
-
-	if not d.lead:
-		d.lead = webnotes.conn.get_value("Lead", {"email_id": email_addr[1]}, 
-			"name") or None
-			
-	if not d.company:
-		d.company = webnotes.conn.get_value("Lead", d.lead, "company") or \
-			webnotes.conn.get_default("company")
-		
+				
 def get_user(doctype, txt, searchfield, start, page_len, filters):
 	from controllers.queries import get_match_cond
 	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 

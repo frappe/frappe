@@ -1,20 +1,7 @@
-// ERPNext - web based ERP (http://erpnext.com)
-// Copyright (C) 2012 Web Notes Technologies Pvt Ltd
-// 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt 
 
-wn.provide('erpnext.messages');
+wn.provide('wn.core.pages.messages');
 
 wn.pages.messages.onload = function(wrapper) {
 	wn.ui.make_app_page({
@@ -34,20 +21,18 @@ wn.pages.messages.onload = function(wrapper) {
 
 	wrapper.appframe.add_module_icon("Messages");
 	
-	erpnext.messages = new erpnext.Messages(wrapper);
-	erpnext.toolbar.set_new_comments(0);
+	wn.core.pages.messages = new wn.core.pages.messages(wrapper);
 }
 
 $(wn.pages.messages).bind('show', function() {
 	// remove alerts
 	$('#alert-container .alert').remove();
 	
-	erpnext.toolbar.set_new_comments(0);	
-	erpnext.messages.show();
-	setTimeout("erpnext.messages.refresh()", 5000);
+	wn.core.pages.messages.show();
+	setTimeout("wn.core.pages.messages.refresh()", 5000);
 })
 
-erpnext.Messages = Class.extend({
+wn.core.pages.messages = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
 		this.show_active_users();
@@ -97,7 +82,7 @@ erpnext.Messages = Class.extend({
 	},
 	// check for updates every 5 seconds if page is active
 	refresh: function() {
-		setTimeout("erpnext.messages.refresh()", 5000);
+		setTimeout("wn.core.pages.messages.refresh()", 5000);
 		if(wn.container.page.label != 'Messages') 
 			return;
 		if(!wn.session_alive) 
@@ -143,7 +128,7 @@ erpnext.Messages = Class.extend({
 				data.delete_html = "";
 				if(data.owner==user || data.comment.indexOf("assigned to")!=-1) {
 					data.delete_html = repl('<a class="close" \
-						onclick="erpnext.messages.delete(this)"\
+						onclick="wn.core.pages.messages.delete(this)"\
 						data-name="%(name)s">&times;</a>', data);
 				}
 				

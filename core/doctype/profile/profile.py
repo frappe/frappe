@@ -322,3 +322,21 @@ def sign_up(email, full_name):
 		profile.insert()
 		return _("Registration Details Emailed.")
 				
+def profile_query(doctype, txt, searchfield, start, page_len, filters):
+	from webnotes.widgets.reportview import get_match_cond
+	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
+		from `tabProfile` 
+		where ifnull(enabled, 0)=1 
+			and docstatus < 2 
+			and name not in ('Administrator', 'Guest') 
+			and user_type != 'Website User'
+			and (%(key)s like "%(txt)s" 
+				or concat_ws(' ', first_name, middle_name, last_name) like "%(txt)s") 
+			%(mcond)s
+		order by 
+			case when name like "%(txt)s" then 0 else 1 end, 
+			case when concat_ws(' ', first_name, middle_name, last_name) like "%(txt)s" 
+				then 0 else 1 end, 
+			name asc 
+		limit %(start)s, %(page_len)s""" % {'key': searchfield, 'txt': "%%%s%%" % txt,  
+		'mcond':get_match_cond(doctype, searchfield), 'start': start, 'page_len': page_len})

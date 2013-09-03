@@ -1,22 +1,9 @@
-// ERPNext - web based ERP (http://erpnext.com)
-// Copyright (C) 2012 Web Notes Technologies Pvt Ltd
-// 
-// This program is free software: you can redistribute it and/or modify
-// it under the terms of the GNU General Public License as published by
-// the Free Software Foundation, either version 3 of the License, or
-// (at your option) any later version.
-// 
-// This program is distributed in the hope that it will be useful,
-// but WITHOUT ANY WARRANTY; without even the implied warranty of
-// MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-// GNU General Public License for more details.
-// 
-// You should have received a copy of the GNU General Public License
-// along with this program.  If not, see <http://www.gnu.org/licenses/>.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// MIT License. See license.txt 
 
-wn.provide('erpnext.todo');
+wn.provide('wn.core.pages.todo');
 
-erpnext.todo.refresh = function() {
+wn.core.pages.todo.refresh = function() {
 	
 	return wn.call({
 		method: 'core.page.todo.todo.get',
@@ -34,7 +21,7 @@ erpnext.todo.refresh = function() {
 			
 			if(r.message) {
 				for(var i in r.message) {
-					new erpnext.todo.ToDoItem(r.message[i]);
+					new wn.core.pages.todo.ToDoItem(r.message[i]);
 				}
 				if (!todo_list.html()) { nothing_to_do(); }
 			} else {
@@ -44,7 +31,7 @@ erpnext.todo.refresh = function() {
 	});
 }
 
-erpnext.todo.ToDoItem = Class.extend({
+wn.core.pages.todo.ToDoItem = Class.extend({
 	init: function(todo) {
 		label_map = {
 			'High': 'label-danger',
@@ -109,7 +96,7 @@ erpnext.todo.ToDoItem = Class.extend({
 		$todo.find('.popup-on-click')
 			.data('todo', todo)
 			.click(function() {
-				erpnext.todo.make_dialog($(this).data('todo'));
+				wn.core.pages.todo.make_dialog($(this).data('todo'));
 				return false;
 			});
 			
@@ -121,7 +108,7 @@ erpnext.todo.ToDoItem = Class.extend({
 					method:'core.page.todo.todo.delete',
 					args: {name: $(this).data('name')},
 					callback: function() {
-						erpnext.todo.refresh();
+						wn.core.pages.todo.refresh();
 					}
 				});
 				return false;
@@ -129,8 +116,8 @@ erpnext.todo.ToDoItem = Class.extend({
 	}
 });
 
-erpnext.todo.make_dialog = function(det) {
-	if(!erpnext.todo.dialog) {
+wn.core.pages.todo.make_dialog = function(det) {
+	if(!wn.core.pages.todo.dialog) {
 		var dialog = new wn.ui.Dialog({
 			width: 480,
 			title: 'To Do', 
@@ -145,26 +132,26 @@ erpnext.todo.make_dialog = function(det) {
 		});
 		
 		dialog.fields_dict.save.input.onclick = function() {
-			erpnext.todo.save(this);	
+			wn.core.pages.todo.save(this);	
 		}
-		erpnext.todo.dialog = dialog;
+		wn.core.pages.todo.dialog = dialog;
 	}
 
 	if(det) {
-		erpnext.todo.dialog.set_values({
+		wn.core.pages.todo.dialog.set_values({
 			date: det.date,
 			priority: det.priority,
 			description: det.description,
 			checked: det.checked
 		});
-		erpnext.todo.dialog.det = det;		
+		wn.core.pages.todo.dialog.det = det;		
 	}
-	erpnext.todo.dialog.show();
+	wn.core.pages.todo.dialog.show();
 	
 }
 
-erpnext.todo.save = function(btn) {
-	var d = erpnext.todo.dialog;
+wn.core.pages.todo.save = function(btn) {
+	var d = wn.core.pages.todo.dialog;
 	var det = d.get_values();
 	
 	if(!det) {
@@ -177,8 +164,8 @@ erpnext.todo.save = function(btn) {
 		args: det,
 		btn: btn,
 		callback: function() {
-			erpnext.todo.dialog.hide();
-			erpnext.todo.refresh();
+			wn.core.pages.todo.dialog.hide();
+			wn.core.pages.todo.refresh();
 		}
 	});
 }
@@ -198,9 +185,9 @@ wn.pages.todo.onload = function(wrapper) {
 	</div>');
 		
 	wrapper.appframe.add_module_icon("To Do");
-	wrapper.appframe.add_button('Refresh', erpnext.todo.refresh, 'icon-refresh');
+	wrapper.appframe.add_button('Refresh', wn.core.pages.todo.refresh, 'icon-refresh');
 	wrapper.appframe.add_button('Add', function() {
-		erpnext.todo.make_dialog({
+		wn.core.pages.todo.make_dialog({
 			date:get_today(), priority:'Medium', checked:0, description:''});
 	}, 'icon-plus');
 	wrapper.appframe.add_ripped_paper_effect(wrapper);
@@ -212,12 +199,12 @@ wn.pages.todo.onload = function(wrapper) {
 	}
 
 	// load todos
-	erpnext.todo.refresh();
+	wn.core.pages.todo.refresh();
 	
 	// save on click
 	wrapper.save_action = function() {
-		if(erpnext.todo.dialog && erpnext.todo.dialog.display) {
-			erpnext.todo.dialog.fields_dict.save.input.click();
+		if(wn.core.pages.todo.dialog && wn.core.pages.todo.dialog.display) {
+			wn.core.pages.todo.dialog.fields_dict.save.input.click();
 		}
 	};
 }
