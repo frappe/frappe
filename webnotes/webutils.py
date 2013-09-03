@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import os
 import conf
-from startup.webutils import *
 import webnotes
 import webnotes.utils
 
@@ -145,7 +144,11 @@ def prepare_args(page_name):
 	if not args:
 		return False
 	
-	update_template_args(page_name, args)
+	try:
+		from startup.webutils import update_template_args
+		update_template_args(page_name, args)
+	except ImportError:
+		pass
 	
 	return args	
 
