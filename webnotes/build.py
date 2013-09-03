@@ -26,11 +26,7 @@ def bundle(no_compress, cms_make=True):
 			on_build()
 		except ImportError, e:
 			pass
-			
-	if not no_compress:
-		from home.page.latest_updates import latest_updates
-		latest_updates.make()
-			
+						
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	import time
