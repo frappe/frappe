@@ -21,10 +21,12 @@ def bundle(no_compress, cms_make=True):
 	bundle.make()
 
 	if cms_make:
-		# build index.html and app.html
-		from website.helpers.make_web_include_files import make
-		make()
-	
+		try:
+			from startup.event_handlers import on_build
+			on_build()
+		except ImportError, e:
+			pass
+			
 	if not no_compress:
 		from home.page.latest_updates import latest_updates
 		latest_updates.make()
