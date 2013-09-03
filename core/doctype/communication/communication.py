@@ -65,7 +65,8 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d.parentfield = "communications"
 
 	if date:
-		d.creation = date
+		d.communication_date = date
+	
 
 	d.communication_medium = communication_medium
 	

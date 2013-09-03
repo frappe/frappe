@@ -35,21 +35,22 @@ def get_docs(options):
 def get_static_pages():
 	mydocs = {}
 	for repo in ("lib", "app"):
-		for fname in os.listdir(get_path(repo, "docs")):
-			if fname.endswith(".md"):
-				fpath = get_path(repo, "docs", fname)
-				with open(fpath, "r") as docfile:
-					src = unicode(docfile.read(), "utf-8")
-					try:
-						temp, headers, body = src.split("---", 2)
-						d = json.loads(headers)
-					except Exception, e:
-						webnotes.msgprint("Bad Headers in: " + fname)
-						continue
-					d["_intro"] = body
-					d["_gh_source"] = get_gh_url(fpath)
-					d["_modified"] = get_timestamp(fpath)
-					mydocs[fname[:-3]] = d
+		for basepath, folders, files in os.walk(get_path(repo, "docs")):
+			for fname in files:
+				if fname.endswith(".md"):
+					fpath = get_path(basepath, fname)
+					with open(fpath, "r") as docfile:
+						src = unicode(docfile.read(), "utf-8")
+						try:
+							temp, headers, body = src.split("---", 2)
+							d = json.loads(headers)
+						except Exception, e:
+							webnotes.msgprint("Bad Headers in: " + fname)
+							continue
+						d["_intro"] = body
+						d["_gh_source"] = get_gh_url(fpath)
+						d["_modified"] = get_timestamp(fpath)
+						mydocs[fname[:-3]] = d
 
 	return mydocs
 

@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-09-02 16:28:18", 
+  "modified": "2013-09-02 18:16:52", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -171,7 +171,7 @@
   "default": "Today", 
   "doctype": "DocField", 
   "fieldname": "communication_date", 
-  "fieldtype": "Date", 
+  "fieldtype": "Datetime", 
   "label": "Date"
  }, 
  {
