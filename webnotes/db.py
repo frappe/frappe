@@ -19,7 +19,6 @@ class Database:
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
 		self.host = host or 'localhost'
 		self.user = user or conf.db_name
-		self.in_transaction = False
 		
 		if ac_name:
 			self.user = self.get_db_login(ac_name) or conf.db_name
@@ -431,18 +430,14 @@ class Database:
 			return webnotes.defaults.get_defaults(parent)
 
 	def begin(self):
-		if not self.in_transaction:
-			self.sql("start transaction")
-			self.in_transaction = True
+		return # not required
 	
 	def commit(self):
 		self.sql("commit")
-		self.in_transaction = False
 
 	def rollback(self):
 		self.sql("ROLLBACK")
 		self.transaction_writes = 0
-		self.in_transaction = False
 
 	def field_exists(self, dt, fn):
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))

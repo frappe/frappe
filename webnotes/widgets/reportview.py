@@ -386,3 +386,13 @@ def scrub_user_tags(tagcount):
 def get_table_columns(table):
 	res = webnotes.conn.sql("DESC `tab%s`" % table, as_dict=1)
 	if res: return [r['Field'] for r in res]
+
+# used in building query in queries.py
+def get_match_cond(doctype, searchfield = 'name'):
+	cond = build_match_conditions(doctype)
+
+	if cond:
+		cond = ' and ' + cond
+	else:
+		cond = ''
+	return cond

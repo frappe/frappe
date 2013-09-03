@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 		
 import webnotes
 import inspect, os, json, datetime
-from jinja2 import Template
+from jinja2 import Environment, FileSystemLoader
 from webnotes.modules import get_doc_path, get_module_path, scrub
-from webnotes.utils import get_path
+from webnotes.utils import get_path, get_base_path
 
 class DocType:
 	def __init__(self, d, dl):
@@ -35,21 +35,22 @@ def get_docs(options):
 def get_static_pages():
 	mydocs = {}
 	for repo in ("lib", "app"):
-		for fname in os.listdir(get_path(repo, "docs")):
-			if fname.endswith(".md"):
-				fpath = get_path(repo, "docs", fname)
-				with open(fpath, "r") as docfile:
-					src = unicode(docfile.read(), "utf-8")
-					try:
-						temp, headers, body = src.split("---", 2)
-						d = json.loads(headers)
-					except Exception, e:
-						webnotes.msgprint("Bad Headers in: " + fname)
-						continue
-					d["_intro"] = body
-					d["_gh_source"] = get_gh_url(fpath)
-					d["_modified"] = get_timestamp(fpath)
-					mydocs[fname[:-3]] = d
+		for basepath, folders, files in os.walk(get_path(repo, "docs")):
+			for fname in files:
+				if fname.endswith(".md"):
+					fpath = get_path(basepath, fname)
+					with open(fpath, "r") as docfile:
+						src = unicode(docfile.read(), "utf-8")
+						try:
+							temp, headers, body = src.split("---", 2)
+							d = json.loads(headers)
+						except Exception, e:
+							webnotes.msgprint("Bad Headers in: " + fname)
+							continue
+						d["_intro"] = body
+						d["_gh_source"] = get_gh_url(fpath)
+						d["_modified"] = get_timestamp(fpath)
+						mydocs[fname[:-3]] = d
 
 	return mydocs
 
@@ -395,14 +396,14 @@ def write_docs(data, build_sitemap=None, domain=None):
 	from webnotes.utils import global_date_format
 	if webnotes.session.user != "Administrator":
 		raise webnotes.PermissionError
-	
-	with open(os.path.join(os.path.dirname(__file__), "docs.html"), "r") as docshtml:
-		docs_template = docshtml.read()
-	
+		
 	if isinstance(data, basestring):
 		data = json.loads(data)
 
-	template = Template(docs_template)
+	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
+
+	template = jenv.get_template("app/docs/templates/docs.html")
+
 	data["index"] = data["docs"]
 	data["docs"] = None
 	for name, d in data.items():

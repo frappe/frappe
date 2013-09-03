@@ -124,7 +124,7 @@ wn.views.QueryReport = Class.extend({
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.appframe.$w.find('.navbar .filters').remove();
+		this.appframe.$w.find('.appframe-form .filters').remove();
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};

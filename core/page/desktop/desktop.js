@@ -1,7 +1,7 @@
-wn.provide('erpnext.desktop');
+wn.provide('wn.core.pages.desktop');
 
-erpnext.desktop.refresh = function() {
-	erpnext.desktop.render();
+wn.core.pages.desktop.refresh = function() {
+	wn.core.pages.desktop.render();
 
 	$("#icon-grid").sortable({
 		update: function() {
@@ -14,7 +14,7 @@ erpnext.desktop.refresh = function() {
 	});
 }
 
-erpnext.desktop.render = function() {
+wn.core.pages.desktop.render = function() {
 	document.title = "Desktop";
 	var add_icon = function(m) {
 		var module = wn.modules[m];
@@ -53,15 +53,15 @@ erpnext.desktop.render = function() {
 		add_icon('Setup')
 
 	// notifications
-	erpnext.desktop.show_pending_notifications();
+	wn.core.pages.desktop.show_pending_notifications();
 	
 	$(document).on("notification-update", function() {
-		erpnext.desktop.show_pending_notifications();
+		wn.core.pages.desktop.show_pending_notifications();
 	})
 
 }
 
-erpnext.desktop.show_pending_notifications = function() {
+wn.core.pages.desktop.show_pending_notifications = function() {
 	var modules_list = wn.user.get_desktop_items();
 	$.each(modules_list, function(i, module) {
 		var module_doctypes = wn.boot.notification_info.module_doctypes[module];
@@ -83,7 +83,7 @@ erpnext.desktop.show_pending_notifications = function() {
 
 pscript.onload_desktop = function(wrapper) {
 	// load desktop
-	erpnext.desktop.refresh();
+	wn.core.pages.desktop.refresh();
 	$(wrapper).css({"background-color": "transparent", "box-shadow":"none"});
 	
 }
