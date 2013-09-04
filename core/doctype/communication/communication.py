@@ -8,10 +8,13 @@ class DocType():
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
-	
+		
+	def get_parent_bean(self):
+		return webnotes.bean(self.doc.parenttype, self.doc.parent)
+		
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		observer = webnotes.bean(self.doc.parenttype, self.doc.parent).get_method("on_communication_sent")
+		observer = self.get_parent_bean().get_method("on_communication_sent")
 		if observer:
 			observer(status=self.doc)
 	
