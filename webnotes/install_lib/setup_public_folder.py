@@ -29,9 +29,7 @@ def make():
 	]
 
 	for link in symlinks:
-		if not os.path.exists(link[0]):
+		if not os.path.exists(link[0]) and os.path.exists(link[1]):
 			os.symlink(link[1], link[0])
 
-	os.chdir("..")
-
-		
+	os.chdir('..')
