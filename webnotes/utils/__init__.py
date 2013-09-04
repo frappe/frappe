@@ -826,7 +826,14 @@ def encode_dict(d, encoding="utf-8"):
 			d[key] = d[key].encode(encoding)
 			
 	return d
-	
+
+def decode_dict(d, encoding="utf-8"):
+	for key in d:
+		if not isinstance(d[key], unicode):
+			d[key] = d[key].decode(encoding, errors="ignore")
+
+	return d
+
 
 import operator
 operator_map = {
