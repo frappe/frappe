@@ -5,7 +5,6 @@ from __future__ import unicode_literals
 
 import os
 import conf
-from startup.webutils import *
 import webnotes
 import webnotes.utils
 
@@ -118,8 +117,18 @@ def get_standard_pages():
 	return webnotes.get_config()["web"]["pages"].keys()
 	
 def prepare_args(page_name):
+
+	has_app = True
+	try:
+		from startup.webutils import update_template_args, get_home_page
+	except ImportError:
+		has_app = False
+
 	if page_name == 'index':
-		page_name = get_home_page()
+		if has_app:
+			page_name = get_home_page()
+		else:
+			page_name = "login"
 	
 	pages = get_page_settings()
 	
@@ -137,7 +146,9 @@ def prepare_args(page_name):
 			bean = webnotes.bean(page_info["args_doctype"])
 			bean.run_method("onload")
 			args.obj = bean.make_controller()
-			
+
+		if has_app:
+			update_template_args(page_name, args)
 
 	else:
 		args = get_doc_fields(page_name)
@@ -145,7 +156,6 @@ def prepare_args(page_name):
 	if not args:
 		return False
 	
-	update_template_args(page_name, args)
 	
 	return args	
 

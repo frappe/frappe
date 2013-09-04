@@ -31,11 +31,16 @@ def _(msg):
 
 def set_user_lang(user, user_language=None):
 	global lang, user_lang
-	from startup import lang_list, lang_names
+
+	try:
+		from startup import lang_list, lang_names
+	except ImportError:
+		# lang not built
+		return
 		
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
-		
+
 	if user_language and (user_language.lower() in lang_names):
 		lang = lang_names[user_language.lower()]
 		user_lang = True
@@ -414,8 +419,12 @@ def get_application_home_page(user='Guest'):
 	if hpl:
 		return hpl[0][0]
 	else:
-		from startup import application_home_page
-		return application_home_page
+		# no app
+		try:
+			from startup import application_home_page
+			return application_home_page
+		except ImportError:
+			return "desktop"
 
 def copy_doclist(in_doclist):
 	new_doclist = []
@@ -477,12 +486,15 @@ def get_config():
 		import webnotes.utils, json
 	
 		def update_config(path):
-			with open(path, "r") as configfile:
-				this_config = json.loads(configfile.read())
-				_config.app_name = this_config.get("app_name")
-				_config.modules.update(this_config["modules"])
-				_config.web.pages.update(this_config["web"]["pages"])
-				_config.web.generators.update(this_config["web"]["generators"])
+			try:
+				with open(path, "r") as configfile:
+					this_config = json.loads(configfile.read())
+					_config.app_name = this_config.get("app_name")
+					_config.modules.update(this_config["modules"])
+					_config.web.pages.update(this_config["web"]["pages"])
+					_config.web.generators.update(this_config["web"]["generators"])
+			except IOError:
+				pass
 	
 		_config = _dict({"modules": {}, "web": _dict({"pages": {}, "generators": {}})})
 		
