@@ -146,12 +146,11 @@ def prepare_args(page_name):
 			bean = webnotes.bean(page_info["args_doctype"])
 			bean.run_method("onload")
 			args.obj = bean.make_controller()
-
-		if has_app:
-			update_template_args(page_name, args)
-
 	else:
 		args = get_doc_fields(page_name)
+
+	if has_app:
+		args = update_template_args(page_name, args)
 	
 	if not args:
 		return False
