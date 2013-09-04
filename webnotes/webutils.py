@@ -148,13 +148,12 @@ def prepare_args(page_name):
 			args.obj = bean.make_controller()
 	else:
 		args = get_doc_fields(page_name)
-
-	if has_app:
-		args = update_template_args(page_name, args)
 	
 	if not args:
 		return False
 	
+	if has_app:
+		args = update_template_args(page_name, args)
 	
 	return args	
 
