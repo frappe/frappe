@@ -7,7 +7,12 @@ import webnotes
 import webnotes.widgets.reportview
 import webnotes.widgets.query_builder
 from webnotes.utils import cstr
-from startup.query_handlers import standard_queries
+
+try:
+	from startup.query_handlers import standard_queries
+	startup_standard_queries = True
+except ImportError:
+	startup_standard_queries = False
 
 # this is called by the Link Field
 @webnotes.whitelist()
@@ -29,7 +34,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 		# by method
 		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
 			searchfield, start, page_len, filters)
-	elif not query and doctype in standard_queries:
+	elif startup_standard_queries and not query and doctype in standard_queries:
 		# from standard queries
 		search_widget(doctype, txt, standard_queries[doctype], 
 			searchfield, start, page_len, filters)

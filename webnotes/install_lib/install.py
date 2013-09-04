@@ -77,13 +77,15 @@ class Installer:
 		return target
 		
 	def install_app(self):
+		sync_for("lib", force=True, sync_everything=True)
+		self.import_core_docs()
+
 		try:
 			from startup import install
 		except ImportError, e:
 			print "No app install found"
+			return
 
-		sync_for("lib", force=True, sync_everything=True)
-		self.import_core_docs()
 		install.pre_import()
 		sync_for("app", force=True, sync_everything=True)
 

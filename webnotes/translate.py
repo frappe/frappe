@@ -56,12 +56,14 @@ def update_translations():
 	message_updated = False
 	status_file_path = "app/.wnf-lang-status"
 	
+	if not os.path.exists(os.path.join('app', 'translations')):
+		return
 	if os.path.exists(status_file_path):
 		with open(status_file_path, "r") as langstatusfile:
 			langstatus = eval(langstatusfile.read())
 			
 	for lang in languages:
-		filename = 'app/translations/'+lang+'.csv'
+		filename = os.path.join('app', 'translations', lang + '.csv')
 		if langstatus.get(lang, None)!=os.path.getmtime(filename):
 			print "Setting up lang files for " + lang + "..."
 			if not message_updated:

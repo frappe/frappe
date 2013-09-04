@@ -114,9 +114,8 @@ class Document:
 
 	def encode(self, encoding='utf-8'):
 		"""convert all unicode values to utf-8"""
-		for key in self.fields:
-			if isinstance(self.fields[key], unicode):
-				self.fields[key] = self.fields[key].encode(encoding)
+		from webnotes.utils import encode_dict
+		encode_dict(self.fields)
 
 	def _loadfromdb(self, doctype = None, name = None):
 		if name: self.name = name
