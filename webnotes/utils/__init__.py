@@ -55,6 +55,8 @@ def extract_email_id(email):
 	if ',' in email and email.count("@")==1:
 		email = email.split(",")[-1]
 	fullname, email_id = parseaddr(email)
+	if not isinstance(email_id, unicode):
+		email_id = email_id.decode("utf-8", errors="ignore")
 	return email_id
 	
 def validate_email_add(email_str):
