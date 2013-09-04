@@ -4,3 +4,4 @@
 *.DS_Store
 locale
 .wnf-lang-status
+*.swp
