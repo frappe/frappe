@@ -11,7 +11,6 @@ import webnotes
 import conf
 from webnotes import msgprint
 from webnotes.utils import cint
-import email
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None):
 	"""send an html email as multipart with attachments and all"""
@@ -227,8 +226,12 @@ class EMail:
 			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),
 				self.as_string())
 				
-		except smtplib.SMTPSenderRefused, e:
+		except smtplib.SMTPSenderRefused:
 			webnotes.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
+				Please rectify and try again.""",
+				raise_exception=webnotes.OutgoingEmailError)
+		except smtplib.SMTPRecipientsRefused:
+			webnotes.msgprint("""Invalid Recipient (To) Email Address. \
 				Please rectify and try again.""",
 				raise_exception=webnotes.OutgoingEmailError)
 
