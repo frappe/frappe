@@ -55,8 +55,8 @@ def extract_email_id(email):
 	if ',' in email and email.count("@")==1:
 		email = email.split(",")[-1]
 	fullname, email_id = parseaddr(email)
-	if not isinstance(email_id, unicode):
-		email_id = email_id.decode("utf-8", errors="ignore")
+	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
+		email_id = email_id.decode("utf-8", "ignore")
 	return email_id
 	
 def validate_email_add(email_str):
@@ -824,15 +824,15 @@ def get_url_to_form(doctype, name, base_url=None, label=None):
 
 def encode_dict(d, encoding="utf-8"):
 	for key in d:
-		if isinstance(d[key], unicode):
+		if isinstance(d[key], basestring) and isinstance(d[key], unicode):
 			d[key] = d[key].encode(encoding)
 			
 	return d
 
 def decode_dict(d, encoding="utf-8"):
 	for key in d:
-		if not isinstance(d[key], unicode):
-			d[key] = d[key].decode(encoding, errors="ignore")
+		if isinstance(d[key], basestring) and not isinstance(d[key], unicode):
+			d[key] = d[key].decode(encoding, "ignore")
 
 	return d
 
