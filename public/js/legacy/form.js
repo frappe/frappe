@@ -708,6 +708,13 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 _f.Frm.prototype.savesubmit = function(btn, on_error) {
 	var me = this;
 	wn.confirm("Permanently Submit "+this.docname+"?", function() {
+		me.script_manager.trigger("before_submit");
+		if(!validated) {
+			if(on_error) 
+				on_error();
+			return;
+		}
+
 		me.save('Submit', function(r) {
 			if(!r.exc) {
 				me.script_manager.trigger("on_submit");
