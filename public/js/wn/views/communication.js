@@ -83,7 +83,6 @@ wn.views.CommunicationList = Class.extend({
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc.content = doc.content.split("-----"+wn._("In response to")+"-----")[0];
 		doc.content = doc.content.split("-----"+wn._("Original Message")+"-----")[0];
-		doc.content = doc.content.split("<!-- Portal Link -->")[0];
 	},
 	
 	make_line: function(doc) {
@@ -289,7 +288,6 @@ wn.views.CommunicationComposer = Class.extend({
 			? cur_frm.communication_view.list
 			: [];
 		var signature = wn.boot.profile.email_signature || "";
-		var portal_link = this.setup_portal_link();
 		
 		if(!wn.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
@@ -300,8 +298,7 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		var reply = (this.message || "") 
-			+ "<p></p>"	+ signature	
-			+ "<p></p>" + portal_link;
+			+ "<p></p>"	+ signature;
 		
 		if(comm_list.length > 0) {
 			fields.content.set_input(reply
@@ -311,31 +308,6 @@ wn.views.CommunicationComposer = Class.extend({
 		} else {
 			fields.content.set_input(reply);
 		}
-	},
-	setup_portal_link: function() {
-		var me = this;
-		var portal_link = "";
-		var show_portal_link = wn.boot.portal_links[this.doc.doctype] && 
-			!(wn.boot.website_settings && cint(wn.boot.website_settings.disable_signup));
-		if(show_portal_link) {
-			var portal_args = wn.boot.portal_links[this.doc.doctype];
-			var valid = true;
-			if(portal_args.conditions) {
-				$.each(portal_args.conditions, function(k, v) {
-					if(me.doc[k] !== v) valid = false;
-				});
-			}
-			if(valid) {
-				// set portal link
-				portal_link = repl("%(location)s/%(page)s?name=%(name)s", {
-					location: window.location.origin,
-					page: portal_args["page"],
-					name: encodeURIComponent(this.doc.name)
-				});
-				portal_link = '<!-- Portal Link -->--<br><a href="'+portal_link+'" target="_blank">View this on our website</a>';
-			}
-		}
-		return portal_link;
 	},
 	setup_autosuggest: function() {
 		var me = this;

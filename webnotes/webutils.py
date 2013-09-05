@@ -245,3 +245,14 @@ def get_portal_links():
 			}
 	
 	return portal_args
+
+_is_portal_enabled = None
+def is_portal_enabled():
+	global _is_portal_enabled
+	if _is_portal_enabled is None:
+		_is_portal_enabled = True
+		if webnotes.utils.cint(webnotes.conn.get_value("Website Settings", 
+			"Website Settings", "disable_signup")):
+				_is_portal_enabled = False
+		
+	return _is_portal_enabled
