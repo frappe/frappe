@@ -5,8 +5,8 @@ from __future__ import unicode_literals
 # app configuration
 
 # database config
-db_name = 'yourdbname'
-db_password = 'yourdbpassword'
+db_name = '%(db_name)s'
+db_password = '%(db_password)s'
 
 # user attachments stored in
 files_path = 'public/files'
@@ -15,10 +15,10 @@ files_path = 'public/files'
 max_file_size = 1000000
 
 # generate schema (.txt files)
-developer_mode = 0
+developer_mode = 1
 
 # clear cache on refresh
-auto_cache_clear = 0
+auto_cache_clear = 1
 
 # email logs to admin (beta)
 admin_email_notification = 0

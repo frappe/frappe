@@ -341,11 +341,11 @@ wn.PermissionEngine = Class.extend({
 				});
 				if(me.get_doctype()) {
 					d.set_value("parent", me.get_doctype());
-					d.get_input("parent").attr("disabled", true);
+					d.get_input("parent").prop("disabled", true);
 				}
 				if(me.get_role()) {
 					d.set_value("role", me.get_role());
-					d.get_input("role").attr("disabled", true);
+					d.get_input("role").prop("disabled", true);
 				}
 				d.set_value("permlevel", "0");
 				d.get_input("add").click(function() {

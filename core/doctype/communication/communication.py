@@ -86,7 +86,8 @@ def get_customer_supplier(args=None):
 
 def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', send_me_a_copy=False):
 	from json import loads
-	
+	footer = None
+
 	if sent_via:
 		if hasattr(sent_via, "get_sender"):
 			d.sender = sent_via.get_sender(d) or d.sender
@@ -94,10 +95,12 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			d.subject = sent_via.get_subject(d)
 		if hasattr(sent_via, "get_content"):
 			d.content = sent_via.get_content(d)
-
+			
+		footer = set_portal_link(sent_via, d)
+			
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
-		msg=d.content)
+		msg=d.content, footer=footer)
 	
 	if send_me_a_copy:
 		mail.cc.append(d.sender)
@@ -113,6 +116,38 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 				raise_exception=True)
 	
 	mail.send()
+	
+def set_portal_link(sent_via, comm):
+	"""set portal link in footer"""
+	from webnotes.webutils import is_portal_enabled, get_portal_links
+	from webnotes.utils import get_url, cstr
+	import urllib
+
+	footer = None
+
+	if is_portal_enabled():
+		portal_opts = get_portal_links().get(sent_via.doc.doctype)
+		if portal_opts:
+			valid_recipient = cstr(sent_via.doc.email or sent_via.doc.email_id or
+				sent_via.doc.contact_email) in comm.recipients
+			
+			if not valid_recipient:
+				attach_portal_link = False
+			else:
+				attach_portal_link = True
+				if portal_opts.get("conditions"):
+					for fieldname, val in portal_opts["conditions"].items():
+						if sent_via.doc.fields.get(fieldname) != val:
+							attach_portal_link = False
+							break
+
+			if attach_portal_link:
+				url = "%s/%s?name=%s" % (get_url(), portal_opts["page"],
+					urllib.quote(sent_via.doc.name))
+				footer = """<!-- Portal Link --><hr>
+						<a href="%s" target="_blank">View this on our website</a>""" % url
+			
+	return footer
 				
 def get_user(doctype, txt, searchfield, start, page_len, filters):
 	from controllers.queries import get_match_cond

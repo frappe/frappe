@@ -30,21 +30,17 @@ def _(msg):
 	return messages.get(lang, {}).get(msg, msg)
 
 def set_user_lang(user, user_language=None):
+	from webnotes.translate import get_lang_dict
 	global lang, user_lang
-
-	try:
-		from startup import lang_list, lang_names
-	except ImportError:
-		# lang not built
-		return
 		
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
 
-	if user_language and (user_language.lower() in lang_names):
-		lang = lang_names[user_language.lower()]
-		user_lang = True
-		
+	if user_language:
+		lang_dict = get_lang_dict()
+		if user_language in lang_dict:
+			lang = lang_dict[user_language]
+			user_lang = True		
 
 def load_translations(module, doctype, name):
 	from webnotes.translate import load_doc_messages

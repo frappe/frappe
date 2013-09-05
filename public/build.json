@@ -26,6 +26,7 @@
 	{
 		"public/js/all-web.min.js": [
 			"lib/public/js/lib/bootstrap.min.js",
+			"lib/public/js/wn/misc/number_format.js"
 		]
 	},
 	

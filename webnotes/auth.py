@@ -59,10 +59,9 @@ class HTTPRequest:
 		webnotes.cookie_manager.set_cookies()
 
 	def set_lang(self, lang):
-		try:
-			from startup import lang_list
-		except ImportError, e:
-			return
+		import translate
+		lang_list = translate.get_lang_dict()
+		lang_list = lang_list and lang_list.values() or []
 		
 		if not lang: 
 			return
@@ -72,7 +71,7 @@ class HTTPRequest:
 			lang = lang.split(",")
 		else:
 			lang = [lang]
-				
+			
 		for l in lang:
 			code = l.strip()
 			if code in lang_list:
@@ -85,7 +84,7 @@ class HTTPRequest:
 				if code in lang_list:
 					webnotes.lang = code
 					return
-
+					
 	def setup_profile(self):
 		webnotes.user = webnotes.profile.Profile()
 

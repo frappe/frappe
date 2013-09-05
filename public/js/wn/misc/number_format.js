@@ -1,6 +1,8 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 // MIT License. See license.txt
 
+if(!window.wn) wn = {};
+
 function flt(v, decimals, number_format) { 
 	if(v==null || v=='')return 0;
 	

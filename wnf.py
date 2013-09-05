@@ -139,6 +139,9 @@ def setup_options():
 	parser.add_option('--install_fresh', nargs=1, metavar = "NEW_DB_NAME",
 						help="install fresh db")
 
+	parser.add_option('--reinstall', default=False, action="store_true",
+						help="install fresh db in db_name specified in conf.py")
+
 	parser.add_option('--make_demo', default=False, action="store_true",
 						help="install in database 'demo'")
 
@@ -276,6 +279,9 @@ def setup_options():
 	parser.add_option("--reset_perms", default=False, action="store_true",
 		help="Reset permissions for all doctypes.")
 
+	parser.add_option("--make_conf", default=False, action="store_true",
+		help="Create new conf.py file")
+
 	return parser.parse_args()
 	
 def run():
@@ -333,7 +339,7 @@ def run():
 			webnotes.connect(options.db_name, options.password)
 		else:
 			webnotes.connect(options.db_name)
-	elif not any([options.install, options.pull, options.install_fresh]):
+	elif not any([options.install, options.pull, options.install_fresh, options.reinstall, options.make_conf]):
 		webnotes.connect(conf.db_name)
 
 	if options.pull:
@@ -396,6 +402,12 @@ def run():
 		from webnotes.install_lib.install import Installer
 		inst = Installer('root')
 		inst.import_from_db(options.install_fresh, verbose = 1)
+
+	elif options.reinstall:
+		from webnotes.install_lib.install import Installer
+		inst = Installer('root')
+		import conf
+		inst.import_from_db(conf.db_name, verbose = 1)
 
 	elif options.make_demo:
 		import utilities.demo.make_demo
@@ -507,6 +519,27 @@ def run():
 					webnotes.reset_perms(d)
 				except:
 					pass
+					
+	elif options.make_conf:
+		if os.path.exists("conf.py"):
+			os.system("mv conf.py conf.py.bak")
+		
+		with open("lib/conf/conf.py", "r") as confsrc:
+			confstr = confsrc.read()
+	
+		db_name = raw_input("Database Name: ")
+		if not db_name:
+			print "Database Name Required"
+			return
+			
+		db_password = raw_input("Database Password: ")
+		if not db_password:
+			print "Database Name Required"
+			return
+	
+		with open("conf.py", "w") as conftar:
+			conftar.write(confstr % {"db_name": db_name, "db_password": db_password })
+			
 		
 
 if __name__=='__main__':

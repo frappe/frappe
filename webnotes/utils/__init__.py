@@ -52,8 +52,6 @@ def get_formatted_email(user):
 def extract_email_id(email):
 	"""fetch only the email part of the email id"""
 	from email.utils import parseaddr
-	if ',' in email and email.count("@")==1:
-		email = email.split(",")[-1]
 	fullname, email_id = parseaddr(email)
 	if isinstance(email_id, basestring) and not isinstance(email_id, unicode):
 		email_id = email_id.decode("utf-8", "ignore")
@@ -664,6 +662,14 @@ def unesc(s, esc_chars):
 		s = s.replace(esc_str, c)
 	return s
 	
+def is_html(text):
+	out = False
+	for key in ["<br>", "<p", "<img", "<div"]:
+		if key in text:
+			out = True
+			break
+	return out
+	
 def strip_html(text):
 	"""
 		removes anything enclosed in and including <>
@@ -809,14 +815,19 @@ def get_base_path():
 	import conf
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
+	
+def get_url():
+	import startup
+	if hasattr(startup, "get_url"):
+		url = startup.get_url()
+	else:
+		url = get_request_site_address()
+		
+	return url
 
 def get_url_to_form(doctype, name, base_url=None, label=None):
 	if not base_url:
-		try:
-			from startup import get_url
-			base_url = get_url()
-		except ImportError:
-			base_url = get_request_site_address()
+		base_url = get_url()
 	
 	if not label: label = name
 	
