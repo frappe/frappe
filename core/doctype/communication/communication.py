@@ -120,7 +120,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 def set_portal_link(sent_via, comm):
 	"""set portal link in footer"""
 	from webnotes.webutils import is_portal_enabled, get_portal_links
-	from webnotes.utils import get_url
+	from webnotes.utils import get_url, cstr
 	import urllib
 
 	footer = None
@@ -128,18 +128,20 @@ def set_portal_link(sent_via, comm):
 	if is_portal_enabled():
 		portal_opts = get_portal_links().get(sent_via.doc.doctype)
 		if portal_opts:
-			if (sent_via.doc.email or sent_via.doc.email_id or sent_via.doc.contact_email) \
-				not in comm.recipients:
-					valid = False
+			valid_recipient = cstr(sent_via.doc.email or sent_via.doc.email_id or
+				sent_via.doc.contact_email) in comm.recipients
+			
+			if not valid_recipient:
+				attach_portal_link = False
 			else:
-				valid = True
+				attach_portal_link = True
 				if portal_opts.get("conditions"):
 					for fieldname, val in portal_opts["conditions"].items():
 						if sent_via.doc.fields.get(fieldname) != val:
-							valid = False
+							attach_portal_link = False
 							break
 
-			if valid:
+			if attach_portal_link:
 				url = "%s/%s?name=%s" % (get_url(), portal_opts["page"],
 					urllib.quote(sent_via.doc.name))
 				footer = """<!-- Portal Link --><hr>
