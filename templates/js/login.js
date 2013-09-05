@@ -62,8 +62,9 @@ login.do_login = function(){
 				window.location.href = "app.html";
 			} else if(data.message=="No App") {
 				if(localStorage) {
-					window.location.href = localStorage.getItem("last_visited") || "index";
+					var last_visited = localStorage.getItem("last_visited") || "index";
 					localStorage.removeItem("last_visited");
+					window.location.href = last_visited;
 				} else {
 					window.location.href = "index";
 				}

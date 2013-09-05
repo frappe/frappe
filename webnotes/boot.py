@@ -11,6 +11,7 @@ import webnotes.defaults
 import webnotes.model.doc
 import webnotes.widgets.page
 import json
+import webnotes.webutils
 
 def get_bootinfo():
 	"""build and return boot info"""
@@ -42,6 +43,9 @@ def get_bootinfo():
 		tabDocType where ifnull(icon,'')!=''"""))
 	bootinfo.doctype_icons.update(dict(webnotes.conn.sql("""select name, icon from 
 		tabPage where ifnull(icon,'')!=''""")))
+	
+	# portal links for sending in email
+	bootinfo.portal_links = webnotes.webutils.get_portal_links()
 
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
