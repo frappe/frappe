@@ -48,7 +48,7 @@ def respond():
 	except webnotes.SessionStopped:
 		print "Content-type: text/html"
 		print
-		print session_stopped
+		print session_stopped % {"app_name": webnotes.get_config().app_name}
 	except MySQLdb.ProgrammingError, e:
 		if e.args[0]==1146:
 			print "Content-type: text/html"
