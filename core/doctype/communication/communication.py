@@ -8,29 +8,18 @@ class DocType():
 	def __init__(self, doc, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
-	
+		
 	def get_parent_bean(self):
-		if self.doc.doctype:
-			return webnotes.bean(self.doc.parenttype, self.doc.parent)
-			
-	def on_update(self):
+		return webnotes.bean(self.doc.parenttype, self.doc.parent)
+		
+	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		if self.doc.parenttype=="Support Ticket":
-			# do nothing - handled by support ticket
-			return
-			
-		parent = self.get_parent_bean()
-		
-		if parent:
-			if webnotes.conn.get_value("Profile", self.doc.sender, "user_type")=="System User":
-				parent.doc.status = "Replied"
-			else:
-				parent.doc.status = "Open"
-		
-			
-			parent.ignore_permissions = True
-			parent.ignore_mandatory = True
-			parent.save()
+		observer = self.get_parent_bean().get_method("on_communication")
+		if observer:
+			observer(self.doc)
+	
+	def on_update(self):
+		self.update_parent()
 
 @webnotes.whitelist()
 def make(doctype=None, name=None, content=None, subject=None, 
@@ -66,7 +55,6 @@ def make(doctype=None, name=None, content=None, subject=None,
 
 	if date:
 		d.communication_date = date
-	
 
 	d.communication_medium = communication_medium
 	
@@ -125,9 +113,6 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 				raise_exception=True)
 	
 	mail.send()
-	
-	if sent_via and hasattr(sent_via, 'on_communication_sent'):
-		sent_via.on_communication_sent(d)
 				
 def get_user(doctype, txt, searchfield, start, page_len, filters):
 	from controllers.queries import get_match_cond

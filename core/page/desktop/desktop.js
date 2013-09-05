@@ -62,6 +62,11 @@ wn.core.pages.desktop.render = function() {
 }
 
 wn.core.pages.desktop.show_pending_notifications = function() {
+
+	if (!wn.boot.notification_info.module_doctypes) {
+		return;
+	}
+
 	var modules_list = wn.user.get_desktop_items();
 	$.each(modules_list, function(i, module) {
 		var module_doctypes = wn.boot.notification_info.module_doctypes[module];
