@@ -264,6 +264,13 @@ Thank you,<br>
 		self.bean.save()
 
 @webnotes.whitelist()
+def get_languages():
+	from webnotes.translate import get_lang_dict
+	languages = get_lang_dict().keys()
+	languages.sort()
+	return [""] + languages
+
+@webnotes.whitelist()
 def get_all_roles(arg=None):
 	"""return all roles"""
 	return [r[0] for r in webnotes.conn.sql("""select name from tabRole

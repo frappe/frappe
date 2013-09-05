@@ -1,14 +1,33 @@
-cur_frm.cscript.onload = function(doc) {
+cur_frm.cscript.onload = function(doc, dt, dn, callback) {
 	if(has_common(user_roles, ["Administrator", "System Manager"])) {
 		if(!cur_frm.roles_editor) {
 			var role_area = $('<div style="min-height: 300px">')
 				.appendTo(cur_frm.fields_dict.roles_html.wrapper);
 			cur_frm.roles_editor = new wn.RoleEditor(role_area);
 		} else {
-			// called when creating a new profile 
-			// and need to clear previous profile's roles
 			cur_frm.roles_editor.show();
 		}
+	}
+}
+
+cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
+	wn.provide("wn.langauges");
+	
+	var update_language_select = function() {
+		cur_frm.set_df_property("language", "options", wn.languages || ["", "English"]);
+		callback();
+	}
+	
+	if(!wn.languages) {
+		wn.call({
+			method: "core.doctype.profile.profile.get_languages",
+			callback: function(r) {
+				wn.languages = r.message;
+				update_language_select();
+			}
+		})
+	} else {
+		update_language_select();
 	}
 }
 

@@ -17,6 +17,7 @@ import json
 import re
 from csv import reader
 from webnotes.modules import get_doc_path
+from webnotes.utils import get_base_path
 
 messages = {}
 
@@ -45,6 +46,12 @@ def translate(lang=None):
 
 def get_all_languages():
 	return [f[:-4] for f in os.listdir("app/translations") if f.endswith(".csv")]
+
+def get_lang_dict():
+	languages_path = os.path.join(get_base_path(), "app", "translations", "languages.json")
+	if os.path.exists(languages_path):
+		with open(languages_path, "r") as langfile:
+			return json.loads(langfile.read())
 
 def update_translations():
 	"""
@@ -351,6 +358,8 @@ def google_translate(lang, infile, outfile):
 		
 	import requests, conf
 	
+	old_translations = {}
+	
 	# update existing translations
 	if os.path.exists(outfile):
 		with codecs.open(outfile, "r", "utf-8") as oldfile:
@@ -376,6 +385,7 @@ def google_translate(lang, infile, outfile):
 			
 					if "error" in response.json:
 						print response.json
+						continue
 					
 					row[1] = response.json["data"]["translations"][0]["translatedText"]
 					if not row[1]:

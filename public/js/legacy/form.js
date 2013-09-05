@@ -400,57 +400,63 @@ _f.Frm.prototype.refresh = function(docname) {
 		cur_frm.cscript.is_onload = false;
 		if(!this.opendocs[this.docname]) { 
 			cur_frm.cscript.is_onload = true;
-			this.setnewdoc(this.docname); 
-		}
-
-		// view_is_edit
-		if(this.doc.__islocal) 
-			this.last_view_is_edit[this.docname] = 1; // new is view_is_edit
-
-		this.view_is_edit = this.last_view_is_edit[this.docname];
-		
-		if(this.view_is_edit || (!this.view_is_edit && this.meta.istable)) {
-			if(this.print_wrapper) {
-				$dh(this.print_wrapper);
-				$ds(this.form_wrapper);
-			}
-
-			// header
-			this.refresh_header();
-
-			// call trigger
-			this.script_manager.trigger("refresh");
-			
-			// trigger global trigger
-			// to use this
-			$(document).trigger('form_refresh');
-						
-			// fields
-			this.refresh_fields();
-			
-			// call onload post render for callbacks to be fired
-			if(this.cscript.is_onload) {
-				this.script_manager.trigger("onload_post_render");
-			}
-				
-			// focus on first input
-			
-			if(this.doc.docstatus==0) {
-				var first = $(this.form_wrapper).find('.form-layout-row :input:first');
-				if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
-					first.focus();
-				}
-			}
-		
+			this.setnewdoc(); 
 		} else {
-			this.refresh_header();
-			if(this.print_wrapper) {
-				this.refresh_print_layout();
-			}
+			this.render_form();
 		}
 
-		$(cur_frm.wrapper).trigger('render_complete');
 	} 
+}
+
+_f.Frm.prototype.render_form = function() {
+	// view_is_edit
+	if(this.doc.__islocal) 
+		this.last_view_is_edit[this.docname] = 1; // new is view_is_edit
+
+	this.view_is_edit = this.last_view_is_edit[this.docname];
+	
+	if(this.view_is_edit || (!this.view_is_edit && this.meta.istable)) {
+		if(this.print_wrapper) {
+			$dh(this.print_wrapper);
+			$ds(this.form_wrapper);
+		}
+
+		// header
+		this.refresh_header();
+
+		// call trigger
+		this.script_manager.trigger("refresh");
+		
+		// trigger global trigger
+		// to use this
+		$(document).trigger('form_refresh');
+					
+		// fields
+		this.refresh_fields();
+		
+		// call onload post render for callbacks to be fired
+		if(this.cscript.is_onload) {
+			this.script_manager.trigger("onload_post_render");
+		}
+			
+		// focus on first input
+		
+		if(this.doc.docstatus==0) {
+			var first = $(this.form_wrapper).find('.form-layout-row :input:first');
+			if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
+				first.focus();
+			}
+		}
+	
+	} else {
+		this.refresh_header();
+		if(this.print_wrapper) {
+			this.refresh_print_layout();
+		}
+	}
+
+	$(cur_frm.wrapper).trigger('render_complete');
+	
 }
 
 _f.Frm.prototype.refresh_field = function(fname) {
@@ -553,28 +559,18 @@ _f.Frm.prototype.refresh_dependency = function() {
 	this.layout.refresh_section_count();
 }
 
-_f.Frm.prototype.setnewdoc = function(docname) {
+_f.Frm.prototype.setnewdoc = function() {
 	// moved this call to refresh function
 	// this.check_doctype_conflict(docname);
-
-	// if loaded
-	if(this.opendocs[docname]) { // already exists
-		this.docname=docname;
-		return;
-	}
-
-	this.docname = docname;
-
 	var me = this;
-	var viewname = this.meta.issingle ? this.doctype : docname;
 
-	// Client Script
-	this.script_manager.trigger("onload");
-	
-	this.last_view_is_edit[docname] = 1;
-	//if(cint(this.meta.read_only_onload)) this.last_view_is_edit[docname] = 0;
-		
-	this.opendocs[docname] = true;
+	this.script_manager.trigger("before_load", this.doctype, this.docname, function() {
+		me.script_manager.trigger("onload");
+		me.last_view_is_edit[me.docname] = 1;
+		me.opendocs[me.docname] = true;
+		me.render_form();
+	})
+
 }
 
 _f.Frm.prototype.edit_doc = function() {

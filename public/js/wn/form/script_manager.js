@@ -8,17 +8,19 @@ wn.ui.form.ScriptManager = Class.extend({
 	make: function(ControllerClass) {
 		this.frm.cscript = $.extend(this.frm.cscript, new ControllerClass({frm: this.frm}));
 	},
-	trigger: function(event_name, doctype, name) {
+	trigger: function(event_name, doctype, name, callback) {
 		var me = this;
 		doctype = doctype || this.frm.doctype;
 		name = name || this.frm.docname;
 		if(this.frm.cscript[event_name]) {
-			$.when(this.frm.cscript[event_name](this.frm.doc, doctype, name)).then(function() {
+			$.when(this.frm.cscript[event_name](this.frm.doc, doctype, name, callback)).then(function() {
 				if(me.frm.cscript["custom_" + event_name])
-					me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name);
+					me.frm.cscript["custom_" + event_name](me.frm.doc, doctype, name, callback);
 			});
 		} else if(this.frm.cscript["custom_" + event_name]) {
-			this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name);
+			this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name, callback);
+		} else {
+			callback();
 		}
 	},
 	setup: function() {
