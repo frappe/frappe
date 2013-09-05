@@ -19,7 +19,7 @@ wn.ui.form.ScriptManager = Class.extend({
 			});
 		} else if(this.frm.cscript["custom_" + event_name]) {
 			this.frm.cscript["custom_" + event_name](this.frm.doc, doctype, name, callback);
-		} else {
+		} else if(callback) {
 			callback();
 		}
 	},
