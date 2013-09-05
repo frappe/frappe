@@ -83,6 +83,7 @@ wn.views.CommunicationList = Class.extend({
 		doc._sender = doc.sender.replace(/</, "&lt;").replace(/>/, "&gt;");
 		doc.content = doc.content.split("-----"+wn._("In response to")+"-----")[0];
 		doc.content = doc.content.split("-----"+wn._("Original Message")+"-----")[0];
+		doc.content = doc.content.split("<!-- Portal Link -->")[0];
 	},
 	
 	make_line: function(doc) {
@@ -331,7 +332,7 @@ wn.views.CommunicationComposer = Class.extend({
 					page: portal_args["page"],
 					name: encodeURIComponent(this.doc.name)
 				});
-				portal_link = '--<br><a href="'+portal_link+'" target="_blank">View this on our website</a>';
+				portal_link = '<!-- Portal Link -->--<br><a href="'+portal_link+'" target="_blank">View this on our website</a>';
 			}
 		}
 		return portal_link;
