@@ -46,7 +46,7 @@ login.do_login = function(){
 		}	
 	}
 
-	$('#login_btn').attr("disabled", "disabled");
+	$('#login_btn').prop("disabled", true);
 	$("#login-spinner").toggle(true);
 	$('#login_message').toggle(false);
 	
@@ -57,13 +57,14 @@ login.do_login = function(){
 		dataType: "json",
 		success: function(data) {
 			$("#login-spinner").toggle(false);
-			$('#login_btn').attr("disabled", false);
+			$('#login_btn').prop("disabled", false);
 			if(data.message=="Logged In") {
 				window.location.href = "app.html";
 			} else if(data.message=="No App") {
 				if(localStorage) {
-					window.location.href = localStorage.getItem("last_visited") || "index";
+					var last_visited = localStorage.getItem("last_visited") || "index";
 					localStorage.removeItem("last_visited");
+					window.location.href = last_visited;
 				} else {
 					window.location.href = "index";
 				}

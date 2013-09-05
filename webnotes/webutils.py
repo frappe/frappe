@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 
-import os
 import conf
 import webnotes
 import webnotes.utils
@@ -112,9 +111,6 @@ def build_html(args):
 	html = jenv.get_template(template_name).render(args)
 	
 	return html
-	
-def get_standard_pages():
-	return webnotes.get_config()["web"]["pages"].keys()
 	
 def prepare_args(page_name):
 
@@ -239,4 +235,13 @@ def get_generators():
 def get_page_settings():
 	return webnotes.get_config()["web"]["pages"]
 	
-
+def get_portal_links():
+	portal_args = {}
+	for page, opts in webnotes.get_config()["web"]["pages"].items():
+		if opts.get("portal"):
+			portal_args[opts["portal"]["doctype"]] = {
+				"page": page,
+				"conditions": opts["portal"].get("conditions")
+			}
+	
+	return portal_args

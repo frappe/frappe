@@ -664,6 +664,14 @@ def unesc(s, esc_chars):
 		s = s.replace(esc_str, c)
 	return s
 	
+def is_html(text):
+	out = False
+	for key in ["<br>", "<p", "<img", "<div"]:
+		if key in text:
+			out = True
+			break
+	return out
+	
 def strip_html(text):
 	"""
 		removes anything enclosed in and including <>

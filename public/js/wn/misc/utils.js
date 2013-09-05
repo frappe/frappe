@@ -104,7 +104,7 @@ wn.utils = {
 	},
 	disable_export_btn: function(btn) {
 		if(!wn.user.is_report_manager()) {
-			btn.attr("disabled", "disabled").attr("title", 
+			btn.prop("disabled", true).attr("title", 
 				wn._("Can only be exported by users with role 'Report Manager'"));
 		}		
 	},
