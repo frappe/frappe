@@ -36,6 +36,8 @@ wn.ui.form.Layout = Class.extend({
 			fieldobj.docname = me.frm.docname;
 			fieldobj.df = wn.meta.get_docfield(me.frm.doctype, 
 				fieldobj.df.fieldname, me.frm.docname);
+			// on form change, permissions can change
+			fieldobj.perm = me.frm.perm;
 			fieldobj.refresh && fieldobj.refresh();
 		});
 		$(this.frm.wrapper).trigger("refresh-fields");

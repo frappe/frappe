@@ -161,7 +161,7 @@ wn.ui.form.Attachments = Class.extend({
 	},
 	refresh_attachment_select_fields: function() {
 		for(var i=0; i<this.frm.fields.length; i++) {
-			if(this.frm.fields[i].df.options=="attach_files:") {
+			if(this.frm.fields[i].df.options=="attach_files:" && this.frm.fields[i].$input) {
 				var fieldname = this.frm.fields[i].df.fieldname;
 				var selected_option = this.frm.fields[i].$input.find("option:selected").val();
 				
