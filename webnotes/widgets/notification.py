@@ -46,7 +46,7 @@ def get_notification_info_for_boot():
 	except ImportError:
 		for_doctype = {}
 	
-	for d in can_read:
+	for d in list(set(can_read + for_doctype.keys())):
 		if d in for_doctype:
 			conditions[d] = for_doctype[d]
 		
