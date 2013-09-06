@@ -6,7 +6,7 @@
 from __future__ import unicode_literals
 		
 import webnotes
-import inspect, os, json, datetime
+import inspect, os, json, datetime, shutil
 from jinja2 import Environment, FileSystemLoader
 from webnotes.modules import get_doc_path, get_module_path, scrub
 from webnotes.utils import get_path, get_base_path
@@ -356,11 +356,14 @@ def update_readme(mydocs, module, doctype=None, name=None):
 			mydocs["_intro"] = readmefile.read()
 		mydocs["_modified"] = get_timestamp(readme_path)
 
-def prepare_docs():
+def prepare_docs(force=False):
 	os.chdir(get_path("public"))
 	if not os.path.exists("docs"):
 		os.mkdir("docs")
-		
+	
+	if force:
+		shutil.rmtree("docs/css")
+	
 	if not os.path.exists("docs/css"):
 		os.mkdir("docs/css")
 		os.mkdir("docs/css/font")
@@ -380,11 +383,17 @@ def prepare_docs():
 	os.system("cp ../lib/core/doctype/documentation_tool/docs.css docs/css")
 		
 
+	if force:
+		shutil.rmtree("docs/js")
+
 	if not os.path.exists("docs/js"):
 		os.mkdir("docs/js")
 		os.system("cp ../lib/public/js/lib/bootstrap.min.js docs/js")
 		os.system("cp ../lib/public/js/lib/jquery/jquery.min.js docs/js")
 		os.system("cp ../lib/public/js/lib/prism.js docs/js")
+
+	if force:
+		os.remove("docs/img/splash.svg")
 
 	if not os.path.exists("docs/img/splash.svg"):
 		if not os.path.exists("docs/img"):

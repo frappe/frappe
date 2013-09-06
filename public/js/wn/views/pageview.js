@@ -17,7 +17,7 @@ wn.views.pageview = {
 		if((locals.Page && locals.Page[name]) || name==window.page_name) {
 			// already loaded
 			callback();
-		} else if(localStorage["_page:" + name]) {
+		} else if(localStorage["_page:" + name] && wn.boot.developer_mode!=1) {
 			// cached in local storage
 			wn.model.sync(JSON.parse(localStorage["_page:" + name]));
 			callback();

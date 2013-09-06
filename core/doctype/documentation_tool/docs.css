@@ -13,6 +13,10 @@ h1, h2, h3, h4, .navbar {
 	font-family: "Open Sans", Sans-Serif;
 }
 
+h1, h2, h3, h4, h5 {
+	font-weight: bold;
+}
+
 img {
 	max-width: 100%;
 }

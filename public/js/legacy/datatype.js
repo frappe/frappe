@@ -104,6 +104,8 @@ function repl(s, dict) {
 	return s;
 }
 
+var $r = repl;
+
 function replace_all(s, t1, t2) {
 	return s.split(t1).join(t2);
 }

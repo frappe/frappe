@@ -142,7 +142,7 @@ wn.UserProperties = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-small'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-small btn-default'><i class='icon-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)
