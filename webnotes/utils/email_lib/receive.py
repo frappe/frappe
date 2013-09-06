@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.utils import extract_email_id, convert_utc_to_user_timezone
+from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now
 
 class IncomingMail:
 	"""
@@ -25,9 +25,12 @@ class IncomingMail:
 		self.from_email = extract_email_id(self.mail["From"])
 		self.from_real_name = email.utils.parseaddr(self.mail["From"])[0]
 		
-		utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
-		utc_dt = datetime.datetime.utcfromtimestamp(utc)
-		self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+		if self.mail["Date"]:
+			utc = email.utils.mktime_tz(email.utils.parsedate_tz(self.mail["Date"]))
+			utc_dt = datetime.datetime.utcfromtimestamp(utc)
+			self.date = convert_utc_to_user_timezone(utc_dt).strftime('%Y-%m-%d %H:%M:%S')
+		else:
+			self.date = now()
 
 	def parse(self):
 		for part in self.mail.walk():
