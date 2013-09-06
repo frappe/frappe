@@ -2,7 +2,7 @@
  {
   "creation": "2013-09-06 11:53:22", 
   "docstatus": 0, 
-  "modified": "2013-09-06 11:53:23", 
+  "modified": "2013-09-06 16:33:10", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -20,18 +20,14 @@
   "name": "__common__", 
   "parent": "finder", 
   "parentfield": "roles", 
-  "parenttype": "Page"
+  "parenttype": "Page", 
+  "role": "All"
  }, 
  {
   "doctype": "Page", 
   "name": "finder"
  }, 
  {
-  "doctype": "Page Role", 
-  "role": "System Manager"
- }, 
- {
-  "doctype": "Page Role", 
-  "role": "Administrator"
+  "doctype": "Page Role"
  }
 ]
