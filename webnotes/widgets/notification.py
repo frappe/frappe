@@ -50,7 +50,8 @@ def get_notification_info_for_boot():
 		if d in for_doctype:
 			conditions[d] = for_doctype[d]
 		
-		module_doctypes.setdefault(doctype_info[d], []).append(d)
+		if d in doctype_info:
+			module_doctypes.setdefault(doctype_info[d], []).append(d)
 	
 	out.update({
 		"conditions": conditions,
