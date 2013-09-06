@@ -35,21 +35,22 @@ def get():
 
 def get_notification_info_for_boot():
 	out = get()
-	
-	try:
-		from startup.open_count import for_doctype
-	except ImportError:
-		return out
-	
+		
 	can_read = webnotes.user.get_can_read()
 	conditions = {}
 	module_doctypes = {}
 	doctype_info = dict(webnotes.conn.sql("""select name, module from tabDocType"""))
+
+	try:
+		from startup.open_count import for_doctype
+	except ImportError:
+		for_doctype = {}
 	
-	for d in for_doctype:
-		if d in can_read:
+	for d in can_read:
+		if d in for_doctype:
 			conditions[d] = for_doctype[d]
-			module_doctypes.setdefault(doctype_info[d], []).append(d)
+		
+		module_doctypes.setdefault(doctype_info[d], []).append(d)
 	
 	out.update({
 		"conditions": conditions,

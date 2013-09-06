@@ -13,9 +13,8 @@ def get(name):
 	"""
 	   Return the :term:`doclist` of the `Page` specified by `name`
 	"""
-	from webnotes.model.code import get_obj
-	page = get_obj('Page', name, with_children=1)
-	page.get_from_files()
+	page = webnotes.bean("Page", name)
+	page.run_method("get_from_files")
 	return page.doclist
 
 @webnotes.whitelist(allow_guest=True)

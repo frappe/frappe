@@ -22,6 +22,10 @@ a {
 	padding-bottom: 10px;
 }
 
+.text-small {
+	font-size: 80%;
+}
+
 /* freeze */
 
 div#freeze {

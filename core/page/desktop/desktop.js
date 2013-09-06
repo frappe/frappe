@@ -18,6 +18,8 @@ wn.core.pages.desktop.render = function() {
 	document.title = "Desktop";
 	var add_icon = function(m) {
 		var module = wn.modules[m];
+		if(!module)
+			return;
 		if(!module.label) 
 			module.label = m;
 		module.name = m;
