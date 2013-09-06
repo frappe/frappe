@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-09-05 19:00:04", 
+  "modified": "2013-09-06 12:10:25", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -40,10 +40,7 @@
   "parent": "Profile", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
-  "read": 1, 
-  "report": 1, 
-  "submit": 0, 
-  "write": 1
+  "read": 1
  }, 
  {
   "doctype": "DocType", 
@@ -409,20 +406,24 @@
   "create": 1, 
   "doctype": "DocPerm", 
   "permlevel": 0, 
-  "role": "Administrator"
+  "report": 1, 
+  "role": "System Manager", 
+  "submit": 0, 
+  "write": 1
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "permlevel": 0, 
-  "role": "System Manager"
+  "role": "All"
  }, 
  {
   "doctype": "DocPerm", 
   "match": "owner", 
   "permlevel": 0, 
-  "role": "All"
+  "report": 1, 
+  "role": "All", 
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "amend": 0, 
@@ -430,14 +431,9 @@
   "create": 0, 
   "doctype": "DocPerm", 
   "permlevel": 1, 
-  "role": "Administrator"
- }, 
- {
-  "amend": 0, 
-  "cancel": 0, 
-  "create": 0, 
-  "doctype": "DocPerm", 
-  "permlevel": 1, 
-  "role": "System Manager"
+  "report": 1, 
+  "role": "System Manager", 
+  "submit": 0, 
+  "write": 1
  }
 ]
