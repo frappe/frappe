@@ -23,33 +23,33 @@ wn.ui.form.Footer = Class.extend({
 			<div class="col-md-12">\
 				<div class="save-area">\
 					<button class="btn btn-save btn-primary">\
-						<i class="icon-save"></i> Save</button>\
+						<i class="icon-save"></i> '+wn._("Save")+'</button>\
 				</div>\
 				<div class="help-area"></div>\
 			</div>\
 			<div class="after-save">\
 				<div class="col-md-8">\
 					<div class="form-tags">\
-						<h4 style="display: inline-block"><i class="icon-tag"></i> Tags</h4>\
+						<h4 style="display: inline-block"><i class="icon-tag"></i> '+wn._("Tags")+'</h4>\
 						<span class="tag-area"></span><br>\
 					</div><hr>\
 					<div class="form-comments">\
-						<h4><i class="icon-comments"></i> Comments</h4>\
+						<h4><i class="icon-comments"></i> '+wn._("Comments")+'</h4>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
 					<div class="form-assignments" style="margin-bottom: 7px;">\
 						<h4>\
-							<i class="icon-ok-sign"></i> Assigned To: \
+							<i class="icon-ok-sign"></i> '+wn._("Assigned To")+': \
 							<button class="btn btn-small btn-default pull-right"\
-								style="margin-top:-7px;">Add</button>\
+								style="margin-top:-7px;">'+wn._("Add")+'</button>\
 						</h4>\
 					</div><hr>\
 					<div class="form-attachments">\
 						<h4>\
-							<i class="icon-paper-clip"></i> Attachments:\
+							<i class="icon-paper-clip"></i> '+wn._("Attachments")+':\
 							<button class="btn btn-small btn-default pull-right"\
-								style="margin-top:-7px;">Add</button>\
+								style="margin-top:-7px;">'+wn._("Add")+'</button>\
 						</h4>\
 					</div>\
 				</div>\
