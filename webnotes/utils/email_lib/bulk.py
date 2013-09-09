@@ -61,7 +61,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"
 	
-	for r in list(set(recipients)):
+	for r in filter(None, list(set(recipients))):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), r, as_dict=1)
 		
