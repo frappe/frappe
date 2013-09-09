@@ -462,7 +462,7 @@ def run():
 		
 	elif options.clear_web:
 		# build wn-web.js and wn-web.css
-		from website.helpers.make_web_include_files import make
+		from website.doctype.website_settings.make_web_include_files import make
 		make()
 	
 		import webnotes.webutils
