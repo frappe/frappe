@@ -7,7 +7,7 @@
 wn.pages['finder'].onload = function(wrapper) { 
 	wn.ui.make_app_page({
 		parent: wrapper,
-		title: 'Finder',
+		title: wn._('Finder'),
 		single_column: true
 	});
 	wrapper.appframe.add_module_icon("Finder");
@@ -20,29 +20,41 @@ wn.pages['finder'].onload = function(wrapper) {
 	var get_col = function(colsize, icon, label, panel_class) {
 		return $('<div class="col-sm-'+colsize+'">\
 			<div class="panel panel-'+panel_class+'">\
-				<div class="panel-heading"><i class="icon-'+icon+'"></i> '+label+'</div>\
+				<div class="panel-heading"><i class="icon-'+icon+'"></i> \
+					<span class="col-heading">'+label+'</span>\
+					<span class="pull-right"></span>\
+				</div>\
 				<div class="list-group">\
 				</div>\
 			</div>\
-		</div>').appendTo($body).find(".list-group");
+		</div>').appendTo($body);
 	}
 
-	var $modules = get_col(3, "briefcase", "Modules", "default");
-	var $doctypes = get_col(3, "folder-close", "Document Types", "default");
-	var $list = get_col(6, "file", "Documents", "info");
+	var $modules = get_col(3, "briefcase", wn._("Modules"), "default").find(".list-group");
+	var $doctypes = get_col(3, "folder-close", wn._("Document Types"), "default").find(".list-group");
+	
+	var $list = get_col(6, "file", wn._("Documents"), "info");
+	var $doctype_label = $list.find(".col-heading")
+	var $new_link = $list.find(".panel-heading .pull-right")
+		.html('<a class="new-link"><i class="icon-plus"></i></a>')
+		.click(function() { new_doc(doctype); })
+		.toggle(false);
+	$list = $list.find(".list-group");
 
 	var reset_module = function() {
 		$doctypes.empty();
-		$('<div class="list-group-item row-select text-muted text-center">\
-			Select Module</div>').appendTo($doctypes);
+		$('<div class="list-group-item row-select text-muted text-center">'+
+			wn._("Select Module")+'</div>').appendTo($doctypes);
 		module = null;
 		reset_doctype();
 	}
 	
 	var reset_doctype = function() {
 		$list.empty();
-		$('<div class="list-group-item row-select text-muted text-center">\
-			Select Document Type</div>').appendTo($list);
+		$new_link.toggle(false);
+		$doctype_label.html(wn._("Documents"));
+		$('<div class="list-group-item row-select text-muted text-center">'+
+			wn._("Select Document Type")+'</div>').appendTo($list);
 		start=0;
 	}
 	
@@ -85,6 +97,13 @@ wn.pages['finder'].onload = function(wrapper) {
 		$(this).addClass("active");
 
 		doctype = $(this).attr("data-doctype");
+		
+		// label
+		$doctype_label.html(wn._(doctype));
+		
+		// new link
+		$new_link.toggle(!!wn.model.can_create(doctype));
+		
 		render_list();
 	})
 	
@@ -105,7 +124,7 @@ wn.pages['finder'].onload = function(wrapper) {
 
 	var filter_list = function() {
 		start = 0;
-		$list.find(".document-item").remove();
+		$list.find(".document-item .row-empty").remove();
 		render_list();
 	}
 
@@ -163,7 +182,7 @@ wn.pages['finder'].onload = function(wrapper) {
 						add_list_row('More...').addClass("row-more text-center btn-more text-muted");
 					}
 				} else {
-					add_list_row('<i class="icon-ban-circle"></i>').addClass("text-center text-muted");
+					add_list_row('<i class="icon-ban-circle"></i>').addClass("text-center text-muted row-empty");
 				}
 			}
 		})
