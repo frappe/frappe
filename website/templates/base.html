@@ -12,14 +12,24 @@
 	<link type="text/css" rel="stylesheet" href="css/wn-web.css">
 	<link rel="shortcut icon" href="{{ favicon }}" type="image/x-icon">
 	<link rel="icon" href="{{ favicon }}" type="image/x-icon">
-	{% if meta_description -%}
-	<meta name="description" content="{{ meta_description }}">	
+	{% if meta_description -%}<meta name="description" content="{{ meta_description }}">
 	{%- endif %}
-	{% block header -%}
+	{% block javascript -%}
+		{% if javascript %}<script>{{ javascript }}</script>{% endif %}
+	{%- endblock %}
+	{% block css -%}
+		{% if css %}<style>{{ css }}</style>{% endif %}
 	{%- endblock %}
 </head>
 <body>
-	{% block body %}
-	{% endblock %}
+	{% block navbar %}{% endblock %}
+	<div class="container" style="padding-top: 50px">
+		{% block toolbar %}{% endblock %}
+		{% block banner %}{% endblock %}
+		<div class="content" id="page-{{ name }}" style="display: block;">
+			{% block content %}{% endblock %}
+		</div>
+	</div>
+	{% block footer %}{% endblock %}
 </body>
 </html>

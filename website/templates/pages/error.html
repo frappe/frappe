@@ -1,0 +1,14 @@
+{% extends "lib/website/templates/base.html" %}
+
+{% set title="Error" %}
+
+{% block content %}
+	<div class="panel panel-danger">
+		<div class="panel-heading">
+				<i class="icon-exclamation-sign"></i> Oops, a server error has occured
+		</div>
+		<div class="panel-body">
+			<pre>%(error)s</pre>
+		</div>
+	</div>
+{% endblock %}

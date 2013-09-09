@@ -27,7 +27,7 @@ class DocType():
 			clear_cache(self.doc.page_name)
 			clear_cache('index')
 			
-	def prepare_template_args(self):
+	def get_context(self):
 		if self.doc.slideshow:
 			from website.doctype.website_slideshow.website_slideshow import get_slideshow
 			get_slideshow(self)

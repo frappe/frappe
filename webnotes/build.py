@@ -19,6 +19,7 @@ def bundle(no_compress, cms_make=True):
 	bundle = Bundle()
 	bundle.no_compress = no_compress
 	bundle.make()
+	webnotes.cache().delete_value("website_routes")
 
 	if cms_make:
 		try:

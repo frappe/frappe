@@ -1,20 +1,23 @@
-{% extends "lib/templates/base.html" %}
+{% extends "lib/website/templates/base.html" %}
 
-{% block header %}
-	<script>
-		{% include "lib/templates/js/login.js" %}
-	</script>
-	<style>
-		body, #container, .outer {
-			background-color: #F5EFE6;
-		}
-	</style>
+{% block javascript %}
+<script>
+	{% include "lib/website/templates/includes/login.js" %}
+</script>
+{% endblock %}
+
+{% block css %}
+<style>
+	body {
+		background-color: #F5EFE6;
+	}
+</style>
 {% endblock %}
 
 {% set title="Login" %}
 
-{% block body %}
-<div class="container" style="max-width: 750px;">
+{% block content %}
+<div style="max-width: 750px;">
 	<div class="row" style="margin-top: 100px;">
 		<div class="col-sm-offset-3 col-sm-6">
 			<div class="panel panel-default">

@@ -384,14 +384,16 @@ def insert(doclist):
 	import webnotes.model
 	return webnotes.model.insert(doclist)
 
+def get_module(modulename):
+	__import__(modulename)
+	import sys
+	return sys.modules[modulename]
+
 def get_method(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
 
-	__import__(modulename)
-	import sys
-	moduleobj = sys.modules[modulename]
-	return getattr(moduleobj, methodname)
+	return getattr(get_module(modulename), methodname)
 	
 def make_property_setter(args):
 	args = _dict(args)

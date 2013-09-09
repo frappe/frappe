@@ -1,12 +1,13 @@
-{% extends "app/website/templates/html/outer.html" %}
+{% extends "lib/website/templates/base.html" %}
 
 {% set title="Not Found" %}
 
 {% block content %}
-<div class="content">
-	<div class="layout-wrapper layout-main col-md-12">
-		<h3><i class="icon-exclamation-sign"></i> Page missing or moved</h3>
-		<br>
+<div class="panel panel-danger">
+	<div class="panel-heading">
+			<i class="icon-exclamation-sign"></i> Page missing or moved
+	</div>
+	<div class="panel-body">
 		<p>We are very sorry for this, but the page you are looking for is missing
 			(this could be because of a typo in the address) or moved.</p>
 	</div>

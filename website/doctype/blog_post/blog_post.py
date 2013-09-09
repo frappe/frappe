@@ -28,7 +28,7 @@ class DocType:
 		webnotes.webutils.update_page_name(self.doc, self.doc.title)
 		webnotes.webutils.delete_page_cache("writers")
 
-	def prepare_template_args(self):
+	def get_context(self):
 		import webnotes.utils
 		import markdown2
 		
@@ -167,10 +167,3 @@ def add_comment(args=None):
 		ref_doctype='Blog Post', ref_docname=blog.name)
 	
 	return comment_html.replace("\n", "")
-
-def get_blog_template_args():
-	args = {
-		"categories": webnotes.conn.sql_list("select name from `tabBlog Category` order by name")
-	}
-	args.update(webnotes.doc("Blog Settings", "Blog Settings").fields)
-	return args
