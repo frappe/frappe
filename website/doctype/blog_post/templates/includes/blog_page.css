@@ -1,0 +1,13 @@
+	<style>
+		.comment-title {
+			color:#777;
+		}
+		
+		.comment-content {
+			margin-left: 20px;
+		}
+		
+		input {
+			width: 240px;
+		}
+	</style>

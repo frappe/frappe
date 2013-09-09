@@ -27,8 +27,8 @@ def get_module_path(module):
 	
 	app_path = os.path.dirname(conf.__file__)
 	
-	if m in ('core'):
-		return os.path.join(app_path, 'lib', 'core')
+	if m in ('core', 'website'):
+		return os.path.join(app_path, 'lib', m)
 	else:
 		return os.path.join(app_path, 'app', m)
 
