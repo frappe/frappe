@@ -63,6 +63,10 @@ def build_page(page_name):
 
 	sitemap = webnotes.cache().get_value("website_sitemap", build_sitemap)
 	page_options = sitemap.get(page_name)
+	
+	if not page_options:
+		raise PageNotFoundError
+	
 	basepath = webnotes.utils.get_base_path()
 	module = None
 	no_cache = False
@@ -91,9 +95,7 @@ def build_page(page_name):
 			context.update(module.get_context())
 	
 	context = update_context(context)
-
 	jenv = Environment(loader = FileSystemLoader(basepath))
-	
 	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
 	template_name = page_options['template']	
@@ -113,10 +115,10 @@ def build_sitemap():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
 		doctype = module.doctype
-		for name in webnotes.conn.sql_list("""select name from `tab%s` where 
+		for name in webnotes.conn.sql_list("""select page_name from `tab%s` where 
 			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
 			sitemap[name] = g
-					
+		
 	return sitemap
 	
 def get_home_page():
@@ -155,7 +157,7 @@ def build_website_sitemap_config():
 		if os.path.exists(controller_path):
 			options.controller = os.path.relpath(controller_path[:-3], basepath).replace(os.path.sep, ".")
 			options.controller = ".".join(options.controller.split(".")[1:])
-				
+
 		return options
 	
 	for path, folders, files in os.walk(basepath):
@@ -170,7 +172,7 @@ def build_website_sitemap_config():
 				if fname.endswith(".html"):
 					options = get_options(path, fname)
 					config["generators"][fname] = options
-					
+		
 	return config
 
 
