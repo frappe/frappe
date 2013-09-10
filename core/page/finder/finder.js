@@ -124,7 +124,7 @@ wn.pages['finder'].onload = function(wrapper) {
 
 	var filter_list = function() {
 		start = 0;
-		$list.find(".document-item .row-empty").remove();
+		$list.find(".document-item, .row-empty").remove();
 		render_list();
 	}
 

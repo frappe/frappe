@@ -169,6 +169,7 @@ def build_website_sitemap_config():
 def get_website_settings():
 	from webnotes.utils import get_request_site_address
 	from urllib import quote
+	from webnotes.utils import cint, encode
 		
 	all_top_items = webnotes.conn.sql("""\
 		select * from `tabTop Bar Item`
