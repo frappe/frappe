@@ -5,7 +5,7 @@ import os
 import webnotes
 
 def make():
-	from startup.webutils import get_home_page
+	from webnotes.webutils import get_home_page
 
 	if not webnotes.conn:
 		webnotes.connect()

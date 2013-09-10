@@ -3,6 +3,7 @@
 		"public/css/all-web.css": [
 			"lib/public/css/bootstrap.css",
 			"lib/public/css/font-awesome.css",
+			"lib/website/css/website.css"
 		]
 	},
 	
