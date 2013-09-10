@@ -32,7 +32,7 @@ $.extend(wn.meta, {
 		if(!c[doctype][docname]) 
 			c[doctype][docname] = {};
 			
-		$.each(wn.meta.docfield_list[doctype], function(i, df) {
+		$.each(wn.meta.docfield_list[doctype] || [], function(i, df) {
 			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
 		})
 	},

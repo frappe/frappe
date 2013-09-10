@@ -35,10 +35,19 @@ wn.pages['finder'].onload = function(wrapper) {
 	
 	var $list = get_col(6, "file", wn._("Documents"), "info");
 	var $doctype_label = $list.find(".col-heading")
+
+	var $list_link = $list.find(".panel-heading .pull-right")
+		.append('<a class="list-link"><i class="icon-list"></i></a>')
+		.find(".list-link")
+		.click(function() { wn.set_route("List", doctype); })
+		.toggle(false);
+
 	var $new_link = $list.find(".panel-heading .pull-right")
-		.html('<a class="new-link"><i class="icon-plus"></i></a>')
+		.append(' <a class="new-link"><i class="icon-plus"></i></a>')
+		.find(".new-link")
 		.click(function() { new_doc(doctype); })
 		.toggle(false);
+
 	$list = $list.find(".list-group");
 
 	var reset_module = function() {
@@ -52,6 +61,7 @@ wn.pages['finder'].onload = function(wrapper) {
 	var reset_doctype = function() {
 		$list.empty();
 		$new_link.toggle(false);
+		$list_link.toggle(false);
 		$doctype_label.html(wn._("Documents"));
 		$('<div class="list-group-item row-select text-muted text-center">'+
 			wn._("Select Document Type")+'</div>').appendTo($list);
@@ -103,6 +113,7 @@ wn.pages['finder'].onload = function(wrapper) {
 		
 		// new link
 		$new_link.toggle(!!wn.model.can_create(doctype));
+		$list_link.toggle(!!wn.model.can_read(doctype));
 		
 		render_list();
 	})
