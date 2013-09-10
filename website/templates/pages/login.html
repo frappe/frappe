@@ -1,4 +1,4 @@
-{% extends "lib/website/templates/base.html" %}
+{% extends base_template %}
 
 {% block javascript %}
 <script>
@@ -6,19 +6,11 @@
 </script>
 {% endblock %}
 
-{% block css %}
-<style>
-	body {
-		background-color: #F5EFE6;
-	}
-</style>
-{% endblock %}
-
 {% set title="Login" %}
 
 {% block content %}
 <div style="max-width: 750px;">
-	<div class="row" style="margin-top: 100px;">
+	<div class="row" style="margin-top: 40px; margin-bottom: 20px">
 		<div class="col-sm-offset-3 col-sm-6">
 			<div class="panel panel-default">
 				<div class="panel-heading">
@@ -47,14 +39,6 @@
 					<p style="text-align: center" id="switch-view"></p>
 				</div>
 			</div>
-		</div>
-	</div>
-	<div class="row">
-		<div class="col-xs-12 web-footer login-footer text-center" style="margin-top: 25px">
-			<a href="index.html">Home</a> | <a href="https://erpnext.com">ERPNext</a><br><br>
-				{% if copyright %}
-				<div class="web-footer-copyright">&copy; {{ copyright }}</div>
-				{% endif %}
 		</div>
 	</div>
 </div>

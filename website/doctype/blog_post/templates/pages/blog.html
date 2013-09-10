@@ -1,11 +1,15 @@
-{% extends "app/website/templates/html/page.html" %}
+{% extends base_template %}
 
 {% block javascript %}
-	{% include "app/website/templates/js/blog.js" %}
+<script>
+	{% include "lib/website/doctype/blog_post/templates/includes/blog.js" %}
+</script>
 {% endblock %}
 
 {% block css %}
-	{% include "app/website/templates/css/blog.css" %}
+<style>
+	{% include "lib/website/doctype/blog_post/templates/includes/blog.css" %}
+</style>
 {% endblock %}
 
 {% set title="Blog" %}
@@ -29,5 +33,5 @@
 			style="display:none;">More...</button>
 	</div>
 </div>
-{% include 'app/website/templates/html/blog_footer.html' %}
+{% include 'lib/website/doctype/blog_post/templates/includes/blog_footer.html' %}
 {% endblock %}

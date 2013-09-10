@@ -1,7 +1,9 @@
-{% extends "app/website/templates/html/page.html" %}
+{% extends base_template %}
 
 {% block javascript %}
-	{% include "app/website/templates/js/contact.js" %}
+<script>
+	{% include "lib/website/doctype/contact_us_settings/templates/includes/contact.js" %}
+</script>
 {% endblock %}
 
 {% set title="Contact Us" %}
@@ -15,9 +17,13 @@
 				style="display: none;">&nbsp;</p>
 			<p>
 				<select name="subject" class="form-control">
-				{% for option in obj.query_options %}
+				{% if obj.query_options -%}
+					{% for option in obj.query_options -%}
 					<option value="{{ option }}">{{ option }}</option>
-				{% endfor %}
+					{%- endfor %}
+				{% else %}
+					<option value="General">General</option>
+				{% endif %}
 				</select>
 			</p>
 			<p>

@@ -1,15 +1,15 @@
-{# Options: {
-	"doctype": "Web Page"
-} #}
-
-{% extends "app/website/templates/html/page.html" %}
+{% extends base_template %}
 
 {% block javascript %}
-	{% include "app/website/templates/js/blog_page.js" %}
+<script>
+	{% include "lib/website/doctype/blog_post/templates/includes/blog_page.js" %}
+</script>
 {% endblock %}
 
 {% block css %}
-	{% include "app/website/templates/css/blog_page.css" %}
+<style>
+	{% include "lib/website/doctype/blog_post/templates/includes/blog_page.css" %}
+</style>
 {% endblock %}
 
 {% block content %}
@@ -27,7 +27,7 @@
 	<!-- end blog content -->
 	{% if blogger_info %}
 	<hr />
-	{% include "app/website/templates/html/blogger.html" %}
+	{% include "lib/website/doctype/blog_post/templates/includes/blogger.html" %}
 	{% endif %}
 	<hr>
 	<h3>{{ texts.comments }}</h3><br>
@@ -39,7 +39,7 @@
 		</div>
 		{% endif %}
 		
-		{% include 'app/website/templates/html/comment.html' %}
+		{% include 'lib/website/doctype/blog_post/templates/includes/comment.html' %}
 	</div>
 	<div><button class="btn btn-default add-comment">{{ texts.add_comment }}</button></div>
 	<div style="display: none; margin-top: 10px; max-width: 400px;" 
@@ -58,5 +58,5 @@
 		</form>
 	</div>
 </div>
-{% include 'app/website/templates/html/blog_footer.html' %}
+{% include 'lib/website/doctype/blog_post/templates/includes/blog_footer.html' %}
 {% endblock %}

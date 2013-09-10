@@ -1,4 +1,5 @@
 {
+	"base_template": "lib/website/templates/base.html",
 	"modules": {
 		"Finder": {
 			"type": "page",

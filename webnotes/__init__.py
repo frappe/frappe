@@ -487,7 +487,9 @@ def get_config():
 			try:
 				with open(path, "r") as configfile:
 					this_config = json.loads(configfile.read())
-					_config.app_name = this_config.get("app_name")
+					for k in ("app_name", "base_template"):
+						_config[k] = this_config.get(k)
+						
 					_config.modules.update(this_config["modules"])
 					_config.web.pages.update(this_config["web"]["pages"])
 					_config.web.generators.update(this_config["web"]["generators"])

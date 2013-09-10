@@ -22,14 +22,14 @@
 	{%- endblock %}
 </head>
 <body>
-	{% block navbar %}{% endblock %}
-	<div class="container" style="padding-top: 50px">
+	{% block navbar %}{% include "lib/website/templates/includes/navbar.html" %}{% endblock %}
+	<div class="container">
 		{% block toolbar %}{% endblock %}
 		{% block banner %}{% endblock %}
 		<div class="content" id="page-{{ name }}" style="display: block;">
 			{% block content %}{% endblock %}
 		</div>
 	</div>
-	{% block footer %}{% endblock %}
+	{% block footer %}{% include "lib/website/templates/includes/footer.html" %}{% endblock %}
 </body>
 </html>

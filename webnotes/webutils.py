@@ -56,15 +56,17 @@ def render_page(page_name):
 
 def build_page(page_name):
 	from jinja2 import Environment, FileSystemLoader
+	import os
 
 	if not webnotes.conn:
 		webnotes.connect()
 
 	sitemap = webnotes.cache().get_value("website_sitemap", build_sitemap)
 	page_options = sitemap.get(page_name)
+	basepath = webnotes.utils.get_base_path()
 	module = None
 	no_cache = False
-
+	
 	if page_options.get("controller"):
 		module = webnotes.get_module(page_options["controller"])
 		no_cache = getattr(module, "no_cache", False)
@@ -89,10 +91,12 @@ def build_page(page_name):
 			context.update(module.get_context())
 	
 	context = update_context(context)
+
+	jenv = Environment(loader = FileSystemLoader(basepath))
 	
-	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
-	template_name = page_options['template']
+	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
+	template_name = page_options['template']	
 	html = jenv.get_template(template_name).render(context)
 	
 	if not no_cache:
