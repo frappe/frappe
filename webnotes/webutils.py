@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 import conf
 import webnotes
+from webnotes import _
 import webnotes.utils
 
 class PageNotFoundError(Exception): pass
@@ -56,7 +57,6 @@ def render_page(page_name):
 
 def build_page(page_name):
 	from jinja2 import Environment, FileSystemLoader
-	import os
 
 	if not webnotes.conn:
 		webnotes.connect()
@@ -91,7 +91,7 @@ def build_page(page_name):
 	else:
 		# page
 		context = webnotes._dict({ 'name': page_name })
-		if module:
+		if module and hasattr(module, "get_context"):
 			context.update(module.get_context())
 	
 	context.update(get_website_settings())
@@ -114,7 +114,6 @@ def build_sitemap():
 	for g in config["generators"].values():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
-		doctype = module.doctype
 		for name in webnotes.conn.sql_list("""select page_name from `tab%s` where 
 			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
 			sitemap[name] = g
@@ -133,7 +132,7 @@ def get_home_page():
 	return page_name
 		
 def build_website_sitemap_config():
-	import os, json
+	import os
 	
 	config = {"pages": {}, "generators":{}}
 	basepath = webnotes.utils.get_base_path()
@@ -167,9 +166,8 @@ def build_website_sitemap_config():
 	return config
 
 def get_website_settings():
-	from webnotes.utils import get_request_site_address
+	from webnotes.utils import get_request_site_address, encode, cint
 	from urllib import quote
-	from webnotes.utils import cint, encode
 		
 	all_top_items = webnotes.conn.sql("""\
 		select * from `tabTop Bar Item`
@@ -199,11 +197,14 @@ def get_website_settings():
 	})
 		
 	settings = webnotes.doc("Website Settings", "Website Settings")
-	for k in ["banner_html", "brand_html", "copyright", "address", "twitter_share_via",
+	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
 		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
 		if k in settings.fields:
 			context[k] = settings.fields.get(k)
+			
+	if settings.address:
+		context["footer_address"] = settings.address
 
 	for k in ["facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
 		"disable_signup"]:
@@ -228,6 +229,8 @@ def clear_cache(page_name=None):
 		cache = webnotes.cache()
 		for p in get_all_pages():
 			cache.delete_value("page:" + p)
+		cache.delete_value("website_sitemap")
+		cache.delete_value("website_sitemap_config")
 
 def get_all_pages():
 	return webnotes.cache().get_value("website_sitemap", build_sitemap).keys()
@@ -267,44 +270,25 @@ def scrub_page_name(page_name):
 
 	return page_name
 			
-def get_portal_links():
-	portal_args = {}
-	for page, opts in webnotes.get_config()["web"]["pages"].items():
-		if opts.get("portal"):
-			portal_args[opts["portal"]["doctype"]] = {
-				"page": page,
-				"conditions": opts["portal"].get("conditions")
-			}
-	
-	return portal_args
-
-_is_portal_enabled = None
-def is_portal_enabled():
-	global _is_portal_enabled
-	if _is_portal_enabled is None:
-		_is_portal_enabled = True
+_is_signup_enabled = None
+def is_signup_enabled():
+	global _is_signup_enabled
+	if _is_signup_enabled is None:
+		_is_signup_enabled = True
 		if webnotes.utils.cint(webnotes.conn.get_value("Website Settings", 
 			"Website Settings", "disable_signup")):
-				_is_portal_enabled = False
+				_is_signup_enabled = False
 		
-	return _is_portal_enabled
+	return _is_signup_enabled
 
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""
 	webnotes.conn.set(doc, "page_name", page_name(title))
 	
 	if doc.page_name in get_all_pages():
-		webnotes.conn.sql("""Page Name cannot be one of %s""" % ', '.join(get_standard_pages()))
+		webnotes.throw("%s: %s. %s: %s" % (doc.page_name, _("Page already exists"),
+			_("Please change the value"), title))
 	
-	res = webnotes.conn.sql("""\
-		select count(*) from `tab%s`
-		where page_name=%s and name!=%s""" % (doc.doctype, '%s', '%s'),
-		(doc.page_name, doc.name))
-	if res and res[0][0] > 0:
-		webnotes.msgprint("""A %s with the same title already exists.
-			Please change the title of %s and save again."""
-			% (doc.doctype, doc.name), raise_exception=1)
-
 	delete_page_cache(doc.page_name)
 
 def page_name(title):

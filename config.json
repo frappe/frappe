@@ -35,57 +35,5 @@
 			"color": "#16a085",
 			"icon": "icon-globe"
 		}
-	},
-	"web": {
-		"pages": {
-			"404": {
-				"template": "lib/website/templates/404.html"
-			},
-			"error": {
-				"no_cache": true,
-				"template": "lib/website/templates/error.html"
-			},
-			"login": {
-				"template": "lib/website/templates/login.html"
-			},
-			"message": {
-				"no_cache": true,
-				"template": "lib/website/templates/message.html"
-			},
-			"print": {
-				"no_cache": true,
-				"template": "lib/website/templates/print.html",
-				"args_method": "core.doctype.print_format.print_format.get_args"
-			},
-			"index": {
-				"template": "lib/website/doctype/web_page/templates/index.html"
-			},
-			"writers": {
-				"template": "lib/website/doctype/blogger/templates/writers.html",
-				"args_method": "website.doctype.blogger.blogger.get_writers_args"
-			},
-			"blog": {
-				"template": "lib/website/doctype/blog_post/templates/blog_post.html",
-				"args_method": "website.doctype.blog_post.blog_post.get_blog_template_args"
-			},
-			"contact": {
-				"template": "lib/website/doctype/contact_us_settings/templates/contact.html",
-				"args_doctype": "Contact Us Settings"
-			},
-			"about": {
-				"template": "lib/website/doctype/about_us_settings/templates/about.html",
-				"args_method": "website.doctype.about_us_settings.about_us_settings.get_args"
-			}
-		},
-		"generators": {
-			"Web Page": {
-				"template": "lib/website/doctype/web_page/templates/web_page.html",
-				"condition_field": "published"
-			},
-			"Blog Post": {
-				"template": "lib/website/doctype/blog_post/templates/blog_post.html",
-				"condition_field": "published"
-			}
-		}
 	}
 }

@@ -477,26 +477,25 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
 				as_list=as_list, debug=debug)
+
 _config = None
 def get_config():
 	global _config
 	if not _config:
 		import webnotes.utils, json
+		_config = _dict()
 	
 		def update_config(path):
 			try:
 				with open(path, "r") as configfile:
 					this_config = json.loads(configfile.read())
-					for k in ("app_name", "base_template"):
-						_config[k] = this_config.get(k)
-						
-					_config.modules.update(this_config["modules"])
-					_config.web.pages.update(this_config["web"]["pages"])
-					_config.web.generators.update(this_config["web"]["generators"])
+					for key, val in this_config.items():
+						if isinstance(val, dict):
+							_config.setdefault(key, _dict()).update(val)
+						else:
+							_config[key] = val
 			except IOError:
 				pass
-	
-		_config = _dict({"modules": {}, "web": _dict({"pages": {}, "generators": {}})})
 		
 		update_config(webnotes.utils.get_path("lib", "config.json"))
 		update_config(webnotes.utils.get_path("app", "config.json"))

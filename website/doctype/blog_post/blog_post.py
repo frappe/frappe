@@ -144,10 +144,14 @@ def add_comment(args=None):
 	webnotes.webutils.clear_cache(page_name)
 	
 	args['comment_date'] = webnotes.utils.global_date_format(comment.doc.creation)
-	template_args = { 'comment_list': [args], 'template': 'app/website/templates/html/comment.html' }
+	template_args = { 'comment_list': [args]}
 	
 	# get html of comment row
-	comment_html = webnotes.webutils.build_html(template_args)
+	from jinja2 import Environment, FileSystemLoader
+	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
+	template = jenv.get_template("lib/website/doctype/blog_post/templates/includes/comment.html")
+	
+	comment_html = template.render(template_args)
 	
 	# notify commentors 
 	commentors = [d[0] for d in webnotes.conn.sql("""select comment_by from tabComment where
