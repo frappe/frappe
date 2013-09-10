@@ -330,7 +330,7 @@ def upload():
 			return [d]
 
 	def main_doc_empty(row):
-		return not (row and len(row) > 2 and (row[1] or row[2]))
+		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
 		
 	# extra input params
 	import json

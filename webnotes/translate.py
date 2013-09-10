@@ -45,13 +45,20 @@ def translate(lang=None):
 	os.remove('_lang_tmp.csv')
 
 def get_all_languages():
-	return [f[:-4] for f in os.listdir("app/translations") if f.endswith(".csv")]
+	try:
+		return [f[:-4] for f in os.listdir("app/translations") if f.endswith(".csv")]
+	except OSError, e:
+		if e.args[0]==2:
+			return []
+		else:
+			raise e
 
 def get_lang_dict():
 	languages_path = os.path.join(get_base_path(), "app", "translations", "languages.json")
 	if os.path.exists(languages_path):
 		with open(languages_path, "r") as langfile:
 			return json.loads(langfile.read())
+	else: return {}
 
 def update_translations():
 	"""

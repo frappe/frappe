@@ -109,6 +109,8 @@ class Installer:
 			{'doctype':'Role', 'role_name': 'All', 'name': 'All'},
 			{'doctype':'Role', 'role_name': 'System Manager', 'name': 'System Manager'},
 			{'doctype':'Role', 'role_name': 'Report Manager', 'name': 'Report Manager'},
+			{'doctype':'Role', 'role_name': 'Website Manager', 'name': 'Website Manager'},
+			{'doctype':'Role', 'role_name': 'Blogger', 'name': 'Blogger'},
 			{'doctype':'Role', 'role_name': 'Guest', 'name': 'Guest'},
 
 			# profiles
@@ -130,14 +132,6 @@ class Installer:
 			doc.insert()
 		webnotes.conn.commit()
 		
-		# from webnotes.modules.import_file import import_files
-		# 
-		# import_files([
-		# 	["core", "doctype", "docperm"],
-		# 	["core", "doctype", "docfield"],
-		# 	["core", "doctype", "doctype"],
-		# ])
-	
 	def set_all_patches_as_completed(self):
 		try:
 			from patches.patch_list import patch_list

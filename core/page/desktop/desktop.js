@@ -75,10 +75,13 @@ wn.core.pages.desktop.show_pending_notifications = function() {
 
 		var sum = 0;
 		if(module_doctypes) {
-			$.each(module_doctypes, function(j, doctype) {
-				sum += (wn.boot.notification_info.open_count_doctype[doctype] || 0);
-			});
-		} else if(wn.boot.notification_info.open_count_module[module]!=null) {
+			if(wn.boot.notification_info.open_count_doctype) {
+				$.each(module_doctypes, function(j, doctype) {
+					sum += (wn.boot.notification_info.open_count_doctype[doctype] || 0);
+				});
+			}
+		} else if(wn.boot.notification_info.open_count_module 
+			&& wn.boot.notification_info.open_count_module[module]!=null) {
 			sum = wn.boot.notification_info.open_count_module[module];
 		}
 		var notifier = $("#module-count-" + wn.modules[module]._link);

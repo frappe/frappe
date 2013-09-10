@@ -23,14 +23,15 @@ import conf
 session_stopped = """<!DOCTYPE html>
 <html lang="en">
 <head>
-	<title>Session Stopped</title>
+	<title>%(title)s</title>
 </head>
 <body style="background-color: #eee; font-family: Arial, Sans Serif;">
 <div style="margin: 30px auto; width: 500px; background-color: #fff; 
 	border: 1px solid #aaa; padding: 20px; text-align: center">
-	<b>%(app_name)s: Upgrading...</b>
+	<b>%(app_name)s: %(title)s</b>
 	<p>We will be back in a few moments.</p>
 </div>
+<!-- trace %(trace)s -->
 </body>
 </html>"""
 
@@ -48,12 +49,20 @@ def respond():
 	except webnotes.SessionStopped:
 		print "Content-type: text/html"
 		print
-		print session_stopped % {"app_name": webnotes.get_config().app_name}
+		print session_stopped % {
+			"app_name": webnotes.get_config().app_name,
+			"trace": webnotes.getTraceback(),
+			"title": "Upgrading..."
+		}
 	except MySQLdb.ProgrammingError, e:
 		if e.args[0]==1146:
 			print "Content-type: text/html"
 			print
-			print session_stopped % {"app_name": webnotes.get_config().app_name}
+			print session_stopped % {
+				"app_name": webnotes.get_config().app_name, 
+				"trace": webnotes.getTraceback(),
+				"title": "Installing..."
+			}
 		else:
 			raise e
 
