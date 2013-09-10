@@ -211,10 +211,14 @@ def get_website_settings():
 	
 	context.url = quote(str(get_request_site_address(full_address=True)), str(""))
 	context.encoded_title = quote(encode(context.title or ""), str(""))
-	context.shopping_cart_enabled = cint(webnotes.conn.get_default("shopping_cart_enabled"))
 	
+	try:
+		import startup.webutils
+		if hasattr(startup.webutils, "get_website_settings"):
+			context.update(startup.webutils.get_website_settings())
+	except:
+		pass
 	return context
-
 
 
 def clear_cache(page_name=None):
