@@ -28,10 +28,7 @@ def render_page(page_name):
 	"""get page html"""
 	page_name = scrub_page_name(page_name)
 	html = ''
-	
-	if page_name=="index":
-		page_name = get_home_page()
-	
+		
 	if not (hasattr(conf, 'auto_cache_clear') and conf.auto_cache_clear or 0):
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
@@ -65,7 +62,13 @@ def build_page(page_name):
 	page_options = sitemap.get(page_name)
 	
 	if not page_options:
-		raise PageNotFoundError
+		if page_name=="index":
+			# page not found, try home page
+			page_options = sitemap.get(get_home_page())
+			if not page_options:
+				raise PageNotFoundError
+		else:
+			raise PageNotFoundError
 	
 	basepath = webnotes.utils.get_base_path()
 	module = None

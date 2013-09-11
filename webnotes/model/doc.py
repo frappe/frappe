@@ -386,15 +386,16 @@ class Document:
 			self.set_idx()
 
 		# if required, make new
-		if self.fields.get('__islocal') and (not res.get('issingle')):
-			r = self._insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
-				make_autoname, keep_timestamps = keep_timestamps)
-			if r: 
-				return r
-
-		else:
-			if not res.get('issingle') and not webnotes.conn.exists(self.doctype, self.name):
-				webnotes.msgprint("""This document was updated before your change. Please refresh before saving.""", raise_exception=1)
+		if not res.get('issingle'):
+			if self.fields.get('__islocal'):
+				r = self._insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
+					make_autoname, keep_timestamps = keep_timestamps)
+				if r: 
+					return r
+			else:
+				if not webnotes.conn.exists(self.doctype, self.name):
+					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
+						raise_exception=1)
 				
 		# save the values
 		self._update_values(res.get('issingle'), 

@@ -152,13 +152,16 @@ div.web-footer {
 	display: inline-block;
 }
 
+.navbar {
+	box-shadow: none;
+	border-radius: 0px;
+}
+
 @media (min-width: 768px) {
 	.visible-xs-inline, .visible-xs-inline-block {
 		display: none;
 	}
 }
-
-
 .panel-heading, 
 .panel-body {
 	padding-left: 15px;

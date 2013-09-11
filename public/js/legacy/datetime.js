@@ -238,7 +238,7 @@ function prettyDate(time){
 	if ( isNaN(day_diff) || day_diff < 0 )
 		return '';
 			
-	return day_diff == 0 && (
+	return when = day_diff == 0 && (
 			diff < 60 && "just now" ||
 			diff < 120 && "1 minute ago" ||
 			diff < 3600 && Math.floor( diff / 60 ) + " minutes ago" ||
@@ -249,20 +249,23 @@ function prettyDate(time){
 		day_diff < 31 && Math.ceil( day_diff / 7 ) + " weeks ago" ||
 		day_diff < 365 && Math.ceil( day_diff / 30) + " months ago" ||
 		"> " + Math.floor( day_diff / 365 ) + " year(s) ago";
+		
 }
 
-// If jQuery is included in the page, adds a jQuery plugin to handle it as well
-if ( typeof jQuery != "undefined" )
-	jQuery.fn.prettyDate = function(){
-		return this.each(function(){
-			var date = prettyDate(this.title);
-			if ( date )
-				jQuery(this).text( date );
-		});
-	};
 
-var comment_when = prettyDate;
+var comment_when = function(datetime) {
+	return '<span class="wn-timestamp" data-timestamp="'+datetime+'">' + prettyDate(datetime) + '</span>';
+};
 wn.datetime.comment_when = prettyDate;
+wn.datetime.refresh_when = function() {
+	if(jQuery) {
+		$(".wn-timestamp").each(function() {
+			$(this).html(prettyDate($(this).attr("data-timestamp")));
+		})
+	}
+}
+
+setInterval(function() { wn.datetime.refresh_when() }, 60000); // refresh every minute
 
 // globals (deprecate)
 var date = dateutil = wn.datetime;

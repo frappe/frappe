@@ -282,6 +282,14 @@ def setup_options():
 	parser.add_option("--make_conf", default=False, action="store_true",
 		help="Create new conf.py file")
 
+	# bean helpers
+	parser.add_option('--export_doclist', nargs=3, metavar="DOCTYPE NAME PATH", 
+		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
+
+	parser.add_option('--import_doclist', nargs=1, metavar="PATH", 
+		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
+	
+
 	return parser.parse_args()
 	
 def run():
@@ -510,6 +518,33 @@ def run():
 	elif options.docs:
 		from core.doctype.documentation_tool.documentation_tool import write_static
 		write_static()
+
+	elif options.export_doclist:
+		import json
+		from webnotes.handler import json_handler
+		args = list(options.export_doclist)
+		if args[1]=="-": args[1] = args[0]
+		with open(args[2], "w") as outfile:
+			outfile.write(json.dumps([d.fields for d in \
+				webnotes.bean(args[0], args[1]).doclist], default=json_handler, indent=1, sort_keys=True))
+	
+	elif options.import_doclist:
+		import json
+		if os.path.isdir(options.import_doclist):
+			docs = [os.path.join(options.import_doclist, f) \
+				for f in os.listdir(options.import_doclist) if f.endswith(".json")]
+		else:
+			docs = [options.import_doclist]
+				
+		for f in docs:
+			with open(f, "r") as infile:
+				doclist = json.loads(infile.read())
+				if webnotes.conn.exists(doclist[0]["doctype"], doclist[0]["name"]):
+					b = webnotes.bean(doclist).save()
+					print "Updated: %s, %s" % (b.doc.doctype, b.doc.name)
+				else:
+					b = webnotes.bean(doclist).insert()
+					print "Inserted: %s, %s" % (b.doc.doctype, b.doc.name)
 
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`

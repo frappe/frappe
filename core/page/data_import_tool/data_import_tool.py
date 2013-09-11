@@ -167,7 +167,12 @@ def get_template():
 		w.writerow([data_keys.data_separator])
 
 	def add_data():
-		def add_data_row(row_group, dt, d, rowidx):
+		def add_data_row(row_group, dt, doc, rowidx):
+			d = doc.copy()
+			if all_doctypes:
+				d.name = '"'+ d.name+'"'
+				d.modified = '"'+ d.modified+'"'
+
 			if len(row_group) < rowidx + 1:
 				row_group.append([""] * (len(columns) + 1))
 			row = row_group[rowidx]
@@ -180,8 +185,6 @@ def get_template():
 			for doc in data:
 				# add main table
 				row_group = []
-				if all_doctypes:
-					doc.modified = '"'+ doc.modified+'"'
 					
 				add_data_row(row_group, doctype, doc, 0)
 				
@@ -311,6 +314,11 @@ def upload():
 									d[fieldname] = flt(d[fieldname])
 							except IndexError, e:
 								pass
+								
+						# scrub quotes from name and modified
+						for fieldname in ("name", "modified"):
+							if d.get(fieldname) and d[fieldname].startswith('"'):
+								d[fieldname] = d[fieldname][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
@@ -385,7 +393,6 @@ def upload():
 				bean = webnotes.bean(doclist)
 				if overwrite and bean.doc.modified:
 					# remove the extra quotes added to preserve date formatting
-					bean.doc.modified = bean.doc.modified[1:-1]
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				else:

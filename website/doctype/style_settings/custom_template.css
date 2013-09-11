@@ -71,8 +71,6 @@ div.web-footer, div.web-footer a {
 }
 
 .navbar {
-	box-shadow: none;
-	border-radius: 0px;
     background-color: #{{ doc.top_bar_background}};
     background-repeat: repeat-x;
 	background-image: none;

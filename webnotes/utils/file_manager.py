@@ -62,7 +62,7 @@ def get_uploaded_content():
 		return None, None
 
 def save_file(fname, content, dt, dn):
-	from filecmp import cmp
+	import filecmp
 	files_path = get_files_path()
 
 	file_size = check_max_file_size(content)
@@ -78,7 +78,7 @@ def save_file(fname, content, dt, dn):
 	if versions:
 		found_match = False
 		for version in versions:
-			if cmp(os.path.join(files_path, version), temp_fname):
+			if filecmp.cmp(os.path.join(files_path, version), temp_fname):
 				# remove new file, already exists!
 				os.remove(temp_fname)
 				fname = version
@@ -126,7 +126,7 @@ def get_new_fname_based_on_version(files_path, main, extn, versions):
 			
 	return new_fname
 
-def scrub_file_name(fname):
+def scrub_file_name(fname):		
 	if '\\' in fname:
 		fname = fname.split('\\')[-1]
 	if '/' in fname:
