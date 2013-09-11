@@ -189,3 +189,13 @@ $(document).ready(function() {
 	$("#website-login").toggleClass("hide", full_name ? true : false);
 	$("#website-post-login").toggleClass("hide", full_name ? false : true);
 });
+
+wn.send_message = function(opts, btn) {
+	return wn.call({
+		type: "POST",
+		method: "website.doctype.contact_us_settings.templates.pages.contact.send_message",
+		btn: btn,
+		args: opts,
+		callback: opts.callback
+	});
+}

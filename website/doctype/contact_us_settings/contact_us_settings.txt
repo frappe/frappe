@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-21 20:12:42", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:32:24", 
+  "modified": "2013-09-11 18:43:20", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -75,6 +75,13 @@
   "fieldname": "query_options", 
   "fieldtype": "Small Text", 
   "label": "Query Options"
+ }, 
+ {
+  "description": "Send enquiries to this email address", 
+  "doctype": "DocField", 
+  "fieldname": "forward_to_email", 
+  "fieldtype": "Data", 
+  "label": "Forward To Email Address"
  }, 
  {
   "doctype": "DocPerm"

@@ -21,7 +21,7 @@ $(document).ready(function() {
 		}
 
 		$("#contact-alert").toggle(false);
-		erpnext.send_message({
+		wn.send_message({
 			subject: $('[name="subject"]').val(),
 			sender: email,
 			message: message,
@@ -34,7 +34,7 @@ $(document).ready(function() {
 				}
 				$(':input').val('');
 			}
-		});
+		}, this);
 	return false;
 	});
 
