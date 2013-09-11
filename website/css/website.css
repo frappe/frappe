@@ -131,14 +131,25 @@ div.web-footer {
   margin-left: -10px;
 }
 
-.hidden-sm-inline {
+.hidden-xs-inline, .hidden-xs-inline-block {
 	display: none;
 }
 
 @media (min-width: 768px) {
-	.hidden-sm-inline {
+	.hidden-xs-inline {
 		display: inline;
 	}
+	.hidden-xs-inline-block {
+		display: inline-block;
+	}
+}
+
+.visible-xs-inline {
+	display: inline;
+}
+
+.visible-xs-inline-block {
+	display: inline-block;
 }
 
 .navbar {
@@ -146,6 +157,11 @@ div.web-footer {
 	border-radius: 0px;
 }
 
+@media (min-width: 768px) {
+	.visible-xs-inline, .visible-xs-inline-block {
+		display: none;
+	}
+}
 .panel-heading, 
 .panel-body {
 	padding-left: 15px;

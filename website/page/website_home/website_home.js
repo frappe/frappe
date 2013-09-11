@@ -1,5 +1,5 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
-// License: GNU General Public License v3. See license.txt"
+// MIT License. See license.txt"
 
 wn.module_page["Website"] = [
 	{
@@ -63,12 +63,6 @@ wn.module_page["Website"] = [
 				"label":wn._("Style Settings"),
 				"description":wn._("Setup of fonts and background."),
 				doctype:"Style Settings"
-			},
-			{
-				"route":"Form/Shopping Cart Settings",
-				"label":wn._("Shopping Cart Settings"),
-				"description":wn._("Setup of Shopping Cart."),
-				doctype:"Shopping Cart Settings"
 			},
 		]
 	},
