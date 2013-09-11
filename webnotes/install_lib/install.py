@@ -6,7 +6,7 @@
 
 from __future__ import unicode_literals
 
-import os, sys
+import os, sys, json
 import webnotes, conf
 import webnotes.db
 import getpass
@@ -89,31 +89,42 @@ class Installer:
 		
 		if os.path.exists("app"):
 			sync_for("app", force=True, sync_everything=True)
+			
+		if os.path.exists(os.path.join("app", "startup", "install_fixtures")):
+			self.import_fixtures()
 
 		print "Completing App Import..."
 		install and install.post_import()
 		print "Updating patches..."
 		self.set_all_patches_as_completed()
+		self.assign_all_role_to_administrator()
 
 	def update_admin_password(self, password):
 		from webnotes.auth import update_password
 		webnotes.conn.begin()
 		update_password("Administrator", getattr(conf, "admin_password", password))
 		webnotes.conn.commit()
-		
+	
+	def import_fixtures(self):
+		print "Importing install fixtures..."
+		for basepath, folders, files in os.walk(os.path.join("app", "startup", "install_fixtures")):
+			for f in files:
+				if f.endswith(".json"):
+					print "Importing " + f
+					with open(os.path.join(basepath, f), "r") as infile:
+						webnotes.bean(json.loads(infile.read())).insert_or_update()
+						webnotes.conn.commit()
+
+				if f.endswith(".csv"):
+					from core.page.data_import_tool import data_import_tool
+					from webnotes.utils.datautils import read_csv_content
+					print "Importing " + f
+					with open(os.path.join(basepath, f), "r") as infile:
+						data_import_tool.upload(rows = read_csv_content(infile.read()))
+						webnotes.conn.commit()
+	
 	def import_core_docs(self):
 		install_docs = [
-			{'doctype':'Module Def', 'name': 'Core', 'module_name':'Core'},
-
-			# roles
-			{'doctype':'Role', 'role_name': 'Administrator', 'name': 'Administrator'},
-			{'doctype':'Role', 'role_name': 'All', 'name': 'All'},
-			{'doctype':'Role', 'role_name': 'System Manager', 'name': 'System Manager'},
-			{'doctype':'Role', 'role_name': 'Report Manager', 'name': 'Report Manager'},
-			{'doctype':'Role', 'role_name': 'Website Manager', 'name': 'Website Manager'},
-			{'doctype':'Role', 'role_name': 'Blogger', 'name': 'Blogger'},
-			{'doctype':'Role', 'role_name': 'Guest', 'name': 'Guest'},
-
 			# profiles
 			{'doctype':'Profile', 'name':'Administrator', 'first_name':'Administrator', 
 				'email':'admin@localhost', 'enabled':1},
@@ -132,7 +143,7 @@ class Installer:
 			doc = webnotes.doc(fielddata=d)
 			doc.insert()
 		webnotes.conn.commit()
-		
+	
 	def set_all_patches_as_completed(self):
 		try:
 			from patches.patch_list import patch_list
@@ -140,12 +151,16 @@ class Installer:
 			print "No patches to update."
 			return
 		
-		webnotes.conn.begin()
 		for patch in patch_list:
 			webnotes.doc({
 				"doctype": "Patch Log",
 				"patch": patch
 			}).insert()
+		webnotes.conn.commit()
+		
+	def assign_all_role_to_administrator(self):
+		webnotes.bean("Profile", "Administrator").get_controller().add_roles(*webnotes.conn.sql_list("""
+			select name from tabRole"""))
 		webnotes.conn.commit()
 
 	def create_auth_table(self):

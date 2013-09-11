@@ -216,6 +216,7 @@ class Bean:
 			if is_local:
 				# if parent is new, all children should be new
 				d.fields["__islocal"] = 1
+				d.name = None
 			
 			idx_map[d.parentfield] = d.idx
 
@@ -276,6 +277,7 @@ class Bean:
 
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
+			
 		self.set_defaults()
 		
 		if webnotes.in_test:
@@ -283,6 +285,12 @@ class Bean:
 				self.doc.naming_series = "_T-" + self.doc.doctype + "-"
 		
 		return self.save()
+	
+	def insert_or_update(self):
+		if webnotes.conn.exists( self.doc.doctype, self.doc.name):
+			return self.save()
+		else:
+			return self.insert()
 	
 	def set_defaults(self):
 		if webnotes.in_import:

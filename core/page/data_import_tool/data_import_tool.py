@@ -227,10 +227,18 @@ def get_template():
 	webnotes.response['doctype'] = doctype
 
 @webnotes.whitelist()
-def upload():
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
+	# extra input params
+	import json
+	params = json.loads(webnotes.form_dict.get("params") or '{}')
+	
+	if params.get("_submit"):
+		submit_after_import = True
+	if params.get("ignore_encoding_errors"):
+		ignore_encoding_errors = True
 
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
 
@@ -340,12 +348,9 @@ def upload():
 	def main_doc_empty(row):
 		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
 		
-	# extra input params
-	import json
-	params = json.loads(webnotes.form_dict.get("params") or '{}')
-
 	# header
-	rows = read_csv_content_from_uploaded_file(params.get("ignore_encoding_errors"))
+	if not rows:
+		rows = read_csv_content_from_uploaded_file(ignore_encoding_errors)
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
@@ -398,7 +403,7 @@ def upload():
 				else:
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
-				if params.get("_submit"):
+				if submit_after_import:
 					bean.submit()
 					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 			else:
@@ -416,7 +421,7 @@ def upload():
 						doc.parent), unicode(doc.idx)))
 					parent_list.append(doc.parent)
 				else:
-					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, params.get("_submit")))
+					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, submit_after_import))
 
 		except Exception, e:
 			error = True

@@ -7,6 +7,8 @@ import webnotes
 from webnotes import msgprint
 import os
 
+import MySQLdb
+
 from webnotes.utils import now, cint
 from webnotes.model import no_value_fields
 
@@ -14,6 +16,18 @@ class DocType:
 	def __init__(self, doc=None, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
+
+	def validate(self):
+		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
+			if c in self.doc.name:
+				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
+		self.validate_series()
+		self.scrub_field_names()
+		validate_fields(self.doclist.get({"doctype":"DocField"}))
+		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
+		self.set_version()
+		self.make_amendable()
+		self.check_link_replacement_error()
 
 	def change_modified_of_parent(self):
 		if webnotes.in_import:
@@ -55,24 +69,32 @@ class DocType:
 			used_in = sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
-
-	def validate(self):
-		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.doc.name:
-				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
-		self.validate_series()
-		self.scrub_field_names()
-		validate_fields(self.doclist.get({"doctype":"DocField"}))
-		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
-		self.set_version()
-		self.make_amendable()
-		self.check_link_replacement_error()
+		
+	def make_module_and_roles(self):
+		try:
+			if not webnotes.conn.exists("Module Def", self.doc.module):
+				m = webnotes.bean({"doctype": "Module Def", "module_name": self.doc.module})
+				m.insert()
+		
+			for role in list(set(p.role for p in self.doclist.get({"doctype": "DocPerm"}))):
+				if not webnotes.conn.exists("Role", role):
+					r = webnotes.bean({"doctype": "Role", "role_name": role})
+					r.doc.role_name = role
+					r.insert()
+		except webnotes.DoesNotExistError, e:
+			pass
+		except MySQLdb.ProgrammingError, e:
+			if e.args[0]==1146:
+				pass
+			else:
+				raise e
 
 	def on_update(self):
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
 
 		self.change_modified_of_parent()
+		self.make_module_and_roles()
 		
 		import conf
 		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):

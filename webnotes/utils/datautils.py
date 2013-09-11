@@ -42,12 +42,19 @@ def read_csv_content(fcontent, ignore_encoding=False):
 		for row in csvrows:
 			newrow = []
 			for val in row:
-				if ignore_encoding:
-					newrow.append(cstr(val.strip()))
-				else:
+				added = False
+				for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 					try:
 						newrow.append(unicode(val.strip(), 'utf-8'))
+						added = True
+						break
 					except UnicodeDecodeError, e:
+						continue
+				
+				if not added:
+					if ignore_encoding:
+						newrow.append('')
+					else:
 						webnotes.msgprint("""Some character(s) in row #%s, column #%s are
 							not readable by utf-8. Ignoring them. If you are importing a non
 							english language, please make sure your file is saved in the 'utf-8'

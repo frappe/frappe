@@ -132,7 +132,7 @@ class Document:
 		else:
 			dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))
 			if not dataset:
-				raise Exception, '[WNF] %s %s does not exist' % (self.doctype, self.name)
+				raise webnotes.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)
 			self._load_values(dataset[0], webnotes.conn.get_description())
 
 	def _load_values(self, data, description):
@@ -394,8 +394,10 @@ class Document:
 					return r
 			else:
 				if not webnotes.conn.exists(self.doctype, self.name):
+					print self.fields
 					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
 						raise_exception=1)
+				
 				
 		# save the values
 		self._update_values(res.get('issingle'), 

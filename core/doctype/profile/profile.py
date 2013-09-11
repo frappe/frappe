@@ -255,6 +255,8 @@ Thank you,<br>
 			
 	def add_roles(self, *roles):
 		for role in roles:
+			if role in [d.role for d in self.doclist.get({"doctype":"UserRole"})]:
+				continue
 			self.bean.doclist.append({
 				"doctype": "UserRole",
 				"parentfield": "user_roles",

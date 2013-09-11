@@ -525,8 +525,13 @@ def run():
 		args = list(options.export_doclist)
 		if args[1]=="-": args[1] = args[0]
 		with open(args[2], "w") as outfile:
-			outfile.write(json.dumps([d.fields for d in \
-				webnotes.bean(args[0], args[1]).doclist], default=json_handler, indent=1, sort_keys=True))
+			doclist = [d.fields for d in webnotes.bean(args[0], args[1]).doclist]
+			for d in doclist:
+				if d.get("parent"):
+					del d["parent"]
+					del d["name"]
+				d["__islocal"] = 1
+			outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
 	
 	elif options.import_doclist:
 		import json
@@ -538,13 +543,8 @@ def run():
 				
 		for f in docs:
 			with open(f, "r") as infile:
-				doclist = json.loads(infile.read())
-				if webnotes.conn.exists(doclist[0]["doctype"], doclist[0]["name"]):
-					b = webnotes.bean(doclist).save()
-					print "Updated: %s, %s" % (b.doc.doctype, b.doc.name)
-				else:
-					b = webnotes.bean(doclist).insert()
-					print "Inserted: %s, %s" % (b.doc.doctype, b.doc.name)
+				b = webnotes.bean(json.loads(infile.read())).insert_or_update()
+				print "Imported: " + b.doc.doctype + " / " + b.doc.name
 
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`
