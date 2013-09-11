@@ -141,6 +141,11 @@ div.web-footer {
 	}
 }
 
+.navbar {
+	box-shadow: none;
+	border-radius: 0px;
+}
+
 .panel-heading, 
 .panel-body {
 	padding-left: 15px;

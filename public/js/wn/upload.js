@@ -46,11 +46,9 @@ wn.upload = {
 	},
 	upload_file: function(fileobj, args, callback, onerror) {
 		if(!fileobj && !args.file_url) {
-			msgprint(_("Please attach a file or set a URL"));
+			msgprint(wn._("Please attach a file or set a URL"));
 			return;
 		}
-		
-		
 		
 		var _upload_file = function() {
 			var msgbox = msgprint(wn._("Uploading..."));
