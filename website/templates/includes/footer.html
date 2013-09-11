@@ -22,9 +22,7 @@
 			{% endif %}
 		</div>
 		{% endif %}
-		{% block powered %}<p style="float: right; clear: right;">
-			<a style="font-size: 90%; color: #888;" href="http://getwebnotes.org">Built on Web Notes</a>
-		</p>{% endblock %}
+		<p style="float: right; clear: right;" id="website-login"><a href="login">Login</a></p>
 		<div class="web-footer-menu">
 			<ul>
 				{% for item in footer_items %}
@@ -36,6 +34,12 @@
 		{% if copyright %}<div class="web-footer-copyright">&copy; {{ copyright }}</div>{% endif %}
 		{% if footer_address %}{{ footer_address }}{% endif %}
 		{% block extension %}{% endblock %}
+
+		<p style="float: right; clear: both; margin: 15px auto;">
+		{% block powered %}
+			<a style="font-size: 90%; color: #aaa;" href="http://getwebnotes.org">Built on Web Notes</a>
+		{% endblock %}
+		</p>
 		</div>
 	</div>
 	</div>

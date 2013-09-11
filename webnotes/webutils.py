@@ -185,7 +185,7 @@ def get_website_settings():
 						t['child_items'] = []
 					t['child_items'].append(d)
 					break
-			
+					
 	context = webnotes._dict({
 		'top_bar_items': top_items,
 		'footer_items': webnotes.conn.sql("""\
@@ -193,7 +193,10 @@ def get_website_settings():
 			where parent='Website Settings' and parentfield='footer_items'
 			order by idx asc""", as_dict=1),
 		"webnotes": webnotes,
-		"utils": webnotes.utils
+		"utils": webnotes.utils,
+		"post_login": [
+			{"label": "Logout", "url": "server.py?cmd=web_logout", "icon": "icon-signout"},
+		]
 	})
 		
 	settings = webnotes.doc("Website Settings", "Website Settings")
@@ -216,7 +219,7 @@ def get_website_settings():
 	try:
 		import startup.webutils
 		if hasattr(startup.webutils, "get_website_settings"):
-			context.update(startup.webutils.get_website_settings())
+			startup.webutils.get_website_settings(context)
 	except:
 		pass
 	return context

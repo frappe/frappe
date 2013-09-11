@@ -10,19 +10,20 @@
 			<a class="navbar-brand" href="index">{{ brand_html or "<i class='icon-home'></i>"}}</a>
 		</div>
 		<div class="collapse navbar-collapse navbar-responsive-collapse">
-			<ul class="nav navbar-nav">
+			<ul class="nav navbar-nav navbar-left">
 				{%- for page in top_bar_items -%}
 				{% if not page.parent_label -%}
 				<li data-label="{{ page.label }}" {% if page.child_items %} class="dropdown"{% endif %}>
 					<a href="{{ page.url or '#' }}" {% if page.child_items %} class="dropdown-toggle" onclick="return false;" data-toggle="dropdown"{% endif %} {{ page.target or ''}}>
 					{{ page.label }}
 					{%- if page.child_items -%}
-						<b class="caret"></b>
+						<span class="caret"></span>
 					</a>
 						<ul class="dropdown-menu">
 						{%- for child in page.child_items -%}
 							<li data-label="{{ child.label }}">
-								<a {% if child.indent %} style="padding-left: {{(int(child.indent)+1)*15 }}px"{% endif %} href="{{ child.url }}" {{ child.target or '' }}>{{ child.label }}</a>
+								<a {% if child.indent %} style="padding-left: {{((child.indent|int)+1)*15 }}px"{% endif %} 
+									href="{{ child.url }}" {{ child.target or '' }}>{{ child.label }}</a>
 							</li>
 						{%- endfor -%}
 						</ul>
@@ -32,6 +33,27 @@
 					</li>
 				{%- endif -%}
 				{%- endfor %}
+			</ul>
+			<ul class="nav navbar-nav navbar-right">
+				<!-- post login tools -->
+				<li id="website-post-login" data-label="website-post-login" class="dropdown">
+					<a href="#" class="dropdown-toggle" onclick="return false;" data-toggle="dropdown">
+						<i class="icon-cog"></i><span class="visible-xs-inline"><span class="caret"></span></span>
+					</a>
+					<ul class="dropdown-menu">
+						{%- for child in post_login -%}
+						<li data-label="{{ child.label }}" {% if child.class %}class="{{ child.class }}"{% endif %}>
+							{% if child.url -%}
+							<a {% if child.indent -%}style="padding-left: {{((child.indent|int)+1)*15 }}px"{%- endif %} 
+								href="{{ child.url }}" {{ child.target or '' }}>
+								{% if child.icon %}<i class="icon-fixed-width {{ child.icon }}"></i> {% endif %}
+								{{ child.label }}
+							</a>
+							{%- endif %}
+						</li>
+						{%- endfor -%}
+					</ul>
+				</li>
 			</ul>
 		</div>
 	</div>
