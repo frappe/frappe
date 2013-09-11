@@ -83,14 +83,15 @@ class Installer:
 		try:
 			from startup import install
 		except ImportError, e:
-			print "No app install found"
-			return
+			install = None
 
-		install.pre_import()
-		sync_for("app", force=True, sync_everything=True)
+		install and install.pre_import()
+		
+		if os.path.exists("app"):
+			sync_for("app", force=True, sync_everything=True)
 
 		print "Completing App Import..."
-		install.post_import()
+		install and install.post_import()
 		print "Updating patches..."
 		self.set_all_patches_as_completed()
 
