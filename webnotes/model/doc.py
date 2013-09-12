@@ -10,6 +10,7 @@ _toc = ["webnotes.model.doc.Document"]
 
 import webnotes
 import webnotes.model.meta
+import MySQLdb
 
 from webnotes.utils import *
 
@@ -130,7 +131,14 @@ class Document:
 		if is_single:
 			self._loadsingle()
 		else:
-			dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))
+			try:
+				dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))
+			except MySQLdb.ProgrammingError, e:
+				if e.args[0]==1146:
+					dataset = None
+				else:
+					raise e
+
 			if not dataset:
 				raise webnotes.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)
 			self._load_values(dataset[0], webnotes.conn.get_description())

@@ -91,8 +91,8 @@ class DocType:
 			if self.in_insert:
 				webnotes.msgprint("New user created. - %s" % self.doc.name)
 				if cint(self.doc.send_invite_email):
-					webnotes.msgprint("Sent welcome mail.")
 					self.send_welcome_mail(self.doc.new_password)
+					webnotes.msgprint("Sent welcome mail.")
 			else:
 				self.password_reset_mail(self.doc.new_password)
 				webnotes.msgprint("Password updated.")
@@ -129,12 +129,10 @@ To login to %(product)s, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		import startup
-		self.send_login_mail("Your " +startup.product_name + " password has been reset", txt, password)
+		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", txt, password)
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
-		import startup
 		
 		txt = """
 ## %(company)s
@@ -153,25 +151,28 @@ To login to your new %(product)s account, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Welcome to " + startup.product_name, txt, password)
+		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, password)
 
 	def send_login_mail(self, subject, txt, password):
 		"""send mail with login details"""
 		import os
 	
-		import startup
 		from webnotes.utils.email_lib import sendmail_md
 		from webnotes.profile import get_user_fullname
 		from webnotes.utils import get_request_site_address
+		
+		full_name = get_user_fullname(webnotes.session['user'])
+		if full_name == "Guest":
+			full_name = "Administrator"
 	
 		args = {
 			'first_name': self.doc.first_name or self.doc.last_name or "user",
 			'user': self.doc.name,
 			'password': password,
-			'company': webnotes.conn.get_default('company') or startup.product_name,
+			'company': webnotes.conn.get_default('company') or webnotes.get_config().get("app_name"),
 			'login_url': get_request_site_address(),
-			'product': startup.product_name,
-			'user_fullname': get_user_fullname(webnotes.session['user'])
+			'product': webnotes.get_config().get("app_name"),
+			'user_fullname': full_name
 		}
 		
 		sender = webnotes.session.user not in ("Administrator", "Guest") and webnotes.session.user or None

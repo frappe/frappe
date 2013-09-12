@@ -34,35 +34,24 @@ def read_csv_content_from_attached_file(doc):
 
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
+
+	decoded = False
+	for encoding in ["utf-8", "windows-1250", "windows-1252"]:
+		try:
+			fcontent = unicode(encoding)
+			decoded = True
+			break
+		except UnicodeDecodeError, e:
+			continue
+
+	if not decoded:
+		webnotes.msgprint(wn._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
+			raise_exception=True)
+
 	try:
 		reader = csv.reader(fcontent.splitlines())
 		# decode everything
-		csvrows = [[val for val in row] for row in reader]
-		
-		for row in csvrows:
-			newrow = []
-			for val in row:
-				added = False
-				for encoding in ["utf-8", "windows-1250", "windows-1252"]:
-					try:
-						newrow.append(unicode(val.strip(), 'utf-8'))
-						added = True
-						break
-					except UnicodeDecodeError, e:
-						continue
-				
-				if not added:
-					if ignore_encoding:
-						newrow.append('')
-					else:
-						webnotes.msgprint("""Some character(s) in row #%s, column #%s are
-							not readable by utf-8. Ignoring them. If you are importing a non
-							english language, please make sure your file is saved in the 'utf-8'
-							encoding.""" % (csvrows.index(row)+1, row.index(val)+1))
-						raise Exception
-					
-			rows.append(newrow)
-		
+		rows = [[val.strip() for val in row] for row in reader]
 		return rows
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")

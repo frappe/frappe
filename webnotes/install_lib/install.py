@@ -122,6 +122,12 @@ class Installer:
 					with open(os.path.join(basepath, f), "r") as infile:
 						data_import_tool.upload(rows = read_csv_content(infile.read()))
 						webnotes.conn.commit()
+						
+		if os.path.exists("app", "startup", "install_fixtures", "files"):
+			if not os.path.exists("public", "files"):
+				os.makedirs(os.path.join("public", "files"))
+			os.system("cp -r %s %s/" % (os.path.join("app", "startup", "install_fixtures", "files"), 
+				os.path.join("public", "files")))
 	
 	def import_core_docs(self):
 		install_docs = [

@@ -268,4 +268,7 @@ def update_password(user, password):
 		values (%s, password(%s)) 
 		on duplicate key update `password`=password(%s)""", (user, 
 		password, password))
-	
+
+@webnotes.whitelist()
+def get_logged_user():
+	return webnotes.session.user
