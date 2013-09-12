@@ -17,7 +17,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 
-import cgi, cgitb, os, sys
+import cgi, cgitb, sys
 cgitb.enable()
 
 # import libs
@@ -28,12 +28,10 @@ sys.path.append('../app')
 import webnotes
 import webnotes.auth
 
-import conf
-
 if __name__=='__main__':
 	# webnotes.http_request = webnotes.auth.HTTPRequest()
 	webnotes.connect()
-	from website.helpers import blog_feed
+	from website.doctype.blog_post import blog_feed
 	try:
 		print 'Content-Type: text/xml'
 		print
