@@ -34,6 +34,7 @@ def make_test_records(doctype, verbose=0):
 def get_modules(doctype):
 	module = webnotes.conn.get_value("DocType", doctype, "module")
 	test_module = load_doctype_module(doctype, module, "test_")
+	if test_module: reload(test_module)
 
 	return module, test_module
 
@@ -71,7 +72,7 @@ def make_test_objects(doctype, test_records, verbose=None):
 	records = []
 		
 	for doclist in test_records:
-		if not "doctype" in doclist[0]:
+		if "doctype" not in doclist[0]:
 			doclist[0]["doctype"] = doctype
 		d = webnotes.bean(copy=doclist)
 		

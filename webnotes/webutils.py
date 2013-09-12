@@ -58,17 +58,21 @@ def build_page(page_name):
 	if not webnotes.conn:
 		webnotes.connect()
 
-	sitemap = webnotes.cache().get_value("website_sitemap", build_sitemap)
+	sitemap = get_website_sitemap()
 	page_options = sitemap.get(page_name)
 	
 	if not page_options:
 		if page_name=="index":
 			# page not found, try home page
-			page_options = sitemap.get(get_home_page())
+			home_page = get_home_page()
+			page_options = sitemap.get(home_page)
 			if not page_options:
 				raise PageNotFoundError
+			page_options["page_name"] = home_page
 		else:
 			raise PageNotFoundError
+	else:
+		page_options["page_name"] = page_name
 	
 	basepath = webnotes.utils.get_base_path()
 	module = None
@@ -82,8 +86,8 @@ def build_page(page_name):
 	if page_options.get("is_generator"):
 		if not module:
 			raise Exception("Generator controller not defined")
-			
-		name = webnotes.conn.get_value(module.doctype, {"page_name": page_name})
+		
+		name = webnotes.conn.get_value(module.doctype, {"page_name": page_options["page_name"]})
 		obj = webnotes.get_obj(module.doctype, name, with_children=True)
 
 		if hasattr(obj, 'get_context'):
@@ -237,9 +241,12 @@ def clear_cache(page_name=None):
 			cache.delete_value("page:" + p)
 		cache.delete_value("website_sitemap")
 		cache.delete_value("website_sitemap_config")
+		
+def get_website_sitemap():
+	return webnotes.cache().get_value("website_sitemap", build_sitemap)
 
 def get_all_pages():
-	return webnotes.cache().get_value("website_sitemap", build_sitemap).keys()
+	return get_website_sitemap().keys()
 
 def delete_page_cache(page_name):
 	if page_name:
@@ -289,12 +296,14 @@ def is_signup_enabled():
 
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""
-	webnotes.conn.set(doc, "page_name", page_name(title))
+	new_page_name = page_name(title)
 	
-	if doc.page_name in get_all_pages():
-		webnotes.throw("%s: %s. %s: %s" % (doc.page_name, _("Page already exists"),
+	if new_page_name in get_all_pages():
+		webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
 			_("Please change the value"), title))
 	
+	if doc.page_name: delete_page_cache(doc.page_name)
+	webnotes.conn.set(doc, "page_name", new_page_name)
 	delete_page_cache(doc.page_name)
 
 def page_name(title):

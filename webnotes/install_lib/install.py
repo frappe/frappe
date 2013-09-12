@@ -85,8 +85,6 @@ class Installer:
 		except ImportError, e:
 			install = None
 
-		install and install.pre_import()
-		
 		if os.path.exists("app"):
 			sync_for("app", force=True, sync_everything=True)
 			
@@ -141,7 +139,9 @@ class Installer:
 			{'doctype':'UserRole', 'parent': 'Administrator', 'role': 'Administrator', 
 				'parenttype':'Profile', 'parentfield':'user_roles'},
 			{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest', 
-				'parenttype':'Profile', 'parentfield':'user_roles'}
+				'parenttype':'Profile', 'parentfield':'user_roles'},
+				
+			{'doctype': "Role", "role_name": "Report Manager"}
 		]
 		
 		webnotes.conn.begin()

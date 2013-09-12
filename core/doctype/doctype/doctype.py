@@ -69,32 +69,13 @@ class DocType:
 			used_in = sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
-		
-	def make_module_and_roles(self):
-		try:
-			if not webnotes.conn.exists("Module Def", self.doc.module):
-				m = webnotes.bean({"doctype": "Module Def", "module_name": self.doc.module})
-				m.insert()
-		
-			for role in list(set(p.role for p in self.doclist.get({"doctype": "DocPerm"}))):
-				if not webnotes.conn.exists("Role", role):
-					r = webnotes.bean({"doctype": "Role", "role_name": role})
-					r.doc.role_name = role
-					r.insert()
-		except webnotes.DoesNotExistError, e:
-			pass
-		except MySQLdb.ProgrammingError, e:
-			if e.args[0]==1146:
-				pass
-			else:
-				raise e
 
 	def on_update(self):
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
 
 		self.change_modified_of_parent()
-		self.make_module_and_roles()
+		make_module_and_roles(self.doclist)
 		
 		import conf
 		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
@@ -312,3 +293,23 @@ def validate_permissions(permissions, for_remove=False):
 			check_if_submittable(d)
 		check_level_zero_is_set(d)
 		remove_report_if_single(d)
+
+def make_module_and_roles(doclist, perm_doctype="DocPerm"):
+	try:
+		if not webnotes.conn.exists("Module Def", doclist[0].module):
+			m = webnotes.bean({"doctype": "Module Def", "module_name": doclist[0].module})
+			m.insert()
+		
+		roles = list(set(p.role for p in doclist.get({"doctype": perm_doctype})))
+		for role in roles:
+			if not webnotes.conn.exists("Role", role):
+				r = webnotes.bean({"doctype": "Role", "role_name": role})
+				r.doc.role_name = role
+				r.insert()
+	except webnotes.DoesNotExistError, e:
+		pass
+	except MySQLdb.ProgrammingError, e:
+		if e.args[0]==1146:
+			pass
+		else:
+			raise e
