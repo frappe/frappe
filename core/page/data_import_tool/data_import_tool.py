@@ -347,6 +347,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	doctype_parentfield = {}
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
+	
+	if submit_after_import and not cint(webnotes.conn.get_value("DocType", 
+			doctype, "is_submittable")):
+		submit_after_import = False
+		
 
 	parenttype = get_header_row(data_keys.parent_table)
 	
