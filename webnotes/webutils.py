@@ -296,12 +296,14 @@ def is_signup_enabled():
 
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""
-	webnotes.conn.set(doc, "page_name", page_name(title))
+	new_page_name = page_name(title)
 	
-	if doc.page_name in get_all_pages():
-		webnotes.throw("%s: %s. %s: %s" % (doc.page_name, _("Page already exists"),
+	if new_page_name in get_all_pages():
+		webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
 			_("Please change the value"), title))
 	
+	if doc.page_name: delete_page_cache(doc.page_name)
+	webnotes.conn.set(doc, "page_name", new_page_name)
 	delete_page_cache(doc.page_name)
 
 def page_name(title):
