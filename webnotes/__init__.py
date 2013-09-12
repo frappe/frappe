@@ -278,7 +278,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 		and ifnull(p.permlevel,0) = 0
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
-	
+			
 	if refdoc:
 		match_failed = {}
 		for p in perms:
