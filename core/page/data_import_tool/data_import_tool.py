@@ -479,3 +479,9 @@ def delete_child_rows(rows, doctype):
 	"""delete child rows for all parents"""
 	for p in list(set([r[1] for r in rows])):
 		webnotes.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
+		
+def import_file_by_path(path):
+	from webnotes.utils.datautils import read_csv_content
+	print "Importing " + path
+	with open(path, "r") as infile:
+		upload(rows = read_csv_content(infile.read()))

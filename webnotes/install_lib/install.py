@@ -87,7 +87,7 @@ class Installer:
 
 		if os.path.exists("app"):
 			sync_for("app", force=True, sync_everything=True)
-			
+
 		if os.path.exists(os.path.join("app", "startup", "install_fixtures")):
 			self.import_fixtures()
 
@@ -114,15 +114,12 @@ class Installer:
 						webnotes.conn.commit()
 
 				if f.endswith(".csv"):
-					from core.page.data_import_tool import data_import_tool
-					from webnotes.utils.datautils import read_csv_content
-					print "Importing " + f
-					with open(os.path.join(basepath, f), "r") as infile:
-						data_import_tool.upload(rows = read_csv_content(infile.read()))
-						webnotes.conn.commit()
+					from core.page.data_import_tool.data_import_tool import import_file_by_path
+					import_file_by_path(os.path.join(basepath, f))
+					webnotes.conn.commit()
 						
-		if os.path.exists("app", "startup", "install_fixtures", "files"):
-			if not os.path.exists("public", "files"):
+		if os.path.exists(os.path.join("app", "startup", "install_fixtures", "files")):
+			if not os.path.exists(os.path.join("public", "files")):
 				os.makedirs(os.path.join("public", "files"))
 			os.system("cp -r %s %s/" % (os.path.join("app", "startup", "install_fixtures", "files"), 
 				os.path.join("public", "files")))

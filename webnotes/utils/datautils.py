@@ -38,7 +38,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 	decoded = False
 	for encoding in ["utf-8", "windows-1250", "windows-1252"]:
 		try:
-			fcontent = unicode(encoding)
+			fcontent = unicode(fcontent, encoding)
 			decoded = True
 			break
 		except UnicodeDecodeError, e:
