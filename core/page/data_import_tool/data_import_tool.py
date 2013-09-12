@@ -80,17 +80,6 @@ def get_template():
 
 		if dt==doctype:
 			column_start_end[dt] = webnotes._dict({"start": 0})
-			
-			if all_doctypes and with_data:
-				append_field_column(webnotes._dict({
-					"fieldname": "modified",
-					"label": "Last Updated On",
-					"fieldtype": "Data",
-					"reqd": 1,
-					"idx": 0,
-					"info": "Don't change!"
-				}), True)
-			
 		else:
 			column_start_end[dt] = webnotes._dict({"start": len(columns)})
 			
@@ -171,7 +160,6 @@ def get_template():
 			d = doc.copy()
 			if all_doctypes:
 				d.name = '"'+ d.name+'"'
-				d.modified = '"'+ d.modified+'"'
 
 			if len(row_group) < rowidx + 1:
 				row_group.append([""] * (len(columns) + 1))
@@ -324,9 +312,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 								pass
 								
 						# scrub quotes from name and modified
-						for fieldname in ("name", "modified"):
-							if d.get(fieldname) and d[fieldname].startswith('"'):
-								d[fieldname] = d[fieldname][1:-1]
+						if d.get("name") and d["name"].startswith('"'):
+							d[fieldname] = d[fieldname][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
@@ -394,13 +381,14 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 		doclist = get_doclist(row_idx)
 		try:
 			webnotes.message_log = []
-			if len(doclist) > 1:
-				bean = webnotes.bean(doclist)
-				if overwrite and bean.doc.modified:
-					# remove the extra quotes added to preserve date formatting
+			if len(doclist) > 1:				
+				if overwrite:
+					bean = webnotes.bean(doctype, doclist[0]["name"])
+					bean.doclist.update(doclist)
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				else:
+					bean = webnotes.bean(doclist)
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				if submit_after_import:
