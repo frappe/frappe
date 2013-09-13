@@ -49,7 +49,7 @@ login.do_login = function(){
 	$('#login_btn').prop("disabled", true);
 	$("#login-spinner").toggle(true);
 	$('#login_message').toggle(false);
-	
+		
 	$.ajax({
 		type: "POST",
 		url: "server.py",
@@ -69,7 +69,7 @@ login.do_login = function(){
 					window.location.href = "index";
 				}
 			} else {
-				login.set_message(data.message);
+				login.set_message(data.message || data._server_messages);
 			}
 		}
 	})
@@ -77,9 +77,14 @@ login.do_login = function(){
 	return false;
 }
 
+login.set_heading = function(html) {
+	$(".panel-heading").html("<h4>" + html + "</h4>");
+}
+
 login.show_login = function() {
+	login.set_heading('<i class="icon-lock"></i> Login');
 	$("#login_wrapper h3").html("Login");
-	$("#login-label").html("Email Id");
+	$("#login_id").attr("placeholder", "Login Email Id");
 	$("#password-row").toggle(true);
 	$("#full-name-row, #login_message").toggle(false);
 	$("#login_btn").html("Login").removeClass("btn-success");
@@ -98,8 +103,8 @@ login.show_login = function() {
 }
 
 login.show_sign_up = function() {
-	$("#login_wrapper h3").html("Sign Up");
-	$("#login-label").html("Email Id");
+	login.set_heading('<i class="icon-thumbs-up"></i> Sign Up');
+	$("#login_id").attr("placeholder", "Your Email Id");
 	$("#password-row, #login_message").toggle(false);
 	$("#full-name-row").toggle(true);
 	$("#login_btn").html("Sign Up").addClass("btn-success");
@@ -108,8 +113,8 @@ login.show_sign_up = function() {
 }
 
 login.show_forgot_password = function() {
-	$("#login_wrapper h3").html("Forgot");
-	$("#login-label").html("Email Id");
+	login.set_heading('<i class="icon-question-sign"></i> Forgot');
+	$("#login_id").attr("placeholder", "Your Email Id");
 	$("#password-row, #login_message, #full-name-row").toggle(false);
 	$("#login_btn").html("Send Password").removeClass("btn-success");
 	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");

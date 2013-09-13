@@ -141,7 +141,7 @@ wn.ui.form.Attachments = Class.extend({
 			this.add_to_attachments(fileid, filename);
 			this.refresh();
 			if(fieldname) {
-				this.frm.set_value(fieldname, "files/"+filename);
+				this.frm.set_value(fieldname, wn.utils.get_file_link(filename));
 				this.frm.cscript[fieldname] && this.frm.cscript[fieldname](this.frm.doc);
 			}
 		}

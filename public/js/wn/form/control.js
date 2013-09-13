@@ -568,7 +568,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			this.set_description("");
 			var options = [""];
 			for(var fname in fl) {
-				if(fname.substr(0,4)!="http")
+				if(fname.indexOf("/")===-1)
 					fname = "files/" + fname;
 				options.push(fname);
 			}

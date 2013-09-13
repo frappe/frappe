@@ -84,13 +84,10 @@ class DocType:
 		
 		# update index
 		if not self.doc.custom:
-			from webnotes.modules import scrub
-			doctype = scrub(self.doc.name)
-			module = __import__(scrub(self.doc.module) + ".doctype." + doctype + "." + doctype,
-				fromlist=[""])
+			from webnotes.model.code import load_doctype_module
+			module = load_doctype_module( self.doc.name, self.doc.module)
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
-		
 		webnotes.clear_cache(doctype=self.doc.name)
 
 	def check_link_replacement_error(self):

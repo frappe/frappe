@@ -234,7 +234,10 @@ class SMTPServer:
 		from webnotes.utils import cint
 
 		# get defaults from control panel
-		es = webnotes.model.doc.Document('Email Settings','Email Settings')
+		try:
+			es = webnotes.model.doc.Document('Email Settings','Email Settings')
+		except webnotes.DoesNotExistError:
+			es = None
 		
 		self._sess = None
 		if server:
@@ -243,7 +246,7 @@ class SMTPServer:
 			self.use_ssl = cint(use_ssl)
 			self.login = login
 			self.password = password
-		elif es.outgoing_mail_server:
+		elif es and es.outgoing_mail_server:
 			self.server = es.outgoing_mail_server
 			self.port = es.mail_port
 			self.use_ssl = cint(es.use_ssl)

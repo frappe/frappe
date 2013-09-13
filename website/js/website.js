@@ -2,76 +2,113 @@
 // MIT License. See license.txt 
 if(!window.wn) wn = {};
 
-wn.call = function(opts) {
-	if(opts.btn) {
-		$(opts.btn).prop("disabled", true);
-	}
-	
-	if(opts.msg) {
-		$(opts.msg).toggle(false);
-	}
-	
-	if(!opts.args) opts.args = {};
-	
-	// get or post?
-	if(!opts.args._type) {
-		opts.args._type = opts.type || "GET";
-	}
 
-	// method
-	if(opts.method) {
-		opts.args.cmd = opts.method;
-	}
-
-	// stringify
-	$.each(opts.args, function(key, val) {
-		if(typeof val != "string") {
-			opts.args[key] = JSON.stringify(val);
+wn = {
+	show_message: function(text, icon) {
+		if(!icon) icon="icon-refresh icon-spin";
+		treemapper.hide_message();
+		$('<div class="message-overlay"></div>')
+			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
+				+text+'</div>').appendTo(document.body);
+	},
+	hide_message: function(text) {
+		$('.message-overlay').remove();
+	},
+	call: function(opts) {
+		wn.prepare_call(opts);
+		$.ajax({
+			type: "POST",
+			url: "server.py",
+			data: opts.args,
+			dataType: "json",
+			success: function(data) {
+				wn.process_response(opts, data);
+			},
+			error: function(response) {
+				NProgress.done();
+				console.error ? console.error(response) : console.log(response);
+			}
+		});
+	
+		return false;
+	},
+	prepare_call: function(opts) {
+		if(opts.btn) {
+			$(opts.btn).prop("disabled", true);
 		}
-	});
 	
-	$.ajax({
-		type: "POST",
-		url: "server.py",
-		data: opts.args,
-		dataType: "json",
-		success: function(data) {
+		if(opts.msg) {
+			$(opts.msg).toggle(false);
+		}
+	
+		if(!opts.args) opts.args = {};
+	
+		// get or post?
+		if(!opts.args._type) {
+			opts.args._type = opts.type || "GET";
+		}
+
+		// method
+		if(opts.method) {
+			opts.args.cmd = opts.method;
+		}
+
+		// stringify
+		$.each(opts.args, function(key, val) {
+			if(typeof val != "string") {
+				opts.args[key] = JSON.stringify(val);
+			}
+		});
+
+		NProgress.start();
+	},
+	process_response: function(opts, data) {
+		NProgress.done();
+		if(opts.btn) {
+			$(opts.btn).prop("disabled", false);
+		}
+		if(data.exc) {
 			if(opts.btn) {
-				$(opts.btn).prop("disabled", false);
+				$(opts.btn).addClass("btn-danger");
+				setTimeout(function() { $(opts.btn).removeClass("btn-danger"); }, 1000);
 			}
-			if(data.exc) {
-				if(opts.btn) {
-					$(opts.btn).addClass("btn-danger");
-					setTimeout(function() { $(opts.btn).removeClass("btn-danger"); }, 1000);
+			try {
+				var err = JSON.parse(data.exc);
+				if($.isArray(err)) {
+					err = err.join("\n");
 				}
-				try {
-					var err = JSON.parse(data.exc);
-					if($.isArray(err)) {
-						err = err.join("\n");
-					}
-					console.error ? console.error(err) : console.log(err);
-				} catch(e) {
-					console.log(data.exc);
-				}
-			} else{
-				if(opts.btn) {
-					$(opts.btn).addClass("btn-success");
-					setTimeout(function() { $(opts.btn).removeClass("btn-success"); }, 1000);
-				}
+				console.error ? console.error(err) : console.log(err);
+			} catch(e) {
+				console.log(data.exc);
 			}
-			if(opts.msg && data.message) {
-				$(opts.msg).html(data.message).toggle(true);
+		} else{
+			if(opts.btn) {
+				$(opts.btn).addClass("btn-success");
+				setTimeout(function() { $(opts.btn).removeClass("btn-success"); }, 1000);
 			}
-			if(opts.callback)
-				opts.callback(data);
-		},
-		error: function(response) {
-			console.error ? console.error(response) : console.log(response);
 		}
-	});
-	
-	return false;
+		if(opts.msg && data.message) {
+			$(opts.msg).html(data.message).toggle(true);
+		}
+		if(opts.callback)
+			opts.callback(data);
+	},
+	show_message: function(text, icon) {
+		if(!icon) icon="icon-refresh icon-spin";
+		wn.hide_message();
+		$('<div class="message-overlay"></div>')
+			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
+				+text+'</div>').appendTo(document.body);
+	},
+	hide_message: function(text) {
+		$('.message-overlay').remove();
+	},
+	get_sid: function() {
+		var sid = getCookie("sid");
+		return sid && sid!=="Guest";
+	}
 }
+
 
 // Utility functions
 

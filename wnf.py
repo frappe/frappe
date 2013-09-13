@@ -537,14 +537,20 @@ def run():
 		import json
 		if os.path.isdir(options.import_doclist):
 			docs = [os.path.join(options.import_doclist, f) \
-				for f in os.listdir(options.import_doclist) if f.endswith(".json")]
+				for f in os.listdir(options.import_doclist)]
 		else:
 			docs = [options.import_doclist]
 				
 		for f in docs:
-			with open(f, "r") as infile:
-				b = webnotes.bean(json.loads(infile.read())).insert_or_update()
-				print "Imported: " + b.doc.doctype + " / " + b.doc.name
+			if f.endswith(".json"):
+				with open(f, "r") as infile:
+					b = webnotes.bean(json.loads(infile.read())).insert_or_update()
+					print "Imported: " + b.doc.doctype + " / " + b.doc.name
+					webnotes.conn.commit()
+			if f.endswith(".csv"):
+				from core.page.data_import_tool.data_import_tool import import_file_by_path
+				import_file_by_path(f)
+				webnotes.conn.commit()
 
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`

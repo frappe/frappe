@@ -313,7 +313,13 @@ class Bean:
 		return webnotes.has_permission(self.doc.doctype, "read", self.doc)
 	
 	def save(self, check_links=1):
-		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
+		perm_to_check = "write"
+		if self.doc.fields.get("__islocal"):
+			perm_to_check = "create"
+			if not self.doc.owner:
+				self.doc.owner = webnotes.session.user
+				
+		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, perm_to_check, self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
 			if not self.ignore_validate:
@@ -324,7 +330,7 @@ class Bean:
 			self.save_children()
 			self.run_method('on_update')
 		else:
-			self.no_permission_to(_("Write"))
+			self.no_permission_to(_(perm_to_check.title()))
 		
 		return self
 
