@@ -389,13 +389,13 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			if len(doclist) > 1:				
 				if overwrite:
 					bean = webnotes.bean(doctype, doclist[0]["name"])
-					bean.ignore_check_links = ignore_links
+					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				else:
 					bean = webnotes.bean(doclist)
-					bean.ignore_check_links = ignore_links
+					bean.ignore_links = ignore_links
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				if submit_after_import:
@@ -416,7 +416,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 						doc.parent), unicode(doc.idx)))
 					parent_list.append(doc.parent)
 				else:
-					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, submit_after_import))
+					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, submit_after_import, ignore_links))
 
 		except Exception, e:
 			error = True

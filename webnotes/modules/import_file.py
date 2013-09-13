@@ -85,7 +85,7 @@ def import_doclist(doclist):
 	# reload_new
 	new_bean = webnotes.bean(doclist1)
 	new_bean.ignore_children_type = ignore
-	new_bean.ignore_check_links = True
+	new_bean.ignore_links = True
 	new_bean.ignore_validate = True
 	new_bean.ignore_permissions = True
 	new_bean.ignore_mandatory = True

@@ -126,11 +126,12 @@ def check_record(d, parenttype=None, doctype_dl=None):
 			elif val and docfield.fieldtype in ["Currency", "Float"]:
 				d[key] = flt(val)
 
-def import_doc(d, doctype, overwrite, row_idx, submit=False):
+def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):
 	"""import main (non child) document"""
 	if d.get("name") and webnotes.conn.exists(doctype, d['name']):
 		if overwrite:
 			bean = webnotes.bean(doctype, d['name'])
+			bean.ignore_links = ignore_links
 			bean.doc.fields.update(d)
 			if d.get("docstatus") == 1:
 				bean.update_after_submit()
@@ -142,6 +143,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False):
 				getlink(doctype, d['name']))
 	else:
 		bean = webnotes.bean([d])
+		bean.ignore_links = ignore_links
 		bean.insert()
 		
 		if submit:

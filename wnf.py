@@ -550,7 +550,7 @@ def run():
 					webnotes.conn.commit()
 			if f.endswith(".csv"):
 				from core.page.data_import_tool.data_import_tool import import_file_by_path
-				import_file_by_path(f)
+				import_file_by_path(f, ignore_links=True)
 				webnotes.conn.commit()
 
 	elif options.reset_perms:
