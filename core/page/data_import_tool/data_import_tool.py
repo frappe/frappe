@@ -313,7 +313,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 								
 						# scrub quotes from name and modified
 						if d.get("name") and d["name"].startswith('"'):
-							d[fieldname] = d[fieldname][1:-1]
+							d["name"] = d["name"][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
