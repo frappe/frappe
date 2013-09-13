@@ -215,7 +215,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 	webnotes.response['doctype'] = doctype
 
 @webnotes.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False):
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
@@ -389,11 +389,13 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			if len(doclist) > 1:				
 				if overwrite:
 					bean = webnotes.bean(doctype, doclist[0]["name"])
+					bean.ignore_check_links = ignore_links
 					bean.doclist.update(doclist)
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				else:
 					bean = webnotes.bean(doclist)
+					bean.ignore_check_links = ignore_links
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				if submit_after_import:

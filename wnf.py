@@ -339,7 +339,11 @@ def run():
 		return
 		
 	import webnotes
-	import conf
+	try:
+		import conf
+	except ImportError, e:
+		conf = webnotes._dict({})
+		
 	from webnotes.db import Database
 	import webnotes.modules.patch_handler
 	webnotes.print_messages = True
