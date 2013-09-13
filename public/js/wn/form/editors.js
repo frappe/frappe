@@ -157,8 +157,9 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 			me.$textarea.val(html_beautify(me.$editor.cleanHtml()));
 			me.$parent.find(".for-rich-text").toggle(false);
 			me.$parent.find(".for-html").toggle(true);
-			me.$parent.find(".btn-html").addClass("btn-info").prop("disabled", true);
-			me.$parent.find(".btn-rich-text").removeClass("btn-info").prop("disabled", false);
+			console.log(me.$parent.find(".btn-html"));
+			me.$parent.find(".btn-html").attr("disabled", "disabled");
+			me.$parent.find(".btn-rich-text").attr("disabled", false);
 			me.current_editor = me.$textarea;
 		});
 
@@ -167,8 +168,9 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 			me.$editor.html(me.$textarea.val());
 			me.$parent.find(".for-rich-text").toggle(true);
 			me.$parent.find(".for-html").toggle(false);
-			me.$parent.find(".btn-html").removeClass("btn-info").prop("disabled", false);
-			me.$parent.find(".btn-rich-text").addClass("btn-info").prop("disabled", true);
+
+			me.$parent.find(".btn-rich-text").attr("disabled", "disabled");
+			me.$parent.find(".btn-html").attr("disabled", false);
 			me.current_editor = me.$editor;
 		});
 
