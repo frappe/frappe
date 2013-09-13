@@ -215,7 +215,7 @@ def get_template():
 	webnotes.response['doctype'] = doctype
 
 @webnotes.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False):
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
@@ -364,8 +364,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	make_column_map()
 	
 	webnotes.conn.begin()
-	
-	overwrite = params.get('overwrite')
+	if not overwrite:
+		overwrite = params.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
