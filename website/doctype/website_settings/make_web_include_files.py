@@ -6,24 +6,22 @@ import webnotes
 
 def make():
 	from webnotes.webutils import get_home_page
+	from webnotes.utils import get_path
 
 	if not webnotes.conn:
 		webnotes.connect()
 	
 	home_page = get_home_page()
 
-	fname = 'js/wn-web.js'
-	if os.path.basename(os.path.abspath('.'))!='public':
-		fname = os.path.join('public', fname)
-			
+	if not os.path.exists(get_path("public", "js")):
+		os.makedirs(get_path("public", "js"))
+	fname = os.path.join(get_path("public", "js", "wn-web.js"))
 	with open(fname, 'w') as f:
 		f.write(get_web_script())
 
-	fname = 'css/wn-web.css'
-	if os.path.basename(os.path.abspath('.'))!='public':
-		fname = os.path.join('public', fname)
-
-	# style - wn.css
+	if not os.path.exists(get_path("public", "css")):
+		os.makedirs(get_path("public", "css"))
+	fname = os.path.join(get_path("public", "css", "wn-web.css"))
 	with open(fname, 'w') as f:
 		f.write(get_web_style())
 
