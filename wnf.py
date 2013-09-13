@@ -286,6 +286,9 @@ def setup_options():
 	parser.add_option('--export_doclist', nargs=3, metavar="DOCTYPE NAME PATH", 
 		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
 
+	parser.add_option('--export_csv', nargs=2, metavar="DOCTYPE PATH", 
+		help="""Dump DocType as csv.""")
+
 	parser.add_option('--import_doclist', nargs=1, metavar="PATH", 
 		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
 	
@@ -532,6 +535,12 @@ def run():
 					del d["name"]
 				d["__islocal"] = 1
 			outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
+	
+	elif options.export_csv:
+		from core.page.data_import_tool.data_import_tool import get_template
+		with open(options.export_csv[1], "w") as csvfile:
+			get_template(doctype=options.export_csv[0], all_doctypes="Yes", with_data="Yes")
+			csvfile.write(webnotes.response.result)
 	
 	elif options.import_doclist:
 		import json

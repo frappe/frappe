@@ -33,12 +33,9 @@ def get_doctype_options():
 		webnotes.model.doctype.get(doctype)))
 
 @webnotes.whitelist()
-def get_template():
+def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
 	webnotes.check_admin_or_system_manager()
-	doctype = webnotes.form_dict.doctype
-	parenttype = webnotes.form_dict.parent_doctype
-	all_doctypes = webnotes.form_dict.all_doctypes=="Yes"
-	with_data = webnotes.form_dict.with_data
+	all_doctypes = all_doctypes=="Yes"
 	column_start_end = {}
 	
 	if all_doctypes:
@@ -52,8 +49,8 @@ def get_template():
 		w.writerow(['Data Import Template'])
 		w.writerow([data_keys.main_table, doctype])
 		
-		if parenttype != doctype:
-			w.writerow([data_keys.parent_table, parenttype])
+		if parent_doctype != doctype:
+			w.writerow([data_keys.parent_table, parent_doctype])
 		else:
 			w.writerow([''])
 
@@ -199,7 +196,7 @@ def get_template():
 					w.writerow(row)
 	
 	w = UnicodeWriter()
-	key = 'parent' if parenttype != doctype else 'name'
+	key = 'parent' if parent_doctype != doctype else 'name'
 	
 	add_main_header()
 

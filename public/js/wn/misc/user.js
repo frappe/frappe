@@ -110,7 +110,7 @@ $.extend(wn.user, {
 					ret = m;
 					break;
 				default:
-					ret = null;
+					ret = m;
 			}
 			return ret;
 		})

@@ -37,7 +37,11 @@ wn.core.pages.desktop.render = function() {
 				</div>\
 				<div class="case-label">%(label)s</div>\
 			</div>', module)).click(function() {
-				wn.set_route($(this).attr("data-link"));
+				var link = $(this).attr("data-link");
+				if(link.substr(0, 1)==="/") {
+					window.open(link.substr(1))
+				}
+				wn.set_route(link);
 			}).css({
 				cursor:"pointer"
 			}).appendTo("#icon-grid");
