@@ -215,7 +215,7 @@ def get_template():
 	webnotes.response['doctype'] = doctype
 
 @webnotes.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False):
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
@@ -313,7 +313,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 								
 						# scrub quotes from name and modified
 						if d.get("name") and d["name"].startswith('"'):
-							d[fieldname] = d[fieldname][1:-1]
+							d["name"] = d["name"][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
@@ -347,6 +347,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	doctype_parentfield = {}
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
+	
+	if submit_after_import and not cint(webnotes.conn.get_value("DocType", 
+			doctype, "is_submittable")):
+		submit_after_import = False
+		
 
 	parenttype = get_header_row(data_keys.parent_table)
 	
@@ -359,8 +364,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	make_column_map()
 	
 	webnotes.conn.begin()
-	
-	overwrite = params.get('overwrite')
+	if not overwrite:
+		overwrite = params.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
