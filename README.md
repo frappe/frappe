@@ -10,26 +10,23 @@ To start a new project, in the application root:
 
 Install:
 
-1. Install webnotes and treemapper
+1. Go to the project folder
+1. Install webnotes and your app:
 
 		$ git clone git@github.com:webnotes/wnframework lib
 		$ git clone git@github.com:webnotes/[your app] app
 		$ lib/wnf.py --make_conf
 		$ lib/wnf.py --reinstall
+		$ lib/wnf.py --build
 
-1. Setup Apache Conf
+1. Setup Apache Conf from `conf/apache.conf`
+	- Allow cgi to handle `.py` files
+	- Rewrite to make clean urls
+	- Note: the document root is the `public` folder in your project folder
+	
+1. Give ownership of the project folder to apache user (`www-data` or `apache`) to make .pyc files and upload files.
 
 enjoy!
-
-
-#### Export
-
-Before pushing, export install fixtures
-
-	$ lib/wnf.py --export_doclist "Website Settings" - app/startup/website_settings.json
-	$ lib/wnf.py --export_doclist "Style Settings" - app/startup/style_settings.json
-	$ lib/wnf.py --export_csv "Tree Species" app/startup/Tree_Species.csv
-	$ lib/wnf.py --export_csv "Tree Family" app/startup/Tree_Family.csv
 
 ## wnf.py
 

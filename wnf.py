@@ -523,24 +523,12 @@ def run():
 		write_static()
 
 	elif options.export_doclist:
-		import json
-		from webnotes.handler import json_handler
-		args = list(options.export_doclist)
-		if args[1]=="-": args[1] = args[0]
-		with open(args[2], "w") as outfile:
-			doclist = [d.fields for d in webnotes.bean(args[0], args[1]).doclist]
-			for d in doclist:
-				if d.get("parent"):
-					del d["parent"]
-					del d["name"]
-				d["__islocal"] = 1
-			outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
+		from core.page.data_import_tool.data_import_tool import export_json
+		export_json(*list(options.export_doclist))
 	
 	elif options.export_csv:
-		from core.page.data_import_tool.data_import_tool import get_template
-		with open(options.export_csv[1], "w") as csvfile:
-			get_template(doctype=options.export_csv[0], all_doctypes="Yes", with_data="Yes")
-			csvfile.write(webnotes.response.result)
+		from core.page.data_import_tool.data_import_tool import export_csv
+		export_csv(*options.export_csv)
 	
 	elif options.import_doclist:
 		import json

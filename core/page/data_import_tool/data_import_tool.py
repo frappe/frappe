@@ -478,3 +478,22 @@ def import_file_by_path(path):
 	print "Importing " + path
 	with open(path, "r") as infile:
 		upload(rows = read_csv_content(infile.read()))
+
+def export_csv(doctype, path):		
+	with open(path, "w") as csvfile:
+		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
+		csvfile.write(webnotes.response.result)
+
+def export_json(doctype, name, path):
+	from webnotes.handler import json_handler
+	if not name or name=="-":
+		name = doctype
+	with open(path, "w") as outfile:
+		doclist = [d.fields for d in webnotes.bean(doctype, name).doclist]
+		for d in doclist:
+			if d.get("parent"):
+				del d["parent"]
+				del d["name"]
+			d["__islocal"] = 1
+		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
+	
