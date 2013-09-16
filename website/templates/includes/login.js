@@ -27,7 +27,7 @@ login.do_login = function(){
 			return false;
 		}
 	} else if(window.is_forgot) {
-		args.cmd = "reset_password";
+		args.cmd = "core.doctype.profile.profile.reset_password";
 		args.user = ($("#login_id").val() || "").trim();
 		
 		if(!args.user) {

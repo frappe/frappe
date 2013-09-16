@@ -208,7 +208,8 @@ def get_website_settings():
 		"webnotes": webnotes,
 		"utils": webnotes.utils,
 		"post_login": [
-			{"label": "Logout", "url": "server.py?cmd=web_logout", "icon": "icon-signout"},
+			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
+			{"label": "Logout", "url": "server.py?cmd=web_logout", "icon": "icon-signout"}
 		]
 	})
 		
