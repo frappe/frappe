@@ -221,7 +221,7 @@ class Session:
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
 				self.data['sid']))
 
-		if webnotes.request.cmd not in ("webnotes.sessions.clear", "logout"):
+		if webnotes.form_dict.cmd not in ("webnotes.sessions.clear", "logout"):
 			webnotes.cache().set_value("last_db_session_update:" + self.sid, 
 				webnotes.utils.now())
 			webnotes.cache().set_value("session:" + self.sid, self.data)

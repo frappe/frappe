@@ -21,7 +21,7 @@ def application(request):
 			content = static.read()
 		
 		response = Response()
-		response.response = content
+		response.data = content
 		response.headers["Content-type"] = mimetypes.guess_type(path)[0]
 		return response
 	
