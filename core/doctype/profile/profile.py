@@ -38,7 +38,7 @@ class DocType:
 		
 		# clear sessions if disabled
 		if not cint(self.doc.enabled) and getattr(webnotes, "login_manager", None):
-			webnotes.login_manager.logout(user=self.doc.name)
+			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
@@ -215,7 +215,7 @@ Thank you,<br>
 		# disable the user and log him/her out
 		self.doc.enabled = 0
 		if getattr(webnotes, "login_manager", None):
-			webnotes.login_manager.logout(user=self.doc.name)
+			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
 		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
@@ -319,7 +319,7 @@ def update_profile(fullname, password=None):
 		return _("Name is required")
 	
 	webnotes.conn.set_value("Profile", webnotes.session.user, "first_name", fullname)
-	webnotes.add_cookies["full_name"] = fullname
+	webnotes._request.set_cookie("full_name", fullname)
 		
 	if password:
 		from webnotes.auth import _update_password

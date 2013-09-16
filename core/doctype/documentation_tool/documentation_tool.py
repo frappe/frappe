@@ -447,7 +447,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 			sitemap.write(sitemap_frame_xml % content)
 
 def write_static():
-	webnotes.session = webnotes._dict({"user":"Administrator"})
+	webnotes.local.session = webnotes._dict({"user":"Administrator"})
 	
 	from markdown2 import markdown
 	

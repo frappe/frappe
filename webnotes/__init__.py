@@ -7,6 +7,10 @@ globals attached to webnotes module
 
 from __future__ import unicode_literals
 
+from werkzeug.local import Local
+
+local = Local()
+
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
@@ -23,7 +27,10 @@ class _dict(dict):
 		return self
 	def copy(self):
 		return _dict(super(_dict, self).copy())
-		
+
+def __getattr__(self, key):
+	return webnotes.local.get("key", None)
+	
 def _(msg):
 	"""translate object in current lang, if exists"""
 	from webnotes.translate import messages
@@ -46,26 +53,36 @@ def load_translations(module, doctype, name):
 	from webnotes.translate import load_doc_messages
 	load_doc_messages(module, doctype, name)
 
-request = form_dict = _dict()
-conn = None
+
+# local-globals
+conn = local("conn")
+form = form_dict = local("form_dict")
+request = local("request")
+response = local("response")
+_response = local("_response")
+session = local("session")
+user = local("user")
+
+error_log = local("error_log")
+debug_log = local("debug_log")
+message_log = local("message_log")
+
+lang = local("lang")
+
+def init():
+	local.error_log = []
+	local.message_log = []
+	local.debug_log = []
+	local.response = _dict({})
+	local.lang = "en"
+
 _memc = None
-form = None
-session = None
-user = None
-incoming_cookies = {}
-add_cookies = {} # append these to outgoing request
-cookies = {}
-response = _dict({'message':'', 'exc':''})
-error_log = []
-debug_log = []
-message_log = []
 mute_emails = False
 mute_messages = False
 test_objects = {}
 request_method = None
 print_messages = False
 user_lang = False
-lang = 'en'
 in_import = False
 in_test = False
 rollback_on_exception = False
@@ -165,15 +182,11 @@ def remove_file(path):
 			
 def connect(db_name=None, password=None):
 	import webnotes.db
-	global conn
-	conn = webnotes.db.Database(user=db_name, password=password)
-	
-	global session
-	session = _dict({'user':'Administrator'})
+	local.conn = webnotes.db.Database(user=db_name, password=password)
+	local.session = _dict({'user':'Administrator'})
 	
 	import webnotes.profile
-	global user
-	user = webnotes.profile.Profile('Administrator')
+	local.user = webnotes.profile.Profile('Administrator')
 	
 def get_env_vars(env_var):
 	import os

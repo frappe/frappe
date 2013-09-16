@@ -19,10 +19,8 @@ def render(page_name):
 	except Exception:
 		html = render_page('error')
 		
-
-	from webnotes.handler import eprint, print_zip
-	eprint("Content-Type: text/html; charset: utf-8")
-	print_zip(html)
+	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	webnotes._response.response = html
 
 def render_page(page_name):
 	"""get page html"""

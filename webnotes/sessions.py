@@ -73,7 +73,7 @@ def get():
 class Session:
 	def __init__(self, user=None):
 		self.user = user
-		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
+		self.sid = webnotes.form_dict.get('sid') or webnotes.request.cookies.get('sid', 'Guest')
 		self.data = webnotes._dict({'user':user,'data': webnotes._dict({})})
 		self.time_diff = None
 
@@ -90,14 +90,14 @@ class Session:
 		import webnotes.utils
 		
 		# generate sid
-		if webnotes.login_manager.user=='Guest':
+		if webnotes.local.login_manager.user=='Guest':
 			sid = 'Guest'
 		else:
 			sid = webnotes.generate_hash()
 		
-		self.data['user'] = webnotes.login_manager.user
+		self.data['user'] = webnotes.local.login_manager.user
 		self.data['sid'] = sid
-		self.data['data']['user'] = webnotes.login_manager.user
+		self.data['data']['user'] = webnotes.local.login_manager.user
 		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR')
 		self.data['data']['last_updated'] = webnotes.utils.now()
 		self.data['data']['session_expiry'] = self.get_expiry_period()
@@ -113,7 +113,7 @@ class Session:
 		webnotes.conn.commit()
 		
 		# set cookies to write
-		webnotes.session = self.data
+		webnotes.local.session = self.data
 
 	def insert_session_record(self):
 		webnotes.conn.sql("""insert into tabSessions 
@@ -196,7 +196,7 @@ class Session:
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
-		webnotes.login_manager.login_as_guest()
+		webnotes.local.login_manager.login_as_guest()
 		self.start()
 
 	def update(self):

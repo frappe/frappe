@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import webnotes
 
-session = webnotes.session
 sql = webnotes.conn.sql
 out = webnotes.response
 
@@ -219,7 +218,7 @@ def runquery(q='', ret=0, from_export=0):
 		q = add_match_conditions(q, tl)
 		webnotes
 		# replace special variables
-		q = q.replace('__user', session['user'])
+		q = q.replace('__user', webnotes.session.user)
 		q = q.replace('__today', webnotes.utils.nowdate())
 
 		res = sql(q, as_list=1, formatted=formatted)
