@@ -2,8 +2,7 @@
 // MIT License. See license.txt 
 if(!window.wn) wn = {};
 
-
-wn = {
+$.extend(wn, {
 	show_message: function(text, icon) {
 		if(!icon) icon="icon-refresh icon-spin";
 		treemapper.hide_message();
@@ -107,7 +106,7 @@ wn = {
 		var sid = getCookie("sid");
 		return sid && sid!=="Guest";
 	}
-}
+});
 
 
 // Utility functions

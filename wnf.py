@@ -286,6 +286,9 @@ def setup_options():
 	parser.add_option('--export_doclist', nargs=3, metavar="DOCTYPE NAME PATH", 
 		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
 
+	parser.add_option('--export_csv', nargs=2, metavar="DOCTYPE PATH", 
+		help="""Dump DocType as csv.""")
+
 	parser.add_option('--import_doclist', nargs=1, metavar="PATH", 
 		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
 	
@@ -336,7 +339,11 @@ def run():
 		return
 		
 	import webnotes
-	import conf
+	try:
+		import conf
+	except ImportError, e:
+		conf = webnotes._dict({})
+		
 	from webnotes.db import Database
 	import webnotes.modules.patch_handler
 	webnotes.print_messages = True
@@ -520,18 +527,12 @@ def run():
 		write_static()
 
 	elif options.export_doclist:
-		import json
-		from webnotes.handler import json_handler
-		args = list(options.export_doclist)
-		if args[1]=="-": args[1] = args[0]
-		with open(args[2], "w") as outfile:
-			doclist = [d.fields for d in webnotes.bean(args[0], args[1]).doclist]
-			for d in doclist:
-				if d.get("parent"):
-					del d["parent"]
-					del d["name"]
-				d["__islocal"] = 1
-			outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
+		from core.page.data_import_tool.data_import_tool import export_json
+		export_json(*list(options.export_doclist))
+	
+	elif options.export_csv:
+		from core.page.data_import_tool.data_import_tool import export_csv
+		export_csv(*options.export_csv)
 	
 	elif options.import_doclist:
 		import json
@@ -549,7 +550,7 @@ def run():
 					webnotes.conn.commit()
 			if f.endswith(".csv"):
 				from core.page.data_import_tool.data_import_tool import import_file_by_path
-				import_file_by_path(f)
+				import_file_by_path(f, ignore_links=True)
 				webnotes.conn.commit()
 
 	elif options.reset_perms:

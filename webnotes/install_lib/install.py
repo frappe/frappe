@@ -115,7 +115,7 @@ class Installer:
 
 				if f.endswith(".csv"):
 					from core.page.data_import_tool.data_import_tool import import_file_by_path
-					import_file_by_path(os.path.join(basepath, f))
+					import_file_by_path(os.path.join(basepath, f), ignore_links = True)
 					webnotes.conn.commit()
 						
 		if os.path.exists(os.path.join("app", "startup", "install_fixtures", "files")):

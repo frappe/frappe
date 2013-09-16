@@ -26,7 +26,7 @@ class Bean:
 		self.obj = None
 		self.ignore_permissions = False
 		self.ignore_children_type = []
-		self.ignore_check_links = False
+		self.ignore_links = False
 		self.ignore_validate = False
 		self.ignore_fields = False
 		self.ignore_mandatory = False
@@ -157,7 +157,7 @@ class Bean:
 				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
 
 	def check_links(self):
-		if self.ignore_check_links:
+		if self.ignore_links:
 			return
 		ref, err_list = {}, []
 		for d in self.doclist:

@@ -54,6 +54,7 @@ def render_page(page_name):
 
 def build_page(page_name):
 	from jinja2 import Environment, FileSystemLoader
+	from markdown2 import markdown
 
 	if not webnotes.conn:
 		webnotes.connect()
@@ -102,7 +103,9 @@ def build_page(page_name):
 			context.update(module.get_context())
 	
 	context.update(get_website_settings())
+
 	jenv = Environment(loader = FileSystemLoader(basepath))
+	jenv.filters["markdown"] = markdown
 	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
 	template_name = page_options['template']	
@@ -121,9 +124,12 @@ def build_sitemap():
 	for g in config["generators"].values():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
-		for name in webnotes.conn.sql_list("""select page_name from `tab%s` where 
+		for page_name, name in webnotes.conn.sql("""select page_name, name from `tab%s` where 
 			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
-			sitemap[name] = g
+			opts = g.copy()
+			opts["doctype"] = module.doctype
+			opts["docname"] = name
+			sitemap[page_name] = opts
 		
 	return sitemap
 	
@@ -297,10 +303,12 @@ def is_signup_enabled():
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""
 	new_page_name = page_name(title)
+	sitemap = get_website_sitemap()
 	
-	if new_page_name in get_all_pages():
-		webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
-			_("Please change the value"), title))
+	if new_page_name in sitemap and \
+		not (sitemap[new_page_name].doctype == doc.doctype and sitemap[new_page_name].docname == doc.name):
+			webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
+				_("Please change the value"), title))
 	
 	if doc.page_name: delete_page_cache(doc.page_name)
 	webnotes.conn.set(doc, "page_name", new_page_name)

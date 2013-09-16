@@ -33,12 +33,12 @@ def get_doctype_options():
 		webnotes.model.doctype.get(doctype)))
 
 @webnotes.whitelist()
-def get_template():
+def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
 	webnotes.check_admin_or_system_manager()
-	doctype = webnotes.form_dict.doctype
-	parenttype = webnotes.form_dict.parent_doctype
-	all_doctypes = webnotes.form_dict.all_doctypes=="Yes"
-	with_data = webnotes.form_dict.with_data
+	all_doctypes = all_doctypes=="Yes"
+	if not parent_doctype:
+		parent_doctype = doctype
+	
 	column_start_end = {}
 	
 	if all_doctypes:
@@ -52,8 +52,8 @@ def get_template():
 		w.writerow(['Data Import Template'])
 		w.writerow([data_keys.main_table, doctype])
 		
-		if parenttype != doctype:
-			w.writerow([data_keys.parent_table, parenttype])
+		if parent_doctype != doctype:
+			w.writerow([data_keys.parent_table, parent_doctype])
 		else:
 			w.writerow([''])
 
@@ -167,7 +167,7 @@ def get_template():
 			for i, c in enumerate(columns[column_start_end[dt].start:column_start_end[dt].end]):
 				row[column_start_end[dt].start + i + 1] = d.get(c, "")
 
-		if with_data=='Yes':
+		if with_data=='Yes':			
 			data = webnotes.conn.sql("""select * from `tab%s` where docstatus<2""" \
 				% doctype, as_dict=1)
 			for doc in data:
@@ -187,7 +187,7 @@ def get_template():
 					w.writerow(row)
 	
 	w = UnicodeWriter()
-	key = 'parent' if parenttype != doctype else 'name'
+	key = 'parent' if parent_doctype != doctype else 'name'
 	
 	add_main_header()
 
@@ -215,7 +215,7 @@ def get_template():
 	webnotes.response['doctype'] = doctype
 
 @webnotes.whitelist()
-def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
@@ -313,7 +313,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 								
 						# scrub quotes from name and modified
 						if d.get("name") and d["name"].startswith('"'):
-							d[fieldname] = d[fieldname][1:-1]
+							d["name"] = d["name"][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
@@ -347,6 +347,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	doctype_parentfield = {}
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
+	
+	if submit_after_import and not cint(webnotes.conn.get_value("DocType", 
+			doctype, "is_submittable")):
+		submit_after_import = False
+		
 
 	parenttype = get_header_row(data_keys.parent_table)
 	
@@ -359,8 +364,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 	make_column_map()
 	
 	webnotes.conn.begin()
-	
-	overwrite = params.get('overwrite')
+	if not overwrite:
+		overwrite = params.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
@@ -384,11 +389,13 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 			if len(doclist) > 1:				
 				if overwrite:
 					bean = webnotes.bean(doctype, doclist[0]["name"])
+					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				else:
 					bean = webnotes.bean(doclist)
+					bean.ignore_links = ignore_links
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				if submit_after_import:
@@ -409,7 +416,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False):
 						doc.parent), unicode(doc.idx)))
 					parent_list.append(doc.parent)
 				else:
-					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, submit_after_import))
+					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, submit_after_import, ignore_links))
 
 		except Exception, e:
 			error = True
@@ -473,3 +480,21 @@ def import_file_by_path(path):
 	print "Importing " + path
 	with open(path, "r") as infile:
 		upload(rows = read_csv_content(infile.read()))
+
+def export_csv(doctype, path):		
+	with open(path, "w") as csvfile:
+		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
+		csvfile.write(webnotes.response.result)
+
+def export_json(doctype, name, path):
+	from webnotes.handler import json_handler
+	if not name or name=="-":
+		name = doctype
+	with open(path, "w") as outfile:
+		doclist = [d.fields for d in webnotes.bean(doctype, name).doclist]
+		for d in doclist:
+			if d.get("parent"):
+				del d["parent"]
+				del d["name"]
+			d["__islocal"] = 1
+		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
