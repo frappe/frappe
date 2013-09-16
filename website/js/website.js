@@ -4,16 +4,6 @@ if(!window.wn) wn = {};
 
 
 wn = {
-	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
-		treemapper.hide_message();
-		$('<div class="message-overlay"></div>')
-			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
-				+text+'</div>').appendTo(document.body);
-	},
-	hide_message: function(text) {
-		$('.message-overlay').remove();
-	},
 	call: function(opts) {
 		wn.prepare_call(opts);
 		$.ajax({
@@ -106,6 +96,26 @@ wn = {
 	get_sid: function() {
 		var sid = getCookie("sid");
 		return sid && sid!=="Guest";
+	},
+	get_modal: function(title, body_html) {
+		var modal = $('<div class="modal" style="overflow: auto;">\
+			<div class="modal-dialog">\
+				<div class="modal-content">\
+					<div class="modal-header">\
+						<a type="button" class="close" \
+							data-dismiss="modal" aria-hidden="true">&times;</a>\
+						<h4 class="modal-title">'+title+'</h4>\
+					</div>\
+					<div class="modal-body ui-front">'+body_html+'\
+					</div>\
+				</div>\
+			</div>\
+			</div>').appendTo(document.body);
+			
+			return modal;
+	},
+	msgprint: function(html, title) {
+		return wn.get_modal(title || "Message", html).modal("show");
 	}
 }
 
@@ -236,3 +246,4 @@ wn.send_message = function(opts, btn) {
 		callback: opts.callback
 	});
 }
+

@@ -263,7 +263,7 @@ class CookieManager:
 			webnotes.cookies[k][b'expires'] = expires.encode('utf-8')
 
 
-def update_password(user, password):
+def _update_password(user, password):
 	webnotes.conn.sql("""insert into __Auth (user, `password`) 
 		values (%s, password(%s)) 
 		on duplicate key update `password`=password(%s)""", (user, 

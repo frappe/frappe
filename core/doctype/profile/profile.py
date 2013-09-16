@@ -85,8 +85,8 @@ class DocType:
 	def update_new_password(self):
 		"""update new password if set"""
 		if self.doc.new_password:
-			from webnotes.auth import update_password
-			update_password(self.doc.name, self.doc.new_password)
+			from webnotes.auth import _update_password
+			_update_password(self.doc.name, self.doc.new_password)
 			
 			if self.in_insert:
 				webnotes.msgprint("New user created. - %s" % self.doc.name)
@@ -94,11 +94,18 @@ class DocType:
 					self.send_welcome_mail(self.doc.new_password)
 					webnotes.msgprint("Sent welcome mail.")
 			else:
-				self.password_reset_mail(self.doc.new_password)
-				webnotes.msgprint("Password updated.")
+				self.password_update_mail(self.doc.new_password)
+				webnotes.msgprint("New Password Emailed.")
 				
 			webnotes.conn.set(self.doc, 'new_password', '')
-			
+	
+	def reset_password(self):
+		from webnotes.utils import random_string, get_request_site_address
+
+		key = random_string(32)
+		webnotes.conn.set_value("Profile", self.doc.name, "reset_password_key", key)
+		self.password_reset_mail(get_request_site_address() + "/update-password?key=" + key)
+	
 	def get_other_system_managers(self):
 		return webnotes.conn.sql("""select distinct parent from tabUserRole user_role
 			where role='System Manager' and docstatus<2
@@ -111,25 +118,37 @@ class DocType:
 		return (self.doc.first_name or '') + \
 			(self.doc.first_name and " " or '') + (self.doc.last_name or '')
 
-	def password_reset_mail(self, password):
+	def password_reset_mail(self, link):
 		"""reset password"""
 		txt = """
 ## Password Reset
 
 Dear %(first_name)s,
 
-Your password has been reset. Your new password is:
+Please click on the following link to update your new password:
 
-password: %(password)s
-
-To login to %(product)s, please go to:
-
-%(login_url)s
+<a href="%(link)s">%(link)s</a>
 
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", txt, password)
+		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", 
+			txt, {"link": link})
+	
+	def password_update_mail(self, password):
+		txt = """
+## Password Update Notification
+
+Dear %(first_name)s,
+
+Your password has been updated. Here is your new password: %(new_password)s
+
+Thank you,<br>
+%(user_fullname)s
+		"""
+		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", 
+			txt, {"password": "password"})
+		
 		
 	def send_welcome_mail(self, password):
 		"""send welcome mail to user with password and login url"""
@@ -151,9 +170,10 @@ To login to your new %(product)s account, please go to:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, password)
+		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, 
+			{ "password": password })
 
-	def send_login_mail(self, subject, txt, password):
+	def send_login_mail(self, subject, txt, add_args):
 		"""send mail with login details"""
 		import os
 	
@@ -168,12 +188,13 @@ Thank you,<br>
 		args = {
 			'first_name': self.doc.first_name or self.doc.last_name or "user",
 			'user': self.doc.name,
-			'password': password,
 			'company': webnotes.conn.get_default('company') or webnotes.get_config().get("app_name"),
 			'login_url': get_request_site_address(),
 			'product': webnotes.get_config().get("app_name"),
 			'user_fullname': full_name
 		}
+		
+		args.update(add_args)
 		
 		sender = webnotes.session.user not in ("Administrator", "Guest") and webnotes.session.user or None
 		
@@ -301,10 +322,31 @@ def update_profile(fullname, password=None):
 	webnotes.add_cookies["full_name"] = fullname
 		
 	if password:
-		from webnotes.auth import update_password
-		update_password(webnotes.session.user, password)
+		from webnotes.auth import _update_password
+		_update_password(webnotes.session.user, password)
 
 	return _("Updated")
+
+@webnotes.whitelist(allow_guest=True)
+def update_password(new_password, key=None, old_password=None):
+	# verify old password
+	if old_password:
+		user = webnotes.session.user
+		if not webnotes.conn.sql("""select user from __Auth where password=password(%s) 
+			and user=%s""", (old_password, user)):
+			return _("Cannot Update: Incorrect Password")
+	else:
+		if key:
+			user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
+			if not user:
+				return _("Cannot Update: Incorrect / Expired Link.")
+	
+	from webnotes.auth import _update_password
+	_update_password(user, new_password)
+	
+	webnotes.conn.set_value("Profile", user, "reset_password_key", "")
+	
+	return _("Password Updated")
 	
 @webnotes.whitelist(allow_guest=True)
 def sign_up(email, full_name):
@@ -331,7 +373,22 @@ def sign_up(email, full_name):
 		profile.ignore_permissions = True
 		profile.insert()
 		return _("Registration Details Emailed.")
-				
+
+@webnotes.whitelist(allow_guest=True)
+def reset_password(user):	
+	user = webnotes.form_dict.get('user', '')
+	if user in ["demo@erpnext.com", "Administrator"]:
+		return "Not allowed"
+		
+	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
+		# Hack!
+		webnotes.session["user"] = "Administrator"
+		profile = webnotes.bean("Profile", user)
+		profile.get_controller().reset_password()
+		return "Password reset details sent to your email."
+	else:
+		return "No such user (%s)" % user
+
 def profile_query(doctype, txt, searchfield, start, page_len, filters):
 	from webnotes.widgets.reportview import get_match_cond
 	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
