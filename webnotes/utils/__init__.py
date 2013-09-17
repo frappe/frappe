@@ -70,11 +70,11 @@ def get_request_site_address(full_address=False):
 	if hasattr(conf, "host_name"):
 		host_name = conf.host_name
 	else:
-		try:
-			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL') and 'https://' or 'http://'
+		if webnotes.request:
+			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL', "") and 'https://' or 'http://'
 			host_name = protocol + webnotes.request.host
-		except TypeError:
-			return 'http://localhost'
+		else:
+			return "http://localhost"
 
 	if full_address:
 		return host_name + webnotes.get_request_header("REQUEST_URI", "")
