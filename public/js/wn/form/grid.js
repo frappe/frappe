@@ -92,7 +92,7 @@ wn.ui.form.Grid = Class.extend({
 				&& this.display_status==this.last_display_status
 				&& this.frm.docname==this.last_docname
 				&& !$.map(this.grid_rows, function(g, i) {
-					return g.doc.name==data[i].name ? null : true;
+					return (g.doc && g.doc.name==data[i].name) ? null : true;
 				}).length; 
 				
 			return same;
@@ -320,6 +320,8 @@ wn.ui.form.GridRow = Class.extend({
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
 	},
 	toggle_view: function(show, callback) {
+		if(!this.doc) return this;
+		
 		this.doc = locals[this.doc.doctype][this.doc.name];
 		// hide other
 		var open_row = $(".grid-row-open").data("grid_row"),
