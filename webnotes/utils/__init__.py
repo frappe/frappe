@@ -71,9 +71,8 @@ def get_request_site_address(full_address=False):
 		host_name = conf.host_name
 	else:
 		try:
-			host = webnotes.request.host
 			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL') and 'https://' or 'http://'
-			host_name = protocol + webnotes.get_request_header('HTTP_HOST')
+			host_name = protocol + webnotes.request.host
 		except TypeError:
 			return 'http://localhost'
 
