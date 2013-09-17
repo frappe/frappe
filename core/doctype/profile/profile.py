@@ -320,7 +320,7 @@ def update_password(new_password, key=None, old_password=None):
 		user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
 		if not user:
 			return _("Cannot Update: Incorrect / Expired Link.")
-	else if old_password:
+	elif old_password:
 		user = webnotes.session.user
 		if not webnotes.conn.sql("""select user from __Auth where password=password(%s) 
 			and user=%s""", (old_password, user)):
