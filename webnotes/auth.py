@@ -21,8 +21,6 @@ class HTTPRequest:
 		# language
 		self.set_lang(webnotes.get_request_header('HTTP_ACCEPT_LANGUAGE'))
 		
-		webnotes.remote_ip = webnotes.get_request_header('REMOTE_ADDR')
-
 		# load cookies
 		webnotes.local.cookie_manager = CookieManager()
 
@@ -173,7 +171,7 @@ class LoginManager:
 		ip_list = [i.strip() for i in ip_list]
 
 		for ip in ip_list:
-			if webnotes.remote_ip.startswith(ip):
+			if webnotes.get_request_header('REMOTE_ADDR', '').startswith(ip):
 				return
 			
 		webnotes.msgprint('Not allowed from this IP Address')

@@ -165,14 +165,14 @@ def print_csv():
 		"text/csv; charset: utf-8"
 	webnotes._response.headers["Content-Disposition"] = \
 		"attachment; filename=%s.csv" % webnotes.response['doctype'].replace(' ', '_')
-	webnotes._response.response = webnotes.response['result']
+	webnotes._response.data = webnotes.response['result']
 
 def print_raw():
 	webnotes._response.headers["Content-Type"] = \
 		mimetypes.guess_type(webnotes.response['filename'])[0] or "application/unknown"
 	webnotes._response.headers["Content-Disposition"] = \
 		"filename=%s" % webnotes.response['filename'].replace(' ', '_')
-	webnotes._response.response = webnotes.response['filecontent']
+	webnotes._response.data = webnotes.response['filecontent']
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
@@ -196,7 +196,7 @@ def print_zip(response):
 		webnotes._response.headers["Content-Encoding"] = "gzip"
 	
 	webnotes._response.headers["Content-Length"] = str(len(response))
-	webnotes._response.response = response
+	webnotes._response.data = response
 	
 def json_handler(obj):
 	"""serialize non-serializable data for json"""

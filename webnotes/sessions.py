@@ -109,7 +109,7 @@ class Session:
 
 		# update profile
 		webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
-			where name='%s'""" % (webnotes.utils.now(), webnotes.remote_ip, self.data['user']))
+			where name='%s'""" % (webnotes.utils.now(), webnotes.get_request_header('REMOTE_ADDR'), self.data['user']))
 		webnotes.conn.commit()
 		
 		# set cookies to write

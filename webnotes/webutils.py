@@ -20,7 +20,7 @@ def render(page_name):
 		html = render_page('error')
 		
 	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
-	webnotes._response.response = html
+	webnotes._response.data = html
 
 def render_page(page_name):
 	"""get page html"""

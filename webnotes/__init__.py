@@ -189,9 +189,11 @@ def connect(db_name=None, password=None):
 	local.user = webnotes.profile.Profile('Administrator')
 	
 def get_request_header(key, default=None):
-	return webnotes.request.headers.get(key, default)
-
-remote_ip = get_request_header('REMOTE_ADDR')		#Required for login from python shell
+	try:
+		return request.headers.get(key, default)
+	except Exception, e:
+		return None
+		
 logger = None
 	
 def get_db_password(db_name):
