@@ -147,7 +147,7 @@ Thank you,<br>
 %(user_fullname)s
 		"""
 		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", 
-			txt, {"password": "password"})
+			txt, {"new_password": password})
 		
 		
 	def send_welcome_mail(self, password):

@@ -45,13 +45,13 @@ def read_csv_content(fcontent, ignore_encoding=False):
 			continue
 
 	if not decoded:
-		webnotes.msgprint(wn._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
+		webnotes.msgprint(webnotes._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
 			raise_exception=True)
 
 	try:
-		reader = csv.reader(fcontent.splitlines())
+		reader = csv.reader(fcontent.encode("utf-8").splitlines())
 		# decode everything
-		rows = [[val.strip() for val in row] for row in reader]
+		rows = [[unicode(val, "utf-8").strip() for val in row] for row in reader]
 		return rows
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
@@ -88,7 +88,7 @@ class UnicodeWriter:
 	
 	def getvalue(self):
 		return self.queue.getvalue()
-
+		
 def check_record(d, parenttype=None, doctype_dl=None):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	
