@@ -146,12 +146,14 @@ def build_website_sitemap_config():
 	basepath = webnotes.utils.get_base_path()
 	
 	def get_options(path, fname):
-		name = fname[:-5]
+		name = fname
+		if fname.endswith(".html"):
+			name = fname[:-5]
 		options = webnotes._dict({
 			"link_name": name,
 			"template": os.path.relpath(os.path.join(path, fname), basepath),
 		})
-		controller_path = os.path.join(path, name + ".py")
+		controller_path = os.path.join(path, name.replace("-", "_") + ".py")
 		if os.path.exists(controller_path):
 			options.controller = os.path.relpath(controller_path[:-3], basepath).replace(os.path.sep, ".")
 			options.controller = ".".join(options.controller.split(".")[1:])
@@ -161,7 +163,7 @@ def build_website_sitemap_config():
 	for path, folders, files in os.walk(basepath):
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
-				if fname.endswith(".html"):
+				if fname.split(".")[-1] in ("html", "xml"):
 					options = get_options(path, fname)
 					config["pages"][options.link_name] = options
 
@@ -284,7 +286,7 @@ def scrub_page_name(page_name):
 		page_name = page_name[:-5]
 
 	return page_name
-			
+
 _is_signup_enabled = None
 def is_signup_enabled():
 	global _is_signup_enabled
