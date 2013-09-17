@@ -38,7 +38,6 @@ def _(msg):
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
-	global lang, user_lang
 		
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
@@ -46,8 +45,7 @@ def set_user_lang(user, user_language=None):
 	if user_language:
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
-			lang = lang_dict[user_language]
-			user_lang = True		
+			local.lang = lang_dict[user_language]
 
 def load_translations(module, doctype, name):
 	from webnotes.translate import load_doc_messages
@@ -83,7 +81,6 @@ mute_emails = False
 mute_messages = False
 test_objects = {}
 print_messages = False
-user_lang = False
 in_import = False
 in_test = False
 rollback_on_exception = False

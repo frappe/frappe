@@ -71,18 +71,18 @@ class HTTPRequest:
 		for l in lang:
 			code = l.strip()
 			if code in lang_list:
-				webnotes.lang = code
+				webnotes.local.lang = code
 				return
 				
 			# check if parent language (pt) is setup, if variant (pt-BR)
 			if "-" in code:
 				code = code.split("-")[0]
 				if code in lang_list:
-					webnotes.lang = code
+					webnotes.local.lang = code
 					return
 					
 	def setup_profile(self):
-		webnotes.user = webnotes.profile.Profile()
+		webnotes.local.user = webnotes.profile.Profile()
 
 	def get_db_name(self):
 		"""get database name from conf"""
