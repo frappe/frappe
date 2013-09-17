@@ -58,6 +58,7 @@ def load_translations(module, doctype, name):
 conn = local("conn")
 form = form_dict = local("form_dict")
 request = local("request")
+request_method = local("request_method")
 response = local("response")
 _response = local("_response")
 session = local("session")
@@ -75,12 +76,12 @@ def init():
 	local.debug_log = []
 	local.response = _dict({})
 	local.lang = "en"
+	local.request_method = request.method if request else None
 
 _memc = None
 mute_emails = False
 mute_messages = False
 test_objects = {}
-request_method = None
 print_messages = False
 user_lang = False
 in_import = False
@@ -114,13 +115,13 @@ def getTraceback():
 
 def errprint(msg):
 	from utils import cstr
-	if not request_method:
+	if not request:
 		print cstr(msg)
 
 	error_log.append(cstr(msg))
 
 def log(msg):
-	if not request_method:
+	if not request:
 		import conf
 		if getattr(conf, "logging", False):
 			print repr(msg)

@@ -316,16 +316,15 @@ def get_perm_info(arg=None):
 @webnotes.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
 	# verify old password
-	if old_password:
+	if key:
+		user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
+		if not user:
+			return _("Cannot Update: Incorrect / Expired Link.")
+	else if old_password:
 		user = webnotes.session.user
 		if not webnotes.conn.sql("""select user from __Auth where password=password(%s) 
 			and user=%s""", (old_password, user)):
 			return _("Cannot Update: Incorrect Password")
-	else:
-		if key:
-			user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
-			if not user:
-				return _("Cannot Update: Incorrect / Expired Link.")
 	
 	from webnotes.auth import _update_password
 	_update_password(user, new_password)
