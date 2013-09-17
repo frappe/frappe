@@ -53,6 +53,7 @@ def web_logout():
 	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
 		<p><a href='index'>Back to Home</a></p>""")
 	webnotes.login_manager.logout()
+	webnotes.commit()
 
 @webnotes.whitelist()
 def uploadfile():
