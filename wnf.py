@@ -339,6 +339,8 @@ def run():
 		return
 		
 	import webnotes
+	webnotes.init()
+
 	try:
 		import conf
 	except ImportError, e:
