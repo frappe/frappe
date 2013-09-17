@@ -4,6 +4,7 @@ sys.path.extend(["..", "../app", "../lib"])
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
+from werkzeug.wsgi import SharedDataMiddleware
 
 import mimetypes
 import webnotes
@@ -37,11 +38,15 @@ def application(request):
 
 application = local_manager.make_middleware(application)
 
+
+application = SharedDataMiddleware(application, {
+	'/': os.path.join(os.path.dirname(__file__), "..", "..", "public")
+})
+
 if __name__ == '__main__':
 	import sys
 	from werkzeug.serving import run_simple
 
 	run_simple('localhost', 8000, application, use_reloader=True, 
-		use_debugger=True, use_evalex=True, static_files = {
-			"/": os.path.join(os.path.dirname(__file__), "..", "..", "public")
-		})
+		use_debugger=True, use_evalex=True)
+
