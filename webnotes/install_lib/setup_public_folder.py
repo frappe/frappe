@@ -20,7 +20,6 @@ def make():
 	symlinks = [
 		["app", "../app/public"],
 		["lib", "../lib/public"],
-		["blank.html", "../lib/public/html/blank.html"],
 		["unsupported.html", "../lib/public/html/unsupported.html"]
 	]
 

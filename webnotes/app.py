@@ -1,6 +1,6 @@
 import sys, os
 
-sys.path.extend(["..", "../app", "../lib"])	
+sys.path.extend([".", "app", "lib"])	
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
@@ -17,8 +17,9 @@ local_manager = LocalManager([webnotes.local])
 @Request.application
 def application(request):
 	webnotes.local.request = request
+	
 	webnotes.init()
-			
+		
 	webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 		for k, v in (request.form or request.args).iteritems() })
 			

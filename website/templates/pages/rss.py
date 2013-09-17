@@ -1,14 +1,13 @@
 import webnotes
 import os, urllib
-from webnotes.utils import escape_html
+from webnotes.utils import escape_html, get_request_site_address
 
 no_cache = True
 
 def get_context():
 	"""generate rss feed"""
 		
-	host = ('https://' if webnotes.get_request_header('HTTPS') else 'http://') \
-		+ webnotes.get_request_header('HTTP_HOST', "localhost")
+	host = get_request_site_address()
 	
 	blog_list = webnotes.conn.sql("""\
 		select page_name as name, published_on, modified, title, content from `tabBlog Post` 

@@ -14,7 +14,7 @@ class HTTPRequest:
 	def __init__(self):
 
 		# Get Environment variables
-		self.domain = webnotes.get_request_header('HTTP_HOST')
+		self.domain = webnotes.request.host
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
