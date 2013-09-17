@@ -302,9 +302,8 @@ def has_permission(doctype, ptype="read", refdoc=None):
 					keys = p.match.split(":")
 				else:
 					keys = [p.match, p.match]
-					
-				if refdoc.fields.get(keys[0],"[No Value]") \
-						in get_user_default_as_list(keys[1]):
+				
+				if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
 					return True
 				else:
 					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
@@ -320,6 +319,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 				msg += "\n" + (doctypelist.get_field(key) and doctypelist.get_label(key) or key) \
 					+ " = " + (match_failed[key] or "None")
 			msgprint(msg)
+		
 		return False
 	else:
 		return perms and True or False

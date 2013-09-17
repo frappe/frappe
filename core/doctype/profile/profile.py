@@ -100,11 +100,11 @@ class DocType:
 			webnotes.conn.set(self.doc, 'new_password', '')
 	
 	def reset_password(self):
-		from webnotes.utils import random_string, get_request_site_address
+		from webnotes.utils import random_string, get_url
 
 		key = random_string(32)
 		webnotes.conn.set_value("Profile", self.doc.name, "reset_password_key", key)
-		self.password_reset_mail(get_request_site_address() + "/update-password?key=" + key)
+		self.password_reset_mail(get_url("/update-password?key=" + key))
 	
 	def get_other_system_managers(self):
 		return webnotes.conn.sql("""select distinct parent from tabUserRole user_role
@@ -179,7 +179,7 @@ Thank you,<br>
 	
 		from webnotes.utils.email_lib import sendmail_md
 		from webnotes.profile import get_user_fullname
-		from webnotes.utils import get_request_site_address
+		from webnotes.utils import get_url
 		
 		full_name = get_user_fullname(webnotes.session['user'])
 		if full_name == "Guest":
@@ -189,7 +189,7 @@ Thank you,<br>
 			'first_name': self.doc.first_name or self.doc.last_name or "user",
 			'user': self.doc.name,
 			'company': webnotes.conn.get_default('company') or webnotes.get_config().get("app_name"),
-			'login_url': get_request_site_address(),
+			'login_url': get_url(),
 			'product': webnotes.get_config().get("app_name"),
 			'user_fullname': full_name
 		}

@@ -103,7 +103,7 @@ def log(method):
 
 def report_errors():
 	from webnotes.utils.email_lib import sendmail_to_system_managers
-	from startup import get_url
+	from webnotes.utils import get_url
 	
 	errors = [("""<p>Time: %(modified)s</p>
 <pre><code>%(error)s</code></pre>""" % d) for d in webnotes.conn.sql("""select modified, error 
