@@ -4,6 +4,7 @@
 import webnotes
 import webnotes.model
 from webnotes.model.doc import Document
+from webnotes import _
 
 class DocList(list):
 	"""DocList object as a wrapper around a list"""
@@ -110,6 +111,29 @@ class DocList(list):
 			if not doc.idx:
 				siblings = [int(self.get_item_value(d, "idx") or 0) for d in self.get({"parentfield": doc.parentfield})]
 				doc.idx = (max(siblings) + 1) if siblings else 1
+	
+	def update(self, doclist):
+		for d in doclist:
+			if not d["name"]:
+				d["__islocal"] = 1
+				self.append(d)
+			else:
+				matched = False
+				for ref in self:
+					if isinstance(ref, dict):
+						fielddata = ref
+					else:
+						fielddata = ref.fields
+				
+					if d["name"] and ref.name and ref.name == d["name"]:
+						ref.fields.update(d)
+						matched = True
+						break
+						
+				if not matched:
+					webnotes.throw("[" + d["doctype"] + "] ID: " + d["name"] + 
+						_(" does not exists"))
+		return self
 		
 def objectify(doclist):
 	from webnotes.model.doc import Document

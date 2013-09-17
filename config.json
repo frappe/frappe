@@ -1,5 +1,12 @@
 {
 	"modules": {
+		"Finder": {
+			"type": "page",
+			"link": "finder",
+			"color": "#14C7DE",
+			"label": "Finder",
+			"icon": "icon-folder-open"
+		},
 		"To Do": {
 			"type": "page",
 			"link": "todo",

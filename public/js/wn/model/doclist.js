@@ -104,13 +104,13 @@ wn.model.DocList = Class.extend({
 		// 	callback: callback,
 		// 	btn: btn
 		// }
-		$(opts.btn).attr("disabled", true);
+		$(opts.btn).prop("disabled", true);
 		return wn.call({
 			freeze: true,
 			method: opts.method,
 			args: opts.args,
 			callback: function(r) {
-				$(opts.btn).attr("disabled", false);
+				$(opts.btn).prop("disabled", false);
 				opts.callback && opts.callback(r);
 			}
 		})

@@ -288,7 +288,7 @@ wn.views.CommunicationComposer = Class.extend({
 			? cur_frm.communication_view.list
 			: [];
 		var signature = wn.boot.profile.email_signature || "";
-
+		
 		if(!wn.utils.is_html(signature)) {
 			signature = signature.replace(/\n/g, "<br>");
 		}
@@ -297,16 +297,16 @@ wn.views.CommunicationComposer = Class.extend({
 			this.message = '<p>'+wn._('Dear') +' ' + this.real_name + ",</p>" + (this.message || "");
 		}
 		
+		var reply = (this.message || "") 
+			+ "<p></p>"	+ signature;
+		
 		if(comm_list.length > 0) {
-			fields.content.set_input((this.message || "") + 
-				"<p></p>"
-				+ signature
-				+"<p></p>"
+			fields.content.set_input(reply
+				+ "<p></p>"
 				+"-----"+wn._("In response to")+"-----<p></p>" 
 				+ comm_list[0].content);
 		} else {
-			fields.content.set_input((this.message || "") 
-				+ "<p></p>" + signature)
+			fields.content.set_input(reply);
 		}
 	},
 	setup_autosuggest: function() {

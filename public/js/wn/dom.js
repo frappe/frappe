@@ -231,7 +231,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 	}
 	$.fn.set_working = function() {
 		var ele = this.get(0);
-		$(ele).attr('disabled', 'disabled');
+		$(ele).prop('disabled', true);
 		if(ele.loading_img) { 
 			$(ele.loading_img).toggle(true);
 		} else {
@@ -242,7 +242,7 @@ wn.dom.set_box_shadow = function(ele, spread) {
 	}
 	$.fn.done_working = function() {
 		var ele = this.get(0);
-		$(ele).attr('disabled', null);
+		$(ele).prop('disabled', false);
 		if(ele.loading_img) { 
 			$(ele.loading_img).toggle(false); 
 		};

@@ -778,6 +778,13 @@ wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
 wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
+		
+		// add title if prev field is not column / section heading or html
+		if(["Column Break", "Section Break", "HTML"].indexOf(
+				wn.model.get("DocField", {parent: this.frm.doctype, idx: this.df.idx-1}).fieldtype)===-1) {
+			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);	
+		}
+		
 		this.grid = new wn.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,

@@ -358,13 +358,13 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.sort_dialog = new wn.ui.Dialog({title:'Sorting Preferences'});
 		$(this.sort_dialog.body).html('<p class="help">Sort By</p>\
 			<div class="sort-column"></div>\
-			<div><select class="sort-order" style="margin-top: 10px; width: 60%;">\
+			<div><select class="sort-order form-control" style="margin-top: 10px; width: 60%;">\
 				<option value="asc">'+wn._('Ascending')+'</option>\
 				<option value="desc">'+wn._('Descending')+'</option>\
 			</select></div>\
 			<hr><p class="help">'+wn._('Then By (optional)')+'</p>\
 			<div class="sort-column-1"></div>\
-			<div><select class="sort-order-1" style="margin-top: 10px; width: 60%;">\
+			<div><select class="sort-order-1 form-control" style="margin-top: 10px; width: 60%;">\
 				<option value="asc">'+wn._('Ascending')+'</option>\
 				<option value="desc">'+wn._('Descending')+'</option>\
 			</select></div><hr>\

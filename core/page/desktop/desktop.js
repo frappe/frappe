@@ -18,6 +18,8 @@ wn.core.pages.desktop.render = function() {
 	document.title = "Desktop";
 	var add_icon = function(m) {
 		var module = wn.modules[m];
+		if(!module)
+			return;
 		if(!module.label) 
 			module.label = m;
 		module.name = m;
@@ -70,6 +72,7 @@ wn.core.pages.desktop.show_pending_notifications = function() {
 	var modules_list = wn.user.get_desktop_items();
 	$.each(modules_list, function(i, module) {
 		var module_doctypes = wn.boot.notification_info.module_doctypes[module];
+
 		var sum = 0;
 		if(module_doctypes) {
 			$.each(module_doctypes, function(j, doctype) {
@@ -83,6 +86,7 @@ wn.core.pages.desktop.show_pending_notifications = function() {
 			notifier.toggle(sum ? true : false);
 			notifier.find(".circle-text").html(sum || "");
 		}
+
 	});
 }
 

@@ -142,7 +142,7 @@ wn.UserProperties = Class.extend({
 	},
 	add_delete_button: function(row, d) {
 		var me = this;
-		$("<button class='btn btn-small'><i class='icon-remove'></i></button>")
+		$("<button class='btn btn-small btn-default'><i class='icon-remove'></i></button>")
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)
@@ -185,11 +185,11 @@ wn.UserProperties = Class.extend({
 				});
 				if(me.get_user()) {
 					d.set_value("parent", me.get_user());
-					d.get_input("parent").attr("disabled", true);
+					d.get_input("parent").prop("disabled", true);
 				}
 				if(me.get_property()) {
 					d.set_value("defkey", me.get_property());
-					d.get_input("defkey").attr("disabled", true);
+					d.get_input("defkey").prop("disabled", true);
 				}
 				
 				d.fields_dict["defvalue"].get_query = function(txt) {

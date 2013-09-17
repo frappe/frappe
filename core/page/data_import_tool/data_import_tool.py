@@ -80,17 +80,6 @@ def get_template():
 
 		if dt==doctype:
 			column_start_end[dt] = webnotes._dict({"start": 0})
-			
-			if all_doctypes and with_data:
-				append_field_column(webnotes._dict({
-					"fieldname": "modified",
-					"label": "Last Updated On",
-					"fieldtype": "Data",
-					"reqd": 1,
-					"idx": 0,
-					"info": "Don't change!"
-				}), True)
-			
 		else:
 			column_start_end[dt] = webnotes._dict({"start": len(columns)})
 			
@@ -167,7 +156,11 @@ def get_template():
 		w.writerow([data_keys.data_separator])
 
 	def add_data():
-		def add_data_row(row_group, dt, d, rowidx):
+		def add_data_row(row_group, dt, doc, rowidx):
+			d = doc.copy()
+			if all_doctypes:
+				d.name = '"'+ d.name+'"'
+
 			if len(row_group) < rowidx + 1:
 				row_group.append([""] * (len(columns) + 1))
 			row = row_group[rowidx]
@@ -180,8 +173,6 @@ def get_template():
 			for doc in data:
 				# add main table
 				row_group = []
-				if all_doctypes:
-					doc.modified = '"'+ doc.modified+'"'
 					
 				add_data_row(row_group, doctype, doc, 0)
 				
@@ -224,10 +215,18 @@ def get_template():
 	webnotes.response['doctype'] = doctype
 
 @webnotes.whitelist()
-def upload():
+def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False):
 	"""upload data"""
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
+	# extra input params
+	import json
+	params = json.loads(webnotes.form_dict.get("params") or '{}')
+	
+	if params.get("_submit"):
+		submit_after_import = True
+	if params.get("ignore_encoding_errors"):
+		ignore_encoding_errors = True
 
 	from webnotes.utils.datautils import read_csv_content_from_uploaded_file
 
@@ -311,6 +310,10 @@ def upload():
 									d[fieldname] = flt(d[fieldname])
 							except IndexError, e:
 								pass
+								
+						# scrub quotes from name and modified
+						if d.get("name") and d["name"].startswith('"'):
+							d["name"] = d["name"][1:-1]
 
 						if sum([0 if not val else 1 for val in d.values()]):
 							d['doctype'] = dt
@@ -330,14 +333,11 @@ def upload():
 			return [d]
 
 	def main_doc_empty(row):
-		return not (row and len(row) > 2 and (row[1] or row[2]))
+		return not (row and ((len(row) > 1 and row[1]) or (len(row) > 2 and row[2])))
 		
-	# extra input params
-	import json
-	params = json.loads(webnotes.form_dict.get("params") or '{}')
-
 	# header
-	rows = read_csv_content_from_uploaded_file(params.get("ignore_encoding_errors"))
+	if not rows:
+		rows = read_csv_content_from_uploaded_file(ignore_encoding_errors)
 	start_row = get_start_row()
 	header = rows[:start_row]
 	data = rows[start_row:]
@@ -347,6 +347,11 @@ def upload():
 	doctype_parentfield = {}
 	column_idx_to_fieldname = {}
 	column_idx_to_fieldtype = {}
+	
+	if submit_after_import and not cint(webnotes.conn.get_value("DocType", 
+			doctype, "is_submittable")):
+		submit_after_import = False
+		
 
 	parenttype = get_header_row(data_keys.parent_table)
 	
@@ -359,8 +364,8 @@ def upload():
 	make_column_map()
 	
 	webnotes.conn.begin()
-	
-	overwrite = params.get('overwrite')
+	if not overwrite:
+		overwrite = params.get('overwrite')
 	doctype_dl = webnotes.model.doctype.get(doctype)
 	
 	# delete child rows (if parenttype)
@@ -381,17 +386,17 @@ def upload():
 		doclist = get_doclist(row_idx)
 		try:
 			webnotes.message_log = []
-			if len(doclist) > 1:
-				bean = webnotes.bean(doclist)
-				if overwrite and bean.doc.modified:
-					# remove the extra quotes added to preserve date formatting
-					bean.doc.modified = bean.doc.modified[1:-1]
+			if len(doclist) > 1:				
+				if overwrite:
+					bean = webnotes.bean(doctype, doclist[0]["name"])
+					bean.doclist.update(doclist)
 					bean.save()
 					ret.append('Updated row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 				else:
+					bean = webnotes.bean(doclist)
 					bean.insert()
 					ret.append('Inserted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
-				if params.get("_submit"):
+				if submit_after_import:
 					bean.submit()
 					ret.append('Submitted row (#%d) %s' % (row_idx + 1, getlink(bean.doc.doctype, bean.doc.name)))
 			else:
@@ -409,7 +414,7 @@ def upload():
 						doc.parent), unicode(doc.idx)))
 					parent_list.append(doc.parent)
 				else:
-					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, params.get("_submit")))
+					ret.append(import_doc(doclist[0], doctype, overwrite, row_idx, submit_after_import))
 
 		except Exception, e:
 			error = True
