@@ -49,7 +49,6 @@ def get_dependencies(doctype):
 		for doctype_name in test_module.test_ignore:
 			if doctype_name in options_list:
 				options_list.remove(doctype_name)
-	
 	return options_list
 
 def make_test_records_for_doctype(doctype, verbose=0):
