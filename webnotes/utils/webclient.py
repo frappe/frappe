@@ -8,7 +8,7 @@
 #
 # Usage:
 # 1. set the server settings, user, password in this file
-# 2. user the "insert", "update", "delete" methods to push data
+# 2. use the "insert", "update", "delete" methods to push data
 #
 # Help:
 # Data is sent as JSON objects called "doclist". A doclist is a list of records that represent one transaction (document)
