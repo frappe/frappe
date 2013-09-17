@@ -98,10 +98,10 @@ class Session:
 		self.data['user'] = webnotes.local.login_manager.user
 		self.data['sid'] = sid
 		self.data['data']['user'] = webnotes.local.login_manager.user
-		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR')
+		self.data['data']['session_ip'] = webnotes.get_request_header('REMOTE_ADDR')
 		self.data['data']['last_updated'] = webnotes.utils.now()
 		self.data['data']['session_expiry'] = self.get_expiry_period()
-		self.data['data']['session_country'] = get_geo_ip_country(os.environ.get('REMOTE_ADDR'))
+		self.data['data']['session_country'] = get_geo_ip_country(webnotes.get_request_header('REMOTE_ADDR'))
 		
 		# insert session
 		webnotes.conn.begin()
@@ -247,7 +247,10 @@ def get_geo_ip_country(ip_addr):
 	import os
 	from webnotes.utils import get_base_path
 
-	geo_ip_file = os.path.join(get_base_path(), "lib", "data", "GeoIP.dat")
-	geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
+	try:
+		geo_ip_file = os.path.join(get_base_path(), "lib", "data", "GeoIP.dat")
+		geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
+		return geo_ip.country_name_by_addr(ip_addr)
+	except Exception, e:
+		return
 
-	return geo_ip.country_name_by_addr(ip_addr)

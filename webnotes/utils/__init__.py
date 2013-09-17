@@ -71,13 +71,13 @@ def get_request_site_address(full_address=False):
 		host_name = conf.host_name
 	else:
 		try:
-			protocol = 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://'
-			host_name = protocol + os.environ.get('HTTP_HOST')
+			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL') and 'https://' or 'http://'
+			host_name = protocol + webnotes.get_request_header('HTTP_HOST')
 		except TypeError:
 			return 'http://localhost'
 
 	if full_address:
-		return host_name + os.environ.get("REQUEST_URI", "")
+		return host_name + webnotes.get_request_header("REQUEST_URI", "")
 	else:
 		return host_name
 

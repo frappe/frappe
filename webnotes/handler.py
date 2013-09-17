@@ -210,7 +210,7 @@ def json_handler(obj):
 			(type(obj), repr(obj))
 
 def accept_gzip():
-	if "gzip" in os.environ.get("HTTP_ACCEPT_ENCODING", ""):
+	if "gzip" in webnotes.get_request_header("HTTP_ACCEPT_ENCODING", ""):
 		return True
 
 def compressBuf(buf):

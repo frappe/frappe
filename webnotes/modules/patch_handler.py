@@ -66,7 +66,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		tb = webnotes.getTraceback()
 		log(tb)
 		import os
-		if os.environ.get('HTTP_HOST'):
+		if webnotes.get_request_header('HTTP_HOST'):
 			add_to_patch_log(tb)
 
 	block_user(False)

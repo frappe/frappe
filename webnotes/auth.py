@@ -14,19 +14,19 @@ class HTTPRequest:
 	def __init__(self):
 
 		# Get Environment variables
-		self.domain = webnotes.get_env_vars('HTTP_HOST')
+		self.domain = webnotes.get_request_header('HTTP_HOST')
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
 		# language
-		self.set_lang(webnotes.get_env_vars('HTTP_ACCEPT_LANGUAGE'))
+		self.set_lang(webnotes.get_request_header('HTTP_ACCEPT_LANGUAGE'))
 		
-		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
+		webnotes.remote_ip = webnotes.get_request_header('REMOTE_ADDR')
 
 		# load cookies
 		webnotes.local.cookie_manager = CookieManager()
 
-		webnotes.request_method = webnotes.get_env_vars("REQUEST_METHOD")
+		webnotes.request_method = webnotes.get_request_header("REQUEST_METHOD")
 		
 		# override request method. All request to be of type POST, but if _type == "POST" then commit
 		if webnotes.form_dict.get("_type"):

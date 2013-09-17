@@ -35,7 +35,7 @@ def generate():
 	from webnotes.model.doc import Document
 	from webnotes.utils import escape_html
 	
-	host = (os.environ.get('HTTPS') and 'https://' or 'http://') + os.environ.get('HTTP_HOST')
+	host = (webnotes.get_request_header('HTTPS') and 'https://' or 'http://') + webnotes.get_request_header('HTTP_HOST')
 	
 	items = ''
 	blog_list = webnotes.conn.sql("""\

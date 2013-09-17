@@ -188,11 +188,11 @@ def connect(db_name=None, password=None):
 	import webnotes.profile
 	local.user = webnotes.profile.Profile('Administrator')
 	
-def get_env_vars(env_var):
+def get_request_header(key, default=None):
 	import os
-	return os.environ.get(env_var,'None')
+	return os.environ.get(key, default)
 
-remote_ip = get_env_vars('REMOTE_ADDR')		#Required for login from python shell
+remote_ip = get_request_header('REMOTE_ADDR')		#Required for login from python shell
 logger = None
 	
 def get_db_password(db_name):
