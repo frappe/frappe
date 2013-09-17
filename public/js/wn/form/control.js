@@ -369,7 +369,7 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 	},
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
-			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy')
+			(wn.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		this.$input.datepicker(this.datepicker_options);
 	},
 	parse: function(value) {

@@ -44,7 +44,7 @@ def render_page(page_name):
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.getTraceback())
 	else:
-		comments = "\n\npage:"+page_name+\
+		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
 
@@ -122,9 +122,14 @@ def build_sitemap():
 	for g in config["generators"].values():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
-		for name in webnotes.conn.sql_list("""select page_name from `tab%s` where 
+		for page_name, name, modified in webnotes.conn.sql("""select page_name, name, modified from `tab%s` where 
 			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
-			sitemap[name] = g
+			opts = g.copy()
+			opts["doctype"] = module.doctype
+			opts["page_name"] = page_name
+			opts["docname"] = name
+			opts["lastmod"] = modified.strftime("%Y-%m-%d %H:%M:%S")
+			sitemap[page_name] = opts
 		
 	return sitemap
 	
@@ -140,7 +145,7 @@ def get_home_page():
 	return page_name
 		
 def build_website_sitemap_config():
-	import os
+	import os, time
 	
 	config = {"pages": {}, "generators":{}}
 	basepath = webnotes.utils.get_base_path()
@@ -149,11 +154,17 @@ def build_website_sitemap_config():
 		name = fname
 		if fname.endswith(".html"):
 			name = fname[:-5]
+		
+		template_path = os.path.relpath(os.path.join(path, fname), basepath)
+		
 		options = webnotes._dict({
 			"link_name": name,
-			"template": os.path.relpath(os.path.join(path, fname), basepath),
+			"template": template_path,
+			"lastmod": time.ctime(os.path.getmtime(template_path))
 		})
-		controller_path = os.path.join(path, name.replace("-", "_") + ".py")
+
+		controller_name = fname.split(".")[0].replace("-", "_") + ".py"
+		controller_path = os.path.join(path, controller_name)
 		if os.path.exists(controller_path):
 			options.controller = os.path.relpath(controller_path[:-3], basepath).replace(os.path.sep, ".")
 			options.controller = ".".join(options.controller.split(".")[1:])
@@ -301,10 +312,12 @@ def is_signup_enabled():
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""
 	new_page_name = page_name(title)
+	sitemap = get_website_sitemap()
 	
-	if new_page_name in get_all_pages():
-		webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
-			_("Please change the value"), title))
+	if new_page_name in sitemap and \
+		not (sitemap[new_page_name].doctype == doc.doctype and sitemap[new_page_name].docname == doc.name):
+			webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
+				_("Please change the value"), title))
 	
 	if doc.page_name: delete_page_cache(doc.page_name)
 	webnotes.conn.set(doc, "page_name", new_page_name)

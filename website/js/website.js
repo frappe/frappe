@@ -2,8 +2,17 @@
 // MIT License. See license.txt 
 if(!window.wn) wn = {};
 
-
-wn = {
+$.extend(wn, {
+	show_message: function(text, icon) {
+		if(!icon) icon="icon-refresh icon-spin";
+		treemapper.hide_message();
+		$('<div class="message-overlay"></div>')
+			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
+				+text+'</div>').appendTo(document.body);
+	},
+	hide_message: function(text) {
+		$('.message-overlay').remove();
+	},
 	call: function(opts) {
 		wn.prepare_call(opts);
 		$.ajax({
@@ -117,7 +126,7 @@ wn = {
 	msgprint: function(html, title) {
 		return wn.get_modal(title || "Message", html).modal("show");
 	}
-}
+});
 
 
 // Utility functions
