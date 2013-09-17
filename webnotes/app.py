@@ -40,7 +40,7 @@ application = local_manager.make_middleware(application)
 
 
 application = SharedDataMiddleware(application, {
-    '/': os.path.join(os.path.dirname(__file__), "..", "..", "public")
+	'/': os.path.join(os.path.dirname(__file__), "..", "..", "public")
 })
 
 if __name__ == '__main__':
@@ -49,5 +49,4 @@ if __name__ == '__main__':
 
 	run_simple('localhost', 8000, application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
-
 
