@@ -214,7 +214,7 @@ Thank you,<br>
 				
 		# disable the user and log him/her out
 		self.doc.enabled = 0
-		if getattr(webnotes, "login_manager", None):
+		if webnotes.local.login_manager:
 			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
