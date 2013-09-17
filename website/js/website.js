@@ -107,11 +107,11 @@ $.extend(wn, {
 		return sid && sid!=="Guest";
 	},
 	get_modal: function(title, body_html) {
-		var modal = $('<div class="modal" style="overflow: auto;">\
+		var modal = $('<div class="modal" style="overflow: auto;" tabindex="-1">\
 			<div class="modal-dialog">\
 				<div class="modal-content">\
 					<div class="modal-header">\
-						<a type="button" class="close" \
+						<a type="button" class="close"\
 							data-dismiss="modal" aria-hidden="true">&times;</a>\
 						<h4 class="modal-title">'+title+'</h4>\
 					</div>\
@@ -121,11 +121,20 @@ $.extend(wn, {
 			</div>\
 			</div>').appendTo(document.body);
 			
-			return modal;
+		return modal;
 	},
 	msgprint: function(html, title) {
 		return wn.get_modal(title || "Message", html).modal("show");
-	}
+	},
+	send_message: function(opts, btn) {
+		return wn.call({
+			type: "POST",
+			method: "website.doctype.contact_us_settings.templates.pages.contact.send_message",
+			btn: btn,
+			args: opts,
+			callback: opts.callback
+		});
+	},
 });
 
 
@@ -245,14 +254,4 @@ $(document).ready(function() {
 	$("#website-login").toggleClass("hide", full_name ? true : false);
 	$("#website-post-login").toggleClass("hide", full_name ? false : true);
 });
-
-wn.send_message = function(opts, btn) {
-	return wn.call({
-		type: "POST",
-		method: "website.doctype.contact_us_settings.templates.pages.contact.send_message",
-		btn: btn,
-		args: opts,
-		callback: opts.callback
-	});
-}
 

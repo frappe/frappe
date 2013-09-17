@@ -1,8 +1,9 @@
 <footer class="container">
 	<div class="web-footer row">
 	<div class="col-md-12">
+		<p style="float: right; clear: both;" id="website-login"><a href="login">Login</a></p>
 		{% if facebook_share or google_plus_one or twitter_share or linked_in_share %}
-		<div class="social-icons" style="">
+		<div class="social-icons" style="clear: both;">
 			<span style="font-size: 11px;">{{ share_text or "Share this page on: "}}</span>
 			{% if google_plus_one %}
 				<a href="https://plus.google.com/share?url={{ url }}"
@@ -22,7 +23,6 @@
 			{% endif %}
 		</div>
 		{% endif %}
-		<p style="float: right; clear: right;" id="website-login"><a href="login">Login</a></p>
 		<div class="web-footer-menu">
 			<ul>
 				{% for item in footer_items %}

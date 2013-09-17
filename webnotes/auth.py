@@ -158,7 +158,7 @@ class LoginManager:
 				getattr(event_handlers, method)(self)
 		except ImportError, e:
 			pass
-	
+			
 		cp = webnotes.bean("Control Panel", "Control Panel")
 		cp.run_method(method)
 	

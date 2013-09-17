@@ -98,9 +98,9 @@ class Installer:
 		self.assign_all_role_to_administrator()
 
 	def update_admin_password(self, password):
-		from webnotes.auth import update_password
+		from webnotes.auth import _update_password
 		webnotes.conn.begin()
-		update_password("Administrator", getattr(conf, "admin_password", password))
+		_update_password("Administrator", getattr(conf, "admin_password", password))
 		webnotes.conn.commit()
 	
 	def import_fixtures(self):
