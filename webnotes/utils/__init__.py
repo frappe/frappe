@@ -816,13 +816,19 @@ def get_base_path():
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
 	
-def get_url():
-	import startup
-	if hasattr(startup, "get_url"):
-		url = startup.get_url()
-	else:
-		url = get_request_site_address()
-		
+def get_url(uri=None):
+	url = get_request_site_address()
+	if not url or "localhost" in url:
+		subdomain = webnotes.conn.get_value("Website Settings", "Website Settings",
+			"subdomain")
+		if subdomain:
+			if "http" not in subdomain:
+				url = "http://" + subdomain
+				
+	if uri:
+		import urllib
+		url = urllib.basejoin(url, uri)
+	
 	return url
 
 def get_url_to_form(doctype, name, base_url=None, label=None):

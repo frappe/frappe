@@ -38,7 +38,6 @@ def _(msg):
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
-	global lang, user_lang
 		
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
@@ -46,8 +45,7 @@ def set_user_lang(user, user_language=None):
 	if user_language:
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
-			lang = lang_dict[user_language]
-			user_lang = True		
+			local.lang = lang_dict[user_language]
 
 def load_translations(module, doctype, name):
 	from webnotes.translate import load_doc_messages
@@ -83,7 +81,6 @@ mute_emails = False
 mute_messages = False
 test_objects = {}
 print_messages = False
-user_lang = False
 in_import = False
 in_test = False
 rollback_on_exception = False
@@ -302,9 +299,8 @@ def has_permission(doctype, ptype="read", refdoc=None):
 					keys = p.match.split(":")
 				else:
 					keys = [p.match, p.match]
-					
-				if refdoc.fields.get(keys[0],"[No Value]") \
-						in get_user_default_as_list(keys[1]):
+				
+				if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
 					return True
 				else:
 					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
@@ -320,6 +316,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 				msg += "\n" + (doctypelist.get_field(key) and doctypelist.get_label(key) or key) \
 					+ " = " + (match_failed[key] or "None")
 			msgprint(msg)
+		
 		return False
 	else:
 		return perms and True or False

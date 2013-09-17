@@ -118,7 +118,6 @@ def get_module_name(doctype, module, prefix):
 def load_doctype_module(doctype, module, prefix=""):
 	import webnotes
 	from webnotes.modules import scrub
-	_doctype, _module = scrub(doctype), scrub(module)
 	try:
 		module = __import__(get_module_name(doctype, module, prefix), fromlist=[''])
 		return module

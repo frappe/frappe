@@ -1,6 +1,8 @@
 import sys, os
 
-sys.path.extend([".", "app", "lib"])	
+sys.path.insert(0, '.')
+sys.path.insert(0, 'app')
+sys.path.insert(0, 'lib')
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
