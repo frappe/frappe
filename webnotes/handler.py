@@ -156,8 +156,6 @@ def print_json():
 
 	import json
 	
-	print webnotes.response
-	
 	print_zip(json.dumps(webnotes.local.response, default=json_handler, separators=(',',':')))
 		
 def print_csv():
