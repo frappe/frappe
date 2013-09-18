@@ -89,7 +89,7 @@ class Installer:
 			sync_for("app", force=True, sync_everything=True)
 
 		if os.path.exists(os.path.join("app", "startup", "install_fixtures")):
-			self.import_fixtures()
+			install_fixtures()
 
 		print "Completing App Import..."
 		install and install.post_import()
@@ -103,26 +103,6 @@ class Installer:
 		_update_password("Administrator", getattr(conf, "admin_password", password))
 		webnotes.conn.commit()
 	
-	def import_fixtures(self):
-		print "Importing install fixtures..."
-		for basepath, folders, files in os.walk(os.path.join("app", "startup", "install_fixtures")):
-			for f in files:
-				if f.endswith(".json"):
-					print "Importing " + f
-					with open(os.path.join(basepath, f), "r") as infile:
-						webnotes.bean(json.loads(infile.read())).insert_or_update()
-						webnotes.conn.commit()
-
-				if f.endswith(".csv"):
-					from core.page.data_import_tool.data_import_tool import import_file_by_path
-					import_file_by_path(os.path.join(basepath, f), ignore_links = True)
-					webnotes.conn.commit()
-						
-		if os.path.exists(os.path.join("app", "startup", "install_fixtures", "files")):
-			if not os.path.exists(os.path.join("public", "files")):
-				os.makedirs(os.path.join("public", "files"))
-			os.system("cp -r %s %s/" % (os.path.join("app", "startup", "install_fixtures", "files"), 
-				os.path.join("public", "files")))
 	
 	def import_core_docs(self):
 		install_docs = [
@@ -172,3 +152,24 @@ class Installer:
 		`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 		`password` VARCHAR(180) NOT NULL
 		) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
+
+def install_fixtures():
+	print "Importing install fixtures..."
+	for basepath, folders, files in os.walk(os.path.join("app", "startup", "install_fixtures")):
+		for f in files:
+			if f.endswith(".json"):
+				print "Importing " + f
+				with open(os.path.join(basepath, f), "r") as infile:
+					webnotes.bean(json.loads(infile.read())).insert_or_update()
+					webnotes.conn.commit()
+
+			if f.endswith(".csv"):
+				from core.page.data_import_tool.data_import_tool import import_file_by_path
+				import_file_by_path(os.path.join(basepath, f), ignore_links = True, overwrite=True)
+				webnotes.conn.commit()
+					
+	if os.path.exists(os.path.join("app", "startup", "install_fixtures", "files")):
+		if not os.path.exists(os.path.join("public", "files")):
+			os.makedirs(os.path.join("public", "files"))
+		os.system("cp -r %s %s/" % (os.path.join("app", "startup", "install_fixtures", "files"), 
+			os.path.join("public", "files")))

@@ -182,6 +182,8 @@ def connect(db_name=None, password=None):
 	import webnotes.db
 	local.conn = webnotes.db.Database(user=db_name, password=password)
 	local.session = _dict({'user':'Administrator'})
+	local.response = _dict()
+	local.form_dict = _dict()
 	
 	import webnotes.profile
 	local.user = webnotes.profile.Profile('Administrator')

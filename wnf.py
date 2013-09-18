@@ -139,6 +139,9 @@ def setup_options():
 	parser.add_option('--install_fresh', nargs=1, metavar = "NEW_DB_NAME",
 						help="install fresh db")
 
+	parser.add_option('--install_fixtures', default=False, action="store_true",
+						help="(re) install install-fixtures from app/startup/install_fixtures")
+
 	parser.add_option('--reinstall', default=False, action="store_true",
 						help="install fresh db in db_name specified in conf.py")
 
@@ -419,6 +422,10 @@ def run():
 		from webnotes.install_lib.install import Installer
 		inst = Installer('root')
 		inst.import_from_db(options.install_fresh, verbose = 1)
+
+	elif options.install_fixtures:
+		from webnotes.install_lib.install import install_fixtures
+		install_fixtures()
 
 	elif options.reinstall:
 		from webnotes.install_lib.install import Installer
