@@ -188,9 +188,9 @@ wn.views.QueryReport = Class.extend({
 				if(c.indexOf(":")!=-1) {
 					var opts = c.split(":");
 					var df = {
-						label: opts.slice(0, opts.length - 2).join(":"),
-						fieldtype: opts[opts.length - 2],
-						width: opts[opts.length - 1]
+						label: opts.length<=2 ? opts[0] : opts.slice(0, opts.length - 2).join(":"),
+						fieldtype: opts.length<=2 ? opts[1] : opts[opts.length - 2],
+						width: opts.length<=2 ? opts[2] : opts[opts.length - 1]
 					}
 					
 					if(!df.fieldtype) 

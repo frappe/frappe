@@ -296,9 +296,9 @@ def setup_options():
 	return parser.parse_args()
 	
 def run():
-	sys.path.append('.')
-	sys.path.append('lib')
-	sys.path.append('app')
+	sys.path.insert(0, '.')
+	sys.path.insert(0, 'lib')
+	sys.path.insert(0, 'app')
 
 	(options, args) = setup_options()
 	
@@ -339,6 +339,8 @@ def run():
 		return
 		
 	import webnotes
+	webnotes.init()
+
 	try:
 		import conf
 	except ImportError, e:

@@ -131,7 +131,7 @@ class Session:
 		if data:
 			# set language
 			if data.lang and self.user!="demo@erpnext.com": 
-				webnotes.lang = data.lang
+				webnotes.local.lang = data.lang
 			self.data = webnotes._dict({'data': data, 
 				'user':data.user, 'sid': self.sid})
 		else:
@@ -202,9 +202,8 @@ class Session:
 	def update(self):
 		"""extend session expiry"""
 		self.data['data']['last_updated'] = webnotes.utils.now()
-		if webnotes.user_lang:
-			# user language
-			self.data['data']['lang'] = webnotes.lang
+		self.data['data']['lang'] = unicode(webnotes.lang)
+
 
 		# update session in db
 		time_diff = None

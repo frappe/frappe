@@ -80,8 +80,7 @@ def delete(arg=None):
 		webnotes.form_dict['name']);
 
 def notify(arg=None):
-	from webnotes.utils import cstr, get_fullname
-	from startup import get_url
+	from webnotes.utils import cstr, get_fullname, get_url
 	
 	fn = get_fullname(webnotes.user.name) or webnotes.user.name
 	
