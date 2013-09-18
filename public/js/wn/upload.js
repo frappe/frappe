@@ -41,10 +41,10 @@ wn.upload = {
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
 
 			var fileobj = $upload.find(":file").get(0).files[0];
-			wn.upload.upload_file(fileobj, opts.args, opts.callback, opts.onerror);
+			wn.upload.upload_file(fileobj, opts.args, opts);
 		})
 	},
-	upload_file: function(fileobj, args, callback, onerror) {
+	upload_file: function(fileobj, args, opts) {
 		if(!fileobj && !args.file_url) {
 			msgprint(wn._("Please attach a file or set a URL"));
 			return;
@@ -60,10 +60,10 @@ wn.upload = {
 						msgbox.hide();
 					if(r.exc) {
 						// if no onerror, assume callback will handle errors
-						onerror ? onerror(r) : callback(null, null, r);
+						opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
 						return;
 					}
-					callback(r.message.fid, r.message.filename, r);
+					opts.callback(r.message.fid, r.message.filename, r);
 					$(document).trigger("upload_complete", 
 						[r.message.fid, r.message.filename]);
 				}
@@ -77,8 +77,16 @@ wn.upload = {
 
 			freader.onload = function() {
 				args.filename = fileobj.name;
-				args.filedata = freader.result.split(",")[1];
-				_upload_file();
+				if((opts.max_width || opts.max_height) && (/\.(gif|jpg|jpeg|tiff|png)$/i).test(args.filename)) {
+					wn.utils.resize_image(freader, function(dataurl) {
+						args.filedata = dataurl.split(",")[1];
+						console.log("resized!")
+						_upload_file();
+					})
+				} else {
+					args.filedata = freader.result.split(",")[1];
+					_upload_file();
+				}
 			};
 			
 			freader.readAsDataURL(fileobj);
