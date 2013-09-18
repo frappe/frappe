@@ -179,7 +179,7 @@ class Document:
 		else:
 			return ''
 	
-	def get(self, name, value):
+	def get(self, name, value=None):
 		return self.fields.get(name, value)
 	
 	def _get_amended_name(self):
