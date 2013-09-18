@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-09-16 14:47:47", 
+  "modified": "2013-09-18 11:50:06", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -165,17 +165,13 @@
   "doctype": "DocField", 
   "fieldname": "change_password", 
   "fieldtype": "Section Break", 
-  "label": "Set New Password"
+  "label": "Set Password"
  }, 
  {
-  "description": "Set a new password and \"Save\"", 
   "doctype": "DocField", 
   "fieldname": "new_password", 
   "fieldtype": "Password", 
-  "hidden": 0, 
-  "label": "New Password", 
-  "no_copy": 1, 
-  "print_hide": 1
+  "label": "New Password"
  }, 
  {
   "doctype": "DocField", 

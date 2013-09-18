@@ -16,6 +16,9 @@ class DocType:
 		if self.doc.name not in ('Guest','Administrator'):
 			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
+			
+			if webnotes.conn.exists("Profile", self.doc.name):
+				webnotes.msgprint("Name Exists", raise_exception=True)
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
@@ -23,9 +26,15 @@ class DocType:
 			self.validate_email_type(self.doc.email)
 		self.validate_max_users()
 		self.add_system_manager_role()
+		self.check_enable_disable()
+		if self.in_insert:
+			self.autoname()
+			if self.doc.name not in ("Guest", "Administrator"):
+				self.send_welcome_mail()
+		else:
+			self.email_new_password()
 
-		if self.doc.fields.get('__islocal') and not self.doc.new_password:
-			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
+		self.doc.new_password = ""
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -74,30 +83,18 @@ class DocType:
 				"parentfield": "user_roles",
 				"role": "System Manager"
 			})
-				
+	
+	def email_new_password(self):
+		if self.doc.new_password and not self.in_insert:
+			from webnotes.auth import _update_password
+			_update_password(self.doc.name, self.doc.new_password)
+
+			self.password_update_mail(self.doc.new_password)
+			webnotes.msgprint("New Password Emailed.")
+			
 	def on_update(self):
 		# owner is always name
 		webnotes.conn.set(self.doc, 'owner', self.doc.name)
-		self.update_new_password()
-		
-		self.check_enable_disable()
-
-	def update_new_password(self):
-		"""update new password if set"""
-		if self.doc.new_password:
-			from webnotes.auth import _update_password
-			_update_password(self.doc.name, self.doc.new_password)
-			
-			if self.in_insert:
-				webnotes.msgprint("New user created. - %s" % self.doc.name)
-				if cint(self.doc.send_invite_email):
-					self.send_welcome_mail(self.doc.new_password)
-					webnotes.msgprint("Sent welcome mail.")
-			else:
-				self.password_update_mail(self.doc.new_password)
-				webnotes.msgprint("New Password Emailed.")
-				
-			webnotes.conn.set(self.doc, 'new_password', '')
 	
 	def reset_password(self):
 		from webnotes.utils import random_string, get_url
@@ -150,28 +147,32 @@ Thank you,<br>
 			txt, {"new_password": password})
 		
 		
-	def send_welcome_mail(self, password):
+	def send_welcome_mail(self):
 		"""send welcome mail to user with password and login url"""
+
+		from webnotes.utils import random_string, get_url
+
+		self.doc.reset_password_key = random_string(32)
+		link = get_url("/update-password?key=" + self.doc.reset_password_key)
 		
 		txt = """
 ## %(company)s
 
 Dear %(first_name)s,
 
-A new account has been created for you, here are your details:
+A new account has been created for you. 
 
-Login Id: %(user)s<br>
-Password: %(password)s
+Your login id is: %(user)s
 
-To login to your new %(product)s account, please go to:
+To complete your registration, please click on the link below:
 
-%(login_url)s
+<a href="%(link)s">%(link)s</a>
 
 Thank you,<br>
 %(user_fullname)s
 		"""
 		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, 
-			{ "password": password })
+			{ "link": link })
 
 	def send_login_mail(self, subject, txt, add_args):
 		"""send mail with login details"""
