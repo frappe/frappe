@@ -7,9 +7,9 @@ from __future__ import unicode_literals
 import webnotes, json
 import webnotes.defaults
 
-tables = None
-doctypes = {}
-roles = []
+tables = webnotes.local('reportview_tables')
+doctypes = webnotes.local('reportview_doctypes')
+roles = webnotes.local('reportview_roles')
 
 @webnotes.whitelist()
 def get():
@@ -48,8 +48,7 @@ def execute(doctype, query=None, filters=None, fields=None, docstatus=None,
 	return webnotes.conn.sql(query, as_dict=not as_list, debug=debug)
 	
 def prepare_args(doctype, filters, fields, docstatus, group_by, order_by, with_childnames):
-	global tables		
-	tables = get_tables(doctype, fields)
+	webnotes.local.reportview_tables = get_tables(doctype, fields)
 	load_doctypes()
 	remove_user_tags(doctype, fields)
 	conditions = build_conditions(doctype, fields, filters, docstatus)
@@ -107,11 +106,13 @@ def run_custom_query(query):
 
 def load_doctypes():
 	"""load all doctypes and roles"""
-	global doctypes, roles
 	import webnotes.model.doctype
 
-	roles = webnotes.get_roles()
+	webnotes.local.reportview_roles = webnotes.get_roles()
 	
+	if not doctypes:
+		webnotes.local.reportview_doctypes = {}
+
 	for t in tables:
 		if t.startswith('`'):
 			doctype = t[4:-1]
@@ -158,8 +159,8 @@ def build_conditions(doctype, fields, filters, docstatus):
 def build_filter_conditions(filters, conditions):
 	"""build conditions from user filters"""
 	from webnotes.utils import cstr
-	global tables
-	if not tables: tables = []
+	if not tables:
+		webnotes.local.reportview_tables = []
 	
 	for f in filters:
 		if isinstance(f, basestring):
@@ -184,18 +185,17 @@ def build_filter_conditions(filters, conditions):
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
-	global tables, roles
 	
 	match_filters = {}
 	match_conditions = []
 	match = True
-	
+
 	if not tables or not doctypes:
-		tables = get_tables(doctype, fields)
+		webnotes.local.reportview_tables = get_tables(doctype, fields)
 		load_doctypes()
 
 	if not roles:
-		roles = webnotes.get_roles()
+		webnotes.local.reportview_roles = webnotes.get_roles()
 
 	for d in doctypes[doctype]:
 		if d.doctype == 'DocPerm' and d.parent == doctype:
@@ -309,8 +309,7 @@ def export_query():
 
 def verify_export_allowed():
 	"""throw exception if user is not allowed to export"""
-	global roles
-	roles = webnotes.get_roles()
+	webnotes.local.reportview_roles = webnotes.get_roles()
 	if not ('Administrator' in roles or 'System Manager' in roles or 'Report Manager' in roles):
 		raise webnotes.PermissionError
 
