@@ -114,7 +114,7 @@ class DocList(list):
 	
 	def update(self, doclist):
 		for i, d in enumerate(self):
-			if d.get("parent") and d.get("name") not in [t.name for t in doclist]:
+			if d.get("parent") and d.get("name") not in [t.get("name") for t in doclist]:
 				del self[i]
 				
 		for d in doclist:
