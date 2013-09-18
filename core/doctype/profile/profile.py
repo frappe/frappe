@@ -31,6 +31,7 @@ class DocType:
 			self.autoname()
 			if self.doc.name not in ("Guest", "Administrator"):
 				self.send_welcome_mail()
+				webnotes.msgprint(_("Welcome Email Sent"))
 		else:
 			self.email_new_password()
 
@@ -353,8 +354,7 @@ def sign_up(email, full_name):
 			"first_name": full_name,
 			"enabled": 1,
 			"new_password": random_string(10),
-			"user_type": "Website User",
-			"send_invite_email": 1
+			"user_type": "Website User"
 		})
 		profile.ignore_permissions = True
 		profile.insert()

@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-09-18 11:50:06", 
+  "modified": "2013-09-18 12:10:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -107,13 +107,6 @@
   "label": "Last Name", 
   "oldfieldname": "last_name", 
   "oldfieldtype": "Data"
- }, 
- {
-  "default": "1", 
-  "doctype": "DocField", 
-  "fieldname": "send_invite_email", 
-  "fieldtype": "Check", 
-  "label": "Send Invite Email"
  }, 
  {
   "doctype": "DocField", 

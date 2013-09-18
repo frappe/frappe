@@ -36,6 +36,8 @@ cur_frm.cscript.user_image = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
+	cur_frm.toggle_display('change_password', !doc.__islocal);
+
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
  	if(!doc.__islocal){		
