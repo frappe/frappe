@@ -171,5 +171,5 @@ def install_fixtures():
 	if os.path.exists(os.path.join("app", "startup", "install_fixtures", "files")):
 		if not os.path.exists(os.path.join("public", "files")):
 			os.makedirs(os.path.join("public", "files"))
-		os.system("cp -r %s %s/" % (os.path.join("app", "startup", "install_fixtures", "files"), 
+		os.system("cp -r %s %s" % (os.path.join("app", "startup", "install_fixtures", "files", "*"), 
 			os.path.join("public", "files")))
