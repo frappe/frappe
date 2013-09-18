@@ -387,7 +387,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		try:
 			webnotes.message_log = []
 			if len(doclist) > 1:				
-				if overwrite:
+				if overwrite and webnotes.conn.exists(doctype, doclist[0]["name"]):
 					bean = webnotes.bean(doctype, doclist[0]["name"])
 					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
