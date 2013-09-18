@@ -179,6 +179,9 @@ class Document:
 		else:
 			return ''
 	
+	def get(self, name, value):
+		return self.fields.get(name, value)
+	
 	def _get_amended_name(self):
 		am_id = 1
 		am_prefix = self.amended_from
