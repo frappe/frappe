@@ -20,8 +20,11 @@ import webnotes.model.doc
 import webnotes.model.doclist
 from webnotes.utils import cint
 
-doctype_cache = {}
-docfield_types = None
+doctype_cache = webnotes.local('doctype_doctype_cache')
+docfield_types = webnotes.local('doctype_doctype_cache')
+
+# doctype_cache = {}
+# docfield_types = None
 
 def get(doctype, processed=False, cached=True):
 	"""return doclist"""
@@ -60,8 +63,7 @@ def get(doctype, processed=False, cached=True):
 	return DocTypeDocList(doclist)
 
 def load_docfield_types():
-	global docfield_types
-	docfield_types = dict(webnotes.conn.sql("""select fieldname, fieldtype from tabDocField
+	webnotes.local.doctype_docfield_types = dict(webnotes.conn.sql("""select fieldname, fieldtype from tabDocField
 		where parent='DocField'"""))
 
 def add_workflows(doclist):
@@ -193,11 +195,9 @@ def add_linked_with(doclist):
 def from_cache(doctype, processed):
 	""" load doclist from cache.
 		sets flag __from_cache in first doc of doclist if loaded from cache"""
-	
-	global doctype_cache
 
 	# from memory
-	if not processed and doctype in doctype_cache:
+	if doctype_cache and not processed and doctype in doctype_cache:
 		return doctype_cache[doctype]
 
 	doclist = webnotes.cache().get_value(cache_name(doctype, processed))
@@ -209,7 +209,9 @@ def from_cache(doctype, processed):
 		return doclist
 
 def to_cache(doctype, processed, doclist):
-	global doctype_cache
+
+	if not doctype_cache:
+		webnotes.local.doctype_doctype_cache = {}
 
 	webnotes.cache().set_value(cache_name(doctype, processed), 
 		[d.fields for d in doclist])
@@ -225,13 +227,12 @@ def cache_name(doctype, processed):
 	return "doctype:" + doctype + suffix
 
 def clear_cache(doctype=None):
-	global doctype_cache
 
 	def clear_single(dt):
 		webnotes.cache().delete_value(cache_name(dt, False))
 		webnotes.cache().delete_value(cache_name(dt, True))
 
-		if doctype in doctype_cache:
+		if doctype_cache and doctype in doctype_cache:
 			del doctype_cache[dt]
 
 	if doctype:
