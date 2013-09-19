@@ -125,11 +125,12 @@ def build_sitemap():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
 		for page_name, name in webnotes.conn.sql("""select page_name, name from `tab%s` where 
-			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
-			opts = g.copy()
-			opts["doctype"] = module.doctype
-			opts["docname"] = name
-			sitemap[page_name] = opts
+			ifnull(%s, 0)=1 and ifnull(page_name '')!=''""" % \
+			(module.doctype, module.condition_field)):
+				opts = g.copy()
+				opts["doctype"] = module.doctype
+				opts["docname"] = name
+				sitemap[page_name] = opts
 		
 	return sitemap
 	
