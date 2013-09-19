@@ -34,28 +34,24 @@ def read_csv_content_from_attached_file(doc):
 
 def read_csv_content(fcontent, ignore_encoding=False):
 	rows = []
+
+	decoded = False
+	for encoding in ["utf-8", "windows-1250", "windows-1252"]:
+		try:
+			fcontent = unicode(fcontent, encoding)
+			decoded = True
+			break
+		except UnicodeDecodeError, e:
+			continue
+
+	if not decoded:
+		webnotes.msgprint(webnotes._("Unknown file encoding. Tried utf-8, windows-1250, windows-1252."), 
+			raise_exception=True)
+
 	try:
-		reader = csv.reader(fcontent.splitlines())
+		reader = csv.reader(fcontent.encode("utf-8").splitlines())
 		# decode everything
-		csvrows = [[val for val in row] for row in reader]
-		
-		for row in csvrows:
-			newrow = []
-			for val in row:
-				if ignore_encoding:
-					newrow.append(cstr(val.strip()))
-				else:
-					try:
-						newrow.append(unicode(val.strip(), 'utf-8'))
-					except UnicodeDecodeError, e:
-						webnotes.msgprint("""Some character(s) in row #%s, column #%s are
-							not readable by utf-8. Ignoring them. If you are importing a non
-							english language, please make sure your file is saved in the 'utf-8'
-							encoding.""" % (csvrows.index(row)+1, row.index(val)+1))
-						raise Exception
-					
-			rows.append(newrow)
-		
+		rows = [[unicode(val, "utf-8").strip() for val in row] for row in reader]
 		return rows
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
@@ -92,7 +88,7 @@ class UnicodeWriter:
 	
 	def getvalue(self):
 		return self.queue.getvalue()
-
+		
 def check_record(d, parenttype=None, doctype_dl=None):
 	"""check for mandatory, select options, dates. these should ideally be in doclist"""
 	
@@ -130,11 +126,12 @@ def check_record(d, parenttype=None, doctype_dl=None):
 			elif val and docfield.fieldtype in ["Currency", "Float"]:
 				d[key] = flt(val)
 
-def import_doc(d, doctype, overwrite, row_idx, submit=False):
+def import_doc(d, doctype, overwrite, row_idx, submit=False, ignore_links=False):
 	"""import main (non child) document"""
 	if d.get("name") and webnotes.conn.exists(doctype, d['name']):
 		if overwrite:
 			bean = webnotes.bean(doctype, d['name'])
+			bean.ignore_links = ignore_links
 			bean.doc.fields.update(d)
 			if d.get("docstatus") == 1:
 				bean.update_after_submit()
@@ -146,6 +143,7 @@ def import_doc(d, doctype, overwrite, row_idx, submit=False):
 				getlink(doctype, d['name']))
 	else:
 		bean = webnotes.bean([d])
+		bean.ignore_links = ignore_links
 		bean.insert()
 		
 		if submit:

@@ -109,11 +109,12 @@ class LoginManager:
 			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
 			if info.user_type=="Website User":
 				webnotes.response["message"] = "No App"
-				full_name = " ".join(filter(None, [info.first_name, info.last_name]))
-				webnotes.response["full_name"] = full_name
-				webnotes.add_cookies["full_name"] = full_name
 			else:
 				webnotes.response['message'] = 'Logged In'
+
+			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
+			webnotes.response["full_name"] = full_name
+			webnotes.add_cookies["full_name"] = full_name
 	
 	def post_login(self):
 		self.run_trigger()
@@ -157,7 +158,7 @@ class LoginManager:
 				getattr(event_handlers, method)(self)
 		except ImportError, e:
 			pass
-	
+			
 		cp = webnotes.bean("Control Panel", "Control Panel")
 		cp.run_method(method)
 	
@@ -262,9 +263,12 @@ class CookieManager:
 			webnotes.cookies[k][b'expires'] = expires.encode('utf-8')
 
 
-def update_password(user, password):
+def _update_password(user, password):
 	webnotes.conn.sql("""insert into __Auth (user, `password`) 
 		values (%s, password(%s)) 
 		on duplicate key update `password`=password(%s)""", (user, 
 		password, password))
-	
+
+@webnotes.whitelist()
+def get_logged_user():
+	return webnotes.session.user

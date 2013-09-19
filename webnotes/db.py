@@ -388,6 +388,9 @@ class Database:
 			if field!="modified":
 				self.set_value(dt, dn, "modified", modified or now())
 				
+	def set_in_doc(self, doc, field, val):
+		self.set(doc, field, val)
+		
 	def set(self, doc, field, val):
 		from webnotes.utils import now
 		doc.modified = now()

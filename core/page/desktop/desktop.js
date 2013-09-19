@@ -37,7 +37,11 @@ wn.core.pages.desktop.render = function() {
 				</div>\
 				<div class="case-label">%(label)s</div>\
 			</div>', module)).click(function() {
-				wn.set_route($(this).attr("data-link"));
+				var link = $(this).attr("data-link");
+				if(link.substr(0, 1)==="/") {
+					window.open(link.substr(1))
+				}
+				wn.set_route(link);
 			}).css({
 				cursor:"pointer"
 			}).appendTo("#icon-grid");
@@ -75,18 +79,22 @@ wn.core.pages.desktop.show_pending_notifications = function() {
 
 		var sum = 0;
 		if(module_doctypes) {
-			$.each(module_doctypes, function(j, doctype) {
-				sum += (wn.boot.notification_info.open_count_doctype[doctype] || 0);
-			});
-		} else if(wn.boot.notification_info.open_count_module[module]!=null) {
+			if(wn.boot.notification_info.open_count_doctype) {
+				$.each(module_doctypes, function(j, doctype) {
+					sum += (wn.boot.notification_info.open_count_doctype[doctype] || 0);
+				});
+			}
+		} else if(wn.boot.notification_info.open_count_module 
+			&& wn.boot.notification_info.open_count_module[module]!=null) {
 			sum = wn.boot.notification_info.open_count_module[module];
 		}
-		var notifier = $("#module-count-" + wn.modules[module]._link);
-		if(notifier.length) {
-			notifier.toggle(sum ? true : false);
-			notifier.find(".circle-text").html(sum || "");
+		if (wn.modules[module]) {
+			var notifier = $("#module-count-" + wn.modules[module]._link);
+			if(notifier.length) {
+				notifier.toggle(sum ? true : false);
+				notifier.find(".circle-text").html(sum || "");
+			}
 		}
-
 	});
 }
 

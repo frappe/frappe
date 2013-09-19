@@ -7,6 +7,8 @@ import webnotes
 from webnotes import msgprint
 import os
 
+import MySQLdb
+
 from webnotes.utils import now, cint
 from webnotes.model import no_value_fields
 
@@ -14,6 +16,18 @@ class DocType:
 	def __init__(self, doc=None, doclist=[]):
 		self.doc = doc
 		self.doclist = doclist
+
+	def validate(self):
+		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
+			if c in self.doc.name:
+				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
+		self.validate_series()
+		self.scrub_field_names()
+		validate_fields(self.doclist.get({"doctype":"DocField"}))
+		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
+		self.set_version()
+		self.make_amendable()
+		self.check_link_replacement_error()
 
 	def change_modified_of_parent(self):
 		if webnotes.in_import:
@@ -56,23 +70,12 @@ class DocType:
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
 
-	def validate(self):
-		for c in [".", "/", "#", "&", "=", ":", "'", '"']:
-			if c in self.doc.name:
-				webnotes.msgprint(c + " not allowed in name", raise_exception=1)
-		self.validate_series()
-		self.scrub_field_names()
-		validate_fields(self.doclist.get({"doctype":"DocField"}))
-		validate_permissions(self.doclist.get({"doctype":"DocPerm"}))
-		self.set_version()
-		self.make_amendable()
-		self.check_link_replacement_error()
-
 	def on_update(self):
 		from webnotes.model.db_schema import updatedb
 		updatedb(self.doc.name)
 
 		self.change_modified_of_parent()
+		make_module_and_roles(self.doclist)
 		
 		import conf
 		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
@@ -81,13 +84,10 @@ class DocType:
 		
 		# update index
 		if not self.doc.custom:
-			from webnotes.modules import scrub
-			doctype = scrub(self.doc.name)
-			module = __import__(scrub(self.doc.module) + ".doctype." + doctype + "." + doctype,
-				fromlist=[""])
+			from webnotes.model.code import load_doctype_module
+			module = load_doctype_module( self.doc.name, self.doc.module)
 			if hasattr(module, "on_doctype_update"):
 				module.on_doctype_update()
-		
 		webnotes.clear_cache(doctype=self.doc.name)
 
 	def check_link_replacement_error(self):
@@ -293,3 +293,23 @@ def validate_permissions(permissions, for_remove=False):
 			check_if_submittable(d)
 		check_level_zero_is_set(d)
 		remove_report_if_single(d)
+
+def make_module_and_roles(doclist, perm_doctype="DocPerm"):
+	try:
+		if not webnotes.conn.exists("Module Def", doclist[0].module):
+			m = webnotes.bean({"doctype": "Module Def", "module_name": doclist[0].module})
+			m.insert()
+		
+		roles = list(set(p.role for p in doclist.get({"doctype": perm_doctype})))
+		for role in roles:
+			if not webnotes.conn.exists("Role", role):
+				r = webnotes.bean({"doctype": "Role", "role_name": role})
+				r.doc.role_name = role
+				r.insert()
+	except webnotes.DoesNotExistError, e:
+		pass
+	except MySQLdb.ProgrammingError, e:
+		if e.args[0]==1146:
+			pass
+		else:
+			raise e

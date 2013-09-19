@@ -62,12 +62,17 @@ def get_uploaded_content():
 		return None, None
 
 def save_file(fname, content, dt, dn):
-	from filecmp import cmp
-	files_path = get_files_path()
+	import filecmp
+	from webnotes.model.code import load_doctype_module
+	files_path = get_path("public", "files")
+	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
+	
+	if hasattr(module, "attachments_folder"):
+		files_path = os.path.join(files_path, module.attachments_folder)
 
 	file_size = check_max_file_size(content)
-	temp_fname = write_file(content)
-	fname = scrub_file_name(fname)	
+	temp_fname = write_file(content, files_path)
+	fname = scrub_file_name(fname)
 	fpath = os.path.join(files_path, fname)
 
 	fname_parts = fname.split(".", -1)
@@ -78,7 +83,7 @@ def save_file(fname, content, dt, dn):
 	if versions:
 		found_match = False
 		for version in versions:
-			if cmp(os.path.join(files_path, version), temp_fname):
+			if filecmp.cmp(os.path.join(files_path, version), temp_fname):
 				# remove new file, already exists!
 				os.remove(temp_fname)
 				fname = version
@@ -97,7 +102,7 @@ def save_file(fname, content, dt, dn):
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": fname,
+		"file_name": os.path.relpath(os.path.join(files_path, fname), get_path("public")),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
@@ -126,7 +131,7 @@ def get_new_fname_based_on_version(files_path, main, extn, versions):
 			
 	return new_fname
 
-def scrub_file_name(fname):
+def scrub_file_name(fname):		
 	if '\\' in fname:
 		fname = fname.split('\\')[-1]
 	if '/' in fname:
@@ -143,11 +148,11 @@ def check_max_file_size(content):
 			
 	return file_size
 
-def write_file(content):
+def write_file(content, files_path):
 	"""write file to disk with a random name (to compare)"""
 	# create account folder (if not exists)
-	webnotes.create_folder(get_files_path())
-	fname = os.path.join(get_files_path(), webnotes.generate_hash())
+	webnotes.create_folder(files_path)
+	fname = os.path.join(files_path, webnotes.generate_hash())
 
 	# write the file
 	with open(fname, 'w+') as f:
@@ -168,28 +173,26 @@ def remove_file(fid):
 	"""Remove file and File Data entry"""	
 	webnotes.delete_doc("File Data", fid)
 		
-def get_file_system_name(fname):
-	# get system name from File Data table
-	return webnotes.conn.sql("""select name, file_name from `tabFile Data` 
-		where name=%s or file_name=%s""", (fname, fname))
-		
 def get_file(fname):
-	f = get_file_system_name(fname)
+	f = webnotes.conn.sql("""select file_name from `tabFile Data` 
+		where name=%s or file_name=%s""", (fname, fname))
 	if f:
-		file_name = f[0][1]
+		file_name = f[0][0]
 	else:
 		file_name = fname
 
 	# read the file
 	import os
-	with open(os.path.join(get_files_path(), file_name), 'r') as f:
+	files_path = get_path("public", "files")
+	file_path = os.path.join(files_path, file_name)
+	if not os.path.exists(file_path):
+		# check in folders
+		for basepath, folders, files in os.walk(files_path):
+			if file_name in files:
+				file_path = os.path.join(basepath, file_name)
+				break
+		
+	with open(file_path, 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
-
-files_path = None
-def get_files_path():
-	global files_path
-	if not files_path:
-		files_path = get_path("public", "files")
-	return files_path

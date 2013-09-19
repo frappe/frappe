@@ -8,17 +8,23 @@ Projects: [erpnext](http://erpnext.org) | [webnotes/erpnext](https://github.com/
 
 To start a new project, in the application root:
 
-Note:
+Install:
 
-1. wnframework must be called as `lib`
-1. your application must be called as `app`
+1. Go to the project folder
+1. Install webnotes and your app:
 
-Finally:
+		$ git clone git@github.com:webnotes/wnframework lib
+		$ git clone git@github.com:webnotes/[your app] app
+		$ lib/wnf.py --make_conf
+		$ lib/wnf.py --reinstall
+		$ lib/wnf.py --build
 
-	$ git clone git@github.com:webnotes/wnframework lib
-	$ git clone git@github.com:webnotes/[your app] app
-	$ lib/wnf.py --make_conf
-	$ lib/wnf.py --reinstall
+1. Setup Apache Conf from `conf/apache.conf`
+	- Allow cgi to handle `.py` files
+	- Rewrite to make clean urls
+	- Note: the document root is the `public` folder in your project folder
+	
+1. Give ownership of the project folder to apache user (`www-data` or `apache`) to make .pyc files and upload files.
 
 enjoy!
 

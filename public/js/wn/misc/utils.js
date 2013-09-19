@@ -5,8 +5,13 @@ wn.provide('wn.utils');
 
 wn.utils = {
 	get_file_link: function(filename) {
-		return wn.utils.is_url(filename) || (filename.indexOf("images/")!=-1) || (filename.indexOf("files/")!=-1)
-			? filename : 'files/' + filename;
+		if(wn.utils.is_url(filename)) {
+			return filename;
+		} else if(filename.indexOf("/")===-1) {
+			return "files/" + filename;
+		} else {
+			return filename;
+		}
 	},
 	is_html: function(txt) {
 		if(txt.indexOf("<br>")==-1 && txt.indexOf("<p")==-1 

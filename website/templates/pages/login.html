@@ -1,0 +1,46 @@
+{% extends base_template %}
+
+{% block javascript %}
+<script>
+	{% include "lib/website/templates/includes/login.js" %}
+</script>
+{% endblock %}
+
+{% set title="Login" %}
+
+{% block content %}
+<div style="max-width: 750px;">
+	<div class="row" style="margin-top: 40px; margin-bottom: 20px">
+		<div class="col-sm-offset-3 col-sm-6">
+			<div class="panel panel-default">
+				<div class="panel-heading">
+					<h4><i class="icon-lock"></i> Login</h4>
+				</div>
+				<div class="panel-body">
+					<p id="login_message" class="alert alert-warning" 
+						style="display: none;"></p>
+					<div class="form-group">
+						<input id="login_id" type="text"
+							class="form-control" placeholder="Login Email Id">
+					</div>
+					<div class="form-group" id="full-name-row" style="display: none;">
+						<input id="full_name" type="text"
+							class="form-control" placeholder="Your Full Name">
+					</div>
+					<div class="form-group" id="password-row">
+						<input id="pass" type="password"
+							class="form-control" placeholder="Password">
+					</div>
+					<div class="form-group">
+						<button type="submit" id="login_btn" 
+							class="btn btn-primary">Login</button>
+						<img src="lib/images/ui/button-load.gif" id="login-spinner" style="display: 							none;">
+					</div>
+					<p style="text-align: center" id="switch-view"></p>
+				</div>
+			</div>
+		</div>
+	</div>
+</div>
+
+{% endblock %}

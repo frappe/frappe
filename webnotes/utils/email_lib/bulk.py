@@ -33,12 +33,12 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 				raise_exception=BulkLimitCrossedError)
 
 	def update_message(doc):
-		from webnotes.utils import get_request_site_address
+		from webnotes.utils import get_url
 		import urllib
 		updated = message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
 			<small><a href="%s/server.py?%s">
-			Unsubscribe</a> from this list.</small></div>""" % (get_request_site_address(), 
+			Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
 			urllib.urlencode({
 				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
 				"email": doc.get(email_field),
@@ -61,7 +61,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 	except HTMLParser.HTMLParseError:
 		text_content = "[See html attachment]"
 	
-	for r in list(set(recipients)):
+	for r in filter(None, list(set(recipients))):
 		rdata = webnotes.conn.sql("""select * from `tab%s` where %s=%s""" % (doctype, 
 			email_field, '%s'), r, as_dict=1)
 		

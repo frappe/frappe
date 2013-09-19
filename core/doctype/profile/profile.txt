@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-09-06 12:10:25", 
+  "modified": "2013-09-16 14:47:47", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -176,6 +176,15 @@
   "label": "New Password", 
   "no_copy": 1, 
   "print_hide": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "reset_password_key", 
+  "fieldtype": "Data", 
+  "hidden": 1, 
+  "label": "Reset Password Key", 
+  "print_hide": 1, 
+  "read_only": 1
  }, 
  {
   "depends_on": "eval:!doc.__islocal", 

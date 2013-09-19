@@ -3,6 +3,17 @@
 		"public/css/all-web.css": [
 			"lib/public/css/bootstrap.css",
 			"lib/public/css/font-awesome.css",
+			"lib/public/css/nprogress.css",
+			"lib/website/css/website.css"
+		]
+	},
+
+	{
+		"public/js/all-web.min.js": [
+			"lib/public/js/lib/bootstrap.min.js",
+			"lib/public/js/wn/misc/number_format.js",
+			"lib/public/js/lib/nprogress.js",
+			"lib/website/js/website.js"
 		]
 	},
 	
@@ -20,13 +31,6 @@
 			"lib/public/css/common.css",
 			"lib/public/css/tree_grid.css",
 			"lib/public/css/nprogress.css",
-		]
-	},
-
-	{
-		"public/js/all-web.min.js": [
-			"lib/public/js/lib/bootstrap.min.js",
-			"lib/public/js/wn/misc/number_format.js"
 		]
 	},
 	
@@ -134,14 +138,14 @@
 	},
 	{
 		"public/js/slickgrid.min.js": [
-			'lib/public/js/lib/slickgrid/jquery.event.drag.min.js',
-			'lib/public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js',
-			'lib/public/js/lib/slickgrid/plugins/slick.cellrangeselector.js',
-			'lib/public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js',
-			'lib/public/js/lib/slickgrid/plugins/slick.cellexternalcopymanager.js',
-			'lib/public/js/lib/slickgrid/slick.core.js',
-			'lib/public/js/lib/slickgrid/slick.grid.js',
-			'lib/public/js/lib/slickgrid/slick.dataview.js',
+			"lib/public/js/lib/slickgrid/jquery.event.drag.min.js",
+			"lib/public/js/lib/slickgrid/plugins/slick.cellrangedecorator.js",
+			"lib/public/js/lib/slickgrid/plugins/slick.cellrangeselector.js",
+			"lib/public/js/lib/slickgrid/plugins/slick.cellselectionmodel.js",
+			"lib/public/js/lib/slickgrid/plugins/slick.cellexternalcopymanager.js",
+			"lib/public/js/lib/slickgrid/slick.core.js",
+			"lib/public/js/lib/slickgrid/slick.grid.js",
+			"lib/public/js/lib/slickgrid/slick.dataview.js",
 		]
 	}
 ]

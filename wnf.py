@@ -173,6 +173,8 @@ def setup_options():
 						help="Apply the patches on given db")
 	parser.add_option("--password",
 						help="Password for given db", nargs=1)
+	parser.add_option("--root_password",
+						help="Password for mysql root user", nargs=1)
 						
 	parser.add_option("--clear_web", default=False, action="store_true",
 						help="clear web cache")
@@ -282,6 +284,17 @@ def setup_options():
 	parser.add_option("--make_conf", default=False, action="store_true",
 		help="Create new conf.py file")
 
+	# bean helpers
+	parser.add_option('--export_doclist', nargs=3, metavar="DOCTYPE NAME PATH", 
+		help="""Export doclist as json to the given path, use '-' as name for Singles.""")
+
+	parser.add_option('--export_csv', nargs=2, metavar="DOCTYPE PATH", 
+		help="""Dump DocType as csv.""")
+
+	parser.add_option('--import_doclist', nargs=1, metavar="PATH", 
+		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
+	
+
 	return parser.parse_args()
 	
 def run():
@@ -328,7 +341,11 @@ def run():
 		return
 		
 	import webnotes
-	import conf
+	try:
+		import conf
+	except ImportError, e:
+		conf = webnotes._dict({})
+		
 	from webnotes.db import Database
 	import webnotes.modules.patch_handler
 	webnotes.print_messages = True
@@ -394,18 +411,18 @@ def run():
 	
 	elif options.install:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root')
+		inst = Installer('root', options.root_password)
 		inst.import_from_db(options.install[0], source_path=options.install[1],
 			verbose = 1)
 
 	elif options.install_fresh:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root')
+		inst = Installer('root', options.root_password)
 		inst.import_from_db(options.install_fresh, verbose = 1)
 
 	elif options.reinstall:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root')
+		inst = Installer('root', options.root_password)
 		import conf
 		inst.import_from_db(conf.db_name, verbose = 1)
 
@@ -462,7 +479,7 @@ def run():
 		
 	elif options.clear_web:
 		# build wn-web.js and wn-web.css
-		from website.helpers.make_web_include_files import make
+		from website.doctype.website_settings.make_web_include_files import make
 		make()
 	
 		import webnotes.webutils
@@ -510,6 +527,33 @@ def run():
 	elif options.docs:
 		from core.doctype.documentation_tool.documentation_tool import write_static
 		write_static()
+
+	elif options.export_doclist:
+		from core.page.data_import_tool.data_import_tool import export_json
+		export_json(*list(options.export_doclist))
+	
+	elif options.export_csv:
+		from core.page.data_import_tool.data_import_tool import export_csv
+		export_csv(*options.export_csv)
+	
+	elif options.import_doclist:
+		import json
+		if os.path.isdir(options.import_doclist):
+			docs = [os.path.join(options.import_doclist, f) \
+				for f in os.listdir(options.import_doclist)]
+		else:
+			docs = [options.import_doclist]
+				
+		for f in docs:
+			if f.endswith(".json"):
+				with open(f, "r") as infile:
+					b = webnotes.bean(json.loads(infile.read())).insert_or_update()
+					print "Imported: " + b.doc.doctype + " / " + b.doc.name
+					webnotes.conn.commit()
+			if f.endswith(".csv"):
+				from core.page.data_import_tool.data_import_tool import import_file_by_path
+				import_file_by_path(f, ignore_links=True)
+				webnotes.conn.commit()
 
 	elif options.reset_perms:
 		for d in webnotes.conn.sql_list("""select name from `tabDocType`

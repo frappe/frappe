@@ -5,44 +5,43 @@ from __future__ import unicode_literals
 
 import conf
 import webnotes
+from webnotes import _
 import webnotes.utils
+
+class PageNotFoundError(Exception): pass
 
 def render(page_name):
 	"""render html page"""
 	try:
-		if page_name:
-			html = get_html(page_name)
-		else:
-			html = get_html('index')
+		html = render_page(page_name or "index")
+	except PageNotFoundError:
+		html = render_page("404")
 	except Exception:
-		html = get_html('error')
+		html = render_page('error')
+		
 
 	from webnotes.handler import eprint, print_zip
 	eprint("Content-Type: text/html; charset: utf-8")
 	print_zip(html)
 
-def get_html(page_name):
+def render_page(page_name):
 	"""get page html"""
 	page_name = scrub_page_name(page_name)
-	
 	html = ''
-	
-	# load from cache, if auto cache clear is falsy
+		
 	if not (hasattr(conf, 'auto_cache_clear') and conf.auto_cache_clear or 0):
-		if not get_page_settings().get(page_name, {}).get("no_cache"):
-			html = webnotes.cache().get_value("page:" + page_name)
-			from_cache = True
+		html = webnotes.cache().get_value("page:" + page_name)
+		from_cache = True
 
 	if not html:
 		from webnotes.auth import HTTPRequest
 		webnotes.http_request = HTTPRequest()
 		
-		#webnotes.connect()
-		html = load_into_cache(page_name)
+		html = build_page(page_name)
 		from_cache = False
 	
 	if not html:
-		html = get_html("404")
+		raise PageNotFoundError
 
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.getTraceback())
@@ -52,150 +51,212 @@ def get_html(page_name):
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
 
 	return html
+
+def build_page(page_name):
+	from jinja2 import Environment, FileSystemLoader
+	from markdown2 import markdown
+
+	if not webnotes.conn:
+		webnotes.connect()
+
+	sitemap = get_website_sitemap()
+	page_options = sitemap.get(page_name)
 	
-def scrub_page_name(page_name):
-	if page_name.endswith('.html'):
-		page_name = page_name[:-5]
+	if not page_options:
+		if page_name=="index":
+			# page not found, try home page
+			home_page = get_home_page()
+			page_options = sitemap.get(home_page)
+			if not page_options:
+				raise PageNotFoundError
+			page_options["page_name"] = home_page
+		else:
+			raise PageNotFoundError
+	else:
+		page_options["page_name"] = page_name
+	
+	basepath = webnotes.utils.get_base_path()
+	module = None
+	no_cache = False
+	
+	if page_options.get("controller"):
+		module = webnotes.get_module(page_options["controller"])
+		no_cache = getattr(module, "no_cache", False)
+
+	# if generator, then load bean, pass arguments
+	if page_options.get("is_generator"):
+		if not module:
+			raise Exception("Generator controller not defined")
+		
+		name = webnotes.conn.get_value(module.doctype, {"page_name": page_options["page_name"]})
+		obj = webnotes.get_obj(module.doctype, name, with_children=True)
+
+		if hasattr(obj, 'get_context'):
+			obj.get_context()
+
+		context = webnotes._dict(obj.doc.fields)
+		context["obj"] = obj
+	else:
+		# page
+		context = webnotes._dict({ 'name': page_name })
+		if module and hasattr(module, "get_context"):
+			context.update(module.get_context())
+	
+	context.update(get_website_settings())
+
+	jenv = Environment(loader = FileSystemLoader(basepath))
+	jenv.filters["markdown"] = markdown
+	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
+	
+	template_name = page_options['template']	
+	html = jenv.get_template(template_name).render(context)
+	
+	if not no_cache:
+		webnotes.cache().set_value("page:" + page_name, html)
+	return html
+	
+def build_sitemap():
+	sitemap = {}
+	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
+ 	sitemap.update(config["pages"])
+
+	# generators
+	for g in config["generators"].values():
+		g["is_generator"] = True
+		module = webnotes.get_module(g["controller"])
+		for page_name, name in webnotes.conn.sql("""select page_name, name from `tab%s` where 
+			ifnull(%s, 0)=1 and ifnull(page_name, '')!=''""" % (module.doctype, module.condition_field)):
+				opts = g.copy()
+				opts["doctype"] = module.doctype
+				opts["docname"] = name
+				sitemap[page_name] = opts
+		
+	return sitemap
+	
+def get_home_page():
+	if not webnotes.conn:
+		webnotes.connect()
+	doc_name = webnotes.conn.get_value('Website Settings', None, 'home_page')
+	if doc_name:
+		page_name = webnotes.conn.get_value('Web Page', doc_name, 'page_name')
+	else:
+		page_name = 'login'
 
 	return page_name
-
-def page_name(title):
-	"""make page name from title"""
-	import re
-	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
-	name = re.sub('[:/]', '-', name)
-
-	name = '-'.join(name.split())
-
-	# replace repeating hyphens
-	name = re.sub(r"(-)\1+", r"\1", name)
-	
-	return name
-
-def update_page_name(doc, title):
-	"""set page_name and check if it is unique"""
-	webnotes.conn.set(doc, "page_name", page_name(title))
-	
-	if doc.page_name in get_standard_pages():
-		webnotes.conn.sql("""Page Name cannot be one of %s""" % ', '.join(get_standard_pages()))
-	
-	res = webnotes.conn.sql("""\
-		select count(*) from `tab%s`
-		where page_name=%s and name!=%s""" % (doc.doctype, '%s', '%s'),
-		(doc.page_name, doc.name))
-	if res and res[0][0] > 0:
-		webnotes.msgprint("""A %s with the same title already exists.
-			Please change the title of %s and save again."""
-			% (doc.doctype, doc.name), raise_exception=1)
-
-	delete_page_cache(doc.page_name)
-
-def load_into_cache(page_name):
-	args = prepare_args(page_name)
-	if not args:
-		return ""
-	html = build_html(args)
-	webnotes.cache().set_value("page:" + page_name, html)
-	return html
-
-def build_html(args):
-	from jinja2 import Environment, FileSystemLoader
-
-	args["len"] = len
-	
-	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
-	template_name = args['template']
-	if not template_name.endswith(".html"):
-		template_name = template_name + ".html"
-	html = jenv.get_template(template_name).render(args)
-	
-	return html
-	
-def prepare_args(page_name):
-
-	has_app = True
-	try:
-		from startup.webutils import update_template_args, get_home_page
-	except ImportError:
-		has_app = False
-
-	if page_name == 'index':
-		if has_app:
-			page_name = get_home_page()
-		else:
-			page_name = "login"
-	
-	pages = get_page_settings()
-	
-	if page_name in pages:
-		page_info = pages[page_name]
-		args = webnotes._dict({
-			'template': page_info["template"],
-			'name': page_name,
-		})
-
-		# additional args
-		if "args_method" in page_info:
-			args.update(webnotes.get_method(page_info["args_method"])())
-		elif "args_doctype" in page_info:
-			bean = webnotes.bean(page_info["args_doctype"])
-			bean.run_method("onload")
-			args.obj = bean.make_controller()
-	else:
-		args = get_doc_fields(page_name)
-	
-	if not args:
-		return False
-	
-	if has_app:
-		args = update_template_args(page_name, args)
-	
-	return args	
-
-def get_doc_fields(page_name):
-	doc_type, doc_name = get_source_doc(page_name)
-	if not doc_type:
-		return False
-	
-	obj = webnotes.get_obj(doc_type, doc_name, with_children=True)
-
-	if hasattr(obj, 'prepare_template_args'):
-		obj.prepare_template_args()
-
-	args = obj.doc.fields
-	args['template'] = get_generators()[doc_type]["template"]
-	args['obj'] = obj
-	args['int'] = int
-	
-	return args
-
-def get_source_doc(page_name):
-	"""get source doc for the given page name"""
-	for doctype in get_generators():
-		name = webnotes.conn.sql("""select name from `tab%s` where 
-			page_name=%s and ifnull(%s, 0)=1""" % (doctype, "%s", 
-			get_generators()[doctype]["condition_field"]), page_name)
-		if name:
-			return doctype, name[0][0]
-
-	return None, None
 		
+def build_website_sitemap_config():
+	import os
+	
+	config = {"pages": {}, "generators":{}}
+	basepath = webnotes.utils.get_base_path()
+	
+	def get_options(path, fname):
+		name = fname[:-5]
+		options = webnotes._dict({
+			"link_name": name,
+			"template": os.path.relpath(os.path.join(path, fname), basepath),
+		})
+		controller_path = os.path.join(path, name + ".py")
+		if os.path.exists(controller_path):
+			options.controller = os.path.relpath(controller_path[:-3], basepath).replace(os.path.sep, ".")
+			options.controller = ".".join(options.controller.split(".")[1:])
+
+		return options
+	
+	for path, folders, files in os.walk(basepath, followlinks=True):
+		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
+			for fname in files:
+				if fname.endswith(".html"):
+					options = get_options(path, fname)
+					config["pages"][options.link_name] = options
+
+		if os.path.basename(path)=="generators" and os.path.basename(os.path.dirname(path))=="templates":
+			for fname in files:
+				if fname.endswith(".html"):
+					options = get_options(path, fname)
+					config["generators"][fname] = options
+		
+	return config
+
+def get_website_settings():
+	from webnotes.utils import get_request_site_address, encode, cint
+	from urllib import quote
+		
+	all_top_items = webnotes.conn.sql("""\
+		select * from `tabTop Bar Item`
+		where parent='Website Settings' and parentfield='top_bar_items'
+		order by idx asc""", as_dict=1)
+	
+	top_items = [d for d in all_top_items if not d['parent_label']]
+	
+	# attach child items to top bar
+	for d in all_top_items:
+		if d['parent_label']:
+			for t in top_items:
+				if t['label']==d['parent_label']:
+					if not 'child_items' in t:
+						t['child_items'] = []
+					t['child_items'].append(d)
+					break
+					
+	context = webnotes._dict({
+		'top_bar_items': top_items,
+		'footer_items': webnotes.conn.sql("""\
+			select * from `tabTop Bar Item`
+			where parent='Website Settings' and parentfield='footer_items'
+			order by idx asc""", as_dict=1),
+		"webnotes": webnotes,
+		"utils": webnotes.utils,
+		"post_login": [
+			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
+			{"label": "Logout", "url": "server.py?cmd=web_logout", "icon": "icon-signout"}
+		]
+	})
+		
+	settings = webnotes.doc("Website Settings", "Website Settings")
+	for k in ["banner_html", "brand_html", "copyright", "twitter_share_via",
+		"favicon", "facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
+		"disable_signup"]:
+		if k in settings.fields:
+			context[k] = settings.fields.get(k)
+			
+	if settings.address:
+		context["footer_address"] = settings.address
+
+	for k in ["facebook_share", "google_plus_one", "twitter_share", "linked_in_share",
+		"disable_signup"]:
+		context[k] = cint(context.get(k) or 0)
+	
+	context.url = quote(str(get_request_site_address(full_address=True)), str(""))
+	context.encoded_title = quote(encode(context.title or ""), str(""))
+	
+	try:
+		import startup.webutils
+		if hasattr(startup.webutils, "get_website_settings"):
+			startup.webutils.get_website_settings(context)
+	except:
+		pass
+	return context
+
+
 def clear_cache(page_name=None):
 	if page_name:
 		delete_page_cache(page_name)
 	else:
 		cache = webnotes.cache()
 		for p in get_all_pages():
-			cache.delete_value("page:" + p)
+			if p is not None:
+				cache.delete_value("page:" + p)
+		cache.delete_value("page:index")
+		cache.delete_value("website_sitemap")
+		cache.delete_value("website_sitemap_config")
+		
+		
+def get_website_sitemap():
+	return webnotes.cache().get_value("website_sitemap", build_sitemap)
 
 def get_all_pages():
-	all_pages = get_standard_pages()
-	for doctype in get_generators():
-		all_pages += [p[0] for p in webnotes.conn.sql("""select distinct page_name 
-			from `tab%s`""" % doctype) if p[0]]
-
-	return all_pages
+	return get_website_sitemap().keys()
 
 def delete_page_cache(page_name):
 	if page_name:
@@ -226,33 +287,47 @@ def get_hex_shade(color, percent):
 	
 	return p(r) + p(g) + p(b)
 
-def get_standard_pages():
-	return webnotes.get_config()["web"]["pages"].keys()
-	
-def get_generators():
-	return webnotes.get_config()["web"]["generators"]
-	
-def get_page_settings():
-	return webnotes.get_config()["web"]["pages"]
-	
-def get_portal_links():
-	portal_args = {}
-	for page, opts in webnotes.get_config()["web"]["pages"].items():
-		if opts.get("portal"):
-			portal_args[opts["portal"]["doctype"]] = {
-				"page": page,
-				"conditions": opts["portal"].get("conditions")
-			}
-	
-	return portal_args
+def scrub_page_name(page_name):
+	if page_name.endswith('.html'):
+		page_name = page_name[:-5]
 
-_is_portal_enabled = None
-def is_portal_enabled():
-	global _is_portal_enabled
-	if _is_portal_enabled is None:
-		_is_portal_enabled = True
+	return page_name
+			
+_is_signup_enabled = None
+def is_signup_enabled():
+	global _is_signup_enabled
+	if _is_signup_enabled is None:
+		_is_signup_enabled = True
 		if webnotes.utils.cint(webnotes.conn.get_value("Website Settings", 
 			"Website Settings", "disable_signup")):
-				_is_portal_enabled = False
+				_is_signup_enabled = False
 		
-	return _is_portal_enabled
+	return _is_signup_enabled
+
+def update_page_name(doc, title):
+	"""set page_name and check if it is unique"""
+	new_page_name = page_name(title)
+	sitemap = get_website_sitemap()
+	
+	if new_page_name in sitemap and \
+		not (sitemap[new_page_name].doctype == doc.doctype and sitemap[new_page_name].docname == doc.name):
+			webnotes.throw("%s: %s. %s: %s" % (new_page_name, _("Page already exists"),
+				_("Please change the value"), title))
+	
+	if doc.page_name: delete_page_cache(doc.page_name)
+	webnotes.conn.set(doc, "page_name", new_page_name)
+	delete_page_cache(doc.page_name)
+
+def page_name(title):
+	"""make page name from title"""
+	import re
+	name = title.lower()
+	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
+	name = re.sub('[:/]', '-', name)
+
+	name = '-'.join(name.split())
+
+	# replace repeating hyphens
+	name = re.sub(r"(-)\1+", r"\1", name)
+	
+	return name

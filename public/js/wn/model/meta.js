@@ -32,7 +32,7 @@ $.extend(wn.meta, {
 		if(!c[doctype][docname]) 
 			c[doctype][docname] = {};
 			
-		$.each(wn.meta.docfield_list[doctype], function(i, df) {
+		$.each(wn.meta.docfield_list[doctype] || [], function(i, df) {
 			c[doctype][docname][df.fieldname || df.label] = copy_dict(df);
 		})
 	},
@@ -117,7 +117,7 @@ $.extend(wn.meta, {
 		var currency = wn.boot.sysdefaults.currency;
 		if(!doc && cur_frm) 
 			doc = cur_frm.doc;
-			
+	
 		if(df && df.options) {
 			if(doc && df.options.indexOf(":")!=-1) {
 				var options = df.options.split(":");
@@ -127,7 +127,9 @@ $.extend(wn.meta, {
 					if(!docname && cur_frm) {
 						docname = cur_frm.doc[options[1]];
 					}
-					currency = wn.model.get_value(options[0], docname, options[2]) || currency;
+					currency = wn.model.get_value(options[0], docname, options[2]) || 
+						wn.model.get_value(":" + options[0], docname, options[2]) || 
+						currency;
 				}
 			} else if(doc && doc[df.options]) {
 				currency = doc[df.options];

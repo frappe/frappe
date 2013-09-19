@@ -1,4 +1,5 @@
 {
+	"base_template": "lib/website/templates/base.html",
 	"modules": {
 		"Finder": {
 			"type": "page",
@@ -27,30 +28,12 @@
 			"color": "#9b59b6",
 			"label": "Messages",
 			"icon": "icon-comments"
-		}
-	},
-	"web": {
-		"pages": {
-			"404": {
-				"template": "lib/templates/pages/404"
-			},
-			"error": {
-				"no_cache": true,
-				"template": "lib/templates/pages/error"
-			},
-			"login": {
-				"template": "lib/templates/pages/login"
-			},
-			"message": {
-				"no_cache": true,
-				"template": "lib/templates/pages/message"
-			},
-			"print": {
-				"no_cache": true,
-				"template": "lib/templates/pages/print",
-				"args_method": "core.doctype.print_format.print_format.get_args"
-			}
 		},
-		"generators": {}
+		"Website": {
+			"type": "module",
+			"link": "website-home",
+			"color": "#16a085",
+			"icon": "icon-globe"
+		}
 	}
 }

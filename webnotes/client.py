@@ -67,7 +67,7 @@ def submit(doclist):
 
 	doclistobj = webnotes.bean(doclist)
 	doclistobj.submit()
-	
+
 	return [d.fields for d in doclist]
 
 @webnotes.whitelist()

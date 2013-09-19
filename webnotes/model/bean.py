@@ -26,7 +26,7 @@ class Bean:
 		self.obj = None
 		self.ignore_permissions = False
 		self.ignore_children_type = []
-		self.ignore_check_links = False
+		self.ignore_links = False
 		self.ignore_validate = False
 		self.ignore_fields = False
 		self.ignore_mandatory = False
@@ -157,7 +157,7 @@ class Bean:
 				labels[self.to_docstatus], raise_exception=DocstatusTransitionError)
 
 	def check_links(self):
-		if self.ignore_check_links:
+		if self.ignore_links:
 			return
 		ref, err_list = {}, []
 		for d in self.doclist:
@@ -216,6 +216,7 @@ class Bean:
 			if is_local:
 				# if parent is new, all children should be new
 				d.fields["__islocal"] = 1
+				d.name = None
 			
 			idx_map[d.parentfield] = d.idx
 
@@ -276,6 +277,7 @@ class Bean:
 
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
+			
 		self.set_defaults()
 		
 		if webnotes.in_test:
@@ -283,6 +285,12 @@ class Bean:
 				self.doc.naming_series = "_T-" + self.doc.doctype + "-"
 		
 		return self.save()
+	
+	def insert_or_update(self):
+		if webnotes.conn.exists( self.doc.doctype, self.doc.name):
+			return self.save()
+		else:
+			return self.insert()
 	
 	def set_defaults(self):
 		if webnotes.in_import:
@@ -305,7 +313,13 @@ class Bean:
 		return webnotes.has_permission(self.doc.doctype, "read", self.doc)
 	
 	def save(self, check_links=1):
-		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, "write", self.doc):
+		perm_to_check = "write"
+		if self.doc.fields.get("__islocal"):
+			perm_to_check = "create"
+			if not self.doc.owner:
+				self.doc.owner = webnotes.session.user
+				
+		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, perm_to_check, self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
 			if not self.ignore_validate:
@@ -316,7 +330,7 @@ class Bean:
 			self.save_children()
 			self.run_method('on_update')
 		else:
-			self.no_permission_to(_("Write"))
+			self.no_permission_to(_(perm_to_check.title()))
 		
 		return self
 

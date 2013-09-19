@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>{{ title }}</title>
+	<meta name="generator" content="wnframework">
+	<script type="text/javascript" src="lib/js/lib/jquery/jquery.min.js"></script>
+	<script type="text/javascript" src="js/all-web.min.js"></script>
+	<script type="text/javascript" src="js/wn-web.js"></script>
+	<link type="text/css" rel="stylesheet" href="css/all-web.css">
+	<link type="text/css" rel="stylesheet" href="css/wn-web.css">
+	<link rel="shortcut icon" href="{{ favicon }}" type="image/x-icon">
+	<link rel="icon" href="{{ favicon }}" type="image/x-icon">
+	{% block head %}{% endblock %}
+	{% if meta_description -%}
+		<meta name="description" content="{{ meta_description }}">{%- endif %}
+	{% block javascript -%}
+		{% if javascript %}<script>{{ javascript }}</script>{% endif %}
+	{%- endblock %}
+	{% block css -%}
+		{% if css %}<style>{{ css }}</style>{% endif %}
+	{%- endblock %}
+</head>
+<body>
+	{% block navbar %}{% include "lib/website/templates/includes/navbar.html" %}{% endblock %}
+	<div class="container">
+		{% block banner %}{% endblock %}
+		<div class="content" id="page-{{ name }}" style="display: block;">
+			{% block content %}{% endblock %}
+		</div>
+	</div>
+	{% block footer %}{% include "lib/website/templates/includes/footer.html" %}{% endblock %}
+</body>
+</html>

@@ -278,7 +278,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 		and ifnull(p.permlevel,0) = 0
 		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
 		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
-	
+			
 	if refdoc:
 		match_failed = {}
 		for p in perms:
@@ -287,9 +287,8 @@ def has_permission(doctype, ptype="read", refdoc=None):
 					keys = p.match.split(":")
 				else:
 					keys = [p.match, p.match]
-					
-				if refdoc.fields.get(keys[0],"[No Value]") \
-						in get_user_default_as_list(keys[1]):
+				
+				if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
 					return True
 				else:
 					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
@@ -305,6 +304,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 				msg += "\n" + (doctypelist.get_field(key) and doctypelist.get_label(key) or key) \
 					+ " = " + (match_failed[key] or "None")
 			msgprint(msg)
+		
 		return False
 	else:
 		return perms and True or False
@@ -384,14 +384,16 @@ def insert(doclist):
 	import webnotes.model
 	return webnotes.model.insert(doclist)
 
+def get_module(modulename):
+	__import__(modulename)
+	import sys
+	return sys.modules[modulename]
+
 def get_method(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
 
-	__import__(modulename)
-	import sys
-	moduleobj = sys.modules[modulename]
-	return getattr(moduleobj, methodname)
+	return getattr(get_module(modulename), methodname)
 	
 def make_property_setter(args):
 	args = _dict(args)
@@ -475,24 +477,25 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
 				as_list=as_list, debug=debug)
+
 _config = None
 def get_config():
 	global _config
 	if not _config:
 		import webnotes.utils, json
+		_config = _dict()
 	
 		def update_config(path):
 			try:
 				with open(path, "r") as configfile:
 					this_config = json.loads(configfile.read())
-					_config.app_name = this_config.get("app_name")
-					_config.modules.update(this_config["modules"])
-					_config.web.pages.update(this_config["web"]["pages"])
-					_config.web.generators.update(this_config["web"]["generators"])
+					for key, val in this_config.items():
+						if isinstance(val, dict):
+							_config.setdefault(key, _dict()).update(val)
+						else:
+							_config[key] = val
 			except IOError:
 				pass
-	
-		_config = _dict({"modules": {}, "web": _dict({"pages": {}, "generators": {}})})
 		
 		update_config(webnotes.utils.get_path("lib", "config.json"))
 		update_config(webnotes.utils.get_path("app", "config.json"))

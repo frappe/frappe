@@ -10,6 +10,7 @@ _toc = ["webnotes.model.doc.Document"]
 
 import webnotes
 import webnotes.model.meta
+import MySQLdb
 
 from webnotes.utils import *
 
@@ -130,9 +131,16 @@ class Document:
 		if is_single:
 			self._loadsingle()
 		else:
-			dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))
+			try:
+				dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))
+			except MySQLdb.ProgrammingError, e:
+				if e.args[0]==1146:
+					dataset = None
+				else:
+					raise e
+
 			if not dataset:
-				raise Exception, '[WNF] %s %s does not exist' % (self.doctype, self.name)
+				raise webnotes.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)
 			self._load_values(dataset[0], webnotes.conn.get_description())
 
 	def _load_values(self, data, description):
@@ -386,15 +394,18 @@ class Document:
 			self.set_idx()
 
 		# if required, make new
-		if self.fields.get('__islocal') and (not res.get('issingle')):
-			r = self._insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
-				make_autoname, keep_timestamps = keep_timestamps)
-			if r: 
-				return r
-
-		else:
-			if not res.get('issingle') and not webnotes.conn.exists(self.doctype, self.name):
-				webnotes.msgprint("""This document was updated before your change. Please refresh before saving.""", raise_exception=1)
+		if not res.get('issingle'):
+			if self.fields.get('__islocal'):
+				r = self._insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
+					make_autoname, keep_timestamps = keep_timestamps)
+				if r: 
+					return r
+			else:
+				if not webnotes.conn.exists(self.doctype, self.name):
+					print self.fields
+					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
+						raise_exception=1)
+				
 				
 		# save the values
 		self._update_values(res.get('issingle'), 

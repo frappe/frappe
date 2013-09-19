@@ -53,6 +53,7 @@ def web_logout():
 	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
 		<p><a href='index'>Back to Home</a></p>""")
 	webnotes.login_manager.logout()
+	webnotes.commit()
 
 @webnotes.whitelist()
 def uploadfile():
@@ -76,29 +77,6 @@ def uploadfile():
 		ret = None
 
 	return ret
-	
-@webnotes.whitelist(allow_guest=True)
-def reset_password(user):
-	from webnotes.model.code import get_obj
-	from webnotes.utils import random_string
-	
-	user = webnotes.form_dict.get('user', '')
-	if user in ["demo@erpnext.com", "Administrator"]:
-		return "Not allowed"
-		
-	if webnotes.conn.sql("""select name from tabProfile where name=%s""", user):
-		new_password = random_string(8)
-		webnotes.conn.sql("""update `__Auth` set password=password(%s)
-			where `user`=%s""", (new_password, user))
-
-		# Hack!
-		webnotes.session["user"] = "Administrator"
-		profile = get_obj("Profile", user)
-		profile.password_reset_mail(new_password)
-		return "Password has been reset and sent to your email id."
-	else:
-		return "No such user (%s)" % user
-
 
 def handle():
 	"""handle request"""

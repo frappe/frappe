@@ -1,0 +1,14 @@
+{% extends base_template %}
+
+{% set title=webnotes.message_title %}
+
+{% block content %}
+<div class="panel panel-danger">
+	<div class="panel-heading">
+		{{ title }}
+	</div>
+	<div class="panel-body">
+		<p>{{ webnotes.message }}</p>
+	</div>
+</div>
+{% endblock %}
