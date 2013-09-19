@@ -173,6 +173,8 @@ def setup_options():
 						help="Apply the patches on given db")
 	parser.add_option("--password",
 						help="Password for given db", nargs=1)
+	parser.add_option("--root_password",
+						help="Password for mysql root user", nargs=1)
 						
 	parser.add_option("--clear_web", default=False, action="store_true",
 						help="clear web cache")
@@ -409,18 +411,18 @@ def run():
 	
 	elif options.install:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root')
+		inst = Installer('root', options.root_password)
 		inst.import_from_db(options.install[0], source_path=options.install[1],
 			verbose = 1)
 
 	elif options.install_fresh:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root')
+		inst = Installer('root', options.root_password)
 		inst.import_from_db(options.install_fresh, verbose = 1)
 
 	elif options.reinstall:
 		from webnotes.install_lib.install import Installer
-		inst = Installer('root')
+		inst = Installer('root', options.root_password)
 		import conf
 		inst.import_from_db(conf.db_name, verbose = 1)
 
