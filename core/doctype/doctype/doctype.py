@@ -56,7 +56,6 @@ class DocType:
 		self.doc.version = cint(self.doc.version) + 1
 	
 	def validate_series(self, autoname=None, name=None):
-		sql = webnotes.conn.sql
 		if not autoname: autoname = self.doc.autoname
 		if not name: name = self.doc.name
 		
@@ -66,7 +65,7 @@ class DocType:
 		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) \
 			and (not autoname=='Prompt') and (not autoname.startswith('naming_series:')):
 			prefix = autoname.split('.')[0]
-			used_in = sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
+			used_in = webnotes.conn.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
 

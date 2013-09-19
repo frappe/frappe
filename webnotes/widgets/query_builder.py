@@ -4,7 +4,6 @@
 from __future__ import unicode_literals
 import webnotes
 
-sql = webnotes.conn.sql
 out = webnotes.response
 
 from webnotes.utils import cint
@@ -21,7 +20,7 @@ def get_sql_tables(q):
 
 def get_parent_dt(dt):
 	pdt = ''
-	if sql('select name from `tabDocType` where istable=1 and name="%s"' % dt):
+	if webnotes.conn.sql('select name from `tabDocType` where istable=1 and name="%s"' % dt):
 		import webnotes.model.meta
 		return webnotes.model.meta.get_parent_dt(dt)
 	return pdt
@@ -45,7 +44,7 @@ def get_sql_meta(tl):
 			meta[dt]['parent'] = ('ID', 'Link', pdt, '200')
 
 		# get the field properties from DocField
-		res = sql("select fieldname, label, fieldtype, options, width from tabDocField where parent='%s'" % dt)
+		res = webnotes.conn.sql("select fieldname, label, fieldtype, options, width from tabDocField where parent='%s'" % dt)
 		for r in res:
 			if r[0]:
 				meta[dt][r[0]] = (r[1], r[2], r[3], r[4]);
@@ -78,7 +77,7 @@ def add_match_conditions(q, tl):
 	return q
 
 def getmatchcondition(dt, ur):
-	res = sql("SELECT `role`, `match` FROM tabDocPerm WHERE parent = '%s' AND (`read`=1) AND permlevel = 0" % dt)
+	res = webnotes.conn.sql("SELECT `role`, `match` FROM tabDocPerm WHERE parent = '%s' AND (`read`=1) AND permlevel = 0" % dt)
 	cond = []
 	for r in res:
 		if r[0] in ur: # role applicable to user
@@ -106,7 +105,6 @@ def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[]
 	from webnotes.model.doc import *
 
 	set = webnotes.conn.set
-	sql = webnotes.conn.sql
 	get_value = webnotes.conn.get_value
 	convert_to_lists = webnotes.conn.convert_to_lists
 	NEWLINE = '\n'
@@ -202,7 +200,7 @@ def runquery(q='', ret=0, from_export=0):
 			raise Exception, 'Query must be a SELECT'
 
 		as_dict = cint(webnotes.form_dict.get('as_dict'))
-		res = sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
+		res = webnotes.conn.sql(q, as_dict = as_dict, as_list = not as_dict, formatted=formatted)
 
 		# build colnames etc from metadata
 		colnames, coltypes, coloptions, colwidths = [], [], [], []
@@ -221,7 +219,7 @@ def runquery(q='', ret=0, from_export=0):
 		q = q.replace('__user', webnotes.session.user)
 		q = q.replace('__today', webnotes.utils.nowdate())
 
-		res = sql(q, as_list=1, formatted=formatted)
+		res = webnotes.conn.sql(q, as_list=1, formatted=formatted)
 
 		colnames, coltypes, coloptions, colwidths = build_description_standard(meta, tl)
 
@@ -254,7 +252,7 @@ def runquery(q='', ret=0, from_export=0):
 		if not webnotes.form_dict.get('simple_query'):
 			qm = add_match_conditions(qm, tl)
 
-		out['n_values'] = webnotes.utils.cint(sql(qm)[0][0])
+		out['n_values'] = webnotes.utils.cint(webnotes.conn.sql(qm)[0][0])
 
 
 @webnotes.whitelist()
