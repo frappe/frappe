@@ -246,8 +246,10 @@ def clear_cache(page_name=None):
 		cache = webnotes.cache()
 		for p in get_all_pages():
 			cache.delete_value("page:" + p)
+		cache.delete_value("page:index")
 		cache.delete_value("website_sitemap")
 		cache.delete_value("website_sitemap_config")
+		
 		
 def get_website_sitemap():
 	return webnotes.cache().get_value("website_sitemap", build_sitemap)
