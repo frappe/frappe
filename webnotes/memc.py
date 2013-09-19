@@ -17,7 +17,7 @@ class MClient(memcache.Client):
 			return builder()
 			
 		val = self.get(self.n(key))
-		if val==None and builder:
+		if not val and builder:
 			val = builder()
 			self.set_value(key, val)
 		return val

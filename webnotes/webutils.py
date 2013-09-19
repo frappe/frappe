@@ -163,7 +163,7 @@ def build_website_sitemap_config():
 
 		return options
 	
-	for path, folders, files in os.walk(basepath):
+	for path, folders, files in os.walk(basepath, followlinks=True):
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
 				if fname.endswith(".html"):
