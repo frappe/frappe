@@ -49,7 +49,11 @@ application = SharedDataMiddleware(application, {
 if __name__ == '__main__':
 	import sys
 	from werkzeug.serving import run_simple
+	
+	port = 8000
+	if len(sys.argv) > 1:
+		port = sys.argv[1]
 
-	run_simple('localhost', 8000, application, use_reloader=True, 
+	run_simple('localhost', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
 
