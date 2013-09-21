@@ -69,7 +69,7 @@ def get_bootinfo():
 	return bootinfo
 
 def load_conf_settings(bootinfo):
-	import conf
+	from webnotes import conf
 	for key in ['developer_mode']:
 		if hasattr(conf, key): bootinfo[key] = getattr(conf, key)
 

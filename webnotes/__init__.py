@@ -9,6 +9,9 @@ from __future__ import unicode_literals
 
 from werkzeug.local import Local
 
+import os
+import json
+
 local = Local()
 
 class _dict(dict):
@@ -54,6 +57,7 @@ def load_translations(module, doctype, name):
 
 # local-globals
 conn = local("conn")
+conf = local("conf")
 form = form_dict = local("form_dict")
 request = local("request")
 request_method = local("request_method")
@@ -68,13 +72,14 @@ message_log = local("message_log")
 
 lang = local("lang")
 
-def init():
+def init(site=None):
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
 	local.response = _dict({})
 	local.lang = "en"
 	local.request_method = request.method if request else None
+	local.conf = get_conf(site)
 
 _memc = None
 mute_emails = False
@@ -515,4 +520,15 @@ def get_config():
 		update_config(webnotes.utils.get_path("app", "config.json"))
 				
 	return _config
-		
+
+def get_conf(site):
+	import conf
+	from webnotes.utils import get_storage_base_path
+	conf = _dict(conf.__dict__)
+	if conf.sites_dir and site:
+		with open(os.path.join(get_storage_base_path(conf.sites_dir, site), 'site_config.json'), 'r') as f:
+			site_config = json.load(f)
+		site_config.update(conf.__dict__)
+		return _dict(site_config)
+	else:
+		return conf

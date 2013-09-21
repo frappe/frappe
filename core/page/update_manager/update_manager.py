@@ -9,7 +9,7 @@ from webnotes import _
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def update_this_app():
-	import conf
+	from webnotes import conf
 	if hasattr(conf, "expires_on"):
 		return _("This feature is only applicable to self hosted instances")
 	

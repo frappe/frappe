@@ -8,7 +8,7 @@ Allows easy adding of Attachments of "File" objects
 """
 
 import webnotes	
-import conf
+from webnotes import conf
 from webnotes import msgprint
 from webnotes.utils import cint
 
