@@ -86,7 +86,8 @@ def build_page(page_name):
 		if not module:
 			raise Exception("Generator controller not defined")
 		
-		name = webnotes.conn.get_value(module.doctype, {"page_name": page_options["page_name"]})
+		name = webnotes.conn.get_value(module.doctype, {
+			page_options.get("page_name_field", "page_name"): page_options["page_name"]})
 		obj = webnotes.get_obj(module.doctype, name, with_children=True)
 
 		if hasattr(obj, 'get_context'):
@@ -122,11 +123,21 @@ def build_sitemap():
 	for g in config["generators"].values():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
-		for page_name, name, modified in webnotes.conn.sql("""select page_name, name, modified from `tab%s` where 
-			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
+
+		condition = ""
+		page_name_field = "page_name"
+		if hasattr(module, "page_name_field"):
+			page_name_field = module.page_name_field
+		if hasattr(module, "condition_field"):
+			condition = " where ifnull(%s, 0)=1" % module.condition_field
+
+		for page_name, name, modified in webnotes.conn.sql("""select %s, name, modified from 
+			`tab%s` %s""" % (page_name_field, module.doctype, condition)):
 			opts = g.copy()
 			opts["doctype"] = module.doctype
 			opts["page_name"] = page_name
+			if page_name_field != "page_name":
+				opts["page_name_field"] = page_name_field
 			opts["docname"] = name
 			opts["lastmod"] = modified.strftime("%Y-%m-%d %H:%M:%S")
 			sitemap[page_name] = opts
