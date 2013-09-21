@@ -349,8 +349,6 @@ def run():
 	except ImportError, e:
 		conf = webnotes._dict({})
 		
-	from webnotes.db import Database
-	import webnotes.modules.patch_handler
 	webnotes.print_messages = True
 	
 	# connect
@@ -388,6 +386,8 @@ def run():
 			
 	# patch
 	elif options.patch_list:
+		import webnotes.modules.patch_handler
+		
 		# clear log
 		webnotes.modules.patch_handler.log_list = []
 		
@@ -400,6 +400,8 @@ def run():
 	
 		# reload
 	elif options.reload_doc:
+		import webnotes.modules.patch_handler
+		
 		webnotes.modules.patch_handler.reload_doc(\
 			{"module":options.reload_doc[0], "dt":options.reload_doc[1], "dn":options.reload_doc[2]})		
 		print '\n'.join(webnotes.modules.patch_handler.log_list)
