@@ -260,7 +260,9 @@ def get_all_pages():
 
 def delete_page_cache(page_name):
 	if page_name:
-		webnotes.cache().delete_value("page:" + page_name)
+		cache = webnotes.cache()
+		cache.delete_value("page:" + page_name)
+		cache.delete_value("website_sitemap")
 			
 def get_hex_shade(color, percent):
 	def p(c):
