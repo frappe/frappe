@@ -7,7 +7,7 @@
 from __future__ import unicode_literals
 import MySQLdb
 import webnotes
-import conf
+from webnotes import conf
 import datetime
 
 class Database:

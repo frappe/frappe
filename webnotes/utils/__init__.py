@@ -4,7 +4,10 @@
 # util __init__.py
 
 from __future__ import unicode_literals
+from webnotes import conf
+
 import webnotes
+
 
 user_time_zone = None
 user_format = None
@@ -65,11 +68,11 @@ def validate_email_add(email_str):
 
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
-	import os, conf
+	import os
 	
-	if hasattr(conf, "host_name"):
-		host_name = conf.host_name
-	else:
+	host_name = conf.host_name
+
+	if not host_name:
 		if webnotes.request:
 			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL', "") and 'https://' or 'http://'
 			host_name = protocol + webnotes.request.host
@@ -815,6 +818,10 @@ def get_base_path():
 	import conf
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
+
+def get_storage_base_path(sites_dir, hostname):
+	import os
+	return os.path.join(sites_dir, hostname)
 	
 def get_url(uri=None):
 	url = get_request_site_address()

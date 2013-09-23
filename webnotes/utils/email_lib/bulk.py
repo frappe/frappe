@@ -18,7 +18,8 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
-		import conf, startup
+		import startup
+		from webnotes import conf
 		from webnotes.utils import nowdate
 		this_month = webnotes.conn.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
