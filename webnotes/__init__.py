@@ -8,6 +8,7 @@ globals attached to webnotes module
 from __future__ import unicode_literals
 
 from werkzeug.local import Local
+from werkzeug.exceptions import NotFound
 
 import os
 import json
@@ -32,7 +33,7 @@ class _dict(dict):
 		return _dict(super(_dict, self).copy())
 
 def __getattr__(self, key):
-	return webnotes.local.get("key", None)
+	return local.get("key", None)
 	
 def _(msg):
 	"""translate object in current lang, if exists"""
@@ -73,6 +74,9 @@ message_log = local("message_log")
 lang = local("lang")
 
 def init(site=None):
+	if getattr(local, "initialised", None):
+		return
+	
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
@@ -80,6 +84,14 @@ def init(site=None):
 	local.lang = "en"
 	local.request_method = request.method if request else None
 	local.conf = get_conf(site)
+	local.initialised = True
+	
+def destroy():
+	"""closes connection and releases werkzeug local"""
+	webnotes.conn.close()
+	
+	from werkzeug.local import release_local
+	release_local(local)
 
 _memc = None
 mute_emails = False
@@ -125,7 +137,7 @@ def errprint(msg):
 def log(msg):
 	if not request:
 		import conf
-		if getattr(conf, "logging", False):
+		if conf.get("logging") or False:
 			print repr(msg)
 	
 	from utils import cstr
@@ -183,8 +195,9 @@ def remove_file(path):
 		if e.args[0]!=2: 
 			raise e
 			
-def connect(db_name=None, password=None):
+def connect(db_name=None, password=None, site=None):
 	import webnotes.db
+	init(site=site)
 	local.conn = webnotes.db.Database(user=db_name, password=password)
 	local.session = _dict({'user':'Administrator'})
 	local.response = _dict()
@@ -203,12 +216,10 @@ logger = None
 	
 def get_db_password(db_name):
 	"""get db password from conf"""
-	import conf
-	
-	if hasattr(conf, 'get_db_password'):
+	if 'get_db_password' in conf:
 		return conf.get_db_password(db_name)
 		
-	elif hasattr(conf, 'db_password'):
+	elif 'db_password' in conf:
 		return conf.db_password
 		
 	else:
@@ -521,13 +532,21 @@ def get_config():
 	return _config
 
 def get_conf(site):
+	# TODO Should be heavily cached!
 	import conf
 	from webnotes.utils import get_storage_base_path
 	conf = _dict(conf.__dict__)
 	if conf.sites_dir and site:
-		with open(os.path.join(get_storage_base_path(conf.sites_dir, site), 'site_config.json'), 'r') as f:
-			site_config = json.load(f)
-		site_config.update(conf.__dict__)
-		return _dict(site_config)
+		conf_path = os.path.join(get_storage_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
+		if os.path.exists(conf_path):
+			with open(conf_path, 'r') as f:
+				site_config = json.load(f)
+			site_config.update(conf)
+			site_config['site'] = site
+			return _dict(site_config)
+
+		else:
+			raise NotFound()
+
 	else:
 		return conf

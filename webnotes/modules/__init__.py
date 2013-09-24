@@ -5,7 +5,8 @@ from __future__ import unicode_literals
 """
 	Utilities for using modules
 """
-import webnotes, os, conf
+import webnotes, os
+from webnotes import conf
 
 lower_case_files_for = ['DocType', 'Page', 'Report', 
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action']
@@ -25,7 +26,7 @@ def get_module_path(module):
 	"""Returns path of the given module"""
 	m = scrub(module)
 	
-	app_path = os.path.dirname(conf.__file__)
+	app_path = webnotes.utils.get_base_path()
 	
 	if m in ('core', 'website'):
 		return os.path.join(app_path, 'lib', m)

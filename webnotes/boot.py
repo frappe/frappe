@@ -71,7 +71,7 @@ def get_bootinfo():
 def load_conf_settings(bootinfo):
 	from webnotes import conf
 	for key in ['developer_mode']:
-		if hasattr(conf, key): bootinfo[key] = getattr(conf, key)
+		if key in conf: bootinfo[key] = conf.get(key)
 
 def add_allowed_pages(bootinfo):
 	bootinfo.page_info = dict(webnotes.conn.sql("""select distinct parent, modified from `tabPage Role`

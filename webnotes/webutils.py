@@ -28,7 +28,7 @@ def render_page(page_name):
 	page_name = scrub_page_name(page_name)
 	html = ''
 		
-	if not (hasattr(conf, 'auto_cache_clear') and conf.auto_cache_clear or 0):
+	if not ('auto_cache_clear') and conf.auto_cache_clear or 0 in conf:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 

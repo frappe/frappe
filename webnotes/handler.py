@@ -175,7 +175,8 @@ def print_raw():
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
-	import json, conf
+	import json
+	from webnotes import conf
 	from webnotes.utils import cstr
 	if webnotes.error_log:
 		# webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
@@ -184,7 +185,7 @@ def make_logs():
 	if webnotes.message_log:
 		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
 	
-	if webnotes.debug_log and getattr(conf, "logging", False):
+	if webnotes.debug_log and conf.get("logging") or False:
 		webnotes.response['_debug_messages'] = json.dumps(webnotes.debug_log)
 
 def print_zip(response):

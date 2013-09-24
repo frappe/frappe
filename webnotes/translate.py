@@ -363,7 +363,8 @@ def google_translate(lang, infile, outfile):
 	"""translate objects using Google API. Add you own API key for translation"""
 	data = get_all_messages_from_file(infile)
 		
-	import requests, conf
+	import requests
+	from webnotes import conf
 	
 	old_translations = {}
 	

@@ -8,6 +8,7 @@ sys.path.insert(0, 'lib')
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
 from werkzeug.wsgi import SharedDataMiddleware
+from werkzeug.exceptions import HTTPException
 from webnotes import get_config
 
 import mimetypes
@@ -22,22 +23,29 @@ local_manager = LocalManager([webnotes.local])
 def application(request):
 	webnotes.local.request = request
 	
-	webnotes.init(site=request.host)
-
-	webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
-		for k, v in (request.form or request.args).iteritems() })
-			
-	webnotes.local._response = Response()
-
 	try:
-		webnotes.http_request = webnotes.auth.HTTPRequest()
-	except webnotes.AuthenticationError, e:
-		pass
-	
-	if webnotes.form_dict.cmd:
-		webnotes.handler.handle()
-	else:
-		webnotes.webutils.render(webnotes.request.path[1:])
+		webnotes.init(site=request.host)
+
+		webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
+			for k, v in (request.form or request.args).iteritems() })
+				
+		webnotes.local._response = Response()
+
+		try:
+			webnotes.http_request = webnotes.auth.HTTPRequest()
+		except webnotes.AuthenticationError, e:
+			pass
+		
+		if webnotes.form_dict.cmd:
+			webnotes.handler.handle()
+		else:
+			webnotes.webutils.render(webnotes.request.path[1:])
+
+		if webnotes.conn:
+			webnotes.conn.close()
+
+	except HTTPException, e:
+		return e
 		
 	return webnotes._response
 

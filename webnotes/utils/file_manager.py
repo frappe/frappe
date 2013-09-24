@@ -3,9 +3,10 @@
 
 from __future__ import unicode_literals
 import webnotes
-import os, conf
-from webnotes.utils import cstr, get_path, cint
+import os
+from webnotes.utils import cstr, cint, get_storage_path
 from webnotes import _
+from webnotes import conf
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
 
@@ -64,7 +65,7 @@ def get_uploaded_content():
 def save_file(fname, content, dt, dn):
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_path("public", "files")
+	files_path = get_storage_path(conf.public_path)
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
@@ -102,7 +103,7 @@ def save_file(fname, content, dt, dn):
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(os.path.join(files_path, fname), get_path("public")),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), get_storage_path(conf.public_path)),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
@@ -139,7 +140,7 @@ def scrub_file_name(fname):
 	return fname
 	
 def check_max_file_size(content):
-	max_file_size = getattr(conf, 'max_file_size', 1000000)
+	max_file_size = conf.get('max_file_size') or 1000000
 	file_size = len(content)
 
 	if file_size > max_file_size:
@@ -183,7 +184,7 @@ def get_file(fname):
 
 	# read the file
 	import os
-	files_path = get_path("public", "files")
+	files_path = get_storage_path(conf.files_path)
 	file_path = os.path.join(files_path, file_name)
 	if not os.path.exists(file_path):
 		# check in folders

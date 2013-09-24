@@ -17,7 +17,7 @@ from datetime import datetime
 
 #Global constants
 verbose = 0
-import conf
+from webnotes import conf
 #-------------------------------------------------------------------------------
 class BackupGenerator:
 	"""
@@ -70,8 +70,7 @@ class BackupGenerator:
 					self.backup_path_db = this_file_path
 
 	def zip_files(self):
-		# TODO use get_storage_base_path
-		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 'public', 'files')
+		files_path = webnotes.utils.get_storage_path(conf.files_path)
 		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
@@ -185,10 +184,9 @@ backup_path = None
 def get_backup_path():
 	global backup_path
 	if not backup_path:
-		import os, conf
+		import os
 		# TODO Use get_storage_base_path
-		backup_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
-			'public', 'backups')
+		backup_path = webnotes.utils.get_storage_path(conf.backup_path)
 	return backup_path
 
 #-------------------------------------------------------------------------------
