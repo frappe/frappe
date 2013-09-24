@@ -8,6 +8,7 @@ globals attached to webnotes module
 from __future__ import unicode_literals
 
 from werkzeug.local import Local
+from werkzeug.exceptions import NotFound
 
 import os
 import json
@@ -522,13 +523,21 @@ def get_config():
 	return _config
 
 def get_conf(site):
+	# TODO Should be heavily cached!
 	import conf
 	from webnotes.utils import get_storage_base_path
 	conf = _dict(conf.__dict__)
 	if conf.sites_dir and site:
-		with open(os.path.join(get_storage_base_path(conf.sites_dir, site), 'site_config.json'), 'r') as f:
-			site_config = json.load(f)
-		site_config.update(conf.__dict__)
-		return _dict(site_config)
+		conf_path = os.path.join(get_storage_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
+		if os.path.exists(conf_path):
+			with open(conf_path, 'r') as f:
+				site_config = json.load(f)
+			site_config.update(conf)
+			site_config['site'] = site
+			return _dict(site_config)
+
+		else:
+			raise NotFound()
+
 	else:
 		return conf
