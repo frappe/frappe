@@ -88,7 +88,8 @@ def init(site=None):
 	
 def destroy():
 	"""closes connection and releases werkzeug local"""
-	webnotes.conn.close()
+	if conn:
+		conn.close()
 	
 	from werkzeug.local import release_local
 	release_local(local)
