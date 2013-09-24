@@ -27,7 +27,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		if hasattr(startup, 'get_monthly_bulk_mail_limit'):
 			monthly_bulk_mail_limit = startup.get_monthly_bulk_mail_limit()
 		else:
-			monthly_bulk_mail_limit = getattr(conf, 'monthly_bulk_mail_limit', 500)
+			monthly_bulk_mail_limit = conf.get('monthly_bulk_mail_limit') or 500
 
 		if this_month + len(recipients) > monthly_bulk_mail_limit:
 			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,
@@ -111,14 +111,15 @@ def unsubscribe():
 	
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
-	import webnotes, conf
+	import webnotes
+	from webnotes import conf
 	from webnotes.utils.email_lib.smtp import SMTPServer, get_email
 
 	smptserver = SMTPServer()
 	
 	auto_commit = not from_test
 	
-	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+	if webnotes.mute_emails or conf.get("mute_emails") or False:
 		webnotes.msgprint("Emails are muted")
 		from_test = True
 

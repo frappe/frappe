@@ -137,7 +137,7 @@ def errprint(msg):
 def log(msg):
 	if not request:
 		import conf
-		if getattr(conf, "logging", False):
+		if conf.get("logging") or False:
 			print repr(msg)
 	
 	from utils import cstr
@@ -216,12 +216,10 @@ logger = None
 	
 def get_db_password(db_name):
 	"""get db password from conf"""
-	import conf
-	
-	if hasattr(conf, 'get_db_password'):
+	if 'get_db_password' in conf:
 		return conf.get_db_password(db_name)
 		
-	elif hasattr(conf, 'db_password'):
+	elif 'db_password' in conf:
 		return conf.db_password
 		
 	else:

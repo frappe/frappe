@@ -18,7 +18,7 @@ class Installer:
 	def __init__(self, root_login, root_password=None):
 		if root_login:
 			if not root_password:
-				root_password = getattr(conf, "root_password", None)
+				root_password = conf.get("root_password") or None
 			if not root_password:
 				root_password = getpass.getpass("MySQL root password: ")
 			
@@ -104,7 +104,7 @@ class Installer:
 	def update_admin_password(self, password):
 		from webnotes.auth import _update_password
 		webnotes.conn.begin()
-		_update_password("Administrator", getattr(conf, "admin_password", password))
+		_update_password("Administrator", conf.get("admin_password") or password)
 		webnotes.conn.commit()
 	
 	
@@ -127,8 +127,8 @@ class Installer:
 		
 		webnotes.conn.begin()
 		for d in install_docs:
-			doc = webnotes.doc(fielddata=d)
-			doc.insert()
+			bean = webnotes.bean(d)
+			bean.insert()
 		webnotes.conn.commit()
 	
 	def set_all_patches_as_completed(self):

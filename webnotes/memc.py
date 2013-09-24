@@ -14,7 +14,7 @@ class MClient(memcache.Client):
 		self.set(self.n(key), val)
 		
 	def get_value(self, key, builder=None):
-		if builder and getattr(conf, "auto_cache_clear", False):
+		if builder and conf.get("auto_cache_clear") or False:
 			return builder()
 			
 		val = self.get(self.n(key))

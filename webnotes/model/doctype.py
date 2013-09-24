@@ -21,7 +21,7 @@ import webnotes.model.doclist
 from webnotes.utils import cint
 
 doctype_cache = webnotes.local('doctype_doctype_cache')
-docfield_types = webnotes.local('doctype_doctype_cache')
+docfield_types = webnotes.local('doctype_docfield_types')
 
 # doctype_cache = {}
 # docfield_types = None
@@ -272,7 +272,8 @@ def add_code(doctype, doclist):
 def add_embedded_js(doc):
 	"""embed all require files"""
 
-	import re, os, conf
+	import re, os
+	from webnotes import conf
 
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 

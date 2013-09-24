@@ -123,7 +123,5 @@ login.show_forgot_password = function() {
 }
 
 login.set_message = function(message, color) {
-	wn.msgprint(html);
-	return;
 	$('#login_message').html(message).toggle(true);	
 }

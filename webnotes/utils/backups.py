@@ -185,7 +185,8 @@ backup_path = None
 def get_backup_path():
 	global backup_path
 	if not backup_path:
-		import os, conf
+		import os
+		from webnotes import conf
 		# TODO Use get_storage_base_path
 		backup_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
 			'public', 'backups')

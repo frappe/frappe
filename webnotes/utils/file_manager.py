@@ -140,7 +140,7 @@ def scrub_file_name(fname):
 	return fname
 	
 def check_max_file_size(content):
-	max_file_size = getattr(conf, 'max_file_size', 1000000)
+	max_file_size = conf.get('max_file_size') or 1000000
 	file_size = len(content)
 
 	if file_size > max_file_size:
