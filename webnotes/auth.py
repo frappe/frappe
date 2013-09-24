@@ -6,7 +6,7 @@ import webnotes
 import webnotes.db
 import webnotes.utils
 import webnotes.profile
-import conf
+from webnotes import conf
 from webnotes.sessions import Session
 
 

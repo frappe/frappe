@@ -2,7 +2,8 @@
 # MIT License. See license.txt 
 from __future__ import unicode_literals
 
-import memcache, conf
+import memcache
+from webnotes import conf
 
 class MClient(memcache.Client):
 	"""memcache client that will automatically prefix conf.db_name"""

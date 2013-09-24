@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 
-import conf
+from webnotes import conf
 import webnotes
 import json
 from webnotes import _
