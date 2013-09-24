@@ -57,7 +57,7 @@ class HTTPRequest:
 		import translate
 		lang_list = translate.get_lang_dict()
 		lang_list = lang_list and lang_list.values() or []
-		
+
 		if not lang: 
 			return
 		if ";" in lang: # not considering weightage

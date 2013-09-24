@@ -18,11 +18,6 @@ import webnotes.webutils
 
 local_manager = LocalManager([webnotes.local])
 
-class MyResponse(Response):
-	def set_cookie(self, *args, **kwargs):
-		print args, kwargs
-		super(Response, self).set_cookie(*args, **kwargs)
-
 @Request.application
 def application(request):
 	webnotes.local.request = request
@@ -32,7 +27,7 @@ def application(request):
 	webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 		for k, v in (request.form or request.args).iteritems() })
 			
-	webnotes.local._response = MyResponse()
+	webnotes.local._response = Response()
 
 	try:
 		webnotes.http_request = webnotes.auth.HTTPRequest()
