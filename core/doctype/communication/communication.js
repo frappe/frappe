@@ -12,10 +12,10 @@ cur_frm.cscript.onload = function(doc) {
 	};
 	
 	cur_frm.fields_dict.customer.get_query = function(doc,cdt,cdn) {
-		return{	query:"controllers.queries.customer_query" } }
+		return {	query:"controllers.queries.customer_query" } }
 
 	cur_frm.fields_dict.supplier.get_query = function(doc,cdt,cdn) {
-		return{ query:"controllers.queries.supplier_query" } }
+		return { query:"controllers.queries.supplier_query" } }
 	
 	if(doc.content)
 		doc.content = wn.utils.remove_script_and_style(doc.content);

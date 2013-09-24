@@ -19,7 +19,7 @@ wn.Application = Class.extend({
 	init: function() {
 		this.load_startup();
 	},
-
+	
 	load_startup: function() {
 		var me = this;
 		if(window.app) {

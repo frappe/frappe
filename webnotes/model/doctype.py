@@ -18,7 +18,7 @@ import webnotes
 import webnotes.model
 import webnotes.model.doc
 import webnotes.model.doclist
-from webnotes.utils import cint
+from webnotes.utils import cint, get_base_path
 
 doctype_cache = webnotes.local('doctype_doctype_cache')
 docfield_types = webnotes.local('doctype_docfield_types')
@@ -281,7 +281,7 @@ def add_embedded_js(doc):
 	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
 	
 	def _sub(match):
-		fpath = os.path.join(os.path.dirname(conf.__file__), \
+		fpath = os.path.join(get_base_path(), \
 			re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:

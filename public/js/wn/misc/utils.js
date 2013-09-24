@@ -42,6 +42,14 @@ wn.utils = {
 					} else if(filters[key][0]=="not in") {
 						if(filters[key][1].indexOf(d[key])!=-1)
 							return;
+					} else if(filters[key][0]=="<") {
+						if (!(d[key] < filters[key])) return;
+					} else if(filters[key][0]=="<=") {
+						if (!(d[key] <= filters[key])) return;
+					} else if(filters[key][0]==">") {
+						if (!(d[key] > filters[key])) return;
+					} else if(filters[key][0]==">=") {
+						if (!(d[key] >= filters[key])) return;
 					}
 				} else {
 					if(d[key]!=filters[key]) return;
@@ -105,7 +113,12 @@ wn.utils = {
 		return args;
 	},
 	get_url_from_dict: function(args) {
-		return encodeURIComponent($.map(args, function(val, key)	{ return key+"="+val; }).join("&") || "");
+		return $.map(args, function(val, key) { 
+			if(val!==null) 
+				return encodeURIComponent(key)+"="+encodeURIComponent(val); 
+			else 
+				return null; 
+		}).join("&") || "";
 	},
 	disable_export_btn: function(btn) {
 		if(!wn.user.is_report_manager()) {

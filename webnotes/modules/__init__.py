@@ -26,7 +26,7 @@ def get_module_path(module):
 	"""Returns path of the given module"""
 	m = scrub(module)
 	
-	app_path = os.path.dirname(conf.__file__)
+	app_path = webnotes.utils.get_base_path()
 	
 	if m in ('core', 'website'):
 		return os.path.join(app_path, 'lib', m)

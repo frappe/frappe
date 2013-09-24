@@ -31,6 +31,7 @@
 			"lib/public/css/common.css",
 			"lib/public/css/tree_grid.css",
 			"lib/public/css/nprogress.css",
+			"lib/public/css/typeahead.css",
 		]
 	},
 	
@@ -41,6 +42,7 @@
 			"lib/public/js/lib/jquery/jquery.hotkeys.js",
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
+			"lib/public/js/lib/typeahead.js",
 			"lib/public/js/lib/nprogress.js",
 			
 			"lib/public/js/wn/provide.js",
