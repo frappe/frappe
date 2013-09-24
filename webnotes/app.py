@@ -39,7 +39,10 @@ def application(request):
 		webnotes.handler.handle()
 	else:
 		webnotes.webutils.render(webnotes.request.path[1:])
-		
+	
+	if webnotes.conn:
+		webnotes.conn.close()
+	
 	return webnotes._response
 
 application = local_manager.make_middleware(application)

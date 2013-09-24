@@ -33,7 +33,7 @@ class _dict(dict):
 		return _dict(super(_dict, self).copy())
 
 def __getattr__(self, key):
-	return webnotes.local.get("key", None)
+	return local.get("key", None)
 	
 def _(msg):
 	"""translate object in current lang, if exists"""
@@ -74,6 +74,9 @@ message_log = local("message_log")
 lang = local("lang")
 
 def init(site=None):
+	if getattr(local, "initialised", None):
+		return
+	
 	local.error_log = []
 	local.message_log = []
 	local.debug_log = []
@@ -81,6 +84,14 @@ def init(site=None):
 	local.lang = "en"
 	local.request_method = request.method if request else None
 	local.conf = get_conf(site)
+	local.initialised = True
+	
+def destroy():
+	"""closes connection and releases werkzeug local"""
+	webnotes.conn.close()
+	
+	from werkzeug.local import release_local
+	release_local(local)
 
 _memc = None
 mute_emails = False
@@ -184,8 +195,9 @@ def remove_file(path):
 		if e.args[0]!=2: 
 			raise e
 			
-def connect(db_name=None, password=None):
+def connect(db_name=None, password=None, site=None):
 	import webnotes.db
+	init(site=site)
 	local.conn = webnotes.db.Database(user=db_name, password=password)
 	local.session = _dict({'user':'Administrator'})
 	local.response = _dict()

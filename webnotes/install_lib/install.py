@@ -7,7 +7,8 @@
 from __future__ import unicode_literals
 
 import os, sys, json
-import webnotes, conf
+import webnotes
+from webnotes import conf
 import webnotes.db
 import getpass
 from webnotes.model.db_schema import DbManager
@@ -22,10 +23,11 @@ class Installer:
 				root_password = getpass.getpass("MySQL root password: ")
 			
 		self.root_password = root_password
-				
 		self.conn = webnotes.db.Database(user=root_login, password=root_password)
-		webnotes.conn=self.conn
-		webnotes.session= webnotes._dict({'user':'Administrator'})
+		
+		webnotes.local.conn = self.conn
+		webnotes.local.session = webnotes._dict({'user':'Administrator'})
+		
 		self.dbman = DbManager(self.conn)
 
 	def import_from_db(self, target, source_path='', password = 'admin', verbose=0):
@@ -73,6 +75,8 @@ class Installer:
 		# update admin password
 		self.create_auth_table()
 		self.update_admin_password(password)
+		
+		self.conn.close()
 
 		return target
 		
