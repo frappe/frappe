@@ -251,7 +251,8 @@ function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = getCookie("full_name");
-	$("#website-login").toggleClass("hide", full_name ? true : false);
-	$("#website-post-login").toggleClass("hide", full_name ? false : true);
+	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
+	$("#website-login").toggleClass("hide", logged_in ? true : false);
+	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 });
 

@@ -103,8 +103,8 @@ def unsubscribe():
 	if not webnotes.form_dict.get("from_test"):
 		webnotes.conn.commit()
 
-	webnotes.message_title = "Unsubscribe"
-	webnotes.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
+	webnotes.local.message_title = "Unsubscribe"
+	webnotes.local.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
 
 	webnotes.response['type'] = 'page'
 	webnotes.response['page_name'] = 'message.html'

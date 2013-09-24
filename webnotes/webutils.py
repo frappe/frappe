@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 
 from webnotes import conf
 import webnotes
+import json
 from webnotes import _
 import webnotes.utils
 
@@ -31,10 +32,7 @@ def render_page(page_name):
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
-	if not html:
-		from webnotes.auth import HTTPRequest
-		webnotes.http_request = HTTPRequest()
-		
+	if not html:		
 		html = build_page(page_name)
 		from_cache = False
 	
@@ -105,6 +103,7 @@ def build_page(page_name):
 
 	jenv = Environment(loader = FileSystemLoader(basepath))
 	jenv.filters["markdown"] = markdown
+	jenv.filters["json"] = json.dumps
 	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
 	template_name = page_options['template']	
