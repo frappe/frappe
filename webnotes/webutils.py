@@ -32,10 +32,7 @@ def render_page(page_name):
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
-	if not html:
-		from webnotes.auth import HTTPRequest
-		webnotes.http_request = HTTPRequest()
-		
+	if not html:		
 		html = build_page(page_name)
 		from_cache = False
 	

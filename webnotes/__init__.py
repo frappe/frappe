@@ -469,11 +469,10 @@ def compare(val1, condition, val2):
 	return webnotes.utils.compare(val1, condition, val2)
 	
 def repsond_as_web_page(title, html):
-	global message, message_title, response
-	message_title = title
-	message = "<h3>" + title + "</h3>" + html
-	response['type'] = 'page'
-	response['page_name'] = 'message.html'
+	local.message_title = title
+	local.message = "<h3>" + title + "</h3>" + html
+	local.response['type'] = 'page'
+	local.response['page_name'] = 'message.html'
 
 def load_json(obj):
 	if isinstance(obj, basestring):

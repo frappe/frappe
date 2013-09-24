@@ -12,7 +12,6 @@ from webnotes.sessions import Session
 
 class HTTPRequest:
 	def __init__(self):
-
 		# Get Environment variables
 		self.domain = webnotes.request.host
 		if self.domain and self.domain.startswith('www.'):
@@ -206,18 +205,19 @@ class LoginManager:
 		else:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
-			
+
 		if user == webnotes.session.user:
+			webnotes.session.sid = ""
 			webnotes._response.delete_cookie("full_name")
 			webnotes._response.delete_cookie("sid")
 			webnotes._response.set_cookie("full_name", "")
 			webnotes._response.set_cookie("sid", "")
-		
+
 class CookieManager:
 	def __init__(self):
 		pass
 		
-	def set_cookies(self):		
+	def set_cookies(self):
 		if not webnotes.session.get('sid'): return		
 		import datetime
 
