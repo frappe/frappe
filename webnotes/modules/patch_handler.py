@@ -77,7 +77,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
 	import conf, os
-	# TODO use get_storage_base_path
+	# TODO use get_site_base_path
 	with open(os.path.join(os.path.dirname(conf.__file__), 'app', 'patches','patch.log'),'a') as patchlog:
 		patchlog.write('\n\n' + tb)
 	
