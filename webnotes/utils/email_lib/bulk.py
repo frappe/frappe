@@ -18,16 +18,13 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
-		import startup
 		from webnotes import conf
 		from webnotes.utils import nowdate
+
 		this_month = webnotes.conn.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		if hasattr(startup, 'get_monthly_bulk_mail_limit'):
-			monthly_bulk_mail_limit = startup.get_monthly_bulk_mail_limit()
-		else:
-			monthly_bulk_mail_limit = conf.get('monthly_bulk_mail_limit') or 500
+		monthly_bulk_mail_limit = conf.get('monthly_bulk_mail_limit') or 500
 
 		if this_month + len(recipients) > monthly_bulk_mail_limit:
 			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,

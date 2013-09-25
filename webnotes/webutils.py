@@ -49,9 +49,6 @@ def render_page(page_name):
 	return html
 
 def build_page(page_name):
-	from jinja2 import Environment, FileSystemLoader
-	from markdown2 import markdown
-
 	if not webnotes.conn:
 		webnotes.connect()
 
@@ -101,9 +98,7 @@ def build_page(page_name):
 	
 	context.update(get_website_settings())
 
-	jenv = Environment(loader = FileSystemLoader(basepath))
-	jenv.filters["markdown"] = markdown
-	jenv.filters["json"] = json.dumps
+	jenv = webnotes.get_jenv()
 	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
 	template_name = page_options['template']	

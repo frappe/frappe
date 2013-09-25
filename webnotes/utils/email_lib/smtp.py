@@ -101,12 +101,15 @@ class EMail:
 		self.msg_root.attach(part)
 	
 	def get_footer(self, footer=None):
-		"""append a footer (signature)"""
-		import startup
-		
+		"""append a footer (signature)"""		
 		footer = footer or ""
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
-		footer += getattr(startup, 'mail_footer', '')
+		
+		try:
+			import startup
+			footer += getattr(startup, 'mail_footer', '')
+		except ImportError, e:
+			pass
 		
 		return footer
 		
