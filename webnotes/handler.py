@@ -201,9 +201,12 @@ def print_zip(response):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	import datetime
+	from werkzeug.local import LocalProxy
 	
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+		return unicode(obj)
+	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \

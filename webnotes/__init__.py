@@ -37,7 +37,8 @@ def __getattr__(self, key):
 	
 def _(msg):
 	"""translate object in current lang, if exists"""
-	return local.translations.get(lang, {}).get(msg, msg)
+	if hasattr(local, 'translations'):
+		return local.translations.get(lang, {}).get(msg, msg)
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
