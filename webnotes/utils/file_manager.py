@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 import webnotes
 import os
-from webnotes.utils import cstr, cint, get_storage_path
+from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
 from webnotes import conf
 
@@ -65,7 +65,7 @@ def get_uploaded_content():
 def save_file(fname, content, dt, dn):
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_storage_path(conf.public_path)
+	files_path = get_site_path(conf.public_path)
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
@@ -103,7 +103,7 @@ def save_file(fname, content, dt, dn):
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(os.path.join(files_path, fname), get_storage_path(conf.public_path)),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path(conf.public_path)),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
@@ -184,7 +184,7 @@ def get_file(fname):
 
 	# read the file
 	import os
-	files_path = get_storage_path(conf.files_path)
+	files_path = get_site_path(conf.files_path)
 	file_path = os.path.join(files_path, file_name)
 	if not os.path.exists(file_path):
 		# check in folders

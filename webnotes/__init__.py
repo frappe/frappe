@@ -535,16 +535,16 @@ def get_config():
 def get_conf(site):
 	# TODO Should be heavily cached!
 	import conf
-	from webnotes.utils import get_storage_base_path
-	conf = _dict(conf.__dict__)
+	from webnotes.utils import get_site_base_path
+	site_config = _dict({})
+	conf = site_config.update(conf.__dict__)
 	if conf.sites_dir and site:
-		conf_path = os.path.join(get_storage_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
+		conf_path = os.path.join(get_site_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
 		if os.path.exists(conf_path):
 			with open(conf_path, 'r') as f:
-				site_config = json.load(f)
-			site_config.update(conf)
+				site_config.update(json.load(f))
 			site_config['site'] = site
-			return _dict(site_config)
+			return site_config
 
 		else:
 			raise NotFound()
