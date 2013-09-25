@@ -110,6 +110,7 @@ class LoginManager:
 			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 			webnotes.response["full_name"] = full_name
 			webnotes._response.set_cookie("full_name", full_name)
+			webnotes._response.set_cookie("user_id", self.user)
 	
 	def post_login(self):
 		self.run_trigger()
@@ -209,8 +210,10 @@ class LoginManager:
 		if user == webnotes.session.user:
 			webnotes.session.sid = ""
 			webnotes._response.delete_cookie("full_name")
+			webnotes._response.delete_cookie("user_id")
 			webnotes._response.delete_cookie("sid")
 			webnotes._response.set_cookie("full_name", "")
+			webnotes._response.set_cookie("user_id", "")
 			webnotes._response.set_cookie("sid", "")
 
 class CookieManager:

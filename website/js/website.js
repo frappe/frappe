@@ -124,6 +124,10 @@ $.extend(wn, {
 		return modal;
 	},
 	msgprint: function(html, title) {
+		if(html.substr(0,1)==="[") html = JSON.parse(html);
+		if($.isArray(html)) {
+			html = html.join("<hr>")
+		}
 		return wn.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {

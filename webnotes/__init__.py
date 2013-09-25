@@ -37,8 +37,8 @@ def __getattr__(self, key):
 	
 def _(msg):
 	"""translate object in current lang, if exists"""
-	from webnotes.translate import messages
-	return messages.get(lang, {}).get(msg, msg)
+	if hasattr(local, 'translations'):
+		return local.translations.get(lang, {}).get(msg, msg)
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
@@ -507,6 +507,22 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
 				as_list=as_list, debug=debug)
+
+def get_jenv():
+	from jinja2 import Environment, FileSystemLoader
+	from webnotes.utils import get_base_path, global_date_format
+	from markdown2 import markdown
+	from json import dumps
+
+	jenv = Environment(loader = FileSystemLoader(get_base_path()))
+	jenv.filters["global_date_format"] = global_date_format
+	jenv.filters["markdown"] = markdown
+	jenv.filters["json"] = dumps
+	
+	return jenv
+
+def get_template(path):
+	return get_jenv().get_template(path)
 
 _config = None
 def get_config():
