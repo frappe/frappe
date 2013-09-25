@@ -810,7 +810,8 @@ def filter_strip_join(some_list, sep):
 	"""given a list, filter None values, strip spaces and join"""
 	return (cstr(sep)).join((cstr(a).strip() for a in filter(None, some_list)))
 		
-def get_path(base=None, *path):
+def get_path(*path, **kwargs):
+	base = kwargs.get('base')
 	if not base:
 		base = get_base_path()
 	import os
@@ -822,10 +823,14 @@ def get_base_path():
 	return os.path.dirname(os.path.abspath(conf.__file__))
 
 def get_storage_base_path(sites_dir=None, hostname=None):
-	import os
+	if not conf.sites_dir:
+		return get_base_path()
+	
 	if not sites_dir and not hostname:
 		sites_dir = conf.sites_dir
 		hostname = conf.site
+
+	import os
 	return os.path.join(sites_dir, hostname)
 
 def get_storage_path(*path):
