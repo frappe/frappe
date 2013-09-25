@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-09-02 18:16:52", 
+  "modified": "2013-09-25 10:30:31", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -27,18 +27,13 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Communication", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
   "permlevel": 0, 
-  "read": 1, 
-  "report": 1, 
-  "submit": 0, 
-  "write": 1
+  "read": 1
  }, 
  {
   "doctype": "DocType", 
@@ -155,14 +150,6 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "sales_person", 
-  "fieldtype": "Link", 
-  "label": "Sales Person", 
-  "options": "Sales Person", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "column_break5", 
   "fieldtype": "Column Break", 
   "label": "On"
@@ -184,26 +171,16 @@
   "print_hide": 1
  }, 
  {
-  "amend": 0, 
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
-  "role": "Support Team"
- }, 
- {
-  "amend": 0, 
-  "doctype": "DocPerm", 
-  "role": "Sales Manager"
- }, 
- {
-  "amend": 0, 
-  "doctype": "DocPerm", 
-  "role": "Sales User"
+  "report": 1, 
+  "role": "System Manager", 
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "doctype": "DocPerm", 
-  "role": "Support Manager"
- }, 
- {
-  "doctype": "DocPerm", 
-  "role": "System Manager"
+  "role": "All"
  }
 ]

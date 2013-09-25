@@ -609,8 +609,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		//this.bind_change_event();
 		var me = this;
 		this.setup_buttons();
-		this.setup_typeahead();
-		//this.setup_autocomplete();
+		//this.setup_typeahead();
+		this.setup_autocomplete();
 	},
 	setup_buttons: function() {
 		var me = this;
@@ -643,81 +643,82 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			this.$input_area.find(".btn-new").remove();
 		}
 	},
-	setup_typeahead: function() {
-		var me = this;
-		var method = "webnotes.widgets.search.search_link";
-		var args = {};
-		this.set_custom_query(args);
-
-		// custom query
-		if(args.query) {
-			method = args.query
-		}
-
-		var _change = function() {
-			var val = me.get_value();
-			if(me.frm && me.frm.doc) {
-				me.selected = true;
-				me.parse_validate_and_set_in_model(val);
-			} else {
-				me.$input.trigger("change");
-			}
-		}
-
-		// filter based on arguments
-		var filter_fn = function(r) {
-			if(r.exc) console.log(r.exc);
-			var filter_args = {};
-			me.set_custom_query(filter_args)
-			if(filter_args.filters) {
-				return wn.utils.filter_dict(r.results, filter_args.filters);
-			} else {
-				return r.results;
-			}
-		}
-		
-		// default query args
-		var query_args = {
-			cmd: method,
-			txt: "%",
-			page_len: "9999",
-			doctype: me.df.options,
-		}
-		
-		// append filter keys (needed for client-side filtering)
-		if(args.filters) {
-			query_args.search_fields = ["name"].concat(keys(args.filters));
-		}
-		
-		this.$input.typeahead("destroy").typeahead({
-			name: me.df.parent + ":" + me.df.fieldname,
-			prefetch: {
-				url: "server.py?" + wn.utils.get_url_from_dict(query_args),
-				filter: filter_fn,
-			},
-			remote: {
-				url: "server.py?" + wn.utils.get_url_from_dict($.extend(query_args, {"txt": null})) + "&txt=%QUERY",
-				filter: filter_fn,
-			},
-			template: function(d) {
-				if(keys(d).length > 1) {
-					d.info = $.map(d, function(val, key) { return key==="name" ? null : val }).join(", ");
-					return repl("<p>%(value)s<br><span class='text-muted'>%(info)s</span></p>", d);
-				} else {
-					return d.value;
-				}
-			}
-		}).on("typeahead:selected", function(d) {
-			_change();
-		}).on("typeahead:autocompleted", function(d) {
-			_change();
-		});
-				
-		this.set_input = function(val) {
-			me.$input.typeahead("setQuery", val || "");
-		}
-	},
+	// setup_typeahead: function() {
+	// 	var me = this;
+	// 	var method = "webnotes.widgets.search.search_link";
+	// 	var args = {};
+	// 	this.set_custom_query(args);
+	// 
+	// 	// custom query
+	// 	if(args.query) {
+	// 		method = args.query
+	// 	}
+	// 
+	// 	var _change = function() {
+	// 		var val = me.get_value();
+	// 		if(me.frm && me.frm.doc) {
+	// 			me.selected = true;
+	// 			me.parse_validate_and_set_in_model(val);
+	// 		} else {
+	// 			me.$input.trigger("change");
+	// 		}
+	// 	}
+	// 
+	// 	// filter based on arguments
+	// 	var filter_fn = function(r) {
+	// 		if(r.exc) console.log(r.exc);
+	// 		var filter_args = {};
+	// 		me.set_custom_query(filter_args)
+	// 		if(filter_args.filters) {
+	// 			return wn.utils.filter_dict(r.results, filter_args.filters);
+	// 		} else {
+	// 			return r.results;
+	// 		}
+	// 	}
+	// 	
+	// 	// default query args
+	// 	var query_args = {
+	// 		cmd: method,
+	// 		txt: "%",
+	// 		page_len: "9999",
+	// 		doctype: me.df.options,
+	// 	}
+	// 	
+	// 	// append filter keys (needed for client-side filtering)
+	// 	if(args.filters) {
+	// 		query_args.search_fields = ["name"].concat(keys(args.filters));
+	// 	}
+	// 	
+	// 	this.$input.typeahead("destroy").typeahead({
+	// 		name: me.df.parent + ":" + me.df.fieldname,
+	// 		prefetch: {
+	// 			url: "server.py?" + wn.utils.get_url_from_dict(query_args),
+	// 			filter: filter_fn,
+	// 		},
+	// 		remote: {
+	// 			url: "server.py?" + wn.utils.get_url_from_dict($.extend(query_args, {"txt": null})) + "&txt=%QUERY",
+	// 			filter: filter_fn,
+	// 		},
+	// 		template: function(d) {
+	// 			if(keys(d).length > 1) {
+	// 				d.info = $.map(d, function(val, key) { return key==="name" ? null : val }).join(", ");
+	// 				return repl("<p>%(value)s<br><span class='text-muted'>%(info)s</span></p>", d);
+	// 			} else {
+	// 				return d.value;
+	// 			}
+	// 		}
+	// 	}).on("typeahead:selected", function(d) {
+	// 		_change();
+	// 	}).on("typeahead:autocompleted", function(d) {
+	// 		_change();
+	// 	});
+	// 			
+	// 	this.set_input = function(val) {
+	// 		me.$input.typeahead("setQuery", val || "");
+	// 	}
+	// },
 	setup_autocomplete: function() {
+		var me = this;
 		this.$input.on("blur", function() { 
 			if(me.selected) {
 				me.selected = false;
@@ -742,6 +743,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 				return wn.call({
 					type: "GET",
 					method:'webnotes.widgets.search.search_link',
+					no_spinner: true,
 					args: args,
 					callback: function(r) {
 						response(r.results);
@@ -764,13 +766,18 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					me.$input.trigger("change");
 				}
 			}
-		}).data('uiAutocomplete')._renderItem = function(ul, item) {
-			if(!item.label) item.label = item.value;
+		}).data('uiAutocomplete')._renderItem = function(ul, d) {
+			var html = "";
+			if(keys(d).length > 1) {
+				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ");
+				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
+			} else {
+				html = "<a>" + d.value + "</a>";
+			}
+
 			return $('<li></li>')
-				.data('item.autocomplete', item)
-				.append(repl('<a><span style="font-weight: bold;">%(label)s</span><br>\
-					<span style="font-size:10px;">%(info)s</span></a>',
-					item))
+				.data('item.autocomplete', d)
+				.append(html)
 				.appendTo(ul);
 		};
 		// remove accessibility span (for now)
