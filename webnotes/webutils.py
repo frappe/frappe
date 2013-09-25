@@ -324,7 +324,7 @@ def page_name(title):
 	"""make page name from title"""
 	import re
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
+	name = re.sub('[~!@#$%^&*+()<>,."\']', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())
