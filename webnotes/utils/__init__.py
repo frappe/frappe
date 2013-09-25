@@ -826,8 +826,10 @@ def get_site_base_path(sites_dir=None, hostname=None):
 	if conf and not conf.sites_dir:
 		return get_base_path()
 	
-	if not sites_dir and not hostname:
+	if not sites_dir:
 		sites_dir = conf.sites_dir
+	
+	if not hostname:
 		hostname = conf.site
 
 	import os

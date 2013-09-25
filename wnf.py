@@ -43,6 +43,8 @@ def setup_parser():
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
+	parser.add_argument("--site", nargs="?", metavar="SITE-NAME or all",
+		help="Run for a particular site")
 		
 	return parser.parse_args()
 	
@@ -88,7 +90,7 @@ def setup_utilities(parser):
 		help="Build docs")
 	parser.add_argument("--domain", nargs="*",
 		help="Get or set domain in Website Settings")
-	parser.add_argument("--make_conf", default=False, action="store_true",
+	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
 	
 	# clear
@@ -153,10 +155,9 @@ def setup_translation(parser):
 
 # install
 def _install(opts, args):
-	webnotes.init(site=args.site)
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root')
-	inst.import_from_db(*opts, verbose=1)
+	inst = Installer('root', db_name=opts[0], site=args.site)
+	inst.install(*opts, verbose=1, force=args.force)
 	
 def install(opts, args):
 	_install(opts, args)
@@ -225,7 +226,6 @@ def reload_doc(opts, args):
 	
 def build(opts, args):
 	import webnotes.build
-	webnotes.connect(site=args.site)
 	webnotes.build.bundle(False)
 	
 def watch(opts, args):
@@ -248,6 +248,10 @@ def domain(opts, args):
 		webnotes.conn.commit()
 	else:
 		print webnotes.conn.get_value("Website Settings", None, "subdomain")
+		
+def make_conf(opts, args):
+	from webnotes.install_lib.install import make_conf
+	make_conf(*opts, site=args.site)
 
 # git
 def git(opts, args=None):
