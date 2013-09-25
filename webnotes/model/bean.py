@@ -213,6 +213,8 @@ class Bean:
 				d.parent = self.doc.name
 			if not d.idx:
 				d.idx = idx_map.setdefault(d.parentfield, 0) + 1
+			else:
+				d.idx = cint(d.idx)
 			if is_local:
 				# if parent is new, all children should be new
 				d.fields["__islocal"] = 1
@@ -220,18 +222,18 @@ class Bean:
 			
 			idx_map[d.parentfield] = d.idx
 
-	def run_method(self, method):
+	def run_method(self, method, *args, **kwargs):
 		self.make_controller()
 		
 		if hasattr(self.controller, method):
-			getattr(self.controller, method)()
+			getattr(self.controller, method)(*args, **kwargs)
 		if hasattr(self.controller, 'custom_' + method):
-			getattr(self.controller, 'custom_' + method)()
+			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
 
 		notify(self.controller, method)
 		
 		self.set_doclist(self.controller.doclist)
-
+		
 	def get_method(self, method):
 		self.make_controller()
 		return getattr(self.controller, method, None)

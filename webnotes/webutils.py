@@ -117,6 +117,12 @@ def build_sitemap():
 	sitemap = {}
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
  	sitemap.update(config["pages"])
+	
+	# pages
+	for p in config["pages"].values():
+		if p.get("controller"):
+			module = webnotes.get_module(p["controller"])
+			p["no_cache"] = getattr(module, "no_cache", False)
 
 	# generators
 	for g in config["generators"].values():
@@ -134,6 +140,7 @@ def build_sitemap():
 			`tab%s` %s""" % (page_name_field, module.doctype, condition)):
 			opts = g.copy()
 			opts["doctype"] = module.doctype
+			opts["no_cache"] = getattr(module, "no_cache", False)
 			opts["page_name"] = page_name
 			if page_name_field != "page_name":
 				opts["page_name_field"] = page_name_field
@@ -181,7 +188,7 @@ def build_website_sitemap_config():
 
 		return options
 	
-	for path, folders, files in os.walk(basepath):
+	for path, folders, files in os.walk(basepath, followlinks=True):
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
 				if fname.split(".")[-1] in ("html", "xml"):
@@ -263,9 +270,12 @@ def clear_cache(page_name=None):
 	else:
 		cache = webnotes.cache()
 		for p in get_all_pages():
-			cache.delete_value("page:" + p)
+			if p is not None:
+				cache.delete_value("page:" + p)
+		cache.delete_value("page:index")
 		cache.delete_value("website_sitemap")
 		cache.delete_value("website_sitemap_config")
+		
 		
 def get_website_sitemap():
 	return webnotes.cache().get_value("website_sitemap", build_sitemap)
@@ -275,7 +285,9 @@ def get_all_pages():
 
 def delete_page_cache(page_name):
 	if page_name:
-		webnotes.cache().delete_value("page:" + page_name)
+		cache = webnotes.cache()
+		cache.delete_value("page:" + page_name)
+		cache.delete_value("website_sitemap")
 			
 def get_hex_shade(color, percent):
 	def p(c):
@@ -337,7 +349,7 @@ def page_name(title):
 	"""make page name from title"""
 	import re
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
+	name = re.sub('[~!@#$%^&*+()<>,."\']', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())

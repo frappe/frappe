@@ -370,6 +370,9 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
 			(wn.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
+		if(this.not_in_form && this.dialog_wrapper) {
+			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
+		}
 		this.$input.datepicker(this.datepicker_options);
 	},
 	parse: function(value) {
@@ -408,8 +411,12 @@ wn.ui.form.ControlTime = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
-			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy')
+			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
 		this.datepicker_options.timeFormat = "hh:mm:ss";
+		
+		if(this.not_in_form && this.dialog_wrapper) {
+			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
+		}
 
 		this.$input.datetimepicker(this.datepicker_options);
 	},

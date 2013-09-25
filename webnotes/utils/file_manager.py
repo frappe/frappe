@@ -74,7 +74,7 @@ def save_file(fname, content, dt, dn):
 	file_size = check_max_file_size(content)
 	temp_fname = write_file(content, files_path)
 	fname = scrub_file_name(fname)
-	fpath = os.path.join(files_path, fname)
+	fpath = os.path.join(files_path, fname).encode("utf-8")
 
 	fname_parts = fname.split(".", -1)
 	main = ".".join(fname_parts[:-1])
@@ -96,10 +96,10 @@ def save_file(fname, content, dt, dn):
 			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
 			
 			# rename
-			os.rename(temp_fname, os.path.join(files_path, fname))
+			os.rename(temp_fname, fpath)
 	else:
 		# rename new file
-		os.rename(temp_fname, os.path.join(files_path, fname))
+		os.rename(temp_fname, fpath)
 
 	f = webnotes.bean({
 		"doctype": "File Data",
@@ -124,7 +124,7 @@ def get_new_fname_based_on_version(files_path, main, extn, versions):
 		version = 1
 	
 	new_fname = main + "-" + str(version) + "." + extn
-	while os.path.exists(os.path.join(files_path, new_fname)):
+	while os.path.exists(os.path.join(files_path, new_fname).encode("utf-8")):
 		version += 1
 		new_fname = main + "-" + str(version) + "." + extn
 		if version > 100:

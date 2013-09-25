@@ -88,12 +88,13 @@ wn.core.pages.desktop.show_pending_notifications = function() {
 			&& wn.boot.notification_info.open_count_module[module]!=null) {
 			sum = wn.boot.notification_info.open_count_module[module];
 		}
-		var notifier = $("#module-count-" + wn.modules[module]._link);
-		if(notifier.length) {
-			notifier.toggle(sum ? true : false);
-			notifier.find(".circle-text").html(sum || "");
+		if (wn.modules[module]) {
+			var notifier = $("#module-count-" + wn.modules[module]._link);
+			if(notifier.length) {
+				notifier.toggle(sum ? true : false);
+				notifier.find(".circle-text").html(sum || "");
+			}
 		}
-
 	});
 }
 
