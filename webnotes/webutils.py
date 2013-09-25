@@ -119,6 +119,12 @@ def build_sitemap():
 	sitemap = {}
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
  	sitemap.update(config["pages"])
+	
+	# pages
+	for p in config["pages"].values():
+		if p.get("controller"):
+			module = webnotes.get_module(p["controller"])
+			p["no_cache"] = getattr(module, "no_cache", False)
 
 	# generators
 	for g in config["generators"].values():
@@ -129,6 +135,7 @@ def build_sitemap():
 				opts = g.copy()
 				opts["doctype"] = module.doctype
 				opts["docname"] = name
+				opts["no_cache"] = getattr(module, "no_cache", False)
 				sitemap[page_name] = opts
 		
 	return sitemap
