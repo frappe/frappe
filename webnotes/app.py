@@ -24,7 +24,8 @@ def application(request):
 	webnotes.local.request = request
 	
 	try:
-		webnotes.init(site=request.host)
+		site = webnotes.utils.get_site_name(request.host)
+		webnotes.init(site=site)
 
 		webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 			for k, v in (request.form or request.args).iteritems() })
