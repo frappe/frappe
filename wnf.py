@@ -12,21 +12,25 @@ if __name__=="__main__":
 import webnotes
 
 def main():
-	def run(args):
-		for fn, opts in args.items():
-			if (opts or isinstance(opts, list)) and globals().get(fn):
-				return globals().get(fn)(opts, args)
-		
-		webnotes.destroy()
-	
 	parsed_args = webnotes._dict(vars(setup_parser()))
+	fn = get_function(parsed_args)
 	if parsed_args.get("site")=="all":
 		for site in get_sites():
 			args = parsed_args.copy()
 			args["site"] = site
-			run(args)
+			run(fn, args)
 	else:
-		run(parsed_args)
+		run(fn, parsed_args)
+		
+def run(fn, args):
+	out = globals().get(fn)(args.get(fn), args)
+	webnotes.destroy()
+	return out
+		
+def get_function(args):
+	for fn, opts in args.items():
+		if (opts or isinstance(opts, list)) and globals().get(fn):
+			return fn
 	
 def get_sites():
 	pass
@@ -102,9 +106,9 @@ def setup_utilities(parser):
 		help="Reset permissions for all doctypes")
 	
 	# scheduler
-	parser.add_argument("--scheduler", "--run_scheduler", default=False, action="store_true",
+	parser.add_argument("--run_scheduler", default=False, action="store_true",
 		help="Trigger scheduler")
-	parser.add_argument("--scheduler_event", "--run_scheduler_event", nargs=1, 
+	parser.add_argument("--run_scheduler_event", nargs=1, 
 		metavar="all | daily | weekly | monthly",
 		help="Run a scheduler event")
 		
@@ -252,6 +256,87 @@ def domain(opts, args):
 def make_conf(opts, args):
 	from webnotes.install_lib.install import make_conf
 	make_conf(*opts, site=args.site)
+
+# clear
+def clear_cache(opts, args):
+	import webnotes.sessions
+	webnotes.connect(site=args.site)
+	webnotes.sessions.clear_cache()
+	
+def clear_web(opts, args):
+	import webnotes.webutils
+	webnotes.connect(site=args.site)
+	webnotes.webutils.clear_cache()
+	
+def reset_perms(opts, args):
+	webnotes.connect(site=args.site)
+	for d in webnotes.conn.sql_list("""select name from `tabDocType`
+		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
+			webnotes.clear_cache(doctype=d)
+			webnotes.reset_perms(d)
+
+# scheduler
+def run_scheduler(opts, args):
+	import webnotes.utils.scheduler
+	webnotes.connect(site=args.site)
+	print webnotes.utils.scheduler.execute()
+	
+def run_scheduler_event(opts, args):
+	import webnotes.utils.scheduler
+	webnotes.connect(site=args.site)
+	print webnotes.utils.scheduler.trigger("execute_" + opts[0])
+	
+# replace
+def replace(opts, args):
+	print opts
+	replace_code('.', *opts, force=args.force)
+	
+# import/export	
+def export_doc(opts, args):
+	import webnotes.modules
+	webnotes.connect(site=args.site)
+	webnotes.modules.export_doc(*opts)
+	
+def export_doclist(opts, args):
+	from core.page.data_import_tool import data_import_tool
+	webnotes.connect(site=args.site)
+	data_import_tool.export_json(*opts)
+	
+def export_csv(opts, args):
+	from core.page.data_import_tool import data_import_tool
+	webnotes.connect(site=args.site)
+	data_import_tool.export_csv(*opts)
+	
+def import_doclist(opts, args):
+	from core.page.data_import_tool import data_import_tool
+	webnotes.connect(site=args.site)
+	data_import_tool.import_doclist(*opts)
+	
+# translation
+def build_message_files(opts, args):
+	import webnotes.translate
+	webnotes.connect(site=args.site)
+	webnotes.translate.build_message_files()
+	
+def export_messages(opts, args):
+	import webnotes.translate
+	webnotes.connect(site=args.site)
+	webnotes.translate.export_messages(*opts)
+
+def import_messages(opts, args):
+	import webnotes.translate
+	webnotes.connect(site=args.site)
+	webnotes.translate.import_messages(*opts)
+	
+def google_translate(opts, args):
+	import webnotes.translate
+	webnotes.connect(site=args.site)
+	webnotes.translate.google_translate(*opts)
+
+def translate(opts, args):
+	import webnotes.translate
+	webnotes.connect(site=args.site)
+	webnotes.translate.translate(*opts)
 
 # git
 def git(opts, args=None):

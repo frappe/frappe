@@ -19,21 +19,17 @@ class Installer:
 		make_conf(db_name, site=site)
 		self.site = site
 		
-		self.make_connection(root_login, root_password, site)
+		self.make_connection(root_login, root_password)
 
 		webnotes.local.conn = self.conn
 		webnotes.local.session = webnotes._dict({'user':'Administrator'})
 	
 		self.dbman = DbManager(self.conn)
 		
-	def make_connection(self, root_login, root_password, site):
+	def make_connection(self, root_login, root_password):
 		if root_login:
 			if not root_password:
-				try:
-					webnotes.init(site=site)
-					root_password = webnotes.conf.get("root_password") or None
-				except ImportError:
-					pass
+				root_password = webnotes.conf.get("root_password") or None
 			
 			if not root_password:
 				root_password = getpass.getpass("MySQL root password: ")
@@ -183,7 +179,11 @@ class Installer:
 def make_conf(db_name=None, db_password=None, site=None, site_config=None):
 	try:
 		import conf
+		webnotes.init(site=site)
 		
+		if not site and webnotes.conf.site:
+			site = webnotes.conf.site
+			
 		if site:
 			# conf exists and site is specified, create site_config.json
 			make_site_config(site, db_name, db_password, site_config)
