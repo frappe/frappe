@@ -19,8 +19,11 @@ def render(page_name):
 		html = render_page("404")
 	except Exception:
 		html = render_page('error')
-		
+	
 	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	if "content_type" in webnotes.response:
+		webnotes._response.headers["Content-Type"] = webnotes.response.pop("content_type")
+
 	webnotes._response.data = html
 
 def render_page(page_name):
@@ -41,7 +44,7 @@ def render_page(page_name):
 
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.getTraceback())
-	else:
+	elif not webnotes.response.content_type:
 		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
@@ -118,6 +121,7 @@ def build_sitemap():
 		if p.get("controller"):
 			module = webnotes.get_module(p["controller"])
 			p["no_cache"] = getattr(module, "no_cache", False)
+			p["no_sitemap"] = getattr(module, "no_sitemap", False) or p["no_cache"]
 
 	# generators
 	for g in config["generators"].values():
@@ -186,7 +190,7 @@ def build_website_sitemap_config():
 	for path, folders, files in os.walk(basepath, followlinks=True):
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
-				if fname.split(".")[-1] in ("html", "xml"):
+				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
 					options = get_options(path, fname)
 					config["pages"][options.link_name] = options
 

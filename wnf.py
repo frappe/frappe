@@ -133,6 +133,8 @@ def setup_git(parser):
 		help="Run git push for both repositories")
 	parser.add_argument("--status", default=False, action="store_true",
 		help="Run git status for both repositories")
+	parser.add_argument("--commit", nargs=1, metavar="COMMIT-MSG",
+		help="Run git commit COMMIT-MSG for both repositories")
 	parser.add_argument("--checkout", nargs=1, metavar="BRANCH",
 		help="Run git checkout BRANCH for both repositories")
 	parser.add_argument("--git", nargs="*", metavar="OPTIONS",
@@ -344,8 +346,8 @@ def git(opts, args=None):
 	if isinstance(opts, (list, tuple)):
 		cmd = " ".join(opts)
 	import os
-	os.system("cd lib && git %s" % cmd)
-	os.system("cd app && git %s" % cmd)
+	os.system("""cd lib && git %s""" % cmd)
+	os.system("""cd app && git %s""" % cmd)
 	
 def pull(opts, args=None):
 	if not opts:
@@ -361,6 +363,9 @@ def push(opts, args=None):
 	
 def status(opts, args=None):
 	git("status")
+	
+def commit(opts, args=None):
+	git("""commit -m "%s" """ % opts[0].replace('"', '\"'))
 	
 def checkout(opts, args=None):
 	git(("checkout", opts[0]))

@@ -1,6 +1,6 @@
 import webnotes
 import os, urllib
-from webnotes.utils import escape_html, get_request_site_address
+from webnotes.utils import escape_html, get_request_site_address, now
 
 no_cache = True
 
@@ -17,8 +17,11 @@ def get_context():
 	for blog in blog_list:
 		blog.link = urllib.quote(host + '/' + blog.name + '.html')
 		blog.content = escape_html(blog.content or "")
-		
-	modified = max((blog['modified'] for blog in blog_list))
+	
+	if blog_list:
+		modified = max((blog['modified'] for blog in blog_list))
+	else:
+		modified = now()
 
 	ws = webnotes.doc('Website Settings', 'Website Settings')
 
@@ -30,6 +33,8 @@ def get_context():
 		'link': host + '/blog'
 	}
 	
-	print context
+	webnotes.response.content_type = "text/xml"
+	
+	# print context
 	return context
 	
