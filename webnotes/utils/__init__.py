@@ -809,7 +809,7 @@ def comma_sep(some_list, sep):
 def filter_strip_join(some_list, sep):
 	"""given a list, filter None values, strip spaces and join"""
 	return (cstr(sep)).join((cstr(a).strip() for a in filter(None, some_list)))
-		
+	
 def get_path(*path, **kwargs):
 	base = kwargs.get('base')
 	if not base:
@@ -821,7 +821,7 @@ def get_base_path():
 	import conf
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
-
+	
 def get_site_base_path(sites_dir=None, hostname=None):
 	if conf and not conf.sites_dir:
 		return get_base_path()

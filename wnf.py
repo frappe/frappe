@@ -28,8 +28,8 @@ def run(fn, args):
 	return out
 		
 def get_function(args):
-	for fn, opts in args.items():
-		if (opts or isinstance(opts, list)) and globals().get(fn):
+	for fn, val in args.items():
+		if (val or isinstance(val, list)) and globals().get(fn):
 			return fn
 	
 def get_sites():
@@ -160,44 +160,44 @@ def setup_translation(parser):
 # methods
 
 # install
-def _install(opts, args):
+def _install(val, args):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=opts[0], site=args.site)
-	inst.install(*opts, verbose=1, force=args.force)
+	inst = Installer('root', db_name=val[0], site=args.site)
+	inst.install(*val, verbose=1, force=args.force)
 	
-def install(opts, args):
-	_install(opts, args)
+def install(val, args):
+	_install(val, args)
 
 # install
-def reinstall(opts, args):
+def reinstall(val, args):
 	webnotes.init(site=args.site)
 	_install([webnotes.conf.db_name], args)
 
-def restore(opts, args):
-	_install(opts, args)
+def restore(val, args):
+	_install(val, args)
 	
-def install_fixtures(opts, args):
+def install_fixtures(val, args):
 	webnotes.init(site=args.site)
 	from webnotes.install_lib.install import install_fixtures
 	install_fixtures()
 	
-def make_demo(opts, args):
+def make_demo(val, args):
 	import utilities.demo.make_demo
 	webnotes.init(site=args.site)
 	utilities.demo.make_demo.make()
 	
-def make_demo_fresh(opts, args):
+def make_demo_fresh(val, args):
 	import utilities.demo.make_demo
 	webnotes.init(site=args.site)
 	utilities.demo.make_demo.make(reset=True)
 	
 # utilities
-def update(opts, args):
-	pull(opts, args)
+def update(val, args):
+	pull(val, args)
 	reload(webnotes)
-	latest(opts, args)
+	latest(val, args)
 	
-def latest(opts, args):
+def latest(val, args):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
 	
@@ -212,65 +212,65 @@ def latest(opts, args):
 	webnotes.model.sync.sync_all()
 	
 	# build
-	build(opts, args)
+	build(val, args)
 	
-def sync_all(opts, args):
+def sync_all(val, args):
 	import webnotes.model.sync
 	webnotes.connect(site=args.site)
 	webnotes.model.sync.sync_all(force=args.force)
 	
-def patch(opts, args):
+def patch(val, args):
 	import webnotes.modules.patch_handler
 	webnotes.connect(site=args.site)
 	webnotes.modules.patch_handler.log_list = []
-	webnotes.modules.patch_handler.run_single(opts[0], force=args.force)
+	webnotes.modules.patch_handler.run_single(val[0], force=args.force)
 	print "\n".join(webnotes.modules.patch_handler.log_list)
 
-def reload_doc(opts, args):
+def reload_doc(val, args):
 	webnotes.connect(site=args.site)
-	webnotes.reload_doc(opts[0], opts[1], opts[2], force=args.force)
+	webnotes.reload_doc(val[0], val[1], val[2], force=args.force)
 	
-def build(opts, args):
+def build(val, args):
 	import webnotes.build
 	webnotes.build.bundle(False)
 	
-def watch(opts, args):
+def watch(val, args):
 	import webnotes.build
 	webnotes.build.watch(True)
 	
-def backup(opts, args):
+def backup(val, args):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=args.site)
 	scheduled_backup(ignore_files=not args.with_files)
 	
-def docs(opts, args):
+def docs(val, args):
 	from core.doctype.documentation_tool.documentation_tool import write_static
 	write_static()
 	
-def domain(opts, args):
+def domain(val, args):
 	webnotes.connect(site=args.site)
-	if opts:
-		webnotes.conn.set_value("Website Settings", None, "subdomain", opts[0])
+	if val:
+		webnotes.conn.set_value("Website Settings", None, "subdomain", val[0])
 		webnotes.conn.commit()
 	else:
 		print webnotes.conn.get_value("Website Settings", None, "subdomain")
 		
-def make_conf(opts, args):
+def make_conf(val, args):
 	from webnotes.install_lib.install import make_conf
-	make_conf(*opts, site=args.site)
+	make_conf(*val, site=args.site)
 
 # clear
-def clear_cache(opts, args):
+def clear_cache(val, args):
 	import webnotes.sessions
 	webnotes.connect(site=args.site)
 	webnotes.sessions.clear_cache()
 	
-def clear_web(opts, args):
+def clear_web(val, args):
 	import webnotes.webutils
 	webnotes.connect(site=args.site)
 	webnotes.webutils.clear_cache()
 	
-def reset_perms(opts, args):
+def reset_perms(val, args):
 	webnotes.connect(site=args.site)
 	for d in webnotes.conn.sql_list("""select name from `tabDocType`
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
@@ -278,97 +278,97 @@ def reset_perms(opts, args):
 			webnotes.reset_perms(d)
 
 # scheduler
-def run_scheduler(opts, args):
+def run_scheduler(val, args):
 	import webnotes.utils.scheduler
 	webnotes.connect(site=args.site)
 	print webnotes.utils.scheduler.execute()
 	
-def run_scheduler_event(opts, args):
+def run_scheduler_event(val, args):
 	import webnotes.utils.scheduler
 	webnotes.connect(site=args.site)
-	print webnotes.utils.scheduler.trigger("execute_" + opts[0])
+	print webnotes.utils.scheduler.trigger("execute_" + val[0])
 	
 # replace
-def replace(opts, args):
-	print opts
-	replace_code('.', *opts, force=args.force)
+def replace(val, args):
+	print val
+	replace_code('.', *val, force=args.force)
 	
 # import/export	
-def export_doc(opts, args):
+def export_doc(val, args):
 	import webnotes.modules
 	webnotes.connect(site=args.site)
-	webnotes.modules.export_doc(*opts)
+	webnotes.modules.export_doc(*val)
 	
-def export_doclist(opts, args):
+def export_doclist(val, args):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=args.site)
-	data_import_tool.export_json(*opts)
+	data_import_tool.export_json(*val)
 	
-def export_csv(opts, args):
+def export_csv(val, args):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=args.site)
-	data_import_tool.export_csv(*opts)
+	data_import_tool.export_csv(*val)
 	
-def import_doclist(opts, args):
+def import_doclist(val, args):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=args.site)
-	data_import_tool.import_doclist(*opts)
+	data_import_tool.import_doclist(*val)
 	
 # translation
-def build_message_files(opts, args):
+def build_message_files(val, args):
 	import webnotes.translate
 	webnotes.connect(site=args.site)
 	webnotes.translate.build_message_files()
 	
-def export_messages(opts, args):
+def export_messages(val, args):
 	import webnotes.translate
 	webnotes.connect(site=args.site)
-	webnotes.translate.export_messages(*opts)
+	webnotes.translate.export_messages(*val)
 
-def import_messages(opts, args):
+def import_messages(val, args):
 	import webnotes.translate
 	webnotes.connect(site=args.site)
-	webnotes.translate.import_messages(*opts)
+	webnotes.translate.import_messages(*val)
 	
-def google_translate(opts, args):
+def google_translate(val, args):
 	import webnotes.translate
 	webnotes.connect(site=args.site)
-	webnotes.translate.google_translate(*opts)
+	webnotes.translate.google_translate(*val)
 
-def translate(opts, args):
+def translate(val, args):
 	import webnotes.translate
 	webnotes.connect(site=args.site)
-	webnotes.translate.translate(*opts)
+	webnotes.translate.translate(*val)
 
 # git
-def git(opts, args=None):
-	cmd = opts
-	if isinstance(opts, (list, tuple)):
-		cmd = " ".join(opts)
+def git(val, args=None):
+	cmd = val
+	if isinstance(val, (list, tuple)):
+		cmd = " ".join(val)
 	import os
 	os.system("""cd lib && git %s""" % cmd)
 	os.system("""cd app && git %s""" % cmd)
 	
-def pull(opts, args=None):
-	if not opts:
+def pull(val, args=None):
+	if not val:
 		webnotes.init(site=args.site)
-		opts = ("origin", webnotes.conf.branch or "master")
-	git(("pull", opts[0], opts[1]))
+		val = ("origin", webnotes.conf.branch or "master")
+	git(("pull", val[0], val[1]))
 
-def push(opts, args=None):
-	if not opts:
+def push(val, args=None):
+	if not val:
 		webnotes.init(site=args.site)
-		opts = ("origin", webnotes.conf.branch or "master")
-	git(("push", opts[0], opts[1]))
+		val = ("origin", webnotes.conf.branch or "master")
+	git(("push", val[0], val[1]))
 	
-def status(opts, args=None):
+def status(val, args=None):
 	git("status")
 	
-def commit(opts, args=None):
-	git("""commit -a -m "%s" """ % opts[0].replace('"', '\"'))
+def commit(val, args=None):
+	git("""commit -a -m "%s" """ % val[0].replace('"', '\"'))
 	
-def checkout(opts, args=None):
-	git(("checkout", opts[0]))
+def checkout(val, args=None):
+	git(("checkout", val[0]))
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
