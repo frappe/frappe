@@ -365,7 +365,7 @@ def status(opts, args=None):
 	git("status")
 	
 def commit(opts, args=None):
-	git("""commit -m "%s" """ % opts[0].replace('"', '\"'))
+	git("""commit -a -m "%s" """ % opts[0].replace('"', '\"'))
 	
 def checkout(opts, args=None):
 	git(("checkout", opts[0]))
