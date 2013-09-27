@@ -27,7 +27,9 @@ def get_cgi_fields():
 	for key in webnotes.form.keys():
 		# file upload must not be decoded as it is treated as a binary
 		# file and hence in any encoding (it does not matter)
-		if not getattr(webnotes.form[key], 'filename', None):
+		if key == "filedata":
+			webnotes.form_dict[key] = webnotes.form.getvalue(key)
+		else:
 			webnotes.form_dict[key] = cstr(webnotes.form.getvalue(key))
 
 @webnotes.whitelist(allow_guest=True)

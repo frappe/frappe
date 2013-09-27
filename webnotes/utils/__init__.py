@@ -814,7 +814,7 @@ def get_path(*path):
 def get_base_path():
 	import conf
 	import os
-	return os.path.dirname(os.path.abspath(conf.__file__))
+	return os.path.dirname(os.path.abspath(conf.__file__.decode("utf-8")))
 	
 def get_url(uri=None):
 	url = get_request_site_address()
