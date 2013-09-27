@@ -131,6 +131,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 	wn.model.on(me.doctype, "*", function(fieldname, value, doc) {
 		// set input
 		if(doc.name===me.docname) {
+			me.dirty();
 			me.fields_dict[fieldname] 
 				&& me.fields_dict[fieldname].refresh(fieldname);
 			me.refresh_dependency();
