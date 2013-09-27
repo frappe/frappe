@@ -113,7 +113,12 @@ def save_file(fname, content, dt, dn):
 	return f.doc
 
 def get_file_versions(files_path, main, extn):
-	return filter(lambda f: f.startswith(main) and f.endswith(extn), os.listdir(files_path))
+	out = []
+	for f in os.listdir(files_path):
+		f = cstr(f)
+		if f.startswith(main) and f.endswith(extn):
+			out.append(f)
+	return out
 
 def get_new_fname_based_on_version(files_path, main, extn, versions):
 	versions.sort()
