@@ -178,8 +178,13 @@ class Installer:
 		
 def make_conf(db_name=None, db_password=None, site=None, site_config=None):
 	try:
+		from werkzeug.exceptions import NotFound
 		import conf
-		webnotes.init(site=site)
+		
+		try:
+			webnotes.init(site=site)
+		except NotFound:
+			pass
 		
 		if not site and webnotes.conf.site:
 			site = webnotes.conf.site
