@@ -119,6 +119,12 @@ def build_sitemap():
 	sitemap = {}
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
  	sitemap.update(config["pages"])
+	
+	# pages
+	for p in config["pages"].values():
+		if p.get("controller"):
+			module = webnotes.get_module(p["controller"])
+			p["no_cache"] = getattr(module, "no_cache", False)
 
 	# generators
 	for g in config["generators"].values():
@@ -129,6 +135,7 @@ def build_sitemap():
 				opts = g.copy()
 				opts["doctype"] = module.doctype
 				opts["docname"] = name
+				opts["no_cache"] = getattr(module, "no_cache", False)
 				sitemap[page_name] = opts
 		
 	return sitemap
@@ -260,7 +267,9 @@ def get_all_pages():
 
 def delete_page_cache(page_name):
 	if page_name:
-		webnotes.cache().delete_value("page:" + page_name)
+		cache = webnotes.cache()
+		cache.delete_value("page:" + page_name)
+		cache.delete_value("website_sitemap")
 			
 def get_hex_shade(color, percent):
 	def p(c):
@@ -322,7 +331,7 @@ def page_name(title):
 	"""make page name from title"""
 	import re
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
+	name = re.sub('[~!@#$%^&*+()<>,."\']', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())

@@ -21,7 +21,10 @@ def generate(domain):
 		today = nowdate()
 		
 		for page_name, page_options in webnotes.webutils.get_website_sitemap().items():
-			url = urllib.basejoin(domain, urllib.quote(page_name))
+			if page_options.get("no_cache"):
+				continue
+			
+			url = urllib.basejoin(domain, urllib.quote(page_name.encode("utf-8")))
 			site_map += link_xml % (url, today)
 	
 	return frame_xml % site_map

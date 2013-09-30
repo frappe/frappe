@@ -222,18 +222,18 @@ class Bean:
 			
 			idx_map[d.parentfield] = d.idx
 
-	def run_method(self, method):
+	def run_method(self, method, *args, **kwargs):
 		self.make_controller()
 		
 		if hasattr(self.controller, method):
-			getattr(self.controller, method)()
+			getattr(self.controller, method)(*args, **kwargs)
 		if hasattr(self.controller, 'custom_' + method):
-			getattr(self.controller, 'custom_' + method)()
+			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
 
 		notify(self.controller, method)
 		
 		self.set_doclist(self.controller.doclist)
-
+		
 	def get_method(self, method):
 		self.make_controller()
 		return getattr(self.controller, method, None)
@@ -404,7 +404,7 @@ class Bean:
 					elif doc.fields.get(df.fieldname) is None:
 						msg = _("Error") + ": "
 						if doc.parentfield:
-							msg += _("Row") + (" # %d: " % doc.idx)
+							msg += _("Row") + (" # %s: " % (doc.idx,))
 			
 						msg += _("Value missing for") + ": " + _(df.label)
 					
