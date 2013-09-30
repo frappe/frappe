@@ -7,7 +7,7 @@ sys.path.insert(0, 'lib')
 
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
-from werkzeug.wsgi import SharedDataMiddleware
+from webnotes.middlewares import StaticDataMiddleware
 from werkzeug.exceptions import HTTPException
 from webnotes import get_config
 
@@ -53,8 +53,8 @@ def application(request):
 application = local_manager.make_middleware(application)
 
 
-application = SharedDataMiddleware(application, {
-	'/': os.path.join(os.path.dirname(__file__), "..", "..", "public")
+application = StaticDataMiddleware(application, {
+	'/': 'public',
 })
 
 if __name__ == '__main__':
