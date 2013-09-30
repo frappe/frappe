@@ -131,6 +131,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 	wn.model.on(me.doctype, "*", function(fieldname, value, doc) {
 		// set input
 		if(doc.name===me.docname) {
+			me.dirty();
 			me.fields_dict[fieldname] 
 				&& me.fields_dict[fieldname].refresh(fieldname);
 			me.refresh_dependency();
@@ -142,6 +143,7 @@ _f.Frm.prototype.watch_model_updates = function() {
 	$.each(wn.model.get("DocField", {fieldtype:"Table", parent: me.doctype}), function(i, df) {
 		wn.model.on(df.options, "*", function(fieldname, value, doc) {
 			if(doc.parent===me.docname && doc.parentfield===df.fieldname) {
+				me.dirty();
 				me.fields_dict[df.fieldname].grid.set_value(fieldname, value, doc);
 				me.script_manager.trigger(fieldname, doc.doctype, doc.name);
 			}
