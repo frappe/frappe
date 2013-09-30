@@ -6,17 +6,16 @@ classes should alter those!
 */
 
 .slick-header-columns {
-  background: url('../lib/js/lib/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
+  background-color: #f2f2f2;
   border-bottom: 1px solid silver;
 }
 
 .slick-header-column {
-  background: url('../lib/js/lib/slickgrid/images/header-columns-bg.gif') repeat-x center bottom;
   border-right: 1px solid silver;
 }
 
 .slick-header-column:hover, .slick-header-column-active {
-  background: white url('../lib/js/lib/slickgrid/images/header-columns-over-bg.gif') repeat-x center bottom;
+  background-color: #f5f5f5;
 }
 
 .slick-headerrow {
@@ -46,8 +45,7 @@ classes should alter those!
 }
 
 .slick-cell {
-  padding-left: 4px;
-  padding-right: 4px;
+  padding: 0px 4px;
 }
 
 .slick-group {
@@ -88,6 +86,10 @@ classes should alter those!
 
 .slick-row[row$="1"], .slick-row[row$="3"], .slick-row[row$="5"], .slick-row[row$="7"], .slick-row[row$="9"] {
   background: #fafafa;
+}
+
+.slick-row.odd .slick-cell {
+  background-color: #f9f9f9;
 }
 
 .slick-row.ui-state-active {
