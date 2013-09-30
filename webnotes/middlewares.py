@@ -14,13 +14,19 @@ class StaticDataMiddleware(SharedDataMiddleware):
 	def get_directory_loader(self, directory):
 		def loader(path):
 			import conf
-			site = get_site_name(self.environ.get('HTTP_HOST'))
-			possible_site_path = get_path(directory, path, base=os.path.join(conf.sites_dir, site))
-			if os.path.isfile(possible_site_path):
-				path = possible_site_path
-			elif os.path.isfile(get_path(directory, path)):
+			fail = True
+			if hasattr(conf, 'sites_dir'):
+				site = get_site_name(self.environ.get('HTTP_HOST'))
+				possible_site_path = get_path(directory, path, base=os.path.join(conf.sites_dir, site))
+				if os.path.isfile(possible_site_path):
+					path = possible_site_path
+					fail = False
+
+			if fail and os.path.isfile(get_path(directory, path)):
 				path = get_path(directory, path)
-			else:
+				fail = False
+
+			if fail:
 				return None, None
 			return os.path.basename(path), self._opener(path)
 		return loader
