@@ -17,7 +17,7 @@ import json
 import re
 from csv import reader
 from webnotes.modules import get_doc_path
-from webnotes.utils import get_base_path
+from webnotes.utils import get_base_path, cstr
 
 messages = {}
 
@@ -116,6 +116,7 @@ def build_for_pages(path):
 		if os.path.basename(os.path.dirname(basepath))=="page":
 			messages_js, messages_py = [], []
 			for fname in files:
+				fname = cstr(fname)
 				if fname.endswith('.js'):
 					messages_js += get_message_list(os.path.join(basepath, fname))	
 				if fname.endswith('.py'):
@@ -167,6 +168,7 @@ def build_for_framework(path, mtype, with_doctype_names = False):
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
 		for fname in files:
+			fname = cstr(fname)
 			if fname.endswith('.' + mtype):
 				messages += get_message_list(os.path.join(basepath, fname))
 				
@@ -192,6 +194,7 @@ def build_from_doctype_code(path):
 		messagespy = []
 		messagesjs = []
 		for fname in files:
+			fname = cstr(fname)
 			if fname.endswith('py'):
 				messagespy += get_message_list(os.path.join(basepath, fname))
 			if fname.endswith('js'):

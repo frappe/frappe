@@ -194,6 +194,7 @@ def get_file(fname):
 		# check in folders
 		for basepath, folders, files in os.walk(files_path):
 			if file_name in files:
+				file_name = cstr(file_name)
 				file_path = os.path.join(basepath, file_name)
 				break
 		
