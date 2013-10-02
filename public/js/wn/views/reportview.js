@@ -10,7 +10,7 @@ wn.views.ReportFactory = wn.views.Factory.extend({
 wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
 		if(!wn.model.can_get_report(doctype)) {
-			wn.set_route("403");
+			wn.show_not_permitted(wn.get_route_str());
 			return;
 		};
 
