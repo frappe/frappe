@@ -239,6 +239,7 @@ wn.views.CommunicationComposer = Class.extend({
 		// toggle print format
 		$(fields.send_email.input).click(function() {
 			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
+			$(fields.send.input).html($(this).prop("checked") ? "Send" : "Add Communication");
 		});
 
 		// select print format

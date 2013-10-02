@@ -25,7 +25,7 @@ wn.ui.FieldGroup = Class.extend({
 			}
 			if(!df.fieldtype) df.fieldtype="Data";
 			
-			var div = $a(this.body, 'div', '', {margin:'6px 0px'})
+			var div = $a(this.body, 'div');
 			f = make_field(df, null, div, null);
 			f.not_in_form = 1;
 			f.dialog_wrapper = this.wrapper || null;
@@ -36,6 +36,9 @@ wn.ui.FieldGroup = Class.extend({
 			if(df.fieldtype=='Button' && !this.first_button) {
 				$(f.input).removeClass("btn-default").addClass('btn-info');
 				this.first_button = true;
+			}
+			if(!df.description) {
+				$(f.wrapper).find(".help-box").toggle(false);
 			}
 		}
 	},
