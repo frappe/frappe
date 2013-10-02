@@ -257,7 +257,7 @@ def save_report():
 	"""save report"""
 	from webnotes.model.doc import Document
 	
-	data = webnotes.form_dict
+	data = webnotes.local.form_dict
 	if webnotes.conn.exists('Report', data['name']):
 		d = Document('Report', data['name'])
 	else:
