@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 #Imports
 import os, webnotes
 from datetime import datetime
-
+from webnotes.utils import cstr
 
 #Global constants
 verbose = 0
