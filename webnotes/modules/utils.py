@@ -4,6 +4,9 @@
 from __future__ import unicode_literals
 
 import webnotes, os
+import webnotes.modules
+from webnotes.utils import cstr
+from webnotes.modules import export_doc, get_module_path, scrub
 
 def listfolders(path, only_name=0):
 	"""
@@ -13,11 +16,12 @@ def listfolders(path, only_name=0):
 
 	out = []
 	for each in os.listdir(path):
+		each = cstr(each)
 		dirname = each.split(os.path.sep)[-1]
 		fullpath = os.path.join(path, dirname)
 
 		if os.path.isdir(fullpath) and not dirname.startswith('.'):
-			out.append(only_name and dirname or fullname)
+			out.append(only_name and dirname or fullpath)
 	return out
 
 def switch_module(dt, dn, to, frm=None, export=None):

@@ -190,6 +190,7 @@ def build_website_sitemap_config():
 	for path, folders, files in os.walk(basepath, followlinks=True):
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
+				fname = webnotes.utils.cstr(fname)
 				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
 					options = get_options(path, fname)
 					config["pages"][options.link_name] = options

@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 #Imports
 import os, webnotes
 from datetime import datetime
-
+from webnotes.utils import cstr
 
 #Global constants
 verbose = 0
@@ -62,6 +62,7 @@ class BackupGenerator:
 	def get_recent_backup(self, older_than):
 		file_list = os.listdir(get_backup_path())
 		for this_file in file_list:
+			this_file = cstr(this_file)
 			this_file_path = os.path.join(get_backup_path(), this_file)
 			if not is_file_old(this_file_path, older_than):
 				if "_files" in this_file_path:

@@ -47,7 +47,9 @@ wn.ui.form.Grid = Class.extend({
 		this.docfields = wn.meta.get_docfields(this.doctype, this.frm.docname);
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
-
+		
+		if(this.display_status==="None") return;
+		
 		if(!force && this.data_rows_are_same(data)) {
 			// soft refresh
 			this.header_row.refresh();
@@ -146,7 +148,8 @@ wn.ui.form.Grid = Class.extend({
 		return this.fieldinfo[fieldname];
 	},
 	set_value: function(fieldname, value, doc) {
-		this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
+		if(this.display_status!=="None")
+			this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 	},
 	add_new_row: function(idx, callback, show) {
 		if(this.is_editable()) {

@@ -107,7 +107,9 @@ def report_errors():
 	
 	errors = [("""<p>Time: %(modified)s</p>
 <pre><code>%(error)s</code></pre>""" % d) for d in webnotes.conn.sql("""select modified, error 
-		from `tabScheduler Log` where DATEDIFF(NOW(), modified) < 1 limit 10""", as_dict=True)]
+		from `tabScheduler Log` where DATEDIFF(NOW(), modified) < 1 
+		and error not like '%%[Errno 110] Connection timed out%%' 
+		limit 10""", as_dict=True)]
 		
 	if errors:
 		sendmail_to_system_managers("ERPNext Scheduler Failure Report", ("""

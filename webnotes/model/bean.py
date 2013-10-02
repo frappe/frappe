@@ -404,7 +404,7 @@ class Bean:
 					elif doc.fields.get(df.fieldname) is None:
 						msg = _("Error") + ": "
 						if doc.parentfield:
-							msg += _("Row") + (" # %d: " % doc.idx)
+							msg += _("Row") + (" # %s: " % (doc.idx,))
 			
 						msg += _("Value missing for") + ": " + _(df.label)
 					

@@ -9,7 +9,7 @@ from __future__ import unicode_literals
 import webnotes
 import os
 from webnotes.modules.import_file import import_file
-from webnotes.utils import get_path
+from webnotes.utils import get_path, cstr
 
 def sync_all(force=0):
 	sync_for("lib", force)
@@ -32,6 +32,7 @@ def walk_and_sync(start_path, force=0, sync_everything = False):
 
 		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):
 			for f in files:
+				f = cstr(f)
 				if f.endswith(".txt"):
 					doc_name = f.split(".txt")[0]
 					if doc_name == os.path.basename(path):

@@ -13,6 +13,7 @@ import unittest
 from webnotes.model.meta import has_field
 from webnotes.model.code import load_doctype_module, get_module_name
 from webnotes.model.doctype import get_link_fields
+from webnotes.utils import cstr
 
 
 def make_test_records(doctype, verbose=0):
@@ -148,6 +149,7 @@ def run_all_tests(verbose):
 	for path, folders, files in os.walk("."):
 		# print path
 		for filename in files:
+			filename = cstr(filename)
 			if filename.startswith("test_") and filename.endswith(".py"):
 				print filename[:-3]
 				webnotes.session.user = "Administrator"

@@ -13,6 +13,7 @@ import getpass
 
 from webnotes.model.db_schema import DbManager
 from webnotes.model.sync import sync_for
+from webnotes.utils import cstr
 
 class Installer:
 	def __init__(self, root_login, root_password=None, db_name=None, site=None):
@@ -125,7 +126,6 @@ class Installer:
 		webnotes.conn.begin()
 		_update_password("Administrator", webnotes.conf.get("admin_password") or password)
 		webnotes.conn.commit()
-	
 	
 	def import_core_docs(self):
 		install_docs = [
@@ -245,6 +245,7 @@ def install_fixtures():
 	print "Importing install fixtures..."
 	for basepath, folders, files in os.walk(os.path.join("app", "startup", "install_fixtures")):
 		for f in files:
+			f = cstr(f)
 			if f.endswith(".json"):
 				print "Importing " + f
 				with open(os.path.join(basepath, f), "r") as infile:
