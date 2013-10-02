@@ -776,7 +776,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		}).data('uiAutocomplete')._renderItem = function(ul, d) {
 			var html = "";
 			if(keys(d).length > 1) {
-				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ");
+				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";
 				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
 			} else {
 				html = "<a>" + d.value + "</a>";
