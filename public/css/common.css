@@ -357,7 +357,7 @@ div#freeze {
 
 /* slickgrid */
 
-..slick-cell { 
+.slick-cell { 
 	font-size: 12px; 
 }
 

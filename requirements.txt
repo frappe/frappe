@@ -1,5 +1,4 @@
 Jinja2==2.7.1
-MarkupSafe==0.18
 MySQL-python==1.2.4
 chardet==2.1.1
 dropbox==1.6
@@ -14,3 +13,4 @@ pytz==2013b
 requests==1.2.3
 six==1.4.0
 termcolor==1.1.0
+Werkzeug==0.9.4
