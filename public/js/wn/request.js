@@ -170,7 +170,7 @@ wn.request.cleanup = function(opts, r) {
 	}
 	
 	if(r['403']) {
-		wn.set_route('403');
+		wn.show_not_permitted(wn.get_route_str());
 	}
 
 	if(r.docs) {

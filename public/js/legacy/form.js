@@ -353,7 +353,6 @@ _f.Frm.prototype.check_doc_perm = function() {
 	this.perm = wn.perm.get_perm(dt, dn);
 				  
 	if(!this.perm[0][READ]) { 
-		wn.set_route("403");
 		return 0;
 	}
 	return 1
