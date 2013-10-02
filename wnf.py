@@ -33,7 +33,10 @@ def get_function(args):
 			return fn
 	
 def get_sites():
-	pass
+	import os
+	import conf
+	if getattr(conf, "sites_dir", None):
+		return os.listdir(conf.sites_dir)
 	
 def setup_parser():
 	import argparse
@@ -76,6 +79,9 @@ def setup_utilities(parser):
 		help="Run patches, sync schema and rebuild files/translations")
 	parser.add_argument("--sync_all", default=False, action="store_true",
 		help="Reload all doctypes, pages, etc. using txt files [-f]")
+	parser.add_argument("--update_all_sites", nargs="*", metavar=("REMOTE", "BRANCH"),
+		help="Perform git pull, run patches, sync schema and rebuild files/translations")
+	
 	parser.add_argument("--reload_doc", nargs=3, 
 		metavar=('"MODULE"', '"DOCTYPE"', '"DOCNAME"'))
 	
@@ -212,7 +218,8 @@ def latest(val, args):
 	webnotes.model.sync.sync_all()
 	
 	# build
-	build(val, args)
+	if not args.site:
+		build(val, args)
 	
 def sync_all(val, args):
 	import webnotes.model.sync
@@ -225,6 +232,13 @@ def patch(val, args):
 	webnotes.modules.patch_handler.log_list = []
 	webnotes.modules.patch_handler.run_single(val[0], force=args.force)
 	print "\n".join(webnotes.modules.patch_handler.log_list)
+	
+def update_all_sites(val, args):
+	args.site = None
+	pull(val, args)
+	build(val, args)
+	args.site = "all"
+	latest(val, args)
 
 def reload_doc(val, args):
 	webnotes.connect(site=args.site)
