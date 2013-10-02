@@ -8,8 +8,8 @@ from __future__ import unicode_literals
 """
 import webnotes
 import os
-import conf
 from webnotes.modules.import_file import import_file
+from webnotes.utils import get_path
 
 def sync_all(force=0):
 	sync_for("lib", force)
@@ -17,8 +17,7 @@ def sync_all(force=0):
 	webnotes.clear_cache()
 
 def sync_for(folder, force=0, sync_everything = False):
-	return walk_and_sync(os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 
-		folder), force, sync_everything)
+	return walk_and_sync(get_path(folder), force, sync_everything)
 
 def walk_and_sync(start_path, force=0, sync_everything = False):
 	"""walk and sync all doctypes and pages"""

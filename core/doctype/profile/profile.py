@@ -52,9 +52,9 @@ class DocType:
 		
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
-		import conf
+		from webnotes import conf
 		# check only when enabling a user
-		if hasattr(conf, 'max_users') and self.doc.enabled and \
+		if 'max_users' in conf and self.doc.enabled and \
 				self.doc.name not in ["Administrator", "Guest"] and \
 				cstr(self.doc.user_type).strip() in ("", "System User"):
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile

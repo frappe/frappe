@@ -18,10 +18,10 @@ import webnotes
 import webnotes.model
 import webnotes.model.doc
 import webnotes.model.doclist
-from webnotes.utils import cint
+from webnotes.utils import cint, get_base_path
 
 doctype_cache = webnotes.local('doctype_doctype_cache')
-docfield_types = webnotes.local('doctype_doctype_cache')
+docfield_types = webnotes.local('doctype_docfield_types')
 
 # doctype_cache = {}
 # docfield_types = None
@@ -272,7 +272,8 @@ def add_code(doctype, doclist):
 def add_embedded_js(doc):
 	"""embed all require files"""
 
-	import re, os, conf
+	import re, os
+	from webnotes import conf
 
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
@@ -280,7 +281,7 @@ def add_embedded_js(doc):
 	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
 	
 	def _sub(match):
-		fpath = os.path.join(os.path.dirname(conf.__file__), \
+		fpath = os.path.join(get_base_path(), \
 			re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
@@ -337,8 +338,10 @@ def add_search_fields(doclist):
 def update_language(doclist):
 	"""update language"""
 	if webnotes.lang != 'en':
-		from webnotes.translate import messages
 		from webnotes.modules import get_doc_path
+		if not hasattr(webnotes.local, 'translations'):
+			webnotes.local.translations = {}
+		translations = webnotes.local.translations
 
 		# load languages for each doctype
 		from webnotes.translate import get_lang_data
@@ -356,9 +359,9 @@ def update_language(doclist):
 		# attach translations to client
 		doc.fields["__messages"] = _messages
 		
-		if not webnotes.lang in messages:
-			messages[webnotes.lang] = webnotes._dict({})
-		messages[webnotes.lang].update(_messages)
+		if not webnotes.lang in translations:
+			translations[webnotes.lang] = webnotes._dict({})
+		translations[webnotes.lang].update(_messages)
 
 class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_field(self, fieldname, parent=None, parentfield=None):

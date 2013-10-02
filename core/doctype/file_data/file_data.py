@@ -9,6 +9,7 @@ naming for same name files: file.gif, file-1.gif, file-2.gif etc
 """
 
 import webnotes, webnotes.utils, os
+from webnotes import conf
 
 class DocType():
 	def __init__(self, d, dl):
@@ -28,7 +29,7 @@ class DocType():
 	def on_trash(self):
 		if self.doc.file_name and webnotes.conn.sql("""select count(*) from `tabFile Data`
 			where file_name=%s""", self.doc.file_name)[0][0]==1:
-			path = webnotes.utils.get_path("public", "files", self.doc.file_name)
+			path = webnotes.utils.get_site_path(conf.files_path, self.doc.file_name)
 			if os.path.exists(path):
 				os.remove(path)
 		

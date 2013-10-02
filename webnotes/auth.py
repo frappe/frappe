@@ -6,13 +6,12 @@ import webnotes
 import webnotes.db
 import webnotes.utils
 import webnotes.profile
-import conf
+from webnotes import conf
 from webnotes.sessions import Session
 
 
 class HTTPRequest:
 	def __init__(self):
-
 		# Get Environment variables
 		self.domain = webnotes.request.host
 		if self.domain and self.domain.startswith('www.'):
@@ -58,7 +57,7 @@ class HTTPRequest:
 		import translate
 		lang_list = translate.get_lang_dict()
 		lang_list = lang_list and lang_list.values() or []
-		
+
 		if not lang: 
 			return
 		if ";" in lang: # not considering weightage
@@ -111,6 +110,7 @@ class LoginManager:
 			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 			webnotes.response["full_name"] = full_name
 			webnotes._response.set_cookie("full_name", full_name)
+			webnotes._response.set_cookie("user_id", self.user)
 	
 	def post_login(self):
 		self.run_trigger()
@@ -206,18 +206,21 @@ class LoginManager:
 		else:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
-			
+
 		if user == webnotes.session.user:
+			webnotes.session.sid = ""
 			webnotes._response.delete_cookie("full_name")
+			webnotes._response.delete_cookie("user_id")
 			webnotes._response.delete_cookie("sid")
 			webnotes._response.set_cookie("full_name", "")
+			webnotes._response.set_cookie("user_id", "")
 			webnotes._response.set_cookie("sid", "")
-		
+
 class CookieManager:
 	def __init__(self):
 		pass
 		
-	def set_cookies(self):		
+	def set_cookies(self):
 		if not webnotes.session.get('sid'): return		
 		import datetime
 
@@ -248,7 +251,7 @@ def _update_password(user, password):
 		values (%s, password(%s)) 
 		on duplicate key update `password`=password(%s)""", (user, 
 		password, password))
-
+	
 @webnotes.whitelist()
 def get_logged_user():
 	return webnotes.session.user

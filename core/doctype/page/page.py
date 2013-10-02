@@ -33,7 +33,7 @@ class DocType:
 			Writes the .txt for this page and if write_content is checked,
 			it will write out a .html file
 		"""
-		import conf
+		from webnotes import conf
 		from core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self.doclist, "Page Role")
 		

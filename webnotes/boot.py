@@ -65,13 +65,17 @@ def get_bootinfo():
 	
 	from webnotes.model.utils import compress
 	bootinfo['docs'] = compress(bootinfo['docs'])
+
+	# deal with __slots__ in lang
+	if bootinfo.lang:
+		bootinfo.lang = unicode(bootinfo.lang)
 	
 	return bootinfo
 
 def load_conf_settings(bootinfo):
-	import conf
+	from webnotes import conf
 	for key in ['developer_mode']:
-		if hasattr(conf, key): bootinfo[key] = getattr(conf, key)
+		if key in conf: bootinfo[key] = conf.get(key)
 
 def add_allowed_pages(bootinfo):
 	bootinfo.page_info = dict(webnotes.conn.sql("""select distinct parent, modified from `tabPage Role`

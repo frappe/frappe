@@ -76,8 +76,8 @@ class DocType:
 		self.change_modified_of_parent()
 		make_module_and_roles(self.doclist)
 		
-		import conf
-		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
+		from webnotes import conf
+		if (not webnotes.in_import) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 		

@@ -3,8 +3,9 @@
 
 from __future__ import unicode_literals
 
-import conf
+from webnotes import conf
 import webnotes
+import json
 from webnotes import _
 import webnotes.utils
 
@@ -18,8 +19,11 @@ def render(page_name):
 		html = render_page("404")
 	except Exception:
 		html = render_page('error')
-		
+	
 	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	if "content_type" in webnotes.response:
+		webnotes._response.headers["Content-Type"] = webnotes.response.pop("content_type")
+
 	webnotes._response.data = html
 
 def render_page(page_name):
@@ -27,14 +31,11 @@ def render_page(page_name):
 	page_name = scrub_page_name(page_name)
 	html = ''
 		
-	if not (hasattr(conf, 'auto_cache_clear') and conf.auto_cache_clear or 0):
+	if not ('auto_cache_clear') and conf.auto_cache_clear or 0 in conf:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
-	if not html:
-		from webnotes.auth import HTTPRequest
-		webnotes.http_request = HTTPRequest()
-		
+	if not html:		
 		html = build_page(page_name)
 		from_cache = False
 	
@@ -43,7 +44,7 @@ def render_page(page_name):
 
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.getTraceback())
-	else:
+	elif not webnotes.response.content_type:
 		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
@@ -51,9 +52,6 @@ def render_page(page_name):
 	return html
 
 def build_page(page_name):
-	from jinja2 import Environment, FileSystemLoader
-	from markdown2 import markdown
-
 	if not webnotes.conn:
 		webnotes.connect()
 
@@ -86,7 +84,8 @@ def build_page(page_name):
 		if not module:
 			raise Exception("Generator controller not defined")
 		
-		name = webnotes.conn.get_value(module.doctype, {"page_name": page_options["page_name"]})
+		name = webnotes.conn.get_value(module.doctype, {
+			page_options.get("page_name_field", "page_name"): page_options["page_name"]})
 		obj = webnotes.get_obj(module.doctype, name, with_children=True)
 
 		if hasattr(obj, 'get_context'):
@@ -102,8 +101,7 @@ def build_page(page_name):
 	
 	context.update(get_website_settings())
 
-	jenv = Environment(loader = FileSystemLoader(basepath))
-	jenv.filters["markdown"] = markdown
+	jenv = webnotes.get_jenv()
 	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
 	template_name = page_options['template']	
@@ -117,16 +115,34 @@ def build_sitemap():
 	sitemap = {}
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
  	sitemap.update(config["pages"])
+	
+	# pages
+	for p in config["pages"].values():
+		if p.get("controller"):
+			module = webnotes.get_module(p["controller"])
+			p["no_cache"] = getattr(module, "no_cache", False)
+			p["no_sitemap"] = getattr(module, "no_sitemap", False) or p["no_cache"]
 
 	# generators
 	for g in config["generators"].values():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
-		for page_name, name, modified in webnotes.conn.sql("""select page_name, name, modified from `tab%s` where 
-			ifnull(%s, 0)=1""" % (module.doctype, module.condition_field)):
+
+		condition = ""
+		page_name_field = "page_name"
+		if hasattr(module, "page_name_field"):
+			page_name_field = module.page_name_field
+		if hasattr(module, "condition_field"):
+			condition = " where ifnull(%s, 0)=1" % module.condition_field
+
+		for page_name, name, modified in webnotes.conn.sql("""select %s, name, modified from 
+			`tab%s` %s""" % (page_name_field, module.doctype, condition)):
 			opts = g.copy()
 			opts["doctype"] = module.doctype
+			opts["no_cache"] = getattr(module, "no_cache", False)
 			opts["page_name"] = page_name
+			if page_name_field != "page_name":
+				opts["page_name_field"] = page_name_field
 			opts["docname"] = name
 			opts["lastmod"] = modified.strftime("%Y-%m-%d %H:%M:%S")
 			sitemap[page_name] = opts
@@ -171,10 +187,10 @@ def build_website_sitemap_config():
 
 		return options
 	
-	for path, folders, files in os.walk(basepath):
+	for path, folders, files in os.walk(basepath, followlinks=True):
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
-				if fname.split(".")[-1] in ("html", "xml"):
+				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
 					options = get_options(path, fname)
 					config["pages"][options.link_name] = options
 
@@ -253,9 +269,12 @@ def clear_cache(page_name=None):
 	else:
 		cache = webnotes.cache()
 		for p in get_all_pages():
-			cache.delete_value("page:" + p)
+			if p is not None:
+				cache.delete_value("page:" + p)
+		cache.delete_value("page:index")
 		cache.delete_value("website_sitemap")
 		cache.delete_value("website_sitemap_config")
+		
 		
 def get_website_sitemap():
 	return webnotes.cache().get_value("website_sitemap", build_sitemap)
@@ -265,7 +284,9 @@ def get_all_pages():
 
 def delete_page_cache(page_name):
 	if page_name:
-		webnotes.cache().delete_value("page:" + page_name)
+		cache = webnotes.cache()
+		cache.delete_value("page:" + page_name)
+		cache.delete_value("website_sitemap")
 			
 def get_hex_shade(color, percent):
 	def p(c):
@@ -327,7 +348,7 @@ def page_name(title):
 	"""make page name from title"""
 	import re
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
+	name = re.sub('[~!@#$%^&*+()<>,."\']', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())

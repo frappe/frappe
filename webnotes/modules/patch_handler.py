@@ -31,7 +31,7 @@ def reload_doc(args):
 	run_single(method = webnotes.modules.reload_doc, methodargs = args)
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
-	import conf
+	from webnotes import conf
 	
 	# don't write txt files
 	conf.developer_mode = 0
@@ -77,6 +77,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
 	import conf, os
+	# TODO use get_site_base_path
 	with open(os.path.join(os.path.dirname(conf.__file__), 'app', 'patches','patch.log'),'a') as patchlog:
 		patchlog.write('\n\n' + tb)
 	

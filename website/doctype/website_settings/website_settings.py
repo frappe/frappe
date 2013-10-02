@@ -58,9 +58,6 @@ class DocType:
 
 	def on_update(self):
 		# make js and css
-		from website.doctype.website_settings.make_web_include_files import make
-		make()
-		
 		# clear web cache (for menus!)
 		from webnotes.webutils import clear_cache
 		clear_cache()

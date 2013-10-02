@@ -27,10 +27,10 @@ def logout():
 
 @webnotes.whitelist(allow_guest=True)
 def web_logout():
-	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
-		<p><a href='index'>Back to Home</a></p>""")
 	webnotes.local.login_manager.logout()
 	webnotes.conn.commit()
+	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
+		<p><a href='index'>Back to Home</a></p>""")
 
 @webnotes.whitelist()
 def uploadfile():
@@ -175,7 +175,8 @@ def print_raw():
 
 def make_logs():
 	"""make strings for msgprint and errprint"""
-	import json, conf
+	import json
+	from webnotes import conf
 	from webnotes.utils import cstr
 	if webnotes.error_log:
 		# webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
@@ -184,7 +185,7 @@ def make_logs():
 	if webnotes.message_log:
 		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
 	
-	if webnotes.debug_log and getattr(conf, "logging", False):
+	if webnotes.debug_log and conf.get("logging") or False:
 		webnotes.response['_debug_messages'] = json.dumps(webnotes.debug_log)
 
 def print_zip(response):
@@ -200,9 +201,12 @@ def print_zip(response):
 def json_handler(obj):
 	"""serialize non-serializable data for json"""
 	import datetime
+	from werkzeug.local import LocalProxy
 	
 	# serialize date
 	if isinstance(obj, (datetime.date, datetime.timedelta, datetime.datetime)):
+		return unicode(obj)
+	elif isinstance(obj, LocalProxy):
 		return unicode(obj)
 	else:
 		raise TypeError, """Object of type %s with value of %s is not JSON serializable""" % \

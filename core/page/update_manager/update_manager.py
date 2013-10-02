@@ -9,8 +9,8 @@ from webnotes import _
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def update_this_app():
-	import conf
-	if hasattr(conf, "expires_on"):
+	from webnotes import conf
+	if "expires_on" in conf:
 		return _("This feature is only applicable to self hosted instances")
 	
 	from webnotes.utils import execute_in_shell, cstr, get_base_path

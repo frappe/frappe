@@ -14,9 +14,11 @@ def get_context():
 	host = get_request_site_address()
 	
 	for l in links:
-		l[1]["loc"] = urllib.basejoin(host, urllib.quote(l[1].get("page_name", l[1]["link_name"])))
+		l[1]["loc"] = urllib.basejoin(host, urllib.quote(l[1].get("page_name", l[1]["link_name"]).encode("utf-8")))
+	
+	webnotes.response.content_type = "text/xml"
 	
 	return {
-		"links": [l[1] for l in links]
+		"links": [l[1] for l in links if not l[1].get("no_sitemap")]
 	}
 	

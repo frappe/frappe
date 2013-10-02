@@ -22,7 +22,7 @@ wn.ui.form.LinkSelector = Class.extend({
 			"fields": [
 				{
 					fieldtype: "Data", fieldname: "txt", label: "Beginning with",
-					description: "You can use wildcard %" 
+					description: "You can use wildcard %",
 				},
 				{
 					fieldtype: "Select", fieldname: "search_field", label: "Search With"
@@ -55,6 +55,8 @@ wn.ui.form.LinkSelector = Class.extend({
 		} else {
 			this.dialog.fields_dict.search_field.$wrapper.toggle(false);
 		}
+		if(this.txt)
+			this.dialog.fields_dict.txt.set_input(this.txt);
 		this.dialog.fields_dict.search.$input.on("click", function() {
 			me.search(this);
 		});
