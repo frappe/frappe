@@ -188,8 +188,8 @@ def validate_fields(fields):
 					raise_exception=1)
 
 	def check_hidden_and_mandatory(d):
-		if d.hidden and d.reqd:
-			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd)""" % d.fields,
+		if d.hidden and d.reqd and not d.default:
+			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd) without default""" % d.fields,
 				raise_exception=True)
 
 	def check_max_items_in_list(fields):
