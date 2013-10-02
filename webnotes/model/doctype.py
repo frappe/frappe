@@ -156,6 +156,7 @@ def add_custom_fields(doctype, doclist):
 			'parent': doctype,
 			'parentfield': 'fields',
 			'parenttype': 'DocType',
+			'__custom_field': 1
 		})
 		doclist.append(custom_field)
 
