@@ -223,7 +223,7 @@ def make_site_config(site, db_name=None, db_password=None, site_config=None):
 	site_file = os.path.join(site_path, "site_config.json")
 	
 	if not os.path.exists(site_file):
-		if not site_config:
+		if not (site_config and isinstance(site_config, dict)):
 			site_config = get_conf_params(db_name, db_password)
 		
 		with open(site_file, "w") as f:
