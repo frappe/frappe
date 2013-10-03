@@ -7,16 +7,12 @@ from __future__ import unicode_literals
 import webnotes, json
 import webnotes.defaults
 
-tables = webnotes.local('reportview_tables')
-doctypes = webnotes.local('reportview_doctypes')
-roles = webnotes.local('reportview_roles')
-
 @webnotes.whitelist()
 def get():
 	return compress(execute(**get_form_params()))
 
 def get_form_params():
-	data = webnotes._dict(webnotes.form_dict)
+	data = webnotes._dict(webnotes.local.form_dict)
 
 	del data["cmd"]
 
@@ -56,16 +52,16 @@ def prepare_args(doctype, filters, fields, docstatus, group_by, order_by, with_c
 	args = webnotes._dict()
 	
 	if with_childnames:
-		for t in tables:
+		for t in webnotes.local.reportview_tables:
 			if t != "`tab" + doctype + "`":
 				fields.append(t + ".name as '%s:name'" % t[4:-1])
 	
 	# query dict
-	args.tables = ', '.join(tables)
+	args.tables = ', '.join(webnotes.local.reportview_tables)
 	args.conditions = ' and '.join(conditions)
 	args.fields = ', '.join(fields)
 	
-	args.order_by = order_by or tables[0] + '.modified desc'
+	args.order_by = order_by or webnotes.local.reportview_tables[0] + '.modified desc'
 	args.group_by = group_by and (" group by " + group_by) or ""
 
 	check_sort_by_table(args.order_by)
@@ -92,7 +88,7 @@ def check_sort_by_table(sort_by):
 	"""check atleast 1 column selected from the sort by table """
 	if "." in sort_by:
 		tbl = sort_by.split('.')[0]
-		if tbl not in tables:
+		if tbl not in webnotes.local.reportview_tables:
 			if tbl.startswith('`'):
 				tbl = tbl[4:-1]
 			webnotes.msgprint("Please select atleast 1 column from '%s' to sort"\
@@ -110,15 +106,15 @@ def load_doctypes():
 
 	webnotes.local.reportview_roles = webnotes.get_roles()
 	
-	if not doctypes:
+	if not getattr(webnotes.local, "reportview_doctypes", None):
 		webnotes.local.reportview_doctypes = {}
 
-	for t in tables:
+	for t in webnotes.local.reportview_tables:
 		if t.startswith('`'):
 			doctype = t[4:-1]
 			if not webnotes.has_permission(doctype):
 				raise webnotes.PermissionError, doctype
-			doctypes[doctype] = webnotes.model.doctype.get(doctype)
+			webnotes.local.reportview_doctypes[doctype] = webnotes.model.doctype.get(doctype)
 	
 def remove_user_tags(doctype, fields):
 	"""remove column _user_tags if not in table"""
@@ -137,17 +133,17 @@ def add_limit(limit_start, limit_page_length):
 def build_conditions(doctype, fields, filters, docstatus):
 	"""build conditions"""	
 	if docstatus:
-		conditions = [tables[0] + '.docstatus in (' + ','.join(docstatus) + ')']
+		conditions = [webnotes.local.reportview_tables[0] + '.docstatus in (' + ','.join(docstatus) + ')']
 	else:
 		# default condition
-		conditions = [tables[0] + '.docstatus < 2']
+		conditions = [webnotes.local.reportview_tables[0] + '.docstatus < 2']
 	
 	# make conditions from filters
 	build_filter_conditions(filters, conditions)
 	
 	# join parent, child tables
-	for tname in tables[1:]:
-		conditions.append(tname + '.parent = ' + tables[0] + '.name')
+	for tname in webnotes.local.reportview_tables[1:]:
+		conditions.append(tname + '.parent = ' + webnotes.local.reportview_tables[0] + '.name')
 
 	# match conditions
 	match_conditions = build_match_conditions(doctype, fields)
@@ -159,7 +155,7 @@ def build_conditions(doctype, fields, filters, docstatus):
 def build_filter_conditions(filters, conditions):
 	"""build conditions from user filters"""
 	from webnotes.utils import cstr
-	if not tables:
+	if not getattr(webnotes.local, "reportview_tables", None):
 		webnotes.local.reportview_tables = []
 	
 	for f in filters:
@@ -167,8 +163,8 @@ def build_filter_conditions(filters, conditions):
 			conditions.append(f)
 		else:
 			tname = ('`tab' + f[0] + '`')
-			if not tname in tables:
-				tables.append(tname)
+			if not tname in webnotes.local.reportview_tables:
+				webnotes.local.reportview_tables.append(tname)
 		
 			# prepare in condition
 			if f[2] in ['in', 'not in']:
@@ -190,16 +186,17 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 	match_conditions = []
 	match = True
 
-	if not tables or not doctypes:
+	if not getattr(webnotes.local, "reportview_tables", None) \
+		or not getattr(webnotes.local, "reportview_doctypes", None):
 		webnotes.local.reportview_tables = get_tables(doctype, fields)
 		load_doctypes()
 
-	if not roles:
+	if not getattr(webnotes.local, "reportview_roles", None):
 		webnotes.local.reportview_roles = webnotes.get_roles()
 
-	for d in doctypes[doctype]:
+	for d in webnotes.local.reportview_doctypes[doctype]:
 		if d.doctype == 'DocPerm' and d.parent == doctype:
-			if d.role in roles:
+			if d.role in webnotes.local.reportview_roles:
 				if d.match: # role applicable
 					if ':' in d.match:
 						document_key, default_key = d.match.split(":")
@@ -305,19 +302,21 @@ def export_query():
 	f.seek(0)
 	webnotes.response['result'] = unicode(f.read(), 'utf-8')
 	webnotes.response['type'] = 'csv'
-	webnotes.response['doctype'] = [t[4:-1] for t in tables][0]
+	webnotes.response['doctype'] = [t[4:-1] for t in webnotes.local.reportview_tables][0]
 
 def verify_export_allowed():
 	"""throw exception if user is not allowed to export"""
 	webnotes.local.reportview_roles = webnotes.get_roles()
-	if not ('Administrator' in roles or 'System Manager' in roles or 'Report Manager' in roles):
+	if not ('Administrator' in webnotes.local.reportview_roles or \
+		'System Manager' in webnotes.local.reportview_roles or \
+		'Report Manager' in webnotes.local.reportview_roles):
 		raise webnotes.PermissionError
 
 def get_labels(columns):
 	"""get column labels based on column names"""
 	label_dict = {}
-	for doctype in doctypes:
-		for d in doctypes[doctype]:
+	for doctype in webnotes.local.reportview_doctypes:
+		for d in webnotes.local.reportview_doctypes[doctype]:
 			if d.doctype=='DocField' and d.fieldname:
 				label_dict[d.fieldname] = d.label
 	

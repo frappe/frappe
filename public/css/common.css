@@ -357,7 +357,7 @@ div#freeze {
 	font-size: 12px; 
 }
 
-.slick-header-column {
+.slick-header-column, .slick-cell {
   -webkit-box-sizing: content-box;
      -moz-box-sizing: content-box;
           box-sizing: content-box;

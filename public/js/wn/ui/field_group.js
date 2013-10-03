@@ -44,7 +44,7 @@ wn.ui.FieldGroup = Class.extend({
 	},
 	catch_enter_as_submit: function() {
 		var me = this;
-		$(this.body).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
+		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
 				$(me.body).find('.btn-info:first').click();
 			}

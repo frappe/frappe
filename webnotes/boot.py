@@ -86,10 +86,11 @@ def load_translations(bootinfo):
 	
 	if webnotes.lang != 'en':
 		from webnotes.translate import get_lang_data
+		from webnotes.utils import get_path
 		# framework
-		bootinfo["__messages"] = get_lang_data("../lib/public/js/wn", None, "js")
+		bootinfo["__messages"] = get_lang_data(get_path("lib","public", "js", "wn"), None, "js")
 		# doctype and module names
-		bootinfo["__messages"].update(get_lang_data('../app/public/js', None, "js"))
+		bootinfo["__messages"].update(get_lang_data(get_path("app","public", "js"), None, "js"))
 		bootinfo["lang"] = webnotes.lang
 
 def get_fullnames():

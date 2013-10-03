@@ -323,10 +323,10 @@ def get_lang_data(basepath, lang, mtype):
 	if os.path.basename(basepath) != 'locale':
 		basepath = os.path.join(basepath, 'locale')
 	
-	if not lang: lang = webnotes.lang
+	if not lang: lang = webnotes.local.lang
 	
 	path = os.path.join(basepath, lang + '-' + mtype + '.json')
-	
+		
 	langdata = {}
 	if os.path.exists(path):
 		with codecs.open(path, 'r', 'utf-8') as langfile:
