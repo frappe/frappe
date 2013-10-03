@@ -76,6 +76,8 @@ def setup_parser():
 def setup_install(parser):
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new app")
+	parser.add_argument("--root-password", nargs=1,
+		help="Root password for new app")
 	parser.add_argument("--reinstall", default=False, action="store_true", 
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
@@ -185,9 +187,9 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, site=None, verbose=0, force=False):
+def install(db_name, site=None, verbose=False, force=False, root_password=None):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=db_name, site=site)
+	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
 	inst.install(db_name, verbose=verbose, force=force)
 
 @cmd
