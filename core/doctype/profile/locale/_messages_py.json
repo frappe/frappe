@@ -1,8 +1,9 @@
 [
- "Name is required", 
  "Registered but disabled.", 
  "Registration Details Emailed.", 
- "Updated", 
  "Already Registered", 
- "Hey! There should remain at least one System Manager"
+ "Hey! There should remain at least one System Manager", 
+ "Cannot Update: Incorrect / Expired Link.", 
+ "Cannot Update: Incorrect Password", 
+ "Password Updated"
 ]

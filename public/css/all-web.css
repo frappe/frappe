@@ -8293,47 +8293,100 @@ a .icon-flip-vertical:before {
 
 
 /*
- *	app/public/js/startup.css
+ *	lib/public/css/nprogress.css
  */
-h1, h2, h3, h4, h5 {
-	font-family: Arial, Helvetica, sans-serif;
+/* Make clicks pass-through */
+#nprogress {
+  pointer-events: none;
+  -webkit-pointer-events: none;
 }
 
-body {
-	font-family: Arial, Helvetica, sans-serif;
+/* Make the entire page show a busy cursor */
+.nprogress-busy body {
+  cursor: wait;
 }
 
-span, div, td, input, textarea, button, select {
-	font-family: inherit;
+#nprogress .bar {
+  background: #2ecc71;
+
+  position: fixed;
+  z-index: 1050;
+  top: 0;
+  left: 0;
+
+  width: 100%;
+  height: 2px;
 }
 
-.small {
-	font-size: 11.5px;
+/* Fancy blur effect */
+#nprogress .peg {
+  display: block;
+  position: absolute;
+  right: 0px;
+  width: 100px;
+  height: 100%;
+  box-shadow: 0 0 10px #2ecc71, 0 0 5px #2ecc71;
+  opacity: 1.0;
+
+  -webkit-transform: rotate(3deg) translate(0px, -4px);
+  -moz-transform: rotate(3deg) translate(0px, -4px);
+  -ms-transform: rotate(3deg) translate(0px, -4px);
+  -o-transform: rotate(3deg) translate(0px, -4px);
+  transform: rotate(3deg) translate(0px, -4px);
 }
 
-.erpnext-footer {
-	margin: 11px auto;
-	text-align: center;
+/* Remove these to get rid of the spinner */
+#nprogress .spinner {
+  display: block;
+  position: fixed;
+  z-index: 1050;
+  top: 15px;
+  right: 15px;
 }
 
-.show-all-reports {
-	margin-top: 5px;
-	font-size: 11px;
+#nprogress .spinner-icon {
+  width: 14px;
+  height: 14px;
+
+  border:  solid 2px transparent;
+  border-top-color:  #fff;
+  border-left-color: #fff;
+  border-radius: 10px;
+
+  -webkit-animation: nprogress-spinner 400ms linear infinite;
+  -moz-animation:    nprogress-spinner 400ms linear infinite;
+  -ms-animation:     nprogress-spinner 400ms linear infinite;
+  -o-animation:      nprogress-spinner 400ms linear infinite;
+  animation:         nprogress-spinner 400ms linear infinite;
 }
 
-/* toolbar */
-.toolbar-splash {
-	width: 32px; 
-	height: 32px; 
-	margin: -10px auto;
+@-webkit-keyframes nprogress-spinner {
+  0%   { -webkit-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -webkit-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-moz-keyframes nprogress-spinner {
+  0%   { -moz-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -moz-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-o-keyframes nprogress-spinner {
+  0%   { -o-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -o-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@-ms-keyframes nprogress-spinner {
+  0%   { -ms-transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { -ms-transform: rotate(360deg); transform: rotate(360deg); }
+}
+@keyframes nprogress-spinner {
+  0%   { transform: rotate(0deg);   transform: rotate(0deg); }
+  100% { transform: rotate(360deg); transform: rotate(360deg); }
 }
 
 /*
- *	app/website/css/website.css
+ *	lib/website/css/website.css
  */
-/*.container {
+.container {
 	max-width: 728px !important;
-}*/
+}
 
 h1, h2, h3, h4, h5 {
 	font-weight: bold;
@@ -8412,7 +8465,6 @@ div.web-footer {
 	-moz-border-radius: 30px;
 	-webkit-border-radius: 30px;
 }
-
 .avatar-small img {
 	width: 30px; 
 }
@@ -8425,7 +8477,6 @@ div.web-footer {
 	-moz-border-radius: 48px;
 	-webkit-border-radius: 48px;
 }
-
 .avatar-medium img {
 	width: 48px; 
 }
@@ -8466,16 +8517,37 @@ div.web-footer {
   margin-left: -10px;
 }
 
-.hidden-sm-inline {
+.hidden-xs-inline, .hidden-xs-inline-block {
 	display: none;
 }
 
 @media (min-width: 768px) {
-	.hidden-sm-inline {
+	.hidden-xs-inline {
 		display: inline;
+	}
+	.hidden-xs-inline-block {
+		display: inline-block;
 	}
 }
 
+.visible-xs-inline {
+	display: inline;
+}
+
+.visible-xs-inline-block {
+	display: inline-block;
+}
+
+.navbar {
+	box-shadow: none;
+	border-radius: 0px;
+}
+
+@media (min-width: 768px) {
+	.visible-xs-inline, .visible-xs-inline-block {
+		display: none;
+	}
+}
 .panel-heading, 
 .panel-body {
 	padding-left: 15px;
@@ -8491,34 +8563,54 @@ fieldset {
 	margin-bottom: 20px;
 }
 
-/* buttons */
-.btn-default {
-  color: #ffffff;
-  background-color: #a7a9aa;
-  border-color: #a7a9aa;
+.message-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+	height: 100%;
+    z-index: 1040;
+	background-color: #fff;
+    display: table;
+}
+.message-overlay .content {
+	display: table-cell;
+	vertical-align: middle;
+	text-align: center;
 }
 
-.btn-default:hover,
-.btn-default:focus,
-.btn-default:active,
-.btn-default.active {
-  color: #ffffff;
-  background-color: #9a9c9d;
-  border-color: #8d9091;
+/*
+ *	app/public/js/startup.css
+ */
+h1, h2, h3, h4, h5 {
+	font-family: Arial, Helvetica, sans-serif;
 }
 
-.btn-default.disabled:hover,
-.btn-default[disabled]:hover,
-fieldset[disabled] .btn-default:hover,
-.btn-default.disabled:focus,
-.btn-default[disabled]:focus,
-fieldset[disabled] .btn-default:focus,
-.btn-default.disabled:active,
-.btn-default[disabled]:active,
-fieldset[disabled] .btn-default:active,
-.btn-default.disabled.active,
-.btn-default[disabled].active,
-fieldset[disabled] .btn-default.active {
-  background-color: #a7a9aa;
-  border-color: #a7a9aa;
+body {
+	font-family: Arial, Helvetica, sans-serif;
+}
+
+span, div, td, input, textarea, button, select {
+	font-family: inherit;
+}
+
+.small {
+	font-size: 11.5px;
+}
+
+.erpnext-footer {
+	margin: 11px auto;
+	text-align: center;
+}
+
+.show-all-reports {
+	margin-top: 5px;
+	font-size: 11px;
+}
+
+/* toolbar */
+.toolbar-splash {
+	width: 32px; 
+	height: 32px; 
+	margin: -10px auto;
 }

@@ -162,19 +162,20 @@ def build_website_sitemap_config():
 			options.controller = ".".join(options.controller.split(".")[1:])
 
 		return options
-	
-	for path, folders, files in os.walk(basepath, followlinks=True):
-		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
-			for fname in files:
-				if fname.endswith(".html"):
-					options = get_options(path, fname)
-					config["pages"][options.link_name] = options
+	for sub in ['app', 'lib', 'docs']:
+		if not os.path.exists(os.path.join(basepath, sub)): continue
+		for path, folders, files in os.walk(os.path.join(basepath, sub), followlinks=True, topdown=True):
+			if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
+				for fname in files:
+					if fname.endswith(".html"):
+						options = get_options(path, fname)
+						config["pages"][options.link_name] = options
 
-		if os.path.basename(path)=="generators" and os.path.basename(os.path.dirname(path))=="templates":
-			for fname in files:
-				if fname.endswith(".html"):
-					options = get_options(path, fname)
-					config["generators"][fname] = options
+			if os.path.basename(path)=="generators" and os.path.basename(os.path.dirname(path))=="templates":
+				for fname in files:
+					if fname.endswith(".html"):
+						options = get_options(path, fname)
+						config["generators"][fname] = options
 		
 	return config
 
