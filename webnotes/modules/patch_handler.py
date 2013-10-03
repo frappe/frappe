@@ -14,6 +14,8 @@ from __future__ import unicode_literals
 """
 import webnotes
 
+class PatchError(Exception): pass
+
 def run_all(patch_list=None):
 	"""run all pending patches"""
 	if webnotes.conn.table_exists("__PatchLog"):
@@ -24,7 +26,8 @@ def run_all(patch_list=None):
 	for patch in (patch_list or patches.patch_list.patch_list):
 		if patch not in executed:
 			if not run_single(patchmodule = patch):
-				return log(patch + ': failed: STOPPED')
+				log(patch + ': failed: STOPPED')
+				raise PatchError(patch)
 
 def reload_doc(args):
 	import webnotes.modules

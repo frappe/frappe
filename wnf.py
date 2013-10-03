@@ -231,7 +231,7 @@ def update(remote=None, branch=None, site=None):
 	latest(site=site)
 
 @cmd
-def latest(site=None, verbose=False):
+def latest(site=None, verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
 	
