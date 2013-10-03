@@ -16,8 +16,8 @@ from webnotes.model.sync import sync_for
 from webnotes.utils import cstr
 
 class Installer:
-	def __init__(self, root_login, root_password=None, db_name=None, site=None):
-		make_conf(db_name, site=site)
+	def __init__(self, root_login, root_password=None, db_name=None, site=None, site_config=None):
+		make_conf(db_name, site=site, site_config=site_config)
 		self.site = site
 		
 		self.make_connection(root_login, root_password)
