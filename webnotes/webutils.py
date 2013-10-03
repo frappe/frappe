@@ -120,6 +120,12 @@ def build_sitemap():
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
  	sitemap.update(config["pages"])
 
+	# pages
+	for p in config["pages"].values():
+		if p.get("controller"):
+			module = webnotes.get_module(p["controller"])
+			p["no_cache"] = getattr(module, "no_cache", False)
+
 	# generators
 	for g in config["generators"].values():
 		g["is_generator"] = True
@@ -129,6 +135,7 @@ def build_sitemap():
 				opts = g.copy()
 				opts["doctype"] = module.doctype
 				opts["docname"] = name
+				opts["no_cache"] = getattr(module, "no_cache", False)
 				sitemap[page_name] = opts
 		
 	return sitemap
@@ -162,11 +169,11 @@ def build_website_sitemap_config():
 			options.controller = ".".join(options.controller.split(".")[1:])
 
 		return options
-	for sub in ['app', 'lib', 'docs']:
-		if not os.path.exists(os.path.join(basepath, sub)): continue
-		for path, folders, files in os.walk(os.path.join(basepath, sub), followlinks=True, topdown=True):
+	
+	for path, folders, files in os.walk(basepath, followlinks=True):
 			if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 				for fname in files:
+				fname = webnotes.utils.cstr(fname)
 					if fname.endswith(".html"):
 						options = get_options(path, fname)
 						config["pages"][options.link_name] = options
@@ -325,7 +332,7 @@ def page_name(title):
 	"""make page name from title"""
 	import re
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*()<>,."\']', '', name)
+	name = re.sub('[~!@#$%^&*+()<>,."\']', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())

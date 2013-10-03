@@ -47,32 +47,35 @@ wn.ui.form.Grid = Class.extend({
 		this.docfields = wn.meta.get_docfields(this.doctype, this.frm.docname);
 		this.display_status = wn.perm.get_field_display_status(this.df, this.frm.doc, 
 			this.perm);
-
+		
+		if(this.display_status==="None") return;
+		
 		if(!force && this.data_rows_are_same(data)) {
 			// soft refresh
 			this.header_row.refresh();
-			$.each(this.grid_rows, function(i, g) {
-				g.refresh();
-			});
+			for(var i in this.grid_rows) {
+				this.grid_rows[i].refresh();
+			}
 		} else {
 			// redraw
 			this.wrapper.find(".grid-row").remove();
 			this.make_head();
 			this.grid_rows = [];
 			this.grid_rows_by_docname = {};
-			$.each(data || [], function(ri, d) {
+			for(var ri in data) {
+				var d = data[ri];
 				var grid_row = new wn.ui.form.GridRow({
 					parent: $rows,
-					parent_df: me.df,
-					docfields: me.docfields,
+					parent_df: this.df,
+					docfields: this.docfields,
 					doc: d,
-					frm: me.frm,
-					grid: me
+					frm: this.frm,
+					grid: this
 				});
-				me.grid_rows.push(grid_row)
-				me.grid_rows_by_docname[d.name] = grid_row;
-			});
-
+				this.grid_rows.push(grid_row)
+				this.grid_rows_by_docname[d.name] = grid_row;
+			}
+			
 			this.wrapper.find(".grid-add-row").toggle(this.is_editable());
 			if(this.is_editable()) {
 				this.make_sortable($rows);
@@ -145,7 +148,8 @@ wn.ui.form.Grid = Class.extend({
 		return this.fieldinfo[fieldname];
 	},
 	set_value: function(fieldname, value, doc) {
-		this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
+		if(this.display_status!=="None")
+			this.grid_rows_by_docname[doc.name].refresh_field(fieldname);
 	},
 	add_new_row: function(idx, callback, show) {
 		if(this.is_editable()) {
@@ -183,9 +187,7 @@ wn.ui.form.GridRow = Class.extend({
 				return false;
 			});
 		
-		this.form_panel = $('<div class="panel panel-warning" style="display: none;"></div>').appendTo(this.wrapper);
-		
-		$('<div class="divider row"></div>').appendTo(this.wrapper);
+		this.divider = $('<div class="divider row"></div>').appendTo(this.wrapper);
 		
 		this.set_row_index();
 		this.make_static_display();
@@ -220,6 +222,7 @@ wn.ui.form.GridRow = Class.extend({
 			this.doc = locals[this.doc.doctype][this.doc.name];
 		
 		// re write columns
+		this.grid.static_display_template = null;
 		this.make_static_display();
 		
 		// refersh form fields
@@ -230,76 +233,38 @@ wn.ui.form.GridRow = Class.extend({
 		} 
 	},
 	make_static_display: function() {
-		var me = this,
-			total_colsize = 1;
-		me.row.empty();
-		col = $('<div class="col col-xs-1 row-index">' + (me.doc ? me.doc.idx : "#")+ '</div>')
-			.appendTo(me.row);
+		var me = this;
+		this.make_static_display_template();
+		this.row.empty();
+		$('<div class="col col-xs-1 row-index">' + (this.doc ? this.doc.idx : "#")+ '</div>')
+			.appendTo(this.row);
 		
-		$.each(me.docfields, function(ci, df) {
-			if(!df.hidden && df.in_list_view && me.grid.frm.get_perm(df.permlevel, READ)
-				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
-				var colsize = 2,
-					txt = me.doc ? 
-						wn.format(me.doc[df.fieldname], df, null, me.doc) : 
-						wn._(df.label);
-				switch(df.fieldtype) {
-					case "Text":
-					case "Small Text":
-						colsize = 3;
-						break;
-					case "Check":
-						colsize = 1;
-						break;
-					case "Select":
-						txt = wn._(txt)
-				}
-				total_colsize += colsize
-				if(total_colsize > 11) 
-					return false;
-				$col = $('<div class="col col-xs-'+colsize+'"></div>')
-					.html(txt)
-					.attr("data-fieldname", df.fieldname)
-					.data("df", df)
-					.appendTo(me.row)
-				
-				if(["Text", "Small Text"].indexOf(df.fieldtype)!==-1) {
-					$col.addClass("grid-overflow-no-ellipsis");
-				} else {
-					$col.addClass("grid-overflow-ellipsis");
-				}
-					
-				if(in_list(["Int", "Currency", "Float"], df.fieldtype))
-					$col.addClass("text-right");
+		for(var ci in this.static_display_template) {
+			var df = this.static_display_template[ci][0];
+			var colsize = this.static_display_template[ci][1];
+			var txt = this.doc ? 
+				wn.format(this.doc[df.fieldname], df, null, this.doc) : 
+				wn._(df.label);
+			if(df.fieldtype === "Select") {
+				txt = wn._(txt);
 			}
-			
-		});
+			var add_class = (["Text", "Small Text"].indexOf(df.fieldtype)===-1) ? 
+				" grid-overflow-ellipsis" : " grid-overflow-no-ellipsis";
+			add_class += (["Int", "Currency", "Float"].indexOf(df.fieldtype)!==-1) ?
+				" text-right": "";
 
-		// redistribute if total-col size is less than 12
-		var passes = 0;
-		while(total_colsize < 11 && passes < 10) {
-			me.row.find(".col").each(function() {
-				var $col = $(this);
-				if(!$col.hasClass("col-xs-1") 
-					&& !in_list(["Int", "Currency", "Float"], $col.data("df").fieldtype)) {
-					for(var i=2; i<12; i++) {
-						if($col.hasClass("col-xs-" + i)) {
-							$col.removeClass("col-xs-" + i).addClass("col-xs-" + (i+1));
-							total_colsize++;
-							break;
-						}
-					}
-				}
-				if(total_colsize >= 11) 
-					return false;
-			});
-			passes++;
+			$col = $('<div class="col col-xs-'+colsize+add_class+'"></div>')
+				.html(txt)
+				.attr("data-fieldname", df.fieldname)
+				.data("df", df)
+				.appendTo(this.row)
 		}
 		
+		// TODO find a better solution
 		// append button column
-		if(me.doc && this.grid.is_editable()) {
-			if(!me.grid.$row_actions) {
-				me.grid.$row_actions = $('<div class="col-md-1 pull-right" \
+		if(this.doc && this.grid.is_editable()) {
+			if(!this.grid.$row_actions) {
+				this.grid.$row_actions = $('<div class="col-md-1 pull-right" \
 					style="text-align: right; padding-right: 5px;">\
 					<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
 						<i class="icon icon-plus-sign"></i></button>\
@@ -307,17 +272,61 @@ wn.ui.form.GridRow = Class.extend({
 						<i class="icon icon-trash"></i></button>\
 				</div>');
 			}
-			$col = me.grid.$row_actions.clone().appendTo(me.row);
+			$col = this.grid.$row_actions.clone().appendTo(this.row);
 			
 			if($col.width() < 50) {
-				$col.remove();
+				$col.toggle(false);
 			} else {
+				$col.toggle(true);
 				$col.find(".grid-insert-row").click(function() { me.insert(); return false; });
 				$col.find(".grid-delete-row").click(function() { me.remove(); return false; });
 			}
 		}
 
 		$(this.frm.wrapper).trigger("grid-row-render", [this]);
+	},
+	make_static_display_template: function() {
+		if(this.static_display_template) return;
+		
+		var total_colsize = 1;
+		this.static_display_template = [];
+		for(var ci in this.docfields) {
+			var df = this.docfields[ci];
+			if(!df.hidden && df.in_list_view && this.grid.frm.get_perm(df.permlevel, READ)
+				&& !in_list(["Section Break", "Column Break"], df.fieldtype)) {
+					var colsize = 2;
+					switch(df.fieldtype) {
+						case "Text":
+						case "Small Text":
+							colsize = 3;
+							break;
+						case "Check":
+							colsize = 1;
+							break;
+					}
+					total_colsize += colsize
+					if(total_colsize > 11) 
+						return false;
+					this.static_display_template.push([df, colsize]);
+				}
+		}
+		
+		// redistribute if total-col size is less than 12
+		var passes = 0;
+		while(total_colsize < 11 && passes < 10) {
+			for(var i in this.static_display_template) {
+				var df = this.static_display_template[i][0];
+				var colsize = this.static_display_template[i][1];
+				if(colsize>1 && colsize<12 && ["Int", "Currency", "Float"].indexOf(df.fieldtype)===-1) {
+					this.static_display_template[i][1] += 1;
+					total_colsize++;
+				}
+				
+				if(total_colsize >= 11)
+					break;
+			}
+			passes++;
+		}
 	},
 	toggle_view: function(show, callback) {
 		if(!this.doc) return this;
@@ -349,10 +358,15 @@ wn.ui.form.GridRow = Class.extend({
 		}
 
 		this.wrapper.toggleClass("grid-row-open", this.show);
-
-		this.show && this.render_form()
-		this.show && this.row.toggle(false);
-
+		
+		if(this.show) {
+			if(!this.form_panel) {
+				this.form_panel = $('<div class="panel panel-warning" style="display: none;"></div>')
+					.insertBefore(this.divider);
+			}
+			this.render_form();
+			this.row.toggle(false);
+		}
 		this.form_panel.toggle(this.show);
 		if(me.show) {
 			if(me.frm.doc.docstatus===0)

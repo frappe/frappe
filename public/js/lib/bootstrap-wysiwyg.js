@@ -15,7 +15,7 @@ jQuery(function ($) {
 			if(!r.exc) {
 				if(fileid) 
 					cur_frm.attachments.update_attachment(fileid, filename);
-				loader.resolve("files/" + filename);
+				loader.resolve(filename);
 			}
 		});
 		return loader.promise();

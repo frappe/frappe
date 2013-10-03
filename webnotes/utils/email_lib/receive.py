@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now
+from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
 
 class IncomingMail:
 	"""
@@ -130,7 +130,7 @@ class POP3Mailbox:
 	def connect(self):
 		import poplib
 		
-		if self.settings.use_ssl:
+		if cint(self.settings.use_ssl):
 			self.pop = poplib.POP3_SSL(self.settings.host)
 		else:
 			self.pop = poplib.POP3(self.settings.host)

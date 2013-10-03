@@ -43,7 +43,7 @@ wn.ui.form.Control = Class.extend({
 		if(!this.doctype)
 			return "Write";
 		return wn.perm.get_field_display_status(this.df, 
-			locals[this.doctype][this.docname], this.perm, explain);
+			locals[this.doctype][this.docname], this.perm || this.frm.perm, explain);
 	},
 	refresh: function() {
 		this.disp_status = this.get_status();
@@ -76,7 +76,6 @@ wn.ui.form.Control = Class.extend({
 	set_model_value: function(value) {
 		if(wn.model.set_value(this.doctype, this.docname, this.df.fieldname, 
 			value, this.df.fieldtype)) {
-			this.frm && this.frm.dirty();
 			this.last_value = value;
 		}
 	},
@@ -795,7 +794,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 		this.grid = new wn.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,
-			perm: this.perm,
+			perm: this.perm || this.frm.perm,
 			parent: this.wrapper
 		})
 		if(this.frm)

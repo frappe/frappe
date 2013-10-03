@@ -207,18 +207,19 @@ $.extend(wn.model, {
 	},
 	
 	trigger: function(fieldname, value, doc) {
-		var run = function(events) {
+		var run = function(events, event_doc) {
 			$.each(events || [], function(i, fn) {
-				fn && fn(fieldname, value, doc);
+				fn && fn(fieldname, value, event_doc || doc);
 			});
 		};
 		
 		if(wn.model.events[doc.doctype]) {
-			// doctype-level
-			run(wn.model.events[doc.doctype]['*']);
-			
+						
 			// field-level
 			run(wn.model.events[doc.doctype][fieldname]);
+
+			// doctype-level
+			run(wn.model.events[doc.doctype]['*']);
 		};
 	},
 	
