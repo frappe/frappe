@@ -229,7 +229,7 @@ def update(remote=None, branch=None, site=None):
 	latest(site=site)
 
 @cmd
-def latest(site=None):
+def latest(site=None, verbose=False):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
 	
@@ -238,14 +238,11 @@ def latest(site=None):
 	# run patches
 	webnotes.modules.patch_handler.log_list = []
 	webnotes.modules.patch_handler.run_all()
-	print "\n".join(webnotes.modules.patch_handler.log_list)
+	if verbose:
+		print "\n".join(webnotes.modules.patch_handler.log_list)
 	
 	# sync
 	webnotes.model.sync.sync_all()
-	
-	# build
-	if not site:
-		build()
 
 @cmd
 def sync_all(site=None, force=False):
