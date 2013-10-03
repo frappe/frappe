@@ -51,8 +51,8 @@ def get_function(args):
 def get_sites():
 	import os
 	import conf
-	if getattr(conf, "sites_dir", None):
-		return os.listdir(conf.sites_dir)
+	return [site for site in os.listdir(conf.sites_dir)
+			if not os.path.islink(os.path.join(conf.sites_dir, site))]
 	
 def setup_parser():
 	import argparse
@@ -76,6 +76,8 @@ def setup_parser():
 def setup_install(parser):
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
 		help="Install a new app")
+	parser.add_argument("--root-password", nargs=1,
+		help="Root password for new app")
 	parser.add_argument("--reinstall", default=False, action="store_true", 
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
@@ -185,9 +187,9 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, site=None, verbose=0, force=False):
+def install(db_name, site=None, verbose=False, force=False, root_password=None):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=db_name, site=site)
+	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
 	inst.install(db_name, verbose=verbose, force=force)
 
 @cmd
@@ -229,7 +231,7 @@ def update(remote=None, branch=None, site=None):
 	latest(site=site)
 
 @cmd
-def latest(site=None):
+def latest(site=None, verbose=False):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
 	
@@ -238,14 +240,11 @@ def latest(site=None):
 	# run patches
 	webnotes.modules.patch_handler.log_list = []
 	webnotes.modules.patch_handler.run_all()
-	print "\n".join(webnotes.modules.patch_handler.log_list)
+	if verbose:
+		print "\n".join(webnotes.modules.patch_handler.log_list)
 	
 	# sync
 	webnotes.model.sync.sync_all()
-	
-	# build
-	if not site:
-		build()
 
 @cmd
 def sync_all(site=None, force=False):

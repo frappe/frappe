@@ -16,8 +16,8 @@ from webnotes.model.sync import sync_for
 from webnotes.utils import cstr
 
 class Installer:
-	def __init__(self, root_login, root_password=None, db_name=None, site=None):
-		make_conf(db_name, site=site)
+	def __init__(self, root_login, root_password=None, db_name=None, site=None, site_config=None):
+		make_conf(db_name, site=site, site_config=site_config)
 		self.site = site
 		
 		self.make_connection(root_login, root_password)
@@ -84,8 +84,8 @@ class Installer:
 
 		# fresh app
 		if 'Framework.sql' in source_sql:
-			print "Installing app..."
-			self.install_app()
+			if verbose: print "Installing app..."
+			self.install_app(verbose=verbose)
 
 		# update admin password
 		self.update_admin_password(admin_password)
@@ -100,8 +100,8 @@ class Installer:
 		
 		return db_name
 		
-	def install_app(self):
-		sync_for("lib", force=True, sync_everything=True)
+	def install_app(self, verbose=False):
+		sync_for("lib", force=True, sync_everything=True, verbose=verbose)
 		self.import_core_docs()
 
 		try:
@@ -110,14 +110,14 @@ class Installer:
 			install = None
 
 		if os.path.exists("app"):
-			sync_for("app", force=True, sync_everything=True)
+			sync_for("app", force=True, sync_everything=True, verbose=verbose)
 
 		if os.path.exists(os.path.join("app", "startup", "install_fixtures")):
 			install_fixtures()
 
-		print "Completing App Import..."
+		if verbose: print "Completing App Import..."
 		install and install.post_import()
-		print "Updating patches..."
+		if verbose: print "Updating patches..."
 		self.set_all_patches_as_completed()
 		self.assign_all_role_to_administrator()
 
