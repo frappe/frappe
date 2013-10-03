@@ -44,7 +44,7 @@ class DocList(list):
 		return DocList(out)
 		
 	def get_distinct_values(self, fieldname):
-		return list(set(map(lambda d: d.fields.get(fieldname), self)))
+		return filter(None, list(set(map(lambda d: d.fields.get(fieldname), self))))
 
 	def remove_items(self, filters):
 		for d in self.get(filters):
