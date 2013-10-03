@@ -118,7 +118,7 @@ def build_page(page_name):
 def build_sitemap():
 	sitemap = {}
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
- 	sitemap.update(config["pages"])
+	sitemap.update(config["pages"])
 
 	# pages
 	for p in config["pages"].values():
@@ -173,7 +173,7 @@ def build_website_sitemap_config():
 	for path, folders, files in os.walk(basepath, followlinks=True):
 			if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 				for fname in files:
-				fname = webnotes.utils.cstr(fname)
+					fname = webnotes.utils.cstr(fname)
 					if fname.endswith(".html"):
 						options = get_options(path, fname)
 						config["pages"][options.link_name] = options
