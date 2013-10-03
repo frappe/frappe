@@ -21,9 +21,25 @@ def main():
 			run(fn, args)
 	else:
 		run(fn, parsed_args)
-		
+
+def cmd(fn):
+	def new_fn(*args, **kwargs):
+		import inspect
+		fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+		new_kwargs = {}
+		for a in fnargs:
+			if a in kwargs:
+				new_kwargs[a] = kwargs.get(a)
+		return fn(*args, **new_kwargs)
+	
+	return new_fn
+	
+
 def run(fn, args):
-	out = globals().get(fn)(args.get(fn), args)
+	if isinstance(args.get(fn), (list, tuple)):
+		out = globals().get(fn)(*args.get(fn), **args)
+	else:
+		out = globals().get(fn)(**args)
 	webnotes.destroy()
 	return out
 		
@@ -50,6 +66,8 @@ def setup_parser():
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
+	parser.add_argument("-v", "--verbose", default=False, action="store_true",
+		help="Show verbose output where applicable")
 	parser.add_argument("--site", nargs="?", metavar="SITE-NAME or all",
 		help="Run for a particular site")
 		
@@ -166,48 +184,56 @@ def setup_translation(parser):
 # methods
 
 # install
-def _install(val, args):
+@cmd
+def install(db_name, site=None, verbose=0, force=False):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=val[0], site=args.site)
-	inst.install(*val, verbose=1, force=args.force)
-	
-def install(val, args):
-	_install(val, args)
+	inst = Installer('root', db_name=db_name, site=site)
+	inst.install(db_name, verbose=verbose, force=force)
 
-# install
-def reinstall(val, args):
-	webnotes.init(site=args.site)
-	_install([webnotes.conf.db_name], args)
+@cmd
+def reinstall(site=None, verbose=0):
+	webnotes.init(site=site)
+	install(webnotes.conf.db_name, site=site, verbose=verbose, force=True)
 
-def restore(val, args):
-	_install(val, args)
-	
-def install_fixtures(val, args):
-	webnotes.init(site=args.site)
+@cmd
+def restore(db_name, source_sql, site=None, verbose=0, force=False):
+	install(db_name, source_sql, site=site, verbose=verbose, force=force)
+
+@cmd
+def install_fixtures(site=None):
+	webnotes.init(site=site)
 	from webnotes.install_lib.install import install_fixtures
 	install_fixtures()
-	
-def make_demo(val, args):
+
+@cmd
+def make_demo(site=None):
 	import utilities.demo.make_demo
-	webnotes.init(site=args.site)
+	webnotes.init(site=site)
 	utilities.demo.make_demo.make()
-	
-def make_demo_fresh(val, args):
+
+@cmd
+def make_demo_fresh(site=None):
 	import utilities.demo.make_demo
-	webnotes.init(site=args.site)
+	webnotes.init(site=site)
 	utilities.demo.make_demo.make(reset=True)
 	
 # utilities
-def update(val, args):
-	pull(val, args)
+
+@cmd
+def update(remote=None, branch=None, site=None):
+	pull(remote=remote, branch=branch, site=site)
+
+	# maybe there are new framework changes, any consequences?
 	reload(webnotes)
-	latest(val, args)
-	
-def latest(val, args):
+
+	latest(site=site)
+
+@cmd
+def latest(site=None):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
 	
-	webnotes.connect(site=args.site)
+	webnotes.connect(site=site)
 	
 	# run patches
 	webnotes.modules.patch_handler.log_list = []
@@ -218,171 +244,206 @@ def latest(val, args):
 	webnotes.model.sync.sync_all()
 	
 	# build
-	if not args.site:
-		build(val, args)
-	
-def sync_all(val, args):
+	if not site:
+		build()
+
+@cmd
+def sync_all(site=None, force=False):
 	import webnotes.model.sync
-	webnotes.connect(site=args.site)
-	webnotes.model.sync.sync_all(force=args.force)
-	
-def patch(val, args):
+	webnotes.connect(site=site)
+	webnotes.model.sync.sync_all(force=force)
+
+@cmd
+def patch(patch_module, site=None, force=False):
 	import webnotes.modules.patch_handler
-	webnotes.connect(site=args.site)
+	webnotes.connect(site=site)
 	webnotes.modules.patch_handler.log_list = []
-	webnotes.modules.patch_handler.run_single(val[0], force=args.force)
+	webnotes.modules.patch_handler.run_single(patch_module, force=force)
 	print "\n".join(webnotes.modules.patch_handler.log_list)
 	
-def update_all_sites(val, args):
-	args.site = None
-	pull(val, args)
-	build(val, args)
-	args.site = "all"
-	latest(val, args)
+@cmd
+def update_all_sites(remote=None, branch=None):
+	pull(remote, branch)
+	build()
+	latest(site="all")
 
-def reload_doc(val, args):
-	webnotes.connect(site=args.site)
-	webnotes.reload_doc(val[0], val[1], val[2], force=args.force)
-	
-def build(val, args):
+@cmd
+def reload_doc(module, doctype, docname, site=None, force=False):
+	webnotes.connect(site=site)
+	webnotes.reload_doc(module, doctype, docname, force=force)
+
+@cmd
+def build():
 	import webnotes.build
 	webnotes.build.bundle(False)
-	
-def watch(val, args):
+
+@cmd
+def watch():
 	import webnotes.build
 	webnotes.build.watch(True)
-	
-def backup(val, args):
+
+@cmd
+def backup(site=None, with_files=False):
 	from webnotes.utils.backups import scheduled_backup
-	webnotes.connect(site=args.site)
-	scheduled_backup(ignore_files=not args.with_files)
-	
-def docs(val, args):
+	webnotes.connect(site=site)
+	scheduled_backup(ignore_files=not with_files)
+
+@cmd
+def docs():
 	from core.doctype.documentation_tool.documentation_tool import write_static
 	write_static()
-	
-def domain(val, args):
-	webnotes.connect(site=args.site)
-	if val:
-		webnotes.conn.set_value("Website Settings", None, "subdomain", val[0])
+
+@cmd
+def domain(host_url=None, site=None):
+	webnotes.connect(site=site)
+	if host_url:
+		webnotes.conn.set_value("Website Settings", None, "subdomain", host_url)
 		webnotes.conn.commit()
 	else:
 		print webnotes.conn.get_value("Website Settings", None, "subdomain")
-		
-def make_conf(val, args):
+
+@cmd
+def make_conf(db_name=None, db_password=None, site=None, site_config=None):
 	from webnotes.install_lib.install import make_conf
-	make_conf(*val, site=args.site)
+	make_conf(db_name=db_name, db_password=db_password, site=site, site_config=site_config)
 
 # clear
-def clear_cache(val, args):
+@cmd
+def clear_cache(site=None):
 	import webnotes.sessions
-	webnotes.connect(site=args.site)
+	webnotes.connect(site=site)
 	webnotes.sessions.clear_cache()
-	
-def clear_web(val, args):
+
+@cmd
+def clear_web(site=None):
 	import webnotes.webutils
-	webnotes.connect(site=args.site)
+	webnotes.connect(site=site)
 	webnotes.webutils.clear_cache()
-	
-def reset_perms(val, args):
-	webnotes.connect(site=args.site)
+
+@cmd
+def reset_perms(site=None):
+	webnotes.connect(site=site)
 	for d in webnotes.conn.sql_list("""select name from `tabDocType`
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			webnotes.clear_cache(doctype=d)
 			webnotes.reset_perms(d)
 
 # scheduler
-def run_scheduler(val, args):
+@cmd
+def run_scheduler(site=None):
 	import webnotes.utils.scheduler
-	webnotes.connect(site=args.site)
+	webnotes.connect(site=site)
 	print webnotes.utils.scheduler.execute()
-	
-def run_scheduler_event(val, args):
+
+@cmd
+def run_scheduler_event(event, site=None):
 	import webnotes.utils.scheduler
-	webnotes.connect(site=args.site)
-	print webnotes.utils.scheduler.trigger("execute_" + val[0])
+	webnotes.connect(site=site)
+	print webnotes.utils.scheduler.trigger("execute_" + event)
 	
 # replace
-def replace(val, args):
-	print val
-	replace_code('.', *val, force=args.force)
+@cmd
+def replace(search_regex, replacement, extn, force=False):
+	print search_regex, replacement, extn
+	replace_code('.', search_regex, replacement, extn, force=force)
 	
 # import/export	
-def export_doc(val, args):
+@cmd
+def export_doc(doctype, docname, site=None):
 	import webnotes.modules
-	webnotes.connect(site=args.site)
-	webnotes.modules.export_doc(*val)
-	
-def export_doclist(val, args):
+	webnotes.connect(site=site)
+	webnotes.modules.export_doc(doctype, docname)
+
+@cmd
+def export_doclist(doctype, name, path, site=None):
 	from core.page.data_import_tool import data_import_tool
-	webnotes.connect(site=args.site)
-	data_import_tool.export_json(*val)
+	webnotes.connect(site=site)
+	data_import_tool.export_json(doctype, name, path)
 	
-def export_csv(val, args):
+@cmd
+def export_csv(doctype, path, site=None):
 	from core.page.data_import_tool import data_import_tool
-	webnotes.connect(site=args.site)
-	data_import_tool.export_csv(*val)
-	
-def import_doclist(val, args):
+	webnotes.connect(site=site)
+	data_import_tool.export_csv(doctype, path)
+
+@cmd
+def import_doclist(path, site=None):
 	from core.page.data_import_tool import data_import_tool
-	webnotes.connect(site=args.site)
-	data_import_tool.import_doclist(*val)
+	webnotes.connect(site=site)
+	data_import_tool.import_doclist(path)
 	
 # translation
-def build_message_files(val, args):
+@cmd
+def build_message_files(site=None):
 	import webnotes.translate
-	webnotes.connect(site=args.site)
+	webnotes.connect(site=site)
 	webnotes.translate.build_message_files()
-	
-def export_messages(val, args):
-	import webnotes.translate
-	webnotes.connect(site=args.site)
-	webnotes.translate.export_messages(*val)
 
-def import_messages(val, args):
+@cmd
+def export_messages(lang, outfile, site=None):
 	import webnotes.translate
-	webnotes.connect(site=args.site)
-	webnotes.translate.import_messages(*val)
-	
-def google_translate(val, args):
-	import webnotes.translate
-	webnotes.connect(site=args.site)
-	webnotes.translate.google_translate(*val)
+	webnotes.connect(site=site)
+	webnotes.translate.export_messages(lang, outfile)
 
-def translate(val, args):
+@cmd
+def import_messages(lang, infile, site=None):
 	import webnotes.translate
-	webnotes.connect(site=args.site)
-	webnotes.translate.translate(*val)
+	webnotes.connect(site=site)
+	webnotes.translate.import_messages(lang, infile)
+	
+@cmd
+def google_translate(lang, infile, outfile, site=None):
+	import webnotes.translate
+	webnotes.connect(site=site)
+	webnotes.translate.google_translate(lang, infile, outfile)
+
+@cmd
+def translate(lang, site=None):
+	import webnotes.translate
+	webnotes.connect(site=site)
+	webnotes.translate.translate(lang)
 
 # git
-def git(val, args=None):
-	cmd = val
-	if isinstance(val, (list, tuple)):
-		cmd = " ".join(val)
+@cmd
+def git(param):
+	if isinstance(param, (list, tuple)):
+		param = " ".join(param)
 	import os
-	os.system("""cd lib && git %s""" % cmd)
-	os.system("""cd app && git %s""" % cmd)
-	
-def pull(val, args=None):
-	if not val:
-		webnotes.init(site=args.site)
-		val = ("origin", webnotes.conf.branch or "master")
-	git(("pull", val[0], val[1]))
+	os.system("""cd lib && git %s""" % param)
+	os.system("""cd app && git %s""" % param)
 
-def push(val, args=None):
-	if not val:
-		webnotes.init(site=args.site)
-		val = ("origin", webnotes.conf.branch or "master")
-	git(("push", val[0], val[1]))
-	
-def status(val, args=None):
+def get_remote_and_branch(remote=None, branch=None):
+	if not (remote and branch):
+		webnotes.init()
+		if not webnotes.conf.branch:
+			raise Exception("Please specify remote and branch")
+			
+		remote = remote or "origin"
+		branch = branch or webnotes.conf.branch
+		
+	return remote, branch
+
+@cmd
+def pull(remote=None, branch=None):
+	remote, branch = get_remote_and_branch(remote, branch)
+	git(("pull", remote, branch))
+
+@cmd
+def push(remote=None, branch=None):
+	remote, branch = get_remote_and_branch(remote, branch)
+	git(("push", remote, branch))
+
+@cmd
+def status():
 	git("status")
-	
-def commit(val, args=None):
-	git("""commit -a -m "%s" """ % val[0].replace('"', '\"'))
-	
-def checkout(val, args=None):
-	git(("checkout", val[0]))
+
+@cmd
+def commit(message):
+	git("""commit -a -m "%s" """ % message.replace('"', '\"'))
+
+@cmd
+def checkout(branch):
+	git(("checkout", branch))
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
