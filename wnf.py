@@ -264,10 +264,11 @@ def patch(patch_module, site=None, force=False):
 	print "\n".join(webnotes.modules.patch_handler.log_list)
 	
 @cmd
-def update_all_sites(remote=None, branch=None):
+def update_all_sites(remote=None, branch=None, verbose=True):
 	pull(remote, branch)
 	build()
-	latest(site="all")
+	for site in get_sites():
+		latest(site=site, verbose=verbose)
 
 @cmd
 def reload_doc(module, doctype, docname, site=None, force=False):
