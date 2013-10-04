@@ -30,6 +30,7 @@ def cmd(fn):
 		for a in fnargs:
 			if a in kwargs:
 				new_kwargs[a] = kwargs.get(a)
+		
 		return fn(*args, **new_kwargs)
 	
 	return new_fn
@@ -187,10 +188,10 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, site=None, verbose=True, force=False, root_password=None):
+def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None):
 	from webnotes.install_lib.install import Installer
 	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
-	inst.install(db_name, verbose=verbose, force=force)
+	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
 def reinstall(site=None, verbose=True):
