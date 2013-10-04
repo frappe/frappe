@@ -66,7 +66,7 @@ def setup_parser():
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
-	parser.add_argument("-v", "--verbose", default=False, action="store_true",
+	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
 		help="Show verbose output where applicable")
 	parser.add_argument("--site", nargs="?", metavar="SITE-NAME or all",
 		help="Run for a particular site")
@@ -187,18 +187,18 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, site=None, verbose=False, force=False, root_password=None):
+def install(db_name, site=None, verbose=True, force=False, root_password=None):
 	from webnotes.install_lib.install import Installer
 	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
 	inst.install(db_name, verbose=verbose, force=force)
 
 @cmd
-def reinstall(site=None, verbose=0):
+def reinstall(site=None, verbose=True):
 	webnotes.init(site=site)
 	install(webnotes.conf.db_name, site=site, verbose=verbose, force=True)
 
 @cmd
-def restore(db_name, source_sql, site=None, verbose=0, force=False):
+def restore(db_name, source_sql, site=None, verbose=True, force=False):
 	install(db_name, source_sql, site=site, verbose=verbose, force=force)
 
 @cmd
@@ -236,15 +236,18 @@ def latest(site=None, verbose=True):
 	import webnotes.model.sync
 	
 	webnotes.connect(site=site)
+	try:
+		# run patches
+		webnotes.modules.patch_handler.log_list = []
+		webnotes.modules.patch_handler.run_all()
+		if verbose:
+			print "\n".join(webnotes.modules.patch_handler.log_list)
 	
-	# run patches
-	webnotes.modules.patch_handler.log_list = []
-	webnotes.modules.patch_handler.run_all()
-	if verbose:
+		# sync
+		webnotes.model.sync.sync_all()
+	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.modules.patch_handler.log_list)
-	
-	# sync
-	webnotes.model.sync.sync_all()
+		raise e
 
 @cmd
 def sync_all(site=None, force=False):
@@ -261,10 +264,11 @@ def patch(patch_module, site=None, force=False):
 	print "\n".join(webnotes.modules.patch_handler.log_list)
 	
 @cmd
-def update_all_sites(remote=None, branch=None):
+def update_all_sites(remote=None, branch=None, verbose=True):
 	pull(remote, branch)
 	build()
-	latest(site="all")
+	for site in get_sites():
+		latest(site=site, verbose=verbose)
 
 @cmd
 def reload_doc(module, doctype, docname, site=None, force=False):

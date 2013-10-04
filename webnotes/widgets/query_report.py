@@ -120,8 +120,8 @@ def get_user_match_filters(doctypes, ref_doctype):
 		tables.append("`tab" + dt + "`")
 		doctypes_meta[dt] = webnotes.model.doctype.get(dt)
 
-	webnotes.widgets.reportview.tables = tables
-	webnotes.widgets.reportview.doctypes = doctypes_meta
+	webnotes.local.reportview_tables = tables
+	webnotes.local.reportview_doctypes = doctypes_meta
 
 	for dt in doctypes:
 		match_filters.update(webnotes.widgets.reportview.build_match_conditions(dt, 
