@@ -237,6 +237,7 @@ def latest(site=None, verbose=True):
 	import webnotes.model.sync
 	
 	webnotes.connect(site=site)
+	
 	try:
 		# run patches
 		webnotes.modules.patch_handler.log_list = []
@@ -424,6 +425,7 @@ def get_remote_and_branch(remote=None, branch=None):
 			
 		remote = remote or "origin"
 		branch = branch or webnotes.conf.branch
+		webnotes.destroy()
 		
 	return remote, branch
 
