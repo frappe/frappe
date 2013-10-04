@@ -123,6 +123,8 @@ def setup_utilities(parser):
 		help="Get or set domain in Website Settings")
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
+	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
+		help="Set administrator password")
 	
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
@@ -450,6 +452,15 @@ def commit(message):
 @cmd
 def checkout(branch):
 	git(("checkout", branch))
+
+@cmd
+def set_admin_password(admin_password, site=None):
+	import webnotes
+	webnotes.connect(site=site)
+	webnotes.conn.sql("""update __Auth set `password`=password(%s)
+		where user='Administrator'""", (admin_password,))
+	webnotes.conn.commit()
+	webnotes.destroy()
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
