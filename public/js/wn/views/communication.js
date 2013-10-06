@@ -50,7 +50,7 @@ wn.views.CommunicationList = Class.extend({
 			</div>")
 			.appendTo(this.parent);
 			
-		this.body = $("<table class='table table-bordered table-hover table-striped'>")
+		this.body = $('<div class="list-group">')
 			.appendTo(this.wrapper);
 	},
 	
@@ -87,13 +87,27 @@ wn.views.CommunicationList = Class.extend({
 	
 	make_line: function(doc) {
 		var me = this;
-		var comm = $(repl('<tr><td>\
-				<a href="#Form/Communication/%(name)s" class="show-details" style="font-size: 90%; float: right;">'
-					+wn._('Show Details')+'</a>\
-				<p class="comm-header" title="'+wn._('Click to Expand / Collapse')+'">\
-					<b>%(_sender)s on %(when)s</b></p>\
-				<div class="comm-content" style="border-top: 1px solid #ddd; \
-					padding: 10px; overflow-x: auto; display: none;"></div>\
+		doc.icon = {
+			"Email": "icon-envelope",
+			"Chat": "icon-comments",
+			"Phone": "icon-phone",
+			"SMS": "icon-mobile-phone",
+		}[doc.communication_medium] || "icon-envelope";
+		var comm = $(repl('<div class="list-group-item">\
+				<div class="comm-header row" title="'+wn._('Click to Expand / Collapse')+'"\
+					style="font-weight: bold; height: 20px; overflow: hidden;">\
+					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
+					<div class="col-sm-6">%(subject)s</div>\
+					<div class="col-sm-3">%(when)s</div>\
+				</div>\
+				<div class="comm-content" style="overflow-x: auto; display: none;">\
+					<div class="inner" style="margin: 10px; padding: 7px; border: 1px solid #eee; \
+						background-color: #f8f8f8; border-radius: 5px;">\
+					</div>\
+					<div class="show-details pull-right" style="margin-right: 10px;">\
+						<a href="#Form/Communication/%(name)s">'+wn._('Show Details')+'</a>\
+					</div>\
+				</div>\
 			</td></tr>', doc))
 			.appendTo(this.body);
 		
@@ -108,7 +122,7 @@ wn.views.CommunicationList = Class.extend({
 			});
 		
 		this.comm_list.push(comm);
-		comm.find(".comm-content").html(doc.content);
+		comm.find(".comm-content .inner").html(doc.content);
 	}
 });
 
@@ -135,6 +149,9 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"content"},
 				{label:wn._("Send Email"), fieldtype:"Check",
 					fieldname:"send_email"},
+				{label:wn._("Communication Medium"), fieldtype:"Select", 
+					options: ["Phone", "Chat", "Email", "SMS", "Other"],
+					fieldname:"communication_medium"},
 				{label:wn._("Send Me A Copy"), fieldtype:"Check",
 					fieldname:"send_me_a_copy"},
 				{label:wn._("Attach Document Print"), fieldtype:"Check",
@@ -218,6 +235,16 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		$(fields.send_email.input).prop("checked", true)
+
+		// toggle print format
+		$(fields.send_email.input).click(function() {
+			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
+			$(fields.send.input).html($(this).prop("checked") ? "Send" : "Add Communication");
+		});
+
+		// select print format
+		$(fields.communication_medium.wrapper).toggle(false);
+
 		$(fields.send.input).click(function() {
 			var btn = this;
 			var form_values = me.dialog.get_values();
@@ -254,6 +281,8 @@ wn.views.CommunicationComposer = Class.extend({
 			var print_html = "";
 		}
 		
+		if(form_values.send_email) form_values.communication_medium = "Email";
+		
 		return wn.call({
 			method:"core.doctype.communication.communication.make",
 			args: {
@@ -266,6 +295,7 @@ wn.views.CommunicationComposer = Class.extend({
 				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
+				communication_medium: form_values.communication_medium,
 				attachments: selected_attachments
 			},
 			btn: btn,

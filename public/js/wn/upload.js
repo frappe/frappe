@@ -4,17 +4,39 @@
 // parent, args, callback
 wn.upload = {
 	make: function(opts) {
-		var $upload = $("<div class='file-upload'>" + repl(wn._('Upload a file')+':<br>\
-			<input class="alert alert-info" style="padding: 7px; margin-top: 7px;" type="file" name="filedata" />\
-			OR:<br><input class="form-control" style="max-width: 300px;" type="text" name="file_url" /><br>\
-			<p class="help">'
-			+ (opts.sample_url || 'e.g. http://example.com/somefile.png') 
-			+ '</p><br>\
-			<input type="submit" class="btn btn-info btn-upload" value="'
-				+wn._('Attach')+'" /></div>', {
-				action: wn.request.url
-			})).appendTo(opts.parent);
+		if(!opts.args) opts.args = {};
+		var $upload = $('<div class="file-upload">\
+			<p class="small"><a class="action-attach disabled" href="#"><i class="icon-upload"></i> ' 
+				+ wn._('Upload a file') + '</a> | <a class="action-link" href="#"><i class="icon-link"></i> '
+				 + wn._('Attach as web link') + '</a></p>\
+			<div class="action-attach-input">\
+				<input class="alert alert-info" style="padding: 7px; margin: 7px 0px;" type="file" name="filedata" />\
+			</div>\
+			<div class="action-link-input" style="display: none; margin-top: 7px;">\
+				<input class="form-control" style="max-width: 300px;" type="text" name="file_url" />\
+				<p class="text-muted">' 
+					+ (opts.sample_url || 'e.g. http://example.com/somefile.png') + 
+				'</p>\
+			</div>\
+			<button class="btn btn-info btn-upload"><i class="icon-upload"></i> ' +wn._('Upload')
+				+'</button></div>').appendTo(opts.parent);
 	
+
+		$upload.find(".action-link").click(function() {
+			$upload.find(".action-attach").removeClass("disabled");
+			$upload.find(".action-link").addClass("disabled");
+			$upload.find(".action-attach-input").toggle(false);
+			$upload.find(".action-link-input").toggle(true);
+			return false;
+		})
+
+		$upload.find(".action-attach").click(function() {
+			$upload.find(".action-link").removeClass("disabled");
+			$upload.find(".action-attach").addClass("disabled");
+			$upload.find(".action-link-input").toggle(false);
+			$upload.find(".action-attach-input").toggle(true);
+			return false;
+		})
 
 		// get the first file
 		$upload.find(".btn-upload").click(function() {
@@ -41,33 +63,37 @@ wn.upload = {
 			opts.args.file_url = $upload.find('[name="file_url"]').val();
 
 			var fileobj = $upload.find(":file").get(0).files[0];
-			wn.upload.upload_file(fileobj, opts.args, opts.callback, opts.onerror);
+			wn.upload.upload_file(fileobj, opts.args, opts);
 		})
 	},
-	upload_file: function(fileobj, args, callback, onerror) {
+	upload_file: function(fileobj, args, opts) {
 		if(!fileobj && !args.file_url) {
 			msgprint(wn._("Please attach a file or set a URL"));
 			return;
 		}
 		
 		var _upload_file = function() {
-			var msgbox = msgprint(wn._("Uploading..."));
-			return wn.call({
-				"method": "uploadfile",
-				args: args,
-				callback: function(r) {
-					if(!r._server_messages)
-						msgbox.hide();
-					if(r.exc) {
-						// if no onerror, assume callback will handle errors
-						onerror ? onerror(r) : callback(null, null, r);
-						return;
+			if(opts.on_attach) {
+				opts.on_attach(args)
+			} else {
+				var msgbox = msgprint(wn._("Uploading..."));
+				return wn.call({
+					"method": "uploadfile",
+					args: args,
+					callback: function(r) {
+						if(!r._server_messages)
+							msgbox.hide();
+						if(r.exc) {
+							// if no onerror, assume callback will handle errors
+							opts.onerror ? opts.onerror(r) : opts.callback(null, null, r);
+							return;
+						}
+						opts.callback(r.message.fid, r.message.filename, r);
+						$(document).trigger("upload_complete", 
+							[r.message.fid, r.message.filename]);
 					}
-					callback(r.message.fid, r.message.filename, r);
-					$(document).trigger("upload_complete", 
-						[r.message.fid, r.message.filename]);
-				}
-			});
+				});
+			}
 		}
 		
 		if(args.file_url) {
@@ -77,8 +103,16 @@ wn.upload = {
 
 			freader.onload = function() {
 				args.filename = fileobj.name;
-				args.filedata = freader.result.split(",")[1];
-				_upload_file();
+				if((opts.max_width || opts.max_height) && (/\.(gif|jpg|jpeg|tiff|png)$/i).test(args.filename)) {
+					wn.utils.resize_image(freader, function(dataurl) {
+						args.filedata = dataurl.split(",")[1];
+						console.log("resized!")
+						_upload_file();
+					})
+				} else {
+					args.filedata = freader.result.split(",")[1];
+					_upload_file();
+				}
 			};
 			
 			freader.readAsDataURL(fileobj);

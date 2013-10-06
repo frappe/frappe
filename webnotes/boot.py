@@ -65,13 +65,17 @@ def get_bootinfo():
 	
 	from webnotes.model.utils import compress
 	bootinfo['docs'] = compress(bootinfo['docs'])
+
+	# deal with __slots__ in lang
+	if bootinfo.lang:
+		bootinfo.lang = unicode(bootinfo.lang)
 	
 	return bootinfo
 
 def load_conf_settings(bootinfo):
-	import conf
+	from webnotes import conf
 	for key in ['developer_mode']:
-		if hasattr(conf, key): bootinfo[key] = getattr(conf, key)
+		if key in conf: bootinfo[key] = conf.get(key)
 
 def add_allowed_pages(bootinfo):
 	bootinfo.page_info = dict(webnotes.conn.sql("""select distinct parent, modified from `tabPage Role`
@@ -82,10 +86,11 @@ def load_translations(bootinfo):
 	
 	if webnotes.lang != 'en':
 		from webnotes.translate import get_lang_data
+		from webnotes.utils import get_path
 		# framework
-		bootinfo["__messages"] = get_lang_data("../lib/public/js/wn", None, "js")
+		bootinfo["__messages"] = get_lang_data(get_path("lib","public", "js", "wn"), None, "js")
 		# doctype and module names
-		bootinfo["__messages"].update(get_lang_data('../app/public/js', None, "js"))
+		bootinfo["__messages"].update(get_lang_data(get_path("app","public", "js"), None, "js"))
 		bootinfo["lang"] = webnotes.lang
 
 def get_fullnames():

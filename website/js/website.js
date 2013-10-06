@@ -124,6 +124,10 @@ $.extend(wn, {
 		return modal;
 	},
 	msgprint: function(html, title) {
+		if(html.substr(0,1)==="[") html = JSON.parse(html);
+		if($.isArray(html)) {
+			html = html.join("<hr>")
+		}
 		return wn.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
@@ -251,7 +255,8 @@ function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = getCookie("full_name");
-	$("#website-login").toggleClass("hide", full_name ? true : false);
-	$("#website-post-login").toggleClass("hide", full_name ? false : true);
+	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
+	$("#website-login").toggleClass("hide", logged_in ? true : false);
+	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 });
 

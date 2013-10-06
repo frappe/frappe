@@ -43,7 +43,7 @@ wn.ui.form.Control = Class.extend({
 		if(!this.doctype)
 			return "Write";
 		return wn.perm.get_field_display_status(this.df, 
-			locals[this.doctype][this.docname], this.perm, explain);
+			locals[this.doctype][this.docname], this.perm || this.frm.perm, explain);
 	},
 	refresh: function() {
 		this.disp_status = this.get_status();
@@ -76,7 +76,6 @@ wn.ui.form.Control = Class.extend({
 	set_model_value: function(value) {
 		if(wn.model.set_value(this.doctype, this.docname, this.df.fieldname, 
 			value, this.df.fieldtype)) {
-			this.frm && this.frm.dirty();
 			this.last_value = value;
 		}
 	},
@@ -369,7 +368,7 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 	},
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
-			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
+			(wn.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		if(this.not_in_form && this.dialog_wrapper) {
 			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
 		}
@@ -615,18 +614,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		this.has_input = true;
 		//this.bind_change_event();
 		var me = this;
-		this.$input.on("blur", function() { 
-			if(me.selected) {
-				me.selected = false;
-				return;
-			}
-			if(me.doctype && me.docname) {
-				var value = me.get_value();
-				if(value!==me.last_value) {
-					me.parse_validate_and_set_in_model(value);
-				}
-			}});
 		this.setup_buttons();
+		//this.setup_typeahead();
 		this.setup_autocomplete();
 	},
 	setup_buttons: function() {
@@ -637,7 +626,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			new wn.ui.form.LinkSelector({
 				doctype: me.df.options,
 				target: me,
-				txt: me.$input.val()
+				txt: me.get_value()
 			});
 		});
 
@@ -660,20 +649,107 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			this.$input_area.find(".btn-new").remove();
 		}
 	},
+	// setup_typeahead: function() {
+	// 	var me = this;
+	// 	var method = "webnotes.widgets.search.search_link";
+	// 	var args = {};
+	// 	this.set_custom_query(args);
+	// 
+	// 	// custom query
+	// 	if(args.query) {
+	// 		method = args.query
+	// 	}
+	// 
+	// 	var _change = function() {
+	// 		var val = me.get_value();
+	// 		if(me.frm && me.frm.doc) {
+	// 			me.selected = true;
+	// 			me.parse_validate_and_set_in_model(val);
+	// 		} else {
+	// 			me.$input.trigger("change");
+	// 		}
+	// 	}
+	// 
+	// 	// filter based on arguments
+	// 	var filter_fn = function(r) {
+	// 		if(r.exc) console.log(r.exc);
+	// 		var filter_args = {};
+	// 		me.set_custom_query(filter_args)
+	// 		if(filter_args.filters) {
+	// 			return wn.utils.filter_dict(r.results, filter_args.filters);
+	// 		} else {
+	// 			return r.results;
+	// 		}
+	// 	}
+	// 	
+	// 	// default query args
+	// 	var query_args = {
+	// 		cmd: method,
+	// 		txt: "%",
+	// 		page_len: "9999",
+	// 		doctype: me.df.options,
+	// 	}
+	// 	
+	// 	// append filter keys (needed for client-side filtering)
+	// 	if(args.filters) {
+	// 		query_args.search_fields = ["name"].concat(keys(args.filters));
+	// 	}
+	// 	
+	// 	this.$input.typeahead("destroy").typeahead({
+	// 		name: me.df.parent + ":" + me.df.fieldname,
+	// 		prefetch: {
+	// 			url: "server.py?" + wn.utils.get_url_from_dict(query_args),
+	// 			filter: filter_fn,
+	// 		},
+	// 		remote: {
+	// 			url: "server.py?" + wn.utils.get_url_from_dict($.extend(query_args, {"txt": null})) + "&txt=%QUERY",
+	// 			filter: filter_fn,
+	// 		},
+	// 		template: function(d) {
+	// 			if(keys(d).length > 1) {
+	// 				d.info = $.map(d, function(val, key) { return key==="name" ? null : val }).join(", ");
+	// 				return repl("<p>%(value)s<br><span class='text-muted'>%(info)s</span></p>", d);
+	// 			} else {
+	// 				return d.value;
+	// 			}
+	// 		}
+	// 	}).on("typeahead:selected", function(d) {
+	// 		_change();
+	// 	}).on("typeahead:autocompleted", function(d) {
+	// 		_change();
+	// 	});
+	// 			
+	// 	this.set_input = function(val) {
+	// 		me.$input.typeahead("setQuery", val || "");
+	// 	}
+	// },
 	setup_autocomplete: function() {
 		var me = this;
+		this.$input.on("blur", function() { 
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			if(me.doctype && me.docname) {
+				var value = me.get_value();
+				if(value!==me.last_value) {
+					me.parse_validate_and_set_in_model(value);
+				}
+			}});
+
 		this.$input.autocomplete({
 			source: function(request, response) {
 				var args = {
 					'txt': request.term, 
 					'doctype': me.df.options,
 				};
-
+		
 				me.set_custom_query(args);
-
+		
 				return wn.call({
 					type: "GET",
 					method:'webnotes.widgets.search.search_link',
+					no_spinner: true,
 					args: args,
 					callback: function(r) {
 						response(r.results);
@@ -696,12 +772,18 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					me.$input.trigger("change");
 				}
 			}
-		}).data('uiAutocomplete')._renderItem = function(ul, item) {
+		}).data('uiAutocomplete')._renderItem = function(ul, d) {
+			var html = "";
+			if(keys(d).length > 1) {
+				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";
+				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
+			} else {
+				html = "<a>" + d.value + "</a>";
+			}
+
 			return $('<li></li>')
-				.data('item.autocomplete', item)
-				.append(repl('<a><span style="font-weight: bold;">%(label)s</span><br>\
-					<span style="font-size:10px;">%(info)s</span></a>',
-					item))
+				.data('item.autocomplete', d)
+				.append(html)
 				.appendTo(ul);
 		};
 		// remove accessibility span (for now)
@@ -795,7 +877,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 		this.grid = new wn.ui.form.Grid({
 			frm: this.frm,
 			df: this.df,
-			perm: this.perm,
+			perm: this.perm || this.frm.perm,
 			parent: this.wrapper
 		})
 		if(this.frm)

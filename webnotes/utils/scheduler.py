@@ -16,7 +16,7 @@ on the need.
 """
 
 import webnotes
-def execute():
+def execute(site=None):
 	"""
 	execute jobs
 	this method triggers the other scheduler events
@@ -29,7 +29,7 @@ def execute():
 	format = '%Y-%m-%d %H:%M:%S'
 	
 	if not webnotes.conn:
-		webnotes.connect()
+		webnotes.connect(site=site)
 	
 	out = []
 

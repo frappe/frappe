@@ -6,8 +6,6 @@ import webnotes
 import webnotes.model.doc
 import webnotes.model.code
 
-conn = webnotes.conn
-
 @webnotes.whitelist()
 def get(name):
 	"""

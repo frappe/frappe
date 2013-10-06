@@ -7,7 +7,7 @@
 from __future__ import unicode_literals
 import MySQLdb
 import webnotes
-import conf
+from webnotes import conf
 import datetime
 
 class Database:
@@ -84,7 +84,7 @@ class Database:
 						webnotes.errprint(query % values)
 					except TypeError:
 						webnotes.errprint([query, values])
-				if getattr(conf, "logging", False)==2:
+				if (conf.get("logging") or False)==2:
 					webnotes.log("<<<< query")
 					webnotes.log(query)
 					webnotes.log("with values:")
@@ -97,7 +97,7 @@ class Database:
 				if debug:
 					self.explain_query(query)
 					webnotes.errprint(query)
-				if getattr(conf, "logging", False)==2:
+				if (conf.get("logging") or False)==2:
 					webnotes.log("<<<< query")
 					webnotes.log(query)
 					webnotes.log(">>>>")
@@ -155,7 +155,7 @@ class Database:
 			
 		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if self.transaction_writes > 10000:
+			if not webnotes.in_test and self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					webnotes.conn.commit()
 					webnotes.conn.begin()

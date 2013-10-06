@@ -7,9 +7,8 @@ from __future__ import unicode_literals
 		
 import webnotes
 import inspect, os, json, datetime, shutil
-from jinja2 import Environment, FileSystemLoader
 from webnotes.modules import get_doc_path, get_module_path, scrub
-from webnotes.utils import get_path, get_base_path
+from webnotes.utils import get_path, get_base_path, cstr
 
 class DocType:
 	def __init__(self, d, dl):
@@ -37,6 +36,7 @@ def get_static_pages():
 	for repo in ("lib", "app"):
 		for basepath, folders, files in os.walk(get_path(repo, "docs")):
 			for fname in files:
+				fname = cstr(fname)
 				if fname.endswith(".md"):
 					fpath = get_path(basepath, fname)
 					with open(fpath, "r") as docfile:
@@ -79,6 +79,7 @@ def get_docs_for(docs, name):
 		mydocs["_toc"] = []
 		dirname = os.path.dirname(obj.__file__)
 		for fname in os.listdir(dirname):
+			fname = cstr(fname)
 			fpath = os.path.join(dirname, fname)
 			if os.path.isdir(fpath):
 				# append if package
@@ -177,6 +178,7 @@ def get_modules(for_module=None):
 		prefix = prefix + ".py_modules."
 		for basepath, folders, files in os.walk(module_path):
 			for f in files:
+				f = cstr(f)
 				if f.endswith(".py") and \
 					(not f.split(".")[0] in os.path.split(basepath)) and \
 					(not f.startswith("__")):
@@ -409,9 +411,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 	if isinstance(data, basestring):
 		data = json.loads(data)
 
-	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
-
-	template = jenv.get_template("app/docs/templates/docs.html")
+	template = webnotes.get_template("app/docs/templates/docs.html")
 
 	data["index"] = data["docs"]
 	data["docs"] = None
@@ -439,6 +439,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 			domain = domain + "/"
 		content = ""
 		for fname in os.listdir(get_path("public", "docs")):
+			fname = cstr(fname)
 			if fname.endswith(".html"):
 				content += sitemap_link_xml % (domain + fname, 
 					get_timestamp(get_path("public", "docs", fname)))
@@ -447,7 +448,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 			sitemap.write(sitemap_frame_xml % content)
 
 def write_static():
-	webnotes.session = webnotes._dict({"user":"Administrator"})
+	webnotes.local.session = webnotes._dict({"user":"Administrator"})
 	
 	from markdown2 import markdown
 	

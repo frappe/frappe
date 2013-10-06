@@ -4,15 +4,17 @@ body {
 	padding-bottom: 50px;
 }
 
-h1, h2, h3, h4, h5 {
-	font-weight: 500;
-}
-
 a {
 	cursor: pointer;
 }
 
-.content {
+a.disabled, a.disabled:hover {
+	color: #888;
+	cursor: default;
+	text-decoration: none;
+}
+
+.appframe {
 	background-color: #fff;
 	-webkit-box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
 	box-shadow: 0px 0px 6px rgba(0,0,0,0.7);
@@ -357,11 +359,11 @@ div#freeze {
 
 /* slickgrid */
 
-..slick-cell { 
+.slick-cell { 
 	font-size: 12px; 
 }
 
-.slick-header-column {
+.slick-header-column, .slick-cell {
   -webkit-box-sizing: content-box;
      -moz-box-sizing: content-box;
           box-sizing: content-box;

@@ -25,7 +25,7 @@ wn.ui.FieldGroup = Class.extend({
 			}
 			if(!df.fieldtype) df.fieldtype="Data";
 			
-			var div = $a(this.body, 'div', '', {margin:'6px 0px'})
+			var div = $a(this.body, 'div');
 			f = make_field(df, null, div, null);
 			f.not_in_form = 1;
 			f.dialog_wrapper = this.wrapper || null;
@@ -37,11 +37,14 @@ wn.ui.FieldGroup = Class.extend({
 				$(f.input).removeClass("btn-default").addClass('btn-info');
 				this.first_button = true;
 			}
+			if(!df.description) {
+				$(f.wrapper).find(".help-box").toggle(false);
+			}
 		}
 	},
 	catch_enter_as_submit: function() {
 		var me = this;
-		$(this.body).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
+		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
 				$(me.body).find('.btn-info:first').click();
 			}

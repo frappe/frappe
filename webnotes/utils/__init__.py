@@ -4,7 +4,10 @@
 # util __init__.py
 
 from __future__ import unicode_literals
+from webnotes import conf
+
 import webnotes
+
 
 user_time_zone = None
 user_format = None
@@ -65,19 +68,19 @@ def validate_email_add(email_str):
 
 def get_request_site_address(full_address=False):
 	"""get app url from request"""
-	import os, conf
+	import os
 	
-	if hasattr(conf, "host_name"):
-		host_name = conf.host_name
-	else:
-		try:
-			protocol = 'HTTPS' in os.environ.get('SERVER_PROTOCOL') and 'https://' or 'http://'
-			host_name = protocol + os.environ.get('HTTP_HOST')
-		except TypeError:
-			return 'http://localhost'
+	host_name = conf.host_name
+
+	if not host_name:
+		if webnotes.request:
+			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL', "") and 'https://' or 'http://'
+			host_name = protocol + webnotes.request.host
+		else:
+			return "http://localhost"
 
 	if full_address:
-		return host_name + os.environ.get("REQUEST_URI", "")
+		return host_name + webnotes.get_request_header("REQUEST_URI", "")
 	else:
 		return host_name
 
@@ -806,15 +809,34 @@ def comma_sep(some_list, sep):
 def filter_strip_join(some_list, sep):
 	"""given a list, filter None values, strip spaces and join"""
 	return (cstr(sep)).join((cstr(a).strip() for a in filter(None, some_list)))
-		
-def get_path(*path):
+	
+def get_path(*path, **kwargs):
+	base = kwargs.get('base')
+	if not base:
+		base = get_base_path()
 	import os
-	return os.path.join(get_base_path(), *path)
+	return os.path.join(base, *path)
 	
 def get_base_path():
 	import conf
 	import os
 	return os.path.dirname(os.path.abspath(conf.__file__))
+	
+def get_site_base_path(sites_dir=None, hostname=None):
+	if conf and not conf.sites_dir:
+		return get_base_path()
+	
+	if not sites_dir:
+		sites_dir = conf.sites_dir
+	
+	if not hostname:
+		hostname = conf.site
+
+	import os
+	return os.path.join(sites_dir, hostname)
+
+def get_site_path(*path):
+	return get_path(base=get_site_base_path(), *path)
 	
 def get_url(uri=None):
 	url = get_request_site_address()
@@ -879,3 +901,6 @@ def compare(val1, condition, val2):
 		return operator_map[condition]((val1, val2))
 
 	return False
+
+def get_site_name(hostname):
+	return hostname.split(':')[0]

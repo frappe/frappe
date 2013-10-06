@@ -122,11 +122,11 @@ wn.request.cleanup = function(opts, r) {
 	// un-freeze page
 	if(opts.freeze) wn.dom.unfreeze();
 
-	// session expired?
-	if(r.session_expired) { 
+	// session expired? - Guest has no business here!
+	if(r.session_expired || wn.get_cookie("sid")==="Guest") { 
 		if(!wn.app.logged_out) {
 			msgprint(wn._('Session Expired. Logging you out'));
-			wn.app.logout();		
+			wn.app.logout();
 		}
 		return;
 	}
@@ -170,7 +170,7 @@ wn.request.cleanup = function(opts, r) {
 	}
 	
 	if(r['403']) {
-		wn.set_route('403');
+		wn.show_not_permitted(wn.get_route_str());
 	}
 
 	if(r.docs) {

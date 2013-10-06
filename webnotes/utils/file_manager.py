@@ -3,9 +3,10 @@
 
 from __future__ import unicode_literals
 import webnotes
-import os, conf
-from webnotes.utils import cstr, get_path, cint
+import os
+from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
+from webnotes import conf
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
 
@@ -64,7 +65,7 @@ def get_uploaded_content():
 def save_file(fname, content, dt, dn):
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_path("public", "files")
+	files_path = get_site_path(conf.get("public_path", "public"))
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
@@ -73,7 +74,7 @@ def save_file(fname, content, dt, dn):
 	file_size = check_max_file_size(content)
 	temp_fname = write_file(content, files_path)
 	fname = scrub_file_name(fname)
-	fpath = os.path.join(files_path, fname).encode("utf-8")
+	fpath = os.path.join(files_path, fname)
 
 	fname_parts = fname.split(".", -1)
 	main = ".".join(fname_parts[:-1])
@@ -95,14 +96,14 @@ def save_file(fname, content, dt, dn):
 			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
 			
 			# rename
-			os.rename(temp_fname, fpath)
+			os.rename(temp_fname, fpath.encode("utf-8"))
 	else:
 		# rename new file
-		os.rename(temp_fname, fpath)
+		os.rename(temp_fname, fpath.encode("utf-8"))
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(fpath, get_path("public")),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path(conf.get("public_path", "public"))),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
@@ -113,7 +114,12 @@ def save_file(fname, content, dt, dn):
 	return f.doc
 
 def get_file_versions(files_path, main, extn):
-	return filter(lambda f: f.startswith(main) and f.endswith(extn), os.listdir(files_path))
+	out = []
+	for f in os.listdir(files_path):
+		f = cstr(f)
+		if f.startswith(main) and f.endswith(extn):
+			out.append(f)
+	return out
 
 def get_new_fname_based_on_version(files_path, main, extn, versions):
 	versions.sort()
@@ -139,7 +145,7 @@ def scrub_file_name(fname):
 	return fname
 	
 def check_max_file_size(content):
-	max_file_size = getattr(conf, 'max_file_size', 1000000)
+	max_file_size = conf.get('max_file_size') or 1000000
 	file_size = len(content)
 
 	if file_size > max_file_size:
@@ -183,12 +189,13 @@ def get_file(fname):
 
 	# read the file
 	import os
-	files_path = get_path("public", "files")
+	files_path = get_site_path(conf.get("files_path", "public/files"))
 	file_path = os.path.join(files_path, file_name)
 	if not os.path.exists(file_path):
 		# check in folders
 		for basepath, folders, files in os.walk(files_path):
 			if file_name in files:
+				file_name = cstr(file_name)
 				file_path = os.path.join(basepath, file_name)
 				break
 		

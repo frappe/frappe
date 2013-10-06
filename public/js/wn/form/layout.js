@@ -115,7 +115,9 @@ wn.ui.form.Layout = Class.extend({
 					});
 			}
 			if(df.description) {
-				$('<div class="col-md-12 small text-muted">' + df.description + '</div>').appendTo(this.section);
+				$('<div class="col-md-12 small text-muted">' + df.description + '</div>')
+					.css("padding-left", "40px")
+					.appendTo(this.section);
 			}
 			if(df.label || df.description) {
 				// spacer

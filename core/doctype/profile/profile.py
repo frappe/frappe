@@ -16,6 +16,9 @@ class DocType:
 		if self.doc.name not in ('Guest','Administrator'):
 			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
+			
+			if webnotes.conn.exists("Profile", self.doc.name):
+				webnotes.msgprint("Name Exists", raise_exception=True)
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
@@ -23,9 +26,16 @@ class DocType:
 			self.validate_email_type(self.doc.email)
 		self.validate_max_users()
 		self.add_system_manager_role()
+		self.check_enable_disable()
+		if self.in_insert:
+			self.autoname()
+			if self.doc.name not in ("Guest", "Administrator"):
+				self.send_welcome_mail()
+				webnotes.msgprint(_("Welcome Email Sent"))
+		else:
+			self.email_new_password()
 
-		if self.doc.fields.get('__islocal') and not self.doc.new_password:
-			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
+		self.doc.new_password = ""
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -38,13 +48,13 @@ class DocType:
 		
 		# clear sessions if disabled
 		if not cint(self.doc.enabled) and getattr(webnotes, "login_manager", None):
-			webnotes.login_manager.logout(user=self.doc.name)
+			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
-		import conf
+		from webnotes import conf
 		# check only when enabling a user
-		if hasattr(conf, 'max_users') and self.doc.enabled and \
+		if 'max_users' in conf and self.doc.enabled and \
 				self.doc.name not in ["Administrator", "Guest"] and \
 				cstr(self.doc.user_type).strip() in ("", "System User"):
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
@@ -74,30 +84,18 @@ class DocType:
 				"parentfield": "user_roles",
 				"role": "System Manager"
 			})
-				
+	
+	def email_new_password(self):
+		if self.doc.new_password and not self.in_insert:
+			from webnotes.auth import _update_password
+			_update_password(self.doc.name, self.doc.new_password)
+
+			self.password_update_mail(self.doc.new_password)
+			webnotes.msgprint("New Password Emailed.")
+			
 	def on_update(self):
 		# owner is always name
 		webnotes.conn.set(self.doc, 'owner', self.doc.name)
-		self.update_new_password()
-		
-		self.check_enable_disable()
-
-	def update_new_password(self):
-		"""update new password if set"""
-		if self.doc.new_password:
-			from webnotes.auth import _update_password
-			_update_password(self.doc.name, self.doc.new_password)
-			
-			if self.in_insert:
-				webnotes.msgprint("New user created. - %s" % self.doc.name)
-				if cint(self.doc.send_invite_email):
-					self.send_welcome_mail(self.doc.new_password)
-					webnotes.msgprint("Sent welcome mail.")
-			else:
-				self.password_update_mail(self.doc.new_password)
-				webnotes.msgprint("New Password Emailed.")
-				
-			webnotes.conn.set(self.doc, 'new_password', '')
 	
 	def reset_password(self):
 		from webnotes.utils import random_string, get_url
@@ -150,28 +148,32 @@ Thank you,<br>
 			txt, {"new_password": password})
 		
 		
-	def send_welcome_mail(self, password):
+	def send_welcome_mail(self):
 		"""send welcome mail to user with password and login url"""
+
+		from webnotes.utils import random_string, get_url
+
+		self.doc.reset_password_key = random_string(32)
+		link = get_url("/update-password?key=" + self.doc.reset_password_key)
 		
 		txt = """
 ## %(company)s
 
 Dear %(first_name)s,
 
-A new account has been created for you, here are your details:
+A new account has been created for you. 
 
-Login Id: %(user)s<br>
-Password: %(password)s
+Your login id is: %(user)s
 
-To login to your new %(product)s account, please go to:
+To complete your registration, please click on the link below:
 
-%(login_url)s
+<a href="%(link)s">%(link)s</a>
 
 Thank you,<br>
 %(user_fullname)s
 		"""
 		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, 
-			{ "password": password })
+			{ "link": link })
 
 	def send_login_mail(self, subject, txt, add_args):
 		"""send mail with login details"""
@@ -214,8 +216,8 @@ Thank you,<br>
 				
 		# disable the user and log him/her out
 		self.doc.enabled = 0
-		if getattr(webnotes, "login_manager", None):
-			webnotes.login_manager.logout(user=self.doc.name)
+		if webnotes.local.login_manager:
+			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
 		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
@@ -316,16 +318,15 @@ def get_perm_info(arg=None):
 @webnotes.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
 	# verify old password
-	if old_password:
+	if key:
+		user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
+		if not user:
+			return _("Cannot Update: Incorrect / Expired Link.")
+	elif old_password:
 		user = webnotes.session.user
 		if not webnotes.conn.sql("""select user from __Auth where password=password(%s) 
 			and user=%s""", (old_password, user)):
 			return _("Cannot Update: Incorrect Password")
-	else:
-		if key:
-			user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
-			if not user:
-				return _("Cannot Update: Incorrect / Expired Link.")
 	
 	from webnotes.auth import _update_password
 	_update_password(user, new_password)
@@ -353,8 +354,7 @@ def sign_up(email, full_name):
 			"first_name": full_name,
 			"enabled": 1,
 			"new_password": random_string(10),
-			"user_type": "Website User",
-			"send_invite_email": 1
+			"user_type": "Website User"
 		})
 		profile.ignore_permissions = True
 		profile.insert()
