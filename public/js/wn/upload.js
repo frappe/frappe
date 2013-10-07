@@ -27,6 +27,7 @@ wn.upload = {
 			$upload.find(".action-link").addClass("disabled");
 			$upload.find(".action-attach-input").toggle(false);
 			$upload.find(".action-link-input").toggle(true);
+			$upload.find(".btn-upload").html('<i class="icon-link"></i> ' +wn._('Set Link'))
 			return false;
 		})
 
@@ -35,6 +36,7 @@ wn.upload = {
 			$upload.find(".action-attach").addClass("disabled");
 			$upload.find(".action-link-input").toggle(false);
 			$upload.find(".action-attach-input").toggle(true);
+			$upload.find(".btn-upload").html('<i class="icon-upload"></i> ' +wn._('Upload'))
 			return false;
 		})
 
@@ -72,9 +74,10 @@ wn.upload = {
 			return;
 		}
 		
+		var dataurl = null;
 		var _upload_file = function() {
 			if(opts.on_attach) {
-				opts.on_attach(args)
+				opts.on_attach(args, dataurl)
 			} else {
 				var msgbox = msgprint(wn._("Uploading..."));
 				return wn.call({
@@ -104,12 +107,14 @@ wn.upload = {
 			freader.onload = function() {
 				args.filename = fileobj.name;
 				if((opts.max_width || opts.max_height) && (/\.(gif|jpg|jpeg|tiff|png)$/i).test(args.filename)) {
-					wn.utils.resize_image(freader, function(dataurl) {
-						args.filedata = dataurl.split(",")[1];
+					wn.utils.resize_image(freader, function(_dataurl) {
+						dataurl = _dataurl;
+						args.filedata = _dataurl.split(",")[1];
 						console.log("resized!")
 						_upload_file();
 					})
 				} else {
+					dataurl = freader.result;
 					args.filedata = freader.result.split(",")[1];
 					_upload_file();
 				}

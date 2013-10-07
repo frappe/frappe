@@ -24,6 +24,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		if(!opts.width) opts.width = 480;
 
 		$.extend(this, opts);
+		this._super();
 		this.make();
 	},
 	make: function() {

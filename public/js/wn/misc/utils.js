@@ -237,7 +237,7 @@ wn.utils = {
 			var ctx = canvas.getContext("2d");
 			ctx.drawImage(this, 0, 0, tempW, tempH);
 			var dataURL = canvas.toDataURL("image/jpeg");
-			callback(dataURL);
+			setTimeout(function() { callback(dataURL); }, 10 );
 		}
 	}
 };
