@@ -30,6 +30,7 @@ def cmd(fn):
 		for a in fnargs:
 			if a in kwargs:
 				new_kwargs[a] = kwargs.get(a)
+		
 		return fn(*args, **new_kwargs)
 	
 	return new_fn
@@ -114,6 +115,10 @@ def setup_utilities(parser):
 	# misc
 	parser.add_argument("--backup", default=False, action="store_true",
 		help="Take backup of database in backup folder [--with_files]")
+	parser.add_argument("--move", default=False, action="store_true",
+		help="Move site to different directory defined by --dest_dir")
+	parser.add_argument("--dest_dir", nargs=1, metavar="DEST-DIR",
+		help="Move site to different directory")
 	parser.add_argument("--with_files", default=False, action="store_true",
 		help="Also take backup of files")
 	parser.add_argument("--docs", default=False, action="store_true",
@@ -122,6 +127,8 @@ def setup_utilities(parser):
 		help="Get or set domain in Website Settings")
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
+	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
+		help="Set administrator password")
 	
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
@@ -187,10 +194,10 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, site=None, verbose=True, force=False, root_password=None):
+def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None):
 	from webnotes.install_lib.install import Installer
 	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
-	inst.install(db_name, verbose=verbose, force=force)
+	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
 def reinstall(site=None, verbose=True):
@@ -236,6 +243,7 @@ def latest(site=None, verbose=True):
 	import webnotes.model.sync
 	
 	webnotes.connect(site=site)
+	
 	try:
 		# run patches
 		webnotes.modules.patch_handler.log_list = []
@@ -289,7 +297,33 @@ def watch():
 def backup(site=None, with_files=False):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
-	scheduled_backup(ignore_files=not with_files)
+	odb = scheduled_backup(ignore_files=not with_files)
+	if __name__ == "__main__":
+		print "backup taken -", odb.backup_path_db, "- on", now()
+	return odb
+
+@cmd
+def move(site=None, dest_dir=None):
+	import os
+	if not dest_dir:
+		raise Exception, "--dest_dir is required for --move"
+	dest_dir = dest_dir[0]
+	if not os.path.isdir(dest_dir):
+		raise Exception, "destination is not a directory or does not exist"
+	webnotes.init(site=site)
+	old_path = webnotes.utils.get_site_path()
+	new_path = os.path.join(dest_dir, site)
+
+	# check if site dump of same name already exists
+	site_dump_exists = True
+	count = 0
+	while site_dump_exists:
+		final_new_path = new_path + (count and str(count) or "")
+		site_dump_exists = os.path.exists(final_new_path)
+		count = int(count or 0) + 1
+
+	os.rename(old_path, final_new_path)
+	webnotes.destroy()
 
 @cmd
 def docs():
@@ -423,6 +457,7 @@ def get_remote_and_branch(remote=None, branch=None):
 			
 		remote = remote or "origin"
 		branch = branch or webnotes.conf.branch
+		webnotes.destroy()
 		
 	return remote, branch
 
@@ -447,6 +482,15 @@ def commit(message):
 @cmd
 def checkout(branch):
 	git(("checkout", branch))
+
+@cmd
+def set_admin_password(admin_password, site=None):
+	import webnotes
+	webnotes.connect(site=site)
+	webnotes.conn.sql("""update __Auth set `password`=password(%s)
+		where user='Administrator'""", (admin_password,))
+	webnotes.conn.commit()
+	webnotes.destroy()
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""

@@ -140,6 +140,7 @@ def scheduled_backup(older_than=6, ignore_files=False):
 	
 	from webnotes.utils import now
 	print "backup taken -", odb.backup_path_db, "- on", now()
+	return odb
 
 def new_backup(older_than=6, ignore_files=False):
 	delete_temp_backups(older_than=168)
