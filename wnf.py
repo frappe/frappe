@@ -196,9 +196,9 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None):
+def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None, site_config=None):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
+	inst = Installer('root', db_name=db_name, site=site, root_password=root_password, site_config=site_config)
 	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force)
 
 @cmd
