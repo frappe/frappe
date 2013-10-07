@@ -115,6 +115,10 @@ def setup_utilities(parser):
 	# misc
 	parser.add_argument("--backup", default=False, action="store_true",
 		help="Take backup of database in backup folder [--with_files]")
+	parser.add_argument("--move", default=False, action="store_true",
+		help="Move site to different directory defined by --dest_dir")
+	parser.add_argument("--dest_dir", nargs=1, metavar="DEST-DIR",
+		help="Move site to different directory")
 	parser.add_argument("--with_files", default=False, action="store_true",
 		help="Also take backup of files")
 	parser.add_argument("--docs", default=False, action="store_true",
@@ -297,6 +301,21 @@ def backup(site=None, with_files=False):
 	if __name__ == "__main__":
 		print "backup taken -", odb.backup_path_db, "- on", now()
 	return odb
+
+@cmd
+def move(site=None, dest_dir=None):
+	import os
+	import shutil
+	if not dest_dir:
+		raise Exception, "--dest_dir is required for --move"
+	dest_dir = dest_dir[0]
+	if not os.path.isdir(dest_dir):
+		raise Exception, "destination is not a directory or does not exist"
+	webnotes.init(site=site)
+	old_path = webnotes.utils.get_site_path()
+	new_path = os.path.join(dest_dir, site)
+	shutil.move(old_path, new_path)
+	webnotes.destroy()
 
 @cmd
 def docs():
