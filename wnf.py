@@ -305,7 +305,6 @@ def backup(site=None, with_files=False):
 @cmd
 def move(site=None, dest_dir=None):
 	import os
-	import shutil
 	if not dest_dir:
 		raise Exception, "--dest_dir is required for --move"
 	dest_dir = dest_dir[0]
@@ -314,7 +313,16 @@ def move(site=None, dest_dir=None):
 	webnotes.init(site=site)
 	old_path = webnotes.utils.get_site_path()
 	new_path = os.path.join(dest_dir, site)
-	shutil.move(old_path, new_path)
+
+	# check if site dump of same name already exists
+	site_dump_exists = True
+	count = 0
+	while site_dump_exists:
+		final_new_path = new_path + (count and str(count) or "")
+		site_dump_exists = os.path.exists(final_new_path)
+		count = int(count or 0) + 1
+
+	os.rename(old_path, final_new_path)
 	webnotes.destroy()
 
 @cmd
