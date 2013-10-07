@@ -195,7 +195,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
 		var no_result_message = repl('<div class="well">\
-		<p>No %(doctype_label)s found</p>' + new_button + '</div>', {
+		<p>' + wn._("No") + ' %(doctype_label)s ' + wn._("found") + '</p>' + new_button + '</div>', {
 			doctype_label: wn._(this.doctype),
 			doctype: this.doctype,
 		});
