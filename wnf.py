@@ -89,6 +89,8 @@ def setup_install(parser):
 		help="Install demo in demo_db_name specified in conf.py")
 	parser.add_argument("--make_demo_fresh", default=False, action="store_true",
 		help="(Re)Install demo in demo_db_name specified in conf.py")
+	parser.add_argument("--add_system_manager", nargs="+", 
+		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
 		
 def setup_utilities(parser):
 	# update
@@ -215,6 +217,28 @@ def install_fixtures(site=None):
 	install_fixtures()
 
 @cmd
+def add_system_manager(email, first_name=None, last_name=None, site=None):
+	webnotes.connect(site=site)
+	
+	# add profile
+	profile = webnotes.new_bean("Profile")
+	profile.doc.fields.update({
+		"name": email,
+		"email": email,
+		"enabled": 1,
+		"first_name": first_name or email,
+		"last_name": last_name
+	})
+	profile.insert()
+	
+	# add roles
+	roles = webnotes.conn.sql_list("""select name from `tabRole`
+		where name not in ("Administrator", "Guest", "All")""")
+	profile.make_controller().add_roles(*roles)
+
+	webnotes.conn.commit()
+
+@cmd
 def make_demo(site=None):
 	import utilities.demo.make_demo
 	webnotes.init(site=site)
@@ -294,11 +318,12 @@ def watch():
 	webnotes.build.watch(True)
 
 @cmd
-def backup(site=None, with_files=False):
+def backup(site=None, with_files=False, verbose=True):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
 	odb = scheduled_backup(ignore_files=not with_files)
-	if __name__ == "__main__":
+	if verbose:
+		from webnotes.utils import now
 		print "backup taken -", odb.backup_path_db, "- on", now()
 	return odb
 
