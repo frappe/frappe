@@ -293,7 +293,10 @@ def watch():
 def backup(site=None, with_files=False):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
-	scheduled_backup(ignore_files=not with_files)
+	odb = scheduled_backup(ignore_files=not with_files)
+	if __name__ == "__main__":
+		print "backup taken -", odb.backup_path_db, "- on", now()
+	return odb
 
 @cmd
 def docs():
