@@ -183,6 +183,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 		doctype: this.doctype,
 		frm: this,
 	});
+	this.layout.make();
+	
+	this.fields_dict = this.layout.fields_dict;
+	this.fields = this.layout.fields_list;
 
 	this.dashboard = new wn.ui.form.Dashboard({
 		frm: this,
@@ -467,6 +471,7 @@ _f.Frm.prototype.refresh_field = function(fname) {
 
 _f.Frm.prototype.refresh_fields = function() {
 	this.layout.refresh();
+	this.layout.primary_button = $(this.wrapper).find(".btn-primary");
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);

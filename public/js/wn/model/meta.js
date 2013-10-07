@@ -64,7 +64,7 @@ $.extend(wn.meta, {
 	},
 	
 	get_fieldnames: function(doctype, name, filters) {
-		return $.map(wn.meta.get_docfields(doctype, name, filters), 
+		return $.map(wn.utils.filter_dict(wn.meta.docfield_map[doctype], filters), 
 			function(df) { return df.fieldname; });
 	},
 	

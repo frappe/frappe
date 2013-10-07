@@ -1,19 +1,25 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 // MIT License. See license.txt
-
+wn.provide("wn.ui.form");
 wn.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
+		this.sections = [];
+		this.fields_list = [];
+		this.fields_dict = {};
 		this.labelled_section_count = 0;
 		this.ignore_types = ["Section Break", "Column Break"];
+								
 		$.extend(this, opts);
-		this.make();
-		this.render();
 	},
 	make: function() {
+		if(!this.parent && this.body) 
+			this.parent = this.body;
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
-		this.fields = wn.meta.get_docfields(this.frm.doctype, this.frm.docname);
+		if(!this.fields)
+			this.fields = wn.meta.docfield_map[this.doctype];
 		this.setup_tabbing();
+		this.render();
 	},
 	add_view: function(label) {
 		var view = $('<div class="form-add-view">').appendTo(this.parent).toggle(false);
@@ -32,15 +38,18 @@ wn.ui.form.Layout = Class.extend({
 	},
 	refresh: function() {
 		var me = this;
-		$.each(this.frm.fields, function(i, fieldobj) {
-			fieldobj.docname = me.frm.docname;
-			fieldobj.df = wn.meta.get_docfield(me.frm.doctype, 
-				fieldobj.df.fieldname, me.frm.docname);
-			// on form change, permissions can change
-			fieldobj.perm = me.frm.perm;
+		$.each(this.fields_list, function(i, fieldobj) {
+			if(me.frm) {
+				fieldobj.docname = me.frm.docname;
+				fieldobj.df = wn.meta.get_docfield(me.frm.doctype, 
+					fieldobj.df.fieldname, me.frm.docname);
+				// on form change, permissions can change
+				fieldobj.perm = me.frm.perm;
+			};
 			fieldobj.refresh && fieldobj.refresh();
 		});
-		$(this.frm.wrapper).trigger("refresh-fields");
+		if(this.frm)
+			$(this.frm.wrapper).trigger("refresh-fields");
 	},
 	render: function() {
 		var me = this;
@@ -82,9 +91,11 @@ wn.ui.form.Layout = Class.extend({
 	make_field: function(df, colspan) {
 		!this.column && this.make_column();
 		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
-		this.frm.fields.push(fieldobj);
-		this.frm.fields_dict[df.fieldname] = fieldobj;
-		fieldobj.perm = this.frm.perm;
+		this.fields_list.push(fieldobj);
+		this.fields_dict[df.fieldname] = fieldobj;
+		if(this.frm) {
+			fieldobj.perm = this.frm.perm;
+		}
 	},
 	make_section: function(df) {
 		if(this.section) {
@@ -92,7 +103,7 @@ wn.ui.form.Layout = Class.extend({
 		}
 		this.section = $('<div class="row">')
 			.appendTo(this.wrapper);
-		this.frm.sections.push(this.section);
+		this.sections.push(this.section);
 		
 		var section = this.section[0];
 		section.df = df;
@@ -108,7 +119,7 @@ wn.ui.form.Layout = Class.extend({
 						"font-weight": "bold",
 					})
 					.appendTo(this.section);
-				if(this.frm.sections.length > 1)
+				if(this.sections.length > 1)
 					this.section.css({
 						"margin-top": "15px", 
 						"border-top": "1px solid #ddd"
@@ -125,8 +136,8 @@ wn.ui.form.Layout = Class.extend({
 					.appendTo(this.section)
 					.css({"height": "20px"});
 			}
-			this.frm.fields_dict[df.fieldname] = section;
-			this.frm.fields.push(section);
+			this.fields_dict[df.fieldname] = section;
+			this.fields_list.push(section);
 		}
 		// for bc
 		this.section.body = $('<div style="padding: 0px 3%">').appendTo(this.section);
@@ -163,11 +174,11 @@ wn.ui.form.Layout = Class.extend({
 		var me = this,
 			grid_row = null;
 			prev = null,
-			fields = me.frm.fields,
+			fields = me.fields,
 			in_grid = false;
 			
 		// in grid
-		if(doctype != me.frm.doctype) {
+		if(doctype != me.doctype) {
 			grid_row =me.get_open_grid_row() 
 			fields = grid_row.fields;
 		}
@@ -178,7 +189,7 @@ wn.ui.form.Layout = Class.extend({
 					if(prev) {
 						this.set_focus(prev)
 					} else {
-						$(cur_frm.wrapper).find(".btn-primary").focus();
+						$(this.primary_button).focus();
 					}
 					break;
 				}
@@ -196,7 +207,7 @@ wn.ui.form.Layout = Class.extend({
 							grid_row.grid.grid_rows[grid_row.doc.idx].toggle_view(true);
 						}
 					} else {
-						$(cur_frm.wrapper).find(".btn-primary").focus();
+						$(this.primary_button).focus();
 					}
 				} else {
 					me.focus_on_next_field(i, fields);
@@ -238,37 +249,4 @@ wn.ui.form.Layout = Class.extend({
 		return $(".grid-row-open").data("grid_row");
 	},
 	
-	// dashboard
-	clear_dashboard: function() {
-		this.dashboard.empty();
-	},
-	add_doctype_badge: function(doctype, fieldname) {
-		if(wn.model.can_read(doctype)) {
-			this.add_badge(wn._(doctype), function() {
-				wn.route_options = {};
-				wn.route_options[fieldname] = cur_frm.doc.name;
-				wn.set_route("List", doctype);
-			}).attr("data-doctype", doctype);
-		}
-	},
-	add_badge: function(label, onclick) {
-		var badge = $(repl('<div class="col-md-4">\
-			<div class="alert alert-warning alert-badge">\
-				<a class="badge-link">%(label)s</a>\
-				<span class="badge pull-right">-</span>\
-			</div></div>', {label:label}))
-				.appendTo(this.dashboard)
-				
-		badge.find(".badge-link").click(onclick);
-				
-		return badge.find(".alert-badge");
-	},
-	set_badge_count: function(data) {
-		var me = this;
-		$.each(data, function(doctype, count) {
-			$(me.dashboard)
-				.find(".alert-badge[data-doctype='"+doctype+"'] .badge")
-				.html(cint(count));
-		});
-	},
 })

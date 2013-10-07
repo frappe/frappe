@@ -64,6 +64,7 @@
 			"lib/public/js/legacy/loaders.js",
 
 			"lib/public/js/wn/ui/appframe.js",
+			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/ui/field_group.js",
 			"lib/public/js/wn/ui/dialog.js",
 			"lib/public/js/wn/ui/button.js",
@@ -120,7 +121,6 @@
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/infobar.js",
-			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/form/dashboard.js",
 			"lib/public/js/wn/form/script_manager.js",
 			"lib/public/js/wn/form/control.js",

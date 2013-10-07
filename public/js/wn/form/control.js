@@ -143,7 +143,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				<label class="control-label"></label>\
 				<div class="control-input"></div>\
 				<div class="control-value like-disabled-input" style="display: none;"></div>\
-				<p class="help-box small text-muted">&nbsp;</p>\
+				<p class="help-box small text-muted"></p>\
 			</div>').appendTo(this.parent);
 		}
 	},
@@ -231,7 +231,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		this._description = this.df.description;
 	},
 	set_empty_description: function() {
-		this.$wrapper.find(".help-box").html("&nbsp;");		
+		this.$wrapper.find(".help-box").html("");		
 	},
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd 
@@ -470,21 +470,23 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		var me = this;
 		this.$input = $('<button class="btn btn-default">')
 			.prependTo(me.input_area)
-			.css({"margin-bottom": "7px"})
 			.on("click", function() {
-				if(me.frm && me.frm.doc && me.frm.cscript) {
-					if(me.frm.cscript[me.df.fieldname]) {
-						me.frm.script_manager.trigger(me.df.fieldname, me.doctype, me.docname);
-					} else {
-						me.frm.runscript(me.df.options, me);
-					}
-				}
-				else if(me.df.click) {
-					me.df.click();
-				}
+				me.onclick();
 			});
 		this.input = this.$input.get(0);
 		this.has_input = true;
+	},
+	onclick: function() {
+		if(this.frm && this.frm.doc && this.frm.cscript) {
+			if(this.frm.cscript[this.df.fieldname]) {
+				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
+			} else {
+				this.frm.runscript(this.df.options, me);
+			}
+		}
+		else if(this.df.click) {
+			this.df.click();
+		}
 	},
 	set_input_areas: function() {
 		this._super();
@@ -494,9 +496,88 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		this.$wrapper.find(".help-box").empty().toggle(false);
 	},
 	set_label: function() {
+		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html(this.df.label);
 	}
 });
+
+wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
+	onclick: function() {
+		if(!this.dialog) {
+			this.dialog = new wn.ui.Dialog({
+				title: wn._(this.df.label || "Upload Attachment"),
+			});
+		}
+
+		$(this.dialog.body).empty();
+		
+		this.set_upload_options();		
+		wn.upload.make(this.upload_options);
+		this.dialog.show();
+	},
+	
+	set_upload_options: function() {
+		var me = this;
+		this.upload_options = {
+			parent: this.dialog.body,
+			args: {},
+			max_width: this.df.max_width,
+			max_height: this.df.max_height,
+			callback: function() { 
+				me.dialog.hide();
+				me.on_upload_complete(fileid, filename, r);
+				me.show_ok_on_button();
+			},
+			onerror: function() {
+				me.dialog.hide();
+			},
+		}
+		
+		if(this.frm) {
+			this.upload_options.args = {
+				from_form: 1,
+				doctype: this.frm.doctype,
+				docname: this.frm.docname,
+			} 
+		} else {
+			this.upload_options.on_attach = function(fileobj, dataurl) {
+				me.dialog.hide();
+				me.fileobj = fileobj;
+				me.dataurl = dataurl;
+				if(me.on_attach) {
+					me.on_attach(fileobj, dataurl)
+				}
+				if(me.df.on_attach) {
+					me.df.on_attach(fileobj, dataurl);
+				}
+				me.show_ok_on_button();
+			}
+		}
+	},
+	
+	on_upload_complete: function(fileid, filename, r) {
+		this.frm && this.frm.attachments.update_attachment(fileid, filename, this.df.fieldname, r);
+	},
+	
+	show_ok_on_button: function() {
+		if(!$(this.input).find(".icon-ok").length) {
+			$(this.input).html('<i class="icon-ok"></i> ' + this.df.label);
+		}
+	}
+});
+
+wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
+	make_input: function() {
+		this._super();
+		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin-top: 7px;">\
+			<div class="missing-image"><i class="icon-camera"></i></div></div>').appendTo(this.input_area)).toggle(false);
+	},
+	on_attach: function(fileobj, dataurl) {
+		$(this.input_area).find(".missing-image").toggle(false);
+		this.img.attr("src", dataurl).toggle(true);
+	}
+});
+
 
 wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	html_element: "select",

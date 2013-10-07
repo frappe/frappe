@@ -3,50 +3,53 @@
 
 wn.provide('wn.ui');
 
-wn.ui.FieldGroup = Class.extend({
+wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this._super();
 	},
 	make: function() {
 		if(this.fields) {
-			this.make_fields();
-			if(!this.no_submit_on_enter)
+			this._super();
+			this.refresh();
+			if(!this.no_submit_on_enter) {
+				$(this.body).find(".btn:first").removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
+			}
 		}
 	},
 	first_button: false,
-	make_fields: function() {
-		$(this.body).css({padding:'25px'});
-		this.fields_dict = {}; // reset
-		for(var i=0; i< this.fields.length; i++) {
-			var df = this.fields[i];
-			if(!df.fieldname && df.label) {
-				df.fieldname = df.label.replace(/ /g, '_').toLowerCase();
-			}
-			if(!df.fieldtype) df.fieldtype="Data";
-			
-			var div = $a(this.body, 'div');
-			f = make_field(df, null, div, null);
-			f.not_in_form = 1;
-			f.dialog_wrapper = this.wrapper || null;
-			this.fields_dict[df.fieldname] = f
-			f.refresh();
-			
-			// first button primary ?
-			if(df.fieldtype=='Button' && !this.first_button) {
-				$(f.input).removeClass("btn-default").addClass('btn-info');
-				this.first_button = true;
-			}
-			if(!df.description) {
-				$(f.wrapper).find(".help-box").toggle(false);
-			}
-		}
-	},
+	// make_fields: function() {
+	// 	this.fields_dict = {}; // reset
+	// 	for(var i=0; i< this.fields.length; i++) {
+	// 		var df = this.fields[i];
+	// 		if(!df.fieldname && df.label) {
+	// 			df.fieldname = df.label.replace(/ /g, '_').toLowerCase();
+	// 		}
+	// 		if(!df.fieldtype) df.fieldtype="Data";
+	// 		
+	// 		var div = $a(this.body, 'div');
+	// 		f = make_field(df, null, div, null);
+	// 		f.not_in_form = 1;
+	// 		f.dialog_wrapper = this.wrapper || null;
+	// 		this.fields_dict[df.fieldname] = f
+	// 		f.refresh();
+	// 		
+	// 		// first button primary ?
+	// 		if(df.fieldtype=='Button' && !this.first_button) {
+	// 			$(f.input).removeClass("btn-default").addClass('btn-info');
+	// 			this.first_button = true;
+	// 		}
+	// 		if(!df.description) {
+	// 			$(f.wrapper).find(".help-box").toggle(false);
+	// 		}
+	// 	}
+	// },
 	catch_enter_as_submit: function() {
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				$(me.body).find('.btn-info:first').click();
+				$(me.body).find('.btn-primary:first').click();
 			}
 		})
 	},
