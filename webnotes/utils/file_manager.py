@@ -190,7 +190,7 @@ def get_file(fname):
 		file_name = "files/" + file_name
 
 	# read the file
-	with open(get_path("public", file_path), 'r') as f:
+	with open(get_path("public", file_name), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
