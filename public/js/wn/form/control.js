@@ -69,6 +69,7 @@ wn.ui.form.Control = Class.extend({
 		this.validate ? this.validate(value, set) : set(value);
 	},
 	get_parsed_value: function() {
+		var me = this;
 		return this.get_value ? 
 			(this.parse ? this.parse(this.get_value()) : this.get_value()) : 
 			undefined;
@@ -556,7 +557,7 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 	},
 	
 	get_value: function() {
-		return this.dataurl;
+		return this.fileobj ? (this.fileobj.filename + "," + this.dataurl) : null;
 	},
 	
 	on_upload_complete: function(fileid, filename, r) {

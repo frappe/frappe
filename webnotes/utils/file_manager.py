@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-import os
+import os, base64
 from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
 from webnotes import conf
@@ -54,7 +54,6 @@ def save_url(file_url, dt, dn):
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
 	if 'filedata' in webnotes.form_dict:
-		import base64
 		webnotes.uploaded_content = base64.b64decode(webnotes.form_dict.filedata)
 		webnotes.uploaded_filename = webnotes.form_dict.filename
 		return webnotes.uploaded_filename, webnotes.uploaded_content
@@ -62,7 +61,10 @@ def get_uploaded_content():
 		webnotes.msgprint('No File')
 		return None, None
 
-def save_file(fname, content, dt, dn):
+def save_file(fname, content, dt, dn, decode=False):
+	if decode:
+		content = base64.b64decode(content)
+	
 	import filecmp
 	from webnotes.model.code import load_doctype_module
 	files_path = get_site_path(conf.files_path)
@@ -187,19 +189,10 @@ def get_file(fname):
 	else:
 		file_name = fname
 
-	# read the file
-	import os
-	files_path = get_site_path(conf.get("files_path", "public/files"))
-	file_path = os.path.join(files_path, file_name)
-	if not os.path.exists(file_path):
-		# check in folders
-		for basepath, folders, files in os.walk(files_path):
-			if file_name in files:
-				file_name = cstr(file_name)
-				file_path = os.path.join(basepath, file_name)
-				break
+	if not "/" in file_name:
+		file_name = "files/" + file_name
 		
-	with open(file_path, 'r') as f:
+	with open(get_site_path(file_name), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]

@@ -96,7 +96,6 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 	},
 	hide: function(from_event) {
 		this.$wrapper.modal("hide");
-
 	},
 	no_cancel: function() {
 		this.$wrapper.find('.close').toggle(false);
