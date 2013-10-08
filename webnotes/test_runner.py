@@ -17,7 +17,7 @@ from webnotes.utils import cstr
 
 
 def make_test_records(doctype, verbose=0):
-	webnotes.mute_emails = True
+	webnotes.flags.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
 	
@@ -189,9 +189,9 @@ def main():
 	parser.add_argument('-m', '--module', default=1, metavar="MODULE")
 
 	args = parser.parse_args()
-	webnotes.print_messages = args.verbose
+	webnotes.flags.print_messages = args.verbose
 	
-	webnotes.in_test = True
+	webnotes.flags.in_test = True
 	
 	if not webnotes.conn:
 		webnotes.connect()

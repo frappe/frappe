@@ -68,6 +68,7 @@ response = local("response")
 _response = local("_response")
 session = local("session")
 user = local("user")
+flags = local("flags")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -87,6 +88,7 @@ def init(site=None):
 	local.request_method = request.method if request else None
 	local.conf = get_conf(site)
 	local.initialised = True
+	local.flags = _dict({})
 	
 def destroy():
 	"""closes connection and releases werkzeug local"""
@@ -97,16 +99,9 @@ def destroy():
 	release_local(local)
 
 _memc = None
-mute_emails = False
-mute_messages = False
 test_objects = {}
-print_messages = False
-in_import = False
-in_test = False
-rollback_on_exception = False
 
 # memcache
-
 def cache():
 	global _memc
 	if not _memc:
@@ -149,7 +144,7 @@ def log(msg):
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	def _raise_exception():
 		if raise_exception:
-			if rollback_on_exception:
+			if flags.rollback_on_exception:
 				conn.rollback()
 			import inspect
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
@@ -157,7 +152,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			else:
 				raise ValidationError, msg
 
-	if mute_messages:
+	if flags.mute_messages:
 		_raise_exception()
 		return
 
@@ -165,7 +160,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 	
-	if print_messages:
+	if flags.print_messages:
 		print "Message: " + repr(msg)
 	
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
@@ -450,12 +445,7 @@ def get_application_home_page(user='Guest'):
 	if hpl:
 		return hpl[0][0]
 	else:
-		# no app
-		try:
-			from startup import application_home_page
-			return application_home_page
-		except ImportError:
-			return "desktop"
+		return conn.get_value("Control Panel", None, "home_page")
 
 def copy_doclist(in_doclist):
 	new_doclist = []
@@ -566,6 +556,8 @@ def get_conf(site):
 		return site_config
 
 	else:
+		if not conf.get("files_path"):
+			conf["files_path"] = os.path.join("public", "files")
 		return conf
 
 def get_site_config(sites_dir, site):

@@ -19,32 +19,6 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 		}
 	},
 	first_button: false,
-	// make_fields: function() {
-	// 	this.fields_dict = {}; // reset
-	// 	for(var i=0; i< this.fields.length; i++) {
-	// 		var df = this.fields[i];
-	// 		if(!df.fieldname && df.label) {
-	// 			df.fieldname = df.label.replace(/ /g, '_').toLowerCase();
-	// 		}
-	// 		if(!df.fieldtype) df.fieldtype="Data";
-	// 		
-	// 		var div = $a(this.body, 'div');
-	// 		f = make_field(df, null, div, null);
-	// 		f.not_in_form = 1;
-	// 		f.dialog_wrapper = this.wrapper || null;
-	// 		this.fields_dict[df.fieldname] = f
-	// 		f.refresh();
-	// 		
-	// 		// first button primary ?
-	// 		if(df.fieldtype=='Button' && !this.first_button) {
-	// 			$(f.input).removeClass("btn-default").addClass('btn-info');
-	// 			this.first_button = true;
-	// 		}
-	// 		if(!df.description) {
-	// 			$(f.wrapper).find(".help-box").toggle(false);
-	// 		}
-	// 	}
-	// },
 	catch_enter_as_submit: function() {
 		var me = this;
 		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
@@ -62,15 +36,17 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 		var errors = [];
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			var v = f.get_parsed_value();
+			if(f.get_parsed_value) {
+				var v = f.get_parsed_value();
 
-			if(f.df.reqd && !v) 
-				errors.push(f.df.label + ' is mandatory');
+				if(f.df.reqd && !v) 
+					errors.push('- ' + wn._(f.df.label) + "<br>");
 
-			if(v) ret[f.df.fieldname] = v;
+				if(v) ret[f.df.fieldname] = v;
+			}
 		}
 		if(errors.length) {
-			msgprint('<b>Please check the following Errors</b>\n' + errors.join('\n'));
+			msgprint('<i class="icon-warning-sign"></i> <b>' + wn._('Missing Values Required') + '</b>:<br><br>' + errors.join('\n'));
 			return null;
 		}
 		return ret;

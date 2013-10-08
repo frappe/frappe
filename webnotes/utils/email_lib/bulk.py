@@ -116,7 +116,7 @@ def flush(from_test=False):
 	
 	auto_commit = not from_test
 	
-	if webnotes.mute_emails or conf.get("mute_emails") or False:
+	if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 		webnotes.msgprint("Emails are muted")
 		from_test = True
 
