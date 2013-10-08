@@ -319,10 +319,11 @@ def watch():
 	webnotes.build.watch(True)
 
 @cmd
-def backup(site=None, with_files=False, verbose=True):
+def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
-	odb = scheduled_backup(ignore_files=not with_files)
+	print backup_path_db
+	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	if verbose:
 		from webnotes.utils import now
 		print "backup taken -", odb.backup_path_db, "- on", now()
