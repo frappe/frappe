@@ -89,6 +89,8 @@ def setup_install(parser):
 		help="Install demo in demo_db_name specified in conf.py")
 	parser.add_argument("--make_demo_fresh", default=False, action="store_true",
 		help="(Re)Install demo in demo_db_name specified in conf.py")
+	parser.add_argument("--add_system_manager", nargs="+", 
+		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
 		
 def setup_utilities(parser):
 	# update
@@ -194,10 +196,10 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None):
+def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None, site_config=None, admin_password='admin'):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=db_name, site=site, root_password=root_password)
-	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force)
+	inst = Installer('root', db_name=db_name, site=site, root_password=root_password, site_config=site_config)
+	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force, admin_password=admin_password)
 
 @cmd
 def reinstall(site=None, verbose=True):
@@ -213,6 +215,29 @@ def install_fixtures(site=None):
 	webnotes.init(site=site)
 	from webnotes.install_lib.install import install_fixtures
 	install_fixtures()
+
+@cmd
+def add_system_manager(email, first_name=None, last_name=None, site=None):
+	webnotes.connect(site=site)
+	
+	# add profile
+	profile = webnotes.new_bean("Profile")
+	profile.doc.fields.update({
+		"name": email,
+		"email": email,
+		"enabled": 1,
+		"first_name": first_name or email,
+		"last_name": last_name
+	})
+	profile.insert()
+	
+	# add roles
+	roles = webnotes.conn.sql_list("""select name from `tabRole`
+		where name not in ("Administrator", "Guest", "All")""")
+	profile.make_controller().add_roles(*roles)
+
+	webnotes.conn.commit()
+	webnotes.destroy()
 
 @cmd
 def make_demo(site=None):
@@ -294,11 +319,13 @@ def watch():
 	webnotes.build.watch(True)
 
 @cmd
-def backup(site=None, with_files=False):
+def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
-	odb = scheduled_backup(ignore_files=not with_files)
-	if __name__ == "__main__":
+	print backup_path_db
+	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
+	if verbose:
+		from webnotes.utils import now
 		print "backup taken -", odb.backup_path_db, "- on", now()
 	return odb
 

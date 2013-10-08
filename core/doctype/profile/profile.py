@@ -274,8 +274,7 @@ Thank you,<br>
 	
 		email = email.strip()
 		if not validate_email_add(email):
-			webnotes.msgprint("%s is not a valid email id" % email)
-			raise Exception
+			webnotes.throw("%s is not a valid email id" % email)
 			
 	def add_roles(self, *roles):
 		for role in roles:
