@@ -220,7 +220,6 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	webnotes.mute_emails = True
 	webnotes.check_admin_or_system_manager()
 	# extra input params
-	import json
 	params = json.loads(webnotes.form_dict.get("params") or '{}')
 	
 	if params.get("_submit"):
@@ -385,9 +384,9 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		
 		doclist = get_doclist(row_idx)
 		try:
-			webnotes.message_log = []
+			webnotes.local.message_log = []
 			if len(doclist) > 1:				
-				if overwrite:
+				if overwrite and webnotes.conn.exists(doctype, doclist[0]["name"]):
 					bean = webnotes.bean(doctype, doclist[0]["name"])
 					bean.ignore_links = ignore_links
 					bean.doclist.update(doclist)
@@ -475,11 +474,11 @@ def delete_child_rows(rows, doctype):
 	for p in list(set([r[1] for r in rows])):
 		webnotes.conn.sql("""delete from `tab%s` where parent=%s""" % (doctype, '%s'), p)
 		
-def import_file_by_path(path):
+def import_file_by_path(path, ignore_links=False, overwrite=False):
 	from webnotes.utils.datautils import read_csv_content
 	print "Importing " + path
 	with open(path, "r") as infile:
-		upload(rows = read_csv_content(infile.read()))
+		upload(rows = read_csv_content(infile.read()), ignore_links=ignore_links, overwrite=overwrite)
 
 def export_csv(doctype, path):		
 	with open(path, "w") as csvfile:
@@ -498,3 +497,20 @@ def export_json(doctype, name, path):
 				del d["name"]
 			d["__islocal"] = 1
 		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
+
+def import_doclist(path):
+	import os
+	if os.path.isdir(path):
+		files = [os.path.join(path, f) for f in os.listdir(path)]
+	else:
+		files = [path]
+			
+	for f in files:
+		if f.endswith(".json"):
+			with open(f, "r") as infile:
+				b = webnotes.bean(json.loads(infile.read())).insert_or_update()
+				print "Imported: " + b.doc.doctype + " / " + b.doc.name
+				webnotes.conn.commit()
+		if f.endswith(".csv"):
+			import_file_by_path(f, ignore_links=True)
+			webnotes.conn.commit()

@@ -88,7 +88,7 @@ wn.views.Factory = Class.extend({
 			if(route[1]) {
 				me.make(route);
 			} else {
-				wn.set_route('404');
+				wn.show_not_found(route);
 			}
 		}
 	},

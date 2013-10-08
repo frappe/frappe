@@ -7,7 +7,6 @@ from __future__ import unicode_literals
 		
 import webnotes
 import inspect, os, json, datetime, shutil
-from jinja2 import Environment, FileSystemLoader
 from webnotes.modules import get_doc_path, get_module_path, scrub
 from webnotes.utils import get_path, get_base_path, cstr
 
@@ -412,9 +411,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 	if isinstance(data, basestring):
 		data = json.loads(data)
 
-	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
-
-	template = jenv.get_template("app/docs/templates/docs.html")
+	template = webnotes.get_template("app/docs/templates/docs.html")
 
 	data["index"] = data["docs"]
 	data["docs"] = None
@@ -451,7 +448,7 @@ def write_docs(data, build_sitemap=None, domain=None):
 			sitemap.write(sitemap_frame_xml % content)
 
 def write_static():
-	webnotes.session = webnotes._dict({"user":"Administrator"})
+	webnotes.local.session = webnotes._dict({"user":"Administrator"})
 	
 	from markdown2 import markdown
 	

@@ -42,6 +42,14 @@ wn.utils = {
 					} else if(filters[key][0]=="not in") {
 						if(filters[key][1].indexOf(d[key])!=-1)
 							return;
+					} else if(filters[key][0]=="<") {
+						if (!(d[key] < filters[key])) return;
+					} else if(filters[key][0]=="<=") {
+						if (!(d[key] <= filters[key])) return;
+					} else if(filters[key][0]==">") {
+						if (!(d[key] > filters[key])) return;
+					} else if(filters[key][0]==">=") {
+						if (!(d[key] >= filters[key])) return;
 					}
 				} else {
 					if(d[key]!=filters[key]) return;
@@ -105,7 +113,12 @@ wn.utils = {
 		return args;
 	},
 	get_url_from_dict: function(args) {
-		return encodeURIComponent($.map(args, function(val, key)	{ return key+"="+val; }).join("&") || "");
+		return $.map(args, function(val, key) { 
+			if(val!==null) 
+				return encodeURIComponent(key)+"="+encodeURIComponent(val); 
+			else 
+				return null; 
+		}).join("&") || "";
 	},
 	disable_export_btn: function(btn) {
 		if(!wn.user.is_report_manager()) {
@@ -196,4 +209,35 @@ wn.utils = {
 	sum: function(list) {
 		return list.reduce(function(previous_value, current_value) { return flt(previous_value) + flt(current_value); }, 0.0);
 	},
+	
+	resize_image: function(reader, callback, max_width, max_height) {
+		var tempImg = new Image();
+		if(!max_width) max_width = 600;
+		if(!max_height) max_height = 400;
+		tempImg.src = reader.result;
+		
+		tempImg.onload = function() {
+			var tempW = tempImg.width;
+			var tempH = tempImg.height;
+			if (tempW > tempH) {
+				if (tempW > max_width) {
+				   tempH *= max_width / tempW;
+				   tempW = max_width;
+				}
+			} else {
+				if (tempH > max_height) {
+				   tempW *= max_height / tempH;
+				   tempH = max_height;
+				}
+			}
+
+			var canvas = document.createElement('canvas');
+			canvas.width = tempW;
+			canvas.height = tempH;
+			var ctx = canvas.getContext("2d");
+			ctx.drawImage(this, 0, 0, tempW, tempH);
+			var dataURL = canvas.toDataURL("image/jpeg");
+			callback(dataURL);
+		}
+	}
 };

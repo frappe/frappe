@@ -19,7 +19,6 @@ def bundle(no_compress, cms_make=True):
 	bundle = Bundle()
 	bundle.no_compress = no_compress
 	bundle.make()
-	webnotes.cache().delete_value("website_routes")
 
 	if cms_make:
 		try:
@@ -27,7 +26,9 @@ def bundle(no_compress, cms_make=True):
 			on_build()
 		except ImportError, e:
 			pass
-						
+			
+	clear_pyc_files()
+	
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
 	import time
@@ -47,7 +48,14 @@ def check_public():
 def check_lang():
 	from webnotes.translate import update_translations
 	update_translations()
-
+	
+def clear_pyc_files():
+	from webnotes.utils import get_base_path
+	for path, folders, files in os.walk(get_base_path()):
+		for f in files:
+			if f.decode("utf-8").endswith(".pyc"):
+				os.remove(os.path.join(path, f))
+	
 class Bundle:
 	"""
 		Concatenate, compress and mix (if required) js+css files from build.json

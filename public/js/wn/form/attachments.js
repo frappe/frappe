@@ -124,7 +124,7 @@ wn.ui.form.Attachments = Class.extend({
 			args: {
 				from_form: 1,
 				doctype: this.frm.doctype,
-				docname: this.frm.docname
+				docname: this.frm.docname,
 			},
 			callback: function(fileid, filename, r) {
 				me.update_attachment(fileid, filename, fieldname, r);
@@ -132,7 +132,9 @@ wn.ui.form.Attachments = Class.extend({
 			},
 			onerror: function() {
 				me.dialog.hide();
-			}
+			},
+			max_width: this.frm.cscript ? this.frm.cscript.attachment_max_width : null,
+			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
 	},
 	update_attachment: function(fileid, filename, fieldname, r) {

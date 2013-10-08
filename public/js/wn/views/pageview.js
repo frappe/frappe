@@ -38,7 +38,7 @@ wn.views.pageview = {
 		wn.views.pageview.with_page(name, function(r) {
 			if(r && r.exc) {
 				if(!r['403'])
-					wn.set_route('404');
+					wn.show_not_found(name);
 			} else if(!wn.pages[name]) {
 				new wn.views.Page(name);
 			}
@@ -59,6 +59,10 @@ wn.views.Page = Class.extend({
 			wn.pages[window.page_name] = this.wrapper;
 		} else {
 			this.pagedoc = locals.Page[this.name];
+			if(!this.pagedoc) {
+				wn.show_not_found(name);
+				return;
+			}
 			this.wrapper = wn.container.add_page(this.name);
 			this.wrapper.label = this.pagedoc.title || this.pagedoc.name;
 			this.wrapper.page_name = this.pagedoc.name;
@@ -89,21 +93,20 @@ wn.views.Page = Class.extend({
 	}
 })
 
-
-wn.standard_pages["404"] = function() {
-	var page = wn.container.add_page('404');
+wn.show_not_found = function(page_name) {
+	var page = wn.pages[page_name] || wn.container.add_page(page_name);
 	$(page).html('<div class="appframe col-md-12">\
 		<h3><i class="icon-exclamation-sign"></i> '+wn._('Not Found')+'</h3><br>\
 		<p>'+wn._('Sorry we were unable to find what you were looking for.')+'</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
 		</div>');
-};
+}
 
-wn.standard_pages["403"] = function() {
-	var page = wn.container.add_page('403');
+wn.show_not_permitted = function(page_name) {
+	var page = wn.pages[page_name] || wn.container.add_page(page_name);
 	$(page).html('<div class="appframe col-md-12">\
 		<h3><i class="icon-minus-sign"></i> '+wn._('Not Permitted')+'</h3><br>\
 		<p>'+wn._('Sorry you are not permitted to view this page.')+'.</p>\
 		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
 		</div>');
-};
+}

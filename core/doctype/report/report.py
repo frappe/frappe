@@ -2,8 +2,8 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-import webnotes, conf
-from webnotes import _
+import webnotes
+from webnotes import conf, _
 
 class DocType:
 	def __init__(self, doc, doclist):
@@ -30,7 +30,7 @@ class DocType:
 	
 	def export_doc(self):
 		# export
-		if self.doc.is_standard == 'Yes' and getattr(conf, 'developer_mode', 0) == 1:
+		if self.doc.is_standard == 'Yes' and (conf.get('developer_mode') or 0) == 1:
 			from webnotes.modules.export_file import export_to_files
 			export_to_files(record_list=[['Report', self.doc.name]], 
 				record_module=webnotes.conn.get_value("DocType", self.doc.ref_doctype, "module"))	

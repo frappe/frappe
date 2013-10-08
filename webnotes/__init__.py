@@ -7,6 +7,14 @@ globals attached to webnotes module
 
 from __future__ import unicode_literals
 
+from werkzeug.local import Local
+from werkzeug.exceptions import NotFound
+
+import os
+import json
+
+local = Local()
+
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
 	def __getattr__(self, key):
@@ -23,15 +31,19 @@ class _dict(dict):
 		return self
 	def copy(self):
 		return _dict(super(_dict, self).copy())
-		
+
+def __getattr__(self, key):
+	return local.get("key", None)
+	
 def _(msg):
 	"""translate object in current lang, if exists"""
-	from webnotes.translate import messages
-	return messages.get(lang, {}).get(msg, msg)
+	if hasattr(local, 'translations'):
+		return local.translations.get(lang, {}).get(msg, msg)
+	
+	return msg
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
-	global lang, user_lang
 		
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
@@ -39,33 +51,56 @@ def set_user_lang(user, user_language=None):
 	if user_language:
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
-			lang = lang_dict[user_language]
-			user_lang = True		
+			local.lang = lang_dict[user_language]
 
 def load_translations(module, doctype, name):
 	from webnotes.translate import load_doc_messages
 	load_doc_messages(module, doctype, name)
 
-request = form_dict = _dict()
-conn = None
+
+# local-globals
+conn = local("conn")
+conf = local("conf")
+form = form_dict = local("form_dict")
+request = local("request")
+request_method = local("request_method")
+response = local("response")
+_response = local("_response")
+session = local("session")
+user = local("user")
+
+error_log = local("error_log")
+debug_log = local("debug_log")
+message_log = local("message_log")
+
+lang = local("lang")
+
+def init(site=None):
+	if getattr(local, "initialised", None):
+		return
+	
+	local.error_log = []
+	local.message_log = []
+	local.debug_log = []
+	local.response = _dict({})
+	local.lang = "en"
+	local.request_method = request.method if request else None
+	local.conf = get_conf(site)
+	local.initialised = True
+	
+def destroy():
+	"""closes connection and releases werkzeug local"""
+	if conn:
+		conn.close()
+	
+	from werkzeug.local import release_local
+	release_local(local)
+
 _memc = None
-form = None
-session = None
-user = None
-incoming_cookies = {}
-add_cookies = {} # append these to outgoing request
-cookies = {}
-response = _dict({'message':'', 'exc':''})
-error_log = []
-debug_log = []
-message_log = []
 mute_emails = False
 mute_messages = False
 test_objects = {}
-request_method = None
 print_messages = False
-user_lang = False
-lang = 'en'
 in_import = False
 in_test = False
 rollback_on_exception = False
@@ -97,15 +132,15 @@ def getTraceback():
 
 def errprint(msg):
 	from utils import cstr
-	if not request_method:
+	if not request:
 		print cstr(msg)
 
 	error_log.append(cstr(msg))
 
 def log(msg):
-	if not request_method:
+	if not request:
 		import conf
-		if getattr(conf, "logging", False):
+		if conf.get("logging") or False:
 			print repr(msg)
 	
 	from utils import cstr
@@ -163,33 +198,31 @@ def remove_file(path):
 		if e.args[0]!=2: 
 			raise e
 			
-def connect(db_name=None, password=None):
+def connect(db_name=None, password=None, site=None):
 	import webnotes.db
-	global conn
-	conn = webnotes.db.Database(user=db_name, password=password)
-	
-	global session
-	session = _dict({'user':'Administrator'})
+	init(site=site)
+	local.conn = webnotes.db.Database(user=db_name, password=password)
+	local.session = _dict({'user':'Administrator'})
+	local.response = _dict()
+	local.form_dict = _dict()
 	
 	import webnotes.profile
-	global user
-	user = webnotes.profile.Profile('Administrator')
+	local.user = webnotes.profile.Profile('Administrator')
 	
-def get_env_vars(env_var):
-	import os
-	return os.environ.get(env_var,'None')
-
-remote_ip = get_env_vars('REMOTE_ADDR')		#Required for login from python shell
+def get_request_header(key, default=None):
+	try:
+		return request.headers.get(key, default)
+	except Exception, e:
+		return None
+		
 logger = None
 	
 def get_db_password(db_name):
 	"""get db password from conf"""
-	import conf
-	
-	if hasattr(conf, 'get_db_password'):
+	if 'get_db_password' in conf:
 		return conf.get_db_password(db_name)
 		
-	elif hasattr(conf, 'db_password'):
+	elif 'db_password' in conf:
 		return conf.db_password
 		
 	else:
@@ -450,11 +483,10 @@ def compare(val1, condition, val2):
 	return webnotes.utils.compare(val1, condition, val2)
 	
 def repsond_as_web_page(title, html):
-	global message, message_title, response
-	message_title = title
-	message = "<h3>" + title + "</h3>" + html
-	response['type'] = 'page'
-	response['page_name'] = 'message.html'
+	local.message_title = title
+	local.message = "<h3>" + title + "</h3>" + html
+	local.response['type'] = 'page'
+	local.response['page_name'] = 'message.html'
 
 def load_json(obj):
 	if isinstance(obj, basestring):
@@ -477,6 +509,22 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
 				as_list=as_list, debug=debug)
+
+def get_jenv():
+	from jinja2 import Environment, FileSystemLoader
+	from webnotes.utils import get_base_path, global_date_format
+	from markdown2 import markdown
+	from json import dumps
+
+	jenv = Environment(loader = FileSystemLoader(get_base_path()))
+	jenv.filters["global_date_format"] = global_date_format
+	jenv.filters["markdown"] = markdown
+	jenv.filters["json"] = dumps
+	
+	return jenv
+
+def get_template(path):
+	return get_jenv().get_template(path)
 
 _config = None
 def get_config():
@@ -501,4 +549,23 @@ def get_config():
 		update_config(webnotes.utils.get_path("app", "config.json"))
 				
 	return _config
-		
+
+def get_conf(site):
+	# TODO Should be heavily cached!
+	import conf
+	from webnotes.utils import get_site_base_path
+	site_config = _dict({})
+	conf = site_config.update(conf.__dict__)
+	if conf.sites_dir and site:
+		conf_path = os.path.join(get_site_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
+		if os.path.exists(conf_path):
+			with open(conf_path, 'r') as f:
+				site_config.update(json.load(f))
+			site_config['site'] = site
+			return site_config
+
+		else:
+			raise NotFound()
+
+	else:
+		return conf

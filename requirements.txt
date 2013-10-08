@@ -13,3 +13,5 @@ pytz==2013d
 requests
 six
 termcolor
+Werkzeug
+gunicorn
