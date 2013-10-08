@@ -14,7 +14,7 @@ def export_to_files(record_list=[], record_module=None, verbose=0):
 	"""
 		Export record_list to files. record_list is a list of lists ([doctype],[docname] )  ,
 	"""
-	if webnotes.in_import:
+	if webnotes.flags.in_import:
 		return
 			
 	module_doclist =[]
