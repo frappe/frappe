@@ -838,6 +838,12 @@ def get_site_base_path(sites_dir=None, hostname=None):
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
 	
+def get_files_path():
+	return get_site_path(webnotes.conf.files_path)
+
+def get_backups_path():
+	return get_site_path(webnotes.conf.backup_path) 
+	
 def get_url(uri=None):
 	url = get_request_site_address()
 	if not url or "localhost" in url:

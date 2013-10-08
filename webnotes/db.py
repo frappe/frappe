@@ -467,6 +467,16 @@ class Database:
 			except:
 				return None
 				
+	def count(self, dt, filters=None):
+		if filters:
+			conditions, filters = self.build_conditions(filters)
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s` where %s""" % (dt, conditions), filters)[0][0]
+		else:
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s`""" % (dt,))[0][0]
+			
+				
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]
 

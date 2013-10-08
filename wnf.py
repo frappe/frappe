@@ -219,23 +219,7 @@ def install_fixtures(site=None):
 @cmd
 def add_system_manager(email, first_name=None, last_name=None, site=None):
 	webnotes.connect(site=site)
-	
-	# add profile
-	profile = webnotes.new_bean("Profile")
-	profile.doc.fields.update({
-		"name": email,
-		"email": email,
-		"enabled": 1,
-		"first_name": first_name or email,
-		"last_name": last_name
-	})
-	profile.insert()
-	
-	# add roles
-	roles = webnotes.conn.sql_list("""select name from `tabRole`
-		where name not in ("Administrator", "Guest", "All")""")
-	profile.make_controller().add_roles(*roles)
-
+	webnotes.profile.add_system_manager(email, first_name, last_name)
 	webnotes.conn.commit()
 
 @cmd

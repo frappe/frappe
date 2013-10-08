@@ -557,15 +557,23 @@ def get_conf(site):
 	site_config = _dict({})
 	conf = site_config.update(conf.__dict__)
 	if conf.sites_dir and site:
-		conf_path = os.path.join(get_site_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
-		if os.path.exists(conf_path):
-			with open(conf_path, 'r') as f:
-				site_config.update(json.load(f))
-			site_config['site'] = site
-			return site_config
-
-		else:
+		out = get_site_config(conf.sites_dir, site)
+		if not out:
 			raise NotFound()
+		
+		site_config.update(out)	
+		site_config['site'] = site
+		return site_config
 
 	else:
 		return conf
+
+def get_site_config(sites_dir, site):
+	conf_path = get_conf_path(sites_dir, site)
+	if os.path.exists(conf_path):
+		with open(conf_path, 'r') as f:
+			return json.load(f)
+
+def get_conf_path(sites_dir, site):
+	return os.path.join(get_site_base_path(sites_dir=sites_dir,
+			hostname=site), 'site_config.json')
