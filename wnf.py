@@ -131,6 +131,9 @@ def setup_utilities(parser):
 		help="Create new conf.py file")
 	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
 		help="Set administrator password")
+	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
+	parser.add_argument("--serve", action="store_true", help="Run development server")
+	parser.add_argument("--port", default=8000, type=int, help="port for development server")
 	
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
@@ -518,6 +521,19 @@ def set_admin_password(admin_password, site=None):
 		where user='Administrator'""", (admin_password,))
 	webnotes.conn.commit()
 	webnotes.destroy()
+
+@cmd
+def mysql(site=None):
+	import webnotes 
+	import commands, os
+	msq = commands.getoutput('which mysql')
+	webnotes.init(site=site)
+	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name])
+
+@cmd
+def serve(port=8000):
+	import webnotes.app
+	webnotes.app.serve(port=port)
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
