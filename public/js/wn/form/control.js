@@ -217,7 +217,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		}
 					
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") + 
-			wn._(this.df.label);
+			wn._(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
 	},
 	set_description: function() {
@@ -545,7 +545,7 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 				me.fileobj = fileobj;
 				me.dataurl = dataurl;
 				if(me.on_attach) {
-					me.on_attach(fileobj, dataurl)
+					me.on_attach()
 				}
 				if(me.df.on_attach) {
 					me.df.on_attach(fileobj, dataurl);
@@ -553,6 +553,10 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 				me.show_ok_on_button();
 			}
 		}
+	},
+	
+	get_value: function() {
+		return this.dataurl;
 	},
 	
 	on_upload_complete: function(fileid, filename, r) {
@@ -572,9 +576,9 @@ wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
 		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin-top: 7px;">\
 			<div class="missing-image"><i class="icon-camera"></i></div></div>').appendTo(this.input_area)).toggle(false);
 	},
-	on_attach: function(fileobj, dataurl) {
+	on_attach: function() {
 		$(this.input_area).find(".missing-image").toggle(false);
-		this.img.attr("src", dataurl).toggle(true);
+		this.img.attr("src", this.dataurl).toggle(true);
 	}
 });
 
@@ -730,80 +734,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			this.$input_area.find(".btn-new").remove();
 		}
 	},
-	// setup_typeahead: function() {
-	// 	var me = this;
-	// 	var method = "webnotes.widgets.search.search_link";
-	// 	var args = {};
-	// 	this.set_custom_query(args);
-	// 
-	// 	// custom query
-	// 	if(args.query) {
-	// 		method = args.query
-	// 	}
-	// 
-	// 	var _change = function() {
-	// 		var val = me.get_value();
-	// 		if(me.frm && me.frm.doc) {
-	// 			me.selected = true;
-	// 			me.parse_validate_and_set_in_model(val);
-	// 		} else {
-	// 			me.$input.trigger("change");
-	// 		}
-	// 	}
-	// 
-	// 	// filter based on arguments
-	// 	var filter_fn = function(r) {
-	// 		if(r.exc) console.log(r.exc);
-	// 		var filter_args = {};
-	// 		me.set_custom_query(filter_args)
-	// 		if(filter_args.filters) {
-	// 			return wn.utils.filter_dict(r.results, filter_args.filters);
-	// 		} else {
-	// 			return r.results;
-	// 		}
-	// 	}
-	// 	
-	// 	// default query args
-	// 	var query_args = {
-	// 		cmd: method,
-	// 		txt: "%",
-	// 		page_len: "9999",
-	// 		doctype: me.df.options,
-	// 	}
-	// 	
-	// 	// append filter keys (needed for client-side filtering)
-	// 	if(args.filters) {
-	// 		query_args.search_fields = ["name"].concat(keys(args.filters));
-	// 	}
-	// 	
-	// 	this.$input.typeahead("destroy").typeahead({
-	// 		name: me.df.parent + ":" + me.df.fieldname,
-	// 		prefetch: {
-	// 			url: "server.py?" + wn.utils.get_url_from_dict(query_args),
-	// 			filter: filter_fn,
-	// 		},
-	// 		remote: {
-	// 			url: "server.py?" + wn.utils.get_url_from_dict($.extend(query_args, {"txt": null})) + "&txt=%QUERY",
-	// 			filter: filter_fn,
-	// 		},
-	// 		template: function(d) {
-	// 			if(keys(d).length > 1) {
-	// 				d.info = $.map(d, function(val, key) { return key==="name" ? null : val }).join(", ");
-	// 				return repl("<p>%(value)s<br><span class='text-muted'>%(info)s</span></p>", d);
-	// 			} else {
-	// 				return d.value;
-	// 			}
-	// 		}
-	// 	}).on("typeahead:selected", function(d) {
-	// 		_change();
-	// 	}).on("typeahead:autocompleted", function(d) {
-	// 		_change();
-	// 	});
-	// 			
-	// 	this.set_input = function(val) {
-	// 		me.$input.typeahead("setQuery", val || "");
-	// 	}
-	// },
 	setup_autocomplete: function() {
 		var me = this;
 		this.$input.on("blur", function() { 

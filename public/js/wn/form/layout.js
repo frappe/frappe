@@ -17,7 +17,7 @@ wn.ui.form.Layout = Class.extend({
 			this.parent = this.body;
 		this.wrapper = $('<div class="form-layout">').appendTo(this.parent);
 		if(!this.fields)
-			this.fields = wn.meta.docfield_map[this.doctype];
+			this.fields = wn.meta.sort_docfields(wn.meta.docfield_map[this.doctype]);
 		this.setup_tabbing();
 		this.render();
 	},

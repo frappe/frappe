@@ -44,13 +44,17 @@ $.extend(wn.meta, {
 	get_docfields: function(doctype, name, filters) {
 		var docfield_map = wn.meta.get_docfield_copy(doctype, name);
 		
-		var docfields = values(docfield_map).sort(function(a, b) { return a.idx - b.idx });
+		var docfields = wn.meta.sort_docfields(docfield_map);
 		
 		if(filters) {
 			docfields = wn.utils.filter_dict(docfields, filters);
 		}
 		
 		return docfields;
+	},
+	
+	sort_docfields: function(docs) {
+		return values(docs).sort(function(a, b) { return a.idx - b.idx });
 	},
 	
 	get_docfield_copy: function(doctype, name) {

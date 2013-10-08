@@ -71,7 +71,7 @@ class BackupGenerator:
 					self.backup_path_db = this_file_path
 
 	def zip_files(self):
-		files_path = webnotes.utils.get_site_path(conf.get("files_path", "public/files"))
+		files_path = webnotes.utils.get_site_path(conf.files_path)
 		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	

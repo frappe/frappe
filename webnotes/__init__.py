@@ -568,4 +568,6 @@ def get_conf(site):
 			raise NotFound()
 
 	else:
+		if not conf.get("files_path"):
+			conf["files_path"] = os.path.join("public", "files")
 		return conf

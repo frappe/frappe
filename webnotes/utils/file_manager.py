@@ -65,7 +65,7 @@ def get_uploaded_content():
 def save_file(fname, content, dt, dn):
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_site_path(conf.get("public_path", "public"))
+	files_path = get_site_path(conf.files_path)
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
