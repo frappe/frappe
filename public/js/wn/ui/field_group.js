@@ -8,7 +8,7 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 		$.extend(this, opts);
 		this._super();
 		$.each(this.fields || [], function(i, f) {
-			if(!f.fieldname && f.label) f.fieldname = f.label;
+			if(!f.fieldname && f.label) f.fieldname = f.label.replace(/ /g, "_").toLowerCase();
 		})
 	},
 	make: function() {
