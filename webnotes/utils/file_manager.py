@@ -96,9 +96,15 @@ def save_file(fname, content, dt, dn):
 			fpath = os.path.join(files_path, fname)
 			
 			# rename
+			if os.path.exists(fpath.encode("utf-8")):
+				webnotes.throw("File already exists: " + fname)
+				
 			os.rename(temp_fname, fpath.encode("utf-8"))
 	else:
 		# rename new file
+		if os.path.exists(fpath.encode("utf-8")):
+			webnotes.throw("File already exists: " + fname)
+		
 		os.rename(temp_fname, fpath.encode("utf-8"))
 
 	f = webnotes.bean({
