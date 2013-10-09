@@ -134,13 +134,15 @@ wn.ui.form.Layout = Class.extend({
 				// spacer
 				$('<div class="col-md-12"></div>')
 					.appendTo(this.section)
-					.css({"height": "20px"});
+					.css({"height": "10px"});
 			}
 			this.fields_dict[df.fieldname] = section;
 			this.fields_list.push(section);
 		}
 		// for bc
-		this.section.body = $('<div style="padding: 0px 3%">').appendTo(this.section);
+		this.section.body = $('<div>').appendTo(this.section);
+		if(this.frm)
+			this.section.body.css({"padding":"0px 3%"})
 		section.row = {
 			wrapper: section
 		};

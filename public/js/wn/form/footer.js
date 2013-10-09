@@ -30,27 +30,27 @@ wn.ui.form.Footer = Class.extend({
 			<div class="after-save">\
 				<div class="col-md-8">\
 					<div class="form-tags">\
-						<h4 style="display: inline-block"><i class="icon-tag"></i> '+wn._("Tags")+'</h4>\
+						<h5 style="display: inline-block"><i class="icon-tag"></i> '+wn._("Tags")+'</h5>\
 						<span class="tag-area"></span><br>\
 					</div><hr>\
 					<div class="form-comments">\
-						<h4><i class="icon-comments"></i> '+wn._("Comments")+'</h4>\
+						<h5><i class="icon-comments"></i> '+wn._("Comments")+'</h5>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
 					<div class="form-assignments" style="margin-bottom: 7px;">\
-						<h4>\
+						<h5>\
 							<i class="icon-ok-sign"></i> '+wn._("Assigned To")+': \
 							<button class="btn btn-small btn-default pull-right"\
 								style="margin-top:-7px;">'+wn._("Add")+'</button>\
-						</h4>\
+						</h5>\
 					</div><hr>\
 					<div class="form-attachments">\
-						<h4>\
+						<h5>\
 							<i class="icon-paper-clip"></i> '+wn._("Attachments")+':\
 							<button class="btn btn-small btn-default pull-right"\
 								style="margin-top:-7px;">'+wn._("Add")+'</button>\
-						</h4>\
+						</h5>\
 					</div>\
 				</div>\
 			</div>\

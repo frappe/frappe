@@ -680,6 +680,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 // add_fetches
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
+		var me = this;
 		$('<div class="input-group link-field">\
 			<input type="text" class="input-with-feedback form-control">\
 			<span class="input-group-btn">\
@@ -696,6 +697,13 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.set_input_attributes();
+		this.$input.on("focus", function() {
+			setTimeout(function() {
+				if(!me.$input.val()) {
+					me.$input.val("%").trigger("keydown");
+				}
+			}, 1000)
+		})
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		//this.bind_change_event();

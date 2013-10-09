@@ -16,13 +16,13 @@ class DocType():
 		"""update status of parent Lead or Contact based on who is replying"""
 		observer = self.get_parent_bean().get_method("on_communication")
 		if observer:
-			observer(self.doc)
+			observer()
 	
 	def on_update(self):
 		self.update_parent()
 
 @webnotes.whitelist()
-def make(doctype=None, name=None, content=None, subject=None, 
+def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False, 
 	print_html=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 	# add to Communication
@@ -44,6 +44,7 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d = comm.doc
 	d.subject = subject
 	d.content = content
+	d.sent_or_received = sent_or_received
 	d.sender = sender or webnotes.conn.get_value("Profile", webnotes.session.user, "email")
 	d.recipients = recipients
 	

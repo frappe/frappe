@@ -7,6 +7,9 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this._super();
+		$.each(this.fields || [], function(i, f) {
+			if(!f.fieldname && f.label) f.fieldname = f.label;
+		})
 	},
 	make: function() {
 		if(this.fields) {

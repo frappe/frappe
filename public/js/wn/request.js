@@ -67,6 +67,8 @@ wn.request.call = function(opts) {
 		}
 	};
 	
+	wn.last_request = ajax_args.data;
+	
 	if(opts.progress_bar) {
 		var interval = null;
 		$.extend(ajax_args, {

@@ -63,6 +63,8 @@ def get_uploaded_content():
 
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:
+		if isinstance(content, unicode):
+			content = content.encode("utf-8")
 		content = base64.b64decode(content)
 	
 	import filecmp

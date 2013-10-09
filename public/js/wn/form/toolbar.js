@@ -68,13 +68,13 @@ wn.ui.form.Toolbar = Class.extend({
 	set_docstatus_label: function() {
 		var status_bar_parent = this.frm.appframe.$w.find(".status-bar").empty();
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
-			var status_bar = $("<h4>")
-				.css({"margin": "0px", "margin-top": "-15px"})
+			var status_bar = $("<div>")
+				.css({"margin": "0px", "margin-top": "-10px"})
 				.appendTo(status_bar_parent);
 
 			switch(this.frm.doc.docstatus) {
 				case 0:
-					$('<span class="label"><i class="icon-unlock"> To Submit</span>')
+					$('<span class="label label-default"><i class="icon-unlock"> To Submit</span>')
 						.appendTo(status_bar);
 					break;
 				case 1:

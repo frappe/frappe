@@ -23,9 +23,8 @@ wn.ui.AppFrame = Class.extend({
 					<div class="status-bar"></div>\
 				</div>\
 			</div>\
+			<div class="appframe-toolbar" style="display: none;"></div>\
 			<div class="info-bar" style="display: none;"><ul class="hidden-xs-inline"></ul></div>\
-			<div class="appframe-toolbar" style="display: none;">\
-			</div>\
 		<div>').prependTo(parent);
 
 		this.$w.find('.close').click(function() {
@@ -87,12 +86,17 @@ wn.ui.AppFrame = Class.extend({
 				"background-color": module_info.color,
 			})
 			.attr("doctype-name", doctype)
+			.attr("module-link", module_info.link)
 			.click(onclick || function() {
-				if($(this).attr("doctype-name")) {
+				var route = wn.get_route();
+				if($(this).attr("doctype-name") && route[0]!=="List") {
 					wn.set_route("List", $(this).attr("doctype-name"))
+				} else if($(this).attr("module-link")!==route[0]){
+					wn.set_route($(this).attr("module-link"));
 				} else {
 					wn.set_route("");
 				}
+				return false;
 			});
 	},
 	
