@@ -69,6 +69,7 @@ wn.ui.form.Control = Class.extend({
 		this.validate ? this.validate(value, set) : set(value);
 	},
 	get_parsed_value: function() {
+		var me = this;
 		return this.get_value ? 
 			(this.parse ? this.parse(this.get_value()) : this.get_value()) : 
 			undefined;
@@ -143,7 +144,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 				<label class="control-label"></label>\
 				<div class="control-input"></div>\
 				<div class="control-value like-disabled-input" style="display: none;"></div>\
-				<p class="help-box small text-muted">&nbsp;</p>\
+				<p class="help-box small text-muted"></p>\
 			</div>').appendTo(this.parent);
 		}
 	},
@@ -217,7 +218,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		}
 					
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") + 
-			wn._(this.df.label);
+			wn._(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
 	},
 	set_description: function() {
@@ -231,7 +232,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		this._description = this.df.description;
 	},
 	set_empty_description: function() {
-		this.$wrapper.find(".help-box").html("&nbsp;");		
+		this.$wrapper.find(".help-box").html("");		
 	},
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd 
@@ -470,21 +471,23 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		var me = this;
 		this.$input = $('<button class="btn btn-default">')
 			.prependTo(me.input_area)
-			.css({"margin-bottom": "7px"})
 			.on("click", function() {
-				if(me.frm && me.frm.doc && me.frm.cscript) {
-					if(me.frm.cscript[me.df.fieldname]) {
-						me.frm.script_manager.trigger(me.df.fieldname, me.doctype, me.docname);
-					} else {
-						me.frm.runscript(me.df.options, me);
-					}
-				}
-				else if(me.df.click) {
-					me.df.click();
-				}
+				me.onclick();
 			});
 		this.input = this.$input.get(0);
 		this.has_input = true;
+	},
+	onclick: function() {
+		if(this.frm && this.frm.doc && this.frm.cscript) {
+			if(this.frm.cscript[this.df.fieldname]) {
+				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
+			} else {
+				this.frm.runscript(this.df.options, me);
+			}
+		}
+		else if(this.df.click) {
+			this.df.click();
+		}
 	},
 	set_input_areas: function() {
 		this._super();
@@ -494,9 +497,92 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		this.$wrapper.find(".help-box").empty().toggle(false);
 	},
 	set_label: function() {
+		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html(this.df.label);
 	}
 });
+
+wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
+	onclick: function() {
+		if(!this.dialog) {
+			this.dialog = new wn.ui.Dialog({
+				title: wn._(this.df.label || "Upload Attachment"),
+			});
+		}
+
+		$(this.dialog.body).empty();
+		
+		this.set_upload_options();		
+		wn.upload.make(this.upload_options);
+		this.dialog.show();
+	},
+	
+	set_upload_options: function() {
+		var me = this;
+		this.upload_options = {
+			parent: this.dialog.body,
+			args: {},
+			max_width: this.df.max_width,
+			max_height: this.df.max_height,
+			callback: function() { 
+				me.dialog.hide();
+				me.on_upload_complete(fileid, filename, r);
+				me.show_ok_on_button();
+			},
+			onerror: function() {
+				me.dialog.hide();
+			},
+		}
+		
+		if(this.frm) {
+			this.upload_options.args = {
+				from_form: 1,
+				doctype: this.frm.doctype,
+				docname: this.frm.docname,
+			} 
+		} else {
+			this.upload_options.on_attach = function(fileobj, dataurl) {
+				me.dialog.hide();
+				me.fileobj = fileobj;
+				me.dataurl = dataurl;
+				if(me.on_attach) {
+					me.on_attach()
+				}
+				if(me.df.on_attach) {
+					me.df.on_attach(fileobj, dataurl);
+				}
+				me.show_ok_on_button();
+			}
+		}
+	},
+	
+	get_value: function() {
+		return this.fileobj ? (this.fileobj.filename + "," + this.dataurl) : null;
+	},
+	
+	on_upload_complete: function(fileid, filename, r) {
+		this.frm && this.frm.attachments.update_attachment(fileid, filename, this.df.fieldname, r);
+	},
+	
+	show_ok_on_button: function() {
+		if(!$(this.input).find(".icon-ok").length) {
+			$(this.input).html('<i class="icon-ok"></i> ' + this.df.label);
+		}
+	}
+});
+
+wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
+	make_input: function() {
+		this._super();
+		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin-top: 7px;">\
+			<div class="missing-image"><i class="icon-camera"></i></div></div>').appendTo(this.input_area)).toggle(false);
+	},
+	on_attach: function() {
+		$(this.input_area).find(".missing-image").toggle(false);
+		this.img.attr("src", this.dataurl).toggle(true);
+	}
+});
+
 
 wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	html_element: "select",
@@ -649,80 +735,6 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			this.$input_area.find(".btn-new").remove();
 		}
 	},
-	// setup_typeahead: function() {
-	// 	var me = this;
-	// 	var method = "webnotes.widgets.search.search_link";
-	// 	var args = {};
-	// 	this.set_custom_query(args);
-	// 
-	// 	// custom query
-	// 	if(args.query) {
-	// 		method = args.query
-	// 	}
-	// 
-	// 	var _change = function() {
-	// 		var val = me.get_value();
-	// 		if(me.frm && me.frm.doc) {
-	// 			me.selected = true;
-	// 			me.parse_validate_and_set_in_model(val);
-	// 		} else {
-	// 			me.$input.trigger("change");
-	// 		}
-	// 	}
-	// 
-	// 	// filter based on arguments
-	// 	var filter_fn = function(r) {
-	// 		if(r.exc) console.log(r.exc);
-	// 		var filter_args = {};
-	// 		me.set_custom_query(filter_args)
-	// 		if(filter_args.filters) {
-	// 			return wn.utils.filter_dict(r.results, filter_args.filters);
-	// 		} else {
-	// 			return r.results;
-	// 		}
-	// 	}
-	// 	
-	// 	// default query args
-	// 	var query_args = {
-	// 		cmd: method,
-	// 		txt: "%",
-	// 		page_len: "9999",
-	// 		doctype: me.df.options,
-	// 	}
-	// 	
-	// 	// append filter keys (needed for client-side filtering)
-	// 	if(args.filters) {
-	// 		query_args.search_fields = ["name"].concat(keys(args.filters));
-	// 	}
-	// 	
-	// 	this.$input.typeahead("destroy").typeahead({
-	// 		name: me.df.parent + ":" + me.df.fieldname,
-	// 		prefetch: {
-	// 			url: "server.py?" + wn.utils.get_url_from_dict(query_args),
-	// 			filter: filter_fn,
-	// 		},
-	// 		remote: {
-	// 			url: "server.py?" + wn.utils.get_url_from_dict($.extend(query_args, {"txt": null})) + "&txt=%QUERY",
-	// 			filter: filter_fn,
-	// 		},
-	// 		template: function(d) {
-	// 			if(keys(d).length > 1) {
-	// 				d.info = $.map(d, function(val, key) { return key==="name" ? null : val }).join(", ");
-	// 				return repl("<p>%(value)s<br><span class='text-muted'>%(info)s</span></p>", d);
-	// 			} else {
-	// 				return d.value;
-	// 			}
-	// 		}
-	// 	}).on("typeahead:selected", function(d) {
-	// 		_change();
-	// 	}).on("typeahead:autocompleted", function(d) {
-	// 		_change();
-	// 	});
-	// 			
-	// 	this.set_input = function(val) {
-	// 		me.$input.typeahead("setQuery", val || "");
-	// 	}
-	// },
 	setup_autocomplete: function() {
 		var me = this;
 		this.$input.on("blur", function() { 

@@ -24,6 +24,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		if(!opts.width) opts.width = 480;
 
 		$.extend(this, opts);
+		this._super();
 		this.make();
 	},
 	make: function() {
@@ -95,7 +96,6 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 	},
 	hide: function(from_event) {
 		this.$wrapper.modal("hide");
-
 	},
 	no_cancel: function() {
 		this.$wrapper.find('.close').toggle(false);

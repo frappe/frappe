@@ -57,14 +57,7 @@ application = StaticDataMiddleware(application, {
 	'/': 'public',
 })
 
-if __name__ == '__main__':
-	import sys
+def serve(port=8000):
 	from werkzeug.serving import run_simple
-	
-	port = 8000
-	if len(sys.argv) > 1:
-		port = sys.argv[1]
-
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
-

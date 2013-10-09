@@ -155,7 +155,7 @@ class Database:
 			
 		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if not webnotes.in_test and self.transaction_writes > 10000:
+			if not webnotes.flags.in_test and self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					webnotes.conn.commit()
 					webnotes.conn.begin()
@@ -466,6 +466,16 @@ class Database:
 						(dt['doctype'], " and ".join(conditions)))
 			except:
 				return None
+				
+	def count(self, dt, filters=None):
+		if filters:
+			conditions, filters = self.build_conditions(filters)
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s` where %s""" % (dt, conditions), filters)[0][0]
+		else:
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s`""" % (dt,))[0][0]
+			
 				
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]

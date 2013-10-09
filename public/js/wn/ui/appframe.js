@@ -71,7 +71,7 @@ wn.ui.AppFrame = Class.extend({
 		this.$w.find(".info-bar").toggle(false).find("ul").empty();
 	},
 	
-	add_module_icon: function(module, doctype) {
+	add_module_icon: function(module, doctype, onclick) {
 		var module_info = wn.modules[module];
 		if(!module_info) {
 			module_info = {
@@ -87,7 +87,7 @@ wn.ui.AppFrame = Class.extend({
 				"background-color": module_info.color,
 			})
 			.attr("doctype-name", doctype)
-			.click(function() {
+			.click(onclick || function() {
 				if($(this).attr("doctype-name")) {
 					wn.set_route("List", $(this).attr("doctype-name"))
 				} else {

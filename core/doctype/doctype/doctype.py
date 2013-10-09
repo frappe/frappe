@@ -30,7 +30,7 @@ class DocType:
 		self.check_link_replacement_error()
 
 	def change_modified_of_parent(self):
-		if webnotes.in_import:
+		if webnotes.flags.in_import:
 			return
 		parent_list = webnotes.conn.sql("""SELECT parent 
 			from tabDocField where fieldtype="Table" and options="%s" """ % self.doc.name)
@@ -77,7 +77,7 @@ class DocType:
 		make_module_and_roles(self.doclist)
 		
 		from webnotes import conf
-		if (not webnotes.in_import) and conf.get('developer_mode') or 0:
+		if (not webnotes.flags.in_import) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 		

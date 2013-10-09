@@ -217,7 +217,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 @webnotes.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
-	webnotes.mute_emails = True
+	webnotes.flags.mute_emails = True
 	webnotes.check_admin_or_system_manager()
 	# extra input params
 	params = json.loads(webnotes.form_dict.get("params") or '{}')
@@ -433,7 +433,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	else:
 		webnotes.conn.commit()
 		
-	webnotes.mute_emails = False
+	webnotes.flags.mute_emails = False
 	
 	return {"messages": ret, "error": error}
 	

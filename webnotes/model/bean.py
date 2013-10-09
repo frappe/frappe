@@ -200,12 +200,12 @@ class Bean:
 		idx_map = {}
 		is_local = cint(self.doc.fields.get("__islocal"))
 		
-		if not webnotes.in_import:
+		if not webnotes.flags.in_import:
 			parentfields = [d.fieldname for d in self.meta.get({"doctype": "DocField", "fieldtype": "Table"})]
 			
 		for i, d in enumerate(self.doclist[1:]):
 			if d.parentfield:
-				if not webnotes.in_import:
+				if not webnotes.flags.in_import:
 					if not d.parentfield in parentfields:
 						webnotes.msgprint("Bad parentfield %s" % d.parentfield, 
 							raise_exception=True)
@@ -282,7 +282,7 @@ class Bean:
 			
 		self.set_defaults()
 		
-		if webnotes.in_test:
+		if webnotes.flags.in_test:
 			if self.meta.get_field("naming_series"):
 				self.doc.naming_series = "_T-" + self.doc.doctype + "-"
 		
@@ -295,7 +295,7 @@ class Bean:
 			return self.insert()
 	
 	def set_defaults(self):
-		if webnotes.in_import:
+		if webnotes.flags.in_import:
 			return
 			
 		new_docs = {}

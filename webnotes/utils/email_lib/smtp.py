@@ -208,7 +208,7 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""
-		if webnotes.mute_emails or conf.get("mute_emails") or False:
+		if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 			webnotes.msgprint("Emails are muted")
 			return
 		
