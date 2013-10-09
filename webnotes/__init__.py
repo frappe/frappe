@@ -543,7 +543,6 @@ def get_config():
 def get_conf(site):
 	# TODO Should be heavily cached!
 	import conf
-	from webnotes.utils import get_site_base_path
 	site_config = _dict({})
 	conf = site_config.update(conf.__dict__)
 	if conf.sites_dir and site:
@@ -567,5 +566,6 @@ def get_site_config(sites_dir, site):
 			return json.load(f)
 
 def get_conf_path(sites_dir, site):
+	from webnotes.utils import get_site_base_path
 	return os.path.join(get_site_base_path(sites_dir=sites_dir,
 			hostname=site), 'site_config.json')
