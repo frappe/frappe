@@ -93,6 +93,7 @@ def save_file(fname, content, dt, dn):
 		if not found_match:
 			# get_new_version name
 			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
+			fpath = os.path.join(files_path, fname)
 			
 			# rename
 			os.rename(temp_fname, fpath.encode("utf-8"))
