@@ -47,7 +47,7 @@ def application(request):
 
 	except HTTPException, e:
 		return e
-		
+	
 	return webnotes._response
 
 application = local_manager.make_middleware(application)
