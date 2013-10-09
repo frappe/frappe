@@ -43,7 +43,7 @@ class BackupGenerator:
 		last_db, last_file = self.get_recent_backup(older_than)
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
-		if not last_db and last_file:
+		if not last_db and not last_file:
 			self.take_dump()
 			if not ignore_files:
 				self.zip_files()
