@@ -338,6 +338,7 @@ def move(site=None, dest_dir=None):
 
 	os.rename(old_path, final_new_path)
 	webnotes.destroy()
+	return os.path.basename(final_new_path)
 
 @cmd
 def docs():
