@@ -32,6 +32,16 @@ def web_logout():
 	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
 		<p><a href='index'>Back to Home</a></p>""")
 
+@webnotes.whitelist(allow_guest=True)
+def run_custom_method(doctype, name, custom_method):
+	"""cmd=run_custom_method&doctype={doctype}&name={name}&custom_method={custom_method}"""
+	bean = webnotes.bean(doctype, name)
+	controller = bean.get_controller()
+	if getattr(controller, custom_method, webnotes._dict()).is_whitelisted:
+		call(getattr(controller, custom_method), webnotes.local.form_dict)
+	else:
+		webnotes.throw("Not Allowed")
+
 @webnotes.whitelist()
 def uploadfile():
 	import webnotes.utils
