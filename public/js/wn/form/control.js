@@ -737,7 +737,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		// new
 		if(wn.model.can_create(me.df.options)) {
 			this.$input_area.find(".btn-new").on("click", function() {
-				new_doc(me.df.options)
+				wn._from_link = me; wn._from_link_scrollY = scrollY;
+				new_doc(me.df.options);
 			});
 		} else {
 			this.$input_area.find(".btn-new").remove();

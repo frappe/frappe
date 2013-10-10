@@ -32,11 +32,11 @@ wn.ui.form.Toolbar = Class.extend({
 		this.make();
 	},
 	set_title: function() {
-		var title = this.frm.docname;
+		var title = wn._(this.frm.docname);
 		if(title.length > 30) {
 			title = title.substr(0,30) + "...";
 		}
-		this.appframe.set_title(title, wn._(this.frm.docname));
+		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname));
 		this.appframe.set_sub_title(wn._(this.frm.doctype));
 	},
 	show_infobar: function() {
@@ -65,27 +65,18 @@ wn.ui.form.Toolbar = Class.extend({
 	get_dropdown_menu: function(label) {
 		return this.appframe.add_dropdown(label);
 	},
-	set_docstatus_label: function() {
-		var status_bar_parent = this.frm.appframe.$w.find(".status-bar").empty();
+	get_lock_status: function() {
 		if(this.frm.meta.is_submittable && !this.frm.doc.__islocal) {
-			var status_bar = $("<div>")
-				.css({"margin": "0px", "margin-top": "-10px"})
-				.appendTo(status_bar_parent);
-
 			switch(this.frm.doc.docstatus) {
 				case 0:
-					$('<span class="label label-default"><i class="icon-unlock"> To Submit</span>')
-						.appendTo(status_bar);
-					break;
+					return ' <i class="icon-unlock text-muted" title="Not Submitted">';
 				case 1:
-					$('<span class="label label-success"><i class="icon-lock"> Submitted</span>')
-						.appendTo(status_bar);
-					break;
+					return ' <i class="icon-lock text-muted" title="Submitted">';
 				case 2:
-					$('<span class="label label-danger"><i class="icon-remove"> Cancelled</span>')
-						.appendTo(status_bar);
-					break;
+					return ' <i class="icon-remove text-muted" title="Cancelled">';
 			}
+		} else {
+			return "";
 		}
 	},
 	make_file_menu: function() {
@@ -121,12 +112,7 @@ wn.ui.form.Toolbar = Class.extend({
 		// Linked With
 		if(!me.frm.doc.__islocal && !me.frm.meta.issingle) {
 			this.appframe.add_dropdown_button("File", wn._('Linked With'), function() { 
-				if(!me.frm.linked_with) {
-					me.frm.linked_with = new wn.ui.form.LinkedWith({
-						frm: me.frm
-					});
-				}
-				me.frm.linked_with.show();
+				me.show_linked_with();
 			}, "icon-link")
 		}
 		
@@ -149,6 +135,14 @@ wn.ui.form.Toolbar = Class.extend({
 				me.frm.savetrash();}, 'icon-remove-sign');
 		}
 		
+	},
+	show_linked_with: function() {
+		if(!this.frm.linked_with) {
+			this.frm.linked_with = new wn.ui.form.LinkedWith({
+				frm: this.frm
+			});
+		}
+		this.frm.linked_with.show();
 	},
 	set_title_button: function() {
 		var me = this;
@@ -221,8 +215,8 @@ wn.ui.form.Toolbar = Class.extend({
 
 		this.appframe.get_title_area()
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
+		this.set_title();
 		this.set_title_button();
-		this.set_docstatus_label();
 	},
 	make_actions_menu: function() {
 		if(this.actions_setup) return;

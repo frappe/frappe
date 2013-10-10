@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:28:08", 
   "docstatus": 0, 
-  "modified": "2013-07-10 14:54:25", 
+  "modified": "2013-10-10 15:09:57", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -34,6 +34,14 @@
   "width": "120px"
  }, 
  {
+  "description": "If you set this, this Item will come in a drop-down under the selected parent.", 
+  "doctype": "DocField", 
+  "fieldname": "parent_label", 
+  "fieldtype": "Select", 
+  "label": "Parent Label"
+ }, 
+ {
+  "description": "Link to the page you want to open", 
   "doctype": "DocField", 
   "fieldname": "url", 
   "fieldtype": "Data", 
@@ -42,16 +50,11 @@
   "width": "200px"
  }, 
  {
+  "description": "Select target = \"_blank\" to open in a new page.", 
   "doctype": "DocField", 
   "fieldname": "target", 
   "fieldtype": "Select", 
   "label": "Target", 
   "options": "\ntarget = \"_blank\""
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "parent_label", 
-  "fieldtype": "Select", 
-  "label": "Parent Label"
  }
 ]

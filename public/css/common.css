@@ -178,59 +178,45 @@ div#freeze {
 	width: 100%;
 }
 
-.appframe .info-bar {
-	padding: 7px;
-	border-bottom: 1px solid #e7e7e7;
-	margin-left: -15px;
-	margin-right: -15px;
+.appframe .mini-bar {
+	float: right;
+	margin-top: -10px;
 }
 
-.appframe .info-bar {
-	padding: 7px;
-	height: 35px;
+.appframe .mini-bar ul {
+	list-style: none;
+	margin: 0 0 0 0;
+	padding: 0 0 0 0;
 }
 
-.appframe .info-bar .form-icon {
+.appframe .mini-bar li {
+	display: inline-block;
+	padding-left: 4px;
+	padding-right: 4px;
+}
+
+.appframe .mini-bar li:last-child {
+	padding-right: 0px;
+}
+
+.appframe .mini-bar i {
 	margin-top: 4px;
 	margin-right: 4px;
 	color: #888;
 	cursor: pointer;
 }
 
-.appframe .info-bar .form-icon:hover {
+.appframe .mini-bar i:hover {
 	color: #444;
 }
 
-.appframe .info-bar .form-icon:active {
+.appframe .mini-bar i:active {
 	color: #5bc0de;
 }
 
-.appframe .info-bar ul {
-	width: 80%;
-	list-style: none;
-	margin: 0 0 0 0;
-	padding: 0 0 0 0;
-}
-
-.appframe .info-bar li {
-	font-size: 90%;
-	display: inline-block;
-	padding-left: 15px;
-	padding-right: 15px;
-}
-
-.appframe .info-bar li a {
-	color: #999;
-	text-decoration: none;
-}
-
-.appframe .info-bar li a:hover {
-	text-decoration: underline;
-}
-
-
-.appframe .info-bar li.bold a {
+.appframe .mini-bar .appframe-mini-bar-active i {
 	font-weight: bold;
+	color: orange;
 }
 
 .appframe .title-icon {

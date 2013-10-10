@@ -703,6 +703,15 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 				on_error();
 		}
 		callback && callback(r);
+		
+		if(wn._from_link) {
+			if(me.doctype===wn._from_link.df.options) {
+				wn._from_link.parse_validate_and_set_in_model(me.docname);
+				wn.set_route("Form", wn._from_link.frm.doctype, wn._from_link.frm.docname);
+				setTimeout(function() { scroll(0, wn._from_link_scrollY); }, 100);
+			}
+			wn._from_link = null;
+		}
 	}, btn);
 }
 
