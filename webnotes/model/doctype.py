@@ -282,13 +282,13 @@ def add_embedded_js(doc):
 	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
 	
 	def _sub(match):
-		fpath = os.path.join(get_base_path(), \
-			re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
+		require_path = re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1]
+		fpath = os.path.join(get_base_path(), require_path)
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				return '\n' + unicode(f.read(), "utf-8") + '\n'
 		else:
-			return '\n// no file "%s" found \n' % fpath
+			return 'wn.require("%s")' % require_path
 	
 	if doc.fields.get('__js'):
 		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
