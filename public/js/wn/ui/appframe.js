@@ -20,11 +20,10 @@ wn.ui.AppFrame = Class.extend({
 						<span class="title-icon" style="display: none"></span>\
 						<span class="title-text"></span></h2></div>\
 					<div class="sub-title-area text-muted small">&nbsp;</div>\
-					<div class="status-bar"></div>\
+					<div class="mini-bar"><ul></ul></div>\
 				</div>\
 			</div>\
 			<div class="appframe-toolbar" style="display: none;"></div>\
-			<div class="info-bar" style="display: none;"><ul class="hidden-xs-inline"></ul></div>\
 		<div>').prependTo(parent);
 
 		this.$w.find('.close').click(function() {
@@ -46,8 +45,9 @@ wn.ui.AppFrame = Class.extend({
 		return this.$w.find(".title-area");
 	},
 	set_title: function(txt, full_text) {
+		// strip icon
 		this.title = txt;
-		document.title = txt;
+		document.title = txt.replace(/<[^>]*>/g, "");
 		this.$w.find(".breadcrumb .appframe-title").html(txt);
 		this.$w.find(".title-text").html(txt);
 	},
@@ -55,21 +55,26 @@ wn.ui.AppFrame = Class.extend({
 		this.$w.find(".sub-title-area").html(txt);
 	},
 	
-	add_infobar: function(label, onclick) {
-		var $ul = this.$w.find(".info-bar").toggle(true).find("ul"),
-			$li = $('<li><a href="#">' + label + '</a></li>')
-				.appendTo($ul)
-				.click(function() {
-					onclick();
-					return false;
-				})
+	add_to_mini_bar: function(icon, label, click) {
+		var $ul = this.$w.find(".mini-bar ul"),
+		$li = $('<li><i class="'+icon+'"></i></li>')
+			.attr("title", label)
+			.appendTo($ul)
+			.click(function() {
+				click();
+				return false;
+			})
 		return $li;
 	},
 	
-	clear_infobar: function() {
-		this.$w.find(".info-bar").toggle(false).find("ul").empty();
+	hide_mini_bar: function() {
+		this.$w.find(".mini-bar").toggle(false);
 	},
-	
+
+	show_mini_bar: function() {
+		this.$w.find(".mini-bar").toggle(true);
+	},
+		
 	add_module_icon: function(module, doctype, onclick) {
 		var module_info = wn.modules[module];
 		if(!module_info) {
