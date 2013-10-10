@@ -98,11 +98,18 @@ def save_file(fname, content, dt, dn, decode=False):
 		if not found_match:
 			# get_new_version name
 			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
+			fpath = os.path.join(files_path, fname)
 			
 			# rename
+			if os.path.exists(fpath.encode("utf-8")):
+				webnotes.throw("File already exists: " + fname)
+				
 			os.rename(temp_fname, fpath.encode("utf-8"))
 	else:
 		# rename new file
+		if os.path.exists(fpath.encode("utf-8")):
+			webnotes.throw("File already exists: " + fname)
+		
 		os.rename(temp_fname, fpath.encode("utf-8"))
 
 	f = webnotes.bean({
@@ -190,11 +197,11 @@ def get_file(fname):
 		file_name = f[0][0]
 	else:
 		file_name = fname
-
+		
 	if not "/" in file_name:
 		file_name = "files/" + file_name
 		
-	with open(get_site_path(file_name), 'r') as f:
+	with open(get_site_path("public", file_name), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
