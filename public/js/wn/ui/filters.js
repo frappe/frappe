@@ -90,14 +90,14 @@ wn.ui.Filter = Class.extend({
 		<div class="fieldname_select_area col-sm-4 form-group"></div>\
 		<div class="col-sm-3 form-group">\
 			<select class="condition form-control">\
-				<option value="=">Equals</option>\
-				<option value="like">Like</option>\
-				<option value=">=">Greater or equals</option>\
-				<option value="<=">Less or equals</option>\
-				<option value=">">Greater than</option>\
-				<option value="<">Less than</option>\
-				<option value="in">In</option>\
-				<option value="!=">Not equals</option>\
+				<option value="=">' + wn._("Equals") + '</option>\
+				<option value="like">' + wn._("Like") + '</option>\
+				<option value=">=">' + wn._("Greater or equals") + '</option>\
+				<option value="<=">' + wn._("Less or equals") + '</option>\
+				<option value=">">' + wn._("Greater than") + '</option>\
+				<option value="<">' + wn._("Less than") + '</option>\
+				<option value="in">' + wn._("In") + '</option>\
+				<option value="!=">' + wn._("Not equals") + '</option>\
 			</select>\
 		</div>\
 		<div class="filter_field col-sm-4 col-xs-11"></div>\
@@ -357,7 +357,7 @@ wn.ui.FieldSelect = Class.extend({
 				value: table + "." + df.fieldname,
 				fieldname: df.fieldname,
 				table: df.parent
-			}).text(label));
+			}).text(wn._(label)));
 			if(!me.fields_by_name[df.parent]) me.fields_by_name[df.parent] = {};
 			me.fields_by_name[df.parent][df.fieldname] = df;	
 		}
