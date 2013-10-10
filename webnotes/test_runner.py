@@ -189,12 +189,11 @@ def main():
 	parser.add_argument('-m', '--module', default=1, metavar="MODULE")
 
 	args = parser.parse_args()
-	webnotes.flags.print_messages = args.verbose
-	
-	webnotes.flags.in_test = True
-	
 	if not webnotes.conn:
 		webnotes.connect()
+
+	webnotes.flags.print_messages = args.verbose
+	webnotes.flags.in_test = True
 	
 	if args.doctype:
 		run_unittest(args.doctype[0], verbose=args.verbose)

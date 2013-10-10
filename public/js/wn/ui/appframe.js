@@ -286,7 +286,8 @@ wn.ui.AppFrame = Class.extend({
 				"padding-right": "0px",
 				"margin-right": "5px"
 			})
-			.attr("title", df.label).tooltip();
+			.attr("title", wn._(df.label)).tooltip();
+		f.$input.attr("placeholder", wn._(df.label));
 		if(df["default"])
 			f.set_input(df["default"])
 		this.fields_dict[df.fieldname || df.label] = f;

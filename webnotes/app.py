@@ -42,11 +42,12 @@ def application(request):
 		else:
 			webnotes.webutils.render(webnotes.request.path[1:])
 
-		if webnotes.conn:
-			webnotes.conn.close()
-
 	except HTTPException, e:
 		return e
+		
+	finally:
+		if webnotes.conn:
+			webnotes.conn.close()
 	
 	return webnotes._response
 
