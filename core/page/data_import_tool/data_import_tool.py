@@ -421,7 +421,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			error = True
 			if bean:
 				webnotes.errprint(bean.doclist)
-			err_msg = webnotes.message_log and "<br>".join(webnotes.message_log) or cstr(e)
+			err_msg = webnotes.local.message_log and "<br>".join(webnotes.local.message_log) or cstr(e)
 			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1, 
 				len(row)>1 and row[1] or "", err_msg))
 			webnotes.errprint(webnotes.getTraceback())
