@@ -127,7 +127,12 @@ def execute_cmd(cmd):
 
 def call(fn, args):
 	import inspect
-	fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+
+	if hasattr(fn, 'fnargs'):
+		fnargs = fn.fnargs
+	else:
+		fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+
 	newargs = {}
 	for a in fnargs:
 		if a in args:

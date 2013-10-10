@@ -255,6 +255,49 @@ def whitelist(allow_guest=False, allow_roles=None):
 		return fn
 	
 	return innerfn
+
+
+class HashAuthenticatedCommand(object):
+
+	def __init__(self):
+		if hasattr(self, 'command'):
+			import inspect
+			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
+			self.fnargs.append('signature')
+
+	def __call__(self, *args, **kwargs):
+		signature = kwargs.pop('signature')
+		if self.verify_signature(kwargs, signature):
+			return self.command(*args, **kwargs)
+		else:
+			raise Exception
+
+	def command():
+		raise NotImplementedError
+
+	def get_signature(self, params, ignore_params=None):
+		import hmac
+		params = self.get_param_string(params, ignore_params=ignore_params)
+		secret = "secret"
+		signature = hmac.new(self.get_nonce())
+		signature.update(secret)
+		signature.update(params)
+		return signature.hexdigest()
+
+	def get_param_string(self, params, ignore_params=None):
+		if not ignore_params:
+			ignore_params = []
+		params = [unicode(param) for param in params if param not in ignore_params]
+		params = ''.join(params)
+		return params
+
+	def get_nonce():
+		raise NotImplementedError
+
+	def verify_signature(self, params, signature):
+		if signature == self.get_signature(params):
+			return True
+		return False
 	
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
