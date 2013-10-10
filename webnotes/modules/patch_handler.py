@@ -64,8 +64,6 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		success = True
 	except Exception, e:
 		webnotes.conn.rollback()
-		global has_errors
-		has_errors = True
 		tb = webnotes.getTraceback()
 		log(tb)
 		import os
@@ -114,7 +112,8 @@ def setup():
 	webnotes.conn.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
 			patch TEXT, applied_on DATETIME) engine=InnoDB""")
 		
-log_list = []
-has_errors = False
 def log(msg):
-	log_list.append(msg)
+	if getattr(webnotes.local, "patch_log_list", None) is None:
+		webnotes.local.patch_log_list = []
+	
+	webnotes.local.patch_log_list.append(msg)

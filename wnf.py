@@ -258,15 +258,15 @@ def latest(site=None, verbose=True):
 	
 	try:
 		# run patches
-		webnotes.modules.patch_handler.log_list = []
+		webnotes.local.patch_log_list = []
 		webnotes.modules.patch_handler.run_all()
 		if verbose:
-			print "\n".join(webnotes.modules.patch_handler.log_list)
+			print "\n".join(webnotes.local.patch_log_list)
 	
 		# sync
 		webnotes.model.sync.sync_all()
 	except webnotes.modules.patch_handler.PatchError, e:
-		print "\n".join(webnotes.modules.patch_handler.log_list)
+		print "\n".join(webnotes.local.patch_log_list)
 		raise e
 
 @cmd
@@ -279,9 +279,9 @@ def sync_all(site=None, force=False):
 def patch(patch_module, site=None, force=False):
 	import webnotes.modules.patch_handler
 	webnotes.connect(site=site)
-	webnotes.modules.patch_handler.log_list = []
+	webnotes.local.patch_log_list = []
 	webnotes.modules.patch_handler.run_single(patch_module, force=force)
-	print "\n".join(webnotes.modules.patch_handler.log_list)
+	print "\n".join(webnotes.local.patch_log_list)
 	
 @cmd
 def update_all_sites(remote=None, branch=None, verbose=True):

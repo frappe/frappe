@@ -14,8 +14,6 @@ import MySQLdb
 
 from webnotes.utils import *
 
-valid_fields_map = {}
-
 class Document:
 	"""
 	   The wn(meta-data)framework equivalent of a Database Record.
@@ -367,9 +365,14 @@ class Document:
 					(self.doctype, ', '.join(update_str), "%s"), values)
 					
 	def get_valid_fields(self):
-		global valid_fields_map
+		import webnotes.model.doctype
+		
+		if getattr(webnotes.local, "valid_fields_map", None) is None:
+			webnotes.local.valid_fields_map = {}
+		
+		valid_fields_map = webnotes.local.valid_fields_map
+		
 		if not valid_fields_map.get(self.doctype):
-			import webnotes.model.doctype
 			if cint(webnotes.conn.get_value("DocType", self.doctype, "issingle")):
 				doctypelist = webnotes.model.doctype.get(self.doctype)
 				valid_fields_map[self.doctype] = doctypelist.get_fieldnames({

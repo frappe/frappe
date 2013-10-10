@@ -40,6 +40,8 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=No
 	
 	target_doclist = webnotes.doclist(target_doclist)
 	
+	row_exists_for_parentfield = {}
+	
 	# children
 	for source_d in source.doclist[1:]:
 		table_map = table_maps.get(source_d.doctype)
@@ -55,7 +57,12 @@ def get_mapped_doclist(from_doctype, from_docname, table_maps, target_doclist=No
 					"options": target_doctype
 				})[0].fieldname
 			
-			if table_map.get("add_if_empty") and row_exists_in_target(parentfield, target_doclist):
+			# does row exist for a parentfield?
+			if parentfield not in row_exists_for_parentfield:
+				row_exists_for_parentfield[parentfield] = True if \
+					webnotes.doclist(target_doclist).get({"parentfield": parentfield}) else False
+			
+			if table_map.get("add_if_empty") and row_exists_for_parentfield.get(parentfield):
 				continue
 		
 			target_d = webnotes.new_doc(target_doctype, target_doc, parentfield)
@@ -117,13 +124,3 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 		
 	if "postprocess" in table_map:
 		table_map["postprocess"](source_doc, target_doc, source_parent)
-
-row_exists_for_parentfield = {}
-def row_exists_in_target(parentfield, target_doclist):
-	global row_exists_for_parentfield
-	
-	if parentfield not in row_exists_for_parentfield:
-		row_exists_for_parentfield[parentfield] = True if \
-			webnotes.doclist(target_doclist).get({"parentfield": parentfield}) else False
-
-	return row_exists_for_parentfield[parentfield]

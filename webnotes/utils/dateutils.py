@@ -8,7 +8,6 @@ import datetime
 from webnotes.utils import get_datetime
 
 # global values -- used for caching
-user_date_format = None
 dateformats = {
 	'yyyy-mm-dd': '%Y-%m-%d',
 	'mm/dd/yyyy': '%m/%d/%Y',
@@ -56,10 +55,10 @@ def parse_date(date):
 	return parsed_date
 		
 def get_user_date_format():
-	global user_date_format
-	if not user_date_format:
-		user_date_format = webnotes.defaults.get_global_default("date_format")
-	return user_date_format
+	if getattr(webnotes.local, "user_date_format", None) is None:
+		webnotes.local.user_date_format = webnotes.defaults.get_global_default("date_format")
+
+	return webnotes.local.user_date_format
 	
 def datetime_in_user_format(date_time):
 	if not date_time:
