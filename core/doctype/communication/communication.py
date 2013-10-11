@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import errprint
 
 class DocType():
 	def __init__(self, doc, doclist=[]):

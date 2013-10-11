@@ -188,7 +188,7 @@ def get_file(fname):
 
 	# read the file
 	import os
-	files_path = get_path("public", "files")
+	files_path = get_path("public")
 	file_path = os.path.join(files_path, file_name)
 	if not os.path.exists(file_path):
 		# check in folders
@@ -197,7 +197,7 @@ def get_file(fname):
 				file_name = cstr(file_name)
 				file_path = os.path.join(basepath, file_name)
 				break
-		
+
 	with open(file_path, 'r') as f:
 		content = f.read()
 
