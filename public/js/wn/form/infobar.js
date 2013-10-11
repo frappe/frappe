@@ -76,11 +76,13 @@ wn.ui.form.InfoBar = Class.extend({
 				html: true,
 				placement: "bottom"
 			})
+
+		this.$comments
+			.popover("destroy")
 		
 		if(this.docinfo.comments.length) {
 			var last = this.docinfo.comments[0];
 			this.$comments
-				.popover("destroy")
 				.popover({
 					title: "Last Comment",
 					content: last.comment 
