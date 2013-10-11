@@ -93,11 +93,18 @@ def save_file(fname, content, dt, dn):
 		if not found_match:
 			# get_new_version name
 			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
+			fpath = os.path.join(files_path, fname)
 			
 			# rename
+			if os.path.exists(fpath.encode("utf-8")):
+				webnotes.throw("File already exists: " + fname)
+				
 			os.rename(temp_fname, fpath.encode("utf-8"))
 	else:
 		# rename new file
+		if os.path.exists(fpath.encode("utf-8")):
+			webnotes.throw("File already exists: " + fname)
+		
 		os.rename(temp_fname, fpath.encode("utf-8"))
 
 	f = webnotes.bean({
@@ -185,20 +192,12 @@ def get_file(fname):
 		file_name = f[0][0]
 	else:
 		file_name = fname
+		
+	if not "/" in file_name:
+		file_name = "files/" + file_name
 
 	# read the file
-	import os
-	files_path = get_path("public")
-	file_path = os.path.join(files_path, file_name)
-	if not os.path.exists(file_path):
-		# check in folders
-		for basepath, folders, files in os.walk(files_path):
-			if file_name in files:
-				file_name = cstr(file_name)
-				file_path = os.path.join(basepath, file_name)
-				break
-
-	with open(file_path, 'r') as f:
+	with open(get_path("public", file_name), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]
