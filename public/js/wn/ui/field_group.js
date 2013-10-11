@@ -8,15 +8,21 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 		$.extend(this, opts);
 		this._super();
 		$.each(this.fields || [], function(i, f) {
-			if(!f.fieldname && f.label) f.fieldname = f.label.replace(/ /g, "_").toLowerCase();
+			if(!f.fieldname && f.label) {
+				f.fieldname = f.label.replace(/ /g, "_").toLowerCase();
+			}
 		})
 	},
 	make: function() {
 		if(this.fields) {
 			this._super();
 			this.refresh();
+			// set default
+			$.each(this.fields_list, function(i, f) {
+				if(f.df["default"]) f.set_input(f.df["default"]);
+			})
 			if(!this.no_submit_on_enter) {
-				$(this.body).find(".btn:first").removeClass("btn-default").addClass("btn-primary");
+				$(this.body).find(".control-input > .btn").filter(":first").removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
 			}
 		}
