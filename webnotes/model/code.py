@@ -15,19 +15,6 @@ methods in following modules are imported for backward compatibility
 	* webnotes.model.doc.*
 	* webnotes.model.bean.*
 """
-custom_class = '''
-import webnotes
-
-from webnotes.utils import cint, cstr, flt
-from webnotes.model.doc import Document
-from webnotes.model.code import get_obj
-from webnotes import msgprint
-
-class CustomDocType(DocType):
-  def __init__(self, doc, doclist):
-    DocType.__init__(self, doc, doclist)
-'''
-
 
 def execute(code, doc=None, doclist=[]):
 	# functions used in server script of DocTypes
@@ -79,8 +66,6 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	custom_script = get_custom_server_script(doc.doctype)
 		
 	if custom_script:
-		global custom_class
-				
 		exec custom_script in locals()
 			
 		return CustomDocType(doc, doclist)

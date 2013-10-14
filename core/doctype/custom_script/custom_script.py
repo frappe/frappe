@@ -42,4 +42,30 @@ def get_custom_server_script(doctype):
 		webnotes.cache().set_value("_server_script:" + doctype, custom_script)
 	
 	return custom_script
-
+	
+def make_custom_server_scripts_path():
+	from webnotes.utils import get_site_path
+	import os
+	
+	custom_scripts_path = get_site_path(webnotes.conf.get("custom_scripts_path"))
+	if not os.path.exists(custom_scripts_path):
+		os.mkdir(custom_scripts_path)
+		
+	return custom_scripts_path
+		
+def make_custom_server_script_file(doctype, script=None):
+	from webnotes.modules import scrub
+	import os
+	
+	custom_scripts_path = make_custom_server_scripts_path()
+	
+	file_path = os.path.join(custom_scripts_path, scrub(doctype) + ".py")
+	
+	if os.path.exists(file_path):
+		raise Exception(file_path + " already exists")
+		
+	if not script:
+		script = "\tpass"
+		
+	with open(file_path, "w") as f:
+		f.write("class CustomDocType(DocType):\n" + script)

@@ -588,6 +588,12 @@ def get_conf(site):
 	import conf
 	site_config = _dict({})
 	conf = site_config.update(conf.__dict__)
+	
+	if not conf.get("files_path"):
+		conf["files_path"] = os.path.join("public", "files")
+	if not conf.get("custom_scripts_path"):
+		conf["custom_scripts_path"] = "custom_scripts"
+	
 	if conf.sites_dir and site:
 		out = get_site_config(conf.sites_dir, site)
 		if not out:
@@ -598,8 +604,6 @@ def get_conf(site):
 		return site_config
 
 	else:
-		if not conf.get("files_path"):
-			conf["files_path"] = os.path.join("public", "files")
 		return conf
 
 def get_site_config(sites_dir, site):
