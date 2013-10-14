@@ -591,8 +591,8 @@ def get_conf(site):
 	
 	if not conf.get("files_path"):
 		conf["files_path"] = os.path.join("public", "files")
-	if not conf.get("custom_scripts_path"):
-		conf["custom_scripts_path"] = "custom_scripts"
+	if not conf.get("plugins_path"):
+		conf["plugins_path"] = "plugins"
 	
 	if conf.sites_dir and site:
 		out = get_site_config(conf.sites_dir, site)

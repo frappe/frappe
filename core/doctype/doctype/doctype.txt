@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:35:54", 
+  "modified": "2013-10-14 17:09:57", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -66,6 +66,14 @@
   "oldfieldtype": "Link", 
   "options": "Module Def", 
   "reqd": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "plugin", 
+  "fieldtype": "Data", 
+  "hidden": 1, 
+  "label": "Plugin", 
+  "read_only": 0
  }, 
  {
   "doctype": "DocField", 
@@ -400,14 +408,14 @@
   "oldfieldtype": "Int"
  }, 
  {
-  "doctype": "DocPerm", 
-  "role": "System Manager"
- }, 
- {
   "cancel": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
   "role": "Administrator", 
   "write": 1
+ }, 
+ {
+  "doctype": "DocPerm", 
+  "role": "System Manager"
  }
 ]

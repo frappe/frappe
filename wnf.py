@@ -129,6 +129,8 @@ def setup_utilities(parser):
 		help="Get or set domain in Website Settings")
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
+	parser.add_argument("--make_custom_server_script", nargs=1, metavar="DOCTYPE",
+		help="Create new conf.py file")
 	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
 		help="Set administrator password")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
@@ -358,6 +360,12 @@ def domain(host_url=None, site=None):
 def make_conf(db_name=None, db_password=None, site=None, site_config=None):
 	from webnotes.install_lib.install import make_conf
 	make_conf(db_name=db_name, db_password=db_password, site=site, site_config=site_config)
+	
+@cmd
+def make_custom_server_script(doctype, site=None):
+	from core.doctype.custom_script.custom_script import make_custom_server_script_file
+	webnotes.connect(site=site)
+	make_custom_server_script_file(doctype)
 
 # clear
 @cmd
@@ -514,7 +522,7 @@ def mysql(site=None):
 	msq = commands.getoutput('which mysql')
 	webnotes.init(site=site)
 	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name])
-
+	
 @cmd
 def serve(port=8000):
 	import webnotes.app
