@@ -138,7 +138,7 @@ def build_from_database():
 			return doc.options.split('\n')
 		elif doc.doctype=="DocField" and doc.fieldtype=='HTML' and doc.options \
 			and tag_pattern.match(doc.options):
-			return [doc.options.strip()] 
+			return [doc.options.replace('"', "'").encode('unicode_escape').strip()] 
 		else:
 			return []
 
