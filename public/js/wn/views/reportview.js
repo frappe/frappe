@@ -287,7 +287,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				method: "webnotes.client.set_value",
 				args: {
 					doctype: docfield.parent,
-					docname: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+					name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
 					fieldname: docfield.fieldname,
 					value: d.get_value(docfield.fieldname)
 				},

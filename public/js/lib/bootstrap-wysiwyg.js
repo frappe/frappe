@@ -22,7 +22,13 @@ jQuery(function ($) {
 	};
 	$.fn.cleanHtml = function () {
 		var html = $(this).html();
-		return html && html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
+		html = html && html.replace(/(<br>|\s|<div><br><\/div>|&nbsp;)*$/, '');
+		
+		// remove custom typography (use CSS!)
+		html = html && html.replace(/(font-family|font-size|line-height):[^;]*;/g, '');
+		html = html && html.replace(/<[^>]*(font=['"][^'"]*['"])>/g, function(a,b) { return a.replace(b, ''); });
+		html = html && html.replace(/\s*style\s*=\s*["']\s*["']/g, '');
+		return html;
 	};
 	$.fn.wysiwyg = function (userOptions) {
 		var editor = this,

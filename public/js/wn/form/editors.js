@@ -157,7 +157,6 @@ wn.editors.BootstrapWYSIWYG = Class.extend({
 			me.$textarea.val(html_beautify(me.$editor.cleanHtml()));
 			me.$parent.find(".for-rich-text").toggle(false);
 			me.$parent.find(".for-html").toggle(true);
-			console.log(me.$parent.find(".btn-html"));
 			me.$parent.find(".btn-html").attr("disabled", "disabled");
 			me.$parent.find(".btn-rich-text").attr("disabled", false);
 			me.current_editor = me.$textarea;

@@ -3,6 +3,14 @@
 {% block content %}
 <div class="col-md-12" style="margin-top: 15px;">
 	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
+	<div class="web-page-content">
 	{{ main_section }}
+	</div>
 </div>
+<script>
+$(function() {
+	window.name = "{{ name }}";
+	if(getCookie("full_name")) { $.get("app/js/web_page_editable.js"); };
+})
+</script>
 {% endblock %}

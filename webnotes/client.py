@@ -25,17 +25,17 @@ def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	return webnotes.conn.get_value(doctype, json.loads(filters), fieldname, as_dict=as_dict, debug=debug)
 
 @webnotes.whitelist()
-def set_value(doctype, docname, fieldname, value):
+def set_value(doctype, name, fieldname, value):
 	if fieldname in webnotes.model.default_fields:
 		webnotes.throw(_("Cannot edit standard fields"))
 		
-	doc = webnotes.conn.get_value(doctype, docname, ["parenttype", "parent"], as_dict=True)
+	doc = webnotes.conn.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
 		bean = webnotes.bean(doc.parenttype, doc.parent)
 		child = bean.doclist.getone({"doctype": doctype, "name": docname})
 		child.fields[fieldname] = value
 	else:
-		bean = webnotes.bean(doctype, docname)
+		bean = webnotes.bean(doctype, name)
 		bean.doc.fields[fieldname] = value
 		
 	bean.save()
