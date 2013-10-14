@@ -30,7 +30,7 @@ class _dict(dict):
 		super(_dict, self).update(d)
 		return self
 	def copy(self):
-		return _dict(super(_dict, self).copy())
+		return _dict(dict(self).copy())
 
 def __getattr__(self, key):
 	return local.get("key", None)
