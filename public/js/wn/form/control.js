@@ -802,7 +802,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 
 		// description
 		if(this.df.description) {
-			$('<p class="text-muted small">' + this.df.description + '</p>')
+			$('<p class="text-muted small">' + wn._(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
 		
