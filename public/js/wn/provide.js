@@ -6,9 +6,8 @@ if(!window.wn)wn = {}
 wn.provide = function(namespace) {
 	// docs: create a namespace //
 	var nsl = namespace.split('.');
-	var l = nsl.length;
 	var parent = window;
-	for(var i=0; i<l; i++) {
+	for(var i=0; i<nsl.length; i++) {
 		var n = nsl[i];
 		if(!parent[n]) {
 			parent[n] = {}

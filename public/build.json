@@ -13,6 +13,7 @@
 			"lib/public/js/lib/bootstrap.min.js",
 			"lib/public/js/wn/misc/number_format.js",
 			"lib/public/js/lib/nprogress.js",
+			"lib/public/js/wn/class.js",
 			"lib/website/js/website.js"
 		]
 	},

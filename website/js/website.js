@@ -10,6 +10,18 @@ $.extend(wn, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
+	provide: function(namespace) {
+		var nsl = namespace.split('.');
+		var parent = window;
+		for(var i=0; i<nsl.length; i++) {
+			var n = nsl[i];
+			if(!parent[n]) {
+				parent[n] = {}
+			}
+			parent = parent[n];
+		}
+		return parent;
+	},
 	hide_message: function(text) {
 		$('.message-overlay').remove();
 	},
