@@ -45,7 +45,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			}))
 			
 		return updated
-			
+	
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id')
@@ -79,7 +79,7 @@ def add(email, sender, subject, message, text_content=None, ref_doctype=None, re
 	try:
 		e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
 			text_content = text_content).as_string()
-	except webnotes.ValidationError, e:
+	except webnotes.ValidationError:
 		# bad email id - don't add to queue
 		return
 		

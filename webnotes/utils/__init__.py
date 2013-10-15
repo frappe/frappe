@@ -820,14 +820,14 @@ def get_base_path():
 	return os.path.dirname(os.path.abspath(conf.__file__))
 	
 def get_site_base_path(sites_dir=None, hostname=None):
-	if conf and not conf.sites_dir:
-		return get_base_path()
-	
 	if not sites_dir:
 		sites_dir = conf.sites_dir
 	
 	if not hostname:
 		hostname = conf.site
+		
+	if not (sites_dir and hostname):
+		return get_base_path()
 
 	import os
 	return os.path.join(sites_dir, hostname)

@@ -7,9 +7,9 @@ from webnotes.model.utils import delete_doc, LinkExistsError
 
 class TestProfile(unittest.TestCase):
 	def test_delete(self):
-		self.assertRaises(LinkExistsError, delete_doc, "Role", "_Test Role")
-		webnotes.conn.sql("""delete from tabUserRole where role='_Test Role'""")
-		delete_doc("Role","_Test Role")
+		self.assertRaises(LinkExistsError, delete_doc, "Role", "_Test Role 2")
+		webnotes.conn.sql("""delete from tabUserRole where role='_Test Role 2'""")
+		delete_doc("Role","_Test Role 2")
 		
 		profile = webnotes.bean(copy=test_records[1])
 		profile.doc.email = "_test@example.com"
@@ -80,5 +80,20 @@ test_records = [[{
 		"email": "test2@example.com",
 		"first_name": "_Test2",
 		"new_password": "testpassword"
-	}]
+	}],
+	[{
+		"doctype":"Profile",
+		"email": "testdelete@example.com",
+		"first_name": "_Test",
+		"new_password": "testpassword",
+		"enabled": 1
+	}, {
+		"doctype":"UserRole",
+		"parentfield":"user_roles",
+		"role": "_Test Role 2"
+	}, {
+		"doctype":"UserRole",
+		"parentfield":"user_roles",
+		"role": "System Manager"
+	}],
 ]
