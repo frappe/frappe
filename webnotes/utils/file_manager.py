@@ -200,7 +200,8 @@ def get_file(fname):
 		
 	if not "/" in file_name:
 		file_name = "files/" + file_name
-		
+	
+	# read the file	
 	with open(get_site_path("public", file_name), 'r') as f:
 		content = f.read()
 
