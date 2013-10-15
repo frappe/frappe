@@ -22,6 +22,8 @@ class TestProfile(unittest.TestCase):
 		self.assertTrue(not webnotes.conn.sql("""select * from `tabToDo` where owner=%s""",
 			"_test@example.com"))
 		
+		webnotes.bean({"doctype": "Role", "role_name": "_Test Role 2"}).insert()
+		
 	def test_get_value(self):
 		self.assertEquals(webnotes.conn.get_value("Profile", "test@example.com"), "test@example.com")
 		self.assertEquals(webnotes.conn.get_value("Profile", {"email":"test@example.com"}), "test@example.com")
