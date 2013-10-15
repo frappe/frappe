@@ -18,7 +18,7 @@ class DocType:
 		webnotes.clear_cache(doctype=self.doc.dt)
 
 def get_custom_server_script(doctype, plugin=None):
-	import os
+	import os, MySQLdb
 	custom_script = webnotes.cache().get_value("_server_script:" + doctype)
 
 	if not custom_script:
@@ -30,7 +30,7 @@ def get_custom_server_script(doctype, plugin=None):
 			else:
 				custom_script = "Does Not Exist"
 			webnotes.cache().set_value("_server_script:" + doctype, custom_script)
-		except webnotes.DoesNotExistError:
+		except (webnotes.DoesNotExistError, MySQLdb.OperationalError):
 			# this happens when syncing
 			return None
 
