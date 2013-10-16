@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-import os, base64
+import os, base64, re
 from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
 from webnotes import conf
@@ -61,6 +61,25 @@ def get_uploaded_content():
 		webnotes.msgprint('No File')
 		return None, None
 
+def extract_images_from_html(doc, fieldname):
+	content = doc.get(fieldname)
+	webnotes.flags.has_dataurl = False
+	
+	def _save_file(match):
+		data = match.group(1)
+		headers, content = data.split(",")
+		filename = headers.split("filename=")[-1]
+		filename = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_name")
+		if not webnotes.flags.has_dataurl:
+			webnotes.flags.has_dataurl = True
+		
+		return '<img src="{filename}"'.format(filename = filename)
+	
+	if content:
+		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
+		if webnotes.flags.has_dataurl:
+			webnotes.conn.set(doc, fieldname, content)
+
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:
 		if isinstance(content, unicode):
@@ -114,13 +133,17 @@ def save_file(fname, content, dt, dn, decode=False):
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path(conf.get("public_path", "public"))),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), 
+			get_site_path(conf.get("public_path", "public"))),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
 	})
 	f.ignore_permissions = True
-	f.insert();
+	try:
+		f.insert();
+	except webnotes.DuplicateEntryError:
+		return {"file_name": f.doc.file_name}
 
 	return f.doc
 

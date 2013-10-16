@@ -1,10 +1,5 @@
 {% extends base_template %}
 
-{% block head %}
-<!--script src="lib/js/lib/jquery/jquery.hotkeys.js"></script>
-<script src="lib/js/wn/ui/editor.js"></script-->
-{% endblock %}
-
 {% block content %}
 <div class="col-md-12" style="margin-top: 15px;">
 	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
@@ -16,7 +11,26 @@
 $(function() {
 	window.name = "{{ name }}";
 	if(getCookie("full_name")) {
-		wn.editor = new wn.ui.Editor($(".web-page-content"));
+		wn.require("js/editor.min.js");
+		wn.editor = new wn.ui.Editor($(".web-page-content"), {
+			onsave: function(editor) {
+				wn.call({
+					type: "POST",
+					method: "webnotes.client.set_value",
+					args: {
+						doctype:"Web Page",
+						name: window.name,
+						fieldname: "main_section",
+						value: editor.editor.html()
+					},
+					callback: function(r) {
+						wn.msgprint(r.exc ? "Error" : "Saved");
+						if(!r.exc)
+							editor.editor.html(r.message[0].main_section);
+					}
+				});
+			}
+		});
 	}
 })
 </script>

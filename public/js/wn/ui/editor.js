@@ -4,9 +4,6 @@
 /* Inspired from: http://github.com/mindmup/bootstrap-wysiwyg */
 
 // todo 
-// html editing
-// image
-// links
 // onsave, oncancel
 
 wn.provide("wn.ui");
@@ -15,7 +12,6 @@ wn.ui.Editor = Class.extend({
 		var me = this;
 		this.editor = $(editor);
 		this.options = $.extend(options || {}, this.default_options);
-		this.files = [];
 		
 		this.editor.on("click", function() {
 			if(!this.editing) {
@@ -23,17 +19,18 @@ wn.ui.Editor = Class.extend({
 				me.editor.attr('contenteditable', true);
 				me.original_html =  me.editor.html();
 				wn._editor_toolbar.show();
-				wn._current_editor = me.editor.focus();
+				wn._editor_toolbar.editor = me.editor.focus();
 				me.editing = true;
 			}
 		}).on("mouseup keyup mouseout", function() {
 			if(me.editing) {
-				wn._editor_toolbar.saveSelection();
+				wn._editor_toolbar.save_selection();
 				wn._editor_toolbar.update();
 			}
 		}).on("blur", function() {
-			if(wn._editor_toolbar.clicked.parents(".wn-editor-toolbar").length)
-				return;
+			if(!wn._editor_toolbar.clicked || wn._editor_toolbar.clicked.parents(".wn-ignore-click").length) {
+				return false;
+			}
 			wn._editor_toolbar.toolbar.find("[data-action='Save']").trigger("click");
 		}).data("object", this);
 
@@ -49,7 +46,10 @@ wn.ui.Editor = Class.extend({
 		this.editing = false;
 		if(action==="Cancel") {
 			this.editor.html(this.original_html);
-		} 
+			this.options.oncancel && this.options.oncancel(this);
+		} else {
+			this.options.onsave && this.options.onsave(this);
+		}
 	},
 	default_options: {
 		hotKeys: {
@@ -64,17 +64,15 @@ wn.ui.Editor = Class.extend({
 			'shift+tab': 'outdent',
 			'tab': 'indent'
 	    },
-		toolbarSelector: '[data-role=editor-toolbar]',
-		commandRole: 'edit',
-		activeToolbarClass: 'btn-info',
-		selectionMarker: 'edit-focus-marker',
-		selectionColor: 'darkgrey',
+		toolbar_selector: '[data-role=editor-toolbar]',
+		command_role: 'edit',
+		active_toolbar_class: 'btn-info',
+		selection_marker: 'edit-focus-marker',
+		selection_color: 'darkgrey',
 		remove_typography: true,
+		max_file_size: 1,
 	},
 	
-	show: function() {
-	},
-
 	bind_hotkeys: function () {
 		var me = this;
 		$.each(this.options.hotKeys, function (hotkey, command) {
@@ -137,7 +135,16 @@ wn.ui.Editor = Class.extend({
 
 		freader.onload = function() {
 			var dataurl = freader.result;
-			me.files.push(dataurl);
+			// add filename to dataurl
+			var parts = dataurl.split(",");
+			parts[0] += ";filename=" + fileobj.name;
+			dataurl = parts[0] + ',' + parts[1];
+			if(me.options.max_file_size) {
+				if(dataurl.length > (me.options.max_file_size * 1024 * 1024 * 1.4)) {
+					wn.msgprint("Max file size (" + me.options.max_file_size + "M) exceeded.");
+					throw "file size exceeded";
+				}
+			}
 			callback(dataurl);
 		}
 		freader.readAsDataURL(fileobj);
@@ -166,13 +173,12 @@ wn.ui.EditorToolbar = Class.extend({
 		padding: "5px",
 		width: "100%",
 		height: "45px",
-		"background-color": "#ddd",
-		"z-index": "1001" // more than navbar
+		"background-color": "#777"
 	},
 	make: function() {
 		if(!$(".wn-editor-toolbar").length) {
-			$('<div class="wn-editor-toolbar for-rich-text text-center">\
-			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;">\
+			$('<div class="wn-editor-toolbar wn-ignore-click">\
+			<div class="btn-toolbar container" data-role="editor-toolbar" style="margin-bottom: 7px;">\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
 						title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
@@ -212,17 +218,13 @@ wn.ui.EditorToolbar = Class.extend({
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
 						title="Horizontal Line Break">-</a>\
 				</div>\
-				<div class="btn-group hidden-xs form-group">\
-					<a class="btn btn-default btn-small btn-info btn-rich-text" title="Rich Text" disabled="disabled">\
-						<i class="icon-reorder"></i></a>\
+				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="HTML">\
 						<i class="icon-wrench"></i></a>\
-				</div>\
-				<div class="btn-group form-group">\
-					<a class="btn btn-default btn-small btn-primary" data-action="Save" title="Save">\
-						<i class="icon-save"></i></a>\
 					<a class="btn btn-default btn-small btn-html" data-action="Cancel" title="Cancel">\
 						<i class="icon-remove"></i></a>\
+					<a class="btn btn-default btn-small btn-success" data-action="Save" title="Save">\
+						<i class="icon-save"></i></a>\
 				</div>\
 			</div>').prependTo("body");
 		}
@@ -239,85 +241,84 @@ wn.ui.EditorToolbar = Class.extend({
 	},
 	
 	show: function() {
-		$("body").animate({"padding-top": this.toolbar.outerHeight() });
+		var me = this;
 		this.toolbar.toggle(true);
+		$("body").animate({"padding-top": this.toolbar.outerHeight() }, {
+			complete: function() { 	me.toolbar.css("z-index", 1001); }
+		});
 	},
 
 	hide: function(action) {
-		$("body").animate({"padding-top": 0 });
-		this.toolbar.toggle(false);
-		wn._current_editor.attr('contenteditable', false).data("object").onhide(action);
-		wn._current_editor = null;
+		var me = this;
+		this.toolbar.css("z-index", 0);
+		$("body").animate({"padding-top": 0 }, {complete: function() {
+			me.toolbar.toggle(false);
+		}});
+		
+		this.editor && this.editor.attr('contenteditable', false).data("object").onhide(action);
+		this.editor = null;
 	},
 	
 	bind_events: function () {
 		var me = this;
 				
 		// standard button events
-		this.toolbar.find('a[data-' + me.options.commandRole + ']').click(function () {
-			me.restoreSelection();
-			wn._current_editor.focus();
-			me.execCommand($(this).data(me.options.commandRole));
-			me.saveSelection();
+		this.toolbar.find('a[data-' + me.options.command_role + ']').click(function () {
+			me.restore_selection();
+			me.editor.focus();
+			me.execCommand($(this).data(me.options.command_role));
+			me.save_selection();
 			return false;
 		});
-		this.toolbar.find('[data-toggle=dropdown]').click(function() { me.restoreSelection() });
+		this.toolbar.find('[data-toggle=dropdown]').click(function() { me.restore_selection() });
 
 		// link
-		this.toolbar.find('input[type=text][data-' + this.options.commandRole + ']')
-			.on('webkitspeechchange change', function () {
-			var newValue = this.value; /* ugly but prevents fake double-calls due to selection restoration */
-			this.value = '';
-			me.restoreSelection();
-			if (newValue) {
-				wn._current_editor.focus();
-				me.execCommand($(this).data(me.options.commandRole), newValue);
+		this.toolbar.find(".btn-add-link").on("click", function() {
+			if(!wn._link_editor) {
+				wn._link_editor = new wn.ui.LinkEditor();
 			}
-			me.saveSelection();
-			return false;
-		}).on('focus', function () {
-			var input = $(this);
-			if (!input.data(me.options.selectionMarker)) {
-				me.markSelection(input, me.options.selectionColor);
-				input.focus();
-			}
-		}).on('blur', function () {
-			var input = $(this);
-			if (input.data(me.options.selectionMarker)) {
-				me.markSelection(input, false);
-			}
-		});
+			wn._link_editor.show();
+		})
 		
 		// file event
-		this.toolbar.find('input[type=file][data-' + me.options.commandRole + ']').change(function () {
-			me.restoreSelection();
+		this.toolbar.find('input[type=file][data-' + me.options.command_role + ']').change(function () {
+			me.restore_selection();
 			if (this.type === 'file' && this.files && this.files.length > 0) {
-				wn._current_editor.data("object").insert_files(this.files);
+				me.editor.data("object").insert_files(this.files);
 			}
-			me.saveSelection();
+			me.save_selection();
 			this.value = '';
 			return false;
 		});
 		
-		// cancel
+		// save
 		this.toolbar.find("[data-action='Save']").on("click", function() {
 			me.hide("Save");
 		})
 
+		// cancel
 		this.toolbar.find("[data-action='Cancel']").on("click", function() {
 			me.hide("Cancel");
+		})
+		
+		// edit html
+		this.toolbar.find(".btn-html").on("click", function() {
+			if(!wn._html_editor)
+				wn._html_editor = new wn.ui.HTMLEditor();
+			
+			wn._html_editor.show(me.editor);
 		})
 	},
 
 	update: function () {
 		var me = this;
-		if (this.options.activeToolbarClass) {
-			$(this.options.toolbarSelector).find('.btn[data-' + this.options.commandRole + ']').each(function () {
-				var command = $(this).data(me.options.commandRole);
+		if (this.options.active_toolbar_class) {
+			$(this.options.toolbar_selector).find('.btn[data-' + this.options.command_role + ']').each(function () {
+				var command = $(this).data(me.options.command_role);
 				if (document.queryCommandState(command)) {
-					$(this).addClass(me.options.activeToolbarClass);
+					$(this).addClass(me.options.active_toolbar_class);
 				} else {
-					$(this).removeClass(me.options.activeToolbarClass);
+					$(this).removeClass(me.options.active_toolbar_class);
 				}
 			});
 		}
@@ -331,42 +332,119 @@ wn.ui.EditorToolbar = Class.extend({
 		this.update();
 	},
 	
-	getCurrentRange: function () {
+	get_current_range: function () {
 		var sel = window.getSelection();
 		if (sel.getRangeAt && sel.rangeCount) {
 			return sel.getRangeAt(0);
 		}
 	},
 	
-	saveSelection: function () {
-		this.selectedRange = this.getCurrentRange();
+	save_selection: function () {
+		this.selected_range = this.get_current_range();
+		this.selected_html = this.get_current_html();
 	},
 	
-	restoreSelection: function () {
+	get_current_html: function() {
+	    var html = "";
+	    if (typeof window.getSelection != "undefined") {
+	        var sel = window.getSelection();
+	        if (sel.rangeCount) {
+	            var container = document.createElement("div");
+	            for (var i = 0, len = sel.rangeCount; i < len; ++i) {
+	                container.appendChild(sel.getRangeAt(i).cloneContents());
+	            }
+	            html = container.innerHTML;
+	        }
+	    } else if (typeof document.selection != "undefined") {
+	        if (document.selection.type == "Text") {
+	            html = document.selection.createRange().htmlText;
+	        }
+	    }
+	    return html;
+	},
+	
+	restore_selection: function () {
 		var selection = window.getSelection();
-		if (this.selectedRange) {
+		if (this.selected_range) {
 			selection.removeAllRanges();
-			selection.addRange(this.selectedRange);
+			selection.addRange(this.selected_range);
 		}
 	},
 	
-	markSelection: function (input, color) {
-		this.restoreSelection();
+	mark_selection: function (input, color) {
+		this.restore_selection();
 		document.execCommand('hiliteColor', 0, color || 'transparent');
-		this.saveSelection();
-		input.data(this.options.selectionMarker, color);
+		this.save_selection();
+		input.data(this.options.selection_marker, color);
 	},
 	
 	bind_touch: function() {
 		var me = this;
 		$(window).bind('touchend', function (e) {
-			var isInside = (wn._current_editor.is(e.target) || wn._current_editor.has(e.target).length > 0),
-				currentRange = me.getCurrentRange(),
-				clear = currentRange && (currentRange.startContainer === currentRange.endContainer && currentRange.startOffset === currentRange.endOffset);
+			var isInside = (me.editor.is(e.target) || me.editor.has(e.target).length > 0),
+				current_range = me.get_current_range(),
+				clear = current_range && (current_range.startContainer === current_range.endContainer && current_range.startOffset === current_range.endOffset);
 			if (!clear || isInside) {
-				me.saveSelection();
+				me.save_selection();
 				me.update();
 			}
 		});
-	}	
+	}
+});
+
+wn.ui.HTMLEditor = Class.extend({
+	init: function() {
+		var me = this;
+		this.modal = wn.get_modal("Edit HTML", '<textarea class="form-control" \
+			style="height: 400px; width: 100%; font-family: Monaco, Courier New, Fixed; font-size: 11px">\
+			</textarea><br>\
+			<button class="btn btn-primary" style="margin-top: 7px;">Save</button>');
+		this.modal.addClass("wn-ignore-click");
+		this.modal.find(".btn-primary").on("click", function() {
+			me.editor.html(me.modal.find("textarea").val());
+			me.modal.modal("hide");
+		});
+	},
+	show: function(editor) {
+		var me = this;
+		this.editor = editor;
+		this.modal.modal("show")
+		this.modal.find("textarea").html(html_beautify(me.editor.html()));
+	}
+});
+
+wn.ui.LinkEditor = Class.extend({
+	init: function() {
+		var me = this;
+		this.modal = wn.get_modal("Edit HTML", '<div class="form-group">\
+				<input type="text" class="form-control" placeholder="http://example.com" />\
+			</div>\
+			<div class="checkbox" style="position: static;">\
+				<label>\
+				    <input type="checkbox"> <span>Open Link in a new Window</span>\
+				</label>\
+			</div>\
+			<button class="btn btn-primary" style="margin-top: 7px;">Insert</button>');
+		
+		this.modal.addClass("wn-ignore-click");
+		this.modal.find(".btn-primary").on("click", function() {
+			wn._editor_toolbar.restore_selection();
+			var url = me.modal.find("input[type=text]").val();
+			var selection = wn._editor_toolbar.selected_range.toString();
+			if(url) {
+				if(me.modal.find("input[type=checkbox]:checked").length) {
+					var html = "<a href='" + url + "' target='_blank'>" + selection + "</a>";
+					document.execCommand("insertHTML", false, html);
+				} else {
+					document.execCommand("CreateLink", false, url);
+				}
+			}
+			me.modal.modal("hide");
+			return false;
+		});
+	},
+	show: function() {
+		this.modal.find("input[type=text]").val("");
+		this.modal.modal("show");
+	}
 })

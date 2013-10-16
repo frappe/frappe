@@ -13,8 +13,16 @@
 			"lib/public/js/lib/bootstrap.min.js",
 			"lib/public/js/wn/misc/number_format.js",
 			"lib/public/js/lib/nprogress.js",
-			"lib/public/js/wn/class.js",
 			"lib/website/js/website.js"
+		]
+	},
+
+	{
+		"public/js/editor.min.js": [
+			"lib/public/js/lib/jquery/jquery.hotkeys.js",
+			"lib/public/js/wn/class.js",
+			"lib/public/js/lib/beautify-html.js",
+			"lib/public/js/wn/ui/editor.js",
 		]
 	},
 	
