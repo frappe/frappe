@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 import MySQLdb
+import warnings
 import webnotes
 from webnotes import conf
 import datetime
@@ -42,6 +43,7 @@ class Database:
 		"""
 		      Connect to a database
 		"""
+		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, 
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float

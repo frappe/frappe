@@ -9,7 +9,7 @@ from webnotes.test_runner import make_test_records
 class TestDB(unittest.TestCase):
 	def test_get_value(self):
 		webnotes.conn.sql("""delete from `tabProfile` where name not in ('Administrator', 'Guest')""")
-		
+		del webnotes.test_objects["Profile"]
 		make_test_records("Profile")
 		
 		self.assertEquals(webnotes.conn.get_value("Profile", {"name": ["=", "Administrator"]}), "Administrator")

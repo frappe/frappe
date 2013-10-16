@@ -1,16 +1,23 @@
 {% extends base_template %}
 
+{% block head %}
+<!--script src="lib/js/lib/jquery/jquery.hotkeys.js"></script>
+<script src="lib/js/wn/ui/editor.js"></script-->
+{% endblock %}
+
 {% block content %}
 <div class="col-md-12" style="margin-top: 15px;">
 	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
-	<div class="web-page-content">
+	<div class="web-page-content" id="{{ name }}">
 	{{ main_section }}
 	</div>
 </div>
 <script>
 $(function() {
 	window.name = "{{ name }}";
-	if(getCookie("full_name")) { $.get("lib/js/wn/website/web_page_editable.js"); };
+	if(getCookie("full_name")) {
+		wn.editor = new wn.ui.Editor($(".web-page-content"));
+	}
 })
 </script>
 {% endblock %}
