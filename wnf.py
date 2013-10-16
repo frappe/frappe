@@ -41,7 +41,7 @@ def run(fn, args):
 		out = globals().get(fn)(*args.get(fn), **args)
 	else:
 		out = globals().get(fn)(**args)
-	webnotes.destroy()
+	
 	return out
 		
 def get_function(args):
@@ -205,6 +205,7 @@ def install(db_name, source_sql=None, site=None, verbose=True, force=False, root
 	from webnotes.install_lib.install import Installer
 	inst = Installer('root', db_name=db_name, site=site, root_password=root_password, site_config=site_config)
 	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force, admin_password=admin_password)
+	webnotes.destroy()
 
 @cmd
 def reinstall(site=None, verbose=True):
@@ -220,6 +221,7 @@ def install_fixtures(site=None):
 	webnotes.init(site=site)
 	from webnotes.install_lib.install import install_fixtures
 	install_fixtures()
+	webnotes.destroy()
 
 @cmd
 def add_system_manager(email, first_name=None, last_name=None, site=None):
@@ -233,12 +235,14 @@ def make_demo(site=None):
 	import utilities.demo.make_demo
 	webnotes.init(site=site)
 	utilities.demo.make_demo.make()
+	webnotes.destroy()
 
 @cmd
 def make_demo_fresh(site=None):
 	import utilities.demo.make_demo
 	webnotes.init(site=site)
 	utilities.demo.make_demo.make(reset=True)
+	webnotes.destroy()
 	
 # utilities
 
@@ -270,12 +274,15 @@ def latest(site=None, verbose=True):
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
 		raise e
+	finally:
+		webnotes.destroy()
 
 @cmd
 def sync_all(site=None, force=False):
 	import webnotes.model.sync
 	webnotes.connect(site=site)
 	webnotes.model.sync.sync_all(force=force)
+	webnotes.destroy()
 
 @cmd
 def patch(patch_module, site=None, force=False):
@@ -284,6 +291,7 @@ def patch(patch_module, site=None, force=False):
 	webnotes.local.patch_log_list = []
 	webnotes.modules.patch_handler.run_single(patch_module, force=force)
 	print "\n".join(webnotes.local.patch_log_list)
+	webnotes.destroy()
 	
 @cmd
 def update_all_sites(remote=None, branch=None, verbose=True):
@@ -296,6 +304,7 @@ def update_all_sites(remote=None, branch=None, verbose=True):
 def reload_doc(module, doctype, docname, site=None, force=False):
 	webnotes.connect(site=site)
 	webnotes.reload_doc(module, doctype, docname, force=force)
+	webnotes.destroy()
 
 @cmd
 def build():
@@ -355,6 +364,7 @@ def domain(host_url=None, site=None):
 		webnotes.conn.commit()
 	else:
 		print webnotes.conn.get_value("Website Settings", None, "subdomain")
+	webnotes.destroy()
 
 @cmd
 def make_conf(db_name=None, db_password=None, site=None, site_config=None):
@@ -366,6 +376,7 @@ def make_custom_server_script(doctype, site=None):
 	from core.doctype.custom_script.custom_script import make_custom_server_script_file
 	webnotes.connect(site=site)
 	make_custom_server_script_file(doctype)
+	webnotes.destroy()
 
 # clear
 @cmd
@@ -373,12 +384,14 @@ def clear_cache(site=None):
 	import webnotes.sessions
 	webnotes.connect(site=site)
 	webnotes.sessions.clear_cache()
+	webnotes.destroy()
 
 @cmd
 def clear_web(site=None):
 	import webnotes.webutils
 	webnotes.connect(site=site)
 	webnotes.webutils.clear_cache()
+	webnotes.destroy()
 
 @cmd
 def reset_perms(site=None):
@@ -387,6 +400,7 @@ def reset_perms(site=None):
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			webnotes.clear_cache(doctype=d)
 			webnotes.reset_perms(d)
+	webnotes.destroy()
 
 # scheduler
 @cmd
@@ -394,12 +408,14 @@ def run_scheduler(site=None):
 	import webnotes.utils.scheduler
 	webnotes.connect(site=site)
 	print webnotes.utils.scheduler.execute()
+	webnotes.destroy()
 
 @cmd
 def run_scheduler_event(event, site=None):
 	import webnotes.utils.scheduler
 	webnotes.connect(site=site)
 	print webnotes.utils.scheduler.trigger("execute_" + event)
+	webnotes.destroy()
 	
 # replace
 @cmd
@@ -413,24 +429,28 @@ def export_doc(doctype, docname, site=None):
 	import webnotes.modules
 	webnotes.connect(site=site)
 	webnotes.modules.export_doc(doctype, docname)
+	webnotes.destroy()
 
 @cmd
 def export_doclist(doctype, name, path, site=None):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=site)
 	data_import_tool.export_json(doctype, name, path)
+	webnotes.destroy()
 	
 @cmd
 def export_csv(doctype, path, site=None):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=site)
 	data_import_tool.export_csv(doctype, path)
+	webnotes.destroy()
 
 @cmd
 def import_doclist(path, site=None):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=site)
 	data_import_tool.import_doclist(path)
+	webnotes.destroy()
 	
 # translation
 @cmd
@@ -438,30 +458,35 @@ def build_message_files(site=None):
 	import webnotes.translate
 	webnotes.connect(site=site)
 	webnotes.translate.build_message_files()
+	webnotes.destroy()
 
 @cmd
 def export_messages(lang, outfile, site=None):
 	import webnotes.translate
 	webnotes.connect(site=site)
 	webnotes.translate.export_messages(lang, outfile)
+	webnotes.destroy()
 
 @cmd
 def import_messages(lang, infile, site=None):
 	import webnotes.translate
 	webnotes.connect(site=site)
 	webnotes.translate.import_messages(lang, infile)
+	webnotes.destroy()
 	
 @cmd
 def google_translate(lang, infile, outfile, site=None):
 	import webnotes.translate
 	webnotes.connect(site=site)
 	webnotes.translate.google_translate(lang, infile, outfile)
+	webnotes.destroy()
 
 @cmd
 def translate(lang, site=None):
 	import webnotes.translate
 	webnotes.connect(site=site)
 	webnotes.translate.translate(lang)
+	webnotes.destroy()
 
 # git
 @cmd
@@ -522,6 +547,7 @@ def mysql(site=None):
 	msq = commands.getoutput('which mysql')
 	webnotes.init(site=site)
 	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name])
+	webnotes.destroy()
 	
 @cmd
 def serve(port=8000):
