@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-10-14 15:50:29", 
+  "modified": "2013-10-16 16:56:41", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,14 +23,18 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Custom Script", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
+  "permlevel": 0, 
   "read": 1, 
   "report": 1, 
-  "submit": 0
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -50,6 +54,7 @@
   "doctype": "DocField", 
   "fieldname": "script_type", 
   "fieldtype": "Select", 
+  "hidden": 1, 
   "label": "Script Type", 
   "oldfieldname": "script_type", 
   "oldfieldtype": "Select", 
@@ -66,19 +71,11 @@
   "options": "Script"
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "System Manager", 
-  "write": 1
+  "role": "System Manager"
  }, 
  {
-  "cancel": 1, 
-  "create": 1, 
   "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "role": "Administrator", 
-  "write": 1
+  "role": "Administrator"
  }
 ]
