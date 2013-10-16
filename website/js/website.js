@@ -22,6 +22,18 @@ $.extend(wn, {
 		}
 		return parent;
 	},
+	require: function(url) {
+		$.ajax({
+			url: url + "?q=" + Math.floor(Math.random() * 1000), 
+			async: false, 
+			dataType: "text", 
+			success: function(data) {
+				var el = document.createElement('script');
+				el.appendChild(document.createTextNode(data));
+				document.getElementsByTagName('head')[0].appendChild(el);
+			}
+		});
+	},
 	hide_message: function(text) {
 		$('.message-overlay').remove();
 	},
