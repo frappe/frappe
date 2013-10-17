@@ -135,6 +135,7 @@ def setup_utilities(parser):
 		help="Set administrator password")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
 	parser.add_argument("--serve", action="store_true", help="Run development server")
+	parser.add_argument("--get_site_details", action="store_true", help="Get site details")
 	parser.add_argument("--port", default=8000, type=int, help="port for development server")
 	
 	# clear
@@ -599,6 +600,23 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	with open(fpath, 'w') as f:
 		f.write(''.join(tmp))
 	print colored('Updated', 'green')
+
+@cmd
+def get_site_details(site=None, verbose=False):
+	import webnotes
+	from webnotes.profile import get_system_managers
+	from core.doctype.profile.profile import get_total_users, get_active_users
+	webnotes.connect(site=site)
+	ret = {
+		'last_backup_on': webnotes.local.conf.last_backup_on,
+		'active_users': get_active_users(),
+		'total_users': get_total_users(),
+		'system_managers': get_system_managers()
+	}
+	webnotes.destroy()
+	if verbose:
+		print ret
+	return ret
 	
 if __name__=="__main__":
 	main()
