@@ -466,9 +466,9 @@ def load_json(obj):
 		
 	return obj
 	
-def build_match_conditions(doctype, fields=None, as_condition=True, match_filters=None):
+def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
-	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition, match_filters)
+	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition)
 
 def get_list(doctype, filters=None, fields=None, docstatus=None, 
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
