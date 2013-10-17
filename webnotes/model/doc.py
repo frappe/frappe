@@ -234,7 +234,9 @@ class Document:
 		if self._new_name_set:
 			# already set by bean
 			return
-		
+
+		self._new_name_set = True
+
 		self.get_meta()
 		autoname = self._meta.autoname
 		
@@ -288,9 +290,7 @@ class Document:
 		# unable to determine a name, use global series
 		if not self.name:
 			self.name = make_autoname('#########', self.doctype)
-			
-		self._new_name_set = True
-			
+					
 	def set_naming_series(self):
 		if not self.naming_series:
 			# pick default naming series

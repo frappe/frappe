@@ -51,6 +51,7 @@
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
 			"lib/public/js/lib/nprogress.js",
+			"lib/public/js/lib/beautify-html.js",
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",
@@ -123,6 +124,7 @@
 			"lib/public/js/wn/ui/toolbar/recent.js",
 			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
+			"lib/public/js/wn/ui/editor.js",
 			
 			"lib/public/js/legacy/form.js",
 			"lib/public/js/legacy/print_format.js",

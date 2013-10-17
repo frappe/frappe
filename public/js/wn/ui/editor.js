@@ -4,39 +4,59 @@
 /* Inspired from: http://github.com/mindmup/bootstrap-wysiwyg */
 
 // todo 
-// button - back - to - back clicks
 // make it inline friendly
 
 wn.provide("wn.ui");
 wn.ui.Editor = Class.extend({
-	init: function(editor, options) {
+	init: function(options) {
+		this.options = $.extend(options || {}, this.default_options);
+		if(this.options.editor) {
+			this.setup_editor(this.options.editor);
+			this.setup_fixed_toolbar();
+		} else if(this.options.parent) {
+			this.wrapper = $("<div></div>").appendTo(this.options.parent);
+			this.setup_editor($("<div class='wn-editor'></div>").appendTo(this.wrapper));
+			this.setup_inline_toolbar();
+			this.editor.css(this.options.inline_editor_style);
+			this.set_editing();
+		}
+	},
+	setup_editor: function(editor) {
 		var me = this;
 		this.editor = $(editor);
-		this.options = $.extend(options || {}, this.default_options);
-		
 		this.editor.on("click", function() {
 			if(!this.editing) {
-				me.make();
-				me.editor.attr('contenteditable', true);
-				me.original_html =  me.editor.html();
-				wn._editor_toolbar.show();
-				wn._editor_toolbar.editor = me.editor.focus();
-				me.editing = true;
+				me.set_editing();
 			}
 		}).on("mouseup keyup mouseout", function() {
 			if(me.editing) {
-				wn._editor_toolbar.save_selection();
-				wn._editor_toolbar.update();
+				me.toolbar.save_selection();
+				me.toolbar.update();
+				me.options.change && me.options.change(me.clean_html());
 			}
 		}).data("object", this);
 
 		this.bind_hotkeys();
 		this.init_file_drops();
+		
 	},
-	make: function() {
+	
+	set_editing: function() {
+		this.editor.attr('contenteditable', true);
+		this.original_html =  this.editor.html();
+		this.toolbar.show();
+		this.toolbar.editor = this.editor.focus();
+		this.editing = true;
+	},
+	
+	setup_fixed_toolbar: function() {
 		if(!wn._editor_toolbar) {
 			wn._editor_toolbar = new wn.ui.EditorToolbar(this.options)
 		}
+		this.toolbar = wn._editor_toolbar;
+	},
+	setup_inline_toolbar: function() {
+		this.toolbar = new wn.ui.EditorToolbar(this.options, this.wrapper);
 	},
 	onhide: function(action) {
 		this.editing = false;
@@ -45,6 +65,7 @@ wn.ui.Editor = Class.extend({
 			this.options.oncancel && this.options.oncancel(this);
 		} else {
 			this.options.onsave && this.options.onsave(this);
+			this.options.change && this.options.change(this.get_value());
 		}
 	},
 	default_options: {
@@ -60,6 +81,19 @@ wn.ui.Editor = Class.extend({
 			'shift+tab': 'outdent',
 			'tab': 'indent'
 	    },
+		inline_editor_style: {
+			"height": "400px",
+			"background-color": "white",
+			"border-collapse": "separate",
+			"border": "1px solid rgb(204, 204, 204)",
+			"padding": "4px",
+			"box-sizing": "content-box",
+			"-webkit-box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset", 
+			"box-shadow": "rgba(0, 0, 0, 0.0745098) 0px 1px 1px 0px inset",
+			"border-radius": "3px",
+			"overflow": "scroll",
+			"outline": "none"	
+		},
 		toolbar_selector: '[data-role=editor-toolbar]',
 		command_role: 'edit',
 		active_toolbar_class: 'btn-info',
@@ -76,7 +110,7 @@ wn.ui.Editor = Class.extend({
 				if (me.editor.attr('contenteditable') && me.editor.is(':visible')) {
 					e.preventDefault();
 					e.stopPropagation();
-					wn._editor_toolbar.execCommand(command);
+					me.toolbar.execCommand(command);
 				}
 			}).keyup(hotkey, function (e) {
 				if (me.editor.attr('contenteditable') && me.editor.is(':visible')) {
@@ -119,7 +153,7 @@ wn.ui.Editor = Class.extend({
 		$.each(files, function (i, file) {
 			if (/^image\//.test(file.type)) {
 				me.get_image(file, function(image_url) {
-					wn._editor_toolbar.execCommand('insertimage', image_url);
+					me.toolbar.execCommand('insertimage', image_url);
 				})
 			}
 		});
@@ -144,17 +178,29 @@ wn.ui.Editor = Class.extend({
 			callback(dataurl);
 		}
 		freader.readAsDataURL(fileobj);
+	},
+	
+	get_value: function() {
+		return this.clean_html()
+	},
+	
+	set_input: function(value) {
+		if(this.options.field.inside_change_event)
+			return;
+		this.editor.html(value==null ? "" : value);
 	}
 	
 })
 
 wn.ui.EditorToolbar = Class.extend({
-	init: function(options) {
+	init: function(options, parent) {
 		this.options = options;
-		this.options.toolbar_style = $.extend(this.options.toolbar_style || {}, this.style);
-		this.make();
-		this.toolbar = $(".wn-editor-toolbar").css(this.options.toolbar_style);
-		this.overlay_image_button();
+		this.inline = !!parent;
+		this.options.toolbar_style = $.extend(this.options.toolbar_style || {}, 
+				(this.inline ? this.inline_style : this.fixed_style));
+		this.make(parent);
+		this.toolbar.css(this.options.toolbar_style);
+		this.setup_image_button();
 		this.bind_events();
 		this.bind_touch();
 
@@ -163,7 +209,7 @@ wn.ui.EditorToolbar = Class.extend({
 			me.clicked = $(e.target);
 	    });
 	},
-	style: {
+	fixed_style: {
 		position: "fixed",
 		top: "0px",
 		padding: "5px",
@@ -171,10 +217,15 @@ wn.ui.EditorToolbar = Class.extend({
 		height: "45px",
 		"background-color": "#777"
 	},
-	make: function() {
-		if(!$(".wn-editor-toolbar").length) {
-			$('<div class="wn-editor-toolbar wn-ignore-click">\
-			<div class="btn-toolbar container" data-role="editor-toolbar" style="margin-bottom: 7px;">\
+	inline_style: {
+		padding: "5px",
+	},
+	make: function(parent) {
+		if(!parent) 
+			parent = $("body");
+		if(!parent.find(".wn-editor-toolbar").length) {
+			this.toolbar = $('<div class="wn-editor-toolbar wn-ignore-click">\
+			<div class="btn-toolbar" data-role="editor-toolbar" style="margin-bottom: 7px;">\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
 						title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
@@ -208,32 +259,44 @@ wn.ui.EditorToolbar = Class.extend({
 						<i class="icon-link"></i></a>\
 					<a class="btn btn-default btn-small" title="Remove Link" data-edit="unlink">\
 						<i class="icon-unlink"></i></a>\
-					<a class="btn btn-default btn-small" title="Insert picture (or just drag & drop)">\
+					<a class="btn btn-default btn-small btn-insert-img" title="Insert picture (or just drag & drop)">\
 						<i class="icon-picture"></i></a>\
-					<input type="file" data-role="magic-overlay" data-edit="insertImage" />\
 					<a class="btn btn-default btn-small" data-edit="insertHorizontalRule" \
-						title="Horizontal Line Break">-</a>\
+						title="Horizontal Line Break">─</a>\
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="HTML">\
 						<i class="icon-wrench"></i></a>\
-					<a class="btn btn-default btn-small btn-html" data-action="Cancel" title="Cancel">\
+					<a class="btn btn-default btn-small btn-cancel" data-action="Cancel" title="Cancel">\
 						<i class="icon-remove"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="Save">\
 						<i class="icon-save"></i></a>\
 				</div>\
-			</div>').prependTo("body");
+				<input type="file" data-edit="insertImage" />\
+			</div>').prependTo(parent);
+			
+			if(this.inline) {
+				this.toolbar.find("[data-action]").remove();
+			} else {
+				this.toolbar.find(".btn-toolbar").addClass("container");
+			}
 		}
 	},
 	
-	overlay_image_button: function() {
+	setup_image_button: function() {
 		// magic-overlay
-		this.toolbar.find('[data-role=magic-overlay]').each(function () { 
-			var overlay = $(this), target=overlay.prev();
-			overlay.css('opacity', 0).css('position', 'absolute')
-				.css("left", 155)
-				.width(38).height(33);
-		});
+		var me = this;
+		this.file_input = this.toolbar.find('input[type="file"]')
+			.css({
+				'opacity':0,
+				'position':'absolute',
+				'left':0,
+				'width':0,
+				'height':0
+			});
+		this.toolbar.find(".btn-insert-img").on("click", function() {
+			me.file_input.trigger("click");
+		})
 	},
 	
 	show: function() {
@@ -271,7 +334,7 @@ wn.ui.EditorToolbar = Class.extend({
 		// link
 		this.toolbar.find(".btn-add-link").on("click", function() {
 			if(!wn._link_editor) {
-				wn._link_editor = new wn.ui.LinkEditor();
+				wn._link_editor = new wn.ui.LinkEditor(me);
 			}
 			wn._link_editor.show();
 		})
@@ -410,8 +473,9 @@ wn.ui.HTMLEditor = Class.extend({
 });
 
 wn.ui.LinkEditor = Class.extend({
-	init: function() {
+	init: function(toolbar) {
 		var me = this;
+		this.toolbar = toolbar;
 		this.modal = wn.get_modal("Edit HTML", '<div class="form-group">\
 				<input type="text" class="form-control" placeholder="http://example.com" />\
 			</div>\
@@ -424,9 +488,9 @@ wn.ui.LinkEditor = Class.extend({
 		
 		this.modal.addClass("wn-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
-			wn._editor_toolbar.restore_selection();
+			me.toolbar.restore_selection();
 			var url = me.modal.find("input[type=text]").val();
-			var selection = wn._editor_toolbar.selected_range.toString();
+			var selection = me.toolbar.selected_range.toString();
 			if(url) {
 				if(me.modal.find("input[type=checkbox]:checked").length) {
 					var html = "<a href='" + url + "' target='_blank'>" + selection + "</a>";

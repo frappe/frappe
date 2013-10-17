@@ -853,11 +853,11 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 });
 
 wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
-	editor_name: "ACE",
+	editor_name: "wn.editors.ACE",
 	make_input: function() {
 		$(this.input_area).css({"min-height":"360px"});
 		var me = this;
-		this.editor = new wn.editors[this.editor_name]({
+		this.editor = new (wn.provide(this.editor_name))({
 			parent: this.input_area,
 			change: function(value) {
 				me.parse_validate_and_set_in_model(value);
@@ -865,12 +865,6 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			field: this
 		});
 		this.has_input = true;
-		
-		if(this.editor.$editor) {
-			this.editor.$editor.keypress("ctrl+s meta+s", function() {
-				me.frm.save_or_update();
-			});
-		}
 	},
 	get_value: function() {
 		return this.editor.get_value();
@@ -882,7 +876,13 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 });
 
 wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
-	editor_name: "BootstrapWYSIWYG"
+	editor_name: "wn.ui.Editor",
+	make_input: function() {
+		this._super();
+		this.editor.editor.keypress("ctrl+s meta+s", function() {
+			me.frm.save_or_update();
+		});
+	},
 });
 
 wn.ui.form.ControlTable = wn.ui.form.Control.extend({

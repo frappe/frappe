@@ -12,7 +12,8 @@ $(function() {
 	window.name = "{{ name }}";
 	if(getCookie("full_name")) {
 		wn.require("js/editor.min.js");
-		wn.editor = new wn.ui.Editor($(".web-page-content"), {
+		wn.editor = new wn.ui.Editor({
+			editor: $(".web-page-content"),
 			onsave: function(editor) {
 				wn.call({
 					type: "POST",
