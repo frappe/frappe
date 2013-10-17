@@ -89,6 +89,7 @@ def init(site=None):
 	local.conf = get_conf(site)
 	local.initialised = True
 	local.flags = _dict({})
+	local.rollback_observers = []
 	
 def destroy():
 	"""closes connection and releases werkzeug local"""

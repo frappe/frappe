@@ -28,7 +28,6 @@ class DocType:
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		if self.in_insert:
-			self.autoname()
 			if self.doc.name not in ("Guest", "Administrator"):
 				self.send_welcome_mail()
 				webnotes.msgprint(_("Welcome Email Sent"))

@@ -78,7 +78,7 @@ def extract_images_from_html(doc, fieldname):
 	if content:
 		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
 		if webnotes.flags.has_dataurl:
-			webnotes.conn.set(doc, fieldname, content)
+			doc.fields[fieldname] = content
 
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:

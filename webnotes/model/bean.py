@@ -40,7 +40,7 @@ class Bean:
 		elif isinstance(dt, dict):
 			self.set_doclist([dt])
 
-	def load_from_db(self, dt=None, dn=None, prefix='tab'):
+	def load_from_db(self, dt=None, dn=None):
 		"""
 			Load doclist from dt
 		"""
@@ -49,7 +49,7 @@ class Bean:
 		if not dt: dt = self.doc.doctype
 		if not dn: dn = self.doc.name
 
-		doc = Document(dt, dn, prefix=prefix)
+		doc = Document(dt, dn)
 		
 		# get all children types
 		tablefields = webnotes.model.meta.get_table_fields(dt)
@@ -57,7 +57,7 @@ class Bean:
 		# load chilren
 		doclist = webnotes.doclist([doc,])
 		for t in tablefields:
-			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
+			doclist += getchildren(doc.name, t[0], t[1], dt)
 
 		self.set_doclist(doclist)
 		
@@ -191,6 +191,7 @@ class Bean:
 		self.check_if_latest(method)
 		
 		if method != "cancel":
+			self.extract_images_from_text_editor()
 			self.check_links()
 		
 		self.update_timestamps_and_docstatus()
@@ -285,6 +286,11 @@ class Bean:
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, perm_to_check, self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
+			if self.doc.fields.get("__islocal"):
+				# set name before validate
+				self.doc.set_new_name()
+				self.run_method('before_insert')
+				
 			if not self.ignore_validate:
 				self.run_method('validate')
 			if not self.ignore_mandatory:
@@ -344,7 +350,6 @@ class Bean:
 	def save_main(self):
 		try:
 			self.doc.save(check_links = False, ignore_fields = self.ignore_fields)
-			self.extract_images_from_text_editor()
 		except NameError, e:
 			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
 

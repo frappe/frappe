@@ -4,7 +4,8 @@
 /* Inspired from: http://github.com/mindmup/bootstrap-wysiwyg */
 
 // todo 
-// onsave, oncancel
+// button - back - to - back clicks
+// make it inline friendly
 
 wn.provide("wn.ui");
 wn.ui.Editor = Class.extend({
@@ -27,11 +28,6 @@ wn.ui.Editor = Class.extend({
 				wn._editor_toolbar.save_selection();
 				wn._editor_toolbar.update();
 			}
-		}).on("blur", function() {
-			if(!wn._editor_toolbar.clicked || wn._editor_toolbar.clicked.parents(".wn-ignore-click").length) {
-				return false;
-			}
-			wn._editor_toolbar.toolbar.find("[data-action='Save']").trigger("click");
 		}).data("object", this);
 
 		this.bind_hotkeys();
