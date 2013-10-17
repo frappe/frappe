@@ -61,7 +61,7 @@ class CustomDocType(DocType):
 		f.write(custom_script)
 		
 def get_custom_server_script_path(doctype, plugin=None):
-	from webnotes.modules import scrub, get_plugin_module_path
+	from webnotes.modules import scrub, get_plugin_path
 	from webnotes.utils import get_site_base_path
 	import os
 	
@@ -75,7 +75,7 @@ def get_custom_server_script_path(doctype, plugin=None):
 		plugin = doctype_plugin or os.path.basename(get_site_base_path())
 	
 	# site_abs_path/plugin_name/module_name/doctype/doctype_name/doctype_name.py
-	path = os.path.join(get_plugin_module_path(scrub(plugin), scrub(module)), "doctype", 
-		scrub(doctype), scrub(doctype) + ".py")
+	path = os.path.join(get_plugin_path(scrub(plugin)), scrub(module),
+		"doctype", scrub(doctype), scrub(doctype) + ".py")
 		
 	return path

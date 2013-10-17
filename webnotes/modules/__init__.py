@@ -33,9 +33,9 @@ def get_module_path(module):
 	else:
 		return os.path.join(app_path, 'app', m)
 		
-def get_plugin_module_path(plugin, module):
+def get_plugin_path(plugin):
 	from webnotes.utils import get_site_path
-	return get_site_path(webnotes.conf.get("plugins_path"), scrub(plugin), scrub(module))
+	return get_site_path(webnotes.conf.get("plugins_path"), scrub(plugin))
 
 def get_doc_path(module, doctype, name):
 	dt, dn = scrub_dt_dn(doctype, name)

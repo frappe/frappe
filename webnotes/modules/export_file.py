@@ -5,7 +5,7 @@ from __future__ import unicode_literals
 
 import webnotes, os
 import webnotes.model.doc
-from webnotes.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn, get_plugin_module_path
+from webnotes.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn, get_plugin_path
 
 def export_doc(doc):
 	export_to_files([[doc.doctype, doc.name]])
@@ -73,7 +73,7 @@ def get_module_name(doclist):
 		
 def create_folder(module, dt, dn, code_type, plugin=None):
 	if plugin:
-		module_path = get_plugin_module_path(plugin, module)
+		module_path = os.path.join(get_plugin_path(plugin), scrub(module))
 	else:
 		module_path = get_module_path(module)
 
