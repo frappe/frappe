@@ -606,6 +606,7 @@ def get_site_details(site=None, verbose=False):
 	import webnotes
 	from webnotes.profile import get_system_managers
 	from core.doctype.profile.profile import get_total_users, get_active_users
+	import json
 	webnotes.connect(site=site)
 	ret = {
 		'last_backup_on': webnotes.local.conf.last_backup_on,
@@ -615,7 +616,7 @@ def get_site_details(site=None, verbose=False):
 	}
 	webnotes.destroy()
 	if verbose:
-		print ret
+		print json.dumps(ret, indent=4)
 	return ret
 	
 if __name__=="__main__":
