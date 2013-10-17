@@ -435,9 +435,9 @@ class Bean:
 			
 	def extract_images_from_text_editor(self):
 		from webnotes.utils.file_manager import extract_images_from_html
-		self._files = []
-		for df in self.meta.get({"doctype": "DocField", "parent": self.doc.doctype, "fieldtype":"Text Editor"}):
-			extract_images_from_html(self.doc, df.fieldname)
+		if self.doc.doctype != "DocType":
+			for df in self.meta.get({"doctype": "DocField", "parent": self.doc.doctype, "fieldtype":"Text Editor"}):
+				extract_images_from_html(self.doc, df.fieldname)
 
 def clone(source_wrapper):
 	""" make a clone of a document"""

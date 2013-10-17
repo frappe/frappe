@@ -441,8 +441,7 @@ class Document:
 	def get_meta(self):
 		if not self._meta:
 			self._meta = webnotes.conn.get_value("DocType", self.doctype, ["autoname", "issingle", 
-				"istable", "name_case"], as_dict=True)
-		
+				"istable", "name_case"], as_dict=True) or webnotes._dict()
 		return self._meta
 
 		
