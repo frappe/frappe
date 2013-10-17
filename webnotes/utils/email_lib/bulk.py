@@ -35,7 +35,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		import urllib
 		updated = message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
-			<small><a href="%s/server.py?%s">
+			<small><a href="%s/?%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
 			urllib.urlencode({
 				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",

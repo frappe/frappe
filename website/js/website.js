@@ -41,7 +41,7 @@ $.extend(wn, {
 		wn.prepare_call(opts);
 		$.ajax({
 			type: "POST",
-			url: "server.py",
+			url: "/",
 			data: opts.args,
 			dataType: "json",
 			success: function(data) {

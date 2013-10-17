@@ -15,7 +15,7 @@ wn.tools.downloadify = function(data, roles, me) {
 	
 	// save file > abt 200 kb using server call
 	if((_get_data().length > 200000) || flash_disabled) {
-		open_url_post("server.py?cmd=webnotes.utils.datautils.send_csv_to_client",
+		open_url_post("/?cmd=webnotes.utils.datautils.send_csv_to_client",
 			{args: {data: data, filename: me.title}}, true);
 	} else {
 		wn.require("lib/js/lib/downloadify/downloadify.min.js");
