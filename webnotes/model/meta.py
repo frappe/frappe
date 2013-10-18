@@ -7,15 +7,9 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import cstr, cint
 	
-def get_dt_values(doctype, fields, as_dict = 0):
-	return webnotes.conn.sql('SELECT %s FROM tabDocType WHERE name="%s"' % (fields, doctype), as_dict = as_dict)
-
-def set_dt_value(doctype, field, value):
-	return webnotes.conn.set_value('DocType', doctype, field, value)
-
 def is_single(doctype):
 	try:
-		return get_dt_values(doctype, 'issingle')[0][0]
+		return webnotes.conn.get_value("DocType", doctype, "issingle")
 	except IndexError, e:
 		raise Exception, 'Cannot determine whether %s is single' % doctype
 

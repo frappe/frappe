@@ -308,12 +308,14 @@ def clear_cache(user=None, doctype=None):
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
+		reset_metadata_version()
 	elif user:
 		from webnotes.sessions import clear_cache
 		clear_cache(user)
-	else:
+	else: # everything
 		from webnotes.sessions import clear_cache
 		clear_cache()
+		reset_metadata_version()
 	
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
@@ -388,6 +390,11 @@ def generate_hash():
 	"""Generates random hash for session id"""
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
+
+def reset_metadata_version():
+	v = generate_hash()
+	cache().set_value("metadata_version", v)
+	return v
 
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
 	from webnotes.model.code import get_obj
