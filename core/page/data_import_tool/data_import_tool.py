@@ -498,7 +498,7 @@ def export_json(doctype, name, path):
 			d["__islocal"] = 1
 		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
 
-def import_doclist(path):
+def import_doclist(path, overwrite=False):
 	import os
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
@@ -512,5 +512,5 @@ def import_doclist(path):
 				print "Imported: " + b.doc.doctype + " / " + b.doc.name
 				webnotes.conn.commit()
 		if f.endswith(".csv"):
-			import_file_by_path(f, ignore_links=True)
+			import_file_by_path(f, ignore_links=True, overwrite=overwrite)
 			webnotes.conn.commit()

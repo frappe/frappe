@@ -447,10 +447,10 @@ def export_csv(doctype, path, site=None):
 	webnotes.destroy()
 
 @cmd
-def import_doclist(path, site=None):
+def import_doclist(path, site=None, force=False):
 	from core.page.data_import_tool import data_import_tool
 	webnotes.connect(site=site)
-	data_import_tool.import_doclist(path)
+	data_import_tool.import_doclist(path, overwrite=force)
 	webnotes.destroy()
 	
 # translation
