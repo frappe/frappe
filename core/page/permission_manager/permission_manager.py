@@ -8,10 +8,10 @@ import webnotes.defaults
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def get_roles_and_doctypes():
 	return {
-		"doctypes": [d[0] for d in webnotes.conn.sql("""select name from tabDocType where
+		"doctypes": [d[0] for d in webnotes.conn.sql("""select name from `tabDocType` dt where
 			ifnull(istable,0)=0 and
-			ifnull(issingle,0)=0 and
-			name not in ('DocType')""")],
+			name not in ('DocType', 'Control Panel') and
+			exists(select * from `tabDocField` where parent=dt.name)""")],
 		"roles": [d[0] for d in webnotes.conn.sql("""select name from tabRole where name not in
 			('Guest', 'Administrator')""")]
 	}
