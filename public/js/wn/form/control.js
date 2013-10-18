@@ -876,7 +876,7 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 });
 
 wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
-	editor_name: "wn.ui.Editor",
+	editor_name: "bsEditor",
 	make_input: function() {
 		this._super();
 		this.editor.editor.keypress("ctrl+s meta+s", function() {

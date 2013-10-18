@@ -6,8 +6,7 @@
 // todo 
 // make it inline friendly
 
-wn.provide("wn.ui");
-wn.ui.Editor = Class.extend({
+bsEditor = Class.extend({
 	init: function(options) {
 		this.options = $.extend(options || {}, this.default_options);
 		if(this.options.editor) {
@@ -25,7 +24,7 @@ wn.ui.Editor = Class.extend({
 		var me = this;
 		this.editor = $(editor);
 		this.editor.on("click", function() {
-			if(!this.editing) {
+			if(!me.editing) {
 				me.set_editing();
 			}
 		}).on("mouseup keyup mouseout", function() {
@@ -50,13 +49,13 @@ wn.ui.Editor = Class.extend({
 	},
 	
 	setup_fixed_toolbar: function() {
-		if(!wn._editor_toolbar) {
-			wn._editor_toolbar = new wn.ui.EditorToolbar(this.options)
+		if(!window.bs_editor_toolbar) {
+			window.bs_editor_toolbar = new bsEditorToolbar(this.options)
 		}
-		this.toolbar = wn._editor_toolbar;
+		this.toolbar = window.bs_editor_toolbar;
 	},
 	setup_inline_toolbar: function() {
-		this.toolbar = new wn.ui.EditorToolbar(this.options, this.wrapper);
+		this.toolbar = new bsEditorToolbar(this.options, this.wrapper);
 	},
 	onhide: function(action) {
 		this.editing = false;
@@ -171,7 +170,7 @@ wn.ui.Editor = Class.extend({
 			dataurl = parts[0] + ',' + parts[1];
 			if(me.options.max_file_size) {
 				if(dataurl.length > (me.options.max_file_size * 1024 * 1024 * 1.4)) {
-					wn.msgprint("Max file size (" + me.options.max_file_size + "M) exceeded.");
+					bs_get_modal("Upload Error", "Max file size (" + me.options.max_file_size + "M) exceeded.").modal("show");
 					throw "file size exceeded";
 				}
 			}
@@ -185,29 +184,24 @@ wn.ui.Editor = Class.extend({
 	},
 	
 	set_input: function(value) {
-		if(this.options.field.inside_change_event)
+		if(this.options.field && this.options.field.inside_change_event)
 			return;
 		this.editor.html(value==null ? "" : value);
 	}
 	
 })
 
-wn.ui.EditorToolbar = Class.extend({
+bsEditorToolbar = Class.extend({
 	init: function(options, parent) {
 		this.options = options;
 		this.inline = !!parent;
-		this.options.toolbar_style = $.extend(this.options.toolbar_style || {}, 
-				(this.inline ? this.inline_style : this.fixed_style));
+		this.options.toolbar_style = $.extend((this.inline ? this.inline_style : this.fixed_style),
+			this.options.toolbar_style || {});
 		this.make(parent);
 		this.toolbar.css(this.options.toolbar_style);
 		this.setup_image_button();
 		this.bind_events();
-		this.bind_touch();
-
-		var me = this;
-		$(document).mousedown(function(e) {
-			me.clicked = $(e.target);
-	    });
+		//this.bind_touch();
 	},
 	fixed_style: {
 		position: "fixed",
@@ -215,7 +209,8 @@ wn.ui.EditorToolbar = Class.extend({
 		padding: "5px",
 		width: "100%",
 		height: "45px",
-		"background-color": "#777"
+		"background-color": "black",
+		display: "none"
 	},
 	inline_style: {
 		padding: "5px",
@@ -229,13 +224,13 @@ wn.ui.EditorToolbar = Class.extend({
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small dropdown-toggle" data-toggle="dropdown" \
 						title="Font Size"><i class="icon-text-height"></i> <b class="caret"></b></a>\
-					<ul class="dropdown-menu">\
-						<li><a data-edit="formatBlock &lt;p&gt;"><p>Paragraph</p></a></li>\
-						<li><a data-edit="formatBlock &lt;h1&gt;"><h1>Heading 1</h1></a></li>\
-						<li><a data-edit="formatBlock &lt;h2&gt;"><h2>Heading 2</h2></a></li>\
-						<li><a data-edit="formatBlock &lt;h3&gt;"><h3>Heading 3</h3></a></li>\
-						<li><a data-edit="formatBlock &lt;h4&gt;"><h4>Heading 4</h4></a></li>\
-						<li><a data-edit="formatBlock &lt;h5&gt;"><h5>Heading 5</h5></a></li>\
+					<ul class="dropdown-menu" role="menu">\
+						<li><a href="#" data-edit="formatBlock &lt;p&gt;"><p>Paragraph</p></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h1&gt;"><h1>Heading 1</h1></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h2&gt;"><h2>Heading 2</h2></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h3&gt;"><h3>Heading 3</h3></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h4&gt;"><h4>Heading 4</h4></a></li>\
+						<li><a href="#" data-edit="formatBlock &lt;h5&gt;"><h5>Heading 5</h5></a></li>\
 					</ul>\
 				</div>\
 				<div class="btn-group form-group">\
@@ -266,7 +261,7 @@ wn.ui.EditorToolbar = Class.extend({
 				</div>\
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="HTML">\
-						<i class="icon-wrench"></i></a>\
+						<i class="icon-code"></i></a>\
 					<a class="btn btn-default btn-small btn-cancel" data-action="Cancel" title="Cancel">\
 						<i class="icon-remove"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="Save">\
@@ -308,6 +303,8 @@ wn.ui.EditorToolbar = Class.extend({
 	},
 
 	hide: function(action) {
+		if(!this.editor)
+			return;
 		var me = this;
 		this.toolbar.css("z-index", 0);
 		$("body").animate({"padding-top": 0 }, {complete: function() {
@@ -327,16 +324,18 @@ wn.ui.EditorToolbar = Class.extend({
 			me.editor.focus();
 			me.execCommand($(this).data(me.options.command_role));
 			me.save_selection();
+			// close dropdown
+			me.toolbar.find('[data-toggle=dropdown]').dropdown("hide");
 			return false;
 		});
 		this.toolbar.find('[data-toggle=dropdown]').click(function() { me.restore_selection() });
 
 		// link
 		this.toolbar.find(".btn-add-link").on("click", function() {
-			if(!wn._link_editor) {
-				wn._link_editor = new wn.ui.LinkEditor(me);
+			if(!window.bs_link_editor) {
+				window.bs_link_editor = new bsLinkEditor(me);
 			}
-			wn._link_editor.show();
+			window.bs_link_editor.show();
 		})
 		
 		// file event
@@ -362,17 +361,17 @@ wn.ui.EditorToolbar = Class.extend({
 		
 		// edit html
 		this.toolbar.find(".btn-html").on("click", function() {
-			if(!wn._html_editor)
-				wn._html_editor = new wn.ui.HTMLEditor();
+			if(!window.bs_html_editor)
+				window.bs_html_editor = new bsHTMLEditor();
 			
-			wn._html_editor.show(me.editor);
+			window.bs_html_editor.show(me.editor);
 		})
 	},
 
 	update: function () {
 		var me = this;
-		if (this.options.active_toolbar_class) {
-			$(this.options.toolbar_selector).find('.btn[data-' + this.options.command_role + ']').each(function () {
+		if (this.toolbar) {
+			$(this.toolbar).find('.btn[data-' + this.options.command_role + ']').each(function () {
 				var command = $(this).data(me.options.command_role);
 				if (document.queryCommandState(command)) {
 					$(this).addClass(me.options.active_toolbar_class);
@@ -400,28 +399,8 @@ wn.ui.EditorToolbar = Class.extend({
 	
 	save_selection: function () {
 		this.selected_range = this.get_current_range();
-		this.selected_html = this.get_current_html();
 	},
-	
-	get_current_html: function() {
-	    var html = "";
-	    if (typeof window.getSelection != "undefined") {
-	        var sel = window.getSelection();
-	        if (sel.rangeCount) {
-	            var container = document.createElement("div");
-	            for (var i = 0, len = sel.rangeCount; i < len; ++i) {
-	                container.appendChild(sel.getRangeAt(i).cloneContents());
-	            }
-	            html = container.innerHTML;
-	        }
-	    } else if (typeof document.selection != "undefined") {
-	        if (document.selection.type == "Text") {
-	            html = document.selection.createRange().htmlText;
-	        }
-	    }
-	    return html;
-	},
-	
+		
 	restore_selection: function () {
 		var selection = window.getSelection();
 		if (this.selected_range) {
@@ -437,30 +416,34 @@ wn.ui.EditorToolbar = Class.extend({
 		input.data(this.options.selection_marker, color);
 	},
 	
-	bind_touch: function() {
-		var me = this;
-		$(window).bind('touchend', function (e) {
-			var isInside = (me.editor.is(e.target) || me.editor.has(e.target).length > 0),
-				current_range = me.get_current_range(),
-				clear = current_range && (current_range.startContainer === current_range.endContainer && current_range.startOffset === current_range.endOffset);
-			if (!clear || isInside) {
-				me.save_selection();
-				me.update();
-			}
-		});
-	}
+	// bind_touch: function() {
+	// 	var me = this;
+	// 	$(window).bind('touchend', function (e) {
+	// 		var isInside = (me.editor.is(e.target) || me.editor.has(e.target).length > 0),
+	// 			current_range = me.get_current_range(),
+	// 			clear = current_range && (current_range.startContainer === current_range.endContainer && current_range.startOffset === current_range.endOffset);
+	// 		if (!clear || isInside) {
+	// 			me.save_selection();
+	// 			me.update();
+	// 		}
+	// 	});
+	// }
 });
 
-wn.ui.HTMLEditor = Class.extend({
+bsHTMLEditor = Class.extend({
 	init: function() {
 		var me = this;
-		this.modal = wn.get_modal("Edit HTML", '<textarea class="form-control" \
+		this.modal = bs_get_modal("<i class='icon-code'></i> Edit HTML", '<textarea class="form-control" \
 			style="height: 400px; width: 100%; font-family: Monaco, Courier New, Fixed; font-size: 11px">\
 			</textarea><br>\
 			<button class="btn btn-primary" style="margin-top: 7px;">Save</button>');
 		this.modal.addClass("wn-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
-			me.editor.html(me.modal.find("textarea").val());
+			var html = me.modal.find("textarea").val();
+			$.each(me.dataurls, function(key, val) {
+				html = html.replace(key, val);
+			})
+			me.editor.html();
 			me.modal.modal("hide");
 		});
 	},
@@ -468,15 +451,23 @@ wn.ui.HTMLEditor = Class.extend({
 		var me = this;
 		this.editor = editor;
 		this.modal.modal("show")
-		this.modal.find("textarea").html(html_beautify(me.editor.html()));
+		var html = me.editor.html();
+		// pack dataurls so that html display is faster
+		this.dataurls = {}
+		html = html.replace(/<img\s*src=\s*["\'](data:[^,]*),([^"\']*)["\']/g, function(full, g1, g2) {
+			var key = g2.slice(0,5) + "..." + g2.slice(-5);
+			me.dataurls[key] = g1 + "," + g2;
+			return '<img src="'+g1 + "," + key+'"';
+		})
+		this.modal.find("textarea").html(html_beautify(html));
 	}
 });
 
-wn.ui.LinkEditor = Class.extend({
+bsLinkEditor = Class.extend({
 	init: function(toolbar) {
 		var me = this;
 		this.toolbar = toolbar;
-		this.modal = wn.get_modal("Edit HTML", '<div class="form-group">\
+		this.modal = bs_get_modal("<i class='icon-globe'></i> Insert Link", '<div class="form-group">\
 				<input type="text" class="form-control" placeholder="http://example.com" />\
 			</div>\
 			<div class="checkbox" style="position: static;">\
@@ -507,4 +498,6 @@ wn.ui.LinkEditor = Class.extend({
 		this.modal.find("input[type=text]").val("");
 		this.modal.modal("show");
 	}
-})
+});
+
+bs_get_modal = wn.get_modal;

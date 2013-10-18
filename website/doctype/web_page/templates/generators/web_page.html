@@ -10,9 +10,9 @@
 <script>
 $(function() {
 	window.name = "{{ name }}";
-	if(getCookie("full_name")) {
+	if(window.logged_in) {
 		wn.require("js/editor.min.js");
-		wn.editor = new wn.ui.Editor({
+		wn.editor = new bsEditor({
 			editor: $(".web-page-content"),
 			onsave: function(editor) {
 				wn.call({
