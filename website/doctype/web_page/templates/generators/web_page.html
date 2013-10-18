@@ -1,10 +1,5 @@
 {% extends base_template %}
 
-{% block head %}
-<!--script src="lib/js/lib/jquery/jquery.hotkeys.js"></script>
-<script src="lib/js/wn/ui/editor.js"></script-->
-{% endblock %}
-
 {% block content %}
 <div class="col-md-12" style="margin-top: 15px;">
 	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
@@ -14,9 +9,9 @@
 </div>
 <script>
 $(function() {
-	window.name = "{{ name }}";
-	if(getCookie("full_name")) {
-		wn.editor = new wn.ui.Editor($(".web-page-content"));
+	if(window.logged_in && getCookie("system_user")==="yes") {
+		wn.require("lib/js/wn/website/editable.js");
+		wn.make_editable($(".web-page-content"), "Web Page", "{{ name }}", "main_section");
 	}
 })
 </script>

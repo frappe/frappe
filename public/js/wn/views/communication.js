@@ -136,7 +136,6 @@ wn.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new wn.ui.Dialog({
-			width: 640,
 			title: wn._("Add Reply") + ": " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: [
@@ -166,6 +165,9 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"select_attachments"}
 			]
 		});
+
+		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
+		
 		$(document).on("upload_complete", function(event, filename, fileurl) {
 			if(me.dialog.display) {
 				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);

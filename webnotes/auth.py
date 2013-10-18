@@ -103,14 +103,17 @@ class LoginManager:
 			self.post_login()
 			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
 			if info.user_type=="Website User":
+				webnotes._response.set_cookie("system_user", "no")
 				webnotes.response["message"] = "No App"
 			else:
+				webnotes._response.set_cookie("system_user", "yes")
 				webnotes.response['message'] = 'Logged In'
 
 			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 			webnotes.response["full_name"] = full_name
 			webnotes._response.set_cookie("full_name", full_name)
 			webnotes._response.set_cookie("user_id", self.user)
+
 	
 	def post_login(self):
 		self.run_trigger()

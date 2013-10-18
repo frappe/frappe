@@ -50,11 +50,12 @@ class Document:
 		 * `idx` : Index (sequence) of the child record	
 	"""
 	
-	def __init__(self, doctype = None, name = None, fielddata = None, prefix='tab'):
+	def __init__(self, doctype = None, name = None, fielddata = None):
 		self._roles = []
 		self._perms = []
 		self._user_defaults = {}
-		self._prefix = prefix
+		self._new_name_set = False
+		self._meta = None
 		
 		if isinstance(doctype, dict):
 			fielddata = doctype
@@ -130,7 +131,7 @@ class Document:
 			self._loadsingle()
 		else:
 			try:
-				dataset = webnotes.conn.sql('select * from `%s%s` where name="%s"' % (self._prefix, self.doctype, self.name.replace('"', '\"')))
+				dataset = webnotes.conn.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
 			except MySQLdb.ProgrammingError, e:
 				if e.args[0]==1146:
 					dataset = None
@@ -179,6 +180,46 @@ class Document:
 	
 	def get(self, name, value=None):
 		return self.fields.get(name, value)
+
+	def insert(self):
+		self.fields['__islocal'] = 1
+		self.save()
+		return self
+		
+	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname=1,
+			keep_timestamps=False):
+			
+		self.get_meta()
+
+		if new:
+			self.fields["__islocal"] = 1
+
+		# add missing parentinfo (if reqd)
+		if self.parent and not (self.parenttype and self.parentfield):
+			self.update_parentinfo()
+
+		if self.parent and not self.idx:
+			self.set_idx()
+
+		# if required, make new
+		if not self._meta.issingle:
+			if self.fields.get('__islocal'):
+				r = self._insert(make_autoname=make_autoname, keep_timestamps = keep_timestamps)
+				if r: 
+					return r
+			else:
+				if not webnotes.conn.exists(self.doctype, self.name):
+					print self.fields
+					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
+						raise_exception=1)
+				
+				
+		# save the values
+		self._update_values(self._meta.issingle, 
+			check_links and self.make_link_list() or {}, ignore_fields=ignore_fields,
+			keep_timestamps=keep_timestamps)
+		self._clear_temp_fields()
+
 	
 	def _get_amended_name(self):
 		am_id = 1
@@ -189,23 +230,35 @@ class Document:
 			
 		self.name = am_prefix + '-' + str(am_id)
 
-	def _set_name(self, autoname, istable):
+	def set_new_name(self, controller=None):
+		if self._new_name_set:
+			# already set by bean
+			return
+
+		self._new_name_set = True
+
+		self.get_meta()
+		autoname = self._meta.autoname
+		
+		
 		self.localname = self.name
 
-		# get my object
-		import webnotes.model.code
-		so = webnotes.model.code.get_server_obj(self, [])
 
 		# amendments
 		if self.amended_from: 
 			self._get_amended_name()
+
 		# by method
-		elif so and hasattr(so, 'autoname'):
-			r = webnotes.model.code.run_server_obj(so, 'autoname')
-			if r: return r
+		else:
+			# get my object
+			if not controller:
+				controller = webnotes.get_obj([self])
+				
+			if hasattr(controller, 'autoname'):
+				return controller.autoname()
 			
 		# based on a field
-		elif autoname and autoname.startswith('field:'):
+		if autoname and autoname.startswith('field:'):
 			n = self.fields[autoname[6:]]
 			if not n:
 				raise Exception, 'Name is required'
@@ -231,13 +284,13 @@ class Document:
 			self.name = self.fields['__newname']
 
 		# default name for table
-		elif istable: 
+		elif self._meta.istable: 
 			self.name = make_autoname('#########', self.doctype)
 			
-		# unable to determine a name, use a serial number!
+		# unable to determine a name, use global series
 		if not self.name:
 			self.name = make_autoname('#########', self.doctype)
-			
+					
 	def set_naming_series(self):
 		if not self.naming_series:
 			# pick default naming series
@@ -247,13 +300,13 @@ class Document:
 				self.naming_series = self.naming_series.split("\n")
 				self.naming_series = self.naming_series[0] or self.naming_series[1]
 			
-	def _insert(self, autoname, istable, case='', make_autoname=1, keep_timestamps=False):
+	def _insert(self, make_autoname=True, keep_timestamps=False):
 		# set name
 		if make_autoname:
-			self._set_name(autoname, istable)
+			self.set_new_name()
 		
 		# validate name
-		self.name = validate_name(self.doctype, self.name, case)
+		self.name = validate_name(self.doctype, self.name, self._meta.name_case)
 				
 		# insert!
 		if not keep_timestamps:
@@ -370,10 +423,12 @@ class Document:
 		if getattr(webnotes.local, "valid_fields_map", None) is None:
 			webnotes.local.valid_fields_map = {}
 		
+		self.get_meta()
+		
 		valid_fields_map = webnotes.local.valid_fields_map
 		
 		if not valid_fields_map.get(self.doctype):
-			if cint(webnotes.conn.get_value("DocType", self.doctype, "issingle")):
+			if cint( self._meta.issingle):
 				doctypelist = webnotes.model.doctype.get(self.doctype)
 				valid_fields_map[self.doctype] = doctypelist.get_fieldnames({
 					"fieldtype": ["not in", webnotes.model.no_value_fields]})
@@ -382,47 +437,13 @@ class Document:
 					webnotes.conn.get_table_columns(self.doctype)
 			
 		return valid_fields_map.get(self.doctype)
-		
-	def save(self, new=0, check_links=1, ignore_fields=0, make_autoname=1,
-			keep_timestamps=False):
-		res = webnotes.model.meta.get_dt_values(self.doctype,
-			'autoname, issingle, istable, name_case', as_dict=1)
-		res = res and res[0] or {}
-		
-		if new:
-			self.fields["__islocal"] = 1
 
-		# add missing parentinfo (if reqd)
-		if self.parent and not (self.parenttype and self.parentfield):
-			self.update_parentinfo()
+	def get_meta(self):
+		if not self._meta:
+			self._meta = webnotes.conn.get_value("DocType", self.doctype, ["autoname", "issingle", 
+				"istable", "name_case"], as_dict=True) or webnotes._dict()
+		return self._meta
 
-		if self.parent and not self.idx:
-			self.set_idx()
-
-		# if required, make new
-		if not res.get('issingle'):
-			if self.fields.get('__islocal'):
-				r = self._insert(res.get('autoname'), res.get('istable'), res.get('name_case'),
-					make_autoname, keep_timestamps = keep_timestamps)
-				if r: 
-					return r
-			else:
-				if not webnotes.conn.exists(self.doctype, self.name):
-					print self.fields
-					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
-						raise_exception=1)
-				
-				
-		# save the values
-		self._update_values(res.get('issingle'), 
-			check_links and self.make_link_list() or {}, ignore_fields=ignore_fields,
-			keep_timestamps=keep_timestamps)
-		self._clear_temp_fields()
-
-	def insert(self):
-		self.fields['__islocal'] = 1
-		self.save()
-		return self
 		
 	def update_parentinfo(self):
 		"""update parent type and parent field, if not explicitly specified"""
@@ -574,22 +595,18 @@ def make_autoname(key, doctype=''):
 
 def getseries(key, digits, doctype=''):
 	# series created ?
-	if webnotes.conn.sql("select name from tabSeries where name='%s'" % key):
-
+	current = cint(webnotes.conn.get_value("Series", key, "current"))
+	if current:
 		# yes, update it
-		webnotes.conn.sql("update tabSeries set current = current+1 where name='%s'" % key)
-
-		# find the series counter
-		r = webnotes.conn.sql("select current from tabSeries where name='%s'" % key)
-		n = r[0][0]
+		webnotes.conn.sql("update tabSeries set current = current+1 where name=%s", key)
+		current = current + 1
 	else:
-	
 		# no, create it
 		webnotes.conn.sql("insert into tabSeries (name, current) values ('%s', 1)" % key)
-		n = 1
-	return ('%0'+str(digits)+'d') % n
+		current = 1
+	return ('%0'+str(digits)+'d') % current
 
-def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix='tab'):
+def getchildren(name, childtype, field='', parenttype='', from_doctype=0):
 	import webnotes
 	from webnotes.model.doclist import DocList
 	
@@ -603,8 +620,8 @@ def getchildren(name, childtype, field='', parenttype='', from_doctype=0, prefix
 		condition += ' and parenttype=%s '
 		values.append(parenttype)
 
-	dataset = webnotes.conn.sql("""select * from `%s%s` where parent=%s %s order by idx""" \
-		% (prefix, childtype, "%s", condition), tuple([name]+values))
+	dataset = webnotes.conn.sql("""select * from `tab%s` where parent=%s %s order by idx""" \
+		% (childtype, "%s", condition), tuple([name]+values))
 	desc = webnotes.conn.get_description()
 
 	l = DocList()
@@ -627,7 +644,7 @@ def check_page_perm(doc):
 		webnotes.response['403'] = 1
 		raise webnotes.PermissionError, '[WNF] No read permission for %s %s' % ('Page', doc.name)
 
-def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
+def get(dt, dn='', with_children = 1, from_controller = 0):
 	"""
 	Returns a doclist containing the main record and all child records
 	"""	
@@ -638,7 +655,7 @@ def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	dn = dn or dt
 
 	# load the main doc
-	doc = Document(dt, dn, prefix=prefix)
+	doc = Document(dt, dn)
 
 	if dt=='Page' and webnotes.session['user'] == 'Guest':
 		check_page_perm(doc)
@@ -653,7 +670,7 @@ def get(dt, dn='', with_children = 1, from_controller = 0, prefix = 'tab'):
 	# load chilren
 	doclist = DocList([doc,])
 	for t in tablefields:
-		doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
+		doclist += getchildren(doc.name, t[0], t[1], dt)
 
 	return doclist
 

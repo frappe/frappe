@@ -76,8 +76,12 @@ def load_doctype_module(doctype, module, prefix=""):
 		return None
 
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
+	import webnotes.model.doc
 	if dt:
-		import webnotes.model.doc
+		if isinstance(dt, list):
+			return get_server_obj(dt[0], dt)
+		if isinstance(dt, webnotes.model.doc.Document):
+			return get_server_obj(dt, [dt])
 		if not dn:
 			dn = dt
 		if with_children:

@@ -48,6 +48,7 @@ class Database:
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._cursor = self._conn.cursor()
+		webnotes.local.rollback_observers = []
 	
 	def use(self, db_name):
 		"""
@@ -152,7 +153,7 @@ class Database:
 		if self.transaction_writes and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
-		if query and query.strip().lower()=='commit':
+		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
 			
 		if query[:6].lower() in ['update', 'insert']:
@@ -439,10 +440,14 @@ class Database:
 	
 	def commit(self):
 		self.sql("commit")
+		webnotes.local.rollback_observers = []
 
 	def rollback(self):
-		self.sql("ROLLBACK")
-		self.transaction_writes = 0
+		self.sql("rollback")
+		for obj in webnotes.local.rollback_observers:
+			if hasattr(obj, "on_rollback"):
+				obj.on_rollback()
+		webnotes.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))

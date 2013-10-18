@@ -59,7 +59,7 @@ login.do_login = function(){
 		
 	$.ajax({
 		type: "POST",
-		url: "server.py",
+		url: "/",
 		data: args,
 		dataType: "json",
 		success: function(data) {

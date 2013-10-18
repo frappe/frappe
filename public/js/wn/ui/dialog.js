@@ -28,21 +28,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		this.make();
 	},
 	make: function() {
-		// ui-front class is used as appendTo by jquery.autocomplete
-		this.$wrapper = $('<div class="modal" style="overflow: auto;">\
-			<div class="modal-dialog">\
-				<div class="modal-content">\
-					<div class="modal-header">\
-						<a type="button" class="close" \
-							data-dismiss="modal" aria-hidden="true">&times;</a>\
-						<h4 class="modal-title"></h4>\
-					</div>\
-					<div class="modal-body ui-front">\
-					</div>\
-				</div>\
-			</div>\
-			</div>')
-			.appendTo(document.body);
+		this.$wrapper = wn.get_modal("", "");
 		this.wrapper = this.$wrapper.find('.modal-dialog').get(0);
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);

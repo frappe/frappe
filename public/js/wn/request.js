@@ -4,7 +4,7 @@
 // My HTTP Request
 
 wn.provide('wn.request');
-wn.request.url = 'server.py';
+wn.request.url = '/';
 
 // generic server call (call page, object)
 wn.call = function(opts) {

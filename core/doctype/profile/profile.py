@@ -28,7 +28,6 @@ class DocType:
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		if self.in_insert:
-			self.autoname()
 			if self.doc.name not in ("Guest", "Administrator"):
 				self.send_welcome_mail()
 				webnotes.msgprint(_("Welcome Email Sent"))
@@ -392,3 +391,22 @@ def profile_query(doctype, txt, searchfield, start, page_len, filters):
 			name asc 
 		limit %(start)s, %(page_len)s""" % {'key': searchfield, 'txt': "%%%s%%" % txt,  
 		'mcond':get_match_cond(doctype, searchfield), 'start': start, 'page_len': page_len})
+
+def get_total_users():
+	total_users = webnotes.conn.sql("""select count(*) from `tabProfile`
+		where ifnull(enabled, 0) = 1
+		and docstatus < 2
+		and name not in ('Administrator', 'Guest')""")
+	if total_users:
+		return total_users[0][0]
+	return 0
+
+def get_active_users():
+	active_users = webnotes.conn.sql("""select count(*) from `tabProfile`
+		where ifnull(enabled, 0) = 1
+		and docstatus < 2
+		and name not in ('Administrator', 'Guest')
+		and hour(timediff(now(), last_login)) < 72""")
+	if active_users:
+		return active_users[0][0]
+	return 0

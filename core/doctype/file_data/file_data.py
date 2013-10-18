@@ -15,6 +15,9 @@ class DocType():
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 		
+	def before_insert(self):
+		webnotes.local.rollback_observers.append(self)
+	
 	def on_update(self):
 		# check duplicate assignement
 		n_records = webnotes.conn.sql("""select count(*) from `tabFile Data`
@@ -27,12 +30,6 @@ class DocType():
 			raise webnotes.DuplicateEntryError
 			
 	def on_trash(self):
-		if self.doc.file_name and webnotes.conn.sql("""select count(*) from `tabFile Data`
-			where file_name=%s""", self.doc.file_name)[0][0]==1:
-			path = webnotes.utils.get_site_path(conf.files_path, self.doc.file_name)
-			if os.path.exists(path):
-				os.remove(path)
-		
 		if self.doc.attached_to_name:
 			# check persmission
 			try:
@@ -42,3 +39,13 @@ class DocType():
 					raise_exception=True)
 			except webnotes.DoesNotExistError:
 				pass
+
+		# if file not attached to any other record, delete it
+		if self.doc.file_name and webnotes.conn.sql("""select count(*) from `tabFile Data`
+			where file_name=%s and name!=%s""", (self.doc.file_name, self.doc.name)):
+			path = webnotes.utils.get_site_path(conf.files_path, self.doc.file_name)
+			if os.path.exists(path):
+				os.remove(path)
+
+	def on_rollback(self):
+		self.on_trash()

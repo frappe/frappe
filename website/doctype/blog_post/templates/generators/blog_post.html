@@ -10,7 +10,7 @@
 		<span itemprop="dateCreated">{{ updated }}</span></div>
 	<br>
 	<div itemprop="articleBody">
-	{{ content_html }}
+	{{ content }}
 	</div>
 	<!-- end blog content -->
 	{% if blogger_info %}
@@ -21,5 +21,13 @@
 	<h3>Comments</h3>
 	{% include 'lib/website/templates/includes/comments.html' %}
 </div>
+<script>
+$(function() {
+	if(window.logged_in && getCookie("system_user")==="yes") {
+		wn.require("lib/js/wn/website/editable.js");
+		wn.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
+	}
+})
+</script>
 {% include 'lib/website/doctype/blog_post/templates/includes/blog_footer.html' %}
 {% endblock %}
