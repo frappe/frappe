@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:32", 
   "docstatus": 0, 
-  "modified": "2013-07-10 14:54:06", 
+  "modified": "2013-10-16 15:38:55", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -54,7 +54,7 @@
   "label": "Type", 
   "oldfieldname": "fieldtype", 
   "oldfieldtype": "Select", 
-  "options": "Data\nSelect\nText\nSmall Text\nText Editor\nLink\nInt\nDate\nTime\nCurrency\nTable\nFloat\nCheck\nSection Break\nColumn Break\nButton\nRead Only\nCode\nHTML\nImage\nBlob\nPassword", 
+  "options": "Button\nCheck\nCode\nColumn Break\nCurrency\nData\nDate\nDatetime\nFloat\nHTML\nImage\nInt\nLink\nLong Text\nPassword\nPercent\nRead Only\nSection Break\nSelect\nSmall Text\nTable\nText\nText Editor\nTime", 
   "print_hide": 0, 
   "reqd": 1, 
   "search_index": 1
