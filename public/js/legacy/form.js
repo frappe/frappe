@@ -222,7 +222,7 @@ _f.Frm.prototype.email_doc = function(message) {
 	});
 }
 
-// email the form
+// rename the form
 _f.Frm.prototype.rename_doc = function() {
 	wn.model.rename_doc(this.doctype, this.docname);
 }
