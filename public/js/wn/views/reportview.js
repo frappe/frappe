@@ -28,9 +28,11 @@ wn.views.ReportViewPage = Class.extend({
 				wn.model.with_doc('Report', me.docname, function(r) {
 					me.page.reportview.set_columns_and_filters(
 						JSON.parse(wn.model.get("Report", me.docname)[0].json));
+					me.page.reportview.set_route_filters();
 					me.page.reportview.run();
 				});
 			} else {
+				me.page.reportview.set_route_filters();
 				me.page.reportview.run();
 			}
 		});
@@ -54,7 +56,7 @@ wn.views.ReportViewPage = Class.extend({
 			wrapper: $(this.page).find(".layout-main")
 		});
 	}
-})
+});
 
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(opts) {
@@ -134,6 +136,16 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		// second sort
 		if(opts.sort_by_next) this.sort_by_next_select.val(opts.sort_by_next);
 		if(opts.sort_order_next) this.sort_order_next_select.val(opts.sort_order_next);
+	},
+
+	set_route_filters: function() {
+		var me = this;
+		if(wn.route_options) {
+			$.each(wn.route_options, function(key, value) {
+				me.filter_list.add_filter(me.doctype, key, "=", value);
+			});
+			wn.route_options = null;
+		}
 	},
 	
 	// build args for query
