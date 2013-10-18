@@ -135,6 +135,8 @@ def setup_utilities(parser):
 		help="Set administrator password")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
 	parser.add_argument("--serve", action="store_true", help="Run development server")
+	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
+		dest="smtp_debug_server")
 	parser.add_argument("--get_site_details", action="store_true", help="Get site details")
 	parser.add_argument("--port", default=8000, type=int, help="port for development server")
 	
@@ -549,6 +551,12 @@ def mysql(site=None):
 	webnotes.init(site=site)
 	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name])
 	webnotes.destroy()
+
+@cmd
+def smtp_debug_server():
+	import commands, os
+	python = commands.getoutput('which python')
+	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 	
 @cmd
 def serve(port=8000):
