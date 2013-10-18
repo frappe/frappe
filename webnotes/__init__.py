@@ -121,6 +121,7 @@ class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class DoesNotExistError(ValidationError): pass
 class MandatoryError(ValidationError): pass
+class InvalidSignatureError(ValidationError): pass
 		
 def getTraceback():
 	import utils
@@ -259,7 +260,6 @@ def whitelist(allow_guest=False, allow_roles=None):
 
 
 class HashAuthenticatedCommand(object):
-
 	def __init__(self):
 		if hasattr(self, 'command'):
 			import inspect
@@ -271,10 +271,13 @@ class HashAuthenticatedCommand(object):
 		if self.verify_signature(kwargs, signature):
 			return self.command(*args, **kwargs)
 		else:
-			raise Exception
+			self.signature_error()
 
-	def command():
+	def command(self):
 		raise NotImplementedError
+		
+	def signature_error(self):
+		raise InvalidSignatureError
 
 	def get_signature(self, params, ignore_params=None):
 		import hmac

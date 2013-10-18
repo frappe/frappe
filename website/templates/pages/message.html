@@ -3,7 +3,7 @@
 {% set title=webnotes.local.message_title %}
 
 {% block content %}
-<div class="panel panel-danger">
+<div class="panel panel-{{ 'success' if webnotes.local.message_success else 'danger'}}">
 	<div class="panel-heading">
 		{{ title }}
 	</div>

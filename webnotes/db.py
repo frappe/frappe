@@ -400,6 +400,11 @@ class Database:
 		doc.modified_by = webnotes.session["user"]
 		self.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
 		doc.fields[field] = val
+		
+	def touch(self, doctype, docname):
+		from webnotes.utils import now
+		webnotes.conn.sql("""update `tab{doctype}` set `modified`=%s 
+			where name=%s""".format(doctype=doctype), (now(), docname))
 
 	def set_global(self, key, val, user='__global'):
 		self.set_default(key, val, user)
