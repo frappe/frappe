@@ -297,9 +297,11 @@ bsEditorToolbar = Class.extend({
 	show: function() {
 		var me = this;
 		this.toolbar.toggle(true);
-		$("body").animate({"padding-top": this.toolbar.outerHeight() }, {
-			complete: function() { 	me.toolbar.css("z-index", 1001); }
-		});
+		if(!this.inline) {
+			$("body").animate({"padding-top": this.toolbar.outerHeight() }, {
+				complete: function() { 	me.toolbar.css("z-index", 1001); }
+			});
+		}
 	},
 
 	hide: function(action) {
@@ -307,9 +309,11 @@ bsEditorToolbar = Class.extend({
 			return;
 		var me = this;
 		this.toolbar.css("z-index", 0);
-		$("body").animate({"padding-top": 0 }, {complete: function() {
-			me.toolbar.toggle(false);
-		}});
+		if(!this.inline) {
+			$("body").animate({"padding-top": 0 }, {complete: function() {
+				me.toolbar.toggle(false);
+			}});
+		}
 		
 		this.editor && this.editor.attr('contenteditable', false).data("object").onhide(action);
 		this.editor = null;

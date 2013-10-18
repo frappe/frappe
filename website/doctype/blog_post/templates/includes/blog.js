@@ -42,6 +42,7 @@ var blog = {
 		});
 	},
 	render: function(data) {
+		if(!data) data = [];
 		var $wrap = $("#blog-list");
 		$.each(data, function(i, b) {
 			// comments

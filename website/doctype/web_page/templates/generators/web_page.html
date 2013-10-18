@@ -9,29 +9,9 @@
 </div>
 <script>
 $(function() {
-	window.name = "{{ name }}";
-	if(window.logged_in) {
-		wn.require("js/editor.min.js");
-		wn.editor = new bsEditor({
-			editor: $(".web-page-content"),
-			onsave: function(editor) {
-				wn.call({
-					type: "POST",
-					method: "webnotes.client.set_value",
-					args: {
-						doctype:"Web Page",
-						name: window.name,
-						fieldname: "main_section",
-						value: editor.editor.html()
-					},
-					callback: function(r) {
-						wn.msgprint(r.exc ? "Error" : "Saved");
-						if(!r.exc)
-							editor.editor.html(r.message[0].main_section);
-					}
-				});
-			}
-		});
+	if(window.logged_in && getCookie("system_user")==="yes") {
+		wn.require("lib/js/wn/website/editable.js");
+		wn.make_editable($(".web-page-content"), "Web Page", "{{ name }}", "main_section");
 	}
 })
 </script>

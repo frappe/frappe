@@ -44,7 +44,6 @@ class DocType:
 		from webnotes.utils import global_date_format, get_fullname
 		self.doc.full_name = get_fullname(self.doc.owner)
 		self.doc.updated = global_date_format(self.doc.published_on)
-		self.doc.content_html = self.doc.content
 		
 		if self.doc.blogger:
 			self.doc.blogger_info = webnotes.doc("Blogger", self.doc.blogger).fields
