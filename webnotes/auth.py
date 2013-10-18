@@ -96,8 +96,7 @@ class LoginManager:
 	def __init__(self):
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
-			from webnotes.sessions import clear_cache
-			clear_cache(webnotes.form_dict.get('usr'))
+			webnotes.clear_cache(user = webnotes.form_dict.get('usr'))
 
 			self.authenticate()
 			self.post_login()

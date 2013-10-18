@@ -30,7 +30,7 @@ wn.assets = {
 			localStorage.clear();
 			console.log("Cleared App Cache.");
 		}
-
+		
 		if(localStorage._last_load) {
 			var not_updated_since = new Date() - new Date(localStorage._last_load);
 			if(not_updated_since < 10000 || not_updated_since > 86400000) {

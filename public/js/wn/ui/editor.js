@@ -44,7 +44,8 @@ bsEditor = Class.extend({
 		this.editor.attr('contenteditable', true);
 		this.original_html =  this.editor.html();
 		this.toolbar.show();
-		this.toolbar.editor = this.editor.focus();
+		if(this.options.editor)
+			this.toolbar.editor = this.editor.focus();
 		this.editing = true;
 	},
 	
