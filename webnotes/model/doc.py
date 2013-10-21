@@ -240,13 +240,12 @@ class Document:
 		self.get_meta()
 		autoname = self._meta.autoname
 		
-		
 		self.localname = self.name
 
 
 		# amendments
 		if self.amended_from: 
-			self._get_amended_name()
+			return self._get_amended_name()
 
 		# by method
 		else:
