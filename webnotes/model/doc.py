@@ -294,12 +294,8 @@ class Document:
 	def set_naming_series(self):
 		if not self.naming_series:
 			# pick default naming series
-			from webnotes.model.doctype import get_property
-			self.naming_series = get_property(self.doctype, "options", "naming_series")
-			if self.naming_series:
-				self.naming_series = self.naming_series.split("\n")
-				self.naming_series = self.naming_series[0] or self.naming_series[1]
-			
+			self.naming_series = get_default_naming_series(self.doctype)
+						
 	def _insert(self, make_autoname=True, keep_timestamps=False):
 		# set name
 		if make_autoname:
@@ -713,3 +709,13 @@ def validate_name(doctype, name, case=None, merge=False):
 			webnotes.msgprint('%s not allowed in ID (name)' % f, raise_exception =1)
 			
 	return name
+	
+def get_default_naming_series(doctype):
+	"""get default value for `naming_series` property"""
+	from webnotes.model.doctype import get_property
+	naming_series = get_property(doctype, "options", "naming_series")
+	if naming_series:
+		naming_series = naming_series.split("\n")
+		return naming_series[0] or naming_series[1]	
+	else:
+		return None
