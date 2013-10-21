@@ -92,6 +92,7 @@ wn.views.QueryReport = Class.extend({
 							report_name: me.report_name
 						},
 						callback: function(r) {
+							me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 							wn.dom.eval(r.message || "");
 							me.setup_filters();
 							me.refresh();
