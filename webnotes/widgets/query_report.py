@@ -25,9 +25,7 @@ def get_script(report_name):
 		with open(script_path, "r") as script:
 			# load translations
 			if webnotes.lang != "en":
-				from webnotes.modules import get_doc_path
 				from webnotes.translate import get_lang_data
-				#d = doclist[0]
 				messages = get_lang_data(locale_path, 
 					webnotes.lang, 'js')
 				webnotes.response["__messages"] = messages
