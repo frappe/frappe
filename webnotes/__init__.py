@@ -611,6 +611,7 @@ def get_conf(site):
 			raise NotFound()
 		
 		site_config.update(out)	
+		site_config["site_config"] = out
 		site_config['site'] = site
 		return site_config
 

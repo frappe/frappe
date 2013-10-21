@@ -907,3 +907,8 @@ def compare(val1, condition, val2):
 
 def get_site_name(hostname):
 	return hostname.split(':')[0]
+
+def get_disk_usage():
+	"""get disk usage of files folder"""
+	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=get_files_path()))
+	return cint(out.split("\n")[-2].split("\t")[0])

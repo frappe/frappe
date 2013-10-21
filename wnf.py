@@ -137,7 +137,10 @@ def setup_utilities(parser):
 	parser.add_argument("--serve", action="store_true", help="Run development server")
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
-	parser.add_argument("--get_site_details", action="store_true", help="Get site details")
+	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
+	parser.add_argument("--update_site_config", nargs=1, 
+		metavar="SITE-CONFIG-JSON", 
+		help="Update site_config.json for a given --site")
 	parser.add_argument("--port", default=8000, type=int, help="port for development server")
 	
 	# clear
@@ -610,22 +613,61 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	print colored('Updated', 'green')
 
 @cmd
-def get_site_details(site=None, verbose=False):
+def get_site_status(site=None, verbose=False):
 	import webnotes
+	import webnotes.utils
 	from webnotes.profile import get_system_managers
-	from core.doctype.profile.profile import get_total_users, get_active_users
+	from core.doctype.profile.profile import get_total_users, get_active_users, \
+		get_website_users, get_active_website_users
+	
 	import json
 	webnotes.connect(site=site)
 	ret = {
 		'last_backup_on': webnotes.local.conf.last_backup_on,
 		'active_users': get_active_users(),
 		'total_users': get_total_users(),
-		'system_managers': get_system_managers()
+		'active_website_users': get_active_website_users(),
+		'website_users': get_website_users(),
+		'system_managers': "\n".join(get_system_managers()),
+		'default_company': webnotes.conn.get_default("company"),
+		'disk_usage': webnotes.utils.get_disk_usage(),
+		'working_directory': webnotes.utils.get_base_path()
 	}
+	
+	# country, timezone, industry
+	control_panel_details = webnotes.conn.get_value("Control Panel", "Control Panel", 
+		["country", "time_zone", "industry"], as_dict=True)
+	if control_panel_details:
+		ret.update(control_panel_details)
+	
+	# basic usage/progress analytics
+	for doctype in ("Company", "Customer", "Item", "Quotation", "Sales Invoice",
+		"Journal Voucher", "Stock Ledger Entry"):
+			key = doctype.lower().replace(" ", "_") + "_exists"
+			ret[key] = 1 if webnotes.conn.count(doctype) else 0
+			
 	webnotes.destroy()
+	
 	if verbose:
-		print json.dumps(ret, indent=4)
+		print json.dumps(ret, indent=1, sort_keys=True)
+	
 	return ret
+
+@cmd
+def update_site_config(site_config, site, verbose=False):
+	import json
+	
+	if isinstance(site_config, basestring):
+		site_config = json.loads(site_config)
+	
+	webnotes.init(site=site)
+	webnotes.conf.site_config.update(site_config)
+	site_config_path = webnotes.get_conf_path(webnotes.conf.sites_dir, site)
+	
+	with open(site_config_path, "w") as f:
+		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)
+		
+	webnotes.destroy()
 	
 if __name__=="__main__":
 	main()
