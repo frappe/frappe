@@ -393,20 +393,26 @@ def profile_query(doctype, txt, searchfield, start, page_len, filters):
 		'mcond':get_match_cond(doctype, searchfield), 'start': start, 'page_len': page_len})
 
 def get_total_users():
-	total_users = webnotes.conn.sql("""select count(*) from `tabProfile`
-		where ifnull(enabled, 0) = 1
-		and docstatus < 2
-		and name not in ('Administrator', 'Guest')""")
-	if total_users:
-		return total_users[0][0]
-	return 0
+	"""Returns total no. of system users"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type != 'Website User'
+		and name not in ('Administrator', 'Guest')""")[0][0]
 
 def get_active_users():
-	active_users = webnotes.conn.sql("""select count(*) from `tabProfile`
-		where ifnull(enabled, 0) = 1
-		and docstatus < 2
+	"""Returns No. of system users who logged in, in the last 3 days"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type != 'Website User'
 		and name not in ('Administrator', 'Guest')
-		and hour(timediff(now(), last_login)) < 72""")
-	if active_users:
-		return active_users[0][0]
-	return 0
+		and hour(timediff(now(), last_login)) < 72""")[0][0]
+
+def get_website_users():
+	"""Returns total no. of website users"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type = 'Website User'""")[0][0]
+	
+def get_active_website_users():
+	"""Returns No. of website users who logged in, in the last 3 days"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type = 'Website User'
+		and hour(timediff(now(), last_login)) < 72""")[0][0]
+
