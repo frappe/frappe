@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes import _
 import webnotes.model
+import webnotes.utils
 import json
 
 @webnotes.whitelist()
@@ -94,3 +95,22 @@ def make_width_property_setter():
 		bean = webnotes.bean(doclist)
 		bean.ignore_permissions = True
 		bean.insert()
+
+@webnotes.whitelist()
+def bulk_update(docs):
+	docs = json.loads(docs)
+	failed_docs = []
+	for doc in docs:
+		try:
+			ddoc = {key: val for key, val in doc.iteritems() if key not in ['doctype', 'docname']}
+			doctype = doc['doctype']
+			docname = doc['docname']
+			bean = webnotes.bean(doctype, docname)
+			bean.doc.update(ddoc)
+			bean.save()
+		except:
+			failed_docs.append({
+				'doc': doc,
+				'exc': webnotes.utils.getTraceback()
+			})
+	return {'failed_docs': failed_docs}

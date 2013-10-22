@@ -181,6 +181,10 @@ class Document:
 	def get(self, name, value=None):
 		return self.fields.get(name, value)
 
+	def update(self, d):
+		self.fields.update(d)
+		return self
+
 	def insert(self):
 		self.fields['__islocal'] = 1
 		self.save()
