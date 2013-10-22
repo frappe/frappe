@@ -99,6 +99,9 @@ def build_message_files():
 	build_for_pages('lib/core')
 	build_for_pages('app')
 
+	build_from_query_report('lib/core')
+	build_from_query_report('app')
+
 	build_from_doctype_code('lib/core')
 	build_from_doctype_code('app')
 	
@@ -111,6 +114,23 @@ def build_message_files():
 	
 def build_for_pages(path):
 	"""make locale files for framework py and js (all)"""
+	messages = []
+	for (basepath, folders, files) in os.walk(path):
+		if os.path.basename(os.path.dirname(basepath))=="page":
+			messages_js, messages_py = [], []
+			for fname in files:
+				fname = cstr(fname)
+				if fname.endswith('.js'):
+					messages_js += get_message_list(os.path.join(basepath, fname))	
+				if fname.endswith('.py'):
+					messages_py += get_message_list(os.path.join(basepath, fname))	
+			if messages_js:
+				write_messages_file(basepath, messages_js, "js")
+			if messages_py:
+				write_messages_file(basepath, messages_py, "py")
+	
+def build_from_query_report(path):
+	"""make locale files for reports py and js (all)"""
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
 		if os.path.basename(os.path.dirname(basepath))=="page":
