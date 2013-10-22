@@ -78,7 +78,8 @@ def map_doc(source_doc, target_doc, table_map, source_meta, target_meta, source_
 			"parent": source_doc.doctype})] \
 		+ [d.fieldname for d in target_meta.get({"no_copy": 1, 
 			"parent": target_doc.doctype})] \
-		+ default_fields)
+		+ default_fields
+		+ table_map.get("field_no_map", []))
 
 	if table_map.get("validation"):
 		for key, condition in table_map["validation"].items():
