@@ -330,7 +330,7 @@ bsEditorToolbar = Class.extend({
 			me.execCommand($(this).data(me.options.command_role));
 			me.save_selection();
 			// close dropdown
-			me.toolbar.find('[data-toggle=dropdown]').dropdown("hide");
+			me.toolbar.find('[data-toggle="dropdown"]').dropdown("toggle");
 			return false;
 		});
 		this.toolbar.find('[data-toggle=dropdown]').click(function() { me.restore_selection() });
