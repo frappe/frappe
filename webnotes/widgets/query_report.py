@@ -19,11 +19,11 @@ def get_script(report_name):
 	doctype = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
 	script_path = os.path.join(get_module_path(doctype),
 		"report", scrub(report.name), scrub(report.name) + ".js") 
-	locale_path = os.path.join(get_module_path(webnotes.conn.get_value(doctype)),
-		"report", scrub(report.name))
+	
 	# load translations
 	if webnotes.lang != "en":
 		from webnotes.translate import get_lang_data
+		locale_path = os.path.join(get_module_path(webnotes.conn.get_value(doctype)),"report", scrub(report.name))
 		messages = get_lang_data(locale_path, 
 			webnotes.lang, 'js')
 		webnotes.response["__messages"] = messages
