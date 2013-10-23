@@ -138,7 +138,7 @@ def build_from_query_report():
 			messages.append(item.report_name)
 			module = get_doctype_module(item.ref_doctype)		
 			if module :
-				doctype_path = get_doc_path(module, "report", item.report_name)
+				doctype_path = get_doc_path(module, "Report", item.report_name)
 				write_messages_file(doctype_path, messages, 'js')
 
 def build_from_database():
