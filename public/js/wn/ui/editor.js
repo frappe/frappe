@@ -448,7 +448,7 @@ bsHTMLEditor = Class.extend({
 			$.each(me.dataurls, function(key, val) {
 				html = html.replace(key, val);
 			})
-			me.editor.html();
+			me.editor.html(html);
 			me.modal.modal("hide");
 		});
 	},
