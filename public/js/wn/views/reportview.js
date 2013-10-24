@@ -56,7 +56,7 @@ wn.views.ReportViewPage = Class.extend({
 			wrapper: $(this.page).find(".layout-main")
 		});
 	}
-})
+});
 
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(opts) {
