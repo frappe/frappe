@@ -20,7 +20,10 @@ Install:
 		$ lib/wnf.py --build
 
 1. Run development serve:
+
+		```
 		$ lib/wnf.py --serve
+		```
 	
 enjoy!
 
