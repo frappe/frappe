@@ -19,11 +19,10 @@ Install:
 		$ lib/wnf.py --reinstall
 		$ lib/wnf.py --build
 
-1. Run development serve:
+1. Run development server:
 
-		```
 		$ lib/wnf.py --serve
-		```
+
 	
 enjoy!
 
