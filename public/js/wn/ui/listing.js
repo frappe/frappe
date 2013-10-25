@@ -68,7 +68,7 @@ wn.ui.Listing = Class.extend({
 					<div class="show_filters well" style="display: none;">\
 						<div class="filter_area"></div>\
 						<div>\
-							<button class="btn btn-default btn-info search-btn">\
+							<button class="btn btn-info search-btn">\
 								<i class="icon-refresh icon-white"></i> \
 								<span class="hidden-phone">Search</span></button>\
 							<button class="btn btn-default add-filter-btn">\

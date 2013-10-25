@@ -8,7 +8,7 @@ Allows easy adding of Attachments of "File" objects
 """
 
 import webnotes	
-import conf
+from webnotes import conf
 from webnotes import msgprint
 from webnotes.utils import cint
 
@@ -101,12 +101,15 @@ class EMail:
 		self.msg_root.attach(part)
 	
 	def get_footer(self, footer=None):
-		"""append a footer (signature)"""
-		import startup
-		
+		"""append a footer (signature)"""		
 		footer = footer or ""
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
-		footer += getattr(startup, 'mail_footer', '')
+		
+		try:
+			import startup
+			footer += getattr(startup, 'mail_footer', '')
+		except ImportError, e:
+			pass
 		
 		return footer
 		
@@ -171,11 +174,11 @@ class EMail:
 		
 		if not self.sender:
 			self.sender = webnotes.conn.get_value('Email Settings', None,
-				'auto_email_id') or getattr(conf, 'auto_email_id', None)
+				'auto_email_id') or conf.get('auto_email_id') or None
 			if not self.sender:
 				webnotes.msgprint("""Please specify 'Auto Email Id' \
 					in Setup > Email Settings""")
-				if not hasattr(conf, "expires_on"):
+				if not "expires_on" in conf:
 					webnotes.msgprint("""Alternatively, \
 						you can also specify 'auto_email_id' in conf.py""")
 				raise webnotes.ValidationError
@@ -205,7 +208,7 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""
-		if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+		if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 			webnotes.msgprint("Emails are muted")
 			return
 		
@@ -213,7 +216,8 @@ class EMail:
 		import smtplib
 		try:
 			smtpserver = SMTPServer()
-			if hasattr(smtpserver, "always_use_login_id_as_sender") and cint(smtpserver.always_use_login_id_as_sender):
+			if hasattr(smtpserver, "always_use_login_id_as_sender") and \
+				cint(smtpserver.always_use_login_id_as_sender) and smtpserver.login:
 				self.sender = smtpserver.login
 			
 			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),
@@ -254,11 +258,11 @@ class SMTPServer:
 			self.password = es.mail_password
 			self.always_use_login_id_as_sender = es.always_use_login_id_as_sender
 		else:
-			self.server = getattr(conf, "mail_server", "")
-			self.port = getattr(conf, "mail_port", None)
-			self.use_ssl = cint(getattr(conf, "use_ssl", 0))
-			self.login = getattr(conf, "mail_login", "")
-			self.password = getattr(conf, "mail_password", "")
+			self.server = conf.get("mail_server") or ""
+			self.port = conf.get("mail_port") or None
+			self.use_ssl = cint(conf.get("use_ssl") or 0)
+			self.login = conf.get("mail_login") or ""
+			self.password = conf.get("mail_password") or ""
 			
 	@property
 	def sess(self):

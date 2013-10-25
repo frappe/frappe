@@ -200,7 +200,7 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 		if not issingle:
 			item = webnotes.conn.get_value(link_dt, {link_field:dn}, 
 				["name", "parent", "parenttype", "docstatus"], as_dict=True)
-		
+			
 			if item and item.parent != dn and (method=="Delete" or 
 					(method=="Cancel" and item.docstatus==1)):
 				webnotes.msgprint(method + " " + _("Error") + ":"+\

@@ -30,7 +30,7 @@ class DocType:
 		self.check_link_replacement_error()
 
 	def change_modified_of_parent(self):
-		if webnotes.in_import:
+		if webnotes.flags.in_import:
 			return
 		parent_list = webnotes.conn.sql("""SELECT parent 
 			from tabDocField where fieldtype="Table" and options="%s" """ % self.doc.name)
@@ -56,7 +56,6 @@ class DocType:
 		self.doc.version = cint(self.doc.version) + 1
 	
 	def validate_series(self, autoname=None, name=None):
-		sql = webnotes.conn.sql
 		if not autoname: autoname = self.doc.autoname
 		if not name: name = self.doc.name
 		
@@ -66,7 +65,7 @@ class DocType:
 		if autoname and (not autoname.startswith('field:')) and (not autoname.startswith('eval:')) \
 			and (not autoname=='Prompt') and (not autoname.startswith('naming_series:')):
 			prefix = autoname.split('.')[0]
-			used_in = sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
+			used_in = webnotes.conn.sql('select name from tabDocType where substring_index(autoname, ".", 1) = %s and name!=%s', (prefix, name))
 			if used_in:
 				msgprint('<b>Series already in use:</b> The series "%s" is already used in "%s"' % (prefix, used_in[0][0]), raise_exception=1)
 
@@ -77,8 +76,8 @@ class DocType:
 		self.change_modified_of_parent()
 		make_module_and_roles(self.doclist)
 		
-		import conf
-		if (not webnotes.in_import) and getattr(conf, 'developer_mode', 0):
+		from webnotes import conf
+		if (not webnotes.flags.in_import) and conf.get('developer_mode') or 0:
 			self.export_doc()
 			self.make_controller_template()
 		
@@ -189,8 +188,8 @@ def validate_fields(fields):
 					raise_exception=1)
 
 	def check_hidden_and_mandatory(d):
-		if d.hidden and d.reqd:
-			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd)""" % d.fields,
+		if d.hidden and d.reqd and not d.default:
+			webnotes.msgprint("""#%(idx)s %(label)s: Cannot be hidden and mandatory (reqd) without default""" % d.fields,
 				raise_exception=True)
 
 	def check_max_items_in_list(fields):

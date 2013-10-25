@@ -160,8 +160,17 @@ class DocType:
 					for prop in self.docfield_properties:
 						# do not set forbidden properties like idx
 						if prop in self.forbidden_properties: continue
-						d = self.prepare_to_set(prop, new_d, ref_d, dt_dl)
-						if d: diff_list.append(d)
+						
+						# check if its custom field:
+						if ref_d.get("__custom_field"):
+							# update custom field
+							if self.has_property_changed(ref_d, new_d, prop):
+								# using set_value not bean because validations are called
+								# in the end anyways
+								webnotes.conn.set_value("Custom Field", ref_d.name, prop, new_d.get(prop))
+						else:
+							d = self.prepare_to_set(prop, new_d, ref_d, dt_dl)
+							if d: diff_list.append(d)
 					break
 				
 				elif ref_d.doctype == 'DocType' and new_d.doctype == 'Customize Form':
@@ -190,13 +199,8 @@ class DocType:
 		return defaults
 
 
-	def prepare_to_set(self, prop, new_d, ref_d, dt_doclist, delete=0):
-		"""
-			Prepares docs of property setter
-			sets delete property if it is required to be deleted
-		"""
-		# Check if property has changed compared to when it was loaded 
-		if new_d.fields.get(prop) != ref_d.fields.get(prop) \
+	def has_property_changed(self, ref_d, new_d, prop):
+		return new_d.fields.get(prop) != ref_d.fields.get(prop) \
 		and not \
 		( \
 			new_d.fields.get(prop) in [None, 0] \
@@ -205,7 +209,15 @@ class DocType:
 		( \
 			new_d.fields.get(prop) in [None, ''] \
 			and ref_d.fields.get(prop) in [None, ''] \
-		):
+		)
+		
+	def prepare_to_set(self, prop, new_d, ref_d, dt_doclist, delete=0):
+		"""
+			Prepares docs of property setter
+			sets delete property if it is required to be deleted
+		"""
+		# Check if property has changed compared to when it was loaded 
+		if self.has_property_changed(ref_d, new_d, prop):
 			#webnotes.msgprint("new: " + str(new_d.fields[prop]) + " | old: " + str(ref_d.fields[prop]))
 			# Check if the new property is same as that in original doctype
 			# If yes, we need to delete the property setter entry
@@ -243,7 +255,7 @@ class DocType:
 						ref_d.fields.get(prop), value,
 						self.defaults.get(prop, {}).get("label") or prop,
 						" -or- ".join([", ".join(r) for r in \
-							self.property_restrictions.get(prop)])))
+							self.property_restrictions.get(prop)])), raise_exception=True)
 					return None
 
 			# If the above conditions are fulfilled,
@@ -291,7 +303,7 @@ class DocType:
 			
 			# Save the property setter doc if not marked for deletion i.e. delete=0
 			if not d.delete:
-				d.save(1)
+				d.insert()
 
 	
 	def delete(self):

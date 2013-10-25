@@ -4,7 +4,7 @@
 // My HTTP Request
 
 wn.provide('wn.request');
-wn.request.url = 'server.py';
+wn.request.url = '/';
 
 // generic server call (call page, object)
 wn.call = function(opts) {
@@ -67,6 +67,8 @@ wn.request.call = function(opts) {
 		}
 	};
 	
+	wn.last_request = ajax_args.data;
+	
 	if(opts.progress_bar) {
 		var interval = null;
 		$.extend(ajax_args, {
@@ -122,11 +124,11 @@ wn.request.cleanup = function(opts, r) {
 	// un-freeze page
 	if(opts.freeze) wn.dom.unfreeze();
 
-	// session expired?
-	if(r.session_expired) { 
+	// session expired? - Guest has no business here!
+	if(r.session_expired || wn.get_cookie("sid")==="Guest") { 
 		if(!wn.app.logged_out) {
 			msgprint(wn._('Session Expired. Logging you out'));
-			wn.app.logout();		
+			wn.app.logout();
 		}
 		return;
 	}
@@ -170,7 +172,7 @@ wn.request.cleanup = function(opts, r) {
 	}
 	
 	if(r['403']) {
-		wn.set_route('403');
+		wn.show_not_permitted(wn.get_route_str());
 	}
 
 	if(r.docs) {

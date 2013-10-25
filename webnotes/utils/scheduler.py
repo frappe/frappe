@@ -16,7 +16,7 @@ on the need.
 """
 
 import webnotes
-def execute():
+def execute(site=None):
 	"""
 	execute jobs
 	this method triggers the other scheduler events
@@ -29,7 +29,7 @@ def execute():
 	format = '%Y-%m-%d %H:%M:%S'
 	
 	if not webnotes.conn:
-		webnotes.connect()
+		webnotes.connect(site=site)
 	
 	out = []
 
@@ -63,6 +63,7 @@ def execute():
 	
 def trigger(method):
 	"""trigger method in startup.schedule_handler"""
+	traceback = ""
 	try:
 		import startup.schedule_handlers
 		
@@ -70,16 +71,16 @@ def trigger(method):
 			webnotes.conn.begin()
 			getattr(startup.schedule_handlers, method)()
 			webnotes.conn.commit()
-			return 'ok'
-		
 	except Exception:
-		return log(method)
+		traceback += log(method)
 		
 	try:
 		cp = webnotes.bean("Control Panel", "Control Panel")
 		cp.run_method(method)
 	except Exception:
-		return log(method)
+		traceback += log("Control Panel: "+method)
+		
+	return traceback or 'ok'
 
 def log(method):
 	"""log error in patch_log"""

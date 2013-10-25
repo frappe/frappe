@@ -14,6 +14,9 @@ class DocType:
 			webnotes.msgprint("Max Comments reached!", raise_exception=True)
 			
 	def on_update(self):
-		import startup.event_handlers
-		if hasattr(startup.event_handlers, 'comment_added'):
-			startup.event_handlers.comment_added(self.doc)
+		try:
+			import startup.event_handlers
+			if hasattr(startup.event_handlers, 'comment_added'):
+				startup.event_handlers.comment_added(self.doc)
+		except ImportError, e:
+			pass

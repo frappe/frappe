@@ -1,0 +1,45 @@
+.typeahead,
+.tt-query,
+.tt-hint {
+}
+
+.tt-hint {
+  color: #999;
+}
+
+.tt-dropdown-menu {
+  width: 100%;
+  margin-top: 3px;
+  padding: 3px 0;
+  background-color: #fff;
+  border: 1px solid #ccc;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  -webkit-border-radius: 8px;
+     -moz-border-radius: 8px;
+          border-radius: 8px;
+  -webkit-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+     -moz-box-shadow: 0 5px 10px rgba(0,0,0,.2);
+          box-shadow: 0 5px 10px rgba(0,0,0,.2);
+}
+
+.tt-suggestion {
+  padding: 3px 20px;
+}
+
+.tt-suggestion.tt-is-under-cursor {
+  color: #fff;
+  background-color: #0097cf;
+}
+
+.tt-suggestion.tt-is-under-cursor .text-muted {
+  color: #ddd;
+}
+
+.input-group input.tt-query {
+	border-top-left-radius: 4px !important;
+	border-bottom-left-radius: 4px !important;	
+}
+
+.tt-suggestion p {
+  margin: 0;
+}

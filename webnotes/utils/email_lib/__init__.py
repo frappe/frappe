@@ -2,7 +2,8 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-import webnotes, conf
+import webnotes
+from webnotes import conf
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None):
 	"""send markdown email"""		

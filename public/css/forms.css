@@ -83,18 +83,6 @@ div.attach_area table {
 	color: #000;
 }
 
-.scrollhead_wrapper {
-	position: absolute;
-	z-index: 1;
-	height: 30px;
-}
-
-.treeimg {
-	cursor: pointer;
-	margin-right: 3px;
-}
-
-
 .sectionCell {
 	padding: 5px;
 	vertical-align: top;

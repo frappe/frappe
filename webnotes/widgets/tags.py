@@ -39,7 +39,7 @@ def check_user_tags(dt):
 def add_tag():
 	"adds a new tag to a record, and creates the Tag master"
 	
-	f = webnotes.form_dict
+	f = webnotes.local.form_dict
 	tag, color = f.get('tag'), f.get('color')
 	dt, dn = f.get('dt'), f.get('dn')
 	
@@ -50,7 +50,7 @@ def add_tag():
 @webnotes.whitelist()
 def remove_tag():
 	"removes tag from the record"
-	f = webnotes.form_dict
+	f = webnotes.local.form_dict
 	tag, dt, dn = f.get('tag'), f.get('dt'), f.get('dn')
 	
 	DocTags(dt).remove(dn, tag)
