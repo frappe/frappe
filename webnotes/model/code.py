@@ -24,7 +24,7 @@ from webnotes.model.doc import Document, addchild, getchildren
 from webnotes.model.utils import getlist
 from webnotes.utils.email_lib import sendmail
 from webnotes.model.code import get_obj, get_server_obj, run_server_obj
-from webnotes import session, form, msgprint, errprint
+from webnotes import session, form, msgprint, errprint, _
 
 sql = webnotes.conn.sql
 
