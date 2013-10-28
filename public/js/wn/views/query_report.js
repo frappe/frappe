@@ -11,7 +11,7 @@ wn.standard_pages["query-report"] = function() {
 
 	wn.ui.make_app_page({
 		parent: wrapper,
-		title: 'Query Report',
+		title: wn._('Query Report'),
 		single_column: true
 	});
 
@@ -83,7 +83,7 @@ wn.views.QueryReport = Class.extend({
 			if(me.report_name!=route[1]) {
 				me.report_name = route[1];
 				this.wrapper.find(".no-report-area").toggle(false);
-				me.appframe.set_title(wn._("Query Report")+": " + me.report_name);
+				me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 				
 				if(!wn.query_reports[me.report_name]) {
 					return wn.call({
@@ -221,7 +221,7 @@ wn.views.QueryReport = Class.extend({
 						fieldtype: "Data"
 					}
 				}
-				col.name = toTitle(col.name.replace(/ /g, " "))
+				col.name = wn._(toTitle(col.name.replace(/_/g, " ")))
 				return col
 		}));
 	},

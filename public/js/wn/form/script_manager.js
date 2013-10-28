@@ -63,6 +63,7 @@ wn.ui.form.ScriptManager = Class.extend({
 					'options': df.options, 
 					'fetch': fetch
 				}, 
+				no_spinner: true,
 				callback: function(r) {
 					if(r.message=='Ok') {
 						if(r.fetch_values) 

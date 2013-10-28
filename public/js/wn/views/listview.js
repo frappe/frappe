@@ -130,7 +130,7 @@ wn.views.ListView = Class.extend({
 	},
 	render: function(row, data) {
 		this.prepare_data(data);
-		$(row).removeClass("list-row");
+		//$(row).removeClass("list-row");
 		
 		
 		// maintain id_list to avoid duplication incase

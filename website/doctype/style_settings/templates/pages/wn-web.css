@@ -231,3 +231,8 @@ hr {
 	border-top: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
 	border-bottom: 1px solid #{{ get_hex_shade(doc.page_background, 5) }};	
 }
+
+{% if doc.add_css -%}
+/* User CSS */
+{{ doc.add_css }}
+{%- endif %}

@@ -15,58 +15,6 @@ methods in following modules are imported for backward compatibility
 	* webnotes.model.doc.*
 	* webnotes.model.bean.*
 """
-custom_class = '''
-import webnotes
-
-from webnotes.utils import add_days, add_months, add_years, cint, cstr, date_diff, default_fields, flt, fmt_money, formatdate, getTraceback, get_defaults, get_first_day, get_last_day, getdate, has_common, now, nowdate, set_default, user_format, validate_email_add
-from webnotes.model import db_exists
-from webnotes.model.doc import Document, addchild, getchildren
-from webnotes.model.utils import getlist
-from webnotes.utils.email_lib import sendmail
-from webnotes.model.code import get_obj, get_server_obj, run_server_obj
-from webnotes import session, form, msgprint, errprint
-
-sql = webnotes.conn.sql
-
-
-class CustomDocType(DocType):
-  def __init__(self, doc, doclist):
-    DocType.__init__(self, doc, doclist)
-'''
-
-
-def execute(code, doc=None, doclist=[]):
-	# functions used in server script of DocTypes
-	# --------------------------------------------------	
-	from webnotes.utils import add_days, add_months, add_years, cint, cstr, date_diff, default_fields, flt, fmt_money, formatdate, getTraceback, get_defaults, get_first_day, get_last_day, getdate, has_common, now, nowdate, set_default, user_format, validate_email_add
-	from webnotes.utils.email_lib import sendmail
-	from webnotes.model import db_exists
-	from webnotes.model.doc import Document, addchild, getchildren
-	from webnotes.model.utils import getlist
-	from webnotes import session, form, msgprint, errprint
-
-	import webnotes
-
-	sql = webnotes.conn.sql
-	get_value = webnotes.conn.get_value
-	convert_to_lists = webnotes.conn.convert_to_lists
-	
-	if webnotes.user:
-		get_roles = webnotes.user.get_roles
-	locals().update({'get_obj':get_obj, 'get_server_obj':get_server_obj, 'run_server_obj':run_server_obj})
-
-	exec code in locals()
-	
-	if doc:
-		d = DocType(doc, doclist)
-		return d
-		
-	if locals().get('page_html'):
-		return page_html
-
-	if locals().get('out'):
-		return out
-		
 def get_server_obj(doc, doclist = [], basedoctype = ''):
 	# for test
 	import webnotes
@@ -80,16 +28,18 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 		return
 		
 	DocType = get_doctype_class(doc.doctype, module)
+	
+	if webnotes.flags.in_import:
+		return DocType(doc, doclist)
 
 	# custom?
 	custom_script = get_custom_server_script(doc.doctype)
-		
+
 	if custom_script:
-		global custom_class
-				
-		exec custom_class + custom_script.replace('\t','  ') in locals()
-			
-		return CustomDocType(doc, doclist)
+		opts = {"DocType": DocType}
+		exec custom_script in opts
+		return opts["CustomDocType"](doc, doclist)
+		
 	else:
 		return DocType(doc, doclist)
 
@@ -118,7 +68,6 @@ def get_module_name(doctype, module, prefix):
 def load_doctype_module(doctype, module, prefix=""):
 	import webnotes
 	from webnotes.modules import scrub
-	_doctype, _module = scrub(doctype), scrub(module)
 	try:
 		module = __import__(get_module_name(doctype, module, prefix), fromlist=[''])
 		return module
@@ -127,8 +76,12 @@ def load_doctype_module(doctype, module, prefix=""):
 		return None
 
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
+	import webnotes.model.doc
 	if dt:
-		import webnotes.model.doc
+		if isinstance(dt, list):
+			return get_server_obj(dt[0], dt)
+		if isinstance(dt, webnotes.model.doc.Document):
+			return get_server_obj(dt, [dt])
 		if not dn:
 			dn = dt
 		if with_children:

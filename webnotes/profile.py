@@ -179,3 +179,20 @@ def add_role(profile, role):
 		"role": role
 	})
 	profile_wrapper.save()
+
+def add_system_manager(email, first_name=None, last_name=None):
+	# add profile
+	profile = webnotes.new_bean("Profile")
+	profile.doc.fields.update({
+		"name": email,
+		"email": email,
+		"enabled": 1,
+		"first_name": first_name or email,
+		"last_name": last_name
+	})
+	profile.insert()
+	
+	# add roles
+	roles = webnotes.conn.sql_list("""select name from `tabRole`
+		where name not in ("Administrator", "Guest", "All")""")
+	profile.make_controller().add_roles(*roles)

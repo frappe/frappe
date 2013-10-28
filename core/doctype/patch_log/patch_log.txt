@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-17 11:36:45", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:48:05", 
+  "modified": "2013-10-03 17:39:09", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -27,10 +27,24 @@
   "permlevel": 0
  }, 
  {
+  "doctype": "DocPerm", 
+  "name": "__common__", 
+  "parent": "Patch Log", 
+  "parentfield": "permissions", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "read": 1, 
+  "report": 1, 
+  "role": "Administrator"
+ }, 
+ {
   "doctype": "DocType", 
   "name": "Patch Log"
  }, 
  {
   "doctype": "DocField"
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

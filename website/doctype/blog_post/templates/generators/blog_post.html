@@ -1,17 +1,5 @@
 {% extends base_template %}
 
-{% block javascript %}
-<script>
-	{% include "lib/website/doctype/blog_post/templates/includes/blog_post.js" %}
-</script>
-{% endblock %}
-
-{% block css %}
-<style>
-	{% include "lib/website/doctype/blog_post/templates/includes/blog_post.css" %}
-</style>
-{% endblock %}
-
 {% block content %}
 <div class="col-md-12" itemscope itemtype="http://schema.org/BlogPost">
 	<h2 itemprop="name headline">{{ title }}</h2>
@@ -22,7 +10,7 @@
 		<span itemprop="dateCreated">{{ updated }}</span></div>
 	<br>
 	<div itemprop="articleBody">
-	{{ content_html }}
+	{{ content }}
 	</div>
 	<!-- end blog content -->
 	{% if blogger_info %}
@@ -30,33 +18,16 @@
 	{% include "lib/website/doctype/blog_post/templates/includes/blogger.html" %}
 	{% endif %}
 	<hr>
-	<h3>{{ texts.comments }}</h3><br>
-	<div class="blog-comments">
-		
-		{% if not comment_list %}
-		<div class="no-comment">
-			<p>{{ texts.first_comment }}</p>
-		</div>
-		{% endif %}
-		
-		{% include 'lib/website/doctype/blog_post/templates/includes/comment.html' %}
-	</div>
-	<div><button class="btn btn-default add-comment">{{ texts.add_comment }}</button></div>
-	<div style="display: none; margin-top: 10px; max-width: 400px;" 
-		id="comment-form">
-		<div class="alert" style="display:none;"></div>
-		<form>
-			<fieldset>
-				<input class="form-control" name="comment_by_fullname" placeholder="Your Name" type="text"/><br>
-				<input class="form-control" name="comment_by" 
-					placeholder="Your Email Id" type="text"/><br>
-				<textarea class="form-control" name="comment" rows=10
-					placeholder="Comment"/>
-				</textarea><br>
-				<button class="btn btn-info" id="submit-comment">{{ texts.submit }}</button>
-			</fieldset>
-		</form>
-	</div>
+	<h3>Comments</h3>
+	{% include 'lib/website/templates/includes/comments.html' %}
 </div>
+<script>
+$(function() {
+	if(window.logged_in && getCookie("system_user")==="yes") {
+		wn.require("lib/js/wn/website/editable.js");
+		wn.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
+	}
+})
+</script>
 {% include 'lib/website/doctype/blog_post/templates/includes/blog_footer.html' %}
 {% endblock %}

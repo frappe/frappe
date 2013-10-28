@@ -3,9 +3,10 @@
 
 from __future__ import unicode_literals
 import webnotes
-import os, conf
-from webnotes.utils import cstr, get_path, cint
+import os, base64, re
+from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
+from webnotes import conf
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
 
@@ -53,7 +54,6 @@ def save_url(file_url, dt, dn):
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
 	if 'filedata' in webnotes.form_dict:
-		import base64
 		webnotes.uploaded_content = base64.b64decode(webnotes.form_dict.filedata)
 		webnotes.uploaded_filename = webnotes.form_dict.filename
 		return webnotes.uploaded_filename, webnotes.uploaded_content
@@ -61,10 +61,34 @@ def get_uploaded_content():
 		webnotes.msgprint('No File')
 		return None, None
 
-def save_file(fname, content, dt, dn):
+def extract_images_from_html(doc, fieldname):
+	content = doc.get(fieldname)
+	webnotes.flags.has_dataurl = False
+	
+	def _save_file(match):
+		data = match.group(1)
+		headers, content = data.split(",")
+		filename = headers.split("filename=")[-1]
+		filename = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_name")
+		if not webnotes.flags.has_dataurl:
+			webnotes.flags.has_dataurl = True
+		
+		return '<img src="{filename}"'.format(filename = filename)
+	
+	if content:
+		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
+		if webnotes.flags.has_dataurl:
+			doc.fields[fieldname] = content
+
+def save_file(fname, content, dt, dn, decode=False):
+	if decode:
+		if isinstance(content, unicode):
+			content = content.encode("utf-8")
+		content = base64.b64decode(content)
+	
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_path("public", "files")
+	files_path = get_site_path(conf.files_path)
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
@@ -109,13 +133,17 @@ def save_file(fname, content, dt, dn):
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(fpath, get_path("public")),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), 
+			get_site_path(conf.get("public_path", "public"))),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
 	})
 	f.ignore_permissions = True
-	f.insert();
+	try:
+		f.insert();
+	except webnotes.DuplicateEntryError:
+		return {"file_name": f.doc.file_name}
 
 	return f.doc
 
@@ -151,7 +179,7 @@ def scrub_file_name(fname):
 	return fname
 	
 def check_max_file_size(content):
-	max_file_size = getattr(conf, 'max_file_size', 1000000)
+	max_file_size = conf.get('max_file_size') or 1000000
 	file_size = len(content)
 
 	if file_size > max_file_size:
@@ -195,9 +223,9 @@ def get_file(fname):
 		
 	if not "/" in file_name:
 		file_name = "files/" + file_name
-
-	# read the file
-	with open(get_path("public", file_name), 'r') as f:
+	
+	# read the file	
+	with open(get_site_path("public", file_name), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]

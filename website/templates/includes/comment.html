@@ -1,0 +1,9 @@
+<div class="comment-row">
+	<div class="comment-title text-muted">
+		<span itemprop="name" class="author">{{ comment.comment_by_fullname }}</span> / 
+			<span itemprop="commentTime">{{ comment.creation|global_date_format }}</span>:
+	</div>
+	<p class="comment-content" itemprop="commentText" 
+		style="margin-left: 20px;">{{ comment.comment|markdown }}</p>
+	<hr>
+</div>

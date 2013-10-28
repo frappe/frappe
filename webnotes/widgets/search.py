@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import webnotes
 import webnotes.widgets.reportview
-import webnotes.widgets.query_builder
 from webnotes.utils import cstr
 
 try:
@@ -16,9 +15,10 @@ except ImportError:
 
 # this is called by the Link Field
 @webnotes.whitelist()
-def search_link(doctype, txt, query=None, filters=None):
-	search_widget(doctype, txt, query, page_len=20, filters=filters)
-	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"])
+def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield="name"):
+	search_widget(doctype, txt, query, searchfield=searchfield, page_len=page_len, filters=filters)
+	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"], searchfield)
+	del webnotes.response["values"]
 
 # this is called by the search box
 @webnotes.whitelist()
@@ -77,16 +77,15 @@ def get_std_fields_list(meta, key):
 
 	return ['`tab%s`.`%s`' % (meta[0].name, f.strip()) for f in sflist]
 
-def build_for_autosuggest(res):
+def build_for_autosuggest(res, searchfield):
+	searchfield = [s.strip() for s in searchfield.split(",")]
 	results = []
 	for r in res:
-		info = ''
-		if len(r) > 1:
-			info = ', '.join([cstr(t) for t in r[1:]])
-			if len(info) > 50:
-				info = "<span title=\"%s\">%s...</span>" % (info, info[:50])
-
-		results.append({'label':r[0], 'value':r[0], 'info':info})
+		out = {}
+		for i, s in enumerate(searchfield):
+			if s=="name": s="value"
+			out[s] = r[i]
+		results.append(out)
 	return results
 
 def scrub_custom_query(query, key, txt):

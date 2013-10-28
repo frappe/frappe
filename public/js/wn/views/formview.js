@@ -44,7 +44,7 @@ wn.views.FormFactory = wn.views.Factory.extend({
 						wn.set_route("Form", dt, new_name)
 					}
 				} else {
-					wn.set_route('404');
+					wn.show_not_found(route);
 				}
 				return;
 			}

@@ -27,7 +27,7 @@ wn.views.SidebarStats = Class.extend({
 			callback: function(r) {
 				// This gives a predictable stats order
 				$.each(me.stats, function(i, v) {
-					me.render_stat(v, r.message[v]);
+					me.render_stat(v, (r.message || {})[v]);
 				});
 				
 				// reload button at the end
@@ -46,24 +46,26 @@ wn.views.SidebarStats = Class.extend({
 		var me = this;
 
 		if(!stat || !stat.length) {
-			if(field=='_user_tags') {
-				$('<div class="stat-wrapper section"><div class="section-head">'
-					+wn._('Tags')+'</div>\
-					<div class="help small"><i>'+wn._('No records tagged.')+'</i><br><br> '
-					+wn._('To add a tag, open the document and click on "Add Tag" on the sidebar')
-					+'</div></div>').appendTo(this.wrapper);
+			if(field==='_user_tags') {
+				$('<div class="panel panel-default">\
+					<div class="panel-heading"><i class="icon-tag"></i> '+wn._('Tags')+'</div>\
+					<div class="panel-body">\
+						<div class="text-muted small"><i>'+wn._('No records tagged.')+'</i><br><br> '
+						+wn._('Click on "Add Tag" to add a tag.')
+						+'</div>\
+					</div></div>').appendTo(this.wrapper);
 			}
 			return;
 		}
 
 		var label = wn.meta.docfield_map[this.doctype][field] ? 
 			wn.meta.docfield_map[this.doctype][field].label : field;
-		if(label=='_user_tags') label = 'Tags';
+		if(label==='_user_tags') label = 'Tags';
 
 		// grid
-		var $w = $('<div class="stat-wrapper section">\
-			<div class="section-head">'+ wn._(label) +'</div>\
-			<div class="stat-grid">\
+		var $w = $('<div class="panel panel-default">\
+			<div class="panel-heading"><i class="icon-tag"></i> '+ wn._(label) +'</div>\
+			<div class="panel-body">\
 			</div>\
 		</div>');
 
@@ -74,7 +76,7 @@ wn.views.SidebarStats = Class.extend({
 
 		// render items
 		$.each(stat, function(i, v) { 
-			me.render_stat_item(i, v, sum, field).appendTo($w.find('.stat-grid'));
+			me.render_stat_item(i, v, sum, field).appendTo($w.find('.panel-body'));
 		});
 
 		$w.appendTo(this.wrapper);
@@ -102,7 +104,7 @@ wn.views.SidebarStats = Class.extend({
 		return $item;
 	},
 	reload_stats: function() {
-		this.wrapper.find('.stat-wrapper').remove();
+		this.wrapper.empty();
 		this.get_stats();
 	},
 	setup_stat_item_click: function($item) {

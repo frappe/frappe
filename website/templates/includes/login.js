@@ -2,7 +2,8 @@ var disable_signup = {{ disable_signup and "true" or "false" }};
 var login = {};
 
 $(document).ready(function(wrapper) {
-	login.show_login();
+	window.location.hash = "#login";
+	login.login();
 	
 	$('#login_btn').click(login.do_login);
 		
@@ -12,6 +13,12 @@ $(document).ready(function(wrapper) {
 		}
 	});
 	$(document).trigger('login_rendered');
+})
+
+$(window).on("hashchange", function() {
+	var route = window.location.hash.slice(1);
+	if(!route) route = "login";
+	login[route]();
 })
 
 // Login
@@ -52,7 +59,7 @@ login.do_login = function(){
 		
 	$.ajax({
 		type: "POST",
-		url: "server.py",
+		url: "/",
 		data: args,
 		dataType: "json",
 		success: function(data) {
@@ -81,20 +88,19 @@ login.set_heading = function(html) {
 	$(".panel-heading").html("<h4>" + html + "</h4>");
 }
 
-login.show_login = function() {
+login.login = function() {
 	login.set_heading('<i class="icon-lock"></i> Login');
 	$("#login_wrapper h3").html("Login");
 	$("#login_id").attr("placeholder", "Login Email Id");
 	$("#password-row").toggle(true);
 	$("#full-name-row, #login_message").toggle(false);
 	$("#login_btn").html("Login").removeClass("btn-success");
-	$("#switch-view").html('<a \
-		onclick="return login.show_forgot_password()">Forgot Password?</a>');
+	$("#forgot-link").html('<a href="#forgot">Forgot Password?</a>');
 	
 	if(!disable_signup) {
-		$("#switch-view").append('<hr><div>\
-			New User? <button class="btn btn-success" style="margin-left: 10px; margin-top: -2px;"\
-				onclick="return login.show_sign_up()">Sign Up</button></div>');
+		$("#switch-view").empty().append('<div>\
+			No Account? <a class="btn btn-success" style="margin-left: 10px; margin-top: -2px;"\
+				href="#sign_up">Sign Up</button></div>');
 	}
 
 	window.is_login = true;
@@ -102,26 +108,30 @@ login.show_login = function() {
 	window.is_forgot = false;
 }
 
-login.show_sign_up = function() {
+login.sign_up = function() {
 	login.set_heading('<i class="icon-thumbs-up"></i> Sign Up');
 	$("#login_id").attr("placeholder", "Your Email Id");
 	$("#password-row, #login_message").toggle(false);
 	$("#full-name-row").toggle(true);
 	$("#login_btn").html("Sign Up").addClass("btn-success");
-	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
+	$("#forgot-link").html("<a href='#login'>Login</a>");
+	$("#switch-view").empty();
 	window.is_sign_up = true;
 }
 
-login.show_forgot_password = function() {
+login.forgot = function() {
 	login.set_heading('<i class="icon-question-sign"></i> Forgot');
 	$("#login_id").attr("placeholder", "Your Email Id");
 	$("#password-row, #login_message, #full-name-row").toggle(false);
 	$("#login_btn").html("Send Password").removeClass("btn-success");
-	$("#switch-view").html("<a onclick='return login.show_login()' href='#'>Login</a>");
+	$("#forgot-link").html("<a href='#login'>Login</a>");
+	$("#switch-view").empty();
 	window.is_forgot = true;
 	window.is_sign_up = false;
 }
 
 login.set_message = function(message, color) {
-	$('#login_message').html(message).toggle(true);	
+	wn.msgprint(message);
+	return;
+	//$('#login_message').html(message).toggle(true);	
 }

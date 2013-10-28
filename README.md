@@ -19,13 +19,11 @@ Install:
 		$ lib/wnf.py --reinstall
 		$ lib/wnf.py --build
 
-1. Setup Apache Conf from `conf/apache.conf`
-	- Allow cgi to handle `.py` files
-	- Rewrite to make clean urls
-	- Note: the document root is the `public` folder in your project folder
-	
-1. Give ownership of the project folder to apache user (`www-data` or `apache`) to make .pyc files and upload files.
+1. Run development server:
 
+		$ lib/wnf.py --serve
+
+	
 enjoy!
 
 ## wnf.py

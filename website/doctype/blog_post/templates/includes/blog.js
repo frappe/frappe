@@ -26,7 +26,7 @@ var blog = {
 	get_list: function() {
 		$.ajax({
 			method: "GET",
-			url: "server.py",
+			url: "/",
 			data: {
 				cmd: "website.doctype.blog_post.blog_post.get_blog_list",
 				start: blog.start,
@@ -42,6 +42,7 @@ var blog = {
 		});
 	},
 	render: function(data) {
+		if(!data) data = [];
 		var $wrap = $("#blog-list");
 		$.each(data, function(i, b) {
 			// comments

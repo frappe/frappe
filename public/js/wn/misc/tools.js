@@ -13,16 +13,21 @@ wn.tools.downloadify = function(data, roles, me) {
 	var _get_data = function() { return wn.tools.to_csv(data); };
 	var flash_disabled = (navigator.mimeTypes["application/x-shockwave-flash"] == undefined);
 	
+	var download_from_server = function() {
+		open_url_post("/?cmd=webnotes.utils.datautils.send_csv_to_client",
+			{args: {data: data, filename: me.title}}, true);
+	}
+	
 	// save file > abt 200 kb using server call
 	if((_get_data().length > 200000) || flash_disabled) {
-		open_url_post("server.py?cmd=webnotes.utils.datautils.send_csv_to_client",
-			{args: {data: data, filename: me.title}}, true);
+		download_from_server();
 	} else {
 		wn.require("lib/js/lib/downloadify/downloadify.min.js");
 		wn.require("lib/js/lib/downloadify/swfobject.js");
 
 		var id = wn.dom.set_unique_id();
-		var msgobj = msgprint('<p id="'+ id +'"></p>');
+		var msgobj = msgprint('<p id="'+ id +'"></p><hr><a id="alternative-download">Alternative download link</a>');
+		msgobj.$wrapper.find("#alternative-download").on("click", function() { download_from_server(); });
 
 		Downloadify.create(id ,{
 			filename: function(){

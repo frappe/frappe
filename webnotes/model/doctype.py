@@ -18,10 +18,13 @@ import webnotes
 import webnotes.model
 import webnotes.model.doc
 import webnotes.model.doclist
-from webnotes.utils import cint
+from webnotes.utils import cint, get_base_path
 
-doctype_cache = {}
-docfield_types = None
+doctype_cache = webnotes.local('doctype_doctype_cache')
+docfield_types = webnotes.local('doctype_docfield_types')
+
+# doctype_cache = {}
+# docfield_types = None
 
 def get(doctype, processed=False, cached=True):
 	"""return doclist"""
@@ -60,8 +63,7 @@ def get(doctype, processed=False, cached=True):
 	return DocTypeDocList(doclist)
 
 def load_docfield_types():
-	global docfield_types
-	docfield_types = dict(webnotes.conn.sql("""select fieldname, fieldtype from tabDocField
+	webnotes.local.doctype_docfield_types = dict(webnotes.conn.sql("""select fieldname, fieldtype from tabDocField
 		where parent='DocField'"""))
 
 def add_workflows(doclist):
@@ -154,6 +156,7 @@ def add_custom_fields(doctype, doclist):
 			'parent': doctype,
 			'parentfield': 'fields',
 			'parenttype': 'DocType',
+			'__custom_field': 1
 		})
 		doclist.append(custom_field)
 
@@ -193,11 +196,9 @@ def add_linked_with(doclist):
 def from_cache(doctype, processed):
 	""" load doclist from cache.
 		sets flag __from_cache in first doc of doclist if loaded from cache"""
-	
-	global doctype_cache
 
 	# from memory
-	if not processed and doctype in doctype_cache:
+	if doctype_cache and not processed and doctype in doctype_cache:
 		return doctype_cache[doctype]
 
 	doclist = webnotes.cache().get_value(cache_name(doctype, processed))
@@ -209,7 +210,9 @@ def from_cache(doctype, processed):
 		return doclist
 
 def to_cache(doctype, processed, doclist):
-	global doctype_cache
+
+	if not doctype_cache:
+		webnotes.local.doctype_doctype_cache = {}
 
 	webnotes.cache().set_value(cache_name(doctype, processed), 
 		[d.fields for d in doclist])
@@ -225,13 +228,13 @@ def cache_name(doctype, processed):
 	return "doctype:" + doctype + suffix
 
 def clear_cache(doctype=None):
-	global doctype_cache
 
 	def clear_single(dt):
 		webnotes.cache().delete_value(cache_name(dt, False))
 		webnotes.cache().delete_value(cache_name(dt, True))
+		webnotes.cache().delete_value("_server_script:" + dt)
 
-		if doctype in doctype_cache:
+		if doctype_cache and doctype in doctype_cache:
 			del doctype_cache[dt]
 
 	if doctype:
@@ -271,7 +274,8 @@ def add_code(doctype, doclist):
 def add_embedded_js(doc):
 	"""embed all require files"""
 
-	import re, os, conf
+	import re, os
+	from webnotes import conf
 
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
@@ -279,13 +283,13 @@ def add_embedded_js(doc):
 	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
 	
 	def _sub(match):
-		fpath = os.path.join(os.path.dirname(conf.__file__), \
-			re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1])
+		require_path = re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1]
+		fpath = os.path.join(get_base_path(), require_path)
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				return '\n' + unicode(f.read(), "utf-8") + '\n'
 		else:
-			return '\n// no file "%s" found \n' % fpath
+			return 'wn.require("%s")' % require_path
 	
 	if doc.fields.get('__js'):
 		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
@@ -336,8 +340,10 @@ def add_search_fields(doclist):
 def update_language(doclist):
 	"""update language"""
 	if webnotes.lang != 'en':
-		from webnotes.translate import messages
 		from webnotes.modules import get_doc_path
+		if not hasattr(webnotes.local, 'translations'):
+			webnotes.local.translations = {}
+		translations = webnotes.local.translations
 
 		# load languages for each doctype
 		from webnotes.translate import get_lang_data
@@ -355,9 +361,9 @@ def update_language(doclist):
 		# attach translations to client
 		doc.fields["__messages"] = _messages
 		
-		if not webnotes.lang in messages:
-			messages[webnotes.lang] = webnotes._dict({})
-		messages[webnotes.lang].update(_messages)
+		if not webnotes.lang in translations:
+			translations[webnotes.lang] = webnotes._dict({})
+		translations[webnotes.lang].update(_messages)
 
 class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_field(self, fieldname, parent=None, parentfield=None):

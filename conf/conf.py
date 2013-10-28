@@ -10,6 +10,7 @@ db_password = '%(db_password)s'
 
 # user attachments stored in
 files_path = 'public/files'
+public_path = 'public'
 
 # max file attachment size (default 1MB)
 max_file_size = 1000000

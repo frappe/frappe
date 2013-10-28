@@ -64,7 +64,7 @@ wn.model.DocList = Class.extend({
 			
 			var error_fields = [];
 			
-			$.each(wn.meta.docfield_list[doc.doctype], function(i, docfield) {
+			$.each(wn.meta.docfield_list[doc.doctype] || [], function(i, docfield) {
 				if(docfield.fieldname) {
 					var df = wn.meta.get_docfield(doc.doctype, 
 						docfield.fieldname, me.doclist[0].name);
