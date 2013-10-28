@@ -57,10 +57,10 @@ def get_sql_meta(tl):
 	return meta
 
 def add_match_conditions(q, tl):
+	from webnotes.widgets.reportview import build_match_conditions
 	sl = []
-	ur = webnotes.user.get_roles()
 	for dt in tl:
-		s = getmatchcondition(dt, ur)
+		s = build_match_conditions(dt)
 		if s:
 			sl.append(s)
 
@@ -77,23 +77,6 @@ def add_match_conditions(q, tl):
 			q = q + condition_st + '(' + ' OR '.join(sl) + ')'
 	
 	return q
-
-def getmatchcondition(dt, ur):
-	res = sql("SELECT `role`, `match` FROM tabDocPerm WHERE parent = '%s' AND (`read`=1) AND permlevel = 0" % dt)
-	cond = []
-	for r in res:
-		if r[0] in ur: # role applicable to user
-			if r[1]:
-				if ":" in r[1]:
-					keys = r[1].split(":")
-				else:
-					keys = [r[1], r[1]]
-				for d in webnotes.defaults.get_user_default_as_list(keys[0]) or ["** No Match **"]:
-					cond.append('`tab%s`.`%s`="%s"' % (dt, r[1], d))
-			else:
-				return ''
-
-	return ' OR '.join(cond)
 
 def exec_report(code, res, colnames=[], colwidths=[], coltypes=[], coloptions=[], filter_values={}, query='', from_export=0):
 	col_idx, i, out, style, header_html, footer_html, page_template = {}, 0, None, [], '', '', ''
@@ -217,7 +200,7 @@ def runquery(q='', ret=0, from_export=0):
 		meta = get_sql_meta(tl)
 
 		q = add_match_conditions(q, tl)
-		webnotes
+		
 		# replace special variables
 		q = q.replace('__user', session['user'])
 		q = q.replace('__today', webnotes.utils.nowdate())
