@@ -65,9 +65,11 @@ def get_module_name(doctype, module, prefix):
 	_doctype, _module = scrub(doctype), scrub(module)
 	return '%s.doctype.%s.%s%s' % (_module, _doctype, prefix, _doctype)
 
-def load_doctype_module(doctype, module, prefix=""):
+def load_doctype_module(doctype, module=None, prefix=""):
 	import webnotes
-	from webnotes.modules import scrub
+	from webnotes.modules import scrub, get_doctype_module
+	if not module:
+		module = get_doctype_module(doctype) or "core"
 	try:
 		module = __import__(get_module_name(doctype, module, prefix), fromlist=[''])
 		return module
