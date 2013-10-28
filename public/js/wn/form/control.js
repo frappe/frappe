@@ -33,8 +33,13 @@ wn.ui.form.Control = Class.extend({
 		}
 	},
 	make: function() {
-		this.$wrapper = $("<div>").appendTo(this.parent);
+		this.make_wrapper();
 		this.wrapper = this.$wrapper.get(0);
+		this.wrapper.fieldobj = this; // reference for event handlers
+	},
+	
+	make_wrapper: function() {
+		this.$wrapper = $("<div>").appendTo(this.parent);
 	},
 	
 	// returns "Read", "Write" or "None" 
@@ -124,12 +129,10 @@ wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
 });
 
 wn.ui.form.ControlInput = wn.ui.form.Control.extend({
+	horizontal: true,
 	make: function() {
 		// parent element
-		this.make_wrapper();
-		this.wrapper = this.$wrapper.get(0);
-		if(!this.wrapper) console.log(this.parent);
-		this.wrapper.fieldobj = this; // reference for event handlers
+		this._super();
 		this.set_input_areas();
 		
 		// set description
@@ -140,12 +143,19 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input) {
 			this.$wrapper = $('<div class="form-group">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="form-group">\
-				<label class="control-label"></label>\
-				<div class="control-input"></div>\
-				<div class="control-value like-disabled-input" style="display: none;"></div>\
-				<p class="help-box small text-muted"></p>\
+			this.$wrapper = $('<div class="form-horizontal">\
+				<div class="form-group row" style="margin: 0px 0px 7px 0px">\
+					<label class="control-label col-xs-'+(this.horizontal?"4":"12")+'" style="padding-right: 0px"></label>\
+					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
+						<div class="control-input"></div>\
+						<div class="control-value like-disabled-input" style="display: none;"></div>\
+						<p class="help-box small text-muted"></p>\
+					</div>\
+				</div>\
 			</div>').appendTo(this.parent);
+			if(!this.horizontal) {
+				this.$wrapper.removeClass("form-horizontal");
+			}
 		}
 	},
 	set_input_areas: function() {
@@ -158,8 +168,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		}
 	},
 	set_max_width: function() {
-		if(['Code', 'Text Editor', 'Text', 'Small Text', 'Table', 'HTML']
-			.indexOf(this.df.fieldtype)==-1) {
+		if(this.horizontal) {
 			this.$wrapper.css({"max-width": "600px"});
 		}
 	},
@@ -210,13 +219,13 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input || this.df.label==this._label) 
 			return;
 		
-		var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
-		if(this.df.fieldtype==="Link") {
-			icon = wn.boot.doctype_icons[this.df.options];
-		} else if(this.df.link_doctype) {
-			icon = wn.boot.doctype_icons[this.df.link_doctype];
-		}
-					
+		// var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
+		// if(this.df.fieldtype==="Link") {
+		// 	icon = wn.boot.doctype_icons[this.df.options];
+		// } else if(this.df.link_doctype) {
+		// 	icon = wn.boot.doctype_icons[this.df.link_doctype];
+		// }
+		var icon = "";
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") + 
 			wn._(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
@@ -428,7 +437,8 @@ wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 });
 
 wn.ui.form.ControlText = wn.ui.form.ControlData.extend({
-	html_element: "textarea"
+	html_element: "textarea",
+	horizontal: false
 });
 
 wn.ui.form.ControlLongText = wn.ui.form.ControlText;
@@ -437,12 +447,16 @@ wn.ui.form.ControlSmallText = wn.ui.form.ControlText;
 wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="checkbox">\
-			<label class="input-area">\
-				<span class="disp-area" style="display:none;"></span>\
-				<span class="label-area"></span>\
-			</label>\
-			<p class="help-box small text-muted">&nbsp;</p>\
+		this.$wrapper = $('<div class="form-group row">\
+		<div class="col-md-offset-4 col-md-8">\
+			<div class="checkbox">\
+				<label class="input-area">\
+					<span class="disp-area" style="display:none;"></span>\
+					<span class="label-area"></span>\
+				</label>\
+				<p class="help-box small text-muted">&nbsp;</p>\
+			</div>\
+		</div>\
 		</div>').appendTo(this.parent)
 	},
 	set_input_areas: function() {
@@ -575,7 +589,7 @@ wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
 	make_input: function() {
 		this._super();
 		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin-top: 7px;">\
-			<div class="missing-image"><i class="icon-camera"></i></div></div>').appendTo(this.input_area)).toggle(false);
+			<div class="missing-image"><i class="icon-camera"></i></div></div>').prependTo(this.input_area)).toggle(false);
 	},
 	on_attach: function() {
 		$(this.input_area).find(".missing-image").toggle(false);
@@ -622,7 +636,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 			.click(function() {
 				me.frm.attachments.new_attachment(me.df.fieldname);
 			})
-			.appendTo(this.input_area);
+			.prependTo(this.input_area);
 			
 		$(document).on("upload_complete", function(event, filename, file_url) {
 			if(cur_frm === me.frm) {
@@ -693,7 +707,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					<i class="icon-plus"></i>\
 				</button>\
 			</span>\
-		</div>').appendTo(this.input_area);
+		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.set_input_attributes();
@@ -854,6 +868,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 
 wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 	editor_name: "wn.editors.ACE",
+	horizontal: false,
 	make_input: function() {
 		$(this.input_area).css({"min-height":"360px"});
 		var me = this;
@@ -890,8 +905,10 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 		this._super();
 		
 		// add title if prev field is not column / section heading or html
-		if(["Column Break", "Section Break", "HTML"].indexOf(
-				wn.model.get("DocField", {parent: this.frm.doctype, idx: this.df.idx-1}).fieldtype)===-1) {
+		var prev_fieldtype = wn.model.get("DocField", 
+			{parent: this.frm.doctype, idx: this.df.idx-1})[0].fieldtype;
+					
+		if(["Column Break", "Section Break", "HTML"].indexOf(prev_fieldtype)===-1) {
 			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);	
 		}
 		

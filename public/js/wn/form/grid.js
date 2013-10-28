@@ -333,9 +333,7 @@ wn.ui.form.GridRow = Class.extend({
 		
 		this.doc = locals[this.doc.doctype][this.doc.name];
 		// hide other
-		var open_row = $(".grid-row-open").data("grid_row"),
-			me = this;
-
+		var open_row = $(".grid-row-open").data("grid_row");
 		this.fields = [];
 		this.fields_dict = {};
 				
@@ -366,14 +364,14 @@ wn.ui.form.GridRow = Class.extend({
 			}
 			this.render_form();
 			this.row.toggle(false);
-		}
-		this.form_panel.toggle(this.show);
-		if(me.show) {
-			if(me.frm.doc.docstatus===0)
-				me.form_area.find(":input:first").focus();
+			this.form_panel.toggle(true);
+			if(this.frm.doc.docstatus===0)
+				this.form_area.find(":input:first").focus();
 		} else {
-			me.row.toggle(true);
-			me.make_static_display();
+			if(this.form_panel)
+				this.form_panel.toggle(false);
+			this.row.toggle(true);
+			this.make_static_display();
 		}
 		callback && callback();
 		

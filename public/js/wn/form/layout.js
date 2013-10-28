@@ -75,12 +75,10 @@ wn.ui.form.Layout = Class.extend({
 	make_column: function(df) {
 		this.column = $('<div class="form-column">\
 			<form>\
-				<fieldset></fieldset>\
 			</form>\
 		</div>').appendTo(this.section.body)
 			.find("form")
 			.on("submit", function() { return false; })
-			.find("fieldset");
 		
 		// distribute all columns equally
 		var colspan = cint(12 / this.section.find(".form-column").length);
@@ -110,7 +108,7 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				$('<h3 class="col-md-12">' 
+				$('<h3 class="col-md-12 text-muted">' 
 					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ wn._(df.label)
@@ -144,12 +142,11 @@ wn.ui.form.Layout = Class.extend({
 			wrapper: section
 		};
 		section.refresh = function() {
-			$(this).toggle(!this.df.hidden)
+			if(!this.df) return;
+			$(this).toggle(this.df.hidden ? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, READ) : true))
 		}
 		this.column = null;
-		if(df && df.hidden) {
-			this.section.toggle(false);
-		}
+		section.refresh.call(section);
 		return this.section;
 	},
 	refresh_section_count: function() {

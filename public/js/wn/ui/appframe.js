@@ -37,7 +37,7 @@ wn.ui.AppFrame = Class.extend({
 			
 	},
 	setup_toolbar: function() {
-		$('<div class="btn-group form-group pull-left"></div>\
+		$('<div class="btn-group pull-left form-group"></div>\
 			<div class="appframe-form"></div>\
 			<div class="clearfix"></div>').appendTo(this.toolbar.toggle(false));
 	},
@@ -94,8 +94,9 @@ wn.ui.AppFrame = Class.extend({
 			.attr("module-link", module_info.link)
 			.click(onclick || function() {
 				var route = wn.get_route();
-				if($(this).attr("doctype-name") && route[0]!=="List") {
-					wn.set_route("List", $(this).attr("doctype-name"))
+				var doctype = $(this).attr("doctype-name");
+				if(doctype && route[0]!=="List" && !locals["DocType"][doctype].issingle) {
+					wn.set_route("List", doctype)
 				} else if($(this).attr("module-link")!==route[0]){
 					wn.set_route($(this).attr("module-link"));
 				} else {
@@ -285,7 +286,7 @@ wn.ui.AppFrame = Class.extend({
 		})
 		f.refresh();
 		$(f.wrapper)
-			.addClass('col-md-2 form-group')
+			.addClass('col-md-2')
 			.css({
 				"padding-left": "0px", 
 				"padding-right": "0px",
