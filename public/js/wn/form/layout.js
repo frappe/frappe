@@ -111,13 +111,10 @@ wn.ui.form.Layout = Class.extend({
 			if(df.label) {
 				this.labelled_section_count++;
 				$('<h3 class="col-md-12">' 
-					+ (df.options ? (' <i class="text-muted '+df.options+'"></i> ') : "") 
+					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ wn._(df.label)
 					+ "</h3>")
-					.css({
-						"font-weight": "bold",
-					})
 					.appendTo(this.section);
 				if(this.sections.length > 1)
 					this.section.css({
@@ -141,8 +138,8 @@ wn.ui.form.Layout = Class.extend({
 		}
 		// for bc
 		this.section.body = $('<div>').appendTo(this.section);
-		if(this.frm)
-			this.section.body.css({"padding":"0px 3%"})
+		// if(this.frm)
+		// 	this.section.body.css({"padding":"0px 3%"})
 		section.row = {
 			wrapper: section
 		};

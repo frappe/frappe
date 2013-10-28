@@ -65,7 +65,7 @@ wn.ui.Listing = Class.extend({
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters well" style="display: none;">\
+					<div class="show_filters" style="display: none;">\
 						<div class="filter_area"></div>\
 						<div>\
 							<button class="btn btn-info search-btn">\
