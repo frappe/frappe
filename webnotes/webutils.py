@@ -1,8 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 from webnotes import conf
 import webnotes
 import json
@@ -172,12 +170,13 @@ def build_website_sitemap_config():
 		if fname.endswith(".html"):
 		name = fname[:-5]
 		
+		file_path = os.path.abspath(os.path.join(basepath, path, fname))
 		template_path = os.path.relpath(os.path.join(path, fname), basepath)
 		
 		options = webnotes._dict({
 			"link_name": name,
 			"template": template_path,
-			"lastmod": time.ctime(os.path.getmtime(template_path))
+			"lastmod": time.ctime(os.path.getmtime(file_path))
 		})
 
 		controller_name = fname.split(".")[0].replace("-", "_") + ".py"
