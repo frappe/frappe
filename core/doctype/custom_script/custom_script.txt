@@ -1,6 +1,6 @@
 [
  {
-  "creation": "2013-01-10 16:34:01", 
+  "creation": "2013-04-04 09:54:15", 
   "docstatus": 0, 
   "modified": "2013-10-16 16:56:41", 
   "modified_by": "Administrator", 
@@ -23,7 +23,6 @@
   "permlevel": 0
  }, 
  {
-  "cancel": 1, 
   "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 

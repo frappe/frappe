@@ -280,7 +280,7 @@ def add_embedded_js(doc):
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
+	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).decode("utf-8")
 	
 	def _sub(match):
 		require_path = re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1]
@@ -292,7 +292,7 @@ def add_embedded_js(doc):
 			return 'wn.require("%s")' % require_path
 	
 	if doc.fields.get('__js'):
-		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
+		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'].decode('utf-8'))
 		
 def expand_selects(doclist):
 	for d in filter(lambda d: d.fieldtype=='Select' \

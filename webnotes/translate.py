@@ -126,11 +126,17 @@ def build_for_pages(path):
 
 def build_from_database():
 	"""make doctype labels, names, options, descriptions"""
+
+	tag_pattern = re.compile("(?i)<\/?\w+((\s+\w+(\s*=\s*(?:\".*?\"|'.*?'|[^'\">\s]+))?)+\s*|\s*)\/?>")
+
 	def get_select_options(doc):
 		if doc.doctype=="DocField" and doc.fieldtype=='Select' and doc.options \
 			and not doc.options.startswith("link:") \
 			and not doc.options.startswith("attach_files:"):
 			return doc.options.split('\n')
+		elif doc.doctype=="DocField" and doc.fieldtype=='HTML' and doc.options \
+			and tag_pattern.match(doc.options):
+			return [doc.options.replace('"', "'").encode('unicode_escape').strip()] 
 		else:
 			return []
 
@@ -372,6 +378,7 @@ def google_translate(lang, infile, outfile):
 	old_translations = {}
 	
 	# update existing translations
+	old_translations = {}
 	if os.path.exists(outfile):
 		with codecs.open(outfile, "r", "utf-8") as oldfile:
 			old_data = oldfile.read()
@@ -394,11 +401,11 @@ def google_translate(lang, infile, outfile):
 							"q": row[0]
 						})
 			
-					if "error" in response.json:
-						print response.json
+					if "error" in response.json():
+						print response.json()
 						continue
 					
-					row[1] = response.json["data"]["translations"][0]["translatedText"]
+					row[1] = response.json()["data"]["translations"][0]["translatedText"]
 					if not row[1]:
 						row[1] = row[0] # google unable to translate!
 			

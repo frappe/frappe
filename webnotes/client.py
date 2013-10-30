@@ -19,7 +19,7 @@ def get(doctype, name=None, filters=None):
 @webnotes.whitelist()
 def get_value(doctype, fieldname, filters=None, as_dict=True, debug=False):
 	if not webnotes.has_permission(doctype):
-		webnotes.msgprint("No Permission", raise_exception=True)
+		webnotes.msgprint("No Permission: %r"%doctype, raise_exception=True)
 		
 	if fieldname and fieldname.startswith("["):
 		fieldname = json.loads(fieldname)

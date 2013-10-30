@@ -1,0 +1,726 @@
+{
+    "default": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "AFN": {
+        "symbol": null,
+        "display": "######"
+    },
+    "AED": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "ALL": {
+        "symbol": null,
+        "display": "######"
+    },
+    "AMD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "ANG": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "AOA": {
+        "symbol": null,
+        "display": "######"
+    },
+    "ARS": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "ATS": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "AUD": {
+        "symbol": null,
+        "display": "# ###.##"
+    },
+    "AWG": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "AZN": {
+        "symbol": null,
+        "display": "######"
+    },
+    "BAM": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BBD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "BDT": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BEF": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BGN": {
+        "symbol": null,
+        "display": "######"
+    },
+    "BHD": {
+        "symbol": null,
+        "display": "#,###.###"
+    },
+    "BIF": {
+        "symbol": null,
+        "display": "####"
+    },
+    "BMD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BND": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BOB": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BRL": {
+        "symbol": "R$",
+        "display": "#.###,##"
+    },
+    "BSD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BTN": {
+        "symbol": null,
+        "display": "######"
+    },
+    "BWP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "BYR": {
+        "symbol": null,
+        "display": "####"
+    },
+    "BZD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "CAD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "CDF": {
+        "symbol": null,
+        "display": "######"
+    },
+    "CHF": {
+        "symbol": null,
+        "display": "#'###.##"
+    },
+    "CLF": {
+        "symbol": null,
+        "display": "######"
+    },
+    "CLP": {
+        "symbol": null,
+        "display": "#.###"
+    },
+    "CNY": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "COP": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "CRC": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "CSD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "CUC": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "CUP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "CVE": {
+        "symbol": null,
+        "display": "######"
+    },
+    "CYP": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "CZK": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "DEM": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "DJF": {
+        "symbol": null,
+        "display": "####"
+    },
+    "DKK": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "DOP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "DZD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "EEK": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "EGP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "ERN": {
+        "symbol": null,
+        "display": "######"
+    },
+    "ESP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "ETB": {
+        "symbol": null,
+        "display": "######"
+    },
+    "EUR": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "FIM": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "FJD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "FKP": {
+        "symbol": null,
+        "display": "######"
+    },
+    "FRF": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "GBP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "GEL": {
+        "symbol": null,
+        "display": "######"
+    },
+    "GHC": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "GHS": {
+        "symbol": null,
+        "display": "######"
+    },
+    "GIP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "GMD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "GRD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "GTQ": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "GYD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "HKD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "HNL": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "HRK": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "HTG": {
+        "symbol": null,
+        "display": "######"
+    },
+    "HUF": {
+        "symbol": null,
+        "display": "#.###"
+    },
+    "IDR": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "IEP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "ILS": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "INR": {
+        "symbol": null,
+        "display": "#,##,###.##"
+    },
+    "IQD": {
+        "symbol": null,
+        "display": "#######"
+    },
+    "IRR": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "ISK": {
+        "symbol": null,
+        "display": "#.###"
+    },
+    "ITL": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "JMD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "JOD": {
+        "symbol": null,
+        "display": "#,###.###"
+    },
+    "JPY": {
+        "symbol": null,
+        "display": "#,###"
+    },
+    "KES": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "KGS": {
+        "symbol": null,
+        "display": "######"
+    },
+    "KHR": {
+        "symbol": null,
+        "display": "######"
+    },
+    "KMF": {
+        "symbol": null,
+        "display": "####"
+    },
+    "KPW": {
+        "symbol": null,
+        "display": "######"
+    },
+    "KRW": {
+        "symbol": null,
+        "display": "#,###"
+    },
+    "KWD": {
+        "symbol": null,
+        "display": "#,###.###"
+    },
+    "KYD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "KZT": {
+        "symbol": null,
+        "display": "######"
+    },
+    "LAK": {
+        "symbol": null,
+        "display": "######"
+    },
+    "LBP": {
+        "symbol": null,
+        "display": "# ###"
+    },
+    "LKR": {
+        "symbol": null,
+        "display": "######"
+    },
+    "LRD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "LSL": {
+        "symbol": null,
+        "display": "######"
+    },
+    "LTL": {
+        "symbol": null,
+        "display": "# ###,##"
+    },
+    "LUF": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "LVL": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "LYD": {
+        "symbol": null,
+        "display": "#######"
+    },
+    "MAD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MDL": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MGA": {
+        "symbol": null,
+        "display": "####"
+    },
+    "MKD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "MMK": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MNT": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MOP": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MRO": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MTL": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "MUR": {
+        "symbol": null,
+        "display": "#,###"
+    },
+    "MVR": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MWK": {
+        "symbol": null,
+        "display": "######"
+    },
+    "MXN": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "MYR": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "MZM": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "MZN": {
+        "symbol": null,
+        "display": "####"
+    },
+    "NAD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "NGN": {
+        "symbol": null,
+        "display": "######"
+    },
+    "NIO": {
+        "symbol": null,
+        "display": "######"
+    },
+    "NLG": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "NOK": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "NPR": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "NZD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "OMR": {
+        "symbol": null,
+        "display": "#,###.###"
+    },
+    "PAB": {
+        "symbol": null,
+        "display": "######"
+    },
+    "PEN": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "PGK": {
+        "symbol": null,
+        "display": "######"
+    },
+    "PHP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "PKR": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "PLN": {
+        "symbol": null,
+        "display": "# ###,##"
+    },
+    "PTE": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "PYG": {
+        "symbol": null,
+        "display": "####"
+    },
+    "QAR": {
+        "symbol": null,
+        "display": "######"
+    },
+    "ROL": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "RON": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "RSD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "RUB": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "RWF": {
+        "symbol": null,
+        "display": "####"
+    },
+    "SAC": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SAR": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "SBD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SCR": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SDD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SEK": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "SGD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "SHP": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SIT": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "SKK": {
+        "symbol": null,
+        "display": "# ###,##"
+    },
+    "SLL": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SOS": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SRD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "STD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SVC": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "SYP": {
+        "symbol": null,
+        "display": "######"
+    },
+    "SZL": {
+        "symbol": null,
+        "display": "#, ###.##"
+    },
+    "THB": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "TJS": {
+        "symbol": null,
+        "display": "######"
+    },
+    "TMM": {
+        "symbol": null,
+        "display": "######"
+    },
+    "TMT": {
+        "symbol": null,
+        "display": "######"
+    },
+    "TND": {
+        "symbol": null,
+        "display": "#######"
+    },
+    "TOP": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "TRY": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "TTD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "TWD": {
+        "symbol": null,
+        "display": "######"
+    },
+    "TZS": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "UAH": {
+        "symbol": null,
+        "display": "# ###,##"
+    },
+    "UGX": {
+        "symbol": null,
+        "display": "######"
+    },
+    "USD": {
+        "symbol": "$",
+        "display": "#,###.##"
+    },
+    "UYU": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "UZS": {
+        "symbol": null,
+        "display": "######"
+    },
+    "VEF": {
+        "symbol": null,
+        "display": "#.###,##"
+    },
+    "VND": {
+        "symbol": null,
+        "display": "#.###"
+    },
+    "VUV": {
+        "symbol": null,
+        "display": "#,###"
+    },
+    "WST": {
+        "symbol": null,
+        "display": "######"
+    },
+    "XAF": {
+        "symbol": null,
+        "display": "######"
+    },
+    "XCD": {
+        "symbol": null,
+        "display": "#,###.##"
+    },
+    "XPF": {
+        "symbol": null,
+        "display": "####"
+    },
+    "YER": {
+        "symbol": null,
+        "display": "######"
+    },
+    "ZAR": {
+        "symbol": null,
+        "display": "# ###.##"
+    },
+    "ZMK": {
+        "symbol": null,
+        "display": "######"
+    },
+    "ZWD": {
+        "symbol": null,
+        "display": "# ###.##"
+    }
+}

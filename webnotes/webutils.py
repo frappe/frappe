@@ -1,8 +1,6 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 # MIT License. See license.txt
 
-from __future__ import unicode_literals
-
 from webnotes import conf
 import webnotes
 import json
@@ -19,7 +17,7 @@ def render(page_name):
 		html = render_page("404")
 	except Exception:
 		html = render_page('error')
-	
+		
 	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
 	if "content_type" in webnotes.response:
 		webnotes._response.headers["Content-Type"] = webnotes.response.pop("content_type")
@@ -35,7 +33,7 @@ def render_page(page_name):
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
-	if not html:		
+	if not html:
 		html = build_page(page_name)
 		from_cache = False
 	
@@ -114,8 +112,8 @@ def build_page(page_name):
 def build_sitemap():
 	sitemap = {}
 	config = webnotes.cache().get_value("website_sitemap_config", build_website_sitemap_config)
- 	sitemap.update(config["pages"])
-	
+	sitemap.update(config["pages"])
+
 	# pages
 	for p in config["pages"].values():
 		if p.get("controller"):
@@ -137,15 +135,16 @@ def build_sitemap():
 
 		for page_name, name, modified in webnotes.conn.sql("""select %s, name, modified from 
 			`tab%s` %s""" % (page_name_field, module.doctype, condition)):
-			opts = g.copy()
-			opts["doctype"] = module.doctype
-			opts["no_cache"] = getattr(module, "no_cache", False)
+				opts = g.copy()
+				opts["doctype"] = module.doctype
+				opts["docname"] = name
+				opts["no_cache"] = getattr(module, "no_cache", False)
 			opts["page_name"] = page_name
 			if page_name_field != "page_name":
 				opts["page_name_field"] = page_name_field
 			opts["docname"] = name
 			opts["lastmod"] = modified.strftime("%Y-%m-%d %H:%M:%S")
-			sitemap[page_name] = opts
+				sitemap[page_name] = opts
 		
 	return sitemap
 	
@@ -169,14 +168,15 @@ def build_website_sitemap_config():
 	def get_options(path, fname):
 		name = fname
 		if fname.endswith(".html"):
-			name = fname[:-5]
+		name = fname[:-5]
 		
+		file_path = os.path.abspath(os.path.join(basepath, path, fname))
 		template_path = os.path.relpath(os.path.join(path, fname), basepath)
 		
 		options = webnotes._dict({
 			"link_name": name,
 			"template": template_path,
-			"lastmod": time.ctime(os.path.getmtime(template_path))
+			"lastmod": time.ctime(os.path.getmtime(file_path))
 		})
 
 		controller_name = fname.split(".")[0].replace("-", "_") + ".py"
@@ -188,18 +188,18 @@ def build_website_sitemap_config():
 		return options
 	
 	for path, folders, files in os.walk(basepath, followlinks=True):
-		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
-			for fname in files:
-				fname = webnotes.utils.cstr(fname)
+			if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
+				for fname in files:
+					fname = webnotes.utils.cstr(fname)
 				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
-					options = get_options(path, fname)
-					config["pages"][options.link_name] = options
+						options = get_options(path, fname)
+						config["pages"][options.link_name] = options
 
-		if os.path.basename(path)=="generators" and os.path.basename(os.path.dirname(path))=="templates":
-			for fname in files:
-				if fname.endswith(".html"):
-					options = get_options(path, fname)
-					config["generators"][fname] = options
+			if os.path.basename(path)=="generators" and os.path.basename(os.path.dirname(path))=="templates":
+				for fname in files:
+					if fname.endswith(".html"):
+						options = get_options(path, fname)
+						config["generators"][fname] = options
 		
 	return config
 
@@ -319,7 +319,7 @@ def scrub_page_name(page_name):
 		page_name = page_name[:-5]
 
 	return page_name
-
+			
 def is_signup_enabled():
 	if getattr(webnotes.local, "is_signup_enabled", None) is None:
 		webnotes.local.is_signup_enabled = True

@@ -1,0 +1,258 @@
+
+
+@import url(https://fonts.googleapis.com/css?family=Bad+Script:400,700);
+
+
+body {
+
+	background: url("../files/body-bg-14.jpg") repeat;
+	
+
+	font-family: 'Arial', 'Helvetica Neue', Arial, Sans !important;
+
+	font-size: 13px !important;
+	color: #2f2f2f;
+}
+
+a, a:hover {
+	color: #2f2f2f;
+}
+
+
+.small {
+	font-size: 11px !important;
+}
+
+
+div.outer {
+	background-color: #F0F0F0;
+}
+
+h1, h2, h3, h4, h5 {
+	font-family: 'Bad Script', 'Helvetica Neue', Arial !important;
+}
+
+h1, h2, h3, h4, h5 {
+	text-transform: capitalize;
+}
+
+h1, h2, h3, h4, h5 {
+	color: #AAA;
+}
+
+
+/* Page Border*/
+div.outer {
+	box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+	-moz-box-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+	-webkibox-shadow: 0 0 8px rgba(0, 0, 0, 0.2);
+}
+
+
+div.web-footer, div.web-footer a {
+	font-size: 90%;
+	color: #3e3e3e;
+}
+
+/* Bootstrap Navbar */
+.navbar-default {
+	border: 0px;
+}
+
+.navbar {
+    background-color: #313131;
+    background-repeat: repeat-x;
+	background-image: none;
+	border-bottom: 1px solid transparent;
+}
+
+.navbar .navbar-brand,
+.navbar .navbar-brand:hover,
+.navbar .navbar-brand:focus,
+.navbar .nav > li > a {
+  color: ##999;
+  text-shadow: none;
+}
+
+.navbar .nav > li > a:hover,
+.navbar .nav > li > a:focus {
+  color: ##999;
+  background-color: transparent;
+}
+
+.navbar .navbar-text {
+  color: #999999;
+}
+
+.navbar .nav .active > a,
+.navbar .nav .active > a:hover,
+.navbar .nav .active > a:focus {
+  color: ##999;
+  background-color: transparent;
+}
+
+.navbar .navbar-link {
+  color: #444444;
+}
+
+.navbar .navbar-link:hover,
+.navbar .navbar-link:focus {
+  color: ##999;
+}
+
+.navbar-fixed-top,
+.navbar-static-top {
+  -webkit-box-shadow: none;
+     -moz-box-shadow: none;
+          box-shadow: none;
+        
+}
+.navbar .nav > .active > a,
+.navbar .nav > .active > a:hover,
+.navbar .nav > .active > a:focus {
+  color: #424242;
+  text-decoration: none;
+  background-color: transparent;
+  -webkit-box-shadow: none;
+     -moz-box-shadow: none;
+          box-shadow: none;
+}
+
+.navbar .nav li.dropdown > .dropdown-toggle .caret, 
+.navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
+	border-top-color: ##999;
+	border-bottom-color: ##999;
+}
+
+.navbar .nav li.dropdown.open > .dropdown-toggle .caret,
+.navbar .nav li.dropdown.open > .dropdown-toggle:hover .caret {
+	border-top-color: #313131;
+	border-bottom-color: #313131;
+}
+
+.navbar .nav li.dropdown.open > .dropdown-toggle {
+  color: #313131;
+  background-color: ##999;
+}
+
+@media (max-width: 800px) {
+  .navbar .nav-collapse .nav > li > a,
+  .navbar .nav-collapse .dropdown-menu a {
+    background-color: #313131;
+    color: ##999;
+  }
+  .navbar .nav-collapse .nav > li > a:hover, 
+  .navbar .nav-collapse .dropdown-menu a:hover {
+    background-color: ##999;
+    color: #313131;
+  }
+
+  .navbar .nav li.dropdown > .dropdown-toggle .caret {
+    border-top-color: ##999;
+    border-bottom-color: ##999;	
+  }
+
+  .navbar .nav li.dropdown > .dropdown-toggle:hover .caret {
+    border-top-color: ##999;
+    border-bottom-color: ##999;
+  }
+
+  .navbar .nav li.dropdown.open > .dropdown-toggle .caret,
+  .navbar .nav li.dropdown.open > .dropdown-toggle:hover .caret {
+    border-top-color: #313131;
+    border-bottom-color: #313131;	
+  }
+
+}
+
+.navbar-default .navbar-toggle .icon-bar {
+	background-color: ##999;
+}
+
+.breadcrumb {
+	background-color: #e4e4e4;
+}
+
+.breadcrumb > li {
+  text-shadow: none;
+}
+
+
+.table-striped tbody > tr:nth-child(odd) > td,
+.table-striped tbody > tr:nth-child(odd) > th {
+	background-color: #e4e4e4;
+}
+
+.table-hover tbody tr:hover td,
+.table-hover tbody tr:hover th {
+	background-color: #d7d7d7;
+}
+
+.table-bordered {
+	border: 1px solid #cacaca;
+}
+
+.table th,
+.table td {
+  border-top: 1px solid #cacaca;
+}
+
+.table-bordered th,
+.table-bordered td {
+	border-left: 1px solid #cacaca;
+}
+
+
+
+.hero-unit {
+	background-color: #cacaca;
+}
+
+pre, code {
+	background-color: #e4e4e4;
+}
+
+hr {
+	border-top: 1px solid #cacaca;
+	border-bottom: 1px solid #e4e4e4;	
+}
+
+/* User CSS */
+
+@media (min-width: 1200px){
+    .container {
+        max-width: 1170px !important;
+    }
+}
+
+html {
+    font-weight: 600;
+}
+
+a {
+    color: #FFF !important;
+}
+
+div.outer {
+    background-color: rgba(255,255,255,0.1);
+    box-shadow: 12px 12px 12px rgba(0, 0, 0, 0.3);
+}
+
+.carousel {
+    margin-left: -20px;
+    margin-right: -20px;
+    margin-top: -45px;
+}
+
+.item img {
+    max-width: 105%;
+    width: 105%;
+}
+
+.carousel-caption p {
+    color: rgb(137, 137, 137);
+}
+
+.thumbnail {
+    background-color: rgba(255,255,255,0.6);
+}

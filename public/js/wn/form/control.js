@@ -89,7 +89,7 @@ wn.ui.form.ControlHTML = wn.ui.form.Control.extend({
 		this.disp_area = this.wrapper;
 		this.$wrapper.on("refresh", function() {
 			if(me.df.options)
-				me.$wrapper.html(me.df.options);
+				me.$wrapper.html(wn._(me.df.options));
 		})
 	}
 });
@@ -481,13 +481,13 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		if(this.frm && this.frm.doc && this.frm.cscript) {
 			if(this.frm.cscript[this.df.fieldname]) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
-			} else {
+					} else {
 				this.frm.runscript(this.df.options, me);
-			}
-		}
+					}
+				}
 		else if(this.df.click) {
 			this.df.click();
-		}
+				}
 	},
 	set_input_areas: function() {
 		this._super();
@@ -744,6 +744,80 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			this.$input_area.find(".btn-new").remove();
 		}
 	},
+	// setup_typeahead: function() {
+	// 	var me = this;
+	// 	var method = "webnotes.widgets.search.search_link";
+	// 	var args = {};
+	// 	this.set_custom_query(args);
+	// 
+	// 	// custom query
+	// 	if(args.query) {
+	// 		method = args.query
+	// 	}
+	// 
+	// 	var _change = function() {
+	// 		var val = me.get_value();
+	// 		if(me.frm && me.frm.doc) {
+	// 			me.selected = true;
+	// 			me.parse_validate_and_set_in_model(val);
+	// 		} else {
+	// 			me.$input.trigger("change");
+	// 		}
+	// 	}
+	// 
+	// 	// filter based on arguments
+	// 	var filter_fn = function(r) {
+	// 		if(r.exc) console.log(r.exc);
+	// 		var filter_args = {};
+	// 		me.set_custom_query(filter_args)
+	// 		if(filter_args.filters) {
+	// 			return wn.utils.filter_dict(r.results, filter_args.filters);
+	// 		} else {
+	// 			return r.results;
+	// 		}
+	// 	}
+	// 	
+	// 	// default query args
+	// 	var query_args = {
+	// 		cmd: method,
+	// 		txt: "%",
+	// 		page_len: "9999",
+	// 		doctype: me.df.options,
+	// 	}
+	// 	
+	// 	// append filter keys (needed for client-side filtering)
+	// 	if(args.filters) {
+	// 		query_args.search_fields = ["name"].concat(keys(args.filters));
+	// 	}
+	// 	
+	// 	this.$input.typeahead("destroy").typeahead({
+	// 		name: me.df.parent + ":" + me.df.fieldname,
+	// 		prefetch: {
+	// 			url: "server.py?" + wn.utils.get_url_from_dict(query_args),
+	// 			filter: filter_fn,
+	// 		},
+	// 		remote: {
+	// 			url: "server.py?" + wn.utils.get_url_from_dict($.extend(query_args, {"txt": null})) + "&txt=%QUERY",
+	// 			filter: filter_fn,
+	// 		},
+	// 		template: function(d) {
+	// 			if(keys(d).length > 1) {
+	// 				d.info = $.map(d, function(val, key) { return key==="name" ? null : val }).join(", ");
+	// 				return repl("<p>%(value)s<br><span class='text-muted'>%(info)s</span></p>", d);
+	// 			} else {
+	// 				return d.value;
+	// 			}
+	// 		}
+	// 	}).on("typeahead:selected", function(d) {
+	// 		_change();
+	// 	}).on("typeahead:autocompleted", function(d) {
+	// 		_change();
+	// 	});
+	// 			
+	// 	this.set_input = function(val) {
+	// 		me.$input.typeahead("setQuery", val || "");
+	// 	}
+	// },
 	setup_autocomplete: function() {
 		var me = this;
 		this.$input.on("blur", function() { 
@@ -892,7 +966,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 		// add title if prev field is not column / section heading or html
 		if(["Column Break", "Section Break", "HTML"].indexOf(
 				wn.model.get("DocField", {parent: this.frm.doctype, idx: this.df.idx-1}).fieldtype)===-1) {
-			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);	
+			$("<label>" + wn._(this.df.label) + "<label>").appendTo(this.wrapper);	
 		}
 		
 		this.grid = new wn.ui.form.Grid({
@@ -906,7 +980,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 
 		// description
 		if(this.df.description) {
-			$('<p class="text-muted small">' + this.df.description + '</p>')
+			$('<p class="text-muted small">' + wn._(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
 		
