@@ -3,8 +3,9 @@
 
 from __future__ import unicode_literals
 
-import conf
+from webnotes import conf
 import webnotes
+import json
 from webnotes import _
 import webnotes.utils
 
@@ -19,24 +20,22 @@ def render(page_name):
 	except Exception:
 		html = render_page('error')
 		
+	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	if "content_type" in webnotes.response:
+		webnotes._response.headers["Content-Type"] = webnotes.response.pop("content_type")
 
-	from webnotes.handler import eprint, print_zip
-	eprint("Content-Type: text/html; charset: utf-8")
-	print_zip(html)
+	webnotes._response.data = html
 
 def render_page(page_name):
 	"""get page html"""
 	page_name = scrub_page_name(page_name)
 	html = ''
 		
-	if not (hasattr(conf, 'auto_cache_clear') and conf.auto_cache_clear or 0):
+	if not ('auto_cache_clear') and conf.auto_cache_clear or 0 in conf:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
 	if not html:
-		from webnotes.auth import HTTPRequest
-		webnotes.http_request = HTTPRequest()
-		
 		html = build_page(page_name)
 		from_cache = False
 	
@@ -45,17 +44,14 @@ def render_page(page_name):
 
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.getTraceback())
-	else:
-		comments = "\n\npage:"+page_name+\
+	elif not webnotes.response.content_type:
+		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
 
 	return html
 
 def build_page(page_name):
-	from jinja2 import Environment, FileSystemLoader
-	from markdown2 import markdown
-
 	if not webnotes.conn:
 		webnotes.connect()
 
@@ -88,7 +84,8 @@ def build_page(page_name):
 		if not module:
 			raise Exception("Generator controller not defined")
 		
-		name = webnotes.conn.get_value(module.doctype, {"page_name": page_options["page_name"]})
+		name = webnotes.conn.get_value(module.doctype, {
+			page_options.get("page_name_field", "page_name"): page_options["page_name"]})
 		obj = webnotes.get_obj(module.doctype, name, with_children=True)
 
 		if hasattr(obj, 'get_context'):
@@ -104,8 +101,7 @@ def build_page(page_name):
 	
 	context.update(get_website_settings())
 
-	jenv = Environment(loader = FileSystemLoader(basepath))
-	jenv.filters["markdown"] = markdown
+	jenv = webnotes.get_jenv()
 	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
 	
 	template_name = page_options['template']	
@@ -125,17 +121,31 @@ def build_sitemap():
 		if p.get("controller"):
 			module = webnotes.get_module(p["controller"])
 			p["no_cache"] = getattr(module, "no_cache", False)
+			p["no_sitemap"] = getattr(module, "no_sitemap", False) or p["no_cache"]
 
 	# generators
 	for g in config["generators"].values():
 		g["is_generator"] = True
 		module = webnotes.get_module(g["controller"])
-		for page_name, name in webnotes.conn.sql("""select page_name, name from `tab%s` where 
-			ifnull(%s, 0)=1 and ifnull(page_name, '')!=''""" % (module.doctype, module.condition_field)):
+
+		condition = ""
+		page_name_field = "page_name"
+		if hasattr(module, "page_name_field"):
+			page_name_field = module.page_name_field
+		if hasattr(module, "condition_field"):
+			condition = " where ifnull(%s, 0)=1" % module.condition_field
+
+		for page_name, name, modified in webnotes.conn.sql("""select %s, name, modified from 
+			`tab%s` %s""" % (page_name_field, module.doctype, condition)):
 				opts = g.copy()
 				opts["doctype"] = module.doctype
 				opts["docname"] = name
 				opts["no_cache"] = getattr(module, "no_cache", False)
+			opts["page_name"] = page_name
+			if page_name_field != "page_name":
+				opts["page_name_field"] = page_name_field
+			opts["docname"] = name
+			opts["lastmod"] = modified.strftime("%Y-%m-%d %H:%M:%S")
 				sitemap[page_name] = opts
 		
 	return sitemap
@@ -152,18 +162,26 @@ def get_home_page():
 	return page_name
 		
 def build_website_sitemap_config():
-	import os
+	import os, time
 	
 	config = {"pages": {}, "generators":{}}
 	basepath = webnotes.utils.get_base_path()
 	
 	def get_options(path, fname):
+		name = fname
+		if fname.endswith(".html"):
 		name = fname[:-5]
+		
+		template_path = os.path.relpath(os.path.join(path, fname), basepath)
+		
 		options = webnotes._dict({
 			"link_name": name,
-			"template": os.path.relpath(os.path.join(path, fname), basepath),
+			"template": template_path,
+			"lastmod": time.ctime(os.path.getmtime(template_path))
 		})
-		controller_path = os.path.join(path, name + ".py")
+
+		controller_name = fname.split(".")[0].replace("-", "_") + ".py"
+		controller_path = os.path.join(path, controller_name)
 		if os.path.exists(controller_path):
 			options.controller = os.path.relpath(controller_path[:-3], basepath).replace(os.path.sep, ".")
 			options.controller = ".".join(options.controller.split(".")[1:])
@@ -174,7 +192,7 @@ def build_website_sitemap_config():
 			if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 				for fname in files:
 					fname = webnotes.utils.cstr(fname)
-					if fname.endswith(".html"):
+				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
 						options = get_options(path, fname)
 						config["pages"][options.link_name] = options
 
@@ -217,7 +235,7 @@ def get_website_settings():
 		"utils": webnotes.utils,
 		"post_login": [
 			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
-			{"label": "Logout", "url": "server.py?cmd=web_logout", "icon": "icon-signout"}
+			{"label": "Logout", "url": "/?cmd=web_logout", "icon": "icon-signout"}
 		]
 	})
 		
@@ -303,16 +321,14 @@ def scrub_page_name(page_name):
 
 	return page_name
 			
-_is_signup_enabled = None
 def is_signup_enabled():
-	global _is_signup_enabled
-	if _is_signup_enabled is None:
-		_is_signup_enabled = True
+	if getattr(webnotes.local, "is_signup_enabled", None) is None:
+		webnotes.local.is_signup_enabled = True
 		if webnotes.utils.cint(webnotes.conn.get_value("Website Settings", 
 			"Website Settings", "disable_signup")):
-				_is_signup_enabled = False
+				webnotes.local.is_signup_enabled = False
 		
-	return _is_signup_enabled
+	return webnotes.local.is_signup_enabled
 
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""

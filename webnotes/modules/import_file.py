@@ -17,13 +17,13 @@ def import_files(module, dt=None, dn=None, force=False):
 		
 def import_file(module, dt, dn, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
-	webnotes.in_import = True
+	webnotes.flags.in_import = True
 	dt, dn = scrub_dt_dn(dt, dn)
 	path = os.path.join(get_module_path(module), 
 		os.path.join(dt, dn, dn + '.txt'))
 		
 	ret = import_file_by_path(path, force)
-	webnotes.in_import = False
+	webnotes.flags.in_import = False
 	return ret
 
 def import_file_by_path(path, force=False):

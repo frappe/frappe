@@ -10,7 +10,7 @@ wn.views.ReportFactory = wn.views.Factory.extend({
 wn.views.ReportViewPage = Class.extend({
 	init: function(doctype, docname) {
 		if(!wn.model.can_get_report(doctype)) {
-			wn.set_route("403");
+			wn.show_not_permitted(wn.get_route_str());
 			return;
 		};
 
@@ -28,9 +28,11 @@ wn.views.ReportViewPage = Class.extend({
 				wn.model.with_doc('Report', me.docname, function(r) {
 					me.page.reportview.set_columns_and_filters(
 						JSON.parse(wn.model.get("Report", me.docname)[0].json));
+					me.page.reportview.set_route_filters();
 					me.page.reportview.run();
 				});
 			} else {
+				me.page.reportview.set_route_filters();
 				me.page.reportview.run();
 			}
 		});
@@ -54,7 +56,7 @@ wn.views.ReportViewPage = Class.extend({
 			wrapper: $(this.page).find(".layout-main")
 		});
 	}
-})
+});
 
 wn.views.ReportView = wn.ui.Listing.extend({
 	init: function(opts) {
@@ -126,7 +128,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 			// fieldname, condition, value
 			me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
 		});
-		
+
 		// first sort
 		if(opts.sort_by) this.sort_by_select.val(opts.sort_by);
 		if(opts.sort_order) this.sort_order_select.val(opts.sort_order);
@@ -134,6 +136,16 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		// second sort
 		if(opts.sort_by_next) this.sort_by_next_select.val(opts.sort_by_next);
 		if(opts.sort_order_next) this.sort_order_next_select.val(opts.sort_order_next);
+	},
+
+	set_route_filters: function() {
+		var me = this;
+		if(wn.route_options) {
+			$.each(wn.route_options, function(key, value) {
+				me.filter_list.add_filter(me.doctype, key, "=", value);
+			});
+			wn.route_options = null;
+		}
 	},
 	
 	// build args for query
@@ -275,7 +287,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				method: "webnotes.client.set_value",
 				args: {
 					doctype: docfield.parent,
-					docname: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
+					name: row[docfield.parent===me.doctype ? "name" : docfield.parent+":name"],
 					fieldname: docfield.fieldname,
 					value: d.get_value(docfield.fieldname)
 				},

@@ -1,6 +1,6 @@
-Jinja2
-MarkupSafe
-MySQL-python
+jinja2
+markupsafe
+mysql-python
 chardet
 dropbox
 google-api-python-client
@@ -13,3 +13,5 @@ pytz==2013d
 requests
 six
 termcolor
+werkzeug
+gunicorn

@@ -17,7 +17,7 @@ wn.pages.messages.onload = function(wrapper) {
 	<textarea class="form-control" rows=3 style="margin-bottom: 15px;"></textarea>\
 	<div><button class="btn btn-default">Post</button></div><hr>\
 	</div>\
-	<div class="all-messages"></div>').appendTo($(wrapper).find('.layout-main-section'));
+	<div class="all-messages"></div><br>').appendTo($(wrapper).find('.layout-main-section'));
 
 	wrapper.appframe.add_module_icon("Messages");
 	

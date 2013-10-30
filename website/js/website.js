@@ -10,6 +10,30 @@ $.extend(wn, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
+	provide: function(namespace) {
+		var nsl = namespace.split('.');
+		var parent = window;
+		for(var i=0; i<nsl.length; i++) {
+			var n = nsl[i];
+			if(!parent[n]) {
+				parent[n] = {}
+			}
+			parent = parent[n];
+		}
+		return parent;
+	},
+	require: function(url) {
+		$.ajax({
+			url: url + "?q=" + Math.floor(Math.random() * 1000), 
+			async: false, 
+			dataType: "text", 
+			success: function(data) {
+				var el = document.createElement('script');
+				el.appendChild(document.createTextNode(data));
+				document.getElementsByTagName('head')[0].appendChild(el);
+			}
+		});
+	},
 	hide_message: function(text) {
 		$('.message-overlay').remove();
 	},
@@ -17,7 +41,7 @@ $.extend(wn, {
 		wn.prepare_call(opts);
 		$.ajax({
 			type: "POST",
-			url: "server.py",
+			url: "/",
 			data: opts.args,
 			dataType: "json",
 			success: function(data) {
@@ -124,6 +148,10 @@ $.extend(wn, {
 		return modal;
 	},
 	msgprint: function(html, title) {
+		if(html.substr(0,1)==="[") html = JSON.parse(html);
+		if($.isArray(html)) {
+			html = html.join("<hr>")
+		}
 		return wn.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
@@ -251,7 +279,8 @@ function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = getCookie("full_name");
-	$("#website-login").toggleClass("hide", full_name ? true : false);
-	$("#website-post-login").toggleClass("hide", full_name ? false : true);
+	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
+	$("#website-login").toggleClass("hide", logged_in ? true : false);
+	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
 });
 

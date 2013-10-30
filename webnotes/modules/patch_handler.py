@@ -14,6 +14,8 @@ from __future__ import unicode_literals
 """
 import webnotes
 
+class PatchError(Exception): pass
+
 def run_all(patch_list=None):
 	"""run all pending patches"""
 	if webnotes.conn.table_exists("__PatchLog"):
@@ -24,14 +26,15 @@ def run_all(patch_list=None):
 	for patch in (patch_list or patches.patch_list.patch_list):
 		if patch not in executed:
 			if not run_single(patchmodule = patch):
-				return log(patch + ': failed: STOPPED')
+				log(patch + ': failed: STOPPED')
+				raise PatchError(patch)
 
 def reload_doc(args):
 	import webnotes.modules
 	run_single(method = webnotes.modules.reload_doc, methodargs = args)
 
 def run_single(patchmodule=None, method=None, methodargs=None, force=False):
-	import conf
+	from webnotes import conf
 	
 	# don't write txt files
 	conf.developer_mode = 0
@@ -61,12 +64,10 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		success = True
 	except Exception, e:
 		webnotes.conn.rollback()
-		global has_errors
-		has_errors = True
 		tb = webnotes.getTraceback()
 		log(tb)
 		import os
-		if os.environ.get('HTTP_HOST'):
+		if webnotes.request:
 			add_to_patch_log(tb)
 
 	block_user(False)
@@ -77,6 +78,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 def add_to_patch_log(tb):
 	"""add error log to patches/patch.log"""
 	import conf, os
+	# TODO use get_site_base_path
 	with open(os.path.join(os.path.dirname(conf.__file__), 'app', 'patches','patch.log'),'a') as patchlog:
 		patchlog.write('\n\n' + tb)
 	
@@ -110,7 +112,8 @@ def setup():
 	webnotes.conn.sql("""CREATE TABLE IF NOT EXISTS `__PatchLog` (
 			patch TEXT, applied_on DATETIME) engine=InnoDB""")
 		
-log_list = []
-has_errors = False
 def log(msg):
-	log_list.append(msg)
+	if getattr(webnotes.local, "patch_log_list", None) is None:
+		webnotes.local.patch_log_list = []
+	
+	webnotes.local.patch_log_list.append(msg)

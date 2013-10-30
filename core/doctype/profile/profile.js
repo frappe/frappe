@@ -36,7 +36,7 @@ cur_frm.cscript.user_image = function(doc) {
 }
 
 cur_frm.cscript.refresh = function(doc) {
-	cur_frm.toggle_reqd('new_password', doc.__islocal);
+	cur_frm.toggle_display('change_password', !doc.__islocal);
 
 	cur_frm.toggle_display(['sb1', 'sb3'], false);
 
@@ -104,11 +104,20 @@ wn.RoleEditor = Class.extend({
 	show_roles: function() {
 		var me = this;
 		$(this.wrapper).empty();
-		var add_all_roles = $('<p><button class="btn btn-default">Add all roles</button></p>').appendTo($(this.wrapper));
-		add_all_roles.find("button").on("click", function() {
+		var add_all_roles = $('<p><button class="btn btn-default btn-add">Add all roles</button>\
+			<button class="btn btn-default btn-remove">Clear all roles</button></p>').appendTo($(this.wrapper));
+		add_all_roles.find(".btn-add").on("click", function() {
 			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
 				if(!$(check).is(":checked")) {
 					check.checked = true;
+				}
+			});
+		});
+
+		add_all_roles.find(".btn-remove").on("click", function() {
+			$(me.wrapper).find('input[type="checkbox"]').each(function(i, check) {
+				if($(check).is(":checked")) {
+					check.checked = false;
 				}
 			});
 		});

@@ -183,6 +183,10 @@ _f.Frm.prototype.setup_std_layout = function() {
 		doctype: this.doctype,
 		frm: this,
 	});
+	this.layout.make();
+	
+	this.fields_dict = this.layout.fields_dict;
+	this.fields = this.layout.fields_list;
 
 	this.dashboard = new wn.ui.form.Dashboard({
 		frm: this,
@@ -222,7 +226,7 @@ _f.Frm.prototype.email_doc = function(message) {
 	});
 }
 
-// email the form
+// rename the form
 _f.Frm.prototype.rename_doc = function() {
 	wn.model.rename_doc(this.doctype, this.docname);
 }
@@ -355,7 +359,6 @@ _f.Frm.prototype.check_doc_perm = function() {
 	this.perm = wn.perm.get_perm(dt, dn);
 				  
 	if(!this.perm[0][READ]) { 
-		wn.set_route("403");
 		return 0;
 	}
 	return 1
@@ -468,6 +471,7 @@ _f.Frm.prototype.refresh_field = function(fname) {
 
 _f.Frm.prototype.refresh_fields = function() {
 	this.layout.refresh();
+	this.layout.primary_button = $(this.wrapper).find(".btn-primary");
 
 	// cleanup activities after refresh
 	this.cleanup_refresh(this);
@@ -699,6 +703,15 @@ _f.Frm.prototype.save = function(save_action, callback, btn, on_error) {
 				on_error();
 		}
 		callback && callback(r);
+		
+		if(wn._from_link) {
+			if(me.doctype===wn._from_link.df.options) {
+				wn._from_link.parse_validate_and_set_in_model(me.docname);
+				wn.set_route("Form", wn._from_link.frm.doctype, wn._from_link.frm.docname);
+				setTimeout(function() { scroll(0, wn._from_link_scrollY); }, 100);
+			}
+			wn._from_link = null;
+		}
 	}, btn);
 }
 

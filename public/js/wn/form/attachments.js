@@ -111,38 +111,37 @@ wn.ui.form.Attachments = Class.extend({
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({
 				title: wn._('Upload Attachment'),
-				width: 400
 			});
-			$y(this.dialog.body, {margin:'13px'});
-			this.dialog.make();
 		}
-		this.dialog.body.innerHTML = '';
 		this.dialog.show();
 		
+		$(this.dialog.body).empty();
 		wn.upload.make({
 			parent: this.dialog.body,
 			args: {
 				from_form: 1,
 				doctype: this.frm.doctype,
-				docname: this.frm.docname
+				docname: this.frm.docname,
 			},
 			callback: function(fileid, filename, r) {
+				me.dialog.hide();
 				me.update_attachment(fileid, filename, fieldname, r);
-				me.frm.toolbar.show_infobar();
 			},
 			onerror: function() {
 				me.dialog.hide();
-			}
+			},
+			max_width: this.frm.cscript ? this.frm.cscript.attachment_max_width : null,
+			max_height: this.frm.cscript ? this.frm.cscript.attachment_max_height : null,
 		});
 	},
 	update_attachment: function(fileid, filename, fieldname, r) {
-		this.dialog && this.dialog.hide();
 		if(fileid) {
 			this.add_to_attachments(fileid, filename);
 			this.refresh();
 			if(fieldname) {
 				this.frm.set_value(fieldname, wn.utils.get_file_link(filename));
 				this.frm.cscript[fieldname] && this.frm.cscript[fieldname](this.frm.doc);
+				this.frm.toolbar.show_infobar();
 			}
 		}
 	},

@@ -4,10 +4,11 @@
 from __future__ import unicode_literals
 import webnotes
 
-workflow_names = {}
 def get_workflow_name(doctype):
-	global workflow_names
-	if not doctype in workflow_names:
+	if getattr(webnotes.local, "workflow_names", None) is None:
+		webnotes.local.workflow_names = {}
+	
+	if doctype not in webnotes.local.workflow_names:
 		workflow_name = webnotes.conn.get_value("Workflow", {"document_type": doctype, 
 			"is_active": "1"}, "name")
 	
@@ -16,13 +17,13 @@ def get_workflow_name(doctype):
 			workflow_name = webnotes.conn.get_value("Workflow", {"document_type": doctype}, 
 			"name")
 				
-		workflow_names[doctype] = workflow_name
+		webnotes.local.workflow_names[doctype] = workflow_name
 			
-	return workflow_names[doctype]
+	return webnotes.local.workflow_names[doctype]
 	
 def get_default_state(doctype):
 	workflow_name = get_workflow_name(doctype)
-	return webnotes.conn.get_value("Workflow Document State", {"parent":doctype,
+	return webnotes.conn.get_value("Workflow Document State", {"parent": workflow_name,
 		"idx":1}, "state")
 		
 def get_state_fieldname(doctype):

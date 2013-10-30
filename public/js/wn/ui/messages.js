@@ -61,6 +61,9 @@ function msgprint(msg, title) {
 		msg_dialog = new wn.ui.Dialog({
 			title:"Message",
 			onhide: function() {
+				if(msg_dialog.custom_onhide) {
+					msg_dialog.custom_onhide();
+				}
 				msg_dialog.msg_area.empty();
 			}
 		});

@@ -19,8 +19,6 @@ from csv import reader
 from webnotes.modules import get_doc_path
 from webnotes.utils import get_base_path, cstr
 
-messages = {}
-
 def translate(lang=None):
 	languages = [lang]
 	if lang=="all" or lang==None:
@@ -305,22 +303,24 @@ def import_messages(lang, infile):
 			_update_lang_file('js')
 			_update_lang_file('py')
 
-docs_loaded = []
 def load_doc_messages(module, doctype, name):
 	if webnotes.lang=="en":
 		return {}
 
-	global docs_loaded
+	if not webnotes.local.translated_docs:
+		webnotes.local.translated_docs = []
+
 	doc_path = get_doc_path(module, doctype, name)
 
 	# don't repload the same doc again
-	if (webnotes.lang + ":" + doc_path) in docs_loaded:
+	if (webnotes.lang + ":" + doc_path) in webnotes.local.translated_docs:
 		return
 
-	docs_loaded.append(webnotes.lang + ":" + doc_path)
+	if not docs_loaded:
+		webnotes.local.translate_docs_loaded = []
+	webnotes.local.translated_docs.append(webnotes.lang + ":" + doc_path)
 
-	global messages
-	messages.update(get_lang_data(doc_path, None, 'doc'))
+	webnotes.local.translations.update(get_lang_data(doc_path, None, 'doc'))
 
 def get_lang_data(basepath, lang, mtype):
 	"""get language dict from langfile"""
@@ -329,10 +329,10 @@ def get_lang_data(basepath, lang, mtype):
 	if os.path.basename(basepath) != 'locale':
 		basepath = os.path.join(basepath, 'locale')
 	
-	if not lang: lang = webnotes.lang
+	if not lang: lang = webnotes.local.lang
 	
 	path = os.path.join(basepath, lang + '-' + mtype + '.json')
-	
+		
 	langdata = {}
 	if os.path.exists(path):
 		with codecs.open(path, 'r', 'utf-8') as langfile:
@@ -372,7 +372,8 @@ def google_translate(lang, infile, outfile):
 	"""translate objects using Google API. Add you own API key for translation"""
 	data = get_all_messages_from_file(infile)
 		
-	import requests, conf
+	import requests
+	from webnotes import conf
 	
 	old_translations = {}
 	
