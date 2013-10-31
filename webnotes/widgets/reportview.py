@@ -149,7 +149,7 @@ def build_conditions(doctype, fields, filters, docstatus):
 	match_conditions = build_match_conditions(doctype, fields)
 	if match_conditions:
 		conditions.append(match_conditions)
-
+	
 	return conditions
 		
 def build_filter_conditions(filters, conditions):
@@ -218,15 +218,24 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 					# exists without a match restriction
 					match = False
 					match_filters = {}
-		
+	
 	if as_condition:
+		conditions = ""
 		if match_conditions and match:
-			return '('+ ' or '.join(match_conditions) +')'
-		else:
-			return ""
+			conditions =  '('+ ' or '.join(match_conditions) +')'
+		
+		doctype_conditions = get_doctype_conditions(doctype)
+		if doctype_conditions:
+				conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+		return conditions
 	else:
 		return match_filters
-
+		
+def get_doctype_conditions(doctype):
+	from webnotes.model.code import load_doctype_module
+	module = load_doctype_module(doctype)
+	if module and hasattr(module, 'get_match_conditions'):
+		return getattr(module, 'get_match_conditions')()
 
 def get_tables(doctype, fields):
 	"""extract tables from fields"""

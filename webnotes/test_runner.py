@@ -153,7 +153,6 @@ def run_all_tests(verbose):
 			filename = cstr(filename)
 			if filename.startswith("test_") and filename.endswith(".py"):
 				# print filename[:-3]
-				
 				_run_test(path, filename, verbose, test_suite=test_suite, run=False)
 				
 				# webnotes.conn.rollback()

@@ -195,13 +195,13 @@ def make_logs():
 	from webnotes.utils import cstr
 	if webnotes.error_log:
 		# webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
-		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.error_log])
+		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.local.error_log])
 
 	if webnotes.local.message_log:
 		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.local.message_log])
 	
 	if webnotes.debug_log and conf.get("logging") or False:
-		webnotes.response['_debug_messages'] = json.dumps(webnotes.debug_log)
+		webnotes.response['_debug_messages'] = json.dumps(webnotes.local.debug_log)
 
 def print_zip(response):
 	response = response.encode('utf-8')
