@@ -86,12 +86,11 @@ div#freeze {
 
 .alert-badge {
 	padding-right: 15px;
+	margin: 7px 0px;
 }
 
 .alert-badge a, .alert-badge a:hover {
-	color: black;
-	font-size: 120%; 
-	font-weight: bold;
+	
 }
 
 .alert-badge .badge {
@@ -111,7 +110,7 @@ div#freeze {
 }
 
 .form-layout {
-	margin-top: -15px;
+	/*margin-top: -15px;*/
 }
 
 .form-headline {
@@ -247,13 +246,11 @@ div#freeze {
 	cursor: pointer;
 	display: inline-block;
 	float:left;
-	padding: 10px;
-	width: 46px;
-	color: white;
+	padding: 5px;
 	margin-right: 10px;
 	border-radius: 5px;
 	margin-top: -10px;
-	font-size: 24px;
+	font-size: 28px;
 	text-align: center;
 }
 
@@ -264,8 +261,8 @@ div#freeze {
 }
 
 .appframe .sub-title-area {
-	margin-top: -30px;
-	margin-left: 58px;
+	margin-top: -26px;
+	margin-left: 47px;
 	font-size: 100%;
 }
 

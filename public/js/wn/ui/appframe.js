@@ -17,7 +17,7 @@ wn.ui.AppFrame = Class.extend({
 					<div class="title-button-area-1 btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
 					<div class="title-area"><h2 style="display: inline-block">\
-						<span class="title-icon" style="display: none"></span>\
+						<span class="title-icon text-muted" style="display: none"></span>\
 						<span class="title-text"></span></h2></div>\
 					<div class="sub-title-area text-muted small">&nbsp;</div>\
 					<div class="mini-bar"><ul></ul></div>\
@@ -87,9 +87,6 @@ wn.ui.AppFrame = Class.extend({
 		
 		this.$w.find(".title-icon").html('<i class="'+icon+'"></i> ')
 			.toggle(true)
-			.css({
-				"background-color": module_info.color,
-			})
 			.attr("doctype-name", doctype)
 			.attr("module-link", module_info.link)
 			.click(onclick || function() {
@@ -185,8 +182,8 @@ wn.ui.AppFrame = Class.extend({
 				.attr("title", wn._(toTitle(e.type)))
 				.appendTo($right);
 				
-			if(e.type==active_view) {
-				btn.removeClass("btn-default").addClass("btn-info");
+			if(e.type===active_view) {
+				btn.css({"color": "#4CD964"});
 			}
 		});
 	},

@@ -108,12 +108,15 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				$('<h3 class="col-md-12 text-muted">' 
+				var head = $('<h3 class="col-md-12 text-muted">' 
 					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ wn._(df.label)
 					+ "</h3>")
 					.appendTo(this.section);
+					
+				if(df && df.idx===1) 
+					head.css({"margin-top": "0px"})
 				if(this.sections.length > 1)
 					this.section.css({
 						"margin-top": "15px", 

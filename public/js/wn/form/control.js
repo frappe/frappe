@@ -145,8 +145,8 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		} else {
 			this.$wrapper = $('<div class="form-horizontal">\
 				<div class="form-group row" style="margin: 0px 0px 7px 0px">\
-					<label class="control-label col-xs-'+(this.horizontal?"4":"12")+'" style="padding-right: 0px"></label>\
-					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
+					<label class="control-label col-xs-'+(this.horizontal?"3":"12")+'" style="padding-right: 0px"></label>\
+					<div class="col-xs-'+(this.horizontal?"9":"12")+'">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
 						<p class="help-box small text-muted"></p>\
@@ -448,7 +448,7 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
 		this.$wrapper = $('<div class="form-group row">\
-		<div class="col-md-offset-4 col-md-8">\
+		<div class="col-md-offset-3 col-md-9">\
 			<div class="checkbox">\
 				<label class="input-area">\
 					<span class="disp-area" style="display:none;"></span>\
@@ -588,7 +588,7 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
 	make_input: function() {
 		this._super();
-		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin-top: 7px;">\
+		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
 			<div class="missing-image"><i class="icon-camera"></i></div></div>').prependTo(this.input_area)).toggle(false);
 	},
 	on_attach: function() {

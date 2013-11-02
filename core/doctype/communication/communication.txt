@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-10-03 15:51:53", 
+  "modified": "2013-11-02 14:05:24", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -50,7 +50,7 @@
   "fieldname": "naming_series", 
   "fieldtype": "Select", 
   "hidden": 1, 
-  "label": "Document Numbering Series", 
+  "label": "Series", 
   "options": "COMM-"
  }, 
  {

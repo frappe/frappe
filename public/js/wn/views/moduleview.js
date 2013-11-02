@@ -77,7 +77,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			var module_top = $(this.wrapper).find(".module-top");
 			var list_group = $('<div>')
 				.appendTo(module_top);
-			$('<hr>').css({"margin-top": "0px"})
+			$('<hr class="row">')
 				.insertAfter(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
@@ -98,9 +98,9 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(!item.icon) item.icon = "";
 		if(section.top) {
 			var $parent = $(repl('<div class="col-md-4">\
-				<div class="alert alert-warning alert-badge"></div></div>'))
+				<div class="alert-badge"></div></div>'))
 				.appendTo(section.list_group)
-				.find(".alert");
+				.find(".alert-badge");
 			this.top_item_total[item.doctype] = 0;
 		} else {
 			var $parent = $('<li class="list-group-item">').appendTo(section.list_group);
