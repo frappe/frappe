@@ -41,7 +41,7 @@ def make_custom_server_script_file(doctype, script=None):
 
 	file_path = get_custom_server_script_path(doctype)
 	if os.path.exists(file_path):
-		raise Exception(file_path + " already exists")
+		raise IOError(file_path + " already exists")
 		
 	# create folder if not exists
 	webnotes.create_folder(os.path.dirname(file_path))

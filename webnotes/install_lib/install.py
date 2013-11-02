@@ -170,8 +170,7 @@ class Installer:
 		webnotes.conn.commit()
 
 	def create_auth_table(self):
-		webnotes.conn.sql_ddl("""drop table if exists __Auth""")
-		webnotes.conn.sql_ddl("""create table __Auth (
+		webnotes.conn.sql_ddl("""create table if not exists __Auth (
 			`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 			`password` VARCHAR(180) NOT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
