@@ -108,11 +108,11 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				var head = $('<h3 class="col-md-12 text-muted">' 
+				var head = $('<h4 class="col-md-12 text-muted">' 
 					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ wn._(df.label)
-					+ "</h3>")
+					+ "</h4>")
 					.appendTo(this.section);
 					
 				if(df && df.idx===1) 

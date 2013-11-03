@@ -2,7 +2,7 @@
  {
   "creation": "2012-11-22 17:45:46", 
   "docstatus": 0, 
-  "modified": "2013-07-25 15:27:38", 
+  "modified": "2013-11-03 11:09:55", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -68,7 +68,7 @@
  }, 
  {
   "depends_on": "letter_head_name", 
-  "description": "Your letter head content", 
+  "description": "Letter Head in HTML", 
   "doctype": "DocField", 
   "fieldname": "content", 
   "fieldtype": "Text Editor", 

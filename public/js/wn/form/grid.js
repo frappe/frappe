@@ -11,8 +11,8 @@ wn.ui.form.Grid = Class.extend({
 		var me = this;
 		
 		this.wrapper = $('<div>\
-		<div class="panel panel-default">\
-			<div class="panel-heading" style="font-size: 15px;"></div>\
+		<div class="" style="border: 1px solid #ddd; margin-bottom: 15px; border-radius: 3px;">\
+			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
 			<div class="panel-body">\
 				<div class="rows"></div>\
 				<div style="margin-top: 5px; margin-bottom: -5px;">\
@@ -31,7 +31,7 @@ wn.ui.form.Grid = Class.extend({
 	make_head: function() {
 		// labels
 		this.header_row = new wn.ui.form.GridRow({
-			parent: $(this.parent).find(".panel-heading"),
+			parent: $(this.parent).find(".grid-heading-row"),
 			parent_df: this.df,
 			docfields: this.docfields,
 			frm: this.frm,
@@ -245,7 +245,7 @@ wn.ui.form.GridRow = Class.extend({
 			var txt = this.doc ? 
 				wn.format(this.doc[df.fieldname], df, null, this.doc) : 
 				wn._(df.label);
-			if(df.fieldtype === "Select") {
+			if(this.doc && df.fieldtype === "Select") {
 				txt = wn._(txt);
 			}
 			var add_class = (["Text", "Small Text"].indexOf(df.fieldtype)===-1) ? 
@@ -258,6 +258,7 @@ wn.ui.form.GridRow = Class.extend({
 				.attr("data-fieldname", df.fieldname)
 				.data("df", df)
 				.appendTo(this.row)
+			if(!this.doc) $col.css({"font-weight":"bold"})
 		}
 		
 		// TODO find a better solution
@@ -405,7 +406,6 @@ wn.ui.form.GridRow = Class.extend({
 						.appendTo(me.form_area);
 
 				var row = $('<div class="row">')
-					.css({"padding": "0px 15px"})
 					.appendTo(me.form_area);
 				
 				var col_spans = 6;

@@ -1,6 +1,6 @@
 body {	
 	margin: 0px;
-	padding-top: 70px;
+	padding-top: 50px;
 	padding-bottom: 50px;
 }
 
@@ -98,13 +98,12 @@ div#freeze {
 }
 
 .icon-in-circle {
-	color: white; 
-	background-color: #b7b7b7; 
+	color: #b7b7b7; 
+	background-color: white;
 	border-radius:50%; 
-	padding: 9px; 
 	text-align: center; 
-	width: 38px; 
-	height: 38px; 
+	width: 20px; 
+	height: 20px; 
 	font-size: 20px; 
 	display: inline-block;	
 }
@@ -131,9 +130,10 @@ div#freeze {
 	margin-bottom: 3px;
 }
 
-.link-field .btn {
-	padding-left: 6px;
-	padding-right: 6px;
+.link-field-btn a, .link-field-btn a:hover {
+	color: #888;
+	text-decoration: none;
+	margin-left: 3px;
 }
 
 /* list */
@@ -261,8 +261,8 @@ div#freeze {
 }
 
 .appframe .sub-title-area {
-	margin-top: -26px;
-	margin-left: 47px;
+	margin-top: -24px;
+	margin-left: 42px;
 	font-size: 100%;
 }
 
@@ -277,8 +277,6 @@ div#freeze {
 
 .navbar-icon-home {
 	vertical-align: middle;
-	opacity: 0.7;
-	Filter:alpha(opacity=70); /* For IE8 and earlier */
 }
 
 .navbar-icon-home:hover,
@@ -428,9 +426,14 @@ textarea.form-control {
 
 /* form grid */
 
+.grid-heading-row {
+	padding: 8px;
+	border-bottom: 1px solid #dddddd;
+}
+
 .rows .grid-row .divider {
-	padding-bottom: 8px;
-	margin-bottom: 8px;
+	padding-bottom: 5px;
+	margin-bottom: 5px;
 	border-bottom: 1px solid #dddddd;
 }
 

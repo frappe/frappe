@@ -103,7 +103,9 @@ wn.ui.form.ControlImage = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper.on("refresh", function() {
+		this.$wrapper
+		.css({"margin-bottom": "10px"})
+		.on("refresh", function() {
 			me.$wrapper.empty();
 			if(me.df.options && me.frm.doc[me.df.options]) {
 				$("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
@@ -144,7 +146,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 			this.$wrapper = $('<div class="form-group">').appendTo(this.parent);
 		} else {
 			this.$wrapper = $('<div class="form-horizontal">\
-				<div class="form-group row" style="margin: 0px 0px 7px 0px">\
+				<div class="form-group row" style="margin: 0px">\
 					<label class="control-label col-xs-'+(this.horizontal?"3":"12")+'" style="padding-right: 0px"></label>\
 					<div class="col-xs-'+(this.horizontal?"9":"12")+'">\
 						<div class="control-input"></div>\
@@ -631,7 +633,7 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		var me = this;
 		$(this.input).css({"width": "85%", "display": "inline-block"});
 		this.$attach = $("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
-			style='padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
+			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
 				me.frm.attachments.new_attachment(me.df.fieldname);
@@ -695,17 +697,16 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="input-group link-field">\
-			<input type="text" class="input-with-feedback form-control">\
-			<span class="input-group-btn">\
-				<button class="btn btn-default btn-search" title="Search Link">\
+		$('<div class="link-field">\
+			<input type="text" class="input-with-feedback form-control" style="width: 80%; display: inline-block">\
+			<span class="link-field-btn">\
+				<a class="btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
-				</button>\
-				<button class="btn btn-default btn-open" title="Open Link">\
+				</a><a class="btn-open" title="Open Link">\
 					<i class="icon-play"></i>\
-				</button><button class="btn btn-default btn-new" title="Make New">\
+				</a><a class="btn-new" title="Make New">\
 					<i class="icon-plus"></i>\
-				</button>\
+				</a>\
 			</span>\
 		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);

@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-07 11:54:44", 
   "docstatus": 0, 
-  "modified": "2013-09-18 12:10:54", 
+  "modified": "2013-11-03 11:10:54", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -70,7 +70,6 @@
   "label": "Unsubscribed"
  }, 
  {
-  "description": "Id of the profile will be the email.", 
   "doctype": "DocField", 
   "fieldname": "email", 
   "fieldtype": "Data", 
@@ -217,7 +216,6 @@
   "label": "Short Bio"
  }, 
  {
-  "description": "Bio will be displayed in blog section etc.", 
   "doctype": "DocField", 
   "fieldname": "bio", 
   "fieldtype": "Small Text", 

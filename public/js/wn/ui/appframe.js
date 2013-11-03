@@ -183,7 +183,7 @@ wn.ui.AppFrame = Class.extend({
 				.appendTo($right);
 				
 			if(e.type===active_view) {
-				btn.css({"color": "#4CD964"});
+				btn.css({"color": "#428bca"});
 			}
 		});
 	},

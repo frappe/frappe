@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-23 19:54:43", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:50:50", 
+  "modified": "2013-11-03 11:10:24", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -68,7 +68,7 @@
   "search_index": 1
  }, 
  {
-  "description": "Associate a DocType to the Print Format", 
+  "description": "Belongs to", 
   "doctype": "DocField", 
   "fieldname": "doc_type", 
   "fieldtype": "Select", 
