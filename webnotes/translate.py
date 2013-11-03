@@ -210,9 +210,9 @@ def get_message_list(path):
 	messages = []
 	with open(path, 'r') as sourcefile:
 		txt = sourcefile.read()
-		messages += re.findall('_\("([^"]*)"\)', txt)
-		messages += re.findall("_\('([^']*)'\)", txt)
-		messages += re.findall('_\("{3}([^"]*)"{3}\)', txt, re.S)	
+		messages += re.findall('_\("([^"]*)".*\)', txt)
+		messages += re.findall("_\('([^']*)'.*\)", txt)
+		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', txt, re.S)	
 		
 	return messages
 	
