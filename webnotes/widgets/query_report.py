@@ -16,9 +16,18 @@ import webnotes.widgets.reportview
 def get_script(report_name):
 	report = webnotes.doc("Report", report_name)
 	
-	script_path = os.path.join(get_module_path(webnotes.conn.get_value("DocType", report.ref_doctype, "module")),
+	doctype = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
+	script_path = os.path.join(get_module_path(doctype),
 		"report", scrub(report.name), scrub(report.name) + ".js") 
 	
+	# load translations
+	if webnotes.lang != "en":
+		from webnotes.translate import get_lang_data
+		locale_path = os.path.join(get_module_path(webnotes.conn.get_value(doctype)),"report", scrub(report.name))
+		messages = get_lang_data(locale_path, 
+			webnotes.lang, 'js')
+		webnotes.response["__messages"] = messages
+		
 	if os.path.exists(script_path):
 		with open(script_path, "r") as script:
 			return script.read()

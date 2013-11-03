@@ -16,7 +16,7 @@ import codecs
 import json
 import re
 from csv import reader
-from webnotes.modules import get_doc_path
+from webnotes.modules import get_doc_path,get_doctype_module
 from webnotes.utils import get_base_path, cstr
 
 def translate(lang=None):
@@ -99,6 +99,9 @@ def build_message_files():
 
 	build_from_doctype_code('lib/core')
 	build_from_doctype_code('app')
+
+	#reports
+	build_from_query_report()
 	
 	# doctype
 	build_from_database()
@@ -123,6 +126,38 @@ def build_for_pages(path):
 				write_messages_file(basepath, messages_js, "js")
 			if messages_py:
 				write_messages_file(basepath, messages_py, "py")
+	
+def build_from_query_report():
+	"""make locale for the query reports from database and the framework js and py files"""
+	import re
+	for item in webnotes.conn.sql("""select report_name,ref_doctype,query from `tabReport`""", as_dict=1):
+		messages_js, messages_py = [], []
+
+		if item:
+			messages_js.append(item.report_name)
+			messages_py.append(item.report_name)
+			# get the messages from the query using the regex :
+			# if we have the string "Production Date:Date:180" in the query then the regex will search for string between " and : .
+			# the regex will take "Production Date" and store them into messages
+			if item.query :
+				messages_query = re.findall('"([^:,^"]*):', item.query)
+				messages_js += messages_query
+				messages_py += messages_query
+			
+			module = get_doctype_module(item.ref_doctype)		
+			if module :
+				doctype_path = get_doc_path(module, "Report", item.report_name)
+				if os.path.exists(doctype_path):
+					for (basepath, folders, files) in os.walk(doctype_path):
+						for fname in files:
+							if fname.endswith('.js'):
+								messages_js += get_message_list(os.path.join(basepath, fname))	
+							if fname.endswith('.py'):
+								messages_py += get_message_list(os.path.join(basepath, fname))
+						break			
+					write_messages_file(doctype_path, messages_js, 'js')
+					write_messages_file(doctype_path, messages_py, 'py')
+
 
 def build_from_database():
 	"""make doctype labels, names, options, descriptions"""

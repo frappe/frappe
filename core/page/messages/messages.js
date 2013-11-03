@@ -73,7 +73,7 @@ wn.core.pages.messages = Class.extend({
 
 		$("#show-everyone").toggle(contact!==user);
 		
-		$("#post-message button").text(contact==user ? "Post Publicly" : "Post to user")
+		$("#post-message button").text(contact==user ? wn._("Post Publicly") : wn._("Post to user"))
 		
 		this.contact = contact;
 		this.list.opts.args.contact = contact;
