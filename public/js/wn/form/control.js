@@ -29,7 +29,7 @@ wn.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(wn.boot.profile && wn.boot.profile.name==="Administrator" &&
 			wn.boot.developer_mode===1 && this.$wrapper) {
-				this.$wrapper.attr("title", this.df.fieldname);
+				this.$wrapper.attr("title", wn._(this.df.fieldname));
 		}
 	},
 	make: function() {
@@ -924,7 +924,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 
 		// description
 		if(this.df.description) {
-			$('<p class="text-muted small">' + this.df.description + '</p>')
+			$('<p class="text-muted small">' + wn._(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
 		

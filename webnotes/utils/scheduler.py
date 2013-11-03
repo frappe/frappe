@@ -46,18 +46,18 @@ def execute(site=None):
 
 		if nowtime.day != last.day:
 			# if first task of the day execute daily tasks
-			out.append('daily:' + trigger('execute_daily'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - daily:' + trigger('execute_daily'))
 
 			if nowtime.month != last.month:
-				out.append('monthly:' + trigger('execute_monthly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - monthly:' + trigger('execute_monthly'))
 					
 			if nowtime.weekday()==0:
-				out.append('weekly:' + trigger('execute_weekly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - weekly:' + trigger('execute_weekly'))
 			
 		if nowtime.hour != last.hour:
-			out.append('hourly:' + trigger('execute_hourly'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger('execute_hourly'))
 
-	out.append('all:' + trigger('execute_all'))
+	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger('execute_all'))
 	
 	return '\n'.join(out)
 	
