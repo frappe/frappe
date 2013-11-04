@@ -15,4 +15,3 @@ six
 termcolor
 werkzeug
 gunicorn
-slugify
