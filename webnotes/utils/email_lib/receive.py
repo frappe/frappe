@@ -4,6 +4,8 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
+from slugify import slugify
+import os
 
 class IncomingMail:
 	"""
@@ -87,7 +89,7 @@ class IncomingMail:
 	def get_attachment(self, part, charset):
 		self.attachments.append({
 			'content-type': part.get_content_type(),
-			'filename': part.get_filename(),
+			'filename': slugify(os.path.splitext(part.get_filename())[0]) + os.path.splitext(part.get_filename())[1],
 			'content': part.get_payload(decode=True),
 		})
 	
@@ -95,7 +97,7 @@ class IncomingMail:
 		from webnotes.utils.file_manager import save_file, MaxFileSizeReachedError
 		for attachment in self.attachments:
 			try:
-				fid = save_file(attachment['filename'], attachment['content'], 
+				fid = save_file(doc.name + '-' + attachment['filename'], attachment['content'], 
 					doc.doctype, doc.name)
 			except MaxFileSizeReachedError:
 				# bypass max file size exception
@@ -157,13 +159,13 @@ class POP3Mailbox:
 			msg = self.pop.retr(m)
 			# added back dele, as most pop3 servers seem to require msg to be deleted
 			# else it will again be fetched in self.pop.list()
-			self.pop.dele(m)
 			
 			try:
 				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
 				webnotes.conn.begin()
 				self.process_message(incoming_mail)
 				webnotes.conn.commit()
+				self.pop.dele(m)
 			except:
 				from webnotes.utils.scheduler import log
 				# log performs rollback and logs error in scheduler log
