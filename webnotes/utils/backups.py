@@ -23,10 +23,11 @@ class BackupGenerator:
 	"""
 		This class contains methods to perform On Demand Backup
 		
-		To initialize, specify (db_name, user, password, db_file_name=None)
+		To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None):
+	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None, db_host="localhost"):
+		self.db_host = db_host
 		self.db_name = db_name
 		self.user = user
 		self.password = password
@@ -47,6 +48,10 @@ class BackupGenerator:
 			self.take_dump()
 			if not ignore_files:
 				self.zip_files()
+		else:
+			self.backup_path_files = last_file
+			self.backup_path_db = last_db
+
 
 	def set_backup_file_name(self):
 		import random
@@ -87,7 +92,7 @@ class BackupGenerator:
 		# escape reserved characters
 		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] 
 			for item in self.__dict__.copy().items())
-		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_path_db)s""" % args		
+		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s | gzip -c > %(backup_path_db)s""" % args		
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 		
 	def send_email(self):
@@ -131,7 +136,7 @@ def get_backup():
 	#if verbose: print webnotes.conn.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  webnotes.get_db_password(webnotes.conn.cur_db_name))
+						  webnotes.get_db_password(webnotes.conn.cur_db_name), db_host = webnotes.conn.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	webnotes.msgprint("""A download link to your backup will be emailed \
@@ -152,7 +157,7 @@ def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_pat
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
 						  webnotes.get_db_password(webnotes.conn.cur_db_name), 
-						  backup_path_db=backup_path_db, backup_path_files=backup_path_files)
+						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = webnotes.conn.host)
 	odb.get_backup(older_than, ignore_files)
 	return odb
 
@@ -198,25 +203,25 @@ def get_backup_path():
 		
 if __name__ == "__main__":
 	"""
-		is_file_old db_name user password
-		get_backup  db_name user password
+		is_file_old db_name user password db_host
+		get_backup  db_name user password db_host
 	"""
 	import sys
 	cmd = sys.argv[1]
 	if cmd == "is_file_old":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		is_file_old(odb.db_file_name)
 	
 	if cmd == "get_backup":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		odb.get_backup()
 
 	if cmd == "take_dump":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		odb.take_dump()
 		
 	if cmd == "send_email":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		odb.send_email("abc.sql.gz")
 		
 	if cmd == "delete_temp_backups":
