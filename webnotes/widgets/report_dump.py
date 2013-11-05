@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import webnotes
 import json
+import copy
 
 @webnotes.whitelist()
 def get_data(doctypes, last_modified):
@@ -16,7 +17,7 @@ def get_data(doctypes, last_modified):
 		
 	start = datetime.datetime.now()
 	for d in doctypes:
-		args = data_map[d]
+		args = copy.deepcopy(data_map[d])
 		dt = d.find("[") != -1 and d[:d.find("[")] or d
 		out[dt] = {}
 
