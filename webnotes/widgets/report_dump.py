@@ -16,7 +16,7 @@ def get_data(doctypes, last_modified):
 		
 	start = datetime.datetime.now()
 	for d in doctypes:
-		args = data_map[d]
+		args = data_map[d].copy()
 		dt = d.find("[") != -1 and d[:d.find("[")] or d
 		out[dt] = {}
 
