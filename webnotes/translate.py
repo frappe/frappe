@@ -130,7 +130,8 @@ def build_for_pages(path):
 def build_from_query_report():
 	"""make locale for the query reports from database and the framework js and py files"""
 	import re
-	for item in webnotes.conn.sql("""select report_name,ref_doctype,query from `tabReport`""", as_dict=1):
+	for item in webnotes.conn.sql("""select name, report_name,ref_doctype, query 
+			from `tabReport`""", as_dict=1):
 		messages_js, messages_py = [], []
 
 		if item:
@@ -146,7 +147,7 @@ def build_from_query_report():
 			
 			module = get_doctype_module(item.ref_doctype)		
 			if module :
-				doctype_path = get_doc_path(module, "Report", item.report_name)
+				doctype_path = get_doc_path(module, "Report", item.name)
 				if os.path.exists(doctype_path):
 					for (basepath, folders, files) in os.walk(doctype_path):
 						for fname in files:
