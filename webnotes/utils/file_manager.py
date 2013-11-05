@@ -73,7 +73,6 @@ def save_file(fname, content, dt, dn):
 	file_size = check_max_file_size(content)
 	temp_fname = write_file(content, files_path)
 	fname = scrub_file_name(fname)
-	fpath = os.path.join(files_path, fname)
 
 	fname_parts = fname.split(".", -1)
 	main = ".".join(fname_parts[:-1])
@@ -87,6 +86,7 @@ def save_file(fname, content, dt, dn):
 				# remove new file, already exists!
 				os.remove(temp_fname)
 				fname = version
+				fpath = os.path.join(files_path, fname)
 				found_match = True
 				break
 				
@@ -101,6 +101,8 @@ def save_file(fname, content, dt, dn):
 				
 			os.rename(temp_fname, fpath.encode("utf-8"))
 	else:
+		fpath = os.path.join(files_path, fname)
+		
 		# rename new file
 		if os.path.exists(fpath.encode("utf-8")):
 			webnotes.throw("File already exists: " + fname)
