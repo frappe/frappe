@@ -33,8 +33,6 @@ def get_context():
 		'link': host + '/blog'
 	}
 	
-	webnotes.response.content_type = "text/xml"
-	
 	# print context
 	return context
 	

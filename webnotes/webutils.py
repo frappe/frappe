@@ -8,6 +8,7 @@ import webnotes
 import json
 from webnotes import _
 import webnotes.utils
+import mimetypes
 
 class PageNotFoundError(Exception): pass
 
@@ -18,20 +19,18 @@ def render(page_name):
 	except PageNotFoundError:
 		html = render_page("404")
 	except Exception:
-		html = render_page('error')
+		html = render_page("error")
 	
-	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
-	if "content_type" in webnotes.response:
-		webnotes._response.headers["Content-Type"] = webnotes.response.pop("content_type")
-
 	webnotes._response.data = html
-
+	
 def render_page(page_name):
 	"""get page html"""
+	set_content_type(page_name)
+	
 	page_name = scrub_page_name(page_name)
 	html = ''
 		
-	if not ('auto_cache_clear') and conf.auto_cache_clear or 0 in conf:
+	if not conf.auto_cache_clear:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 
@@ -44,12 +43,19 @@ def render_page(page_name):
 
 	if page_name=="error":
 		html = html.replace("%(error)s", webnotes.getTraceback())
-	elif not webnotes.response.content_type:
+	elif "text/html" in webnotes._response.headers["Content-Type"]:
 		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
 		html += """\n<!-- %s -->""" % webnotes.utils.cstr(comments)
 
 	return html
+	
+def set_content_type(page_name):
+	webnotes._response.headers["Content-Type"] = "text/html; charset: utf-8"
+	
+	if "." in page_name and not page_name.endswith(".html"):
+		content_type, encoding = mimetypes.guess_type(page_name)
+		webnotes._response.headers["Content-Type"] = content_type
 
 def build_page(page_name):
 	if not webnotes.conn:

@@ -9,8 +9,6 @@ def get_context():
 	"""returns web style"""
 	from webnotes.webutils import get_hex_shade
 	
-	webnotes.response.content_type = "text/css"
-	
 	doc = webnotes.doc("Style Settings", "Style Settings")
 	prepare(doc)
 	
