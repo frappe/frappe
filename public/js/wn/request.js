@@ -4,7 +4,7 @@
 // My HTTP Request
 
 wn.provide('wn.request');
-wn.request.url = 'server.py';
+wn.request.url = '/';
 
 // generic server call (call page, object)
 wn.call = function(opts) {
@@ -66,6 +66,8 @@ wn.request.call = function(opts) {
 			opts.error && opts.error(xhr)
 		}
 	};
+	
+	wn.last_request = ajax_args.data;
 	
 	if(opts.progress_bar) {
 		var interval = null;

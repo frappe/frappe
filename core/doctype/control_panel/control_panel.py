@@ -5,6 +5,7 @@ from __future__ import unicode_literals
 import webnotes
 
 from webnotes import form, msgprint
+import webnotes.defaults
 
 class DocType:
 	def __init__(self, doc, doclist):
@@ -13,4 +14,5 @@ class DocType:
 
 	def on_update(self):
 		# clear cache on save
+		webnotes.cache().delete_value('time_zone')
 		webnotes.clear_cache()

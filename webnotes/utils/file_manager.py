@@ -3,7 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
-import os
+import os, base64, re
 from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
 from webnotes import conf
@@ -54,7 +54,6 @@ def save_url(file_url, dt, dn):
 def get_uploaded_content():	
 	# should not be unicode when reading a file, hence using webnotes.form
 	if 'filedata' in webnotes.form_dict:
-		import base64
 		webnotes.uploaded_content = base64.b64decode(webnotes.form_dict.filedata)
 		webnotes.uploaded_filename = webnotes.form_dict.filename
 		return webnotes.uploaded_filename, webnotes.uploaded_content
@@ -62,10 +61,34 @@ def get_uploaded_content():
 		webnotes.msgprint('No File')
 		return None, None
 
-def save_file(fname, content, dt, dn):
+def extract_images_from_html(doc, fieldname):
+	content = doc.get(fieldname)
+	webnotes.flags.has_dataurl = False
+	
+	def _save_file(match):
+		data = match.group(1)
+		headers, content = data.split(",")
+		filename = headers.split("filename=")[-1]
+		filename = save_file(filename, content, doc.doctype, doc.name, decode=True).get("file_name")
+		if not webnotes.flags.has_dataurl:
+			webnotes.flags.has_dataurl = True
+		
+		return '<img src="{filename}"'.format(filename = filename)
+	
+	if content:
+		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
+		if webnotes.flags.has_dataurl:
+			doc.fields[fieldname] = content
+
+def save_file(fname, content, dt, dn, decode=False):
+	if decode:
+		if isinstance(content, unicode):
+			content = content.encode("utf-8")
+		content = base64.b64decode(content)
+	
 	import filecmp
 	from webnotes.model.code import load_doctype_module
-	files_path = get_site_path(conf.get("public_path", "public"))
+	files_path = get_site_path(conf.files_path)
 	module = load_doctype_module(dt, webnotes.conn.get_value("DocType", dt, "module"))
 	
 	if hasattr(module, "attachments_folder"):
@@ -74,7 +97,6 @@ def save_file(fname, content, dt, dn):
 	file_size = check_max_file_size(content)
 	temp_fname = write_file(content, files_path)
 	fname = scrub_file_name(fname)
-	fpath = os.path.join(files_path, fname)
 
 	fname_parts = fname.split(".", -1)
 	main = ".".join(fname_parts[:-1])
@@ -88,28 +110,42 @@ def save_file(fname, content, dt, dn):
 				# remove new file, already exists!
 				os.remove(temp_fname)
 				fname = version
+				fpath = os.path.join(files_path, fname)
 				found_match = True
 				break
 				
 		if not found_match:
 			# get_new_version name
 			fname = get_new_fname_based_on_version(files_path, main, extn, versions)
+			fpath = os.path.join(files_path, fname)
 			
 			# rename
+			if os.path.exists(fpath.encode("utf-8")):
+				webnotes.throw("File already exists: " + fname)
+				
 			os.rename(temp_fname, fpath.encode("utf-8"))
 	else:
+		fpath = os.path.join(files_path, fname)
+		
 		# rename new file
+		if os.path.exists(fpath.encode("utf-8")):
+			webnotes.throw("File already exists: " + fname)
+		
 		os.rename(temp_fname, fpath.encode("utf-8"))
 
 	f = webnotes.bean({
 		"doctype": "File Data",
-		"file_name": os.path.relpath(os.path.join(files_path, fname), get_site_path(conf.get("public_path", "public"))),
+		"file_name": os.path.relpath(os.path.join(files_path, fname), 
+			get_site_path(conf.get("public_path", "public"))),
 		"attached_to_doctype": dt,
 		"attached_to_name": dn,
 		"file_size": file_size
 	})
 	f.ignore_permissions = True
-	f.insert();
+	try:
+		f.insert();
+	except webnotes.DuplicateEntryError:
+		return {"file_name": f.doc.file_name}
 
 	return f.doc
 
@@ -186,20 +222,12 @@ def get_file(fname):
 		file_name = f[0][0]
 	else:
 		file_name = fname
-
-	# read the file
-	import os
-	files_path = get_site_path(conf.get("files_path", "public/files"))
-	file_path = os.path.join(files_path, file_name)
-	if not os.path.exists(file_path):
-		# check in folders
-		for basepath, folders, files in os.walk(files_path):
-			if file_name in files:
-				file_name = cstr(file_name)
-				file_path = os.path.join(basepath, file_name)
-				break
 		
-	with open(file_path, 'r') as f:
+	if not "/" in file_name:
+		file_name = "files/" + file_name
+	
+	# read the file	
+	with open(get_site_path("public", file_name), 'r') as f:
 		content = f.read()
 
 	return [file_name, content]

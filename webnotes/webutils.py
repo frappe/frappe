@@ -234,7 +234,7 @@ def get_website_settings():
 		"utils": webnotes.utils,
 		"post_login": [
 			{"label": "Reset Password", "url": "update-password", "icon": "icon-key"},
-			{"label": "Logout", "url": "server.py?cmd=web_logout", "icon": "icon-signout"}
+			{"label": "Logout", "url": "/?cmd=web_logout", "icon": "icon-signout"}
 		]
 	})
 		
@@ -320,16 +320,14 @@ def scrub_page_name(page_name):
 
 	return page_name
 
-_is_signup_enabled = None
 def is_signup_enabled():
-	global _is_signup_enabled
-	if _is_signup_enabled is None:
-		_is_signup_enabled = True
+	if getattr(webnotes.local, "is_signup_enabled", None) is None:
+		webnotes.local.is_signup_enabled = True
 		if webnotes.utils.cint(webnotes.conn.get_value("Website Settings", 
 			"Website Settings", "disable_signup")):
-				_is_signup_enabled = False
+				webnotes.local.is_signup_enabled = False
 		
-	return _is_signup_enabled
+	return webnotes.local.is_signup_enabled
 
 def update_page_name(doc, title):
 	"""set page_name and check if it is unique"""

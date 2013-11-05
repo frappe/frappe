@@ -26,12 +26,12 @@ class BackupGenerator:
 		To initialize, specify (db_name, user, password, db_file_name=None)
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password):
+	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None):
 		self.db_name = db_name
 		self.user = user
 		self.password = password
-		self.backup_path_files = None
-		self.backup_path_db = None
+		self.backup_path_files = backup_path_files
+		self.backup_path_db = backup_path_db
 
 	def get_backup(self, older_than=24, ignore_files=False):
 		"""
@@ -40,9 +40,10 @@ class BackupGenerator:
 		"""
 		#Check if file exists and is less than a day old
 		#If not Take Dump
-		self.get_recent_backup(older_than)
+		last_db, last_file = self.get_recent_backup(older_than)
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
+		if not last_db and not last_file:
 			self.take_dump()
 			if not ignore_files:
 				self.zip_files()
@@ -56,22 +57,27 @@ class BackupGenerator:
 		for_db = todays_date + "_" + random_number + "_database.sql.gz"
 		for_files = todays_date + "_" + random_number + "_files.tar"
 		backup_path = get_backup_path()
-		self.backup_path_db = os.path.join(backup_path, for_db)	
-		self.backup_path_files = os.path.join(backup_path, for_files)	
+		if not self.backup_path_db:
+			self.backup_path_db = os.path.join(backup_path, for_db)	
+		if not self.backup_path_files:
+			self.backup_path_files = os.path.join(backup_path, for_files)	
 		
 	def get_recent_backup(self, older_than):
 		file_list = os.listdir(get_backup_path())
+		backup_path_files = None
+		backup_path_db = None
 		for this_file in file_list:
 			this_file = cstr(this_file)
 			this_file_path = os.path.join(get_backup_path(), this_file)
 			if not is_file_old(this_file_path, older_than):
 				if "_files" in this_file_path:
-					self.backup_path_files = this_file_path
+					backup_path_files = this_file_path
 				if "_database" in this_file_path:
-					self.backup_path_db = this_file_path
+					backup_path_db = this_file_path
+		return (backup_path_db, backup_path_files)
 
 	def zip_files(self):
-		files_path = webnotes.utils.get_site_path(conf.get("files_path", "public/files"))
+		files_path = webnotes.utils.get_site_path(conf.files_path)
 		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
@@ -132,19 +138,21 @@ def get_backup():
 	to you shortly on the following email address:
 	%s""" % (', '.join(recipient_list)))
 	
-def scheduled_backup(older_than=6, ignore_files=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files)
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	
 	from webnotes.utils import now
 	print "backup taken -", odb.backup_path_db, "- on", now()
+	return odb
 
-def new_backup(older_than=6, ignore_files=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  webnotes.get_db_password(webnotes.conn.cur_db_name))
+						  webnotes.get_db_password(webnotes.conn.cur_db_name), 
+						  backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	odb.get_backup(older_than, ignore_files)
 	return odb
 
@@ -181,13 +189,9 @@ def is_file_old(db_file_name, older_than=24):
 			if verbose: print "File does not exist"
 			return True	
 
-backup_path = None		
 def get_backup_path():
-	global backup_path
-	if not backup_path:
-		import os
-		# TODO Use get_site_base_path
-		backup_path = webnotes.utils.get_site_path(conf.get("backup_path", "public/backups"))
+	import os
+	backup_path = webnotes.utils.get_site_path(conf.get("backup_path", "public/backups"))
 	return backup_path
 
 #-------------------------------------------------------------------------------

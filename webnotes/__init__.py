@@ -30,7 +30,7 @@ class _dict(dict):
 		super(_dict, self).update(d)
 		return self
 	def copy(self):
-		return _dict(super(_dict, self).copy())
+		return _dict(dict(self).copy())
 
 def __getattr__(self, key):
 	return local.get("key", None)
@@ -68,6 +68,7 @@ response = local("response")
 _response = local("_response")
 session = local("session")
 user = local("user")
+flags = local("flags")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -87,6 +88,8 @@ def init(site=None):
 	local.request_method = request.method if request else None
 	local.conf = get_conf(site)
 	local.initialised = True
+	local.flags = _dict({})
+	local.rollback_observers = []
 	
 def destroy():
 	"""closes connection and releases werkzeug local"""
@@ -97,16 +100,9 @@ def destroy():
 	release_local(local)
 
 _memc = None
-mute_emails = False
-mute_messages = False
 test_objects = {}
-print_messages = False
-in_import = False
-in_test = False
-rollback_on_exception = False
 
 # memcache
-
 def cache():
 	global _memc
 	if not _memc:
@@ -125,6 +121,7 @@ class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class DoesNotExistError(ValidationError): pass
 class MandatoryError(ValidationError): pass
+class InvalidSignatureError(ValidationError): pass
 		
 def getTraceback():
 	import utils
@@ -149,7 +146,7 @@ def log(msg):
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	def _raise_exception():
 		if raise_exception:
-			if rollback_on_exception:
+			if flags.rollback_on_exception:
 				conn.rollback()
 			import inspect
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
@@ -157,7 +154,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			else:
 				raise ValidationError, msg
 
-	if mute_messages:
+	if flags.mute_messages:
 		_raise_exception()
 		return
 
@@ -165,7 +162,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 	
-	if print_messages:
+	if flags.print_messages:
 		print "Message: " + repr(msg)
 	
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
@@ -260,18 +257,65 @@ def whitelist(allow_guest=False, allow_roles=None):
 		return fn
 	
 	return innerfn
+
+
+class HashAuthenticatedCommand(object):
+	def __init__(self):
+		if hasattr(self, 'command'):
+			import inspect
+			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
+			self.fnargs.append('signature')
+
+	def __call__(self, *args, **kwargs):
+		signature = kwargs.pop('signature')
+		if self.verify_signature(kwargs, signature):
+			return self.command(*args, **kwargs)
+		else:
+			self.signature_error()
+
+	def command(self):
+		raise NotImplementedError
+		
+	def signature_error(self):
+		raise InvalidSignatureError
+
+	def get_signature(self, params, ignore_params=None):
+		import hmac
+		params = self.get_param_string(params, ignore_params=ignore_params)
+		secret = "secret"
+		signature = hmac.new(self.get_nonce())
+		signature.update(secret)
+		signature.update(params)
+		return signature.hexdigest()
+
+	def get_param_string(self, params, ignore_params=None):
+		if not ignore_params:
+			ignore_params = []
+		params = [unicode(param) for param in params if param not in ignore_params]
+		params = ''.join(params)
+		return params
+
+	def get_nonce():
+		raise NotImplementedError
+
+	def verify_signature(self, params, signature):
+		if signature == self.get_signature(params):
+			return True
+		return False
 	
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
+		reset_metadata_version()
 	elif user:
 		from webnotes.sessions import clear_cache
 		clear_cache(user)
-	else:
+	else: # everything
 		from webnotes.sessions import clear_cache
 		clear_cache()
+		reset_metadata_version()
 	
 def get_roles(user=None, with_standard=True):
 	"""get roles of current user"""
@@ -346,6 +390,11 @@ def generate_hash():
 	"""Generates random hash for session id"""
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
+
+def reset_metadata_version():
+	v = generate_hash()
+	cache().set_value("metadata_version", v)
+	return v
 
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
 	from webnotes.model.code import get_obj
@@ -450,12 +499,7 @@ def get_application_home_page(user='Guest'):
 	if hpl:
 		return hpl[0][0]
 	else:
-		# no app
-		try:
-			from startup import application_home_page
-			return application_home_page
-		except ImportError:
-			return "desktop"
+		return conn.get_value("Control Panel", None, "home_page")
 
 def copy_doclist(in_doclist):
 	new_doclist = []
@@ -498,9 +542,9 @@ def load_json(obj):
 		
 	return obj
 	
-def build_match_conditions(doctype, fields=None, as_condition=True, match_filters=None):
+def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
-	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition, match_filters)
+	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition)
 
 def get_list(doctype, filters=None, fields=None, docstatus=None, 
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
@@ -553,19 +597,34 @@ def get_config():
 def get_conf(site):
 	# TODO Should be heavily cached!
 	import conf
-	from webnotes.utils import get_site_base_path
 	site_config = _dict({})
 	conf = site_config.update(conf.__dict__)
+	
+	if not conf.get("files_path"):
+		conf["files_path"] = os.path.join("public", "files")
+	if not conf.get("plugins_path"):
+		conf["plugins_path"] = "plugins"
+	
 	if conf.sites_dir and site:
-		conf_path = os.path.join(get_site_base_path(sites_dir=conf.sites_dir, hostname=site), 'site_config.json')
-		if os.path.exists(conf_path):
-			with open(conf_path, 'r') as f:
-				site_config.update(json.load(f))
-			site_config['site'] = site
-			return site_config
-
-		else:
+		out = get_site_config(conf.sites_dir, site)
+		if not out:
 			raise NotFound()
+		
+		site_config.update(out)	
+		site_config["site_config"] = out
+		site_config['site'] = site
+		return site_config
 
 	else:
 		return conf
+
+def get_site_config(sites_dir, site):
+	conf_path = get_conf_path(sites_dir, site)
+	if os.path.exists(conf_path):
+		with open(conf_path, 'r') as f:
+			return json.load(f)
+
+def get_conf_path(sites_dir, site):
+	from webnotes.utils import get_site_base_path
+	return os.path.join(get_site_base_path(sites_dir=sites_dir,
+			hostname=site), 'site_config.json')

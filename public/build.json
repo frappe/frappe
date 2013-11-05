@@ -16,6 +16,15 @@
 			"lib/website/js/website.js"
 		]
 	},
+
+	{
+		"public/js/editor.min.js": [
+			"lib/public/js/lib/jquery/jquery.hotkeys.js",
+			"lib/public/js/wn/class.js",
+			"lib/public/js/lib/beautify-html.js",
+			"lib/public/js/wn/ui/editor.js",
+		]
+	},
 	
 	{
 		"public/css/all-app.css": [
@@ -42,6 +51,7 @@
 			"lib/public/js/lib/center_image.js",
 			"lib/public/js/lib/bootstrap.min.js",
 			"lib/public/js/lib/nprogress.js",
+			"lib/public/js/lib/beautify-html.js",
 			
 			"lib/public/js/wn/provide.js",
 			"lib/public/js/wn/class.js",
@@ -64,6 +74,7 @@
 			"lib/public/js/legacy/loaders.js",
 
 			"lib/public/js/wn/ui/appframe.js",
+			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/ui/field_group.js",
 			"lib/public/js/wn/ui/dialog.js",
 			"lib/public/js/wn/ui/button.js",
@@ -113,6 +124,7 @@
 			"lib/public/js/wn/ui/toolbar/recent.js",
 			"lib/public/js/wn/ui/toolbar/bookmarks.js",
 			"lib/public/js/wn/ui/toolbar/toolbar.js",
+			"lib/public/js/wn/ui/editor.js",
 			
 			"lib/public/js/legacy/form.js",
 			"lib/public/js/legacy/print_format.js",
@@ -120,7 +132,6 @@
 
 			"lib/public/js/wn/form/toolbar.js",
 			"lib/public/js/wn/form/infobar.js",
-			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/form/dashboard.js",
 			"lib/public/js/wn/form/script_manager.js",
 			"lib/public/js/wn/form/control.js",

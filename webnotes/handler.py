@@ -32,6 +32,16 @@ def web_logout():
 	webnotes.repsond_as_web_page("Logged Out", """<p>You have been logged out.</p>
 		<p><a href='index'>Back to Home</a></p>""")
 
+@webnotes.whitelist(allow_guest=True)
+def run_custom_method(doctype, name, custom_method):
+	"""cmd=run_custom_method&doctype={doctype}&name={name}&custom_method={custom_method}"""
+	bean = webnotes.bean(doctype, name)
+	controller = bean.get_controller()
+	if getattr(controller, custom_method, webnotes._dict()).is_whitelisted:
+		call(getattr(controller, custom_method), webnotes.local.form_dict)
+	else:
+		webnotes.throw("Not Allowed")
+
 @webnotes.whitelist()
 def uploadfile():
 	import webnotes.utils
@@ -117,7 +127,12 @@ def execute_cmd(cmd):
 
 def call(fn, args):
 	import inspect
-	fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+
+	if hasattr(fn, 'fnargs'):
+		fnargs = fn.fnargs
+	else:
+		fnargs, varargs, varkw, defaults = inspect.getargspec(fn)
+
 	newargs = {}
 	for a in fnargs:
 		if a in args:
@@ -180,13 +195,13 @@ def make_logs():
 	from webnotes.utils import cstr
 	if webnotes.error_log:
 		# webnotes.response['exc'] = json.dumps("\n".join([cstr(d) for d in webnotes.error_log]))
-		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.error_log])
+		webnotes.response['exc'] = json.dumps([cstr(d) for d in webnotes.local.error_log])
 
-	if webnotes.message_log:
-		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.message_log])
+	if webnotes.local.message_log:
+		webnotes.response['_server_messages'] = json.dumps([cstr(d) for d in webnotes.local.message_log])
 	
 	if webnotes.debug_log and conf.get("logging") or False:
-		webnotes.response['_debug_messages'] = json.dumps(webnotes.debug_log)
+		webnotes.response['_debug_messages'] = json.dumps(webnotes.local.debug_log)
 
 def print_zip(response):
 	response = response.encode('utf-8')

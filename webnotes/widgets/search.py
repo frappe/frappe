@@ -5,7 +5,6 @@
 from __future__ import unicode_literals
 import webnotes
 import webnotes.widgets.reportview
-import webnotes.widgets.query_builder
 from webnotes.utils import cstr
 
 try:

@@ -23,7 +23,6 @@ def get_bootinfo():
 	
 	# control panel
 	cp = webnotes.model.doc.getsingle('Control Panel')
-
 	
 	# system info
 	bootinfo['control_panel'] = webnotes._dict(cp.copy())
@@ -70,6 +69,10 @@ def get_bootinfo():
 	if bootinfo.lang:
 		bootinfo.lang = unicode(bootinfo.lang)
 	
+	bootinfo.metadata_version = webnotes.cache().get_value("metadata_version")
+	if not bootinfo.metadata_version:
+		bootinfo.metadata_version = webnotes.reset_metadata_version()
+		
 	return bootinfo
 
 def load_conf_settings(bootinfo):

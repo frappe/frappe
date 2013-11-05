@@ -44,21 +44,20 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var me = this;
 		this.page.doclistview = this;
 		this.$page = $(this.page).css({"min-height": "400px"});
-
-		wn.dom.set_style(".show-docstatus div { font-size: 90%; }");
 				
 		$('<div class="wnlist-area" style="margin-bottom: 25px;">\
 			<div class="help">'+wn._('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 			
-		$('<div class="show-docstatus hide section">\
-			<div class="section-head">Show</div>\
+		$('<div class="show-docstatus hide panel panel-default">\
+			<div class="panel-heading">Show</div>\
+			<div class="panel-body">\
 			<div><input data-docstatus="0" type="checkbox" \
 				checked="checked" /> '+wn._('Drafts')+'</div>\
 			<div><input data-docstatus="1" type="checkbox" \
 				checked="checked" /> '+wn._('Submitted')+'</div>\
 			<div><input data-docstatus="2" type="checkbox" \
-				/> '+wn._('Cancelled')+'</div>\
+				/> '+wn._('Cancelled')+'</div></div>\
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
 								
@@ -195,7 +194,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
 		var no_result_message = repl('<div class="well">\
-		<p>No %(doctype_label)s found</p>' + new_button + '</div>', {
+		<p>' + wn._("No") + ' %(doctype_label)s ' + wn._("found") + '</p>' + new_button + '</div>', {
 			doctype_label: wn._(this.doctype),
 			doctype: this.doctype,
 		});

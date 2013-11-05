@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:34:02", 
+  "modified": "2013-10-16 16:56:41", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -54,10 +54,11 @@
   "doctype": "DocField", 
   "fieldname": "script_type", 
   "fieldtype": "Select", 
+  "hidden": 1, 
   "label": "Script Type", 
   "oldfieldname": "script_type", 
   "oldfieldtype": "Select", 
-  "options": "Client\nServer", 
+  "options": "Client", 
   "read_only": 1
  }, 
  {

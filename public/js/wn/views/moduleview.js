@@ -3,7 +3,6 @@
 
 wn.provide("wn.views.moduleview");
 wn.provide("wn.module_page");
-wn.home_page = "desktop";
 
 wn.views.moduleview.make = function(wrapper, module) {
 	wrapper.module_view = new wn.views.moduleview.ModuleView(wrapper, module);

@@ -6,6 +6,7 @@ from __future__ import unicode_literals
 import webnotes
 import webnotes.webutils
 from webnotes import _
+from webnotes.utils import today
 
 class DocType:
 	def __init__(self, d, dl):
@@ -18,6 +19,9 @@ class DocType:
 	def validate(self):
 		if self.doc.blog_intro:
 			self.doc.blog_intro = self.doc.blog_intro[:140]
+			
+		if self.doc.published and not self.doc.published_on:
+			self.doc.published_on = today()
 
 		# update posts
 		webnotes.conn.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
@@ -40,7 +44,6 @@ class DocType:
 		from webnotes.utils import global_date_format, get_fullname
 		self.doc.full_name = get_fullname(self.doc.owner)
 		self.doc.updated = global_date_format(self.doc.published_on)
-		self.doc.content_html = self.doc.content
 		
 		if self.doc.blogger:
 			self.doc.blogger_info = webnotes.doc("Blogger", self.doc.blogger).fields

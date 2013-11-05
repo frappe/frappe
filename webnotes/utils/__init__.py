@@ -9,10 +9,6 @@ from webnotes import conf
 import webnotes
 
 
-user_time_zone = None
-user_format = None
-current_date = None
-
 no_value_fields = ['Section Break', 'Column Break', 'HTML', 'Table', 'FlexTable',
 	'Button', 'Image', 'Graph']
 default_fields = ['doctype', 'name', 'owner', 'creation', 'modified', 'modified_by',
@@ -181,14 +177,15 @@ def now_datetime():
 	return convert_utc_to_user_timezone(datetime.utcnow())
 
 def get_user_time_zone():
-	global user_time_zone
-	if not user_time_zone:
-		user_time_zone = webnotes.cache().get_value("time_zone")
-	if not user_time_zone:
-		user_time_zone = webnotes.conn.get_value('Control Panel', None, 'time_zone') \
+	if getattr(webnotes.local, "user_time_zone", None) is None:
+		webnotes.local.user_time_zone = webnotes.cache().get_value("time_zone")
+		
+	if not webnotes.local.user_time_zone:
+		webnotes.local.user_time_zone = webnotes.conn.get_value('Control Panel', None, 'time_zone') \
 			or 'Asia/Calcutta'
-		webnotes.cache().set_value("time_zone", user_time_zone)
-	return user_time_zone
+		webnotes.cache().set_value("time_zone", webnotes.local.user_time_zone)
+
+	return webnotes.local.user_time_zone
 
 def convert_utc_to_user_timezone(utc_timestamp):
 	from pytz import timezone
@@ -197,8 +194,9 @@ def convert_utc_to_user_timezone(utc_timestamp):
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
-	if current_date:
-		return getdate(current_date).strftime("%Y-%m-%d") + " " + now_datetime().strftime('%H:%M:%S')
+	if getattr(webnotes.local, "current_date", None):
+		return getdate(webnotes.local.current_date).strftime("%Y-%m-%d") + " " + \
+			now_datetime().strftime('%H:%M:%S')
 	else:
 		return now_datetime().strftime('%Y-%m-%d %H:%M:%S')
 	
@@ -263,12 +261,11 @@ def formatdate(string_date=None):
 		string_date = getdate(string_date)
 	else:
 		string_date = now_datetime().date()
-		
-	global user_format
-	if not user_format:
-		user_format = webnotes.conn.get_default("date_format")
-		
-	out = user_format
+	
+	if getattr(webnotes.local, "user_format", None) is None:
+		webnotes.local.user_format = webnotes.conn.get_default("date_format")
+	
+	out = webnotes.local.user_format
 	
 	return out.replace("dd", string_date.strftime("%d"))\
 		.replace("mm", string_date.strftime("%m"))\
@@ -823,20 +820,26 @@ def get_base_path():
 	return os.path.dirname(os.path.abspath(conf.__file__))
 	
 def get_site_base_path(sites_dir=None, hostname=None):
-	if conf and not conf.sites_dir:
-		return get_base_path()
-	
 	if not sites_dir:
 		sites_dir = conf.sites_dir
 	
 	if not hostname:
 		hostname = conf.site
+		
+	if not (sites_dir and hostname):
+		return get_base_path()
 
 	import os
 	return os.path.join(sites_dir, hostname)
 
 def get_site_path(*path):
 	return get_path(base=get_site_base_path(), *path)
+	
+def get_files_path():
+	return get_site_path(webnotes.conf.files_path)
+
+def get_backups_path():
+	return get_site_path(webnotes.conf.backup_path) 
 	
 def get_url(uri=None):
 	url = get_request_site_address()
@@ -904,3 +907,8 @@ def compare(val1, condition, val2):
 
 def get_site_name(hostname):
 	return hostname.split(':')[0]
+
+def get_disk_usage():
+	"""get disk usage of files folder"""
+	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=get_files_path()))
+	return cint(out.split("\n")[-2].split("\t")[0])

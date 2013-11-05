@@ -6,6 +6,7 @@
 
 from __future__ import unicode_literals
 import MySQLdb
+import warnings
 import webnotes
 from webnotes import conf
 import datetime
@@ -42,10 +43,12 @@ class Database:
 		"""
 		      Connect to a database
 		"""
+		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, 
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._cursor = self._conn.cursor()
+		webnotes.local.rollback_observers = []
 	
 	def use(self, db_name):
 		"""
@@ -150,12 +153,12 @@ class Database:
 		if self.transaction_writes and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
-		if query and query.strip().lower()=='commit':
+		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
 			
 		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if not webnotes.in_test and self.transaction_writes > 10000:
+			if not webnotes.flags.in_test and self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					webnotes.conn.commit()
 					webnotes.conn.begin()
@@ -397,6 +400,11 @@ class Database:
 		doc.modified_by = webnotes.session["user"]
 		self.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
 		doc.fields[field] = val
+		
+	def touch(self, doctype, docname):
+		from webnotes.utils import now
+		webnotes.conn.sql("""update `tab{doctype}` set `modified`=%s 
+			where name=%s""".format(doctype=doctype), (now(), docname))
 
 	def set_global(self, key, val, user='__global'):
 		self.set_default(key, val, user)
@@ -437,10 +445,14 @@ class Database:
 	
 	def commit(self):
 		self.sql("commit")
+		webnotes.local.rollback_observers = []
 
 	def rollback(self):
-		self.sql("ROLLBACK")
-		self.transaction_writes = 0
+		self.sql("rollback")
+		for obj in webnotes.local.rollback_observers:
+			if hasattr(obj, "on_rollback"):
+				obj.on_rollback()
+		webnotes.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
@@ -466,6 +478,16 @@ class Database:
 						(dt['doctype'], " and ".join(conditions)))
 			except:
 				return None
+				
+	def count(self, dt, filters=None):
+		if filters:
+			conditions, filters = self.build_conditions(filters)
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s` where %s""" % (dt, conditions), filters)[0][0]
+		else:
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s`""" % (dt,))[0][0]
+			
 				
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]

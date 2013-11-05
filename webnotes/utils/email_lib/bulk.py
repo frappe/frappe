@@ -35,7 +35,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		import urllib
 		updated = message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
-			<small><a href="%s/server.py?%s">
+			<small><a href="%s/?%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
 			urllib.urlencode({
 				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
@@ -45,7 +45,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			}))
 			
 		return updated
-			
+	
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id')
@@ -79,7 +79,7 @@ def add(email, sender, subject, message, text_content=None, ref_doctype=None, re
 	try:
 		e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
 			text_content = text_content).as_string()
-	except webnotes.ValidationError, e:
+	except webnotes.ValidationError:
 		# bad email id - don't add to queue
 		return
 		
@@ -116,7 +116,7 @@ def flush(from_test=False):
 	
 	auto_commit = not from_test
 	
-	if webnotes.mute_emails or conf.get("mute_emails") or False:
+	if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 		webnotes.msgprint("Emails are muted")
 		from_test = True
 

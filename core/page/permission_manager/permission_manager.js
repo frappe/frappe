@@ -62,8 +62,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	</ol>\
 	<p>"+wn._("Once you have set this, the users will only be able access documents with that property.")+"</p>\
 	<hr>\
-	<p>If these instructions where not helpful, please add in your suggestions at\
-	<a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a></p>\
+	<p>"+wn._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>")+"</p>\
 	</tr></td>\
 	</table>");
 	wrapper.permission_engine = new wn.PermissionEngine(wrapper);

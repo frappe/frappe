@@ -84,11 +84,19 @@ wn.Application = Class.extend({
 		if(wn.boot) {
 			wn.control_panel = wn.boot.control_panel;
 			wn.modules = wn.boot.modules;
+			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
-			
 		} else {
 			this.set_as_guest();
+		}
+	},
+	
+	check_metadata_cache_status: function() {
+		if(wn.boot.metadata_version != localStorage.metadata_version) {
+			localStorage.clear();
+			console.log("Cleared Cache - New Metadata");
+			localStorage.metadata_version = wn.boot.metadata_version;
 		}
 	},
 	

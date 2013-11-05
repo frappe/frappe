@@ -28,7 +28,6 @@ class DocType:
 		self.add_system_manager_role()
 		self.check_enable_disable()
 		if self.in_insert:
-			self.autoname()
 			if self.doc.name not in ("Guest", "Administrator"):
 				self.send_welcome_mail()
 				webnotes.msgprint(_("Welcome Email Sent"))
@@ -216,7 +215,7 @@ Thank you,<br>
 				
 		# disable the user and log him/her out
 		self.doc.enabled = 0
-		if webnotes.local.login_manager:
+		if getattr(webnotes.local, "login_manager", None):
 			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
@@ -274,8 +273,7 @@ Thank you,<br>
 	
 		email = email.strip()
 		if not validate_email_add(email):
-			webnotes.msgprint("%s is not a valid email id" % email)
-			raise Exception
+			webnotes.throw("%s is not a valid email id" % email)
 			
 	def add_roles(self, *roles):
 		for role in roles:
@@ -393,3 +391,28 @@ def profile_query(doctype, txt, searchfield, start, page_len, filters):
 			name asc 
 		limit %(start)s, %(page_len)s""" % {'key': searchfield, 'txt': "%%%s%%" % txt,  
 		'mcond':get_match_cond(doctype, searchfield), 'start': start, 'page_len': page_len})
+
+def get_total_users():
+	"""Returns total no. of system users"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type != 'Website User'
+		and name not in ('Administrator', 'Guest')""")[0][0]
+
+def get_active_users():
+	"""Returns No. of system users who logged in, in the last 3 days"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type != 'Website User'
+		and name not in ('Administrator', 'Guest')
+		and hour(timediff(now(), last_login)) < 72""")[0][0]
+
+def get_website_users():
+	"""Returns total no. of website users"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type = 'Website User'""")[0][0]
+	
+def get_active_website_users():
+	"""Returns No. of website users who logged in, in the last 3 days"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type = 'Website User'
+		and hour(timediff(now(), last_login)) < 72""")[0][0]
+

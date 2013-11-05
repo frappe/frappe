@@ -6,18 +6,33 @@
 </script>
 {% endblock %}
 
+{% block css %}
+<style>
+	@media (min-width: 992px) {
+		.login-wrapper {
+			border-right: 1px solid #f2f2f2;
+		}
+	}
+</style>
+{% endblock %}
+
 {% set title="Login" %}
 
 {% block content %}
+
+{% if not top_bar_items %}
+<style>body { background-color: #F5EFE6; }</style>
+{% endif %}
+
 <div style="max-width: 750px;">
-	<div class="row" style="margin-top: 40px; margin-bottom: 20px">
+	<div class="row" style="margin-top: 70px; margin-bottom: 20px">
 		<div class="col-sm-offset-1 col-sm-10">
 			<div class="panel panel-default">
 				<div class="panel-heading">
 					<h4><i class="icon-lock"></i> Login</h4>
 				</div>
 				<div class="panel-body row" style="padding: 30px">
-					<div class="col-sm-6" style="border-right: 1px solid #f2f2f2">
+					<div class="col-sm-6 login-wrapper">
 						<p id="login_message" class="alert alert-warning" 
 							style="display: none;"></p>
 						<div class="form-group">

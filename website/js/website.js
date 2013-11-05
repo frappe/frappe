@@ -10,6 +10,30 @@ $.extend(wn, {
 			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
 				+text+'</div>').appendTo(document.body);
 	},
+	provide: function(namespace) {
+		var nsl = namespace.split('.');
+		var parent = window;
+		for(var i=0; i<nsl.length; i++) {
+			var n = nsl[i];
+			if(!parent[n]) {
+				parent[n] = {}
+			}
+			parent = parent[n];
+		}
+		return parent;
+	},
+	require: function(url) {
+		$.ajax({
+			url: url + "?q=" + Math.floor(Math.random() * 1000), 
+			async: false, 
+			dataType: "text", 
+			success: function(data) {
+				var el = document.createElement('script');
+				el.appendChild(document.createTextNode(data));
+				document.getElementsByTagName('head')[0].appendChild(el);
+			}
+		});
+	},
 	hide_message: function(text) {
 		$('.message-overlay').remove();
 	},
@@ -17,7 +41,7 @@ $.extend(wn, {
 		wn.prepare_call(opts);
 		$.ajax({
 			type: "POST",
-			url: "server.py",
+			url: "/",
 			data: opts.args,
 			dataType: "json",
 			success: function(data) {

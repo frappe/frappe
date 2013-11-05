@@ -170,8 +170,7 @@ class Installer:
 		webnotes.conn.commit()
 
 	def create_auth_table(self):
-		webnotes.conn.sql_ddl("""drop table if exists __Auth""")
-		webnotes.conn.sql_ddl("""create table __Auth (
+		webnotes.conn.sql_ddl("""create table if not exists __Auth (
 			`user` VARCHAR(180) NOT NULL PRIMARY KEY,
 			`password` VARCHAR(180) NOT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
@@ -227,7 +226,7 @@ def make_site_config(site, db_name=None, db_password=None, site_config=None):
 			site_config = get_conf_params(db_name, db_password)
 		
 		with open(site_file, "w") as f:
-			f.write(json.dumps(site_config, indent=1))
+			f.write(json.dumps(site_config, indent=1, sort_keys=True))
 			
 def get_conf_params(db_name=None, db_password=None):
 	if not db_name:

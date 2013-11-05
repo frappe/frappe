@@ -119,7 +119,7 @@ class EMail:
 		res = get_file(n)
 		if not res:
 			return
-	
+		
 		self.add_attachment(res[0], res[1])
 	
 	def add_attachment(self, fname, fcontent, content_type=None):
@@ -208,7 +208,7 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""
-		if webnotes.mute_emails or conf.get("mute_emails") or False:
+		if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 			webnotes.msgprint("Emails are muted")
 			return
 		

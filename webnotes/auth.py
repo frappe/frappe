@@ -96,21 +96,23 @@ class LoginManager:
 	def __init__(self):
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
-			from webnotes.sessions import clear_cache
-			clear_cache(webnotes.form_dict.get('usr'))
+			webnotes.clear_cache(user = webnotes.form_dict.get('usr'))
 
 			self.authenticate()
 			self.post_login()
 			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
 			if info.user_type=="Website User":
+				webnotes._response.set_cookie("system_user", "no")
 				webnotes.response["message"] = "No App"
 			else:
+				webnotes._response.set_cookie("system_user", "yes")
 				webnotes.response['message'] = 'Logged In'
 
 			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 			webnotes.response["full_name"] = full_name
 			webnotes._response.set_cookie("full_name", full_name)
 			webnotes._response.set_cookie("user_id", self.user)
+
 	
 	def post_login(self):
 		self.run_trigger()

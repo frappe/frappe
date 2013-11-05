@@ -11,7 +11,10 @@ wn.views.CommunicationList = Class.extend({
 			$(this.parent).empty();
 			return;
 		}
-		
+				
+		if(!this.list)
+			this.list = wn.model.get("Communication", {"parenttype": this.doc.doctype, "parent": this.doc.name});
+				
 		var sortfn = function (a, b) { return (b.creation > a.creation) ? 1 : -1; }
 		this.list = this.list.sort(sortfn);
 
@@ -40,7 +43,6 @@ wn.views.CommunicationList = Class.extend({
 	make_body: function() {
 		$(this.parent)
 			.empty()
-			.css({"margin":"10px 0px"});
 			
 		this.wrapper = $("<div>\
 			<div style='margin-bottom: 8px;'>\
@@ -98,11 +100,10 @@ wn.views.CommunicationList = Class.extend({
 					style="font-weight: bold; height: 20px; overflow: hidden;">\
 					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
 					<div class="col-sm-6">%(subject)s</div>\
-					<div class="col-sm-3">%(when)s</div>\
+					<div class="col-sm-3 text-right">%(when)s</div>\
 				</div>\
 				<div class="comm-content" style="overflow-x: auto; display: none;">\
-					<div class="inner" style="margin: 10px; padding: 7px; border: 1px solid #eee; \
-						background-color: #f8f8f8; border-radius: 5px;">\
+					<div class="inner" style="border-top: 1px solid #f3f3f3; margin-top: 10px; padding-top: 10px;">\
 					</div>\
 					<div class="show-details pull-right" style="margin-right: 10px;">\
 						<a href="#Form/Communication/%(name)s">'+wn._('Show Details')+'</a>\
@@ -135,7 +136,6 @@ wn.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new wn.ui.Dialog({
-			width: 640,
 			title: wn._("Add Reply") + ": " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: [
@@ -143,15 +143,18 @@ wn.views.CommunicationComposer = Class.extend({
 					description:wn._("Email addresses, separted by commas")},
 				{label:wn._("Subject"), fieldtype:"Data", reqd: 1, 
 					fieldname:"subject"},
-				{label:wn._("Send"), fieldtype:"Button", 
-					fieldname:"send"},
 				{label:wn._("Message"), fieldtype:"Text Editor", reqd: 1, 
 					fieldname:"content"},
-				{label:wn._("Send Email"), fieldtype:"Check",
+				{label:wn._("Send As Email"), fieldtype:"Check",
 					fieldname:"send_email"},
 				{label:wn._("Communication Medium"), fieldtype:"Select", 
 					options: ["Phone", "Chat", "Email", "SMS", "Other"],
 					fieldname:"communication_medium"},
+				{label:wn._("Sent or Received"), fieldtype:"Select", 
+					options: ["Received", "Sent"],
+					fieldname:"sent_or_received"},
+				{label:wn._("Send"), fieldtype:"Button", 
+					fieldname:"send"},
 				{label:wn._("Send Me A Copy"), fieldtype:"Check",
 					fieldname:"send_me_a_copy"},
 				{label:wn._("Attach Document Print"), fieldtype:"Check",
@@ -162,6 +165,9 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"select_attachments"}
 			]
 		});
+
+		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
+		
 		$(document).on("upload_complete", function(event, filename, fileurl) {
 			if(me.dialog.display) {
 				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
@@ -239,11 +245,13 @@ wn.views.CommunicationComposer = Class.extend({
 		// toggle print format
 		$(fields.send_email.input).click(function() {
 			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
+			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
 			$(fields.send.input).html($(this).prop("checked") ? "Send" : "Add Communication");
 		});
 
 		// select print format
 		$(fields.communication_medium.wrapper).toggle(false);
+		$(fields.sent_or_received.wrapper).toggle(false);
 
 		$(fields.send.input).click(function() {
 			var btn = this;
@@ -281,7 +289,10 @@ wn.views.CommunicationComposer = Class.extend({
 			var print_html = "";
 		}
 		
-		if(form_values.send_email) form_values.communication_medium = "Email";
+		if(form_values.send_email) {
+			form_values.communication_medium = "Email";
+			form_values.sent_or_received = "Sent";
+		};
 		
 		return wn.call({
 			method:"core.doctype.communication.communication.make",
@@ -296,6 +307,7 @@ wn.views.CommunicationComposer = Class.extend({
 				send_email: form_values.send_email,
 				print_html: print_html,
 				communication_medium: form_values.communication_medium,
+				sent_or_received: form_values.sent_or_received,
 				attachments: selected_attachments
 			},
 			btn: btn,

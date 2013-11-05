@@ -217,7 +217,7 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 @webnotes.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
-	webnotes.mute_emails = True
+	webnotes.flags.mute_emails = True
 	webnotes.check_admin_or_system_manager()
 	# extra input params
 	params = json.loads(webnotes.form_dict.get("params") or '{}')
@@ -384,7 +384,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		
 		doclist = get_doclist(row_idx)
 		try:
-			webnotes.message_log = []
+			webnotes.local.message_log = []
 			if len(doclist) > 1:				
 				if overwrite and webnotes.conn.exists(doctype, doclist[0]["name"]):
 					bean = webnotes.bean(doctype, doclist[0]["name"])
@@ -421,7 +421,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			error = True
 			if bean:
 				webnotes.errprint(bean.doclist)
-			err_msg = webnotes.message_log and "<br>".join(webnotes.message_log) or cstr(e)
+			err_msg = webnotes.local.message_log and "<br>".join(webnotes.local.message_log) or cstr(e)
 			ret.append('Error for row (#%d) %s : %s' % (row_idx + 1, 
 				len(row)>1 and row[1] or "", err_msg))
 			webnotes.errprint(webnotes.getTraceback())
@@ -433,7 +433,7 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 	else:
 		webnotes.conn.commit()
 		
-	webnotes.mute_emails = False
+	webnotes.flags.mute_emails = False
 	
 	return {"messages": ret, "error": error}
 	
@@ -498,7 +498,7 @@ def export_json(doctype, name, path):
 			d["__islocal"] = 1
 		outfile.write(json.dumps(doclist, default=json_handler, indent=1, sort_keys=True))
 
-def import_doclist(path):
+def import_doclist(path, overwrite=False):
 	import os
 	if os.path.isdir(path):
 		files = [os.path.join(path, f) for f in os.listdir(path)]
@@ -512,5 +512,5 @@ def import_doclist(path):
 				print "Imported: " + b.doc.doctype + " / " + b.doc.name
 				webnotes.conn.commit()
 		if f.endswith(".csv"):
-			import_file_by_path(f, ignore_links=True)
+			import_file_by_path(f, ignore_links=True, overwrite=overwrite)
 			webnotes.conn.commit()

@@ -15,7 +15,19 @@ class DocType:
 	def validate(self):
 		if self.doc.starts_on and self.doc.ends_on and self.doc.starts_on > self.doc.ends_on:
 			webnotes.msgprint(webnotes._("Event End must be after Start"), raise_exception=True)
-
+			
+def get_match_conditions():
+	return """(tabEvent.event_type='Public' or tabEvent.owner='%(user)s'
+		or exists(select * from `tabEvent User` where 
+			`tabEvent User`.parent=tabEvent.name and `tabEvent User`.person='%(user)s')
+		or exists(select * from `tabEvent Role` where 
+			`tabEvent Role`.parent=tabEvent.name 
+			and `tabEvent Role`.role in ('%(roles)s')))
+		""" % {
+			"user": webnotes.session.user,
+			"roles": "', '".join(webnotes.get_roles(webnotes.session.user))
+		}
+			
 def send_event_digest():
 	today = nowdate()
 	for user in webnotes.conn.sql("""select name, email, language 
