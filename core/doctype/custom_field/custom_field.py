@@ -9,6 +9,10 @@ from webnotes.utils import cint, cstr
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+		
+	def autoname(self):
+		self.set_fieldname()
+		self.doc.name = self.doc.dt + "-" + self.doc.fieldname
 
 	def set_fieldname(self):
 		if not self.doc.fieldname:
@@ -17,8 +21,6 @@ class DocType:
 
 	def validate(self):
 		from webnotes.model.doctype import get
-		self.set_fieldname()
-		
 		temp_doclist = get(self.doc.dt).get_parent_doclist()
 				
 		# set idx
