@@ -265,6 +265,7 @@ def update(remote=None, branch=None, site=None):
 def latest(site=None, verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
+	import webnotes.plugins
 	
 	webnotes.connect(site=site)
 	
@@ -277,6 +278,10 @@ def latest(site=None, verbose=True):
 	
 		# sync
 		webnotes.model.sync.sync_all()
+		
+		# remove __init__.py from plugins
+		webnotes.plugins.remove_init_files()
+		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
 		raise e
