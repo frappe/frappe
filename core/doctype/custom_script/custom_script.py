@@ -58,7 +58,7 @@ class CustomDocType(DocType):
 {script}""".format(script=script or "\tpass")
 
 	with open(file_path, "w") as f:
-		f.write(custom_script)
+		f.write(custom_script.encode('utf-8'))
 		
 def get_custom_server_script_path(doctype, plugin=None):
 	from webnotes.modules import scrub, get_plugin_path
