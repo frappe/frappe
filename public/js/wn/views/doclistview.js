@@ -49,18 +49,21 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			<div class="help">'+wn._('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 			
-		$('<div class="show-docstatus hide panel panel-default">\
-			<div class="panel-heading">Show</div>\
-			<div class="panel-body">\
-			<div><input data-docstatus="0" type="checkbox" \
+		$('<div class="show-docstatus hide side-panel">\
+			<h5>Show</h5>\
+			<div class="side-panel-body">\
+			<div class="text-muted small"><input data-docstatus="0" type="checkbox" \
 				checked="checked" /> '+wn._('Drafts')+'</div>\
-			<div><input data-docstatus="1" type="checkbox" \
+			<div class="text-muted small"><input data-docstatus="1" type="checkbox" \
 				checked="checked" /> '+wn._('Submitted')+'</div>\
-			<div><input data-docstatus="2" type="checkbox" \
+			<div class="text-muted small"><input data-docstatus="2" type="checkbox" \
 				/> '+wn._('Cancelled')+'</div></div>\
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
-								
+		
+		this.$page.find(".layout-main-section")
+			.css({"border-right":"1px solid #d7d7d7"})
+			.parent().css({"margin-top":"-20px"});
 		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		
@@ -70,21 +73,34 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	
 	setup: function() {
-		var me = this;
-		me.can_delete = wn.model.can_delete(me.doctype);
-		me.meta = locals.DocType[me.doctype];
-		me.$page.find('.wnlist-area').empty(),
-		me.setup_listview();
-		me.setup_docstatus_filter();
-		me.init_list();
-		me.init_stats();
-		me.add_delete_option();
-		me.show_match_help();
-		if(me.listview.settings.onload) {
-			me.listview.settings.onload(me);
+		this.can_delete = wn.model.can_delete(this.doctype);
+		this.meta = locals.DocType[this.doctype];
+		this.$page.find('.wnlist-area').empty(),
+		this.setup_listview();
+		this.setup_docstatus_filter();
+		this.init_list();
+		this.init_stats();
+		this.add_delete_option();
+		this.show_match_help();
+		if(this.listview.settings.onload) {
+			this.listview.settings.onload(this);
 		}
-		me.make_help();
+		this.make_help();
+		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
+		var me = this;
+		// this.$w.on("render-complete", function() {
+		// 	me.set_sidebar_height();
+		// });
 	},
+
+	set_sidebar_height: function() {
+		var h_main = this.$page.find(".layout-main-section").height();
+		var h_side = this.$page.find(".layout-side-section").height();
+		console.log([h_main, h_side])
+		if(h_side > h_main)
+			this.$page.find(".layout-main-section").css({"min-height": h_side});
+	},
+	
 	show_match_help: function() {
 		var me = this;
 		var match_rules = wn.perm.get_match_rule(this.doctype);
@@ -193,7 +209,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				list_view_doc="%(doctype)s">'+
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
-		var no_result_message = repl('<div class="well">\
+		var no_result_message = repl('<div class="well" style="margin-top: 20px;">\
 		<p>' + wn._("No") + ' %(doctype_label)s ' + wn._("found") + '</p>' + new_button + '</div>', {
 			doctype_label: wn._(this.doctype),
 			doctype: this.doctype,
@@ -286,10 +302,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.sidebar_stats = new wn.views.SidebarStats({
 			doctype: this.doctype,
 			stats: this.listview.stats,
-			parent: me.$page.find('.layout-side-section'),
+			parent: this.$page.find('.layout-side-section'),
 			set_filter: function(fieldname, label) {
 				me.set_filter(fieldname, label);
-			}
+			},
+			doclistview: this
 		})
 	},
 	set_filter: function(fieldname, label, no_run) {

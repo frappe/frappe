@@ -342,8 +342,8 @@ wn.ui.make_app_page = function(opts) {
 		$('<div class="appframe col-md-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="row">\
-				<div class="layout-main-section col-md-9"></div>\
-				<div class="layout-side-section col-md-3"></div>\
+				<div class="layout-main-section col-sm-9"></div>\
+				<div class="layout-side-section col-sm-3"></div>\
 			</div>\
 		</div>').appendTo(opts.parent);
 	}

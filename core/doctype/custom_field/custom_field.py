@@ -21,8 +21,6 @@ class DocType:
 
 	def validate(self):
 		from webnotes.model.doctype import get
-		self.set_fieldname()
-		
 		temp_doclist = get(self.doc.dt).get_parent_doclist()
 				
 		# set idx

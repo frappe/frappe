@@ -284,6 +284,7 @@ wn.ui.Listing = Class.extend({
 		// callbacks
 		if(this.onrun) this.onrun();
 		if(this.callback) this.callback(r);
+		this.$w.trigger("render-complete");
 	},
 
 	get_values_from_response: function(data) {

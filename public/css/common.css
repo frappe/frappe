@@ -53,15 +53,22 @@ div#freeze {
 }
 
 .list-row {
-	padding: 5px;
-	border-bottom: 1px solid #eee;
+	padding: 5px 15px;
+	margin: 0px -15px;
+	border-bottom: 1px solid #d7d7d7;
+}
+
+.side-panel {
+	border-bottom: 1px solid #d7d7d7;
+	margin: 0px -15px;
+	padding: 5px 15px;
 }
 
 /* appframe header */
 
 .appframe-header {
 	margin-bottom: 20px;
-	border-bottom: 3px solid #c7c7c7;
+	border-bottom: 3px solid #d7d7d7;
 	/*background-color: #f7f7f7;*/
 	/*box-shadow: 0px 2px 4px rgba(0,0,0,0.2);*/
 }

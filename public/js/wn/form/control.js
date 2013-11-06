@@ -498,7 +498,7 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 			if(this.frm.cscript[this.df.fieldname]) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
 			} else {
-				this.frm.runscript(this.df.options, me);
+				this.frm.runscript(this.df.options, this);
 			}
 		}
 		else if(this.df.click) {

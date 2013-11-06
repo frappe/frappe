@@ -1,4 +1,3 @@
-{% if top_bar_items %}
 <div class="navbar navbar-default">
 	<div class="container">
 		<div class="navbar-header">
@@ -11,6 +10,7 @@
 			<a class="navbar-brand" href="index">{{ brand_html or "<i class='icon-home'></i>"}}</a>
 		</div>
 		<div class="collapse navbar-collapse navbar-responsive-collapse">
+			{% if top_bar_items -%}
 			<ul class="nav navbar-nav navbar-left">
 				{%- for page in top_bar_items -%}
 				{% if not page.parent_label -%}
@@ -35,6 +35,7 @@
 				{%- endif -%}
 				{%- endfor %}
 			</ul>
+			{%- endif %}
 			<ul class="nav navbar-nav navbar-right">
 				<!-- post login tools -->
 				<li id="website-post-login" data-label="website-post-login" class="dropdown">
@@ -60,4 +61,3 @@
 	</div>
 </div>
 <script>$('.dropdown-toggle').dropdown()</script>
-{% endif %}
