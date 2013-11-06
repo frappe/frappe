@@ -40,4 +40,4 @@ class CustomDocType(DocType):
 {script}""".format(script=script or "\tpass")
 
 	with open(file_path, "w") as f:
-		f.write(custom_script)
+		f.write(custom_script.encode("utf-8"))
