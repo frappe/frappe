@@ -272,12 +272,7 @@ class Document:
 			if not self.naming_series:
 				webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
 			self.name = make_autoname(self.naming_series+'.#####')
-			
-		# based on expression
-		elif autoname and autoname.startswith('eval:'):
-			doc = self # for setting
-			self.name = eval(autoname[5:])
-		
+					
 		# call the method!
 		elif autoname and autoname!='Prompt': 
 			self.name = make_autoname(autoname, self.doctype)

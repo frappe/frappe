@@ -147,8 +147,8 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		} else {
 			this.$wrapper = $('<div class="form-horizontal">\
 				<div class="form-group row" style="margin: 0px">\
-					<label class="control-label col-xs-'+(this.horizontal?"3":"12")+'" style="padding-right: 0px"></label>\
-					<div class="col-xs-'+(this.horizontal?"9":"12")+'">\
+					<label class="control-label small text-muted col-xs-'+(this.horizontal?"4":"12")+'" style="padding-right: 0px"></label>\
+					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
 						<p class="help-box small text-muted"></p>\
@@ -450,13 +450,13 @@ wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
 		this.$wrapper = $('<div class="form-group row">\
-		<div class="col-md-offset-3 col-md-9">\
-			<div class="checkbox">\
+		<div class="col-md-offset-4 col-md-8">\
+			<div class="checkbox" style="margin: 5px 0px">\
 				<label class="input-area">\
 					<span class="disp-area" style="display:none;"></span>\
-					<span class="label-area"></span>\
+					<span class="label-area small text-muted"></span>\
 				</label>\
-				<p class="help-box small text-muted">&nbsp;</p>\
+				<p class="help-box small text-muted"></p>\
 			</div>\
 		</div>\
 		</div>').appendTo(this.parent)
@@ -697,9 +697,10 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="link-field">\
-			<input type="text" class="input-with-feedback form-control" style="width: 80%; display: inline-block">\
-			<span class="link-field-btn">\
+		$('<div class="link-field" style="display: table; width: 100%;">\
+			<input type="text" class="input-with-feedback form-control" \
+				style="display: table-cell">\
+			<span class="link-field-btn" style="display: table-cell">\
 				<a class="btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
 				</a><a class="btn-open" title="Open Link">\

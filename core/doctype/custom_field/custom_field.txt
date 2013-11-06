@@ -2,12 +2,11 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:33:59", 
+  "modified": "2013-11-05 20:07:27", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
  {
-  "autoname": "eval:doc.dt+\"-\"+doc.fieldname", 
   "description": "Adds a custom field to a DocType", 
   "doctype": "DocType", 
   "icon": "icon-glass", 

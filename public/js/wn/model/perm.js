@@ -199,7 +199,7 @@ $.extend(wn.perm, {
 		}
 
 		if(explain) console.log("By Read Only:" + ret)
-
+		
 		return ret;
 		
 	}

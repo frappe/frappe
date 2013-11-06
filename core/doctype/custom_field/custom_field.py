@@ -9,6 +9,10 @@ from webnotes.utils import cint, cstr
 class DocType:
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
+		
+	def autoname(self):
+		self.set_fieldname()
+		self.doc.name = self.doc.dt + "-" + self.doc.fieldname
 
 	def set_fieldname(self):
 		if not self.doc.fieldname:
@@ -104,7 +108,7 @@ def get_fields_label(dt=None, form=1):
 		field_list = [cstr(d.fieldname) for d in docfields]
 		return idx_label_list, field_list
 
-def delete_and_create_custom_field_if_values_exist(doctype, df):
+def create_custom_field_if_values_exist(doctype, df):
 	df = webnotes._dict(df)
 	if webnotes.conn.sql("""select count(*) from `tab{doctype}` 
 		where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
