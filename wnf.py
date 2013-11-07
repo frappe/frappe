@@ -258,6 +258,8 @@ def update(remote=None, branch=None, site=None):
 
 	# maybe there are new framework changes, any consequences?
 	reload(webnotes)
+	
+	if not site: build()
 
 	latest(site=site)
 
@@ -307,6 +309,10 @@ def patch(patch_module, site=None, force=False):
 @cmd
 def update_all_sites(remote=None, branch=None, verbose=True):
 	pull(remote, branch)
+	
+	# maybe there are new framework changes, any consequences?
+	reload(webnotes)
+	
 	build()
 	for site in get_sites():
 		latest(site=site, verbose=verbose)
