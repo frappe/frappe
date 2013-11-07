@@ -144,7 +144,6 @@ def get_user_match_filters(doctypes, ref_doctype):
 	match_filters = {}
 	doctypes_meta = {}
 	tables = []
-	doctypes[ref_doctype] = None
 
 	for dt in doctypes:
 		tables.append("`tab" + dt + "`")
@@ -160,6 +159,9 @@ def get_user_match_filters(doctypes, ref_doctype):
 	return match_filters
 
 def get_matched_columns(linked_doctypes, match_filters):
+	if "owner" in match_filters:
+		match_filters["profile"] = match_filters["owner"]
+
 	col_idx_map = {}
 	for dt, idx in linked_doctypes.items():
 		link_field = dt.lower().replace(" ", "_")
