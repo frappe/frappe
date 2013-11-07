@@ -44,7 +44,7 @@ class BackupGenerator:
 		last_db, last_file = self.get_recent_backup(older_than)
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
-		if not last_db and not last_file:
+		if not (last_db and last_file):
 			self.take_dump()
 			if not ignore_files:
 				self.zip_files()
@@ -148,9 +148,6 @@ def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, back
 		deletes backups older than 7 days
 		takes backup"""
 	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
-	
-	from webnotes.utils import now
-	print "backup taken -", odb.backup_path_db, "- on", now()
 	return odb
 
 def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
