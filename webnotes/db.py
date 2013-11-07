@@ -18,7 +18,7 @@ class Database:
 	   the `conn` global variable. the `sql` method is also global to run queries
 	"""
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
-		self.host = host or 'localhost'
+		self.host = host or conf.db_host or 'localhost'
 		self.user = user or conf.db_name
 		
 		if ac_name:
