@@ -96,6 +96,7 @@ def setup_utilities(parser):
 	# update
 	parser.add_argument("-u", "--update", nargs="*", metavar=("REMOTE", "BRANCH"),
 		help="Perform git pull, run patches, sync schema and rebuild files/translations")
+	parser.add_argument("--reload_gunicorn", default=False, action="store_true", help="reload gunicorn on update")
 	parser.add_argument("--patch", nargs=1, metavar="PATCH-MODULE",
 		help="Run a particular patch [-f]")
 	parser.add_argument("-l", "--latest", default=False, action="store_true",
@@ -253,7 +254,7 @@ def make_demo_fresh(site=None):
 # utilities
 
 @cmd
-def update(remote=None, branch=None, site=None):
+def update(remote=None, branch=None, site=None, reload_gunicorn=False):
 	pull(remote=remote, branch=branch, site=site)
 
 	# maybe there are new framework changes, any consequences?
@@ -262,6 +263,9 @@ def update(remote=None, branch=None, site=None):
 	if not site: build()
 
 	latest(site=site)
+	if reload_gunicorn:
+		import subprocess
+		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
 def latest(site=None, verbose=True):
