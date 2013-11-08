@@ -1,6 +1,6 @@
 body {	
 	margin: 0px;
-	padding-top: 70px;
+	padding-top: 60px;
 	padding-bottom: 50px;
 }
 
@@ -14,19 +14,18 @@ a.disabled, a.disabled:hover {
 	text-decoration: none;
 }
 
-.appframe {
-	background-color: #fff;
-	border-radius: 5px;
-	border: 3px solid #c7c7c7;
-	overflow: hidden;
-}
-
 .layout-main {
 	padding-bottom: 10px;
 }
 
 .text-small {
 	font-size: 80%;
+}
+
+@media (max-width: 767px) {
+	.layout-side-section {
+		border-top: 1px solid #c7c7c7;
+	}
 }
 
 /* freeze */
@@ -49,49 +48,30 @@ div#freeze {
 .show_filters {
 	padding-bottom: 15px;
 	margin-bottom: 15px;
-	border-bottom: 1px solid #d7d7d7;
+	border-bottom: 1px solid #c7c7c7;
 }
 
 .list-row {
-	padding: 5px;
-	border-bottom: 1px solid #eee;
-}
-
-/* appframe header */
-
-.appframe-header {
-	margin-bottom: 20px;
-	border-bottom: 3px solid #c7c7c7;
-	background-color: #f7f7f7;
-	/*box-shadow: 0px 2px 4px rgba(0,0,0,0.2);*/
-}
-
-.appframe-toolbar {
+	padding: 5px 15px;
 	margin: 0px -15px;
-	padding: 7px 15px;
-	padding-bottom: 0px;
-	border-bottom: 1px solid #e7e7e7;
+	border-bottom: 1px solid #c7c7c7;
 }
 
-.appframe-title {
-	padding-bottom: 10px;
-	border-bottom: 1px solid #e7e7e7;
-}
-
-.appframe-header .status-bar {
-	text-align: right;
+.side-panel {
+	border-bottom: 1px solid #c7c7c7;
+	margin: 0px -15px;
+	padding: 5px 15px;
 }
 
 /* module */
 
 .alert-badge {
 	padding-right: 15px;
+	margin: 7px 0px;
 }
 
 .alert-badge a, .alert-badge a:hover {
-	color: black;
-	font-size: 120%; 
-	font-weight: bold;
+	
 }
 
 .alert-badge .badge {
@@ -99,19 +79,18 @@ div#freeze {
 }
 
 .icon-in-circle {
-	color: white; 
-	background-color: #b7b7b7; 
+	color: #b7b7b7; 
+	background-color: white;
 	border-radius:50%; 
-	padding: 9px; 
 	text-align: center; 
-	width: 38px; 
-	height: 38px; 
+	width: 20px; 
+	height: 20px; 
 	font-size: 20px; 
 	display: inline-block;	
 }
 
 .form-layout {
-	margin-top: -15px;
+	/*margin-top: -15px;*/
 }
 
 .form-headline {
@@ -132,17 +111,18 @@ div#freeze {
 	margin-bottom: 3px;
 }
 
-.link-field .btn {
-	padding-left: 6px;
-	padding-right: 6px;
+.link-field-btn a, .link-field-btn a:hover {
+	color: #888;
+	text-decoration: none;
+	margin-left: 3px;
 }
 
 /* list */
 
 .doclist-row {
+	position: relative;
 	padding-top: 5px; 
-	padding-bottom: 0px;
-	margin-bottom: 5px; 
+	padding-bottom: 3px;
 	border-bottom: "1px solid #eee";
 }
 
@@ -151,12 +131,12 @@ div#freeze {
 	padding-right: 7px;
 }
 
-.doclist-row .col:first-child {
-	padding-left: 15px;
-}
-
-.doclist-row .col:last-child {
-	padding-right: 15px;
+.list-timestamp {
+	position: absolute;
+	right: 5px;
+	bottom: -2px;
+	font-size: 70%;
+	color: #888;
 }
 
 /* module */
@@ -176,6 +156,37 @@ div#freeze {
 	height: 7px;
 	background-color: red;
 	width: 0px;
+}
+
+/* appframe header */
+
+.appframe {
+	background-color: #fff;
+	border-radius: 5px;
+	border: 3px solid #c7c7c7;
+	overflow: hidden;
+}
+
+.appframe-header {
+	margin-bottom: 20px;
+	border-bottom: 1px solid #c7c7c7;
+	/*background-color: #f7f7f7;*/
+	/*box-shadow: 0px 2px 4px rgba(0,0,0,0.2);*/
+}
+
+.appframe-toolbar {
+	margin: -15px;
+	margin-bottom: 0px;
+	padding: 0px 15px;
+}
+
+.appframe-title {
+	margin-bottom: 5px;
+	height: 67px;
+}
+
+.appframe-header .status-bar {
+	text-align: right;
 }
 
 
@@ -204,7 +215,7 @@ div#freeze {
 
 .appframe .mini-bar {
 	float: right;
-	margin-top: -10px;
+	margin-top: -5px;
 }
 
 .appframe .mini-bar ul {
@@ -247,14 +258,13 @@ div#freeze {
 	cursor: pointer;
 	display: inline-block;
 	float:left;
-	padding: 10px;
-	width: 46px;
-	color: white;
+	padding: 5px;
 	margin-right: 10px;
 	border-radius: 5px;
-	margin-top: -10px;
+	margin-top: -15px;
 	font-size: 24px;
 	text-align: center;
+	width: 40px;
 }
 
 .appframe .title-text {
@@ -264,8 +274,8 @@ div#freeze {
 }
 
 .appframe .sub-title-area {
-	margin-top: -30px;
-	margin-left: 58px;
+	margin-top: -24px;
+	margin-left: 48px;
 	font-size: 100%;
 }
 
@@ -280,8 +290,6 @@ div#freeze {
 
 .navbar-icon-home {
 	vertical-align: middle;
-	opacity: 0.7;
-	Filter:alpha(opacity=70); /* For IE8 and earlier */
 }
 
 .navbar-icon-home:hover,
@@ -425,15 +433,20 @@ div#freeze {
 	max-width: 100%;
 }
 
-textarea[data-fieldtype="Small Text"] {
-	height: 60px;
+textarea.form-control {
+	height: 120px;
 }
 
 /* form grid */
 
+.grid-heading-row {
+	padding: 8px;
+	border-bottom: 1px solid #dddddd;
+}
+
 .rows .grid-row .divider {
-	padding-bottom: 8px;
-	margin-bottom: 8px;
+	padding-bottom: 5px;
+	margin-bottom: 5px;
 	border-bottom: 1px solid #dddddd;
 }
 
@@ -452,7 +465,7 @@ textarea[data-fieldtype="Small Text"] {
 	margin-top: 20px;
 	padding-top: 15px;
 	padding-bottom: 15px;
-	border-top: 3px solid #d7d7d7;
+	border-top: 3px solid #c7c7c7;
 	color: #888;
 	/*box-shadow: 0px -1px 6px rgba(0,0,0,0.3);*/
 }

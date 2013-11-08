@@ -24,8 +24,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		})
 	},
 	make: function() {
-		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse" \
-			style="min-height: 50px;" role="navigation">\
+		$('header').append('<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
 			<div class="container">\
 				<div class="navbar-header">\
 					<button type="button" class="navbar-toggle" data-toggle="collapse" \

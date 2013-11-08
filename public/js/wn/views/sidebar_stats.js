@@ -32,13 +32,15 @@ wn.views.SidebarStats = Class.extend({
 				
 				// reload button at the end
 				if(me.stats.length) {
-					$('<button class="btn btn-default"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
+					$('<a class="small"><i class="refresh"></i> '+wn._('Refresh')+'</a>')
+						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
+							return false;
 						}).appendTo($('<div class="stat-wrapper">')
 							.appendTo(me.wrapper));
 				}
-				
+				me.doclistview.set_sidebar_height();
 			}
 		});
 	},
@@ -47,11 +49,10 @@ wn.views.SidebarStats = Class.extend({
 
 		if(!stat || !stat.length) {
 			if(field==='_user_tags') {
-				$('<div class="panel panel-default">\
-					<div class="panel-heading"><i class="icon-tag"></i> '+wn._('Tags')+'</div>\
-					<div class="panel-body">\
-						<div class="text-muted small"><i>'+wn._('No records tagged.')+'</i><br><br> '
-						+wn._('Click on "Add Tag" to add a tag.')
+				$('<div class="side-panel">\
+					<h5 class="text-muted"><i class="icon-tag"></i> '+wn._('Tags')+'</h5>\
+					<div class="side-panel-body">\
+						<div class="text-muted small"><i>'+wn._('No records tagged.')+'</i><br>'
 						+'</div>\
 					</div></div>').appendTo(this.wrapper);
 			}
@@ -63,9 +64,9 @@ wn.views.SidebarStats = Class.extend({
 		if(label==='_user_tags') label = 'Tags';
 
 		// grid
-		var $w = $('<div class="panel panel-default">\
-			<div class="panel-heading"><i class="icon-tag"></i> '+ wn._(label) +'</div>\
-			<div class="panel-body">\
+		var $w = $('<div class="side-panel">\
+			<h5 class="text-muted"><i class="icon-tag"></i> '+ wn._(label) +'</h5>\
+			<div class="side-panel-body">\
 			</div>\
 		</div>');
 
@@ -76,7 +77,7 @@ wn.views.SidebarStats = Class.extend({
 
 		// render items
 		$.each(stat, function(i, v) { 
-			me.render_stat_item(i, v, sum, field).appendTo($w.find('.panel-body'));
+			me.render_stat_item(i, v, sum, field).appendTo($w.find('.side-panel-body'));
 		});
 
 		$w.appendTo(this.wrapper);

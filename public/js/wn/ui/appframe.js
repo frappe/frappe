@@ -16,9 +16,9 @@ wn.ui.AppFrame = Class.extend({
 						style="margin-top: 10px;"></div>\
 					<div class="title-button-area-1 btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
-					<div class="title-area"><h2 style="display: inline-block">\
-						<span class="title-icon" style="display: none"></span>\
-						<span class="title-text"></span></h2></div>\
+					<div class="title-area"><h3 style="display: inline-block">\
+						<span class="title-icon text-muted" style="display: none"></span>\
+						<span class="title-text"></span></h3></div>\
 					<div class="sub-title-area text-muted small">&nbsp;</div>\
 					<div class="mini-bar"><ul></ul></div>\
 				</div>\
@@ -37,7 +37,7 @@ wn.ui.AppFrame = Class.extend({
 			
 	},
 	setup_toolbar: function() {
-		$('<div class="btn-group form-group pull-left"></div>\
+		$('<div class="btn-group pull-left form-group"></div>\
 			<div class="appframe-form"></div>\
 			<div class="clearfix"></div>').appendTo(this.toolbar.toggle(false));
 	},
@@ -61,7 +61,7 @@ wn.ui.AppFrame = Class.extend({
 			.attr("title", label)
 			.appendTo($ul)
 			.click(function() {
-				click();
+				click.apply(this);
 				return false;
 			})
 		return $li;
@@ -87,15 +87,13 @@ wn.ui.AppFrame = Class.extend({
 		
 		this.$w.find(".title-icon").html('<i class="'+icon+'"></i> ')
 			.toggle(true)
-			.css({
-				"background-color": module_info.color,
-			})
 			.attr("doctype-name", doctype)
 			.attr("module-link", module_info.link)
 			.click(onclick || function() {
 				var route = wn.get_route();
-				if($(this).attr("doctype-name") && route[0]!=="List") {
-					wn.set_route("List", $(this).attr("doctype-name"))
+				var doctype = $(this).attr("doctype-name");
+				if(doctype && route[0]!=="List" && !locals["DocType"][doctype].issingle) {
+					wn.set_route("List", doctype)
 				} else if($(this).attr("module-link")!==route[0]){
 					wn.set_route($(this).attr("module-link"));
 				} else {
@@ -184,18 +182,16 @@ wn.ui.AppFrame = Class.extend({
 				.attr("title", wn._(toTitle(e.type)))
 				.appendTo($right);
 				
-			if(e.type==active_view) {
-				btn.removeClass("btn-default").addClass("btn-info");
+			if(e.type===active_view) {
+				btn.css({"color": "#428bca"});
 			}
 		});
 	},
 	
 	add_help_button: function(txt) {
-		$('<button class="btn btn-default pull-right" button-type="help">\
-			<b>?</b></button>')
-			.data('help-text', txt)
-			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
-			.insertBefore(this.toolbar.find(".clearfix"));
+		this.add_to_mini_bar("icon-question-sign", wn._("Help"), 
+			function() { msgprint($(this).data('help-text'), 'Help'); })
+			.data("help-text", txt);
 	},
 
 	show_toolbar: function() {
@@ -220,7 +216,7 @@ wn.ui.AppFrame = Class.extend({
 		
 		var append_or_prepend = is_title ? "prependTo" : "appendTo";
 		
-		this.buttons[label] = $(repl('<button class="btn btn-default">\
+		this.buttons[label] = $(repl('<button class="btn btn-default small text-muted">\
 			%(icon)s <span class="hidden-xs-inline">%(label)s</span></button>', args))
 			[append_or_prepend](this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
 			.attr("title", wn._(label))
@@ -285,7 +281,7 @@ wn.ui.AppFrame = Class.extend({
 		})
 		f.refresh();
 		$(f.wrapper)
-			.addClass('col-md-2 form-group')
+			.addClass('col-md-2')
 			.css({
 				"padding-left": "0px", 
 				"padding-right": "0px",
@@ -344,8 +340,8 @@ wn.ui.make_app_page = function(opts) {
 		$('<div class="appframe col-md-12">\
 			<div class="layout-appframe row"></div>\
 			<div class="row">\
-				<div class="layout-main-section col-md-9"></div>\
-				<div class="layout-side-section col-md-3"></div>\
+				<div class="layout-main-section col-sm-9"></div>\
+				<div class="layout-side-section col-sm-3"></div>\
 			</div>\
 		</div>').appendTo(opts.parent);
 	}

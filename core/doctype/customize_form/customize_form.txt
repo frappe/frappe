@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 17:54:08", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:34:41", 
+  "modified": "2013-11-03 11:06:11", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -85,15 +85,6 @@
   "doctype": "DocField", 
   "fieldname": "column_break1", 
   "fieldtype": "Column Break"
- }, 
- {
-  "description": "Load Print View on opening of an existing form", 
-  "doctype": "DocField", 
-  "fieldname": "read_only_onload", 
-  "fieldtype": "Check", 
-  "label": "Show Print First", 
-  "no_copy": 0, 
-  "search_index": 0
  }, 
  {
   "doctype": "DocField", 

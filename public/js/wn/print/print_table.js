@@ -118,7 +118,7 @@ wn.print.Table = Class.extend({
 				var tr = $("<tr>").appendTo(table);
 				
 				$.each(me.columns, function(ci, fieldname) {
-					if(ci==0) 
+					if(fieldname==="Sr") 
 						var value = row.idx;
 					else
 						var value = row[fieldname];

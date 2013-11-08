@@ -95,9 +95,9 @@ wn.ui.form.Footer = Class.extend({
 	refresh: function() {
 		this.toggle_save();
 		if(this.frm.doc.__islocal) {
-			this.wrapper.find(".after-save").toggle(false);
+			this.wrapper.toggle(false);
 		} else {
-			this.wrapper.find(".after-save").toggle(true);
+			this.wrapper.toggle(true);
 			this.frm.attachments.refresh();
 			this.frm.comments.refresh();
 			this.frm.assign_to.refresh();

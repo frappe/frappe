@@ -5,8 +5,9 @@ wn.ui.form.Dashboard = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 		this.wrapper = $('<div class="form-dashboard row"></div>')
+			.css({"margin-bottom":"20px", "padding-bottom":"10px"})
 			.prependTo(this.frm.layout.wrapper);
-		this.body = $('<div></div>').appendTo(this.wrapper);
+		this.body = $('<div></div>').appendTo(this.wrapper).css("margin-bottom", "20px");
 		
 	},
 	reset: function() {
@@ -39,7 +40,7 @@ wn.ui.form.Dashboard = Class.extend({
 	},
 	add_badge: function(label, doctype, onclick) {
 		var badge = $(repl('<div class="col-md-4">\
-			<div class="alert alert-warning alert-badge">\
+			<div class="alert-badge">\
 				<i class="icon-fixed-width %(icon)s"></i> \
 				<a class="badge-link">%(label)s</a>\
 				<span class="badge pull-right">-</span>\

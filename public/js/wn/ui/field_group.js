@@ -22,7 +22,8 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 				if(f.df["default"]) f.set_input(f.df["default"]);
 			})
 			if(!this.no_submit_on_enter) {
-				$(this.body).find(".control-input > .btn").filter(":first").removeClass("btn-default").addClass("btn-primary");
+				$(this.body).find(".control-input > .btn").filter(":first")
+					.removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
 			}
 		}

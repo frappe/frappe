@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-07-26 14:41:43", 
+  "modified": "2013-11-03 11:08:35", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -126,7 +126,7 @@
  }, 
  {
   "depends_on": "repeat_this_event", 
-  "description": "Leave blank if you have not decided the end date.", 
+  "description": "Leave blank to repeat always", 
   "doctype": "DocField", 
   "fieldname": "repeat_till", 
   "fieldtype": "Date", 

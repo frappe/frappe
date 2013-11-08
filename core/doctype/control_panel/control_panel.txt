@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-10 16:34:01", 
   "docstatus": 0, 
-  "modified": "2013-01-22 14:19:55", 
+  "modified": "2013-11-03 11:04:45", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -135,7 +135,7 @@
   "label": "Mail Server"
  }, 
  {
-  "description": "Enter Email Id to receive Error Report sent by users.\nE.g.: support@iwebnotes.com", 
+  "description": "Email Id where users will send support request e.g. support@example.com", 
   "doctype": "DocField", 
   "fieldname": "support_email_id", 
   "fieldtype": "Data", 

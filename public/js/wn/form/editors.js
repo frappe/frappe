@@ -30,6 +30,7 @@ wn.editors.ACE = Class.extend({
 		this.input = {};
 		this.myid = wn.dom.set_unique_id(this.pre);
 		this.editor = ace.edit(this.myid);
+		var me = this;
 
 		if(this.opts.field.df.options=='Markdown' || this.opts.field.df.options=='HTML') {
 			wn.require('lib/js/lib/ace/mode-html.js');	
@@ -48,6 +49,10 @@ wn.editors.ACE = Class.extend({
 			var PythonMode = require("ace/mode/python").Mode;
 		    this.editor.getSession().setMode(new PythonMode());
 		}
+		
+		this.opts.field.$wrapper.on("refresh", function() {
+			me.editor.resize();
+		})
 	},
 	set_input: function(value) {
 		// during field refresh in run trigger, set_input is called

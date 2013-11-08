@@ -29,6 +29,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		$.extend(this, opts)
 		this.label = wn._(this.doctype);
 		this.dirty = true;
+		this.tags_shown = false;
 		this.label = (this.label.toLowerCase().substr(-4) == 'list') ?
 		 	wn._(this.label) : (wn._(this.label) + ' ' + wn._('List'));
 		this.make_page();
@@ -49,18 +50,21 @@ wn.views.DocListView = wn.ui.Listing.extend({
 			<div class="help">'+wn._('Loading')+'...</div></div>')
 			.appendTo(this.$page.find(".layout-main-section"));
 			
-		$('<div class="show-docstatus hide panel panel-default">\
-			<div class="panel-heading">Show</div>\
-			<div class="panel-body">\
-			<div><input data-docstatus="0" type="checkbox" \
+		$('<div class="show-docstatus hide side-panel">\
+			<h5 class="text-muted">Show</h5>\
+			<div class="side-panel-body">\
+			<div class="text-muted small"><input data-docstatus="0" type="checkbox" \
 				checked="checked" /> '+wn._('Drafts')+'</div>\
-			<div><input data-docstatus="1" type="checkbox" \
+			<div class="text-muted small"><input data-docstatus="1" type="checkbox" \
 				checked="checked" /> '+wn._('Submitted')+'</div>\
-			<div><input data-docstatus="2" type="checkbox" \
+			<div class="text-muted small"><input data-docstatus="2" type="checkbox" \
 				/> '+wn._('Cancelled')+'</div></div>\
 		</div>')
 			.appendTo(this.$page.find(".layout-side-section"));
-								
+		
+		this.$page.find(".layout-main-section")
+			.css({"border-right":"1px solid #d7d7d7"})
+			.parent().css({"margin-top":"-20px"});
 		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		
@@ -70,21 +74,33 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	
 	setup: function() {
-		var me = this;
-		me.can_delete = wn.model.can_delete(me.doctype);
-		me.meta = locals.DocType[me.doctype];
-		me.$page.find('.wnlist-area').empty(),
-		me.setup_listview();
-		me.setup_docstatus_filter();
-		me.init_list();
-		me.init_stats();
-		me.add_delete_option();
-		me.show_match_help();
-		if(me.listview.settings.onload) {
-			me.listview.settings.onload(me);
+		this.can_delete = wn.model.can_delete(this.doctype);
+		this.meta = locals.DocType[this.doctype];
+		this.$page.find('.wnlist-area').empty(),
+		this.setup_listview();
+		this.setup_docstatus_filter();
+		this.init_list();
+		this.init_stats();
+		this.init_minbar();
+		this.show_match_help();
+		if(this.listview.settings.onload) {
+			this.listview.settings.onload(this);
 		}
-		me.make_help();
+		this.make_help();
+		this.$page.find(".show_filters").css({"padding":"15px", "margin":"0px -15px"});
+		var me = this;
+		// this.$w.on("render-complete", function() {
+		// 	me.set_sidebar_height();
+		// });
 	},
+
+	set_sidebar_height: function() {
+		var h_main = this.$page.find(".layout-main-section").height();
+		var h_side = this.$page.find(".layout-side-section").height();
+		if(h_side > h_main)
+			this.$page.find(".layout-main-section").css({"min-height": h_side});
+	},
+	
 	show_match_help: function() {
 		var me = this;
 		var match_rules = wn.perm.get_match_rule(this.doctype);
@@ -193,7 +209,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 				list_view_doc="%(doctype)s">'+
 				wn._('Make a new') + ' %(doctype_label)s</button></p>')
 			: '';
-		var no_result_message = repl('<div class="well">\
+		var no_result_message = repl('<div class="well" style="margin-top: 20px;">\
 		<p>' + wn._("No") + ' %(doctype_label)s ' + wn._("found") + '</p>' + new_button + '</div>', {
 			doctype_label: wn._(this.doctype),
 			doctype: this.doctype,
@@ -227,31 +243,43 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		return args;
 	},
-	add_delete_option: function() {
+	init_minbar: function() {
 		var me = this;
+		this.appframe.add_to_mini_bar('icon-tag', wn._('Show Tags'), function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.add_button(wn._('Delete'), function() { me.delete_items(); }, 'icon-remove');
-			this.add_button(wn._('Select All'), function() { 
+			this.appframe.add_to_mini_bar('icon-remove', wn._('Delete'), function() { me.delete_items(); });
+			this.appframe.add_to_mini_bar('icon-ok', wn._('Select All'), function() { 
 				me.$page.find('.list-delete').prop("checked", 
 					me.$page.find('.list-delete:checked').length ? false : true);
-			}, 'icon-ok');
+			});
 		}
 		if(in_list(user_roles, "System Manager")) {
 			var meta = locals.DocType[this.doctype];
 			if(meta.allow_import || meta.document_type==="Master") {
-				this.add_button(wn._("Import"), function() {
+				this.appframe.add_to_mini_bar("icon-upload", wn._("Import"), function() {
 					wn.set_route("data-import-tool", {
 						doctype: me.doctype
 					})
-				}, "icon-upload")
+				})
 			};
-			this.add_button(wn._("Customize"), function() {
+			this.appframe.add_to_mini_bar("icon-glass", wn._("Customize"), function() {
 				wn.set_route("Form", "Customize Form", {
 					doctype: me.doctype
 				})
-			}, "icon-glass");
+			});
 		}
 	},
+	
+	toggle_tags: function() {
+		if(this.tags_shown) {
+			$(".tag-row").addClass("hide");
+			this.tags_shown=false;
+		} else {
+			$(".tag-row").removeClass("hide");
+			this.tags_shown=true;
+		}
+	},
+	
 	get_checked_items: function() {
 		return $.map(this.$page.find('.list-delete:checked'), function(e) {
 			return $(e).data('data');
@@ -286,10 +314,11 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		this.sidebar_stats = new wn.views.SidebarStats({
 			doctype: this.doctype,
 			stats: this.listview.stats,
-			parent: me.$page.find('.layout-side-section'),
+			parent: this.$page.find('.layout-side-section'),
 			set_filter: function(fieldname, label) {
 				me.set_filter(fieldname, label);
-			}
+			},
+			doclistview: this
 		})
 	},
 	set_filter: function(fieldname, label, no_run) {

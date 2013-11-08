@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-10-14 17:09:57", 
+  "modified": "2013-11-05 20:09:08", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -12,6 +12,7 @@
   "allow_email": 0, 
   "allow_print": 0, 
   "autoname": "Prompt", 
+  "custom": 0, 
   "description": "DocType is a Table / Form in the application.", 
   "doctype": "DocType", 
   "hide_heading": 0, 
@@ -68,12 +69,28 @@
   "reqd": 1
  }, 
  {
+  "description": "Child Tables are shown as a Grid in other DocTypes.", 
   "doctype": "DocField", 
-  "fieldname": "plugin", 
-  "fieldtype": "Data", 
-  "hidden": 1, 
-  "label": "Plugin", 
-  "read_only": 0
+  "fieldname": "istable", 
+  "fieldtype": "Check", 
+  "hidden": 0, 
+  "label": "Is Child Table", 
+  "oldfieldname": "istable", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "search_index": 0
+ }, 
+ {
+  "description": "Single Types have only one record no tables associated. Values are stored in tabSingles", 
+  "doctype": "DocField", 
+  "fieldname": "issingle", 
+  "fieldtype": "Check", 
+  "hidden": 0, 
+  "label": "Is Single", 
+  "oldfieldname": "issingle", 
+  "oldfieldtype": "Check", 
+  "reqd": 0, 
+  "search_index": 0
  }, 
  {
   "doctype": "DocField", 
@@ -90,7 +107,12 @@
   "options": "\nMaster\nTransaction\nSystem\nOther"
  }, 
  {
-  "description": "Is it a Custom DocType created by you?", 
+  "doctype": "DocField", 
+  "fieldname": "icon", 
+  "fieldtype": "Data", 
+  "label": "Icon"
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "custom", 
   "fieldtype": "Check", 
@@ -99,19 +121,11 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "sb0_5", 
-  "fieldtype": "Section Break"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "description", 
-  "fieldtype": "Small Text", 
-  "hidden": 0, 
-  "label": "Description", 
-  "oldfieldname": "description", 
-  "oldfieldtype": "Text", 
-  "reqd": 0, 
-  "search_index": 0
+  "fieldname": "plugin", 
+  "fieldtype": "Data", 
+  "hidden": 1, 
+  "label": "Plugin", 
+  "read_only": 0
  }, 
  {
   "doctype": "DocField", 
@@ -141,52 +155,7 @@
   "fieldtype": "Section Break"
  }, 
  {
-  "doctype": "DocField", 
-  "fieldname": "cb10", 
-  "fieldtype": "Column Break", 
-  "label": "Database"
- }, 
- {
-  "description": "No table is created for Single DocTypes, all values are stored in tabSingles as a tuple.", 
-  "doctype": "DocField", 
-  "fieldname": "issingle", 
-  "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Is Single", 
-  "oldfieldname": "issingle", 
-  "oldfieldtype": "Check", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
-  "description": "Child Tables are shown as a Grid in other DocTypes.", 
-  "doctype": "DocField", 
-  "fieldname": "istable", 
-  "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Is Child Table", 
-  "oldfieldname": "istable", 
-  "oldfieldtype": "Check", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
-  "description": "Allow Import via Data Import Tool", 
-  "doctype": "DocField", 
-  "fieldname": "allow_import", 
-  "fieldtype": "Check", 
-  "label": "Allow Import"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "cb11", 
-  "fieldtype": "Column Break", 
-  "label": "Naming", 
-  "oldfieldtype": "Column Break", 
-  "width": "50%"
- }, 
- {
-  "description": "<a onclick=\"msgprint('<ol>\\\n<li><b>field:[fieldname]</b> - By Field\\\n<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\\\n<li><b>eval:[expression]</b> - Evaluate an expression in python (self is doc)\\\n<li><b>Prompt</b> - Prompt user for a name\\\n<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\\\n</ol>')\">Naming Options</a>", 
+  "description": "<a onclick=\"msgprint('<ol>\\\n<li><b>field:[fieldname]</b> - By Field\\\n<li><b>naming_series:</b> - By Naming Series (field called naming_series must be present\\\n<li><b>Prompt</b> - Prompt user for a name\\\n<li><b>[series]</b> - Series by prefix (separated by a dot); for example PRE.#####\\\n</ol>')\">Naming Options</a>", 
   "doctype": "DocField", 
   "fieldname": "autoname", 
   "fieldtype": "Data", 
@@ -205,6 +174,11 @@
   "oldfieldname": "name_case", 
   "oldfieldtype": "Select", 
   "options": "\nTitle Case\nUPPER CASE"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "column_break_15", 
+  "fieldtype": "Column Break"
  }, 
  {
   "doctype": "DocField", 
@@ -272,12 +246,52 @@
   "label": "Is Submittable"
  }, 
  {
+  "description": "Allow Import via Data Import Tool", 
+  "doctype": "DocField", 
+  "fieldname": "allow_import", 
+  "fieldtype": "Check", 
+  "label": "Allow Import"
+ }, 
+ {
   "doctype": "DocField", 
   "fieldname": "allow_rename", 
   "fieldtype": "Check", 
   "label": "Allow Rename", 
   "oldfieldname": "allow_rename", 
   "oldfieldtype": "Check"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "in_dialog", 
+  "fieldtype": "Check", 
+  "label": "In Dialog", 
+  "oldfieldname": "in_dialog", 
+  "oldfieldtype": "Check"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "read_only_onload", 
+  "fieldtype": "Check", 
+  "label": "Show Print First", 
+  "oldfieldname": "read_only_onload", 
+  "oldfieldtype": "Check"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "allow_attach", 
+  "fieldtype": "Check", 
+  "label": "Allow Attach", 
+  "oldfieldname": "allow_attach", 
+  "oldfieldtype": "Check"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "max_attachments", 
+  "fieldtype": "Int", 
+  "hidden": 1, 
+  "label": "Max Attachments", 
+  "oldfieldname": "max_attachments", 
+  "oldfieldtype": "Int"
  }, 
  {
   "doctype": "DocField", 
@@ -342,70 +356,20 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "sb4", 
-  "fieldtype": "Section Break", 
-  "hidden": 0, 
-  "oldfieldtype": "Column Break", 
-  "reqd": 0, 
-  "search_index": 0, 
-  "width": "50%"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "cb41", 
-  "fieldtype": "Column Break", 
-  "label": "Display"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "icon", 
-  "fieldtype": "Data", 
-  "label": "Icon"
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "default_print_format", 
   "fieldtype": "Data", 
   "label": "Default Print Format"
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "read_only_onload", 
-  "fieldtype": "Check", 
-  "label": "Show Print First", 
-  "oldfieldname": "read_only_onload", 
-  "oldfieldtype": "Check"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "in_dialog", 
-  "fieldtype": "Check", 
-  "label": "In Dialog", 
-  "oldfieldname": "in_dialog", 
-  "oldfieldtype": "Check"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "cb42", 
-  "fieldtype": "Column Break", 
-  "label": "Attachments"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_attach", 
-  "fieldtype": "Check", 
-  "label": "Allow Attach", 
-  "oldfieldname": "allow_attach", 
-  "oldfieldtype": "Check"
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "max_attachments", 
-  "fieldtype": "Int", 
-  "hidden": 1, 
-  "label": "Max Attachments", 
-  "oldfieldname": "max_attachments", 
-  "oldfieldtype": "Int"
+  "fieldname": "description", 
+  "fieldtype": "Small Text", 
+  "hidden": 0, 
+  "label": "Description", 
+  "oldfieldname": "description", 
+  "oldfieldtype": "Text", 
+  "reqd": 0, 
+  "search_index": 0
  }, 
  {
   "cancel": 0, 

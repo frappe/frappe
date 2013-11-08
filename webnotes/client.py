@@ -33,7 +33,7 @@ def set_value(doctype, name, fieldname, value):
 	doc = webnotes.conn.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
 		bean = webnotes.bean(doc.parenttype, doc.parent)
-		child = bean.doclist.getone({"doctype": doctype, "name": docname})
+		child = bean.doclist.getone({"doctype": doctype, "name": name})
 		child.fields[fieldname] = value
 	else:
 		bean = webnotes.bean(doctype, name)
