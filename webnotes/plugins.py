@@ -28,7 +28,9 @@ def get_code(module, doctype, docname, plugin=None):
 	return code
 	
 def get_cache_key(doctype, docname, extn="py"):
-	return "Plugin File:{doctype}:{docname}:{extn}".format(doctype=doctype, docname=docname, extn=extn)
+	from webnotes.modules import scrub
+	return "plugin_file:{doctype}:{docname}:{extn}".format(doctype=scrub(doctype), 
+		docname=scrub(docname), extn=scrub(extn))
 	
 def get_plugin_name(doctype, docname):
 	import os
@@ -90,12 +92,7 @@ def clear_cache(doctype=None, docname=None):
 	import os
 	from webnotes.utils import get_site_path
 	
-	def titlecase(txt):
-		return txt.replace("_", " ").title()
-	
 	def clear_single(dt, dn):
-		dt = titlecase(dt)
-		dn = titlecase(dn)
 		webnotes.cache().delete_value(get_cache_key(dt, dn, "py"))
 		webnotes.cache().delete_value(get_cache_key(dt, dn, "js"))
 		
