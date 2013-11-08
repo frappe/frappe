@@ -31,8 +31,9 @@ wn.avatar = function(user, large, title) {
 }
 
 wn.ui.set_user_background = function(src) {
-	wn.dom.set_style(repl('body { background: url("%(src)s") repeat fixed;}',
-		{src:src}))
+	wn.dom.set_style(repl('body { background: url("%(src)s") no-repeat center center fixed; \
+		-webkit-background-size: cover; -moz-background-size: cover; \
+		-o-background-size: cover; background-size: cover;}', {src:src}))
 }
 
 wn.provide('wn.user');
