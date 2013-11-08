@@ -1,0 +1,39 @@
+[
+ {
+  "creation": "2013-11-08 18:44:04", 
+  "docstatus": 0, 
+  "modified": "2013-11-08 18:47:21", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "RR.######", 
+  "custom": 1, 
+  "doctype": "DocType", 
+  "document_type": "Master", 
+  "istable": 1, 
+  "module": "Core", 
+  "name": "__common__", 
+  "name_case": "UPPER CASE"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "role", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "label": "Role", 
+  "name": "__common__", 
+  "options": "Role", 
+  "parent": "Report Role", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Report Role"
+ }, 
+ {
+  "doctype": "DocField"
+ }
+]

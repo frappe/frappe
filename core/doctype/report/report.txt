@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-09 15:45:57", 
   "docstatus": 0, 
-  "modified": "2013-08-13 19:31:25", 
+  "modified": "2013-11-08 18:46:40", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -122,6 +122,18 @@
   "fieldtype": "Text", 
   "label": "JSON", 
   "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "sectionbreak_0", 
+  "fieldtype": "Section Break"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "roles", 
+  "fieldtype": "Table", 
+  "label": "Roles", 
+  "options": "Report Role"
  }, 
  {
   "cancel": 1, 
