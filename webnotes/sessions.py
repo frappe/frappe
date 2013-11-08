@@ -14,6 +14,7 @@ import json
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
+import webnotes.plugins
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -26,6 +27,9 @@ def clear_cache(user=None):
 
 	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
+	
+	# clear plugins code cache
+	webnotes.plugins.clear_cache()
 
 	if user:
 		cache.delete_value("bootinfo:" + user)

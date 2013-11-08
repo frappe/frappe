@@ -171,7 +171,7 @@ class LoginManager:
 		ip_list = [i.strip() for i in ip_list]
 
 		for ip in ip_list:
-			if webnotes.get_request_header('REMOTE_ADDR', '').startswith(ip):
+			if webnotes.get_request_header('REMOTE_ADDR', '').startswith(ip) or webnotes.get_request_header('X-Forwarded-For', '').startswith(ip):
 				return
 			
 		webnotes.msgprint('Not allowed from this IP Address')

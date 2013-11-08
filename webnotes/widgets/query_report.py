@@ -11,33 +11,50 @@ from webnotes import _
 from webnotes.modules import scrub, get_module_path
 from webnotes.utils import flt, cint
 import webnotes.widgets.reportview
+import webnotes.plugins
 
 @webnotes.whitelist()
 def get_script(report_name):
 	report = webnotes.doc("Report", report_name)
 	
-	doctype = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
-	script_path = os.path.join(get_module_path(doctype),
-		"report", scrub(report.name), scrub(report.name) + ".js") 
+	module = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
+	module_path = get_module_path(module)
+	report_folder = os.path.join(module_path, "report", scrub(report.name))
+	script_path = os.path.join(report_folder, scrub(report.name) + ".js")
 	
+	script = None
+	if os.path.exists(script_path):
+		with open(script_path, "r") as script:
+			script = script.read()
+	
+	if not script and report.is_standard == "No":
+		script = webnotes.plugins.read_file(module, "Report", report.name, extn="js", cache=True)
+
+	if not script and report.javascript:
+		script = report.javascript
+	
+	if not script:
+		script = "wn.query_reports['%s']={}" % report_name
+		
 	# load translations
 	if webnotes.lang != "en":
 		from webnotes.translate import get_lang_data
-		locale_path = os.path.join(get_module_path(webnotes.conn.get_value(doctype)),"report", scrub(report.name))
-		messages = get_lang_data(locale_path, 
-			webnotes.lang, 'js')
-		webnotes.response["__messages"] = messages
+		if os.path.exists(report_folder):
+			messages = get_lang_data(report_folder, webnotes.lang, 'js')
+			webnotes.response["__messages"] = messages
+		else:
+			# TODO check if language files get exported here
+			plugins_report_folder = webnotes.plugins.get_path(module, "Report", report.name)
+			if os.path.exists(plugins_report_folder):
+				messages = get_lang_data(plugins_report_folder, webnotes.lang, 'js')
+				webnotes.response["__messages"] = messages
 		
-	if os.path.exists(script_path):
-		with open(script_path, "r") as script:
-			return script.read()
-	elif report.javascript:
-		return report.javascript
-	else:
-		return "wn.query_reports['%s']={}" % report_name
+	return script
 
 @webnotes.whitelist()
 def run(report_name, filters=None):
+	from webnotes.plugins import get_code_and_execute
+	
 	report = webnotes.doc("Report", report_name)
 	
 	if filters and isinstance(filters, basestring):
@@ -58,9 +75,13 @@ def run(report_name, filters=None):
 		result = [list(t) for t in webnotes.conn.sql(report.query, filters)]
 		columns = [c[0] for c in webnotes.conn.get_description()]
 	else:
-		method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
-			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
-		columns, result = webnotes.get_method(method_name)(filters or {})
+		module = webnotes.conn.get_value("DocType", report.ref_doctype, "module")
+		if report.is_standard=="Yes":
+			method_name = scrub(module) + ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
+			columns, result = webnotes.get_method(method_name)(filters or {})
+		else:
+			namespace = get_code_and_execute(module, "Report", report.name)
+			columns, result = namespace["execute"](filters or {})
 	
 	result = get_filtered_data(report.ref_doctype, columns, result)
 	
@@ -91,7 +112,7 @@ def get_filtered_data(ref_doctype, columns, data):
 
 	linked_doctypes = get_linked_doctypes(columns)
 	match_filters = get_user_match_filters(linked_doctypes, ref_doctype)
-		
+	
 	if match_filters:
 		matched_columns = get_matched_columns(linked_doctypes, match_filters)
 		for row in data:
@@ -123,7 +144,6 @@ def get_user_match_filters(doctypes, ref_doctype):
 	match_filters = {}
 	doctypes_meta = {}
 	tables = []
-	doctypes[ref_doctype] = None
 
 	for dt in doctypes:
 		tables.append("`tab" + dt + "`")
@@ -139,6 +159,9 @@ def get_user_match_filters(doctypes, ref_doctype):
 	return match_filters
 
 def get_matched_columns(linked_doctypes, match_filters):
+	if "owner" in match_filters:
+		match_filters["profile"] = match_filters["owner"]
+
 	col_idx_map = {}
 	for dt, idx in linked_doctypes.items():
 		link_field = dt.lower().replace(" ", "_")

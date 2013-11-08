@@ -96,6 +96,7 @@ def setup_utilities(parser):
 	# update
 	parser.add_argument("-u", "--update", nargs="*", metavar=("REMOTE", "BRANCH"),
 		help="Perform git pull, run patches, sync schema and rebuild files/translations")
+	parser.add_argument("--reload_gunicorn", default=False, action="store_true", help="reload gunicorn on update")
 	parser.add_argument("--patch", nargs=1, metavar="PATCH-MODULE",
 		help="Run a particular patch [-f]")
 	parser.add_argument("-l", "--latest", default=False, action="store_true",
@@ -253,18 +254,24 @@ def make_demo_fresh(site=None):
 # utilities
 
 @cmd
-def update(remote=None, branch=None, site=None):
+def update(remote=None, branch=None, site=None, reload_gunicorn=False):
 	pull(remote=remote, branch=branch, site=site)
 
 	# maybe there are new framework changes, any consequences?
 	reload(webnotes)
+	
+	if not site: build()
 
 	latest(site=site)
+	if reload_gunicorn:
+		import subprocess
+		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
 def latest(site=None, verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
+	import webnotes.plugins
 	
 	webnotes.connect(site=site)
 	
@@ -277,6 +284,10 @@ def latest(site=None, verbose=True):
 	
 		# sync
 		webnotes.model.sync.sync_all()
+		
+		# remove __init__.py from plugins
+		webnotes.plugins.remove_init_files()
+		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
 		raise e
@@ -302,6 +313,10 @@ def patch(patch_module, site=None, force=False):
 @cmd
 def update_all_sites(remote=None, branch=None, verbose=True):
 	pull(remote, branch)
+	
+	# maybe there are new framework changes, any consequences?
+	reload(webnotes)
+	
 	build()
 	for site in get_sites():
 		latest(site=site, verbose=verbose)
@@ -326,11 +341,12 @@ def watch():
 def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
-	print backup_path_db
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	if verbose:
 		from webnotes.utils import now
-		print "backup taken -", odb.backup_path_db, "- on", now()
+		print "database backup taken -", odb.backup_path_db, "- on", now()
+		if with_files:
+			print "files backup taken -", odb.backup_path_files, "- on", now()
 	return odb
 
 @cmd
@@ -552,7 +568,7 @@ def mysql(site=None):
 	import commands, os
 	msq = commands.getoutput('which mysql')
 	webnotes.init(site=site)
-	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name])
+	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, webnotes.conf.db_host or "localhost"])
 	webnotes.destroy()
 
 @cmd
