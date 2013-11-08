@@ -120,7 +120,7 @@ wn.ui.form.Layout = Class.extend({
 				if(this.sections.length > 1)
 					this.section.css({
 						"margin-top": "15px", 
-						"border-top": "1px solid #ddd"
+						"border-top": "1px solid #c7c7c7"
 					});
 			}
 			if(df.description) {

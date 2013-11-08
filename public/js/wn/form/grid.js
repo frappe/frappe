@@ -11,13 +11,15 @@ wn.ui.form.Grid = Class.extend({
 		var me = this;
 		
 		this.wrapper = $('<div>\
-		<div class="" style="border: 1px solid #ddd; margin-bottom: 15px; border-radius: 3px;">\
+		<div class="" style="border: 2px solid #c7c7c7; margin-bottom: 15px; border-radius: 3px;">\
 			<div class="grid-heading-row" style="font-size: 15px; background-color: #f9f9f9;"></div>\
 			<div class="panel-body">\
 				<div class="rows"></div>\
-				<div style="margin-top: 5px; margin-bottom: -5px;">\
-					<a href="#" class="grid-add-row">+ '+wn._("Add new row")+'.</a>\
-					<span class="text-muted">' + wn._("Click on row to edit.") + '</span></div>\
+				<div class="small">\
+					<a href="#" class="grid-add-row pull-right">+ '+wn._("Add new row")+'.</a>\
+					<span class="text-muted pull-right" style="margin-right: 5px;">' + wn._("Click on row to edit.") + '</span>\
+					<div class="clearfix"></div>\
+				</div>\
 			</div>\
 		</div>\
 		</div>').appendTo(this.parent);
@@ -267,10 +269,10 @@ wn.ui.form.GridRow = Class.extend({
 			if(!this.grid.$row_actions) {
 				this.grid.$row_actions = $('<div class="col-md-1 pull-right" \
 					style="text-align: right; padding-right: 5px;">\
-					<button class="btn btn-small btn-success grid-insert-row" style="padding: 4px;">\
-						<i class="icon icon-plus-sign"></i></button>\
-					<button class="btn btn-small btn-default grid-delete-row" style="padding: 4px;">\
-						<i class="icon icon-trash"></i></button>\
+					<span class="text-success grid-insert-row" style="padding: 4px;">\
+						<i class="icon icon-plus-sign"></i></span>\
+					<span class="grid-delete-row" style="padding: 4px;">\
+						<i class="icon icon-trash"></i></span>\
 				</div>');
 			}
 			$col = this.grid.$row_actions.clone().appendTo(this.row);
@@ -455,33 +457,33 @@ wn.ui.form.GridRow = Class.extend({
 	make_form: function() {
 		if(!this.form_area) {
 			$('<div class="panel-heading">\
-				<div class="toolbar" style="height: 36px;">\
+				<div class="toolbar">\
 					<span class="panel-title">Editing Row #<span class="row-index"></span></span>\
-					<button class="btn btn-success pull-right grid-toggle-row" \
+					<span class="text-success pull-right grid-toggle-row" \
 						title="'+wn._("Close")+'"\
 						style="margin-left: 7px;">\
-						<i class="icon-chevron-up"></i></button>\
-					<button class="btn btn-default pull-right grid-insert-row" \
+						<i class="icon-chevron-up"></i></span>\
+					<span class="pull-right grid-insert-row" \
 						title="'+wn._("Insert Row")+'"\
 						style="margin-left: 7px;">\
-						<i class="icon-plus grid-insert-row"></i></button>\
-					<button class="btn btn-default pull-right grid-delete-row"\
+						<i class="icon-plus grid-insert-row"></i></span>\
+					<span class="pull-right grid-delete-row"\
 						title="'+wn._("Delete Row")+'"\
-						><i class="icon-trash grid-delete-row"></i></button>\
+						><i class="icon-trash grid-delete-row"></i></span>\
 				</div>\
 			</div>\
 			<div class="panel-body">\
 				<div class="form-area"></div>\
-				<div class="toolbar footer-toolbar" style="height: 36px;">\
+				<div class="toolbar footer-toolbar" style="margin-top: 15px">\
 					<span class="text-muted"><a href="#" class="shortcuts"><i class="icon-keyboard"></i> Shortcuts</a></span>\
-					<button class="btn btn-success pull-right grid-toggle-row" \
+					<span class="text-success pull-right grid-toggle-row" \
 						title="'+wn._("Close")+'"\
-						style="margin-left: 7px;">\
-						<i class="icon-chevron-up"></i></button>\
-					<button class="btn btn-default pull-right grid-append-row" \
+						style="margin-left: 7px; cursor: pointer;">\
+						<i class="icon-chevron-up"></i></span>\
+					<span class="pull-right grid-append-row" \
 						title="'+wn._("Insert Below")+'"\
-						style="margin-left: 7px;">\
-						<i class="icon-plus"></i></button>\
+						style="margin-left: 7px; cursor: pointer;">\
+						<i class="icon-plus"></i></span>\
 				</div>\
 			</div>').appendTo(this.form_panel);
 			this.form_area = this.wrapper.find(".form-area");

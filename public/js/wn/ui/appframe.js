@@ -16,9 +16,9 @@ wn.ui.AppFrame = Class.extend({
 						style="margin-top: 10px;"></div>\
 					<div class="title-button-area-1 btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
-					<div class="title-area"><h2 style="display: inline-block">\
+					<div class="title-area"><h3 style="display: inline-block">\
 						<span class="title-icon text-muted" style="display: none"></span>\
-						<span class="title-text"></span></h2></div>\
+						<span class="title-text"></span></h3></div>\
 					<div class="sub-title-area text-muted small">&nbsp;</div>\
 					<div class="mini-bar"><ul></ul></div>\
 				</div>\
@@ -61,7 +61,7 @@ wn.ui.AppFrame = Class.extend({
 			.attr("title", label)
 			.appendTo($ul)
 			.click(function() {
-				click();
+				click.apply(this);
 				return false;
 			})
 		return $li;
@@ -189,11 +189,9 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_help_button: function(txt) {
-		$('<button class="btn btn-default pull-right" button-type="help">\
-			<b>?</b></button>')
-			.data('help-text', txt)
-			.click(function() { msgprint($(this).data('help-text'), 'Help'); })
-			.insertBefore(this.toolbar.find(".clearfix"));
+		this.add_to_mini_bar("icon-question-sign", wn._("Help"), 
+			function() { msgprint($(this).data('help-text'), 'Help'); })
+			.data("help-text", txt);
 	},
 
 	show_toolbar: function() {
@@ -218,7 +216,7 @@ wn.ui.AppFrame = Class.extend({
 		
 		var append_or_prepend = is_title ? "prependTo" : "appendTo";
 		
-		this.buttons[label] = $(repl('<button class="btn btn-default">\
+		this.buttons[label] = $(repl('<button class="btn btn-default small text-muted">\
 			%(icon)s <span class="hidden-xs-inline">%(label)s</span></button>', args))
 			[append_or_prepend](this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
 			.attr("title", wn._(label))

@@ -38,7 +38,7 @@
   transform: rotate(3deg) translate(0px, -4px);
 }
 
-/* Remove these to get rid of the spinner */
+/* Remove these to get rid of the spinner 
 #nprogress .spinner {
   display: block;
   position: fixed;
@@ -82,4 +82,4 @@
 @keyframes nprogress-spinner {
   0%   { transform: rotate(0deg);   transform: rotate(0deg); }
   100% { transform: rotate(360deg); transform: rotate(360deg); }
-}
+}*/

@@ -2351,8 +2351,8 @@ fieldset[disabled] .btn-warning.active {
 
 .btn-danger {
   color: #ffffff;
-  background-color: #ff3b30;
-  border-color: #ff2317;
+  background-color: #d9534f;
+  border-color: #d43f3a;
 }
 
 .btn-danger:hover,
@@ -2361,8 +2361,8 @@ fieldset[disabled] .btn-warning.active {
 .btn-danger.active,
 .open .dropdown-toggle.btn-danger {
   color: #ffffff;
-  background-color: #ff1407;
-  border-color: #d80b00;
+  background-color: #d2322d;
+  border-color: #ac2925;
 }
 
 .btn-danger:active,
@@ -2386,8 +2386,8 @@ fieldset[disabled] .btn-danger:active,
 .btn-danger.disabled.active,
 .btn-danger[disabled].active,
 fieldset[disabled] .btn-danger.active {
-  background-color: #ff3b30;
-  border-color: #ff2317;
+  background-color: #d9534f;
+  border-color: #d43f3a;
 }
 
 .btn-success {
@@ -4247,7 +4247,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .navbar {
   position: relative;
-  min-height: 30px;
+  min-height: 36px;
   margin-bottom: 20px;
   border: 1px solid transparent;
 }
@@ -4417,7 +4417,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .navbar-brand {
   float: left;
-  padding: 5px 15px;
+  padding: 8px 15px;
   font-size: 18px;
   line-height: 20px;
 }
@@ -4436,10 +4436,10 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .navbar-toggle {
   position: relative;
   float: right;
-  padding: 5px 10px;
-  margin-top: -2px;
+  padding: 9px 10px;
+  margin-top: 1px;
   margin-right: 15px;
-  margin-bottom: -2px;
+  margin-bottom: 1px;
   background-color: transparent;
   border: 1px solid transparent;
   border-radius: 4px;
@@ -4463,7 +4463,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 }
 
 .navbar-nav {
-  margin: 2.5px -15px;
+  margin: 4px -15px;
 }
 
 .navbar-nav > li > a {
@@ -4504,9 +4504,8 @@ textarea.input-group-sm > .input-group-btn > .btn {
     float: left;
   }
   .navbar-nav > li > a {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    font-size: 12px;
+    padding-top: 8px;
+    padding-bottom: 8px;
   }
 }
 
@@ -4521,9 +4520,9 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .navbar-form {
   padding: 10px 15px;
-  margin-top: -2px;
+  margin-top: 1px;
   margin-right: -15px;
-  margin-bottom: -2px;
+  margin-bottom: 1px;
   margin-left: -15px;
   border-top: 1px solid transparent;
   border-bottom: 1px solid transparent;
@@ -4591,14 +4590,14 @@ textarea.input-group-sm > .input-group-btn > .btn {
 }
 
 .navbar-btn {
-  margin-top: -2px;
-  margin-bottom: -2px;
+  margin-top: 1px;
+  margin-bottom: 1px;
 }
 
 .navbar-text {
   float: left;
-  margin-top: 5px;
-  margin-bottom: 5px;
+  margin-top: 8px;
+  margin-bottom: 8px;
 }
 
 @media (min-width: 768px) {
@@ -4726,8 +4725,8 @@ textarea.input-group-sm > .input-group-btn > .btn {
 }
 
 .navbar-inverse {
-  background-color: #333333;
-  border-color: #1a1a1a;
+  background-color: rgba(0, 0, 0, 0.7);
+  border-color: rgba(0, 0, 0, 0.7);
 }
 
 .navbar-inverse .navbar-brand {
@@ -4758,7 +4757,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 .navbar-inverse .navbar-nav > .active > a:hover,
 .navbar-inverse .navbar-nav > .active > a:focus {
   color: #ffffff;
-  background-color: #1a1a1a;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .navbar-inverse .navbar-nav > .disabled > a,
@@ -4783,14 +4782,14 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 .navbar-inverse .navbar-collapse,
 .navbar-inverse .navbar-form {
-  border-color: #212121;
+  border-color: rgba(0, 0, 0, 0.7);
 }
 
 .navbar-inverse .navbar-nav > .open > a,
 .navbar-inverse .navbar-nav > .open > a:hover,
 .navbar-inverse .navbar-nav > .open > a:focus {
   color: #ffffff;
-  background-color: #1a1a1a;
+  background-color: rgba(0, 0, 0, 0.7);
 }
 
 .navbar-inverse .navbar-nav > .dropdown > a:hover .caret {
@@ -4812,7 +4811,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
 
 @media (max-width: 767px) {
   .navbar-inverse .navbar-nav .open .dropdown-menu > .dropdown-header {
-    border-color: #1a1a1a;
+    border-color: rgba(0, 0, 0, 0.7);
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > li > a {
     color: #eeeeee;
@@ -4826,7 +4825,7 @@ textarea.input-group-sm > .input-group-btn > .btn {
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:hover,
   .navbar-inverse .navbar-nav .open .dropdown-menu > .active > a:focus {
     color: #ffffff;
-    background-color: #1a1a1a;
+    background-color: rgba(0, 0, 0, 0.7);
   }
   .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a,
   .navbar-inverse .navbar-nav .open .dropdown-menu > .disabled > a:hover,
@@ -5105,12 +5104,12 @@ textarea.input-group-sm > .input-group-btn > .btn {
 }
 
 .label-danger {
-  background-color: #ff3b30;
+  background-color: #d9534f;
 }
 
 .label-danger[href]:hover,
 .label-danger[href]:focus {
-  background-color: #fc0d00;
+  background-color: #c9302c;
 }
 
 .badge {
@@ -5231,7 +5230,6 @@ a.thumbnail.active {
 .alert {
   padding: 15px;
   margin-bottom: 20px;
-  border: 1px solid transparent;
   border-radius: 4px;
 }
 
@@ -5428,7 +5426,7 @@ a.thumbnail.active {
 }
 
 .progress-bar-danger {
-  background-color: #ff3b30;
+  background-color: #d9534f;
 }
 
 .progress-striped .progress-bar-danger {

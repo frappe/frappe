@@ -32,10 +32,11 @@ wn.views.SidebarStats = Class.extend({
 				
 				// reload button at the end
 				if(me.stats.length) {
-					$('<button class="btn btn-default small"><i class="refresh"></i> '+wn._('Refresh')+'</button>')
-						.css({"margin-top":"15px"})
+					$('<a class="small"><i class="refresh"></i> '+wn._('Refresh')+'</a>')
+						.css({"margin-top":"15px", "display":"inline-block"})
 						.click(function() {
 							me.reload_stats();
+							return false;
 						}).appendTo($('<div class="stat-wrapper">')
 							.appendTo(me.wrapper));
 				}
@@ -51,8 +52,7 @@ wn.views.SidebarStats = Class.extend({
 				$('<div class="side-panel">\
 					<h5 class="text-muted"><i class="icon-tag"></i> '+wn._('Tags')+'</h5>\
 					<div class="side-panel-body">\
-						<div class="text-muted small"><i>'+wn._('No records tagged.')+'</i><br><br> '
-						+wn._('Click on "Add Tag" to add a tag.')
+						<div class="text-muted small"><i>'+wn._('No records tagged.')+'</i><br>'
 						+'</div>\
 					</div></div>').appendTo(this.wrapper);
 			}

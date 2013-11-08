@@ -759,6 +759,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		} else {
 			this.$input_area.find(".btn-new").remove();
 		}
+		
+		if(this.only_input) this.$input_area.find(".btn-open, .btn-new").remove();
 	},
 	setup_autocomplete: function() {
 		var me = this;
