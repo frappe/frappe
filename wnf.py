@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
 # MIT License. See license.txt
