@@ -81,9 +81,11 @@ var crop = function(s, len) {
 }
 
 var strip = function(s, chars) {
-	var s= lstrip(s, chars)
-	s = rstrip(s, chars);
-	return s;
+	if (s) {
+		var s= lstrip(s, chars)
+		s = rstrip(s, chars);
+		return s;
+	}
 }
 
 var rstrip = function(s, chars) {
