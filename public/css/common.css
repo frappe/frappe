@@ -95,7 +95,7 @@ div#freeze {
 
 .form-headline {
 	margin-bottom: 10px;
-	font-size: 130%;
+	font-size: 120%;
 }
 
 .form-dashboard {
@@ -134,7 +134,7 @@ div#freeze {
 .list-timestamp {
 	position: absolute;
 	right: 5px;
-	bottom: -2px;
+	bottom: 2px;
 	font-size: 70%;
 	color: #888;
 }
@@ -264,7 +264,7 @@ div#freeze {
 	margin-top: -15px;
 	font-size: 24px;
 	text-align: center;
-	width: 40px;
+	width: 27px;
 }
 
 .appframe .title-text {
@@ -274,8 +274,8 @@ div#freeze {
 }
 
 .appframe .sub-title-area {
-	margin-top: -24px;
-	margin-left: 48px;
+	margin-top: -20px;
+	margin-left: 37px;
 	font-size: 100%;
 }
 

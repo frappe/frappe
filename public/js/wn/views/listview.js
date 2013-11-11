@@ -102,7 +102,7 @@ wn.views.ListView = Class.extend({
 				} else if(d.fieldtype=="Check") {
 					colspan = "1";
 				} else if(in_list(["name", "subject", "title"], d.fieldname)) { // subjects are longer
-					colspan = "3";
+					colspan = "4";
 				} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
 					colspan = "4";
 				}
@@ -138,10 +138,11 @@ wn.views.ListView = Class.extend({
 			this.id_list.push(data.name);
 		
 		
-		var body = $('<div class="doclist-row" style="display: table; width: 100%;">\
-			<div class="list-row-id-area" style="width: 200px; display: table-cell; "></div>\
+		var body = $('<div class="doclist-row" style="display: table; width: 100%; table-layout: fixed">\
+			<div class="list-row-id-area" style="width: 200px; display: table-cell; white-space:nowrap;\
+				text-overflow: ellipsis; max-height: 30px"></div>\
 			<div class="list-row-content-area row" style="display: table-cell"></div>\
-		</div>').appendTo(row),
+		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
 		
@@ -159,7 +160,7 @@ wn.views.ListView = Class.extend({
 		});
 		
 		
-		var timestamp = $('<div class="list-timestamp">').appendTo(body).html(comment_when(data.modified));
+		var timestamp = $('<div class="list-timestamp">').appendTo(row).html(comment_when(data.modified));
 		
 		// row #2
 		var row2 = $('<div class="row tag-row">\

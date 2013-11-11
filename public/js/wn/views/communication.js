@@ -53,6 +53,7 @@ wn.views.CommunicationList = Class.extend({
 			.appendTo(this.parent);
 			
 		this.body = $('<div class="list-group">')
+		.css({"border":"1px solid #dddddd", "border-radius":"4px"})
 			.appendTo(this.wrapper);
 	},
 	
