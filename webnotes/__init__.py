@@ -179,7 +179,7 @@ def get_env_vars(env_var):
 	import os
 	return os.environ.get(env_var,'None')
 
-remote_ip = get_env_vars('REMOTE_ADDR')		#Required for login from python shell
+remote_ip = get_env_vars('HTTP_X_FORWARDED_FOR') or get_env_vars('REMOTE_ADDR') #Required for login from python shell
 logger = None
 	
 def get_db_password(db_name):

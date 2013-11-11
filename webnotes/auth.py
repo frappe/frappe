@@ -20,9 +20,9 @@ class HTTPRequest:
 
 		# language
 		self.set_lang(webnotes.get_env_vars('HTTP_ACCEPT_LANGUAGE'))
-		
-		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
 
+		webnotes.remote_ip = webnotes.get_env_vars('HTTP_X_FORWARDED_FOR') or webnotes.get_env_vars('REMOTE_ADDR')
+		
 		# load cookies
 		webnotes.cookie_manager = CookieManager()
 
@@ -115,7 +115,7 @@ class LoginManager:
 			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 			webnotes.response["full_name"] = full_name
 			webnotes.add_cookies["full_name"] = full_name
-	
+
 	def post_login(self):
 		self.run_trigger()
 		self.validate_ip_address()
