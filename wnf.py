@@ -139,6 +139,7 @@ def setup_utilities(parser):
 	parser.add_argument("--serve", action="store_true", help="Run development server")
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
+	parser.add_argument("--python", action="store_true", help="get python shell for a site")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
 	parser.add_argument("--update_site_config", nargs=1, 
 		metavar="SITE-CONFIG-JSON", 
@@ -571,6 +572,18 @@ def mysql(site=None):
 	msq = commands.getoutput('which mysql')
 	webnotes.init(site=site)
 	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, '-h', webnotes.conf.db_host or "localhost"])
+	webnotes.destroy()
+
+@cmd
+def python(site=None):
+	import webnotes 
+	import commands, os
+	python = commands.getoutput('which python')
+	webnotes.init(site=site)
+	if site:
+		os.environ["site"] = site
+	os.environ["PYTHONSTARTUP"] = os.path.join(os.path.dirname(__file__), "pythonrc.py")
+	os.execv(python, [python])
 	webnotes.destroy()
 
 @cmd
