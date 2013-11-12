@@ -53,7 +53,8 @@ def get_sites():
 	import os
 	import conf
 	return [site for site in os.listdir(conf.sites_dir)
-			if not os.path.islink(os.path.join(conf.sites_dir, site))]
+			if not os.path.islink(os.path.join(conf.sites_dir, site)) 
+				and os.path.isdir(os.path.join(conf.sites_dir, site))]
 	
 def setup_parser():
 	import argparse
