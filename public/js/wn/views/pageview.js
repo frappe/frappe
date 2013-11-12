@@ -106,7 +106,7 @@ wn.show_not_permitted = function(page_name) {
 wn.show_message_page = function(page_name, title, message) {
 	if(!page_name) page_name = wn.get_route_str();
 	var page = wn.pages[page_name] || wn.container.add_page(page_name);
-	$(page).html('<div class="appframe col-md-12">\
+	$(page).html('<div class="appframe">\
 		<div style="margin: 50px; text-align:center;">\
 			<h3>'+title+'</h3><br>\
 			<p>'+message+'</p><br>\

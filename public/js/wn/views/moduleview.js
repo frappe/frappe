@@ -81,7 +81,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 				.insertAfter(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
-				<li class="list-group-item" style="background-color: #eee">\
+				<li class="list-group-item">\
 					<h4 class="list-group-item-heading" style="margin-bottom: 0px;">\
 						<i class="text-muted '+ section.icon+'"></i> '
 						+ wn._(section.title) +'</h4>\

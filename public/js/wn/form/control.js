@@ -491,6 +491,7 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 				me.onclick();
 			});
 		this.input = this.$input.get(0);
+		this.set_input_attributes();
 		this.has_input = true;
 	},
 	onclick: function() {

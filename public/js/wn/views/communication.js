@@ -168,6 +168,7 @@ wn.views.CommunicationComposer = Class.extend({
 		});
 
 		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
+		this.dialog.get_input("send").addClass("btn-primary");
 		
 		$(document).on("upload_complete", function(event, filename, fileurl) {
 			if(me.dialog.display) {

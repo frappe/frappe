@@ -9,18 +9,17 @@ wn.ui.AppFrame = Class.extend({
 		this.buttons = {};
 		this.fields_dict = {};
 
-		this.$w = $('<div class="appframe-header col-md-12">\
+		this.$w = $('<div class="appframe-header">\
 			<div class="row appframe-title">\
 				<div class="col-md-12">\
-					<div class="title-button-area btn-group pull-right" \
-						style="margin-top: 10px;"></div>\
+					<div class="mini-bar mini-bar-1"><ul></ul></div>\
 					<div class="title-button-area-1 btn-group pull-right" \
 						style="margin-top: 10px;"></div>\
 					<div class="title-area"><h3 style="display: inline-block">\
 						<span class="title-icon text-muted" style="display: none"></span>\
 						<span class="title-text"></span></h3></div>\
 					<div class="sub-title-area text-muted small">&nbsp;</div>\
-					<div class="mini-bar"><ul></ul></div>\
+					<div class="mini-bar mini-bar-2"><ul></ul></div>\
 				</div>\
 			</div>\
 			<div class="appframe-toolbar" style="display: none;"></div>\
@@ -56,7 +55,7 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	add_to_mini_bar: function(icon, label, click) {
-		var $ul = this.$w.find(".mini-bar ul"),
+		var $ul = this.$w.find(".mini-bar-2 ul"),
 		$li = $('<li><i class="'+icon+'"></i></li>')
 			.attr("title", label)
 			.appendTo($ul)
@@ -169,21 +168,22 @@ wn.ui.AppFrame = Class.extend({
 	
 	set_views: function(views, active_view) {
 		var me = this;
-		$right = this.$w.find(".title-button-area");
+		$right = this.$w.find(".mini-bar-1 ul");
 		$.each(views, function(i, e) {
-			var btn = $(repl('<button class="btn btn-default" data-route="%(route)s">\
-				<i class="%(icon)s"></i></button>', e))
+			var btn = $(repl('<li data-route="%(route)s">\
+				<i class="%(icon)s"></i></li>', e))
 				.click(e.set_route || function() {
 					window.location.hash = "#" + $(this).attr("data-route");
 				})
 				.css({
-					width: "39px"
+					"color": "#c7c7c7",
+					"text-decoration": "none"
 				})
 				.attr("title", wn._(toTitle(e.type)))
 				.appendTo($right);
 				
 			if(e.type===active_view) {
-				btn.css({"color": "#428bca"});
+				btn.find("i").css({"color": "#428bca"});
 			}
 		});
 	},
@@ -332,13 +332,13 @@ wn.ui.make_app_page = function(opts) {
 		] 
 	*/
 	if(opts.single_column) {
-		$('<div class="appframe col-md-12">\
-			<div class="layout-appframe row"></div>\
+		$('<div class="appframe">\
+			<div class="layout-appframe"></div>\
 			<div class="layout-main"></div>\
 		</div>').appendTo(opts.parent);
 	} else {
-		$('<div class="appframe col-md-12">\
-			<div class="layout-appframe row"></div>\
+		$('<div class="appframe">\
+			<div class="layout-appframe"></div>\
 			<div class="row">\
 				<div class="layout-main-section col-sm-9"></div>\
 				<div class="layout-side-section col-sm-3"></div>\

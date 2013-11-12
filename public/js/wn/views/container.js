@@ -15,7 +15,7 @@ wn.views.Container = Class.extend({
 		this.pagemargin = 50;		
 	},
 	add_page: function(label, onshow, onhide) {
-		var page = $('<div class="content row"></div>')
+		var page = $('<div class="content"></div>')
 			.attr('id', "page-" + label)
 			.toggle(false)
 			.appendTo(this.container).get(0);
