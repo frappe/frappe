@@ -32,14 +32,16 @@ def get_cache_key(doctype, docname, extn="py"):
 	return "plugin_file:{doctype}:{docname}:{extn}".format(doctype=scrub(doctype), 
 		docname=scrub(docname), extn=scrub(extn))
 	
-def get_plugin_name(doctype, docname):
+def get_plugin_name(doctype=None, docname=None):
 	import os
 	from webnotes.utils import get_site_base_path
 	plugin = None
 	
-	meta = webnotes.get_doctype(doctype)
-	if meta.get_field("plugin"):
-		plugin = webnotes.conn.get_value(doctype, docname, "plugin")
+	if doctype:
+		meta = webnotes.get_doctype(doctype)
+		if meta.get_field("plugin"):
+			plugin = webnotes.conn.get_value(doctype, docname, "plugin")
+	
 	if not plugin:
 		plugin = os.path.basename(get_site_base_path())
 
@@ -77,6 +79,8 @@ def get_path(module, doctype, docname, plugin=None, extn="py"):
 def get_plugin_path(plugin=None):
 	from webnotes.modules import scrub
 	from webnotes.utils import get_site_path
+	if not plugin: plugin = get_plugin_name(None, None)
+	
 	return get_site_path(webnotes.conf.get("plugins_path"), scrub(plugin))
 	
 def remove_init_files():
