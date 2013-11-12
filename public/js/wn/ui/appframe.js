@@ -8,50 +8,51 @@ wn.ui.AppFrame = Class.extend({
 		this.set_document_title = true;
 		this.buttons = {};
 		this.fields_dict = {};
+		this.parent = parent;
 
 		this.$w = $('<div class="appframe-header">\
-			<div class="row appframe-title">\
-				<div class="col-md-12">\
-					<div class="mini-bar mini-bar-1"><ul></ul></div>\
-					<div class="title-button-area-1 btn-group pull-right" \
-						style="margin-top: 10px;"></div>\
-					<div class="title-area"><h3 style="display: inline-block">\
-						<span class="title-icon text-muted" style="display: none"></span>\
-						<span class="title-text"></span></h3></div>\
-					<div class="sub-title-area text-muted small">&nbsp;</div>\
-					<div class="mini-bar mini-bar-2"><ul></ul></div>\
-				</div>\
+			<div class="mini-bars hide">\
+				<div class="mini-bar mini-bar-main hide"><ul></ul></div>\
+				<div class="mini-bar mini-bar-2 hide"><ul></ul></div>\
+				<div class="mini-bar mini-bar-1 hide"><ul></ul></div>\
 			</div>\
-			<div class="appframe-toolbar" style="display: none;"></div>\
-		<div>').prependTo(parent);
+			<div class="appframe-form"></div>\
+			<div class="title-button-area-1 btn-group pull-right" style="margin-top: 9px;"></div>\
+		<div>').prependTo(parent.find(".appframe-header-area"));
+
+		this.$title_area = $('<div class="title-area"><h4 style="display: inline-block">\
+			<span class="title-icon text-muted" style="display: none"></span>\
+			<span class="title-text"></span></h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
 
 		this.$w.find('.close').click(function() {
 			window.history.back();
 		})
 		
-		this.toolbar = this.$w.find(".appframe-toolbar");
-		this.setup_toolbar();
 		if(title) 
 			this.set_title(title);
 			
 	},
-	setup_toolbar: function() {
-		$('<div class="btn-group pull-left form-group"></div>\
-			<div class="appframe-form"></div>\
-			<div class="clearfix"></div>').appendTo(this.toolbar.toggle(false));
-	},
 	get_title_area: function() {
-		return this.$w.find(".title-area");
+		return this.$title_area.find(".title-area");
 	},
 	set_title: function(txt, full_text) {
 		// strip icon
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
-		this.$w.find(".breadcrumb .appframe-title").html(txt);
-		this.$w.find(".title-text").html(txt);
+		this.$title_area.find(".title-text").html(txt);
 	},
-	set_sub_title: function(txt) {
-		this.$w.find(".sub-title-area").html(txt);
+	set_sub_title: function(txt, click) {
+		this.sub_title = $("<a>")
+			.html(txt)
+			.click(click)
+			.appendTo(this.parent.find(".titlebar-item.text-left").empty());
+	},
+	
+	set_primary_action: function(txt, click) {
+		this.primary_action = $("<a>")
+			.html(txt)
+			.click(click)
+			.appendTo(this.parent.find(".titlebar-item.text-right").empty());
 	},
 	
 	add_to_mini_bar: function(icon, label, click) {
@@ -63,18 +64,19 @@ wn.ui.AppFrame = Class.extend({
 				click.apply(this);
 				return false;
 			})
+		this.$w.find(".mini-bar-2, .min-bars").removeClass("hide");
 		return $li;
 	},
 	
 	hide_mini_bar: function() {
-		this.$w.find(".mini-bar").toggle(false);
+		this.$w.find(".mini-bar-1, .mini-bar-2").addClass("hide");
 	},
 
 	show_mini_bar: function() {
-		this.$w.find(".mini-bar").toggle(true);
+		this.$w.find(".mini-bar-1, .mini-bar-2").removeClass("hide");
 	},
 		
-	add_module_icon: function(module, doctype, onclick) {
+	add_module_icon: function(module, doctype, onclick, sub_title) {
 		var module_info = wn.modules[module];
 		if(!module_info) {
 			module_info = {
@@ -84,7 +86,7 @@ wn.ui.AppFrame = Class.extend({
 		}
 		var icon = wn.boot.doctype_icons[doctype] || module_info.icon;
 		
-		this.$w.find(".title-icon").html('<i class="'+icon+'"></i> ')
+		this.$title_area.find(".title-icon").html('<i class="'+icon+'"></i> ')
 			.toggle(true)
 			.attr("doctype-name", doctype)
 			.attr("module-link", module_info.link)
@@ -100,7 +102,12 @@ wn.ui.AppFrame = Class.extend({
 				}
 				return false;
 			});
+			
+		if(this.sub_title) {
+			this.set_sub_title(module, function() { wn.set_route(module_info.link); })
+		}
 	},
+	
 	
 	set_views_for: function(doctype, active_view) {
 		this.doctype = doctype;
@@ -195,12 +202,12 @@ wn.ui.AppFrame = Class.extend({
 	},
 
 	show_toolbar: function() {
-		this.toolbar.toggle(true);
+		this.parent.find(".mini-bars, .mini-bar-main, .appframe-form").removeClass("hide");
 	},
 
 	clear_buttons: function() {
-		this.toolbar.empty();
-		this.setup_toolbar();
+		this.parent.find(".mini-bar-main ul, .appframe-form").empty();
+		this.parent.find(".mini-bars, .appframe-form").addClass("hide");
 		$(".custom-menu").remove();
 	},
 
@@ -216,14 +223,12 @@ wn.ui.AppFrame = Class.extend({
 		
 		var append_or_prepend = is_title ? "prependTo" : "appendTo";
 		
-		this.buttons[label] = $(repl('<button class="btn btn-default small text-muted">\
-			%(icon)s <span class="hidden-xs-inline">%(label)s</span></button>', args))
-			[append_or_prepend](this.toolbar.find(".btn-group").css({"margin-right": "5px"}))
-			.attr("title", wn._(label))
+		this.buttons[label] = $(repl('<li>\
+			%(icon)s</li>', args))
+			[append_or_prepend](this.parent.find(".mini-bar-main ul"))
+			.attr("title", args.label)
 			.click(click);
-		if(is_title) {
-			this.buttons[label].addClass("btn-title");
-		}
+		this.$w.find(".mini-bar-main, .min-bars").removeClass("hide");
 		return this.buttons[label];
 	},
 	get_menu: function(label) {
@@ -252,7 +257,7 @@ wn.ui.AppFrame = Class.extend({
 	add_label: function(label) {
 		this.show_toolbar();
 		return $("<label style='margin-top: 0.8%; margin-left: 5px; margin-right: 5px; float: left;'>"+label+" </label>")
-			.appendTo(this.toolbar.find(".appframe-form"));
+			.appendTo(this.$w.find(".appframe-form"));
 	},
 	add_select: function(label, options) {
 		var field = this.add_field({label:label, fieldtype:"Select"})
@@ -269,14 +274,14 @@ wn.ui.AppFrame = Class.extend({
 	add_check: function(label) {
 		this.show_toolbar();
 		return $("<div class='checkbox' style='margin-right: 10px; margin-top: 7px; float: left;'><label><input type='checkbox'>" + label + "</label></div>")
-			.appendTo(this.toolbar.find(".appframe-form"))
+			.appendTo(this.$w.find(".appframe-form"))
 			.find("input");
 	},
 	add_field: function(df) {
 		this.show_toolbar();
 		var f = wn.ui.form.make_control({
 			df: df,
-			parent: this.toolbar.find(".appframe-form"),
+			parent: this.$w.find(".appframe-form"),
 			only_input: true,
 		})
 		f.refresh();
@@ -331,21 +336,27 @@ wn.ui.make_app_page = function(opts) {
 			"title: [optional] set this title"
 		] 
 	*/
+	$wrapper = $(opts.parent)
+	$('<div class="appframe-titlebar">\
+		<div class="container">\
+			<div class="titlebar-item text-left"></div>\
+			<div class="titlebar-item text-center"></div>\
+			<div class="titlebar-item text-right"></div>\
+		</div>\
+	</div>\
+		<div class="appframe container">\
+			<div class="appframe-header-area"></div>\
+		</div>').appendTo($wrapper);
+
 	if(opts.single_column) {
-		$('<div class="appframe">\
-			<div class="layout-appframe"></div>\
-			<div class="layout-main"></div>\
-		</div>').appendTo(opts.parent);
+		$('<div class="layout-main"></div>').appendTo($wrapper.find(".appframe"));
 	} else {
-		$('<div class="appframe">\
-			<div class="layout-appframe"></div>\
-			<div class="row">\
-				<div class="layout-main-section col-sm-9"></div>\
-				<div class="layout-side-section col-sm-3"></div>\
-			</div>\
-		</div>').appendTo(opts.parent);
+		$('<div class="row">\
+			<div class="layout-main-section col-sm-9"></div>\
+			<div class="layout-side-section col-sm-3"></div>\
+			</div>').appendTo($wrapper.find(".appframe"));
 	}
-	opts.parent.appframe = new wn.ui.AppFrame($(opts.parent).find('.layout-appframe'));
+	opts.parent.appframe = new wn.ui.AppFrame($wrapper);
 	if(opts.set_document_title!==undefined)
 		opts.parent.appframe.set_document_title = opts.set_document_title;
 	if(opts.title) opts.parent.appframe.set_title(opts.title);

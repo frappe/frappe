@@ -41,6 +41,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			title: wn._(wn.modules[module] && wn.modules[module].label || module)
 		});
 		wrapper.appframe.add_module_icon(module);
+		wrapper.appframe.set_sub_title("Home", function() { wn.set_route(""); });
 		this.wrapper = wrapper;
 		this.module = module;
 		this.make_body();

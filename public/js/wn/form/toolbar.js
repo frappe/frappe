@@ -36,8 +36,10 @@ wn.ui.form.Toolbar = Class.extend({
 		if(title.length > 30) {
 			title = title.substr(0,30) + "...";
 		}
+		var me = this;
 		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname));
-		this.appframe.set_sub_title(wn._(this.frm.doctype));
+		this.appframe.set_sub_title(wn._(this.frm.doctype), 
+			function() { wn.set_route("List", me.frm.doctype); });
 	},
 	show_infobar: function() {
 		/* docs:
@@ -151,7 +153,7 @@ wn.ui.form.Toolbar = Class.extend({
 		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
 
 		// remove existing title buttons
-		this.appframe.toolbar.find(".btn-title").remove();
+		this.appframe.parent.find(".btn-title").remove();
 		
 		// Print Preview
 		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal && this.frm.view_is_edit) {
@@ -165,10 +167,7 @@ wn.ui.form.Toolbar = Class.extend({
 		} else if(!has_workflow) {
 			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal) 
 				&& (!me.frm.doc.__unsaved)) {
-				this.appframe.add_button('Submit', function() { 
-					me.frm.savesubmit(this);}, 'icon-lock', true)
-						.removeClass("btn-default")
-						.addClass("btn-primary");
+				this.appframe.set_primary_action("Submit", function() { me.frm.savesubmit(this); } );
 			}
 			else if(docstatus==0) {
 				this.make_save_button();
@@ -187,10 +186,7 @@ wn.ui.form.Toolbar = Class.extend({
 		if(this.frm.save_disabled)
 			return;
 		var me = this;
-		this.appframe.add_button('Save', function() { 
-			me.frm.save('Save', null, this);}, 'icon-save', true)
-				.removeClass("btn-default")
-				.addClass("btn-primary");
+		this.appframe.set_primary_action("Save", function() { me.frm.save('Save', null, this); } );
 	},
 	add_update_button_on_dirty: function() {
 		var me = this;
@@ -199,13 +195,8 @@ wn.ui.form.Toolbar = Class.extend({
 			
 			// show update button if unsaved
 			var docstatus = cint(me.frm.doc.docstatus);
-			if(docstatus==1 && me.frm.perm[0][SUBMIT] 
-				&& !me.appframe.$w.find(".action-update").length) {
-				me.appframe.add_button("Update", function() { 
-					me.frm.save('Update', null, me);
-				}, 'icon-save', true)
-					.removeClass("btn-default")
-					.addClass("btn-primary action-update");
+			if(docstatus==1 && me.frm.perm[0][SUBMIT]) {
+				this.appframe.set_primary_action("Update", function() { me.frm.save('Update', null, this); } );
 			}
 		})
 	},

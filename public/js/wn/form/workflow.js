@@ -22,8 +22,7 @@ wn.ui.form.States = Class.extend({
 		this.parent = this.frm.appframe.$w
 			.find(".title-button-area-1")
 			.empty()
-			.toggle(true)
-			.css({"margin-right":"5px"});
+			.toggle(true);
 		
 		this.workflow_button = $('<button class="btn btn-default dropdown-toggle">\
 			<i class="icon-small"></i> <span class="state-text"></span>\

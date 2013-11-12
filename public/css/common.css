@@ -1,6 +1,6 @@
 body {	
 	margin: 0px;
-	padding-top: 50px;
+	padding-top: 36px;
 	padding-bottom: 50px;
 }
 
@@ -161,26 +161,31 @@ div#freeze {
 /* appframe header */
 
 .appframe {
-	border-radius: 5px;
 	overflow: hidden;
+}
+
+.appframe-titlebar {
+	min-height: 30px;
+	background-color: #e7e7e7;
+}
+
+.appframe-titlebar .container {
+	display: table;
+}
+
+
+.titlebar-item {
+	display: table-cell;
+	vertical-align: middle;
+	width: 33.3333%;
 }
 
 .appframe-header {
 	margin-bottom: 20px;
-	border-bottom: 3px solid #c7c7c7;
-	/*background-color: #f7f7f7;*/
-	/*box-shadow: 0px 2px 4px rgba(0,0,0,0.2);*/
 }
 
 .appframe-toolbar {
-	margin: -15px;
 	margin-bottom: 0px;
-	padding: 0px 15px;
-}
-
-.appframe-title {
-	margin-bottom: 5px;
-	height: 67px;
 }
 
 .appframe-header .status-bar {
@@ -211,9 +216,18 @@ div#freeze {
 	width: 100%;
 }
 
+.appframe .mini-bars {
+	border-bottom: 1px solid #c7c7c7;
+}
+
 .appframe .mini-bar {
-	float: right;
-	margin-top: -5px;
+	display: inline-block;
+	padding: 5px;
+	border-right: 1px solid #c7c7c7;
+}
+
+.appframe .mini-bar:last-child {
+	border-right: 0px;
 }
 
 .appframe .mini-bar ul {
@@ -253,11 +267,6 @@ div#freeze {
 	color: orange;
 }
 
-.appframe .mini-bar-1 {
-	float: right;
-	margin-top: 15px;
-}
-
 .appframe .title-icon {
 	cursor: pointer;
 	display: inline-block;
@@ -275,11 +284,6 @@ div#freeze {
 	display: inline-block;
 	float:left;
 	margin-top: -10px;
-}
-
-.appframe .sub-title-area {
-	margin-top: -22px;
-	margin-left: 37px;
 }
 
 .appframe .title-icon:active {

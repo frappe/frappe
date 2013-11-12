@@ -9,7 +9,7 @@ wn.views.Container = Class.extend({
 	_intro: "Container contains pages inside `#container` and manages \
 			page creation, switching",
 	init: function() {
-		this.container = $('#body_div').addClass("container").get(0);
+		this.container = $('#body_div').get(0);
 		this.page = null; // current page
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;		

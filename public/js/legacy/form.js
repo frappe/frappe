@@ -169,7 +169,6 @@ _f.Frm.prototype.onhide = function() {
 _f.Frm.prototype.setup_std_layout = function() {
 	this.form_wrapper = $('<div></div>').appendTo(this.layout_main).get(0);
 	$parent = $(this.form_wrapper);
-	this.head = $parent.find(".layout-appframe").get(0);
 	this.main = this.form_wrapper;
 	this.body_header	= $a(this.main, 'div');
 	this.body 			= $a(this.main, 'div');
