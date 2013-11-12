@@ -569,7 +569,7 @@ def mysql(site=None):
 	import commands, os
 	msq = commands.getoutput('which mysql')
 	webnotes.init(site=site)
-	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, webnotes.conf.db_host or "localhost"])
+	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, '-h', webnotes.conf.db_host or "localhost"])
 	webnotes.destroy()
 
 @cmd
