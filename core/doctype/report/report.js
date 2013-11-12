@@ -11,7 +11,7 @@ cur_frm.cscript.refresh = function(doc) {
 				wn.set_route("query-report", doc.name);
 				break;
 		}
-	}, "icon-table")
+	}, "icon-table");
 	
 	cur_frm.set_intro("");
 	switch(doc.report_type) {
@@ -30,4 +30,27 @@ cur_frm.cscript.refresh = function(doc) {
 			cur_frm.set_intro(wn._("Write a Python file in the same folder where this is saved and return column and result."))
 			break;
 	}
+}
+cur_frm.cscript.custom_ref_doctype = function(doc, cdt, cdn){
+	cur_frm.call({
+		'method': 'get_related_roles',
+		'args': {
+			'docname': doc.ref_doctype
+		}, 
+		'callback': function(r){
+			if (!r.exc){
+				var i = 0, l = r.message.length, model;
+				wn.model.clear_table('Report Role', 'Report', doc.name, 'roles');
+				for (; i < l; i++){
+					model = wn.model.get_new_doc('Report Role', doc.name);
+					model.idx = i;
+					model.role = r.message[i];
+					model.parent = doc.name;
+					model.parenttype=doc.doctype;
+					model.parentfield='roles'
+				}
+				cur_frm.refresh();
+			}
+		}
+	});
 }

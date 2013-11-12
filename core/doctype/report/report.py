@@ -34,3 +34,9 @@ class DocType:
 			from webnotes.modules.export_file import export_to_files
 			export_to_files(record_list=[['Report', self.doc.name]], 
 				record_module=webnotes.conn.get_value("DocType", self.doc.ref_doctype, "module"))	
+
+
+@webnotes.whitelist()
+def get_related_roles(docname):
+	doclist = webnotes.bean("DocType", docname).doclist
+	return [doc.role for doc in doclist if doc.doctype=="DocPerm"]

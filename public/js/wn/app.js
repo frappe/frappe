@@ -87,6 +87,7 @@ wn.Application = Class.extend({
 			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
+			this.sync_reports();
 		} else {
 			this.set_as_guest();
 		}
@@ -155,6 +156,21 @@ wn.Application = Class.extend({
 			wn.boot.allowed_pages = keys(wn.boot.page_info);
 		}
 		localStorage["page_info"] = JSON.stringify(wn.boot.page_info);
+	},
+	sync_reports: function() {
+		if (localStorage['report_info']){
+			wn.boot.allowed_reports = [];
+			page_info = JSON.parse(localStorage['report_info']);
+			$.each(wn.boot.page_info, function(name, modified){
+				if(page_info[name]!=modified){
+					delete localStorage['_report:' + name];
+				}
+				wn.boot.allowed_reports.push(name);
+			});
+		} else {
+			wn.boot.allowed_reports = keys(wn.boot.report_info);
+		}
+		localStorage['report_info'] = JSON.stringify(wn.boot.report_info);
 	},
 	set_as_guest: function() {
 		// for backward compatibility

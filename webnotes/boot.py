@@ -45,6 +45,7 @@ def get_bootinfo():
 	
 	add_home_page(bootinfo, doclist)
 	add_allowed_pages(bootinfo)
+	add_allowed_reports(bootinfo)
 	load_translations(bootinfo)
 	load_conf_settings(bootinfo)
 
@@ -83,6 +84,10 @@ def load_conf_settings(bootinfo):
 def add_allowed_pages(bootinfo):
 	bootinfo.page_info = dict(webnotes.conn.sql("""select distinct parent, modified from `tabPage Role`
 		where role in ('%s')""" % "', '".join(webnotes.get_roles())))
+
+def add_allowed_reports(bootinfo):
+	bootinfo.page_report = dict(webnotes.conn.sql("""select distinct parent, modified from `tabReport Role`
+		where role in ('%s')"""% "', '".join(webnotes.get_roles())))
 
 def load_translations(bootinfo):
 	webnotes.set_user_lang(webnotes.session.user)

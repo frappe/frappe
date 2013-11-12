@@ -82,6 +82,7 @@ wn.views.QueryReport = Class.extend({
 		if(route[1]) {
 			if(me.report_name!=route[1]) {
 				me.report_name = route[1];
+				wn.query_reports[me.report_name] = me.wrapper;
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 				
@@ -156,11 +157,19 @@ wn.views.QueryReport = Class.extend({
 		})		
 	},
 	make_results: function(result, columns) {
-		this.wrapper.find(".waiting-area").empty().toggle(false);
-		this.wrapper.find(".results").toggle(true);
-		this.make_columns(columns);
-		this.make_data(result, columns);
-		this.render(result, columns);
+		if (r.exc){
+			if (!r['403']){
+				wn.show_report_not_found(this.report_name);
+			} else if (r['403']){
+				wn.show_report_not_permited(this.report_name);
+			}
+		} else {
+			this.wrapper.find(".waiting-area").empty().toggle(false);
+			this.wrapper.find(".results").toggle(true);
+			this.make_columns(columns);
+			this.make_data(result, columns);
+			this.render(result, columns);
+		}
 	},
 	render: function(result, columns) {
 		this.columnFilters = {};
@@ -387,4 +396,22 @@ wn.views.QueryReport = Class.extend({
 		wn.tools.downloadify(result, ["Report Manager", "System Manager"], this);
 		return false;
 	}
-})
+});
+
+wn.show_report_not_found = function(report_name){
+	var report = wn.query_reports[report_name];
+	$(report).html('<div class="appframe col-md-12">'
+		+ '<h3><i class="icon-exclamation-sign"></i> ' + wn._('Not Found') + '</h3><br>'
+		+ '<p>' + wn._('Sorry we were unable to find what you were looking for.') + '</p>'
+		+ '<p><a href="#">' + wn._("Go back to home") + '</a></p>'
+		+ '</div>');
+}
+
+wn.show_report_not_permited = function(report_name){
+	var report = wn.query_reports[report_name];
+	$(report).html('<div class="appframe col-md-12">'
+		+ '<h3><i class="icon-minus-sign"></i> '+ wn._("Not Permitted") + '</h3><br>'
+		+ '<p>' + wn._('Sorry you are not permitted to view this report.') + '</p>'
+		+ '<p><a href="#">'+ wn._('Go back to home')+ '</a></p>'
+		+ '</div>');
+}

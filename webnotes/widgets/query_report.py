@@ -39,39 +39,67 @@ def get_script(report_name):
 @webnotes.whitelist()
 def run(report_name, filters=None):
 	report = webnotes.doc("Report", report_name)
-	
-	if filters and isinstance(filters, basestring):
-		filters = json.loads(filters)
+	doclist = get(report_name)
 
-	if not webnotes.has_permission(report.ref_doctype, "report"):
-		webnotes.msgprint(_("Must have report permission to access this report."), 
-			raise_exception=True)
-	
-	if report.report_type=="Query Report":
-		if not report.query:
-			webnotes.msgprint(_("Must specify a Query to run"), raise_exception=True)
-	
-	
-		if not report.query.lower().startswith("select"):
-			webnotes.msgprint(_("Query must be a SELECT"), raise_exception=True)
+	if has_permission(doclist):
 		
-		result = [list(t) for t in webnotes.conn.sql(report.query, filters)]
-		columns = [c[0] for c in webnotes.conn.get_description()]
+		if filters and isinstance(filters, basestring):
+			filters = json.loads(filters)
+
+		if not webnotes.has_permission(report.ref_doctype, "report"):
+			webnotes.msgprint(_("Must have report permission to access this report."), 
+				raise_exception=True)
+		
+		if report.report_type=="Query Report":
+			if not report.query:
+				webnotes.msgprint(_("Must specify a Query to run"), raise_exception=True)
+		
+		
+			if not report.query.lower().startswith("select"):
+				webnotes.msgprint(_("Query must be a SELECT"), raise_exception=True)
+			
+			result = [list(t) for t in webnotes.conn.sql(report.query, filters)]
+			columns = [c[0] for c in webnotes.conn.get_description()]
+		else:
+			method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
+				+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
+			columns, result = webnotes.get_method(method_name)(filters or {})
+		
+		result = get_filtered_data(report.ref_doctype, columns, result)
+		
+		if cint(report.add_total_row) and result:
+			result = add_total_row(result, columns)
+		
+		return {
+			"result": result,
+			"columns": columns
+		}
 	else:
-		method_name = scrub(webnotes.conn.get_value("DocType", report.ref_doctype, "module")) \
-			+ ".report." + scrub(report.name) + "." + scrub(report.name) + ".execute"
-		columns, result = webnotes.get_method(method_name)(filters or {})
+		webnotes.response['403'] = 1
+		raise webnotes.PermissionError, 'No read permission for Report %s'%\
+			doclist[0].report_name or report_name)
 	
-	result = get_filtered_data(report.ref_doctype, columns, result)
-	
-	if cint(report.add_total_row) and result:
-		result = add_total_row(result, columns)
-	
-	return {
-		"result": result,
-		"columns": columns
-	}
-	
+def get(name):
+	"""
+		Return the :term:`doclist` of the `Report` specified by `name`
+	"""
+	report = webnotes.bean("Report", name)
+	return report.doclist
+
+def has_permission(report_doclist):
+	if webnotes.user.name == "Administrator" or "System Manager" in webnotes.user.get_roles():
+		return True
+
+	report_roles = [d.role for d in report_doclist if d.fields.get("doctype")=="Report Role"]
+	user_roles = wn.user.get_roles()
+	if webnotes.user.name == "Guest" and not (page_roles and "Guest" in page_roles):
+		return False
+	elif page_roles and not (set(page_roles) && set(user_roles)):
+		return False
+	elif page_roles and any(lambda x: x in page_roles, user_roles):
+		return True
+	return False
+
 def add_total_row(result, columns):
 	total_row = [""]*len(columns)
 	for row in result:
