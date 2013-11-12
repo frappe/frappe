@@ -630,7 +630,7 @@ def get_file_timestamp(fn):
 		return str(cint(os.stat(fn).st_mtime))
 	except OSError, e:
 		if e.args[0]!=2:
-			raise e
+			raise
 		else:
 			return None
 

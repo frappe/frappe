@@ -111,7 +111,7 @@ class Database:
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
 			else:
-				raise e
+				raise
 
 		if auto_commit: self.commit()
 
@@ -314,7 +314,7 @@ class Database:
 					# table not found, look in singles
 					pass
 				else:
-					raise e
+					raise
 
 		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
 

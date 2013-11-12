@@ -291,7 +291,7 @@ def latest(site=None, verbose=True):
 		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
-		raise e
+		raise
 	finally:
 		webnotes.destroy()
 

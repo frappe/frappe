@@ -177,7 +177,7 @@ def create_folder(path):
 		os.makedirs(path)
 	except OSError, e:
 		if e.args[0]!=17: 
-			raise e
+			raise
 
 def create_symlink(source_path, link_path):
 	import os
@@ -185,7 +185,7 @@ def create_symlink(source_path, link_path):
 		os.symlink(source_path, link_path)
 	except OSError, e:
 		if e.args[0]!=17: 
-			raise e
+			raise
 
 def remove_file(path):
 	import os
@@ -193,7 +193,7 @@ def remove_file(path):
 		os.remove(path)
 	except OSError, e:
 		if e.args[0]!=2: 
-			raise e
+			raise
 			
 def connect(db_name=None, password=None, site=None):
 	import webnotes.db

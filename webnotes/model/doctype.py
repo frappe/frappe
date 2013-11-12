@@ -145,7 +145,7 @@ def add_custom_fields(doctype, doclist):
 		if e.args[0]==1146:
 			return doclist
 		else:
-			raise e
+			raise
 
 	for r in res:
 		custom_field = webnotes.model.doc.Document(fielddata=r)

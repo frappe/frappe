@@ -209,7 +209,7 @@ def remove_all(dt, dn):
 			attached_to_doctype=%s and attached_to_name=%s""", (dt, dn)):
 			remove_file(fid)
 	except Exception, e:
-		if e.args[0]!=1054: raise e # (temp till for patched)
+		if e.args[0]!=1054: raise # (temp till for patched)
 
 def remove_file(fid):
 	"""Remove file and File Data entry"""	

@@ -136,7 +136,7 @@ class Document:
 				if e.args[0]==1146:
 					dataset = None
 				else:
-					raise e
+					raise
 
 			if not dataset:
 				raise webnotes.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)

@@ -49,7 +49,7 @@ def get_all_languages():
 		if e.args[0]==2:
 			return []
 		else:
-			raise e
+			raise
 
 def get_lang_dict():
 	languages_path = os.path.join(get_base_path(), "app", "translations", "languages.json")

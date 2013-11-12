@@ -48,7 +48,7 @@ def get_table_fields(doctype):
 			where dt='%s' and fieldtype='Table'" % doctype, as_list=1)]
 	except Exception, e:
 		if e.args[0]!=1146:
-			raise e
+			raise
 		custom_child_tables = []
 
 	return child_tables + custom_child_tables
