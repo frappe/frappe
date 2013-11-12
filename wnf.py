@@ -348,6 +348,7 @@ def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backu
 		print "database backup taken -", odb.backup_path_db, "- on", now()
 		if with_files:
 			print "files backup taken -", odb.backup_path_files, "- on", now()
+	webnotes.destroy()
 	return odb
 
 @cmd
