@@ -2,10 +2,51 @@
 
 {% block content %}
 <div class="col-md-12" style="margin-top: 15px;">
+	{# title, breadcrumbs, table of contents #}
+	{% block pre_content -%}
+	{% if show_title %}<h1>{{ title }}</h1>{% endif %}
+	{% if show_breadcrumbs and breadcrumbs -%}
+	<ul class="breadcrumb">
+		{% for b in breadcrumbs -%}
+		<li><a href="{{ b.page_name }}">{{ b.title }}</a></li>
+		{%- endfor %}
+		<li class="active">{{ title }}</li>
+	</ul>
+	{%- endif %}
+	{% if show_toc and toc_list -%}
+	<div class="well">
+		<h4>Contents</h4>
+		<ol>
+			{% for t in toc_list -%}
+			<li><a href="{{ t.page_name }}">{{ t.title }}</a></li>
+			{%- endfor %}
+		</ol>
+	</div>
+	{%- endif %}
+	{%- endblock %}
+	
 	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
 	<div class="web-page-content" id="{{ name }}">
 	{{ main_section }}
 	</div>
+	
+	{# parent, child, next sibling #}
+	{% block post_content -%}
+	{% if links and links.get("parent") -%}
+	<div class="btn-group pull-right" style="margin: 15px 0px;">
+		<a class='btn btn-default' href="{{ links.parent.page_name }}">
+			<i class="icon-arrow-up"></i> {{ links.parent.title }}</a>
+		{% if links.get("next") -%}
+		<a class='btn btn-default' href="{{ links.next.page_name }}">
+			<i class="icon-arrow-right"></i> {{ links.next.title }}</a>
+		{%- endif -%}
+		{% if links.get("child") -%}
+		<a class='btn btn-default' href="{{ links.child.page_name }}">
+			<i class="icon-arrow-down"></i> {{ links.child.title }}</a>
+		{%- endif -%}
+	</div>
+	{%- endif %}
+	{%- endblock %}
 </div>
 <script>
 $(function() {

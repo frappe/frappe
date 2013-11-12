@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2013-10-28 16:07:46", 
+  "modified": "2013-11-12 12:05:20", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -25,14 +25,19 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Web Page", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
+  "permlevel": 0, 
   "read": 1, 
+  "report": 1, 
   "role": "Website Manager", 
-  "submit": 0
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
@@ -146,17 +151,31 @@
   "options": "CSS"
  }, 
  {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "report": 1, 
-  "write": 1
+  "doctype": "DocField", 
+  "fieldname": "show_title", 
+  "fieldtype": "Check", 
+  "label": "Show Title"
  }, 
  {
-  "amend": 0, 
-  "cancel": 0, 
-  "create": 0, 
-  "doctype": "DocPerm", 
-  "permlevel": 1
+  "doctype": "DocField", 
+  "fieldname": "show_breadcrumbs", 
+  "fieldtype": "Check", 
+  "label": "Show Breadcrumbs"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "show_toc", 
+  "fieldtype": "Check", 
+  "label": "Show Table of Contents"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "toc", 
+  "fieldtype": "Table", 
+  "label": "Table of Contents", 
+  "options": "Table of Contents"
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]
