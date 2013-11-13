@@ -38,8 +38,9 @@ $.extend(wn, {
 		$('.message-overlay').remove();
 	},
 	call: function(opts) {
+		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		wn.prepare_call(opts);
-		$.ajax({
+		return $.ajax({
 			type: "POST",
 			url: "/",
 			data: opts.args,
@@ -52,8 +53,6 @@ $.extend(wn, {
 				console.error ? console.error(response) : console.log(response);
 			}
 		});
-	
-		return false;
 	},
 	prepare_call: function(opts) {
 		if(opts.btn) {
