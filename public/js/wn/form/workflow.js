@@ -82,11 +82,11 @@ wn.ui.form.States = Class.extend({
 			
 			var state_doc = wn.model.get("Workflow State", {name:state})[0];
 
-			// set the icon
 			if (state_doc) {
+				// set the icon
 				this.workflow_button.find('i').removeClass()
-				.addClass("icon-white")
-				.addClass("icon-" + state_doc.icon);
+					.addClass("icon-white")
+					.addClass("icon-" + state_doc.icon);
 
 				// set the style
 				this.workflow_button.removeClass().addClass("btn btn-default dropdown-toggle")
