@@ -82,20 +82,22 @@ wn.ui.form.States = Class.extend({
 			
 			var state_doc = wn.model.get("Workflow State", {name:state})[0];
 
-			// set the icon
-			this.workflow_button.find('i').removeClass()
-				.addClass("icon-white")
-				.addClass("icon-" + state_doc.icon);
+			if (state_doc) {
+				// set the icon
+				this.workflow_button.find('i').removeClass()
+					.addClass("icon-white")
+					.addClass("icon-" + state_doc.icon);
 
-			// set the style
-			this.workflow_button.removeClass().addClass("btn btn-default dropdown-toggle")
+				// set the style
+				this.workflow_button.removeClass().addClass("btn btn-default dropdown-toggle")
 
-			if(state_doc && state_doc.style)
-				this.workflow_button.addClass("btn-" + state_doc.style.toLowerCase());
-			
+				if(state_doc && state_doc.style)
+					this.workflow_button.addClass("btn-" + state_doc.style.toLowerCase());
+			}
+
 			// show actions from that state
 			this.show_actions(state);
-			
+
 			if(this.frm.doc.__islocal) {
 				this.workflow_button.prop('disabled', true);
 			}
