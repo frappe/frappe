@@ -108,17 +108,17 @@ def get_fields_label(dt=None, form=1):
 
 def create_custom_field_if_values_exist(doctype, df):
 	df = webnotes._dict(df)
-	if webnotes.conn.sql("""select count(*) from `tab{doctype}` 
-		where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
-		
-		webnotes.bean({
-			"doctype":"Custom Field",
-			"dt": doctype,
-			"permlevel": df.permlevel or 0,
-			"label": df.label,
-			"fieldname": df.fieldname,
-			"fieldtype": df.fieldtype,
-			"options": df.options,
-			"insert_after": df.insert_after
-		}).insert()
+	if df.fieldname in webnotes.conn.get_table_columns(doctype) and \
+		webnotes.conn.sql("""select count(*) from `tab{doctype}` 
+			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
+			webnotes.bean({
+				"doctype":"Custom Field",
+				"dt": doctype,
+				"permlevel": df.permlevel or 0,
+				"label": df.label,
+				"fieldname": df.fieldname,
+				"fieldtype": df.fieldtype,
+				"options": df.options,
+				"insert_after": df.insert_after
+			}).insert()
 		
