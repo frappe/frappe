@@ -28,7 +28,7 @@ class Profile:
 	def get_roles(self):
 		"""get list of roles"""
 		if not self.roles:
-			self.roles = webnotes.get_roles(self.name)
+			self.roles = get_roles(self.name)
 		return self.roles
 	
 	def build_doctype_map(self):
@@ -196,3 +196,20 @@ def add_system_manager(email, first_name=None, last_name=None):
 	roles = webnotes.conn.sql_list("""select name from `tabRole`
 		where name not in ("Administrator", "Guest", "All")""")
 	profile.make_controller().add_roles(*roles)
+	
+def get_roles(username=None, with_standard=True):
+	"""get roles of current user"""
+	if not username:
+		username = webnotes.session.user
+
+	if username=='Guest':
+		return ['Guest']
+	
+	roles = [r[0] for r in webnotes.conn.sql("""select role from tabUserRole 
+		where parent=%s and role!='All'""", username)] + ['All']
+		
+	# filter standard if required
+	if not with_standard:
+		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
+		
+	return roles
