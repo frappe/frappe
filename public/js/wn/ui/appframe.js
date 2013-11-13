@@ -53,16 +53,19 @@ wn.ui.AppFrame = Class.extend({
 	},
 	
 	set_title_right: function(txt, click, icon) {
-		this.primary_dropdown = null;
-		this.primary_action = null;
-		this.title_right = null;
-		var $right = this.parent.find(".titlebar-item.text-right").empty();
+		var $right = this.parent.find(".titlebar-item.text-right")
 		if(txt) {
+			this.title_right && this.title_right.remove();
 			this.title_right = $("<a>")
 				.html((icon ? '<i class="'+icon+'"></i> ' : "") + txt)
 				.click(click)
 				.appendTo($right);
 			return this.title_right;
+		} else {
+			$right.empty();
+			this.title_right = null;
+			this.primary_dropdown = null;
+			this.primary_action = null;
 		}
 	},
 	
@@ -81,9 +84,10 @@ wn.ui.AppFrame = Class.extend({
 				.attr("id", id)
 				.attr("data-toggle", "dropdown")
 				.addClass("dropdown-toggle")
-				.parent().addClass("dropdown");
+				.parent()
+					.addClass("dropdown")
 			this.primary_dropdown = $('<ul class="dropdown-menu pull-right" role="menu" \
-				aria-labelledby="dropdown-'+ id +'"></ul>')
+				aria-labelledby="'+ id +'"></ul>')
 				.appendTo(this.primary_action.parent()).dropdown();
 		}
 		
@@ -308,9 +312,11 @@ wn.ui.make_app_page = function(opts) {
 	$wrapper = $(opts.parent)
 	$('<div class="appframe-titlebar">\
 			<div class="container">\
-				<div class="titlebar-item text-left"></div>\
-				<div class="titlebar-item text-center"></div>\
-				<div class="titlebar-item text-right"></div>\
+				<div class="row">\
+					<div class="titlebar-item text-left col-xs-4"></div>\
+					<div class="titlebar-item titlebar-center-item text-center col-xs-4"></div>\
+					<div class="titlebar-item text-right col-xs-4"></div>\
+				</div>\
 			</div>\
 		</div>\
 		<div class="appframe-iconbar hide">\

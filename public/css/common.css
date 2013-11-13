@@ -170,16 +170,16 @@ div#freeze {
 	background-color: #e7e7e7;
 }
 
-.appframe-titlebar .container {
-	display: table;
-}
-
-
 .titlebar-item {
-	display: table-cell;
-	vertical-align: middle;
-	width: 33.3333%;
+	padding-top: 10px;
+	padding-bottom: 10px;
 }
+
+.titlebar-center-item {
+	padding-top: 0px;
+	padding-bottom: 0px;
+}
+
 
 .appframe-header {
 	margin-bottom: 20px;
@@ -227,6 +227,7 @@ div#freeze {
 
 .appframe-form input, .appframe-form select, .appframe-form label {
 	font-size: 90%;
+	padding: 4px;
 }
 
 .appframe-form .form-group {
@@ -234,7 +235,7 @@ div#freeze {
 }
 
 .appframe-form .form-control {
-	height: 20px;
+	height: 28px;
 }
 
 .iconbar {
@@ -541,8 +542,6 @@ textarea.form-control {
 }
 
 .toolbar-banner {
-	margin-top: -20px;
-	margin-bottom: 20px;
 	text-align: center;
 	background-color: #fcf8e3;
 	padding: 7px;

@@ -20,6 +20,7 @@ wn.ui.form.Toolbar = Class.extend({
 		} else {
 			this.appframe.iconbar.clear(1)
 			this.make_file_menu();
+			this.make_cancel_amend_button();
 			this.show_infobar();
 			if(this.frm.doc.__islocal) {
 				this.appframe.iconbar.hide(2);
@@ -91,6 +92,25 @@ wn.ui.form.Toolbar = Class.extend({
 				me.frm.save('Save', null, this);}, 'icon-save');
 		}
 		
+		// Submit
+		if(docstatus==0 && !this.frm.doc.__unsaved && p[SUBMIT] && !this.read_only) {
+			this.appframe.add_dropdown_button("File", wn._("Submit"), function() { 
+				me.frm.savesubmit(this);}, 'icon-lock');
+		}
+		
+		// Cancel
+		if(docstatus==1 && p[CANCEL] && !this.read_only) {
+			this.appframe.add_dropdown_button("File", wn._("Cancel"), function() { 
+				me.frm.savecancel(this);}, 'icon-remove');
+		}
+		
+		// Amend
+		if(docstatus==2 && p[AMEND] && !this.read_only) {
+			this.appframe.add_dropdown_button("File", wn._("Amend"), function() { 
+				me.frm.amend_doc();}, 'icon-pencil');
+			this.appframe.set_title_right("Amend", function() { me.frm.amend_doc(); });
+		}
+		
 		// Print
 		if(!(me.frm.doc.__islocal || me.frm.meta.allow_print)) {
 			this.appframe.add_dropdown_button("File", wn._("Print..."), function() { 
@@ -154,14 +174,22 @@ wn.ui.form.Toolbar = Class.extend({
 			else if(docstatus==0) {
 				this.make_save_button();
 			}
-			else if(docstatus==1  && p[CANCEL]) {
-				this.appframe.add_button('Cancel', function() { 
-					me.frm.savecancel(this) }, 'icon-remove');
-			}
-			else if(docstatus==2  && p[AMEND]) {
-				this.appframe.add_button('Amend', function() { 
-					me.frm.amend_doc() }, 'icon-pencil', true);
-			}
+		}
+	},
+	make_cancel_amend_button: function() {
+		var me = this;
+		var docstatus = cint(this.frm.doc.docstatus);
+		var p = this.frm.perm[0];
+		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
+		
+		if(has_workflow) {
+			return;
+		} else if(docstatus==1 && p[CANCEL]) {
+			this.appframe.add_button('Cancel', function() { 
+				me.frm.savecancel(this) }, 'icon-remove');
+		} else if(docstatus==2 && p[AMEND]) {
+			this.appframe.add_button('Amend', function() { 
+				me.frm.amend_doc() }, 'icon-pencil', true);
 		}
 	},
 	make_save_button: function() {
@@ -190,10 +218,5 @@ wn.ui.form.Toolbar = Class.extend({
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
 		this.set_title();
 		this.set_title_button();
-	},
-	make_actions_menu: function() {
-		if(this.actions_setup) return;
-		var menu = this.get_dropdown_menu("Actions");
-		this.actions_setup = true;
-	}	
+	}
 })

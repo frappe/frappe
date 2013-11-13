@@ -483,7 +483,7 @@ def import_file_by_path(path, ignore_links=False, overwrite=False):
 def export_csv(doctype, path):		
 	with open(path, "w") as csvfile:
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
-		csvfile.write(webnotes.response.result)
+		csvfile.write(webnotes.response.result.encode("utf-8"))
 
 def export_json(doctype, name, path):
 	from webnotes.handler import json_handler
