@@ -449,7 +449,11 @@ def write_docs(data, build_sitemap=None, domain=None):
 
 def write_static():
 	webnotes.local.session = webnotes._dict({"user":"Administrator"})
+	pages = prepare_static_pages()
+	write_docs(pages)
+	prepare_docs()
 	
+def prepare_static_pages():
 	from markdown2 import markdown
 	
 	pages = get_static_pages()
@@ -498,9 +502,8 @@ def write_static():
 				})
 		
 		page["content"] = markdown(page["_intro"])
-	
-	write_docs(pages)
-	prepare_docs()
+		
+	return pages
 	
 def get_timestamp(path):
 	return datetime.datetime.fromtimestamp(os.path.getmtime(path)).strftime("%Y-%m-%d")

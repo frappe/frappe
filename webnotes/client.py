@@ -114,3 +114,8 @@ def bulk_update(docs):
 				'exc': webnotes.utils.getTraceback()
 			})
 	return {'failed_docs': failed_docs}
+
+@webnotes.whitelist()
+def has_permission(doctype, docname, perm_type="read"):
+	# perm_type can be one of read, write, create, submit, cancel, report
+	return {"has_permission": webnotes.has_permission(doctype, perm_type.lower(), docname)}

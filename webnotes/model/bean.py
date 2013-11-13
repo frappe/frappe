@@ -357,7 +357,7 @@ class Bean:
 			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
 				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
 			webnotes.errprint(webnotes.utils.getTraceback())
-			raise e
+			raise
 
 	def save_children(self):
 		child_map = {}

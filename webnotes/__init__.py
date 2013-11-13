@@ -177,7 +177,7 @@ def create_folder(path):
 		os.makedirs(path)
 	except OSError, e:
 		if e.args[0]!=17: 
-			raise e
+			raise
 
 def create_symlink(source_path, link_path):
 	import os
@@ -185,7 +185,7 @@ def create_symlink(source_path, link_path):
 		os.symlink(source_path, link_path)
 	except OSError, e:
 		if e.args[0]!=17: 
-			raise e
+			raise
 
 def remove_file(path):
 	import os
@@ -193,18 +193,21 @@ def remove_file(path):
 		os.remove(path)
 	except OSError, e:
 		if e.args[0]!=2: 
-			raise e
+			raise
 			
 def connect(db_name=None, password=None, site=None):
 	import webnotes.db
 	init(site=site)
 	local.conn = webnotes.db.Database(user=db_name, password=password)
-	local.session = _dict({'user':'Administrator'})
 	local.response = _dict()
 	local.form_dict = _dict()
+	local.session = _dict()
+	set_user("Administrator")
 	
+def set_user(username):
 	import webnotes.profile
-	local.user = webnotes.profile.Profile('Administrator')
+	local.session["user"] = username
+	local.user = webnotes.profile.Profile(username)
 	
 def get_request_header(key, default=None):
 	try:
@@ -317,22 +320,12 @@ def clear_cache(user=None, doctype=None):
 		clear_cache()
 		reset_metadata_version()
 	
-def get_roles(user=None, with_standard=True):
-	"""get roles of current user"""
-	if not user:
-		user = session.user
-
-	if user=='Guest':
-		return ['Guest']
-	
-	roles = [r[0] for r in conn.sql("""select role from tabUserRole 
-		where parent=%s and role!='All'""", user)] + ['All']
-		
-	# filter standard if required
-	if not with_standard:
-		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
-		
-	return roles
+def get_roles(username=None):
+	import webnotes.profile
+	if not username or username==session.user:
+		return user.get_roles()
+	else:
+		return webnotes.profile.Profile(username).get_roles()
 
 def check_admin_or_system_manager():
 	if ("System Manager" not in get_roles()) and \
@@ -341,50 +334,53 @@ def check_admin_or_system_manager():
 
 def has_permission(doctype, ptype="read", refdoc=None):
 	"""check if user has permission"""
-	from webnotes.defaults import get_user_default_as_list
-	if session.user=="Administrator": 
+	from webnotes.utils import cint
+	
+	meta = get_doctype(doctype)
+	if session.user=="Administrator" or meta[0].is_table==1: 
 		return True
-	if conn.get_value("DocType", doctype, "istable"):
-		return True
-	if isinstance(refdoc, basestring):
-		refdoc = doc(doctype, refdoc)
-		
-	perms = conn.sql("""select `name`, `match` from tabDocPerm p
-		where p.parent = %s
-		and ifnull(p.`%s`,0) = 1
-		and ifnull(p.permlevel,0) = 0
-		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
-		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
-			
+	
+	# get user permissions
+	user_roles = get_roles()
+	perms = [p for p in meta.get({"doctype": "DocPerm"}) 
+		if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
+	
 	if refdoc:
-		match_failed = {}
-		for p in perms:
-			if p.match:
-				if ":" in p.match:
-					keys = p.match.split(":")
-				else:
-					keys = [p.match, p.match]
-				
-				if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
-					return True
-				else:
-					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
-			else:
-				# found a permission without a match
-				return True
-
-		# no valid permission found
-		if match_failed:
-			doctypelist = get_doctype(doctype)
-			msg = _("Not allowed for: ")
-			for key in match_failed:
-				msg += "\n" + (doctypelist.get_field(key) and doctypelist.get_label(key) or key) \
-					+ " = " + (match_failed[key] or "None")
-			msgprint(msg)
-		
-		return False
+		return has_match(meta, perms, refdoc)
 	else:
 		return perms and True or False
+		
+def has_match(meta, perms, refdoc):
+	from webnotes.defaults import get_user_default_as_list
+	
+	if isinstance(refdoc, basestring):
+		refdoc = doc(meta[0].name, refdoc)
+	
+	match_failed = {}
+	for p in perms:
+		if p.match:
+			if ":" in p.match:
+				keys = p.match.split(":")
+			else:
+				keys = [p.match, p.match]
+			
+			if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
+				return True
+			else:
+				match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
+		else:
+			# found a permission without a match
+			return True
+
+	# no valid permission found
+	if match_failed:
+		msg = _("Not allowed for: ")
+		for key in match_failed:
+			msg += "\n" + (meta.get_field(key) and meta.get_label(key) or key) \
+				+ " = " + (match_failed[key] or "None")
+		msgprint(msg)
+	
+	return False
 
 def generate_hash():
 	"""Generates random hash for session id"""

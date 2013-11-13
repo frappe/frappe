@@ -105,7 +105,7 @@ class DocTags:
 					
 				self.setup()
 				self.update(dn, tl)
-			else: raise e
+			else: raise
 		
 	def setup(self):
 		"""adds the _user_tags column if not exists"""

@@ -53,7 +53,7 @@ def update_attachments(doctype, old, new):
 			where attached_to_name=%s and attached_to_doctype=%s""", (new, old, doctype))
 	except Exception, e:
 		if e.args[0]!=1054: # in patch?
-			raise e 
+			raise 
 
 def rename_parent_and_child(doctype, old, new, doclist):
 	# rename the doc

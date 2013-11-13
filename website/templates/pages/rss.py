@@ -15,7 +15,7 @@ def get_context():
 		order by published_on desc limit 20""", as_dict=1)
 
 	for blog in blog_list:
-		blog.link = urllib.quote(host + '/' + blog.name + '.html')
+		blog.link = cstr(urllib.quote(host + '/' + blog.name.encode("utf-8") + '.html'))
 		blog.content = escape_html(blog.content or "")
 	
 	if blog_list:

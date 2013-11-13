@@ -311,4 +311,4 @@ def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 		if e.args[0]==1146:
 			pass
 		else:
-			raise e
+			raise

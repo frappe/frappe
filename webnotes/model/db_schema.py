@@ -103,7 +103,7 @@ class DbTable:
 			if custom_fl: fl += custom_fl
 		except Exception, e:
 			if e.args[0]!=1146: # ignore no custom field
-				raise e
+				raise
 
 		for f in fl:
 			self.columns[f['fieldname']] = DbColumn(self, f['fieldname'],
@@ -305,7 +305,7 @@ class DbManager:
 			else:
 				self.conn.sql("CREATE USER '%s'@'localhost';"%user[:16])
 		except Exception, e:
-			raise e
+			raise
 
 	def delete_user(self,target):
 	# delete user if exists
@@ -315,7 +315,7 @@ class DbManager:
 			if e.args[0]==1396:
 				pass
 			else:
-				raise e
+				raise
 
 	def create_database(self,target):
 		if target in self.get_database_list():
@@ -327,13 +327,13 @@ class DbManager:
 		try:
 			self.conn.sql("DROP DATABASE IF EXISTS `%s`;"%target)
 		except Exception,e:
-			raise e
+			raise
 
 	def grant_all_privileges(self,target,user):
 		try:
 			self.conn.sql("GRANT ALL PRIVILEGES ON `%s`.* TO '%s'@'localhost';" % (target, user))
 		except Exception,e:
-			raise e
+			raise
 
 	def grant_select_privilges(self,db,table,user):
 		try:
@@ -342,13 +342,13 @@ class DbManager:
 			else:
 				self.conn.sql("GRANT SELECT ON %s.* to '%s'@'localhost';" % (db,user))
 		except Exception,e:
-			raise e
+			raise
 
 	def flush_privileges(self):
 		try:
 			self.conn.sql("FLUSH PRIVILEGES")
 		except Exception,e:
-			raise e
+			raise
 
 
 	def get_database_list(self):
@@ -363,7 +363,7 @@ class DbManager:
 			ret = os.system("mysql -u %s -p%s %s < %s" % \
 				(esc(user), esc(password), esc(target), source))
 		except Exception,e:
-			raise e
+			raise
 
 	def drop_table(self,table_name):
 		"""drop table if exists"""
@@ -372,14 +372,14 @@ class DbManager:
 		try:
 			self.conn.sql("DROP TABLE IF EXISTS %s "%(table_name))
 		except Exception,e:
-			raise e	
+			raise	
 
 	def set_transaction_isolation_level(self,scope='SESSION',level='READ COMMITTED'):
 		#Sets the transaction isolation level. scope = global/session
 		try:
 			self.conn.sql("SET %s TRANSACTION ISOLATION LEVEL %s"%(scope,level))
 		except Exception,e:
-			raise e
+			raise
 
 def validate_column_name(n):
 	n = n.replace(' ','_').strip().lower()
@@ -418,7 +418,7 @@ def remove_all_foreign_keys():
 			if e.args[0]==1146:
 				fklist = []
 			else:
-				raise e
+				raise
 				
 		for f in fklist:
 			webnotes.conn.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))

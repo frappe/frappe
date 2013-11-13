@@ -158,7 +158,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		if e.args[0]==1451:
 			webnotes.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
 		
-		raise e
+		raise
 		
 	# delete attachments
 	from webnotes.utils.file_manager import remove_all
