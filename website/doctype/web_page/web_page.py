@@ -54,6 +54,12 @@ class DocType():
 		
 		# parent, child, next sibling links
 		self.doc.links = self.get_navigation_links()
+		
+		if self.doc.enable_comments:
+			self.doc.comment_list = webnotes.conn.sql("""select 
+				comment, comment_by_fullname, creation
+				from `tabComment` where comment_doctype="Web Page"
+				and comment_docname=%s order by creation""", self.doc.name, as_dict=1) or []
 			
 	def get_breadcrumbs(self):
 		breadcrumbs = []

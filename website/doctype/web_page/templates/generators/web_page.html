@@ -45,6 +45,12 @@
 			<i class="icon-arrow-down"></i> {{ links.child.title }}</a>
 		{%- endif -%}
 	</div>
+	<div class="clearfix"></div>
+	{%- endif %}
+	{% if enable_comments -%}
+	<hr>
+	<h3>Comments</h3>
+	{% include 'lib/website/templates/includes/comments.html' %}
 	{%- endif %}
 	{%- endblock %}
 </div>
