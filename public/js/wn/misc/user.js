@@ -31,6 +31,7 @@ wn.avatar = function(user, large, title) {
 }
 
 wn.ui.set_user_background = function(src) {
+	if(!src) src = "lib/images/ui/field.jpg";
 	wn.dom.set_style(repl('#page-desktop { \
 		position: fixed;\
 		top: 0px; left: 0px; min-width: 100%; height: 100%; overflow: auto;\

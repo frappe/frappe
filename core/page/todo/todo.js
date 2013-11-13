@@ -12,7 +12,9 @@ wn.pages.todo.onload = function(wrapper) {
 	});
 
 	$(wrapper)
-		.css({"background-color": "#FFFDC9", "min-height": "300px"})
+		.css({"background-color": "#FFFDD9", 
+			"position": "absolute", "top":"36px", 
+			"left":"0px", "width":"100%", "min-height": "100%", "overflow":"auto"})
 		.find(".layout-main").html('<div id="todo-list">\
 		<h4><i class="icon-hand-right"></i> My Items</h4>\
 		<div class="todo-content" data-todo-list=1>\
@@ -28,8 +30,8 @@ wn.pages.todo.onload = function(wrapper) {
 	</div>').css({"padding-top":"0px", "margin-top": "-15px"});
 		
 	wrapper.appframe.add_module_icon("To Do");
-	wrapper.appframe.add_button('Refresh', wn.core.pages.todo.refresh, 'icon-refresh');
-	wrapper.appframe.add_button('Add', function() {
+	wrapper.appframe.set_title_left('Refresh', wn.core.pages.todo.refresh, 'icon-refresh');
+	wrapper.appframe.set_title_right('Add', function() {
 		wn.core.pages.todo.make_dialog({
 			date:get_today(), priority:'Medium', checked:0, description:''});
 	}, 'icon-plus');

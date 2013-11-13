@@ -145,7 +145,7 @@ wn.ui.Listing = Class.extend({
 	
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button('', function() {
+			this.add_button('Refresh', function() {
 				me.run();
 			}, 'icon-refresh');
 			
@@ -153,6 +153,9 @@ wn.ui.Listing = Class.extend({
 				
 		// new
 		if(this.new_doctype) {
+			if(this.appframe) {
+				this.appframe.set_title_right("<i class='icon-plus'></i> New", function() { me.run(); });
+			}
 			this.add_button(wn._('New'), function() { 
 				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');

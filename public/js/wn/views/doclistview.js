@@ -69,8 +69,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		var module = locals.DocType[this.doctype].module;
 		
 		this.appframe.set_title(wn._(this.doctype) + " " + wn._("List"));
-		this.appframe.set_sub_title("Home", function() { wn.set_route(""); });
-		this.appframe.add_module_icon(module, this.doctype);
+		this.appframe.add_module_icon(module, this.doctype, null, true);
 		this.appframe.set_views_for(this.doctype, "list");
 	},
 	
@@ -246,10 +245,10 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	},
 	init_minbar: function() {
 		var me = this;
-		this.appframe.add_to_mini_bar('icon-tag', wn._('Show Tags'), function() { me.toggle_tags(); });
+		this.appframe.add_icon_btn("2", 'icon-tag', wn._('Show Tags'), function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
-			this.appframe.add_to_mini_bar('icon-remove', wn._('Delete'), function() { me.delete_items(); });
-			this.appframe.add_to_mini_bar('icon-ok', wn._('Select All'), function() { 
+			this.appframe.add_icon_btn("2", 'icon-remove', wn._('Delete'), function() { me.delete_items(); });
+			this.appframe.add_icon_btn("2", 'icon-ok', wn._('Select All'), function() { 
 				me.$page.find('.list-delete').prop("checked", 
 					me.$page.find('.list-delete:checked').length ? false : true);
 			});
@@ -257,13 +256,13 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		if(in_list(user_roles, "System Manager")) {
 			var meta = locals.DocType[this.doctype];
 			if(meta.allow_import || meta.document_type==="Master") {
-				this.appframe.add_to_mini_bar("icon-upload", wn._("Import"), function() {
+				this.appframe.add_icon_btn("2", "icon-upload", wn._("Import"), function() {
 					wn.set_route("data-import-tool", {
 						doctype: me.doctype
 					})
 				})
 			};
-			this.appframe.add_to_mini_bar("icon-glass", wn._("Customize"), function() {
+			this.appframe.add_icon_btn("2", "icon-glass", wn._("Customize"), function() {
 				wn.set_route("Form", "Customize Form", {
 					doctype: me.doctype
 				})

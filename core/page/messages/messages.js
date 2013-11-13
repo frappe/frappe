@@ -183,8 +183,7 @@ wn.core.pages.messages = Class.extend({
 						p.status = p.has_session ? "Online" : "Offline";
 						$(repl('<p>\
 							<span class="avatar avatar-small" \
-								title="%(status)s"><img src="%(image)s"\
-									style="border: 3px solid %(status_color)s"></span>\
+								title="%(status)s"><img src="%(image)s" /></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
 							.appendTo($body);						

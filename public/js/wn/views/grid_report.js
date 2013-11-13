@@ -253,10 +253,7 @@ wn.views.GridReport = Class.extend({
 					source: v.list || [],
 				});
 			} else if(v.fieldtype=='Button') {
-				input = me.appframe.add_button(v.label);
-				if(v.icon) {
-					$('<i class="icon '+ v.icon +'"></i>').prependTo(input);
-				}
+				input = me.appframe.add_primary_action(v.label, null, v.icon);
 			} else if(v.fieldtype=='Date') {
 				input = me.appframe.add_date(v.label);
 			} else if(v.fieldtype=='Label') {

@@ -44,7 +44,7 @@ wn.views.Gantt = Class.extend({
 		this.appframe.add_module_icon(module)
 		this.appframe.set_views_for(this.doctype, "gantt");
 
-		this.appframe.add_button("Refresh", 
+		this.appframe.set_title_right("Refresh", 
 			function() { me.refresh(); }, "icon-refresh")
 
 		this.appframe.add_field({fieldtype:"Date", label:"From", 
@@ -79,8 +79,8 @@ wn.views.Gantt = Class.extend({
 			},
 			callback: function(r) {
 				$(parent).empty();
-				if(!r.message.length) {
-					$(parent).html('<div class="alert alert-info">Nothing to show.</div>');
+				if(!r.message || !r.message.length) {
+					$(parent).html('<div class="alert alert-info">' + wn._('Nothing to show for this selection') + '</div>');
 				} else {
 					var gantt_area = $('<div class="gantt">').appendTo(parent);
 					gantt_area.gantt({

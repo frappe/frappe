@@ -74,6 +74,7 @@
 			"lib/public/js/legacy/loaders.js",
 
 			"lib/public/js/wn/ui/appframe.js",
+			"lib/public/js/wn/ui/iconbar.js",
 			"lib/public/js/wn/form/layout.js",
 			"lib/public/js/wn/ui/field_group.js",
 			"lib/public/js/wn/ui/dialog.js",

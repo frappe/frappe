@@ -148,6 +148,7 @@ def run_all_tests(verbose):
 
 	test_suite = unittest.TestSuite()
 	for path, folders, files in os.walk("."):
+		if 'locale' in folders: folders.remove('locale')
 		# print path
 		for filename in files:
 			filename = cstr(filename)

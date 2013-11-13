@@ -40,7 +40,7 @@ wn.ui.form.Dashboard = Class.extend({
 	},
 	add_badge: function(label, doctype, onclick) {
 		var badge = $(repl('<div class="col-md-4">\
-			<div class="alert-badge">\
+			<div class="alert alert-info alert-badge">\
 				<i class="icon-fixed-width %(icon)s"></i> \
 				<a class="badge-link">%(label)s</a>\
 				<span class="badge pull-right">-</span>\

@@ -19,10 +19,10 @@ wn.ui.form.States = Class.extend({
 	},
 	
 	make: function() {
-		this.parent = this.frm.appframe.$w
-			.find(".title-button-area-1")
+		this.parent = this.frm.appframe.parent
+			.find(".workflow-button-area")
 			.empty()
-			.toggle(true);
+			.removeClass("hide");
 		
 		this.workflow_button = $('<button class="btn btn-default dropdown-toggle">\
 			<i class="icon-small"></i> <span class="state-text"></span>\

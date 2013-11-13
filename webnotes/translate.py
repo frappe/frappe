@@ -114,6 +114,7 @@ def build_for_pages(path):
 	"""make locale files for framework py and js (all)"""
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
+		if 'locale' in folders: folders.remove('locale')
 		if os.path.basename(os.path.dirname(basepath))=="page":
 			messages_js, messages_py = [], []
 			for fname in files:
@@ -150,6 +151,7 @@ def build_from_query_report():
 				doctype_path = get_doc_path(module, "Report", item.name)
 				if os.path.exists(doctype_path):
 					for (basepath, folders, files) in os.walk(doctype_path):
+						if 'locale' in folders: folders.remove('locale')
 						for fname in files:
 							if fname.endswith('.js'):
 								messages_js += get_message_list(os.path.join(basepath, fname))	
@@ -201,6 +203,7 @@ def build_for_framework(path, mtype, with_doctype_names = False):
 	"""make locale files for framework py and js (all)"""
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
+		if 'locale' in folders: folders.remove('locale')
 		for fname in files:
 			fname = cstr(fname)
 			if fname.endswith('.' + mtype):

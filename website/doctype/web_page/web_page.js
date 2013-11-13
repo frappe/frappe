@@ -20,7 +20,7 @@ $.extend(cur_frm.cscript, {
 	refresh: function(doc) {
 		cur_frm.cscript.layout(doc);
 		if(!doc.__islocal && doc.published) {
-			cur_frm.add_custom_button("View In Website", function() {
+			cur_frm.appframe.add_button("View In Website", function() {
 				window.open(doc.page_name);
 			}, "icon-globe");
 		}

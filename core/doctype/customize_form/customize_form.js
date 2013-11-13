@@ -35,7 +35,7 @@ cur_frm.fields_dict.doc_type.get_query = function(doc, dt, dn) {
 
 cur_frm.cscript.refresh = function() {
 	cur_frm.disable_save();
-	cur_frm.frm_head.appframe.clear_buttons();
+	cur_frm.frm_head.appframe.iconbar.clear("1");
 
 	cur_frm.add_custom_button('Update', function() {
 		if(cur_frm.doc.doc_type) {

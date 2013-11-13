@@ -12,8 +12,6 @@
 					+ this.body
 						+ this.layout
 				+ this.sidebar
-			+ this.print_wrapper
-				+ this.head
 			+ this.footer
 */
 
@@ -36,7 +34,6 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.refresh_if_stale_for = 120;
 		
 	var me = this;
-	this.last_view_is_edit = {};
 	this.opendocs = {};
 	this.sections = [];
 	this.grids = [];
@@ -100,10 +97,7 @@ _f.Frm.prototype.setup = function() {
 		appframe: this.appframe
 	});
 	this.frm_head = this.toolbar;
-	
-	// create area for print format
-	this.setup_print_layout();
-	
+		
 	// 2 column layout
 	this.setup_std_layout();
 
@@ -116,7 +110,7 @@ _f.Frm.prototype.setup = function() {
 		
 	this.footer = new wn.ui.form.Footer({
 		frm: this,
-		parent: this.layout_main
+		parent: $(this.wrapper).find(".appframe-footer")
 	})
 	
 	
@@ -150,16 +144,6 @@ _f.Frm.prototype.watch_model_updates = function() {
 		})
 	})
 	
-}
-
-_f.Frm.prototype.setup_print_layout = function() {
-	var me = this;
-	this.print_wrapper = $('<div>\
-		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\
-		</div>').appendTo(this.layout_main).get(0);
-		
-	//appframe.add_ripped_paper_effect(this.print_wrapper);
-	this.print_body = $(this.print_wrapper).find(".print-format-area").get(0);
 }
 
 _f.Frm.prototype.onhide = function() { 
@@ -241,10 +225,6 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	else
 		return;
 
-	// view_is_edit
-	this.last_view_is_edit[name] = this.last_view_is_edit[old];
-	delete this.last_view_is_edit[old];
-
 	// cleanup
 	if(this && this.opendocs[old]) {
 		// delete docfield copy
@@ -283,7 +263,7 @@ _f.Frm.prototype.set_footnote = function(txt) {
 
 
 _f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	return this.appframe.add_button(label, fn, icon || "icon-arrow-right");
+	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-right");
 }
 _f.Frm.prototype.clear_custom_buttons = function() {
 	this.toolbar.refresh()
@@ -295,35 +275,6 @@ _f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
 	}
 	this.fetch_dict[link_field].columns.push(src_field);
 	this.fetch_dict[link_field].fields.push(tar_field);
-}
-
-_f.Frm.prototype.refresh_print_layout = function() {
-	$ds(this.print_wrapper);
-	$dh(this.form_wrapper);
-
-	var me = this;
-	var print_callback = function(print_html) {
-		me.print_body.innerHTML = print_html;
-	}
-	
-	// print head
-	if(cur_frm.doc.select_print_heading)
-		cur_frm.set_print_heading(cur_frm.doc.select_print_heading)
-	
-	if(user!='Guest') {
-		$di(this.view_btn_wrapper);
-
-		// archive
-		if(cur_frm.doc.__archived) {
-			$dh(this.view_btn_wrapper);
-		}
-	} else {
-		$dh(this.view_btn_wrapper);		
-		$dh(this.print_close_btn);		
-	}
-
-	// create print format here
-	_p.build(this.$print_view_select.val(), print_callback, false, true, true);
 }
 
 _f.Frm.prototype.set_print_heading = function(txt) {
@@ -412,19 +363,8 @@ _f.Frm.prototype.refresh = function(docname) {
 	} 
 }
 
-_f.Frm.prototype.render_form = function() {
-	// view_is_edit
-	if(this.doc.__islocal) 
-		this.last_view_is_edit[this.docname] = 1; // new is view_is_edit
-
-	this.view_is_edit = this.last_view_is_edit[this.docname];
-	
-	if(this.view_is_edit || (!this.view_is_edit && this.meta.istable)) {
-		if(this.print_wrapper) {
-			$dh(this.print_wrapper);
-			$ds(this.form_wrapper);
-		}
-
+_f.Frm.prototype.render_form = function() {	
+	if(!this.meta.istable) {
 		// header
 		this.refresh_header();
 
@@ -454,9 +394,6 @@ _f.Frm.prototype.render_form = function() {
 	
 	} else {
 		this.refresh_header();
-		if(this.print_wrapper) {
-			this.refresh_print_layout();
-		}
 	}
 
 	$(cur_frm.wrapper).trigger('render_complete');
@@ -571,17 +508,10 @@ _f.Frm.prototype.setnewdoc = function() {
 
 	this.script_manager.trigger("before_load", this.doctype, this.docname, function() {
 		me.script_manager.trigger("onload");
-		me.last_view_is_edit[me.docname] = 1;
 		me.opendocs[me.docname] = true;
 		me.render_form();
 	})
 
-}
-
-_f.Frm.prototype.edit_doc = function() {
-	// set fields
-	this.last_view_is_edit[this.docname] = true;
-	this.refresh();
 }
 
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
@@ -778,11 +708,8 @@ _f.Frm.prototype.amend_doc = function() {
 
 _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
-	cur_frm.save_disabled = true;
-	cur_frm.footer.hide_save();
-	if(cur_frm.appframe.buttons.Save)
-		cur_frm.appframe.buttons.Save.remove();
-	delete cur_frm.appframe.buttons.Save
+	this.save_disabled = true;
+	this.appframe.set_title_right("", null);
 }
 
 _f.Frm.prototype.save_or_update = function() {
@@ -791,7 +718,7 @@ _f.Frm.prototype.save_or_update = function() {
 	if(this.doc.docstatus===0) {
 		this.save();
 	} else if(this.doc.docstatus===1 && this.doc.__unsaved) {
-		this.frm_head.appframe.buttons['Update'].click();
+		this.save("Update");
 	}
 }
 

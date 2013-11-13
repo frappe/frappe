@@ -52,6 +52,7 @@ def check_lang():
 def clear_pyc_files():
 	from webnotes.utils import get_base_path
 	for path, folders, files in os.walk(get_base_path()):
+		if 'locale' in folders: folders.remove('locale')
 		for f in files:
 			if f.decode("utf-8").endswith(".pyc"):
 				os.remove(os.path.join(path, f))

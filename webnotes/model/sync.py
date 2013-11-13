@@ -28,6 +28,7 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 
 	for path, folders, files in os.walk(start_path):
 		# sort folders so that doctypes are synced before pages or reports
+		if 'locale' in folders: folders.remove('locale')
 		folders.sort()
 
 		if sync_everything or (os.path.basename(os.path.dirname(path)) in document_type):

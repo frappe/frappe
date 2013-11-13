@@ -115,7 +115,7 @@ wn.PermissionEngine = Class.extend({
 	},
 	make_reset_button: function() {
 		var me = this;
-		me.reset_button = me.wrapper.appframe.add_button("Reset Permissions", function() {
+		me.reset_button = me.wrapper.appframe.set_title_right("Reset Permissions", function() {
 			if(wn.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
 					return wn.call({
 						module:"core",
@@ -127,7 +127,7 @@ wn.PermissionEngine = Class.extend({
 						callback: function() { me.refresh(); }
 					});
 				}));
-			}, 'icon-retweet').toggle(false);
+			}).toggle(false);
 	},
 	get_doctype: function() {
 		var doctype = this.doctype_select.val();

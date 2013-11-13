@@ -41,7 +41,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			title: wn._(wn.modules[module] && wn.modules[module].label || module)
 		});
 		wrapper.appframe.add_module_icon(module);
-		wrapper.appframe.set_sub_title("Home", function() { wn.set_route(""); });
+		wrapper.appframe.set_title_left('<i class="icon-angle-left"></i> Home', function() { wn.set_route(""); });
 		this.wrapper = wrapper;
 		this.module = module;
 		this.make_body();
@@ -57,7 +57,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 	make_body: function() {
 		var wrapper = this.wrapper;
 		// make columns
-		$(wrapper).find(".layout-main").html("<div class='row module-top'></div>\
+		$(wrapper).find(".layout-main").html("<div class='module-top'></div>\
 		<div class='row'>\
 			<div class='col-md-6 main-section'></div>\
 			<div class='col-md-6 side-section'></div>\
@@ -76,7 +76,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		section._title = wn._(section.title);
 		if(section.top) {
 			var module_top = $(this.wrapper).find(".module-top");
-			var list_group = $('<div>')
+			var list_group = $('<div class="row">')
 				.appendTo(module_top);
 			$('<hr class="row">')
 				.insertAfter(module_top);
@@ -98,8 +98,8 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(item.count==null) item.count = "";
 		if(!item.icon) item.icon = "";
 		if(section.top) {
-			var $parent = $(repl('<div class="col-md-4">\
-				<div class="alert-badge"></div></div>'))
+			var $parent = $(repl('<div class="col-sm-4">\
+				<div class="alert alert-info alert-badge"></div></div>'))
 				.appendTo(section.list_group)
 				.find(".alert-badge");
 			this.top_item_total[item.doctype] = 0;

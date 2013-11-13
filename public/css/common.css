@@ -66,8 +66,8 @@ div#freeze {
 /* module */
 
 .alert-badge {
-	padding-right: 15px;
-	margin: 7px 0px;
+	margin: 4px 0px;
+	padding: 10px;
 }
 
 .alert-badge a, .alert-badge a:hover {
@@ -162,6 +162,7 @@ div#freeze {
 
 .appframe {
 	overflow: hidden;
+	padding-top: 15px;
 }
 
 .appframe-titlebar {
@@ -216,53 +217,69 @@ div#freeze {
 	width: 100%;
 }
 
-.appframe .mini-bars {
+.appframe-iconbar, .appframe-form {
 	border-bottom: 1px solid #c7c7c7;
 }
 
-.appframe .mini-bar {
+.appframe-form {
+	padding: 5px 0px;
+}
+
+.appframe-form input, .appframe-form select, .appframe-form label {
+	font-size: 90%;
+}
+
+.appframe-form .form-group {
+	margin-bottom: 0px;
+}
+
+.appframe-form .form-control {
+	height: 20px;
+}
+
+.iconbar {
 	display: inline-block;
-	padding: 5px;
+	padding: 9px;
 	border-right: 1px solid #c7c7c7;
 }
 
-.appframe .mini-bar:last-child {
+.iconbar:last-child {
 	border-right: 0px;
 }
 
-.appframe .mini-bar ul {
+.iconbar ul {
 	list-style: none;
 	margin: 0 0 0 0;
 	padding: 0 0 0 0;
 }
 
-.appframe .mini-bar li {
+.iconbar li {
 	display: inline-block;
 	padding-left: 4px;
 	padding-right: 4px;
 }
 
-.appframe .mini-bar li:last-child {
+.iconbar li:last-child {
 	padding-right: 0px;
 }
 
-.appframe .mini-bar i {
+.iconbar i {
 	margin-top: 4px;
 	margin-right: 4px;
-	color: #888;
+	color: #444;
 	cursor: pointer;
 	font-size: 16px;
 }
 
-.appframe .mini-bar i:hover {
-	color: #444;
+.iconbar i:hover {
+	color: #000;
 }
 
-.appframe .mini-bar i:active {
+.iconbar i:active {
 	color: #5bc0de;
 }
 
-.appframe .mini-bar .appframe-mini-bar-active i {
+.iconbar .appframe-iconbar-active i {
 	font-weight: bold;
 	color: orange;
 }
@@ -292,6 +309,9 @@ div#freeze {
 
 }
 
+.appframe-footer {
+	margin-top: 15px;
+}
 
 /* home icon in main nav */
 
@@ -468,11 +488,8 @@ textarea.form-control {
 /* form footer */
 
 .form-footer {
-	/*background-color: #f3f3f3;*/
-	margin-top: 20px;
 	padding-top: 15px;
 	padding-bottom: 15px;
-	border-top: 3px solid #c7c7c7;
 	color: #888;
 	/*box-shadow: 0px -1px 6px rgba(0,0,0,0.3);*/
 }

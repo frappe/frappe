@@ -139,9 +139,11 @@ wn.views.ListView = Class.extend({
 		
 		
 		var body = $('<div class="doclist-row" style="display: table; width: 100%; table-layout: fixed">\
-			<div class="list-row-id-area" style="width: 200px; display: table-cell; white-space:nowrap;\
+			<div class="list-row-id-area" style="width: 200px; display: table-cell; \
+				vertical-align: middle; white-space: nowrap;\
 				text-overflow: ellipsis; max-height: 30px"></div>\
-			<div class="list-row-content-area row" style="display: table-cell"></div>\
+			<div class="list-row-content-area row" style="display: table-cell; \
+				vertical-align: middle;"></div>\
 		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
@@ -201,7 +203,8 @@ wn.views.ListView = Class.extend({
 			.css({
 				"white-space": "nowrap",
 				"text-overflow": "ellipsis",
-				"max-height": "30px",
+				"height": "30px",
+				"padding-top":"3px"
 			})
 		return col;
 	},

@@ -147,7 +147,8 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		} else {
 			this.$wrapper = $('<div class="form-horizontal">\
 				<div class="form-group row" style="margin: 0px">\
-					<label class="control-label small text-muted col-xs-'+(this.horizontal?"4":"12")+'" style="padding-right: 0px"></label>\
+					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
+						+'" style="padding-right: 0px; color: #777;"></label>\
 					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
 						<div class="control-input"></div>\
 						<div class="control-value like-disabled-input" style="display: none;"></div>\
