@@ -17,7 +17,17 @@ class DocType():
 		update_page_name(self.doc, self.doc.title)
 		self.if_home_clear_cache()
 		
-		# clear all cache if toc is updated
+		# clear all cache if it has toc
+		if self.doclist.get({"parentfield": "toc"}):
+			from webnotes.webutils import clear_cache
+			clear_cache()
+			
+	def on_trash(self):
+		# delete entry from Table of Contents of other pages
+		webnotes.conn.sql("""delete from `tabTable of Contents`
+			where web_page=%s""", self.doc.name)
+		
+		# clear all cache if it has toc
 		if self.doclist.get({"parentfield": "toc"}):
 			from webnotes.webutils import clear_cache
 			clear_cache()
