@@ -51,9 +51,11 @@
 <script>
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
-		wn.require("lib/js/wn/website/editable.js");
-		wn.make_editable($(".web-page-content"), "Web Page", "{{ name }}", "main_section");
+		wn.has_permission("Web Page", "{{ name }}", "write", function(r) {
+			wn.require("lib/js/wn/website/editable.js");
+			wn.make_editable($(".web-page-content"), "Web Page", "{{ name }}", "main_section");
+		});
 	}
-})
+});
 </script>
 {% endblock %}

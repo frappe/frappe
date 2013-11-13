@@ -163,6 +163,17 @@ $.extend(wn, {
 			callback: opts.callback
 		});
 	},
+	has_permission: function(doctype, docname, perm_type, callback) {
+		return wn.call({
+			method: "webnotes.client.has_permission",
+			args: {doctype: doctype, docname: docname, perm_type: perm_type},
+			callback: function(r) {
+				if(!r.exc && r.message.has_permission) {
+					if(callback) { return callback(r); }
+				}
+			}
+		});
+	}
 });
 
 
