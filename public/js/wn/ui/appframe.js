@@ -10,9 +10,11 @@ wn.ui.AppFrame = Class.extend({
 		this.fields_dict = {};
 		this.parent = parent;
 
-		this.$title_area = $('<div class="title-area"><h4 style="display: inline-block">\
-			<span class="title-icon text-muted" style="display: none"></span>\
-			<span class="title-text"></span></h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
+		this.$title_area = $('<div class="title-area">\
+			<h4 style="display: inline-block">\
+				<span class="title-icon text-muted" style="display: none"></span>\
+				<span class="title-text"></span>\
+			</h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
 
 		this.setup_iconbar();
 		
@@ -38,11 +40,12 @@ wn.ui.AppFrame = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt, full_text) {
+	set_title: function(txt, full_text, user) {
 		// strip icon
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
 		this.$title_area.find(".title-text").html(txt);
+		
 	},
 	
 	set_title_left: function(txt, click) {
@@ -313,9 +316,9 @@ wn.ui.make_app_page = function(opts) {
 	$('<div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
-					<div class="titlebar-item text-left col-xs-4"></div>\
-					<div class="titlebar-item titlebar-center-item text-center col-xs-4"></div>\
-					<div class="titlebar-item text-right col-xs-4"></div>\
+					<div class="titlebar-item text-left col-xs-3"></div>\
+					<div class="titlebar-item titlebar-center-item text-center col-xs-6"></div>\
+					<div class="titlebar-item text-right col-xs-3"></div>\
 				</div>\
 			</div>\
 		</div>\

@@ -37,11 +37,9 @@ wn.ui.form.Toolbar = Class.extend({
 	},
 	set_title: function() {
 		var title = wn._(this.frm.docname);
-		if(title.length > 30) {
-			title = title.substr(0,30) + "...";
-		}
 		var me = this;
-		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname));
+		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname), 
+			this.frm.doc.modified_by);
 		this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.doctype), 
 			function() { wn.set_route("List", me.frm.doctype); });
 	},
