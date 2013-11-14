@@ -73,9 +73,9 @@ def get():
 		# if not create it
 		from webnotes.boot import get_bootinfo
 		bootinfo = get_bootinfo()
+		bootinfo["notification_info"] = get_notification_info_for_boot()
 		webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 	
-	bootinfo["notification_info"] = get_notification_info_for_boot()
 		
 	return bootinfo
 
