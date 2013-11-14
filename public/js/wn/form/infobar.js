@@ -39,14 +39,14 @@ wn.ui.form.InfoBar = Class.extend({
 			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", "Email", 
 				function() { me.frm.email_doc(); });
 		}
-
-		if(!this.frm.meta.issingle) {
-			this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", "Previous Record", 
-				function() { me.go_prev_next(true); });
-
-			this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", "Next Record", 
-				function() { me.go_prev_next(false); });
-		}
+		// 
+		// if(!this.frm.meta.issingle) {
+		// 	this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", "Previous Record", 
+		// 		function() { me.go_prev_next(true); });
+		// 
+		// 	this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", "Next Record", 
+		// 		function() { me.go_prev_next(false); });
+		// }
 		
 	},
 	

@@ -218,7 +218,7 @@ div#freeze {
 }
 
 .appframe-iconbar, .appframe-form {
-	border-bottom: 1px solid #c7c7c7;
+	border-bottom: 2px solid #c7c7c7;
 }
 
 .appframe-form {
@@ -267,7 +267,7 @@ div#freeze {
 .iconbar i {
 	margin-top: 4px;
 	margin-right: 4px;
-	color: #444;
+	color: #888;
 	cursor: pointer;
 	font-size: 16px;
 }

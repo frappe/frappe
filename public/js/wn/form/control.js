@@ -104,7 +104,7 @@ wn.ui.form.ControlImage = wn.ui.form.Control.extend({
 		this._super();
 		var me = this;
 		this.$wrapper
-		.css({"margin-bottom": "10px"})
+		.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right"})
 		.on("refresh", function() {
 			me.$wrapper.empty();
 			if(me.df.options && me.frm.doc[me.df.options]) {
