@@ -1,6 +1,6 @@
 import webnotes
 import os, urllib
-from webnotes.utils import escape_html, get_request_site_address, now
+from webnotes.utils import escape_html, get_request_site_address, now, cstr
 
 no_cache = True
 
