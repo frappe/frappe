@@ -16,3 +16,4 @@ termcolor
 werkzeug
 gunicorn
 slugify
+cssmin
