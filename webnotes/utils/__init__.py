@@ -916,3 +916,19 @@ def get_disk_usage():
 		return 0
 	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=files_path))
 	return cint(out.split("\n")[-2].split("\t")[0])
+
+import re
+# compiled regex for efficiency of expand_partial_links
+# returns a set of tuples of length 4
+link_regex = re.compile('(href|src){1}([\s]*=[\s]*[\'"]?)([^\'" >]+)([\'"]?)')
+
+def expand_partial_links(html):
+	from webnotes.utils import get_url
+	url_tuples = link_regex.findall(html)
+	for parts in sorted(url_tuples, key=lambda *x: len(x[0][2]), reverse=True):
+		if all(parts) and not parts[2].startswith("http"):
+			new_parts = list(parts)
+			new_parts[2] = get_url(new_parts[2])
+			html = html.replace("".join(parts), "".join(new_parts))
+	
+	return html

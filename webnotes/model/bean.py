@@ -190,12 +190,17 @@ class Bean:
 	def prepare_for_save(self, method):
 		self.check_if_latest(method)
 		
+		self.update_timestamps_and_docstatus()
+		self.update_parent_info()
+		
+		if self.doc.fields.get("__islocal"):
+			# set name before validate
+			self.doc.set_new_name()
+			self.run_method('before_insert')
+			
 		if method != "cancel":
 			self.extract_images_from_text_editor()
 			self.check_links()
-		
-		self.update_timestamps_and_docstatus()
-		self.update_parent_info()
 
 	def update_parent_info(self):
 		idx_map = {}
@@ -286,11 +291,6 @@ class Bean:
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, perm_to_check, self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
-			if self.doc.fields.get("__islocal"):
-				# set name before validate
-				self.doc.set_new_name()
-				self.run_method('before_insert')
-				
 			if not self.ignore_validate:
 				self.run_method('validate')
 			if not self.ignore_mandatory:

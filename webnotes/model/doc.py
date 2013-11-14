@@ -213,7 +213,6 @@ class Document:
 					return r
 			else:
 				if not webnotes.conn.exists(self.doctype, self.name):
-					print self.fields
 					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
 						raise_exception=1)
 				

@@ -79,7 +79,7 @@ def extract_images_from_html(doc, fieldname):
 		content = re.sub('<img\s*src=\s*["\'](data:[^"\']*)["\']', _save_file, content)
 		if webnotes.flags.has_dataurl:
 			doc.fields[fieldname] = content
-
+			
 def save_file(fname, content, dt, dn, decode=False):
 	if decode:
 		if isinstance(content, unicode):

@@ -59,11 +59,12 @@ def make(doctype=None, name=None, content=None, subject=None, sent_or_received =
 
 	d.communication_medium = communication_medium
 	
-	if send_email:
-		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
-	
 	comm.ignore_permissions = True
 	comm.insert()
+	
+	if send_email:
+		d = comm.doc
+		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
 
 @webnotes.whitelist()
 def get_customer_supplier(args=None):
@@ -98,7 +99,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			d.content = sent_via.get_content(d)
 			
 		footer = set_portal_link(sent_via, d)
-			
+		
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
 		msg=d.content, footer=footer)
