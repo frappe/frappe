@@ -137,6 +137,7 @@ def setup_utilities(parser):
 		help="Set administrator password")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
 	parser.add_argument("--serve", action="store_true", help="Run development server")
+	parser.add_argument("--profile", action="store_true", help="enable profiling in development server")
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
 	parser.add_argument("--python", action="store_true", help="get python shell for a site")
@@ -593,9 +594,9 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 	
 @cmd
-def serve(port=8000):
+def serve(port=8000, profile=False):
 	import webnotes.app
-	webnotes.app.serve(port=port)
+	webnotes.app.serve(port=port, profile=profile)
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
