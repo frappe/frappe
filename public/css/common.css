@@ -234,6 +234,7 @@ div#freeze {
 .appframe-form input, .appframe-form select, .appframe-form label {
 	font-size: 90%;
 	padding: 4px;
+	margin: 3px 0px;
 }
 
 .appframe-form .form-group {

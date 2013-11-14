@@ -97,7 +97,7 @@ wn.ui.AppFrame = Class.extend({
 		var $li = $('<li role="presentation"><a role="menuitem" class="text-left">'
 			+ (icon ? '<i class="'+icon+' icon-fixed-width"></i> ' : "") + label+'</a></li>')
 			.appendTo(this.primary_dropdown)
-			.on("click", function() { click.apply(this); });
+			.on("click", function() { click && click.apply(this); });
 			
 		return $li;
 	},
@@ -254,7 +254,7 @@ wn.ui.AppFrame = Class.extend({
 	// appframe::form
 	add_label: function(label) {
 		this.show_form();
-		return $("<label style='margin-left: 5px; margin-right: 5px; float: left;'>"+label+" </label>")
+		return $("<label class='col-md-1'>"+label+" </label>")
 			.appendTo(this.parent.find(".appframe-form .container"));
 	},
 	add_select: function(label, options) {
