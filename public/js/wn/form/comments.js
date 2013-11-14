@@ -53,8 +53,8 @@ wn.ui.form.Comments = Class.extend({
 					<div class="col-xs-1">\
 						<span class="avatar avatar-small"><img src="%(image)s"></span>\
 					</div>\
-					<div class="col-xs-11">\
-						%(comment)s%(delete)s<br>\
+					<div class="col-xs-11">%(delete)s\
+						<div>%(comment)s</div>\
 						<span class="small text-muted">%(fullname)s / %(comment_on)s</span>\
 					</div>\
 				</div>\

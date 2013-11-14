@@ -10,9 +10,11 @@ wn.ui.AppFrame = Class.extend({
 		this.fields_dict = {};
 		this.parent = parent;
 
-		this.$title_area = $('<div class="title-area"><h4 style="display: inline-block">\
-			<span class="title-icon text-muted" style="display: none"></span>\
-			<span class="title-text"></span></h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
+		this.$title_area = $('<div class="title-area">\
+			<h4 style="display: inline-block">\
+				<span class="title-icon text-muted" style="display: none"></span>\
+				<span class="title-text"></span>\
+			</h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
 
 		this.setup_iconbar();
 		
@@ -38,11 +40,12 @@ wn.ui.AppFrame = Class.extend({
 		return this.$title_area;
 	},
 
-	set_title: function(txt, full_text) {
+	set_title: function(txt, full_text, user) {
 		// strip icon
 		this.title = txt;
 		document.title = txt.replace(/<[^>]*>/g, "");
 		this.$title_area.find(".title-text").html(txt);
+		
 	},
 	
 	set_title_left: function(txt, click) {
@@ -94,7 +97,7 @@ wn.ui.AppFrame = Class.extend({
 		var $li = $('<li role="presentation"><a role="menuitem" class="text-left">'
 			+ (icon ? '<i class="'+icon+' icon-fixed-width"></i> ' : "") + label+'</a></li>')
 			.appendTo(this.primary_dropdown)
-			.on("click", function() { click.apply(this); });
+			.on("click", function() { click && click.apply(this); });
 			
 		return $li;
 	},
@@ -251,7 +254,7 @@ wn.ui.AppFrame = Class.extend({
 	// appframe::form
 	add_label: function(label) {
 		this.show_form();
-		return $("<label style='margin-left: 5px; margin-right: 5px; float: left;'>"+label+" </label>")
+		return $("<label class='col-md-1'>"+label+" </label>")
 			.appendTo(this.parent.find(".appframe-form .container"));
 	},
 	add_select: function(label, options) {
@@ -313,9 +316,9 @@ wn.ui.make_app_page = function(opts) {
 	$('<div class="appframe-titlebar">\
 			<div class="container">\
 				<div class="row">\
-					<div class="titlebar-item text-left col-xs-4"></div>\
-					<div class="titlebar-item titlebar-center-item text-center col-xs-4"></div>\
-					<div class="titlebar-item text-right col-xs-4"></div>\
+					<div class="titlebar-item text-left col-xs-3"></div>\
+					<div class="titlebar-item titlebar-center-item text-center col-xs-6"></div>\
+					<div class="titlebar-item text-right col-xs-3"></div>\
 				</div>\
 			</div>\
 		</div>\

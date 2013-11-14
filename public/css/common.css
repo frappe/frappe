@@ -175,11 +175,17 @@ div#freeze {
 	padding-bottom: 10px;
 }
 
-.titlebar-center-item {
+.titlebar-item h4 {
+	width: 100%;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.titlebar-center-item  {
 	padding-top: 0px;
 	padding-bottom: 0px;
 }
-
 
 .appframe-header {
 	margin-bottom: 20px;
@@ -228,6 +234,7 @@ div#freeze {
 .appframe-form input, .appframe-form select, .appframe-form label {
 	font-size: 90%;
 	padding: 4px;
+	margin: 3px 0px;
 }
 
 .appframe-form .form-group {
