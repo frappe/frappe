@@ -14,8 +14,8 @@ wn.tools.downloadify = function(data, roles, me) {
 	var flash_disabled = (navigator.mimeTypes["application/x-shockwave-flash"] == undefined);
 	
 	var download_from_server = function() {
-		open_url_post("server.py?cmd=webnotes.utils.datautils.send_csv_to_client",
-			{args: {data: data, filename: me.title}}, true);
+		open_url_post("server.py",
+			{cmd: "webnotes.utils.datautils.send_csv_to_client", args: {data: data, filename: me.title}}, true);
 	}
 	
 	// save file > abt 200 kb using server call
