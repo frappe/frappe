@@ -59,7 +59,7 @@ wn.ui.AppFrame = Class.extend({
 			this.title_right = $("<a>")
 				.html((icon ? '<i class="'+icon+'"></i> ' : "") + txt)
 				.click(click)
-				.appendTo($right);
+				.prependTo($right);
 			return this.title_right;
 		} else {
 			$right.empty();
@@ -328,7 +328,8 @@ wn.ui.make_app_page = function(opts) {
 			</div>\
 		</div>\
 		<div class="appframe container">\
-			<div class="workflow-button-area btn-group pull-right hide" style="margin-top: 9px;"></div>\
+			<div class="appframe-timestamp hide"></div>\
+			<div class="workflow-button-area btn-group pull-right hide"></div>\
 		</div>\
 		<div class="appframe-footer hide"></div>').appendTo($wrapper);
 

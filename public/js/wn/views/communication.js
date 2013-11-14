@@ -97,8 +97,7 @@ wn.views.CommunicationList = Class.extend({
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
 		var comm = $(repl('<div class="list-group-item">\
-				<div class="comm-header row" title="'+wn._('Click to Expand / Collapse')+'"\
-					style="font-weight: bold; height: 20px; overflow: hidden;">\
+				<div class="comm-header row" title="'+wn._('Click to Expand / Collapse')+'">\
 					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
 					<div class="col-sm-6">%(subject)s</div>\
 					<div class="col-sm-3 text-right">%(when)s</div>\

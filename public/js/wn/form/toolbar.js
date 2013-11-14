@@ -11,6 +11,7 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {
+		this.appframe.set_title_right(); // clear
 		this.set_title();
 		this.show_title_as_dirty();
 
@@ -43,7 +44,6 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname));
 		this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.doctype), 
 			function() { wn.set_route("List", me.frm.doctype); });
-		this.appframe.set_title_right();
 	},
 	show_infobar: function() {
 		/* docs:

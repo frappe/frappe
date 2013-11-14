@@ -372,6 +372,18 @@ div#freeze {
 	background-color: #e74c3c;
 }
 
+.comm-header {
+	font-weight: bold; 
+	height: 20px; 
+	overflow: hidden;
+}
+
+.comm-header > div {
+	text-overflow: ellipsis;
+	white-space: nowrap;
+	overflow: hidden;
+}
+
 /* alert */
 
 

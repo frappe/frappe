@@ -24,7 +24,7 @@ wn.ui.form.States = Class.extend({
 			.empty()
 			.removeClass("hide");
 		
-		this.workflow_button = $('<button class="btn btn-default dropdown-toggle">\
+		this.workflow_button = $('<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">\
 			<i class="icon-small"></i> <span class="state-text"></span>\
 			<span class="caret"></span></button>')
 			.appendTo(this.parent).dropdown();
@@ -178,7 +178,7 @@ wn.ui.form.States = Class.extend({
 			}
 			
 			// hide dropdown
-			$(this).parents(".dropdown-menu:first").prev().dropdown('toggle');
+			me.workflow_button.dropdown('toggle');
 			
 			return false;
 		})

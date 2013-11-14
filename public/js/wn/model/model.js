@@ -57,6 +57,11 @@ $.extend(wn.model, {
 					cached_timestamp: cached_timestamp
 				},
 				callback: function(r) {
+					if(r.exc) {
+						wn.msgprint(wn._("Unable to load") + ": " + wn._(doctype));
+						throw "No doctype";
+						return;
+					}
 					if(r.message=="use_cache") {
 						wn.model.sync(cached_doclist);
 					} else {
