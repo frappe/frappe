@@ -35,7 +35,7 @@ wn.ui.AppFrame = Class.extend({
 	
 	// appframe::title
 	get_title_area: function() {
-		return this.$title_area.find(".title-area");
+		return this.$title_area;
 	},
 
 	set_title: function(txt, full_text) {

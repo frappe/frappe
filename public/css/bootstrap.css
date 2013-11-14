@@ -5228,7 +5228,7 @@ a.thumbnail.active {
 }
 
 .alert {
-  padding: 15px;
+  padding: 10px;
   margin-bottom: 20px;
   border-radius: 4px;
 }
@@ -5252,7 +5252,7 @@ a.thumbnail.active {
 }
 
 .alert-dismissable {
-  padding-right: 35px;
+  padding-right: 30px;
 }
 
 .alert-dismissable .close {
