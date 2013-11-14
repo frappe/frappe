@@ -10,7 +10,7 @@ wn.make_editable = function(editor, doctype, name, fieldname) {
 					doctype: doctype,
 					name: name,
 					fieldname: fieldname,
-					value: editor.html()
+					value: bseditor.get_value()
 				},
 				callback: function(r) {
 					wn.msgprint(r.exc ? "Error" : "Saved");
