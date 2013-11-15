@@ -3,13 +3,6 @@
 if(!window.wn) wn = {};
 
 $.extend(wn, {
-	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
-		treemapper.hide_message();
-		$('<div class="message-overlay"></div>')
-			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
-				+text+'</div>').appendTo(document.body);
-	},
 	provide: function(namespace) {
 		var nsl = namespace.split('.');
 		var parent = window;

@@ -24,9 +24,9 @@
 </head>
 <body>
 	{% block navbar %}{% include "lib/website/templates/includes/navbar.html" %}{% endblock %}
-	<div class="container">
+	<div class="container page-container" id="page-{{ name }}">
 		{% block banner %}{% endblock %}
-		<div class="content" id="page-{{ name }}" style="display: block;">
+		<div class="content" style="display: block;">
 			{% block content %}{% endblock %}
 		</div>
 	</div>

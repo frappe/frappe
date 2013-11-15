@@ -6,8 +6,7 @@ $.extend(cur_frm.cscript, {
 		if(!doc.__islocal) {
 			if(doc.insert_code) {
 				if(!doc.javascript) {
-					cur_frm.set_value("javascript", 
-						'wn.pages["'+doc.name+'"].onload = function(wrapper) { }');
+					cur_frm.set_value("javascript", '$(function() { });');
 				}
 			}
 			if(doc.insert_style) {

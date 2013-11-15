@@ -60,8 +60,11 @@ bsEditor = Class.extend({
 	onhide: function(action) {
 		this.editing = false;
 		if(action==="Cancel") {
-			this.editor.html(this.original_html);
-			this.options.oncancel && this.options.oncancel(this);
+			// restore original html?
+			if(window.confirm("Do you want to undo all your changes?")) {
+				this.editor.html(this.original_html);
+				this.options.oncancel && this.options.oncancel(this);
+			}
 		} else {
 			this.options.onsave && this.options.onsave(this);
 			this.options.change && this.options.change(this.get_value());
@@ -448,8 +451,10 @@ bsHTMLEditor = Class.extend({
 			var html = me.modal.find("textarea").val();
 			$.each(me.editor.dataurls, function(key, val) {
 				html = html.replace(key, val);
-			})
-			me.editor.html(html);
+			});
+			var editor = me.editor.data("object")
+			editor.set_input(html)
+			editor.options.change && editor.options.change(editor.clean_html());
 			me.modal.modal("hide");
 		});
 	},
