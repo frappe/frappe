@@ -387,7 +387,8 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 			webnotes.local.message_log = []
 			if len(doclist) > 1:
 				for d in doclist:
-					check_record(d, d.get("parenttype"), doctype_dl)
+					# ignoring parent check as it will be automatically added
+					check_record(d, None, doctype_dl)
 				
 				if overwrite and webnotes.conn.exists(doctype, doclist[0]["name"]):
 					bean = webnotes.bean(doctype, doclist[0]["name"])
