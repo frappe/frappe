@@ -6,7 +6,7 @@ wn.pages['modules_setup'].onload = function(wrapper) {
 		single_column: true
 	});
 	
-	wrapper.appframe.add_button("Update", function() {
+	wrapper.appframe.set_title_right("Update", function() {
 		wn.modules_setup.update(this);
 	})
 	
