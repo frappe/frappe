@@ -111,7 +111,7 @@ class Bundle:
 				print "--Error in:" + f + "--"
 				print webnotes.getTraceback()
 
-		if out_type == 'css':
+		if not self.no_compress and out_type == 'css':
 			outtxt = cssmin(outtxt)
 						
 		with open(outfile, 'w') as f:
