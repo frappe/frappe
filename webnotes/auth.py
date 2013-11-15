@@ -113,7 +113,6 @@ class LoginManager:
 			webnotes._response.set_cookie("full_name", full_name)
 			webnotes._response.set_cookie("user_id", self.user)
 
-	
 	def post_login(self):
 		self.run_trigger()
 		self.validate_ip_address()
