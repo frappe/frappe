@@ -180,11 +180,10 @@ div#freeze {
 	white-space: nowrap;
 	overflow: hidden;
 	text-overflow: ellipsis;
+	margin: 0px;
 }
 
 .titlebar-center-item  {
-	padding-top: 0px;
-	padding-bottom: 0px;
 }
 
 .appframe-header {

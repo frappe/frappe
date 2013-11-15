@@ -11,7 +11,7 @@ wn.ui.AppFrame = Class.extend({
 		this.parent = parent;
 
 		this.$title_area = $('<div class="title-area">\
-			<h4 style="display: inline-block">\
+			<h4>\
 				<span class="title-icon text-muted" style="display: none"></span>\
 				<span class="title-text"></span>\
 			</h4></div>').appendTo(parent.find(".titlebar-item.text-center"));
