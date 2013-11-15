@@ -40,8 +40,14 @@ wn.ui.form.Toolbar = Class.extend({
 		var me = this;
 		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname), 
 			this.frm.doc.modified_by);
-		this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.doctype), 
-			function() { wn.set_route("List", me.frm.doctype); });
+		
+		if(this.frm.meta.issingle) {
+			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.meta.module), 
+				function() { wn.set_route(wn.modules[me.frm.meta.module].link); });
+		} else {
+			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.doctype), 
+				function() { wn.set_route("List", me.frm.doctype); });
+		}
 	},
 	show_infobar: function() {
 		/* docs:

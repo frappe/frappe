@@ -26,6 +26,7 @@ wn.ui.AppFrame = Class.extend({
 	setup_iconbar: function() {
 		var me = this;
 		this.iconbar = new wn.ui.IconBar(this.parent.find(".appframe-iconbar .container"), 3);
+		this.iconbar.$wrapper.find(".iconbar-3").addClass("pull-right");
 		
 		this.iconbar.$wrapper.on("shown", function() {
 			me.parent.find(".appframe-iconbar").removeClass("hide")

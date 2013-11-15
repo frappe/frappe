@@ -161,7 +161,6 @@ div#freeze {
 /* appframe header */
 
 .appframe {
-	overflow: hidden;
 	padding-top: 15px;
 }
 
@@ -223,7 +222,7 @@ div#freeze {
 }
 
 .appframe-iconbar, .appframe-form {
-	border-bottom: 2px solid #c7c7c7;
+	border-bottom: 1px solid #c7c7c7;
 }
 
 .appframe-form {
@@ -246,12 +245,7 @@ div#freeze {
 
 .iconbar {
 	display: inline-block;
-	padding: 9px;
-	border-right: 1px solid #c7c7c7;
-}
-
-.iconbar:last-child {
-	border-right: 0px;
+	padding: 9px 0px;
 }
 
 .iconbar ul {
@@ -264,10 +258,6 @@ div#freeze {
 	display: inline-block;
 	padding-left: 4px;
 	padding-right: 4px;
-}
-
-.iconbar li:last-child {
-	padding-right: 0px;
 }
 
 .iconbar i {
