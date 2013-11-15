@@ -36,10 +36,7 @@ wn.ui.set_user_background = function(src) {
 		position: fixed;\
 		left: 0px; min-width: 100%; height: 100%; overflow: auto;\
 		padding-top: 14px; \
-		background: url("%(src)s") no-repeat center center fixed; \
-		-webkit-background-size: cover; -moz-background-size: cover; \
-		-o-background-size: cover; \
-		background-size: cover;\
+		background: url("%(src)s") center center fixed; \
 	}', {src:src}))
 }
 

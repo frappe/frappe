@@ -569,3 +569,6 @@ textarea.form-control {
 .form-group {
 	margin-bottom: 7px;
 }
+
+/* hack */
+.ui-datepicker { z-index: 9999999 !important; }

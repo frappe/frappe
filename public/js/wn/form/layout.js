@@ -89,6 +89,7 @@ wn.ui.form.Layout = Class.extend({
 	make_field: function(df, colspan) {
 		!this.column && this.make_column();
 		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
+		fieldobj.layout = this;
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
 		if(this.frm) {
