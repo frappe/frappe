@@ -20,3 +20,10 @@ class DocType:
 				startup.event_handlers.comment_added(self.doc)
 		except ImportError, e:
 			pass
+
+def on_doctype_update():
+	if not webnotes.conn.sql("""show index from `tabComment` 
+		where Key_name="comment_doctype_docname_index" """):
+		webnotes.conn.commit()
+		webnotes.conn.sql("""alter table `tabComment` 
+			add index comment_doctype_docname_index(comment_doctype, comment_docname)""")

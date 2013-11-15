@@ -11,6 +11,10 @@ wn.ui.form.InfoBar = Class.extend({
 		var me = this;
 
 		this.appframe.iconbar.clear(2);
+		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", "Reload Page", 
+			function() { me.frm.reload_doc(); })
+
+
 		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", "Creation / Modified By", 
 			function() { })
 

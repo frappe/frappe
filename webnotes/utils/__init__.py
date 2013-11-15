@@ -188,9 +188,12 @@ def get_user_time_zone():
 	return webnotes.local.user_time_zone
 
 def convert_utc_to_user_timezone(utc_timestamp):
-	from pytz import timezone
+	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
-	return utcnow.astimezone(timezone(get_user_time_zone()))
+	try:
+		return utcnow.astimezone(timezone(get_user_time_zone()))
+	except UnknownTimeZoneError:
+		return utcnow
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
