@@ -137,7 +137,6 @@
 			"lib/public/js/wn/form/script_manager.js",
 			"lib/public/js/wn/form/control.js",
 			"lib/public/js/wn/form/link_selector.js",
-			"lib/public/js/wn/form/editors.js",
 			"lib/public/js/wn/form/grid.js",
 			"lib/public/js/wn/form/attachments.js",
 			"lib/public/js/wn/form/footer.js",

@@ -865,8 +865,16 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	},
 });
 
-wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
-	editor_name: "wn.editors.ACE",
+
+wn.ui.form.ControlCode = wn.ui.form.ControlText.extend({
+	make_input: function() {
+		this._super();
+		$(this.input_area).find("textarea").css({"height":"400px"});
+	}
+});
+
+wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
+	editor_name: "bsEditor",
 	horizontal: false,
 	make_input: function() {
 		$(this.input_area).css({"min-height":"360px"});
@@ -879,6 +887,9 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			field: this
 		});
 		this.has_input = true;
+		this.editor.editor.keypress("ctrl+s meta+s", function() {
+			me.frm.save_or_update();
+		});
 	},
 	get_value: function() {
 		return this.editor.get_value();
@@ -887,16 +898,6 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 		this.editor.set_input(value);
 		this.last_value = value;
 	}
-});
-
-wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
-	editor_name: "bsEditor",
-	make_input: function() {
-		this._super();
-		this.editor.editor.keypress("ctrl+s meta+s", function() {
-			me.frm.save_or_update();
-		});
-	},
 });
 
 wn.ui.form.ControlTable = wn.ui.form.Control.extend({
