@@ -9,6 +9,7 @@
 bsEditor = Class.extend({
 	init: function(options) {
 		this.options = $.extend(options || {}, this.default_options);
+		this.edit_mode = true;
 		if(this.options.editor) {
 			this.setup_editor(this.options.editor);
 			this.setup_fixed_toolbar();
@@ -24,7 +25,7 @@ bsEditor = Class.extend({
 		var me = this;
 		this.editor = $(editor);
 		this.editor.on("click", function() {
-			if(!me.editing) {
+			if(me.edit_mode && !me.editing) {
 				me.set_editing();
 			}
 		}).on("mouseup keyup mouseout", function() {
@@ -41,7 +42,6 @@ bsEditor = Class.extend({
 	
 	set_editing: function() {
 		this.editor.attr('contenteditable', true);
-		this.original_html =  this.editor.html();
 		this.toolbar.show();
 		if(this.options.editor)
 			this.toolbar.editor = this.editor.focus();
@@ -57,17 +57,16 @@ bsEditor = Class.extend({
 	setup_inline_toolbar: function() {
 		this.toolbar = new bsEditorToolbar(this.options, this.wrapper, this.editor);
 	},
-	onhide: function(action) {
+	onhide: function() {
 		this.editing = false;
-		if(action==="Cancel") {
-			// restore original html?
-			if(window.confirm("Do you want to undo all your changes?")) {
-				this.editor.html(this.original_html);
-				this.options.oncancel && this.options.oncancel(this);
-			}
-		} else {
-			this.options.onsave && this.options.onsave(this);
-			this.options.change && this.options.change(this.get_value());
+		this.options.onsave && this.options.onsave(this);
+		this.options.change && this.options.change(this.get_value());
+	},
+	toggle_edit_mode: function(bool) {
+		// switch to enter editing mode
+		this.edit_mode = bool;
+		if(this.edit_mode) {
+			this.editor.trigger("click");
 		}
 	},
 	default_options: {
@@ -266,8 +265,6 @@ bsEditorToolbar = Class.extend({
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="HTML">\
 						<i class="icon-code"></i></a>\
-					<a class="btn btn-default btn-small btn-cancel" data-action="Cancel" title="Cancel">\
-						<i class="icon-remove"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="Save">\
 						<i class="icon-save"></i></a>\
 				</div>\
@@ -308,7 +305,7 @@ bsEditorToolbar = Class.extend({
 		}
 	},
 
-	hide: function(action) {
+	hide: function() {
 		if(!this.editor)
 			return;
 		var me = this;
@@ -319,7 +316,7 @@ bsEditorToolbar = Class.extend({
 			}});
 		}
 		
-		this.editor && this.editor.attr('contenteditable', false).data("object").onhide(action);
+		this.editor && this.editor.attr('contenteditable', false).data("object").onhide();
 		this.editor = null;
 	},
 	
@@ -359,15 +356,8 @@ bsEditorToolbar = Class.extend({
 		});
 		
 		// save
-		this.toolbar.find("[data-action='Save']").on("click", function() {
-			me.hide("Save");
-		})
+		this.toolbar.find("[data-action='Save']").on("click", function() { me.hide(); });
 
-		// cancel
-		this.toolbar.find("[data-action='Cancel']").on("click", function() {
-			me.hide("Cancel");
-		})
-		
 		// edit html
 		this.toolbar.find(".btn-html").on("click", function() {
 			if(!window.bs_html_editor)

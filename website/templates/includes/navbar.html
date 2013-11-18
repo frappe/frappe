@@ -46,8 +46,7 @@
 						{%- for child in post_login -%}
 						<li data-label="{{ child.label }}" {% if child.class %}class="{{ child.class }}"{% endif %}>
 							{% if child.url -%}
-							<a {% if child.indent -%}style="padding-left: {{((child.indent|int)+1)*15 }}px"{%- endif %} 
-								href="{{ child.url }}" {{ child.target or '' }}>
+							<a href="{{ child.url }}" {{ child.target or '' }}>
 								{% if child.icon %}<i class="icon-fixed-width {{ child.icon }}"></i> {% endif %}
 								{{ child.label }}
 							</a>
