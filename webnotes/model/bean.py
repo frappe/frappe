@@ -13,6 +13,10 @@ import webnotes
 from webnotes import _, msgprint
 from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
+try:
+	from startup.bean_handlers import on_method
+except ImportError:
+	on_method = None
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
 class BeanPermissionError(webnotes.ValidationError): pass
@@ -236,7 +240,7 @@ class Bean:
 		if hasattr(self.controller, 'custom_' + method):
 			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
 
-		notify(self.controller, method)
+		notify(self, method)
 		
 		self.set_doclist(self.controller.doclist)
 		
@@ -256,7 +260,7 @@ class Bean:
 		return self.save()
 	
 	def insert_or_update(self):
-		if webnotes.conn.exists( self.doc.doctype, self.doc.name):
+		if self.doc.name and webnotes.conn.exists(self.doc.doctype, self.doc.name):
 			return self.save()
 		else:
 			return self.insert()
@@ -461,33 +465,12 @@ def clone(source_wrapper):
 	
 	return new_wrapper
 
-
-def notify(controller, caller_method):
-	try:
-		from startup.observers import observer_map
-	except ImportError:
-		return
-		
-	doctype = controller.doc.doctype
-	
-	def call_observers(key):
-		if key in observer_map:
-			observer_list = observer_map[key]
-			if isinstance(observer_list, basestring):
-				observer_list = [observer_list]
-			for observer_method in observer_list:
-				webnotes.get_method(observer_method)(controller, caller_method)
-	
-	call_observers("*:*")
-	call_observers(doctype + ":*")
-	call_observers("*:" + caller_method)
-	call_observers(doctype + ":" + caller_method)
+def notify(bean, method):
+	if on_method:
+		on_method(bean, method)
 
 # for bc
 def getlist(doclist, parentfield):
-	"""
-		Return child records of a particular type
-	"""
 	import webnotes.model.utils
 	return webnotes.model.utils.getlist(doclist, parentfield)
 

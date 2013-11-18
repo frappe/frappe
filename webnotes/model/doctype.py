@@ -244,7 +244,11 @@ def clear_cache(doctype=None):
 		for dt in webnotes.conn.sql("""select parent from tabDocField 
 			where fieldtype="Table" and options=%s""", doctype):
 			clear_single(dt[0])
-			
+		
+		# clear all notifications
+		from core.doctype.notification_count.notification_count import delete_notification_count_for
+		delete_notification_count_for(doctype)
+		
 	else:
 		# clear all
 		for dt in webnotes.conn.sql("""select name from tabDocType"""):

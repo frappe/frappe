@@ -7,8 +7,6 @@ import webnotes
 from webnotes import msgprint
 import os
 
-import MySQLdb
-
 from webnotes.utils import now, cint
 from webnotes.model import no_value_fields
 
@@ -307,7 +305,7 @@ def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 				r.insert()
 	except webnotes.DoesNotExistError, e:
 		pass
-	except MySQLdb.ProgrammingError, e:
+	except webnotes.SQLError, e:
 		if e.args[0]==1146:
 			pass
 		else:

@@ -9,6 +9,7 @@ from __future__ import unicode_literals
 
 from werkzeug.local import Local
 from werkzeug.exceptions import NotFound
+from MySQLdb import ProgrammingError as SQLError
 
 import os
 import json

@@ -10,7 +10,6 @@ _toc = ["webnotes.model.doc.Document"]
 
 import webnotes
 import webnotes.model.meta
-import MySQLdb
 
 from webnotes.utils import *
 
@@ -132,7 +131,7 @@ class Document:
 		else:
 			try:
 				dataset = webnotes.conn.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
-			except MySQLdb.ProgrammingError, e:
+			except webnotes.SQLError, e:
 				if e.args[0]==1146:
 					dataset = None
 				else:

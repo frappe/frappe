@@ -114,7 +114,7 @@ wn.Application = Class.extend({
 	refresh_notifications: function() {
 		if(wn.session_alive) {
 			return wn.call({
-				method: "webnotes.widgets.notification.get",
+				method: "core.doctype.notification_count.notification_count.get",
 				callback: function(r) {
 					if(r.message) {
 						$.extend(wn.boot.notification_info, r.message);

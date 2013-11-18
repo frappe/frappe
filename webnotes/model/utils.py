@@ -179,12 +179,11 @@ def check_permission_and_not_submitted(doctype, name, ignore_permissions=False):
 def run_on_trash(doctype, name, doclist):
 	# call on_trash if required
 	if doclist:
-		obj = webnotes.get_obj(doclist=doclist)
+		bean = webnotes.bean(doclist)
 	else:
-		obj = webnotes.get_obj(doctype, name)
-
-	if hasattr(obj,'on_trash'):
-		obj.on_trash()
+		bean = webnotes.bean(doctype, name)
+		
+	bean.run_method("on_trash")
 
 class LinkExistsError(webnotes.ValidationError): pass
 
