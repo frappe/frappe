@@ -16,13 +16,10 @@ def exec_code(code, namespace=None):
 	
 	return namespace
 	
-def get_code(module, doctype, docname, plugin=None):
-	import MySQLdb
-	
+def get_code(module, doctype, docname, plugin=None):	
 	try:
 		code = read_file(module, doctype, docname, plugin, cache=True)
-	except MySQLdb.OperationalError:
-		# this happens when syncing
+	except webnotes.SQLError:
 		return None
 		
 	return code

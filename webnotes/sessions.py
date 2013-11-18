@@ -57,7 +57,7 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	from webnotes.widgets.notification import get_notification_info_for_boot
+	from core.doctype.notification_count.notification_count import get_notification_info_for_boot
 
 	bootinfo = None
 	if not getattr(conf,'auto_cache_clear',None):

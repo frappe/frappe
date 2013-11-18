@@ -95,6 +95,7 @@ class DocType:
 	def on_update(self):
 		# owner is always name
 		webnotes.conn.set(self.doc, 'owner', self.doc.name)
+		webnotes.clear_cache(user=self.doc.name)
 	
 	def reset_password(self):
 		from webnotes.utils import random_string, get_url
@@ -207,6 +208,7 @@ Thank you,<br>
 				raise_exception=True)
 		
 	def on_trash(self):
+		webnotes.clear_cache(user=self.doc.name)
 		if self.doc.name in ["Administrator", "Guest"]:
 			webnotes.msgprint("""Hey! You cannot delete user: %s""" % (self.name, ),
 				raise_exception=1)
@@ -234,8 +236,10 @@ Thank you,<br>
 		# delete messages
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
+			
 	
 	def on_rename(self,newdn,olddn, merge=False):
+		webnotes.clear_cache(user=olddn)
 		self.validate_rename(newdn, olddn)
 			
 		tables = webnotes.conn.sql("show tables")
