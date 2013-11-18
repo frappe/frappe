@@ -15,8 +15,8 @@ wn.make_editable = function(editor, doctype, name, fieldname) {
 			this._super(bool);
 			
 			if(!bool) {
-				var $edit_btn = $('<li><a href="#"><i class="icon-fixed-width icon-pencil"></i> Edit</a></li>\
-					<li class="divider"></li>')
+				var $edit_btn = $(repl('<li><a href="#"><i class="icon-fixed-width icon-pencil"></i> Edit %(doctype)s</a></li>\
+					<li class="divider"></li>', {doctype: doctype}))
 					.prependTo($("#website-post-login ul.dropdown-menu"));
 			
 				$edit_btn.find("a")
