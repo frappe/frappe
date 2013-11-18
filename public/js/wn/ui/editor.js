@@ -433,7 +433,7 @@ bsHTMLEditor = Class.extend({
 	init: function() {
 		var me = this;
 		this.modal = bs_get_modal("<i class='icon-code'></i> Edit HTML", '<textarea class="form-control" \
-			style="height: 400px; width: 100%; font-family: Monaco, Courier New, Fixed; font-size: 11px">\
+			style="height: 400px; width: 100%; font-family: Monaco, \"Courier New\", monospace; font-size: 11px">\
 			</textarea><br>\
 			<button class="btn btn-primary" style="margin-top: 7px;">Save</button>');
 		this.modal.addClass("wn-ignore-click");

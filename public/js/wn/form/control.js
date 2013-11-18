@@ -869,7 +869,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlCode = wn.ui.form.ControlText.extend({
 	make_input: function() {
 		this._super();
-		$(this.input_area).find("textarea").css({"height":"400px"});
+		$(this.input_area).find("textarea").css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
 	}
 });
 
