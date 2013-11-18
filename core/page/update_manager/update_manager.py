@@ -14,7 +14,7 @@ def update_this_app():
 		return _("This feature is only applicable to self hosted instances")
 	
 	from webnotes.utils import execute_in_shell, cstr, get_base_path
-	err, out = execute_in_shell("cd %s && exec ssh-agent lib/wnf.py --update origin master" % \
+	err, out = execute_in_shell("cd %s && exec ssh-agent lib/wnf.py --update origin 1310" % \
 		(get_base_path(),))
 
 	return "\n".join(filter(None, [cstr(err), cstr(out)]))
