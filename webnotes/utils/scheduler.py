@@ -68,17 +68,19 @@ def trigger(method):
 		import startup.schedule_handlers
 		
 		if hasattr(startup.schedule_handlers, method):
-			webnotes.conn.begin()
 			getattr(startup.schedule_handlers, method)()
-			webnotes.conn.commit()
 	except Exception:
 		traceback += log(method)
+	else:
+		webnotes.conn.commit()
 		
 	try:
 		cp = webnotes.bean("Control Panel", "Control Panel")
 		cp.run_method(method)
 	except Exception:
 		traceback += log("Control Panel: "+method)
+	else:
+		webnotes.conn.commit()
 		
 	return traceback or 'ok'
 
