@@ -1,0 +1,62 @@
+[
+ {
+  "creation": "2013-11-18 15:38:40", 
+  "docstatus": 0, 
+  "modified": "2013-11-18 18:37:30", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "field:page_name", 
+  "doctype": "DocType", 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Website Sitemap", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Website Sitemap"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_or_generator", 
+  "fieldtype": "Select", 
+  "label": "Page or Generator", 
+  "options": "Page\nGenerator", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_name", 
+  "fieldtype": "Data", 
+  "label": "Page Name", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "docname", 
+  "fieldtype": "Data", 
+  "label": "Docname", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "lastmod", 
+  "fieldtype": "Data", 
+  "label": "Lastmod"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "website_sitemap_config", 
+  "fieldtype": "Link", 
+  "label": "Website Sitemap Config", 
+  "options": "Website Sitemap Config"
+ }
+]
