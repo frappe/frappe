@@ -337,7 +337,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 	from webnotes.utils import cint
 	
 	meta = get_doctype(doctype)
-	if session.user=="Administrator" or meta[0].is_table==1: 
+	if session.user=="Administrator" or meta[0].istable==1: 
 		return True
 	
 	# get user permissions
