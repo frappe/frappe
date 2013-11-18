@@ -150,6 +150,8 @@ def setup_utilities(parser):
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
 		help="Clear website cache")
+	parser.add_argument("--build_sitemap", default=False, action="store_true",
+		help="Build Website Sitemap")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
@@ -417,6 +419,13 @@ def clear_web(site=None):
 	import webnotes.webutils
 	webnotes.connect(site=site)
 	webnotes.webutils.clear_cache()
+	webnotes.destroy()
+
+@cmd
+def build_sitemap(site=None):
+	import webnotes.webutils
+	webnotes.connect(site=site)
+	webnotes.webutils.build_sitemap()
 	webnotes.destroy()
 
 @cmd

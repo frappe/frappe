@@ -3,8 +3,9 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes.webutils import WebsiteGenerator
 
-class DocType():
+class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
@@ -13,8 +14,7 @@ class DocType():
 		self.doc.name = page_name(self.doc.title)
 
 	def on_update(self):
-		from webnotes.webutils import update_page_name
-		update_page_name(self.doc, self.doc.title)
+		WebsiteGenerator.on_update(self)
 		self.if_home_clear_cache()
 		
 		# clear all cache if it has toc
@@ -24,6 +24,8 @@ class DocType():
 			
 	def on_trash(self):
 		# delete entry from Table of Contents of other pages
+		WebsiteGenerator.on_trash(self)
+		
 		webnotes.conn.sql("""delete from `tabTable of Contents`
 			where web_page=%s""", self.doc.name)
 		
@@ -35,6 +37,8 @@ class DocType():
 	def if_home_clear_cache(self):
 		"""if home page, clear cache"""
 		if webnotes.conn.get_value("Website Settings", None, "home_page")==self.doc.name:
+			WebsiteGenerator.on_update(self, page_name="index")
+
 			from webnotes.sessions import clear_cache
 			clear_cache('Guest')
 			

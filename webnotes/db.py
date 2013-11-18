@@ -357,6 +357,8 @@ class Database:
 			fl = ", ".join(fields)
 		else:
 			fl = fields
+			if fields=="*":
+				as_dict = True
 
 		conditions, filters = self.build_conditions(filters)
 	

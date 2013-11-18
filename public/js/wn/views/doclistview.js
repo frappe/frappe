@@ -64,7 +64,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 		
 		this.$page.find(".layout-main-section")
 			.css({"border-right":"1px solid #d7d7d7"})
-			.parent().css({"margin-top":"-20px"});
+			.parent().css({"margin-top":"-15px"});
 		this.appframe = this.page.appframe;
 		var module = locals.DocType[this.doctype].module;
 		

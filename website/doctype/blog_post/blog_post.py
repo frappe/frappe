@@ -5,16 +5,16 @@ from __future__ import unicode_literals
 
 import webnotes
 import webnotes.webutils
+from webnotes.webutils import WebsiteGenerator, cleanup_page_name
 from webnotes import _
 from webnotes.utils import today
 
-class DocType:
+class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
 	def autoname(self):
-		from webnotes.webutils import page_name
-		self.doc.name = page_name(self.doc.title)
+		self.doc.name = cleanup_page_name(self.doc.title)
 
 	def validate(self):
 		if self.doc.blog_intro:
@@ -29,7 +29,7 @@ class DocType:
 			where name=%s""", self.doc.blogger)
 
 	def on_update(self):
-		webnotes.webutils.update_page_name(self.doc, self.doc.title)
+		WebsiteGenerator.on_update(self)
 		webnotes.webutils.delete_page_cache("writers")
 
 	def get_context(self):

@@ -63,7 +63,7 @@ wn.ui.AppFrame = Class.extend({
 			this.title_right = $("<a>")
 				.html((icon ? '<i class="'+icon+'"></i> ' : "") + txt)
 				.click(click)
-				.prependTo($right);
+				.appendTo($right);
 			return this.title_right;
 		} else {
 			$right.empty();
@@ -79,8 +79,8 @@ wn.ui.AppFrame = Class.extend({
 				var $right = this.parent.find(".titlebar-item.text-right");
 				this.primary_action = $("<a>")
 					.html(wn._("Actions") + " <i class='icon-caret-down'></i>")
-					.css({"margin-left":"15px", "display":"inline-block"})
-					.appendTo($right);
+					.css({"margin-right":"15px", "display":"inline-block"})
+					.prependTo($right);
 			}
 			
 			var id = "dropdown-" + wn.dom.set_unique_id();

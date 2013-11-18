@@ -10,13 +10,11 @@ from webnotes.utils import get_request_site_address
 
 def get_context():
 	"""generate the sitemap XML"""
-	links = webnotes.webutils.get_website_sitemap().items()
 	host = get_request_site_address()
+	links = []
+	for l in webnotes.conn.sql("""select * from `tabWebsite Sitemap` where ifnull(no_sitemap, 0)=0""", 
+		as_dict=True):
+		links.append({"loc": urllib.basejoin(host, urllib.quote(l.page_name.encode("utf-8")))})
 	
-	for l in links:
-		l[1]["loc"] = urllib.basejoin(host, urllib.quote(l[1].get("page_name", l[1]["link_name"]).encode("utf-8")))
-	
-	return {
-		"links": [l[1] for l in links if not l[1].get("no_sitemap")]
-	}
+	return links
 	
