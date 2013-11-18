@@ -118,7 +118,7 @@ class DocList(list):
 				del self[i]
 				
 		for d in doclist:
-			if not d["name"]:
+			if not d.has_key("name"):
 				d["__islocal"] = 1
 				self.append(d)
 			else:
