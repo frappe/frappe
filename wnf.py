@@ -277,6 +277,7 @@ def latest(site=None, verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
 	import webnotes.plugins
+	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 	
 	webnotes.connect(site=site)
 	
@@ -292,6 +293,9 @@ def latest(site=None, verbose=True):
 		
 		# remove __init__.py from plugins
 		webnotes.plugins.remove_init_files()
+		
+		# build website config if any changes in templates etc.
+		build_website_sitemap_config()
 		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
@@ -423,9 +427,9 @@ def clear_web(site=None):
 
 @cmd
 def build_sitemap(site=None):
-	import webnotes.webutils
+	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 	webnotes.connect(site=site)
-	webnotes.webutils.build_sitemap()
+	build_website_sitemap_config()
 	webnotes.destroy()
 
 @cmd

@@ -2,7 +2,7 @@
  {
   "creation": "2013-11-18 15:35:00", 
   "docstatus": 0, 
-  "modified": "2013-11-18 18:36:01", 
+  "modified": "2013-11-19 11:37:52", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -80,6 +80,20 @@
   "fieldname": "no_sitemap", 
   "fieldtype": "Check", 
   "label": "No Sitemap", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_name_field", 
+  "fieldtype": "Data", 
+  "label": "Page Name Field", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "condition_field", 
+  "fieldtype": "Data", 
+  "label": "Condition Field", 
   "read_only": 1
  }
 ]

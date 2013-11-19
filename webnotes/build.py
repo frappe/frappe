@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 from webnotes.utils.minify import JavascriptMinify
-from webnotes.webutils import build_website_sitemap_config
 
 """
 Build the `public` folders and setup languages

@@ -302,6 +302,8 @@ class Bean:
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
+			if perm_to_check=="create":
+				self.run_method("after_insert")
 		else:
 			self.no_permission_to(_(perm_to_check.title()))
 		
