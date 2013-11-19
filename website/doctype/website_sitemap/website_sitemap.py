@@ -12,7 +12,7 @@ class DocType:
 		
 def add_to_sitemap(options):
 	doc = webnotes.doc({"doctype":"Website Sitemap"})
-	for key in ("page_name", "ref_doctype", "docname", "page_or_generator", "lastmod"):
+	for key in ("page_name", "docname", "page_or_generator", "lastmod"):
 		doc.fields[key] = options.get(key)
 	if not doc.page_name:
 		doc.page_name = options.link_name
