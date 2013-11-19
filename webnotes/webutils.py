@@ -243,7 +243,8 @@ class WebsiteGenerator(object):
 			"docname": self.doc.name, 
 			"page_name": page_name,
 			"link_name": self._website_config.name,
-			"lastmod": self.doc.modified}))
+			"lastmod": webnotes.utils.get_datetime(self.doc.modified).strftime("%Y-%m-%d")
+		}))
 			
 	def check_if_page_name_is_unique(self, new_page_name):
 		if webnotes.conn.sql("""select name from `tabWebsite Sitemap` where name=%s 

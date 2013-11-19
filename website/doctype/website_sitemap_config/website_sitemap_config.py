@@ -6,6 +6,7 @@
 from __future__ import unicode_literals
 import webnotes
 import webnotes.utils
+import os, datetime
 
 from website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
@@ -29,7 +30,6 @@ class DocType:
 		webnotes.conn.sql("""delete from `tabWebsite Sitemap` 
 			where website_sitemap_config = %s""", self.doc.name)
 
-import os, time
 
 def rebuild_website_sitemap_config():
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap Config`""")
@@ -72,7 +72,7 @@ def build_website_sitemap_config():
 def add_website_sitemap_config(page_or_generator, path, fname, existing_configs):
 	basepath = webnotes.utils.get_base_path()
 	template_path = os.path.relpath(os.path.join(path, fname), basepath)
-	lastmod = time.ctime(os.path.getmtime(template_path))
+	lastmod = datetime.datetime.fromtimestamp(os.path.getmtime(template_path)).strftime("%Y-%m-%d")
 
 	name = fname[:-5] if fname.endswith(".html") else fname
 	

@@ -152,6 +152,8 @@ def setup_utilities(parser):
 		help="Clear website cache")
 	parser.add_argument("--build_sitemap", default=False, action="store_true",
 		help="Build Website Sitemap")
+	parser.add_argument("--rebuild_sitemap", default=False, action="store_true",
+		help="Rebuild Website Sitemap")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
@@ -430,6 +432,13 @@ def build_sitemap(site=None):
 	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 	webnotes.connect(site=site)
 	build_website_sitemap_config()
+	webnotes.destroy()
+
+@cmd
+def rebuild_sitemap(site=None):
+	from website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
+	webnotes.connect(site=site)
+	rebuild_website_sitemap_config()
 	webnotes.destroy()
 
 @cmd
