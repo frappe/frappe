@@ -2,14 +2,12 @@
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
-
 from webnotes import conf
 import webnotes
 import json, os, time
 from webnotes import _
 import webnotes.utils
 import mimetypes
-
 from website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
 class PageNotFoundError(Exception): pass
@@ -252,7 +250,7 @@ class WebsiteGenerator(object):
 			and website_sitemap_config!=%s and docname!=%s""", (new_page_name, 
 				self._website_config.name, self.doc.name)):
 				webnotes.throw("%s: %s. %s: <b>%s<b>" % (new_page_name, _("Page already exists"),
-					_("Please change the value"), title))
+					_("Please change the value"), self.doc.title))
 		
 	def on_trash(self):
 		self.setup_generator()
@@ -267,7 +265,7 @@ def cleanup_page_name(title):
 	"""make page name from title"""
 	import re
 	name = title.lower()
-	name = re.sub('[~!@#$%^&*+()<>,."\']', '', name)
+	name = re.sub('[~!@#$%^&*+()<>,."\'\?]', '', name)
 	name = re.sub('[:/]', '-', name)
 
 	name = '-'.join(name.split())
