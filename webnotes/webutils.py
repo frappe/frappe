@@ -20,6 +20,11 @@ def render(page_name):
 		html = render_page(page_name or "index")
 	except PageNotFoundError:
 		html = render_page("404")
+	except webnotes.DoesNotExistError:
+		if page_name=="index":
+			html = render_page("login")
+		else:
+			html = render_page("404")
 	except Exception:
 		html = render_page("error")
 	
@@ -218,9 +223,9 @@ class WebsiteGenerator(object):
 	def on_update(self, page_name=None):
 		self.setup_generator()
 		if self._website_config.condition_field:
-			if not self.doc.fields[self._website_config.condition_field]:
+			if not self.doc.fields.get(self._website_config.condition_field):
 				# condition field failed, return
-				remove_page(self.doc.fields[self._website_config.page_name_field])
+				remove_page(self.doc.fields.get(self._website_config.page_name_field))
 				return
 
 		if not page_name:

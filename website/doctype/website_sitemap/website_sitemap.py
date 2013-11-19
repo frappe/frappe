@@ -19,4 +19,3 @@ def add_to_sitemap(options):
 	doc.name = doc.page_name
 	doc.website_sitemap_config = options.link_name
 	doc.insert()
-	webnotes.conn.commit()

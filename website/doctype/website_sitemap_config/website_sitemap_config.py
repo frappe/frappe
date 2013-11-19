@@ -34,7 +34,6 @@ import os, time
 def rebuild_website_sitemap_config():
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap Config`""")
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap`""")
-	webnotes.conn.commit()
 	build_website_sitemap_config()
 
 def build_website_sitemap_config():		
@@ -67,7 +66,9 @@ def build_website_sitemap_config():
 					
 	for name in existing_configs:
 		webnotes.delete_doc("Website Sitemap Config", name)
-		
+
+	webnotes.conn.commit()
+
 def add_website_sitemap_config(page_or_generator, path, fname, existing_configs):
 	basepath = webnotes.utils.get_base_path()
 	template_path = os.path.relpath(os.path.join(path, fname), basepath)
@@ -105,6 +106,5 @@ def add_website_sitemap_config(page_or_generator, path, fname, existing_configs)
 		wsc.condition_field = getattr(module, "condition_field", None)
 		
 	webnotes.bean(wsc).insert()
-	webnotes.conn.commit()
 	
 	return name

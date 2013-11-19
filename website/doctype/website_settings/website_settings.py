@@ -10,7 +10,6 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def validate(self):
-		self.set_home_page()
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		
@@ -59,6 +58,8 @@ class DocType:
 	def on_update(self):
 		# make js and css
 		# clear web cache (for menus!)
+		self.set_home_page()
+
 		from webnotes.webutils import clear_cache
 		clear_cache()
 
