@@ -230,7 +230,7 @@ class WebsiteGenerator(object):
 	
 			remove_page(self.doc.page_name)
 
-			if self.doc.fields[self._website_config.page_name_field]!=new_page_name: 
+			if self.doc.fields.get(self._website_config.page_name_field)!=new_page_name: 
 				webnotes.conn.set(self.doc, self._website_config.page_name_field, new_page_name)
 				
 			page_name = new_page_name
@@ -244,7 +244,8 @@ class WebsiteGenerator(object):
 			
 	def check_if_page_name_is_unique(self, new_page_name):
 		if webnotes.conn.sql("""select name from `tabWebsite Sitemap` where name=%s 
-			and ref_doctype!=%s and docname!=%s""", (new_page_name, self.doc.doctype, self.doc.name)):
+			and website_sitemap_config!=%s and docname!=%s""", (new_page_name, 
+				self._website_config.name, self.doc.name)):
 				webnotes.throw("%s: %s. %s: <b>%s<b>" % (new_page_name, _("Page already exists"),
 					_("Please change the value"), title))
 		

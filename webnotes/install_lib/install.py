@@ -97,7 +97,7 @@ class Installer:
 		if not self.site:
 			from webnotes.build import bundle
 			bundle(False)
-		
+					
 		return db_name
 		
 	def install_app(self, verbose=False):
@@ -114,6 +114,10 @@ class Installer:
 
 		if os.path.exists(os.path.join("app", "startup", "install_fixtures")):
 			install_fixtures()
+
+		# build website sitemap
+		from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+		build_website_sitemap_config()
 
 		if verbose: print "Completing App Import..."
 		install and install.post_import()

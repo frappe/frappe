@@ -10,8 +10,8 @@ class DocType(WebsiteGenerator):
 		self.doc, self.doclist = d, dl
 
 	def autoname(self):
-		from webnotes.webutils import page_name
-		self.doc.name = page_name(self.doc.title)
+		from webnotes.webutils import cleanup_page_name
+		self.doc.name = cleanup_page_name(self.doc.title)
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)
@@ -37,6 +37,8 @@ class DocType(WebsiteGenerator):
 	def if_home_clear_cache(self):
 		"""if home page, clear cache"""
 		if webnotes.conn.get_value("Website Settings", None, "home_page")==self.doc.name:
+			if webnotes.conn.exists("Website Sitemap", "index"):
+				webnotes.delete_doc("Website Sitemap", "index", ignore_permissions=True)
 			WebsiteGenerator.on_update(self, page_name="index")
 
 			from webnotes.sessions import clear_cache

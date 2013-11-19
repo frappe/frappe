@@ -63,13 +63,16 @@ class DocType:
 		clear_cache()
 
 	def set_home_page(self):
-		from webnotes.model.doc import Document
-		webnotes.conn.sql("""delete from `tabDefault Home Page` where role='Guest'""")
+		if self.doc.home_page:
+			webnotes.bean("Web Page", self.doc.home_page).save()
+			
+			from webnotes.model.doc import Document
+			webnotes.conn.sql("""delete from `tabDefault Home Page` where role='Guest'""")
 		
-		d = Document('Default Home Page')
-		d.parent = 'Control Panel'
-		d.parenttype = 'Control Panel'
-		d.parentfield = 'default_home_pages'
-		d.role = 'Guest'
-		d.home_page = self.doc.home_page
-		d.save()
+			d = Document('Default Home Page')
+			d.parent = 'Control Panel'
+			d.parenttype = 'Control Panel'
+			d.parentfield = 'default_home_pages'
+			d.role = 'Guest'
+			d.home_page = self.doc.home_page
+			d.save()
