@@ -16,7 +16,8 @@ class DocType:
 
 	def after_insert(self):
 		if self.doc.page_or_generator == "Page":
-			add_to_sitemap(self.doc.fields)
+			lastmod = datetime.datetime.fromtimestamp(float(self.doc.fields.lastmod)).strftime("%Y-%m-%d")
+			add_to_sitemap(self.doc.fields.copy().update({"lastmod": lastmod}))
 		else:
 			condition = ""
 			if self.doc.condition_field:
@@ -43,8 +44,9 @@ def build_website_sitemap_config():
 	existing_configs = dict(webnotes.conn.sql("""select name, lastmod from `tabWebsite Sitemap Config`"""))
 		
 	for path, folders, files in os.walk(basepath, followlinks=True):
-		if 'locale' in folders: 
-			folders.remove('locale')
+		for ignore in ('locale', 'public'):
+			if ignore in folders: 
+				folders.remove(ignore)
 
 		# utility - remove pyc files
 		for f in files:
@@ -72,12 +74,12 @@ def build_website_sitemap_config():
 def add_website_sitemap_config(page_or_generator, path, fname, existing_configs):
 	basepath = webnotes.utils.get_base_path()
 	template_path = os.path.relpath(os.path.join(path, fname), basepath)
-	lastmod = datetime.datetime.fromtimestamp(os.path.getmtime(template_path)).strftime("%Y-%m-%d")
+	lastmod = int(os.path.getmtime(template_path))
 
 	name = fname[:-5] if fname.endswith(".html") else fname
 	
 	config_lastmod = existing_configs.get(name)
-	if config_lastmod != lastmod:
+	if str(config_lastmod) != str(lastmod):
 		webnotes.delete_doc("Website Sitemap Config", name)
 	else:
 		return name
