@@ -48,11 +48,6 @@ def build_website_sitemap_config():
 			if ignore in folders: 
 				folders.remove(ignore)
 
-		# utility - remove pyc files
-		for f in files:
-			if f.decode("utf-8").endswith(".pyc"):
-				os.remove(os.path.join(path, f))
-
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
 				fname = webnotes.utils.cstr(fname)
