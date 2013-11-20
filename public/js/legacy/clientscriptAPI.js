@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
