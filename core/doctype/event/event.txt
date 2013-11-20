@@ -2,7 +2,7 @@
  {
   "creation": "2013-06-10 13:17:47", 
   "docstatus": 0, 
-  "modified": "2013-11-03 11:08:35", 
+  "modified": "2013-11-20 12:45:15", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -51,6 +51,7 @@
   "doctype": "DocField", 
   "fieldname": "subject", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Subject", 
   "reqd": 1
  }, 
@@ -195,7 +196,7 @@
   "doctype": "DocField", 
   "fieldname": "description", 
   "fieldtype": "Text Editor", 
-  "in_list_view": 1, 
+  "in_list_view": 0, 
   "label": "Description", 
   "no_copy": 0, 
   "oldfieldname": "description", 

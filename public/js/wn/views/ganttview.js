@@ -132,6 +132,11 @@ wn.views.Gantt = Class.extend({
 			$.each(me.field_map, function(target, source) {
 				v[target] = v[source];
 			});
+			
+			if(v.start && !v.end) {
+				v.end = new Date(v.start)
+				v.end.setHours(v.end.getHours() + 1);
+			}
 
 			if(v.start && v.end) {
 				source.push({
