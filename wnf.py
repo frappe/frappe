@@ -297,13 +297,28 @@ def latest(site=None, verbose=True):
 		webnotes.plugins.remove_init_files()
 		
 		# build website config if any changes in templates etc.
-		build_website_sitemap_config()
+		del_pycs = not webnotes.conf.sites_dir
+		build_website_sitemap_config(del_pycs=del_pycs)
 		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
 		raise
 	finally:
 		webnotes.destroy()
+
+def delete_pycs():
+	import webnotes.utils
+	import os
+	basepath = webnotes.utils.get_base_path()
+
+	for path, folders, files in os.walk(basepath, followlinks=True):
+		for ignore in ('locale', 'public'):
+			if ignore in folders:
+				folders.remove(ignore)
+
+		for f in files:
+			if f.decode("utf-8").endswith(".pyc"):
+				os.remove(os.path.join(path, f))
 
 @cmd
 def sync_all(site=None, force=False):
@@ -339,9 +354,11 @@ def reload_doc(module, doctype, docname, site=None, force=False):
 	webnotes.destroy()
 
 @cmd
-def build():
+def build(del_pycs=True):
 	import webnotes.build
 	webnotes.build.bundle(False)
+	if del_pycs:
+		delete_pycs()
 
 @cmd
 def watch():
