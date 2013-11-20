@@ -138,12 +138,10 @@ wn.views.ListView = Class.extend({
 			this.id_list.push(data.name);
 		
 		
-		var body = $('<div class="doclist-row" style="display: table; width: 100%; table-layout: fixed">\
-			<div class="list-row-id-area" style="width: 200px; display: table-cell; \
-				vertical-align: middle; white-space: nowrap;\
+		var body = $('<div class="doclist-row row">\
+			<div class="list-row-id-area col-sm-3" style="white-space: nowrap;\
 				text-overflow: ellipsis; max-height: 30px"></div>\
-			<div class="list-row-content-area row" style="display: table-cell; \
-				vertical-align: middle;"></div>\
+			<div class="list-row-content-area col-sm-9"></div>\
 		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
@@ -219,7 +217,7 @@ wn.views.ListView = Class.extend({
 		
 		var $avatar = $(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
 			+ wn.user_info(data.modified_by).fullname))
-				.appendTo($(parent).css({"margin-top": "-5px"}))
+				.appendTo(parent)
 				.css({"max-width": "100%"})
 
 

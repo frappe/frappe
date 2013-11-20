@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-11-02 14:05:24", 
+  "modified": "2013-11-20 11:57:55", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -65,6 +65,7 @@
   "doctype": "DocField", 
   "fieldname": "subject", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Subject", 
   "reqd": 1
  }, 
@@ -131,6 +132,7 @@
   "doctype": "DocField", 
   "fieldname": "communication_medium", 
   "fieldtype": "Select", 
+  "in_list_view": 1, 
   "label": "Communication Medium", 
   "options": "\nChat\nPhone\nEmail\nSMS\nVisit\nOther"
  }, 
