@@ -19,7 +19,7 @@ def render(page_name):
 	except PageNotFoundError:
 		html = render_page("404")
 	except webnotes.DoesNotExistError:
-		if page_name=="index":
+		if not page_name or page_name=="index":
 			html = render_page("login")
 		else:
 			html = render_page("404")
