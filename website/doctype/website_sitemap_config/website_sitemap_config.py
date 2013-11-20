@@ -37,7 +37,7 @@ def rebuild_website_sitemap_config():
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap`""")
 	build_website_sitemap_config()
 
-def build_website_sitemap_config():		
+def build_website_sitemap_config(del_pycs=True):
 	config = {"pages": {}, "generators":{}}
 	basepath = webnotes.utils.get_base_path()
 	
@@ -49,9 +49,10 @@ def build_website_sitemap_config():
 				folders.remove(ignore)
 
 		# utility - remove pyc files
-		for f in files:
-			if f.decode("utf-8").endswith(".pyc"):
-				os.remove(os.path.join(path, f))
+		if del_pycs:
+			for f in files:
+				if f.decode("utf-8").endswith(".pyc"):
+					os.remove(os.path.join(path, f))
 
 		if os.path.basename(path)=="pages" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
