@@ -105,7 +105,7 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 		msg=d.content, footer=footer)
 	
 	if send_me_a_copy:
-		mail.cc.append(d.sender)
+		mail.cc.append(webnotes.conn.get_value("Profile", webnotes.session.user, "email"))
 	
 	if print_html:
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)
