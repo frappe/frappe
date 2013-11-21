@@ -15,7 +15,7 @@ img {
 }
 
 .content {
-	padding-bottom: 30px;
+	margin-bottom: 22px;
 }
 
 .banner {
@@ -152,26 +152,27 @@ div.web-footer {
 	display: inline-block;
 }
 
-.navbar {
-	box-shadow: none;
-	border-radius: 0px;
-}
-
 @media (min-width: 768px) {
 	.visible-xs-inline, .visible-xs-inline-block {
 		display: none;
 	}
 }
+
+.navbar {
+	box-shadow: none;
+	border-radius: 0px;
+	margin-bottom: 7px;
+}
+
+.navbar-brand {
+	padding-right: 30px;
+}
+
 .panel-heading, 
 .panel-body {
 	padding-left: 15px;
 }
 
-
-.breadcrumb {
-	margin: 0px -20px;
-	margin-bottom: 20px;
-}
 
 fieldset {
 	margin-bottom: 20px;

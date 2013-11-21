@@ -23,12 +23,10 @@
 	{%- endblock %}
 </head>
 <body>
+	{% block banner %}{{ banner_html }}{% endblock %}
 	{% block navbar %}{% include "lib/website/templates/includes/navbar.html" %}{% endblock %}
-	<div class="container page-container" id="page-{{ name }}">
-		{% block banner %}{% endblock %}
-		<div class="content" style="display: block;">
-			{% block content %}{% endblock %}
-		</div>
+	<div class="page-container" id="page-{{ name }}">
+		{% block content %}{% endblock %}
 	</div>
 	{% block footer %}{% include "lib/website/templates/includes/footer.html" %}{% endblock %}
 </body>
