@@ -31,11 +31,10 @@ img {
 	color: #888;
 }
 
-.social-icons {
+.social-icons i {
 	font-size: 120%;
-	float: right;
-	text-align: right;
 }
+
 .social-icons a:hover {
 	text-decoration: none;
 }
@@ -46,21 +45,9 @@ img {
 	margin-left: 5px;
 }
 
-div.web-footer {
-	padding-top: 10px;
-	padding-bottom: 20px;
-}
-
-.web-footer-menu ul {
-	list-style: none;
-	margin: 0px;
-	padding: 0px;
-}
-
-.web-footer-menu ul li {
-	display: inline;
-	padding: 2px 14px 2px 0px;
-	margin: 0px;
+.web-footer {
+	margin-top: 10px;
+	margin-bottom: 20px;
 }
 
 .avatar {
@@ -166,6 +153,10 @@ div.web-footer {
 
 .navbar-brand {
 	padding-right: 30px;
+}
+
+.panel-container {
+	margin-top: 35px;
 }
 
 .panel-heading, 
