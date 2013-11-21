@@ -34,13 +34,16 @@
 		{% if copyright %}<div class="web-footer-copyright">&copy; {{ copyright }}</div>{% endif %}
 		{% if footer_address %}{{ footer_address }}{% endif %}
 		{% block extension %}{% endblock %}
-
-		<p style="float: right; clear: both; margin: 15px auto;">
-		{% block powered %}
-			<a style="font-size: 90%; color: #aaa;" href="http://getwebnotes.org">Built on Web Notes</a>
-		{% endblock %}
-		</p>
 		</div>
 	</div>
+	<section>
+		<div class="container">
+			<p style="margin: 7px auto;" class="text-right">
+			{% block powered %}
+				<small><a href="http://getwebnotes.org" class="text-muted">Built on Web Notes</a></small>
+			{% endblock %}
+			</p>
+		</div>
+	</section>
 	</div>
 </footer>
