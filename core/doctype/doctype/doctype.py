@@ -4,7 +4,7 @@
 from __future__ import unicode_literals
 
 import webnotes
-from webnotes import msgprint
+from webnotes import msgprint, _
 import os
 
 from webnotes.utils import now, cint
@@ -100,11 +100,13 @@ class DocType:
 		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
 		webnotes.conn.sql("delete from `tabReport` where ref_doctype=%s", self.doc.name)
 	
-	def on_rename(self, new, old, merge=False):
+	def before_rename(self, old, new, merge=False):
+		if merge:
+			webnotes.throw(_("DocType can not be merged"))
+			
+	def after_rename(self, old, new, merge=False):
 		if self.doc.issingle:
-			webnotes.conn.sql("""\
-				update tabSingles set doctype=%s
-				where doctype=%s""", (new, old))
+			webnotes.conn.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 		else:
 			webnotes.conn.sql("rename table `tab%s` to `tab%s`" % (old, new))
 	

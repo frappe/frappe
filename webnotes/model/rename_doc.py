@@ -3,7 +3,6 @@
 
 from __future__ import unicode_literals
 import webnotes
-from webnotes import _
 from webnotes.utils import cint
 import webnotes.model.doctype
 from webnotes.model.doc import validate_name
@@ -23,10 +22,10 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	# get doclist of given doctype
 	doclist = webnotes.model.doctype.get(doctype)
 	
-	# call on_rename
-	obj = webnotes.get_obj(doctype, old)
-	if hasattr(obj, 'on_rename'):
-		new = obj.on_rename(new, old, merge) or new
+	# call before_rename
+	old_obj = webnotes.get_obj(doctype, old)
+	if hasattr(old_obj, 'before_rename'):
+		new = old_obj.before_rename(old, new, merge) or new
 		
 	new = validate_rename(doctype, new, doclist, merge, force)
 		
@@ -44,6 +43,11 @@ def rename_doc(doctype, old, new, force=False, merge=False):
 	
 	if merge:
 		webnotes.delete_doc(doctype, old)
+		
+	# call after_rename
+	new_obj = webnotes.get_obj(doctype, new)
+	if hasattr(new_obj, 'after_rename'):
+		new_obj.after_rename(old, new, merge)
 		
 	return new
 

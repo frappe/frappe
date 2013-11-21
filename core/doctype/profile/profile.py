@@ -237,11 +237,27 @@ Thank you,<br>
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
 			
-	
-	def on_rename(self,newdn,olddn, merge=False):
+	def before_rename(self, olddn, newdn, merge=False):
 		webnotes.clear_cache(user=olddn)
-		self.validate_rename(newdn, olddn)
-			
+		self.validate_rename(olddn, newdn)
+	
+	def validate_rename(self, olddn, newdn):
+		# do not allow renaming administrator and guest
+		if olddn in ["Administrator", "Guest"]:
+			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
+				(olddn, ), raise_exception=1)
+		
+		self.validate_email_type(newdn)
+	
+	def validate_email_type(self, email):
+		from webnotes.utils import validate_email_add
+	
+		email = email.strip()
+		if not validate_email_add(email):
+			webnotes.msgprint("%s is not a valid email id" % email)
+			raise Exception
+	
+	def after_rename(self, olddn, newdn, merge=False):			
 		tables = webnotes.conn.sql("show tables")
 		for tab in tables:
 			desc = webnotes.conn.sql("desc `%s`" % tab[0], as_dict=1)
@@ -263,21 +279,6 @@ Thank you,<br>
 		# update __Auth table
 		if not merge:
 			webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
-		
-	def validate_rename(self, newdn, olddn):
-		# do not allow renaming administrator and guest
-		if olddn in ["Administrator", "Guest"]:
-			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
-				(olddn, ), raise_exception=1)
-		
-		self.validate_email_type(newdn)
-	
-	def validate_email_type(self, email):
-		from webnotes.utils import validate_email_add
-	
-		email = email.strip()
-		if not validate_email_add(email):
-			webnotes.throw("%s is not a valid email id" % email)
 			
 	def add_roles(self, *roles):
 		for role in roles:
