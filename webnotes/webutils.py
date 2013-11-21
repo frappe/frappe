@@ -255,7 +255,7 @@ class WebsiteGenerator(object):
 		
 	def on_trash(self):
 		self.setup_generator()
-		remove_page(self.doc.fields[self._page_name_field])
+		remove_page(self.doc.fields[self._website_config.page_name_field])
 
 def remove_page(page_name):
 	if page_name:

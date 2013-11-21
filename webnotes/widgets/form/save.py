@@ -14,7 +14,11 @@ def savedocs():
 		# action
 		action = webnotes.form_dict.action
 		if action=='Update': action='update_after_submit'
-		getattr(wrapper, action.lower())()
+		try:
+			getattr(wrapper, action.lower())()
+		except NameError, e:
+			webnotes.msgprint(webnotes._("Name Exists"))
+			raise
 
 		# update recent documents
 		webnotes.user.update_recent(wrapper.doc.doctype, wrapper.doc.name)
