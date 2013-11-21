@@ -2,8 +2,7 @@
 	<section class="footer-links">
 		<div class="container">
 			<div class="row">
-				<div id="website-login" class="col-xs-3 col-xs-push-9 text-right"><a href="login">Login</a></div>
-				<div class="col-xs-9 col-xs-pull-3 web-footer-menu">
+				<div class="col-xs-9 web-footer-menu">
 					<ul class="list-inline">
 						{% for item in footer_items %}
 						<li><a href="{{ item.url }}" {{ item.target }}
@@ -11,6 +10,8 @@
 						{% endfor %}
 					</ul>
 				</div>
+				<div id="website-login" class="col-xs-3 text-right">
+					<a href="login">Login</a></div>
 			</div>
 			<div class="row">
 				<div class="col-sm-8">
