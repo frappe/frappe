@@ -207,7 +207,13 @@ class DbColumn:
 		self.options = options
 
 	def get_definition(self, with_default=1):
-		return get_definition(self.fieldtype, with_default)
+		ret = get_definition(self.fieldtype)
+
+		if with_default and self.default and (self.default not in default_shortcuts) \
+			and not self.default.startswith(":") and d[0] not in ['text', 'longblob']:
+			ret += ' default "' + self.default.replace('"', '\"') + '"'
+			
+		return ret
 		
 	def check(self, current_def):
 		column_def = self.get_definition(0)
@@ -412,7 +418,7 @@ def remove_all_foreign_keys():
 		for f in fklist:
 			webnotes.conn.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
 
-def get_definition(fieldtype, with_default=False):
+def get_definition(fieldtype):
 	d = type_map.get(fieldtype.lower())
 
 	if not d:
@@ -421,9 +427,6 @@ def get_definition(fieldtype, with_default=False):
 	ret = d[0]
 	if d[1]:
 		ret += '(' + d[1] + ')'
-	if with_default and self.default and (self.default not in default_shortcuts) \
-		and not self.default.startswith(":") and d[0] not in ['text', 'longblob']:
-		ret += ' default "' + self.default.replace('"', '\"') + '"'
 	return ret
 
 

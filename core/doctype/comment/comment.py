@@ -44,6 +44,9 @@ class DocType:
 					from webnotes.model.db_schema import add_column
 					add_column(self.doc.comment_doctype, "_comments", "Text")
 					self.update_comment_in_doc()
+				elif e.args[0]==1146:
+					# no table
+					pass
 				else:
 					raise
 	
