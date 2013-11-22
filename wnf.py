@@ -141,6 +141,7 @@ def setup_utilities(parser):
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
 	parser.add_argument("--python", action="store_true", help="get python shell for a site")
+	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
 	parser.add_argument("--update_site_config", nargs=1, 
 		metavar="SITE-CONFIG-JSON", 
@@ -610,6 +611,13 @@ def python(site=None):
 	os.environ["PYTHONSTARTUP"] = os.path.join(os.path.dirname(__file__), "pythonrc.py")
 	os.execv(python, [python])
 	webnotes.destroy()
+
+@cmd
+def ipython(site=None):
+	import webnotes
+	webnotes.connect(site=site)
+	import IPython
+	IPython.embed()
 
 @cmd
 def smtp_debug_server():
