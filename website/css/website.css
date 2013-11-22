@@ -145,6 +145,14 @@ img {
 	}
 }
 
+/* the element that this class is applied to, should have a max width for this to work*/
+.ellipsis {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: inline-block;
+}
+
 .navbar {
 	box-shadow: none;
 	border-radius: 0px;
@@ -153,6 +161,13 @@ img {
 
 .navbar-brand {
 	padding-right: 30px;
+	max-width: 80%;
+}
+
+@media (min-width: 768px) {
+	.navbar-brand {
+		max-width: 300px;
+	}
 }
 
 .panel-container {
