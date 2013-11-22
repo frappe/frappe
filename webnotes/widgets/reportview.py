@@ -118,7 +118,6 @@ def load_doctypes():
 	
 def remove_user_tags(doctype, fields):
 	"""remove column _user_tags if not in table"""
-	print fields
 	columns = get_table_columns(doctype)
 	del_user_tags = False
 	del_comments = False
