@@ -213,8 +213,7 @@ def is_signup_enabled():
 		
 	return webnotes.local.is_signup_enabled
 
-from webnotes.model.controller import DocListController
-class WebsiteGenerator(DocListController):
+class WebsiteGenerator(object):
 	def setup_generator(self):
 		self._website_config = webnotes.conn.get_values("Website Sitemap Config", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
