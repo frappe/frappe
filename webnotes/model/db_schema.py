@@ -210,7 +210,7 @@ class DbColumn:
 		ret = get_definition(self.fieldtype)
 
 		if with_default and self.default and (self.default not in default_shortcuts) \
-			and not self.default.startswith(":") and d[0] not in ['text', 'longblob']:
+			and not self.default.startswith(":") and ret not in ['text', 'longblob']:
 			ret += ' default "' + self.default.replace('"', '\"') + '"'
 			
 		return ret
