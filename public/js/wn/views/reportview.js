@@ -202,7 +202,9 @@ wn.views.ReportView = wn.ui.Listing.extend({
 				name: wn._(docfield ? docfield.label : toTitle(c[0])),
 				width: (docfield ? cint(docfield.width) : 120) || 120,
 				formatter: function(row, cell, value, columnDef, dataContext) {
-					var docfield = columnDef.docfield;	
+					var docfield = columnDef.docfield;
+					if(docfield.fieldname==="_user_tags") docfield.fieldtype = "Tag";
+					if(docfield.fieldname==="_comments") docfield.fieldtype = "Comment";
 					return wn.format(value, docfield, null, dataContext);
 				}
 			}

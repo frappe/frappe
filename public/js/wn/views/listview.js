@@ -33,7 +33,7 @@ wn.views.ListView = Class.extend({
 		var me = this;
 		var t = "`tab"+this.doctype+"`.";
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
-			t + '_user_tags', t + 'modified', t + 'modified_by'];
+			t + '_user_tags', t + '_comments', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
 		
 		// add workflow field (as priority)
@@ -159,8 +159,21 @@ wn.views.ListView = Class.extend({
 			}
 		});
 		
+		var comments = data._comments ? JSON.parse(data._comments) : []
 		
-		var timestamp = $('<div class="list-timestamp">').appendTo(row).html(comment_when(data.modified));
+		var timestamp_and_comment = 
+			$('<div class="list-timestamp">')
+				.appendTo(row)
+				.html((comments.length ? 
+					('<a style="margin-right: 10px;" href="#Form/'+
+						this.doctype + '/' + data.name 
+						+'" title="'+
+						comments[comments.length-1].comment
+						+'"><i class="icon-comments"></i> ' 
+						+ comments.length + " " + (
+							comments.length===1 ? wn._("comment") : wn._("comments")) + '</a>')
+					: "")
+					+ comment_when(data.modified));
 		
 		// row #2
 		var row2 = $('<div class="row tag-row">\

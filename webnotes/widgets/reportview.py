@@ -118,11 +118,17 @@ def load_doctypes():
 	
 def remove_user_tags(doctype, fields):
 	"""remove column _user_tags if not in table"""
+	columns = get_table_columns(doctype)
+	del_user_tags = False
+	del_comments = False
 	for fld in fields:
-		if '_user_tags' in fld:
-			if not '_user_tags' in get_table_columns(doctype):
-				del fields[fields.index(fld)]
-				break
+		if '_user_tags' in fld and not "_user_tags" in columns:
+			del_user_tags = fld
+		if '_comments' in fld and not "_comments" in columns:
+			del_comments = fld
+
+	if del_user_tags: del fields[fields.index(del_user_tags)]
+	if del_comments: del fields[fields.index(del_comments)]
 
 def add_limit(limit_start, limit_page_length):
 	if limit_page_length:

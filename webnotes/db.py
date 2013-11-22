@@ -481,11 +481,11 @@ class Database:
 			except:
 				return None
 				
-	def count(self, dt, filters=None):
+	def count(self, dt, filters=None, debug=False):
 		if filters:
 			conditions, filters = self.build_conditions(filters)
 			return webnotes.conn.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters)[0][0]
+				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
 		else:
 			return webnotes.conn.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]

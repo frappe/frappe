@@ -4,14 +4,20 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.webutils import WebsiteGenerator
+from webnotes import _
+from webnotes.model.controller import DocListController
 
-class DocType(WebsiteGenerator):
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-
+class DocType(DocListController, WebsiteGenerator):
 	def autoname(self):
 		from webnotes.webutils import cleanup_page_name
 		self.doc.name = cleanup_page_name(self.doc.title)
+		
+	def validate(self):
+		for d in self.doclist.get({"parentfield": "toc"}):
+			if d.web_page == self.doc.name:
+				webnotes.throw('{web_page} "{name}" {not_in_own} {toc}'.format(
+					web_page=_("Web Page"), name=d.web_page,
+					not_in_own=_("cannot be in its own"), toc=_(self.meta.get_label("toc"))))
 
 	def on_update(self):
 		WebsiteGenerator.on_update(self)

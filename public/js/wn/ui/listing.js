@@ -357,7 +357,7 @@ wn.ui.Listing = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname==='_user_tags') {
+			if(['_user_tags', '_comments'].indexOf(fieldname)!==-1) {
 				this.filter_list.add_filter(doctype, fieldname, 
 					'like', '%' + label);
 			} else {

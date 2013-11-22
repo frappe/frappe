@@ -3,6 +3,7 @@
 {% set title="Error" %}
 
 {% block content %}
+<div class="container content panel-container">
 	<div class="panel panel-danger">
 		<div class="panel-heading">
 				<i class="icon-exclamation-sign"></i> Oops, a server error has occured
@@ -11,4 +12,5 @@
 			<pre>%(error)s</pre>
 		</div>
 	</div>
+</div>
 {% endblock %}

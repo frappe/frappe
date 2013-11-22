@@ -41,11 +41,14 @@ class DocType():
 				pass
 
 		# if file not attached to any other record, delete it
-		if self.doc.file_name and webnotes.conn.sql("""select count(*) from `tabFile Data`
-			where file_name=%s and name!=%s""", (self.doc.file_name, self.doc.name)):
-			path = webnotes.utils.get_site_path(conf.files_path, self.doc.file_name)
-			if os.path.exists(path):
-				os.remove(path)
+		if self.doc.file_name and not webnotes.conn.count("File Data", 
+			{"file_name": self.doc.file_name, "name": ["!=", self.doc.name]}):
+				if self.doc.file_name.startswith("files/"):
+					path = webnotes.utils.get_site_path("public", self.doc.file_name)
+				else:
+					path = webnotes.utils.get_site_path(conf.files_path, self.doc.file_name)
+				if os.path.exists(path):
+					os.remove(path)
 
 	def on_rollback(self):
 		self.on_trash()

@@ -16,6 +16,12 @@ $.extend(cur_frm.cscript, {
 			}
 		}
 	},
+	onload: function() {
+		// set query!
+		cur_frm.set_query("web_page", "toc", function() {
+			return {"filters": {"name": ["!=", cur_frm.doc.name]}};
+		});
+	},
 	refresh: function(doc) {
 		cur_frm.cscript.layout(doc);
 		if(!doc.__islocal && doc.published) {
@@ -30,4 +36,4 @@ $.extend(cur_frm.cscript, {
 	insert_code: function(doc) {
 		cur_frm.cscript.layout(doc);		
 	}
-})
+});
