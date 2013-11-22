@@ -9,7 +9,7 @@ $.extend(wn.model, {
  	'Button', 'Image'],
 
 	std_fields_list: ['name', 'owner', 'creation', 'modified', 'modified_by',
-		'_user_tags', 'docstatus', 'parent', 'parenttype', 'parentfield', 'idx'],
+		'_user_tags', '_comments', 'docstatus', 'parent', 'parenttype', 'parentfield', 'idx'],
 	std_fields: [
 		{fieldname:'name', fieldtype:'Link', label:'ID'},
 		{fieldname:'owner', fieldtype:'Data', label:'Created By'},
@@ -17,6 +17,7 @@ $.extend(wn.model, {
 		{fieldname:'modified', fieldtype:'Date', label:'Last Updated On'},
 		{fieldname:'modified_by', fieldtype:'Data', label:'Last Updated By'},
 		{fieldname:'_user_tags', fieldtype:'Data', label:'Tags'},
+		{fieldname:'_comments', fieldtype:'Text', label:'Comments'},
 		{fieldname:'docstatus', fieldtype:'Int', label:'Document Status'},
 	],
 	

@@ -422,3 +422,9 @@ def remove_all_foreign_keys():
 				
 		for f in fklist:
 			webnotes.conn.sql("alter table `tab%s` drop foreign key `%s`" % (t[0], f[1]))
+			
+def add_column(doctype, column_name, fieldtype):
+	webnotes.conn.commit()
+	webnotes.conn.sql("alter table `tab%s` add column %s %s" % (doctype, 
+		column_name, type_map[fieldtype.lower()][0]))
+	

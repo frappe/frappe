@@ -75,6 +75,15 @@ wn.form.formatters = {
 		});
 		return html;
 	},
+	Comment: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="label label-warning" \
+				style="margin-right: 7px;"\
+				data-field="_comments" data-label="'+v.name+'">'+v.comment+'</span>';
+		});
+		return html;
+	},
 	SmallText: function(value) {
 		return wn.form.formatters.Text(value);
 	},
