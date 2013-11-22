@@ -97,7 +97,7 @@ class DocTags:
 		try:
 			webnotes.conn.sql("update `tab%s` set _user_tags=%s where name=%s" % \
 				(self.dt,'%s','%s'), (tags , dn))
-		except webnotes.SQLError, e:
+		except Exception, e:
 			if e.args[0]==1054: 
 				if not tags:
 					# no tags, nothing to do
