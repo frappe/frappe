@@ -4,7 +4,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 		title: wn._('Permission Manager'),
 		single_column: true
 	});
-	$(wrapper).find(".layout-main").html("<div class='perm-engine'></div>\
+	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>\
 	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
 	<tr><td>\
 	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Setting Permissions")+":</h4>\
@@ -164,11 +164,12 @@ wn.PermissionEngine = Class.extend({
 	},
 	render: function(perm_list) {
 		this.body.empty();
-		this.perm_list = perm_list;
-		if(!perm_list.length) {
-			this.body.html("<div class='alert alert-warning'>"+wn._("No Permissions set for this criteria.")+"</div>");
+		this.perm_list = perm_list || [];
+		if(!this.perm_list.length) {
+			this.body.html("<div class='alert alert-warning'>"
+				+wn._("No Permissions set for this criteria.")+"</div>");
 		} else {
-			this.show_permission_table(perm_list);
+			this.show_permission_table(this.perm_list);
 		}
 		this.show_add_rule();
 	},
