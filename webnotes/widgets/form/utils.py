@@ -83,3 +83,31 @@ def get_next(doctype, name, prev):
 		return None
 	else:
 		return res[0][0]
+
+@webnotes.whitelist()
+def get_linked_docs(doctype, name):
+	meta = webnotes.get_doctype(doctype, True)
+	linkinfo = meta[0].get("__linked_with")
+	results = {}
+	for dt, link in linkinfo.items():
+		link["doctype"] = dt
+		linkmeta = webnotes.get_doctype(dt)
+		if not linkmeta[0].get("issingle"):
+			fields = (linkmeta[0].get("search_fields") or "name").split(",")
+			if not "name" in fields:
+				fields.append("name")
+
+			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) \
+				for sf in fields if sf] + ['`tab{dt}`.modified'.format(dt=dt)]
+
+			if link.get("child_doctype"):
+				ret = webnotes.get_list(doctype=dt, fields=fields, 
+					filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
+				
+			else:
+				ret = webnotes.get_list(doctype=dt, fields=fields, 
+					filters=[[dt, link.get("fieldname"), '=', name]])
+			
+			if ret: results[dt] = ret
+				
+	return results

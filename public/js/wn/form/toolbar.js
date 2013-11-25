@@ -68,9 +68,9 @@ wn.ui.form.Toolbar = Class.extend({
 				case 0:
 					return ' <i class="icon-unlock text-muted" title="Not Submitted">';
 				case 1:
-					return ' <i class="icon-lock text-muted" title="Submitted">';
+					return ' <i class="icon-lock text-primary" title="Submitted">';
 				case 2:
-					return ' <i class="icon-remove text-muted" title="Cancelled">';
+					return ' <i class="icon-remove text-danger" title="Cancelled">';
 			}
 		} else {
 			return "";

@@ -473,6 +473,17 @@ textarea.form-control {
 	height: 120px;
 }
 
+ul.linked-with-list {
+	list-style: none;
+	margin: 0 0 20px 0;
+	padding: 0 0 0 0;
+}
+
+ul.linked-with-list li {
+	padding: 5px 0px;
+	border-bottom: 1px solid #c7c7c7;
+}
+
 /* form grid */
 
 .grid-heading-row {
