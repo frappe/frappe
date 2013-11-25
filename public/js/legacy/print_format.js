@@ -310,7 +310,7 @@ $.extend(_p, {
 	
 	// Attach letterhead at top of container
 	show_letterhead: function(container, args) {	
-		if(!(args.no_letterhead || args.only_body)) {
+		if(!args.no_letterhead) {
 			container.innerHTML = '<div style="max-width: 100%">' 
 				+ _p.get_letter_head() + '</div>' 
 				+ container.innerHTML;

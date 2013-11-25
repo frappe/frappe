@@ -159,24 +159,29 @@ wn.views.ListView = Class.extend({
 			}
 		});
 		
-		var comments = data._comments ? JSON.parse(data._comments) : []
+		var comments = data._comments ? JSON.parse(data._comments) : [];
+		var tags = $.map((data._user_tags || "").split(","), function(v) { return v ? v : null; });
 		
 		var timestamp_and_comment = 
 			$('<div class="list-timestamp">')
 				.appendTo(row)
-				.html((comments.length ? 
-					('<a style="margin-right: 10px;" href="#Form/'+
-						this.doctype + '/' + data.name 
-						+'" title="'+
-						comments[comments.length-1].comment
-						+'"><i class="icon-comments"></i> ' 
-						+ comments.length + " " + (
-							comments.length===1 ? wn._("comment") : wn._("comments")) + '</a>')
-					: "")
+				.html(""
+					+ (tags.length ? (
+							'<span style="margin-right: 10px;" class="list-tag-preview">' + tags.join(", ") + '</span>'
+						): "")
+					+ (comments.length ? 
+						('<a style="margin-right: 10px;" href="#Form/'+
+							this.doctype + '/' + data.name 
+							+'" title="'+
+							comments[comments.length-1].comment
+							+'"><i class="icon-comments"></i> ' 
+							+ comments.length + " " + (
+								comments.length===1 ? wn._("comment") : wn._("comments")) + '</a>')
+						: "")
 					+ comment_when(data.modified));
 		
 		// row #2
-		var row2 = $('<div class="row tag-row">\
+		var row2 = $('<div class="row tag-row" style="margin-bottom: 5px;">\
 			<div class="col-xs-12">\
 				<div class="col-xs-3"></div>\
 				<div class="col-xs-7">\
