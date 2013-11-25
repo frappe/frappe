@@ -246,6 +246,7 @@ wn.views.DocListView = wn.ui.Listing.extend({
 	init_minbar: function() {
 		var me = this;
 		this.appframe.add_icon_btn("2", 'icon-tag', wn._('Show Tags'), function() { me.toggle_tags(); });
+		this.wrapper.on("click", ".list-tag-preview", function() { me.toggle_tags(); });
 		if(this.can_delete || this.listview.settings.selectable) {
 			this.appframe.add_icon_btn("2", 'icon-remove', wn._('Delete'), function() { me.delete_items(); });
 			this.appframe.add_icon_btn("2", 'icon-ok', wn._('Select All'), function() { 
