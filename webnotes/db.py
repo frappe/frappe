@@ -290,7 +290,7 @@ class Database:
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
 		
-		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
+		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 	
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if isinstance(filters, list):
