@@ -160,7 +160,7 @@ wn.views.ListView = Class.extend({
 		});
 		
 		var comments = data._comments ? JSON.parse(data._comments) : [];
-		var tags = $.map(data._user_tags.split(","), function(v) { return v ? v : null; });
+		var tags = $.map((data._user_tags || "").split(","), function(v) { return v ? v : null; });
 		
 		var timestamp_and_comment = 
 			$('<div class="list-timestamp">')
