@@ -588,7 +588,7 @@ def make_autoname(key, doctype=''):
 def getseries(key, digits, doctype=''):
 	# series created ?
 	current = webnotes.conn.get_value("Series", key, "current")
-	if current:
+	if current != None:
 		# yes, update it
 		webnotes.conn.sql("update tabSeries set current = current+1 where name=%s", key)
 		current = cint(current) + 1
