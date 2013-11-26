@@ -1,9 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-wn.views.get_listview = function(doctype, parent) {
-	var meta = locals.DocType[doctype];
-	
+wn.views.get_listview = function(doctype, parent) {	
 	if(wn.doclistviews[doctype]) {
 		var listview = new wn.doclistviews[doctype](parent);
 	} else {
@@ -225,7 +223,7 @@ wn.views.ListView = Class.extend({
 		return col;
 	},
 	render_avatar_and_id: function(data, parent) {
-		if(wn.model.can_delete(this.doctype) || this.settings.selectable) {
+		if((wn.model.can_delete(this.doctype) || this.settings.selectable) && !this.no_delete) {
 			$('<input class="list-delete" type="checkbox">')
 				.data('name', data.name)
 				.data('data', data)

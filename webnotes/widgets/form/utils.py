@@ -85,20 +85,18 @@ def get_next(doctype, name, prev):
 		return res[0][0]
 
 @webnotes.whitelist()
-def get_linked_docs(doctype, name):
+def get_linked_docs(doctype, name, metadata_loaded=[]):
 	meta = webnotes.get_doctype(doctype, True)
 	linkinfo = meta[0].get("__linked_with")
 	results = {}
 	for dt, link in linkinfo.items():
 		link["doctype"] = dt
-		linkmeta = webnotes.get_doctype(dt)
+		linkmeta = webnotes.get_doctype(dt, True)
 		if not linkmeta[0].get("issingle"):
-			fields = (linkmeta[0].get("search_fields") or "name").split(",")
-			if not "name" in fields:
-				fields.append("name")
+			fields = [d.fieldname for d in linkmeta.get({"parent":dt, "in_list_view":1})] \
+				+ ["name", "modified"]
 
-			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) \
-				for sf in fields if sf] + ['`tab{dt}`.modified'.format(dt=dt)]
+			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
 
 			if link.get("child_doctype"):
 				ret = webnotes.get_list(doctype=dt, fields=fields, 
@@ -108,6 +106,12 @@ def get_linked_docs(doctype, name):
 				ret = webnotes.get_list(doctype=dt, fields=fields, 
 					filters=[[dt, link.get("fieldname"), '=', name]])
 			
-			if ret: results[dt] = ret
+			if ret: 
+				results[dt] = {"values":ret, "list_js":linkmeta[0].get("__list_js")}
+				
+			if not dt in metadata_loaded:
+				if not "docs" in webnotes.local.response:
+					webnotes.local.response.docs = []
+				webnotes.local.response.docs += linkmeta
 				
 	return results

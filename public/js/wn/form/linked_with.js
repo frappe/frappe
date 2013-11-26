@@ -47,36 +47,34 @@ wn.ui.form.LinkedWith = Class.extend({
 		}
 		
 		this.dialog.onshow = function() {
-			me.dialog.fields_dict.list.$wrapper.html('<div class="progress">\
-					<div class="progress-bar progress-bar-striped" style="width: 100%;">\
+			me.dialog.fields_dict.list.$wrapper.html('<div class="progress progress-striped active">\
+					<div class="progress-bar" style="width: 100%;">\
 					</div></div>');
 			
 			wn.call({
 				method:"webnotes.widgets.form.utils.get_linked_docs",
 				args: {
 					doctype: me.frm.doctype,
-					name: me.frm.docname
+					name: me.frm.docname,
+					metadata_loaded: keys(locals.DocType)
 				},
 				callback: function(r) {
-					if(r.message) {
-						var html = "";
-						$.each(keys(r.message).sort(), function(i, key) {
-							html += "<h4>" + wn._(key) + "</h4><ul class='linked-with-list'>"
-							$.each(r.message[key], function(i, d) {
-								html += "<li><a href='#Form/"+key+"/"+d.name+"'>" + d.name + "</a>"+
-									'<span class="text-muted small"> ' + 
-									$.map(d, function(v, k) { 
-										return ["name", "modified"].indexOf(k)!==-1 ? null : v }).join(", ")
-									+ '</span>'
-									+ '<span class="pull-right text-muted small">' + comment_when(d.modified) + '<span>'
-									+"</li>";
+					var parent = me.dialog.fields_dict.list.$wrapper.empty();
+
+					if(keys(r.message || {}).length) {
+						$.each(keys(r.message).sort(), function(i, doctype) {							
+							var listview = wn.views.get_listview(doctype, me);
+							listview.no_delete = true;
+							$("<h4>").html(wn._(doctype)).appendTo(parent);
+							
+							$.each(r.message[doctype].values, function(i, d) {
+								d.doctype = doctype;
+								listview.render($("<div>").appendTo(parent), d, me);
 							})
-							html+="</ul>"
 						})
 					} else {
-						html = wn._("Not Linked to any record.");
+						parent.html(wn._("Not Linked to any record."));
 					}
-					me.dialog.fields_dict.list.$wrapper.html(html);
 				}
 			})
 		}
