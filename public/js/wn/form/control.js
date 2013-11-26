@@ -104,18 +104,19 @@ wn.ui.form.ControlImage = wn.ui.form.Control.extend({
 		this._super();
 		var me = this;
 		this.$wrapper
-		.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right", "text-align": "right", "max-width": "100%"})
-		.on("refresh", function() {
-			me.$wrapper.empty();
-			if(me.df.options && me.frm.doc[me.df.options]) {
-				$("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
-					.appendTo(me.$wrapper);
-			} else {
-				$("<div class='missing-image'><i class='icon-camera'></i></div>")
-					.appendTo(me.$wrapper)
-			}
-			return false;
-		})
+			.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right", 
+				"text-align": "right", "max-width": "100%"})
+			.on("refresh", function() {
+				me.$wrapper.empty();
+				if(me.df.options && me.frm.doc[me.df.options]) {
+					$("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
+						.appendTo(me.$wrapper);
+				} else {
+					$("<div class='missing-image'><i class='icon-camera'></i></div>")
+						.appendTo(me.$wrapper)
+				}
+				return false;
+			});
 	}
 });
 

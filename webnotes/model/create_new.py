@@ -20,6 +20,8 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	
 	meta = webnotes.get_doctype(doctype)
 	
+	restrictions = webnotes.defaults.get_restrictions()
+	
 	if parent_doc:
 		doc.parent = parent_doc.name
 		doc.parenttype = parent_doc.doctype
@@ -29,7 +31,11 @@ def get_new_doc(doctype, parent_doc = None, parentfield = None):
 	
 	for d in meta.get({"doctype":"DocField", "parent": doctype}):
 		default = webnotes.defaults.get_user_default(d.fieldname)
-		if default:
+		
+		if (d.fieldtype=="Link") and d.ignore_restrictions != 1 and (d.options in restrictions)\
+			and len(restrictions[d.options])==1:
+			doc.fields[d.fieldname] = restrictions[d.options][0]
+		elif default:
 			doc.fields[d.fieldname] = default
 		elif d.fields.get("default"):
 			if d.default == "__user":

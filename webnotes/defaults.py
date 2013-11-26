@@ -7,11 +7,11 @@ import memc
 
 # User
 
-def set_user_default(key, value, user=None):
-	set_default(key, value, user or webnotes.session.user)
+def set_user_default(key, value, user=None, parenttype=None):
+	set_default(key, value, user or webnotes.session.user, parenttype)
 
-def add_user_default(key, value, user=None):
-	add_default(key, value, user or webnotes.session.user)
+def add_user_default(key, value, user=None, parenttype=None):
+	add_default(key, value, user or webnotes.session.user, parenttype)
 
 def get_user_default(key, user=None):
 	d = get_defaults(user or webnotes.session.user).get(key, None)
@@ -20,7 +20,18 @@ def get_user_default(key, user=None):
 def get_user_default_as_list(key, user=None):
 	d = get_defaults(user or webnotes.session.user).get(key, None)
 	return (not isinstance(d, list)) and [d] or d
-	
+
+def get_restrictions():
+	if webnotes.local.restrictions is None:
+		out = {}
+		for key, value in webnotes.conn.sql("""select defkey, defvalue 
+			from tabDefaultValue where parent=%s and parenttype='Restriction'""", webnotes.session.user):
+			out.setdefault(key, [])
+			out[key].append(value)
+			
+		webnotes.local.restrictions = out
+	return webnotes.local.restrictions
+
 def get_defaults(user=None):
 	if not user and webnotes.session:
 		user = webnotes.session.user
@@ -57,21 +68,21 @@ def get_global_default(key):
 	
 # Common
 
-def set_default(key, value, parent):
+def set_default(key, value, parent, parenttype="Control Panel"):
 	if webnotes.conn.sql("""select defkey from `tabDefaultValue` where 
 		defkey=%s and parent=%s """, (key, parent)):
 		# update
-		webnotes.conn.sql("""update `tabDefaultValue` set defvalue=%s 
-			where parent=%s and defkey=%s""", (value, parent, key))
+		webnotes.conn.sql("""update `tabDefaultValue` set defvalue=%s, parenttype=%s 
+			where parent=%s and defkey=%s""", (value, parenttype, parent, key))
 		clear_cache(parent)
 	else:
 		add_default(key, value, parent)
 
-def add_default(key, value, parent):
+def add_default(key, value, parent, parenttype=None):
 	d = webnotes.doc({
 		"doctype": "DefaultValue",
 		"parent": parent,
-		"parenttype": "Control Panel",
+		"parenttype": parenttype or "Control Panel",
 		"parentfield": "system_defaults",
 		"defkey": key,
 		"defvalue": value
@@ -124,27 +135,9 @@ def get_defaults_for(parent="Control Panel"):
 			elif d.defvalue is not None:
 				defaults[d.defkey] = d.defvalue
 		
-		if webnotes.session and parent == webnotes.session.user:
-			defaults.update(get_defaults_for_match(defaults))
-
 		webnotes.cache().set_value("__defaults:" + parent, defaults)
 	
 	return defaults
-
-def get_defaults_for_match(userd):
-	"""	if a profile based match condition exists for a user's role 
-		and no user property is specified for that match key,
-		set default value as user's profile for that match key"""
-	user_roles = webnotes.get_roles()
-	out = {}
-	
-	for role, match in webnotes.conn.sql("""select distinct role, `match`
-		from `tabDocPerm` where ifnull(permlevel, 0)=0 and `read`=1 
-		and `match` like "%:user" """):
-			if role in user_roles and match.split(":")[0] not in userd:
-				out[match.split(":")[0]] = webnotes.session.user
-
-	return out
 
 def clear_cache(parent=None):
 	def all_profiles():

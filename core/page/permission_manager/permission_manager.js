@@ -41,27 +41,12 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	<h4><i class='icon-user'></i> "+wn._("Restricting By User")+":</h4>\
 	<ol>\
 		<li>"+wn._("To restrict a User of a particular Role to documents that are only self-created.")+
-			wn._("Click on button in the 'Condition' column and select the option 'User is the creator of the document'")+".</li>\
-		<li>"+wn._("To restrict a User of a particular Role to documents that are explicitly assigned to them")+ ":"+
-			+ wn._("create a Custom Field of type Link (Profile) and then use the 'Condition' settings to map that field to the Permission rule.")+
-	"</ol>\
+			wn._("Click on button in the 'Condition' column and select the option 'User is the creator of the document'")+".</li></ol>\
 	</tr></td>\
 	<tr><td>\
 	<h4><i class='icon-cog'></i> "+wn._("Advanced Settings")+":</h4>\
-	<p>"+wn._("To further restrict permissions based on certain values in a document, use the 'Condition' settings.")+" <br><br>"+
-		wn._("For example: You want to restrict users to transactions marked with a certain property called 'Territory'")+":</p>\
-	<ol>\
-		<li>"+wn._("Make sure that the transactions you want to restrict have a Link field 'territory' that maps to a 'Territory' master.")+" "
-		+wn._("If not, create a")+
-			"<a href='#List/Custom Field'>"+wn._("Custom Field")+"</a>"+ wn._("of type Link")+".</li>\
-		<li>"+wn._("In the Permission Manager, click on the button in the 'Condition' column for the Role you want to restrict.")+"</li>\
-		<li>"+wn._("A new popup will open that will ask you to select further conditions.")+
-			wn._("If the 'territory' Link Field exists, it will give you an option to select it")+".</li>\
-		<li>"+wn._("Go to Setup > <a href='#user-properties'>User Properties</a> to set \
-			'territory' for diffent Users.")+"</li>\
-	</ol>\
-	<p>"+wn._("Once you have set this, the users will only be able access documents with that property.")+"</p>\
-	<hr>\
+	<p>"+wn._("To further restrict permissions based on certain values, like Company or Territory in a document, please go to <a href='#user-properties'>User Restrictions</a>")+" <br><br>"+
+	"<p>"+wn._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</p><hr>\
 	<p>"+wn._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>")+"</p>\
 	</tr></td>\
 	</table>");
@@ -390,23 +375,6 @@ wn.PermissionEngine = Class.extend({
 			<input name='perm-rule' type='radio' value='owner'> The user is the creator of the document.\
 			</label>").css("padding", "15px");
 
-			// profile fields
-			$.each(me.get_profile_fields(perm.parent), function(i, d) {
-				$("<label class='radio'>\
-				<input name='perm-rule' type='radio' value='"+d.fieldname
-					+":user'>Value of field <b>"+d.label+"</b> is the User.\
-				</label>").appendTo(dialog.body);
-			});
-
-			// add options for all link fields
-			$.each(me.get_link_fields(perm.parent), function(i, d) {
-				$("<label class='radio'>\
-				<input name='perm-rule' type='radio' value='"+d.fieldname
-					+"'><b>"+d.label+"</b> in <b>"+d.parent+"</b> matches <a href='#user-properties//"+d.fieldname+"'>User Property</a> <b>"
-					+d.fieldname+"</b>.\
-				</label>").appendTo(dialog.body);
-			});
-			
 			// button
 			$("<button class='btn btn-default btn-info'>Update</button>")
 				.appendTo($("<p>").appendTo(dialog.body))

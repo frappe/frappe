@@ -71,6 +71,7 @@ _response = local("_response")
 session = local("session")
 user = local("user")
 flags = local("flags")
+restrictions = local("restrictions")
 
 error_log = local("error_log")
 debug_log = local("debug_log")
@@ -93,6 +94,7 @@ def init(site=None):
 	local.initialised = True
 	local.flags = _dict({})
 	local.rollback_observers = []
+	local.restrictions = None
 	
 def destroy():
 	"""closes connection and releases werkzeug local"""
@@ -347,36 +349,28 @@ def has_permission(doctype, ptype="read", refdoc=None):
 		return perms and True or False
 		
 def has_match(meta, perms, refdoc):
-	from webnotes.defaults import get_user_default_as_list
+	from webnotes.defaults import get_restrictions
+	
+	restrictions = get_restrictions()
+	if not restrictions:
+		return True
 	
 	if isinstance(refdoc, basestring):
 		refdoc = doc(meta[0].name, refdoc)
 	
-	match_failed = {}
-	for p in perms:
-		if p.match:
-			if ":" in p.match:
-				keys = p.match.split(":")
-			else:
-				keys = [p.match, p.match]
-			
-			if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
-				return True
-			else:
-				match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
-		else:
-			# found a permission without a match
-			return True
-
-	# no valid permission found
-	if match_failed:
-		msg = _("Not allowed for: ")
-		for key in match_failed:
-			msg += "\n" + (meta.get_field(key) and meta.get_label(key) or key) \
-				+ " = " + (match_failed[key] or "None")
-		msgprint(msg)
+	fields_to_check = meta.get({"DocType":"DocField", "parent":meta[0].name, "fieldtype":"Link", 
+		"options":("in", restrictions.keys()), "ignore_restrictions":("!=", 1)})
 	
-	return False
+	if meta[0].name in restrictions:
+		fields_to_check.append(_dict({"label":"Name", "fieldname":"name"}))
+	
+	for df in fields_to_check:
+		if refdoc.get(df.fieldname) not in restrictions[meta[0].name]:
+			msg = _("Not allowed for: ") + df.label + " equals " + refdoc.get(df.fieldname)
+			msgprint(msg)
+			return False
+	
+	return True
 
 def generate_hash():
 	"""Generates random hash for session id"""

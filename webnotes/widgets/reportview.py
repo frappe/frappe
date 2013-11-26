@@ -187,52 +187,49 @@ def build_filter_conditions(filters, conditions):
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
-	
 	match_filters = {}
 	match_conditions = []
-	match = True
 
 	if not getattr(webnotes.local, "reportview_tables", None) \
 		or not getattr(webnotes.local, "reportview_doctypes", None):
 		webnotes.local.reportview_tables = get_tables(doctype, fields)
 		load_doctypes()
-
-	if not getattr(webnotes.local, "reportview_roles", None):
-		webnotes.local.reportview_roles = webnotes.get_roles()
-
-	for d in webnotes.local.reportview_doctypes[doctype]:
-		if d.doctype == 'DocPerm' and d.parent == doctype:
-			if d.role in webnotes.local.reportview_roles:
-				if d.match: # role applicable
-					if ':' in d.match:
-						document_key, default_key = d.match.split(":")
-					else:
-						default_key = document_key = d.match
-					for v in webnotes.defaults.get_user_default_as_list(default_key, \
-						webnotes.session.user) or ["** No Match **"]:
-						if as_condition:
-							match_conditions.append('`tab%s`.%s="%s"' % (doctype,
-								document_key, v))
-						else:
-							if v:
-								match_filters.setdefault(document_key, [])
-								if v not in match_filters[document_key]:
-									match_filters[document_key].append(v)
-							
-				elif d.read == 1 and d.permlevel == 0:
-					# don't restrict if another read permission at level 0 
-					# exists without a match restriction
-					match = False
-					match_filters = {}
 	
-	if as_condition:
-		conditions = ""
-		if match_conditions and match:
-			conditions =  '('+ ' or '.join(match_conditions) +')'
+	# get restrictions
+	restrictions = webnotes.defaults.get_restrictions()
+	
+	if not restrictions:
+		return "" if as_condition else {}
+	
+	fields_to_check = webnotes.local.reportview_doctypes[doctype].get({"doctype":"DocField", 
+		"fieldtype":"Link", "parent":doctype, 
+		"ignore_restriction":("!=", 1), 
+		"options":("in", restrictions.keys())})
+	if doctype in restrictions:
+		fields_to_check.append(webnotes._dict({"fieldname":"name", "options":doctype}))
 		
+	# check in links
+	for df in fields_to_check:
+		if as_condition:
+			match_conditions.append('`tab{doctype}`.{fieldname} in ({values})'.format(doctype=doctype,
+				fieldname=df.fieldname, 
+				values=", ".join([('"'+v.replace('"', '\"')+'"') for v in restrictions[df.options]])))
+		else:
+			match_filters.setdefault(df.fieldname, [])
+			match_filters[df.fieldname]= restrictions[df.options]
+				
+	# add owner match
+	if webnotes.local.reportview_doctypes[doctype].get({"doctype":"DocPerm","read":1,
+		"permlevel":0,"match":"owner"}):
+		match_conditions.append('`tab{doctype}.owner="{user}"`'.format(doctye=doctype, 
+			owner=webnotes.session.user))
+		match_filters["owner"] = [webnotes.session.user]
+						
+	if as_condition:
+		conditions = " and ".join(match_conditions)
 		doctype_conditions = get_doctype_conditions(doctype)
 		if doctype_conditions:
-				conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
+			conditions += ' and ' + doctype_conditions if conditions else doctype_conditions
 		return conditions
 	else:
 		return match_filters

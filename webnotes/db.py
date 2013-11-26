@@ -414,14 +414,14 @@ class Database:
 	def get_global(self, key, user='__global'):
 		return self.get_default(key, user)
 	
-	def set_default(self, key, val, parent="Control Panel"):
+	def set_default(self, key, val, parent="Control Panel", parenttype=None):
 		"""set control panel default (tabDefaultVal)"""
 		import webnotes.defaults
-		webnotes.defaults.set_default(key, val, parent)
+		webnotes.defaults.set_default(key, val, parent, parenttype)
 			
-	def add_default(self, key, val, parent="Control Panel"):
+	def add_default(self, key, val, parent="Control Panel", parenttype=None):
 		import webnotes.defaults
-		webnotes.defaults.add_default(key, val, parent)
+		webnotes.defaults.add_default(key, val, parent, parenttype)
 	
 	def get_default(self, key, parent="Control Panel"):
 		"""get default value"""

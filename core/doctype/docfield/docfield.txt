@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-22 01:27:33", 
   "docstatus": 0, 
-  "modified": "2013-07-10 14:54:08", 
+  "modified": "2013-11-26 16:34:15", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -131,6 +131,13 @@
   "label": "Read Only", 
   "print_width": "50px", 
   "width": "50px"
+ }, 
+ {
+  "description": "User restrictions should not apply for this Link", 
+  "doctype": "DocField", 
+  "fieldname": "ignore_restriction", 
+  "fieldtype": "Check", 
+  "label": "Ignore Restriction"
  }, 
  {
   "doctype": "DocField", 

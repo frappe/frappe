@@ -1,19 +1,19 @@
 wn.pages['user-properties'].onload = function(wrapper) { 
 	wn.ui.make_app_page({
 		parent: wrapper,
-		title: 'User Properties',
+		title: 'User Permission Restrictions',
 		single_column: true
 	});					
-	$(wrapper).find(".layout-main").html("<div class='user-settings'></div>\
+	$(wrapper).find(".layout-main").html("<div class='user-settings' style='min-height: 200px;'></div>\
 	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
 	<tr><td>\
-	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for User Properties")+":</h4>\
+	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Permission Restrictions")+":</h4>\
 	<ol>\
-	<li>"+wn._("You can set various 'properties' to Users to set default values and apply permission rules based on the value of these properties in various forms.")+"</li>\
-	<li>"+wn._("These properties are Link Type fields from all Documents.")+"</li>\
-	<li>"+wn._("These properties will appear as values in forms that contain them.")+"</li>\
-	<li>"+wn._("These properties can also be used to 'assign' a particular document, whose property matches with the User's property to a User. These can be set using the <a href='#permission-manager'>Permission Manager</a>")+"</li>\
-	<li>"+wn._("A user can have multiple values for a property.")+"</li>\
+	<li>"+wn._("Apart from the existing Permission Rules, you can apply addition restriction based on Type.")+"</li>\
+	<li>"+wn._("These restrictions will apply for all transactions linked to the restricted record.")
+		 +wn._("For example, if user X is restricted to company C, user X will not be able to see any transaction that has company C as a linked value.")+"</li>\
+	<li>"+wn._("These will also be set as default values for those links.")+"</li>\
+	<li>"+wn._("A user can be restricted to multiple records of the same type.")+"</li>\
 	</ol>\
 	</tr></td>\
 	</table>");
@@ -42,14 +42,12 @@ wn.UserProperties = Class.extend({
 				me.user_select =
 					me.wrapper.appframe.add_select("users", 
 						["Select User..."].concat(r.message.users))
-						.css("width", "200px")
 						.change(function() {
 							me.set_route();
 						});
 				me.property_select =
 					me.wrapper.appframe.add_select("links", 
 						["Select Property..."].concat(me.get_link_names()))
-						.css("width", "200px")
 						.change(function() {
 							me.set_route();
 						});
@@ -121,7 +119,7 @@ wn.UserProperties = Class.extend({
 			<tbody></tbody>\
 		</table>").appendTo(this.body);
 		
-		$.each([[wn._("User"), 150], [wn._("Property"), 150], [wn._("Value"),150], ["", 50]], 
+		$.each([[wn._("User"), 150], [wn._("Type"), 150], [wn._("Restricted To"),150], ["", 50]], 
 			function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
@@ -168,7 +166,7 @@ wn.UserProperties = Class.extend({
 	
 	show_add_property: function() {
 		var me = this;
-		$("<button class='btn btn-info'>"+wn._("Add A Property")+"</button>")
+		$("<button class='btn btn-info'>"+wn._("Add A Restriction")+"</button>")
 			.appendTo($("<p>").appendTo(this.body))
 			.click(function() {
 				var d = new wn.ui.Dialog({
@@ -229,6 +227,5 @@ wn.UserProperties = Class.extend({
 				});
 				d.show();
 			});
-
 	}
 })

@@ -28,6 +28,9 @@ def getdoc(doctype, name, user=None):
 	try:
 		bean = webnotes.bean(doctype, name)
 		bean.run_method("onload")
+		
+		if not bean.has_read_perm():
+			raise webnotes.PermissionError
 
 		doclist = bean.doclist
 
