@@ -25,7 +25,6 @@ class DocType:
 				
 		# set idx
 		if not self.doc.idx:
-			from webnotes.utils import cint
 			max_idx = max(d.idx for d in temp_doclist if d.doctype=='DocField')
 			self.doc.idx = cint(max_idx) + 1
 		
@@ -110,7 +109,8 @@ def create_custom_field_if_values_exist(doctype, df):
 	df = webnotes._dict(df)
 	if df.fieldname in webnotes.conn.get_table_columns(doctype) and \
 		webnotes.conn.sql("""select count(*) from `tab{doctype}` 
-			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0]:
+			where ifnull({fieldname},'')!=''""".format(doctype=doctype, fieldname=df.fieldname))[0][0] and \
+		not webnotes.conn.get_value("Custom Field", {"dt": doctype, "fieldname": df.fieldname}):
 			webnotes.bean({
 				"doctype":"Custom Field",
 				"dt": doctype,
