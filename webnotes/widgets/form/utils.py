@@ -85,7 +85,8 @@ def get_next(doctype, name, prev):
 		return res[0][0]
 
 @webnotes.whitelist()
-def get_linked_docs(doctype, name, metadata_loaded=[]):
+def get_linked_docs(doctype, name, metadata_loaded=None):
+	if not metadata_loaded: metadata_loaded = []
 	meta = webnotes.get_doctype(doctype, True)
 	linkinfo = meta[0].get("__linked_with")
 	results = {}
