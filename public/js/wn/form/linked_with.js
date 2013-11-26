@@ -67,7 +67,7 @@ wn.ui.form.LinkedWith = Class.extend({
 							listview.no_delete = true;
 							$("<h4>").html(wn._(doctype)).appendTo(parent);
 							
-							$.each(r.message[doctype].values, function(i, d) {
+							$.each(r.message[doctype], function(i, d) {
 								d.doctype = doctype;
 								listview.render($("<div>").appendTo(parent), d, me);
 							})

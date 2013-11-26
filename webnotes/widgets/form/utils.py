@@ -107,7 +107,7 @@ def get_linked_docs(doctype, name, metadata_loaded=[]):
 					filters=[[dt, link.get("fieldname"), '=', name]])
 			
 			if ret: 
-				results[dt] = {"values":ret, "list_js":linkmeta[0].get("__list_js")}
+				results[dt] = ret
 				
 			if not dt in metadata_loaded:
 				if not "docs" in webnotes.local.response:
