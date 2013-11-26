@@ -198,27 +198,32 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 	# get restrictions
 	restrictions = webnotes.defaults.get_restrictions()
 	
-	if restrictions:
-		fields_to_check = webnotes.local.reportview_doctypes[doctype].get_restricted_fields(restrictions.keys())
-		if doctype in restrictions:
-			fields_to_check.append(webnotes._dict({"fieldname":"name", "options":doctype}))
+	if not restrictions:
+		return "" if as_condition else {}
+	
+	fields_to_check = webnotes.local.reportview_doctypes[doctype].get({"doctype":"DocField", 
+		"fieldtype":"Link", "parent":doctype, 
+		"ignore_restriction":("!=", 1), 
+		"options":("in", restrictions.keys())})
+	if doctype in restrictions:
+		fields_to_check.append(webnotes._dict({"fieldname":"name", "options":doctype}))
 		
-		# check in links
-		for df in fields_to_check:
-			if as_condition:
-				match_conditions.append('`tab{doctype}`.{fieldname} in ({values})'.format(doctype=doctype,
-					fieldname=df.fieldname, 
-					values=", ".join([('"'+v.replace('"', '\"')+'"') for v in restrictions[df.options]])))
-			else:
-				match_filters.setdefault(df.fieldname, [])
-				match_filters[df.fieldname]= restrictions[df.options]
+	# check in links
+	for df in fields_to_check:
+		if as_condition:
+			match_conditions.append('`tab{doctype}`.{fieldname} in ({values})'.format(doctype=doctype,
+				fieldname=df.fieldname, 
+				values=", ".join([('"'+v.replace('"', '\"')+'"') for v in restrictions[df.options]])))
+		else:
+			match_filters.setdefault(df.fieldname, [])
+			match_filters[df.fieldname]= restrictions[df.options]
 				
 	# add owner match
 	if webnotes.local.reportview_doctypes[doctype].get({"doctype":"DocPerm","read":1,
 		"permlevel":0,"match":"owner"}):
-		match_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=doctype, 
-			user=webnotes.local.session.user))
-		match_filters["owner"] = [webnotes.local.session.user]
+		match_conditions.append('`tab{doctype}.owner="{user}"`'.format(doctye=doctype, 
+			owner=webnotes.session.user))
+		match_filters["owner"] = [webnotes.session.user]
 						
 	if as_condition:
 		conditions = " and ".join(match_conditions)
