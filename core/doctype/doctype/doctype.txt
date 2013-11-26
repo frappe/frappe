@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-11-05 20:09:08", 
+  "modified": "2013-11-26 10:57:00", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -23,7 +23,7 @@
   "module": "Core", 
   "name": "__common__", 
   "read_only": 0, 
-  "search_fields": "autoname"
+  "search_fields": "module"
  }, 
  {
   "doctype": "DocField", 
@@ -372,14 +372,14 @@
   "search_index": 0
  }, 
  {
+  "doctype": "DocPerm", 
+  "role": "System Manager"
+ }, 
+ {
   "cancel": 0, 
   "create": 1, 
   "doctype": "DocPerm", 
   "role": "Administrator", 
   "write": 1
- }, 
- {
-  "doctype": "DocPerm", 
-  "role": "System Manager"
  }
 ]

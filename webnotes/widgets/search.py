@@ -80,7 +80,7 @@ def get_std_fields_list(meta, key):
 def build_for_autosuggest(res):
 	results = []
 	for r in res:
-		out = {"value": r[0], "description": ", ".join(r[1:])}
+		out = {"value": r[0], "description": ", ".join([cstr(d) for d in r[1:]])}
 		results.append(out)
 	return results
 
