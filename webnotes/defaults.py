@@ -110,7 +110,11 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		
 	if parent:
 		conditions.append("parent=%s")
+		clear_cache(parent)
 		values.append(parent)
+	else:
+		clear_cache("Control Panel")
+		clear_cache("__global")
 		
 	if parenttype:
 		conditions.append("parenttype=%s")
@@ -122,7 +126,7 @@ def clear_default(key=None, value=None, parent=None, name=None, parenttype=None)
 		raise Exception, "[clear_default] No key specified."
 	
 	webnotes.conn.sql("""delete from tabDefaultValue where %s""" % " and ".join(conditions), values)
-	clear_cache()
+	webnotes.clear_cache(sessions_only=True)
 	
 def get_defaults_for(parent="Control Panel"):
 	"""get all defaults"""
@@ -159,4 +163,4 @@ def clear_cache(parent=None):
 	for p in parent:
 		webnotes.cache().delete_value("__defaults:" + p)
 
-	webnotes.clear_cache()
+	webnotes.clear_cache(sessions_only=True)

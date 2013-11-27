@@ -43,9 +43,13 @@ def clear_cache(user=None):
 					where user=%s""", user):
 						cache.delete_value("session:" + sid)
 	else:
-		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
-			cache.delete_value("sesssion:" + sess.sid)
-			cache.delete_value("bootinfo:" + sess.user)
+		clear_all_session_cache()
+
+def clear_all_session_cache():
+	cache = webnotes.cache()
+	for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
+		cache.delete_value("sesssion:" + sess.sid)
+		cache.delete_value("bootinfo:" + sess.user)
 
 def clear_sessions(user=None, keep_current=False):
 	if not user:

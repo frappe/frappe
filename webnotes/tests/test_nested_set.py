@@ -124,8 +124,7 @@ class TestNSM(unittest.TestCase):
 		self.test_basic_tree(new_tree)
 		
 		# delete leaf
-		from webnotes.model import delete_doc
-		delete_doc(self.gc2.doc.doctype, self.gc2.doc.name)
+		webnotes.delete_doc(self.gc2.doc.doctype, self.gc2.doc.name)
 		
 		new_tree = [
 			["t1", None, 1, 18], 

@@ -303,8 +303,12 @@ class HashAuthenticatedCommand(object):
 			return True
 		return False
 	
-def clear_cache(user=None, doctype=None):
+def clear_cache(user=None, doctype=None, sessions_only=False):
 	"""clear cache"""
+	if sessions_only:
+		from webnotes.sessions import clear_all_session_cache
+		clear_all_session_cache()
+		return
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)

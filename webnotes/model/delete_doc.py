@@ -5,6 +5,9 @@ from __future__ import unicode_literals
 
 import webnotes
 import webnotes.model.meta
+import webnotes.defaults
+from webnotes.utils.file_manager import remove_all
+from webnotes import _
 
 def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=[], for_reload=False, ignore_permissions=False):
 	"""
@@ -44,8 +47,10 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		raise
 		
 	# delete attachments
-	from webnotes.utils.file_manager import remove_all
 	remove_all(doctype, name)
+	
+	# delete restrictions
+	webnotes.defaults.clear_default(parenttype="Restriction", key=doctype, value=name)
 		
 	return 'okay'
 
