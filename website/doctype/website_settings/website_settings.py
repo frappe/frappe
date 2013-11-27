@@ -4,11 +4,9 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes import _, msgprint
+from webnotes.model.controller import DocListController
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		
+class DocType(DocListController):
 	def validate(self):
 		self.validate_top_bar_items()
 		self.validate_footer_items()
