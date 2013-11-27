@@ -125,8 +125,6 @@ def setup_utilities(parser):
 		help="Move site to different directory")
 	parser.add_argument("--with_files", default=False, action="store_true",
 		help="Also take backup of files")
-	parser.add_argument("--docs", default=False, action="store_true",
-		help="Build docs")
 	parser.add_argument("--domain", nargs="*",
 		help="Get or set domain in Website Settings")
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
@@ -385,11 +383,6 @@ def move(site=None, dest_dir=None):
 	os.rename(old_path, final_new_path)
 	webnotes.destroy()
 	return os.path.basename(final_new_path)
-
-@cmd
-def docs():
-	from core.doctype.documentation_tool.documentation_tool import write_static
-	write_static()
 
 @cmd
 def domain(host_url=None, site=None):
