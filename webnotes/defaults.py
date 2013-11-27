@@ -88,9 +88,11 @@ def add_default(key, value, parent, parenttype=None):
 		"defvalue": value
 	})
 	d.insert()
+	if parenttype=="Restriction":
+		webnotes.local.restrictions = None
 	clear_cache(parent)
 	
-def clear_default(key=None, value=None, parent=None, name=None):
+def clear_default(key=None, value=None, parent=None, name=None, parenttype=None):
 	conditions = []
 	values = []
 
@@ -109,6 +111,12 @@ def clear_default(key=None, value=None, parent=None, name=None):
 	if parent:
 		conditions.append("parent=%s")
 		values.append(parent)
+		
+	if parenttype:
+		conditions.append("parenttype=%s")
+		values.append(parenttype)
+		if parenttype=="Restriction":
+			webnotes.local.restrictions = None
 	
 	if not conditions:
 		raise Exception, "[clear_default] No key specified."

@@ -26,7 +26,7 @@ class DocList(list):
 					fval = ["not None", fval]
 				elif fval is False:
 					fval = ["None", fval]
-				elif not isinstance(fval, list):
+				elif not isinstance(fval, (tuple, list)):
 					if isinstance(fval, basestring) and fval.startswith("^"):
 						fval = ["^", fval[1:]]
 					else:

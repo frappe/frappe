@@ -905,10 +905,11 @@ operator_map = {
 }
 
 def compare(val1, condition, val2):
+	ret = False
 	if condition in operator_map:
-		return operator_map[condition]((val1, val2))
-
-	return False
+		ret = operator_map[condition]((val1, val2))
+		
+	return ret
 
 def get_site_name(hostname):
 	return hostname.split(':')[0]

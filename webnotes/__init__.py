@@ -352,23 +352,33 @@ def has_match(meta, perms, refdoc):
 	from webnotes.defaults import get_restrictions
 	
 	restrictions = get_restrictions()
-	if not restrictions:
-		return True
+	if restrictions:
+		if isinstance(refdoc, basestring):
+			refdoc = doc(meta[0].name, refdoc)
 	
-	if isinstance(refdoc, basestring):
-		refdoc = doc(meta[0].name, refdoc)
+		fields_to_check = meta.get_restricted_fields(restrictions.keys())
+			
+		if meta[0].name in restrictions:
+			fields_to_check.append(_dict({"label":"Name", "fieldname":"name"}))
 	
-	fields_to_check = meta.get({"DocType":"DocField", "parent":meta[0].name, "fieldtype":"Link", 
-		"options":("in", restrictions.keys()), "ignore_restrictions":("!=", 1)})
+		for df in fields_to_check:
+			if refdoc.get(df.fieldname) not in restrictions[df.options]:
+				msg = _("Not allowed for: ") + df.label + " equals " + refdoc.get(df.fieldname)
+				msgprint(msg)
+				return False
+			
+	# check owner match (if exists)
+	owner_match = None
 	
-	if meta[0].name in restrictions:
-		fields_to_check.append(_dict({"label":"Name", "fieldname":"name"}))
-	
-	for df in fields_to_check:
-		if refdoc.get(df.fieldname) not in restrictions[meta[0].name]:
-			msg = _("Not allowed for: ") + df.label + " equals " + refdoc.get(df.fieldname)
-			msgprint(msg)
-			return False
+	for p in perms:
+		if p.get("match")=="owner":
+			if refdoc.get("owner") != local.session.user:
+				owner_match = owner_match or False
+			else:
+				owner_match = True
+				
+	if owner_match == False: 
+		return False
 	
 	return True
 

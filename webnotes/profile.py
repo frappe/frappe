@@ -177,13 +177,7 @@ def get_system_managers(only_name=False):
 		return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 	
 def add_role(profile, role):
-	profile_wrapper = webnotes.bean("Profile", profile)
-	profile_wrapper.doclist.append({
-		"doctype": "UserRole",
-		"parentfield": "user_roles",
-		"role": role
-	})
-	profile_wrapper.save()
+	profile_wrapper = webnotes.bean("Profile", profile).get_controller().add_roles([role])
 
 def add_system_manager(email, first_name=None, last_name=None):
 	# add profile
@@ -200,7 +194,7 @@ def add_system_manager(email, first_name=None, last_name=None):
 	# add roles
 	roles = webnotes.conn.sql_list("""select name from `tabRole`
 		where name not in ("Administrator", "Guest", "All")""")
-	profile.make_controller().add_roles(*roles)
+	profile.get_controller().add_roles(*roles)
 	
 def get_roles(username=None, with_standard=True):
 	"""get roles of current user"""
