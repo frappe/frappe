@@ -13,6 +13,15 @@
 		<li class="active">{{ title }}</li>
 	</ul>
 	{%- endif %}
+	{%- endblock %}
+	
+	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
+	<div class="web-page-content" id="{{ name }}">
+	{{ main_section }}
+	</div>
+	
+	{# toc, parent, child, next sibling #}
+	{% block post_content -%}
 	{% if show_toc and toc_list -%}
 	<div class="well">
 		<h4>Contents</h4>
@@ -23,15 +32,6 @@
 		</ol>
 	</div>
 	{%- endif %}
-	{%- endblock %}
-	
-	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
-	<div class="web-page-content" id="{{ name }}">
-	{{ main_section }}
-	</div>
-	
-	{# parent, child, next sibling #}
-	{% block post_content -%}
 	{% if links and links.get("parent") -%}
 	<div class="btn-group pull-right" style="margin: 15px 0px;">
 		<a class='btn btn-default' href="{{ links.parent.page_name }}">
