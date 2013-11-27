@@ -4,7 +4,7 @@ import webnotes
 import os
 
 from werkzeug.wsgi import SharedDataMiddleware
-from webnotes.utils import get_site_name, get_site_path, get_site_base_path, get_path
+from webnotes.utils import get_site_name, get_site_path, get_site_base_path, get_path, cstr
 
 class StaticDataMiddleware(SharedDataMiddleware):
 	def __call__(self, environ, start_response):
@@ -14,6 +14,7 @@ class StaticDataMiddleware(SharedDataMiddleware):
 	def get_directory_loader(self, directory):
 		def loader(path):
 			import conf
+			path = cstr(path)
 			fail = True
 			if hasattr(conf, 'sites_dir'):
 				site = get_site_name(self.environ.get('HTTP_HOST'))
