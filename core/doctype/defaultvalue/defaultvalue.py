@@ -19,4 +19,4 @@ def on_doctype_update():
 		where Key_name="defaultvalue_parent_parenttype_index" """):
 		webnotes.conn.commit()
 		webnotes.conn.sql("""alter table `tabDefaultValue` 
-			add index defaultvalue_parent_parenttype_index(parent, parentttype)""")
+			add index defaultvalue_parent_parenttype_index(parent, parenttype)""")

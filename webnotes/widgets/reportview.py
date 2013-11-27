@@ -333,7 +333,6 @@ def get_labels(columns):
 def delete_items():
 	"""delete selected items"""
 	import json
-	from webnotes.model import delete_doc
 	from webnotes.model.code import get_obj
 
 	il = json.loads(webnotes.form_dict.get('items'))
@@ -344,7 +343,7 @@ def delete_items():
 			dt_obj = get_obj(doctype, d)
 			if hasattr(dt_obj, 'on_trash'):
 				dt_obj.on_trash()
-			delete_doc(doctype, d)
+			webnotes.delete_doc(doctype, d)
 		except Exception, e:
 			webnotes.errprint(webnotes.getTraceback())
 			pass

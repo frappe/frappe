@@ -23,11 +23,6 @@ def insert(doclist):
 	
 	return wrapper
 
-@webnotes.whitelist()
-def delete_doc(doctype=None, name=None, doclist = None, force=0):
-	import webnotes.model.utils
-	return webnotes.model.utils.delete_doc(doctype, name, doclist, force)
-	
 def rename(doctype, old, new, debug=False):
 	import webnotes.model.rename_doc
 	webnotes.model.rename_doc.rename_doc(doctype, old, new, debug)

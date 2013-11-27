@@ -400,7 +400,7 @@ class Bean:
 			_("No Permission to ") + ptype, raise_exception=BeanPermissionError)
 			
 	def check_no_back_links_exist(self):
-		from webnotes.model.utils import check_if_doc_is_linked
+		from webnotes.model.delete_doc import check_if_doc_is_linked
 		check_if_doc_is_linked(self.doc.doctype, self.doc.name, method="Cancel")
 		
 	def check_mandatory(self):

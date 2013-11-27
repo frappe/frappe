@@ -3,7 +3,7 @@
 
 import webnotes, unittest
 
-from webnotes.model.utils import delete_doc, LinkExistsError
+from webnotes.model.delete_doc import delete_doc, LinkExistsError
 
 class TestProfile(unittest.TestCase):
 	def test_delete(self):
