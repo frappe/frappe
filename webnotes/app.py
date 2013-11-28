@@ -54,17 +54,17 @@ def application(request):
 
 application = local_manager.make_middleware(application)
 
-
-application = StaticDataMiddleware(application, {
-	'/': 'public',
-})
-
-
 def serve(port=8000, profile=False):
 	webnotes.validate_versions()
 	global application
 	from werkzeug.serving import run_simple
+
 	if profile:
 		application = ProfilerMiddleware(application)
+
+	application = StaticDataMiddleware(application, {
+		'/': 'public',
+	})
+
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
