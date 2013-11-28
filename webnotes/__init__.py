@@ -635,4 +635,3 @@ def validate_versions():
 	if not spec.match(framework_version):
 		raise Exception, "Framework version out of sync"
 
-validate_versions()
