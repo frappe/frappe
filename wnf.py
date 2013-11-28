@@ -725,6 +725,44 @@ def update_site_config(site_config, site, verbose=False):
 		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)
 		
 	webnotes.destroy()
+
+@cmd
+def bump(repo, bump_type):
+
+	def bump_version(version, version_type):
+		import semantic_version
+		v = semantic_version.Version(version)
+		if version_type == 'minor':
+			v.minor += 1
+		elif version_type == 'major':
+			v.major += 1
+		elif version_type == 'patch':
+			v.patch += 1
+		return unicode(v)
+		
+
+		assert repo in ['lib', 'app']
+		assert bump_type in ['minor', 'major', 'patch']
 	
+	def add_tag(repo_path, version):
+		import git
+		repo = git.Repo(repo_path)
+		repo.create_tag('v' + version, repo.head)
+
+	if repo == 'app':
+		with open('app/config.json') as f:
+			config = json.load(f)
+			new_version = bump_version(config['app_version'], bump_type)
+			config['app_version'] = new_version
+			json.dump(config, f)
+
+	elif repo == 'lib':
+		with open('lib/config.json') as f:
+			config = json.load(f)
+			new_version = bump_version(config['framework_version'], bump_type)
+			config['framework_version'] = new_version
+			json.dump(config, f)
+		
+
 if __name__=="__main__":
 	main()
