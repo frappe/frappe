@@ -111,6 +111,8 @@ def setup_utilities(parser):
 	# build
 	parser.add_argument("-b", "--build", default=False, action="store_true",
 		help="Minify + concatenate JS and CSS files, build translations")
+	parser.add_argument("-n", "--build_not_minified", default=False, action="store_true",
+                help="Concatenate only JS and CSS files, build translations")
 	parser.add_argument("-w", "--watch", default=False, action="store_true",
 		help="Watch and concatenate JS and CSS files as and when they change")
 	
@@ -316,6 +318,11 @@ def reload_doc(module, doctype, docname, site=None, force=False):
 def build():
 	import webnotes.build
 	webnotes.build.bundle(False)
+
+@cmd
+def build_not_minified():
+        import webnotes.build
+        webnotes.build.bundle(True)
 
 @cmd
 def watch():
