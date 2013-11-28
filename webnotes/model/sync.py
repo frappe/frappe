@@ -42,7 +42,7 @@ def walk_and_sync(start_path, force=0, sync_everything = False, verbose=False):
 						doctype = path.split(os.sep)[-2]
 						name = path.split(os.sep)[-1]
 						
-						if import_file(module_name, doctype, name, force) and verbose:
+						if import_file(module_name, doctype, name, force=force) and verbose:
 							print module_name + ' | ' + doctype + ' | ' + name
 
 						webnotes.conn.commit()

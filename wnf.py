@@ -69,9 +69,11 @@ def setup_parser():
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
 	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
-		help="Show verbose output where applicable")
+		help="Don't show verbose output where applicable")
 	parser.add_argument("--site", nargs="?", metavar="SITE-NAME or all",
 		help="Run for a particular site")
+	parser.add_argument("--plugin", nargs="?", metavar="PLUGIN-NAME",
+		help="Run for a particular plugin")
 		
 	return parser.parse_args()
 	
@@ -334,9 +336,10 @@ def update_all_sites(remote=None, branch=None, verbose=True):
 		latest(site=site, verbose=verbose)
 
 @cmd
-def reload_doc(module, doctype, docname, site=None, force=False):
+def reload_doc(module, doctype, docname, plugin=None, site=None, force=False):
 	webnotes.connect(site=site)
-	webnotes.reload_doc(module, doctype, docname, force=force)
+	webnotes.reload_doc(module, doctype, docname, plugin=plugin, force=force)
+	webnotes.conn.commit()
 	webnotes.destroy()
 
 @cmd

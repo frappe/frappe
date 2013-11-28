@@ -5,23 +5,28 @@ from __future__ import unicode_literals
 
 import webnotes, os
 from webnotes.modules import scrub, get_module_path, scrub_dt_dn
+import webnotes.plugins
 
-def import_files(module, dt=None, dn=None, force=False):
+def import_files(module, dt=None, dn=None, plugin=None, force=False):
 	if type(module) is list:
 		out = []
 		for m in module:
-			out.append(import_file(m[0], m[1], m[2], force))
+			out.append(import_file(m[0], m[1], m[2], plugin=plugin, force=force))
 		return out
 	else:
-		return import_file(module, dt, dn, force)
+		return import_file(module, dt, dn, plugin=plugin, force=force)
 		
-def import_file(module, dt, dn, force=False):
+def import_file(module, dt, dn, plugin=None, force=False):
 	"""Sync a file from txt if modifed, return false if not updated"""
 	webnotes.flags.in_import = True
 	dt, dn = scrub_dt_dn(dt, dn)
-	path = os.path.join(get_module_path(module), 
-		os.path.join(dt, dn, dn + '.txt'))
-		
+	
+	if plugin:
+		path = webnotes.plugins.get_path(module, dt, dn, plugin, extn="txt")
+	else:
+		path = os.path.join(get_module_path(module), 
+			os.path.join(dt, dn, dn + '.txt'))
+	
 	ret = import_file_by_path(path, force)
 	webnotes.flags.in_import = False
 	return ret
@@ -32,7 +37,7 @@ def import_file_by_path(path, force=False):
 		
 		with open(path, 'r') as f:
 			doclist = peval_doclist(f.read())
-		
+			
 		if doclist:
 			doc = doclist[0]
 			
