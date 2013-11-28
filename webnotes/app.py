@@ -72,11 +72,6 @@ def application(request):
 
 application = local_manager.make_middleware(application)
 
-if not os.environ.get('NO_STATICS'):
-	application = StaticDataMiddleware(application, {
-		'/': 'public',
-	})
-
 def serve(port=8000, profile=False):
 	webnotes.validate_versions()
 	global application
@@ -84,6 +79,10 @@ def serve(port=8000, profile=False):
 
 	if profile:
 		application = ProfilerMiddleware(application)
+
+	application = StaticDataMiddleware(application, {
+		'/': 'public',
+	})
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
