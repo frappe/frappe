@@ -738,16 +738,6 @@ def update_site_config(site_config, site, verbose=False):
 @cmd
 def bump(repo, bump_type):
 
-	import json
-	assert repo in ['lib', 'app']
-	assert bump_type in ['minor', 'major', 'patch']
-
-	def validate(repo_path):
-		import git
-		repo = git.Repo(repo_path)
-		if repo.active_branch != 'master':
-			raise Exception, "Current branch not master in {}".format(repo_path)
-
 	def bump_version(version, version_type):
 		import semantic_version
 		v = semantic_version.Version(version)
@@ -758,45 +748,29 @@ def bump(repo, bump_type):
 		elif version_type == 'patch':
 			v.patch += 1
 		return unicode(v)
+		
+
+		assert repo in ['lib', 'app']
+		assert bump_type in ['minor', 'major', 'patch']
 	
 	def add_tag(repo_path, version):
 		import git
 		repo = git.Repo(repo_path)
-		repo.index.add(['config.json'])
-		repo.index.commit('bumped to version {}'.format(version))
 		repo.create_tag('v' + version, repo.head)
-	
-	def update_framework_requirement(version):
-		with open('app/config.json') as f:
-			config = json.load(f)
-		config['requires_framework_version'] = '==' + version
-		with open('app/config.json', 'w') as f:
-			json.dump(config, f, indent=1, sort_keys=True)
-
-	validate('lib/')
-	validate('app/')
 
 	if repo == 'app':
 		with open('app/config.json') as f:
 			config = json.load(f)
-		new_version = bump_version(config['app_version'], bump_type)
-		config['app_version'] = new_version
-		with open('app/config.json', 'w') as f:
-			json.dump(config, f, indent=1, sort_keys=True)
-		add_tag('app/', new_version)
+			new_version = bump_version(config['app_version'], bump_type)
+			config['app_version'] = new_version
+			json.dump(config, f)
 
 	elif repo == 'lib':
 		with open('lib/config.json') as f:
 			config = json.load(f)
-		new_version = bump_version(config['framework_version'], bump_type)
-		config['framework_version'] = new_version
-		with open('lib/config.json', 'w') as f:
-			json.dump(config, f, indent=1, sort_keys=True)
-		add_tag('lib/', new_version)
-
-		update_framework_requirement(new_version)
-
-		bump('app', bump_type)
+			new_version = bump_version(config['framework_version'], bump_type)
+			config['framework_version'] = new_version
+			json.dump(config, f)
 		
 
 if __name__=="__main__":
