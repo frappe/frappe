@@ -95,13 +95,21 @@ def run(report_name, filters=None):
 	
 def add_total_row(result, columns):
 	total_row = [""]*len(columns)
+	has_percent = []
 	for row in result:
 		for i, col in enumerate(columns):
 			col = col.split(":")
-			if len(col) > 1 and col[1] in ["Currency", "Int", "Float"] and flt(row[i]):
-				total_row[i] = flt(total_row[i]) + flt(row[i])
+			if len(col) > 1:
+				if col[1] in ["Currency", "Int", "Float", "Percent"] and flt(row[i]):
+					total_row[i] = flt(total_row[i]) + flt(row[i])
+				if col[1] == "Percent" and i not in has_percent:
+					has_percent.append(i)
+	
+	for i in has_percent:
+		total_row[i] = total_row[i] / len(result)
+	
 	first_col = columns[0].split(":")
-	if len(first_col) > 1 and first_col[1] not in ["Currency", "Int", "Float"]:
+	if len(first_col) > 1 and first_col[1] not in ["Currency", "Int", "Float", "Percent"]:
 		total_row[0] = "Total"
 		
 	result.append(total_row)

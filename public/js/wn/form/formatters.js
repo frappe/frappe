@@ -17,7 +17,7 @@ wn.form.formatters = {
 				format_number(value, null, decimals)) + "</div>";
 	},
 	Int: function(value) {
-		return value==null ? "": cint(value);
+		return value==null ? "": "<div style='text-align: right'>" + cint(value) + "</div>";
 	},
 	Percent: function(value) {
 		return "<div style='text-align: right'>" + flt(value, 2) + "%" + "</div>";

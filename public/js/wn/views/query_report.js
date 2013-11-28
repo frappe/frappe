@@ -136,8 +136,9 @@ wn.views.QueryReport = Class.extend({
 	refresh: function() {
 		// Run
 		var me =this;
-		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").toggle(true), 
+		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true), 
 			"Loading Report...");
+		this.wrapper.find(".results").toggle(false);
 		var filters = {};
 		$.each(this.filters || [], function(i, f) {
 			filters[f.df.fieldname] = f.get_parsed_value();
