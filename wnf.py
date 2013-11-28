@@ -742,6 +742,12 @@ def bump(repo, bump_type):
 	assert repo in ['lib', 'app']
 	assert bump_type in ['minor', 'major', 'patch']
 
+	def validate(repo_path):
+		import git
+		repo = git.Repo(repo_path)
+		if repo.active_branch != 'master':
+			raise Exception, "Current branch not master in {}".format(repo_path)
+
 	def bump_version(version, version_type):
 		import semantic_version
 		v = semantic_version.Version(version)
@@ -766,6 +772,9 @@ def bump(repo, bump_type):
 		config['requires_framework_version'] = '==' + version
 		with open('app/config.json', 'w') as f:
 			json.dump(config, f, indent=1, sort_keys=True)
+
+	validate('lib/')
+	validate('app/')
 
 	if repo == 'app':
 		with open('app/config.json') as f:
