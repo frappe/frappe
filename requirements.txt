@@ -18,4 +18,5 @@ slugify
 termcolor
 werkzeug
 semantic_version
+slugify
 gitpython==0.3.2.RC1
