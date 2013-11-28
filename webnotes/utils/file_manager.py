@@ -7,6 +7,7 @@ import os, base64, re
 from webnotes.utils import cstr, cint, get_site_path
 from webnotes import _
 from webnotes import conf
+from slugify import slugify
 
 class MaxFileSizeReachedError(webnotes.ValidationError): pass
 
@@ -85,6 +86,8 @@ def save_file(fname, content, dt, dn, decode=False):
 		if isinstance(content, unicode):
 			content = content.encode("utf-8")
 		content = base64.b64decode(content)
+	
+	fname = slugify(unicode(os.path.splitext(fname)[0])) + os.path.splitext(fname)[1]
 	
 	import filecmp
 	from webnotes.model.code import load_doctype_module
