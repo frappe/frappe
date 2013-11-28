@@ -154,11 +154,11 @@ wn.views.QueryReport = Class.extend({
 		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true), 
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
-		filters = this.get_values();
-		
-		if(this.report_ajax) this.report_ajax.abort();
-		
-		this.report_ajax = wn.call({
+		var filters = {};
+		$.each(this.filters || [], function(i, f) {
+			filters[f.df.fieldname] = f.get_parsed_value();
+		})
+		return wn.call({
 			method: "webnotes.widgets.query_report.run",
 			type: "GET",
 			args: {
