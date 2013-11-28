@@ -443,7 +443,7 @@ wn.ui.form.ControlSmallText = wn.ui.form.ControlText;
 wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="form-group row">\
+		this.$wrapper = $('<div class="form-group row" style="margin: 0px;">\
 		<div class="col-md-offset-4 col-md-8">\
 			<div class="checkbox" style="margin: 5px 0px">\
 				<label class="input-area">\
