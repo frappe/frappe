@@ -20,6 +20,19 @@ import webnotes.webutils
 
 local_manager = LocalManager([webnotes.local])
 
+def handle_session_stopped():
+	res = Response("""<html>
+							<body style="background-color: #EEE;">
+									<h3 style="width: 900px; background-color: #FFF; border: 2px solid #AAA; padding: 20px; font-family: Arial; margin: 20px auto">
+											Updating.
+											We will be back in a few moments...
+									</h3>
+							</body>
+					</html>""")
+	res.status_code = 503
+	res.content_type = 'text/html'
+	return res
+
 @Request.application
 def application(request):
 	webnotes.local.request = request
@@ -46,11 +59,14 @@ def application(request):
 	except HTTPException, e:
 		return e
 		
+	except webnotes.SessionStopped, e:
+		webnotes.local._response = handle_session_stopped()
+		
 	finally:
 		if webnotes.conn:
 			webnotes.conn.close()
 	
-	return webnotes._response
+	return webnotes.local._response
 
 application = local_manager.make_middleware(application)
 
