@@ -446,7 +446,8 @@ class Database:
 		return # not required
 	
 	def commit(self):
-		self.sql("commit")
+		if not webnotes.flags.in_test:
+			self.sql("commit")
 		webnotes.local.rollback_observers = []
 
 	def rollback(self):

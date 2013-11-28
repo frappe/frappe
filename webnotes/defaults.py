@@ -152,6 +152,9 @@ def get_defaults_for(parent="Control Panel"):
 	return defaults
 
 def clear_cache(parent=None):
+	if webnotes.flags.in_install: 
+		return
+
 	def all_profiles():
 		return webnotes.conn.sql_list("select name from tabProfile") + ["Control Panel", "__global"]
 		

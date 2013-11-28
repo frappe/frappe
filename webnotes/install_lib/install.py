@@ -40,7 +40,9 @@ class Installer:
 		
 	def install(self, db_name, source_sql=None, admin_password = 'admin', verbose=0,
 		force=0):
-		
+
+		webnotes.flags.in_install = True
+
 		if force or (db_name not in self.dbman.get_database_list()):
 			# delete user (if exists)
 			self.dbman.delete_user(db_name)
@@ -97,6 +99,8 @@ class Installer:
 		if not self.site:
 			from webnotes.build import bundle
 			bundle(False)
+
+		webnotes.flags.in_install = False
 					
 		return db_name
 		
