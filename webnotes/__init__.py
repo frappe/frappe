@@ -13,6 +13,7 @@ from MySQLdb import ProgrammingError as SQLError
 
 import os
 import json
+import semantic_version
 
 local = Local()
 
@@ -626,3 +627,12 @@ def get_conf_path(sites_dir, site):
 	from webnotes.utils import get_site_base_path
 	return os.path.join(get_site_base_path(sites_dir=sites_dir,
 			hostname=site), 'site_config.json')
+
+def validate_versions():
+	config = get_config()
+	framework_version = semantic_version.Version(config['framework_version'])
+	spec = semantic_version.Spec(config['requires_framework_version'])
+	if not spec.match(framework_version):
+		raise Exception, "Framework version out of sync"
+
+validate_versions()
