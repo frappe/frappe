@@ -61,6 +61,7 @@ application = StaticDataMiddleware(application, {
 
 
 def serve(port=8000, profile=False):
+	webnotes.validate_versions()
 	global application
 	from werkzeug.serving import run_simple
 	if profile:

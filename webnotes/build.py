@@ -15,6 +15,7 @@ from cssmin import cssmin
 def bundle(no_compress, cms_make=True):
 	"""concat / minify js files"""
 	# build js files
+	webnotes.validate_versions()
 	check_public()
 	check_lang()
 	bundle = Bundle()
