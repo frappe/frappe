@@ -85,9 +85,18 @@ class IncomingMail:
 			return part.get_payload()		
 
 	def get_attachment(self, part, charset):
+		from email.header import decode_header
+		filename = part.get_filename()
+		try:
+			_filename = email.header.decode_header(filename)
+			filename = _filename[0][0] or filename
+			if _filename[0][1]:
+				filename = filename.decode(_filename[0][1])
+		except:
+			pass
 		self.attachments.append({
 			'content-type': part.get_content_type(),
-			'filename': part.get_filename(),
+			'filename': filename,
 			'content': part.get_payload(decode=True),
 		})
 	
