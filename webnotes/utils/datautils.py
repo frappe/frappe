@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -55,7 +55,7 @@ def read_csv_content(fcontent, ignore_encoding=False):
 		return rows
 	except Exception, e:
 		webnotes.msgprint("Not a valid Comma Separated Value (CSV File)")
-		raise e
+		raise
 
 @webnotes.whitelist()
 def send_csv_to_client(args):

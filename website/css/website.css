@@ -1,5 +1,5 @@
 .container {
-	max-width: 728px !important;
+	max-width: 800px;
 }
 
 h1, h2, h3, h4, h5 {
@@ -15,7 +15,7 @@ img {
 }
 
 .content {
-	padding-bottom: 30px;
+	margin-bottom: 22px;
 }
 
 .banner {
@@ -31,11 +31,10 @@ img {
 	color: #888;
 }
 
-.social-icons {
+.social-icons i {
 	font-size: 120%;
-	float: right;
-	text-align: right;
 }
+
 .social-icons a:hover {
 	text-decoration: none;
 }
@@ -46,21 +45,9 @@ img {
 	margin-left: 5px;
 }
 
-div.web-footer {
-	padding-top: 10px;
+.web-footer {
+	margin-top: 10px;
 	padding-bottom: 20px;
-}
-
-.web-footer-menu ul {
-	list-style: none;
-	margin: 0px;
-	padding: 0px;
-}
-
-.web-footer-menu ul li {
-	display: inline;
-	padding: 2px 14px 2px 0px;
-	margin: 0px;
 }
 
 .avatar {
@@ -152,26 +139,46 @@ div.web-footer {
 	display: inline-block;
 }
 
-.navbar {
-	box-shadow: none;
-	border-radius: 0px;
-}
-
 @media (min-width: 768px) {
 	.visible-xs-inline, .visible-xs-inline-block {
 		display: none;
 	}
 }
+
+/* the element that this class is applied to, should have a max width for this to work*/
+.ellipsis {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: inline-block;
+}
+
+.navbar {
+	box-shadow: none;
+	border-radius: 0px;
+	margin-bottom: 7px;
+}
+
+.navbar-brand {
+	padding-right: 30px;
+	max-width: 80%;
+}
+
+@media (min-width: 768px) {
+	.navbar-brand {
+		max-width: 300px;
+	}
+}
+
+.panel-container {
+	margin-top: 35px;
+}
+
 .panel-heading, 
 .panel-body {
 	padding-left: 15px;
 }
 
-
-.breadcrumb {
-	margin: 0px -20px;
-	margin-bottom: 20px;
-}
 
 fieldset {
 	margin-bottom: 20px;
@@ -197,4 +204,8 @@ fieldset {
 	margin: -15px;
 	padding: 15px;
 	border-radius: 4px;
+}
+
+.slide-image {
+	width: 100%;
 }

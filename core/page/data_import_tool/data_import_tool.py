@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -385,7 +385,11 @@ def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, 
 		doclist = get_doclist(row_idx)
 		try:
 			webnotes.local.message_log = []
-			if len(doclist) > 1:				
+			if len(doclist) > 1:
+				for d in doclist:
+					# ignoring parent check as it will be automatically added
+					check_record(d, None, doctype_dl)
+				
 				if overwrite and webnotes.conn.exists(doctype, doclist[0]["name"]):
 					bean = webnotes.bean(doctype, doclist[0]["name"])
 					bean.ignore_links = ignore_links
@@ -483,7 +487,7 @@ def import_file_by_path(path, ignore_links=False, overwrite=False):
 def export_csv(doctype, path):		
 	with open(path, "w") as csvfile:
 		get_template(doctype=doctype, all_doctypes="Yes", with_data="Yes")
-		csvfile.write(webnotes.response.result)
+		csvfile.write(webnotes.response.result.encode("utf-8"))
 
 def export_json(doctype, name, path):
 	from webnotes.handler import json_handler

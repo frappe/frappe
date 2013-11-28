@@ -1,13 +1,11 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
 
 import webnotes
-from webnotes import msgprint
+from webnotes import msgprint, _
 import os
-
-import MySQLdb
 
 from webnotes.utils import now, cint
 from webnotes.model import no_value_fields
@@ -102,11 +100,13 @@ class DocType:
 		webnotes.conn.sql("delete from `tabProperty Setter` where doc_type = %s", self.doc.name)
 		webnotes.conn.sql("delete from `tabReport` where ref_doctype=%s", self.doc.name)
 	
-	def on_rename(self, new, old, merge=False):
+	def before_rename(self, old, new, merge=False):
+		if merge:
+			webnotes.throw(_("DocType can not be merged"))
+			
+	def after_rename(self, old, new, merge=False):
 		if self.doc.issingle:
-			webnotes.conn.sql("""\
-				update tabSingles set doctype=%s
-				where doctype=%s""", (new, old))
+			webnotes.conn.sql("""update tabSingles set doctype=%s where doctype=%s""", (new, old))
 		else:
 			webnotes.conn.sql("rename table `tab%s` to `tab%s`" % (old, new))
 	
@@ -307,8 +307,8 @@ def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 				r.insert()
 	except webnotes.DoesNotExistError, e:
 		pass
-	except MySQLdb.ProgrammingError, e:
+	except webnotes.SQLError, e:
 		if e.args[0]==1146:
 			pass
 		else:
-			raise e
+			raise

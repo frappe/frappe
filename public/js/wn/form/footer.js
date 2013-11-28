@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.Footer = Class.extend({
@@ -17,17 +17,14 @@ wn.ui.form.Footer = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $('<div class="form-footer row">\
+		$("<div>").css({"border-top":"1px solid #c7c7c7"}).appendTo(this.parent)
+		this.wrapper = $('<div class="form-footer container">\
 			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
 				display: block; margin-left: 15px; color: #888;"></i-->\
-			<div class="col-md-12">\
-				<div class="save-area">\
-					<button class="btn btn-save btn-primary">\
-						<i class="icon-save"></i> '+wn._("Save")+'</button>\
-				</div>\
+			<div>\
 				<div class="help-area"></div>\
 			</div>\
-			<div class="after-save">\
+			<div class="after-save row">\
 				<div class="col-md-8">\
 					<div class="form-comments">\
 						<h5><i class="icon-comments"></i> '+wn._("Comments")+'</h5>\
@@ -86,31 +83,15 @@ wn.ui.form.Footer = Class.extend({
 			frm: this.frm
 		})
 	},
-	show_save: function() {
-		this.wrapper.find(".save-area").toggle(true);
-	},
-	hide_save: function() {
-		this.wrapper.find(".save-area").toggle(false);
-	},
 	refresh: function() {
-		this.toggle_save();
 		if(this.frm.doc.__islocal) {
-			this.wrapper.find(".after-save").toggle(false);
+			this.parent.addClass("hide");
 		} else {
-			this.wrapper.find(".after-save").toggle(true);
+			this.parent.removeClass("hide");
 			this.frm.attachments.refresh();
 			this.frm.comments.refresh();
 			this.frm.assign_to.refresh();
 			this.frm.tags.refresh();
 		}
 	},
-	toggle_save: function() {
-		if(this.frm_head && this.appframe.toolbar
-			&& this.appframe.buttons.Save && !this.save_disabled
-			&& (this.fields && this.fields.length > 7)) {
-			this.show_save();
-		} else {
-			this.hide_save();
-		}
-	}
 });

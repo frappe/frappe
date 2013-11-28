@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.provide('wn.ui');
@@ -21,6 +21,7 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		dialog.show()',
 	init: function(opts) {
 		this.display = false;
+		this.is_dialog = true;
 		if(!opts.width) opts.width = 480;
 
 		$.extend(this, opts);

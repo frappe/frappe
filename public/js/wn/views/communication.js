@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // opts - parent, list, doc, email
@@ -37,8 +37,8 @@ wn.views.CommunicationList = Class.extend({
 	},
 	clear_list: function() {
 		this.body.remove();
-		$("<div class='alert alert-info'>" + wn._("No Communication tagged with this ") 
-			+ this.doc.doctype +" yet.</div>").appendTo(this.wrapper);	
+		$("<p class='text-muted'>" + wn._("No Communication tagged with this ") 
+			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);	
 	},
 	make_body: function() {
 		$(this.parent)
@@ -53,6 +53,7 @@ wn.views.CommunicationList = Class.extend({
 			.appendTo(this.parent);
 			
 		this.body = $('<div class="list-group">')
+		.css({"border":"1px solid #dddddd", "border-radius":"4px"})
 			.appendTo(this.wrapper);
 	},
 	
@@ -96,8 +97,7 @@ wn.views.CommunicationList = Class.extend({
 			"SMS": "icon-mobile-phone",
 		}[doc.communication_medium] || "icon-envelope";
 		var comm = $(repl('<div class="list-group-item">\
-				<div class="comm-header row" title="'+wn._('Click to Expand / Collapse')+'"\
-					style="font-weight: bold; height: 20px; overflow: hidden;">\
+				<div class="comm-header row" title="'+wn._('Click to Expand / Collapse')+'">\
 					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
 					<div class="col-sm-6">%(subject)s</div>\
 					<div class="col-sm-3 text-right">%(when)s</div>\
@@ -167,6 +167,7 @@ wn.views.CommunicationComposer = Class.extend({
 		});
 
 		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
+		this.dialog.get_input("send").addClass("btn-primary");
 		
 		$(document).on("upload_complete", function(event, filename, fileurl) {
 			if(me.dialog.display) {

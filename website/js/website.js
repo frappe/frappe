@@ -1,15 +1,8 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 if(!window.wn) wn = {};
 
 $.extend(wn, {
-	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
-		treemapper.hide_message();
-		$('<div class="message-overlay"></div>')
-			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
-				+text+'</div>').appendTo(document.body);
-	},
 	provide: function(namespace) {
 		var nsl = namespace.split('.');
 		var parent = window;
@@ -38,8 +31,9 @@ $.extend(wn, {
 		$('.message-overlay').remove();
 	},
 	call: function(opts) {
+		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		wn.prepare_call(opts);
-		$.ajax({
+		return $.ajax({
 			type: "POST",
 			url: "/",
 			data: opts.args,
@@ -52,8 +46,6 @@ $.extend(wn, {
 				console.error ? console.error(response) : console.log(response);
 			}
 		});
-	
-		return false;
 	},
 	prepare_call: function(opts) {
 		if(opts.btn) {
@@ -163,6 +155,17 @@ $.extend(wn, {
 			callback: opts.callback
 		});
 	},
+	has_permission: function(doctype, docname, perm_type, callback) {
+		return wn.call({
+			method: "webnotes.client.has_permission",
+			args: {doctype: doctype, docname: docname, perm_type: perm_type},
+			callback: function(r) {
+				if(!r.exc && r.message.has_permission) {
+					if(callback) { return callback(r); }
+				}
+			}
+		});
+	}
 });
 
 
@@ -282,5 +285,11 @@ $(document).ready(function() {
 	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
 	$("#website-login").toggleClass("hide", logged_in ? true : false);
 	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
+	
+	// switch to app link
+	if(getCookie("system_user")==="yes") {
+		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
+			<li><a href="app.html"><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
+	}
 });
 

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // for license information please see license.txt
@@ -113,10 +113,12 @@ wn.ui.TreeNode = Class.extend({
 			callback: function(r) {
 				$(me.$a).done_working();
 
-				$.each(r.message, function(i, v) {
-					node = me.addnode(v);
-					node.$a.data('node-data', v);
-				});
+				if (r.message) {
+					$.each(r.message, function(i, v) {
+						node = me.addnode(v);
+						node.$a.data('node-data', v);
+					});
+				}
 				
 				me.loaded = true;
 				

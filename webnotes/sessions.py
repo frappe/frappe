@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -14,6 +14,7 @@ import json
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
+import webnotes.plugins
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -26,6 +27,9 @@ def clear_cache(user=None):
 
 	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
+	
+	# clear plugins code cache
+	webnotes.plugins.clear_cache()
 
 	if user:
 		cache.delete_value("bootinfo:" + user)
@@ -53,7 +57,7 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	from webnotes.widgets.notification import get_notification_info_for_boot
+	from core.doctype.notification_count.notification_count import get_notification_info_for_boot
 
 	bootinfo = None
 	if not getattr(conf,'auto_cache_clear',None):
@@ -69,9 +73,9 @@ def get():
 		# if not create it
 		from webnotes.boot import get_bootinfo
 		bootinfo = get_bootinfo()
+		bootinfo["notification_info"] = get_notification_info_for_boot()
 		webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 	
-	bootinfo["notification_info"] = get_notification_info_for_boot()
 		
 	return bootinfo
 

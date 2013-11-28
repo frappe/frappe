@@ -4,7 +4,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 		title: wn._('Permission Manager'),
 		single_column: true
 	});
-	$(wrapper).find(".layout-main").html("<div class='perm-engine'></div>\
+	$(wrapper).find(".layout-main").html("<div class='perm-engine' style='min-height: 200px;'></div>\
 	<table class='table table-bordered' style='background-color: #f9f9f9;'>\
 	<tr><td>\
 	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Setting Permissions")+":</h4>\
@@ -62,8 +62,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	</ol>\
 	<p>"+wn._("Once you have set this, the users will only be able access documents with that property.")+"</p>\
 	<hr>\
-	<p>If these instructions where not helpful, please add in your suggestions at\
-	<a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a></p>\
+	<p>"+wn._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>")+"</p>\
 	</tr></td>\
 	</table>");
 	wrapper.permission_engine = new wn.PermissionEngine(wrapper);
@@ -116,7 +115,7 @@ wn.PermissionEngine = Class.extend({
 	},
 	make_reset_button: function() {
 		var me = this;
-		me.reset_button = me.wrapper.appframe.add_button("Reset Permissions", function() {
+		me.reset_button = me.wrapper.appframe.set_title_right("Reset Permissions", function() {
 			if(wn.confirm("Reset Permissions for " + me.get_doctype() + "?", function() {
 					return wn.call({
 						module:"core",
@@ -128,7 +127,7 @@ wn.PermissionEngine = Class.extend({
 						callback: function() { me.refresh(); }
 					});
 				}));
-			}, 'icon-retweet').toggle(false);
+			}).toggle(false);
 	},
 	get_doctype: function() {
 		var doctype = this.doctype_select.val();
@@ -165,11 +164,12 @@ wn.PermissionEngine = Class.extend({
 	},
 	render: function(perm_list) {
 		this.body.empty();
-		this.perm_list = perm_list;
-		if(!perm_list.length) {
-			this.body.html("<div class='alert alert-warning'>"+wn._("No Permissions set for this criteria.")+"</div>");
+		this.perm_list = perm_list || [];
+		if(!this.perm_list.length) {
+			this.body.html("<div class='alert alert-warning'>"
+				+wn._("No Permissions set for this criteria.")+"</div>");
 		} else {
-			this.show_permission_table(perm_list);
+			this.show_permission_table(this.perm_list);
 		}
 		this.show_add_rule();
 	},

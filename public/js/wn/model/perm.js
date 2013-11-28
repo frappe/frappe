@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.provide("wn.perm");
@@ -199,7 +199,7 @@ $.extend(wn.perm, {
 		}
 
 		if(explain) console.log("By Read Only:" + ret)
-
+		
 		return ret;
 		
 	}

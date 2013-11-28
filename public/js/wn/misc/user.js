@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // misc user functions
@@ -31,8 +31,13 @@ wn.avatar = function(user, large, title) {
 }
 
 wn.ui.set_user_background = function(src) {
-	wn.dom.set_style(repl('body { background: url("%(src)s") repeat fixed;}',
-		{src:src}))
+	if(!src) src = "lib/images/ui/field.jpg";
+	wn.dom.set_style(repl('#page-desktop { \
+		position: fixed;\
+		left: 0px; min-width: 100%; height: 100%; overflow: auto;\
+		padding-top: 14px; \
+		background: url("%(src)s") center center fixed; \
+	}', {src:src}))
 }
 
 wn.provide('wn.user');

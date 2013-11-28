@@ -1,6 +1,6 @@
-#!/usr/bin/env python
+#!/usr/bin/env python2.7
 
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -53,7 +53,8 @@ def get_sites():
 	import os
 	import conf
 	return [site for site in os.listdir(conf.sites_dir)
-			if not os.path.islink(os.path.join(conf.sites_dir, site))]
+			if not os.path.islink(os.path.join(conf.sites_dir, site)) 
+				and os.path.isdir(os.path.join(conf.sites_dir, site))]
 	
 def setup_parser():
 	import argparse
@@ -68,9 +69,11 @@ def setup_parser():
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
 	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
-		help="Show verbose output where applicable")
+		help="Don't show verbose output where applicable")
 	parser.add_argument("--site", nargs="?", metavar="SITE-NAME or all",
 		help="Run for a particular site")
+	parser.add_argument("--plugin", nargs="?", metavar="PLUGIN-NAME",
+		help="Run for a particular plugin")
 		
 	return parser.parse_args()
 	
@@ -96,6 +99,7 @@ def setup_utilities(parser):
 	# update
 	parser.add_argument("-u", "--update", nargs="*", metavar=("REMOTE", "BRANCH"),
 		help="Perform git pull, run patches, sync schema and rebuild files/translations")
+	parser.add_argument("--reload_gunicorn", default=False, action="store_true", help="reload gunicorn on update")
 	parser.add_argument("--patch", nargs=1, metavar="PATCH-MODULE",
 		help="Run a particular patch [-f]")
 	parser.add_argument("-l", "--latest", default=False, action="store_true",
@@ -123,8 +127,6 @@ def setup_utilities(parser):
 		help="Move site to different directory")
 	parser.add_argument("--with_files", default=False, action="store_true",
 		help="Also take backup of files")
-	parser.add_argument("--docs", default=False, action="store_true",
-		help="Build docs")
 	parser.add_argument("--domain", nargs="*",
 		help="Get or set domain in Website Settings")
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
@@ -135,8 +137,11 @@ def setup_utilities(parser):
 		help="Set administrator password")
 	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
 	parser.add_argument("--serve", action="store_true", help="Run development server")
+	parser.add_argument("--profile", action="store_true", help="enable profiling in development server")
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
+	parser.add_argument("--python", action="store_true", help="get python shell for a site")
+	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
 	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
 	parser.add_argument("--update_site_config", nargs=1, 
 		metavar="SITE-CONFIG-JSON", 
@@ -146,6 +151,10 @@ def setup_utilities(parser):
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
 		help="Clear website cache")
+	parser.add_argument("--build_sitemap", default=False, action="store_true",
+		help="Build Website Sitemap")
+	parser.add_argument("--rebuild_sitemap", default=False, action="store_true",
+		help="Rebuild Website Sitemap")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
@@ -185,6 +194,8 @@ def setup_git(parser):
 		help="Run git checkout BRANCH for both repositories")
 	parser.add_argument("--git", nargs="*", metavar="OPTIONS",
 		help="Run git command for both repositories")
+	parser.add_argument("--bump", metavar=("REPO", "VERSION-TYPE"), nargs=2,
+		help="Bump project version")
 	
 		
 def setup_translation(parser):
@@ -253,18 +264,25 @@ def make_demo_fresh(site=None):
 # utilities
 
 @cmd
-def update(remote=None, branch=None, site=None):
+def update(remote=None, branch=None, site=None, reload_gunicorn=False):
 	pull(remote=remote, branch=branch, site=site)
 
 	# maybe there are new framework changes, any consequences?
 	reload(webnotes)
+	
+	if not site: build()
 
 	latest(site=site)
+	if reload_gunicorn:
+		import subprocess
+		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
 def latest(site=None, verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
+	import webnotes.plugins
+	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 	
 	webnotes.connect(site=site)
 	
@@ -277,9 +295,16 @@ def latest(site=None, verbose=True):
 	
 		# sync
 		webnotes.model.sync.sync_all()
+		
+		# remove __init__.py from plugins
+		webnotes.plugins.remove_init_files()
+		
+		# build website config if any changes in templates etc.
+		build_website_sitemap_config()
+		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
-		raise e
+		raise
 	finally:
 		webnotes.destroy()
 
@@ -302,14 +327,19 @@ def patch(patch_module, site=None, force=False):
 @cmd
 def update_all_sites(remote=None, branch=None, verbose=True):
 	pull(remote, branch)
+	
+	# maybe there are new framework changes, any consequences?
+	reload(webnotes)
+	
 	build()
 	for site in get_sites():
 		latest(site=site, verbose=verbose)
 
 @cmd
-def reload_doc(module, doctype, docname, site=None, force=False):
+def reload_doc(module, doctype, docname, plugin=None, site=None, force=False):
 	webnotes.connect(site=site)
-	webnotes.reload_doc(module, doctype, docname, force=force)
+	webnotes.reload_doc(module, doctype, docname, plugin=plugin, force=force)
+	webnotes.conn.commit()
 	webnotes.destroy()
 
 @cmd
@@ -326,11 +356,13 @@ def watch():
 def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
 	from webnotes.utils.backups import scheduled_backup
 	webnotes.connect(site=site)
-	print backup_path_db
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	if verbose:
 		from webnotes.utils import now
-		print "backup taken -", odb.backup_path_db, "- on", now()
+		print "database backup taken -", odb.backup_path_db, "- on", now()
+		if with_files:
+			print "files backup taken -", odb.backup_path_files, "- on", now()
+	webnotes.destroy()
 	return odb
 
 @cmd
@@ -356,11 +388,6 @@ def move(site=None, dest_dir=None):
 	os.rename(old_path, final_new_path)
 	webnotes.destroy()
 	return os.path.basename(final_new_path)
-
-@cmd
-def docs():
-	from core.doctype.documentation_tool.documentation_tool import write_static
-	write_static()
 
 @cmd
 def domain(host_url=None, site=None):
@@ -396,7 +423,23 @@ def clear_cache(site=None):
 def clear_web(site=None):
 	import webnotes.webutils
 	webnotes.connect(site=site)
+	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	build_website_sitemap_config()
 	webnotes.webutils.clear_cache()
+	webnotes.destroy()
+
+@cmd
+def build_sitemap(site=None):
+	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	webnotes.connect(site=site)
+	build_website_sitemap_config()
+	webnotes.destroy()
+
+@cmd
+def rebuild_sitemap(site=None):
+	from website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
+	webnotes.connect(site=site)
+	rebuild_website_sitemap_config()
 	webnotes.destroy()
 
 @cmd
@@ -552,8 +595,27 @@ def mysql(site=None):
 	import commands, os
 	msq = commands.getoutput('which mysql')
 	webnotes.init(site=site)
-	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, webnotes.conf.db_host or "localhost"])
+	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, '-h', webnotes.conf.db_host or "localhost"])
 	webnotes.destroy()
+
+@cmd
+def python(site=None):
+	import webnotes 
+	import commands, os
+	python = commands.getoutput('which python')
+	webnotes.init(site=site)
+	if site:
+		os.environ["site"] = site
+	os.environ["PYTHONSTARTUP"] = os.path.join(os.path.dirname(__file__), "pythonrc.py")
+	os.execv(python, [python])
+	webnotes.destroy()
+
+@cmd
+def ipython(site=None):
+	import webnotes
+	webnotes.connect(site=site)
+	import IPython
+	IPython.embed()
 
 @cmd
 def smtp_debug_server():
@@ -562,9 +624,9 @@ def smtp_debug_server():
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
 	
 @cmd
-def serve(port=8000):
+def serve(port=8000, profile=False):
 	import webnotes.app
-	webnotes.app.serve(port=port)
+	webnotes.app.serve(port=port, profile=profile)
 
 def replace_code(start, txt1, txt2, extn, search=None, force=False):
 	"""replace all txt1 by txt2 in files with extension (extn)"""
@@ -668,6 +730,70 @@ def update_site_config(site_config, site, verbose=False):
 		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)
 		
 	webnotes.destroy()
+
+@cmd
+def bump(repo, bump_type):
+
+	import json
+	assert repo in ['lib', 'app']
+	assert bump_type in ['minor', 'major', 'patch']
+
+	def validate(repo_path):
+		import git
+		repo = git.Repo(repo_path)
+		if repo.active_branch != 'master':
+			raise Exception, "Current branch not master in {}".format(repo_path)
+
+	def bump_version(version, version_type):
+		import semantic_version
+		v = semantic_version.Version(version)
+		if version_type == 'minor':
+			v.minor += 1
+		elif version_type == 'major':
+			v.major += 1
+		elif version_type == 'patch':
+			v.patch += 1
+		return unicode(v)
 	
+	def add_tag(repo_path, version):
+		import git
+		repo = git.Repo(repo_path)
+		repo.index.add(['config.json'])
+		repo.index.commit('bumped to version {}'.format(version))
+		repo.create_tag('v' + version, repo.head)
+	
+	def update_framework_requirement(version):
+		with open('app/config.json') as f:
+			config = json.load(f)
+		config['requires_framework_version'] = '==' + version
+		with open('app/config.json', 'w') as f:
+			json.dump(config, f, indent=1, sort_keys=True)
+
+	validate('lib/')
+	validate('app/')
+
+	if repo == 'app':
+		with open('app/config.json') as f:
+			config = json.load(f)
+		new_version = bump_version(config['app_version'], bump_type)
+		config['app_version'] = new_version
+		with open('app/config.json', 'w') as f:
+			json.dump(config, f, indent=1, sort_keys=True)
+		add_tag('app/', new_version)
+
+	elif repo == 'lib':
+		with open('lib/config.json') as f:
+			config = json.load(f)
+		new_version = bump_version(config['framework_version'], bump_type)
+		config['framework_version'] = new_version
+		with open('lib/config.json', 'w') as f:
+			json.dump(config, f, indent=1, sort_keys=True)
+		add_tag('lib/', new_version)
+
+		update_framework_requirement(new_version)
+
+		bump('app', bump_type)
+		
+
 if __name__=="__main__":
 	main()

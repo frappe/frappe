@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide('wn.ui');
@@ -22,7 +22,8 @@ wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 				if(f.df["default"]) f.set_input(f.df["default"]);
 			})
 			if(!this.no_submit_on_enter) {
-				$(this.body).find(".control-input > .btn").filter(":first").removeClass("btn-default").addClass("btn-primary");
+				$(this.body).find("[data-fieldtype='Button']").filter(":first")
+					.removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
 			}
 		}

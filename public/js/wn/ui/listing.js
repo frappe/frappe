@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 // new re-factored Listing object
@@ -145,7 +145,7 @@ wn.ui.Listing = Class.extend({
 	
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button('', function() {
+			this.add_button('Refresh', function() {
 				me.run();
 			}, 'icon-refresh');
 			
@@ -153,7 +153,11 @@ wn.ui.Listing = Class.extend({
 				
 		// new
 		if(this.new_doctype) {
-			this.add_button(wn._('New') + ' ' + wn._(this.new_doctype), function() { 
+			if(this.appframe) {
+				this.appframe.set_title_right("<i class='icon-plus'></i> New", function() { 
+					(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); });
+			}
+			this.add_button(wn._('New'), function() { 
 				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');
 		} 
@@ -284,6 +288,7 @@ wn.ui.Listing = Class.extend({
 		// callbacks
 		if(this.onrun) this.onrun();
 		if(this.callback) this.callback(r);
+		this.$w.trigger("render-complete");
 	},
 
 	get_values_from_response: function(data) {
@@ -352,7 +357,7 @@ wn.ui.Listing = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname==='_user_tags') {
+			if(['_user_tags', '_comments'].indexOf(fieldname)!==-1) {
 				this.filter_list.add_filter(doctype, fieldname, 
 					'like', '%' + label);
 			} else {

@@ -1,16 +1,17 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
 
 import webnotes, os
 import webnotes.model.doc
-from webnotes.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn, get_plugin_path
+from webnotes.modules import scrub, get_module_path, lower_case_files_for, scrub_dt_dn
+from webnotes.plugins import get_plugin_path
 
 def export_doc(doc):
 	export_to_files([[doc.doctype, doc.name]])
 
-def export_to_files(record_list=None, record_module=None, verbose=0, plugin=None):
+def export_to_files(record_list=None, record_module=None, verbose=0, plugin=None, create_init=None):
 	"""
 		Export record_list to files. record_list is a list of lists ([doctype],[docname] )  ,
 	"""
@@ -21,21 +22,22 @@ def export_to_files(record_list=None, record_module=None, verbose=0, plugin=None
 	if record_list:
 		for record in record_list:
 			write_document_file(webnotes.model.doc.get(record[0], record[1]), 
-				record_module, plugin=plugin)
+				record_module, plugin=plugin, create_init=create_init)
 	
-def write_document_file(doclist, record_module=None, plugin=None):
+def write_document_file(doclist, record_module=None, plugin=None, create_init=None):
 	from webnotes.modules.utils import pprint_doclist
 
 	doclist = [filter_fields(d.fields) for d in doclist]
 
 	module = record_module or get_module_name(doclist)
-	code_type = doclist[0]['doctype'] in lower_case_files_for
+	if create_init is None:
+		create_init = doclist[0]['doctype'] in lower_case_files_for
 	
 	# create folder
-	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'], code_type, plugin=plugin)
+	folder = create_folder(module, doclist[0]['doctype'], doclist[0]['name'], create_init, plugin=plugin)
 	
 	# write the data file	
-	fname = (code_type and scrub(doclist[0]['name'])) or doclist[0]['name']
+	fname = (doclist[0]['doctype'] in lower_case_files_for and scrub(doclist[0]['name'])) or doclist[0]['name']
 	with open(os.path.join(folder, fname +'.txt'),'w+') as txtfile:
 		txtfile.write(pprint_doclist(doclist))
 
@@ -71,7 +73,7 @@ def get_module_name(doclist):
 
 	return module
 		
-def create_folder(module, dt, dn, code_type, plugin=None):
+def create_folder(module, dt, dn, create_init, plugin=None):
 	if plugin:
 		module_path = os.path.join(get_plugin_path(plugin), scrub(module))
 	else:
@@ -85,7 +87,7 @@ def create_folder(module, dt, dn, code_type, plugin=None):
 	webnotes.create_folder(folder)
 	
 	# create init_py_files
-	if code_type:
+	if create_init:
 		create_init_py(module_path, dt, dn)
 	
 	return folder

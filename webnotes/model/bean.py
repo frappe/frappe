@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -13,6 +13,10 @@ import webnotes
 from webnotes import _, msgprint
 from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
+try:
+	from startup.bean_handlers import on_method
+except ImportError:
+	on_method = None
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
 class BeanPermissionError(webnotes.ValidationError): pass
@@ -190,12 +194,17 @@ class Bean:
 	def prepare_for_save(self, method):
 		self.check_if_latest(method)
 		
+		self.update_timestamps_and_docstatus()
+		self.update_parent_info()
+		
+		if self.doc.fields.get("__islocal"):
+			# set name before validate
+			self.doc.set_new_name()
+			self.run_method('before_insert')
+			
 		if method != "cancel":
 			self.extract_images_from_text_editor()
 			self.check_links()
-		
-		self.update_timestamps_and_docstatus()
-		self.update_parent_info()
 
 	def update_parent_info(self):
 		idx_map = {}
@@ -231,7 +240,7 @@ class Bean:
 		if hasattr(self.controller, 'custom_' + method):
 			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
 
-		notify(self.controller, method)
+		notify(self, method)
 		
 		self.set_doclist(self.controller.doclist)
 		
@@ -251,7 +260,7 @@ class Bean:
 		return self.save()
 	
 	def insert_or_update(self):
-		if webnotes.conn.exists( self.doc.doctype, self.doc.name):
+		if self.doc.name and webnotes.conn.exists(self.doc.doctype, self.doc.name):
 			return self.save()
 		else:
 			return self.insert()
@@ -286,11 +295,6 @@ class Bean:
 		if self.ignore_permissions or webnotes.has_permission(self.doc.doctype, perm_to_check, self.doc):
 			self.to_docstatus = 0
 			self.prepare_for_save("save")
-			if self.doc.fields.get("__islocal"):
-				# set name before validate
-				self.doc.set_new_name()
-				self.run_method('before_insert')
-				
 			if not self.ignore_validate:
 				self.run_method('validate')
 			if not self.ignore_mandatory:
@@ -298,6 +302,8 @@ class Bean:
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
+			if perm_to_check=="create":
+				self.run_method("after_insert")
 		else:
 			self.no_permission_to(_(perm_to_check.title()))
 		
@@ -357,7 +363,7 @@ class Bean:
 			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
 				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
 			webnotes.errprint(webnotes.utils.getTraceback())
-			raise e
+			raise
 
 	def save_children(self):
 		child_map = {}
@@ -461,33 +467,12 @@ def clone(source_wrapper):
 	
 	return new_wrapper
 
-
-def notify(controller, caller_method):
-	try:
-		from startup.observers import observer_map
-	except ImportError:
-		return
-		
-	doctype = controller.doc.doctype
-	
-	def call_observers(key):
-		if key in observer_map:
-			observer_list = observer_map[key]
-			if isinstance(observer_list, basestring):
-				observer_list = [observer_list]
-			for observer_method in observer_list:
-				webnotes.get_method(observer_method)(controller, caller_method)
-	
-	call_observers("*:*")
-	call_observers(doctype + ":*")
-	call_observers("*:" + caller_method)
-	call_observers(doctype + ":" + caller_method)
+def notify(bean, method):
+	if on_method:
+		on_method(bean, method)
 
 # for bc
 def getlist(doclist, parentfield):
-	"""
-		Return child records of a particular type
-	"""
 	import webnotes.model.utils
 	return webnotes.model.utils.getlist(doclist, parentfield)
 

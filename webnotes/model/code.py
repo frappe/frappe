@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -19,7 +19,7 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 	# for test
 	import webnotes
 	from webnotes.modules import scrub, get_doctype_module
-	from core.doctype.custom_script.custom_script import get_custom_server_script
+	from webnotes.plugins import get_code_and_execute
 
 	# get doctype details
 	module = get_doctype_module(doc.doctype) or "core"
@@ -33,13 +33,10 @@ def get_server_obj(doc, doclist = [], basedoctype = ''):
 		return DocType(doc, doclist)
 
 	# custom?
-	custom_script = get_custom_server_script(doc.doctype)
-
-	if custom_script:
-		opts = {"DocType": DocType}
-		exec custom_script in opts
-		return opts["CustomDocType"](doc, doclist)
-		
+	namespace = {"DocType": DocType}
+	get_code_and_execute(module, "DocType", doc.doctype, namespace=namespace)
+	if namespace.get("CustomDocType"):
+		return namespace["CustomDocType"](doc, doclist)
 	else:
 		return DocType(doc, doclist)
 

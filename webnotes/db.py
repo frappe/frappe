@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 # Database Module
@@ -111,7 +111,7 @@ class Database:
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
 			else:
-				raise e
+				raise
 
 		if auto_commit: self.commit()
 
@@ -290,7 +290,7 @@ class Database:
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
 		
-		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
+		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 	
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if isinstance(filters, list):
@@ -314,7 +314,7 @@ class Database:
 					# table not found, look in singles
 					pass
 				else:
-					raise e
+					raise
 
 		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
 
@@ -357,6 +357,8 @@ class Database:
 			fl = ", ".join(fields)
 		else:
 			fl = fields
+			if fields=="*":
+				as_dict = True
 
 		conditions, filters = self.build_conditions(filters)
 	
@@ -479,11 +481,11 @@ class Database:
 			except:
 				return None
 				
-	def count(self, dt, filters=None):
+	def count(self, dt, filters=None, debug=False):
 		if filters:
 			conditions, filters = self.build_conditions(filters)
 			return webnotes.conn.sql("""select count(*)
-				from `tab%s` where %s""" % (dt, conditions), filters)[0][0]
+				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
 		else:
 			return webnotes.conn.sql("""select count(*)
 				from `tab%s`""" % (dt,))[0][0]

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide("wn.report_dump");
@@ -138,7 +138,7 @@ wn.views.GridReport = Class.extend({
 		var me = this;
 		var progress_bar = null;
 		if(!this.setup_filters_done)
-			progress_bar = this.wrapper.find(".progress .bar");
+			progress_bar = this.wrapper.find(".progress .progress-bar");
 			
 		wn.report_dump.with_data(this.doctypes, function() {
 			if(!me.setup_filters_done) {
@@ -253,10 +253,7 @@ wn.views.GridReport = Class.extend({
 					source: v.list || [],
 				});
 			} else if(v.fieldtype=='Button') {
-				input = me.appframe.add_button(v.label);
-				if(v.icon) {
-					$('<i class="icon '+ v.icon +'"></i>').prependTo(input);
-				}
+				input = me.appframe.add_primary_action(v.label, null, v.icon);
 			} else if(v.fieldtype=='Date') {
 				input = me.appframe.add_date(v.label);
 			} else if(v.fieldtype=='Label') {

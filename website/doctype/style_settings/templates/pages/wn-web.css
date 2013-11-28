@@ -53,14 +53,14 @@ div.outer {
 }
 {% else %}
 {% if doc.background_color.lower() == doc.page_background.lower() %}
-div.web-footer {
+.web-footer {
 	border-top: 1px solid #{{ get_hex_shade(doc.page_background, 15) }};
 	padding-top: 10px;
 }
 {% endif %}
 {% endif %}
 
-div.web-footer, div.web-footer a {
+.web-footer, .web-footer a {
 	font-size: 90%;
 	color: #{{ get_hex_shade(doc.background_color, 70) }};
 }

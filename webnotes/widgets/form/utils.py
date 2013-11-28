@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -83,3 +83,36 @@ def get_next(doctype, name, prev):
 		return None
 	else:
 		return res[0][0]
+
+@webnotes.whitelist()
+def get_linked_docs(doctype, name, metadata_loaded=None):
+	if not metadata_loaded: metadata_loaded = []
+	meta = webnotes.get_doctype(doctype, True)
+	linkinfo = meta[0].get("__linked_with")
+	results = {}
+	for dt, link in linkinfo.items():
+		link["doctype"] = dt
+		linkmeta = webnotes.get_doctype(dt, True)
+		if not linkmeta[0].get("issingle"):
+			fields = [d.fieldname for d in linkmeta.get({"parent":dt, "in_list_view":1})] \
+				+ ["name", "modified"]
+
+			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
+
+			if link.get("child_doctype"):
+				ret = webnotes.get_list(doctype=dt, fields=fields, 
+					filters=[[link.get('child_doctype'), link.get("fieldname"), '=', name]])
+				
+			else:
+				ret = webnotes.get_list(doctype=dt, fields=fields, 
+					filters=[[dt, link.get("fieldname"), '=', name]])
+			
+			if ret: 
+				results[dt] = ret
+				
+			if not dt in metadata_loaded:
+				if not "docs" in webnotes.local.response:
+					webnotes.local.response.docs = []
+				webnotes.local.response.docs += linkmeta
+				
+	return results

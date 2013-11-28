@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.InfoBar = Class.extend({
@@ -10,52 +10,53 @@ wn.ui.form.InfoBar = Class.extend({
 	make: function() {
 		var me = this;
 
-		this.$timestamp = this.appframe.add_to_mini_bar("icon-user", "Creation / Modified By", 
+		this.appframe.iconbar.clear(2);
+		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", "Reload Page", 
+			function() { me.frm.reload_doc(); })
+
+
+		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", "Creation / Modified By", 
 			function() { })
 
-		this.$comments = this.appframe.add_to_mini_bar("icon-comments", "Comments", function() {
+		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", "Comments", function() {
 				me.scroll_to(".form-comments");
 			});
 			
-		this.$attachments = this.appframe.add_to_mini_bar("icon-paper-clip", "Attachments",  function() {
+		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", "Attachments",  function() {
 				me.scroll_to(".form-attachments");
 			});
 
-		this.$assignments = this.appframe.add_to_mini_bar("icon-flag", "Assignments",  function() {
+		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", "Assignments",  function() {
 				me.scroll_to(".form-attachments");
 			});		
 
 
-		this.$links = this.appframe.add_to_mini_bar("icon-link", "Linked With", 
+		this.$links = this.appframe.add_icon_btn("2", "icon-link", "Linked With", 
 				function() { me.frm.toolbar.show_linked_with(); });
 
 		if(!me.frm.meta.allow_print) {
-			this.$print = this.appframe.add_to_mini_bar("icon-print", "Print", 
+			this.$print = this.appframe.add_icon_btn("2", "icon-print", "Print", 
 				function() { me.frm.print_doc(); });
 		}
 
 		if(!me.frm.meta.allow_email) {
-			this.$print = this.appframe.add_to_mini_bar("icon-envelope", "Email", 
+			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", "Email", 
 				function() { me.frm.email_doc(); });
 		}
-
-		if(!this.frm.meta.issingle) {
-			this.$prev = this.appframe.add_to_mini_bar("icon-arrow-left", "Previous Record", 
-				function() { me.go_prev_next(true); });
-
-			this.$next = this.appframe.add_to_mini_bar("icon-arrow-right", "Next Record", 
-				function() { me.go_prev_next(false); });
-		}
+		// 
+		// if(!this.frm.meta.issingle) {
+		// 	this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", "Previous Record", 
+		// 		function() { me.go_prev_next(true); });
+		// 
+		// 	this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", "Next Record", 
+		// 		function() { me.go_prev_next(false); });
+		// }
 		
 	},
 	
 	refresh: function() {		
-		if(this.frm.doc.__islocal) {
-			this.appframe.hide_mini_bar();
-		} else {
-			this.docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];
-			this.appframe.show_mini_bar();
-			
+		if(!this.frm.doc.__islocal) {
+			this.docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];			
 			// highlight comments
 			this.highlight_items();
 		}
@@ -98,9 +99,9 @@ wn.ui.form.InfoBar = Class.extend({
 		
 		$.each(["comments", "attachments", "assignments"], function(i, v) {
 			if(me.docinfo[v].length)
-				me["$" + v].addClass("appframe-mini-bar-active");
+				me["$" + v].addClass("appframe-iconbar-active");
 			else
-				me["$" + v].removeClass("appframe-mini-bar-active");
+				me["$" + v].removeClass("appframe-iconbar-active");
 		})
 	},
 

@@ -200,7 +200,7 @@ CREATE TABLE `tabSingles` (
   `doctype` varchar(40) DEFAULT NULL,
   `field` varchar(40) DEFAULT NULL,
   `value` text,
-  KEY `doctype` (`doctype`)
+  KEY `singles_doctype_field_index` (`doctype`, `field`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --

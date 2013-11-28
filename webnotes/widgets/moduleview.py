@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -28,7 +28,7 @@ def get_doctype_count_from_table(doctype):
 		if e.args[0]==1146: 
 			count = None
 		else: 
-			raise e
+			raise
 	return count
 	
 def get_report_list(module):

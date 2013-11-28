@@ -83,7 +83,7 @@ wn.UserProperties = Class.extend({
 	render: function(prop_list) {
 		this.body.empty();
 		this.prop_list = prop_list;
-		if(!prop_list.length) {
+		if(!prop_list || !prop_list.length) {
 			this.body.html("<div class='alert alert-info'>"+wn._("No User Properties found.")+"</div>");
 		} else {
 			this.show_property_table();

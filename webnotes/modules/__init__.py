@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -32,18 +32,14 @@ def get_module_path(module):
 		return os.path.join(app_path, 'lib', m)
 	else:
 		return os.path.join(app_path, 'app', m)
-		
-def get_plugin_path(plugin):
-	from webnotes.utils import get_site_path
-	return get_site_path(webnotes.conf.get("plugins_path"), scrub(plugin))
 
 def get_doc_path(module, doctype, name):
 	dt, dn = scrub_dt_dn(doctype, name)
 	return os.path.join(get_module_path(module), dt, dn)
 
-def reload_doc(module, dt=None, dn=None, force=True):
+def reload_doc(module, dt=None, dn=None, plugin=None, force=True):
 	from webnotes.modules.import_file import import_files
-	return import_files(module, dt, dn, force)
+	return import_files(module, dt, dn, plugin=plugin, force=force)
 
 def export_doc(doctype, name, module=None, plugin=None):
 	"""write out a doc"""

@@ -1,6 +1,10 @@
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
+# MIT License. See license.txt 
+
+from __future__ import unicode_literals
 import webnotes
 import os, urllib
-from webnotes.utils import escape_html, get_request_site_address, now
+from webnotes.utils import escape_html, get_request_site_address, now, cstr
 
 no_cache = True
 
@@ -15,7 +19,7 @@ def get_context():
 		order by published_on desc limit 20""", as_dict=1)
 
 	for blog in blog_list:
-		blog.link = urllib.quote(host + '/' + blog.name + '.html')
+		blog.link = cstr(urllib.quote((host + '/' + blog.name + '.html').encode("utf-8")))
 		blog.content = escape_html(blog.content or "")
 	
 	if blog_list:
@@ -32,8 +36,6 @@ def get_context():
 		'items': blog_list,
 		'link': host + '/blog'
 	}
-	
-	webnotes.response.content_type = "text/xml"
 	
 	# print context
 	return context

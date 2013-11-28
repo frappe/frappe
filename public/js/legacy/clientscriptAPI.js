@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 get_server_fields = function(method, arg, table_field, doc, dt, dn, allow_edit, call_back) {
@@ -133,12 +133,12 @@ _f.Frm.prototype.field_map = function(fnames, fn) {
 			fnames = [fnames];			
 		}
 	}
-	$.each(fnames, function(i,f) {
+	$.each(fnames, function(i,fieldname) {
 		//var field = cur_frm.fields_dict[f]; - much better design
-		var field = wn.meta.get_docfield(cur_frm.doctype, f, cur_frm.docname)
+		var field = wn.meta.get_docfield(cur_frm.doctype, fieldname, cur_frm.docname);
 		if(field) {
 			fn(field);
-			cur_frm.refresh_field(f);
+			cur_frm.refresh_field(fieldname);
 		};
 	})
 	

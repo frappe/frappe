@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -19,26 +19,28 @@ def edit(arg=None):
 	import markdown2
 	args = webnotes.local.form_dict
 
-	d = Document('ToDo', args.get('name') or None)
-	d.description = args['description']
-	d.date = args['date']
-	d.priority = args['priority']
-	d.checked = args.get('checked', 0)
-	if not d.owner: d.owner = webnotes.session['user']
-	d.save(not args.get('name') and 1 or 0)
+	if args.name:
+		b = webnotes.bean("ToDo", args.name)
+	else:
+		b = webnotes.new_bean("ToDo")
 
-	if args.get('name') and d.checked:
+	for key in ("description", "date", "priority", "checked"):
+		b.doc.fields[key] = args.get(key)
+				
+	b.insert_or_update()
+		
+	if args.name and args.checked:
 		notify_assignment(d)
 
-	return d.name
+	return b.doc.name
 
 @webnotes.whitelist()
 def delete(arg=None):
-	name = webnotes.form_dict['name']
+	name = webnotes.local.form_dict.name
 	d = Document('ToDo', name)
 	if d and d.name and d.owner != webnotes.session['user']:
 		notify_assignment(d)
-	webnotes.conn.sql("delete from `tabToDo` where name = %s", name)
+	webnotes.delete_doc("ToDo", d.name, ignore_permissions=True)
 
 def notify_assignment(d):
 	doc_type = d.reference_type

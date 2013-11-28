@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -10,7 +10,6 @@ _toc = ["webnotes.model.doc.Document"]
 
 import webnotes
 import webnotes.model.meta
-import MySQLdb
 
 from webnotes.utils import *
 
@@ -132,11 +131,11 @@ class Document:
 		else:
 			try:
 				dataset = webnotes.conn.sql('select * from `tab%s` where name="%s"' % (self.doctype, self.name.replace('"', '\"')))
-			except MySQLdb.ProgrammingError, e:
+			except webnotes.SQLError, e:
 				if e.args[0]==1146:
 					dataset = None
 				else:
-					raise e
+					raise
 
 			if not dataset:
 				raise webnotes.DoesNotExistError, '[WNF] %s %s does not exist' % (self.doctype, self.name)
@@ -213,7 +212,6 @@ class Document:
 					return r
 			else:
 				if not webnotes.conn.exists(self.doctype, self.name):
-					print self.fields
 					webnotes.msgprint(webnotes._("Cannot update a non-exiting record, try inserting.") + ": " + self.doctype + " / " + self.name, 
 						raise_exception=1)
 				
@@ -272,12 +270,7 @@ class Document:
 			if not self.naming_series:
 				webnotes.msgprint(webnotes._("Naming Series mandatory"), raise_exception=True)
 			self.name = make_autoname(self.naming_series+'.#####')
-			
-		# based on expression
-		elif autoname and autoname.startswith('eval:'):
-			doc = self # for setting
-			self.name = eval(autoname[5:])
-		
+					
 		# call the method!
 		elif autoname and autoname!='Prompt': 
 			self.name = make_autoname(autoname, self.doctype)
@@ -399,7 +392,7 @@ class Document:
 			
 			for f in fields_list:
 				if (not (f in ('doctype', 'name', 'perm', 'localname',
-						'creation','_user_tags', "file_list"))) and (not f.startswith('__')): 
+						'creation','_user_tags', "file_list", "_comments"))) and (not f.startswith('__')): 
 						# fields not saved
 					
 					# validate links
@@ -594,11 +587,11 @@ def make_autoname(key, doctype=''):
 
 def getseries(key, digits, doctype=''):
 	# series created ?
-	current = cint(webnotes.conn.get_value("Series", key, "current"))
-	if current:
+	current = webnotes.conn.get_value("Series", key, "current")
+	if current != None:
 		# yes, update it
 		webnotes.conn.sql("update tabSeries set current = current+1 where name=%s", key)
-		current = current + 1
+		current = cint(current) + 1
 	else:
 		# no, create it
 		webnotes.conn.sql("insert into tabSeries (name, current) values ('%s', 1)" % key)

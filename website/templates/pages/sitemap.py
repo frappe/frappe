@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -8,17 +8,23 @@ import webnotes
 import webnotes.webutils
 from webnotes.utils import get_request_site_address
 
+no_cache = 1
+no_sitemap = 1
+
 def get_context():
 	"""generate the sitemap XML"""
-	links = webnotes.webutils.get_website_sitemap().items()
 	host = get_request_site_address()
+	links = []
+	for l in webnotes.conn.sql("""select `tabWebsite Sitemap`.page_name, `tabWebsite Sitemap`.lastmod 
+		from `tabWebsite Sitemap`, `tabWebsite Sitemap Config` 
+		where 
+			`tabWebsite Sitemap`.website_sitemap_config = `tabWebsite Sitemap Config`.name
+			and ifnull(`tabWebsite Sitemap Config`.no_sitemap, 0)=0""", 
+		as_dict=True):
+		links.append({
+			"loc": urllib.basejoin(host, urllib.quote(l.page_name.encode("utf-8"))),
+			"lastmod": l.lastmod
+		})
 	
-	for l in links:
-		l[1]["loc"] = urllib.basejoin(host, urllib.quote(l[1].get("page_name", l[1]["link_name"]).encode("utf-8")))
-	
-	webnotes.response.content_type = "text/xml"
-	
-	return {
-		"links": [l[1] for l in links if not l[1].get("no_sitemap")]
-	}
+	return {"links":links}
 	

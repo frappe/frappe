@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 // default print style
@@ -310,7 +310,7 @@ $.extend(_p, {
 	
 	// Attach letterhead at top of container
 	show_letterhead: function(container, args) {	
-		if(!(args.no_letterhead || args.only_body)) {
+		if(!args.no_letterhead) {
 			container.innerHTML = '<div style="max-width: 100%">' 
 				+ _p.get_letter_head() + '</div>' 
 				+ container.innerHTML;

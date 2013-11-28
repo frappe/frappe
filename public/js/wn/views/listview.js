@@ -1,9 +1,7 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
-wn.views.get_listview = function(doctype, parent) {
-	var meta = locals.DocType[doctype];
-	
+wn.views.get_listview = function(doctype, parent) {	
 	if(wn.doclistviews[doctype]) {
 		var listview = new wn.doclistviews[doctype](parent);
 	} else {
@@ -33,7 +31,7 @@ wn.views.ListView = Class.extend({
 		var me = this;
 		var t = "`tab"+this.doctype+"`.";
 		this.fields = [t + 'name', t + 'owner', t + 'docstatus', 
-			t + '_user_tags', t + 'modified', t + 'modified_by'];
+			t + '_user_tags', t + '_comments', t + 'modified', t + 'modified_by'];
 		this.stats = ['_user_tags'];
 		
 		// add workflow field (as priority)
@@ -77,12 +75,9 @@ wn.views.ListView = Class.extend({
 	set_columns: function() {
 		this.columns = [];
 		var me = this;
-		this.columns.push({colspan: 1, content:'avatar'});		
-		this.columns.push({colspan: 3, content:'name'});
-
 		if(this.workflow_state_fieldname) {
 			this.columns.push({
-				colspan: 2, 
+				colspan: 3, 
 				content: this.workflow_state_fieldname, 
 				type:"select"
 			});
@@ -99,15 +94,15 @@ wn.views.ListView = Class.extend({
 					return;
 				}
 				// field width
-				var colspan = "2";
-				if(in_list(["Int", "Percent"], d.fieldtype)) {
-					colspan = "1";
+				var colspan = "3";
+				if(in_list(["Int", "Percent", "Select"], d.fieldtype)) {
+					colspan = "2";
 				} else if(d.fieldtype=="Check") {
 					colspan = "1";
 				} else if(in_list(["name", "subject", "title"], d.fieldname)) { // subjects are longer
-					colspan = "3";
+					colspan = "4";
 				} else if(d.fieldtype=="Text Editor" || d.fieldtype=="Text") {
-					colspan = "3";
+					colspan = "4";
 				}
 				me.columns.push({colspan: colspan, content: d.fieldname, 
 					type:d.fieldtype, df:d, title:wn._(d.label) });
@@ -141,38 +136,65 @@ wn.views.ListView = Class.extend({
 			this.id_list.push(data.name);
 		
 		
-		var body = $('<div class="doclist-row row">').appendTo(row),
+		var body = $('<div class="doclist-row row">\
+			<div class="list-row-id-area col-sm-3" style="white-space: nowrap;\
+				text-overflow: ellipsis; max-height: 30px"></div>\
+			<div class="list-row-content-area col-sm-9"></div>\
+		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
-			
+		
+		me.render_avatar_and_id(data, body.find(".list-row-id-area"))
+		
 		// make table
 		$.each(this.columns, function(i, v) {
-			var colspan = v.colspan || 2;
+			var colspan = v.colspan || 3;
 			colspans = colspans + flt(colspan)
 						
 			if(colspans <= 12) {
-				var col = me.make_column(body, colspan);
+				var col = me.make_column(body.find(".list-row-content-area"), colspan);
 				me.render_column(data, col, v);
 			}
 		});
 		
+		var comments = data._comments ? JSON.parse(data._comments) : [];
+		var tags = $.map((data._user_tags || "").split(","), function(v) { return v ? v : null; });
+		
+		var timestamp_and_comment = 
+			$('<div class="list-timestamp">')
+				.appendTo(row)
+				.html(""
+					+ (tags.length ? (
+							'<span style="margin-right: 10px;" class="list-tag-preview">' + tags.join(", ") + '</span>'
+						): "")
+					+ (comments.length ? 
+						('<a style="margin-right: 10px;" href="#Form/'+
+							this.doctype + '/' + data.name 
+							+'" title="'+
+							comments[comments.length-1].comment
+							+'"><i class="icon-comments"></i> ' 
+							+ comments.length + " " + (
+								comments.length===1 ? wn._("comment") : wn._("comments")) + '</a>')
+						: "")
+					+ comment_when(data.modified));
+		
 		// row #2
-		var row2 = $('<div class="row">\
+		var row2 = $('<div class="row tag-row" style="margin-bottom: 5px;">\
 			<div class="col-xs-12">\
 				<div class="col-xs-3"></div>\
 				<div class="col-xs-7">\
-					<div class="list-tag hidden-xs"></div>\
-					<div class="list-last-modified visible-xs text-muted small"></div>\
-					</div>\
-				<div class="col-xs-2 timestamp small text-muted" style="padding-right: 4px;\
-					margin-top: -3px; text-align: right;">\
+					<div class="list-tag xs-hidden"></div>\
+					<div class="list-last-modified text-muted xs-visible"></div>\
 				</div>\
 			</div>\
 		</div>').appendTo(row);
 		
 		// modified
-		row2.find(".timestamp").html(comment_when(data.modified));
-		row2.find(".list-last-modified").html(wn._("Last updated by") + ": " + wn.user_info(data.modified_by).fullname);		
+		body.find(".list-last-modified").html(wn._("Last updated by") + ": " + wn.user_info(data.modified_by).fullname);		
+		
+		if(!me.doclistview.tags_shown) {
+			row2.addClass("hide");
+		}
 		
 		// add tags
 		var tag_editor = new wn.ui.TagEditor({
@@ -191,13 +213,41 @@ wn.views.ListView = Class.extend({
 	make_column: function(body, colspan) {
 		var col = $("<div class='col'>")
 			.appendTo(body)
-			.addClass("col-xs-" + cint(colspan))
+			.addClass("col-sm-" + cint(colspan))
 			.css({
 				"white-space": "nowrap",
 				"text-overflow": "ellipsis",
-				"max-height": "30px",
+				"height": "30px",
+				"padding-top":"3px"
 			})
 		return col;
+	},
+	render_avatar_and_id: function(data, parent) {
+		if((wn.model.can_delete(this.doctype) || this.settings.selectable) && !this.no_delete) {
+			$('<input class="list-delete" type="checkbox">')
+				.data('name', data.name)
+				.data('data', data)
+				.css({"margin-right": "5px"})
+				.appendTo(parent)
+		}
+		
+		var $avatar = $(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
+			+ wn.user_info(data.modified_by).fullname))
+				.appendTo(parent)
+				.css({"max-width": "100%"})
+
+
+		if(wn.model.is_submittable(this.doctype)) {
+			$(parent).append(repl('<span class="docstatus" style="margin-right: 3px;"> \
+				<i class="%(docstatus_icon)s" \
+				title="%(docstatus_title)s"></i></span>', data));			
+		}
+
+		$("<a>")
+			.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
+			.html(data.name)
+			.appendTo(parent.css({"overflow":"hidden"}));
+		
 	},
 	render_column: function(data, parent, opts) {
 		var me = this;
@@ -219,33 +269,6 @@ wn.views.ListView = Class.extend({
 		// content
 		if(typeof opts.content=='function') {
 			opts.content(parent, data, me);
-		}
-		else if(opts.content=='name') {
-			if(wn.model.is_submittable(this.doctype)) {
-				$(parent).append(repl('<span class="docstatus" style="margin-right: 3px;"> \
-					<i class="%(docstatus_icon)s" \
-					title="%(docstatus_title)s"></i></span>', data));			
-			}
-			
-			$("<a>")
-				.attr("href", "#Form/" + data.doctype + "/" + encodeURIComponent(data.name))
-				.html(data.name)
-				.appendTo(parent.css({"overflow":"hidden"}));
-		} 
-		else if(opts.content=='avatar' || opts.content=='avatar_modified') {
-			if(wn.model.can_delete(this.doctype) || this.settings.selectable) {
-				$('<input class="list-delete" type="checkbox">')
-					.data('name', data.name)
-					.data('data', data)
-					.css({"margin-right": "5px", "margin-left": "-2px"})
-					.appendTo(parent)
-			}
-			
-			var $avatar = $(wn.avatar(data.modified_by, false, wn._("Modified by")+": " 
-				+ wn.user_info(data.modified_by).fullname))
-					.appendTo($(parent).css({"margin-top": "-5px"}))
-					.css({"max-width": "100%"})
-					.addClass("hidden-xs-inline-block")
 		}
 		else if(opts.content=='check') {
 		}
@@ -367,7 +390,7 @@ wn.views.ListView = Class.extend({
 			percent: data[field],
 			label: label
 		}
-		$(parent).append(repl('<span class="progress" style="width: 100%; float: left;"> \
+		$(parent).append(repl('<span class="progress" style="width: 100%; float: left; margin: 5px 0px;"> \
 			<span class="progress-bar" title="%(percent)s% %(label)s" \
 				style="width: %(percent)s%;"></span>\
 		</span>', args));

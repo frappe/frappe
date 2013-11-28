@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 # Tree (Hierarchical) Nested Set Model (nsm)
@@ -14,8 +14,6 @@ from __future__ import unicode_literals
 
 import webnotes
 from webnotes import msgprint, _
-from webnotes.model.bean import Bean
-from webnotes.model.doc import Document
 
 # called in the on_update method
 def update_nsm(doc_obj):
@@ -191,13 +189,15 @@ class DocTypeNestedSet(object):
 		self.doc.fields[self.nsm_parent_field] = ""
 		update_nsm(self)
 		
-	def on_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
+	def before_rename(self, newdn, olddn, merge=False, group_fname="is_group"):
 		if merge:
 			is_group = webnotes.conn.get_value(self.doc.doctype, newdn, group_fname)
 			if self.doc.fields[group_fname] != is_group:
-				msgprint(_("""Merging is only possible between Group-to-Group or 
-					Ledger-to-Ledger"""), raise_exception=1)
-				
+				webnotes.throw(_("""Merging is only possible between Group-to-Group or 
+					Ledger-to-Ledger"""))
+					
+	def after_rename(self, olddn, newdn, merge=False):
+		if merge:
 			parent_field = "parent_" + self.doc.doctype.replace(" ", "_").lower()
 			rebuild_tree(self.doc.doctype, parent_field)
 		
@@ -213,4 +213,3 @@ class DocTypeNestedSet(object):
 				(self.doc.doctype, self.nsm_parent_field, '%s'), (self.doc.name)):
 					webnotes.throw(self.doc.doctype + ": " + self.doc.name + 
 						_(" can not be marked as a ledger as it has existing child"))
-				

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -33,7 +33,7 @@ def set_value(doctype, name, fieldname, value):
 	doc = webnotes.conn.get_value(doctype, name, ["parenttype", "parent"], as_dict=True)
 	if doc and doc.parent:
 		bean = webnotes.bean(doc.parenttype, doc.parent)
-		child = bean.doclist.getone({"doctype": doctype, "name": docname})
+		child = bean.doclist.getone({"doctype": doctype, "name": name})
 		child.fields[fieldname] = value
 	else:
 		bean = webnotes.bean(doctype, name)
@@ -114,3 +114,8 @@ def bulk_update(docs):
 				'exc': webnotes.utils.getTraceback()
 			})
 	return {'failed_docs': failed_docs}
+
+@webnotes.whitelist()
+def has_permission(doctype, docname, perm_type="read"):
+	# perm_type can be one of read, write, create, submit, cancel, report
+	return {"has_permission": webnotes.has_permission(doctype, perm_type.lower(), docname)}

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -8,8 +8,6 @@ no_sitemap = True
 def get_context():
 	"""returns web style"""
 	from webnotes.webutils import get_hex_shade
-	
-	webnotes.response.content_type = "text/css"
 	
 	doc = webnotes.doc("Style Settings", "Style Settings")
 	prepare(doc)
@@ -60,3 +58,11 @@ def prepare(doc):
 	doc.at_import = ""
 	for f in fonts:
 		doc.at_import += "\n@import url(https://fonts.googleapis.com/css?family=%s:400,700);" % f.replace(" ", "+")
+		
+	# move @import from add_css field to the top of the css file
+	if doc.add_css and "@import url" in doc.add_css:
+		import re
+		at_imports = list(set(re.findall("@import url\([^\(\)]*\);", doc.add_css)))
+		doc.at_import += "\n" + "\n".join(at_imports)
+		for imp in at_imports:
+			doc.add_css = doc.add_css.replace(imp, "")

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide("wn.ui.form");
@@ -11,33 +11,43 @@ wn.ui.form.Toolbar = Class.extend({
 		this.appframe.set_views_for(this.frm.meta.name, "form");
 	},
 	make: function() {
-		this.appframe.clear_buttons();
+		this.appframe.set_title_right(); // clear
 		this.set_title();
-
-		if(!this.frm.view_is_edit) {
-			// print view
-			this.show_print_toolbar();
-		}
-
 		this.show_title_as_dirty();
 
 		if(this.frm.meta.hide_toolbar) {
 			this.frm.save_disabled = true;
-			return;
+			this.appframe.iconbar.hide();
+		} else {
+			this.appframe.iconbar.clear(1)
+			this.make_file_menu();
+			this.make_cancel_amend_button();
+			this.show_infobar();
+			if(this.frm.doc.__islocal) {
+				this.appframe.iconbar.hide(2);
+				this.appframe.iconbar.hide(3);
+			} else {
+				this.appframe.iconbar.show(2);
+				this.appframe.iconbar.show(3);
+			}
 		}
-		this.make_file_menu();
-		this.show_infobar();
 	},
 	refresh: function() {
 		this.make();
 	},
 	set_title: function() {
 		var title = wn._(this.frm.docname);
-		if(title.length > 30) {
-			title = title.substr(0,30) + "...";
+		var me = this;
+		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname), 
+			this.frm.doc.modified_by);
+		
+		if(this.frm.meta.issingle) {
+			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.meta.module), 
+				function() { wn.set_route(wn.modules[me.frm.meta.module].link); });
+		} else {
+			this.appframe.set_title_left('<i class="icon-angle-left"></i> ' + wn._(this.frm.doctype), 
+				function() { wn.set_route("List", me.frm.doctype); });
 		}
-		this.appframe.set_title(title + this.get_lock_status(), wn._(this.frm.docname));
-		this.appframe.set_sub_title(wn._(this.frm.doctype));
 	},
 	show_infobar: function() {
 		/* docs:
@@ -49,19 +59,6 @@ wn.ui.form.Toolbar = Class.extend({
 		else
 			this.infobar = new wn.ui.form.InfoBar({appframe:this.appframe, frm:this.frm});
 	},
-	show_print_toolbar: function() {
-		var me = this;
-		this.appframe.add_button("Edit", function() {
-			me.frm.edit_doc();
-			return false;
-		}, 'icon-pencil')
-		this.frm.$print_view_select = 
-			this.appframe.add_select("Print Format", this.frm.print_formats)
-				.val(this.frm.print_formats[0])
-				.change(function() {
-					me.frm.refresh_print_layout();
-				});
-	},
 	get_dropdown_menu: function(label) {
 		return this.appframe.add_dropdown(label);
 	},
@@ -71,9 +68,9 @@ wn.ui.form.Toolbar = Class.extend({
 				case 0:
 					return ' <i class="icon-unlock text-muted" title="Not Submitted">';
 				case 1:
-					return ' <i class="icon-lock text-muted" title="Submitted">';
+					return ' <i class="icon-lock text-primary" title="Submitted">';
 				case 2:
-					return ' <i class="icon-remove text-muted" title="Cancelled">';
+					return ' <i class="icon-remove text-danger" title="Cancelled">';
 			}
 		} else {
 			return "";
@@ -83,6 +80,8 @@ wn.ui.form.Toolbar = Class.extend({
 		var me = this;
 		var p = this.frm.perm[0];
 		var docstatus = cint(this.frm.doc.docstatus);
+
+		$(".custom-menu").remove();
 
 		// New
 		if(p[CREATE]) {
@@ -95,6 +94,25 @@ wn.ui.form.Toolbar = Class.extend({
 		if(docstatus==0 && p[WRITE] && !this.read_only) {
 			this.appframe.add_dropdown_button("File", wn._("Save"), function() { 
 				me.frm.save('Save', null, this);}, 'icon-save');
+		}
+		
+		// Submit
+		if(docstatus==0 && !this.frm.doc.__unsaved && p[SUBMIT] && !this.read_only) {
+			this.appframe.add_dropdown_button("File", wn._("Submit"), function() { 
+				me.frm.savesubmit(this);}, 'icon-lock');
+		}
+		
+		// Cancel
+		if(docstatus==1 && p[CANCEL] && !this.read_only) {
+			this.appframe.add_dropdown_button("File", wn._("Cancel"), function() { 
+				me.frm.savecancel(this);}, 'icon-remove');
+		}
+		
+		// Amend
+		if(docstatus==2 && p[AMEND] && !this.read_only) {
+			this.appframe.add_dropdown_button("File", wn._("Amend"), function() { 
+				me.frm.amend_doc();}, 'icon-pencil');
+			this.appframe.set_title_right("Amend", function() { me.frm.amend_doc(); });
 		}
 		
 		// Print
@@ -149,48 +167,40 @@ wn.ui.form.Toolbar = Class.extend({
 		var docstatus = cint(this.frm.doc.docstatus);
 		var p = this.frm.perm[0];
 		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
-
-		// remove existing title buttons
-		this.appframe.toolbar.find(".btn-title").remove();
-		
-		// Print Preview
-		if(this.frm.meta.read_only_onload && !this.frm.doc.__islocal && this.frm.view_is_edit) {
-			this.appframe.add_button(wn._('Preview'), function() { 
-				me.frm.last_view_is_edit[me.frm.docname] = 0;
-				me.frm.refresh(); }, 'icon-print');
-		}
-		
+				
 		if(has_workflow && (this.frm.doc.__islocal || this.frm.doc.__unsaved)) {
 			this.make_save_button();
 		} else if(!has_workflow) {
 			if(docstatus==0 && p[SUBMIT] && (!me.frm.doc.__islocal) 
 				&& (!me.frm.doc.__unsaved)) {
-				this.appframe.add_button('Submit', function() { 
-					me.frm.savesubmit(this);}, 'icon-lock', true)
-						.removeClass("btn-default")
-						.addClass("btn-primary");
+				this.appframe.set_title_right("Submit", function() { me.frm.savesubmit(this); } );
 			}
 			else if(docstatus==0) {
 				this.make_save_button();
 			}
-			else if(docstatus==1  && p[CANCEL]) {
-				this.appframe.add_button('Cancel', function() { 
-					me.frm.savecancel(this) }, 'icon-remove');
-			}
-			else if(docstatus==2  && p[AMEND]) {
-				this.appframe.add_button('Amend', function() { 
-					me.frm.amend_doc() }, 'icon-pencil', true);
-			}
+		}
+	},
+	make_cancel_amend_button: function() {
+		var me = this;
+		var docstatus = cint(this.frm.doc.docstatus);
+		var p = this.frm.perm[0];
+		var has_workflow = wn.model.get("Workflow", {document_type: me.frm.doctype}).length;
+		
+		if(has_workflow) {
+			return;
+		} else if(docstatus==1 && p[CANCEL]) {
+			this.appframe.add_button('Cancel', function() { 
+				me.frm.savecancel(this) }, 'icon-remove');
+		} else if(docstatus==2 && p[AMEND]) {
+			this.appframe.add_button('Amend', function() { 
+				me.frm.amend_doc() }, 'icon-pencil', true);
 		}
 	},
 	make_save_button: function() {
 		if(this.frm.save_disabled)
 			return;
 		var me = this;
-		this.appframe.add_button('Save', function() { 
-			me.frm.save('Save', null, this);}, 'icon-save', true)
-				.removeClass("btn-default")
-				.addClass("btn-primary");
+		this.appframe.set_title_right("Save", function() { me.frm.save('Save', null, this); } );
 	},
 	add_update_button_on_dirty: function() {
 		var me = this;
@@ -199,13 +209,8 @@ wn.ui.form.Toolbar = Class.extend({
 			
 			// show update button if unsaved
 			var docstatus = cint(me.frm.doc.docstatus);
-			if(docstatus==1 && me.frm.perm[0][SUBMIT] 
-				&& !me.appframe.$w.find(".action-update").length) {
-				me.appframe.add_button("Update", function() { 
-					me.frm.save('Update', null, me);
-				}, 'icon-save', true)
-					.removeClass("btn-default")
-					.addClass("btn-primary action-update");
+			if(docstatus==1 && me.frm.perm[0][SUBMIT]) {
+				this.appframe.set_title_right("Update", function() { me.frm.save('Update', null, this); } );
 			}
 		})
 	},
@@ -217,10 +222,5 @@ wn.ui.form.Toolbar = Class.extend({
 			.toggleClass("text-warning", this.frm.doc.__unsaved ? true : false);
 		this.set_title();
 		this.set_title_button();
-	},
-	make_actions_menu: function() {
-		if(this.actions_setup) return;
-		var menu = this.get_dropdown_menu("Actions");
-		this.actions_setup = true;
-	}	
+	}
 })

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 # util __init__.py
@@ -70,7 +70,7 @@ def get_request_site_address(full_address=False):
 
 	if not host_name:
 		if webnotes.request:
-			protocol = 'HTTPS' in webnotes.get_request_header('SERVER_PROTOCOL', "") and 'https://' or 'http://'
+			protocol = 'https' == webnotes.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
 			host_name = protocol + webnotes.request.host
 		else:
 			return "http://localhost"
@@ -188,9 +188,12 @@ def get_user_time_zone():
 	return webnotes.local.user_time_zone
 
 def convert_utc_to_user_timezone(utc_timestamp):
-	from pytz import timezone
+	from pytz import timezone, UnknownTimeZoneError
 	utcnow = timezone('UTC').localize(utc_timestamp)
-	return utcnow.astimezone(timezone(get_user_time_zone()))
+	try:
+		return utcnow.astimezone(timezone(get_user_time_zone()))
+	except UnknownTimeZoneError:
+		return utcnow
 
 def now():
 	"""return current datetime as yyyy-mm-dd hh:mm:ss"""
@@ -630,7 +633,7 @@ def get_file_timestamp(fn):
 		return str(cint(os.stat(fn).st_mtime))
 	except OSError, e:
 		if e.args[0]!=2:
-			raise e
+			raise
 		else:
 			return None
 
@@ -910,5 +913,16 @@ def get_site_name(hostname):
 
 def get_disk_usage():
 	"""get disk usage of files folder"""
-	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=get_files_path()))
+	import os
+	files_path = get_files_path()
+	if not os.path.exists(files_path):
+		return 0
+	err, out = execute_in_shell("du -hsm {files_path}".format(files_path=files_path))
 	return cint(out.split("\n")[-2].split("\t")[0])
+
+def expand_partial_links(html):
+	import re
+	url = get_url()
+	if not url.endswith("/"): url += "/"
+	return re.sub('(href|src){1}([\s]*=[\s]*[\'"]?)((?!http)[^\'" >]+)([\'"]?)', 
+		'\g<1>\g<2>{}\g<3>\g<4>'.format(url), html)

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 /* Inspired from: http://github.com/mindmup/bootstrap-wysiwyg */
@@ -9,6 +9,7 @@
 bsEditor = Class.extend({
 	init: function(options) {
 		this.options = $.extend(options || {}, this.default_options);
+		this.edit_mode = true;
 		if(this.options.editor) {
 			this.setup_editor(this.options.editor);
 			this.setup_fixed_toolbar();
@@ -24,7 +25,7 @@ bsEditor = Class.extend({
 		var me = this;
 		this.editor = $(editor);
 		this.editor.on("click", function() {
-			if(!me.editing) {
+			if(me.edit_mode && !me.editing) {
 				me.set_editing();
 			}
 		}).on("mouseup keyup mouseout", function() {
@@ -36,13 +37,11 @@ bsEditor = Class.extend({
 		}).data("object", this);
 
 		this.bind_hotkeys();
-		this.init_file_drops();
-		
+		this.init_file_drops();		
 	},
 	
 	set_editing: function() {
 		this.editor.attr('contenteditable', true);
-		this.original_html =  this.editor.html();
 		this.toolbar.show();
 		if(this.options.editor)
 			this.toolbar.editor = this.editor.focus();
@@ -56,16 +55,18 @@ bsEditor = Class.extend({
 		this.toolbar = window.bs_editor_toolbar;
 	},
 	setup_inline_toolbar: function() {
-		this.toolbar = new bsEditorToolbar(this.options, this.wrapper);
+		this.toolbar = new bsEditorToolbar(this.options, this.wrapper, this.editor);
 	},
-	onhide: function(action) {
+	onhide: function() {
 		this.editing = false;
-		if(action==="Cancel") {
-			this.editor.html(this.original_html);
-			this.options.oncancel && this.options.oncancel(this);
-		} else {
-			this.options.onsave && this.options.onsave(this);
-			this.options.change && this.options.change(this.get_value());
+		this.options.onsave && this.options.onsave(this);
+		this.options.change && this.options.change(this.get_value());
+	},
+	toggle_edit_mode: function(bool) {
+		// switch to enter editing mode
+		this.edit_mode = bool;
+		if(this.edit_mode) {
+			this.editor.trigger("click");
 		}
 	},
 	default_options: {
@@ -193,8 +194,9 @@ bsEditor = Class.extend({
 })
 
 bsEditorToolbar = Class.extend({
-	init: function(options, parent) {
+	init: function(options, parent, editor) {
 		this.options = options;
+		this.editor = editor;
 		this.inline = !!parent;
 		this.options.toolbar_style = $.extend((this.inline ? this.inline_style : this.fixed_style),
 			this.options.toolbar_style || {});
@@ -263,8 +265,6 @@ bsEditorToolbar = Class.extend({
 				<div class="btn-group form-group">\
 					<a class="btn btn-default btn-small btn-html" title="HTML">\
 						<i class="icon-code"></i></a>\
-					<a class="btn btn-default btn-small btn-cancel" data-action="Cancel" title="Cancel">\
-						<i class="icon-remove"></i></a>\
 					<a class="btn btn-default btn-small btn-success" data-action="Save" title="Save">\
 						<i class="icon-save"></i></a>\
 				</div>\
@@ -305,7 +305,7 @@ bsEditorToolbar = Class.extend({
 		}
 	},
 
-	hide: function(action) {
+	hide: function() {
 		if(!this.editor)
 			return;
 		var me = this;
@@ -316,7 +316,7 @@ bsEditorToolbar = Class.extend({
 			}});
 		}
 		
-		this.editor && this.editor.attr('contenteditable', false).data("object").onhide(action);
+		this.editor && this.editor.attr('contenteditable', false).data("object").onhide();
 		this.editor = null;
 	},
 	
@@ -330,7 +330,8 @@ bsEditorToolbar = Class.extend({
 			me.execCommand($(this).data(me.options.command_role));
 			me.save_selection();
 			// close dropdown
-			me.toolbar.find('[data-toggle="dropdown"]').dropdown("toggle");
+			if(me.toolbar.find("ul.dropdown-menu:visible").length)
+				me.toolbar.find('[data-toggle="dropdown"]').dropdown("toggle");
 			return false;
 		});
 		this.toolbar.find('[data-toggle=dropdown]').click(function() { me.restore_selection() });
@@ -355,15 +356,8 @@ bsEditorToolbar = Class.extend({
 		});
 		
 		// save
-		this.toolbar.find("[data-action='Save']").on("click", function() {
-			me.hide("Save");
-		})
+		this.toolbar.find("[data-action='Save']").on("click", function() { me.hide(); });
 
-		// cancel
-		this.toolbar.find("[data-action='Cancel']").on("click", function() {
-			me.hide("Cancel");
-		})
-		
 		// edit html
 		this.toolbar.find(".btn-html").on("click", function() {
 			if(!window.bs_html_editor)
@@ -439,16 +433,18 @@ bsHTMLEditor = Class.extend({
 	init: function() {
 		var me = this;
 		this.modal = bs_get_modal("<i class='icon-code'></i> Edit HTML", '<textarea class="form-control" \
-			style="height: 400px; width: 100%; font-family: Monaco, Courier New, Fixed; font-size: 11px">\
+			style="height: 400px; width: 100%; font-family: Monaco, \'Courier New\', monospace; font-size: 11px">\
 			</textarea><br>\
 			<button class="btn btn-primary" style="margin-top: 7px;">Save</button>');
 		this.modal.addClass("wn-ignore-click");
 		this.modal.find(".btn-primary").on("click", function() {
 			var html = me.modal.find("textarea").val();
-			$.each(me.dataurls, function(key, val) {
+			$.each(me.editor.dataurls, function(key, val) {
 				html = html.replace(key, val);
-			})
-			me.editor.html(html);
+			});
+			var editor = me.editor.data("object")
+			editor.set_input(html)
+			editor.options.change && editor.options.change(editor.clean_html());
 			me.modal.modal("hide");
 		});
 	},
@@ -458,13 +454,13 @@ bsHTMLEditor = Class.extend({
 		this.modal.modal("show")
 		var html = me.editor.html();
 		// pack dataurls so that html display is faster
-		this.dataurls = {}
+		this.editor.dataurls = {}
 		html = html.replace(/<img\s*src=\s*["\'](data:[^,]*),([^"\']*)["\']/g, function(full, g1, g2) {
 			var key = g2.slice(0,5) + "..." + g2.slice(-5);
-			me.dataurls[key] = g1 + "," + g2;
+			me.editor.dataurls[key] = g1 + "," + g2;
 			return '<img src="'+g1 + "," + key+'"';
-		})
-		this.modal.find("textarea").html(html_beautify(html));
+		});
+		this.modal.find("textarea").val(html_beautify(html));
 	}
 });
 

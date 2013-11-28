@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 wn.provide("wn.ui.form");
 wn.ui.form.Layout = Class.extend({
@@ -75,12 +75,10 @@ wn.ui.form.Layout = Class.extend({
 	make_column: function(df) {
 		this.column = $('<div class="form-column">\
 			<form>\
-				<fieldset></fieldset>\
 			</form>\
 		</div>').appendTo(this.section.body)
 			.find("form")
 			.on("submit", function() { return false; })
-			.find("fieldset");
 		
 		// distribute all columns equally
 		var colspan = cint(12 / this.section.find(".form-column").length);
@@ -91,6 +89,7 @@ wn.ui.form.Layout = Class.extend({
 	make_field: function(df, colspan) {
 		!this.column && this.make_column();
 		var fieldobj = make_field(df, this.doctype, this.column.get(0), this.frm);
+		fieldobj.layout = this;
 		this.fields_list.push(fieldobj);
 		this.fields_dict[df.fieldname] = fieldobj;
 		if(this.frm) {
@@ -110,16 +109,19 @@ wn.ui.form.Layout = Class.extend({
 		if(df) {
 			if(df.label) {
 				this.labelled_section_count++;
-				$('<h3 class="col-md-12">' 
+				var head = $('<h4 class="col-md-12 text-muted">' 
 					+ (df.options ? (' <i class="icon-in-circle '+df.options+'"></i> ') : "") 
 					+ '<span class="section-count-label">' + this.labelled_section_count + "</span>. " 
 					+ wn._(df.label)
-					+ "</h3>")
+					+ "</h4>")
 					.appendTo(this.section);
+					
+				if(df && df.idx===1) 
+					head.css({"margin-top": "0px"})
 				if(this.sections.length > 1)
 					this.section.css({
 						"margin-top": "15px", 
-						"border-top": "1px solid #ddd"
+						"border-top": "1px solid #c7c7c7"
 					});
 			}
 			if(df.description) {
@@ -144,12 +146,11 @@ wn.ui.form.Layout = Class.extend({
 			wrapper: section
 		};
 		section.refresh = function() {
-			$(this).toggle(!this.df.hidden)
+			if(!this.df) return;
+			$(this).toggle(this.df.hidden ? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, READ) : true))
 		}
 		this.column = null;
-		if(df && df.hidden) {
-			this.section.toggle(false);
-		}
+		section.refresh.call(section);
 		return this.section;
 	},
 	refresh_section_count: function() {

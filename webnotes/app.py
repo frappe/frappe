@@ -9,6 +9,7 @@ from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
 from webnotes.middlewares import StaticDataMiddleware
 from werkzeug.exceptions import HTTPException
+from werkzeug.contrib.profiler import ProfilerMiddleware
 from webnotes import get_config
 
 import mimetypes
@@ -58,7 +59,12 @@ application = StaticDataMiddleware(application, {
 	'/': 'public',
 })
 
-def serve(port=8000):
+
+def serve(port=8000, profile=False):
+	webnotes.validate_versions()
+	global application
 	from werkzeug.serving import run_simple
+	if profile:
+		application = ProfilerMiddleware(application)
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)

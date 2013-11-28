@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -113,7 +113,6 @@ class LoginManager:
 			webnotes._response.set_cookie("full_name", full_name)
 			webnotes._response.set_cookie("user_id", self.user)
 
-	
 	def post_login(self):
 		self.run_trigger()
 		self.validate_ip_address()
@@ -171,7 +170,7 @@ class LoginManager:
 		ip_list = [i.strip() for i in ip_list]
 
 		for ip in ip_list:
-			if webnotes.get_request_header('REMOTE_ADDR', '').startswith(ip):
+			if webnotes.get_request_header('REMOTE_ADDR', '').startswith(ip) or webnotes.get_request_header('X-Forwarded-For', '').startswith(ip):
 				return
 			
 		webnotes.msgprint('Not allowed from this IP Address')

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 $.extend(cur_frm.cscript, {
@@ -6,8 +6,7 @@ $.extend(cur_frm.cscript, {
 		if(!doc.__islocal) {
 			if(doc.insert_code) {
 				if(!doc.javascript) {
-					cur_frm.set_value("javascript", 
-						'wn.pages["'+doc.name+'"].onload = function(wrapper) { }');
+					cur_frm.set_value("javascript", '$(function() { });');
 				}
 			}
 			if(doc.insert_style) {
@@ -17,10 +16,16 @@ $.extend(cur_frm.cscript, {
 			}
 		}
 	},
+	onload: function() {
+		// set query!
+		cur_frm.set_query("web_page", "toc", function() {
+			return {"filters": {"name": ["!=", cur_frm.doc.name]}};
+		});
+	},
 	refresh: function(doc) {
 		cur_frm.cscript.layout(doc);
 		if(!doc.__islocal && doc.published) {
-			cur_frm.add_custom_button("View In Website", function() {
+			cur_frm.appframe.add_button("View In Website", function() {
 				window.open(doc.page_name);
 			}, "icon-globe");
 		}
@@ -31,4 +36,4 @@ $.extend(cur_frm.cscript, {
 	insert_code: function(doc) {
 		cur_frm.cscript.layout(doc);		
 	}
-})
+});

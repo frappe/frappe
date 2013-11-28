@@ -172,8 +172,8 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	});
 		
 	// add overwrite option
-	var $submit_btn = $('#dit-upload-area input[type="submit"]')
-		.attr("value", wn._("Upload and Import"));
+	var $submit_btn = $('#dit-upload-area button.btn-upload')
+		.html('<i class="icon-upload"></i> ' + wn._("Upload and Import"));
 		
 	$('<input type="checkbox" name="overwrite" style="margin-top: -3px">\
 		<span> Overwrite</span>\
@@ -193,8 +193,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 		.insertBefore($submit_btn);
 	
 	// rename button
-	$('#dit-upload-area form input[type="submit"]')
-		.attr('value', 'Upload and Import')
+	$('#dit-upload-area button.btn-upload')
 		.click(function() {
 			$('#dit-output').empty();
 			$(wrapper).find(".dit-progress-area").toggle(true);

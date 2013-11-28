@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 # Search
@@ -17,7 +17,7 @@ except ImportError:
 @webnotes.whitelist()
 def search_link(doctype, txt, query=None, filters=None, page_len=20, searchfield="name"):
 	search_widget(doctype, txt, query, searchfield=searchfield, page_len=page_len, filters=filters)
-	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"], searchfield)
+	webnotes.response['results'] = build_for_autosuggest(webnotes.response["values"])
 	del webnotes.response["values"]
 
 # this is called by the search box
@@ -29,7 +29,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 		filters = json.loads(filters)
 
 	meta = webnotes.get_doctype(doctype)
-	
+		
 	if query and query.split()[0].lower()!="select":
 		# by method
 		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
@@ -77,14 +77,10 @@ def get_std_fields_list(meta, key):
 
 	return ['`tab%s`.`%s`' % (meta[0].name, f.strip()) for f in sflist]
 
-def build_for_autosuggest(res, searchfield):
-	searchfield = [s.strip() for s in searchfield.split(",")]
+def build_for_autosuggest(res):
 	results = []
 	for r in res:
-		out = {}
-		for i, s in enumerate(searchfield):
-			if s=="name": s="value"
-			out[s] = r[i]
+		out = {"value": r[0], "description": ", ".join([cstr(d) for d in r[1:]])}
 		results.append(out)
 	return results
 

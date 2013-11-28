@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.provide('wn.core.pages.messages');
@@ -73,7 +73,7 @@ wn.core.pages.messages = Class.extend({
 
 		$("#show-everyone").toggle(contact!==user);
 		
-		$("#post-message button").text(contact==user ? "Post Publicly" : "Post to user")
+		$("#post-message button").text(contact==user ? wn._("Post Publicly") : wn._("Post to user"))
 		
 		this.contact = contact;
 		this.list.opts.args.contact = contact;
@@ -183,8 +183,7 @@ wn.core.pages.messages = Class.extend({
 						p.status = p.has_session ? "Online" : "Offline";
 						$(repl('<p>\
 							<span class="avatar avatar-small" \
-								title="%(status)s"><img src="%(image)s"\
-									style="border: 3px solid %(status_color)s"></span>\
+								title="%(status)s"><img src="%(image)s" /></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
 							.appendTo($body);						

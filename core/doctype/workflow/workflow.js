@@ -13,7 +13,7 @@ wn.core.Workflow = wn.ui.form.Controller.extend({
 	},
 	load_document_type: function(doc) {
 		var me = this;
-		if(!locals.DocType[doc.document_type]) {
+		if(doc.document_type && !locals.DocType[doc.document_type]) {
 			wn.model.with_doctype(doc.document_type, function() { 
 				me.update_field_options();
 			});
@@ -25,7 +25,7 @@ wn.core.Workflow = wn.ui.form.Controller.extend({
 				fieldtype: ["not in", wn.model.no_value_type]
 			}),
 			function(d) { return d.fieldname; });
-		wn.meta.get_docfield("Workflow Document State", "update_field").options
+		wn.meta.get_docfield("Workflow Document State", "update_field", this.frm.doc.name).options
 			= [""].concat(fields);
 	}
 });

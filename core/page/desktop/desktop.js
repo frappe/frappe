@@ -101,7 +101,5 @@ wn.core.pages.desktop.show_pending_notifications = function() {
 pscript.onload_desktop = function(wrapper) {
 	// load desktop
 	wn.core.pages.desktop.refresh();
-	$(wrapper).css({"background-color": "transparent", "box-shadow":"none"});
-	
 }
 

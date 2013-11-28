@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide("wn.views");
@@ -48,7 +48,7 @@ wn.views.QueryReport = Class.extend({
 		<div class="results" style="display: none;">\
 			<div class="result-area" style="height:400px; \
 				border: 1px solid #aaa;"></div>\
-			<p class="help"><br>\
+			<p class="text-muted"><br>\
 				'+wn._('For comparative filters, start with')+' ">" or "<", e.g. >5 or >01-02-2012\
 				<br>'+wn._('For ranges')+' ('+wn._('values and dates')+') use ":", \
 					e.g. "5:10" (to filter values between 5 & 10)</p>\
@@ -58,11 +58,10 @@ wn.views.QueryReport = Class.extend({
 	},
 	make_toolbar: function() {
 		var me = this;
-		this.appframe.add_button(wn._('Refresh'), function() { me.refresh(); }, "icon-refresh")
-			.addClass("btn-success");
+		this.appframe.set_title_right(wn._('Refresh'), function() { me.refresh(); });
 		
 		// Edit
-		var edit_btn = this.appframe.add_button(wn._('Edit'), function() {
+		var edit_btn = this.appframe.add_primary_action(wn._('Edit'), function() {
 			wn.set_route("Form", "Report", me.report_name);
 		}, "icon-edit");
 		
@@ -71,7 +70,7 @@ wn.views.QueryReport = Class.extend({
 				.attr("title", wn._("Only System Manager can create / edit reports"));
 		}
 
-		var export_btn = this.appframe.add_button(wn._('Export'), function() { me.export_report(); }, 
+		var export_btn = this.appframe.add_primary_action(wn._('Export'), function() { me.export_report(); }, 
 			"icon-download");
 		wn.utils.disable_export_btn(export_btn);
 	},
@@ -92,6 +91,7 @@ wn.views.QueryReport = Class.extend({
 							report_name: me.report_name
 						},
 						callback: function(r) {
+							me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 							wn.dom.eval(r.message || "");
 							me.setup_filters();
 							me.refresh();
@@ -124,7 +124,7 @@ wn.views.QueryReport = Class.extend({
 	},
 	clear_filters: function() {
 		this.filters = [];
-		this.appframe.$w.find('.appframe-form .filters').remove();
+		this.appframe.parent.find('.appframe-form .filters').remove();
 	},
 	set_filters_by_name: function() {
 		this.filters_by_name = {};
@@ -136,8 +136,9 @@ wn.views.QueryReport = Class.extend({
 	refresh: function() {
 		// Run
 		var me =this;
-		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").toggle(true), 
+		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true), 
 			"Loading Report...");
+		this.wrapper.find(".results").toggle(false);
 		var filters = {};
 		$.each(this.filters || [], function(i, f) {
 			filters[f.df.fieldname] = f.get_parsed_value();
@@ -209,6 +210,7 @@ wn.views.QueryReport = Class.extend({
 					
 					// column parameters
 					col.name = col.id = col.field = df.label;
+					col.name = wn._(df.label);
 					col.fieldtype = opts[1];
 
 					// width

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 """
@@ -145,7 +145,7 @@ def add_custom_fields(doctype, doclist):
 		if e.args[0]==1146:
 			return doclist
 		else:
-			raise e
+			raise
 
 	for r in res:
 		custom_field = webnotes.model.doc.Document(fielddata=r)
@@ -228,11 +228,11 @@ def cache_name(doctype, processed):
 	return "doctype:" + doctype + suffix
 
 def clear_cache(doctype=None):
-
+	import webnotes.plugins
 	def clear_single(dt):
 		webnotes.cache().delete_value(cache_name(dt, False))
 		webnotes.cache().delete_value(cache_name(dt, True))
-		webnotes.cache().delete_value("_server_script:" + dt)
+		webnotes.plugins.clear_cache("DocType", dt)
 
 		if doctype_cache and doctype in doctype_cache:
 			del doctype_cache[dt]
@@ -244,7 +244,11 @@ def clear_cache(doctype=None):
 		for dt in webnotes.conn.sql("""select parent from tabDocField 
 			where fieldtype="Table" and options=%s""", doctype):
 			clear_single(dt[0])
-			
+		
+		# clear all notifications
+		from core.doctype.notification_count.notification_count import delete_notification_count_for
+		delete_notification_count_for(doctype)
+		
 	else:
 		# clear all
 		for dt in webnotes.conn.sql("""select name from tabDocType"""):

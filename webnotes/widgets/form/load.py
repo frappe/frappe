@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -37,7 +37,7 @@ def getdoc(doctype, name, user=None):
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint('Did not load.')
-		raise e
+		raise
 
 	if bean and not name.startswith('_'):
 		webnotes.user.update_recent(doctype, name)

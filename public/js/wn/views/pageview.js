@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide('wn.views.pageview');
@@ -94,19 +94,24 @@ wn.views.Page = Class.extend({
 })
 
 wn.show_not_found = function(page_name) {
-	var page = wn.pages[page_name] || wn.container.add_page(page_name);
-	$(page).html('<div class="appframe col-md-12">\
-		<h3><i class="icon-exclamation-sign"></i> '+wn._('Not Found')+'</h3><br>\
-		<p>'+wn._('Sorry we were unable to find what you were looking for.')+'</p>\
-		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
-		</div>');
+	wn.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' + wn._("Not Found"), 
+		wn._("Sorry we were unable to find what you were looking for."));
 }
 
 wn.show_not_permitted = function(page_name) {
+	wn.show_message_page(page_name, '<i class="icon-exclamation-sign"></i> ' +wn._("Not Permitted"), 
+		wn._("Sorry you are not permitted to view this page."));
+}
+
+wn.show_message_page = function(page_name, title, message) {
+	if(!page_name) page_name = wn.get_route_str();
 	var page = wn.pages[page_name] || wn.container.add_page(page_name);
-	$(page).html('<div class="appframe col-md-12">\
-		<h3><i class="icon-minus-sign"></i> '+wn._('Not Permitted')+'</h3><br>\
-		<p>'+wn._('Sorry you are not permitted to view this page.')+'.</p>\
-		<p><a href="#">'+wn._('Go back to home')+'</a></p>\
+	$(page).html('<div class="appframe">\
+		<div style="margin: 50px; text-align:center;">\
+			<h3>'+title+'</h3><br>\
+			<p>'+message+'</p><br>\
+			<p><a href="#">Home <i class="icon-home"></i></a></p>\
+		</div>\
 		</div>');
+	wn.container.change_to(page_name);
 }

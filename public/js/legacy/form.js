@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 /* Form page structure
@@ -7,13 +7,10 @@
  		+ this.wrapper
 			+ this.toolbar
 			+ this.form_wrapper
-				+ this.main
 					+ this.head
 					+ this.body
 						+ this.layout
 				+ this.sidebar
-			+ this.print_wrapper
-				+ this.head
 			+ this.footer
 */
 
@@ -36,7 +33,6 @@ _f.Frm = function(doctype, parent, in_form) {
 	this.refresh_if_stale_for = 120;
 		
 	var me = this;
-	this.last_view_is_edit = {};
 	this.opendocs = {};
 	this.sections = [];
 	this.grids = [];
@@ -100,10 +96,10 @@ _f.Frm.prototype.setup = function() {
 		appframe: this.appframe
 	});
 	this.frm_head = this.toolbar;
-	
-	// create area for print format
+		
+	// print layout
 	this.setup_print_layout();
-	
+		
 	// 2 column layout
 	this.setup_std_layout();
 
@@ -116,11 +112,82 @@ _f.Frm.prototype.setup = function() {
 		
 	this.footer = new wn.ui.form.Footer({
 		frm: this,
-		parent: this.layout_main
+		parent: $(this.wrapper).find(".appframe-footer")
 	})
 	
 	
 	this.setup_done = true;
+}
+
+_f.Frm.prototype.setup_print_layout = function() {
+	this.print_wrapper = $('<div>\
+		<div class="print-toolbar row" style="background-color: #eee; \
+			padding-top: 5px; padding-bottom: 5px; margin-top: -15px; \
+			margin-bottom: 15px; padding-left: 15px; position:relative;">\
+			<i class="text-muted icon-print" style="position: absolute; top: 13px; left: 10px; "></i>\
+			<div class="col-xs-3">\
+				<select class="print-preview-select form-control"></select></div>\
+			<div class="col-xs-3" style="padding-top: 7px;">\
+				<input type="checkbox" class="print-letterhead" checked/> Letterhead</div>\
+			<div class="col-xs-6 text-right" style="padding-top: 7px;">\
+				<a style="margin-right: 7px;" class="print-print">Print</a>\
+				<a class="close">×</a>\
+			</div>\
+		</div>\
+		<div class="print-preview">\
+		</div>\
+	</div>')
+		.appendTo(this.layout_main)
+		.toggle(false);
+	
+	var me = this;
+	this.print_wrapper.find(".close").click(function() {
+		me.hide_print();
+	});
+	
+	this.print_formats = wn.meta.get_print_formats(this.meta.name);
+	this.print_letterhead = this.print_wrapper
+		.find(".print-letterhead")
+		.on("change", function() { me.print_sel.trigger("change"); });
+	this.print_sel = this.print_wrapper
+		.find(".print-preview-select")
+		.on("change", function() {
+			 _p.build(me.print_sel.val(), function(html) {
+				 me.print_wrapper.find(".print-preview").html(html);
+			 }, !me.print_letterhead.is(":checked"), true, true);
+		})
+		
+	this.print_wrapper.find(".print-print").click(function() {
+		_p.build(
+			me.print_sel.val(), // fmtname
+			_p.go, // onload
+			!me.print_letterhead.is(":checked") // no_letterhead
+		);
+	})
+}
+
+_f.Frm.prototype.print_doc = function() {
+	if(this.print_wrapper.is(":visible")) {
+		this.hide_print();
+		return;
+	}
+	if(this.doc.docstatus==2)  {
+		msgprint("Cannot Print Cancelled Documents.");
+		return;
+	}
+	this.print_wrapper.toggle(true);
+	this.print_sel
+		.empty().add_options(this.print_formats)
+		.trigger("change");
+	
+	this.form_wrapper.toggle(false);
+}
+
+_f.Frm.prototype.hide_print = function() {
+	if(this.setup_done) {
+		this.print_wrapper.toggle(false);
+		this.form_wrapper.toggle(true);
+	}
 }
 
 _f.Frm.prototype.watch_model_updates = function() {
@@ -152,27 +219,14 @@ _f.Frm.prototype.watch_model_updates = function() {
 	
 }
 
-_f.Frm.prototype.setup_print_layout = function() {
-	var me = this;
-	this.print_wrapper = $('<div>\
-		<div class="print-format-area clear-fix" style="min-height: 400px;"></div>\
-		</div>').appendTo(this.layout_main).get(0);
-		
-	//appframe.add_ripped_paper_effect(this.print_wrapper);
-	this.print_body = $(this.print_wrapper).find(".print-format-area").get(0);
-}
-
 _f.Frm.prototype.onhide = function() { 
 	if(_f.cur_grid_cell) _f.cur_grid_cell.grid.cell_deselect(); 
 }
 
 _f.Frm.prototype.setup_std_layout = function() {
-	this.form_wrapper = $('<div></div>').appendTo(this.layout_main).get(0);
-	$parent = $(this.form_wrapper);
-	this.head = $parent.find(".layout-appframe").get(0);
-	this.main = this.form_wrapper;
-	this.body_header	= $a(this.main, 'div');
-	this.body 			= $a(this.main, 'div');
+	this.form_wrapper = $('<div></div>').appendTo(this.layout_main);
+	this.body_header	= $("<div>").appendTo(this.form_wrapper);
+	this.body 			= $("<div>").appendTo(this.form_wrapper);
 
 	// only tray
 	this.meta.section_style='Simple'; // always simple!
@@ -196,22 +250,6 @@ _f.Frm.prototype.setup_std_layout = function() {
 	this.states = new wn.ui.form.States({
 		frm: this
 	});
-}
-
-_f.Frm.prototype.setup_print = function() { 
-	this.print_formats = wn.meta.get_print_formats(this.meta.name);
-	this.print_sel = $("<select>")
-		.css({"width": "160px"}).add_options(this.print_formats).get(0);
-	this.print_sel.value = this.print_formats[0];
-}
-
-_f.Frm.prototype.print_doc = function() {
-	if(this.doc.docstatus==2)  {
-		msgprint("Cannot Print Cancelled Documents.");
-		return;
-	}
-
-	_p.show_dialog(); // multiple options
 }
 
 // email the form
@@ -242,10 +280,6 @@ _f.Frm.prototype.rename_notify = function(dt, old, name) {
 	else
 		return;
 
-	// view_is_edit
-	this.last_view_is_edit[name] = this.last_view_is_edit[old];
-	delete this.last_view_is_edit[old];
-
 	// cleanup
 	if(this && this.opendocs[old]) {
 		// delete docfield copy
@@ -270,65 +304,6 @@ _f.Frm.prototype.setup_meta = function(doctype) {
 	this.meta = wn.model.get_doc('DocType',this.doctype);
 	this.perm = wn.perm.get_perm(this.doctype); // for create
 	if(this.meta.istable) { this.meta.in_dialog = 1 }
-	this.setup_print();
-}
-
-
-_f.Frm.prototype.set_intro = function(txt) {
-	wn.utils.set_intro(this, this.body, txt);
-}
-
-_f.Frm.prototype.set_footnote = function(txt) {
-	wn.utils.set_footnote(this, this.body, txt);
-}
-
-
-_f.Frm.prototype.add_custom_button = function(label, fn, icon) {
-	return this.appframe.add_button(label, fn, icon || "icon-arrow-right");
-}
-_f.Frm.prototype.clear_custom_buttons = function() {
-	this.toolbar.refresh()
-}
-
-_f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
-	if(!this.fetch_dict[link_field]) {
-		this.fetch_dict[link_field] = {'columns':[], 'fields':[]}
-	}
-	this.fetch_dict[link_field].columns.push(src_field);
-	this.fetch_dict[link_field].fields.push(tar_field);
-}
-
-_f.Frm.prototype.refresh_print_layout = function() {
-	$ds(this.print_wrapper);
-	$dh(this.form_wrapper);
-
-	var me = this;
-	var print_callback = function(print_html) {
-		me.print_body.innerHTML = print_html;
-	}
-	
-	// print head
-	if(cur_frm.doc.select_print_heading)
-		cur_frm.set_print_heading(cur_frm.doc.select_print_heading)
-	
-	if(user!='Guest') {
-		$di(this.view_btn_wrapper);
-
-		// archive
-		if(cur_frm.doc.__archived) {
-			$dh(this.view_btn_wrapper);
-		}
-	} else {
-		$dh(this.view_btn_wrapper);		
-		$dh(this.print_close_btn);		
-	}
-
-	// create print format here
-	_p.build(this.$print_view_select.val(), print_callback, false, true, true);
-}
-
-_f.Frm.prototype.set_print_heading = function(txt) {
-	this.pformat[cur_frm.docname] = txt;
 }
 
 _f.Frm.prototype.defocus_rest = function() {
@@ -370,6 +345,7 @@ _f.Frm.prototype.refresh = function(docname) {
 		if(this.docname != docname && (!this.meta.in_dialog || this.in_form) && 
 			!this.meta.istable) {
 				scroll(0, 0);
+				this.hide_print();
 			}
 		this.docname = docname;
 	}
@@ -413,19 +389,8 @@ _f.Frm.prototype.refresh = function(docname) {
 	} 
 }
 
-_f.Frm.prototype.render_form = function() {
-	// view_is_edit
-	if(this.doc.__islocal) 
-		this.last_view_is_edit[this.docname] = 1; // new is view_is_edit
-
-	this.view_is_edit = this.last_view_is_edit[this.docname];
-	
-	if(this.view_is_edit || (!this.view_is_edit && this.meta.istable)) {
-		if(this.print_wrapper) {
-			$dh(this.print_wrapper);
-			$ds(this.form_wrapper);
-		}
-
+_f.Frm.prototype.render_form = function() {	
+	if(!this.meta.istable) {
 		// header
 		this.refresh_header();
 
@@ -447,7 +412,7 @@ _f.Frm.prototype.render_form = function() {
 		// focus on first input
 		
 		if(this.doc.docstatus==0) {
-			var first = $(this.form_wrapper).find('.form-layout-row :input:first');
+			var first = this.form_wrapper.find('.form-layout-row :input:first');
 			if(!in_list(["Date", "Datetime"], first.attr("data-fieldtype"))) {
 				first.focus();
 			}
@@ -455,9 +420,6 @@ _f.Frm.prototype.render_form = function() {
 	
 	} else {
 		this.refresh_header();
-		if(this.print_wrapper) {
-			this.refresh_print_layout();
-		}
 	}
 
 	$(cur_frm.wrapper).trigger('render_complete');
@@ -572,17 +534,10 @@ _f.Frm.prototype.setnewdoc = function() {
 
 	this.script_manager.trigger("before_load", this.doctype, this.docname, function() {
 		me.script_manager.trigger("onload");
-		me.last_view_is_edit[me.docname] = 1;
 		me.opendocs[me.docname] = true;
 		me.render_form();
 	})
 
-}
-
-_f.Frm.prototype.edit_doc = function() {
-	// set fields
-	this.last_view_is_edit[this.docname] = true;
-	this.refresh();
 }
 
 _f.Frm.prototype.runscript = function(scriptname, callingfield, onrefresh) {
@@ -779,11 +734,8 @@ _f.Frm.prototype.amend_doc = function() {
 
 _f.Frm.prototype.disable_save = function() {
 	// IMPORTANT: this function should be called in refresh event
-	cur_frm.save_disabled = true;
-	cur_frm.footer.hide_save();
-	if(cur_frm.appframe.buttons.Save)
-		cur_frm.appframe.buttons.Save.remove();
-	delete cur_frm.appframe.buttons.Save
+	this.save_disabled = true;
+	this.appframe.set_title_right("", null);
 }
 
 _f.Frm.prototype.save_or_update = function() {
@@ -792,7 +744,7 @@ _f.Frm.prototype.save_or_update = function() {
 	if(this.doc.docstatus===0) {
 		this.save();
 	} else if(this.doc.docstatus===1 && this.doc.__unsaved) {
-		this.frm_head.appframe.buttons['Update'].click();
+		this.save("Update");
 	}
 }
 
@@ -812,4 +764,33 @@ _f.Frm.prototype.get_docinfo = function() {
 
 _f.Frm.prototype.get_perm = function(permlevel, access_type) {
 	return this.perm[permlevel] ? this.perm[permlevel][access_type] : null;
+}
+
+
+_f.Frm.prototype.set_intro = function(txt) {
+	wn.utils.set_intro(this, this.body, txt);
+}
+
+_f.Frm.prototype.set_footnote = function(txt) {
+	wn.utils.set_footnote(this, this.body, txt);
+}
+
+
+_f.Frm.prototype.add_custom_button = function(label, fn, icon) {
+	return this.appframe.add_primary_action(label, fn, icon || "icon-arrow-right");
+}
+_f.Frm.prototype.clear_custom_buttons = function() {
+	this.toolbar.refresh()
+}
+
+_f.Frm.prototype.add_fetch = function(link_field, src_field, tar_field) {
+	if(!this.fetch_dict[link_field]) {
+		this.fetch_dict[link_field] = {'columns':[], 'fields':[]}
+	}
+	this.fetch_dict[link_field].columns.push(src_field);
+	this.fetch_dict[link_field].fields.push(tar_field);
+}
+
+_f.Frm.prototype.set_print_heading = function(txt) {
+	this.pformat[cur_frm.docname] = txt;
 }

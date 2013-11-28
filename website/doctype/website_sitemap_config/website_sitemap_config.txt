@@ -1,0 +1,99 @@
+[
+ {
+  "creation": "2013-11-18 15:35:00", 
+  "docstatus": 0, 
+  "modified": "2013-11-19 11:37:52", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "field:link_name", 
+  "doctype": "DocType", 
+  "document_type": "System", 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "name": "__common__", 
+  "parent": "Website Sitemap Config", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Website Sitemap Config"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_or_generator", 
+  "fieldtype": "Select", 
+  "label": "Page or Generator", 
+  "options": "Page\nGenerator", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "ref_doctype", 
+  "fieldtype": "Link", 
+  "label": "Ref DocType", 
+  "options": "DocType", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "link_name", 
+  "fieldtype": "Data", 
+  "label": "Link Name", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "template_path", 
+  "fieldtype": "Data", 
+  "label": "Template Path", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "controller", 
+  "fieldtype": "Data", 
+  "label": "Controller", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "lastmod", 
+  "fieldtype": "Data", 
+  "label": "Lastmod"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "no_cache", 
+  "fieldtype": "Check", 
+  "label": "No Cache", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "no_sitemap", 
+  "fieldtype": "Check", 
+  "label": "No Sitemap", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "page_name_field", 
+  "fieldtype": "Data", 
+  "label": "Page Name Field", 
+  "read_only": 1
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "condition_field", 
+  "fieldtype": "Data", 
+  "label": "Condition Field", 
+  "read_only": 1
+ }
+]

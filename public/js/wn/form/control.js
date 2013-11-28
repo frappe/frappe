@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.make_control = function(opts) {
@@ -29,12 +29,17 @@ wn.ui.form.Control = Class.extend({
 		// if developer_mode=1, show fieldname as tooltip
 		if(wn.boot.profile && wn.boot.profile.name==="Administrator" &&
 			wn.boot.developer_mode===1 && this.$wrapper) {
-				this.$wrapper.attr("title", this.df.fieldname);
+				this.$wrapper.attr("title", wn._(this.df.fieldname));
 		}
 	},
 	make: function() {
-		this.$wrapper = $("<div>").appendTo(this.parent);
+		this.make_wrapper();
 		this.wrapper = this.$wrapper.get(0);
+		this.wrapper.fieldobj = this; // reference for event handlers
+	},
+	
+	make_wrapper: function() {
+		this.$wrapper = $("<div>").appendTo(this.parent);
 	},
 	
 	// returns "Read", "Write" or "None" 
@@ -98,7 +103,9 @@ wn.ui.form.ControlImage = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper.on("refresh", function() {
+		this.$wrapper
+		.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right", "text-align": "right"})
+		.on("refresh", function() {
 			me.$wrapper.empty();
 			if(me.df.options && me.frm.doc[me.df.options]) {
 				$("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
@@ -124,12 +131,10 @@ wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
 });
 
 wn.ui.form.ControlInput = wn.ui.form.Control.extend({
+	horizontal: true,
 	make: function() {
 		// parent element
-		this.make_wrapper();
-		this.wrapper = this.$wrapper.get(0);
-		if(!this.wrapper) console.log(this.parent);
-		this.wrapper.fieldobj = this; // reference for event handlers
+		this._super();
 		this.set_input_areas();
 		
 		// set description
@@ -140,12 +145,20 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input) {
 			this.$wrapper = $('<div class="form-group">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="form-group">\
-				<label class="control-label"></label>\
-				<div class="control-input"></div>\
-				<div class="control-value like-disabled-input" style="display: none;"></div>\
-				<p class="help-box small text-muted"></p>\
+			this.$wrapper = $('<div class="form-horizontal">\
+				<div class="form-group row" style="margin: 0px">\
+					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
+						+'" style="padding-right: 0px; color: #777;"></label>\
+					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
+						<div class="control-input"></div>\
+						<div class="control-value like-disabled-input" style="display: none;"></div>\
+						<p class="help-box small text-muted"></p>\
+					</div>\
+				</div>\
 			</div>').appendTo(this.parent);
+			if(!this.horizontal) {
+				this.$wrapper.removeClass("form-horizontal");
+			}
 		}
 	},
 	set_input_areas: function() {
@@ -158,8 +171,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		}
 	},
 	set_max_width: function() {
-		if(['Code', 'Text Editor', 'Text', 'Small Text', 'Table', 'HTML']
-			.indexOf(this.df.fieldtype)==-1) {
+		if(this.horizontal) {
 			this.$wrapper.css({"max-width": "600px"});
 		}
 	},
@@ -210,13 +222,13 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input || this.df.label==this._label) 
 			return;
 		
-		var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
-		if(this.df.fieldtype==="Link") {
-			icon = wn.boot.doctype_icons[this.df.options];
-		} else if(this.df.link_doctype) {
-			icon = wn.boot.doctype_icons[this.df.link_doctype];
-		}
-					
+		// var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
+		// if(this.df.fieldtype==="Link") {
+		// 	icon = wn.boot.doctype_icons[this.df.options];
+		// } else if(this.df.link_doctype) {
+		// 	icon = wn.boot.doctype_icons[this.df.link_doctype];
+		// }
+		var icon = "";
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") + 
 			wn._(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
@@ -370,9 +382,6 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
 			(wn.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
-		if(this.not_in_form && this.dialog_wrapper) {
-			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
-		}
 		this.$input.datepicker(this.datepicker_options);
 	},
 	parse: function(value) {
@@ -410,14 +419,10 @@ wn.ui.form.ControlTime = wn.ui.form.ControlData.extend({
 
 wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 	set_datepicker: function() {
+		this.datepicker_options.timeFormat = "hh:mm:ss";
 		this.datepicker_options.dateFormat = 
 			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
-		this.datepicker_options.timeFormat = "hh:mm:ss";
 		
-		if(this.not_in_form && this.dialog_wrapper) {
-			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
-		}
-
 		this.$input.datetimepicker(this.datepicker_options);
 	},
 	make_input: function() {
@@ -428,7 +433,8 @@ wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 });
 
 wn.ui.form.ControlText = wn.ui.form.ControlData.extend({
-	html_element: "textarea"
+	html_element: "textarea",
+	horizontal: false
 });
 
 wn.ui.form.ControlLongText = wn.ui.form.ControlText;
@@ -437,12 +443,16 @@ wn.ui.form.ControlSmallText = wn.ui.form.ControlText;
 wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="checkbox">\
-			<label class="input-area">\
-				<span class="disp-area" style="display:none;"></span>\
-				<span class="label-area"></span>\
-			</label>\
-			<p class="help-box small text-muted">&nbsp;</p>\
+		this.$wrapper = $('<div class="form-group row" style="margin: 0px;">\
+		<div class="col-md-offset-4 col-md-8">\
+			<div class="checkbox" style="margin: 5px 0px">\
+				<label class="input-area">\
+					<span class="disp-area" style="display:none;"></span>\
+					<span class="label-area small text-muted"></span>\
+				</label>\
+				<p class="help-box small text-muted"></p>\
+			</div>\
+		</div>\
 		</div>').appendTo(this.parent)
 	},
 	set_input_areas: function() {
@@ -475,6 +485,7 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 				me.onclick();
 			});
 		this.input = this.$input.get(0);
+		this.set_input_attributes();
 		this.has_input = true;
 	},
 	onclick: function() {
@@ -482,7 +493,7 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 			if(this.frm.cscript[this.df.fieldname]) {
 				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
 			} else {
-				this.frm.runscript(this.df.options, me);
+				this.frm.runscript(this.df.options, this);
 			}
 		}
 		else if(this.df.click) {
@@ -574,8 +585,8 @@ wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
 wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
 	make_input: function() {
 		this._super();
-		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin-top: 7px;">\
-			<div class="missing-image"><i class="icon-camera"></i></div></div>').appendTo(this.input_area)).toggle(false);
+		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
+			<div class="missing-image"><i class="icon-camera"></i></div></div>').prependTo(this.input_area)).toggle(false);
 	},
 	on_attach: function() {
 		$(this.input_area).find(".missing-image").toggle(false);
@@ -617,12 +628,12 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		var me = this;
 		$(this.input).css({"width": "85%", "display": "inline-block"});
 		this.$attach = $("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
-			style='padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
+			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
 				me.frm.attachments.new_attachment(me.df.fieldname);
 			})
-			.appendTo(this.input_area);
+			.prependTo(this.input_area);
 			
 		$(document).on("upload_complete", function(event, filename, file_url) {
 			if(cur_frm === me.frm) {
@@ -681,19 +692,19 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
 		var me = this;
-		$('<div class="input-group link-field">\
-			<input type="text" class="input-with-feedback form-control">\
-			<span class="input-group-btn">\
-				<button class="btn btn-default btn-search" title="Search Link">\
+		$('<div class="link-field" style="display: table; width: 100%;">\
+			<input type="text" class="input-with-feedback form-control" \
+				style="display: table-cell">\
+			<span class="link-field-btn" style="display: table-cell">\
+				<a class="btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
-				</button>\
-				<button class="btn btn-default btn-open" title="Open Link">\
+				</a><a class="btn-open" title="Open Link">\
 					<i class="icon-play"></i>\
-				</button><button class="btn btn-default btn-new" title="Make New">\
+				</a><a class="btn-new" title="Make New">\
 					<i class="icon-plus"></i>\
-				</button>\
+				</a>\
 			</span>\
-		</div>').appendTo(this.input_area);
+		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.set_input_attributes();
@@ -743,6 +754,8 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		} else {
 			this.$input_area.find(".btn-new").remove();
 		}
+		
+		if(this.only_input) this.$input_area.find(".btn-open, .btn-new").remove();
 	},
 	setup_autocomplete: function() {
 		var me = this;
@@ -852,8 +865,17 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	},
 });
 
-wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
-	editor_name: "wn.editors.ACE",
+
+wn.ui.form.ControlCode = wn.ui.form.ControlText.extend({
+	make_input: function() {
+		this._super();
+		$(this.input_area).find("textarea").css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
+	}
+});
+
+wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
+	editor_name: "bsEditor",
+	horizontal: false,
 	make_input: function() {
 		$(this.input_area).css({"min-height":"360px"});
 		var me = this;
@@ -865,6 +887,9 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			field: this
 		});
 		this.has_input = true;
+		this.editor.editor.keypress("ctrl+s meta+s", function() {
+			me.frm.save_or_update();
+		});
 	},
 	get_value: function() {
 		return this.editor.get_value();
@@ -875,23 +900,15 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 	}
 });
 
-wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
-	editor_name: "bsEditor",
-	make_input: function() {
-		this._super();
-		this.editor.editor.keypress("ctrl+s meta+s", function() {
-			me.frm.save_or_update();
-		});
-	},
-});
-
 wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		
 		// add title if prev field is not column / section heading or html
-		if(["Column Break", "Section Break", "HTML"].indexOf(
-				wn.model.get("DocField", {parent: this.frm.doctype, idx: this.df.idx-1}).fieldtype)===-1) {
+		var prev_fieldtype = wn.model.get("DocField", 
+			{parent: this.frm.doctype, idx: this.df.idx-1})[0].fieldtype;
+					
+		if(["Column Break", "Section Break", "HTML"].indexOf(prev_fieldtype)===-1) {
 			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);	
 		}
 		
@@ -906,7 +923,7 @@ wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 
 		// description
 		if(this.df.description) {
-			$('<p class="text-muted small">' + this.df.description + '</p>')
+			$('<p class="text-muted small">' + wn._(this.df.description) + '</p>')
 				.appendTo(this.wrapper);
 		}
 		

@@ -1,7 +1,7 @@
 {% extends base_template %}
 
 {% block content %}
-<div class="col-md-12" itemscope itemtype="http://schema.org/BlogPost">
+<div class="container content" itemscope itemtype="http://schema.org/BlogPost">
 	<h2 itemprop="name headline">{{ title }}</h2>
 
 	<!-- begin blog content -->
@@ -24,10 +24,12 @@
 <script>
 $(function() {
 	if(window.logged_in && getCookie("system_user")==="yes") {
-		wn.require("lib/js/wn/website/editable.js");
-		wn.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
+		wn.has_permission("Blog Post", "{{ name }}", "write", function(r) {
+			wn.require("lib/js/wn/website/editable.js");
+			wn.make_editable($('[itemprop="articleBody"]'), "Blog Post", "{{ name }}", "content");
+		});
 	}
-})
+});
 </script>
 {% include 'lib/website/doctype/blog_post/templates/includes/blog_footer.html' %}
 {% endblock %}

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -10,7 +10,7 @@ Allows easy adding of Attachments of "File" objects
 import webnotes	
 from webnotes import conf
 from webnotes import msgprint
-from webnotes.utils import cint
+from webnotes.utils import cint, expand_partial_links
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None, footer=None):
 	"""send an html email as multipart with attachments and all"""
@@ -51,13 +51,13 @@ class EMail:
 		self.html_set = False
 	
 	def set_html(self, message, text_content = None, footer=None):
-
 		"""Attach message in the html portion of multipart/alternative"""
 		message = message + self.get_footer(footer)
+		message = expand_partial_links(message)
 
 		# this is the first html part of a multi-part message, 
 		# convert to text well
-		if not self.html_set: 
+		if not self.html_set:
 			if text_content:
 				self.set_text(text_content)
 			else:
@@ -65,7 +65,7 @@ class EMail:
 		
 		self.set_part_html(message)
 		self.html_set = True
-
+		
 	def set_text(self, message):
 		"""
 			Attach message in the text portion of multipart/alternative
