@@ -162,14 +162,16 @@ def get_user_fullname(user):
 
 def get_system_managers():
 	"""returns all system manager's profile details"""
-	system_managers = webnotes.conn.sql("""select distinct name
-		from tabProfile p 
+	import email.utils
+	system_managers = webnotes.conn.sql("""select distinct name,
+		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
+		as fullname from tabProfile p 
 		where docstatus < 2 and enabled = 1
 		and name not in ("Administrator", "Guest")
 		and exists (select * from tabUserRole ur
-			where ur.parent = p.name and ur.role="System Manager")""")
+			where ur.parent = p.name and ur.role="System Manager")""", as_dict=True)
 	
-	return [p[0] for p in system_managers]
+	return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 	
 def add_role(profile, role):
 	profile_wrapper = webnotes.bean("Profile", profile)
