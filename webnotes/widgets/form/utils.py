@@ -94,8 +94,9 @@ def get_linked_docs(doctype, name, metadata_loaded=None):
 		link["doctype"] = dt
 		linkmeta = webnotes.get_doctype(dt, True)
 		if not linkmeta[0].get("issingle"):
-			fields = [d.fieldname for d in linkmeta.get({"parent":dt, "in_list_view":1})] \
-				+ ["name", "modified"]
+			fields = [d.fieldname for d in linkmeta.get({"parent":dt, "in_list_view":1, 
+				"fieldtype": ["not in", ["Image", "HTML", "Button", "Table"]]})] \
+				+ ["name", "modified", "docstatus"]
 
 			fields = ["`tab{dt}`.`{fn}`".format(dt=dt, fn=sf.strip()) for sf in fields if sf]
 
