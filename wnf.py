@@ -454,9 +454,13 @@ def reset_perms(site=None):
 # scheduler
 @cmd
 def run_scheduler(site=None):
+	from webnotes.utils.file_lock import create_lock, delete_lock
 	import webnotes.utils.scheduler
-	webnotes.connect(site=site)
-	print webnotes.utils.scheduler.execute()
+	webnotes.init(site=site)
+	if create_lock('scheduler'):
+		webnotes.connect(site=site)
+		print webnotes.utils.scheduler.execute()
+		delete_lock('scheduler')
 	webnotes.destroy()
 
 @cmd
