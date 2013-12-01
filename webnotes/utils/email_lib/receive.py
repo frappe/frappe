@@ -4,6 +4,7 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
+from webnotes.utils.timeout import timeout
 
 class IncomingMail:
 	"""
@@ -136,6 +137,22 @@ class POP3Mailbox:
 			self.pop = poplib.POP3(self.settings.host)
 		self.pop.user(self.settings.username)
 		self.pop.pass_(self.settings.password)
+
+	@timeout(30)
+	def retrieve_message(m):
+		msg = self.pop.retr(m)
+
+		try:
+			incoming_mail = IncomingMail(b'\n'.join(msg[1]))
+			webnotes.conn.begin()
+			self.process_message(incoming_mail)
+			webnotes.conn.commit()
+		except:
+			from webnotes.utils.scheduler import log
+			# log performs rollback and logs error in scheduler log
+			log("receive.get_messages")
+			errors = True
+			webnotes.conn.rollback()
 	
 	def get_messages(self):
 		import webnotes
@@ -145,39 +162,31 @@ class POP3Mailbox:
 		
 		webnotes.conn.commit()
 
-		self.connect()
-		num = num_copy = len(self.pop.list()[1])
-		
-		# track if errors arised
-		errors = False
-		
-		# WARNING: Hard coded max no. of messages to be popped
-		if num > 20: num = 20
-		for m in xrange(1, num+1):
-			msg = self.pop.retr(m)
-			# added back dele, as most pop3 servers seem to require msg to be deleted
-			# else it will again be fetched in self.pop.list()
-			self.pop.dele(m)
+		try: 
+			self.connect()
+			num = num_copy = len(self.pop.list()[1])
 			
-			try:
-				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
-				webnotes.conn.begin()
-				self.process_message(incoming_mail)
-				webnotes.conn.commit()
-			except:
-				from webnotes.utils.scheduler import log
-				# log performs rollback and logs error in scheduler log
-				log("receive.get_messages")
-				errors = True
-				webnotes.conn.rollback()
-		
-		# WARNING: Mark as read - message number 101 onwards from the pop list
-		# This is to avoid having too many messages entering the system
-		num = num_copy
-		if num > 100 and not errors:
-			for m in xrange(101, num+1):
-				self.pop.dele(m)
-		
-		self.pop.quit()
-		webnotes.conn.begin()
+			# track if errors arised
+			errors = False
+			
+			# WARNING: Hard coded max no. of messages to be popped
+			if num > 20:
+				num = 20
+
+			for m in xrange(1, num+1):
+				try:
+					self.retrieve_message(m)
+				finally:
+					# added back dele, as most pop3 servers seem to require msg to be deleted
+					# else it will again be fetched in self.pop.list()
+					self.pop.dele(m)
+
+			# WARNING: Mark as read - message number 101 onwards from the pop list
+			# This is to avoid having too many messages entering the system
+			num = num_copy
+			if num > 100 and not errors:
+				for m in xrange(101, num+1):
+					self.pop.dele(m)
+		finally:
+			self.pop.quit()
 		
