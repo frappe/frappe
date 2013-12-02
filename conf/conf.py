@@ -15,6 +15,12 @@ public_path = 'public'
 # max file attachment size (default 1MB)
 max_file_size = 1000000
 
+# max email size in bytes
+max_email_size = 0
+
+# max total email pulling time in seconds
+max_email_time = 0
+
 # generate schema (.txt files)
 developer_mode = 0
 
