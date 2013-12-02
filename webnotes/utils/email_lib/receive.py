@@ -7,9 +7,11 @@ import poplib
 import webnotes
 from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
 from webnotes.utils.scheduler import log
+import time
 
 class EmailSizeExceededError(webnotes.ValidationError): pass
 class TotalSizeExceededError(webnotes.ValidationError): pass
+class TotalTimeExceededError(webnotes.ValidationError): pass
 
 class IncomingMail:
 	"""
@@ -157,6 +159,10 @@ class POP3Mailbox:
 			# WARNING: Hard coded max no. of messages to be popped
 			if num > 20: num = 20
 			
+			# time limits
+			self.start_time = time.time()
+			self.max_email_time = cint(webnotes.local.conf.get("max_email_time"))
+			
 			# size limits
 			self.total_size = 0
 			self.max_email_size = cint(webnotes.local.conf.get("max_email_size"))
@@ -169,7 +175,7 @@ class POP3Mailbox:
 			
 				try:
 					self.retrieve_message(pop_meta, i+1)
-				except TotalSizeExceededError:
+				except (TotalSizeExceededError, TotalTimeExceededError):
 					break
 		
 			# WARNING: Mark as read - message number 101 onwards from the pop list
@@ -185,7 +191,7 @@ class POP3Mailbox:
 	def retrieve_message(self, pop_meta, msg_num):
 		incoming_mail = None
 		try:
-			self.validate_size(pop_meta)
+			self.validate_pop(pop_meta)
 			msg = self.pop.retr(msg_num)
 
 			incoming_mail = IncomingMail(b'\n'.join(msg[1]))
@@ -193,7 +199,7 @@ class POP3Mailbox:
 			self.process_message(incoming_mail)
 			webnotes.conn.commit()
 		
-		except TotalSizeExceededError:
+		except (TotalSizeExceededError, TotalTimeExceededError):
 			# propagate this error to break the loop
 			raise
 		
@@ -207,7 +213,12 @@ class POP3Mailbox:
 		else:
 			self.pop.dele(msg_num)
 			
-	def validate_size(self, pop_meta):
+	def validate_pop(self, pop_meta):
+		# throttle based on time restriction
+		if self.max_email_time and (time.time() - self.start_time) > self.max_email_time:
+			raise TotalTimeExceededError
+		
+		# throttle based on email size
 		if not self.max_email_size:
 			return
 		
