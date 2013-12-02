@@ -4,6 +4,10 @@
 from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
+from webnotes.utils.scheduler import log
+
+class EmailSizeExceededError(webnotes.ValidationError): pass
+class TotalSizeExceededError(webnotes.ValidationError): pass
 
 class IncomingMail:
 	"""
@@ -98,7 +102,7 @@ class IncomingMail:
 				fid = save_file(attachment['filename'], attachment['content'], 
 					doc.doctype, doc.name)
 			except MaxFileSizeReachedError:
-				# bypass max file size exception
+				# WARNING: bypass max file size exception
 				pass
 			except webnotes.DuplicateEntryError:
 				# same file attached twice??
@@ -116,7 +120,6 @@ class POP3Mailbox:
 	
 	def setup(self, args=None):
 		# overrride
-		import webnotes
 		self.settings = args or webnotes._dict()
 
 	def check_mails(self):
@@ -138,46 +141,90 @@ class POP3Mailbox:
 		self.pop.pass_(self.settings.password)
 	
 	def get_messages(self):
-		import webnotes
-		
 		if not self.check_mails():
 			return # nothing to do
 		
 		webnotes.conn.commit()
-
 		self.connect()
-		num = num_copy = len(self.pop.list()[1])
 		
-		# track if errors arised
-		errors = False
+		try:
+			# track if errors arised
+			self.errors = False
+			pop_list = self.pop.list()[1]
+			num = num_copy = len(pop_list)
 		
-		# WARNING: Hard coded max no. of messages to be popped
-		if num > 20: num = 20
-		for m in xrange(1, num+1):
-			msg = self.pop.retr(m)
-			# added back dele, as most pop3 servers seem to require msg to be deleted
-			# else it will again be fetched in self.pop.list()
-			self.pop.dele(m)
+			# WARNING: Hard coded max no. of messages to be popped
+			if num > 20: num = 20
 			
-			try:
-				incoming_mail = IncomingMail(b'\n'.join(msg[1]))
-				webnotes.conn.begin()
-				self.process_message(incoming_mail)
-				webnotes.conn.commit()
-			except:
-				from webnotes.utils.scheduler import log
-				# log performs rollback and logs error in scheduler log
-				log("receive.get_messages")
-				errors = True
-				webnotes.conn.rollback()
+			# size limits
+			self.total_size = 0
+			self.max_email_size = cint(webnotes.local.conf.get("max_email_size"))
+			self.max_total_size = 5 * self.max_email_size
 		
-		# WARNING: Mark as read - message number 101 onwards from the pop list
-		# This is to avoid having too many messages entering the system
-		num = num_copy
-		if num > 100 and not errors:
-			for m in xrange(101, num+1):
-				self.pop.dele(m)
+			for i, pop_meta in enumerate(pop_list):
+				# do not pull more than NUM emails
+				if (i+1) > num:
+					break
+			
+				try:
+					self.retrieve_message(pop_meta, i+1)
+				except TotalSizeExceededError:
+					break
 		
-		self.pop.quit()
-		webnotes.conn.begin()
+			# WARNING: Mark as read - message number 101 onwards from the pop list
+			# This is to avoid having too many messages entering the system
+			num = num_copy
+			if num > 100 and not self.errors:
+				for m in xrange(101, num+1):
+					self.pop.dele(m)
+		finally:
+			# no matter the exception, pop should quit if connected
+			self.pop.quit()
+		
+	def retrieve_message(self, pop_meta, msg_num):
+		incoming_mail = None
+		try:
+			self.validate_size(pop_meta)
+			msg = self.pop.retr(msg_num)
+
+			incoming_mail = IncomingMail(b'\n'.join(msg[1]))
+			webnotes.conn.begin()
+			self.process_message(incoming_mail)
+			webnotes.conn.commit()
+		
+		except TotalSizeExceededError:
+			# propagate this error to break the loop
+			raise
+		
+		except:
+			error_msg = "Error in retrieving email."
+			if not incoming_mail:
+				# retrieve headers
+				incoming_mail = IncomingMail(b'\n'.join(self.pop.top(msg_num, 5)[1]))
+			
+			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
+				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject)
+				
+			# log performs rollback and logs error in scheduler log
+			log("receive.get_messages", error_msg)
+			self.errors = True
+			webnotes.conn.rollback()
+			
+			self.pop.dele(msg_num)
+		else:
+			self.pop.dele(msg_num)
+			
+	def validate_size(self, pop_meta):
+		if not self.max_email_size:
+			return
+		
+		m, size = pop_meta.split()
+		size = cint(size)
+		
+		if size < self.max_email_size:
+			self.total_size += size
+			if self.total_size > self.max_total_size:
+				raise TotalSizeExceededError
+		else:
+			raise EmailSizeExceededError
 		

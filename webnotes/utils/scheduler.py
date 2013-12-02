@@ -16,6 +16,8 @@ on the need.
 """
 
 import webnotes
+import webnotes.utils
+
 def execute(site=None):
 	"""
 	execute jobs
@@ -24,7 +26,6 @@ def execute(site=None):
 	no connection, it will connect from defs.py
 	"""
 	from datetime import datetime
-	import webnotes.utils
 	
 	format = '%Y-%m-%d %H:%M:%S'
 	
@@ -84,25 +85,25 @@ def trigger(method):
 		
 	return traceback or 'ok'
 
-def log(method):
+def log(method, message=None):
 	"""log error in patch_log"""
-	import webnotes
+	message = webnotes.utils.cstr(message) + "\n" if message else ""
+	message += webnotes.getTraceback()
 	
 	if not (webnotes.conn and webnotes.conn._conn):
 		webnotes.connect()
 	
 	webnotes.conn.rollback()
-	traceback = webnotes.getTraceback()
-
-	import webnotes.utils
 	webnotes.conn.begin()
+
 	d = webnotes.doc("Scheduler Log")
 	d.method = method
-	d.error = traceback
+	d.error = message
 	d.save()
+
 	webnotes.conn.commit()
 	
-	return traceback
+	return message
 
 def report_errors():
 	from webnotes.utils.email_lib import sendmail_to_system_managers
