@@ -197,16 +197,8 @@ class POP3Mailbox:
 			raise
 		
 		except:
-			error_msg = "Error in retrieving email."
-			if not incoming_mail:
-				# retrieve headers
-				incoming_mail = IncomingMail(b'\n'.join(self.pop.top(msg_num, 5)[1]))
-			
-			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
-				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject)
-				
 			# log performs rollback and logs error in scheduler log
-			log("receive.get_messages", error_msg)
+			log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
 			self.errors = True
 			webnotes.conn.rollback()
 			
@@ -227,4 +219,19 @@ class POP3Mailbox:
 				raise TotalSizeExceededError
 		else:
 			raise EmailSizeExceededError
+			
+	def make_error_msg(self, msg_num, incoming_mail):
+		error_msg = "Error in retrieving email."
+		if not incoming_mail:
+			try:
+				# retrieve headers
+				incoming_mail = IncomingMail(b'\n'.join(self.pop.top(msg_num, 5)[1]))
+			except:
+				pass
+			
+		if incoming_mail:
+			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
+				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject)
+		
+		return error_msg
 		
