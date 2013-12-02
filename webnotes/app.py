@@ -8,7 +8,7 @@ sys.path.insert(0, 'lib')
 from werkzeug.wrappers import Request, Response
 from werkzeug.local import LocalManager
 from webnotes.middlewares import StaticDataMiddleware
-from werkzeug.exceptions import HTTPException
+from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
 from webnotes import get_config
 
@@ -53,8 +53,10 @@ def application(request):
 		
 		if webnotes.form_dict.cmd:
 			webnotes.handler.handle()
-		else:
+		elif webnotes.local.request.method == 'GET':
 			webnotes.webutils.render(webnotes.request.path[1:])
+		else:
+			raise NotFound
 
 	except HTTPException, e:
 		return e
