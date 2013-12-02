@@ -6,7 +6,6 @@ class LockTimeoutError(Exception):
     pass
 
 def create_lock(name):
-	pre
 	lock_path = get_lock_path(name)
 	if not check_lock(lock_path):
 		return touch_file(lock_path)
@@ -21,14 +20,14 @@ def touch_file(path):
 def check_lock(path):
 	if not os.path.exists(path):
 		return False
-	if time() - os.path.mtime(path) > 600:
+	if time() - os.path.getmtime(path) > 600:
 		raise LockTimeoutError(path)
 	return True
 
 def delete_lock(name):
 	lock_path = get_lock_path(name)
 	try:
-		os.remove(path)
+		os.remove(lock_path)
 	except OSError:
 		pass
 	return True
