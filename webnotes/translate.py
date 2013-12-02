@@ -433,11 +433,13 @@ def google_translate(lang, infile, outfile):
 							"q": row[0]
 						})
 			
-					if "error" in response.json:
-						print response.json
+					data = response.json()
+			
+					if "error" in data:
+						print data
 						continue
 					
-					row[1] = response.json["data"]["translations"][0]["translatedText"]
+					row[1] = data["data"]["translations"][0]["translatedText"]
 					if not row[1]:
 						row[1] = row[0] # google unable to translate!
 			
