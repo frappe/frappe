@@ -9,7 +9,6 @@ from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, 
 from webnotes.utils.scheduler import log
 
 class EmailSizeExceededError(webnotes.ValidationError): pass
-class EmailTimeoutError(webnotes.ValidationError): pass
 class TotalSizeExceededError(webnotes.ValidationError): pass
 
 class IncomingMail:
@@ -141,7 +140,7 @@ class POP3Mailbox:
 			
 		self.pop.user(self.settings.username)
 		self.pop.pass_(self.settings.password)
-		
+	
 	def get_messages(self):
 		if not self.check_mails():
 			return # nothing to do
@@ -162,15 +161,15 @@ class POP3Mailbox:
 			self.total_size = 0
 			self.max_email_size = cint(webnotes.local.conf.get("max_email_size"))
 			self.max_total_size = 5 * self.max_email_size
-			
+		
 			for i, pop_meta in enumerate(pop_list):
 				# do not pull more than NUM emails
 				if (i+1) > num:
 					break
-				
+			
 				try:
 					self.retrieve_message(pop_meta, i+1)
-				except (TotalSizeExceededError, EmailTimeoutError):
+				except TotalSizeExceededError:
 					break
 		
 			# WARNING: Mark as read - message number 101 onwards from the pop list
@@ -186,21 +185,29 @@ class POP3Mailbox:
 	def retrieve_message(self, pop_meta, msg_num):
 		incoming_mail = None
 		try:
-			self.validate_pop(pop_meta)
+			self.validate_size(pop_meta)
 			msg = self.pop.retr(msg_num)
 
 			incoming_mail = IncomingMail(b'\n'.join(msg[1]))
 			webnotes.conn.begin()
 			self.process_message(incoming_mail)
 			webnotes.conn.commit()
-			
-		except (TotalSizeExceededError, EmailTimeoutError):
+		
+		except TotalSizeExceededError:
 			# propagate this error to break the loop
 			raise
 		
 		except:
+			error_msg = "Error in retrieving email."
+			if not incoming_mail:
+				# retrieve headers
+				incoming_mail = IncomingMail(b'\n'.join(self.pop.top(msg_num, 5)[1]))
+			
+			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
+				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject)
+				
 			# log performs rollback and logs error in scheduler log
-			log("receive.get_messages", self.make_error_msg(msg_num, incoming_mail))
+			log("receive.get_messages", error_msg)
 			self.errors = True
 			webnotes.conn.rollback()
 			
@@ -208,8 +215,7 @@ class POP3Mailbox:
 		else:
 			self.pop.dele(msg_num)
 			
-	def validate_pop(self, pop_meta):
-		# throttle based on email size
+	def validate_size(self, pop_meta):
 		if not self.max_email_size:
 			return
 		
@@ -222,47 +228,4 @@ class POP3Mailbox:
 				raise TotalSizeExceededError
 		else:
 			raise EmailSizeExceededError
-			
-	def make_error_msg(self, msg_num, incoming_mail):
-		error_msg = "Error in retrieving email."
-		if not incoming_mail:
-			try:
-				# retrieve headers
-				incoming_mail = IncomingMail(b'\n'.join(self.pop.top(msg_num, 5)[1]))
-			except:
-				pass
-			
-		if incoming_mail:
-			error_msg += "\nDate: {date}\nFrom: {from_email}\nSubject: {subject}\n".format(
-				date=incoming_mail.date, from_email=incoming_mail.from_email, subject=incoming_mail.subject)
 		
-		return error_msg
-		
-class TimerMixin(object):
-	def __init__(self, *args, **kwargs):
-		self.timeout = kwargs.pop('timeout', 0.0)
-		self.elapsed_time = 0.0
-		self._super.__init__(self, *args, **kwargs)
-		if self.timeout:
-			# set per operation timeout to one-fifth of total pop timeout
-			self.sock.settimeout(self.timeout / 5.0)
-		
-	def _getline(self, *args, **kwargs):
-		start_time = time.time()
-		ret = self._super._getline(self, *args, **kwargs)
-
-		self.elapsed_time += time.time() - start_time
-		if self.timeout and self.elapsed_time > self.timeout:
-			raise EmailTimeoutError
-		
-		return ret
-		
-	def quit(self, *args, **kwargs):
-		self.elapsed_time = 0.0
-		return self._super.quit(self, *args, **kwargs)
-		
-class Timed_POP3(TimerMixin, poplib.POP3):
-	_super = poplib.POP3
-		
-class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
-	_super = poplib.POP3_SSL
