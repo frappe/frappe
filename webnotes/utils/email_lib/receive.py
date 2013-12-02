@@ -2,14 +2,15 @@
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
+import time
+import poplib
 import webnotes
 from webnotes.utils import extract_email_id, convert_utc_to_user_timezone, now, cint
 from webnotes.utils.scheduler import log
-import time
 
 class EmailSizeExceededError(webnotes.ValidationError): pass
+class EmailTimeoutError(webnotes.ValidationError): pass
 class TotalSizeExceededError(webnotes.ValidationError): pass
-class TotalTimeExceededError(webnotes.ValidationError): pass
 
 class IncomingMail:
 	"""
@@ -87,7 +88,7 @@ class IncomingMail:
 	def get_payload(self, part, charset):
 		try:
 			return unicode(part.get_payload(decode=True),str(charset),"ignore")
-		except LookupError, e:
+		except LookupError:
 			return part.get_payload()		
 
 	def get_attachment(self, part, charset):
@@ -133,15 +134,14 @@ class POP3Mailbox:
 		pass
 		
 	def connect(self):
-		import poplib
-		
 		if cint(self.settings.use_ssl):
-			self.pop = poplib.POP3_SSL(self.settings.host)
+			self.pop = Timed_POP3_SSL(self.settings.host, timeout=webnotes.conf.get("pop_timeout"))
 		else:
-			self.pop = poplib.POP3(self.settings.host)
+			self.pop = Timed_POP3(self.settings.host, timeout=webnotes.conf.get("pop_timeout"))
+			
 		self.pop.user(self.settings.username)
 		self.pop.pass_(self.settings.password)
-	
+		
 	def get_messages(self):
 		if not self.check_mails():
 			return # nothing to do
@@ -158,23 +158,19 @@ class POP3Mailbox:
 			# WARNING: Hard coded max no. of messages to be popped
 			if num > 20: num = 20
 			
-			# time limits
-			self.start_time = time.time()
-			self.max_email_time = cint(webnotes.local.conf.get("max_email_time"))
-			
 			# size limits
 			self.total_size = 0
 			self.max_email_size = cint(webnotes.local.conf.get("max_email_size"))
 			self.max_total_size = 5 * self.max_email_size
-		
+			
 			for i, pop_meta in enumerate(pop_list):
 				# do not pull more than NUM emails
 				if (i+1) > num:
 					break
-			
+				
 				try:
 					self.retrieve_message(pop_meta, i+1)
-				except (TotalSizeExceededError, TotalTimeExceededError):
+				except (TotalSizeExceededError, EmailTimeoutError):
 					break
 		
 			# WARNING: Mark as read - message number 101 onwards from the pop list
@@ -197,8 +193,8 @@ class POP3Mailbox:
 			webnotes.conn.begin()
 			self.process_message(incoming_mail)
 			webnotes.conn.commit()
-		
-		except (TotalSizeExceededError, TotalTimeExceededError):
+			
+		except (TotalSizeExceededError, EmailTimeoutError):
 			# propagate this error to break the loop
 			raise
 		
@@ -213,10 +209,6 @@ class POP3Mailbox:
 			self.pop.dele(msg_num)
 			
 	def validate_pop(self, pop_meta):
-		# throttle based on time restriction
-		if self.max_email_time and (time.time() - self.start_time) > self.max_email_time:
-			raise TotalTimeExceededError
-		
 		# throttle based on email size
 		if not self.max_email_size:
 			return
@@ -246,3 +238,38 @@ class POP3Mailbox:
 		
 		return error_msg
 		
+class Timed_POP3(poplib.POP3):
+	def __init__(self, *args, **kwargs):
+		self.timeout = kwargs.pop('timeout', 0.0)
+		self.elapsed_time = 0.0
+		poplib.POP3.__init__(self, *args, **kwargs)
+	
+	def _getline(self, *args, **kwargs):
+		start_time = time.time()
+		ret = poplib.POP3._getline(self, *args, **kwargs)
+		self.elapsed_time += time.time() - start_time
+		if self.timeout and self.elapsed_time > self.timeout:
+			raise EmailTimeoutError
+		return ret
+		
+	def quit(self, *args, **kwargs):
+		self.elapsed_time = 0.0
+		return poplib.POP3.quit(self, *args, **kwargs)
+		
+class Timed_POP3_SSL(poplib.POP3_SSL):
+	def __init__(self, *args, **kwargs):
+		self.timeout = kwargs.pop('timeout', 0.0)
+		self.elapsed_time = 0
+		poplib.POP3_SSL.__init__(self, *args, **kwargs)
+	
+	def _getline(self, *args, **kwargs):
+		start_time = time.time()
+		ret = poplib.POP3_SSL._getline(self, *args, **kwargs)
+		self.elapsed_time += time.time() - start_time
+		if self.timeout and self.elapsed_time > self.timeout:
+			raise EmailTimeoutError
+		return ret
+	
+	def quit(self, *args, **kwargs):
+		self.elapsed_time = 0.0
+		return poplib.POP3_SSL.quit(self, *args, **kwargs)
