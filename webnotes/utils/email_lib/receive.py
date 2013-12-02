@@ -238,38 +238,28 @@ class POP3Mailbox:
 		
 		return error_msg
 		
-class Timed_POP3(poplib.POP3):
+class TimerMixin(object):
 	def __init__(self, *args, **kwargs):
 		self.timeout = kwargs.pop('timeout', 0.0)
 		self.elapsed_time = 0.0
-		poplib.POP3.__init__(self, *args, **kwargs)
-	
+		self._super.__init__(self, *args, **kwargs)
+		
 	def _getline(self, *args, **kwargs):
 		start_time = time.time()
-		ret = poplib.POP3._getline(self, *args, **kwargs)
+		ret = self._super._getline(self, *args, **kwargs)
+
 		self.elapsed_time += time.time() - start_time
 		if self.timeout and self.elapsed_time > self.timeout:
 			raise EmailTimeoutError
+		
 		return ret
 		
 	def quit(self, *args, **kwargs):
 		self.elapsed_time = 0.0
-		return poplib.POP3.quit(self, *args, **kwargs)
+		return self._super.quit(self, *args, **kwargs)
 		
-class Timed_POP3_SSL(poplib.POP3_SSL):
-	def __init__(self, *args, **kwargs):
-		self.timeout = kwargs.pop('timeout', 0.0)
-		self.elapsed_time = 0
-		poplib.POP3_SSL.__init__(self, *args, **kwargs)
-	
-	def _getline(self, *args, **kwargs):
-		start_time = time.time()
-		ret = poplib.POP3_SSL._getline(self, *args, **kwargs)
-		self.elapsed_time += time.time() - start_time
-		if self.timeout and self.elapsed_time > self.timeout:
-			raise EmailTimeoutError
-		return ret
-	
-	def quit(self, *args, **kwargs):
-		self.elapsed_time = 0.0
-		return poplib.POP3_SSL.quit(self, *args, **kwargs)
+class Timed_POP3(TimerMixin, poplib.POP3):
+	_super = poplib.POP3
+		
+class Timed_POP3_SSL(TimerMixin, poplib.POP3_SSL):
+	_super = poplib.POP3_SSL
