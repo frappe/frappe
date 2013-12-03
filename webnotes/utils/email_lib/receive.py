@@ -243,6 +243,9 @@ class TimerMixin(object):
 		self.timeout = kwargs.pop('timeout', 0.0)
 		self.elapsed_time = 0.0
 		self._super.__init__(self, *args, **kwargs)
+		if self.timeout:
+			# set per operation timeout to one-fifth of total pop timeout
+			self.sock.settimeout(self.timeout / 5.0)
 		
 	def _getline(self, *args, **kwargs):
 		start_time = time.time()
