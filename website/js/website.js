@@ -160,6 +160,7 @@ $.extend(wn, {
 	has_permission: function(doctype, docname, perm_type, callback) {
 		return wn.call({
 			method: "webnotes.client.has_permission",
+			no_spinner: true,
 			args: {doctype: doctype, docname: docname, perm_type: perm_type},
 			callback: function(r) {
 				if(!r.exc && r.message.has_permission) {
