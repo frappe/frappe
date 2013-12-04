@@ -14,12 +14,14 @@ class PageNotFoundError(Exception): pass
 
 def render(page_name):
 	"""render html page"""
+	if not page_name:
+		page_name = "index"
 	try:
-		html = render_page(page_name or "index")
+		html = render_page(page_name)
 	except PageNotFoundError:
 		html = render_page("404")
 	except webnotes.DoesNotExistError:
-		if not page_name or page_name=="index":
+		if page_name in ("index", "index.html"):
 			html = render_page("login")
 		else:
 			html = render_page("404")
