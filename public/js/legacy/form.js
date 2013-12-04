@@ -511,13 +511,13 @@ _f.Frm.prototype.refresh_dependency = function() {
 
 			// show / hide
 			if(f.guardian_has_value) {
-				if(f.df.hidden != 0) {
-					f.df.hidden = 0;
+				if(f.df.hidden_due_to_dependency) {
+					f.df.hidden_due_to_dependency = false;
 					f.refresh();
 				}
 			} else {
-				if(f.df.hidden != 1) {
-					f.df.hidden = 1;
+				if(!f.df.hidden_due_to_dependency) {
+					f.df.hidden_due_to_dependency = true;
 					f.refresh();
 				}
 			}

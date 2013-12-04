@@ -67,6 +67,3 @@ def datetime_in_user_format(date_time):
 		date_time = get_datetime(date_time)
 	from webnotes.utils import formatdate
 	return formatdate(date_time.date()) + " " + date_time.strftime("%H:%M")
-	
-	
-	
