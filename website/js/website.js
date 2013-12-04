@@ -42,7 +42,7 @@ $.extend(wn, {
 				wn.process_response(opts, data);
 			},
 			error: function(response) {
-				NProgress.done();
+				if(!opts.no_spinner) NProgress.done();
 				console.error ? console.error(response) : console.log(response);
 			}
 		});
@@ -75,7 +75,9 @@ $.extend(wn, {
 			}
 		});
 
-		NProgress.start();
+		if(!opts.no_spinner) { 
+			NProgress.start();
+		}
 	},
 	process_response: function(opts, data) {
 		NProgress.done();
