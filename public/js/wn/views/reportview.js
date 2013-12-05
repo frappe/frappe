@@ -126,7 +126,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		if(opts.columns) this.columns = opts.columns;
 		if(opts.filters) $.each(opts.filters, function(i, f) {
 			// fieldname, condition, value
-			if (wn.meta.get_docfield("Item", "show_in_website").fieldtype == "Check")
+			if (wn.meta.get_docfield(f[0], f[1]).fieldtype == "Check")
 				value = f[3] ? "Yes" : "No";
 			else
 				value = f[3];
