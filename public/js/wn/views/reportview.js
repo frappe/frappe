@@ -126,7 +126,11 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		if(opts.columns) this.columns = opts.columns;
 		if(opts.filters) $.each(opts.filters, function(i, f) {
 			// fieldname, condition, value
-			me.filter_list.add_filter(f[0], f[1], f[2], f[3]);
+			if (wn.meta.get_docfield(f[0], f[1]).fieldtype == "Check")
+				value = f[3] ? "Yes" : "No";
+			else
+				value = f[3];
+			me.filter_list.add_filter(f[0], f[1], f[2], value);
 		});
 
 		// first sort

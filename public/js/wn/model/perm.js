@@ -147,6 +147,12 @@ $.extend(wn.perm, {
 
 		if(explain) console.log("By Hidden:" + ret)
 
+		// hidden due to dependency
+		if(ret!=='None' && df.hidden_due_to_dependency) 
+			ret = 'None';
+
+		if(explain) console.log("By Hidden Due To Dependency:" + ret)
+
 		// for submit
 		if(ret=='Write' && cint(doc.docstatus) > 0) {
 			ret = 'Read';
