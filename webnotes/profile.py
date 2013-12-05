@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -28,7 +28,7 @@ class Profile:
 	def get_roles(self):
 		"""get list of roles"""
 		if not self.roles:
-			self.roles = webnotes.get_roles(self.name)
+			self.roles = get_roles(self.name)
 		return self.roles
 	
 	def build_doctype_map(self):
@@ -162,14 +162,16 @@ def get_user_fullname(user):
 
 def get_system_managers():
 	"""returns all system manager's profile details"""
-	system_managers = webnotes.conn.sql("""select distinct name
-		from tabProfile p 
+	import email.utils
+	system_managers = webnotes.conn.sql("""select distinct name,
+		concat_ws(" ", if(first_name="", null, first_name), if(last_name="", null, last_name))
+		as fullname from tabProfile p 
 		where docstatus < 2 and enabled = 1
 		and name not in ("Administrator", "Guest")
 		and exists (select * from tabUserRole ur
-			where ur.parent = p.name and ur.role="System Manager")""")
+			where ur.parent = p.name and ur.role="System Manager")""", as_dict=True)
 	
-	return [p[0] for p in system_managers]
+	return [email.utils.formataddr((p.fullname, p.name)) for p in system_managers]
 	
 def add_role(profile, role):
 	profile_wrapper = webnotes.bean("Profile", profile)
@@ -179,3 +181,37 @@ def add_role(profile, role):
 		"role": role
 	})
 	profile_wrapper.save()
+
+def add_system_manager(email, first_name=None, last_name=None):
+	# add profile
+	profile = webnotes.new_bean("Profile")
+	profile.doc.fields.update({
+		"name": email,
+		"email": email,
+		"enabled": 1,
+		"first_name": first_name or email,
+		"last_name": last_name
+	})
+	profile.insert()
+	
+	# add roles
+	roles = webnotes.conn.sql_list("""select name from `tabRole`
+		where name not in ("Administrator", "Guest", "All")""")
+	profile.make_controller().add_roles(*roles)
+	
+def get_roles(username=None, with_standard=True):
+	"""get roles of current user"""
+	if not username:
+		username = webnotes.session.user
+
+	if username=='Guest':
+		return ['Guest']
+	
+	roles = [r[0] for r in webnotes.conn.sql("""select role from tabUserRole 
+		where parent=%s and role!='All'""", username)] + ['All']
+		
+	# filter standard if required
+	if not with_standard:
+		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
+		
+	return roles

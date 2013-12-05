@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.provide('wn.core.pages.messages');
@@ -17,7 +17,7 @@ wn.pages.messages.onload = function(wrapper) {
 	<textarea class="form-control" rows=3 style="margin-bottom: 15px;"></textarea>\
 	<div><button class="btn btn-default">Post</button></div><hr>\
 	</div>\
-	<div class="all-messages"></div>').appendTo($(wrapper).find('.layout-main-section'));
+	<div class="all-messages"></div><br>').appendTo($(wrapper).find('.layout-main-section'));
 
 	wrapper.appframe.add_module_icon("Messages");
 	
@@ -183,8 +183,7 @@ wn.core.pages.messages = Class.extend({
 						p.status = p.has_session ? "Online" : "Offline";
 						$(repl('<p>\
 							<span class="avatar avatar-small" \
-								title="%(status)s"><img src="%(image)s"\
-									style="border: 3px solid %(status_color)s"></span>\
+								title="%(status)s"><img src="%(image)s" /></span>\
 							<a href="#!messages/%(name)s">%(fullname)s</a>\
 							</p>', p))
 							.appendTo($body);						

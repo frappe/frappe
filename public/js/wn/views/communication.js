@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // opts - parent, list, doc, email
@@ -11,7 +11,10 @@ wn.views.CommunicationList = Class.extend({
 			$(this.parent).empty();
 			return;
 		}
-		
+				
+		if(!this.list)
+			this.list = wn.model.get("Communication", {"parenttype": this.doc.doctype, "parent": this.doc.name});
+				
 		var sortfn = function (a, b) { return (b.creation > a.creation) ? 1 : -1; }
 		this.list = this.list.sort(sortfn);
 
@@ -34,13 +37,12 @@ wn.views.CommunicationList = Class.extend({
 	},
 	clear_list: function() {
 		this.body.remove();
-		$("<div class='alert alert-info'>" + wn._("No Communication tagged with this ") 
-			+ this.doc.doctype +" yet.</div>").appendTo(this.wrapper);	
+		$("<p class='text-muted'>" + wn._("No Communication tagged with this ") 
+			+ this.doc.doctype +" yet.</p>").appendTo(this.wrapper);	
 	},
 	make_body: function() {
 		$(this.parent)
 			.empty()
-			.css({"margin":"10px 0px"});
 			
 		this.wrapper = $("<div>\
 			<div style='margin-bottom: 8px;'>\
@@ -50,7 +52,8 @@ wn.views.CommunicationList = Class.extend({
 			</div>")
 			.appendTo(this.parent);
 			
-		this.body = $("<table class='table table-bordered table-hover table-striped'>")
+		this.body = $('<div class="list-group">')
+		.css({"border":"1px solid #dddddd", "border-radius":"4px"})
 			.appendTo(this.wrapper);
 	},
 	
@@ -87,13 +90,25 @@ wn.views.CommunicationList = Class.extend({
 	
 	make_line: function(doc) {
 		var me = this;
-		var comm = $(repl('<tr><td>\
-				<a href="#Form/Communication/%(name)s" class="show-details" style="font-size: 90%; float: right;">'
-					+wn._('Show Details')+'</a>\
-				<p class="comm-header" title="'+wn._('Click to Expand / Collapse')+'">\
-					<b>%(_sender)s on %(when)s</b></p>\
-				<div class="comm-content" style="border-top: 1px solid #ddd; \
-					padding: 10px; overflow-x: auto; display: none;"></div>\
+		doc.icon = {
+			"Email": "icon-envelope",
+			"Chat": "icon-comments",
+			"Phone": "icon-phone",
+			"SMS": "icon-mobile-phone",
+		}[doc.communication_medium] || "icon-envelope";
+		var comm = $(repl('<div class="list-group-item">\
+				<div class="comm-header row" title="'+wn._('Click to Expand / Collapse')+'">\
+					<div class="col-sm-3"><i class="%(icon)s"></i> %(_sender)s</div>\
+					<div class="col-sm-6">%(subject)s</div>\
+					<div class="col-sm-3 text-right">%(when)s</div>\
+				</div>\
+				<div class="comm-content" style="overflow-x: auto; display: none;">\
+					<div class="inner" style="border-top: 1px solid #f3f3f3; margin-top: 10px; padding-top: 10px;">\
+					</div>\
+					<div class="show-details pull-right" style="margin-right: 10px;">\
+						<a href="#Form/Communication/%(name)s">'+wn._('Show Details')+'</a>\
+					</div>\
+				</div>\
 			</td></tr>', doc))
 			.appendTo(this.body);
 		
@@ -108,7 +123,7 @@ wn.views.CommunicationList = Class.extend({
 			});
 		
 		this.comm_list.push(comm);
-		comm.find(".comm-content").html(doc.content);
+		comm.find(".comm-content .inner").html(doc.content);
 	}
 });
 
@@ -121,7 +136,6 @@ wn.views.CommunicationComposer = Class.extend({
 	make: function() {
 		var me = this;
 		this.dialog = new wn.ui.Dialog({
-			width: 640,
 			title: wn._("Add Reply") + ": " + (this.subject || ""),
 			no_submit_on_enter: true,
 			fields: [
@@ -129,12 +143,18 @@ wn.views.CommunicationComposer = Class.extend({
 					description:wn._("Email addresses, separted by commas")},
 				{label:wn._("Subject"), fieldtype:"Data", reqd: 1, 
 					fieldname:"subject"},
-				{label:wn._("Send"), fieldtype:"Button", 
-					fieldname:"send"},
 				{label:wn._("Message"), fieldtype:"Text Editor", reqd: 1, 
 					fieldname:"content"},
-				{label:wn._("Send Email"), fieldtype:"Check",
+				{label:wn._("Send As Email"), fieldtype:"Check",
 					fieldname:"send_email"},
+				{label:wn._("Communication Medium"), fieldtype:"Select", 
+					options: ["Phone", "Chat", "Email", "SMS", "Other"],
+					fieldname:"communication_medium"},
+				{label:wn._("Sent or Received"), fieldtype:"Select", 
+					options: ["Received", "Sent"],
+					fieldname:"sent_or_received"},
+				{label:wn._("Send"), fieldtype:"Button", 
+					fieldname:"send"},
 				{label:wn._("Send Me A Copy"), fieldtype:"Check",
 					fieldname:"send_me_a_copy"},
 				{label:wn._("Attach Document Print"), fieldtype:"Check",
@@ -145,6 +165,10 @@ wn.views.CommunicationComposer = Class.extend({
 					fieldname:"select_attachments"}
 			]
 		});
+
+		this.dialog.$wrapper.find("[data-edit='outdent']").remove();
+		this.dialog.get_input("send").addClass("btn-primary");
+		
 		$(document).on("upload_complete", function(event, filename, fileurl) {
 			if(me.dialog.display) {
 				var wrapper = $(me.dialog.fields_dict.select_attachments.wrapper);
@@ -218,6 +242,18 @@ wn.views.CommunicationComposer = Class.extend({
 		}
 		
 		$(fields.send_email.input).prop("checked", true)
+
+		// toggle print format
+		$(fields.send_email.input).click(function() {
+			$(fields.communication_medium.wrapper).toggle(!!!$(this).prop("checked"));
+			$(fields.sent_or_received.wrapper).toggle(!!!$(this).prop("checked"));
+			$(fields.send.input).html($(this).prop("checked") ? "Send" : "Add Communication");
+		});
+
+		// select print format
+		$(fields.communication_medium.wrapper).toggle(false);
+		$(fields.sent_or_received.wrapper).toggle(false);
+
 		$(fields.send.input).click(function() {
 			var btn = this;
 			var form_values = me.dialog.get_values();
@@ -254,6 +290,11 @@ wn.views.CommunicationComposer = Class.extend({
 			var print_html = "";
 		}
 		
+		if(form_values.send_email) {
+			form_values.communication_medium = "Email";
+			form_values.sent_or_received = "Sent";
+		};
+		
 		return wn.call({
 			method:"core.doctype.communication.communication.make",
 			args: {
@@ -266,6 +307,8 @@ wn.views.CommunicationComposer = Class.extend({
 				send_me_a_copy: form_values.send_me_a_copy,
 				send_email: form_values.send_email,
 				print_html: print_html,
+				communication_medium: form_values.communication_medium,
+				sent_or_received: form_values.sent_or_received,
 				attachments: selected_attachments
 			},
 			btn: btn,

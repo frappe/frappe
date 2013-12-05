@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -8,10 +8,10 @@ import webnotes.defaults
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def get_roles_and_doctypes():
 	return {
-		"doctypes": [d[0] for d in webnotes.conn.sql("""select name from tabDocType where
+		"doctypes": [d[0] for d in webnotes.conn.sql("""select name from `tabDocType` dt where
 			ifnull(istable,0)=0 and
-			ifnull(issingle,0)=0 and
-			name not in ('DocType')""")],
+			name not in ('DocType', 'Control Panel') and
+			exists(select * from `tabDocField` where parent=dt.name)""")],
 		"roles": [d[0] for d in webnotes.conn.sql("""select name from tabRole where name not in
 			('Guest', 'Administrator')""")]
 	}
@@ -68,13 +68,20 @@ def update_match(name, doctype, match=""):
 def validate_and_reset(doctype, for_remove=False):
 	from core.doctype.doctype.doctype import validate_permissions_for_doctype
 	validate_permissions_for_doctype(doctype, for_remove)
-	webnotes.clear_cache(doctype=doctype)
+	clear_doctype_cache(doctype)
 	
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def reset(doctype):
 	webnotes.reset_perms(doctype)
-	webnotes.clear_cache(doctype=doctype)
+	clear_doctype_cache(doctype)
 	webnotes.defaults.clear_cache()
+
+def clear_doctype_cache(doctype):
+	webnotes.clear_cache(doctype=doctype)
+	for user in webnotes.conn.sql_list("""select distinct tabUserRole.parent from tabUserRole, tabDocPerm 
+		where tabDocPerm.parent = %s
+		and tabDocPerm.role = tabUserRole.role""", doctype):
+		webnotes.clear_cache(user=user)
 
 @webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
 def get_users_with_role(role):

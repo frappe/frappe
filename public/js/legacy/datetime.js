@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 // Date
@@ -101,7 +101,7 @@ wn.datetime = {
 	
 	get_user_fmt: function() {
 		var t = sys_defaults.date_format;
-		if(!t) t = 'dd-mm-yyyy';
+		if(!t) t = 'yyyy-mm-dd';
 		return t;
 	},
 	

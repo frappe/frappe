@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide("wn.print");
@@ -118,7 +118,7 @@ wn.print.Table = Class.extend({
 				var tr = $("<tr>").appendTo(table);
 				
 				$.each(me.columns, function(ci, fieldname) {
-					if(ci==0) 
+					if(fieldname==="Sr") 
 						var value = row.idx;
 					else
 						var value = row[fieldname];

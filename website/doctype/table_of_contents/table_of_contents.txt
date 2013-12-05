@@ -1,0 +1,38 @@
+[
+ {
+  "creation": "2013-11-11 15:19:27", 
+  "docstatus": 0, 
+  "modified": "2013-11-11 17:50:45", 
+  "modified_by": "Administrator", 
+  "owner": "Administrator"
+ }, 
+ {
+  "autoname": "TOC-.#####", 
+  "doctype": "DocType", 
+  "document_type": "Other", 
+  "istable": 1, 
+  "module": "Website", 
+  "name": "__common__"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "web_page", 
+  "fieldtype": "Link", 
+  "in_list_view": 1, 
+  "label": "Web Page", 
+  "name": "__common__", 
+  "options": "Web Page", 
+  "parent": "Table of Contents", 
+  "parentfield": "fields", 
+  "parenttype": "DocType", 
+  "permlevel": 0, 
+  "reqd": 1
+ }, 
+ {
+  "doctype": "DocType", 
+  "name": "Table of Contents"
+ }, 
+ {
+  "doctype": "DocField"
+ }
+]

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.FilterList = Class.extend({
@@ -85,8 +85,7 @@ wn.ui.Filter = Class.extend({
 		this.set_events();
 	},
 	make: function() {
-		this.flist.$w.find('.filter_area').append('<div class="list_filter row"\
-			style="margin-bottom: 10px;">\
+		this.flist.$w.find('.filter_area').append('<div class="list_filter row">\
 		<div class="fieldname_select_area col-sm-4 form-group"></div>\
 		<div class="col-sm-3 form-group">\
 			<select class="condition form-control">\
@@ -241,7 +240,7 @@ wn.ui.Filter = Class.extend({
 		if(df.fieldtype=='Check') {
 			df.fieldtype='Select';
 			df.options='No\nYes';
-		} else if(['Text','Small Text','Text Editor','Code','Tags'].indexOf(df.fieldtype)!=-1) {
+		} else if(['Text','Small Text','Text Editor','Code','Tags','Comments'].indexOf(df.fieldtype)!=-1) {
 			df.fieldtype = 'Data';				
 		} else if(df.fieldtype=='Link' && this.$w.find('.condition').val()!="=") {
 			df.fieldtype = 'Data';

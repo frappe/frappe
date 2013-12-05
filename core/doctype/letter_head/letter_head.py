@@ -1,10 +1,9 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
 import webnotes
 
-sql = webnotes.conn.sql
 
 class DocType:
 	def __init__(self, doc, doclist=[]):
@@ -20,10 +19,10 @@ class DocType:
 	def set_as_default(self):
 		from webnotes.utils import set_default
 		if not self.doc.is_default:
-			if not sql("""select count(*) from `tabLetter Head` where ifnull(is_default,0)=1"""):
+			if not webnotes.conn.sql("""select count(*) from `tabLetter Head` where ifnull(is_default,0)=1"""):
 				self.doc.is_default = 1
 		if self.doc.is_default:
-			sql("update `tabLetter Head` set is_default=0 where name != %s",
+			webnotes.conn.sql("update `tabLetter Head` set is_default=0 where name != %s",
 				self.doc.name)
 			set_default('letter_head', self.doc.name)
 

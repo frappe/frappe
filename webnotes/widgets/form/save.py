@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -14,7 +14,11 @@ def savedocs():
 		# action
 		action = webnotes.form_dict.action
 		if action=='Update': action='update_after_submit'
-		getattr(wrapper, action.lower())()
+		try:
+			getattr(wrapper, action.lower())()
+		except NameError, e:
+			webnotes.msgprint(webnotes._("Name Exists"))
+			raise
 
 		# update recent documents
 		webnotes.user.update_recent(wrapper.doc.doctype, wrapper.doc.name)
@@ -23,7 +27,7 @@ def savedocs():
 	except Exception, e:
 		webnotes.msgprint(webnotes._('Did not save'))
 		webnotes.errprint(webnotes.utils.getTraceback())
-		raise e
+		raise
 
 @webnotes.whitelist()
 def cancel(doctype=None, name=None):
@@ -36,7 +40,7 @@ def cancel(doctype=None, name=None):
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		webnotes.msgprint(webnotes._("Did not cancel"))
-		raise e
+		raise
 		
 def send_updated_docs(wrapper):
 	from load import set_docinfo

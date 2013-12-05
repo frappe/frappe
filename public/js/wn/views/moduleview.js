@@ -1,9 +1,8 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide("wn.views.moduleview");
 wn.provide("wn.module_page");
-wn.home_page = "desktop";
 
 wn.views.moduleview.make = function(wrapper, module) {
 	wrapper.module_view = new wn.views.moduleview.ModuleView(wrapper, module);
@@ -42,6 +41,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 			title: wn._(wn.modules[module] && wn.modules[module].label || module)
 		});
 		wrapper.appframe.add_module_icon(module);
+		wrapper.appframe.set_title_left('<i class="icon-angle-left"></i> Home', function() { wn.set_route(""); });
 		this.wrapper = wrapper;
 		this.module = module;
 		this.make_body();
@@ -57,7 +57,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 	make_body: function() {
 		var wrapper = this.wrapper;
 		// make columns
-		$(wrapper).find(".layout-main").html("<div class='row module-top'></div>\
+		$(wrapper).find(".layout-main").html("<div class='module-top'></div>\
 		<div class='row'>\
 			<div class='col-md-6 main-section'></div>\
 			<div class='col-md-6 side-section'></div>\
@@ -76,13 +76,13 @@ wn.views.moduleview.ModuleView = Class.extend({
 		section._title = wn._(section.title);
 		if(section.top) {
 			var module_top = $(this.wrapper).find(".module-top");
-			var list_group = $('<div>')
+			var list_group = $('<div class="row">')
 				.appendTo(module_top);
-			$('<hr>').css({"margin-top": "0px"})
+			$('<hr class="row">')
 				.insertAfter(module_top);
 		} else {
 			var list_group = $('<ul class="list-group">\
-				<li class="list-group-item" style="background-color: #eee">\
+				<li class="list-group-item">\
 					<h4 class="list-group-item-heading" style="margin-bottom: 0px;">\
 						<i class="text-muted '+ section.icon+'"></i> '
 						+ wn._(section.title) +'</h4>\
@@ -98,10 +98,10 @@ wn.views.moduleview.ModuleView = Class.extend({
 		if(item.count==null) item.count = "";
 		if(!item.icon) item.icon = "";
 		if(section.top) {
-			var $parent = $(repl('<div class="col-md-4">\
-				<div class="alert alert-warning alert-badge"></div></div>'))
+			var $parent = $(repl('<div class="col-sm-4">\
+				<div class="alert alert-info alert-badge"></div></div>'))
 				.appendTo(section.list_group)
-				.find(".alert");
+				.find(".alert-badge");
 			this.top_item_total[item.doctype] = 0;
 		} else {
 			var $parent = $('<li class="list-group-item">').appendTo(section.list_group);
@@ -248,7 +248,7 @@ wn.views.moduleview.ModuleView = Class.extend({
 		$(me.wrapper).find(".badge-important").remove();
 		if(wn.boot.notification_info.open_count_doctype) {
 			$.each(wn.boot.notification_info.open_count_doctype, function(doctype, count) {
-				if(in_list(me.doctypes, doctype)) {
+				if(count && in_list(me.doctypes, doctype)) {
 					me.set_top_item_count(doctype, null, count);
 					$('<span>')
 						.css({

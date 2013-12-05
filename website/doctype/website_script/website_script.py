@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 # For license information, please see license.txt
@@ -11,6 +11,9 @@ class DocType:
 		self.doc, self.doclist = d, dl
 		
 	def on_update(self):
-		# make js and css
-		from website.doctype.website_settings.make_web_include_files import make
-		make()
+		"""clear cache"""
+		from webnotes.sessions import clear_cache
+		clear_cache('Guest')
+
+		from webnotes.webutils import clear_cache
+		clear_cache()

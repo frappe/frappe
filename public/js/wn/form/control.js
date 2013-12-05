@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.make_control = function(opts) {
@@ -33,8 +33,13 @@ wn.ui.form.Control = Class.extend({
 		}
 	},
 	make: function() {
-		this.$wrapper = $("<div>").appendTo(this.parent);
+		this.make_wrapper();
 		this.wrapper = this.$wrapper.get(0);
+		this.wrapper.fieldobj = this; // reference for event handlers
+	},
+	
+	make_wrapper: function() {
+		this.$wrapper = $("<div>").appendTo(this.parent);
 	},
 	
 	// returns "Read", "Write" or "None" 
@@ -69,6 +74,7 @@ wn.ui.form.Control = Class.extend({
 		this.validate ? this.validate(value, set) : set(value);
 	},
 	get_parsed_value: function() {
+		var me = this;
 		return this.get_value ? 
 			(this.parse ? this.parse(this.get_value()) : this.get_value()) : 
 			undefined;
@@ -97,7 +103,9 @@ wn.ui.form.ControlImage = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		var me = this;
-		this.$wrapper.on("refresh", function() {
+		this.$wrapper
+		.css({"margin-bottom": "10px", "margin-right": "15px", "float": "right", "text-align": "right"})
+		.on("refresh", function() {
 			me.$wrapper.empty();
 			if(me.df.options && me.frm.doc[me.df.options]) {
 				$("<img src='"+me.frm.doc[me.df.options]+"' style='max-width: 70%;'>")
@@ -123,12 +131,10 @@ wn.ui.form.ControlReadOnly = wn.ui.form.Control.extend({
 });
 
 wn.ui.form.ControlInput = wn.ui.form.Control.extend({
+	horizontal: true,
 	make: function() {
 		// parent element
-		this.make_wrapper();
-		this.wrapper = this.$wrapper.get(0);
-		if(!this.wrapper) console.log(this.parent);
-		this.wrapper.fieldobj = this; // reference for event handlers
+		this._super();
 		this.set_input_areas();
 		
 		// set description
@@ -139,12 +145,20 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input) {
 			this.$wrapper = $('<div class="form-group">').appendTo(this.parent);
 		} else {
-			this.$wrapper = $('<div class="form-group">\
-				<label class="control-label"></label>\
-				<div class="control-input"></div>\
-				<div class="control-value like-disabled-input" style="display: none;"></div>\
-				<p class="help-box small text-muted">&nbsp;</p>\
+			this.$wrapper = $('<div class="form-horizontal">\
+				<div class="form-group row" style="margin: 0px">\
+					<label class="control-label small col-xs-'+(this.horizontal?"4":"12")
+						+'" style="padding-right: 0px; color: #777;"></label>\
+					<div class="col-xs-'+(this.horizontal?"8":"12")+'">\
+						<div class="control-input"></div>\
+						<div class="control-value like-disabled-input" style="display: none;"></div>\
+						<p class="help-box small text-muted"></p>\
+					</div>\
+				</div>\
 			</div>').appendTo(this.parent);
+			if(!this.horizontal) {
+				this.$wrapper.removeClass("form-horizontal");
+			}
 		}
 	},
 	set_input_areas: function() {
@@ -157,8 +171,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		}
 	},
 	set_max_width: function() {
-		if(['Code', 'Text Editor', 'Text', 'Small Text', 'Table', 'HTML']
-			.indexOf(this.df.fieldtype)==-1) {
+		if(this.horizontal) {
 			this.$wrapper.css({"max-width": "600px"});
 		}
 	},
@@ -209,15 +222,15 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		if(this.only_input || this.df.label==this._label) 
 			return;
 		
-		var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
-		if(this.df.fieldtype==="Link") {
-			icon = wn.boot.doctype_icons[this.df.options];
-		} else if(this.df.link_doctype) {
-			icon = wn.boot.doctype_icons[this.df.link_doctype];
-		}
-					
+		// var icon = wn.ui.form.fieldtype_icons[this.df.fieldtype];
+		// if(this.df.fieldtype==="Link") {
+		// 	icon = wn.boot.doctype_icons[this.df.options];
+		// } else if(this.df.link_doctype) {
+		// 	icon = wn.boot.doctype_icons[this.df.link_doctype];
+		// }
+		var icon = "";
 		this.label_span.innerHTML = (icon ? '<i class="'+icon+'"></i> ' : "") + 
-			wn._(this.df.label);
+			wn._(this.df.label)  || "&nbsp;";
 		this._label = this.df.label;
 	},
 	set_description: function() {
@@ -231,7 +244,7 @@ wn.ui.form.ControlInput = wn.ui.form.Control.extend({
 		this._description = this.df.description;
 	},
 	set_empty_description: function() {
-		this.$wrapper.find(".help-box").html("&nbsp;");		
+		this.$wrapper.find(".help-box").html("");		
 	},
 	set_mandatory: function(value) {
 		this.$wrapper.toggleClass("has-error", (this.df.reqd 
@@ -368,10 +381,7 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 	},
 	set_datepicker: function() {
 		this.datepicker_options.dateFormat = 
-			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
-		if(this.not_in_form && this.dialog_wrapper) {
-			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
-		}
+			(wn.boot.sysdefaults.date_format || 'yyyy-mm-dd').replace("yyyy", "yy")
 		this.$input.datepicker(this.datepicker_options);
 	},
 	parse: function(value) {
@@ -409,14 +419,10 @@ wn.ui.form.ControlTime = wn.ui.form.ControlData.extend({
 
 wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 	set_datepicker: function() {
+		this.datepicker_options.timeFormat = "hh:mm:ss";
 		this.datepicker_options.dateFormat = 
 			(wn.boot.sysdefaults.date_format || 'yy-mm-dd').replace('yyyy','yy');
-		this.datepicker_options.timeFormat = "hh:mm:ss";
 		
-		if(this.not_in_form && this.dialog_wrapper) {
-			this.$input.css("z-index", cint($(this.dialog_wrapper).zIndex()));
-		}
-
 		this.$input.datetimepicker(this.datepicker_options);
 	},
 	make_input: function() {
@@ -427,7 +433,8 @@ wn.ui.form.ControlDatetime = wn.ui.form.ControlDate.extend({
 });
 
 wn.ui.form.ControlText = wn.ui.form.ControlData.extend({
-	html_element: "textarea"
+	html_element: "textarea",
+	horizontal: false
 });
 
 wn.ui.form.ControlLongText = wn.ui.form.ControlText;
@@ -436,12 +443,16 @@ wn.ui.form.ControlSmallText = wn.ui.form.ControlText;
 wn.ui.form.ControlCheck = wn.ui.form.ControlData.extend({
 	input_type: "checkbox",
 	make_wrapper: function() {
-		this.$wrapper = $('<div class="checkbox">\
-			<label class="input-area">\
-				<span class="disp-area" style="display:none;"></span>\
-				<span class="label-area"></span>\
-			</label>\
-			<p class="help-box small text-muted">&nbsp;</p>\
+		this.$wrapper = $('<div class="form-group row" style="margin: 0px;">\
+		<div class="col-md-offset-4 col-md-8">\
+			<div class="checkbox" style="margin: 5px 0px">\
+				<label class="input-area">\
+					<span class="disp-area" style="display:none;"></span>\
+					<span class="label-area small text-muted"></span>\
+				</label>\
+				<p class="help-box small text-muted"></p>\
+			</div>\
+		</div>\
 		</div>').appendTo(this.parent)
 	},
 	set_input_areas: function() {
@@ -470,21 +481,24 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		var me = this;
 		this.$input = $('<button class="btn btn-default">')
 			.prependTo(me.input_area)
-			.css({"margin-bottom": "7px"})
 			.on("click", function() {
-				if(me.frm && me.frm.doc && me.frm.cscript) {
-					if(me.frm.cscript[me.df.fieldname]) {
-						me.frm.script_manager.trigger(me.df.fieldname, me.doctype, me.docname);
-					} else {
-						me.frm.runscript(me.df.options, me);
-					}
-				}
-				else if(me.df.click) {
-					me.df.click();
-				}
+				me.onclick();
 			});
 		this.input = this.$input.get(0);
+		this.set_input_attributes();
 		this.has_input = true;
+	},
+	onclick: function() {
+		if(this.frm && this.frm.doc && this.frm.cscript) {
+			if(this.frm.cscript[this.df.fieldname]) {
+				this.frm.script_manager.trigger(this.df.fieldname, this.doctype, this.docname);
+			} else {
+				this.frm.runscript(this.df.options, this);
+			}
+		}
+		else if(this.df.click) {
+			this.df.click();
+		}
 	},
 	set_input_areas: function() {
 		this._super();
@@ -494,9 +508,92 @@ wn.ui.form.ControlButton = wn.ui.form.ControlData.extend({
 		this.$wrapper.find(".help-box").empty().toggle(false);
 	},
 	set_label: function() {
+		$(this.label_span).html("&nbsp;");
 		this.$input && this.$input.html(this.df.label);
 	}
 });
+
+wn.ui.form.ControlAttach = wn.ui.form.ControlButton.extend({
+	onclick: function() {
+		if(!this.dialog) {
+			this.dialog = new wn.ui.Dialog({
+				title: wn._(this.df.label || "Upload Attachment"),
+			});
+		}
+
+		$(this.dialog.body).empty();
+		
+		this.set_upload_options();		
+		wn.upload.make(this.upload_options);
+		this.dialog.show();
+	},
+	
+	set_upload_options: function() {
+		var me = this;
+		this.upload_options = {
+			parent: this.dialog.body,
+			args: {},
+			max_width: this.df.max_width,
+			max_height: this.df.max_height,
+			callback: function() { 
+				me.dialog.hide();
+				me.on_upload_complete(fileid, filename, r);
+				me.show_ok_on_button();
+			},
+			onerror: function() {
+				me.dialog.hide();
+			},
+		}
+		
+		if(this.frm) {
+			this.upload_options.args = {
+				from_form: 1,
+				doctype: this.frm.doctype,
+				docname: this.frm.docname,
+			} 
+		} else {
+			this.upload_options.on_attach = function(fileobj, dataurl) {
+				me.dialog.hide();
+				me.fileobj = fileobj;
+				me.dataurl = dataurl;
+				if(me.on_attach) {
+					me.on_attach()
+				}
+				if(me.df.on_attach) {
+					me.df.on_attach(fileobj, dataurl);
+				}
+				me.show_ok_on_button();
+			}
+		}
+	},
+	
+	get_value: function() {
+		return this.fileobj ? (this.fileobj.filename + "," + this.dataurl) : null;
+	},
+	
+	on_upload_complete: function(fileid, filename, r) {
+		this.frm && this.frm.attachments.update_attachment(fileid, filename, this.df.fieldname, r);
+	},
+	
+	show_ok_on_button: function() {
+		if(!$(this.input).find(".icon-ok").length) {
+			$(this.input).html('<i class="icon-ok"></i> ' + this.df.label);
+		}
+	}
+});
+
+wn.ui.form.ControlAttachImage = wn.ui.form.ControlAttach.extend({
+	make_input: function() {
+		this._super();
+		this.img = $("<img class='img-responsive'>").appendTo($('<div style="margin: 7px 0px;">\
+			<div class="missing-image"><i class="icon-camera"></i></div></div>').prependTo(this.input_area)).toggle(false);
+	},
+	on_attach: function() {
+		$(this.input_area).find(".missing-image").toggle(false);
+		this.img.attr("src", this.dataurl).toggle(true);
+	}
+});
+
 
 wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 	html_element: "select",
@@ -531,12 +628,12 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 		var me = this;
 		$(this.input).css({"width": "85%", "display": "inline-block"});
 		this.$attach = $("<button class='btn btn-default' title='"+ wn._("Add attachment") + "'\
-			style='padding-left: 6px; padding-right: 6px; margin-left: 6px;'>\
+			style='padding-left: 6px; padding-right: 6px; margin-right: 6px;'>\
 			<i class='icon-plus'></i></button>")
 			.click(function() {
 				me.frm.attachments.new_attachment(me.df.fieldname);
 			})
-			.appendTo(this.input_area);
+			.prependTo(this.input_area);
 			
 		$(document).on("upload_complete", function(event, filename, file_url) {
 			if(cur_frm === me.frm) {
@@ -594,38 +691,36 @@ wn.ui.form.ControlSelect = wn.ui.form.ControlData.extend({
 // add_fetches
 wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	make_input: function() {
-		$('<div class="input-group link-field">\
-			<input type="text" class="input-with-feedback form-control">\
-			<span class="input-group-btn">\
-				<button class="btn btn-default btn-search" title="Search Link">\
+		var me = this;
+		$('<div class="link-field" style="display: table; width: 100%;">\
+			<input type="text" class="input-with-feedback form-control" \
+				style="display: table-cell">\
+			<span class="link-field-btn" style="display: table-cell">\
+				<a class="btn-search" title="Search Link">\
 					<i class="icon-search"></i>\
-				</button>\
-				<button class="btn btn-default btn-open" title="Open Link">\
+				</a><a class="btn-open" title="Open Link">\
 					<i class="icon-play"></i>\
-				</button><button class="btn btn-default btn-new" title="Make New">\
+				</a><a class="btn-new" title="Make New">\
 					<i class="icon-plus"></i>\
-				</button>\
+				</a>\
 			</span>\
-		</div>').appendTo(this.input_area);
+		</div>').prependTo(this.input_area);
 		this.$input_area = $(this.input_area);
 		this.$input = this.$input_area.find('input');
 		this.set_input_attributes();
+		this.$input.on("focus", function() {
+			setTimeout(function() {
+				if(!me.$input.val()) {
+					me.$input.val("%").trigger("keydown");
+				}
+			}, 1000)
+		})
 		this.input = this.$input.get(0);
 		this.has_input = true;
 		//this.bind_change_event();
 		var me = this;
-		this.$input.on("blur", function() { 
-			if(me.selected) {
-				me.selected = false;
-				return;
-			}
-			if(me.doctype && me.docname) {
-				var value = me.get_value();
-				if(value!==me.last_value) {
-					me.parse_validate_and_set_in_model(value);
-				}
-			}});
 		this.setup_buttons();
+		//this.setup_typeahead();
 		this.setup_autocomplete();
 	},
 	setup_buttons: function() {
@@ -636,7 +731,7 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 			new wn.ui.form.LinkSelector({
 				doctype: me.df.options,
 				target: me,
-				txt: me.$input.val()
+				txt: me.get_value()
 			});
 		});
 
@@ -653,26 +748,42 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 		// new
 		if(wn.model.can_create(me.df.options)) {
 			this.$input_area.find(".btn-new").on("click", function() {
-				new_doc(me.df.options)
+				wn._from_link = me; wn._from_link_scrollY = scrollY;
+				new_doc(me.df.options);
 			});
 		} else {
 			this.$input_area.find(".btn-new").remove();
 		}
+		
+		if(this.only_input) this.$input_area.find(".btn-open, .btn-new").remove();
 	},
 	setup_autocomplete: function() {
 		var me = this;
+		this.$input.on("blur", function() { 
+			if(me.selected) {
+				me.selected = false;
+				return;
+			}
+			if(me.doctype && me.docname) {
+				var value = me.get_value();
+				if(value!==me.last_value) {
+					me.parse_validate_and_set_in_model(value);
+				}
+			}});
+
 		this.$input.autocomplete({
 			source: function(request, response) {
 				var args = {
 					'txt': request.term, 
 					'doctype': me.df.options,
 				};
-
+		
 				me.set_custom_query(args);
-
+		
 				return wn.call({
 					type: "GET",
 					method:'webnotes.widgets.search.search_link',
+					no_spinner: true,
 					args: args,
 					callback: function(r) {
 						response(r.results);
@@ -695,12 +806,18 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 					me.$input.trigger("change");
 				}
 			}
-		}).data('uiAutocomplete')._renderItem = function(ul, item) {
+		}).data('uiAutocomplete')._renderItem = function(ul, d) {
+			var html = "";
+			if(keys(d).length > 1) {
+				d.info = $.map(d, function(val, key) { return ["value", "label"].indexOf(key)!==-1 ? null : val }).join(", ") || "";
+				html = repl("<a>%(value)s<br><span class='text-muted'>%(info)s</span></a>", d);
+			} else {
+				html = "<a>" + d.value + "</a>";
+			}
+
 			return $('<li></li>')
-				.data('item.autocomplete', item)
-				.append(repl('<a><span style="font-weight: bold;">%(label)s</span><br>\
-					<span style="font-size:10px;">%(info)s</span></a>',
-					item))
+				.data('item.autocomplete', d)
+				.append(html)
 				.appendTo(ul);
 		};
 		// remove accessibility span (for now)
@@ -748,12 +865,21 @@ wn.ui.form.ControlLink = wn.ui.form.ControlData.extend({
 	},
 });
 
-wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
-	editor_name: "ACE",
+
+wn.ui.form.ControlCode = wn.ui.form.ControlText.extend({
+	make_input: function() {
+		this._super();
+		$(this.input_area).find("textarea").css({"height":"400px", "font-family": "Monaco, \"Courier New\", monospace"});
+	}
+});
+
+wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
+	editor_name: "bsEditor",
+	horizontal: false,
 	make_input: function() {
 		$(this.input_area).css({"min-height":"360px"});
 		var me = this;
-		this.editor = new wn.editors[this.editor_name]({
+		this.editor = new (wn.provide(this.editor_name))({
 			parent: this.input_area,
 			change: function(value) {
 				me.parse_validate_and_set_in_model(value);
@@ -761,12 +887,9 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 			field: this
 		});
 		this.has_input = true;
-		
-		if(this.editor.$editor) {
-			this.editor.$editor.keypress("ctrl+s meta+s", function() {
-				me.frm.save_or_update();
-			});
-		}
+		this.editor.editor.keypress("ctrl+s meta+s", function() {
+			me.frm.save_or_update();
+		});
 	},
 	get_value: function() {
 		return this.editor.get_value();
@@ -777,18 +900,16 @@ wn.ui.form.ControlCode = wn.ui.form.ControlInput.extend({
 	}
 });
 
-wn.ui.form.ControlTextEditor = wn.ui.form.ControlCode.extend({
-	editor_name: "BootstrapWYSIWYG"
-});
-
 wn.ui.form.ControlTable = wn.ui.form.Control.extend({
 	make: function() {
 		this._super();
 		
 		// add title if prev field is not column / section heading or html
-		if(["Column Break", "Section Break", "HTML"].indexOf(
-				wn.model.get("DocField", {parent: this.frm.doctype, idx: this.df.idx-1}).fieldtype)===-1) {
-			$("<label>" + wn._(this.df.label) + "<label>").appendTo(this.wrapper);	
+		var prev_fieldtype = wn.model.get("DocField", 
+			{parent: this.frm.doctype, idx: this.df.idx-1})[0].fieldtype;
+					
+		if(["Column Break", "Section Break", "HTML"].indexOf(prev_fieldtype)===-1) {
+			$("<label>" + this.df.label + "<label>").appendTo(this.wrapper);	
 		}
 		
 		this.grid = new wn.ui.form.Grid({

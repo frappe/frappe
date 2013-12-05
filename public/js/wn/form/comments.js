@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.Comments = Class.extend({
@@ -10,12 +10,12 @@ wn.ui.form.Comments = Class.extend({
 		var me = this;
 		this.wrapper =this.parent;
 		this.row = $("<div class='row'>").appendTo(this.parent);
-		this.input = $('<div class="col-md-10">\
+		this.input = $('<div class="col-md-10" style="margin-top: 5px;">\
 			<textarea rows="3" class="form-control"></textarea></div>')
 			.appendTo(this.row)
 			.find("textarea");
 		this.button = $('<div class="col-md-1">\
-			<button class="btn btn-default btn-go" class="col-md-1">\
+			<button class="btn btn-default btn-go" class="col-md-1" style="margin-top: 5px;">\
 				<i class="icon-ok"></i></button>\
 			</div>')
 			.appendTo(this.row)
@@ -50,11 +50,11 @@ wn.ui.form.Comments = Class.extend({
 			
 			$(repl('<div class="comment alert alert-warning col-md-10" data-name="%(name)s">\
 				<div class="row">\
-					<div class="col-md-1">\
+					<div class="col-xs-1">\
 						<span class="avatar avatar-small"><img src="%(image)s"></span>\
 					</div>\
-					<div class="col-md-11">\
-						%(comment)s%(delete)s<br>\
+					<div class="col-xs-11">%(delete)s\
+						<div>%(comment)s</div>\
 						<span class="small text-muted">%(fullname)s / %(comment_on)s</span>\
 					</div>\
 				</div>\

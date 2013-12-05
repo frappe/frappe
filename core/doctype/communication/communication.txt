@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-29 10:47:14", 
   "docstatus": 0, 
-  "modified": "2013-09-02 18:16:52", 
+  "modified": "2013-11-20 11:57:55", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -50,13 +50,22 @@
   "fieldname": "naming_series", 
   "fieldtype": "Select", 
   "hidden": 1, 
-  "label": "Document Numbering Series", 
+  "label": "Series", 
   "options": "COMM-"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "sent_or_received", 
+  "fieldtype": "Select", 
+  "label": "Sent or Received", 
+  "options": "Sent\nReceived", 
+  "reqd": 1
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "subject", 
   "fieldtype": "Data", 
+  "in_list_view": 1, 
   "label": "Subject", 
   "reqd": 1
  }, 
@@ -123,6 +132,7 @@
   "doctype": "DocField", 
   "fieldname": "communication_medium", 
   "fieldtype": "Select", 
+  "in_list_view": 1, 
   "label": "Communication Medium", 
   "options": "\nChat\nPhone\nEmail\nSMS\nVisit\nOther"
  }, 
@@ -151,14 +161,6 @@
   "fieldtype": "Link", 
   "label": "User", 
   "options": "Profile", 
-  "read_only": 1
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "sales_person", 
-  "fieldtype": "Link", 
-  "label": "Sales Person", 
-  "options": "Sales Person", 
   "read_only": 1
  }, 
  {

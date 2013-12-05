@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -16,7 +16,9 @@ on the need.
 """
 
 import webnotes
-def execute():
+import webnotes.utils
+
+def execute(site=None):
 	"""
 	execute jobs
 	this method triggers the other scheduler events
@@ -24,12 +26,11 @@ def execute():
 	no connection, it will connect from defs.py
 	"""
 	from datetime import datetime
-	import webnotes.utils
 	
 	format = '%Y-%m-%d %H:%M:%S'
 	
 	if not webnotes.conn:
-		webnotes.connect()
+		webnotes.connect(site=site)
 	
 	out = []
 
@@ -46,60 +47,63 @@ def execute():
 
 		if nowtime.day != last.day:
 			# if first task of the day execute daily tasks
-			out.append('daily:' + trigger('execute_daily'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - daily:' + trigger('execute_daily'))
 
 			if nowtime.month != last.month:
-				out.append('monthly:' + trigger('execute_monthly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - monthly:' + trigger('execute_monthly'))
 					
 			if nowtime.weekday()==0:
-				out.append('weekly:' + trigger('execute_weekly'))
+				out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - weekly:' + trigger('execute_weekly'))
 			
 		if nowtime.hour != last.hour:
-			out.append('hourly:' + trigger('execute_hourly'))
+			out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - hourly:' + trigger('execute_hourly'))
 
-	out.append('all:' + trigger('execute_all'))
+	out.append(nowtime.strftime("%Y-%m-%d %H:%M:%S") + ' - all:' + trigger('execute_all'))
 	
 	return '\n'.join(out)
 	
 def trigger(method):
 	"""trigger method in startup.schedule_handler"""
+	traceback = ""
 	try:
 		import startup.schedule_handlers
 		
 		if hasattr(startup.schedule_handlers, method):
-			webnotes.conn.begin()
 			getattr(startup.schedule_handlers, method)()
-			webnotes.conn.commit()
-			return 'ok'
-		
 	except Exception:
-		return log(method)
+		traceback += log(method)
+	else:
+		webnotes.conn.commit()
 		
 	try:
 		cp = webnotes.bean("Control Panel", "Control Panel")
 		cp.run_method(method)
 	except Exception:
-		return log(method)
+		traceback += log("Control Panel: "+method)
+	else:
+		webnotes.conn.commit()
+		
+	return traceback or 'ok'
 
-def log(method):
+def log(method, message=None):
 	"""log error in patch_log"""
-	import webnotes
+	message = webnotes.utils.cstr(message) + "\n" if message else ""
+	message += webnotes.getTraceback()
 	
 	if not (webnotes.conn and webnotes.conn._conn):
 		webnotes.connect()
 	
 	webnotes.conn.rollback()
-	traceback = webnotes.getTraceback()
-
-	import webnotes.utils
 	webnotes.conn.begin()
+
 	d = webnotes.doc("Scheduler Log")
 	d.method = method
-	d.error = traceback
+	d.error = message
 	d.save()
+
 	webnotes.conn.commit()
 	
-	return traceback
+	return message
 
 def report_errors():
 	from webnotes.utils.email_lib import sendmail_to_system_managers

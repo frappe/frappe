@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -6,42 +6,37 @@ import webnotes
 import webnotes.db
 import webnotes.utils
 import webnotes.profile
-import conf
+from webnotes import conf
 from webnotes.sessions import Session
 
 
 class HTTPRequest:
 	def __init__(self):
-
 		# Get Environment variables
-		self.domain = webnotes.get_env_vars('HTTP_HOST')
+		self.domain = webnotes.request.host
 		if self.domain and self.domain.startswith('www.'):
 			self.domain = self.domain[4:]
 
 		# language
-		self.set_lang(webnotes.get_env_vars('HTTP_ACCEPT_LANGUAGE'))
+		self.set_lang(webnotes.get_request_header('HTTP_ACCEPT_LANGUAGE'))
 		
-		webnotes.remote_ip = webnotes.get_env_vars('REMOTE_ADDR')
-
 		# load cookies
-		webnotes.cookie_manager = CookieManager()
-
-		webnotes.request_method = webnotes.get_env_vars("REQUEST_METHOD")
+		webnotes.local.cookie_manager = CookieManager()
 		
 		# override request method. All request to be of type POST, but if _type == "POST" then commit
 		if webnotes.form_dict.get("_type"):
-			webnotes.request_method = webnotes.form_dict.get("_type")
+			webnotes.local.request_method = webnotes.form_dict.get("_type")
 			del webnotes.form_dict["_type"]
 
 		# set db
 		self.connect()
 
 		# login
-		webnotes.login_manager = LoginManager()
+		webnotes.local.login_manager = LoginManager()
 
 		# start session
-		webnotes.session_obj = Session()
-		webnotes.session = webnotes.session_obj.data
+		webnotes.local.session_obj = Session()
+		webnotes.local.session = webnotes.local.session_obj.data
 
 		# check status
 		if webnotes.conn.get_global("__session_status")=='stop':
@@ -53,16 +48,16 @@ class HTTPRequest:
 
 		# run login triggers
 		if webnotes.form_dict.get('cmd')=='login':
-			webnotes.login_manager.run_trigger('on_login_post_session')
+			webnotes.local.login_manager.run_trigger('on_login_post_session')
 
 		# write out cookies
-		webnotes.cookie_manager.set_cookies()
+		webnotes.local.cookie_manager.set_cookies()
 
 	def set_lang(self, lang):
 		import translate
 		lang_list = translate.get_lang_dict()
 		lang_list = lang_list and lang_list.values() or []
-		
+
 		if not lang: 
 			return
 		if ";" in lang: # not considering weightage
@@ -75,18 +70,18 @@ class HTTPRequest:
 		for l in lang:
 			code = l.strip()
 			if code in lang_list:
-				webnotes.lang = code
+				webnotes.local.lang = code
 				return
 				
 			# check if parent language (pt) is setup, if variant (pt-BR)
 			if "-" in code:
 				code = code.split("-")[0]
 				if code in lang_list:
-					webnotes.lang = code
+					webnotes.local.lang = code
 					return
 					
 	def setup_profile(self):
-		webnotes.user = webnotes.profile.Profile()
+		webnotes.local.user = webnotes.profile.Profile()
 
 	def get_db_name(self):
 		"""get database name from conf"""
@@ -94,28 +89,30 @@ class HTTPRequest:
 
 	def connect(self, ac_name = None):
 		"""connect to db, from ac_name or db_name"""
-		webnotes.conn = webnotes.db.Database(user = self.get_db_name(), \
+		webnotes.local.conn = webnotes.db.Database(user = self.get_db_name(), \
 			password = getattr(conf,'db_password', ''))
 
 class LoginManager:
 	def __init__(self):
 		if webnotes.form_dict.get('cmd')=='login':
 			# clear cache
-			from webnotes.sessions import clear_cache
-			clear_cache(webnotes.form_dict.get('usr'))
+			webnotes.clear_cache(user = webnotes.form_dict.get('usr'))
 
 			self.authenticate()
 			self.post_login()
 			info = webnotes.conn.get_value("Profile", self.user, ["user_type", "first_name", "last_name"], as_dict=1)
 			if info.user_type=="Website User":
+				webnotes._response.set_cookie("system_user", "no")
 				webnotes.response["message"] = "No App"
 			else:
+				webnotes._response.set_cookie("system_user", "yes")
 				webnotes.response['message'] = 'Logged In'
 
 			full_name = " ".join(filter(None, [info.first_name, info.last_name]))
 			webnotes.response["full_name"] = full_name
-			webnotes.add_cookies["full_name"] = full_name
-	
+			webnotes._response.set_cookie("full_name", full_name)
+			webnotes._response.set_cookie("user_id", self.user)
+
 	def post_login(self):
 		self.run_trigger()
 		self.validate_ip_address()
@@ -173,7 +170,7 @@ class LoginManager:
 		ip_list = [i.strip() for i in ip_list]
 
 		for ip in ip_list:
-			if webnotes.remote_ip.startswith(ip):
+			if webnotes.get_request_header('REMOTE_ADDR', '').startswith(ip) or webnotes.get_request_header('X-Forwarded-For', '').startswith(ip):
 				return
 			
 		webnotes.msgprint('Not allowed from this IP Address')
@@ -210,40 +207,30 @@ class LoginManager:
 		else:
 			from webnotes.sessions import clear_sessions
 			clear_sessions(user)
-			
+
 		if user == webnotes.session.user:
-			webnotes.add_cookies["full_name"] = ""
-			webnotes.add_cookies["sid"] = ""
-		
+			webnotes.session.sid = ""
+			webnotes._response.delete_cookie("full_name")
+			webnotes._response.delete_cookie("user_id")
+			webnotes._response.delete_cookie("sid")
+			webnotes._response.set_cookie("full_name", "")
+			webnotes._response.set_cookie("user_id", "")
+			webnotes._response.set_cookie("sid", "")
+
 class CookieManager:
 	def __init__(self):
-		import Cookie
-		webnotes.cookies = Cookie.SimpleCookie()
-		self.get_incoming_cookies()
-
-	def get_incoming_cookies(self):
-		import os
-		cookies = {}
-		if 'HTTP_COOKIE' in os.environ:
-			c = os.environ['HTTP_COOKIE']
-			webnotes.cookies.load(c)
-			for c in webnotes.cookies.values():
-				cookies[c.key] = c.value
-					
-		webnotes.incoming_cookies = cookies
+		pass
 		
-	def set_cookies(self):		
+	def set_cookies(self):
 		if not webnotes.session.get('sid'): return		
 		import datetime
 
 		# sid expires in 3 days
 		expires = datetime.datetime.now() + datetime.timedelta(days=3)
-		expires = expires.strftime('%a, %d %b %Y %H:%M:%S')
-		
-		webnotes.cookies[b'sid'] = webnotes.session['sid'].encode('utf-8')
-		webnotes.cookies[b'sid'][b'expires'] = expires.encode('utf-8')
-		
-		webnotes.cookies[b'country'] = webnotes.session.get("session_country")
+		if webnotes.session.sid:
+			webnotes._response.set_cookie("sid", webnotes.session.sid, expires = expires)
+		if webnotes.session.session_country:
+			webnotes._response.set_cookie('country', webnotes.session.get("session_country"))
 		
 	def set_remember_me(self):
 		from webnotes.utils import cint
@@ -256,11 +243,8 @@ class CookieManager:
 		import datetime
 		expires = datetime.datetime.now() + \
 					datetime.timedelta(days=remember_days)
-		expires = expires.strftime('%a, %d %b %Y %H:%M:%S')
 
-		webnotes.cookies[b'remember_me'] = 1
-		for k in webnotes.cookies.keys():
-			webnotes.cookies[k][b'expires'] = expires.encode('utf-8')
+		webnotes._response.set_cookie["remember_me"] = 1
 
 
 def _update_password(user, password):
@@ -268,7 +252,7 @@ def _update_password(user, password):
 		values (%s, password(%s)) 
 		on duplicate key update `password`=password(%s)""", (user, 
 		password, password))
-
+	
 @webnotes.whitelist()
 def get_logged_user():
 	return webnotes.session.user

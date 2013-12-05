@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 """
 globals attached to webnotes module
@@ -6,6 +6,16 @@ globals attached to webnotes module
 """
 
 from __future__ import unicode_literals
+
+from werkzeug.local import Local
+from werkzeug.exceptions import NotFound
+from MySQLdb import ProgrammingError as SQLError
+
+import os
+import json
+import semantic_version
+
+local = Local()
 
 class _dict(dict):
 	"""dict like object that exposes keys as attributes"""
@@ -22,16 +32,20 @@ class _dict(dict):
 		super(_dict, self).update(d)
 		return self
 	def copy(self):
-		return _dict(super(_dict, self).copy())
-		
+		return _dict(dict(self).copy())
+
+def __getattr__(self, key):
+	return local.get("key", None)
+	
 def _(msg):
 	"""translate object in current lang, if exists"""
-	from webnotes.translate import messages
-	return messages.get(lang, {}).get(msg, msg)
+	if hasattr(local, 'translations'):
+		return local.translations.get(lang, {}).get(msg, msg)
+	
+	return msg
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
-	global lang, user_lang
 		
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
@@ -39,39 +53,58 @@ def set_user_lang(user, user_language=None):
 	if user_language:
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
-			lang = lang_dict[user_language]
-			user_lang = True		
+			local.lang = lang_dict[user_language]
 
 def load_translations(module, doctype, name):
 	from webnotes.translate import load_doc_messages
 	load_doc_messages(module, doctype, name)
 
-request = form_dict = _dict()
-conn = None
+
+# local-globals
+conn = local("conn")
+conf = local("conf")
+form = form_dict = local("form_dict")
+request = local("request")
+request_method = local("request_method")
+response = local("response")
+_response = local("_response")
+session = local("session")
+user = local("user")
+flags = local("flags")
+
+error_log = local("error_log")
+debug_log = local("debug_log")
+message_log = local("message_log")
+
+lang = local("lang")
+
+def init(site=None):
+	if getattr(local, "initialised", None):
+		return
+	
+	local.error_log = []
+	local.message_log = []
+	local.debug_log = []
+	local.response = _dict({})
+	local.lang = "en"
+	local.request_method = request.method if request else None
+	local.conf = get_conf(site)
+	local.initialised = True
+	local.flags = _dict({})
+	local.rollback_observers = []
+	
+def destroy():
+	"""closes connection and releases werkzeug local"""
+	if conn:
+		conn.close()
+	
+	from werkzeug.local import release_local
+	release_local(local)
+
 _memc = None
-form = None
-session = None
-user = None
-incoming_cookies = {}
-add_cookies = {} # append these to outgoing request
-cookies = {}
-response = _dict({'message':'', 'exc':''})
-error_log = []
-debug_log = []
-message_log = []
-mute_emails = False
-mute_messages = False
 test_objects = {}
-request_method = None
-print_messages = False
-user_lang = False
-lang = 'en'
-in_import = False
-in_test = False
-rollback_on_exception = False
 
 # memcache
-
 def cache():
 	global _memc
 	if not _memc:
@@ -83,13 +116,13 @@ class DuplicateEntryError(Exception): pass
 class ValidationError(Exception): pass
 class AuthenticationError(Exception): pass
 class PermissionError(Exception): pass
-class OutgoingEmailError(ValidationError): pass
 class UnknownDomainError(Exception): pass
 class SessionStopped(Exception): pass
 class MappingMismatchError(ValidationError): pass
 class InvalidStatusError(ValidationError): pass
 class DoesNotExistError(ValidationError): pass
 class MandatoryError(ValidationError): pass
+class InvalidSignatureError(ValidationError): pass
 		
 def getTraceback():
 	import utils
@@ -97,15 +130,15 @@ def getTraceback():
 
 def errprint(msg):
 	from utils import cstr
-	if not request_method:
+	if not request:
 		print cstr(msg)
 
 	error_log.append(cstr(msg))
 
 def log(msg):
-	if not request_method:
+	if not request:
 		import conf
-		if getattr(conf, "logging", False):
+		if conf.get("logging") or False:
 			print repr(msg)
 	
 	from utils import cstr
@@ -114,7 +147,7 @@ def log(msg):
 def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	def _raise_exception():
 		if raise_exception:
-			if rollback_on_exception:
+			if flags.rollback_on_exception:
 				conn.rollback()
 			import inspect
 			if inspect.isclass(raise_exception) and issubclass(raise_exception, Exception):
@@ -122,7 +155,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 			else:
 				raise ValidationError, msg
 
-	if mute_messages:
+	if flags.mute_messages:
 		_raise_exception()
 		return
 
@@ -130,7 +163,7 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
 	
-	if print_messages:
+	if flags.print_messages:
 		print "Message: " + repr(msg)
 	
 	message_log.append((small and '__small:' or '')+cstr(msg or ''))
@@ -145,7 +178,7 @@ def create_folder(path):
 		os.makedirs(path)
 	except OSError, e:
 		if e.args[0]!=17: 
-			raise e
+			raise
 
 def create_symlink(source_path, link_path):
 	import os
@@ -153,7 +186,7 @@ def create_symlink(source_path, link_path):
 		os.symlink(source_path, link_path)
 	except OSError, e:
 		if e.args[0]!=17: 
-			raise e
+			raise
 
 def remove_file(path):
 	import os
@@ -161,35 +194,36 @@ def remove_file(path):
 		os.remove(path)
 	except OSError, e:
 		if e.args[0]!=2: 
-			raise e
+			raise
 			
-def connect(db_name=None, password=None):
+def connect(db_name=None, password=None, site=None):
 	import webnotes.db
-	global conn
-	conn = webnotes.db.Database(user=db_name, password=password)
+	init(site=site)
+	local.conn = webnotes.db.Database(user=db_name, password=password)
+	local.response = _dict()
+	local.form_dict = _dict()
+	local.session = _dict()
+	set_user("Administrator")
 	
-	global session
-	session = _dict({'user':'Administrator'})
-	
+def set_user(username):
 	import webnotes.profile
-	global user
-	user = webnotes.profile.Profile('Administrator')
+	local.session["user"] = username
+	local.user = webnotes.profile.Profile(username)
 	
-def get_env_vars(env_var):
-	import os
-	return os.environ.get(env_var,'None')
-
-remote_ip = get_env_vars('REMOTE_ADDR')		#Required for login from python shell
+def get_request_header(key, default=None):
+	try:
+		return request.headers.get(key, default)
+	except Exception, e:
+		return None
+		
 logger = None
 	
 def get_db_password(db_name):
 	"""get db password from conf"""
-	import conf
-	
-	if hasattr(conf, 'get_db_password'):
+	if 'get_db_password' in conf:
 		return conf.get_db_password(db_name)
 		
-	elif hasattr(conf, 'db_password'):
+	elif 'db_password' in conf:
 		return conf.db_password
 		
 	else:
@@ -227,35 +261,72 @@ def whitelist(allow_guest=False, allow_roles=None):
 		return fn
 	
 	return innerfn
+
+
+class HashAuthenticatedCommand(object):
+	def __init__(self):
+		if hasattr(self, 'command'):
+			import inspect
+			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
+			self.fnargs.append('signature')
+
+	def __call__(self, *args, **kwargs):
+		signature = kwargs.pop('signature')
+		if self.verify_signature(kwargs, signature):
+			return self.command(*args, **kwargs)
+		else:
+			self.signature_error()
+
+	def command(self):
+		raise NotImplementedError
+		
+	def signature_error(self):
+		raise InvalidSignatureError
+
+	def get_signature(self, params, ignore_params=None):
+		import hmac
+		params = self.get_param_string(params, ignore_params=ignore_params)
+		secret = "secret"
+		signature = hmac.new(self.get_nonce())
+		signature.update(secret)
+		signature.update(params)
+		return signature.hexdigest()
+
+	def get_param_string(self, params, ignore_params=None):
+		if not ignore_params:
+			ignore_params = []
+		params = [unicode(param) for param in params if param not in ignore_params]
+		params = ''.join(params)
+		return params
+
+	def get_nonce():
+		raise NotImplementedError
+
+	def verify_signature(self, params, signature):
+		if signature == self.get_signature(params):
+			return True
+		return False
 	
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
+		reset_metadata_version()
 	elif user:
 		from webnotes.sessions import clear_cache
 		clear_cache(user)
-	else:
+	else: # everything
 		from webnotes.sessions import clear_cache
 		clear_cache()
+		reset_metadata_version()
 	
-def get_roles(user=None, with_standard=True):
-	"""get roles of current user"""
-	if not user:
-		user = session.user
-
-	if user=='Guest':
-		return ['Guest']
-	
-	roles = [r[0] for r in conn.sql("""select role from tabUserRole 
-		where parent=%s and role!='All'""", user)] + ['All']
-		
-	# filter standard if required
-	if not with_standard:
-		roles = filter(lambda x: x not in ['All', 'Guest', 'Administrator'], roles)
-		
-	return roles
+def get_roles(username=None):
+	import webnotes.profile
+	if not username or username==session.user:
+		return user.get_roles()
+	else:
+		return webnotes.profile.Profile(username).get_roles()
 
 def check_admin_or_system_manager():
 	if ("System Manager" not in get_roles()) and \
@@ -264,55 +335,64 @@ def check_admin_or_system_manager():
 
 def has_permission(doctype, ptype="read", refdoc=None):
 	"""check if user has permission"""
-	from webnotes.defaults import get_user_default_as_list
-	if session.user=="Administrator": 
+	from webnotes.utils import cint
+	
+	if session.user=="Administrator" or conn.get_value("DocType", doctype, "istable")==1:
 		return True
-	if conn.get_value("DocType", doctype, "istable"):
-		return True
-	if isinstance(refdoc, basestring):
-		refdoc = doc(doctype, refdoc)
 		
-	perms = conn.sql("""select `name`, `match` from tabDocPerm p
-		where p.parent = %s
-		and ifnull(p.`%s`,0) = 1
-		and ifnull(p.permlevel,0) = 0
-		and (p.role="All" or p.role in (select `role` from tabUserRole where `parent`=%s))
-		""" % ("%s", ptype, "%s"), (doctype, session.user), as_dict=1)
-			
+	meta = get_doctype(doctype)
+	
+	# get user permissions
+	user_roles = get_roles()
+	perms = [p for p in meta.get({"doctype": "DocPerm"}) 
+		if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
+	
 	if refdoc:
-		match_failed = {}
-		for p in perms:
-			if p.match:
-				if ":" in p.match:
-					keys = p.match.split(":")
-				else:
-					keys = [p.match, p.match]
-				
-				if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
-					return True
-				else:
-					match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
-			else:
-				# found a permission without a match
-				return True
-
-		# no valid permission found
-		if match_failed:
-			doctypelist = get_doctype(doctype)
-			msg = _("Not allowed for: ")
-			for key in match_failed:
-				msg += "\n" + (doctypelist.get_field(key) and doctypelist.get_label(key) or key) \
-					+ " = " + (match_failed[key] or "None")
-			msgprint(msg)
-		
-		return False
+		return has_match(meta, perms, refdoc)
 	else:
 		return perms and True or False
+		
+def has_match(meta, perms, refdoc):
+	from webnotes.defaults import get_user_default_as_list
+	
+	if isinstance(refdoc, basestring):
+		refdoc = doc(meta[0].name, refdoc)
+	
+	match_failed = {}
+	for p in perms:
+		if p.match:
+			if ":" in p.match:
+				keys = p.match.split(":")
+			else:
+				keys = [p.match, p.match]
+			
+			if refdoc.fields.get(keys[0],"[No Value]") in get_user_default_as_list(keys[1]):
+				return True
+			else:
+				match_failed[keys[0]] = refdoc.fields.get(keys[0],"[No Value]")
+		else:
+			# found a permission without a match
+			return True
+
+	# no valid permission found
+	if match_failed:
+		msg = _("Not allowed for: ")
+		for key in match_failed:
+			msg += "\n" + (meta.get_field(key) and meta.get_label(key) or key) \
+				+ " = " + (match_failed[key] or "None")
+		msgprint(msg)
+	
+	return False
 
 def generate_hash():
 	"""Generates random hash for session id"""
 	import hashlib, time
 	return hashlib.sha224(str(time.time())).hexdigest()
+
+def reset_metadata_version():
+	v = generate_hash()
+	cache().set_value("metadata_version", v)
+	return v
 
 def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
 	from webnotes.model.code import get_obj
@@ -372,13 +452,13 @@ def reset_perms(doctype):
 	clear_perms(doctype)
 	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype, force=True)
 
-def reload_doc(module, dt=None, dn=None, force=False):
+def reload_doc(module, dt=None, dn=None, plugin=None, force=False):
 	import webnotes.modules
-	return webnotes.modules.reload_doc(module, dt, dn, force)
+	return webnotes.modules.reload_doc(module, dt, dn, plugin=plugin, force=force)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False):
 	from webnotes.model.rename_doc import rename_doc
-	rename_doc(doctype, old, new, force=force, merge=merge)
+	return rename_doc(doctype, old, new, force=force, merge=merge)
 
 def insert(doclist):
 	import webnotes.model
@@ -417,12 +497,7 @@ def get_application_home_page(user='Guest'):
 	if hpl:
 		return hpl[0][0]
 	else:
-		# no app
-		try:
-			from startup import application_home_page
-			return application_home_page
-		except ImportError:
-			return "desktop"
+		return conn.get_value("Control Panel", None, "home_page")
 
 def copy_doclist(in_doclist):
 	new_doclist = []
@@ -450,11 +525,10 @@ def compare(val1, condition, val2):
 	return webnotes.utils.compare(val1, condition, val2)
 	
 def repsond_as_web_page(title, html):
-	global message, message_title, response
-	message_title = title
-	message = "<h3>" + title + "</h3>" + html
-	response['type'] = 'page'
-	response['page_name'] = 'message.html'
+	local.message_title = title
+	local.message = "<h3>" + title + "</h3>" + html
+	local.response['type'] = 'page'
+	local.response['page_name'] = 'message.html'
 
 def load_json(obj):
 	if isinstance(obj, basestring):
@@ -466,9 +540,9 @@ def load_json(obj):
 		
 	return obj
 	
-def build_match_conditions(doctype, fields=None, as_condition=True, match_filters=None):
+def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
-	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition, match_filters)
+	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition)
 
 def get_list(doctype, filters=None, fields=None, docstatus=None, 
 			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
@@ -477,6 +551,22 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
 				as_list=as_list, debug=debug)
+
+def get_jenv():
+	from jinja2 import Environment, FileSystemLoader
+	from webnotes.utils import get_base_path, global_date_format
+	from markdown2 import markdown
+	from json import dumps
+
+	jenv = Environment(loader = FileSystemLoader(get_base_path()))
+	jenv.filters["global_date_format"] = global_date_format
+	jenv.filters["markdown"] = markdown
+	jenv.filters["json"] = dumps
+	
+	return jenv
+
+def get_template(path):
+	return get_jenv().get_template(path)
 
 _config = None
 def get_config():
@@ -501,4 +591,46 @@ def get_config():
 		update_config(webnotes.utils.get_path("app", "config.json"))
 				
 	return _config
+
+def get_conf(site):
+	# TODO Should be heavily cached!
+	import conf
+	site_config = _dict({})
+	conf = site_config.update(conf.__dict__)
+	
+	if not conf.get("files_path"):
+		conf["files_path"] = os.path.join("public", "files")
+	if not conf.get("plugins_path"):
+		conf["plugins_path"] = "plugins"
+	
+	if conf.sites_dir and site:
+		out = get_site_config(conf.sites_dir, site)
+		if not out:
+			raise NotFound()
 		
+		site_config.update(out)	
+		site_config["site_config"] = out
+		site_config['site'] = site
+		return site_config
+
+	else:
+		return conf
+
+def get_site_config(sites_dir, site):
+	conf_path = get_conf_path(sites_dir, site)
+	if os.path.exists(conf_path):
+		with open(conf_path, 'r') as f:
+			return json.load(f)
+
+def get_conf_path(sites_dir, site):
+	from webnotes.utils import get_site_base_path
+	return os.path.join(get_site_base_path(sites_dir=sites_dir,
+			hostname=site), 'site_config.json')
+
+def validate_versions():
+	config = get_config()
+	framework_version = semantic_version.Version(config['framework_version'])
+	spec = semantic_version.Spec(config['requires_framework_version'])
+	if not spec.match(framework_version):
+		raise Exception, "Framework version out of sync"
+

@@ -1,12 +1,10 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
 import webnotes
 import webnotes.model.doc
 import webnotes.model.code
-
-conn = webnotes.conn
 
 @webnotes.whitelist()
 def get(name):

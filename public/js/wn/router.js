@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // route urls to their virtual pages
@@ -85,7 +85,7 @@ wn.set_route = function() {
 
 wn._cur_route = null;
 
-$(window).bind('hashchange', function() {
+$(window).on('hashchange', function() {
 	// save the title
 	wn.route_titles[wn._cur_route] = document.title;
 

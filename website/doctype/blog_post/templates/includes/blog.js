@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // js inside blog page
@@ -26,7 +26,7 @@ var blog = {
 	get_list: function() {
 		$.ajax({
 			method: "GET",
-			url: "server.py",
+			url: "/",
 			data: {
 				cmd: "website.doctype.blog_post.blog_post.get_blog_list",
 				start: blog.start,
@@ -42,6 +42,7 @@ var blog = {
 		});
 	},
 	render: function(data) {
+		if(!data) data = [];
 		var $wrap = $("#blog-list");
 		$.each(data, function(i, b) {
 			// comments

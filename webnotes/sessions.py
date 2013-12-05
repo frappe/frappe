@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -14,6 +14,7 @@ import json
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
+import webnotes.plugins
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -26,11 +27,19 @@ def clear_cache(user=None):
 
 	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
+	
+	# clear plugins code cache
+	webnotes.plugins.clear_cache()
 
 	if user:
 		cache.delete_value("bootinfo:" + user)
-		if webnotes.session and webnotes.session.sid:
-			cache.delete_value("session:" + webnotes.session.sid)
+		if webnotes.session:
+			if user==webnotes.session.user and webnotes.session.sid:
+				cache.delete_value("session:" + webnotes.session.sid)
+			else:
+				for sid in webnotes.conn.sql_list("""select sid from tabSessions
+					where user=%s""", user):
+						cache.delete_value("session:" + sid)
 	else:
 		for sess in webnotes.conn.sql("""select user, sid from tabSessions""", as_dict=1):
 			cache.delete_value("sesssion:" + sess.sid)
@@ -48,7 +57,7 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	from webnotes.widgets.notification import get_notification_info_for_boot
+	from core.doctype.notification_count.notification_count import get_notification_info_for_boot
 
 	bootinfo = None
 	if not getattr(conf,'auto_cache_clear',None):
@@ -64,16 +73,16 @@ def get():
 		# if not create it
 		from webnotes.boot import get_bootinfo
 		bootinfo = get_bootinfo()
+		bootinfo["notification_info"] = get_notification_info_for_boot()
 		webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 	
-	bootinfo["notification_info"] = get_notification_info_for_boot()
 		
 	return bootinfo
 
 class Session:
 	def __init__(self, user=None):
 		self.user = user
-		self.sid = webnotes.form_dict.get('sid') or webnotes.incoming_cookies.get('sid', 'Guest')
+		self.sid = webnotes.form_dict.get('sid') or webnotes.request.cookies.get('sid', 'Guest')
 		self.data = webnotes._dict({'user':user,'data': webnotes._dict({})})
 		self.time_diff = None
 
@@ -90,18 +99,18 @@ class Session:
 		import webnotes.utils
 		
 		# generate sid
-		if webnotes.login_manager.user=='Guest':
+		if webnotes.local.login_manager.user=='Guest':
 			sid = 'Guest'
 		else:
 			sid = webnotes.generate_hash()
 		
-		self.data['user'] = webnotes.login_manager.user
+		self.data['user'] = webnotes.local.login_manager.user
 		self.data['sid'] = sid
-		self.data['data']['user'] = webnotes.login_manager.user
-		self.data['data']['session_ip'] = os.environ.get('REMOTE_ADDR')
+		self.data['data']['user'] = webnotes.local.login_manager.user
+		self.data['data']['session_ip'] = webnotes.get_request_header('REMOTE_ADDR')
 		self.data['data']['last_updated'] = webnotes.utils.now()
 		self.data['data']['session_expiry'] = self.get_expiry_period()
-		self.data['data']['session_country'] = get_geo_ip_country(os.environ.get('REMOTE_ADDR'))
+		self.data['data']['session_country'] = get_geo_ip_country(webnotes.get_request_header('REMOTE_ADDR'))
 		
 		# insert session
 		webnotes.conn.begin()
@@ -109,11 +118,11 @@ class Session:
 
 		# update profile
 		webnotes.conn.sql("""UPDATE tabProfile SET last_login = '%s', last_ip = '%s' 
-			where name='%s'""" % (webnotes.utils.now(), webnotes.remote_ip, self.data['user']))
+			where name='%s'""" % (webnotes.utils.now(), webnotes.get_request_header('REMOTE_ADDR'), self.data['user']))
 		webnotes.conn.commit()
 		
 		# set cookies to write
-		webnotes.session = self.data
+		webnotes.local.session = self.data
 
 	def insert_session_record(self):
 		webnotes.conn.sql("""insert into tabSessions 
@@ -131,7 +140,7 @@ class Session:
 		if data:
 			# set language
 			if data.lang and self.user!="demo@erpnext.com": 
-				webnotes.lang = data.lang
+				webnotes.local.lang = data.lang
 			self.data = webnotes._dict({'data': data, 
 				'user':data.user, 'sid': self.sid})
 		else:
@@ -196,15 +205,14 @@ class Session:
 
 	def start_as_guest(self):
 		"""all guests share the same 'Guest' session"""
-		webnotes.login_manager.login_as_guest()
+		webnotes.local.login_manager.login_as_guest()
 		self.start()
 
 	def update(self):
 		"""extend session expiry"""
 		self.data['data']['last_updated'] = webnotes.utils.now()
-		if webnotes.user_lang:
-			# user language
-			self.data['data']['lang'] = webnotes.lang
+		self.data['data']['lang'] = unicode(webnotes.lang)
+
 
 		# update session in db
 		time_diff = None
@@ -221,7 +229,7 @@ class Session:
 				lastupdate=NOW() where sid=%s""" , (str(self.data['data']), 
 				self.data['sid']))
 
-		if webnotes.request.cmd not in ("webnotes.sessions.clear", "logout"):
+		if webnotes.form_dict.cmd not in ("webnotes.sessions.clear", "logout"):
 			webnotes.cache().set_value("last_db_session_update:" + self.sid, 
 				webnotes.utils.now())
 			webnotes.cache().set_value("session:" + self.sid, self.data)
@@ -247,7 +255,10 @@ def get_geo_ip_country(ip_addr):
 	import os
 	from webnotes.utils import get_base_path
 
-	geo_ip_file = os.path.join(get_base_path(), "lib", "data", "GeoIP.dat")
-	geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
+	try:
+		geo_ip_file = os.path.join(get_base_path(), "lib", "data", "GeoIP.dat")
+		geo_ip = pygeoip.GeoIP(geo_ip_file, pygeoip.MEMORY_CACHE)
+		return geo_ip.country_name_by_addr(ip_addr)
+	except Exception, e:
+		return
 
-	return geo_ip.country_name_by_addr(ip_addr)

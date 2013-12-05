@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 
@@ -24,8 +24,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 		})
 	},
 	make: function() {
-		$('header').append('<div class="navbar navbar-fixed-top navbar-inverse" \
-			style="min-height: 50px;" role="navigation">\
+		$('header').append('<div class="navbar navbar-inverse navbar-fixed-top" role="navigation">\
 			<div class="container">\
 				<div class="navbar-header">\
 					<button type="button" class="navbar-toggle" data-toggle="collapse" \
@@ -146,7 +145,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<li><a href="#" onclick="return wn.ui.toolbar.show_about();">\
 					<i class="icon-fixed-width icon-info-sign"></i> '
 					+wn._('About')+'</a></li>\
-				<li><a href="http://erpnext.org/docs.attributions.html" target="_blank"><i class="icon-fixed-width icon-heart"></i> '
+				<li><a href="http://erpnext.org/attributions.html" target="_blank"><i class="icon-fixed-width icon-heart"></i> '
 					+wn._('Attributions')+'</a></li>\
 			</ul>\
 		</li>');

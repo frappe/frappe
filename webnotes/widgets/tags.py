@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -39,7 +39,7 @@ def check_user_tags(dt):
 def add_tag():
 	"adds a new tag to a record, and creates the Tag master"
 	
-	f = webnotes.form_dict
+	f = webnotes.local.form_dict
 	tag, color = f.get('tag'), f.get('color')
 	dt, dn = f.get('dt'), f.get('dn')
 	
@@ -50,7 +50,7 @@ def add_tag():
 @webnotes.whitelist()
 def remove_tag():
 	"removes tag from the record"
-	f = webnotes.form_dict
+	f = webnotes.local.form_dict
 	tag, dt, dn = f.get('tag'), f.get('dt'), f.get('dn')
 	
 	DocTags(dt).remove(dn, tag)
@@ -105,10 +105,9 @@ class DocTags:
 					
 				self.setup()
 				self.update(dn, tl)
-			else: raise e
+			else: raise
 		
 	def setup(self):
 		"""adds the _user_tags column if not exists"""
-		webnotes.conn.commit()
-		webnotes.conn.sql("alter table `tab%s` add column `_user_tags` varchar(180)" % self.dt)
-		webnotes.conn.begin()
+		from webnotes.model.db_schema import add_column
+		add_column(self.dt, "_user_tags", "Data")

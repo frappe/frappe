@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -158,7 +158,7 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 		if e.args[0]==1451:
 			webnotes.msgprint("Cannot delete %s '%s' as it is referenced in another record. You must delete the referred record first" % (doctype, name))
 		
-		raise e
+		raise
 		
 	# delete attachments
 	from webnotes.utils.file_manager import remove_all
@@ -179,12 +179,11 @@ def check_permission_and_not_submitted(doctype, name, ignore_permissions=False):
 def run_on_trash(doctype, name, doclist):
 	# call on_trash if required
 	if doclist:
-		obj = webnotes.get_obj(doclist=doclist)
+		bean = webnotes.bean(doclist)
 	else:
-		obj = webnotes.get_obj(doctype, name)
-
-	if hasattr(obj,'on_trash'):
-		obj.on_trash()
+		bean = webnotes.bean(doctype, name)
+		
+	bean.run_method("on_trash")
 
 class LinkExistsError(webnotes.ValidationError): pass
 
@@ -200,7 +199,7 @@ def check_if_doc_is_linked(dt, dn, method="Delete"):
 		if not issingle:
 			item = webnotes.conn.get_value(link_dt, {link_field:dn}, 
 				["name", "parent", "parenttype", "docstatus"], as_dict=True)
-		
+			
 			if item and item.parent != dn and (method=="Delete" or 
 					(method=="Cancel" and item.docstatus==1)):
 				webnotes.msgprint(method + " " + _("Error") + ":"+\

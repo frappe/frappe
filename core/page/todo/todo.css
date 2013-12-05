@@ -1,4 +1,5 @@
 .todoitem {
+	padding-left: 21px;
 	padding-bottom: 3px;
 	clear: both;
 }
@@ -35,10 +36,6 @@
 	border-bottom: 1px solid #DEB85F;
 	margin-bottom: 5px;
 	clear: both;
-}
-
-.todo-content {
-	padding-right: 15px;
 }
 
 .todo-layout {

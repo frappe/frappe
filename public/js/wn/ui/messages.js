@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide("wn.messages")
@@ -61,6 +61,9 @@ function msgprint(msg, title) {
 		msg_dialog = new wn.ui.Dialog({
 			title:"Message",
 			onhide: function() {
+				if(msg_dialog.custom_onhide) {
+					msg_dialog.custom_onhide();
+				}
 				msg_dialog.msg_area.empty();
 			}
 		});

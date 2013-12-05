@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -14,7 +14,8 @@ def insert_test_data(doctype, sort_fn=None):
 
 def get_test_doclist(doctype, name=None):
 	"""get test doclist, collection of doclists"""
-	import os, conf, webnotes
+	import os, webnotes
+	from webnotes import conf
 	from webnotes.modules.utils import peval_doclist
 	from webnotes.modules import scrub
 

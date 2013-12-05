@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 # Database Module
@@ -6,8 +6,9 @@
 
 from __future__ import unicode_literals
 import MySQLdb
+import warnings
 import webnotes
-import conf
+from webnotes import conf
 import datetime
 
 class Database:
@@ -17,7 +18,7 @@ class Database:
 	   the `conn` global variable. the `sql` method is also global to run queries
 	"""
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
-		self.host = host or 'localhost'
+		self.host = host or conf.db_host or 'localhost'
 		self.user = user or conf.db_name
 		
 		if ac_name:
@@ -42,10 +43,12 @@ class Database:
 		"""
 		      Connect to a database
 		"""
+		warnings.filterwarnings('ignore', category=MySQLdb.Warning)
 		self._conn = MySQLdb.connect(user=self.user, host=self.host, passwd=self.password, 
 			use_unicode=True, charset='utf8')
 		self._conn.converter[246]=float
 		self._cursor = self._conn.cursor()
+		webnotes.local.rollback_observers = []
 	
 	def use(self, db_name):
 		"""
@@ -84,7 +87,7 @@ class Database:
 						webnotes.errprint(query % values)
 					except TypeError:
 						webnotes.errprint([query, values])
-				if getattr(conf, "logging", False)==2:
+				if (conf.get("logging") or False)==2:
 					webnotes.log("<<<< query")
 					webnotes.log(query)
 					webnotes.log("with values:")
@@ -97,7 +100,7 @@ class Database:
 				if debug:
 					self.explain_query(query)
 					webnotes.errprint(query)
-				if getattr(conf, "logging", False)==2:
+				if (conf.get("logging") or False)==2:
 					webnotes.log("<<<< query")
 					webnotes.log(query)
 					webnotes.log(">>>>")
@@ -108,7 +111,7 @@ class Database:
 			if ignore_ddl and e.args[0] in (1146,1054,1091):
 				pass
 			else:
-				raise e
+				raise
 
 		if auto_commit: self.commit()
 
@@ -150,12 +153,12 @@ class Database:
 		if self.transaction_writes and query and query.strip().split()[0].lower() in ['start', 'alter', 'drop', 'create', "begin"]:
 			raise Exception, 'This statement can cause implicit commit'
 
-		if query and query.strip().lower()=='commit':
+		if query and query.strip().lower() in ('commit', 'rollback'):
 			self.transaction_writes = 0
 			
 		if query[:6].lower() in ['update', 'insert']:
 			self.transaction_writes += 1
-			if self.transaction_writes > 10000:
+			if not webnotes.flags.in_test and self.transaction_writes > 10000:
 				if self.auto_commit_on_many_writes:
 					webnotes.conn.commit()
 					webnotes.conn.begin()
@@ -287,7 +290,7 @@ class Database:
 
 		ret = self.get_values(doctype, filters, fieldname, ignore, as_dict, debug)
 		
-		return ret and ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) or None
+		return ((len(ret[0]) > 1 or as_dict) and ret[0] or ret[0][0]) if ret else None
 	
 	def get_values(self, doctype, filters=None, fieldname="name", ignore=None, as_dict=False, debug=False):
 		if isinstance(filters, list):
@@ -311,7 +314,7 @@ class Database:
 					# table not found, look in singles
 					pass
 				else:
-					raise e
+					raise
 
 		return self.get_values_from_single(fields, filters, doctype, as_dict, debug)
 
@@ -354,6 +357,8 @@ class Database:
 			fl = ", ".join(fields)
 		else:
 			fl = fields
+			if fields=="*":
+				as_dict = True
 
 		conditions, filters = self.build_conditions(filters)
 	
@@ -397,6 +402,11 @@ class Database:
 		doc.modified_by = webnotes.session["user"]
 		self.set_value(doc.doctype, doc.name, field, val, doc.modified, doc.modified_by)
 		doc.fields[field] = val
+		
+	def touch(self, doctype, docname):
+		from webnotes.utils import now
+		webnotes.conn.sql("""update `tab{doctype}` set `modified`=%s 
+			where name=%s""".format(doctype=doctype), (now(), docname))
 
 	def set_global(self, key, val, user='__global'):
 		self.set_default(key, val, user)
@@ -437,10 +447,14 @@ class Database:
 	
 	def commit(self):
 		self.sql("commit")
+		webnotes.local.rollback_observers = []
 
 	def rollback(self):
-		self.sql("ROLLBACK")
-		self.transaction_writes = 0
+		self.sql("rollback")
+		for obj in webnotes.local.rollback_observers:
+			if hasattr(obj, "on_rollback"):
+				obj.on_rollback()
+		webnotes.local.rollback_observers = []
 
 	def field_exists(self, dt, fn):
 		return self.sql("select name from tabDocField where fieldname=%s and parent=%s", (dt, fn))
@@ -466,6 +480,16 @@ class Database:
 						(dt['doctype'], " and ".join(conditions)))
 			except:
 				return None
+				
+	def count(self, dt, filters=None, debug=False):
+		if filters:
+			conditions, filters = self.build_conditions(filters)
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s` where %s""" % (dt, conditions), filters, debug=debug)[0][0]
+		else:
+			return webnotes.conn.sql("""select count(*)
+				from `tab%s`""" % (dt,))[0][0]
+			
 				
 	def get_table_columns(self, doctype):
 		return [r[0] for r in self.sql("DESC `tab%s`" % doctype)]

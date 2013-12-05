@@ -106,6 +106,7 @@ CREATE TABLE `tabDocType` (
   `istable` int(1) DEFAULT NULL,
   `version` int(11) DEFAULT NULL,
   `module` varchar(180) DEFAULT NULL,
+  `plugin` varchar(180) DEFAULT NULL,
   `autoname` varchar(180) DEFAULT NULL,
   `name_case` varchar(180) DEFAULT NULL,
   `description` text,
@@ -199,7 +200,7 @@ CREATE TABLE `tabSingles` (
   `doctype` varchar(40) DEFAULT NULL,
   `field` varchar(40) DEFAULT NULL,
   `value` text,
-  KEY `doctype` (`doctype`)
+  KEY `singles_doctype_field_index` (`doctype`, `field`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
 --

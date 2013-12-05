@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // for license information please see license.txt
@@ -17,7 +17,7 @@ wn.form.formatters = {
 				format_number(value, null, decimals)) + "</div>";
 	},
 	Int: function(value) {
-		return value==null ? "": cint(value);
+		return value==null ? "": "<div style='text-align: right'>" + cint(value) + "</div>";
 	},
 	Percent: function(value) {
 		return "<div style='text-align: right'>" + flt(value, 2) + "%" + "</div>";
@@ -72,6 +72,15 @@ wn.form.formatters = {
 			if(v) html+= '<span class="label label-info" \
 				style="margin-right: 7px; cursor: pointer;"\
 				data-field="_user_tags" data-label="'+v+'">'+v +'</span>';
+		});
+		return html;
+	},
+	Comment: function(value) {
+		var html = "";
+		$.each(JSON.parse(value || "[]"), function(i, v) {
+			if(v) html+= '<span class="label label-warning" \
+				style="margin-right: 7px;"\
+				data-field="_comments" data-label="'+v.name+'">'+v.comment+'</span>';
 		});
 		return html;
 	},

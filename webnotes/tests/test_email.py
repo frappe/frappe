@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -25,6 +25,7 @@ class TestEmail(unittest.TestCase):
 	def test_bulk(self):
 		from webnotes.utils.email_lib.bulk import send
 		send(recipients = ['test@example.com', 'test1@example.com'], 
+			sender="admin@example.com",
 			doctype='Profile', email_field='email',
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
@@ -45,7 +46,7 @@ class TestEmail(unittest.TestCase):
 		
 	def test_unsubscribe(self):
 		from webnotes.utils.email_lib.bulk import unsubscribe, send
-		webnotes.form_dict = {
+		webnotes.local.form_dict = {
 			'email':'test@example.com',
 			'type':'Profile',
 			'email_field':'email',
@@ -54,6 +55,7 @@ class TestEmail(unittest.TestCase):
 		unsubscribe()
 
 		send(recipients = ['test@example.com', 'test1@example.com'], 
+			sender="admin@example.com",
 			doctype='Profile', email_field='email', 
 			subject='Testing Bulk', message='This is a bulk mail!')
 		
@@ -67,7 +69,8 @@ class TestEmail(unittest.TestCase):
 	def test_bulk_limit(self):
 		from webnotes.utils.email_lib.bulk import unsubscribe, send, BulkLimitCrossedError
 		self.assertRaises(BulkLimitCrossedError, send,
-			recipients=['test@example.com']*1000, 
+			recipients=['test@example.com']*1000,
+			sender="admin@example.com",
 			doctype='Profile', email_field='email',
 			subject='Testing Bulk', message='This is a bulk mail!')
 		

@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 # metadata
@@ -7,15 +7,9 @@ from __future__ import unicode_literals
 import webnotes
 from webnotes.utils import cstr, cint
 	
-def get_dt_values(doctype, fields, as_dict = 0):
-	return webnotes.conn.sql('SELECT %s FROM tabDocType WHERE name="%s"' % (fields, doctype), as_dict = as_dict)
-
-def set_dt_value(doctype, field, value):
-	return webnotes.conn.set_value('DocType', doctype, field, value)
-
 def is_single(doctype):
 	try:
-		return get_dt_values(doctype, 'issingle')[0][0]
+		return webnotes.conn.get_value("DocType", doctype, "issingle")
 	except IndexError, e:
 		raise Exception, 'Cannot determine whether %s is single' % doctype
 
@@ -54,7 +48,7 @@ def get_table_fields(doctype):
 			where dt='%s' and fieldtype='Table'" % doctype, as_list=1)]
 	except Exception, e:
 		if e.args[0]!=1146:
-			raise e
+			raise
 		custom_child_tables = []
 
 	return child_tables + custom_child_tables

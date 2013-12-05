@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -16,6 +16,9 @@ class DocType:
 		if self.doc.name not in ('Guest','Administrator'):
 			self.doc.email = self.doc.email.strip()		
 			self.doc.name = self.doc.email
+			
+			if webnotes.conn.exists("Profile", self.doc.name):
+				webnotes.msgprint("Name Exists", raise_exception=True)
 
 	def validate(self):
 		self.in_insert = self.doc.fields.get("__islocal")
@@ -23,9 +26,15 @@ class DocType:
 			self.validate_email_type(self.doc.email)
 		self.validate_max_users()
 		self.add_system_manager_role()
+		self.check_enable_disable()
+		if self.in_insert:
+			if self.doc.name not in ("Guest", "Administrator"):
+				self.send_welcome_mail()
+				webnotes.msgprint(_("Welcome Email Sent"))
+		else:
+			self.email_new_password()
 
-		if self.doc.fields.get('__islocal') and not self.doc.new_password:
-			webnotes.msgprint("Password required while creating new doc", raise_exception=1)
+		self.doc.new_password = ""
 
 	def check_enable_disable(self):
 		# do not allow disabling administrator/guest
@@ -38,13 +47,13 @@ class DocType:
 		
 		# clear sessions if disabled
 		if not cint(self.doc.enabled) and getattr(webnotes, "login_manager", None):
-			webnotes.login_manager.logout(user=self.doc.name)
+			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 	def validate_max_users(self):
 		"""don't allow more than max users if set in conf"""
-		import conf
+		from webnotes import conf
 		# check only when enabling a user
-		if hasattr(conf, 'max_users') and self.doc.enabled and \
+		if 'max_users' in conf and self.doc.enabled and \
 				self.doc.name not in ["Administrator", "Guest"] and \
 				cstr(self.doc.user_type).strip() in ("", "System User"):
 			active_users = webnotes.conn.sql("""select count(*) from tabProfile
@@ -74,30 +83,19 @@ class DocType:
 				"parentfield": "user_roles",
 				"role": "System Manager"
 			})
-				
+	
+	def email_new_password(self):
+		if self.doc.new_password and not self.in_insert:
+			from webnotes.auth import _update_password
+			_update_password(self.doc.name, self.doc.new_password)
+
+			self.password_update_mail(self.doc.new_password)
+			webnotes.msgprint("New Password Emailed.")
+			
 	def on_update(self):
 		# owner is always name
 		webnotes.conn.set(self.doc, 'owner', self.doc.name)
-		self.update_new_password()
-		
-		self.check_enable_disable()
-
-	def update_new_password(self):
-		"""update new password if set"""
-		if self.doc.new_password:
-			from webnotes.auth import _update_password
-			_update_password(self.doc.name, self.doc.new_password)
-			
-			if self.in_insert:
-				webnotes.msgprint("New user created. - %s" % self.doc.name)
-				if cint(self.doc.send_invite_email):
-					self.send_welcome_mail(self.doc.new_password)
-					webnotes.msgprint("Sent welcome mail.")
-			else:
-				self.password_update_mail(self.doc.new_password)
-				webnotes.msgprint("New Password Emailed.")
-				
-			webnotes.conn.set(self.doc, 'new_password', '')
+		webnotes.clear_cache(user=self.doc.name)
 	
 	def reset_password(self):
 		from webnotes.utils import random_string, get_url
@@ -150,28 +148,32 @@ Thank you,<br>
 			txt, {"new_password": password})
 		
 		
-	def send_welcome_mail(self, password):
+	def send_welcome_mail(self):
 		"""send welcome mail to user with password and login url"""
+
+		from webnotes.utils import random_string, get_url
+
+		self.doc.reset_password_key = random_string(32)
+		link = get_url("/update-password?key=" + self.doc.reset_password_key)
 		
 		txt = """
 ## %(company)s
 
 Dear %(first_name)s,
 
-A new account has been created for you, here are your details:
+A new account has been created for you. 
 
-Login Id: %(user)s<br>
-Password: %(password)s
+Your login id is: %(user)s
 
-To login to your new %(product)s account, please go to:
+To complete your registration, please click on the link below:
 
-%(login_url)s
+<a href="%(link)s">%(link)s</a>
 
 Thank you,<br>
 %(user_fullname)s
 		"""
 		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, 
-			{ "password": password })
+			{ "link": link })
 
 	def send_login_mail(self, subject, txt, add_args):
 		"""send mail with login details"""
@@ -206,6 +208,7 @@ Thank you,<br>
 				raise_exception=True)
 		
 	def on_trash(self):
+		webnotes.clear_cache(user=self.doc.name)
 		if self.doc.name in ["Administrator", "Guest"]:
 			webnotes.msgprint("""Hey! You cannot delete user: %s""" % (self.name, ),
 				raise_exception=1)
@@ -214,8 +217,8 @@ Thank you,<br>
 				
 		# disable the user and log him/her out
 		self.doc.enabled = 0
-		if getattr(webnotes, "login_manager", None):
-			webnotes.login_manager.logout(user=self.doc.name)
+		if getattr(webnotes.local, "login_manager", None):
+			webnotes.local.login_manager.logout(user=self.doc.name)
 		
 		# delete their password
 		webnotes.conn.sql("""delete from __Auth where user=%s""", self.doc.name)
@@ -233,10 +236,28 @@ Thank you,<br>
 		# delete messages
 		webnotes.conn.sql("""delete from `tabComment` where comment_doctype='Message'
 			and (comment_docname=%s or owner=%s)""", (self.doc.name, self.doc.name))
-	
-	def on_rename(self,newdn,olddn, merge=False):
-		self.validate_rename(newdn, olddn)
 			
+	def before_rename(self, olddn, newdn, merge=False):
+		webnotes.clear_cache(user=olddn)
+		self.validate_rename(olddn, newdn)
+	
+	def validate_rename(self, olddn, newdn):
+		# do not allow renaming administrator and guest
+		if olddn in ["Administrator", "Guest"]:
+			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
+				(olddn, ), raise_exception=1)
+		
+		self.validate_email_type(newdn)
+	
+	def validate_email_type(self, email):
+		from webnotes.utils import validate_email_add
+	
+		email = email.strip()
+		if not validate_email_add(email):
+			webnotes.msgprint("%s is not a valid email id" % email)
+			raise Exception
+	
+	def after_rename(self, olddn, newdn, merge=False):			
 		tables = webnotes.conn.sql("show tables")
 		for tab in tables:
 			desc = webnotes.conn.sql("desc `%s`" % tab[0], as_dict=1)
@@ -258,22 +279,6 @@ Thank you,<br>
 		# update __Auth table
 		if not merge:
 			webnotes.conn.sql("""update __Auth set user=%s where user=%s""", (newdn, olddn))
-		
-	def validate_rename(self, newdn, olddn):
-		# do not allow renaming administrator and guest
-		if olddn in ["Administrator", "Guest"]:
-			webnotes.msgprint("""Hey! You are restricted from renaming the user: %s""" % \
-				(olddn, ), raise_exception=1)
-		
-		self.validate_email_type(newdn)
-	
-	def validate_email_type(self, email):
-		from webnotes.utils import validate_email_add
-	
-		email = email.strip()
-		if not validate_email_add(email):
-			webnotes.msgprint("%s is not a valid email id" % email)
-			raise Exception
 			
 	def add_roles(self, *roles):
 		for role in roles:
@@ -316,16 +321,15 @@ def get_perm_info(arg=None):
 @webnotes.whitelist(allow_guest=True)
 def update_password(new_password, key=None, old_password=None):
 	# verify old password
-	if old_password:
+	if key:
+		user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
+		if not user:
+			return _("Cannot Update: Incorrect / Expired Link.")
+	elif old_password:
 		user = webnotes.session.user
 		if not webnotes.conn.sql("""select user from __Auth where password=password(%s) 
 			and user=%s""", (old_password, user)):
 			return _("Cannot Update: Incorrect Password")
-	else:
-		if key:
-			user = webnotes.conn.get_value("Profile", {"reset_password_key":key})
-			if not user:
-				return _("Cannot Update: Incorrect / Expired Link.")
 	
 	from webnotes.auth import _update_password
 	_update_password(user, new_password)
@@ -353,8 +357,7 @@ def sign_up(email, full_name):
 			"first_name": full_name,
 			"enabled": 1,
 			"new_password": random_string(10),
-			"user_type": "Website User",
-			"send_invite_email": 1
+			"user_type": "Website User"
 		})
 		profile.ignore_permissions = True
 		profile.insert()
@@ -393,3 +396,28 @@ def profile_query(doctype, txt, searchfield, start, page_len, filters):
 			name asc 
 		limit %(start)s, %(page_len)s""" % {'key': searchfield, 'txt': "%%%s%%" % txt,  
 		'mcond':get_match_cond(doctype, searchfield), 'start': start, 'page_len': page_len})
+
+def get_total_users():
+	"""Returns total no. of system users"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type != 'Website User'
+		and name not in ('Administrator', 'Guest')""")[0][0]
+
+def get_active_users():
+	"""Returns No. of system users who logged in, in the last 3 days"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type != 'Website User'
+		and name not in ('Administrator', 'Guest')
+		and hour(timediff(now(), last_login)) < 72""")[0][0]
+
+def get_website_users():
+	"""Returns total no. of website users"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type = 'Website User'""")[0][0]
+	
+def get_active_website_users():
+	"""Returns No. of website users who logged in, in the last 3 days"""
+	return webnotes.conn.sql("""select count(*) from `tabProfile`
+		where enabled = 1 and user_type = 'Website User'
+		and hour(timediff(now(), last_login)) < 72""")[0][0]
+

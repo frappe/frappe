@@ -1,38 +1,85 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.provide('wn.core.pages.todo');
+
+wn.pages.todo.onload = function(wrapper) {
+	// create app frame
+	wn.ui.make_app_page({
+		parent: wrapper,
+		single_column: true,
+		title: "To Do"
+	});
+
+	$(wrapper)
+		.css({"background-color": "#FFFDD9", 
+			"position": "absolute", "top":"36px", 
+			"left":"0px", "width":"100%", "min-height": "100%", "overflow":"auto"})
+		.find(".layout-main").html('<div id="todo-list">\
+		<h4><i class="icon-hand-right"></i> My Items</h4>\
+		<div class="todo-content" data-todo-list=1>\
+		</div>\
+		<br>\
+		<h4><i class="icon-hand-right"></i> Assigned To Me</h4>\
+		<div class="todo-content-to-me" data-todo-list=1>\
+		</div>\
+		<br>\
+		<h4><i class="icon-hand-right"></i> Assigned By Me</h4>\
+		<div class="todo-content-by-me" data-todo-list=1>\
+		</div>\
+	</div>').css({"padding-top":"0px", "margin-top": "-15px"});
+		
+	wrapper.appframe.add_module_icon("To Do");
+	wrapper.appframe.set_title_left('Refresh', wn.core.pages.todo.refresh, 'icon-refresh');
+	wrapper.appframe.set_title_right('Add', function() {
+		wn.core.pages.todo.make_dialog({
+			date:get_today(), priority:'Medium', checked:0, description:''});
+	}, 'icon-plus');
+	
+	// show report button for System Manager
+	if(wn.boot.profile.roles.indexOf("System Manager") !== -1) {
+		wrapper.appframe.add_button("Report", function() { wn.set_route("query-report", "todo"); },
+			"icon-table");
+	}
+
+	// load todos
+	wn.core.pages.todo.refresh();
+	
+	// save on click
+	wrapper.save_action = function() {
+		if(wn.core.pages.todo.dialog && wn.core.pages.todo.dialog.display) {
+			wn.core.pages.todo.dialog.fields_dict.save.input.click();
+		}
+	};
+}
 
 wn.core.pages.todo.refresh = function() {
 	
 	return wn.call({
 		method: 'core.page.todo.todo.get',
 		callback: function(r,rt) {
-			var todo_list = $('#todo-list div.todo-content');
-			var assigned_todo_list = $('#assigned-todo-list div.todo-content');
-			todo_list.empty();
-			assigned_todo_list.empty();
-			
-			var nothing_to_do = function() {
-				$('#todo-list div.todo-content')
-					.html('<div class="alert alert-success">Nothing to do :)</div>');
-			}
-			
-			
+			$("#todo-list [data-todo-list=1]").empty();
+						
 			if(r.message) {
 				for(var i in r.message) {
 					new wn.core.pages.todo.ToDoItem(r.message[i]);
 				}
-				if (!todo_list.html()) { nothing_to_do(); }
-			} else {
-				nothing_to_do();
 			}
+
+			$("#todo-list [data-todo-list=1]").each(function() {
+				if(!$(this).children().length) {
+					$(this).html("<span class='text-muted'>This list is empty!</span>");
+				}
+			})
+
 		}
 	});
 }
 
 wn.core.pages.todo.ToDoItem = Class.extend({
 	init: function(todo) {
+		var $parent = $(".todo-content");
+
 		label_map = {
 			'High': 'label-danger',
 			'Medium': 'label-info',
@@ -42,22 +89,23 @@ wn.core.pages.todo.ToDoItem = Class.extend({
 		todo.userdate = dateutil.str_to_user(todo.date) || '';
 		
 		todo.fullname = '';
-		if(todo.assigned_by) {
-			var assigned_by = wn.boot.user_info[todo.assigned_by]
-			todo.fullname = repl("[By %(fullname)s] ".bold(), {
-				fullname: (assigned_by ? assigned_by.fullname : todo.assigned_by),
-			});
-		}
-		
-		var parent_list = "#todo-list";
+
 		if(todo.owner !== user) {
+			$parent = $(".todo-content-by-me");
 			var owner = wn.boot.user_info[todo.owner];
 			todo.fullname = repl("[To %(fullname)s] ".bold(), {
 				fullname: (owner ? owner.fullname : todo.owner),
 			});
 		}
-		parent_list += " div.todo-content";
-		
+
+		if(todo.assigned_by && !todo.fullname) {
+			$parent = $(".todo-content-to-me");
+			var assigned_by = wn.boot.user_info[todo.assigned_by]
+			todo.fullname = repl("[By %(fullname)s] ".bold(), {
+				fullname: (assigned_by ? assigned_by.fullname : todo.assigned_by),
+			});
+		}
+				
 		if(todo.reference_name && todo.reference_type) {
 			todo.link = repl('<a href="#!Form/%(reference_type)s/%(reference_name)s">\
 						%(reference_type)s: %(reference_name)s</a>', todo);
@@ -69,9 +117,8 @@ wn.core.pages.todo.ToDoItem = Class.extend({
 		}
 		if(!todo.description) todo.description = '';
 		todo.description_display = todo.description.replace(/\n\n/g, "<br>").trim();
-				
-		$(parent_list).append(repl('\
-			<div class="todoitem">\
+		
+		$todo = $(repl('<div class="todoitem">\
 				<div class="label %(labelclass)s">%(priority)s</div>\
 				<div class="popup-on-click"><a href="#">[edit]</a></div>\
 				<div class="todo-date-fullname">\
@@ -82,9 +129,8 @@ wn.core.pages.todo.ToDoItem = Class.extend({
 					<span class="ref_link">%(link)s</span>\
 				</div>\
 				<div class="close-span"><a href="#" class="close">&times;</a></div>\
-			</div>\
-			<div class="todo-separator"></div>', todo));
-		$todo = $(parent_list + ' div.todoitem:last');
+			</div>', todo)).appendTo($parent);
+		$('<div class="todo-separator"></div>').appendTo($parent);
 		
 		if(todo.checked) {
 			$todo.find('.description').css('text-decoration', 'line-through');
@@ -170,41 +216,3 @@ wn.core.pages.todo.save = function(btn) {
 	});
 }
 
-wn.pages.todo.onload = function(wrapper) {
-	// create app frame
-	wn.ui.make_app_page({
-		parent: wrapper,
-		single_column: true,
-		title: "To Do"
-	});
-
-	$(wrapper)
-		.css({"background-color": "#FFFDC9", "min-height": "300px"})
-		.find(".layout-main").html('<div id="todo-list">\
-		<div class="todo-content"></div>\
-	</div>');
-		
-	wrapper.appframe.add_module_icon("To Do");
-	wrapper.appframe.add_button('Refresh', wn.core.pages.todo.refresh, 'icon-refresh');
-	wrapper.appframe.add_button('Add', function() {
-		wn.core.pages.todo.make_dialog({
-			date:get_today(), priority:'Medium', checked:0, description:''});
-	}, 'icon-plus');
-	wrapper.appframe.add_ripped_paper_effect(wrapper);
-	
-	// show report button for System Manager
-	if(wn.boot.profile.roles.indexOf("System Manager") !== -1) {
-		wrapper.appframe.add_button("Report", function() { wn.set_route("query-report", "todo"); },
-			"icon-table");
-	}
-
-	// load todos
-	wn.core.pages.todo.refresh();
-	
-	// save on click
-	wrapper.save_action = function() {
-		if(wn.core.pages.todo.dialog && wn.core.pages.todo.dialog.display) {
-			wn.core.pages.todo.dialog.fields_dict.save.input.click();
-		}
-	};
-}

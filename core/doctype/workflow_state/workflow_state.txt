@@ -2,7 +2,7 @@
  {
   "creation": "2012-12-28 10:49:56", 
   "docstatus": 0, 
-  "modified": "2013-07-05 15:03:58", 
+  "modified": "2013-10-28 15:43:16", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -44,7 +44,7 @@
   "doctype": "DocField", 
   "fieldname": "workflow_state_name", 
   "fieldtype": "Data", 
-  "label": "Workflow State Name", 
+  "label": "State", 
   "reqd": 1
  }, 
  {

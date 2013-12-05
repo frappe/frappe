@@ -1,35 +1,51 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 if(!window.wn) wn = {};
 
 $.extend(wn, {
-	show_message: function(text, icon) {
-		if(!icon) icon="icon-refresh icon-spin";
-		treemapper.hide_message();
-		$('<div class="message-overlay"></div>')
-			.html('<div class="content"><i class="'+icon+' text-muted"></i><br>'
-				+text+'</div>').appendTo(document.body);
+	provide: function(namespace) {
+		var nsl = namespace.split('.');
+		var parent = window;
+		for(var i=0; i<nsl.length; i++) {
+			var n = nsl[i];
+			if(!parent[n]) {
+				parent[n] = {}
+			}
+			parent = parent[n];
+		}
+		return parent;
+	},
+	require: function(url) {
+		$.ajax({
+			url: url + "?q=" + Math.floor(Math.random() * 1000), 
+			async: false, 
+			dataType: "text", 
+			success: function(data) {
+				var el = document.createElement('script');
+				el.appendChild(document.createTextNode(data));
+				document.getElementsByTagName('head')[0].appendChild(el);
+			}
+		});
 	},
 	hide_message: function(text) {
 		$('.message-overlay').remove();
 	},
 	call: function(opts) {
+		// opts = {"method": "PYTHON MODULE STRING", "args": {}, "callback": function(r) {}}
 		wn.prepare_call(opts);
-		$.ajax({
+		return $.ajax({
 			type: "POST",
-			url: "server.py",
+			url: "/",
 			data: opts.args,
 			dataType: "json",
 			success: function(data) {
 				wn.process_response(opts, data);
 			},
 			error: function(response) {
-				NProgress.done();
+				if(!opts.no_spinner) NProgress.done();
 				console.error ? console.error(response) : console.log(response);
 			}
 		});
-	
-		return false;
 	},
 	prepare_call: function(opts) {
 		if(opts.btn) {
@@ -59,7 +75,9 @@ $.extend(wn, {
 			}
 		});
 
-		NProgress.start();
+		if(!opts.no_spinner) { 
+			NProgress.start();
+		}
 	},
 	process_response: function(opts, data) {
 		NProgress.done();
@@ -124,6 +142,10 @@ $.extend(wn, {
 		return modal;
 	},
 	msgprint: function(html, title) {
+		if(html.substr(0,1)==="[") html = JSON.parse(html);
+		if($.isArray(html)) {
+			html = html.join("<hr>")
+		}
 		return wn.get_modal(title || "Message", html).modal("show");
 	},
 	send_message: function(opts, btn) {
@@ -135,6 +157,18 @@ $.extend(wn, {
 			callback: opts.callback
 		});
 	},
+	has_permission: function(doctype, docname, perm_type, callback) {
+		return wn.call({
+			method: "webnotes.client.has_permission",
+			no_spinner: true,
+			args: {doctype: doctype, docname: docname, perm_type: perm_type},
+			callback: function(r) {
+				if(!r.exc && r.message.has_permission) {
+					if(callback) { return callback(r); }
+				}
+			}
+		});
+	}
 });
 
 
@@ -251,7 +285,14 @@ function ask_to_login() {
 // check if logged in?
 $(document).ready(function() {
 	window.full_name = getCookie("full_name");
-	$("#website-login").toggleClass("hide", full_name ? true : false);
-	$("#website-post-login").toggleClass("hide", full_name ? false : true);
+	window.logged_in = getCookie("sid") && getCookie("sid")!=="Guest";
+	$("#website-login").toggleClass("hide", logged_in ? true : false);
+	$("#website-post-login").toggleClass("hide", logged_in ? false : true);
+	
+	// switch to app link
+	if(getCookie("system_user")==="yes") {
+		$("#website-post-login .dropdown-menu").append('<li class="divider"></li>\
+			<li><a href="app.html"><i class="icon-fixed-width icon-th-large"></i> Switch To App</a></li>');
+	}
 });
 

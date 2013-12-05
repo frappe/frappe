@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 /*
@@ -64,9 +64,9 @@ To subclass, use:
 		// The dummy class constructor
 		function Class() {
 			// All construction is actually done in the init method
+			this._type = "instance";
 			if ( !initializing && this.init )
 				this.init.apply(this, arguments);
-			this._type = "instance";
 		}
 		
 		// Populate our constructed prototype object

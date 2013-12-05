@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 if(!console) {
@@ -19,7 +19,7 @@ wn.Application = Class.extend({
 	init: function() {
 		this.load_startup();
 	},
-
+	
 	load_startup: function() {
 		var me = this;
 		if(window.app) {
@@ -73,22 +73,26 @@ wn.Application = Class.extend({
 	},
 	
 	set_user_display_settings: function() {
-		if(wn.boot.profile.background_image) {
-			wn.ui.set_user_background(wn.boot.profile.background_image);
-		} else {
-			$("body").css("background-color", "#F5EFE6")
-		}
+		wn.ui.set_user_background(wn.boot.profile.background_image);
 	},
 	
 	load_bootinfo: function() {
 		if(wn.boot) {
 			wn.control_panel = wn.boot.control_panel;
 			wn.modules = wn.boot.modules;
+			this.check_metadata_cache_status();
 			this.set_globals();
 			this.sync_pages();
-			
 		} else {
 			this.set_as_guest();
+		}
+	},
+	
+	check_metadata_cache_status: function() {
+		if(wn.boot.metadata_version != localStorage.metadata_version) {
+			localStorage.clear();
+			console.log("Cleared Cache - New Metadata");
+			localStorage.metadata_version = wn.boot.metadata_version;
 		}
 	},
 	
@@ -110,7 +114,7 @@ wn.Application = Class.extend({
 	refresh_notifications: function() {
 		if(wn.session_alive) {
 			return wn.call({
-				method: "webnotes.widgets.notification.get",
+				method: "core.doctype.notification_count.notification_count.get",
 				callback: function(r) {
 					if(r.message) {
 						$.extend(wn.boot.notification_info, r.message);

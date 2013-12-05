@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -17,21 +17,22 @@ from webnotes.utils import cstr
 
 #Global constants
 verbose = 0
-import conf
+from webnotes import conf
 #-------------------------------------------------------------------------------
 class BackupGenerator:
 	"""
 		This class contains methods to perform On Demand Backup
 		
-		To initialize, specify (db_name, user, password, db_file_name=None)
+		To initialize, specify (db_name, user, password, db_file_name=None, db_host="localhost")
 		If specifying db_file_name, also append ".sql.gz"
 	"""
-	def __init__(self, db_name, user, password):
+	def __init__(self, db_name, user, password, backup_path_db=None, backup_path_files=None, db_host="localhost"):
+		self.db_host = db_host
 		self.db_name = db_name
 		self.user = user
 		self.password = password
-		self.backup_path_files = None
-		self.backup_path_db = None
+		self.backup_path_files = backup_path_files
+		self.backup_path_db = backup_path_db
 
 	def get_backup(self, older_than=24, ignore_files=False):
 		"""
@@ -40,12 +41,17 @@ class BackupGenerator:
 		"""
 		#Check if file exists and is less than a day old
 		#If not Take Dump
-		self.get_recent_backup(older_than)
+		last_db, last_file = self.get_recent_backup(older_than)
 		if not (self.backup_path_files and self.backup_path_db):
 			self.set_backup_file_name()
+		if not (last_db and last_file):
 			self.take_dump()
 			if not ignore_files:
 				self.zip_files()
+		else:
+			self.backup_path_files = last_file
+			self.backup_path_db = last_db
+
 
 	def set_backup_file_name(self):
 		import random
@@ -56,22 +62,27 @@ class BackupGenerator:
 		for_db = todays_date + "_" + random_number + "_database.sql.gz"
 		for_files = todays_date + "_" + random_number + "_files.tar"
 		backup_path = get_backup_path()
-		self.backup_path_db = os.path.join(backup_path, for_db)	
-		self.backup_path_files = os.path.join(backup_path, for_files)	
+		if not self.backup_path_db:
+			self.backup_path_db = os.path.join(backup_path, for_db)	
+		if not self.backup_path_files:
+			self.backup_path_files = os.path.join(backup_path, for_files)	
 		
 	def get_recent_backup(self, older_than):
 		file_list = os.listdir(get_backup_path())
+		backup_path_files = None
+		backup_path_db = None
 		for this_file in file_list:
 			this_file = cstr(this_file)
 			this_file_path = os.path.join(get_backup_path(), this_file)
 			if not is_file_old(this_file_path, older_than):
 				if "_files" in this_file_path:
-					self.backup_path_files = this_file_path
+					backup_path_files = this_file_path
 				if "_database" in this_file_path:
-					self.backup_path_db = this_file_path
+					backup_path_db = this_file_path
+		return (backup_path_db, backup_path_files)
 
 	def zip_files(self):
-		files_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)), 'public', 'files')
+		files_path = webnotes.utils.get_site_path(conf.files_path)
 		cmd_string = """tar -cf %s %s""" % (self.backup_path_files, files_path)
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 	
@@ -81,7 +92,7 @@ class BackupGenerator:
 		# escape reserved characters
 		args = dict([item[0], webnotes.utils.esc(item[1], '$ ')] 
 			for item in self.__dict__.copy().items())
-		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s | gzip -c > %(backup_path_db)s""" % args		
+		cmd_string = """mysqldump -u %(user)s -p%(password)s %(db_name)s -h %(db_host)s | gzip -c > %(backup_path_db)s""" % args		
 		err, out = webnotes.utils.execute_in_shell(cmd_string)
 		
 	def send_email(self):
@@ -125,26 +136,25 @@ def get_backup():
 	#if verbose: print webnotes.conn.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  webnotes.get_db_password(webnotes.conn.cur_db_name))
+						  webnotes.get_db_password(webnotes.conn.cur_db_name), db_host = webnotes.conn.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	webnotes.msgprint("""A download link to your backup will be emailed \
 	to you shortly on the following email address:
 	%s""" % (', '.join(recipient_list)))
 	
-def scheduled_backup(older_than=6, ignore_files=False):
+def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	"""this function is called from scheduler
 		deletes backups older than 7 days
 		takes backup"""
-	odb = new_backup(older_than, ignore_files)
-	
-	from webnotes.utils import now
-	print "backup taken -", odb.backup_path_db, "- on", now()
+	odb = new_backup(older_than, ignore_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
+	return odb
 
-def new_backup(older_than=6, ignore_files=False):
+def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  webnotes.get_db_password(webnotes.conn.cur_db_name))
+						  webnotes.get_db_password(webnotes.conn.cur_db_name), 
+						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = webnotes.conn.host)
 	odb.get_backup(older_than, ignore_files)
 	return odb
 
@@ -181,38 +191,34 @@ def is_file_old(db_file_name, older_than=24):
 			if verbose: print "File does not exist"
 			return True	
 
-backup_path = None		
 def get_backup_path():
-	global backup_path
-	if not backup_path:
-		import os, conf
-		backup_path = os.path.join(os.path.dirname(os.path.abspath(conf.__file__)),
-			'public', 'backups')
+	import os
+	backup_path = webnotes.utils.get_site_path(conf.get("backup_path", "public/backups"))
 	return backup_path
 
 #-------------------------------------------------------------------------------
 		
 if __name__ == "__main__":
 	"""
-		is_file_old db_name user password
-		get_backup  db_name user password
+		is_file_old db_name user password db_host
+		get_backup  db_name user password db_host
 	"""
 	import sys
 	cmd = sys.argv[1]
 	if cmd == "is_file_old":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		is_file_old(odb.db_file_name)
 	
 	if cmd == "get_backup":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		odb.get_backup()
 
 	if cmd == "take_dump":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		odb.take_dump()
 		
 	if cmd == "send_email":
-		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4])
+		odb = BackupGenerator(sys.argv[2], sys.argv[3], sys.argv[4], sys.argv[5] or "localhost")
 		odb.send_email("abc.sql.gz")
 		
 	if cmd == "delete_temp_backups":

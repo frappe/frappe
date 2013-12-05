@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 // page container
@@ -9,13 +9,13 @@ wn.views.Container = Class.extend({
 	_intro: "Container contains pages inside `#container` and manages \
 			page creation, switching",
 	init: function() {
-		this.container = $('#body_div').addClass("container").get(0);
+		this.container = $('#body_div').get(0);
 		this.page = null; // current page
 		this.pagewidth = $('#body_div').width();
 		this.pagemargin = 50;		
 	},
 	add_page: function(label, onshow, onhide) {
-		var page = $('<div class="content row"></div>')
+		var page = $('<div class="content"></div>')
 			.attr('id', "page-" + label)
 			.toggle(false)
 			.appendTo(this.container).get(0);
@@ -88,7 +88,7 @@ wn.views.Factory = Class.extend({
 			if(route[1]) {
 				me.make(route);
 			} else {
-				wn.set_route('404');
+				wn.show_not_found(route);
 			}
 		}
 	},

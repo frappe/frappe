@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -17,7 +17,7 @@ from webnotes.utils import cstr
 
 
 def make_test_records(doctype, verbose=0):
-	webnotes.mute_emails = True
+	webnotes.flags.mute_emails = True
 	if not webnotes.conn:
 		webnotes.connect()
 	
@@ -146,26 +146,28 @@ def run_unittest(doctype, verbose=False):
 def run_all_tests(verbose):
 	import os
 
+	test_suite = unittest.TestSuite()
 	for path, folders, files in os.walk("."):
+		if 'locale' in folders: folders.remove('locale')
 		# print path
 		for filename in files:
 			filename = cstr(filename)
 			if filename.startswith("test_") and filename.endswith(".py"):
-				print filename[:-3]
-				webnotes.session.user = "Administrator"
+				# print filename[:-3]
+				_run_test(path, filename, verbose, test_suite=test_suite, run=False)
 				
-				_run_test(path, filename, verbose)
-				
-				webnotes.conn.rollback()
-				webnotes.test_objects = {}
-				
-				print
+				# webnotes.conn.rollback()
+				# webnotes.test_objects = {}
 
-def _run_test(path, filename, verbose):
+	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
+def _run_test(path, filename, verbose, test_suite=None, run=True):
 	import os, imp
 	from webnotes.modules.utils import peval_doclist
 	
-	test_suite = unittest.TestSuite()
+	if not test_suite:
+		test_suite = unittest.TestSuite()
+	
 	if os.path.basename(os.path.dirname(path))=="doctype":
 		txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
 		with open(txt_file, 'r') as f:
@@ -175,7 +177,9 @@ def _run_test(path, filename, verbose):
 	
 	module = imp.load_source(filename[:-3], os.path.join(path, filename))
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
-	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	
+	if run:
+		unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
 def main():
 	import argparse
@@ -189,12 +193,11 @@ def main():
 	parser.add_argument('-m', '--module', default=1, metavar="MODULE")
 
 	args = parser.parse_args()
-	webnotes.print_messages = args.verbose
-	
-	webnotes.in_test = True
-	
 	if not webnotes.conn:
 		webnotes.connect()
+
+	webnotes.flags.print_messages = args.verbose
+	webnotes.flags.in_test = True
 	
 	if args.doctype:
 		run_unittest(args.doctype[0], verbose=args.verbose)

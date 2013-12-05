@@ -1,49 +1,39 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.provide('wn.ui');
 
-wn.ui.FieldGroup = Class.extend({
+wn.ui.FieldGroup = wn.ui.form.Layout.extend({
 	init: function(opts) {
 		$.extend(this, opts);
+		this._super();
+		$.each(this.fields || [], function(i, f) {
+			if(!f.fieldname && f.label) {
+				f.fieldname = f.label.replace(/ /g, "_").toLowerCase();
+			}
+		})
 	},
 	make: function() {
 		if(this.fields) {
-			this.make_fields();
-			if(!this.no_submit_on_enter)
+			this._super();
+			this.refresh();
+			// set default
+			$.each(this.fields_list, function(i, f) {
+				if(f.df["default"]) f.set_input(f.df["default"]);
+			})
+			if(!this.no_submit_on_enter) {
+				$(this.body).find("[data-fieldtype='Button']").filter(":first")
+					.removeClass("btn-default").addClass("btn-primary");
 				this.catch_enter_as_submit();
+			}
 		}
 	},
 	first_button: false,
-	make_fields: function() {
-		$(this.body).css({padding:'25px'});
-		this.fields_dict = {}; // reset
-		for(var i=0; i< this.fields.length; i++) {
-			var df = this.fields[i];
-			if(!df.fieldname && df.label) {
-				df.fieldname = df.label.replace(/ /g, '_').toLowerCase();
-			}
-			if(!df.fieldtype) df.fieldtype="Data";
-			
-			var div = $a(this.body, 'div', '', {margin:'6px 0px'})
-			f = make_field(df, null, div, null);
-			f.not_in_form = 1;
-			f.dialog_wrapper = this.wrapper || null;
-			this.fields_dict[df.fieldname] = f
-			f.refresh();
-			
-			// first button primary ?
-			if(df.fieldtype=='Button' && !this.first_button) {
-				$(f.input).removeClass("btn-default").addClass('btn-info');
-				this.first_button = true;
-			}
-		}
-	},
 	catch_enter_as_submit: function() {
 		var me = this;
-		$(this.body).find(':input[type="text"], :input[type="password"]').keypress(function(e) {
+		$(this.body).find('input[type="text"], input[type="password"]').keypress(function(e) {
 			if(e.which==13) {
-				$(me.body).find('.btn-info:first').click();
+				$(me.body).find('.btn-primary:first').click();
 			}
 		})
 	},
@@ -56,15 +46,17 @@ wn.ui.FieldGroup = Class.extend({
 		var errors = [];
 		for(var key in this.fields_dict) {
 			var f = this.fields_dict[key];
-			var v = f.get_parsed_value();
+			if(f.get_parsed_value) {
+				var v = f.get_parsed_value();
 
-			if(f.df.reqd && !v) 
-				errors.push(f.df.label + ' is mandatory');
+				if(f.df.reqd && !v) 
+					errors.push('- ' + wn._(f.df.label) + "<br>");
 
-			if(v) ret[f.df.fieldname] = v;
+				if(v) ret[f.df.fieldname] = v;
+			}
 		}
 		if(errors.length) {
-			msgprint('<b>Please check the following Errors</b>\n' + errors.join('\n'));
+			msgprint('<i class="icon-warning-sign"></i> <b>' + wn._('Missing Values Required') + '</b>:<br><br>' + errors.join('\n'));
 			return null;
 		}
 		return ret;

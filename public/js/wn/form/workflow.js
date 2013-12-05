@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.ui.form.States = Class.extend({
@@ -19,13 +19,12 @@ wn.ui.form.States = Class.extend({
 	},
 	
 	make: function() {
-		this.parent = this.frm.appframe.$w
-			.find(".title-button-area-1")
+		this.parent = this.frm.appframe.parent
+			.find(".workflow-button-area")
 			.empty()
-			.toggle(true)
-			.css({"margin-right":"5px"});
+			.removeClass("hide");
 		
-		this.workflow_button = $('<button class="btn btn-default dropdown-toggle">\
+		this.workflow_button = $('<button class="btn btn-default dropdown-toggle" data-toggle="dropdown">\
 			<i class="icon-small"></i> <span class="state-text"></span>\
 			<span class="caret"></span></button>')
 			.appendTo(this.parent).dropdown();
@@ -82,20 +81,22 @@ wn.ui.form.States = Class.extend({
 			
 			var state_doc = wn.model.get("Workflow State", {name:state})[0];
 
-			// set the icon
-			this.workflow_button.find('i').removeClass()
-				.addClass("icon-white")
-				.addClass("icon-" + state_doc.icon);
+			if (state_doc) {
+				// set the icon
+				this.workflow_button.find('i').removeClass()
+					.addClass("icon-white")
+					.addClass("icon-" + state_doc.icon);
 
-			// set the style
-			this.workflow_button.removeClass().addClass("btn btn-default dropdown-toggle")
+				// set the style
+				this.workflow_button.removeClass().addClass("btn btn-default dropdown-toggle")
 
-			if(state_doc && state_doc.style)
-				this.workflow_button.addClass("btn-" + state_doc.style.toLowerCase());
-			
+				if(state_doc && state_doc.style)
+					this.workflow_button.addClass("btn-" + state_doc.style.toLowerCase());
+			}
+
 			// show actions from that state
 			this.show_actions(state);
-			
+
 			if(this.frm.doc.__islocal) {
 				this.workflow_button.prop('disabled', true);
 			}
@@ -179,7 +180,7 @@ wn.ui.form.States = Class.extend({
 			}
 			
 			// hide dropdown
-			$(this).parents(".dropdown-menu:first").prev().dropdown('toggle');
+			me.workflow_button.dropdown('toggle');
 			
 			return false;
 		})

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 if(!window.wn) wn = {};
@@ -32,7 +32,7 @@ function cint(v, def) {
 	if(v===false)
 		return 0;
 	v=v+'';
-	v=lstrip(v, ['0']); 
+	if(v!=="0")v=lstrip(v, ['0']); 
 	v=parseInt(v); 
 	if(isNaN(v))v=def===undefined?0:def;
 	return v; 

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.utils.full_name = function(fn, ln) { 
@@ -81,9 +81,11 @@ var crop = function(s, len) {
 }
 
 var strip = function(s, chars) {
-	var s= lstrip(s, chars)
-	s = rstrip(s, chars);
-	return s;
+	if (s) {
+		var s= lstrip(s, chars)
+		s = rstrip(s, chars);
+		return s;
+	}
 }
 
 var rstrip = function(s, chars) {

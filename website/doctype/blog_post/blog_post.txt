@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2013-07-05 15:08:30", 
+  "modified": "2013-10-10 15:07:21", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -47,15 +47,15 @@
  }, 
  {
   "doctype": "DocField", 
-  "fieldname": "published", 
-  "fieldtype": "Check", 
-  "label": "Published"
- }, 
- {
-  "doctype": "DocField", 
   "fieldname": "published_on", 
   "fieldtype": "Date", 
   "label": "Published On"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "published", 
+  "fieldtype": "Check", 
+  "label": "Published"
  }, 
  {
   "doctype": "DocField", 

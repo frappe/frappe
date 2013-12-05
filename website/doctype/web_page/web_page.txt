@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-28 10:35:30", 
   "docstatus": 0, 
-  "modified": "2013-07-05 15:02:45", 
+  "modified": "2013-11-22 11:35:55", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -25,18 +25,29 @@
   "permlevel": 0
  }, 
  {
+  "cancel": 1, 
+  "create": 1, 
   "doctype": "DocPerm", 
   "name": "__common__", 
   "parent": "Web Page", 
   "parentfield": "permissions", 
   "parenttype": "DocType", 
+  "permlevel": 0, 
   "read": 1, 
+  "report": 1, 
   "role": "Website Manager", 
-  "submit": 0
+  "submit": 0, 
+  "write": 1
  }, 
  {
   "doctype": "DocType", 
   "name": "Web Page"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "section_title", 
+  "fieldtype": "Section Break", 
+  "label": "Title"
  }, 
  {
   "description": "Title / headline of your page", 
@@ -47,10 +58,13 @@
   "reqd": 1
  }, 
  {
+  "description": "Page url name (auto-generated) (add \".html\")", 
   "doctype": "DocField", 
-  "fieldname": "cb1", 
-  "fieldtype": "Column Break", 
-  "width": "50%"
+  "fieldname": "page_name", 
+  "fieldtype": "Data", 
+  "in_list_view": 1, 
+  "label": "Page Name", 
+  "read_only": 1
  }, 
  {
   "doctype": "DocField", 
@@ -59,13 +73,17 @@
   "label": "Published"
  }, 
  {
-  "description": "Page url name (auto-generated) (add \".html\")", 
   "doctype": "DocField", 
-  "fieldname": "page_name", 
-  "fieldtype": "Data", 
-  "in_list_view": 1, 
-  "label": "Page Name", 
-  "read_only": 1
+  "fieldname": "cb1", 
+  "fieldtype": "Column Break", 
+  "width": "50%"
+ }, 
+ {
+  "description": "Description for page header.", 
+  "doctype": "DocField", 
+  "fieldname": "description", 
+  "fieldtype": "Small Text", 
+  "label": "Description"
  }, 
  {
   "description": "Page content", 
@@ -83,13 +101,6 @@
   "options": "Website Slideshow"
  }, 
  {
-  "description": "Description for page header.", 
-  "doctype": "DocField", 
-  "fieldname": "description", 
-  "fieldtype": "Small Text", 
-  "label": "Description"
- }, 
- {
   "description": "Content in markdown format that appears on the main side of your page", 
   "doctype": "DocField", 
   "fieldname": "main_section", 
@@ -97,11 +108,18 @@
   "label": "Main Section"
  }, 
  {
+  "depends_on": "eval:!doc.__islocal", 
   "description": "Link to other pages in the side bar and next section", 
   "doctype": "DocField", 
   "fieldname": "sb2", 
   "fieldtype": "Section Break", 
   "label": "More"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "enable_comments", 
+  "fieldtype": "Check", 
+  "label": "Enable Comments"
  }, 
  {
   "doctype": "DocField", 
@@ -118,6 +136,7 @@
   "label": "Insert Code"
  }, 
  {
+  "depends_on": "insert_code", 
   "doctype": "DocField", 
   "fieldname": "javascript", 
   "fieldtype": "Code", 
@@ -131,6 +150,7 @@
   "label": "Insert Style"
  }, 
  {
+  "depends_on": "insert_style", 
   "doctype": "DocField", 
   "fieldname": "css", 
   "fieldtype": "Code", 
@@ -138,17 +158,31 @@
   "options": "CSS"
  }, 
  {
-  "create": 1, 
-  "doctype": "DocPerm", 
-  "permlevel": 0, 
-  "report": 1, 
-  "write": 1
+  "doctype": "DocField", 
+  "fieldname": "show_title", 
+  "fieldtype": "Check", 
+  "label": "Show Title"
  }, 
  {
-  "amend": 0, 
-  "cancel": 0, 
-  "create": 0, 
-  "doctype": "DocPerm", 
-  "permlevel": 1
+  "doctype": "DocField", 
+  "fieldname": "show_breadcrumbs", 
+  "fieldtype": "Check", 
+  "label": "Show Breadcrumbs"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "show_toc", 
+  "fieldtype": "Check", 
+  "label": "Show Table of Contents"
+ }, 
+ {
+  "doctype": "DocField", 
+  "fieldname": "toc", 
+  "fieldtype": "Table", 
+  "label": "Table of Contents", 
+  "options": "Table of Contents"
+ }, 
+ {
+  "doctype": "DocPerm"
  }
 ]

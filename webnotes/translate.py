@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -18,8 +18,6 @@ import re
 from csv import reader
 from webnotes.modules import get_doc_path,get_doctype_module
 from webnotes.utils import get_base_path, cstr
-
-messages = {}
 
 def translate(lang=None):
 	languages = [lang]
@@ -51,7 +49,7 @@ def get_all_languages():
 		if e.args[0]==2:
 			return []
 		else:
-			raise e
+			raise
 
 def get_lang_dict():
 	languages_path = os.path.join(get_base_path(), "app", "translations", "languages.json")
@@ -116,6 +114,7 @@ def build_for_pages(path):
 	"""make locale files for framework py and js (all)"""
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
+		if 'locale' in folders: folders.remove('locale')
 		if os.path.basename(os.path.dirname(basepath))=="page":
 			messages_js, messages_py = [], []
 			for fname in files:
@@ -132,7 +131,8 @@ def build_for_pages(path):
 def build_from_query_report():
 	"""make locale for the query reports from database and the framework js and py files"""
 	import re
-	for item in webnotes.conn.sql("""select report_name,ref_doctype,query from `tabReport`""", as_dict=1):
+	for item in webnotes.conn.sql("""select name, report_name,ref_doctype, query 
+			from `tabReport`""", as_dict=1):
 		messages_js, messages_py = [], []
 
 		if item:
@@ -148,9 +148,10 @@ def build_from_query_report():
 			
 			module = get_doctype_module(item.ref_doctype)		
 			if module :
-				doctype_path = get_doc_path(module, "Report", item.report_name)
+				doctype_path = get_doc_path(module, "Report", item.name)
 				if os.path.exists(doctype_path):
 					for (basepath, folders, files) in os.walk(doctype_path):
+						if 'locale' in folders: folders.remove('locale')
 						for fname in files:
 							if fname.endswith('.js'):
 								messages_js += get_message_list(os.path.join(basepath, fname))	
@@ -202,6 +203,7 @@ def build_for_framework(path, mtype, with_doctype_names = False):
 	"""make locale files for framework py and js (all)"""
 	messages = []
 	for (basepath, folders, files) in os.walk(path):
+		if 'locale' in folders: folders.remove('locale')
 		for fname in files:
 			fname = cstr(fname)
 			if fname.endswith('.' + mtype):
@@ -247,9 +249,9 @@ def get_message_list(path):
 	messages = []
 	with open(path, 'r') as sourcefile:
 		txt = sourcefile.read()
-		messages += re.findall('_\("([^"]*)"\)', txt)
-		messages += re.findall("_\('([^']*)'\)", txt)
-		messages += re.findall('_\("{3}([^"]*)"{3}\)', txt, re.S)	
+		messages += re.findall('_\("([^"]*)".*\)', txt)
+		messages += re.findall("_\('([^']*)'.*\)", txt)
+		messages += re.findall('_\("{3}([^"]*)"{3}.*\)', txt, re.S)	
 		
 	return messages
 	
@@ -334,22 +336,24 @@ def import_messages(lang, infile):
 			_update_lang_file('js')
 			_update_lang_file('py')
 
-docs_loaded = []
 def load_doc_messages(module, doctype, name):
 	if webnotes.lang=="en":
 		return {}
 
-	global docs_loaded
+	if not webnotes.local.translated_docs:
+		webnotes.local.translated_docs = []
+
 	doc_path = get_doc_path(module, doctype, name)
 
 	# don't repload the same doc again
-	if (webnotes.lang + ":" + doc_path) in docs_loaded:
+	if (webnotes.lang + ":" + doc_path) in webnotes.local.translated_docs:
 		return
 
-	docs_loaded.append(webnotes.lang + ":" + doc_path)
+	if not docs_loaded:
+		webnotes.local.translate_docs_loaded = []
+	webnotes.local.translated_docs.append(webnotes.lang + ":" + doc_path)
 
-	global messages
-	messages.update(get_lang_data(doc_path, None, 'doc'))
+	webnotes.local.translations.update(get_lang_data(doc_path, None, 'doc'))
 
 def get_lang_data(basepath, lang, mtype):
 	"""get language dict from langfile"""
@@ -358,10 +362,10 @@ def get_lang_data(basepath, lang, mtype):
 	if os.path.basename(basepath) != 'locale':
 		basepath = os.path.join(basepath, 'locale')
 	
-	if not lang: lang = webnotes.lang
+	if not lang: lang = webnotes.local.lang
 	
 	path = os.path.join(basepath, lang + '-' + mtype + '.json')
-	
+		
 	langdata = {}
 	if os.path.exists(path):
 		with codecs.open(path, 'r', 'utf-8') as langfile:
@@ -401,7 +405,8 @@ def google_translate(lang, infile, outfile):
 	"""translate objects using Google API. Add you own API key for translation"""
 	data = get_all_messages_from_file(infile)
 		
-	import requests, conf
+	import requests
+	from webnotes import conf
 	
 	old_translations = {}
 	
@@ -428,11 +433,13 @@ def google_translate(lang, infile, outfile):
 							"q": row[0]
 						})
 			
-					if "error" in response.json:
-						print response.json
+					data = response.json()
+			
+					if "error" in data:
+						print data
 						continue
 					
-					row[1] = response.json["data"]["translations"][0]["translatedText"]
+					row[1] = data["data"]["translations"][0]["translatedText"]
 					if not row[1]:
 						row[1] = row[0] # google unable to translate!
 			

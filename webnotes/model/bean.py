@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -13,6 +13,10 @@ import webnotes
 from webnotes import _, msgprint
 from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
+try:
+	from startup.bean_handlers import on_method
+except ImportError:
+	on_method = None
 
 class DocstatusTransitionError(webnotes.ValidationError): pass
 class BeanPermissionError(webnotes.ValidationError): pass
@@ -40,7 +44,7 @@ class Bean:
 		elif isinstance(dt, dict):
 			self.set_doclist([dt])
 
-	def load_from_db(self, dt=None, dn=None, prefix='tab'):
+	def load_from_db(self, dt=None, dn=None):
 		"""
 			Load doclist from dt
 		"""
@@ -49,7 +53,7 @@ class Bean:
 		if not dt: dt = self.doc.doctype
 		if not dn: dn = self.doc.name
 
-		doc = Document(dt, dn, prefix=prefix)
+		doc = Document(dt, dn)
 		
 		# get all children types
 		tablefields = webnotes.model.meta.get_table_fields(dt)
@@ -57,7 +61,7 @@ class Bean:
 		# load chilren
 		doclist = webnotes.doclist([doc,])
 		for t in tablefields:
-			doclist += getchildren(doc.name, t[0], t[1], dt, prefix=prefix)
+			doclist += getchildren(doc.name, t[0], t[1], dt)
 
 		self.set_doclist(doclist)
 		
@@ -190,22 +194,28 @@ class Bean:
 	def prepare_for_save(self, method):
 		self.check_if_latest(method)
 		
-		if method != "cancel":
-			self.check_links()
-		
 		self.update_timestamps_and_docstatus()
 		self.update_parent_info()
+		
+		if self.doc.fields.get("__islocal"):
+			# set name before validate
+			self.doc.set_new_name(self.get_controller())
+			self.run_method('before_insert')
+			
+		if method != "cancel":
+			self.extract_images_from_text_editor()
+			self.check_links()
 
 	def update_parent_info(self):
 		idx_map = {}
 		is_local = cint(self.doc.fields.get("__islocal"))
 		
-		if not webnotes.in_import:
+		if not webnotes.flags.in_import:
 			parentfields = [d.fieldname for d in self.meta.get({"doctype": "DocField", "fieldtype": "Table"})]
 			
 		for i, d in enumerate(self.doclist[1:]):
 			if d.parentfield:
-				if not webnotes.in_import:
+				if not webnotes.flags.in_import:
 					if not d.parentfield in parentfields:
 						webnotes.msgprint("Bad parentfield %s" % d.parentfield, 
 							raise_exception=True)
@@ -230,7 +240,7 @@ class Bean:
 		if hasattr(self.controller, 'custom_' + method):
 			getattr(self.controller, 'custom_' + method)(*args, **kwargs)
 
-		notify(self.controller, method)
+		notify(self, method)
 		
 		self.set_doclist(self.controller.doclist)
 		
@@ -238,64 +248,25 @@ class Bean:
 		self.make_controller()
 		return getattr(self.controller, method, None)
 
-	def save_main(self):
-		try:
-			self.doc.save(check_links = False, ignore_fields = self.ignore_fields)
-		except NameError, e:
-			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
-
-			# prompt if cancelled
-			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
-				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
-			webnotes.errprint(webnotes.utils.getTraceback())
-			raise e
-
-	def save_children(self):
-		child_map = {}
-		for d in self.doclist[1:]:
-			if d.fields.get("parent") or d.fields.get("parentfield"):
-				d.parent = self.doc.name # rename if reqd
-				d.parenttype = self.doc.doctype
-				
-				d.save(check_links=False, ignore_fields = self.ignore_fields)
-			
-			child_map.setdefault(d.doctype, []).append(d.name)
-		
-		# delete all children in database that are not in the child_map
-		
-		# get all children types
-		tablefields = webnotes.model.meta.get_table_fields(self.doc.doctype)
-				
-		for dt in tablefields:
-			if dt[0] not in self.ignore_children_type:
-				cnames = child_map.get(dt[0]) or []
-				if cnames:
-					webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
-						name not in (%s)""" % (dt[0], '%s', '%s', ','.join(['%s'] * len(cnames))), 
-							tuple([self.doc.name, self.doc.doctype] + cnames))
-				else:
-					webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
-						% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
-
 	def insert(self):
 		self.doc.fields["__islocal"] = 1
 			
 		self.set_defaults()
 		
-		if webnotes.in_test:
+		if webnotes.flags.in_test:
 			if self.meta.get_field("naming_series"):
 				self.doc.naming_series = "_T-" + self.doc.doctype + "-"
 		
 		return self.save()
 	
 	def insert_or_update(self):
-		if webnotes.conn.exists( self.doc.doctype, self.doc.name):
+		if self.doc.name and webnotes.conn.exists(self.doc.doctype, self.doc.name):
 			return self.save()
 		else:
 			return self.insert()
 	
 	def set_defaults(self):
-		if webnotes.in_import:
+		if webnotes.flags.in_import:
 			return
 			
 		new_docs = {}
@@ -331,6 +302,8 @@ class Bean:
 			self.save_main()
 			self.save_children()
 			self.run_method('on_update')
+			if perm_to_check=="create":
+				self.run_method("after_insert")
 		else:
 			self.no_permission_to(_(perm_to_check.title()))
 		
@@ -379,6 +352,45 @@ class Bean:
 			self.no_permission_to(_("Update"))
 		
 		return self
+
+	def save_main(self):
+		try:
+			self.doc.save(check_links = False, ignore_fields = self.ignore_fields)
+		except NameError, e:
+			webnotes.msgprint('%s "%s" already exists' % (self.doc.doctype, self.doc.name))
+
+			# prompt if cancelled
+			if webnotes.conn.get_value(self.doc.doctype, self.doc.name, 'docstatus')==2:
+				webnotes.msgprint('[%s "%s" has been cancelled]' % (self.doc.doctype, self.doc.name))
+			webnotes.errprint(webnotes.utils.getTraceback())
+			raise
+
+	def save_children(self):
+		child_map = {}
+		for d in self.doclist[1:]:
+			if d.fields.get("parent") or d.fields.get("parentfield"):
+				d.parent = self.doc.name # rename if reqd
+				d.parenttype = self.doc.doctype
+				
+				d.save(check_links=False, ignore_fields = self.ignore_fields)
+			
+			child_map.setdefault(d.doctype, []).append(d.name)
+		
+		# delete all children in database that are not in the child_map
+		
+		# get all children types
+		tablefields = webnotes.model.meta.get_table_fields(self.doc.doctype)
+				
+		for dt in tablefields:
+			if dt[0] not in self.ignore_children_type:
+				cnames = child_map.get(dt[0]) or []
+				if cnames:
+					webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s and
+						name not in (%s)""" % (dt[0], '%s', '%s', ','.join(['%s'] * len(cnames))), 
+							tuple([self.doc.name, self.doc.doctype] + cnames))
+				else:
+					webnotes.conn.sql("""delete from `tab%s` where parent=%s and parenttype=%s""" \
+						% (dt[0], '%s', '%s'), (self.doc.name, self.doc.doctype))
 	
 	def delete(self):
 		webnotes.delete_doc(self.doc.doctype, self.doc.name)
@@ -426,6 +438,12 @@ class Bean:
 					doc.fields[df.fieldname] = flt(doc.fields.get(df.fieldname))
 				
 			doc.docstatus = cint(doc.docstatus)
+			
+	def extract_images_from_text_editor(self):
+		from webnotes.utils.file_manager import extract_images_from_html
+		if self.doc.doctype != "DocType":
+			for df in self.meta.get({"doctype": "DocField", "parent": self.doc.doctype, "fieldtype":"Text Editor"}):
+				extract_images_from_html(self.doc, df.fieldname)
 
 def clone(source_wrapper):
 	""" make a clone of a document"""
@@ -449,33 +467,12 @@ def clone(source_wrapper):
 	
 	return new_wrapper
 
-
-def notify(controller, caller_method):
-	try:
-		from startup.observers import observer_map
-	except ImportError:
-		return
-		
-	doctype = controller.doc.doctype
-	
-	def call_observers(key):
-		if key in observer_map:
-			observer_list = observer_map[key]
-			if isinstance(observer_list, basestring):
-				observer_list = [observer_list]
-			for observer_method in observer_list:
-				webnotes.get_method(observer_method)(controller, caller_method)
-	
-	call_observers("*:*")
-	call_observers(doctype + ":*")
-	call_observers("*:" + caller_method)
-	call_observers(doctype + ":" + caller_method)
+def notify(bean, method):
+	if on_method:
+		on_method(bean, method)
 
 # for bc
 def getlist(doclist, parentfield):
-	"""
-		Return child records of a particular type
-	"""
 	import webnotes.model.utils
 	return webnotes.model.utils.getlist(doclist, parentfield)
 

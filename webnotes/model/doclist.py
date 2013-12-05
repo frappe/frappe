@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 import webnotes
@@ -44,7 +44,7 @@ class DocList(list):
 		return DocList(out)
 		
 	def get_distinct_values(self, fieldname):
-		return list(set(map(lambda d: d.fields.get(fieldname), self)))
+		return filter(None, list(set(map(lambda d: d.fields.get(fieldname), self))))
 
 	def remove_items(self, filters):
 		for d in self.get(filters):
@@ -113,26 +113,29 @@ class DocList(list):
 				doc.idx = (max(siblings) + 1) if siblings else 1
 	
 	def update(self, doclist):
+		for i, d in enumerate(self):
+			if d.get("parent") and d.get("name") not in [t.get("name") for t in doclist]:
+				del self[i]
+				
 		for d in doclist:
 			if not d["name"]:
 				d["__islocal"] = 1
 				self.append(d)
 			else:
-				matched = False
-				for ref in self:
-					if isinstance(ref, dict):
-						fielddata = ref
-					else:
-						fielddata = ref.fields
-				
+				# child
+				found_in_existing = False
+
+				for ref in self:				
 					if d["name"] and ref.name and ref.name == d["name"]:
 						ref.fields.update(d)
-						matched = True
+						found_in_existing = True
 						break
 						
-				if not matched:
-					webnotes.throw("[" + d["doctype"] + "] ID: " + d["name"] + 
-						_(" does not exists"))
+				if not found_in_existing:
+					d["__islocal"] = 1
+					d["name"] = None
+					self.append(d)
+					
 		return self
 		
 def objectify(doclist):

@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.ScriptManager = Class.extend({
@@ -63,6 +63,7 @@ wn.ui.form.ScriptManager = Class.extend({
 					'options': df.options, 
 					'fetch': fetch
 				}, 
+				no_spinner: true,
 				callback: function(r) {
 					if(r.message=='Ok') {
 						if(r.fetch_values) 

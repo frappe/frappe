@@ -1,38 +1,35 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 import webnotes
 from webnotes import _, msgprint
+from webnotes.model.controller import DocListController
 
-class DocType:
-	def __init__(self, d, dl):
-		self.doc, self.doclist = d, dl
-		
+class DocType(DocListController):
 	def validate(self):
-		self.set_home_page()
 		self.validate_top_bar_items()
 		self.validate_footer_items()
 		
-	def make_website(self):
-		# set item pages
-		for name in webnotes.conn.sql_list("""select name from tabItem where 
-			ifnull(show_in_website, 0)=0 and is_sales_item ='Yes' """):
-			webnotes.msgprint("Setting 'Show in Website' for:" + name)
-			item = webnotes.bean("Item", name)
-			item.doc.show_in_website = 1
-			item.doc.website_warehouse = item.doc.default_warehouse
-			item.doc.website_image = item.doc.image
-			item.save()
-		
-		# set item group pages
-		for name in webnotes.conn.sql_list("""select name from `tabItem Group` where 
-			ifnull(show_in_website, 0)=0 and exists (select name from tabItem where 
-				ifnull(show_in_website, 0)=1)"""):
-			webnotes.msgprint("Setting 'Show in Website' for:" + name)
-			item_group = webnotes.bean("Item Group", name)
-			item_group.doc.show_in_website = 1
-			item_group.save()
+	# def make_website(self):
+	# 	# set item pages
+	# 	for name in webnotes.conn.sql_list("""select name from tabItem where 
+	# 		ifnull(show_in_website, 0)=0 and is_sales_item ='Yes' """):
+	# 		webnotes.msgprint("Setting 'Show in Website' for:" + name)
+	# 		item = webnotes.bean("Item", name)
+	# 		item.doc.show_in_website = 1
+	# 		item.doc.website_warehouse = item.doc.default_warehouse
+	# 		item.doc.website_image = item.doc.image
+	# 		item.save()
+	# 	
+	# 	# set item group pages
+	# 	for name in webnotes.conn.sql_list("""select name from `tabItem Group` where 
+	# 		ifnull(show_in_website, 0)=0 and exists (select name from tabItem where 
+	# 			ifnull(show_in_website, 0)=1)"""):
+	# 		webnotes.msgprint("Setting 'Show in Website' for:" + name)
+	# 		item_group = webnotes.bean("Item Group", name)
+	# 		item_group.doc.show_in_website = 1
+	# 		item_group.save()
 			
 	def validate_top_bar_items(self):
 		"""validate url in top bar items"""
@@ -58,21 +55,23 @@ class DocType:
 
 	def on_update(self):
 		# make js and css
-		from website.doctype.website_settings.make_web_include_files import make
-		make()
-		
 		# clear web cache (for menus!)
+		self.set_home_page()
+
 		from webnotes.webutils import clear_cache
 		clear_cache()
 
 	def set_home_page(self):
-		from webnotes.model.doc import Document
-		webnotes.conn.sql("""delete from `tabDefault Home Page` where role='Guest'""")
+		if self.doc.home_page:
+			webnotes.bean("Web Page", self.doc.home_page).save()
+			
+			from webnotes.model.doc import Document
+			webnotes.conn.sql("""delete from `tabDefault Home Page` where role='Guest'""")
 		
-		d = Document('Default Home Page')
-		d.parent = 'Control Panel'
-		d.parenttype = 'Control Panel'
-		d.parentfield = 'default_home_pages'
-		d.role = 'Guest'
-		d.home_page = self.doc.home_page
-		d.save()
+			d = Document('Default Home Page')
+			d.parent = 'Control Panel'
+			d.parenttype = 'Control Panel'
+			d.parentfield = 'default_home_pages'
+			d.role = 'Guest'
+			d.home_page = self.doc.home_page
+			d.save()

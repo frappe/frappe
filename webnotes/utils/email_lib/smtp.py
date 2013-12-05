@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -8,9 +8,11 @@ Allows easy adding of Attachments of "File" objects
 """
 
 import webnotes	
-import conf
+from webnotes import conf
 from webnotes import msgprint
-from webnotes.utils import cint
+from webnotes.utils import cint, expand_partial_links
+
+class OutgoingEmailError(webnotes.ValidationError): pass
 
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None, footer=None):
 	"""send an html email as multipart with attachments and all"""
@@ -51,13 +53,13 @@ class EMail:
 		self.html_set = False
 	
 	def set_html(self, message, text_content = None, footer=None):
-
 		"""Attach message in the html portion of multipart/alternative"""
 		message = message + self.get_footer(footer)
+		message = expand_partial_links(message)
 
 		# this is the first html part of a multi-part message, 
 		# convert to text well
-		if not self.html_set: 
+		if not self.html_set:
 			if text_content:
 				self.set_text(text_content)
 			else:
@@ -65,7 +67,7 @@ class EMail:
 		
 		self.set_part_html(message)
 		self.html_set = True
-
+		
 	def set_text(self, message):
 		"""
 			Attach message in the text portion of multipart/alternative
@@ -101,12 +103,15 @@ class EMail:
 		self.msg_root.attach(part)
 	
 	def get_footer(self, footer=None):
-		"""append a footer (signature)"""
-		import startup
-		
+		"""append a footer (signature)"""		
 		footer = footer or ""
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
-		footer += getattr(startup, 'mail_footer', '')
+		
+		try:
+			import startup
+			footer += getattr(startup, 'mail_footer', '')
+		except ImportError:
+			pass
 		
 		return footer
 		
@@ -116,7 +121,7 @@ class EMail:
 		res = get_file(n)
 		if not res:
 			return
-	
+		
 		self.add_attachment(res[0], res[1])
 	
 	def add_attachment(self, fname, fcontent, content_type=None):
@@ -171,11 +176,11 @@ class EMail:
 		
 		if not self.sender:
 			self.sender = webnotes.conn.get_value('Email Settings', None,
-				'auto_email_id') or getattr(conf, 'auto_email_id', None)
+				'auto_email_id') or conf.get('auto_email_id') or None
 			if not self.sender:
 				webnotes.msgprint("""Please specify 'Auto Email Id' \
 					in Setup > Email Settings""")
-				if not hasattr(conf, "expires_on"):
+				if not "expires_on" in conf:
 					webnotes.msgprint("""Alternatively, \
 						you can also specify 'auto_email_id' in conf.py""")
 				raise webnotes.ValidationError
@@ -205,7 +210,7 @@ class EMail:
 		
 	def send(self, as_bulk=False):
 		"""send the message or add it to Outbox Email"""
-		if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+		if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 			webnotes.msgprint("Emails are muted")
 			return
 		
@@ -213,7 +218,8 @@ class EMail:
 		import smtplib
 		try:
 			smtpserver = SMTPServer()
-			if hasattr(smtpserver, "always_use_login_id_as_sender") and cint(smtpserver.always_use_login_id_as_sender):
+			if hasattr(smtpserver, "always_use_login_id_as_sender") and \
+				cint(smtpserver.always_use_login_id_as_sender) and smtpserver.login:
 				self.sender = smtpserver.login
 			
 			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),
@@ -221,12 +227,12 @@ class EMail:
 				
 		except smtplib.SMTPSenderRefused:
 			webnotes.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
-				Please rectify and try again.""",
-				raise_exception=webnotes.OutgoingEmailError)
+				Please rectify and try again.""")
+			raise
 		except smtplib.SMTPRecipientsRefused:
 			webnotes.msgprint("""Invalid Recipient (To) Email Address. \
-				Please rectify and try again.""",
-				raise_exception=webnotes.OutgoingEmailError)
+				Please rectify and try again.""")
+			raise
 
 class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
@@ -254,11 +260,11 @@ class SMTPServer:
 			self.password = es.mail_password
 			self.always_use_login_id_as_sender = es.always_use_login_id_as_sender
 		else:
-			self.server = getattr(conf, "mail_server", "")
-			self.port = getattr(conf, "mail_port", None)
-			self.use_ssl = cint(getattr(conf, "use_ssl", 0))
-			self.login = getattr(conf, "mail_login", "")
-			self.password = getattr(conf, "mail_password", "")
+			self.server = conf.get("mail_server") or ""
+			self.port = conf.get("mail_port") or None
+			self.use_ssl = cint(conf.get("use_ssl") or 0)
+			self.login = conf.get("mail_login") or ""
+			self.password = conf.get("mail_password") or ""
 			
 	@property
 	def sess(self):
@@ -304,17 +310,16 @@ class SMTPServer:
 
 			return self._sess
 			
-		except _socket.error, e:
+		except _socket.error:
 			# Invalid mail server -- due to refusing connection
 			webnotes.msgprint('Invalid Outgoing Mail Server or Port. Please rectify and try again.')
-			raise webnotes.OutgoingEmailError, e
-		except smtplib.SMTPAuthenticationError, e:
+			raise
+		except smtplib.SMTPAuthenticationError:
 			webnotes.msgprint("Invalid Outgoing Mail Server's Login Id or Password. \
 				Please rectify and try again.")
-			raise webnotes.OutgoingEmailError, e
-		except smtplib.SMTPException, e:
+			raise
+		except smtplib.SMTPException:
 			webnotes.msgprint('There is something wrong with your Outgoing Mail Settings. \
 				Please contact us at support@erpnext.com')
-			raise webnotes.OutgoingEmailError, e
-
+			raise
 	

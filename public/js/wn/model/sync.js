@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 $.extend(wn.model, {
@@ -96,7 +96,7 @@ $.extend(wn.model, {
 			var key_list = ['doctype', 'name', 'docstatus', 'owner', 'parent', 
 				'parentfield', 'parenttype', 'idx', 'creation', 'modified', 
 				'modified_by', '__islocal', '__newname', '__modified', 
-				'_user_tags', '__temp'];
+				'_user_tags', '__temp', '_comments'];
 
 			for(key in wn.meta.docfield_map[doctype]) { // all other values
 				if(!in_list(key_list, key) 

@@ -1,23 +1,27 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
 
 import webnotes
 import webnotes.webutils
+from webnotes.webutils import WebsiteGenerator, cleanup_page_name
 from webnotes import _
+from webnotes.utils import today
 
-class DocType:
+class DocType(WebsiteGenerator):
 	def __init__(self, d, dl):
 		self.doc, self.doclist = d, dl
 
 	def autoname(self):
-		from webnotes.webutils import page_name
-		self.doc.name = page_name(self.doc.title)
+		self.doc.name = cleanup_page_name(self.doc.title)
 
 	def validate(self):
 		if self.doc.blog_intro:
 			self.doc.blog_intro = self.doc.blog_intro[:140]
+			
+		if self.doc.published and not self.doc.published_on:
+			self.doc.published_on = today()
 
 		# update posts
 		webnotes.conn.sql("""update tabBlogger set posts=(select count(*) from `tabBlog Post` 
@@ -25,7 +29,7 @@ class DocType:
 			where name=%s""", self.doc.blogger)
 
 	def on_update(self):
-		webnotes.webutils.update_page_name(self.doc, self.doc.title)
+		WebsiteGenerator.on_update(self)
 		webnotes.webutils.delete_page_cache("writers")
 
 	def get_context(self):
@@ -40,7 +44,6 @@ class DocType:
 		from webnotes.utils import global_date_format, get_fullname
 		self.doc.full_name = get_fullname(self.doc.owner)
 		self.doc.updated = global_date_format(self.doc.published_on)
-		self.doc.content_html = self.doc.content
 		
 		if self.doc.blogger:
 			self.doc.blogger_info = webnotes.doc("Blogger", self.doc.blogger).fields
@@ -50,23 +53,11 @@ class DocType:
 		
 		self.doc.categories = webnotes.conn.sql_list("select name from `tabBlog Category` order by name")
 		
-		self.doc.texts = {
-			"comments": _("Comments"),
-			"first_comment": _("Be the first one to comment"),
-			"add_comment": _("Add Comment"),
-			"submit": _("Submit"),
-			"all_posts_by": _("All posts by"),
-		}
-
-		comment_list = webnotes.conn.sql("""\
+		self.doc.comment_list = webnotes.conn.sql("""\
 			select comment, comment_by_fullname, creation
 			from `tabComment` where comment_doctype="Blog Post"
-			and comment_docname=%s order by creation""", self.doc.name, as_dict=1)
-		
-		self.doc.comment_list = comment_list or []
-		for comment in self.doc.comment_list:
-			comment['comment_date'] = webnotes.utils.global_date_format(comment['creation'])
-			comment['comment'] = markdown2.markdown(comment['comment'])
+			and comment_docname=%s order by creation""", self.doc.name, as_dict=1) or []
+						
 			
 def clear_blog_cache():
 	for blog in webnotes.conn.sql_list("""select page_name from 
@@ -110,64 +101,3 @@ def get_blog_list(start=0, by=None, category=None):
 		res['content'] = res['content'][:140]
 		
 	return result
-
-@webnotes.whitelist(allow_guest=True)
-def add_comment(args=None):
-	"""
-		args = {
-			'comment': '',
-			'comment_by': '',
-			'comment_by_fullname': '',
-			'comment_doctype': '',
-			'comment_docname': '',
-			'page_name': '',
-		}
-	"""
-	import webnotes
-	import webnotes.utils, markdown2
-	
-	if not args: args = webnotes.form_dict
-	args['comment'] = unicode(markdown2.markdown(args.get('comment') or ''))
-	args['doctype'] = "Comment"
-	
-	page_name = args.get("page_name")
-	if "page_name" in args:
-		del args["page_name"]
-	if "cmd" in args:
-		del args["cmd"]
-		
-	comment = webnotes.bean(args)
-	comment.ignore_permissions = True
-	comment.insert()
-	
-	# since comments are embedded in the page, clear the web cache
-	webnotes.webutils.clear_cache(page_name)
-	
-	args['comment_date'] = webnotes.utils.global_date_format(comment.doc.creation)
-	template_args = { 'comment_list': [args]}
-	
-	# get html of comment row
-	from jinja2 import Environment, FileSystemLoader
-	jenv = Environment(loader = FileSystemLoader(webnotes.utils.get_base_path()))
-	template = jenv.get_template("lib/website/doctype/blog_post/templates/includes/comment.html")
-	
-	comment_html = template.render(template_args)
-	
-	# notify commentors 
-	commentors = [d[0] for d in webnotes.conn.sql("""select comment_by from tabComment where
-		comment_doctype='Blog Post' and comment_docname=%s and
-		ifnull(unsubscribed, 0)=0""", args.get('comment_docname'))]
-	
-	blog = webnotes.doc("Blog Post", args.get("comment_docname"))
-	blogger_profile = webnotes.conn.get_value("Blogger", blog.blogger, "profile")
-	blogger_email = webnotes.conn.get_value("Profile", blogger_profile, "email")
-	
-	from webnotes.utils.email_lib.bulk import send
-	send(recipients=list(set(commentors + [blogger_email])), 
-		doctype='Comment', 
-		email_field='comment_by', 
-		subject='New Comment on Blog: ' + blog.title, 
-		message='%(comment)s<p>By %(comment_by_fullname)s</p>' % args,
-		ref_doctype='Blog Post', ref_docname=blog.name)
-	
-	return comment_html.replace("\n", "")

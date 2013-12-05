@@ -1,8 +1,9 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
-import webnotes, conf
+import webnotes
+from webnotes import conf
 
 def sendmail_md(recipients, sender=None, msg=None, subject=None):
 	"""send markdown email"""		

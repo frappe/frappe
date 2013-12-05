@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -10,9 +10,16 @@ db_password = '%(db_password)s'
 
 # user attachments stored in
 files_path = 'public/files'
+public_path = 'public'
 
 # max file attachment size (default 1MB)
 max_file_size = 1000000
+
+# max email size in bytes
+max_email_size = 0
+
+# total pop session timeout in seconds
+pop_timeout = 0
 
 # generate schema (.txt files)
 developer_mode = 0

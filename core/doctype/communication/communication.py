@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -16,13 +16,13 @@ class DocType():
 		"""update status of parent Lead or Contact based on who is replying"""
 		observer = self.get_parent_bean().get_method("on_communication")
 		if observer:
-			observer(self.doc)
+			observer()
 	
 	def on_update(self):
 		self.update_parent()
 
 @webnotes.whitelist()
-def make(doctype=None, name=None, content=None, subject=None, 
+def make(doctype=None, name=None, content=None, subject=None, sent_or_received = "Sent",
 	sender=None, recipients=None, communication_medium="Email", send_email=False, 
 	print_html=None, attachments='[]', send_me_a_copy=False, set_lead=True, date=None):
 	# add to Communication
@@ -44,6 +44,7 @@ def make(doctype=None, name=None, content=None, subject=None,
 	d = comm.doc
 	d.subject = subject
 	d.content = content
+	d.sent_or_received = sent_or_received
 	d.sender = sender or webnotes.conn.get_value("Profile", webnotes.session.user, "email")
 	d.recipients = recipients
 	
@@ -58,11 +59,12 @@ def make(doctype=None, name=None, content=None, subject=None,
 
 	d.communication_medium = communication_medium
 	
-	if send_email:
-		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
-	
 	comm.ignore_permissions = True
 	comm.insert()
+	
+	if send_email:
+		d = comm.doc
+		send_comm_email(d, name, sent_via, print_html, attachments, send_me_a_copy)
 
 @webnotes.whitelist()
 def get_customer_supplier(args=None):
@@ -70,7 +72,7 @@ def get_customer_supplier(args=None):
 		Get Customer/Supplier, given a contact, if a unique match exists
 	"""
 	import webnotes
-	if not args: args = webnotes.form_dict
+	if not args: args = webnotes.local.form_dict
 	if not args.get('contact'):
 		raise Exception, "Please specify a contact to fetch Customer/Supplier"
 	result = webnotes.conn.sql("""\
@@ -97,13 +99,13 @@ def send_comm_email(d, name, sent_via=None, print_html=None, attachments='[]', s
 			d.content = sent_via.get_content(d)
 			
 		footer = set_portal_link(sent_via, d)
-			
+		
 	from webnotes.utils.email_lib.smtp import get_email
 	mail = get_email(d.recipients, sender=d.sender, subject=d.subject, 
 		msg=d.content, footer=footer)
 	
 	if send_me_a_copy:
-		mail.cc.append(d.sender)
+		mail.cc.append(webnotes.conn.get_value("Profile", webnotes.session.user, "email"))
 	
 	if print_html:
 		mail.add_attachment(name.replace(' ','').replace('/','-') + '.html', print_html)

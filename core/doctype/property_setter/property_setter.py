@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -53,3 +53,15 @@ class DocType:
 	def on_update(self):
 		from core.doctype.doctype.doctype import validate_fields_for_doctype
 		validate_fields_for_doctype(self.doc.doc_type)
+		
+def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False):
+		return webnotes.bean({
+			"doctype":"Property Setter",
+			"doctype_or_field": for_doctype and "DocType" or "DocField",
+			"doc_type": doctype,
+			"field_name": fieldname,
+			"property": property,
+			"value": value,
+			"property_type": property_type
+		}).insert()
+	

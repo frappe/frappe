@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt 
 
 from __future__ import unicode_literals
@@ -18,15 +18,13 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		return cint(rdata.unsubscribed)
 
 	def check_bulk_limit(new_mails):
-		import conf, startup
+		from webnotes import conf
 		from webnotes.utils import nowdate
+
 		this_month = webnotes.conn.sql("""select count(*) from `tabBulk Email` where
 			month(creation)=month(%s)""" % nowdate())[0][0]
 
-		if hasattr(startup, 'get_monthly_bulk_mail_limit'):
-			monthly_bulk_mail_limit = startup.get_monthly_bulk_mail_limit()
-		else:
-			monthly_bulk_mail_limit = getattr(conf, 'monthly_bulk_mail_limit', 500)
+		monthly_bulk_mail_limit = conf.get('monthly_bulk_mail_limit') or 500
 
 		if this_month + len(recipients) > monthly_bulk_mail_limit:
 			webnotes.msgprint("""Monthly Bulk Mail Limit (%s) Crossed""" % monthly_bulk_mail_limit,
@@ -37,7 +35,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 		import urllib
 		updated = message + """<div style="padding: 7px; border-top: 1px solid #aaa;
 			margin-top: 17px;">
-			<small><a href="%s/server.py?%s">
+			<small><a href="%s/?%s">
 			Unsubscribe</a> from this list.</small></div>""" % (get_url(), 
 			urllib.urlencode({
 				"cmd": "webnotes.utils.email_lib.bulk.unsubscribe",
@@ -47,7 +45,7 @@ def send(recipients=None, sender=None, doctype='Profile', email_field='email',
 			}))
 			
 		return updated
-			
+	
 	if not recipients: recipients = []
 	if not sender or sender == "Administrator":
 		sender = webnotes.conn.get_value('Email Settings', None, 'auto_email_id')
@@ -81,7 +79,7 @@ def add(email, sender, subject, message, text_content=None, ref_doctype=None, re
 	try:
 		e.message = get_email(email, sender=e.sender, msg=message, subject=subject, 
 			text_content = text_content).as_string()
-	except webnotes.ValidationError, e:
+	except webnotes.ValidationError:
 		# bad email id - don't add to queue
 		return
 		
@@ -102,22 +100,23 @@ def unsubscribe():
 	if not webnotes.form_dict.get("from_test"):
 		webnotes.conn.commit()
 
-	webnotes.message_title = "Unsubscribe"
-	webnotes.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
+	webnotes.local.message_title = "Unsubscribe"
+	webnotes.local.message = "<h3>Unsubscribed</h3><p>%s has been successfully unsubscribed.</p>" % email
 
 	webnotes.response['type'] = 'page'
 	webnotes.response['page_name'] = 'message.html'
 	
 def flush(from_test=False):
 	"""flush email queue, every time: called from scheduler"""
-	import webnotes, conf
+	import webnotes
+	from webnotes import conf
 	from webnotes.utils.email_lib.smtp import SMTPServer, get_email
 
 	smptserver = SMTPServer()
 	
 	auto_commit = not from_test
 	
-	if webnotes.mute_emails or getattr(conf, "mute_emails", False):
+	if webnotes.flags.mute_emails or conf.get("mute_emails") or False:
 		webnotes.msgprint("Emails are muted")
 		from_test = True
 

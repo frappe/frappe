@@ -2,7 +2,7 @@
  {
   "creation": "2013-03-19 12:02:15", 
   "docstatus": 0, 
-  "modified": "2013-07-05 14:23:27", 
+  "modified": "2013-10-28 15:33:19", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -61,20 +61,20 @@
   "doctype": "DocField", 
   "fieldname": "sb0", 
   "fieldtype": "Section Break", 
-  "label": "Company History"
+  "label": "Org History"
  }, 
  {
   "description": "\"Company History\"", 
   "doctype": "DocField", 
   "fieldname": "company_history_heading", 
   "fieldtype": "Data", 
-  "label": "Company History Heading"
+  "label": "Org History Heading"
  }, 
  {
   "doctype": "DocField", 
   "fieldname": "company_history", 
   "fieldtype": "Table", 
-  "label": "Company History", 
+  "label": "Org History", 
   "options": "Company History"
  }, 
  {

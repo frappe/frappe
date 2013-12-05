@@ -15,7 +15,7 @@
 	<div class="carousel-inner">
 		{% for slide in obj.slides %}
 		<div class="{% if slide.idx==1 %}active {% endif %}item">
-			<img src="{{ slide.image }}" />
+			<img src="{{ slide.image }}" class="slide-image" />
 			{% if slide.heading or slide.description %}
 			<div class="carousel-caption">
 				{% if slide.heading %}<h4>{{ slide.heading }}</h4>{% endif %}

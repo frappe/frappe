@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 wn.provide('wn.ui');
@@ -21,27 +21,15 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 		dialog.show()',
 	init: function(opts) {
 		this.display = false;
+		this.is_dialog = true;
 		if(!opts.width) opts.width = 480;
 
 		$.extend(this, opts);
+		this._super();
 		this.make();
 	},
 	make: function() {
-		// ui-front class is used as appendTo by jquery.autocomplete
-		this.$wrapper = $('<div class="modal" style="overflow: auto;">\
-			<div class="modal-dialog">\
-				<div class="modal-content">\
-					<div class="modal-header">\
-						<a type="button" class="close" \
-							data-dismiss="modal" aria-hidden="true">&times;</a>\
-						<h4 class="modal-title"></h4>\
-					</div>\
-					<div class="modal-body ui-front">\
-					</div>\
-				</div>\
-			</div>\
-			</div>')
-			.appendTo(document.body);
+		this.$wrapper = wn.get_modal("", "");
 		this.wrapper = this.$wrapper.find('.modal-dialog').get(0);
 		this.make_head();
 		this.body = this.$wrapper.find(".modal-body").get(0);
@@ -95,7 +83,6 @@ wn.ui.Dialog = wn.ui.FieldGroup.extend({
 	},
 	hide: function(from_event) {
 		this.$wrapper.modal("hide");
-
 	},
 	no_cancel: function() {
 		this.$wrapper.find('.close').toggle(false);

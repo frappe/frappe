@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 
 wn.ui.form.Footer = Class.extend({
@@ -17,40 +17,37 @@ wn.ui.form.Footer = Class.extend({
 	},
 	make: function() {
 		var me = this;
-		this.wrapper = $('<div class="form-footer row">\
+		$("<div>").css({"border-top":"1px solid #c7c7c7"}).appendTo(this.parent)
+		this.wrapper = $('<div class="form-footer container">\
 			<!--i class="icon-cut" style="margin-top: -23px; margin-bottom: 23px; \
 				display: block; margin-left: 15px; color: #888;"></i-->\
-			<div class="col-md-12">\
-				<div class="save-area">\
-					<button class="btn btn-save btn-primary">\
-						<i class="icon-save"></i> '+wn._("Save")+'</button>\
-				</div>\
+			<div>\
 				<div class="help-area"></div>\
 			</div>\
-			<div class="after-save">\
+			<div class="after-save row">\
 				<div class="col-md-8">\
-					<div class="form-tags">\
-						<h4 style="display: inline-block"><i class="icon-tag"></i> '+wn._("Tags")+'</h4>\
-						<span class="tag-area"></span><br>\
-					</div><hr>\
 					<div class="form-comments">\
-						<h4><i class="icon-comments"></i> '+wn._("Comments")+'</h4>\
+						<h5><i class="icon-comments"></i> '+wn._("Comments")+'</h5>\
 					</div>\
 				</div>\
 				<div class="col-md-4">\
+					<div class="form-tags">\
+						<h5 style="display: inline-block"><i class="icon-tag"></i> '+wn._("Tags")+'</h5>\
+						<span class="tag-area"></span><br>\
+					</div><hr>\
 					<div class="form-assignments" style="margin-bottom: 7px;">\
-						<h4>\
-							<i class="icon-ok-sign"></i> '+wn._("Assigned To")+': \
-							<button class="btn btn-small btn-default pull-right"\
+						<h5>\
+							<i class="icon-flag"></i> '+wn._("Assigned To")+': \
+							<button class="btn small btn-default pull-right"\
 								style="margin-top:-7px;">'+wn._("Add")+'</button>\
-						</h4>\
+						</h5>\
 					</div><hr>\
 					<div class="form-attachments">\
-						<h4>\
+						<h5>\
 							<i class="icon-paper-clip"></i> '+wn._("Attachments")+':\
-							<button class="btn btn-small btn-default pull-right"\
+							<button class="btn small btn-default pull-right"\
 								style="margin-top:-7px;">'+wn._("Add")+'</button>\
-						</h4>\
+						</h5>\
 					</div>\
 				</div>\
 			</div>\
@@ -86,31 +83,15 @@ wn.ui.form.Footer = Class.extend({
 			frm: this.frm
 		})
 	},
-	show_save: function() {
-		this.wrapper.find(".save-area").toggle(true);
-	},
-	hide_save: function() {
-		this.wrapper.find(".save-area").toggle(false);
-	},
 	refresh: function() {
-		this.toggle_save();
 		if(this.frm.doc.__islocal) {
-			this.wrapper.find(".after-save").toggle(false);
+			this.parent.addClass("hide");
 		} else {
-			this.wrapper.find(".after-save").toggle(true);
+			this.parent.removeClass("hide");
 			this.frm.attachments.refresh();
 			this.frm.comments.refresh();
 			this.frm.assign_to.refresh();
 			this.frm.tags.refresh();
 		}
 	},
-	toggle_save: function() {
-		if(this.frm_head && this.appframe.toolbar
-			&& this.appframe.buttons.Save && !this.save_disabled
-			&& (this.fields && this.fields.length > 7)) {
-			this.show_save();
-		} else {
-			this.hide_save();
-		}
-	}
 });

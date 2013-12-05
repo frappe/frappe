@@ -1,4 +1,4 @@
-// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+// Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt 
 
 // new re-factored Listing object
@@ -65,10 +65,10 @@ wn.ui.Listing = Class.extend({
 				<h3 class="title hide">%(title)s</h3>\
 				\
 				<div class="list-filters" style="display: none;">\
-					<div class="show_filters well" style="display: none;">\
+					<div class="show_filters" style="display: none;">\
 						<div class="filter_area"></div>\
 						<div>\
-							<button class="btn btn-default btn-info search-btn">\
+							<button class="btn btn-info search-btn">\
 								<i class="icon-refresh icon-white"></i> \
 								<span class="hidden-phone">Search</span></button>\
 							<button class="btn btn-default add-filter-btn">\
@@ -145,7 +145,7 @@ wn.ui.Listing = Class.extend({
 	
 		// hide-refresh
 		if(!(this.hide_refresh || this.no_refresh)) {
-			this.add_button('', function() {
+			this.add_button('Refresh', function() {
 				me.run();
 			}, 'icon-refresh');
 			
@@ -153,7 +153,11 @@ wn.ui.Listing = Class.extend({
 				
 		// new
 		if(this.new_doctype) {
-			this.add_button(wn._('New') + ' ' + wn._(this.new_doctype), function() { 
+			if(this.appframe) {
+				this.appframe.set_title_right("<i class='icon-plus'></i> New", function() { 
+					(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]); });
+			}
+			this.add_button(wn._('New'), function() { 
 				(me.custom_new_doc || me.make_new_doc).apply(me, [me.new_doctype]);
 			}, 'icon-plus');
 		} 
@@ -284,6 +288,7 @@ wn.ui.Listing = Class.extend({
 		// callbacks
 		if(this.onrun) this.onrun();
 		if(this.callback) this.callback(r);
+		this.$w.trigger("render-complete");
 	},
 
 	get_values_from_response: function(data) {
@@ -352,7 +357,7 @@ wn.ui.Listing = Class.extend({
 		} else {
 			// no filter for this item,
 			// setup one
-			if(fieldname==='_user_tags') {
+			if(['_user_tags', '_comments'].indexOf(fieldname)!==-1) {
 				this.filter_list.add_filter(doctype, fieldname, 
 					'like', '%' + label);
 			} else {

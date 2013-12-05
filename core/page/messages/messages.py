@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd.
+# Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
 from __future__ import unicode_literals
@@ -27,7 +27,7 @@ def get_list(arg=None):
 			or (owner=comment_docname and ifnull(parenttype, "")!="Assignment"))
 		and comment_doctype ='Message'
 		order by creation desc
-		limit %(limit_start)s, %(limit_page_length)s""", webnotes.form_dict, as_dict=1)		
+		limit %(limit_start)s, %(limit_page_length)s""", webnotes.local.form_dict, as_dict=1)		
 	else:
 		return webnotes.conn.sql("""select * from `tabComment` 
 		where (owner=%(contact)s and comment_docname=%(user)s)
@@ -35,7 +35,7 @@ def get_list(arg=None):
 		or (owner=%(contact)s and comment_docname=%(contact)s)
 		and comment_doctype ='Message'
 		order by creation desc
-		limit %(limit_start)s, %(limit_page_length)s""", webnotes.form_dict, as_dict=1)
+		limit %(limit_start)s, %(limit_page_length)s""", webnotes.local.form_dict, as_dict=1)
 		
 
 @webnotes.whitelist()
@@ -56,7 +56,7 @@ def post(arg=None):
 	"""post message"""
 	if not arg:
 		arg = {}
-		arg.update(webnotes.form_dict)
+		arg.update(webnotes.local.form_dict)
 	
 	if isinstance(arg, basestring):
 		import json
