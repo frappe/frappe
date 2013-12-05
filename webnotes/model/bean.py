@@ -199,7 +199,7 @@ class Bean:
 		
 		if self.doc.fields.get("__islocal"):
 			# set name before validate
-			self.doc.set_new_name()
+			self.doc.set_new_name(self.get_controller())
 			self.run_method('before_insert')
 			
 		if method != "cancel":

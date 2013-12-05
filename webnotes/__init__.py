@@ -116,7 +116,6 @@ class DuplicateEntryError(Exception): pass
 class ValidationError(Exception): pass
 class AuthenticationError(Exception): pass
 class PermissionError(Exception): pass
-class OutgoingEmailError(ValidationError): pass
 class UnknownDomainError(Exception): pass
 class SessionStopped(Exception): pass
 class MappingMismatchError(ValidationError): pass

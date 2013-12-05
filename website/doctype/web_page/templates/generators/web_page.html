@@ -17,7 +17,7 @@
 	
 	{% include "lib/website/doctype/website_slideshow/templates/includes/slideshow.html" %}
 	<div class="web-page-content" id="{{ name }}">
-	{{ main_section }}
+	{{ main_section or "" }}
 	</div>
 	
 	{# toc, parent, child, next sibling #}

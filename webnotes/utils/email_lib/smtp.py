@@ -12,6 +12,8 @@ from webnotes import conf
 from webnotes import msgprint
 from webnotes.utils import cint, expand_partial_links
 
+class OutgoingEmailError(webnotes.ValidationError): pass
+
 def get_email(recipients, sender='', msg='', subject='[No Subject]', text_content = None, footer=None):
 	"""send an html email as multipart with attachments and all"""
 	email = EMail(sender, recipients, subject)
@@ -108,7 +110,7 @@ class EMail:
 		try:
 			import startup
 			footer += getattr(startup, 'mail_footer', '')
-		except ImportError, e:
+		except ImportError:
 			pass
 		
 		return footer
@@ -225,12 +227,12 @@ class EMail:
 				
 		except smtplib.SMTPSenderRefused:
 			webnotes.msgprint("""Invalid Outgoing Mail Server's Login Id or Password. \
-				Please rectify and try again.""",
-				raise_exception=webnotes.OutgoingEmailError)
+				Please rectify and try again.""")
+			raise
 		except smtplib.SMTPRecipientsRefused:
 			webnotes.msgprint("""Invalid Recipient (To) Email Address. \
-				Please rectify and try again.""",
-				raise_exception=webnotes.OutgoingEmailError)
+				Please rectify and try again.""")
+			raise
 
 class SMTPServer:
 	def __init__(self, login=None, password=None, server=None, port=None, use_ssl=None):
@@ -308,17 +310,16 @@ class SMTPServer:
 
 			return self._sess
 			
-		except _socket.error, e:
+		except _socket.error:
 			# Invalid mail server -- due to refusing connection
 			webnotes.msgprint('Invalid Outgoing Mail Server or Port. Please rectify and try again.')
-			raise webnotes.OutgoingEmailError, e
-		except smtplib.SMTPAuthenticationError, e:
+			raise
+		except smtplib.SMTPAuthenticationError:
 			webnotes.msgprint("Invalid Outgoing Mail Server's Login Id or Password. \
 				Please rectify and try again.")
-			raise webnotes.OutgoingEmailError, e
-		except smtplib.SMTPException, e:
+			raise
+		except smtplib.SMTPException:
 			webnotes.msgprint('There is something wrong with your Outgoing Mail Settings. \
 				Please contact us at support@erpnext.com')
-			raise webnotes.OutgoingEmailError, e
-
+			raise
 	
