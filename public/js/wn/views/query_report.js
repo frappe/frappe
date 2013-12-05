@@ -139,11 +139,11 @@ wn.views.QueryReport = Class.extend({
 		this.waiting = wn.messages.waiting(this.wrapper.find(".waiting-area").empty().toggle(true), 
 			"Loading Report...");
 		this.wrapper.find(".results").toggle(false);
-		var filters = {};
-		$.each(this.filters || [], function(i, f) {
-			filters[f.df.fieldname] = f.get_parsed_value();
-		})
-		return wn.call({
+		filters = this.get_values();
+		
+		if(this.report_ajax) this.report_ajax.abort();
+		
+		this.report_ajax = wn.call({
 			method: "webnotes.widgets.query_report.run",
 			type: "GET",
 			args: {
@@ -151,9 +151,25 @@ wn.views.QueryReport = Class.extend({
 				filters: filters
 			},
 			callback: function(r) {
+				me.report_ajax = undefined;
 				me.make_results(r.message.result, r.message.columns);
 			}
-		})		
+		});
+		
+		return this.report_ajax;
+	},
+	get_values: function() {
+		var filters = {};
+		var mandatory_fields = [];
+		$.each(this.filters || [], function(i, f) {
+			var v = f.get_parsed_value();
+			if(f.df.reqd && !v) mandatory_fields.push(f.df.label);
+			if(v) filters[f.df.fieldname] = v;
+		})
+		if(mandatory_fields.length) {
+			wn.throw(wn._("Mandatory filters required:\n") + wn._(mandatory_fields.join("\n")));
+		}
+		return filters
 	},
 	make_results: function(result, columns) {
 		this.wrapper.find(".waiting-area").empty().toggle(false);
