@@ -141,7 +141,9 @@ wn.views.QueryReport = Class.extend({
 		this.wrapper.find(".results").toggle(false);
 		filters = this.get_values();
 		
-		return wn.call({
+		if(this.report_ajax) this.report_ajax.abort();
+		
+		this.report_ajax = wn.call({
 			method: "webnotes.widgets.query_report.run",
 			type: "GET",
 			args: {
@@ -149,9 +151,12 @@ wn.views.QueryReport = Class.extend({
 				filters: filters
 			},
 			callback: function(r) {
+				me.report_ajax = undefined;
 				me.make_results(r.message.result, r.message.columns);
 			}
-		})		
+		});
+		
+		return this.report_ajax;
 	},
 	get_values: function() {
 		var filters = {};
