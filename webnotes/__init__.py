@@ -83,6 +83,7 @@ def init(site=None):
 		return
 	
 	local.error_log = []
+	local.site = site
 	local.message_log = []
 	local.debug_log = []
 	local.response = _dict({})

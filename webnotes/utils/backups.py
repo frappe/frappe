@@ -13,7 +13,7 @@ from __future__ import unicode_literals
 #Imports
 import os, webnotes
 from datetime import datetime
-from webnotes.utils import cstr
+from webnotes.utils import cstr, get_url
 
 #Global constants
 verbose = 0
@@ -101,11 +101,9 @@ class BackupGenerator:
 		"""
 		from webnotes.utils.email_lib import sendmail, get_system_managers
 
-		backup_url = webnotes.conn.get_value('Website Settings',
-			'Website Settings', 'subdomain') or ''
-		backup_url = os.path.join('http://' + backup_url, 'backups')		
-		
 		recipient_list = get_system_managers()
+		db_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_db)))
+		files_backup_url = get_url(os.path.join('backups', os.path.basename(self.backup_path_files)))
 		
 		msg = """<p>Hello,</p>
 		<p>Your backups are ready to be downloaded.</p>
@@ -116,8 +114,8 @@ class BackupGenerator:
 		<p>This link will be valid for 24 hours. A new backup will be available 
 		for download only after 24 hours.</p>
 		<p>Have a nice day!<br>ERPNext</p>""" % {
-			"db_backup_url": os.path.join(backup_url, os.path.basename(self.backup_path_db)),
-			"files_backup_url": os.path.join(backup_url, os.path.basename(self.backup_path_files)) 
+			"db_backup_url": db_backup_url,
+			"files_backup_url": files_backup_url
 		}
 		
 		datetime_str = datetime.fromtimestamp(os.stat(self.backup_path_db).st_ctime)
