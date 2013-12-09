@@ -370,9 +370,9 @@ def move(site=None, dest_dir=None):
 	import os
 	if not dest_dir:
 		raise Exception, "--dest_dir is required for --move"
-	dest_dir = dest_dir[0]
 	if not os.path.isdir(dest_dir):
 		raise Exception, "destination is not a directory or does not exist"
+
 	webnotes.init(site=site)
 	old_path = webnotes.utils.get_site_path()
 	new_path = os.path.join(dest_dir, site)
