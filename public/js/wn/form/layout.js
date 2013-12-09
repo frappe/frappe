@@ -147,7 +147,8 @@ wn.ui.form.Layout = Class.extend({
 		};
 		section.refresh = function() {
 			if(!this.df) return;
-			$(this).toggle(this.df.hidden ? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, READ) : true))
+			$(this).toggle(this.df.hidden || this.df.hidden_due_to_dependency 
+				? false : (cur_frm ? !!cur_frm.get_perm(this.df.permlevel, READ) : true))
 		}
 		this.column = null;
 		section.refresh.call(section);
