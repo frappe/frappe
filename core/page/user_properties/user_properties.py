@@ -36,4 +36,4 @@ def remove(user, name):
 @webnotes.whitelist()
 def add(parent, defkey, defvalue):
 	webnotes.only_for(("System Manager", "Administrator"))
-	webnotes.add_default(defkey, defvalue, parent, "Restriction")
+	webnotes.defaults.add_default(defkey, defvalue, parent, "Restriction")

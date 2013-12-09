@@ -27,24 +27,24 @@ import webnotes
 import webnotes.defaults
 import unittest
 
+test_dependencies = ["Profile"]
 class TestBlogPost(unittest.TestCase):
 	def setUp(self):
-		webnotes.init()
-		webnotes.local.session.user = "test1@example.com"
 		webnotes.conn.sql("""update tabDocPerm set `match`='' where parent='Blog Post' 
 			and ifnull(permlevel,0)=0""")
 		webnotes.conn.sql("""update `tabBlog Post` set owner='test1@example.com'
 			where name='_test-blog-post'""")
 
 		webnotes.clear_cache(doctype="Blog Post")
-
+		
 		profile = webnotes.bean("Profile", "test1@example.com")
 		profile.get_controller().add_roles(["Website Manager"])
-
+		
+		webnotes.set_user("test1@example.com")
 		
 	def tearDown(self):
+		webnotes.set_user("Administrator")
 		webnotes.defaults.clear_default(key="Blog Category", parenttype="Restriction")
-		webnotes.local.session.user = "Administrator"
 		
 	def test_basic_permission(self):
 		post = webnotes.bean("Blog Post", "_test-blog-post")

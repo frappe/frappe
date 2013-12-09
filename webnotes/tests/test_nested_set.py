@@ -149,8 +149,8 @@ class TestNSM(unittest.TestCase):
 		# 	doc = self.__dict__[d[0]].doc
 		# 	print doc.name, doc.lft, doc.rgt
 	
-	def tearDown(self):
-		webnotes.conn.rollback()
+	# def tearDown(self):
+	# 	webnotes.conn.rollback()
 		
 if __name__=="__main__":
 	import webnotes

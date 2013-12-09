@@ -197,11 +197,7 @@ wn.UserProperties = Class.extend({
 					})[0];
 					
 					return {
-						query: "core.page.user_properties.user_properties.get_defvalue",
-						filters: {
-							doctype: doctype
-						},
-						doctype: doctype,
+						doctype: doctype
 					}
 				};
 				

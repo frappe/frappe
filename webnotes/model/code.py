@@ -15,11 +15,13 @@ methods in following modules are imported for backward compatibility
 	* webnotes.model.doc.*
 	* webnotes.model.bean.*
 """
-def get_server_obj(doc, doclist = [], basedoctype = ''):
+def get_server_obj(doc, doclist=None, basedoctype = ''):
 	# for test
 	import webnotes
 	from webnotes.modules import scrub, get_doctype_module
 	from webnotes.plugins import get_code_and_execute
+	
+	if not doclist: doclist = []
 
 	# get doctype details
 	module = get_doctype_module(doc.doctype) or "core"
@@ -74,8 +76,9 @@ def load_doctype_module(doctype, module=None, prefix=""):
 		# webnotes.errprint(webnotes.getTraceback())
 		return None
 
-def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = 0):
+def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = 0):
 	import webnotes.model.doc
+	if not doclist: doclist = []
 	if dt:
 		if isinstance(dt, list):
 			return get_server_obj(dt[0], dt)

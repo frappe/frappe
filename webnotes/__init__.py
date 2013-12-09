@@ -1,5 +1,5 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
-# MIT License. See license.txt 
+# MIT License. See license.txt
 """
 globals attached to webnotes module
 + some utility functions that should probably be moved
@@ -7,7 +7,7 @@ globals attached to webnotes module
 
 from __future__ import unicode_literals
 
-from werkzeug.local import Local
+from werkzeug.local import Local, release_local
 from werkzeug.exceptions import NotFound
 from MySQLdb import ProgrammingError as SQLError
 
@@ -23,9 +23,9 @@ class _dict(dict):
 		return self.get(key)
 	def __setattr__(self, key, value):
 		self[key] = value
-	def __getstate__(self): 
+	def __getstate__(self):
 		return self
-	def __setstate__(self, d): 
+	def __setstate__(self, d):
 		self.update(d)
 	def update(self, d):
 		"""update and return self -- the missing dict feature in python"""
@@ -36,7 +36,7 @@ class _dict(dict):
 
 def __getattr__(self, key):
 	return local.get("key", None)
-	
+
 def _(msg):
 	"""translate object in current lang, if exists"""
 	if hasattr(local, 'translations'):
@@ -46,10 +46,10 @@ def _(msg):
 
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
-		
+	
 	if not user_language:
 		user_language = conn.get_value("Profile", user, "language")
-
+	
 	if user_language:
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
@@ -83,6 +83,7 @@ def init(site=None):
 	if getattr(local, "initialised", None):
 		return
 	
+	local.initialised = True
 	local.error_log = []
 	local.site = site
 	local.message_log = []
@@ -91,17 +92,15 @@ def init(site=None):
 	local.lang = "en"
 	local.request_method = request.method if request else None
 	local.conf = get_conf(site)
-	local.initialised = True
 	local.flags = _dict({})
 	local.rollback_observers = []
 	local.restrictions = None
-	
+
 def destroy():
 	"""closes connection and releases werkzeug local"""
 	if conn:
 		conn.close()
 	
-	from werkzeug.local import release_local
 	release_local(local)
 
 _memc = None
@@ -114,7 +113,7 @@ def cache():
 		from webnotes.memc import MClient
 		_memc = MClient(['localhost:11211'])
 	return _memc
-		
+
 class DuplicateEntryError(Exception): pass
 class ValidationError(Exception): pass
 class AuthenticationError(Exception): pass
@@ -126,7 +125,7 @@ class InvalidStatusError(ValidationError): pass
 class DoesNotExistError(ValidationError): pass
 class MandatoryError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
-		
+
 def getTraceback():
 	import utils
 	return utils.getTraceback()
@@ -135,7 +134,7 @@ def errprint(msg):
 	from utils import cstr
 	if not request:
 		print cstr(msg)
-
+	
 	error_log.append(cstr(msg))
 
 def log(msg):
@@ -157,11 +156,11 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 				raise raise_exception, msg
 			else:
 				raise ValidationError, msg
-
+	
 	if flags.mute_messages:
 		_raise_exception()
 		return
-
+	
 	from utils import cstr
 	if as_table and type(msg) in (list, tuple):
 		msg = '<table border="1px" style="border-collapse: collapse" cellpadding="2px">' + ''.join(['<tr>'+''.join(['<td>%s</td>' % c for c in r])+'</tr>' for r in msg]) + '</table>'
@@ -174,28 +173,28 @@ def msgprint(msg, small=0, raise_exception=0, as_table=False):
 
 def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
-	
+
 def create_folder(path):
 	try:
 		os.makedirs(path)
 	except OSError, e:
-		if e.args[0]!=17: 
+		if e.args[0]!=17:
 			raise
 
 def create_symlink(source_path, link_path):
 	try:
 		os.symlink(source_path, link_path)
 	except OSError, e:
-		if e.args[0]!=17: 
+		if e.args[0]!=17:
 			raise
 
 def remove_file(path):
 	try:
 		os.remove(path)
 	except OSError, e:
-		if e.args[0]!=2: 
+		if e.args[0]!=2:
 			raise
-			
+
 def connect(db_name=None, password=None, site=None):
 	import webnotes.db
 	init(site=site)
@@ -204,28 +203,29 @@ def connect(db_name=None, password=None, site=None):
 	local.form_dict = _dict()
 	local.session = _dict()
 	set_user("Administrator")
-	
+
 def set_user(username):
 	import webnotes.profile
 	local.session["user"] = username
 	local.user = webnotes.profile.Profile(username)
-	
+	local.restrictions = None
+
 def get_request_header(key, default=None):
 	try:
 		return request.headers.get(key, default)
 	except Exception, e:
 		return None
-		
+
 logger = None
-	
+
 def get_db_password(db_name):
 	"""get db password from conf"""
 	if 'get_db_password' in conf:
 		return conf.get_db_password(db_name)
-		
+	
 	elif 'db_password' in conf:
 		return conf.db_password
-		
+	
 	else:
 		return db_name
 
@@ -243,7 +243,7 @@ def whitelist(allow_guest=False):
 	def innerfn(fn):
 		global whitelisted, guest_methods
 		whitelisted.append(fn)
-
+		
 		if allow_guest:
 			guest_methods.append(fn)
 
@@ -265,20 +265,20 @@ class HashAuthenticatedCommand(object):
 			import inspect
 			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
 			self.fnargs.append('signature')
-
+	
 	def __call__(self, *args, **kwargs):
 		signature = kwargs.pop('signature')
 		if self.verify_signature(kwargs, signature):
 			return self.command(*args, **kwargs)
 		else:
 			self.signature_error()
-
+	
 	def command(self):
 		raise NotImplementedError
-		
+	
 	def signature_error(self):
 		raise InvalidSignatureError
-
+	
 	def get_signature(self, params, ignore_params=None):
 		import hmac
 		params = self.get_param_string(params, ignore_params=ignore_params)
@@ -287,22 +287,22 @@ class HashAuthenticatedCommand(object):
 		signature.update(secret)
 		signature.update(params)
 		return signature.hexdigest()
-
+	
 	def get_param_string(self, params, ignore_params=None):
 		if not ignore_params:
 			ignore_params = []
 		params = [unicode(param) for param in params if param not in ignore_params]
 		params = ''.join(params)
 		return params
-
+	
 	def get_nonce():
 		raise NotImplementedError
-
+	
 	def verify_signature(self, params, signature):
 		if signature == self.get_signature(params):
 			return True
 		return False
-	
+
 def clear_cache(user=None, doctype=None, sessions_only=False):
 	"""clear cache"""
 	if sessions_only:
@@ -320,7 +320,7 @@ def clear_cache(user=None, doctype=None, sessions_only=False):
 		from webnotes.sessions import clear_cache
 		clear_cache()
 		reset_metadata_version()
-	
+
 def get_roles(username=None):
 	import webnotes.profile
 	if not username or username==session.user:
@@ -339,52 +339,70 @@ def has_permission(doctype, ptype="read", refdoc=None):
 	
 	if session.user=="Administrator" or conn.get_value("DocType", doctype, "istable")==1:
 		return True
-		
+	
 	meta = get_doctype(doctype)
 	
 	# get user permissions
 	user_roles = get_roles()
-	perms = [p for p in meta.get({"doctype": "DocPerm"}) 
+	perms = [p for p in meta.get({"doctype": "DocPerm"})
 		if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
 	
-	if refdoc:
-		return has_match(meta, perms, refdoc)
+	if not perms:
+		return False
+	elif refdoc:
+		if has_only_permitted_data(meta, refdoc) and has_match(perms, refdoc):
+			return True
+		else:
+			return False
 	else:
-		return perms and True or False
-		
-def has_match(meta, perms, refdoc):
+		return True
+
+def has_only_permitted_data(meta, refdoc):
 	from webnotes.defaults import get_restrictions
 	
+	has_restricted_data = False
 	restrictions = get_restrictions()
+	
 	if restrictions:
 		if isinstance(refdoc, basestring):
 			refdoc = doc(meta[0].name, refdoc)
-	
+		
 		fields_to_check = meta.get_restricted_fields(restrictions.keys())
-			
+		
 		if meta[0].name in restrictions:
 			fields_to_check.append(_dict({"label":"Name", "fieldname":"name"}))
-	
+		
 		for df in fields_to_check:
 			if refdoc.get(df.fieldname) not in restrictions[df.options]:
-				msg = _("Not allowed for: ") + df.label + " equals " + refdoc.get(df.fieldname)
+				msg = "{not_allowed}: {label} {equals} {value}".format(not_allowed=_("Not allowed for"),
+					label=_(df.label), equals=_("equals"), value=refdoc.get(df.fieldname))
+				
+				if refdoc.parentfield:
+					msg = "{doctype}, {row} #{idx}, ".format(doctype=_(refdoc.doctype),
+						row=_("Row"), idx=refdoc.idx) + msg
+				
 				msgprint(msg)
-				return False
-			
-	# check owner match (if exists)
-	owner_match = None
+				has_restricted_data = True
 	
+	if has_restricted_data:
+		# check all restrictions before returning
+		return False
+	else:
+		return True
+
+def has_match(perms, refdoc):
+	"""check owner match (if exists)"""
 	for p in perms:
 		if p.get("match")=="owner":
-			if refdoc.get("owner") != local.session.user:
-				owner_match = owner_match or False
-			else:
-				owner_match = True
-				
-	if owner_match == False: 
-		return False
+			if refdoc.get("owner")==local.session.user:
+				# owner matches :)
+				return True
+		else:
+			# found a permission without owner match :)
+			return True
 	
-	return True
+	# no match :(
+	return False
 
 def generate_hash():
 	"""Generates random hash for session id"""
@@ -430,24 +448,24 @@ def set_value(doctype, docname, fieldname, value):
 
 def get_doclist(doctype, name=None):
 	return bean(doctype, name).doclist
-	
+
 def get_doctype(doctype, processed=False):
 	import webnotes.model.doctype
 	return webnotes.model.doctype.get(doctype, processed)
 
-def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None, 
+def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes=None,
 	for_reload=False, ignore_permissions=False):
 	import webnotes.model.delete_doc
-
-	if not ignore_doctypes: 
+	
+	if not ignore_doctypes:
 		ignore_doctypes = []
 	
 	if isinstance(name, list):
 		for n in name:
-			webnotes.model.delete_doc.delete_doc(doctype, n, doclist, force, ignore_doctypes, 
+			webnotes.model.delete_doc.delete_doc(doctype, n, doclist, force, ignore_doctypes,
 				for_reload, ignore_permissions)
 	else:
-		webnotes.model.delete_doc.delete_doc(doctype, name, doclist, force, ignore_doctypes, 
+		webnotes.model.delete_doc.delete_doc(doctype, name, doclist, force, ignore_doctypes,
 			for_reload, ignore_permissions)
 
 def clear_perms(doctype):
@@ -477,9 +495,9 @@ def get_module(modulename):
 def get_method(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
-
-	return getattr(get_module(modulename), methodname)
 	
+	return getattr(get_module(modulename), methodname)
+
 def make_property_setter(args):
 	args = _dict(args)
 	bean([{
@@ -495,9 +513,9 @@ def make_property_setter(args):
 
 def get_application_home_page(user='Guest'):
 	"""get home page for user"""
-	hpl = conn.sql("""select home_page 
+	hpl = conn.sql("""select home_page
 		from `tabDefault Home Page`
-		where parent='Control Panel' 
+		where parent='Control Panel'
 		and role in ('%s') order by idx asc limit 1""" % "', '".join(get_roles(user)))
 	if hpl:
 		return hpl[0][0]
@@ -522,13 +540,13 @@ def copy_doclist(in_doclist):
 			parent_doc = newd
 		
 		new_doclist.append(newd.fields if is_dict else newd)
-
+	
 	return doclist(new_doclist)
 
 def compare(val1, condition, val2):
 	import webnotes.utils
 	return webnotes.utils.compare(val1, condition, val2)
-	
+
 def repsond_as_web_page(title, html):
 	local.message_title = title
 	local.message = "<h3>" + title + "</h3>" + html
@@ -541,19 +559,19 @@ def load_json(obj):
 			obj = json.loads(obj)
 		except ValueError:
 			pass
-		
-	return obj
 	
+	return obj
+
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
 	return webnotes.widgets.reportview.build_match_conditions(doctype, fields, as_condition)
 
-def get_list(doctype, filters=None, fields=None, docstatus=None, 
-			group_by=None, order_by=None, limit_start=0, limit_page_length=None, 
+def get_list(doctype, filters=None, fields=None, docstatus=None,
+			group_by=None, order_by=None, limit_start=0, limit_page_length=None,
 			as_list=False, debug=False):
 	import webnotes.widgets.reportview
-	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus, 
-				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
+	return webnotes.widgets.reportview.execute(doctype, filters=filters, fields=fields, docstatus=docstatus,
+				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length,
 				as_list=as_list, debug=debug)
 
 def get_jenv():
@@ -561,7 +579,7 @@ def get_jenv():
 	from webnotes.utils import get_base_path, global_date_format
 	from markdown2 import markdown
 	from json import dumps
-
+	
 	jenv = Environment(loader = FileSystemLoader(get_base_path()))
 	jenv.filters["global_date_format"] = global_date_format
 	jenv.filters["markdown"] = markdown
@@ -578,7 +596,7 @@ def get_config():
 	if not _config:
 		import webnotes.utils, json
 		_config = _dict()
-	
+		
 		def update_config(path):
 			try:
 				with open(path, "r") as configfile:
@@ -593,7 +611,7 @@ def get_config():
 		
 		update_config(webnotes.utils.get_path("lib", "config.json"))
 		update_config(webnotes.utils.get_path("app", "config.json"))
-				
+	
 	return _config
 
 def get_conf(site):
@@ -612,11 +630,11 @@ def get_conf(site):
 		if not out:
 			raise NotFound()
 		
-		site_config.update(out)	
+		site_config.update(out)
 		site_config["site_config"] = out
 		site_config['site'] = site
 		return site_config
-
+	
 	else:
 		return conf
 

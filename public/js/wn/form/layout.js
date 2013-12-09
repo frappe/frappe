@@ -1,6 +1,7 @@
 // Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 // MIT License. See license.txt
 wn.provide("wn.ui.form");
+
 wn.ui.form.Layout = Class.extend({
 	init: function(opts) {
 		this.views = {};
