@@ -32,6 +32,10 @@ wn.Application = Class.extend({
 						window.location = 'index.html';
 						return;
 					}
+          if ( typeof wn.boot.lang !== "undefined" && wn.boot.lang !== false && wn.boot.lang == "ar") {
+						wn.require("lib/js/lib/cssReplacer.js");
+						userLanguage  = "ar";
+					}
 					me.startup();
 				}
 			});

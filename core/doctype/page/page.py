@@ -73,10 +73,22 @@ class DocType:
 				self.doc.script = f.read()
 
 		# css
-		fpath = os.path.join(path, scrub(self.doc.name) + '.css')
+		from webnotes import set_user_lang
+		set_user_lang(webnotes.session.user)
+
+		lang = ""
+		if webnotes.lang and webnotes.lang != "en":
+			lang = "_" + webnotes.lang
+		
+		fpath = os.path.join(path, scrub(self.doc.name) + lang + '.css')
+		if not os.path.exists(fpath):
+			# if the style for the language is not available then reset the file path to original.
+			fpath = os.path.join(path, scrub(self.doc.name) + '.css')
+			
 		if os.path.exists(fpath):
 			with open(fpath, 'r') as f:
 				self.doc.style = f.read()
+				
 		
 		# html
 		fpath = os.path.join(path, scrub(self.doc.name) + '.html')
