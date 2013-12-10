@@ -72,6 +72,8 @@ def get_request_site_address(full_address=False):
 		if webnotes.request:
 			protocol = 'https' == webnotes.get_request_header('X-Forwarded-Proto', "") and 'https://' or 'http://'
 			host_name = protocol + webnotes.request.host
+		elif webnotes.local.site:
+			return "http://" + webnotes.local.site
 		else:
 			return "http://localhost"
 
