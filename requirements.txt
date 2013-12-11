@@ -6,7 +6,6 @@ gunicorn
 httplib2
 jinja2
 markdown2
-markupsafe
 mysql-python
 pygeoip
 python-dateutil
@@ -18,4 +17,3 @@ slugify
 termcolor
 werkzeug
 semantic_version
-gitpython==0.3.2.RC1
