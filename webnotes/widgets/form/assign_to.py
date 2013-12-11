@@ -132,6 +132,6 @@ def notify_assignment(assigned_by, owner, doc_type, doc_name, action='CLOSE',
 		}
 		
 	arg["parenttype"] = "Assignment"
-	from core.page.messages import messages
+	from webnotes.core.page.messages import messages
 	import json
 	messages.post(json.dumps(arg))

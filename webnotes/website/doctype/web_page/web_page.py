@@ -56,7 +56,7 @@ class DocType(DocListController, WebsiteGenerator):
 			
 	def get_context(self):
 		if self.doc.slideshow:
-			from website.doctype.website_slideshow.website_slideshow import get_slideshow
+			from webnotes.website.doctype.website_slideshow.website_slideshow import get_slideshow
 			get_slideshow(self)
 			
 		self.doc.meta_description = self.doc.description

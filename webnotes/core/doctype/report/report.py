@@ -33,8 +33,3 @@ class DocType:
 		if self.doc.is_standard == 'Yes' and (conf.get('developer_mode') or 0) == 1:
 			export_to_files(record_list=[['Report', self.doc.name]], 
 				record_module=webnotes.conn.get_value("DocType", self.doc.ref_doctype, "module"))
-		elif self.doc.is_standard == 'No' and self.doc.report_type == "Script Report":
-			from webnotes.plugins import get_plugin_name
-			export_to_files(record_list=[['Report', self.doc.name]], 
-				record_module=webnotes.conn.get_value("DocType", self.doc.ref_doctype, "module"),
-				plugin=get_plugin_name("Report", self.doc.name), create_init=False)

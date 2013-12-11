@@ -16,9 +16,10 @@ from webnotes.model.sync import sync_for
 from webnotes.utils import cstr
 
 class Installer:
-	def __init__(self, root_login, root_password=None, db_name=None, site=None, site_config=None):
-		make_conf(db_name, site=site, site_config=site_config)
-		self.site = site
+	def __init__(self, root_login, root_password=None, db_name=None, site_path=None, site_config=None):
+		make_conf(db_name, site_path=site_path, site_config=site_config)
+				
+		self.site_path = site_path
 		
 		self.make_connection(root_login, root_password)
 
@@ -66,7 +67,7 @@ class Installer:
 		# close root connection
 		self.conn.close()
 
-		webnotes.connect(db_name=db_name, site=self.site)
+		webnotes.connect(db_name=db_name, site_path=self.site_path)
 		self.dbman = DbManager(webnotes.conn)
 		
 		# import in db_name
@@ -74,8 +75,7 @@ class Installer:
 
 		# get the path of the sql file to import
 		if not source_sql:
-			source_sql = os.path.join(os.path.dirname(webnotes.__file__), "..", 
-				'conf', 'Framework.sql')
+			source_sql = os.path.join(os.path.dirname(webnotes.__file__), 'data', 'Framework.sql')
 
 		self.dbman.restore_database(db_name, source_sql, db_name, webnotes.conf.db_password)
 		if verbose: print "Imported from database %s" % source_sql
@@ -85,22 +85,35 @@ class Installer:
 		# fresh app
 		if 'Framework.sql' in source_sql:
 			if verbose: print "Installing app..."
-			self.install_app(verbose=verbose)
+			self.install_app("webnotes", verbose=verbose)
 
 		# update admin password
 		self.update_admin_password(admin_password)
 		
 		# create public folder
-		from webnotes.install_lib import setup_public_folder
-		setup_public_folder.make(site=self.site)
-		
-		if not self.site:
-			from webnotes.build import bundle
-			bundle(False)
-					
+		# from webnotes.install_lib import setup_public_folder
+		# setup_public_folder.make(site=self.site)
+		# 
+		# if not self.site:
+		# 	from webnotes.build import bundle
+		# 	bundle(False)
+		# 			
 		return db_name
+	
+	def install_app(self, name, verbose=False):
+		manage = webnotes.get_module(name + ".manage") 
+		if hasattr(manage, "before_install"):
+			manage.before_install()
 		
-	def install_app(self, verbose=False):
+		sync_for(name, force=True, sync_everything=True, verbose=verbose)
+
+		if hasattr(manage, "after_install"):
+			manage.after_install()
+		
+		
+	def install_app_old(self, verbose=False):
+	
+		
 		sync_for("lib", force=True, sync_everything=True, verbose=verbose)
 		self.import_core_docs()
 
@@ -116,7 +129,7 @@ class Installer:
 			install_fixtures()
 
 		# build website sitemap
-		from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+		from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 		build_website_sitemap_config()
 
 		if verbose: print "Completing App Import..."
@@ -179,50 +192,12 @@ class Installer:
 			`password` VARCHAR(180) NOT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 		
-def make_conf(db_name=None, db_password=None, site=None, site_config=None):
-	try:
-		from werkzeug.exceptions import NotFound
-		import conf
-		
-		try:
-			webnotes.init(site=site)
-		except NotFound:
-			pass
-		
-		if not site and webnotes.conf.site:
-			site = webnotes.conf.site
-			
-		if site:
-			# conf exists and site is specified, create site_config.json
-			make_site_config(site, db_name, db_password, site_config)
-		elif os.path.exists("conf.py"):
-			print "conf.py exists"
-		else:
-			# pyc file exists but py doesn't
-			raise ImportError
-			
-	except ImportError:
-		if site:
-			raise Exception("conf.py does not exist")
-		else:
-			# create conf.py
-			with open(os.path.join("lib", "conf", "conf.py"), "r") as confsrc:
-				with open("conf.py", "w") as conftar:
-					conftar.write(confsrc.read() % get_conf_params(db_name, db_password))
-	
+def make_conf(db_name=None, db_password=None, site_path=None, site_config=None):
+	make_site_config(site_path, db_name, db_password, site_config)
 	webnotes.destroy()
-	webnotes.init(site=site)
-						
-def make_site_config(site, db_name=None, db_password=None, site_config=None):
-	import conf
-	if not getattr(conf, "sites_dir", None):
-		raise Exception("sites_dir missing in conf.py")
-		
-	site_path = os.path.join(conf.sites_dir, site)
-	
-	if not os.path.exists(site_path):
-		os.mkdir(site_path)
-	
+	webnotes.init(site_path=site_path)
+
+def make_site_config(site_path, db_name=None, db_password=None, site_config=None):		
 	site_file = os.path.join(site_path, "site_config.json")
 	
 	if not os.path.exists(site_file):
@@ -256,7 +231,7 @@ def install_fixtures():
 					webnotes.conn.commit()
 
 			if f.endswith(".csv"):
-				from core.page.data_import_tool.data_import_tool import import_file_by_path
+				from webnotes.core.page.data_import_tool.data_import_tool import import_file_by_path
 				import_file_by_path(os.path.join(basepath, f), ignore_links = True, overwrite=True)
 				webnotes.conn.commit()
 					

@@ -63,7 +63,7 @@ def get_args():
 
 def get_html(doc, doclist):
 	from jinja2 import Environment
-	from core.doctype.print_format.print_format import get_print_format
+	from webnotes.core.doctype.print_format.print_format import get_print_format
 
 	template = Environment().from_string(get_print_format(doc.doctype, 
 		webnotes.form_dict.format))

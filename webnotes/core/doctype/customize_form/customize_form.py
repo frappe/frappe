@@ -129,7 +129,7 @@ class DocType:
 		"""
 		if self.doc.doc_type:
 			from webnotes.model import doc
-			from core.doctype.doctype.doctype import validate_fields_for_doctype
+			from webnotes.core.doctype.doctype.doctype import validate_fields_for_doctype
 			
 			this_doclist = webnotes.doclist([self.doc] + self.doclist)
 			ref_doclist = self.get_ref_doclist()

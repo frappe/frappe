@@ -8,7 +8,7 @@ import json, os, time
 from webnotes import _
 import webnotes.utils
 import mimetypes
-from website.doctype.website_sitemap.website_sitemap import add_to_sitemap
+from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
 class PageNotFoundError(Exception): pass
 

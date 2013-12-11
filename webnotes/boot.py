@@ -55,7 +55,6 @@ def get_bootinfo():
 	# add docs
 	bootinfo['docs'] = doclist
 	
-	# plugins
 	try:
 		import startup.boot
 		startup.boot.boot_session(bootinfo)

@@ -6,18 +6,17 @@
 from __future__ import unicode_literals
 import sys
 
-if __name__=="__main__":
-	sys.path = [".", "lib", "app"] + sys.path
-
 import webnotes
 
 def main():
 	parsed_args = webnotes._dict(vars(setup_parser()))
 	fn = get_function(parsed_args)
-	if parsed_args.get("site")=="all":
-		for site in get_sites():
+	if not parsed_args.get("sit_path"):
+		parsed_args["site_path"] = "."
+	if parsed_args.get("site_path")=="all":
+		for site_path in get_sites():
 			args = parsed_args.copy()
-			args["site"] = site
+			args["site_path"] = site_path
 			run(fn, args)
 	else:
 		run(fn, parsed_args)
@@ -52,9 +51,9 @@ def get_function(args):
 def get_sites():
 	import os
 	import conf
-	return [site for site in os.listdir(conf.sites_dir)
-			if not os.path.islink(os.path.join(conf.sites_dir, site)) 
-				and os.path.isdir(os.path.join(conf.sites_dir, site))]
+	return [site_path for site_path in os.listdir(conf.sites_dir)
+			if not os.path.islink(os.path.join(conf.sites_dir, site_path)) 
+				and os.path.isdir(os.path.join(conf.sites_dir, site_path))]
 	
 def setup_parser():
 	import argparse
@@ -63,17 +62,14 @@ def setup_parser():
 	setup_install(parser)
 	setup_utilities(parser)
 	setup_translation(parser)
-	setup_git(parser)
 	
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
 	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
 		help="Don't show verbose output where applicable")
-	parser.add_argument("--site", nargs="?", metavar="SITE-NAME or all",
-		help="Run for a particular site")
-	parser.add_argument("--plugin", nargs="?", metavar="PLUGIN-NAME",
-		help="Run for a particular plugin")
+	parser.add_argument("--site_path", nargs="?", metavar="site_path-NAME or all",
+		help="Run for a particular site_path")
 		
 	return parser.parse_args()
 	
@@ -122,39 +118,39 @@ def setup_utilities(parser):
 	parser.add_argument("--backup", default=False, action="store_true",
 		help="Take backup of database in backup folder [--with_files]")
 	parser.add_argument("--move", default=False, action="store_true",
-		help="Move site to different directory defined by --dest_dir")
+		help="Move site_path to different directory defined by --dest_dir")
 	parser.add_argument("--dest_dir", nargs=1, metavar="DEST-DIR",
-		help="Move site to different directory")
+		help="Move site_path to different directory")
 	parser.add_argument("--with_files", default=False, action="store_true",
 		help="Also take backup of files")
 	parser.add_argument("--domain", nargs="*",
-		help="Get or set domain in Website Settings")
+		help="Get or set domain in Website_path Settings")
 	parser.add_argument("--make_conf", nargs="*", metavar=("DB-NAME", "DB-PASSWORD"),
 		help="Create new conf.py file")
 	parser.add_argument("--make_custom_server_script", nargs=1, metavar="DOCTYPE",
 		help="Create new conf.py file")
 	parser.add_argument("--set_admin_password", metavar='ADMIN-PASSWORD', nargs=1,
 		help="Set administrator password")
-	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site")
+	parser.add_argument("--mysql", action="store_true", help="get mysql shell for a site_path")
 	parser.add_argument("--serve", action="store_true", help="Run development server")
 	parser.add_argument("--profile", action="store_true", help="enable profiling in development server")
 	parser.add_argument("--smtp", action="store_true", help="Run smtp debug server",
 		dest="smtp_debug_server")
-	parser.add_argument("--python", action="store_true", help="get python shell for a site")
-	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site")
-	parser.add_argument("--get_site_status", action="store_true", help="Get site details")
+	parser.add_argument("--python", action="store_true", help="get python shell for a site_path")
+	parser.add_argument("--ipython", action="store_true", help="get ipython shell for a site_path")
+	parser.add_argument("--get_site_status", action="store_true", help="Get site_path details")
 	parser.add_argument("--update_site_config", nargs=1, 
-		metavar="SITE-CONFIG-JSON", 
-		help="Update site_config.json for a given --site")
+		metavar="site_path-CONFIG-JSON", 
+		help="Update site_config.json for a given --site_path")
 	parser.add_argument("--port", default=8000, type=int, help="port for development server")
 	
 	# clear
 	parser.add_argument("--clear_web", default=False, action="store_true",
-		help="Clear website cache")
+		help="Clear website_path cache")
 	parser.add_argument("--build_sitemap", default=False, action="store_true",
-		help="Build Website Sitemap")
+		help="Build Website_path Sitemap")
 	parser.add_argument("--rebuild_sitemap", default=False, action="store_true",
-		help="Rebuild Website Sitemap")
+		help="Rebuild Website_path Sitemap")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
@@ -179,24 +175,7 @@ def setup_utilities(parser):
 	parser.add_argument("--export_csv", nargs=2, metavar=("DOCTYPE", "PATH"), 
 		help="""Dump DocType as csv""")
 	parser.add_argument("--import_doclist", nargs=1, metavar="PATH", 
-		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")
-		
-def setup_git(parser):
-	parser.add_argument("--pull", nargs="*", metavar=("REMOTE", "BRANCH"),
-		help="Run git pull for both repositories")
-	parser.add_argument("-p", "--push", nargs="*", metavar=("REMOTE", "BRANCH"),
-		help="Run git push for both repositories")
-	parser.add_argument("--status", default=False, action="store_true",
-		help="Run git status for both repositories")
-	parser.add_argument("--commit", nargs=1, metavar="COMMIT-MSG",
-		help="Run git commit COMMIT-MSG for both repositories")
-	parser.add_argument("--checkout", nargs=1, metavar="BRANCH",
-		help="Run git checkout BRANCH for both repositories")
-	parser.add_argument("--git", nargs="*", metavar="OPTIONS",
-		help="Run git command for both repositories")
-	parser.add_argument("--bump", metavar=("REPO", "VERSION-TYPE"), nargs=2,
-		help="Bump project version")
-	
+		help="""Import (insert/update) doclist. If the argument is a directory, all files ending with .json are imported""")	
 		
 def setup_translation(parser):
 	parser.add_argument("--build_message_files", default=False, action="store_true",
@@ -218,73 +197,72 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, source_sql=None, site=None, verbose=True, force=False, root_password=None, site_config=None, admin_password='admin'):
+def install(db_name, source_sql=None, site_path=None, verbose=True, force=False, root_password=None, site_config=None, admin_password='admin'):
 	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=db_name, site=site, root_password=root_password, site_config=site_config)
-	inst.install(db_name, source_sql=source_sql, verbose=verbose, force=force, admin_password=admin_password)
+	inst = Installer('root', db_name=db_name, site_path=site_path, root_password=root_password, site_config=site_config)
+	inst.install(db_name, verbose=verbose, force=force, admin_password=admin_password)
 	webnotes.destroy()
 
 @cmd
-def reinstall(site=None, verbose=True):
-	webnotes.init(site=site)
-	install(webnotes.conf.db_name, site=site, verbose=verbose, force=True)
+def reinstall(site_path=None, verbose=True):
+	webnotes.init(site_path=site_path)
+	install(webnotes.conf.db_name, site_path=site_path, verbose=verbose, force=True)
 
 @cmd
-def restore(db_name, source_sql, site=None, verbose=True, force=False):
-	install(db_name, source_sql, site=site, verbose=verbose, force=force)
+def restore(db_name, source_sql, site_path=None, verbose=True, force=False):
+	install(db_name, source_sql, site_path=site_path, verbose=verbose, force=force)
 
 @cmd
-def install_fixtures(site=None):
-	webnotes.init(site=site)
+def install_fixtures(site_path=None):
+	webnotes.init(site_path=site_path)
 	from webnotes.install_lib.install import install_fixtures
 	install_fixtures()
 	webnotes.destroy()
 
 @cmd
-def add_system_manager(email, first_name=None, last_name=None, site=None):
-	webnotes.connect(site=site)
+def add_system_manager(email, first_name=None, last_name=None, site_path=None):
+	webnotes.connect(site_path=site_path)
 	webnotes.profile.add_system_manager(email, first_name, last_name)
 	webnotes.conn.commit()
 	webnotes.destroy()
 
 @cmd
-def make_demo(site=None):
+def make_demo(site_path=None):
 	import utilities.demo.make_demo
-	webnotes.init(site=site)
+	webnotes.init(site_path=site_path)
 	utilities.demo.make_demo.make()
 	webnotes.destroy()
 
 @cmd
-def make_demo_fresh(site=None):
+def make_demo_fresh(site_path=None):
 	import utilities.demo.make_demo
-	webnotes.init(site=site)
+	webnotes.init(site_path=site_path)
 	utilities.demo.make_demo.make(reset=True)
 	webnotes.destroy()
 	
 # utilities
 
 @cmd
-def update(remote=None, branch=None, site=None, reload_gunicorn=False):
-	pull(remote=remote, branch=branch, site=site)
+def update(remote=None, branch=None, site_path=None, reload_gunicorn=False):
+	pull(remote=remote, branch=branch, site_path=site_path)
 
 	# maybe there are new framework changes, any consequences?
 	reload(webnotes)
 	
-	if not site: build()
+	if not site_path: build()
 
-	latest(site=site)
+	latest(site_path=site_path)
 	if reload_gunicorn:
 		import subprocess
 		subprocess.check_output("killall -HUP gunicorn".split())
 
 @cmd
-def latest(site=None, verbose=True):
+def latest(site_path=None, verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
-	import webnotes.plugins
-	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	from webnotes.website_path.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 	
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	
 	try:
 		# run patches
@@ -295,11 +273,8 @@ def latest(site=None, verbose=True):
 	
 		# sync
 		webnotes.model.sync.sync_all()
-		
-		# remove __init__.py from plugins
-		webnotes.plugins.remove_init_files()
-		
-		# build website config if any changes in templates etc.
+				
+		# build website_path config if any changes in templates etc.
 		build_website_sitemap_config()
 		
 	except webnotes.modules.patch_handler.PatchError, e:
@@ -309,16 +284,16 @@ def latest(site=None, verbose=True):
 		webnotes.destroy()
 
 @cmd
-def sync_all(site=None, force=False):
+def sync_all(site_path=None, force=False):
 	import webnotes.model.sync
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.model.sync.sync_all(force=force)
 	webnotes.destroy()
 
 @cmd
-def patch(patch_module, site=None, force=False):
+def patch(patch_module, site_path=None, force=False):
 	import webnotes.modules.patch_handler
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.local.patch_log_list = []
 	webnotes.modules.patch_handler.run_single(patch_module, force=force)
 	print "\n".join(webnotes.local.patch_log_list)
@@ -332,13 +307,13 @@ def update_all_sites(remote=None, branch=None, verbose=True):
 	reload(webnotes)
 	
 	build()
-	for site in get_sites():
-		latest(site=site, verbose=verbose)
+	for site_path in get_sites():
+		latest(site_path=site_path, verbose=verbose)
 
 @cmd
-def reload_doc(module, doctype, docname, plugin=None, site=None, force=False):
-	webnotes.connect(site=site)
-	webnotes.reload_doc(module, doctype, docname, plugin=plugin, force=force)
+def reload_doc(module, doctype, docname, site_path=None, force=False):
+	webnotes.connect(site_path=site_path)
+	webnotes.reload_doc(module, doctype, docname, force=force)
 	webnotes.conn.commit()
 	webnotes.destroy()
 
@@ -353,9 +328,9 @@ def watch():
 	webnotes.build.watch(True)
 
 @cmd
-def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
+def backup(site_path=None, with_files=False, verbose=True, backup_path_db=None, backup_path_files=None):
 	from webnotes.utils.backups import scheduled_backup
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	odb = scheduled_backup(ignore_files=not with_files, backup_path_db=backup_path_db, backup_path_files=backup_path_files)
 	if verbose:
 		from webnotes.utils import now
@@ -366,18 +341,18 @@ def backup(site=None, with_files=False, verbose=True, backup_path_db=None, backu
 	return odb
 
 @cmd
-def move(site=None, dest_dir=None):
+def move(site_path=None, dest_dir=None):
 	import os
 	if not dest_dir:
 		raise Exception, "--dest_dir is required for --move"
 	if not os.path.isdir(dest_dir):
 		raise Exception, "destination is not a directory or does not exist"
 
-	webnotes.init(site=site)
+	webnotes.init(site_path=site_path)
 	old_path = webnotes.utils.get_site_path()
-	new_path = os.path.join(dest_dir, site)
+	new_path = os.path.join(dest_dir, site_path)
 
-	# check if site dump of same name already exists
+	# check if site_path dump of same name already exists
 	site_dump_exists = True
 	count = 0
 	while site_dump_exists:
@@ -390,61 +365,61 @@ def move(site=None, dest_dir=None):
 	return os.path.basename(final_new_path)
 
 @cmd
-def domain(host_url=None, site=None):
-	webnotes.connect(site=site)
+def domain(host_url=None, site_path=None):
+	webnotes.connect(site_path=site_path)
 	if host_url:
-		webnotes.conn.set_value("Website Settings", None, "subdomain", host_url)
+		webnotes.conn.set_value("Website_path Settings", None, "subdomain", host_url)
 		webnotes.conn.commit()
 	else:
-		print webnotes.conn.get_value("Website Settings", None, "subdomain")
+		print webnotes.conn.get_value("Website_path Settings", None, "subdomain")
 	webnotes.destroy()
 
 @cmd
-def make_conf(db_name=None, db_password=None, site=None, site_config=None):
+def make_conf(db_name=None, db_password=None, site_path=None, site_config=None):
 	from webnotes.install_lib.install import make_conf
-	make_conf(db_name=db_name, db_password=db_password, site=site, site_config=site_config)
+	make_conf(db_name=db_name, db_password=db_password, site_path=site_path, site_config=site_config)
 	
 @cmd
-def make_custom_server_script(doctype, site=None):
-	from core.doctype.custom_script.custom_script import make_custom_server_script_file
-	webnotes.connect(site=site)
+def make_custom_server_script(doctype, site_path=None):
+	from webnotes.core.doctype.custom_script.custom_script import make_custom_server_script_file
+	webnotes.connect(site_path=site_path)
 	make_custom_server_script_file(doctype)
 	webnotes.destroy()
 
 # clear
 @cmd
-def clear_cache(site=None):
+def clear_cache(site_path=None):
 	import webnotes.sessions
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.sessions.clear_cache()
 	webnotes.destroy()
 
 @cmd
-def clear_web(site=None):
+def clear_web(site_path=None):
 	import webnotes.webutils
-	webnotes.connect(site=site)
-	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	webnotes.connect(site_path=site_path)
+	from webnotes.website_path.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
 	build_website_sitemap_config()
 	webnotes.webutils.clear_cache()
 	webnotes.destroy()
 
 @cmd
-def build_sitemap(site=None):
-	from website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
-	webnotes.connect(site=site)
+def build_sitemap(site_path=None):
+	from webnotes.website_path.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	webnotes.connect(site_path=site_path)
 	build_website_sitemap_config()
 	webnotes.destroy()
 
 @cmd
-def rebuild_sitemap(site=None):
-	from website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
-	webnotes.connect(site=site)
+def rebuild_sitemap(site_path=None):
+	from webnotes.website_path.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
+	webnotes.connect(site_path=site_path)
 	rebuild_website_sitemap_config()
 	webnotes.destroy()
 
 @cmd
-def reset_perms(site=None):
-	webnotes.connect(site=site)
+def reset_perms(site_path=None):
+	webnotes.connect(site_path=site_path)
 	for d in webnotes.conn.sql_list("""select name from `tabDocType`
 		where ifnull(istable, 0)=0 and ifnull(custom, 0)=0"""):
 			webnotes.clear_cache(doctype=d)
@@ -453,20 +428,20 @@ def reset_perms(site=None):
 
 # scheduler
 @cmd
-def run_scheduler(site=None):
+def run_scheduler(site_path=None):
 	from webnotes.utils.file_lock import create_lock, delete_lock
 	import webnotes.utils.scheduler
-	webnotes.init(site=site)
+	webnotes.init(site_path=site_path)
 	if create_lock('scheduler'):
-		webnotes.connect(site=site)
+		webnotes.connect(site_path=site_path)
 		print webnotes.utils.scheduler.execute()
 		delete_lock('scheduler')
 	webnotes.destroy()
 
 @cmd
-def run_scheduler_event(event, site=None):
+def run_scheduler_event(event, site_path=None):
 	import webnotes.utils.scheduler
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	print webnotes.utils.scheduler.trigger("execute_" + event)
 	webnotes.destroy()
 	
@@ -478,66 +453,66 @@ def replace(search_regex, replacement, extn, force=False):
 	
 # import/export	
 @cmd
-def export_doc(doctype, docname, site=None):
+def export_doc(doctype, docname, site_path=None):
 	import webnotes.modules
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.modules.export_doc(doctype, docname)
 	webnotes.destroy()
 
 @cmd
-def export_doclist(doctype, name, path, site=None):
-	from core.page.data_import_tool import data_import_tool
-	webnotes.connect(site=site)
+def export_doclist(doctype, name, path, site_path=None):
+	from webnotes.core.page.data_import_tool import data_import_tool
+	webnotes.connect(site_path=site_path)
 	data_import_tool.export_json(doctype, name, path)
 	webnotes.destroy()
 	
 @cmd
-def export_csv(doctype, path, site=None):
-	from core.page.data_import_tool import data_import_tool
-	webnotes.connect(site=site)
+def export_csv(doctype, path, site_path=None):
+	from webnotes.core.page.data_import_tool import data_import_tool
+	webnotes.connect(site_path=site_path)
 	data_import_tool.export_csv(doctype, path)
 	webnotes.destroy()
 
 @cmd
-def import_doclist(path, site=None, force=False):
-	from core.page.data_import_tool import data_import_tool
-	webnotes.connect(site=site)
+def import_doclist(path, site_path=None, force=False):
+	from webnotes.core.page.data_import_tool import data_import_tool
+	webnotes.connect(site_path=site_path)
 	data_import_tool.import_doclist(path, overwrite=force)
 	webnotes.destroy()
 	
 # translation
 @cmd
-def build_message_files(site=None):
+def build_message_files(site_path=None):
 	import webnotes.translate
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.translate.build_message_files()
 	webnotes.destroy()
 
 @cmd
-def export_messages(lang, outfile, site=None):
+def export_messages(lang, outfile, site_path=None):
 	import webnotes.translate
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.translate.export_messages(lang, outfile)
 	webnotes.destroy()
 
 @cmd
-def import_messages(lang, infile, site=None):
+def import_messages(lang, infile, site_path=None):
 	import webnotes.translate
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.translate.import_messages(lang, infile)
 	webnotes.destroy()
 	
 @cmd
-def google_translate(lang, infile, outfile, site=None):
+def google_translate(lang, infile, outfile, site_path=None):
 	import webnotes.translate
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.translate.google_translate(lang, infile, outfile)
 	webnotes.destroy()
 
 @cmd
-def translate(lang, site=None):
+def translate(lang, site_path=None):
 	import webnotes.translate
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.translate.translate(lang)
 	webnotes.destroy()
 
@@ -585,39 +560,39 @@ def checkout(branch):
 	git(("checkout", branch))
 
 @cmd
-def set_admin_password(admin_password, site=None):
+def set_admin_password(admin_password, site_path=None):
 	import webnotes
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	webnotes.conn.sql("""update __Auth set `password`=password(%s)
 		where user='Administrator'""", (admin_password,))
 	webnotes.conn.commit()
 	webnotes.destroy()
 
 @cmd
-def mysql(site=None):
+def mysql(site_path=None):
 	import webnotes 
 	import commands, os
 	msq = commands.getoutput('which mysql')
-	webnotes.init(site=site)
+	webnotes.init(site_path=site_path)
 	os.execv(msq, [msq, '-u', webnotes.conf.db_name, '-p'+webnotes.conf.db_password, webnotes.conf.db_name, '-h', webnotes.conf.db_host or "localhost", "-A"])
 	webnotes.destroy()
 
 @cmd
-def python(site=None):
+def python(site_path=None):
 	import webnotes 
 	import commands, os
 	python = commands.getoutput('which python')
-	webnotes.init(site=site)
-	if site:
-		os.environ["site"] = site
+	webnotes.init(site_path=site_path)
+	if site_path:
+		os.environ["site_path"] = site_path
 	os.environ["PYTHONSTARTUP"] = os.path.join(os.path.dirname(__file__), "pythonrc.py")
 	os.execv(python, [python])
 	webnotes.destroy()
 
 @cmd
-def ipython(site=None):
+def ipython(site_path=None):
 	import webnotes
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	import IPython
 	IPython.embed()
 
@@ -679,15 +654,15 @@ def search_replace_with_prompt(fpath, txt1, txt2, force=False):
 	print colored('Updated', 'green')
 
 @cmd
-def get_site_status(site=None, verbose=False):
+def get_site_status(site_path=None, verbose=False):
 	import webnotes
 	import webnotes.utils
 	from webnotes.profile import get_system_managers
-	from core.doctype.profile.profile import get_total_users, get_active_users, \
+	from webnotes.core.doctype.profile.profile import get_total_users, get_active_users, \
 		get_website_users, get_active_website_users
 	
 	import json
-	webnotes.connect(site=site)
+	webnotes.connect(site_path=site_path)
 	ret = {
 		'last_backup_on': webnotes.local.conf.last_backup_on,
 		'active_users': get_active_users(),
@@ -720,15 +695,15 @@ def get_site_status(site=None, verbose=False):
 	return ret
 
 @cmd
-def update_site_config(site_config, site, verbose=False):
+def update_site_config(site_config, site_path, verbose=False):
 	import json
 	
 	if isinstance(site_config, basestring):
 		site_config = json.loads(site_config)
 	
-	webnotes.init(site=site)
+	webnotes.init(site_path=site_path)
 	webnotes.conf.site_config.update(site_config)
-	site_config_path = webnotes.get_conf_path(webnotes.conf.sites_dir, site)
+	site_config_path = webnotes.get_conf_path(webnotes.conf.sites_dir, site_path)
 	
 	with open(site_config_path, "w") as f:
 		json.dump(webnotes.conf.site_config, f, indent=1, sort_keys=True)

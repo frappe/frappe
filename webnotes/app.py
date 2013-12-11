@@ -22,6 +22,7 @@ import webnotes.auth
 import webnotes.webutils
 
 local_manager = LocalManager([webnotes.local])
+site_path = None
 
 def handle_session_stopped():
 	res = Response("""<html>
@@ -41,8 +42,7 @@ def application(request):
 	webnotes.local.request = request
 	
 	try:
-		site = webnotes.utils.get_site_name(request.host)
-		webnotes.init(site=site)
+		webnotes.init(site_path=site_path or request.host)
 		
 		webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 			for k, v in (request.form or request.args).iteritems() })
@@ -83,6 +83,7 @@ if not os.environ.get('NO_STATICS'):
 def serve(port=8000, profile=False):
 	webnotes.validate_versions()
 	global application
+	
 	from werkzeug.serving import run_simple
 
 	if profile:

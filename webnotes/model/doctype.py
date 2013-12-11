@@ -228,11 +228,9 @@ def cache_name(doctype, processed):
 	return "doctype:" + doctype + suffix
 
 def clear_cache(doctype=None):
-	import webnotes.plugins
 	def clear_single(dt):
 		webnotes.cache().delete_value(cache_name(dt, False))
 		webnotes.cache().delete_value(cache_name(dt, True))
-		webnotes.plugins.clear_cache("DocType", dt)
 
 		if doctype_cache and doctype in doctype_cache:
 			del doctype_cache[dt]
@@ -246,7 +244,7 @@ def clear_cache(doctype=None):
 			clear_single(dt[0])
 		
 		# clear all notifications
-		from core.doctype.notification_count.notification_count import delete_notification_count_for
+		from webnotes.core.doctype.notification_count.notification_count import delete_notification_count_for
 		delete_notification_count_for(doctype)
 		
 	else:

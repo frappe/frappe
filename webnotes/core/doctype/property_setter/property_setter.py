@@ -51,7 +51,7 @@ class DocType:
 				(self.doc.field_name, self.doc.doc_type), as_dict = 1)[0]
 				
 	def on_update(self):
-		from core.doctype.doctype.doctype import validate_fields_for_doctype
+		from webnotes.core.doctype.doctype.doctype import validate_fields_for_doctype
 		validate_fields_for_doctype(self.doc.doc_type)
 		
 def make_property_setter(doctype, fieldname, property, value, property_type, for_doctype = False):

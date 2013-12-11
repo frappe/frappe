@@ -23,5 +23,8 @@ class MClient(memcache.Client):
 			self.set_value(key, val)
 		return val
 		
-	def delete_value(self, key):
-		self.delete(self.n(key))
+	def delete_value(self, keys):
+		if not isinstance(keys, (list, tuple)):
+			keys = (keys,)
+		for key in keys:
+			self.delete(self.n(key))

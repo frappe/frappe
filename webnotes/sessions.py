@@ -9,12 +9,10 @@ Session bootstraps info needed by common client side activities including
 permission, homepage, control panel variables, system defaults etc
 """
 import webnotes
-import conf
 import json
 from webnotes.utils import cint
 import webnotes.model.doctype
 import webnotes.defaults
-import webnotes.plugins
 
 @webnotes.whitelist()
 def clear(user=None):
@@ -27,10 +25,8 @@ def clear_cache(user=None):
 
 	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
+	cache.delete_value(("app_modules", "module_apps"))
 	
-	# clear plugins code cache
-	webnotes.plugins.clear_cache()
-
 	if user:
 		cache.delete_value("bootinfo:" + user)
 		if webnotes.session:
@@ -57,10 +53,10 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	from core.doctype.notification_count.notification_count import get_notification_info_for_boot
+	from webnotes.core.doctype.notification_count.notification_count import get_notification_info_for_boot
 
 	bootinfo = None
-	if not getattr(conf,'auto_cache_clear',None):
+	if not getattr(webnotes.conf,'auto_cache_clear',None):
 		# check if cache exists
 		bootinfo = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
 		if bootinfo:

@@ -11,7 +11,7 @@ from werkzeug.local import Local
 from werkzeug.exceptions import NotFound
 from MySQLdb import ProgrammingError as SQLError
 
-import os
+import os, sys, importlib
 import json
 import semantic_version
 
@@ -77,23 +77,42 @@ debug_log = local("debug_log")
 message_log = local("message_log")
 
 lang = local("lang")
-
-def init(site=None):
+	
+def init(site_path=None):
 	if getattr(local, "initialised", None):
 		return
 	
 	local.error_log = []
-	local.site = site
+	local.site_path = site_path
 	local.message_log = []
 	local.debug_log = []
 	local.response = _dict({})
 	local.lang = "en"
 	local.request_method = request.method if request else None
-	local.conf = get_conf(site)
+	local.conf = get_conf()
 	local.initialised = True
 	local.flags = _dict({})
 	local.rollback_observers = []
+
+	setup_module_map()
+
+def get_conf():
+	site_config = _dict({})
+		
+	out = get_site_config()
+	if not out:
+		raise NotFound()
 	
+	site_config.update(out)	
+	site_config["site_config"] = out
+	return site_config
+
+def get_site_config():
+	site_filepath = os.path.join(local.site_path, "site_config.json")
+	if os.path.exists(site_filepath):
+		with open(site_filepath, 'r') as f:
+			return json.load(f)
+
 def destroy():
 	"""closes connection and releases werkzeug local"""
 	if conn:
@@ -197,9 +216,9 @@ def remove_file(path):
 		if e.args[0]!=2: 
 			raise
 			
-def connect(db_name=None, password=None, site=None):
+def connect(db_name=None, password=None, site_path=None):
 	import webnotes.db
-	init(site=site)
+	init(site_path=site_path or local.site_path)
 	local.conn = webnotes.db.Database(user=db_name, password=password)
 	local.response = _dict()
 	local.form_dict = _dict()
@@ -453,9 +472,9 @@ def reset_perms(doctype):
 	clear_perms(doctype)
 	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype, force=True)
 
-def reload_doc(module, dt=None, dn=None, plugin=None, force=False):
+def reload_doc(module, dt=None, dn=None, force=False):
 	import webnotes.modules
-	return webnotes.modules.reload_doc(module, dt, dn, plugin=plugin, force=force)
+	return webnotes.modules.reload_doc(module, dt, dn, force=force)
 
 def rename_doc(doctype, old, new, debug=0, force=False, merge=False):
 	from webnotes.model.rename_doc import rename_doc
@@ -466,9 +485,32 @@ def insert(doclist):
 	return webnotes.model.insert(doclist)
 
 def get_module(modulename):
-	__import__(modulename)
-	import sys
-	return sys.modules[modulename]
+	return importlib.import_module(modulename)
+	
+def get_module_list(app_name):
+	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
+
+def get_app_list():
+	return get_file_items(os.path.join(local.site_path, "apps.txt"))
+
+def setup_module_map():
+	_cache = cache()
+	local.app_modules = _cache.get_value("app_modules")
+	local.module_app = _cache.get_value("module_app")
+	
+	if not local.app_modules:
+		local.module_app, local.app_modules = {}, {}
+		for app in ["webnotes"] + get_app_list():
+			for module in get_module_list(app):
+				local.module_app[module] = app
+				local.app_modules.setdefault(app, [])
+				local.app_modules[app].append(module)
+				
+		_cache.set_value("app_modules", local.app_modules)
+		_cache.set_value("module_app", local.module_app)
+		
+def get_file_items(path):
+	with open(path, "r") as f: return f.read().split()
 
 def get_method(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
@@ -568,65 +610,6 @@ def get_jenv():
 
 def get_template(path):
 	return get_jenv().get_template(path)
-
-_config = None
-def get_config():
-	global _config
-	if not _config:
-		import webnotes.utils, json
-		_config = _dict()
-	
-		def update_config(path):
-			try:
-				with open(path, "r") as configfile:
-					this_config = json.loads(configfile.read())
-					for key, val in this_config.items():
-						if isinstance(val, dict):
-							_config.setdefault(key, _dict()).update(val)
-						else:
-							_config[key] = val
-			except IOError:
-				pass
-		
-		update_config(webnotes.utils.get_path("lib", "config.json"))
-		update_config(webnotes.utils.get_path("app", "config.json"))
-				
-	return _config
-
-def get_conf(site):
-	# TODO Should be heavily cached!
-	import conf
-	site_config = _dict({})
-	conf = site_config.update(conf.__dict__)
-	
-	if not conf.get("files_path"):
-		conf["files_path"] = os.path.join("public", "files")
-	if not conf.get("plugins_path"):
-		conf["plugins_path"] = "plugins"
-	
-	if conf.sites_dir and site:
-		out = get_site_config(conf.sites_dir, site)
-		if not out:
-			raise NotFound()
-		
-		site_config.update(out)	
-		site_config["site_config"] = out
-		site_config['site'] = site
-		return site_config
-
-	else:
-		return conf
-
-def get_site_config(sites_dir, site):
-	conf_path = get_conf_path(sites_dir, site)
-	if os.path.exists(conf_path):
-		with open(conf_path, 'r') as f:
-			return json.load(f)
-
-def get_conf_path(sites_dir, site):
-	from webnotes.utils import get_site_base_path
-	return os.path.join(get_site_base_path(sites_dir=sites_dir,
-			hostname=site), 'site_config.json')
 
 def validate_versions():
 	config = get_config()

@@ -34,7 +34,7 @@ class DocType:
 			it will write out a .html file
 		"""
 		from webnotes import conf
-		from core.doctype.doctype.doctype import make_module_and_roles
+		from webnotes.core.doctype.doctype.doctype import make_module_and_roles
 		make_module_and_roles(self.doclist, "Page Role")
 		
 		if not webnotes.flags.in_import and getattr(conf,'developer_mode', 0) and self.doc.standard=='Yes':

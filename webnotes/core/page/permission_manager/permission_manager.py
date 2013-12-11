@@ -66,7 +66,7 @@ def update_match(name, doctype, match=""):
 	webnotes.defaults.clear_cache()
 	
 def validate_and_reset(doctype, for_remove=False):
-	from core.doctype.doctype.doctype import validate_permissions_for_doctype
+	from webnotes.core.doctype.doctype.doctype import validate_permissions_for_doctype
 	validate_permissions_for_doctype(doctype, for_remove)
 	clear_doctype_cache(doctype)
 	

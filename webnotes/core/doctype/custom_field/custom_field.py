@@ -30,7 +30,7 @@ class DocType:
 		
 	def on_update(self):
 		# validate field
-		from core.doctype.doctype.doctype import validate_fields_for_doctype
+		from webnotes.core.doctype.doctype.doctype import validate_fields_for_doctype
 
 		validate_fields_for_doctype(self.doc.dt)
 

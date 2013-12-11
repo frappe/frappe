@@ -6,5 +6,5 @@ from __future__ import unicode_literals
 no_cache = True
 
 def get_context():
-	from core.doctype.print_format.print_format import get_args
+	from webnotes.core.doctype.print_format.print_format import get_args
 	return get_args()

@@ -8,7 +8,7 @@ import webnotes
 import webnotes.utils
 import os, datetime
 
-from website.doctype.website_sitemap.website_sitemap import add_to_sitemap
+from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
 class DocType:
 	def __init__(self, d, dl):
