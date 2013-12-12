@@ -150,7 +150,7 @@ class LoginManager:
 	
 	def run_trigger(self, method='on_login'):
 		try:
-			from startup import event_handlers
+			from erpnext.startup import event_handlers
 			if hasattr(event_handlers, method):
 				getattr(event_handlers, method)(self)
 		except ImportError, e:

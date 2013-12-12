@@ -56,7 +56,7 @@ def get():
 	from webnotes.core.doctype.notification_count.notification_count import get_notification_info_for_boot
 
 	bootinfo = None
-	if not getattr(webnotes.conf,'auto_cache_clear',None):
+	if not getattr(webnotes.conf,'disable_session_cache',None):
 		# check if cache exists
 		bootinfo = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
 		if bootinfo:

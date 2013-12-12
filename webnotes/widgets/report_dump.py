@@ -8,7 +8,7 @@ import copy
 
 @webnotes.whitelist()
 def get_data(doctypes, last_modified):
-	from startup.report_data_map import data_map
+	from erpnext.startup.report_data_map import data_map
 	import datetime
 	out = {}
 	

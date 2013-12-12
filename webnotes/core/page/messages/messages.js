@@ -10,7 +10,7 @@ wn.pages.messages.onload = function(wrapper) {
 	});
 	
 	$('<div><div class="avatar avatar-large">\
-		<img id="avatar-image" src="lib/images/ui/avatar.png"></div>\
+		<img id="avatar-image" src="assets/webnotes/images/ui/avatar.png"></div>\
 		<h3 style="display: inline-block" id="message-title">Everyone</h3>\
 	</div><hr>\
 	<div id="post-message">\
@@ -102,7 +102,7 @@ wn.core.pages.messages = Class.extend({
 	make_list: function() {
 		this.list = new wn.ui.Listing({
 			parent: $(this.wrapper).find('.all-messages'),
-			method: 'core.page.messages.messages.get_list',
+			method: 'webnotes.core.page.messages.messages.get_list',
 			args: {
 				contact: null
 			},
@@ -149,7 +149,7 @@ wn.core.pages.messages = Class.extend({
 	delete: function(ele) {
 		$(ele).parent().css('opacity', 0.6);
 		return wn.call({
-			method:'core.page.messages.messages.delete',
+			method: 'webnotes.core.page.messages.messages.delete',
 			args: {name : $(ele).attr('data-name')},
 			callback: function() {
 				$(ele).parent().toggle(false);

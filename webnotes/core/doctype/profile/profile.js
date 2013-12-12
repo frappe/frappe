@@ -20,7 +20,7 @@ cur_frm.cscript.before_load = function(doc, dt, dn, callback) {
 	
 	if(!wn.languages) {
 		wn.call({
-			method: "core.doctype.profile.profile.get_languages",
+			method: "webnotes.core.doctype.profile.profile.get_languages",
 			callback: function(r) {
 				wn.languages = r.message;
 				update_language_select();
@@ -88,7 +88,7 @@ wn.RoleEditor = Class.extend({
 		this.wrapper = wrapper;
 		$(wrapper).html('<div class="help">Loading...</div>')
 		return wn.call({
-			method:'core.doctype.profile.profile.get_all_roles',
+			method: 'webnotes.core.doctype.profile.profile.get_all_roles',
 			callback: function(r) {
 				me.roles = r.message;
 				me.show_roles();
@@ -203,7 +203,7 @@ wn.RoleEditor = Class.extend({
 			this.make_perm_dialog()
 		$(this.perm_dialog.body).empty();
 		return wn.call({
-			method:'core.doctype.profile.profile.get_perm_info',
+			method: 'webnotes.core.doctype.profile.profile.get_perm_info',
 			args: {role: role},
 			callback: function(r) {
 				var $body = $(me.perm_dialog.body);

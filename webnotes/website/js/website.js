@@ -151,7 +151,7 @@ $.extend(wn, {
 	send_message: function(opts, btn) {
 		return wn.call({
 			type: "POST",
-			method: "website.doctype.contact_us_settings.templates.pages.contact.send_message",
+			method: "webnotes.website.doctype.contact_us_settings.templates.pages.contact.send_message",
 			btn: btn,
 			args: opts,
 			callback: opts.callback

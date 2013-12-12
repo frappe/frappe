@@ -8,7 +8,7 @@ import webnotes.widgets.reportview
 from webnotes.utils import cstr
 
 try:
-	from startup.query_handlers import standard_queries
+	from erpnext.startup.query_handlers import standard_queries
 	startup_standard_queries = True
 except ImportError:
 	startup_standard_queries = False

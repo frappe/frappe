@@ -43,7 +43,7 @@ wn.ele = {
 	link: function(args) {
 		var span = $a(args.parent, 'span', 'link_type', args.style);
 		span.loading_img = $a(args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
-		span.loading_img.src= 'lib/images/ui/button-load.gif';
+		span.loading_img.src= 'assets/webnotes/images/ui/button-load.gif';
 
 		span.innerHTML = args.label;
 		span.user_onclick = args.onclick;

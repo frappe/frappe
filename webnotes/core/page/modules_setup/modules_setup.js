@@ -37,7 +37,7 @@ wn.modules_setup = {
 		});
 		
 		return wn.call({
-			method: 'core.page.modules_setup.modules_setup.update',
+			method: 'webnotes.core.page.modules_setup.modules_setup.update',
 			args: {
 				ml: ml
 			},

@@ -11,5 +11,5 @@ wn.views.calendar["Event"] = {
 		"Public": "success",
 		"Private": "info"
 	},
-	get_events_method: "core.doctype.event.event.get_events"
+	get_events_method: "webnotes.core.doctype.event.event.get_events"
 }

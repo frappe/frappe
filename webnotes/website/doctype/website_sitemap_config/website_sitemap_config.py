@@ -6,7 +6,7 @@
 from __future__ import unicode_literals
 import webnotes
 import webnotes.utils
-import os, datetime
+import os
 
 from webnotes.website.doctype.website_sitemap.website_sitemap import add_to_sitemap
 
@@ -16,8 +16,7 @@ class DocType:
 
 	def after_insert(self):
 		if self.doc.page_or_generator == "Page":
-			lastmod = datetime.datetime.fromtimestamp(float(self.doc.fields.lastmod)).strftime("%Y-%m-%d")
-			add_to_sitemap(self.doc.fields.copy().update({"lastmod": lastmod}))
+			add_to_sitemap(self.doc.fields)
 		else:
 			condition = ""
 			if self.doc.condition_field:
@@ -31,16 +30,15 @@ class DocType:
 		webnotes.conn.sql("""delete from `tabWebsite Sitemap` 
 			where website_sitemap_config = %s""", self.doc.name)
 
-
 def rebuild_website_sitemap_config():
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap Config`""")
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap`""")
-	build_website_sitemap_config()
+	for app in webnotes.get_app_list(True):
+		build_website_sitemap_config(app)
 
 def build_website_sitemap_config(app):		
 	config = {"pages": {}, "generators":{}}
 	basepath = webnotes.get_pymodule_path(app)
-	existing_configs = dict(webnotes.conn.sql("""select name, lastmod from `tabWebsite Sitemap Config`"""))
 	for path, folders, files in os.walk(basepath, followlinks=True):
 		for dontwalk in ('locale', 'public', '.git', app+".egg-info"):
 			if dontwalk in folders:
@@ -50,37 +48,23 @@ def build_website_sitemap_config(app):
 			for fname in files:
 				fname = webnotes.utils.cstr(fname)
 				if fname.split(".")[-1] in ("html", "xml", "js", "css"):
-					name = add_website_sitemap_config("Page", app, path, fname, existing_configs, basepath)
-					if name in existing_configs: del existing_configs[name]
+					name = add_website_sitemap_config("Page", app, path, fname, basepath)
 
 		if os.path.basename(path)=="generators" and os.path.basename(os.path.dirname(path))=="templates":
 			for fname in files:
 				if fname.endswith(".html"):
-					name = add_website_sitemap_config("Generator", app, path, fname, existing_configs, basepath)
-					if name in existing_configs: del existing_configs[name]
+					name = add_website_sitemap_config("Generator", app, path, fname, basepath)
 					
-	for name in existing_configs:
-		webnotes.delete_doc("Website Sitemap Config", name)
-
 	webnotes.conn.commit()
 
-def add_website_sitemap_config(page_or_generator, app, path, fname, existing_configs, basepath):
-	lastmod = int(os.path.getmtime(os.path.join(path, fname)))
+def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 	name = fname[:-5] if fname.endswith(".html") else fname
-	config_lastmod = existing_configs.get(name)
-
-	if str(config_lastmod) != str(lastmod):
-		webnotes.delete_doc("Website Sitemap Config", name)
-	else:
-		return name
-		# already exists and safe
 	
 	wsc = webnotes._dict({
 		"doctype": "Website Sitemap Config",
 		"page_or_generator": page_or_generator,
 		"link_name": name,
 		"template_path": os.path.relpath(os.path.join(path, fname), basepath),
-		"lastmod": lastmod
 	})
 	
 	controller_name = fname.split(".")[0].replace("-", "_") + ".py"

@@ -6,7 +6,7 @@
 from __future__ import unicode_literals
 import webnotes
 try:
-	from startup.open_count import for_doctype, for_module, for_module_doctypes
+	from erpnext.startup.open_count import for_doctype, for_module, for_module_doctypes
 	all_doctypes = for_doctype.keys() + for_module_doctypes.keys()
 except ImportError:
 	for_doctype = {}
@@ -78,7 +78,7 @@ def get_notification_info_for_boot():
 	doctype_info = dict(webnotes.conn.sql("""select name, module from tabDocType"""))
 
 	try:
-		from startup.open_count import for_doctype
+		from erpnext.startup.open_count import for_doctype
 	except ImportError:
 		for_doctype = {}
 	

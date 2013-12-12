@@ -16,6 +16,7 @@ import webnotes.webutils
 def get_bootinfo():
 	"""build and return boot info"""
 	bootinfo = webnotes._dict()
+	hooks = webnotes.get_hooks()
 	doclist = []
 
 	# profile
@@ -36,7 +37,7 @@ def get_bootinfo():
 		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
-	bootinfo.modules = webnotes.get_config().modules
+	bootinfo.modules = hooks.desktop_icons
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))
@@ -55,12 +56,9 @@ def get_bootinfo():
 	# add docs
 	bootinfo['docs'] = doclist
 	
-	try:
-		import startup.boot
-		startup.boot.boot_session(bootinfo)
-	except ImportError:
-		pass
-	
+	for method in hooks.boot_session:
+		webnotes.get_method(method)(bootinfo)
+		
 	from webnotes.model.utils import compress
 	bootinfo['docs'] = compress(bootinfo['docs'])
 

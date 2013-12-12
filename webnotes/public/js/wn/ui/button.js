@@ -10,7 +10,7 @@ wn.ui.Button = function(args) {
 
 			// ajax loading
 			me.loading_img = wn.dom.add(me.btn.args.parent,'img','',{margin:'0px 4px -2px 4px', display:'none'});
-			me.loading_img.src= 'lib/images/ui/button-load.gif';
+			me.loading_img.src= 'assets/webnotes/images/ui/button-load.gif';
 
 			// label
 			me.btn.innerHTML = args.label;

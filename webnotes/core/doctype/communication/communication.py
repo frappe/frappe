@@ -140,7 +140,7 @@ def set_portal_link(sent_via, comm):
 	return footer
 
 def get_user(doctype, txt, searchfield, start, page_len, filters):
-	from controllers.queries import get_match_cond
+	from erpnext.controllers.queries import get_match_cond
 	return webnotes.conn.sql("""select name, concat_ws(' ', first_name, middle_name, last_name) 
 			from `tabProfile` 
 			where ifnull(enabled, 0)=1 
@@ -153,7 +153,7 @@ def get_user(doctype, txt, searchfield, start, page_len, filters):
 			'start': start, 'page_len': page_len})
 
 def get_lead(doctype, txt, searchfield, start, page_len, filters):
-	from controllers.queries import get_match_cond
+	from erpnext.controllers.queries import get_match_cond
 	return webnotes.conn.sql(""" select name, lead_name from `tabLead` 
 			where docstatus < 2 
 				and (%(key)s like "%(txt)s" 

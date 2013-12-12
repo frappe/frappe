@@ -56,7 +56,7 @@ wn.pages.todo.onload = function(wrapper) {
 wn.core.pages.todo.refresh = function() {
 	
 	return wn.call({
-		method: 'core.page.todo.todo.get',
+		method: 'webnotes.core.page.todo.todo.get',
 		callback: function(r,rt) {
 			$("#todo-list [data-todo-list=1]").empty();
 						
@@ -151,7 +151,7 @@ wn.core.pages.todo.ToDoItem = Class.extend({
 			.click(function() {
 				$(this).parent().css('opacity', 0.5);
 				wn.call({
-					method:'core.page.todo.todo.delete',
+					method: 'webnotes.core.page.todo.todo.delete',
 					args: {name: $(this).data('name')},
 					callback: function() {
 						wn.core.pages.todo.refresh();
@@ -206,7 +206,7 @@ wn.core.pages.todo.save = function(btn) {
 	
 	det.name = d.det.name || '';
 	return wn.call({
-		method:'core.page.todo.todo.edit',
+		method: 'webnotes.core.page.todo.todo.edit',
 		args: det,
 		btn: btn,
 		callback: function() {

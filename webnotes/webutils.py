@@ -38,7 +38,7 @@ def render_page(page_name):
 		page_name = page_name[:-5]
 	html = ''
 		
-	if not conf.auto_cache_clear:
+	if not conf.disable_website_cache:
 		html = webnotes.cache().get_value("page:" + page_name)
 		from_cache = True
 

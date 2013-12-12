@@ -8,7 +8,6 @@ from __future__ import unicode_literals
 import MySQLdb
 import warnings
 import webnotes
-from webnotes import conf
 import datetime
 
 class Database:
@@ -18,19 +17,19 @@ class Database:
 	   the `conn` global variable. the `sql` method is also global to run queries
 	"""
 	def __init__(self, host=None, user=None, password=None, ac_name=None, use_default = 0):
-		self.host = host or conf.db_host or 'localhost'
-		self.user = user or conf.db_name
+		self.host = host or webnotes.conf.db_host or 'localhost'
+		self.user = user or webnotes.conf.db_name
 		
 		if ac_name:
-			self.user = self.get_db_login(ac_name) or conf.db_name
+			self.user = self.get_db_login(ac_name) or webnotes.conf.db_name
 		
 		if use_default:
-			self.user = conf.db_name
+			self.user = webnotes.conf.db_name
 
 		self.transaction_writes = 0
 		self.auto_commit_on_many_writes = 0
 
-		self.password = password or webnotes.get_db_password(self.user)
+		self.password = password or webnotes.conf.db_password
 				
 		self.connect()
 		if self.user != 'root':
@@ -87,7 +86,7 @@ class Database:
 						webnotes.errprint(query % values)
 					except TypeError:
 						webnotes.errprint([query, values])
-				if (conf.get("logging") or False)==2:
+				if (webnotes.conf.get("logging") or False)==2:
 					webnotes.log("<<<< query")
 					webnotes.log(query)
 					webnotes.log("with values:")
@@ -100,7 +99,7 @@ class Database:
 				if debug:
 					self.explain_query(query)
 					webnotes.errprint(query)
-				if (conf.get("logging") or False)==2:
+				if (webnotes.conf.get("logging") or False)==2:
 					webnotes.log("<<<< query")
 					webnotes.log(query)
 					webnotes.log(">>>>")

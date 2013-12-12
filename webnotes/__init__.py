@@ -189,34 +189,13 @@ def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
 	
 def create_folder(path):
-	import os
-	try:
-		os.makedirs(path)
-	except OSError, e:
-		if e.args[0]!=17: 
-			raise
-
-def create_symlink(source_path, link_path):
-	import os
-	try:
-		os.symlink(source_path, link_path)
-	except OSError, e:
-		if e.args[0]!=17: 
-			raise
-
-def remove_file(path):
-	import os
-	try:
-		os.remove(path)
-	except OSError, e:
-		if e.args[0]!=2: 
-			raise
+	if not os.path.exists(path): os.makedirs(path)
 			
-def connect(db_name=None, password=None, site=None):
+def connect(site=None, db_name=None):
 	from db import Database
 	if site:
 		init(site)
-	local.conn = Database(user=db_name, password=password)
+	local.conn = Database(user=db_name)
 	local.response = _dict()
 	local.form_dict = _dict()
 	local.session = _dict()
@@ -228,24 +207,9 @@ def set_user(username):
 	local.user = webnotes.profile.Profile(username)
 	
 def get_request_header(key, default=None):
-	try:
-		return request.headers.get(key, default)
-	except Exception, e:
-		return None
-		
-logger = None
-	
-def get_db_password(db_name):
-	"""get db password from conf"""
-	if 'get_db_password' in conf:
-		return conf.get_db_password(db_name)
-		
-	elif 'db_password' in conf:
-		return conf.db_password
-		
-	else:
-		return db_name
+	return request.headers.get(key, default)
 
+logger = None
 whitelisted = []
 guest_methods = []
 def whitelist(allow_guest=False, allow_roles=None):
@@ -278,55 +242,11 @@ def whitelist(allow_guest=False, allow_roles=None):
 		return fn
 	
 	return innerfn
-
-
-class HashAuthenticatedCommand(object):
-	def __init__(self):
-		if hasattr(self, 'command'):
-			import inspect
-			self.fnargs, varargs, varkw, defaults = inspect.getargspec(self.command)
-			self.fnargs.append('signature')
-
-	def __call__(self, *args, **kwargs):
-		signature = kwargs.pop('signature')
-		if self.verify_signature(kwargs, signature):
-			return self.command(*args, **kwargs)
-		else:
-			self.signature_error()
-
-	def command(self):
-		raise NotImplementedError
-		
-	def signature_error(self):
-		raise InvalidSignatureError
-
-	def get_signature(self, params, ignore_params=None):
-		import hmac
-		params = self.get_param_string(params, ignore_params=ignore_params)
-		secret = "secret"
-		signature = hmac.new(self.get_nonce())
-		signature.update(secret)
-		signature.update(params)
-		return signature.hexdigest()
-
-	def get_param_string(self, params, ignore_params=None):
-		if not ignore_params:
-			ignore_params = []
-		params = [unicode(param) for param in params if param not in ignore_params]
-		params = ''.join(params)
-		return params
-
-	def get_nonce():
-		raise NotImplementedError
-
-	def verify_signature(self, params, signature):
-		if signature == self.get_signature(params):
-			return True
-		return False
 	
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	from webnotes.sessions import clear_cache
+	cache().delete_value(["app_hooks", "installed_apps"])
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
@@ -495,6 +415,26 @@ def get_app_list(with_webnotes=False):
 		apps.insert(0, 'webnotes')
 	return apps
 
+def get_installed_apps():
+	def load_installed_apps():
+		return json.loads(conn.get_global("installed_apps") or "[]")
+	return cache().get_value("installed_apps", load_installed_apps)
+
+def get_hooks():
+	def load_app_hooks():
+		hooks = {"app_include_js":[], "app_include_css":[], "desktop_icons":{}, "boot_session":[]}
+		for app in get_installed_apps():
+			for key, values in get_module(app + ".manage").get_hooks().iteritems():
+				if isinstance(hooks[key], list):
+					if not isinstance(values, (list, tuple)):
+						values = [values]
+					hooks[key].extend(values)
+				else:
+					hooks[key].update(values)
+		return hooks
+			
+	return _dict(cache().get_value("app_hooks", load_app_hooks))
+
 def setup_module_map():
 	_cache = cache()
 	local.app_modules = _cache.get_value("app_modules")
@@ -574,16 +514,6 @@ def repsond_as_web_page(title, html):
 	local.message = "<h3>" + title + "</h3>" + html
 	local.response['type'] = 'page'
 	local.response['page_name'] = 'message.html'
-
-def load_json(obj):
-	if isinstance(obj, basestring):
-		import json
-		try:
-			obj = json.loads(obj)
-		except ValueError:
-			pass
-		
-	return obj
 	
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	import webnotes.widgets.reportview
@@ -607,8 +537,10 @@ def get_jenv():
 		from markdown2 import markdown
 		from json import dumps
 
+		# webnotes will be loaded last, so app templates will get precedence
 		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
-			for app in get_app_list(True)]))
+			for app in get_app_list() + ["webnotes"]]))
+
 		jenv.filters["global_date_format"] = global_date_format
 		jenv.filters["markdown"] = markdown
 		jenv.filters["json"] = dumps

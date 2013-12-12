@@ -3,9 +3,6 @@
 
 from __future__ import unicode_literals
 import webnotes
-import memc
-
-# User
 
 def set_user_default(key, value, user=None):
 	set_default(key, value, user or webnotes.session.user)

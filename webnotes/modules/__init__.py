@@ -24,7 +24,8 @@ def scrub_dt_dn(dt, dn):
 			
 def get_module_path(module):
 	"""Returns path of the given module"""
-	return os.path.dirname(webnotes.get_module(module).__file__)
+	module = scrub(module)
+	return webnotes.get_pymodule_path(webnotes.local.module_app[module] + "." + module)
 
 def get_doc_path(module, doctype, name):
 	dt, dn = scrub_dt_dn(doctype, name)

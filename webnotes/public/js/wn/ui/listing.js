@@ -82,7 +82,7 @@ wn.ui.Listing = Class.extend({
 					<div class="list-toolbar btn-group" style="display:inline-block; margin-right: 10px;">\
 					</div>\
 					<div style="display: none; width: 24px; margin-left: 4px">\
-						<img src="lib/images/ui/button-load.gif" \
+						<img src="assets/webnotes/images/ui/button-load.gif" \
 						class="img-load"/></div>\
 				</div><div style="clear:both"></div>\
 				\

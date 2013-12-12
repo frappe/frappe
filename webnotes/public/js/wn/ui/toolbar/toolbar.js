@@ -38,7 +38,7 @@ wn.ui.toolbar.Toolbar = Class.extend({
 				<div class="collapse navbar-collapse navbar-responsive-collapse">\
 					<ul class="nav navbar-nav navbar-left">\
 					</ul>\
-					<img src="lib/images/ui/spinner.gif" id="spinner"/>\
+					<img src="assets/webnotes/images/ui/spinner.gif" id="spinner"/>\
 					<ul class="nav navbar-nav navbar-right">\
 						<li class="dropdown">\
 							<a class="dropdown-toggle" data-toggle="dropdown" href="#" \

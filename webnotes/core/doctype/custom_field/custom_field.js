@@ -57,7 +57,7 @@ cur_frm.cscript.dt = function(doc, dt, dn) {
 		return;
 	}
 	return wn.call({
-		method: 'core.doctype.custom_field.custom_field.get_fields_label',
+		method: 'webnotes.core.doctype.custom_field.custom_field.get_fields_label',
 		args: { doctype: doc.dt, fieldname: doc.fieldname },
 		callback: function(r, rt) {
 			doc = locals[doc.doctype][doc.name];

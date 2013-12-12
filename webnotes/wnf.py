@@ -80,6 +80,8 @@ def setup_parser():
 	
 def setup_install(parser):
 	parser.add_argument("--install", metavar="DB-NAME", nargs=1,
+		help="Install a new db")
+	parser.add_argument("--install_app", metavar="APP-NAME", nargs=1,
 		help="Install a new app")
 	parser.add_argument("--root-password", nargs=1,
 		help="Root password for new app")
@@ -202,15 +204,24 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(db_name, source_sql=None, verbose=True, force=False, root_password=None, site_config=None, admin_password='admin'):
-	from webnotes.install_lib.install import Installer
-	inst = Installer('root', db_name=db_name, root_password=root_password, site_config=site_config)
-	inst.install(db_name, verbose=verbose, force=force, admin_password=admin_password)
+def install(root_login="root", root_password=None, db_name=None, source_sql=None,
+	 admin_password = 'admin', verbose=True, force=False, site_config=None):
+	from webnotes.installer import install_db, install_app
+	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
+		admin_password = admin_password, verbose=verbose, force=force, site_config=site_config)
+	install_app("webnotes", verbose=verbose)
+	webnotes.destroy()
+
+@cmd
+def install_app(app):
+	from webnotes.installer import install_app
+	webnotes.connect()
+	install_app(app, verbose=True)
 	webnotes.destroy()
 
 @cmd
 def reinstall(verbose=True):
-	install(webnotes.conf.db_name, verbose=verbose, force=True)
+	install(db_name=webnotes.conf.db_name, verbose=verbose, force=True)
 
 @cmd
 def restore(db_name, source_sql, verbose=True, force=False):
@@ -391,7 +402,7 @@ def make_custom_server_script(doctype):
 def clear_cache():
 	import webnotes.sessions
 	webnotes.connect()
-	webnotes.sessions.clear_cache()
+	webnotes.clear_cache()
 	webnotes.destroy()
 
 @cmd

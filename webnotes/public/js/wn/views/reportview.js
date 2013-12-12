@@ -564,7 +564,7 @@ wn.ui.ColumnPicker = Class.extend({
 	add_column: function(c) {
 		var w = $('<div style="padding: 5px; background-color: #eee; \
 			width: 90%; margin-bottom: 10px; border-radius: 3px; cursor: move;">\
-			<img src="lib/images/ui/drag-handle.png" style="margin-right: 10px;">\
+			<img src="assets/webnotes/images/ui/drag-handle.png" style="margin-right: 10px;">\
 			<a class="close" style="margin-top: 5px;">&times</a>\
 			</div>')
 			.appendTo($(this.dialog.body).find('.column-list'));

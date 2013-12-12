@@ -134,7 +134,7 @@ def get_backup():
 	#if verbose: print webnotes.conn.cur_db_name + " " + conf.db_password
 	delete_temp_backups()
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  webnotes.get_db_password(webnotes.conn.cur_db_name), db_host = webnotes.conn.host)
+						  webnotes.conf.db_password, db_host = webnotes.conn.host)
 	odb.get_backup()
 	recipient_list = odb.send_email()
 	webnotes.msgprint("""A download link to your backup will be emailed \
@@ -151,7 +151,7 @@ def scheduled_backup(older_than=6, ignore_files=False, backup_path_db=None, back
 def new_backup(older_than=6, ignore_files=False, backup_path_db=None, backup_path_files=None):
 	delete_temp_backups(older_than=168)
 	odb = BackupGenerator(webnotes.conn.cur_db_name, webnotes.conn.cur_db_name,\
-						  webnotes.get_db_password(webnotes.conn.cur_db_name), 
+						  webnotes.conf.db_password, 
 						  backup_path_db=backup_path_db, backup_path_files=backup_path_files, db_host = webnotes.conn.host)
 	odb.get_backup(older_than, ignore_files)
 	return odb

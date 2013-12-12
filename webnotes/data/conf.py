@@ -1,6 +1,8 @@
 # Copyright (c) 2013, Web Notes Technologies Pvt. Ltd. and Contributors
 # MIT License. See license.txt
 
+# DEPRECATED only for reference
+
 from __future__ import unicode_literals
 # app configuration
 
@@ -32,9 +34,6 @@ admin_email_notification = 0
 
 # user timezone
 user_timezone = 'Asia/Calcutta'
-
-# dump backups here
-backup_path = 'public/backups'
 
 # outgoing mail settings
 mail_server = None

@@ -117,7 +117,7 @@ def pack(target, sources, no_compress):
 			if outtype=="js" and (not no_compress) and suffix!="concat" and (".min." not in f):
 				tmpin, tmpout = StringIO(data.encode('utf-8')), StringIO()
 				jsm.minify(tmpin, tmpout)
-				outtxt += unicode(tmpout.getvalue() or '', 'utf-8').strip('\n')
+				outtxt += unicode(tmpout.getvalue() or '', 'utf-8').strip('\n') + ';'
 			else:
 				outtxt += ('\n/*\n *\t%s\n */' % f)
 				outtxt += '\n' + data + '\n'
@@ -145,27 +145,4 @@ def files_dirty():
 				return True
 	else:
 		return False
-
-		
-	# def reset_app_html(self):
-	# 	import webnotes
-	# 
-	# 	app_html_path = os.path.join(self.path, 'app.html')
-	# 	if os.path.exists(app_html_path):
-	# 		os.remove(app_html_path)
-	# 	
-	# 	# splash_path = os.path.join(self.path, )
-	# 	# splash = ""
-	# 	# if os.path.exists("public/app/images/splash.svg"):
-	# 	# 	with open("public/app/images/splash.svg") as splash_file:
-	# 	# 		splash = splash_file.read()
-	# 	# 
-	# 	# with open('lib/public/html/app.html', 'r') as app_html:
-	# 	# 	data = app_html.read()
-	# 	# 	data = data % {
-	# 	# 		"_version_number": webnotes.generate_hash(),
-	# 	# 		"splash": splash
-	# 	# 	}
-	# 		with open(app_html_path, 'w') as new_app_html:
-	# 			new_app_html.write(data)
 	

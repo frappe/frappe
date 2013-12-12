@@ -14,7 +14,7 @@ from webnotes import _, msgprint
 from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
 try:
-	from startup.bean_handlers import on_method
+	from erpnext.startup.bean_handlers import on_method
 except ImportError:
 	on_method = None
 

@@ -47,7 +47,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	
 	// load doctypes
 	wn.call({
-		method:'core.page.data_import_tool.data_import_tool.get_doctypes',
+		method: 'webnotes.core.page.data_import_tool.data_import_tool.get_doctypes',
 		callback: function(r) {
 			$select.add_options(['Select...'].concat(r.message));
 			wrapper.doctypes = r.message;
@@ -76,7 +76,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 					+ '&with_data=%(with_data)s'
 					+ '&all_doctypes=%(all_doctypes)s',
 					{ 
-						cmd: 'core.page.data_import_tool.data_import_tool.get_template',
+						cmd: 'webnotes.core.page.data_import_tool.data_import_tool.get_template',
 						doctype: $(this).data('doctype'),
 						parent_doctype: $('[name="dit-doctype"]').val(),
 						with_data: $('[name="dit-with-data"]:checked').length ? 'Yes' : 'No',
@@ -94,7 +94,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 			
 			// get options
 			return wn.call({
-				method:'core.page.data_import_tool.data_import_tool.get_doctype_options',
+				method: 'webnotes.core.page.data_import_tool.data_import_tool.get_doctype_options',
 				args: {doctype: val},
 				callback: function(r) {
 					$('<h4>Select Template:</h4>').appendTo('#dit-download');
@@ -143,7 +143,7 @@ wn.pages['data-import-tool'].onload = function(wrapper) {
 	wn.upload.make({
 		parent: $('#dit-upload-area'),
 		args: {
-			method: 'core.page.data_import_tool.data_import_tool.upload'
+			method: 'webnotes.core.page.data_import_tool.data_import_tool.upload'
 		},
 		onerror: function(r) {
 			r.messages = $.map(r.message.messages, function(v) {
