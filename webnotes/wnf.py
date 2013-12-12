@@ -11,7 +11,7 @@ import webnotes
 def main():
 	parsed_args = webnotes._dict(vars(setup_parser()))
 	fn = get_function(parsed_args)
-	if not parsed_args.get("sit_path"):
+	if not parsed_args.get("site_path"):
 		parsed_args["site_path"] = "."
 	if parsed_args.get("site_path")=="all":
 		for site_path in get_sites():
@@ -318,8 +318,10 @@ def reload_doc(module, doctype, docname, site_path=None, force=False):
 	webnotes.destroy()
 
 @cmd
-def build():
+def build(site_path):
 	import webnotes.build
+	import webnotes
+	webnotes.init(site_path)
 	webnotes.build.bundle(False)
 
 @cmd

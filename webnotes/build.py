@@ -8,11 +8,11 @@ from webnotes.utils.minify import JavascriptMinify
 Build the `public` folders and setup languages
 """
 
-import os, sys, webnotes
+import os, sys, webnotes, json
 from cssmin import cssmin
 
 
-def bundle(no_compress, cms_make=True):
+def bundle(no_compress, cms_make=True, path):
 	"""concat / minify js files"""
 	# build js files
 	webnotes.validate_versions()
@@ -20,6 +20,7 @@ def bundle(no_compress, cms_make=True):
 	check_lang()
 	bundle = Bundle()
 	bundle.no_compress = no_compress
+	bundle.path = path
 	bundle.make()
 
 	if cms_make:
@@ -29,7 +30,7 @@ def bundle(no_compress, cms_make=True):
 		except ImportError, e:
 			pass
 			
-	clear_pyc_files()
+	# clear_pyc_files()
 	
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
@@ -65,7 +66,7 @@ class Bundle:
 	"""
 	no_compress = False
 	timestamps = {}
-	path = '.'
+	path = 'public'
 	
 	def concat(self, filelist, outfile=None):	
 		"""
@@ -145,10 +146,9 @@ class Bundle:
 						
 		print "Building js and css files..."
 		self.make_build_data()	
-		for builddict in self.bdata:
-			outfile = builddict.keys()[0]
-			infiles = self.get_infiles(builddict)
-			
+		for outfile in self.bdata:
+			infiles = self.bdata[outfile]
+		
 			self.concat(infiles, os.path.relpath(os.path.join(self.path, outfile), os.curdir))
 	
 		self.reset_app_html()
@@ -156,68 +156,45 @@ class Bundle:
 	def reset_app_html(self):
 		import webnotes
 
-		if os.path.exists("public/app.html"):
-			os.remove("public/app.html")
+		app_html_path = os.path.join(self.path, 'app.html')
+		if os.path.exists(app_html_path):
+			os.remove(app_html_path)
 		
-		splash = ""
-		if os.path.exists("public/app/images/splash.svg"):
-			with open("public/app/images/splash.svg") as splash_file:
-				splash = splash_file.read()
-		
-		with open('lib/public/html/app.html', 'r') as app_html:
-			data = app_html.read()
-			data = data % {
-				"_version_number": webnotes.generate_hash(),
-				"splash": splash
-			}
-			with open('public/app.html', 'w') as new_app_html:
+		# splash_path = os.path.join(self.path, )
+		# splash = ""
+		# if os.path.exists("public/app/images/splash.svg"):
+		# 	with open("public/app/images/splash.svg") as splash_file:
+		# 		splash = splash_file.read()
+		# 
+		# with open('lib/public/html/app.html', 'r') as app_html:
+		# 	data = app_html.read()
+		# 	data = data % {
+		# 		"_version_number": webnotes.generate_hash(),
+		# 		"splash": splash
+		# 	}
+			with open(app_html_path, 'w') as new_app_html:
 				new_app_html.write(data)
 	
-	def get_infiles(self, builddict):
-		"""make list of files to merge"""
-		outfile = builddict.keys()[0]
-		infiles = builddict[outfile]
-		
-		# add app js and css to the list
-		if outfile in self.appfiles:
-			for f in self.appfiles[outfile]:
-				if f not in infiles:
-					infiles.append(f)
-		
-		fl = []
-		for f in infiles:
-			## load files from directory
-			if f.endswith('/'):
-				# add init js first
-				fl += [os.path.relpath(os.path.join(f, 'init.js'), os.curdir)]
-				
-				# files other than init.js and beginning with "_"
-				fl += [os.path.relpath(os.path.join(f, tmp), os.curdir) \
-					for tmp in os.listdir(f) if (tmp != 'init.js' and not tmp.startswith('_'))]
-			else:
-				fl.append(os.path.relpath(os.path.join(self.path, f), os.curdir))
-				
-		return fl
-			
 	def make_build_data(self):
 		"""merge build.json and lib/build.json"""
 		# framework js and css files
-		with open('lib/public/build.json', 'r') as bfile:
-			bdata = eval(bfile.read())
+
+		def process_app_build(app_path, bdata):
+			ret = {}
+			for outfile, infiles in bdata.iteritems():
+				infiles = [os.path.join(app_path, infile) for infile in infiles]	
+				ret[outfile] = infiles
+			return ret
+
+		pymodules = [webnotes.get_module(app) for app in webnotes.get_app_list(True)]
+		app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
+
+		bdata = {}
+		for app_path in app_paths:
+			path = os.path.join(app_path, 'public', 'build.json')
+			if os.path.exists(path):
+				with open(path) as f:
+					bdata.update(process_app_build(app_path, json.load(f)))
 		
-		# app js and css files
-		if os.path.exists('app/public/build.json'):
-			with open('app/public/build.json', 'r') as bfile:
-				appfiles = eval(bfile.read())
-		else:
-			appfiles = {}
-		
-		# add additional app files in bdata
-		buildfile_list = [builddict.keys()[0] for builddict in bdata]
-		for f in appfiles:
-			if f not in buildfile_list:
-				bdata.append({f: appfiles[f]})
-		
-		self.appfiles = appfiles
 		self.bdata = bdata
 

@@ -7,35 +7,26 @@ from __future__ import unicode_literals
 import os
 import webnotes
 
-def make(site=None):
+def make(public_path=None):
 	"""make public folder symlinks if missing"""
-	from webnotes.utils import get_site_base_path, get_base_path, get_path
 	
-	webnotes.init(site=site)
-	
-	site_path = get_site_base_path() if site else get_base_path()
+	webnotes.init()
+
+	if not public_path:
+		public_path = 'public'
 	
 	# setup standard folders
-	for param in (("public_path", "public"), ("backup_path", "public/backups"), ("files_path", "public/files")):
-		path = os.path.join(site_path, webnotes.conf.get(param[0], param[1]))
-		if not os.path.exists(path):
-			os.mkdir(path)
+	for dirs in ['backups', 'files', 'js', 'css']:
+		dir_path = os.path.join(public_path, dirs)
+		if not os.path.exists(dir_path):
+			os.makedirs(dir_path)
 	
-	# setup js and css folders
-	if not site:
-		for folder in ("js", "css"):
-			path = get_path(webnotes.conf.get("public_path", "public"), folder)
-			if not os.path.exists(path):
-				os.mkdir(path)
-		
-		os.chdir(webnotes.conf.get("public_path", "public"))
-		symlinks = [
-			["app", "../app/public"],
-			["lib", "../lib/public"],
-		]
+	symlinks = []
+	for app in webnotes.get_app_list():
+		pymodule = webnotes.get_module(app)
+		pymodule_path = os.path.abspath(os.path.dirname(pymodule.__file__))
+		symlinks.append([app, os.path.join(pymodule_path, 'public')])
 
-		for link in symlinks:
-			if not os.path.exists(link[0]) and os.path.exists(link[1]):
-				os.symlink(link[1], link[0])
-				
-		os.chdir("..")
+	for link in symlinks:
+		if not os.path.exists(link[0]) and os.path.exists(link[1]):
+			os.symlink(link[1], link[0])

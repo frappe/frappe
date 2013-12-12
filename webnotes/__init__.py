@@ -81,6 +81,9 @@ lang = local("lang")
 def init(site_path=None):
 	if getattr(local, "initialised", None):
 		return
+
+	if not site_path:
+		site_path = '.'
 	
 	local.error_log = []
 	local.site_path = site_path
@@ -490,8 +493,11 @@ def get_module(modulename):
 def get_module_list(app_name):
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
 
-def get_app_list():
-	return get_file_items(os.path.join(local.site_path, "apps.txt"))
+def get_app_list(with_webnotes=False):
+	apps = get_file_items(os.path.join(local.site_path, "apps.txt"))
+	if with_webnotes:
+		apps.insert(0, 'webnotes')
+	return apps
 
 def setup_module_map():
 	_cache = cache()
@@ -612,6 +618,7 @@ def get_template(path):
 	return get_jenv().get_template(path)
 
 def validate_versions():
+	return True
 	config = get_config()
 	framework_version = semantic_version.Version(config['framework_version'])
 	spec = semantic_version.Spec(config['requires_framework_version'])
