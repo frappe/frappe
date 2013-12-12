@@ -11,12 +11,12 @@ Build the `public` folders and setup languages
 import os, sys, webnotes, json
 from cssmin import cssmin
 
-def bundle():
+def bundle(no_compress):
 	"""concat / minify js files"""
 	# build js files
 	make_site_public_dirs()
 	check_lang()
-	build()
+	build(no_compress)
 	
 def watch(no_compress):
 	"""watch and rebuild if necessary"""
@@ -29,20 +29,32 @@ def watch(no_compress):
 		
 		time.sleep(3)
 
-def make_site_public_dirs():
-	webnotes.init()
-	
-	for dirs in ['backups', 'files', 'js', 'css']:
-		dir_path = os.path.join('public', dirs)
+def make_site_public_dirs():	
+	assets_path = os.path.join(webnotes.local.sites_path, "assets")
+	site_public_path = os.path.join(webnotes.local.site_path, 'public')
+	for dir_path in [
+			os.path.join(site_public_path, 'backups'), 
+			os.path.join(site_public_path, 'files'),
+			os.path.join(assets_path, 'js'), 
+			os.path.join(assets_path, 'css')]:
+		
 		if not os.path.exists(dir_path):
 			os.makedirs(dir_path)
 	
-	for app in webnotes.get_app_list():
-		pymodule = webnotes.get_module(app)
-		pymodule_public_path = os.path.join(os.path.abspath(os.path.dirname(pymodule.__file__)), 'public')
+	# symlink app/public > assets/app
+	for app_name in webnotes.get_app_list():
+		pymodule = webnotes.get_module(app_name)
+		source = os.path.join(os.path.abspath(os.path.dirname(pymodule.__file__)), 'public')
+		target = os.path.join(assets_path, app_name)
 
-		if not os.path.exists(app) and os.path.exists(pymodule_public_path):
-			os.symlink(pymodule_public_path, app)
+		if not os.path.exists(target) and os.path.exists(source):
+			os.symlink(os.path.abspath(source), target)
+			
+	# symlink assets > site/public/assets
+	site_public_assets = os.path.join(site_public_path, "assets")
+	if not os.path.exists(site_public_assets):
+		os.symlink(os.path.abspath(assets_path), site_public_assets)
+	
 			
 def check_lang():
 	from webnotes.translate import update_translations
@@ -60,12 +72,12 @@ def clear_pyc_files():
 				os.remove(os.path.join(path, f))
 
 def build(no_compress=False):
-	build_maps = get_build_maps()
+	assets_path = os.path.join(webnotes.local.sites_path, "assets")
 
-	for target in build_maps:
-		pack(target, build_maps[target], no_compress)	
+	for target, sources in get_build_maps().iteritems():
+		pack(os.path.join(assets_path, target), sources, no_compress)	
 
-	self.reset_app_html()
+	# reset_app_html()
 
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""
@@ -78,12 +90,11 @@ def get_build_maps():
 		path = os.path.join(app_path, 'public', 'build.json')
 		if os.path.exists(path):
 			with open(path) as f:
-				ret = {}
-				for target, sources in bdata.iteritems():
+				for target, sources in json.loads(f.read()).iteritems():
 					# update app path
 					sources = [os.path.join(app_path, source) for source in sources]	
 					build_maps[target] = sources
-	
+		
 	return build_maps
 
 timestamps = {}
@@ -93,7 +104,7 @@ def pack(target, sources, no_compress):
 	
 	outtype, outtxt = target.split(".")[-1], ''
 	jsm = JavascriptMinify()
-	
+		
 	for f in sources:
 		suffix = None
 		if ':' in f: f, suffix = f.split(':')
@@ -115,16 +126,16 @@ def pack(target, sources, no_compress):
 			print "--Error in:" + f + "--"
 			print webnotes.getTraceback()
 
-	if not no_compress and out_type == 'css':
+	if not no_compress and outtype == 'css':
 		outtxt = cssmin(outtxt)
 					
-	with open(outfile, 'w') as f:
+	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))
 	
-	print "Wrote %s - %sk" % (outfile, str(int(os.path.getsize(outfile)/1024)))
+	print "Wrote %s - %sk" % (target, str(int(os.path.getsize(target)/1024)))
 
 def files_dirty():
-	for target, sources in build_maps.iteritems():
+	for target, sources in get_build_maps().iteritems():
 		for f in sources:
 			if ':' in f: f, suffix = f.split(':')
 			if not os.path.exists(f) or os.path.isdir(f): continue

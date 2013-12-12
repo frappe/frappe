@@ -488,7 +488,7 @@ def get_module_list(app_name):
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
 
 def get_app_list(with_webnotes=False):
-	apps = get_file_items(os.path.join(local.site_path, "apps.txt"))
+	apps = get_file_items(os.path.join(local.sites_path, "apps.txt"))
 	if with_webnotes:
 		apps.insert(0, 'webnotes')
 	return apps
