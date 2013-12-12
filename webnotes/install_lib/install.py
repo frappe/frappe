@@ -16,11 +16,9 @@ from webnotes.model.sync import sync_for
 from webnotes.utils import cstr
 
 class Installer:
-	def __init__(self, root_login, root_password=None, db_name=None, site_path=None, site_config=None):
-		make_conf(db_name, site_path=site_path, site_config=site_config)
-				
-		self.site_path = site_path
-		
+	def __init__(self, root_login, root_password=None, db_name=None, site_config=None):
+		make_conf(db_name, site_config=site_config)
+						
 		self.make_connection(root_login, root_password)
 
 		webnotes.local.conn = self.conn
@@ -67,7 +65,7 @@ class Installer:
 		# close root connection
 		self.conn.close()
 
-		webnotes.connect(db_name=db_name, site_path=self.site_path)
+		webnotes.connect(db_name=db_name)
 		self.dbman = DbManager(webnotes.conn)
 		
 		# import in db_name
@@ -192,13 +190,14 @@ class Installer:
 			`password` VARCHAR(180) NOT NULL
 			) ENGINE=InnoDB DEFAULT CHARSET=utf8""")
 		
-def make_conf(db_name=None, db_password=None, site_path=None, site_config=None):
-	make_site_config(site_path, db_name, db_password, site_config)
+def make_conf(db_name=None, db_password=None, site_config=None):
+	site = webnotes.local.site
+	make_site_config(db_name, db_password, site_config)
 	webnotes.destroy()
-	webnotes.init(site_path=site_path)
+	webnotes.init(site)
 
-def make_site_config(site_path, db_name=None, db_password=None, site_config=None):		
-	site_file = os.path.join(site_path, "site_config.json")
+def make_site_config(db_name=None, db_password=None, site_config=None):		
+	site_file = os.path.join(webnotes.local.site_path, "site_config.json")
 	
 	if not os.path.exists(site_file):
 		if not (site_config and isinstance(site_config, dict)):

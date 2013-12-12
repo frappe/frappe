@@ -78,43 +78,36 @@ message_log = local("message_log")
 
 lang = local("lang")
 	
-def init(site_path=None):
+def init(site, sites_path=None):
 	if getattr(local, "initialised", None):
 		return
 
-	if not site_path:
-		site_path = '.'
-	
+	if not sites_path:
+		sites_path = '.'
+			
 	local.error_log = []
-	local.site_path = site_path
+	local.site = site
+	local.sites_path = sites_path
+	local.site_path = os.path.join(sites_path, site)
 	local.message_log = []
 	local.debug_log = []
 	local.response = _dict({})
 	local.lang = "en"
 	local.request_method = request.method if request else None
-	local.conf = get_conf()
+	local.conf = _dict(get_site_config())
 	local.initialised = True
 	local.flags = _dict({})
 	local.rollback_observers = []
 
 	setup_module_map()
 
-def get_conf():
-	site_config = _dict({})
-		
-	out = get_site_config()
-	if not out:
-		raise NotFound()
-	
-	site_config.update(out)	
-	site_config["site_config"] = out
-	return site_config
-
 def get_site_config():
 	site_filepath = os.path.join(local.site_path, "site_config.json")
 	if os.path.exists(site_filepath):
 		with open(site_filepath, 'r') as f:
 			return json.load(f)
+	else:
+		return _dict()
 
 def destroy():
 	"""closes connection and releases werkzeug local"""
@@ -219,10 +212,11 @@ def remove_file(path):
 		if e.args[0]!=2: 
 			raise
 			
-def connect(db_name=None, password=None, site_path=None):
-	import webnotes.db
-	init(site_path=site_path or local.site_path)
-	local.conn = webnotes.db.Database(user=db_name, password=password)
+def connect(db_name=None, password=None, site=None):
+	from db import Database
+	if site:
+		init(site)
+	local.conn = Database(user=db_name, password=password)
 	local.response = _dict()
 	local.form_dict = _dict()
 	local.session = _dict()
@@ -616,12 +610,3 @@ def get_jenv():
 
 def get_template(path):
 	return get_jenv().get_template(path)
-
-def validate_versions():
-	return True
-	config = get_config()
-	framework_version = semantic_version.Version(config['framework_version'])
-	spec = semantic_version.Spec(config['requires_framework_version'])
-	if not spec.match(framework_version):
-		raise Exception, "Framework version out of sync"
-

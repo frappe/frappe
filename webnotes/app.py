@@ -81,7 +81,6 @@ if not os.environ.get('NO_STATICS'):
 	})
 
 def serve(port=8000, profile=False):
-	webnotes.validate_versions()
 	global application
 	
 	from werkzeug.serving import run_simple
