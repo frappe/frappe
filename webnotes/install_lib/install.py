@@ -88,14 +88,9 @@ class Installer:
 		# update admin password
 		self.update_admin_password(admin_password)
 		
-		# create public folder
-		# from webnotes.install_lib import setup_public_folder
-		# setup_public_folder.make(site=self.site)
-		# 
-		# if not self.site:
-		# 	from webnotes.build import bundle
-		# 	bundle(False)
-		# 			
+		from webnotes.build import bundle
+		bundle(False)
+
 		return db_name
 	
 	def install_app(self, name, verbose=False):
@@ -105,13 +100,13 @@ class Installer:
 		
 		sync_for(name, force=True, sync_everything=True, verbose=verbose)
 
+		from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+		build_website_sitemap_config(name)
+
 		if hasattr(manage, "after_install"):
 			manage.after_install()
 		
-		
 	def install_app_old(self, verbose=False):
-	
-		
 		sync_for("lib", force=True, sync_everything=True, verbose=verbose)
 		self.import_core_docs()
 
@@ -127,8 +122,6 @@ class Installer:
 			install_fixtures()
 
 		# build website sitemap
-		from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
-		build_website_sitemap_config()
 
 		if verbose: print "Completing App Import..."
 		install and install.post_import()

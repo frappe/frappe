@@ -10,9 +10,9 @@
 	{% endif %}
 	<hr>
 	{% for blogger_info in bloggers %}
-	{% include "lib/website/doctype/blog_post/templates/includes/blogger.html" %}
+	{% include "website/doctype/blog_post/templates/includes/blogger.html" %}
 	{% if not loop.last %}<hr>{% endif %}
 	{% endfor %}
 </div>
-{% include 'lib/website/doctype/blog_post/templates/includes/blog_footer.html' %}
+{% include 'website/doctype/blog_post/templates/includes/blog_footer.html' %}
 {% endblock %}

@@ -17,7 +17,7 @@ import json
 import re
 from csv import reader
 from webnotes.modules import get_doc_path,get_doctype_module
-from webnotes.utils import get_base_path, cstr
+from webnotes.utils import cstr
 
 def translate(lang=None):
 	languages = [lang]
@@ -52,7 +52,7 @@ def get_all_languages():
 			raise
 
 def get_lang_dict():
-	languages_path = os.path.join(get_base_path(), "app", "translations", "languages.json")
+	languages_path = os.path.join(os.path.dirname(webnotes.__file__), "data", "languages.json")
 	if os.path.exists(languages_path):
 		with open(languages_path, "r") as langfile:
 			return json.loads(langfile.read())

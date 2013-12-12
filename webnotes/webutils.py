@@ -82,9 +82,7 @@ def build_page(page_name):
 	else:
 		page_options["page_name"] = page_name
 	
-	basepath = webnotes.utils.get_base_path()
 	no_cache = page_options.get("no_cache")
-	
 
 	# if generator, then load bean, pass arguments
 	if page_options.get("page_or_generator")=="Generator":
@@ -107,7 +105,7 @@ def build_page(page_name):
 	context.update(get_website_settings())
 
 	jenv = webnotes.get_jenv()
-	context["base_template"] = jenv.get_template(webnotes.get_config().get("base_template"))
+	context["base_template"] = jenv.get_template("portal/templates/base.html")
 	
 	template_name = page_options['template_path']	
 	html = jenv.get_template(template_name).render(context)

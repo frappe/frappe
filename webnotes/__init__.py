@@ -326,15 +326,14 @@ class HashAuthenticatedCommand(object):
 	
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
+	from webnotes.sessions import clear_cache
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
 		reset_metadata_version()
 	elif user:
-		from webnotes.sessions import clear_cache
 		clear_cache(user)
 	else: # everything
-		from webnotes.sessions import clear_cache
 		clear_cache()
 		reset_metadata_version()
 	
@@ -484,6 +483,9 @@ def insert(doclist):
 def get_module(modulename):
 	return importlib.import_module(modulename)
 	
+def get_pymodule_path(modulename):
+	return os.path.dirname(get_module(modulename).__file__)
+	
 def get_module_list(app_name):
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
 
@@ -500,7 +502,7 @@ def setup_module_map():
 	
 	if not local.app_modules:
 		local.module_app, local.app_modules = {}, {}
-		for app in ["webnotes"] + get_app_list():
+		for app in get_app_list(True):
 			for module in get_module_list(app):
 				local.module_app[module] = app
 				local.app_modules.setdefault(app, [])
@@ -595,16 +597,21 @@ def get_list(doctype, filters=None, fields=None, docstatus=None,
 				group_by=group_by, order_by=order_by, limit_start=limit_start, limit_page_length=limit_page_length, 
 				as_list=as_list, debug=debug)
 
-def get_jenv():
-	from jinja2 import Environment, FileSystemLoader
-	from webnotes.utils import get_base_path, global_date_format
-	from markdown2 import markdown
-	from json import dumps
+jenv = None
 
-	jenv = Environment(loader = FileSystemLoader(get_base_path()))
-	jenv.filters["global_date_format"] = global_date_format
-	jenv.filters["markdown"] = markdown
-	jenv.filters["json"] = dumps
+def get_jenv():
+	global jenv
+	if not jenv:
+		from jinja2 import Environment, ChoiceLoader, PackageLoader
+		from webnotes.utils import get_base_path, global_date_format
+		from markdown2 import markdown
+		from json import dumps
+
+		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
+			for app in get_app_list(True)]))
+		jenv.filters["global_date_format"] = global_date_format
+		jenv.filters["markdown"] = markdown
+		jenv.filters["json"] = dumps
 	
 	return jenv
 

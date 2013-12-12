@@ -398,8 +398,6 @@ def clear_cache():
 def clear_web():
 	import webnotes.webutils
 	webnotes.connect()
-	from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
-	build_website_sitemap_config()
 	webnotes.webutils.clear_cache()
 	webnotes.destroy()
 

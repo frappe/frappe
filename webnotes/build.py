@@ -42,7 +42,7 @@ def make_site_public_dirs():
 			os.makedirs(dir_path)
 	
 	# symlink app/public > assets/app
-	for app_name in webnotes.get_app_list():
+	for app_name in webnotes.get_app_list(True):
 		pymodule = webnotes.get_module(app_name)
 		source = os.path.join(os.path.abspath(os.path.dirname(pymodule.__file__)), 'public')
 		target = os.path.join(assets_path, app_name)
@@ -127,7 +127,8 @@ def pack(target, sources, no_compress):
 			print webnotes.getTraceback()
 
 	if not no_compress and outtype == 'css':
-		outtxt = cssmin(outtxt)
+		pass
+		#outtxt = cssmin(outtxt)
 					
 	with open(target, 'w') as f:
 		f.write(outtxt.encode("utf-8"))

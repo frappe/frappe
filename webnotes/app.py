@@ -13,7 +13,6 @@ from werkzeug.local import LocalManager
 from webnotes.middlewares import StaticDataMiddleware
 from werkzeug.exceptions import HTTPException, NotFound
 from werkzeug.contrib.profiler import ProfilerMiddleware
-from webnotes import get_config
 
 import mimetypes
 import webnotes
@@ -22,7 +21,7 @@ import webnotes.auth
 import webnotes.webutils
 
 local_manager = LocalManager([webnotes.local])
-site_path = None
+site = None
 
 def handle_session_stopped():
 	res = Response("""<html>
@@ -42,7 +41,7 @@ def application(request):
 	webnotes.local.request = request
 	
 	try:
-		webnotes.init(site_path=site_path or request.host)
+		webnotes.init(site=site or request.host)
 		
 		webnotes.local.form_dict = webnotes._dict({ k:v[0] if isinstance(v, (list, tuple)) else v \
 			for k, v in (request.form or request.args).iteritems() })
@@ -75,18 +74,22 @@ def application(request):
 
 application = local_manager.make_middleware(application)
 
-if not os.environ.get('NO_STATICS'):
-	application = StaticDataMiddleware(application, {
-		'/': 'public',
-	})
-
 def serve(port=8000, profile=False):
-	global application
+	global application, site
+	
+	site = webnotes.local.site
 	
 	from werkzeug.serving import run_simple
 
 	if profile:
 		application = ProfilerMiddleware(application)
+
+	if not os.environ.get('NO_STATICS'):
+		application = StaticDataMiddleware(application, {
+			'/': 'public',
+		})
+		application.site = site
+
 
 	run_simple('0.0.0.0', int(port), application, use_reloader=True, 
 		use_debugger=True, use_evalex=True)
