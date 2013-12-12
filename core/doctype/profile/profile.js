@@ -42,7 +42,10 @@ cur_frm.cscript.refresh = function(doc) {
 
  	if(!doc.__islocal){		
 		cur_frm.add_custom_button("Set Properties", function() {
-			wn.set_route("user-properties", doc.name);
+			wn.route_options = {
+				"user": doc.name
+			};
+			wn.set_route("user-properties");
 		})
 
 		if(has_common(user_roles, ["Administrator", "System Manager"])) {

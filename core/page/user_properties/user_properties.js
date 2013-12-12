@@ -20,7 +20,7 @@ wn.pages['user-properties'].onload = function(wrapper) {
 	wrapper.user_properties = new wn.UserProperties(wrapper);
 }
 
-wn.pages['user-properties'].refresh = function(wrapper) { 
+wn.pages['user-properties'].refresh = function(wrapper) {
 	wrapper.user_properties.set_from_route();
 }
 
@@ -28,6 +28,7 @@ wn.UserProperties = Class.extend({
 	init: function(wrapper) {
 		this.wrapper = wrapper;
 		this.body = $(this.wrapper).find(".user-settings");
+		this.filters = {};
 		this.make();
 		this.refresh();
 	},
@@ -39,18 +40,40 @@ wn.UserProperties = Class.extend({
 			method: "get_users_and_links",
 			callback: function(r) {
 				me.options = r.message;
-				me.user_select =
-					me.wrapper.appframe.add_select("users", 
-						["Select User..."].concat(r.message.users))
-						.change(function() {
-							me.set_route();
-						});
-				me.property_select =
-					me.wrapper.appframe.add_select("links", 
-						["Select Property..."].concat(me.get_link_names()))
-						.change(function() {
-							me.set_route();
-						});
+				
+				me.filters.user = me.wrapper.appframe.add_field({
+					fieldname: "user",
+					label: wn._("User"),
+					fieldtype: "Select",
+					options: (["Select User..."].concat(r.message.users)).join("\n")
+				});
+				
+				me.filters.property = me.wrapper.appframe.add_field({
+					fieldname: "property",
+					label: wn._("Property"),
+					fieldtype: "Select",
+					options: (["Select Property..."].concat(me.get_link_names())).join("\n")
+				});
+				
+				me.filters.restriction = me.wrapper.appframe.add_field({
+					fieldname: "restriction",
+					label: wn._("Restriction"),
+					fieldtype: "Link",
+					options: "[Select]"
+				});
+				
+				// bind change event
+				$.each(me.filters, function(k, f) {
+					f.$input.on("change", function() {
+						me.refresh();
+					});
+				});
+				
+				// change options in restriction link
+				me.filters.property.$input.on("change", function() {
+					me.filters.restriction.df.options = $(this).val();
+				});
+				
 				me.set_from_route();
 			}
 		});
@@ -58,25 +81,29 @@ wn.UserProperties = Class.extend({
 	get_link_names: function() {
 		return $.map(this.options.link_fields, function(l) { return l[0]; });
 	},
-	set_route: function() {
-		wn.set_route("user-properties", this.user_select.val(), 
-			this.property_select.val());
-	},
 	set_from_route: function() {
-		var route = wn.get_route();
-		if((route.length > 1) && this.user_select && this.property_select) {
-			this.user_select.val(route[1]);
-			this.property_select.val(route[2]);
+		var me = this;
+		if(wn.route_options && this.filters) {
+			$.each(wn.route_options, function(key, value) {
+				me.set_filter(key, value);
+			});
+			wn.route_options = null;
 		}
 		this.refresh();
 	},
+	set_filter: function(key, value) {
+		this.filters[key].$input.val(value);
+	},
 	get_user: function() {
-		var user = this.user_select.val();
+		var user = this.filters.user.$input.val();
 		return user=="Select User..." ? null : user;
 	},
 	get_property: function() {
-		var property = this.property_select.val();
+		var property = this.filters.property.$input.val();
 		return property=="Select Property..." ? null : property;
+	},
+	get_restriction: function() {
+		return this.filters.restriction.$input.val();
 	},
 	render: function(prop_list) {
 		this.body.empty();
@@ -90,7 +117,7 @@ wn.UserProperties = Class.extend({
 	},
 	refresh: function() {
 		var me = this;
-		if(!me.user_select) {
+		if(!me.filters.user) {
 			this.body.html("<div class='alert alert-info'>"+wn._("Loading")+"...</div>");
 			return;
 		}
@@ -104,8 +131,9 @@ wn.UserProperties = Class.extend({
 			page: "user_properties",
 			method: "get_properties",
 			args: {
-				user: me.get_user(),
-				key: me.get_property()
+				parent: me.get_user(),
+				defkey: me.get_property(),
+				defvalue: me.get_restriction()
 			},
 			callback: function(r) {
 				me.render(r.message);
@@ -144,6 +172,8 @@ wn.UserProperties = Class.extend({
 			.appendTo($("<td>").appendTo(row))
 			.attr("data-name", d.name)
 			.attr("data-user", d.parent)
+			.attr("data-defkey", d.defkey)
+			.attr("data-defvalue", d.defvalue)
 			.click(function() {
 				return wn.call({
 					module: "core",
@@ -151,7 +181,9 @@ wn.UserProperties = Class.extend({
 					method: "remove",
 					args: {
 						name: $(this).attr("data-name"),
-						user: $(this).attr("data-user")
+						user: $(this).attr("data-user"),
+						defkey: $(this).attr("data-defkey"),
+						defvalue: $(this).attr("data-defvalue")
 					},
 					callback: function(r) {
 						if(r.exc) {
@@ -188,6 +220,10 @@ wn.UserProperties = Class.extend({
 				if(me.get_property()) {
 					d.set_value("defkey", me.get_property());
 					d.get_input("defkey").prop("disabled", true);
+				}
+				if(me.get_restriction()) {
+					d.set_value("defvalue", me.get_restriction());
+					d.get_input("defvalue").prop("disabled", true);
 				}
 				
 				d.fields_dict["defvalue"].get_query = function(txt) {

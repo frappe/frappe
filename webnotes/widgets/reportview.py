@@ -214,8 +214,13 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 				match_filters[df.fieldname]= restrictions[df.options]
 				
 	# add owner match
-	if webnotes.local.reportview_doctypes[doctype].get({"doctype":"DocPerm","read":1,
-		"permlevel":0,"match":"owner"}):
+	owner_match = True
+	for p in webnotes.get_user_perms(webnotes.local.reportview_doctypes[doctype], "read"):
+		if not (p.match and p.match=="owner"):
+			owner_match = False
+			break
+		
+	if owner_match:
 		match_conditions.append('`tab{doctype}`.`owner`="{user}"'.format(doctype=doctype, 
 			user=webnotes.local.session.user))
 		match_filters["owner"] = [webnotes.local.session.user]
