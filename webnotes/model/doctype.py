@@ -279,23 +279,18 @@ def add_embedded_js(doc):
 	import re, os
 	from webnotes import conf
 
+	js = doc.fields.get('__js') or ''
+
 	# custom script
 	custom = webnotes.conn.get_value("Custom Script", {"dt": doc.name, 
 		"script_type": "Client"}, "script") or ""
-	doc.fields['__js'] = ((doc.fields.get('__js') or '') + '\n' + custom).encode("utf-8")
+	js = (js + '\n' + custom).encode("utf-8")
+
+	if "{% include" in js:
+		js = webnotes.get_jenv().from_string(js).render()
 	
-	def _sub(match):
-		require_path = re.search('["\'][^"\']*["\']', match.group(0)).group(0)[1:-1]
-		fpath = os.path.join(get_base_path(), require_path)
-		if os.path.exists(fpath):
-			with open(fpath, 'r') as f:
-				return '\n' + unicode(f.read(), "utf-8") + '\n'
-		else:
-			return 'wn.require("%s")' % require_path
-	
-	if doc.fields.get('__js'):
-		doc.fields['__js'] = re.sub('(wn.require\([^\)]*.)', _sub, doc.fields['__js'])
-		
+	doc.fields["__js"] = js
+			
 def expand_selects(doclist):
 	for d in filter(lambda d: d.fieldtype=='Select' \
 		and (d.options or '').startswith('link:'), doclist):

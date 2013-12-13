@@ -12,8 +12,8 @@ from webnotes.modules.import_file import import_file_by_path
 from webnotes.utils import get_path, cstr
 
 def sync_all(force=0):
-	sync_for("lib", force)
-	sync_for("app", force)
+	for app in webnotes.get_installed_apps():
+		sync_for(app, force)
 	webnotes.clear_cache()
 
 def sync_for(app_name, force=0, sync_everything = False, verbose=False):

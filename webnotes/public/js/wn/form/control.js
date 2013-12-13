@@ -401,10 +401,10 @@ wn.ui.form.ControlDate = wn.ui.form.ControlData.extend({
 })
 
 import_timepicker = function() {
-	wn.require("lib/js/lib/jquery/jquery.ui.slider.min.js");
-	wn.require("lib/js/lib/jquery/jquery.ui.sliderAccess.js");
-	wn.require("lib/js/lib/jquery/jquery.ui.timepicker-addon.css");
-	wn.require("lib/js/lib/jquery/jquery.ui.timepicker-addon.js");	
+	wn.require("assets/webnotes/js/lib/jquery/jquery.ui.slider.min.js");
+	wn.require("assets/webnotes/js/lib/jquery/jquery.ui.sliderAccess.js");
+	wn.require("assets/webnotes/js/lib/jquery/jquery.ui.timepicker-addon.css");
+	wn.require("assets/webnotes/js/lib/jquery/jquery.ui.timepicker-addon.js");	
 }
 
 wn.ui.form.ControlTime = wn.ui.form.ControlData.extend({

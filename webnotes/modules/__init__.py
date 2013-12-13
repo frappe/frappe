@@ -12,8 +12,8 @@ lower_case_files_for = ['DocType', 'Page', 'Report',
 	"Workflow", 'Module Def', 'Desktop Item', 'Workflow State', 'Workflow Action']
 
 def scrub(txt):
-	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
-
+	return webnotes.scrub(txt)
+	
 def scrub_dt_dn(dt, dn):
 	"""Returns in lowercase and code friendly names of doctype and name for certain types"""
 	ndt, ndn = dt, dn
@@ -24,9 +24,8 @@ def scrub_dt_dn(dt, dn):
 			
 def get_module_path(module):
 	"""Returns path of the given module"""
-	module = scrub(module)
-	return webnotes.get_pymodule_path(webnotes.local.module_app[module] + "." + module)
-
+	return webnotes.get_module_path(module)
+	
 def get_doc_path(module, doctype, name):
 	dt, dn = scrub_dt_dn(doctype, name)
 	return os.path.join(get_module_path(module), dt, dn)

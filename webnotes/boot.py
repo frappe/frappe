@@ -37,7 +37,10 @@ def get_bootinfo():
 		bootinfo['sid'] = webnotes.session['sid'];
 		
 	# home page
-	bootinfo.modules = hooks.desktop_icons
+	bootinfo.modules = {}
+	for get_desktop_icons in hooks.get_desktop_icons:
+		bootinfo.modules.update(webnotes.get_method(get_desktop_icons)())
+
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
 		tabDocType where ifnull(icon,'')!=''"""))

@@ -12,22 +12,26 @@ from __future__ import unicode_literals
 	
 	where patch1, patch2 is module name
 """
-import webnotes
+import webnotes, os
 
 class PatchError(Exception): pass
 
-def run_all(patch_list=None):
+def run_all():
 	"""run all pending patches"""
-	if webnotes.conn.table_exists("__PatchLog"):
-		executed = [p[0] for p in webnotes.conn.sql("""select patch from `__PatchLog`""")]	
-	else:
-		executed = [p[0] for p in webnotes.conn.sql("""select patch from `tabPatch Log`""")]
-	import patches.patch_list
-	for patch in (patch_list or patches.patch_list.patch_list):
-		if patch not in executed:
+	executed = [p[0] for p in webnotes.conn.sql("""select patch from `tabPatch Log`""")]
+		
+	for patch in get_all_patches():
+		if patch and (patch not in executed):
 			if not run_single(patchmodule = patch):
 				log(patch + ': failed: STOPPED')
 				raise PatchError(patch)
+				
+def get_all_patches():
+	patches = []
+	for app in webnotes.get_installed_apps():
+		patches.extend(webnotes.get_file_items(webnotes.get_pymodule_path(app, "patches.txt")))
+			
+	return patches
 
 def reload_doc(args):
 	import webnotes.modules

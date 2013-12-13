@@ -24,8 +24,8 @@ wn.views.Calendar = Class.extend({
 	init: function(options) {
 		$.extend(this, options);
 
-		wn.require('lib/js/lib/fullcalendar/fullcalendar.css');
-		wn.require('lib/js/lib/fullcalendar/fullcalendar.js');
+		wn.require('assets/webnotes/js/lib/fullcalendar/fullcalendar.css');
+		wn.require('assets/webnotes/js/lib/fullcalendar/fullcalendar.js');
 
 		this.make_page();
 		this.setup_options();

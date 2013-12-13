@@ -19,8 +19,8 @@ wn.standard_pages["test-runner"] = function() {
 		return;
 	}
 
-	wn.require("lib/js/lib/jquery/qunit.js");
-	wn.require("lib/js/lib/jquery/qunit.css");
+	wn.require("assets/webnotes/js/lib/jquery/qunit.js");
+	wn.require("assets/webnotes/js/lib/jquery/qunit.css");
 	
 	QUnit.load();
 

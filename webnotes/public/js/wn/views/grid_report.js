@@ -665,8 +665,8 @@ wn.views.GridReportWithPlot = wn.views.GridReport.extend({
 			this.plot_area.toggle(false);
 			return;
 		}
-		wn.require('lib/js/lib/flot/jquery.flot.js');
-		wn.require('lib/js/lib/flot/jquery.flot.downsample.js');
+		wn.require('assets/webnotes/js/lib/flot/jquery.flot.js');
+		wn.require('assets/webnotes/js/lib/flot/jquery.flot.downsample.js');
 		
 		this.plot = $.plot(this.plot_area.toggle(true), plot_data,
 			this.get_plot_options());

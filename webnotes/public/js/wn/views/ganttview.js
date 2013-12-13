@@ -27,8 +27,8 @@ wn.views.Gantt = Class.extend({
 	init: function(opts) {
 		$.extend(this, opts);
 
-		wn.require('lib/js/lib/jQuery.Gantt/css/style.css');
-		wn.require('lib/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
+		wn.require('assets/webnotes/js/lib/jQuery.Gantt/css/style.css');
+		wn.require('assets/webnotes/js/lib/jQuery.Gantt/js/jquery.fn.gantt.js');
 		
 		this.make_page();
 		wn.route_options ?

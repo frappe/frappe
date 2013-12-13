@@ -517,7 +517,7 @@ wn.ui.ColumnPicker = Class.extend({
 		this.selects = {};
 	},
 	show: function(columns) {
-		wn.require('lib/js/lib/jquery/jquery.ui.interactions.min.js');
+		wn.require('assets/webnotes/js/lib/jquery/jquery.ui.interactions.min.js');
 		var me = this;
 		if(!this.dialog) {
 			this.dialog = new wn.ui.Dialog({

@@ -246,7 +246,6 @@ def whitelist(allow_guest=False, allow_roles=None):
 def clear_cache(user=None, doctype=None):
 	"""clear cache"""
 	from webnotes.sessions import clear_cache
-	cache().delete_value(["app_hooks", "installed_apps"])
 	if doctype:
 		from webnotes.model.doctype import clear_cache
 		clear_cache(doctype)
@@ -402,9 +401,16 @@ def insert(doclist):
 
 def get_module(modulename):
 	return importlib.import_module(modulename)
-	
-def get_pymodule_path(modulename):
-	return os.path.dirname(get_module(modulename).__file__)
+
+def scrub(txt):
+	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
+
+def get_module_path(module):
+	module = scrub(module)
+	return get_pymodule_path(local.module_app[module] + "." + module)
+
+def get_pymodule_path(modulename, *joins):
+	return os.path.join(os.path.dirname(get_module(modulename).__file__), *joins)
 	
 def get_module_list(app_name):
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
@@ -422,15 +428,12 @@ def get_installed_apps():
 
 def get_hooks():
 	def load_app_hooks():
-		hooks = {"app_include_js":[], "app_include_css":[], "desktop_icons":{}, "boot_session":[]}
+		hooks = {}
 		for app in get_installed_apps():
-			for key, values in get_module(app + ".manage").get_hooks().iteritems():
-				if isinstance(hooks[key], list):
-					if not isinstance(values, (list, tuple)):
-						values = [values]
-					hooks[key].extend(values)
-				else:
-					hooks[key].update(values)
+			for item in get_file_items(get_pymodule_path(app, "hooks.txt")):
+				key, value = item.split(None, 1)
+				hooks.setdefault(key, [])
+				hooks[key].append(value)
 		return hooks
 			
 	return _dict(cache().get_value("app_hooks", load_app_hooks))
@@ -452,7 +455,11 @@ def setup_module_map():
 		_cache.set_value("module_app", local.module_app)
 		
 def get_file_items(path):
-	with open(path, "r") as f: return f.read().split()
+	if os.path.exists(path):
+		with open(path, "r") as f: 
+			return [p.strip() for p in f.read().split("\n") if p.strip() and not p.startswith("#")]
+	else: 
+		return []
 
 def get_method(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])

@@ -156,8 +156,6 @@ def setup_utilities(parser):
 		help="Clear website cache")
 	parser.add_argument("--build_sitemap", default=False, action="store_true",
 		help="Build Website Sitemap")
-	parser.add_argument("--rebuild_sitemap", default=False, action="store_true",
-		help="Rebuild Website Sitemap")
 	parser.add_argument("--clear_cache", default=False, action="store_true",
 		help="Clear cache, doctype cache and defaults")
 	parser.add_argument("--reset_perms", default=False, action="store_true",
@@ -270,7 +268,7 @@ def update(remote=None, branch=None, reload_gunicorn=False):
 def latest(verbose=True):
 	import webnotes.modules.patch_handler
 	import webnotes.model.sync
-	from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	from webnotes.website import rebuild_config
 	
 	webnotes.connect()
 	
@@ -285,7 +283,7 @@ def latest(verbose=True):
 		webnotes.model.sync.sync_all()
 				
 		# build website config if any changes in templates etc.
-		build_website_sitemap_config()
+		rebuild_config()
 		
 	except webnotes.modules.patch_handler.PatchError, e:
 		print "\n".join(webnotes.local.patch_log_list)
@@ -414,18 +412,11 @@ def clear_web():
 
 @cmd
 def build_sitemap():
-	from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import build_website_sitemap_config
+	from webnotes.website import rebuild_config
 	webnotes.connect()
-	build_website_sitemap_config()
+	rebuild_config()
 	webnotes.destroy()
-
-@cmd
-def rebuild_sitemap():
-	from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
-	webnotes.connect()
-	rebuild_website_sitemap_config()
-	webnotes.destroy()
-
+	
 @cmd
 def reset_perms():
 	webnotes.connect()

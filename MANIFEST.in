@@ -1,0 +1,27 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include webnotes *.css
+recursive-include webnotes *.dat
+recursive-include webnotes *.eot
+recursive-include webnotes *.gif
+recursive-include webnotes *.html
+recursive-include webnotes *.jpg
+recursive-include webnotes *.js
+recursive-include webnotes *.json
+recursive-include webnotes *.md
+recursive-include webnotes *.no_timestamps
+recursive-include webnotes *.otf
+recursive-include webnotes *.png
+recursive-include webnotes *.py
+recursive-include webnotes *.sql
+recursive-include webnotes *.svg
+recursive-include webnotes *.swf
+recursive-include webnotes *.ttf
+recursive-include webnotes *.woff
+recursive-include webnotes *.xml
+recursive-include webnotes *.txt
+recursive-exclude * *.pyc

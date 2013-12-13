@@ -23,9 +23,10 @@ def clear(user=None):
 def clear_cache(user=None):
 	cache = webnotes.cache()
 
+	cache.delete_value(["app_hooks", "installed_apps", "app_modules", "module_apps"])
+
 	# clear doctype cache
 	webnotes.model.doctype.clear_cache()
-	cache.delete_value(("app_modules", "module_apps"))
 	
 	if user:
 		cache.delete_value("bootinfo:" + user)

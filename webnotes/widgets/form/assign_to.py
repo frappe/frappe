@@ -51,9 +51,9 @@ def add(args=None):
 		
 	# update feeed
 	try:
-		import home
+		from erpnext.home import make_feed
 		from webnotes.utils import get_fullname
-		home.make_feed('Assignment', d.reference_type, d.reference_name, webnotes.session['user'],
+		make_feed('Assignment', d.reference_type, d.reference_name, webnotes.session['user'],
 			'[%s] Assigned to %s' % (d.priority, get_fullname(d.owner)), '#C78F58')
 	except ImportError, e:
 		pass

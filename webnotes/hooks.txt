@@ -1,0 +1,4 @@
+app_include_js		assets/js/webnotes.min.js
+app_include_css		assets/webnotes/css/splash.css
+app_include_css		assets/css/webnotes.css
+get_desktop_icons	webnotes.manage.get_desktop_icons

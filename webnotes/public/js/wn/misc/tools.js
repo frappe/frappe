@@ -24,8 +24,8 @@ wn.tools.downloadify = function(data, roles, me) {
 	if((_get_data().length > 200000) || flash_disabled) {
 		download_from_server();
 	} else {
-		wn.require("lib/js/lib/downloadify/downloadify.min.js");
-		wn.require("lib/js/lib/downloadify/swfobject.js");
+		wn.require("assets/webnotes/js/lib/downloadify/downloadify.min.js");
+		wn.require("assets/webnotes/js/lib/downloadify/swfobject.js");
 
 		var id = wn.dom.set_unique_id();
 		var msgobj = msgprint('<p id="'+ id +'"></p><hr><a id="alternative-download">Alternative download link</a>');
@@ -53,7 +53,7 @@ wn.tools.downloadify = function(data, roles, me) {
 
 wn.markdown = function(txt) {
 	if(!wn.md2html) {
-		wn.require('lib/js/lib/markdown.js');
+		wn.require('assets/webnotes/js/lib/markdown.js');
 		wn.md2html = new Showdown.converter();
 	}
 	

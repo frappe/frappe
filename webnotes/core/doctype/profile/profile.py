@@ -130,7 +130,7 @@ Please click on the following link to update your new password:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", 
+		self.send_login_mail("Password Reset", 
 			txt, {"link": link})
 	
 	def password_update_mail(self, password):
@@ -144,10 +144,10 @@ Your password has been updated. Here is your new password: %(new_password)s
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Your " + webnotes.get_config().get("app_name") + " password has been reset", 
+		self.send_login_mail("Password Update", 
 			txt, {"new_password": password})
 		
-		
+
 	def send_welcome_mail(self):
 		"""send welcome mail to user with password and login url"""
 
@@ -172,7 +172,7 @@ To complete your registration, please click on the link below:
 Thank you,<br>
 %(user_fullname)s
 		"""
-		self.send_login_mail("Welcome to " + webnotes.get_config().get("app_name"), txt, 
+		self.send_login_mail("New Account", txt, 
 			{ "link": link })
 
 	def send_login_mail(self, subject, txt, add_args):
@@ -190,9 +190,8 @@ Thank you,<br>
 		args = {
 			'first_name': self.doc.first_name or self.doc.last_name or "user",
 			'user': self.doc.name,
-			'company': webnotes.conn.get_default('company') or webnotes.get_config().get("app_name"),
+			'company': webnotes.conn.get_default('company'),
 			'login_url': get_url(),
-			'product': webnotes.get_config().get("app_name"),
 			'user_fullname': full_name
 		}
 		
