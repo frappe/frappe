@@ -30,7 +30,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 		
 	if query and query.split()[0].lower()!="select":
 		# by method
-		webnotes.response["values"] = webnotes.get_method(query)(doctype, txt, 
+		webnotes.response["values"] = webnotes.get_attr(query)(doctype, txt, 
 			searchfield, start, page_len, filters)
 	elif not query and doctype in standard_queries:
 		# from standard queries

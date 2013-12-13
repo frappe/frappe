@@ -7,7 +7,7 @@ wn.provide("wn.query_reports");
 wn.standard_pages["query-report"] = function() {
 	var wrapper = wn.container.add_page('query-report');
 
-	wn.require("js/slickgrid.min.js");
+	wn.require("assets/js/slickgrid.min.js");
 
 	wn.ui.make_app_page({
 		parent: wrapper,

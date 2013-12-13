@@ -1,5 +1,5 @@
 wn.make_editable = function(editor, doctype, name, fieldname) {
-	wn.require("js/editor.min.js");
+	wn.require("assets/js/editor.min.js");
 	
 	WebPageEditor = bsEditor.extend({
 		onhide: function(action) {

@@ -1,4 +1,5 @@
-app_include_js		assets/js/webnotes.min.js
-app_include_css		assets/webnotes/css/splash.css
-app_include_css		assets/css/webnotes.css
-get_desktop_icons	webnotes.manage.get_desktop_icons
+app_include_js			assets/js/webnotes.min.js
+app_include_css			assets/webnotes/css/splash.css
+app_include_css			assets/css/webnotes.css
+get_desktop_icons		webnotes.manage.get_desktop_icons
+notification_config		webnotes.core.notifications.get_notification_config

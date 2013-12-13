@@ -30,6 +30,10 @@ def clear_cache(user=None):
 	
 	if user:
 		cache.delete_value("bootinfo:" + user)
+		
+		# clear notifications
+		webnotes.conn.sql("""delete from `tabNotification Count` where owner=%s""", user)
+		
 		if webnotes.session:
 			if user==webnotes.session.user and webnotes.session.sid:
 				cache.delete_value("session:" + webnotes.session.sid)
@@ -54,8 +58,9 @@ def clear_sessions(user=None, keep_current=False):
 
 def get():
 	"""get session boot info"""
-	from webnotes.core.doctype.notification_count.notification_count import get_notification_info_for_boot
-
+	from webnotes.core.doctype.notification_count.notification_count import \
+		get_notification_info_for_boot, get_notifications
+	
 	bootinfo = None
 	if not getattr(webnotes.conf,'disable_session_cache',None):
 		# check if cache exists
@@ -63,6 +68,8 @@ def get():
 		if bootinfo:
 			bootinfo['from_cache'] = 1
 			
+		bootinfo["notification_info"].update(get_notifications())
+		
 	if not bootinfo:
 		if not webnotes.cache().get_stats():
 			webnotes.msgprint("memcached is not working / stopped. Please start memcached for best results.")

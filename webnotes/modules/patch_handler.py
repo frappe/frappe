@@ -59,7 +59,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 			if patchmodule.startswith("execute:"):
 				exec patchmodule.split("execute:")[1] in globals()
 			else:
-				webnotes.get_method(patchmodule + ".execute")()
+				webnotes.get_attr(patchmodule + ".execute")()
 			update_patch_log(patchmodule)
 		elif method:
 			method(**methodargs)

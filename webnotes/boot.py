@@ -39,7 +39,7 @@ def get_bootinfo():
 	# home page
 	bootinfo.modules = {}
 	for get_desktop_icons in hooks.get_desktop_icons:
-		bootinfo.modules.update(webnotes.get_method(get_desktop_icons)())
+		bootinfo.modules.update(webnotes.get_attr(get_desktop_icons)())
 
 	bootinfo.hidden_modules = webnotes.conn.get_global("hidden_modules")
 	bootinfo.doctype_icons = dict(webnotes.conn.sql("""select name, icon from 
@@ -60,7 +60,7 @@ def get_bootinfo():
 	bootinfo['docs'] = doclist
 	
 	for method in hooks.boot_session:
-		webnotes.get_method(method)(bootinfo)
+		webnotes.get_attr(method)(bootinfo)
 		
 	from webnotes.model.utils import compress
 	bootinfo['docs'] = compress(bootinfo['docs'])

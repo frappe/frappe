@@ -461,7 +461,7 @@ def get_file_items(path):
 	else: 
 		return []
 
-def get_method(method_string):
+def get_attr(method_string):
 	modulename = '.'.join(method_string.split('.')[:-1])
 	methodname = method_string.split('.')[-1]
 

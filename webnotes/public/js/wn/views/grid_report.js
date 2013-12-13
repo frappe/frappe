@@ -95,7 +95,7 @@ $.extend(wn.report_dump, {
 wn.provide("wn.views");
 wn.views.GridReport = Class.extend({
 	init: function(opts) {
-		wn.require("js/slickgrid.min.js");
+		wn.require("assets/js/slickgrid.min.js");
 		
 		this.filter_inputs = {};
 		this.preset_checks = [];

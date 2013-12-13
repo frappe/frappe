@@ -14,7 +14,7 @@ wn.views.ReportViewPage = Class.extend({
 			return;
 		};
 
-		wn.require("js/slickgrid.min.js");
+		wn.require("assets/js/slickgrid.min.js");
 		
 		this.doctype = doctype;
 		this.docname = docname;

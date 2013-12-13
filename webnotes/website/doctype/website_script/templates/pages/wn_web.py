@@ -7,7 +7,6 @@ import webnotes
 no_sitemap = True
 
 def get_context():
-	"""returns web startup script"""
 	return {
 		"javascript": webnotes.conn.get_value('Website Script', None, 'javascript'),
 		"google_analytics_id": webnotes.conn.get_value("Website Settings", "Website Settings", "google_analytics_id")

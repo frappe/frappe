@@ -107,11 +107,8 @@ class EMail:
 		footer = footer or ""
 		footer += webnotes.conn.get_value('Control Panel',None,'mail_footer') or ''
 		
-		try:
-			import startup
-			footer += getattr(startup, 'mail_footer', '')
-		except ImportError:
-			pass
+		for f in webnotes.get_hooks().mail_footer:
+			footer += f
 		
 		return footer
 		

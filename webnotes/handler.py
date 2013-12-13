@@ -58,7 +58,7 @@ def uploadfile():
 				webnotes.conn.rollback()
 		else:
 			if webnotes.form_dict.get('method'):
-				ret = webnotes.get_method(webnotes.form_dict.method)()
+				ret = webnotes.get_attr(webnotes.form_dict.method)()
 	except Exception, e:
 		webnotes.errprint(webnotes.utils.getTraceback())
 		ret = None
@@ -102,7 +102,7 @@ def handle():
 
 def execute_cmd(cmd):
 	"""execute a request as python module"""
-	method = get_method(cmd)
+	method = get_attr(cmd)
 
 	# check if whitelisted
 	if webnotes.session['user'] == 'Guest':
@@ -139,10 +139,10 @@ def call(fn, args):
 			newargs[a] = args.get(a)
 	return fn(**newargs)
 
-def get_method(cmd):
+def get_attr(cmd):
 	"""get method object from cmd"""
 	if '.' in cmd:
-		method = webnotes.get_method(cmd)
+		method = webnotes.get_attr(cmd)
 	else:
 		method = globals()[cmd]
 	webnotes.log("method:" + cmd)

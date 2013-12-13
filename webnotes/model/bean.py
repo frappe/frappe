@@ -244,7 +244,7 @@ class Bean:
 		
 		self.set_doclist(self.controller.doclist)
 		
-	def get_method(self, method):
+	def get_attr(self, method):
 		self.make_controller()
 		return getattr(self.controller, method, None)
 

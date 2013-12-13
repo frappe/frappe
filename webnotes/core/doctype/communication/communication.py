@@ -14,7 +14,7 @@ class DocType():
 		
 	def update_parent(self):
 		"""update status of parent Lead or Contact based on who is replying"""
-		observer = self.get_parent_bean().get_method("on_communication")
+		observer = self.get_parent_bean().get_attr("on_communication")
 		if observer:
 			observer()
 	
