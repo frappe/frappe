@@ -5,8 +5,9 @@ from __future__ import unicode_literals
 import webnotes
 import webnotes.defaults
 
-@webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
+@webnotes.whitelist()
 def get_users_and_links():
+	webnotes.only_for(("System Manager", "Administrator"))
 	links, all_fields = [], []
 
 	for l in webnotes.conn.sql("""select tabDocField.fieldname, tabDocField.options
@@ -31,8 +32,9 @@ def get_users_and_links():
 		"link_fields": links
 	}
 	
-@webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
+@webnotes.whitelist()
 def get_properties(user=None, key=None):
+	webnotes.only_for(("System Manager", "Administrator"))
 	return webnotes.conn.sql("""select name, parent, defkey, defvalue 
 		from tabDefaultValue
 		where parent!='Control Panel' 
@@ -41,12 +43,14 @@ def get_properties(user=None, key=None):
 			user and (" and parent='%s'" % user) or "",
 			key and (" and defkey='%s'" % key) or ""), as_dict=True)
 
-@webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
+@webnotes.whitelist()
 def remove(user, name):
+	webnotes.only_for(("System Manager", "Administrator"))
 	webnotes.defaults.clear_default(name=name)
 	
-@webnotes.whitelist(allow_roles=["System Manager", "Administrator"])
+@webnotes.whitelist()
 def add(parent, defkey, defvalue):
+	webnotes.only_for(("System Manager", "Administrator"))
 	webnotes.defaults.add_user_default(defkey, defvalue, parent)
 	
 def get_defvalue(doctype, txt, searchfield, start, page_len, filters):
