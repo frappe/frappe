@@ -47,7 +47,7 @@ def remove(user, name):
 @webnotes.whitelist()
 def add(user, defkey, defvalue):
 	webnotes.only_for(("System Manager", "Administrator"))
-	
+
 	# check if already exists
 	d = webnotes.conn.sql("""select name from tabDefaultValue 
 		where parent=%s and parenttype='Restriction' and defkey=%s and defvalue=%s""", (user, defkey, defvalue))

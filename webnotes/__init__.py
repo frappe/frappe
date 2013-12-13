@@ -353,9 +353,9 @@ def has_permission(doctype, ptype="read", refdoc=None):
 	else:
 		return True
 		
-def get_user_perms(meta, ptype):
+def get_user_perms(meta, ptype, user=None):
 	from webnotes.utils import cint
-	user_roles = get_roles()
+	user_roles = get_roles(user)
 	return [p for p in meta.get({"doctype": "DocPerm"})
 			if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
 
