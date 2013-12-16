@@ -67,14 +67,15 @@ def setup_parser():
 	setup_install(parser)
 	setup_utilities(parser)
 	setup_translation(parser)
+	setup_test(parser)
 	
 	parser.add_argument("site")
 	
 	# common
 	parser.add_argument("-f", "--force", default=False, action="store_true",
 		help="Force execution where applicable (look for [-f] in help)")
-	parser.add_argument("--quiet", default=True, action="store_false", dest="verbose",
-		help="Don't show verbose output where applicable")
+	parser.add_argument("-v", "--verbose", default=False, action="store_true", dest="verbose",
+		help="Show verbose output where applicable")
 		
 	return parser.parse_args()
 	
@@ -95,7 +96,17 @@ def setup_install(parser):
 		help="(Re)Install demo in demo_db_name specified in conf.py")
 	parser.add_argument("--add_system_manager", nargs="+", 
 		metavar=("EMAIL", "[FIRST-NAME] [LAST-NAME]"), help="Add a user with all roles")
-		
+
+def setup_test(parser):
+	parser.add_argument("--run_tests", default=False, action="store_true",
+		help="Run tests options [-d doctype], [-m module]")
+	parser.add_argument("--app", metavar="APP-NAME", nargs=1,
+		help="Run command for specified app")
+	parser.add_argument("--doctype", metavar="DOCTYPE", nargs=1,
+		help="Run command for specified doctype")
+	parser.add_argument("--module", metavar="MODULE", nargs=1,
+		help="Run command for specified module")
+
 def setup_utilities(parser):
 	# update
 	parser.add_argument("-u", "--update", nargs="*", metavar=("REMOTE", "BRANCH"),
@@ -595,7 +606,12 @@ def smtp_debug_server():
 	import commands, os
 	python = commands.getoutput('which python')
 	os.execv(python, [python, '-m', "smtpd", "-n", "-c", "DebuggingServer", "localhost:25"])
-	
+
+@cmd
+def run_tests(app=None, module=None, doctype=None, verbose=False):
+	import webnotes.test_runner
+	webnotes.test_runner.main(app and app[0], module and module[0], doctype and doctype[0], verbose)
+
 @cmd
 def serve(port=8000, profile=False):
 	import webnotes.app

@@ -466,7 +466,7 @@ def clone(source_wrapper):
 def notify(bean, caller):
 	for hook in webnotes.get_hooks().bean_event or []:
 		doctype, trigger, handler = hook.split(":")
-		if (doctype=="*" or doctype==bean.doc.doctype) and caller==trigger:
+		if ((doctype=="*") or (doctype==bean.doc.doctype)) and caller==trigger:
 			webnotes.get_attr(handler)(bean, trigger)
 
 # for bc

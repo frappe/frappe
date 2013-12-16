@@ -3,18 +3,78 @@
 
 from __future__ import unicode_literals
 
-import sys
-if __name__=="__main__":
-	sys.path.extend([".", "app", "lib"])
-
 import webnotes
-import unittest
+import unittest, sys
 
 from webnotes.model.meta import has_field
 from webnotes.model.code import load_doctype_module, get_module_name
 from webnotes.model.doctype import get_link_fields
 from webnotes.utils import cstr
 
+
+def main(app=None, module=None, doctype=None, verbose=False):	
+	webnotes.flags.print_messages = verbose
+	webnotes.flags.in_test = True
+	
+	if not webnotes.conn:
+		webnotes.connect()
+	
+	if doctype:
+		run_unittest(doctype, verbose=verbose)
+	elif module:
+		import importlib
+		
+		test_suite = unittest.TestSuite()
+		module = importlib.import_module(module)
+		if hasattr(module, "test_dependencies"):
+			for doctype in module.test_dependencies:
+				make_test_records(doctype, verbose=verbose)
+		
+		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[module]))
+		unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+	else:
+		run_all_tests(app, verbose)
+
+def run_all_tests(app=None, verbose=False):
+	import os
+
+	apps = [apps] if app else webnotes.get_installed_apps()
+
+	test_suite = unittest.TestSuite()
+	for app in apps:
+		for path, folders, files in os.walk(webnotes.get_pymodule_path(app)):
+			for dontwalk in ('locals', '.git', 'public'):
+				if dontwalk in folders: 
+					folders.remove(dontwalk)
+				
+			# print path
+			for filename in files:
+				filename = cstr(filename)
+				if filename.startswith("test_") and filename.endswith(".py"):
+					# print filename[:-3]
+					_run_test(path, filename, verbose, test_suite=test_suite, run=False)
+				
+	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
+
+def _run_test(path, filename, verbose, test_suite=None, run=True):
+	import os, imp
+	from webnotes.modules.utils import peval_doclist
+	
+	if not test_suite:
+		test_suite = unittest.TestSuite()
+	
+	if os.path.basename(os.path.dirname(path))=="doctype":
+		txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
+		with open(txt_file, 'r') as f:
+			doctype_doclist = peval_doclist(f.read())
+		doctype = doctype_doclist[0]["name"]
+		make_test_records(doctype, verbose)
+	
+	module = imp.load_source(filename[:-3], os.path.join(path, filename))
+	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
+	
+	if run:
+		unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
 
 def make_test_records(doctype, verbose=0):
 	webnotes.flags.mute_emails = True
@@ -34,8 +94,12 @@ def make_test_records(doctype, verbose=0):
 
 def get_modules(doctype):
 	module = webnotes.conn.get_value("DocType", doctype, "module")
-	test_module = load_doctype_module(doctype, module, "test_")
-	if test_module: reload(test_module)
+	try:
+		test_module = load_doctype_module(doctype, module, "test_")
+		if test_module: 
+			reload(test_module)
+	except ImportError, e:
+		test_module = None
 
 	return module, test_module
 
@@ -103,119 +167,13 @@ def print_mandatory_fields(doctype):
 	print "Mandatory Fields: "
 	for d in doctype_obj.get({"reqd":1}):
 		print d.parent + ":" + d.fieldname + " | " + d.fieldtype + " | " + (d.options or "")
-	print
-	
-def export_doc(doctype, docname):
-	import json
-	doclist = []
-	ignore_list = ["name", "owner", "creation", "modified", "modified_by", "idx", "naming_series",
-		"parenttype", "parent", "docstatus"]
-	
-	make_test_records(doctype)
-	meta = webnotes.get_doctype(doctype)
-	
-	for d in webnotes.bean(doctype, docname):
-		new_doc = {}
-		for key, val in d.fields.iteritems():
-			if val and key not in ignore_list:
-				df = meta.get_field(key, d.parent or None, d.parentfield or None)
-				if df and df.fieldtype == "Link":
-					val = (webnotes.test_objects.get(df.options) or [val])[0]
-				elif df and df.fieldtype == "Select" and df.options and df.options.startswith("link:"):
-					val = (webnotes.test_objects.get(df.options[5:]) or [val])[0]
-				if not df or df.reqd == 1:
-					new_doc[key] = val
-		doclist.append(new_doc)
-		
-	print json.dumps(doclist, indent=4, sort_keys=True).replace("    ", "\t")
-		
+	print		
 
 def run_unittest(doctype, verbose=False):
 	module = webnotes.conn.get_value("DocType", doctype, "module")
 	test_module = get_module_name(doctype, module, "test_")
 	make_test_records(doctype, verbose=verbose)
-
-	try:
-		exec ('from %s import *' % test_module) in globals()		
-		del sys.argv[1:]
-		unittest.main()
-				
-	except ImportError, e:
-		print "No test module."
-		
-def run_all_tests(verbose):
-	import os
-
-	test_suite = unittest.TestSuite()
-	for path, folders, files in os.walk("."):
-		if 'locale' in folders: folders.remove('locale')
-		# print path
-		for filename in files:
-			filename = cstr(filename)
-			if filename.startswith("test_") and filename.endswith(".py"):
-				# print filename[:-3]
-				_run_test(path, filename, verbose, test_suite=test_suite, run=False)
-				
-				# webnotes.conn.rollback()
-				# webnotes.test_objects = {}
-
-	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
-
-def _run_test(path, filename, verbose, test_suite=None, run=True):
-	import os, imp
-	from webnotes.modules.utils import peval_doclist
-	
-	if not test_suite:
-		test_suite = unittest.TestSuite()
-	
-	if os.path.basename(os.path.dirname(path))=="doctype":
-		txt_file = os.path.join(path, filename[5:].replace(".py", ".txt"))
-		with open(txt_file, 'r') as f:
-			doctype_doclist = peval_doclist(f.read())
-		doctype = doctype_doclist[0]["name"]
-		make_test_records(doctype, verbose)
-	
-	module = imp.load_source(filename[:-3], os.path.join(path, filename))
+	test_suite = unittest.TestSuite()	
+	module = webnotes.get_module(test_module)
 	test_suite.addTest(unittest.TestLoader().loadTestsFromModule(module))
-	
-	if run:
-		unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
-
-def main():
-	import argparse
-	
-	parser = argparse.ArgumentParser(description='Run tests.')
-	parser.add_argument('-d', '--doctype', nargs=1, metavar = "DOCTYPE",
-		help="test for doctype")
-	parser.add_argument('-v', '--verbose', default=False, action="store_true")
-	parser.add_argument('-e', '--export', nargs=2, metavar="DOCTYPE DOCNAME")
-	parser.add_argument('-a', '--all', default=False, action="store_true")
-	parser.add_argument('-m', '--module', default=1, metavar="MODULE")
-
-	args = parser.parse_args()
-	if not webnotes.conn:
-		webnotes.connect()
-
-	webnotes.flags.print_messages = args.verbose
-	webnotes.flags.in_test = True
-	
-	if args.doctype:
-		run_unittest(args.doctype[0], verbose=args.verbose)
-	elif args.all:
-		run_all_tests(args.verbose)
-	elif args.export:
-		export_doc(args.export[0], args.export[1])
-	elif args.module:
-		import importlib
-		
-		test_suite = unittest.TestSuite()
-		module = importlib.import_module(args.module)
-		if hasattr(module, "test_dependencies"):
-			for doctype in module.test_dependencies:
-				make_test_records(doctype, verbose=args.verbose)
-		
-		test_suite.addTest(unittest.TestLoader().loadTestsFromModule(sys.modules[args.module]))
-		unittest.TextTestRunner(verbosity=1+(args.verbose and 1 or 0)).run(test_suite)
-
-if __name__=="__main__":
-	main()
+	unittest.TextTestRunner(verbosity=1+(verbose and 1 or 0)).run(test_suite)
