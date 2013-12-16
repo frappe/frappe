@@ -252,10 +252,10 @@ def whitelist(allow_guest=False):
 def only_for(roles):
 	if not isinstance(roles, (tuple, list)):
 		roles = (roles,)
-	myroles = get_roles()
-	for role in roles:
-		if role not in myroles:
-			raise PermissionError
+	roles = set(roles)
+	myroles = set(get_roles())
+	if not roles.intersection(myroles):
+		raise PermissionError
 
 class HashAuthenticatedCommand(object):
 	def __init__(self):
