@@ -35,7 +35,7 @@ def getdoc(doctype, name, user=None):
 		set_docinfo(doctype, name)
 		
 	except Exception, e:
-		webnotes.errprint(webnotes.utils.getTraceback())
+		webnotes.errprint(webnotes.utils.get_traceback())
 		webnotes.msgprint('Did not load.')
 		raise
 

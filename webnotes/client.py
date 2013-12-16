@@ -111,7 +111,7 @@ def bulk_update(docs):
 		except:
 			failed_docs.append({
 				'doc': doc,
-				'exc': webnotes.utils.getTraceback()
+				'exc': webnotes.utils.get_traceback()
 			})
 	return {'failed_docs': failed_docs}
 

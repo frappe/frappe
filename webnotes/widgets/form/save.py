@@ -26,7 +26,7 @@ def savedocs():
 
 	except Exception, e:
 		webnotes.msgprint(webnotes._('Did not save'))
-		webnotes.errprint(webnotes.utils.getTraceback())
+		webnotes.errprint(webnotes.utils.get_traceback())
 		raise
 
 @webnotes.whitelist()
@@ -38,7 +38,7 @@ def cancel(doctype=None, name=None):
 		send_updated_docs(wrapper)
 		
 	except Exception, e:
-		webnotes.errprint(webnotes.utils.getTraceback())
+		webnotes.errprint(webnotes.utils.get_traceback())
 		webnotes.msgprint(webnotes._("Did not cancel"))
 		raise
 		

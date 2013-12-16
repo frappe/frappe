@@ -88,7 +88,7 @@ def random_string(length):
 	from random import choice
 	return ''.join([choice(string.letters + string.digits) for i in range(length)])
 	
-def getTraceback():
+def get_traceback():
 	"""
 		 Returns the traceback of the Exception
 	"""

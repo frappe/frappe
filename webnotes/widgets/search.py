@@ -26,7 +26,7 @@ def search_widget(doctype, txt, query=None, searchfield="name", start=0,
 
 	standard_queries = webnotes.get_hooks().standard_queries
 	if standard_queries:
-		standard_queries = dict([v.split() for v in standard_queries])
+		standard_queries = dict([v.split(":") for v in standard_queries])
 		
 	if query and query.split()[0].lower()!="select":
 		# by method

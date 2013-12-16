@@ -50,7 +50,7 @@ def render_page(page_name):
 		raise PageNotFoundError
 
 	if page_name=="error":
-		html = html.replace("%(error)s", webnotes.getTraceback())
+		html = html.replace("%(error)s", webnotes.get_traceback())
 	elif "text/html" in webnotes._response.headers["Content-Type"]:
 		comments = "\npage:"+page_name+\
 			"\nload status: " + (from_cache and "cache" or "fresh")
@@ -128,7 +128,9 @@ def get_home_page():
 def get_website_settings():
 	from webnotes.utils import get_request_site_address, encode, cint
 	from urllib import quote
-		
+	
+	hooks = webnotes.get_hooks()
+	
 	all_top_items = webnotes.conn.sql("""\
 		select * from `tabTop Bar Item`
 		where parent='Website Settings' and parentfield='top_bar_items'
@@ -177,12 +179,12 @@ def get_website_settings():
 	context.url = quote(str(get_request_site_address(full_address=True)), str(""))
 	context.encoded_title = quote(encode(context.title or ""), str(""))
 	
-	try:
-		import startup.webutils
-		if hasattr(startup.webutils, "get_website_settings"):
-			startup.webutils.get_website_settings(context)
-	except:
-		pass
+	for update_website_context in hooks.update_website_context or []:
+		webnotes.get_attr(update_website_context)(context)
+		
+	context.web_include_js = hooks.web_include_js or []
+	context.web_include_css = hooks.web_include_css or []
+	
 	return context
 
 

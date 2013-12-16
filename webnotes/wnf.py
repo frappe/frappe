@@ -89,8 +89,6 @@ def setup_install(parser):
 		help="Install a fresh app in db_name specified in conf.py")
 	parser.add_argument("--restore", metavar=("DB-NAME", "SQL-FILE"), nargs=2,
 		help="Restore from an sql file")
-	parser.add_argument("--install_fixtures", default=False, action="store_true", 
-		help="(Re)Install install-fixtures from app/startup/install_fixtures")
 	parser.add_argument("--make_demo", default=False, action="store_true",
 		help="Install demo in demo_db_name specified in conf.py")
 	parser.add_argument("--make_demo_fresh", default=False, action="store_true",

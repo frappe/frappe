@@ -68,7 +68,7 @@ def execute_patch(patchmodule, method=None, methodargs=None):
 		success = True
 	except Exception, e:
 		webnotes.conn.rollback()
-		tb = webnotes.getTraceback()
+		tb = webnotes.get_traceback()
 		log(tb)
 		import os
 		if webnotes.request:

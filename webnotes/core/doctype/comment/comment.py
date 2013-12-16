@@ -12,16 +12,7 @@ class DocType:
 		if webnotes.conn.sql("""select count(*) from tabComment where comment_doctype=%s
 			and comment_docname=%s""", (self.doc.doctype, self.doc.name))[0][0] >= 50:
 			webnotes.msgprint("Max Comments reached!", raise_exception=True)
-			
-	def on_update(self):
-		self.update_comment_in_doc()
-		try:
-			import startup.event_handlers
-			if hasattr(startup.event_handlers, 'comment_added'):
-				startup.event_handlers.comment_added(self.doc)
-		except ImportError, e:
-			pass
-			
+						
 	def update_comment_in_doc(self):
 		if self.doc.comment_doctype and self.doc.comment_docname and self.doc.comment:
 			try:

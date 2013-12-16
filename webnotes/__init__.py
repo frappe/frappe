@@ -140,9 +140,9 @@ class DoesNotExistError(ValidationError): pass
 class MandatoryError(ValidationError): pass
 class InvalidSignatureError(ValidationError): pass
 		
-def getTraceback():
+def get_traceback():
 	import utils
-	return utils.getTraceback()
+	return utils.get_traceback()
 
 def errprint(msg):
 	from utils import cstr

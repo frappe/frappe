@@ -124,7 +124,7 @@ def pack(target, sources, no_compress):
 				
 		except Exception, e:
 			print "--Error in:" + f + "--"
-			print webnotes.getTraceback()
+			print webnotes.get_traceback()
 
 	if not no_compress and outtype == 'css':
 		pass

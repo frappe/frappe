@@ -60,7 +60,7 @@ def uploadfile():
 			if webnotes.form_dict.get('method'):
 				ret = webnotes.get_attr(webnotes.form_dict.method)()
 	except Exception, e:
-		webnotes.errprint(webnotes.utils.getTraceback())
+		webnotes.errprint(webnotes.utils.get_traceback())
 		ret = None
 
 	return ret
@@ -77,16 +77,16 @@ def handle():
 		try:
 			execute_cmd(cmd)
 		except webnotes.ValidationError, e:
-			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.errprint(webnotes.utils.get_traceback())
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except webnotes.PermissionError, e:
-			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.errprint(webnotes.utils.get_traceback())
 			webnotes.response['403'] = 1
 			if webnotes.request_method == "POST":
 				webnotes.conn.rollback()
 		except:
-			webnotes.errprint(webnotes.utils.getTraceback())
+			webnotes.errprint(webnotes.utils.get_traceback())
 			if webnotes.request_method == "POST":
 				webnotes.conn and webnotes.conn.rollback()
 

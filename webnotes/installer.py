@@ -132,25 +132,3 @@ def get_conf_params(db_name=None, db_password=None):
 		db_password = random_string(16)
 	
 	return {"db_name": db_name, "db_password": db_password}
-	
-def install_fixtures():
-	print "Importing install fixtures..."
-	for basepath, folders, files in os.walk(os.path.join("app", "startup", "install_fixtures")):
-		for f in files:
-			f = cstr(f)
-			if f.endswith(".json"):
-				print "Importing " + f
-				with open(os.path.join(basepath, f), "r") as infile:
-					webnotes.bean(json.loads(infile.read())).insert_or_update()
-					webnotes.conn.commit()
-
-			if f.endswith(".csv"):
-				from webnotes.core.page.data_import_tool.data_import_tool import import_file_by_path
-				import_file_by_path(os.path.join(basepath, f), ignore_links = True, overwrite=True)
-				webnotes.conn.commit()
-					
-	if os.path.exists(os.path.join("app", "startup", "install_fixtures", "files")):
-		if not os.path.exists(os.path.join("public", "files")):
-			os.makedirs(os.path.join("public", "files"))
-		os.system("cp -r %s %s" % (os.path.join("app", "startup", "install_fixtures", "files", "*"), 
-			os.path.join("public", "files")))

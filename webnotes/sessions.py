@@ -67,8 +67,7 @@ def get():
 		bootinfo = webnotes.cache().get_value('bootinfo:' + webnotes.session.user)
 		if bootinfo:
 			bootinfo['from_cache'] = 1
-			
-		bootinfo["notification_info"].update(get_notifications())
+			bootinfo["notification_info"].update(get_notifications())
 		
 	if not bootinfo:
 		if not webnotes.cache().get_stats():
@@ -80,7 +79,6 @@ def get():
 		bootinfo["notification_info"] = get_notification_info_for_boot()
 		webnotes.cache().set_value('bootinfo:' + webnotes.session.user, bootinfo)
 	
-		
 	return bootinfo
 
 class Session:
