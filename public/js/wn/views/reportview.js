@@ -101,6 +101,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		this.make_export();
 		this.set_init_columns();
 		this.make_save();
+		this.make_user_restrictions();
 		this.set_tag_and_status_filter();
 	},
 
@@ -412,7 +413,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 		// button actions
 		this.page.appframe.add_button(wn._('Sort By'), function() {
 			me.sort_dialog.show();
-		}, 'icon-arrow-down');
+		}, 'icon-sort-by-alphabet');
 		
 		$(this.sort_dialog.body).find('.btn-info').click(function() { 
 			me.sort_dialog.hide();
@@ -470,7 +471,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 							wn.set_route('Report', me.doctype, r.message);
 					}
 				});
-			}, 'icon-upload');
+			}, 'icon-save');
 		}
 	},
 
@@ -508,6 +509,19 @@ wn.views.ReportView = wn.ui.Listing.extend({
 					}));
 				
 			}, 'icon-remove');
+		}
+	},
+	
+	make_user_restrictions: function() {
+		var me = this;
+		if(this.docname && wn.user.can_restrict()) {
+			this.page.appframe.add_button(wn._("User Permission Restrictions"), function() {
+				wn.route_options = {
+					property: "Report",
+					restriction: me.docname
+				};
+				wn.set_route("user-properties");
+			}, "icon-shield");
 		}
 	},
 });

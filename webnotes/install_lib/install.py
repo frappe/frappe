@@ -149,7 +149,8 @@ class Installer:
 			{'doctype':'UserRole', 'parent': 'Guest', 'role': 'Guest', 
 				'parenttype':'Profile', 'parentfield':'user_roles'},
 				
-			{'doctype': "Role", "role_name": "Report Manager"}
+			{'doctype': "Role", "role_name": "Report Manager"},
+			{'doctype': "Role", "role_name": "Restriction Manager"},
 		]
 		
 		webnotes.conn.begin()

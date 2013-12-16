@@ -7,7 +7,7 @@ import webnotes.defaults
 
 @webnotes.whitelist()
 def get_users_and_links():
-	webnotes.only_for(("System Manager", "Administrator"))
+	webnotes.only_for(("Restriction Manager", "System Manager"))
 	return {
 		"users": webnotes.conn.sql_list("""select name from tabProfile where
 			ifnull(enabled,0)=1 and
@@ -18,7 +18,7 @@ def get_users_and_links():
 
 @webnotes.whitelist()
 def get_properties(parent=None, defkey=None, defvalue=None):
-	webnotes.only_for(("System Manager", "Administrator"))
+	webnotes.only_for(("Restriction Manager", "System Manager"))
 	conditions, values = _build_conditions(locals())
 	
 	return webnotes.conn.sql("""select name, parent, defkey, defvalue 
@@ -41,13 +41,13 @@ def _build_conditions(filters):
 
 @webnotes.whitelist()
 def remove(user, name):
-	webnotes.only_for(("System Manager", "Administrator"))
+	webnotes.only_for(("Restriction Manager", "System Manager"))
 	webnotes.defaults.clear_default(name=name)
 	
 @webnotes.whitelist()
 def add(user, defkey, defvalue):
-	webnotes.only_for(("System Manager", "Administrator"))
-
+	webnotes.only_for(("Restriction Manager", "System Manager"))
+	
 	# check if already exists
 	d = webnotes.conn.sql("""select name from tabDefaultValue 
 		where parent=%s and parenttype='Restriction' and defkey=%s and defvalue=%s""", (user, defkey, defvalue))

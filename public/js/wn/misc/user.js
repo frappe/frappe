@@ -124,8 +124,12 @@ $.extend(wn.user, {
 	},
 	is_report_manager: function() {
 		return wn.user.has_role(['Administrator', 'System Manager', 'Report Manager']);
-	}
-})
+	},
+	
+	can_restrict: function() {
+		return wn.user.has_role(["Restriction Manager", "System Manager"]);
+	},
+});
 
 wn.session_alive = true;
 $(document).bind('mousemove', function() {

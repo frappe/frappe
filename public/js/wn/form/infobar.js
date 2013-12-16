@@ -11,44 +11,56 @@ wn.ui.form.InfoBar = Class.extend({
 		var me = this;
 
 		this.appframe.iconbar.clear(2);
-		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", "Reload Page", 
+		this.$reload = this.appframe.add_icon_btn("2", "icon-refresh", wn._("Reload Page"), 
 			function() { me.frm.reload_doc(); })
 
 
-		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", "Creation / Modified By", 
+		this.$timestamp = this.appframe.add_icon_btn("2", "icon-user", wn._("Creation / Modified By"), 
 			function() { })
 
-		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", "Comments", function() {
+		this.$comments = this.appframe.add_icon_btn("2", "icon-comments", wn._("Comments"), function() {
 				me.scroll_to(".form-comments");
 			});
 			
-		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", "Attachments",  function() {
+		this.$attachments = this.appframe.add_icon_btn("2", "icon-paper-clip", wn._("Attachments"),  function() {
 				me.scroll_to(".form-attachments");
 			});
 
-		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", "Assignments",  function() {
+		this.$assignments = this.appframe.add_icon_btn("2", "icon-flag", wn._("Assignments"),  function() {
 				me.scroll_to(".form-attachments");
 			});		
 
 
-		this.$links = this.appframe.add_icon_btn("2", "icon-link", "Linked With", 
+		this.$links = this.appframe.add_icon_btn("2", "icon-link", wn._("Linked With"), 
 				function() { me.frm.toolbar.show_linked_with(); });
+		
+		// link to user restrictions
+		if(wn.user.can_restrict()) {
+			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield", 
+				wn._("User Permission Restrictions"), function() {
+					wn.route_options = {
+						property: me.frm.doctype,
+						restriction: me.frm.docname
+					};
+					wn.set_route("user-properties");
+				});
+		}
 
 		if(!me.frm.meta.allow_print) {
-			this.$print = this.appframe.add_icon_btn("2", "icon-print", "Print", 
+			this.$print = this.appframe.add_icon_btn("2", "icon-print", wn._("Print"), 
 				function() { me.frm.print_doc(); });
 		}
 
 		if(!me.frm.meta.allow_email) {
-			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", "Email", 
+			this.$print = this.appframe.add_icon_btn("2", "icon-envelope", wn._("Email"), 
 				function() { me.frm.email_doc(); });
 		}
 		
 		if(!this.frm.meta.issingle) {
-			this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", "Previous Record", 
+			this.$prev = this.appframe.add_icon_btn("2", "icon-arrow-left", wn._("Previous Record"), 
 				function() { me.go_prev_next(true); });
 		
-			this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", "Next Record", 
+			this.$next = this.appframe.add_icon_btn("2", "icon-arrow-right", wn._("Next Record"), 
 				function() { me.go_prev_next(false); });
 		}
 		
@@ -56,7 +68,7 @@ wn.ui.form.InfoBar = Class.extend({
 	
 	refresh: function() {		
 		if(!this.frm.doc.__islocal) {
-			this.docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];			
+			this.docinfo = wn.model.docinfo[this.frm.doctype][this.frm.docname];
 			// highlight comments
 			this.highlight_items();
 		}

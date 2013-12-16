@@ -2,7 +2,7 @@
  {
   "creation": "2013-01-01 18:50:55", 
   "docstatus": 0, 
-  "modified": "2013-07-11 14:45:20", 
+  "modified": "2013-12-16 16:57:12", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -20,14 +20,18 @@
   "name": "__common__", 
   "parent": "user-properties", 
   "parentfield": "roles", 
-  "parenttype": "Page", 
-  "role": "System Manager"
+  "parenttype": "Page"
  }, 
  {
   "doctype": "Page", 
   "name": "user-properties"
  }, 
  {
-  "doctype": "Page Role"
+  "doctype": "Page Role", 
+  "role": "System Manager"
+ }, 
+ {
+  "doctype": "Page Role", 
+  "role": "Restriction Manager"
  }
 ]

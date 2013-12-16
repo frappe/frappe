@@ -346,6 +346,9 @@ def has_permission(doctype, ptype="read", refdoc=None):
 	if not perms:
 		return False
 	elif refdoc:
+		if isinstance(refdoc, basestring):
+			refdoc = doc(meta[0].name, refdoc)
+		
 		if has_only_permitted_data(meta, refdoc) and has_match(perms, refdoc):
 			return True
 		else:
@@ -356,6 +359,7 @@ def has_permission(doctype, ptype="read", refdoc=None):
 def get_user_perms(meta, ptype, user=None):
 	from webnotes.utils import cint
 	user_roles = get_roles(user)
+	
 	return [p for p in meta.get({"doctype": "DocPerm"})
 			if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
 
@@ -366,18 +370,16 @@ def has_only_permitted_data(meta, refdoc):
 	restrictions = get_restrictions()
 	
 	if restrictions:
-		if isinstance(refdoc, basestring):
-			refdoc = doc(meta[0].name, refdoc)
-		
 		fields_to_check = meta.get_restricted_fields(restrictions.keys())
 		
 		if meta[0].name in restrictions:
-			fields_to_check.append(_dict({"label":"Name", "fieldname":"name"}))
+			fields_to_check.append(_dict({"label":"Name", "fieldname":"name", "options": meta[0].name}))
 		
 		for df in fields_to_check:
 			if refdoc.get(df.fieldname) and refdoc.get(df.fieldname) not in restrictions[df.options]:
-				msg = "{not_allowed}: {label} {equals} {value}".format(not_allowed=_("Not allowed for"),
-					label=_(df.label), equals=_("equals"), value=refdoc.get(df.fieldname))
+				msg = "{not_allowed}: {doctype} {having} {label} = {value}".format(
+					not_allowed=_("Sorry, you are not allowed to access"), doctype=_(df.options),
+					having=_("having"), label=_(df.label), value=refdoc.get(df.fieldname))
 				
 				if refdoc.parentfield:
 					msg = "{doctype}, {row} #{idx}, ".format(doctype=_(refdoc.doctype),
@@ -416,7 +418,7 @@ def reset_metadata_version():
 	cache().set_value("metadata_version", v)
 	return v
 
-def get_obj(dt = None, dn = None, doc=None, doclist=[], with_children = True):
+def get_obj(dt = None, dn = None, doc=None, doclist=None, with_children = True):
 	from webnotes.model.code import get_obj
 	return get_obj(dt, dn, doc, doclist, with_children)
 

@@ -42,7 +42,7 @@ wn.views.pageview = {
 			} else if(!wn.pages[name]) {
 				new wn.views.Page(name);
 			}
-			wn.container.change_to(name);			
+			wn.container.change_to(name);
 		});
 	}
 }

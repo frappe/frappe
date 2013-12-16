@@ -73,6 +73,16 @@ wn.views.QueryReport = Class.extend({
 		var export_btn = this.appframe.add_primary_action(wn._('Export'), function() { me.export_report(); }, 
 			"icon-download");
 		wn.utils.disable_export_btn(export_btn);
+		
+		if(wn.user.can_restrict()) {
+			this.appframe.add_primary_action(wn._("User Restrictions"), function() {
+				wn.route_options = {
+					property: "Report",
+					restriction: me.report_name
+				};
+				wn.set_route("user-properties");
+			}, "icon-shield");
+		}
 	},
 	load: function() {
 		// load from route
@@ -84,23 +94,25 @@ wn.views.QueryReport = Class.extend({
 				this.wrapper.find(".no-report-area").toggle(false);
 				me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
 				
-				if(!wn.query_reports[me.report_name]) {
-					return wn.call({
-						method:"webnotes.widgets.query_report.get_script",
-						args: {
-							report_name: me.report_name
-						},
-						callback: function(r) {
-							me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
-							wn.dom.eval(r.message || "");
-							me.setup_filters();
-							me.refresh();
-						}
-					})
-				} else {
-					me.setup_filters();
-					me.refresh();
-				}
+				wn.model.with_doc("Report", me.report_name, function() {
+					if(!wn.query_reports[me.report_name]) {
+						return wn.call({
+							method:"webnotes.widgets.query_report.get_script",
+							args: {
+								report_name: me.report_name
+							},
+							callback: function(r) {
+								me.appframe.set_title(wn._("Query Report")+": " + wn._(me.report_name));
+								wn.dom.eval(r.message || "");
+								me.setup_filters();
+								me.refresh();
+							}
+						});
+					} else {
+						me.setup_filters();
+						me.refresh();
+					}
+				});
 			}
 		} else {
 			var msg = wn._("No Report Loaded. Please use query-report/[Report Name] to run a report.")

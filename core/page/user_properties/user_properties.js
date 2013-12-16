@@ -103,7 +103,9 @@ wn.UserProperties = Class.extend({
 		return property=="Select Property..." ? null : property;
 	},
 	get_restriction: function() {
-		return this.filters.restriction.$input.val();
+		// autosuggest hack!
+		var restriction = this.filters.restriction.$input.val();
+		return (restriction === "%") ? null : restriction;
 	},
 	render: function(prop_list) {
 		this.body.empty();
@@ -157,7 +159,7 @@ wn.UserProperties = Class.extend({
 		$.each(this.prop_list, function(i, d) {
 			var row = $("<tr>").appendTo(me.table.find("tbody"));
 			
-			$("<td>").html('<a href="#Form/Profile/'+d.parent+'">'
+			$("<td>").html('<a href="#Form/Profile/'+encodeURIComponent(d.parent)+'">'
 				+d.parent+'</a>').appendTo(row);
 			$("<td>").html(d.defkey).appendTo(row);
 			$("<td>").html(d.defvalue).appendTo(row);
@@ -205,7 +207,7 @@ wn.UserProperties = Class.extend({
 					title: "Add New Property",
 					fields: [
 						{fieldtype:"Select", label:wn._("User"),
-							options:me.options.users, reqd:1, fieldname:"parent"},
+							options:me.options.users, reqd:1, fieldname:"user"},
 						{fieldtype:"Select", label: wn._("Property"), fieldname:"defkey",
 							options:me.get_link_names(), reqd:1},
 						{fieldtype:"Link", label:wn._("Value"), fieldname:"defvalue",
@@ -214,8 +216,8 @@ wn.UserProperties = Class.extend({
 					]
 				});
 				if(me.get_user()) {
-					d.set_value("parent", me.get_user());
-					d.get_input("parent").prop("disabled", true);
+					d.set_value("user", me.get_user());
+					d.get_input("user").prop("disabled", true);
 				}
 				if(me.get_property()) {
 					d.set_value("defkey", me.get_property());
