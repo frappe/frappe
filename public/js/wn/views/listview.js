@@ -114,14 +114,6 @@ wn.views.ListView = Class.extend({
 				me.columns.push(d);
 			});
 		}
-
-		// expand "name" if there are few columns
-		var total_colspan = 0;
-		$.each(this.columns, function(i, c) { total_colspan += cint(c.colspan); });
-		if(total_colspan < 8) {
-			$.each(this.columns, 
-				function(i, c) { if(c.content==="name") { c.colspan = 4; return false; } });
-		}
 	},
 	render: function(row, data) {
 		this.prepare_data(data);
@@ -137,9 +129,9 @@ wn.views.ListView = Class.extend({
 		
 		
 		var body = $('<div class="doclist-row row">\
-			<div class="list-row-id-area col-sm-3" style="white-space: nowrap;\
+			<div class="list-row-id-area col-sm-4" style="white-space: nowrap;\
 				text-overflow: ellipsis; max-height: 30px"></div>\
-			<div class="list-row-content-area col-sm-9"></div>\
+			<div class="list-row-content-area col-sm-8"></div>\
 		</div>').appendTo($(row).css({"position":"relative"})),
 			colspans = 0,
 			me = this;
