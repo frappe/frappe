@@ -174,7 +174,6 @@ def throw(msg, exc=ValidationError):
 	msgprint(msg, raise_exception=exc)
 	
 def create_folder(path):
-	import os
 	try:
 		os.makedirs(path)
 	except OSError, e:
@@ -182,7 +181,6 @@ def create_folder(path):
 			raise
 
 def create_symlink(source_path, link_path):
-	import os
 	try:
 		os.symlink(source_path, link_path)
 	except OSError, e:
@@ -190,7 +188,6 @@ def create_symlink(source_path, link_path):
 			raise
 
 def remove_file(path):
-	import os
 	try:
 		os.remove(path)
 	except OSError, e:
@@ -232,7 +229,7 @@ def get_db_password(db_name):
 
 whitelisted = []
 guest_methods = []
-def whitelist(allow_guest=False, allow_roles=None):
+def whitelist(allow_guest=False):
 	"""
 	decorator for whitelisting a function
 	
@@ -248,21 +245,17 @@ def whitelist(allow_guest=False, allow_roles=None):
 		if allow_guest:
 			guest_methods.append(fn)
 
-		if allow_roles:
-			roles = get_roles()
-			allowed = False
-			for role in allow_roles:
-				if role in roles:
-					allowed = True
-					break
-			
-			if not allowed:
-				raise PermissionError, "Method not allowed"
-
 		return fn
 	
 	return innerfn
-
+	
+def only_for(roles):
+	if not isinstance(roles, (tuple, list)):
+		roles = (roles,)
+	myroles = get_roles()
+	for role in roles:
+		if role not in myroles:
+			raise PermissionError
 
 class HashAuthenticatedCommand(object):
 	def __init__(self):
@@ -533,7 +526,6 @@ def repsond_as_web_page(title, html):
 
 def load_json(obj):
 	if isinstance(obj, basestring):
-		import json
 		try:
 			obj = json.loads(obj)
 		except ValueError:

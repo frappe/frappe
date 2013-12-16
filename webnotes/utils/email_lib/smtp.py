@@ -11,6 +11,7 @@ import webnotes
 from webnotes import conf
 from webnotes import msgprint
 from webnotes.utils import cint, expand_partial_links
+import email.utils
 
 class OutgoingEmailError(webnotes.ValidationError): pass
 
@@ -196,12 +197,13 @@ class EMail:
 		self.msg_root['Subject'] = self.subject.encode("utf-8")
 		self.msg_root['From'] = self.sender.encode("utf-8")
 		self.msg_root['To'] = ', '.join([r.strip() for r in self.recipients]).encode("utf-8")
-		if self.reply_to and self.reply_to != self.sender:
-			self.msg_root['Reply-To'] = self.reply_to.encode("utf-8")
-		
+		self.msg_root['Date'] = email.utils.formatdate()
+		if not self.reply_to: 
+			self.reply_to = self.sender
+		self.msg_root['Reply-To'] = self.reply_to.encode("utf-8")
 		if self.cc:
 			self.msg_root['CC'] = ', '.join([r.strip() for r in self.cc]).encode("utf-8")
-	
+		
 	def as_string(self):
 		"""validate, build message and convert to string"""
 		self.validate()
@@ -220,6 +222,8 @@ class EMail:
 			smtpserver = SMTPServer()
 			if hasattr(smtpserver, "always_use_login_id_as_sender") and \
 				cint(smtpserver.always_use_login_id_as_sender) and smtpserver.login:
+				if not self.reply_to:
+					self.reply_to = self.sender
 				self.sender = smtpserver.login
 			
 			smtpserver.sess.sendmail(self.sender, self.recipients + (self.cc or []),

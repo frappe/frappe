@@ -19,6 +19,7 @@ import webnotes.plugins
 @webnotes.whitelist()
 def clear(user=None):
 	webnotes.local.session_obj.update(force=True)
+	webnotes.local.conn.commit()
 	clear_cache(webnotes.session.user)
 	webnotes.response['message'] = "Cache Cleared"
 
