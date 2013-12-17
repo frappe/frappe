@@ -327,86 +327,18 @@ def get_roles(username=None):
 		return user.get_roles()
 	else:
 		return webnotes.profile.Profile(username).get_roles()
-
-def check_admin_or_system_manager():
-	if ("System Manager" not in get_roles()) and \
-	 	(session.user!="Administrator"):
-		msgprint("Only Allowed for Role System Manager or Administrator", raise_exception=True)
 		
 def has_permission(doctype, ptype="read", refdoc=None):
-	"""check if user has permission"""
-	if session.user=="Administrator" or conn.get_value("DocType", doctype, "istable")==1:
-		return True
+	import webnotes.permissions
+	return webnotes.permissions.has_permission(doctype, ptype, refdoc)
 	
-	meta = get_doctype(doctype)
-	
-	# get user permissions
-	perms = get_user_perms(meta, ptype)
-	
-	if not perms:
-		return False
-	elif refdoc:
-		if isinstance(refdoc, basestring):
-			refdoc = doc(meta[0].name, refdoc)
-		
-		if has_only_permitted_data(meta, refdoc) and has_match(perms, refdoc):
-			return True
-		else:
-			return False
-	else:
-		return True
-		
-def get_user_perms(meta, ptype, user=None):
-	from webnotes.utils import cint
-	user_roles = get_roles(user)
-	
-	return [p for p in meta.get({"doctype": "DocPerm"})
-			if cint(p.get(ptype))==1 and cint(p.permlevel)==0 and (p.role=="All" or p.role in user_roles)]
+def clear_perms(doctype):
+	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
 
-def has_only_permitted_data(meta, refdoc):
-	from webnotes.defaults import get_restrictions
-	
-	has_restricted_data = False
-	restrictions = get_restrictions()
-	
-	if restrictions:
-		fields_to_check = meta.get_restricted_fields(restrictions.keys())
-		
-		if meta[0].name in restrictions:
-			fields_to_check.append(_dict({"label":"Name", "fieldname":"name", "options": meta[0].name}))
-		
-		for df in fields_to_check:
-			if refdoc.get(df.fieldname) and refdoc.get(df.fieldname) not in restrictions[df.options]:
-				msg = "{not_allowed}: {doctype} {having} {label} = {value}".format(
-					not_allowed=_("Sorry, you are not allowed to access"), doctype=_(df.options),
-					having=_("having"), label=_(df.label), value=refdoc.get(df.fieldname))
-				
-				if refdoc.parentfield:
-					msg = "{doctype}, {row} #{idx}, ".format(doctype=_(refdoc.doctype),
-						row=_("Row"), idx=refdoc.idx) + msg
-				
-				msgprint(msg)
-				has_restricted_data = True
-	
-	if has_restricted_data:
-		# check all restrictions before returning
-		return False
-	else:
-		return True
-
-def has_match(perms, refdoc):
-	"""check owner match (if exists)"""
-	for p in perms:
-		if p.get("match")=="owner":
-			if refdoc.get("owner")==local.session.user:
-				# owner matches :)
-				return True
-		else:
-			# found a permission without owner match :)
-			return True
-	
-	# no match :(
-	return False
+def reset_perms(doctype):
+	clear_perms(doctype)
+	reload_doc(conn.get_value("DocType", doctype, "module"), 
+		"DocType", doctype, force=True)
 
 def generate_hash():
 	"""Generates random hash for session id"""
@@ -471,13 +403,6 @@ def delete_doc(doctype=None, name=None, doclist = None, force=0, ignore_doctypes
 	else:
 		webnotes.model.delete_doc.delete_doc(doctype, name, doclist, force, ignore_doctypes,
 			for_reload, ignore_permissions)
-
-def clear_perms(doctype):
-	conn.sql("""delete from tabDocPerm where parent=%s""", doctype)
-
-def reset_perms(doctype):
-	clear_perms(doctype)
-	reload_doc(conn.get_value("DocType", doctype, "module"), "DocType", doctype, force=True)
 
 def reload_doc(module, dt=None, dn=None, plugin=None, force=False):
 	import webnotes.modules

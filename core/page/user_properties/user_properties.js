@@ -79,7 +79,7 @@ wn.UserProperties = Class.extend({
 		});
 	},
 	get_link_names: function() {
-		return $.map(this.options.link_fields, function(l) { return l[0]; });
+		return this.options.link_fields;
 	},
 	set_from_route: function() {
 		var me = this;

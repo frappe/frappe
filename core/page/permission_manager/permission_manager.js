@@ -9,7 +9,7 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	<tr><td>\
 	<h4><i class='icon-question-sign'></i> "+wn._("Quick Help for Setting Permissions")+":</h4>\
 	<ol>\
-	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend and report rights.")+"</li>\
+	<li>"+wn._("Permissions are set on Roles and Document Types (called DocTypes) by restricting read, edit, make new, submit, cancel, amend, report, import, export, print, email and restrict rights.")+"</li>\
 	<li>"+wn._("Permissions translate to Users based on what Role they are assigned")+".</li>\
 	<li>"+wn._("To set user roles, just go to <a href='#List/Profile'>Setup > Users</a> and click on the user to assign roles.")+"</li>\
 	<li>"+wn._("The system provides pre-defined roles, but you can <a href='#List/Role'>add new roles</a> to set finer permissions")+".</li>\
@@ -45,8 +45,9 @@ wn.pages['permission-manager'].onload = function(wrapper) {
 	</tr></td>\
 	<tr><td>\
 	<h4><i class='icon-cog'></i> "+wn._("Advanced Settings")+":</h4>\
-	<p>"+wn._("To further restrict permissions based on certain values, like Company or Territory in a document, please go to <a href='#user-properties'>User Restrictions</a>")+" <br><br>"+
-	"<p>"+wn._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</p><hr>\
+	<p>"+wn._("To further restrict permissions based on certain values, like Company or Territory in a document, please go to <a href='#user-properties'>User Restrictions</a>")+"</p>"+
+	"<p>"+wn._("Once you have set this, the users will only be able access documents where the link (e.g Company) exists.")+"</p>"+
+	"<p>"+wn._("Apart from System Manager, roles with Restrict permission can restrict other users for that Document Type")+"</p><hr>\
 	<p>"+wn._("If these instructions where not helpful, please add in your suggestions at <a href='https://github.com/webnotes/wnframework/issues'>GitHub Issues</a>")+"</p>\
 	</tr></td>\
 	</table>");
@@ -160,37 +161,42 @@ wn.PermissionEngine = Class.extend({
 	},
 	show_permission_table: function(perm_list) {
 		var me = this;
-		this.table = $("<table class='table table-bordered'>\
-			<thead><tr></tr></thead>\
-			<tbody></tbody>\
-		</table>").appendTo(this.body);
+		this.table = $("<div class='table-responsive'>\
+			<table class='table table-bordered'>\
+				<thead><tr></tr></thead>\
+				<tbody></tbody>\
+			</table>\
+		</div>").appendTo(this.body);
 		
-		$.each([["Document Type", 150], ["Role", 100], ["Level",50], 
-			["Read", 50], ["Edit", 50], ["Make New", 50], 
-			["Submit", 50], ["Cancel", 50], ["Amend", 50], ["Report", 50], 
-			["Condition", 150], ["", 50]], function(i, col) {
+		$.each([["Document Type", 150], ["Role", 150], ["Level", 40], 
+			["Permissions", 270], ["Condition", 100], ["", 40]], function(i, col) {
 			$("<th>").html(col[0]).css("width", col[1]+"px")
 				.appendTo(me.table.find("thead tr"));
 		});
 
 		var add_cell = function(row, d, fieldname, is_check) {
-			var cell = $("<td>").appendTo(row).attr("data-fieldname", fieldname);
-			if(is_check) {
-				if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
-					cell.html("-");
-				} else {
-					var input = $("<input type='checkbox'>")
-						.prop("checked", d[fieldname] ? true: false)
-						.attr("data-ptype", fieldname)
-						.attr("data-name", d.name)
-						.attr("data-doctype", d.parent)
-						.appendTo(cell);
-				}
-			} else {
-				cell.html(d[fieldname]);
+			return $("<td>").appendTo(row)
+				.attr("data-fieldname", fieldname)
+				.html(d[fieldname]);
+		};
+		
+		var add_check = function(cell, d, fieldname) {
+			if(d.permlevel > 0 && ["read", "write"].indexOf(fieldname)==-1) {
+				return;
 			}
-			return cell;
-		}
+			
+			var checkbox = $("<div class='col-md-4'><div class='checkbox'>\
+					<label><input type='checkbox'>"+fieldname+"</input></label>\
+				</div></div>").appendTo(cell)
+				.attr("data-fieldname", fieldname)
+				.css("text-transform", "capitalize");
+			
+			checkbox.find("input")
+				.prop("checked", d[fieldname] ? true: false)
+				.attr("data-ptype", fieldname)
+				.attr("data-name", d.name)
+				.attr("data-doctype", d.parent)
+		};
 				
 		$.each(perm_list, function(i, d) {
 			if(!d.permlevel) d.permlevel = 0;
@@ -203,13 +209,21 @@ wn.PermissionEngine = Class.extend({
 				cell.css("font-weight", "bold");
 				row.addClass("warning");
 			}
-			add_cell(row, d, "read", true);
-			add_cell(row, d, "write", true);
-			add_cell(row, d, "create", true);
-			add_cell(row, d, "submit", true);
-			add_cell(row, d, "cancel", true);
-			add_cell(row, d, "amend", true);
-			add_cell(row, d, "report", true);
+			
+			var perm_cell = add_cell(row, d, "permissions").css("padding-top", 0);
+			var perm_container = $("<div class='row'></div>").appendTo(perm_cell);
+			add_check(perm_container, d, "read");
+			add_check(perm_container, d, "write");
+			add_check(perm_container, d, "create");
+			add_check(perm_container, d, "submit");
+			add_check(perm_container, d, "cancel");
+			add_check(perm_container, d, "amend");
+			add_check(perm_container, d, "report");
+			add_check(perm_container, d, "import");
+			add_check(perm_container, d, "export");
+			add_check(perm_container, d, "print");
+			add_check(perm_container, d, "email");
+			add_check(perm_container, d, "restrict");
 						
 			// buttons
 			me.add_match_button(row, d);

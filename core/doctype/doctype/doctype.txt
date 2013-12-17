@@ -2,7 +2,7 @@
  {
   "creation": "2013-02-18 13:36:19", 
   "docstatus": 0, 
-  "modified": "2013-11-26 10:57:00", 
+  "modified": "2013-12-17 14:32:51", 
   "modified_by": "Administrator", 
   "owner": "Administrator"
  }, 
@@ -317,28 +317,6 @@
   "hidden": 0, 
   "label": "Hide Toolbar", 
   "oldfieldname": "hide_toolbar", 
-  "oldfieldtype": "Check", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_print", 
-  "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Hide Print", 
-  "oldfieldname": "allow_print", 
-  "oldfieldtype": "Check", 
-  "reqd": 0, 
-  "search_index": 0
- }, 
- {
-  "doctype": "DocField", 
-  "fieldname": "allow_email", 
-  "fieldtype": "Check", 
-  "hidden": 0, 
-  "label": "Hide Email", 
-  "oldfieldname": "allow_email", 
   "oldfieldtype": "Check", 
   "reqd": 0, 
   "search_index": 0

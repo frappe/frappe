@@ -514,7 +514,7 @@ wn.views.ReportView = wn.ui.Listing.extend({
 	
 	make_user_restrictions: function() {
 		var me = this;
-		if(this.docname && wn.user.can_restrict()) {
+		if(this.docname && wn.model.can_restrict("Report")) {
 			this.page.appframe.add_button(wn._("User Permission Restrictions"), function() {
 				wn.route_options = {
 					property: "Report",

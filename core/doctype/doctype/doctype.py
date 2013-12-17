@@ -229,9 +229,10 @@ def validate_permissions(permissions, for_remove=False):
 	if doctype:
 		issingle = cint(webnotes.conn.get_value("DocType", doctype, "issingle"))
 		issubmittable = cint(webnotes.conn.get_value("DocType", doctype, "is_submittable"))
+		isimportable = cint(webnotes.conn.get_value("DocType", doctype, "allow_import"))
 			
 	def get_txt(d):
-		return "For %s (level %s) in %s row %s:" % (d.role, d.permlevel, d.parent, d.idx)
+		return "For %s (level %s) in %s, row #%s:" % (d.role, d.permlevel, d.parent, d.idx)
 		
 	def check_atleast_one_set(d):
 		if not d.read and not d.write and not d.submit and not d.cancel and not d.create:
@@ -269,10 +270,25 @@ def validate_permissions(permissions, for_remove=False):
 		if d.amend and not d.write:
 			webnotes.msgprint(get_txt(d) + " Cannot set Amend if Cancel is not set.",
 				raise_exception=True)
+		if (d.fields.get("import") or d.export) and not d.report:
+			webnotes.msgprint(get_txt(d) + " Cannot set Import or Export permission if Report is not set.",
+				raise_exception=True)
 	
-	def remove_report_if_single(d):
-		if d.report and issingle:
-			webnotes.msgprint(doctype + " is a single DocType, permission of type Report is meaningless.")
+	def remove_rights_for_single(d):
+		if not issingle:
+			return
+		
+		if d.report:
+			webnotes.msgprint("{doctype} {meaningless}".format(doctype=doctype,
+				meaningless=_("is a single DocType, permission of type Report is meaningless.")))
+			d.report = 0
+			d.fields["import"] = 0
+			d.fields["export"] = 0
+			
+		if d.restrict:
+			webnotes.msgprint("{doctype} {meaningless}".format(doctype=doctype,
+				meaningless=_("is a single DocType, permission of type Restrict is meaningless.")))
+			d.restrict = 0
 	
 	def check_if_submittable(d):
 		if d.submit and not issubmittable:
@@ -282,6 +298,11 @@ def validate_permissions(permissions, for_remove=False):
 			webnotes.msgprint(doctype + " is not Submittable, cannot assign amend rights.",
 				raise_exception=True)
 	
+	def check_if_importable(d):
+		if d.fields.get("import") and not isimportable:
+			webnotes.throw("{doctype}: {not_importable}".format(doctype=doctype,
+				not_importable=_("is not allowed to be imported, cannot assign import rights.")))
+	
 	for d in permissions:
 		if not d.permlevel: 
 			d.permlevel=0
@@ -290,8 +311,9 @@ def validate_permissions(permissions, for_remove=False):
 			check_double(d)
 			check_permission_dependency(d)
 			check_if_submittable(d)
+			check_if_importable(d)
 		check_level_zero_is_set(d)
-		remove_report_if_single(d)
+		remove_rights_for_single(d)
 
 def make_module_and_roles(doclist, perm_doctype="DocPerm"):
 	try:

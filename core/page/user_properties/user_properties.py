@@ -4,30 +4,41 @@
 from __future__ import unicode_literals
 import webnotes
 import webnotes.defaults
+import webnotes.permissions
 
 @webnotes.whitelist()
 def get_users_and_links():
-	webnotes.only_for(("Restriction Manager", "System Manager"))
 	return {
 		"users": webnotes.conn.sql_list("""select name from tabProfile where
 			ifnull(enabled,0)=1 and
 			name not in ("Administrator", "Guest")"""),
-		"link_fields": webnotes.conn.sql("""select name, name from tabDocType 
-			where ifnull(issingle,0)=0 and ifnull(istable,0)=0""")
+		"link_fields": get_restrictable_doctypes()
 	}
 
 @webnotes.whitelist()
 def get_properties(parent=None, defkey=None, defvalue=None):
-	webnotes.only_for(("Restriction Manager", "System Manager"))
+	if defkey and not webnotes.permissions.can_restrict(defkey, defvalue):
+		raise webnotes.PermissionError
+	
 	conditions, values = _build_conditions(locals())
 	
-	return webnotes.conn.sql("""select name, parent, defkey, defvalue 
+	properties = webnotes.conn.sql("""select name, parent, defkey, defvalue 
 		from tabDefaultValue
 		where parent not in ('Control Panel', '__global')
 		and substr(defkey,1,1)!='_'
 		and parenttype='Restriction'
 		{conditions}
 		order by parent, defkey""".format(conditions=conditions), values, as_dict=True)
+	
+	if not defkey:
+		out = []
+		doctypes = get_restrictable_doctypes()
+		for p in properties:
+			if p.defkey in doctypes:
+				out.append(p)
+		properties = out
+	
+	return properties
 			
 def _build_conditions(filters):
 	conditions = []
@@ -40,13 +51,16 @@ def _build_conditions(filters):
 	return "\n".join(conditions), values
 
 @webnotes.whitelist()
-def remove(user, name):
-	webnotes.only_for(("Restriction Manager", "System Manager"))
+def remove(user, name, defkey, defvalue):
+	if not webnotes.permissions.can_restrict_user(user, defkey, defvalue):
+		raise webnotes.PermissionError
+	
 	webnotes.defaults.clear_default(name=name)
 	
 @webnotes.whitelist()
 def add(user, defkey, defvalue):
-	webnotes.only_for(("Restriction Manager", "System Manager"))
+	if not webnotes.permissions.can_restrict_user(user, defkey, defvalue):
+		raise webnotes.PermissionError
 	
 	# check if already exists
 	d = webnotes.conn.sql("""select name from tabDefaultValue 
@@ -54,3 +68,17 @@ def add(user, defkey, defvalue):
 		
 	if not d:
 		webnotes.defaults.add_default(defkey, defvalue, user, "Restriction")
+		
+def get_restrictable_doctypes():
+	user_roles = webnotes.get_roles()
+	condition = ""
+	values = []
+	if "System Manager" not in user_roles:
+		condition = """and exists(select `tabDocPerm`.name from `tabDocPerm` 
+			where `tabDocPerm`.parent=`tabDocType`.name and restrict=1
+			and `tabDocPerm`.name in ({roles}))""".format(roles=", ".join(["%s"]*len(user_roles)))
+		values = user_roles
+	
+	return webnotes.conn.sql_list("""select name from tabDocType 
+		where ifnull(issingle,0)=0 and ifnull(istable,0)=0 {condition}""".format(condition=condition),
+		values)

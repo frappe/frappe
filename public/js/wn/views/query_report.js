@@ -74,7 +74,7 @@ wn.views.QueryReport = Class.extend({
 			"icon-download");
 		wn.utils.disable_export_btn(export_btn);
 		
-		if(wn.user.can_restrict()) {
+		if(wn.model.can_restrict("Report")) {
 			this.appframe.add_primary_action(wn._("User Restrictions"), function() {
 				wn.route_options = {
 					property: "Report",

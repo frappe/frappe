@@ -13,6 +13,7 @@ import webnotes
 from webnotes import _, msgprint
 from webnotes.utils import cint, cstr, flt
 from webnotes.model.doc import Document
+import webnotes.permissions
 try:
 	from startup.bean_handlers import on_method
 except ImportError:
@@ -459,7 +460,7 @@ class Bean:
 		
 		has_restricted_data = False
 		for d in self.doclist:
-			if not webnotes.has_only_permitted_data(webnotes.get_doctype(d.doctype), d):
+			if not webnotes.permissions.has_only_permitted_data(webnotes.get_doctype(d.doctype), d):
 				has_restricted_data = True
 				
 		if has_restricted_data:

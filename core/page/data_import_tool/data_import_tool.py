@@ -34,7 +34,8 @@ def get_doctype_options():
 
 @webnotes.whitelist()
 def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data="No"):
-	webnotes.check_admin_or_system_manager()
+	import webnotes.permissions
+	webnotes.permissions.check_admin_or_system_manager()
 	all_doctypes = all_doctypes=="Yes"
 	if not parent_doctype:
 		parent_doctype = doctype
@@ -217,8 +218,9 @@ def get_template(doctype=None, parent_doctype=None, all_doctypes="No", with_data
 @webnotes.whitelist()
 def upload(rows = None, submit_after_import=None, ignore_encoding_errors=False, overwrite=False, ignore_links=False):
 	"""upload data"""
+	import webnotes.permissions
 	webnotes.flags.mute_emails = True
-	webnotes.check_admin_or_system_manager()
+	webnotes.permissions.check_admin_or_system_manager()
 	# extra input params
 	params = json.loads(webnotes.form_dict.get("params") or '{}')
 	

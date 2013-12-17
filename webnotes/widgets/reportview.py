@@ -187,6 +187,7 @@ def build_filter_conditions(filters, conditions):
 					
 def build_match_conditions(doctype, fields=None, as_condition=True):
 	"""add match conditions if applicable"""
+	import webnotes.permissions
 	match_filters = {}
 	match_conditions = []
 
@@ -215,7 +216,7 @@ def build_match_conditions(doctype, fields=None, as_condition=True):
 				
 	# add owner match
 	owner_match = True
-	for p in webnotes.get_user_perms(webnotes.local.reportview_doctypes[doctype], "read"):
+	for p in webnotes.permissions.get_user_perms(webnotes.local.reportview_doctypes[doctype], "read"):
 		if not (p.match and p.match=="owner"):
 			owner_match = False
 			break

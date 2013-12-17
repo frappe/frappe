@@ -38,7 +38,10 @@ class TestBlogPost(unittest.TestCase):
 		webnotes.clear_cache(doctype="Blog Post")
 		
 		profile = webnotes.bean("Profile", "test1@example.com")
-		profile.get_controller().add_roles(["Website Manager"])
+		profile.get_controller().add_roles("Website Manager")
+		
+		profile = webnotes.bean("Profile", "test2@example.com")
+		profile.get_controller().add_roles("Blogger")
 		
 		webnotes.set_user("test1@example.com")
 		
@@ -86,7 +89,6 @@ class TestBlogPost(unittest.TestCase):
 		post1 = webnotes.bean("Blog Post", "_test-blog-post-1")
 		self.assertFalse(post1.has_read_perm())
 		
-		
 	def test_owner_match_report(self):
 		webnotes.conn.sql("""update tabDocPerm set `match`='owner' where parent='Blog Post' 
 			and ifnull(permlevel,0)=0""")
@@ -95,7 +97,34 @@ class TestBlogPost(unittest.TestCase):
 		names = [d.name for d in webnotes.get_list("Blog Post", fields=["name", "owner"])]
 		self.assertTrue("_test-blog-post" in names)
 		self.assertFalse("_test-blog-post-1" in names)
-
 		
-	
+	def test_restrict(self):
+		from core.page.user_properties.user_properties import add, remove, get_properties
+		
+		# restrictor can add restriction
+		webnotes.set_user("test1@example.com")
+		add("test2@example.com", "Blog Post", "_test-blog-post")
+		defname = get_properties("test2@example.com", "Blog Post", "_test-blog-post")[0].name
+		
+		webnotes.set_user("test2@example.com")
+		
+		# this user can't add restriction
+		self.assertRaises(webnotes.PermissionError, add, 
+			"test2@example.com", "Blog Post", "_test-blog-post")
+		
+		# user can only access restricted blog post
+		bean = webnotes.bean("Blog Post", "_test-blog-post")
+		self.assertTrue(bean.has_read_perm())
+
+		# and not this one
+		bean = webnotes.bean("Blog Post", "_test-blog-post-1")
+		self.assertFalse(bean.has_read_perm())
+		
+		# user cannot remove their own restriction
+		self.assertRaises(webnotes.PermissionError, remove, 
+			"test2@example.com", defname, "Blog Post", "_test-blog-post")
+		
+		# but restrictor can
+		webnotes.set_user("test1@example.com")
+		remove("test2@example.com", defname, "Blog Post", "_test-blog-post")
 		

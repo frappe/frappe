@@ -22,6 +22,11 @@ class Profile:
 		self.can_cancel = []
 		self.can_search = []
 		self.can_get_report = []
+		self.can_import = []
+		self.can_export = []
+		self.can_print = []
+		self.can_email = []
+		self.can_restrict = []
 		self.allow_modules = []
 		self.in_create = []
 
@@ -43,7 +48,8 @@ class Profile:
 		"""build map of permissions at level 0"""
 		
 		self.perm_map = {}
-		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`, `report` 
+		for r in webnotes.conn.sql("""select parent, `read`, `write`, `create`, `submit`, `cancel`,
+			`report`, `import`, `export`, `print`, `email`, `restrict`
 			from tabDocPerm where docstatus=0 
 			and ifnull(permlevel,0)=0
 			and parent not like "old_parent:%%" 
@@ -54,7 +60,8 @@ class Profile:
 			if not dt in  self.perm_map:
 				self.perm_map[dt] = {}
 				
-			for k in ('read', 'write', 'create', 'submit', 'cancel', 'report'):
+			for k in ('read', 'write', 'create', 'submit', 'cancel', 'report'
+				'import', 'export', 'print', 'email', 'restrict'):
 				if not self.perm_map[dt].get(k):
 					self.perm_map[dt][k] = r.get(k)
 						
@@ -91,6 +98,10 @@ class Profile:
 			if (p.get('read') or p.get('write') or p.get('create')):
 				if p.get('report'):
 					self.can_get_report.append(dt)
+				for key in ("import", "export", "print", "email", "restrict"):
+					if p.get(key):
+						getattr(self, "can_" + key).append(dt)
+					
 				if not dtp.get('istable'):
 					if not dtp.get('issingle') and not dtp.get('read_only'):
 						self.can_search.append(dt)
@@ -144,15 +155,13 @@ class Profile:
 				
 		d['roles'] = self.get_roles()
 		d['defaults'] = self.get_defaults()
-		d['can_create'] = self.can_create
-		d['can_write'] = self.can_write
-		d['can_read'] = list(set(self.can_read))
-		d['can_cancel'] = list(set(self.can_cancel))
-		d['can_get_report'] = list(set(self.can_get_report))
-		d['allow_modules'] = self.allow_modules
-		d['all_read'] = self.all_read
-		d['can_search'] = list(set(self.can_search))
-		d['in_create'] = self.in_create
+		
+		for key in ("can_create", "can_write", "can_read", "can_cancel",
+			"can_get_report", "allow_modules", "all_read", "can_search",
+			"in_create", "can_export", "can_import", "can_print", "can_email",
+			"can_restrict"):
+			
+			d[key] = list(set(getattr(self, key)))
 		
 		return d
 		

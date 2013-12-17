@@ -120,29 +120,49 @@ $.extend(wn.model, {
 	},
 
 	can_create: function(doctype) {
-		return wn.boot.profile.can_create.indexOf(doctype)!=-1;
+		return wn.boot.profile.can_create.indexOf(doctype)!==-1;
 	},
 	
 	can_read: function(doctype) {
-		return wn.boot.profile.can_read.indexOf(doctype)!=-1;
+		return wn.boot.profile.can_read.indexOf(doctype)!==-1;
 	},
 
 	can_write: function(doctype) {
-		return wn.boot.profile.can_write.indexOf(doctype)!=-1;
+		return wn.boot.profile.can_write.indexOf(doctype)!==-1;
 	},
 
 	can_get_report: function(doctype) {
-		return wn.boot.profile.can_get_report.indexOf(doctype)!=-1;
+		return wn.boot.profile.can_get_report.indexOf(doctype)!==-1;
 	},
 	
 	can_delete: function(doctype) {
 		if(!doctype) return false;
-		return wn.boot.profile.can_cancel.indexOf(doctype)!=-1;
+		return wn.boot.profile.can_cancel.indexOf(doctype)!==-1;
 	},
 	
 	is_submittable: function(doctype) {
 		if(!doctype) return false;
 		return locals.DocType[doctype] && locals.DocType[doctype].is_submittable;
+	},
+	
+	can_import: function(doctype) {
+		return wn.boot.profile.can_import.indexOf(doctype)!==-1;
+	},
+	
+	can_export: function(doctype) {
+		return wn.boot.profile.can_export.indexOf(doctype)!==-1;
+	},
+	
+	can_print: function(doctype) {
+		return wn.boot.profile.can_print.indexOf(doctype)!==-1;
+	},
+	
+	can_email: function(doctype) {
+		return wn.boot.profile.can_email.indexOf(doctype)!==-1;
+	},
+	
+	can_restrict: function(doctype) {
+		return wn.boot.profile.can_restrict.indexOf(doctype)!==-1;
 	},
 	
 	has_value: function(dt, dn, fn) {

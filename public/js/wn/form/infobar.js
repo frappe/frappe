@@ -35,7 +35,7 @@ wn.ui.form.InfoBar = Class.extend({
 				function() { me.frm.toolbar.show_linked_with(); });
 		
 		// link to user restrictions
-		if(wn.user.can_restrict()) {
+		if(wn.model.can_restrict(me.frm.doctype)) {
 			this.$user_properties = this.appframe.add_icon_btn("2", "icon-shield", 
 				wn._("User Permission Restrictions"), function() {
 					wn.route_options = {
