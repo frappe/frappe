@@ -275,12 +275,17 @@ wn.ui.AppFrame = Class.extend({
 			.appendTo(this.parent.find(".appframe-form .container"))
 			.find("input");
 	},
+	add_break: function() {
+		// add further fields in the next line
+		this.parent.find(".appframe-form .container")
+			.append('<div class="clearfix invisible-xs"></div>');
+	},
 	add_field: function(df) {
 		this.show_form();
 		var f = wn.ui.form.make_control({
 			df: df,
 			parent: this.parent.find(".appframe-form .container"),
-			only_input: true,
+			only_input: df.fieldtype=="Check" ? false : true,
 		})
 		f.refresh();
 		$(f.wrapper)
@@ -292,6 +297,12 @@ wn.ui.AppFrame = Class.extend({
 			})
 			.attr("title", wn._(df.label)).tooltip();
 		f.$input.attr("placeholder", wn._(df.label));
+		
+		if(df.fieldtype==="Check") {
+			$(f.wrapper).find(":first-child")
+				.removeClass("col-md-offset-4 col-md-8");
+		}
+		
 		if(df["default"])
 			f.set_input(df["default"])
 		this.fields_dict[df.fieldname || df.label] = f;

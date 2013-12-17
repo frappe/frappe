@@ -111,14 +111,18 @@ wn.views.QueryReport = Class.extend({
 		this.clear_filters();
 		var me = this;
 		$.each(wn.query_reports[this.report_name].filters || [], function(i, df) {
-			var f = me.appframe.add_field(df);
-			$(f.wrapper).addClass("filters pull-left");
-			me.filters.push(f);
-			if(df["default"]) {
-				f.set_input(df["default"]);
-			}
+			if(df.fieldtype==="Break") {
+				me.appframe.add_break();
+			} else {
+				var f = me.appframe.add_field(df);
+				$(f.wrapper).addClass("filters pull-left");
+				me.filters.push(f);
+				if(df["default"]) {
+					f.set_input(df["default"]);
+				}
 			
-			if(df.get_query) f.get_query = df.get_query;
+				if(df.get_query) f.get_query = df.get_query;
+			}
 		});
 		this.set_filters_by_name();
 	},
