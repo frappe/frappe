@@ -62,6 +62,11 @@ def save(doclist):
 	return [d.fields for d in doclist]
 
 @webnotes.whitelist()
+def rename_doc(doctype, old_name, new_name):
+	new_name = webnotes.rename_doc(doctype, old_name, new_name)
+	return new_name
+
+@webnotes.whitelist()
 def submit(doclist):
 	if isinstance(doclist, basestring):
 		doclist = json.loads(doclist)
