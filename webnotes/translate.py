@@ -43,13 +43,8 @@ def translate(lang=None):
 	os.remove('_lang_tmp.csv')
 
 def get_all_languages():
-	try:
-		return [f[:-4] for f in os.listdir("app/translations") if f.endswith(".csv")]
-	except OSError, e:
-		if e.args[0]==2:
-			return []
-		else:
-			raise
+	languages = [a.split()[0] for a in \
+		webnotes.get_file_items(os.path.join(webnotes.local.sites_path, "languages.txt"))]
 
 def get_lang_dict():
 	languages_path = os.path.join(os.path.dirname(webnotes.__file__), "data", "languages.json")
@@ -94,12 +89,10 @@ def build_message_files():
 	if not webnotes.conn:
 		webnotes.connect()
 		
-	build_for_pages('lib/core')
-	build_for_pages('app')
-
-	build_from_doctype_code('lib/core')
-	build_from_doctype_code('app')
-
+	for app in webnotes.get_all_apps(True):
+		build_for_pages(webnotes.get_pymodule_path(app))
+		build_from_doctype_code(webnotes.get_pymodule_path(app))
+		
 	#reports
 	build_from_query_report()
 	

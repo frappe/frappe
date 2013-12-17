@@ -18,7 +18,7 @@ setup(
     install_requires=install_requires,
         entry_points= {
                 'console_scripts':[
-                        'webnotes = webnotes.wnf:main'
+                        'webnotes = webnotes.cli:main'
                         ]
                 }
 )

@@ -16,7 +16,8 @@ from webnotes.model.sync import sync_for
 from webnotes.utils import cstr
 
 def install_db(root_login="root", root_password=None, db_name=None, source_sql=None,
-	 admin_password = 'admin', verbose=0, force=0, site_config=None):
+	admin_password = 'admin', verbose=True, force=0, site_config=None):
+	webnotes.flags.in_install_db = True
 	make_conf(db_name, site_config=site_config)
 	webnotes.local.conn = make_connection(root_login, root_password)
 	webnotes.local.session = webnotes._dict({'user':'Administrator'})
@@ -27,6 +28,7 @@ def install_db(root_login="root", root_password=None, db_name=None, source_sql=N
 	import_db_from_sql(source_sql, verbose)
 	
 	create_auth_table()
+	webnotes.flags.in_install_db = False
 
 def create_database_and_user(force, verbose):
 	db_name = webnotes.conf.db_name
@@ -73,6 +75,7 @@ def make_connection(root_login, root_password):
 	return webnotes.db.Database(user=root_login, password=root_password)
 
 def install_app(name, verbose=False):
+	webnotes.flags.in_install_app = True
 	webnotes.clear_cache()
 	manage = webnotes.get_module(name + ".manage") 
 	if hasattr(manage, "before_install"):
@@ -87,12 +90,14 @@ def install_app(name, verbose=False):
 	installed_apps = json.loads(webnotes.conn.get_global("installed_apps") or "[]") or []
 	installed_apps.append(name)
 	webnotes.conn.set_global("installed_apps", json.dumps(installed_apps))
+	webnotes.clear_cache()
 	webnotes.conn.commit()
-
+	
 	from webnotes.website.doctype.website_sitemap_config.website_sitemap_config import rebuild_website_sitemap_config
 	rebuild_website_sitemap_config()
 
 	webnotes.clear_cache()
+	webnotes.flags.in_install_app = False
 	
 
 def set_all_patches_as_completed(app):
@@ -112,6 +117,7 @@ def make_conf(db_name=None, db_password=None, site_config=None):
 	webnotes.init(site)
 
 def make_site_config(db_name=None, db_password=None, site_config=None):		
+	webnotes.create_folder(os.path.join(webnotes.local.site_path))
 	site_file = os.path.join(webnotes.local.site_path, "site_config.json")
 	
 	if not os.path.exists(site_file):

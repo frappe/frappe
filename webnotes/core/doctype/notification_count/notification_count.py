@@ -50,6 +50,7 @@ def get_notifications():
 	}
 
 def delete_notification_count_for(doctype):
+	if webnotes.flags.in_import: return
 	webnotes.conn.sql("""delete from `tabNotification Count` where for_doctype = %s""", doctype)
 
 def delete_event_notification_count():

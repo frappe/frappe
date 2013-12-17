@@ -217,10 +217,14 @@ def is_signup_enabled():
 
 class WebsiteGenerator(object):
 	def setup_generator(self):
+		if webnotes.flags.in_install_app:
+			return
 		self._website_config = webnotes.conn.get_values("Website Sitemap Config", 
 			{"ref_doctype": self.doc.doctype}, "*")[0]
 		
 	def on_update(self, page_name=None):
+		if webnotes.flags.in_install_app:
+			return
 		self.setup_generator()
 		if self._website_config.condition_field:
 			if not self.doc.fields.get(self._website_config.condition_field):

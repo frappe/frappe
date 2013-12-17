@@ -33,7 +33,7 @@ class DocType:
 def rebuild_website_sitemap_config():
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap Config`""")
 	webnotes.conn.sql("""delete from `tabWebsite Sitemap`""")
-	for app in webnotes.get_app_list(True):
+	for app in webnotes.get_installed_apps():
 		build_website_sitemap_config(app)
 
 def build_website_sitemap_config(app):		

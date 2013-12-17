@@ -243,3 +243,26 @@ CREATE TABLE `tabFile Data` (
   KEY `attached_to_name` (`attached_to_name`),
   KEY `attached_to_doctype` (`attached_to_doctype`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
+
+--
+-- Table structure for table `tabDefaultValue`
+--
+
+DROP TABLE IF EXISTS `tabDefaultValue`;
+CREATE TABLE `tabDefaultValue` (
+  `name` varchar(120) NOT NULL,
+  `creation` datetime DEFAULT NULL,
+  `modified` datetime DEFAULT NULL,
+  `modified_by` varchar(40) DEFAULT NULL,
+  `owner` varchar(40) DEFAULT NULL,
+  `docstatus` int(1) DEFAULT '0',
+  `parent` varchar(120) DEFAULT NULL,
+  `parentfield` varchar(120) DEFAULT NULL,
+  `parenttype` varchar(120) DEFAULT NULL,
+  `idx` int(8) DEFAULT NULL,
+  `defvalue` text,
+  `defkey` varchar(180) DEFAULT NULL,
+  PRIMARY KEY (`name`),
+  KEY `parent` (`parent`),
+  KEY `defaultvalue_parent_defkey_index` (`parent`,`defkey`)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8;

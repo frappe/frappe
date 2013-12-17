@@ -211,7 +211,7 @@ def setup_translation(parser):
 
 # install
 @cmd
-def install(root_login="root", root_password=None, db_name=None, source_sql=None,
+def install(db_name, root_login="root", root_password=None, source_sql=None,
 	 admin_password = 'admin', verbose=True, force=False, site_config=None):
 	from webnotes.installer import install_db, install_app
 	install_db(root_login=root_login, root_password=root_password, db_name=db_name, source_sql=source_sql,
@@ -220,10 +220,10 @@ def install(root_login="root", root_password=None, db_name=None, source_sql=None
 	webnotes.destroy()
 
 @cmd
-def install_app(app):
+def install_app(app_name, verbose=False):
 	from webnotes.installer import install_app
 	webnotes.connect()
-	install_app(app, verbose=True)
+	install_app(app_name, verbose=verbose)
 	webnotes.destroy()
 
 @cmd

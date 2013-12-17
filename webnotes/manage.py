@@ -11,6 +11,9 @@ def get_hooks():
 	}
 
 def after_install():
+	# reset installed apps for re-install
+	webnotes.conn.set_global("installed_apps", "[]")
+	
 	# core users / roles
 	install_docs = [
 		{'doctype':'Profile', 'name':'Administrator', 'first_name':'Administrator', 

@@ -42,7 +42,7 @@ def make_site_public_dirs():
 			os.makedirs(dir_path)
 	
 	# symlink app/public > assets/app
-	for app_name in webnotes.get_app_list(True):
+	for app_name in webnotes.get_all_apps(True):
 		pymodule = webnotes.get_module(app_name)
 		source = os.path.join(os.path.abspath(os.path.dirname(pymodule.__file__)), 'public')
 		target = os.path.join(assets_path, app_name)
@@ -82,7 +82,7 @@ def build(no_compress=False):
 def get_build_maps():
 	"""get all build.jsons with absolute paths"""
 	# framework js and css files
-	pymodules = [webnotes.get_module(app) for app in webnotes.get_app_list(True)]
+	pymodules = [webnotes.get_module(app) for app in webnotes.get_all_apps(True)]
 	app_paths = [os.path.dirname(pymodule.__file__) for pymodule in pymodules]
 
 	build_maps = {}

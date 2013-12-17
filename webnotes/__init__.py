@@ -98,6 +98,8 @@ def init(site, sites_path=None):
 	local.initialised = True
 	local.flags = _dict({})
 	local.rollback_observers = []
+	local.module_app = None
+	local.app_modules = None
 
 	setup_module_map()
 
@@ -415,13 +417,15 @@ def get_pymodule_path(modulename, *joins):
 def get_module_list(app_name):
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
 
-def get_app_list(with_webnotes=False):
+def get_all_apps(with_webnotes=False):
 	apps = get_file_items(os.path.join(local.sites_path, "apps.txt"))
 	if with_webnotes:
 		apps.insert(0, 'webnotes')
 	return apps
 
 def get_installed_apps():
+	if flags.in_install_db:
+		return []
 	def load_installed_apps():
 		return json.loads(conn.get_global("installed_apps") or "[]")
 	return cache().get_value("installed_apps", load_installed_apps)
@@ -440,19 +444,22 @@ def get_hooks():
 
 def setup_module_map():
 	_cache = cache()
-	local.app_modules = _cache.get_value("app_modules")
-	local.module_app = _cache.get_value("module_app")
+	
+	if conf.db_name:
+		local.app_modules = _cache.get_value("app_modules")
+		local.module_app = _cache.get_value("module_app")
 	
 	if not local.app_modules:
 		local.module_app, local.app_modules = {}, {}
-		for app in get_app_list(True):
+		for app in get_all_apps(True):
 			for module in get_module_list(app):
 				local.module_app[module] = app
 				local.app_modules.setdefault(app, [])
 				local.app_modules[app].append(module)
-				
-		_cache.set_value("app_modules", local.app_modules)
-		_cache.set_value("module_app", local.module_app)
+	
+		if conf.db_name:
+			_cache.set_value("app_modules", local.app_modules)
+			_cache.set_value("module_app", local.module_app)
 		
 def get_file_items(path):
 	if os.path.exists(path):
@@ -546,7 +553,7 @@ def get_jenv():
 
 		# webnotes will be loaded last, so app templates will get precedence
 		jenv = Environment(loader = ChoiceLoader([PackageLoader(app, ".") \
-			for app in get_app_list() + ["webnotes"]]))
+			for app in get_all_apps() + ["webnotes"]]))
 
 		jenv.filters["global_date_format"] = global_date_format
 		jenv.filters["markdown"] = markdown
