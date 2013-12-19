@@ -39,11 +39,18 @@ def __getattr__(self, key):
 	
 def _(msg):
 	"""translate object in current lang, if exists"""
-	if hasattr(local, 'translations'):
-		return local.translations.get(lang, {}).get(msg, msg)
-	
-	return msg
+	if local.lang == "en":
+		return msg
 
+	from webnotes.translate import get_full_dict
+	return get_full_dict(local.lang).get(msg, msg)
+
+def get_lang_dict(fortype, name=None):
+	if local.lang=="en":
+		return {}
+	from webnotes.translate import get_dict
+	return get_dict(fortype, name)
+	
 def set_user_lang(user, user_language=None):
 	from webnotes.translate import get_lang_dict
 		
@@ -54,11 +61,6 @@ def set_user_lang(user, user_language=None):
 		lang_dict = get_lang_dict()
 		if user_language in lang_dict:
 			local.lang = lang_dict[user_language]
-
-def load_translations(module, doctype, name):
-	from webnotes.translate import load_doc_messages
-	load_doc_messages(module, doctype, name)
-
 
 # local-globals
 conn = local("conn")
@@ -197,7 +199,7 @@ def connect(site=None, db_name=None):
 	from db import Database
 	if site:
 		init(site)
-	local.conn = Database(user=db_name)
+	local.conn = Database(user=db_name or local.conf.db_name)
 	local.response = _dict()
 	local.form_dict = _dict()
 	local.session = _dict()
@@ -407,12 +409,13 @@ def get_module(modulename):
 def scrub(txt):
 	return txt.replace(' ','_').replace('-', '_').replace('/', '_').lower()
 
-def get_module_path(module):
+def get_module_path(module, *joins):
 	module = scrub(module)
-	return get_pymodule_path(local.module_app[module] + "." + module)
-
+	return get_pymodule_path(local.module_app[module] + "." + module, *joins)
+	
 def get_pymodule_path(modulename, *joins):
-	return os.path.join(os.path.dirname(get_module(modulename).__file__), *joins)
+	joins = [scrub(part) for part in joins]
+	return os.path.join(os.path.dirname(get_module(scrub(modulename)).__file__), *joins)
 	
 def get_module_list(app_name):
 	return get_file_items(os.path.join(os.path.dirname(get_module(app_name).__file__), "modules.txt"))
@@ -430,17 +433,19 @@ def get_installed_apps():
 		return json.loads(conn.get_global("installed_apps") or "[]")
 	return cache().get_value("installed_apps", load_installed_apps)
 
-def get_hooks():
-	def load_app_hooks():
+def get_hooks(app_name=None):
+	def load_app_hooks(app_name=None):
 		hooks = {}
-		for app in get_installed_apps():
+		for app in [app_name] if app_name else get_installed_apps():
 			for item in get_file_items(get_pymodule_path(app, "hooks.txt")):
 				key, value = item.split(None, 1)
 				hooks.setdefault(key, [])
 				hooks[key].append(value)
 		return hooks
-			
-	return _dict(cache().get_value("app_hooks", load_app_hooks))
+	if app_name:
+		return _dict(load_app_hooks(app_name=None))
+	else:
+		return _dict(cache().get_value("app_hooks", load_app_hooks))
 
 def setup_module_map():
 	_cache = cache()
@@ -464,7 +469,8 @@ def setup_module_map():
 def get_file_items(path):
 	if os.path.exists(path):
 		with open(path, "r") as f: 
-			return [p.strip() for p in f.read().split("\n") if p.strip() and not p.startswith("#")]
+			content = unicode(f.read(), encoding="utf-8")
+		return [p.strip() for p in content.splitlines() if p.strip() and not p.startswith("#")]
 	else: 
 		return []
 

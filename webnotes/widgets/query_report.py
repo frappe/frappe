@@ -34,10 +34,7 @@ def get_script(report_name):
 		
 	# load translations
 	if webnotes.lang != "en":
-		from webnotes.translate import get_lang_data
-		if os.path.exists(report_folder):
-			messages = get_lang_data(report_folder, webnotes.lang, 'js')
-			webnotes.response["__messages"] = messages
+		webnotes.response["__messages"] = webnotes.get_lang_dict("report", report_name)
 		
 	return script
 

@@ -3,6 +3,7 @@
 
 from __future__ import unicode_literals
 import webnotes
+from webnotes import _
 from webnotes.widgets.reportview import execute as runreport
 from webnotes.utils import getdate
 
@@ -16,8 +17,9 @@ def execute(filters=None):
 	todo_list.sort(key=lambda todo: (priority_map.get(todo.priority, 0), 
 		todo.date and getdate(todo.date) or getdate("1900-01-01")), reverse=True)
 		
-	columns = ["ID:Link/ToDo:90", "Priority::60", "Date:Date", "Description::150",
-		"Assigned To/Owner:Link/Profile:120", "Assigned By:Link/Profile:120", "Reference::200"]
+	columns = [_("ID")+":Link/ToDo:90", _("Priority")+"::60", _("Date")+ ":Date", 
+		_("Description")+"::150", _("Assigned To/Owner") + ":Link/Profile:120", 
+		_("Assigned By")+":Link/Profile:120", _("Reference")+"::200"]
 
 	result = []
 	for todo in todo_list:

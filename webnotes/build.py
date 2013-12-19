@@ -15,7 +15,6 @@ def bundle(no_compress):
 	"""concat / minify js files"""
 	# build js files
 	make_site_public_dirs()
-	check_lang()
 	build(no_compress)
 	
 def watch(no_compress):
@@ -55,11 +54,7 @@ def make_site_public_dirs():
 	if not os.path.exists(site_public_assets):
 		os.symlink(os.path.abspath(assets_path), site_public_assets)
 	
-			
-def check_lang():
-	from webnotes.translate import update_translations
-	update_translations()
-	
+				
 def clear_pyc_files():
 	from webnotes.utils import get_base_path
 	for path, folders, files in os.walk(get_base_path()):

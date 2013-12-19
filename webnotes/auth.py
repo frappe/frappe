@@ -55,8 +55,7 @@ class HTTPRequest:
 
 	def set_lang(self, lang):
 		import translate
-		lang_list = translate.get_lang_dict()
-		lang_list = lang_list and lang_list.values() or []
+		lang_list = translate.get_all_languages() or []
 
 		if not lang: 
 			return

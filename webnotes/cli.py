@@ -193,19 +193,12 @@ def setup_utilities(parser):
 		
 def setup_translation(parser):
 	parser.add_argument("--build_message_files", default=False, action="store_true",
-		help="Build message files for translation")
-	parser.add_argument("--export_messages", nargs=2, metavar=("LANG-CODE", "FILENAME"),
-		help="""Export all messages for a language to translation in a csv file. 
-			Example, lib/wnf.py --export_messages hi hindi.csv""")
-	parser.add_argument("--import_messages", nargs=2, metavar=("LANG-CODE", "FILENAME"),
-		help="""Import messages for a language and make language files. 
-			Example, lib/wnf.py --import_messages hi hindi.csv""")
-	parser.add_argument("--google_translate", nargs=3, 
-		metavar=("LANG-CODE", "INFILE", "OUTFILE"),
-		help="Auto translate using Google Translate API")
-	parser.add_argument("--translate", nargs=1, metavar="LANG-CODE",
-		help="""Rebuild translation for the given langauge and 
-			use Google Translate to tranlate untranslated messages. use "all" """)
+		help="Build message files for translation.")
+	parser.add_argument("--get_untranslated", nargs=2, metavar=("LANG-CODE", "TARGET-FILE-PATH"),
+		help="""Get untranslated strings for lang.""")
+	parser.add_argument("--update_translations", nargs=3, 
+		metavar=("LANG-CODE", "UNTRANSLATED-FILE-PATH", "TRANSLATED-FILE-PATH"),
+		help="""Update translated strings.""")
 
 # methods
 
@@ -493,35 +486,21 @@ def import_doclist(path, force=False):
 def build_message_files():
 	import webnotes.translate
 	webnotes.connect()
-	webnotes.translate.build_message_files()
+	webnotes.translate.rebuild_all_translation_files()
 	webnotes.destroy()
 
 @cmd
-def export_messages(lang, outfile):
+def get_untranslated(lang, untranslated_file):
 	import webnotes.translate
 	webnotes.connect()
-	webnotes.translate.export_messages(lang, outfile)
+	webnotes.translate.get_untranslated(lang, untranslated_file)
 	webnotes.destroy()
 
 @cmd
-def import_messages(lang, infile):
+def update_translations(lang, untranslated_file, translated_file):
 	import webnotes.translate
 	webnotes.connect()
-	webnotes.translate.import_messages(lang, infile)
-	webnotes.destroy()
-	
-@cmd
-def google_translate(lang, infile, outfile):
-	import webnotes.translate
-	webnotes.connect()
-	webnotes.translate.google_translate(lang, infile, outfile)
-	webnotes.destroy()
-
-@cmd
-def translate(lang):
-	import webnotes.translate
-	webnotes.connect()
-	webnotes.translate.translate(lang)
+	webnotes.translate.update_translations(lang, untranslated_file, translated_file)
 	webnotes.destroy()
 
 # git

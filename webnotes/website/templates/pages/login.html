@@ -19,7 +19,7 @@
 </style>
 {% endblock %}
 
-{% set title="Login" %}
+{% set title=_("Login") %}
 
 {% block content %}
 
@@ -32,7 +32,7 @@
 		<div class="col-sm-offset-1 col-sm-10">
 			<div class="panel panel-default">
 				<div class="panel-heading">
-					<h4><i class="icon-lock"></i> Login</h4>
+					<h4><i class="icon-lock"></i> {{ _("Login") }}</h4>
 				</div>
 				<div class="panel-body row" style="padding: 30px">
 					<div class="col-sm-6 login-wrapper">
@@ -52,7 +52,7 @@
 						</div>
 						<div class="form-group">
 							<button type="submit" id="login_btn" 
-								class="btn btn-primary">Login</button>
+								class="btn btn-primary">{{ _("Login") }}</button>
 							<img src="images/ui/button-load.gif" id="login-spinner" style="display: 								none;">
 						</div>
 						<p id="forgot-link"></p>

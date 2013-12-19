@@ -337,30 +337,7 @@ def add_search_fields(doclist):
 def update_language(doclist):
 	"""update language"""
 	if webnotes.lang != 'en':
-		from webnotes.modules import get_doc_path
-		if not hasattr(webnotes.local, 'translations'):
-			webnotes.local.translations = {}
-		translations = webnotes.local.translations
-
-		# load languages for each doctype
-		from webnotes.translate import get_lang_data
-		_messages = {}
-
-		for d in doclist:
-			if d.doctype=='DocType':
-				_messages.update(get_lang_data(get_doc_path(d.module, d.doctype, d.name), 
-					webnotes.lang, 'doc'))
-				_messages.update(get_lang_data(get_doc_path(d.module, d.doctype, d.name), 
-					webnotes.lang, 'js'))
-
-		doc = doclist[0]
-
-		# attach translations to client
-		doc.fields["__messages"] = _messages
-		
-		if not webnotes.lang in translations:
-			translations[webnotes.lang] = webnotes._dict({})
-		translations[webnotes.lang].update(_messages)
+		doclist[0].fields["__messages"] = webnotes.get_lang_dict("doctype", doclist[0].name)
 
 class DocTypeDocList(webnotes.model.doclist.DocList):
 	def get_field(self, fieldname, parent=None, parentfield=None):

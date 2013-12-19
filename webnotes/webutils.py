@@ -108,6 +108,7 @@ def build_page(page_name):
 	context["base_template"] = jenv.get_template("portal/templates/base.html")
 	
 	template_name = page_options['template_path']	
+	context["_"] = webnotes._
 	html = jenv.get_template(template_name).render(context)
 	
 	if not no_cache:

@@ -85,5 +85,5 @@ class DocType:
 				self.doc.content = f.read()
 				
 		if webnotes.lang != 'en':
-			from webnotes.translate import update_lang_js
-			self.doc.script = update_lang_js(self.doc.script, path)
+			from webnotes.translate import get_lang_js
+			self.doc.script += get_lang_js("page", self.doc.name)

@@ -37,7 +37,6 @@ def send_event_digest():
 		if events:
 			text = ""
 			webnotes.set_user_lang(user.name, user.language)
-			webnotes.load_translations("core", "doctype", "event")
 
 			text = "<h3>" + webnotes._("Events In Today's Calendar") + "</h3>"
 			for e in events:

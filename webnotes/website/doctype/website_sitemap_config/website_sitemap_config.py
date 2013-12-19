@@ -66,7 +66,7 @@ def add_website_sitemap_config(page_or_generator, app, path, fname, basepath):
 		"link_name": name,
 		"template_path": os.path.relpath(os.path.join(path, fname), basepath),
 	})
-	
+		
 	controller_name = fname.split(".")[0].replace("-", "_") + ".py"
 	controller_path = os.path.join(path, controller_name)
 	if os.path.exists(controller_path):
